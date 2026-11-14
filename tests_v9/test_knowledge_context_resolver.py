@@ -253,3 +253,39 @@ def test_the_live_registry_loads_and_matches_the_declared_contract():
         assert req.key in sources, f"مفتاحٌ مُعلَنٌ غير مُسجَّل: {req.key}"
         assert sources[req.key].source_of_truth == req.source_of_truth
         assert req.fail_closed, f"{req.key}: متطلَّبٌ حاجبٌ بالعقد"
+
+
+def test_a_future_dated_canonical_value_is_blocked():
+    """A negative age cannot certify an observation as fresh."""
+    now = datetime(2026, 11, 14, 18, 0, tzinfo=UTC)
+    future = (now + timedelta(minutes=5)).isoformat()
+    ctx = _resolver(lambda req: _value(observed_at=future)).resolve(
+        _contract(max_age_seconds=3600), now_epoch=now.timestamp()
+    )
+    assert not ctx.satisfied
+    assert any("FUTURE_OBSERVATION" in reason for reason in ctx.blocking_reasons)
+    assert _KEY not in ctx.values
+
+
+def test_optional_future_dated_value_reports_limitation_without_exposing_data():
+    """An optional non-blocking value may limit, but must never be consumed."""
+    now = datetime(2026, 11, 14, 18, 0, tzinfo=UTC)
+    future = (now + timedelta(seconds=1)).isoformat()
+    ctx = _resolver(lambda req: _value(observed_at=future)).resolve(
+        _contract(required=False, fail_closed=False, max_age_seconds=3600),
+        now_epoch=now.timestamp(),
+    )
+    assert ctx.satisfied
+    assert any("FUTURE_OBSERVATION" in reason for reason in ctx.limitations)
+    assert _KEY not in ctx.values
+
+
+def test_nonfinite_certification_clock_blocks_freshness():
+    """An invalid validation clock cannot authorize a decision."""
+    now = datetime(2026, 11, 14, 18, 0, tzinfo=UTC)
+    ctx = _resolver(lambda req: _value(observed_at=now.isoformat())).resolve(
+        _contract(max_age_seconds=3600), now_epoch=float("nan")
+    )
+    assert not ctx.satisfied
+    assert any("FRESHNESS_UNMEASURABLE" in reason for reason in ctx.blocking_reasons)
+    assert _KEY not in ctx.values
