@@ -6,8 +6,8 @@
 ## Inventory summary
 
 - Services discovered: **33**
-- Python LOC discovered: **329,952**
-- Routes discovered: **1137**
+- Python LOC discovered: **334,073**
+- Routes discovered: **1158**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
 
@@ -40,7 +40,7 @@
 | `remote-sensing-workspace-bff` | Unclassified / Support | 2 | 480 | 1 | 3 | `services/remote-sensing-workspace-bff/main.py` | `services/remote-sensing-workspace-bff/Dockerfile` | `services/remote-sensing-workspace-bff/requirements.txt` | `normal` |
 | `sahool-platform` | Core Field Platform | 1212 | 192001 | 528 | 637 | `services/sahool-platform/api/main.py` | `services/sahool-platform/Dockerfile` | `-` | `critical-core-concentration` |
 | `sam2-inference` | Field Boundary AI | 4 | 1620 | 1 | 4 | `services/sam2-inference/main.py` | `services/sam2-inference/Dockerfile` | `services/sam2-inference/requirements.txt` | `normal` |
-| `scout-ingest-service` | Unclassified / Support | 9 | 3078 | 4 | 24 | `services/scout-ingest-service/main.py` | `services/scout-ingest-service/Dockerfile` | `services/scout-ingest-service/requirements.txt` | `normal` |
+| `scout-ingest-service` | Unclassified / Support | 19 | 7199 | 5 | 45 | `services/scout-ingest-service/main.py` | `services/scout-ingest-service/Dockerfile` | `services/scout-ingest-service/requirements.txt` | `normal` |
 | `soil-service` | Soil Intelligence | 58 | 7273 | 22 | 60 | `services/soil-service/main.py` | `services/soil-service/Dockerfile` | `services/soil-service/requirements.txt` | `normal` |
 | `supervisor-agent` | Agent Orchestration | 23 | 3849 | 8 | 11 | `services/supervisor-agent/main.py` | `services/supervisor-agent/Dockerfile` | `services/supervisor-agent/requirements.txt` | `normal` |
 | `tts-service` | Voice & Notifications | 10 | 1470 | 1 | 8 | `services/tts-service/main.py` | `services/tts-service/Dockerfile` | `services/tts-service/requirements.txt` | `normal` |
