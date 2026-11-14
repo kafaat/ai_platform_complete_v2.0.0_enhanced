@@ -81,7 +81,9 @@ async def _probe() -> str:
 
 _WHY = asyncio.run(_probe())
 if _WHY and os.getenv("FIELD_TASK_CERTIFICATION_REQUIRED") == "1":
-    raise RuntimeError(f"FIELD_TASK_CERTIFICATION_REQUIRED=1 but the live database is unusable: {_WHY}")
+    raise RuntimeError(
+        f"FIELD_TASK_CERTIFICATION_REQUIRED=1 but the live database is unusable: {_WHY}"
+    )
 pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
 
 
