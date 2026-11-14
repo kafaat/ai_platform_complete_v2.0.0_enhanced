@@ -1532,6 +1532,19 @@ jobs:
           COVERAGE_FILE: .coverage.integration-auth
         run: pytest -v -m integration -rs tests_v9/test_platform_denial_log_scope_live.py --cov=services/sahool-platform/api --cov=services/sahool-platform/core --cov-append --cov-report=
 
+      # Owner decision 2026-11-14: denials persist in audit_log (DenialStore). Two tenants deny,
+      # a new process (restart) reads: each tenant sees only its own, unattributed rows stay
+      # hidden, limit applies after the filter; a DB outage on write still answers 403 and the
+      # read falls back to memory. Restricted role; the admin DSN only reads rows back.
+      - name: Platform denial log persistence (audit_log, restart, outage, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_platform_denial_log_persistent_live_pg.py --cov=services/sahool-platform/api --cov=services/sahool-platform/core --cov-append --cov-report=
+
       # تدقيق 2026-11-02 (تابعُ Q5): `test_services_functional` (soil H5 + guardrails L5) حمل
       # `xfail(strict=False)` بالفجوة المُغلَقة نفسِها، والجولةُ العامّة لا تضبط `DATABASE_URL`
       # فيتخطّى. هنا يُشغَّل بالدور المقيَّد (حارسُ soil يرفض superuser بحقّ)، والعَلَمُ يجعل
