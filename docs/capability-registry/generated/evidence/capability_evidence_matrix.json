@@ -2352,7 +2352,8 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
-        "tests_v9/test_field_geometry_history_append_only_v39_5.py"
+        "tests_v9/test_field_geometry_history_append_only_v39_5.py",
+        "tests_v9/test_field_geometry_save_atomic_live_pg.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -2429,6 +2430,11 @@
         {
           "evidence_type": "integration",
           "path": "tests_v9/test_field_geometry_history_append_only_v39_5.py",
+          "signal": "pytest.mark.integration"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_field_geometry_save_atomic_live_pg.py",
           "signal": "pytest.mark.integration"
         },
         {
@@ -13509,6 +13515,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_canonical_state_observed_at.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_irrigation_recent_rain_and_soil_input_g8_g9.py",
           "signal": "pytest.mark.unit"
         },
@@ -13562,6 +13573,7 @@
       "unit_test_paths": [
         "mobile/sahool_app/test/features/weather/weather_test.dart",
         "services/sahool-platform/tests/test_agronomic_context_composer.py",
+        "services/sahool-platform/tests/test_canonical_state_observed_at.py",
         "services/sahool-platform/tests/test_irrigation_recent_rain_and_soil_input_g8_g9.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "services/weather-service/tests/test_raw_weather_processing.py",
