@@ -402,7 +402,7 @@ def test_outbox_envelope_keeps_correlation_id_from_text_jsonb(monkeypatch):
 
         published: dict[str, dict] = {}
 
-        async def publish(_subject, data):
+        async def publish(_subject, data, msg_id=None):
             env = json.loads(data)
             published[env["event_id"]] = env
 

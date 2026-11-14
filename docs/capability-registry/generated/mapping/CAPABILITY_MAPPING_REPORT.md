@@ -42,7 +42,7 @@
 | GIS-002 | gis | 2 | 4 | 0 | 0 | 4 | 0 | 2 | 4 |
 | GIS-003 | gis | 33 | 100 | 16 | 67 | 13 | 4 | 42 | 7 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
-| INT-001 | farm_management | 0 | 2 | 0 | 0 | 0 | 0 | 1 | 2 |
+| INT-001 | farm_management | 0 | 3 | 0 | 0 | 0 | 0 | 1 | 2 |
 | INT-002 | farm_management | 7 | 15 | 2 | 100 | 0 | 0 | 22 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
