@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 752,
+      "evidence_count": 753,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -781,6 +781,7 @@
         "shared/knowledge/providers.py",
         "shared/mlops/agronomic_candidate.py",
         "shared/mlops/runtime.py",
+        "shared/observation_time.py",
         "shared/precision_agriculture/__init__.py",
         "shared/precision_agriculture/fertigation_plan.py",
         "shared/precision_agriculture/pail_om_edge.py",
@@ -3044,7 +3045,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py"
       ],
-      "source_evidence_count": 752,
+      "source_evidence_count": 753,
       "target_evidence_count": 576,
       "static_supported": true,
       "runtime_verified": false
@@ -3504,5 +3505,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "b20825e52ca7c41feb696e599550a1ce266cb1e1cb88b8adaa8f3365f667c992"
+  "content_sha256": "e9df31fbef6f0a6c9581bd58822c84a2954fb7db28753c52b0b6ca4565529f96"
 }
