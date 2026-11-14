@@ -6,6 +6,7 @@
   1. كلّ عضو في `EventType` إمّا في `_CATALOG` وإمّا في `_RESERVED_NO_PRODUCER` أدناه.
   2. كلّ نوع في `_RESERVED_NO_PRODUCER` لا مُصدِر له فعلاً في شجرة المنصّة (فحص AST)،
      فلا تصير القائمة مخبأً لأنواع تُصدَر بلا توثيق.
+  2ب. وبالعكس: كلّ نوع في `_CATALOG` له مُصدِر فعليّ، فلا يُعلَن حدث حيّ لا يُنشَر.
   3. لا مدخل في السجلّ أو القائمة لاسمٍ ليس عضواً في `EventType` (لا أسماء ميّتة).
 
 «المُصدِر» = أيّ موضع خارج الاختبارات وخارج تعريف التعداد نفسه يكتب الحدث: نداء
@@ -41,6 +42,18 @@ _RESERVED_NO_PRODUCER: dict[str, str] = {
     "WEATHER_RAIN": "reserved, no producer: مقروء فقط في event_replay/yield_heuristics",
     "MOISTURE_LOW": "reserved, no producer: مقروء فقط في event_replay (weather.moisture.low)",
     "AI_ANOMALY_DETECTED": "reserved, no producer: مقروء فقط في event_replay",
+    # قرار المالك 2026-11-14: «بدء» نشاط لا يُنفَّذ في أيّ مسار. المُخطَّط صار
+    # ACTIVITY_RECORDED والمُنفَّذ *_COMPLETED (field_aggregate.activity_event_for)؛
+    # event_replay يطوي ما بقي منها في المخزن تاريخيّاً، ولا مشترِك حيّ.
+    "PLANTING_STARTED": (
+        "reserved, no producer: مقروء فقط في event_replay (operation.planting.started)"
+    ),
+    "IRRIGATION_STARTED": (
+        "reserved, no producer: مقروء فقط في event_replay (operation.irrigation.started)"
+    ),
+    "HARVEST_STARTED": (
+        "reserved, no producer: مقروء فقط في event_replay (operation.harvest.started)"
+    ),
 }
 
 
@@ -132,6 +145,16 @@ def test_reserved_types_really_have_no_producer():
     assert not produced, (
         "أنواع في _RESERVED_NO_PRODUCER لها مُصدِر فعليّ — انقلها إلى _CATALOG بحقول "
         f"حمولتها: {produced}"
+    )
+
+
+def test_catalogued_types_really_have_a_producer():
+    """العكس: مدخل في _CATALOG بلا مُصدِر يُعلن حدثاً حيّاً لا يُصدَر — مكانه الحجز."""
+    emitted = _emitted_members()
+    unproduced = sorted(name for name in _CATALOG if name not in emitted)
+    assert not unproduced, (
+        "أنواع في _CATALOG بلا أيّ مُصدِر في الشجرة — انقلها إلى _RESERVED_NO_PRODUCER "
+        f"بسبب صريح حتّى يوجد منتِج حقيقيّ: {unproduced}"
     )
 
 
