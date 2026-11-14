@@ -67,6 +67,8 @@
       "allowed_routes",
       "auth",
       "contract_version",
+      "gateway_routes_auth",
+      "gateway_routes_prefix",
       "implemented_runtime",
       "runtime_role",
       "service",

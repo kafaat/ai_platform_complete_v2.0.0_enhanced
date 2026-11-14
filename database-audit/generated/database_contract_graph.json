@@ -260,6 +260,10 @@
       "v270_scout_specialist_credential_attestations.sql",
       "v271_scout_treatment_review_events.sql",
       "v272_scout_photo_retention_governance.sql",
+      "v274_inspection_evidence_versions.sql",
+      "v275_inspection_handoffs.sql",
+      "v276_task_cost_trace.sql",
+      "v277_inspection_close_gate.sql",
       "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
@@ -966,6 +970,34 @@
       "name": "hourly_irrigation_mpc_schedules_tenant",
       "source": "v179_hourly_energy_aware_irrigation_mpc.sql",
       "table": "hourly_irrigation_mpc_schedules"
+    },
+    {
+      "has_using": false,
+      "has_with_check": true,
+      "name": "evidence_append",
+      "source": "v274_inspection_evidence_versions.sql",
+      "table": "inspection_evidence_versions"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "evidence_read",
+      "source": "v274_inspection_evidence_versions.sql",
+      "table": "inspection_evidence_versions"
+    },
+    {
+      "has_using": false,
+      "has_with_check": true,
+      "name": "handoff_append",
+      "source": "v275_inspection_handoffs.sql",
+      "table": "inspection_handoffs"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "handoff_read",
+      "source": "v275_inspection_handoffs.sql",
+      "table": "inspection_handoffs"
     },
     {
       "has_using": true,
@@ -1768,17 +1800,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 261,
+    "manifest_entries": 265,
     "manifest_missing_count": 0,
-    "policies": 214,
+    "policies": 218,
     "production_certified": false,
-    "rls_enabled": 227,
-    "rls_forced": 208,
+    "rls_enabled": 229,
+    "rls_forced": 210,
     "runtime_verified": false,
-    "sql_files": 264,
-    "tables": 356,
-    "tenant_rls_gaps": 137,
-    "tenant_tables": 336,
+    "sql_files": 268,
+    "tables": 360,
+    "tenant_rls_gaps": 139,
+    "tenant_tables": 340,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -3282,6 +3314,7 @@
     },
     {
       "code_readers": [
+        "services/field-management-service/fm_task_costs.py",
         "services/sahool-platform/api/routers/simple_farm_book.py"
       ],
       "code_writers": [
@@ -3819,6 +3852,8 @@
     },
     {
       "code_readers": [
+        "services/field-management-service/fm_task_costs.py",
+        "services/field-management-service/fm_task_inspection.py",
         "services/sahool-platform/api/routers/analytics.py",
         "services/sahool-platform/api/routers/field_priority_queue.py",
         "services/sahool-platform/api/routers/season_workspace.py",
@@ -3832,6 +3867,7 @@
         "services/scout-ingest-service/tests/test_media_live.py"
       ],
       "code_writers": [
+        "services/field-management-service/fm_task_inspection.py",
         "services/sahool-platform/api/routers/tasks.py",
         "services/sahool-platform/api/routers/weather.py",
         "services/scout-ingest-service/tests/test_media_live.py"
@@ -3863,6 +3899,8 @@
     },
     {
       "code_readers": [
+        "services/field-management-service/fm_task_costs.py",
+        "services/field-management-service/fm_task_inspection.py",
         "services/field-management-service/main.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/follow_up_runtime.py",
@@ -4192,6 +4230,41 @@
       "table": "imagery_automation_fields",
       "tenant_rls_gap": true,
       "write_policy_with_check": false
+    },
+    {
+      "code_readers": [
+        "services/field-management-service/fm_task_inspection.py"
+      ],
+      "code_writers": [
+        "services/field-management-service/fm_task_inspection.py"
+      ],
+      "created_in": "v274_inspection_evidence_versions.sql",
+      "has_tenant_id": true,
+      "manifest_position": 259,
+      "policy_count": 2,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "inspection_evidence_versions",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/field-management-service/fm_task_inspection.py",
+        "services/sahool-platform/api/task_irrigation_observations.py"
+      ],
+      "code_writers": [
+        "services/field-management-service/fm_task_inspection.py"
+      ],
+      "created_in": "v275_inspection_handoffs.sql",
+      "has_tenant_id": true,
+      "manifest_position": 260,
+      "policy_count": 2,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "inspection_handoffs",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
     },
     {
       "code_readers": [
@@ -6261,6 +6334,7 @@
     },
     {
       "code_readers": [
+        "services/field-management-service/fm_task_inspection.py",
         "services/scout-ingest-service/detection_link_api.py",
         "services/scout-ingest-service/evidence_retention_api.py",
         "services/scout-ingest-service/grants_admin_api.py",
@@ -6485,6 +6559,7 @@
     },
     {
       "code_readers": [
+        "services/field-management-service/fm_task_inspection.py",
         "services/sahool-platform/api/routers/scouting.py",
         "services/sahool-platform/api/scouting_pins.py",
         "services/scout-ingest-service/media_api.py",
@@ -7235,6 +7310,39 @@
     },
     {
       "code_readers": [
+        "services/field-management-service/fm_task_costs.py"
+      ],
+      "code_writers": [],
+      "created_in": "v276_task_cost_trace.sql",
+      "has_tenant_id": true,
+      "manifest_position": 261,
+      "policy_count": 0,
+      "rls_enabled": false,
+      "rls_forced": false,
+      "table": "task_cost_history",
+      "tenant_rls_gap": true,
+      "write_policy_with_check": false
+    },
+    {
+      "code_readers": [
+        "services/field-management-service/fm_task_costs.py",
+        "services/sahool-platform/api/routers/simple_farm_book.py"
+      ],
+      "code_writers": [
+        "services/field-management-service/fm_task_costs.py"
+      ],
+      "created_in": "v276_task_cost_trace.sql",
+      "has_tenant_id": true,
+      "manifest_position": 261,
+      "policy_count": 0,
+      "rls_enabled": false,
+      "rls_forced": false,
+      "table": "task_expense_links",
+      "tenant_rls_gap": true,
+      "write_policy_with_check": false
+    },
+    {
+      "code_readers": [
         "services/sahool-platform/core/ai_policy_envelope.py"
       ],
       "code_writers": [],
@@ -7307,7 +7415,9 @@
         "services/auth/routers/registration.py",
         "services/auth/routers/session.py",
         "services/auth/routers/users.py",
+        "services/field-management-service/fm_task_inspection.py",
         "services/sahool-platform/api/routers/break_glass.py",
+        "services/sahool-platform/api/task_irrigation_observations.py",
         "services/sahool-platform/tests/test_break_glass.py",
         "services/sahool-platform/tests/test_gaps_v91.py",
         "services/scout-ingest-service/credential_status.py",

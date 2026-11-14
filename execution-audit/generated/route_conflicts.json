@@ -9,7 +9,7 @@
       "registrations": [
         {
           "function": "root",
-          "line": 273,
+          "line": 292,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/",
@@ -63,7 +63,7 @@
         },
         {
           "function": "contract",
-          "line": 254,
+          "line": 269,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/contract",
@@ -110,7 +110,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 216,
+          "line": 231,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/health",
@@ -293,7 +293,7 @@
         },
         {
           "function": "healthz",
-          "line": 211,
+          "line": 226,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/healthz",
@@ -667,7 +667,7 @@
         },
         {
           "function": "readyz",
-          "line": 221,
+          "line": 236,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/readyz",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1143,
-  "route_inventory_sha256": "3a3e9a02df22ac9d3831e2bcbd90d38d451ea3b71af88f249611a23b4349c7cf",
+  "route_count": 1152,
+  "route_inventory_sha256": "137cf1467aa5faf0d90f98f4840e4c8565cd0186b5b08c05f7119bdfa2fa266e",
   "runtime_verified": false,
   "schema_version": 1
 }

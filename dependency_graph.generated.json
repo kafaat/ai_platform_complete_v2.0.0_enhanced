@@ -1,5 +1,5 @@
 {
-  "edge_count": 1031,
+  "edge_count": 1051,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -1012,6 +1012,56 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/field-management-service/fm_task_costs.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_ledger_entries",
+      "to": "db://farm_ledger_entries",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_costs.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_costs.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/field-management-service/main.py",
       "from": "field-management-service",
       "from_kind": "component",
@@ -1019,6 +1069,76 @@
       "relation": "READS",
       "resource": "db://fields",
       "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://inspection_evidence_versions",
+      "to": "db://inspection_evidence_versions",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://inspection_handoffs",
+      "to": "db://inspection_handoffs",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_evidence",
+      "to": "db://scout_photo_evidence",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_pins",
+      "to": "db://scouting_pins",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_costs.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://task_cost_history",
+      "to": "db://task_cost_history",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_costs.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://task_expense_links",
+      "to": "db://task_expense_links",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
       "to_kind": "resource"
     },
     {
@@ -3412,6 +3532,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/task_irrigation_observations.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://inspection_handoffs",
+      "to": "db://inspection_handoffs",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/inventory.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4842,6 +4972,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/routers/simple_farm_book.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://task_expense_links",
+      "to": "db://task_expense_links",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/core/ai_policy_envelope.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4873,6 +5013,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/break_glass.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/task_irrigation_observations.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -5992,7 +6142,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:348",
+      "evidence": "nginx/nginx.v9.conf:363",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6022,7 +6172,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:131",
+      "evidence": "nginx/nginx.v9.conf:126",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6032,7 +6182,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:284",
+      "evidence": "nginx/nginx.v9.conf:296",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6042,7 +6192,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:118",
+      "evidence": "nginx/nginx.v9.conf:120",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6112,7 +6262,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:364",
+      "evidence": "nginx/nginx.v9.conf:378",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6142,7 +6292,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:368",
+      "evidence": "nginx/nginx.v9.conf:381",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6162,7 +6312,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:232",
+      "evidence": "nginx/nginx.v9.conf:233",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6182,7 +6332,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:337",
+      "evidence": "nginx/nginx.v9.conf:352",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6202,7 +6352,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:243",
+      "evidence": "nginx/nginx.v9.conf:244",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6232,7 +6382,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:320",
+      "evidence": "nginx/nginx.v9.conf:335",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6242,7 +6392,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:235",
+      "evidence": "nginx/nginx.v9.conf:236",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6262,7 +6412,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:177",
+      "evidence": "nginx/nginx.v9.conf:178",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6322,7 +6472,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:252",
+      "evidence": "nginx/nginx.v9.conf:253",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6332,7 +6482,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:249",
+      "evidence": "nginx/nginx.v9.conf:250",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6352,6 +6502,16 @@
       "to_kind": "runtime_upstream"
     },
     {
+      "evidence": "nginx/nginx.v9.conf:283",
+      "from": "gateway:nginx",
+      "from_kind": "gateway",
+      "protocol": "http",
+      "relation": "ROUTES_TO",
+      "resource": "^~ /api/v1/field-tasks/",
+      "to": "runtime-upstream://sahool-field-management",
+      "to_kind": "runtime_upstream"
+    },
+    {
       "evidence": "nginx/nginx.fixed.conf:49",
       "from": "gateway:nginx",
       "from_kind": "gateway",
@@ -6362,7 +6522,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:269",
+      "evidence": "nginx/nginx.v9.conf:267",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6372,7 +6532,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:308",
+      "evidence": "nginx/nginx.v9.conf:320",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6382,7 +6542,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:293",
+      "evidence": "nginx/nginx.v9.conf:305",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6412,7 +6572,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:165",
+      "evidence": "nginx/nginx.v9.conf:166",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6422,7 +6582,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:161",
+      "evidence": "nginx/nginx.v9.conf:164",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6492,7 +6652,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:215",
+      "evidence": "nginx/nginx.v9.conf:212",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6502,7 +6662,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:163",
+      "evidence": "nginx/nginx.v9.conf:164",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6512,7 +6672,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:218",
+      "evidence": "nginx/nginx.v9.conf:219",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6522,7 +6682,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:208",
+      "evidence": "nginx/nginx.v9.conf:207",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6562,7 +6722,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:204",
+      "evidence": "nginx/nginx.v9.conf:205",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6572,7 +6732,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:329",
+      "evidence": "nginx/nginx.v9.conf:342",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6582,7 +6742,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:332",
+      "evidence": "nginx/nginx.v9.conf:347",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6592,7 +6752,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:144",
+      "evidence": "nginx/nginx.v9.conf:141",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6622,7 +6782,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:229",
+      "evidence": "nginx/nginx.v9.conf:227",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6652,7 +6812,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:115",
+      "evidence": "nginx/nginx.v9.conf:116",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6682,7 +6842,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:340",
+      "evidence": "nginx/nginx.v9.conf:356",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6692,7 +6852,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:161",
+      "evidence": "nginx/nginx.v9.conf:164",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7182,6 +7342,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
       "from": "field-management-service",
       "from_kind": "component",
@@ -7189,6 +7359,36 @@
       "relation": "WRITES",
       "resource": "db://fields",
       "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://inspection_evidence_versions",
+      "to": "db://inspection_evidence_versions",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://inspection_handoffs",
+      "to": "db://inspection_handoffs",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_task_costs.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://task_expense_links",
+      "to": "db://task_expense_links",
       "to_kind": "resource"
     },
     {
@@ -10330,16 +10530,16 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 546,
-    "ROUTES_TO": 73,
-    "WRITES": 361
+    "READS": 561,
+    "ROUTES_TO": 74,
+    "WRITES": 365
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
     "gateway": {
       "component_targets": 53,
-      "observed": 73,
-      "runtime_upstream_targets": 20
+      "observed": 74,
+      "runtime_upstream_targets": 21
     },
     "nats": {
       "observed": 6,
@@ -10347,8 +10547,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 908,
-      "resolved": 907,
+      "observed": 927,
+      "resolved": 926,
       "unresolved_component_paths": 0
     }
   }

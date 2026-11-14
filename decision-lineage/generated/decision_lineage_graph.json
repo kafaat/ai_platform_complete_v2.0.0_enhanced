@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 751,
+      "evidence_count": 757,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -17,6 +17,7 @@
         "database",
         "decision-service",
         "edge-inference",
+        "field-management-service",
         "gis-workflow-service",
         "guardrails-engine",
         "indicators-service",
@@ -96,6 +97,9 @@
         "migrations/v270_scout_specialist_credential_attestations.sql",
         "migrations/v271_scout_treatment_review_events.sql",
         "migrations/v272_scout_photo_retention_governance.sql",
+        "migrations/v274_inspection_evidence_versions.sql",
+        "migrations/v275_inspection_handoffs.sql",
+        "migrations/v277_inspection_close_gate.sql",
         "migrations/v78_decision_record.sql",
         "migrations/v79_outcome_record.sql",
         "migrations/v86_calibration_evidence_trigger.sql",
@@ -201,6 +205,9 @@
         "services/edge-inference/models/pest_detector.py",
         "services/edge-inference/sync_service.py",
         "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
+        "services/field-management-service/fm_gateway.py",
+        "services/field-management-service/fm_task_inspection.py",
+        "services/field-management-service/tests/test_field_task_routes_unit.py",
         "services/gis-workflow-service/bulletin_bundle.py",
         "services/gis-workflow-service/run_bundle.py",
         "services/gis-workflow-service/tests/test_bulletin_bundle_evidence.py",
@@ -1639,13 +1646,14 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 350,
+      "evidence_count": 357,
       "owners": [
         "actuator-service",
         "ai_agronomist",
         "auth",
         "database",
         "decision-service",
+        "field-management-service",
         "guardrails-engine",
         "knowledge-graph",
         "local-ai-rag",
@@ -1692,6 +1700,9 @@
         "migrations/v270_scout_specialist_credential_attestations.sql",
         "migrations/v271_scout_treatment_review_events.sql",
         "migrations/v272_scout_photo_retention_governance.sql",
+        "migrations/v274_inspection_evidence_versions.sql",
+        "migrations/v275_inspection_handoffs.sql",
+        "migrations/v277_inspection_close_gate.sql",
         "migrations/v50_soil_lab_tests.sql",
         "migrations/v51_review_round2_fixes.sql",
         "migrations/v53_field_state_projection.sql",
@@ -1759,6 +1770,9 @@
         "services/decision-service/tests/test_wx11_4_model_activation_request.py",
         "services/decision-service/tests/test_wx11_5_model_activation_approval.py",
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
+        "services/field-management-service/fm_gateway.py",
+        "services/field-management-service/fm_task_inspection.py",
+        "services/field-management-service/tests/test_field_task_routes_unit.py",
         "services/guardrails-engine/human_in_loop.py",
         "services/guardrails-engine/main.py",
         "services/guardrails-engine/tiers/chemical_tier.py",
@@ -1843,6 +1857,7 @@
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/season_workspace.py",
         "services/sahool-platform/api/routers/soil_sampling.py",
+        "services/sahool-platform/api/routers/tasks.py",
         "services/sahool-platform/api/routers/water_twin.py",
         "services/sahool-platform/api/season_calendar_guard.py",
         "services/sahool-platform/api/season_models.py",
@@ -2091,7 +2106,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 199,
+      "evidence_count": 202,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2099,6 +2114,7 @@
         "database",
         "decision-service",
         "edge-inference",
+        "field-management-service",
         "guardrails-engine",
         "indicators-service",
         "local-ai-rag",
@@ -2171,6 +2187,8 @@
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/decision-service/tests/test_wx11_5_model_activation_approval.py",
         "services/edge-inference/sync_service.py",
+        "services/field-management-service/fm_gateway.py",
+        "services/field-management-service/tests/test_field_task_routes_unit.py",
         "services/guardrails-engine/main.py",
         "services/indicators-service/main.py",
         "services/indicators-service/observation_timeline.py",
@@ -2244,6 +2262,7 @@
         "services/sahool-platform/api/routers/sync.py",
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/sharing.py",
+        "services/sahool-platform/api/task_irrigation_observations.py",
         "services/sahool-platform/api/water_decision_bridge.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/core/authorization.py",
@@ -2540,7 +2559,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 367,
+      "evidence_count": 369,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2577,6 +2596,8 @@
         "migrations/v212_farm_book_one_reversal_index.sql",
         "migrations/v239_detection_provenance.sql",
         "migrations/v240_converge_first_pass_schema.sql",
+        "migrations/v275_inspection_handoffs.sql",
+        "migrations/v277_inspection_close_gate.sql",
         "migrations/v46_lifecycle_event_sync.sql",
         "migrations/v49_zone_key_recommendation_outcomes.sql",
         "migrations/v51_review_round2_fixes.sql",
@@ -3042,7 +3063,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py"
       ],
-      "source_evidence_count": 751,
+      "source_evidence_count": 757,
       "target_evidence_count": 576,
       "static_supported": true,
       "runtime_verified": false
@@ -3252,7 +3273,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 206,
-      "target_evidence_count": 350,
+      "target_evidence_count": 357,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3298,7 +3319,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 350,
+      "source_evidence_count": 357,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3346,7 +3367,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 51,
-      "target_evidence_count": 199,
+      "target_evidence_count": 202,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3385,7 +3406,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 199,
+      "source_evidence_count": 202,
       "target_evidence_count": 47,
       "static_supported": true,
       "runtime_verified": false
@@ -3492,7 +3513,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 60,
-      "target_evidence_count": 367,
+      "target_evidence_count": 369,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3502,5 +3523,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "769b08c7fcc79651e66aab66cd429b3765a842b27232022b87d30e0b2bcf0e20"
+  "content_sha256": "4c9bf99a78d9039ed55161c0f559d90fc08f8ea00ef469a1649bc269c2acda8e"
 }

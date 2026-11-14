@@ -1552,7 +1552,7 @@ jobs:
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
-          FIELD_TASK_LIVE_REQUIRED: "1"
+          FIELD_TASK_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_field_task_inspection_live_pg.py
 
       # Live auth/admin coverage (#1427 follow-up): the four certification steps above that

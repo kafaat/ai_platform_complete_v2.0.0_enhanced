@@ -4,16 +4,16 @@
 
 ## Summary
 
-- **manifest_entries**: 261
-- **sql_files**: 264
+- **manifest_entries**: 265
+- **sql_files**: 268
 - **manifest_missing_count**: 0
 - **unlisted_sql_count**: 0
-- **tables**: 356
-- **tenant_tables**: 336
-- **rls_enabled**: 227
-- **rls_forced**: 208
-- **tenant_rls_gaps**: 137
-- **policies**: 214
+- **tables**: 360
+- **tenant_tables**: 340
+- **rls_enabled**: 229
+- **rls_forced**: 210
+- **tenant_rls_gaps**: 139
+- **policies**: 218
 - **runtime_verified**: False
 - **production_certified**: False
 
@@ -149,6 +149,8 @@
 - `soil_texture_products` — enabled=False, forced=False, policies=0
 - `soil_verification_records` — enabled=False, forced=False, policies=0
 - `soil_visual_observations` — enabled=False, forced=False, policies=0
+- `task_cost_history` — enabled=False, forced=False, policies=0
+- `task_expense_links` — enabled=False, forced=False, policies=0
 - `trueup_calibrations` — enabled=True, forced=False, policies=1
 - `users` — enabled=True, forced=False, policies=2
 - `weather_alerts` — enabled=False, forced=False, policies=0

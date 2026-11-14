@@ -953,7 +953,7 @@
     {
       "service": "field-management-service",
       "file": "services/field-management-service/main.py",
-      "line": 211,
+      "line": 226,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -962,7 +962,7 @@
     {
       "service": "field-management-service",
       "file": "services/field-management-service/main.py",
-      "line": 216,
+      "line": 231,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -971,7 +971,7 @@
     {
       "service": "field-management-service",
       "file": "services/field-management-service/main.py",
-      "line": 221,
+      "line": 236,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -980,7 +980,7 @@
     {
       "service": "field-management-service",
       "file": "services/field-management-service/main.py",
-      "line": 254,
+      "line": 269,
       "method": "GET",
       "path": "/contract",
       "function": "contract",
@@ -989,7 +989,7 @@
     {
       "service": "field-management-service",
       "file": "services/field-management-service/main.py",
-      "line": 273,
+      "line": 292,
       "method": "GET",
       "path": "/",
       "function": "root",
@@ -998,7 +998,7 @@
     {
       "service": "field-management-service",
       "file": "services/field-management-service/main.py",
-      "line": 282,
+      "line": 301,
       "method": "GET",
       "path": "/internal/fields/{field_id}",
       "function": "internal_get_field",
@@ -1007,7 +1007,7 @@
     {
       "service": "field-management-service",
       "file": "services/field-management-service/main.py",
-      "line": 314,
+      "line": 333,
       "method": "GET",
       "path": "/internal/fields",
       "function": "internal_list_fields",

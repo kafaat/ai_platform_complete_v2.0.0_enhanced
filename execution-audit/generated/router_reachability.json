@@ -33,7 +33,7 @@
     "services.video-processor.main:app",
     "services.weather-service.main:app"
   ],
-  "definition_count": 269,
+  "definition_count": 271,
   "definitions": [
     {
       "kind": "app",
@@ -207,8 +207,26 @@
       "symbol": "app"
     },
     {
+      "kind": "router",
+      "line": 32,
+      "module": "services.field-management-service.fm_task_costs",
+      "node_id": "services.field-management-service.fm_task_costs:router",
+      "route_count": 2,
+      "statically_reachable": true,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 37,
+      "module": "services.field-management-service.fm_task_inspection",
+      "node_id": "services.field-management-service.fm_task_inspection:router",
+      "route_count": 7,
+      "statically_reachable": true,
+      "symbol": "router"
+    },
+    {
       "kind": "app",
-      "line": 43,
+      "line": 44,
       "module": "services.field-management-service.main",
       "node_id": "services.field-management-service.main:app",
       "route_count": 7,
@@ -2457,7 +2475,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 55,
+  "include_edge_count": 57,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2476,6 +2494,24 @@
       "resolved": false,
       "source": "services.auth.router_registry:<dynamic-source>",
       "target": null
+    },
+    {
+      "expression": "_task_inspection_router",
+      "line": 57,
+      "module": "services/field-management-service/main.py",
+      "prefix": null,
+      "resolved": true,
+      "source": "services.field-management-service.main:app",
+      "target": "services.field-management-service.fm_task_inspection:router"
+    },
+    {
+      "expression": "_task_costs_router",
+      "line": 58,
+      "module": "services/field-management-service/main.py",
+      "prefix": null,
+      "resolved": true,
+      "source": "services.field-management-service.main:app",
+      "target": "services.field-management-service.fm_task_costs:router"
     },
     {
       "expression": "_tmp",
@@ -2955,7 +2991,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "ac44189ea094b61d3ed78febdb9e0958f4b3ccb7fd2a657a0db35ff72c4cd2e8",
+  "inventory_sha256": "2a74f6c600146018ad10461b3f4747c27e1345898f8b1be365e8dbc249bac2a6",
   "orphan_candidate_count": 236,
   "orphan_candidates": [
     {
@@ -5320,9 +5356,9 @@
     }
   ],
   "production_certified": false,
-  "reachable_node_count": 33,
-  "resolved_include_edge_count": 3,
-  "router_with_routes_count": 239,
+  "reachable_node_count": 35,
+  "resolved_include_edge_count": 5,
+  "router_with_routes_count": 241,
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,

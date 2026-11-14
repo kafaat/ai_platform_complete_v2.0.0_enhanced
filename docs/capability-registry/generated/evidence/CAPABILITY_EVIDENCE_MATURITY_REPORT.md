@@ -5,9 +5,9 @@
 ## Summary
 
 - Capabilities: **81**
-- Average assessed maturity: **1.98 / 5**
-- Aligned: **36**
-- Declared above current evidence: **42**
+- Average assessed maturity: **1.99 / 5**
+- Aligned: **37**
+- Declared above current evidence: **41**
 - Evidence above declared: **3**
 - Runtime verified: **0**
 - Production certified: **0**
@@ -20,7 +20,7 @@
 | farm_management | 10 | 2.9 | 2.5 | 3 |
 | gis | 4 | 3.0 | 2.0 | 3 |
 | irrigation | 11 | 2.45 | 1.64 | 7 |
-| operations | 8 | 2.88 | 2.0 | 5 |
+| operations | 8 | 2.88 | 2.12 | 4 |
 | precision | 6 | 2.0 | 1.5 | 4 |
 | satellite | 9 | 2.67 | 2.33 | 3 |
 | security | 8 | 2.88 | 2.0 | 4 |

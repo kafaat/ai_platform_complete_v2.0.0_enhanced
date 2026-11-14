@@ -109,6 +109,8 @@ services:
         condition: service_healthy
       sahool-scout-ingest:
         condition: service_healthy
+      sahool-field-management:
+        condition: service_healthy
       sahool-notification-agent:
         condition: service_healthy
       sahool-frontend:

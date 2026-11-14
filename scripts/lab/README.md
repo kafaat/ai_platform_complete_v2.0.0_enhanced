@@ -66,6 +66,7 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 10. Auth admin authz gates (#1427, concurrent invitation, Redis outage, stale membership)
 11. Platform denial log tenant scope (#1427, real platform app, live Redis)
 12. soil-service functional H5 + guardrails L5 (restricted role)
+13. Field task inspection and cost trace (v274-v277, restricted role)
 
 Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 `rolcanlogin` of every restricted role those steps connect as (`sahool_app_test`)

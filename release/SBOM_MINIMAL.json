@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d79d7aa6a6d4eb79757b1f66de355044c2050ef175b5a1982bdfc779ff4aa04b"
+          "content": "b4303185637d950443a7815a4761b90819e18deb566863da03ef461bf5c357b7"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4895,7 +4895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c186db7fb5b79db00744c1be7fcb80f35b21a37aadf15d6f1277a4556def5d9"
+          "content": "304c3e8878e5540fb8db606e387ff2fd35c8e263ae971cacc37bed235a40be23"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -19945,7 +19945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cff1f16bd81d215df2024ed9b133b88de047c8bb8041d0a1b653213a49dfeef3"
+          "content": "af74301af45780bff4c21149f366586cb0df755ccf1ac18ae4ba475851e38424"
         }
       ],
       "name": "services/field-management-service/requirements.txt",

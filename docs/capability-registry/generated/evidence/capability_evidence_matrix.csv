@@ -35,7 +35,7 @@ IRR-007,Pump and valve control,irrigation,3,1,declared_above_evidence,3,True,Fal
 IRR-008,Execution verification,irrigation,3,1,declared_above_evidence,1,True,False,False,False,False,False,False,False,False,False,False,False
 IRR-009,Water suitability multi-hazard,irrigation,2,2,aligned,7,True,True,True,True,True,True,False,True,False,False,False,False
 IRR-010,Leaching and drainage safety,irrigation,2,1,declared_above_evidence,2,True,False,True,False,False,False,False,False,False,False,False,False
-OPS-001,Task management,operations,3,2,declared_above_evidence,6,True,False,True,True,True,False,True,False,True,False,False,False
+OPS-001,Task management,operations,3,3,aligned,7,True,False,True,True,True,False,True,True,True,False,False,False
 OPS-002,Work orders,operations,3,2,declared_above_evidence,7,True,True,True,True,True,True,False,True,False,False,False,False
 OPS-003,Scouting,operations,2,3,evidence_above_declared,9,True,True,True,True,True,True,True,True,True,False,False,False
 OPS-004,Field forms,operations,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False

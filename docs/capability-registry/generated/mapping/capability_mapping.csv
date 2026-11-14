@@ -35,9 +35,9 @@ IRR-007,irrigation,Pump and valve control,False,0,0,0,0,0,0,0,0,0
 IRR-008,irrigation,Execution verification,False,0,0,0,0,0,0,0,0,0
 IRR-009,irrigation,Water suitability multi-hazard,True,6,8,1,7,9,2,0,13,0
 IRR-010,irrigation,Leaching and drainage safety,False,0,0,0,0,0,0,0,0,0
-OPS-001,operations,Task management,True,4,0,0,7,6,0,1,1,0
+OPS-001,operations,Task management,True,4,0,0,9,6,0,1,3,0
 OPS-002,operations,Work orders,True,6,3,7,6,3,1,0,7,0
-OPS-003,operations,Scouting,True,7,5,13,19,8,6,17,17,0
+OPS-003,operations,Scouting,True,7,6,20,19,8,6,17,17,0
 OPS-004,operations,Field forms,True,6,3,12,14,12,0,21,28,1
 OPS-005,operations,Offline mobile,True,7,2,2,9,14,1,13,12,0
 OPS-006,operations,Equipment registry,True,1,1,0,0,0,0,0,0,0

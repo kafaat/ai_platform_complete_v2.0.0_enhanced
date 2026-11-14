@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7339,
+    "files_scanned": 7348,
     "files_by_kind": {
-      "backend": 1284,
-      "database": 323,
+      "backend": 1287,
+      "database": 327,
       "governance": 89,
       "mobile": 415,
       "other": 2181,
-      "tests": 2500,
+      "tests": 2502,
       "web": 547
     },
-    "unmapped_artifacts": 3492,
+    "unmapped_artifacts": 3498,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3970,
-      "raw": 3369
+      "python_functional": 3975,
+      "raw": 3373
     },
-    "test_dependency_files": 1900,
-    "test_dependency_edges": 4886,
-    "test_dependency_bounded_files": 1113,
+    "test_dependency_files": 1902,
+    "test_dependency_edges": 4899,
+    "test_dependency_bounded_files": 1114,
     "test_dependency_unresolved_relations": 482
   },
   "capabilities": [
@@ -3160,23 +3160,23 @@
           "score": 28
         },
         {
-          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:674",
+          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:702",
           "score": 19
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:405",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:428",
           "score": 19
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:599",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:627",
           "score": 19
         },
         {
-          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:700",
+          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:728",
           "score": 19
         },
         {
-          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:634",
+          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:662",
           "score": 19
         },
         {
@@ -14066,12 +14066,20 @@
           "score": 14
         },
         {
+          "value": "field_tasks @ tests_v9/test_field_task_inspection_live_pg.py:620",
+          "score": 14
+        },
+        {
           "path": "migrations/v261_field_tasks_reference_fields.sql",
           "score": 14,
           "signals": [
             "path:field task",
             "content:field task"
           ]
+        },
+        {
+          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:985",
+          "score": 14
         },
         {
           "value": "field_tasks @ migrations/v243_field_task_satellite_sources.sql:1",
@@ -14137,6 +14145,22 @@
       ],
       "tests": [
         {
+          "path": "services/field-management-service/tests/test_field_task_routes_unit.py",
+          "score": 14,
+          "signals": [
+            "path:field task",
+            "content:field task"
+          ]
+        },
+        {
+          "path": "tests_v9/test_field_task_inspection_live_pg.py",
+          "score": 14,
+          "signals": [
+            "path:field task",
+            "content:field task"
+          ]
+        },
+        {
           "path": "tests_v9/test_field_task_on_api_field_live_pg.py",
           "score": 14,
           "signals": [
@@ -14154,11 +14178,11 @@
       "evidence_counts": {
         "backend": 0,
         "routes": 0,
-        "database": 7,
+        "database": 9,
         "events": 6,
         "web": 0,
         "mobile": 1,
-        "tests": 1,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 0
       },
@@ -14426,6 +14450,14 @@
           ]
         },
         {
+          "path": "services/field-management-service/fm_task_inspection.py",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "services/scout-ingest-service/grants_admin_api.py",
           "score": 8,
           "signals": [
@@ -14450,6 +14482,34 @@
         {
           "value": "/api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:118",
           "score": 16
+        },
+        {
+          "value": "/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:275",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:294",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:309",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:359",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:450",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:589",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:465",
+          "score": 8
         },
         {
           "value": "/internal/scouting-media/admin/credential-events @ services/scout-ingest-service/grants_admin_api.py:585",
@@ -15003,8 +15063,8 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 5,
-        "routes": 13,
+        "backend": 6,
+        "routes": 20,
         "database": 19,
         "events": 8,
         "web": 6,
@@ -27497,19 +27557,19 @@
           "score": 11
         },
         {
-          "value": "/ @ services/field-management-service/main.py:272",
+          "value": "/ @ services/field-management-service/main.py:291",
           "score": 9
         },
         {
-          "value": "/contract @ services/field-management-service/main.py:253",
+          "value": "/contract @ services/field-management-service/main.py:268",
           "score": 9
         },
         {
-          "value": "/health @ services/field-management-service/main.py:215",
+          "value": "/health @ services/field-management-service/main.py:230",
           "score": 9
         },
         {
-          "value": "/healthz @ services/field-management-service/main.py:210",
+          "value": "/healthz @ services/field-management-service/main.py:225",
           "score": 9
         },
         {
@@ -27517,11 +27577,11 @@
           "score": 9
         },
         {
-          "value": "/internal/fields @ services/field-management-service/main.py:313",
+          "value": "/internal/fields @ services/field-management-service/main.py:332",
           "score": 9
         },
         {
-          "value": "/internal/fields/{field_id} @ services/field-management-service/main.py:281",
+          "value": "/internal/fields/{field_id} @ services/field-management-service/main.py:300",
           "score": 9
         },
         {
@@ -27529,7 +27589,7 @@
           "score": 9
         },
         {
-          "value": "/readyz @ services/field-management-service/main.py:220",
+          "value": "/readyz @ services/field-management-service/main.py:235",
           "score": 9
         },
         {
@@ -34203,6 +34263,22 @@
       "kind": "database"
     },
     {
+      "path": "migrations/v274_inspection_evidence_versions.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v275_inspection_handoffs.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v276_task_cost_trace.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v277_inspection_close_gate.sql",
+      "kind": "database"
+    },
+    {
       "path": "migrations/v28_settings.sql",
       "kind": "database"
     },
@@ -36489,6 +36565,14 @@
     {
       "path": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
       "kind": "tests"
+    },
+    {
+      "path": "services/field-management-service/fm_gateway.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/field-management-service/fm_task_costs.py",
+      "kind": "backend"
     },
     {
       "path": "services/field-segmentation/__init__.py",
@@ -53432,6 +53516,51 @@
           "source": "shared/security/service_tenant_assertion.py",
           "kind": "import",
           "line": 114
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/field-management-service/tests/test_field_task_routes_unit.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "services/field-management-service/fm_gateway.py",
+          "kind": "import",
+          "line": 29
+        },
+        {
+          "source": "services/field-management-service/fm_task_costs.py",
+          "kind": "import",
+          "line": 30
+        },
+        {
+          "source": "services/field-management-service/fm_task_inspection.py",
+          "kind": "import",
+          "line": 31
+        },
+        {
+          "source": "services/field-management-service/main.py",
+          "kind": "loader",
+          "line": 249
+        },
+        {
+          "source": "services/field-management-service/main.py",
+          "kind": "source_read",
+          "line": 249
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "source_read",
+          "line": 89
+        },
+        {
+          "source": "services/sahool-platform/core/authorization.py",
+          "kind": "import",
+          "line": 78
         }
       ],
       "unresolved": []
@@ -79645,6 +79774,44 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_field_task_inspection_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/field-management-service/main.py",
+          "kind": "loader",
+          "line": 200
+        },
+        {
+          "source": "services/field-management-service/main.py",
+          "kind": "source_read",
+          "line": 48
+        },
+        {
+          "source": "services/sahool-platform/api/irrigation_observations.py",
+          "kind": "import",
+          "line": 1025
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 210
+        },
+        {
+          "source": "services/sahool-platform/api/task_irrigation_observations.py",
+          "kind": "import",
+          "line": 1026
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 243
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_field_task_on_api_field_live_pg.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -84999,7 +85166,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 314
+          "line": 318
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",
@@ -89847,7 +90014,7 @@
         {
           "source": "services/scout-ingest-service/main.py",
           "kind": "source_read",
-          "line": 386
+          "line": 387
         },
         {
           "source": "services/scout-ingest-service/media_api.py",

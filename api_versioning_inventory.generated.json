@@ -1252,8 +1252,89 @@
   },
   {
     "service": "field-management-service",
+    "file": "services/field-management-service/fm_task_costs.py",
+    "line": 88,
+    "method": "POST",
+    "path": "/internal/field-tasks/farm-book/entries/{entry_id}/task",
+    "handler": "link_existing_expense",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_task_costs.py",
+    "line": 147,
+    "method": "GET",
+    "path": "/internal/field-tasks/tasks/{task_id}/cost-trace",
+    "handler": "task_cost_trace",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_task_inspection.py",
+    "line": 276,
+    "method": "GET",
+    "path": "/internal/field-tasks/fields/{field_id}/inspection-assignees",
+    "handler": "list_inspection_assignees",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_task_inspection.py",
+    "line": 295,
+    "method": "GET",
+    "path": "/internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
+    "handler": "get_pin_inspection_task",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_task_inspection.py",
+    "line": 310,
+    "method": "POST",
+    "path": "/internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
+    "handler": "assign_pin_inspection",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_task_inspection.py",
+    "line": 360,
+    "method": "GET",
+    "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff",
+    "handler": "inspect_handoff",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_task_inspection.py",
+    "line": 451,
+    "method": "POST",
+    "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept",
+    "handler": "accept_inspection",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_task_inspection.py",
+    "line": 466,
+    "method": "POST",
+    "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign",
+    "handler": "reassign_inspection",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_task_inspection.py",
+    "line": 590,
+    "method": "POST",
+    "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding",
+    "handler": "record_inspection_finding",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 211,
+    "line": 226,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1262,7 +1343,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 216,
+    "line": 231,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -1271,7 +1352,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 221,
+    "line": 236,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1280,7 +1361,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 254,
+    "line": 269,
     "method": "GET",
     "path": "/contract",
     "handler": "contract",
@@ -1289,7 +1370,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 273,
+    "line": 292,
     "method": "GET",
     "path": "/",
     "handler": "root",
@@ -1298,7 +1379,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 282,
+    "line": 301,
     "method": "GET",
     "path": "/internal/fields/{field_id}",
     "handler": "internal_get_field",
@@ -1307,7 +1388,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 314,
+    "line": 333,
     "method": "GET",
     "path": "/internal/fields",
     "handler": "internal_list_fields",
@@ -7958,7 +8039,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 406,
+    "line": 429,
     "method": "POST",
     "path": "/api/v1/farm-book/entries",
     "handler": "create_entry",
@@ -7967,7 +8048,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 600,
+    "line": 628,
     "method": "GET",
     "path": "/api/v1/farm-book/entries",
     "handler": "list_entries",
@@ -7976,7 +8057,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 635,
+    "line": 663,
     "method": "GET",
     "path": "/api/v1/farm-book/monthly",
     "handler": "monthly_report",
@@ -7985,7 +8066,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 675,
+    "line": 703,
     "method": "GET",
     "path": "/api/v1/farm-book/balances",
     "handler": "book_balances",
@@ -7994,7 +8075,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simple_farm_book.py",
-    "line": 701,
+    "line": 729,
     "method": "GET",
     "path": "/api/v1/farm-book/export",
     "handler": "export_book",

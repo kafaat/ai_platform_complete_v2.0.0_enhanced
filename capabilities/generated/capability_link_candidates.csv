@@ -415,10 +415,10 @@ FM-001,test,tests_v9/test_v241_edge_idempotency_tenant_scoped.py,3,applied
 FM-001,test,tests_v9/test_v87_audit_tenant.py,3,applied
 FM-001,test,tests_v9/test_video_stream_tenant_authz.py,3,applied
 FM-001,ui,frontend/src/services/api/auth.ts,2,applied
-FM-002,api,GET /api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:675,2,applied
-FM-002,api,GET /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:600,2,applied
-FM-002,api,GET /api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:701,2,applied
-FM-002,api,GET /api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:635,2,applied
+FM-002,api,GET /api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:703,2,applied
+FM-002,api,GET /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:628,2,applied
+FM-002,api,GET /api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:729,2,applied
+FM-002,api,GET /api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:663,2,applied
 FM-002,api,GET /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:247,2,applied
 FM-002,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:576,2,applied
 FM-002,api,GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:948,2,applied
@@ -432,13 +432,14 @@ FM-002,api,GET /api/v1/farms @ services/sahool-platform/api/routers/farms.py:107
 FM-002,api,GET /api/v1/farms/{farm_id}/fields @ services/sahool-platform/api/routers/farms.py:142,4,applied
 FM-002,api,GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:179,4,applied
 FM-002,api,GET /api/v1/reports/farm-summary @ services/sahool-platform/api/routers/reports.py:46,2,applied
-FM-002,api,POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:406,2,applied
+FM-002,api,POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:429,2,applied
 FM-002,api,POST /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:215,2,applied
 FM-002,api,POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:806,2,applied
 FM-002,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:495,2,applied
 FM-002,api,POST /api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:211,2,applied
 FM-002,api,POST /api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:604,2,applied
 FM-002,api,POST /api/v1/farms @ services/sahool-platform/api/routers/farms.py:37,4,applied
+FM-002,api,POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88,3,applied
 FM-002,api,POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:120,2,applied
 FM-002,api,POST /v1/phase9/autonomy/cycle @ services/sahool-platform/api/phase9_autonomous_farm_os.py:148,2,applied
 FM-002,api,POST /v1/phase9/autonomy/events/from-plan @ services/sahool-platform/api/phase9_autonomous_farm_os.py:196,2,applied
@@ -501,7 +502,7 @@ FM-002,test,tests_v9/test_farm_memory.py,3,applied
 FM-003,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:299,2,applied
 FM-003,api,DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1613,4,applied
 FM-003,api,DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:667,2,applied
-FM-003,api,GET / @ services/field-management-service/main.py:273,3,applied
+FM-003,api,GET / @ services/field-management-service/main.py:292,3,applied
 FM-003,api,GET /api/v1/admin/break-glass/{token}/fields @ services/sahool-platform/api/routers/break_glass.py:355,2,applied
 FM-003,api,GET /api/v1/agro/kc-timeseries/{field_id} @ services/sahool-platform/api/routers/kc_timeseries.py:140,2,applied
 FM-003,api,GET /api/v1/agro/kc-timeseries/{field_id}/compare @ services/sahool-platform/api/routers/kc_timeseries.py:156,2,applied
@@ -572,14 +573,18 @@ FM-003,api,GET /api/v1/registry/report-fields @ services/sahool-platform/api/rou
 FM-003,api,GET /api/v1/reports/field/{field_id}/summary @ services/sahool-platform/api/routers/reports.py:101,2,applied
 FM-003,api,GET /api/v1/weather/field-weather-summary @ services/sahool-platform/api/routers/weather.py:2535,2,applied
 FM-003,api,GET /api/vegetation/v1/all_fields @ services/sahool-platform/api/routers/compat_gateway.py:55,2,applied
-FM-003,api,GET /contract @ services/field-management-service/main.py:254,3,applied
-FM-003,api,GET /health @ services/field-management-service/main.py:216,3,applied
+FM-003,api,GET /contract @ services/field-management-service/main.py:269,3,applied
+FM-003,api,GET /health @ services/field-management-service/main.py:231,3,applied
 FM-003,api,GET /health @ services/field-segmentation/main.py:551,2,applied
-FM-003,api,GET /healthz @ services/field-management-service/main.py:211,3,applied
+FM-003,api,GET /healthz @ services/field-management-service/main.py:226,3,applied
 FM-003,api,GET /healthz @ services/field-segmentation/main.py:546,2,applied
 FM-003,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394,2,applied
-FM-003,api,GET /internal/fields @ services/field-management-service/main.py:314,5,applied
-FM-003,api,GET /internal/fields/{field_id} @ services/field-management-service/main.py:282,5,applied
+FM-003,api,GET /internal/field-tasks/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:276,5,applied
+FM-003,api,GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:295,5,applied
+FM-003,api,GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:360,5,applied
+FM-003,api,GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147,3,applied
+FM-003,api,GET /internal/fields @ services/field-management-service/main.py:333,5,applied
+FM-003,api,GET /internal/fields/{field_id} @ services/field-management-service/main.py:301,5,applied
 FM-003,api,GET /internal/fields/{field_id}/state @ services/sahool-platform/api/routers/internal_service.py:52,4,applied
 FM-003,api,GET /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:517,4,applied
 FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:300,4,applied
@@ -591,7 +596,7 @@ FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/re
 FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:612,4,applied
 FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:395,4,applied
 FM-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:280,4,applied
-FM-003,api,GET /readyz @ services/field-management-service/main.py:221,3,applied
+FM-003,api,GET /readyz @ services/field-management-service/main.py:236,3,applied
 FM-003,api,GET /readyz @ services/field-segmentation/main.py:556,2,applied
 FM-003,api,GET /v1/all_fields @ services/vegetation-analysis-service/routers/analysis.py:145,2,applied
 FM-003,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1372,4,applied
@@ -703,6 +708,11 @@ FM-003,api,POST /internal/field-forms/definitions/{code}/versions @ services/sco
 FM-003,api,POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466,2,applied
 FM-003,api,POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278,2,applied
 FM-003,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328,2,applied
+FM-003,api,POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88,3,applied
+FM-003,api,POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:310,5,applied
+FM-003,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:451,5,applied
+FM-003,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:590,5,applied
+FM-003,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:466,5,applied
 FM-003,api,POST /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:349,4,applied
 FM-003,api,POST /internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke @ services/scout-ingest-service/grants_admin_api.py:440,4,applied
 FM-003,api,POST /internal/scouting-media/admin/fields/{field_id}/pins/{pin_id}/retention-events @ services/scout-ingest-service/grants_admin_api.py:755,4,applied
@@ -870,6 +880,7 @@ FM-003,test,services/decision-service/tests/test_tenant_boundary_migration_stati
 FM-003,test,services/decision-service/tests/test_wx11_6_registry_activation_boundary.py,3,applied
 FM-003,test,services/field-management-service/tests/test_field_management_pg_isolation_integration.py,3,applied
 FM-003,test,services/field-management-service/tests/test_field_management_service_contract.py,3,applied
+FM-003,test,services/field-management-service/tests/test_field_task_routes_unit.py,3,applied
 FM-003,test,services/field-segmentation/test_exg_preprocess.py,3,applied
 FM-003,test,services/field-segmentation/test_segmentation.py,3,applied
 FM-003,test,services/indicators-service/tests/test_indicators_service_honest_boundary.py,3,applied
@@ -978,6 +989,7 @@ FM-003,test,tests_v9/test_field_state_projection.py,3,applied
 FM-003,test,tests_v9/test_field_state_recompute_provenance_v57_5.py,3,applied
 FM-003,test,tests_v9/test_field_state_unification.py,3,applied
 FM-003,test,tests_v9/test_field_sustainability.py,3,applied
+FM-003,test,tests_v9/test_field_task_inspection_live_pg.py,3,applied
 FM-003,test,tests_v9/test_field_task_on_api_field_live_pg.py,3,applied
 FM-003,test,tests_v9/test_field_terrain_foundation_v31_2.py,3,applied
 FM-003,test,tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py,5,applied
@@ -1190,6 +1202,7 @@ FM-006,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platfor
 FM-006,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:649,2,applied
 FM-006,api,GET /api/v1/orchard/economics @ services/sahool-platform/api/routers/orchard.py:30,2,applied
 FM-006,api,GET /api/v1/registry/cost-profiles @ services/sahool-platform/api/routers/registry.py:88,2,applied
+FM-006,api,GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147,2,applied
 FM-006,api,GET /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:204,2,applied
 FM-006,api,POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:534,2,applied
 FM-006,api,POST /api/v1/economics/feasibility @ services/sahool-platform/api/routers/economics.py:32,2,applied
@@ -1625,8 +1638,17 @@ IRR-010,api,GET /v1/fields/{field_id}/soil/drainage-assessment @ services/soil-s
 IRR-010,api,POST /v1/fields/{field_id}/soil/drainage-assessment @ services/soil-service/routers/p3_products.py:96,2,applied
 IRR-010,service,services/sahool-platform/api/main.py,10,applied
 OPS-001,api,GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:46,3,applied
+OPS-001,api,GET /internal/field-tasks/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:276,4,applied
+OPS-001,api,GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:295,4,applied
+OPS-001,api,GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:360,4,applied
+OPS-001,api,GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147,4,applied
 OPS-001,api,PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:106,5,applied
 OPS-001,api,POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2821,5,applied
+OPS-001,api,POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88,4,applied
+OPS-001,api,POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:310,4,applied
+OPS-001,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:451,4,applied
+OPS-001,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:590,4,applied
+OPS-001,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:466,4,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/field_task.dart,4,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/irrigation_observations_api.dart,2,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/offline_write.dart,2,applied
@@ -1650,9 +1672,11 @@ OPS-001,test,mobile/sahool_app/test/features/tasks/task_grouping_test.dart,5,app
 OPS-001,test,mobile/sahool_app/test/features/tasks/tasks_cubit_test.dart,3,applied
 OPS-001,test,mobile/sahool_app/test/features/tasks/tasks_fakes.dart,3,applied
 OPS-001,test,mobile/sahool_app/test/features/tasks/tasks_screen_test.dart,3,applied
+OPS-001,test,services/field-management-service/tests/test_field_task_routes_unit.py,3,applied
 OPS-001,test,services/raster-service/test_task_indicator_previews.py,3,applied
 OPS-001,test,services/sahool-platform/tests/test_task_irrigation_observations.py,3,applied
 OPS-001,test,services/sahool-platform/tests/test_task_update_idempotency.py,3,applied
+OPS-001,test,tests_v9/test_field_task_inspection_live_pg.py,3,applied
 OPS-001,test,tests_v9/test_field_task_on_api_field_live_pg.py,3,applied
 OPS-001,test,tests_v9/test_tasks_endpoints.py,3,applied
 OPS-002,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:354,5,applied

@@ -2648,6 +2648,22 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v274_inspection_evidence_versions.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v275_inspection_handoffs.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v276_task_cost_trace.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v277_inspection_close_gate.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },
@@ -4934,6 +4950,14 @@
   {
     "path": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
     "kind": "tests"
+  },
+  {
+    "path": "services/field-management-service/fm_gateway.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/field-management-service/fm_task_costs.py",
+    "kind": "backend"
   },
   {
     "path": "services/field-segmentation/__init__.py",
