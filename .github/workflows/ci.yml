@@ -1372,6 +1372,11 @@ jobs:
           # certification (tests_v9/test_apply_in_compose_live_pg.py) must not turn into a green
           # skip when the DB is unreachable or the DSN is dropped — a skip is a HARD failure here.
           MIGRATOR_CERTIFICATION_REQUIRED: "1"
+          # A field-geometry save is atomic with its history row
+          # (tests_v9/test_field_geometry_save_atomic_live_pg.py): the module drives the real
+          # handlers under a throwaway NOBYPASSRLS role it creates from this superuser DSN. With
+          # the switch, a missing or unmigrated database is a failure, not a green skip.
+          FIELD_GEOMETRY_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation
