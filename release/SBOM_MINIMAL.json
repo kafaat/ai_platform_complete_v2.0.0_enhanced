@@ -39435,7 +39435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "061a0eda09fc5feda7ce03770bdde3ee65e74b9b241ef64907fb5404449e282e"
+          "content": "12c7e2a4d33fd6b34eff05c3433399ecb5e32dfded05128ee3da8ac51f4e0682"
         }
       ],
       "name": "services/weather-service/canonical_daily_weather_series.py",
@@ -39725,7 +39725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6fc900a95a2490afd72ae9916bde9e6bb27f5543e96749ddf237c38a8909ca52"
+          "content": "c1e28c37ab81f5eec60cce27e5844a6a941c8f84bb92ce25cab67f5242d1988a"
         }
       ],
       "name": "services/weather-service/tests/test_gdd_view.py",

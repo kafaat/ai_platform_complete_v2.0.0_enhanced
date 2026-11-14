@@ -30,5 +30,5 @@ supervisor-agent,Agent Orchestration,23,3849,8,11,services/supervisor-agent/main
 tts-service,Voice & Notifications,10,1470,1,8,services/tts-service/main.py,services/tts-service/Dockerfile,services/tts-service/requirements.txt,normal
 vegetation-analysis-service,Vegetation Analytics,45,5044,19,22,services/vegetation-analysis-service/main.py,services/vegetation-analysis-service/Dockerfile,services/vegetation-analysis-service/requirements.txt,normal
 video-processor,Video Processing,9,1158,1,11,services/video-processor/main.py,services/video-processor/Dockerfile,services/video-processor/requirements.txt,normal
-weather-service,Weather Intelligence,51,8735,32,29,services/weather-service/main.py,services/weather-service/Dockerfile,services/weather-service/requirements.txt,normal
+weather-service,Weather Intelligence,51,8747,32,29,services/weather-service/main.py,services/weather-service/Dockerfile,services/weather-service/requirements.txt,normal
 weather-signal-engine,Weather Intelligence,2,287,0,0,services/weather-signal-engine/src/main.py,services/weather-signal-engine/Dockerfile,services/weather-signal-engine/requirements.txt,medium-runtime-contract-gap

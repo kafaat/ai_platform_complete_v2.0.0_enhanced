@@ -1641,7 +1641,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 350,
+      "evidence_count": 351,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1661,7 +1661,8 @@
         "soil-service",
         "supervisor-agent",
         "tts-service",
-        "vegetation-analysis-service"
+        "vegetation-analysis-service",
+        "weather-service"
       ],
       "primary_owner": "sahool-platform",
       "repository_evidence": [
@@ -1980,6 +1981,7 @@
         "services/vegetation-analysis-service/test_decision_bridge_candidate.py",
         "services/vegetation-analysis-service/test_rs_review_hardening.py",
         "services/vegetation-analysis-service/weekly_insights.py",
+        "services/weather-service/tests/test_gdd_view.py",
         "shared/ai/recommendation_runtime/flags.py",
         "shared/ai/recommendation_runtime/human_review_repository.py",
         "shared/ai/recommendation_runtime/recommendation_events.py",
@@ -3254,7 +3256,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 206,
-      "target_evidence_count": 350,
+      "target_evidence_count": 351,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3300,7 +3302,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 350,
+      "source_evidence_count": 351,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3504,5 +3506,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "0431da19428d34c59049b1726c44d09842633b22097eb5efa59c2c974ed77bb0"
+  "content_sha256": "ee0e2516706d205850992fa2f89fd6ca57b6bd4fe4ecba2c45e106637d40806f"
 }
