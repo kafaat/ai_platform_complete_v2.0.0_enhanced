@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7327,
+    "files_scanned": 7329,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
-      "other": 2175,
-      "tests": 2494,
+      "other": 2176,
+      "tests": 2495,
       "web": 547
     },
-    "unmapped_artifacts": 3487,
+    "unmapped_artifacts": 3488,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3963,
+      "python_functional": 3965,
       "raw": 3364
     },
-    "test_dependency_files": 1894,
-    "test_dependency_edges": 4863,
+    "test_dependency_files": 1895,
+    "test_dependency_edges": 4866,
     "test_dependency_bounded_files": 1111,
     "test_dependency_unresolved_relations": 479
   },
@@ -42075,6 +42075,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests/phase6/test_strict_shadow_feature_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests/release/test_phase14_release_packaging_contracts.py",
       "kind": "tests"
     },
@@ -70030,6 +70034,31 @@
           "source": "services/sahool-platform/api/phase_runtime_store.py",
           "kind": "source_read",
           "line": 42
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests/phase6/test_strict_shadow_feature_contract.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "shared/feature_store/runtime.py",
+          "kind": "import",
+          "line": 8
+        },
+        {
+          "source": "shared/feature_store/strict_shadow.py",
+          "kind": "import",
+          "line": 9
+        },
+        {
+          "source": "shared/feature_store/strict_shadow.py",
+          "kind": "source_read",
+          "line": 13
         }
       ],
       "unresolved": []
