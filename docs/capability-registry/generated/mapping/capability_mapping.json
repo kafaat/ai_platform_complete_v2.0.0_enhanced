@@ -32,7 +32,7 @@
       "raw": 3364
     },
     "test_dependency_files": 1894,
-    "test_dependency_edges": 4860,
+    "test_dependency_edges": 4861,
     "test_dependency_bounded_files": 1111,
     "test_dependency_unresolved_relations": 479
   },
@@ -82924,6 +82924,11 @@
           "source": "scripts/ci/probe_leak_guard.py",
           "kind": "source_read",
           "line": 217
+        },
+        {
+          "source": "scripts/ci/railway_deploy_impact.py",
+          "kind": "source_read",
+          "line": 592
         },
         {
           "source": "scripts/ci/verify_all_generated.py",
