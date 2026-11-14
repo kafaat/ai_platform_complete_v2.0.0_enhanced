@@ -12,7 +12,7 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **43**
-- Files scanned: **7343**
+- Files scanned: **7344**
 - Ambiguous artifacts queued: **238**
 - Unmapped artifacts queued: **3494**
 
@@ -30,7 +30,7 @@
 | DEC-008 | decision | 0 | 1 | 2 | 1 | 0 | 0 | 1 | 4 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 93 | 49 | 7 | 0 | 0 | 7 | 5 |
-| FM-001 | farm_management | 16 | 2 | 28 | 12 | 1 | 0 | 44 | 6 |
+| FM-001 | farm_management | 16 | 2 | 28 | 12 | 1 | 0 | 43 | 6 |
 | FM-002 | farm_management | 36 | 44 | 100 | 26 | 19 | 35 | 52 | 7 |
 | FM-003 | farm_management | 14 | 56 | 5 | 66 | 3 | 2 | 17 | 7 |
 | FM-004 | farm_management | 32 | 82 | 84 | 43 | 18 | 15 | 55 | 7 |
@@ -92,7 +92,7 @@
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 0 | 3 |
 | SOIL-005 | soil | 7 | 0 | 0 | 8 | 0 | 0 | 1 | 3 |
 | WX-001 | weather | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
-| WX-002 | weather | 13 | 21 | 6 | 31 | 8 | 1 | 13 | 7 |
+| WX-002 | weather | 13 | 21 | 6 | 31 | 8 | 1 | 14 | 7 |
 | WX-003 | weather | 2 | 6 | 4 | 0 | 0 | 0 | 0 | 3 |
 | WX-004 | weather | 3 | 0 | 0 | 1 | 0 | 0 | 9 | 3 |
 | WX-005 | weather | 3 | 0 | 0 | 1 | 0 | 0 | 2 | 3 |
