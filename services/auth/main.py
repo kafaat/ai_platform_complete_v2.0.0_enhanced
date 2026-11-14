@@ -415,7 +415,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Tenant-ID"],
+    allow_headers=["Authorization", "Content-Type", "X-Tenant-ID", "X-MFA-Code"],
     expose_headers=["X-Tenant-ID"],
     allow_credentials=True,
 )
@@ -991,10 +991,11 @@ async def _ensure_admin_user():
         # حزام أمان: نُعيد ضبطه محليّاً للمعاملة أيضاً تحسّباً لأيّ RESET ALL على
         # تحرير الاتّصال يمحو GUC الجلسة — الإقحام التأسيسيّ للمدير يبقى متيناً.
         await conn.execute("SELECT set_config('app.current_role', 'admin', true)")
+        # C-01: admin = مالك مستأجِر ⇒ المدير التأسيسيّ مالكُ مستأجِرٍ جديد فارغ (صريحاً).
         await conn.execute(
             """
-            INSERT INTO users (email, password_hash, full_name, role)
-            VALUES ('admin@sahool.ye', $1, 'مدير النظام', 'admin')
+            INSERT INTO users (email, password_hash, full_name, role, tenant_id)
+            VALUES ('admin@sahool.ye', $1, 'مدير النظام', 'admin', gen_random_uuid())
             ON CONFLICT (email) DO NOTHING
         """,
             hashed,
