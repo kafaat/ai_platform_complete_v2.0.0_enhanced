@@ -242,7 +242,25 @@ async def update_task(
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
+        refused = _INSPECTION_CLOSE_REFUSALS.get(getattr(e, "sqlstate", None))
+        if refused is not None:
+            raise HTTPException(status_code=409, detail=refused) from e
         raise _db_unavailable("تحديث المهمّة", e) from e
+
+
+# v277 (field-management-service's trigger on field_tasks): a pin inspection task closes only on an
+# approved review of the pin's current photo evidence. The trigger refuses the UPDATE; the platform
+# reads none of the inspection tables and only names the refusal (409, not a 503).
+_INSPECTION_CLOSE_REFUSALS = {
+    "SH001": {
+        "error": "inspection_review_required",
+        "message": "تتطلب زيارة التفتيش اعتماد نتيجتها قبل الإغلاق",
+    },
+    "SH002": {
+        "error": "inspection_evidence_changed",
+        "message": "تغيرت صورة الزيارة بعد الاعتماد. يلزم اعتماد النسخة الجديدة",
+    },
+}
 
 
 def _task_updated_payload(row, changed_fields: list[str]) -> dict:

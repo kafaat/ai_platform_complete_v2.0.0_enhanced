@@ -1072,7 +1072,7 @@ jobs:
             # edge-inference: عقود AI-02/AI-03 (المصادقة قبل التحقّق · إيقاف مهمّة المزامنة)؛ كانت
             # تُشغَّل في `runtime-real-smoke.yml` وحدها وهي ليست فحصاً مطلوباً ⇒ تحمرّ ولا تحجب.
             run_group services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py services/edge-inference/tests/test_entrypoint_validation_lifecycle.py services/edge-inference/tests/test_model_artifact_gate_endpoints.py
-            run_group services/field-management-service/tests/test_field_management_service_contract.py
+            run_group services/field-management-service/tests/test_field_management_service_contract.py services/field-management-service/tests/test_field_task_routes_unit.py
             run_group services/field-segmentation/test_exg_preprocess.py services/field-segmentation/test_segmentation.py
             run_group services/guardrails-engine/test_guardrails_router_decomposition_guard.py
             run_group services/indicators-service/tests/test_indicators_service_honest_boundary.py services/indicators-service/tests/test_indicators_service_static_route_smoke.py services/indicators-service/tests/test_observation_runtime.py services/indicators-service/tests/test_observation_timeline.py
@@ -1542,6 +1542,18 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           SOIL_FUNCTIONAL_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_services_functional.py
+
+      # v274-v277 (field-management-service owns the pin inspection and task cost tables): hand-off
+      # state machine, evidence-version invalidation (P3), the v277 close gate through the
+      # platform's PATCH, the cost trigger history, the expense link's farm/field check and the
+      # meter gate, per table cross-tenant invisible, on the restricted NOBYPASSRLS role. The
+      # flag turns any skip into a failure; the owner URL seeds other services' rows only.
+      - name: Field task inspection and cost trace (v274-v277, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          FIELD_TASK_LIVE_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_field_task_inspection_live_pg.py
 
       # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
       # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real

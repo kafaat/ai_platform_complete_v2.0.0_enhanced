@@ -27,6 +27,7 @@ import hashlib
 import hmac
 import json
 import os
+import sys
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
@@ -41,6 +42,20 @@ VERSION = os.getenv("SERVICE_VERSION", "9.1.0-field-owner")
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 app = FastAPI(title="SAHOOL Field Management Service", version=VERSION)
+
+# The public task and inspection routes (owner decision 2026-11-14, rebuilt from carrier D #1439)
+# live in sibling modules with their own gateway-identity contract (fm_gateway.py). The service
+# directory goes on sys.path so they import the same way in the container (/app) and in tests.
+# Appended, not prepended: the fm_* names are unique, and this directory's main.py must never
+# shadow another service's `main` in a shared test process.
+_SERVICE_DIR = str(Path(__file__).resolve().parent)
+if _SERVICE_DIR not in sys.path:
+    sys.path.append(_SERVICE_DIR)
+from fm_task_costs import router as _task_costs_router  # noqa: E402
+from fm_task_inspection import router as _task_inspection_router  # noqa: E402
+
+app.include_router(_task_inspection_router)
+app.include_router(_task_costs_router)
 
 
 def _source_sha256(path: Path) -> str:
@@ -266,6 +281,10 @@ async def contract():
             "/internal/fields/{field_id}",
             "/internal/fields",
         ],
+        # Gateway-only user routes: nginx verifies the JWT and injects the trusted identity and
+        # X-Field-Tasks-Token (fm_gateway.py). Public prefix /api/v1/field-tasks/.
+        "gateway_routes_auth": "gateway-trusted-identity+dedicated-token",
+        "gateway_routes_prefix": "/internal/field-tasks",
     }
 
 
