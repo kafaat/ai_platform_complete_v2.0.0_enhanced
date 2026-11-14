@@ -28055,7 +28055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09a0d9d83c8aa0cb44f4789fb8f6fe9730b5bb399e2eab0a4dffba7411fcbba6"
+          "content": "3f2dbe97b22ece2b5346459e25477649d99877aae9ca2ede44d0e99ee6ef85d5"
         }
       ],
       "name": "services/sahool-platform/api/spatial_sync.py",
