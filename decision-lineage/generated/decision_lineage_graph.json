@@ -1639,7 +1639,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 349,
+      "evidence_count": 350,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1712,6 +1712,7 @@
         "services/ai_agronomist/runtime_guardrail_adapter.py",
         "services/ai_agronomist/vra_prescription_engine.py",
         "services/auth/routers/season_edge_sign.py",
+        "services/auth/routers/users.py",
         "services/decision-service/backfill.py",
         "services/decision-service/decision_sor_role_certify.py",
         "services/decision-service/main.py",
@@ -3251,7 +3252,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 206,
-      "target_evidence_count": 349,
+      "target_evidence_count": 350,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3297,7 +3298,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 349,
+      "source_evidence_count": 350,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3501,5 +3502,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "c18bc57ec465c67472660e1b124153c12a42dd53a62d6a256ef08f1b5bdc9f45"
+  "content_sha256": "769b08c7fcc79651e66aab66cd429b3765a842b27232022b87d30e0b2bcf0e20"
 }

@@ -21,4 +21,8 @@ async def security_denials(
     user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
 ):
     """أحدث حالات الرفض الأمنيّ + ملخّص (إجماليّ/لكلّ نوع/آخر وقت)."""
-    return {"denials": AUDIT.recent(limit=limit), "summary": AUDIT.summary()}
+    tenant_id = str(user.tenant_id)
+    return {
+        "denials": AUDIT.recent(limit=limit, tenant_id=tenant_id),
+        "summary": AUDIT.summary(tenant_id=tenant_id),
+    }

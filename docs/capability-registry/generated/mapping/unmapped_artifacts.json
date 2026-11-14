@@ -10724,6 +10724,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_admin_operational_permissions.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_admin_team_scope_guards.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_advice_facade_contract.py",
     "kind": "tests"
   },
@@ -10965,6 +10973,10 @@
   },
   {
     "path": "tests_v9/test_auth_acquire_admin_context_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_admin_authz_live_pg_redis.py",
     "kind": "tests"
   },
   {
@@ -12581,6 +12593,10 @@
   },
   {
     "path": "tests_v9/test_platform_crypto_dependency.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_platform_denial_log_scope_live.py",
     "kind": "tests"
   },
   {

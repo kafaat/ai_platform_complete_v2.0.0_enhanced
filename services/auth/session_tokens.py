@@ -19,7 +19,11 @@
 
 from __future__ import annotations
 
+import logging
+from collections.abc import Coroutine
 from typing import Any
+
+from fastapi import HTTPException, status
 
 
 async def consume_refresh_token(redis: Any, token: str) -> str | None:
@@ -59,3 +63,31 @@ async def consume_once(redis: Any, key: str) -> str | None:
         pipe.delete(key)
         value, deleted = await pipe.execute()
     return value if deleted else None
+
+
+async def session_revoked(*checks: Coroutine[Any, Any, bool] | None) -> bool:
+    """Whether an access token is revoked: awaits each check (jti, user token floor).
+
+    A revocation store that fails after boot (connection refused, timeout, ACL) leaves the
+    state unknown, so the request is refused with 503, in every environment. Before this,
+    the redis error escaped ``main.get_current_user`` as an opaque 500 (live witness:
+    ``tests_v9/test_auth_admin_authz_live_pg_redis.py``, ``[*-unreachable]``). Redis absent
+    since boot is not a failure here: the checks then return ``False`` as before. A falsy
+    entry (no jti in the token) is skipped.
+    """
+    revoked, failure = False, None
+    for check in (c for c in checks if c):
+        try:
+            revoked = bool(await check) or revoked
+        except Exception as exc:  # noqa: BLE001 — state unknown: refuse, never pass
+            failure = exc
+    if revoked:  # proof of revocation wins over an unknown (401, as in the platform)
+        return True
+    if failure is not None:
+        logging.getLogger("auth").warning(
+            "token revocation check failed: %s", type(failure).__name__
+        )
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, "تعذّر التحقّق من إبطال التوكن — أعد المحاولة"
+        ) from failure
+    return False
