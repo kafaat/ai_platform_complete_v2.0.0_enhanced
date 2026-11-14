@@ -74,9 +74,7 @@ def test_unexpected_response_type_fails_closed():
 
 
 def test_advisor_and_certification_reference_same_predicate():
-    advisor = (ROOT / "services/ai_agronomist/main.py").read_text(
-        encoding="utf-8"
-    )
+    advisor = (ROOT / "services/ai_agronomist/main.py").read_text(encoding="utf-8")
     cert = (ROOT / "scripts/ci/ai_rag_live_certification.py").read_text(
         encoding="utf-8"
     )
