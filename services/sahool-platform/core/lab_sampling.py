@@ -62,6 +62,9 @@ class SoilLabResult:
     calcium_carbonate_pct: float | None = None
     texture: str | None = None
     approved: bool = False
+    sand_pct: float | None = None
+    silt_pct: float | None = None
+    clay_pct: float | None = None
 
 
 def classify_soil_ph(ph: float | None) -> dict:

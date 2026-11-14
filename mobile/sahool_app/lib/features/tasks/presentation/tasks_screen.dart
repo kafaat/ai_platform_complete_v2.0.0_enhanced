@@ -324,12 +324,13 @@ class _TasksViewState extends State<TasksView> {
     final cubit = context.read<TasksCubit>();
     final busy = s.busy.contains(t.id);
     final undoable = s.undoable.contains(t.id);
+    final canUpdate = widget.canEdit && (t.sourcePinId == null || canManage(currentRole()));
     final card = TaskCard(
       key: ValueKey('task-${t.id}'),
       task: t,
       fieldName: fieldLabel(t.fieldId, s.fieldNames),
       todayKey: today,
-      canEdit: widget.canEdit,
+      canEdit: canUpdate,
       busy: busy,
       queued: s.queued.containsKey(t.id),
       undoable: undoable,
@@ -338,7 +339,7 @@ class _TasksViewState extends State<TasksView> {
       onComplete: () => _openComplete(t),
       onUndo: () => cubit.undoSwipe(t.id),
     );
-    if (!widget.canEdit || t.isDone || busy || undoable) return card;
+    if (!canUpdate || t.isDone || busy || undoable) return card;
     final tk = context.tokens;
     return Dismissible(
       key: ValueKey('swipe-${t.id}'),

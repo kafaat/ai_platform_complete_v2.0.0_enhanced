@@ -762,7 +762,17 @@ def render_truecolor_thumbnail_png(cog_path: str, max_px: int = 160) -> bytes | 
         return None
 
 
-def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> bytes | None:
+def task_preview_style(index: str) -> str:
+    if index == "truecolor":
+        return "rgb"
+    if index == "et_inputs":
+        return "inputs"
+    return "fixed" if index in _INDEX_DOMAIN else "relative"
+
+
+def render_cog_thumbnail_png(
+    cog_path: str, index: str, max_px: int = 160, *, relative=False
+) -> bytes | None:
     """يصيّر **مُصغَّرة** كاملة للحقل من COG مقصوص (لا بلاطة XYZ) — لشريط السجلّ الزمنيّ.
 
     يعيد إسقاط امتداد الـCOG كلّه (وهو أصلاً مقصوص على bbox الحقل + مُقنَّع بالمضلّع)
@@ -783,6 +793,8 @@ def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> by
 
     try:
         with rasterio.open(cog_path) as src:
+            if relative and src.count != 1:
+                return None
             src_nodata = src.nodata
             if src_nodata is not None:
                 try:
@@ -853,7 +865,19 @@ def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> by
     if not np.isfinite(dst).any():
         return None  # لا بيانات صالحة (غيوم/خارج المضلّع) → لا مُصغَّرة
 
-    rgba = colorize(dst, index)
+    if relative:
+        valid = np.isfinite(dst)
+        low, high = np.min(dst[valid]), np.max(dst[valid])
+        rgba = np.zeros((*dst.shape, 4), dtype=np.uint8)
+        gray = (
+            255 * (dst[valid].astype("float64") - low) / (float(high) - low)
+            if high > low
+            else np.full(valid.sum(), 127)
+        )
+        rgba[valid, :3] = np.rint(gray).astype(np.uint8)[:, None]
+        rgba[valid, 3] = 255
+    else:
+        rgba = colorize(dst, index)
     try:
         return encode_png_rgba(rgba)
     except Exception:  # noqa: BLE001

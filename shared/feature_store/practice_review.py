@@ -61,6 +61,14 @@ def review_practice_dataset(
     recorded observation and elapsed maturity window. Both feature event time and
     availability must precede the decision. Training labels must have been known
     and mature at split_at. No sample count grants local agronomic validity.
+
+    Candidate rows carry the export's own temporal lineage to the offline
+    manifest: ``available_at`` = ``feature_available_at``, ``prediction_at`` =
+    ``decision_at``, ``ingested_at`` = ``feature_ingested_at`` when the export
+    records it, and the accepted revision's content digest as ``source_version``.
+    The manifest is judged at ``as_of``. An export without ``feature_ingested_at``
+    is not given one: its manifests are not point-in-time safe and the review is
+    blocked (``temporal_lineage_unverified_<partition>``).
     """
     if not _identifier(tenant_id) or not _identifier(label_name):
         raise ValueError("tenant_id and label_name required")
@@ -189,6 +197,11 @@ def review_practice_dataset(
                     "entity_type": "field",
                     "entity_id": row["field_id"],
                     "event_time": row["event_time"],
+                    "tenant_id": tenant_id,
+                    "source_version": "sha256:" + _digest(row),
+                    "available_at": row["feature_available_at"],
+                    "ingested_at": row.get("feature_ingested_at"),
+                    "prediction_at": row["decision_at"],
                     "features": {key: features[key] for key in feature_names},
                     "labels": {label_name: value},
                     "quality": {
@@ -256,11 +269,19 @@ def review_practice_dataset(
     )
     manifests = {
         name: write_offline_feature_dataset(
-            rows, feature_set_id=feature_set_id, dataset_name="customer_practice_" + name
+            rows,
+            feature_set_id=feature_set_id,
+            dataset_name="customer_practice_" + name,
+            as_of=as_of,
         )
         for name, rows in partitions.items()
     }
     blocked = ["empty_" + name for name, rows in partitions.items() if not rows]
+    blocked += [
+        "temporal_lineage_unverified_" + name
+        for name, rows in partitions.items()
+        if rows and not manifests[name]["point_in_time_safe"]
+    ]
     return {
         "policy": policy,
         "policy_sha256": _digest(policy),

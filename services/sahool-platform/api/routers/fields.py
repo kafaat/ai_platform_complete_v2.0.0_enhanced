@@ -138,7 +138,7 @@ from api.raster_service_client import (
     # facade call distinct so DEM auto-fill hits raster-service, not the route.
     get_field_terrain as raster_get_field_terrain,
 )
-from api.scouting_pins import make_pin, persist_scouting_pin
+from api.scouting_pins import create_scouting_pin, persist_scouting_pin
 
 # نماذج/مساعدات المواسم نُقِلت إلى api.season_models (تفكيك B1) وتُستورَد من هناك.
 from api.season_models import (
@@ -1348,10 +1348,10 @@ async def update_field(
                     # سُحب الحقل بين التأكيد والقراءة (نادر) ⇒ نرفع 404 **داخل** المعاملة
                     # قبل إصدار الحدث، فتتراجع المعاملة ولا يُكتب حدث لتحديث لم يقع فعلاً.
                     raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
-                # حدث domain ضمن نفس المعاملة — الحقول المُرسَلة فقط في الـpayload.
+                # حدث domain: الحقول المُرسَلة + row_version بعد التحديث هويّةً للطفرة (C-14).
                 _updated_payload = req.model_dump(
                     exclude_unset=True, exclude={"base_version", "base_values"}
-                )
+                ) | {"row_version": row["row_version"]}
                 if merged_from_version is not None:
                     _updated_payload["_auto_merged"] = True
                 if geometry_changed and req.geometry is not None:
@@ -2316,8 +2316,7 @@ async def update_season(
                 # تزامن تفاؤليّ (v64): إن مرّر العميل base_version ولم يطابق الإصدار
                 # الحاليّ ⇒ عُدِّل الموسم من جلسة أخرى منذ قراءته ⇒ 409 (لا فقد صامت).
                 # الصفّ مقفول (FOR UPDATE) فالفحص خالٍ من السباق. الرفض قبل أيّ كتابة
-                # أو إصدار حدث ⇒ المعاملة تتراجع نظيفةً. trg_seasons_row_version يرفع
-                # row_version آليّاً على كلّ UPDATE فلا رفعَ يدويّ هنا.
+                # أو إصدار حدث ⇒ تتراجع المعاملة نظيفةً؛ trg_seasons_row_version يرفع row_version.
                 if req.base_version is not None and current["row_version"] != req.base_version:
                     raise HTTPException(
                         status_code=409,
@@ -2355,15 +2354,16 @@ async def update_season(
                         *params,
                     )
 
-                # حدث التحديث + حدث الإغلاق المخصَّص عند الانتقال إلى closed.
+                # حدث التحديث (row_version بعد الكتابة هويّةُ الطفرة، C-14) + حدث الإغلاق عند closed.
                 changed_fields = [c for c, _, _ in updates]
+                rv = current["row_version"] + (1 if updates else 0)  # trigger: +1/UPDATE
                 await _emit_domain_event(
                     conn,
                     user,
                     "SEASON_UPDATED",
                     "season",
                     season_id,
-                    {"field_id": field_id, "changed_fields": changed_fields},
+                    {"field_id": field_id, "changed_fields": changed_fields, "row_version": rv},
                 )
                 if status_changed and req.status == "closed":
                     await _emit_domain_event(
@@ -3762,41 +3762,13 @@ async def create_pin(
     req: PinCreateRequest,
     user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
-    """يتحقّق من مشاهدة ميدانيّة ثمّ يُديمها (RLS) ويُرجعها مُطبَّعة.
+    """يتحقّق من مشاهدة ميدانيّة ثمّ يُديمها (RLS) ويُرجعها مُطبَّعة مع ``persisted``.
 
-    سابقاً: تحقّق + إرجاع فقط (الحفظ كان على الموبايل offline-first) — فلا قراءة
-    خادميّة. الآن يُثبَّت الدبّوس في ``scouting_pins`` (v94، معزول بالمستأجِر) ليُقرأ
-    عبر ``GET /api/v1/scouting/pins?field_id=…`` (نظير FieldView). صدق: التحقّق هو
-    مصدر الحقيقة؛ الإدامة best-effort — لو تعذّرت القاعدة يبقى الدبّوس صالحاً ويُعلَن
-    ``persisted=false`` (لا اختراع نجاح، يبقى المسار offline-first سليماً). idempotent
-    عبر ``ON CONFLICT (pin_id) DO NOTHING`` (إعادة المزامنة لا تُكرّر).
+    تُقرأ عبر ``GET /api/v1/scouting/pins?field_id=…``. الإدامة best-effort (تعذّر القاعدة ⇒
+    ``persisted=false``)، وidempotent على pin_id. مصدر الموقع ودقّته (v257): التنفيذ
+    في ``api.scouting_pins.create_scouting_pin`` (حدّ حجم الراوتر).
     """
-    if req.field_id != field_id:
-        raise HTTPException(422, "معرّف الحقل لا يطابق المسار")
-    try:
-        pin = make_pin(
-            req.pin_id,
-            field_id,
-            req.lat,
-            req.lng,
-            req.issue_category,
-            req.severity,
-            req.status,
-            req.persistence,
-            crop=req.crop,
-            issue_code=req.issue_code,
-            note_ar=req.note_ar,
-            photo_uri=req.photo_uri,
-            color=req.color,
-            created_by=user.user_id,
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
-
-    persisted = await _persist_scouting_pin(user, pin)
-    out = pin.to_dict()
-    out["persisted"] = persisted
-    return out
+    return await create_scouting_pin(field_id, req, user, persist=_persist_scouting_pin)
 
 
 async def _persist_scouting_pin(user: UserSchema, pin) -> bool:

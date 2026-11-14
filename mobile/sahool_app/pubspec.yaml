@@ -36,6 +36,8 @@ dependencies:
 
   # Networking
   dio: ^5.4.3
+  # SHA-256 of scout photo evidence (X-Content-SHA256; v260). Was transitive at 3.0.7.
+  crypto: ^3.0.7
   json_annotation: ^4.9.0
   web_socket_channel: 3.0.3  # permits web 1.x alongside device_info_plus and LiveKit
   connectivity_plus: 7.0.0

@@ -464,6 +464,7 @@
           "services/decision-service/tests/test_ac1_agronomic_context.py",
           "services/decision-service/tests/test_activation_evidence_contract.py",
           "services/decision-service/tests/test_agronomic_lineage_integrity.py",
+          "services/decision-service/tests/test_backfill_row_coverage.py",
           "services/decision-service/tests/test_decision_evidence_read.py",
           "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
           "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
@@ -491,6 +492,7 @@
         "metrics": [],
         "routes": [
           "services/decision-service/main.py",
+          "services/decision-service/tests/test_ac1_boundary_finiteness_timezone.py",
           "services/decision-service/tests/test_activation_evidence_contract.py",
           "services/decision-service/tests/test_agronomic_evidence_contract.py",
           "services/decision-service/tests/test_correlation_http_projection.py",
@@ -2050,6 +2052,7 @@
         "SAHOOL_IRRIGATION_SALINITY_POLICY",
         "SAHOOL_NATS_URL",
         "SAHOOL_RATE_LIMIT_PER_MIN",
+        "SAHOOL_REPLAY_MAX_EVENTS",
         "SAHOOL_TENANT_DATA_ROOT",
         "SAHOOL_WEATHER_CACHE_BACKEND",
         "SAHOOL_WEATHER_RATE_LIMIT_BACKEND",
@@ -2127,6 +2130,7 @@
           "services/sahool-platform/api/decision_service_client.py",
           "services/sahool-platform/api/decision_sor_mode.py",
           "services/sahool-platform/api/event_bus.py",
+          "services/sahool-platform/api/event_replay.py",
           "services/sahool-platform/api/feature_registry.py",
           "services/sahool-platform/api/field_state_projection.py",
           "services/sahool-platform/api/idempotency.py",
@@ -2189,6 +2193,8 @@
           "services/sahool-platform/core/workflow_engine.py",
           "services/sahool-platform/tests/test_field_overlap_postgis.py",
           "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
+          "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
+          "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py",
           "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
           "services/sahool-platform/tests/test_phase11_runtime_api.py",
           "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
@@ -2391,6 +2397,7 @@
           "services/sahool-platform/tests/test_indicator_observations_route.py",
           "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
           "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
+          "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
           "services/sahool-platform/tests/test_lab_sampling_router.py",
           "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
           "services/sahool-platform/tests/test_nats_relay_bounded_startup.py",
@@ -2565,6 +2572,7 @@
         "SCOUT_INGEST_PROJECTION_LEASE_SECONDS",
         "SCOUT_INGEST_PROJECTION_MAX_ATTEMPTS",
         "SCOUT_INGEST_PROJECTION_POLL_SECONDS",
+        "SCOUT_MEDIA_ENABLED",
         "SEASON_ENTRY_ENABLED",
         "SERVICE_VERSION",
         "TEST_ADMIN_URL"
@@ -2589,9 +2597,11 @@
         "configuration": [
           "services/scout-ingest-service/field_forms_api.py",
           "services/scout-ingest-service/main.py",
+          "services/scout-ingest-service/media_api.py",
           "services/scout-ingest-service/projection_worker.py",
           "services/scout-ingest-service/season_api.py",
           "services/scout-ingest-service/tests/test_ingest_live.py",
+          "services/scout-ingest-service/tests/test_media_live.py",
           "services/scout-ingest-service/tests/test_projection_live.py",
           "services/scout-ingest-service/tests/test_season_live.py"
         ],
@@ -2599,6 +2609,7 @@
         "routes": [
           "services/scout-ingest-service/field_forms_api.py",
           "services/scout-ingest-service/main.py",
+          "services/scout-ingest-service/media_api.py",
           "services/scout-ingest-service/season_api.py",
           "services/scout-ingest-service/tests/test_ingest_live.py",
           "services/scout-ingest-service/tests/test_season_live.py"
@@ -2615,6 +2626,7 @@
         "FIELD_FORMS_SERVICE_TOKEN",
         "FIELD_FORMS_SYNC_HMAC_KEY",
         "SCOUT_INGEST_READ_TOKEN",
+        "SCOUT_MEDIA_SERVICE_TOKEN",
         "SEASON_EDGE_HMAC_KEY",
         "SEASON_ENTRY_SERVICE_TOKEN"
       ],

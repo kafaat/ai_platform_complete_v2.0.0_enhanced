@@ -86,12 +86,14 @@ services:
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
       # SEASON-RECORD-ENTRY-01 3b: أضِف SEASON_ENTRY_SERVICE_TOKEN كي يُستبدَل في القالب.
       # الفلتر يقصر الاستبدال على هذه الأسماء فقط — متغيّرات nginx وقت التشغيل تبقى كما هي.
-      NGINX_ENVSUBST_FILTER: DOMAIN|SAHOOL_AGENT_TOKEN|SEASON_ENTRY_SERVICE_TOKEN
+      NGINX_ENVSUBST_FILTER: DOMAIN|SAHOOL_AGENT_TOKEN|SEASON_ENTRY_SERVICE_TOKEN|SCOUT_MEDIA_SERVICE_TOKEN
       DOMAIN: ${DOMAIN:-localhost}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       # توكن خدمة قناة المواسم (تُحقنه البوّابة upstream نحو scout-ingest). فارغ محلّيّاً ⇒ الخدمة
       # ترفض (SEASON_ENTRY_ENABLED=0 افتراضاً) — نمط READ_TOKEN، لا سرّ بقيمة في compose.
       SEASON_ENTRY_SERVICE_TOKEN: ${SEASON_ENTRY_SERVICE_TOKEN:-}
+      # SCOUT-PHOTO (v260): توكن قناة صور المشاهدات نحو scout-ingest (فارغ ⇒ الخدمة 503).
+      SCOUT_MEDIA_SERVICE_TOKEN: ${SCOUT_MEDIA_SERVICE_TOKEN:-}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
@@ -896,8 +898,15 @@ services:
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
       # M4 (مراجعة v25): المشاهداتُ القانونيّة لكلّ حقل عبر `/api/v1/fields/{id}/indicator-observations/{view}`.
       INDICATORS_SERVICE_URL: ${INDICATORS_SERVICE_URL:-http://sahool-indicators-service:8000}
-      # Best-effort mirror target (dual-path): platform writes are authoritative; the facade
-      # mirrors to this URL and swallows failures. Unreachable mirror ⇒ logged warning, never data loss.
+      # Route reads and writes through the selected owner after the verified cutover.
+      SAHOOL_DECISION_WRITE_MODE: ${SAHOOL_DECISION_WRITE_MODE:-platform_sor}
+      DECISION_SERVICE_SOR_ENABLED: ${DECISION_SERVICE_SOR_ENABLED:-false}
+      DECISION_SERVICE_MIGRATIONS_VERIFIED: ${DECISION_SERVICE_MIGRATIONS_VERIFIED:-false}
+      DECISION_SERVICE_BACKFILL_VERIFIED: ${DECISION_SERVICE_BACKFILL_VERIFIED:-false}
+      DECISION_SERVICE_TENANT_ISOLATION_VERIFIED: ${DECISION_SERVICE_TENANT_ISOLATION_VERIFIED:-false}
+      DECISION_SERVICE_OUTBOX_VERIFIED: ${DECISION_SERVICE_OUTBOX_VERIFIED:-false}
+      DECISION_SERVICE_STAGING_CUTOVER_APPROVED: ${DECISION_SERVICE_STAGING_CUTOVER_APPROVED:-false}
+      DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED: ${DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED:-false}
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
       # الرمزُ الخدميّ نفسُه الذي يفرضه `_service_token_guard` هناك. بدونه كان تفعيلُ
       # `DECISION_SERVICE_AUTH_TOKEN` يردّ كلَّ نداءات المنصّة 401 — تشديدٌ يُعطِّل بدل
@@ -1385,6 +1394,10 @@ services:
       # خلف راية مستقلّة (off ⇒ 404) وتوكن قناة مخصّص يحقنه proxy المنصّة (§8.6).
       FIELD_FORMS_ENABLED: ${FIELD_FORMS_ENABLED:-0}
       FIELD_FORMS_SERVICE_TOKEN: ${FIELD_FORMS_SERVICE_TOKEN:-}
+      # SCOUT-PHOTO (v260): صور المشاهدات في scout_photo_evidence (off ⇒ 404) خلف nginx
+      # (/api/v1/scouting-media/، JWT في البوّابة) وتوكن قناة مخصّص تحقنه البوّابة.
+      SCOUT_MEDIA_ENABLED: ${SCOUT_MEDIA_ENABLED:-0}
+      SCOUT_MEDIA_SERVICE_TOKEN: ${SCOUT_MEDIA_SERVICE_TOKEN:-}
       # مخزن مرفقات الدفتر (يُعيد استخدام MinIO نفسه؛ بادئة مفتاح season-logbooks/).
       # S3-BUCKET-EMPTY-SILENT-FILE-STORAGE-01: كان `${S3_BUCKET:-}` ⇒ `blob_store.s3_enabled()` كاذب ⇒
       # المرفقات تُكتَب `file://` تحت LOGBOOK_LOCAL_DIR (/tmp في الحاوية، بلا وحدة تخزين) فتضيع
@@ -1396,6 +1409,9 @@ services:
       S3_ACCESS_KEY: ${SCOUT_INGEST_S3_ACCESS_KEY:?SCOUT_INGEST_S3_ACCESS_KEY required}
       S3_SECRET_KEY: ${SCOUT_INGEST_S3_SECRET_KEY:?SCOUT_INGEST_S3_SECRET_KEY required}
       S3_USE_SSL: ${S3_USE_SSL:-}
+      # Browser/phone-visible signing host for presigned photo and logbook reads (HTTPS;
+      # an internal-only host is refused by blob_store.presigned_get_url).
+      S3_PUBLIC_ENDPOINT: ${SCOUT_INGEST_S3_PUBLIC_ENDPOINT:-}
       # Explicit local-Compose opt-in; only exact sahool-minio hosts may use HTTP.
       S3_ALLOW_PLAINTEXT_INTERNAL: ${S3_ALLOW_PLAINTEXT_INTERNAL:-false}
       # تدهور file:// مُعلَن (تطوير فقط)؛ غيابه ⇒ fail-closed (لا رفع صامت في الإنتاج).
@@ -1885,6 +1901,12 @@ services:
       # Default empty ⇒ mirror mode (no accidental authoritative write). Set both at cutover.
       DATABASE_URL: ${DECISION_SERVICE_DATABASE_URL:-}
       DECISION_SERVICE_SOR_ENABLED: ${DECISION_SERVICE_SOR_ENABLED:-false}
+      DECISION_SERVICE_MIGRATIONS_VERIFIED: ${DECISION_SERVICE_MIGRATIONS_VERIFIED:-false}
+      DECISION_SERVICE_BACKFILL_VERIFIED: ${DECISION_SERVICE_BACKFILL_VERIFIED:-false}
+      DECISION_SERVICE_TENANT_ISOLATION_VERIFIED: ${DECISION_SERVICE_TENANT_ISOLATION_VERIFIED:-false}
+      DECISION_SERVICE_OUTBOX_VERIFIED: ${DECISION_SERVICE_OUTBOX_VERIFIED:-false}
+      DECISION_SERVICE_STAGING_CUTOVER_APPROVED: ${DECISION_SERVICE_STAGING_CUTOVER_APPROVED:-false}
+      DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED: ${DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED:-false}
       # Forensic hardening (73666ee audit) — staged production-checklist flags, default off:
       # AUTH_TOKEN gates every non-probe request on the internal port; REQUIRE_AUTH_TOKEN
       # (F-09) makes /readyz degraded when SoR runs without a token; STRICT_WORKER_TENANTS

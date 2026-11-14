@@ -46,7 +46,20 @@ def test_params_aux_grid_does_not_override_evidence_aux_grid():
     ndvi = _split_grid(4, 0.2, 0.8)
     ev_ndmi = _split_grid(4, 0.1, 0.3)
     forged = _split_grid(4, 0.9, 0.9)
-    aux = C.extract_aux_grids({"ndmi_grid": forged}, {"ndmi_grid": ev_ndmi}, ndvi_grid=ndvi)
+    identity = dict(
+        crs="EPSG:4326",
+        transform=[0.0025, 0, 44, 0, -0.0025, 15.01],
+        geometry_revision=1,
+        rows=4,
+        cols=4,
+    )
+    info = dict(grid_identity=identity, scene_id="scene", acquisition_date="2026-01-01")
+    evidence = {
+        "ndvi_grid": ndvi,
+        "ndmi_grid": ev_ndmi,
+        "grid_metadata": {"ndvi": info, "ndmi": info},
+    }
+    aux = C.extract_aux_grids({"ndmi_grid": forged}, evidence, ndvi_grid=ndvi)
     assert aux is not None and aux["ndmi"] is ev_ndmi
 
 

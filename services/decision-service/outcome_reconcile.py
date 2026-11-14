@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+from math import isfinite
 from typing import Any
 
 _SUCCESS_TOKENS = {"success", "succeeded", "successful", "positive", "improved", "met", "exceeded"}
@@ -39,18 +40,20 @@ def _outcome_record_success(row: dict[str, Any]) -> bool | None:
 
 
 def _recommendation_success(row: dict[str, Any]) -> bool | None:
-    # أولويّة: عمود ``outcome`` النصّيّ إن وُجِد؛ وإلّا مقارنة الغلّة الفعليّة بالمتوقّعة.
-    tok = _tri(row.get("outcome"))
-    if tok is not None:
-        return tok
     actual = row.get("actual_yield_t_ha")
     predicted = row.get("predicted_yield_t_ha")
-    if actual is not None and predicted is not None:
-        try:
-            return float(actual) >= float(predicted)  # بلغت/تجاوزت التوقّع ⇒ نجاح
-        except (TypeError, ValueError):
-            return None
-    return None  # لا إشارة نتيجة قابلة للحسم (accepted وحده ليس نتيجة)
+    if actual is None and predicted is None:
+        return _tri(row.get("outcome"))
+    # New yield projections carry qualification flags. Old rows lack these keys.
+    if any(key in row and row[key] is not True for key in ("accepted", "matured_within_lag")):
+        return None
+    try:
+        actual, predicted = float(actual), float(predicted)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not isfinite(actual) or not isfinite(predicted):
+        return None
+    return actual >= predicted
 
 
 def _bucket(rows: list[dict[str, Any]], success_fn) -> dict[str, int]:

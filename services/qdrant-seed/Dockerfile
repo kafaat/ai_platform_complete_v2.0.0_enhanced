@@ -17,6 +17,7 @@ ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
 RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/req.txt
+COPY shared/ /app/shared/
 COPY services/qdrant-seed/seed.py /app/seed.py
 COPY services/qdrant-seed/aljawf_knowledge.py /app/aljawf_knowledge.py
 RUN useradd -m sahool && chown -R sahool /app

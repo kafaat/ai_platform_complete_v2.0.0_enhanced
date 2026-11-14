@@ -1025,6 +1025,7 @@ async def fetch_latest_asset(
     index_name: str,
     date: str | None = None,
     tenant_id: str | None = None,
+    asset_id: int | None = None,
 ) -> dict | None:
     """يقرأ أحدث COG مُخزَّن لحقل+مؤشّر من raster_assets (لإعادة ترطيب الذاكرة).
 
@@ -1068,6 +1069,7 @@ async def fetch_latest_asset(
             FROM raster_assets
             WHERE field_id = $1 AND index_name = $2
               AND ($3::date IS NULL OR acquisition_date = $3::date)
+              AND ($5::bigint IS NULL OR id = $5)
               AND tenant_id = $4::uuid   -- فلتر مستأجِر صريح (دفاع عميق فوق RLS)؛ None ⇒ لا صفوف
               -- v9-F10/v11-F1: 'ready' حصراً — 'stale' (هندسة قديمة بعد تغيّر الحدود)
               -- لا يُقدَّم كصورة صالحة للخريطة. الاستعادة بإعادة معالجة تُنتج 'ready'.
@@ -1088,7 +1090,7 @@ async def fetch_latest_asset(
             str(tenant_id) if tenant_id else "",
         )
         row = await conn.fetchrow(
-            sql, field_id, index_name, d, str(tenant_id) if tenant_id else None
+            sql, field_id, index_name, d, str(tenant_id) if tenant_id else None, asset_id
         )
         if not row or not row["cog_uri"]:
             return None

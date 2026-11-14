@@ -1080,11 +1080,12 @@ def create_token(user: UserSchema) -> str:
 
 # ─── إبطال JWT: jti وأرضيّة auth على خادمه (denylist_redis_url)، وإلّا ذاكرة ──
 from core.jwt_denylist import (  # noqa: E402
+    REVOCATION_REVOKED,
+    REVOCATION_UNVERIFIABLE,
     InMemoryDenylist,
     RedisDenylist,
     denylist_redis_url,
-    is_token_below_floor,
-    is_token_revoked,
+    revocation_status,
 )
 
 
@@ -1138,9 +1139,23 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
         raise HTTPException(status_code=401, detail="Invalid token issuer")
 
     # إبطال: jti مُبطَل (خروج) أو iat أقدم من أرضيّة auth (إبطال كلّ الجلسات) ⇒ 401 رغم سريانه.
-    # fail-open: تعذّر فحص القائمة (Redis ساقط) لا يقفل المستخدمين (داخل الدالّتين).
-    if is_token_revoked(_DENYLIST, payload.get("jti")) or is_token_below_floor(_DENYLIST, payload):
+    status = revocation_status(_DENYLIST, payload)
+    if status == REVOCATION_REVOKED:
         raise HTTPException(status_code=401, detail="التوكن مُبطَل — سجّل الدخول من جديد")
+    if status == REVOCATION_UNVERIFIABLE:
+        # C-02 — قرار قابل للتغيير من المالك: الإنتاج fail-closed لكلّ الطلبات (كلّ الأفعال وكلّ
+        # المسارات، القراءة ضمناً). لا قرار مُوثَّق في الشجرة يختار التوفّر للقراءة: #408 جعل
+        # Redis إلزاميّاً في الإنتاج لأنّ fail-open «يُمرّر التوكنات المُبطَلة»، والقراءات تكشف
+        # بيانات المستأجر لمستخدمٍ عُطِّل. خارج الإنتاج: السلوك السابق (يُسمَح) مع تحذير.
+        if _is_production():
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "code": "token_revocation_unverifiable",
+                    "message": "تعذّر التحقّق من إبطال التوكن — أعد المحاولة لاحقاً",
+                },
+            )
+        logger.warning("token revocation unverifiable (non-production): request allowed")
 
     role = _normalize_role(payload.get("role"))
 
@@ -1411,13 +1426,15 @@ def _row_to_activity(r) -> ActivitySummary:
 _TASK_STATUSES = {"pending", "in_progress", "completed", "cancelled"}
 _TASK_COLS = (
     "task_id, field_id, task_type, priority, status, recommended_date, "
-    "estimated_duration_min, estimated_cost_usd, assigned_to, notes, photo_url, "
-    "completed_at, created_at"
+    "estimated_duration_min, estimated_cost_usd, actual_cost_usd, source_scouting_pin_id, assigned_to, notes, photo_url, "
+    "completed_at, created_at, satellite_sources::text AS satellite_sources, terrain_sources::text AS terrain_sources"
 )
 
 
-def _row_to_task(r) -> TaskSummary:
+def _row_to_task(r, user: UserSchema | None = None) -> TaskSummary:
     return TaskSummary(
+        terrain_sources=json.loads(r.get("terrain_sources") or "[]"),
+        satellite_sources=json.loads(r.get("satellite_sources") or "[]"),
         task_id=str(r["task_id"]),
         field_id=r["field_id"],
         task_type=r["task_type"],
@@ -1430,6 +1447,10 @@ def _row_to_task(r) -> TaskSummary:
         estimated_cost_usd=float(r["estimated_cost_usd"])
         if r["estimated_cost_usd"] is not None
         else None,
+        actual_cost_usd=r.get("actual_cost_usd")
+        if user and has_permission(user, Permission.ANALYTICS_VIEW)
+        else None,
+        source_scouting_pin_id=r.get("source_scouting_pin_id"),
         assigned_to=r["assigned_to"],
         notes=r["notes"],
         photo_url=r["photo_url"],

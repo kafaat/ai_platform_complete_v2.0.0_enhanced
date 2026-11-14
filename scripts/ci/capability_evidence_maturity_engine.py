@@ -8,7 +8,9 @@ It computes a separate assessed_maturity from repository evidence and records dr
 from __future__ import annotations
 
 import argparse
+import ast
 import csv
+import functools
 import hashlib
 import json
 import sys
@@ -34,7 +36,13 @@ FILES = (
     "CAPABILITY_EVIDENCE_MATURITY_REPORT.md",
 )
 
-INTEGRATION_TOKENS = ("integration", "e2e", "contract", "workflow", "acceptance", "smoke")
+# C-40: a test's evidence type comes from its explicit pytest markers (pytest.ini vocabulary)
+# first; filename tokens are only the fallback for unmarked or non-Python tests. "contract"
+# is deliberately NOT an integration token: most contract tests are source/static assertions
+# (tests_v9/test_mfa_migration_contract_guard.py is unit-marked and reads SQL text only).
+TAXONOMY_MARKERS = frozenset({"unit", "integration", "security", "slow", "mcp"})
+INTEGRATION_TOKENS = ("integration", "e2e", "workflow", "acceptance", "smoke")
+CONTRACT_TOKEN = "contract"
 UNIT_TOKENS = ("test_", "/tests/", "_test.")
 
 # Additive evidence-record typing: every axis names the artifact its verdict is read from,
@@ -87,16 +95,148 @@ def runtime_authority_by_id() -> dict[str, dict[str, Any]]:
     return result
 
 
-def classify_tests(items: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
-    unit, integration = [], []
+def _mark_names(node: ast.expr) -> set[str]:
+    """Names of ``pytest.mark.<name>`` (bare or called) in a marker expression or list."""
+    elts = node.elts if isinstance(node, (ast.List, ast.Tuple)) else [node]
+    names: set[str] = set()
+    for elt in elts:
+        target = elt.func if isinstance(elt, ast.Call) else elt
+        if (
+            isinstance(target, ast.Attribute)
+            and isinstance(target.value, ast.Attribute)
+            and target.value.attr == "mark"
+            and isinstance(target.value.value, ast.Name)
+            and target.value.value.id == "pytest"
+        ):
+            names.add(target.attr)
+    return names
+
+
+@functools.cache
+def explicit_test_markers(path: str) -> tuple[frozenset[str], tuple[frozenset[str], ...]] | None:
+    """Explicit taxonomy markers of a pytest file, read with AST; the test is never imported.
+
+    Returns ``(module_markers, per_test_effective_markers)``, where a test's effective set is
+    module ``pytestmark`` ∪ enclosing class decorators ∪ its own decorators, restricted to
+    the ``pytest.ini`` vocabulary. ``None`` when the path is not a readable Python file.
+    """
+    p = ROOT / path
+    if p.suffix != ".py" or not p.is_file():
+        return None
+    try:
+        tree = ast.parse(p.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError, UnicodeDecodeError):
+        return None
+    module: set[str] = set()
+    for node in tree.body:
+        targets = (
+            node.targets
+            if isinstance(node, ast.Assign)
+            else [node.target]
+            if isinstance(node, ast.AnnAssign) and node.value is not None
+            else []
+        )
+        if any(isinstance(t, ast.Name) and t.id == "pytestmark" for t in targets):
+            module |= _mark_names(node.value)  # type: ignore[union-attr]
+    module &= TAXONOMY_MARKERS
+    per_test: list[frozenset[str]] = []
+
+    def visit(body: list[ast.stmt], inherited: set[str]) -> None:
+        for node in body:
+            if isinstance(node, ast.ClassDef):
+                own: set[str] = set()
+                for d in node.decorator_list:
+                    own |= _mark_names(d)
+                visit(node.body, inherited | own)
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and (
+                node.name.startswith("test")
+            ):
+                own = set()
+                for d in node.decorator_list:
+                    own |= _mark_names(d)
+                per_test.append(frozenset((inherited | own) & TAXONOMY_MARKERS))
+
+    visit(tree.body, set(module))
+    return frozenset(module), tuple(per_test)
+
+
+def classify_test_path(path: str) -> tuple[str | None, str]:
+    """Evidence type of one mapped test path and the signal it was read from.
+
+    Explicit pytest markers decide first; the filename is only a fallback for files that
+    declare no taxonomy marker (or are not Python), and ``contract`` alone never promotes.
+    """
+    markers = explicit_test_markers(path)
+    if markers is not None:
+        module, per_test = markers
+        if any("integration" in m and "unit" not in m for m in per_test) or (
+            "integration" in module and "unit" not in module and not per_test
+        ):
+            return "integration", "pytest.mark.integration"
+        if "unit" in module or any("unit" in m for m in per_test):
+            return "unit", "pytest.mark.unit"
+    low = path.lower()
+    hits = [tok for tok in INTEGRATION_TOKENS if tok in low]
+    if hits:
+        return "integration", f"filename:{hits[0]}"
+    if CONTRACT_TOKEN in low:
+        # A "contract" file is usually a static/source assertion; without an explicit
+        # integration marker or another integration token it is at most unit evidence.
+        if any(tok in low for tok in UNIT_TOKENS):
+            return "unit", "filename:contract_without_integration_signal"
+        return None, "filename:contract_without_integration_signal"
+    unit_hits = [tok for tok in UNIT_TOKENS if tok in low]
+    if unit_hits:
+        return "unit", f"filename:{unit_hits[0]}"
+    return None, "unclassified"
+
+
+def classify_tests_attributed(
+    items: list[dict[str, Any]],
+) -> tuple[list[str], list[str], list[dict[str, str]]]:
+    unit, integration = set(), set()
+    attribution: dict[str, dict[str, str]] = {}
     for item in items:
         path = str(item.get("path") or item.get("value") or "")
-        low = path.lower()
-        if any(tok in low for tok in INTEGRATION_TOKENS):
-            integration.append(path)
-        elif any(tok in low for tok in UNIT_TOKENS):
-            unit.append(path)
-    return sorted(set(unit)), sorted(set(integration))
+        kind, signal = classify_test_path(path)
+        if kind is None:
+            continue
+        (integration if kind == "integration" else unit).add(path)
+        attribution[path] = {"path": path, "evidence_type": kind, "signal": signal}
+    return sorted(unit), sorted(integration), [attribution[p] for p in sorted(attribution)]
+
+
+def classify_tests(items: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
+    unit, integration, _ = classify_tests_attributed(items)
+    return unit, integration
+
+
+def taxonomy_conflicts(records: list[dict[str, Any]]) -> list[str]:
+    """Fail-closed gate: integration evidence must not contradict the file's own markers.
+
+    Re-reads each listed integration path. A path conflicts when it carries an explicit
+    ``unit`` marker and no test in it is marked ``integration`` without ``unit``, or when its
+    recorded attribution disagrees with the listed evidence type.
+    """
+    errors: list[str] = []
+    for r in records:
+        cid = r["capability_id"]
+        attributed = {a["path"]: a for a in r.get("test_evidence_attribution", [])}
+        for kind, key in (("unit", "unit_test_paths"), ("integration", "integration_test_paths")):
+            for path in r.get(key, []):
+                a = attributed.get(path)
+                if a is None or a.get("evidence_type") != kind:
+                    errors.append(f"{cid}:{path}:attribution_mismatch:{kind}")
+        for path in r.get("integration_test_paths", []):
+            markers = explicit_test_markers(path)
+            if markers is None:
+                continue
+            module, per_test = markers
+            unit_marked = "unit" in module or any("unit" in m for m in per_test)
+            integration_only = any("integration" in m and "unit" not in m for m in per_test)
+            if unit_marked and not integration_only:
+                errors.append(f"{cid}:{path}:integration_evidence_with_explicit_unit_marker")
+    return errors
 
 
 def assessed_maturity(
@@ -147,7 +287,7 @@ def build() -> dict[str, bytes]:
         m = map_by_id.get(cid)
         if m is None:
             raise ValueError(f"missing mapping for {cid}")
-        unit, integration = classify_tests(m.get("tests", []))
+        unit, integration, attribution = classify_tests_attributed(m.get("tests", []))
         rt = runtime.get(cid, {})
         ce = cert.get(cid, {})
         # Runtime truth comes from the normalized authority result: governed promotion claim
@@ -255,6 +395,7 @@ def build() -> dict[str, bytes]:
                 "evidence_score": sum(1 for v in evidence.values() if v),
                 "unit_test_paths": unit,
                 "integration_test_paths": integration,
+                "test_evidence_attribution": attribution,
                 "decision_linked": decision_linked,
                 "learning_linked": learning_linked,
                 "assessment_reasons": reasons,
@@ -272,6 +413,9 @@ def build() -> dict[str, bytes]:
 
     if {r["capability_id"] for r in records} != ids:
         raise ValueError("registry/evidence matrix identity mismatch")
+    conflicts = taxonomy_conflicts(records)
+    if conflicts:
+        raise ValueError("test taxonomy conflicts with evidence type: " + "; ".join(conflicts))
     if any(r["assessed_maturity"] >= 4 and not r["runtime_verified"] for r in records):
         raise ValueError("level 4 requires runtime verification")
     if any(r["assessed_maturity"] == 5 and not r["production_certified"] for r in records):

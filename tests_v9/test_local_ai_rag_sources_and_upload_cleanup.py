@@ -207,3 +207,11 @@ def test_temp_files_are_removed_after_a_successful_upload(monkeypatch, tmp_path)
     )
     assert out == {"status": "ingested", "chunks": 1}
     assert list(tmp_path.iterdir()) == []
+
+
+def test_unreviewed_legacy_seed_does_not_ground_local_generation(monkeypatch):
+    seed = {"document_id": "reference:DOC-IMPORT-2024:150", "chunk_id": "seed:150"}
+    alone = _query(monkeypatch, [seed], "لا يجوز إرجاع هذا النص")
+    assert alone["answer"] == REFUSAL and alone["sources"] == []
+    mixed = _query(monkeypatch, [seed, _FILE], "جواب من الوثيقة")
+    assert [s["source"] for s in mixed["sources"]] == ["wheat.pdf"]

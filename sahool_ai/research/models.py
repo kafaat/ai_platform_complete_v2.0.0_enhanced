@@ -66,6 +66,7 @@ class Synthesis(BaseModel):
     Final synthesised output of the research pipeline.
     """
 
+    evidence_mode: Literal["simulation"] = "simulation"
     summary: str = Field(..., description="ملخّص عربي شامل للنتائج")
     factors: list[Factor] = Field(default_factory=list, description="قائمة العوامل المؤثِّرة")
     recommendations: list[str] = Field(default_factory=list, description="توصيات بالعربية")

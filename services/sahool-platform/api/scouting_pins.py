@@ -172,6 +172,9 @@ class ScoutingPin:
     created_at: str = ""
     created_by: str | None = None
     color: str | None = None  # ترميز لوني (واجهة)
+    # v257: مصدر الموقع (gps|manual|field_centroid|unknown) ودقّة GPS بالأمتار (لـgps فقط).
+    location_source: str = "unknown"
+    accuracy_m: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -190,8 +193,13 @@ class ScoutingPin:
             "created_at": self.created_at,
             "created_by": self.created_by,
             "color": self.color,
+            "location_source": self.location_source,
+            "accuracy_m": self.accuracy_m,
         }
 
+
+# v257: مصادر الموقع المقبولة (مطابقة لقيد scouting_pins_location_source_ck).
+LOCATION_SOURCES = frozenset({"gps", "manual", "field_centroid", "unknown"})
 
 # Yemen bbox (نفس geospatial_integrity) — تحقّق أنّ الـpin داخل اليمن
 _YEMEN_BBOX = (41.0, 12.0, 54.6, 19.5)  # (min_lng, min_lat, max_lng, max_lat)
@@ -212,9 +220,17 @@ def validate_pin(
     persistence: str,
     crop: str | None = None,
     issue_code: str | None = None,
+    location_source: str = "unknown",
+    accuracy_m: float | None = None,
 ) -> PinValidationResult:
     """يتحقّق من صلاحيّة مشاهدة قبل الحفظ."""
     issues: list[str] = []
+
+    # v257: الدقّة صفة قياس GPS؛ موقع يدويّ أو مركز حقل أو مجهول لا يحمل دقّة.
+    if location_source not in LOCATION_SOURCES:
+        issues.append(f"مصدر الموقع غير صالح: {location_source}")
+    elif accuracy_m is not None and (location_source != "gps" or accuracy_m < 0):
+        issues.append("دقّة الموقع تخصّ قراءة GPS فقط (وتكون غير سالبة)")
 
     # إحداثيّات داخل اليمن
     min_lng, min_lat, max_lng, max_lat = _YEMEN_BBOX
@@ -268,6 +284,8 @@ def make_pin(
         persistence,
         crop=kwargs.get("crop"),
         issue_code=kwargs.get("issue_code"),
+        location_source=kwargs.get("location_source") or "unknown",
+        accuracy_m=kwargs.get("accuracy_m"),
     )
     if not result.valid:
         raise ValueError("; ".join(result.issues))
@@ -288,6 +306,8 @@ def make_pin(
         created_at=kwargs.get("created_at") or datetime.now(UTC).isoformat(),
         created_by=kwargs.get("created_by"),
         color=kwargs.get("color"),
+        location_source=kwargs.get("location_source") or "unknown",
+        accuracy_m=kwargs.get("accuracy_m"),
     )
 
 
@@ -333,13 +353,17 @@ async def _assert_pin_inside_field(conn: Any, field_id: str, lat: float, lng: fl
 
 
 async def persist_scouting_pin(
-    user: Any, pin: Any, *, pool_ready: bool, connect: Callable[[Any], Any]
+    user: Any,
+    pin: Any,
+    *,
+    pool_ready: bool,
+    connect: Callable[[Any], Any],
 ) -> bool:
     """يُثبّت الدبّوس؛ ``True`` لو ثُبِّت (أو كان موجوداً مطابقاً)، ``False`` لو تعذّرت القاعدة.
 
     * حقلٌ ليس ضمن مستأجِر المستدعي ⇒ 404 (فحصٌ تحت RLS قبل الإدراج).
     * إعادة إرسال مطابقة ⇒ تُرجَع القيمة المخزَّنة (``created_at`` الأصليّ).
-    * المُعرِّف نفسه بمحتوى مختلف ⇒ 409.
+    * المُعرِّف نفسه بمحتوى مختلف (ومنه مصدر الموقع ودقّته) ⇒ 409.
     * ``created_at`` يُمرَّر قيمة datetime إلى ``::timestamptz`` (النصّ كان يُرفَض بصمت).
     SQL بارامتريّ بالكامل.
     """
@@ -369,9 +393,9 @@ async def persist_scouting_pin(
                 "INSERT INTO scouting_pins "
                 "(pin_id, tenant_id, field_id, lat, lng, issue_category, severity, "
                 " status, persistence, crop, issue_code, note_ar, photo_uri, color, "
-                " created_by, created_at) "
+                " created_by, location_source, accuracy_m, created_at) "
                 "VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, "
-                " $13, $14, $15, $16::timestamptz) "
+                " $13, $14, $15, $16, $17, $18::timestamptz) "
                 "ON CONFLICT (pin_id) DO NOTHING",
                 pin.pin_id,
                 str(user.tenant_id),
@@ -388,6 +412,8 @@ async def persist_scouting_pin(
                 pin.photo_uri,
                 pin.color,
                 pin.created_by,
+                pin.location_source,
+                pin.accuracy_m,
                 created_at,
             )
             if result == "INSERT 0 0":
@@ -409,3 +435,41 @@ async def persist_scouting_pin(
     except Exception:  # noqa: BLE001 — إدامة best-effort: تعذّر القاعدة ⇒ persisted=false
         logging.warning("scouting pin persistence failed for pin %s", pin.pin_id)
         return False
+
+
+async def create_scouting_pin(
+    field_id: str, req: Any, user: Any, *, persist: Callable[..., Any]
+) -> dict[str, Any]:
+    """جسم ``POST /api/v1/fields/{field_id}/pins`` (المسار في الراوتر غلاف رفيع — حدّ حجمه).
+
+    تحقّق ⇒ إدامة تحت RLS (best-effort) ⇒ الدبّوس مُطبَّعاً مع ``persisted``. صورة المشاهدة ليست
+    هنا: مصدرها الوحيد ``scout_photo_evidence`` (v260) عبر scout-ingest
+    (``/api/v1/scouting-media/fields/{field_id}/pins/{pin_id}/photo``).
+    """
+    if req.field_id != field_id:
+        raise HTTPException(422, "معرّف الحقل لا يطابق المسار")
+    try:
+        pin = make_pin(
+            req.pin_id,
+            field_id,
+            req.lat,
+            req.lng,
+            req.issue_category,
+            req.severity,
+            req.status,
+            req.persistence,
+            crop=req.crop,
+            issue_code=req.issue_code,
+            note_ar=req.note_ar,
+            photo_uri=req.photo_uri,
+            color=req.color,
+            created_by=user.user_id,
+            location_source=req.location_source,
+            accuracy_m=req.accuracy_m,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
+    persisted = await persist(user, pin)
+    out = pin.to_dict()
+    out["persisted"] = persisted
+    return out

@@ -92,10 +92,18 @@ class FeatureRecord:
     entity_id: str
     feature_set: str
     source_state_id: str | None
-    event_time: str
+    event_time: str | None
     features: dict[str, Any]
     labels: dict[str, Any]
     quality: dict[str, Any]
+    # Temporal lineage for the feature-store gate. Each value is copied from a
+    # timestamp the runtime already carries; a missing one stays None and the
+    # gate blocks the row instead of guessing.
+    tenant_id: str | None = None
+    source_version: str | None = None
+    available_at: str | None = None
+    ingested_at: str | None = None
+    prediction_at: str | None = None
 
 
 @dataclass(frozen=True)
@@ -334,7 +342,9 @@ def flatten_feature_record(
     source_state_id: str | None,
     features: dict[str, Any],
     labels: dict[str, Any] | None = None,
+    lineage: dict[str, str | None] | None = None,
 ) -> dict[str, Any]:
+    lineage = lineage or {}
     numeric_values = [
         float(v)
         for v in features.values()
@@ -355,12 +365,66 @@ def flatten_feature_record(
         entity_id=entity_id,
         feature_set=feature_set,
         source_state_id=source_state_id,
-        event_time=_now(),
+        event_time=lineage.get("event_time"),
         features=dict(features),
         labels=labels or {},
         quality=quality,
+        tenant_id=lineage.get("tenant_id"),
+        source_version=lineage.get("source_version"),
+        available_at=lineage.get("available_at"),
+        ingested_at=lineage.get("ingested_at"),
+        prediction_at=lineage.get("prediction_at"),
     )
     return asdict(rec)
+
+
+def _stamp(value: Any) -> str | None:
+    """A recorded timestamp as given, or None; ``str(None)`` is not a time."""
+    if isinstance(value, str) and value.strip() and value.strip() != "None":
+        return value
+    return None
+
+
+def runtime_feature_lineage(
+    canonical_runtime: dict[str, Any], *, decision_at: str | None = None
+) -> dict[str, str | None]:
+    """Temporal lineage of a canonical-runtime feature row, from recorded times only.
+
+    - ``event_time``: the canonical state's own valid time, ``state.as_of_time``
+      when the state carries one, else the envelope's ``generated_at``. The
+      envelope does not carry each signal's ``observed_at``, so no feature can
+      claim an earlier observation time than the state it was read from.
+    - ``available_at``: the envelope's ``generated_at``: the state existed then.
+    - ``ingested_at``: the runtime payload's ``created_at``: when the platform
+      assembled these features into the runtime.
+    - ``prediction_at``: ``decision_at``, the time of the decision the features fed
+      (the execution plan's ``created_at`` in a phase 9 cycle).
+    - ``tenant_id`` and ``source_version`` come from the envelope (the state id
+      is a digest of the state, its schema and its fusion strategy version).
+
+    Nothing here reads the clock: a time the runtime does not record stays None,
+    and the feature-store gate blocks the row.
+    """
+    state = canonical_runtime.get("canonical_state") or {}
+    inner = state.get("state") if isinstance(state.get("state"), dict) else {}
+    recommendation = canonical_runtime.get("recommendation_lifecycle") or {}
+    state_id = state.get("state_id")
+    generated = _stamp(state.get("generated_at"))
+    source_version = None
+    if isinstance(state_id, str) and state_id.strip():
+        source_version = "canonical_field_state/{}/{}/{}".format(
+            state.get("schema_version") or "unknown",
+            state.get("fusion_strategy_version") or "unknown",
+            state_id,
+        )
+    return {
+        "tenant_id": state.get("tenant_id") or recommendation.get("tenant_id"),
+        "source_version": source_version,
+        "event_time": _stamp(inner.get("as_of_time")) or generated,
+        "available_at": generated,
+        "ingested_at": _stamp(canonical_runtime.get("created_at")),
+        "prediction_at": _stamp(decision_at),
+    }
 
 
 def build_feature_store_batch(
@@ -368,8 +432,13 @@ def build_feature_store_batch(
     canonical_runtime: dict[str, Any],
     execution_verification: dict[str, Any] | None = None,
     outcome_feedback: dict[str, Any] | None = None,
+    decision_at: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Create online/offline feature store candidate records."""
+    """Create online/offline feature store candidate records.
+
+    Each record carries the lineage from ``runtime_feature_lineage``; pass the
+    decision time the features fed as ``decision_at``.
+    """
     twin = canonical_runtime.get("digital_twin_view", {})
     phase6 = canonical_runtime.get("phase6_runtime_inputs", {})
     state = canonical_runtime.get("canonical_state", {})
@@ -394,6 +463,7 @@ def build_feature_store_batch(
             source_state_id=state.get("state_id"),
             features=features,
             labels=labels,
+            lineage=runtime_feature_lineage(canonical_runtime, decision_at=decision_at),
         )
     ]
 
@@ -698,7 +768,9 @@ def run_phase9_autonomy_cycle(
             },
         )
     features = build_feature_store_batch(
-        canonical_runtime=canonical_runtime, execution_verification=verification
+        canonical_runtime=canonical_runtime,
+        execution_verification=verification,
+        decision_at=plan.get("created_at"),
     )
     event_stream = event_source_execution_plan(plan)
     if verification:

@@ -1479,6 +1479,19 @@ jobs:
           MFA_E2E_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_mfa_hardening_integration_v29_5.py
 
+      # C-01 (تدقيق المالك 2026-11-13): admin = مالكُ مستأجِر. إدارةُ المستخدمين في auth محصورةٌ
+      # في مستأجِر التوكن، والعابرُ يلقى 404 كغير الموجود. RLS لا تحرس هذا المسار (_acquire يضبط
+      # app.current_role='admin')، فالشاهدُ هنا هو التطبيقُ الحقيقيّ بالدور المقيَّد؛ والجولةُ العامّة
+      # لا تضبط TEST_DATABASE_ADMIN_URL فيتخطّى هناك. العَلَمُ يجعل أيّ تخطٍّ فشلاً.
+      - name: Auth admin tenant scope (C-01, real auth app, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          TEST_REDIS_URL: redis://localhost:6380/0
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_auth_admin_tenant_scope_live_pg.py
+
       # تدقيق 2026-11-02 (تابعُ Q5): `test_services_functional` (soil H5 + guardrails L5) حمل
       # `xfail(strict=False)` بالفجوة المُغلَقة نفسِها، والجولةُ العامّة لا تضبط `DATABASE_URL`
       # فيتخطّى. هنا يُشغَّل بالدور المقيَّد (حارسُ soil يرفض superuser بحقّ)، والعَلَمُ يجعل
@@ -1773,7 +1786,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
-        run: pytest tests/test_ac1_agronomic_context.py -q -p no:cacheprovider
+        run: pytest tests/test_ac1_agronomic_context.py tests/test_ac1_boundary_finiteness_timezone.py -q -p no:cacheprovider
       # AC-6.1: tenant-safe lineage integrity — full-lineage binding, semantic rejections,
       # content-addressed vegetation evidence, DB trigger backstop (real Postgres).
       - name: AC-6.1 agronomic lineage integrity tests (real Postgres, SoR on)
@@ -1782,6 +1795,29 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_agronomic_lineage_integrity.py -q -p no:cacheprovider
+      # Decision source continuation: a composed context binds the exact owner-read sources
+      # (receipt per composition, migration 038) — real Postgres, SoR on.
+      - name: Context source binding tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_context_source_binding.py -q -rs -p no:cacheprovider
+      # Backfill row coverage compares id, content, tenant and destination across two distinct
+      # databases; the test skips without both URLs, so the step creates the source database.
+      - name: Backfill row coverage across two databases (real Postgres)
+        working-directory: services/decision-service
+        env:
+          PGHOST: localhost
+          PGPASSWORD: test_password
+          PLATFORM_DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/backfill_source
+          DECISION_DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: |
+          set -euo pipefail
+          export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
+          psql -p 5434 -U decision_test -d decision_test -v ON_ERROR_STOP=1 \
+            -c "CREATE DATABASE backfill_source"
+          pytest tests/test_backfill_row_coverage.py -q -rs -p no:cacheprovider
       # Phase C no-leakage certification: randomized property sweep (leaky compositions
       # rejected typed with ZERO writes; clean accepted) + DB row invariants (real Postgres).
       - name: Phase C no-leakage certification tests (real Postgres, SoR on)

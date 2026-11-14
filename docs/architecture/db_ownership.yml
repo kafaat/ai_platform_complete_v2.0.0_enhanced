@@ -1030,11 +1030,16 @@ tables:
     writers: [agriai-engine]
     readers: [sahool-platform]
     source: "migrations/v119_phase10_continuous_learning.sql"
+  scout_photo_evidence:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v260_scout_photo_evidence.sql"
   scouting_pins:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
-    source: "migrations/v94_scouting_pins.sql, migrations/v192_fii_rls_write_fail_closed.sql"
+    readers: [scout-ingest-service]
+    source: "migrations/v94_scouting_pins.sql, migrations/v192_fii_rls_write_fail_closed.sql, migrations/v257_scouting_pin_location_photo.sql"
   seasons:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -1252,7 +1257,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v156_durable_soil_lab_workflow.sql"
+    source: "migrations/v156_durable_soil_lab_workflow.sql, migrations/v255_soil_sampling_origin.sql"
   lab_sample_custody_events:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -1267,7 +1272,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v156_durable_soil_lab_workflow.sql"
+    source: "migrations/v156_durable_soil_lab_workflow.sql, migrations/v258_lab_water_revisions.sql"
   soil_spatial_products:
     owner: soil-service
     writers: [soil-service]
@@ -1767,6 +1772,11 @@ tables:
     writers: [decision-service]
     readers: []
     source: "services/decision-service/migrations/018_ac1_agronomic_context.sql"
+  decision_context_compositions:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/038_context_compositions.sql"
   decision_consumer_heartbeats:
     owner: decision-service
     writers: [decision-service]

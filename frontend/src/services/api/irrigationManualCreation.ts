@@ -3,6 +3,7 @@ import type { DecisionReviewCandidate } from '../../lib/approvalsConsole';
 import type { IrrigationRecommendationResponse } from '../../hooks/useFieldIrrigationRecommendation';
 
 export interface ManualWorkflowCandidate extends Omit<DecisionReviewCandidate, 'review_state'> {
+  season_id?: string | null;
   review_state: 'pending_approval' | 'approved';
   review?: ApprovedIrrigationReview | null;
   execution_plan?: { execution_plan_id: string; decision_id: string; review_id: string; candidate_lineage_id: string; decision_value_digest: string; plan_state: string; plan_digest: string } | null;
@@ -53,7 +54,7 @@ export function manualPlanSource(candidate: ManualWorkflowCandidate, fieldId: st
   const value = candidate.decision_value;
   const source = value?.manual_execution_source as Partial<ManualPlanSource> | undefined;
   const recommendation = value?.recommendation as { should_irrigate?: unknown; target_refill_mm?: unknown } | undefined;
-  if (candidate.decision_type !== 'irrigation' || candidate.field_id !== fieldId || value?.season_id !== seasonId
+  if (candidate.decision_type !== 'irrigation' || candidate.field_id !== fieldId || (candidate.season_id ?? value?.season_id) !== seasonId
     || !source || source.schema_version !== 'manual-irrigation-source/v1' || source.field_id !== fieldId || source.season_id !== seasonId || !nonempty(source.system_id)
     || !positive(source.target_depth_mm) || !positive(source.target_volume_m3) || !sha256(source.water_truth_digest)
     || !nonempty(source.valid_from) || !nonempty(source.valid_until)
@@ -80,7 +81,7 @@ export async function loadManualCandidates(fieldId: string, seasonId: string): P
     throw new Error('لم يؤكد الخادم قائمة قرارات موثوقة.');
   }
   return data.items.filter((item: ManualWorkflowCandidate) => item.decision_type === 'irrigation'
-    && item.field_id === fieldId && item.decision_value?.season_id === seasonId && item.stage === 'candidate' && ['pending_approval', 'approved'].includes(item.review_state));
+    && item.field_id === fieldId && (item.season_id ?? item.decision_value?.season_id) === seasonId && item.stage === 'candidate' && ['pending_approval', 'approved'].includes(item.review_state));
 }
 
 export async function approveManualCandidate(candidate: ManualWorkflowCandidate): Promise<ApprovedIrrigationReview> {
