@@ -10760,6 +10760,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_advisory_dependency_http_error_sanitization.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_agb_research_provenance.py",
     "kind": "tests"
   },
