@@ -576,6 +576,34 @@ def test_the_capability_reminder_matches_the_workflow_trigger():
     )
 
 
+def test_the_derived_pr_body_lines_are_printed_in_the_fast_tier_too():
+    """PREFLIGHT-FAST-DOES-NOT-DERIVE-CAPABILITY-IMPACT-01 — الموضعُ لا الوجود.
+
+    إحصاءُ 2026-11-13: ٨ من ٧٠ وظيفة PR فاشلة كانت `capability-registry` بمتنٍ بلا سطر
+    `Capability-Impact` صحيح، والسطرُ المشتقّ لم يكن يُطبَع إلّا بعد الخروج المبكر.
+    دالّةٌ واحدة تستدعيها الطبقتان، فلا يتباعد نصّاهما.
+    """
+    text = _text()
+    fast_exit_at = text.index('if [ "$TIER" = fast ]')
+    definition = text.index("suggest_pr_body_lines() {")
+    assert definition < fast_exit_at, "الدالّة يجب أن تُعرَّف قبل أن تستدعيها الطبقة السريعة"
+    body = text[definition : text.index("\n}\n", definition)]
+    assert "scripts/ci/capability_impact.py --json" in body, "السطرُ يُشتقّ من المحرّك نفسه لا من جدول"
+    assert "scripts/ci/railway_deploy_impact.py" in body
+    calls = [
+        i
+        for i in range(len(text))
+        if text.startswith("suggest_pr_body_lines\n", i)
+        and not text.startswith("suggest_pr_body_lines() {", i)
+    ]
+    assert len(calls) == 2, "استدعاءٌ في الطبقة السريعة وآخر في الافتراضيّة"
+    fast_block = text[fast_exit_at : text.index("exit 0", fast_exit_at)]
+    assert "suggest_pr_body_lines" in fast_block, "يجب أن يُطبَع في `--fast`: الطبقةُ التي تسبق الدفع"
+    assert text.count("scripts/ci/capability_impact.py --json") == 1, (
+        "نسخةٌ ثانية من الاشتقاق تتباعد"
+    )
+
+
 def test_the_platform_suite_runs_in_ci_form_in_the_default_tier():
     """الجناحُ كاملاً يُشغَّل كما تُشغّله CI (`services/sahool-platform` + `PYTHONPATH=.`)
     في الطبقة الافتراضيّة — بعد الخروج المبكر لأنّ كلفتَه في CI ~٩٠ ث لا تُناسب `--fast`."""
