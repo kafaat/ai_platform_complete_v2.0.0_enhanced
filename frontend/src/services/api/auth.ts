@@ -400,14 +400,15 @@ export interface CurrentUser {
   tenant_id?: string;
 }
 
-// تهيئة مستأجِر جديد + أوّل مالك (إعداد B2B، admin المنصّة فقط عبر require_role).
-// لا كلمة مرور/دور من المُهيِّئ: الدور 'owner' يُفرَض خادميّاً والمالك يضبط كلمته عبر
-// رمز إعادة تعيين. 409 لبريد مسجّل، 403 لغير admin — تُعرَض كما هي بصدق.
+// POST /v1/auth/tenants: keep this response contract aligned with
+// services/auth/routers/tenants.py::provision_tenant. Neither id/email/role
+// nor reset_url are returned by that endpoint. setup_link may be null when
+// Redis is unavailable; the backend still returns the owner identity.
 export interface TenantProvisionResult {
   tenant_id: string;
   owner_user_id: number;
   owner_email: string;
-  owner_role: string;
+  owner_role: 'owner';
   setup_token: string | null;
   setup_link: string | null;
   message: string;
