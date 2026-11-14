@@ -393,3 +393,15 @@ def test_unbounded_dated_series_retains_previous_parity():
     )
     assert view["daily_gdd"] == direct["daily_gdd"]
     assert view["accumulated_gdd"] == direct["accumulated_gdd"]
+
+
+def test_dated_window_accepts_basic_iso_bounds_like_the_validator():
+    """Review of #1450: the window is validated with date.fromisoformat, which also accepts
+    the basic form 20260401; filtering on the raw strings dropped every day."""
+    series = build_canonical_daily_series(_records(_DATES, _TMIN, _TMAX))
+    basic = gdd_view(series, period_start="20260401", period_end="20260403", **_CFG)
+    extended = gdd_view(series, period_start="2026-04-01", period_end="2026-04-03", **_CFG)
+    assert basic["accumulated_gdd"] == extended["accumulated_gdd"]
+    assert basic["accumulated_gdd"] is not None
+    assert basic["coverage"]["observed_days"] == 3
+    assert "excluded_out_of_window_days" not in basic["diagnostics"]

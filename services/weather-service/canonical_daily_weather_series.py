@@ -152,8 +152,12 @@ def gdd_view(
     legacy_arrays = kernel_daily_t_min is not None and kernel_daily_t_max is not None
     excluded_out_of_window_days = 0
     if not legacy_arrays and _expected_days_inclusive(period_start, period_end) is not None:
+        # Series dates are canonical ISO (YYYY-MM-DD, from _parse_iso_date); fromisoformat also
+        # accepts basic/week forms (20260401, 2026-W14-3), so compare on the canonical form.
+        window_start = _date.fromisoformat(period_start).isoformat()
+        window_end = _date.fromisoformat(period_end).isoformat()
         original_count = len(ordered)
-        ordered = [d for d in ordered if period_start <= str(d.get("date", "")) <= period_end]
+        ordered = [d for d in ordered if window_start <= str(d.get("date", "")) <= window_end]
         excluded_out_of_window_days = original_count - len(ordered)
     dates = [d.get("date") for d in ordered]
     contributing_state_ids = [d.get("source_snapshot_id") for d in ordered]
