@@ -114,6 +114,22 @@ def test_scout_ingest_season_paths_still_select_scout_ingest_statically() -> Non
         assert _upstream_of(_select(conf, public)) == "scout_ingest_backend", public
 
 
+# Near misses of the simulate path stay on scout-ingest (independent review of #1473: loosening the
+# regex, dropping its `$` or widening `[^/]+` to `.+`, passed every other test).
+_SIMULATE_NEAR_MISSES = (
+    "/api/v1/seasons/s-123/simulatex",
+    "/api/v1/seasons/s-123/simulate/extra",
+    "/api/v1/seasons/s-123/simulate/",
+    "/api/v1/seasons/a/b/simulate",
+)
+
+
+def test_simulate_near_misses_still_select_scout_ingest_statically() -> None:
+    conf = _conf()
+    for public in _SIMULATE_NEAR_MISSES:
+        assert _upstream_of(_select(conf, public)) == "scout_ingest_backend", public
+
+
 def test_platform_field_season_paths_select_platform_statically() -> None:
     conf = _conf()
     for public in _PLATFORM_FIELD_SEASON_PATHS:
