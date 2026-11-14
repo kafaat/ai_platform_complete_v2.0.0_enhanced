@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 757,
+      "evidence_count": 761,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -503,6 +503,7 @@
         "services/sahool-platform/tests/test_calibration_endpoint.py",
         "services/sahool-platform/tests/test_canonical_schemas.py",
         "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
+        "services/sahool-platform/tests/test_canonical_state_observed_at.py",
         "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
         "services/sahool-platform/tests/test_canonical_well_capability.py",
         "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
@@ -717,6 +718,7 @@
         "services/vegetation-analysis-service/vegetation_runtime.py",
         "services/vegetation-analysis-service/weekly_insights.py",
         "services/weather-service/__init__.py",
+        "services/weather-service/canonical_daily_weather_series.py",
         "services/weather-service/canonical_weather_state.py",
         "services/weather-service/chill_accumulation.py",
         "services/weather-service/lodging_risk.py",
@@ -725,6 +727,7 @@
         "services/weather-service/raw_weather_processing.py",
         "services/weather-service/tests/test_canonical_weather_state.py",
         "services/weather-service/tests/test_crop_stress_products.py",
+        "services/weather-service/tests/test_gdd_view.py",
         "services/weather-service/tests/test_missing_temperature_is_not_zero.py",
         "services/weather-service/tests/test_raw_weather_processing.py",
         "services/weather-service/tests/test_thermal_stress.py",
@@ -787,6 +790,7 @@
         "shared/knowledge/providers.py",
         "shared/mlops/agronomic_candidate.py",
         "shared/mlops/runtime.py",
+        "shared/observation_time.py",
         "shared/precision_agriculture/__init__.py",
         "shared/precision_agriculture/fertigation_plan.py",
         "shared/precision_agriculture/pail_om_edge.py",
@@ -1646,7 +1650,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 357,
+      "evidence_count": 360,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1667,7 +1671,8 @@
         "soil-service",
         "supervisor-agent",
         "tts-service",
-        "vegetation-analysis-service"
+        "vegetation-analysis-service",
+        "weather-service"
       ],
       "primary_owner": "sahool-platform",
       "repository_evidence": [
@@ -1702,6 +1707,7 @@
         "migrations/v272_scout_photo_retention_governance.sql",
         "migrations/v274_inspection_evidence_versions.sql",
         "migrations/v275_inspection_handoffs.sql",
+        "migrations/v276_task_cost_trace.sql",
         "migrations/v277_inspection_close_gate.sql",
         "migrations/v50_soil_lab_tests.sql",
         "migrations/v51_review_round2_fixes.sql",
@@ -1724,6 +1730,7 @@
         "services/ai_agronomist/vra_prescription_engine.py",
         "services/auth/routers/season_edge_sign.py",
         "services/auth/routers/users.py",
+        "services/auth/session_tokens.py",
         "services/decision-service/backfill.py",
         "services/decision-service/decision_sor_role_certify.py",
         "services/decision-service/main.py",
@@ -1993,6 +2000,7 @@
         "services/vegetation-analysis-service/test_decision_bridge_candidate.py",
         "services/vegetation-analysis-service/test_rs_review_hardening.py",
         "services/vegetation-analysis-service/weekly_insights.py",
+        "services/weather-service/tests/test_gdd_view.py",
         "shared/ai/recommendation_runtime/flags.py",
         "shared/ai/recommendation_runtime/human_review_repository.py",
         "shared/ai/recommendation_runtime/recommendation_events.py",
@@ -2559,7 +2567,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 369,
+      "evidence_count": 370,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2846,6 +2854,7 @@
         "services/sahool-platform/tests/test_calibration_audit_endpoint.py",
         "services/sahool-platform/tests/test_calibration_endpoint.py",
         "services/sahool-platform/tests/test_calibration_override_endpoints.py",
+        "services/sahool-platform/tests/test_canonical_state_observed_at.py",
         "services/sahool-platform/tests/test_capability_plan_closures.py",
         "services/sahool-platform/tests/test_crop_cards.py",
         "services/sahool-platform/tests/test_crop_confidence_contract.py",
@@ -3063,7 +3072,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py"
       ],
-      "source_evidence_count": 757,
+      "source_evidence_count": 761,
       "target_evidence_count": 576,
       "static_supported": true,
       "runtime_verified": false
@@ -3273,7 +3282,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 206,
-      "target_evidence_count": 357,
+      "target_evidence_count": 360,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3319,7 +3328,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 357,
+      "source_evidence_count": 360,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3513,7 +3522,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 60,
-      "target_evidence_count": 369,
+      "target_evidence_count": 370,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3523,5 +3532,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "4c9bf99a78d9039ed55161c0f559d90fc08f8ea00ef469a1649bc269c2acda8e"
+  "content_sha256": "379bfadd061324b1e6789931f0316fa36e35d7a9e69db94b3ec1e1e1084fe3ac"
 }

@@ -100,7 +100,7 @@
     },
     {
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.auth.routers.email_verify",
       "node_id": "services.auth.routers.email_verify:router",
       "route_count": 4,
@@ -154,7 +154,7 @@
     },
     {
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.auth.routers.season_edge_sign",
       "node_id": "services.auth.routers.season_edge_sign:router",
       "route_count": 1,
@@ -550,7 +550,7 @@
     },
     {
       "kind": "app",
-      "line": 197,
+      "line": 200,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -2875,7 +2875,7 @@
     },
     {
       "expression": "module.router",
-      "line": 199,
+      "line": 206,
       "module": "services/sahool-platform/tests/test_task_irrigation_observations.py",
       "prefix": null,
       "resolved": false,
@@ -2991,7 +2991,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "2a74f6c600146018ad10461b3f4747c27e1345898f8b1be365e8dbc249bac2a6",
+  "inventory_sha256": "7fe68be405f12538d9ca4129aecd59f546071df0dbdb0ea5d6be55457991bc8d",
   "orphan_candidate_count": 236,
   "orphan_candidates": [
     {
@@ -3027,7 +3027,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.auth.routers.email_verify",
       "node_id": "services.auth.routers.email_verify:router",
       "route_count": 4,
@@ -3087,7 +3087,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.auth.routers.season_edge_sign",
       "node_id": "services.auth.routers.season_edge_sign:router",
       "route_count": 1,
@@ -5703,7 +5703,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_task_irrigation_observations.py",
-      "line": 199,
+      "line": 206,
       "module": "services.sahool-platform.tests.test_task_irrigation_observations",
       "source": null,
       "target_expression": "module.router"

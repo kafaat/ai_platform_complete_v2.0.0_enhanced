@@ -2127,10 +2127,13 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/core/tenant_audit.py"
+      ],
       "code_writers": [
         "services/auth/main.py",
         "services/sahool-platform/api/routers/break_glass.py",
+        "services/sahool-platform/core/tenant_audit.py",
         "services/sahool-platform/tests/test_break_glass.py"
       ],
       "created_in": "v9_auth_improvements.sql",
@@ -3714,7 +3717,8 @@
         "services/sahool-platform/api/routers/seasons.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/spatial_sync.py"
+        "services/sahool-platform/api/spatial_sync.py",
+        "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py"
       ],
       "created_in": "v96_spatial_geometry_integrity.sql",
       "has_tenant_id": true,
@@ -7432,6 +7436,7 @@
         "services/field-management-service/fm_task_inspection.py",
         "services/sahool-platform/api/routers/break_glass.py",
         "services/sahool-platform/api/task_irrigation_observations.py",
+        "services/sahool-platform/core/tenant_audit.py",
         "services/sahool-platform/tests/test_break_glass.py",
         "services/sahool-platform/tests/test_gaps_v91.py",
         "services/scout-ingest-service/credential_status.py",
