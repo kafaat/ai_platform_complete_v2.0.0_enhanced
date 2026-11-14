@@ -11421,6 +11421,10 @@
           "score": 14
         },
         {
+          "value": "/state @ tests_v9/test_export_openapi_strict.py:316",
+          "score": 14
+        },
+        {
           "value": "{route} @ tests_v9/test_export_openapi_strict.py:262",
           "score": 14
         }
@@ -11487,7 +11491,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 0,
-        "routes": 2,
+        "routes": 3,
         "database": 0,
         "events": 0,
         "web": 0,
