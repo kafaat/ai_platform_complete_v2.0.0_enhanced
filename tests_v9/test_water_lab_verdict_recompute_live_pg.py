@@ -124,11 +124,16 @@ def test_plan_reports_an_unreviewed_correction_and_invalid_inputs_without_touchi
 
 
 @pytest.mark.unit
-def test_a_stored_source_outside_the_new_vocabulary_is_recomputed_as_stored():
-    """The lab route once took any source text; the stored measurement is not rewritten."""
+def test_a_stored_source_outside_the_vocabulary_is_reported_not_rewritten():
+    """The lab route once took any source text; the core now refuses it (R5), so such a row is
+    reported as invalid stored inputs and its measurement is never rewritten."""
     script = _script()
-    fresh = script.recompute({**_payload("w-1", MODERATE), "source": "mixed"}, "w-1")
-    assert fresh["source"] == "mixed"
+    fresh = script.recompute(_payload("w-1", MODERATE), "w-1")
+    legacy = _row(analysis=_pre_tier(fresh))
+    legacy["payload"] = json.dumps({**_payload("w-1", MODERATE), "source": "mixed"})
+    step = script.plan(legacy)
+    assert step["action"] == script.SKIP_INVALID_INPUTS
+    assert "source:unsupported_kind" in step["error"]
 
 
 # ─── live Postgres ────────────────────────────────────────────────────────────

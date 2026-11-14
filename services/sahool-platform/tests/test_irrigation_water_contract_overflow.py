@@ -87,7 +87,14 @@ def test_the_result_says_it_is_not_persisted():
     r = _post({"sample_id": "w1", **_SAFE})
     assert r.status_code == 200, r.text
     assert r.json()["persisted"] is False
+    assert r.json()["source_evidence"] == "implicit_default_unverified"
     assert "field_id" not in r.json()
+
+
+def test_declared_source_never_claims_verified_well_identity():
+    r = _post({"sample_id": "w1", "source": "well", **_SAFE})
+    assert r.status_code == 200, r.text
+    assert r.json()["source_evidence"] == "caller_declared_unverified"
 
 
 # ─── Gap 2: source vocabulary ─────────────────────────────────────────────────
@@ -176,13 +183,17 @@ def test_the_http_contract_returns_422_for_the_old_ui_source_value():
 
 
 def test_overflow_reasons_are_distinct_from_missing_input():
-    assert sar_with_reason(5.0, BIG, BIG) == (None, "numeric_overflow")  # was SAR 0.0
-    assert sar_with_reason(1e308, TINY, 0.0) == (None, "numeric_overflow")  # was inf
+    # R5 (owner, 2026-11-14): Ca+Mg that overflows is halved first, so SAR is computed; the
+    # true value 5/sqrt(BIG) ≈ 3.8e-154 rounds to 0.0. It is no longer Na/inf = 0.
+    assert sar_with_reason(5.0, BIG, BIG) == (0.0, None)
+    assert sar_with_reason(1e308, TINY, 0.0) == (None, "numeric_overflow")  # the ratio is inf
     assert sar_with_reason(1.0, 0.0, 0.0) == (None, "calcium_plus_magnesium_zero")
     assert sar_with_reason(None, 1.0, 1.0) == (None, None)  # missing input: no reason
-    assert rsc_with_reason(BIG, BIG, BIG, BIG) == (None, "numeric_overflow")  # was nan
+    # R5: exact cancellation (fsum, Decimal fallback) is 0; a true result beyond float overflows.
+    assert rsc_with_reason(BIG, BIG, BIG, BIG) == (0.0, None)
+    assert rsc_with_reason(BIG, BIG, 0.0, 0.0) == (None, "numeric_overflow")
     assert rsc_with_reason(None, 1.0, 1.0, 1.0) == (None, None)
-    assert compute_sar(5.0, BIG, BIG) is None and compute_rsc(BIG, BIG, 1.0, 1.0) is None
+    assert compute_rsc(BIG, BIG, 1.0, 1.0) is None
 
 
 def test_ordinary_values_are_unchanged():
@@ -192,7 +203,7 @@ def test_ordinary_values_are_unchanged():
 
 def test_an_overflowed_index_is_reported_as_not_computable_not_as_missing_data():
     out = analyze_water_sample(
-        WaterSample(sample_id="w1", na=5.0, ca=BIG, mg=BIG, co3=0.0, hco3=0.0, ec_dsm=0.5)
+        WaterSample(sample_id="w1", na=1e308, ca=TINY, mg=0.0, co3=BIG, hco3=BIG, ec_dsm=0.5)
     )
     assert out["indices"]["sar"] is None
     assert out["missing_inputs"] == []  # nothing is missing
@@ -216,8 +227,9 @@ def test_complete_valid_sample_reports_no_uncomputable_index():
     "values",
     [
         dict(na=1e308, ca=TINY, mg=0.0, co3=0.0, hco3=0.0, ec_dsm=0.5),
-        dict(na=5.0, ca=BIG, mg=BIG, co3=0.0, hco3=0.0, ec_dsm=0.5),
-        dict(na=1.0, ca=BIG, mg=BIG, co3=BIG, hco3=BIG, ec_dsm=0.5),
+        # Inputs whose true SAR exceeds float (R5 computes the BIG Ca+Mg cases instead).
+        dict(na=1e308, ca=TINY, mg=TINY, co3=0.0, hco3=0.0, ec_dsm=0.5),
+        dict(na=1e308, ca=TINY, mg=TINY, co3=BIG, hco3=BIG, ec_dsm=0.5),
     ],
 )
 def test_the_endpoint_answers_200_with_the_typed_reason_never_500(values):
@@ -237,7 +249,8 @@ def _blend(**ion):
 
 def test_blend_sar_overflow_is_a_typed_not_computable_not_ca_mg_zero():
     out = compute_blend_water_quality(
-        _blend(ec_ds_m=1.0, sodium_meq_l=1.0, calcium_meq_l=BIG, magnesium_meq_l=BIG)
+        # Blended Na/sqrt((Ca+Mg)/2) beyond float; BIG Ca+Mg alone is computable since R5.
+        _blend(ec_ds_m=1.0, sodium_meq_l=1e308, calcium_meq_l=TINY, magnesium_meq_l=TINY)
     )
     assert out["sar"]["status"] == "not_computable"
     assert out["sar"]["value"] is None

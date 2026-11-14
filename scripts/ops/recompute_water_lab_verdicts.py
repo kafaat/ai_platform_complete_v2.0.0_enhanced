@@ -20,7 +20,8 @@ Not recomputed (reported, never touched):
 - an unreviewed correction (an unreviewed row that itself supersedes another): rejecting a
   revision of it could not restore the approved set it corrects, so it is recomputed by a re-run
   after its review;
-- a row whose stored inputs no longer pass the analysis' input checks.
+- a row whose stored inputs no longer pass the analysis' input checks, such as a source kind
+  outside the v168 vocabulary that the lab route accepted before the core refused it.
 
 Safety:
 - dry run by default; ``--apply`` writes. A dry run runs in a READ ONLY transaction;
