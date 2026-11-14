@@ -264,7 +264,7 @@ DEC-010,test,services/decision-service/tests/test_wx11_5_model_activation_approv
 DEC-010,test,services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py,3,applied
 DEC-010,test,services/sahool-platform/tests/test_practice_promotion.py,3,applied
 DEC-010,test,tests/architecture/test_runtime_verification_promotion_workflow.py,3,applied
-FM-001,api,DELETE /v1/auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:218,3,applied
+FM-001,api,DELETE /v1/auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:223,3,applied
 FM-001,api,GET /api/v1/auth/me @ services/sahool-platform/api/routers/auth.py:92,2,applied
 FM-001,api,GET /api/v1/tenant/config @ services/sahool-platform/api/routers/tenant.py:29,2,applied
 FM-001,api,GET /health @ services/auth/routers/ops.py:27,3,applied
@@ -276,11 +276,11 @@ FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py
 FM-001,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41,3,applied
 FM-001,api,GET /v1/auth/invitations @ services/auth/routers/invitations.py:104,3,applied
 FM-001,api,GET /v1/auth/me @ services/auth/routers/session.py:240,3,applied
-FM-001,api,GET /v1/auth/users @ services/auth/routers/users.py:67,3,applied
+FM-001,api,GET /v1/auth/users @ services/auth/routers/users.py:70,3,applied
 FM-001,api,GET /v1/auth/verify @ services/auth/routers/email_verify.py:98,3,applied
 FM-001,api,GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:108,3,applied
-FM-001,api,PATCH /v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:132,3,applied
-FM-001,api,PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:81,3,applied
+FM-001,api,PATCH /v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:143,3,applied
+FM-001,api,PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:82,3,applied
 FM-001,api,POST /api/v1/auth/login @ services/sahool-platform/api/routers/auth.py:48,2,applied
 FM-001,api,POST /api/v1/auth/logout @ services/sahool-platform/api/routers/auth.py:106,2,applied
 FM-001,api,POST /api/v1/auth/signup @ services/sahool-platform/api/routers/auth.py:138,2,applied
@@ -2001,7 +2001,7 @@ SAT-006,test,tests_v9/test_telemetry_backfill_key_parity.py,3,applied
 SAT-006,test,tests_v9/test_unified_timeline.py,3,applied
 SAT-006,ui,frontend/e2e/gis-tools-timeline-comparison.spec.ts,2,applied
 SAT-007,api,GET /api/v1/rbac/preview-role-change @ services/sahool-platform/api/routers/rbac.py:54,2,applied
-SAT-007,api,PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:81,2,applied
+SAT-007,api,PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:82,2,applied
 SAT-007,api,POST /v1/auth/change-password @ services/auth/routers/registration.py:73,2,applied
 SAT-007,api,POST /v1/change/detect @ services/raster-service/routers/analysis.py:48,3,applied
 SAT-007,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1157,3,applied

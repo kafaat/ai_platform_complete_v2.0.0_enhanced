@@ -35,7 +35,7 @@ auth,GET,/v1/auth/verify/status,verify_status,services/auth/routers/email_verify
 auth,POST,/v1/auth/invitations,create_invitation,services/auth/routers/invitations.py,45
 auth,GET,/v1/auth/invitations,list_invitations,services/auth/routers/invitations.py,104
 auth,POST,/v1/auth/invitations/accept,accept_invitation,services/auth/routers/invitations.py,137
-auth,DELETE,/v1/auth/invitations/{invitation_id},revoke_invitation,services/auth/routers/invitations.py,218
+auth,DELETE,/v1/auth/invitations/{invitation_id},revoke_invitation,services/auth/routers/invitations.py,223
 auth,POST,/v1/auth/mfa/setup,mfa_setup,services/auth/routers/mfa.py,48
 auth,POST,/v1/auth/mfa/activate,mfa_activate,services/auth/routers/mfa.py,104
 auth,POST,/v1/auth/mfa/disable,mfa_disable,services/auth/routers/mfa.py,179
@@ -52,9 +52,9 @@ auth,POST,/v1/auth/refresh,refresh_token,services/auth/routers/session.py,139
 auth,POST,/v1/auth/logout,logout,services/auth/routers/session.py,195
 auth,GET,/v1/auth/me,me,services/auth/routers/session.py,240
 auth,POST,/v1/auth/tenants,provision_tenant,services/auth/routers/tenants.py,62
-auth,GET,/v1/auth/users,list_users,services/auth/routers/users.py,67
-auth,PATCH,/v1/auth/users/{user_id}/role,change_role,services/auth/routers/users.py,81
-auth,PATCH,/v1/auth/users/{user_id}/deactivate,deactivate_user,services/auth/routers/users.py,132
+auth,GET,/v1/auth/users,list_users,services/auth/routers/users.py,70
+auth,PATCH,/v1/auth/users/{user_id}/role,change_role,services/auth/routers/users.py,82
+auth,PATCH,/v1/auth/users/{user_id}/deactivate,deactivate_user,services/auth/routers/users.py,143
 decision-service,GET,/runtime-identity,runtime_identity,services/decision-service/main.py,542
 decision-service,GET,/healthz,healthz,services/decision-service/main.py,548
 decision-service,GET,/readyz,readyz,services/decision-service/main.py,553

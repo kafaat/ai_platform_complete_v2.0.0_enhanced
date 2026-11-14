@@ -15,26 +15,26 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 42,
-    "files_scanned": 7209,
+    "files_scanned": 7212,
     "files_by_kind": {
       "backend": 1272,
       "database": 297,
       "governance": 89,
       "mobile": 415,
-      "other": 2166,
-      "tests": 2439,
+      "other": 2167,
+      "tests": 2441,
       "web": 531
     },
-    "unmapped_artifacts": 3427,
+    "unmapped_artifacts": 3429,
     "ambiguous_artifacts": 236,
     "files_by_reading": {
-      "python_functional": 3893,
-      "raw": 3316
+      "python_functional": 3895,
+      "raw": 3317
     },
-    "test_dependency_files": 1844,
-    "test_dependency_edges": 4682,
-    "test_dependency_bounded_files": 1075,
-    "test_dependency_unresolved_relations": 470
+    "test_dependency_files": 1846,
+    "test_dependency_edges": 4688,
+    "test_dependency_bounded_files": 1076,
+    "test_dependency_unresolved_relations": 472
   },
   "capabilities": [
     {
@@ -41401,6 +41401,14 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_admin_operational_permissions.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_admin_team_scope_guards.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_advice_facade_contract.py",
       "kind": "tests"
     },
@@ -69365,6 +69373,65 @@
           "source": "services/sahool-platform/api/adaptive_calibration.py",
           "kind": "import",
           "line": 22
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_admin_operational_permissions.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "tree_wide_scan",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/routers/admin.py",
+          "kind": "source_read",
+          "line": 35
+        },
+        {
+          "source": "services/sahool-platform/api/routers/farm_operations_ledger.py",
+          "kind": "source_read",
+          "line": 28
+        },
+        {
+          "source": "services/sahool-platform/api/routers/tasks.py",
+          "kind": "source_read",
+          "line": 23
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 49,
+          "import": "core.authorization"
+        },
+        {
+          "line": 50,
+          "import": "core.canonical_schemas"
+        }
+      ]
+    },
+    {
+      "test": "tests_v9/test_admin_team_scope_guards.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/auth/routers/invitations.py",
+          "kind": "source_read",
+          "line": 17
+        },
+        {
+          "source": "services/auth/routers/users.py",
+          "kind": "source_read",
+          "line": 15
+        },
+        {
+          "source": "services/sahool-platform/api/routers/security_audit.py",
+          "kind": "source_read",
+          "line": 16
         }
       ],
       "unresolved": []

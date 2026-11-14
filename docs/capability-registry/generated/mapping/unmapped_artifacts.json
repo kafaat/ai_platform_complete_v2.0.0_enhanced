@@ -10516,6 +10516,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_admin_operational_permissions.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_admin_team_scope_guards.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_advice_facade_contract.py",
     "kind": "tests"
   },
