@@ -55,7 +55,7 @@
       "dynamic_expr": "row['nats_subject']",
       "file": "services/sahool-platform/api/event_bus.py",
       "kind": "producer",
-      "line": 825,
+      "line": 832,
       "queue": null,
       "resolution": "dynamic",
       "subject": null

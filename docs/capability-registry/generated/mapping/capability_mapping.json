@@ -32,7 +32,7 @@
       "raw": 3364
     },
     "test_dependency_files": 1894,
-    "test_dependency_edges": 4861,
+    "test_dependency_edges": 4862,
     "test_dependency_bounded_files": 1111,
     "test_dependency_unresolved_relations": 479
   },
@@ -11637,11 +11637,11 @@
       ],
       "events": [
         {
-          "value": "sahool.soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:215",
+          "value": "sahool.soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:268",
           "score": 26
         },
         {
-          "value": "soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:208",
+          "value": "soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:261",
           "score": 26
         },
         {
@@ -84452,6 +84452,11 @@
           "source": "services/sahool-platform/api/main.py",
           "kind": "source_read",
           "line": 28
+        },
+        {
+          "source": "shared/broker_url.py",
+          "kind": "import",
+          "line": 227
         },
         {
           "source": "shared/broker_url.py",
