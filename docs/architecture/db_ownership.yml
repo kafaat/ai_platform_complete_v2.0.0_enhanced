@@ -1118,12 +1118,12 @@ tables:
   scout_photo_evidence:
     owner: scout-ingest-service
     writers: [scout-ingest-service]
-    readers: []
+    readers: [field-management-service]  # v274/v277: an inspection evidence version names the pin's record
     source: "migrations/v260_scout_photo_evidence.sql"
   scouting_pins:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: [scout-ingest-service]
+    readers: [scout-ingest-service, field-management-service]  # pin inspection task: pin exists
     source: "migrations/v94_scouting_pins.sql, migrations/v192_fii_rls_write_fail_closed.sql, migrations/v257_scouting_pin_location_photo.sql"
   seasons:
     owner: sahool-platform
@@ -1985,7 +1985,7 @@ tables:
   farm_ledger_entries:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: [sahool-platform, odoo-bridge]
+    readers: [sahool-platform, odoo-bridge, field-management-service]  # v276 expense link, cost trace
     source: "migrations/v211_simple_farm_book.sql"
   decision_model_retraining_requests:
     owner: decision-service
