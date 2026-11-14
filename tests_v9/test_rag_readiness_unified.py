@@ -54,7 +54,14 @@ def test_sparse_index_requires_a_positive_integer(count):
     assert not rag_operational_ready(payload)
 
 
-@pytest.mark.parametrize("name", ["embedding_contract_parity", "collection_vector_schema_parity", "sparse_index_hydrated"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "embedding_contract_parity",
+        "collection_vector_schema_parity",
+        "sparse_index_hydrated",
+    ],
+)
 def test_missing_operational_parity_blocks_readiness(name):
     payload = _usable()
     payload[name] = False
