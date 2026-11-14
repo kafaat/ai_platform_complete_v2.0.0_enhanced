@@ -14090,7 +14090,7 @@
           ]
         },
         {
-          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:1904",
+          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:1939",
           "score": 14
         },
         {
@@ -24894,6 +24894,10 @@
           "score": 9
         },
         {
+          "value": "public.field_tasks @ migrations/v276_task_cost_trace.sql:134",
+          "score": 9
+        },
+        {
           "value": "soil-observation.v1 @ tests_v9/test_soil_runtime_certification_integration.py:81",
           "score": 9
         },
@@ -24923,10 +24927,6 @@
         },
         {
           "value": "irrigation.schedule @ docs/history/EXTERNAL_DOCS_REVIEW.md:133",
-          "score": 8
-        },
-        {
-          "value": "public.field_tasks @ migrations/v276_task_cost_trace.sql:133",
           "score": 8
         },
         {
@@ -79993,7 +79993,7 @@
         {
           "source": "services/sahool-platform/api/irrigation_observations.py",
           "kind": "import",
-          "line": 1944
+          "line": 1979
         },
         {
           "source": "services/sahool-platform/api/main.py",
@@ -80003,7 +80003,7 @@
         {
           "source": "services/sahool-platform/api/task_irrigation_observations.py",
           "kind": "import",
-          "line": 1945
+          "line": 1980
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",

@@ -9735,7 +9735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "33412a12eb5c3bf92bda8577c40ee7ecaffd69911541b8f61daaa244f4277941"
+          "content": "141afe2ff8e909f5478a782954d0bee261a2f5426758e37908189e22e2779855"
         }
       ],
       "name": "migrations/v274_inspection_evidence_versions.sql",
@@ -9745,7 +9745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc14c7588ad617709fb8e269d937be537e56db8d9a6e385a2687c409f904cf63"
+          "content": "9ddd01f3f9964a5dbc0545e4acedc6942eaedfcc4fcfd3cfb17ce3923fc0d2d2"
         }
       ],
       "name": "migrations/v275_inspection_handoffs.sql",
@@ -9755,7 +9755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "11c43e886642c034f9149ce86abf678825487df3efccffe6e020064ac437ab7f"
+          "content": "2028f61b1a1bee8bcb425fdc51977da6070839f3af7cd73d6a39b4347a527799"
         }
       ],
       "name": "migrations/v276_task_cost_trace.sql",
@@ -9765,7 +9765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5cf83bda72db435ab64f4e6c08a012a68f39853e54a466baeb6a9aec872dbbf1"
+          "content": "3c42d354bfe97fe746ba45a002f60279da95b7ba14876c5559a4b2f07bf7f159"
         }
       ],
       "name": "migrations/v277_inspection_close_gate.sql",
