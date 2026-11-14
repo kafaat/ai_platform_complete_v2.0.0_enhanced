@@ -37,7 +37,16 @@ import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
+
+# This tool is also invoked directly as a script from scripts/ci.
+# Resolve the repository root before importing the shared runtime contract.
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from shared.ai.rag_readiness import rag_operational_ready  # noqa: E402
 
 DEFAULT_OLLAMA_URL = "http://sahool-ollama:11434"
 DEFAULT_QDRANT_URL = "http://sahool-qdrant:6333"
@@ -281,17 +290,7 @@ def certify(
     # Canonical retrieval readiness must prove sparse reconstruction, not only HTTP liveness.
     ready = _request("GET", f"{rag_url.rstrip('/')}/readyz", timeout_s=timeout_s)
     r = ready.body or {}
-    ready_ok = (
-        ready.status == 200
-        and r.get("status") == "ready"
-        and r.get("embedding_contract_parity") is True
-        # الشهادةُ تقرأ **ما قِيس**: تكافؤَ مخطّط المتّجه. وقراءةُ الاسم الواسع
-        # كانت تجعلها تشهد لتكافؤ الـpayload الذي لا يُثبِته أيُّ فحصٍ هنا.
-        and r.get("collection_vector_schema_parity") is True
-        and r.get("sparse_index_hydrated") is True
-        and isinstance(r.get("sparse_index_count"), int)
-        and int(r.get("sparse_index_count", 0)) > 0
-    )
+    ready_ok = ready.status == 200 and rag_operational_ready(r)
     checks.append(
         _pass(
             "rag_ready",
