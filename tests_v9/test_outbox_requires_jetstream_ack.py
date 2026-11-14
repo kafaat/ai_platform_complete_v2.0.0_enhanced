@@ -157,7 +157,7 @@ async def test_a_publisher_without_an_ack_never_lets_a_row_reach_sent(monkeypatc
     bus = _event_bus()
     monkeypatch.setattr(bus, "claim_event", _always_claims, raising=False)
 
-    async def _refusing_publish(subject: str, payload: bytes) -> None:
+    async def _refusing_publish(subject: str, payload: bytes, msg_id: str | None = None) -> None:
         raise RuntimeError("nats: no response from stream")
 
     worker = bus.OutboxWorker(pool=None, nats_publish_fn=_refusing_publish)
@@ -180,7 +180,7 @@ async def test_a_publisher_with_an_ack_does_mark_sent(monkeypatch):
     bus = _event_bus()
     monkeypatch.setattr(bus, "claim_event", _always_claims, raising=False)
 
-    async def _acking_publish(subject: str, payload: bytes) -> None:
+    async def _acking_publish(subject: str, payload: bytes, msg_id: str | None = None) -> None:
         return None  # نجاحٌ بلا استثناء = إقرارٌ تمّ فحصُه في الناشر نفسِه
 
     worker = bus.OutboxWorker(pool=None, nats_publish_fn=_acking_publish)
@@ -189,6 +189,59 @@ async def test_a_publisher_with_an_ack_does_mark_sent(monkeypatch):
 
     joined = " | ".join(conn.statements)
     assert "SET status = 'sent'" in joined, "حدثٌ مُقَرٌّ لم يُوسَم — البوّابةُ لا تُغلَق بعملٍ صحيح"
+
+
+# ── الخاصّيّة الثالثة (C-19): إعادةُ تسليمِ الصفّ نفسِه تحمل معرّفَ الرسالة نفسَه ──────
+
+
+class _RecordingJetStream:
+    """سياقُ JetStream يسجّل كلّ نشرٍ ويُعيد PubAck — بديلُ وسيطٍ لا بديلُ قاعدة."""
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[tuple, dict]] = []
+
+    async def publish(self, *args, **kwargs):
+        from types import SimpleNamespace
+
+        self.calls.append((args, kwargs))
+        return SimpleNamespace(seq=len(self.calls), duplicate=len(self.calls) > 1)
+
+
+class _NatsConn:
+    def __init__(self, js: _RecordingJetStream) -> None:
+        self._js = js
+
+    def jetstream(self) -> _RecordingJetStream:
+        return self._js
+
+
+@pytest.mark.asyncio
+async def test_a_redelivered_outbox_row_carries_the_same_jetstream_msg_id(monkeypatch):
+    """**C-19 مقيساً على المُرحِّل لا على الناشر وحدَه.**
+
+    #1431 أضاف ``msg_id`` إلى ``make_jetstream_publisher`` ولم يمرّره المُرحِّل، فكان كلُّ
+    نشرٍ بلا ``Nats-Msg-Id`` ولا تستطيع نافذةُ تكرار JetStream إسقاطَ النسخة الثانية.
+    هنا الصفُّ نفسُه يُنشَر مرّتين عبر الناشر الحقيقيّ (تعطّلٌ بين PubAck وTX-2 يُبقيه
+    غيرَ موسوم فيُعاد التقاطُه)، وصفٌّ ثانٍ للحدث نفسِه — والثلاثةُ تحمل ``event_id``.
+    """
+    from shared.broker_url import make_jetstream_publisher
+
+    bus = _event_bus()
+    monkeypatch.setattr(bus, "claim_event", _always_claims, raising=False)
+    js = _RecordingJetStream()
+    worker = bus.OutboxWorker(pool=None, nats_publish_fn=make_jetstream_publisher(_NatsConn(js)))
+    row = _row()
+
+    await worker._send_one(_Conn(), row)
+    await worker._send_one(_Conn(), dict(row, retry_count=1))
+    await worker._send_one(_Conn(), dict(row, outbox_id=2))
+
+    assert len(js.calls) == 3
+    headers = [kwargs.get("headers") for _args, kwargs in js.calls]
+    expected = {"Nats-Msg-Id": str(row["event_id"])}
+    assert headers == [expected] * 3, (
+        "المُرحِّل ينشر بلا معرّفٍ ثابت — إعادةُ التسليم تُخزَّن مرّتين في JetStream"
+    )
 
 
 # ── مِرقاةٌ صغيرة ────────────────────────────────────────────────────────────────
