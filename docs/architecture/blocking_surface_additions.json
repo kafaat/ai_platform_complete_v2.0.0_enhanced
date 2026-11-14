@@ -214,6 +214,14 @@
       "positive_witness": "test_root_export_preserves_same_basenames_in_two_packages: a root re-export holding services/sahool-platform/api/__init__.py and services/sahool-platform/core/__init__.py side by side is accepted with both files counted, so the legitimate report passes.",
       "impact": "merge",
       "$impact_ar": "يحجب الدمج داخل الوظيفة التي يُرفع منها التقرير: تقريرٌ بمسارات غير صحيحة لا يُرفع إلى Codecov كأنّه حقيقيّ. والرفع نفسه fail_ci_if_error: false فانقطاع Codecov لا يحمّر فحصاً."
+    },
+    "scripts/ci/codecov_coverage_guard.py::ci.yml::integration-tests": {
+      "counterexample": "CODECOV-LIVE-AUTH-COVERAGE-NOT-UPLOADED: #1427 (merged as c3d06341c) showed codecov/patch 34.52%, with services/auth/routers/users.py at 4.5%, invitations.py at 12.5%, session_tokens.py at 75% and sahool-platform security_audit.py at 0%, because the live PG+Redis certification steps that exercise those lines ran without --cov and only the unit jobs uploaded. Measured on a fresh PG16 cluster with live Redis, running the four live steps in CI order (MFA e2e, C-01 tenant scope, #1427 authz gates, platform denial-log scope; 3 + 15 + 12 + 3 passed) and then the export and guard as written in ci.yml: CODECOV_REPORT_VALID files=695 measured_lines=58673 covered_lines=14669. #1427's added lines measured 39/44 (users.py), 7/8 (invitations.py), 16/16 (session_tokens.py) and 2/2 (security_audit.py). In this job the guard refuses a report whose paths are missing, untracked, duplicated, outside services/auth or services/sahool-platform/{api,core}, under services/auth/tests, or that omits one of the four required files.",
+      "mutation": "test_forbidden_decision_test_source_is_refused",
+      "$mutation_ar": "مسجَّلة في guard_mutation_registry.json تحت codecov_coverage_guard.py: تعطيل رفض المسار خارج نطاق الخدمة (`if False:`) يُسقط test_unmatched_and_duplicate_paths_fail_closed، وتعطيل رفض مسارات الاختبارات (`pass`) يُسقط test_forbidden_decision_test_source_is_refused.",
+      "positive_witness": "test_root_export_preserves_same_basenames_in_two_packages: a root re-export holding services/sahool-platform/api/__init__.py and services/sahool-platform/core/__init__.py side by side is accepted with both files counted, so the legitimate report passes.",
+      "impact": "merge",
+      "$impact_ar": "يحجب الدمج داخل وظيفة Integration Tests فقط عند تقريرٍ بمسارات غير صحيحة؛ خطوات الشهادة الحيّة نفسها بلا --cov-fail-under فلا تفشل بسبب نسبة التغطية. والرفع fail_ci_if_error: false فانقطاع Codecov لا يحمّر فحصاً."
     }
   }
 }
