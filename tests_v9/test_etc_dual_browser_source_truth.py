@@ -6,6 +6,10 @@ math: numeric parity of two formulas would NOT prove provenance parity.
 
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = Path(__file__).resolve().parents[1]
 API = ROOT / "frontend/src/services/api.ts"
 BACKEND = ROOT / "services/sahool-platform/api/routers/etc_dual.py"
