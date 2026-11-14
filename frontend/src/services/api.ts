@@ -158,6 +158,14 @@ export interface WaterClass {
   hazard_ar?: string;
   note_ar?: string;
 }
+export interface WaterRestriction {
+  index: 'ec_dsm' | 'sar' | 'rsc_meq_l';
+  axis: 'salinity' | 'infiltration' | 'alkalinity';
+  value: number | null;
+  degree: 'slight_to_moderate' | 'severe';
+  standard: string;
+  reason_ar: string;
+}
 export interface WaterAnalysisResult {
   sample_id: string;
   source: string;
@@ -170,9 +178,16 @@ export interface WaterAnalysisResult {
     salinity: WaterClass;
     alkalinity_rsc: WaterClass;
     sodicity_sar: WaterClass;
+    /** FAO-29 Table 1: SAR graded with ECw (degree none | slight_to_moderate | severe). */
+    infiltration_fao29?: WaterClass;
   };
   hazard_flags_ar: string[];
-  verdict?: 'suitable' | 'needs_treatment' | 'insufficient_data';
+  /** FAO-29 three degrees of restriction: suitable = none, suitable_with_restrictions =
+   *  slight-to-moderate (named in restriction_flags_ar), needs_treatment = severe. */
+  verdict?: 'suitable' | 'suitable_with_restrictions' | 'needs_treatment' | 'insufficient_data';
+  restrictions?: WaterRestriction[];
+  restriction_flags_ar?: string[];
+  advisories_ar?: string[];
   not_assessed?: string[];
   suitable_ar: string;
   missing_inputs: string[];

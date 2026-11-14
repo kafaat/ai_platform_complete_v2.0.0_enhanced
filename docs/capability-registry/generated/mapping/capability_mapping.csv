@@ -26,14 +26,14 @@ INT-002,farm_management,Event bus integration,True,5,7,15,2,100,0,0,22,2
 INT-003,irrigation,IoT and sensors,True,1,0,0,0,0,0,0,2,0
 INT-004,precision,External machinery integrations,True,5,5,9,8,11,0,0,3,0
 IRR-001,irrigation,Water source registry,True,2,0,0,8,0,0,0,1,0
-IRR-002,irrigation,Water quality samples,True,5,2,6,8,1,0,0,2,0
+IRR-002,irrigation,Water quality samples,True,5,1,6,8,1,0,0,2,0
 IRR-003,irrigation,Field water-source binding,True,3,1,0,4,0,0,0,3,1
 IRR-004,irrigation,Water balance,True,3,3,1,0,0,0,0,2,0
 IRR-005,irrigation,Irrigation recommendation,True,4,2,2,0,7,0,0,5,0
 IRR-006,irrigation,Irrigation scheduling,True,2,0,0,0,4,0,0,4,0
 IRR-007,irrigation,Pump and valve control,False,0,0,0,0,0,0,0,0,0
 IRR-008,irrigation,Execution verification,False,0,0,0,0,0,0,0,0,0
-IRR-009,irrigation,Water suitability multi-hazard,True,6,8,1,7,9,1,0,12,0
+IRR-009,irrigation,Water suitability multi-hazard,True,6,8,1,7,9,2,0,13,0
 IRR-010,irrigation,Leaching and drainage safety,False,0,0,0,0,0,0,0,0,0
 OPS-001,operations,Task management,True,4,0,0,7,6,0,1,1,0
 OPS-002,operations,Work orders,True,6,3,7,6,3,1,0,7,0
