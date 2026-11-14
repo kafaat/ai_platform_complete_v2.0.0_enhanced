@@ -64,7 +64,7 @@
 |---|---|---|---|
 | SAM2 حدود الحقل | CUDA + `SAM2_CHECKPOINT` | sam2-inference/sam2_runtime.py:55,110-151؛ compose `--profile gpu` v9.gpu.yml:21 | بلا GPU ⇒ `/predict` 503؛ `/readyz` model_loaded:false |
 | بوّابة التجزئة | `SEGMENTATION_REQUIRE_MODEL` | scripts/e2e/segmentation_platform_live_gate.py:82-86 | بلا نموذج ⇒ احتياط يدويّ بلا تلفيق |
-| XTTS صوتيّ | `XTTS_ENABLE`/`TTS_GPU_PROVIDER=xtts` + مكتبة TTS | tts-service/providers.py:134-163 | غير متاح ⇒ edge-tts (CPU) |
+| XTTS صوتيّ | **غير قابل للتفعيل في الصورة الافتراضيّة.** `XTTS_ENABLE`/`TTS_GPU_PROVIDER=xtts` وحده لا يكفي: يلزم أيضاً استيراد مكتبة Coqui `TTS`، و`TTS==0.22.0` ترفض Python 3.12 (أساس الصورة) ⇒ يحتاج صورة مزوّدٍ اختياريّة منفصلة مُتحقَّقاً منها (فجوة `TTS-XTTS-PROVIDER-CANNOT-PRODUCE-AUDIO-01` مفتوحة) | tts-service/providers.py:19-20,55-62,438-453؛ requirements.txt:14-15 | غير متاح ⇒ edge-tts (CPU) |
 | Piper صوتيّ | `PIPER_VOICE_PATH` | tts-service/providers.py:100-127 | ⇒ edge-tts |
 
 ### A4 — رايات إسقاط/معالجة داخليّة (قلب الراية يكفي)

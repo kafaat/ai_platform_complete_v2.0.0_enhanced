@@ -41,7 +41,7 @@ high,sahool-platform,function,_patch_engine_gdd,services/sahool-platform/tests/t
 high,sahool-platform,function,_reset_breaker,services/sahool-platform/tests/test_openmeteo_circuit.py,21,0,review_before_delete,False
 high,sahool-platform,function,_patch_engine_gdd,services/sahool-platform/tests/test_profit_aware_decision_endpoint.py,25,0,review_before_delete,False
 high,sam2-inference,function,_startup,services/sam2-inference/main.py,43,0,review_before_delete,False
-high,soil-service,function,_tenant_context_mw,services/soil-service/main.py,120,0,review_before_delete,False
+high,soil-service,function,_tenant_context_mw,services/soil-service/main.py,121,0,review_before_delete,False
 high,weather-service,function,_reset_breaker,services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py,41,0,review_before_delete,False
 medium,agriai-engine,function,salt_engine_applies,services/agriai-engine/aquacrop_adapter.py,99,0,review_before_delete,False
 medium,agriai-engine,function,aquacrop_salt_capability_report,services/agriai-engine/aquacrop_adapter.py,330,0,review_before_delete,False
@@ -163,7 +163,7 @@ medium,sahool-platform,class,EmitEventExecutionRequestPort,services/sahool-platf
 medium,sahool-platform,function,resolve_source_paths,services/sahool-platform/api/irrigation_path_query.py,63,0,review_before_delete,False
 medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-platform/api/irrigation_reservation_adapter.py,334,0,review_before_delete,False
 medium,sahool-platform,function,plan_and_maybe_emit,services/sahool-platform/api/lexicographic_mpc_bridge.py,96,0,review_before_delete,False
-medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,846,0,review_before_delete,False
+medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,825,0,review_before_delete,False
 medium,sahool-platform,function,should_fail,services/sahool-platform/api/offline_pending_db.py,71,0,review_before_delete,False
 medium,sahool-platform,function,reclaim_stuck_processing,services/sahool-platform/api/offline_pending_db.py,253,0,review_before_delete,False
 medium,sahool-platform,function,clear_processed,services/sahool-platform/api/offline_pending_db.py,279,0,review_before_delete,False

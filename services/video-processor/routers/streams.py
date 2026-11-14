@@ -104,6 +104,11 @@ async def stop_stream(stream_id: str, user: dict = Depends(main._get_current_use
     state.status = "inactive"
     if state.task:
         state.task.cancel()
+    # أزِل وكيل ZLMediaKit الذي أنشأه البثّ: بقاؤه يُبقي سحب الكاميرا قائماً، ويجعل
+    # إعادة إنشاء المعرّف نفسه تُرفَض «already exists» (fail-soft: العميل لا يرفع).
+    proxy_key = getattr(state, "zlm_proxy_key", None)
+    if proxy_key:
+        await asyncio.to_thread(_client().del_stream_proxy, proxy_key)
     # زامِن السجلّ الخفيف وابثّ حدث الإيقاف (best-effort).
     entry = registry.update_state(stream_id, "stopped", last_event="stream.stopped")
     registry.remove(stream_id)

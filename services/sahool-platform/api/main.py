@@ -251,10 +251,14 @@ async def _init_db_pool():
         logging.info("✓ pool القاعدة جاهز (min=%d max=%d)", _pool_min, _pool_max)
         await _assert_db_role_rls_safe(_DB_POOL)
     except RuntimeError:
+        await _close_db_pool()  # A rejected role must not leave its newly created pool open.
         raise  # رفض إقلاع متعمَّد (دور يتجاوز RLS، أو مهلة إقلاع Postgres) — لا تبتلعه
+    except asyncio.CancelledError:
+        await _close_db_pool()
+        raise
     except Exception as e:  # noqa: BLE001
         logging.error("فشل إنشاء pool القاعدة: %s", e)
-        _DB_POOL = None
+        await _close_db_pool()
         return
     # مسبح الوظائف: لا يُطبَّق عليه حارس RLS (BYPASSRLS مقصود لمساره فقط).
     jobs_dsn = os.getenv("JOBS_DATABASE_URL", "") or dsn
@@ -271,36 +275,11 @@ async def _init_db_pool():
 async def _assert_db_role_rls_safe(pool) -> None:
     """يتحقّق أنّ دور الاتّصال لا يتجاوز RLS (لينشين عزل المستأجرين) — fail-closed.
 
-    إن كان الدور superuser/BYPASSRLS: يُسجَّل تحذير حرج دائماً، ويُرفَض الإقلاع إذا
-    SAHOOL_ENFORCE_RLS_ROLE مُفعَّل (الإنتاج). لا يحجب إقلاعاً عند تعذّر الفحص (لا يكسر
-    بيئات بلا pg_roles)."""
-    from core.db_role_guard import (
-        ROLE_PROBE_SQL,
-        enforcement_active,
-        role_can_bypass_rls,
-        role_guard_message,
-        should_refuse_startup,
-    )
+    تنفيذٌ واحد مع الخدمات السبع (shared.db_role_guard): دورٌ superuser/BYPASSRLS، أو
+    فحصٌ متعذّر (خطأ/مهلة/لا صفّ)، يرفض الإقلاع عند الفرض؛ تجاوز التطوير الصريح يُحذِّر فقط."""
+    from shared.db_role_guard import assert_db_role_rls_safe
 
-    try:
-        async with pool.acquire() as conn:
-            row = await conn.fetchrow(ROLE_PROBE_SQL)
-    except Exception as e:  # noqa: BLE001 — تعذّر الفحص ⇒ لا يحجب الإقلاع
-        logging.debug("تعذّر فحص دور RLS: %s", e)
-        return
-    if row is None:
-        return
-    unsafe = role_can_bypass_rls(row["rolsuper"], row["rolbypassrls"])
-    if not unsafe:
-        return
-    enforce = enforcement_active(
-        os.getenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE"), os.getenv("SAHOOL_ENFORCE_RLS_ROLE")
-    )
-    refuse = should_refuse_startup(unsafe, enforce)
-    msg = role_guard_message(row["rolsuper"], row["rolbypassrls"], refuse)
-    logging.critical("🔓 %s", msg)
-    if refuse:
-        raise RuntimeError(msg)
+    await assert_db_role_rls_safe(pool, service="sahool-platform")
 
 
 async def _start_scheduler():
