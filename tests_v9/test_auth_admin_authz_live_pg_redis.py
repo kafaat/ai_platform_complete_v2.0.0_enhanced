@@ -17,7 +17,8 @@ asyncpg pool as a NOBYPASSRLS role, redis.asyncio client):
 * **Reads during the outage (owner decision, 14 November 2026).** With Redis unreachable
   mid-flight, ``GET /v1/auth/users`` and ``GET /v1/auth/me`` answer 200 and the list stays
   scoped to the caller's tenant; a stale owner is still refused (403) because membership is
-  read from Postgres. The writes above stay 503.
+  read from Postgres. The writes above stay 503, and so do the nginx ``auth_request`` gates
+  (``/v1/auth/edge-sign`` always, ``/v1/auth/verify`` unless nginx declares a safe method).
 * **Stale membership.** A signed owner/admin token whose DB membership is inactive, demoted,
   of another role or of another tenant gets 403, on the team routes and on invitations.
 
@@ -472,6 +473,48 @@ def test_unreachable_redis_lets_get_users_through_scoped_to_the_callers_tenant(w
     assert write.status_code == 503, (write.status_code, write.text[:300])
     assert write.json()["detail"] == _REFUSAL["unreachable"]
     assert _row(mate["id"])["role"] == "farmer"
+
+
+def test_unreachable_redis_fails_the_nginx_gates_closed_for_writes(world):
+    """Review of #1449: the ``auth_request`` subrequests are GET, but they gate other requests.
+
+    ``GET /v1/auth/edge-sign`` signs for ``POST .../accept`` and never signs while revocation is
+    unknown. ``GET /v1/auth/verify`` answers only when nginx declares a safe client method in
+    ``X-Original-Method``; a declared write or a missing declaration is 503.
+    """
+    expert = world["new_user"]("expert")
+    bearer = world["bearer"](expert)
+    mp = pytest.MonkeyPatch()
+    try:
+        mp.setenv("SEASON_EDGE_HMAC_KEY", "e" * 48)
+        _redis_unreachable(world, mp)
+        sign = world["client"].get(
+            "/v1/auth/edge-sign",
+            headers={
+                **bearer,
+                "X-Canonical-Method": "POST",
+                "X-Canonical-Path": "/api/v1/seasons/s-1/accept",
+            },
+        )
+        verify = {
+            original: world["client"].get(
+                "/v1/auth/verify",
+                headers={**bearer, **({"X-Original-Method": original} if original else {})},
+            )
+            for original in ("POST", "DELETE", None, "GET")
+        }
+    finally:
+        mp.undo()
+
+    assert sign.status_code == 503, (sign.status_code, sign.text[:300])
+    assert sign.json()["detail"] == _REFUSAL["unreachable"]
+    assert "X-Edge-Attestation" not in sign.headers
+    for original in ("POST", "DELETE", None):
+        r = verify[original]
+        assert r.status_code == 503, (original, r.status_code, r.text[:300])
+        assert r.json()["detail"] == _REFUSAL["unreachable"]
+    assert verify["GET"].status_code == 200, verify["GET"].text[:300]
+    assert verify["GET"].json()["user_id"] == str(expert["id"])
 
 
 # ── stale membership ─────────────────────────────────────────────────────────

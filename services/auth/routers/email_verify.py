@@ -15,6 +15,7 @@ from typing import Annotated
 import main
 from client_address import client_ip
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from session_tokens import ORIGINAL_METHOD_HEADER, refuse_unknown_revocation
 
 router = APIRouter()
 
@@ -95,7 +96,13 @@ async def verify_confirm(
 
 
 @router.get("/v1/auth/verify")
-async def verify(user: Annotated[dict, Depends(main.get_current_user)]):
+async def verify(request: Request, user: Annotated[dict, Depends(main.get_current_user)]):
+    """nginx ``auth_request`` gate (``/_auth_verify``): it authorizes the client's request.
+
+    With revocation state unknown it answers only for a safe client method, as nginx declares
+    it in ``X-Original-Method``; otherwise 503, so a write behind the gate fails closed.
+    """
+    refuse_unknown_revocation(request, request.headers.get(ORIGINAL_METHOD_HEADER))
     return {
         "valid": True,
         "user_id": user["sub"],

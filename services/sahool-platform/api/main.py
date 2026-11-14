@@ -1066,6 +1066,7 @@ from core.jwt_denylist import (  # noqa: E402
     RedisDenylist,
     denylist_redis_url,
     revocation_status,
+    strict_revocation_for,
     unverifiable_allows,
 )
 
@@ -1128,16 +1129,11 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="التوكن مُبطَل — سجّل الدخول من جديد")
     # C-02 + قرار المالك (2026-11-14): تعذّرُ التحقّق أثناء التشغيل ⇒ القراءة الآمنة
     # (GET/HEAD/OPTIONS) تمرّ بتحذير، والكتابة 503 في الإنتاج (السياسة في core.jwt_denylist).
-    if status == REVOCATION_UNVERIFIABLE and not unverifiable_allows(
-        getattr(request, "method", None), production=_is_production()
-    ):
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "token_revocation_unverifiable",
-                "message": "تعذّر التحقّق من إبطال التوكن — أعد المحاولة لاحقاً",
-            },
-        )
+    if status == REVOCATION_UNVERIFIABLE:
+        if not unverifiable_allows(getattr(request, "method", None), production=_is_production()):
+            raise _revocation_unverifiable()
+        if request is not None:  # قراءةٌ مُرِّرت: المسار الصارم (require_permission) يقرأ العلامة
+            request.state.revocation_unverifiable = True
 
     role = _normalize_role(payload.get("role"))
 
@@ -1155,8 +1151,22 @@ def get_current_user(
     )
 
 
-def require_permission(permission: Permission):
+def _revocation_unverifiable() -> HTTPException:
+    return HTTPException(
+        status_code=503,
+        detail={
+            "code": "token_revocation_unverifiable",
+            "message": "تعذّر التحقّق من إبطال التوكن — أعد المحاولة لاحقاً",
+        },
+    )
+
+
+def require_permission(permission: Permission, *, strict_revocation: bool | None = None):
     """تبعيّة FastAPI: تُصادِق (JWT) ثمّ تفرض صلاحية الدور — fail-closed 403.
+
+    ``strict_revocation`` (مراجعة #1449): قراءةٌ مرّت والإبطال مجهول (المخزن ساقط) تُرَدّ 503 في
+    الإنتاج إن كان المسار صارماً. الافتراضيّ ``strict_revocation_for(permission)``: كلّ صلاحية غير
+    ``:view`` (إدارة/تنفيذ/موافقة/منصّة). ``True`` صراحةً لـGET بأثرٍ جانبيّ تحت صلاحية عرض.
 
     تربط طبقة HTTP بمحرّك الصلاحيات (core.authorization) الذي كان مفروضاً في خطّ
     التوصيات فقط لا عند نقاط الـHTTP. تُرجِع المستخدم فيبقى جسد الـendpoint بلا
@@ -1167,7 +1177,17 @@ def require_permission(permission: Permission):
     *داخل* المستأجر (الفجوة المعياريّة: RBAC غير مفروض في platform).
     """
 
-    def _dep(user: UserSchema = Depends(get_current_user)) -> UserSchema:
+    strict = (
+        strict_revocation_for(permission.value) if strict_revocation is None else strict_revocation
+    )
+
+    def _dep(
+        user: UserSchema = Depends(get_current_user),
+        request: Request = None,  # FastAPI يحقنه؛ النداء المباشر (اختبارات) بلا طلب ⇒ لا علامة
+    ) -> UserSchema:
+        marked = getattr(getattr(request, "state", None), "revocation_unverifiable", False)
+        if strict and marked and _is_production():
+            raise _revocation_unverifiable()
         if not has_permission(user, permission):
             # سجلّ تدقيق الرفض الأمنيّ (صلاحية غير كافية) — يُرى عبر /admin/security/denials.
             from core.tenant_audit import AUDIT

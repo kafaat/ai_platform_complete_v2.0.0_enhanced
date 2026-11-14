@@ -106,8 +106,41 @@ async def session_revoked(*checks: Coroutine[Any, Any, bool] | None, request: An
             type(failure).__name__,
             method,
         )
+        # Routes whose GET authorizes something else (nginx auth_request gates) read this
+        # mark through ``refuse_unknown_revocation`` and fail closed after all.
+        state = getattr(request, "state", None)
+        if state is not None:
+            state.revocation_unknown = True
         return False
     log.warning("token revocation check failed: %s", type(failure).__name__)
-    raise HTTPException(
+    raise _unknown_revocation() from failure
+
+
+def _unknown_revocation() -> HTTPException:
+    return HTTPException(
         status.HTTP_503_SERVICE_UNAVAILABLE, "تعذّر التحقّق من إبطال التوكن — أعد المحاولة"
-    ) from failure
+    )
+
+
+# Set by nginx on every ``auth_request`` subrequest to the client's own method
+# (``proxy_set_header X-Original-Method $request_method``, which also replaces a client value).
+# A subrequest is always GET, so without it the method of the gated request is unknown.
+ORIGINAL_METHOD_HEADER = "X-Original-Method"
+
+
+def refuse_unknown_revocation(request: Any, gated_method: str | None = None) -> None:
+    """503 on a read let through with unknown revocation state, unless the gated method is safe.
+
+    For a GET that authorizes another request rather than reading: ``GET /v1/auth/edge-sign``
+    signs an attestation for ``POST .../accept`` (``gated_method`` None: always refused) and
+    ``GET /v1/auth/verify`` gates whatever the client sent to nginx (``gated_method`` from
+    ``ORIGINAL_METHOD_HEADER``; missing => unknown => refused). Review of #1449.
+    """
+    if not getattr(getattr(request, "state", None), "revocation_unknown", False):
+        return
+    if str(gated_method or "").strip().upper() in SAFE_METHODS:
+        return
+    logging.getLogger("auth").warning(
+        "token revocation unknown on a gate route; gated method %r refused", gated_method
+    )
+    raise _unknown_revocation()

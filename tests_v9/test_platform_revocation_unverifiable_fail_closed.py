@@ -280,3 +280,99 @@ def test_unverifiable_allows_contract():
     for verb in (*WRITE_METHODS, None, "", "TRACE"):
         assert unverifiable_allows(verb, production=True) is False
         assert unverifiable_allows(verb, production=False) is True  # C-02 خارج الإنتاج
+
+
+# ─── المسارات الصارمة (مراجعة #1449): GET مُبوَّب بصلاحية غير عرض أو بأثر جانبيّ ─────────
+
+
+def _role_user(m, role: str, sub: str = "u-strict"):
+    return m.UserSchema(user_id=sub, tenant_id="t1", role=m._normalize_role(role), name_ar="م")
+
+
+@pytest.fixture
+def perm_app(m):
+    """GET تحت ثلاث تبعيّات: صلاحية عرض، صلاحية إدارة منصّة، وصلاحية عرض معلَنة صارمة."""
+    from core.authorization import Permission
+    from fastapi import Depends, FastAPI
+    from fastapi.testclient import TestClient
+
+    a = FastAPI()
+    deps = {
+        "/view": m.require_permission(Permission.FIELD_VIEW),
+        "/platform": m.require_permission(Permission.PLATFORM_MANAGE),
+        "/view-strict": m.require_permission(Permission.FIELD_VIEW, strict_revocation=True),
+    }
+    for path, dep in deps.items():
+
+        def _ok(user=Depends(dep)):
+            return {"user_id": user.user_id}
+
+        a.get(path)(_ok)
+    return TestClient(a)
+
+
+@pytest.mark.parametrize(
+    ("path", "role", "prod_status"),
+    [("/view", "owner", 200), ("/platform", "platform_admin", 503), ("/view-strict", "owner", 503)],
+)
+def test_strict_routes_fail_closed_on_get_in_production(
+    m, perm_app, monkeypatch, path, role, prod_status
+):
+    from core.jwt_denylist import RedisDenylist
+
+    monkeypatch.setattr(m, "_DENYLIST", RedisDenylist(_RedisDown()))
+    token = m.create_token(_role_user(m, role))
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    r = perm_app.get(path, headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == prod_status, r.text
+    if prod_status == 503:
+        assert r.json()["detail"]["code"] == "token_revocation_unverifiable"
+    monkeypatch.setenv("SAHOOL_ENV", "development")  # C-02 خارج الإنتاج: يُسمَح كما كان
+    assert perm_app.get(path, headers={"Authorization": f"Bearer {token}"}).status_code == 200
+
+
+@pytest.mark.parametrize("path", ["/view", "/platform", "/view-strict"])
+def test_strict_routes_pass_with_a_healthy_store(m, perm_app, monkeypatch, path):
+    from core.jwt_denylist import InMemoryDenylist
+
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.setattr(m, "_DENYLIST", InMemoryDenylist())
+    token = m.create_token(_role_user(m, "platform_admin" if path == "/platform" else "owner"))
+    assert perm_app.get(path, headers={"Authorization": f"Bearer {token}"}).status_code == 200
+
+
+@pytest.mark.parametrize(
+    ("path", "role"),
+    [
+        # break-glass: PLATFORM_MANAGE، يقرأ مستأجِراً آخر ويحدّث access_count.
+        ("/api/v1/admin/break-glass/tok-1/fields", "platform_admin"),
+        # تصدير ISOXML: يفحص EQUIPMENT_MANAGE ويُدرِج machinery_export_artifacts.
+        ("/api/v1/fields/f-1/prescriptions/p-1/export?format=isoxml", "owner"),
+    ],
+)
+def test_the_reviewed_side_effect_gets_fail_closed_in_production(m, monkeypatch, path, role):
+    """المساران اللذان سمّتهما مراجعة #1449، على تطبيق المنصّة الحقيقيّ: 503 قبل أيّ عمل."""
+    from core.jwt_denylist import RedisDenylist
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.setattr(m, "_DENYLIST", RedisDenylist(_RedisDown()))
+    token = m.create_token(_role_user(m, role))
+    r = TestClient(m.app, raise_server_exceptions=False).get(
+        path, headers={"Authorization": f"Bearer {token}"}
+    )
+    assert r.status_code == 503, r.text
+    assert r.json()["detail"]["code"] == "token_revocation_unverifiable"
+
+
+def test_strict_revocation_rule():
+    if str(PLATFORM) not in sys.path:
+        sys.path.insert(0, str(PLATFORM))
+    from core.authorization import Permission
+    from core.jwt_denylist import strict_revocation_for
+
+    for p in Permission:
+        assert strict_revocation_for(p.value) is (not p.value.endswith(":view")), p
+    assert strict_revocation_for(Permission.PLATFORM_MANAGE.value)
+    assert strict_revocation_for(Permission.EQUIPMENT_MANAGE.value)
+    assert not strict_revocation_for(Permission.FIELD_VIEW.value)

@@ -6,7 +6,7 @@
 ## Inventory summary
 
 - Services discovered: **33**
-- Python LOC discovered: **334,352**
+- Python LOC discovered: **334,402**
 - Routes discovered: **1158**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
@@ -18,7 +18,7 @@
 | `actuator-service` | IoT Actuation | 14 | 3797 | 6 | 7 | `services/actuator-service/main.py` | `services/actuator-service/Dockerfile` | `services/actuator-service/requirements.txt` | `normal` |
 | `agriai-engine` | AI Advisor | 18 | 2724 | 5 | 9 | `services/agriai-engine/main.py` | `services/agriai-engine/Dockerfile` | `services/agriai-engine/requirements.txt` | `normal` |
 | `ai_agronomist` | AI Advisor | 47 | 7486 | 1 | 13 | `services/ai_agronomist/main.py` | `services/ai_agronomist/Dockerfile` | `services/ai_agronomist/requirements.txt` | `normal` |
-| `auth` | Identity & Access | 23 | 3159 | 2 | 29 | `services/auth/main.py` | `services/auth/Dockerfile` | `services/auth/requirements.txt` | `normal` |
+| `auth` | Identity & Access | 23 | 3189 | 2 | 29 | `services/auth/main.py` | `services/auth/Dockerfile` | `services/auth/requirements.txt` | `normal` |
 | `decision-service` | Decision SoR | 96 | 24553 | 74 | 74 | `services/decision-service/main.py` | `services/decision-service/Dockerfile` | `services/decision-service/requirements.txt` | `normal` |
 | `edge-inference` | Edge Inference | 13 | 1852 | 3 | 7 | `services/edge-inference/main.py` | `services/edge-inference/Dockerfile.arm64` | `services/edge-inference/requirements.txt` | `normal` |
 | `field-management-service` | Unclassified / Support | 3 | 527 | 2 | 7 | `services/field-management-service/main.py` | `services/field-management-service/Dockerfile` | `services/field-management-service/requirements.txt` | `normal` |
@@ -38,7 +38,7 @@
 | `realtime-agent` | Unclassified / Support | 16 | 1649 | 7 | 0 | `services/realtime-agent/main.py` | `services/realtime-agent/Dockerfile` | `services/realtime-agent/requirements.txt` | `medium-runtime-contract-gap` |
 | `realtime-session` | Unclassified / Support | 12 | 1306 | 1 | 7 | `services/realtime-session/main.py` | `services/realtime-session/Dockerfile` | `services/realtime-session/requirements.txt` | `normal` |
 | `remote-sensing-workspace-bff` | Unclassified / Support | 2 | 480 | 1 | 3 | `services/remote-sensing-workspace-bff/main.py` | `services/remote-sensing-workspace-bff/Dockerfile` | `services/remote-sensing-workspace-bff/requirements.txt` | `normal` |
-| `sahool-platform` | Core Field Platform | 1212 | 192234 | 528 | 637 | `services/sahool-platform/api/main.py` | `services/sahool-platform/Dockerfile` | `-` | `critical-core-concentration` |
+| `sahool-platform` | Core Field Platform | 1212 | 192254 | 528 | 637 | `services/sahool-platform/api/main.py` | `services/sahool-platform/Dockerfile` | `-` | `critical-core-concentration` |
 | `sam2-inference` | Field Boundary AI | 4 | 1620 | 1 | 4 | `services/sam2-inference/main.py` | `services/sam2-inference/Dockerfile` | `services/sam2-inference/requirements.txt` | `normal` |
 | `scout-ingest-service` | Unclassified / Support | 19 | 7199 | 5 | 45 | `services/scout-ingest-service/main.py` | `services/scout-ingest-service/Dockerfile` | `services/scout-ingest-service/requirements.txt` | `normal` |
 | `soil-service` | Soil Intelligence | 58 | 7273 | 22 | 60 | `services/soil-service/main.py` | `services/soil-service/Dockerfile` | `services/soil-service/requirements.txt` | `normal` |

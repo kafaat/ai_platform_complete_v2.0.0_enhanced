@@ -204,3 +204,15 @@ def unverifiable_allows(method: str | None, *, production: bool) -> bool:
         return False
     logger.warning("token revocation unverifiable (non-production): request allowed")
     return True
+
+
+# ─── المسارات الصارمة (مراجعة #1449): GET لا يكفي ليكون قراءةً آمنة ─────────────────────
+# GET مُبوَّبٌ بصلاحية إدارة/منصّة (break-glass يقرأ مستأجِراً آخر ويحدّث عدّاده، تصدير ISOXML
+# يُدرِج صفّاً) ليس قراءةً آمنة. فـ``require_permission`` صارمٌ افتراضيّاً لكلّ صلاحية خارج
+# ``READ_PERMISSION_SUFFIX``، والمسار ذو الأثر الجانبيّ تحت صلاحية عرض يُعلِن صرامته صراحةً.
+READ_PERMISSION_SUFFIX = ":view"
+
+
+def strict_revocation_for(permission_value: str) -> bool:
+    """هل يُرفَض المسارُ المُبوَّب بهذه الصلاحية حين يتعذّر التحقّق من الإبطال، أيّاً كان فعله؟"""
+    return not str(permission_value).endswith(READ_PERMISSION_SUFFIX)

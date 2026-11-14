@@ -204,3 +204,122 @@ async def test_session_revoked_contract():
         with pytest.raises(HTTPException) as exc:
             await st.session_revoked(boom(), request=req)
         assert exc.value.status_code == 503
+
+
+# ── nginx auth_request gates (review of #1449): a GET that authorizes another request ──
+
+
+@pytest.fixture
+def gate(m, monkeypatch):
+    """The two gate routers on an app of their own, with the ``main`` they were bound to.
+
+    The routers ``import main`` by name, so the module whose ``_redis`` they read is the one
+    in ``sys.modules["main"]`` when they were first imported, not necessarily ``m``.
+    """
+    import importlib
+
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    ev = importlib.import_module("routers.email_verify")
+    es = importlib.import_module("routers.season_edge_sign")
+    assert ev.main is es.main
+    monkeypatch.setenv("SEASON_EDGE_HMAC_KEY", "k" * 48)
+    app = FastAPI()
+    app.include_router(ev.router)
+    app.include_router(es.router)
+    return TestClient(app, raise_server_exceptions=False), ev.main
+
+
+_REFUSED = "تعذّر التحقّق من إبطال التوكن — أعد المحاولة"
+_ACCEPT = "/api/v1/seasons/s-1/accept"
+
+
+def _edge_sign(gate):
+    client, rm = gate
+    return client.get(
+        "/v1/auth/edge-sign",
+        headers={
+            "Authorization": f"Bearer {_token(rm)}",
+            "X-Canonical-Method": "POST",
+            "X-Canonical-Path": _ACCEPT,
+        },
+    )
+
+
+def _verify(gate, original: str | None):
+    client, rm = gate
+    headers = {"Authorization": f"Bearer {_token(rm)}"}
+    if original is not None:
+        headers["X-Original-Method"] = original
+    return client.get("/v1/auth/verify", headers=headers)
+
+
+def test_edge_sign_never_signs_while_revocation_is_unknown(gate, monkeypatch):
+    """It signs an attestation for ``POST .../accept``: unknown state => 503, no signature."""
+    monkeypatch.setattr(gate[1], "_redis", _Down())
+    r = _edge_sign(gate)
+    assert r.status_code == 503, r.text
+    assert r.json()["detail"] == _REFUSED
+    assert "X-Edge-Attestation" not in r.headers
+
+
+@pytest.mark.parametrize("original", ["POST", "PUT", "PATCH", "DELETE", None, "", "TRACE"])
+def test_verify_refuses_an_unsafe_or_undeclared_gated_method(gate, monkeypatch, original):
+    """``/_auth_verify`` gates the client's request; only a declared safe method passes."""
+    monkeypatch.setattr(gate[1], "_redis", _Down())
+    r = _verify(gate, original)
+    assert r.status_code == 503, r.text
+    assert r.json()["detail"] == _REFUSED
+
+
+@pytest.mark.parametrize("original", ["GET", "HEAD", "OPTIONS", "get"])
+def test_verify_answers_for_a_declared_safe_gated_method(gate, monkeypatch, original):
+    monkeypatch.setattr(gate[1], "_redis", _Down())
+    r = _verify(gate, original)
+    assert r.status_code == 200, r.text
+    assert r.json()["user_id"] == "7"
+
+
+def test_gates_are_unchanged_with_a_healthy_store(gate, monkeypatch):
+    monkeypatch.setattr(gate[1], "_redis", _Healthy(revoked=False))
+    r = _edge_sign(gate)
+    assert r.status_code == 200, r.text
+    assert r.headers["X-Edge-Attestation"]
+    for original in ("POST", None, "GET"):
+        assert _verify(gate, original).status_code == 200
+    monkeypatch.setattr(gate[1], "_redis", _Healthy(revoked=True))
+    assert _edge_sign(gate).status_code == 401
+    assert _verify(gate, "GET").status_code == 401
+
+
+def test_nginx_declares_the_original_method_on_every_auth_verify_subrequest():
+    """The /verify decision trusts ``X-Original-Method`` only because nginx sets (replaces) it."""
+    import re
+
+    for rel in ("nginx/nginx.v9.conf", "frontend/nginx.conf"):
+        text = open(os.path.join(ROOT, rel), encoding="utf-8").read()
+        blocks = re.findall(r"location = /_auth_verify \{(.*?)\n\s*\}", text, re.S)
+        assert blocks, rel
+        for block in blocks:
+            assert re.search(r"proxy_set_header\s+X-Original-Method\s+\$request_method;", block), (
+                rel
+            )
+
+
+async def test_safe_method_constants_are_the_same_in_auth_and_the_platform():
+    """Two services, one policy: auth cannot import the platform, so the copies are pinned."""
+    loaded = {}
+    for name, rel in (
+        ("auth", "services/auth/session_tokens.py"),
+        ("platform", "services/sahool-platform/core/jwt_denylist.py"),
+    ):
+        spec = importlib.util.spec_from_file_location(
+            f"revocation_parity_{name}", os.path.join(ROOT, rel)
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        loaded[name] = mod
+    auth, platform = loaded["auth"], loaded["platform"]
+    assert auth.SAFE_METHODS == platform.SAFE_METHODS == frozenset(SAFE)
+    assert auth.READ_ALLOWED_REASON == platform.READ_ALLOWED_REASON == REASON
