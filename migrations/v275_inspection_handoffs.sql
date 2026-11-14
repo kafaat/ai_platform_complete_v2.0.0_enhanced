@@ -74,10 +74,10 @@ CREATE TRIGGER inspection_handoffs_append_only
     FOR EACH ROW EXECUTE FUNCTION field_mgmt_append_only();
 
 CREATE OR REPLACE FUNCTION inspection_handoff_revision_guard() RETURNS trigger LANGUAGE plpgsql
-    SET search_path = pg_catalog, public, pg_temp AS $$
+    SET search_path = pg_catalog, pg_temp AS $$
 BEGIN
     IF NEW.revision IS DISTINCT FROM (
-        SELECT COALESCE(max(revision), 0) + 1 FROM inspection_handoffs
+        SELECT COALESCE(max(revision), 0) + 1 FROM public.inspection_handoffs
          WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id) THEN
         RAISE EXCEPTION 'inspection_revision_gap' USING ERRCODE = 'SH004';
     END IF;
@@ -88,7 +88,7 @@ CREATE TRIGGER inspection_handoff_revision_guard BEFORE INSERT ON inspection_han
     FOR EACH ROW EXECUTE FUNCTION inspection_handoff_revision_guard();
 
 CREATE OR REPLACE FUNCTION inspection_handoff_chain_guard() RETURNS trigger LANGUAGE plpgsql
-    SET search_path = pg_catalog, public, pg_temp AS $$
+    SET search_path = pg_catalog, pg_temp AS $$
 DECLARE
     task record;
     prior text;
@@ -101,7 +101,7 @@ BEGIN
     IF lower(btrim(COALESCE(task.status, ''))) = 'completed' AND NEW.action <> 'reopen' THEN
         RAISE EXCEPTION 'inspection_task_closed' USING ERRCODE = 'SH008';
     END IF;
-    SELECT assignee INTO prior FROM inspection_handoffs
+    SELECT assignee INTO prior FROM public.inspection_handoffs
      WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id
      ORDER BY revision DESC LIMIT 1;
     IF NOT FOUND THEN
@@ -112,10 +112,10 @@ BEGIN
         RAISE EXCEPTION 'inspection_handoff_chain_broken' USING ERRCODE = 'SH006';
     END IF;
     IF NEW.action IN ('approve', 'return') AND (
-        EXISTS (SELECT 1 FROM inspection_handoffs
+        EXISTS (SELECT 1 FROM public.inspection_handoffs
                  WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id AND action = 'submit'
                    AND evidence_version = NEW.evidence_version AND actor = NEW.actor)
-        OR EXISTS (SELECT 1 FROM inspection_evidence_versions
+        OR EXISTS (SELECT 1 FROM public.inspection_evidence_versions
                     WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id
                       AND version = NEW.evidence_version AND recorded_by = NEW.actor)) THEN
         RAISE EXCEPTION 'inspection_self_review' USING ERRCODE = 'SH007';

@@ -91,18 +91,18 @@ CREATE TRIGGER task_cost_history_guard BEFORE INSERT ON task_cost_history
     FOR EACH ROW EXECUTE FUNCTION task_cost_history_guard();
 
 CREATE OR REPLACE FUNCTION task_expense_link_guard() RETURNS trigger LANGUAGE plpgsql
-    SET search_path = pg_catalog, public, pg_temp AS $$
+    SET search_path = pg_catalog, pg_temp AS $$
 DECLARE
     entry record;
     task_farm text;
 BEGIN
     SELECT entry_type, reverses_entry_id, settles_entry_id, farm_id, field_id, task_id INTO entry
-      FROM farm_ledger_entries WHERE tenant_id = NEW.tenant_id AND entry_id = NEW.entry_id;
+      FROM public.farm_ledger_entries WHERE tenant_id = NEW.tenant_id AND entry_id = NEW.entry_id;
     IF NOT FOUND OR entry.entry_type <> 'expense' OR entry.reverses_entry_id IS NOT NULL
        OR entry.settles_entry_id IS NOT NULL THEN
         RAISE EXCEPTION 'original_expense_required' USING ERRCODE = '23514';
     END IF;
-    SELECT f.farm_id INTO task_farm FROM fields f
+    SELECT f.farm_id INTO task_farm FROM public.fields f
      WHERE f.tenant_id = NEW.tenant_id AND f.field_id = NEW.field_id;
     IF task_farm IS NULL OR entry.farm_id IS DISTINCT FROM task_farm THEN
         RAISE EXCEPTION 'task_farm_mismatch' USING ERRCODE = '23514';
@@ -124,7 +124,8 @@ CREATE TRIGGER task_expense_link_guard BEFORE INSERT ON task_expense_links
 -- search_path is pg_catalog, pg_temp only (no public: a role allowed to CREATE in public could
 -- otherwise plant an exact-match operator the definer resolves as the owner, review round 4 of
 -- #1460) and the one table is schema-qualified; the body writes only NEW/OLD values and the user GUC,
--- and FORCE RLS's tenant_append policy still binds tenant_id to app.current_tenant.
+-- The owner bypasses RLS inside it; the tenant is bound by the caller's RLS on field_tasks (only
+-- rows the caller may update fire it) and the row is written with NEW.tenant_id.
 CREATE OR REPLACE FUNCTION record_field_task_cost() RETURNS trigger LANGUAGE plpgsql
     SECURITY DEFINER SET search_path = pg_catalog, pg_temp AS $$
 BEGIN

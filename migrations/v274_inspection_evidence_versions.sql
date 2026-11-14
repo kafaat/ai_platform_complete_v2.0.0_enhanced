@@ -51,7 +51,7 @@ CREATE POLICY evidence_append ON inspection_evidence_versions FOR INSERT
             AND recorded_by = current_setting('app.current_user_id', true));
 
 CREATE OR REPLACE FUNCTION field_mgmt_append_only() RETURNS trigger LANGUAGE plpgsql
-    SET search_path = pg_catalog, public, pg_temp AS $$
+    SET search_path = pg_catalog, pg_temp AS $$
 BEGIN
     RAISE EXCEPTION '% is append-only', TG_TABLE_NAME USING ERRCODE = '55000';
 END $$;
@@ -61,12 +61,12 @@ CREATE TRIGGER inspection_evidence_versions_append_only
     FOR EACH ROW EXECUTE FUNCTION field_mgmt_append_only();
 
 CREATE OR REPLACE FUNCTION inspection_evidence_version_guard() RETURNS trigger LANGUAGE plpgsql
-    SET search_path = pg_catalog, public, pg_temp AS $$
+    SET search_path = pg_catalog, pg_temp AS $$
 DECLARE
     task_pin text;
     photo_sha text;
 BEGIN
-    SELECT source_scouting_pin_id INTO task_pin FROM field_tasks
+    SELECT source_scouting_pin_id INTO task_pin FROM public.field_tasks
      WHERE tenant_id = NEW.tenant_id AND field_id = NEW.field_id AND task_id = NEW.task_id;
     IF task_pin IS NULL OR task_pin <> NEW.pin_id THEN
         RAISE EXCEPTION 'inspection evidence must name the task''s own scouting pin'
@@ -78,7 +78,7 @@ BEGIN
         RAISE EXCEPTION 'inspection evidence digest does not match its content' USING ERRCODE = '23514';
     END IF;
     IF NEW.photo_evidence_id IS NOT NULL THEN
-        SELECT content_sha256 INTO photo_sha FROM scout_photo_evidence
+        SELECT content_sha256 INTO photo_sha FROM public.scout_photo_evidence
          WHERE evidence_id = NEW.photo_evidence_id AND tenant_id = NEW.tenant_id
            AND field_id = NEW.field_id AND pin_id = NEW.pin_id;
         IF photo_sha IS NULL OR photo_sha <> NEW.photo_content_sha256 THEN

@@ -35,7 +35,7 @@
 -- Both read and write under the caller's role and tenant (no SECURITY DEFINER). Idempotent.
 BEGIN;
 CREATE OR REPLACE FUNCTION field_task_inspection_close_gate() RETURNS trigger LANGUAGE plpgsql
-    SET search_path = pg_catalog, public, pg_temp AS $$
+    SET search_path = pg_catalog, pg_temp AS $$
 DECLARE
     task_pin text;
     last_event record;
@@ -61,29 +61,29 @@ BEGIN
     END IF;
     SELECT h.revision, h.action, h.evidence_version, v.photo_evidence_id, v.photo_content_sha256
       INTO last_event
-      FROM inspection_handoffs h
-      LEFT JOIN inspection_evidence_versions v
+      FROM public.inspection_handoffs h
+      LEFT JOIN public.inspection_evidence_versions v
              ON v.task_id = h.task_id AND v.version = h.evidence_version
      WHERE h.tenant_id = NEW.tenant_id AND h.task_id = NEW.task_id
      ORDER BY h.revision DESC LIMIT 1;
     IF NOT FOUND OR last_event.action <> 'approve' THEN
         RAISE EXCEPTION 'inspection_review_required' USING ERRCODE = 'SH001';
     END IF;
-    SELECT max(revision) INTO last_reopen FROM inspection_handoffs
+    SELECT max(revision) INTO last_reopen FROM public.inspection_handoffs
      WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id AND action = 'reopen';
     IF last_reopen IS NOT NULL AND last_event.revision < last_reopen THEN
         RAISE EXCEPTION 'inspection_review_required' USING ERRCODE = 'SH001';
     END IF;
-    SELECT evidence_version INTO submitted FROM inspection_handoffs
+    SELECT evidence_version INTO submitted FROM public.inspection_handoffs
      WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id AND action = 'submit'
      ORDER BY revision DESC LIMIT 1;
-    SELECT max(version) INTO newest FROM inspection_evidence_versions
+    SELECT max(version) INTO newest FROM public.inspection_evidence_versions
      WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id;
     IF last_event.evidence_version IS DISTINCT FROM submitted
        OR last_event.evidence_version IS DISTINCT FROM newest THEN
         RAISE EXCEPTION 'inspection_review_required' USING ERRCODE = 'SH001';
     END IF;
-    SELECT evidence_id, content_sha256 INTO photo FROM scout_photo_evidence
+    SELECT evidence_id, content_sha256 INTO photo FROM public.scout_photo_evidence
      WHERE tenant_id = NEW.tenant_id AND field_id = NEW.field_id AND pin_id = task_pin;
     IF photo.evidence_id IS DISTINCT FROM last_event.photo_evidence_id
        OR photo.content_sha256::text IS DISTINCT FROM last_event.photo_content_sha256::text THEN
@@ -96,7 +96,7 @@ CREATE TRIGGER field_task_inspection_close_gate BEFORE INSERT OR UPDATE ON field
     FOR EACH ROW EXECUTE FUNCTION field_task_inspection_close_gate();
 
 CREATE OR REPLACE FUNCTION field_task_inspection_reopen() RETURNS trigger LANGUAGE plpgsql
-    SET search_path = pg_catalog, public, pg_temp AS $$
+    SET search_path = pg_catalog, pg_temp AS $$
 BEGIN
     IF NEW.source_scouting_pin_id IS NULL OR NOT (
         (lower(btrim(COALESCE(OLD.status, ''))) = 'completed'
@@ -105,12 +105,12 @@ BEGIN
          AND lower(btrim(COALESCE(NEW.status, ''))) IN ('pending', 'in_progress'))) THEN
         RETURN NEW;
     END IF;
-    INSERT INTO inspection_handoffs
+    INSERT INTO public.inspection_handoffs
         (tenant_id, field_id, task_id, revision, action, previous_assignee, assignee, actor)
     SELECT NEW.tenant_id, NEW.field_id, NEW.task_id, COALESCE(MAX(revision), 0) + 1, 'reopen',
            COALESCE(NEW.assigned_to, ''), COALESCE(NEW.assigned_to, ''),
            current_setting('app.current_user_id', true)
-      FROM inspection_handoffs WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id;
+      FROM public.inspection_handoffs WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id;
     RETURN NEW;
 END $$;
 DROP TRIGGER IF EXISTS field_task_inspection_reopen ON field_tasks;

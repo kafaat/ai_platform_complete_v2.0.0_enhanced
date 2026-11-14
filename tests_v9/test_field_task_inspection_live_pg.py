@@ -1511,6 +1511,45 @@ def test_an_operator_planted_in_public_does_not_run_inside_the_definer():
     assert out["history"] == 1
 
 
+def test_a_function_planted_in_public_does_not_run_in_a_privileged_writers_trigger():
+    """Review round 5 of #1460: public.btrim(varchar) ran as postgres inside the close-gate trigger."""
+
+    async def target():
+        out = {}
+        async with Live() as live:
+            app_role = await live._app_role()
+            task, _ = await _accepted_and_submitted(live)
+            await live.admin.execute(f'GRANT CREATE ON SCHEMA public TO "{app_role}"')
+            conn = await _app_conn(live, "manager")
+            try:
+                await conn.execute(
+                    "CREATE FUNCTION public.btrim(v varchar) RETURNS text LANGUAGE plpgsql AS $f$"
+                    " BEGIN RAISE EXCEPTION 'hijacked as %', current_user; END $f$;"
+                )
+            finally:
+                await conn.close()
+            try:
+                try:
+                    async with live.admin.transaction():
+                        # A privileged writer (migration, backfill) touching a pin task's status.
+                        await live.admin.execute(
+                            "UPDATE public.field_tasks SET status='in_progress' WHERE task_id=$1::uuid",
+                            task,
+                        )
+                    out["privileged_update"] = "allowed"
+                except asyncpg.PostgresError as exc:
+                    out["privileged_update"] = f"{exc.sqlstate}:{exc}"
+            finally:
+                await live.admin.execute(
+                    "DROP FUNCTION IF EXISTS public.btrim(varchar);"
+                    f' REVOKE CREATE ON SCHEMA public FROM "{app_role}"'
+                )
+        return out
+
+    out = run(target())
+    assert out["privileged_update"] == "allowed", out["privileged_update"]
+
+
 def test_a_padded_completed_status_is_still_gated():
     """Review round 4 of #1460: ' completed ' (padded) must take the close gate like 'completed'."""
 
@@ -1590,14 +1629,10 @@ def test_temp_tables_cannot_shadow_the_inspection_and_cost_tables():
     assert out["close"] == "SH001"  # the fake temp approval is not read
     assert out["history"] == 1  # the temp task_cost_history did not swallow the row
     assert len(out["pinned"]) == 9
-    owner_rights = {"record_field_task_cost", "task_cost_history_guard"}
+    # No public at all (review round 5 of #1460): a caller-rights trigger runs as whoever writes
+    # field_tasks, a superuser migration or the BYPASSRLS jobs role included.
     for row in out["pinned"]:
-        want = (
-            "search_path=pg_catalog, pg_temp"
-            if row["proname"] in owner_rights
-            else "search_path=pg_catalog, public, pg_temp"
-        )
-        assert want in (row["proconfig"] or []), row["proname"]
+        assert "search_path=pg_catalog, pg_temp" in (row["proconfig"] or []), row["proname"]
 
 
 def test_a_direct_handoff_racing_a_close_waits_and_is_refused():
