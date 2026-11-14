@@ -32,7 +32,7 @@
       "raw": 3364
     },
     "test_dependency_files": 1894,
-    "test_dependency_edges": 4862,
+    "test_dependency_edges": 4863,
     "test_dependency_bounded_files": 1111,
     "test_dependency_unresolved_relations": 479
   },
