@@ -3015,7 +3015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "834bab4f1e7c4cd735c1ae936343a14516fd896b688de3f7da772b31f13e36a2"
+          "content": "2edf4ce81dbf8c4be6d777ac56043915e8adbf1c01edc14167b62e7ad60c3e2f"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -6305,6 +6305,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "31149bfdab7459b956fa61a2e25d0f849f7f21d836a69c2a12fbe6a43383c58d"
+        }
+      ],
+      "name": "frontend/src/sections/InspectionHandoff.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e9ad0ee86b378d952992177b96421e5fd9d2b8bdafa8df5f8901dfb823332944"
+        }
+      ],
+      "name": "frontend/src/sections/InspectionHandoff.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e8588821c9915e6511c0bf63968c64f65870d3b65825437c2074f1fd1c317d65"
         }
       ],
@@ -6575,7 +6595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c085b7209f5d8702f24a19db75b51bf9416f27acd6e47903af2920fb5588602"
+          "content": "5ed9589416f5c8370a3c72d17278a17f92fd809a6e934b2e1ceddd19a61ed6ba"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -6799,6 +6819,26 @@
         }
       ],
       "name": "frontend/src/sections/PhenologyView.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4ab8e61bf5cb9944c2c4f5964ff5cacaf6b8dce6c9a173149161abcba08e6c35"
+        }
+      ],
+      "name": "frontend/src/sections/PinInspectionTask.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f35ae0d38c4312ea5d9facaeb60c5e23963df3ff49b40e3dac4ab03a290aa9b"
+        }
+      ],
+      "name": "frontend/src/sections/PinInspectionTask.tsx",
       "type": "file"
     },
     {
@@ -7085,7 +7125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "55e93e495a92c7bf55b3d0459f3bfbc1191b54830f571035e3341535a3f62684"
+          "content": "6c6f56ccc56519ee87860cd554012cfffda28e0192419e3b2c180833925a1a0d"
         }
       ],
       "name": "frontend/src/sections/SimpleFarmBookPage.taskLink.test.tsx",
@@ -7095,7 +7135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b86a5fd26677ca7f5b8416beb5f30bf7252c6971d9f941f43db7941195bde11"
+          "content": "13faafe9e3008bf52da5c9caec41d847bc1a4bf3f70c87f54c7472ba6212c86c"
         }
       ],
       "name": "frontend/src/sections/SimpleFarmBookPage.tsx",
@@ -7115,20 +7155,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e0798b7837a84ec8dc6a393e43019ffff7c528d73bb71a4ea23fd01dc27cbd90"
+          "content": "d9c318d3fa133ee0277dcf7aafaec8883708e0bbbc0ef20ca4ed529c505a4930"
         }
       ],
-      "name": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
+      "name": "frontend/src/sections/TaskCostTrace.tsx",
       "type": "file"
     },
     {
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f536961cb1ae3f9ff828e5866a9b8c04ac89df0af13d06ae656572962c7ee281"
+          "content": "e0798b7837a84ec8dc6a393e43019ffff7c528d73bb71a4ea23fd01dc27cbd90"
         }
       ],
-      "name": "frontend/src/sections/TaskExpenseLink.tsx",
+      "name": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
       "type": "file"
     },
     {
@@ -7155,7 +7195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e0ef45709e5701a0c1921adbf988c76c97aaa15143190b07d8d22b3bf8e3a3c9"
+          "content": "3df1b322028eeb3b235ca8842bdaaa4946c3a1e37c350765d75fba4770022deb"
         }
       ],
       "name": "frontend/src/sections/TasksPage.cost.test.tsx",
@@ -7165,7 +7205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6bac5f31449d1f7128bcca605cca1fb3445866e79124dc0aefcbd98c229e2c7a"
+          "content": "78de6fbb90f21af3e6a79ba8970842c5a7fb7cd544f4d236125955aa17eb2ee9"
         }
       ],
       "name": "frontend/src/sections/TasksPage.tsx",
@@ -14605,6 +14645,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0d00d12952e4836c4b58dea9c4bba8d7539d9300fb144e38dbac698f3a8a12b7"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/features/tasks/presentation/inspection_review_panel.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "43a454bec6adef2ec1ea121b8d771e4980174ea6032516593efb11743eba3fbc"
         }
       ],
@@ -14625,7 +14675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c465941bf6d6cb53ffe5afa02a661f76f7dc8f6a8c03cbf1a589b2a32335db9e"
+          "content": "ad73fbcc9dde63d450e8c4b1183c2cf05f7651dde42ebd35959937bfa374db3c"
         }
       ],
       "name": "mobile/sahool_app/lib/features/tasks/presentation/task_detail_screen.dart",

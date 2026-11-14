@@ -1984,6 +1984,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/InspectionHandoff.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/InspectionHandoff.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/IrrigationEngineeringCalculator.tsx",
     "kind": "web"
   },
@@ -2140,6 +2148,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/PinInspectionTask.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/PinInspectionTask.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/PortfolioCommandPage.test.tsx",
     "kind": "web"
   },
@@ -2204,12 +2220,12 @@
     "kind": "web"
   },
   {
-    "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
-    "kind": "tests"
+    "path": "frontend/src/sections/TaskCostTrace.tsx",
+    "kind": "web"
   },
   {
-    "path": "frontend/src/sections/TaskExpenseLink.tsx",
-    "kind": "web"
+    "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
+    "kind": "tests"
   },
   {
     "path": "frontend/src/sections/TaskIrrigationObservationPanel.test.tsx",
@@ -3649,6 +3665,10 @@
   },
   {
     "path": "mobile/sahool_app/lib/features/tasks/presentation/complete_task_sheet.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/presentation/inspection_review_panel.dart",
     "kind": "mobile"
   },
   {

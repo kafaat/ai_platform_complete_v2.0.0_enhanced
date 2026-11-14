@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7348,
+    "files_scanned": 7353,
     "files_by_kind": {
       "backend": 1287,
       "database": 327,
       "governance": 89,
-      "mobile": 415,
+      "mobile": 416,
       "other": 2181,
       "tests": 2502,
-      "web": 547
+      "web": 551
     },
-    "unmapped_artifacts": 3498,
+    "unmapped_artifacts": 3503,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
       "python_functional": 3975,
-      "raw": 3373
+      "raw": 3378
     },
     "test_dependency_files": 1902,
     "test_dependency_edges": 4899,
@@ -14066,7 +14066,7 @@
           "score": 14
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_inspection_live_pg.py:620",
+          "value": "field_tasks @ tests_v9/test_field_task_inspection_live_pg.py:622",
           "score": 14
         },
         {
@@ -14078,7 +14078,7 @@
           ]
         },
         {
-          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:985",
+          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:987",
           "score": 14
         },
         {
@@ -33599,6 +33599,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/InspectionHandoff.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/InspectionHandoff.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/IrrigationEngineeringCalculator.tsx",
       "kind": "web"
     },
@@ -33755,6 +33763,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/PinInspectionTask.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/PinInspectionTask.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/PortfolioCommandPage.test.tsx",
       "kind": "web"
     },
@@ -33819,12 +33835,12 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
-      "kind": "tests"
+      "path": "frontend/src/sections/TaskCostTrace.tsx",
+      "kind": "web"
     },
     {
-      "path": "frontend/src/sections/TaskExpenseLink.tsx",
-      "kind": "web"
+      "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/sections/TaskIrrigationObservationPanel.test.tsx",
@@ -35264,6 +35280,10 @@
     },
     {
       "path": "mobile/sahool_app/lib/features/tasks/presentation/complete_task_sheet.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/tasks/presentation/inspection_review_panel.dart",
       "kind": "mobile"
     },
     {
@@ -79781,7 +79801,7 @@
         {
           "source": "services/field-management-service/main.py",
           "kind": "loader",
-          "line": 200
+          "line": 202
         },
         {
           "source": "services/field-management-service/main.py",
@@ -79791,22 +79811,22 @@
         {
           "source": "services/sahool-platform/api/irrigation_observations.py",
           "kind": "import",
-          "line": 1025
+          "line": 1027
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 210
+          "line": 212
         },
         {
           "source": "services/sahool-platform/api/task_irrigation_observations.py",
           "kind": "import",
-          "line": 1026
+          "line": 1028
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 243
+          "line": 245
         }
       ],
       "unresolved": []

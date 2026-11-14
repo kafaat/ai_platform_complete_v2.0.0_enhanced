@@ -110,6 +110,7 @@ DEC-003,api,POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/
 DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:857,3,applied
 DEC-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2449,3,applied
 DEC-003,api,POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:101,2,applied
+DEC-003,mobile,mobile/sahool_app/lib/features/tasks/presentation/inspection_review_panel.dart,2,applied
 DEC-003,service,services/decision-service/main.py,10,applied
 DEC-003,test,services/decision-service/tests/test_sod_single_operator_self_approval.py,3,applied
 DEC-003,test,services/decision-service/tests/test_wx10_7_decision_review.py,3,applied
@@ -1655,6 +1656,7 @@ OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/offline_write.dart,2,ap
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/task_photo_store.dart,4,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/tasks_api.dart,2,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/presentation/complete_task_sheet.dart,4,applied
+OPS-001,mobile,mobile/sahool_app/lib/features/tasks/presentation/inspection_review_panel.dart,2,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/presentation/irrigation_observations_screen.dart,2,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/presentation/task_card.dart,4,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/presentation/task_detail_screen.dart,4,applied
