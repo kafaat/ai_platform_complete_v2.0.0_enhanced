@@ -8,9 +8,11 @@ router. This file drives the real platform app instead: two tenants produce real
 denials through ``require_permission``, unattributed events are recorded the way trusted
 in-process diagnostics record them, and each tenant's auditor reads the endpoint.
 
-The buffer is in memory by design (persistence is an open residual of the PR), so Postgres
-is not on this path. Token revocation is: the app runs against the real Redis denylist that
-auth writes, and a revoked auditor token is refused before it can read anything.
+Here no database pool is bound, so the endpoint answers from the ring buffer (``source:
+memory``, the fallback); the durable path is certified by
+``test_platform_denial_log_persistent_live_pg.py``. Token revocation is on this path: the app
+runs against the real Redis denylist that auth writes, and a revoked auditor token is refused
+before it can read anything.
 
 Run: ``TEST_REDIS_URL=… pytest -m integration tests_v9/test_platform_denial_log_scope_live.py``.
 ``AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED=1`` turns every skip into a failure.
