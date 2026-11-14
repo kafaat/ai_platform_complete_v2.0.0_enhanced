@@ -2,13 +2,13 @@ id,title_en,title_ar,domain,owner,maturity,evidence_level,priority,business_valu
 DEC-001,Decision evidence,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 DEC-002,Decision candidate,,decision,decision-service,2,2,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 DEC-003,Human approval,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
-DEC-004,Execution request,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
-DEC-005,Dispatch authorization,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+DEC-004,Execution request,,decision,decision-service,2,2,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+DEC-005,Dispatch authorization,,decision,decision-service,2,2,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 DEC-006,Execution receipt,,decision,decision-service,2,2,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 DEC-007,Outcome recording,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 DEC-008,Learning attribution,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 DEC-009,Model calibration,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
-DEC-010,Model lifecycle and activation,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+DEC-010,Model lifecycle and activation,,decision,decision-service,2,2,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 FM-001,Tenant and organization management,,farm_management,auth+field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 FM-002,Farm registry,,farm_management,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 FM-003,Field registry and boundaries,,farm_management,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
@@ -16,7 +16,7 @@ FM-004,Season lifecycle,,farm_management,field-management-service,3,3,unassessed
 FM-005,Crop and cultivar catalog,,farm_management,UNASSIGNED,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 FM-006,Farm economics,,farm_management,UNASSIGNED,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 FM-007,Inventory and procurement,,farm_management,UNASSIGNED,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
-FM-008,ERP integration,,farm_management,erp-bridge,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+FM-008,ERP integration,,farm_management,erp-bridge,2,2,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 GIS-001,Field geometry validation,,gis,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 GIS-002,Map layers,,gis,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 GIS-003,Terrain and DEM,,gis,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
@@ -53,16 +53,16 @@ SAT-002,True color imagery,,satellite,raster-service,3,3,unassessed,unassessed,u
 SAT-003,NDVI,,satellite,raster-service+vegetation-analysis-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 SAT-004,NDMI,,satellite,raster-service+vegetation-analysis-service,2,2,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
 SAT-005,Cloud screening,,satellite,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
-SAT-006,Historical imagery timeline,,satellite,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SAT-006,Historical imagery timeline,,satellite,raster-service,2,2,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 SAT-007,Change detection,,satellite,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 SAT-008,Stress zones,,satellite,vegetation-analysis-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
-SAT-009,COG persistence and tiling,,satellite,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SAT-009,COG persistence and tiling,,satellite,raster-service,2,2,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 SEC-001,Tenant RLS,,security,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 SEC-002,Signed tenant assertion,,security,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 SEC-003,Worker identity binding,,security,auth,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 SEC-004,MFA,,security,auth,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 SEC-005,Audit logging,,security,auth,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
-SEC-006,Service token guard,,security,auth,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+SEC-006,Service token guard,,security,auth,2,2,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 SEC-007,Decision SoR DB ownership,,security,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 SEC-008,Secrets and production fail-closed,,security,auth,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
 SOIL-001,Soil profile,,soil,soil-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False

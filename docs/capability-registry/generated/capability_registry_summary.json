@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "capabilities_total": 81,
   "domains_total": 10,
-  "registry_sha256": "513f4f8c64bcbafc5388bf9f40898b5ab599fbe744a9fbb9cef6cf12bfd641b5",
+  "registry_sha256": "4fdb3bde8edf604de36db66421ccf29a086925d26f659a81fcc439ee3b2ad6cf",
   "by_domain": {
     "decision": 10,
     "farm_management": 10,
@@ -18,8 +18,8 @@
   "by_maturity": {
     "0": 2,
     "1": 2,
-    "2": 10,
-    "3": 67
+    "2": 17,
+    "3": 60
   },
   "unassessed_priority": 81,
   "unassessed_parity": 81,
