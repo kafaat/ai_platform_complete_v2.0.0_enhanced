@@ -7,7 +7,9 @@
 --   approve / return — someone other than the assignee reviews that exact version;
 --   reopen   — a closed inspection task was reopened (written by v277's trigger on field_tasks).
 -- One row per revision; revisions are dense from 1, so expected_revision names a command slot and
--- an exact replay is answered with the current state. Append-only (no UPDATE or DELETE).
+-- an exact replay is answered with the current state. The inspection_handoff_revision_guard trigger
+-- holds that for every writer: a row whose revision is not the task's previous revision + 1 is
+-- refused (SH004 inspection_revision_gap). Append-only (no UPDATE or DELETE).
 --
 -- The INSERT policy binds actor to app.current_user_id: a row can only be written by the user the
 -- connection was opened for. Idempotent on a re-applied MANIFEST.
@@ -60,6 +62,19 @@ DROP TRIGGER IF EXISTS inspection_handoffs_append_only ON inspection_handoffs;
 CREATE TRIGGER inspection_handoffs_append_only
     BEFORE UPDATE OR DELETE ON inspection_handoffs
     FOR EACH ROW EXECUTE FUNCTION field_mgmt_append_only();
+
+CREATE OR REPLACE FUNCTION inspection_handoff_revision_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF NEW.revision IS DISTINCT FROM (
+        SELECT COALESCE(max(revision), 0) + 1 FROM inspection_handoffs
+         WHERE tenant_id = NEW.tenant_id AND task_id = NEW.task_id) THEN
+        RAISE EXCEPTION 'inspection_revision_gap' USING ERRCODE = 'SH004';
+    END IF;
+    RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS inspection_handoff_revision_guard ON inspection_handoffs;
+CREATE TRIGGER inspection_handoff_revision_guard BEFORE INSERT ON inspection_handoffs
+    FOR EACH ROW EXECUTE FUNCTION inspection_handoff_revision_guard();
 
 COMMENT ON TABLE inspection_handoffs IS
     'Append-only hand-off and review log of a pin inspection task (v275, owner field-management-service).';

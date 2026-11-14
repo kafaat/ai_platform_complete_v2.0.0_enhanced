@@ -8,8 +8,9 @@
 --     task. The farm book applies the link to the entry and to its settlements and corrections.
 --   task_cost_history — one row each time field_tasks.actual_cost_usd changes, or the status of a
 --     task that has an actual cost changes, written by the record_field_task_cost trigger whoever
---     updates the task (changed_by = app.current_user_id). Append-only.
--- Both FORCE RLS by tenant. Idempotent on a re-applied MANIFEST.
+--     updates the task (changed_by = app.current_user_id). Append-only; the task_cost_history_guard
+--     trigger refuses any INSERT that is not made from inside that trigger (SH005).
+-- Both FORCE RLS by tenant; a link's linked_by must be app.current_user_id. Idempotent on a re-applied MANIFEST.
 BEGIN;
 CREATE TABLE IF NOT EXISTS task_expense_links (
     tenant_id uuid NOT NULL,
@@ -48,14 +49,40 @@ BEGIN
         EXECUTE format('DROP POLICY IF EXISTS tenant_read ON %I', tbl);
         EXECUTE format('CREATE POLICY tenant_read ON %I FOR SELECT USING '
             '(tenant_id::text = NULLIF(current_setting(''app.current_tenant'', true), ''''))', tbl);
-        EXECUTE format('DROP POLICY IF EXISTS tenant_append ON %I', tbl);
-        EXECUTE format('CREATE POLICY tenant_append ON %I FOR INSERT WITH CHECK '
-            '(tenant_id::text = NULLIF(current_setting(''app.current_tenant'', true), ''''))', tbl);
         EXECUTE format('DROP TRIGGER IF EXISTS %I ON %I', tbl || '_append_only', tbl);
         EXECUTE format('CREATE TRIGGER %I BEFORE UPDATE OR DELETE ON %I FOR EACH ROW '
             'EXECUTE FUNCTION field_mgmt_append_only()', tbl || '_append_only', tbl);
     END LOOP;
 END $$;
+-- A link is written by the user the connection was opened for (linked_by = app.current_user_id).
+DROP POLICY IF EXISTS tenant_append ON task_expense_links;
+CREATE POLICY tenant_append ON task_expense_links FOR INSERT
+    WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), '')
+            AND linked_by = current_setting('app.current_user_id', true));
+DROP POLICY IF EXISTS tenant_append ON task_cost_history;
+CREATE POLICY tenant_append ON task_cost_history FOR INSERT
+    WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''));
+
+-- task_cost_history is written only from inside a trigger (record_field_task_cost on field_tasks):
+-- a direct INSERT runs this guard at trigger depth 1, the cost trigger's INSERT at depth 2. The
+-- row must also name the current user and the task's stored cost and status, so it describes the
+-- field_tasks change that fired it. No SECURITY DEFINER: it runs under the caller's role.
+CREATE OR REPLACE FUNCTION task_cost_history_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF pg_trigger_depth() < 2
+       OR NEW.changed_by IS DISTINCT FROM NULLIF(current_setting('app.current_user_id', true), '')
+       OR NOT EXISTS (
+            SELECT 1 FROM field_tasks t
+             WHERE t.tenant_id = NEW.tenant_id AND t.task_id = NEW.task_id
+               AND t.actual_cost_usd IS NOT DISTINCT FROM NEW.actual_usd
+               AND t.status IS NOT DISTINCT FROM NEW.status) THEN
+        RAISE EXCEPTION 'task_cost_history_trigger_only' USING ERRCODE = 'SH005';
+    END IF;
+    RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS task_cost_history_guard ON task_cost_history;
+CREATE TRIGGER task_cost_history_guard BEFORE INSERT ON task_cost_history
+    FOR EACH ROW EXECUTE FUNCTION task_cost_history_guard();
 
 CREATE OR REPLACE FUNCTION task_expense_link_guard() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE

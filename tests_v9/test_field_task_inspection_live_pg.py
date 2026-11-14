@@ -27,6 +27,7 @@ farm-book entries are seeded by the schema owner.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import importlib.util
 import os
 import sys
@@ -768,6 +769,257 @@ def test_a_version_cannot_name_another_pins_photo_or_a_forged_digest():
     out = run(target())
     assert out["forged_digest"] == "23514"
     assert out["foreign_photo"] in ("23514", "23503")
+
+
+# ── the DB holds the gate for every writer on the shared role ───────────────
+
+
+async def _as_app(live, name: str, sql: str, *args):
+    """Run one statement as the NOBYPASSRLS app role for user ``name``: 'allowed' or SQLSTATE."""
+    conn = await asyncpg.connect(live.app_dsn)
+    try:
+        async with conn.transaction():
+            await conn.execute(
+                "SELECT set_config('app.current_tenant', $1, true),"
+                " set_config('app.current_user_id', $2, true)",
+                live.tenant,
+                live.users[(live.tenant, name)],
+            )
+            try:
+                async with conn.transaction():
+                    await conn.execute(sql, *args)
+                return "allowed"
+            except asyncpg.PostgresError as exc:
+                return exc.sqlstate
+    finally:
+        await conn.close()
+
+
+def test_a_pin_task_cannot_drop_its_pin_or_be_inserted_completed():
+    async def target():
+        out = {}
+        async with Live() as live:
+            task, _ = await _accepted_and_submitted(live)
+            pin2 = f"{live.pin}-2"
+            await live.admin.execute(
+                "INSERT INTO scouting_pins (pin_id, tenant_id, field_id, lat, lng, issue_category)"
+                " VALUES ($1, $2::uuid, $3, 15.3, 44.2, 'pest')",
+                pin2,
+                live.tenant,
+                live.field,
+            )
+            out["clear_and_close"] = await _as_app(
+                live,
+                "manager",
+                "UPDATE field_tasks SET source_scouting_pin_id=NULL, status='completed'"
+                " WHERE task_id=$1::uuid",
+                task,
+            )
+            out["clear"] = await _as_app(
+                live,
+                "manager",
+                "UPDATE field_tasks SET source_scouting_pin_id=NULL WHERE task_id=$1::uuid",
+                task,
+            )
+            out["move"] = await _as_app(
+                live,
+                "manager",
+                "UPDATE field_tasks SET source_scouting_pin_id=$2 WHERE task_id=$1::uuid",
+                task,
+                pin2,
+            )
+            out["insert_completed"] = await _as_app(
+                live,
+                "manager",
+                "INSERT INTO field_tasks (tenant_id, field_id, task_type, status,"
+                " source_scouting_pin_id) VALUES ($1::uuid, $2, 'scouting', 'completed', $3)",
+                live.tenant,
+                live.field,
+                pin2,
+            )
+            # Controls: an open pin task inserts, and a task without a pin closes freely.
+            out["insert_open"] = await _as_app(
+                live,
+                "manager",
+                "INSERT INTO field_tasks (tenant_id, field_id, task_type, status,"
+                " source_scouting_pin_id) VALUES ($1::uuid, $2, 'scouting', 'pending', $3)",
+                live.tenant,
+                live.field,
+                pin2,
+            )
+            out["insert_plain_completed"] = await _as_app(
+                live,
+                "manager",
+                "INSERT INTO field_tasks (tenant_id, field_id, task_type, status)"
+                " VALUES ($1::uuid, $2, 'weeding', 'completed')",
+                live.tenant,
+                live.field,
+            )
+            out["stored"] = dict(
+                await live.admin.fetchrow(
+                    "SELECT source_scouting_pin_id AS pin, status FROM field_tasks"
+                    " WHERE task_id=$1::uuid",
+                    task,
+                )
+            )
+            out["pin"] = live.pin
+        return out
+
+    out = run(target())
+    assert out["clear_and_close"] == "SH003"
+    assert out["clear"] == "SH003"
+    assert out["move"] == "SH003"
+    assert out["insert_completed"] == "SH001"
+    assert out["insert_open"] == "allowed"
+    assert out["insert_plain_completed"] == "allowed"
+    assert out["stored"] == {"pin": out["pin"], "status": "pending"}
+
+
+def test_approving_a_superseded_version_does_not_close_and_revisions_are_consecutive():
+    async def target():
+        out = {}
+        async with Live() as live:
+            task, submitted = await _accepted_and_submitted(live, notes="n1")
+            v1 = submitted["current_evidence"]["version"]
+            notes = "n2"
+            digest = hashlib.sha256(f"||{notes}".encode()).hexdigest()
+            out["v2"] = await _as_app(
+                live,
+                "inspector",
+                """INSERT INTO inspection_evidence_versions
+                    (tenant_id, field_id, task_id, version, pin_id, notes, digest, recorded_by)
+                   VALUES ($1::uuid,$2,$3::uuid,2,$4,$5,$6,current_setting('app.current_user_id'))""",
+                live.tenant,
+                live.field,
+                task,
+                live.pin,
+                notes,
+                digest,
+            )
+            handoff = """INSERT INTO inspection_handoffs
+                (tenant_id, field_id, task_id, revision, action, previous_assignee, assignee,
+                 actor, reason, evidence_version)
+               VALUES ($1::uuid,$2,$3::uuid,$4,$5,$6,$6,current_setting('app.current_user_id'),
+                       $7,$8)"""
+            assignee = live.users[(live.tenant, "inspector")]
+            out["gap"] = await _as_app(
+                live,
+                "inspector",
+                handoff,
+                live.tenant,
+                live.field,
+                task,
+                1000,
+                "submit",
+                assignee,
+                "far ahead",
+                2,
+            )
+            out["submit_v2"] = await _as_app(
+                live,
+                "inspector",
+                handoff,
+                live.tenant,
+                live.field,
+                task,
+                3,
+                "submit",
+                assignee,
+                "second",
+                2,
+            )
+            out["approve_v1"] = await _as_app(
+                live,
+                "reviewer",
+                handoff,
+                live.tenant,
+                live.field,
+                task,
+                4,
+                "approve",
+                assignee,
+                "ok",
+                v1,
+            )
+            res = await live.patch(task, {"status": "completed"})
+            out["close"] = (res.status_code, res.json().get("detail", {}).get("error"))
+            out["status"] = await live.admin.fetchval(
+                "SELECT status FROM field_tasks WHERE task_id=$1::uuid", task
+            )
+        return out
+
+    out = run(target())
+    assert out["v2"] == "allowed"
+    assert out["gap"] == "SH004"
+    assert (out["submit_v2"], out["approve_v1"]) == ("allowed", "allowed")
+    assert out["close"] == (409, "inspection_review_required")
+    assert out["status"] == "pending"
+
+
+def test_cost_history_and_expense_links_cannot_be_forged_by_the_app_role():
+    async def target():
+        out = {}
+        async with Live() as live:
+            task = str(
+                await live.admin.fetchval(
+                    "INSERT INTO field_tasks (tenant_id, field_id, task_type, status)"
+                    " VALUES ($1::uuid, $2, 'weeding', 'pending') RETURNING task_id",
+                    live.tenant,
+                    live.field,
+                )
+            )
+            manager = live.users[(live.tenant, "manager")]
+            out["forged_history"] = await _as_app(
+                live,
+                "manager",
+                "INSERT INTO task_cost_history (tenant_id, task_id, changed_by, actual_usd, status)"
+                " VALUES ($1::uuid, $2::uuid, $3, 999, 'pending')",
+                live.tenant,
+                task,
+                manager,
+            )
+            entry = await live.ledger(farm=live.farm, field=live.field)
+            link = (
+                "INSERT INTO task_expense_links (tenant_id, entry_id, task_id, field_id, linked_by)"
+                " VALUES ($1::uuid, $2, $3::uuid, $4, $5)"
+            )
+            out["forged_link"] = await _as_app(
+                live,
+                "manager",
+                link,
+                live.tenant,
+                entry,
+                task,
+                live.field,
+                live.users[(live.tenant, "viewer")],
+            )
+            # Controls: the same link as the acting user, and history through a task update.
+            out["own_link"] = await _as_app(
+                live, "manager", link, live.tenant, entry, task, live.field, manager
+            )
+            out["update"] = await _as_app(
+                live,
+                "manager",
+                "UPDATE field_tasks SET actual_cost_usd=3 WHERE task_id=$1::uuid",
+                task,
+            )
+            out["history"] = [
+                (r["changed_by"], r["a"])
+                for r in await live.admin.fetch(
+                    "SELECT changed_by, actual_usd::text AS a FROM task_cost_history"
+                    " WHERE task_id=$1::uuid ORDER BY change_id",
+                    task,
+                )
+            ]
+            out["manager"] = manager
+        return out
+
+    out = run(target())
+    assert out["forged_history"] == "SH005"
+    assert out["forged_link"] == "42501"  # the INSERT policy binds linked_by to the user
+    assert out["own_link"] == "allowed"
+    assert out["update"] == "allowed"
+    assert out["history"] == [(out["manager"], "3.00")]
 
 
 # ── tenant isolation per table ──────────────────────────────────────────────

@@ -587,8 +587,13 @@ tables:
   # v274-v277 (owner decision 2026-11-14): the pin inspection and task cost work held back by
   # carrier D #1439, rebuilt under field-management-service (owner of field_tasks). The platform
   # reads inspection_handoffs for the inspector-only meter gate and task_expense_links for the farm
-  # book's link overlay; it writes neither. task_cost_history is written by the
-  # record_field_task_cost trigger on field_tasks (v276), whichever service updates the task.
+  # book's link overlay. Its code issues no INSERT into either table, but two triggers installed by
+  # field-management-service on field_tasks do write under the connection (role and tenant) of
+  # whichever service updates the task, the platform's PATCH /api/v1/tasks included:
+  # field_task_inspection_reopen (v277) appends a 'reopen' row to inspection_handoffs, and
+  # record_field_task_cost (v276) appends to task_cost_history. Those trigger-mediated writes are
+  # the owner's code, so writers stays [field-management-service]; task_cost_history refuses any
+  # INSERT made outside that trigger (v276 task_cost_history_guard).
   inspection_evidence_versions:
     owner: field-management-service
     writers: [field-management-service]

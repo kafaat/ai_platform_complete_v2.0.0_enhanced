@@ -78,13 +78,45 @@ def _platform_authorization():
     return importlib.import_module("core.authorization")
 
 
+# The six permissions the task routes check, fixed here so a permission that vanishes from every
+# role (and so from a map-derived set) still fails the comparison below.
+ROUTE_PERMISSIONS = frozenset(
+    {
+        "field:view",
+        "field:edit",
+        "observation:record",
+        "inspection:review",
+        "analytics:view",
+        "activity:execute",
+    }
+)
+
+
 def test_role_permissions_equal_the_platform_matrix():
-    """The service mirrors the platform's role matrix for the permissions it checks; drift fails."""
+    """The service mirrors the platform's role matrix for the permissions it checks; drift fails.
+
+    Every tenant role of core's UserRole is compared (a role missing from the service map holds
+    nothing there, so it fails unless the platform also grants it none of the six); platform_admin
+    is not a tenant role and holds none of them in this service.
+    """
     auth = _platform_authorization()
-    for role, granted in fm_gateway.ROLE_PERMISSIONS.items():
-        platform_role = auth.UserRole(role)
+    routes = {
+        fm_gateway.FIELD_VIEW,
+        fm_gateway.FIELD_EDIT,
+        fm_gateway.OBSERVATION_RECORD,
+        fm_gateway.INSPECTION_REVIEW,
+        fm_gateway.ANALYTICS_VIEW,
+        fm_gateway.ACTIVITY_EXECUTE,
+    }
+    assert routes == ROUTE_PERMISSIONS
+    assert fm_gateway.CHECKED_PERMISSIONS == ROUTE_PERMISSIONS
+    tenant_roles = [r for r in auth.UserRole if r is not auth.UserRole.PLATFORM_ADMIN]
+    assert len(tenant_roles) == 5
+    for platform_role in tenant_roles:
+        granted = fm_gateway.ROLE_PERMISSIONS.get(platform_role.value, frozenset())
         platform_granted = {p.value for p in auth._ROLE_PERMISSIONS[platform_role]}
-        assert granted == platform_granted & fm_gateway.CHECKED_PERMISSIONS, role
+        assert granted == platform_granted & ROUTE_PERMISSIONS, platform_role.value
+    assert set(fm_gateway.ROLE_PERMISSIONS) == {r.value for r in tenant_roles}
     # Every alias the gateway accepts is the platform's alias (api/main.py:_ROLE_ALIASES).
     main_src = (ROOT / "services/sahool-platform/api/main.py").read_text(encoding="utf-8")
     for alias, role in fm_gateway.ROLE_ALIASES.items():
