@@ -76,17 +76,30 @@ def test_actuator_dispatch_has_one_publisher_and_no_repository_consumer() -> Non
     assert len(set(publishers)) <= 1
 
 
-def test_plugin_subject_transform_is_declared_as_an_open_divergence() -> None:
+def test_phase_worker_subject_transform_is_the_canonical_domain_form() -> None:
+    """CONN-04: العاملان ينشران `'sahool.events.' || event_type` (v11/v18) فيبلغان المستهلكَ الكنسيّ."""
+    from shared.runtime_worker_contracts import runtime_event_subject
+
     worker = (ROOT / "services/sahool-platform/api/phase_runtime_workers.py").read_text(
         encoding="utf-8"
     )
     hooks = (ROOT / "shared/marketplace_ecosystem_phase12.py").read_text(encoding="utf-8")
     notifications = (ROOT / "shared/notification_consumers.py").read_text(encoding="utf-8")
-    assert 'f"sahool.{str(row[' in worker
+    assert 'runtime_event_subject(str(row["event_type"]))' in worker
+    assert "replace('_', '.')" not in worker
+    assert runtime_event_subject("digital_twin.snapshot.created") == (
+        "sahool.events.digital_twin.snapshot.created"
+    )
     assert '"field.updated"' in hooks
     assert '("sahool.events.>", "notif_domain_events")' in notifications
     gap = _contract()["gaps"]["NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE"]
-    assert gap["status"] == "OPEN"
+    assert gap["status"] == "CLOSED"
+    assert gap["old_subject_consumers"] == []
+    for witness in gap["verified_by"]:
+        assert (ROOT / witness).is_file(), f"شاهدُ الإغلاق غائب: {witness}"
+    live = (ROOT / "tests_v9/test_nats_least_privilege.py").read_text(encoding="utf-8")
+    assert "test_conn04_phase_worker_events_reach_the_canonical_domain_consumer" in live
+    assert "test_live_conn04_phase_worker_publish_reaches_a_consumer_bound_to_sahool_events" in live
 
 
 def test_per_service_subject_acls_close_the_authorization_gap_with_live_probes() -> None:

@@ -43,16 +43,38 @@
       "closing_condition": "owned/versioned simulated-first adapter consumes the exact subject, validates tenant/device/content-pin/idempotency, and emits a correlated receipt"
     },
     "NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE": {
-      "status": "OPEN",
-      "producer": "sahool-plugin-runtime-worker",
-      "current_transform": "sahool.<event_type with underscores replaced by dots>",
+      "status": "CLOSED",
+      "producers": [
+        "sahool-phase-runtime-outbox-worker",
+        "sahool-plugin-runtime-worker"
+      ],
+      "previous_transform": "sahool.<event_type with underscores replaced by dots>",
+      "current_transform": "sahool.events.<event_type> (unchanged event_type) — shared/runtime_worker_contracts.py: runtime_event_subject",
       "examples": [
-        "sahool.field.updated",
-        "sahool.recommendation.created"
+        "sahool.events.field.updated",
+        "sahool.events.recommendation.created",
+        "sahool.events.phase9.execution_plan.created",
+        "sahool.events.digital_twin.snapshot.created"
       ],
       "canonical_domain_transform": "sahool.events.<event_type>",
-      "canonical_consumer": "agents/notification/agent.py subscribes sahool.events.>",
-      "closing_condition": "one versioned subject contract and a producer-consumer test; migration/compatibility window if existing external consumers are discovered"
+      "canonical_source": "migrations/v11_events_bus.sql:159 and migrations/v18_entity_ids_text.sql:97 ('sahool.events.' || p_event_type)",
+      "canonical_consumer": "shared/notification_consumers.py:33 (sahool.events.>, notif_domain_events), used by agents/notification/agent.py",
+      "old_subject_consumers": [],
+      "old_subject_consumers_note": "Measured on main@d27cda4f3: no subscribe/pull_subscribe/filter_subject in services/, agents/, shared/ or frontend matches any former sahool.<a>.<b> subject; the only wildcard is the stream definition sahool.> (storage, not a consumer). No compatibility window.",
+      "closing_condition": "one versioned subject contract and a producer-consumer test; migration/compatibility window if existing external consumers are discovered",
+      "closed_by": "fix/conn04-phase-worker-event-subjects-20261114 — takes effect only on merge, which waits for the owner's GATE-01 adjudication signature (GATE01-ADJ-2026-11-14-001, UNSIGNED)",
+      "verified_by": [
+        "tests_v9/test_nats_least_privilege.py"
+      ],
+      "witnesses": [
+        "test_conn04_phase_worker_events_reach_the_canonical_domain_consumer (unit; red on the old transform)",
+        "test_live_conn04_phase_worker_publish_reaches_a_consumer_bound_to_sahool_events (integration; real nats-server in notification-rollout.yml, NOT_RUN locally)"
+      ],
+      "residual": [
+        "Envelope, not subject: the workers publish {event_id[, event_type], payload} with no top-level tenant_id, and agents/notification/agent.py dispatch() raises notification_tenant_required, so these events now reach notif_domain_events and are dead-lettered there instead of being notified. Changing the envelope is a further change to the frozen worker and is out of this scope.",
+        "The plugin hook subjects sahool.events.recommendation.created and sahool.events.alert.created are the same subjects the platform OutboxWorker publishes for those domain events; consumers see both producers on one subject.",
+        "Core NATS without acknowledgement in the phase workers is unchanged (FEATURE_NATS_PUBLISHERS default unchanged)."
+      ]
     }
   },
   "connected_services_note": "كانت ثلاثَ عشرة؛ ثلاثٌ منها (sahool-soil-service · sahool-weather-service · sahool-telegram-bot) تحمل كلمةَ مرور الوسيط ولا عميلَ NATS فيها فنُزِع عنها الاعتماد. وsahool-weather-polygon-worker يبقى هنا ما بقي في compose لأنّ هذا الجردَ مُشتقٌّ منه، لكنّه **بلا هويّة** في nats/nats.conf: يُزال من المكدّس في الموجة نفسِها على فرعٍ آخر (compose)، وبعد الدمج يسقط من هذه القائمة."

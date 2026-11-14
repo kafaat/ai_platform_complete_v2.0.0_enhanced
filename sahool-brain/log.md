@@ -10634,3 +10634,9 @@ The full local unit run exposed two additional test defects. The requirements co
 - **#1444 مدموج** (`93ee155f6`) حاملاً #1424 بالتزام دمجٍ مستقلّ (`c6d7776f8`)، وأُغلق #1424 بإشارة.
 - **مفتوح:** #1386 (توقيع المالك على GATE-01)، #1377 (هذا الحامل).
 
+
+## 2026-11-14 — CONN-04: مواضيعُ عاملَي phase-runtime تبلغ المستهلكَ الكنسيّ (مسوّدة، GATE-01 تنتظر المالك)
+
+- فرع `fix/conn04-phase-worker-event-subjects-20261114` على `main@d27cda4f3`: `runtime_event_subject` = `'sahool.events.' || event_type` (migrations/v11_events_bus.sql:159، v18_entity_ids_text.sql:97) يحلّ محلَّ `sahool.<event_type بنقاطٍ بدل _>` في `phase_runtime_workers.py` و`shared/runtime_worker_contracts.py`، مع إذون `nats/nats.conf` وقيود `event_publish_contracts.yaml` وفجوة `NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE`.
+- لا مستهلكَ للمواضيع القديمة في الشجرة (لا اشتراك ولا `filter_subject` يطابقها؛ `sahool.>` تعريفُ الدفق لا مستهلك) ⇒ لا نافذة توافق.
+- مقترح `GATE01-ADJ-2026-11-14-001` بحالة `PENDING_OWNER_SIGNATURE` (UNSIGNED). الحارسُ المجمَّد يمرّ لأنّ GATE-01 `OPEN` منذ 2026-11-12، والدمجُ ينتظر توقيع المالك بقراره.

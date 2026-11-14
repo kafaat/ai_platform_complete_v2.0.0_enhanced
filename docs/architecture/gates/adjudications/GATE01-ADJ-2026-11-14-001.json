@@ -1,0 +1,73 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-11-14-001",
+  "gate_id": "GATE-01",
+  "status": "PENDING_OWNER_SIGNATURE",
+  "signature": "UNSIGNED",
+  "status_semantics_ar": "مقترحٌ غيرُ موقَّع (UNSIGNED) ينتظر توقيعَ المالك. لا يمنح شيئاً: الحارسُ لا يقرأ إذناً إلّا من حالة `ISSUED`، والتفويضُ الفعليُّ ظرفٌ موقَّعٌ بمفتاح المالك في `docs/architecture/gates/authorizations/`. لم يُنتِج الوكيلُ توقيعاً ولا مفتاحاً ولا ظرفاً، ولا يُنتِجها.",
+  "approved_by": null,
+  "approved_by_note_ar": "فارغٌ عمداً: موافقةُ المالك في 2026-11-14 كانت على **إعداد مسوّدة إصلاح**، لا على دمجها. الدمجُ ينتظر توقيعَ المالك على هذا الحكم.",
+  "proposed_on": "2026-11-14",
+  "adjudicated_on": null,
+  "expires_on": null,
+  "pr": null,
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "subject": {
+    "base_sha": "d27cda4f32e183d8e9e17c3774b9b25005cdb310",
+    "base_ref": "origin/main",
+    "scope": [
+      {
+        "path": "services/sahool-platform/api/phase_runtime_workers.py",
+        "change_type": "modify"
+      }
+    ],
+    "frozen_files": {
+      "services/sahool-platform/api/phase_runtime_workers.py": {
+        "before_sha256": "43e0f150e13112c48df1007f95fecdd36103186ed26d4ddae01aadd2e019e59e",
+        "after_sha256": "c1b0cd743a8d21633b296e6ccab5280b74d0e6bfae63c47c8d08e4edc7fa52fa",
+        "before_git_blob": "1470e50a5909972509dda32ffeced9ce63b6f8cd",
+        "after_git_blob": "fc273777476e68a1921c6a98ab6da1f5263be1ce"
+      }
+    },
+    "frozen_files_note_ar": "المسارُ المجمَّد الوحيد الذي يمسّه الفرق: phase_runtime_workers.py. لا يمسّ phase_runtime_store.py ولا event_bus.py ولا actuator ولا الهجرات ولا db_ownership.yml ولا physical_effect_boundary_contract.json."
+  },
+  "allowed_paths": [
+    "services/sahool-platform/api/phase_runtime_workers.py"
+  ],
+  "allowed_gap_closures": [
+    "NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE",
+    "CONNECTIVITY-AUDIT-20260910 (CONN-04)"
+  ],
+  "authorized_patch_sha256": "b813fb8e353e05b1701c888171bd1a049f3587f9c7c3853a7654b747203eb699",
+  "authorized_blobs": {
+    "services/sahool-platform/api/phase_runtime_workers.py": "fc273777476e68a1921c6a98ab6da1f5263be1ce"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false
+  },
+  "authorization_source": {
+    "kind": "pending_owner_signature",
+    "owner": "kafaat",
+    "owner_decision_on": "2026-11-14",
+    "text_ar": "موافقةٌ على إعداد مسوّدة إصلاح CONN-04؛ الدمجُ بعد توقيع المالك على حكم GATE-01.",
+    "decision_id": null
+  },
+  "scope_limit_ar": "مسارٌ مجمَّدٌ واحد بتغييرين: (١) استيرادُ `runtime_event_subject` من `shared/runtime_worker_contracts.py`؛ (٢) موضوعُ أحداث `marketplace_plugin_runtime_events` في `run_plugin_once` صار `runtime_event_subject(str(row[\"event_type\"]))` = `sahool.events.<event_type>` بدل `sahool.<event_type بنقاطٍ بدل _>`. لا يغيّر غلافَ الرسالة ولا Core NATS ولا CAS ولا المطالبة ولا الإجارة ولا `FEATURE_NATS_PUBLISHERS` ولا موضوعاتِ plugin.execution.requested والنموذج والمُشغِّل.",
+  "why_frozen_paths_ar": "التحويلُ الخاطئ مكتوبٌ داخل حلقة الأحداث في الملفّ المجمَّد نفسه (phase_runtime_workers.py:308 على d27cda4f3)، ولا طبقةَ خارجه تحسب الموضوع.",
+  "reissue_rule_ar": "المقترحُ مربوطٌ بالبايتات (`authorized_blobs`). أيُّ تعديلٍ لاحقٍ على phase_runtime_workers.py — ولو إعادةَ أساسٍ تمسّه — يُبطِله ويلزم إعادةُ حساب البصمات قبل التوقيع.",
+  "honesty_limit_ar": "الشاهدُ المحلّيّ ساكنٌ بدالّة الموضوع الحقيقيّة وقائمة المستهلكين الحقيقيّة (يحمرّ على التحويل القديم). الشاهدُ الحيّ على nats-server/JetStream لم يُشغَّل محلّيّاً (NOT_RUN: لا nats-server) ويُشغَّل في `notification-rollout.yml`. وغلافُ الرسالة بلا tenant_id فيُرسَل الحدثُ الواصل إلى الرسائل الميتة عند وكيل الإشعارات — خارج هذا النطاق.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "note_ar": "سجلٌّ يكتبه الوكيل وينتظر توقيعَ المالك. لا توقيعَ هنا ولا ظرف، و`pr` و`expires_on` و`adjudicated_on` فارغةٌ لأنّها تُملأ عند التوقيع لا تُخمَّن."
+  }
+}

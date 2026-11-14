@@ -45,6 +45,17 @@ class WorkerAction:
         return data
 
 
+# CONN-04: الموضوعُ الكنسيّ لحدث النطاق هو `'sahool.events.' || event_type` كما في
+# migrations/v11_events_bus.sql:159 وv18_entity_ids_text.sql:97 — نوعُ الحدث **كما هو**
+# (بلا تحويل `_` إلى `.`)، فيبلغ المستهلكَ الكنسيّ `sahool.events.>`
+# (shared/notification_consumers.py). مصدرٌ واحد للعاملَين: outbox وplugin.
+RUNTIME_EVENT_SUBJECT_PREFIX = "sahool.events."
+
+
+def runtime_event_subject(event_type: str) -> str:
+    return f"{RUNTIME_EVENT_SUBJECT_PREFIX}{event_type}"
+
+
 def build_outbox_action(
     *, nats_url: str | None, event_type: str | None, attempts: int, max_attempts: int
 ) -> dict[str, Any]:
@@ -73,7 +84,7 @@ def build_outbox_action(
         action="publish_nats",
         status="published",
         required_config=("NATS_URL",),
-        receipt={"subject": f"sahool.{event_type.replace('_', '.')}"},
+        receipt={"subject": runtime_event_subject(event_type)},
     ).to_dict()
 
 

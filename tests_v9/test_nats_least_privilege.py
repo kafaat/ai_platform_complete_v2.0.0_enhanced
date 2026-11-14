@@ -373,14 +373,14 @@ def test_frozen_phase_workers_may_publish_exactly_what_their_code_publishes():
     ``published`` والرسالةُ مرفوضة. فالقائمةُ تُطابِق الشيفرةَ **بالتمام** — لا نقصانَ يُضيّع
     الأحداثَ صامتاً، ولا زيادةَ امتياز."""
     from shared.marketplace_ecosystem_phase12 import KNOWN_HOOKS
+    from shared.runtime_worker_contracts import runtime_event_subject as dotted
 
     source = (PLATFORM / "api" / "phase_runtime_workers.py").read_text(encoding="utf-8")
     assert (
         'receipt"]["subject"]' in source
-        and "f\"sahool.{str(row['event_type']).replace('_', '.')}\"" in source
+        and 'runtime_event_subject(str(row["event_type"]))' in source
     ), "تغيّر تحويلُ المواضيع الديناميكيّة في العامل — أعِد اشتقاقَها"
     literals = _phase_worker_literals()
-    dotted = lambda t: f"sahool.{t.replace('_', '.')}"  # noqa: E731 — تحويلُ العامل نفسُه
     derived = {
         "run_outbox_once": {dotted(t) for t in _runtime_event_types()},
         "run_plugin_once": {dotted(h) for h in KNOWN_HOOKS},
@@ -405,6 +405,79 @@ def test_frozen_phase_workers_may_publish_exactly_what_their_code_publishes():
             f"  زائد: {sorted(set(_allow(users[service], 'publish')) - expected)}"
         )
         assert users[service]["permissions"]["subscribe"] == {"deny": [">"]}
+
+
+def _phase_worker_event_subjects() -> dict[str, dict[str, str]]:
+    """CONN-04: ما **تحسبه شيفرةُ العاملَين نفسُها** موضوعاً لكلّ نوع حدثٍ مُشتقّ — لا نسخة.
+
+    * outbox: ``build_outbox_action`` الحقيقيّ (العاملُ ينشر ``action["receipt"]["subject"]``).
+    * plugin: **تعبيرُ الموضوع نفسُه** من حلقة الأحداث في ``run_plugin_once``، مُقيَّماً في
+      فضاء أسماء الوحدة الحقيقيّ — فإن أُعيد التحويلُ القديم إلى العامل احمرّ هذا الشاهد.
+    """
+    from shared.marketplace_ecosystem_phase12 import KNOWN_HOOKS
+    from shared.runtime_worker_contracts import build_outbox_action
+
+    workers = _platform_import("api.phase_runtime_workers")
+    source = (PLATFORM / "api" / "phase_runtime_workers.py").read_text(encoding="utf-8")
+    assert 'subject = action["receipt"]["subject"]' in source, "العاملُ لم يعُد ينشر موضوعَ العقد"
+    outbox = {
+        t: build_outbox_action(
+            nats_url="nats://witness:4222", event_type=t, attempts=0, max_attempts=1
+        )["receipt"]["subject"]
+        for t in _runtime_event_types()
+    }
+    fn = next(
+        n
+        for n in ast.walk(ast.parse(source))
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == "run_plugin_once"
+    )
+    dynamic = [
+        call.args[0]
+        for call in ast.walk(fn)
+        if isinstance(call, ast.Call)
+        and getattr(call.func, "id", None) == "_publish_nats"
+        and call.args
+        and not isinstance(call.args[0], ast.Constant)
+    ]
+    assert len(dynamic) == 1, f"run_plugin_once: {len(dynamic)} موضوعٌ ديناميكيّ (المتوقَّع واحد)"
+    expr = compile(ast.Expression(dynamic[0]), "<run_plugin_once subject>", "eval")
+    plugin = {
+        h: eval(expr, dict(vars(workers)), {"row": {"event_type": h}})  # noqa: S307
+        for h in KNOWN_HOOKS
+    }
+    return {"run_outbox_once": outbox, "run_plugin_once": plugin}
+
+
+@pytest.mark.unit
+def test_conn04_phase_worker_events_reach_the_canonical_domain_consumer():
+    """CONN-04 (CONNECTIVITY-AUDIT-20260910 · NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE).
+
+    كلُّ حدثٍ ينشره عاملا phase-runtime يطابق مستهلكَ الإشعارات الكنسيّ ``sahool.events.>``
+    (``shared/notification_consumers.py``)، بصيغة v11/v18 ``'sahool.events.' || event_type``
+    حرفيّاً (نوعُ الحدث بلا تحويل)، ويأذن به الوسيط لهويّة العامل. على التحويل القديم
+    ``sahool.<event_type بنقاطٍ بدل _>`` يحمرّ: ``sahool.field.updated`` لا يطابق المستهلك.
+    """
+    from shared import notification_consumers
+
+    consumer = {d: s for s, d in notification_consumers.SUBSCRIPTIONS}["notif_domain_events"]
+    assert consumer == "sahool.events.>"
+    for migration in ("v11_events_bus.sql", "v18_entity_ids_text.sql"):
+        text = (ROOT / "migrations" / migration).read_text(encoding="utf-8")
+        assert "'sahool.events.' || p_event_type" in text, migration
+    users = _users()
+    identity = {
+        "run_outbox_once": "sahool-phase-runtime-outbox-worker",
+        "run_plugin_once": "sahool-plugin-runtime-worker",
+    }
+    for fn, subjects in _phase_worker_event_subjects().items():
+        assert subjects, f"{fn}: لا أنواعَ أحداثٍ مُشتقّة — انهار الاستخراج"
+        missed = {t: s for t, s in subjects.items() if not _matches(consumer, s)}
+        assert not missed, f"{fn}: أحداثٌ لا يستلمها {consumer}: {missed}"
+        drift = {t: s for t, s in subjects.items() if s != f"sahool.events.{t}"}
+        assert not drift, f"{fn}: الموضوعُ ≠ 'sahool.events.' || event_type (v11/v18): {drift}"
+        allowed = _allow(users[identity[fn]], "publish")
+        refused = sorted(s for s in subjects.values() if not any(_matches(p, s) for p in allowed))
+        assert not refused, f"{identity[fn]}: الوسيطُ يرفض صامتاً: {refused}"
 
 
 @pytest.mark.unit
@@ -523,8 +596,7 @@ def _expected() -> dict[str, dict[str, set[str]]]:
 
     literals = _phase_worker_literals()
 
-    def dotted(t: str) -> str:
-        return f"sahool.{t.replace('_', '.')}"
+    from shared.runtime_worker_contracts import runtime_event_subject as dotted
 
     def inbox(name: str) -> set[str]:
         return {f"_INBOX_{name}.>"}
@@ -1052,6 +1124,42 @@ async def test_live_frozen_phase_worker_publishes_its_subject_and_a_refusal_is_s
             lambda: asyncio.sleep(0, broker.log_text()), lambda t: violation in t
         )
         assert await stored() == 1, "الموضوعُ الممنوع خُزِّن"
+    finally:
+        await agent.close()
+
+
+@pytest.mark.integration
+async def test_live_conn04_phase_worker_publish_reaches_a_consumer_bound_to_sahool_events(
+    broker, monkeypatch
+):
+    """CONN-04 حيّاً: ``_publish_nats`` الحقيقيّ بهويّة كلّ عامل، وبالموضوع الذي تحسبه شيفرتُه،
+    يصل إلى مستهلكٍ JetStream دائمٍ مربوطٍ بـ``sahool.events.>`` (``notif_domain_events``)."""
+    from nats.js.api import ConsumerConfig, StreamConfig
+
+    workers = _platform_import("api.phase_runtime_workers")
+    subjects = _phase_worker_event_subjects()
+    agent, agent_client = await _connect(broker, NOTIFICATION)
+    js = agent.jetstream()
+    await js.add_stream(StreamConfig(name=STREAM, subjects=["sahool.>"]))
+    try:
+        sub = await js.subscribe(
+            "sahool.events.>",
+            durable="notif_domain_events",
+            manual_ack=True,
+            config=ConsumerConfig(ack_wait=120, max_deliver=-1),
+        )
+        for fn, identity in (
+            ("run_outbox_once", "sahool-phase-runtime-outbox-worker"),
+            ("run_plugin_once", "sahool-plugin-runtime-worker"),
+        ):
+            monkeypatch.setenv("NATS_URL", broker.url(identity))
+            for subject in sorted(subjects[fn].values()):
+                await workers._publish_nats(subject, {"event_id": subject})
+                msg = await sub.next_msg(timeout=5)
+                await msg.ack()
+                assert msg.subject == subject, (fn, msg.subject, subject)
+        assert not agent_client.violations, agent_client.violations
+        assert "Publish Violation" not in broker.log_text()
     finally:
         await agent.close()
 

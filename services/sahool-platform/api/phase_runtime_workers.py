@@ -26,6 +26,7 @@ from shared.runtime_worker_contracts import (
     build_plugin_worker_action,
     env_bool,
     parse_json_env,
+    runtime_event_subject,
 )
 from shared.startup_retry import retry_startup_connect
 
@@ -305,7 +306,7 @@ async def run_plugin_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
         for row in event_rows:
             try:
                 await _publish_nats(
-                    f"sahool.{str(row['event_type']).replace('_', '.')}",
+                    runtime_event_subject(str(row["event_type"])),
                     {"event_id": row["event_id"], "payload": row["payload"]},
                 )
                 assignments = "status='published'"
