@@ -29,10 +29,10 @@ ai_agronomist,services/ai_agronomist/main.py,519,POST,/v1/chat,chat,versioned
 ai_agronomist,services/ai_agronomist/main.py,530,POST,/v1/explain,explain,versioned
 ai_agronomist,services/ai_agronomist/main.py,541,POST,/v1/recommend,recommend,versioned
 auth,services/auth/main.py,410,GET,/runtime-identity,runtime_identity,infra
-auth,services/auth/routers/email_verify.py,23,POST,/v1/auth/verify/request,verify_request,versioned
-auth,services/auth/routers/email_verify.py,56,POST,/v1/auth/verify/confirm,verify_confirm,versioned
-auth,services/auth/routers/email_verify.py,98,GET,/v1/auth/verify,verify,versioned
-auth,services/auth/routers/email_verify.py,108,GET,/v1/auth/verify/status,verify_status,versioned
+auth,services/auth/routers/email_verify.py,24,POST,/v1/auth/verify/request,verify_request,versioned
+auth,services/auth/routers/email_verify.py,57,POST,/v1/auth/verify/confirm,verify_confirm,versioned
+auth,services/auth/routers/email_verify.py,99,GET,/v1/auth/verify,verify,versioned
+auth,services/auth/routers/email_verify.py,115,GET,/v1/auth/verify/status,verify_status,versioned
 auth,services/auth/routers/invitations.py,46,POST,/v1/auth/invitations,create_invitation,versioned
 auth,services/auth/routers/invitations.py,108,GET,/v1/auth/invitations,list_invitations,versioned
 auth,services/auth/routers/invitations.py,142,POST,/v1/auth/invitations/accept,accept_invitation,versioned
@@ -48,7 +48,7 @@ auth,services/auth/routers/password_reset.py,43,POST,/v1/auth/password-reset/req
 auth,services/auth/routers/password_reset.py,62,POST,/v1/auth/password-reset/confirm,confirm_password_reset,versioned
 auth,services/auth/routers/registration.py,20,POST,/v1/auth/register,register,versioned
 auth,services/auth/routers/registration.py,73,POST,/v1/auth/change-password,change_password,versioned
-auth,services/auth/routers/season_edge_sign.py,41,GET,/v1/auth/edge-sign,edge_sign,versioned
+auth,services/auth/routers/season_edge_sign.py,42,GET,/v1/auth/edge-sign,edge_sign,versioned
 auth,services/auth/routers/session.py,70,POST,/v1/auth/login,login,versioned
 auth,services/auth/routers/session.py,193,POST,/v1/auth/refresh,refresh_token,versioned
 auth,services/auth/routers/session.py,257,POST,/v1/auth/logout,logout,versioned

@@ -100,7 +100,7 @@
     },
     {
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.auth.routers.email_verify",
       "node_id": "services.auth.routers.email_verify:router",
       "route_count": 4,
@@ -154,7 +154,7 @@
     },
     {
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.auth.routers.season_edge_sign",
       "node_id": "services.auth.routers.season_edge_sign:router",
       "route_count": 1,
@@ -532,7 +532,7 @@
     },
     {
       "kind": "app",
-      "line": 199,
+      "line": 200,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -1198,7 +1198,7 @@
     },
     {
       "kind": "router",
-      "line": 29,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.field_workspace_timeline",
       "node_id": "services.sahool-platform.api.routers.field_workspace_timeline:router",
       "route_count": 1,
@@ -2839,7 +2839,7 @@
     },
     {
       "expression": "module.router",
-      "line": 199,
+      "line": 206,
       "module": "services/sahool-platform/tests/test_task_irrigation_observations.py",
       "prefix": null,
       "resolved": false,
@@ -2955,7 +2955,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "17c0ef8de93d7b93446edb66895565bc9b4a8bd0cb74546aede965c3fe389f78",
+  "inventory_sha256": "f2393cd649c4d78a7cb22b9aeaf63140478b9d64fa6a03389ec3d449bd066c2a",
   "orphan_candidate_count": 236,
   "orphan_candidates": [
     {
@@ -2991,7 +2991,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.auth.routers.email_verify",
       "node_id": "services.auth.routers.email_verify:router",
       "route_count": 4,
@@ -3051,7 +3051,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.auth.routers.season_edge_sign",
       "node_id": "services.auth.routers.season_edge_sign:router",
       "route_count": 1,
@@ -4041,7 +4041,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 29,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.field_workspace_timeline",
       "node_id": "services.sahool-platform.api.routers.field_workspace_timeline:router",
       "route_count": 1,
@@ -5667,7 +5667,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_task_irrigation_observations.py",
-      "line": 199,
+      "line": 206,
       "module": "services.sahool-platform.tests.test_task_irrigation_observations",
       "source": null,
       "target_expression": "module.router"
