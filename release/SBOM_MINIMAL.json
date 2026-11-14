@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "254077eb00c1091de4d83c1a10c5f460aeb1e14a4093e201774a499ecb813511"
+          "content": "7f07d4bae6e3cc0b91109c19ef15eb86a3c7f64e3e29340de4e549c120a9a380"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0afc55e5ec18195ac6412deb9e54838529d954d21758e02272d02f1c95f2e90a"
+          "content": "c81efc0d5af2059dd452de5caa3e32c7b6710357148fee5e34158b8c794f8142"
         }
       ],
       "name": "frontend/.npmrc",
@@ -165,7 +165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b13ab92e7cdae39bcf239be50dd4526525e1324d7ec6bdebb22937689df99241"
+          "content": "e9d6dcd4f52adde41bea2ecd1b9157cbf386efe3090c1fc2d7d129aa1cc8b778"
         }
       ],
       "name": "frontend/Dockerfile",
@@ -385,7 +385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "51a65a1e1f91a16791b48bbc7b39e8d698a590c2a01afbafb4d3a7d887699f68"
+          "content": "e300ddbf0f608bf7375302c87744fb11a38b99a9127eaf3264ef36781ab90fa8"
         }
       ],
       "name": "frontend/package-lock.json",
@@ -395,7 +395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75d528fbe5eac2b21ec476e406c3579a28f9989132dacba2b462237a7d6e52cf"
+          "content": "336950cb4d6d63883a4dd5ce1fd555a640b110e1bccc62abbd86ee1eeade137e"
         }
       ],
       "name": "frontend/package.json",
@@ -445,7 +445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b3c00af7878f6f1b8bb31e68ee642b41f3f75bf2bc1d9dce5e1a35a36b5e8819"
+          "content": "54d03eacff8bd2775d38e7a0254700879367393986b3ed71170c3407bd8fa1ea"
         }
       ],
       "name": "frontend/run_all.ps1",
@@ -455,7 +455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "20ac60d8e82d909b19a790827b1d3bda0fe67f55d56ef25ddbf969ac02de2197"
+          "content": "9cfce4bb2d8594d3bbd36ec8a02cadb978fa3185f279a780ba59c49e6c7403cf"
         }
       ],
       "name": "frontend/run_all.sh",
@@ -545,6 +545,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "fd8d63408b48ae94a28bc7cf5a78e68220b3ffd7ac88c8d478a9f9fb0c2e02a4"
+        }
+      ],
+      "name": "frontend/src/components/AddFieldWithMap.segmentation.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f04b4df62329f8e2ef9bf294374cda08aca62ad613446fe75b88d9b1c534209f"
         }
       ],
@@ -555,7 +565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ba4b835595b6f93f9b570b17bb6631ffdfd2988588e813d10bf32294611d2326"
+          "content": "e8e9560ab8a804e76dadbd344775ed31c59e65a7bcea79c45fc0c44bb0dba3e2"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -4855,7 +4865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "539271b50c3aba2125aa99f7b1b149134910063313d3e8236c49a2fa791ba1b7"
+          "content": "3ff421696e486b755c59da047229887c732a5d5b9d68a27b7be6874d370e2e65"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -5325,6 +5335,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2410e76336544bd0207fb4f9beec751cf19fea21e3c9b627caacfc704b13d130"
+        }
+      ],
+      "name": "frontend/src/pages/LoginPage.mfaEnrollment.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8b891b79c2c97698487de05870b500d96e45350797adcd72a98d2a4f54ac2920"
         }
       ],
@@ -5335,10 +5355,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c3c2d49c6419627e9b5c66eba4298f81e0e8e96cc7cb0af9f7a425e56bbfa4fe"
+          "content": "9088e01fb37ff7cd3d9734bbffef18f013e72626abaea07556cadf3af1c4613d"
         }
       ],
       "name": "frontend/src/pages/LoginPage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e94733da5617d00743b2212f4fb487351563e8200fe13ac4023428316f59356c"
+        }
+      ],
+      "name": "frontend/src/pages/MfaEnrollmentStep.tsx",
       "type": "file"
     },
     {
@@ -7315,10 +7345,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bdc6d7358e9d0e57f7d817658d993a1f5195b05372abf1939c59300b7a88ef9e"
+          "content": "dc089f55717ac5f68a4aa184855f56a0dc32766e47eb5b9a1cfa25e6f7d027ab"
         }
       ],
       "name": "frontend/src/services/api/auth.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c79427ab970f21ce553342a91e861ba2c48ca56433d5835822abea3d44dca24e"
+        }
+      ],
+      "name": "frontend/src/services/api/authEnrollment.test.ts",
       "type": "file"
     },
     {
@@ -7335,7 +7375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a352c821f52ca456ff458f34d59b516ee4387e3a5df368609f4d29a72d3ed1f9"
+          "content": "3739ae6105f4a8e7b5085ff1a4677c48be569ecc8539184da71bce39e16b7696"
         }
       ],
       "name": "frontend/src/services/api/client.ts",
@@ -7565,7 +7605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2d979fadd17952f95be001b84d4ed4197d78b086c7d4e91f918f3dfd28d43e2"
+          "content": "47d34d4ddfc9594226425796744122f1bdb8a0a6d16ca2e4d7e7067385fdd8db"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -16875,7 +16915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "36d96e5aaacebe4d0b96d15f9caf25b1f14043a99a63b0b43589e37fddd67525"
+          "content": "40e793f61b06f602c912dcbb36b505df3ca11f275373874db4c15fe35c7aa2d0"
         }
       ],
       "name": "services/agriai-engine/main.py",
@@ -17595,7 +17635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a008c644ec1d6ed0f9c6e26318faaafdba37d95f4dc978126f2d4a4586e628a8"
+          "content": "75d1d9f09c705ac34bbda03f7515b26465d19b1effb6280c13c588613a1f57f3"
         }
       ],
       "name": "services/auth/Dockerfile",
@@ -17639,6 +17679,16 @@
         }
       ],
       "name": "services/auth/mfa_crypto.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f3272188548e2024682a796065543011bf81e004c4d21a97eb32040f369a674a"
+        }
+      ],
+      "name": "services/auth/mfa_enrollment.py",
       "type": "file"
     },
     {
@@ -17735,7 +17785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec1a045dc0357cf1eb6fb6133bcf7a8adc587e02591862ffb805ead881e611ba"
+          "content": "84ce400c281ba4c8c3ead43febaca4e1205d6ebc62096445fb559a96a79ca9e6"
         }
       ],
       "name": "services/auth/routers/mfa.py",
@@ -17785,7 +17835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6ea1e619287082c8ec1cdd09290734bbbaf6c2d97e608dd13da08d36a231b9ce"
+          "content": "26c5fb0763457bcd49d33e10beddc31efce4ba577598b4f6b0af8b93e900dd33"
         }
       ],
       "name": "services/auth/routers/session.py",
@@ -19185,7 +19235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6b27ba283bb75429561eee22fdf698b2ef1c138aa6ad478f5d859a94ee913425"
+          "content": "2a6d94636c5890e6a63bfd39b221f409339598f3279c025f1449be7482d3f2e1"
         }
       ],
       "name": "services/edge-inference/Dockerfile.arm64",
@@ -19225,7 +19275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "949fc9f775858c237c8ee530f82a98ab122e9e335be9efb746e5bc5ac041dfb5"
+          "content": "1c2fdf55719a596578efd6303dba7e7aa5e176fd5ebc41431e70c20e45cfd77d"
         }
       ],
       "name": "services/edge-inference/main.py",
@@ -19315,7 +19365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2b30704aabe0308d420677a9a401694dc8f7149662154be1e26bc2c578f65d57"
+          "content": "0a0c10a5d7104d922d564fabb4dac4f1b94e84e70103f2816aabb08e76577735"
         }
       ],
       "name": "services/edge-inference/requirements-gpu.txt",
@@ -19349,6 +19399,16 @@
         }
       ],
       "name": "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "73f866541bec6fda252a4cec834519029ec9c02586515fd159f2f3553f2346dd"
+        }
+      ],
+      "name": "services/edge-inference/tests/test_entrypoint_validation_lifecycle.py",
       "type": "file"
     },
     {
@@ -19445,7 +19505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d81624bd699a10f179a116521fd6309506ad5edc08950bf24cb65204512c5418"
+          "content": "a216107c99744663ce416982a86f41f381141700ec416709a9c7bd7ee82d2500"
         }
       ],
       "name": "services/field-segmentation/main.py",
@@ -19475,7 +19535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ed11aba7aa257a00043d19a0439549e08ef52d0a74667f8148524aa8ef07234"
+          "content": "d9c8dd41fb7ff90696877c401866bfa78167d112f3ec5bb787aeca58f4ae33ab"
         }
       ],
       "name": "services/field-segmentation/test_segmentation.py",
@@ -25285,7 +25345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "127cb6e955253ce0836ee78533f6436328b45544524d3b1c645ef143c30424fd"
+          "content": "f4b7c5064ce0c97684fe0ab55011a352188b3727ba88447d012cddce165a5c38"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -27095,7 +27155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "91b188b40a4893fee22c093523b70c0c3fc1a213dc34623d10fc288cb6692e53"
+          "content": "8e74ceb2ff40c141ade846382eb8f33d3000a2602e5ffd01012f3e80f08a1c66"
         }
       ],
       "name": "services/sahool-platform/api/routers/service_proxy.py",
@@ -35875,6 +35935,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c5fdbd303f015e044af8a928bd092effed003f3ddb5571a83675a098871216b4"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_service_proxy_transport.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a19808c8746d8f4cdd4e05736072624eed349c3afa3936fde667755ba17a3970"
         }
       ],
@@ -36925,7 +36995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8502e20b320a3e343cc15cfb01ec4150254694fb6f0608e1290fe76166be59d7"
+          "content": "c629e37200f38fce07077c7c247b0008d42296ae2dcfa4f31bd1870ed10bec51"
         }
       ],
       "name": "services/sam2-inference/main.py",
@@ -36935,7 +37005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0fcef3d588394dc37ea086c089c7813cdedd47257520219baa75535c324bbd67"
+          "content": "8e4a6a3bd62d95779e05303af7b0d8cf19cd849a22d4cb70979716e60f652657"
         }
       ],
       "name": "services/sam2-inference/requirements.txt",
@@ -36945,7 +37015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a2e77a5e22ec647dadb40ef7adb5506ef77ed061757cd38860eb0add0b6dc4a2"
+          "content": "f659a60d5867d02f000056f9a6d71d3653f4bc22789a86a31e2ddc6d04e63062"
         }
       ],
       "name": "services/sam2-inference/sam2_runtime.py",
@@ -36955,7 +37025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8da07ecea53cebcd97a0c44aec6f766a1772a601bd590d798cabe8a4bef3624e"
+          "content": "110ee284ae96d594540c2baa23fd47b36b4b3be866a1e71e509d1be16e9872af"
         }
       ],
       "name": "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
@@ -37105,7 +37175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cac2588d04d260ca08851b4d1942d6cbf6db89a0dd2342c340635ae28f2b2863"
+          "content": "52270709c27c50f522f2a7fe2437df811b185b4e0488d7a8d94b3c8f21618681"
         }
       ],
       "name": "services/soil-service/main.py",
@@ -37935,7 +38005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a92dcf47abaa43a59ef15ca0b5994547f7b1847c484d5f3f7d0980fbefe1e6b5"
+          "content": "b14bc8f79e0f18acd7cd832ba216e9c5de88f9b43c42ef9edad315d6ce78d161"
         }
       ],
       "name": "services/tts-service/providers.py",
@@ -37945,7 +38015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2fc8b533e8d7c7bd8de18d558f50b2a0508dca99a70ba7c8d370814e648f7879"
+          "content": "e362098ad9222295638f9bbf55f1b88a8e53d0c086eac96e86a8f5262bdc1a48"
         }
       ],
       "name": "services/tts-service/requirements.txt",
@@ -38515,7 +38585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ff78c09125c65a7406b138a36bb1c1553b36f4162ec91e96d5a41a6eb9b97a02"
+          "content": "8fb68f2d0a3bcc22f96e5a0d10a362246a1880cebc9d02827755d121dd8087c5"
         }
       ],
       "name": "services/video-processor/main.py",
@@ -38565,7 +38635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4de66ea776e500fda05327a4a12ef856c2f899a75b3675d34a294866f9a260d7"
+          "content": "2589f9ceec6dbfc0ed562eb68a03f2c112bada77caa71bf2c677b517da10ee4e"
         }
       ],
       "name": "services/video-processor/routers/streams.py",
@@ -38605,7 +38675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6997373350ac04c5acaf2da7edc4e12df3512c55c7a980d7f61cb63a270656ca"
+          "content": "59c05857d6b0841eb62f24aac1b15e21ea56100333eea9ba51281cf578606046"
         }
       ],
       "name": "services/video-processor/zlmedia_client.py",
@@ -40005,7 +40075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "300b90cc40f0066d32525a539d1ddd3ae8ee460561f80abc2c6e44de6df9429a"
+          "content": "e428262cc92406c1df7188c6bc5980efbd25b23c71d448a783e922464a7dc5c9"
         }
       ],
       "name": "shared/db_role_guard.py",
@@ -40725,6 +40795,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "38e150f3d809088d8afcddec0d312d91697c397acd494e0fb57280aa624b6643"
+        }
+      ],
+      "name": "shared/security/mfa_enrollment_tokens.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6c5ec7f7c478203fd8f5c72b389c2b4fdb029a92f43f3f689fcdcaa95160b3bd"
         }
       ],
@@ -40795,7 +40875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7883d6d6021c12ff327fe134da5e20723a3adaf0295e9945b3c7cf840d780a60"
+          "content": "af90e44186f9634f1afda36912d339b491ecc3ad13101be0b6326d4776f618a6"
         }
       ],
       "name": "shared/startup_retry.py",
