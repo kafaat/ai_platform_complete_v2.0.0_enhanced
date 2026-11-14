@@ -1495,6 +1495,29 @@ jobs:
           AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_auth_admin_tenant_scope_live_pg.py
 
+      # #1427 pre-merge gates: two accepts of one invitation released together off the row
+      # lock (exactly one member); Redis outage on role change/deactivate (503, row unchanged)
+      # with a Redis-up control that revokes the target's sessions; stale owner/admin
+      # membership is 403 on team routes and invitations. Same restricted role and live Redis.
+      - name: Auth admin authz gates (#1427, concurrent invitation, Redis outage, stale membership)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          TEST_REDIS_URL: redis://localhost:6380/0
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_auth_admin_authz_live_pg_redis.py
+
+      # #1427: the denial-log endpoint returns only the caller tenant's denials and never
+      # unattributed events, over the real platform app and the live Redis denylist. Its own
+      # process: the platform app and the auth app both import a module named `main`.
+      - name: Platform denial log tenant scope (#1427, real platform app, live Redis)
+        env:
+          TEST_REDIS_URL: redis://localhost:6380/0
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_platform_denial_log_scope_live.py
+
       # تدقيق 2026-11-02 (تابعُ Q5): `test_services_functional` (soil H5 + guardrails L5) حمل
       # `xfail(strict=False)` بالفجوة المُغلَقة نفسِها، والجولةُ العامّة لا تضبط `DATABASE_URL`
       # فيتخطّى. هنا يُشغَّل بالدور المقيَّد (حارسُ soil يرفض superuser بحقّ)، والعَلَمُ يجعل
