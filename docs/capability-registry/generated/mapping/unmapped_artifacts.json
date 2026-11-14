@@ -8948,10 +8948,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/sahool-platform/tests/test_irrigation_water_verdict.py",
     "kind": "tests"
   },

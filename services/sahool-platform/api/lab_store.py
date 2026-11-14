@@ -438,6 +438,88 @@ async def record_water_result(
     return _water_reply(row)
 
 
+_WATER_SET_COLUMNS = """result_set_id, sample_id, payload, analysis, quality_status, observed_at,
+           approved_by, approved_at, published_at, supersedes_result_set_id, request_digest,
+           entered_by"""
+
+
+async def live_water_sets(conn, *, tenant_id: str) -> list:
+    """Every live (unreviewed or approved) water set of the tenant, for an operator recompute."""
+    return await conn.fetch(
+        f"""SELECT {_WATER_SET_COLUMNS} FROM water_lab_result_sets
+           WHERE tenant_id=$1::uuid AND quality_status = ANY($2::text[])
+           ORDER BY sample_id, created_at""",
+        tenant_id,
+        list(_WATER_LIVE),
+    )
+
+
+async def append_water_analysis_revision(
+    conn, *, tenant_id: str, seen, analysis: dict[str, Any], reason: str
+) -> str | None:
+    """Replace a live set's derived analysis by a v258 revision; the measurement is unchanged.
+
+    ``seen`` is the set as the caller read it. Under the sample's row lock (the order of
+    ``record_water_result``) the set is read again; if a submit or review changed it since,
+    nothing is written and None is returned. Otherwise a new row supersedes it with the same
+    payload, review state, approval and publication stamps, author and request digest (a retry of
+    the original measurement still returns the current row), ``analysis`` and
+    ``correction_reason=reason``; the replaced row becomes superseded and keeps everything it
+    had. No custody event: a recompute is not a lab result, and the review's separation of
+    duties stays as it was.
+    """
+    if await get_sample(conn, tenant_id=tenant_id, sample_id=seen["sample_id"]) is None:
+        return None
+    current = await conn.fetchrow(
+        f"""SELECT {_WATER_SET_COLUMNS} FROM water_lab_result_sets
+           WHERE tenant_id=$1::uuid AND result_set_id=$2::uuid
+             AND quality_status = ANY($3::text[]) FOR UPDATE""",
+        tenant_id,
+        str(seen["result_set_id"]),
+        list(_WATER_LIVE),
+    )
+    if (
+        current is None
+        or current["quality_status"] != seen["quality_status"]
+        or _json_value(current["analysis"]) != _json_value(seen["analysis"])
+    ):
+        return None
+    revision_id = uuid4()
+    await conn.execute(
+        """INSERT INTO water_lab_result_sets
+           (result_set_id, tenant_id, sample_id, payload, analysis, quality_status, observed_at,
+            approved_by, approved_at, published_at, supersedes_result_set_id, request_digest,
+            correction_reason, entered_by)
+           VALUES ($1, $2::uuid, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10, $11::uuid, $12,
+                   $13, $14)""",
+        revision_id,
+        tenant_id,
+        current["sample_id"],
+        json.dumps(_json_value(current["payload"])),
+        json.dumps(analysis),
+        current["quality_status"],
+        current["observed_at"],
+        current["approved_by"],
+        current["approved_at"],
+        current["published_at"],
+        str(current["result_set_id"]),
+        current["request_digest"],
+        reason,
+        current["entered_by"],
+    )
+    await conn.execute(
+        """UPDATE water_lab_result_sets SET quality_status='superseded'
+           WHERE tenant_id=$1::uuid AND result_set_id=$2::uuid""",
+        tenant_id,
+        str(current["result_set_id"]),
+    )
+    return str(revision_id)
+
+
+def _json_value(value):
+    return json.loads(value) if isinstance(value, str) else dict(value)
+
+
 async def water_review_results(conn, tenant_id: str, sample_id: str) -> list[dict]:
     """The live water set a reviewer is shown and must name, in the soil review's shape."""
     rows = await conn.fetch(

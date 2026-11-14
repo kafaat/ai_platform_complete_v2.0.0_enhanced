@@ -11,6 +11,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Annotated, Literal
 
+from core.irrigation_water_analysis import WaterSourceType
 from pydantic import BaseModel, Field, TypeAdapter, field_validator, model_validator
 
 
@@ -762,9 +763,9 @@ class OnboardingSubmitRequest(BaseModel):
 
 class WaterAnalysisRequest(BaseModel):
     sample_id: str
-    # نوع مصدر الماء (مفردات WaterSample وWATER_SOURCE_OPTIONS في الواجهة) — لا نصّ حرّ:
-    # «field:<اسم>» ليس مصدر ماء، وربط العيّنة بالحقل يكون بـfield_id.
-    source: Literal["well", "canal", "mixed"] = "well"
+    # نوع مصدر الماء: مفردات v168 (WaterSourceType في core، WATER_SOURCE_OPTIONS في الواجهة)
+    # — لا نصّ حرّ: «field:<اسم>» ليس مصدر ماء، والربط بحقل مسار المختبر لا هذا الحساب.
+    source: WaterSourceType = "well"
     # حسابٌ لا يُخزَّن: لا ربط بحقل هنا. كان field_id يُسقَط صامتاً فيُظَنّ الربط قائماً؛
     # الآن يُرفض صراحةً (422) ويُوجَّه إلى مسار المختبر المُخزَّن المرتبط بحقل المستأجِر.
     field_id: None = Field(

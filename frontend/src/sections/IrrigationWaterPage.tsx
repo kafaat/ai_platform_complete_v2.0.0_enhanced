@@ -2,14 +2,20 @@
 // SAHOOL — IrrigationWaterPage (ربط حيّ بـ POST /api/v1/irrigation/water-analysis)
 // يُبرِز وحدة تحليل ماء الريّ الخلفيّة (SAR/RSC + تصنيف FAO-29/USDA-197/USSL).
 // صدق: المؤشّر الذي يحتاج قيمة غائبة يُعلَن «غير محسوب» (من الخادم) لا يُفبرَك.
-// حسابٌ لا يُخزَّن ولا يُربط بحقل: لا اختيار حقل هنا ولا field_id في الطلب (الخادم يرفضه).
-// النتيجة المخبريّة المرتبطة بحقل تُسجَّل في «عيّنات المختبر» (/lab/samples ثمّ water-results).
+// الحساب لا يُخزَّن ولا يُربط بحقل: لا field_id في طلبه (الخادم يرفضه).
+// «حفظ كنتيجة مخبر لحقل» إجراءٌ منفصل صريح (قرار المالك 2026-11-14): يختار المستخدم حقلاً
+// ويُرسَل القياس نفسه عبر مسار المختبر المُخزَّن القائم — عيّنة ماء للحقل (POST /api/v1/lab/samples)
+// ثمّ POST /api/v1/lab/water-results — حيث يفرض الخادم ملكيّة المستأجِر للحقل والعيّنة.
+// لا مسار جديد (ميزانية المسارات 629/629).
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
-import { Droplets, FlaskConical, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useWaterAnalysis } from '../hooks/useApi';
-import type { WaterSampleInput, WaterSourceKind } from '../services/api';
-import { WATER_SOURCE_OPTIONS } from '../lib/waterFieldOps';
+import { useMemo, useRef, useState } from 'react';
+import { Droplets, FlaskConical, AlertTriangle, CheckCircle, Save } from 'lucide-react';
+import { useCreateLabSample, useLabSamples, useWaterAnalysis } from '../hooks/useApi';
+import { useSubmitWaterLabResult } from '../hooks/useWaterFieldOps';
+import { useFieldOptions } from '../hooks/useFieldOptions';
+import { apiErrorMessage, type LabSampleRecord, type WaterSampleInput, type WaterSourceKind } from '../services/api';
+import { WATER_SOURCE_OPTIONS, type WaterLabAnalysis, type WaterSamplePayload } from '../lib/waterFieldOps';
+import { fieldRepresentativePoint } from '../lib/geo';
 import { ErrorState } from '../components/StateViews';
 
 const IONS: { key: keyof WaterSampleInput; label: string; hint: string }[] = [
@@ -33,9 +39,10 @@ const NOT_COMPUTABLE_AR: Record<string, string> = {
 
 export default function IrrigationWaterPage() {
   const [vals, setVals] = useState<Record<string, string>>({});
-  // نوع مصدر الماء (بئر/قناة/مختلط) — لا اسم حقل.
+  // نوع مصدر الماء (أنواع v168: بئر/خزّان/قناة/نهر/بلديّة/أمطار/أخرى) — لا اسم حقل.
   const [source, setSource] = useState<WaterSourceKind>('well');
   const [submittedFormKey, setSubmittedFormKey] = useState<string | null>(null);
+  const [saveOpen, setSaveOpen] = useState(false);
   const mut = useWaterAnalysis();
   // Never present the prior analysis as if it belonged to newly edited readings/source.
   const currentFormKey = JSON.stringify({ source, vals });
@@ -93,8 +100,8 @@ export default function IrrigationWaterPage() {
       </p>
 
       <p role="note" className="text-xs text-amber-300">
-        حساب فوريّ فقط: لا تُحفظ النتيجة ولا تُربط بأيّ حقل. لتسجيل تحليل مخبريّ مرتبط بحقل
-        استخدم «عيّنات المختبر».
+        حساب فوريّ فقط: لا تُحفظ النتيجة ولا تُربط بأيّ حقل. لتسجيل القياس نفسه نتيجةَ مخبرٍ
+        مرتبطة بحقل استخدم «حفظ كنتيجة مخبر لحقل».
       </p>
 
       {/* Form */}
@@ -125,7 +132,14 @@ export default function IrrigationWaterPage() {
             قياسات غير صالحة: {invalidInputs.map(({ label }) => label).join('، ')}. أدخل قيماً غير سالبة وpH بين 0 و14.
           </p>
         )}
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-end gap-2 mt-4">
+          <button type="button" onClick={() => setSaveOpen(o => !o)} aria-expanded={saveOpen}
+            disabled={invalidInputs.length > 0}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-100 disabled:opacity-60"
+            style={{ background: '#334155' }}>
+            <Save className="w-4 h-4" />
+            حفظ كنتيجة مخبر لحقل
+          </button>
           <button onClick={onAnalyze} disabled={mut.isPending || invalidInputs.length > 0}
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
             style={{ background: '#0ea5e9' }}>
@@ -134,6 +148,16 @@ export default function IrrigationWaterPage() {
           </button>
         </div>
       </div>
+
+      {saveOpen && invalidInputs.length === 0 && (
+        <SaveAsLabResult
+          measurement={{
+            source,
+            na: num('na'), ca: num('ca'), mg: num('mg'), hco3: num('hco3'),
+            co3: num('co3'), cl: num('cl'), ec_dsm: num('ec_dsm'), ph: num('ph'),
+          }}
+        />
+      )}
 
       {mut.isError && <ErrorState title="تعذّر تحليل العيّنة" onRetry={onAnalyze} />}
 
@@ -211,4 +235,185 @@ export default function IrrigationWaterPage() {
       )}
     </div>
   );
+}
+
+// ── حفظ كنتيجة مخبر لحقل ─────────────────────────────────────────────────────
+// يمرّ بمسار المختبر القائم كما هو: عيّنة ماء تُنشأ لحقل المستخدم المختار (أو عيّنة ماء قائمة
+// للحقل تنتظر نتيجتها الأولى: sampled/in_lab)، ثمّ نتيجة الماء على sample_id. الحقل لا يُرسَل
+// إلى water-results؛ الربط بالحقل هو العيّنة، والخادم يرفض حقلاً أو عيّنةً خارج المستأجِر.
+// النتيجة تُخزَّن «بانتظار المراجعة» ولا تصير مدخل قرار قبل اعتمادها.
+
+type Measurement = Omit<WaterSamplePayload, 'sample_id' | 'sampled_at'> & { source: WaterSourceKind };
+
+const NEW_SAMPLE = '__new__';
+const AWAITING_FIRST_RESULT = new Set(['sampled', 'in_lab']);
+const VERDICT_AR: Record<string, string> = {
+  suitable: 'صالح للريّ',
+  suitable_with_restrictions: 'صالح مع قيود',
+  needs_treatment: 'يحتاج معالجة',
+  insufficient_data: 'بيانات غير كافية',
+};
+
+function SaveAsLabResult({ measurement }: { measurement: Measurement }) {
+  const fieldsQ = useFieldOptions();
+  const [fieldId, setFieldId] = useState('');
+  const field = fieldsQ.options.find(f => f.id === fieldId);
+  const samplesQ = useLabSamples(fieldId || undefined);
+  const openSamples = useMemo<LabSampleRecord[]>(
+    () => (fieldId ? samplesQ.data ?? [] : [])
+      .filter(s => s.field_id === fieldId && s.kind === 'water' && AWAITING_FIRST_RESULT.has(s.status)),
+    [fieldId, samplesQ.data],
+  );
+  const [sampleChoice, setSampleChoice] = useState(NEW_SAMPLE);
+  const [coords, setCoords] = useState({ field: '', lat: '', lon: '' });
+  const [sampledOn, setSampledOn] = useState('');
+  const [saved, setSaved] = useState<WaterLabAnalysis | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const createSample = useCreateLabSample();
+  const submitWater = useSubmitWaterLabResult();
+  // A sample created by an attempt whose result failed is reused by the retry (one sample,
+  // not one per click); the create itself carries one Idempotency-Key per field and point.
+  const created = useRef<{ scope: string; key: string; sampleId?: string; stored?: boolean } | null>(null);
+
+  const rep = field ? fieldRepresentativePoint(field) : null;
+  const lat = coords.field === fieldId ? coords.lat : rep ? String(rep[0]) : '';
+  const lon = coords.field === fieldId ? coords.lon : rep ? String(rep[1]) : '';
+  const latN = Number(lat);
+  const lonN = Number(lon);
+  const coordsOk = lat.trim() !== '' && lon.trim() !== '' && Number.isFinite(latN) && Number.isFinite(lonN)
+    && Math.abs(latN) <= 90 && Math.abs(lonN) <= 180;
+  const usingNew = sampleChoice === NEW_SAMPLE || !openSamples.some(s => s.sample_id === sampleChoice);
+  const busy = createSample.isPending || submitWater.isPending;
+  const canSave = !!fieldId && !busy && (!usingNew || coordsOk);
+
+  const onSave = async () => {
+    if (!canSave) return;
+    setError(null);
+    setSaved(null);
+    const scope = JSON.stringify([fieldId, latN, lonN, measurement.source, sampledOn]);
+    const attempt = usingNew
+      ? (created.current?.scope === scope && !created.current.stored
+        ? created.current
+        : { scope, key: requestKey() })
+      : null;
+    if (attempt) created.current = attempt;
+    try {
+      let sampleId = attempt ? attempt.sampleId : sampleChoice;
+      if (attempt && !sampleId) {
+        const row = await createSample.mutateAsync({
+          idempotency_key: attempt.key,
+          field_id: fieldId,
+          kind: 'water',
+          latitude: latN,
+          longitude: lonN,
+          source: measurement.source,
+          sampled_on: sampledOn || null,
+          status: 'collected',
+        });
+        sampleId = row.sample_id;
+        attempt.sampleId = sampleId;
+      }
+      const result = await submitWater.mutateAsync({
+        ...measurement,
+        sample_id: sampleId as string,
+        sampled_at: sampledOn ? `${sampledOn}T00:00:00+00:00` : null,
+      });
+      setSaved(result);
+      // The next save is a new measurement: it gets a sample of its own.
+      if (attempt) attempt.stored = true;
+    } catch (e) {
+      setError(apiErrorMessage(e, 'تعذّر حفظ نتيجة المخبر'));
+    }
+  };
+
+  return (
+    <section aria-label="حفظ كنتيجة مخبر لحقل" className="rounded-xl border p-4 space-y-3"
+      style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <p className="text-xs text-slate-400">
+        يُسجَّل القياس المُدخَل أعلاه نتيجةَ مخبرٍ لعيّنة ماء من الحقل المختار (مسار عيّنات المختبر)،
+        بانتظار مراجعة مختصّ قبل أن يُعتمَد مدخلاً للقرار.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-slate-400">الحقل</span>
+          <select value={fieldId}
+            onChange={e => { setFieldId(e.target.value); setSampleChoice(NEW_SAMPLE); setSaved(null); setError(null); }}
+            className="px-3 py-2 rounded-lg text-sm"
+            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+            <option value="">اختر حقلاً…</option>
+            {fieldsQ.options.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-slate-400">عيّنة الماء</span>
+          <select value={usingNew ? NEW_SAMPLE : sampleChoice} disabled={!fieldId}
+            onChange={e => setSampleChoice(e.target.value)}
+            className="px-3 py-2 rounded-lg text-sm"
+            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+            <option value={NEW_SAMPLE}>عيّنة جديدة لهذا الحقل</option>
+            {openSamples.map(s => <option key={s.sample_id} value={s.sample_id}>{s.sample_id}</option>)}
+          </select>
+        </label>
+        {usingNew && fieldId && (
+          <>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs text-slate-400">خط العرض (موقع العيّنة)</span>
+              <input type="number" step="any" min={-90} max={90} value={lat}
+                onChange={e => setCoords({ field: fieldId, lat: e.target.value, lon })}
+                className="px-3 py-2 rounded-lg text-sm"
+                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs text-slate-400">خط الطول (موقع العيّنة)</span>
+              <input type="number" step="any" min={-180} max={180} value={lon}
+                onChange={e => setCoords({ field: fieldId, lat, lon: e.target.value })}
+                className="px-3 py-2 rounded-lg text-sm"
+                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+            </label>
+          </>
+        )}
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-slate-400">تاريخ أخذ العيّنة (اختياريّ)</span>
+          <input type="date" value={sampledOn} onChange={e => setSampledOn(e.target.value)}
+            className="px-3 py-2 rounded-lg text-sm"
+            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+        </label>
+      </div>
+      {usingNew && fieldId && !coordsOk && (
+        <p className="text-xs text-orange-300">أدخل موقع العيّنة (خطّي العرض والطول) — لا موقع معروف لهذا الحقل.</p>
+      )}
+      <div className="flex justify-end">
+        <button type="button" onClick={onSave} disabled={!canSave}
+          className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
+          style={{ background: '#16a34a' }}>
+          <Save className="w-4 h-4" />
+          {busy ? 'جارٍ الحفظ…' : 'حفظ النتيجة للحقل'}
+        </button>
+      </div>
+      {error && <p role="alert" className="text-xs text-orange-300">{error}</p>}
+      {saved && (
+        <p role="status" className="text-xs text-emerald-300">
+          حُفظت نتيجة المخبر للحقل {field?.name ?? fieldId} (العيّنة {saved.sample_id}
+          {saved.result_id ? ` · النتيجة ${saved.result_id}` : ''}) — الحكم:{' '}
+          {saved.verdict ? VERDICT_AR[saved.verdict] ?? saved.verdict : '—'}
+          {saved.quality_status === 'unreviewed' ? ' · بانتظار المراجعة' : ''}
+          {/* R5 source_evidence: the type is the user's declaration, never a verified source. */}
+          {' · '}نوع المصدر «{sourceLabel(saved.source ?? measurement.source)}» معلَن من المُدخِل وغير مُتحقَّق منه
+        </p>
+      )}
+    </section>
+  );
+}
+
+function sourceLabel(kind: string): string {
+  return WATER_SOURCE_OPTIONS.find(o => o.key === kind)?.label_ar ?? kind;
+}
+
+function requestKey(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-');
 }

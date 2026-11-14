@@ -28,6 +28,16 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from decimal import Decimal, localcontext
+from typing import Literal, get_args
+
+# نوع مصدر ماء الريّ: مفردات عقد قاعدة البيانات نفسها — CHECK على
+# ``irrigation_water_sources.source_type`` في migrations/v168_irrigation_engineering_foundation.sql.
+# لا «mixed»: الخليط في العقد ليس نوع مصدر، بل عدّة مصادر بنسب مزج
+# (``field_irrigation_source_assignments.mixing_ratio``، v214) تُحسَب جودته بـ``compute_blend_water_quality``.
+# عيّنةٌ أُخذت من خطّ خليط تُسجَّل ``other``.
+WaterSourceType = Literal["well", "reservoir", "canal", "river", "municipal", "rainwater", "other"]
+WATER_SOURCE_TYPES: tuple[str, ...] = get_args(WaterSourceType)
 
 
 @dataclass
@@ -39,7 +49,8 @@ class WaterSample:
     """
 
     sample_id: str
-    source: str = "well"  # well | canal | mixed
+    # يُتحقَّق منه عند حدّ API (Pydantic) وفي النواة (invalid_water_inputs).
+    source: WaterSourceType = "well"
     # الأيونات (meq/L)
     na: float | None = None  # صوديوم
     ca: float | None = None  # كالسيوم
@@ -64,15 +75,25 @@ _WATER_ION_FIELDS = ("na", "ca", "mg", "hco3", "co3", "cl")
 
 
 def invalid_water_inputs(sample: WaterSample) -> list[str]:
-    """أسماء الحقول المُدخَلة بقيمة مستحيلة: غير منتهية، أو سالبة، أو pH خارج [0, 14]."""
+    """Reject impossible measurements and unknown source kinds at the core boundary."""
     errors: list[str] = []
+    # A source kind is not a verified well/canal identity; never accept field names as kinds.
+    # One vocabulary: WATER_SOURCE_TYPES (v168), the same Literal the API and the UI use.
+    if sample.source not in WATER_SOURCE_TYPES:
+        errors.append("source:unsupported_kind")
     for fname in (*_WATER_ION_FIELDS, "ec_dsm", "ph"):
         value = getattr(sample, fname)
         if value is None:
             continue
         if isinstance(value, bool) or not isinstance(value, int | float):
             errors.append(f"{fname}:not_a_number")
-        elif not math.isfinite(value):
+            continue
+        try:
+            finite = math.isfinite(value)
+        except (OverflowError, ValueError):
+            errors.append(f"{fname}:out_of_float_range")
+            continue
+        if not finite:
             errors.append(f"{fname}:not_finite")
         elif value < 0:
             errors.append(f"{fname}:negative")
@@ -90,30 +111,47 @@ REASON_CA_MG_ZERO = "calcium_plus_magnesium_zero"
 
 
 def sar_with_reason(na, ca, mg) -> tuple[float | None, str | None]:
-    """(SAR، None) أو (None، سبب). سببُ None مع قيمة None = مدخلٌ ناقص."""
+    """Stable SAR, including finite inputs whose naive Ca+Mg intermediate overflows."""
     if na is None or ca is None or mg is None:
         return None, None
-    total_calcium_magnesium = ca + mg
-    if not math.isfinite(total_calcium_magnesium):
-        return None, REASON_NUMERIC_OVERFLOW  # never a false SAR = 0 from Na/inf
-    denom = total_calcium_magnesium / 2.0
-    if denom <= 0:
-        return None, REASON_CA_MG_ZERO  # صدق: لا قسمة على صفر، لا قيمة مفبركة
-    sar = na / math.sqrt(denom)
+    if any(not _finite_non_negative(v) for v in (na, ca, mg)):
+        return None, REASON_NUMERIC_OVERFLOW
+    # Convert *before* arithmetic: arbitrary-size Python integers also reach this core API.
+    na, ca, mg = float(na), float(ca), float(mg)
+    total = ca + mg
+    if total == 0:
+        return None, REASON_CA_MG_ZERO
+    if math.isfinite(total):
+        # sqrt(total)/sqrt(2) preserves subnormal contributions lost by total/2.
+        root = math.sqrt(total) / math.sqrt(2.0)
+    else:
+        # Halving both non-negative terms before addition avoids overflow.
+        root = math.sqrt(ca / 2.0 + mg / 2.0)
+    sar = na / root
     if not math.isfinite(sar):
-        return None, REASON_NUMERIC_OVERFLOW  # tiny positive denominator overflows the ratio
+        return None, REASON_NUMERIC_OVERFLOW
     return round(sar, 2), None
 
 
 def rsc_with_reason(co3, hco3, ca, mg) -> tuple[float | None, str | None]:
-    """(RSC، None) أو (None، سبب). سببُ None مع قيمة None = مدخلٌ ناقص."""
-    if any(v is None for v in (co3, hco3, ca, mg)):
+    """Stable RSC: fsum for normal values, exact-float Decimal fallback for overflow."""
+    vals = (co3, hco3, ca, mg)
+    if any(v is None for v in vals):
         return None, None
-    carbonates = co3 + hco3
-    calcium_magnesium = ca + mg
-    if not math.isfinite(carbonates) or not math.isfinite(calcium_magnesium):
-        return None, REASON_NUMERIC_OVERFLOW  # inf − inf ⇒ NaN (JSONResponse cannot serialise)
-    rsc = carbonates - calcium_magnesium
+    if any(not _finite_non_negative(v) for v in vals):
+        return None, REASON_NUMERIC_OVERFLOW
+    carbonates, bicarbonates, calcium, magnesium = (float(v) for v in vals)
+    try:
+        rsc = math.fsum((carbonates, bicarbonates, -calcium, -magnesium))
+    except OverflowError:
+        # math.fsum can overflow its intermediate even when the true final sum is 0.
+        with localcontext() as ctx:
+            ctx.prec = 1200  # Enough for exact decimal expansion of binary64 values.
+            c, h, ca_dec, mg_dec = (
+                Decimal.from_float(v) for v in (carbonates, bicarbonates, calcium, magnesium)
+            )
+            exact = (c + h) - (ca_dec + mg_dec)
+        rsc = float(exact)
     if not math.isfinite(rsc):
         return None, REASON_NUMERIC_OVERFLOW
     return round(rsc, 2), None
@@ -221,7 +259,7 @@ def classify_ec(ec_dsm: float | None) -> dict:
     """تصنيف ملوحة ماء الريّ بالـEC (FAO-29)."""
     if ec_dsm is None:
         return {"class": None, "note_ar": "EC غير مقيس"}
-    if not math.isfinite(ec_dsm) or ec_dsm < 0:
+    if not _finite_non_negative(ec_dsm):
         return {"class": None, "note_ar": "EC غير صالحة — لا تصنيف"}
     none_below, severe_above = FAO29_SALINITY_ECW_DSM
     if ec_dsm < none_below:
@@ -432,12 +470,12 @@ BLEND_NOT_COMPUTABLE = "not_computable"
 
 
 def _finite_non_negative(value: object) -> bool:
-    return (
-        isinstance(value, int | float)
-        and not isinstance(value, bool)
-        and math.isfinite(value)
-        and value >= 0
-    )
+    if isinstance(value, bool) or not isinstance(value, int | float) or value < 0:
+        return False
+    try:
+        return math.isfinite(value)
+    except (OverflowError, ValueError):
+        return False
 
 
 def _not_computable(reason: str, **extra: object) -> dict:

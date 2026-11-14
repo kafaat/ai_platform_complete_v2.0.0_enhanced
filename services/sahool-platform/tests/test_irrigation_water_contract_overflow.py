@@ -6,7 +6,9 @@ Owner pilot report (2026-11-13, rounds 1 and 2):
    endpoint is a calculation and stores nothing, so it now refuses ``field_id`` (422) and says
    ``persisted: false``. A field-bound, stored result is the lab-water workflow's job.
 2. ``source`` was free text and the form sent ``field:<field name>``, which is not a water
-   source type.
+   source type. Owner decision 2026-11-14: the vocabulary is the seven types of the database
+   contract (v168 ``irrigation_water_sources.source_type``), read here from the migration, so
+   the API, the lab model and the web form cannot drift from it.
 4. WATER-NUMERIC-OVERFLOW: finite but extreme inputs overflowed inside SAR/RSC/blend arithmetic.
    The owner's patch fails closed (``None``); this file adds the distinct reason, so the gap
    never reads as generic missing data. The owner's own tests are in
@@ -18,10 +20,13 @@ from __future__ import annotations
 import json
 import math
 import random
+import re
+from pathlib import Path
 
 import pytest
 from core.irrigation_water_analysis import (
     WATER_NUMERIC_OVERFLOW,
+    WATER_SOURCE_TYPES,
     WaterSample,
     analyze_water_sample,
     compute_blend_water_quality,
@@ -82,15 +87,81 @@ def test_the_result_says_it_is_not_persisted():
     r = _post({"sample_id": "w1", **_SAFE})
     assert r.status_code == 200, r.text
     assert r.json()["persisted"] is False
+    assert r.json()["source_evidence"] == "implicit_default_unverified"
     assert "field_id" not in r.json()
+
+
+def test_declared_source_never_claims_verified_well_identity():
+    r = _post({"sample_id": "w1", "source": "well", **_SAFE})
+    assert r.status_code == 200, r.text
+    assert r.json()["source_evidence"] == "caller_declared_unverified"
 
 
 # ─── Gap 2: source vocabulary ─────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("source", ["well", "canal", "mixed"])
+_REPO = Path(__file__).resolve().parents[3]
+
+
+def _v168_source_types() -> tuple[str, ...]:
+    sql = (_REPO / "migrations" / "v168_irrigation_engineering_foundation.sql").read_text()
+    match = re.search(r"source_type TEXT NOT NULL CHECK \(source_type IN \(([^)]*)\)\)", sql)
+    assert match, "v168 no longer declares the source_type CHECK"
+    return tuple(re.findall(r"'([a-z_]+)'", match.group(1)))
+
+
+def test_the_source_vocabulary_is_the_v168_database_contract():
+    assert WATER_SOURCE_TYPES == _v168_source_types()
+    assert WATER_SOURCE_TYPES == (
+        "well",
+        "reservoir",
+        "canal",
+        "river",
+        "municipal",
+        "rainwater",
+        "other",
+    )
+
+
+def test_the_web_form_offers_exactly_the_v168_source_types():
+    ts = (_REPO / "frontend" / "src" / "lib" / "waterFieldOps.ts").read_text()
+    block = ts.split("export const WATER_SOURCE_OPTIONS", 1)[1].split("];", 1)[0]
+    assert tuple(re.findall(r"key: '([a-z_]+)'", block)) == _v168_source_types()
+    api_ts = (_REPO / "frontend" / "src" / "services" / "api.ts").read_text()
+    kind = re.search(r"export type WaterSourceKind =([^;]*);", api_ts).group(1)
+    assert tuple(re.findall(r"'([a-z_]+)'", kind)) == _v168_source_types()
+
+
+@pytest.mark.parametrize("source", WATER_SOURCE_TYPES)
 def test_water_source_types_are_accepted(source):
     assert _request(sample_id="w1", source=source).source == source
+
+
+def test_mixed_is_not_a_source_type_a_blend_is_several_sources():
+    # v168 has no 'mixed'; a blend is several sources with v214 mixing ratios.
+    with pytest.raises(ValidationError):
+        _request(sample_id="w1", source="mixed")
+
+
+def test_the_lab_water_route_takes_the_same_vocabulary():
+    """The stored lab flow binds WaterSample's source type at its HTTP edge too."""
+    from api.routers.soil_sampling import WaterLabResultIn
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    def probe(payload):
+        return {"source": payload.source}
+
+    # This module postpones annotations; bind the real body type, not its name.
+    probe.__annotations__["payload"] = WaterLabResultIn
+    app = FastAPI()
+    app.post("/probe")(probe)
+    client = TestClient(app)
+    assert client.post("/probe", json={"sample_id": "s", "source": "rainwater"}).json() == {
+        "source": "rainwater"
+    }
+    for bad in ("mixed", "field:North", "WELL"):
+        assert client.post("/probe", json={"sample_id": "s", "source": bad}).status_code == 422
 
 
 def test_source_defaults_to_well():
@@ -112,13 +183,17 @@ def test_the_http_contract_returns_422_for_the_old_ui_source_value():
 
 
 def test_overflow_reasons_are_distinct_from_missing_input():
-    assert sar_with_reason(5.0, BIG, BIG) == (None, "numeric_overflow")  # was SAR 0.0
-    assert sar_with_reason(1e308, TINY, 0.0) == (None, "numeric_overflow")  # was inf
+    # R5 (owner, 2026-11-14): Ca+Mg that overflows is halved first, so SAR is computed; the
+    # true value 5/sqrt(BIG) ≈ 3.8e-154 rounds to 0.0. It is no longer Na/inf = 0.
+    assert sar_with_reason(5.0, BIG, BIG) == (0.0, None)
+    assert sar_with_reason(1e308, TINY, 0.0) == (None, "numeric_overflow")  # the ratio is inf
     assert sar_with_reason(1.0, 0.0, 0.0) == (None, "calcium_plus_magnesium_zero")
     assert sar_with_reason(None, 1.0, 1.0) == (None, None)  # missing input: no reason
-    assert rsc_with_reason(BIG, BIG, BIG, BIG) == (None, "numeric_overflow")  # was nan
+    # R5: exact cancellation (fsum, Decimal fallback) is 0; a true result beyond float overflows.
+    assert rsc_with_reason(BIG, BIG, BIG, BIG) == (0.0, None)
+    assert rsc_with_reason(BIG, BIG, 0.0, 0.0) == (None, "numeric_overflow")
     assert rsc_with_reason(None, 1.0, 1.0, 1.0) == (None, None)
-    assert compute_sar(5.0, BIG, BIG) is None and compute_rsc(BIG, BIG, 1.0, 1.0) is None
+    assert compute_rsc(BIG, BIG, 1.0, 1.0) is None
 
 
 def test_ordinary_values_are_unchanged():
@@ -128,7 +203,7 @@ def test_ordinary_values_are_unchanged():
 
 def test_an_overflowed_index_is_reported_as_not_computable_not_as_missing_data():
     out = analyze_water_sample(
-        WaterSample(sample_id="w1", na=5.0, ca=BIG, mg=BIG, co3=0.0, hco3=0.0, ec_dsm=0.5)
+        WaterSample(sample_id="w1", na=1e308, ca=TINY, mg=0.0, co3=BIG, hco3=BIG, ec_dsm=0.5)
     )
     assert out["indices"]["sar"] is None
     assert out["missing_inputs"] == []  # nothing is missing
@@ -152,8 +227,9 @@ def test_complete_valid_sample_reports_no_uncomputable_index():
     "values",
     [
         dict(na=1e308, ca=TINY, mg=0.0, co3=0.0, hco3=0.0, ec_dsm=0.5),
-        dict(na=5.0, ca=BIG, mg=BIG, co3=0.0, hco3=0.0, ec_dsm=0.5),
-        dict(na=1.0, ca=BIG, mg=BIG, co3=BIG, hco3=BIG, ec_dsm=0.5),
+        # Inputs whose true SAR exceeds float (R5 computes the BIG Ca+Mg cases instead).
+        dict(na=1e308, ca=TINY, mg=TINY, co3=0.0, hco3=0.0, ec_dsm=0.5),
+        dict(na=1e308, ca=TINY, mg=TINY, co3=BIG, hco3=BIG, ec_dsm=0.5),
     ],
 )
 def test_the_endpoint_answers_200_with_the_typed_reason_never_500(values):
@@ -173,7 +249,8 @@ def _blend(**ion):
 
 def test_blend_sar_overflow_is_a_typed_not_computable_not_ca_mg_zero():
     out = compute_blend_water_quality(
-        _blend(ec_ds_m=1.0, sodium_meq_l=1.0, calcium_meq_l=BIG, magnesium_meq_l=BIG)
+        # Blended Na/sqrt((Ca+Mg)/2) beyond float; BIG Ca+Mg alone is computable since R5.
+        _blend(ec_ds_m=1.0, sodium_meq_l=1e308, calcium_meq_l=TINY, magnesium_meq_l=TINY)
     )
     assert out["sar"]["status"] == "not_computable"
     assert out["sar"]["value"] is None

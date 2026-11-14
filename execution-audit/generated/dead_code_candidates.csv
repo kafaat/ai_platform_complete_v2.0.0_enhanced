@@ -162,6 +162,8 @@ medium,sahool-platform,class,PumpEngineeringContract,services/sahool-platform/ap
 medium,sahool-platform,class,EmitEventExecutionRequestPort,services/sahool-platform/api/irrigation_execution_request_port.py,83,0,review_before_delete,False
 medium,sahool-platform,function,resolve_source_paths,services/sahool-platform/api/irrigation_path_query.py,63,0,review_before_delete,False
 medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-platform/api/irrigation_reservation_adapter.py,334,0,review_before_delete,False
+medium,sahool-platform,function,live_water_sets,services/sahool-platform/api/lab_store.py,446,0,review_before_delete,False
+medium,sahool-platform,function,append_water_analysis_revision,services/sahool-platform/api/lab_store.py,457,0,review_before_delete,False
 medium,sahool-platform,function,plan_and_maybe_emit,services/sahool-platform/api/lexicographic_mpc_bridge.py,96,0,review_before_delete,False
 medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,825,0,review_before_delete,False
 medium,sahool-platform,function,should_fail,services/sahool-platform/api/offline_pending_db.py,71,0,review_before_delete,False
