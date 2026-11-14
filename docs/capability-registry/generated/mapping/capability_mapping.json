@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7339,
+    "files_scanned": 7341,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
-      "other": 2181,
-      "tests": 2500,
+      "other": 2182,
+      "tests": 2501,
       "web": 547
     },
-    "unmapped_artifacts": 3492,
+    "unmapped_artifacts": 3491,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3970,
+      "python_functional": 3972,
       "raw": 3369
     },
-    "test_dependency_files": 1900,
-    "test_dependency_edges": 4886,
+    "test_dependency_files": 1901,
+    "test_dependency_edges": 4891,
     "test_dependency_bounded_files": 1113,
     "test_dependency_unresolved_relations": 482
   },
@@ -13065,6 +13065,14 @@
       ],
       "events": [
         {
+          "value": "v168_irrigation_engineering_foundation.sql @ services/sahool-platform/tests/test_irrigation_water_contract_overflow.py:107",
+          "score": 12
+        },
+        {
+          "value": "waterFieldOps.ts @ services/sahool-platform/tests/test_irrigation_water_contract_overflow.py:127",
+          "score": 12
+        },
+        {
           "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:47",
           "score": 9
         }
@@ -13083,6 +13091,14 @@
         {
           "path": "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
           "score": 12,
+          "signals": [
+            "content:water quality",
+            "content:water sample"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py",
+          "score": 10,
           "signals": [
             "content:water quality",
             "content:water sample"
@@ -13108,10 +13124,10 @@
         "backend": 1,
         "routes": 6,
         "database": 8,
-        "events": 1,
+        "events": 3,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 1
       },
@@ -25562,6 +25578,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_water_lab_verdict_recompute_live_pg.py",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
           "path": "tools/sahool_qa/tests/test_postgres.py",
           "score": 9,
           "signals": [
@@ -26372,7 +26396,7 @@
         "events": 75,
         "web": 0,
         "mobile": 0,
-        "tests": 86,
+        "tests": 87,
         "governance": 0,
         "other_evidence": 89
       },
@@ -40500,10 +40524,6 @@
     },
     {
       "path": "services/sahool-platform/tests/test_irrigation_state_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py",
       "kind": "tests"
     },
     {
@@ -62360,28 +62380,35 @@
     },
     {
       "test": "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
       "edges": [
         {
           "source": "services/sahool-platform/api/api_models.py",
           "kind": "import",
-          "line": 45
+          "line": 50
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 52
+          "line": 57
         },
         {
           "source": "services/sahool-platform/api/routers/irrigation.py",
           "kind": "import",
-          "line": 53
+          "line": 58
+        },
+        {
+          "source": "services/sahool-platform/api/routers/soil_sampling.py",
+          "kind": "import",
+          "line": 148
         },
         {
           "source": "services/sahool-platform/core/irrigation_water_analysis.py",
           "kind": "import",
-          "line": 23
+          "line": 27
         }
       ],
       "unresolved": []
@@ -93743,6 +93770,34 @@
           "source": "services/sahool-platform/api/water_efficiency.py",
           "kind": "import",
           "line": 22
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_water_lab_verdict_recompute_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "scripts/ops/recompute_water_lab_verdicts.py",
+          "kind": "loader",
+          "line": 44
+        },
+        {
+          "source": "scripts/ops/recompute_water_lab_verdicts.py",
+          "kind": "source_read",
+          "line": 31
+        },
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 320
+        },
+        {
+          "source": "services/sahool-platform/api/lab_store.py",
+          "kind": "import",
+          "line": 320
         }
       ],
       "unresolved": []

@@ -5238,12 +5238,18 @@
           "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py",
+          "signal": "pytest.mark.unit"
         }
       ],
       "title": "Water quality samples",
       "unit_test_paths": [
         "services/sahool-platform/tests/test_irrigation_blend_water_quality.py",
-        "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py"
+        "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
+        "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py"
       ]
     },
     {
@@ -10876,7 +10882,8 @@
         "tests_v9/test_v197_external_submissions_rls_live.py",
         "tests_v9/test_v198_ingest_resolver_owner_live.py",
         "tests_v9/test_v237_tenant_isolation_live_pg.py",
-        "tests_v9/test_v238_actuator_delivery_state_live_pg.py"
+        "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
+        "tests_v9/test_water_lab_verdict_recompute_live_pg.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -11299,6 +11306,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_v9_odoo_rls_hardening_static.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_water_lab_verdict_recompute_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",
