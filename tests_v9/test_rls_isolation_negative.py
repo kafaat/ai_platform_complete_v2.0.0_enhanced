@@ -150,7 +150,9 @@ async def test_an_insert_policy_with_check_true_is_still_reported(conn):
                     " WITH CHECK (tenant_id::text = current_setting('app.current_tenant', true));"
                 )
             except asyncpg.InsufficientPrivilegeError:
-                pytest.skip("no DDL privilege for the negative control (set TEST_DATABASE_ADMIN_URL)")
+                pytest.skip(
+                    "no DDL privilege for the negative control (set TEST_DATABASE_ADMIN_URL)"
+                )
             bad = await _policies_without_tenant_context(c)
         finally:
             await tx.rollback()
