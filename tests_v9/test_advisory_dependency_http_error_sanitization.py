@@ -77,7 +77,7 @@ async def test_upstream_response_body_is_never_reflected(
     assert len(correlation) == 32
     assert secret not in str(error.detail)
     assert secret not in caplog.text
-    assert ("upstream_status=%s" % http_status) in caplog.text
+    assert f"upstream_status={http_status}" in caplog.text
     assert visited == (
         ["knowledge-graph"]
         if dependency == "knowledge-graph"
