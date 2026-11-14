@@ -6565,7 +6565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b503308bc4565bb90cc70dce68c1b9b31006759c1092aa440837c6d4aa3ebbac"
+          "content": "4e82e42b60cbffd60899a22c73c8645c77ed5f076ca792bd2f3d1409ebb58635"
         }
       ],
       "name": "frontend/src/sections/ManagerConsolePage.tsx",
@@ -7465,7 +7465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b87705ae4f48f05d242ba008737adbfe160f3428a3402dd05b1df5ec2c6803a0"
+          "content": "721997b282b33247b55189d99cdfb5156a35f9b315b920865b7fff92dfe9254e"
         }
       ],
       "name": "frontend/src/services/api/auth.ts",

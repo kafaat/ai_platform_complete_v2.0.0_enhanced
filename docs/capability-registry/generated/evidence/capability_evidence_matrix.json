@@ -1729,6 +1729,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "tests_v9/test_tenant_provision_response_shape.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_tenant_provisioning.py",
           "signal": "pytest.mark.unit"
         },
