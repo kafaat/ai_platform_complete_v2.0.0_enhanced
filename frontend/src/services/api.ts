@@ -71,7 +71,7 @@ export {
   deactivateUser,
 } from './api/auth';
 // إعادة التصدير أعلاه لا تربط الأسماء في نطاق هذه الوحدة — الواجهة تستخدمها داخليّاً.
-import { asApiError, apiErrorMessage } from './api/auth';
+import { asApiError } from './api/auth';
 import { getAccessToken } from '../lib/authStorage';
 export type {
   LoginPayload,
