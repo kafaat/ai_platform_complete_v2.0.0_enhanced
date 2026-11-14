@@ -186,12 +186,14 @@ async def _lifespan(_: FastAPI):
     try:
         await _warn_weak_dev_jwt_secret()
         await _init_db_pool()
+        _start_denial_store()
         await _start_scheduler()
         await _start_outbox_worker()
         yield
     finally:
         await _stop_outbox_worker()
         await _stop_scheduler()
+        await _stop_denial_store()
         await _close_db_pool()
 
 
@@ -590,6 +592,26 @@ async def _stop_scheduler():
     from api.scheduler import scheduler
 
     await scheduler.stop()
+
+
+def _start_denial_store():
+    """Persist security denials to audit_log (core.tenant_audit.DenialStore) when a pool exists.
+
+    Recording stays an in-memory append; a background task writes batches. No pool ⇒ unbound,
+    and the denial log stays in process memory as before.
+    """
+    from core.tenant_audit import DENIAL_STORE
+
+    if _DB_POOL is not None:
+        DENIAL_STORE.bind(lambda: _DB_POOL)
+        DENIAL_STORE.start()
+
+
+async def _stop_denial_store():
+    """Stop the writer and flush what is pending, before the pool closes."""
+    from core.tenant_audit import DENIAL_STORE
+
+    await DENIAL_STORE.stop()
 
 
 async def _close_db_pool():
