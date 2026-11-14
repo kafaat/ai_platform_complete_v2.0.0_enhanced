@@ -1,7 +1,6 @@
-"""One readiness decision for the advisor and the live RAG certification tool.
+"""Advisor and RAG live certification share one readiness decision.
 
-These are pure, non-network tests. Runtime E2E and RAG authority cutover must
-still be certified separately with deployment and tenant-bound receipts.
+These are pure checks; operational readiness does not grant RAG cutover.
 """
 
 from pathlib import Path
@@ -22,7 +21,6 @@ def _usable() -> dict:
         "collection_vector_schema_parity": True,
         "sparse_index_hydrated": True,
         "sparse_index_count": 5,
-        # Retrieval may be operational during parity, but not yet authoritative.
         "canonical_payload_parity": False,
     }
 
@@ -31,53 +29,57 @@ def test_ready_is_an_operational_claim_not_an_authority_cutover():
     assert rag_operational_ready(_usable())
 
 
-@pytest.mark.parametrize(
-    "missing",
-    [
+def test_missing_proof_is_not_ready():
+    for key in (
         "status",
         "embedding_contract_parity",
         "collection_vector_schema_parity",
         "sparse_index_hydrated",
         "sparse_index_count",
-    ],
-)
-def test_missing_proof_is_not_ready(missing):
-    payload = _usable()
-    payload.pop(missing)
-    assert not rag_operational_ready(payload)
+    ):
+        payload = _usable()
+        payload.pop(key)
+        assert not rag_operational_ready(payload), key
 
 
-@pytest.mark.parametrize("count", [0, -1, None, True, False, "5", 5.0])
-def test_sparse_index_requires_a_positive_integer(count):
-    payload = _usable()
-    payload["sparse_index_count"] = count
-    assert not rag_operational_ready(payload)
+def test_explicit_unready_and_invalid_ready_flags_fail_closed():
+    for value in (False, None, 0, "false", "true"):
+        payload = _usable()
+        payload["ready"] = value
+        assert not rag_operational_ready(payload), value
 
 
-@pytest.mark.parametrize(
-    "name",
-    [
+def test_sparse_index_requires_a_positive_integer():
+    for count in (0, -1, None, True, False, "5", 5.0):
+        payload = _usable()
+        payload["sparse_index_count"] = count
+        assert not rag_operational_ready(payload), count
+
+
+def test_parity_flags_must_be_exact_true():
+    for name in (
         "embedding_contract_parity",
         "collection_vector_schema_parity",
         "sparse_index_hydrated",
-    ],
-)
-def test_missing_operational_parity_blocks_readiness(name):
-    payload = _usable()
-    payload[name] = False
-    assert not rag_operational_ready(payload)
+    ):
+        for value in (False, None, 1, "true"):
+            payload = _usable()
+            payload[name] = value
+            assert not rag_operational_ready(payload), (name, value)
 
 
-@pytest.mark.parametrize("value", [None, [], "ready", True])
-def test_unexpected_response_type_fails_closed(value):
-    assert not rag_operational_ready(value)
+def test_unexpected_response_type_fails_closed():
+    for value in (None, [], "ready", True):
+        assert not rag_operational_ready(value)
 
 
 def test_advisor_and_certification_reference_same_predicate():
-    advisor = (ROOT / "services/ai_agronomist/main.py").read_text(encoding="utf-8")
-    live_cert = (ROOT / "scripts/ci/ai_rag_live_certification.py").read_text(
+    advisor = (ROOT / "services/ai_agronomist/main.py").read_text(
+        encoding="utf-8"
+    )
+    cert = (ROOT / "scripts/ci/ai_rag_live_certification.py").read_text(
         encoding="utf-8"
     )
     assert "rag_operational_ready(rag)" in advisor
-    assert "rag_operational_ready(r)" in live_cert
-    assert "ready.status == 200 and rag_operational_ready(r)" in live_cert
+    assert "rag_operational_ready(r)" in cert
+    assert "ready.status == 200 and rag_operational_ready(r)" in cert
