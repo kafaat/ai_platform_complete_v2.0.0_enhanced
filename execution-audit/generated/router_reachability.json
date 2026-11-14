@@ -100,7 +100,7 @@
     },
     {
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.auth.routers.email_verify",
       "node_id": "services.auth.routers.email_verify:router",
       "route_count": 4,
@@ -154,7 +154,7 @@
     },
     {
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.auth.routers.season_edge_sign",
       "node_id": "services.auth.routers.season_edge_sign:router",
       "route_count": 1,
@@ -532,7 +532,7 @@
     },
     {
       "kind": "app",
-      "line": 199,
+      "line": 200,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -2955,7 +2955,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "a9767620158a17e192c4b0b87b6f5cfd490abc6ca88c90444b21557d1efc59e9",
+  "inventory_sha256": "84ca3754a283b8ad133cf27d579a465a8c1144c792b18e4704db611c96133d6b",
   "orphan_candidate_count": 236,
   "orphan_candidates": [
     {
@@ -2991,7 +2991,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.auth.routers.email_verify",
       "node_id": "services.auth.routers.email_verify:router",
       "route_count": 4,
@@ -3051,7 +3051,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 37,
+      "line": 38,
       "module": "services.auth.routers.season_edge_sign",
       "node_id": "services.auth.routers.season_edge_sign:router",
       "route_count": 1,

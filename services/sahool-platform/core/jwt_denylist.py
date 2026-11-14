@@ -10,8 +10,9 @@
 
 ⚠ المبدأ:
   • ``is_token_revoked``/``is_token_below_floor`` **fail-open**: تعذّر الفحص ⇒ False + تحذير.
-    ``revocation_status`` يميّز «تعذّر التحقّق» صراحةً، والمنصّة تبني عليه سياستها: الإنتاج
-    fail-closed بـ503 ``token_revocation_unverifiable``، وغيره يُسمَح مع تحذير (C-02).
+    ``revocation_status`` يميّز «تعذّر التحقّق» صراحةً، و``unverifiable_allows`` يقرّر عليه:
+    الفعل الآمن (GET/HEAD/OPTIONS) يمرّ بتحذير في كلّ بيئة (قرار المالك 2026-11-14)، وغيره
+    في الإنتاج fail-closed بـ503 ``token_revocation_unverifiable``، وخارجه يُسمَح مع تحذير (C-02).
   • نفس مخطّط مفتاح خدمة auth (لا مخطّط موازٍ): `sahool:jti:revoked:{jti}`.
   • نقيّة قابلة للاختبار offline (backend ذاكرة).
 """
@@ -177,3 +178,41 @@ def revocation_status(backend: DenylistBackend | None, payload: Mapping[str, Any
             logger.warning("تعذّر فحص أرضيّة توكن sub=%s: %s", sub, e)
             unverifiable = True
     return REVOCATION_UNVERIFIABLE if unverifiable else REVOCATION_OK
+
+
+# ─── السياسة على «تعذّر التحقّق»: القراءة الآمنة تمرّ، والكتابة تُرفَض في الإنتاج ─────────
+# قرار المالك (2026-11-14، docs/AUTH_DENYLIST_DESIGN.md): ما دام مخزن الإبطال ساقطاً أثناء
+# التشغيل تستمرّ القراءات الآمنة ويبقى رفض الكتابة. الإقلاع بلا Redis في الإنتاج يبقى رفضاً
+# (``api.main._build_denylist``): ذلك خطأ نشر لا انقطاع. المخاطرة المتبقّية: توكنٌ مُبطَل يقرأ
+# حتّى يعود المخزن، محدودةً بعمر التوكن.
+SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+READ_ALLOWED_REASON = "REVOCATION-STORE-UNAVAILABLE-READ-ALLOWED"
+
+
+def unverifiable_allows(method: str | None, *, production: bool) -> bool:
+    """هل يمضي طلبٌ تعذّر التحقّق من إبطال توكنه؟ (المُبطَل المُثبَت 401 قبل هذا دائماً).
+
+    - فعلٌ آمن (``SAFE_METHODS``) ⇒ يمضي في كلّ بيئة، مع WARNING يحمل ``READ_ALLOWED_REASON``.
+    - غيره، أو لا فعل معروف (مستدعٍ مباشر بلا طلب) ⇒ يُرفَض في الإنتاج (503 عند المستدعي).
+    - خارج الإنتاج ⇒ يمضي مع تحذير، كما كان قبل هذا القرار (C-02).
+    """
+    verb = str(method or "").upper()
+    if verb in SAFE_METHODS:
+        logger.warning("%s: token revocation unverifiable; %s allowed", READ_ALLOWED_REASON, verb)
+        return True
+    if production:
+        return False
+    logger.warning("token revocation unverifiable (non-production): request allowed")
+    return True
+
+
+# ─── المسارات الصارمة (مراجعة #1449): GET لا يكفي ليكون قراءةً آمنة ─────────────────────
+# GET مُبوَّبٌ بصلاحية إدارة/منصّة (break-glass يقرأ مستأجِراً آخر ويحدّث عدّاده، تصدير ISOXML
+# يُدرِج صفّاً) ليس قراءةً آمنة. فـ``require_permission`` صارمٌ افتراضيّاً لكلّ صلاحية خارج
+# ``READ_PERMISSION_SUFFIX``، والمسار ذو الأثر الجانبيّ تحت صلاحية عرض يُعلِن صرامته صراحةً.
+READ_PERMISSION_SUFFIX = ":view"
+
+
+def strict_revocation_for(permission_value: str) -> bool:
+    """هل يُرفَض المسارُ المُبوَّب بهذه الصلاحية حين يتعذّر التحقّق من الإبطال، أيّاً كان فعله؟"""
+    return not str(permission_value).endswith(READ_PERMISSION_SUFFIX)

@@ -272,7 +272,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 23,
+    "line": 24,
     "method": "POST",
     "path": "/v1/auth/verify/request",
     "handler": "verify_request",
@@ -281,7 +281,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 56,
+    "line": 57,
     "method": "POST",
     "path": "/v1/auth/verify/confirm",
     "handler": "verify_confirm",
@@ -290,7 +290,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 98,
+    "line": 99,
     "method": "GET",
     "path": "/v1/auth/verify",
     "handler": "verify",
@@ -299,7 +299,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 108,
+    "line": 115,
     "method": "GET",
     "path": "/v1/auth/verify/status",
     "handler": "verify_status",
@@ -443,7 +443,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/season_edge_sign.py",
-    "line": 41,
+    "line": 42,
     "method": "GET",
     "path": "/v1/auth/edge-sign",
     "handler": "edge_sign",

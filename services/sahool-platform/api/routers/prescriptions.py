@@ -393,7 +393,9 @@ async def export_prescription(
         None, description="ISOXML dev فقط — وحدات المُتحكِّم مفصولة بفواصل"
     ),
     crop: str | None = Query(None, description="ISOXML: المحصول (وصفيّ)"),
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+    # صارم (مراجعة #1449): GET يُدرِج machinery_export_artifacts ويفحص EQUIPMENT_MANAGE ⇒ لا يمرّ
+    # والإبطال مجهول.
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW, strict_revocation=True)),
 ):
     """يصدّر الوصفة المحفوظة لأجهزة التنفيذ.
 

@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7342,
+    "files_scanned": 7343,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2181,
-      "tests": 2503,
+      "tests": 2504,
       "web": 547
     },
-    "unmapped_artifacts": 3494,
+    "unmapped_artifacts": 3495,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3973,
+      "python_functional": 3974,
       "raw": 3369
     },
-    "test_dependency_files": 1903,
-    "test_dependency_edges": 4895,
+    "test_dependency_files": 1904,
+    "test_dependency_edges": 4900,
     "test_dependency_bounded_files": 1115,
-    "test_dependency_unresolved_relations": 482
+    "test_dependency_unresolved_relations": 485
   },
   "capabilities": [
     {
@@ -6499,7 +6499,7 @@
           "score": 14
         },
         {
-          "value": "/v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:40",
+          "value": "/v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
           "score": 14
         },
         {
@@ -11933,7 +11933,7 @@
           "score": 17
         },
         {
-          "value": "sahool.api @ services/sahool-platform/api/main.py:83",
+          "value": "sahool.api @ services/sahool-platform/api/main.py:84",
           "score": 15
         },
         {
@@ -12743,15 +12743,15 @@
           "score": 20
         },
         {
-          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:595",
+          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:597",
           "score": 20
         },
         {
-          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:441",
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:443",
           "score": 20
         },
         {
-          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:549",
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:551",
           "score": 20
         },
         {
@@ -28459,6 +28459,10 @@
       ],
       "events": [
         {
+          "value": "sahool.jwt_denylist @ tests_v9/test_platform_revocation_unverifiable_fail_closed.py:130",
+          "score": 13
+        },
+        {
           "value": "background_tasks.add_task @ tests_v9/test_erp_bridge_fail_closed.py:160",
           "score": 11
         },
@@ -28479,15 +28483,15 @@
           ]
         },
         {
-          "path": "tests_v9/test_critical_event_fail_closed.py",
-          "score": 12,
+          "path": "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
+          "score": 13,
           "signals": [
             "path:fail closed",
             "content:fail closed"
           ]
         },
         {
-          "path": "tests_v9/test_platform_revocation_unverifiable_fail_closed.py",
+          "path": "tests_v9/test_critical_event_fail_closed.py",
           "score": 12,
           "signals": [
             "path:fail closed",
@@ -28566,7 +28570,7 @@
         "backend": 0,
         "routes": 0,
         "database": 4,
-        "events": 2,
+        "events": 3,
         "web": 0,
         "mobile": 0,
         "tests": 10,
@@ -42572,6 +42576,10 @@
     },
     {
       "path": "tests_v9/test_auth_main_decomposition_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_auth_revocation_outage_read_policy.py",
       "kind": "tests"
     },
     {
@@ -73044,12 +73052,12 @@
         {
           "source": "tests_v9/service_module.py",
           "kind": "import",
-          "line": 79
+          "line": 84
         }
       ],
       "unresolved": [
         {
-          "line": 88,
+          "line": 93,
           "call": "spec_from_file_location"
         }
       ]
@@ -73327,6 +73335,50 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_auth_revocation_outage_read_policy.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "services/auth/routers/email_verify.py",
+          "kind": "import",
+          "line": 224
+        },
+        {
+          "source": "services/auth/routers/season_edge_sign.py",
+          "kind": "import",
+          "line": 225
+        },
+        {
+          "source": "services/auth/session_tokens.py",
+          "kind": "source_read",
+          "line": 314
+        },
+        {
+          "source": "services/sahool-platform/core/jwt_denylist.py",
+          "kind": "source_read",
+          "line": 315
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 50,
+          "call": "spec_from_file_location"
+        },
+        {
+          "line": 184,
+          "call": "spec_from_file_location"
+        },
+        {
+          "line": 317,
+          "call": "spec_from_file_location"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_auth_rls_and_routing.py",
@@ -85189,12 +85241,17 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 40
+          "line": 44
+        },
+        {
+          "source": "services/sahool-platform/core/authorization.py",
+          "kind": "import",
+          "line": 295
         },
         {
           "source": "services/sahool-platform/core/jwt_denylist.py",
           "kind": "import",
-          "line": 97
+          "line": 104
         }
       ],
       "unresolved": []

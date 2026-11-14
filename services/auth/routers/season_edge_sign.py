@@ -26,7 +26,8 @@ from datetime import UTC, datetime
 from typing import Annotated
 
 import main  # الخدمة تُشغَّل من جذرها؛ نمط routers.* ⇒ import main (register_routers في النهاية)
-from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response, status
+from session_tokens import refuse_unknown_revocation
 
 from shared.security.trusted_tenant import (
     compute_edge_attestation,
@@ -39,12 +40,15 @@ router = APIRouter()
 
 @router.get("/v1/auth/edge-sign")
 async def edge_sign(
+    request: Request,
     response: Response,
     user: Annotated[dict, Depends(main.get_current_user)],
     x_canonical_method: Annotated[str | None, Header(alias="X-Canonical-Method")] = None,
     x_canonical_path: Annotated[str | None, Header(alias="X-Canonical-Path")] = None,
 ) -> dict:
     """Sign a destination-bound edge attestation for the gateway (accept path). Headers out."""
+    # This GET signs for a POST: revocation state unknown (store down) ⇒ 503, never a signature.
+    refuse_unknown_revocation(request)
     # nginx **must** declare the canonical destination; missing ⇒ misconfig ⇒ deny (fail-closed).
     method = (x_canonical_method or "").strip().upper()
     path = (x_canonical_path or "").strip()

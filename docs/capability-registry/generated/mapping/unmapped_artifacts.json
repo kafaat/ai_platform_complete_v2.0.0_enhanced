@@ -11008,6 +11008,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_auth_revocation_outage_read_policy.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_auth_rs256_production.py",
     "kind": "tests"
   },
