@@ -52,16 +52,12 @@ def test_etc_dual_backend_still_uses_canonical_weather_engine() -> None:
 
 def test_negative_control_detects_synthetic_browser_fallback() -> None:
     src = _client_source()
-    anchor = "// ET0/ETc are owned by the backend weather and crop engines."
-    assert anchor in src
-    injected = (
-        "function "
-        + LEGACY_LOCAL_FUNCTION
-        + "() { return {stage: '"
-        + LEGACY_STAGE
-        + "'}; }\n"
-    )
-    mutant = src.replace(anchor, injected + anchor, 1)
-    assert mutant != src
+    mutant_function = src + f"\nfunction {LEGACY_LOCAL_FUNCTION}() {{}}\n"
+    assert mutant_function != src
     with pytest.raises(AssertionError):
-        _assert_canonical_client(mutant)
+        _assert_canonical_client(mutant_function)
+
+    mutant_stage = src + f"\nconst displayStage = '{LEGACY_STAGE}';\n"
+    assert mutant_stage != src
+    with pytest.raises(AssertionError):
+        _assert_canonical_client(mutant_stage)
