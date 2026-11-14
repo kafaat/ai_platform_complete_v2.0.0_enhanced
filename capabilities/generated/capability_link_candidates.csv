@@ -383,6 +383,7 @@ FM-001,test,tests_v9/test_decision_consistency_auth.py,3,applied
 FM-001,test,tests_v9/test_decision_service_auth_is_activatable.py,3,applied
 FM-001,test,tests_v9/test_dev_gateway_raster_tile_auth_guard.py,3,applied
 FM-001,test,tests_v9/test_endpoint_auth_coverage.py,3,applied
+FM-001,test,tests_v9/test_field_timeline_tenant_scope_live_pg.py,3,applied
 FM-001,test,tests_v9/test_mcp_auth_first_contract.py,3,applied
 FM-001,test,tests_v9/test_mcp_generic_context_auth.py,3,applied
 FM-001,test,tests_v9/test_nginx_tenant_injection_guard.py,3,applied
@@ -552,7 +553,7 @@ FM-003,api,GET /api/v1/fields/{field_id}/state/full @ services/sahool-platform/a
 FM-003,api,GET /api/v1/fields/{field_id}/sustainability @ services/sahool-platform/api/routers/reports.py:219,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1003,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/twin @ services/sahool-platform/api/routers/field_twin.py:39,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:32,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:34,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/water-efficiency @ services/sahool-platform/api/routers/water_ledger.py:197,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/water-ledger @ services/sahool-platform/api/routers/water_ledger.py:145,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3825,4,applied
@@ -980,6 +981,7 @@ FM-003,test,tests_v9/test_field_state_unification.py,3,applied
 FM-003,test,tests_v9/test_field_sustainability.py,3,applied
 FM-003,test,tests_v9/test_field_task_on_api_field_live_pg.py,3,applied
 FM-003,test,tests_v9/test_field_terrain_foundation_v31_2.py,3,applied
+FM-003,test,tests_v9/test_field_timeline_tenant_scope_live_pg.py,3,applied
 FM-003,test,tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py,5,applied
 FM-003,test,tests_v9/test_fields_geometry_integrity_v39_5.py,3,applied
 FM-003,test,tests_v9/test_fields_merge_split_atomic.py,3,applied
@@ -2054,7 +2056,7 @@ SAT-005,test,tests_v9/test_imagery_aoi_cloud_contract.py,3,applied
 SAT-006,api,GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571,2,applied
 SAT-006,api,GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:944,2,applied
 SAT-006,api,GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87,2,applied
-SAT-006,api,GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:32,2,applied
+SAT-006,api,GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:34,2,applied
 SAT-006,api,GET /api/v1/weather/historical @ services/sahool-platform/api/routers/weather.py:2098,2,applied
 SAT-006,api,GET /api/v1/weather/history/coverage @ services/sahool-platform/api/routers/operational_truth.py:203,2,applied
 SAT-006,api,GET /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:172,2,applied
@@ -2090,6 +2092,7 @@ SAT-006,test,tests_v9/test_backfill_incremental_retry_guard_v31_1.py,3,applied
 SAT-006,test,tests_v9/test_backfill_scene_job_threadpool_v30_3.py,3,applied
 SAT-006,test,tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py,3,applied
 SAT-006,test,tests_v9/test_decision_review_backfill_verify.py,3,applied
+SAT-006,test,tests_v9/test_field_timeline_tenant_scope_live_pg.py,3,applied
 SAT-006,test,tests_v9/test_historical_imagery_timeline_contract.py,5,applied
 SAT-006,test,tests_v9/test_historical_search_cdse_v30_8.py,3,applied
 SAT-006,test,tests_v9/test_historical_season_bridge_static.py,3,applied

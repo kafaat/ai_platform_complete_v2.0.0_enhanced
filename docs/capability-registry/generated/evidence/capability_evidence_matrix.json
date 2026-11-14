@@ -1557,6 +1557,7 @@
       },
       "integration_test_paths": [
         "tests_v9/test_auth_admin_tenant_scope_live_pg.py",
+        "tests_v9/test_field_timeline_tenant_scope_live_pg.py",
         "tests_v9/test_v237_tenant_isolation_live_pg.py",
         "tests_v9/test_v241_edge_idempotency_tenant_scoped.py"
       ],
@@ -1651,6 +1652,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_automation_status_tenant_isolation.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_field_timeline_tenant_scope_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",
