@@ -21,11 +21,9 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
-from api.sharing import (
-    SharingKeyService,
-    SharingScope as _SScope,
-    ThirdPartyType as _TPType,
-)
+from api.sharing import SharingKeyService
+from api.sharing import SharingScope as _SScope
+from api.sharing import ThirdPartyType as _TPType
 
 router = APIRouter()
 
