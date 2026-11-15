@@ -2704,6 +2704,14 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v278_harvest_custody_integrity.down.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v278_harvest_custody_integrity.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },
@@ -12109,6 +12117,10 @@
   },
   {
     "path": "tests_v9/test_harvest_custody_integrity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_harvest_custody_live_pg.py",
     "kind": "tests"
   },
   {

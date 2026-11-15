@@ -4915,7 +4915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7b3c69f1018f3c55e2b4384071d4d37d307c158efdac66737235c86879f2ed0"
+          "content": "f2bc088439663c775f23388c48cb893447236fcba275a6fda6357e5af5caddbc"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -7995,7 +7995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b809faa11c685c163dc1fcfacc3253d493b7a3024df0ece9b80f75cd5418682d"
+          "content": "42babe621e42bff6c8b294d0b392c90ff239a6aa0fb6770c4aff6bd29276d379"
         }
       ],
       "name": "migrations/MANIFEST.md",
@@ -8005,7 +8005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4a7666d9b47c35a0bdace763afc5a431d4f9e8abfe319a6c3a80f34170f692c"
+          "content": "18f0ffcca29cf2bda17bc642135594643b79d09a7172ff5d44ce5764459d8671"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8075,7 +8075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc9d923dda3375e24df55b9c9af8a436679e481f089ddcc94fc3b6986a7352fa"
+          "content": "93f0a198f0f4a150070e035188cfd38a67703a6b6ad66d15069eaf83bdbbc56b"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -9909,6 +9909,26 @@
         }
       ],
       "name": "migrations/v277_inspection_close_gate.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "03b7c9116ff67be8fb9dbf8cb912cdb0018d363504b56c3e83e0129223008a1b"
+        }
+      ],
+      "name": "migrations/v278_harvest_custody_integrity.down.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8cd04b01f60193bf9440353f07f34594d9dc56b1daa204ee25ef52f255c78769"
+        }
+      ],
+      "name": "migrations/v278_harvest_custody_integrity.sql",
       "type": "file"
     },
     {
@@ -20955,7 +20975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0e3dc7e97174349302a3486d68388d0b0dc56ebb29ff3d190e0c673e4b396694"
+          "content": "a9eaa0962d3bbcbb4e6aa8a34b8265c0ab40d0fe5d18c85eebd6a430c2e37805"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -25345,7 +25365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5a8fad99132e539bc26063f9bac86b910de84c926b812b9af7d932534f88128"
+          "content": "e6a11ccb8d54f178e56edec2970feaf516f613eba546da6b5c3c971cf590e869"
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
@@ -27185,7 +27205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c81d42ae048e16bd84bb8392a9f26b3e79baf6aa69bab0e17f9d94db5e2be4bf"
+          "content": "a14b73ae011bbca21ab9d4740196e5e323f5303b552b422b199ff51f1c9cff73"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

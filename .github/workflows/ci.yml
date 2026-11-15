@@ -1602,6 +1602,17 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           FIELD_TASK_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_field_task_inspection_live_pg.py
+      # v278 (owner decisions 2 and 3): custody events append-only (UPDATE/DELETE/TRUNCATE refused),
+      # lots and fields with a custody chain not erased by cascade (RESTRICT), lot identity
+      # immutable, and market listings checked against the lot remainder under its row lock; per
+      # trigger a negative control in a rolled-back owner transaction. The flag turns any skip into
+      # a failure; the owner URL seeds rows only.
+      - name: Harvest custody integrity and market lot link (v278, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          HARVEST_CUSTODY_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_harvest_custody_live_pg.py
 
       # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
       # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real
