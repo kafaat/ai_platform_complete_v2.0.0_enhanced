@@ -376,6 +376,23 @@ def _utc_timestamp() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def _trusted_crop_for_retrieval(
+    requested_crop: str | None,
+    field_state: dict[str, Any] | None,
+    field_id: str | None,
+) -> str | None:
+    """Field queries use the owner-read crop card, not the client's claim."""
+    if not field_id:
+        return requested_crop.strip() if isinstance(requested_crop, str) and requested_crop.strip() else None
+    pack = _extract_ai_context_pack(field_state)
+    reference = (pack or {}).get("crop_knowledge") or {}
+    if isinstance(reference, dict) and reference.get("status") == "reference_only":
+        crop_id = reference.get("crop_id")
+        if isinstance(crop_id, str) and crop_id.strip():
+            return crop_id
+    return None
+
+
 def _build_agent_tool_fetcher(
     *,
     field_state: dict[str, Any] | None,
@@ -912,26 +929,24 @@ async def build_evidence_response(
             ):
                 raise HTTPException(403, "voice_local_policy_required")
 
-        # SEMANTIC-CONVERGENCE-01: resolve reference KG context first, then use it only
-        # to expand RAG retrieval. KG remains reference-only and never becomes decision evidence.
-        async with _dependency_boundary("knowledge-graph", 5.0):
-            kg_resp = await client.get(
-                f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
-                params={"subject_id": req.crop} if req.crop else {},
-                # C2: forward the trusted tenant so knowledge-graph enforces its C5 read
-                # guard (require_trusted_tenant) on this internal service-to-service call.
-                headers={"X-Tenant-Id": tenant_id},
-                timeout=5.0,
-            )
-        if kg_resp.status_code >= 500:
-            raise _dependency_http_failure("knowledge-graph", kg_resp.status_code)
-        # ٤xx من KG (رفض حارس المستأجر مثلاً) يُهبَط به فاشلاً-مغلقاً إلى «لا حواف»،
-        # لكنّ الهبوط **يُعلَن**: بدونه يصير «KG لم يُجِب» مطابقاً حرفيّاً لـ«KG لم يجد
-        # شيئاً» في الاستجابة، وكلاهما `edges: []`. وهو تدهورُ توافريّةٍ يجب أن يكون
-        # صريحاً لا مُلفَّقاً دلاليّاً — فالمستهلك يقرأ ثقةً محسوبةً بلا دليل رسمٍ بيانيّ
-        # ولا شيء يقول له إنّ المصدر كان غائباً.
-        kg_available = kg_resp.status_code < 400
-        kg_payload = kg_resp.json() if kg_available else {"edges": []}
+        # The tenant's active season, not the request body, selects the crop.
+        retrieval_crop = _trusted_crop_for_retrieval(req.crop, field_state, req.field_id)
+        if retrieval_crop:
+            async with _dependency_boundary("knowledge-graph", 5.0):
+                kg_resp = await client.get(
+                    f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
+                    params={"subject_id": retrieval_crop},
+                    headers={"X-Tenant-Id": tenant_id},
+                    timeout=5.0,
+                )
+            if kg_resp.status_code >= 500:
+                raise _dependency_http_failure("knowledge-graph", kg_resp.status_code)
+            kg_available = kg_resp.status_code < 400
+            kg_payload = kg_resp.json() if kg_available else {"edges": []}
+        else:
+            # No indiscriminate graph enumeration when crop is unknown.
+            kg_available = False
+            kg_payload = {"edges": []}
         retrieval_query, graph_terms = _graph_conditioned_retrieval_query(req.question, kg_payload)
 
         async with _dependency_boundary("rag-retrieval", 10.0):
@@ -940,7 +955,7 @@ async def build_evidence_response(
                 json={
                     "tenant_id": tenant_id,
                     "query": retrieval_query,
-                    "crop": req.crop,
+                    "crop": retrieval_crop,
                     "field_id": req.field_id,
                     "region": req.region,
                     "source_type": None,
@@ -1224,6 +1239,7 @@ async def build_evidence_response(
         "message": answer_ar,
         "tenant_id": tenant_id,
         "field_id": req.field_id,
+        "retrieval_crop": retrieval_crop,
         "selected_imagery_date": req.selected_imagery_date,
         "selected_model": req.model,
         # النسبةُ للجواب الظاهر فقط؛ المحاولةُ تبقى مقيسةً في ``generation_attempted_*``.
