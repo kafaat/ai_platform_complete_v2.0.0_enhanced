@@ -1863,10 +1863,10 @@
   "policy": "evidence-derived-fail-closed",
   "schema_version": "1.0",
   "summary": {
-    "aligned": 37,
-    "average_assessed_maturity": 1.99,
+    "aligned": 38,
+    "average_assessed_maturity": 2.0,
     "capability_count": 81,
-    "declared_above_evidence": 41,
+    "declared_above_evidence": 40,
     "evidence_above_declared": 3,
     "production_certified": 0,
     "promotion_preconditions_satisfied": 0,

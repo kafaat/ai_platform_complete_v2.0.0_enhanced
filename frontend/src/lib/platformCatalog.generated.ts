@@ -14,13 +14,13 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = '42171faafd6938124ca0d827e6dc39b38d927a1a5b9a8020e783863301af0064';
+export const PLATFORM_CATALOG_FINGERPRINT = 'e2b2ae5f6030279a4888611db516003de79ff81dedd0b74e835929a6c05ae312';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 33,
-  "capabilities": 842,
+  "capabilities": 845,
   "capabilities_approval_gated": 6,
-  "capabilities_field_scoped": 98,
+  "capabilities_field_scoped": 99,
   "capabilities_idempotent": 75,
   "capabilities_season_scoped": 10,
   "capabilities_tenant_scoped": 481,
@@ -29,9 +29,9 @@ export const PLATFORM_CATALOG_COUNTS = {
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1160,
+  "route_rows": 1169,
   "ui_waivers": 52,
-  "unique_method_path": 1039
+  "unique_method_path": 1048
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
@@ -99,7 +99,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 2,
+    "capabilityCount": 5,
     "domain": "fields-internal",
     "id": "field-management-service",
     "tested": true,

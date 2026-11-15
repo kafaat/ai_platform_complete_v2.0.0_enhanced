@@ -403,9 +403,9 @@
     "baseline_source": "docs/capability-registry/reconciliation_drift_baseline.json",
     "classes": {
       "evidence_maturity": {
-        "baseline_count": 44,
+        "baseline_count": 43,
         "new": [],
-        "observed_count": 44,
+        "observed_count": 43,
         "stale": []
       },
       "registry_reconciliation": {

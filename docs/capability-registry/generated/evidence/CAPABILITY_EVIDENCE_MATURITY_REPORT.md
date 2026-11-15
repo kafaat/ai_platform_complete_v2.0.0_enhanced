@@ -5,9 +5,9 @@
 ## Summary
 
 - Capabilities: **81**
-- Average assessed maturity: **1.99 / 5**
-- Aligned: **37**
-- Declared above current evidence: **41**
+- Average assessed maturity: **2.0 / 5**
+- Aligned: **38**
+- Declared above current evidence: **40**
 - Evidence above declared: **3**
 - Runtime verified: **0**
 - Production certified: **0**

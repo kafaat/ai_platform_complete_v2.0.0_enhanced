@@ -33,7 +33,7 @@
     "services.video-processor.main:app",
     "services.weather-service.main:app"
   ],
-  "definition_count": 270,
+  "definition_count": 272,
   "definitions": [
     {
       "kind": "app",
@@ -207,8 +207,26 @@
       "symbol": "app"
     },
     {
+      "kind": "router",
+      "line": 32,
+      "module": "services.field-management-service.fm_task_costs",
+      "node_id": "services.field-management-service.fm_task_costs:router",
+      "route_count": 2,
+      "statically_reachable": true,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 37,
+      "module": "services.field-management-service.fm_task_inspection",
+      "node_id": "services.field-management-service.fm_task_inspection:router",
+      "route_count": 7,
+      "statically_reachable": true,
+      "symbol": "router"
+    },
+    {
       "kind": "app",
-      "line": 43,
+      "line": 44,
       "module": "services.field-management-service.main",
       "node_id": "services.field-management-service.main:app",
       "route_count": 7,
@@ -2466,7 +2484,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 55,
+  "include_edge_count": 57,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2485,6 +2503,24 @@
       "resolved": false,
       "source": "services.auth.router_registry:<dynamic-source>",
       "target": null
+    },
+    {
+      "expression": "_task_inspection_router",
+      "line": 57,
+      "module": "services/field-management-service/main.py",
+      "prefix": null,
+      "resolved": true,
+      "source": "services.field-management-service.main:app",
+      "target": "services.field-management-service.fm_task_inspection:router"
+    },
+    {
+      "expression": "_task_costs_router",
+      "line": 58,
+      "module": "services/field-management-service/main.py",
+      "prefix": null,
+      "resolved": true,
+      "source": "services.field-management-service.main:app",
+      "target": "services.field-management-service.fm_task_costs:router"
     },
     {
       "expression": "_tmp",
@@ -2713,7 +2749,7 @@
     },
     {
       "expression": "router",
-      "line": 58,
+      "line": 63,
       "module": "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
       "prefix": null,
       "resolved": false,
@@ -2964,7 +3000,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "f879ab3c969f3be3b6d377607f3bedf304c87aa00e7a2cc3691505477b7ffcb5",
+  "inventory_sha256": "0b3d64d077652033a3e7019a2301abc1e36dbd7fa02af05b5b9d5ff37ec8a41f",
   "orphan_candidate_count": 237,
   "orphan_candidates": [
     {
@@ -5339,9 +5375,9 @@
     }
   ],
   "production_certified": false,
-  "reachable_node_count": 33,
-  "resolved_include_edge_count": 3,
-  "router_with_routes_count": 240,
+  "reachable_node_count": 35,
+  "resolved_include_edge_count": 5,
+  "router_with_routes_count": 242,
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
@@ -5566,7 +5602,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
-      "line": 58,
+      "line": 63,
       "module": "services.sahool-platform.tests.test_irrigation_water_contract_overflow",
       "source": null,
       "target_expression": "router"
