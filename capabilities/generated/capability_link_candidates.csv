@@ -748,7 +748,7 @@ FM-003,api,POST /v1/fields/{field_id}/soil/reclamation-assessment @ services/soi
 FM-003,api,POST /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:144,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/salinity-assessment @ services/soil-service/routers/p2_products.py:107,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/sampling-plan-copies @ services/soil-service/routers/plan_copies.py:55,4,applied
-FM-003,api,POST /v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin @ services/soil-service/routers/plan_copies.py:95,4,applied
+FM-003,api,POST /v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin @ services/soil-service/routers/plan_copies.py:96,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:84,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:36,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/terrain-derivatives @ services/soil-service/routers/p2_products.py:69,4,applied
@@ -2581,7 +2581,7 @@ SOIL-002,api,POST /api/v1/lab/samples/{sample_id}/transition @ services/sahool-p
 SOIL-002,api,POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:464,4,applied
 SOIL-002,api,POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:594,4,applied
 SOIL-002,api,POST /v1/fields/{field_id}/soil/sampling-plan-copies @ services/soil-service/routers/plan_copies.py:55,3,applied
-SOIL-002,api,POST /v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin @ services/soil-service/routers/plan_copies.py:95,3,applied
+SOIL-002,api,POST /v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin @ services/soil-service/routers/plan_copies.py:96,3,applied
 SOIL-002,api,POST /v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:84,3,applied
 SOIL-002,api,POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:101,3,applied
 SOIL-002,service,services/soil-service/main.py,10,applied

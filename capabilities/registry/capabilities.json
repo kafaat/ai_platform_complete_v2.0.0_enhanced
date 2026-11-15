@@ -2772,7 +2772,7 @@
         "POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:464",
         "POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:594",
         "POST /v1/fields/{field_id}/soil/sampling-plan-copies @ services/soil-service/routers/plan_copies.py:55",
-        "POST /v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin @ services/soil-service/routers/plan_copies.py:95",
+        "POST /v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin @ services/soil-service/routers/plan_copies.py:96",
         "POST /v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:84",
         "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:101"
       ],

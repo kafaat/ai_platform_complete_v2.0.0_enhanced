@@ -1035,7 +1035,7 @@ soil-service,POST,/v1/soil/runtime-certifications/evaluate,evaluate_certificatio
 soil-service,POST,/v1/soil/runtime-certifications/{run_id}/verify,verify_certification,services/soil-service/routers/p6_certification.py,49
 soil-service,GET,/v1/soil/runtime-certifications/{run_id},get_certification,services/soil-service/routers/p6_certification.py,60
 soil-service,POST,/v1/fields/{field_id}/soil/sampling-plan-copies,store_plan_copies,services/soil-service/routers/plan_copies.py,55
-soil-service,POST,/v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin,resolve_plan_origin,services/soil-service/routers/plan_copies.py,95
+soil-service,POST,/v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin,resolve_plan_origin,services/soil-service/routers/plan_copies.py,96
 soil-service,GET,/v1/soil/readings/{field_id},get_readings,services/soil-service/routers/readings.py,28
 soil-service,POST,/v1/soil/ingest,ingest_reading,services/soil-service/routers/readings.py,43
 soil-service,POST,/v1/soil/suitability,soil_suitability,services/soil-service/routers/soil_profile.py,65

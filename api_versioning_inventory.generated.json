@@ -9614,7 +9614,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/plan_copies.py",
-    "line": 95,
+    "line": 96,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin",
     "handler": "resolve_plan_origin",

@@ -1067,7 +1067,7 @@ soil-service,services/soil-service/routers/p6_certification.py,21,POST,/v1/soil/
 soil-service,services/soil-service/routers/p6_certification.py,49,POST,/v1/soil/runtime-certifications/{run_id}/verify,verify_certification,versioned
 soil-service,services/soil-service/routers/p6_certification.py,60,GET,/v1/soil/runtime-certifications/{run_id},get_certification,versioned
 soil-service,services/soil-service/routers/plan_copies.py,55,POST,/v1/fields/{field_id}/soil/sampling-plan-copies,store_plan_copies,versioned
-soil-service,services/soil-service/routers/plan_copies.py,95,POST,/v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin,resolve_plan_origin,versioned
+soil-service,services/soil-service/routers/plan_copies.py,96,POST,/v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin,resolve_plan_origin,versioned
 soil-service,services/soil-service/routers/readings.py,28,GET,/v1/soil/readings/{field_id},get_readings,versioned
 soil-service,services/soil-service/routers/readings.py,43,POST,/v1/soil/ingest,ingest_reading,versioned
 soil-service,services/soil-service/routers/soil_profile.py,65,POST,/v1/soil/suitability,soil_suitability,versioned
