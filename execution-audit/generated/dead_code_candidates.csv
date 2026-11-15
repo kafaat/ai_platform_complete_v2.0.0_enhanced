@@ -4,6 +4,7 @@ high,decision-service,function,_memberships,services/decision-service/decision_s
 high,decision-service,function,_service_token_guard,services/decision-service/main.py,165,0,review_before_delete,False
 high,decision-service,function,_require_live_when_certifying,services/decision-service/tests/test_eligibility_assessment_live_pg.py,119,0,review_before_delete,False
 high,decision-service,function,_clean_policy_env,services/decision-service/tests/test_sod_single_operator_self_approval.py,32,0,review_before_delete,False
+high,knowledge-graph,function,_validation_error,services/knowledge-graph/main.py,46,0,review_before_delete,False
 high,raster-service,function,_endpoint_host,services/raster-service/object_store.py,69,0,review_before_delete,False
 high,raster-service,function,_scene_band_mapping,services/raster-service/raster_main_compat_exports.py,92,0,review_before_delete,False
 high,raster-service,function,_bbox_from_geom,services/raster-service/raster_main_compat_exports.py,97,0,review_before_delete,False

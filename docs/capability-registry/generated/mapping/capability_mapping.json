@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7361,
+    "files_scanned": 7363,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 416,
-      "other": 2184,
-      "tests": 2518,
+      "other": 2185,
+      "tests": 2519,
       "web": 547
     },
     "unmapped_artifacts": 3505,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3988,
-      "raw": 3373
+      "python_functional": 3989,
+      "raw": 3374
     },
-    "test_dependency_files": 1914,
+    "test_dependency_files": 1915,
     "test_dependency_edges": 4928,
     "test_dependency_bounded_files": 1124,
-    "test_dependency_unresolved_relations": 485
+    "test_dependency_unresolved_relations": 486
   },
   "capabilities": [
     {
@@ -2029,6 +2029,14 @@
           ]
         },
         {
+          "path": "services/knowledge-graph/kg_store.py",
+          "score": 11,
+          "signals": [
+            "content:organization",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "services/sahool-platform/examples/tenant_data/districts/al_jawf/climate.yaml",
           "score": 11,
           "signals": [
@@ -2222,6 +2230,14 @@
         {
           "value": "tenant_ai_policies @ migrations/v125_tenant_ai_capabilities.sql:11",
           "score": 13
+        },
+        {
+          "value": "kg_edges @ services/knowledge-graph/kg_store.py:607",
+          "score": 11
+        },
+        {
+          "value": "kg_nodes @ services/knowledge-graph/kg_store.py:599",
+          "score": 11
         }
       ],
       "events": [
@@ -2794,6 +2810,14 @@
           ]
         },
         {
+          "path": "docs/adr/ADR-0038-knowledge-graph-global-reference-only.md",
+          "score": 12,
+          "signals": [
+            "content:organization",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "certification/evidence/qdrant_tenant_index_20261014/provenance.json",
           "score": 11,
           "signals": [
@@ -2843,15 +2867,15 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 16,
+        "backend": 17,
         "routes": 2,
-        "database": 28,
+        "database": 30,
         "events": 12,
         "web": 1,
         "mobile": 0,
         "tests": 44,
         "governance": 0,
-        "other_evidence": 25
+        "other_evidence": 26
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -36757,10 +36781,6 @@
       "kind": "tests"
     },
     {
-      "path": "services/knowledge-graph/kg_store.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/knowledge-graph/main.py",
       "kind": "backend"
     },
@@ -43890,6 +43910,10 @@
     },
     {
       "path": "tests_v9/test_kg_edge_upsert_conflict.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_kg_global_reference_only.py",
       "kind": "tests"
     },
     {
@@ -82831,6 +82855,21 @@
       "unresolved": [
         {
           "line": 24,
+          "call": "spec_from_file_location"
+        }
+      ]
+    },
+    {
+      "test": "tests_v9/test_kg_global_reference_only.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 169,
           "call": "spec_from_file_location"
         }
       ]
