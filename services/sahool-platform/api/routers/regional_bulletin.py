@@ -59,7 +59,11 @@ def _farm_scope(user: UserSchema) -> list[str] | None:
 
     RLS scopes the query to the tenant only. A user limited to some farms (``farm_ids_access``,
     empty = all, as in ``core.authorization``) could otherwise read aggregates over fields of
-    farms they are not allowed to see."""
+    farms they are not allowed to see.
+
+    Inert today: ``get_current_user`` builds ``UserSchema`` from the token without
+    ``farm_ids_access`` and no trusted per-user farm list exists yet, so every caller is "all
+    farms". The filter takes effect once that scope is populated from a trusted source."""
     farms = [str(f) for f in (getattr(user, "farm_ids_access", None) or []) if f]
     return farms or None
 

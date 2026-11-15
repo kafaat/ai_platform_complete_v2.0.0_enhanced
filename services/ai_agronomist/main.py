@@ -410,7 +410,19 @@ async def resume_approved_tool(
     # فيستأنف مستأجِرٌ مظروفَ موافقةٍ لغيره. والغائبُ وغيرُ المملوك جوابُهما واحد.
     if stored is None or str(stored.get("tenant_id") or "") != str(tenant):
         raise HTTPException(404, "approval_not_found")
-    if str(stored.get("status") or "") != approval.STATUS_APPROVED:
+    status = str(stored.get("status") or "")
+    if status == STATUS_RESUMED and str(stored.get("resumed_by") or "") == user_id:
+        # The same approver retrying (e.g. the audit write failed after the transition) gets the
+        # same handoff back, never a second authorization: the envelope names the approval id
+        # and input hash the domain service deduplicates on. Anyone else gets 409 below.
+        envelope = _approved_resume_envelope(stored)
+        return {
+            "status": "resumed",
+            "approval_id": req.approval_id,
+            "resume": envelope,
+            "replayed": True,
+        }
+    if status != approval.STATUS_APPROVED:
         raise HTTPException(409, f"approval_not_in_approved_state:{stored.get('status')}")
     envelope = _approved_resume_envelope(stored)
     # Single use: approved -> resumed in the store; a second resume loses the transition.

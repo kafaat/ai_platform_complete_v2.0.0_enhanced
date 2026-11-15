@@ -515,9 +515,15 @@ async def refuse_if_fields_have_harvest_lots(conn, field_ids: list[str], action_
     Lots keep naming the field they were harvested from: re-pointing them to a merged or split field
     would change where the produce came from, so the operator resolves it explicitly.
     """
-    ids = [str(f) for f in field_ids if f]
+    ids = sorted({str(f) for f in field_ids if f})
     if not ids:
         return
+    # Lock the fields first (sorted, so concurrent callers take locks in one order): creating a
+    # lot takes a KEY SHARE lock on its field through the FK, so no lot can be committed between
+    # this count and the DELETE that follows in the caller's transaction.
+    await conn.execute(
+        "SELECT 1 FROM fields WHERE field_id = ANY($1::text[]) ORDER BY field_id FOR UPDATE", ids
+    )
     held = await conn.fetchval(
         "SELECT count(*) FROM harvest_lots WHERE field_id = ANY($1::text[])",
         ids,

@@ -3763,7 +3763,7 @@
       "function": "get_traceability",
       "method": "GET",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
-      "line": 354,
+      "line": 402,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/harvest_traceability.py::GET /api/v1/harvest-lots/{harvest_lot_id}/traceability::get_traceability"
@@ -3773,7 +3773,7 @@
       "function": "get_harvest_lot",
       "method": "GET",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}",
-      "line": 180,
+      "line": 215,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/harvest_traceability.py::GET /api/v1/harvest-lots/{harvest_lot_id}::get_harvest_lot"
@@ -3783,7 +3783,7 @@
       "function": "list_harvest_lots",
       "method": "GET",
       "path": "/api/v1/harvest-lots",
-      "line": 144,
+      "line": 179,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/harvest_traceability.py::GET /api/v1/harvest-lots::list_harvest_lots"
@@ -3793,7 +3793,7 @@
       "function": "add_custody_event",
       "method": "POST",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
-      "line": 209,
+      "line": 244,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/harvest_traceability.py::POST /api/v1/harvest-lots/{harvest_lot_id}/custody-events::add_custody_event"
@@ -3803,7 +3803,7 @@
       "function": "create_harvest_lot",
       "method": "POST",
       "path": "/api/v1/harvest-lots",
-      "line": 60,
+      "line": 95,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/harvest_traceability.py::POST /api/v1/harvest-lots::create_harvest_lot"
@@ -4923,7 +4923,7 @@
       "function": "regional_bulletin",
       "method": "GET",
       "path": "/api/v1/regional/bulletin",
-      "line": 67,
+      "line": 71,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/regional_bulletin.py::GET /api/v1/regional/bulletin::regional_bulletin"

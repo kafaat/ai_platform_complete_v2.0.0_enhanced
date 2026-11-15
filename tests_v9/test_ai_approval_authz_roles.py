@@ -127,8 +127,15 @@ def test_resume_is_single_use(client):
     assert first.status_code == 200
     stored = M._APPROVAL_STORE.get("apr_1")
     assert stored["status"] == A.STATUS_RESUMED and stored["resumed_by"] == "approver-1"
-    second = client.post("/v1/approvals/resume", json={"approval_id": "apr_1"}, headers=_hdr())
+    # Another approver cannot take a second handoff.
+    second = client.post(
+        "/v1/approvals/resume", json={"approval_id": "apr_1"}, headers=_hdr("approver-2")
+    )
     assert second.status_code == 409
+    # The same approver gets the same handoff back (a replay, not a new authorization).
+    replay = client.post("/v1/approvals/resume", json={"approval_id": "apr_1"}, headers=_hdr())
+    assert replay.status_code == 200 and replay.json()["replayed"] is True
+    assert M._APPROVAL_STORE.get("apr_1")["resumed_at"] == stored["resumed_at"]
 
 
 def test_resume_needs_an_approver_role(client):
@@ -196,3 +203,29 @@ def test_each_evidence_endpoint_stamps_the_gateway_user_on_a_created_record(
     )
     assert r.status_code == 200, r.text
     assert M._APPROVAL_STORE.get("apr_chat")["requested_by"] == "farmer-9"
+
+
+def test_audit_failure_after_resume_is_recoverable_by_the_same_approver_only(client, monkeypatch):
+    """Review of #1497: the approval was consumed before the audit write; if that write failed,
+    a retry got 409 and the handoff was lost. The same approver now gets the same envelope back
+    (no second authorization); anyone else still gets 409."""
+    M._APPROVAL_STORE.create(_record())
+    client.post("/v1/approvals/approve", json={"approval": {"id": "apr_1"}}, headers=_hdr())
+
+    def _audit_down(_rec):
+        raise RuntimeError("redis down")
+
+    monkeypatch.setattr(M, "_save_agent_tool_audit", _audit_down)
+    failed = TestClient(M.app, raise_server_exceptions=False).post(
+        "/v1/approvals/resume", json={"approval_id": "apr_1"}, headers=_hdr()
+    )
+    assert failed.status_code == 500
+    assert M._APPROVAL_STORE.get("apr_1")["status"] == A.STATUS_RESUMED
+    monkeypatch.setattr(M, "_save_agent_tool_audit", lambda _rec: None)
+    again = client.post("/v1/approvals/resume", json={"approval_id": "apr_1"}, headers=_hdr())
+    assert again.status_code == 200 and again.json()["replayed"] is True
+    assert again.json()["resume"]["approval_id"] == "apr_1"
+    other = client.post(
+        "/v1/approvals/resume", json={"approval_id": "apr_1"}, headers=_hdr("approver-2")
+    )
+    assert other.status_code == 409

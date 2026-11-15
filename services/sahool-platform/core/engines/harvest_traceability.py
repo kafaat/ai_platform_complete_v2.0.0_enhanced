@@ -323,6 +323,7 @@ def custody_event_refusal(
     last_occurred_at: datetime | None,
     outgoing_kg_so_far: Any,
     now: datetime | None = None,
+    reserved_kg: Any = 0,
 ) -> str | None:
     """سبب رفض حدث يخالف الكتلة أو الزمن (نصّ عربيّ ⇒ 422 في الراوتر) أو None.
 
@@ -330,7 +331,10 @@ def custody_event_refusal(
     - زمن الحدث في المستقبل أبعد من FUTURE_SKEW.
     - زمن الحدث قبل تاريخ الحصاد (بهامش المنطقة).
     - زمن الحدث أسبق من آخر حدث مُسجَّل (السلسلة لا تُكتب بأثر رجعيّ).
-    - كمّيّة حدث أكبر من كمّيّة الدفعة، أو كمّيّة خارجة تتجاوز المتبقّي."""
+    - كمّيّة حدث أكبر من كمّيّة الدفعة، أو كمّيّة خارجة تتجاوز المتبقّي.
+
+    ``reserved_kg``: active market listings on the lot (v278) that this sale does not fulfil. A
+    listing reserves its quantity, so a sale may not take what an open offer has promised."""
     at = parse_occurred_at(occurred_at)
     now = now or datetime.now(UTC)
     if at > now + FUTURE_SKEW:
@@ -351,7 +355,13 @@ def custody_event_refusal(
             return "كمّيّة الحدث تتجاوز كمّيّة الدفعة"
         if event_type in OUTGOING_EVENT_TYPES:
             remaining = lot_qty - (normalize_quantity_kg(outgoing_kg_so_far) or Decimal("0"))
-            if qty > remaining:
+            reserved = normalize_quantity_kg(reserved_kg) or Decimal("0")
+            if qty > remaining - reserved:
+                if reserved:
+                    return (
+                        f"الكمّيّة الخارجة تتجاوز المتبقّي غير المحجوز ({remaining - reserved} كغ؛ "
+                        f"{reserved} كغ محجوزة لعروض بيع نشطة)"
+                    )
                 return f"الكمّيّة الخارجة تتجاوز المتبقّي من الدفعة ({remaining} كغ)"
     return None
 

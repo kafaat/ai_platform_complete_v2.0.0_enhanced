@@ -426,3 +426,72 @@ def test_another_tenant_cannot_see_or_list_this_tenants_lot(market):
     with pytest.raises(HTTPException) as err:
         _listing(market, T2, s["lot_id"], 1)
     assert err.value.status_code == 404
+
+
+def test_a_custody_sale_respects_active_listings_and_fulfils_its_own():
+    """Review of #1497: a listing reserved 500 of 1000 kg, then a 1000 kg custody sale passed and
+    left the offer above the physical remainder. The sale path now counts active listings; a sale
+    naming its listing (event_details.listing_id) is not blocked by it and closes it."""
+    if str(PLATFORM) not in sys.path:
+        sys.path.insert(0, str(PLATFORM))
+    os.environ.setdefault("JWT_SECRET", secrets.token_hex(32))
+    from api.routers.harvest_traceability import _listing_reservation
+    from core.engines.harvest_traceability import custody_event_refusal
+
+    s = _run(_seed(T1, lot_kg=1000))
+    other = _run(_seed(T1, lot_kg=10))
+
+    async def seed_listing(lot_id: str, qty: float) -> dict:
+        # The market server writes listings; the owner seeds them here so this test imports only
+        # the platform (the market fixture's ``shared`` package shadows the repository's).
+        admin = await asyncpg.connect(ADMIN_DSN)
+        try:
+            lid = await admin.fetchval(
+                "INSERT INTO market_sales_listings (tenant_id, crop_type, quantity_kg, "
+                "price_per_kg_usd, status, harvest_lot_id) VALUES ($1::uuid, 'wheat', $2, 0.5, "
+                "'active', $3) RETURNING listing_id",
+                T1,
+                qty,
+                lot_id,
+            )
+        finally:
+            await admin.close()
+        return {"listing_id": str(lid)}
+
+    listing = _run(seed_listing(s["lot_id"], 500))
+    foreign = _run(seed_listing(other["lot_id"], 5))
+
+    def refusal(qty, reserved):
+        return custody_event_refusal(
+            event_type="sales",
+            occurred_at=datetime(2026, 10, 5, tzinfo=UTC),
+            quantity_kg=qty,
+            lot_quantity_kg=1000,
+            harvest_date=date(2026, 10, 1),
+            last_occurred_at=None,
+            outgoing_kg_so_far=0,
+            reserved_kg=reserved,
+        )
+
+    async def go():
+        app = await _app(T1)
+        try:
+            reserved, lid = await _listing_reservation(app, s["lot_id"], "sales", {})
+            assert float(reserved) == 500 and lid is None
+            assert refusal(1000, reserved) is not None  # would oversell the open offer
+            assert refusal(500, reserved) is None
+            own, lid = await _listing_reservation(
+                app, s["lot_id"], "sales", {"listing_id": listing["listing_id"]}
+            )
+            assert float(own) == 0 and lid == listing["listing_id"]
+            with pytest.raises(HTTPException) as err:  # another lot's listing cannot be named
+                await _listing_reservation(
+                    app, s["lot_id"], "sales", {"listing_id": foreign["listing_id"]}
+                )
+            assert err.value.status_code == 409
+            storage, _ = await _listing_reservation(app, s["lot_id"], "storage", {})
+            assert storage == 0  # only sales consume stock
+        finally:
+            await app.close()
+
+    _run(go())
