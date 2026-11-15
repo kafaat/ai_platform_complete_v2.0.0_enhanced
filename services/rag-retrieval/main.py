@@ -403,16 +403,30 @@ async def search(req: SearchRequest, x_tenant_id: str = Depends(_search_identity
     return await run_in_threadpool(_search_blocking, req, tenant_id)
 
 
+# W0-02 (knowledge-1/x-4): a tenant with no readable corpus is not an outage. The
+# service and its index are healthy; this tenant simply has nothing to retrieve. A
+# distinct 424 + stable reason code lets callers (ai_agronomist) degrade to
+# ``rag_available: false`` instead of reporting the whole advisory request as failed.
+TENANT_CORPUS_EMPTY = "TENANT_CORPUS_EMPTY"
+
+
 def _search_blocking(req: SearchRequest, tenant_id: str) -> dict[str, Any]:
     with _RETRIEVAL_LOCK:
         try:
             sparse = _ensure_sparse_index()
-            if visible_corpus_count(sparse, tenant_id) == 0:
-                raise ValueError("tenant has no active readable corpus")
+            corpus_count = visible_corpus_count(sparse, tenant_id)
         except _RETRIEVAL_UNAVAILABLE_ERRORS as exc:
             raise HTTPException(503, "rag_retrieval_unavailable") from exc
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(503, f"hybrid sparse index not ready: {exc}") from exc
+        if corpus_count == 0:
+            raise HTTPException(
+                424,
+                {
+                    "code": TENANT_CORPUS_EMPTY,
+                    "message": "tenant has no active readable corpus",
+                },
+            )
         filters = {
             "crop": req.crop,
             "field_id": req.field_id,

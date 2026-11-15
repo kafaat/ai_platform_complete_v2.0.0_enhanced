@@ -169,8 +169,11 @@ def test_rag11_other_tenant_corpus_cannot_make_request_ready(rag):
     req = rag.SearchRequest(tenant_id="tenant-a", query="القمح")
     with pytest.raises(Exception) as exc:
         asyncio.run(rag.search(req, x_tenant_id="tenant-a"))
-    assert exc.value.status_code == 503
-    assert "tenant has no active readable corpus" in exc.value.detail
+    # W0-02: an empty tenant corpus is a distinct 424 with a stable reason code, not an
+    # outage-shaped 503, so ai_agronomist can degrade to rag_available:false.
+    assert exc.value.status_code == 424, exc.value.status_code
+    assert exc.value.detail["code"] == "TENANT_CORPUS_EMPTY", exc.value.detail
+    assert "tenant has no active readable corpus" in exc.value.detail["message"], exc.value.detail
 
 
 def test_rag11_global_and_own_content_count_but_quarantine_does_not():
