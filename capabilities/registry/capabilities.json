@@ -352,7 +352,7 @@
         "GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87",
         "GET /api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:171",
         "GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:2990",
-        "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:763",
+        "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:776",
         "GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159",
         "GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:333",
         "GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:377",
@@ -2758,21 +2758,21 @@
         "services/soil-service/main.py"
       ],
       "apis": [
-        "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:763",
-        "GET /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:333",
-        "GET /api/v1/soil-sampling/depth @ services/sahool-platform/api/routers/soil_sampling.py:65",
-        "GET /api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:71",
-        "GET /api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:59",
+        "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:776",
+        "GET /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:332",
+        "GET /api/v1/soil-sampling/depth @ services/sahool-platform/api/routers/soil_sampling.py:64",
+        "GET /api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:70",
+        "GET /api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:58",
         "GET /v1/fields/{field_id}/soil/sampling-plan @ services/raster-service/routers/soil_tiles.py:177",
         "GET /v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:156",
         "GET /v1/fields/{field_id}/soil/sampling-zones.geojson @ services/raster-service/routers/soil_tiles.py:150",
         "POST /api/v1/fields/{field_id}/zone-sampling-plan @ services/sahool-platform/api/routers/productivity.py:84",
-        "POST /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:395",
-        "POST /api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:632",
-        "POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:451",
-        "POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:581",
-        "POST /v1/fields/{field_id}/soil/sampling-plan-copies @ services/soil-service/routers/plan_copies.py:56",
-        "POST /v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin @ services/soil-service/routers/plan_copies.py:96",
+        "POST /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:394",
+        "POST /api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:645",
+        "POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:464",
+        "POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:594",
+        "POST /v1/fields/{field_id}/soil/sampling-plan-copies @ services/soil-service/routers/plan_copies.py:55",
+        "POST /v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin @ services/soil-service/routers/plan_copies.py:95",
         "POST /v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:84",
         "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:101"
       ],
@@ -2847,8 +2847,8 @@
         "services/soil-service/main.py"
       ],
       "apis": [
-        "POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:451",
-        "POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:581"
+        "POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:464",
+        "POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:594"
       ],
       "ui_consumers": [],
       "mobile_consumers": [

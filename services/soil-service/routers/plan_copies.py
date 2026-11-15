@@ -9,7 +9,6 @@ tenant's plan reads exactly like an unknown one.
 
 from __future__ import annotations
 
-import json
 import uuid
 from typing import Any
 
@@ -70,15 +69,15 @@ async def store_plan_copies(
     inside = []
     for copy in copies:
         try:
-            covered = await main._pool.fetchval(
-                "SELECT sahool_field_covers_points($1, $2::jsonb, $3)",
-                field_id,
-                json.dumps(plan_positions(copy["sample_points"])),
-                FIELD_COVER_BUFFER_M,
+            covered = await plan_copy_store.field_covers_points(
+                main._pool,
+                field_id=field_id,
+                positions=plan_positions(copy["sample_points"]),
+                buffer_m=FIELD_COVER_BUFFER_M,
             )
         except Exception as exc:  # noqa: BLE001 - the check could not run: store nothing
             raise HTTPException(503, "the field geometry could not be checked") from exc
-        if covered is True:
+        if covered:
             inside.append(copy)
     counts = {"stored": 0, "unchanged": 0, "conflicting": 0}
     if inside:

@@ -308,6 +308,16 @@ async def test_field_cover_check_refuses_a_plan_outside_the_field():
         assert await covers([]) is False
         assert await covers([[44.005]]) is False
         assert await covers([[44.005, 16.005]], buffer_m=10_000) is False  # buffer capped
+        pool = await asyncpg.create_pool(_APP_DSN, min_size=1, max_size=1)
+        try:
+            assert await store.field_covers_points(
+                pool, field_id=field_id, positions=[[44.005, 16.005]], buffer_m=50.0
+            )
+            assert not await store.field_covers_points(
+                pool, field_id=field_id, positions=[[44.005, 16.6]], buffer_m=50.0
+            )
+        finally:
+            await pool.close()
     finally:
         await admin.execute("DELETE FROM fields WHERE field_id=$1", field_id)
         await app.close()

@@ -30,9 +30,8 @@ from core.lab_sampling import (
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
 
-from api import lab_store
+from api import lab_store, soil_hydraulic_client
 from api.idempotency import request_digest
-from api.lab_plan_origin import resolve_plan_origin
 from api.main import (
     CommandStore,
     Permission,
@@ -416,7 +415,21 @@ async def create_lab_sample(
 
         async def _work():
             if payload.sampling_plan_id is not None:
-                data["sampling_origin"] = await resolve_plan_origin(payload, user, claimed)
+                # soil-service resolves and verifies the origin from its stored plan copy.
+                try:
+                    data["sampling_origin"] = await soil_hydraulic_client.resolve_sampling_origin(
+                        tenant_id=str(user.tenant_id),
+                        field_id=payload.field_id,
+                        plan_id=payload.sampling_plan_id,
+                        point_id=payload.sampling_origin.point_id,
+                        latitude=payload.latitude,
+                        longitude=payload.longitude,
+                        gps_accuracy_m=payload.gps_accuracy_m,
+                        deviation_reason=payload.deviation_reason,
+                        claimed=claimed,
+                    )
+                except soil_hydraulic_client.SamplingOriginError as exc:
+                    raise HTTPException(exc.status_code, exc.detail) from exc
             try:
                 row = await lab_store.create_sample(
                     conn, tenant_id=str(user.tenant_id), created_by=str(user.user_id), payload=data

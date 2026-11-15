@@ -78,3 +78,19 @@ async def get_plan_copy(
         "plan_digest": row["plan_digest"],
         "sample_points": decode_jsonb(row["sample_points"]),
     }
+
+
+async def field_covers_points(
+    pool: Any, *, field_id: str, positions: list[list[float]], buffer_m: float
+) -> bool:
+    """True only if every ``[lon, lat]`` lies within ``buffer_m`` of the field's stored geometry.
+
+    The check runs in the database (``sahool_field_covers_points``, SECURITY DEFINER, v273):
+    soil-service cannot read ``fields`` under RLS, and the function returns one boolean."""
+    covered = await pool.fetchval(
+        "SELECT sahool_field_covers_points($1, $2::jsonb, $3)",
+        field_id,
+        json.dumps(positions),
+        buffer_m,
+    )
+    return covered is True

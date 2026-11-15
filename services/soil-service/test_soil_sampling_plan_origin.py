@@ -211,38 +211,33 @@ def test_route_requires_the_service_token_and_a_tenant_uuid(client):
     assert _origin(client, "not-a-uuid").status_code == 400
 
 
-class _CoverPool:
-    """Answers the field-cover check per plan: inside only if every point is near 16N 44E."""
-
-    def __init__(self):
-        self.calls = []
-
-    async def fetchval(self, sql, field_id, positions, buffer_m):
-        import json
-
-        self.calls.append((sql, field_id, buffer_m))
-        points = json.loads(positions)
-        return all(abs(lat - 16.0) < 0.01 and abs(lon - 44.0) < 0.01 for lon, lat in points)
+def _near_planned(positions):
+    return all(abs(lat - 16.0) < 0.01 and abs(lon - 44.0) < 0.01 for lon, lat in positions)
 
 
 def test_store_route_keeps_only_plans_inside_the_field(monkeypatch, loaded_main):
     # Review of #1456 (H1): a plan built from a client-chosen bbox 66 km away must not become a
-    # trusted copy. The database's field-cover check decides; outside plans are not stored.
+    # trusted copy. The database's field-cover check decides (measured on PostGIS in the live
+    # test); here the store's check is stubbed and the route must store only covered plans.
     import plan_copy_store
 
-    saved = {}
+    saved, checks = {}, []
 
     async def save_plan_copies(pool, *, tenant_id, copies, source):
         saved["ids"] = [c["plan_id"] for c in copies]
         return {"stored": len(copies), "unchanged": 0, "conflicting": 0}
 
+    async def field_covers_points(pool, *, field_id, positions, buffer_m):
+        checks.append((field_id, buffer_m))
+        return _near_planned(positions)
+
     async def field_owned(field_id):
         return _TENANT_A
 
-    pool = _CoverPool()
-    monkeypatch.setattr(loaded_main, "_pool", pool)
+    monkeypatch.setattr(loaded_main, "_pool", object())
     monkeypatch.setattr(loaded_main, "_require_field_tenant", field_owned)
     monkeypatch.setattr(plan_copy_store, "save_plan_copies", save_plan_copies)
+    monkeypatch.setattr(plan_copy_store, "field_covers_points", field_covers_points)
     inside = {"field_id": "f-1", "plan": {"plan_id": "ssp-in"}, "sample_points": [_point()]}
     far = {
         "field_id": "f-1",
@@ -258,16 +253,14 @@ def test_store_route_keeps_only_plans_inside_the_field(monkeypatch, loaded_main)
     assert response.status_code == 201, response.text
     assert response.json()["outside_field"] == 1 and response.json()["stored"] == 1
     assert saved["ids"] == ["ssp-in"]
-    assert all("sahool_field_covers_points" in sql for sql, _f, _b in pool.calls)
-    assert {b for _s, _f, b in pool.calls} == {plan_origin.FIELD_COVER_BUFFER_M}
+    assert checks == [("f-1", plan_origin.FIELD_COVER_BUFFER_M)] * 2
 
 
 def test_store_route_stores_nothing_when_the_field_check_cannot_run(monkeypatch, loaded_main):
     import plan_copy_store
 
-    class _Down:
-        async def fetchval(self, *a):
-            raise ConnectionError("db down")
+    async def check_down(pool, **kwargs):
+        raise ConnectionError("db down")
 
     async def field_owned(field_id):
         return _TENANT_A
@@ -275,8 +268,9 @@ def test_store_route_stores_nothing_when_the_field_check_cannot_run(monkeypatch,
     async def never(*a, **k):  # pragma: no cover - must not be reached
         raise AssertionError("a plan was stored without the field check")
 
-    monkeypatch.setattr(loaded_main, "_pool", _Down())
+    monkeypatch.setattr(loaded_main, "_pool", object())
     monkeypatch.setattr(loaded_main, "_require_field_tenant", field_owned)
+    monkeypatch.setattr(plan_copy_store, "field_covers_points", check_down)
     monkeypatch.setattr(plan_copy_store, "save_plan_copies", never)
     client = TestClient(loaded_main.app, headers={"X-Agent-Token": "plan-origin-agent-token"})
     plan = {"field_id": "f-1", "plan": {"plan_id": "ssp-in"}, "sample_points": [_point()]}

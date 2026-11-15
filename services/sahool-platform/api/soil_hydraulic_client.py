@@ -114,12 +114,27 @@ _ORIGIN_REFUSALS = frozenset(
 )
 
 
-class SamplingPlanVerificationUnavailable(RuntimeError):
-    """soil-service could not verify the plan point (unreachable, misconfigured or malformed)."""
+class SamplingOriginError(Exception):
+    """A plan-point origin that cannot be stored; ``status_code`` and ``detail`` are the reply."""
+
+    status_code = 503
+    detail: dict[str, Any] = {
+        "code": "sampling_plan_verification_unavailable",
+        "message": "the sampling plan could not be verified; retry later",
+    }
 
 
-class SamplingOriginRefused(ValueError):
-    """soil-service refused the plan point; ``detail`` carries its typed ``code``."""
+class SamplingPlanVerificationUnavailable(SamplingOriginError, RuntimeError):
+    """soil-service could not verify the plan point (unreachable, misconfigured or malformed).
+
+    503 and fail closed: a sample that claims a plan is never stored on the claim alone."""
+
+
+class SamplingOriginRefused(SamplingOriginError, ValueError):
+    """soil-service refused the plan point (unknown or other-tenant plan, point not in it, beyond
+    the tolerance without a reason); 422 with its typed ``code``."""
+
+    status_code = 422
 
     def __init__(self, detail: dict[str, Any]) -> None:
         super().__init__(detail.get("code"))
