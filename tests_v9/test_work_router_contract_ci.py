@@ -26,6 +26,7 @@ def test_work_router_full_pack_runs_in_unit_ci() -> None:
         cwd=ROOT,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=60,
         check=False,
     )
