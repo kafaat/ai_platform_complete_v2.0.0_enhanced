@@ -5,7 +5,10 @@ import os
 from pathlib import Path
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from kg_store import (
     EdgeConflictError,
     GraphEdge,
@@ -21,6 +24,39 @@ from pydantic import BaseModel, ConfigDict
 from shared.security.gateway_deps import require_service_token, require_trusted_tenant
 
 app = FastAPI(title="SAHOOL Agricultural Knowledge Graph", version="2026.2")
+
+
+def _contains_lone_surrogate(value: Any) -> bool:
+    if isinstance(value, str):
+        return any("\ud800" <= ch <= "\udfff" for ch in value)
+    if isinstance(value, dict):
+        return any(
+            _contains_lone_surrogate(k) or _contains_lone_surrogate(v) for k, v in value.items()
+        )
+    if isinstance(value, (list, tuple)):
+        return any(_contains_lone_surrogate(v) for v in value)
+    return False
+
+
+@app.exception_handler(RequestValidationError)
+async def _validation_error(request: Request, exc: RequestValidationError) -> Response:
+    # With extra="allow" pydantic validates top-level extra keys as strings, so a lone
+    # surrogate there is a validation error, and FastAPI's default handler then fails to
+    # encode the echoed input (a 500 before the guard ever runs). Refuse it as the guard does.
+    if _contains_lone_surrogate(exc.errors()):
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": {
+                    "code": "kg_payload_unprocessable",
+                    "path": "<body>",
+                    "reason": "request is not valid Unicode",
+                }
+            },
+        )
+    return await request_validation_exception_handler(request, exc)
+
+
 store = SQLiteAgGraphStore(os.getenv("KG_SQLITE_PATH", "/data/kg.sqlite"))
 seed_reference_ontology(store)
 

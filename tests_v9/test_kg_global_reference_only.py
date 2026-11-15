@@ -718,6 +718,15 @@ def test_a_non_string_type_is_not_a_500(api, path, body):
         ("/v1/nodes", '{"node_id":"b","label":"C","name":"B","properties":{"\\ud800":1}}'),
         ("/v1/nodes", '{"node_id":"b\\ud800","label":"C","name":"B"}'),
         ("/v1/nodes", '{"node_id":"b","label":"C","name":"B","properties":{"a":"\\udfff"}}'),
+        # Top-level extra keys and a failing-validation body: pydantic refuses these before
+        # the guard, and FastAPI's default handler could not encode them (a 500).
+        ("/v1/nodes", '{"node_id":"a","label":"Crop","name":"A","zz\\ud800":1}'),
+        (
+            "/v1/edges",
+            '{"edge_id":"e","subject_id":"wheat","relation":"historically_limits",'
+            '"object_id":"stripe_rust","\\udc00":1}',
+        ),
+        ("/v1/nodes", '{"label":"Crop\\ud800","name":"A"}'),
         (
             "/v1/edges",
             '{"edge_id":"e\\ud800","subject_id":"wheat",'
@@ -785,3 +794,19 @@ def test_scan_cli_prints_a_row_with_invalid_utf8(tmp_path, capsys):
     assert kg._main(["--scan", str(db)]) == 1
     out = json.loads(capsys.readouterr().out)
     assert out["violations"][0]["id"] == "lo\\udcff"
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["farm-a7", "field-A12", "plot-b3", "site-x1", "grower-g42", "farm-a-12", "farm\u2013a7"],
+)
+def test_a_letter_digit_code_after_a_hyphen_is_refused(value):
+    # Final review of #1478: the letter/digit split turned ``a7`` into ``a`` + ``7`` and hid it.
+    assert kg.identifier_scope_reason(value) is not None, value
+
+
+@pytest.mark.parametrize(
+    "value", ["FieldTrial2019", "Farm-to-fork strategy", "Farm-gate price 2024", "plot_2x2_design"]
+)
+def test_glued_codes_elsewhere_still_follow_the_documented_rule(value):
+    assert kg.identifier_scope_reason(value) is None, value

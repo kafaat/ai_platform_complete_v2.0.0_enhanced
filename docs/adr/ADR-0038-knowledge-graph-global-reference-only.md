@@ -93,7 +93,9 @@ looks like an identifier.
   `field/7`, `farm=acme`, `user@acme`, `مزرعة:12`.
 - After it, behind `-` or glued (camelCase or digit boundary), a token with a
   digit or an id suffix (`id`, `ids`, `uuid`, `key`, `ref`, `code`): `farm-12`,
-  `field7`, `farm12`, `customerId42`. For `tenant`, `org`, `organization` and
+  `field7`, `farm12`, `customerId42`. Behind `-` the whole run of tokens joined by
+  `-` or glued is checked, so letter+digit codes count: `farm-a7`, `field-A12`,
+  `farm-a-12`. A space ends the run (`Farm-gate price 2024` passes). For `tenant`, `org`, `organization` and
   `organisation`, which are never agronomic prose, any token behind `-`:
   `tenant-acme`.
 - After it, behind `_`, an id suffix: `farm_id`.
@@ -112,11 +114,14 @@ things, not one tenant's instance.
 **Limits.** Nesting deeper than 64 levels answers 422 `kg_payload_too_deep`; more
 than 10 000 keys and list items answers 413 `kg_payload_too_large`. A body too
 deep for the JSON parser itself is refused by the framework with 400. A lone
-surrogate in a key, value or identifier, and any other unexpected error inside
-the guard, answers 422 `kg_payload_unprocessable`; the echoed path is escaped so
+surrogate in a key, value or identifier (including a top-level extra key, which
+pydantic rejects before the guard runs; a request-validation handler answers it),
+and any other unexpected error inside the guard, answers 422
+`kg_payload_unprocessable`; the echoed path is escaped so
 the error response itself is valid JSON. These are the failures the tests
 exercise; a 500 from outside the guard (for example the database being
-unavailable) is not ruled out.
+unavailable) is not ruled out, and neither is the read-only `/graphql` endpoint
+receiving a lone surrogate in its query (unchanged from before this ADR).
 
 ## What is not enforced
 
@@ -128,8 +133,9 @@ unavailable) is not ruled out.
   alphabetic short code after `-` (`farm-ab`); ids joined only by `_` or spaces
   (`plot_3b`, `farm twelve`); and the separators `.`, `|`, `;`, `,` (treated as
   prose separators), and `+`, `(`, `)`, `\` (not split at all), so
-  `farm.12`, `farm|12`, `farm+12` and `farm(12)` pass. `@` and `=` are enforced
-  after a scope word only.
+  `farm.12`, `farm|12`, `farm+12` and `farm(12)` pass. A word before a scope word
+  behind `:` also passes (`acme:tenant`), which keeps CURIEs such as
+  `fao:field_capacity` legal.
 - **Key false positives (documented, not changed):** any key holding a personal
   or location token is refused even when it names a reference property, for
   example `leaf_geometry`, `latitude_range` or `address_space`.
