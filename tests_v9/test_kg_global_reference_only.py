@@ -81,7 +81,7 @@ FORBIDDEN_KEYS = [
     "boundary",
     "address",
     "ｔｅｎａｎｔ_id",  # full-width tenant_id
-    "t​enant_id",  # zero-width space inside
+    "t\u200benant_id",  # zero-width space inside
     "tеnant_id",  # Cyrillic e
     "tenant_ıd",  # dotless i
     "حقل",  # حقل

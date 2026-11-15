@@ -360,7 +360,7 @@ def identifier_scope_reason(value: object) -> str | None:
 def _decode_json_text(value: str, path: str) -> Any:
     """Decode a string that holds JSON (BOM and one string-literal layer allowed)."""
     for _ in range(2):
-        stripped = value.lstrip("﻿").strip()
+        stripped = value.lstrip("\ufeff").strip()
         if not stripped or stripped[0] not in '{["':
             return None
         try:
