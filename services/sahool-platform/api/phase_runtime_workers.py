@@ -185,8 +185,10 @@ async def _publish_nats(subject: str, payload: Json, *, msg_id: str | None = Non
         raise RuntimeError("nats client is not installed") from exc
     nc = await nats.connect(nats_url, connect_timeout=5)
     try:
-        # Nats-Msg-Id = event_id: a republish after a lease expiry is deduplicated by the
-        # sahool stream, as the platform OutboxWorker does (event_bus.py, msg_id=event_id).
+        # Nats-Msg-Id = event_id, as the platform OutboxWorker does (event_bus.py). The sahool
+        # stream drops a republish only inside its duplicate window (server default 120 s);
+        # a republish after the 300 s lease expiry falls outside it. Per-user delivery is
+        # still deduplicated by the notification receipt keyed on event_id.
         headers = {"Nats-Msg-Id": msg_id} if msg_id else None
         await nc.publish(subject, json.dumps(payload, default=str).encode("utf-8"), headers=headers)
         await nc.flush(timeout=5)
