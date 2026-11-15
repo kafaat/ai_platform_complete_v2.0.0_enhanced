@@ -518,6 +518,10 @@ def _build_agent_tool_fetcher(
             # فارغ ⇒ available=False بصدق (لا رقم مُختلَق حتّى يوصَل WaPOR/الميزان المائيّ).
             water: dict[str, Any] = {}
             canonical = fs.get("canonical_field_state") if isinstance(fs, dict) else None
+            # The real internal field endpoint returns {**canonical, "ai_context_pack": ...};
+            # the nested form is also accepted for internal compatibility callers.
+            if not isinstance(canonical, dict) and fs.get("schema_version") == "canonical_field_state.v1":
+                canonical = fs
             water_owner = canonical.get("water") if isinstance(canonical, dict) else None
             if isinstance(water_owner, dict):
                 if field_id and water_owner.get("field_id") not in (None, field_id):
