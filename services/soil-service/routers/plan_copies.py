@@ -9,13 +9,20 @@ tenant's plan reads exactly like an unknown one.
 
 from __future__ import annotations
 
+import json
 import uuid
 from typing import Any
 
 import main
 import plan_copy_store
 from fastapi import APIRouter, Header, HTTPException
-from plan_origin import OriginRefused, normalize_plan_copy, resolve_origin
+from plan_origin import (
+    FIELD_COVER_BUFFER_M,
+    OriginRefused,
+    normalize_plan_copy,
+    plan_positions,
+    resolve_origin,
+)
 from pydantic import BaseModel, Field
 
 router = APIRouter()
@@ -57,12 +64,32 @@ async def store_plan_copies(
     if await main._require_field_tenant(field_id) is None:
         raise HTTPException(404, "field not found")
     copies = [c for c in (normalize_plan_copy(p, field_id) for p in payload.plans) if c]
+    # Every plan point must lie inside the field's stored geometry: the planner takes its area
+    # from tool-call parameters, so a plan is trusted only once the database confirms it covers
+    # this field (review of #1456). A plan outside the field is not stored.
+    inside = []
+    for copy in copies:
+        try:
+            covered = await main._pool.fetchval(
+                "SELECT sahool_field_covers_points($1, $2::jsonb, $3)",
+                field_id,
+                json.dumps(plan_positions(copy["sample_points"])),
+                FIELD_COVER_BUFFER_M,
+            )
+        except Exception as exc:  # noqa: BLE001 - the check could not run: store nothing
+            raise HTTPException(503, "the field geometry could not be checked") from exc
+        if covered is True:
+            inside.append(copy)
     counts = {"stored": 0, "unchanged": 0, "conflicting": 0}
-    if copies:
+    if inside:
         counts = await plan_copy_store.save_plan_copies(
-            main._pool, tenant_id=tenant, copies=copies, source=payload.source
+            main._pool, tenant_id=tenant, copies=inside, source=payload.source
         )
-    return {**counts, "skipped": len(payload.plans) - len(copies)}
+    return {
+        **counts,
+        "skipped": len(payload.plans) - len(copies),
+        "outside_field": len(copies) - len(inside),
+    }
 
 
 @router.post("/v1/fields/{field_id}/soil/sampling-plan-copies/{plan_id}/origin")

@@ -66,6 +66,21 @@ def _planned_position(point: Any) -> tuple[float, float] | None:
     return lat, lon
 
 
+# A plan point may sit this far outside the field boundary (planner rounding, boundary edits)
+# and still count as inside; beyond it the plan is not stored.
+FIELD_COVER_BUFFER_M = 50.0
+
+
+def plan_positions(sample_points: list[dict[str, Any]]) -> list[list[float]]:
+    """``[lon, lat]`` of every planned point, for the database's field-cover check."""
+    out = []
+    for point in sample_points:
+        position = _planned_position(point)
+        if position is not None:
+            out.append([position[1], position[0]])
+    return out
+
+
 def plan_digest(plan: dict[str, Any], sample_points: list[dict[str, Any]]) -> str:
     canonical = json.dumps(
         {"plan": plan, "sample_points": sample_points},

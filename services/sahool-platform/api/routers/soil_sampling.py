@@ -30,8 +30,9 @@ from core.lab_sampling import (
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
 
-from api import lab_store, soil_hydraulic_client
+from api import lab_store
 from api.idempotency import request_digest
+from api.lab_plan_origin import resolve_plan_origin
 from api.main import (
     CommandStore,
     Permission,
@@ -390,37 +391,6 @@ def _sample_request_digest(payload: LabSampleIn) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-async def _resolve_plan_origin(payload: LabSampleIn, user: UserSchema, claimed: dict) -> dict:
-    """The plan-point origin soil-service resolves and verifies, or an HTTP refusal.
-
-    Unknown or other-tenant plan, point not in the plan, collection beyond the tolerance without
-    a reason ⇒ 422 with soil-service's typed code. soil-service unreachable or answering
-    anything but a verified origin ⇒ 503: a sample that claims a plan is never stored on the
-    strength of the claim alone (fail closed)."""
-    try:
-        return await soil_hydraulic_client.resolve_sampling_origin(
-            tenant_id=str(user.tenant_id),
-            field_id=payload.field_id,
-            plan_id=payload.sampling_plan_id,
-            point_id=payload.sampling_origin.point_id,
-            latitude=payload.latitude,
-            longitude=payload.longitude,
-            gps_accuracy_m=payload.gps_accuracy_m,
-            deviation_reason=payload.deviation_reason,
-            claimed=claimed,
-        )
-    except soil_hydraulic_client.SamplingOriginRefused as exc:
-        raise HTTPException(422, exc.detail) from exc
-    except soil_hydraulic_client.SamplingPlanVerificationUnavailable as exc:
-        raise HTTPException(
-            503,
-            {
-                "code": "sampling_plan_verification_unavailable",
-                "message": "the sampling plan could not be verified; retry later",
-            },
-        ) from exc
-
-
 @router.post("/api/v1/lab/samples")
 async def create_lab_sample(
     payload: LabSampleIn,
@@ -446,7 +416,7 @@ async def create_lab_sample(
 
         async def _work():
             if payload.sampling_plan_id is not None:
-                data["sampling_origin"] = await _resolve_plan_origin(payload, user, claimed)
+                data["sampling_origin"] = await resolve_plan_origin(payload, user, claimed)
             try:
                 row = await lab_store.create_sample(
                     conn, tenant_id=str(user.tenant_id), created_by=str(user.user_id), payload=data

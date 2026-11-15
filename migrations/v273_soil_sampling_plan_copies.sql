@@ -38,6 +38,46 @@ DROP TRIGGER IF EXISTS soil_sampling_plan_copies_immutable ON soil_sampling_plan
 CREATE TRIGGER soil_sampling_plan_copies_immutable BEFORE UPDATE OR DELETE ON soil_sampling_plan_copies
   FOR EACH ROW EXECUTE FUNCTION soil_sampling_plan_copy_immutable();
 REVOKE ALL ON soil_sampling_plan_copies FROM PUBLIC;
+-- A plan copy is stored only if every plan point lies inside the field's stored geometry
+-- (review of #1456: the planner takes its bbox/boundary from tool-call params, so without this
+-- check a tenant user could have a plan 66 km away stored as trusted). soil-service cannot read
+-- fields (RLS), so this SECURITY DEFINER function answers one boolean and returns no field data.
+-- p_points is a JSON array of [lon, lat]. A missing field, a field without geometry, an empty or
+-- malformed list ⇒ false (fail closed). search_path: pg_catalog first, PostGIS in public, pg_temp last.
+CREATE OR REPLACE FUNCTION sahool_field_covers_points(
+  p_field_id text, p_points jsonb, p_buffer_m double precision
+) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = pg_catalog, public, pg_temp
+AS $$
+  SELECT COALESCE(
+    jsonb_typeof(p_points) = 'array'
+    AND jsonb_array_length(p_points) BETWEEN 1 AND 500
+    AND p_buffer_m BETWEEN 0 AND 500
+    AND (
+      SELECT bool_and(
+        jsonb_typeof(pt) = 'array' AND jsonb_array_length(pt) = 2
+        AND public.ST_DWithin(
+          f.geom::public.geography,
+          public.ST_SetSRID(
+            public.ST_MakePoint((pt->>0)::double precision, (pt->>1)::double precision), 4326
+          )::public.geography,
+          p_buffer_m
+        )
+      )
+      FROM public.fields f CROSS JOIN LATERAL jsonb_array_elements(p_points) AS pt
+      WHERE f.field_id = p_field_id AND f.geom IS NOT NULL
+    ),
+    false
+  )
+$$;
+REVOKE ALL ON FUNCTION sahool_field_covers_points(text, jsonb, double precision) FROM PUBLIC;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_app') THEN
+    GRANT EXECUTE ON FUNCTION sahool_field_covers_points(text, jsonb, double precision) TO sahool_app;
+  END IF;
+END $$;
 COMMENT ON TABLE soil_sampling_plan_copies IS
   'soil-service copy of each AI soil-sampling plan; lab-sample plan origins are resolved from it. v273.';
 COMMIT;

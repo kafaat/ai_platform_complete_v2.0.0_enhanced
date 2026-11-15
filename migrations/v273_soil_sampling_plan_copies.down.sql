@@ -1,4 +1,5 @@
--- v273 rollback: removes soil-service's stored copies of AI soil-sampling plans (gap P6).
+-- v273 rollback: removes soil-service's stored copies of AI soil-sampling plans and the
+-- field-cover check function (gap P6).
 -- Rollback script, not listed in MANIFEST.txt (forward-only manifest, as for every *.down.sql).
 -- Data note: dropping the table discards the stored plan copies. Lab samples that already
 -- recorded a plan origin keep the origin values they stored; only the copy that resolved
@@ -13,4 +14,5 @@ SET LOCAL lock_timeout='15s';
 DROP TRIGGER IF EXISTS soil_sampling_plan_copies_immutable ON soil_sampling_plan_copies;
 DROP TABLE IF EXISTS soil_sampling_plan_copies;
 DROP FUNCTION IF EXISTS soil_sampling_plan_copy_immutable();
+DROP FUNCTION IF EXISTS sahool_field_covers_points(text, jsonb, double precision);
 COMMIT;

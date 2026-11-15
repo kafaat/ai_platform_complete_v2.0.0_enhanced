@@ -17,6 +17,7 @@ Run: ``TEST_DATABASE_ADMIN_URL=… TEST_DATABASE_URL=… pytest -m integration <
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import sys
 import uuid
@@ -263,4 +264,51 @@ async def test_negative_control_the_66_km_origin_is_refused_against_the_live_cop
     finally:
         await _purge(admin, plan_id)
         await pool.close()
+        await admin.close()
+
+
+@pytest.mark.asyncio
+async def test_field_cover_check_refuses_a_plan_outside_the_field():
+    """Review of #1456 (H1): a plan is trusted only if every point lies in the field geometry.
+
+    The restricted role calls the SECURITY DEFINER check (it cannot read ``fields`` under RLS).
+    A point inside, one just within the 50 m buffer, one 66 km away, an unknown field and a
+    malformed list are measured on PostGIS."""
+    admin = await asyncpg.connect(_ADMIN_DSN)
+    app = await asyncpg.connect(_APP_DSN)
+    field_id = f"p6-geo-{uuid.uuid4().hex[:10]}"
+    square = {
+        "type": "Polygon",
+        "coordinates": [[[44.0, 16.0], [44.01, 16.0], [44.01, 16.01], [44.0, 16.01], [44.0, 16.0]]],
+    }
+    try:
+        await admin.execute(
+            "INSERT INTO fields (field_id, name, tenant_id, geometry)"
+            " VALUES ($1, 'p6 cover', $2::uuid, $3::jsonb)",
+            field_id,
+            _TENANT_A,
+            json.dumps(square),
+        )
+        assert await admin.fetchval(
+            "SELECT geom IS NOT NULL FROM fields WHERE field_id=$1", field_id
+        )
+
+        async def covers(points, field=field_id, buffer_m=50.0):
+            return await app.fetchval(
+                "SELECT sahool_field_covers_points($1, $2::jsonb, $3)",
+                field,
+                json.dumps(points),
+                buffer_m,
+            )
+
+        assert await covers([[44.005, 16.005]]) is True
+        assert await covers([[44.005, 16.005], [44.0103, 16.005]]) is True  # ~32 m outside
+        assert await covers([[44.005, 16.005], [44.005, 16.6]]) is False  # one point 66 km away
+        assert await covers([[44.005, 16.005]], field="p6-geo-unknown") is False
+        assert await covers([]) is False
+        assert await covers([[44.005]]) is False
+        assert await covers([[44.005, 16.005]], buffer_m=10_000) is False  # buffer capped
+    finally:
+        await admin.execute("DELETE FROM fields WHERE field_id=$1", field_id)
+        await app.close()
         await admin.close()

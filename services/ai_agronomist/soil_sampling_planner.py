@@ -299,8 +299,10 @@ def plan_copies_for_platform(tool_calls: Any, field_id: str | None) -> list[dict
     imagery are never taken from the client that submits the sample."""
     copies: list[dict[str, Any]] = []
     for call in tool_calls if isinstance(tool_calls, list) else []:
-        data = call.get("data") if isinstance(call, dict) else None
-        if call.get("tool") != "plan_soil_sampling" or not isinstance(data, dict):
+        if not isinstance(call, dict) or call.get("tool") != "plan_soil_sampling":
+            continue
+        data = call.get("data")
+        if not isinstance(data, dict):
             continue
         plan, points = data.get("soil_sampling_plan"), data.get("sample_points")
         if (
