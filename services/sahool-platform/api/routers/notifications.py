@@ -41,6 +41,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from shared.notification_delivery_state import STATUSES, transition_guard_sql
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,27 @@ router = APIRouter()
 
 # حالات تسليم مسموحة — مرآة قيد CHECK في migrations/v83 (لا حالة مُلفّقة، 422 على
 # قيمة خارجها قبل لمس القاعدة).
-_DELIVERY_STATUSES = {"queued", "sent", "failed", "delivered"}
+_DELIVERY_STATUSES = set(STATUSES)
+
+# The state machine is the ON CONFLICT … WHERE guard, decided by PostgreSQL under the row
+# lock. It is built from the same rule the notification agent's UPDATE uses
+# (shared/notification_delivery_state.py), so both writers of the table obey one rule.
+_DELIVERY_GUARD = transition_guard_sql(
+    "notification_delivery.status",
+    "EXCLUDED.status",
+    "notification_delivery.error",
+    "EXCLUDED.error",
+)
+_DELIVERY_UPSERT_SQL = f"""INSERT INTO notification_delivery
+    (tenant_id, alert_key, channel, status, error)
+   VALUES ($1::uuid, $2, $3, $4, $5)
+   ON CONFLICT (tenant_id, alert_key, channel)
+   DO UPDATE SET
+     status     = EXCLUDED.status,
+     error      = EXCLUDED.error,
+     updated_at = NOW()
+   WHERE {_DELIVERY_GUARD}
+   RETURNING delivery_id, alert_key, channel, status, error, updated_at"""
 
 
 @router.get(
@@ -189,7 +210,9 @@ async def upsert_notification_delivery(
     upsert على UNIQUE(tenant_id, alert_key, channel). انتقالات ذرّية:
     queued→sent/failed/delivered؛ sent→failed/delivered؛ failed→sent/delivered؛
     delivered حالة نهائية. تكرار الحالة نفسها لا يجدّد updated_at أو الحدث.
-    الانتقال غير القانوني ⇒ 409؛ الحالة غير المعروفة أو سبب خطأ مع نجاح ⇒ 422.
+    الانتقال غير القانوني ⇒ 409، ومنه أيّ رجوع إلى queued (failed→queued وsent→queued)
+    وأيّ خروج من delivered؛ الحالة غير المعروفة أو سبب خطأ مع نجاح ⇒ 422.
+    القاعدة نفسها يكتب بها وكيل الإشعارات (shared/notification_delivery_state.py).
 
     الصدق: هذا إيصال **حالة** لا ادّعاء إرسال خارجيّ فعليّ. يُصدَر
     NOTIFICATION_DELIVERED (عقده في event_catalog: «أُدِيمت/حُدِّثت حالة تسليم») عند كلّ
@@ -205,24 +228,7 @@ async def upsert_notification_delivery(
             # The state machine is enforced atomically by ON CONFLICT, not by a
             # read-then-write check that would race with late delivery callbacks.
             row = await conn.fetchrow(
-                """INSERT INTO notification_delivery
-                    (tenant_id, alert_key, channel, status, error)
-                   VALUES ($1::uuid, $2, $3, $4, $5)
-                   ON CONFLICT (tenant_id, alert_key, channel)
-                   DO UPDATE SET
-                     status     = EXCLUDED.status,
-                     error      = EXCLUDED.error,
-                     updated_at = NOW()
-                   WHERE (notification_delivery.status = 'queued'
-                          AND EXCLUDED.status IN ('sent','failed','delivered'))
-                      OR (notification_delivery.status = 'sent'
-                          AND EXCLUDED.status IN ('failed','delivered'))
-                      OR (notification_delivery.status = 'failed'
-                          AND EXCLUDED.status IN ('sent','delivered'))
-                      OR (notification_delivery.status = 'failed'
-                          AND EXCLUDED.status = 'failed'
-                          AND notification_delivery.error IS DISTINCT FROM EXCLUDED.error)
-                   RETURNING delivery_id, alert_key, channel, status, error, updated_at""",
+                _DELIVERY_UPSERT_SQL,
                 str(user.tenant_id),
                 req.alert_key,
                 req.channel,
@@ -242,7 +248,17 @@ async def upsert_notification_delivery(
                     req.alert_key,
                     req.channel,
                 )
-                if row is None or row["status"] != req.status or row["error"] != req.error:
+                # A replay is the same status; for `failed` also the same reason. A non-failed
+                # request cannot carry a reason (422 above), so the stored one is not compared:
+                # the notification agent keeps a note on its `queued` push-fallback rows
+                # (`mobile_push_disabled_or_fcm_dormant`), and a `queued` replay of such a row
+                # is a replay, not a conflict (lab follow-up on #1468).
+                replay = (
+                    row is not None
+                    and row["status"] == req.status
+                    and (req.status != "failed" or row["error"] == req.error)
+                )
+                if not replay:
                     raise HTTPException(status_code=409, detail="تعارض في انتقال حالة التسليم")
             # One event per written transition (the catalog contract: a delivery status was
             # persisted/updated, payload carries the status). A replay wrote nothing and a

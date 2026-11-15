@@ -13,6 +13,13 @@ on a stand-in connection; this module runs the real statement and is that file's
 - a receipt for the same alert key in another tenant never touches this tenant's row;
 - a late ``sent`` racing a ``delivered`` never leaves the row behind ``delivered``.
 
+The table's second writer, the notification agent (``agents/notification/agent.py``), builds its
+outcome ``UPDATE`` from the same rule (``shared/notification_delivery_state.py``). Its cases run
+that SQL for every (current, wanted, reason) pair, and its real ``_deliver_channel`` as the
+restricted role: a repeated failure with the same reason writes nothing, a new reason is written,
+and a ``queued`` replay of the agent's push-fallback row (which carries a note) is a replay, not
+a 409.
+
 The handler runs under a throwaway NOBYPASSRLS role created from the superuser DSN of the
 shared Integration step. That step sets ``NOTIFICATION_DELIVERY_CERTIFICATION_REQUIRED=1``, so a
 missing or unmigrated database fails the module instead of turning it into a green skip.
@@ -296,5 +303,141 @@ def test_a_repeated_status_after_a_round_trip_is_still_its_own_event(monkeypatch
         await _post(notifications, live.tenant_a, key, "failed", "timeout")
         row = await live.row(live.tenant_a, key)
         assert await live.events(row["delivery_id"]) == ["failed", "sent", "failed"]
+
+    _run(case, monkeypatch)
+
+
+# ── the second writer: the notification agent obeys the same rule ────────────
+#
+# Lab follow-up on #1468: the state machine lived in the route's statement while
+# agents/notification/agent.py updated the table directly. Both now build their guard from
+# shared/notification_delivery_state.py; these cases run the agent's real SQL and handler.
+
+
+def _agent():
+    import importlib.util
+
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    spec = importlib.util.spec_from_file_location(
+        "notification_agent_live", ROOT / "agents" / "notification" / "agent.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_agent_update_writes_exactly_what_the_shared_rule_allows(monkeypatch):
+    """Every (current, wanted, reason) pair: the agent's guarded UPDATE writes iff the rule says so."""
+    from shared.notification_delivery_state import is_written
+
+    agent = _agent()
+
+    async def case(live, notifications):
+        wrong = {}
+        for current in STATUSES:
+            for wanted in STATUSES:
+                for same_reason in (True, False):
+                    stored = "timeout" if current == "failed" else None
+                    asked = stored if same_reason else "offline"
+                    asked = asked if wanted == "failed" else None
+                    key = f"agent:{current}:{wanted}:{same_reason}"
+                    await live.seed(live.tenant_a, key, current, stored)
+                    before = await live.row(live.tenant_a, key)
+                    written = await live.owner.fetchval(
+                        agent._DELIVERY_UPDATE_SQL, live.tenant_a, key, "push", wanted, asked
+                    )
+                    after = await live.row(live.tenant_a, key)
+                    expected = is_written(current, wanted, stored, asked)
+                    got = (
+                        written == wanted,
+                        after["updated_at"] > before["updated_at"],
+                        after["status"] == (wanted if expected else current),
+                    )
+                    if got != (expected, expected, True):
+                        wrong[(current, wanted, same_reason)] = (got, expected)
+        assert not wrong, f"(returned, rewritten, status ok) vs rule, per case: {wrong}"
+
+    _run(case, monkeypatch)
+
+
+def test_the_agent_repeats_a_failure_without_rewriting_and_records_a_new_reason(monkeypatch):
+    """The real `_deliver_channel`, as the restricted role, on rows the route or the agent wrote."""
+    agent = _agent()
+
+    async def case(live, notifications):
+        # The agent's own get_pool() returns its module pool when one is set: hand it the
+        # live NOBYPASSRLS pool, so the handler runs unchanged against PostgreSQL.
+        monkeypatch.setattr(agent, "_pool", live.pool)
+
+        async def ok():
+            return True
+
+        async def down():
+            return False
+
+        def data(event):
+            return {"tenant_id": live.tenant_a, "user_id": 7, "event_id": event}
+
+        # failed with the agent's own reason, failing again: a replay, nothing rewritten.
+        same = data("same-reason")
+        await live.seed(
+            live.tenant_a, agent._delivery_key(same), "failed", "provider_delivery_failed"
+        )
+        before = await live.row(live.tenant_a, agent._delivery_key(same))
+        with pytest.raises(agent.DeliveryUnavailable, match="push_delivery_failed"):
+            await agent._deliver_channel(same, "push", down)
+        after = await live.row(live.tenant_a, agent._delivery_key(same))
+        assert after["updated_at"] == before["updated_at"], "a repeated failure rewrote the row"
+
+        # failed with another reason (a route receipt), failing again: the new reason is written.
+        other = data("other-reason")
+        await live.seed(live.tenant_a, agent._delivery_key(other), "failed", "timeout")
+        with pytest.raises(agent.DeliveryUnavailable):
+            await agent._deliver_channel(other, "push", down)
+        row = await live.row(live.tenant_a, agent._delivery_key(other))
+        assert (row["status"], row["error"]) == ("failed", "provider_delivery_failed")
+
+        # queued (a push-fallback row with its note), now sent: written, the note cleared.
+        queued = data("queued-then-sent")
+        await live.seed(
+            live.tenant_a,
+            agent._delivery_key(queued),
+            "queued",
+            "mobile_push_disabled_or_fcm_dormant",
+        )
+        await agent._deliver_channel(queued, "push", ok)
+        row = await live.row(live.tenant_a, agent._delivery_key(queued))
+        assert (row["status"], row["error"]) == ("sent", None)
+
+        # delivered stays delivered: the provider is not called and nothing is written.
+        done = data("delivered")
+        await live.seed(live.tenant_a, agent._delivery_key(done), "delivered")
+        before = await live.row(live.tenant_a, agent._delivery_key(done))
+        called = []
+
+        async def spy():
+            called.append(1)
+            return True
+
+        await agent._deliver_channel(done, "push", spy)
+        after = await live.row(live.tenant_a, agent._delivery_key(done))
+        assert not called and after["updated_at"] == before["updated_at"]
+
+    _run(case, monkeypatch)
+
+
+def test_a_queued_replay_of_an_agent_fallback_row_is_a_replay_not_409(monkeypatch):
+    """The agent keeps a note on its queued push-fallback rows; the route cannot send one."""
+
+    async def case(live, notifications):
+        key = "notification:fallback:user:7"
+        await live.seed(live.tenant_a, key, "queued", "mobile_push_disabled_or_fcm_dormant")
+        before = await live.row(live.tenant_a, key)
+        out = await _post(notifications, live.tenant_a, key, "queued")
+        after = await live.row(live.tenant_a, key)
+        assert out.status == "queued" and out.error == "mobile_push_disabled_or_fcm_dormant"
+        assert after["updated_at"] == before["updated_at"]
+        assert await live.events(after["delivery_id"]) == []
 
     _run(case, monkeypatch)

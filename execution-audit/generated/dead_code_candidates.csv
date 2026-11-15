@@ -183,7 +183,7 @@ medium,sahool-platform,function,field_imagery_available_dates,services/sahool-pl
 medium,sahool-platform,function,field_imagery_timeline,services/sahool-platform/api/routers/fields.py,778,0,review_before_delete,False
 medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2427,0,review_before_delete,False
 medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3696,0,review_before_delete,False
-medium,sahool-platform,function,send_to_subscriber,services/sahool-platform/api/routers/notifications.py,355,0,review_before_delete,False
+medium,sahool-platform,function,send_to_subscriber,services/sahool-platform/api/routers/notifications.py,371,0,review_before_delete,False
 medium,sahool-platform,function,irrigation_due_by_soil,services/sahool-platform/api/soil_water.py,91,0,review_before_delete,False
 medium,sahool-platform,function,generate_block_assignments,services/sahool-platform/api/trial_randomization.py,108,0,review_before_delete,False
 medium,sahool-platform,function,verify_assignment,services/sahool-platform/api/trial_randomization.py,150,0,review_before_delete,False
@@ -656,6 +656,7 @@ medium,shared,function,list_skills,shared/memory/skills.py,147,0,review_before_d
 medium,shared,function,assess_agronomic_model_candidate,shared/mlops/agronomic_candidate.py,77,0,review_before_delete,False
 medium,shared,function,register_dataset_version,shared/mlops/runtime.py,265,0,review_before_delete,False
 medium,shared,function,agricultural_evaluation_profile,shared/mlops/runtime.py,333,0,review_before_delete,False
+medium,shared,function,is_written,shared/notification_delivery_state.py,44,0,review_before_delete,False
 medium,shared,function,decide,shared/precision_agriculture/fertigation_plan.py,124,0,review_before_delete,False
 medium,shared,function,delivered_kg,shared/precision_agriculture/fertigation_plan.py,206,0,review_before_delete,False
 medium,shared,function,p2o5_from_p,shared/precision_agriculture/nutrient_units.py,20,0,review_before_delete,False

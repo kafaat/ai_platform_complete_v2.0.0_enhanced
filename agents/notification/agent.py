@@ -38,6 +38,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from shared.fcm import fcm_push_active, send_push
 from shared.notification_consumers import SUBSCRIPTIONS, queue_name, validate_queue
+from shared.notification_delivery_state import transition_guard_sql
 from shared.security.access_tokens import access_token_verification_key, verify_access_token
 from shared.security.trusted_tenant import service_token_ok
 from shared.tracing import configure_tracing
@@ -359,6 +360,17 @@ def _delivery_key(data: dict) -> str:
     return f"notification:{identity}:user:{data.get('user_id', '')}"
 
 
+# Channel outcome write, guarded by the one delivery state machine shared with the platform
+# receipt route (shared/notification_delivery_state.py; lab follow-up on #1468). RETURNING
+# tells a written row from a refused or replayed one.
+_DELIVERY_UPDATE_SQL = (
+    "UPDATE notification_delivery SET status=$4, error=$5, updated_at=now() "
+    "WHERE tenant_id=$1::uuid AND alert_key=$2 AND channel=$3 AND "
+    + transition_guard_sql("status", "$4", "error", "$5")
+    + " RETURNING status"
+)
+
+
 async def _deliver_channel(data: dict, channel: str, send=None, reason: str | None = None) -> None:
     """Use existing tenant-scoped receipts to skip already successful channels.
 
@@ -397,15 +409,20 @@ async def _deliver_channel(data: dict, channel: str, send=None, reason: str | No
         except Exception:
             sent = False
         failed = not sent
-        await conn.execute(
-            "UPDATE notification_delivery SET status=$4, error=$5, updated_at=now() "
-            "WHERE tenant_id=$1::uuid AND alert_key=$2 AND channel=$3",
+        wanted = "sent" if sent else "failed"
+        # The same transition rule as the platform receipt route, applied by PostgreSQL:
+        # a move the rule refuses writes nothing, whatever was checked above.
+        written = await conn.fetchval(
+            _DELIVERY_UPDATE_SQL,
             str(tenant),
             key,
             channel,
-            "sent" if sent else "failed",
+            wanted,
             None if sent else "provider_delivery_failed",
         )
+        # `failed` again with the same reason is a replay: no write, as in the route.
+        if written is None and not (status == wanted == "failed"):
+            raise DeliveryUnavailable("notification_receipt_transition_refused")
     if failed:
         raise DeliveryUnavailable(f"{channel}_delivery_failed")
 
