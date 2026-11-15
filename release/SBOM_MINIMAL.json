@@ -17155,7 +17155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59f40692ddf2f542b1614891ba3e60a1e7ddf20885fb978faa935b7ad03bea30"
+          "content": "a6af1728ecd4d5de5fb680ad7df8c540cdbdf7db8c0a3c14114d746b1d84dc38"
         }
       ],
       "name": "services/actuator-service/cmd_signing_v2.py",
@@ -17295,7 +17295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "983946ef073a9965c611ede502a85bbb21606d3ff43418f46759b23fa41d2e95"
+          "content": "d4fc767a12376b3be009092eecc263e0c21bed08128c34f748e65454b6985d71"
         }
       ],
       "name": "services/actuator-service/test_cmd_signing_v2.py",
