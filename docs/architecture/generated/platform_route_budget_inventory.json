@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "bc2fd48e6750b46ce3f497a1c60484a5a60af2a5c18a976692fbfece95456c7a",
+  "inventory_sha256": "fec18afb4d9bc6d998a754c37816e478a1e1aff3a83e12f1bbdd9a6ae7b54d05",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "167c6bce0c537e5b36d382d08c5863baf3b3ad5da0cbd46ba8cda0456bd9380e"
+    "policy_sha256": "adf88abba991196a3377b8e47246f4bdd62a909f5f70687347994ac2d0d029a7"
   },
   "routes": [
     {
@@ -1986,7 +1986,7 @@
     {
       "classification": "domain",
       "function": "regional_bulletin",
-      "line": 52,
+      "line": 67,
       "method": "GET",
       "path": "/api/v1/regional/bulletin",
       "source": "api/routers/regional_bulletin.py"

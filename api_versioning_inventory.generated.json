@@ -7616,7 +7616,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/regional_bulletin.py",
-    "line": 53,
+    "line": 68,
     "method": "GET",
     "path": "/api/v1/regional/bulletin",
     "handler": "regional_bulletin",

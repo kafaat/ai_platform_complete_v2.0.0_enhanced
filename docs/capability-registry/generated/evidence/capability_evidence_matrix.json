@@ -2118,6 +2118,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_regional_bulletin_route.py",
+          "signal": "filename:test_"
+        },
+        {
+          "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_reports.py",
           "signal": "filename:test_"
         },
@@ -2229,6 +2234,7 @@
         "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
         "services/sahool-platform/tests/test_planned_vs_executed_lifecycle.py",
         "services/sahool-platform/tests/test_prediction_calibration.py",
+        "services/sahool-platform/tests/test_regional_bulletin_route.py",
         "services/sahool-platform/tests/test_reports.py",
         "services/sahool-platform/tests/test_simple_farm_book.py",
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",

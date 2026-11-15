@@ -276,6 +276,19 @@ def test_mass_balance_refused():
     )
 
 
+def test_outgoing_event_without_quantity_is_refused_not_waved_through():
+    """A sale with no quantity used to skip the remaining-quantity check entirely, so one lot
+    could be sold any number of times. Non-outgoing events may still omit the quantity."""
+    assert _refusal(event_type="sales", quantity_kg=None) is not None
+    # Even on a lot already sold out, the missing quantity is what is refused.
+    assert (
+        _refusal(event_type="sales", quantity_kg=None, outgoing_kg_so_far=Decimal("500"))
+        is not None
+    )
+    assert _refusal(event_type="storage", quantity_kg=None) is None
+    assert _refusal(event_type="transport", quantity_kg=None) is None
+
+
 # ── ⑤ حدود event_details ────────────────────────────────────────────────────
 
 
