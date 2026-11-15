@@ -2551,11 +2551,6 @@
       "evidence": "/api/v1/settings"
     },
     {
-      "endpoint": "/api/v1/sharing/generate-key",
-      "audience": "manager",
-      "evidence": "/api/v1/sharing/generate-key"
-    },
-    {
       "endpoint": "/api/v1/sharing/keys",
       "audience": "manager",
       "evidence": "/api/v1/sharing/keys"
