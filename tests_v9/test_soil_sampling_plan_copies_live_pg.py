@@ -345,6 +345,20 @@ async def test_an_operator_planted_in_public_does_not_run_in_the_field_cover_def
     admin = await asyncpg.connect(_ADMIN_DSN)
     app = await asyncpg.connect(_APP_DSN)
     role = await app.fetchval("SELECT current_user")
+    # Each layer closes the hole on its own (review of #1456): the planted operators below need
+    # public in the search_path AND an unqualified or untyped comparison. Pin both layers: the
+    # search_path itself, so a revert to "public" fails here even if every comparison stays typed.
+    configs = await admin.fetch(
+        "SELECT pg_get_function_identity_arguments(oid) AS args, proconfig, prosecdef"
+        " FROM pg_proc WHERE proname = 'sahool_field_covers_points'"
+    )
+    assert [(r["args"], r["proconfig"], r["prosecdef"]) for r in configs] == [
+        (
+            "p_tenant_id text, p_field_id text, p_points jsonb, p_buffer_m double precision",
+            ["search_path=pg_catalog, pg_temp"],
+            True,
+        )
+    ], configs  # one signature only: the earlier 3-argument draft is dropped
     field_id = f"p6-hij-{uuid.uuid4().hex[:10]}"
     square = {
         "type": "Polygon",

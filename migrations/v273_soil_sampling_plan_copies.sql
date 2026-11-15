@@ -47,6 +47,9 @@ REVOKE ALL ON soil_sampling_plan_copies FROM PUBLIC;
 -- empty or malformed list ⇒ false (fail closed). search_path is pg_catalog, pg_temp: every PostGIS
 -- name is public-qualified and literals are typed, so nothing planted in public can be resolved
 -- while the function runs as its owner (lab receipt on #1456: a planted public.>= ran as owner).
+-- An earlier draft of v273 created a 3-argument form with public in its search_path and no
+-- tenant check; drop it so no database that ran that draft keeps it beside this one.
+DROP FUNCTION IF EXISTS sahool_field_covers_points(text, jsonb, double precision);
 CREATE OR REPLACE FUNCTION sahool_field_covers_points(
   p_tenant_id text, p_field_id text, p_points jsonb, p_buffer_m double precision
 ) RETURNS boolean
