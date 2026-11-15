@@ -14,7 +14,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from services.ai_agronomist import tool_executor as EX  # noqa: E402
-from services.ai_agronomist.soil_sampling_planner import plan_soil_sampling  # noqa: E402
+from services.ai_agronomist.soil_sampling_planner import (  # noqa: E402
+    plan_copies_for_platform,
+    plan_soil_sampling,
+)
 from shared.ai import tool_schema as SCH  # noqa: E402
 
 
@@ -259,3 +262,33 @@ def test_reference_protocol_matches_planner_for_collection_purposes():
         assert protocol["subsamples"]["supported"] == point["composite"]
     assert sampling_protocol(3, "general")["depth"]["sampling_purpose"] == "fertility"
     assert not sampling_protocol(3, "unrecognized")["supported"]
+
+
+def _planner_call(field_id="f-1", **data):
+    body = {
+        "field_id": field_id,
+        "soil_sampling_plan": {"plan_id": "ssp-1"},
+        "sample_points": [{"sample_id": "ss-1"}],
+        **data,
+    }
+    return {"tool": "plan_soil_sampling", "data": body}
+
+
+def test_plan_copies_for_platform_forwards_only_this_fields_planner_results():
+    # Review of #1456 (M2): the plan-producer side had no test. Only planner calls for the
+    # asked field, with a plan id and points, are forwarded (at most 10).
+    calls = [
+        _planner_call(),
+        _planner_call(field_id="f-other"),
+        {"tool": "other_tool", "data": _planner_call()["data"]},
+        _planner_call(soil_sampling_plan={"plan_id": 7}),
+        _planner_call(sample_points=[]),
+        "not-a-call",
+    ]
+    copies = plan_copies_for_platform(calls, "f-1")
+    assert copies == [
+        {"field_id": "f-1", "plan": {"plan_id": "ssp-1"}, "sample_points": [{"sample_id": "ss-1"}]}
+    ]
+    assert plan_copies_for_platform(calls, None) == []
+    assert plan_copies_for_platform("x", "f-1") == []
+    assert len(plan_copies_for_platform([_planner_call()] * 12, "f-1")) == 10

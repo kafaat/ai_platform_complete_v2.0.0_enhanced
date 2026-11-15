@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "8a93267105f80cb75a5e634e3897673ac947aad046aa9ba93af5eace28b6c09f",
+  "inventory_sha256": "08a9c532e62c120adefe4d47d4f2309567de2185de2d3494c6245a82ff84a884",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "97b57566f9e43298359ca6f0c749975ffa44c826137a320eb6b5641df4b4c683"
+    "policy_sha256": "e6a8b97a60fcbc9363191f71fa99bdead05524e095bb93d7c4c814f4629432ce"
   },
   "routes": [
     {
@@ -1194,7 +1194,7 @@
     {
       "classification": "domain",
       "function": "field_lab_context",
-      "line": 736,
+      "line": 775,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/lab-context",
       "source": "api/routers/soil_sampling.py"
@@ -1666,7 +1666,7 @@
     {
       "classification": "domain",
       "function": "list_lab_samples",
-      "line": 314,
+      "line": 331,
       "method": "GET",
       "path": "/api/v1/lab/samples",
       "source": "api/routers/soil_sampling.py"
@@ -3978,7 +3978,7 @@
     {
       "classification": "domain",
       "function": "create_lab_sample",
-      "line": 374,
+      "line": 393,
       "method": "POST",
       "path": "/api/v1/lab/samples",
       "source": "api/routers/soil_sampling.py"
@@ -3986,7 +3986,7 @@
     {
       "classification": "domain",
       "function": "transition_lab_sample",
-      "line": 605,
+      "line": 644,
       "method": "POST",
       "path": "/api/v1/lab/samples/{sample_id}/transition",
       "source": "api/routers/soil_sampling.py"
@@ -3994,7 +3994,7 @@
     {
       "classification": "domain",
       "function": "submit_soil_lab_result",
-      "line": 424,
+      "line": 463,
       "method": "POST",
       "path": "/api/v1/lab/soil-results",
       "source": "api/routers/soil_sampling.py"
@@ -4002,7 +4002,7 @@
     {
       "classification": "domain",
       "function": "submit_water_lab_result",
-      "line": 554,
+      "line": 593,
       "method": "POST",
       "path": "/api/v1/lab/water-results",
       "source": "api/routers/soil_sampling.py"

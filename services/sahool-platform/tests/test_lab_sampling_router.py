@@ -508,3 +508,142 @@ def test_published_value_comes_from_the_row_whose_id_is_recorded(monkeypatch):
     # soil-service's canonical units win; the lab's labels stay in provenance only.
     assert "units" not in sent["json"]
     assert sent["json"]["provenance"]["observed_at_source"] == "laboratory_result"
+
+
+# ── Gap P6: a plan-point sample stores the origin soil-service resolves, never the claim ─────
+import importlib.util  # noqa: E402
+import json as _json  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+import httpx  # noqa: E402
+from api import soil_hydraulic_client  # noqa: E402
+
+_SOIL_ORIGIN_PATH = Path(__file__).resolve().parents[2] / "soil-service" / "plan_origin.py"
+_spec = importlib.util.spec_from_file_location("soil_service_plan_origin", _SOIL_ORIGIN_PATH)
+_soil_origin = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_soil_origin)
+
+_PLAN_POINT = {
+    "sample_id": "ss-1",
+    "zone_id": "Z1",
+    "point": {"type": "Point", "coordinates": [44.0, 16.0]},
+    "depth_cm": [0, 30],
+    "indicators": ["ndvi"],
+    "indicator_sources": {"ndvi": {"scene_id": "S2A_20260501", "acquisition_date": "2026-05-01"}},
+}
+#: The client's claim: the plan point it says it sampled, with an invented scene. The actual
+#: collection position (``latitude``/``longitude``) is about 66 km north of the planned point.
+_PLAN_SAMPLE = {
+    **_SAMPLE,
+    "latitude": 16.6,
+    "longitude": 44.0,
+    "sampling_plan_id": "ssp-1",
+    "sampling_origin": {
+        "point_id": "ss-1",
+        "zone_id": "Z1",
+        "latitude": 16.6,
+        "longitude": 44.0,
+        "indicators": ["ndvi"],
+        "indicator_sources": {"ndvi": {"scene_id": "INVENTED", "acquisition_date": "2026-01-01"}},
+    },
+}
+
+
+def _soil_service(monkeypatch, *, plans=None, fail=None):
+    """soil-service's origin route, answered by its own resolver over its stored copies."""
+    stored = {"ssp-1": [_PLAN_POINT]} if plans is None else plans
+    calls = []
+
+    async def soil_post(path, *, tenant_id, body):
+        calls.append(path)
+        if fail is not None:
+            raise soil_hydraulic_client.SamplingPlanVerificationUnavailable(fail)
+        plan_id = path.split("/")[-2]
+        if plan_id not in stored:
+            detail = {"code": "sampling_plan_not_found", "plan_id": plan_id}
+            return httpx.Response(404, json={"detail": detail})
+        try:
+            origin = _soil_origin.resolve_origin(
+                plan_id=plan_id,
+                plan_digest_value="f" * 64,
+                sample_points=stored[plan_id],
+                point_id=body["point_id"],
+                latitude=body["latitude"],
+                longitude=body["longitude"],
+                gps_accuracy_m=body["gps_accuracy_m"],
+                deviation_reason=body["deviation_reason"],
+                claimed=body["claimed"],
+            )
+        except _soil_origin.OriginRefused as exc:
+            return httpx.Response(exc.status, json={"detail": exc.detail()})
+        return httpx.Response(200, content=_json.dumps(origin))
+
+    monkeypatch.setattr(soil_hydraulic_client, "_soil_post", soil_post)
+    return calls
+
+
+def test_p6_negative_control_a_66_km_origin_is_refused_and_nothing_is_stored(monkeypatch):
+    c, created = _idempotency_harness(monkeypatch)
+    _soil_service(monkeypatch)
+    resp = c.post("/api/v1/lab/samples", json=_PLAN_SAMPLE)
+    assert resp.status_code == 422, resp.text
+    detail = resp.json()["detail"]
+    assert detail["code"] == "sampling_origin_out_of_tolerance"
+    assert 66_000 < detail["deviation_m"] < 67_000
+    assert created == []
+
+
+def test_p6_a_stated_reason_stores_the_server_resolved_origin_not_the_claim(monkeypatch):
+    c, created = _idempotency_harness(monkeypatch)
+    _soil_service(monkeypatch)
+    body = {**_PLAN_SAMPLE, "deviation_reason": "planned point flooded, sampled upslope"}
+    resp = c.post("/api/v1/lab/samples", json=body)
+    assert resp.status_code == 200, resp.text
+    origin = created[0]["sampling_origin"]
+    assert (origin["latitude"], origin["longitude"]) == (16.0, 44.0)  # the stored plan point
+    assert origin["indicator_sources"]["ndvi"]["scene_id"] == "S2A_20260501"
+    assert origin["verification"] == "stored_plan" and origin["resolved_by"] == "soil-service"
+    assert "indicator_sources" in origin["client_claim_mismatch"]
+    collection = origin["collection"]
+    assert collection["on_plan"] is False
+    assert collection["deviation_reason"] == "planned point flooded, sampled upslope"
+    assert (collection["latitude"], collection["longitude"]) == (16.6, 44.0)
+
+
+def test_p6_an_in_tolerance_plan_sample_is_stored_on_plan(monkeypatch):
+    c, created = _idempotency_harness(monkeypatch)
+    _soil_service(monkeypatch)
+    resp = c.post("/api/v1/lab/samples", json={**_PLAN_SAMPLE, "latitude": 16.0001})
+    assert resp.status_code == 200, resp.text
+    assert created[0]["sampling_origin"]["collection"]["on_plan"] is True
+
+
+def test_p6_a_plan_never_stored_is_refused(monkeypatch):
+    c, created = _idempotency_harness(monkeypatch)
+    calls = _soil_service(monkeypatch, plans={})
+    resp = c.post("/api/v1/lab/samples", json={**_PLAN_SAMPLE, "latitude": 16.0})
+    assert resp.status_code == 422
+    assert resp.json()["detail"]["code"] == "sampling_plan_not_found"
+    assert calls and created == []
+
+
+def test_p6_soil_service_unreachable_fails_closed_for_plan_samples_only(monkeypatch):
+    c, created = _idempotency_harness(monkeypatch)
+    _soil_service(monkeypatch, fail="ConnectError")
+    resp = c.post("/api/v1/lab/samples", json={**_PLAN_SAMPLE, "latitude": 16.0})
+    assert resp.status_code == 503
+    assert resp.json()["detail"]["code"] == "sampling_plan_verification_unavailable"
+    assert created == []
+    manual = c.post("/api/v1/lab/samples", json=_SAMPLE)
+    assert manual.status_code == 200
+    assert created[0]["sampling_origin"] is None
+
+
+def test_p6_a_plan_id_without_a_plan_point_is_rejected():
+    import pytest
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        mod.LabSampleIn(**{**_SAMPLE, "sampling_plan_id": "ssp-1"})
+    with pytest.raises(ValidationError):
+        mod.LabSampleIn(**{**_SAMPLE, "deviation_reason": "no plan to deviate from"})

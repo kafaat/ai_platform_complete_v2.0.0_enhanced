@@ -21,7 +21,24 @@ const LAB_FIELD_LABELS: Record<string, string> = {
   organic_matter_pct: 'المادة العضويّة %', nitrogen_mg_kg: 'النيتروجين',
   phosphorus_mg_kg: 'الفوسفور', potassium_mg_kg: 'البوتاسيوم',
 };
+// Typed refusals of a plan-point sample (gap P6): soil-service resolves the point from its stored
+// copy of the plan; the server never stores the planned position the page sends.
+function planOriginRefusal(e: unknown): string | null {
+  const detail = asApiError(e).response?.data?.detail as
+    | { code?: string; deviation_m?: number; tolerance_m?: number } | undefined;
+  switch (detail && typeof detail === 'object' && !Array.isArray(detail) ? detail.code : undefined) {
+    case 'sampling_plan_not_found': return 'الخطة غير محفوظة لدى الخادم؛ لا تُسجَّل العينة كعينة من خطة.';
+    case 'sampling_point_not_in_plan': return 'النقطة غير موجودة في الخطة المحفوظة.';
+    case 'sampling_origin_out_of_tolerance':
+      return `موقع الجمع يبعد ${detail?.deviation_m} م عن نقطة الخطة (السماح ${detail?.tolerance_m} م). اذكر سبب الابتعاد أو اجمع من النقطة.`;
+    case 'sampling_plan_verification_unavailable': return 'تعذّر التحقق من الخطة الآن؛ لم تُحفظ العينة. أعد المحاولة لاحقاً.';
+    default: return null;
+  }
+}
+
 function labErrorMessage(e: unknown, fallback: string): string {
+  const refusal = planOriginRefusal(e);
+  if (refusal) return refusal;
   const fields = apiFieldErrors(e);
   if (fields.length) {
     return fields.map((f) => `${LAB_FIELD_LABELS[f.field] ?? (f.field || 'حقل')}: ${f.msg}`).join('؛ ');
@@ -100,6 +117,11 @@ function PlannedSamplingDetails({ origin }: { origin: SamplingOrigin }) {
     {origin.planned_depth_cm && <div>العمق المخطط: {origin.planned_depth_cm.join('–')} سم</div>}
     {origin.composite !== undefined && <div>{origin.composite ? 'عينة مركّبة' : 'عينة موضعية'}</div>}
     {sources.map(([index, src]) => <div key={index}><bdi>{index.toUpperCase()} · {src.scene_id ?? src.asset_id} {src.acquisition_date}</bdi></div>)}
+    {origin.verification === 'stored_plan' && <div>أصل العينة من الخطة المحفوظة لدى الخادم</div>}
+    {origin.collection && <div>
+      موقع الجمع الفعلي <bdi>{origin.collection.latitude}, {origin.collection.longitude}</bdi> · الانحراف {origin.collection.deviation_m} م
+      {origin.collection.on_plan ? ' (ضمن الخطة)' : ` (خارج الخطة: ${origin.collection.deviation_reason ?? ''})`}
+    </div>}
   </details>;
 }
 
@@ -180,6 +202,8 @@ function LabForms({selection, planState, scope, fieldScope, msg, setMsg, consume
       source: String(fd.get('source') || ''),
       gps_accuracy_m,
       status: 'collected',
+      ...(fd.get('kind') !== 'water' && planState?.origin && planState.planId && String(fd.get('deviation_reason') || '').trim()
+        ? {deviation_reason: String(fd.get('deviation_reason')).trim()} : {}),
     };
     return payload;
   };
@@ -252,6 +276,7 @@ function LabForms({selection, planState, scope, fieldScope, msg, setMsg, consume
             <div className="grid grid-cols-2 gap-2"><label className="text-sm text-slate-300">من عمق سم<input name="depth_cm_from" defaultValue={planState?.depth?.[0]} type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label><label className="text-sm text-slate-300">إلى عمق سم<input name="depth_cm_to" defaultValue={planState?.depth?.[1]} type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label></div>
             <label className="block text-sm text-slate-300">تاريخ العينة<input name="sampled_on" type="date" defaultValue={localDate()} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label>
             <label className="block text-sm text-slate-300">مصدر/ملاحظة<input name="source" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" placeholder="بئر 3 / شبكة 1 / قطاع شمالي" /></label>
+            {planState?.origin && <label className="block text-sm text-slate-300">سبب الابتعاد عن نقطة الخطة (إن تجاوز الجمع حدّ السماح)<input name="deviation_reason" minLength={3} maxLength={200} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" placeholder="صخور في النقطة المخططة" /></label>}
             <label className="block text-sm text-slate-300">دقة GPS بالمتر<input name="gps_accuracy_m" type="number" step="any" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label>
             </fieldset>
             <button disabled={!fieldId || sampleWrite.busy || sampleWrite.blocked} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-white disabled:opacity-50"><Plus size={16} /> {sampleWrite.pending ? 'إعادة إرسال العينة' : 'حفظ العينة'}</button>
