@@ -5383,27 +5383,17 @@
       "function": "list_sharing_keys",
       "method": "GET",
       "path": "/api/v1/sharing/keys",
-      "line": 116,
+      "line": 66,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/sharing.py::GET /api/v1/sharing/keys::list_sharing_keys"
     },
     {
       "file": "api/routers/sharing.py",
-      "function": "generate_share_key",
-      "method": "POST",
-      "path": "/api/v1/sharing/generate-key",
-      "line": 45,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/sharing.py::POST /api/v1/sharing/generate-key::generate_share_key"
-    },
-    {
-      "file": "api/routers/sharing.py",
       "function": "create_sharing_key",
       "method": "POST",
       "path": "/api/v1/sharing/keys",
-      "line": 85,
+      "line": 33,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/sharing.py::POST /api/v1/sharing/keys::create_sharing_key"
@@ -5413,7 +5403,7 @@
       "function": "revoke_sharing_key",
       "method": "POST",
       "path": "/api/v1/sharing/keys/{key_id}/revoke",
-      "line": 128,
+      "line": 78,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/sharing.py::POST /api/v1/sharing/keys/{key_id}/revoke::revoke_sharing_key"
