@@ -153,7 +153,7 @@ async def test_poison_message_retained_before_termination(agent, monkeypatch):
 class Connection:
     """Stand-in for the receipt table. The guarded UPDATE is answered with the shared rule
     (``is_written``), the Python mirror of the SQL the agent sends; the live module
-    ``test_notification_agent_delivery_live_pg.py`` runs that SQL on PostgreSQL."""
+    ``test_notification_delivery_transitions_live_pg.py`` runs that SQL on PostgreSQL."""
 
     def __init__(self):
         self.statuses = {}
