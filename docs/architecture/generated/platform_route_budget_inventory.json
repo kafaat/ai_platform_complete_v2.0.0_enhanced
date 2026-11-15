@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "b76e782e86ebb5cbdc179cebb671cf995ae26c77b2a176713fbc98feaf75de59",
+  "inventory_sha256": "bc2fd48e6750b46ce3f497a1c60484a5a60af2a5c18a976692fbfece95456c7a",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "d4d48b796c2f1ca94fe0b102293159aac200635f15233eb517e6b2ae25959a22"
+    "policy_sha256": "167c6bce0c537e5b36d382d08c5863baf3b3ad5da0cbd46ba8cda0456bd9380e"
   },
   "routes": [
     {
@@ -1770,7 +1770,7 @@
     {
       "classification": "domain",
       "function": "get_notification_preferences",
-      "line": 54,
+      "line": 75,
       "method": "GET",
       "path": "/api/v1/notifications/preferences",
       "source": "api/routers/notifications.py"
@@ -4114,7 +4114,7 @@
     {
       "classification": "domain",
       "function": "upsert_notification_delivery",
-      "line": 179,
+      "line": 200,
       "method": "POST",
       "path": "/api/v1/notifications/delivery",
       "source": "api/routers/notifications.py"
@@ -5082,7 +5082,7 @@
     {
       "classification": "domain",
       "function": "update_notification_preferences",
-      "line": 84,
+      "line": 105,
       "method": "PUT",
       "path": "/api/v1/notifications/preferences",
       "source": "api/routers/notifications.py"
