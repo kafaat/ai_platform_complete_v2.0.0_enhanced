@@ -72,6 +72,7 @@
       ],
       "tests": [
         "docs/testing/decision_transport_auth_repairs_20260909.md",
+        "firmware/esp32_mesh_gateway/test/gen_cmd_auth_v2_vectors.py",
         "mobile/sahool_app/test/auth_service_test.dart",
         "mobile/sahool_app/test/core/auth_gate_refresh_unknown_test.dart",
         "mobile/sahool_app/test/core/auth_gate_startup_test.dart",
@@ -94,8 +95,7 @@
         "services/raster-service/test_tenant_propagation.py",
         "services/raster-service/test_tile_tenant_query.py",
         "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
-        "services/sahool-platform/tests/test_fields_tenant_arg_completeness_guard.py",
-        "services/sahool-platform/tests/test_route_auth_matrix_guard.py"
+        "services/sahool-platform/tests/test_fields_tenant_arg_completeness_guard.py"
       ],
       "runtime": {
         "metrics": [
@@ -151,7 +151,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 68
+        "tests": 69
       }
     },
     {
@@ -3375,8 +3375,8 @@
         "GET /healthz @ services/actuator-service/routers/health.py:20",
         "GET /readyz @ services/actuator-service/routers/health.py:32",
         "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:236",
-        "GET /v1/commands @ services/actuator-service/routers/commands.py:115",
-        "GET /v1/commands/{command_id} @ services/actuator-service/routers/commands.py:141",
+        "GET /v1/commands @ services/actuator-service/routers/commands.py:126",
+        "GET /v1/commands/{command_id} @ services/actuator-service/routers/commands.py:152",
         "GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18",
         "POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:101",
         "POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:181",
@@ -3399,8 +3399,10 @@
         "services/actuator-service/test_actuator_router_decomposition_guard.py",
         "services/actuator-service/test_actuator_safety.py",
         "services/actuator-service/test_actuator_safety_audit_20261101.py",
+        "services/actuator-service/test_cmd_signing_v2.py",
         "services/actuator-service/test_dedup_compensation.py",
         "services/actuator-service/test_dispatch_bridge.py",
+        "services/actuator-service/test_killswitch_close_exemption.py",
         "services/sahool-platform/tests/test_actuator_command.py",
         "services/sahool-platform/tests/test_command_dispatcher.py",
         "tests_v9/actuator_route_source.py",
@@ -3417,8 +3419,7 @@
         "tests_v9/test_helm_migration_command_valid_20260705.py",
         "tests_v9/test_manual_command_killswitch_scope.py",
         "tests_v9/test_portfolio_command_shape.py",
-        "tests_v9/test_rls_instructions_do_not_teach_a_command_line_password.py",
-        "tests_v9/test_v238_actuator_delivery_state_live_pg.py"
+        "tests_v9/test_rls_instructions_do_not_teach_a_command_line_password.py"
       ],
       "runtime": {
         "metrics": [],
@@ -3458,13 +3459,16 @@
           "path": "migrations/v238_actuator_delivery_state.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=21, tests=24, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=21, tests=25, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
         "GeoPard": null,
         "Cropwise": null,
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "tests": 1
       }
     },
     {

@@ -4288,11 +4288,19 @@
     "kind": "database"
   },
   {
+    "path": "services/actuator-service/cmd_signing_v2.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/actuator-service/command_delivery.py",
     "kind": "backend"
   },
   {
     "path": "services/actuator-service/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/actuator-service/provision_device_key.py",
     "kind": "backend"
   },
   {
@@ -4328,11 +4336,19 @@
     "kind": "tests"
   },
   {
+    "path": "services/actuator-service/test_cmd_signing_v2.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/actuator-service/test_dedup_compensation.py",
     "kind": "tests"
   },
   {
     "path": "services/actuator-service/test_dispatch_bridge.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/actuator-service/test_killswitch_close_exemption.py",
     "kind": "tests"
   },
   {

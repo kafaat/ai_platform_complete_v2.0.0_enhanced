@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42cf69e0835c13eb96100548359e7e9683a4b4cc5cfd0e94b1c57b67229351ae"
+          "content": "a9d5b2a019c85223d094afed9c27a24c947ef066bcaba0bf577d2706ff793bad"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -17145,7 +17145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d2661d88d937720f09189ea204aac1f713ff0fb80128f6ea2d25e3af55b7b6b6"
+          "content": "2390b56b1f930a6350442f769b0d9d8ebcd430b7ee3c0a5f55b41162dcf9a90c"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -17155,7 +17155,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3aaa8d769e71c1a2f7f8dd786b81e54c4bfa651686a31e443e91a74eef2d5df0"
+          "content": "a6af1728ecd4d5de5fb680ad7df8c540cdbdf7db8c0a3c14114d746b1d84dc38"
+        }
+      ],
+      "name": "services/actuator-service/cmd_signing_v2.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2f7610955f7d3585cb1ef5a6e6544ecf6e38e2c1b034bd146c5b792a78d2860e"
         }
       ],
       "name": "services/actuator-service/command_delivery.py",
@@ -17169,6 +17179,16 @@
         }
       ],
       "name": "services/actuator-service/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8f2e881955f1df72201d4d64655c10d762ed4e9b987cde769eec10838d7cdefe"
+        }
+      ],
+      "name": "services/actuator-service/provision_device_key.py",
       "type": "file"
     },
     {
@@ -17205,7 +17225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1cc8d71309f9b73c13c24577f800d42e9e27ef42a6ad2c3c507beca41d084e62"
+          "content": "41ba92b975479b9c19a67f68fa3a0ad0dfc243d5cb36db2614ac431d8c1e0533"
         }
       ],
       "name": "services/actuator-service/routers/commands.py",
@@ -17235,7 +17255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d36aa0a8cc9930b8d81d36147c4ce28d002c6a997f263f17052b59eb5a2e01ac"
+          "content": "519ef9bf15e84c8a229d77c18cd34367b8cdbad839cc98b837cf2dc850d9d2a6"
         }
       ],
       "name": "services/actuator-service/test_actuator_delivery_state_20261103.py",
@@ -17265,10 +17285,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2eda166122952ad77205038e3fe3d3169d1d56885324a1da2b2f82a7a649d2c"
+          "content": "aa875aa4ec5aed7ca00833bc8e6b0a00d33cfc63360e28fb40d896c55aa0145b"
         }
       ],
       "name": "services/actuator-service/test_actuator_safety_audit_20261101.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d4fc767a12376b3be009092eecc263e0c21bed08128c34f748e65454b6985d71"
+        }
+      ],
+      "name": "services/actuator-service/test_cmd_signing_v2.py",
       "type": "file"
     },
     {
@@ -17289,6 +17319,16 @@
         }
       ],
       "name": "services/actuator-service/test_dispatch_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6e60952bf1d5ce1b70d8ada2b6969983588f5207d4fe614f376993cccd473780"
+        }
+      ],
+      "name": "services/actuator-service/test_killswitch_close_exemption.py",
       "type": "file"
     },
     {

@@ -4,6 +4,7 @@
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
+    "services/actuator-service/test_killswitch_close_exemption.py",
     "services/decision-service/tests/test_decision_provenance_integrity.py",
     "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
     "services/decision-service/tests/test_execution_request_plan_binding.py",
@@ -710,6 +711,16 @@
         "services/sahool-platform/tests/test_notification_delivery_transitions.py"
       ],
       "justification": "Notification delivery state machine (owner repair package, patch 0002). The stand-in (FakeConnection with fetchrow, patched tenant_connection) emulates the ON CONFLICT ... DO UPDATE ... WHERE transition rule in Python so the real route handler's control flow is measured by platform-unit-tests coverage: replay answers the current row, a refused transition is 409, an error reason with a non-failed status is 422 before any SQL, and one NOTIFICATION_DELIVERED per written transition. Its green says nothing about what PostgreSQL decides. The rule itself runs against the migrated v83 table under a NOBYPASSRLS role in tests_v9/test_notification_delivery_transitions_live_pg.py: the full 4x4 matrix, failure reasons, tenant isolation, a late sent racing delivered, and the per-day event dedup case (5 passed; 4 fail against main's handler). No proven_live exemption or database-enforcement claim is added."
+    },
+    {
+      "kind": "actuator_killswitch_close_exemption_unit_contract",
+      "date": "2026-11-12",
+      "before": 137,
+      "after": 138,
+      "sites": [
+        "services/actuator-service/test_killswitch_close_exemption.py"
+      ],
+      "justification": "ACTUATOR-KILLSWITCH-BLOCKS-CLOSE-01. The _EngagedConn/_Pool doubles answer the actuation_killswitch query with one engaged tenant-scoped switch (or raise, to exercise the fail-closed answer) so the REAL shared.actuation_killswitch.is_actuation_halted runs on every actuator call site; their transaction() is a no-op. They measure only that each path passes the command so CLOSE/OFF is not held. No PostgreSQL enforcement is claimed: RLS on actuation_killswitch, the transaction-scoped set_config and switch expiry are not established here. No proven_live exemption is added."
     }
   ]
 }

@@ -19,6 +19,7 @@
       },
       "configuration": [
         "ACTUATOR_ACK_TIMEOUT_SECONDS",
+        "ACTUATOR_CMD_EXPIRY_SECONDS",
         "ACTUATOR_DEDUP_WINDOW_SEC",
         "ACTUATOR_DEVICE_STALE_SECONDS",
         "ACTUATOR_DISPATCH_ADAPTER_ID",
@@ -26,6 +27,7 @@
         "ACTUATOR_DISPATCH_RISK_ALLOWLIST",
         "ACTUATOR_DISPATCH_TENANT_IDS",
         "ACTUATOR_IDEMPOTENCY_MODE",
+        "ACTUATOR_LEGACY_V1_DEVICES",
         "ACTUATOR_MODE",
         "DATABASE_URL",
         "DECISION_SERVICE_URL",
@@ -60,7 +62,8 @@
       "entrypoint": "services/actuator-service/main.py",
       "evidence_paths": {
         "configuration": [
-          "services/actuator-service/actuator_runtime.py"
+          "services/actuator-service/actuator_runtime.py",
+          "services/actuator-service/provision_device_key.py"
         ],
         "metrics": [],
         "routes": [
@@ -81,6 +84,7 @@
       },
       "secrets": [
         "ACTUATOR_DELIVERY_TOKEN_KEY",
+        "CMD_HMAC_MASTER_KEY",
         "CMD_HMAC_SECRET",
         "DECISION_SERVICE_TOKEN",
         "JWT_SECRET",
