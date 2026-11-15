@@ -53,7 +53,18 @@ import pytest
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
 
-asyncpg = pytest.importorskip("asyncpg")
+#: على غرار `IRR_F01_CERTIFICATION_REQUIRED`: التخطّي مقبولٌ في التطوير، ومرفوضٌ
+#: حين تُعلِن الوظيفةُ أنّها تشهد. وبلا هذا يمرّ غيابُ القاعدة خُضرةً صامتة.
+_CERTIFICATION_REQUIRED = os.getenv("RLS_ISOLATION_CERTIFICATION_REQUIRED") == "1"
+
+# Switch read before any import: on a certifying runner a missing dependency must fail the
+# module, not importorskip it into a green skip (certification-switch-before-importorskip).
+try:
+    import asyncpg
+except ImportError:
+    if _CERTIFICATION_REQUIRED:
+        raise
+    asyncpg = pytest.importorskip("asyncpg")
 
 #: عرفُ المستودع نفسُه الذي تستعمله شهادتا IRR-F01 وH5.1: مُدير للتهيئة، ومقيَّدٌ
 #: للقراءة المحروسة. **ولا قيمةَ افتراضيّة لأيّهما** — قيمةٌ افتراضيّة تُشغّل
@@ -61,10 +72,6 @@ asyncpg = pytest.importorskip("asyncpg")
 #: اختبارٌ حيٌّ إلى `DATABASE_URL` فالتقط ما تكتبه وحداتٌ أخرى زمنَ الاستيراد.
 _ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL") or ""
 _APP_DSN = os.getenv("TEST_DATABASE_URL") or ""
-
-#: على غرار `IRR_F01_CERTIFICATION_REQUIRED`: التخطّي مقبولٌ في التطوير، ومرفوضٌ
-#: حين تُعلِن الوظيفةُ أنّها تشهد. وبلا هذا يمرّ غيابُ القاعدة خُضرةً صامتة.
-_CERTIFICATION_REQUIRED = os.getenv("RLS_ISOLATION_CERTIFICATION_REQUIRED") == "1"
 
 #: مخطّطٌ خاصٌّ لا `public`: جدولُ المسبار خارج الهجرات، ولو أُنشئ في `public` لرآه
 #: أيُّ جردِ كتالوجٍ أو تأكيدِ RLS شاملٍ يمرّ بعده في الجلسة نفسِها فأدانه. ويُسقَط

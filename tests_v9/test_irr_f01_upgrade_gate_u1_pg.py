@@ -26,12 +26,20 @@ from uuid import UUID, uuid4
 
 import pytest
 
-asyncpg = pytest.importorskip("asyncpg", reason="asyncpg غير مثبّت")
+# Switch read before any import: on a certifying runner a missing dependency must fail the
+# module, not importorskip it into a green skip (certification-switch-before-importorskip).
+CERTIFICATION_REQUIRED = os.getenv("IRR_F01_CERTIFICATION_REQUIRED") == "1"
+
+try:
+    import asyncpg
+except ImportError:
+    if CERTIFICATION_REQUIRED:
+        raise
+    asyncpg = pytest.importorskip("asyncpg", reason="asyncpg غير مثبّت")
 pytestmark = pytest.mark.integration
 
 UP_APP_DSN = os.getenv("IRR_F01_UPGRADE_DATABASE_URL")
 UP_ADMIN_DSN = os.getenv("IRR_F01_UPGRADE_ADMIN_URL", UP_APP_DSN)
-CERTIFICATION_REQUIRED = os.getenv("IRR_F01_CERTIFICATION_REQUIRED") == "1"
 
 # Fixed legacy identifiers seeded pre-v195 by scripts/irr_f01/upgrade_gate_u1.sh.
 U1_TENANT = UUID("11111111-1111-1111-1111-111111111111")
