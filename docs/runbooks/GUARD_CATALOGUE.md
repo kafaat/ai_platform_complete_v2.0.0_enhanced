@@ -10,7 +10,7 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **289**
+- حرّاس تحجب في CI: **290**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **60**
 - إجماليّ الطفرات المُسجَّلة: **481**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **396** على 137 مصدراً
@@ -20,7 +20,7 @@
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **229** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **230** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -1127,7 +1127,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (229)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (230)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -1208,6 +1208,7 @@
 | `execution_outcome_boundary_gate.py` | WX-10.12 guard: outcome verification must not perform learning updates. | `structural-lint` |
 | `execution_request_boundary_gate.py` | — | `structural-lint` |
 | `expected_control_flow_guard.py` | يفرض عقد الاستثناءات المتوقَّعة — EXPECTED-CONTROL-FLOW-EXCEPTION. | `structural-lint` |
+| `export_explorer_routes.py` | Export code-declared service routes for the offline R13 explorer. | `drift` |
 | `fastapi_lifespan_guard.py` | Prevent reintroduction of deprecated FastAPI ``on_event`` hooks. | `structural-lint` |
 | `field_workspace_production_closure_gate.py` | Field Workspace production closure gate. | `field-workspace-closure` |
 | `fii_rls_write_policy_gate.py` | FII Safety Increment 1C: reject unsafe tenant-write RLS patterns. | `security-scan` |
