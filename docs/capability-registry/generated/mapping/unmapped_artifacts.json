@@ -2672,11 +2672,27 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v274_inspection_evidence_versions.down.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v274_inspection_evidence_versions.sql",
     "kind": "database"
   },
   {
+    "path": "migrations/v275_inspection_handoffs.down.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v275_inspection_handoffs.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v276_task_cost_trace.down.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v277_inspection_close_gate.down.sql",
     "kind": "database"
   },
   {

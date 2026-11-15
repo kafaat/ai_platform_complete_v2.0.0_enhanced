@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7389,
+    "files_scanned": 7393,
     "files_by_kind": {
       "backend": 1290,
-      "database": 329,
+      "database": 333,
       "governance": 89,
       "mobile": 417,
       "other": 2187,
       "tests": 2525,
       "web": 552
     },
-    "unmapped_artifacts": 3512,
+    "unmapped_artifacts": 3516,
     "ambiguous_artifacts": 239,
     "files_by_reading": {
       "python_functional": 4002,
-      "raw": 3387
+      "raw": 3391
     },
     "test_dependency_files": 1921,
     "test_dependency_edges": 4959,
@@ -34564,11 +34564,27 @@
       "kind": "database"
     },
     {
+      "path": "migrations/v274_inspection_evidence_versions.down.sql",
+      "kind": "database"
+    },
+    {
       "path": "migrations/v274_inspection_evidence_versions.sql",
       "kind": "database"
     },
     {
+      "path": "migrations/v275_inspection_handoffs.down.sql",
+      "kind": "database"
+    },
+    {
       "path": "migrations/v275_inspection_handoffs.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v276_task_cost_trace.down.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v277_inspection_close_gate.down.sql",
       "kind": "database"
     },
     {

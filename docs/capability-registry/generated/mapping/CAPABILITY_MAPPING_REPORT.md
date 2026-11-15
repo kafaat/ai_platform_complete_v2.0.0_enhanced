@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **43**
-- Files scanned: **7389**
+- Files scanned: **7393**
 - Ambiguous artifacts queued: **239**
-- Unmapped artifacts queued: **3512**
+- Unmapped artifacts queued: **3516**
 
 ## Capability coverage
 

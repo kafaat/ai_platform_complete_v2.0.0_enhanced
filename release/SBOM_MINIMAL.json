@@ -9815,10 +9815,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "aa5ff49abb126ec78350500827c16750cf49a6d46c236fc8ce5bdcd2db9c3047"
+        }
+      ],
+      "name": "migrations/v274_inspection_evidence_versions.down.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a19788fe2bac38b807450c048bd78eca68b0bb29bd1767df04537d458859d939"
         }
       ],
       "name": "migrations/v274_inspection_evidence_versions.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7adb340fa56cfc729d84100207d3ad798cb74a014a2c64bf076b81d0285013e3"
+        }
+      ],
+      "name": "migrations/v275_inspection_handoffs.down.sql",
       "type": "file"
     },
     {
@@ -9835,10 +9855,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "77b27c102b29185955193ab997b4bf2b22677e2fdcea44be823f458edf2496f8"
+        }
+      ],
+      "name": "migrations/v276_task_cost_trace.down.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2028f61b1a1bee8bcb425fdc51977da6070839f3af7cd73d6a39b4347a527799"
         }
       ],
       "name": "migrations/v276_task_cost_trace.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ef9a926d88ed7f6a361c119260b482df829ba98e7e7244a5bfc0b968387e24e4"
+        }
+      ],
+      "name": "migrations/v277_inspection_close_gate.down.sql",
       "type": "file"
     },
     {

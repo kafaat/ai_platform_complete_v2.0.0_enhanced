@@ -807,6 +807,10 @@
         {
           "type": "repository",
           "path": "migrations/v276_task_cost_trace.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v276_task_cost_trace.down.sql"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=15, tests=11, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
