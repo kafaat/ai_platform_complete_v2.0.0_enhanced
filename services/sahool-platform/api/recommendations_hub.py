@@ -96,6 +96,12 @@ class RecommendationContext:
     salinity_class: str | None = None  # critical|moderate|low (compose_field_state)
     crop_vigor: float | None = None  # 0..1 (مرجعيّة فقط)
 
+    def apply_operational_truths(self, field_state: dict) -> None:
+        """Stage F: يملأ الحقلين أعلاه من ``operational_truths`` للحالة القانونيّة؛ الغياب ⇒ None."""
+        truths = (field_state.get("agronomic") or {}).get("operational_truths") or {}
+        self.salinity_class = truths.get("salinity_class")
+        self.crop_vigor = truths.get("crop_vigor")
+
 
 # ─── التسميد: إرشاد N/P/K مبسّط بحسب المرحلة ───────────────────────
 # المرجع: مبادئ تغذية النبات العامّة (FAO Fertilizer & Plant Nutrition Bulletin) —

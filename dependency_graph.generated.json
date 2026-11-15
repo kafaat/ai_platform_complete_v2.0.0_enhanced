@@ -1,5 +1,5 @@
 {
-  "edge_count": 1035,
+  "edge_count": 1038,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -3982,6 +3982,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/routers/notifications.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://notification_delivery",
+      "to": "db://notification_delivery",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/main.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -6012,7 +6022,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:348",
+      "evidence": "nginx/nginx.v9.conf:355",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6132,7 +6142,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:364",
+      "evidence": "nginx/nginx.v9.conf:370",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6162,7 +6172,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:368",
+      "evidence": "nginx/nginx.v9.conf:373",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6202,7 +6212,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:337",
+      "evidence": "nginx/nginx.v9.conf:343",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6252,7 +6262,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:321",
+      "evidence": "nginx/nginx.v9.conf:327",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6392,7 +6402,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:309",
+      "evidence": "nginx/nginx.v9.conf:313",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6402,7 +6412,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:294",
+      "evidence": "nginx/nginx.v9.conf:298",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6592,7 +6602,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:329",
+      "evidence": "nginx/nginx.v9.conf:334",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6602,7 +6612,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:334",
+      "evidence": "nginx/nginx.v9.conf:337",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6618,6 +6628,16 @@
       "protocol": "http",
       "relation": "ROUTES_TO",
       "resource": "~ ^/api/v1/gis/cloud-native/rasters/[^/]+/tiles/",
+      "to": "sahool-platform",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "nginx/nginx.v9.conf:295",
+      "from": "gateway:nginx",
+      "from_kind": "gateway",
+      "protocol": "http",
+      "relation": "ROUTES_TO",
+      "resource": "~ ^/api/v1/seasons/[^/]+/simulate$",
       "to": "sahool-platform",
       "to_kind": "component"
     },
@@ -6702,7 +6722,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:341",
+      "evidence": "nginx/nginx.v9.conf:346",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -9012,6 +9032,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://notification_delivery",
+      "to": "db://notification_delivery",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/notifications.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -10370,15 +10400,15 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 548,
-    "ROUTES_TO": 73,
-    "WRITES": 363
+    "READS": 549,
+    "ROUTES_TO": 74,
+    "WRITES": 364
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
     "gateway": {
-      "component_targets": 53,
-      "observed": 73,
+      "component_targets": 54,
+      "observed": 74,
       "runtime_upstream_targets": 20
     },
     "nats": {
@@ -10387,8 +10417,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 912,
-      "resolved": 911,
+      "observed": 914,
+      "resolved": 913,
       "unresolved_component_paths": 0
     }
   }

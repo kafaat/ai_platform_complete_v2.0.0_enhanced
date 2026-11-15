@@ -2831,6 +2831,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "tests_v9/test_season_simulate_gateway_route.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_season_simulation_behavior_v66.py",
           "signal": "pytest.mark.unit"
         },
@@ -2911,6 +2916,7 @@
         "tests_v9/test_season_gateway_nginx_static.py",
         "tests_v9/test_season_lifecycle_behavior_v66.py",
         "tests_v9/test_season_logbook_content_safety.py",
+        "tests_v9/test_season_simulate_gateway_route.py",
         "tests_v9/test_season_simulation_behavior_v66.py",
         "tests_v9/test_season_workspace.py",
         "tests_v9/test_v10_modules.py",
@@ -11777,6 +11783,11 @@
       "test_evidence_attribution": [
         {
           "evidence_type": "unit",
+          "path": "mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart",
+          "signal": "filename:_test."
+        },
+        {
+          "evidence_type": "unit",
           "path": "mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart",
           "signal": "filename:_test."
         },
@@ -11838,6 +11849,7 @@
       ],
       "title": "MFA",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart",
         "mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart",
         "services/sahool-platform/tests/test_break_glass.py",
         "tests_v9/test_auth_admin_stepup_mfa.py",
