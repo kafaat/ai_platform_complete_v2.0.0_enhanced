@@ -2555,7 +2555,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 373,
+      "evidence_count": 374,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2946,6 +2946,7 @@
         "shared/dependency_readiness.py",
         "shared/enterprise_gis/phase8_global_scale.py",
         "shared/notification_consumers.py",
+        "shared/notification_delivery_state.py",
         "shared/precision_agriculture/test_phase6_intelligence.py",
         "shared/security/gateway_deps.py",
         "shared/security/service_tenant_assertion.py",
@@ -3513,7 +3514,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 60,
-      "target_evidence_count": 373,
+      "target_evidence_count": 374,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3523,5 +3524,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "08a5941d900c6fb841fc023e39908dfd44b4cf2cbe540bb0bcb05ac3b2d38db7"
+  "content_sha256": "3d69dedd07ce703c200717e8620d1c926b275b8c7f868aadfd565882421fee4f"
 }
