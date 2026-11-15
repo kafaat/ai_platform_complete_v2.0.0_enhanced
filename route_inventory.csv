@@ -609,7 +609,7 @@ sahool-platform,services/sahool-platform/api/routers/field_single.py,23,GET,/api
 sahool-platform,services/sahool-platform/api/routers/field_twin.py,39,GET,/api/v1/fields/{field_id}/twin,get_field_twin
 sahool-platform,services/sahool-platform/api/routers/field_workspace_imagery.py,51,GET,/api/v1/fields/{field_id}/available-dates,field_imagery_available_dates_facade
 sahool-platform,services/sahool-platform/api/routers/field_workspace_imagery.py,87,GET,/api/v1/fields/{field_id}/imagery/timeline,field_imagery_timeline_facade
-sahool-platform,services/sahool-platform/api/routers/field_workspace_timeline.py,32,GET,/api/v1/fields/{field_id}/unified-timeline,field_unified_timeline_facade
+sahool-platform,services/sahool-platform/api/routers/field_workspace_timeline.py,34,GET,/api/v1/fields/{field_id}/unified-timeline,field_unified_timeline_facade
 sahool-platform,services/sahool-platform/api/routers/field_workspace_weather.py,182,GET,/api/v1/fields/{field_id}/weather/thermal-stress,field_weather_thermal_stress
 sahool-platform,services/sahool-platform/api/routers/field_workspace_weather.py,217,GET,/api/v1/fields/{field_id}/weather/crop-stress,field_weather_crop_stress
 sahool-platform,services/sahool-platform/api/routers/field_workspace_weather.py,284,GET,/api/v1/fields/{field_id}/weather/operation-windows,field_weather_operation_windows
