@@ -325,7 +325,7 @@
         },
         {
           "function": "healthz",
-          "line": 161,
+          "line": 165,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/healthz",
@@ -540,7 +540,7 @@
         },
         {
           "function": "metrics",
-          "line": 166,
+          "line": 170,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/metrics",
@@ -699,7 +699,7 @@
         },
         {
           "function": "readyz",
-          "line": 183,
+          "line": 187,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/readyz",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1143,
-  "route_inventory_sha256": "c8e8dd8f6162015560ba0562c78b40bf2418585a664007533234025023ae102d",
+  "route_inventory_sha256": "ba4b8fce23c60233efc8ab5e813d6d7acabbd18e7d332d3a5b4f8b499086261c",
   "runtime_verified": false,
   "schema_version": 1
 }

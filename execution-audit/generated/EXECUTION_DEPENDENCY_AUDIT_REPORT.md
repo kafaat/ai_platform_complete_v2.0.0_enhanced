@@ -6,7 +6,7 @@
 
 - Python files parsed: **2186**
 - FastAPI-style route handlers: **1088**
-- Static function-call edges: **109894**
+- Static function-call edges: **109900**
 - Dead-code candidates: **671**
 - Duplicate function groups: **63**
 - Automatic deletions: **0**
@@ -20,7 +20,7 @@
 | `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 165 |
 | `decision-service` | `_require_live_when_certifying` | function | `services/decision-service/tests/test_eligibility_assessment_live_pg.py` | 119 |
 | `decision-service` | `_clean_policy_env` | function | `services/decision-service/tests/test_sod_single_operator_self_approval.py` | 32 |
-| `knowledge-graph` | `_validation_error` | function | `services/knowledge-graph/main.py` | 42 |
+| `knowledge-graph` | `_validation_error` | function | `services/knowledge-graph/main.py` | 46 |
 | `raster-service` | `_endpoint_host` | function | `services/raster-service/object_store.py` | 69 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |
 | `raster-service` | `_bbox_from_geom` | function | `services/raster-service/raster_main_compat_exports.py` | 97 |

@@ -1160,7 +1160,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 161,
+      "line": 165,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1169,7 +1169,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 166,
+      "line": 170,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -1178,7 +1178,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 183,
+      "line": 187,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1187,7 +1187,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 207,
+      "line": 211,
       "method": "POST",
       "path": "/v1/nodes",
       "function": "upsert_node",
@@ -1196,7 +1196,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 220,
+      "line": 224,
       "method": "POST",
       "path": "/v1/edges",
       "function": "upsert_edge",
@@ -1205,7 +1205,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 234,
+      "line": 238,
       "method": "GET",
       "path": "/v1/edges",
       "function": "edges",
@@ -1214,7 +1214,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 250,
+      "line": 254,
       "method": "POST",
       "path": "/graphql",
       "function": "graphql",

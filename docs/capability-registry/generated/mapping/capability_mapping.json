@@ -2232,11 +2232,11 @@
           "score": 13
         },
         {
-          "value": "kg_edges @ services/knowledge-graph/kg_store.py:585",
+          "value": "kg_edges @ services/knowledge-graph/kg_store.py:595",
           "score": 11
         },
         {
-          "value": "kg_nodes @ services/knowledge-graph/kg_store.py:577",
+          "value": "kg_nodes @ services/knowledge-graph/kg_store.py:587",
           "score": 11
         }
       ],
