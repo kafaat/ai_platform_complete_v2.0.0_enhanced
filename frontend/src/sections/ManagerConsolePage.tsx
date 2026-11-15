@@ -465,8 +465,8 @@ function OpsSection() {
       </Panel>
 
       {/* مفتاح مشاركة — يُعرَض الـplaintext مرّة واحدة */}
-      <Panel title="توليد مفتاح مشاركة" icon={ShieldCheck}>
-        <Muted>يُعرَض المفتاح مرّة واحدة فقط — الحفظ في DB يحتاج تفعيل الخادم (USER_INVITE).</Muted>
+      <Panel title="إنشاء مفتاح مشاركة محفوظ" icon={ShieldCheck}>
+        <Muted>يُحفَظ المفتاح في قاعدة البيانات تحت صلاحيات المستأجر ويُعرض نصه مرّة واحدة فقط (USER_INVITE).</Muted>
         <div className="grid grid-cols-2 gap-1.5 mt-1.5">
           <Sel label="النطاق" v={key.scope} on={(v) => setKey({ ...key, scope: v })} opts={['read', 'read_write']} />
           <Num label="صلاحيّة (أيّام)" v={key.expires_in_days} on={(v) => setKey({ ...key, expires_in_days: v })} />
@@ -481,7 +481,7 @@ function OpsSection() {
             expires_in_days: Number(key.expires_in_days) || 30,
           })}
           className="mt-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}>{keyM.isPending ? 'جارٍ…' : 'ولّد المفتاح'}</button>
+          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}>{keyM.isPending ? 'جارٍ…' : 'أنشئ مفتاحًا محفوظًا'}</button>
         {keyM.isError && <Muted>تعذّر التوليد (422 لنطاق/نوع غير صالح).</Muted>}
         {keyData && !isDisabled(keyData) && (
           <div className="mt-1.5 text-[11px] flex flex-col gap-0.5" style={{ color: T.ink }}>
