@@ -1,13 +1,13 @@
 {
   "counts": {
     "api_route_declarations": 4,
-    "direct_routes": 633,
-    "mapped_routes": 637,
-    "surface_routes": 637
+    "direct_routes": 634,
+    "mapped_routes": 638,
+    "surface_routes": 638
   },
-  "inventory_sha256": "4bd06ae9c6f61fc7c4b6f108aedd6feaaa9adac553852134d1e0c1c514c3a109",
+  "inventory_sha256": "07f085496298d2e92d95fa0ae89d71e8681b92c4d258f85c25b3dc2211c56912",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "167c6bce0c537e5b36d382d08c5863baf3b3ad5da0cbd46ba8cda0456bd9380e",
+  "map_sha256": "d1d6a064bfc285f1a6a50b3f5f14b0f021dd218cc98ae970b8e9a1621780928e",
   "routes": [
     {
       "classification": null,
@@ -1863,7 +1863,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/field_ai_context.py",
       "function": "field_ai_context_pack",
-      "line": 659,
+      "line": 708,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",
@@ -6623,7 +6623,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/yield_interval.py",
       "function": "field_yield_interval_endpoint",
-      "line": 48,
+      "line": 55,
       "method": "POST",
       "owner": "agriai-engine",
       "owner_type": "decision-compute",
@@ -7581,6 +7581,20 @@
       "owner_type": "bff-orchestrator",
       "path": "/api/v1/sharing/keys",
       "route_key": "api/routers/sharing.py::POST /api/v1/sharing/keys::create_sharing_key",
+      "subclassification": null
+    },
+    {
+      "classification": null,
+      "declaration_kind": "direct",
+      "domain_budget_counted": null,
+      "file": "api/routers/sharing.py",
+      "function": "revoke_sharing_key",
+      "line": 128,
+      "method": "POST",
+      "owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "path": "/api/v1/sharing/keys/{key_id}/revoke",
+      "route_key": "api/routers/sharing.py::POST /api/v1/sharing/keys/{key_id}/revoke::revoke_sharing_key",
       "subclassification": null
     },
     {
