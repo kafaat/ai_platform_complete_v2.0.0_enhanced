@@ -9,6 +9,7 @@ import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field, StrictBool
 
+from shared.ai.rag_readiness import rag_operational_ready
 from shared.security.gateway_deps import require_authenticated_user, require_trusted_tenant
 
 from . import ai_generation, approval
@@ -468,6 +469,9 @@ async def readyz() -> dict[str, Any]:
             _get_json(client, f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/readyz"),
             _get_json(client, f"{GUARDRAILS_URL.rstrip('/')}/readyz"),
         )
+    # A 200/status=ready alone does not prove a usable retrieval index or embedding contract.
+    # This checks operational readiness only; authority cutover remains separately gated.
+    rag_ok = rag_ok and rag_operational_ready(rag)
     deps = {"rag": rag_ok, "knowledge_graph": kg_ok, "guardrails": guard_ok}
     if not (rag_ok and kg_ok and guard_ok):
         raise HTTPException(

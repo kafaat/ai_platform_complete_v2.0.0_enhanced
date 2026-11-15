@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 250,
+          "line": 251,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -500,7 +500,7 @@
         },
         {
           "function": "metrics",
-          "line": 445,
+          "line": 446,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -635,7 +635,7 @@
         },
         {
           "function": "readyz",
-          "line": 464,
+          "line": 465,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -1155,7 +1155,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 508,
+          "line": 512,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1186,7 +1186,7 @@
         },
         {
           "function": "recommend",
-          "line": 541,
+          "line": 545,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1143,
-  "route_inventory_sha256": "ba020ff0a0406287b835d7b4d40b1bcc09d9520b3b5ca88a2ab11c47151e239b",
+  "route_inventory_sha256": "f55726cb82d50a187b6ce879430c38ed675b0146d71716830584c9f6ec7b73b8",
   "runtime_verified": false,
   "schema_version": 1
 }

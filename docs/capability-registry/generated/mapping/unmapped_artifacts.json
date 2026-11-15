@@ -12040,6 +12040,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_helm_agronomist_readiness_probe.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
     "kind": "tests"
   },
@@ -12853,6 +12857,10 @@
   },
   {
     "path": "tests_v9/test_rag_owned_gap_witnesses.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_readiness_unified.py",
     "kind": "tests"
   },
   {
