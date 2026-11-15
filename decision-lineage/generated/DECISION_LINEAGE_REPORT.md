@@ -21,10 +21,10 @@
 | 4 | `review` | `sahool-platform` | 355 |
 | 5 | `plan` | `decision-service` | 51 |
 | 6 | `authorization` | `sahool-platform` | 199 |
-| 7 | `request` | `decision-service` | 47 |
+| 7 | `request` | `decision-service` | 48 |
 | 8 | `receipt` | `decision-service` | 47 |
 | 9 | `outcome` | `sahool-platform` | 60 |
-| 10 | `learning` | `sahool-platform` | 370 |
+| 10 | `learning` | `sahool-platform` | 373 |
 
 ## Remaining static gaps
 
