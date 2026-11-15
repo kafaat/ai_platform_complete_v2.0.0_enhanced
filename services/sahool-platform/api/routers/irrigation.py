@@ -489,6 +489,16 @@ def irrigation_water_analysis(
 
     try:
         sample = WaterSample(**req.model_dump(exclude={"field_id"}))
-        return {**analyze_water_sample(sample), "persisted": False}
+        # The category is caller-supplied; neither a well identity nor ownership is verified.
+        provenance = (
+            "caller_declared_unverified"
+            if "source" in req.model_fields_set
+            else "implicit_default_unverified"
+        )
+        return {
+            **analyze_water_sample(sample),
+            "persisted": False,
+            "source_evidence": provenance,
+        }
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
