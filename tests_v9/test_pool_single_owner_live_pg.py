@@ -16,6 +16,7 @@ database is a failure, not a skip (as in ``test_guardrails_pool_live_pg.py``).
 from __future__ import annotations
 
 import asyncio
+import importlib
 import importlib.util
 import os
 import sys
@@ -172,10 +173,21 @@ def test_anomaly_store_pool_cold_concurrency_shutdown_and_restart_measured_in_ba
         sys.modules.pop("_anomaly_store_pg_live_pg", None)
 
 
+def _require(module: str):
+    """Import ``module``; under ``HIL_CERTIFICATION_REQUIRED=1`` a missing one fails the run.
+
+    ``pytest.importorskip`` alone would turn a missing dependency on the certifying runner into
+    a green skip (certification-switch-before-importorskip, review of the follow-up PR).
+    """
+    if os.getenv("HIL_CERTIFICATION_REQUIRED") == "1":
+        return importlib.import_module(module)
+    return pytest.importorskip(module)
+
+
 @pytest.mark.integration
 def test_platform_shutdown_leaves_no_app_or_jobs_backends(monkeypatch):
     url = _database_url()
-    pytest.importorskip("fastapi")
+    _require("fastapi")
     app_name = f"sahool-platform-app-{uuid.uuid4().hex[:12]}"
     jobs_name = f"sahool-platform-jobs-{uuid.uuid4().hex[:12]}"
     monkeypatch.setenv("DATABASE_URL", _with_application_name(url, app_name))
