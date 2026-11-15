@@ -82,6 +82,12 @@ AS $$
       CROSS JOIN LATERAL pg_catalog.jsonb_array_elements(p_points) AS pt
       WHERE f.field_id::text OPERATOR(pg_catalog.=) p_field_id
         AND f.tenant_id::text OPERATOR(pg_catalog.=) p_tenant_id
+        -- The argument alone is caller-chosen: any connection holding EXECUTE could pass
+        -- another tenant's id and learn whether a point lies in its field (lab, main
+        -- 8b5300c40). The tenant must also be the connection's own app.current_tenant;
+        -- with none set, nothing matches.
+        AND p_tenant_id OPERATOR(pg_catalog.=)
+            NULLIF(pg_catalog.current_setting('app.current_tenant'::text, true), ''::text)
         AND f.geom IS NOT NULL
     ),
     false
