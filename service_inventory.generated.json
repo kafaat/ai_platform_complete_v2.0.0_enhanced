@@ -135,7 +135,7 @@
     "service": "knowledge-graph",
     "domain": "Edge Inference",
     "python_files": 3,
-    "python_loc": 794,
+    "python_loc": 875,
     "tests": 1,
     "routes": 7,
     "main": "services/knowledge-graph/main.py",

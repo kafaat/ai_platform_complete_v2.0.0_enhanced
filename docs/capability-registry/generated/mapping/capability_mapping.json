@@ -2029,6 +2029,14 @@
           ]
         },
         {
+          "path": "services/knowledge-graph/kg_store.py",
+          "score": 11,
+          "signals": [
+            "content:organization",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "services/sahool-platform/examples/tenant_data/districts/al_jawf/climate.yaml",
           "score": 11,
           "signals": [
@@ -2041,14 +2049,6 @@
           "score": 11,
           "signals": [
             "path:tenant",
-            "content:tenant"
-          ]
-        },
-        {
-          "path": "services/knowledge-graph/kg_store.py",
-          "score": 10,
-          "signals": [
-            "content:organization",
             "content:tenant"
           ]
         },
@@ -2232,12 +2232,12 @@
           "score": 13
         },
         {
-          "value": "kg_edges @ services/knowledge-graph/kg_store.py:498",
-          "score": 10
+          "value": "kg_edges @ services/knowledge-graph/kg_store.py:568",
+          "score": 11
         },
         {
-          "value": "kg_nodes @ services/knowledge-graph/kg_store.py:490",
-          "score": 10
+          "value": "kg_nodes @ services/knowledge-graph/kg_store.py:560",
+          "score": 11
         }
       ],
       "events": [
@@ -2810,18 +2810,18 @@
           ]
         },
         {
-          "path": "certification/evidence/qdrant_tenant_index_20261014/provenance.json",
-          "score": 11,
+          "path": "docs/adr/ADR-0038-knowledge-graph-global-reference-only.md",
+          "score": 12,
           "signals": [
-            "path:tenant",
+            "content:organization",
             "content:tenant"
           ]
         },
         {
-          "path": "docs/adr/ADR-0038-knowledge-graph-global-reference-only.md",
+          "path": "certification/evidence/qdrant_tenant_index_20261014/provenance.json",
           "score": 11,
           "signals": [
-            "content:organization",
+            "path:tenant",
             "content:tenant"
           ]
         },
@@ -82771,7 +82771,7 @@
       "edges": [],
       "unresolved": [
         {
-          "line": 165,
+          "line": 169,
           "call": "spec_from_file_location"
         }
       ]

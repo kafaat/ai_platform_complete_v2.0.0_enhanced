@@ -47,6 +47,7 @@ positives; it was replaced in the second #1478 review round).
 **Normalisation** of keys, ids, labels and names: Unicode NFKC; format characters
 (category Cf, such as zero-width spaces) removed; a small confusables table maps
 Cyrillic and Greek look-alikes (а е о р с у х і …) and dotless `ı` to ASCII;
+Unicode hyphens (U+2010 to U+2015) and the minus sign (U+2212) mapped to `-`;
 Arabic diacritics and tatweel removed; case-folded; split on `_ - . : /`,
 whitespace, camelCase and digit/letter boundaries (`field7` → `field`, `7`).
 English plurals reduce to the singular, and the Arabic article `ال` is dropped.
@@ -85,25 +86,53 @@ non-empty. Free text such as "Applies to cereals in arid zones" or "open data", 
 values such as `user`, are not markers and pass.
 
 **Ids, labels and names** (`node_id`, `edge_id`, `subject_id`, `object_id`,
-`label`, `name`, `relation`) are refused for `<scope>[:#/-]<token>` (`tenant:acme`,
-`farm-12`, `مزرعة:12`), `<token>[:-]<scope>` (`acme-tenant`, `7:field`), a scope
-word glued to a digit run on either side (`farm12`, `12field`), and a scope word
-followed by an id suffix (`customerId42`). Prose and reference vocabulary pass:
-`Field`, `Farmer field schools`, `Tenant farming systems`, `User guide to wheat`,
-`Field capacity of sandy loam`, `FieldTrial2019`, `plot_2x2_design`. A bare label
-such as `Field` or `Farm` names the class of things, not one tenant's instance.
+`label`, `name`, `relation`): a scope word is refused only next to a token that
+looks like an identifier.
+
+- After the scope word, behind `:` `#` `/` `=` `@`, any token: `tenant:acme`,
+  `field/7`, `farm=acme`, `user@acme`, `مزرعة:12`.
+- After it, behind `-` or glued (camelCase or digit boundary), a token with a
+  digit or an id suffix (`id`, `ids`, `uuid`, `key`, `ref`, `code`): `farm-12`,
+  `field7`, `farm12`, `customerId42`. For `tenant`, `org`, `organization` and
+  `organisation`, which are never agronomic prose, any token behind `-`:
+  `tenant-acme`.
+- After it, behind `_`, an id suffix: `farm_id`.
+- Before the scope word, a token with a digit behind `:` `#` `/` `=` `@`, `-` or
+  glued: `7:field`, `12farm`.
+
+Hyphenated prose, CURIEs and reference ids pass, and are regression tests:
+`Site-specific nutrient management`, `On-farm research`, `Farmer-led
+irrigation`, `Farm-to-fork strategy`, `Multi-site trial`, `Farm-gate price 2024`,
+`field-capacity`, `on-farm-trial`, `wheat-field-guide`, `fao:field_capacity`
+(the term before `:` has no digit and `field_capacity` has no id suffix),
+`Farmer field schools`, `Tenant farming systems`, `FieldTrial2019`,
+`plot_2x2_design`, and the bare labels `Field` and `Farm`, which name the class of
+things, not one tenant's instance.
 
 **Limits.** Nesting deeper than 64 levels answers 422 `kg_payload_too_deep`; more
 than 10 000 keys and list items answers 413 `kg_payload_too_large`. A body too
-deep for the JSON parser itself is refused by the framework with 400. No path
-returns 500.
+deep for the JSON parser itself is refused by the framework with 400. A lone
+surrogate in a key, value or identifier, and any other unexpected error inside
+the guard, answers 422 `kg_payload_unprocessable`; the echoed path is escaped so
+the error response itself is valid JSON. These are the failures the tests
+exercise; a 500 from outside the guard (for example the database being
+unavailable) is not ruled out.
 
 ## What is not enforced
 
 - **Free text.** Descriptions and other prose values are not inspected for
   private content (for example a description naming a farmer).
-- **Synonyms beyond the lists** (for example `estate`, `ranch`, `household`) and
-  ids joined only by `_` or spaces (`plot_3b`, `farm twelve`).
+- **Synonyms beyond the lists** (for example `estate`, `ranch`, `household`).
+- **Identifier shapes not refused:** a word before a scope word behind `-`
+  (`acme-tenant`; refusing it would refuse `Multi-tenant` and `On-farm`); an
+  alphabetic short code after `-` (`farm-ab`); ids joined only by `_` or spaces
+  (`plot_3b`, `farm twelve`); and the separators `.`, `|`, `;`, `,` (treated as
+  prose separators), and `+`, `(`, `)`, `\` (not split at all), so
+  `farm.12`, `farm|12`, `farm+12` and `farm(12)` pass. `@` and `=` are enforced
+  after a scope word only.
+- **Key false positives (documented, not changed):** any key holding a personal
+  or location token is refused even when it names a reference property, for
+  example `leaf_geometry`, `latitude_range` or `address_space`.
 - **Other scripts** beyond the confusables table and the listed Arabic words.
 - **Other encodings**: base64, Python `repr`, URL-encoding or anything that is not
   JSON text inside a string.

@@ -146,9 +146,10 @@ PRIVATE_MARKERS = frozenset(
 )
 _FALSE_STRINGS = frozenset({"false", "no", "0", "off", "n", ""})
 # Ids, labels and names: separators that bind a scope word to an identifier.
-_ID_AFTER_SCOPE = frozenset({":", "#", "/", "-"})  # <scope>[:#/-]<token>
-_ID_BEFORE_SCOPE = frozenset({":", "-"})  # <token>[:-]<scope>
+_STRONG_SEPARATORS = frozenset(":#/=@")  # <scope>[:#/=@]<token> is always an id
 _VALUE_ID_SUFFIXES = frozenset({"id", "ids", "uuid", "key", "ref", "code"})
+# Scope words that are never agronomic prose: ``tenant-acme`` is an id.
+_STRICT_HYPHEN_SCOPE = frozenset({"tenant", "org", "organization", "organisation"})
 IDENTIFIER_FIELDS = ("node_id", "edge_id", "subject_id", "object_id", "label", "name", "relation")
 
 # Robustness limits: the guard must answer 4xx, never 500 or a long stall.
@@ -158,6 +159,7 @@ MAX_PAYLOAD_ITEMS = 10_000
 TENANT_SCOPED_DATA_ERROR = "kg_tenant_scoped_data_forbidden"
 PAYLOAD_TOO_DEEP_ERROR = "kg_payload_too_deep"
 PAYLOAD_TOO_LARGE_ERROR = "kg_payload_too_large"
+PAYLOAD_UNPROCESSABLE_ERROR = "kg_payload_unprocessable"
 
 
 class GraphWriteRefused(Exception):
@@ -167,7 +169,9 @@ class GraphWriteRefused(Exception):
 
     def __init__(self, code: str, path: str, reason: str) -> None:
         self.code = code
-        self.path = path
+        # The path echoes a client key; a lone surrogate in it must not break the
+        # JSON response, so it is escaped.
+        self.path = str(path).encode("utf-8", "backslashreplace").decode("utf-8")
         self.reason = reason
         super().__init__(f"{code}: {reason} at {path!r}")
 
@@ -213,6 +217,14 @@ _CONFUSABLES = str.maketrans(
         "Х": "X",
         "І": "I",
         "ı": "i",
+        # Unicode hyphens and the minus sign behave as ``-``.
+        "\u2010": "-",
+        "\u2011": "-",
+        "\u2012": "-",
+        "\u2013": "-",
+        "\u2014": "-",
+        "\u2015": "-",
+        "\u2212": "-",
         "ο": "o",
         "α": "a",
         "ρ": "p",
@@ -328,33 +340,65 @@ def visibility_reason(key: object, value: Any) -> str | None:
     return None
 
 
+def _sep_kind(sep: str) -> str:
+    if any(ch in _STRONG_SEPARATORS for ch in sep):
+        return "strong"
+    if sep == "":
+        return "glued"
+    if sep == "-":
+        return "hyphen"
+    if sep == "_":
+        return "underscore"
+    return "prose"  # whitespace, ``.``, ``|``, ``,``, ``;`` and mixed runs
+
+
+def _id_like(token: str) -> bool:
+    return any(ch.isdigit() for ch in token) or token in _VALUE_ID_SUFFIXES
+
+
 def identifier_scope_reason(value: object) -> str | None:
     """Why an id, label or name encodes a tenant/farm/field scope, or ``None``.
 
-    Refused: ``<scope>[:#/-]<token>`` (``tenant:acme``, ``farm-12``),
-    ``<token>[:-]<scope>`` (``acme-tenant``, ``7:field``), a scope word glued to a
-    digit run (``farm12``, ``12field``) and a scope word followed by an id suffix
-    (``customerId42``). Prose (``Farmer field schools``) and reference ids joined
-    by ``_`` (``plot_2x2_design``) pass.
+    A scope word is refused only next to a token that looks like an identifier:
+
+    - after it, behind ``: # / = @`` (``tenant:acme``, ``field/7``, ``مزرعة:12``);
+    - after it, behind ``-`` or glued, a token with a digit or an id suffix
+      (``farm-12``, ``field7``, ``customerId42``); ``tenant``/``org`` behind ``-``
+      with any token (``tenant-acme``); behind ``_``, an id suffix (``farm_id``);
+    - before it, a token with a digit behind ``: # / = @``, ``-`` or glued
+      (``7:field``, ``12farm``).
+
+    Hyphenated prose (``On-farm research``, ``Farmer-led irrigation``), CURIEs
+    (``fao:field_capacity``) and reference ids (``plot_2x2_design``) pass.
     """
     if not isinstance(value, str):
         return None
     segs = _segments(value)
     for i, (token, sep) in enumerate(segs):
-        nxt = segs[i + 1][0] if i + 1 < len(segs) else None
-        if nxt is None:
+        if i + 1 >= len(segs):
             continue
-        if _is_scope(token) and sep in _ID_AFTER_SCOPE:
-            return "scope identifier in id or label"
-        if _is_scope(nxt) and sep in _ID_BEFORE_SCOPE:
-            return "scope identifier in id or label"
-        if sep == "" and (
-            (_is_scope(token) and nxt.isdigit()) or (token.isdigit() and _is_scope(nxt))
+        nxt = segs[i + 1][0]
+        kind = _sep_kind(sep)
+        if _is_scope(token):
+            if kind == "strong":
+                return "scope identifier in id or label"
+            if kind in {"hyphen", "glued"} and _id_like(nxt):
+                return "scope identifier in id or label"
+            if kind == "hyphen" and _base(token) in _STRICT_HYPHEN_SCOPE:
+                return "scope identifier in id or label"
+            if kind == "underscore" and nxt in _VALUE_ID_SUFFIXES:
+                return "scope identifier in id or label"
+        if (
+            _is_scope(nxt)
+            and kind in {"strong", "hyphen", "glued"}
+            and any(ch.isdigit() for ch in token)
         ):
             return "scope identifier in id or label"
-        if _is_scope(token) and nxt in _VALUE_ID_SUFFIXES and sep in {"", "_", "-"}:
-            return "scope identifier in id or label"
     return None
+
+
+def _has_lone_surrogate(text: str) -> bool:
+    return any("\ud800" <= ch <= "\udfff" for ch in text)
 
 
 def _decode_json_text(value: str, path: str) -> Any:
@@ -393,7 +437,8 @@ def assert_global_reference_payload(payload: Any, path: str = "") -> None:
                 PAYLOAD_TOO_DEEP_ERROR, here, f"nesting deeper than {MAX_PAYLOAD_DEPTH}", 422
             )
         if isinstance(node, dict):
-            if node.get("type") in GEOJSON_TYPES:
+            gtype = node.get("type")
+            if isinstance(gtype, str) and gtype in GEOJSON_TYPES:
                 raise TenantScopedDataError(here or "<root>", "GeoJSON location value")
             for key, value in node.items():
                 budget[0] -= 1
@@ -402,6 +447,10 @@ def assert_global_reference_payload(payload: Any, path: str = "") -> None:
                         PAYLOAD_TOO_LARGE_ERROR, here, f"more than {MAX_PAYLOAD_ITEMS} items", 413
                     )
                 child = f"{here}.{key}" if here else str(key)
+                if isinstance(key, str) and _has_lone_surrogate(key):
+                    raise PayloadLimitError(
+                        PAYLOAD_UNPROCESSABLE_ERROR, child, "key is not valid Unicode", 422
+                    )
                 reason = key_scope_reason(key) or visibility_reason(key, value)
                 if reason:
                     raise TenantScopedDataError(child, reason)
@@ -415,17 +464,38 @@ def assert_global_reference_payload(payload: Any, path: str = "") -> None:
                     )
                 walk(item, f"{here}[{index}]", depth + 1)
         elif isinstance(node, str):
+            if _has_lone_surrogate(node):
+                raise PayloadLimitError(
+                    PAYLOAD_UNPROCESSABLE_ERROR, here, "value is not valid Unicode", 422
+                )
             decoded = _decode_json_text(node, here)
             if decoded is not None:
                 walk(decoded, f"{here}<json>", depth + 1)
 
-    walk(payload, path, 0)
+    try:
+        walk(payload, path, 0)
+    except GraphWriteRefused:
+        raise
+    except Exception as exc:  # noqa: BLE001 - any guard failure is a 4xx, never a 500
+        raise PayloadLimitError(
+            PAYLOAD_UNPROCESSABLE_ERROR, path or "<root>", type(exc).__name__, 422
+        ) from exc
 
 
 def assert_global_reference_identifiers(record: Any) -> None:
     """Refuse a node or edge whose id, label, name or relation encodes a scope."""
     for field_name in IDENTIFIER_FIELDS:
-        reason = identifier_scope_reason(getattr(record, field_name, None))
+        value = getattr(record, field_name, None)
+        if isinstance(value, str) and _has_lone_surrogate(value):
+            raise PayloadLimitError(
+                PAYLOAD_UNPROCESSABLE_ERROR, field_name, "value is not valid Unicode", 422
+            )
+        try:
+            reason = identifier_scope_reason(value)
+        except Exception as exc:  # noqa: BLE001 - any guard failure is a 4xx
+            raise PayloadLimitError(
+                PAYLOAD_UNPROCESSABLE_ERROR, field_name, type(exc).__name__, 422
+            ) from exc
         if reason:
             raise TenantScopedDataError(field_name, reason)
 
@@ -647,11 +717,19 @@ def graphql_readonly(store: SQLiteAgGraphStore, query: str) -> dict[str, Any]:
     return {"edges": store.query_edges(subject_id=subject, relation=relation)}
 
 
+def _printable(value: object) -> str:
+    """Escape lone surrogates so a finding can always be printed and serialised."""
+    return str(value).encode("utf-8", "backslashreplace").decode("utf-8")
+
+
 def open_readonly(db_path: str | Path) -> sqlite3.Connection:
     """A connection that SQLite itself refuses to write through (``mode=ro``)."""
     uri = f"{Path(db_path).resolve().as_uri()}?mode=ro"
     conn = sqlite3.connect(uri, uri=True)
     conn.row_factory = sqlite3.Row
+    # Invalid UTF-8 in a stored row becomes lone surrogates, which the guard
+    # reports, instead of aborting the whole scan.
+    conn.text_factory = lambda raw: raw.decode("utf-8", "surrogateescape")
     return conn
 
 
@@ -672,13 +750,18 @@ def scan_existing_rows(db_path: str | Path) -> list[dict[str, Any]]:
                 raw = data.pop("properties_json")
                 try:
                     props = json.loads(raw or "{}")
-                except ValueError:
+                except (ValueError, RecursionError) as exc:
+                    reason = (
+                        "properties_json nests too deep to parse"
+                        if isinstance(exc, RecursionError)
+                        else "properties_json is not valid JSON"
+                    )
                     findings.append(
                         {
                             "table": table,
-                            "id": data[id_col],
+                            "id": _printable(data[id_col]),
                             "path": "properties_json",
-                            "reason": "properties_json is not valid JSON",
+                            "reason": reason,
                         }
                     )
                     props = {}
@@ -688,7 +771,21 @@ def scan_existing_rows(db_path: str | Path) -> list[dict[str, Any]]:
                     assert_global_reference_record(record)
                 except GraphWriteRefused as exc:
                     findings.append(
-                        {"table": table, "id": data[id_col], "path": exc.path, "reason": exc.reason}
+                        {
+                            "table": table,
+                            "id": _printable(data[id_col]),
+                            "path": exc.path,
+                            "reason": exc.reason,
+                        }
+                    )
+                except Exception as exc:  # noqa: BLE001 - report, never abort the scan
+                    findings.append(
+                        {
+                            "table": table,
+                            "id": _printable(data[id_col]),
+                            "path": "<row>",
+                            "reason": f"unprocessable: {type(exc).__name__}",
+                        }
                     )
     finally:
         conn.close()

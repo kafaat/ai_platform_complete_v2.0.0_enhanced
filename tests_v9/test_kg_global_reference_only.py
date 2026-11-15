@@ -132,7 +132,6 @@ FREE_TEXT_VISIBILITY = [
 SCOPED_IDENTIFIERS = [
     ("node_id", "tenant:acme/farm:12/field:7"),
     ("node_id", "tenant-acme-wheat"),
-    ("node_id", "acme-tenant"),
     ("node_id", "org:7"),
     ("node_id", "field:7"),
     ("node_id", "7:field"),
@@ -142,6 +141,11 @@ SCOPED_IDENTIFIERS = [
     ("node_id", "customerId42"),
     ("node_id", "مزرعة:12"),  # مزرعة:12
     ("label", "Tenant#acme"),
+    ("node_id", "t\u0435nant:acme"),  # Cyrillic e
+    ("node_id", "farm\u201312"),  # en dash, normalised to "-"
+    ("node_id", "farm=acme"),
+    ("node_id", "user@acme"),
+    ("node_id", "12farm"),
     ("name", "field/7 wheat"),
 ]
 # Reference vocabulary and prose that contain a scope word: still allowed.
@@ -639,3 +643,145 @@ def test_too_many_keys_is_refused_with_413(api):
     r = client.post("/v1/nodes", json=body, headers=WRITE_HEADERS)
     assert r.status_code == 413
     assert r.json()["detail"]["code"] == "kg_payload_too_large"
+
+
+# ── final #1478 round: hyphenated prose, 4xx never 500, scan robustness ──────────
+
+# Hyphenated prose and CURIEs that the round-2 hyphen rule refused: they must pass.
+HYPHENATED_PROSE = [
+    ("name", "Site-specific nutrient management"),
+    ("name", "On-farm research"),
+    ("name", "Off-farm income"),
+    ("name", "In-field variability"),
+    ("name", "Field-grown tomato"),
+    ("name", "Farmer-led irrigation"),
+    ("name", "Plot-level yield"),
+    ("name", "Farm-to-fork strategy"),
+    ("name", "Field-scale water balance"),
+    ("name", "Multi-site trial"),
+    ("name", "Owner-operated smallholdings"),
+    ("name", "Grower-reported yields"),
+    ("name", "Member-state regulation"),
+    ("name", "Farm-gate price 2024"),
+    ("label", "On‑farm research"),  # non-breaking hyphen
+    ("node_id", "field-capacity"),
+    ("node_id", "on-farm-trial"),
+    ("node_id", "wheat-field-guide"),
+    ("node_id", "fao:field_capacity"),
+]
+
+
+@pytest.mark.parametrize(("field", "value"), HYPHENATED_PROSE)
+def test_hyphenated_prose_and_curies_are_accepted(api, field, value):
+    _main, client = api
+    body = {"node_id": "barley", "label": "Crop", "name": "Barley", field: value}
+    r = client.post("/v1/nodes", json=body, headers=WRITE_HEADERS)
+    assert r.status_code == 200, r.text
+
+
+def test_word_hyphen_scope_is_a_documented_pass():
+    # ADR-0038: ``acme-tenant`` cannot be refused without refusing "Multi-tenant"
+    # and "On-farm"; it passes and is listed as not enforced.
+    assert kg.identifier_scope_reason("acme-tenant") is None
+
+
+_NODE = {"node_id": "barley", "label": "Crop", "name": "Barley"}
+_EDGE = {
+    "edge_id": "e-x",
+    "subject_id": "wheat",
+    "relation": "historically_susceptible_to",
+    "object_id": "stripe_rust",
+}
+NON_STRING_TYPE_BODIES = [
+    ("/v1/nodes", {**_NODE, "properties": {"x": {"type": ["Polygon"]}}}),
+    ("/v1/nodes", {**_NODE, "properties": {"type": {"a": 1}}}),
+    ("/v1/nodes", {**_NODE, "type": {"a": 1}}),
+    ("/v1/nodes", {**_NODE, "properties": {"raw": '{"type": ["Polygon"]}'}}),
+    ("/v1/edges", {**_EDGE, "properties": {"x": {"type": ["Polygon"]}}}),
+    ("/v1/edges", {**_EDGE, "properties": {"type": {"a": 1}}}),
+    ("/v1/edges", {**_EDGE, "type": [1]}),
+    ("/v1/edges", {**_EDGE, "properties": {"raw": '{"type": {"a": 1}}'}}),
+]
+
+
+@pytest.mark.parametrize(("path", "body"), NON_STRING_TYPE_BODIES)
+def test_a_non_string_type_is_not_a_500(api, path, body):
+    # No scope data here, so the write is accepted; before the fix it was a 500.
+    _main, client = api
+    r = client.post(path, json=body, headers=WRITE_HEADERS)
+    assert r.status_code == 200, r.text[:200]
+
+
+@pytest.mark.parametrize(
+    ("path", "raw"),
+    [
+        ("/v1/nodes", '{"node_id":"b","label":"C","name":"B","properties":{"\\ud800":1}}'),
+        ("/v1/nodes", '{"node_id":"b\\ud800","label":"C","name":"B"}'),
+        ("/v1/nodes", '{"node_id":"b","label":"C","name":"B","properties":{"a":"\\udfff"}}'),
+        (
+            "/v1/edges",
+            '{"edge_id":"e\\ud800","subject_id":"wheat",'
+            '"relation":"historically_limits","object_id":"stripe_rust"}',
+        ),
+    ],
+)
+def test_a_lone_surrogate_is_refused_with_422(api, path, raw):
+    _main, client = api
+    headers = {**WRITE_HEADERS, "content-type": "application/json"}
+    r = client.post(path, content=raw.encode(), headers=headers)
+    assert r.status_code == 422, r.text[:200]
+    assert r.json()["detail"]["code"] == "kg_payload_unprocessable"
+
+
+def test_any_other_guard_failure_is_a_422_not_a_500(api, monkeypatch):
+    main, client = api
+
+    def boom(_key):
+        raise RuntimeError("unexpected")
+
+    guard_globals = main.assert_global_reference_payload.__globals__
+    monkeypatch.setitem(guard_globals, "key_scope_reason", boom)
+    r = client.post("/v1/nodes", json={**_NODE, "properties": {"a": 1}}, headers=WRITE_HEADERS)
+    assert r.status_code == 422, r.text[:200]
+    assert r.json()["detail"]["code"] == "kg_payload_unprocessable"
+
+
+def test_scan_survives_a_non_string_type(tmp_path):
+    db = tmp_path / "type.sqlite"
+    s = kg.SQLiteAgGraphStore(db)
+    with s._connect() as conn:
+        conn.execute("""INSERT INTO kg_nodes VALUES('loam','S','Loam','{"type":[1]}')""")
+        conn.execute("""INSERT INTO kg_nodes VALUES('sand','S','Sand','{"type":{"a":1}}')""")
+    assert kg.scan_existing_rows(db) == []
+
+
+def test_scan_reports_json_too_deep_to_parse(tmp_path):
+    db = tmp_path / "deep.sqlite"
+    s = kg.SQLiteAgGraphStore(db)
+    with s._connect() as conn:
+        conn.execute(
+            "INSERT INTO kg_nodes VALUES('loam','S','Loam',?)", ("[" * 100_000 + "]" * 100_000,)
+        )
+    (finding,) = kg.scan_existing_rows(db)
+    assert finding["path"] == "properties_json"
+    assert finding["reason"] == "properties_json nests too deep to parse"
+
+
+def test_scan_reports_invalid_utf8_instead_of_crashing(tmp_path):
+    db = tmp_path / "utf8.sqlite"
+    s = kg.SQLiteAgGraphStore(db)
+    with s._connect() as conn:
+        conn.execute("INSERT INTO kg_nodes VALUES(CAST(X'6c6fff' AS TEXT),'S','Loam','{}')")
+    (finding,) = kg.scan_existing_rows(db)
+    assert finding["path"] == "node_id"
+    assert finding["reason"] == "value is not valid Unicode"
+
+
+def test_scan_cli_prints_a_row_with_invalid_utf8(tmp_path, capsys):
+    db = tmp_path / "utf8cli.sqlite"
+    s = kg.SQLiteAgGraphStore(db)
+    with s._connect() as conn:
+        conn.execute("INSERT INTO kg_nodes VALUES(CAST(X'6c6fff' AS TEXT),'S','Loam','{}')")
+    assert kg._main(["--scan", str(db)]) == 1
+    out = json.loads(capsys.readouterr().out)
+    assert out["violations"][0]["id"] == "lo\\udcff"
