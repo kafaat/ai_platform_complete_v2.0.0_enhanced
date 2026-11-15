@@ -34,7 +34,9 @@ def _services(values: dict) -> dict:
 def test_the_readiness_probe_path_is_per_service_with_readyz_as_default() -> None:
     template = (CHART / "templates" / "deployments.yaml").read_text(encoding="utf-8")
     assert '$svc.readinessPath | default "/readyz"' in template
-    assert "path: /readyz" not in template  # no hard-coded probe path left behind
+    assert "path: /readyz" not in template, (
+        "a hard-coded /readyz probe path would put the agronomist back on a 503 probe"
+    )
 
 
 def test_the_agronomist_probe_uses_healthz_and_others_keep_readyz() -> None:
