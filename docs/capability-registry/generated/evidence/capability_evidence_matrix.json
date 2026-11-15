@@ -6432,10 +6432,11 @@
       "unit_test_paths": []
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -6472,7 +6473,7 @@
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": false
       },
       "evidence_records": [
@@ -6527,7 +6528,7 @@
           "type": "runtime_instrumentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "unit_tests"
         },
@@ -6537,7 +6538,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 6,
+      "evidence_score": 7,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -6545,15 +6546,26 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "tests_v9/test_field_task_inspection_live_pg.py",
         "tests_v9/test_field_task_on_api_field_live_pg.py"
       ],
       "learning_linked": false,
-      "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "test_evidence_attribution": [
+        {
+          "evidence_type": "unit",
+          "path": "services/field-management-service/tests/test_field_task_routes_unit.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_field_task_inspection_live_pg.py",
+          "signal": "pytest.mark.integration"
+        },
         {
           "evidence_type": "integration",
           "path": "tests_v9/test_field_task_on_api_field_live_pg.py",
@@ -6561,7 +6573,9 @@
         }
       ],
       "title": "Task management",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "services/field-management-service/tests/test_field_task_routes_unit.py"
+      ]
     },
     {
       "assessed_maturity": 2,

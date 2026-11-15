@@ -242,7 +242,55 @@ async def update_task(
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
+        refused = _INSPECTION_CLOSE_REFUSALS.get(getattr(e, "sqlstate", None))
+        if refused is not None:
+            raise HTTPException(status_code=409, detail=refused) from e
         raise _db_unavailable("تحديث المهمّة", e) from e
+
+
+# v277 (field-management-service's trigger on field_tasks): a pin inspection task closes only on an
+# approved review of the pin's current photo evidence. The trigger refuses the UPDATE; the platform
+# reads none of the inspection tables and only names the refusal (409, not a 503). The other
+# v275-v277 refusals and 23505 (two writers taking the same hand-off revision, e.g. a reopen racing
+# a hand-off) are conflicts with the stored state too, never an unavailable database.
+_INSPECTION_CLOSE_REFUSALS = {
+    "SH001": {
+        "error": "inspection_review_required",
+        "message": "تتطلب زيارة التفتيش اعتماد نتيجتها قبل الإغلاق",
+    },
+    "SH002": {
+        "error": "inspection_evidence_changed",
+        "message": "تغيرت صورة الزيارة بعد الاعتماد. يلزم اعتماد النسخة الجديدة",
+    },
+    "SH003": {
+        "error": "inspection_pin_immutable",
+        "message": "لا يمكن تغيير دبوس الرصد المرتبط بمهمة التفتيش",
+    },
+    "SH004": {
+        "error": "inspection_revision_gap",
+        "message": "تغيّر سجل التكليف. حدّث البيانات",
+    },
+    "SH005": {
+        "error": "task_cost_history_trigger_only",
+        "message": "سجل تكلفة المهمة يُكتب تلقائياً فقط",
+    },
+    "SH006": {
+        "error": "inspection_handoff_chain_broken",
+        "message": "لا يطابق سجل التكليف المستلم الحالي. حدّث البيانات",
+    },
+    "SH007": {
+        "error": "inspection_self_review",
+        "message": "لا يعتمد مقدّم النتيجة نتيجته",
+    },
+    "SH008": {
+        "error": "inspection_task_closed",
+        "message": "المهمة مغلقة. أعد فتحها قبل أي تكليف أو مراجعة",
+    },
+    "23505": {
+        "error": "inspection_handoff_conflict",
+        "message": "تغيّر سجل التكليف بالتزامن. حدّث البيانات",
+    },
+}
 
 
 def _task_updated_payload(row, changed_fields: list[str]) -> dict:

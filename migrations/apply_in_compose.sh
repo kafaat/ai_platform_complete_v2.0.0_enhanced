@@ -182,6 +182,14 @@ FROM (VALUES ('scout_photo_field_access_grants'), ('scout_photo_grant_audit_even
  ('scout_photo_retention_events')) AS t(tbl)
 WHERE to_regclass('public.'||t.tbl) IS NOT NULL
 \gexec
+-- #1460 (v276): task_cost_history is written only by the SECURITY DEFINER cost trigger
+-- (record_field_task_cost). Must follow the broad GRANT above, which would otherwise re-grant DML.
+SELECT format('REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE public.task_cost_history FROM %I', :'app_role')
+WHERE to_regclass('public.task_cost_history') IS NOT NULL
+\gexec
+SELECT format('REVOKE EXECUTE ON FUNCTION public.record_field_task_cost() FROM %I', :'app_role')
+WHERE to_regprocedure('public.record_field_task_cost()') IS NOT NULL
+\gexec
 SQL
 
 
@@ -394,6 +402,14 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT USAGE, SELECT ON SEQUENCES TO :"jobs_role";
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO :"jobs_role";
+-- #1460 (v276): the jobs role (BYPASSRLS) neither writes task_cost_history nor runs its SECURITY
+-- DEFINER writer; must follow the broad GRANT above, which would otherwise hand both back.
+SELECT format('REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE public.task_cost_history FROM %I', :'jobs_role')
+WHERE to_regclass('public.task_cost_history') IS NOT NULL
+\gexec
+SELECT format('REVOKE EXECUTE ON FUNCTION public.record_field_task_cost() FROM %I', :'jobs_role')
+WHERE to_regprocedure('public.record_field_task_cost()') IS NOT NULL
+\gexec
 SQL
 
 

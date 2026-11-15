@@ -752,11 +752,14 @@
       "entrypoint": "services/field-management-service/main.py",
       "evidence_paths": {
         "configuration": [
+          "services/field-management-service/fm_gateway.py",
           "services/field-management-service/main.py",
           "services/field-management-service/tests/test_field_management_pg_isolation_integration.py"
         ],
         "metrics": [],
         "routes": [
+          "services/field-management-service/fm_task_costs.py",
+          "services/field-management-service/fm_task_inspection.py",
           "services/field-management-service/main.py",
           "services/field-management-service/tests/test_field_management_service_contract.py"
         ],
@@ -771,6 +774,7 @@
       "secrets": [
         "FIELD_SERVICE_TENANT_ASSERTION_KEY",
         "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY",
+        "FIELD_TASKS_SERVICE_TOKEN",
         "SAHOOL_AGENT_TOKEN"
       ],
       "service": "field-management-service",

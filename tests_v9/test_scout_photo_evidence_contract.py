@@ -344,7 +344,8 @@ def test_db_ownership_names_scout_ingest_as_the_single_writer():
     assert "migrations/v260_scout_photo_evidence.sql" in block
     pins = own[own.index("  scouting_pins:") :].split("\n  seasons:")[0]
     assert "writers: [sahool-platform]" in pins
-    assert "readers: [scout-ingest-service]" in pins
+    # field-management-service reads the pin for its inspection task (v274-v277, read-only).
+    assert "readers: [scout-ingest-service, field-management-service]" in pins
 
 
 @pytest.mark.parametrize(

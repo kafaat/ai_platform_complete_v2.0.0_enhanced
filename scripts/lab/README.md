@@ -69,6 +69,7 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 13. soil-service functional H5 + guardrails L5 (restricted role)
 14. Field recommendations 503 rolls back field_state (restricted role)
 15. Soil-sampling plan copies (gap P6, real-PG, restricted role)
+16. Field task inspection and cost trace (v274-v277, restricted role)
 
 Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 `rolcanlogin` of every restricted role those steps connect as (`sahool_app_test`)

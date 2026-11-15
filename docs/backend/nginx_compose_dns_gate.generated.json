@@ -15,6 +15,7 @@
     "sahool-knowledge-graph:8000",
     "sahool-ai-agronomist:8000",
     "sahool-scout-ingest:8000",
+    "sahool-field-management:8000",
     "sahool-notification-agent:8123",
     "sahool-frontend:8080",
     "sahool-tts-service:8000",

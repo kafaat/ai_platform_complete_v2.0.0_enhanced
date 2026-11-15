@@ -665,7 +665,15 @@
 \i migrations/v272_scout_photo_retention_governance.sql
 \echo '═══ 260. v273_soil_sampling_plan_copies.sql ═══'
 \i migrations/v273_soil_sampling_plan_copies.sql
-\echo '═══ 261. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 261. v274_inspection_evidence_versions.sql ═══'
+\i migrations/v274_inspection_evidence_versions.sql
+\echo '═══ 262. v275_inspection_handoffs.sql ═══'
+\i migrations/v275_inspection_handoffs.sql
+\echo '═══ 263. v276_task_cost_trace.sql ═══'
+\i migrations/v276_task_cost_trace.sql
+\echo '═══ 264. v277_inspection_close_gate.sql ═══'
+\i migrations/v277_inspection_close_gate.sql
+\echo '═══ 265. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 262. v206_rls_final_hardening.sql ═══'
+\echo '═══ 266. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

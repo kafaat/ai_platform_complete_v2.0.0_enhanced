@@ -110,6 +110,7 @@ sahool-nginx,sahool-agriai-engine,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-ai-agronomist,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-auth,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-erp-bridge,compose-depends-on,docker-compose.v9.yml
+sahool-nginx,sahool-field-management,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-frontend,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-guardrails-engine,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-indicators-service,compose-depends-on,docker-compose.v9.yml
