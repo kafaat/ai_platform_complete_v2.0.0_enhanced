@@ -363,14 +363,14 @@ def test_guard_fails_on_a_stale_waiver_whose_subject_gained_a_consumer(monkeypat
 def test_guard_fails_on_a_waiver_without_reason_or_with_a_wrong_identity(monkeypatch, tmp_path):
     def corrupt(doc):
         for e in doc["published_no_consumer"]:
-            if e["subject"] == "sahool.phase9.execution.plan.created":
+            if e["subject"] == "sahool.model.promotion.requested":
                 e["reason"] = ""
             if e["subject"] == "sahool.actuator.dispatch.requested":
                 e["broker_identity"] = "sahool-platform"
 
     monkeypatch.setattr(si, "CONTRACTS", _contract_with(tmp_path, corrupt))
     findings = si.check_nats_published_no_consumer().findings
-    assert any("sahool.phase9.execution.plan.created" in f and "`reason`" in f for f in findings)
+    assert any("sahool.model.promotion.requested" in f and "`reason`" in f for f in findings)
     assert any("sahool.actuator.dispatch.requested" in f and "لا تأذن بنشره" in f for f in findings)
 
 

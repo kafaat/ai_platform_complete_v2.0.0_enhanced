@@ -24,6 +24,15 @@ subjects:
     source: "services/sahool-platform/api/event_bus.py — emit_event() ⇒ event_outbox ⇒ ترحيل JetStream"
     source_table: "event_outbox"
     schema_version: 1
+    # 2026-11-14 (CONN-04، قرار المالك): عاملا phase-runtime ينشران هنا أيضاً بالغلاف نفسِه
+    # (event_bus.py:780-792) — `runtime_event_subject` و`runtime_event_envelope` في
+    # shared/runtime_worker_contracts.py. حدثُ runtime_event_outbox بلا مستأجِر (التطوير) يُنشَر
+    # بلا tenant_id ويذهب إلى الرسائل الميتة عند الوكيل عمداً.
+    additional_producers:
+      - producer: "sahool-phase-runtime-outbox-worker (run_outbox_once)"
+        source_table: "runtime_event_outbox"
+      - producer: "sahool-plugin-runtime-worker (run_plugin_once)"
+        source_table: "marketplace_plugin_runtime_events"
 
   # ── موضوعات توجيه دقيق محجوزة للمستقبل (waiver، قرار معماريّ) ──
   # الأحداث الفعليّة تتدفّق الآن عبر التيّار العامّ ``sahool.events.<type>`` أعلاه
@@ -96,66 +105,14 @@ subjects:
 # فلا يبلغ الوسيطَ أصلاً — يُذكَر ذلك في ``reason``) · ``source`` ملفُّ المنتِج.
 published_no_consumer:
   # ── عمّالُ phase-runtime المجمَّدون (GATE-01): Core NATS بلا إقرار ──
-  - subject: "sahool.phase9.execution.plan.created"
-    producer: "sahool-phase-runtime-outbox-worker (run_outbox_once)"
-    broker_identity: "sahool-phase-runtime-outbox-worker"
-    source: "services/sahool-platform/api/phase_runtime_workers.py"
-    reason: "runtime_event_outbox ⇐ persist_runtime_event؛ لا مشترِك في الشجرة ولا يلتقطه notif_domain_events (خارج sahool.events.>). يُخزَّن في الدفق sahool (sahool.>) فقط."
-  - subject: "sahool.phase9.autonomy.cycle.completed"
-    producer: "sahool-phase-runtime-outbox-worker (run_outbox_once)"
-    broker_identity: "sahool-phase-runtime-outbox-worker"
-    source: "services/sahool-platform/api/phase_runtime_workers.py"
-    reason: "مثل plan.created: حدثُ دورة الاستقلاليّة يُنشَر ولا يستهلكه أحد بعد."
+  # 2026-11-14 (CONN-04): أُزيلت قيودُ أحداث النطاق الأحد عشر (حدثا runtime_event_outbox
+  # وخطافاتُ KNOWN_HOOKS التسعة): صار موضوعُها `sahool.events.<event_type>` (runtime_event_subject،
+  # كـv11/v18) فيستهلكها notif_domain_events، والقيدُ عليها بائتٌ يُسقِطه الحارس.
   - subject: "sahool.plugin.execution.requested"
     producer: "sahool-plugin-runtime-worker (run_plugin_once)"
     broker_identity: "sahool-plugin-runtime-worker"
     source: "services/sahool-platform/api/phase_runtime_workers.py"
     reason: "طلبُ تنفيذ الإضافة؛ لا مُنفِّذَ إضافاتٍ يشترك فيه بعد."
-  - subject: "sahool.field.updated"
-    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
-    broker_identity: "sahool-plugin-runtime-worker"
-    source: "services/sahool-platform/api/phase_runtime_workers.py"
-    reason: "حدثُ خطافٍ للإضافات (sahool.<hook>) خارج sahool.events.> (تباعدُ مساحة الأسماء معلَنٌ في nats/nats.conf)؛ لا مشترِك."
-  - subject: "sahool.recommendation.before"
-    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
-    broker_identity: "sahool-plugin-runtime-worker"
-    source: "services/sahool-platform/api/phase_runtime_workers.py"
-    reason: "حدثُ خطافٍ للإضافات؛ لا مشترِك."
-  - subject: "sahool.recommendation.after"
-    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
-    broker_identity: "sahool-plugin-runtime-worker"
-    source: "services/sahool-platform/api/phase_runtime_workers.py"
-    reason: "حدثُ خطافٍ للإضافات؛ لا مشترِك."
-  - subject: "sahool.recommendation.created"
-    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
-    broker_identity: "sahool-plugin-runtime-worker"
-    source: "services/sahool-platform/api/phase_runtime_workers.py"
-    reason: "حدثُ خطافٍ للإضافات؛ الإشعارات تستهلك sahool.events.recommendation.created لا هذا."
-  - subject: "sahool.alert.created"
-    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
-    broker_identity: "sahool-plugin-runtime-worker"
-    source: "services/sahool-platform/api/phase_runtime_workers.py"
-    reason: "حدثُ خطافٍ للإضافات؛ الإشعارات تستهلك sahool.events.alert.created لا هذا."
-  - subject: "sahool.operation.completed"
-    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
-    broker_identity: "sahool-plugin-runtime-worker"
-    source: "services/sahool-platform/api/phase_runtime_workers.py"
-    reason: "حدثُ خطافٍ للإضافات؛ لا مشترِك."
-  - subject: "sahool.model.promoted"
-    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
-    broker_identity: "sahool-plugin-runtime-worker"
-    source: "services/sahool-platform/api/phase_runtime_workers.py"
-    reason: "حدثُ خطافٍ للإضافات؛ لا مشترِك."
-  - subject: "sahool.billing.usage.recorded"
-    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
-    broker_identity: "sahool-plugin-runtime-worker"
-    source: "services/sahool-platform/api/phase_runtime_workers.py"
-    reason: "حدثُ خطافٍ للإضافات؛ لا مشترِك."
-  - subject: "sahool.digital.twin.snapshot.created"
-    producer: "sahool-plugin-runtime-worker (run_plugin_once — KNOWN_HOOKS)"
-    broker_identity: "sahool-plugin-runtime-worker"
-    source: "services/sahool-platform/api/phase_runtime_workers.py"
-    reason: "حدثُ خطافٍ للإضافات (digital_twin ⇒ digital.twin بتحويل العامل)؛ لا مشترِك."
   - subject: "sahool.model.promotion.requested"
     producer: "sahool-model-registry-worker (run_model_registry_once)"
     broker_identity: "sahool-model-registry-worker"
