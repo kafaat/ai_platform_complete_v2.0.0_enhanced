@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7347,
+    "files_scanned": 7350,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2182,
-      "tests": 2507,
+      "tests": 2510,
       "web": 547
     },
-    "unmapped_artifacts": 3496,
+    "unmapped_artifacts": 3498,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3978,
+      "python_functional": 3981,
       "raw": 3369
     },
-    "test_dependency_files": 1906,
-    "test_dependency_edges": 4905,
-    "test_dependency_bounded_files": 1116,
+    "test_dependency_files": 1909,
+    "test_dependency_edges": 4913,
+    "test_dependency_bounded_files": 1119,
     "test_dependency_unresolved_relations": 485
   },
   "capabilities": [
@@ -2439,6 +2439,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_field_timeline_tenant_scope_live_pg.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_nginx_tenant_injection_guard.py",
           "score": 14,
           "signals": [
@@ -2841,7 +2849,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 43,
+        "tests": 44,
         "governance": 0,
         "other_evidence": 25
       },
@@ -5292,7 +5300,7 @@
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:31",
+          "value": "/api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:33",
           "score": 13
         },
         {
@@ -29210,15 +29218,15 @@
           "score": 9
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:157",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:183",
           "score": 9
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:254",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:280",
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:901",
           "score": 9
         },
         {
@@ -31214,15 +31222,15 @@
       "database": [],
       "events": [
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:157",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:183",
           "score": 12
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:254",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:280",
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:873",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:901",
           "score": 12
         },
         {
@@ -40368,6 +40376,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_field_trial_design.py",
       "kind": "tests"
     },
@@ -42345,6 +42357,10 @@
     },
     {
       "path": "tests_v9/test_advisory_contract_m2.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_advisory_dependency_http_error_sanitization.py",
       "kind": "tests"
     },
     {
@@ -61113,6 +61129,24 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 15
+        },
+        {
+          "source": "services/sahool-platform/api/routers/field_workspace_timeline.py",
+          "kind": "import",
+          "line": 15
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_field_trial_design.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -71363,6 +71397,24 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_advisory_dependency_http_error_sanitization.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 32
+        },
+        {
+          "source": "services/ai_agronomist/ai_evidence_runtime.py",
+          "kind": "import",
+          "line": 32
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_agb_research_provenance.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -79878,6 +79930,34 @@
           "source": "services/sahool-platform/api/routers/fields.py",
           "kind": "source_read",
           "line": 24
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_field_timeline_tenant_scope_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 75
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 76
+        },
+        {
+          "source": "services/sahool-platform/api/routers/field_workspace_timeline.py",
+          "kind": "import",
+          "line": 76
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 82
         }
       ],
       "unresolved": []
