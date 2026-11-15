@@ -227,8 +227,8 @@ def test_store_route_keeps_only_plans_inside_the_field(monkeypatch, loaded_main)
         saved["ids"] = [c["plan_id"] for c in copies]
         return {"stored": len(copies), "unchanged": 0, "conflicting": 0}
 
-    async def field_covers_points(pool, *, field_id, positions, buffer_m):
-        checks.append((field_id, buffer_m))
+    async def field_covers_points(pool, *, tenant_id, field_id, positions, buffer_m):
+        checks.append((tenant_id, field_id, buffer_m))
         return _near_planned(positions)
 
     async def field_owned(field_id):
@@ -253,7 +253,7 @@ def test_store_route_keeps_only_plans_inside_the_field(monkeypatch, loaded_main)
     assert response.status_code == 201, response.text
     assert response.json()["outside_field"] == 1 and response.json()["stored"] == 1
     assert saved["ids"] == ["ssp-in"]
-    assert checks == [("f-1", plan_origin.FIELD_COVER_BUFFER_M)] * 2
+    assert checks == [(_TENANT_A, "f-1", plan_origin.FIELD_COVER_BUFFER_M)] * 2
 
 
 def test_store_route_stores_nothing_when_the_field_check_cannot_run(monkeypatch, loaded_main):

@@ -39,43 +39,57 @@ CREATE TRIGGER soil_sampling_plan_copies_immutable BEFORE UPDATE OR DELETE ON so
   FOR EACH ROW EXECUTE FUNCTION soil_sampling_plan_copy_immutable();
 REVOKE ALL ON soil_sampling_plan_copies FROM PUBLIC;
 -- A plan copy is stored only if every plan point lies inside the field's stored geometry
--- (review of #1456: the planner takes its bbox/boundary from tool-call params, so without this
+-- (review of #1456: the planner takes its bbox/boundary from tool-call parameters, so without this
 -- check a tenant user could have a plan 66 km away stored as trusted). soil-service cannot read
 -- fields (RLS), so this SECURITY DEFINER function answers one boolean and returns no field data.
--- p_points is a JSON array of [lon, lat]. A missing field, a field without geometry, an empty or
--- malformed list ⇒ false (fail closed). search_path: pg_catalog first, PostGIS in public, pg_temp last.
+-- It answers only for a field of p_tenant_id, so it is no oracle on another tenant's geometry.
+-- p_points is a JSON array of [lon, lat]. A missing or foreign field, a field without geometry, an
+-- empty or malformed list ⇒ false (fail closed). search_path is pg_catalog, pg_temp: every PostGIS
+-- name is public-qualified and literals are typed, so nothing planted in public can be resolved
+-- while the function runs as its owner (lab receipt on #1456: a planted public.>= ran as owner).
 CREATE OR REPLACE FUNCTION sahool_field_covers_points(
-  p_field_id text, p_points jsonb, p_buffer_m double precision
+  p_tenant_id text, p_field_id text, p_points jsonb, p_buffer_m double precision
 ) RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path = pg_catalog, public, pg_temp
+SET search_path = pg_catalog, pg_temp
 AS $$
   SELECT COALESCE(
-    jsonb_typeof(p_points) = 'array'
-    AND jsonb_array_length(p_points) BETWEEN 1 AND 500
-    AND p_buffer_m BETWEEN 0 AND 500
+    pg_catalog.jsonb_typeof(p_points) = 'array'::text
+    AND pg_catalog.jsonb_array_length(p_points) >= 1::integer
+    AND pg_catalog.jsonb_array_length(p_points) <= 500::integer
+    AND p_buffer_m >= 0::double precision
+    AND p_buffer_m <= 500::double precision
     AND (
-      SELECT bool_and(
-        jsonb_typeof(pt) = 'array' AND jsonb_array_length(pt) = 2
+      SELECT pg_catalog.bool_and(
+        pg_catalog.jsonb_typeof(pt) = 'array'::text
+        AND pg_catalog.jsonb_array_length(pt) = 2::integer
         AND public.ST_DWithin(
           f.geom::public.geography,
           public.ST_SetSRID(
-            public.ST_MakePoint((pt->>0)::double precision, (pt->>1)::double precision), 4326
+            public.ST_MakePoint(
+              (pt OPERATOR(pg_catalog.->>) 0)::double precision,
+              (pt OPERATOR(pg_catalog.->>) 1)::double precision
+            ),
+            4326::integer
           )::public.geography,
           p_buffer_m
         )
       )
-      FROM public.fields f CROSS JOIN LATERAL jsonb_array_elements(p_points) AS pt
-      WHERE f.field_id = p_field_id AND f.geom IS NOT NULL
+      FROM public.fields f
+      CROSS JOIN LATERAL pg_catalog.jsonb_array_elements(p_points) AS pt
+      WHERE f.field_id::text OPERATOR(pg_catalog.=) p_field_id
+        AND f.tenant_id::text OPERATOR(pg_catalog.=) p_tenant_id
+        AND f.geom IS NOT NULL
     ),
     false
   )
 $$;
-REVOKE ALL ON FUNCTION sahool_field_covers_points(text, jsonb, double precision) FROM PUBLIC;
+REVOKE ALL ON FUNCTION sahool_field_covers_points(text, text, jsonb, double precision) FROM PUBLIC;
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_app') THEN
-    GRANT EXECUTE ON FUNCTION sahool_field_covers_points(text, jsonb, double precision) TO sahool_app;
+    GRANT EXECUTE ON FUNCTION sahool_field_covers_points(text, text, jsonb, double precision)
+      TO sahool_app;
   END IF;
 END $$;
 COMMENT ON TABLE soil_sampling_plan_copies IS

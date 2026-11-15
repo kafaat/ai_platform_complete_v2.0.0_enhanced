@@ -71,6 +71,7 @@ async def store_plan_copies(
         try:
             covered = await plan_copy_store.field_covers_points(
                 main._pool,
+                tenant_id=tenant,
                 field_id=field_id,
                 positions=plan_positions(copy["sample_points"]),
                 buffer_m=FIELD_COVER_BUFFER_M,

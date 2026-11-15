@@ -14,5 +14,5 @@ SET LOCAL lock_timeout='15s';
 DROP TRIGGER IF EXISTS soil_sampling_plan_copies_immutable ON soil_sampling_plan_copies;
 DROP TABLE IF EXISTS soil_sampling_plan_copies;
 DROP FUNCTION IF EXISTS soil_sampling_plan_copy_immutable();
-DROP FUNCTION IF EXISTS sahool_field_covers_points(text, jsonb, double precision);
+DROP FUNCTION IF EXISTS sahool_field_covers_points(text, text, jsonb, double precision);
 COMMIT;

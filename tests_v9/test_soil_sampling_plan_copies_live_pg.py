@@ -293,9 +293,10 @@ async def test_field_cover_check_refuses_a_plan_outside_the_field():
             "SELECT geom IS NOT NULL FROM fields WHERE field_id=$1", field_id
         )
 
-        async def covers(points, field=field_id, buffer_m=50.0):
+        async def covers(points, field=field_id, buffer_m=50.0, tenant=_TENANT_A):
             return await app.fetchval(
-                "SELECT sahool_field_covers_points($1, $2::jsonb, $3)",
+                "SELECT sahool_field_covers_points($1, $2, $3::jsonb, $4)",
+                tenant,
                 field,
                 json.dumps(points),
                 buffer_m,
@@ -308,17 +309,87 @@ async def test_field_cover_check_refuses_a_plan_outside_the_field():
         assert await covers([]) is False
         assert await covers([[44.005]]) is False
         assert await covers([[44.005, 16.005]], buffer_m=10_000) is False  # buffer capped
+        # Lab receipt on #1456: no oracle on another tenant's geometry. Tenant B cannot learn
+        # whether a point lies inside tenant A's field.
+        assert await covers([[44.005, 16.005]], tenant=_TENANT_B) is False
         pool = await asyncpg.create_pool(_APP_DSN, min_size=1, max_size=1)
         try:
             assert await store.field_covers_points(
-                pool, field_id=field_id, positions=[[44.005, 16.005]], buffer_m=50.0
+                pool,
+                tenant_id=_TENANT_A,
+                field_id=field_id,
+                positions=[[44.005, 16.005]],
+                buffer_m=50.0,
             )
             assert not await store.field_covers_points(
-                pool, field_id=field_id, positions=[[44.005, 16.6]], buffer_m=50.0
+                pool,
+                tenant_id=_TENANT_A,
+                field_id=field_id,
+                positions=[[44.005, 16.6]],
+                buffer_m=50.0,
             )
         finally:
             await pool.close()
     finally:
+        await admin.execute("DELETE FROM fields WHERE field_id=$1", field_id)
+        await app.close()
+        await admin.close()
+
+
+@pytest.mark.asyncio
+async def test_an_operator_planted_in_public_does_not_run_in_the_field_cover_definer():
+    """Lab receipt on #1456: with CREATE on public, the restricted role planted
+    public.>=(double precision, integer) and it ran as the definer's owner. The function's
+    search_path is pg_catalog, pg_temp and its literals are typed, so planted operators for every
+    comparison it makes are never resolved."""
+    admin = await asyncpg.connect(_ADMIN_DSN)
+    app = await asyncpg.connect(_APP_DSN)
+    role = await app.fetchval("SELECT current_user")
+    field_id = f"p6-hij-{uuid.uuid4().hex[:10]}"
+    square = {
+        "type": "Polygon",
+        "coordinates": [[[44.0, 16.0], [44.01, 16.0], [44.01, 16.01], [44.0, 16.01], [44.0, 16.0]]],
+    }
+    await admin.execute(
+        "INSERT INTO fields (field_id, name, tenant_id, geometry)"
+        " VALUES ($1, 'p6 hijack', $2::uuid, $3::jsonb)",
+        field_id,
+        _TENANT_A,
+        json.dumps(square),
+    )
+    planted = [
+        ("integer", "integer", ">="),
+        ("integer", "integer", "<="),
+        ("double precision", "integer", ">="),
+        ("double precision", "double precision", ">="),
+        ("double precision", "double precision", "<="),
+        ("text", "text", "="),
+        ("character varying", "text", "="),
+        ("integer", "integer", "="),
+    ]
+    await admin.execute(f'GRANT CREATE ON SCHEMA public TO "{role}"')
+    try:
+        for i, (left, right, op) in enumerate(planted):
+            await app.execute(
+                f"CREATE FUNCTION public.p6_hijack_{i}(a {left}, b {right}) RETURNS boolean"
+                " LANGUAGE plpgsql AS $f$ BEGIN"
+                " RAISE EXCEPTION 'hijacked as %', current_user; END $f$;"
+                f" CREATE OPERATOR public.{op} (LEFTARG = {left}, RIGHTARG = {right},"
+                f" FUNCTION = public.p6_hijack_{i});"
+            )
+        result = await app.fetchval(
+            "SELECT sahool_field_covers_points($1, $2, $3::jsonb, $4)",
+            _TENANT_A,
+            field_id,
+            json.dumps([[44.005, 16.005]]),
+            50.0,
+        )
+        assert result is True  # it ran to its answer over a real field; no planted operator ran
+    finally:
+        for i, (left, right, op) in enumerate(planted):
+            await admin.execute(f"DROP OPERATOR IF EXISTS public.{op} ({left}, {right})")
+            await admin.execute(f"DROP FUNCTION IF EXISTS public.p6_hijack_{i}({left}, {right})")
+        await admin.execute(f'REVOKE CREATE ON SCHEMA public FROM "{role}"')
         await admin.execute("DELETE FROM fields WHERE field_id=$1", field_id)
         await app.close()
         await admin.close()
