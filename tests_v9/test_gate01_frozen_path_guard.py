@@ -180,8 +180,13 @@ def test_a_proposal_awaiting_the_owner_signature_authorizes_nothing(status):
 
 
 def test_every_live_proposal_authorizes_nothing_even_on_its_own_bytes():
-    """المقترحُ الحيّ في الشجرة لا يمنح نطاقَه ولو طابقت بايتاتُه الشجرة حرفيّاً."""
+    """المقترحُ الحيّ في الشجرة لا يمنح نطاقَه ولو طابقت بايتاتُه الشجرة حرفيّاً.
+
+    يُقاس على النظام المغلق (`state` = CLOSED): وهو وحده الذي يقرأ فيه الحارسُ التفويضات.
+    في OPEN يمرّ كلُّ مسٍّ قبل قراءة أيّ تفويض (`evaluate`)، فلا يقيس ذلك المقترحَ نفسَه —
+    وظهر ذلك أوّلَ مرّةٍ بمقترحٍ حيّ بعد فتح البوّابة (GATE01-ADJ-2026-11-14-001)."""
     policy = guard.load_policy(_POLICY)
+    policy = {**policy, "gate": {**policy["gate"], "state": "CLOSED"}}
     blobs = {p: guard.blob_sha(p) for p in policy["frozen_paths"]}
     for adj in guard.load_adjudications(_ADJ_DIR):
         if adj.get("status") not in _PENDING_STATUSES:

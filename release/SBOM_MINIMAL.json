@@ -20545,7 +20545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5372b3a4c2692598729350bd065949b249d41eac424f03cf925481a98bfeca6"
+          "content": "f79ded47508e289d398af0e59c5d901da0685336911533fe9bcfc100e648c53a"
         }
       ],
       "name": "services/knowledge-graph/kg_store.py",
@@ -20555,7 +20555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e9038ee293e3916ff590054d5e11a2ca70dad77a97f9026f525c58db2db1fd26"
+          "content": "604f6e75b698c202bb537f5317739c462265443f0357c4e8947949cf91723fcd"
         }
       ],
       "name": "services/knowledge-graph/main.py",
@@ -26025,7 +26025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43e0f150e13112c48df1007f95fecdd36103186ed26d4ddae01aadd2e019e59e"
+          "content": "b4ccaf155d5afddbbb7243da267588ea22698f0f20ac4059b649d6cd7421bcf9"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_workers.py",
@@ -41575,7 +41575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69754b6fc303c8d7ac7ad15d42b193264506c82177d40a5fad1b706f04e3ac3a"
+          "content": "ee303b2173745d226fcae5f661eb3cadab4713da52386a3ebefb869d1cb878ee"
         }
       ],
       "name": "shared/runtime_worker_contracts.py",

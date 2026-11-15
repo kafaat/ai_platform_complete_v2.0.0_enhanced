@@ -19,6 +19,7 @@ from typing import Any
 import asyncpg
 
 from shared.runtime_worker_contracts import (
+    RUNTIME_EVENT_ENVELOPE_COLUMNS,
     build_actuator_worker_action,
     build_model_promotion_action,
     build_model_rollback_action,
@@ -26,6 +27,8 @@ from shared.runtime_worker_contracts import (
     build_plugin_worker_action,
     env_bool,
     parse_json_env,
+    runtime_event_envelope,
+    runtime_event_subject,
 )
 from shared.startup_retry import retry_startup_connect
 
@@ -169,7 +172,7 @@ async def reclaim_expired(conn: Any, *, table: str) -> int:
     return int(str(result).rsplit(" ", 1)[-1] or 0)
 
 
-async def _publish_nats(subject: str, payload: Json) -> None:
+async def _publish_nats(subject: str, payload: Json, *, msg_id: str | None = None) -> None:
     nats_url = os.getenv("NATS_URL") or os.getenv("SAHOOL_NATS_URL")
     action = build_outbox_action(
         nats_url=nats_url, event_type=subject.replace("sahool.", ""), attempts=0, max_attempts=1
@@ -182,7 +185,12 @@ async def _publish_nats(subject: str, payload: Json) -> None:
         raise RuntimeError("nats client is not installed") from exc
     nc = await nats.connect(nats_url, connect_timeout=5)
     try:
-        await nc.publish(subject, json.dumps(payload, default=str).encode("utf-8"))
+        # Nats-Msg-Id = event_id, as the platform OutboxWorker does (event_bus.py). The sahool
+        # stream drops a republish only inside its duplicate window (server default 120 s);
+        # a republish after the 300 s lease expiry falls outside it. Per-user delivery is
+        # still deduplicated by the notification receipt keyed on event_id.
+        headers = {"Nats-Msg-Id": msg_id} if msg_id else None
+        await nc.publish(subject, json.dumps(payload, default=str).encode("utf-8"), headers=headers)
         await nc.flush(timeout=5)
     finally:
         await nc.close()
@@ -198,7 +206,7 @@ async def run_outbox_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
             rows = await claim_batch(
                 conn,
                 table="runtime_event_outbox",
-                columns="t.id, t.tenant_id, t.event_id, t.event_type, t.payload, t.attempts",
+                columns=RUNTIME_EVENT_ENVELOPE_COLUMNS["outbox"],
                 where="status IN ('pending','failed') AND attempts < $1",
                 batch_size=batch_size,
                 params=(max_attempts,),
@@ -218,12 +226,7 @@ async def run_outbox_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
                     raise RuntimeError(action.get("reason") or "outbox_not_publishable")
                 subject = action["receipt"]["subject"]
                 await _publish_nats(
-                    subject,
-                    {
-                        "event_id": row["event_id"],
-                        "event_type": row["event_type"],
-                        "payload": row["payload"],
-                    },
+                    subject, runtime_event_envelope(row), msg_id=str(row["event_id"])
                 )
                 assignments = "status='published', attempts=attempts+1, published_at=now()"
                 params: tuple[Any, ...] = ()
@@ -297,7 +300,7 @@ async def run_plugin_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
             event_rows = await claim_batch(
                 conn,
                 table="marketplace_plugin_runtime_events",
-                columns="t.id, t.tenant_id, t.event_id, t.event_type, t.payload",
+                columns=RUNTIME_EVENT_ENVELOPE_COLUMNS["plugin"],
                 where="status IN ('pending','failed')",
                 batch_size=batch_size,
             )
@@ -305,8 +308,9 @@ async def run_plugin_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
         for row in event_rows:
             try:
                 await _publish_nats(
-                    f"sahool.{str(row['event_type']).replace('_', '.')}",
-                    {"event_id": row["event_id"], "payload": row["payload"]},
+                    runtime_event_subject(str(row["event_type"])),
+                    runtime_event_envelope(row),
+                    msg_id=str(row["event_id"]),
                 )
                 assignments = "status='published'"
             except Exception:

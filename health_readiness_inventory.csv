@@ -13,8 +13,8 @@ services/field-segmentation/main.py,healthz,/healthz,546,True,True,True,ok
 services/field-segmentation/main.py,readyz,/readyz,556,True,True,True,ok
 services/indicators-service/main.py,healthz,/healthz,68,True,True,True,ok
 services/indicators-service/main.py,ready,/readyz,89,True,True,True,ok
-services/knowledge-graph/main.py,healthz,/healthz,117,True,True,True,ok
-services/knowledge-graph/main.py,readyz,/readyz,139,True,True,True,ok
+services/knowledge-graph/main.py,healthz,/healthz,165,True,True,True,ok
+services/knowledge-graph/main.py,readyz,/readyz,187,True,True,True,ok
 services/local-ai-rag/main.py,healthz,/healthz,820,True,True,True,ok
 services/local-ai-rag/main.py,readyz,/readyz,843,True,True,True,ok
 services/rag-retrieval/main.py,healthz,/healthz,217,True,True,True,ok

@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "722914bc436dd135e4ab6134e62e6ab0610c8209",
+  "measured_on": "f229d668c5adb7e2a5c30ec80bb986831a19d0e9",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "d0870f698e2590dcc66f6aa7f8747525be3bc3803cc058de20a8a131f8d1d752",
+  "measurement_input_digest": "d67f1572420a56bfbe310724e37ed1cd2e6a79c336498e3bcbf561f0c8d09f25",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "0f48bb91e75279ed92b38f469cab31c21260451d2a5b3388c0c90e041103da7b",
+  "measurement_basis_digest": "21f3ae88ef62ed992a683b74f89ce9f701827f013b268a0302852cc1a69bd0d7",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -128,7 +128,7 @@
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_workers.py",
-      "sha256": "43e0f150e13112c48df1007f95fecdd36103186ed26d4ddae01aadd2e019e59e"
+      "sha256": "b4ccaf155d5afddbbb7243da267588ea22698f0f20ac4059b649d6cd7421bcf9"
     },
     {
       "path": "services/sahool-platform/api/routers/break_glass.py",
@@ -212,8 +212,8 @@
     "services/sahool-platform/api/imagery_automation.py:201",
     "services/sahool-platform/api/phase_runtime_store.py:100",
     "services/sahool-platform/api/phase_runtime_store.py:99",
-    "services/sahool-platform/api/phase_runtime_workers.py:56",
-    "services/sahool-platform/api/phase_runtime_workers.py:57",
+    "services/sahool-platform/api/phase_runtime_workers.py:59",
+    "services/sahool-platform/api/phase_runtime_workers.py:60",
     "services/sahool-platform/workers/canonical_execution_learning_worker.py:147",
     "services/soil-service/p1_store.py:11",
     "services/soil-service/p2_store.py:32",
