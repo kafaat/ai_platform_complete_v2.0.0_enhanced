@@ -151,8 +151,13 @@ async def test_poison_message_retained_before_termination(agent, monkeypatch):
 
 
 class Connection:
+    """Stand-in for the receipt table. The guarded UPDATE is answered with the shared rule
+    (``is_written``), the Python mirror of the SQL the agent sends; the live module
+    ``test_notification_agent_delivery_live_pg.py`` runs that SQL on PostgreSQL."""
+
     def __init__(self):
         self.statuses = {}
+        self.errors = {}
         self.contexts = []
 
     async def __aenter__(self):
@@ -168,11 +173,22 @@ class Connection:
         if sql.startswith("SELECT set_config"):
             self.contexts.append(args)
         elif sql.startswith("INSERT"):
-            self.statuses.setdefault(args[:3], "queued")
+            if args[:3] not in self.statuses:
+                self.statuses[args[:3]] = "queued"
+                self.errors[args[:3]] = args[3]
         elif sql.startswith("UPDATE"):
-            self.statuses[args[:3]] = args[3]
+            raise AssertionError("the outcome write must be the guarded UPDATE … RETURNING")
 
     async def fetchval(self, sql, *args):
+        if sql.startswith("UPDATE"):
+            from shared.notification_delivery_state import is_written
+
+            assert "RETURNING status" in sql and "IS DISTINCT FROM $5" in sql
+            key, wanted, error = args[:3], args[3], args[4]
+            if not is_written(self.statuses[key], wanted, self.errors[key], error):
+                return None
+            self.statuses[key], self.errors[key] = wanted, error
+            return wanted
         return self.statuses.get(args)
 
 
