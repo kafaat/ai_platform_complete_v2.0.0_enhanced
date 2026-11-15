@@ -328,6 +328,7 @@ FM-001,mobile,mobile/sahool_app/lib/services/auth_service.dart,2,applied
 FM-001,service,services/auth/main.py,10,applied
 FM-001,service,services/field-management-service/main.py,10,applied
 FM-001,test,docs/testing/decision_transport_auth_repairs_20260909.md,3,applied
+FM-001,test,firmware/esp32_mesh_gateway/test/gen_cmd_auth_v2_vectors.py,3,applied
 FM-001,test,mobile/sahool_app/test/auth_service_test.dart,3,applied
 FM-001,test,mobile/sahool_app/test/core/auth_gate_refresh_unknown_test.dart,3,applied
 FM-001,test,mobile/sahool_app/test/core/auth_gate_startup_test.dart,3,applied
@@ -1585,8 +1586,8 @@ IRR-007,api,GET /health @ services/actuator-service/routers/health.py:20,3,appli
 IRR-007,api,GET /healthz @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /readyz @ services/actuator-service/routers/health.py:32,3,applied
 IRR-007,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:236,2,applied
-IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:115,3,applied
-IRR-007,api,GET /v1/commands/{command_id} @ services/actuator-service/routers/commands.py:141,5,applied
+IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:126,3,applied
+IRR-007,api,GET /v1/commands/{command_id} @ services/actuator-service/routers/commands.py:152,5,applied
 IRR-007,api,GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
 IRR-007,api,POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:101,3,applied
 IRR-007,api,POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:181,3,applied
@@ -1607,8 +1608,10 @@ IRR-007,test,services/actuator-service/test_actuator_delivery_state_20261103.py,
 IRR-007,test,services/actuator-service/test_actuator_router_decomposition_guard.py,3,applied
 IRR-007,test,services/actuator-service/test_actuator_safety.py,3,applied
 IRR-007,test,services/actuator-service/test_actuator_safety_audit_20261101.py,3,applied
+IRR-007,test,services/actuator-service/test_cmd_signing_v2.py,3,applied
 IRR-007,test,services/actuator-service/test_dedup_compensation.py,3,applied
 IRR-007,test,services/actuator-service/test_dispatch_bridge.py,3,applied
+IRR-007,test,services/actuator-service/test_killswitch_close_exemption.py,3,applied
 IRR-007,test,services/sahool-platform/tests/test_actuator_command.py,5,applied
 IRR-007,test,services/sahool-platform/tests/test_command_dispatcher.py,3,applied
 IRR-007,test,tests_v9/actuator_route_source.py,2,applied

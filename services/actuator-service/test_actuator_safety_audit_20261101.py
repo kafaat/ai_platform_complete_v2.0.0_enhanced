@@ -185,7 +185,7 @@ class _Trace:
         self.mqtt.append((device_id, command, kw))
         return True
 
-    async def ks(self, _conn, tenant_id, *, field_id=None, valve_id=None):
+    async def ks(self, _conn, tenant_id, *, field_id=None, valve_id=None, command=None):
         self.killswitch.append((tenant_id, field_id, valve_id))
         return self.halts.get((field_id, valve_id), (False, None))
 
@@ -480,7 +480,21 @@ def real_mqtt(act, monkeypatch):
     _FakeMQTT.opened = 0
     monkeypatch.setattr(act, "ACTUATOR_MODE", "real")
     monkeypatch.setattr(act, "MQTTClient", _FakeMQTT)
+    # R-C2: these cases measure the A4/A5/A7 wire vocabulary on a **legacy v1** unit, which is
+    # only signed while listed in ACTUATOR_LEGACY_V1_DEVICES. v2 is covered by
+    # test_cmd_signing_v2.py (a device not listed gets nothing without CMD_HMAC_MASTER_KEY).
     monkeypatch.setenv("CMD_HMAC_SECRET", "s" * 32)
+    monkeypatch.setenv("ACTUATOR_LEGACY_V1_DEVICES", f"{TENANT}:valve-a")
+    monkeypatch.delenv("CMD_HMAC_MASTER_KEY", raising=False)
+    # The allowlist is keyed by tenant and device (review of #1386, M1), and every production
+    # caller passes the tenant, so these direct calls pass it too.
+    send = act.send_mqtt_command
+
+    async def _send_with_tenant(*args, **kwargs):
+        kwargs.setdefault("tenant_id", TENANT)
+        return await send(*args, **kwargs)
+
+    monkeypatch.setattr(act, "send_mqtt_command", _send_with_tenant)
     return act
 
 
@@ -691,8 +705,19 @@ def test_a5_dispatch_consumer_passes_the_stable_identity_to_the_publisher(act, m
     asyncio.run(act.run_dispatch_consumer_once(None, TENANT, allowlist={"low"}))
 
     tag = __import__("hashlib").sha256(b"req-9").hexdigest()[:12]
+    # R-C2: the tenant is passed so the v2 signature binds it; the payload names no field, so
+    # the publisher reads the device's field from the registry (field_id=None here).
     assert (
-        captured == [{"command_id": "req-9", "issued_at": f"2026-11-01T09:00:00+00:00~{tag}"}] * 2
+        captured
+        == [
+            {
+                "command_id": "req-9",
+                "issued_at": f"2026-11-01T09:00:00+00:00~{tag}",
+                "tenant_id": TENANT,
+                "field_id": None,
+            }
+        ]
+        * 2
     )
 
 
@@ -796,6 +821,10 @@ def test_a_republished_dispatch_open_is_a_duplicate_on_the_wire(act):
     assert original["ts"] == longer["ts"] == ts
     assert original["sig"] != longer["sig"], "المدّة خارج التوقيع ⇒ تُمدَّد بلا كسره"
 
+    # R-C2: the v2 firmware drops a replay by its persisted counter (``ctr <= last_ctr``) in
+    # ``verify_command`` — before ``valveRequestedMs`` — and the republish keeps its ``ctr``
+    # (test_cmd_signing_v2.py::test_a_republished_dispatch_command_keeps_its_counter).
     fw = (ROOT / "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino").read_text("utf-8")
     callback = fw[fw.index("void mqttCallback(") :]
-    assert callback.index("if (isDuplicateCmd(ts))") < callback.index("valveRequestedMs = reqMs;")
+    assert callback.index("cmdauth::verify_command(") < callback.index("valveRequestedMs =")
+    assert callback.index("persistLastCtr(m.ctr)") < callback.index("valveRequestedMs =")

@@ -54,8 +54,14 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
     # الحقل يحجب مسارَي القواعد والإرسال ويترك هذا الباب مفتوحاً، بلا أثرٍ في الاستجابة.
     # (يصل هنا فقط بعد _authorize_device_control الذي يضمن وجود main._pool أو 503.)
     async with main._pool.acquire() as ks_conn:
+        # ACTUATOR-KILLSWITCH-BLOCKS-CLOSE-01: CLOSE/OFF (is_safe_direction) is never held by the
+        # kill-switch nor by its fail-closed answer — closing is what the switch exists for.
         halted, halt_reason = await is_actuation_halted(
-            ks_conn, tenant_id, field_id=device_field_id, valve_id=req.device_id
+            ks_conn,
+            tenant_id,
+            field_id=device_field_id,
+            valve_id=req.device_id,
+            command=req.command,
         )
     if halted:
         raise HTTPException(423, halt_reason or "التشغيل مُوقَف بمفتاح إيقاف الطوارئ")
@@ -71,7 +77,12 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
         triggered_by="manual",
     )
     success = await main.send_mqtt_command(
-        req.device_id, req.command, req.payload, command_id=command_id
+        req.device_id,
+        req.command,
+        req.payload,
+        command_id=command_id,
+        tenant_id=tenant_id,
+        field_id=device_field_id,
     )
     delivery_state = cd.state_after_publish(success, main.ACTUATOR_MODE)
     await main.log_command(
