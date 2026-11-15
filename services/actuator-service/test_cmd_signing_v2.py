@@ -378,6 +378,31 @@ def test_an_open_republish_keeps_its_counter_and_a_close_republish_is_newer():
     assert cs.dispatch_counter("CLOSE", stable, cs.LiveCounter(), NOW_MS - 60_000) > stable
 
 
+def test_a_close_after_an_open_stamped_by_a_clock_ahead_of_this_host_is_applied():
+    """Follow-up review of #1386: the database clock behind ``requested_at`` runs 3 s ahead.
+    The dispatched OPEN carries a counter in this host's future; a manual CLOSE one second
+    later must still be newer."""
+    live, dev = cs.LiveCounter(), _device()
+    stable = cs.stable_counter(f"{_iso(NOW_MS + 3_000)}~t", "k-open")
+    open_ctr = cs.dispatch_counter("OPEN", stable, live, NOW_MS)
+    assert open_ctr == stable
+    opened = _msg("OPEN", ctr=open_ctr, iat=NOW_MS, command_id="k-open")
+    assert cs.reference_apply(dev, opened, time_synced=True, now_ms=NOW_MS) == cs.ACCEPT
+    close_ctr = cs.dispatch_counter("CLOSE", None, live, NOW_MS + 1_000)
+    close = _msg("CLOSE", ctr=close_ctr, iat=NOW_MS + 1_000, duration_ms=0, command_id="m-close")
+    assert cs.reference_apply(dev, close, time_synced=True, now_ms=NOW_MS + 1_000) == cs.ACCEPT
+
+
+def test_the_live_counter_has_one_writer_the_service_runs_one_process():
+    """``LiveCounter`` is process-local: two workers or replicas with skewed clocks could give a
+    CLOSE a counter below an OPEN another process already published (follow-up review of #1386).
+    The image runs one uvicorn worker; scaling it out needs a shared counter first."""
+    dockerfile = (Path(__file__).resolve().parent / "Dockerfile").read_text(encoding="utf-8")
+    assert '"--workers", "1"' in dockerfile, (
+        "actuator-service must run one process (see LiveCounter)"
+    )
+
+
 def test_the_legacy_allowlist_names_one_tenants_device_only():
     """Review of #1386, M1: ``<tenant>:<device>``. Another tenant's device of the same name
     stays on v2, and a bare device id or a malformed tenant is ignored (fail closed)."""

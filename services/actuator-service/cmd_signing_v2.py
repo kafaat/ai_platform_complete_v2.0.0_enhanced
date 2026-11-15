@@ -334,6 +334,12 @@ class LiveCounter:
             self._last = max(int(now_ms) * CTR_SUB_RANGE, self._last + 1, int(floor))
             return self._last
 
+    def observe(self, value: int) -> None:
+        """Record a counter published from elsewhere (a stable one), so every later live value is
+        above it even when the request time it came from is ahead of this host's clock."""
+        with self._lock:
+            self._last = max(self._last, int(value))
+
 
 def dispatch_counter(wire_cmd: str, stable: int | None, live: LiveCounter, now_ms: int) -> int:
     """The ``ctr`` for one published command (independent review of #1386, H1).
@@ -352,6 +358,9 @@ def dispatch_counter(wire_cmd: str, stable: int | None, live: LiveCounter, now_m
       state, and the refusal comes back as a ``replay`` ack.
     """
     if wire_cmd == "OPEN" and stable is not None:
+        # Follow-up review: a database clock ahead of this host puts the stable counter in the
+        # future; without this, a CLOSE published right after would get a smaller live counter.
+        live.observe(stable)
         return stable
     return live.next(now_ms, floor=(stable + 1) if stable is not None else 0)
 
