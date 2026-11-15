@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "842594f5b2f563bf82064541039d59d440ccc4a292f9a4d92516aa79dbee44f3",
+  "inventory_sha256": "708661fcf4a80ec934a0a4b3c30b3bfab4e5752c12b5ca9f1f56661dd62b8fe1",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "e6a8b97a60fcbc9363191f71fa99bdead05524e095bb93d7c4c814f4629432ce",
+  "map_sha256": "ceb84ab747ffecacdc6eb4cab13a23a03abeb3e98aaf789d8223b2eb9dc298d4",
   "routes": [
     {
       "classification": null,
@@ -3095,7 +3095,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/notifications.py",
       "function": "get_notification_preferences",
-      "line": 54,
+      "line": 75,
       "method": "GET",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
@@ -7211,7 +7211,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/notifications.py",
       "function": "upsert_notification_delivery",
-      "line": 179,
+      "line": 200,
       "method": "POST",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
@@ -8905,7 +8905,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/notifications.py",
       "function": "update_notification_preferences",
-      "line": 84,
+      "line": 105,
       "method": "PUT",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
