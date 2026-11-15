@@ -76,12 +76,13 @@ async def _probe() -> str:
 
 
 _SKIP = asyncio.run(_probe())
-if _SKIP:
-    if _CERTIFICATION_REQUIRED:
-        raise RuntimeError(
-            f"HARVEST_CUSTODY_CERTIFICATION_REQUIRED=1 but no v278 database: {_SKIP}"
-        )
-    pytest.skip(f"no migrated database with v278: {_SKIP}", allow_module_level=True)
+if _SKIP and _CERTIFICATION_REQUIRED:
+    raise RuntimeError(f"HARVEST_CUSTODY_CERTIFICATION_REQUIRED=1 but no v278 database: {_SKIP}")
+# A marker, not a module-level skip: outside the integration run (-m unit) these tests are
+# deselected rather than reported as a collection skip (unit_skip_inventory_guard).
+pytestmark.append(
+    pytest.mark.skipif(bool(_SKIP), reason=f"declared skip (not a pass): no v278 database: {_SKIP}")
+)
 
 
 async def _role_enforces_rls() -> bool:
@@ -96,7 +97,7 @@ async def _role_enforces_rls() -> bool:
 
 # The shared integration run connects as the schema owner (RLS bypassed); the certifying step
 # uses the restricted NOBYPASSRLS role. Cross-tenant assertions only mean something under RLS.
-_RLS_ENFORCED = asyncio.run(_role_enforces_rls())
+_RLS_ENFORCED = (not _SKIP) and asyncio.run(_role_enforces_rls())
 if _CERTIFICATION_REQUIRED and not _RLS_ENFORCED:
     raise RuntimeError("HARVEST_CUSTODY_CERTIFICATION_REQUIRED=1 needs a NOBYPASSRLS role")
 _NEEDS_RLS = pytest.mark.skipif(
