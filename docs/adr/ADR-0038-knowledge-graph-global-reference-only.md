@@ -93,9 +93,11 @@ looks like an identifier.
   `field/7`, `farm=acme`, `user@acme`, `مزرعة:12`.
 - After it, behind `-` or glued (camelCase or digit boundary), a token with a
   digit or an id suffix (`id`, `ids`, `uuid`, `key`, `ref`, `code`): `farm-12`,
-  `field7`, `farm12`, `customerId42`. Behind `-` the whole run of tokens joined by
-  `-` or glued is checked, so letter+digit codes count: `farm-a7`, `field-A12`,
-  `farm-a-12`. A space ends the run (`Farm-gate price 2024` passes). For `tenant`, `org`, `organization` and
+  `field7`, `farm12`, `customerId42`. Behind `-` or glued, a short code also counts:
+  a run of tokens of at most two letters or digits, joined by `-` or glued, that
+  starts with a letter and contains a digit (`farm-a7`, `farmA7`, `field-A12`,
+  `farm-a-12`, `farmAB12`). A longer word ends the run, so `FieldTrial2019`,
+  `field-capacity-33kpa` and `Farm-to-fork-2030` pass. For `tenant`, `org`, `organization` and
   `organisation`, which are never agronomic prose, any token behind `-`:
   `tenant-acme`.
 - After it, behind `_`, an id suffix: `farm_id`.
@@ -115,7 +117,8 @@ things, not one tenant's instance.
 than 10 000 keys and list items answers 413 `kg_payload_too_large`. A body too
 deep for the JSON parser itself is refused by the framework with 400. A lone
 surrogate in a key, value or identifier (including a top-level extra key, which
-pydantic rejects before the guard runs; a request-validation handler answers it),
+pydantic rejects before the guard runs; a request-validation handler, which walks
+the errors iteratively, answers it),
 and any other unexpected error inside the guard, answers 422
 `kg_payload_unprocessable`; the echoed path is escaped so
 the error response itself is valid JSON. These are the failures the tests

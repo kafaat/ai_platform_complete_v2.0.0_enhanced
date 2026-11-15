@@ -810,3 +810,16 @@ def test_a_letter_digit_code_after_a_hyphen_is_refused(value):
 )
 def test_glued_codes_elsewhere_still_follow_the_documented_rule(value):
     assert kg.identifier_scope_reason(value) is None, value
+
+
+@pytest.mark.parametrize("path", ["/v1/nodes", "/v1/edges"])
+@pytest.mark.parametrize("depth", [490, 800])
+def test_a_deep_invalid_body_is_not_a_500_in_the_validation_handler(api, path, depth):
+    # Fresh review of #1478: the surrogate check in the validation handler recursed and
+    # hit RecursionError near 490 levels; main answers 422 for the same bodies.
+    _main, client = api
+    nested: object = 1
+    for _ in range(depth):
+        nested = {"a": nested}
+    r = client.post(path, json={"name": nested}, headers=WRITE_HEADERS)
+    assert r.status_code == 422, r.text[:200]

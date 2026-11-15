@@ -27,14 +27,18 @@ app = FastAPI(title="SAHOOL Agricultural Knowledge Graph", version="2026.2")
 
 
 def _contains_lone_surrogate(value: Any) -> bool:
-    if isinstance(value, str):
-        return any("\ud800" <= ch <= "\udfff" for ch in value)
-    if isinstance(value, dict):
-        return any(
-            _contains_lone_surrogate(k) or _contains_lone_surrogate(v) for k, v in value.items()
-        )
-    if isinstance(value, (list, tuple)):
-        return any(_contains_lone_surrogate(v) for v in value)
+    # Iterative, so a deeply nested invalid body cannot make the error handler itself fail.
+    stack = [value]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, str):
+            if any("\ud800" <= ch <= "\udfff" for ch in item):
+                return True
+        elif isinstance(item, dict):
+            stack.extend(item.keys())
+            stack.extend(item.values())
+        elif isinstance(item, (list, tuple)):
+            stack.extend(item)
     return False
 
 

@@ -356,17 +356,24 @@ def _id_like(token: str) -> bool:
     return any(ch.isdigit() for ch in token) or token in _VALUE_ID_SUFFIXES
 
 
-def _glued_run(segs: list[tuple[str, str]], start: int) -> str:
-    """The token at ``start`` joined with the tokens glued or hyphenated to it.
+def _short_code_run(segs: list[tuple[str, str]], start: int) -> str:
+    """The short code that starts at ``start``, joined across ``-`` and glued boundaries.
 
-    ``a`` + ``7`` -> ``a7`` (``farm-a7``) and ``a`` + ``12`` -> ``a12`` (``farm-a-12``); a
-    space or any other separator ends the run, so ``Farm-gate price 2024`` stays prose.
+    Only tokens of at most two letters, or digits, extend the run: ``a`` + ``7`` gives
+    ``a7`` (``farm-a7``, ``farmA7``), ``a`` + ``12`` gives ``a12`` (``farm-a-12``), and
+    ``ab`` + ``12`` gives ``ab12`` (``farmAB12``). A longer word ends it, so
+    ``FieldTrial2019``, ``field-capacity-33kpa`` and ``Farm-to-fork-2030`` stay prose.
     """
-    out = segs[start][0]
+    out = ""
     j = start
-    while segs[j][1] in ("", "-") and j + 1 < len(segs):
+    while j < len(segs):
+        token = segs[j][0]
+        if not (token.isdigit() or len(token) <= 2):
+            break
+        out += token
+        if segs[j][1] not in ("", "-"):
+            break
         j += 1
-        out += segs[j][0]
     return out
 
 
@@ -377,7 +384,8 @@ def identifier_scope_reason(value: object) -> str | None:
 
     - after it, behind ``: # / = @`` (``tenant:acme``, ``field/7``, ``مزرعة:12``);
     - after it, behind ``-`` or glued, a token with a digit or an id suffix
-      (``farm-12``, ``farm-a7``, ``field-A12``, ``field7``, ``customerId42``); ``tenant``/``org`` behind ``-``
+      (``farm-12``, ``field7``, ``customerId42``), or a short code of one or two
+      letters followed by digits (``farm-a7``, ``farmA7``, ``field-A12``); ``tenant``/``org`` behind ``-``
       with any token (``tenant-acme``); behind ``_``, an id suffix (``farm_id``);
     - before it, a token with a digit behind ``: # / = @``, ``-`` or glued
       (``7:field``, ``12farm``).
@@ -396,8 +404,10 @@ def identifier_scope_reason(value: object) -> str | None:
         if _is_scope(token):
             if kind == "strong":
                 return "scope identifier in id or label"
-            if kind == "hyphen" and _id_like(_glued_run(segs, i + 1)):
-                # ``farm-a7`` / ``field-A12``: the letter/digit split must not hide the code.
+            code = _short_code_run(segs, i + 1)
+            if kind in {"hyphen", "glued"} and code[:1].isalpha() and _id_like(code):
+                # ``farm-a7`` / ``farmA7`` / ``field-A12``: the letter/digit split must not
+                # hide a short code.
                 return "scope identifier in id or label"
             if kind in {"hyphen", "glued"} and _id_like(nxt):
                 return "scope identifier in id or label"
