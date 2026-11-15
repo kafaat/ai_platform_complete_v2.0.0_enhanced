@@ -112,7 +112,7 @@ CONFIG tenant=<uuid> device=<id> field=<field> cmd_key=set last_ctr=0 provisione
 في بيئة actuator-service (`docker-compose.v9.yml` يمرّرها):
 
 - `CMD_HMAC_MASTER_KEY` — ≥٣٢ حرفاً من مدير الأسرار. بدونه **لا يُنشَر أيّ أمر** لجهازٍ غير مُدرَج.
-- `ACTUATOR_LEGACY_V1_DEVICES` — قائمة بفواصل للأجهزة التي لم تُبرمَج بعد (v1). كلّ إرسالٍ لها يُسجّل تحذيراً.
+- `ACTUATOR_LEGACY_V1_DEVICES` — قائمة بفواصل للأجهزة التي لم تُبرمَج بعد (v1)، كلُّ مُدخَلٍ `<tenant-uuid>:<device-id>` لجهازٍ واحد لمستأجرٍ واحد (مُدخَلٌ بلا مستأجرٍ صالح يُهمَل فيبقى الجهاز على v2). كلّ إرسالٍ لها يُسجّل تحذيراً.
 - `CMD_HMAC_SECRET` — سرّ v1 للأجهزة المُدرَجة فقط. جهازٌ مُدرَج بلا هذا السرّ لا يُرسَل إليه شيء.
 - `ACTUATOR_CMD_EXPIRY_SECONDS` — افتراضيّاً 120 (يُقصّ إلى [10, 3600]).
 
