@@ -6,10 +6,6 @@ import pytest
 
 pytestmark = pytest.mark.unit
 
-import pytest
-
-pytestmark = pytest.mark.unit
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
