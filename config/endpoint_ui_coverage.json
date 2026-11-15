@@ -2561,6 +2561,11 @@
       "evidence": "/api/v1/sharing/keys"
     },
     {
+      "endpoint": "/api/v1/sharing/keys/{key_id}/revoke",
+      "audience": "manager",
+      "evidence": "/api/v1/sharing/keys/"
+    },
+    {
       "endpoint": "/api/v1/simulate/what-if",
       "audience": "agronomist",
       "evidence": "/api/v1/simulate/what-if"
