@@ -3764,7 +3764,7 @@
         "POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216",
         "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:746",
         "POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1077",
-        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:430"
+        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:455"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4917,7 +4917,7 @@
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520",
         "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:169",
         "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:175",
-        "POST /v1/approvals/approve @ services/ai_agronomist/main.py:284",
+        "POST /v1/approvals/approve @ services/ai_agronomist/main.py:292",
         "POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42",
         "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:857",
         "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2449",
@@ -4940,6 +4940,7 @@
         "services/vegetation-analysis-service/test_rs_review_hardening.py",
         "tests_v9/test_ai_agronomist_approval_identity_t11.py",
         "tests_v9/test_ai_approval_audit_v55.py",
+        "tests_v9/test_ai_approval_authz_roles.py",
         "tests_v9/test_ai_approval_endpoints_v58.py",
         "tests_v9/test_ai_approval_identity_atomic_store.py",
         "tests_v9/test_ai_rag_pre_adoption_review.py",
@@ -4998,7 +4999,7 @@
           "path": "migrations/v271_scout_treatment_review_events.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=27, tests=24, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=27, tests=25, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

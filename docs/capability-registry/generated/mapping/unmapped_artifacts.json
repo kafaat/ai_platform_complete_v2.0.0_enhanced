@@ -4488,6 +4488,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/ai_agronomist/approval_authz.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/ai_agronomist/chaos_runtime.py",
     "kind": "backend"
   },
@@ -10893,6 +10897,10 @@
   },
   {
     "path": "tests_v9/test_ai_agronomist_vllm_startup_probe.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_approval_authz_roles.py",
     "kind": "tests"
   },
   {

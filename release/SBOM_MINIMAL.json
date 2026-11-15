@@ -17835,6 +17835,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "fd872df5e3feb062943b0e99ea550795f6dffc09f27efeaa42e2c31d51ddbc5b"
+        }
+      ],
+      "name": "services/ai_agronomist/approval_authz.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c168613b3dd8c8d22f814f80e270ec402de536a87718acbecdf2c621f8154001"
         }
       ],
@@ -17975,7 +17985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fd827b5df92ef07fafb03fef6e0e89119731fadce8c5af1fa27055f630af7d18"
+          "content": "a0eba2ae86ebec4c883f70f390eb9dee67be7752d5cb9cd408ee85ab57c2ef40"
         }
       ],
       "name": "services/ai_agronomist/main.py",

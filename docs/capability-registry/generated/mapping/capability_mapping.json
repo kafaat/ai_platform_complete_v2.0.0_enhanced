@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7403,
+    "files_scanned": 7405,
     "files_by_kind": {
-      "backend": 1292,
+      "backend": 1293,
       "database": 333,
       "governance": 89,
       "mobile": 417,
       "other": 2191,
-      "tests": 2529,
+      "tests": 2530,
       "web": 552
     },
-    "unmapped_artifacts": 3522,
+    "unmapped_artifacts": 3524,
     "ambiguous_artifacts": 239,
     "files_by_reading": {
-      "python_functional": 4010,
+      "python_functional": 4012,
       "raw": 3393
     },
-    "test_dependency_files": 1926,
-    "test_dependency_edges": 4974,
-    "test_dependency_bounded_files": 1127,
+    "test_dependency_files": 1927,
+    "test_dependency_edges": 4981,
+    "test_dependency_bounded_files": 1128,
     "test_dependency_unresolved_relations": 490
   },
   "capabilities": [
@@ -36380,6 +36380,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/ai_agronomist/approval_authz.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/ai_agronomist/chaos_runtime.py",
       "kind": "backend"
     },
@@ -42785,6 +42789,10 @@
     },
     {
       "path": "tests_v9/test_ai_agronomist_vllm_startup_probe.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_ai_approval_authz_roles.py",
       "kind": "tests"
     },
     {
@@ -72161,12 +72169,12 @@
         {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
-          "line": 88
+          "line": 89
         },
         {
           "source": "tests_v9/redis_txn_double.py",
           "kind": "import",
-          "line": 71
+          "line": 72
         }
       ],
       "unresolved": []
@@ -72498,6 +72506,49 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_ai_approval_authz_roles.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 24
+        },
+        {
+          "source": "services/ai_agronomist/agent_stores.py",
+          "kind": "import",
+          "line": 24
+        },
+        {
+          "source": "services/ai_agronomist/approval_authz.py",
+          "kind": "import",
+          "line": 25
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "import",
+          "line": 26
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "source_read",
+          "line": 154
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "source_read",
+          "line": 77
+        },
+        {
+          "source": "services/sahool-platform/core/authorization.py",
+          "kind": "source_read",
+          "line": 78
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_ai_approval_endpoints_v58.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -72505,12 +72556,12 @@
         {
           "source": "services/ai_agronomist/__init__.py",
           "kind": "import",
-          "line": 64
+          "line": 65
         },
         {
           "source": "services/ai_agronomist/agent_stores.py",
           "kind": "import",
-          "line": 65
+          "line": 66
         },
         {
           "source": "services/ai_agronomist/main.py",

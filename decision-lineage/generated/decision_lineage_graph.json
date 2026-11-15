@@ -2124,7 +2124,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 202,
+      "evidence_count": 203,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2164,6 +2164,7 @@
         "services/actuator-service/actuator_runtime.py",
         "services/ai_agronomist/ai_generation.py",
         "services/ai_agronomist/approval.py",
+        "services/ai_agronomist/approval_authz.py",
         "services/ai_agronomist/main.py",
         "services/ai_agronomist/tool_executor.py",
         "services/ai_agronomist/vra_prescription_engine.py",
@@ -3393,7 +3394,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 51,
-      "target_evidence_count": 202,
+      "target_evidence_count": 203,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3432,7 +3433,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 202,
+      "source_evidence_count": 203,
       "target_evidence_count": 48,
       "static_supported": true,
       "runtime_verified": false
@@ -3549,5 +3550,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "575b034823a9a3c4fb2643cb0098eceaa9cd3293105c19f33c3c02831fd084c9"
+  "content_sha256": "97df299f4f71e3947fae7fc5f1c1064377af583ec20203d933fcd92b162bf3e1"
 }
