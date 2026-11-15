@@ -37,8 +37,20 @@ import pytest
 
 pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
-asyncpg = pytest.importorskip("asyncpg")
-pytest.importorskip("fastapi")
+_REQUIRED = os.getenv("NOTIFICATION_DELIVERY_CERTIFICATION_REQUIRED") == "1"
+
+# The switch is read before any import can skip: an `importorskip` first would turn a
+# missing asyncpg/fastapi on the certifying runner into a green skip of the whole module,
+# the job claiming a certification it never measured (same pattern as
+# test_d1_raster_queue_rls_live_pg.py, review of #1014; lab follow-up on #1468).
+try:
+    import asyncpg
+    import fastapi  # noqa: F401 - the handler under test needs it
+except ImportError:
+    if _REQUIRED:
+        raise
+    asyncpg = pytest.importorskip("asyncpg")
+    pytest.importorskip("fastapi")
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
@@ -68,7 +80,6 @@ async def _probe() -> str:
 
 
 _WHY = asyncio.run(_probe())
-_REQUIRED = os.getenv("NOTIFICATION_DELIVERY_CERTIFICATION_REQUIRED") == "1"
 
 
 @pytest.fixture(autouse=True)
