@@ -13988,6 +13988,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_work_router_contract_ci.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_worker_assertion_interop.py",
     "kind": "tests"
   },
