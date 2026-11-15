@@ -1617,9 +1617,8 @@ async def delete_field(
 ):
     """يحذف حقلاً ويُصدِر FIELD_DELETED — حذف متتالٍ لتبعيّاته (مواسم/عمليّات/تنبيهات).
 
-    حارس صدق: يُرفض (409) إن كان للحقل موسم نشط — أغلِقه أوّلاً (يمنع محو حقل قيد
-    الاستخدام بالخطأ). الحدث يُصدَر قبل الحذف ضمن المعاملة (نمط outbox)، وentity_id
-    نصّيّ (events منذ v18) فيبقى الحدث بعد حذف الحقل (لا FK من events إلى fields).
+    يُرفض (409) إن كان للحقل موسم نشط، أو دفعات حصاد (v278: سلسلة الحيازة لا تُمحى). الحدث
+    يُصدَر قبل الحذف ضمن المعاملة (outbox) وentity_id نصّيّ فيبقى بعد الحذف (لا FK من events).
     404 لو الحقل ليس للمستأجِر؛ 503 عند تعذّر القاعدة.
     """
     try:
@@ -1798,9 +1797,8 @@ async def merge_fields(
                     reason="field.merged",
                     extra_event_meta={"merged_from": req.source_field_ids},
                 )
-                # 3) احذف كلّ مصدر (FIELD_DELETED قبل الحذف — نمط outbox، نفس
-                #    دلالات delete_field). أيّ فشل هنا يتصاعد ⇒ تتراجع المعاملة كاملةً
-                #    (لا حقل مدموج يتيَّم، لا مصدر محذوف بلا بديل) — سدّ خطر اللاذرّيّة.
+                # 3) احذف كلّ مصدر (FIELD_DELETED قبل الحذف، دلالات delete_field)؛ أيّ فشل
+                #    يتصاعد ⇒ تتراجع المعاملة كاملةً (لا مدموج يتيَّم ولا مصدر بلا بديل).
                 for src_id in req.source_field_ids:
                     src = await conn.fetchrow(
                         "SELECT name, crop FROM fields WHERE field_id = $1",
@@ -1941,9 +1939,8 @@ async def split_field(
                             extra_event_meta={"split_from": req.source_field_id},
                         )
                     )
-                # 3) احذف المصدر (FIELD_DELETED قبل الحذف — نفس دلالات delete_field).
-                #    أيّ فشل يتصاعد ⇒ تتراجع المعاملة كاملةً (لا وليد يتيَّم، لا أصل
-                #    محذوف بلا أطفال) — سدّ خطر اللاذرّيّة.
+                # 3) احذف المصدر (FIELD_DELETED قبل الحذف، دلالات delete_field)؛ أيّ فشل
+                #    يتصاعد ⇒ تتراجع المعاملة كاملةً (لا وليد يتيَّم ولا أصل بلا أطفال).
                 await _emit_domain_event(
                     conn,
                     user,
@@ -3925,7 +3922,6 @@ async def field_state_full(
     المصادر غير الموجودة (عينات ماء مخبريّة، اقتصاد لكل حقل) تُعلَن كذلك مع مؤشّر endpoint.
     البوّابة الصلبة الوحيدة: الحقل ضمن المستأجِر (404)؛ تعذّر القاعدة كلّياً ⇒ 503.
     """
-    from api.field_context import _field_season_context
     from api.field_state_projection import _derive_alerts_from_state, recompute_field_state
 
     out: dict = {"field_id": field_id}
