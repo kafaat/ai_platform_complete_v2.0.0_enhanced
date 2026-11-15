@@ -19,7 +19,7 @@ import { useSharingKeys, useCreateSharingKey } from '../../hooks/useApi';
 import { useSelectedField } from '../../hooks/useSelectedField';
 import { useAuthStore } from '../../hooks/useAuth';
 import { can } from '../../lib/permissions';
-import { apiErrorMessage, type SharingKey, type SharingScope } from '../../services/api';
+import { apiErrorMessage, kongApi, type SharingKey, type SharingScope } from '../../services/api';
 import { Card, Button, Pill, SectionLabel } from '../ds/atoms';
 import { Input, Select, Checkbox, FormField } from '../ds/forms';
 import { Modal } from '../ds/modal';
@@ -282,6 +282,22 @@ export default function SharingPanel() {
   const { data, isLoading, error, refetch } = useSharingKeys();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [plaintext, setPlaintext] = useState<string | null>(null);
+  const [revokingKeyId, setRevokingKeyId] = useState<string | null>(null);
+  const [revokeError, setRevokeError] = useState<string | null>(null);
+
+  const revokeKey = async (keyId: string) => {
+    if (!window.confirm('إلغاء صلاحية هذا المفتاح؟ لا يمكن إعادة تفعيله.')) return;
+    setRevokingKeyId(keyId);
+    setRevokeError(null);
+    try {
+      await kongApi.post(`/api/v1/sharing/keys/${encodeURIComponent(keyId)}/revoke`);
+      await refetch();
+    } catch (err) {
+      setRevokeError(apiErrorMessage(err, 'تعذّر إلغاء المفتاح. لم تتغير حالته.'));
+    } finally {
+      setRevokingKeyId(null);
+    }
+  };
 
   const keys: SharingKey[] = data ?? [];
 
@@ -336,8 +352,21 @@ export default function SharingPanel() {
             <Pill tone="ok">نشط</Pill>
           ),
       },
+      {
+        key: 'revoke',
+        label: 'الإجراء',
+        render: (k) => manageable && k.revoked_at == null ? (
+          <Button
+            full={false}
+            onClick={() => void revokeKey(k.key_id)}
+            disabled={revokingKeyId === k.key_id}
+          >
+            {revokingKeyId === k.key_id ? 'جارٍ الإلغاء…' : 'إلغاء المفتاح'}
+          </Button>
+        ) : <span style={{ color: T.muted }}>—</span>,
+      },
     ];
-  }, []);
+  }, [manageable, revokingKeyId, refetch]);
 
   return (
     <Card>
@@ -357,11 +386,14 @@ export default function SharingPanel() {
       </SectionLabel>
 
       <p style={{ fontSize: 12, color: T.muted, lineHeight: 1.6, marginBottom: 12 }}>
-        امنح أطرافاً ثالثة (مهندس زراعيّ، مورّد، جهة تمويل) وصولاً مُحدَّداً ببيانات مزرعتك — قراءةً أو قراءةً
-        وكتابةً — مع إمكان <strong style={{ color: T.ink }}>قصر المفتاح على حقول بعينها</strong>. المفتاح النصّيّ
-        يُعرَض مرّة واحدة فقط بعد الإنشاء.
+        أنشئ مفاتيح مشاركة مؤقتة ومقيّدة بالحقول، ويمكنك إلغاؤها من هنا.
+        تطبيق نطاق الوصول الفعلي يعتمد على تحقق الخدمة المستقبلة من المفتاح والصلاحيات؛
+        إنشاء المفتاح وحده لا يثبت تفعيل كل مسارات تبادل البيانات.
       </p>
 
+      {revokeError && (
+        <p role="alert" style={{ fontSize: 12, color: T.danger, marginBottom: 8 }}>{revokeError}</p>
+      )}
       {plaintext && (
         <div style={{ marginBottom: 12 }}>
           <PlaintextBanner plaintext={plaintext} onDismiss={() => setPlaintext(null)} />
