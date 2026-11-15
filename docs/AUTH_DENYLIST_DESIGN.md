@@ -114,3 +114,39 @@ auth يُقلِع بـ`_redis = None` فتُتخطّى الفحوص (لا 503 و
 `tests_v9/test_platform_revocation_unverifiable_fail_closed.py` (وحدة)،
 `tests_v9/test_auth_admin_authz_live_pg_redis.py::test_unreachable_redis_lets_get_users_through_scoped_to_the_callers_tenant`
 (Postgres وRedis حيّان)، و`tests_v9/test_jwt_revocation_same_redis.py` (redis-server حقيقيّ يُوقَف).
+
+## قراءاتٌ تكتب إسقاط `field_state` أثناء الانقطاع (مقبولةٌ ومُوثَّقة)
+
+مسح #1449 أعلاه لا يرى الكتابة عبر وحدةٍ أخرى، فلم يرَ هذه: أربعةُ مسارات GET تحت `FIELD_VIEW`
+(صلاحية عرض، فليست صارمة) تستدعي `recompute_field_state`، وهي تكتب صفّ الحقل في إسقاط `field_state`
+بـ`INSERT … ON CONFLICT (field_id) DO UPDATE` (`services/sahool-platform/api/field_state_projection.py:876`).
+فتوكنٌ قد يكون مُبطَلاً يستطيع، والمخزن ساقط، أن يُطلِق هذه الكتابة. قاسها المختبر على main
+`13138bf74` (التطبيق الحقيقيّ عبر الدور `sahool_app_test`، `SAHOOL_ENV=development`، وفرق
+`pg_stat_user_tables` حول كلّ طلب): `GET /api/v1/fields/{id}` لا يكتب، والأربعة تكتب.
+
+| المسار (`services/sahool-platform/api/routers/fields.py`) | سطر الاستدعاء | ما يكتبه |
+|---|---|---|
+| `GET /api/v1/fields/{field_id}/state` (`:3856`) | `:3875` | صفّ `field_state` للحقل |
+| `GET /api/v1/fields/{field_id}/alerts/derived` (`:3884`) | `:3901` | صفّ `field_state` للحقل (التنبيهات تُشتقّ ولا تُخزَّن) |
+| `GET /api/v1/fields/{field_id}/state/full` (`:3910`) | `:3965` | صفّ `field_state` للحقل |
+| `GET /api/v1/fields/{field_id}/recommendations` (`:2723`) | `:2787` | صفّ `field_state` للحقل، **في 200 فقط** (انظر أدناه) |
+
+**لماذا تُحتمَل أثناء الانقطاع:** الكتابة إسقاطٌ مشتقّ لا مصدر حقيقة. قيمها تُحسَب على الخادم من
+بيانات الحقل نفسه (حداثة الصور والتربة والطقس، والمحصول، والحقائق الزراعيّة)، ولا يدخلها شيءٌ من جسم
+الطلب أو من هويّة الطالب. وهي ضمن مستأجِر التوكن فقط: `tenant_connection` يضبط `app.current_tenant`
+وRLS يحصر الصفّ، و`recompute_field_state` لا يكتب إن لم يرَ الحقل في المستأجِر. وهي متساوية القوى:
+إعادة الحساب بالمدخلات نفسها تكتب القيم نفسها، وأيّ طلبٍ لاحق يستبدلها. فأقصى أثر لتوكنٍ مُبطَل هو
+تحديث `computed_at` وإعادة كتابة ما كان سيُكتَب، بلا صلاحية ولا محتوى منه. حكم المختبر بذلك مقبولاً،
+وتغيير كون هذه المسارات تكتب قرارُ مالك لم يُتَّخذ هنا.
+
+**وما تغيّر في `/recommendations`:** كان المسار يكتب الإسقاط في كتلة `tenant_connection` الأولى، وهي
+تُثبَّت عند الخروج، ثمّ يُجيب 503 إن لم تتولّد توصية، فيبقى أثر طلبٍ فشل. صار الحسابُ والتجميعُ وقرارُ
+503 في معاملةٍ واحدة، فيتراجع الإسقاط مع 503 ويُكتَب مع 200. والطقس يُجلَب قبل المعاملة فلا تُمسَك
+مفتوحةً أثناء نداءٍ شبكيّ. وردّ 503 نفسه في قياس المختبر صادق لا تبعيّة ناقصة: حقلٌ بلا محصول ولا موسم
+نشط، وبلا إحداثيّات أو بطقسٍ لا يُبلَغ، لا يولّد توصية. الإثبات:
+`tests_v9/test_field_recommendations_projection_rollback_live_pg.py` (Postgres حيّ، دور NOBYPASSRLS).
+
+**مساراتُ GET أخرى تستدعي الدالّة نفسها ولم يقسها المختبر:** `GET /api/v1/fields/{field_id}/season-workspace`
+(`routers/season_workspace.py:335`)، و`GET /api/v1/fields/{field_id}/sustainability` (`routers/reports.py:239`)،
+و`GET /internal/fields/{field_id}/state` (`routers/internal_service.py:93`). لم تُفحَص صلاحيّاتها ولا كتابتها هنا،
+فهي خارج هذا الجدول حتّى تُقاس.

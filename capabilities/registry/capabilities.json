@@ -64,6 +64,7 @@
         "mobile/sahool_app/lib/features/auth/auth_routes.dart",
         "mobile/sahool_app/lib/features/auth/data/auth_api.dart",
         "mobile/sahool_app/lib/features/auth/presentation/login_screen.dart",
+        "mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart",
         "mobile/sahool_app/lib/features/auth/presentation/mfa_setup_screen.dart",
         "mobile/sahool_app/lib/features/auth/presentation/onboarding_screen.dart",
         "mobile/sahool_app/lib/features/auth/presentation/widgets/otp_code_field.dart",
@@ -76,6 +77,7 @@
         "mobile/sahool_app/test/core/auth_gate_startup_test.dart",
         "mobile/sahool_app/test/features/auth/auth_test_app.dart",
         "mobile/sahool_app/test/features/auth/login_screen_test.dart",
+        "mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart",
         "mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart",
         "mobile/sahool_app/test/features/auth/onboarding_screen_test.dart",
         "scripts_v9/test_tenant_isolation.sql",
@@ -93,8 +95,7 @@
         "services/raster-service/test_tile_tenant_query.py",
         "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
         "services/sahool-platform/tests/test_fields_tenant_arg_completeness_guard.py",
-        "services/sahool-platform/tests/test_route_auth_matrix_guard.py",
-        "services/sahool-platform/tests/test_sweep_tenant_enumeration.py"
+        "services/sahool-platform/tests/test_route_auth_matrix_guard.py"
       ],
       "runtime": {
         "metrics": [
@@ -141,7 +142,7 @@
           "path": "migrations/v241_edge_idempotency_tenant_scoped.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=36, tests=25, ui=1, mobile=8. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=36, tests=25, ui=1, mobile=9. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -150,7 +151,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 66
+        "tests": 68
       }
     },
     {
@@ -453,7 +454,7 @@
       },
       "evidence_truncated": {
         "apis": 227,
-        "tests": 152,
+        "tests": 155,
         "mobile_consumers": 44
       }
     },
@@ -589,7 +590,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 15
+        "tests": 16
       }
     },
     {
@@ -1812,7 +1813,7 @@
         "GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571",
         "GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:944",
         "GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87",
-        "GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:32",
+        "GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:34",
         "GET /api/v1/weather/historical @ services/sahool-platform/api/routers/weather.py:2098",
         "GET /api/v1/weather/history/coverage @ services/sahool-platform/api/routers/operational_truth.py:203",
         "GET /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:172",
@@ -1842,6 +1843,7 @@
         "services/raster-service/test_historical_backfill.py",
         "services/raster-service/test_persisted_thumbnail_path.py",
         "services/sahool-platform/tests/test_agronomic_replay_historical_sources.py",
+        "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
         "services/sahool-platform/tests/test_historical_loader.py",
         "services/sahool-platform/tests/test_historical_onboarding.py",
         "services/sahool-platform/tests/test_historical_season_context.py",
@@ -1853,9 +1855,8 @@
         "tests_v9/test_backfill_scene_job_threadpool_v30_3.py",
         "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py",
         "tests_v9/test_decision_review_backfill_verify.py",
-        "tests_v9/test_historical_imagery_timeline_contract.py",
-        "tests_v9/test_historical_search_cdse_v30_8.py",
-        "tests_v9/test_historical_season_bridge_static.py"
+        "tests_v9/test_field_timeline_tenant_scope_live_pg.py",
+        "tests_v9/test_historical_imagery_timeline_contract.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1894,7 +1895,7 @@
         "Farmonaut": "3"
       },
       "evidence_truncated": {
-        "tests": 3
+        "tests": 5
       }
     },
     {
@@ -3737,7 +3738,7 @@
         "POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216",
         "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:746",
         "POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1077",
-        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:429"
+        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:430"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4878,7 +4879,7 @@
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520",
         "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:169",
         "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:175",
-        "POST /v1/approvals/approve @ services/ai_agronomist/main.py:283",
+        "POST /v1/approvals/approve @ services/ai_agronomist/main.py:284",
         "POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42",
         "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:857",
         "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2449",
@@ -5481,7 +5482,8 @@
         "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
         "services/sahool-platform/tests/test_practice_promotion.py",
         "tests/architecture/test_runtime_verification_promotion_workflow.py",
-        "tests/phase6/test_model_promotion_finite_phase13.py"
+        "tests/phase6/test_model_promotion_finite_phase13.py",
+        "tests_v9/test_field_recommendations_projection_rollback_live_pg.py"
       ],
       "runtime": {
         "metrics": [],
@@ -5516,7 +5518,7 @@
           "path": "services/decision-service/production_promotion.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=8, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=9, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5747,10 +5749,12 @@
       ],
       "ui_consumers": [],
       "mobile_consumers": [
+        "mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart",
         "mobile/sahool_app/lib/features/auth/presentation/mfa_setup_screen.dart",
         "mobile/sahool_app/lib/screens/mfa_setup_screen.dart"
       ],
       "tests": [
+        "mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart",
         "mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart",
         "tests_v9/test_auth_admin_stepup_mfa.py",
         "tests_v9/test_auth_cors_mfa_header.py",
@@ -5795,7 +5799,7 @@
           "path": "services/auth/mfa_crypto.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=10, ui=0, mobile=2. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=11, ui=0, mobile=3. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

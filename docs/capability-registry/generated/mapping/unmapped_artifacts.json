@@ -1784,6 +1784,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/ChatbotAdvisorReach.static.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/sections/ChatbotAgronomyPanels.v615.static.test.ts",
     "kind": "tests"
   },
@@ -5134,10 +5138,6 @@
   {
     "path": "services/indicators-service/tests/test_observation_timeline.py",
     "kind": "tests"
-  },
-  {
-    "path": "services/knowledge-graph/kg_store.py",
-    "kind": "backend"
   },
   {
     "path": "services/knowledge-graph/main.py",
@@ -8780,6 +8780,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_field_trial_design.py",
     "kind": "tests"
   },
@@ -9069,6 +9073,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_notification_delivery_endpoints.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
     "kind": "tests"
   },
   {
@@ -10760,6 +10768,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_advisory_dependency_http_error_sanitization.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_agb_research_provenance.py",
     "kind": "tests"
   },
@@ -11696,6 +11708,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_etc_dual_browser_source_truth.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_etc_dual_canonical.py",
     "kind": "tests"
   },
@@ -11821,6 +11837,10 @@
   },
   {
     "path": "tests_v9/test_field_readiness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_field_recommendations_projection_rollback_live_pg.py",
     "kind": "tests"
   },
   {
@@ -12021,6 +12041,10 @@
   },
   {
     "path": "tests_v9/test_health_readiness_schema_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_agronomist_readiness_probe.py",
     "kind": "tests"
   },
   {
@@ -12245,6 +12269,10 @@
   },
   {
     "path": "tests_v9/test_kg_edge_upsert_conflict.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_kg_global_reference_only.py",
     "kind": "tests"
   },
   {
@@ -12501,6 +12529,10 @@
   },
   {
     "path": "tests_v9/test_notification_channel_selection.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_notification_delivery_transitions_live_pg.py",
     "kind": "tests"
   },
   {
@@ -12837,6 +12869,10 @@
   },
   {
     "path": "tests_v9/test_rag_owned_gap_witnesses.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_readiness_unified.py",
     "kind": "tests"
   },
   {
@@ -13225,6 +13261,10 @@
   },
   {
     "path": "tests_v9/test_sahool_inspector.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_sahool_inspector_endpoint_authz_ast.py",
     "kind": "tests"
   },
   {

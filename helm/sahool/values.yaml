@@ -97,6 +97,10 @@ workloads:
     port: 8000
     sourceDockerfile: services/ai_agronomist/Dockerfile
     pathPrefix: /api/ai-agronomist
+    # Kubernetes readiness = process able to serve. /readyz here is an operational RAG claim
+    # (503 while no embedding profile is bound, #1466/#1474) for monitoring and certification;
+    # gating rollout on it would hold every pod unready and roll back `helm upgrade --atomic`.
+    readinessPath: /healthz
     env:
       SERVICE_NAME: sahool-ai-agronomist
       FIELD_STATE_REQUIRED: "true"

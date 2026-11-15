@@ -146,7 +146,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 250,
+    "line": 251,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -155,7 +155,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 255,
+    "line": 256,
     "method": "GET",
     "path": "/healthz/ai-provider",
     "handler": "ai_provider_snapshot",
@@ -164,7 +164,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 263,
+    "line": 264,
     "method": "GET",
     "path": "/v1/approvals/pending",
     "handler": "list_pending_approvals",
@@ -173,7 +173,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 283,
+    "line": 284,
     "method": "POST",
     "path": "/v1/approvals/approve",
     "handler": "approve_tool_request",
@@ -182,7 +182,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 336,
+    "line": 337,
     "method": "POST",
     "path": "/v1/approvals/deny",
     "handler": "deny_tool_request",
@@ -191,7 +191,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 383,
+    "line": 384,
     "method": "POST",
     "path": "/v1/approvals/resume",
     "handler": "resume_approved_tool",
@@ -200,7 +200,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 429,
+    "line": 430,
     "method": "POST",
     "path": "/v1/prescription/export-preview",
     "handler": "prescription_export_preview",
@@ -209,7 +209,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 445,
+    "line": 446,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 464,
+    "line": 465,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -227,7 +227,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 508,
+    "line": 512,
     "method": "POST",
     "path": "/v1/query",
     "handler": "query",
@@ -236,7 +236,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 519,
+    "line": 523,
     "method": "POST",
     "path": "/v1/chat",
     "handler": "chat",
@@ -245,7 +245,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 530,
+    "line": 534,
     "method": "POST",
     "path": "/v1/explain",
     "handler": "explain",
@@ -254,7 +254,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 541,
+    "line": 545,
     "method": "POST",
     "path": "/v1/recommend",
     "handler": "recommend",
@@ -1541,7 +1541,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 117,
+    "line": 165,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1550,7 +1550,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 122,
+    "line": 170,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -1559,7 +1559,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 139,
+    "line": 187,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1568,7 +1568,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 153,
+    "line": 211,
     "method": "POST",
     "path": "/v1/nodes",
     "handler": "upsert_node",
@@ -1577,7 +1577,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 161,
+    "line": 224,
     "method": "POST",
     "path": "/v1/edges",
     "handler": "upsert_edge",
@@ -1586,7 +1586,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 172,
+    "line": 238,
     "method": "GET",
     "path": "/v1/edges",
     "handler": "edges",
@@ -1595,7 +1595,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 186,
+    "line": 254,
     "method": "POST",
     "path": "/graphql",
     "handler": "graphql",
@@ -5483,7 +5483,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_timeline.py",
-    "line": 32,
+    "line": 34,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/unified-timeline",
     "handler": "field_unified_timeline_facade",
