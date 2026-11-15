@@ -38,23 +38,3 @@ def test_market_origins_are_read_only_not_uuid_coercion():
     assert '"decision_usable": False' in core
     assert "uuid.UUID" not in core
 
-
-def test_ruff_format_diagnostic_for_changed_python_sources():
-    """Temporary exact-formatter diagnostic; remove after normalizing the bytes."""
-    import subprocess
-
-    files = [
-        "services/ai_agronomist/ai_evidence_runtime.py",
-        "services/sahool-platform/api/routers/field_ai_context.py",
-        "services/sahool-platform/core/market_origin.py",
-        "services/sahool-platform/tests/test_data_quality.py",
-    ]
-    proc = subprocess.run(
-        ["ruff", "format", "--diff", *files],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert proc.returncode == 0 and not proc.stdout, (
-        proc.stdout + "\n" + proc.stderr
-    )
