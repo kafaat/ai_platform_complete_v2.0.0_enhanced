@@ -1644,7 +1644,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 355,
+      "evidence_count": 358,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1706,7 +1706,10 @@
         "migrations/v59_boundary_topology_fn.sql",
         "migrations/v9_foundation.sql",
         "migrations/v_ai_recommendation_runtime.sql",
+        "services/actuator-service/actuator_runtime.py",
+        "services/actuator-service/cmd_signing_v2.py",
         "services/actuator-service/test_actuator_safety_audit_20261101.py",
+        "services/actuator-service/test_cmd_signing_v2.py",
         "services/actuator-service/test_dispatch_bridge.py",
         "services/ai_agronomist/advisory_contract.py",
         "services/ai_agronomist/ai_evidence_runtime.py",
@@ -3270,7 +3273,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 206,
-      "target_evidence_count": 355,
+      "target_evidence_count": 358,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3316,7 +3319,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 355,
+      "source_evidence_count": 358,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3520,5 +3523,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "8f26fc936ccd33b53ea162f2923deeb9c9b355da6713903214a82834a47e886a"
+  "content_sha256": "08a5941d900c6fb841fc023e39908dfd44b4cf2cbe540bb0bcb05ac3b2d38db7"
 }
