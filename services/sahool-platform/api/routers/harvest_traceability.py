@@ -393,4 +393,11 @@ async def get_traceability(
             "field_name": field_row["name"],
             "area_ha": float(field_row["area_ha"]) if field_row["area_ha"] is not None else None,
         }
-    return assemble_traceability(lot, chain, origin)
+    result = assemble_traceability(lot, chain, origin)
+    # A quantity remainder is not a sellable stock reservation. Return a
+    # transparent upper-bound preview until the market writer boundary is
+    # approved and a persisted harvest-lot ⇄ listing link is available.
+    from core.market_origin import assess_market_origin_preview
+
+    result["market_origin_preview"] = assess_market_origin_preview(lot, chain)
+    return result
