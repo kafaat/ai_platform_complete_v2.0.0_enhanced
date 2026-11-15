@@ -15,9 +15,9 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7407,
+    "files_scanned": 7406,
     "files_by_kind": {
-      "backend": 1293,
+      "backend": 1292,
       "database": 335,
       "governance": 89,
       "mobile": 417,
@@ -25,10 +25,10 @@
       "tests": 2530,
       "web": 552
     },
-    "unmapped_artifacts": 3526,
+    "unmapped_artifacts": 3525,
     "ambiguous_artifacts": 239,
     "files_by_reading": {
-      "python_functional": 4012,
+      "python_functional": 4011,
       "raw": 3395
     },
     "test_dependency_files": 1927,
@@ -38117,10 +38117,6 @@
     },
     {
       "path": "services/sahool-platform/api/field_timeline.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/field_traceability_guard.py",
       "kind": "backend"
     },
     {
@@ -81820,7 +81816,7 @@
           "line": 326
         },
         {
-          "source": "services/sahool-platform/api/field_traceability_guard.py",
+          "source": "services/sahool-platform/api/field_context.py",
           "kind": "import",
           "line": 286
         }

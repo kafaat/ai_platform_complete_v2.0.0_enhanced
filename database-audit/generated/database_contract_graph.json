@@ -4133,7 +4133,7 @@
     {
       "code_readers": [
         "services/mcp_servers/market_server.py",
-        "services/sahool-platform/api/field_traceability_guard.py",
+        "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "code_writers": [

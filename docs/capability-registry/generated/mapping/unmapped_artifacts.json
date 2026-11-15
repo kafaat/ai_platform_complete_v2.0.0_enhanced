@@ -6228,10 +6228,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/field_traceability_guard.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/field_type_catalog.py",
     "kind": "backend"
   },
