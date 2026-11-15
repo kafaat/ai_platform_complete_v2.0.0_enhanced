@@ -9755,7 +9755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1a1c1b3e553ae10223a775635832937072580f0189a4849b6a56fbae6624f700"
+          "content": "cde6e4326d1c4a3f5751a2532e2fa74eec06f60e951f2e05c301336d0e2425f5"
         }
       ],
       "name": "migrations/v273_soil_sampling_plan_copies.down.sql",
@@ -9765,7 +9765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d69561448f545abed933c410a43da045d30093393427de4c7d67c440a52b96a8"
+          "content": "ab56fcd6c5f69ecfa13758275aa9c0076c90ed5b653e3280a1b8bdb3d5c412b1"
         }
       ],
       "name": "migrations/v273_soil_sampling_plan_copies.sql",
@@ -17985,7 +17985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75eebaea422a2dd05366b2c64db84ee66b09b46bc7cd2ac46b187371055aca0c"
+          "content": "48407d05ca929f015efec9d93bd18bfee7c683b6fe5899133256dadc15bc6559"
         }
       ],
       "name": "services/ai_agronomist/soil_sampling_planner.py",
@@ -25795,6 +25795,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8c4c1ee4f7877f04a12a7a73b342797472d78b2e54c35298fe47dde035362698"
+        }
+      ],
+      "name": "services/sahool-platform/api/lab_plan_origin.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1c33dff26c23587b87f9e949c05cbf3a29a5b3394b0b1d2f422a6712dd86d437"
         }
       ],
@@ -27715,7 +27725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9411b9cfda924a0f7872212f54eed1b8483221f933f9f0d24dbfeb3c808ab888"
+          "content": "a7eacf500b7bf136dd152e9546207c13376988cbef7666d5445b23150df88e48"
         }
       ],
       "name": "services/sahool-platform/api/routers/soil_sampling.py",
@@ -38105,7 +38115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a39a69dfddd6b533615aafddef8e3f3f328603301ca7f09a52c8e7334b0fc271"
+          "content": "bf96c53fca4b926f06a5ab0cd885b43a222e4cc848cdc950ca1cbef4358e5cf0"
         }
       ],
       "name": "services/soil-service/plan_origin.py",
@@ -38265,7 +38275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "64cb04ddb58a3dcfe6163786a36b004607e08087efd5b9e74bc021df16040d5a"
+          "content": "721ad9b77a50e1db4615014b5c19da3d85916e5fe26144f27d4fdcc602a11e1c"
         }
       ],
       "name": "services/soil-service/routers/plan_copies.py",
@@ -38515,7 +38525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "84b5ee78842975b02766f98cafa3ac8fca66367f3de9c2cae453717d65d6254f"
+          "content": "7438336d39513943f77fd192bb486bda74038192455f2e4c098edebf56054e3e"
         }
       ],
       "name": "services/soil-service/test_soil_sampling_plan_origin.py",

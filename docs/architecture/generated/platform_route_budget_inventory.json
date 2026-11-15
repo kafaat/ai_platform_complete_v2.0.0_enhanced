@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "29fa11d94a7e774e8f9072e89c74bd61c421a2b8f6f2f04fc28b31aca4cb98e4",
+  "inventory_sha256": "6f0df2424d45b63bea83783338a40ae2be31f6400de7f14467dbe62c33bffb6d",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "d1e249900e67526fd6387600295b31db09a9697fe44858c357d83b0b2f437481"
+    "policy_sha256": "14e5441184405d42db8a3190cac83d86bf019b37aea99843737119e60da35e65"
   },
   "routes": [
     {
@@ -1194,7 +1194,7 @@
     {
       "classification": "domain",
       "function": "field_lab_context",
-      "line": 792,
+      "line": 762,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/lab-context",
       "source": "api/routers/soil_sampling.py"
@@ -1666,7 +1666,7 @@
     {
       "classification": "domain",
       "function": "list_lab_samples",
-      "line": 331,
+      "line": 332,
       "method": "GET",
       "path": "/api/v1/lab/samples",
       "source": "api/routers/soil_sampling.py"
@@ -2194,7 +2194,7 @@
     {
       "classification": "domain",
       "function": "soil_depth_endpoint",
-      "line": 63,
+      "line": 64,
       "method": "GET",
       "path": "/api/v1/soil-sampling/depth",
       "source": "api/routers/soil_sampling.py"
@@ -2202,7 +2202,7 @@
     {
       "classification": "domain",
       "function": "soil_protocol_endpoint",
-      "line": 69,
+      "line": 70,
       "method": "GET",
       "path": "/api/v1/soil-sampling/protocol",
       "source": "api/routers/soil_sampling.py"
@@ -2210,7 +2210,7 @@
     {
       "classification": "domain",
       "function": "soil_subsamples_endpoint",
-      "line": 57,
+      "line": 58,
       "method": "GET",
       "path": "/api/v1/soil-sampling/subsamples",
       "source": "api/routers/soil_sampling.py"
@@ -3978,7 +3978,7 @@
     {
       "classification": "domain",
       "function": "create_lab_sample",
-      "line": 424,
+      "line": 394,
       "method": "POST",
       "path": "/api/v1/lab/samples",
       "source": "api/routers/soil_sampling.py"
@@ -3986,7 +3986,7 @@
     {
       "classification": "domain",
       "function": "transition_lab_sample",
-      "line": 661,
+      "line": 631,
       "method": "POST",
       "path": "/api/v1/lab/samples/{sample_id}/transition",
       "source": "api/routers/soil_sampling.py"
@@ -3994,7 +3994,7 @@
     {
       "classification": "domain",
       "function": "submit_soil_lab_result",
-      "line": 480,
+      "line": 450,
       "method": "POST",
       "path": "/api/v1/lab/soil-results",
       "source": "api/routers/soil_sampling.py"
@@ -4002,7 +4002,7 @@
     {
       "classification": "domain",
       "function": "submit_water_lab_result",
-      "line": 610,
+      "line": 580,
       "method": "POST",
       "path": "/api/v1/lab/water-results",
       "source": "api/routers/soil_sampling.py"
