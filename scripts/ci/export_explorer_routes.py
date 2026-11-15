@@ -7,12 +7,12 @@ Call the existing inventory drift guard before exporting in CI.
 from __future__ import annotations
 
 import argparse
-from collections import Counter, defaultdict
-from hashlib import sha256
 import json
-from pathlib import Path
 import subprocess
 import sys
+from collections import Counter, defaultdict
+from hashlib import sha256
+from pathlib import Path
 
 METHODS = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "ANY", "WEBSOCKET"})
 KEYS = ("service", "method", "path", "file", "line", "function")
