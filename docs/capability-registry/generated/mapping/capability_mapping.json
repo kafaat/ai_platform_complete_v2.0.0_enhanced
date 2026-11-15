@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7361,
+    "files_scanned": 7363,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 416,
-      "other": 2184,
-      "tests": 2518,
+      "other": 2185,
+      "tests": 2519,
       "web": 547
     },
-    "unmapped_artifacts": 3505,
+    "unmapped_artifacts": 3506,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3988,
+      "python_functional": 3990,
       "raw": 3373
     },
-    "test_dependency_files": 1914,
-    "test_dependency_edges": 4928,
+    "test_dependency_files": 1915,
+    "test_dependency_edges": 4935,
     "test_dependency_bounded_files": 1124,
     "test_dependency_unresolved_relations": 485
   },
@@ -11605,27 +11605,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:920",
+          "value": "/health @ agents/notification/agent.py:937",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:921",
+          "value": "/healthz @ agents/notification/agent.py:938",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:973",
+          "value": "/metrics @ agents/notification/agent.py:990",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:986",
+          "value": "/notification/test @ agents/notification/agent.py:1003",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:906",
+          "value": "/notifications/test @ agents/notification/agent.py:923",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:928",
+          "value": "/readyz @ agents/notification/agent.py:945",
           "score": 12
         },
         {
@@ -44146,6 +44146,10 @@
     },
     {
       "path": "tests_v9/test_notification_channel_selection.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_notification_delivery_state.py",
       "kind": "tests"
     },
     {
@@ -84518,6 +84522,37 @@
           "source": "agents/notification/agent.py",
           "kind": "source_read",
           "line": 25
+        },
+        {
+          "source": "shared/notification_delivery_state.py",
+          "kind": "import",
+          "line": 184
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_notification_delivery_state.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "agents/notification/agent.py",
+          "kind": "source_read",
+          "line": 67
+        },
+        {
+          "source": "services/sahool-platform/api/routers/notifications.py",
+          "kind": "source_read",
+          "line": 66
+        },
+        {
+          "source": "shared/notification_delivery_state.py",
+          "kind": "import",
+          "line": 16
         }
       ],
       "unresolved": []
@@ -84528,24 +84563,39 @@
       "unbounded_reasons": [],
       "edges": [
         {
+          "source": "agents/notification/agent.py",
+          "kind": "loader",
+          "line": 322
+        },
+        {
+          "source": "agents/notification/agent.py",
+          "kind": "source_read",
+          "line": 323
+        },
+        {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 79
+          "line": 86
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 80
+          "line": 87
         },
         {
           "source": "services/sahool-platform/api/routers/notifications.py",
           "kind": "import",
-          "line": 80
+          "line": 87
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 86
+          "line": 93
+        },
+        {
+          "source": "shared/notification_delivery_state.py",
+          "kind": "import",
+          "line": 332
         }
       ],
       "unresolved": []

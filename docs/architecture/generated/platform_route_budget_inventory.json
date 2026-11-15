@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "8a93267105f80cb75a5e634e3897673ac947aad046aa9ba93af5eace28b6c09f",
+  "inventory_sha256": "29a46cca69583f4b057316a739c7e38839dbecd3c24f2ec9d11232b9b00bbda9",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -1770,7 +1770,7 @@
     {
       "classification": "domain",
       "function": "get_notification_preferences",
-      "line": 54,
+      "line": 75,
       "method": "GET",
       "path": "/api/v1/notifications/preferences",
       "source": "api/routers/notifications.py"
@@ -4114,7 +4114,7 @@
     {
       "classification": "domain",
       "function": "upsert_notification_delivery",
-      "line": 179,
+      "line": 200,
       "method": "POST",
       "path": "/api/v1/notifications/delivery",
       "source": "api/routers/notifications.py"
@@ -5082,7 +5082,7 @@
     {
       "classification": "domain",
       "function": "update_notification_preferences",
-      "line": 84,
+      "line": 105,
       "method": "PUT",
       "path": "/api/v1/notifications/preferences",
       "source": "api/routers/notifications.py"
