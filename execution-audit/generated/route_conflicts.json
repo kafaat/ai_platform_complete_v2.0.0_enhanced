@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1143,
-  "route_inventory_sha256": "ba4b8fce23c60233efc8ab5e813d6d7acabbd18e7d332d3a5b4f8b499086261c",
+  "route_count": 1145,
+  "route_inventory_sha256": "f1be202823b86cd383ff2014d46347825395e380593eb56a27421aedcbbf1233",
   "runtime_verified": false,
   "schema_version": 1
 }

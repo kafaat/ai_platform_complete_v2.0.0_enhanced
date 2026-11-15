@@ -20,7 +20,7 @@ services/realtime-session/main.py,realtime-session,False,0,0,False,False,True,ru
 services/remote-sensing-workspace-bff/main.py,remote-sensing-workspace-bff,True,3,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/sam2-inference/main.py,sam2-inference,True,4,0,False,False,True,direct_routes,main.py owns direct route handlers
 services/scout-ingest-service/main.py,scout-ingest-service,True,5,0,False,False,False,direct_routes,main.py owns direct route handlers
-services/soil-service/main.py,soil-service,True,1,59,True,False,False,direct_routes,main.py owns direct route handlers
+services/soil-service/main.py,soil-service,True,1,61,True,False,False,direct_routes,main.py owns direct route handlers
 services/supervisor-agent/main.py,supervisor-agent,True,0,11,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/tts-service/main.py,tts-service,True,0,8,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/vegetation-analysis-service/main.py,vegetation-analysis-service,True,0,22,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes

@@ -66,7 +66,7 @@ SEC-006,Service token guard,security,2,2,aligned,6,True,True,True,False,True,Fal
 SEC-007,Decision SoR DB ownership,security,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False
 SEC-008,Secrets and production fail-closed,security,3,1,declared_above_evidence,5,True,False,False,True,True,False,False,True,False,True,False,False
 SOIL-001,Soil profile,soil,3,3,aligned,7,True,True,True,True,True,False,False,True,True,False,False,False
-SOIL-002,Soil sampling,soil,3,2,declared_above_evidence,7,True,True,True,True,True,True,False,True,False,False,False,False
+SOIL-002,Soil sampling,soil,3,3,aligned,8,True,True,True,True,True,True,False,True,True,False,False,False
 SOIL-003,Laboratory results,soil,3,1,declared_above_evidence,5,True,True,True,True,False,False,True,False,False,False,False,False
 SOIL-004,pH EC SOM nutrients,soil,3,1,declared_above_evidence,5,True,True,True,True,True,False,False,False,False,False,False,False
 SOIL-005,Soil water properties,soil,3,1,declared_above_evidence,4,True,True,False,False,True,False,False,False,True,False,False,False
