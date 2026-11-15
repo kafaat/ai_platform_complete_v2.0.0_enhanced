@@ -429,6 +429,7 @@ def _build_agent_tool_fetcher(
             return {
                 "field_id": field_id,
                 "canonical_field_state": fs,
+                "crop_knowledge": pack.get("crop_knowledge") or {},
                 "ai_context_readiness": pack.get("readiness") if pack else None,
             }
         if tool_name == "get_truecolor_scene":
@@ -514,24 +515,37 @@ def _build_agent_tool_fetcher(
             # V67.1 — إشارات المياه المتوفّرة في السياق (لا جلب خارجيّ، لا اختلاق).
             # فارغ ⇒ available=False بصدق (لا رقم مُختلَق حتّى يوصَل WaPOR/الميزان المائيّ).
             water: dict[str, Any] = {}
+            canonical = fs.get("canonical_field_state") if isinstance(fs, dict) else None
+            water_owner = canonical.get("water") if isinstance(canonical, dict) else None
+            if isinstance(water_owner, dict):
+                if field_id and water_owner.get("field_id") not in (None, field_id):
+                    raise ValueError("canonical_water_field_identity_mismatch")
+                # Read the actual owner product; do not calculate fictitious water productivity.
+                for key in (
+                    "depletion_mm", "taw_mm", "raw_mm", "root_depth_m",
+                    "quality_status", "water_state_digest", "season_id",
+                    "water_productivity", "water_use_efficiency",
+                ):
+                    if water_owner.get(key) is not None:
+                        water[key] = water_owner[key]
             for key in (
-                "water_balance",
-                "water_deficit_mm",
-                "water_deficit",
-                "water_use_efficiency",
-                "irrigation_mm",
-                "et0_mm",
-                "water_productivity",
+                "water_balance", "water_deficit_mm", "water_deficit",
+                "water_use_efficiency", "irrigation_mm", "et0_mm", "water_productivity",
             ):
-                for src in (fs, pack):
-                    if isinstance(src, dict) and src.get(key) is not None:
-                        water[key] = src.get(key)
-                        break
+                if key not in water:
+                    for src in (fs, pack):
+                        if isinstance(src, dict) and src.get(key) is not None:
+                            water[key] = src[key]
+                            break
             return {
                 "field_id": field_id,
                 "days": params.get("days"),
                 "water_productivity": water,
                 "available": bool(water),
+                "productivity_measured": (
+                    "water_productivity" in water or "water_use_efficiency" in water
+                ),
+                "canonical_water_owner_present": isinstance(water_owner, dict),
                 "note_ar": None
                 if water
                 else "لا إشارة إنتاجيّة مياه في السياق بعد (يُغذّيها الميزان المائيّ/WaPOR لاحقاً).",
@@ -595,6 +609,13 @@ def _ai_context_memory_lines(pack: dict[str, Any] | None) -> list[str]:
         return ["• ذاكرة الحقل لسنتين: غير مرفقة في الطلب الحالي."]
 
     lines = ["• ذاكرة الحقل لسنتين (Field AI Context Pack):"]
+    crop_ref = pack.get("crop_knowledge") or {}
+    if isinstance(crop_ref, dict) and crop_ref.get("status") == "reference_only":
+        lines.append(
+            "  - مرجع المحصول: " + str(crop_ref.get("crop_id"))[:80]
+            + "؛ بصمة المعرفة: " + str(crop_ref.get("knowledge_digest"))[:24]
+            + " (مرجع عام، ليس قرارًا)."
+        )
     summary = pack.get("ai_context_summary_ar")
     if summary:
         lines.append(f"  - الملخص: {str(summary)[:700]}")
@@ -603,7 +624,8 @@ def _ai_context_memory_lines(pack: dict[str, Any] | None) -> list[str]:
     if isinstance(imagery, dict):
         lines.append(
             "  - المشاهد/المؤشرات التاريخية: "
-            f"{_source_count(imagery.get('total_dates'))} مشهد/تاريخ ضمن النافذة."
+            f"{_source_count(imagery.get('unique_scene_dates'))} تاريخ التقاط فريد "
+            f"و{_source_count(imagery.get('total_dates'))} سجل مؤشر."
         )
         per_indicator = imagery.get("per_indicator") or {}
         if isinstance(per_indicator, dict):
