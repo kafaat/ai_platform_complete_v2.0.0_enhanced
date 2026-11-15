@@ -84,6 +84,26 @@ if _SKIP:
     pytest.skip(f"no migrated database with v278: {_SKIP}", allow_module_level=True)
 
 
+async def _role_enforces_rls() -> bool:
+    conn = await asyncpg.connect(DSN)
+    try:
+        return not await conn.fetchval(
+            "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
+        )
+    finally:
+        await conn.close()
+
+
+# The shared integration run connects as the schema owner (RLS bypassed); the certifying step
+# uses the restricted NOBYPASSRLS role. Cross-tenant assertions only mean something under RLS.
+_RLS_ENFORCED = asyncio.run(_role_enforces_rls())
+if _CERTIFICATION_REQUIRED and not _RLS_ENFORCED:
+    raise RuntimeError("HARVEST_CUSTODY_CERTIFICATION_REQUIRED=1 needs a NOBYPASSRLS role")
+_NEEDS_RLS = pytest.mark.skipif(
+    not _RLS_ENFORCED, reason="role bypasses RLS; certified on the restricted role step"
+)
+
+
 def _run(coro):
     return asyncio.run(coro)
 
@@ -297,12 +317,6 @@ def test_the_platform_field_guard_answers_409_before_the_delete():
             await refuse_if_fields_have_harvest_lots(app, [empty], "الحذف")  # no lots: passes
         finally:
             await app.close()
-        # Another tenant cannot probe this tenant's lots through the guard (RLS).
-        other = await _app(T2)
-        try:
-            await refuse_if_fields_have_harvest_lots(other, [s["field_id"]], "الحذف")
-        finally:
-            await other.close()
 
     _run(go())
 
@@ -374,7 +388,7 @@ def test_a_listing_cannot_offer_more_than_the_lot_still_holds(market):
     assert _listing(market, T1, s["lot_id"], 200)["status"] == "active"
 
 
-def test_a_sold_lot_and_another_tenants_lot_are_refused(market):
+def test_a_sold_lot_is_refused(market):
     s = _run(_seed(T1))
 
     async def mark_sold():
@@ -386,11 +400,29 @@ def test_a_sold_lot_and_another_tenants_lot_are_refused(market):
         finally:
             await app.close()
 
-    other = _run(_seed(T1))
-    with pytest.raises(HTTPException) as err:
-        _listing(market, T2, other["lot_id"], 1)
-    assert err.value.status_code == 404  # RLS: invisible, same answer as missing
     _run(mark_sold())
     with pytest.raises(HTTPException) as err:
         _listing(market, T1, s["lot_id"], 1)
     assert err.value.status_code == 409
+
+
+@_NEEDS_RLS
+def test_another_tenant_cannot_see_or_list_this_tenants_lot(market):
+    """RLS: the guard answers as for a field without lots, the market as for a missing lot."""
+    if str(PLATFORM) not in sys.path:
+        sys.path.insert(0, str(PLATFORM))
+    from api.field_context import refuse_if_fields_have_harvest_lots
+
+    s = _run(_seed(T1))
+
+    async def probe():
+        other = await _app(T2)
+        try:
+            await refuse_if_fields_have_harvest_lots(other, [s["field_id"]], "الحذف")
+        finally:
+            await other.close()
+
+    _run(probe())
+    with pytest.raises(HTTPException) as err:
+        _listing(market, T2, s["lot_id"], 1)
+    assert err.value.status_code == 404
