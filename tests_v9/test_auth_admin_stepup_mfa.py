@@ -146,7 +146,7 @@ class TestVerifyCallerMfa:
     @pytest.mark.unit
     @pytest.mark.security
     def test_mfa_not_enabled_is_false(self):
-        row = {"mfa_enabled": False, "mfa_secret": "JBSWY3DPEHPK3PXP"}
+        row = {"mfa_enabled": False, "mfa_secret": "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"}
         with mock.patch.object(main, "_pool", _FakePool(row)):
             assert _run(main._verify_caller_mfa(1, "123456")) is False
 
@@ -161,7 +161,7 @@ class TestVerifyCallerMfa:
     @pytest.mark.security
     def test_wrong_code_is_false(self):
         # سرّ صالح لكن رمز خاطئ ⇒ False.
-        row = {"mfa_enabled": True, "mfa_secret": "JBSWY3DPEHPK3PXP"}
+        row = {"mfa_enabled": True, "mfa_secret": "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"}
         with mock.patch.object(main, "_pool", _FakePool(row)):
             assert _run(main._verify_caller_mfa(1, "000000")) is False
 
@@ -171,7 +171,7 @@ class TestVerifyCallerMfa:
         # سرّ صالح ورمز TOTP حاليّ صحيح ⇒ True (نفس تحقّق الدخول).
         import pyotp
 
-        secret = "JBSWY3DPEHPK3PXP"
+        secret = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"
         row = {"mfa_enabled": True, "mfa_secret": secret}
         code = pyotp.TOTP(secret).now()
         with mock.patch.object(main, "_pool", _FakePool(row)):
