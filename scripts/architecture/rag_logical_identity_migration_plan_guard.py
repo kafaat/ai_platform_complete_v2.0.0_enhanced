@@ -42,9 +42,12 @@ def _load_pq():
     return module
 
 
-def _writer_id(logical: str) -> str:
-    """يُستورَد من الكاتب لا يُعاد كتابته — نسخةٌ ثالثة للصيغة تنحرف عن الاثنتين."""
-    return _load_pq().canonical_storage_point_id(logical)
+def _writer_id(logical: str, tenant_id: str) -> str:
+    """يُستورَد من الكاتب لا يُعاد كتابته — نسخةٌ ثالثة للصيغة تنحرف عن الاثنتين.
+
+    الهويّة (مستأجِر، chunk_id) منذ R-H14، فالمستأجِر جزءٌ من الوجهة المتوقّعة.
+    """
+    return _load_pq().canonical_storage_point_id(logical, tenant_id=tenant_id)
 
 
 @functools.lru_cache(maxsize=1)
@@ -74,7 +77,11 @@ def _expected_pre_collision(source: dict[str, Any]) -> tuple[str, str | None, st
             return "HOLD_QUARANTINE", None, None
         if fallback or explicit is None:
             return "HOLD_IDENTITY_EVIDENCE", None, None
-        return "MIGRATION_CANDIDATE", explicit, _writer_id(explicit)
+        return (
+            "MIGRATION_CANDIDATE",
+            explicit,
+            _writer_id(explicit, str(source.get("tenant_id") or "")),
+        )
     if classification == "LEGACY_PROVENANCE_INCOMPLETE":
         return "HOLD_PROVENANCE_EVIDENCE", explicit, None
     if classification == "ORPHANED_UNATTRIBUTED":

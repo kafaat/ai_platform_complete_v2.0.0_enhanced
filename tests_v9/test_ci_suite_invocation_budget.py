@@ -211,7 +211,7 @@ def test_the_coverage_report_still_reaches_codecov():
     """coverage.xml is produced by the run; dropping the report would break the upload.
 
     Since #1371 the run's data is re-exported from the repo root as coverage-unit.xml, checked
-    by codecov_coverage_guard.py, and that file is what is uploaded. The full three-report
+    by codecov_coverage_guard.py, and that file is what is uploaded. The full four-report
     contract lives in test_codecov_coverage_wiring.py.
     """
     text = (WORKFLOWS / "ci.yml").read_text(encoding="utf-8")

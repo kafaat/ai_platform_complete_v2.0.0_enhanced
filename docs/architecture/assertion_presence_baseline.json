@@ -1,7 +1,7 @@
 {
   "$comment": "أساس مُجمَّد لدوالّ الاختبار التي لا يمكن أن تفشل (بلا assert/raises وتُرجِع قيمة — pytest يُهمِل القيمة الراجعة). المجموعة تتقلّص ولا تنمو: أيّ إدخال جديد يُسقِط CI حتى لو انخفض العدد الكلّي (منع استبدال دَين بدَين). إصلاح دالّة = تحويلها إلى assert حقيقيّ ثمّ حذف سطرها هنا.",
   "gap": "TESTS-PASS-WITHOUT-ASSERTING-01",
-  "count": 206,
+  "count": 204,
   "entries": [
     "services/sahool-platform/tests/test_execution_control_plane.py::test_fn",
     "tests_v9/test_chaos_resilience.py::test_concurrent_approval_guard",
@@ -21,8 +21,6 @@
     "tests_v9/test_geospatial.py::test_polygon_area",
     "tests_v9/test_geospatial.py::test_self_intersection",
     "tests_v9/test_geospatial.py::test_utm_zones_yemen",
-    "tests_v9/test_mobile_backend_contract.py::test_auth_paths_have_api_v1_prefix",
-    "tests_v9/test_mobile_backend_contract.py::test_every_mobile_call_has_backend",
     "tests_v9/test_qualification_suite.py::test_geospatial_derivation_invariant",
     "tests_v9/test_qualification_suite.py::test_provenance_chain_invariant",
     "tests_v9/test_qualification_suite.py::test_temporal_coherence_invariant",

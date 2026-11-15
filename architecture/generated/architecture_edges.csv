@@ -6,6 +6,7 @@ ai-agronomist,knowledge-graph,code-reference,services/ai_agronomist/main.py
 ai-agronomist,platform,code-reference,services/ai_agronomist/ai_evidence_runtime.py
 decision-service,soil-service,code-reference,services/decision-service/agronomic_context/point_in_time.py
 decision-service,soil-service,code-reference,services/decision-service/main.py
+decision-service,soil-service,code-reference,services/decision-service/persistence.py
 erpnext-backend,erpnext-create-site,compose-depends-on,docker-compose.erpnext.yml
 erpnext-configurator,erpnext-db,compose-depends-on,docker-compose.erpnext.yml
 erpnext-configurator,erpnext-redis-cache,compose-depends-on,docker-compose.erpnext.yml
@@ -76,7 +77,7 @@ sahool-agriai-engine,sahool-wofost-mcp,compose-depends-on,docker-compose.v9.yml
 sahool-ai-agronomist,sahool-guardrails-engine,compose-depends-on,docker-compose.v9.yml
 sahool-ai-agronomist,sahool-knowledge-graph,compose-depends-on,docker-compose.v9.yml
 sahool-ai-agronomist,sahool-rag-retrieval,compose-depends-on,docker-compose.v9.yml
-sahool-ai-agronomist,sahool-redis,compose-depends-on,docker-compose.v9.yml
+sahool-ai-agronomist,sahool-redis-state,compose-depends-on,docker-compose.v9.yml
 sahool-auth,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-auth,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-auth,sahool-redis-state,compose-depends-on,docker-compose.v9.yml

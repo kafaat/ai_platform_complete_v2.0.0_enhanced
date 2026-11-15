@@ -499,3 +499,22 @@ async def test_a_conflicting_key_whose_row_is_invisible_is_not_a_retry_later(m):
         )
     assert refused.value.status_code == 409
     assert "أعد المحاولة" not in refused.value.detail
+
+
+def test_farm_ledger_task_link_preserves_legacy_digest(m):
+    import hashlib
+    import json
+
+    from api.routers.farm_operations_ledger import OperationLedgerIn, _request_digest
+
+    operation = OperationLedgerIn(
+        operation_date="2024-06-01", operation_type="maintenance", field_id="wheat"
+    )
+    old_payload = operation.model_dump(mode="json", exclude={"task_id"})
+    old_digest = hashlib.sha256(
+        json.dumps(old_payload, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+    assert _request_digest(operation) == old_digest
+    task_a = operation.model_copy(update={"task_id": uuid.uuid4()})
+    task_b = operation.model_copy(update={"task_id": uuid.uuid4()})
+    assert len({_request_digest(operation), _request_digest(task_a), _request_digest(task_b)}) == 3

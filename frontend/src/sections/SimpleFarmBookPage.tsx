@@ -5,10 +5,12 @@ import { kongApi } from '../services/api/client';
 type Entry = {
   entry_id: string; occurred_on: string; entry_type: string; payment_method: string;
   category: string; amount: number; currency: string; party_id?: string | null;
-  party_name?: string | null; settles_entry_id?: string | null;
+  receipt_document_id?: string | null; reverses_entry_id?: string | null; field_id?: string | null;
+  task_id?: string | null; party_name?: string | null; settles_entry_id?: string | null;
 };
 type Party = { party_id: string; party_type: 'supplier' | 'customer' | 'both'; name: string };
 type Summary = {
+  by_currency?: Record<string, Summary>;
   status: string; currency?: string; total_expenses?: number; total_income?: number;
   net?: number; cash_balance_effect?: number; total_payable?: number; total_receivable?: number;
 };
@@ -27,7 +29,10 @@ function newOperationKey(): string {
 export default function SimpleFarmBookPage() {
   const today = new Date().toISOString().slice(0, 10);
   const month = today.slice(0, 7);
-  const [farmId, setFarmId] = useState('');
+  const [params] = useState(() => new URLSearchParams(window.location.search));
+  const suggestedUsd = params.get('cost_usd') ?? '';
+  const hasSuggestedUsd = /^\d+(?:\.\d{1,2})?$/.test(suggestedUsd) && Number(suggestedUsd) > 0;
+  const [farmId, setFarmId] = useState(params.get('farm_id') ?? '');
   const [items, setItems] = useState<Entry[]>([]);
   const [parties, setParties] = useState<Party[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -36,18 +41,29 @@ export default function SimpleFarmBookPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     entry_type: 'expense', payment_method: 'cash', category: 'other_expense',
-    amount: '', currency: 'YER', occurred_on: today, field_id: '', season_id: '',
+    amount: hasSuggestedUsd ? suggestedUsd : '', currency: hasSuggestedUsd ? 'USD' : 'YER', occurred_on: today,
+    field_id: params.get('field_id') ?? '', task_id: params.get('task_id') ?? '', season_id: '',
     party_id: '', description: '', receipt_document_id: '',
     settles_entry_id: '',
   });
   const [partyForm, setPartyForm] = useState({ name: '', party_type: 'supplier' });
   const canSave = Boolean(
     farmId.trim() && Number(form.amount) > 0 &&
+    (form.entry_type === 'payment' || !form.task_id.trim() || form.field_id.trim()) &&
     (form.payment_method !== 'credit' || form.party_id) &&
     (form.entry_type !== 'payment' || (form.party_id && form.settles_entry_id))
   );
+  const reversedEntries = new Set(items.map(entry => entry.reverses_entry_id).filter(Boolean));
   const pendingOperation = useRef<{ payload: string; key: string } | null>(null);
 
+  async function readSummary(path: string, params: Record<string, string>) {
+    try {
+      return (await kongApi.get(path, { params })).data.summary ?? null;
+    } catch (error) {
+      if ((error as { response?: { status?: number } }).response?.status === 403) return null;
+      throw error;
+    }
+  }
 
   async function refresh() {
     if (!farmId.trim()) return;
@@ -55,14 +71,14 @@ export default function SimpleFarmBookPage() {
     try {
       const [entries, report, partyList, balanceReport] = await Promise.all([
         kongApi.get('/api/v1/farm-book/entries', { params: { farm_id: farmId.trim() } }),
-        kongApi.get('/api/v1/farm-book/monthly', { params: { month, farm_id: farmId.trim() } }),
+        readSummary('/api/v1/farm-book/monthly', { month, farm_id: farmId.trim() }),
         kongApi.get('/api/v1/farm-book/parties'),
-        kongApi.get('/api/v1/farm-book/balances', { params: { farm_id: farmId.trim(), as_of: today } }),
+        readSummary('/api/v1/farm-book/balances', { farm_id: farmId.trim(), as_of: today }),
       ]);
       setItems(entries.data.items ?? []);
-      setSummary(report.data.summary ?? null);
+      setSummary(report);
       setParties(partyList.data.items ?? []);
-      setBalances(balanceReport.data.summary ?? null);
+      setBalances(balanceReport);
     } catch {
       setError('تعذّر تحميل دفتر المزرعة. تحقق من معرّف المزرعة والصلاحية.');
     }
@@ -79,12 +95,13 @@ export default function SimpleFarmBookPage() {
         farm_id: farmId.trim(),
         ...form,
         amount: Number(form.amount),
-        field_id: form.field_id || null,
+        field_id: form.field_id.trim() || null,
+        task_id: form.entry_type === 'payment' ? null : form.task_id.trim() || null,
         season_id: form.season_id || null,
         party_id: form.party_id || null,
         description: form.description || null,
         receipt_document_id: form.receipt_document_id || null,
-        settles_entry_id: form.settles_entry_id || null,
+        settles_entry_id: form.entry_type === 'payment' ? form.settles_entry_id || null : null,
         payment_method: form.entry_type === 'payment' ? 'cash' : form.payment_method,
         category: form.entry_type === 'payment' ? 'debt_payment' : form.category,
       };
@@ -100,10 +117,14 @@ export default function SimpleFarmBookPage() {
       });
       // Clear only the operation this call sent; an edit during the request keeps its own key.
       if (pendingOperation.current === operation) pendingOperation.current = null;
-      setForm(v => ({ ...v, amount: '', description: '', receipt_document_id: '', settles_entry_id: '' }));
+      setForm(v => ({ ...v, amount: '', task_id: '', description: '', receipt_document_id: '', settles_entry_id: '' }));
       await refresh();
-    } catch (e: any) {
-      setError(e?.response?.data?.detail ?? 'تعذّر حفظ الحركة.');
+    } catch (error: unknown) {
+      const detail = (error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+      if (typeof detail === 'string') setError(detail);
+      else if (Array.isArray(detail) && detail.some(item => item?.loc?.includes('task_id'))) {
+        setError('معرّف المهمة غير صالح. انسخ المعرّف الكامل من المهمة.');
+      } else setError('تعذّر حفظ الحركة.');
     } finally { setSaving(false); }
   }
 
@@ -150,6 +171,10 @@ export default function SimpleFarmBookPage() {
         <button className={box} disabled={!farmId} onClick={() => void download('pdf')}><Download className="inline h-4" /> PDF</button>
       </section>
       {error && <div className="rounded-xl border border-red-700 bg-red-950/40 p-3 text-sm">{error}</div>}
+      {Object.entries(summary?.by_currency ?? {}).map(([currency, item]) =>
+        <p key={currency}>{currency} · مصروفات {item.total_expenses} · إيرادات {item.total_income} · صافي {item.net}</p>)}
+      {Object.entries(balances?.by_currency ?? {}).map(([currency, item]) =>
+        <p key={currency}>{currency} · علينا {item.total_payable} · لنا {item.total_receivable}</p>)}
       {summary?.status === 'ok' && (
         <section className="grid grid-cols-2 gap-2 md:grid-cols-6">
           {[
@@ -184,6 +209,9 @@ export default function SimpleFarmBookPage() {
         </select>
         <input className={box} value={form.entry_type === 'payment' ? 'debt_payment' : form.category} disabled={form.entry_type === 'payment'} onChange={e => set('category', e.target.value)} placeholder="التصنيف" />
         <input className={box} type="number" min="0.01" step="0.01" value={form.amount} onChange={e => set('amount', e.target.value)} placeholder="المبلغ" />
+        <label>العملة <input className={box} value={form.currency} pattern="[A-Z]{3}" required maxLength={3}
+          disabled={form.entry_type === 'payment' && Boolean(form.settles_entry_id)}
+          onChange={e => setForm(v => ({ ...v, currency: e.target.value.toUpperCase(), amount: '' }))} /></label>
         <input className={box} type="date" value={form.occurred_on} onChange={e => set('occurred_on', e.target.value)} />
         <select className={box} value={form.party_id} onChange={e => set('party_id', e.target.value)}>
           <option value="">بدون مورد/عميل</option>
@@ -193,15 +221,24 @@ export default function SimpleFarmBookPage() {
           <select className={box} value={form.settles_entry_id} onChange={e => {
             const original = items.find(item => item.entry_id === e.target.value);
             set('settles_entry_id', e.target.value);
+            if (original && original.currency !== form.currency) {
+              set('currency', original.currency);
+              set('amount', '');
+            }
             if (original?.party_id) set('party_id', original.party_id);
+            set('field_id', '');
           }}>
             <option value="">اختر القيد الآجل المراد سداده</option>
-            {items.filter(item => item.payment_method === 'credit' && item.entry_type !== 'payment').map(item =>
+            {items.filter(item => item.payment_method === 'credit' && !item.reverses_entry_id && !reversedEntries.has(item.entry_id)).map(item =>
               <option key={item.entry_id} value={item.entry_id}>{item.occurred_on} — {item.party_name ?? 'طرف'} — {Number(item.amount).toLocaleString()} {item.currency}</option>
             )}
           </select>
         )}
         <input className={box} value={form.field_id} onChange={e => set('field_id', e.target.value)} placeholder="الحقل (اختياري)" />
+        {form.entry_type !== 'payment' && (
+          <input className={box} value={form.task_id} onChange={e => set('task_id', e.target.value.trim())}
+            aria-label="معرّف المهمة المرتبطة بالقيد" placeholder="معرّف المهمة (اختياري، يتطلب الحقل)" />
+        )}
         <input className={box} value={form.season_id} onChange={e => set('season_id', e.target.value)} placeholder="الموسم (اختياري)" />
         <input className={box} value={form.receipt_document_id} onChange={e => set('receipt_document_id', e.target.value)} placeholder="معرّف صورة الفاتورة" />
         <input className={`${box} md:col-span-2`} value={form.description} onChange={e => set('description', e.target.value)} placeholder="ملاحظة" />
@@ -211,12 +248,16 @@ export default function SimpleFarmBookPage() {
       </form>
       <section className="overflow-x-auto rounded-2xl border border-slate-700">
         <table className="w-full text-sm"><thead className="bg-slate-900"><tr>
-          <th className="p-2">التاريخ</th><th>النوع</th><th>الدفع</th><th>التصنيف</th><th>الطرف</th><th>المبلغ</th><th>مرجع</th>
+          <th className="p-2">التاريخ</th><th>النوع</th><th>الدفع</th><th>التصنيف</th><th>الطرف</th><th>المبلغ</th><th>مرجع</th><th>المهمة</th>
         </tr></thead><tbody>{items.map(e => <tr key={e.entry_id} className="border-t border-slate-800">
           <td className="p-2">{e.occurred_on}</td><td>{e.entry_type === 'expense' ? 'مصروف' : e.entry_type === 'income' ? 'إيراد' : 'سداد'}</td>
           <td>{e.payment_method === 'cash' ? 'نقدي' : 'آجل'}</td><td>{e.category}</td><td>{e.party_name ?? '—'}</td>
           <td>{Number(e.amount).toLocaleString()} {e.currency}</td>
           <td className="max-w-36 truncate font-mono text-xs" title={e.entry_id}>{e.entry_id}</td>
+          <td className="font-mono text-xs">
+            {e.task_id ?? '—'}
+            {e.receipt_document_id && <div>إيصال {e.receipt_document_id}</div>}
+          </td>
         </tr>)}</tbody></table>
       </section>
     </main>

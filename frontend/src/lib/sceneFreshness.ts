@@ -1,3 +1,5 @@
+import { acquisitionUtcDay } from './dates';
+
 // ═══════════════════════════════════════════════════════════════
 // sceneFreshness — مقارنة توقيت/مشهد بيانات الطبقة المعروضة (FieldView)
 // ───────────────────────────────────────────────────────────────
@@ -40,16 +42,6 @@ export interface FreshnessResult {
     | 'scene-mismatch';    // تاريخ الطبقة ≠ التاريخ المختار ⇒ mismatch
 }
 
-// تطبيع تاريخ إلى YYYY-MM-DD (يتسامح مع ISO الكامل والقيم الفارغة).
-function dayOf(d?: string | null): string | null {
-  if (!d || typeof d !== 'string') return null;
-  const s = d.trim();
-  if (!s || s === 'latest') return null;
-  // نأخذ أوّل 10 محارف (YYYY-MM-DD) — تكفي لمطابقة المشهد اليوميّ.
-  const day = s.slice(0, 10);
-  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null;
-}
-
 // ── المقارنة المتاحة اليوم (صادقة): تاريخ مشهد الطبقة مقابل تاريخ العرض ──
 // layerDate:    تاريخ المشهد الذي اشتُقّت منه الطبقة (response.date من الراستر).
 // displayDate:  التاريخ الذي اختاره المستخدم للعرض ('latest' / '' ⇒ لا مقارنة).
@@ -60,8 +52,8 @@ export function compareSceneFreshness(
   layerDate?: string | null,
   displayDate?: string | null,
 ): FreshnessResult {
-  const ld = dayOf(layerDate);
-  const dd = dayOf(displayDate);
+  const ld = acquisitionUtcDay(layerDate) ?? null;
+  const dd = acquisitionUtcDay(displayDate) ?? null;
   if (!ld) {
     return { level: 'unknown', layerDate: ld, displayDate: dd, reason: 'no-layer-date' };
   }
@@ -93,18 +85,18 @@ export function compareSceneProvenance(
   if (!sceneKnown && !revKnown) return byDate;
   const sceneMismatch = sceneKnown && layer.scene_id !== current.scene_id;
   const revMismatch = revKnown && layer.field_revision !== current.field_revision;
-  if (sceneMismatch || revMismatch) {
+  if (sceneMismatch || revMismatch || byDate.level === 'mismatch') {
     return {
       level: 'mismatch',
-      layerDate: dayOf(layer.captured_at),
-      displayDate: dayOf(current.captured_at),
+      layerDate: byDate.layerDate,
+      displayDate: byDate.displayDate,
       reason: 'scene-mismatch',
     };
   }
   return {
     level: 'match',
-    layerDate: dayOf(layer.captured_at),
-    displayDate: dayOf(current.captured_at),
+    layerDate: byDate.layerDate,
+    displayDate: byDate.displayDate,
     reason: 'same-scene',
   };
 }

@@ -1,13 +1,8 @@
 """Decision-service SoR backfill utility.
 
-This tool is deliberately conservative. It does not enable cutover. It copies existing
-platform-owned closed-loop records into the decision-service tables after the migration is
-applied, then prints counts that can be compared before enabling SoR mode.
-
-The current repository stores the interim SoR tables in the same Postgres schema names that
-will be owned by decision-service after promotion. In that topology this tool is primarily a
-verification/dry-run gate. When a separate decision DB is introduced, use PLATFORM_DATABASE_URL
-and DECISION_DATABASE_URL to copy across connections.
+Read-only coverage verification for the five loop tables shared by the platform and
+decision-service. It never copies rows. Set PLATFORM_DATABASE_URL and DECISION_DATABASE_URL
+for separate stores. During cutover run against stable snapshots on both sides.
 
 WX-10.7 review layer (`--verify-review`): migration 002 backfills existing candidates to
 `review_state='pending_approval'` and lifts `candidate_lineage_id` out of `decision_value`
@@ -24,6 +19,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import os
+from contextlib import AsyncExitStack
 from typing import Any
 
 TABLES = [
@@ -57,29 +53,127 @@ async def _table_count(conn: Any, table: str) -> int:
     return int(row["c"] if row else 0)
 
 
-async def verify_counts() -> dict[str, Any]:
+_LOGICAL_IDS = {
+    "decision_record": "decision_id",
+    "dispatch_decisions": "decision_id",
+    "outcome_record": "outcome_id",
+    # Not recommendation_id: migration 032 dropped (tenant_id, recommendation_id) as the key
+    # (one recommendation may carry several outcomes, and the platform column is nullable);
+    # outcome_id is the primary key on both sides.
+    "recommendation_outcomes": "outcome_id",
+    "online_learning_updates": "update_id",
+}
+
+
+async def _columns(conn: Any, table: str) -> set[str]:
+    rows = await conn.fetch(
+        "SELECT attname FROM pg_attribute WHERE attrelid=to_regclass($1) "
+        "AND attnum > 0 AND NOT attisdropped",
+        table,
+    )
+    return {row["attname"] for row in rows}
+
+
+def _verification_rows(conn, table, columns):
+    # IDs always include tenant. Sorting the serialized tuple under the C collation gives
+    # both databases and the merge below the same ordering, independent of database locale.
+    identity = _LOGICAL_IDS[table]
+    fields = ", ".join('"' + c.replace('"', '""') + '"' for c in sorted(columns))
+    return conn.cursor(
+        f"""SELECT jsonb_build_array(tenant_id::text, {identity}::text)::text COLLATE "C" AS key,
+                   tenant_id IS NULL OR {identity} IS NULL AS invalid,
+                   sha256(convert_to(to_jsonb(ROW({fields}))::text, 'UTF8')) AS digest
+            FROM {table} ORDER BY key""",
+        prefetch=256,
+    ).__aiter__()
+
+
+async def _compare_rows(source, target, table, columns):
+    left = _verification_rows(source, table, columns)
+    right = _verification_rows(target, table, columns)
+    a, b = await anext(left, None), await anext(right, None)
+    result = {"missing": 0, "different": 0, "destination_only": 0, "invalid_keys": 0}
+    previous_a = previous_b = None
+    while a is not None or b is not None:
+        advance_a = a is not None and (b is None or a["key"] <= b["key"])
+        advance_b = b is not None and (a is None or b["key"] <= a["key"])
+        if advance_a and advance_b:
+            result["different"] += int(a["digest"] != b["digest"])
+        elif advance_a:
+            result["missing"] += 1
+        else:
+            result["destination_only"] += 1
+        if advance_a:
+            result["invalid_keys"] += int(a["invalid"] or a["key"] == previous_a)
+            previous_a = a["key"]
+            a = await anext(left, None)
+        if advance_b:
+            result["invalid_keys"] += int(b["invalid"] or b["key"] == previous_b)
+            previous_b = b["key"]
+            b = await anext(right, None)
+    return result
+
+
+async def verify_counts(*, exact: bool = False) -> dict[str, Any]:
+    """Verify that each platform row survives with identical shared columns.
+
+    Destination-only rows retain the historical coverage semantics unless exact is set.
+    Counts and column names are reportable; row values and tenant IDs stay private.
+    """
     platform_url = os.getenv("PLATFORM_DATABASE_URL", "").strip() or database_url()
     decision_url = os.getenv("DECISION_DATABASE_URL", "").strip() or database_url()
-    platform = await _connect(platform_url)
-    decision = await _connect(decision_url)
-    try:
-        platform_counts = {table: await _table_count(platform, table) for table in TABLES}
-        decision_counts = {table: await _table_count(decision, table) for table in TABLES}
-        mismatches = {
-            table: {"platform": platform_counts[table], "decision": decision_counts[table]}
-            for table in TABLES
-            if decision_counts[table] < platform_counts[table]
-        }
+    async with AsyncExitStack() as stack:
+        platform = await _connect(platform_url)
+        stack.push_async_callback(platform.close)
+        decision = await _connect(decision_url)
+        stack.push_async_callback(decision.close)
+        for conn in (platform, decision):
+            await stack.enter_async_context(
+                conn.transaction(isolation="repeatable_read", readonly=True)
+            )
+            # PostgreSQL must fail the scan if RLS would silently hide tenants.
+            await conn.execute("SET LOCAL row_security=off")
+            await conn.execute("SET LOCAL TIME ZONE 'UTC'")
+        platform_counts, decision_counts, mismatches, comparisons = {}, {}, {}, {}
+        for table in TABLES:
+            platform_counts[table] = await _table_count(platform, table)
+            decision_counts[table] = await _table_count(decision, table)
+            source_cols = await _columns(platform, table)
+            target_cols = await _columns(decision, table)
+            common = source_cols & target_cols
+            keys = {"tenant_id", _LOGICAL_IDS[table]}
+            detail = {
+                "shared_columns": sorted(common),
+                "source_only_columns": sorted(source_cols - target_cols),
+                "destination_only_columns": sorted(target_cols - source_cols),
+            }
+            if not keys <= common:
+                detail["missing_key_columns"] = sorted(keys - common)
+                ok = False
+            else:
+                diff = await _compare_rows(platform, decision, table, common)
+                detail.update(diff)
+                ok = not (
+                    diff["missing"]
+                    or diff["different"]
+                    or diff["invalid_keys"]
+                    or (exact and diff["destination_only"])
+                )
+            comparisons[table] = detail
+            if not ok:
+                mismatches[table] = {
+                    "platform": platform_counts[table],
+                    "decision": decision_counts[table],
+                }
         return {
             "ok": not mismatches,
             "mode": "same-db-verify" if platform_url == decision_url else "cross-db-verify",
+            "exact": exact,
             "platform_counts": platform_counts,
             "decision_counts": decision_counts,
             "mismatches": mismatches,
+            "comparisons": comparisons,
         }
-    finally:
-        await platform.close()
-        await decision.close()
 
 
 def classify_candidates(
@@ -224,15 +318,18 @@ def main() -> None:
     group.add_argument(
         "--verify-counts",
         action="store_true",
-        help="verify decision-side counts cover platform counts",
+        help="verify decision-side coverage by tenant, logical ID and shared row content",
     )
     group.add_argument(
         "--verify-review",
         action="store_true",
         help="WX-10.7 read-only review parity/quarantine report (surfaces un-reviewable candidates)",
     )
+    parser.add_argument("--exact", action="store_true", help="also reject destination-only rows")
     args = parser.parse_args()
-    result = asyncio.run(verify_review() if args.verify_review else verify_counts())
+    if args.exact and not args.verify_counts:
+        parser.error("--exact requires --verify-counts")
+    result = asyncio.run(verify_review() if args.verify_review else verify_counts(exact=args.exact))
     print(result)
     if not result.get("ok"):
         raise SystemExit(2)

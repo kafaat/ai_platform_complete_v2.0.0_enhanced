@@ -158,3 +158,19 @@ def client_ip(request: Any) -> str:
     client = getattr(request, "client", None)
     peer = getattr(client, "host", None) if client else None
     return resolve_client_ip(peer, request.headers.getlist("x-forwarded-for"))
+
+
+def audit_inet(value: Any) -> str | None:
+    """The value ``audit_log.ip_address`` (PostgreSQL ``inet``) may receive: an address or None.
+
+    Gap R-H3: call sites passed the labels ``"authenticated"`` / ``"system"`` and
+    :func:`client_ip` itself may return :data:`UNKNOWN`; PostgreSQL rejects each of them
+    for an ``inet`` column, so the whole audit row was lost, not just its address.
+    Anything that is not one IP address becomes ``NULL`` (the column is nullable).
+    """
+    if value is None:
+        return None
+    try:
+        return str(ipaddress.ip_address(str(value).strip()))
+    except ValueError:
+        return None

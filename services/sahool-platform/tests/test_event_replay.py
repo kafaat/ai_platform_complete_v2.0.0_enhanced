@@ -105,6 +105,40 @@ def test_season_created_crops_as_string():
     assert state.current_crop == "maize"
 
 
+def test_planned_season_created_keeps_current_crop():
+    # موسم مخطَّط (status='planned') لا يُغلق النشط ولا يحلّ محلّه في المحصول الحاليّ.
+    state = _apply(
+        [
+            _ev(
+                "season.created",
+                "2026-01-01T00:00:00",
+                "e1",
+                {"crops": ["maize"], "sowing_date": "2026-01-02"},
+            ),
+            _ev(
+                "season.created",
+                "2026-02-01T00:00:00",
+                "e2",
+                {"crops": ["wheat"], "status": "planned", "sowing_date": "2026-11-01"},
+            ),
+        ]
+    )
+    assert state.season_count == 2
+    assert state.current_crop == "maize"
+    assert state.last_sowing_date == "2026-01-02"
+    active = _apply(
+        [
+            _ev(
+                "season.created",
+                "2026-01-01T00:00:00",
+                "e1",
+                {"crops": ["wheat"], "status": "active"},
+            )
+        ]
+    )
+    assert active.current_crop == "wheat"
+
+
 def test_season_closed_counts():
     state = _apply(
         [

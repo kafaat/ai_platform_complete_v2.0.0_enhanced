@@ -65,3 +65,92 @@ def test_the_floor_rejects_the_audited_lock():
     for name, version in flagged.items():
         assert _version(version) < FLOORS[name][0], name
     assert _version("8.3.5-beta.1") == (8, 3, 5)
+
+
+# GHSA-g3hv-75wg-m249: minimatch >=7.0.0 <11.0.1. The lock reached 10.2.x through
+# @typescript-eslint/typescript-estree until package.json `overrides` pinned it. eslint's
+# own minimatch@3.x is outside the advisory range, so the floor applies to majors >= 7 and,
+# separately, to the copy typescript-estree actually resolves (npm's nested-then-hoisted walk).
+MINIMATCH_FLOOR = (11, 0, 1)
+MINIMATCH_ADVISORY_FROM = (7, 0, 0)
+
+
+def _resolve(packages: dict, dependent: str, name: str) -> str | None:
+    """Return the lock path npm resolves `name` to from the `dependent` package path."""
+    base = dependent
+    while True:
+        candidate = f"{base}/node_modules/{name}" if base else f"node_modules/{name}"
+        if candidate in packages:
+            return candidate
+        if not base:
+            return None
+        # climb out of the innermost node_modules/<pkg> segment
+        base = base.rsplit("/node_modules/", 1)[0] if "/node_modules/" in base else ""
+
+
+def _minimatch_violations(packages: dict) -> list[str]:
+    bad = []
+    for path, meta in packages.items():
+        if path.rsplit("node_modules/", 1)[-1] != "minimatch" or "version" not in meta:
+            continue
+        version = _version(meta["version"])
+        if MINIMATCH_ADVISORY_FROM <= version < MINIMATCH_FLOOR:
+            bad.append(f"{path}@{meta['version']}")
+    estree = [
+        p
+        for p in packages
+        if p.rsplit("node_modules/", 1)[-1] == "@typescript-eslint/typescript-estree"
+    ]
+    if not estree:
+        bad.append("@typescript-eslint/typescript-estree vanished from the lock")
+    for dependent in estree:
+        resolved = _resolve(packages, dependent, "minimatch")
+        version = packages.get(resolved, {}).get("version") if resolved else None
+        if version is None or _version(version) < MINIMATCH_FLOOR:
+            bad.append(f"{dependent} resolves minimatch {version} ({resolved})")
+    return bad
+
+
+def test_minimatch_under_typescript_estree_is_at_or_above_the_fixed_version():
+    packages = json.loads(LOCK.read_text(encoding="utf-8"))["packages"]
+    bad = _minimatch_violations(packages)
+    assert not bad, f"minimatch below 11.0.1 (GHSA-g3hv-75wg-m249): {bad}"
+
+
+def test_the_minimatch_floor_rejects_the_audited_lock():
+    """Falsifier: the pre-override lock shape (10.2.6 nested under typescript-estree)."""
+    estree = "node_modules/@typescript-eslint/typescript-estree"
+    audited = {
+        estree: {"version": "8.71.1"},
+        f"{estree}/node_modules/minimatch": {"version": "10.2.6"},
+        "node_modules/minimatch": {"version": "3.1.5"},
+    }
+    assert _minimatch_violations(audited)
+    hoisted = {estree: {"version": "8.71.1"}, "node_modules/minimatch": {"version": "10.2.6"}}
+    assert any("resolves minimatch 10.2.6" in v for v in _minimatch_violations(hoisted))
+    fixed = {**audited, f"{estree}/node_modules/minimatch": {"version": "11.0.1"}}
+    assert not _minimatch_violations(fixed)
+
+
+# Strict peer policy: frontend/.npmrc says legacy-peer-deps=false; a CLI flag in an image
+# build overrides .npmrc, so the Railway production image silently diverged from CI.
+NPM_INSTALL_SITES = (
+    "frontend/Dockerfile",
+    "deploy/railway/Dockerfile.frontend",
+    "run_all.sh",
+    "run_all.ps1",
+    "frontend/run_all.sh",
+    "frontend/run_all.ps1",
+)
+
+
+def test_frontend_images_install_with_the_strict_peer_policy():
+    root = LOCK.parents[1]
+    npmrc = (root / "frontend/.npmrc").read_text(encoding="utf-8")
+    assert "legacy-peer-deps=false" in npmrc
+    for site in NPM_INSTALL_SITES:
+        text = (root / site).read_text(encoding="utf-8")
+        runs = [line for line in text.splitlines() if "npm ci" in line or "npm install" in line]
+        assert runs, f"{site}: no npm install step found"
+        flagged = [line for line in runs if "--legacy-peer-deps" in line]
+        assert not flagged, f"{site} overrides .npmrc: {flagged}"

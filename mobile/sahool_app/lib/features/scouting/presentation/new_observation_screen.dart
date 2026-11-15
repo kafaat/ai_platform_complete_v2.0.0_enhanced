@@ -1,7 +1,8 @@
 // SAHOOL — features/scouting/presentation/new_observation_screen.dart
 // «مشاهدة جديدة» مصمّمة ليد واحدة في الحقل: الموقع يُلتقط تلقائيّاً عند الفتح،
 // الفئة والشدّة أزرار كبيرة بأيقونات، الملاحظة اختياريّة، وزرّ الحفظ ثابت أسفل
-// الشاشة في متناول الإبهام. الصورة تبقى على الجهاز (لا تخزين صور في الخادم).
+// الشاشة في متناول الإبهام. الصورة تُحفظ على الجهاز فوراً ثمّ تُرفع دليلاً مستقلّاً بعد
+// تأكيد الدبّوس (scout-ingest، v260).
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -12,12 +13,14 @@ import 'package:sahool_app/core/utils/formatters.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
 
 import '../data/device_sources.dart';
+import '../data/scouting_api.dart';
 import '../data/scouting_models.dart';
+import 'disease_symptoms_dialog.dart';
 import 'new_observation_cubit.dart';
 import 'scouting_deps.dart';
 
-const String kPhotoUploadUnavailable =
-    'رفع الصور غير متاح بعد في الخادم — تبقى الصورة على هذا الجهاز فقط ولا تُرسل مع المشاهدة.';
+const String kPhotoUploadNotice =
+    'تُحفظ الصورة على الجهاز ثمّ تُرفع دليلاً غير معتمد تشخيصيّاً بعد حفظ المشاهدة ويراها المشرف؛ دون اتّصال تنتظر المزامنة (JPG/PNG/WebP).';
 
 class NewObservationScreen extends StatelessWidget {
   const NewObservationScreen({
@@ -26,11 +29,13 @@ class NewObservationScreen extends StatelessWidget {
     this.deps,
     this.initialCategory,
     this.initialNote,
+    this.inspectionPhoto,
   });
 
   final ScoutingField field;
   final ScoutingDeps? deps;
   final IssueCategory? initialCategory;
+  final CapturedPhoto? inspectionPhoto;
   final String? initialNote;
 
   @override
@@ -58,13 +63,15 @@ class NewObservationScreen extends StatelessWidget {
         initialCategory: initialCategory,
         initialNote: initialNote,
       )..start(),
-      child: _NewObservationBody(field: field, initialNote: initialNote),
+      child: _NewObservationBody(field: field, api: d.api, inspectionPhoto: inspectionPhoto, initialNote: initialNote),
     );
   }
 }
 
 class _NewObservationBody extends StatefulWidget {
-  const _NewObservationBody({required this.field, this.initialNote});
+  const _NewObservationBody({required this.field, required this.api, this.inspectionPhoto, this.initialNote});
+  final ScoutingApi api;
+  final CapturedPhoto? inspectionPhoto;
   final ScoutingField field;
   final String? initialNote;
 
@@ -127,6 +134,27 @@ class _NewObservationBodyState extends State<_NewObservationBody> {
                     ),
                   ),
                   const SizedBox(height: SahoolSpacing.md),
+                  if (s.category == IssueCategory.disease && widget.field.crop?.isNotEmpty == true)
+                    TextButton.icon(
+                      icon: const Icon(Icons.search),
+                      label: const Text('فحص الأعراض المسجّلة على النبات'),
+                      onPressed: () async {
+                        final note = await showDialog<String>(
+                          context: context,
+                          builder: (_) => DiseaseSymptomsDialog(api: widget.api, field: widget.field),
+                        );
+                        if (!mounted || note == null) return;
+                        final text = [_note.text.trim(), note].where((part) => part.isNotEmpty).join('\n');
+                        _note.value = TextEditingValue(text: text, selection: TextSelection.collapsed(offset: text.length));
+                        cubit.setNote(text);
+                      },
+                    ),
+                  if (widget.inspectionPhoto != null && s.photoPath == null)
+                    TextButton.icon(
+                      icon: const Icon(Icons.add_a_photo_outlined),
+                      label: const Text('إرفاق صورة الفحص بهذه المشاهدة'),
+                      onPressed: () => cubit.capturePhoto(existing: widget.inspectionPhoto),
+                    ),
                   _PhotoCard(state: s, cubit: cubit),
                 ],
               ),
@@ -496,11 +524,26 @@ class _PhotoCard extends StatelessWidget {
             onPressed: () => cubit.capturePhoto(),
           ),
           const SizedBox(height: SahoolSpacing.sm),
-          StatusChip(
-            label: kPhotoUploadUnavailable,
-            tone: StatusTone.info,
-            icon: Icons.cloud_off_rounded,
-          ),
+          if (path != null && state.photoUpload != PhotoUpload.none)
+            StatusChip(
+              key: const ValueKey('photo-upload-state'),
+              label: state.photoUploadMessage ?? '',
+              tone: switch (state.photoUpload) {
+                PhotoUpload.uploaded => StatusTone.success,
+                PhotoUpload.failed => StatusTone.danger,
+                PhotoUpload.queued => StatusTone.warning,
+                _ => StatusTone.info,
+              },
+              icon: state.photoUpload == PhotoUpload.uploaded
+                  ? Icons.cloud_done_outlined
+                  : Icons.cloud_upload_outlined,
+            )
+          else
+            const StatusChip(
+              label: kPhotoUploadNotice,
+              tone: StatusTone.info,
+              icon: Icons.cloud_upload_outlined,
+            ),
           _ErrorLine(state.photoError),
         ],
       ),

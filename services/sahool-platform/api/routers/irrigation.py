@@ -193,7 +193,7 @@ async def set_valve_state(
         async def _work():
             updated = await conn.fetchrow(
                 "UPDATE irrigation_valves SET status = $1, last_changed_at = NOW() "
-                "WHERE valve_id = $2 RETURNING valve_id, field_id",
+                "WHERE valve_id = $2 RETURNING valve_id, field_id, last_changed_at",
                 req.status,
                 valve_id,
             )
@@ -202,15 +202,15 @@ async def set_valve_state(
                 # غير موجود)، فإعادة لاحقة بعد إنشاء الصمّام تُنفَّذ من جديد بأمان.
                 raise HTTPException(status_code=404, detail="الصمّام غير موجود")
             # حدث تغيّر حالة الصمّام ضمن نفس المعاملة (نمط outbox) — يجعل دورة فتح/إغلاق
-            # مرئيّة لتيّار الأحداث/الوكلاء (الحالة الجديدة في الحمولة، حقائق فقط). داخل
-            # _work كي يُحفظ ضمن حدود idempotent ويُعاد ذرّيّاً مع الكتابة.
+            # مرئيّة لتيّار الأحداث/الوكلاء (الحالة + changed_at يميّز فتحاً ثانياً في اليوم، C-14).
+            # داخل _work كي يُحفظ ضمن حدود idempotent ويُعاد ذرّيّاً مع الكتابة.
             await _emit_domain_event(
                 conn,
                 user,
                 "IRRIGATION_VALVE_STATE_CHANGED",
                 "irrigation_valve",
                 valve_id,
-                {"status": req.status},
+                {"status": req.status, "changed_at": str(updated.get("last_changed_at"))},
                 critical=True,  # تحوّل حالة actuator فيزيائيّ — fail-closed
             )
             # دفتر التشغيل الفيزيائيّ (v29.5-op-2): فتح ⇒ صفّ تشغيل جديد، إغلاق ⇒ إغلاق
@@ -483,8 +483,12 @@ def irrigation_water_analysis(
     """يحلّل عيّنة ماء ريّ: SAR/RSC + تصنيف الملوحة/الصوديوم/القلويّة.
 
     صدق: يُعلِن المؤشّر غير المحسوب (نقص أيونات) صراحةً — لا تقدير مفبرَك.
-    حسابيّ بحت (لا قاعدة)؛ التفويض مطلوب (سيادة الوصول)."""
+    حسابيّ بحت (لا قاعدة)؛ التفويض مطلوب (سيادة الوصول). لا يُخزَّن ولا يُربط بحقل:
+    ``persisted: false`` صريح، و``field_id`` يُرفض في النموذج (422)."""
     from core.irrigation_water_analysis import WaterSample, analyze_water_sample
 
-    sample = WaterSample(**req.model_dump())
-    return analyze_water_sample(sample)
+    try:
+        sample = WaterSample(**req.model_dump(exclude={"field_id"}))
+        return {**analyze_water_sample(sample), "persisted": False}
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc

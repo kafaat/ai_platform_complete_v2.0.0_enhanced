@@ -504,6 +504,9 @@ export default function WaterFieldOpsCard({ fieldId, cropLabel, enabled = true }
               {(labM.data.hazard_flags_ar ?? []).map((f) => (
                 <div key={f} className="text-[11px]" style={{ color: '#fdba74' }}>⚠ {f}</div>
               ))}
+              {(labM.data.restriction_flags_ar ?? []).map((f) => (
+                <div key={f} className="text-[11px]" style={{ color: '#fcd34d' }}>• {f}</div>
+              ))}
               {(labM.data.missing_inputs ?? []).length > 0 && (
                 <div className="text-[10px]" style={{ color: T.faint }}>قياسات غير مُدخَلة (أعلنها الخادم): {(labM.data.missing_inputs ?? []).join('، ')}</div>
               )}

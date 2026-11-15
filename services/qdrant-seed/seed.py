@@ -201,7 +201,7 @@ def _collection_vector_size(info) -> int:
     return size
 
 
-# ─── إضافة بيانات الجوف/السنيدار (52 قاعدة) ────────────────────
+# ─── إضافة بيانات الجوف/السنيدار (يُحسب العدد أثناء التحميل) ────────────────────
 # مع تصحيح S1 → SA1..SA13 (أسماء العيّنات vs تصنيف Sodium Hazard)
 try:
     from aljawf_knowledge import ALJAWF_KNOWLEDGE, validate_entries
@@ -416,6 +416,17 @@ async def seed():
             if is_global
             else "legacy_unverified_quarantine",
         }
+        if doc.get("claim_verification"):
+            metadata.update(
+                {
+                    key: doc[key]
+                    for key in (
+                        "claim_source_label",
+                        "claim_locator",
+                        "claim_verification",
+                    )
+                }
+            )
         point_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"sahool-rag:{chunk_id}"))
         points.append(
             PointStruct(

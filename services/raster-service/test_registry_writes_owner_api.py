@@ -480,3 +480,28 @@ def test_the_pipeline_bridge_still_reports_success_through_the_shared_upsert(mon
     )
     assert ok is True
     assert "INSERT INTO raster_registry" in conn.fetched[0][0]
+    assert conn.fetched[0][1][8] is None  # Unknown output spacing is bound as SQL NULL.
+
+
+@pytest.mark.parametrize("resolution", [None, 2.5])
+def test_registry_preview_and_owner_command_agree_on_resolution(resolution):
+    from cloud_native_catalog import cog_registry_record
+
+    args = {} if resolution is None else {"resolution_m": resolution}
+    record = cog_registry_record(
+        tenant_id=TENANT,
+        field_id=FIELD,
+        date="2026-09-08",
+        index_type="ndvi",
+        cog_url="file:///result.tif",
+        **args,
+    )
+    command = rw.CogRegistryCommand(
+        field_id=FIELD,
+        product_date="2026-09-08",
+        index_type="ndvi",
+        cog_url="file:///result.tif",
+        **args,
+    )
+    assert record["resolution_m"] == command.resolution_m == resolution
+    assert ("resolution_m_unknown" in record["quality"]["limiting_factors"]) == (resolution is None)

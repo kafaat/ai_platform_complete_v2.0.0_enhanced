@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from urllib.parse import urlsplit, urlunsplit
 
@@ -97,14 +98,44 @@ def run_processing(
     ``processed_unpublished`` close it as failed with the job's stable code.
     """
     req_payload = req.model_dump(mode="json") if hasattr(req, "model_dump") else vars(req)
+    integrity = [
+        {**record, "ref": _artifact_ref(record.get("ref"))}
+        for record in (getattr(req, "_asset_integrity", None) or [])
+    ]
     receipt = raster_stage_receipt.begin_stage(
         stage_id="raster.process",
         stage_version="v1",
         run_id=str(job_id),
         config=req_payload,
         input_refs=[_artifact_ref(req_payload.get("raster_url"))],
+        asset_integrity=integrity,
     )
     ctx = make_processing_context(upload_dir=upload_dir)
+    mismatched = raster_stage_receipt.integrity_mismatches(integrity)
+    if mismatched:
+        # Fail closed: bytes that contradict their provider checksum never become
+        # a product. The refusal is job state (an error status with its reason)
+        # and a failed receipt carrying every asset's verdict.
+        code = raster_stage_receipt.INTEGRITY_MISMATCH_CODE
+        job = ctx._jobs.get(job_id) or {"job_id": job_id}
+        job.update(
+            status=api_models.JobStatus.failed,
+            error_code=code,
+            error_message=code,
+            error_detail={"code": code, "assets": mismatched},
+            retryable=False,
+            publication_eligible=False,
+            finished_at=datetime.now(UTC).isoformat(),
+        )
+        ctx._jobs.set(job_id, job)
+        logger.warning(
+            "job %s refused: %s assets=%s", job_id, code, [r["asset"] for r in mismatched]
+        )
+        logger.info(
+            "raster_stage_receipt=%s",
+            json.dumps(raster_stage_receipt.fail_stage(receipt, code), sort_keys=True),
+        )
+        return
     try:
         raster_job_orchestration.run_processing(ctx, job_id, req)
     except Exception as exc:

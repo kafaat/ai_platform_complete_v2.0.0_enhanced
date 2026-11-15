@@ -101,15 +101,24 @@ def evaluate(cap: dict, preconditions: dict[str, dict]) -> dict:
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--strict", action="store_true")
-    args = ap.parse_args()
+    # C-36: tests pass a tmp dir here; writing the committed artifacts mid-suite made
+    # the release checksum test fail whenever a fresh run differed from the tree.
+    ap.add_argument(
+        "--output-dir",
+        type=Path,
+        default=OUT,
+        help="where to write the matrix, summary and readiness report (default: capabilities/generated)",
+    )
+    args = ap.parse_args(argv)
+    out: Path = args.output_dir
     capabilities = load_authoritative_capabilities(ROOT)
     preconditions = load_promotion_preconditions()
     rows = [evaluate(c, preconditions) for c in capabilities]
-    OUT.mkdir(parents=True, exist_ok=True)
-    with (OUT / "capability_certification_matrix.csv").open("w", encoding="utf-8", newline="") as f:
+    out.mkdir(parents=True, exist_ok=True)
+    with (out / "capability_certification_matrix.csv").open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
         w.writeheader()
         w.writerows(rows)
@@ -127,7 +136,7 @@ def main() -> int:
             for r in sorted(rows, key=lambda x: (-x["readiness_percent"], x["id"]))[:15]
         ],
     }
-    (OUT / "capability_certification_summary.json").write_text(
+    (out / "capability_certification_summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"
     )
     lines = [
@@ -143,7 +152,7 @@ def main() -> int:
         lines.append(
             f"| {r['id']} | {r['gates_passed']}/{r['gates_total']} | {r['readiness_percent']}% | {str(r['eligible_for_certification']).lower()} | {str(r['certified']).lower()} |"
         )
-    (OUT / "CAPABILITY_CERTIFICATION_READINESS.md").write_text(
+    (out / "CAPABILITY_CERTIFICATION_READINESS.md").write_text(
         "\n".join(lines) + "\n", encoding="utf-8"
     )
     if summary["incorrect_certifications"]:

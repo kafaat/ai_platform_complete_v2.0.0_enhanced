@@ -17,6 +17,115 @@ SCHEMA = "sahool.raster-stage-receipt.v2"
 GRAPH_SCHEMA = "sahool.raster-stage-graph.v1"
 
 
+# Asset integrity verdicts. Only ``verified`` is a pass; ``no_checksum`` lets
+# processing continue as before, and only ``mismatch`` refuses processing.
+VERIFIED = "verified"
+MISMATCH = "mismatch"
+UNVERIFIABLE_ALGORITHM = "unverifiable_algorithm"
+NO_CHECKSUM = "no_checksum"
+NOT_VERIFIED_STREAMED = "not_verified_streamed"
+INTEGRITY_MISMATCH_CODE = "asset_integrity_mismatch"
+
+# Multihash function codes (multiformats multicodec table) that this service
+# verifies, mapped to (name, hashlib constructor name, digest length). A code
+# missing here is unverifiable and never counts as a pass. MD5 (0xd5) and SHA-1
+# (0x11) are deliberately absent: their collisions are practical, so a match
+# would not support the claim that the bytes are the provider's.
+MULTIHASH_ALGORITHMS: dict[int, tuple[str, str, int]] = {
+    0x12: ("sha2-256", "sha256", 32),
+    0x13: ("sha2-512", "sha512", 64),
+    0x20: ("sha2-384", "sha384", 48),
+    0x16: ("sha3-256", "sha3_256", 32),
+    0x15: ("sha3-384", "sha3_384", 48),
+    0x14: ("sha3-512", "sha3_512", 64),
+}
+_STREAMED_PREFIXES = ("/vsi", "http://", "https://", "s3://", "gs://", "az://")
+
+
+def _read_varint(raw: bytes, pos: int) -> tuple[int, int]:
+    value = shift = 0
+    while True:
+        if pos >= len(raw) or shift > 63:
+            raise ValueError("truncated multihash varint")
+        byte = raw[pos]
+        pos += 1
+        value |= (byte & 0x7F) << shift
+        if not byte & 0x80:
+            return value, pos
+        shift += 7
+
+
+def parse_multihash(checksum: str) -> tuple[int, bytes]:
+    """Decode a hex multihash (STAC ``file:checksum``) into (function code, digest).
+
+    Raises ``ValueError`` when the value is not well-formed hex, or its declared
+    digest length does not match the bytes that follow.
+    """
+    if not isinstance(checksum, str):
+        raise ValueError("multihash must be a hex string")
+    raw = bytes.fromhex(checksum.strip())
+    code, pos = _read_varint(raw, 0)
+    length, pos = _read_varint(raw, pos)
+    digest = raw[pos:]
+    if length == 0 or len(digest) != length:
+        raise ValueError("multihash digest length does not match its declaration")
+    return code, digest
+
+
+def asset_integrity(name: str, ref: str, checksum: Any, source: str) -> dict[str, Any]:
+    """Return one asset's integrity record for the bytes GDAL will read at ``source``.
+
+    Only a local file holds the full bytes, so only a local file is hashed. A
+    remote source (``/vsicurl/``, ``/vsis3/``, a URL) is read in ranges, and its
+    declared checksum is recorded as ``not_verified_streamed``, never as verified.
+    """
+    record: dict[str, Any] = {
+        "asset": name,
+        "ref": ref,
+        "algorithm": None,
+        "expected": None,
+        "computed": None,
+        "verdict": NO_CHECKSUM,
+    }
+    if checksum is None or checksum == "":
+        return record
+    record["expected"] = str(checksum).strip().lower()
+    try:
+        code, digest = parse_multihash(record["expected"])
+    except ValueError:
+        record.update(verdict=UNVERIFIABLE_ALGORITHM, reason="malformed_multihash")
+        return record
+    known = MULTIHASH_ALGORITHMS.get(code)
+    if known is None or len(digest) != known[2]:
+        record.update(
+            algorithm=f"multihash:0x{code:x}",
+            verdict=UNVERIFIABLE_ALGORITHM,
+            reason="unknown_multihash_code" if known is None else "digest_length",
+        )
+        return record
+    algorithm, hashlib_name, _ = known
+    record["algorithm"] = algorithm
+    if source.startswith(_STREAMED_PREFIXES):
+        record["verdict"] = NOT_VERIFIED_STREAMED
+        return record
+    path = source[len("file://") :] if source.startswith("file://") else source
+    with open(path, "rb") as stream:
+        computed = hashlib.file_digest(stream, hashlib_name).hexdigest()
+    record["computed"] = computed
+    record["verdict"] = VERIFIED if computed == digest.hex() else MISMATCH
+    return record
+
+
+def integrity_mismatches(records: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    """Records whose computed digest contradicts the declared checksum."""
+    return [r for r in (records or []) if r.get("verdict") == MISMATCH]
+
+
+def integrity_verified(records: list[dict[str, Any]] | None) -> bool:
+    """True only when every asset was hashed and matched; nothing else is a pass."""
+    return bool(records) and all(r.get("verdict") == VERIFIED for r in records)
+
+
 def _now() -> str:
     return datetime.now(UTC).isoformat()
 
@@ -148,7 +257,13 @@ def begin_stage(
     input_refs: list[str] | None = None,
     stage_graph: dict[str, Any] | None = None,
     dependency_receipts: dict[str, dict[str, Any]] | None = None,
+    asset_integrity: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    """Open a running receipt.
+
+    ``asset_integrity`` carries per-asset checksum records (see
+    ``asset_integrity``); they are bound into the receipt digest on close.
+    """
     if not stage_id or not stage_version or not run_id:
         raise ValueError("stage_id, stage_version and run_id are required")
     deps = list(dict.fromkeys(dependency_stage_ids or []))
@@ -197,6 +312,7 @@ def begin_stage(
         "dependency_receipt_digests": upstream_digests,
         "input_refs": refs,
         "input_set_digest": _digest(refs),
+        "asset_integrity": [dict(r) for r in (asset_integrity or [])],
         "status": "running",
         "started_at": _now(),
         "finished_at": None,

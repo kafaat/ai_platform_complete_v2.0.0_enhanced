@@ -104,6 +104,48 @@ async def decision_get_json(
     return data if isinstance(data, dict) else {"value": data}
 
 
+def owner_write_confirmed(result: dict[str, Any], *, decision_id: str, tenant: str) -> bool:
+    """True only when decision-service proves it persisted this decision for this tenant."""
+    return (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("decision_id") == decision_id
+        and result.get("tenant_id") == tenant
+    )
+
+
+async def read_decision_owner(
+    path: str,
+    user: Any,
+    params: dict[str, Any],
+    *,
+    decode_decisions: bool = False,
+    **identity: str,
+) -> dict[str, Any]:
+    """Authoritative read from decision-service for this user's tenant only.
+
+    503 unless the owner says it is authoritative for exactly this tenant; 502 when the
+    owner answers for another decision/field than the one asked for.
+    """
+    import json
+
+    from fastapi import HTTPException
+
+    tenant = str(user.tenant_id)
+    query = {k: v for k, v in params.items() if v is not None}
+    result = await decision_get_json(path, tenant_id=tenant, params=query)
+    if result.get("authoritative") is not True or result.get("tenant_id") != tenant:
+        raise HTTPException(503, "authoritative decision read unavailable for tenant")
+    for key, expected in identity.items():
+        if result.get(key) != expected:
+            raise HTTPException(502, f"{key} lineage identity mismatch")
+    if decode_decisions:
+        for row in result.get("decisions") or []:
+            if isinstance(row.get("decision_value"), str):
+                row["decision_value"] = json.loads(row["decision_value"])
+    return result
+
+
 async def decision_post_json(
     path: str,
     payload: dict[str, Any],
@@ -333,6 +375,35 @@ async def list_review_queue(
             **({"field_id": field_id, "season_id": season_id} if field_id and season_id else {}),
         },
     )
+
+
+def validate_review_queue(
+    result: dict[str, Any], tenant: str, field_id: str | None, season_id: str | None
+) -> None:
+    """Fail closed (503) unless the queue is authoritative for this tenant and, when a field
+    is asked for, every item names that field and season (column or embedded value)."""
+    from fastapi import HTTPException
+
+    if not (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("tenant_id") == tenant
+    ):
+        raise HTTPException(status_code=503, detail="non-authoritative review queue rejected")
+    items = result.get("items")
+    if not isinstance(items, list) or result.get("count") != len(items):
+        raise HTTPException(status_code=503, detail="invalid authoritative review queue contract")
+    if not field_id:
+        return
+    for item in items:
+        if not isinstance(item, dict) or item.get("field_id") != field_id:
+            raise HTTPException(status_code=503, detail="review queue field mismatch")
+        value = item.get("decision_value")
+        embedded = value.get("season_id") if isinstance(value, dict) else None
+        if item.get("season_id") is None and embedded is None:
+            raise HTTPException(status_code=503, detail="review queue season missing")
+        if any(v is not None and v != season_id for v in (item.get("season_id"), embedded)):
+            raise HTTPException(status_code=503, detail="review queue season mismatch")
 
 
 async def get_decision_agronomic_evidence(

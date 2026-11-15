@@ -88,4 +88,4 @@ def test_compose_preserves_product_and_source_ids(mode):
         assert captured["source_ids"] == ["client-id"]
         assert result["dyn_kc"] == 0.2
     assert len(calls) == (0 if mode == "disabled" else 1)
-    assert result["spectral_unverified"] is (mode == "failed")
+    assert result["spectral_unverified"] is (mode != "server")

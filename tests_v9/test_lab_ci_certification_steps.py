@@ -148,3 +148,55 @@ def test_pytest_calls_join_line_continuations() -> None:
     run = 'pytest -v a.py\nX="$Y" \\\n  pytest -v -rs tests_v9/b.py\n# pytest in a comment\n'
     calls = _runner().pytest_calls(run)
     assert calls[:2] == ["pytest -v a.py", "pytest -v -rs tests_v9/b.py"]
+
+
+def test_runner_stops_at_the_coverage_report_steps() -> None:
+    import yaml
+
+    runner = _runner()
+    steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["integration-tests"][
+        "steps"
+    ]
+    names = [s.get("name") for s in steps]
+    assert runner.COVERAGE_EXPORT_STEP in names
+    selected = runner.certification_steps(WORKFLOW)
+    tail = steps[names.index(runner.COVERAGE_EXPORT_STEP) :]
+    assert all(step not in selected for step in tail)
+    assert names.index(selected[-1]["name"]) == names.index(runner.COVERAGE_EXPORT_STEP) - 1
+
+
+@pytest.mark.parametrize(
+    "after",
+    [
+        {"name": "late certification", "run": "pytest -v -m integration -rs tests_v9/x.py"},
+        {"name": "late shell", "run": "echo not a report"},
+        {"uses": "actions/upload-artifact@v4", "with": {"path": "x"}},
+        {"name": "guarded", "if": "always()", "run": "python -m coverage xml -o x.xml"},
+    ],
+)
+def test_runner_refuses_anything_but_reports_after_the_boundary(
+    tmp_path: Path, after: dict
+) -> None:
+    import yaml
+
+    runner = _runner()
+    workflow = {
+        "jobs": {
+            "integration-tests": {
+                "steps": [
+                    {"name": "shared", "run": "pytest -v -m integration --tb=short"},
+                    {"name": "cert", "run": "true"},
+                    {"name": runner.COVERAGE_EXPORT_STEP, "run": "python -m coverage xml -o x.xml"},
+                    after,
+                    {"uses": "codecov/codecov-action@abc", "with": {"files": "x.xml"}},
+                ]
+            }
+        }
+    }
+    path = tmp_path / "ci.yml"
+    path.write_text(yaml.safe_dump(workflow), encoding="utf-8")
+    with pytest.raises(SystemExit, match="LAB_CI_STEP_UNSUPPORTED"):
+        runner.certification_steps(path)
+    workflow["jobs"]["integration-tests"]["steps"].remove(after)
+    path.write_text(yaml.safe_dump(workflow), encoding="utf-8")
+    assert [s["name"] for s in runner.certification_steps(path)] == ["cert"]

@@ -47,6 +47,7 @@ def _plan(**overrides):
         "dispatch_authorization_id": "auth_1",
         "execution_plan_id": "plan_1",
         "decision_id": "dec_1",
+        "decision_field_id": "f1",
         "status": "authorized",
         "plan_state": "planned",
         "review_state": "approved",
@@ -335,7 +336,7 @@ def test_authorize_dispatch_refuses_an_expired_plan(monkeypatch):
 
 
 class _ClaimConn:
-    def __init__(self, *, requested_at, planned_end, plan_exists=True):
+    def __init__(self, *, requested_at, planned_end, plan_exists=True, planned_start=None):
         self.request = {
             "execution_request_id": "exec_1",
             "execution_plan_id": "plan_1",
@@ -343,7 +344,9 @@ class _ClaimConn:
             "target_type": "equipment",
             "requested_at": requested_at,
         }
-        self.plan = {"planned_end": planned_end} if plan_exists else None
+        self.plan = (
+            {"planned_start": planned_start, "planned_end": planned_end} if plan_exists else None
+        )
         self.claimed = False
         self.updated = False
 
@@ -478,3 +481,126 @@ def test_an_equipment_request_whose_minutes_agree_with_duration_sec_is_accepted(
     )
     result, _ = _create(monkeypatch, _plan(), request)
     assert result["status"] == "ok"
+
+
+@pytest.mark.parametrize(
+    "overrides, reason",
+    [
+        ({"field_id": "east"}, "command_field_mismatch"),
+        ({"field_id": "f1", "decision_id": "other"}, "command_decision_mismatch"),
+    ],
+)
+def test_command_cannot_override_approved_decision_scope(monkeypatch, overrides, reason):
+    request = _request()
+    request.command_payload["payload"].update(overrides)
+    result, conn = _create(monkeypatch, _plan(), request)
+    assert result["reason"] == reason
+    assert conn.inserted is None and not conn.outbox
+
+
+def _unbound(command):
+    request = _request()
+    request.command_payload = {
+        "device_id": "valve-7",
+        "command": command,
+        "payload": {"amount_mm": 10.0, "duration_sec": 600},
+    }
+    return request
+
+
+@pytest.mark.parametrize("command", ["irrigate", "open_valve", "OPEN", "unknown"])
+def test_an_opening_command_needs_a_field_when_the_decision_names_none(monkeypatch, command):
+    # Review HIGH: a decision without field_id + a device-only plan + a command without field_id
+    # reached the actuator with no field, so a field-scoped kill switch could not hold it.
+    result, conn = _create(monkeypatch, _plan(decision_field_id=None), _unbound(command))
+    assert result["reason"] == "command_field_unbound"
+    assert conn.inserted is None and not conn.outbox
+
+
+def test_a_cmd_alias_cannot_hide_an_opening_command_behind_a_close_decoy(monkeypatch):
+    # Re-check finding: the actuator parses `command` or `cmd`; the check read `command` only.
+    request = _unbound("close")
+    request.command_payload = {
+        "device_id": "valve-7",
+        "cmd": "open_valve",
+        "payload": {"command": "close", "amount_mm": 10.0, "duration_sec": 600},
+    }
+    result, conn = _create(monkeypatch, _plan(decision_field_id=None), request)
+    assert result["reason"] == "command_field_unbound"
+    assert conn.inserted is None and not conn.outbox
+
+
+@pytest.mark.parametrize("command", ["close", "close_valve", "stop"])
+def test_a_safe_direction_command_without_a_field_is_still_accepted(monkeypatch, command):
+    result, _conn = _create(monkeypatch, _plan(decision_field_id=None), _unbound(command))
+    assert result["status"] == "ok"
+
+
+def test_request_before_the_plan_window_opens_is_not_claimed(monkeypatch):
+    conn = _ClaimConn(
+        requested_at=NOW - timedelta(minutes=1),
+        planned_start=datetime.now(UTC) + timedelta(hours=8),
+        planned_end=NOW + timedelta(hours=10),
+    )
+    assert _claim(monkeypatch, conn) == {"status": "conflict", "reason": "plan_not_started"}
+    assert not conn.claimed and not conn.updated
+
+
+def test_plan_start_allows_only_clock_skew():
+    now = datetime.now(UTC)
+    skew = persistence.PLAN_START_SKEW_S
+    assert not persistence._plan_not_started(now + timedelta(seconds=skew - 1), now)
+    assert persistence._plan_not_started(now + timedelta(seconds=skew + 1), now)
+    assert persistence._plan_not_started("not-a-time", now)
+    assert not persistence._plan_not_started(None, now)
+
+
+class _ReceiptConn:
+    def __init__(self):
+        self.locks: list[str] = []
+
+    def transaction(self):
+        return _Tx()
+
+    async def execute(self, sql, *args):
+        return None
+
+    async def fetchrow(self, sql, *args):
+        if "FOR UPDATE" in sql:
+            table = sql.split("FROM ", 1)[1].split()[0]
+            self.locks.append(table)
+            if table == "decision_execution_requests":
+                return {"status": "delivering"}
+            return {
+                "adapter_id": "actuator-service",
+                "delivery_token_hash": persistence._delivery_token_hash("tok"),
+                "receipt_id": None,
+            }
+        if "UPDATE decision_execution_delivery_attempts" in sql:
+            return {"received_at": NOW}
+        raise AssertionError(f"unexpected query: {sql}")
+
+    async def close(self):
+        return None
+
+
+def test_receipt_locks_the_request_before_the_attempt_like_the_claim(monkeypatch):
+    conn = _ReceiptConn()
+
+    async def fake_connect():
+        return conn
+
+    monkeypatch.setattr(persistence, "_connect", fake_connect)
+    result = asyncio.run(
+        persistence.record_execution_receipt(
+            tenant_id=TENANT,
+            execution_request_id="exec_1",
+            adapter_id="actuator-service",
+            delivery_token="tok",
+            receipt_id="rcpt_1",
+            receipt_status="accepted",
+            receipt_payload={},
+        )
+    )
+    assert result["status"] == "ok"
+    assert conn.locks == ["decision_execution_requests", "decision_execution_delivery_attempts"]

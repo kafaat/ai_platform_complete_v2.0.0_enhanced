@@ -49,7 +49,20 @@ def test_calibration_and_promotion():
         minimum_samples=25,
     )
     d = evaluate_promotion(a)
-    assert a.status == "candidate" and d.promotable
+    assert a.status == "candidate"
+    assert abs(a.metrics[0].mae - 0.05) < 1e-9
+    assert not d.promotable and d.reasons == ["ec_ds_m:spatial_cv"]
+    from shared.contracts.soil.p5 import AcceptanceThreshold, RegionalCalibrationArtifact
+
+    descriptive = AcceptanceThreshold(
+        property_name="ec_ds_m", product_type="salinity", require_spatial_cv=False
+    )
+    assert evaluate_promotion(a, [descriptive]).promotable
+    legacy = a.model_dump()
+    legacy["metrics"][0]["spatial_cv"] = True
+    legacy["metrics"][0].pop("field_diversity_passed")
+    assert not evaluate_promotion(RegionalCalibrationArtifact.model_validate(legacy)).promotable
+    assert not evaluate_promotion(a.model_copy(update={"product_type": "unknown"})).promotable
 
 
 def test_certification_fail_closed_and_dual_approval():

@@ -134,7 +134,9 @@ def test_economics_invariants(saved, executed, rate, area, cost):
 def test_reconcile_decision_invariants(signals):
     d = reconcile_decision("f1", signals)
     assert 0.0 <= d.confidence <= 1.0
-    assert d.state in ("ready", "blocked")
+    assert d.state in ("ready", "blocked", "insufficient_data")
+    # No signals is "not assessed", never a ready quiet field.
+    assert (d.state == "insufficient_data") == (not signals)
     if any(s.halt for s in signals):
         assert d.state == "blocked" and d.action_plan == [], "halt لا يحجب الخطّة"
 

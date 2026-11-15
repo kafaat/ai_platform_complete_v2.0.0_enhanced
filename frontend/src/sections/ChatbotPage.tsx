@@ -291,7 +291,7 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                     const plan = (samplingData?.soil_sampling_plan ?? samplingData?.plan ?? null) as never;
                     const samplePoints = (samplingData?.sample_points ?? []) as never[];
                     return samplePoints.length ? (
-                      <SoilSamplingPlannerPanel plan={plan} samplePoints={samplePoints} />
+                      <SoilSamplingPlannerPanel plan={plan} samplePoints={samplePoints} fieldId={typeof samplingData?.field_id === "string" ? samplingData.field_id : undefined} />
                     ) : null;
                   })()}
                   {(() => {
@@ -463,6 +463,18 @@ export function ChatbotPage() {
       .catch(() => { /* الكتالوج غير متاح ⇒ نكمل بالنموذج الافتراضيّ خادميّاً */ });
     return () => { alive = false; };
   }, []);
+  // Honest connection indicator. /api/ai-agronomist/healthz is liveness only (it does not
+  // prove RAG/KG readiness), so a green dot means "the advisor answers", never "grounded".
+  // Where the advisor is not deployed (e.g. production today) the dot turns grey with a
+  // plain message instead of a permanent pulsing green.
+  const [advisorReach, setAdvisorReach] = useState<'checking' | 'up' | 'down'>('checking');
+  useEffect(() => {
+    let alive = true;
+    kongApi.get('/api/ai-agronomist/healthz', { timeout: 4000 })
+      .then(() => { if (alive) setAdvisorReach('up'); })
+      .catch(() => { if (alive) setAdvisorReach('down'); });
+    return () => { alive = false; };
+  }, []);
   const onPickModel = useCallback((id: string) => {
     setSelectedModel(id);
     try { localStorage.setItem(MODEL_STORE_KEY, id); } catch { /* تجاهل تعذّر التخزين */ }
@@ -546,8 +558,23 @@ export function ChatbotPage() {
               <Sparkles className="w-3.5 h-3.5 text-violet-400" />
             </h2>
             <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[11px] text-slate-400">SAHOOL AI · RAG/KG/FieldState</span>
+              <span
+                data-testid="advisor-reach-dot"
+                className={`w-1.5 h-1.5 rounded-full ${
+                  advisorReach === 'up'
+                    ? 'bg-emerald-400 animate-pulse'
+                    : advisorReach === 'down'
+                      ? 'bg-slate-300'
+                      : 'bg-slate-200'
+                }`}
+              />
+              <span className="text-[11px] text-slate-400">
+                {advisorReach === 'down'
+                  ? 'المستشار غير متاح في هذه البيئة'
+                  : advisorReach === 'checking'
+                    ? 'جارٍ التحقّق من اتّصال المستشار…'
+                    : 'SAHOOL AI · أدلّة RAG/KG/حالة الحقل'}
+              </span>
             </div>
           </div>
         </div>

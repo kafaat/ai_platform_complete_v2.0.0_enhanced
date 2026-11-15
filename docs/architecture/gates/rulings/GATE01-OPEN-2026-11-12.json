@@ -1,0 +1,31 @@
+{
+  "schema": "sahool.gate01_ruling/v1",
+  "ruling_id": "GATE01-OPEN-2026-11-12",
+  "gate": "GATE-01",
+  "transition": {"from": "CLOSED", "to": "OPEN"},
+  "decided_on": "2026-11-12",
+  "decided_by": "kafaat (owner)",
+  "signed_authorization": "docs/architecture/gates/authorizations/GATE01-AUTH-2026-11-12-001.dsse.json",
+  "owner_words_ar": "افضل الفتح الكامل",
+  "purpose_ar": "التطوير والإصلاح",
+  "alternative_offered_ar": "عُرض على المالك قبل القرار البديلُ المقيَّد: تفويض bounded_change موقَّع لكل PR يمسّ مساراً مجمَّداً، وكانت ثلاثة تواقيع تكفي للأعمال المحجوزة حينها (فرع المهام والتفتيش مع v255، و#1386، وجزء خدمة المشغّلات من حزمة محركات القرار). واختار المالك الفتح الكامل.",
+  "effect": {
+    "frozen_path_guard": "With gate.state = OPEN, scripts/ci/gate01_frozen_path_guard.py passes every change to a frozen path without a per-PR authorization.",
+    "unchanged": [
+      "owner_signature block: weakening it (policy_change) or rotating the key (trust_root_change) still needs the owner's signature",
+      "every other CI gate, test, ratchet and the platform route budget",
+      "independent review before merge",
+      "production deploys still follow their own deploy branches and runbooks; opening the gate deploys nothing"
+    ]
+  },
+  "known_open_risks_at_opening": [
+    "Field kill-switch bypass found by an independent review on 2026-11-12: an OPEN command whose decision and command carry no field id is published to a valve on a halted field (actuator_runtime.py, decision-service persistence.py). Same on main. Fix in progress on branch fix/decision-engines-dispatch-soil-trace.",
+    "decision-service authenticates every caller with one shared bearer token, and reviewer and authorizer identities are caller-supplied headers.",
+    "Owner ruling pending on #1386: whether CLOSE/OFF is published to a halted field."
+  ],
+  "how_to_close": "Open a PR that sets gate.state back to CLOSED in docs/architecture/gate01_policy.json. Tightening needs no signature. Re-opening later needs a new signed state_transition with a new decision id.",
+  "phase0_baseline_unchanged": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "evidence_run_id": "31701614219"
+  }
+}

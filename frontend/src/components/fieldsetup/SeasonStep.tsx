@@ -10,6 +10,7 @@
 // المفردات: المحاصيل من القاموس المشترك lib/cropOptions (نفسه في AddSeasonWithStages،
 // كلّ خيار يُحلّ إلى بطاقة محصول)، والريّ من قاموس AddSeasonWithStages القائم.
 // ═══════════════════════════════════════════════════════════════
+import WheatSeasonPlanner from '../WheatSeasonPlanner';
 import { useState } from 'react';
 import { Sprout, Wheat, Plus } from 'lucide-react';
 import { kongApi, apiErrorMessage } from '../../services/api';
@@ -49,6 +50,7 @@ export default function SeasonStep({
   // قيمة عامّة قديمة («خضروات»…) لا تُحلّ إلى بطاقة: لا تُهيَّأ ولا تُربَط بمحصول اعتباطيّ.
   const legacyUnspecified = !!ctx.crop?.trim() && isUnspecifiedCrop(ctx.crop);
   const [crops, setCrops] = useState<string[]>(initialCrop);
+  const [planned, setPlanned] = useState(false);
   const [cultivar, setCultivar] = useState('');
   const [irrType, setIrrType] = useState('drip');
   const [landDate, setLandDate] = useState('');
@@ -112,6 +114,7 @@ export default function SeasonStep({
       const rowSpacingVal   = parseNonNeg(rowSpacing);
       await kongApi.post(`/api/v1/fields/${ctx.fieldId}/seasons`, {
         crops,
+        initial_status: planned ? "planned" : undefined,
         cultivar: cultivar.trim() || undefined,
         irrigation_type: irrType,
         land_leveling_date: landDate || undefined,
@@ -147,11 +150,17 @@ export default function SeasonStep({
       canGoBack={canGoBack}
       onBack={onBack}
       onNext={handleNext}
-      nextLabel="حفظ الموسم"
+      nextLabel={planned ? 'حفظ الموسم المخطط' : 'حفظ الموسم'}
       saving={saving}
       error={error}
     >
       {/* المحاصيل */}
+        <WheatSeasonPlanner onApply={plan => {
+          setPlanned(true);
+          setCrops(old => old.includes('قمح') ? old : [...old, 'قمح']);
+          setCultivar(plan.variety); setSeedRate(plan.rate); setIrrType(plan.irrigation);
+          setNotesAr(old => [...old.split('\n').filter(line => !line.startsWith('خطة بذار القمح ·') && line), plan.note].join('\n'));
+        }} />
       <div>
         <label className="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
           <Wheat className="w-4 h-4 text-emerald-400" /> المحصول / المحاصيل *

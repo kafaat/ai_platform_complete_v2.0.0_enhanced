@@ -228,7 +228,7 @@ def _worker(*, failing: bool):
         sys.path.insert(0, platform)
     from api.event_bus import OutboxWorker
 
-    async def _publish(subject: str, payload: bytes) -> None:
+    async def _publish(subject: str, payload: bytes, msg_id: str | None = None) -> None:
         if failing:
             raise RuntimeError("NATS down")
 
@@ -443,7 +443,7 @@ async def test_a_publish_in_flight_does_not_hold_the_only_pooled_connection():
     pool = _Pool(db, capacity=1)
     publishing, release = asyncio.Event(), asyncio.Event()
 
-    async def _held_publish(subject: str, payload: bytes) -> None:
+    async def _held_publish(subject: str, payload: bytes, msg_id: str | None = None) -> None:
         publishing.set()
         await release.wait()
 
@@ -482,7 +482,7 @@ async def test_the_last_row_of_a_slow_batch_still_holds_its_lease_when_its_publi
     db = _OutboxDb(n_rows=5)
     started: list[tuple[int, float, float]] = []
 
-    async def _slow_publish(subject: str, payload: bytes) -> None:
+    async def _slow_publish(subject: str, payload: bytes, msg_id: str | None = None) -> None:
         oid = json.loads(payload)["payload"]["k"]
         started.append((oid, db.now, db.rows[oid]["lease_until"]))
         db.now += 20.0
@@ -524,7 +524,7 @@ async def test_a_row_recaptured_after_its_lease_lapsed_is_not_published_by_the_s
     published_by_b: list[int] = []
     b_publishing, b_release = asyncio.Event(), asyncio.Event()
 
-    async def _publish_b(subject: str, payload: bytes) -> None:
+    async def _publish_b(subject: str, payload: bytes, msg_id: str | None = None) -> None:
         published_by_b.append(json.loads(payload)["payload"]["k"])
         b_publishing.set()
         await b_release.wait()
@@ -532,7 +532,7 @@ async def test_a_row_recaptured_after_its_lease_lapsed_is_not_published_by_the_s
     worker_b = _outbox_worker(pool, _publish_b)
     tasks: list[asyncio.Task] = []
 
-    async def _publish_a(subject: str, payload: bytes) -> None:
+    async def _publish_a(subject: str, payload: bytes, msg_id: str | None = None) -> None:
         oid = json.loads(payload)["payload"]["k"]
         published_by_a.append(oid)
         if oid == 1:

@@ -170,10 +170,10 @@ def test_precomputed_statistics_and_output_use_same_open_source(tmp_path, monkey
     seen = []
     original = cog_writer.write_rgba_cog_source
 
-    def capture(src, output):
+    def capture(src, output, *, spatial_sampling=None):
         assert not src.closed
         seen.append(src)
-        return original(src, output)
+        return original(src, output, spatial_sampling=spatial_sampling)
 
     monkeypatch.setattr(cog_writer, "write_rgba_cog_source", capture)
     ctx = SimpleNamespace(

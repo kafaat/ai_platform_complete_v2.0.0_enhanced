@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from typing import Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, FiniteFloat, model_validator
 
 
 class BareSoilScene(BaseModel):
@@ -53,8 +53,8 @@ class TerrainRequest(BaseModel):
     field_id: str
     geometry_hash: str
     dem_version: str
-    cell_size_m: float = Field(gt=0)
-    elevation_m: list[list[float]]
+    cell_size_m: float = Field(gt=0, allow_inf_nan=False)
+    elevation_m: list[list[FiniteFloat]]
 
     @model_validator(mode="after")
     def rectangular(self):
@@ -114,7 +114,7 @@ class TextureZoneProbability(BaseModel):
     sand_probability: float = Field(ge=0, le=1)
     silt_probability: float = Field(ge=0, le=1)
     texture_class: str
-    uncertainty: float = Field(ge=0, le=1)
+    uncertainty: float | None = Field(default=None, ge=0, le=1)
     estimated_clay_pct: float
     estimated_sand_pct: float
     estimated_silt_pct: float
@@ -140,17 +140,21 @@ class SalinityZoneEvidence(BaseModel):
     carbonate_index: float = Field(ge=0, le=1)
     persistence: float = Field(ge=0, le=1)
     drainage_risk: float = Field(ge=0, le=1)
-    ec_lab_ds_m: float | None = None
-    esp_pct: float | None = None
-    sar: float | None = None
-    ecw_ds_m: float | None = None
+    ec_lab_ds_m: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    # EC from other soil:water ratios has no direct ECe threshold conversion.
+    ec_lab_method: (
+        Literal["saturation_extract_25c", "soil_water_1_1", "soil_water_1_5", "other"] | None
+    ) = None
+    esp_pct: float | None = Field(default=None, ge=0, le=100, allow_inf_nan=False)
+    sar: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    ecw_ds_m: float | None = Field(default=None, ge=0, allow_inf_nan=False)
 
 
 class SalinityAssessmentRequest(BaseModel):
     tenant_id: str
     field_id: str
     geometry_hash: str
-    model_version: str = "salinity-v1"
+    model_version: str = "salinity-screening-v2"
     zones: list[SalinityZoneEvidence]
 
 
@@ -163,6 +167,7 @@ class SalinityZoneAssessment(BaseModel):
     bright_sand_probability: float = Field(ge=0, le=1)
     uncertainty: float = Field(ge=0, le=1)
     classification: str
+    evidence_notes: list[str] = Field(default_factory=list)
     evidence_level: Literal["screening", "locally_calibrated", "lab_verified"]
     allowed_use: list[str]
     blocked_use: list[str]

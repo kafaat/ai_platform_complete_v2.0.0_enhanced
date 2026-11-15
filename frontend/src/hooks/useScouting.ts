@@ -117,7 +117,11 @@ export function useCreateScoutingPin(
 ): UseMutationResult<ScoutingPinCreated, Error, ScoutingPinCreateInput> {
   const qc = useQueryClient();
   return useMutation<ScoutingPinCreated, Error, ScoutingPinCreateInput>({
-    mutationFn: (input) => createScoutingPin(input),
+    mutationFn: async (input) => {
+      const saved = await createScoutingPin(input);
+      if (saved.persisted !== true) throw new Error('لم يؤكد الخادم حفظ دبوس التفتيش');
+      return saved;
+    },
     onSuccess: () => {
       if (fieldId) qc.invalidateQueries({ queryKey: pinsQueryKey(fieldId) });
     },

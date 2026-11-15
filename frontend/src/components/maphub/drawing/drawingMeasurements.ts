@@ -59,7 +59,7 @@ function measurePolygonRings(rings: unknown): { areaM2: number; perimeterM: numb
   return { areaM2: Math.max(0, areaM2), perimeterM };
 }
 
-export function measureDrawFeature(feature: DrawFeature): DrawMeasurements {
+export function measureDrawFeature(feature: Pick<DrawFeature, 'geometry'>): DrawMeasurements {
   const geom = feature.geometry;
   if (geom.type === 'LineString' && Array.isArray(geom.coordinates) && geom.coordinates.every(isPosition)) {
     return { lengthM: ringLengthM(geom.coordinates) };

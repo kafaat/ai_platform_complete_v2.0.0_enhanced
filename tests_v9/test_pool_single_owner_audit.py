@@ -285,6 +285,156 @@ def test_platform_shutdown_terminates_a_hung_pool_and_still_closes_the_other(
     assert app_pool.closed
 
 
+class _RolePool(FakePool):
+    """A pool whose role probe returns ``probe`` (a row/None), raises it, or hangs."""
+
+    def __init__(self, probe):
+        super().__init__()
+        self.probe = probe
+
+    def acquire(self):
+        return self
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *_args):
+        return False
+
+    async def fetchrow(self, _sql):
+        if self.probe == "hang":
+            await asyncio.Event().wait()  # a database that accepts connections but stalls
+        if isinstance(self.probe, Exception):
+            raise self.probe
+        return self.probe
+
+
+def _init_platform_with_probe(platform_main, monkeypatch, probe):
+    import asyncpg
+
+    pools = []
+
+    async def create_pool(*_args, **_kwargs):
+        pools.append(_RolePool(probe))
+        return pools[-1]
+
+    monkeypatch.setenv("DATABASE_URL", "postgresql://unused/sahool")
+    monkeypatch.setattr(asyncpg, "create_pool", create_pool)
+    monkeypatch.setattr(platform_main, "_DB_POOL", None)
+    monkeypatch.setattr(platform_main, "_JOBS_POOL", None)
+    return pools
+
+
+@pytest.mark.parametrize(
+    "probe",
+    [None, TimeoutError("probe unavailable"), PermissionError("probe denied")],
+    ids=["missing-role", "timeout", "permission"],
+)
+def test_platform_init_refuses_an_unverifiable_role_under_enforcement(
+    platform_main, monkeypatch, probe
+):
+    """LIFE-01: an unverifiable role used to be logged at DEBUG and startup went on."""
+    pools = _init_platform_with_probe(platform_main, monkeypatch, probe)
+    monkeypatch.delenv("SAHOOL_ENFORCE_RLS_ROLE", raising=False)  # enforcement is the default
+    monkeypatch.delenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE", raising=False)
+    with pytest.raises(RuntimeError, match="RLS database role verification"):
+        asyncio.run(platform_main._init_db_pool())
+    assert len(pools) == 1, "no jobs pool may start before app-role verification"
+    assert platform_main._DB_POOL is None and platform_main.app.state.db_pool is None
+
+
+def test_platform_role_probe_is_bounded_by_a_timeout(platform_main, monkeypatch):
+    """A stalled probe is a refusal under enforcement, not a lifespan that never finishes."""
+    pools = _init_platform_with_probe(platform_main, monkeypatch, "hang")
+    monkeypatch.setenv("SAHOOL_RLS_ROLE_PROBE_TIMEOUT_SECONDS", "0.05")
+    monkeypatch.delenv("SAHOOL_ENFORCE_RLS_ROLE", raising=False)
+    monkeypatch.delenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE", raising=False)
+
+    async def bounded_init():
+        await asyncio.wait_for(platform_main._init_db_pool(), timeout=5)
+
+    with pytest.raises(RuntimeError, match="RLS database role verification failed"):
+        asyncio.run(bounded_init())
+    assert len(pools) == 1
+
+
+@pytest.mark.parametrize(
+    "bypass_env",
+    [("SAHOOL_ALLOW_RLS_BYPASS_ROLE", "1"), ("SAHOOL_ENFORCE_RLS_ROLE", "0")],
+    ids=["allow-bypass", "enforce-off"],
+)
+def test_platform_explicit_bypass_warns_on_probe_failure_and_starts(
+    platform_main, monkeypatch, caplog, bypass_env
+):
+    """Only the explicit development bypass may start on an unverifiable role — loudly."""
+    secret = "postgresql://sahool_app:hunter2@db/sahool"
+    pools = _init_platform_with_probe(platform_main, monkeypatch, PermissionError(secret))
+    monkeypatch.delenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE", raising=False)
+    monkeypatch.delenv("SAHOOL_ENFORCE_RLS_ROLE", raising=False)
+    monkeypatch.setenv(*bypass_env)
+    with caplog.at_level("WARNING"):
+        asyncio.run(platform_main._init_db_pool())
+    assert platform_main._DB_POOL is pools[0] and not pools[0].closed
+    warnings = [r.getMessage() for r in caplog.records if r.levelname == "WARNING"]
+    assert any("PermissionError" in w and "RLS" in w for w in warnings), warnings
+    assert "hunter2" not in caplog.text, "driver text can echo the DSN; log the class name only"
+    asyncio.run(platform_main._close_db_pool())
+
+
+@pytest.mark.parametrize(
+    "row",
+    [{"rolsuper": True, "rolbypassrls": False}, {"rolsuper": False, "rolbypassrls": True}],
+    ids=["superuser", "bypassrls"],
+)
+def test_platform_init_closes_the_pool_of_a_refused_role(platform_main, monkeypatch, row):
+    """Defence in depth, not a LIFE-01 regression: these roles were already refused, and the
+    lifespan ``finally`` closed the pool in production; _init_db_pool now closes it itself."""
+    pools = _init_platform_with_probe(platform_main, monkeypatch, row)
+    monkeypatch.setenv("SAHOOL_ENFORCE_RLS_ROLE", "1")
+    monkeypatch.delenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE", raising=False)
+    with pytest.raises(RuntimeError, match="RLS"):
+        asyncio.run(platform_main._init_db_pool())
+    assert len(pools) == 1 and pools[0].closed
+    assert platform_main._DB_POOL is None and platform_main.app.state.db_pool is None
+
+
+def test_platform_role_probe_accepts_a_restricted_role(platform_main, monkeypatch):
+    monkeypatch.delenv("SAHOOL_ENFORCE_RLS_ROLE", raising=False)
+    monkeypatch.delenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE", raising=False)
+    pool = _RolePool({"rolsuper": False, "rolbypassrls": False})
+    assert asyncio.run(platform_main._assert_db_role_rls_safe(pool)) is None
+
+
+@pytest.mark.parametrize("cancelled", [False, True])
+def test_platform_init_releases_pool_on_unexpected_probe_error_or_cancellation(
+    platform_main, monkeypatch, cancelled
+):
+    import asyncpg
+
+    pool = FakePool()
+
+    async def create_pool(*_args, **_kwargs):
+        return pool
+
+    async def fail_probe(_pool):
+        if cancelled:
+            raise asyncio.CancelledError
+        raise ValueError("malformed role probe result")
+
+    monkeypatch.setenv("DATABASE_URL", "postgresql://unused/sahool")
+    monkeypatch.setattr(asyncpg, "create_pool", create_pool)
+    monkeypatch.setattr(platform_main, "_assert_db_role_rls_safe", fail_probe)
+    monkeypatch.setattr(platform_main, "_DB_POOL", None)
+    monkeypatch.setattr(platform_main, "_JOBS_POOL", None)
+    if cancelled:
+        with pytest.raises(asyncio.CancelledError):
+            asyncio.run(platform_main._init_db_pool())
+    else:
+        asyncio.run(platform_main._init_db_pool())
+    assert pool.closed
+    assert platform_main._DB_POOL is None and platform_main.app.state.db_pool is None
+
+
 # ── lifespan wiring (own process per service: deployment-local imports) ────
 
 _LIFESPAN_PRELUDE = """

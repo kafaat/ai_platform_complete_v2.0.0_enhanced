@@ -9,6 +9,16 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../services/sahool-platform"))
 
 
+@pytest.fixture(scope="module", autouse=True)
+def restore_httpx_after_roadmap_suite():
+    # The standalone roadmap checks install several temporary HTTP adapters.
+    with pytest.MonkeyPatch.context() as patch:
+        import httpx
+
+        patch.setitem(sys.modules, "httpx", httpx)
+        yield
+
+
 def _report_trial_engine():
     from api.trial_engine import BlockResult, analyze_paired_trial
 
@@ -751,10 +761,10 @@ def test_soil_sampling_protocol():
     if 15 < s["subsamples"] < 30:
         r.append(("✓", "تدرّج خطّي للمساحات المتوسّطة (6ha → 22)"))
     if (
-        "30" in sampling_depth("nitrate")["depth_ar"]
-        and "متدرّج" in sampling_depth("no_till")["depth_ar"]
+        sampling_depth("nitrate")["depth_status"] == "requires_lab_protocol"
+        and "التدرّج" in sampling_depth("no_till")["depth_ar"]
     ):
-        r.append(("✓", "العمق حسب الغرض (نترات 30سم، بلا حرث متدرّج)"))
+        r.append(("✓", "العمق حسب الغرض ومعايرة المختبر"))
     pr = sampling_protocol(area_ha=5, purpose="general")
     if len(pr["steps_ar"]) == 8 and len(pr["avoid_ar"]) == 4:
         r.append(("✓", "بروتوكول كامل: 8 خطوات + 4 تحذيرات"))

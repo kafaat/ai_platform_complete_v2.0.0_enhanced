@@ -30,7 +30,7 @@ async def _connect():
     return await asyncpg.connect(DB, statement_cache_size=0)
 
 
-async def _seed():
+async def _seed(field_id=None, resources=None):
     did = "dec_" + uuid4().hex
     rid = "rev_" + uuid4().hex
     lin = "lin_" + uuid4().hex
@@ -39,11 +39,12 @@ async def _seed():
     c = await _connect()
     try:
         await c.execute(
-            "INSERT INTO decision_record(decision_id,tenant_id,decision_type,stage,decision_value,review_state,candidate_lineage_id) VALUES($1,$2::uuid,'candidate','candidate',$3::jsonb,'approved',$4)",
+            "INSERT INTO decision_record(decision_id,tenant_id,decision_type,stage,decision_value,review_state,candidate_lineage_id,field_id) VALUES($1,$2::uuid,'candidate','candidate',$3::jsonb,'approved',$4,$5)",
             did,
             TENANT,
             json.dumps({"candidate_lineage_id": lin}),
             lin,
+            field_id,
         )
         await c.execute(
             "INSERT INTO decision_reviews(review_id,decision_id,tenant_id,action,previous_state,new_state,reason,reviewed_by,candidate_lineage_id,idempotency_key,request_hash,policy_version) VALUES($1,$2,$3::uuid,'approve','pending_approval','approved','ok','r',$4,$5,$6,'p1')",
@@ -55,7 +56,7 @@ async def _seed():
             uuid4().hex,
         )
         await c.execute(
-            "INSERT INTO decision_execution_plans(execution_plan_id,tenant_id,decision_id,review_id,candidate_lineage_id,operation_type,status,idempotency_key,request_hash,created_by) VALUES($1,$2::uuid,$3,$4,$5,'irrigation','planned',$6,$7,'p')",
+            "INSERT INTO decision_execution_plans(execution_plan_id,tenant_id,decision_id,review_id,candidate_lineage_id,operation_type,status,idempotency_key,request_hash,created_by,required_resources) VALUES($1,$2::uuid,$3,$4,$5,'irrigation','planned',$6,$7,'p',$8::jsonb)",
             pid,
             TENANT,
             did,
@@ -63,6 +64,7 @@ async def _seed():
             lin,
             "p-" + uuid4().hex,
             uuid4().hex,
+            json.dumps(resources or []),
         )
         await c.execute(
             "INSERT INTO decision_dispatch_authorizations(dispatch_authorization_id,tenant_id,execution_plan_id,decision_id,review_id,candidate_lineage_id,expected_plan_state,status,policy_version,weather_snapshot_id,resource_snapshot_id,authorization_reason,idempotency_key,request_hash,authorized_by) VALUES($1,$2::uuid,$3,$4,$5,$6,'planned','authorized','p1','w1','r1','ok',$7,$8,'m')",
@@ -121,3 +123,50 @@ def test_create_execution_request_and_outbox():
             await c.close()
 
     assert _run(counts()) == (1, 1)
+
+
+def test_equipment_request_uses_field_and_device_from_the_approved_chain():
+    from persistence import create_execution_request
+
+    async def exercise():
+        aid, pid, did = await _seed("pivot", [{"device_id": "test-valve"}])
+        c = await _connect()
+        try:
+            p = _payload(aid, pid, did)
+            p.target_type, p.target_id = "equipment", "test-valve"
+            p.command_payload = {
+                "device_id": "test-valve",
+                "command": "open_valve",
+                "payload": {"field_id": "east", "duration_sec": 60},
+            }
+
+            async def submit():
+                return await create_execution_request(
+                    tenant_id=TENANT,
+                    dispatch_authorization_id=aid,
+                    requested_by="operator",
+                    payload=p,
+                )
+
+            rejected = await submit()
+            assert rejected["reason"] == "command_field_mismatch"
+            assert (
+                await c.fetchval(
+                    "SELECT count(*) FROM decision_execution_requests WHERE decision_id=$1", did
+                )
+                == 0
+            )
+            p.command_payload["payload"]["field_id"] = "pivot"
+            accepted = await submit()
+            assert accepted["execution_state"] == "queued"
+            assert (
+                await c.fetchval(
+                    "SELECT count(*) FROM decision_outbox_events WHERE aggregate_id=$1",
+                    accepted["execution_request_id"],
+                )
+                == 1
+            )
+        finally:
+            await c.close()
+
+    _run(exercise())

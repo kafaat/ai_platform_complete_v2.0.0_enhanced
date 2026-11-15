@@ -43,16 +43,53 @@
       "closing_condition": "owned/versioned simulated-first adapter consumes the exact subject, validates tenant/device/content-pin/idempotency, and emits a correlated receipt"
     },
     "NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE": {
-      "status": "OPEN",
-      "producer": "sahool-plugin-runtime-worker",
-      "current_transform": "sahool.<event_type with underscores replaced by dots>",
+      "status": "CLOSED",
+      "producers": [
+        "sahool-phase-runtime-outbox-worker",
+        "sahool-plugin-runtime-worker"
+      ],
+      "previous_transform": "sahool.<event_type with underscores replaced by dots>",
+      "current_transform": "sahool.events.<event_type> (unchanged event_type) — shared/runtime_worker_contracts.py: runtime_event_subject",
       "examples": [
-        "sahool.field.updated",
-        "sahool.recommendation.created"
+        "sahool.events.field.updated",
+        "sahool.events.recommendation.created",
+        "sahool.events.phase9.execution_plan.created",
+        "sahool.events.digital_twin.snapshot.created"
       ],
       "canonical_domain_transform": "sahool.events.<event_type>",
-      "canonical_consumer": "agents/notification/agent.py subscribes sahool.events.>",
-      "closing_condition": "one versioned subject contract and a producer-consumer test; migration/compatibility window if existing external consumers are discovered"
+      "canonical_source": "migrations/v11_events_bus.sql:159 and migrations/v18_entity_ids_text.sql:97 ('sahool.events.' || p_event_type)",
+      "canonical_consumer": "shared/notification_consumers.py:33 (sahool.events.>, notif_domain_events), used by agents/notification/agent.py",
+      "old_subject_consumers": [],
+      "old_subject_consumers_note": "Measured on main@d27cda4f3: no subscribe/pull_subscribe/filter_subject in services/, agents/, shared/ or frontend matches any former sahool.<a>.<b> subject; the only wildcard is the stream definition sahool.> (storage, not a consumer). No compatibility window.",
+      "closing_condition": "one versioned subject contract and a producer-consumer test; migration/compatibility window if existing external consumers are discovered",
+      "closed_by": "fix/conn04-phase-worker-event-subjects-20261114 — takes effect only on merge, which waits for the owner's GATE-01 adjudication signature (GATE01-ADJ-2026-11-14-001, UNSIGNED)",
+      "verified_by": [
+        "tests_v9/test_nats_least_privilege.py"
+      ],
+      "witnesses": [
+        "test_conn04_phase_worker_events_reach_the_canonical_domain_consumer (unit; red on the old transform)",
+        "test_live_conn04_phase_worker_publish_reaches_a_consumer_bound_to_sahool_events (integration; real nats-server in notification-rollout.yml, NOT_RUN locally)",
+        "test_conn04_worker_envelope_is_accepted_by_the_notification_consumer (unit; outbox and plugin through the real worker publish expression and _publish_nats, then the real handle_msg: acked, not dead-lettered; red on the old envelope)",
+        "test_conn04_null_tenant_outbox_event_is_published_without_tenant_and_dead_lettered (unit)"
+      ],
+      "residual": [
+        "The plugin hook subjects sahool.events.recommendation.created and sahool.events.alert.created are the same subjects the platform OutboxWorker publishes. The only NATS consumer of both is notif_domain_events (shared/notification_consumers.py:33). With the shared envelope a plugin-hook event differs from a platform domain event only by entity_type/entity_id being null; there is no producer field and no NATS header (_publish_nats sends none). Separating them is an owner decision.",
+        "Core NATS without acknowledgement in the phase workers is unchanged (FEATURE_NATS_PUBLISHERS default unchanged)."
+      ],
+      "envelope": {
+        "decision": "owner 2026-11-14: both phase-runtime worker paths publish the event_bus envelope (services/sahool-platform/api/event_bus.py:780-792)",
+        "function": "shared/runtime_worker_contracts.py: runtime_event_envelope",
+        "fields_from_row": {
+          "event_id": "event_id",
+          "event_type": "event_type (the value the subject is built from)",
+          "payload": "payload (jsonb decoded)",
+          "tenant_id": "tenant_id; key omitted when NULL (runtime_event_outbox, development only) so notif_domain_events dead-letters the event by design",
+          "entity_type": "runtime_event_outbox.aggregate_type; null for marketplace_plugin_runtime_events (no entity column)",
+          "entity_id": "runtime_event_outbox.aggregate_id; null for marketplace_plugin_runtime_events (no entity column)",
+          "occurred_at": "created_at"
+        },
+        "not_carried": "correlation_id and causation_id of the event_bus envelope are outside the owner's field list and have no column in either table"
+      }
     }
   },
   "connected_services_note": "كانت ثلاثَ عشرة؛ ثلاثٌ منها (sahool-soil-service · sahool-weather-service · sahool-telegram-bot) تحمل كلمةَ مرور الوسيط ولا عميلَ NATS فيها فنُزِع عنها الاعتماد. وsahool-weather-polygon-worker يبقى هنا ما بقي في compose لأنّ هذا الجردَ مُشتقٌّ منه، لكنّه **بلا هويّة** في nats/nats.conf: يُزال من المكدّس في الموجة نفسِها على فرعٍ آخر (compose)، وبعد الدمج يسقط من هذه القائمة."

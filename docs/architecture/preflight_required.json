@@ -32,13 +32,16 @@
     "scripts/ci/compose_no_default_secrets_guard.py",
     "scripts/ci/compose_runtime_target_resolver.py",
     "scripts/ci/env_compose_drift_guard.py",
+    "scripts/ci/generate_service_inventory.py",
     "scripts/ci/guard_mutation_guard.py",
     "scripts/ci/json_duplicate_key_guard.py",
     "scripts/ci/no_merge_conflict_markers_guard.py",
+    "scripts/ci/platform_route_ownership_guard.py",
     "scripts/ci/pr_capability_impact_gate.py",
     "scripts/ci/probe_leak_guard.py",
     "scripts/ci/test_marker_coverage_guard.py",
-    "scripts/ci/verify_all_generated.py"
+    "scripts/ci/verify_all_generated.py",
+    "scripts/release/validate_release_package.py"
   ],
   "optional_tools": [
     {

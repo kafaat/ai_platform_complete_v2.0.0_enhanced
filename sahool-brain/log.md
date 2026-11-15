@@ -10605,3 +10605,48 @@ The full local unit run exposed two additional test defects. The requirements co
 - **محجوب:** `actuator_runtime.py` و`routers/commands.py` مجمَّدان في GATE-01 ⇒ `gate01_frozen_path_guard` يحجب حتّى تفويضٍ موقَّع من المالك. الفجوة `SUP-08-DEVICE-COMMAND-SIGNATURE-UNBOUND-TO-DEVICE-01` تبقى open ([سجل الفجوات](gaps/registry.md)).
 - **التزامٌ ثانٍ مستقلّ (قابل للإسقاط):** الإغلاق لا يحجبه مفتاح الطوارئ ولا جوابه المغلق عند تعذّر القاعدة (`ACTUATOR-KILLSWITCH-BLOCKS-CLOSE-01`). كلّ مسار يمرّر الأمر إلى `is_actuation_halted(command=)` ([`routers/commands.py:64`](../services/actuator-service/routers/commands.py) · [`actuator_runtime.py:372`](../services/actuator-service/actuator_runtime.py))، وحالاته ضدّ المساعد الحقيقيّ في [`test_killswitch_close_exemption.py`](../services/actuator-service/test_killswitch_close_exemption.py) (تسقط الأربع على الالتزام الأوّل). الفجوة تبقى open بانتظار حكم المالك.
 
+## 2026-11-11 — إصلاحات مراجعة مداخل main محلياً
+
+- الأساس `d022c3e650e2cb68d19466bdeb3073350002b3e4`؛ سُلِّمت الإصلاحات رقعةً خارجيّة وطُبِّقت على `claude/main-runtime-fixes-20261111` (الفرع والالتزام المذكوران في الحزمة محلّيّان لدى المُسلِّم، لا في المستودع).
+- 15 نتيجة محددة في [التقرير](../docs/reviews/main_entrypoint_fixes_20261111.md)، 14 fixed في الكود، وactuator open ضمن المسار المجمد. الشواهد ليست تكامل GPU/DB/أجهزة حية.
+- لم يُدفع أو يُنشر. تجميع اختبارات الإصلاح والبوابات عند الجذر قيد العمل؛ لا ادعاء نجاح شامل. القفل العابر وXTTS يبقيان مفتوحين تحت معرّفيهما القائمين.
+
+- **مراجعة لاحقة، 2026-11-11:** 7 وكلاء مراجعة ⇒ 3 حاجبات (تفعيل MFA ⇒ 409 على Postgres حقيقيّ بسبب زناد `updated_at`؛ `routers/mfa_enrollment.py` يُسقط `test_no_orphan_router_module`؛ SAM2 auto/hybrid ⇒ 422 لكلّ طلب من الواجهة) و~12 رئيسيّة؛ أصلحها 5 وكلاء على ملفّات منفصلة ثمّ تحقّق اثنان عدائيّاً ونُقِض ادّعاءان (حدّ المحاولات تحت التوازي، إعادة استخدام وكيل ZLMediaKit) فأُصلحا. «19930 نجاحاً» في الحزمة لم تكشف أيّاً من الحاجبات — الأدلّة في [التقرير](../docs/reviews/main_entrypoint_fixes_20261111.md).
+## 2026-11-12 — حدود خطّة التنفيذ وقيم سوق MCP (فرع `claude/agentic-boundaries-r2-20261112` على `8fd079497`)
+
+- **ما دخل (ثلاث فجوات ⇒ fixed على هذا الفرع، لا على main):** `DECISION-MANUAL-PLAN-PADDED-OPERATION-BYPASS-01` (تطبيع `operation_type` مرّةً عند الحدّ وحفظ المُطبَّع؛ ربط الريّ اليدويّ عبر `_plan_operation_violation`)، و`DECISION-PLAN-MIXED-TIMEZONE-500-01` (طرف نافذة ساذج ⇒ 422 لا 500)، و`MCP-MARKET-SALES-NEGATIVE-VALUES-01` (كمّيّة/سعر عرض البيع وكمّيّة بند الشراء: موجب منتهٍ أو 422 قبل أيّ اتّصال) ([سجل الفجوات](gaps/registry.md)).
+- **الشاهد:** `services/decision-service/tests/test_execution_plan_boundary_normalisation.py` (15 من 20 تفشل على `8fd079497`: 500 للنافذة المختلطة، و200 للساذجة، وحفظ `" manual_irrigation "` خاماً) و`tests_v9/test_mcp_tool_hardening.py` (27 حالة جديدة تفشل على `8fd079497`). الاختبار الجديد مُدرَج في مجموعة decision-service في `.github/workflows/ci.yml` بلا اتّصال وهميّ (`fake_connection_debt_guard` أخضر).
+- **لم يُصلَح عمداً:** قيد `CHECK` في `migrations/v9_market.sql` (هجرة يُعاد تطبيقها)؛ النمط الزمنيّ نفسه في `monitoring_snapshot_boundary`؛ مقارنة `req.operation_type == "manual_irrigation"` الحرفيّة في `sahool-platform/api/routers/decision_review.py:241`؛ صفوف خطط قديمة محفوظة بتهجئة غير قانونيّة.
+- **2026-11-12 — طلب فتح GATE-01 بقرار المالك** (فرع `gate01/open-phase1`، [القرار](decisions/ledger.md)): `gate.state` = OPEN، و`ruling_source` يشير إلى ظرف `GATE01-AUTH-2026-11-12-001`. ينتظر توقيع المالك على بايتات PAE ثم الظرف والحجز. المخاطر المعروفة عند الفتح مدوَّنة في سجلّ القرار، ومنها ثغرة مفتاح إيقاف الحقل في `actuator_runtime.py`، وإصلاحها جارٍ في `fix/decision-engines-dispatch-soil-trace`.
+  - **الاختبارات:** تسعة اختبارات كانت تثبّت أنّ البوّابة الحيّة CLOSED. صارت اختبارات الآليّة تقيس CLOSED على نسخةٍ صريحة، فالتفويض المقيَّد يبقى محروساً متى أُغلقت. وصارت الثوابت الحيّة تشترط أنّ OPEN مسنودٌ بقرارٍ موقَّع مسمّى. النتيجة 182 ناجحاً.
+
+## 2026-11-13 — فهرس BM25 يعرف المستأجِر، وقرار المالك يضيّق D08-EXT
+
+- مراجعة مستشار الذكاء الاصطناعي (حزمة المالك) كشفت أنّ الفهرس المتناثر وذاكرة المقاطع مفهرسان بـ`chunk_id` وحده بعد أن صارت هويّة التخزين `(tenant_id, chunk_id)`: ابتلاع مستأجِر لمعرّف يسحب مقطع مستأجِر آخر من BM25، وإعادة البناء ترفض المجموعة كلّها فيسقط البحث لكلّ المستأجرين.
+- الإصلاح: المفتاح الداخليّ `(tenant_id, chunk_id)` في BM25 والذاكرة والدمج، و`chunk_id` المنطقيّ باقٍ في الاستشهادات. التفرّد بخيار المالك «هجين» (سطر في `decisions/ledger.md`). سبعة اختبارات تفشل قبل الإصلاح وتنجح بعده، وطفرتان مُسجَّلتان مقتولتان بالزرع.
+
+## 2026-11-14 — C-40 (#1428): المصنِّف يقرأ علامات pytest، وقرار المالك على النضج
+
+- `capability_evidence_maturity_engine.classify_tests` صار يقرأ علامات pytest الصريحة بـAST (لا استيراد)، و«contract» وحده لا يرقّي إلى تكامل، وبوّابة `taxonomy_conflicts` تحجب دليلاً تكامليّاً مُعلَّماً `unit`. سبع قدرات خُفِضت إلى 2، وأربع رُقِّيت، وOPS-003 أُبقي عند 2 مع قبول هويّته؛ والقرار في `decisions/ledger.md`. `capability_shadow_reconciliation --check` = PASS (findings=0).
+
+## 2026-11-14 — طابور الدمج 13–14 نوفمبر: دامجٌ واحد وحاملاتٌ بلا rebase
+
+- **المدموج (الأولى أبويّاً على main):** #1394 `d989fb321`، #1396 `faac3712e`، #1397 `759b371be`، #1402 `934c98698`، #1404 `8422877f8`، #1406 `8167dbb4b`، #1407 `2a7fcb3a4`، #1408 `0c6d4cbea`، #1409 `967f12efc`، #1398 `bee67095f`، #1401 `f110d9a17`، #1417 `36b625170`، #1421 `a8629499c`، #1418 `7ad892afa`، #1415 `1dae6dc63`، #1430 `375a52b3e`، #1419 `153526f90`، #1438 `53f8c01fe`، #1439 `9b50df12b`، #1379 `385892ab6`، #1420 `f3ce98032`، #1440 `fabd82ef2`، #1441 `aac9f270e`، #1443 `3569c982d`، #1442 `98915fdec`.
+- **البروتوكول:** المستشفى (جلسة الدمج) الدامجُ الوحيد ويدمج رأس الطابور فقط بـ`expectedHeadSha`؛ والحاملات تُدخل كلَّ PR محمولٍ بالتزام دمجٍ مستقلّ فيبقى تاريخه، وتُغلق الأصول بإشارةٍ بعد الدمج.
+- **روتين التحديث بعد كلّ دمج:** دمج main ⇒ `resolve_merge_conflicts.py` (المولَّد يأخذ main؛ `release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json` وجرد main الفرعيّ md/csv يدويّاً بـ`checkout --theirs`) ⇒ مراسي الاستخراج ⇒ `verify_all_generated --fix` بـruff 0.15.8 ⇒ نقطة ثبات بوّابة الشهادة ⇒ حرّاس الدفاتر ⇒ `capability_projection_sync --check` ⇒ preflight.
+- **فخّ الدفتر الإلحاقيّ (تكرّر ثلاث مرّات: #1379 مرّة و#1427 مرّتين):** أخذُ جانب main في `docs/architecture/fake_connection_debt.json` يُسقط `admissions` الفرع، والتوليد لا يعيدها؛ و`preflight --fast` لا يرى ذلك بينما يراه `verify_all_generated`. العلاج: إعادة الإدخال بعد آخر مدخلٍ لـmain ثمّ `fake_connection_debt_guard --check`. ودُوِّن في مهارة `ci-impact-preflight` (#1377).
+- **#1379:** مثبّت `client` في `tests_v9/test_auth_cors_mfa_header.py` كان يعيد ربط `main` ويطهّر وحدات الخدمة دون استعادتها، فقرأ ملفٌّ لاحق وحدةً لم يبدأ مجمّعها (55 فشلاً في تسجيل MFA). الإصلاح يحفظ `sys.modules` ويستعيده في `finally` (`e92697a7e`) بلا تليين أيّ اختبار.
+- **#1427:** دُمج فيه main مع توفيق `services/auth/routers/users.py` بين نسخته ونسخة #1419 (`42fad8898`، على `claude/pr1427-main-merge-20261114` لأنّ الدفع لغير `claude/*` محجوب، ثمّ قدّمه المستشفى بأمر المالك). المستشفى كاتبه الوحيد الآن، ويحمل #1425 (`e36ab043b`).
+- **Flutter في #1425:** فشلٌ عابر بملفّ NDK تالف، أُعيد تشغيل الوظائف الفاشلة فقط.
+- **#1427 مدموج** (`c3d06341c`) حاملاً #1425 (أُغلق بإشارة) وبوّابتين حيّتين: `tests_v9/test_auth_admin_authz_live_pg_redis.py` (12) و`tests_v9/test_platform_denial_log_scope_live.py` (3).
+- **#1424 سلطةٌ زمنيّةٌ ثانية:** `shared/feature_store/strict_shadow.py` كان يحمل قواعد قطعٍ وإتاحةٍ وتقادمٍ خاصّةً به بجوار `shared/feature_store/runtime.py::build_point_in_time_snapshot` (المُوفَّق في #1437)، فقبِل صفّاً ابتُلع قبل نشره وصفّاً بلا `prediction_at` يرفضهما المرجع. أُعيد بناؤه على `claude/pr1424-strict-shadow-20261114`: النطاق وحده هنا، وكلّ قرارٍ زمنيّ للمرجع، واختبار تطابقٍ معه واختبار AST يمنع عودة التكرار.
+- **#1444 مدموج** (`93ee155f6`) حاملاً #1424 بالتزام دمجٍ مستقلّ (`c6d7776f8`)، وأُغلق #1424 بإشارة.
+- **مفتوح:** #1386 (توقيع المالك على GATE-01)، #1377 (هذا الحامل).
+
+
+## 2026-11-14 — CONN-04: مواضيعُ عاملَي phase-runtime تبلغ المستهلكَ الكنسيّ (مسوّدة، GATE-01 تنتظر المالك)
+
+- فرع `fix/conn04-phase-worker-event-subjects-20261114` على `main@d27cda4f3`: `runtime_event_subject` = `'sahool.events.' || event_type` (migrations/v11_events_bus.sql:159، v18_entity_ids_text.sql:97) يحلّ محلَّ `sahool.<event_type بنقاطٍ بدل _>` في `phase_runtime_workers.py` و`shared/runtime_worker_contracts.py`، مع إذون `nats/nats.conf` وقيود `event_publish_contracts.yaml` وفجوة `NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE`.
+- لا مستهلكَ للمواضيع القديمة في الشجرة (لا اشتراك ولا `filter_subject` يطابقها؛ `sahool.>` تعريفُ الدفق لا مستهلك) ⇒ لا نافذة توافق.
+- مقترح `GATE01-ADJ-2026-11-14-001` بحالة `PENDING_OWNER_SIGNATURE` (UNSIGNED). الحارسُ المجمَّد يمرّ لأنّ GATE-01 `OPEN` منذ 2026-11-12، والدمجُ ينتظر توقيع المالك بقراره.
+- قرارُ المالك (2026-11-14) على الغلاف: المساران (outbox وplugin) ينشران غلافَ event_bus (event_bus.py:780-792) من الصفّ نفسِه عبر `runtime_event_envelope` (`shared/runtime_worker_contracts.py`): entity_type/entity_id من aggregate_* في runtime_event_outbox وnull في marketplace_plugin_runtime_events، وoccurred_at من created_at، وtenant_id يُحذَف حين يكون NULL فيذهب الحدثُ إلى الرسائل الميتة عمداً. شاهدان: قبولُ `handle_msg` الحقيقيّ للمسارين (يحمرّ على الغلاف القديم)، والرسالةُ الميتة للمستأجِر الفارغ.

@@ -126,3 +126,34 @@ def test_real_postgres_dual_worker_recovery_and_fencing(monkeypatch):
             await _cleanup(claim_key, tenant_id)
 
     asyncio.run(scenario())
+
+
+def test_distinct_claim_cannot_reuse_an_existing_job_id(monkeypatch):
+    import asyncpg
+
+    tenant_id = str(uuid.uuid4())
+    claim_key = f"rib_it_{uuid.uuid4().hex}"
+    job_id = f"batch_{uuid.uuid4().hex[:12]}"
+    monkeypatch.setattr(store, "DATABASE_URL", DB_URL)
+
+    async def scenario():
+        kwargs = dict(
+            tenant_id=tenant_id,
+            job_id=job_id,
+            field_id="fld_runtime_cert",
+            req=_req(tenant_id),
+            worker_id="worker-a",
+        )
+        try:
+            first = await store.claim_or_recover(claim_key=claim_key, **kwargs)
+            assert first.acquired
+            with pytest.raises(asyncpg.UniqueViolationError) as collision:
+                await store.claim_or_recover(claim_key=claim_key + "_other", **kwargs)
+            assert collision.value.constraint_name == "raster_batch_jobs_job_id_key"
+            replay = await store.claim_or_recover(claim_key=claim_key, **kwargs)
+            assert not replay.acquired and replay.job_id == first.job_id
+        finally:
+            await _cleanup(claim_key, tenant_id)
+            await _cleanup(claim_key + "_other", tenant_id)
+
+    asyncio.run(scenario())

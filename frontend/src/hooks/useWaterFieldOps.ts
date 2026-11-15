@@ -11,6 +11,7 @@
 // 404 ⇒ {disabled:true} — نفس عرف isDisabled404 في useApi.ts: حالة «غير مُفعَّل»
 // صادقة بدل خطأ مُفزِع؛ باقي الأخطاء (403/5xx) تُرفَع كما هي لتعرضها الواجهة.
 
+import { useRef } from 'react';
 import { useMutation, useQuery, UseQueryResult } from '@tanstack/react-query';
 import { kongApi } from '../services/api';
 import type {
@@ -140,10 +141,27 @@ export function useUpstreamFlood(
  *  كتابة (الخادم يخزّن التحليل ويحدّث العيّنة إن وُجدت) ⇒ useMutation لا useQuery؛
  *  الأخطاء (403 صلاحيّة FIELD_EDIT / 404 غير مُفعَّل) تعالجها الواجهة بنصّ صادق. */
 export function useSubmitWaterLabResult() {
+  // One Idempotency-Key per measurement: a retry after a lost response or a double click
+  // resends the same key, and the server returns the stored result instead of a second one.
+  const attempt = useRef<{ body: string; key: string } | null>(null);
   return useMutation<WaterLabAnalysis, Error, WaterSamplePayload>({
-    mutationFn: (payload) =>
-      kongApi.post('/api/v1/lab/water-results', payload).then((r) => r.data as WaterLabAnalysis),
+    mutationFn: (payload) => {
+      const body = JSON.stringify(payload);
+      if (attempt.current?.body !== body) attempt.current = { body, key: waterRequestKey() };
+      return kongApi
+        .post('/api/v1/lab/water-results', payload, { headers: { 'Idempotency-Key': attempt.current.key } })
+        .then((r) => r.data as WaterLabAnalysis);
+    },
   });
+}
+
+function waterRequestKey(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-');
 }
 
 /** تنبيهات طقس زراعيّة مشتقّة بإحداثيّات (عامّة، بلا كتابة) —

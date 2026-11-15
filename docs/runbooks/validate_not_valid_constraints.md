@@ -102,3 +102,20 @@ Re-run step 2 (should be `0`). The CI guard
   change) — return to step 2/3.
 - Keep the constraints `NOT VALID` (still enforcing new rows) rather than dropping them
   if validation must be deferred; the guard forbids silently dropping them.
+
+## Foreign key `field_tasks_field_id_fkey` (v261)
+
+v261 points `field_tasks.field_id` at `fields(field_id)` (it referenced the v8
+`field_boundaries` table, which no API path inserts into, so a task on a field created through
+`POST /api/v1/fields` failed the key). The new key is added `NOT VALID`: every new or updated
+task is checked, existing rows are not scanned. Validate it with the same procedure:
+
+```sql
+-- step 2: tasks whose field is not in fields (rows that would make VALIDATE fail)
+SELECT t.task_id, t.field_id, t.tenant_id FROM field_tasks t
+ WHERE NOT EXISTS (SELECT 1 FROM fields f WHERE f.field_id = t.field_id);
+-- step 3: per row, create the missing fields record from its field_boundaries row, or retire
+--         the task per data-retention policy (do not invent a field)
+-- step 4 (operator, monitored window, only after step 2 returns no rows):
+ALTER TABLE field_tasks VALIDATE CONSTRAINT field_tasks_field_id_fkey;
+```

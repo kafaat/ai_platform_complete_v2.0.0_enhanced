@@ -28,6 +28,32 @@ CURRENT_VERSIONS: dict[str, str] = {
     "trueup.applied": "1.0",
 }
 
+# events.schema_version عمودٌ INT (v11: ``INT NOT NULL DEFAULT 1``) والمرقّيات مفاتيحُها نصّيّة.
+# الربط صريحٌ هنا (C-17): كلُّ نسخةٍ عدديّة تُكتب في المخزن تُضاف إلى هذا الجدول مع مرقّيها.
+# نسخةٌ غيرُ مُدرَجة **لا تُعامَل 1.0 صامتاً** — `schema_version_label` يرفضها وإعادةُ التشغيل
+# تعزل حدثها وتُعلن نفسها غير مكتملة.
+SCHEMA_VERSION_LABELS: dict[int, str] = {1: "1.0"}
+
+
+class UnknownSchemaVersion(ValueError):
+    """نسخة مخطّط حدث لا يعرفها الربط الصريح — يُعزَل الحدث ولا يُخمَّن."""
+
+
+def schema_version_label(raw: object) -> str:
+    """يحوّل events.schema_version (INT) إلى مفتاح المرقّيات النصّيّ، أو يرفض.
+
+    يقبل int (كما يُعيده asyncpg) ونصّاً عشريّاً لعدد صحيح. ``None`` وbool والكسور وأيّ
+    عدد خارج ``SCHEMA_VERSION_LABELS`` ⇒ ``UnknownSchemaVersion`` (لا افتراض 1.0).
+    """
+    if isinstance(raw, bool) or raw is None:
+        raise UnknownSchemaVersion(f"schema_version غير صالح: {raw!r}")
+    if isinstance(raw, str) and raw.strip().isdigit():
+        raw = int(raw.strip())
+    if not isinstance(raw, int) or raw not in SCHEMA_VERSION_LABELS:
+        raise UnknownSchemaVersion(f"schema_version غير معروف: {raw!r}")
+    return SCHEMA_VERSION_LABELS[raw]
+
+
 # سجلّ المرقّيات: (event_type, from_version) → دالّة(payload)->payload
 _UPCASTERS: dict[tuple[str, str], Callable[[dict], dict]] = {}
 

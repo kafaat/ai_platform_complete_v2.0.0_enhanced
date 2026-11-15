@@ -10,6 +10,7 @@ import asyncio
 import logging
 import os
 import socket
+import sys
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from datetime import UTC, datetime
@@ -196,15 +197,13 @@ class SoilReading(BaseModel):
     tenant_id: str = ""
 
 
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
 # ─── تسجيل الراوترات المُفكَّكة (في النهاية: بعد app وكلّ الرموز المشتركة) ──────
 # يُحلّ الاستيراد الدائريّ — وحدات routers/ تستورد رموزاً من main (app/الحالة/
 # المساعِدات/SoilReading)؛ فيُستدعى التسجيل بعد تعريفها جميعاً.
+# Routers import main; direct execution must share this module and its app.
+if __name__ == "__main__":
+    sys.modules["main"] = sys.modules[__name__]
+
 from router_registry import register_routers  # noqa: E402
 
 register_routers(app)
@@ -222,3 +221,9 @@ def runtime_evidence_identity():
     from shared.runtime_identity import load_build_identity
 
     return load_build_identity("soil-service")
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)

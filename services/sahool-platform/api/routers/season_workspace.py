@@ -328,7 +328,7 @@ async def season_workspace(
                 "ORDER BY priority ASC, recommended_date ASC NULLS LAST, created_at DESC LIMIT 20",
                 field_id,
             )
-            tasks = [_jsonable(_row_to_task(r)) for r in task_rows]
+            tasks = [_jsonable(_row_to_task(r, user)) for r in task_rows]
 
             try:
                 async with conn.transaction():

@@ -54,6 +54,17 @@ def parse_cloud_cover_pct(value: Any) -> float | None:
     return pct
 
 
+def parse_resolution_m(value: Any) -> float | None:
+    """Keep only a finite, positive ground spacing in metres."""
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        metres = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return metres if math.isfinite(metres) and metres > 0 else None
+
+
 @dataclass(frozen=True)
 class SceneQuality:
     score: int
@@ -69,7 +80,7 @@ def score_scene_quality(
     shadow_pct: float | int | None = 0,
     nodata_pct: float | int | None = 0,
     haze_pct: float | int | None = 0,
-    resolution_m: float | int | None = 10,
+    resolution_m: float | int | None = None,
     max_cloud_pct: float = 35,
 ) -> SceneQuality:
     """حوّل مخرجات s2cloudless/cloud-mask إلى درجة جودة 0..100 قابلة للترتيب.
@@ -82,14 +93,14 @@ def score_scene_quality(
     shadow = max(0.0, min(100.0, float(shadow_pct or 0)))
     nodata = max(0.0, min(100.0, float(nodata_pct or 0)))
     haze = max(0.0, min(100.0, float(haze_pct or 0)))
-    res = max(1.0, float(resolution_m or 10))
+    res = parse_resolution_m(resolution_m)
 
     score = 100.0
     score -= (cloud or 0.0) * 1.25
     score -= shadow * 0.75
     score -= nodata * 1.50
     score -= haze * 0.50
-    if res > 10:
+    if res is not None and res > 10:
         score -= min(20.0, (res - 10.0) * 0.8)
 
     final = int(round(max(0.0, min(100.0, score))))
@@ -106,7 +117,9 @@ def score_scene_quality(
         factors.append("nodata_pct")
     if haze > 20:
         factors.append("haze_pct")
-    if res > 20:
+    if res is None:
+        factors.append("resolution_m_unknown")
+    elif res > 20:
         factors.append("resolution_m")
     grade = "A" if final >= 85 else "B" if final >= 70 else "C" if final >= 50 else "D"
     return SceneQuality(
@@ -129,7 +142,7 @@ def normalize_stac_item(item: dict[str, Any]) -> dict[str, Any]:
     if raw_cloud is None:
         raw_cloud = props.get("cloud_cover")
     cloud = parse_cloud_cover_pct(raw_cloud)
-    quality = score_scene_quality(cloud_pct=cloud)
+    quality = score_scene_quality(cloud_pct=cloud, resolution_m=props.get("gsd"))
     cog_assets = {
         name: asset.get("href")
         for name, asset in assets.items()

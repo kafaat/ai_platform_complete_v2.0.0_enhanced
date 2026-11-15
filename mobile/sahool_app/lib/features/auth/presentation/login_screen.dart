@@ -13,6 +13,7 @@ import 'package:sahool_app/core/theme/tokens.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/auth/data/auth_api.dart';
 
+import 'mfa_enrollment_step.dart';
 import 'widgets/otp_code_field.dart';
 
 /// رسالة فشل الدخول بلغة المستخدم، مشتقّة من نوع الفشل المقيس.
@@ -69,6 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // كُشِف حقل MFA بعد أن أعاد الخادم X-MFA-Required لهذه البيانات. عند ظهوره
   // يتحوّل الزرّ الرئيسيّ من «تسجيل الدخول» إلى «تحقّق» (يعيد النداء مع الرمز).
   bool _mfaRequired = false;
+  MfaEnrollmentRequiredException? _enrollmentChallenge;
 
   AuthApi get _api => widget.api ?? AuthApi.instance;
 
@@ -105,6 +107,15 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() {
           _mfaRequired = true;
+          _error = null;
+        });
+      }
+    } on MfaEnrollmentRequiredException catch (challenge) {
+      if (mounted) {
+        setState(() {
+          _enrollmentChallenge = challenge;
+          _mfaRequired = false;
+          _mfaCode.clear();
           _error = null;
         });
       }
@@ -172,6 +183,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final challenge = _enrollmentChallenge;
+    if (challenge != null) {
+      return MfaEnrollmentStep(
+        key: const ValueKey('login_mfa_enrollment'),
+        api: _api,
+        challenge: challenge,
+        onBackToLogin: () => setState(() {
+          _enrollmentChallenge = null;
+          _password
+              .clear(); // Reauthenticate; enrollment does not create a session.
+          _error = null;
+        }),
+      );
+    }
     final t = context.tokens;
     final styles = context.textStyles;
     final fieldStyle = styles.bodyLarge;

@@ -43,6 +43,9 @@ function riskTone(r?: string): Tone {
   return 'neutral';
 }
 
+// جودة ملاءمة الخطّ (linear_trend.fit_quality): غير خطّيّ ⇒ الميل وحده لا يصف المنحنى.
+const FIT_AR: Record<string, string> = { linear: 'خطّيّة', nonlinear: 'غير خطّيّة', undetermined: 'غير محدّدة' };
+
 // تاريخ مختصر للمحور (يوم/شهر) عبر المُنسّق الموحّد.
 const fmtAxis = (s?: string) => fmtDateAr(s, { day: 'numeric', month: 'short' });
 
@@ -60,7 +63,8 @@ export default function AnalyzeCabin() {
   const activeId = field?.id ?? '';
 
   // السلسلة الزمنيّة: متوسّطات COG الحقيقيّة (raster) أوّلاً، وإلّا سلسلة vegetation.
-  const rasterTsQ = useFieldTimeseries(activeId, 'ndvi', '');
+  // common_mask: الاتّجاه على البكسلات الصالحة في كلّ مشهد (لا يخلط تغيّر التغطية بالزمن).
+  const rasterTsQ = useFieldTimeseries(activeId, 'ndvi', '', { commonMask: true });
   const vegTsQ = useVegetationTimeseries(activeId, 90);
   const diseaseQ = useDiseaseRisk(activeId || undefined);
   const seasonsQ = useSeasons(activeId || undefined);
@@ -86,6 +90,9 @@ export default function AnalyzeCabin() {
   // اتّجاه السلسلة من raster-service (slope/direction) إن توفّر — لا نحسبه يدويّاً.
   const trend = rasterTsQ.data?.available ? rasterTsQ.data.trend : undefined;
   const trendDir = trend?.direction;
+  const commonMask = rasterTsQ.data?.available ? rasterTsQ.data.common_mask : undefined;
+  const coveragePct = typeof commonMask?.common_coverage_ratio === 'number'
+    ? Math.round(commonMask.common_coverage_ratio * 100) : null;
 
   // آخر قيمة فعليّة في السلسلة (للعدّاد) — % إن كانت ضمن [0,1].
   const latest = points.length ? points[points.length - 1] : undefined;
@@ -153,11 +160,15 @@ export default function AnalyzeCabin() {
           action={
             <span className="inline-flex items-center gap-2">
               {sourceLabel && <Badge tone="ok">{sourceLabel}</Badge>}
-              {trendDir === 'increasing' || trendDir === 'up' ? (
+              {trendDir === 'insufficient_common_coverage' ? (
+                <span data-testid="trend-insufficient" style={{ color: T.warn, fontSize: 11 }}>
+                  تغطية مشتركة غير كافية
+                </span>
+              ) : trendDir === 'improving' || trendDir === 'increasing' || trendDir === 'up' ? (
                 <span className="inline-flex items-center gap-1" style={{ color: T.ok, fontSize: 11 }}>
                   <TrendingUp style={{ width: 12, height: 12 }} /> صاعد
                 </span>
-              ) : trendDir === 'decreasing' || trendDir === 'down' ? (
+              ) : trendDir === 'declining' || trendDir === 'decreasing' || trendDir === 'down' ? (
                 <span className="inline-flex items-center gap-1" style={{ color: T.danger, fontSize: 11 }}>
                   <TrendingDown style={{ width: 12, height: 12 }} /> هابط
                 </span>
@@ -210,6 +221,18 @@ export default function AnalyzeCabin() {
                 </ResponsiveContainer>
               </div>
             </div>
+            {(coveragePct !== null || trend?.fit_quality) && (
+              <div data-testid="trend-quality" style={{ color: T.muted, fontSize: 11, marginTop: 6 }}>
+                {coveragePct !== null && (
+                  <span>
+                    الاتّجاه على {coveragePct}% من الحقل (بكسلات صالحة في {commonMask?.scenes_used ?? 0} مشهد
+                    {commonMask?.scenes_excluded ? `، استُبعد ${commonMask.scenes_excluded}` : ''})
+                  </span>
+                )}
+                {coveragePct !== null && trend?.fit_quality && ' · '}
+                {trend?.fit_quality && <span>ملاءمة الخطّ: {FIT_AR[trend.fit_quality] ?? trend.fit_quality}</span>}
+              </div>
+            )}
           </>
         )}
       </Card>

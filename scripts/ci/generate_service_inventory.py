@@ -19,9 +19,13 @@ import argparse
 import ast
 import csv
 import json
+import sys
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path, PurePath
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from api_versioning_policy_guard import UNMOUNTED_REFERENCE_FILES  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 SERVICES = ROOT / "services"
@@ -182,7 +186,7 @@ def decorator_route(dec: ast.AST) -> tuple[str, str] | None:
             and isinstance(kw.value.value, str)
         ):
             path = kw.value.value
-    if not path:
+    if path is None:
         path = "<dynamic>"
     return method, path
 
@@ -210,7 +214,7 @@ def registration_call_route(node: ast.AST) -> tuple[str, str, str] | None:
             and isinstance(kw.value.value, str)
         ):
             path = kw.value.value
-    if not path:
+    if path is None:
         return None
     handler = "<registered>"
     if node.args:
@@ -309,7 +313,8 @@ def discover() -> tuple[list[ServiceRow], list[RouteRow]]:
         test_files = [p for p in py_files if is_test_file(p, svc_dir)]
         svc_routes: list[RouteRow] = []
         for py in py_files:
-            svc_routes.extend(routes_for_file(svc_dir.name, py))
+            if not is_test_file(py, svc_dir) and rel(py) not in UNMOUNTED_REFERENCE_FILES:
+                svc_routes.extend(routes_for_file(svc_dir.name, py))
         route_rows.extend(svc_routes)
         main = "-"
         for candidate in [

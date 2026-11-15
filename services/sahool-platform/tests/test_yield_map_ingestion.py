@@ -143,7 +143,7 @@ def test_csv_parser_honors_explicit_column_mapping():
                     {
                         "type": "Feature",
                         "geometry": {"type": "Point", "coordinates": [44, 15]},
-                        "properties": {"yield_kg_ha": 0},
+                        "properties": {"yield_kg_ha": -1},
                     }
                 ],
             },

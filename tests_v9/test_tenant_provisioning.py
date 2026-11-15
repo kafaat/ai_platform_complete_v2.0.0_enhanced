@@ -57,6 +57,18 @@ def _provision_src() -> str:
     return src[start : (start + 1 + nxt.start()) if nxt else len(src)]
 
 
+def _provision_gate():
+    """The dependency actually wired on POST /v1/auth/tenants in the loaded app."""
+    route = next(
+        r
+        for r in main.app.routes
+        if getattr(r, "path", "") == "/v1/auth/tenants" and "POST" in getattr(r, "methods", ())
+    )
+    calls = [d.call for d in route.dependant.dependencies]
+    gate = next(c for c in calls if getattr(c, "__name__", "") == "require_platform_admin")
+    return gate
+
+
 # ── (د) نموذج الطلب: العميل لا يختار role/password/tenant_id ──────────
 @pytest.mark.unit
 class TestProvisionRequestModel:
@@ -81,26 +93,24 @@ class TestProvisionRequestModel:
 @pytest.mark.unit
 @pytest.mark.security
 class TestAdminOnlyGuard:
-    def test_handler_depends_on_require_role_admin(self):
-        """provision_tenant يعتمد require_role("admin") — مدير المنصّة فقط (غيره 403)."""
+    def test_handler_depends_on_the_fail_closed_platform_admin_gate(self):
+        """C-35: provision_tenant is gated by require_platform_admin, not a tenant role."""
         body = _provision_src()
-        assert 'require_role("admin")' in body, "النقطة غير محميّة بدور admin"
+        assert "Depends(require_platform_admin)" in body
+        assert 'require_role("admin")' not in body, "a tenant admin must not provision tenants"
 
-    def test_require_role_rejects_non_admin(self):
-        """require_role دالّة نقيّة: تُنشئ تابعاً يرفض الأدوار خارج المسموح بـ403."""
-        # require_role("admin") يبني فاحصاً؛ نتحقّق أنّ owner/expert ليسوا admin.
+    def test_platform_admin_gate_refuses_every_role(self):
+        """No role, including tenant admin/owner and a forged platform_admin claim, passes."""
         import asyncio
 
         from fastapi import HTTPException
 
-        checker = main.require_role("admin")
-        for role in ("owner", "expert", "farmer", "viewer", ""):
+        gate = _provision_gate()
+        for role in ("admin", "owner", "expert", "farmer", "viewer", "platform_admin", ""):
             with pytest.raises(HTTPException) as exc:
-                asyncio.run(checker(user={"role": role}))
+                asyncio.run(gate(user={"role": role, "sub": "1"}))
             assert exc.value.status_code == 403
-        # admin يمرّ
-        out = asyncio.run(checker(user={"role": "admin", "sub": "1"}))
-        assert out["role"] == "admin"
+            assert exc.value.detail["code"] == "platform_admin_required"
 
 
 # ── (ب) الدور 'owner' + مستأجِر جديد معزول (حارس مصدر) ────────────────

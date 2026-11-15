@@ -173,6 +173,9 @@ export interface WaterLabAnalysis {
     sodicity_sar?: WaterClassification;
   };
   hazard_flags_ar?: string[];
+  /** FAO-29 slight-to-moderate restrictions (absent on rows stored before the tier). */
+  restriction_flags_ar?: string[];
+  verdict?: 'suitable' | 'suitable_with_restrictions' | 'needs_treatment' | 'insufficient_data';
   suitable_ar?: string;
   missing_inputs?: string[];
   data_complete?: boolean;

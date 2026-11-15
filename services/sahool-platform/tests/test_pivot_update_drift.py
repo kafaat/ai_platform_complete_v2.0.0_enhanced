@@ -89,3 +89,26 @@ def test_request_irrigation_type_pivot_with_params_rederives():
     )
     assert derived is not None
     assert derived["type"] == "Polygon"
+
+
+def test_http_update_model_preserves_canonical_pivot_parameters():
+    from api.field_models import FieldUpdateRequest
+
+    req = FieldUpdateRequest(geometry=_RAW_POLYGON, **_PIVOT_PARAMS)
+    assert req.model_dump()["pivot"] == _PIVOT_PARAMS["pivot"]
+
+
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        {"radius_m": 0},
+        {"center": [42, 91]},
+        {"vertices": 2001},
+    ],
+)
+def test_supplied_invalid_pivot_parameters_are_rejected(invalid):
+    pivot = {**_PIVOT_PARAMS["pivot"], **invalid}
+    with pytest.raises(ValueError):
+        resolve_pivot_update_geometry(
+            {"geometry": _RAW_POLYGON, "pivot": pivot}, field_irrigation_type="pivot"
+        )

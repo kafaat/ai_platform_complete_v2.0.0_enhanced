@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 from core.crop_intelligence import CropIntelligenceInput, build_crop_intelligence_state
@@ -89,7 +90,13 @@ def crop_twin_state(
     canonical_gdd = dict(gdd_product or {})
     if canonical_gdd:
         raw_gdd = canonical_gdd.get("accumulated_gdd")
-        gdd_cum = float(raw_gdd) if isinstance(raw_gdd, (int, float)) else 0.0
+        gdd_available = (
+            isinstance(raw_gdd, (int, float))
+            and not isinstance(raw_gdd, bool)
+            and math.isfinite(raw_gdd)
+            and raw_gdd >= 0
+        )
+        gdd_cum = float(raw_gdd) if gdd_available else 0.0
         thresholds = canonical_gdd.get("thresholds_used") or {}
         phenology_method = thresholds.get("method") or "canonical_weather_gdd"
         phenology_formula_version = canonical_gdd.get("calculation_version")
@@ -97,15 +104,29 @@ def crop_twin_state(
         if canonical_gdd.get("gdd_lineage_id"):
             gdd_evidence_ids.append(str(canonical_gdd["gdd_lineage_id"]))
         gdd_limitations = list(canonical_gdd.get("limitations") or [])
+        if not gdd_available:
+            gdd_limitations.append("canonical_gdd_value_unavailable")
         if canonical_gdd.get("series_quality_status") in {"degraded", "insufficient"}:
             gdd_limitations.append(
                 f"canonical_gdd_series_{canonical_gdd.get('series_quality_status')}"
             )
     else:
         # Backward-compatible bridge only; callers should migrate to ``gdd_product``.
-        gdd_cum = sum(
-            float(value) for value in (gdd_daily_override or [])[: len(days)] if value is not None
+        # A missing, non-finite or negative day inside the window is not a 0 °C·day: the whole
+        # series is then unavailable rather than summed over the days that happened to be valid.
+        window = list(gdd_daily_override or [])[: len(days)]
+        compat_values = [
+            float(value)
+            for value in window
+            if isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and math.isfinite(value)
+            and value >= 0
+        ]
+        gdd_available = (
+            bool(window) and len(window) == len(days) and len(compat_values) == len(window)
         )
+        gdd_cum = sum(compat_values) if gdd_available else 0.0
         phenology_method = "weather_gdd_daily_override_compat"
         phenology_formula_version = "compat/daily-gdd-override"
         gdd_evidence_ids = []
@@ -142,6 +163,8 @@ def crop_twin_state(
     warnings_ar: list[str] = []
     if not known:
         warnings_ar.append("محصول غير مُعرّف — معاملات نموذج عامّة (موسومة)")
+    if not gdd_available:
+        warnings_ar.append("GDD غير متوفّر — المرحلة والنضج والامتصاص التراكمي غير محسوبة")
     if past_maturity:
         warnings_ar.append("تجاوز GDD النضج المتوقّع — قد يكون الموسم منتهياً")
     warnings_ar.extend(nut["warnings_ar"])
@@ -149,7 +172,7 @@ def crop_twin_state(
     crop_intelligence = build_crop_intelligence_state(
         CropIntelligenceInput(
             crop=crop_key or crop,
-            gdd_cumulative=gdd_cum,
+            gdd_cumulative=gdd_cum if gdd_available else None,
             gdd_to_maturity=gdd_mat,
             phenology_method=phenology_method,
             phenology_formula_version=phenology_formula_version,
@@ -161,11 +184,13 @@ def crop_twin_state(
                 "needs_irrigation": needs_irrigation,
             },
             nutrient_state={
-                "status": "estimated",
+                "status": "estimated" if gdd_available else "unavailable",
                 "target_uptake_kg_ha": nut["target_uptake_kg_ha"],
-                "stage": nut["matched_stage"],
-                "cumulative_fraction_to_date": nut["cumulative_fraction_to_date"],
-                "uptake_to_date_kg_ha": nut["uptake_to_date_kg_ha"],
+                "stage": nut["matched_stage"] if gdd_available else None,
+                "cumulative_fraction_to_date": (
+                    nut["cumulative_fraction_to_date"] if gdd_available else None
+                ),
+                "uptake_to_date_kg_ha": nut["uptake_to_date_kg_ha"] if gdd_available else None,
             },
             spectral_state=spectral_state,
             field_id=field_id,
@@ -186,11 +211,12 @@ def crop_twin_state(
         "crop": crop_key or (crop or None),
         "crop_known": known,
         "phenology": {
-            "gdd_cumulative": round(gdd_cum, 1),
+            "status": "available" if gdd_available else "unavailable",
+            "gdd_cumulative": round(gdd_cum, 1) if gdd_available else None,
             "gdd_to_maturity": gdd_mat,
-            "progress": round(progress, 4),
-            "stage": stage,
-            "past_maturity": past_maturity,
+            "progress": round(progress, 4) if gdd_available else None,
+            "stage": stage if gdd_available else None,
+            "past_maturity": past_maturity if gdd_available else None,
         },
         "water": {
             "taw_mm": round(rz.taw_mm, 2),
@@ -206,9 +232,11 @@ def crop_twin_state(
         },
         "nutrient": {
             "target_uptake_kg_ha": nut["target_uptake_kg_ha"],
-            "stage": nut["matched_stage"],
-            "cumulative_fraction_to_date": nut["cumulative_fraction_to_date"],
-            "uptake_to_date_kg_ha": nut["uptake_to_date_kg_ha"],
+            "stage": nut["matched_stage"] if gdd_available else None,
+            "cumulative_fraction_to_date": (
+                nut["cumulative_fraction_to_date"] if gdd_available else None
+            ),
+            "uptake_to_date_kg_ha": nut["uptake_to_date_kg_ha"] if gdd_available else None,
             # منحنى البطاقة المرحليّ (crop_card) أم المنحنى العامّ (generic) — والعنصر الذي يخصّه.
             "curve_source": nut["source"],
             "nutrient": nut["nutrient"],

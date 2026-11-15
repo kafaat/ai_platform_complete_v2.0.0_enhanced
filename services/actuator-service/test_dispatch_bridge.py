@@ -269,3 +269,264 @@ def test_device_gate_fails_closed_for_wrong_tenant_field_type_status_or_stale():
             now=now,
             stale_seconds=900,
         ) == (False, reason)
+
+
+def test_envelope_field_reaches_device_and_scoped_halt_checks():
+    raw = {"device_id": "valve", "command": "close", "field_id": "pivot"}
+    assert main._plan_dispatch_execution({"command_payload": raw}, allowlist={"low"}) == (
+        "send",
+        "valve",
+        "close",
+        {"field_id": "pivot"},
+    )
+    raw["payload"] = {"field_id": "east"}
+    assert main._plan_dispatch_execution({"command_payload": raw}, allowlist={"low"}) == (
+        "command_field_mismatch",
+    )
+
+
+def test_envelope_cannot_hide_nested_high_risk_even_as_json():
+    import json
+
+    raw = {
+        "device_id": "valve",
+        "command": "close",
+        "risk_level": "low",
+        "payload": {"risk_level": "high"},
+    }
+    for envelope in (raw, json.dumps(raw)):
+        assert main._plan_dispatch_execution({"command_payload": envelope}, allowlist={"low"}) == (
+            "refused_risk",
+            "high",
+        )
+
+
+def test_consumer_halts_only_the_addressed_field(monkeypatch):
+    import asyncio
+    from contextlib import asynccontextmanager
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    @asynccontextmanager
+    async def acquire():
+        yield object()
+
+    # OPEN is used here. Whether a CLOSE should pass a halted field is pending the owner's ruling
+    # on #1386; on this branch no caller passes command=, so a CLOSE is held like an OPEN.
+    rows = [
+        {
+            "execution_request_id": field,
+            "target_id": device,
+            "command_payload": {
+                "field_id": field,
+                "command": "open_valve",
+                "device_id": device,
+                "payload": {"duration_sec": 60},
+            },
+        }
+        for field, device in (("pivot-1", "valve-1"), ("pivot-2", "valve-2"))
+    ]
+    receipts = []
+
+    async def decision(client, method, path, tenant, json_body=None):
+        if method == "GET":
+            return SimpleNamespace(
+                status_code=200, json=lambda: {"items": [] if "recovery" in path else rows}
+            )
+        if path.endswith("/receipt"):
+            receipts.append(json_body["receipt_status"])
+        return SimpleNamespace(status_code=200)
+
+    async def halted(conn, tenant, *, field_id=None, valve_id=None, **_kwargs):
+        return field_id == "pivot-1", "field-stop"
+
+    publish = AsyncMock(return_value=True)
+    validate = AsyncMock(side_effect=lambda tenant, device, field: (True, "ok", field))
+    monkeypatch.setattr(main, "_pool", SimpleNamespace(acquire=acquire))
+    monkeypatch.setattr(main, "_decision_request", decision)
+    monkeypatch.setattr(main, "_validate_dispatch_device", validate)
+    monkeypatch.setattr(main, "is_actuation_halted", halted)
+    monkeypatch.setattr(main, "send_mqtt_command", publish)
+    monkeypatch.setattr(main, "ACTUATOR_DELIVERY_TOKEN_KEY", "fixture")
+    assert asyncio.run(main.run_dispatch_consumer_once(None, "tenant", allowlist={"low"})) == 2
+    assert [call.args[2] for call in validate.await_args_list] == ["pivot-1", "pivot-2"]
+    assert receipts == ["failed", "accepted"]
+    publish.assert_awaited_once()
+    assert publish.await_args.args[:2] == ("valve-2", "open_valve")
+
+
+def test_a_command_without_a_field_is_held_by_its_device_s_registered_field(monkeypatch):
+    # Review HIGH: decision without field_id + device-only plan + command without field_id.
+    # The consumer used to pass field_id=None to the scoped kill switch, so an OPEN was
+    # published to a valve installed in a halted field.
+    import asyncio
+    from contextlib import asynccontextmanager
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    @asynccontextmanager
+    async def acquire():
+        yield object()
+
+    rows = [
+        {
+            "execution_request_id": "r1",
+            "target_id": "valve-1",
+            "command_payload": {
+                "command": "open_valve",
+                "device_id": "valve-1",
+                "payload": {"duration_sec": 60},
+            },
+        }
+    ]
+    receipts = []
+
+    async def decision(client, method, path, tenant, json_body=None):
+        if method == "GET":
+            return SimpleNamespace(
+                status_code=200, json=lambda: {"items": [] if "recovery" in path else rows}
+            )
+        if path.endswith("/receipt"):
+            receipts.append(json_body["receipt_payload"].get("device_validation"))
+        return SimpleNamespace(status_code=200)
+
+    scopes = []
+
+    async def halted(conn, tenant, *, field_id=None, valve_id=None, **_kwargs):
+        scopes.append(field_id)
+        return field_id == "pivot-1", "field-stop"
+
+    publish = AsyncMock(return_value=True)
+    monkeypatch.setattr(main, "_pool", SimpleNamespace(acquire=acquire))
+    monkeypatch.setattr(main, "_decision_request", decision)
+    monkeypatch.setattr(
+        main, "_validate_dispatch_device", AsyncMock(return_value=(True, "ok", "pivot-1"))
+    )
+    monkeypatch.setattr(main, "is_actuation_halted", halted)
+    monkeypatch.setattr(main, "send_mqtt_command", publish)
+    monkeypatch.setattr(main, "ACTUATOR_DELIVERY_TOKEN_KEY", "fixture")
+    asyncio.run(main.run_dispatch_consumer_once(None, "tenant", allowlist={"low"}))
+    assert scopes[-1] == "pivot-1"
+    assert receipts == ["killswitch:field-stop"]
+    publish.assert_not_awaited()
+
+
+def test_device_validation_reports_the_registered_field():
+    # _validate_dispatch_device reads the iot_devices row under tenant RLS and returns this
+    # pure verdict for it; the verdict is what decides the field a field-less command is held by.
+    from datetime import UTC, datetime
+
+    now = datetime.now(UTC)
+    record = {
+        "device_id": "valve-1",
+        "tenant_id": "tenant",
+        "type": "actuator",
+        "field_id": " pivot-1 ",
+        "status": "online",
+        "last_seen_at": now,
+    }
+    gate = dict(tenant_id="tenant", now=now, stale_seconds=900)
+    assert main._device_dispatch_verdict(record, field_id=None, **gate) == (True, "ok", "pivot-1")
+    assert main._device_dispatch_verdict(record, field_id="pivot-2", **gate) == (
+        False,
+        "device_field_mismatch",
+        "pivot-1",
+    )
+    assert main._device_dispatch_verdict({**record, "field_id": "  "}, field_id=None, **gate) == (
+        True,
+        "ok",
+        None,
+    )
+    assert main._device_dispatch_verdict(None, field_id=None, **gate) == (
+        False,
+        "device_not_found",
+        None,
+    )
+
+
+def _run_consumer_with(monkeypatch, command, device_field, halted_field=None):
+    """Drive run_dispatch_consumer_once with one queued request; returns (receipts, publish)."""
+    import asyncio
+    from contextlib import asynccontextmanager
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    @asynccontextmanager
+    async def acquire():
+        yield object()
+
+    rows = [
+        {
+            "execution_request_id": "r1",
+            "target_id": "valve-1",
+            "command_payload": {
+                "command": command,
+                "device_id": "valve-1",
+                "payload": {"duration_sec": 60},
+            },
+        }
+    ]
+    receipts = []
+
+    async def decision(client, method, path, tenant, json_body=None):
+        if method == "GET":
+            return SimpleNamespace(
+                status_code=200, json=lambda: {"items": [] if "recovery" in path else rows}
+            )
+        if path.endswith("/receipt"):
+            receipts.append(json_body["receipt_payload"].get("device_validation"))
+        return SimpleNamespace(status_code=200)
+
+    async def halted(conn, tenant, *, field_id=None, valve_id=None, **_kwargs):
+        return (halted_field is not None and field_id == halted_field), "field-stop"
+
+    publish = AsyncMock(return_value=True)
+    monkeypatch.setattr(main, "_pool", SimpleNamespace(acquire=acquire))
+    monkeypatch.setattr(main, "_decision_request", decision)
+    monkeypatch.setattr(
+        main, "_validate_dispatch_device", AsyncMock(return_value=(True, "ok", device_field))
+    )
+    monkeypatch.setattr(main, "is_actuation_halted", halted)
+    monkeypatch.setattr(main, "send_mqtt_command", publish)
+    monkeypatch.setattr(main, "ACTUATOR_DELIVERY_TOKEN_KEY", "fixture")
+    asyncio.run(main.run_dispatch_consumer_once(None, "tenant", allowlist={"low"}))
+    return receipts, publish
+
+
+def test_an_opening_command_to_a_device_with_no_registered_field_is_refused(monkeypatch):
+    # Independent re-check (SAHOOL session), gap 1: neither the command nor the registry named
+    # a field, so no field kill switch could hold the OPEN; it was accepted and published.
+    receipts, publish = _run_consumer_with(monkeypatch, "open_valve", device_field=None)
+    assert receipts == ["dispatch_field_unbound"]
+    publish.assert_not_awaited()
+
+
+def test_a_close_to_a_device_with_no_registered_field_is_still_published(monkeypatch):
+    receipts, publish = _run_consumer_with(monkeypatch, "close_valve", device_field=None)
+    assert receipts == ["ok"]
+    publish.assert_awaited_once()
+
+
+def test_field_ids_that_differ_only_by_whitespace_match_the_gate_and_the_kill_switch():
+    # Independent re-check, gap 2: a registry value "pivot-1 " and a halt on "pivot-1 " let an
+    # OPEN through because the gate and match_killswitch compared raw strings.
+    from datetime import UTC, datetime
+
+    from shared.actuation_killswitch import match_killswitch
+
+    now = datetime.now(UTC)
+    record = {
+        "tenant_id": "t",
+        "type": "actuator",
+        "field_id": "pivot-1 ",
+        "status": "online",
+        "last_seen_at": now,
+    }
+    ok, reason = main._device_dispatch_gate(
+        record, tenant_id="t", field_id="pivot-1", now=now, stale_seconds=600
+    )
+    assert (ok, reason) == (True, "ok")
+    halted, _ = match_killswitch(
+        [{"scope": "field", "field_id": "pivot-1 ", "active": True}], field_id="pivot-1"
+    )
+    assert halted

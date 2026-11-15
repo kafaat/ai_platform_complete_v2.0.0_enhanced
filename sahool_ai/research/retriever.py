@@ -231,11 +231,8 @@ def qdrant_rag(params: dict, timeout: float = 10.0) -> dict:
             "عجز الأمطار عن 80 مم/شهر يستدعي زيادة دورات الري الاصطناعي.",
             "التأخّر في الري أكثر من 3 أيام يُسرّع تراجع NDVI خلال موسم الجفاف.",
         ],
-        "sources": [
-            "agronomic_guidelines_v3",
-            "yemen_field_trials_2025",
-            "fao_irrigation_manual",
-        ],
+        "sources": [],
+        "evidence_mode": "simulation",
         "confidence": 0.82,
     }
 

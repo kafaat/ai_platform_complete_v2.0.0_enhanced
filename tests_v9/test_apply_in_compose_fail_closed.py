@@ -39,6 +39,12 @@ def _workspace(tmp_path: Path, *, ready: bool) -> Path:
     (mig / "v001.sql").write_text("select 1;\n", encoding="utf-8")
     (mig / "v206_rls_final_hardening.sql").write_text("select 1;\n", encoding="utf-8")
     (mig / "MANIFEST.txt").write_text("v001.sql\nv206_rls_final_hardening.sql\n", encoding="utf-8")
+    # The script feeds the scout grant-admin helper to psql after the roles (MIG_DIR/helpers).
+    (mig / "helpers").mkdir()
+    helper = "provision_scout_photo_grant_admin.psql"
+    (mig / "helpers" / helper).write_text(
+        (ROOT / "migrations" / "helpers" / helper).read_text(encoding="utf-8"), encoding="utf-8"
+    )
     log = tmp_path / "psql.log"
     log.write_text("", encoding="utf-8")
     _fake(tmp_path / "pg_isready", "exit 0\n" if ready else "exit 2\n")

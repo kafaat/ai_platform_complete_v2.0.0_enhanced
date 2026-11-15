@@ -6,9 +6,16 @@ describe('MapIndicatorLegend', () => {
   it('renders indicator name + semantic high/low labels for a known indicator', () => {
     const { container } = render(<MapIndicatorLegend index="ndvi" vmin={-0.2} vmax={0.9} />);
     expect(container.textContent).toContain('NDVI');
-    expect(container.textContent).toContain('غطاء صحّي');
-    expect(container.textContent).toContain('تربة عارية');
+    expect(container.textContent).toContain('إشارة غطاء نباتي أعلى');
+    expect(container.textContent).toContain('إشارة غطاء نباتي أدنى');
     expect(container.textContent).toContain('0.9');
+  });
+
+  it('labels NDRE values without assigning a nitrogen diagnosis', () => {
+    const { container } = render(<MapIndicatorLegend index="ndre" vmin={-0.1} vmax={0.6} />);
+    expect(container.textContent).toContain('قيمة NDRE أعلى');
+    expect(container.textContent).toContain('قيمة NDRE أدنى');
+    expect(container.textContent).not.toContain('نيتروجين');
   });
 
   it('falls back to generic labels for an unknown indicator (no crash)', () => {
@@ -25,9 +32,9 @@ describe('MapIndicatorLegend', () => {
     expect(noVal.container.querySelector('[data-testid="indicator-legend-marker"]')).toBeNull();
   });
 
-  it('supports salinity-style indicators (high value = problem) via invert', () => {
+  it('labels the spectral salinity index without inferring measured soil salinity', () => {
     const { container } = render(<MapIndicatorLegend index="salinity" vmin={0} vmax={1} invert />);
-    expect(container.textContent).toContain('ملوحة مرتفعة');
-    expect(container.textContent).toContain('ملوحة منخفضة');
+    expect(container.textContent).toContain('مؤشّر الملوحة الطيفي');
+    expect(container.textContent).toContain('قيمة المؤشّر أدنى');
   });
 });

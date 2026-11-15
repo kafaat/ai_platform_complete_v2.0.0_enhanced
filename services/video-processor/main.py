@@ -13,6 +13,7 @@ import json
 import logging
 import os
 import socket
+import sys
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -26,6 +27,7 @@ from fastapi.security import HTTPAuthorizationCredentials as _Creds
 from fastapi.security import HTTPBearer as _Bearer
 from jwt import PyJWTError as _v_JE
 from pydantic import BaseModel, Field, field_validator
+from zlmedia_client import api_verdict
 
 from shared.security.access_tokens import decode_access_token
 
@@ -183,7 +185,18 @@ async def check_video_dependencies(timeout: float = 3.0) -> dict[str, dict[str, 
             r = await client.post(
                 f"{ZLMEDIA_API_URL.rstrip('/')}/index/api/getMediaList", json=_zlmedia_params()
             )
-            out["zlmediakit"] = {"ok": 200 <= r.status_code < 500, "status_code": r.status_code}
+            # ZLMediaKit يردّ رفضه بـHTTP 200 وcode ≠ 0 (-100 = سرّ خاطئ): ليس جاهزاً (VIDEO-02).
+            try:
+                body = r.json()
+            except ValueError:
+                body = None
+            accepted, code, _msg = api_verdict(body)
+            out["zlmediakit"] = {
+                "ok": r.status_code == 200 and accepted,
+                "status_code": r.status_code,
+            }
+            if code not in (None, 0):
+                out["zlmediakit"]["code"] = code
         except Exception as e:  # noqa: BLE001
             out["zlmediakit"] = {"ok": False, "error": type(e).__name__}
         # Edge inference: AI frame handoff. 404 is not OK; 401/403 means reachable but auth-gated.
@@ -198,11 +211,16 @@ async def check_video_dependencies(timeout: float = 3.0) -> dict[str, dict[str, 
 # ══════════════════════════════════════════════════════════════
 # Video Stream Manager
 # ══════════════════════════════════════════════════════════════
+# usb_index يصل cv2.VideoCapture كما هو: OpenCV يفكّ ``index // 100 * 100`` اختيارَ خلفيّةٍ
+# (200 = V4L2، 1900 = CAP_IMAGES) و-1 = «أيّ كاميرا». نحصره في فهرس جهازٍ صرف 0..63.
+USB_INDEX_MAX = 63
+
+
 class StreamConfig(BaseModel):
     stream_id: str
     rtsp_url: str | None = None
     http_url: str | None = None
-    usb_index: int | None = None
+    usb_index: int | None = Field(default=None, ge=0, le=USB_INDEX_MAX)
     field_id: str = "unknown"
     tenant_id: str = "default"
     ai_enabled: bool = True
@@ -230,6 +248,9 @@ class StreamState:
         self.status = "inactive"
         self.error_count = 0
         self.frame_count = 0
+        # مفتاح وكيل ZLMediaKit الذي أنشأه هذا البثّ؛ يُزال عند الإيقاف كي لا يبقى الوكيل
+        # يسحب الكاميرا ويُرفَض إنشاءُ المعرّف نفسه لاحقاً بـ«already exists».
+        self.zlm_proxy_key: str | None = None
 
 
 STREAMS: dict[str, StreamState] = {}
@@ -238,7 +259,7 @@ STREAMS: dict[str, StreamState] = {}
 # ══════════════════════════════════════════════════════════════
 # Frame Capture (OpenCV)
 # ══════════════════════════════════════════════════════════════
-def capture_frame(source: str) -> np.ndarray | None:
+def capture_frame(source: str | int) -> np.ndarray | None:
     """Capture a single frame from RTSP/HTTP/USB. Blocking — run in thread pool."""
     try:
         import cv2
@@ -255,7 +276,7 @@ def capture_frame(source: str) -> np.ndarray | None:
     return None
 
 
-async def async_capture(source: str) -> np.ndarray | None:
+async def async_capture(source: str | int) -> np.ndarray | None:
     return await asyncio.to_thread(capture_frame, source)
 
 
@@ -309,6 +330,46 @@ async def run_inference(frame: np.ndarray, cfg: StreamConfig) -> dict:
         return {"error": "edge_inference_unavailable"}
 
 
+_PROXY_EXISTS = "__exists__"
+
+
+def _usable_proxy_key(stream_id: str, status_code: int, body: object) -> str | None:
+    """مفتاح وكيل addStreamProxy المقبول، أو ``_PROXY_EXISTS``، أو None إن رُفض.
+
+    ``code == 0`` ⇒ مفتاح ``data.key``. رفضُ «already exists» لا يُعاد استخدامه كما هو:
+    الوكيل القائم قد يسحب مصدراً آخر (مستأجراً آخر أعاد استخدام المعرّف) — فيُعاد للمستدعي
+    ``_PROXY_EXISTS`` ليزيله ويُنشئه بعنوان هذا البثّ. أيّ رفضٍ آخر ⇒ None (RTSP مباشر)."""
+    if status_code != 200:
+        return None
+    accepted, _code, msg = api_verdict(body)
+    if accepted:
+        data = body.get("data") if isinstance(body, dict) else None
+        key = data.get("key") if isinstance(data, dict) else None
+        return str(key) if key else f"__defaultVhost__/live/{stream_id}"
+    if "already exists" in str(msg or "").lower():
+        return _PROXY_EXISTS
+    return None
+
+
+async def _open_zlm_proxy(client: httpx.AsyncClient, stream_id: str, rtsp_url: str) -> str | None:
+    """يفتح وكيل ZLMediaKit لهذا البثّ بعنوانه هو. وكيلٌ قائمٌ بالمعرّف نفسه لا تتبّعه هذه
+    العمليّة (STREAMS في الذاكرة) فهو يتيم من تشغيلٍ سابق ⇒ يُزال ثمّ يُعاد إنشاؤه مرّةً
+    واحدة؛ فلا يُستعمل أبداً مصدرٌ لم يطلبه هذا البثّ."""
+    base = ZLMEDIA_API_URL.rstrip("/")
+    params = _zlmedia_params(vhost="__defaultVhost__", app="live", stream=stream_id, url=rtsp_url)
+    r = await client.post(f"{base}/index/api/addStreamProxy", json=params)
+    key = _usable_proxy_key(stream_id, r.status_code, r.json() if r.status_code == 200 else None)
+    if key != _PROXY_EXISTS:
+        return key
+    stale = f"__defaultVhost__/live/{stream_id}"
+    d = await client.post(f"{base}/index/api/delStreamProxy", json=_zlmedia_params(key=stale))
+    if d.status_code != 200 or not api_verdict(d.json())[0]:
+        return None
+    r = await client.post(f"{base}/index/api/addStreamProxy", json=params)
+    key = _usable_proxy_key(stream_id, r.status_code, r.json() if r.status_code == 200 else None)
+    return None if key == _PROXY_EXISTS else key
+
+
 # ══════════════════════════════════════════════════════════════
 # Stream Processing Loop
 # ══════════════════════════════════════════════════════════════
@@ -317,22 +378,14 @@ async def process_stream_loop(stream_id: str):
     cfg = state.config
 
     # Determine source
-    source = cfg.rtsp_url or cfg.http_url or str(cfg.usb_index or 0)
+    source = cfg.rtsp_url or cfg.http_url or (cfg.usb_index if cfg.usb_index is not None else 0)
     if cfg.rtsp_url and cfg.rtsp_url.startswith("rtsp://"):
         # If ZLMediaKit proxy available, use HTTP-FLV instead of raw RTSP
         try:
-            proxy_url = f"{ZLMEDIA_API_URL.rstrip('/')}/index/api/addStreamProxy"
             async with httpx.AsyncClient(timeout=10.0) as c:
-                r = await c.post(
-                    proxy_url,
-                    json=_zlmedia_params(
-                        vhost="__defaultVhost__",
-                        app="live",
-                        stream=stream_id,
-                        url=cfg.rtsp_url,
-                    ),
-                )
-                if r.status_code == 200:
+                key = await _open_zlm_proxy(c, stream_id, cfg.rtsp_url)
+                if key:
+                    state.zlm_proxy_key = key
                     source = f"{ZLMEDIA_API_URL.rstrip('/')}/live/{stream_id}.live.flv"
                     logger.info(f"[{stream_id}] ZLMediaKit proxy active: {source}")
         except Exception as e:  # noqa: BLE001
@@ -496,7 +549,7 @@ class CreateStreamRequest(BaseModel):
     )  # MED-VIDEO-03
     rtsp_url: str | None = None
     http_url: str | None = None
-    usb_index: int | None = None
+    usb_index: int | None = Field(default=None, ge=0, le=USB_INDEX_MAX)
     field_id: str = "unknown"
     tenant_id: str = "default"
     ai_enabled: bool = True
@@ -520,6 +573,11 @@ class CreateStreamRequest(BaseModel):
 # يُستدعى في النهاية بعد app وكلّ التبعيّات المشتركة كي تُحلّ الاستيرادات الدائريّة
 # (وحدات routers تستورد رموزاً من main عبر main.X).
 # ══════════════════════════════════════════════════════════════
+# التشغيل المباشر (python main.py): routers تستورد «main» فتُنفَّذ الوحدة ثانيةً بحالةٍ
+# منفصلة (STREAMS/app) ما لم تُشارِك هذه الوحدة نفسها — نمط soil-service (SOIL-01).
+if __name__ == "__main__":
+    sys.modules["main"] = sys.modules[__name__]
+
 from router_registry import register_routers  # noqa: E402
 
 register_routers(app)

@@ -19,6 +19,7 @@ import logging
 from core.api_adapter import ApiRequest, handle_recommendation_request
 from core.outcome_reconciler import (
     OutcomeLabelConflict,
+    authoritative_outcome_label_refusal,
     recommendation_outcome_write_action,
     reconcile_recommendation_outcome_labels,
 )
@@ -53,14 +54,19 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.recommendations_hub import (
+    jsonb_text as _jsonb,
+)
+from api.recommendations_hub import (
+    recommendation_issued_at,
+    with_persisted_flag,
+)
+from api.recommendations_hub import (
+    record_canonical_context as _record_canonical_context,
+)
 
 router = APIRouter()
 logger = logging.getLogger("sahool.recommendations")
-
-
-def _jsonb(value) -> str:
-    """تسلسل آمن لحقل JSONB (يقبل None ⇒ {})."""
-    return json.dumps(value or {}, ensure_ascii=False, default=str)
 
 
 def _numeric_indicator_map(raw: dict | None) -> dict:
@@ -84,30 +90,16 @@ def _numeric_indicator_map(raw: dict | None) -> dict:
     return values
 
 
-def _record_canonical_context(enriched: dict, canonical_context: dict) -> None:
-    """File the canonical context as decision EVIDENCE, never as a feature.
-
-    Its home is ``provenance.input_snapshot`` — the persisted record of what was read
-    when the decision was made. It must not enter ``current_indicators``: every
-    consumer of that map coerces values with ``float()`` and compares them key by key,
-    so a nested object there does not raise — it silently changes what similarity,
-    ranking and clustering measure.
-    """
-    provenance = enriched.setdefault("provenance", {})
-    if not isinstance(provenance, dict):
-        return
-    input_snapshot = provenance.setdefault("input_snapshot", {})
-    if isinstance(input_snapshot, dict):
-        input_snapshot["canonical_agronomic_context"] = canonical_context
-
-
 async def _persist_recommendation_on_connection(
     conn, user: UserSchema, req: RecommendationRequest, enriched: dict
-) -> None:
-    """Persist one recommendation and its outbox event on an existing connection."""
+) -> bool:
+    """Persist one recommendation and its outbox event on an existing connection.
+
+    Returns whether a row was written (``False`` only when there is no ``rec_id``).
+    """
     rec_id = enriched.get("rec_id")
     if not rec_id:
-        return
+        return False
     await conn.execute(
         """INSERT INTO recommendations
             (rec_id, tenant_id, farm_id, field_id, crop, delivered,
@@ -124,7 +116,7 @@ async def _persist_recommendation_on_connection(
         _jsonb(enriched.get("base_recommendation")),
         _jsonb(enriched.get("cross_reference")),
         _jsonb(enriched.get("provenance")),
-        enriched.get("timestamp") or None,
+        recommendation_issued_at(enriched.get("timestamp")),
     )
     await _emit_domain_event(
         conn,
@@ -138,27 +130,32 @@ async def _persist_recommendation_on_connection(
             "crop": getattr(req, "crop", None),
         },
     )
+    return True
 
 
 async def _persist_recommendation(
     user: UserSchema, req: RecommendationRequest, enriched: dict, *, conn=None
-) -> None:
+) -> bool:
     """Store the recommendation and outbox event, reusing ``conn`` when supplied.
 
     The optional connection lets callers bind persisted Source-of-Truth reads and
     the recommendation write to one tenant-scoped transaction/snapshot. Failures
-    remain best-effort and do not break the already-computed HTTP response.
+    remain best-effort and do not break the already-computed HTTP response, but they
+    are no longer silent: the return value says whether the row was written, and the
+    endpoints report it as ``persisted`` so a 200 never implies a stored record.
     """
     if not enriched.get("rec_id"):
-        return
+        return False
     try:
         if conn is not None:
-            await _persist_recommendation_on_connection(conn, user, req, enriched)
-            return
+            # A savepoint keeps a failed INSERT from aborting the caller's transaction.
+            async with conn.transaction():
+                return await _persist_recommendation_on_connection(conn, user, req, enriched)
         async with tenant_connection(user) as owned_conn:
-            await _persist_recommendation_on_connection(owned_conn, user, req, enriched)
+            return await _persist_recommendation_on_connection(owned_conn, user, req, enriched)
     except Exception:  # noqa: BLE001 — تدقيق أفضل-جهد لا يكسر المسار الحرج
         logger.warning("recommendation persist/audit failed (best-effort)", exc_info=True)
+        return False
 
 
 async def _run_guarded_runtime_pipeline(user, req, api_req) -> JSONResponse | None:
@@ -241,7 +238,8 @@ async def recommendations(
     """نقطة التوصية الجوهرية — تستخدم api_adapter كاملاً.
 
     C1/C2: بعد الحساب تُخزَّن التوصية + يُصدَر RECOMMENDATION_CREATED (أفضل-جهد، لا يكسر
-    الاستجابة) ⇒ تصبح متتبَّعة/مدقَّقة ويُجلب شرحها بـrec_id. جسم HTTP لم يتغيّر."""
+    الاستجابة) ⇒ تصبح متتبَّعة/مدقَّقة ويُجلب شرحها بـrec_id. S-H2: يحمل الجسم الآن
+    ``persisted`` — صادقاً عمّا كُتِب فعلاً؛ ``delivered: true`` وحده لا يعني صفّاً محفوظاً."""
     # تحقّق tenant isolation
     if req.tenant_id != user.tenant_id:
         raise HTTPException(status_code=403, detail="Cross-tenant recommendation request forbidden")
@@ -254,9 +252,12 @@ async def recommendations(
     )
     resp = handle_recommendation_request(api_req)
     enriched = getattr(resp, "enriched", None)
-    if enriched:
-        await _persist_recommendation(user, req, enriched)
-    return JSONResponse(status_code=resp.status_code, content=resp.body)
+    if not enriched:
+        return JSONResponse(status_code=resp.status_code, content=resp.body)
+    persisted = await _persist_recommendation(user, req, enriched)
+    return JSONResponse(
+        status_code=resp.status_code, content=with_persisted_flag(resp.body, persisted)
+    )
 
 
 @router.post("/api/v1/recommendations/for-field")
@@ -356,6 +357,7 @@ async def recommendations_for_field(
 
     resp = handle_recommendation_request(api_req)
     enriched = getattr(resp, "enriched", None)
+    persisted = False
     if enriched:
         # A failed load degrades HONESTLY: the response still carries the context key,
         # carrying an explicit limitation. Omitting the key on failure would make
@@ -367,20 +369,20 @@ async def recommendations_for_field(
         }
         try:
             async with tenant_connection(user) as conn:
-                persisted = await load_agronomic_context(conn, field_id=req.field_id)
+                stored_context = await load_agronomic_context(conn, field_id=req.field_id)
                 candidates = []
-                if persisted.get("phenology") is not None:
-                    candidates.append(_asdict(_consume_phenology(persisted["phenology"])))
-                if persisted.get("salinity") is not None:
-                    candidates.append(_asdict(_consume_salinity(persisted["salinity"])))
-                if persisted.get("nutrients") is not None:
+                if stored_context.get("phenology") is not None:
+                    candidates.append(_asdict(_consume_phenology(stored_context["phenology"])))
+                if stored_context.get("salinity") is not None:
+                    candidates.append(_asdict(_consume_salinity(stored_context["salinity"])))
+                if stored_context.get("nutrients") is not None:
                     # Latest ledger only drives advice when fresh and built for this crop.
                     nutrients = _consume_nutrients(
-                        persisted["nutrients"], now=_dt.now(_UTC), crop_id=req.crop
+                        stored_context["nutrients"], now=_dt.now(_UTC), crop_id=req.crop
                     )
                     candidates.append(_asdict(nutrients))
                 canonical_context = {
-                    "season_id": persisted.get("season_id"),
+                    "season_id": stored_context.get("season_id"),
                     "candidates": candidates,
                     "source_state_digests": sorted(
                         item["source_state_digest"] for item in candidates
@@ -389,10 +391,15 @@ async def recommendations_for_field(
                 _record_canonical_context(enriched, canonical_context)
                 # Same connection ⇒ the recommendation row and its outbox event commit
                 # with the snapshot the lineage above was read from.
-                await _persist_recommendation(user, req, enriched, conn=conn)
+                persisted = await _persist_recommendation(user, req, enriched, conn=conn)
         except Exception:  # noqa: BLE001 — best-effort persistence remains non-fatal
             logger.warning("canonical context transaction failed", exc_info=True)
             _record_canonical_context(enriched, canonical_context)
+            # The row was written inside the transaction that just failed: it did not commit.
+            persisted = False
+        return JSONResponse(
+            status_code=resp.status_code, content=with_persisted_flag(resp.body, persisted)
+        )
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 
 
@@ -556,6 +563,29 @@ async def _server_outcome_labels(conn, req: OutcomeRecordRequest) -> dict:
         raise HTTPException(status_code=422, detail=e.detail) from e
 
 
+async def _cutover_outcome_labels(user, req: OutcomeRecordRequest) -> dict:
+    """S4 cutover: reconcile labels against the sealed recommendation before the only write.
+
+    The platform is read-only evidence until decision-service owns that projection: one
+    tenant read, no platform write. A contradicting prediction/maturity is 422 exactly as
+    pre-cutover; an unverified label never becomes authoritative learning truth; evidence
+    unavailable ⇒ 503 and no write, never a fall back to client labels.
+    """
+    try:
+        if not req.recommendation_id:  # nothing sealed to read: labels stay unverified
+            labels = await _server_outcome_labels(None, req)
+        else:
+            async with tenant_connection(user) as conn:
+                labels = await _server_outcome_labels(conn, req)
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise _db_unavailable("مصالحة تسميات النتيجة قبل القطع", exc) from exc
+    if refusal := authoritative_outcome_label_refusal(labels):
+        raise HTTPException(status_code=422, detail=refusal)
+    return labels
+
+
 @router.post("/api/v1/recommendations/outcomes", status_code=201)
 async def record_recommendation_outcome(
     req: OutcomeRecordRequest,
@@ -593,7 +623,9 @@ async def record_recommendation_outcome(
     mode = get_platform_decision_sor_mode()
 
     if mode.strict_decision_service_required:
-        # S4 end-state: exactly one authoritative write. No platform DB session is opened here.
+        # S4: decision-service is the sole WRITER. Labels are reconciled (read only) first.
+        labels = await _cutover_outcome_labels(user, req)
+        service_payload["metadata"].update(labels)
         service_result = await _mirror_recommendation_outcome_to_service(
             service_payload,
             tenant_id=str(user.tenant_id),

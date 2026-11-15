@@ -131,7 +131,7 @@ def test_ndvi_grid_from_raster_payload_real_and_synthetic():
         "valid_pixel_ratio": 0.9,
         "coverage_ratio": 0.82,
     }
-    grid, quality = fac._ndvi_grid_from_raster_payload(real)
+    grid, quality = fac.indicator_grid_from_payload(real)
     assert grid == _GRID
     assert quality["valid_pixel_ratio"] == 0.9
     assert quality["coverage_ratio"] == 0.82
@@ -140,11 +140,11 @@ def test_ndvi_grid_from_raster_payload_real_and_synthetic():
 
     # synthetic (real_data=False) ⇒ never forwarded (no fabricated evidence).
     synth = {"grid": _GRID, "real_data": False, "source": "simulation"}
-    assert fac._ndvi_grid_from_raster_payload(synth) == (None, None)
+    assert fac.indicator_grid_from_payload(synth) == (None, None)
     # malformed payloads degrade to no grid.
-    assert fac._ndvi_grid_from_raster_payload({"real_data": True, "grid": []}) == (None, None)
-    assert fac._ndvi_grid_from_raster_payload({"real_data": True}) == (None, None)
-    assert fac._ndvi_grid_from_raster_payload(None) == (None, None)
+    assert fac.indicator_grid_from_payload({"real_data": True, "grid": []}) == (None, None)
+    assert fac.indicator_grid_from_payload({"real_data": True}) == (None, None)
+    assert fac.indicator_grid_from_payload(None) == (None, None)
 
 
 # 5 ── fetch helper degrades safely on raster error (pack still built, no grid) ─

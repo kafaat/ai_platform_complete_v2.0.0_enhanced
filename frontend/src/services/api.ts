@@ -1,3 +1,4 @@
+import { fieldBoundary } from '../lib/fieldBoundary';
 // ═══════════════════════════════════════════════════════════════
 // SAHOOL v9.0 — Unified API Client
 // Compatibility facade: keep legacy imports stable while domain modules
@@ -70,7 +71,7 @@ export {
   deactivateUser,
 } from './api/auth';
 // إعادة التصدير أعلاه لا تربط الأسماء في نطاق هذه الوحدة — الواجهة تستخدمها داخليّاً.
-import { asApiError, apiErrorMessage } from './api/auth';
+import { asApiError } from './api/auth';
 import { getAccessToken } from '../lib/authStorage';
 export type {
   LoginPayload,
@@ -141,9 +142,11 @@ export const fetchTenantConfig = (): Promise<TenantConfig | null> =>
     .then((r) => (r.data && typeof r.data === 'object' ? r.data : null))
     .catch(() => null);
 
+/** أنواع مصدر الماء في WaterAnalysisRequest (Literal في الخادم) — لا نصّ حرّ. */
+export type WaterSourceKind = 'well' | 'canal' | 'mixed';
 export interface WaterSampleInput {
   sample_id: string;
-  source?: string;
+  source?: WaterSourceKind;
   na?: number | null; ca?: number | null; mg?: number | null;
   hco3?: number | null; co3?: number | null; cl?: number | null;
   ec_dsm?: number | null; ph?: number | null;
@@ -155,16 +158,37 @@ export interface WaterClass {
   hazard_ar?: string;
   note_ar?: string;
 }
+export interface WaterRestriction {
+  index: 'ec_dsm' | 'sar' | 'rsc_meq_l';
+  axis: 'salinity' | 'infiltration' | 'alkalinity';
+  value: number | null;
+  degree: 'slight_to_moderate' | 'severe';
+  standard: string;
+  reason_ar: string;
+}
 export interface WaterAnalysisResult {
   sample_id: string;
   source: string;
+  /** حسابٌ لا يُخزَّن ولا يُربط بحقل (false صريح؛ الخادم القديم لا يعيده). */
+  persisted?: false;
+  /** مؤشّرات مدخلاتها كاملة لكن تعذّر حسابها (فيض عددي / Ca+Mg = 0) — ليست «بيانات ناقصة». */
+  indices_not_computable?: { index: 'sar' | 'rsc_meq_l'; reason: string; code?: string }[];
   indices: { sar: number | null; rsc_meq_l: number | null; ec_dsm: number | null; ph: number | null };
   classification: {
     salinity: WaterClass;
     alkalinity_rsc: WaterClass;
     sodicity_sar: WaterClass;
+    /** FAO-29 Table 1: SAR graded with ECw (degree none | slight_to_moderate | severe). */
+    infiltration_fao29?: WaterClass;
   };
   hazard_flags_ar: string[];
+  /** FAO-29 three degrees of restriction: suitable = none, suitable_with_restrictions =
+   *  slight-to-moderate (named in restriction_flags_ar), needs_treatment = severe. */
+  verdict?: 'suitable' | 'suitable_with_restrictions' | 'needs_treatment' | 'insufficient_data';
+  restrictions?: WaterRestriction[];
+  restriction_flags_ar?: string[];
+  advisories_ar?: string[];
+  not_assessed?: string[];
   suitable_ar: string;
   missing_inputs: string[];
   data_complete: boolean;
@@ -351,50 +375,15 @@ export interface EtcDualResult {
     soil_ece_source: string;
   };
 }
-function localEtcDualFallback(fieldId: string, payload: EtcDualInput): EtcDualResult {
-  const tMean = (payload.temp_max_c + payload.temp_min_c) / 2;
-  const et0 = Math.max(0, 0.0023 * (tMean + 17.8) * Math.sqrt(Math.max(0.1, payload.temp_max_c - payload.temp_min_c)) * Math.max(0, payload.solar_radiation_mj_m2 / 2.45));
-  const ndvi = payload.ndvi ?? null;
-  const kcbFromNdvi = ndvi == null ? null : Math.max(0.15, Math.min(1.15, 1.25 * ((ndvi - (payload.ndvi_bare ?? 0.15)) / Math.max(0.01, (payload.ndvi_full ?? 0.8) - (payload.ndvi_bare ?? 0.15)))));
-  const das = payload.days_after_planting ?? 45;
-  const kcb = kcbFromNdvi ?? Math.max(0.25, Math.min(1.05, 0.25 + das / 80));
-  const ks = payload.soil_ece && payload.soil_ece > 4 ? Math.max(0.55, 1 - (payload.soil_ece - 4) * 0.04) : 1;
-  const ke = Math.max(0.05, Math.min(0.25, (100 - payload.humidity_pct) / 500));
-  const kcDual = Math.min(1.35, kcb * ks + ke);
-  const etcDual = et0 * kcDual;
-  return {
-    et0_mm: Number(et0.toFixed(2)),
-    kcb: Number(kcb.toFixed(3)),
-    ks: Number(ks.toFixed(3)),
-    kc_max: 1.35,
-    kr: 1,
-    few: payload.fw ?? 0.35,
-    ke: Number(ke.toFixed(3)),
-    kc_dual: Number(kcDual.toFixed(3)),
-    etc_dual_mm: Number(etcDual.toFixed(2)),
-    etc_single_mm: Number((et0 * kcb * ks).toFixed(2)),
-    stage: 'client_fallback',
-    assumptions: ['حساب محلي مؤقت لأن قاعدة ETc الخلفية غير مفعّلة أو غير متاحة', 'فعّل DATABASE_URL في الخدمة الخلفية للاعتماد الإنتاجي'],
-    field_id: fieldId,
-    ndvi: { used: ndvi, source: ndvi == null ? 'not_provided' : 'manual_override', date: null },
-    inputs: { crop_id: 'unknown', days_after_planting: das, soil_ece: payload.soil_ece ?? 0, soil_ece_source: payload.soil_ece == null ? 'not_provided' : 'manual_override' },
-  };
-}
-
-export const computeFieldEtcDual = async (
+// ET0/ETc are owned by the backend weather and crop engines. A backend 503
+// must remain an explicit unavailable result: do not synthesize a different
+// ET0/ETc formula in the browser and present it as a field measurement.
+export const computeFieldEtcDual = (
   fieldId: string,
   payload: EtcDualInput,
-): Promise<EtcDualResult> => {
-  try {
-    return await kongApi.post<EtcDualResult>(`/api/v1/fields/${fieldId}/etc-dual`, payload).then(r => r.data);
-  } catch (e) {
-    const msg = apiErrorMessage(e, '');
-    if (msg.includes('DATABASE_URL') || msg.includes('القاعدة غير مفعّلة')) {
-      return localEtcDualFallback(fieldId, payload);
-    }
-    throw e;
-  }
-};
+): Promise<EtcDualResult> =>
+  kongApi.post<EtcDualResult>(`/api/v1/fields/${encodeURIComponent(fieldId)}/etc-dual`, payload)
+    .then(r => r.data);
 
 // ── توزيع ماء المزرعة (POST /api/v1/field-portfolio/allocate) ──
 // يوزّع ماء آبار محدودة على حقول متعدّدة وفق الأولويّة والحدّ الأدنى لكلّ حقل،
@@ -579,12 +568,16 @@ export interface SegmentFieldInput {
   mode:      SegmentationMode;
   field_id?: string;
   crop?:     string | null;
-  // صورة viewport اختيارية: عند زر تلقائي نحاول إرسال لقطة الخريطة كي يطبّق
-  // field-segmentation مؤشر ExG قبل SAM2. قد تفشل اللقطة مع مزوّدات بلا CORS.
-  image_base64?: string;
+  // تحسين الغطاء النباتيّ (ExG) يُطبَّق **خادميّاً** في sam2-inference على الصورة التي
+  // يقرؤها هو للـbbox (COG/STAC مُرجَع جغرافيّاً)، لا على لقطة من المتصفّح: لا يوجد حقل
+  // صورة في هذا العقد عمداً (لقطة الخريطة بلا مرجع جغرافيّ فلا تبلغ النموذج). النتيجة
+  // تُعلن ما طُبِّق فعلاً في metadata.preprocessing (exg | exg_low_confidence_fallback_original
+  // | none) وmetadata.low_confidence — والواجهة تعرض ذلك لا ما طلبته.
   preprocessing?: 'none' | 'exg' | 'auto_exg';
+  // عند غطاء نباتيّ منخفض: true ⇒ يُستدَلّ على الصورة الأصليّة بدل المُحسَّنة.
   fallback_to_original_on_low_exg?: boolean;
-  // تلميحات نقطيّة [lon, lat] للوضع الهجين (اختياريّة — النموذج يستخدمها كبذور).
+  // تلميحات نقطيّة [lon, lat] للوضع الهجين (الواجهة ترسل مركز الخريطة): الخادم يجعلها
+  // نقطة موجبة، ومع ExG يقيّد المربّع بمكوّن الغطاء النباتيّ الواقع تحت النقرة.
   hints?:    Array<[number, number]>;
 }
 // الردّ الناجح: مضلّع GeoJSON مُقترَح (إحداثيّات [lon, lat]) + ثقة اختياريّة وعلَم
@@ -2619,15 +2612,11 @@ export const cdseClipParams = (
     out.bbox_w = String(bbox[0]); out.bbox_s = String(bbox[1]);
     out.bbox_e = String(bbox[2]); out.bbox_n = String(bbox[3]);
   }
-  const ring = (() => {
-    const g = geometry as { type?: string; coordinates?: number[][][] } | undefined;
-    if (!g || !g.coordinates) return null;
-    if (g.type === 'Polygon') return g.coordinates[0] ?? null;
-    if (g.type === 'MultiPolygon') return (g.coordinates as unknown as number[][][][])[0]?.[0] ?? null;
-    return null;
-  })();
-  if (ring && ring.length >= 3) {
-    out.poly = ring.map((c) => `${c[0]},${c[1]}`).join(';');
+  const parts = fieldBoundary(geometry);
+  if (parts) {
+    out.poly = parts.map(part => part.map(ring =>
+      ring.map(([lat, lon]) => `${lon},${lat}`).join(';'),
+    ).join('|')).join('!');
   }
   return out;
 };
@@ -3583,8 +3572,10 @@ const MOCK_DASHBOARD = {
 // Inspired by OneSoil soil-sampling map best practice: point coordinates are first-class
 // data and the map layer reads the same API as forms/reports. No fabricated fallback.
 export type LabSampleKind = 'soil' | 'water';
-export type LabSampleStatus = 'planned' | 'collected' | 'submitted' | 'analyzed' | 'approved';
+export type LabSampleStatus = 'planned' | 'collected' | 'submitted' | 'analyzed' | 'requested' | 'sampled' | 'in_lab' | 'result_received' | 'approved' | 'published' | 'rejected' | 'cancelled';
 export interface LabSampleRecord {
+  sampling_plan_id?: string | null;
+  sampling_origin?: SamplingOrigin | null;
   sample_id: string;
   field_id: string;
   kind: LabSampleKind;
@@ -3606,7 +3597,18 @@ export interface LabSampleRecord {
   rsc_meq_l?: number | null;
   approved?: boolean;
 }
+export interface SamplingOrigin {
+  sampling_purpose?: 'fertility' | 'nitrate' | 'salinity' | 'orchard' | 'texture' | 'no_till';
+  location_id?: string;
+  composite?: boolean;
+  planned_depth_cm?: [number, number];
+  indicator_sources?: Record<string, {scene_id?: string; acquisition_date?: string; asset_id?: string}>;
+  point_id: string; zone_id: string; longitude: number; latitude: number; indicators: string[];
+}
 export interface LabSampleCreateInput {
+  idempotency_key?: string;
+  sampling_plan_id?: string;
+  sampling_origin?: SamplingOrigin;
   field_id: string;
   kind: LabSampleKind;
   latitude: number;
@@ -3615,10 +3617,17 @@ export interface LabSampleCreateInput {
   depth_cm_from?: number | null;
   depth_cm_to?: number | null;
   source?: string | null;
-  status?: LabSampleStatus;
+  status?: 'planned' | 'collected' | 'submitted';
   gps_accuracy_m?: number | null;
 }
+export type SoilECMethod = 'saturated_paste' | 'soil_water_1_1' | 'soil_water_1_2_5' | 'soil_water_1_5' | 'unspecified';
 export interface SoilLabResultInput {
+  idempotency_key?: string;
+  ec_extraction_method?: SoilECMethod;
+  observed_at?: string;
+  sand_pct?: number | null;
+  silt_pct?: number | null;
+  clay_pct?: number | null;
   sample_id: string;
   ph?: number | null;
   ec_dsm?: number | null;
@@ -3648,14 +3657,35 @@ export interface LabDecisionContext {
   warnings_ar: string[];
   recommendation_gate: 'allow' | 'needs_review' | string;
 }
+export interface LabReview {
+  results: { result_id: string; analyte: string; value_json: number | string | Record<string, unknown>; unit: string | null; method_code: string | null; observed_at: string }[];
+  can_approve: boolean;
+  can_publish: boolean;
+}
+// The review cycle is read through the sample list (one sample, include_review), not a
+// route of its own: the platform domain-route budget is already above its ceiling.
+export const fetchLabReview = (id: string): Promise<LabReview> =>
+  kongApi
+    .get<(LabSampleRecord & { review?: LabReview })[]>('/api/v1/lab/samples', { params: { sample_id: id, include_review: true } })
+    .then(r => {
+      const review = Array.isArray(r.data) ? r.data[0]?.review : undefined;
+      if (!review) throw new Error('lab review unavailable');
+      return review;
+    });
+export const transitionLabSample = (id: string, target: 'approved' | 'published', ids: string[]) =>
+  kongApi.post<LabSampleRecord>(`/api/v1/lab/samples/${encodeURIComponent(id)}/transition`, {
+    target_status: target, reviewed_result_ids: ids,
+  }).then(r => r.data);
 export const listLabSamples = (fieldId?: string): Promise<LabSampleRecord[]> =>
   kongApi
     .get<LabSampleRecord[]>('/api/v1/lab/samples', { params: fieldId ? { field_id: fieldId } : undefined })
     .then(r => Array.isArray(r.data) ? r.data : []);
-export const createLabSample = (payload: LabSampleCreateInput): Promise<LabSampleRecord> =>
-  kongApi.post<LabSampleRecord>('/api/v1/lab/samples', payload).then(r => r.data);
-export const submitSoilLabResult = (payload: SoilLabResultInput): Promise<SoilLabAnalysisResult> =>
-  kongApi.post<SoilLabAnalysisResult>('/api/v1/lab/soil-results', payload).then(r => r.data);
+export const createLabSample = ({ idempotency_key, ...payload }: LabSampleCreateInput): Promise<LabSampleRecord> =>
+  kongApi.post<LabSampleRecord>('/api/v1/lab/samples', payload,
+    idempotency_key ? { headers: { 'Idempotency-Key': idempotency_key } } : undefined).then(r => r.data);
+export const submitSoilLabResult = ({ idempotency_key, ...payload }: SoilLabResultInput): Promise<SoilLabAnalysisResult> =>
+  kongApi.post<SoilLabAnalysisResult>('/api/v1/lab/soil-results', payload,
+    idempotency_key ? { headers: { 'Idempotency-Key': idempotency_key } } : undefined).then(r => r.data);
 export const fetchLabDecisionContext = (fieldId: string): Promise<LabDecisionContext> =>
   kongApi.get<LabDecisionContext>(`/api/v1/fields/${encodeURIComponent(fieldId)}/lab-context`).then(r => r.data);
 

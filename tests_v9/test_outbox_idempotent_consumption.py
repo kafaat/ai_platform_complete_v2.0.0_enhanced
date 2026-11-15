@@ -174,7 +174,7 @@ async def test_claim_event_uses_consumer_name():
 def _worker_with_capture():
     published: list[tuple] = []
 
-    async def _publish(subject: str, payload: bytes) -> None:
+    async def _publish(subject: str, payload: bytes, msg_id: str | None = None) -> None:
         published.append((subject, payload))
 
     worker = OutboxWorker(pool=None, nats_publish_fn=_publish)
@@ -223,7 +223,7 @@ async def test_send_one_publish_failure_rolls_back_claim_atomic():
     """
     published: list = []
 
-    async def _failing_publish(subject: str, payload: bytes) -> None:
+    async def _failing_publish(subject: str, payload: bytes, msg_id: str | None = None) -> None:
         published.append((subject, payload))
         raise RuntimeError("NATS down")
 
@@ -247,7 +247,7 @@ async def test_send_one_retry_after_failure_can_reclaim_and_publish():
     published: list = []
     fail_first = {"n": 0}
 
-    async def _flaky_publish(subject: str, payload: bytes) -> None:
+    async def _flaky_publish(subject: str, payload: bytes, msg_id: str | None = None) -> None:
         fail_first["n"] += 1
         published.append(subject)
         if fail_first["n"] == 1:
@@ -287,7 +287,7 @@ async def test_send_one_failure_losing_lease_does_not_attribute_failure_or_dead_
                 return "INSERT 0 1"
             return await super().execute(sql, *args)
 
-    async def _failing_publish(subject: str, payload: bytes) -> None:
+    async def _failing_publish(subject: str, payload: bytes, msg_id: str | None = None) -> None:
         raise RuntimeError("NATS down after lease loss")
 
     worker = OutboxWorker(pool=None, nats_publish_fn=_failing_publish, max_retries=1)

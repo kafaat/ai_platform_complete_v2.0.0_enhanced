@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import sys
 import uuid
 from pathlib import Path
 from types import SimpleNamespace
@@ -531,7 +532,17 @@ def _load_service_module(name: str, rel: str):
     spec = importlib.util.spec_from_file_location(name, path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    # The service imports its sibling modules flat (e.g. ``jsonb_values``), as it does when
+    # run from its own directory; make that directory importable for this load only and drop
+    # the siblings it pulled in, so no other suite sees them under a bare name.
+    before = set(sys.modules)
+    sys.path.insert(0, str(path.parent))
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.path.remove(str(path.parent))
+        for key in set(sys.modules) - before:
+            sys.modules.pop(key, None)
     return module
 
 

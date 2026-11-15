@@ -1,3 +1,5 @@
+from datetime import UTC, datetime, timedelta
+
 from shared.continuous_learning_phase10 import (
     create_online_learning_update,
     decide_model_promotion,
@@ -15,6 +17,19 @@ def _records(n=12):
             "feature_id": f"feat_{i}",
             "entity_type": "field",
             "entity_id": f"field-{i % 3}",
+            # Explicit temporal lineage: a row without it is not trainable.
+            "tenant_id": "tenant-one",
+            "source_version": "fixture-source-v1",
+            "event_time": (datetime(2026, 6, 26, tzinfo=UTC) + timedelta(hours=i)).isoformat(),
+            "available_at": (
+                datetime(2026, 6, 26, tzinfo=UTC) + timedelta(hours=i, minutes=1)
+            ).isoformat(),
+            "ingested_at": (
+                datetime(2026, 6, 26, tzinfo=UTC) + timedelta(hours=i, minutes=2)
+            ).isoformat(),
+            "prediction_at": (
+                datetime(2026, 6, 26, tzinfo=UTC) + timedelta(hours=i, minutes=3)
+            ).isoformat(),
             "features": {"ndvi": 0.45 + i * 0.01, "etc_mm": 5 + i, "limitation_count": i % 2},
             "labels": {"operation_completed": i % 2 == 0, "net_benefit": 20 + i},
         }

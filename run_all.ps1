@@ -143,7 +143,7 @@ function Start-FrontendDev {
 
     if ((Test-Path $FrontendDir) -and (Get-Command npm -ErrorAction SilentlyContinue)) {
         Push-Location $FrontendDir
-        if (-not (Test-Path 'node_modules')) { npm install --legacy-peer-deps }
+        if (-not (Test-Path 'node_modules')) { npm install }
         $fe = @'
 VITE_API_URL=http://localhost:8000
 VITE_INDICATORS_URL=http://localhost:8091

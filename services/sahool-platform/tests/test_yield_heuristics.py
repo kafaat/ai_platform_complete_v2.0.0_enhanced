@@ -239,11 +239,12 @@ def test_build_features_event_without_timestamp_does_not_crash():
 # ─── estimate_yield: المحصول المجهول ───────────────────────────────────
 
 
-def test_estimate_yield_unknown_crop_returns_zeroed_estimate():
+def test_estimate_yield_unknown_crop_returns_unavailable_not_zero():
     f = LifecycleFeatures(field_id="f", crop="dragonfruit")
     est = estimate_yield(f)
     assert isinstance(est, YieldEstimate)
-    assert est.estimated_yield_kg_ha == 0
+    assert est.estimated_yield_kg_ha is None
+    assert est.yield_status == "unavailable_unrecognized_crop"
     assert est.yield_score == 0
     assert est.confidence == 0
     assert est.stress_level == StressLevel.NONE

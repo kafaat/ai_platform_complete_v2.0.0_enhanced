@@ -8,7 +8,7 @@ Extends the v61 zone-stratified planner with two more designs, selected by
 - ``hybrid``: zone strata (v61) plus grid infill up to the area-based target — combines
   stratification with coverage.
 
-Sample-count guidance is a documented agronomic rule of thumb (≈1 core per 2 ha, floor 3,
+Sample-count guidance is a documented agronomic rule of thumb (≈1 composite per 2 ha, floor 3,
 cap 20); it is advisory and always overridable. Proposal-only — nothing is persisted.
 Pure Python + stdlib.
 """
@@ -18,7 +18,56 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from shared.soil_sampling_guidance import COMPOSITE_PURPOSES, PURPOSE_GUIDANCE
+
 VALID_STRATEGIES = ("zone", "grid", "hybrid")
+
+
+def collection_protocol(params: dict[str, Any]) -> tuple[str, list[list[int]]]:
+    default = (
+        "salinity"
+        if str(params.get("lab_panel", "")).strip().lower() == "salinity"
+        else "fertility"
+    )
+    purpose = str(params.get("sampling_purpose", default)).strip().lower()
+    if purpose not in PURPOSE_GUIDANCE:
+        raise ValueError("unknown_sampling_purpose")
+    intervals = params.get("depth_intervals_cm", [])
+    if not isinstance(intervals, list):
+        raise ValueError("invalid_depth_intervals")
+    depths = []
+    for interval in intervals:
+        if not isinstance(interval, dict):
+            raise ValueError("invalid_depth_intervals")
+        top, bottom = interval.get("from_cm"), interval.get("to_cm")
+        if type(top) is not int or type(bottom) is not int or not 0 <= top < bottom:
+            raise ValueError("invalid_depth_intervals")
+        depths.append([top, bottom])
+    depths.sort()
+    if any(left[1] > right[0] for left, right in zip(depths, depths[1:], strict=False)):
+        raise ValueError("overlapping_depth_intervals")
+    return purpose, depths
+
+
+def prepare_collection(points, purpose, depths, strategy):
+    """Return one labelled bag per specified layer, or a location awaiting depth selection."""
+    bags = []
+    for point in points:
+        grid = strategy == "grid" or point["zone_id"] == "grid-infill"
+        unit = "خلية الشبكة حول الموضع" if grid else "المنطقة المحددة"
+        for depth in depths or [[]]:
+            bag = dict(point)
+            if len(depths) > 1:
+                bag["sample_id"] = f"{point['sample_id']}-d{depth[0]}-{depth[1]}"
+            bag.update(
+                depth_cm=depth,
+                sampling_purpose=purpose,
+                location_id=point["sample_id"],
+                composite=purpose in COMPOSITE_PURPOSES,
+                instructions_ar=f"وحدة الجمع: {unit}. {PURPOSE_GUIDANCE[purpose]}",
+            )
+            bags.append(bag)
+    return bags
 
 
 def recommended_samples_for_area(
@@ -74,11 +123,11 @@ def build_grid_samples(
             "productivity_class": "unknown",
             "priority": "normal",
             "point": {"type": "Point", "coordinates": p},
-            "depth_cm": [0, 30],
+            "depth_cm": [],
             "composite": True,
             "lab_panel": lab_panel,
             "analytes": analytes,
-            "instructions_ar": "خذ عينة مركبة من 8–12 نقطة صغيرة حول هذه النقطة، وتجنب الحواف ومسارات المركبات.",
+            "instructions_ar": PURPOSE_GUIDANCE["fertility"],
         }
         for i, p in enumerate(pts)
     ]

@@ -19,12 +19,15 @@ SAHOOL — services/field-segmentation/main.py
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
+import math
 import os
 
 import httpx
+import numpy as np
 from exg_preprocess import apply_exg_for_sam2
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -53,6 +56,11 @@ SEGMENTATION_BACKEND = os.getenv("SEGMENTATION_BACKEND", "").strip()
 SEGMENTATION_INFERENCE_URL = os.getenv("SEGMENTATION_INFERENCE_URL", "").strip()
 # مهلة استدعاء الاستدلال (ثوانٍ) — قابلة للضبط بيئيّاً.
 SEGMENTATION_TIMEOUT = float(os.getenv("SEGMENTATION_TIMEOUT", "30").strip() or "30")
+# أدنى مساحة مقبولة للمضلّع (م²) — تُحسب بإسقاطٍ محلّيّ متساوي المساحة حول خطّ عرض الحلقة،
+# لا بالدرجات (درجة الطول تنكمش بـcos(lat)). الافتراض 10 م² يطابق أرضيّة حفظ المنصّة
+# (MIN_FIELD_AREA_HA = 0.001 في services/sahool-platform/api/field_geometry_save_guard.py)
+# فلا يرفض التقطيعُ ما يقبله الحفظ، ويرفض شظايا الضجيج العشريّ وشبه المتسامتة.
+SEGMENTATION_MIN_AREA_M2 = float(os.getenv("SEGMENTATION_MIN_AREA_M2", "10").strip() or "10")
 
 app = FastAPI(title="SAHOOL Field Segmentation", version=VERSION)
 
@@ -103,8 +111,10 @@ class SegmentRequest(BaseModel):
     bbox: list[float] | None = None
     # مرجع الصورة (مسار/معرّف مشهد) — يقرؤه خطّاف النموذج (auto/hybrid).
     image_ref: str | None = None
-    # صورة RGB/PNG/JPEG اختيارية من واجهة الخريطة أو خدمة الصور. عند mode=auto
-    # وpreprocessing=exg تُحسَّن محليّاً قبل إرسالها إلى SAM2.
+    # Optional client imagery for custom backends only. With SAM2 the server reads its
+    # own georeferenced image (image_ref / STAC for the bbox) and runs ExG on it; a
+    # browser screenshot has no georeference, so it is accepted for compatibility
+    # with older web clients but never forwarded (metadata.client_image says so).
     image_base64: str | None = None
     preprocessing: str | None = Field(default=None, pattern="^(none|exg|auto_exg)$")
     fallback_to_original_on_low_exg: bool = True
@@ -127,12 +137,130 @@ def _coerce_ring(user_polygon: list[list[float]] | dict) -> list[list[float]]:
         coords = user_polygon.get("coordinates")
         if gtype != "polygon" or not isinstance(coords, list) or not coords:
             raise HTTPException(422, "GeoJSON غير صالح — يُتوقّع Polygon بإحداثيّات")
+        if len(coords) != 1:
+            raise HTTPException(422, "Polygon holes are not supported by segmentation")
         ring = coords[0]  # الحلقة الخارجيّة
     else:
         ring = user_polygon
     if not isinstance(ring, list):
         raise HTTPException(422, "حلقة الإحداثيّات غير صالحة")
     return ring
+
+
+_MAX_RING_VERTICES = 2048
+# متوسّط نصف قطر الأرض (IUGG) ⇒ أمتار لكلّ درجة على خطّ الطول/الاستواء.
+_M_PER_DEG = 6_371_008.8 * math.pi / 180.0
+# حجم دفعة الحواف في فحص التقاطع المتّجه (ذاكرة ثابتة ~ دفعة × عدد الحواف).
+_EDGE_CHUNK = 128
+
+
+def _drop_consecutive_duplicates(ring: list[list[float]]) -> list[list[float]]:
+    """Drop exact consecutive repeats (a double click), keeping the ring order.
+
+    Only *consecutive* duplicates are normalised; a vertex revisited later in the
+    ring (pinch point) is still rejected by _validate_ring_topology.
+    """
+    out: list[list[float]] = []
+    for pt in ring:
+        if not out or pt != out[-1]:
+            out.append(pt)
+    return out
+
+
+def _ring_area_m2(vertices: list[list[float]]) -> tuple[float, float]:
+    """(signed twice-area in degrees², area in m² on a local equal-area projection)."""
+
+    def cross(a, b, c):
+        return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+
+    # Translate to the first vertex before calculating area to avoid cancellation
+    # for small fields located far from the coordinate origin.
+    area2 = sum(
+        cross(vertices[0], vertices[i], vertices[i + 1]) for i in range(1, len(vertices) - 1)
+    )
+    mean_lat = sum(p[1] for p in vertices) / len(vertices)
+    # Sinusoidal-style local scaling: x shrinks by cos(lat), y does not ⇒ equal-area.
+    area_m2 = abs(area2) / 2.0 * _M_PER_DEG * _M_PER_DEG * math.cos(math.radians(mean_lat))
+    return area2, area_m2
+
+
+def _ring_edges_intersect(ring: list[list[float]]) -> bool:
+    """Vectorised exact edge-pair test (same float64 predicates as the scalar loop).
+
+    Non-adjacent edges i<j (j >= i+2, except the first/last pair which share the
+    closing vertex) intersect when they cross properly or one endpoint lies on the
+    other segment (collinear touch/overlap). NumPy evaluates the very same IEEE-754
+    expressions as the former pure-Python O(n²) loop in C (releasing the GIL), after
+    an exact bounding-box prefilter, so the verdict is bit-identical but far cheaper.
+    """
+    pts = np.asarray(ring, dtype=np.float64)
+    n = len(pts) - 1
+    a_all, b_all = pts[:-1], pts[1:]
+    lo, hi = np.minimum(a_all, b_all), np.maximum(a_all, b_all)  # edge bounding boxes
+    idx = np.arange(n)
+
+    def cross(p, q, r):
+        return (q[:, 0] - p[:, 0]) * (r[:, 1] - p[:, 1]) - (q[:, 1] - p[:, 1]) * (r[:, 0] - p[:, 0])
+
+    def on_segment(p, q, r):
+        return (
+            (np.minimum(p[:, 0], q[:, 0]) <= r[:, 0])
+            & (r[:, 0] <= np.maximum(p[:, 0], q[:, 0]))
+            & (np.minimum(p[:, 1], q[:, 1]) <= r[:, 1])
+            & (r[:, 1] <= np.maximum(p[:, 1], q[:, 1]))
+        )
+
+    for start in range(0, max(0, n - 2), _EDGE_CHUNK):
+        rows = idx[start : start + _EDGE_CHUNK]
+        cols = idx[start + 2 :]
+        # Pairs whose bounding boxes are disjoint can neither cross nor touch, so
+        # this prefilter is exact; only overlapping pairs reach the predicates.
+        candidate = (
+            (cols[None, :] >= rows[:, None] + 2)
+            & (lo[rows, None, 0] <= hi[None, cols, 0])
+            & (lo[None, cols, 0] <= hi[rows, None, 0])
+            & (lo[rows, None, 1] <= hi[None, cols, 1])
+            & (lo[None, cols, 1] <= hi[rows, None, 1])
+        )
+        if start == 0:
+            candidate[0, cols == n - 1] = False  # neighbours sharing the closing vertex
+        ri, ci = np.nonzero(candidate)
+        if not ri.size:
+            continue
+        i, j = rows[ri], cols[ci]
+        a, b, c, d = a_all[i], b_all[i], a_all[j], b_all[j]
+        ac, ad, ca, cb = cross(a, b, c), cross(a, b, d), cross(c, d, a), cross(c, d, b)
+        hit = (
+            ((ac * ad < 0) & (ca * cb < 0))
+            | ((ac == 0) & on_segment(a, b, c))
+            | ((ad == 0) & on_segment(a, b, d))
+            | ((ca == 0) & on_segment(c, d, a))
+            | ((cb == 0) & on_segment(c, d, b))
+        )
+        if bool(hit.any()):
+            return True
+    return False
+
+
+def _validate_ring_topology(ring: list[list[float]]) -> None:
+    """Reject pinched, sliver/zero-area and intersecting rings without a GIS dependency."""
+    vertices = ring[:-1]
+    if len(vertices) > _MAX_RING_VERTICES:
+        raise HTTPException(422, f"segmentation polygon exceeds {_MAX_RING_VERTICES} vertices")
+    if len(set(map(tuple, vertices))) != len(vertices):
+        raise HTTPException(422, "polygon contains repeated vertices")
+
+    area2, area_m2 = _ring_area_m2(vertices)
+    if area2 == 0:
+        raise HTTPException(422, "polygon must have nonzero area")
+    if area_m2 < SEGMENTATION_MIN_AREA_M2:
+        raise HTTPException(
+            422,
+            f"polygon area {area_m2:.3g} m² is below the minimum {SEGMENTATION_MIN_AREA_M2:g} m²",
+        )
+
+    if _ring_edges_intersect(ring):
+        raise HTTPException(422, "polygon edges intersect")
 
 
 def normalize_polygon(user_polygon: list[list[float]] | dict | None) -> dict:
@@ -161,12 +289,17 @@ def normalize_polygon(user_polygon: list[list[float]] | dict | None) -> dict:
             raise HTTPException(422, "إحداثيّات خارج المدى الجغرافيّ المعقول")
         cleaned.append([lon, lat])
 
+    # رؤوس متتالية متطابقة تماماً (نقرة مزدوجة) تُطبَّع بإسقاطها لا برفض الحلقة؛
+    # التكرار غير المتتالي (نقطة اختناق) يبقى مرفوضاً في _validate_ring_topology.
+    cleaned = _drop_consecutive_duplicates(cleaned)
     # تطبيع الإغلاق: لو لم تُغلَق الحلقة، أغلِقها بتكرار الرأس الأوّل.
     if len(cleaned) >= 3 and cleaned[0] != cleaned[-1]:
         cleaned.append(list(cleaned[0]))
 
     if len(cleaned) < _MIN_RING_POINTS:
         raise HTTPException(422, "المضلّع يحتاج 3 رؤوس مميّزة على الأقلّ")
+
+    _validate_ring_topology(cleaned)
 
     return {"type": "Polygon", "coordinates": [cleaned]}
 
@@ -191,7 +324,7 @@ def _post_inference(payload: dict) -> httpx.Response:
     يُمرَّر توكن الخدمة عبر X-Agent-Token (نفس عقد المصادقة الداخليّ).
     """
     headers = {"X-Agent-Token": AGENT_TOKEN} if AGENT_TOKEN else {}
-    with httpx.Client(timeout=SEGMENTATION_TIMEOUT) as cli:
+    with httpx.Client(timeout=SEGMENTATION_TIMEOUT, trust_env=False) as cli:
         return cli.post(SEGMENTATION_INFERENCE_URL, json=payload, headers=headers)
 
 
@@ -214,7 +347,9 @@ def run_segmentation_model(
     انشر خادم استدلال SAM2/GeoSAM (أوزان+GPU خارج هذه الخدمة) واضبط
     SEGMENTATION_INFERENCE_URL (+ SEGMENTATION_BACKEND). لا تغيير كود لاحقاً.
 
-    التدفّق: نُرسِل {mode, field_bbox, image_ref, user_polygon} إلى خادم الاستدلال،
+    التدفّق: نُرسِل {mode, field_bbox, image_ref, user_polygon} (+ مع SAM2: preprocessing
+    وfallback_to_original_on_low_exg — ExG يجري خادميّاً على صورته المُرجَعة جغرافيّاً، ولا
+    تُمرَّر image_base64 إليه أبداً) إلى خادم الاستدلال،
     ننتظر استجابة تحوي GeoJSON Polygon (إمّا {"geometry": <Polygon>} أو Polygon خام)،
     *ونتحقّق منها عبر normalize_polygon الموجود* — فالاستجابة الفاسدة تُرفَع 502 بدل
     تمرير هندسة مُلفَّقة. لا نخترع مضلّعاً ولا قناعاً في أيّ مسار خطأ.
@@ -237,13 +372,29 @@ def run_segmentation_model(
         "low_confidence": False,
         "candidate_count": 0,
     }
-    if image_base64:
+    server_preprocessing = SEGMENTATION_BACKEND.lower() == "sam2"
+    client_image_note: str | None = None
+    if server_preprocessing and image_base64:
+        # A browser screenshot has no georeference: SAM2 never sees it. SAM2 reads its
+        # own image for image_ref/field_bbox and runs ExG on that very raster window.
+        # Dropped (not 422) so web clients that still attach it keep working.
+        image_base64 = None
+        client_image_note = "ignored_not_georeferenced"
+    if server_preprocessing:
+        payload["preprocessing"] = preprocessing or "none"
+        payload["fallback_to_original_on_low_exg"] = fallback_to_original_on_low_exg
+    elif image_base64:
         payload["image_base64"] = image_base64
 
-    # Auto/Hybrid: improve true-color satellite/map imagery with ExG before SAM2.
+    # Custom backends: improve true-color satellite/map imagery locally with ExG.
     # This does not fabricate geometry; it only changes the image/prompts sent to the
     # real inference service, and the returned geometry is still validated below.
-    if mode in {"auto", "hybrid"} and preprocessing in {"exg", "auto_exg"} and image_base64:
+    if (
+        not server_preprocessing
+        and mode in {"auto", "hybrid"}
+        and preprocessing in {"exg", "auto_exg"}
+        and image_base64
+    ):
         try:
             exg = apply_exg_for_sam2(image_base64)
         except Exception as e:  # noqa: BLE001
@@ -270,7 +421,12 @@ def run_segmentation_model(
             payload["positive_points"] = [list(c.centroid) for c in prompt_candidates]
             payload["multimask_output"] = True
 
-    elif mode in {"auto", "hybrid"} and preprocessing in {"exg", "auto_exg"} and not image_base64:
+    elif (
+        not server_preprocessing
+        and mode in {"auto", "hybrid"}
+        and preprocessing in {"exg", "auto_exg"}
+        and not image_base64
+    ):
         preprocessing_meta = {
             "preprocessing": "exg_skipped_no_image",
             "vegetation_ratio": None,
@@ -278,7 +434,8 @@ def run_segmentation_model(
             "candidate_count": 0,
         }
 
-    payload["preprocessing"] = preprocessing_meta.get("preprocessing", "none")
+    if not server_preprocessing:
+        payload["preprocessing"] = preprocessing_meta.get("preprocessing", "none")
     # Trace key only: no security semantics, useful for cache/log correlation.
     try:
         payload["request_hash"] = _payload_trace_hash(payload)
@@ -338,6 +495,8 @@ def run_segmentation_model(
         "confidence": confidence,
         **preprocessing_meta,
     }
+    if client_image_note:
+        metadata["client_image"] = client_image_note
     if isinstance(body, dict):
         upstream_meta = body.get("metadata")
         if isinstance(upstream_meta, dict):
@@ -358,6 +517,18 @@ def run_segmentation_model(
             ):
                 if key in upstream_meta:
                     metadata[key] = upstream_meta[key]
+            if server_preprocessing:
+                for key in (
+                    "preprocessing",
+                    "vegetation_ratio",
+                    "low_confidence",
+                    "candidate_count",
+                ):
+                    if key in upstream_meta:
+                        metadata[key] = upstream_meta[key]
+        if server_preprocessing and preprocessing in {"exg", "auto_exg"}:
+            if metadata.get("preprocessing") not in {"exg", "exg_low_confidence_fallback_original"}:
+                raise HTTPException(502, detail={"error": "inference_preprocessing_unconfirmed"})
 
     # التحقّق الهندسيّ الحقيقيّ يُعاد استخدامه: هندسة الخادم الفاسدة تُرفَع هنا.
     try:
@@ -442,7 +613,7 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
     resolved_polygon = req.user_polygon or req.hints
 
     if req.mode == "manual":
-        geometry = normalize_polygon(resolved_polygon)
+        geometry = await asyncio.to_thread(normalize_polygon, resolved_polygon)
         # يدويّ = رسم المستخدم، لا درجة نموذج ⇒ confidence=None (صدق، لا اختراع درجة).
         return {
             "mode": "manual",
@@ -467,7 +638,8 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
         )
 
     # النموذج مُهيّأ (بيئة إنتاج بأوزان+GPU): فوّض لخطّاف التكامل.
-    geometry, confidence, metadata = run_segmentation_model(
+    geometry, confidence, metadata = await asyncio.to_thread(
+        run_segmentation_model,
         mode=req.mode,
         field_bbox=resolved_bbox,
         image_ref=req.image_ref,

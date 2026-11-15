@@ -66,6 +66,7 @@ from fastapi import (  # noqa: F401 — إعادة تصدير (نمط main.X ل�
     Header,
     HTTPException,
     Query,
+    Request,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
@@ -185,12 +186,14 @@ async def _lifespan(_: FastAPI):
     try:
         await _warn_weak_dev_jwt_secret()
         await _init_db_pool()
+        _start_denial_store()
         await _start_scheduler()
         await _start_outbox_worker()
         yield
     finally:
         await _stop_outbox_worker()
         await _stop_scheduler()
+        await _stop_denial_store()
         await _close_db_pool()
 
 
@@ -251,10 +254,14 @@ async def _init_db_pool():
         logging.info("✓ pool القاعدة جاهز (min=%d max=%d)", _pool_min, _pool_max)
         await _assert_db_role_rls_safe(_DB_POOL)
     except RuntimeError:
+        await _close_db_pool()  # A rejected role must not leave its newly created pool open.
         raise  # رفض إقلاع متعمَّد (دور يتجاوز RLS، أو مهلة إقلاع Postgres) — لا تبتلعه
+    except asyncio.CancelledError:
+        await _close_db_pool()
+        raise
     except Exception as e:  # noqa: BLE001
         logging.error("فشل إنشاء pool القاعدة: %s", e)
-        _DB_POOL = None
+        await _close_db_pool()
         return
     # مسبح الوظائف: لا يُطبَّق عليه حارس RLS (BYPASSRLS مقصود لمساره فقط).
     jobs_dsn = os.getenv("JOBS_DATABASE_URL", "") or dsn
@@ -271,36 +278,11 @@ async def _init_db_pool():
 async def _assert_db_role_rls_safe(pool) -> None:
     """يتحقّق أنّ دور الاتّصال لا يتجاوز RLS (لينشين عزل المستأجرين) — fail-closed.
 
-    إن كان الدور superuser/BYPASSRLS: يُسجَّل تحذير حرج دائماً، ويُرفَض الإقلاع إذا
-    SAHOOL_ENFORCE_RLS_ROLE مُفعَّل (الإنتاج). لا يحجب إقلاعاً عند تعذّر الفحص (لا يكسر
-    بيئات بلا pg_roles)."""
-    from core.db_role_guard import (
-        ROLE_PROBE_SQL,
-        enforcement_active,
-        role_can_bypass_rls,
-        role_guard_message,
-        should_refuse_startup,
-    )
+    تنفيذٌ واحد مع الخدمات السبع (shared.db_role_guard): دورٌ superuser/BYPASSRLS، أو
+    فحصٌ متعذّر (خطأ/مهلة/لا صفّ)، يرفض الإقلاع عند الفرض؛ تجاوز التطوير الصريح يُحذِّر فقط."""
+    from shared.db_role_guard import assert_db_role_rls_safe
 
-    try:
-        async with pool.acquire() as conn:
-            row = await conn.fetchrow(ROLE_PROBE_SQL)
-    except Exception as e:  # noqa: BLE001 — تعذّر الفحص ⇒ لا يحجب الإقلاع
-        logging.debug("تعذّر فحص دور RLS: %s", e)
-        return
-    if row is None:
-        return
-    unsafe = role_can_bypass_rls(row["rolsuper"], row["rolbypassrls"])
-    if not unsafe:
-        return
-    enforce = enforcement_active(
-        os.getenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE"), os.getenv("SAHOOL_ENFORCE_RLS_ROLE")
-    )
-    refuse = should_refuse_startup(unsafe, enforce)
-    msg = role_guard_message(row["rolsuper"], row["rolbypassrls"], refuse)
-    logging.critical("🔓 %s", msg)
-    if refuse:
-        raise RuntimeError(msg)
+    await assert_db_role_rls_safe(pool, service="sahool-platform")
 
 
 async def _start_scheduler():
@@ -505,7 +487,7 @@ async def _start_scheduler():
                 total_created += len(created)
             except Exception as fe:  # noqa: BLE001 — عزل لكلّ حقل
                 rec.mark_errored(field_id, fe)
-                logging.debug("أتمتة التنبيهات: تخطّي حقل %s: %s", field_id, type(fe).__name__)
+                logging.warning("أتمتة التنبيهات: تخطّي حقل %s: %s", field_id, type(fe).__name__)
         rec.finish()
         if total_created:
             logging.info("أتمتة التنبيهات: أُنشئ %s تنبيهاً عبر كلّ الحقول", total_created)
@@ -610,6 +592,26 @@ async def _stop_scheduler():
     from api.scheduler import scheduler
 
     await scheduler.stop()
+
+
+def _start_denial_store():
+    """Persist security denials to audit_log (core.tenant_audit.DenialStore) when a pool exists.
+
+    Recording stays an in-memory append; a background task writes batches. No pool ⇒ unbound,
+    and the denial log stays in process memory as before.
+    """
+    from core.tenant_audit import DENIAL_STORE
+
+    if _DB_POOL is not None:
+        DENIAL_STORE.bind(lambda: _DB_POOL)
+        DENIAL_STORE.start()
+
+
+async def _stop_denial_store():
+    """Stop the writer and flush what is pending, before the pool closes."""
+    from core.tenant_audit import DENIAL_STORE
+
+    await DENIAL_STORE.stop()
 
 
 async def _close_db_pool():
@@ -1080,11 +1082,14 @@ def create_token(user: UserSchema) -> str:
 
 # ─── إبطال JWT: jti وأرضيّة auth على خادمه (denylist_redis_url)، وإلّا ذاكرة ──
 from core.jwt_denylist import (  # noqa: E402
+    REVOCATION_REVOKED,
+    REVOCATION_UNVERIFIABLE,
     InMemoryDenylist,
     RedisDenylist,
     denylist_redis_url,
-    is_token_below_floor,
-    is_token_revoked,
+    revocation_status,
+    strict_revocation_for,
+    unverifiable_allows,
 )
 
 
@@ -1120,7 +1125,10 @@ def _build_denylist():
 _DENYLIST = _build_denylist()
 
 
-def get_current_user(authorization: str = Header(None)) -> UserSchema:
+def get_current_user(
+    authorization: str = Header(None),
+    request: Request = None,  # FastAPI يحقنه؛ المستدعي المباشر بلا طلب ⇒ فعلٌ غير آمن
+) -> UserSchema:
     """يستخرج المستخدم من JWT. fail-closed."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
@@ -1138,9 +1146,16 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
         raise HTTPException(status_code=401, detail="Invalid token issuer")
 
     # إبطال: jti مُبطَل (خروج) أو iat أقدم من أرضيّة auth (إبطال كلّ الجلسات) ⇒ 401 رغم سريانه.
-    # fail-open: تعذّر فحص القائمة (Redis ساقط) لا يقفل المستخدمين (داخل الدالّتين).
-    if is_token_revoked(_DENYLIST, payload.get("jti")) or is_token_below_floor(_DENYLIST, payload):
+    status = revocation_status(_DENYLIST, payload)
+    if status == REVOCATION_REVOKED:
         raise HTTPException(status_code=401, detail="التوكن مُبطَل — سجّل الدخول من جديد")
+    # C-02 + قرار المالك (2026-11-14): تعذّرُ التحقّق أثناء التشغيل ⇒ القراءة الآمنة
+    # (GET/HEAD/OPTIONS) تمرّ بتحذير، والكتابة 503 في الإنتاج (السياسة في core.jwt_denylist).
+    if status == REVOCATION_UNVERIFIABLE:
+        if not unverifiable_allows(getattr(request, "method", None), production=_is_production()):
+            raise _revocation_unverifiable()
+        if request is not None:  # قراءةٌ مُرِّرت: المسار الصارم (require_permission) يقرأ العلامة
+            request.state.revocation_unverifiable = True
 
     role = _normalize_role(payload.get("role"))
 
@@ -1158,8 +1173,22 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
     )
 
 
-def require_permission(permission: Permission):
+def _revocation_unverifiable() -> HTTPException:
+    return HTTPException(
+        status_code=503,
+        detail={
+            "code": "token_revocation_unverifiable",
+            "message": "تعذّر التحقّق من إبطال التوكن — أعد المحاولة لاحقاً",
+        },
+    )
+
+
+def require_permission(permission: Permission, *, strict_revocation: bool | None = None):
     """تبعيّة FastAPI: تُصادِق (JWT) ثمّ تفرض صلاحية الدور — fail-closed 403.
+
+    ``strict_revocation`` (مراجعة #1449): قراءةٌ مرّت والإبطال مجهول (المخزن ساقط) تُرَدّ 503 في
+    الإنتاج إن كان المسار صارماً. الافتراضيّ ``strict_revocation_for(permission)``: كلّ صلاحية غير
+    ``:view`` (إدارة/تنفيذ/موافقة/منصّة). ``True`` صراحةً لـGET بأثرٍ جانبيّ تحت صلاحية عرض.
 
     تربط طبقة HTTP بمحرّك الصلاحيات (core.authorization) الذي كان مفروضاً في خطّ
     التوصيات فقط لا عند نقاط الـHTTP. تُرجِع المستخدم فيبقى جسد الـendpoint بلا
@@ -1170,7 +1199,17 @@ def require_permission(permission: Permission):
     *داخل* المستأجر (الفجوة المعياريّة: RBAC غير مفروض في platform).
     """
 
-    def _dep(user: UserSchema = Depends(get_current_user)) -> UserSchema:
+    strict = (
+        strict_revocation_for(permission.value) if strict_revocation is None else strict_revocation
+    )
+
+    def _dep(
+        user: UserSchema = Depends(get_current_user),
+        request: Request = None,  # FastAPI يحقنه؛ النداء المباشر (اختبارات) بلا طلب ⇒ لا علامة
+    ) -> UserSchema:
+        marked = getattr(getattr(request, "state", None), "revocation_unverifiable", False)
+        if strict and marked and _is_production():
+            raise _revocation_unverifiable()
         if not has_permission(user, permission):
             # سجلّ تدقيق الرفض الأمنيّ (صلاحية غير كافية) — يُرى عبر /admin/security/denials.
             from core.tenant_audit import AUDIT
@@ -1411,13 +1450,15 @@ def _row_to_activity(r) -> ActivitySummary:
 _TASK_STATUSES = {"pending", "in_progress", "completed", "cancelled"}
 _TASK_COLS = (
     "task_id, field_id, task_type, priority, status, recommended_date, "
-    "estimated_duration_min, estimated_cost_usd, assigned_to, notes, photo_url, "
-    "completed_at, created_at"
+    "estimated_duration_min, estimated_cost_usd, actual_cost_usd, source_scouting_pin_id, assigned_to, notes, photo_url, "
+    "completed_at, created_at, satellite_sources::text AS satellite_sources, terrain_sources::text AS terrain_sources"
 )
 
 
-def _row_to_task(r) -> TaskSummary:
+def _row_to_task(r, user: UserSchema | None = None) -> TaskSummary:
     return TaskSummary(
+        terrain_sources=json.loads(r.get("terrain_sources") or "[]"),
+        satellite_sources=json.loads(r.get("satellite_sources") or "[]"),
         task_id=str(r["task_id"]),
         field_id=r["field_id"],
         task_type=r["task_type"],
@@ -1430,6 +1471,10 @@ def _row_to_task(r) -> TaskSummary:
         estimated_cost_usd=float(r["estimated_cost_usd"])
         if r["estimated_cost_usd"] is not None
         else None,
+        actual_cost_usd=r.get("actual_cost_usd")
+        if user and has_permission(user, Permission.ANALYTICS_VIEW)
+        else None,
+        source_scouting_pin_id=r.get("source_scouting_pin_id"),
         assigned_to=r["assigned_to"],
         notes=r["notes"],
         photo_url=r["photo_url"],
@@ -1655,7 +1700,7 @@ async def _evaluate_field_alerts_persist(
             # NDVI الحاليّ من آخر صورة Sentinel (imagery_automation يكتب last_ndvi_mean) —
             # يُغذّي قاعدة vegetation_stress (هبوط النباتيّ ⇒ تنبيه كشف ميدانيّ).
             ndvi_current = await conn.fetchval(
-                "SELECT last_ndvi_mean FROM fields WHERE field_id = $1", field_id
+                "SELECT last_ndvi_mean FROM imagery_automation_fields WHERE field_id = $1", field_id
             )
             try:
                 _policy_row = await conn.fetchrow(

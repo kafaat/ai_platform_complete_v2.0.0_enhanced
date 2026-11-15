@@ -83,6 +83,7 @@ vi.mock('maplibre-gl', () => {
     Popup: Noop,
     NavigationControl: class {},
     LngLatBounds: class {},
+    setWorkerUrl: vi.fn(),
     supported: () => true,
   };
   return { __esModule: true, default: api, ...api };

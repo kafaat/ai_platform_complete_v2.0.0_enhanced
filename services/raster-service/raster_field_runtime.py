@@ -324,7 +324,10 @@ def _read_index_pixel(path: str, lon: float, lat: float) -> float | None:
         return _sample_index_pixel(src, lon, lat)
 
 
-# Tile cache helpers.
+class InvalidPixelSource(ValueError):
+    """The raster cannot supply a georeferenced scalar measurement."""
+
+
 def _sample_index_pixel(src, lon: float, lat: float) -> float | None:
     """قيمة بكسل المؤشّر عند (lon, lat) بـEPSG:4326 من راستر مفتوح، أو None إن لم تصلح.
 
@@ -334,10 +337,15 @@ def _sample_index_pixel(src, lon: float, lat: float) -> float | None:
     import math
 
     import numpy as np
+    from rasterio.enums import ColorInterp
     from rasterio.warp import transform
 
+    if src.crs is None:
+        raise InvalidPixelSource("نظام إحداثيات طبقة المؤشر غير معروف")
+    if any(band != ColorInterp.alpha for band in src.colorinterp[1:]):
+        raise InvalidPixelSource("تتطلب قراءة البكسل طبقة مؤشر أحادية القيم")
     xs, ys = [lon], [lat]
-    if src.crs and str(src.crs).upper() not in ("EPSG:4326", "OGC:CRS84"):
+    if str(src.crs).upper() not in ("EPSG:4326", "OGC:CRS84"):
         xs, ys = transform("EPSG:4326", src.crs, xs, ys)
     row, col = src.index(xs[0], ys[0])
     if row < 0 or col < 0 or row >= src.height or col >= src.width:
@@ -427,4 +435,107 @@ def _process_backfill_scene_cdse(
     ctx._bbox_from_geojson = raster_date_geo.bbox_from_geojson
     raster_backfill_scene_processing.process_backfill_scene_cdse(
         ctx, scene, index, field_id, tenant_id, clip, geometry_revision, jid
+    )
+
+
+def tile_asset_revision(
+    layer: dict, cog_path: str, date: str, v: str | None
+) -> tuple[str, str, bool]:
+    """``(resolved_date, version, cacheable)`` for a resolved field tile asset.
+
+    The cache key follows the resolved asset (URI, capture day, revision columns and, for a
+    local file, its inode/size/mtime), not the requested date. A remote asset without a
+    revision may be overwritten at the same URI, so it is not cacheable.
+    """
+    import hashlib
+    import json
+
+    from raster_available_dates import utc_day
+
+    resolved_date = utc_day(layer.get("acquisition_date")) or date
+    revision = [layer.get(key) for key in ("created_at", "processing_job_id", "data_available_at")]
+    local = "://" not in cog_path and not cog_path.startswith("/vsi")
+    if local:
+        try:
+            stat = os.stat(cog_path)
+            revision.extend((stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns))
+        except OSError:
+            pass
+    identity = json.dumps([layer["cog_url"], resolved_date, *revision, v], default=str)
+    return resolved_date, hashlib.sha256(identity.encode()).hexdigest(), local or any(revision)
+
+
+def tilejson_asset_version(layer: dict | None, date: str, v: str | None) -> tuple[str, str]:
+    """``(resolved_date, version)`` advertised by TileJSON for the resolved asset."""
+    import hashlib
+
+    from raster_available_dates import utc_day
+
+    asset = layer or {}
+    resolved_date = utc_day(asset.get("acquisition_date")) or date
+    resolved_version = v or str(asset.get("created_at") or "")
+    if not resolved_version:
+        uri = asset.get("cog_url")
+        resolved_version = hashlib.sha256(uri.encode()).hexdigest() if uri else "default"
+    return resolved_date, resolved_version
+
+
+# Field time series.
+def _timeseries_point(real: dict, date: str) -> dict:
+    """One ``/v1/fields/{id}/timeseries`` point from a real field grid (no invented values)."""
+    provenance = (real.get("indicator_product") or {}).get("provenance") or {}
+    return {
+        "datetime": str(real.get("date") or date)[:10],
+        "mean": real["stats"]["mean"],
+        # Measured quality (RS-4) and the grid's own scene lineage (vegetation's
+        # /v1/ndvi/current needs it) — None = "not reported", never a fabricated value.
+        "valid_pixel_ratio": real.get("valid_pixel_ratio"),
+        "coverage_ratio": real.get("coverage_ratio"),
+        "cloud_pct": real.get("cloud_pct"),
+        "scene_id": provenance.get("scene_id"),
+        # S4-a: هويّة الأصل لا الرقم وحده — المشهد نفسه على حدٍّ أحدث للحقل أصلٌ آخر.
+        # مراجعة الهندسة من هويّة الشبكة والأصل المقروء من نَسَب المنتج؛ None حين يغيب.
+        "geometry_revision": (real.get("grid_identity") or {}).get("geometry_revision"),
+        "source_uri": provenance.get("source_uri"),
+    }
+
+
+async def _common_mask_analysis(
+    field_id: str, points: list[dict], analysis: dict, min_common_coverage: float
+) -> dict:
+    """Recompute the field trend over the pixels valid in every scene (``common_mask=true``).
+
+    Each point's source COG is resampled onto one field grid bound to the saved field
+    geometry and its revision; see ``time_series.COMMON_MASK_RULE`` for scene exclusion.
+    """
+    import raster_field_coverage
+    import time_series
+
+    geometry = revision = None
+    try:
+        import db_persist
+
+        saved = await db_persist.fetch_field_geometry_with_revision(field_id, _REQ_TENANT.get())
+        if saved:
+            geometry, revision = saved.get("geometry"), saved.get("revision")
+    except Exception as exc:  # noqa: BLE001 — without the boundary the mask basis is declared
+        logger.warning("common mask: field geometry unavailable (%s)", type(exc).__name__)
+    scenes = [
+        {
+            "datetime": p.get("datetime"),
+            "scene_id": p.get("scene_id"),
+            "geometry_revision": p.get("geometry_revision"),
+            "path": object_store.to_gdal_path(p["source_uri"]) if p.get("source_uri") else None,
+        }
+        for p in points
+    ]
+    try:
+        aligned = await run_raster_io(
+            raster_field_coverage.align_scenes_to_field_grid, scenes, geometry, revision
+        )
+    except Exception as exc:  # noqa: BLE001 — declared as unavailable, never a silent fallback
+        logger.warning("common mask: alignment failed (%s)", type(exc).__name__)
+        aligned = None
+    return time_series.apply_common_mask(
+        analysis, points, aligned, min_common_coverage=min_common_coverage
     )

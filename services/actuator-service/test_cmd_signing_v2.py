@@ -682,3 +682,11 @@ def test_cli_reads_the_master_key_from_the_environment_only():
     assert out.returncode == 2 and "CMD_HMAC_MASTER_KEY" in out.stderr and not out.stdout
     assert _cli("--tenant", TENANT_A, "--device", "valve-1", env_master="short").returncode == 2
     assert _cli("--master", MASTER, "--tenant", TENANT_A, "--device", "v").returncode == 2
+
+
+@pytest.mark.parametrize("ack", _vectors()["acks"], ids=lambda a: a["result"])
+def test_a_non_ascii_ack_signature_is_refused_not_a_crash(ack):
+    # compare_digest raises TypeError on a non-ASCII str; main's v1 path already guards this
+    # (sig.isascii()), and the v2 verifier must refuse such a sig the same way.
+    forged = {**ack, "sig": "\u0661" * 64}
+    assert cs.verify_ack(ack["dk_hex"], forged) is False

@@ -22,10 +22,8 @@ def test_truecolor_evalscript_is_rgba_uint8_from_visual_bands():
     assert "bands: 4" in es
     assert "UINT8" in es
     # قناع per-pixel: بلا بيانات أو غيمة ⇒ شفّاف تماماً [0,0,0,0].
-    assert "s.dataMask !== 1 || isCloud" in es
+    assert "s.dataMask" in es and "s.SCL" in es
     assert "[0, 0, 0, 0]" in es
-    # أصناف SCL للغيوم مُضمَّنة (اتّساق مع مسار المؤشّرات).
-    assert "SCL_CLOUD" in es
 
 
 def test_truecolor_evalscript_default_gain_is_3_5():

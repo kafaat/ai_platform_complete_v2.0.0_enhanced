@@ -32,7 +32,8 @@ def tile_cache_key(
         safe(date),
         safe(v or "default"),
         str(z),
-        f"{x}_{y}.png",
+        # Previously cached RGB tiles have interpolated colours.
+        f"{x}_{y}.nearest.png" if index == "truecolor" else f"{x}_{y}.png",
     )
 
 

@@ -3,12 +3,19 @@
 The steps are read from .github/workflows/ci.yml at run time, not copied: every step
 of the ``integration-tests`` job after the shared ``pytest -v -m integration`` run is
 executed as CI executes it (``bash -eo pipefail`` on the step's own ``run`` text, with
-exactly the step's ``env``), so the lab cannot drift from CI. Only two things differ:
+exactly the step's ``env``), so the lab cannot drift from CI. Only three things differ:
 
 * ``pytest`` on PATH is a shim that runs the lab venv's pytest and adds a per-call
   ``--junitxml`` and log, so each pytest call in a step is its own suite in the evidence;
 * the environment run.sh exported for the shared suite (TEST_*, *_CERTIFICATION_REQUIRED,
-  PG*, JWT_SECRET) is removed first, because in CI a step sees only its own env.
+  PG*, JWT_SECRET) is removed first, because in CI a step sees only its own env;
+* a step's relative ``COVERAGE_FILE`` is written into the evidence directory, not the
+  checkout, so the appended coverage data does not leave the worktree dirty.
+
+The job ends with Codecov reporting steps (export, path guard, upload) starting at
+``COVERAGE_EXPORT_STEP``. They report on the certification steps rather than certify,
+so the lab stops before them, and refuses the boundary when anything after it is not a
+reporting step or calls pytest: a certification step cannot hide behind the reports.
 
 A step is refused, not approximated, when the lab cannot run it as written: it uses an
 action (``uses``), a GitHub expression (``${{``), a ``shell``/``working-directory``/``if``
@@ -36,6 +43,8 @@ CI_WORKFLOW = Path(".github/workflows/ci.yml")
 JOB = "integration-tests"
 SHARED_RUN = "pytest -v -m integration --tb=short"
 UNSUPPORTED_KEYS = ("uses", "shell", "working-directory", "if", "with")
+COVERAGE_EXPORT_STEP = "Export live auth coverage with Git-relative paths"
+_REPORTING_RUNS = ("python -m coverage xml", "python scripts/ci/codecov_coverage_guard.py")
 _STRIP_PREFIXES = ("TEST_", "PG", "IRR_F01_")
 
 SHIM = """#!/usr/bin/env bash
@@ -61,6 +70,13 @@ def certification_steps(workflow: Path = CI_WORKFLOW) -> list[dict]:
     if len(shared) != 1:
         raise SystemExit(f"LAB_CI_STEPS_UNREADABLE: {len(shared)} shared '{SHARED_RUN}' steps")
     selected = steps[shared[0] + 1 :]
+    boundary = [i for i, s in enumerate(selected) if s.get("name") == COVERAGE_EXPORT_STEP]
+    if boundary:
+        for step in selected[boundary[0] :]:
+            if not _is_coverage_reporting(step):
+                name = step.get("name", step.get("uses", "<unnamed>"))
+                raise SystemExit(f"LAB_CI_STEP_UNSUPPORTED: {name}: not a coverage report step")
+        selected = selected[: boundary[0]]
     if not selected:
         raise SystemExit("LAB_CI_STEPS_UNREADABLE: no steps after the shared integration run")
     for step in selected:
@@ -71,6 +87,18 @@ def certification_steps(workflow: Path = CI_WORKFLOW) -> list[dict]:
         if "${{" in json.dumps(step):
             raise SystemExit(f"LAB_CI_STEP_UNSUPPORTED: {name}: GitHub expression")
     return selected
+
+
+def _is_coverage_reporting(step: dict) -> bool:
+    """An export, path-guard or pinned Codecov upload step that runs no pytest."""
+    run = step.get("run") or ""
+    if pytest_calls(run):
+        return False
+    if "uses" in step:
+        return set(step) <= {"uses", "with"} and str(step["uses"]).startswith(
+            "codecov/codecov-action@"
+        )
+    return set(step) <= {"name", "run"} and run.lstrip().startswith(_REPORTING_RUNS)
 
 
 def pytest_calls(run: str) -> list[str]:
@@ -149,9 +177,13 @@ def main(out_dir: str, venv_python: str) -> int:
         calls_file.write_text("", encoding="utf-8")
         counter.write_text("0", encoding="utf-8")
         step_env = {str(k): str(v) for k, v in (step.get("env") or {}).items()}
+        coverage_env = {}
+        if step_env.get("COVERAGE_FILE") and not Path(step_env["COVERAGE_FILE"]).is_absolute():
+            coverage_env["COVERAGE_FILE"] = str(out / step_env["COVERAGE_FILE"])
         env = {
             **_base_env(),
             **step_env,
+            **coverage_env,
             "PATH": f"{bin_dir}{os.pathsep}{os.environ.get('PATH', '')}",
             "LAB_VENV_PYTHON": venv_python,
             "LAB_CERT_OUT": str(out),

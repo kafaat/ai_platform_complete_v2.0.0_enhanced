@@ -180,8 +180,13 @@ def test_a_proposal_awaiting_the_owner_signature_authorizes_nothing(status):
 
 
 def test_every_live_proposal_authorizes_nothing_even_on_its_own_bytes():
-    """المقترحُ الحيّ في الشجرة لا يمنح نطاقَه ولو طابقت بايتاتُه الشجرة حرفيّاً."""
+    """المقترحُ الحيّ في الشجرة لا يمنح نطاقَه ولو طابقت بايتاتُه الشجرة حرفيّاً.
+
+    يُقاس على النظام المغلق (`state` = CLOSED): وهو وحده الذي يقرأ فيه الحارسُ التفويضات.
+    في OPEN يمرّ كلُّ مسٍّ قبل قراءة أيّ تفويض (`evaluate`)، فلا يقيس ذلك المقترحَ نفسَه —
+    وظهر ذلك أوّلَ مرّةٍ بمقترحٍ حيّ بعد فتح البوّابة (GATE01-ADJ-2026-11-14-001)."""
     policy = guard.load_policy(_POLICY)
+    policy = {**policy, "gate": {**policy["gate"], "state": "CLOSED"}}
     blobs = {p: guard.blob_sha(p) for p in policy["frozen_paths"]}
     for adj in guard.load_adjudications(_ADJ_DIR):
         if adj.get("status") not in _PENDING_STATUSES:
@@ -236,11 +241,43 @@ def test_an_empty_frozen_list_fails_closed(tmp_path):
 
 
 # ── الشجرة الحيّة ────────────────────────────────────────────────────────────
-def test_the_live_policy_is_readable_and_globally_closed():
-    """البوّابة تبقى مغلقة عالميّاً — التفويض المقيَّد لا يفتحها."""
+def _as_closed(policy: dict) -> dict:
+    """The CLOSED-gate mechanism, measured on a copy of the live policy.
+
+    The live gate was opened by the owner's signed ruling GATE01-OPEN-2026-11-12. The
+    bounded-authorization mechanism still has to hold whenever the gate is CLOSED again,
+    so these cases pin the state on a copy instead of reading it from the live tree.
+    """
+    closed = copy.deepcopy(policy)
+    closed["gate"]["state"] = "CLOSED"
+    return closed
+
+
+def test_the_live_policy_state_is_backed_by_an_owner_ruling():
+    """The live state is CLOSED, or OPEN under a named signed owner decision.
+
+    It used to assert CLOSED outright. The owner opened the gate on 2026-11-12, so the
+    invariant is now the relation: OPEN must name the signed envelope and a dated ruling
+    record. The signature itself is verified by gate01_owner_signature_guard in CI.
+    """
     policy = guard.load_policy(_POLICY)
-    assert policy["gate"]["state"] == "CLOSED"
+    gate = policy["gate"]
+    assert gate["state"] in {"CLOSED", "OPEN"}
     assert policy["phase0_baseline"]["commit_sha"]
+    if gate["state"] == "OPEN":
+        src = gate["ruling_source"]
+        assert src.startswith("docs/architecture/gates/authorizations/GATE01-AUTH-")
+        assert src.endswith(".dsse.json")
+        assert len(gate["owner_ruling_on"]) == 10
+        assert "docs/architecture/gates/rulings/" in gate.get("open_ruling_ar", "")
+
+
+def test_an_open_live_gate_lets_frozen_changes_through_and_closing_restores_the_block():
+    policy = guard.load_policy(_POLICY)
+    if policy["gate"]["state"] == "OPEN":
+        assert guard.evaluate([_FROZEN_A, _FROZEN_B], policy, [], _BLOBS) == ([], None)
+    errors, used = guard.evaluate([_FROZEN_A, _FROZEN_B], _as_closed(policy), [], _BLOBS)
+    assert errors and used is None
 
 
 def test_every_live_adjudication_is_self_consistent():
@@ -272,7 +309,7 @@ def test_a_frozen_path_absent_from_the_tree_is_declared_absent():
 
 def test_the_real_reverted_patch_would_still_be_caught_without_its_authorization():
     """بلا تفويضٍ مطابق، المسّ نفسه يُحجَب — فالإذن هو الفارق لا تليينُ الحارس."""
-    policy = guard.load_policy(_POLICY)
+    policy = _as_closed(guard.load_policy(_POLICY))
     errors, used = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, [], _BLOBS)
     assert used is None and errors
 
@@ -309,7 +346,7 @@ def test_the_live_authorization_is_spent_and_no_longer_grants():
     `CONSUMED`؛ (٢) إن منح شيءٌ فهو تفويضٌ `ISSUED` يُسمّي المسارين صراحةً — وبقاؤه
     `ISSUED` بعد الدمج يحرسه ``stale_authorization_errors`` في CI لا هذا الاختبار.
     """
-    policy = guard.load_policy(_POLICY)
+    policy = _as_closed(guard.load_policy(_POLICY))
     blobs = {p: guard.blob_sha(p) for p in policy["frozen_paths"]}
     adjs = guard.load_adjudications(_ADJ_DIR)
 
@@ -820,7 +857,7 @@ def test_the_live_policy_makes_no_falsified_absence_claim():
 
 def test_the_migration_runner_is_frozen_by_its_real_path():
     """المُجمَّدُ هو الملفُّ الذي يؤدّي الدور لا اسمٌ لم يُنشَأ — ومسُّه يُحجَب بلا تفويض."""
-    policy = guard.load_policy(_POLICY)
+    policy = _as_closed(guard.load_policy(_POLICY))
     frozen = policy["frozen_paths"]
     assert _REAL_RUNNER in frozen, f"المُشغِّلُ الحقيقيّ خارج التجميد: {frozen}"
     assert _NEVER_CREATED_RUNNER not in frozen, "التجميدُ ما زال يحرس اسماً لم يُنشَأ"

@@ -15,11 +15,14 @@ import secrets
 from typing import Annotated
 
 import main
+import mfa_enrollment
 from client_address import client_ip
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
 from jwt import InvalidIssuerError, PyJWTError
+from pydantic import BaseModel
 from session_tokens import consume_refresh_token
+from starlette.responses import JSONResponse
 
 from shared.security.access_tokens import decode_access_token
 
@@ -42,7 +45,28 @@ async def _load_login_row(email: str):
         )
 
 
-@router.post("/v1/auth/login", response_model=main.TokenResponse)
+class MfaEnrollmentRequired(BaseModel):
+    """403 من /v1/auth/login لدور حسّاس بلا MFA (توثيق OpenAPI فقط — الشكل لم يتغيّر).
+
+    ضمن نطاق MFA_SELF_ENROLLMENT_SCOPE يحمل ``enrollment_token`` (Bearer لـ/v1/auth/mfa/setup،
+    صالح ``expires_in`` ثانية)؛ خارجه ``detail`` وحده: يُطلَب من مسؤول مُفعِّل لـMFA.
+    """
+
+    detail: str
+    enrollment_token: str | None = None
+    expires_in: int | None = None
+    token_type: str | None = None
+
+
+_LOGIN_RESPONSES = {
+    403: {
+        "model": MfaEnrollmentRequired,
+        "description": "MFA enrollment required (header X-MFA-Enrollment-Required: true)",
+    }
+}
+
+
+@router.post("/v1/auth/login", response_model=main.TokenResponse, responses=_LOGIN_RESPONSES)
 async def login(req: main.LoginRequest, request: Request, response: Response):
     ip = client_ip(request)
     await main.check_ip_rate(ip)
@@ -104,10 +128,40 @@ async def login(req: main.LoginRequest, request: Request, response: Response):
     # يُرفض دخوله ويُوجَّه للإعداد. مُعطَّل افتراضيّاً (ENV) كي لا يكسر CI/التطوير.
     if main._mfa_required_but_missing(row["role"], row["mfa_enabled"]):
         main.LOGIN_COUNTER.labels(status="mfa_enrollment_required").inc()
-        raise HTTPException(
-            status.HTTP_403_FORBIDDEN,
-            "حسابك بدور حسّاس يتطلّب تفعيل MFA — أكمِل الإعداد عبر /auth/mfa/setup",
-            headers={"X-MFA-Enrollment-Required": "true"},
+        # كلمة المرور وحدها تمنح قدرة تسجيل MFA (TOFU) — فتُحصَر بالنطاق: افتراضيّاً الإقلاع
+        # فقط (حساب لم يُسجِّل قطّ، ولا مسؤول مُسجَّل في مستأجره). خارجه: 403 السابق بلا رمز.
+        if not await mfa_enrollment.offer_allowed(row["id"]):
+            await main._emit_mfa_audit(
+                user_id=row["id"],
+                event="mfa_enrollment_refused",
+                outcome="out_of_scope",
+                tenant_id=row["tenant_id"],
+                ip=ip,
+            )
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                "حسابك بدور حسّاس يتطلّب تفعيل MFA، والتسجيل الذاتيّ بكلمة المرور غير متاح "
+                "له — اطلب من مسؤولٍ مُفعِّلٍ لـMFA تمكين إعداده",
+                headers={"X-MFA-Enrollment-Required": "true"},
+            )
+        challenge = await mfa_enrollment.issue(row, stage="setup")
+        await main._emit_mfa_audit(
+            user_id=row["id"],
+            event="mfa_enrollment_offered",
+            outcome="pending",
+            tenant_id=row["tenant_id"],
+            ip=ip,
+        )
+        await main.clear_failed_logins(req.email)
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={
+                "detail": "يتطلّب الحساب تفعيل MFA عبر /v1/auth/mfa/setup",
+                "enrollment_token": challenge,
+                "expires_in": mfa_enrollment.TTL_SECONDS,
+                "token_type": "Bearer",
+            },
+            headers={"X-MFA-Enrollment-Required": "true", "Cache-Control": "no-store"},
         )
 
     await main.clear_failed_logins(req.email)  # ✅ reset on success
@@ -164,12 +218,20 @@ async def refresh_token(req: main.RefreshRequest, request: Request, response: Re
 
     async with main._acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT id, email, role, full_name, tenant_id, active FROM users WHERE id=$1", user_id
+            "SELECT id, email, role, full_name, tenant_id, active, mfa_enabled FROM users WHERE id=$1",
+            user_id,
         )
     if not row or not row["active"]:
         # التوكنُ استُهلِك سلفاً بالقراءة الذرّيّة؛ لا حذفَ ثانٍ (وحذفُ مفتاحٍ غائبٍ
         # كان يُخفي أنّ الاستهلاكَ وقع في موضعٍ آخر).
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "المستخدم غير نشط")
+
+    if main._mfa_required_but_missing(row["role"], row["mfa_enabled"]):
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "MFA enrollment required; sign in with your password",
+            headers={"X-MFA-Enrollment-Required": "true"},
+        )
 
     # التدوير: القديمُ استُهلِك ذرّيّاً أعلاه، فلا يبقى إلّا إصدارُ الجديد.
     new_refresh = await main.create_refresh_token(user_id, tenant_id)

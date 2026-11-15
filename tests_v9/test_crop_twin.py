@@ -83,8 +83,16 @@ def test_water_block_mirrors_root_zone_balance():
 
 def test_nutrient_block_mirrors_uptake_at_progress():
     days = _wheat_days(10)
-    st = crop_twin_state("wheat", days, taw_mm=100.0, raw_fraction=0.5, target_uptake_kg_ha=120.0)
+    st = crop_twin_state(
+        "wheat",
+        days,
+        taw_mm=100.0,
+        raw_fraction=0.5,
+        target_uptake_kg_ha=120.0,
+        gdd_daily_override=_gdd("wheat", days),
+    )
     progress = st["phenology"]["progress"]
+    assert progress is not None
     nut = nutrient_uptake("wheat", progress, 120.0)
     assert st["nutrient"]["uptake_to_date_kg_ha"] == pytest.approx(nut["uptake_to_date_kg_ha"])
     assert st["nutrient"]["target_uptake_kg_ha"] == pytest.approx(120.0)
@@ -112,9 +120,11 @@ def test_calibrated_false():
 
 def test_empty_days_respects_initial_depletion():
     st = crop_twin_state("wheat", [], taw_mm=100.0, raw_fraction=0.5, initial_depletion_mm=30.0)
-    assert st["phenology"]["gdd_cumulative"] == 0.0
-    assert st["phenology"]["progress"] == 0.0
-    assert st["phenology"]["stage"] == "initial"
+    # No days means no GDD evidence: unavailable, not a fabricated zero-growth "initial" stage.
+    assert st["phenology"]["status"] == "unavailable"
+    assert st["phenology"]["gdd_cumulative"] is None
+    assert st["phenology"]["progress"] is None
+    assert st["phenology"]["stage"] is None
     assert st["water"]["depletion_mm"] == pytest.approx(30.0)
     assert st["water"]["needs_irrigation"] is False  # 30 < RAW 50
 

@@ -12,23 +12,75 @@ Publish approved laboratory evidence to soil-service's canonical evidence bounda
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 
+from shared.contracts.soil.observation import LAB_EC_PROPERTIES_BY_METHOD, PLATFORM_LAB_PROCEDURE
+
 _ANALYTE_MAP = {
     "ph": ("ph", "1"),
-    "ec_dsm": ("electrical_conductivity", "dS/m"),
+    "ec_dsm": ("ec_unspecified", "dS/m"),
     "organic_matter_pct": ("organic_matter", "%"),
     "nitrogen_mg_kg": ("nitrogen", "mg/kg"),
     "phosphorus_mg_kg": ("phosphorus", "mg/kg"),
     "potassium_mg_kg": ("potassium", "mg/kg"),
     "cec_cmol_kg": ("cec", "cmol(+)/kg"),
     "calcium_carbonate_pct": ("calcium_carbonate", "%"),
-    "texture": ("texture_class", None),
+    "clay_pct": ("clay", "%"),
+    "sand_pct": ("sand", "%"),
+    "silt_pct": ("silt", "%"),
+    "texture": ("texture", None),
 }
+
+
+def _row_value(raw: Any) -> Any:
+    """A stored ``value_json``: JSON text, or already decoded (a texture label stays a label)."""
+    if isinstance(raw, str):
+        try:
+            return json.loads(raw)
+        except ValueError:
+            return raw
+    return raw
+
+
+def _lab_property(analyte: str, method: str | None) -> str:
+    if analyte == "ec_dsm":
+        return LAB_EC_PROPERTIES_BY_METHOD.get(method, "ec_unspecified")
+    return _ANALYTE_MAP[analyte][0]
+
+
+def stored_lab_publication_receipt(result_rows: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Recover committed analyte links even when the soil service is unreachable."""
+    rows: dict[str, dict[str, Any]] = {}
+    for row in result_rows:
+        rows.setdefault(row["analyte"], row)  # same row choice as publish_soil_lab_evidence
+    observations = {}
+    results = {}
+    for name in _ANALYTE_MAP:
+        if name not in rows:
+            continue
+        row = rows[name]
+        observation_id = row.get("published_observation_id")
+        if not observation_id:
+            return None  # An older publication may need its canonical links restored.
+        prop = _lab_property(name, row.get("method_code"))
+        observations[prop] = observation_id
+        results[prop] = str(row["result_id"])
+    if not observations:
+        return None
+    return {
+        "status": "accepted",
+        "replayed_from": "published_lab_results",
+        "created": 0,
+        "duplicates": len(observations),
+        "observation_ids": list(observations.values()),
+        "observation_by_analyte": observations,
+        "result_by_canonical": results,
+    }
 
 
 async def publish_soil_lab_evidence(
@@ -55,9 +107,24 @@ async def publish_soil_lab_evidence(
         )
     properties: dict[str, Any] = {}
     units: dict[str, str] = {}
-    for source_name, (canonical, unit) in _ANALYTE_MAP.items():
+    rows = {}
+    for row in result_rows or []:
+        rows.setdefault(row["analyte"], row)
+    observed_by_property = {}
+    methods_by_property = {}
+    for source_name, (_, unit) in _ANALYTE_MAP.items():
         value = results.get(source_name)
         if value is not None:
+            row = rows.get(source_name, {})
+            method = row.get("method_code")
+            canonical = _lab_property(source_name, method)
+            if method:
+                methods_by_property[canonical] = method
+            if row:
+                observed_by_property[canonical] = row["observed_at"].isoformat()
+                # Publish the value of the row whose id is recorded, not another row's value.
+                if row.get("value_json") is not None:
+                    value = _row_value(row["value_json"])
             properties[canonical] = value
             if unit:
                 units[canonical] = unit
@@ -65,11 +132,10 @@ async def publish_soil_lab_evidence(
         raise RuntimeError("no publishable soil analytes")
     supersedes_observation_ids: dict[str, str] = {}
     result_by_canonical: dict[str, str] = {}
-    for row in result_rows or []:
-        mapped = _ANALYTE_MAP.get(row.get("analyte"))
-        if not mapped:
+    for row in rows.values():
+        if row.get("analyte") not in _ANALYTE_MAP:
             continue
-        canonical = mapped[0]
+        canonical = _lab_property(row["analyte"], row.get("method_code"))
         result_by_canonical[canonical] = str(row.get("result_id"))
         prior = row.get("supersedes_result_id")
         if prior:
@@ -80,17 +146,30 @@ async def publish_soil_lab_evidence(
         "source_type": "laboratory",
         "source_id": sample["sample_id"],
         "properties": properties,
-        "observed_at": datetime.now(UTC).isoformat(),
+        "observed_at": max(row["observed_at"] for row in result_rows).isoformat()
+        if result_rows
+        else None,
+        # No top-level units: soil-service's canonical units win (the lab labels stay in
+        # provenance). Legacy rows were stored with the canonical units too.
+        "observed_at_by_property": observed_by_property,
+        "method_by_property": methods_by_property,
         "depth_from_cm": float(sample.get("depth_cm_from") or 0),
         "depth_to_cm": float(sample.get("depth_cm_to") or 30),
         "approved": True,
-        "procedure_id": "platform-lab-workflow.v1",
+        "procedure_id": PLATFORM_LAB_PROCEDURE,
         "supersedes_observation_ids": supersedes_observation_ids,
         "supersession_reason": correction_reason,
         "provenance": {
             "sample_id": sample["sample_id"],
+            "sampling_plan_id": sample.get("sampling_plan_id"),
+            "sampling_origin": sample.get("sampling_origin"),
+            "collected_position": {
+                "latitude": sample.get("latitude"),
+                "longitude": sample.get("longitude"),
+            },
             "units": units,
             "workflow_status": "published",
+            "observed_at_source": "laboratory_result",
         },
     }
     headers = {"X-Agent-Token": token, "X-Tenant-Id": tenant_id}
@@ -100,6 +179,16 @@ async def publish_soil_lab_evidence(
         )
     response.raise_for_status()
     receipt = response.json()
+    ids = receipt.get("observation_ids")
+    if (
+        receipt.get("status") != "accepted"
+        or not isinstance(ids, list)
+        or len(ids) != len(properties)
+        or any(not isinstance(i, str) or not i for i in ids)
+        or len(set(ids)) != len(ids)
+    ):
+        raise ValueError("incomplete soil-service receipt")
+    receipt["observation_by_analyte"] = dict(zip(properties, ids, strict=True))
     receipt["result_by_canonical"] = result_by_canonical
     return receipt
 

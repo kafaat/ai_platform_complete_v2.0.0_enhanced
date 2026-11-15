@@ -61,7 +61,9 @@ def _call(handler, row, *, code_ok: bool):
         mock.patch.object(main, "_acquire", _tripwire),
     ):
         try:
-            asyncio.run(handler(main.MfaCodeRequest(code="123456"), {"sub": "7"}))
+            asyncio.run(
+                handler(main.MfaCodeRequest(code="123456"), request=None, user={"sub": "7"})
+            )
         except Exception as exc:  # noqa: BLE001 — يُعاد للتأكيد على صنفه
             return exc, failure, consume
     return None, failure, consume

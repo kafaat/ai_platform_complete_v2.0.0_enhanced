@@ -8,6 +8,7 @@
 //   ✅ محاكاة WOFOST عند الحفظ
 //   ✅ رسالة تقدم واضحة
 // ═══════════════════════════════════════════════════════════════
+import WheatSeasonPlanner from './WheatSeasonPlanner';
 import { useState } from 'react';
 import {
   X, Check, Plus, Trash2, Loader2, Sprout,
@@ -19,6 +20,7 @@ import { CROP_OPTIONS } from '../lib/cropOptions';
 interface Stage { name: string; date: string; notes: string; }
 
 interface SeasonData {
+  initial_status?: "planned";
   field_id:            string;
   crops:               string[];
   cultivar:            string;
@@ -81,6 +83,7 @@ function suitabilityColor(s: string) {
 
 export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCancel }: Props) {
   const [selectedCrops,      setSelectedCrops]      = useState<string[]>([]);
+  const [planned, setPlanned] = useState(false);
   const [cultivar,           setCultivar]           = useState('');
   const [landDate,           setLandDate]           = useState('');
   const [plowDate,           setPlowDate]           = useState('');
@@ -126,6 +129,7 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
     setSaving(true);
     try {
       await onSave({
+        initial_status: planned ? "planned" : undefined,
         field_id:            fieldId,
         crops:               selectedCrops,
         cultivar:            cultivar,
@@ -186,6 +190,12 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
         </div>
 
         <div className="p-5 space-y-5" dir="rtl">
+        <WheatSeasonPlanner onApply={plan => {
+          setPlanned(true);
+          setSelectedCrops(old => old.includes('قمح') ? old : [...old, 'قمح']);
+          setCultivar(plan.variety); setSeedRate(plan.rate); setIrrType(plan.irrigation);
+          setNotesAr(old => [...old.split('\n').filter(line => !line.startsWith('خطة بذار القمح ·') && line), plan.note].join('\n'));
+        }} />
           {/* ① المحاصيل */}
           <div>
             <label className="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
@@ -403,7 +413,7 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
             ))}
           </div>
 
-          {/* ⑤ WOFOST info */}
+          {planned ? <p>سيُحفظ الموسم بحالة مخطط.</p> : (
           <div className="rounded-xl p-3 text-xs flex items-start gap-2" style={{ background:'#172032', border:'1px solid #1e3a4a' }}>
             <Info className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
             <p className="text-slate-400">
@@ -412,6 +422,7 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
             </p>
           </div>
 
+          )}
           {errors.general && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
               style={{ background:'#1a000022', border:'1px solid #dc262633', color:'#f87171' }}>
@@ -427,8 +438,8 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
               className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white"
               style={{ background: saving ? '#15803d' : '#16a34a' }}>
               {saving
-                ? <><Loader2 className="w-4 h-4 animate-spin" /> جاري الحفظ والمحاكاة...</>
-                : <><Check className="w-4 h-4" /> حفظ الموسم وبدء WOFOST</>
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> جارٍ الحفظ…</>
+                : <><Check className="w-4 h-4" /> {planned ? 'حفظ الموسم المخطط' : 'حفظ الموسم وبدء WOFOST'}</>
               }
             </button>
           </div>

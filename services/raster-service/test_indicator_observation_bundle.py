@@ -92,3 +92,34 @@ async def test_bundle_marks_mixed_scenes(monkeypatch):
     assert result["bundle_consistency"] is False
     assert result["mixed_scene"] is True
     assert result["scene_ids"] == ["scene-a", "scene-b"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("spacings", "expected"),
+    [([7.5, 7.5], 7.5), ([7.5, 20.0], None), ([7.5, None], None), ([None, None], None)],
+)
+async def test_field_indices_reports_spacing_only_when_observed_products_agree(
+    monkeypatch, spacings, expected
+):
+    from routers import observability
+
+    async def resolve(field_id, index, date, **kwargs):
+        return {"index": index}
+
+    def grid(layer, index, date, size, object_store):
+        spacing = dict(zip(["ndvi", "ndmi"], spacings, strict=True))[index]
+        return {
+            "stats": {"mean": 0.25},
+            "grid": [[0.25]],
+            "spatial_sampling": {"output_pixel_size_m": [spacing, spacing]} if spacing else None,
+        }
+
+    monkeypatch.setattr(observability, "AGENT_TOKEN", "test-token")
+    monkeypatch.setattr(observability, "resolve_field_layer", resolve)
+    monkeypatch.setattr(observability, "grid_from_cog", grid)
+    result = await observability.field_indices(
+        "field-1", date="latest", indices="ndvi,ndmi", x_agent_token="test-token"
+    )
+    assert result["real_data"] is True
+    assert result["resolution_m"] == expected

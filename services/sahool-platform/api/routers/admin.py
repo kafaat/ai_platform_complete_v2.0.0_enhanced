@@ -82,7 +82,7 @@ async def admin_events_dead_letter(
 @router.post("/api/v1/admin/events/dead-letter/{outbox_id}/requeue")
 async def admin_requeue_dead_letter(
     outbox_id: int,
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
+    user: UserSchema = Depends(require_permission(Permission.EVENT_REQUEUE)),
 ):
     """يعيد جدولة حدث ميّت واحد → pending (بعد إصلاح السبب). فوق requeue_dead_letter (v48)."""
     try:
@@ -99,7 +99,7 @@ async def admin_requeue_dead_letter(
 
 @router.post("/api/v1/admin/events/dead-letter/requeue-all")
 async def admin_requeue_all_dead_letter(
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
+    user: UserSchema = Depends(require_permission(Permission.EVENT_REQUEUE)),
 ):
     """يعيد جدولة كلّ الأحداث الميّتة (تشغيل ops بعد إصلاح NATS). فوق requeue_all_dead_letter."""
     try:
@@ -158,7 +158,7 @@ async def admin_outbox_dead_letter(
 @router.post("/api/v1/admin/outbox/dead-letter/requeue")
 async def admin_outbox_requeue_dead_letter(
     outbox_id: int | None = None,
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
+    user: UserSchema = Depends(require_permission(Permission.EVENT_REQUEUE)),
 ):
     """يعيد جدولة صفوف outbox ميّتة → pending (retry_count=0, last_attempt_at=NULL).
 

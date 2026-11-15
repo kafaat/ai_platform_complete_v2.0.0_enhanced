@@ -28,6 +28,7 @@ from uuid import uuid4
 import asyncpg
 import bcrypt  # noqa: F401 — routers/session.py (S16 timing equaliser) يصل إليه عبر main.bcrypt
 import jwt
+from client_address import audit_inet
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -35,6 +36,7 @@ from mfa_crypto import enforce_password_policy, resolve_sahool_env  # S16(a,d): 
 from password_hashing import NewPassword, hash_password, verify_password  # noqa: F401
 from prometheus_client import Counter
 from pydantic import BaseModel, EmailStr, Field, field_validator
+from session_tokens import session_revoked
 
 from shared.pool_shutdown import close_client_bounded, close_pools_bounded
 from shared.runtime_identity import load_build_identity
@@ -414,7 +416,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Tenant-ID"],
+    allow_headers=["Authorization", "Content-Type", "X-Tenant-ID", "X-MFA-Code"],
     expose_headers=["X-Tenant-ID"],
     allow_credentials=True,
 )
@@ -710,6 +712,7 @@ def _decode_issued_token(token: str) -> dict:
 
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+    request: Request = None,  # FastAPI injects it; direct callers pass none (=> not safe)
 ) -> dict:
     if not credentials:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "No token")
@@ -722,11 +725,9 @@ async def get_current_user(
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token issuer")
 
-    jti = payload.get("jti")
-    if jti and await is_jti_revoked(jti):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
-    # إبطال جماعيّ: توكن أُصدِر قبل أرضيّة المستخدم (تغيير كلمة المرور/الدور/التعطيل) ⇒ مرفوض.
-    if await is_token_below_floor(payload):
+    # jti أو أرضيّة المستخدم ⇒ 401؛ مخزنٌ يفشل ⇒ القراءة الآمنة تمرّ والكتابة 503 (session_tokens).
+    checks = (jti := payload.get("jti")) and is_jti_revoked(jti), is_token_below_floor(payload)
+    if await session_revoked(*checks, request=request):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
     return payload
 
@@ -786,33 +787,36 @@ async def check_ip_rate(ip: str) -> None:
 
 
 # ── Audit Log ─────────────────────────────────────────────────
-async def audit_log(
-    action: str,
-    user_id: int | None,
-    ip: str,
-    details: str | None = None,
-    tenant_id: object | None = None,
-) -> None:
-    if not _pool:
-        return
+AUDIT_WRITE_FAILURES = _safe_counter("sahool_auth_audit_write_failures_total", "Lost audit rows")
+
+
+async def audit_log(action, user_id, ip, details=None, tenant_id=None) -> bool:
+    """R-H3: صفّ ``audit_log`` بعنوانٍ صالح أو NULL، ومستأجِره (المُمرَّر أو مستأجِر
+    ``user_id``) مربوطٌ بـ``set_config(…, true)`` في معاملة الإدراج نفسها (WITH CHECK v237).
+    يُعيد النجاح؛ الفشل لا يكسر المصادقة لكنّه مرئيّ دائماً (error + عدّاد)."""
     try:
-        async with _acquire() as conn:
+        async with _acquire() as conn, conn.transaction():
             await conn.execute(
-                """
-                INSERT INTO audit_log (action, user_id, ip_address, details, tenant_id, created_at)
-                VALUES ($1, $2, $3, $4, $5, NOW())
-                -- HIGH-01 FIX: removed  (no UNIQUE constraint on audit_log)
-                -- governance #407: tenant_id للتحقيق الجنائيّ المُنطّق بالمستأجِر
-            """,
+                "SELECT set_config('app.current_tenant', COALESCE($1::text, (SELECT tenant_id"
+                "::text FROM users WHERE id = $2::int), ''), true)",
+                str(tenant_id) if tenant_id else None,
+                user_id,
+            )
+            await conn.execute(
+                "INSERT INTO audit_log (action, user_id, ip_address, details, tenant_id, created_at)"
+                " VALUES ($1, $2, $3::inet, $4,"
+                " NULLIF(current_setting('app.current_tenant', true), '')::uuid, NOW())",
                 action,
                 user_id,
-                ip,
+                audit_inet(ip),
                 details,
-                tenant_id,
             )
-    except Exception as e:  # noqa: BLE001
-        # غير قاتل (لا نكسر مسار المصادقة)، لكن فشل كتابة سجلّ التدقيق حسّاس ⇒ error لا warning.
-        logger.error("فشل كتابة سجلّ التدقيق (غير قاتل) action=%s: %s", action, type(e).__name__)
+        return True
+    except Exception as e:  # noqa: BLE001 — لا نكسر المصادقة، لكنّ الضياع مرئيّ دائماً
+        AUDIT_WRITE_FAILURES.inc()
+        sqlstate = getattr(e, "sqlstate", None)
+        logger.error("audit_log row LOST action=%s: %s %s", action, type(e).__name__, sqlstate)
+        return False
 
 
 # ── Password Reset Helpers ─────────────────────────────────────
@@ -987,10 +991,11 @@ async def _ensure_admin_user():
         # حزام أمان: نُعيد ضبطه محليّاً للمعاملة أيضاً تحسّباً لأيّ RESET ALL على
         # تحرير الاتّصال يمحو GUC الجلسة — الإقحام التأسيسيّ للمدير يبقى متيناً.
         await conn.execute("SELECT set_config('app.current_role', 'admin', true)")
+        # C-01: admin = مالك مستأجِر ⇒ المدير التأسيسيّ مالكُ مستأجِرٍ جديد فارغ (صريحاً).
         await conn.execute(
             """
-            INSERT INTO users (email, password_hash, full_name, role)
-            VALUES ('admin@sahool.ye', $1, 'مدير النظام', 'admin')
+            INSERT INTO users (email, password_hash, full_name, role, tenant_id)
+            VALUES ('admin@sahool.ye', $1, 'مدير النظام', 'admin', gen_random_uuid())
             ON CONFLICT (email) DO NOTHING
         """,
             hashed,

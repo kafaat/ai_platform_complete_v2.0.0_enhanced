@@ -23,7 +23,13 @@ async def test_authoritative_queue_passes_through(monkeypatch):
 
     async def fake(*, tenant_id=None, limit=100):
         seen.update(tenant_id=tenant_id, limit=limit)
-        return {"authoritative": True, "persisted": True, "items": [], "count": 0}
+        return {
+            "authoritative": True,
+            "persisted": True,
+            "tenant_id": tenant_id,
+            "items": [],
+            "count": 0,
+        }
 
     monkeypatch.setattr(mod, "ds_list_review_queue", fake)
     out = await get_decision_review_queue(limit=25, user=_USER)
@@ -45,7 +51,13 @@ async def test_non_authoritative_queue_fails_closed(monkeypatch):
 @pytest.mark.asyncio
 async def test_invalid_queue_contract_fails_closed(monkeypatch):
     async def fake(*, tenant_id=None, limit=100):
-        return {"authoritative": True, "persisted": True, "items": [], "count": 1}
+        return {
+            "authoritative": True,
+            "persisted": True,
+            "tenant_id": tenant_id,
+            "items": [],
+            "count": 1,
+        }
 
     monkeypatch.setattr(mod, "ds_list_review_queue", fake)
     with pytest.raises(HTTPException) as exc:
@@ -62,3 +74,39 @@ async def test_service_down_becomes_503(monkeypatch):
     with pytest.raises(HTTPException) as exc:
         await get_decision_review_queue(limit=25, user=_USER)
     assert exc.value.status_code == 503
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "tenant,field,typed,embedded,allowed",
+    [
+        (str(_USER.tenant_id), "f", "s", None, True),
+        (str(_USER.tenant_id), "f", None, "s", True),
+        ("other", "f", "s", "s", False),
+        (str(_USER.tenant_id), "other", "s", "s", False),
+        (str(_USER.tenant_id), "f", "s", "other", False),
+        (str(_USER.tenant_id), "f", None, None, False),
+    ],
+)
+async def test_scoped_queue_proves_the_requested_scope(
+    monkeypatch, tenant, field, typed, embedded, allowed
+):
+    async def fake(**kwargs):
+        return {
+            "authoritative": True,
+            "persisted": True,
+            "tenant_id": tenant,
+            "count": 1,
+            "items": [
+                {"field_id": field, "season_id": typed, "decision_value": {"season_id": embedded}}
+            ],
+        }
+
+    monkeypatch.setattr(mod, "ds_list_review_queue", fake)
+    request = get_decision_review_queue(10, "f", "s", _USER)
+    if allowed:
+        assert (await request)["count"] == 1
+    else:
+        with pytest.raises(HTTPException) as exc:
+            await request
+        assert exc.value.status_code == 503

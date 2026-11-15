@@ -248,7 +248,8 @@ def test_dispatch_sends_a_close_and_leaves_an_open_queued_under_the_killswitch(a
         return _Resp(200)
 
     async def _device_ok(*_a, **_k):
-        return True, "ok"
+        # (ok, reason, registered field): main now returns the device's registered field.
+        return True, "ok", "field-a"
 
     async def _send(device_id, command, payload, **_kw):
         published.append((device_id, command))

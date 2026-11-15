@@ -518,6 +518,8 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
 
     from qdrant_client.http.models import FieldCondition, Filter, MatchAny
 
+    from shared.ai.seed_claims import UNREVIEWED_SEED_IDS, seed_claim_details
+
     # العزل يبقى fail-closed: يرى المستأجر وثائقه والمرجع المشترك المنظّم فقط،
     # ولا يرى tenant آخر. ``__global__`` محجوز للـcurated reference غير prescriptive.
     tenant_filter = Filter(
@@ -526,12 +528,19 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
                 key="metadata.tenant_id",
                 match=MatchAny(any=[tenant_id, _GLOBAL_REFERENCE_TENANT]),
             )
-        ]
+        ],
     )
     retriever = vs.as_retriever(search_kwargs={"k": k, "filter": tenant_filter})
 
     try:
         docs = await asyncio.to_thread(retriever.invoke, question)
+        if len(docs) == k and any(seed_claim_details(doc.metadata) for doc in docs):
+            # Preserve the tenant-only indexed filter on strict Qdrant collections.
+            # Unreviewed legacy hits must not crowd all usable documents out of the top k.
+            more = vs.as_retriever(
+                search_kwargs={"k": k + len(UNREVIEWED_SEED_IDS), "filter": tenant_filter}
+            )
+            docs = await asyncio.to_thread(more.invoke, question)
     except Exception as e:  # noqa: BLE001 — تعطّل Qdrant/Ollama ⇒ 503 صادق
         logger.warning("فشل استرجاع المعرفة: %s", type(e).__name__)
         raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر الاسترجاع)") from e
@@ -547,6 +556,7 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
     # ARCH-S3 EXPAND: compare canonical retrieval out-of-band. The direct path is
     # still the declared primary until live parity is accepted; no response data
     # comes from shadow and no canonical failure is silently used as a fallback.
+    docs = [doc for doc in docs if not seed_claim_details(doc.metadata)][:k]
     await _shadow_canonical_retrieval(question, tenant_id, k, docs)
 
     # لا سياق ⇒ رفض صريح بلا مصادر (لا نستدعي النموذج لئلّا يُجيب من معرفته).

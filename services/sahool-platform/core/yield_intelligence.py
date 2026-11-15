@@ -120,6 +120,7 @@ def build_canonical_yield_state(
         raise ValueError("field_id, season_id and source_sha256 are required")
     values: list[float] = []
     rejected = 0
+    pending_zero = 0
     for row in records:
         value = row.get("yield_kg_ha")
         try:
@@ -130,10 +131,17 @@ def build_canonical_yield_state(
         if not math.isfinite(f) or f < 0:
             rejected += 1
             continue
+        if f == 0:
+            # v259: a stored zero is a documented observation pending review; it is
+            # declared, never averaged into the field yield (no automatic promotion).
+            pending_zero += 1
+            continue
         values.append(f)
     limitations: list[str] = []
     if rejected:
         limitations.append(f"rejected_invalid_records:{rejected}")
+    if pending_zero:
+        limitations.append(f"pending_zero_yield_records:{pending_zero}")
     if not values:
         limitations.append("no_valid_yield_records")
     if calibration_factor is not None and not 0.7 <= float(calibration_factor) <= 1.3:
@@ -148,7 +156,7 @@ def build_canonical_yield_state(
         limitations.append("trueup_not_applied")
     quality = (
         "verified"
-        if values and calibration_factor is not None and not rejected
+        if values and calibration_factor is not None and not rejected and not pending_zero
         else "accepted_with_warning"
         if values
         else "missing"

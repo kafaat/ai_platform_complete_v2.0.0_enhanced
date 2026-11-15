@@ -29,6 +29,10 @@ from urllib.parse import urlsplit, urlunsplit
 #: هناك اعتماداً حُذِف، لا أن يظنّ العنوانَ بلا اعتماد فيطارد عطلاً غير موجود.
 PLACEHOLDER = "***:***"
 
+#: ترويسةُ إزالةِ التكرار في JetStream (``nats.js.api.Header.MSG_ID``) — نصّاً هنا كي
+#: لا يُستورَد العميلُ عند تحميل هذا الملفّ للتنقية وحدها.
+MSG_ID_HEADER = "Nats-Msg-Id"
+
 
 def redact_broker_url(url: str | None) -> str:
     """يُعيد العنوانَ بلا اسمِ مستخدمٍ ولا كلمةِ مرور — صالحاً للطباعة.
@@ -71,11 +75,23 @@ def make_jetstream_publisher(nats_conn):
     قرارُ مالكٍ لمرّةٍ واحدة، لا يُنتزَع لأجل نقلِ دالّة. وهذا الملفُّ هو الموضعُ
     القانونيُّ لشؤون الوسيط بنصّه أعلاه: «تُكتَب مرّةً واحدة هنا». فالبوّابتان دلّتا
     على الموضع الصحيح بدل أن تُعطَّلا.
+
+    **ومعرّفُ رسالةٍ ثابت (C-19):** ``msg_id`` الاختياريّ يُرسَل ترويسةَ ``Nats-Msg-Id``.
+    بدونه، انهيارٌ بعد ``PubAck`` وقبل وسمِ الصفّ ``sent`` يُعيد نشرَ الحدث برسالةٍ لا
+    تعرفها نافذةُ التكرار في JetStream فتُخزَّن مرّتين. ومُعرِّفُ الحدث (``event_id``)
+    ثابتٌ عبر المحاولات، فتُسقِط النافذةُ الإعادةَ ويعود الإقرارُ ``duplicate`` بتسلسلِ
+    الأصل. **حدُّ صدقٍ مُعلَن:** النافذةُ محدودةُ الزمن (``duplicate_window`` للدفق)،
+    فإعادةٌ بعدها تُخزَّن ثانيةً — والضمانةُ تبقى **at-least-once** يحسمها المستهلكُ
+    بـ``processed_events``. هذا يُقلِّص التكرارَ ولا يدّعي exactly-once.
+    والمُنادي بلا ``msg_id`` يبقى سلوكُه كما كان: لا ترويسةَ تُرسَل أصلاً.
     """
     jetstream = nats_conn.jetstream()
 
-    async def publish(subject: str, payload: bytes) -> None:
-        ack = await jetstream.publish(subject, payload)
+    async def publish(subject: str, payload: bytes, msg_id: str | None = None) -> None:
+        if msg_id:
+            ack = await jetstream.publish(subject, payload, headers={MSG_ID_HEADER: str(msg_id)})
+        else:
+            ack = await jetstream.publish(subject, payload)
         # حزامٌ ثانٍ: عميلٌ يُرجِع `None` أو إقراراً بلا تسلسلٍ لا يُثبِت دواماً — وبلا
         # هذا الشرط يعود `sent` يعني «لم يُرفَع استثناء» لا «خُزِّنت».
         if ack is None or getattr(ack, "seq", None) in (None, 0):

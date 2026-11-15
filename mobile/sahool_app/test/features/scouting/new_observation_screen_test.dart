@@ -114,7 +114,7 @@ void main() {
     expect(find.text('الدقّة ±8 م'), findsOneWidget);
   });
 
-  tallTest('photo notice says uploads are not available on the server', (
+  tallTest('photo notice says the photo is uploaded with the observation', (
     t,
   ) async {
     final (api, _) = fakeApi((o) async => taxonomy(o));
@@ -127,7 +127,7 @@ void main() {
       ),
     );
     await t.pumpAndSettle();
-    expect(find.text(kPhotoUploadUnavailable), findsOneWidget);
+    expect(find.text(kPhotoUploadNotice), findsOneWidget);
   });
 
   Future<void> fillAndSave(WidgetTester t) async {

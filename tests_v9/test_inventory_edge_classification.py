@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import ast
 import importlib.util
 import json
 import re
@@ -338,11 +339,30 @@ def test_the_live_tree_reports_service_edges_the_catalog_does_not_declare():
     out = edges.classify(declared, inventory.load_components(), ROOT)
     python_http = out["report"]["classification"]["python_http"]
     assert python_http["chains_located"] > 0
+    # Independently locate the actual POST, preserving the exact edge assertion
+    # without making unrelated insertions above the adapter break the witness.
+    source_path = "services/field-segmentation/main.py"
+    tree = ast.parse((ROOT / source_path).read_text(encoding="utf-8"))
+    (adapter,) = [
+        node
+        for node in tree.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_post_inference"
+    ]
+    (call,) = [
+        node
+        for node in ast.walk(adapter)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "post"
+        and node.args
+        and isinstance(node.args[0], ast.Name)
+        and node.args[0].id == "SEGMENTATION_INFERENCE_URL"
+    ]
     assert {
         "consumer": "field-segmentation",
         "provider": "sam2-inference",
         "operation": "POST /v1/predict",
-        "call_site": "services/field-segmentation/main.py:195",
+        "call_site": f"{source_path}:{call.lineno}",
     } in python_http["observed_undeclared"]
 
 

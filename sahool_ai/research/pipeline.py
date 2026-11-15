@@ -38,7 +38,7 @@ def run_pipeline(query: str) -> dict:
         - ``map_data``: GeoJSON FeatureCollection.
         - ``query``: الاستعلام الأصلي.
         - ``subquery_count``: عدد الاستعلامات الفرعيّة.
-        - ``sources_retrieved``: قائمة مصادر البيانات المُستردَّة.
+        - ``sources_retrieved``: قائمة المصادر الخارجية المستردّة، فارغة في المحاكاة.
     """
     # ── 1. Decompose ───────────────────────────────────────────────────────
     subqueries = decompose_query(query)
@@ -56,10 +56,14 @@ def run_pipeline(query: str) -> dict:
     map_data = generate_map_data(synthesis, region=region)
 
     return {
+        "evidence_mode": synthesis.evidence_mode,
+        "decision_usable": False,
         "json": json_report,
         "markdown": markdown_report,
         "map_data": map_data,
         "query": query,
         "subquery_count": len(subqueries),
-        "sources_retrieved": list(raw_results.keys()),
+        "sources_retrieved": [],
+        "simulated_sources": [name for name, data in raw_results.items() if "error" not in data],
+        "failed_sources": [name for name, data in raw_results.items() if "error" in data],
     }

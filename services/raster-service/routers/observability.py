@@ -331,14 +331,17 @@ async def field_indices(
     تحويل الوزن للرادار في fuse_health.
     """
     require_service_token(x_agent_token, AGENT_TOKEN)
+    from shared.gis.cloud_native_gis import parse_resolution_m
+
     requested = [i.strip() for i in indices.split(",") if i.strip()]
+    observed_spacings: set[float | None] = set()
     out: dict = {
         "field_id": field_id,
         "real_data": False,
         "observed_at": None,
         "field_coverage": None,
         "cloud_cover": cloud_cover,
-        "resolution_m": 10.0,
+        "resolution_m": None,
     }
     coverage_val = None
     for idx in requested:
@@ -355,6 +358,7 @@ async def field_indices(
             )
             out["rvi"] = m
             if m is not None:
+                observed_spacings.add(None)  # SAR helper returns a mean without grid metadata.
                 out["real_data"] = True
             continue
         layer = await resolve_field_layer(
@@ -371,6 +375,13 @@ async def field_indices(
         if real is None:
             out[idx] = None
             continue
+        sampling = real.get("spatial_sampling")
+        axes = sampling.get("output_pixel_size_m") if isinstance(sampling, dict) else None
+        observed_spacings.add(
+            parse_resolution_m(axes[0])
+            if isinstance(axes, (list, tuple)) and len(axes) == 2
+            else None
+        )
         out[idx] = real["stats"]["mean"]
         out["real_data"] = True
         out["observed_at"] = out["observed_at"] or real.get("date")
@@ -379,6 +390,8 @@ async def field_indices(
             coverage_val = (
                 round(sum(v is not None for v in cells) / len(cells), 4) if cells else None
             )
+    if len(observed_spacings) == 1:
+        out["resolution_m"] = observed_spacings.pop()
     out["field_coverage"] = coverage_val
     out["note"] = (
         None if out["real_data"] else "لا COG مقصوص للحقل — شغّل /process أوّلاً (لا قيم مخترعة)"

@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+import ast
 import re
 from pathlib import Path
 
@@ -184,3 +185,79 @@ def test_projection_worker_projects_only_owned_model_not_platform_tables():
         "claim_submissions_for_projection" in src
         and "ON CONFLICT (observation_id) DO NOTHING" in src
     )
+
+
+# ── INGEST-FIELD-SELECT-01: every table the service touches is granted where grants take effect ──
+# ``sahool_ingest`` is created by the role runners AFTER the manifest, so a grant that lives only
+# in a migration (``IF EXISTS role``) is absent on first boot, and a grant that lives nowhere is
+# absent forever: ``SELECT 1 FROM fields`` had no grant, and every ODK/Kobo submission carrying a
+# field_id returned 503. The live test granted itself that privilege, which hid it. The table set
+# is derived from the service's own SQL, not copied.
+_SQL_TABLE_RE = re.compile(r"\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-z_][a-z0-9_]*)\b")
+_SQL_FUNCTIONS = {"resolve_ingest_source", "claim_submissions_for_projection"}
+_GRANT_RE = re.compile(
+    # A column-level grant (``GRANT SELECT (a, b) ON t``) counts: the photo context reads only
+    # the v246 pointer columns of field_tasks.
+    r"GRANT\s+[A-Z, ]+?(?:\s*\([a-z0-9_, ]+\))?\s+ON\s+(?!SEQUENCE|FUNCTION)(.+?)\s+TO\s+sahool_ingest\s*;",
+    re.S,
+)
+
+
+# grants_admin_api.py runs as its own principal (sahool_scout_grant_admin), never sahool_ingest;
+# its tables are checked against the provisioning helper below.
+_ADMIN_MODULE = "grants_admin_api.py"
+_ADMIN_HELPER = ROOT / "migrations" / "helpers" / "provision_scout_photo_grant_admin.psql"
+
+
+def _module_tables(path: Path) -> set[str]:
+    tables: set[str] = set()
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            tables.update(_SQL_TABLE_RE.findall(node.value))
+    return tables
+
+
+def _service_tables() -> set[str]:
+    tables: set[str] = set()
+    for path in SVC_DIR.glob("*.py"):
+        if path.name.startswith("test_") or path.name == _ADMIN_MODULE:
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                tables.update(_SQL_TABLE_RE.findall(node.value))
+    return tables - _SQL_FUNCTIONS
+
+
+def _ingest_granted_tables(runner: Path) -> set[str]:
+    text = runner.read_text(encoding="utf-8")
+    section = text.split("sahool_ingest (NOBYPASSRLS", 1)[1]
+    block = re.search(r"\nDO \$\$\nBEGIN\n.*?\nEND \$\$;\n", section, re.S)
+    assert block, f"{runner.name}: sahool_ingest grant block not found"
+    granted: set[str] = set()
+    for targets in _GRANT_RE.findall(block.group(0)):
+        granted.update(t.strip() for t in targets.replace("\n", " ").split(","))
+    return granted
+
+
+def test_service_table_derivation_is_not_vacuous():
+    tables = _service_tables()
+    assert {"external_submissions", "fields", "field_form_versions"} <= tables, tables
+
+
+@pytest.mark.parametrize("runner", [BOOTSTRAP, APPLY])
+def test_every_table_the_ingest_service_queries_is_granted_by_the_role_runner(runner: Path):
+    missing = sorted(_service_tables() - _ingest_granted_tables(runner))
+    assert not missing, (
+        f"{runner.name}: sahool_ingest queries tables its role runner never grants: {missing}"
+    )
+
+
+def test_every_table_the_admin_api_queries_is_granted_to_its_own_principal():
+    """The admin API (scout-ingest, owner decision 2026-11-13) reads/writes only what the helper
+    grants sahool_scout_grant_admin; pg_roles is the catalog it checks its own role in."""
+    helper = _ADMIN_HELPER.read_text(encoding="utf-8")
+    granted = set(re.findall(r"\bON\s+([a-z_][a-z0-9_]*)\s+TO\s+sahool_scout_grant_admin", helper))
+    queried = _module_tables(SVC_DIR / _ADMIN_MODULE) - {"pg_roles"}
+    assert queried, "admin table derivation is vacuous"
+    assert not sorted(queried - granted), sorted(queried - granted)

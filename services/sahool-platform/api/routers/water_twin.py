@@ -26,6 +26,7 @@ from datetime import UTC, date, datetime
 from typing import Literal
 
 from core.engines.fao56 import root_depth_for_crop, taw_from_root_depth, theta_fc_wp_for_texture
+from core.field_twin import water_twin_crop_context
 from core.season_phenology import crop_kc_profile, resolve_crop_id
 from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
@@ -213,12 +214,21 @@ async def field_water_twin(
     crop_name: str | None = None
     planting_date = None
     sensor_reading = None
+    season_id: str | None = None
+    season_context_source = "not_loaded"
+    season_context_limitations: list[str] = []
     if api_main._DB_POOL is not None:
         try:
             async with tenant_connection(user) as conn:
                 await _assert_field_in_tenant(conn, field_id)
                 field_row = await conn.fetchrow(
                     "SELECT crop, planting_date FROM fields WHERE field_id = $1", field_id
+                )
+                active_season = await conn.fetchrow(
+                    "SELECT season_id, crops, sowing_date FROM seasons "
+                    "WHERE field_id = $1 AND status = 'active' "
+                    "ORDER BY created_at DESC LIMIT 1",
+                    field_id,
                 )
                 rows = await conn.fetch(
                     f"SELECT {LEDGER_SELECT_COLS} FROM water_ledger "
@@ -229,9 +239,12 @@ async def field_water_twin(
                 # SOIL-MOISTURE-UNIT-IDENTITY-01: قراءةُ الحسّاس تُقارَن بالدفتر ولا تحكمه.
                 sensor_reading = await api_main._latest_soil_moisture(conn, field_id)
             recent = [row_to_ledger_entry(r) for r in rows]
-            if field_row is not None:
-                crop_name = field_row["crop"]
-                planting_date = field_row["planting_date"]
+            ctx = water_twin_crop_context(active_season, field_row)
+            crop_name = ctx["crop"]
+            planting_date = ctx["planting_date"]
+            season_id = ctx["season_id"]
+            season_context_source = ctx["source"]
+            season_context_limitations = ctx["limitations"]
         except HTTPException:
             raise  # 404 (حقل خارج المستأجِر) يصعد كما هو
         except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -303,6 +316,14 @@ async def field_water_twin(
         raise HTTPException(status_code=422, detail=str(e)) from e
 
     result["field_id"] = field_id
+    result["season_context"] = {
+        "season_id": season_id,
+        "crop": crop_name,
+        "source": season_context_source,
+        "limitations": season_context_limitations,
+        "decision_authority": "none",
+    }
+    result["preview_only"] = True
     result["seed"] = {
         "initial_depletion_mm": round(init_dr, 2),
         "initial_depletion_source": dr_source,

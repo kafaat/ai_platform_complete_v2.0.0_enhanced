@@ -203,12 +203,26 @@ def sipi(blue, red, nir, _np):
     Valid range [0, 2] (green vegetation ≈ 0.8–1.8). NIR ≤ RED (bare soil,
     water) makes the denominator ≤ 0 — SIPI is undefined there ⇒ NaN.
     """
-    return guarded_quotient(
-        (blue, red, nir),
-        lambda b, r, n: (n - b, n - r),
-        _np,
-        valid_range=(0.0, 2.0),
+    # Radiometric scale/offset can round three float32 bands independently.
+    # Test the upper endpoint in reflectance units, before a small denominator
+    # amplifies those errors. A one-DN discrepancy on Sentinel-2 stays outside.
+    bands = (blue, red, nir)
+    precision = (
+        _np.float32 if any(_np.asarray(x).dtype == _np.float32 for x in bands) else _np.float64
     )
+    epsilon = _np.finfo(precision).eps
+
+    def terms(b, r, n):
+        numerator = n - b
+        denominator = n - r
+        upper = 2.0 * denominator
+        tolerance = epsilon * (_np.abs(n) + 2.0 * _np.abs(r) + _np.abs(b))
+        numerator = _np.where(
+            (numerator > upper) & (numerator - upper <= tolerance), upper, numerator
+        )
+        return numerator, denominator
+
+    return guarded_quotient(bands, terms, _np, valid_range=(0.0, 2.0))
 
 
 def arvi(blue, red, nir, _np, gamma: float = 1.0):

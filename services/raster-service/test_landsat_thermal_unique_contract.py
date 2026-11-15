@@ -25,7 +25,13 @@ def test_landsat_unique_sets_do_not_include_sentinel_duplicate_indices():
     assert raster_settings.LANDSAT_DERIVED_INDICES <= raster_settings.LANDSAT_UNIQUE_INDICES
 
 
-def test_landsat_payload_keeps_only_thermal_urls_and_excludes_optical_bands():
+def test_landsat_payload_keeps_only_thermal_urls_and_excludes_optical_bands(monkeypatch):
+    # The real app injects the policy at startup; this unit test imports the helper alone.
+    monkeypatch.setattr(
+        stac_search,
+        "LANDSAT_DUPLICATE_SENTINEL_INDICES",
+        raster_settings.LANDSAT_DUPLICATE_SENTINEL_INDICES,
+    )
     feat = {
         "id": "LC08_thermal_demo",
         "bbox": [44, 16, 45, 17],

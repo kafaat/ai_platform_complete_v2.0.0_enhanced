@@ -26,6 +26,9 @@ import type { DisplayFact } from '../../lib/cropPropagation';
 import { T } from '../ds';
 
 interface Props {
+  /** Links an advisory scenario to its UI context; never makes client data authoritative. */
+  fieldId?: string | null;
+  seasonId?: string | null;
   /** تسمية محصول الحقل النشط — سياق عرض/إدخال افتراضيّ (المحرّكات محايدة المحصول). */
   cropLabel?: string | null;
   enabled?: boolean;
@@ -138,7 +141,7 @@ const IRRIGATED_OPTIONS: { key: string; label_ar: string }[] = [
  * الأقسام قابلة للطيّ واستعلاماتها كسولة (لا تُطلَق قبل فتح القسم وتوفّر المدخلات)؛
  * 404 ⇒ «غير مُفعَّلة على هذا الخادم» صادق؛ null ⇒ «—» والغائب يسقط لا يُصفَّر.
  */
-export default function CropPropagationCard({ cropLabel, enabled = true }: Props) {
+export default function CropPropagationCard({ cropLabel, fieldId, seasonId, enabled = true }: Props) {
   const [open, setOpen] = useState<Set<SectionKey>>(new Set());
   const isOpen = (k: SectionKey) => open.has(k);
   const toggle = (k: SectionKey) =>
@@ -183,12 +186,14 @@ export default function CropPropagationCard({ cropLabel, enabled = true }: Props
   const composeInput = useMemo(() => {
     if (cmTminN == null || cmTmaxN == null || cmEt0N == null) return null; // يوم توقّع صحيح إجباريّ
     return {
+      field_id: fieldId ?? null,
+      season_id: seasonId ?? null,
       crop: (cmCrop.trim() || cropLabel) || null,
       stage: cmStage,
       ndvi: parseNum(cmNdvi),
       forecast: [{ t_min_c: cmTminN, t_max_c: cmTmaxN, et0_mm: cmEt0N, rain_mm: parseNum(cmRain) ?? 0 }],
     };
-  }, [cmTminN, cmTmaxN, cmEt0N, cmCrop, cropLabel, cmStage, cmNdvi, cmRain]);
+  }, [cmTminN, cmTmaxN, cmEt0N, cmCrop, cropLabel, fieldId, seasonId, cmStage, cmNdvi, cmRain]);
   const composeQ = useCropTwinCompose(isOpen('compose') ? composeInput : null);
   const cmFacts = useMemo(() => composeFacts(composeQ.data), [composeQ.data]);
   const cmFlags = useMemo(() => composeStressFlags(composeQ.data), [composeQ.data]);

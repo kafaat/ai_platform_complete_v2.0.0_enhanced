@@ -177,6 +177,15 @@ export function canCreateFarm(role: string | undefined): boolean {
   return can(role, 'create', 'farm');
 }
 
+/** Recording a farm-book expense or linking one to a task (activity:execute on the server:
+ *  owner, manager and worker, not agronomist or viewer). Independent of analytics:view, so a
+ *  worker can record a task receipt without seeing cost totals. A role set, not a rank: the
+ *  server grants it to the worker but not to the agronomist. */
+const EXPENSE_RECORDERS: readonly Role[] = ['owner', 'manager', 'worker'];
+export function canRecordExpense(role: string | undefined): boolean {
+  return EXPENSE_RECORDERS.includes(normalizeRole(role));
+}
+
 /** تسمية عربيّة موحّدة للدور. */
 export const ROLE_LABEL_AR: Record<Role, string> = {
   owner: 'مالك',

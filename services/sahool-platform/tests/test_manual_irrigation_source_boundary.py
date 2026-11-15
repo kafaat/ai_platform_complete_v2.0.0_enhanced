@@ -180,12 +180,14 @@ async def setup_route(monkeypatch, *, decision="auto:daily_balance", operational
             )
         ),
     )
+    # decision-service's receipt names the candidate it stored and the tenant it stored it for.
     submit = AsyncMock(
-        return_value={
+        side_effect=lambda payload, tenant: {
             "authoritative": True,
             "persisted": True,
             "stage": "candidate",
-            "decision_id": "dec-test",
+            "decision_id": payload["decision_id"],
+            "tenant_id": str(tenant),
         }
     )
     monkeypatch.setattr(route, "_submit_candidate_to_decision", submit)

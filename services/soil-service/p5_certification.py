@@ -59,22 +59,21 @@ def _r2(y, p):
     return 1 - sum((a - b) ** 2 for a, b in zip(y, p, strict=False)) / ss
 
 
-# قاعدة spatial_cv: لا يُعَدّ مقياس مُتحقَّقاً مكانيّاً إلّا إذا جاءت ملاحظاته من ≥3 حقول مميّزة
-# **و** لم يستأثر حقل واحد بأكثر من نصف الملاحظات المميّزة (وإلّا فالـ«تحقّق» عمليّاً حقل واحد).
-SPATIAL_CV_MIN_FIELDS = 3
-SPATIAL_CV_MAX_FIELD_SHARE = 0.5
+# Diagnostic for field representation in the observed prediction errors.
+DIVERSITY_MIN_FIELDS = 3
+DIVERSITY_MAX_FIELD_SHARE = 0.5
 
 
-def _spatial_cv_ok(field_by_observation: dict[tuple[str, str], str]) -> bool:
+def _field_diversity_ok(field_by_observation: dict[tuple[str, str], str]) -> bool:
     n = len(field_by_observation)
     if n == 0:
         return False
     per_field: dict[str, int] = defaultdict(int)
     for field_id in field_by_observation.values():
         per_field[field_id] += 1
-    if len(per_field) < SPATIAL_CV_MIN_FIELDS:
+    if len(per_field) < DIVERSITY_MIN_FIELDS:
         return False
-    return max(per_field.values()) / n <= SPATIAL_CV_MAX_FIELD_SHARE
+    return max(per_field.values()) / n <= DIVERSITY_MAX_FIELD_SHARE
 
 
 def build_calibration(
@@ -96,7 +95,7 @@ def build_calibration(
       depth_cm)``.
     * ``leakage_checks_passed`` يُحسَب على **المدخل قبل إزالة الازدواج**: أيّ ``validation_id``
       مكرَّر ⇒ False؛ وإن مُرِّرت ``training_field_ids`` فأيّ حقل تحقّق موجود في التدريب ⇒ False.
-    * ``spatial_cv``: ≥3 حقول مميّزة ولا يتجاوز نصيب حقل واحد نصف الملاحظات المميّزة.
+    * ``field_diversity_passed``: ≥3 حقول مميّزة ولا يتجاوز نصيب حقل واحد نصف الملاحظات المميّزة.
     """
     all_records = list(records)
     id_counts: dict[str, int] = defaultdict(int)
@@ -140,7 +139,7 @@ def build_calibration(
                 rmse=math.sqrt(sum(e * e for e in errs) / len(errs)),
                 bias=sum(errs) / len(errs),
                 r2=_r2(y, p),
-                spatial_cv=_spatial_cv_ok(observation_field[prop]),
+                field_diversity_passed=_field_diversity_ok(observation_field[prop]),
             )
         )
     ids = sorted({r.validation_id for r in accepted})
@@ -174,6 +173,8 @@ def evaluate_promotion(
     thresholds = thresholds or [
         v for (pt, _), v in DEFAULT_THRESHOLDS.items() if pt == artifact.product_type
     ]
+    if not thresholds:
+        reasons.append("acceptance_thresholds_missing")
     by = {m.property_name: m for m in artifact.metrics}
     if artifact.status != "candidate":
         reasons.append("calibration_not_candidate")

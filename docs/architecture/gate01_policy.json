@@ -8,14 +8,15 @@
   "gate": {
     "id": "GATE-01",
     "gap_id": "GATE-01-EXECUTION-CONTROL-SLICE-WITHHELD-01",
-    "state": "CLOSED",
-    "owner_ruling_on": "2026-08-09",
-    "ruling_source": "sahool-brain/gaps/registry.md",
+    "state": "OPEN",
+    "owner_ruling_on": "2026-11-12",
+    "ruling_source": "docs/architecture/gates/authorizations/GATE01-AUTH-2026-11-12-001.dsse.json",
     "state_semantics_ar": {
       "CLOSED": "عملُ المرحلة ١ على الأثر الفيزيائيّ **محظورٌ عالميّاً**، إلّا بتفويضٍ محكَّمٍ مقيَّدٍ يُستهلَك مرّةً واحدة.",
       "OPEN": "تجميدُ أدلّة المرحلة ٠ قُبِل **نهائيّاً**، وعملُ المرحلة ١ مأذونٌ عموماً. انتقالُ مرحلةٍ لا استثناءُ PR."
     },
-    "why_open_is_not_a_pr_exception_ar": "فتحُ البوّابة كلّها لأجل رقعةٍ واحدة أوسع من الحاجة: يرفع الحجر عن **كلّ** مسارٍ مجمَّد وعن كلّ PR لاحقة. التفويض المقيَّد أضيق وأقلّ خطراً — ولذلك لا transition من CLOSED إلى OPEN لمجرّد أنّ رقعةً تحتاج لمسَ ملفّ."
+    "why_open_is_not_a_pr_exception_ar": "فتحُ البوّابة كلّها لأجل رقعةٍ واحدة أوسع من الحاجة: يرفع الحجر عن **كلّ** مسارٍ مجمَّد وعن كلّ PR لاحقة. التفويض المقيَّد أضيق وأقلّ خطراً — ولذلك لا transition من CLOSED إلى OPEN لمجرّد أنّ رقعةً تحتاج لمسَ ملفّ.",
+    "open_ruling_ar": "قرار المالك kafaat في 2026-11-12 بعد عرض البديل المقيَّد عليه: «افضل الفتح الكامل» لغرض التطوير والإصلاح. يسري بتوقيع المالك على GATE01-AUTH-2026-11-12-001. الإغلاق إجراءٌ تشديديّ لا يحتاج توقيعاً: PR تعيد state إلى CLOSED. سجلّ القرار: docs/architecture/gates/rulings/GATE01-OPEN-2026-11-12.json"
   },
   "phase0_baseline": {
     "$comment_ar": "الشجرة **قبل** التعديل التي جُمِّدت أدلّتها — لا SHA الرقعة التي تمسّ المسارات المجمَّدة. وكان `frozen_commit_sha` الواحد يحمل الدلالتين فيلتبسان.",

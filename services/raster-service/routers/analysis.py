@@ -127,8 +127,13 @@ async def sar_rvi_endpoint(req: SarRviRequest, x_agent_token: str = Header(None)
     RVI = 4·σ°VH/(σ°VV+σ°VH) (قدرة خطّيّة)، مقصوص [0,1] كبديل غطاء قابل للدمج مع
     NDVI كـfamily="sar". المُدخلات شبكتا VV/VH مُحسبتان من COG رادار مُعايَر
     (العامل، rasterio). صدق: فجوات NaN محفوظة. rvi_mean يُمرَّر كإشارة source=rvi.
+
+    ``mode="tillage_change_evidence"``: دليل تغيّر VV/VH حول تاريخ حراثة (``date``) —
+    راجع ``sar_tillage_evidence``. ارتداد dB خام لا يُدمج مع NDVI.
     """
     require_service_token(x_agent_token, AGENT_TOKEN)
+    if req.mode == "tillage_change_evidence":
+        return await _sar_tillage_change_evidence(req)
     cells = sum(len(row) for row in req.vv_grid)
     if cells > MAX_CHANGE_GRID_CELLS:
         raise HTTPException(
@@ -191,3 +196,36 @@ async def salinity_calibrate(req: SalinityFitRequest, x_agent_token: str = Heade
     يفرض: 5 عيّنات+ وطريقة استخلاص موحّدة (لا يقبل بيانات تُنتج معايرة زائفة)."""
     require_service_token(x_agent_token, AGENT_TOKEN)
     return _sal.fit_regression(req.samples)
+
+
+async def _sar_tillage_change_evidence(req: SarRviRequest) -> dict:
+    """mode=tillage_change_evidence: دليل تغيّر راداريّ حول تاريخ حراثة مُسجَّل.
+
+    دليل داعم احتماليّ (``radar_change_evidence``) لا إثبات: لا يضع الحدث «مُتحقَّقاً»
+    أبداً. كلّ مصدر VV/VH يمرّ بـsafe_raster_source (traversal/SSRF) قبل الفتح، والقراءة
+    في خيط ``run_raster_io`` لا على الحلقة.
+    """
+    import sar_tillage_evidence as ste
+    from raster_field_runtime import run_raster_io
+    from rasterio.errors import RasterioIOError
+
+    t = req.tillage
+    try:
+        result = await run_raster_io(
+            ste.assess_tillage_change,
+            event_date=req.date,
+            field_geometry=t.field_geometry,
+            acquisitions=[a.model_dump() for a in t.acquisitions],
+            backscatter_kind=t.backscatter_kind,
+            moisture_events=[e.model_dump() for e in t.moisture_events],
+            moisture_checked=t.moisture_checked,
+            surface_state_before=t.surface_state_before,
+            window_days=t.window_days,
+            resolve_source=lambda u: safe_raster_source(u, UPLOAD_DIR, SSRF_BLOCKED_HOSTS),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from None
+    except RasterioIOError:
+        raise HTTPException(status_code=422, detail="مصدر VV/VH غير مقروء") from None
+    result.update({"field_id": req.field_id, "mode": req.mode})
+    return result

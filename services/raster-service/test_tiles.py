@@ -423,3 +423,86 @@ def test_field_layer_date_and_index_selection_is_strict():
     assert tile_missing.status_code == 200
     rgba = _decode_png_rgba(tile_missing.content)
     assert int((rgba[..., 3] > 0).sum()) == 0, "missing date must render transparent tile"
+
+
+def test_overzoom_keeps_source_cells_and_masks_at_adjacent_tile_seam(tmp_path):
+    # A source cell straddles the seam at destination x=256. One cell covers
+    # 64 screen pixels here; its colour and opacity must stay constant.
+    z, x, y = 18, 163680, 119200
+    west, _, east, north = tile_render.tile_bounds_3857(z, x, y)
+    step = (east - west) / 256
+    transform = from_origin(west - 20 * step, north + 20 * step, 64 * step, 64 * step)
+    rows, cols = np.indices((5, 9))
+    pattern = (rows + cols) % 2 == 0
+    mask = np.full(pattern.shape, 255, dtype=np.uint8)
+    mask[2, 4] = 0
+    scalar = np.where(pattern, 0.12, 0.84).astype("float32")
+    red = np.array([220, 25, 30], dtype=np.uint8)
+    green = np.array([15, 190, 35], dtype=np.uint8)
+    rgb = np.where(pattern[..., None], red, green)
+    # Include both the masked and plain scalar read paths.
+    for name in ("ndvi", "ndvi-masked", "truecolor"):
+        path = tmp_path / f"{name}.tif"
+        color = name == "truecolor"
+        mask_source = name != "ndvi"
+        with rasterio.open(
+            path,
+            "w",
+            driver="GTiff",
+            width=9,
+            height=5,
+            count=4 if color else 1,
+            dtype="uint8" if color else "float32",
+            crs="EPSG:3857",
+            transform=transform,
+        ) as src:
+            if color:
+                src.write(rgb.transpose(2, 0, 1), indexes=[1, 2, 3])
+                src.write(mask, 4)
+            else:
+                src.write(scalar, 1)
+                if mask_source:
+                    src.write_mask(mask)
+        index = "truecolor" if color else "ndvi"
+        pair = [
+            _decode_png_rgba(tile_render.render_tile_png(str(path), z, tx, y, index))
+            for tx in (x, x + 1)
+        ]
+        image = np.concatenate(pair, axis=1)
+        out_rows, out_cols = np.indices(image.shape[:2])
+        r, c = (out_rows + 20) // 64, (out_cols + 20) // 64
+        visible = mask[r, c] > 0 if mask_source else np.ones(r.shape, dtype=bool)
+        expected_rgb = rgb if color else tile_render.colorize(scalar, index)[:, :, :3]
+        np.testing.assert_array_equal(image[:, :, 3], visible.astype(np.uint8) * 255)
+        np.testing.assert_array_equal(image[:, :, :3][visible], expected_rgb[r, c][visible])
+
+
+def test_pixelated_truecolor_does_not_reuse_bilinear_cache(tmp_path):
+    from pathlib import Path
+
+    from tile_cache_io import tile_cache_key
+    from tile_cache_maint import safe_cache_segment
+
+    def key(index):
+        return Path(
+            tile_cache_key(
+                str(tmp_path),
+                safe_cache_segment,
+                "field",
+                index,
+                "2026-10-15",
+                16,
+                20,
+                42,
+                "tenant",
+                v="v1",
+            )
+        )
+
+    root = tmp_path / "tile_cache/tenant/field"
+    for index in ("ndvi", "truecolor"):
+        legacy = root / index / "2026-10-15/v1/16/20_42.png"
+        if index == "truecolor":
+            assert key(index) != legacy
+        else:
+            assert key(index) == legacy

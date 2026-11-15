@@ -463,22 +463,6 @@
       "intended_consumer": "machine"
     },
     {
-      "endpoint": "/api/v1/lab/samples/{sample_id}/transition",
-      "audience": "agronomist",
-      "methods": [
-        "post@services/sahool-platform/api/routers/soil_sampling.py"
-      ],
-      "reason_category": "operational",
-      "reason": "نقطة تشغيليّة لنقل حالة عيّنة المختبر (requested→…→published) — تُستدعى من نظام المختبر/الأدوات، لا شاشة مستخدم نهائيّ (سير عمل المختبر يظهر عبر Soil Workspace مستقبلاً).",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine"
-    },
-    {
       "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
       "method": "POST",
       "reason": "WX-11.6 registry-adapter claim is a machine-to-machine command (the registry worker claims a queued activation command); no end-user UI required — intended consumer is the registry adapter, not a human.",

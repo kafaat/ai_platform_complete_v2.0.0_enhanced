@@ -25,7 +25,7 @@ required = [
     (migration, "FORCE ROW LEVEL SECURITY"),
     (router, "AUTHORITATIVE_MANUAL_IRRIGATION_PLAN_NOT_FOUND"),
     (router, "execution_plan_id"),
-    (bff, 'req.operation_type == "manual_irrigation"'),
+    (bff, 'req.operation_type.strip().lower() == "manual_irrigation"'),
     (bff, "decision-service omitted authoritative plan digest"),
     (sor, '"plan_digest": row["request_hash"]'),
 ]

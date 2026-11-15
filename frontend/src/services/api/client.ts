@@ -12,7 +12,7 @@
 //   kong-gateway        → :8000  (البوابة الموحدة)
 // ═══════════════════════════════════════════════════════════════
 
-import axios, { type AxiosInstance } from 'axios';
+import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import { clearAccessToken, getAccessToken, getTenantId, getAuthScope } from '../../lib/authStorage';
 import { isAccessTokenExpired } from '../../lib/jwt';
 import { ENDPOINTS } from '../../config/endpoints';
@@ -50,6 +50,21 @@ const SOIL_URL       = ENDPOINTS.soil;
 export const MOCK_MODE      = import.meta.env.VITE_MOCK_MODE === 'true' || false;
 
 // ── Axios instances ────────────────────────────────────────────
+// حارس: لو رجع HTML (SPA fallback لمسار API غير مُوجَّه) بدل JSON ⇒ عامله خطأً
+// بدل تمرير نصّ HTML للمكوّنات فتنهار (مثل alerts.slice(...).map is not a function).
+function rejectHtmlResponse(r: AxiosResponse): AxiosResponse | Promise<never> {
+  const ct = (r.headers?.['content-type'] || '') as string;
+  if (
+    typeof r.data === 'string' &&
+    (ct.includes('text/html') || r.data.trimStart().startsWith('<'))
+  ) {
+    return Promise.reject(
+      new Error('استجابة غير صالحة من الخادم (مسار API غير مُوجَّه للخلفيّة؟)')
+    );
+  }
+  return r;
+}
+
 function makeClient(baseURL: string): AxiosInstance {
   const client = axios.create({ baseURL, timeout: 15000, headers: { 'Content-Type': 'application/json' } });
   // JWT interceptor
@@ -80,20 +95,7 @@ function makeClient(baseURL: string): AxiosInstance {
   });
   // 401 → logout
   client.interceptors.response.use(
-    (r) => {
-      // حارس: لو رجع HTML (SPA fallback لمسار API غير مُوجَّه) بدل JSON ⇒ عامله خطأً
-      // بدل تمرير نصّ HTML للمكوّنات فتنهار (مثل alerts.slice(...).map is not a function).
-      const ct = (r.headers?.['content-type'] || '') as string;
-      if (
-        typeof r.data === 'string' &&
-        (ct.includes('text/html') || r.data.trimStart().startsWith('<'))
-      ) {
-        return Promise.reject(
-          new Error('استجابة غير صالحة من الخادم (مسار API غير مُوجَّه للخلفيّة؟)')
-        );
-      }
-      return r;
-    },
+    rejectHtmlResponse,
     (err) => {
       // UI hotfix: 401 من خدمة ميزة (vegetation/raster…) لا يعني بالضرورة انتهاء جلسة
       // المنصّة (قد تُرجِعه الخدمة لسبب داخليّ خاصّ بها)، فطردُ المستخدم لتسجيل الدخول عليه
@@ -119,6 +121,24 @@ export const indicatorsApi = makeClient(INDICATORS_URL);
 export const vegetationApi = makeClient(VEGETATION_URL);
 export const rasterApi     = makeClient(RASTER_URL);
 export const authApi       = makeClient(AUTH_URL);
+
+// ── عميل «إثبات تسجيل MFA» (bootstrap enrollment) ────────────────
+// /auth/mfa/setup و/auth/mfa/activate في تدفّق الحساب الحسّاس غير المُسجَّل يُصادَقان
+// بـ`Authorization: Bearer <enrollment_token>` (إثبات كلمة مرور قصير الأجل، لمرّة واحدة)
+// لا بتوكن الجلسة. لذا عميلٌ مستقلّ عن makeClient عمداً:
+//   • لا interceptor طلب: لا يكتب فوق الترويسة الصريحة توكناً مخزَّناً (قديماً أو لحساب
+//     آخر)، ولا يرفض الطلب ويُطلق خروجاً لأنّ توكناً مخزَّناً انتهى، ولا يُرسل X-Tenant-ID
+//     (الإثبات يحمل هويّته؛ لا مستأجِر قبل الدخول).
+//   • لا 401→logout: انتهاء الإثبات أو استهلاكه (401) يُعالَج في شاشة التسجيل نفسها
+//     («سجّل الدخول من جديد»)، لا بمسح جلسة وإطلاق 'sahool:auth:unauthorized'.
+// يبقى حارس HTML وحده. الإثبات يُمرَّر لكلّ طلب ولا يُخزَّن هنا ولا في أيّ Storage.
+function makeEnrollmentProofClient(baseURL: string): AxiosInstance {
+  const client = axios.create({ baseURL, timeout: 15000, headers: { 'Content-Type': 'application/json' } });
+  client.interceptors.response.use(rejectHtmlResponse);
+  return client;
+}
+
+export const authEnrollmentApi = makeEnrollmentProofClient(AUTH_URL);
 
 // ── Helper: real data, with mock ONLY in explicit MOCK_MODE ───────
 // H2 FIX: لا يجوز لمنصّة قرار زراعي أن تُلفّق توصيات تسميد/ريّ ثابتة عند فشل

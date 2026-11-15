@@ -41,7 +41,7 @@ def fixture():
         document_embedding_prefix="search_document: ",
         retrieval_profile=rp.NOMIC_PROFILE,
     )
-    rows = [(pq.canonical_storage_point_id("x"), payload)]
+    rows = [(pq.canonical_storage_point_id("x", tenant_id="a"), payload)]
     spec = rm.ReindexSpec(
         "source",
         "sahool_rag_reindex_v1",

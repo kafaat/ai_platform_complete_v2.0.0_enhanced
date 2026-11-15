@@ -130,7 +130,7 @@ def test_rag04_same_count_content_or_scope_change_refreshes_bm25(rag, replacemen
     rag._ensure_sparse_index()
     store.rows = [(replacement.chunk_id, replacement.payload)]
     rag._ensure_sparse_index()
-    actual = rag._retriever._chunks[replacement.chunk_id]
+    actual = rag._retriever._chunks[(replacement.tenant_id, replacement.chunk_id)]
     assert actual.text == replacement.text
     assert all(actual.metadata.get(k) == v for k, v in replacement.metadata.items())
 

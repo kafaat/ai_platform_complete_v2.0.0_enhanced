@@ -135,7 +135,9 @@ def test_explicit_legacy_identity_can_be_planned_without_reusing_storage_id() ->
     assert row["action"] == "MIGRATION_CANDIDATE"
     assert row["canonical_chunk_id"] == "logical-7"
     assert row["canonical_chunk_id"] != row["point_id"]
-    assert row["canonical_writer_point_id"] == pq.canonical_storage_point_id("logical-7")
+    assert row["canonical_writer_point_id"] == pq.canonical_storage_point_id(
+        "logical-7", tenant_id="tenant-a"
+    )
     assert plan["migration_authorized"] is False
     assert plan["writes_performed"] is False
 
@@ -188,7 +190,7 @@ def test_plan_guard_rejects_storage_fallback_promoted_by_tamper(tmp_path: Path) 
     plan["plan_rows"][0]["action"] = "MIGRATION_CANDIDATE"
     plan["plan_rows"][0]["canonical_chunk_id"] = "storage-uuid-42"
     plan["plan_rows"][0]["canonical_writer_point_id"] = pq.canonical_storage_point_id(
-        "storage-uuid-42"
+        "storage-uuid-42", tenant_id="tenant-a"
     )
     plan["action_counts"] = {"MIGRATION_CANDIDATE": 1}
     plan["migration_candidate_count"] = 1
@@ -380,13 +382,14 @@ def test_canonical_writer_storage_id_is_a_one_way_projection_from_logical_id() -
     )
     client = Client()
     client.upsert([chunk], [[0.1, 0.2]])
-    expected = str(
-        __import__("uuid").uuid5(__import__("uuid").NAMESPACE_URL, "sahool-rag:logical-writer")
-    )
-    assert pq.canonical_storage_point_id("logical-writer") == expected
+    # R-H14: نقطة المستأجِر في فضائها المنفصل، بهويّة (مستأجِر، chunk_id).
+    expected = str(__import__("uuid").uuid5(pq.TENANT_POINT_NAMESPACE, "8:tenant-a:logical-writer"))
+    assert pq.canonical_storage_point_id("logical-writer", tenant_id="tenant-a") == expected
     assert client.body["points"][0]["id"] == expected
     with pytest.raises(ValueError):
-        pq.canonical_storage_point_id("")
+        pq.canonical_storage_point_id("", tenant_id="tenant-a")
+    with pytest.raises(ValueError):
+        pq.canonical_storage_point_id("logical-writer", tenant_id="")
 
 
 def test_every_writer_of_qdrant_points_projects_identity_identically() -> None:
@@ -421,7 +424,7 @@ def test_every_writer_of_qdrant_points_projects_identity_identically() -> None:
     canonical_source = PQ.read_text(encoding="utf-8")
     assert 'uuid.uuid5(uuid.NAMESPACE_URL, f"sahool-rag:{logical}")' in canonical_source
     # وشاهدٌ سلوكيّ فوق الشاهد النصّيّ: القيمةُ نفسها فعلاً.
-    assert pq.canonical_storage_point_id("c1") == str(
+    assert pq.canonical_storage_point_id("c1", tenant_id=pq.GLOBAL_REFERENCE_TENANT) == str(
         __import__("uuid").uuid5(__import__("uuid").NAMESPACE_URL, "sahool-rag:c1")
     )
 
@@ -476,7 +479,9 @@ def test_plan_guard_rederives_collisions_and_rejects_an_unheld_candidate(tmp_pat
     for row in tampered["plan_rows"]:
         if row["action"] == "HOLD_LOGICAL_ID_COLLISION":
             row["action"] = "MIGRATION_CANDIDATE"
-            row["canonical_writer_point_id"] = pq.canonical_storage_point_id(shared)
+            row["canonical_writer_point_id"] = pq.canonical_storage_point_id(
+                shared, tenant_id="tenant-a"
+            )
     counts: dict[str, int] = {}
     for row in tampered["plan_rows"]:
         counts[row["action"]] = counts.get(row["action"], 0) + 1

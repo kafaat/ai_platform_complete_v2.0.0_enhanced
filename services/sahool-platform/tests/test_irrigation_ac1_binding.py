@@ -212,6 +212,8 @@ def _calls(result=None, raises=None):
         seen.append((args, kwargs))
         if raises is not None:
             raise raises
+        if callable(result):
+            return result(*args, **kwargs)
         return result
 
     return _f, seen
@@ -439,12 +441,14 @@ def _route(monkeypatch, submit):
     return mod.FieldIrrigationRequest(policy="water_saving", submit_to_decision=True)
 
 
-_PERSISTED = {
-    "decision_id": "dec_1",
-    "authoritative": True,
-    "persisted": True,
-    "stage": "candidate",
-}
+def _persisted(payload, tenant):
+    return {
+        "decision_id": payload["decision_id"],
+        "tenant_id": str(tenant or ""),
+        "authoritative": True,
+        "persisted": True,
+        "stage": "candidate",
+    }
 
 
 @pytest.mark.asyncio
@@ -453,7 +457,7 @@ async def test_enforced_without_the_composer_the_route_blocks_by_name_and_submit
 ):
     monkeypatch.delenv("AGRONOMIC_CONTEXT_COMPOSE_ENABLED", raising=False)
     monkeypatch.setenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", "1")
-    submit, submitted = _calls(_PERSISTED)
+    submit, submitted = _calls(_persisted)
     out = await mod.field_irrigation_recommendation(
         "fld_1", _route(monkeypatch, submit), user=object()
     )
@@ -469,7 +473,7 @@ async def test_not_enforced_and_composer_off_the_route_behaves_as_before(monkeyp
     monkeypatch.delenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", raising=False)
     monkeypatch.delenv("ENVIRONMENT", raising=False)
     monkeypatch.delenv("SAHOOL_ENV", raising=False)
-    submit, submitted = _calls(_PERSISTED)
+    submit, submitted = _calls(_persisted)
     out = await mod.field_irrigation_recommendation(
         "fld_1", _route(monkeypatch, submit), user=object()
     )
@@ -485,7 +489,7 @@ async def test_the_route_sends_the_bound_lineage_with_the_candidate(monkeypatch)
         return _bind()
 
     monkeypatch.setattr(mod, "irrigation_candidate_lineage", _lineage)
-    submit, submitted = _calls(_PERSISTED)
+    submit, submitted = _calls(_persisted)
     out = await mod.field_irrigation_recommendation(
         "fld_1", _route(monkeypatch, submit), user=object()
     )
@@ -618,3 +622,27 @@ async def test_without_an_active_season_nothing_is_composed_and_the_gap_is_named
     assert composed == [] and veg_seen == []
     assert b.detail["season_id"] == "no active season for the field"
     assert b.blocked and "season_id" in b.missing
+
+
+def test_taw_provenance_follows_the_input_used_for_calculation():
+    inputs = {
+        **INPUTS,
+        "soil_provenance": {
+            "texture": {
+                **INPUTS["soil_provenance"]["texture"],
+                "evidence_ref": "soil_lab_results:sample-a",
+            },
+            "canonical_evidence": {"soil": {"root_zone_profile_digest": "profile-a"}},
+        },
+    }
+    for source, expected in [
+        ("lab_texture", "soil_lab_results:sample-a"),
+        ("canonical_root_zone_profile", "profile-a"),
+    ]:
+        feature = next(
+            f
+            for f in _features(inputs={**inputs, "taw_source": source})
+            if f["name"] == "total_available_water_mm"
+        )
+        assert feature["source_snapshot_id"] == expected
+        assert feature["quality_status"] == "accepted_with_warning"

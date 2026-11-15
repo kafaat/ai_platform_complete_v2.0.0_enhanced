@@ -392,37 +392,130 @@ class EventBus:
         entity_id: str,
         limit: int = 100,
     ) -> list[dict[str, Any]]:
-        """يرجع تاريخ entity (للـreplay engine)."""
+        """أقدم ``limit`` حدثاً فقط (صفحة أولى تصاعديّة) — توافقٌ خلفيّ.
+
+        **ليس التاريخ كلّه** حين يتجاوز المجرى ``limit``: للصفحات التالية أو لأحدث N
+        استعمل ``query_entity_history_page``، ولإعادة البناء ``EventReplay.read_full_history``.
+        """
+        page = await self.query_entity_history_page(entity_type, entity_id, limit=limit)
+        return page["events"]
+
+    async def query_entity_history_page(
+        self,
+        entity_type: str,
+        entity_id: str,
+        *,
+        limit: int = 100,
+        cursor: str | None = None,
+        order: str = "asc",
+    ) -> dict[str, Any]:
+        """صفحة من تاريخ كيان بمؤشّر keyset على (occurred_at, seq) — لا OFFSET (C-13).
+
+        ``order="asc"`` من الأقدم (لإعادة البناء)، و``"desc"`` أحدث N أوّلاً. ``seq``
+        (v63، IDENTITY) فريدٌ فيكسر تعادل occurred_at، فالمؤشّر يستأنف بلا تكرار ولا ثغرة
+        حتّى مع إدراجاتٍ جديدة. يُرجع ``{"events", "next_cursor", "order"}``؛ ``next_cursor``
+        يكون ``None`` فقط حين لا صفوف بعد هذه الصفحة (يُجلَب limit+1 للحكم).
+        """
+        if order not in ("asc", "desc"):
+            raise ValueError(f"order غير معروف: {order!r}")
+        if isinstance(limit, bool) or not isinstance(limit, int):
+            raise ValueError("limit يجب أن يكون عدداً صحيحاً")
+        if not 1 <= limit <= HISTORY_PAGE_MAX:
+            raise ValueError(f"limit خارج المدى 1..{HISTORY_PAGE_MAX}: {limit}")
+        after = decode_history_cursor(cursor, order) if cursor else None
+        cols = (
+            "SELECT event_id, event_type, schema_version, payload, source, actor_id,"
+            " command_id, occurred_at, recorded_at, seq FROM events"
+            " WHERE entity_type = $1 AND entity_id = $2"
+        )
+        if order == "asc":
+            keyset = " AND (occurred_at, seq) > ($4::timestamptz, $5::bigint)" if after else ""
+            sql = f"{cols}{keyset} ORDER BY occurred_at ASC, seq ASC LIMIT $3"
+        else:
+            keyset = " AND (occurred_at, seq) < ($4::timestamptz, $5::bigint)" if after else ""
+            sql = f"{cols}{keyset} ORDER BY occurred_at DESC, seq DESC LIMIT $3"
+        args: list[Any] = [entity_type, entity_id, limit + 1]  # نصّيّ منذ v18
+        if after:
+            args.extend(after)
         async with self._acquire() as conn:
-            rows = await conn.fetch(
-                """
-                SELECT event_id, event_type, payload, source, actor_id,
-                       command_id, occurred_at, recorded_at, seq
-                FROM events
-                WHERE entity_type = $1 AND entity_id = $2
-                ORDER BY occurred_at ASC, seq ASC
-                LIMIT $3
-                """,
-                entity_type,
-                entity_id,  # نصّيّ منذ v18 (لا تحويل UUID — كان يكسر معرّفات الحقول)
-                limit,
-            )
-            return [
-                {
-                    "event_id": str(r["event_id"]),
-                    "event_type": r["event_type"],
-                    "payload": r["payload"]
-                    if isinstance(r["payload"], dict)
-                    else json.loads(r["payload"]),
-                    "source": r["source"],
-                    "actor_id": r["actor_id"],
-                    "command_id": str(r["command_id"]) if r["command_id"] else None,
-                    "occurred_at": r["occurred_at"].isoformat() if r["occurred_at"] else None,
-                    "recorded_at": r["recorded_at"].isoformat() if r["recorded_at"] else None,
-                    "seq": r["seq"],  # مؤشّر الترتيب الحتميّ (v63) — كاسر تعادل occurred_at
-                }
-                for r in rows
-            ]
+            rows = await conn.fetch(sql, *args)
+        more = len(rows) > limit
+        rows = rows[:limit]
+        next_cursor = (
+            encode_history_cursor(rows[-1]["occurred_at"], rows[-1]["seq"], order)
+            if more and rows
+            else None
+        )
+        return {
+            "events": [_history_row(r) for r in rows],
+            "next_cursor": next_cursor,
+            "order": order,
+        }
+
+
+#: سقف حجم صفحة التاريخ — يفرضه الموجّه (422) والناقل (ValueError) معاً (C-21).
+HISTORY_PAGE_MAX: int = 1000
+
+
+class InvalidHistoryCursor(ValueError):
+    """مؤشّر تاريخ غير صالح (مشوَّه، أو لاتّجاهٍ غير المطلوب)."""
+
+
+def encode_history_cursor(occurred_at: datetime, seq: int, order: str) -> str:
+    """مؤشّر معتم (base64url لـJSON) لموضع (occurred_at, seq) واتّجاه القراءة."""
+    import base64
+
+    raw = json.dumps(
+        {"v": 1, "o": order, "t": occurred_at.isoformat(), "s": int(seq)},
+        separators=(",", ":"),
+    ).encode()
+    return base64.urlsafe_b64encode(raw).decode().rstrip("=")
+
+
+def decode_history_cursor(cursor: str, order: str) -> tuple[datetime, int]:
+    """يفكّ مؤشّراً إلى (occurred_at, seq) أو يرفع ``InvalidHistoryCursor``."""
+    import base64
+    import binascii
+
+    try:
+        padded = cursor + "=" * (-len(cursor) % 4)
+        data = json.loads(base64.urlsafe_b64decode(padded.encode()).decode())
+        if not isinstance(data, dict) or data.get("v") != 1:
+            raise InvalidHistoryCursor("نسخة مؤشّر غير معروفة")
+        ts = datetime.fromisoformat(data["t"])
+        seq = data["s"]
+        if isinstance(seq, bool) or not isinstance(seq, int) or ts.tzinfo is None:
+            raise InvalidHistoryCursor("مؤشّر مشوَّه")
+    except InvalidHistoryCursor:
+        raise
+    except (ValueError, KeyError, TypeError, binascii.Error, UnicodeDecodeError) as exc:
+        raise InvalidHistoryCursor("مؤشّر مشوَّه") from exc
+    if data.get("o") != order:
+        raise InvalidHistoryCursor("المؤشّر صادرٌ لاتّجاه قراءة آخر")
+    return ts, seq
+
+
+def _history_row(r: Any) -> dict[str, Any]:
+    return {
+        "event_id": str(r["event_id"]),
+        "event_type": r["event_type"],
+        # INT خام (v11)؛ ربطه بنسخة المرقّيات النصّيّة في event_upcasting (C-17).
+        "schema_version": r["schema_version"],
+        "payload": _decode_jsonb(r["payload"]),
+        "source": r["source"],
+        "actor_id": r["actor_id"],
+        "command_id": str(r["command_id"]) if r["command_id"] else None,
+        "occurred_at": r["occurred_at"].isoformat() if r["occurred_at"] else None,
+        "recorded_at": r["recorded_at"].isoformat() if r["recorded_at"] else None,
+        "seq": r["seq"],  # مؤشّر الترتيب الحتميّ (v63) — كاسر تعادل occurred_at
+    }
+
+
+def _decode_jsonb(value: Any) -> Any:
+    """jsonb يصل نصّاً عبر asyncpg بلا codec، وقاموساً مع codec — يُفكّ مرّة واحدة."""
+    if isinstance(value, (str, bytes, bytearray)):
+        return json.loads(value)
+    return value
 
 
 # ─── Idempotent consumption (processed_events dedup) ────────────
@@ -518,7 +611,7 @@ class OutboxWorker:
     def __init__(
         self,
         pool: asyncpg.Pool,
-        nats_publish_fn,  # async callable(subject, payload_bytes)
+        nats_publish_fn,  # async callable(subject, payload_bytes, msg_id=None)
         batch_size: int = 50,
         poll_interval_sec: float = 1.0,
         max_retries: int = 5,
@@ -683,21 +776,18 @@ class OutboxWorker:
         _record_delivery_attempt).
         """
         attempt_no = row["retry_count"] + 1
+        payload = _decode_jsonb(row["payload"])
         envelope = {
             "event_id": str(row["event_id"]),
             "event_type": row["event_type"],
             "entity_type": row["entity_type"],
             "entity_id": str(row["entity_id"]),
             "tenant_id": str(row["tenant_id"]),
-            "payload": row["payload"]
-            if isinstance(row["payload"], dict)
-            else json.loads(row["payload"]),
-            "correlation_id": (
-                row["payload"].get("correlation_id") if isinstance(row["payload"], dict) else None
-            ),
-            "causation_id": (
-                row["payload"].get("causation_id") if isinstance(row["payload"], dict) else None
-            ),
+            "payload": payload,
+            # من الحمولة المفكوكة مرّة واحدة (C-18): asyncpg يُعيد jsonb نصّاً عادةً، فكان
+            # الفحص على row["payload"] الخام يُسقط الخيطَين None.
+            "correlation_id": payload.get("correlation_id") if isinstance(payload, dict) else None,
+            "causation_id": payload.get("causation_id") if isinstance(payload, dict) else None,
             "occurred_at": row["occurred_at"].isoformat() if row["occurred_at"] else None,
         }
 
@@ -732,7 +822,14 @@ class OutboxWorker:
             # `OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01`: لا قفلَ صفٍّ
             # ولا معاملةٌ مفتوحةٌ ولا اتّصالُ مسبحٍ محتجَزٌ أثناء I/O الشبكة. ما يحمي
             # الصفَّ هنا `claim_token` المُثبَّت في TX-1 والمُجدَّد أعلاه.
-            await self.publish(row["nats_subject"], json.dumps(envelope).encode())
+            #
+            # **ومعرّفُ الرسالة هو `event_id`** (C-19): هويّةُ الحدث الثابتة (`events.event_id`
+            # المفتاح الأساسيّ، v11) لا `outbox_id` ولا رمزُ الإجارة — فإعادةُ نشرِ الصفِّ
+            # نفسِه بعد تعطّلٍ بين PubAck وTX-2، أو صفٌّ ثانٍ للحدث نفسِه، تحمل المعرّفَ
+            # ذاتَه فتُسقطها نافذةُ تكرار JetStream. نافذةٌ محدودة زمنيّاً: تُضيّق التكرار
+            # ولا تمنحه exactly-once؛ الضمانةُ تبقى `processed_events` عند المستهلك.
+            body = json.dumps(envelope).encode()
+            await self.publish(row["nats_subject"], body, msg_id=str(row["event_id"]))
 
             # ── TX-2: الإنهاءُ بـCAS على الرمز ──────────────────────────────────
             # **ولمَ رمزٌ ولا تكفي الحالة:** لو انقضت الإجارةُ أثناء نشري فالتقط صفّاً

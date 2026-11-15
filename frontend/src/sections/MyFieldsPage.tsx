@@ -20,6 +20,11 @@ export function num(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function formatNdvi(raw: unknown): string {
+  const value = typeof raw === 'string' || typeof raw === 'number' ? num(raw) : null;
+  return value != null && value >= -1 && value <= 1 ? value.toFixed(2) : '—';
+}
+
 function text(v: unknown, fallback = '—') {
   const s = String(v ?? '').trim();
   return s || fallback;
@@ -189,7 +194,6 @@ function FieldRow({
   onOpen: (fieldId: string, fieldName: string) => void;
 }) {
   const area = num(raw.area_ha ?? raw.area);
-  const ndvi = num(raw.ndvi);
   const quality = text(raw.quality_grade, 'PENDING');
   const health = text(raw.health_summary_ar, 'لا توجد قراءة حديثة');
   const needs = quality !== 'READY';
@@ -213,7 +217,7 @@ function FieldRow({
         </span>
       </Td>
       <Td className="text-slate-100 font-semibold whitespace-nowrap">{area != null ? `${area.toFixed(1)} هـ` : '—'}</Td>
-      <Td className="text-slate-100 font-semibold whitespace-nowrap">{ndvi != null ? ndvi.toFixed(2) : '—'}</Td>
+      <Td className="text-slate-100 font-semibold whitespace-nowrap">{formatNdvi(raw.ndvi)}</Td>
       <Td className="text-slate-300">{text(raw.region ?? raw.country)}</Td>
       <Td>
         <div className="flex flex-col gap-1">
@@ -243,7 +247,6 @@ function FieldMobileRow({
   onOpen: (fieldId: string, fieldName: string) => void;
 }) {
   const area = num(raw.area_ha ?? raw.area);
-  const ndvi = num(raw.ndvi);
   const quality = text(raw.quality_grade, 'PENDING');
   const needs = quality !== 'READY';
   return (
@@ -266,7 +269,7 @@ function FieldMobileRow({
       </div>
       <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
         <Mini label="المساحة" value={area != null ? `${area.toFixed(1)} هـ` : '—'} />
-        <Mini label="NDVI" value={ndvi != null ? ndvi.toFixed(2) : '—'} />
+        <Mini label="NDVI" value={formatNdvi(raw.ndvi)} />
         <Mini label="الموقع" value={text(raw.region ?? raw.country)} />
         <Mini label="الكود" value={text(raw.field_code)} />
       </div>

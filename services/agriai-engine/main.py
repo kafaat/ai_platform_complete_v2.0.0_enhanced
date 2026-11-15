@@ -65,13 +65,14 @@ async def legacy_health():
 
 
 @app.get("/readyz")
-async def readyz():
+async def readyz(response: Response):
     # في وضع الإنتاج، الجاهزيّة العلميّة تتطلّب مساراً **مُثبَتاً تكامليّاً** لا مجرّد توفّر
     # مكتبة pcse (بُناة الموفِّر أقلّاب حتى إكمال التكامل — SIM_PCSE_INTEGRATION_VERIFIED).
     # خارج الإنتاج تبقى الخدمة حوسبةً صرفةً جاهزةً بصدق مع وسم حالة المسار العلميّ.
     production_mode = os.getenv("AGRIAI_PRODUCTION_MODE", "0").lower() in {"1", "true", "yes", "on"}
     sci = wa.scientific_path_status()
     ready = (not production_mode) or sci["scientific_ready"]
+    response.status_code = 200 if ready else 503
     if sci["scientific_ready"]:
         pcse_state = "ready"
     elif production_mode:

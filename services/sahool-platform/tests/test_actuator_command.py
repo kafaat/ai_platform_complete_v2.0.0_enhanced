@@ -117,3 +117,9 @@ def test_build_refuses_conflicting_durations_before_a_command_exists():
             command="open_valve",
             params={"duration_sec": 60, "duration_minutes": 10},
         )
+
+
+@pytest.mark.parametrize("key", ["field_id", "recommendation_id"])
+def test_command_scope_cannot_override_approved_decision(key):
+    with pytest.raises(ValueError, match=f"command_{key}_mismatch"):
+        build_actuator_command(_decision(), device_id="dev", command="open", params={key: "other"})

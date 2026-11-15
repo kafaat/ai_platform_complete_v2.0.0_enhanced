@@ -24,7 +24,7 @@ container: copy the evidence directory out before the container ends.
 | Ports, database, user | 5433 / 6380, `sahool_test` | same |
 | `psql`, `pg_isready` on the host | the host's own client (PostgreSQL 16 here) | `scripts/ci/provision_pg_client.sh` shims that run the container's client |
 | Python deps | fresh venv from `tests_v9/requirements-test.txt` (+ `constraints-ci-tools.txt`) | same files |
-| Certification switches | `HIL_`, `CLAIM_LEASE_`, `RECONCILIATION_RESUMPTION_`, `MIGRATOR_CERTIFICATION_REQUIRED=1` | same |
+| Certification switches | `HIL_`, `CLAIM_LEASE_`, `RECONCILIATION_RESUMPTION_`, `MIGRATOR_`, `FIELD_GEOMETRY_`, `FIELD_TIMELINE_`, `NOTIFICATION_DELIVERY_CERTIFICATION_REQUIRED=1` | same |
 | Restricted-role certification steps | read from `ci.yml` at run time and run as written | the steps listed below |
 
 The PostgreSQL difference exists because the CI image installs PostGIS from
@@ -45,6 +45,11 @@ CI ones, not a copy. `pytest` on PATH is a shim to the lab venv that adds
 `--junitxml` and a log per call, so each pytest call is its own suite
 (`certNN_<call>_<test file>`). A step the lab cannot run as written (an action,
 a `${{ }}` expression, an `if`/`shell`/`working-directory` override) stops the run.
+The job ends with Codecov reporting steps, from `Export live auth coverage with
+Git-relative paths` on (export, path guard, pinned upload); the lab stops before them
+and refuses the run if anything after that boundary is not a reporting step or calls
+pytest. A step's relative `COVERAGE_FILE` is written into the evidence directory, so
+the live coverage the auth steps append does not dirty the checkout.
 
 Steps run today (`tests_v9/test_lab_ci_certification_steps.py` fails CI when this
 list, the runner's reading of `ci.yml` or the test files drift apart):
@@ -57,7 +62,12 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 6. Imagery automation RLS certification (migrated policy, restricted role)
 7. D1 raster invalidation queue RLS certification (migrated v96 policy, restricted role)
 8. MFA end-to-end via the real auth app (restricted role)
-9. soil-service functional H5 + guardrails L5 (restricted role)
+9. Auth admin tenant scope (C-01, real auth app, restricted role)
+10. Auth admin authz gates (#1427, concurrent invitation, Redis outage, stale membership)
+11. Platform denial log tenant scope (#1427, real platform app, live Redis)
+12. Platform denial log persistence (audit_log, restart, outage, restricted role)
+13. soil-service functional H5 + guardrails L5 (restricted role)
+14. Field recommendations 503 rolls back field_state (restricted role)
 
 Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 `rolcanlogin` of every restricted role those steps connect as (`sahool_app_test`)

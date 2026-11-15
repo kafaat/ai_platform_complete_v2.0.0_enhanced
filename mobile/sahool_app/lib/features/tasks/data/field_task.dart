@@ -31,6 +31,7 @@ class FieldTask {
     this.estimatedDurationMin,
     this.estimatedCostUsd,
     this.assignedTo,
+    this.sourcePinId,
     this.notes,
     this.photoUrl,
     this.completedAt,
@@ -50,6 +51,7 @@ class FieldTask {
   final int? estimatedDurationMin;
   final double? estimatedCostUsd;
   final String? assignedTo;
+  final String? sourcePinId;
   final String? notes;
   final String? photoUrl;
   final DateTime? completedAt;
@@ -100,6 +102,7 @@ class FieldTask {
       estimatedDurationMin: _int(j['estimated_duration_min']),
       estimatedCostUsd: _double(j['estimated_cost_usd']),
       assignedTo: _str(j['assigned_to']),
+      sourcePinId: _str(j['source_scouting_pin_id']),
       notes: _str(j['notes']),
       photoUrl: _str(j['photo_url']),
       completedAt: _time(j['completed_at']),
@@ -117,6 +120,7 @@ class FieldTask {
     estimatedDurationMin: estimatedDurationMin,
     estimatedCostUsd: estimatedCostUsd,
     assignedTo: assignedTo,
+    sourcePinId: sourcePinId,
     notes: notes ?? this.notes,
     photoUrl: photoUrl,
     completedAt: completedAt,

@@ -442,3 +442,36 @@ def test_set_raster_asset_status_sql_is_tenant_scoped_and_guarded():
     assert (
         "\"WHERE product_identity_key = $2 AND cog_uri = $3 AND asset_status = 'pending'\"" in src
     )
+
+
+def test_asset_and_catalogue_preserve_distinct_source_and_output_sampling(monkeypatch):
+    from raster_asset_persistence import persist_raster_asset
+
+    writes = {}
+    _patch_db(monkeypatch)
+
+    async def asset(**kwargs):
+        writes["asset"] = kwargs
+        return True
+
+    async def registry(**kwargs):
+        writes["registry"] = kwargs
+        return True
+
+    monkeypatch.setattr(db_persist, "insert_raster_asset", asset)
+    monkeypatch.setattr(db_persist, "insert_raster_registry_entry", registry)
+    sampling = {
+        "native_band_resolution_m": {"B11": 20},
+        "resampling_method": "bilinear",
+        "output_pixel_size_m": None,
+    }
+    assert persist_raster_asset(
+        _req(),
+        "s3://bucket/field/ndmi.tif",
+        {"spatial_sampling": sampling},
+        [44, 15, 45, 16],
+        {"valid_pixels": 4, "nodata_pixels": 0},
+    )
+    assert writes["asset"]["provenance"]["spatial_sampling"] == sampling
+    assert writes["registry"]["metadata"]["spatial_sampling"] == sampling
+    assert writes["registry"]["resolution_m"] is None

@@ -17,15 +17,16 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
   useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI,
-  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFieldPrescription, useRefreshFieldImagery, useFieldImageryTimeline, type GridIndex,
+  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFieldPrescription, useFieldImageryTimeline, type GridIndex,
 } from '../hooks/useApi';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
+import GridSamplingDetails, { GridCoverageDetails } from '../components/maphub/GridSamplingDetails';
 import DataFreshnessBadge from '../components/maphub/DataFreshnessBadge';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import NdviUnavailableNotice, { ndviUnavailableFromError } from '../components/fieldview/NdviUnavailableNotice';
-import { geomToPolygon } from '../lib/geo';
+import { fieldBoundary, boundaryBounds } from '../lib/fieldBoundary';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { apiErrorMessage, fieldCdseThumbnailUrl } from '../services/api';
+import { apiErrorMessage } from '../services/api';
 import { useIndicatorsCatalog } from '../hooks/useApi';
 import type { CatalogIndicator } from '../hooks/useApi';
 import { LayerSwitcher } from '../components/ds';
@@ -34,10 +35,13 @@ import {
   type ScrubberPoint, type ScoutPin, type PinCategory,
   type PinPersistence, type PinSeverity,
 } from '../components/fieldhealth';
+import { satelliteArchiveLayer } from '../components/fieldhealth/satelliteArchive';
 import { timelineRecordByDay } from '../components/fieldhealth/timelineByDay';
 import { unavailableFieldChangeMessage } from '../lib/fieldChangeAvailability';
+import { toastStore } from '../services/websocket';
 import { useScoutingPins, useCreateScoutingPin, useCropScoutingIssues } from '../hooks/useScouting';
 import type { ScoutingPinRecord } from '../hooks/useScouting';
+import { acquisitionUtcDay } from '../lib/dates';
 import { useLocation } from 'react-router';
 
 // مبدّل الطبقات مدفوع بكتالوج المؤشّرات الخلفيّ (renderable=طبقة بلاطات مكانيّة)
@@ -103,7 +107,7 @@ export default function SatellitePage() {
   // أدوات الرسم/القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً.
   const [measureTools, setMeasureTools] = useState(false);
   // أثر زرّ «تحليل الآن» المرئيّ (نجاح/خطأ) — كان الزرّ يبدو بلا استجابة.
-  const [analyzeMsg, setAnalyzeMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [analyzeMsg, setAnalyzeMsg] = useState<{ fieldId: string; ok: boolean; text: string } | null>(null);
 
   // ── دبابيس الاستطلاع الدائمة (v94 — تُجلَب من الخادم وتُحفَظ، تبقى عبر الجلسات) ──
   // GET /api/v1/scouting/pins?field_id=… يُرجِع المُخزَّنة (RLS)؛ الإنشاء عبر POST
@@ -154,18 +158,16 @@ export default function SatellitePage() {
       severity: pinSeverity, issueCode: pinIssueCode || null, persisted: false,
     };
     setOptimisticPins((prev) => [...prev, optimistic]);
-    createPin.mutate(
+    void createPin.mutateAsync(
       {
         pin_id: pinId, field_id: fieldId, lat, lng: lon,
         issue_category: pinCategory, severity: pinSeverity, persistence: pinPersistence,
         issue_code: pinIssueCode || null, note_ar: pinNote || null,
       },
-      {
-        // عند نجاح الإنشاء تُعيد useCreateScoutingPin إبطال المخبّأ ⇒ إعادة جلب؛
-        // نزيل التفاؤليّ عند ظهوره من الخادم (effect أدناه). الفشل ⇒ تراجُع فوريّ.
-        onError: () => setOptimisticPins((prev) => prev.filter((p) => p.id !== pinId)),
-      },
-    );
+    ).catch(() => {
+      setOptimisticPins((prev) => prev.filter((p) => p.id !== pinId));
+      toastStore.add('error', 'تعذّر حفظ دبوس التفتيش', 'تحقق من الاتصال والصلاحية ثم أعد المحاولة.');
+    });
   }, [fieldId, pinCategory, pinPersistence, pinSeverity, pinIssueCode, pinNote, createPin]);
 
   // تنظيف التفاؤليّة بعد أن تصبح مُخزَّنة فعليّاً (ظهرت في استجابة الخادم).
@@ -211,7 +213,7 @@ export default function SatellitePage() {
     [cropIssuesQ.data],
   );
 
-  const { data: tsData,  isLoading: tsLoading }  = useVegetationTimeseries(fieldId, days);
+  const { data: tsData,  isLoading: tsLoading }  = useVegetationTimeseries(fieldId, Math.min(days, 365));
   const { data: ndviNow, error: ndviError }      = useCurrentNDVI(fieldId);
   // عقد 424 التشخيصيّ: خدمة الغطاء real-only تفشل مُغلَقةً بسبب مُصنَّف حين لا NDVI موثّق.
   // نُصيّر حالة فارغة هادئة (لا console.error، لا اختلاق) بدل ترك الخطأ صامتاً.
@@ -223,10 +225,16 @@ export default function SatellitePage() {
     if (!fieldId || analyzing) return;
     setAnalyzeMsg(null);
     try {
-      await analyze({ fieldId, geometry: field?.geometry });
-      setAnalyzeMsg({ ok: true, text: 'اكتمل التحليل — حُدِّث الشريط الزمنيّ والقيم.' });
+      const response = await analyze({ fieldId, geometry: field?.geometry });
+      const result = response as { queued?: boolean; status?: string; failures?: unknown[]; note_ar?: string } | null;
+      const queued = result?.queued === true && result.status === 'queued';
+      const partial = queued && Array.isArray(result.failures) && result.failures.length > 0;
+      const text = queued
+        ? (partial ? 'أُضيفت بعض المؤشرات إلى قائمة الانتظار، وتعذّر إدراج بعض المؤشرات.' : 'أُضيف طلب معالجة الصور إلى قائمة الانتظار.')
+        : (typeof result?.note_ar === 'string' && result.note_ar.trim() || 'لم تؤكّد الخدمة إدراج طلب معالجة الصور.');
+      setAnalyzeMsg({ fieldId, ok: queued && !partial, text });
     } catch (e) {
-      setAnalyzeMsg({ ok: false, text: apiErrorMessage(e, 'تعذّر التحليل — حاول مجدّداً') });
+      setAnalyzeMsg({ fieldId, ok: false, text: apiErrorMessage(e, 'تعذّر التحليل — حاول مجدّداً') });
     }
   }, [fieldId, field?.geometry, analyzing, analyze]);
   // إخفاء تنويه التحليل تلقائيّاً بعد مدّة وجيزة (لا يبقى عالقاً).
@@ -235,24 +243,26 @@ export default function SatellitePage() {
     const t = setTimeout(() => setAnalyzeMsg(null), 6000);
     return () => clearTimeout(t);
   }, [analyzeMsg]);
-  const { mutateAsync: refreshImagery, isPending: refreshingImagery } = useRefreshFieldImagery();
 
   // السلسلة الزمنيّة الحقيقيّة من raster-service (متوسّط المؤشّر لكلّ تاريخ COG).
   // صدق: لا COG ⇒ available=false (لا قيم مخترعة) — نُظهر حالة فارغة لا رسماً وهميّاً.
   const { data: rasterTs, isLoading: rasterTsLoading, isError: rasterTsError } =
     useFieldTimeseries(fieldId, gridIndex, '');
-  const rasterPoints = rasterTs?.available ? (rasterTs.points ?? []) : [];
+  const rasterPoints = useMemo(() => (rasterTs?.available ? (rasterTs.points ?? []) : []), [rasterTs]);
   // خطّ زمنيّ خادميّ للتواريخ/المصغّرات من raster_assets؛ لا يعتمد على حساب mean للمؤشّر.
   // هذا يمنع حالة: COGs محفوظة بنجاح لكن /timeseries لم يرجع نقاطاً بعد، فتختفي thumbnails.
   const imageryTimelineMonths = useMemo(() => Math.max(1, Math.ceil(days / 31)), [days]);
   const { data: imageryTimeline } = useFieldImageryTimeline(fieldId, imageryTimelineMonths);
-  const timelineItems = Array.isArray(imageryTimeline?.items) ? imageryTimeline.items : [];
+  const timelineItems = useMemo(
+    () => (Array.isArray(imageryTimeline?.items) ? imageryTimeline.items : []),
+    [imageryTimeline],
+  );
   // T2: سجلّ واحد لكلّ يوم — المصغّرة ووقت الالتقاط والمنتَج من المشهد نفسه. كان رابط
   // المصغّرة من آخر سجلّ لليوم (Map.set) ووقته من أوّل سجلّ (find) ⇒ صورة مشهد بوقت آخر.
   const timelineByDay = useMemo(() => timelineRecordByDay(timelineItems), [timelineItems]);
   // تواريخ COG الحقيقيّة المتاحة (لاختيار تاريخَي كشف التغيّر).
   const availableDates = useMemo(
-    () => rasterPoints.map((p) => p.datetime).filter(Boolean),
+    () => [...new Set(rasterPoints.map(p => acquisitionUtcDay(p.datetime)).filter((day): day is string => !!day))].sort(),
     [rasterPoints],
   );
 
@@ -281,7 +291,7 @@ export default function SatellitePage() {
   // نقطة سلسلة زمنيّة كما تقرؤها هذه الشاشة: تاريخ (موجود دائماً للنقطة) + NDVI اختياريّ.
   type TsPoint = { date: string; ndvi?: number };
   const tsRaw = tsData as { timeseries?: TsPoint[]; data?: TsPoint[] } | undefined;
-  const ts: TsPoint[] = tsRaw?.timeseries || tsRaw?.data || [];
+  const ts: TsPoint[] = useMemo(() => tsRaw?.timeseries || tsRaw?.data || [], [tsRaw]);
   const currentNdvi = ndviNow?.ndvi?.current ?? ts[ts.length - 1]?.ndvi ?? null;
   // الشريط الزمني يعرض المتوسّطات الحقيقيّة من raster-service عند توفّرها،
   // وإلّا يسقط إلى سلسلة vegetation-service. لا بيانات تركيبيّة.
@@ -289,30 +299,35 @@ export default function SatellitePage() {
   // نقاط الشريط مُثراة بصورة مُصغَّرة لكلّ تاريخ (cdse-thumbnail) وبفرق المؤشّر عن
   // التاريخ الأسبق — لبطاقات السجلّ الزمنيّ (تاريخ · صورة · متوسّط + تغيّر).
   const stripPoints: ScrubberPoint[] = useMemo(() => {
-    const base: ScrubberPoint[] = (Array.isArray(rasterPoints) && rasterPoints.length)
-      ? rasterPoints.map((p) => {
-          const rec = timelineByDay.get(String(p.datetime).slice(0, 10));
-          return {
-            date: p.datetime,
-            value: p.mean,
-            cloud: p.cloudy_pct ?? null,
-            thumbUrl: rec?.thumbnail_url ?? null,
-            thumbProduct: rec?.thumbnail_url ? (rec.thumbnail_index ?? null) : null,
-            acquisitionDatetime: rec?.acquisition_datetime ?? null,
-          };
-        })
-      : (timelineItems.length
-          ? timelineItems.map((item) => ({
-              date: item.date,
-              value: null,
-              cloud: typeof item.cloud_pct === 'number' ? item.cloud_pct : null,
-              thumbUrl: item.thumbnail_url,
-              thumbProduct: item.thumbnail_index ?? null,
-              acquisitionDatetime: item.acquisition_datetime ?? null,
-            }))
-          : (Array.isArray(ts) ? ts : []).map((t) => ({ date: t.date, value: t.ndvi ?? 0, cloud: null })));
+    const base: ScrubberPoint[] = rasterPoints.flatMap((p) => {
+      const date = acquisitionUtcDay(p.datetime);
+      if (!date) return [];
+      const rec = timelineByDay.get(date);
+      return [{
+        date,
+        value: p.mean,
+        cloud: p.cloudy_pct ?? null,
+        thumbUrl: rec?.thumbnail_url ?? null,
+        thumbProduct: rec?.thumbnail_url ? (rec.thumbnail_index ?? null) : null,
+        acquisitionDatetime: rec?.acquisition_datetime ?? null,
+      }];
+    });
+    const measuredDays = new Set(base.map(point => point.date));
+    for (const [date, item] of timelineByDay) {
+      if (measuredDays.has(date)) continue;
+      base.push({ date, value: null, cloud: item.cloud_pct ?? null,
+        thumbUrl: item.thumbnail_url, thumbProduct: item.thumbnail_index ?? null,
+        acquisitionDatetime: item.acquisition_datetime ?? null });
+    }
+    if (!base.length && gridIndex === 'ndvi') {
+      for (const t of ts) {
+        const date = acquisitionUtcDay(t.date);
+        if (date) base.push({ date, value: t.ndvi ?? null, cloud: null });
+      }
+    }
+    base.sort((a, b) => a.date.localeCompare(b.date));
     // فرق المؤشّر عن التاريخ الأسبق (ترتيب زمنيّ تصاعديّ).
-    const chron = base.filter((p) => p.date).slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+    const chron = base.filter((p) => p.date);
     const deltaByDate = new Map<string, number>();
     for (let i = 1; i < chron.length; i++) {
       const cur = chron[i];
@@ -322,19 +337,11 @@ export default function SatellitePage() {
         deltaByDate.set(cur.date, cur.value - prev.value);
       }
     }
-    const geom = (field?.geometry ?? null) as { type?: string; coordinates?: unknown } | null;
-    return base.map((p) => {
-      const fallbackUrl = !p.thumbUrl && fieldId && p.date
-        ? fieldCdseThumbnailUrl(fieldId, 'truecolor', p.date.slice(0, 10), null, geom, null, 160)
-        : null;
-      return {
-        ...p,
-        delta: p.date && deltaByDate.has(p.date) ? (deltaByDate.get(p.date) as number) : null,
-        thumbUrl: p.thumbUrl ?? fallbackUrl,
-        thumbProduct: fallbackUrl ? 'truecolor' : (p.thumbProduct ?? null),
-      };
-    });
-  }, [rasterPoints, timelineItems, timelineByDay, ts, fieldId, gridIndex, field?.geometry]);
+    return base.map((p) => ({
+      ...p,
+      delta: p.date && deltaByDate.has(p.date) ? (deltaByDate.get(p.date) as number) : null,
+    }));
+  }, [rasterPoints, timelineByDay, ts, gridIndex]);
 
   // هل يوفّر المصدر نسبة غيوم؟ (raster نعم، vegetation لا) — يضبط إتاحة المُبدِّل.
   const hasCloudData = stripPoints.some((p) => typeof p.cloud === 'number');
@@ -386,6 +393,10 @@ export default function SatellitePage() {
 
   // طبقة الخريطة: التاريخ المختار إن وُجِد، وإلّا "latest" (سلوك سابق).
   const mapDate = selectedDate || 'latest';
+  const archiveLayer = satelliteArchiveLayer(mode, gridIndex, mapDate,
+    imageryTimeline?.field_id === fieldId ? timelineItems : [],
+    rasterTs?.real_data && rasterTs.field_id === fieldId && rasterTs.index === gridIndex ? rasterPoints : [],
+  );
 
   // شبكة المؤشّر الحقيقيّة — لوسم مصدر البيانات بصدق (حقيقيّة / لا توجد بعد) ولشارة
   // الحداثة. تُطلَب لنفس تاريخ البلاطات (mapDate) لا 'latest': وإلّا تصف الشارة شبكةً
@@ -394,7 +405,7 @@ export default function SatellitePage() {
   const hasGrid = !!gridResp && gridResp.real_data && Array.isArray(gridResp.grid) && gridResp.grid.length > 0;
 
   // مضلّع الحقل + إطار احتياطيّ للخريطة من هندسة/مركز الحقل الحقيقيّ.
-  const fieldPolygon = field ? geomToPolygon(field.geometry) : undefined;
+  const fieldPolygon = useMemo(() => fieldBoundary(field?.geometry), [field?.geometry]);
   const fallbackBounds: [number, number, number, number] | undefined =
     field && field.lat != null && field.lon != null
       ? [field.lon - 0.01, field.lat - 0.01, field.lon + 0.01, field.lat + 0.01]
@@ -442,13 +453,13 @@ export default function SatellitePage() {
             {analyzing ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> تحليل...</> : <><RefreshCw className="w-3.5 h-3.5" /> تحليل الآن</>}
           </button>
           <button
-            onClick={() => fieldId && refreshImagery({ fieldId })}
-            disabled={refreshingImagery || !fieldId}
+            onClick={handleAnalyze}
+            disabled={analyzing || !fieldId}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border disabled:opacity-50"
             style={{ background: '#1e293b', color: '#fbbf24', borderColor: '#92400e' }}
-            title="يحسب مؤشّرات Sentinel-2 الحقيقيّة عبر CDSE (الافتراضيّ الأقوى) مع تحوّل تلقائيّ إلى Element84 عند تعذّره؛ معالجة COG حقيقيّة — لا قيم وهمية."
+            title="يطلب معالجة صور Sentinel-2 للحقل المحدد، وتظهر قيم المؤشرات بعد اكتمال المعالجة."
           >
-            {refreshingImagery
+            {analyzing
               ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> تحديث الصور...</>
               : <><Satellite className="w-3.5 h-3.5" /> تحديث صور الأقمار</>}
           </button>
@@ -456,7 +467,7 @@ export default function SatellitePage() {
       </div>
 
       {/* تنويه أثر «تحليل الآن» (نجاح/خطأ) — يضمن استجابة مرئيّة صريحة للزرّ */}
-      {analyzeMsg && (
+      {analyzeMsg && analyzeMsg.fieldId === fieldId && (
         <div className="rounded-lg px-3 py-2 text-sm border flex items-center gap-2"
           role="status"
           style={analyzeMsg.ok
@@ -472,8 +483,8 @@ export default function SatellitePage() {
         <LayerSwitcher layers={modeLayers} active={mode} onChange={setMode} />
         <span className="text-[11px] text-slate-500 mr-auto">
           {mode === 'scouting'   && 'تباين مناطقيّ + دبابيس مشاهدات (محلّيّة للجلسة)'}
-          {mode === 'vegetation' && 'مؤشّر نباتيّ زمنيّ (NDVI/NDMI) — بلاطات + سلسلة'}
-          {mode === 'truecolor'  && 'صور الأساس الحقيقيّة فقط (بلا طبقة مؤشّر)'}
+          {mode === 'vegetation' && (archiveLayer.stored ? 'مصدر الطبقة: راستر المؤشر المحفوظ' : 'مصدر الطبقة: خدمة CDSE')}
+          {mode === 'truecolor'  && (archiveLayer.stored ? 'صورة اللون الحقيقي المحفوظة للتاريخ المحدد' : 'صور خريطة الأساس')}
         </span>
       </div>
 
@@ -499,9 +510,18 @@ export default function SatellitePage() {
                 : { background:'#3a2e14', borderColor:'#7a5a1a', color:'#f0d68a' }}>
               <MapIcon className="w-3.5 h-3.5" />
               {hasGrid
-                ? `بلاطات حقيقيّة · Sentinel-2 (Element84)${gridResp?.date ? ` · ${gridResp.date}` : ''}`
-                : 'لا توجد بلاطات مؤشّر لهذا الحقل بعد — اضغط «تحليل الآن» أو تحقّق من معالجة الراستر. الخريطة تعرض الأساس والحدود فقط.'}
+                ? `شبكة المؤشّر المحفوظة · ${gridIndex.toUpperCase()}${gridResp?.date ? ` · ${gridResp.date}` : ''}`
+                : 'تعذّر عرض شبكة المؤشّر المحفوظة لهذا الحقل والتاريخ.'}
             </div>
+          )}
+
+          {mode !== 'truecolor' && hasGrid && (
+            <>
+              <GridSamplingDetails grid={gridResp} fieldId={fieldId} index={gridIndex} date={mapDate}
+                sceneId={timelineByDay.get(mapDate.slice(0, 10))?.scene_id} />
+              <GridCoverageDetails grid={gridResp} fieldId={fieldId} index={gridIndex} date={mapDate}
+                sceneId={timelineByDay.get(mapDate.slice(0, 10))?.scene_id} />
+            </>
           )}
 
           {/* تحذير عدم تطابق توقيت بيانات الطبقة/المشهد (FieldView) — يقارن تاريخ
@@ -540,43 +560,21 @@ export default function SatellitePage() {
                   onRemovePin={handleRemovePin}
                   height={400}
                 />
-              ) : mode === 'truecolor' ? (
-                // اللون الحقيقيّ: صور الأساس (Esri World Imagery) فقط. طبقة المؤشّر
-                // تبدأ بشفافيّة صفر (مخفيّة) — صدق: لا نُلفّق مشهد لون-حقيقيّ من
-                // Sentinel، نعرض الأساس الجوّيّ. يمكن للمستخدم رفع الشفافيّة لكشف
-                // المؤشّر فوق نفس الأساس إن رغب (نفس التاريخ الحقيقيّ، لا طلب وهميّ).
-                <FieldIndicatorMap
-                  key={`${fieldId}-truecolor`}
-                  fieldId={fieldId}
-                  index={gridIndex}
-                  date={mapDate}
-                  fieldPolygon={fieldPolygon}
-                  fallbackBounds={fallbackBounds}
-                  basemap="satellite"
-                  initialOpacity={0}
-                  height={400}
-                  tools={measureTools}
-                  tileSegment="cdse-tiles"
-                  fieldGeometry={field?.geometry ?? null}
-                  fieldBbox={fallbackBounds}
-                />
               ) : (
-                // وضع النباتيّ: بلاطات CDSE الحيّة (Sentinel Hub) مع قصّ poly.
-                // CDSE_CLIENT_ID/SECRET موجودان ⇒ available=true ⇒ تُركَّب طبقة المؤشّر.
                 <FieldIndicatorMap
-                  key={fieldId}
+                  key={`${fieldId}-${mode}-${archiveLayer.segment}`}
                   fieldId={fieldId}
-                  index={gridIndex}
+                  index={archiveLayer.index}
                   date={mapDate}
                   fieldPolygon={fieldPolygon}
                   fallbackBounds={fallbackBounds}
                   basemap="satellite"
-                  initialOpacity={0.75}
+                  initialOpacity={archiveLayer.opacity}
                   height={400}
                   tools={measureTools}
-                  tileSegment="cdse-tiles"
+                  tileSegment={archiveLayer.segment}
                   fieldGeometry={field?.geometry ?? null}
-                  fieldBbox={fallbackBounds}
+                  fieldBbox={boundaryBounds(fieldPolygon) ?? fallbackBounds}
                 />
               )}
             </motion.div>
@@ -607,11 +605,11 @@ export default function SatellitePage() {
                   {playing ? 'إيقاف' : 'تشغيل'}
                 </button>
                 <div className="flex gap-1 mr-auto">
-                  {[14,30,60].map(d=>(
+                  {[14,30,60,730].map(d=>(
                     <button key={d} onClick={()=>setDays(d)}
                       className="px-2 py-0.5 rounded-sm text-[11px]"
                       style={{ background:days===d?'#16a34a22':'transparent', color:days===d?'#4ade80':'#64748b', border:`1px solid ${days===d?'#16a34a44':'#334155'}` }}>
-                      {d}ي
+                      {d === 730 ? 'سنتان' : `${d}ي`}
                     </button>
                   ))}
                 </div>
@@ -680,8 +678,8 @@ export default function SatellitePage() {
             {ndviUnavailable && (
               <NdviUnavailableNotice
                 info={ndviUnavailable}
-                onProcess={() => fieldId && refreshImagery({ fieldId })}
-                processing={refreshingImagery}
+                onProcess={handleAnalyze}
+                processing={analyzing}
                 className="mt-2 flex flex-col items-center gap-2 rounded-lg border border-sahool-border bg-sahool-surface/40 p-3 text-center"
               />
             )}
@@ -774,14 +772,6 @@ export default function SatellitePage() {
                 )}
               </div>
 
-              {/* Legend */}
-              <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
-                <div className="text-[11px] text-slate-400 mb-1.5">مقياس {idx.name}</div>
-                <div className="h-3 rounded-full" style={{ background:'linear-gradient(to right,#dc2626,#f97316,#f59e0b,#65a30d,#16a34a)' }} />
-                <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                  <span>0.2- (تربة)</span><span>0.9+ (صحي)</span>
-                </div>
-              </div>
             </>
           )}
 
@@ -857,7 +847,7 @@ export default function SatellitePage() {
                     </div>
                     {change.cloud_warning && (
                       <p className="text-[10px] text-amber-400/80">
-                        ⚠️ التغطية {(change.coverage_pct ?? 0).toFixed(0)}% فقط (غيوم/فجوات) — نتيجة جزئيّة.
+                        ⚠️ {change.coverage_pct == null ? 'تغطية المقارنة غير متاحة' : `تغطية المقارنة ${change.coverage_pct.toFixed(0)}%`} (غيوم/فجوات) — نتيجة جزئيّة.
                       </p>
                     )}
                     {change.interpretation_ar && (

@@ -5,15 +5,12 @@
         "DEC-001:declared_above_evidence:evidence-maturity",
         "DEC-008:declared_above_evidence:evidence-maturity",
         "DEC-009:declared_above_evidence:evidence-maturity",
-        "FM-001:declared_above_evidence:evidence-maturity",
         "FM-005:declared_above_evidence:evidence-maturity",
         "FM-006:declared_above_evidence:evidence-maturity",
-        "FM-007:declared_above_evidence:evidence-maturity",
         "GIS-001:declared_above_evidence:evidence-maturity",
         "GIS-002:declared_above_evidence:evidence-maturity",
         "GIS-004:declared_above_evidence:evidence-maturity",
         "INT-001:declared_above_evidence:evidence-maturity",
-        "INT-002:declared_above_evidence:evidence-maturity",
         "INT-003:declared_above_evidence:evidence-maturity",
         "INT-004:declared_above_evidence:evidence-maturity",
         "IRR-001:declared_above_evidence:evidence-maturity",
@@ -22,10 +19,10 @@
         "IRR-005:declared_above_evidence:evidence-maturity",
         "IRR-007:declared_above_evidence:evidence-maturity",
         "IRR-008:declared_above_evidence:evidence-maturity",
-        "IRR-009:evidence_above_declared:evidence-maturity",
         "IRR-010:declared_above_evidence:evidence-maturity",
         "OPS-001:declared_above_evidence:evidence-maturity",
         "OPS-002:declared_above_evidence:evidence-maturity",
+        "OPS-003:evidence_above_declared:evidence-maturity",
         "OPS-006:declared_above_evidence:evidence-maturity",
         "OPS-007:declared_above_evidence:evidence-maturity",
         "OPS-008:declared_above_evidence:evidence-maturity",
@@ -38,7 +35,6 @@
         "SAT-008:declared_above_evidence:evidence-maturity",
         "SEC-002:declared_above_evidence:evidence-maturity",
         "SEC-003:declared_above_evidence:evidence-maturity",
-        "SEC-005:declared_above_evidence:evidence-maturity",
         "SEC-007:declared_above_evidence:evidence-maturity",
         "SEC-008:declared_above_evidence:evidence-maturity",
         "SOIL-002:declared_above_evidence:evidence-maturity",
@@ -63,6 +59,30 @@
     "new_drift_blocks": true,
     "stale_baseline_blocks": true
   },
+  "owner_decisions": [
+    {
+      "admitted": {
+        "OPS-003:evidence_above_declared:evidence-maturity": "integration-marked evidence exists (test_api_writes_persist_live_pg.py); declared held at 2 pending independent review per 11-09"
+      },
+      "decision": "owner 2026-11-14, C-40 #1428",
+      "registry_lowered_not_admitted": [
+        "DEC-004",
+        "DEC-005",
+        "DEC-010",
+        "FM-008",
+        "SAT-006",
+        "SAT-009",
+        "SEC-006"
+      ],
+      "retired": {
+        "FM-001:declared_above_evidence:evidence-maturity": "accepted promotion: explicit pytest.mark.integration evidence now counted (C-40 #1428)",
+        "FM-007:declared_above_evidence:evidence-maturity": "accepted promotion: explicit pytest.mark.integration evidence now counted (C-40 #1428)",
+        "INT-002:declared_above_evidence:evidence-maturity": "accepted promotion: explicit pytest.mark.integration evidence now counted (C-40 #1428)",
+        "IRR-009:evidence_above_declared:evidence-maturity": "now aligned: unit-marked contract tests no longer count as integration evidence (C-40 #1428)",
+        "SEC-005:declared_above_evidence:evidence-maturity": "accepted promotion: explicit pytest.mark.integration evidence now counted (C-40 #1428)"
+      }
+    }
+  ],
   "purpose": "Known legacy drift identities only. New drift and stale baseline entries block; this file is not a capability value source of truth.",
   "schema": "sahool.capability-drift-ratchet-baseline/v1",
   "schema_version": "1.0.0"

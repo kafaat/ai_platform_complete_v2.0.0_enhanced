@@ -165,6 +165,26 @@ def _param_schema(params: dict[str, str]) -> dict[str, Any]:
             props[name] = {"type": _TYPE_MAP.get(base, "string")}
         if name in _PARAM_DESCRIPTIONS:
             props[name]["description"] = _PARAM_DESCRIPTIONS[name]
+        if name == "sampling_purpose":
+            props[name].update(
+                enum=["fertility", "nitrate", "salinity", "orchard", "texture", "no_till"],
+                description="Purpose of field collection. Select the local lab depth protocol separately.",
+            )
+        if name == "sampling_strategy":
+            props[name]["enum"] = ["zone", "grid", "hybrid"]
+        if name == "depth_intervals_cm":
+            props[name].update(
+                description="Non-overlapping laboratory-approved layers; one separately labelled bag per layer and sampling location.",
+                items={
+                    "type": "object",
+                    "properties": {
+                        "from_cm": {"type": "integer", "minimum": 0},
+                        "to_cm": {"type": "integer", "minimum": 1},
+                    },
+                    "required": ["from_cm", "to_cm"],
+                    "additionalProperties": False,
+                },
+            )
         if name == "source":
             props[name]["enum"] = ["truecolor", "ndvi", "multi_index"]
         if name == "basis":

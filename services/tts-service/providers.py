@@ -16,7 +16,8 @@
 لا تكسر طبقة الوحدات/pip-audit). الخدمة تُستورَد وتُختبَر بدونها؛ edge يبقى الآمن.
 لتفعيل piper محليّاً: ``pip install piper-tts`` + ضبط ``PIPER_VOICE_PATH`` إلى ``voice.onnx``
 وبجانبه ``voice.onnx.json``.
-لتفعيل xtts (GPU): ``pip install TTS`` + ``TTS_GPU_PROVIDER=xtts``.
+XTTS يحتاج صورة اختيارية مختبرة منفصلة: حزمة ``TTS==0.22.0`` لا تدعم
+Python 3.12 المستخدم في الصورة الافتراضية. ضبط المتغير وحده لا يثبّت المزوّد.
 """
 
 from __future__ import annotations
@@ -444,7 +445,11 @@ class XTTSProvider(TTSProvider):
 
     async def synthesize(self, text: str, voice: str, rate: str, pitch: str, volume: str) -> bytes:
         if not self.available():
-            raise RuntimeError("XTTS غير متاح (المكتبة غير مثبّتة أو غير مُفعَّل)")
+            raise RuntimeError(
+                "XTTS unavailable: optional library missing or provider disabled. "
+                "The default Python 3.12 image does not support TTS 0.22.0; "
+                "use a separately validated optional provider image."
+            )
         # مسار فعليّ (يُنفَّذ فقط على بيئة GPU مُفعّلة — غير مُغطّى بالوحدات).
         from TTS.api import TTS as CoquiTTS  # type: ignore[import-not-found]  # pragma: no cover
 

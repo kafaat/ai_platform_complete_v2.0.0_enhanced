@@ -203,6 +203,9 @@ TOOLS: tuple[ToolSpec, ...] = (
             "bbox": "bbox?",
             "lab_panel": "str?",
             "samples_per_zone": "int?",
+            "sampling_strategy": "str?",
+            "sampling_purpose": "str?",
+            "depth_intervals_cm": "array?",
         },
     ),
     ToolSpec(

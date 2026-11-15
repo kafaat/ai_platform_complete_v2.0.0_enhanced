@@ -43,6 +43,8 @@ MAX_BACKOFF_ENV = "SAHOOL_STARTUP_CONNECT_MAX_BACKOFF_SECONDS"
 DEFAULT_DEADLINE_SECONDS = 90.0
 DEFAULT_INITIAL_BACKOFF_SECONDS = 0.5
 DEFAULT_MAX_BACKOFF_SECONDS = 10.0
+#: Minimum time budget of each attempt under a positive deadline (capped by the deadline itself).
+FINAL_ATTEMPT_FLOOR_SECONDS = 5.0
 
 # SQLSTATEs outside class 08 that still mean "not reachable yet".
 _TRANSIENT_SQLSTATES = frozenset({"57P01", "57P02", "57P03", "53300"})
@@ -94,7 +96,11 @@ async def retry_startup_connect(
     to ``connect`` unchanged (so ``retry_startup_connect(asyncpg.create_pool, dsn,
     min_size=1)`` reads like the call it wraps). Defaults come from the
     ``SAHOOL_STARTUP_CONNECT_*_SECONDS`` environment; a deadline of 0 means one
-    attempt. Non-transient failures propagate on the attempt that raised them.
+    attempt using the driver's own timeout. Under a positive deadline each pending
+    attempt is bounded by the remaining budget, but never by less than
+    ``FINAL_ATTEMPT_FLOOR_SECONDS`` (capped by the deadline): the last backoff sleep
+    ends on the deadline and is always followed by one final attempt, and every
+    give-up is logged at ERROR. Non-transient failures propagate immediately.
     """
     deadline = (
         _env_seconds(DEADLINE_ENV, DEFAULT_DEADLINE_SECONDS)
@@ -111,12 +117,22 @@ async def retry_startup_connect(
         if startup_max_backoff is None
         else startup_max_backoff
     )
+    # The last backoff sleep is clamped to land on the deadline; the attempt after it is the
+    # final one and gets a real budget (never ~0s), so a database that comes up inside the last
+    # backoff window still connects. Startup is bounded by deadline + this floor.
+    attempt_floor = min(FINAL_ATTEMPT_FLOOR_SECONDS, deadline)
     started = startup_clock()
     attempt = 0
     while True:
         attempt += 1
         try:
-            result = await connect(*args, **kwargs)
+            if deadline > 0:
+                remaining = deadline - (startup_clock() - started)
+                result = await asyncio.wait_for(
+                    connect(*args, **kwargs), timeout=max(remaining, attempt_floor)
+                )
+            else:
+                result = await connect(*args, **kwargs)
         except Exception as exc:
             if not is_transient_connect_error(exc):
                 raise

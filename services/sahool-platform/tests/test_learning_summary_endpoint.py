@@ -47,13 +47,7 @@ def test_flag_on_recognized(monkeypatch):
 
 
 def test_optional_reads_run_inside_savepoints():
-    """Copilot على #1001: جدولٌ اختياريّ غائب كان يُفسِد المعاملة الخارجيّة فيعود 503 رغم الالتقاط.
-
-    كلُّ قراءة اختياريّة (recommendation_outcomes/dispatch_decisions هنا، والقراءاتُ الستّ
-    التكميليّة في حالة الحقل-الموسم: المؤشّرات · عجز الماء · المهام · outcome_record ·
-    التوصيات · الربط) تجري داخل ``async with conn.transaction()`` — نقطةُ حفظ تُرتَدّ
-    وحدَها — والالتقاطُ خارجها.
-    """
+    """Optional platform learning queries roll back without breaking the outer transaction."""
     import re
     from pathlib import Path
 
@@ -64,8 +58,5 @@ def test_optional_reads_run_inside_savepoints():
     tries = re.findall(r"try:\n\s+(\S[^\n]*)", body)
     assert len(tries) >= 2
     assert all(t.startswith("async with conn.transaction():") for t in tries[1:]), tries
-    seasons = (routers / "seasons.py").read_text(encoding="utf-8")
-    state = seasons.split("assemble_field_season_state\n", 1)[1]
-    inner = re.findall(r"            try:\n\s+(\S[^\n]*)", state)
-    assert len(inner) == 6, inner
-    assert all(t.startswith("async with conn.transaction():") for t in inner), inner
+    # Season source failures and transaction recovery are covered by
+    # test_season_state_sources.py with and without the decision-service cutover.

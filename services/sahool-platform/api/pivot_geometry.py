@@ -10,6 +10,7 @@ import math
 from dataclasses import dataclass
 from typing import Any
 
+from api.field_geometry_save_guard import MAX_FIELD_VERTEX_COUNT
 from api.gis_geometry_guard import guard_field_geometry
 
 
@@ -49,7 +50,11 @@ def _destination_point(
 
 
 def generate_pivot_polygon(spec: PivotSpec) -> dict[str, Any]:
-    if spec.radius_m <= 0:
+    if not (-180 <= spec.center_lon <= 180 and -90 <= spec.center_lat <= 90):
+        raise ValueError("pivot_center_out_of_range")
+    if not math.isfinite(spec.start_angle_deg) or not math.isfinite(spec.end_angle_deg):
+        raise ValueError("pivot_angles_not_finite")
+    if not math.isfinite(spec.radius_m) or spec.radius_m <= 0:
         raise ValueError("pivot radius_m must be positive")
     if spec.vertices < 12:
         raise ValueError("pivot polygon requires at least 12 vertices")
@@ -60,6 +65,9 @@ def generate_pivot_polygon(spec: PivotSpec) -> dict[str, Any]:
     if full_circle:
         sweep = 360.0
     steps = max(12, int(spec.vertices * (sweep / 360.0)))
+    # A full ring repeats its first point; a sector also starts/ends at the centre.
+    if steps + (1 if full_circle else 3) > MAX_FIELD_VERTEX_COUNT:
+        raise ValueError("boundary_too_many_vertices")
     pts: list[list[float]] = []
     if not full_circle:
         pts.append([round(spec.center_lon, 7), round(spec.center_lat, 7)])
@@ -79,7 +87,7 @@ def pivot_spec_from_payload(payload: dict[str, Any]) -> PivotSpec | None:
     pivot = payload.get("pivot") if isinstance(payload, dict) else None
     if not isinstance(pivot, dict):
         return None
-    center = pivot.get("center") or {}
+    center = pivot.get("center")
     if isinstance(center, dict):
         lon = center.get("lon") if center.get("lon") is not None else center.get("lng")
         lat = center.get("lat")
@@ -88,17 +96,17 @@ def pivot_spec_from_payload(payload: dict[str, Any]) -> PivotSpec | None:
     else:
         lon, lat = pivot.get("center_lon"), pivot.get("center_lat")
     if lon is None or lat is None:
-        return None
-    radius = pivot.get("radius_m") or pivot.get("radius")
+        raise ValueError("pivot_center_required")
+    radius = pivot.get("radius_m", pivot.get("radius"))
     if radius is None:
-        return None
+        raise ValueError("pivot_radius_required")
     return PivotSpec(
         center_lon=float(lon),
         center_lat=float(lat),
         radius_m=float(radius),
         start_angle_deg=float(pivot.get("start_angle_deg", pivot.get("start_angle", 0.0)) or 0.0),
         end_angle_deg=float(pivot.get("end_angle_deg", pivot.get("end_angle", 360.0)) or 360.0),
-        vertices=int(pivot.get("vertices", 96) or 96),
+        vertices=int(pivot.get("vertices", 96)),
     )
 
 

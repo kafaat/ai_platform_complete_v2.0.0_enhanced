@@ -9,8 +9,13 @@ on the shared database:
   type Postgres cannot deduce (recommendation outcomes) -> the statement never runs;
 * an ``ON CONFLICT`` target with no matching unique constraint.
 
-All three are rejected by the server at PREPARE time, before any row is touched, so this test
-prepares every statement inside one transaction that is rolled back. Decision-service tables
+The first two are rejected at PREPARE (parse analysis). The third is not: Postgres picks the
+ON CONFLICT arbiter index in the PLANNER, so a statement whose target matches only a partial
+unique index (``ON CONFLICT (tenant_id, user_ref)`` against ``... WHERE user_ref IS NOT NULL``)
+prepares cleanly and fails with 42P10 on every execution - notification preferences were never
+saved that way. Statements carrying ON CONFLICT are therefore also planned with
+``EXPLAIN (GENERIC_PLAN)`` (PostgreSQL 16+; no parameter values, nothing executed). Everything
+runs inside one transaction that is rolled back. Decision-service tables
 live in the same database in production, so its migrations are applied inside that transaction
 first. Other errors (a table owned by a service with its own database) are counted, not failed:
 this contract is about the three classes above, which have no legitimate cause.
@@ -42,6 +47,7 @@ DEFECT_SQLSTATES = {
 }
 _SQL_START = re.compile(r"(?is)^\s*(with|select|insert|update|delete)\b")
 _QUOTED = re.compile(r"'(?:[^']|'')*'")
+_ON_CONFLICT = re.compile(r"(?i)\bon\s+conflict\b")
 
 
 def _statements() -> list[tuple[str, int, str]]:
@@ -92,6 +98,11 @@ async def _prepare_all(statements):
     conn = await asyncpg.connect(**_dsn(), timeout=10)
     defects, other = [], 0
     try:
+        # EXPLAIN (GENERIC_PLAN) exists from PostgreSQL 16; on an older server every planned
+        # statement would fail into the uncounted bucket and the contract would pass vacuously.
+        assert int(await conn.fetchval("SHOW server_version_num")) >= 160000, (
+            "the ON CONFLICT generic-plan contract needs PostgreSQL 16+"
+        )
         tx = conn.transaction()
         await tx.start()
         try:
@@ -102,6 +113,9 @@ async def _prepare_all(statements):
                 await sp.start()
                 try:
                     await conn.prepare(sql)
+                    if _ON_CONFLICT.search(sql):
+                        # Arbiter inference happens at planning, not at PREPARE.
+                        await conn.execute("EXPLAIN (GENERIC_PLAN) " + sql)
                 except asyncpg.PostgresError as exc:
                     code = getattr(exc, "sqlstate", "")
                     if code in DEFECT_SQLSTATES:

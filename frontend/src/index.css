@@ -648,3 +648,14 @@
     }
   }
 }
+
+/* Keep indicator cells crisp when Leaflet magnifies a tile (including on Safari).
+   Layered per the Tailwind v4 cascade contract (spaceYCompat.static.test.ts). leaflet.css is
+   imported unlayered and sets `.leaflet-safari .leaflet-tile { image-rendering:
+   -webkit-optimize-contrast }`; an unlayered normal declaration beats any layered one, so the
+   layered declaration needs !important to keep cells crisp on Safari. Scoped to indicator tiles. */
+@layer components {
+  .leaflet-container .sahool-indicator-pixels .leaflet-tile {
+    image-rendering: pixelated !important;
+  }
+}

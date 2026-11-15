@@ -27,6 +27,7 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.decision_explain import explain_decision
+from api.decision_sor_mode import get_platform_decision_sor_mode
 from api.evidence_registry import evidence_from_persisted_outcomes
 from api.main import (
     Permission,
@@ -35,7 +36,11 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
-from api.routers.decision_record import _shape_decision_row, _shape_outcome_row
+from api.routers.decision_record import (
+    _shape_decision_row,
+    _shape_outcome_row,
+    get_decision_lineage,
+)
 
 router = APIRouter()
 
@@ -89,31 +94,39 @@ async def explain_decision_endpoint(
             status_code=404,
             detail="ميزة استوديو القرار غير مُفعَّلة (اضبط FEATURE_DECISION_STUDIO).",
         )
-    try:
-        async with tenant_connection(user) as conn:
-            drow = await conn.fetchrow(
-                "SELECT * FROM decision_record WHERE decision_id = $1", decision_id
-            )
-            orows = await conn.fetch(
-                "SELECT * FROM outcome_record WHERE decision_id = $1 "
-                "ORDER BY created_at ASC LIMIT $2",
-                decision_id,
-                limit,
-            )
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("قراءة شرح القرار", e) from e
+    if get_platform_decision_sor_mode().strict_decision_service_required:
+        lineage = await get_decision_lineage(decision_id, limit=limit, user=user)
+        decision = lineage["decision"]
+        if decision is None:
+            raise HTTPException(status_code=404, detail="القرار غير موجود")
+        outcomes = lineage["outcomes"]
+        orows = [{**r, "tenant_id": str(user.tenant_id)} for r in outcomes]
+    else:
+        try:
+            async with tenant_connection(user) as conn:
+                drow = await conn.fetchrow(
+                    "SELECT * FROM decision_record WHERE decision_id = $1", decision_id
+                )
+                orows = await conn.fetch(
+                    "SELECT * FROM outcome_record WHERE decision_id = $1 "
+                    "ORDER BY created_at ASC LIMIT $2",
+                    decision_id,
+                    limit,
+                )
+        except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+            raise _db_unavailable("قراءة شرح القرار", e) from e
 
-    # القرار المفقود ⇒ 404 (لا شرح لقرار غير مُدام/لمستأجِر آخر — RLS).
-    if drow is None:
-        raise HTTPException(status_code=404, detail="القرار غير موجود (أو لم يُدَم/لمستأجِر آخر).")
+        # القرار المفقود ⇒ 404 (لا شرح لقرار غير مُدام/لمستأجِر آخر — RLS).
+        if drow is None:
+            raise HTTPException(status_code=404, detail="القرار غير موجود (أو لم يُدَم/لمستأجِر آخر).")
 
-    decision = _shape_decision_row(drow)
+        decision = _shape_decision_row(drow)
+        outcomes = [_shape_outcome_row(r) for r in orows]
     decision_value = decision["decision_value"]
     if isinstance(decision_value, str):  # حارس: JSONB قد يعود نصّاً خاماً
         decision_value = _json.loads(decision_value)
 
     explanation = explain_decision(decision_value)  # سلسلة الشرح المُهيكَلة (نقيّ)
-    outcomes = [_shape_outcome_row(r) for r in orows]  # replay: ماذا حدث فعلاً
     evidence = _evidence_summary(decision["region"], orows)  # ملخّص دليل المنطقة (أو None)
 
     return {

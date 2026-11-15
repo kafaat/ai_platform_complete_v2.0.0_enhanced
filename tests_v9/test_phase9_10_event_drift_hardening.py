@@ -1,3 +1,5 @@
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
 from shared.autonomous_farm_os_phase9 import (
@@ -75,6 +77,18 @@ def test_phase9_command_verification_loop_closes_with_sensor_evidence():
 def _records(shift=0.0, n=12):
     return [
         {
+            "tenant_id": "22222222-2222-2222-2222-222222222222",
+            "source_version": "fixture-source-v1",
+            "event_time": (datetime(2026, 6, 26, tzinfo=UTC) + timedelta(hours=i)).isoformat(),
+            "available_at": (
+                datetime(2026, 6, 26, tzinfo=UTC) + timedelta(hours=i, minutes=1)
+            ).isoformat(),
+            "ingested_at": (
+                datetime(2026, 6, 26, tzinfo=UTC) + timedelta(hours=i, minutes=2)
+            ).isoformat(),
+            "prediction_at": (
+                datetime(2026, 6, 26, tzinfo=UTC) + timedelta(hours=i, minutes=3)
+            ).isoformat(),
             "feature_id": f"feat-{i}",
             "entity_type": "field",
             "entity_id": f"field-{i % 3}",

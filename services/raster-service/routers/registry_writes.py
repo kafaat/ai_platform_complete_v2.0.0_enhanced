@@ -52,7 +52,7 @@ class CogRegistryCommand(BaseModel):
     cog_url: str = Field(min_length=1)
     cloud_pct: float | None = None  # None = مجهول لا 0% (G11)
     quality_score: int | None = Field(default=None, ge=0, le=100)
-    resolution_m: float = 10
+    resolution_m: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     bbox: list[float] | dict[str, Any] | None = None
     bands: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)

@@ -92,8 +92,11 @@ def build_actuator_command(
         raise ValueError("device_id و command مطلوبان لبناء أمر المُشغِّل")
 
     payload = canonical_duration_payload(params)
-    payload.setdefault("field_id", getattr(decision, "field_id", None))
-    payload.setdefault("recommendation_id", getattr(decision, "recommendation_id", None))
+    for name in ("field_id", "recommendation_id"):
+        authoritative = getattr(decision, name, None)
+        if name in payload and payload[name] != authoritative:
+            raise ValueError(f"command_{name}_mismatch")
+        payload[name] = authoritative
     key = idempotency_key or f"{getattr(decision, 'recommendation_id', '')}:{command}:{device_id}"
     return ActuatorCommand(
         device_id=device_id, command=command, payload=payload, idempotency_key=key

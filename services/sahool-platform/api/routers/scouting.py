@@ -41,9 +41,11 @@ router = APIRouter()
 
 # أعمدة القراءة لجدول scouting_pins (v94) — مطابقة لـ ScoutingPin.to_dict تماماً
 # (pin_id هو المعرّف القانوني للدبّوس). created_at يُنسَّق ISO في المُحوِّل أدناه.
+# v257: مصدر الموقع ودقّته. صورة الدبّوس ليست هنا: مصدرها scout_photo_evidence (v260، scout-ingest).
 _PIN_SELECT_COLS = (
     "pin_id, field_id, lat, lng, issue_category, severity, status, persistence, "
-    "crop, issue_code, note_ar, photo_uri, color, created_by, created_at"
+    "crop, issue_code, note_ar, photo_uri, color, created_by, created_at, "
+    "location_source, accuracy_m"
 )
 
 
@@ -71,6 +73,9 @@ def _row_to_pin(row) -> dict:
         "color": row["color"],
         "created_by": row["created_by"],
         "created_at": created_iso,
+        # v257: صفّ قبل الهجرة أو من عميل قديم ⇒ unknown (لا استنتاج من الإحداثيّات).
+        "location_source": row.get("location_source") or "unknown",
+        "accuracy_m": row.get("accuracy_m"),
     }
 
 

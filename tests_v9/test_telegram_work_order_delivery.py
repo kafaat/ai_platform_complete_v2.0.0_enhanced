@@ -89,6 +89,22 @@ async def test_no_success_text_without_persisted_identifier(bot, response, respx
 
 
 @pytest.mark.asyncio
+async def test_forbidden_explains_the_role_instead_of_asking_to_retry(bot, respx_mock):
+    """403 (ACTIVITY_PLAN): المزارعُ (worker) لا يُطلَب منه إعادةُ المحاولة بل يُحال للمدير."""
+    route = respx_mock.post(f"{bot.PLATFORM_URL}/api/v1/work-orders/from-recommendation").mock(
+        return_value=httpx.Response(403, json={"detail": "activity:plan"})
+    )
+    callback, state = context()
+    await bot.cb_create_pest_task(callback, state)
+    callback.message.edit_text.assert_not_awaited()
+    message = callback.answer.call_args.args[0]
+    assert message == bot.WORK_ORDER_FORBIDDEN_AR
+    assert "مدير" in message and "مهندس زراعيّ" in message and "أعد المحاولة" not in message
+    assert callback.answer.call_args.kwargs == {"show_alert": True}
+    assert len(route.calls) == 1
+
+
+@pytest.mark.asyncio
 async def test_real_receipt_and_stable_retry_identity(bot, respx_mock):
     route = respx_mock.post(f"{bot.PLATFORM_URL}/api/v1/work-orders/from-recommendation").mock(
         return_value=httpx.Response(200, json={"persisted": True, "work_order_id": "wo-123"})

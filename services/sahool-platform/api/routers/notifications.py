@@ -93,6 +93,10 @@ async def update_notification_preferences(
 
     يتحقّق من أنواع الأحداث ودرجة الخطورة (422 على قيمة غير معروفة)، ثمّ يُدرِج/
     يُحدِّث عبر تعارض (tenant_id, user_ref). tenant-isolated. 503 عند تعذّر القاعدة.
+
+    الفهرس الفريد الوحيد على (tenant_id, user_ref) جزئيّ (``WHERE user_ref IS NOT NULL``،
+    v38)، فيجب أن يُكرّر هدفُ التعارض شرطَه وإلّا لا يستنتج المُخطِّط أيّ فهرس ويفشل
+    كلّ تنفيذ بـ42P10 (لا يظهر عند PREPARE — الاستنتاج في المُخطِّط).
     """
     import json as _json
 
@@ -110,7 +114,7 @@ async def update_notification_preferences(
                      whatsapp_enabled, whatsapp_number, event_types, min_severity)
                    VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10,
                            $11::jsonb, $12)
-                   ON CONFLICT (tenant_id, user_ref)
+                   ON CONFLICT (tenant_id, user_ref) WHERE user_ref IS NOT NULL
                    DO UPDATE SET
                      email_enabled    = EXCLUDED.email_enabled,
                      email_address    = EXCLUDED.email_address,
@@ -182,19 +186,24 @@ async def upsert_notification_delivery(
 ):
     """يُدِيم/يُحدِّث حالة تسليم تنبيه عبر قناة (إغلاق دورة الإشعار، جدول v83).
 
-    upsert على UNIQUE(tenant_id, alert_key, channel): أوّل تسليم يُنشئ إيصالاً
-    (queued)؛ التحديثات اللاحقة تُرقّي الحالة (sent→delivered) أو تُسجّل فشلاً
-    (failed + error). tenant-isolated عبر tenant_connection (RLS). 422 على حالة
-    غير معروفة (قبل لمس القاعدة). 503 عند تعذّر القاعدة (نمط _db_unavailable).
+    upsert على UNIQUE(tenant_id, alert_key, channel). انتقالات ذرّية:
+    queued→sent/failed/delivered؛ sent→failed/delivered؛ failed→sent/delivered؛
+    delivered حالة نهائية. تكرار الحالة نفسها لا يجدّد updated_at أو الحدث.
+    الانتقال غير القانوني ⇒ 409؛ الحالة غير المعروفة أو سبب خطأ مع نجاح ⇒ 422.
 
-    الصدق: هذا إيصال **حالة** لا ادّعاء إرسال خارجيّ فعليّ — الحالة تُكتب كما يُمليها
-    المُسلِّم (المُهيّأ يكتب sent/delivered؛ غير المُهيّأ يبقى queued أو failed).
-    يُصدَر NOTIFICATION_DELIVERED عبر outbox (fail-soft) لإتاحة البثّ الحيّ والتدقيق.
+    الصدق: هذا إيصال **حالة** لا ادّعاء إرسال خارجيّ فعليّ. يُصدَر
+    NOTIFICATION_DELIVERED (عقده في event_catalog: «أُدِيمت/حُدِّثت حالة تسليم») عند كلّ
+    انتقال كُتِب فعلاً — فشلٌ مُسجَّل حدثٌ تدقيقيّ أيضاً — ولا يُصدَر عند الإعادة المطابقة
+    ولا عند الانتقال المرفوض. التحقق النهائي لجهة الإرسال لا يزال مسؤولية المرسل الموثوق.
     """
     if req.status not in _DELIVERY_STATUSES:
         raise HTTPException(status_code=422, detail="حالة تسليم غير معروفة")
+    if req.status != "failed" and req.error is not None:
+        raise HTTPException(status_code=422, detail="لا سبب فشل مع حالة تسليم ناجحة")
     try:
         async with tenant_connection(user) as conn:
+            # The state machine is enforced atomically by ON CONFLICT, not by a
+            # read-then-write check that would race with late delivery callbacks.
             row = await conn.fetchrow(
                 """INSERT INTO notification_delivery
                     (tenant_id, alert_key, channel, status, error)
@@ -204,27 +213,57 @@ async def upsert_notification_delivery(
                      status     = EXCLUDED.status,
                      error      = EXCLUDED.error,
                      updated_at = NOW()
-                   RETURNING delivery_id, alert_key, channel, status, error""",
+                   WHERE (notification_delivery.status = 'queued'
+                          AND EXCLUDED.status IN ('sent','failed','delivered'))
+                      OR (notification_delivery.status = 'sent'
+                          AND EXCLUDED.status IN ('failed','delivered'))
+                      OR (notification_delivery.status = 'failed'
+                          AND EXCLUDED.status IN ('sent','delivered'))
+                      OR (notification_delivery.status = 'failed'
+                          AND EXCLUDED.status = 'failed'
+                          AND notification_delivery.error IS DISTINCT FROM EXCLUDED.error)
+                   RETURNING delivery_id, alert_key, channel, status, error, updated_at""",
                 str(user.tenant_id),
                 req.alert_key,
                 req.channel,
                 req.status,
                 req.error,
             )
-            # تدقيق + بثّ حيّ: حدث domain ضمن نفس المعاملة (savepoint، fail-soft —
-            # غياب جداول الأحداث لا يكسر إدامة الإيصال).
-            await _emit_domain_event(
-                conn,
-                user,
-                "NOTIFICATION_DELIVERED",
-                "notification_delivery",
-                str(row["delivery_id"]),
-                {
-                    "alert_key": req.alert_key,
-                    "channel": req.channel,
-                    "status": req.status,
-                },
-            )
+            changed = row is not None
+            if row is None:
+                # A replay must be idempotent without refreshing updated_at or
+                # publishing a duplicate delivered event. All other transitions
+                # that the SQL guard denied are a genuine 409.
+                row = await conn.fetchrow(
+                    """SELECT delivery_id, alert_key, channel, status, error
+                         FROM notification_delivery
+                        WHERE tenant_id = $1::uuid AND alert_key = $2 AND channel = $3""",
+                    str(user.tenant_id),
+                    req.alert_key,
+                    req.channel,
+                )
+                if row is None or row["status"] != req.status or row["error"] != req.error:
+                    raise HTTPException(status_code=409, detail="تعارض في انتقال حالة التسليم")
+            # One event per written transition (the catalog contract: a delivery status was
+            # persisted/updated, payload carries the status). A replay wrote nothing and a
+            # refused transition raised above, so neither publishes a duplicate.
+            if changed:
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "NOTIFICATION_DELIVERED",
+                    "notification_delivery",
+                    str(row["delivery_id"]),
+                    {
+                        "alert_key": req.alert_key,
+                        "channel": req.channel,
+                        "status": req.status,
+                        # The written row version: emit_event dedups on the payload per
+                        # day, so without it a second real transition to the same status
+                        # (failed -> sent -> failed) would leave no event.
+                        "updated_at": row["updated_at"].isoformat(),
+                    },
+                )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500

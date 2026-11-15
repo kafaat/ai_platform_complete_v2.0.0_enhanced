@@ -13,7 +13,7 @@
 - حرّاس تحجب في CI: **289**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **60**
 - إجماليّ الطفرات المُسجَّلة: **481**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **394** على 137 مصدراً
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **397** على 138 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
@@ -365,7 +365,7 @@
 
 **يفرض:** Check that uploaded Codecov XML paths refer to measured, tracked Git files.
 
-**يحجب في:** `ci.yml` → `decision-service-tests` · `ci.yml` → `platform-unit-tests` · `ci.yml` → `unit-tests`
+**يحجب في:** `ci.yml` → `decision-service-tests` · `ci.yml` → `integration-tests` · `ci.yml` → `platform-unit-tests` · `ci.yml` → `unit-tests`
 
 **الاختبار الشاهد:** `tests_v9/test_codecov_coverage_wiring.py`
 

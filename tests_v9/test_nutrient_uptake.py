@@ -169,7 +169,15 @@ def test_crop_twin_nutrient_state_follows_the_card_curve():
     from api.crop_twin import TwinDay, crop_twin_state
 
     days = [TwinDay(t_min_c=10.0, t_max_c=30.0, et0_mm=5.0, kc=1.0)] * 3
-    out = crop_twin_state("wheat", days, taw_mm=150.0, raw_fraction=0.5, target_uptake_kg_ha=120.0)
+    # wheat: t_base 0, cap 30 => 20 GDD per day; GDD is supplied, never computed locally.
+    out = crop_twin_state(
+        "wheat",
+        days,
+        taw_mm=150.0,
+        raw_fraction=0.5,
+        target_uptake_kg_ha=120.0,
+        gdd_daily_override=[20.0, 20.0, 20.0],
+    )
     assert out["nutrient"]["curve_source"] == "crop_card"
     assert out["nutrient"]["nutrient"] == "n"
     progress = out["phenology"]["progress"]

@@ -65,3 +65,15 @@ def test_cost_recommendations_are_explainable_and_human_reviewed():
     assert recs
     assert recs[0].provenance["prediction"] is False
     assert recs[0].provenance["requires_human_review"] is True
+
+
+def test_erp_currency_is_inherited_and_mixed_lines_cannot_be_summed():
+    import pytest
+
+    usd = ActualCostLine("op", "s", "water", actual_cost=10, currency="usd")
+    yer = ActualCostLine("op2", "s", "water", actual_cost=5000, currency="YER")
+    assert project_to_erp_lines([usd])[0].currency == "USD"
+    with pytest.raises(ValueError, match="erp_projection_currency_mismatch"):
+        project_to_erp_lines([usd, yer])
+    with pytest.raises(ValueError, match="erp_projection_currency_mismatch"):
+        project_to_erp_lines([usd], currency="YER")

@@ -23,6 +23,8 @@ def _canonical_state() -> dict:
         "season_id": "s-1",
         "as_of_time": "2026-08-17T12:00:00Z",
         "operational_eligible": True,
+        # canonical_field_state always emits the propose gate; the twin fails closed without it.
+        "eligibility": {"propose": {"allowed": True, "reasons": []}},
         "state_digest": "state-digest-1",
         "evidence_digests": {
             "weather": "dw",

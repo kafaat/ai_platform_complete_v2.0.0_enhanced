@@ -10,6 +10,8 @@ main.py (يستخدمه عدّة راوترات، ليس خاصّاً بالمو
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 # أنواع الريّ المقبولة — تطابق IRRIGATION_TYPES في الواجهة.
@@ -25,6 +27,10 @@ class StageItem(BaseModel):
 class SeasonCreateRequest(BaseModel):
     """طلب إنشاء موسم زراعيّ لحقل (محاصيل/صنف/ريّ/تواريخ/مراحل)."""
 
+    # Omit the legacy default from dumps so existing idempotency digests still replay.
+    initial_status: Literal["active", "planned"] = Field(
+        default="active", exclude_if=lambda v: v == "active"
+    )
     crops: list[str] = Field(default_factory=list)
     cultivar: str | None = Field(default=None, max_length=100)
     irrigation_type: str | None = None
@@ -153,6 +159,8 @@ class SeasonUpdateRequest(BaseModel):
     cultivar: str | None = Field(default=None, max_length=100)
     irrigation_type: str | None = None
     seed_rate_kg_ha: float | None = Field(default=None, ge=0)
+    land_leveling_date: str | None = None
+    plowing_date: str | None = None
     sowing_date: str | None = None
     season_end: str | None = None
     target_yield_kg_ha: float | None = Field(default=None, ge=0)
@@ -191,20 +199,20 @@ class SeasonSimResponse(BaseModel):
     crop: str
     crop_recognized: bool
     days_simulated: int
-    gdd_total: float
+    gdd_total: float | None
     gdd_to_maturity: float
-    maturity_reached: bool
-    lai_max: float
-    biomass_kg_ha: float
+    maturity_reached: bool | None
+    lai_max: float | None
+    biomass_kg_ha: float | None
     # None حين يكون المحصول غير مُعرّف (yield_status يقول السبب) — لا غلّة من معاملات عامّة.
     yield_kg_ha: float | None
     yield_low_kg_ha: float | None
     yield_high_kg_ha: float | None
     yield_status: str = "estimated"
     limitations: list[str] = Field(default_factory=list)
-    water_need_mm: float
+    water_need_mm: float | None
     water_supply_mm: float | None
-    water_stress_factor: float
+    water_stress_factor: float | None
     confidence: float
     rationale_ar: str
     assumptions_ar: list[str]

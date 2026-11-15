@@ -231,16 +231,16 @@ async def test_candidate_declares_spectral_trust_basis(monkeypatch):
     """DECISION-CENTER-UNIFY-01: the candidate evidence declares its spectral trust basis.
 
     In the unit path the server-authoritative spectral read is off (default), so the
-    provenance is honestly ``client`` and NOT flagged unverified (no attempt was made) —
+    provenance is honestly ``client`` and explicitly unverified (no owner was consulted) —
     the reviewer/policy at decision-service can read this from the candidate evidence.
     """
     _patch_gdd(monkeypatch)
     out = await crop_decision_candidate_endpoint(req=_req(submit=False), user=_USER)
     prov = out["candidate"]["evidence"]["spectral_provenance"]
     assert prov["source"] == "client"
-    assert prov["unverified"] is False
-    # not flagged as unverified ⇒ no spectral limitation injected (no fabricated warning).
-    assert "client_supplied_spectral_unverified" not in out["candidate"]["limitations"]
+    assert prov["unverified"] is True
+    # A client measurement cannot become authoritative merely because raster was disabled.
+    assert "client_supplied_spectral_unverified" in out["candidate"]["limitations"]
 
 
 def test_unverified_spectral_flag_flows_into_lineage():

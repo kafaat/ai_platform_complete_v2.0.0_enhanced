@@ -25,12 +25,14 @@ import json as _json
 import logging
 import os
 import uuid as _uuid
+from urllib.parse import quote
 
 from core.outcome_reconciler import OutcomeLabelConflict, reconcile_planned_with_decision
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api.decision_lineage import ensure_decision_id, lineage_stage
+from api.decision_service_client import owner_write_confirmed, read_decision_owner
 from api.decision_service_client import record_decision as _mirror_decision_to_service
 from api.decision_service_client import record_outcome as _mirror_outcome_to_service
 from api.decision_sor_mode import (
@@ -398,12 +400,12 @@ async def record_decision(
             service_payload,
             tenant_id=str(user.tenant_id),
         )
-        if not service_result.get("authoritative") or not service_result.get("persisted"):
+        if not owner_write_confirmed(service_result, decision_id=did, tenant=str(user.tenant_id)):
             raise HTTPException(
                 status_code=503, detail="decision-service لم يثبت كتابة القرار السلطوية"
             )
         return {
-            "decision_id": service_result.get("decision_id") or did,
+            "decision_id": did,
             "lineage": lineage,
             "persisted": True,
             "authoritative_store": "decision-service",
@@ -541,7 +543,7 @@ async def record_outcome(
             service_payload,
             tenant_id=str(user.tenant_id),
         )
-        if not service_result.get("authoritative") or not service_result.get("persisted"):
+        if not owner_write_confirmed(service_result, decision_id=did, tenant=str(user.tenant_id)):
             raise HTTPException(
                 status_code=503, detail="decision-service لم يثبت كتابة النتيجة السلطوية"
             )
@@ -667,6 +669,9 @@ async def get_decision_lineage(
     قراءة فقط. القرار المفقود (لم يُدَم/لمستأجِر آخر) ⇒ decision=None لا 404 (النتائج قد
     تكون أُدِيمت عبر المسار النقيّ). 503 عند تعذّر القاعدة.
     """
+    if get_platform_decision_sor_mode().strict_decision_service_required:
+        path = f"/v1/decisions/{quote(decision_id, safe='')}/lineage"
+        return await read_decision_owner(path, user, {"limit": limit}, decision_id=decision_id)
     try:
         async with tenant_connection(user) as conn:
             drow = await conn.fetchrow(
@@ -708,6 +713,9 @@ async def list_decision_records(
     قراءة فقط. تصفية اختياريّة بـfield_id/decision_type (WHERE ديناميكيّ). 503 عند
     تعذّر القاعدة. مسار القراءة تكامليّ (يتطلّب Postgres، كـdecision_dispatch).
     """
+    if get_platform_decision_sor_mode().strict_decision_service_required:
+        params = {"field_id": field_id, "decision_type": decision_type, "limit": limit}
+        return await read_decision_owner("/v1/decisions", user, params, decode_decisions=True)
     clauses, args = [], []
     if field_id:
         args.append(field_id)
@@ -759,6 +767,9 @@ async def get_field_lineage(
     إدامة رأس) تُكشَف تحت orphan_outcomes — صدق: لا تُخفى. 503 عند تعذّر القاعدة. مسار
     القراءة تكامليّ (يتطلّب Postgres، كـdecision_dispatch).
     """
+    if get_platform_decision_sor_mode().strict_decision_service_required:
+        path = f"/v1/fields/{quote(field_id, safe='')}/lineage"
+        return await read_decision_owner(path, user, {"limit": limit}, field_id=field_id)
     try:
         async with tenant_connection(user) as conn:
             drows = await conn.fetch(

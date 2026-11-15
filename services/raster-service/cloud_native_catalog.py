@@ -14,6 +14,7 @@ try:
         build_mosaicjson,
         normalize_stac_item,
         parse_cloud_cover_pct,
+        parse_resolution_m,
         score_scene_quality,
     )
 except Exception:  # pragma: no cover - عند تشغيل الخدمة من مجلدها مباشرة
@@ -24,6 +25,7 @@ except Exception:  # pragma: no cover - عند تشغيل الخدمة من مج
         build_mosaicjson,
         normalize_stac_item,
         parse_cloud_cover_pct,
+        parse_resolution_m,
         score_scene_quality,
     )
 
@@ -86,7 +88,7 @@ def cog_registry_record(
     cog_url: str,
     scene_id: str | None = None,
     cloud_pct: float | None = None,
-    resolution_m: float | None = 10,
+    resolution_m: float | None = None,
 ) -> dict[str, Any]:
     # غيوم مجهولة تبقى None لا ٠٪ (G11) — لا تكسب درجة A.
     cloud = parse_cloud_cover_pct(cloud_pct)
@@ -99,7 +101,7 @@ def cog_registry_record(
         "cog_url": cog_url,
         "scene_id": scene_id,
         "cloud_pct": cloud,
-        "resolution_m": float(resolution_m or 10),
+        "resolution_m": parse_resolution_m(resolution_m),
         "quality": quality.__dict__,
         # **معاينةٌ لا تملك هويّةَ سجلّ، فلا تملك مسارَ بلاطاتٍ مُصادَقاً عليه.** كان هذا
         # الحقلُ يُصدِر `/tiles/WebMercatorQuad/{z}/{x}/{y}?url=<cog_url>` — شكلَ TiTiler

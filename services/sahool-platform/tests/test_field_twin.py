@@ -133,3 +133,54 @@ def test_handles_datetime_observed_at():
     )
     assert t.data_age_days == 2
     assert t.observed_at == "2026-06-15"
+
+
+def test_undated_ndvi_never_claims_healthy():
+    t = assemble_twin("f1", latest_indices={"ndvi": 0.75}, observed_at=None, now="2026-11-13")
+    assert t.state == "stale"
+    assert t.data_age_days is None
+    assert any("تاريخ رصد" in reason for reason in t.attention_reasons_ar)
+
+
+def test_future_ndvi_is_not_current_evidence():
+    t = assemble_twin(
+        "f1",
+        latest_indices={"ndvi": 0.8},
+        observed_at="2026-11-14",
+        now="2026-11-13",
+    )
+    assert t.state == "stale"
+    assert any("المستقبل" in reason for reason in t.attention_reasons_ar)
+
+
+def test_fresh_evi_does_not_mask_stale_ndvi():
+    t = assemble_twin(
+        "f1",
+        latest_indices={"ndvi": 0.75, "evi": 0.80},
+        observed_at="2026-11-13",
+        index_observed_at={"ndvi": "2026-10-28", "evi": "2026-11-13"},
+        now="2026-11-13",
+    )
+    assert t.state == "stale"
+    assert t.observed_at == "2026-10-28"
+
+
+def test_missing_ndvi_with_recent_evi_is_not_healthy():
+    t = assemble_twin(
+        "f1",
+        latest_indices={"evi": 0.6},
+        observed_at="2026-11-13",
+        now="2026-11-13",
+    )
+    assert t.state == "stale"
+
+
+def test_blocked_decision_still_precedes_stale_timestamp():
+    t = assemble_twin(
+        "f1",
+        latest_indices={"ndvi": 0.7},
+        observed_at=None,
+        open_decisions=[{"state": "blocked", "exec_status": "not_executed"}],
+        now="2026-11-13",
+    )
+    assert t.state == "blocked"

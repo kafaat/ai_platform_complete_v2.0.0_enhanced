@@ -127,6 +127,7 @@ def test_crop_twin_passes_optional_root_policy_and_stress_history():
             "policy_version": "wheat-roots/1.0.0",
         },
         stress_history=[{"type": "water", "severity": 0.6}],
+        gdd_product={"accumulated_gdd": 500.0},
     )
     assert out["crop_intelligence"]["root_state"]["status"] == "available"
     assert out["crop_intelligence"]["stress_memory"]["status"] == "available"

@@ -3,11 +3,13 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 const state=vi.hoisted(()=>({fieldId:'a',error:false,refetch:vi.fn(),save:vi.fn()}));
 vi.mock('../hooks/useSelectedField',()=>({useSelectedField:()=>({fieldId:state.fieldId,options:[{id:'a',name:'A'},{id:'b',name:'B'}],setFieldId:vi.fn()})}));
 vi.mock('../hooks/useApi',()=>({useLabSamples:()=>({data:[],isLoading:false,isError:false,refetch:state.refetch}),useLabDecisionContext:()=>({isLoading:false,isError:state.error,error:new Error('offline'),data:undefined,refetch:state.refetch}),useCreateLabSample:()=>({mutateAsync:state.save,isPending:false}),useSubmitSoilLabResult:()=>({mutateAsync:state.save,isPending:false})}));
-vi.mock('react-router',()=>({useLocation:()=>({state:null})}));
+vi.mock('react-router',()=>({useLocation:()=>({state:null}),useNavigate:()=>vi.fn()}));
 vi.mock('../lib/leafletSetup',()=>({}));
-vi.mock('react-leaflet',()=>({MapContainer:({children}:any)=><div>{children}</div>,TileLayer:()=>null,Polygon:()=>null,Marker:()=>null,useMapEvents:()=>({})}));
+vi.mock('react-leaflet',()=>({MapContainer:({children}:any)=><div>{children}</div>,TileLayer:()=>null,Polygon:()=>null,Marker:()=>null,CircleMarker:()=>null,Tooltip:()=>null,useMapEvents:()=>({})}));
+import { useAuthStore } from '../hooks/useAuth';
 import LabSamplingPage from './LabSamplingPage';
-beforeEach(()=>{cleanup();state.fieldId='a';state.error=false;vi.clearAllMocks();});
+// Sample collection is offered to roles that may create records (the page now gates it).
+beforeEach(()=>{cleanup();state.fieldId='a';state.error=false;vi.clearAllMocks();sessionStorage.clear();useAuthStore.setState({tenantId:'t1',user:{id:1,email:'m@example.org',full_name:'m',role:'manager'}});});
 describe('lab context repairs',()=>{
  it('does not carry coordinates into a different field',()=>{
    const view=render(<LabSamplingPage/>);

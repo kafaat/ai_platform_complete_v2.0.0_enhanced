@@ -201,6 +201,24 @@ def reconcile_recommendation_outcome_labels(
     return out
 
 
+def authoritative_outcome_label_refusal(labels: dict) -> str | None:
+    """ما يرفضه القطع (S4) قبل أن يكتب decision-service تسميةَ تعلّمٍ سلطويّة.
+
+    ``labels`` ناتج ``reconcile_recommendation_outcome_labels`` (التعارض مع التوصية
+    المختومة رُفض قبله بـ``OutcomeLabelConflict``). توقّعٌ لم يُطابَق بسجلّ مخزَّن، أو
+    ادّعاءُ نضجٍ لم يُشتقّ من الطوابع، لا يصير حقيقةَ تعلّم. ادّعاءُ «لم ينضج» لا يرفع
+    تسميةً فلا يُرفَض. يُعيد رمز الرفض أو ``None``.
+    """
+    if labels.get("prediction_source") == "client_unverified":
+        return "unverified_predicted_yield_not_authoritative"
+    if (
+        labels.get("matured_within_lag")
+        and labels.get("maturity_source") != "derived_from_timestamps"
+    ):
+        return "unverified_maturity_not_authoritative"
+    return None
+
+
 def recommendation_outcome_write_action(existing: dict | None, *, actual_yield_t_ha) -> str:
     """لا صفَّ ثانياً لـ(المستأجِر، recommendation_id) — يقرّر الكاتب ماذا يفعل بالموجود.
 
@@ -289,7 +307,7 @@ def normalize_recommendation_outcome(row: dict) -> dict:
         "tenant_id": row.get("tenant_id"),
         "region": row.get("region"),
         "season_id": row.get("season_id"),
-        "decision_id": None,
+        "decision_id": row.get("decision_id"),
         "recommendation_id": row.get("recommendation_id"),
         "success": _derive_rec_success(row),
         "result": {
@@ -409,7 +427,7 @@ def settled_success_by_source(unified: list[dict] | None) -> dict:
         "basis": "settled_rows_per_source",
         "sources": sources,
         "linked_overlap": {
-            "linked_via": "decision_id (dispatch_decisions)",
+            "linked_via": "decision_id",
             "cases": overlap_cases,
             "rows_by_source": overlap_rows,
             "settled_in_both_sources": settled_in_both,
@@ -439,7 +457,9 @@ def reconcile_outcomes(
         item = normalize_recommendation_outcome(r)
         # ربط ليّن: إن عرفنا decision لهذه التوصية عبر الجسر، اربطه (لا اختلاق).
         dec = links.get(item["recommendation_id"]) if item["recommendation_id"] else None
-        if dec:
+        if item["decision_id"]:
+            item["linked_via"] = "recommendation_outcomes.decision_id"
+        elif dec:
             item["decision_id"] = dec
             item["linked_via"] = "dispatch_decisions"
         unified.append(item)

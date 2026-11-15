@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+from typing import Annotated
 from urllib.parse import urlencode
 
 import cdse_client as _cdse
@@ -52,7 +53,9 @@ def _state_response(state: str, *, body: bytes = TRANSPARENT_PNG, **headers: str
     )
 
 
-async def _persisted_thumbnail(field_id: str, index: str, date: str, size: int) -> Response:
+async def _persisted_thumbnail(
+    field_id: str, index: str, date: str, size: int, asset_id: int | None = None
+) -> Response:
     """يصيّر المصغّرة من **الأصل المُدَام حصراً** — صفر نداء CDSE في كلّ الفروع.
 
     عقد صريح: يُحلّ ``raster_assets`` (``asset_status='ready'`` ومقيَّد بالمستأجِر عبر
@@ -70,7 +73,12 @@ async def _persisted_thumbnail(field_id: str, index: str, date: str, size: int) 
             raise HTTPException(422, "date يجب أن يكون YYYY-MM-DD أو طابعاً ISO8601 صالحاً")
     tenant_id = REQ_TENANT.get()
     try:
-        asset = await _db.fetch_latest_asset(field_id, internal, requested, tenant_id=tenant_id)
+        if asset_id is None:
+            asset = await _db.fetch_latest_asset(field_id, internal, requested, tenant_id=tenant_id)
+        else:
+            asset = await _db.fetch_latest_asset(
+                field_id, index, requested, tenant_id=tenant_id, asset_id=asset_id
+            )
     except Exception as e:  # noqa: BLE001 — تعذّر القراءة ⇒ حالة مُعلَنة لا احتياطيّ حيّ
         logger.warning("persisted thumbnail lookup failed (%s/%s): %s", field_id, internal, e)
         return _state_response("unavailable")
@@ -92,7 +100,17 @@ async def _persisted_thumbnail(field_id: str, index: str, date: str, size: int) 
     try:
         import tile_render
 
-        png = await run_raster_io(tile_render.render_cog_thumbnail_png, cog_url, internal, size)
+        style = tile_render.task_preview_style(internal.lower())
+        if asset_id is not None and style == "inputs":
+            return _state_response("unavailable")
+        if asset_id is not None and style == "relative":
+            png = await run_raster_io(
+                tile_render.render_cog_thumbnail_png, cog_url, internal, size, relative=True
+            )
+        else:
+            png = await run_raster_io(
+                tile_render.render_cog_thumbnail_png, cog_url, internal.lower(), size
+            )
     except Exception as e:  # noqa: BLE001
         logger.warning("persisted thumbnail render failed (%s/%s): %s", field_id, internal, e)
         return _state_response(
@@ -106,6 +124,9 @@ async def _persisted_thumbnail(field_id: str, index: str, date: str, size: int) 
         )
 
     headers = dict(TENANT_PRIVATE_IMAGE_HEADERS)
+    if asset_id is not None:
+        headers["X-Preview-Style"] = style
+        headers["X-Raster-Asset-Id"] = str(asset_id)
     if acquired:
         headers["X-Acquisition-Date"] = acquired
     return _state_response("ready", body=png, **headers)
@@ -208,6 +229,7 @@ async def field_cdse_thumbnail(
     bbox_e: float | None = Query(None),
     bbox_n: float | None = Query(None),
     poly: str | None = Query(None),
+    asset_id: Annotated[int | None, Query(gt=0, le=9223372036854775807)] = None,
     size: int = Query(160, ge=48, le=512),
     source: str = Query(
         "auto",
@@ -224,6 +246,8 @@ async def field_cdse_thumbnail(
     # موجود — فيجب أن تُقرأ من ذلك الأصل لا أن تُعيد تنفيذ اكتشاف حيّ. الاكتشاف الحيّ
     # هنا كان يفتح باب استبدال صامت: مشهد من تاريخ آخر يُعرَض تحت التاريخ المطلوب.
     # المسار المُدام fail-closed: لا أصل جاهز ⇒ حالة مُعلَنة، لا احتياطيّ CDSE.
+    if asset_id is not None:
+        return await _persisted_thumbnail(field_id, index, date, size, asset_id)
     if source == "persisted":
         return await _persisted_thumbnail(field_id, index, date, size)
 

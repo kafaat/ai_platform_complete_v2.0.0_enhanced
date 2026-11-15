@@ -938,6 +938,13 @@ async def cmd_settings(message: Message):
 # ─── Callback Handlers ─────────────────────────────────────
 
 
+#: رسالةُ 403 من POST /api/v1/work-orders/from-recommendation (صلاحية ACTIVITY_PLAN).
+WORK_ORDER_FORBIDDEN_AR = (
+    "إنشاء أمر عمل يتطلّب صلاحية مالك المزرعة أو مديرها أو مهندس زراعيّ. "
+    "اطلب من مدير المزرعة إنشاءه من هذه التوصية. لم يُنشأ أمر عمل."
+)
+
+
 @router.callback_query(F.data == "create_pest_task")
 async def cb_create_pest_task(callback: CallbackQuery, state: FSMContext):
     """Create a planned work order through the existing authenticated endpoint."""
@@ -964,6 +971,11 @@ async def cb_create_pest_task(callback: CallbackQuery, state: FSMContext):
                 headers={"Authorization": f"Bearer {token}", "Idempotency-Key": key},
                 json={"field_id": context["field_id"], "recommendation": context["recommendation"]},
             )
+            if response.status_code == 403:
+                # رفضُ صلاحيةٍ لا عطلٌ عابر: «أعد المحاولة» يُضلّل. إنشاءُ أمر العمل يتطلّب
+                # ACTIVITY_PLAN (مدير/مهندس زراعيّ) على المنصّة — لا نمنحها هنا.
+                await callback.answer(WORK_ORDER_FORBIDDEN_AR, show_alert=True)
+                return
             response.raise_for_status()
             receipt = response.json()
         if receipt.get("persisted") is not True or not receipt.get("work_order_id"):

@@ -27,7 +27,8 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
+from typing import Any
 
 from api.water_balance import kc_map_for_crop
 
@@ -159,7 +160,7 @@ class DayWeather:
     t_max_c: float | None
     solar_mj_m2: float | None = None  # إشعاع كلّي MJ/m²/يوم
     et0_mm: float | None = None  # ET₀ مرجعي FAO-56 (mm/يوم)
-    rain_mm: float = 0.0  # مطر اليوم (mm)
+    rain_mm: float | None = 0.0  # المطر المرصود (mm)، None = بيانات مفقودة لا صفر
 
 
 @dataclass
@@ -185,6 +186,7 @@ class SimContext:
     # أوّل يوم في سلسلة الطقس. None ⇒ النافذة تبدأ يوم البذار (عقد المسار). مع تاريخ البذار
     # يُشتقّ منه عمر المحصول لكلّ يوم ⇒ Kc يوميّ من منحنى البطاقة لا توزيع تناسبيّ.
     window_start: date | None = None
+    irrigation_type: str | None = None  # rainfed must not imply assured irrigation
 
 
 @dataclass
@@ -192,18 +194,18 @@ class SimResult:
     crop: str
     crop_recognized: bool
     days_simulated: int
-    gdd_total: float
+    gdd_total: float | None
     gdd_to_maturity: float
-    maturity_reached: bool
-    lai_max: float
-    biomass_kg_ha: float
+    maturity_reached: bool | None
+    lai_max: float | None
+    biomass_kg_ha: float | None
     # None حين يكون المحصول غير مُعرّف: لا HI/RUE خاصّ به ⇒ لا غلّة تُختلَق من معاملات عامّة.
     yield_kg_ha: float | None
     yield_low_kg_ha: float | None  # حدّ أدنى للنطاق (≈ −20٪)
     yield_high_kg_ha: float | None  # حدّ أعلى للنطاق (≈ +20٪)
-    water_need_mm: float  # ETc الموسمي
+    water_need_mm: float | None  # None حين ينقص ET0؛ ليس 0 mm
     water_supply_mm: float | None  # مطر + ريّ إن عُرف
-    water_stress_factor: float  # 0..1 (1 = بلا إجهاد)
+    water_stress_factor: float | None  # None إذا تعذّر تقييم الإجهاد
     confidence: float  # 0..1
     rationale_ar: str
     # مصدر fAPAR المُستعمَل في حساب الإشعاع المُمتصّ:
@@ -369,17 +371,22 @@ def _resolve_observed_fapar(
             return None, True
         return [float(observed)] * n_days, False
     if isinstance(observed, list):
-        clean = [float(v) for v in observed if _valid(v)]
-        if not clean or len(clean) != len(observed):
-            # سلسلة فارغة أو فيها قيم غير صالحة ⇒ نُهمل المرصود ونوسم البطلان.
-            if not clean:
-                return None, True
-            had_invalid = len(clean) != len(observed)
-            series = (clean + [clean[-1]] * n_days)[:n_days]
-            return series, had_invalid
+        # Invalid entries must never be filtered out: removal would shift
+        # subsequent observations to earlier dates and corrupt daily APAR.
+        if not observed or not all(_valid(value) for value in observed):
+            return None, True
+        clean = [float(value) for value in observed]
         series = (clean + [clean[-1]] * n_days)[:n_days]
         return series, False
     return None, True
+
+
+def _finite_nonnegative(value: object) -> float | None:
+    """Keep observed zero distinct from absent/invalid weather or irrigation evidence."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    v = float(value)
+    return v if math.isfinite(v) and v >= 0 else None
 
 
 def simulate_season(ctx: SimContext) -> SimResult:
@@ -416,28 +423,28 @@ def simulate_season(ctx: SimContext) -> SimResult:
 
     weather = ctx.weather
     if not weather:
-        warnings.append("لا توجد سلسلة طقس — تعذّرت المحاكاة الزمنيّة. النتيجة صفريّة/غير ذات دلالة.")
+        warnings.append("لا توجد سلسلة طقس — لا يمكن حساب غلة أو احتياج ماء أو نضج.")
         return SimResult(
             crop=crop_key or (ctx.crop or ""),
             crop_recognized=recognized,
             days_simulated=0,
-            gdd_total=0.0,
+            gdd_total=None,
             gdd_to_maturity=p.gdd_to_maturity,
-            maturity_reached=False,
-            lai_max=0.0,
-            biomass_kg_ha=0.0,
-            yield_kg_ha=0.0 if recognized else None,
-            yield_low_kg_ha=0.0 if recognized else None,
-            yield_high_kg_ha=0.0 if recognized else None,
-            water_need_mm=0.0,
+            maturity_reached=None,
+            lai_max=None,
+            biomass_kg_ha=None,
+            yield_kg_ha=None,
+            yield_low_kg_ha=None,
+            yield_high_kg_ha=None,
+            water_need_mm=None,
             water_supply_mm=None,
-            water_stress_factor=1.0,
+            water_stress_factor=None,
             confidence=0.0,
             rationale_ar="لا بيانات طقس كافية للمحاكاة — لا تقدير.",
             assumptions_ar=assumptions,
             warnings_ar=warnings,
-            yield_status=yield_status,
-            limitations=limitations,
+            yield_status="unavailable_no_weather" if recognized else yield_status,
+            limitations=[*limitations, "NO_WEATHER_NO_YIELD_ESTIMATE"],
         )
 
     # fAPAR مرصود (إن مُرِّر) → سلسلة يوميّة. None ⇒ نُبقي الحدّ المُنمذَج (1−e^…).
@@ -459,20 +466,26 @@ def simulate_season(ctx: SimContext) -> SimResult:
     estimated_solar_days = 0
     missing_et0_days = 0
     missing_gdd_days = 0
+    missing_rain_days = 0
 
     override = ctx.gdd_daily_override
     et0_override = ctx.et0_daily_override
     for day_idx, day in enumerate(weather):
         # WS-C.1c Zero-Legacy: نواة GDD من **محرّك الطقس** فقط (سلسلة محقونة) — لا gdd_day
         # محلّيّ. يوم بلا GDD محرّك ⇒ يُتجاهَل (fail-closed، لا يُلفَّق)؛ يُعلَن كقيد.
-        if override is not None and day_idx < len(override) and override[day_idx] is not None:
-            gdd_cum += float(override[day_idx])
-        else:
+        gdd_value = (
+            _finite_nonnegative(override[day_idx])
+            if override is not None and day_idx < len(override)
+            else None
+        )
+        if gdd_value is None:
             missing_gdd_days += 1
+        else:
+            gdd_cum += gdd_value
         lai = _lai_at(gdd_cum, p.gdd_to_maturity, p.lai_max)
         lai_peak = max(lai_peak, lai)
 
-        solar = day.solar_mj_m2
+        solar = _finite_nonnegative(day.solar_mj_m2)
         if solar is None:
             # تقدير حسب شهر اليوم (من تاريخ البذر + الإزاحة) — أدقّ من ثابت واحد.
             day_start = ctx.window_start or ctx.sowing_date
@@ -492,18 +505,21 @@ def simulate_season(ctx: SimContext) -> SimResult:
         # WS-C.1b: ET0 من محرّك الطقس (سلسلة محقونة) — المصدر الوحيد؛ **لا Hargreaves
         # محلّيّ**. أولويّة: السلسلة المحقونة الكنسيّة، ثمّ et0 المُمرَّر مع اليوم. غياب
         # كليهما ⇒ None (يوم بلا ET0 — يُتجاهَل في احتياج الماء، لا يُلفَّق).
-        if (
-            et0_override is not None
-            and day_idx < len(et0_override)
-            and et0_override[day_idx] is not None
-        ):
-            et0 = float(et0_override[day_idx])
+        # An explicit canonical None is authoritative absence. Do NOT silently
+        # substitute an older ERA5 ET0 value behind the owner-produced series.
+        if et0_override is not None:
+            raw_et0 = et0_override[day_idx] if day_idx < len(et0_override) else None
         else:
-            et0 = day.et0_mm
+            raw_et0 = day.et0_mm
+        et0 = _finite_nonnegative(raw_et0)
         if et0 is None:
-            missing_et0_days += 1  # يوم بلا ET0 (لا تقدير محلّيّ) — يُعلَن كقيد
+            missing_et0_days += 1
         et0_series.append(et0)
-        rain_total += max(0.0, day.rain_mm)
+        rain = _finite_nonnegative(day.rain_mm)
+        if rain is None:
+            missing_rain_days += 1
+        else:
+            rain_total += rain
 
     days = len(weather)
     days_since_sowing_start = (
@@ -517,13 +533,22 @@ def simulate_season(ctx: SimContext) -> SimResult:
     biomass_kg_ha = biomass_g_m2 * 10.0
 
     # احتياج الماء الموسمي ETc (FAO-56) + مقارنة بالعرض (مطر + ريّ).
-    water_need = _seasonal_water_need(crop_key, et0_series, days_since_sowing_start)
+    water_need_partial = _seasonal_water_need(crop_key, et0_series, days_since_sowing_start)
+    water_need = water_need_partial if missing_et0_days == 0 else None
+    irrigation_total = _finite_nonnegative(ctx.irrigation_mm_total)
+    if ctx.irrigation_mm_total is not None and irrigation_total is None:
+        limitations.append("IRRIGATION_TOTAL_INVALID")
     water_supply: float | None = None
-    if ctx.irrigation_mm_total is not None or rain_total > 0:
-        water_supply = rain_total + (ctx.irrigation_mm_total or 0.0)
+    rainfed = (ctx.irrigation_type or "").strip().lower() == "rainfed"
+    if missing_rain_days == 0 and (irrigation_total is not None or rain_total > 0 or rainfed):
+        # For a rainfed season, observed zero rain is a known zero supply, not an
+        # absence of irrigation information that would justify assuming a watered crop.
+        water_supply = rain_total + (irrigation_total or 0.0)
 
-    # معامل إجهاد مائي: يخفض الإنتاج عند العجز، لا يضخّمه فوق ١.
-    if water_supply is not None and water_need > 0:
+    # Do not invent a stress factor when weather coverage is incomplete.
+    if water_need is None or missing_rain_days or "IRRIGATION_TOTAL_INVALID" in limitations:
+        water_stress: float | None = None
+    elif water_supply is not None and water_need > 0:
         ratio = water_supply / water_need
         water_stress = max(0.4, min(1.0, ratio))
         if ratio < 0.7:
@@ -533,15 +558,41 @@ def simulate_season(ctx: SimContext) -> SimResult:
             )
     else:
         water_stress = 1.0
-        if ctx.irrigation_mm_total is None:
+        if irrigation_total is None:
             assumptions.append("لم يُعرَف الريّ الموسمي — افتُرض ريّ كافٍ (بلا إجهاد مائي).")
 
-    yield_potential = biomass_kg_ha * p.harvest_index
-    yield_kg_ha = yield_potential * water_stress
-
-    # نطاق عدم اليقين الصريح (±20٪) — لا رقم قاطع.
-    yield_low = yield_kg_ha * (1.0 - _UNCERTAINTY_FRAC)
-    yield_high = yield_kg_ha * (1.0 + _UNCERTAINTY_FRAC)
+    # No quantitative yield from an incomplete canonical weather series.
+    # Rule (a): with modeled LAI, one missing GDD day distorts the canopy curve, so no
+    # season-wide yield. Rule (b): observed fAPAR biomass (RUE×PAR×fAPAR) never passes
+    # through GDD/LAI, so its yield stands; only maturity (a GDD threshold) is unknown.
+    gdd_blocks_yield = bool(missing_gdd_days) and not use_observed
+    if missing_gdd_days:
+        limitations.append("GDD_SERIES_INCOMPLETE")
+        if use_observed:
+            limitations.append("NO_GDD_EVIDENCE_MATURITY_UNKNOWN")
+    if missing_et0_days:
+        limitations.append("ET0_SERIES_INCOMPLETE")
+    if missing_rain_days:
+        limitations.append("PRECIPITATION_SERIES_INCOMPLETE")
+    if recognized and gdd_blocks_yield:
+        yield_status = "unavailable_missing_gdd"
+    elif recognized and missing_et0_days:
+        yield_status = "unavailable_missing_et0"
+    elif recognized and missing_rain_days:
+        yield_status = "unavailable_missing_precipitation"
+    elif recognized and "IRRIGATION_TOTAL_INVALID" in limitations:
+        yield_status = "unavailable_invalid_irrigation"
+    elif recognized and rainfed and yield_status == "estimated":
+        # Documented rain is the only modelled supply; initial soil water is not.
+        yield_status = "estimated_water_unverified"
+    yield_available = (
+        recognized
+        and yield_status in ("estimated", "estimated_water_unverified")
+        and water_stress is not None
+    )
+    yield_kg_ha = biomass_kg_ha * p.harvest_index * water_stress if yield_available else None
+    yield_low = yield_kg_ha * (1.0 - _UNCERTAINTY_FRAC) if yield_kg_ha is not None else None
+    yield_high = yield_kg_ha * (1.0 + _UNCERTAINTY_FRAC) if yield_kg_ha is not None else None
 
     # افتراضات حول التواريخ/التغطية.
     if ctx.sowing_date is None:
@@ -564,7 +615,18 @@ def simulate_season(ctx: SimContext) -> SimResult:
             f"GDD غير متوفّر من محرّك الطقس لـ{missing_gdd_days} يوم — لم تُضَف تلك الأيّام "
             "للتراكم الحراريّ (لا نواة GDD محلّيّة داخل المنصّة)."
         )
-    if not maturity_reached:
+    if missing_rain_days > 0:
+        assumptions.append(
+            f"بيانات المطر مفقودة أو غير صالحة لـ{missing_rain_days} يوم — "
+            "لم تُحسب كصفر، وتعذّر إثبات العرض المائي."
+        )
+    if rainfed:
+        assumptions.append(
+            "الموسم مطريّ — استُخدم المطر الموثّق فقط في العرض المائي؛ "
+            "الماء المخزون مبدئيّاً في التربة غير ممثّل في هذا النموذج."
+        )
+        limitations.append("RAINFED_INITIAL_SOIL_WATER_UNMODELED")
+    if missing_gdd_days == 0 and not maturity_reached:
         warnings.append(
             f"لم يبلغ GDD التراكمي ({gdd_cum:.0f}) عتبة النضج ({p.gdd_to_maturity:.0f}) — "
             "التقدير لموسم غير مكتمل أو نافذة طقس أقصر من الدورة."
@@ -584,22 +646,31 @@ def simulate_season(ctx: SimContext) -> SimResult:
         confidence += 0.10
     if missing_et0_days == 0:
         confidence += 0.10
-    if maturity_reached:
+    if maturity_reached and missing_gdd_days == 0:
         confidence += 0.10
     if water_supply is not None:
         confidence += 0.05
-    confidence = round(min(0.85, confidence), 2)  # سقف ٨٥٪ — لا يقين كامل بلا قياس ميداني
+    confidence = round(min(0.85, confidence), 2) if yield_available else 0.0
+    if yield_status == "estimated_water_unverified":
+        confidence = min(confidence, 0.45)
+    if missing_gdd_days and use_observed:
+        confidence = min(confidence, 0.45)  # rule (b): yield stands, maturity unknown
 
     yield_text = (
         f"الإنتاج المُقدَّر≈{yield_kg_ha:.0f} kg/ha (نطاق {yield_low:.0f}–{yield_high:.0f}، "
         f"HI={p.harvest_index:.2f})"
-        if recognized
-        else "الإنتاج غير مُقدَّر (محصول غير مُعرّف — لا مؤشّر حصاد)"
+        if yield_kg_ha is not None
+        else f"الإنتاج غير متاح ({yield_status}) — مدخلات أساسية مفقودة أو غير مؤهلة"
     )
+    gdd_text = f"{gdd_cum:.0f}" if missing_gdd_days == 0 else "غير مكتمل"
+    water_text = f"{water_need:.0f}" if water_need is not None else "غير متاح"
+    biomass_text = f"{biomass_kg_ha:.0f}" if not gdd_blocks_yield else "غير متاح"
+    lai_text = f"{lai_peak:.2f}" if missing_gdd_days == 0 else "غير متاح"
     rationale = (
-        f"محاكاة {days} يوم: GDD={gdd_cum:.0f}/{p.gdd_to_maturity:.0f} °C·day، "
-        f"أقصى LAI≈{lai_peak:.2f}، كتلة حيويّة≈{biomass_kg_ha:.0f} kg/ha، "
-        f"{yield_text}، احتياج الماء≈{water_need:.0f} mm. "
+        f"محاكاة {days} يوم: GDD={gdd_text}/{p.gdd_to_maturity:.0f} °C·day، "
+        f"أقصى LAI={lai_text}، "
+        f"كتلة حيويّة≈{biomass_text} kg/ha، "
+        f"{yield_text}، احتياج الماء≈{water_text} mm. "
         f"الثقة {confidence:.0%} — تقدير نموذجي (RUE/FAO-56)، عايِر ميدانيّاً."
     )
 
@@ -607,17 +678,17 @@ def simulate_season(ctx: SimContext) -> SimResult:
         crop=crop_key or (ctx.crop or ""),
         crop_recognized=recognized,
         days_simulated=days,
-        gdd_total=round(gdd_cum, 1),
+        gdd_total=round(gdd_cum, 1) if missing_gdd_days == 0 else None,
         gdd_to_maturity=p.gdd_to_maturity,
-        maturity_reached=maturity_reached,
-        lai_max=round(lai_peak, 2),
-        biomass_kg_ha=round(biomass_kg_ha, 1),
-        yield_kg_ha=round(yield_kg_ha, 1) if recognized else None,
-        yield_low_kg_ha=round(yield_low, 1) if recognized else None,
-        yield_high_kg_ha=round(yield_high, 1) if recognized else None,
-        water_need_mm=round(water_need, 1),
+        maturity_reached=maturity_reached if missing_gdd_days == 0 else None,
+        lai_max=round(lai_peak, 2) if missing_gdd_days == 0 else None,
+        biomass_kg_ha=round(biomass_kg_ha, 1) if not gdd_blocks_yield else None,
+        yield_kg_ha=round(yield_kg_ha, 1) if yield_kg_ha is not None else None,
+        yield_low_kg_ha=round(yield_low, 1) if yield_low is not None else None,
+        yield_high_kg_ha=round(yield_high, 1) if yield_high is not None else None,
+        water_need_mm=round(water_need, 1) if water_need is not None else None,
         water_supply_mm=round(water_supply, 1) if water_supply is not None else None,
-        water_stress_factor=round(water_stress, 3),
+        water_stress_factor=round(water_stress, 3) if water_stress is not None else None,
         confidence=confidence,
         rationale_ar=rationale,
         fapar_source=fapar_source,
@@ -709,6 +780,8 @@ def plan_simulation_window(
         )
     cap = crop_cycle_window_cap(crop, floor_days)
     start = sowing_date
+    if season_end is not None and season_end < sowing_date:
+        raise SimWindowError("تاريخ نهاية الموسم يسبق تاريخ البذار — صحّح تاريخَي الموسم.")
     requested_end = min(season_end, today) if season_end is not None else today
     if requested_end <= start:
         requested_end = min(start + timedelta(days=cap), today)
@@ -730,6 +803,195 @@ def plan_simulation_window(
         days_simulated=(win_end - start).days + 1,
         truncated=truncated,
     )
+
+
+def weather_product_provenance(
+    kind: str, product: dict[str, Any], days: int | None = None
+) -> dict[str, Any]:
+    """Provenance stored with a simulation run for each weather-service product it used.
+
+    ``archive`` is the canonical historical view; ``archive_et0`` is the FAO reference ET0
+    taken unchanged from it; ``engine_et0`` / ``engine_gdd`` are the weather engine's
+    derived series. Values are copied, never recomputed.
+    """
+    if kind == "archive":
+        return {
+            "owner": "weather-service",
+            "canonical_state_id": product["canonical_state_id"],
+            "source_snapshot_id": product["source_snapshot_id"],
+            "coverage": product.get("coverage"),
+            "quality_status": product.get("quality_status"),
+        }
+    if kind == "archive_et0":
+        return {
+            "source": "weather-service/historical-fao-et0",
+            "formula_version": "provider:et0_fao_evapotranspiration",
+            "days_computed": days,
+            "source_snapshot_id": product["source_snapshot_id"],
+            "quality_status": product.get("quality_status"),
+        }
+    if kind == "engine_et0":
+        return {
+            "source": "weather-engine/derived-et0",
+            "formula_version": product.get("formula_version"),
+            "days_computed": product.get("days_computed"),
+            "accumulated_et0_mm": product.get("accumulated_et0_mm"),
+            "quality_status": product.get("quality_status"),
+        }
+    if kind == "engine_gdd":
+        return {
+            "source": "weather-engine",
+            "calculation_version": product.get("calculation_version"),
+            "thresholds_used": product.get("thresholds_used"),
+        }
+    raise ValueError(f"unknown weather product kind: {kind}")
+
+
+# ─── مصدر حدّ الحقل (S4-b): سجلّ مراجعات، لا هندسة تاريخيّة مُعادة البناء ─────────────────
+def boundary_provenance_from_rows(rows: list[Any] | None, since: date) -> dict[str, Any]:
+    """Describe the auditable geometry *revision* ledger, not historical coordinates.
+
+    ``rows`` are ``field_geometry_history`` rows (``revision``, ``changed_at``) ordered by
+    revision, or ``None`` when the ledger could not be read. The first revision is the
+    field's drawing, not an edit. An empty ledger is unverified, not proof that the
+    boundary never changed; an unreadable one is ``unavailable``.
+    """
+    cutoff = datetime.combine(since, datetime.min.time(), tzinfo=UTC)
+    if rows is None:
+        status = "unavailable"
+    else:
+        status = "recorded" if rows else "history_missing"
+    rows = rows or []
+    return {
+        "source": "field_geometry_history",
+        "geometry_basis": "current_boundary",
+        "status": status,
+        "latest_revision": int(rows[-1]["revision"]) if rows else None,
+        "revisions_since_sowing": [
+            int(r["revision"])
+            for r in rows[1:]
+            if r["changed_at"] is not None and r["changed_at"] >= cutoff
+        ],
+        "historical_geometry_replayed": False,
+    }
+
+
+def boundary_provenance_warnings(provenance: dict[str, Any], since: date) -> list[str]:
+    """Arabic warnings for an unproven or edited field boundary (stored with the run)."""
+    warnings: list[str] = []
+    if provenance["status"] != "recorded":
+        warnings.append(
+            "تعذّر إثبات تاريخ حدّ الحقل — سجلّ الهندسة مفقود أو غير متاح. "
+            "المحاكاة تستخدم الحدّ الحاليّ فقط، ولا تثبت سلامته للموسم التاريخيّ."
+        )
+    changed = provenance["revisions_since_sowing"]
+    if changed:
+        warnings.append(
+            f"حدّ الحقل عُدِّل منذ بداية الموسم ({since.isoformat()}) — المراجعات "
+            f"{'، '.join(str(r) for r in changed)}. المحاكاة تقرأ إحداثيّات الحقل "
+            "وسلسلة NDVI على الحدّ الحاليّ لا حدّ الموسم؛ الموسم لا يُثبّت مراجعة هندسة."
+        )
+    return warnings
+
+
+# ─── عقد أرشيف الطقس التاريخيّ (مالك الطقس → محرّك الموسم) ─────────────────────────
+# Strict adapter for owner-produced historical weather products. The weather-service owns
+# archive provider I/O and canonical observations; this verifies dates/provenance before
+# mapping *unchanged* owner values to the RUE/FAO-56 screening engine above. It never
+# calculates ET0 or GDD itself.
+
+
+def _nonnegative(value: Any, name: str) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{name} must be a finite numeric measurement or null")
+    number = float(value)
+    if not math.isfinite(number) or number < 0:
+        raise ValueError(f"{name} must be finite and nonnegative")
+    return number
+
+
+def _temperature(value: Any, name: str) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{name} must be a finite numeric measurement or null")
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError(f"{name} must be finite")
+    return number
+
+
+def canonical_historical_days(
+    product: dict[str, Any], *, start: date, end: date
+) -> list[DayWeather]:
+    """Require an exact, provenance-bound daily series for an inclusive season window.
+
+    A truncated or shifted archive is an unavailable dependency, not a shorter
+    simulated season. Missing measurements within an existing dated row remain
+    null; the engine must not interpret them as observed zeros.
+    """
+    if end < start:
+        raise ValueError("historical weather window ends before it begins")
+    if not isinstance(product, dict) or product.get("derived_from") != "canonical_weather_state":
+        raise ValueError("historical weather is not a canonical weather-service view")
+    if not product.get("canonical_state_id") or not product.get("source_snapshot_id"):
+        raise ValueError("historical weather has no canonical state/snapshot identity")
+    coverage = product.get("coverage")
+    count = (end - start).days + 1
+    if not isinstance(coverage, dict):
+        raise ValueError("historical weather lacks requested-window coverage proof")
+    if (
+        coverage.get("period_start") != start.isoformat()
+        or coverage.get("period_end") != end.isoformat()
+        or coverage.get("expected_days") != count
+        or coverage.get("observed_days") != count
+        or coverage.get("missing_days") != 0
+        or coverage.get("coverage_ratio") != 1.0
+    ):
+        raise ValueError("historical weather coverage does not match the requested window")
+    if product.get("quality_status") in {"invalid", "insufficient", "degraded_incomplete_coverage"}:
+        raise ValueError("historical weather owner reports unavailable or incomplete data")
+    rows = product.get("days")
+    if not isinstance(rows, list) or len(rows) != count:
+        raise ValueError("historical weather series length mismatch")
+
+    days: list[DayWeather] = []
+    for i, row in enumerate(rows):
+        expected_date = (start + timedelta(days=i)).isoformat()
+        if not isinstance(row, dict) or row.get("date") != expected_date:
+            raise ValueError(f"historical weather day {i} is missing, shifted or duplicated")
+        tmin = _temperature(row.get("temp_min_c"), f"{expected_date}.temp_min_c")
+        tmax = _temperature(row.get("temp_max_c"), f"{expected_date}.temp_max_c")
+        if tmin is not None and tmax is not None and tmin > tmax:
+            raise ValueError(f"{expected_date}: minimum temperature exceeds maximum")
+        days.append(
+            DayWeather(
+                t_min_c=tmin,
+                t_max_c=tmax,
+                solar_mj_m2=_nonnegative(
+                    row.get("solar_radiation_mj_m2"), f"{expected_date}.solar_radiation_mj_m2"
+                ),
+                et0_mm=_nonnegative(row.get("et0_mm"), f"{expected_date}.et0_mm"),
+                rain_mm=_nonnegative(
+                    row.get("precipitation_mm"), f"{expected_date}.precipitation_mm"
+                ),
+            )
+        )
+    return days
+
+
+def validated_engine_daily_series(
+    product: dict[str, Any], key: str, expected_days: int
+) -> list[float | None]:
+    """Reject malformed engine products without reimplementing weather physics."""
+    if not isinstance(product, dict):
+        raise ValueError(f"weather engine {key} product is not an object")
+    series = product.get(key)
+    if not isinstance(series, list) or len(series) != expected_days:
+        raise ValueError(f"weather engine {key} series length mismatch")
+    return [_nonnegative(value, f"{key}[{i}]") for i, value in enumerate(series)]
 
 
 # ─── ربط السجلّ التاريخيّ تلقائيّاً (حقل + يوم بذار + المحصول نفسه) ─────────────────────

@@ -409,6 +409,9 @@ def _fields_router(monkeypatch):
             return 1  # الحقل يخصّ المستأجر
 
         async def execute(self, query, *vals):
+            if "pg_advisory_xact_lock" in query:
+                assert "fields.geometry:" in query and vals == (_TENANT,)
+                return "SELECT 1"
             assert "INSERT INTO seasons" in query
             created.append({"season_id": vals[0], "crops": vals[3]})
 

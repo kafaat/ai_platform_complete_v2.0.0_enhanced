@@ -120,3 +120,59 @@ def validate_custom_stages(
         cleaned.append({"name": name, "date": datestr, "notes": notes})
 
     return cleaned, errors
+
+
+# ترتيب تحضير الأرض كما يفرضه القيد chk_seasons_dates (v47): تسوية ≤ حراثة ≤ بذار ≤ نهاية،
+# لكلّ زوجٍ متوفّر الطرفين (لا الجيران فقط، فتاريخٌ وسيط NULL لا يُمرّر ترتيباً خاطئاً).
+# الفحص هنا يُعيد 422 برسالة عربيّة بدل أن يبلغ القيدَ فيصير 503 «تعذّر القاعدة».
+_CHRONOLOGY = (
+    ("land", "plow", "تاريخ الحراثة قبل تسوية الأرض"),
+    ("land", "sow", "تاريخ البذار قبل تسوية الأرض"),
+    ("land", "end", "نهاية الموسم قبل تسوية الأرض"),
+    ("plow", "sow", "تاريخ البذار قبل الحراثة"),
+    ("plow", "end", "نهاية الموسم قبل الحراثة"),
+    ("sow", "end", "نهاية الموسم قبل البذار"),
+)
+
+
+def chronology_error(land, plow, sow, end) -> str | None:
+    """أوّل خرقٍ لترتيب تسوية ≤ حراثة ≤ بذار ≤ نهاية (NULL-safe)، وإلّا ``None``."""
+    dates = {"land": land, "plow": plow, "sow": sow, "end": end}
+    for earlier, later, message in _CHRONOLOGY:
+        if dates[earlier] and dates[later] and dates[later] < dates[earlier]:
+            return message
+    return None
+
+
+def season_update_dates(req, parse_date):
+    """يحلّل تواريخ PATCH المُرسَلة فقط، ويفحص ترتيب ما أُرسِل منها معاً (قبل القاعدة)."""
+    names = ("sowing_date", "season_end", "land_leveling_date", "plowing_date")
+    labels = ("البذار", "نهاية الموسم", "تسوية الأرض", "الحراثة")
+    sow, end, land, plow = (
+        parse_date(getattr(req, name), label) if getattr(req, name) is not None else None
+        for name, label in zip(names, labels, strict=True)
+    )
+    return sow, end, land, plow, chronology_error(land, plow, sow, end)
+
+
+def validate_final_season_date_order(current, req, sow, end, land, plow) -> str | None:
+    """يدمج التعديل الجزئيّ مع المخزّن ثمّ يفحص الترتيب الكامل على القيم النهائيّة.
+
+    ``sowing_date``/``season_end`` يُستبدلان حين يُرسَلان بقيمة (None لا يمسح، كالمسار القديم)؛
+    ``land_leveling_date``/``plowing_date`` يُستبدلان حين يُرسَلان، وإرسال null يمسحهما.
+    """
+    supplied = req.model_fields_set
+    error = resolve_and_check_date_order(
+        current_sowing=current["sowing_date"],
+        current_end=current["season_end"],
+        new_sowing=sow if req.sowing_date is not None else _UNSET,
+        new_end=end if req.season_end is not None else _UNSET,
+    )
+    if error:
+        return error
+    return chronology_error(
+        land if "land_leveling_date" in supplied else current["land_leveling_date"],
+        plow if "plowing_date" in supplied else current["plowing_date"],
+        sow if req.sowing_date is not None else current["sowing_date"],
+        end if req.season_end is not None else current["season_end"],
+    )

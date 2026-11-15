@@ -51,12 +51,16 @@ describe('UI-W3: season-entry field creation keeps the idempotency key', () => {
       await captured.onSave!({
         name: 'حقل الدفتر', manager: 'م', crop: 'wheat', soil_type: 'loam', area_ha: 1,
         geometry: { type: 'Polygon', coordinates: [[[44, 15], [44.1, 15], [44.1, 15.1], [44, 15]]] },
+        irrigation_type: 'pivot', pivot: { center: { lon: 44, lat: 15 }, radius_m: 250 },
+        field_code: 'P-03', water_source: 'well', country: 'YE', region: 'الجوف',
         idempotency_key: 'field-create-key-7',
       });
     });
     expect(post).toHaveBeenCalledTimes(1);
     const [url, body, config] = post.mock.calls[0];
     expect(url).toBe('/api/v1/fields');
+    expect(body).toMatchObject({ irrigation_type: 'pivot', pivot: { center: { lon: 44, lat: 15 }, radius_m: 250 },
+      field_code: 'P-03', water_source: 'well', country: 'YE', region: 'الجوف' });
     expect(body).not.toHaveProperty('idempotency_key');
     expect(config).toEqual({ headers: { 'Idempotency-Key': 'field-create-key-7' } });
   });
@@ -97,4 +101,11 @@ describe('UI-W4: resume refetches the saved season details', () => {
     render(<SeasonRecordEntryPage />);
     expect(await screen.findByText(/تعذّر استعادة ما حُفِظ/)).toBeInTheDocument();
   });
+});
+
+it('retains the drawing entry point when the drafts response is malformed', async () => {
+  season.listSeasons.mockResolvedValue({});
+  render(<SeasonRecordEntryPage />);
+  expect(await screen.findByText(/تعذّر تحميل المسودّات/)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'ترقيم موسم جديد' })).toBeEnabled();
 });

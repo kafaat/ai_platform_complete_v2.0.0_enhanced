@@ -2096,6 +2096,11 @@
       "evidence": "/api/v1/lab/samples"
     },
     {
+      "endpoint": "/api/v1/lab/samples/{sample_id}/transition",
+      "audience": "agronomist",
+      "evidence": "/api/v1/lab/samples/${encodeURIComponent(id)}/transition"
+    },
+    {
       "endpoint": "/api/v1/lab/soil-results",
       "audience": "agronomist",
       "evidence": "/api/v1/lab/soil-results"

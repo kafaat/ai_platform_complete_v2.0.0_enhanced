@@ -157,7 +157,13 @@ def c1_boundary(monkeypatch):
         if not (
             isinstance(node, ast.Import)
             and any(
-                alias.name in {"radiometry_containment", "raster_api_models", "stac_search"}
+                alias.name
+                in {
+                    "radiometry_containment",
+                    "raster_api_models",
+                    "raster_stage_receipt",
+                    "stac_search",
+                }
                 for alias in node.names
             )
         )
@@ -169,8 +175,17 @@ def c1_boundary(monkeypatch):
         SourceFormat=types.SimpleNamespace(sentinel2_l2a="sentinel2_l2a"),
         BandMapping=lambda **kw: kw,
     )
+    # The stage-receipt contract is pure stdlib: load the production module itself.
+    spec = importlib.util.spec_from_file_location(
+        "_raster_stage_receipt", RASTER / "raster_stage_receipt.py"
+    )
+    receipt = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    monkeypatch.setitem(sys.modules, spec.name, receipt)  # dataclasses resolve their module
+    spec.loader.exec_module(receipt)
     namespace = {
         "radiometry_containment": rc,
+        "raster_stage_receipt": receipt,
         "models": models,
         "stac_search": types.SimpleNamespace(
             band_urls_from_assets=lambda assets: {
@@ -188,6 +203,8 @@ def c1_boundary(monkeypatch):
         return str(Path(directory) / "stack.vrt"), {name: i for i, name in enumerate(hrefs, 1)}
 
     vrt.build_band_vrt = build
+    # Remote hrefs are read in ranges through /vsicurl/, never hashed in full.
+    vrt._as_gdal_source = lambda href: f"/vsicurl/{href}"
     monkeypatch.setitem(sys.modules, "stac_vrt", vrt)
     return boundary, rc, calls
 
@@ -293,4 +310,5 @@ def test_admitted_c1_retains_bounded_calibration_and_qa_contract(c1_boundary, c1
     assert request.tenant_id == "tenant" and request.field_id == "fld_test"
     assert request.scene_id == c1_scene["item_id"]
     assert request.capture_datetime == c1_scene["datetime"]
+    assert {r["verdict"] for r in request._asset_integrity} == {"no_checksum"}
     assert not Path(calls[0][1]).exists(), "VRT sidecars must be scoped to processing lifetime"

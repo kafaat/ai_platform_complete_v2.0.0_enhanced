@@ -16,6 +16,7 @@ from api.decision_sor_mode import (
     DECISION_SOR_TABLES,
     PlatformDecisionWriteForbidden,
     assert_platform_may_write_decision_sor,
+    get_platform_decision_sor_mode,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -27,6 +28,7 @@ _CUTOVER_GATES = (
     "DECISION_SERVICE_BACKFILL_VERIFIED",
     "DECISION_SERVICE_TENANT_ISOLATION_VERIFIED",
     "DECISION_SERVICE_OUTBOX_VERIFIED",
+    "DECISION_SERVICE_STAGING_CUTOVER_APPROVED",
     "DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED",
 )
 
@@ -68,6 +70,18 @@ def test_demotion_needs_all_gates_so_a_missing_gate_keeps_the_guard_open(monkeyp
         monkeypatch.setenv(gate, "true")
     # Incomplete cutover → falls back to platform_sor → guard stays a no-op.
     assert assert_platform_may_write_decision_sor("decision_record") is None
+
+
+@pytest.mark.parametrize("missing_gate", _CUTOVER_GATES)
+def test_platform_keeps_authority_until_every_cutover_gate_passes(monkeypatch, missing_gate):
+    monkeypatch.setenv("SAHOOL_DECISION_WRITE_MODE", "decision_service_sor")
+    for gate in _CUTOVER_GATES:
+        monkeypatch.setenv(gate, "false" if gate == missing_gate else "true")
+
+    mode = get_platform_decision_sor_mode()
+    assert mode.platform_writes_required
+    assert mode.effective_mode == "platform_sor"
+    assert mode.missing_gates == (missing_gate,)
 
 
 def test_sor_table_set_matches_decision_service_cutover_contract():

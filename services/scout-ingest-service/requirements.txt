@@ -8,3 +8,6 @@ asyncpg==0.30.0
 pydantic==2.13.4
 # SEASON-RECORD-ENTRY-01 §4-③: logbook object store (MinIO/S3) — same pin as raster-service.
 boto3>=1.34.0
+# SCOUT-PHOTO (v260): full decode of JPEG/PNG/WebP evidence (not only magic bytes) and the
+# decompression-bomb guard in shared/security/scout_photo.py. Floor 11.3.0 (skips the 11.2.x line).
+Pillow>=11.3.0,<14

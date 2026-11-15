@@ -15,7 +15,11 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlencode
 
-from shared.gis.cloud_native_gis import parse_cloud_cover_pct, score_scene_quality
+from shared.gis.cloud_native_gis import (
+    parse_cloud_cover_pct,
+    parse_resolution_m,
+    score_scene_quality,
+)
 from shared.gis.cog_display_policy import display_for_cog
 
 
@@ -31,7 +35,7 @@ class RasterRegistryRecord:
     # None = غطاء سحاب مجهول، لا 0% مختلَقة (G11). / None = unknown cover, never a fabricated 0%.
     cloud_pct: float | None = None
     quality_score: int | None = None
-    resolution_m: float = 10.0
+    resolution_m: float | None = None
     bbox: list[float] | dict[str, Any] | None = None
     bands: dict[str, Any] | None = None
     metadata: dict[str, Any] | None = None
@@ -73,9 +77,10 @@ def record_from_db_row(row: Any) -> RasterRegistryRecord:
     get = row.get if isinstance(row, dict) else row.__getitem__
     # المجهول/غير الصالح يبقى None حتّى الفلترة والدرجة وSTAC (G11).
     cloud = parse_cloud_cover_pct(get("cloud_pct"))
+    resolution = parse_resolution_m(get("resolution_m"))
     quality_score = get("quality_score")
     if quality_score is None:
-        quality_score = score_scene_quality(cloud_pct=cloud).score
+        quality_score = score_scene_quality(cloud_pct=cloud, resolution_m=resolution).score
     elif cloud is None:
         # درجةٌ مخزَّنة لا تتخطّى سقفَ المجهول (٧٠) وإلّا عبرت min_quality=85؛ والأدنى يبقى.
         quality_score = min(int(quality_score), score_scene_quality(cloud_pct=None).score)
@@ -89,7 +94,7 @@ def record_from_db_row(row: Any) -> RasterRegistryRecord:
         scene_id=str(get("scene_id")) if get("scene_id") is not None else None,
         cloud_pct=cloud,
         quality_score=int(quality_score),
-        resolution_m=float(get("resolution_m") or 10),
+        resolution_m=resolution,
         bbox=_bbox_from_row(row),
         bands=_jsonish(get("bands")) if get("bands") is not None else {},
         metadata=_jsonish(get("metadata")) if get("metadata") is not None else {},
@@ -121,8 +126,19 @@ def stac_item_from_record(record: RasterRegistryRecord, *, api_base: str = "") -
         "sahool:index_type": record.index_type,
         "sahool:cloud_cover_known": record.cloud_pct is not None,
         "sahool:quality_score": record.quality_score,
-        "gsd": record.resolution_m,
     }
+    sampling = (
+        record.metadata.get("spatial_sampling") if isinstance(record.metadata, dict) else None
+    )
+    if isinstance(sampling, dict):
+        properties["sahool:spatial_sampling"] = sampling
+        # STAC gsd describes sensor sampling. Mixed-band products carry per-band
+        # values; a single number would obscure their different native scales.
+        bands = sampling.get("native_band_resolution_m")
+        if isinstance(bands, dict) and bands:
+            native = {parse_resolution_m(value) for value in bands.values()}
+            if len(native) == 1 and None not in native:
+                properties["gsd"] = next(iter(native))
     if record.cloud_pct is not None:
         # eo:cloud_cover رقم [0,100] في STAC؛ المجهول يُحذف لا يُصفَّر. / Unknown is omitted, not 0.
         properties["eo:cloud_cover"] = record.cloud_pct

@@ -417,6 +417,8 @@ async def stac_search_radar(bbox: list[float], dt_start: str, dt_end: str, limit
                 "polarization_urls": pol_urls,
                 "polarizations": props.get("sar:polarizations", list(pol_urls.keys())),
                 "orbit_state": props.get("sat:orbit_state"),
+                # المدار النسبيّ: زوج قبل/بعد يُفضَّل من المدار نفسه (زاوية السقوط).
+                "relative_orbit": props.get("sat:relative_orbit"),
                 "thumbnail_url": (assets.get("thumbnail") or {}).get("href"),
                 "platform": props.get("platform", "sentinel-1"),
                 "data_type": "radar",

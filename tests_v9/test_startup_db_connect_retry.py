@@ -342,7 +342,61 @@ def test_backoff_is_capped_and_the_last_sleep_is_bounded_by_the_deadline():
     assert sum(clock.sleeps) == pytest.approx(10)
     assert isinstance(info.value, RuntimeError)
     assert isinstance(info.value.__cause__, OSError)
-    assert calls["n"] == len(clock.sleeps) + 1
+    assert calls["n"] == len(clock.sleeps) + 1, "the last clamped sleep is followed by one attempt"
+
+
+def test_a_database_ready_inside_the_last_backoff_window_still_connects():
+    """Sleeps land at 1, 3, 7 and (clamped) 10s; Postgres is up by the 10s attempt.
+
+    LIFE-02 review: a top-of-loop deadline check slept out the last backoff and then refused
+    startup without trying — the restart race RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01 is for.
+    """
+    clock = _Clock()
+    connect, calls = _flaky([OSError("down")] * 4)
+    result = _run(
+        connect, clock, startup_deadline=10, startup_initial_backoff=1, startup_max_backoff=4
+    )
+    assert result[0] == "pool"
+    assert clock.sleeps == [1, 2, 4, 3] and clock.now == 10
+    assert calls["n"] == 5
+
+
+def test_the_final_attempt_has_a_real_time_budget():
+    """The attempt after the clamped sleep starts with ~0s left; it must not be timed out at once."""
+    clock = _Clock()
+    calls = {"n": 0}
+
+    async def connect():
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise ConnectionRefusedError(111, "refused")
+        await asyncio.sleep(0.01)  # a real driver suspends while it connects
+        return "pool"
+
+    result = asyncio.run(
+        startup_retry.retry_startup_connect(
+            connect,
+            startup_deadline=2,
+            startup_initial_backoff=1,
+            startup_max_backoff=1,
+            startup_sleep=clock.sleep,
+            startup_clock=clock,
+        )
+    )
+    assert result == "pool" and clock.now == 2 and calls["n"] == 3
+
+
+def test_every_give_up_is_logged_at_error(caplog):
+    clock = _Clock()
+    connect, calls = _flaky([OSError("down")] * 50)
+    with caplog.at_level(logging.WARNING, logger="sahool.startup_retry"):
+        with pytest.raises(startup_retry.StartupConnectDeadlineExceeded) as info:
+            _run(
+                connect, clock, startup_deadline=3, startup_initial_backoff=1, startup_max_backoff=2
+            )
+    errors = [r for r in caplog.records if r.levelno == logging.ERROR]
+    assert len(errors) == 1 and "giving up" in errors[0].getMessage()
+    assert "OSError" in str(info.value) and calls["n"] == len(clock.sleeps) + 1
 
 
 @pytest.mark.parametrize("sqlstate", ["08001", "08006", "57P03", "57P01", "53300"])
@@ -369,6 +423,58 @@ def test_a_zero_deadline_means_one_attempt():
     with pytest.raises(startup_retry.StartupConnectDeadlineExceeded):
         _run(connect, clock, startup_deadline=0)
     assert calls["n"] == 1
+
+
+@pytest.mark.parametrize("outcome", ["pending", "success", "error"])
+async def test_deadline_cancels_an_in_progress_connection(outcome):
+    cleaned = asyncio.Event()
+
+    async def connect():
+        try:
+            if outcome == "pending":
+                await asyncio.Event().wait()
+            else:
+                await asyncio.sleep(0.5)
+                if outcome == "error":
+                    raise ConnectionRefusedError("late refusal")
+                return object()
+        finally:
+            cleaned.set()
+
+    with pytest.raises(startup_retry.StartupConnectDeadlineExceeded) as error:
+        await asyncio.wait_for(
+            startup_retry.retry_startup_connect(connect, startup_deadline=0.02), timeout=0.25
+        )
+    assert isinstance(error.value.__cause__, TimeoutError)
+    assert cleaned.is_set(), "the pending connection must finish cancellation cleanup"
+
+
+async def test_external_cancellation_propagates_without_retry():
+    entered, cleaned = asyncio.Event(), asyncio.Event()
+    attempts = []
+
+    async def connect():
+        attempts.append(True)
+        entered.set()
+        try:
+            await asyncio.Event().wait()
+        finally:
+            cleaned.set()
+
+    task = asyncio.create_task(startup_retry.retry_startup_connect(connect, startup_deadline=10))
+    await entered.wait()
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert cleaned.is_set() and len(attempts) == 1
+
+
+async def test_zero_deadline_keeps_one_driver_bounded_successful_attempt():
+    async def connect():
+        await asyncio.sleep(0)
+        return "connected"
+
+    assert await startup_retry.retry_startup_connect(connect, startup_deadline=0) == "connected"
 
 
 def test_logs_name_the_exception_class_never_its_text(caplog):

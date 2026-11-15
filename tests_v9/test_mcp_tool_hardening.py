@@ -237,6 +237,20 @@ async def test_market_unpriced_item_is_never_auto_approved(market, price):
     assert _final_status(conns[-1]) == "pending_approval"
 
 
+@pytest.mark.parametrize("price", [-5, 0, "NaN", "Infinity", float("inf"), "abc", None], ids=repr)
+async def test_market_unusable_item_price_is_stored_as_unpriced_zero(market, price):
+    """v229 stores max_unit_price_usd NOT NULL DEFAULT 0 CHECK (>= 0): an unusable price is kept as
+    0 ("unpriced"), never NaN/inf, a negative that trips the CHECK, or a 500 on "abc"."""
+    module, conns = market
+    item = {"product_name": "seed", "quantity": 1}
+    if price is not None:
+        item["max_unit_price_usd"] = price
+    result = await _procure(module, [item])
+    assert result["status"] == "pending_approval"
+    item_inserts = [p for sql, p in conns[-1].statements if "market_procurement_items" in sql]
+    assert item_inserts and item_inserts[0][6] == 0.0, item_inserts
+
+
 async def test_market_small_fully_priced_order_is_still_auto_approved(market):
     module, conns = market
     items = [{"product_name": "urea", "quantity": 2, "max_unit_price_usd": 10}]
@@ -251,6 +265,51 @@ async def test_market_threshold_comes_from_server_environment(market, monkeypatc
     items = [{"product_name": "urea", "quantity": 10, "max_unit_price_usd": 10}]
     result = await _procure(module, items, auto_approve_below_usd=1000)
     assert result["status"] == "pending_approval"
+
+
+# MCP-MARKET-SALES-NEGATIVE-VALUES-01: float() alone persisted negative/zero/NaN/inf values.
+_NOT_POSITIVE_FINITE = [-5, 0, "NaN", "Infinity", "-inf", float("nan"), "abc", None, True]
+
+
+async def _list_for_sale(module, **over):
+    args = {"tenant_id": "tenant-a", "crop_type": "wheat", "quantity_kg": 100}
+    args["price_per_kg_usd"] = 2.0
+    args.update(over)
+    return await module.tool_create_sales_listing(args)
+
+
+@pytest.mark.parametrize("field", ["quantity_kg", "price_per_kg_usd"])
+@pytest.mark.parametrize("value", _NOT_POSITIVE_FINITE, ids=repr)
+async def test_market_sales_listing_refuses_non_positive_or_non_finite(market, field, value):
+    from fastapi import HTTPException
+
+    module, conns = market
+    with pytest.raises(HTTPException) as caught:
+        await _list_for_sale(module, **{field: value})
+    assert caught.value.status_code == 422 and field in caught.value.detail
+    assert conns == []  # refused before any connection or write
+
+
+async def test_market_sales_listing_persists_validated_numbers(market):
+    module, conns = market
+    await _list_for_sale(module, quantity_kg="250.5", price_per_kg_usd="1.25")
+    (_sql, params) = conns[-1].statements[0]
+    assert params[3:5] == (250.5, 1.25)
+
+
+@pytest.mark.parametrize("value", _NOT_POSITIVE_FINITE, ids=repr)
+async def test_market_procurement_refuses_non_positive_or_non_finite_quantity(market, value):
+    from fastapi import HTTPException
+
+    module, conns = market
+    items = [
+        {"product_name": "urea", "quantity": 1, "max_unit_price_usd": 1},
+        {"product_name": "seed", "quantity": value, "max_unit_price_usd": 1},
+    ]
+    with pytest.raises(HTTPException) as caught:
+        await _procure(module, items)
+    assert caught.value.status_code == 422 and "quantity" in caught.value.detail
+    assert conns == []
 
 
 @pytest.mark.parametrize(

@@ -35,8 +35,8 @@ class _Tx:
         return False
 
 
-# What a real actuator receipt must carry before it can back ``verified_success``.
-REAL_ACKED = {"actuator_mode": "real", "published": True, "device_ack": True}
+# The strongest ACK claim an adapter can make without independent evidence.
+ADAPTER_CLAIMS_ACK = {"actuator_mode": "real", "published": True, "device_ack": True}
 
 
 class _FakeConn:
@@ -47,7 +47,7 @@ class _FakeConn:
         receipt_status: str,
         attempt_status: str,
         target_type: str = "equipment",
-        receipt_payload: object = REAL_ACKED,
+        receipt_payload: object = ADAPTER_CLAIMS_ACK,
     ):
         self.source = {
             "execution_request_id": "exec_1",
@@ -62,6 +62,7 @@ class _FakeConn:
             "target_type": target_type,
             "receipt_payload": receipt_payload,
         }
+        self.prior: dict | None = None
         self.inserted: tuple | None = None
         self.outbox: list[tuple] = []
 
@@ -74,7 +75,7 @@ class _FakeConn:
 
     async def fetchrow(self, sql, *args):
         if "FROM outcome_record WHERE tenant_id=$1::uuid AND idempotency_key" in sql:
-            return None
+            return self.prior
         if "FROM decision_execution_requests r" in sql:
             return self.source
         if "INSERT INTO outcome_record" in sql:
@@ -142,14 +143,31 @@ def test_verified_success_refused_when_delivery_attempt_receipt_failed(monkeypat
     assert conn.inserted is None
 
 
-def test_verified_success_on_accepted_receipt_is_recorded(monkeypatch):
+@pytest.mark.parametrize("claim", [{"device_ack": True}, {"delivery_state": "device_acked"}])
+def test_adapter_ack_claim_alone_does_not_verify_equipment_success(monkeypatch, claim):
+    conn = _FakeConn(
+        request_status="accepted",
+        receipt_status="accepted",
+        attempt_status="accepted",
+        receipt_payload={"actuator_mode": "real", "published": True, **claim},
+    )
+    result = _verify(monkeypatch, conn, "verified_success")
+    assert result == {"status": "conflict", "reason": "independent_equipment_evidence_unavailable"}
+    assert conn.inserted is None and not conn.outbox
+
+
+def test_historical_equipment_success_is_not_reattested_on_replay(monkeypatch):
     conn = _FakeConn(
         request_status="accepted", receipt_status="accepted", attempt_status="accepted"
     )
+    conn.prior = {
+        "request_hash": persistence._execution_outcome_hash(
+            execution_request_id="exec_1", payload=_payload("verified_success")
+        )
+    }
     result = _verify(monkeypatch, conn, "verified_success")
-    assert result["status"] == "ok"
-    assert result["success"] is True
-    assert len(conn.outbox) == 1
+    assert result == {"status": "conflict", "reason": "independent_equipment_evidence_unavailable"}
+    assert conn.inserted is None and not conn.outbox
 
 
 def test_verified_failure_on_failed_receipt_is_still_recorded(monkeypatch):
@@ -207,7 +225,10 @@ def test_receipt_payload_stored_as_json_text_is_read(monkeypatch):
         attempt_status="accepted",
         receipt_payload='{"actuator_mode": "real", "published": true, "device_ack": true}',
     )
-    assert _verify(monkeypatch, conn, "verified_success")["status"] == "ok"
+    assert (
+        _verify(monkeypatch, conn, "verified_success")["reason"]
+        == "independent_equipment_evidence_unavailable"
+    )
 
 
 def test_verified_failure_on_a_simulated_receipt_is_still_recorded(monkeypatch):

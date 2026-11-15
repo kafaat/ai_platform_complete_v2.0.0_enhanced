@@ -64,7 +64,7 @@ spec:
             {{- end }}
           readinessProbe:
             httpGet:
-              path: /readyz
+              path: {{ $svc.readinessPath | default "/readyz" | quote }}
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10

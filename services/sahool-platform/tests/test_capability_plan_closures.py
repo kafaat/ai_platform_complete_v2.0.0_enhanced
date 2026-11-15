@@ -12,16 +12,26 @@ def weather():
     return {
         "schema_version": "wx10/canonical-weather-state/1.0.0",
         "state_id": "w1",
+        "quality_status": "validated",
         "products": {"gdd": {"gdd_cumulative": 400}},
     }
 
 
 def water():
-    return {"schema_version": "canonical_water_state.v1", "depletion_mm": 60, "taw_mm": 100}
+    return {
+        "schema_version": "canonical_water_state.v1",
+        "depletion_mm": 60,
+        "taw_mm": 100,
+        "quality_status": "verified",
+    }
 
 
 def soil():
-    return {"schema_version": "canonical_soil_state.v1", "soil_texture": "loam"}
+    return {
+        "schema_version": "canonical_soil_state.v1",
+        "soil_texture": "loam",
+        "quality_status": "verified",
+    }
 
 
 def spectral():

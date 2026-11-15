@@ -131,7 +131,8 @@ def test_cog_grid_preserves_measured_quality_and_actual_algorithm(tmp_path, reco
     assert product["provenance"]["qa_mask_version"] == layer.get("qa_mask_version")
 
 
-def test_asset_reader_returns_stored_authority_fields_and_keeps_tenant_scope(monkeypatch):
+@pytest.mark.parametrize("asset_id", [None, 87])
+def test_asset_reader_returns_stored_authority_fields_and_keeps_tenant_scope(monkeypatch, asset_id):
     row = dict.fromkeys(
         (
             "minx",
@@ -160,6 +161,7 @@ def test_asset_reader_returns_stored_authority_fields_and_keeps_tenant_scope(mon
         qa_mask_version="historic.mask/3",
         created_at=AVAILABLE,
         data_available_at=AVAILABLE,
+        spatial_sampling='{"output_pixel_size_m": [8, 12]}',
         cloud_mask_applied=True,
     )
 
@@ -169,7 +171,8 @@ def test_asset_reader_returns_stored_authority_fields_and_keeps_tenant_scope(mon
 
         async def fetchrow(self, sql, *args):
             assert "tenant_id = $4::uuid" in sql
-            assert args[-1] == TENANT
+            assert "($5::bigint IS NULL OR id = $5)" in sql
+            assert args[3:] == (TENANT, asset_id)
             return row
 
         async def close(self):
@@ -179,8 +182,11 @@ def test_asset_reader_returns_stored_authority_fields_and_keeps_tenant_scope(mon
         return Conn()
 
     monkeypatch.setattr(db_persist, "_connect", connect)
-    result = asyncio.run(db_persist.fetch_latest_asset("fld_1", "ndvi", tenant_id=TENANT))
+    result = asyncio.run(
+        db_persist.fetch_latest_asset("fld_1", "ndvi", tenant_id=TENANT, asset_id=asset_id)
+    )
     assert result is not None
+    assert result["spatial_sampling"] == {"output_pixel_size_m": [8, 12]}
     for key in (
         "created_at",
         "data_available_at",

@@ -106,3 +106,7 @@ def test_reconciliation_refuses_sent_status_without_sent_timestamp():
             receipt_provider="erpnext",
             evidence={"projection_digest": digest},
         )
+
+
+# The foreign-currency route binding (lines, envelope currency and digest from one currency) is
+# proven against the migrated ledger in tests_v9/test_farm_ledger_cost_coverage_live_pg.py.

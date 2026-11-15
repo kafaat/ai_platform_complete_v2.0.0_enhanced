@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 
+from jsonb_values import decode_jsonb_object
+
 
 async def _tenant(conn, tenant_id):
     await conn.execute("SELECT set_config('app.current_tenant_id',$1,true)", tenant_id)
@@ -45,12 +47,13 @@ async def approve_sampling(pool, tenant_id, plan_id, actor):
     async with pool.acquire() as c:
         async with c.transaction():
             await _tenant(c, tenant_id)
-            return await c.fetchrow(
+            row = await c.fetchrow(
                 "UPDATE soil_sampling_plans SET status='approved',approved_by=$3,approved_at=now(),payload=jsonb_set(payload,'{status}','\"approved\"') WHERE tenant_id=$1 AND plan_id=$2 AND status='draft' RETURNING payload",
                 tenant_id,
                 plan_id,
                 actor,
             )
+            return decode_jsonb_object(row["payload"]) if row else None
 
 
 async def save_hydraulic(pool, p):
@@ -66,7 +69,7 @@ async def save_hydraulic(pool, p):
                 p.source_soil_profile_hash,
                 json.dumps(p.model_dump(mode="json")),
             )
-            return dict(row["payload"])
+            return decode_jsonb_object(row["payload"])
 
 
 async def save_water(pool, s, p):
@@ -94,7 +97,7 @@ async def save_water(pool, s, p):
                 json.dumps(p.model_dump(mode="json")),
                 p.effective_at,
             )
-            return dict(row["payload"])
+            return decode_jsonb_object(row["payload"])
 
 
 async def get_latest(pool, tenant_id, table, field, field_id):
@@ -115,4 +118,4 @@ async def get_latest(pool, tenant_id, table, field, field_id):
                 tenant_id,
                 field_id,
             )
-            return dict(row[column]) if row else None
+            return decode_jsonb_object(row[column]) if row else None

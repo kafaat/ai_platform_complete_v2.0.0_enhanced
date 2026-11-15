@@ -29,6 +29,8 @@ pytestmark = pytest.mark.unit
         (200, []),
         (200, {}),
         (200, {"status": "ready", "ready": "true"}),
+        (200, {"status": "ready"}),
+        (200, {"status": "ready", "sparse_index_count": 0}),
     ],
 )
 def test_agronomist_rejects_unready_dependency(monkeypatch, status, body):
@@ -55,16 +57,27 @@ def test_agronomist_rejects_unready_dependency(monkeypatch, status, body):
 def test_agronomist_ready_only_with_ready_dependencies(monkeypatch):
     from services.ai_agronomist import main
 
+    def reply(request):
+        if "rag-retrieval" in request.url.host:
+            return httpx.Response(
+                200,
+                json={
+                    "status": "ready",
+                    "embedding_contract_parity": True,
+                    "collection_vector_schema_parity": True,
+                    "sparse_index_hydrated": True,
+                    "sparse_index_count": 7,
+                    # Payload parity is a SEPARATE authority-cutover requirement.
+                    "canonical_payload_parity": False,
+                },
+            )
+        return httpx.Response(200, json={"status": "ready"})
+
     client_type = httpx.AsyncClient
     monkeypatch.setattr(
         main.httpx,
         "AsyncClient",
-        lambda **kwargs: client_type(
-            transport=httpx.MockTransport(
-                lambda req: httpx.Response(200, json={"status": "ready"})
-            ),
-            **kwargs,
-        ),
+        lambda **kwargs: client_type(transport=httpx.MockTransport(reply), **kwargs),
     )
     response = TestClient(main.app).get("/readyz")
     assert response.status_code == 200

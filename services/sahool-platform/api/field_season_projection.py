@@ -29,6 +29,7 @@ core منه سليم (api ← core)، عكسه ممنوع (core لا يستور�
 
 from __future__ import annotations
 
+import json
 from datetime import date
 
 from core.eo_stage_mismatch import detect_eo_stage_mismatch
@@ -115,6 +116,7 @@ def assemble_field_season_state(
     today: date | None = None,
     accumulated_gdd: float | None = None,
     observed_ndvi: float | None = None,
+    imagery_date: date | None = None,
     observed_ndmi: float | None = None,
     valid_pixel_ratio: float | None = None,
     cloud_pct: float | None = None,
@@ -159,8 +161,13 @@ def assemble_field_season_state(
     stage_risk = stage_weather_risks(effective_stage, crop_id, risk_signals)
 
     # ⑤ تعارض الاستشعار مع المرحلة
+    eo_stage = effective_stage
+    if imagery_date is not None and imagery_date != ref:
+        # Historical imagery cannot be compared to a later crop stage or later GDD.
+        scene_age = (imagery_date - sowing_date).days if sowing_date is not None else None
+        eo_stage = phenology_progress(crop_id, scene_age, None).get("days_stage")
     eo = detect_eo_stage_mismatch(
-        effective_stage,
+        eo_stage,
         observed_ndvi,
         observed_ndmi,
         valid_pixel_ratio=valid_pixel_ratio,
@@ -262,3 +269,81 @@ def assemble_field_season_state(
             "السقف MEDIUM؛ الناقص مُعلَن في evidence_missing — لا رقم مُختلَق."
         ),
     }
+
+
+# ── Pure helpers for the thin route ``GET /api/v1/fields/{id}/seasons/{sid}/state`` ──
+# Moved out of ``api/routers/seasons.py`` (router size ratchet). They read nothing: every
+# database query stays in the router, where the S5-EXEC-01 edge freeze records its evidence.
+
+
+def reconciled_payload_is_bound(payload: dict, tenant: str, field_id: str, season_id: str) -> bool:
+    """True only for an authoritative decision-service payload bound to this field-season.
+
+    Every outcome row must belong to the tenant (and to the field, when it names one); every
+    recommendation outcome must name this exact tenant, field and season.
+    """
+    return (
+        payload.get("authoritative") is True
+        and payload.get("tenant_id") == tenant
+        and payload.get("field_id") == field_id
+        and payload.get("season_id") == season_id
+        and isinstance(payload.get("outcome_records"), list)
+        and isinstance(payload.get("recommendation_outcomes"), list)
+        and all(
+            isinstance(r, dict)
+            and r.get("tenant_id") == tenant
+            and r.get("field_id") in (None, field_id)
+            for r in payload["outcome_records"]
+        )
+        and all(
+            isinstance(r, dict)
+            and r.get("tenant_id") == tenant
+            and r.get("field_id") == field_id
+            and r.get("season_id") == season_id
+            for r in payload["recommendation_outcomes"]
+        )
+    )
+
+
+def first_season_crop(crops: object) -> str | None:
+    """First crop of a ``seasons.crops`` value (JSON text or list); malformed ⇒ None."""
+    if isinstance(crops, str):
+        try:
+            crops = json.loads(crops)
+        except (ValueError, TypeError):
+            crops = []
+    return str(crops[0]) if isinstance(crops, list) and crops else None
+
+
+def declare_outcome_sources(
+    summary: dict, outcome_records: list | None, recommendation_outcomes: list | None
+) -> None:
+    """Declare in place which outcome sources were bound to the season."""
+    # available: counts were computed from at least one season-bound source.
+    # complete: both sources were bound to this season. Locally, decision outcomes are
+    # unbound (no season without decision-service), so the platform is never complete.
+    summary["available"] = outcome_records is not None or recommendation_outcomes is not None
+    summary["complete"] = outcome_records is not None and recommendation_outcomes is not None
+    summary["missing_sources"] = [
+        name
+        for name, rows in (
+            ("outcome_record", outcome_records),
+            ("recommendation_outcomes", recommendation_outcomes),
+        )
+        if rows is None
+    ]
+
+
+def blank_counts_when_unavailable(summary: dict) -> None:
+    """No season-bound source ⇒ the counts are unknown (None), never a fabricated zero."""
+    if not summary["available"]:
+        for key in (
+            "total",
+            "decided",
+            "succeeded",
+            "failed",
+            "pending",
+            "sample_count",
+            "linked_group_count",
+        ):
+            summary[key] = None

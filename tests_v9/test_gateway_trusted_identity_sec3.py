@@ -274,7 +274,7 @@ def test_approvals_with_tenant_and_user_passes_auth_gate():
     assert r.status_code != 403
 
 
-def test_approvals_approver_of_record_is_authenticated_user():
+def test_approvals_approver_of_record_is_authenticated_user(monkeypatch):
     """SEC-3.1: the audited approver is the trusted X-User-Id, not the body's ``approver``.
 
     D01 (2026-09-22): a decision now needs a record the server already holds, owned by the
@@ -282,7 +282,11 @@ def test_approvals_approver_of_record_is_authenticated_user():
     (the approver of record is the trusted header, never the body) is unchanged.
     """
     M, client = _ai_client()
-    M._APPROVAL_STORE.save(dict(_APPROVAL_BODY["approval"]))
+    # Approvals are create-once: a fresh store, so the fixed id cannot collide across runs.
+    from services.ai_agronomist.agent_stores import InMemoryApprovalStore
+
+    monkeypatch.setattr(M, "_APPROVAL_STORE", InMemoryApprovalStore())
+    M._APPROVAL_STORE.create(dict(_APPROVAL_BODY["approval"]))
     body = {**_APPROVAL_BODY, "approver": "spoofed-body-user"}
     r = client.post(
         "/v1/approvals/approve",

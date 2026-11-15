@@ -1068,7 +1068,10 @@ jobs:
             run_group services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py
             run_group services/ai_agronomist/test_ai_field_memory_v49.py
             run_group services/auth/tests/test_router_decomposition_guard.py
-            run_group services/decision-service/tests/test_correlation_http_projection.py services/decision-service/tests/test_decision_provenance_integrity.py services/decision-service/tests/test_eligibility_assessment_policy.py services/decision-service/tests/test_manual_irrigation_source_binding.py services/decision-service/tests/test_migration_runner_readonly.py services/decision-service/tests/test_outcome_reconcile.py services/decision-service/tests/test_tenant_boundary_migration_static.py services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py services/decision-service/tests/test_tenant_binding_force_rls.py
+            run_group services/decision-service/tests/test_correlation_http_projection.py services/decision-service/tests/test_decision_provenance_integrity.py services/decision-service/tests/test_eligibility_assessment_policy.py services/decision-service/tests/test_execution_plan_boundary_normalisation.py services/decision-service/tests/test_manual_irrigation_source_binding.py services/decision-service/tests/test_migration_runner_readonly.py services/decision-service/tests/test_outcome_reconcile.py services/decision-service/tests/test_tenant_boundary_migration_static.py services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py services/decision-service/tests/test_tenant_binding_force_rls.py
+            # edge-inference: عقود AI-02/AI-03 (المصادقة قبل التحقّق · إيقاف مهمّة المزامنة)؛ كانت
+            # تُشغَّل في `runtime-real-smoke.yml` وحدها وهي ليست فحصاً مطلوباً ⇒ تحمرّ ولا تحجب.
+            run_group services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py services/edge-inference/tests/test_entrypoint_validation_lifecycle.py services/edge-inference/tests/test_model_artifact_gate_endpoints.py
             run_group services/field-management-service/tests/test_field_management_service_contract.py
             run_group services/field-segmentation/test_exg_preprocess.py services/field-segmentation/test_segmentation.py
             run_group services/guardrails-engine/test_guardrails_router_decomposition_guard.py
@@ -1133,6 +1136,16 @@ jobs:
       # Pillow: ملفّان (test_bivariate_raster/test_raster_export) يستوردان PIL
       # عبر core.spatial.raster_export — تبعيّة خفيفة (بلا GDAL) للإبقاء عليهما.
       - run: pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt pillow
+      # C-04: `export_openapi.py` صار صارماً (#1433) ولم يُشغّله أيّ workflow، فخدمةٌ
+      # REQUIRED لا تُستورَد أو يفشل `app.openapi()` فيها كانت تمرّ بلا أثر. موضعُه هنا
+      # لأنّ هذه الوظيفة تُثبّت تبعيّات المنصّة نفسها التي قِيس عليها تصنيفُ REQUIRED.
+      # يُصدَّر إلى مجلّدٍ مؤقّت لا إلى `docs/openapi/` (المُلتزَم يُجدَّد يدويّاً لا هنا)،
+      # وأيُّ رمزٍ غير صفريّ يحجب: 1 = خدمةٌ إلزاميّة فشلت · 2 = سجلّ/تصنيف لا يطابق.
+      # والفحصُ الأخير يُثبت أنّ التصدير لم يكتب في الشجرة.
+      - name: OpenAPI export of every REQUIRED service (strict, into a temp dir)
+        run: |
+          python export_openapi.py --out-dir "$RUNNER_TEMP/openapi"
+          test -z "$(git status --porcelain)"
       # بوّابة تغطية "ratchet" غير-كاسرة: تُقاس حزمتا api/core، والأرضيّة في
       # .coveragerc مضبوطة عند المقيس الحاليّ (٦١٫٩٢٪) ناقص هامش ⇒ fail_under=60.
       # لا تُفشل CI اليوم؛ يمكنها الصعود فقط (تُرفع الأرضيّة مع نموّ التغطية).
@@ -1359,6 +1372,21 @@ jobs:
           # certification (tests_v9/test_apply_in_compose_live_pg.py) must not turn into a green
           # skip when the DB is unreachable or the DSN is dropped — a skip is a HARD failure here.
           MIGRATOR_CERTIFICATION_REQUIRED: "1"
+          # A field-geometry save is atomic with its history row
+          # (tests_v9/test_field_geometry_save_atomic_live_pg.py): the module drives the real
+          # handlers under a throwaway NOBYPASSRLS role it creates from this superuser DSN. With
+          # the switch, a missing or unmigrated database is a failure, not a green skip.
+          FIELD_GEOMETRY_CERTIFICATION_REQUIRED: "1"
+          # The unified timeline answers a foreign field with 404
+          # (tests_v9/test_field_timeline_tenant_scope_live_pg.py): the module drives the real
+          # handler under a throwaway NOBYPASSRLS role it creates from this superuser DSN. With
+          # the switch, a missing or unmigrated database is a failure, not a green skip.
+          FIELD_TIMELINE_CERTIFICATION_REQUIRED: "1"
+          # Notification delivery receipts follow their state machine on the migrated v83 table
+          # (tests_v9/test_notification_delivery_transitions_live_pg.py): the module drives the
+          # real handler under a throwaway NOBYPASSRLS role it creates from this superuser DSN.
+          # With the switch, a missing or unmigrated database is a failure, not a green skip.
+          NOTIFICATION_DELIVERY_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation
@@ -1477,7 +1505,60 @@ jobs:
           TEST_REDIS_URL: redis://localhost:6380/0
           JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
           MFA_E2E_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_mfa_hardening_integration_v29_5.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_mfa_hardening_integration_v29_5.py --cov=services/auth --cov-append --cov-report=
+
+      # C-01 (تدقيق المالك 2026-11-13): admin = مالكُ مستأجِر. إدارةُ المستخدمين في auth محصورةٌ
+      # في مستأجِر التوكن، والعابرُ يلقى 404 كغير الموجود. RLS لا تحرس هذا المسار (_acquire يضبط
+      # app.current_role='admin')، فالشاهدُ هنا هو التطبيقُ الحقيقيّ بالدور المقيَّد؛ والجولةُ العامّة
+      # لا تضبط TEST_DATABASE_ADMIN_URL فيتخطّى هناك. العَلَمُ يجعل أيّ تخطٍّ فشلاً.
+      - name: Auth admin tenant scope (C-01, real auth app, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          TEST_REDIS_URL: redis://localhost:6380/0
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_auth_admin_tenant_scope_live_pg.py --cov=services/auth --cov-append --cov-report=
+
+      # #1427 pre-merge gates: two accepts of one invitation released together off the row
+      # lock (exactly one member); Redis outage on role change/deactivate (503, row unchanged)
+      # with a Redis-up control that revokes the target's sessions; stale owner/admin
+      # membership is 403 on team routes and invitations. Same restricted role and live Redis.
+      - name: Auth admin authz gates (#1427, concurrent invitation, Redis outage, stale membership)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          TEST_REDIS_URL: redis://localhost:6380/0
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_auth_admin_authz_live_pg_redis.py --cov=services/auth --cov-append --cov-report=
+
+      # #1427: the denial-log endpoint returns only the caller tenant's denials and never
+      # unattributed events, over the real platform app and the live Redis denylist. Its own
+      # process: the platform app and the auth app both import a module named `main`.
+      - name: Platform denial log tenant scope (#1427, real platform app, live Redis)
+        env:
+          TEST_REDIS_URL: redis://localhost:6380/0
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_platform_denial_log_scope_live.py --cov=services/sahool-platform/api --cov=services/sahool-platform/core --cov-append --cov-report=
+
+      # Owner decision 2026-11-14: denials persist in audit_log (DenialStore). Two tenants deny,
+      # a new process (restart) reads: each tenant sees only its own, unattributed rows stay
+      # hidden, limit applies after the filter; a DB outage on write still answers 403 and the
+      # read falls back to memory. Restricted role; the admin DSN only reads rows back.
+      - name: Platform denial log persistence (audit_log, restart, outage, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          AUTH_ADMIN_SCOPE_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_platform_denial_log_persistent_live_pg.py --cov=services/sahool-platform/api --cov=services/sahool-platform/core --cov-append --cov-report=
 
       # تدقيق 2026-11-02 (تابعُ Q5): `test_services_functional` (soil H5 + guardrails L5) حمل
       # `xfail(strict=False)` بالفجوة المُغلَقة نفسِها، والجولةُ العامّة لا تضبط `DATABASE_URL`
@@ -1489,6 +1570,51 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           SOIL_FUNCTIONAL_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_services_functional.py
+
+      # #1469: a 503 from GET /fields/{id}/recommendations must not commit the field_state
+      # projection. The test needs the restricted role and the owner (seed), which the shared
+      # integration step does not give, so it runs here and the switch makes any skip a failure.
+      - name: Field recommendations 503 rolls back field_state (restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          FIELD_STATE_ROLLBACK_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_field_recommendations_projection_rollback_live_pg.py
+
+      # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
+      # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real
+      # platform app (denial log) append to .coverage.integration-auth with --cov-append, so
+      # lines measured only against live PostgreSQL + Redis count toward Codecov patch
+      # coverage. Same export → path guard → pinned upload pattern as the other three lanes;
+      # services/auth/tests is omitted and refused so test code never counts as product.
+      # scripts/lab/run_certification.py stops at the export step: these are reporting steps,
+      # not certification steps, and the lab refuses any pytest call after that boundary.
+      - name: Export live auth coverage with Git-relative paths
+        run: >-
+          python -m coverage xml
+          --data-file=.coverage.integration-auth
+          --include=services/auth/*,services/sahool-platform/api/*,services/sahool-platform/core/*
+          --omit=services/auth/tests/*
+          -o coverage-integration-auth.xml
+      - name: Verify live auth Codecov report paths
+        run: >-
+          python scripts/ci/codecov_coverage_guard.py
+          --report coverage-integration-auth.xml
+          --prefix services/auth
+          --prefix services/sahool-platform/api
+          --prefix services/sahool-platform/core
+          --forbid-prefix services/auth/tests
+          --require-file services/auth/routers/users.py
+          --require-file services/auth/routers/invitations.py
+          --require-file services/auth/session_tokens.py
+          --require-file services/sahool-platform/api/routers/security_audit.py
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
+        with:
+          files: coverage-integration-auth.xml
+          flags: integration-auth
+          disable_search: true
+          fail_ci_if_error: false
 
   decision-service-tests:
     permissions:
@@ -1773,7 +1899,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
-        run: pytest tests/test_ac1_agronomic_context.py -q -p no:cacheprovider
+        run: pytest tests/test_ac1_agronomic_context.py tests/test_ac1_boundary_finiteness_timezone.py -q -p no:cacheprovider
       # AC-6.1: tenant-safe lineage integrity — full-lineage binding, semantic rejections,
       # content-addressed vegetation evidence, DB trigger backstop (real Postgres).
       - name: AC-6.1 agronomic lineage integrity tests (real Postgres, SoR on)
@@ -1782,6 +1908,29 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_agronomic_lineage_integrity.py -q -p no:cacheprovider
+      # Decision source continuation: a composed context binds the exact owner-read sources
+      # (receipt per composition, migration 038) — real Postgres, SoR on.
+      - name: Context source binding tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_context_source_binding.py -q -rs -p no:cacheprovider
+      # Backfill row coverage compares id, content, tenant and destination across two distinct
+      # databases; the test skips without both URLs, so the step creates the source database.
+      - name: Backfill row coverage across two databases (real Postgres)
+        working-directory: services/decision-service
+        env:
+          PGHOST: localhost
+          PGPASSWORD: test_password
+          PLATFORM_DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/backfill_source
+          DECISION_DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: |
+          set -euo pipefail
+          export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
+          psql -p 5434 -U decision_test -d decision_test -v ON_ERROR_STOP=1 \
+            -c "CREATE DATABASE backfill_source"
+          pytest tests/test_backfill_row_coverage.py -q -rs -p no:cacheprovider
       # Phase C no-leakage certification: randomized property sweep (leaky compositions
       # rejected typed with ZERO writes; clean accepted) + DB row invariants (real Postgres).
       - name: Phase C no-leakage certification tests (real Postgres, SoR on)

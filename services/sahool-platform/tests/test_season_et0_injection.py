@@ -42,23 +42,36 @@ def test_none_day_excluded_not_fabricated():
     # يوم None في السلسلة ⇒ يُستبعَد من الاحتياج (لا صفر مُلفَّق، لا Hargreaves محلّيّ).
     weather = _weather(10, et0_mm=None)
     all_five = simulate_season(
-        SimContext(crop="wheat", weather=weather, et0_daily_override=[5.0] * 10)
+        SimContext(
+            crop="wheat",
+            weather=weather,
+            gdd_daily_override=[12.0] * 10,
+            et0_daily_override=[5.0] * 10,
+        )
     )
     one_none = [5.0] * 10
     one_none[3] = None
     with_gap = simulate_season(
-        SimContext(crop="wheat", weather=weather, et0_daily_override=one_none)
+        SimContext(
+            crop="wheat",
+            weather=weather,
+            gdd_daily_override=[12.0] * 10,
+            et0_daily_override=one_none,
+        )
     )
-    # يوم ناقص واحد ⇒ احتياج أقلّ (اليوم مُستبعَد)، لا مساوٍ ولا أكبر.
-    assert with_gap.water_need_mm < all_five.water_need_mm
+    # يوم ناقص واحد يجعل ETc الموسمي غير متاح، لا مجموعًا ناقصًا متنكرًا كاحتياج.
+    assert with_gap.water_need_mm is None
+    assert with_gap.yield_kg_ha is None
+    assert with_gap.yield_status == "unavailable_missing_et0"
+    assert all_five.water_need_mm is not None
 
 
-def test_no_et0_anywhere_yields_zero_water_need_no_local_calc():
+def test_no_et0_anywhere_yields_unavailable_water_need():
     # لا سلسلة محقونة ولا et0_mm مع اليوم ⇒ كلّ الأيّام None ⇒ احتياج الماء = 0
     # (لا نواة Hargreaves محلّيّة تملأ الفراغ). صدق fail-open-to-empty.
     weather = _weather(12, et0_mm=None)
     out = simulate_season(SimContext(crop="wheat", weather=weather))
-    assert out.water_need_mm == 0.0
+    assert out.water_need_mm is None
 
 
 def test_no_override_uses_passed_day_et0():

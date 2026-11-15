@@ -1689,6 +1689,28 @@
     ]
   },
   {
+    "path": "frontend/src/components/WheatSeasonPlanner.tsx",
+    "kind": "web",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 11,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "FM-005",
+        "score": 10,
+        "signals": [
+          "content:cultivar",
+          "content:variety"
+        ]
+      }
+    ]
+  },
+  {
     "path": "frontend/src/components/fieldsetup/SeasonStep.tsx",
     "kind": "web",
     "candidates": [
@@ -1770,21 +1792,21 @@
         ]
       },
       {
+        "capability_id": "FM-003",
+        "score": 13,
+        "signals": [
+          "content:field boundary",
+          "content:field geometry",
+          "content:field workspace"
+        ]
+      },
+      {
         "capability_id": "WX-002",
         "score": 12,
         "signals": [
           "content:forecast",
           "content:Weather forecast",
           "dedup:Weather forecast=weather forecast"
-        ]
-      },
-      {
-        "capability_id": "FM-003",
-        "score": 12,
-        "signals": [
-          "content:field boundary",
-          "content:field geometry",
-          "content:field workspace"
         ]
       },
       {
@@ -1936,6 +1958,14 @@
           "content:NDVI",
           "dedup:NDVI=ndvi"
         ]
+      },
+      {
+        "capability_id": "FM-005",
+        "score": 8,
+        "signals": [
+          "content:cultivar",
+          "content:variety"
+        ]
       }
     ]
   },
@@ -1990,7 +2020,7 @@
     "candidates": [
       {
         "capability_id": "SAT-001",
-        "score": 12,
+        "score": 11,
         "signals": [
           "content:cdse",
           "content:sentinel"
@@ -2002,6 +2032,22 @@
         "signals": [
           "content:true color",
           "content:truecolor"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "dedup:NDVI=ndvi"
+        ]
+      },
+      {
+        "capability_id": "PA-001",
+        "score": 8,
+        "signals": [
+          "content:management zone",
+          "content:Management zones"
         ]
       }
     ]
@@ -2502,6 +2548,28 @@
         "signals": [
           "path:tenant",
           "content:tenant"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "migrations/v244_field_task_terrain_sources.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "OPS-001",
+        "score": 11,
+        "signals": [
+          "path:field task",
+          "content:field task"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 11,
+        "signals": [
+          "path:terrain",
+          "content:terrain"
         ]
       }
     ]
@@ -3054,6 +3122,14 @@
           "dedup:MFA=mfa",
           "content:totp"
         ]
+      },
+      {
+        "capability_id": "PA-003",
+        "score": 10,
+        "signals": [
+          "content:yield map",
+          "content:Yield map ingestion"
+        ]
       }
     ]
   },
@@ -3489,7 +3565,7 @@
     "candidates": [
       {
         "capability_id": "SAT-001",
-        "score": 14,
+        "score": 15,
         "signals": [
           "content:cdse",
           "content:sentinel",
@@ -3503,28 +3579,6 @@
           "content:aoi cloud",
           "content:cloud mask",
           "content:scl"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "services/raster-service/raster_asset_persistence.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "SAT-001",
-        "score": 10,
-        "signals": [
-          "content:cdse",
-          "content:sentinel"
-        ]
-      },
-      {
-        "capability_id": "SAT-005",
-        "score": 9,
-        "signals": [
-          "content:aoi cloud",
-          "content:cloud mask"
         ]
       }
     ]
@@ -4031,6 +4085,22 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "FM-005",
+        "score": 10,
+        "signals": [
+          "content:cultivar",
+          "content:variety"
+        ]
+      },
+      {
+        "capability_id": "FM-004",
+        "score": 9,
+        "signals": [
+          "content:crop season",
+          "content:season"
+        ]
+      },
+      {
         "capability_id": "SAT-004",
         "score": 8,
         "signals": [
@@ -4180,6 +4250,28 @@
         "signals": [
           "content:crop season",
           "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/api/routers/crop_twin.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 8,
+        "signals": [
+          "content:NDMI",
+          "dedup:NDMI=ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "dedup:NDVI=ndvi"
         ]
       }
     ]
@@ -5015,6 +5107,28 @@
     ]
   },
   {
+    "path": "services/scout-ingest-service/tests/test_media_live.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:row level security"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 8,
+        "signals": [
+          "content:Scouting",
+          "dedup:Scouting=scouting"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/supervisor-agent/tool_contracts.py",
     "kind": "backend",
     "candidates": [
@@ -5110,6 +5224,14 @@
           "content:management zone",
           "content:Management zones",
           "content:productivity zone"
+        ]
+      },
+      {
+        "capability_id": "SOIL-003",
+        "score": 9,
+        "signals": [
+          "content:lab result",
+          "content:laboratory"
         ]
       }
     ]
@@ -5647,6 +5769,28 @@
           "content:dem",
           "content:slope",
           "content:terrain"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_scout_photo_evidence_contract.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 8,
+        "signals": [
+          "content:rls",
+          "content:row level security"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 8,
+        "signals": [
+          "content:Scouting",
+          "dedup:Scouting=scouting"
         ]
       }
     ]

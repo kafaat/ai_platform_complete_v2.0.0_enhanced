@@ -216,7 +216,8 @@ def verify_ack(device_key_hex: str, ack: dict) -> bool:
     except SigningError:
         return False
     sig = ack.get("sig")
-    return isinstance(sig, str) and hmac.compare_digest(sig, expected)
+    # compare_digest raises TypeError on a non-ASCII str: such a sig is simply not valid.
+    return isinstance(sig, str) and sig.isascii() and hmac.compare_digest(sig, expected)
 
 
 # ── configuration parsing ────────────────────────────────────────────────────

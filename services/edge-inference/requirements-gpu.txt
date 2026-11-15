@@ -1,3 +1,4 @@
-# PyPI switched to CUDA 13 in 1.27. This profile targets CUDA 12.8 and cuDNN 9.
+# PyPI switched to CUDA 13 in 1.27. This profile targets CUDA 12.x and cuDNN 9.
+# The cuda/cudnn extras resolve compatible releases; they do not pin CUDA to 12.8.
 -r requirements-common.txt
 onnxruntime-gpu[cuda,cudnn]==1.26.0

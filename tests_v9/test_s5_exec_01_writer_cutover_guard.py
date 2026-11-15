@@ -44,10 +44,14 @@ def _sandbox(tmp_path: Path, monkeypatch):
     # مُدخَلا GATE-01 يُنسَخان أيضاً: قرار التأجيل يُقاس منهما، فتركُهما مُشيرَين إلى
     # الشجرة الحقيقيّة كان سيجعل حالات التأجيل تقيس شيئاً لا تتحكّم فيه.
     policy_dst = tmp_path / "docs/architecture/gate01_policy.json"
-    policy_dst.write_text(
-        (ROOT / "docs/architecture/gate01_policy.json").read_text(encoding="utf-8"),
-        encoding="utf-8",
+    # The sandbox models the tree at U07 time, when GATE-01 was CLOSED. The live policy
+    # was opened by the owner's signed ruling GATE01-OPEN-2026-11-12, which is not part
+    # of that tree; _open_the_gate() below still exercises the OPEN case explicitly.
+    sandbox_policy = json.loads(
+        (ROOT / "docs/architecture/gate01_policy.json").read_text(encoding="utf-8")
     )
+    sandbox_policy["gate"]["state"] = "CLOSED"
+    policy_dst.write_text(json.dumps(sandbox_policy, ensure_ascii=False), encoding="utf-8")
     adj_dst = tmp_path / "docs/architecture/gates/adjudications"
     adj_dst.mkdir(parents=True, exist_ok=True)
     for adjudication in sorted((ROOT / "docs/architecture/gates/adjudications").glob("*.json")):

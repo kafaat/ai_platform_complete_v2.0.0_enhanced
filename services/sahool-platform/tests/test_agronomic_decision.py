@@ -77,13 +77,6 @@ def test_quiet_signals_yield_ready_no_action():
     assert "لا إجراء" in d.rationale_ar
 
 
-def test_empty_signals_yield_ready():
-    d = reconcile_decision("f1", [])
-    assert d.state == "ready"
-    assert d.action_plan == []
-    assert d.confidence == 1.0
-
-
 def test_single_action_passthrough():
     sigs = [
         DomainSignal(
@@ -275,3 +268,20 @@ def test_blocked_to_dict_serializable():
 def test_unified_decision_is_ready_property():
     assert UnifiedDecision(field_id="f", state="ready").is_ready
     assert not UnifiedDecision(field_id="f", state="blocked").is_ready
+
+
+def test_empty_inputs_are_distinct_from_an_observed_quiet_field():
+    result = reconcile_decision("field", [])
+    assert result.state == "insufficient_data" and result.confidence == 0
+    assert not result.action_plan
+
+
+@pytest.mark.parametrize("caps", [(50, 80), (80, 50), (100, 50)])
+def test_water_caps_are_cumulative_limits(caps):
+    signals = [DomainSignal("irrigation", "irrigate", params={"water_mm": 20})]
+    signals.extend(
+        DomainSignal("economics", "reduce_water", params={"water_budget_pct": v}) for v in caps
+    )
+    actions = {a.action: a.params for a in reconcile_decision("field", signals).action_plan}
+    assert actions["irrigate"]["water_mm"] == 10
+    assert actions["reduce_water"]["water_budget_pct"] == 50

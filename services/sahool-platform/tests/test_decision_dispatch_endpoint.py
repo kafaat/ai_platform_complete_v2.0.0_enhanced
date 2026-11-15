@@ -311,3 +311,85 @@ async def test_ledger_record_bad_outcome_400(monkeypatch):
     with pytest.raises(HTTPException) as e:
         await record_execution_outcome(req=req, user=_USER)
     assert e.value.status_code == 400
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"approvals_collected": 2},
+        {"approvals_collected": 2, "params": {"field_id": "east", "recommendation_id": "other"}},
+        {"risk_level": "LOW"},
+    ],
+)
+async def test_execute_refuses_client_claimed_approval_before_any_write(monkeypatch, overrides):
+    # A request that claims approvals (or evaluates READY) must not queue a valve command:
+    # live commands need the server-held decision → plan → authorization chain. No database
+    # pool exists in this unit run, so a handler that reached tenant_connection would answer
+    # get_pool's 503: the 409 below is the refusal coming before any connection or write.
+    from api import main
+    from api.routers import decision_dispatch as route
+
+    monkeypatch.setenv("SAHOOL_DECISION_DISPATCH", "true")
+    # No pool: the real tenant_connection would raise 503 on any DB access, so a 409 here is
+    # a refusal before a connection is opened (and so before any write).
+    monkeypatch.setattr(main, "_DB_POOL", None)
+    base = dict(
+        recommendation_id="r",
+        action_type="irrigation",
+        risk_level="HIGH",
+        field_id="pivot",
+        device_id="dummy",
+        command="open_valve",
+    )
+    req = route.DispatchExecuteRequest(**{**base, **overrides})
+    with pytest.raises(HTTPException) as e:
+        await route.execute_dispatch_endpoint(req=req, user=_USER)
+    assert e.value.status_code == 409
+    assert e.value.detail["code"] == "server_dispatch_authorization_required"
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"water_budget_pct": "unavailable"},
+        {"water_budget_pct": True},
+        {"water_budget_pct": 150},
+        {"water_mm": -1},
+        {"water_mm": float("nan")},
+    ],
+)
+def test_unified_rejects_corrupt_budget_inputs_as_validation_errors(params):
+    from api.routers.decision_dispatch import DomainSignalIn
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        DomainSignalIn(domain="economics", action="reduce_water", params=params)
+
+
+async def test_ready_refusal_previews_the_bound_command_or_names_its_error(monkeypatch):
+    from api.routers import decision_dispatch as route
+
+    monkeypatch.setenv("SAHOOL_DECISION_DISPATCH", "true")
+    base = dict(
+        recommendation_id="rec-9",
+        action_type="irrigation",
+        risk_level="LOW",
+        field_id="pivot",
+        device_id="valve-1",
+        command="open_valve",
+    )
+    with pytest.raises(HTTPException) as ok:
+        await route.execute_dispatch_endpoint(
+            req=route.DispatchExecuteRequest(**base, params={"duration_sec": 60}), user=_USER
+        )
+    preview = ok.value.detail["command_preview"]
+    assert ok.value.status_code == 409
+    assert preview["payload"]["field_id"] == "pivot"
+    assert preview["payload"]["recommendation_id"] == "rec-9"
+    with pytest.raises(HTTPException) as bad:
+        await route.execute_dispatch_endpoint(
+            req=route.DispatchExecuteRequest(**base, params={"field_id": "east"}), user=_USER
+        )
+    assert bad.value.status_code == 409
+    assert bad.value.detail["command_error"] == "command_field_id_mismatch"
+    assert "command_preview" not in bad.value.detail

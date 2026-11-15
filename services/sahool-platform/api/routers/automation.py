@@ -29,6 +29,7 @@ from api.main import (
     _db_unavailable,
     _evaluate_field_alerts_persist,
     get_current_user,
+    has_permission,
     require_permission,
     tenant_connection,
 )
@@ -56,6 +57,11 @@ async def _require_field_in_caller_tenant(user: UserSchema, field_id: str) -> No
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("التحقّق من ملكيّة الحقل", e) from e
+
+
+def _is_platform_operator(user: UserSchema) -> bool:
+    """عرضُ المتعقِّبات المشتركة (العابرة للمستأجرين) مُبوَّبٌ بصلاحية ``PLATFORM_MANAGE``."""
+    return has_permission(user, Permission.PLATFORM_MANAGE)
 
 
 # ─── ٥٨. حالة جدولة الأتمتة (مراقبة) ──
@@ -156,8 +162,15 @@ def weather_cached_endpoint(
 def weather_automation_status_endpoint(
     user: UserSchema = Depends(get_current_user),
 ):
-    """حالة أتمتة الطقس: كم إحداثيّة مسجّلة وكم في الـcache."""
-    return weather_automation.status()
+    """حالة أتمتة الطقس: كم إحداثيّة مسجّلة وكم في الـcache.
+
+    R-H1: المتعقِّب مشترك بين المستأجرين؛ إحداثيّاته وطقسها تكشف مواقع حقول
+    الآخرين. العرض الكامل لمدير المنصّة (``PLATFORM_MANAGE``) صراحةً؛ وغيره يرى
+    عدّادات مجمَّعة فقط.
+    """
+    if _is_platform_operator(user):
+        return weather_automation.status()
+    return weather_automation.aggregate_status()
 
 
 @router.post("/api/v1/automation/imagery/register-field")
@@ -199,8 +212,14 @@ def imagery_automation_status_endpoint(
 
     H1 FIX: يتطلّب مصادقة — حالة تشغيليّة داخليّة (شبيهة بـ/metrics) لا فحص
     صحّة عامّ؛ مُتّسق مع شقيقها ``weather/status``.
+
+    R-H1: المتعقِّب مشترك بين المستأجرين، وكان يُعاد كاملاً لأيّ مستخدم مُصادَق
+    (معرّفات حقول الآخرين + حدودهم الدقيقة). الآن: مدير المنصّة (``PLATFORM_MANAGE``)
+    وحده يرى العرض الكامل؛ وغيره يرى حقول مستأجِره وحدها.
     """
-    return imagery_automation.status()
+    if _is_platform_operator(user):
+        return imagery_automation.status()
+    return imagery_automation.tenant_status(str(user.tenant_id))
 
 
 @router.post("/api/v1/automation/alerts/run")

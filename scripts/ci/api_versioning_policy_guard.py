@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import ast
 import csv
+import io
 import json
 import re
 import sys
@@ -187,11 +188,11 @@ def _is_test_file(path: Path) -> bool:
 #     سابقة مستقلّة قائمة: tests_v9/test_endpoint_auth_coverage.py يستثنيه بالاسم للسبب نفسه.
 #   الحقائق الثلاث مُثبَّتة في tests_v9/test_api_versioning_policy_guard.py — لو رُكِّب
 #   الملفّ يوماً (أو نُقِل إلى api/routers/) يسقط الاختبار ويُجبِر إعادة التقييم.
-_UNMOUNTED_REFERENCE_FILES = frozenset({"services/sahool-platform/api/chat_proxy_reference.py"})
+UNMOUNTED_REFERENCE_FILES = frozenset({"services/sahool-platform/api/chat_proxy_reference.py"})
 
 
 def _is_unmounted_reference(path: Path) -> bool:
-    return path.relative_to(ROOT).as_posix() in _UNMOUNTED_REFERENCE_FILES
+    return path.relative_to(ROOT).as_posix() in UNMOUNTED_REFERENCE_FILES
 
 
 def collect():
@@ -214,16 +215,17 @@ def collect():
     return rows
 
 
-def write(rows):
-    INV.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    with CSV.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(
-            f,
-            fieldnames=["service", "file", "line", "method", "path", "handler", "classification"],
-            lineterminator="\n",
-        )
-        w.writeheader()
-        w.writerows(rows)
+def render(rows) -> dict[Path, str]:
+    """The three generated outputs as text, keyed by their path (pure: ``--check`` compares
+    these strings and never writes, so a failed check leaves a stale tree untouched)."""
+    buf = io.StringIO()
+    w = csv.DictWriter(
+        buf,
+        fieldnames=["service", "file", "line", "method", "path", "handler", "classification"],
+        lineterminator="\n",
+    )
+    w.writeheader()
+    w.writerows(rows)
     legacy = sorted(
         {
             f"{r['method']} {r['path']}"
@@ -237,37 +239,40 @@ def write(rows):
     for r in rows:
         if r["classification"] in _permanent_contract().values():
             permanent.setdefault(r["classification"], []).append(f"{r['method']} {r['path']}")
-    ALLOW.write_text(
-        json.dumps(
-            {
-                "legacy_unversioned_business_routes": legacy,
-                "permanent_compatibility_routes": {
-                    k: sorted(set(v)) for k, v in sorted(permanent.items())
-                },
-            },
-            indent=2,
-            ensure_ascii=False,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
+    allow = {
+        "legacy_unversioned_business_routes": legacy,
+        "permanent_compatibility_routes": {k: sorted(set(v)) for k, v in sorted(permanent.items())},
+    }
+    return {
+        INV: json.dumps(rows, indent=2, ensure_ascii=False) + "\n",
+        CSV: buf.getvalue(),
+        ALLOW: json.dumps(allow, indent=2, ensure_ascii=False) + "\n",
+    }
+
+
+def write(rows):
+    # Literal targets: scripts/ci/generated_write_targets.py derives the generated-file
+    # manifest from these write calls, so the paths must stay visible to its AST scan.
+    outputs = render(rows)
+    INV.write_text(outputs[INV], encoding="utf-8")
+    with CSV.open("w", newline="", encoding="utf-8") as f:
+        f.write(outputs[CSV])
+    ALLOW.write_text(outputs[ALLOW], encoding="utf-8")
 
 
 def main():
     check = "--check" in sys.argv
     rows = collect()
-    before = INV.read_text(encoding="utf-8") if INV.exists() else None
-    before_csv = CSV.read_text(encoding="utf-8") if CSV.exists() else None
-    before_allow = ALLOW.read_text(encoding="utf-8") if ALLOW.exists() else None
-    write(rows)
-    if check and before is not None:
-        if (
-            before != INV.read_text(encoding="utf-8")
-            or before_csv != CSV.read_text(encoding="utf-8")
-            or before_allow != ALLOW.read_text(encoding="utf-8")
-        ):
+    if check:
+        drift = [
+            output.name
+            for output, text in render(rows).items()
+            if not output.is_file() or output.read_bytes() != text.encode("utf-8")
+        ]
+        if drift:
             raise SystemExit(
-                "api versioning inventory drift; rerun scripts/ci/api_versioning_policy_guard.py and review unversioned allowlist"
+                f"api versioning inventory drift ({', '.join(drift)}); "
+                "rerun scripts/ci/api_versioning_policy_guard.py and review unversioned allowlist"
             )
         # API-VERSIONING-GUARD-IS-A-MIRROR-01: المقارنة أعلاه تكشف الانحراف، لكنّ
         # علاجها المُوثَّق «أعِد التوليد» — فمسار غير مُصدَّر **جديد** يُقبَل بمجرّد
@@ -332,6 +337,7 @@ def main():
                 )
         print("api_versioning_policy_check_ok")
     else:
+        write(rows)
         counts = {}
         for r in rows:
             counts[r["classification"]] = counts.get(r["classification"], 0) + 1

@@ -71,7 +71,7 @@ class LifecycleFeatures:
 class YieldEstimate:
     field_id: str
     crop: str
-    estimated_yield_kg_ha: float
+    estimated_yield_kg_ha: float | None  # None = no estimate, NOT observed crop failure.
     yield_score: float  # 0-1 (نسبيّ للحقل الأمثل)
     confidence: float  # 0-1
     stress_level: StressLevel
@@ -79,6 +79,7 @@ class YieldEstimate:
     contributors: list[str] = field(default_factory=list)  # ما رفع/خفّض التقدير
     warnings: list[str] = field(default_factory=list)
     created_at: str = ""
+    yield_status: str = "estimated"
 
 
 # ─── Knowledge: crop max yields (kg/ha) ─────────────────────────
@@ -245,6 +246,22 @@ def _parse_ts(ts_str: str | None) -> datetime | None:
 # ─── Yield estimation (rule-based) ──────────────────────────────
 
 
+def yield_crop_key(raw: str | None) -> str:
+    """مفتاح المحصول في جداول هذا الملف: «قمح»/"Wheat"/" wheat " ⇒ "wheat".
+
+    المفتاح الموجود حرفيّاً يبقى كما هو؛ وإلّا يُحلّ بالهويّة الزراعيّة المشتركة
+    (resolve_crop_id). "maize" الكنسيّ يُطابَق على مفتاح "corn" التاريخيّ هنا.
+    غير المعروف يعود مُقلَّماً بأحرف صغيرة فيبقى «غير معروف» لا صفراً.
+    """
+    from core.season_phenology import resolve_crop_id
+
+    original = (raw or "").strip().lower()
+    if original in CROP_TARGET_YIELDS:
+        return original
+    resolved = resolve_crop_id(raw) or original
+    return "corn" if resolved == "maize" else resolved
+
+
 def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
     """
     Yield estimation بقواعد agronomic.
@@ -252,18 +269,20 @@ def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
     الـscore يبدأ من ١.٠ (potential كامل) ثمّ يُخفَّض بناءً على stress events.
     الـconfidence يعتمد على مدى توفّر البيانات (NDVI, lab samples, history).
     """
-    crop = features.crop.lower()
+    crop = yield_crop_key(features.crop)
     target = CROP_TARGET_YIELDS.get(crop)
-    if not target:
+    if target is None:
         return YieldEstimate(
             field_id=features.field_id,
             crop=crop,
-            estimated_yield_kg_ha=0,
+            estimated_yield_kg_ha=None,
             yield_score=0,
             confidence=0,
             stress_level=StressLevel.NONE,
-            rationale_ar=f"المحصول '{crop}' غير معروف في قاعدة المعرفة",
+            rationale_ar=f"المحصول '{crop}' غير معروف في قاعدة المعرفة — لا تقدير غلّة",
+            warnings=["unsupported_crop_no_yield_estimate"],
             created_at=_now_iso(),
+            yield_status="unavailable_unrecognized_crop",
         )
 
     yield_score = 1.0
@@ -438,7 +457,7 @@ def detect_anomalies(features: LifecycleFeatures) -> list[Anomaly]:
         )
 
     # Delayed maturity
-    typical = vegetative_growing_days(features.crop)
+    typical = vegetative_growing_days(yield_crop_key(features.crop))
     if typical and features.days_in_growing > typical * 1.4:
         anomalies.append(
             Anomaly(

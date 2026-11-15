@@ -18,8 +18,18 @@ SAHOOL — services/sam2-inference/main.py
       "mode": "auto" | "hybrid",
       "field_bbox": [min_lon, min_lat, max_lon, max_lat] | null,
       "image_ref": "<COG URL / scene ref>" | null,
-      "user_polygon": [[lon,lat], ...] | <GeoJSON Polygon> | null
+      "user_polygon": [[lon,lat], ...] | <GeoJSON Polygon> | [[lon,lat]] (نقرة هجين) | null,
+      "preprocessing": "none" | "exg" | "auto_exg",
+      "fallback_to_original_on_low_exg": bool,
+      "request_hash": "<≤64 حرفاً، تتبّع فقط>" | null
     }
+  ExG يُطبَّق هنا على نافذة الصورة المُرجَعة جغرافيّاً نفسها (لا لقطة متصفّح)، والبادرة
+  مكوّنٌ متّصل واحد منها. أيّ مفتاح آخر ⇒ 422 (extra=forbid)، إلّا حقول العميل السابق
+  (image_base64/boxes/positive_points/multimask_output) فتُقبَل أثناء النشر المتدرّج ولا
+  تبلغ المُتنبِّئ، ويُعلَن إهمالها في metadata.ignored_client_fields.
+  ترتيب النشر: sam2-inference **قبل** field-segmentation — الخادم الجديد يقبل العميل
+  القديم، أمّا العميل الجديد فيرفض (502 inference_preprocessing_unconfirmed) خادماً قديماً
+  لا يؤكّد preprocessing بدل أن يدّعي ExG لم يُطبَّق.
   الترويسة: X-Agent-Token == SAHOOL_AGENT_TOKEN (نفس عقد المصادقة الداخليّ).
   الإخراج (يتحقّق منه field-segmentation.normalize_polygon):
     {"geometry": {"type": "Polygon", "coordinates": [[[lon,lat], ...]]}}
@@ -34,12 +44,14 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import math
 import os
 import re
 import time  # noqa: F401 — إعادة تصدير (نمط main.X)
+from typing import Literal
 
 from fastapi import FastAPI, Header, HTTPException  # noqa: F401 — إعادة تصدير (نمط main.X)
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # بلا try/except قصداً: غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع. وهي stdlib-only
 # فلا تُخالف قاعدةَ هذا الملفّ في تأجيل المكتبات الثقيلة إلى داخل الدوالّ.
@@ -103,6 +115,9 @@ MAX_IMAGE_DIM = int(os.getenv("MAX_IMAGE_DIM", "1024").strip() or "1024")
 SIMPLIFY_TOLERANCE_M = float(os.getenv("SAM2_POLYGON_SIMPLIFY_TOLERANCE_M", "3").strip() or "3")
 # مسافة دمج الرؤوس المتتالية شبه المكرّرة (بالأمتار، افتراضي 0.5م) بعد التحويل لـ4326.
 DEDUP_TOLERANCE_M = float(os.getenv("SAM2_POLYGON_DEDUP_TOLERANCE_M", "0.5").strip() or "0.5")
+# أصغر مكوّن غطاء نباتيّ (بكسلات متّصلة ٨-جواراً) يصلح بادرةً لـSAM2. ما دونه (أشجار
+# متفرّقة/بكسلات ضجيج) يُهمَل كي لا يتمدّد مربّع البادرة عبر المشهد كلّه.
+EXG_MIN_COMPONENT_PX = max(1, int(os.getenv("SAM2_EXG_MIN_COMPONENT_PX", "16").strip() or "16"))
 
 
 # حالة النموذج العالميّة (تُملأ عند الإقلاع). None ⇒ غير محمّل ⇒ 503 صادق.
@@ -146,13 +161,172 @@ def _require_service_token(x_agent_token: str | None = Header(None)) -> None:
 
 
 # ─── نماذج الطلب ─────────────────────────────────────────────────────────
+# حقول عميل field-segmentation السابق (قبل نقل ExG إلى هنا): صورة لقطة متصفّح بلا مرجع
+# جغرافيّ وبوادر بإحداثيّات بكسلها. تُقبَل أثناء النشر المتدرّج كي لا يسقط auto بـ422،
+# لكنّها لا تبلغ المُتنبِّئ إطلاقاً، ويُبلَّغ إهمالها في metadata.ignored_client_fields.
+_LEGACY_CLIENT_FIELDS = ("image_base64", "boxes", "positive_points", "multimask_output")
+# قيم preprocessing التي كان العميل السابق يكتبها وصفاً لما فعله هو (لا طلباً للخادم).
+_LEGACY_PREPROCESSING = {
+    "exg_skipped_no_image": "none",
+    "exg_low_confidence_fallback_original": "none",
+}
+
+
 class PredictRequest(BaseModel):
     """طلب استدلال SAM2 — يطابق payload الذي يرسله field-segmentation."""
+
+    model_config = ConfigDict(extra="forbid")
 
     mode: str = Field(pattern="^(auto|hybrid)$")
     field_bbox: list[float] | None = None
     image_ref: str | None = None
     user_polygon: list[list[float]] | dict | None = None
+    preprocessing: Literal["none", "exg", "auto_exg"] = "none"
+    fallback_to_original_on_low_exg: bool = True
+    request_hash: str | None = Field(default=None, max_length=64)
+    ignored_client_fields: list[
+        Literal["image_base64", "boxes", "positive_points", "multimask_output"]
+    ] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _tolerate_previous_client(cls, data):
+        """Rolling-deploy tolerance: drop the previous client's un-georeferenced extras.
+
+        Only the four known legacy keys and two legacy preprocessing labels are
+        absorbed; any other unknown key or preprocessing value still fails (422).
+        """
+        if not isinstance(data, dict):
+            return data
+        dropped = sorted(k for k in _LEGACY_CLIENT_FIELDS if k in data)
+        legacy_label = data.get("preprocessing") in _LEGACY_PREPROCESSING
+        if not dropped and not legacy_label:
+            return data
+        data = {k: v for k, v in data.items() if k not in _LEGACY_CLIENT_FIELDS}
+        if legacy_label:
+            data["preprocessing"] = _LEGACY_PREPROCESSING[data["preprocessing"]]
+        if dropped:
+            data["ignored_client_fields"] = dropped
+            logger.warning("legacy client fields ignored (not georeferenced): %s", dropped)
+        return data
+
+
+def _vegetation_components(mask, min_px: int):
+    """8-connected vegetation components of ``mask`` with at least ``min_px`` pixels.
+
+    Labelling uses rasterio.features.shapes (GDAL, C) with an identity transform, so
+    each polygon is in pixel-edge coordinates of this very image and its area equals
+    its pixel count. Returns [(shapely Polygon, area_px)], largest first.
+    """
+    import numpy as np
+    from rasterio.features import shapes as rio_shapes
+    from shapely.geometry import shape
+
+    mask_u8 = np.ascontiguousarray(mask, dtype=np.uint8)
+    out = []
+    for geom, value in rio_shapes(mask_u8, mask=mask_u8 == 1, connectivity=8):
+        if value != 1:
+            continue
+        polygon = shape(geom)
+        area = int(round(polygon.area))
+        if area >= min_px:
+            out.append((polygon, area))
+    out.sort(key=lambda item: item[1], reverse=True)
+    return out
+
+
+def _component_prompt(components, hint_px=None):
+    """One SAM2 prompt (point, label, box) from a single vegetation component.
+
+    • hint_px (hybrid click, pixel col/row): the component containing that pixel; the
+      user's own pixel stays the positive point and the component bounds the box. A
+      click on no component yields None so the caller keeps the plain user prompt.
+    • no hint (auto): the largest component, with a point guaranteed inside it.
+    """
+    import numpy as np
+    from shapely.geometry import Point
+
+    if hint_px is not None:
+        probe = Point(float(hint_px[0]) + 0.5, float(hint_px[1]) + 0.5)
+        chosen = next((poly for poly, _ in components if poly.covers(probe)), None)
+        if chosen is None:
+            return None
+        point = [float(hint_px[0]), float(hint_px[1])]
+    elif components:
+        chosen = components[0][0]
+        inside = chosen.representative_point()
+        point = [float(int(inside.x)), float(int(inside.y))]
+    else:
+        return None
+    min_x, min_y, max_x, max_y = chosen.bounds
+    # Pixel-edge bounds → inclusive pixel indices of the component.
+    box = np.array([min_x, min_y, max_x - 1, max_y - 1], dtype=np.float32)
+    if box[0] == box[2] or box[1] == box[3]:
+        box = None  # a thin component still gives a point, not a zero-area box
+    return np.array([point], dtype=np.float32), np.array([1], dtype=np.int32), box
+
+
+def _preprocess_georeferenced_rgb(rgb, preprocessing: str, fallback: bool, hint_px=None):
+    """Enhance the server-read image in place spatially: no resize or CRS changes.
+
+    Prompts are pixel coordinates in this very image, never coordinates supplied
+    by an unrelated browser screenshot. They guide SAM2, not fabricate geometry.
+    The prompt box covers ONE connected vegetation component (the one under the
+    hybrid click, else the largest), never the span of every green pixel in the
+    window; components under EXG_MIN_COMPONENT_PX pixels are ignored.
+    """
+    import numpy as np
+
+    metadata = {
+        "preprocessing": "none",
+        "vegetation_ratio": None,
+        "low_confidence": False,
+        "candidate_count": 0,
+    }
+    if preprocessing == "none":
+        return rgb, None, metadata
+    channels = rgb.astype(np.float32) / 255.0
+    exg = 2 * channels[:, :, 1] - channels[:, :, 0] - channels[:, :, 2]
+    mask = (
+        (exg > 0.1)
+        & (channels[:, :, 1] > channels[:, :, 0])
+        & (channels[:, :, 1] > channels[:, :, 2])
+    )
+    ratio = float(mask.mean())
+    low_confidence = ratio < 0.02 or ratio > 0.95
+    metadata.update(vegetation_ratio=ratio, low_confidence=low_confidence)
+    if low_confidence and fallback:
+        metadata["preprocessing"] = "exg_low_confidence_fallback_original"
+        return rgb, None, metadata
+    spread = float(exg.max() - exg.min())
+    contrast = (exg - exg.min()) / spread if spread > 0 else np.zeros_like(exg)
+    enhanced = np.clip(
+        rgb.astype(np.float32) * 0.35 + contrast[:, :, None] * 255.0 * 0.65, 0, 255
+    ).astype(np.uint8)
+    metadata["preprocessing"] = "exg"
+    prompt = None
+    if mask.any() and not low_confidence:
+        components = _vegetation_components(mask, EXG_MIN_COMPONENT_PX)
+        metadata["candidate_count"] = len(components)
+        prompt = _component_prompt(components, hint_px)
+    return enhanced, prompt, metadata
+
+
+def _apply_preprocessing(rgb, req: PredictRequest, built_prompt):
+    """ExG on the server-read window, then the prompt SAM2 should receive.
+
+    A hybrid polygon prompt is kept exactly as drawn. Auto, and a hybrid click
+    (point hint), use one ExG component of this same georeferenced image; when ExG
+    yields no usable component the built prompt is kept unchanged.
+    """
+    hint_px = _point_hint_px(req.mode, req.user_polygon, built_prompt[0])
+    rgb, exg_prompt, metadata = _preprocess_georeferenced_rgb(
+        rgb, req.preprocessing, req.fallback_to_original_on_low_exg, hint_px
+    )
+    metadata["ignored_client_fields"] = list(req.ignored_client_fields)
+    if exg_prompt is not None and (req.mode == "auto" or hint_px is not None):
+        return rgb, exg_prompt, metadata
+    return rgb, built_prompt, metadata
 
 
 # ─── تحميل النموذج عند الإقلاع ─────────────────────────────────────────────
@@ -604,9 +778,36 @@ def _lonlat_to_pixel(lon: float, lat: float, transform, crs):
     return int(col), int(row)
 
 
+def _coerce_user_points(user_polygon) -> list[list[float]] | None:
+    """1–2 [lon,lat] point hints (the web UI's hybrid sends the map centre as one point)."""
+    if not isinstance(user_polygon, list) or not 1 <= len(user_polygon) < 3:
+        return None
+    out: list[list[float]] = []
+    for pt in user_polygon:
+        if not isinstance(pt, (list, tuple)) or len(pt) < 2:
+            return None
+        try:
+            lon, lat = float(pt[0]), float(pt[1])
+        except (TypeError, ValueError):
+            return None
+        if not (math.isfinite(lon) and math.isfinite(lat)):
+            return None
+        out.append([lon, lat])
+    return out
+
+
+def _point_hint_px(mode: str, user_polygon, point_coords):
+    """The hybrid click in pixels when the prompt came from point hints, else None."""
+    if mode != "hybrid" or _coerce_user_points(user_polygon) is None:
+        return None
+    return int(point_coords[0][0]), int(point_coords[0][1])
+
+
 def _build_prompt(mode: str, user_polygon, transform, crs, img_h: int, img_w: int):
     """يبني بادرة SAM2:
-      • hybrid: نقطة موجبة عند مركز user_polygon (+ مربّع حدوده إن توفّر).
+      • hybrid: نقطة موجبة عند مركز user_polygon (+ مربّع حدوده إن توفّر)، أو — حين
+        يرسل المستدعي نقطة/نقطتين تلميحاً (الواجهة ترسل مركز الخريطة) — نقاطاً موجبة
+        عند تلك المواضع بلا مربّع (كانت تُهمَل فيسقط الهجين إلى مركز الصورة).
       • auto  : نقطة عند مركز الصورة (يمكن لاحقاً توسيعها لشبكة نقاط).
     يُرجِع (point_coords [N,2] np, point_labels [N] np, box [4] np|None).
     """
@@ -640,6 +841,17 @@ def _build_prompt(mode: str, user_polygon, transform, crs, img_h: int, img_w: in
                 np.array([[col, row]], dtype=np.float32),
                 np.array([1], dtype=np.int32),
                 box,
+            )
+        points = _coerce_user_points(user_polygon)
+        if points:
+            pixels = []
+            for lon, lat in points:
+                col, row = _lonlat_to_pixel(lon, lat, transform, crs)
+                pixels.append([max(0, min(img_w - 1, col)), max(0, min(img_h - 1, row))])
+            return (
+                np.array(pixels, dtype=np.float32),
+                np.ones(len(pixels), dtype=np.int32),
+                None,
             )
         # لا user_polygon صالح في hybrid → نسقط لسلوك auto (مركز الصورة).
 

@@ -37,7 +37,11 @@ def seeded(monkeypatch):
         "decided_at": None,
         "deny_reason": None,
     }
-    M._APPROVAL_STORE.save(record)
+    # Approvals are create-once: each test gets a fresh store, so the fixed id cannot collide.
+    from services.ai_agronomist.agent_stores import InMemoryApprovalStore
+
+    monkeypatch.setattr(M, "_APPROVAL_STORE", InMemoryApprovalStore())
+    M._APPROVAL_STORE.create(record)
     return record
 
 

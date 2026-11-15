@@ -83,6 +83,8 @@ def test_cog_registry_sends_a_write_command_and_builds_stac_from_the_persisted_r
     assert body["stac_item"]["id"] == "S2A_X"
     assert seen["tenant_id"] == TENANT
     assert seen["payload"]["field_id"] == "fld_d1"
+    assert seen["payload"]["resolution_m"] is None
+    assert "gsd" not in body["stac_item"]["properties"]
     assert seen["payload"]["quality_score"] == body["quality"]["score"]
     assert seen["payload"]["metadata"]["quality"]["score"] == body["quality"]["score"]
 

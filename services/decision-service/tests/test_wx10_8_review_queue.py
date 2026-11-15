@@ -38,6 +38,7 @@ async def test_review_queue_is_authoritative_and_tenant_scoped(monkeypatch):
     monkeypatch.setattr(mod, "list_review_queue", fake_list)
     out = await mod.review_queue(x_tenant_id="00000000-0000-0000-0000-000000000002", limit=20)
     assert out == {
+        "tenant_id": "00000000-0000-0000-0000-000000000002",
         "authoritative": True,
         "persisted": True,
         "items": [{"decision_id": "dec_1", "review_state": "pending_approval"}],

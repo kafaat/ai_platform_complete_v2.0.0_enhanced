@@ -83,7 +83,15 @@ async def claim_or_recover(
     lease_token = uuid.uuid4().hex
     try:
         async with conn.transaction():
-            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
+            # Two simultaneous first inserts share both unique values. PostgreSQL may
+            # detect the job_id collision before the claim_key conflict handler runs.
+            # Serialize only contenders for this claim through transaction commit.
+            await conn.execute(
+                "SELECT set_config('app.current_tenant', $1, true), "
+                "pg_advisory_xact_lock(hashtextextended($2::text, 0))",
+                str(tenant_id),
+                claim_key,
+            )
             row = await conn.fetchrow(
                 """
                 INSERT INTO raster_batch_jobs (

@@ -27,6 +27,7 @@ import {
   Plus,
 } from 'lucide-react';
 import AddFieldWithMap from '../components/AddFieldWithMap';
+import type { FieldData } from '../components/AddFieldWithMap';
 import StepShell from '../components/fieldsetup/StepShell';
 import { kongApi, apiErrorMessage } from '../services/api';
 import {
@@ -75,18 +76,6 @@ const EVENT_TYPES: { value: SeasonEventType; label: string }[] = [
 
 // عدد الخطوات في المعالج (draw=0): بيانات · أحداث · حصاد · تكاليف · دفتر · مراجعة = 7.
 const STEP_TOTAL = 7;
-
-// FieldData الذي يمرّره AddFieldWithMap.onSave (مجموعة جزئيّة كافية لإنشاء الحقل).
-interface DrawnField {
-  name: string;
-  manager?: string;
-  crop?: string;
-  soil_type?: string;
-  area_ha: number;
-  geometry: { type: string; coordinates: number[][][] };
-  boundary_metadata?: Record<string, unknown>;
-  idempotency_key?: string;
-}
 
 const SOWING_PRECISION_OPTS: { value: SowingPrecision; label: string }[] = [
   { value: 'day', label: 'يوم دقيق' },
@@ -236,6 +225,7 @@ export default function SeasonRecordEntryPage() {
     setListError('');
     try {
       const res = await listSeasons('untrusted');
+      if (!Array.isArray(res?.seasons)) throw new Error('تعذّر تحميل المسودّات — استجابة الخدمة غير مكتملة.');
       setDrafts(res.seasons);
     } catch (e: unknown) {
       setListError(apiErrorMessage(e, 'تعذّر تحميل المسودّات — تحقّق من تفعيل الميزة والصلاحيّة.'));
@@ -280,12 +270,18 @@ export default function SeasonRecordEntryPage() {
   };
 
   // ── الخطوة ١: رسم الحقل → إنشاؤه عبر مسار المنصّة العامّ (JWT) → التقاط field_id ──
-  const handleFieldDrawn = async (data: DrawnField): Promise<void> => {
+  const handleFieldDrawn = async (data: FieldData): Promise<void> => {
     const payload = {
       name: data.name,
       crop: data.crop,
       soil_type: data.soil_type,
       manager: data.manager,
+      field_code: data.field_code,
+      water_source: data.water_source,
+      irrigation_type: data.irrigation_type,
+      pivot: data.pivot,
+      country: data.country,
+      region: data.region,
       geometry: data.geometry,
       boundary_metadata: data.boundary_metadata ?? undefined,
     };
@@ -527,7 +523,7 @@ export default function SeasonRecordEntryPage() {
   if (phase === 'draw') {
     return (
       <AddFieldWithMap
-        onSave={handleFieldDrawn as (d: unknown) => Promise<void>}
+        onSave={handleFieldDrawn}
         onCancel={cancelFlow}
       />
     );

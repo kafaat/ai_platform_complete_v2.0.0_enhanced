@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "9ee9da921470dac4acd224631d9e05b6156e5414",
+  "measured_on": "1c8836d93033394b5faa9d6ec064d5b7e125d532",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "5c54332e0f5a5c356c72b75df683d9aea0d38ccd5602910a2c6fea5836bb0df2",
+  "measurement_input_digest": "c38ed86fa704947a3333a620aee1e571fc245222eb632dc3d7bbd941d67fbe3f",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "a402a86e9901cbb1a13589d7ebb1f05e8a5ac865c4fb9a15f6f1597590075318",
+  "measurement_basis_digest": "5e3c93f57bc78c25ef38ffab397d3a463f17501cc93b7de235fc50f987e3889d",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -52,11 +52,11 @@
     },
     {
       "path": "services/actuator-service/actuator_runtime.py",
-      "sha256": "82f0d77a22e316728451fdaf6b11fe81d7f02af9b6633f12a2111c678473cb7e"
+      "sha256": "ac1f0f84c737bd1e9617ddf73e5240dd9e2fb46e5863ac26e18cba602555cc07"
     },
     {
       "path": "services/auth/main.py",
-      "sha256": "6d72d50bd22b7d5ebea84bd7be7e0194b3c0ddeb133dc51c37871fbeb2e7757b"
+      "sha256": "b7679d95641bdba30dbafa23932464538a2a570f353e755cf73dd4d56aa706f3"
     },
     {
       "path": "services/decision-service/observation_context.py",
@@ -64,7 +64,7 @@
     },
     {
       "path": "services/decision-service/persistence.py",
-      "sha256": "550d66acd86e8c4b13b8584b44258f2f36bf2ef22b34a950ef0f6cb135ecfe3c"
+      "sha256": "8a69c9708f767da8316e1521d7735ae009321e23855000105db397fe3ad28f4a"
     },
     {
       "path": "services/field-management-service/main.py",
@@ -80,7 +80,7 @@
     },
     {
       "path": "services/mcp_servers/market_server.py",
-      "sha256": "79a9bd55931eb909c0aaed33aa789159e78bc57ff14947b65f0a55cb592dbef2"
+      "sha256": "0e3dc7e97174349302a3486d68388d0b0dc56ebb29ff3d190e0c673e4b396694"
     },
     {
       "path": "services/mcp_servers/shared/oauth_middleware.py",
@@ -96,7 +96,7 @@
     },
     {
       "path": "services/raster-service/db_persist.py",
-      "sha256": "5a14af5df82d0a2468b4c7493505257fdc3181a4dacf9f7ceaa90c38d14d24d8"
+      "sha256": "47ddc62a46640a3f665cd5785773a357597e6946fbf9780873fbcb0c3dbbeece"
     },
     {
       "path": "services/raster-service/follow_up_store.py",
@@ -104,11 +104,11 @@
     },
     {
       "path": "services/raster-service/raster_batch_job_store.py",
-      "sha256": "8e42b21c59f2a3e4f5eb30a5609db38963d0229458dbec9bc13b8fabefb405c3"
+      "sha256": "b8e0faf0c9fd771b08045e7f990c95fb708fc863da6a475edf59aac2cb43ffcd"
     },
     {
       "path": "services/sahool-platform/api/imagery_automation.py",
-      "sha256": "25867a67221d446a3b64d06be0e32c8576222c8b598711d454ec6781cc90055b"
+      "sha256": "c07b306afb1fdc663dc05760248a0788046817f312041fa4069dda2207aa74c8"
     },
     {
       "path": "services/sahool-platform/api/irrigation_reservation_adapter.py",
@@ -120,7 +120,7 @@
     },
     {
       "path": "services/sahool-platform/api/main.py",
-      "sha256": "ac767f1979b1223288bd1f413ec24c30bb57dc92fae015253724b88964bccefb"
+      "sha256": "395f84ba72f2fa50bf01b24c31146e63fdb68e8509dfc130e6ad3188ca258bab"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",
@@ -128,11 +128,15 @@
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_workers.py",
-      "sha256": "43e0f150e13112c48df1007f95fecdd36103186ed26d4ddae01aadd2e019e59e"
+      "sha256": "b4ccaf155d5afddbbb7243da267588ea22698f0f20ac4059b649d6cd7421bcf9"
     },
     {
       "path": "services/sahool-platform/api/routers/break_glass.py",
       "sha256": "0d2b9a95f460f1af7e04c4ee438edbbeccdc7b1e8c4b0949986437a3dba5e660"
+    },
+    {
+      "path": "services/sahool-platform/core/tenant_audit.py",
+      "sha256": "b7e03a1db4b1f2d9a59133c94e21e6e8d3dc62fa012b10ea6b810cd97f4fa833"
     },
     {
       "path": "services/sahool-platform/core/workflow_engine.py",
@@ -147,8 +151,12 @@
       "sha256": "33090cc6583c308e6fc2ec262cbdcf02b402e02ea638db25fd29695121d042c9"
     },
     {
+      "path": "services/scout-ingest-service/grants_admin_api.py",
+      "sha256": "114544ef46d4242d27bd8c90016f2c4c4ce9e652abd966b509cb687e429a0474"
+    },
+    {
       "path": "services/scout-ingest-service/main.py",
-      "sha256": "dd2dd0139ead06256bee50cdffb1ce22aaa7e654d367d83240afb424c648f101"
+      "sha256": "28cc8c24c97d2421feed330d60bc973c872beb0078fa42778124c54d27252b83"
     },
     {
       "path": "services/scout-ingest-service/projection_worker.py",
@@ -160,15 +168,15 @@
     },
     {
       "path": "services/soil-service/p1_store.py",
-      "sha256": "40ed7710e556d89474f033543756f19ae207331ced906e4bc510ffacfe7a0b30"
+      "sha256": "2ea416b79944315fe8f54b78b2e8c338e81f51051bd5ba486aa1be5e5cad2336"
     },
     {
       "path": "services/soil-service/p2_store.py",
-      "sha256": "34456f9958b473170688e4d75b8127b3e9981c843a621e8cc65968745e109775"
+      "sha256": "fd41fe7cc0594e365563b171e7ae6dcd5854b290c8d0b770eb1f8b52ec6790bc"
     },
     {
       "path": "services/soil-service/p3_store.py",
-      "sha256": "713bb6a58ddb73394d148ce72b6232dc6ef88f01c246c39507caa95676cd7537"
+      "sha256": "9824465384e0a5e5e9072118c1d8e2e5cd84aac7636d3143345c22c6d557f722"
     },
     {
       "path": "services/soil-service/p4_store.py",
@@ -176,7 +184,7 @@
     },
     {
       "path": "services/soil-service/soil_store.py",
-      "sha256": "1d18ef61435ba82b1606b91d78a27f28a16d8645372d3e51193def8d3b890eb2"
+      "sha256": "d2866bac164477f4ba64e78d3b173decb4b07689b54f4acea71f0e55148e20d3"
     },
     {
       "path": "services/vegetation-analysis-service/anomaly_store_pg.py",
@@ -184,7 +192,7 @@
     },
     {
       "path": "shared/actuation_killswitch.py",
-      "sha256": "a53f60871cdec6ea0bb65bf77ec1358238a81f87ab017dd5c80ca78c24a9b2a3"
+      "sha256": "01bcdef7a39b247c935772b984423e8735575b0f6a6438f191c8595bceffd5f0"
     },
     {
       "path": "shared/dependency_readiness.py",
@@ -197,20 +205,20 @@
   ],
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
-    "services/actuator-service/actuator_runtime.py:1609",
-    "services/auth/main.py:989",
+    "services/actuator-service/actuator_runtime.py:1643",
+    "services/auth/main.py:993",
     "services/raster-service/backfill_scan_worker.py:170",
     "services/raster-service/cache_invalidation_worker.py:126",
     "services/sahool-platform/api/imagery_automation.py:201",
     "services/sahool-platform/api/phase_runtime_store.py:100",
     "services/sahool-platform/api/phase_runtime_store.py:99",
-    "services/sahool-platform/api/phase_runtime_workers.py:56",
-    "services/sahool-platform/api/phase_runtime_workers.py:57",
+    "services/sahool-platform/api/phase_runtime_workers.py:59",
+    "services/sahool-platform/api/phase_runtime_workers.py:60",
     "services/sahool-platform/workers/canonical_execution_learning_worker.py:147",
-    "services/soil-service/p1_store.py:9",
-    "services/soil-service/p2_store.py:9",
-    "services/soil-service/p3_store.py:17",
-    "services/soil-service/soil_store.py:105",
+    "services/soil-service/p1_store.py:11",
+    "services/soil-service/p2_store.py:32",
+    "services/soil-service/p3_store.py:19",
+    "services/soil-service/soil_store.py:125",
     "services/vegetation-analysis-service/anomaly_store_pg.py:67"
   ],
   "guc_names": [

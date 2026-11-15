@@ -3,8 +3,8 @@
 S5 / ACTUATOR-SERVICE-IGNORES-JWT-REVOCATION-01: auth revokes a token on logout by writing
 ``sahool:jti:revoked:{jti}``, and revokes every session of a user (password, role or account
 change) by writing ``sahool:user:token_floor:{sub}``. The platform reads both
-(``services/sahool-platform/core/jwt_denylist.py``) but fails *open*: an unreachable store lets
-the request through, because locking every user out is worse for a read path.
+(``services/sahool-platform/core/jwt_denylist.py``); since C-02 an unreachable store there means
+503 in production and a logged pass-through elsewhere.
 
 A consumer that moves valves cannot take that trade. This module answers one question,
 "may this token still act?", and raises :class:`RevocationUnavailable` whenever the answer is

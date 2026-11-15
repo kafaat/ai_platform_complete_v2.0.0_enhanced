@@ -1,3 +1,5 @@
+import { acquisitionUtcDay } from '../../lib/dates';
+
 // هل لـ(مؤشّر، تاريخ) COG محفوظ؟ — قاعدة واحدة لاختيار مصدر البلاطات في كلّ لوحة.
 // ───────────────────────────────────────────────────────────────
 // إصلاح «الطبقة الورديّة»: حين يكون للتاريخ COG محفوظ للمؤشّر نقرأ الطبقة المحفوظة من
@@ -33,7 +35,7 @@ export function dateHasPersistedCog(
     !!d.has_cog &&
     Array.isArray(d.indices) &&
     d.indices.some((i) => String(i).toUpperCase() === needle);
-  return date && date !== 'latest'
-    ? dates.some((d) => d.date === date && hasIndicatorCog(d))
-    : dates.some(hasIndicatorCog);
+  if (!date || date === 'latest') return dates.some(d => acquisitionUtcDay(d.date) && hasIndicatorCog(d));
+  const day = acquisitionUtcDay(date);
+  return !!day && dates.some(d => acquisitionUtcDay(d.date) === day && hasIndicatorCog(d));
 }

@@ -84,3 +84,19 @@ def test_soil_threshold_edges():
     assert classify_soil_ph(8.6)["class"] == "strong_alkaline"
     assert classify_soil_ec(4.0)["class"] == "high"
     assert classify_soil_ec(8.0)["class"] == "severe"
+
+
+def test_water_restrictions_reach_the_decision_context_as_warnings():
+    # A stored water analysis in the FAO-29 slight-to-moderate tier must not vanish from
+    # the decision context just because it raised no severe hazard flag.
+    from core.irrigation_water_analysis import WaterSample, analyze_water_sample
+
+    water = analyze_water_sample(
+        WaterSample(sample_id="w", na=1, ca=2, mg=2, co3=0, hco3=1, ec_dsm=2.0)
+    )
+    assert water["verdict"] == "suitable_with_restrictions"
+    ctx = lab_decision_context(soil=None, water=water)
+    assert water["restriction_flags_ar"][0] in ctx["warnings_ar"]
+    # analyses stored before the tier existed carry no restriction key
+    legacy = {k: v for k, v in water.items() if k != "restriction_flags_ar"}
+    assert lab_decision_context(soil=None, water=legacy)["water_lab_available"] is True

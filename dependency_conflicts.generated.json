@@ -43,10 +43,10 @@
   },
   {
     "package": "rasterio",
-    "version_count": 2,
-    "versions": "1.3.10, 1.5.1",
-    "services": "1.3.10=>sam2-inference; 1.5.1=>raster-tiler-service",
-    "files": "services/raster-tiler-service/requirements.txt:60; services/sam2-inference/requirements.txt:17"
+    "version_count": 3,
+    "versions": "1.3.10, 1.4.4, 1.5.1",
+    "services": "1.3.10=>sam2-inference; 1.4.4=>ai_agronomist; 1.5.1=>raster-tiler-service",
+    "files": "services/ai_agronomist/requirements.txt:7; services/raster-tiler-service/requirements.txt:60; services/sam2-inference/requirements.txt:17"
   },
   {
     "package": "redis",
@@ -59,8 +59,8 @@
     "package": "shapely",
     "version_count": 2,
     "versions": "2.0.6, 2.1.2",
-    "services": "2.0.6=>sahool-platform,sam2-inference; 2.1.2=>raster-tiler-service",
-    "files": "services/raster-tiler-service/requirements.txt:64; services/sahool-platform/api/requirements.txt:31; services/sam2-inference/requirements.txt:18"
+    "services": "2.0.6=>ai_agronomist,sahool-platform,sam2-inference; 2.1.2=>raster-tiler-service",
+    "files": "services/ai_agronomist/requirements.txt:8; services/raster-tiler-service/requirements.txt:64; services/sahool-platform/api/requirements.txt:31; services/sam2-inference/requirements.txt:18"
   },
   {
     "package": "uvicorn",

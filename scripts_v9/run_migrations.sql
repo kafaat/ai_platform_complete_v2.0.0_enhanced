@@ -619,7 +619,51 @@
 \i migrations/v241_edge_idempotency_tenant_scoped.sql
 \echo '═══ 237. v239_detection_provenance.sql ═══'
 \i migrations/v239_detection_provenance.sql
-\echo '═══ 238. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 238. v243_field_task_satellite_sources.sql ═══'
+\i migrations/v243_field_task_satellite_sources.sql
+\echo '═══ 239. v244_field_task_terrain_sources.sql ═══'
+\i migrations/v244_field_task_terrain_sources.sql
+\echo '═══ 240. v245_farm_book_task_link.sql ═══'
+\i migrations/v245_farm_book_task_link.sql
+\echo '═══ 241. v246_scouting_pin_inspection_task.sql ═══'
+\i migrations/v246_scouting_pin_inspection_task.sql
+\echo '═══ 242. v247_farm_operations_task_link.sql ═══'
+\i migrations/v247_farm_operations_task_link.sql
+\echo '═══ 243. v255_soil_sampling_origin.sql ═══'
+\i migrations/v255_soil_sampling_origin.sql
+\echo '═══ 244. v257_scouting_pin_location_photo.sql ═══'
+\i migrations/v257_scouting_pin_location_photo.sql
+\echo '═══ 245. v258_lab_water_revisions.sql ═══'
+\i migrations/v258_lab_water_revisions.sql
+\echo '═══ 246. v259_yield_map_observed_zero.sql ═══'
+\i migrations/v259_yield_map_observed_zero.sql
+\echo '═══ 247. v260_scout_photo_evidence.sql ═══'
+\i migrations/v260_scout_photo_evidence.sql
+\echo '═══ 248. v261_field_tasks_reference_fields.sql ═══'
+\i migrations/v261_field_tasks_reference_fields.sql
+\echo '═══ 249. v262_scout_photo_season_link_events.sql ═══'
+\i migrations/v262_scout_photo_season_link_events.sql
+\echo '═══ 250. v263_scout_photo_field_access_grants.sql ═══'
+\i migrations/v263_scout_photo_field_access_grants.sql
+\echo '═══ 251. v264_scout_photo_grant_admin_audit.sql ═══'
+\i migrations/v264_scout_photo_grant_admin_audit.sql
+\echo '═══ 252. v265_scout_photo_grant_audit_enforcement.sql ═══'
+\i migrations/v265_scout_photo_grant_audit_enforcement.sql
+\echo '═══ 253. v266_scout_photo_detection_link_events.sql ═══'
+\i migrations/v266_scout_photo_detection_link_events.sql
+\echo '═══ 254. v267_scout_photo_lab_sample_links.sql ═══'
+\i migrations/v267_scout_photo_lab_sample_links.sql
+\echo '═══ 255. v268_scout_photo_human_review.sql ═══'
+\i migrations/v268_scout_photo_human_review.sql
+\echo '═══ 256. v269_scout_plant_tissue_chain.sql ═══'
+\i migrations/v269_scout_plant_tissue_chain.sql
+\echo '═══ 257. v270_scout_specialist_credential_attestations.sql ═══'
+\i migrations/v270_scout_specialist_credential_attestations.sql
+\echo '═══ 258. v271_scout_treatment_review_events.sql ═══'
+\i migrations/v271_scout_treatment_review_events.sql
+\echo '═══ 259. v272_scout_photo_retention_governance.sql ═══'
+\i migrations/v272_scout_photo_retention_governance.sql
+\echo '═══ 260. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 239. v206_rls_final_hardening.sql ═══'
+\echo '═══ 261. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

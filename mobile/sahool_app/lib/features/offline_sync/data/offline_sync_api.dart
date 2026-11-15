@@ -6,22 +6,34 @@
 // كلّ عمليّة تذهب إلى مسارها (PATCH /api/v1/tasks/{id}، POST …/activities، …)
 // بترويسة Idempotency-Key الثابتة نفسها في كلّ محاولة، والخادم يعيد النتيجة
 // المخزّنة عند الإعادة (api/main.py:_idempotent).
+//
+// استثناء واحد: صورة المشاهدة (kObservationPhotoKind، v260). بايتاتها لا تُسلسَل في
+// الصندوق؛ تُقرأ من نسخة الجهاز المنطَّقة بالمستأجِر عند الإرسال، وتُرفض قبل الشبكة إن
+// تغيّرت بصمتها أو لم تطابق العمليّة حقلها ودبّوسها، والإيصال يُطابَق بالبايتات نفسها.
 import 'dart:io' show SocketException;
+import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:dio/dio.dart';
 import 'package:sahool_app/core/network/api_client.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
 import 'package:sahool_app/core/network/retry_schedule.dart';
 import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
+import 'package:sahool_app/features/scouting/data/device_sources.dart';
+import 'package:sahool_app/features/scouting/data/scouting_api.dart';
+
+final RegExp _sha256Hex = RegExp(r'^[a-f0-9]{64}$');
 
 class OfflineSyncApi {
-  OfflineSyncApi([this._client]);
+  OfflineSyncApi([this._client, this._photoStore]);
 
   static final OfflineSyncApi instance = OfflineSyncApi();
 
   final ApiClient? _client;
+  final LocalPhotoStore? _photoStore;
   ApiClient get _c => _client ?? ApiClient.instance;
+  LocalPhotoStore get _photos => _photoStore ?? const DeviceLocalPhotoStore();
 
   /// يرسل [op] كما هي: الطريقة والمسار والجسم والمفتاح الثابت. يرمي
   /// [ApiException] عند الفشل.
@@ -33,7 +45,10 @@ class OfflineSyncApi {
     OutboxOp op, {
     CancelToken? cancelToken,
     bool Function(String? token)? ownerGuard,
-  }) {
+  }) async {
+    if (op.kind == kObservationPhotoKind) {
+      return _sendPhoto(op, cancelToken: cancelToken, ownerGuard: ownerGuard);
+    }
     final method = op.method.toUpperCase();
     return _c.send(
       method,
@@ -43,6 +58,72 @@ class OfflineSyncApi {
       cancelToken: cancelToken,
       extra: {kOwnerGuardExtra: ?ownerGuard, kDurableRetryExtra: true},
     );
+  }
+
+  static ApiException _invalid(String messageAr) => ApiException(
+    kind: ApiErrorKind.validation,
+    statusCode: 422,
+    messageAr: messageAr,
+  );
+
+  Future<dynamic> _sendPhoto(
+    OutboxOp op, {
+    CancelToken? cancelToken,
+    bool Function(String? token)? ownerGuard,
+  }) async {
+    final fieldId = op.body['field_id'];
+    final pinId = op.body['pin_id'];
+    final digest = op.body['sha256'];
+    if (fieldId is! String ||
+        pinId is! String ||
+        digest is! String ||
+        !_sha256Hex.hasMatch(digest) ||
+        op.method.toUpperCase() != 'POST' ||
+        op.path != scoutingPhotoPath(fieldId, pinId) ||
+        op.fieldId != fieldId) {
+      throw _invalid('عملية الصورة المؤجلة غير مطابقة للحقل أو الدبوس.');
+    }
+    final path = await _photos.find(pinId);
+    if (path == null) {
+      throw _invalid('نسخة الصورة المحلية مفقودة؛ لا يمكن تأكيد رفعها.');
+    }
+    final Uint8List bytes;
+    try {
+      bytes = await _photos.read(path);
+    } catch (_) {
+      throw _invalid('تعذّر قراءة نسخة الصورة المحلية.');
+    }
+    if (crypto.sha256.convert(bytes).toString() != digest) {
+      throw _invalid('ملف الصورة تغيّر بعد تسجيله؛ رُفض إرسال دليل مختلف.');
+    }
+    final String mime;
+    try {
+      mime = scoutingPhotoType(path);
+    } on FormatException {
+      throw _invalid('نوع صورة غير مدعوم: JPG أو PNG أو WebP فقط.');
+    }
+    final response = await _c.send(
+      'POST',
+      op.path,
+      data: bytes,
+      idempotencyKey: IdempotencyKey(op.idempotencyKey),
+      headers: {'X-Content-SHA256': digest},
+      contentType: mime,
+      cancelToken: cancelToken,
+      sendTimeout: const Duration(seconds: 120),
+      receiveTimeout: const Duration(seconds: 120),
+      extra: {kOwnerGuardExtra: ?ownerGuard, kDurableRetryExtra: true},
+    );
+    try {
+      return verifyScoutingPhotoReceipt(response, fieldId, pinId, digest);
+    } on FormatException {
+      // 2xx لا يطابق هذه البايتات: ليس إيصالاً ⇒ يُعاد بالمفتاح نفسه لاحقاً.
+      throw const ApiException(
+        kind: ApiErrorKind.unavailable,
+        statusCode: 503,
+        messageAr: 'إيصال الصورة لا يطابق الملف؛ سيُعاد التأكد بنفس المفتاح.',
+      );
+    }
   }
 }
 

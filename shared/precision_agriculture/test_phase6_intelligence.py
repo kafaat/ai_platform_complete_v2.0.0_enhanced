@@ -78,3 +78,31 @@ def test_digital_twin_snapshot_rolls_up_health_and_alerts():
     assert twin["health_score"] < 100
     assert len(twin["alerts"]) == 2
     assert twin["field_count"] == 2
+
+
+def test_empty_farm_snapshot_never_claims_perfect_health():
+    twin = compose_digital_twin_snapshot(farm={"farm_id": "f1"})
+    assert twin["health_score"] is None
+    assert twin["health_score_status"] == "not_evaluated_missing_field_status"
+    assert twin["decision_eligible"] is False
+    assert twin["preview_only"] is True
+
+
+def test_snapshot_id_changes_when_measurements_change_on_same_day():
+    common = {"farm": {"farm_id": "f1"}}
+    a = compose_digital_twin_snapshot(**common, fields=[{"field_id": "x", "status": "ok"}])
+    b = compose_digital_twin_snapshot(**common, fields=[{"field_id": "x", "status": "critical"}])
+    replay = compose_digital_twin_snapshot(**common, fields=[{"field_id": "x", "status": "ok"}])
+    assert a["snapshot_id"] != b["snapshot_id"]
+    assert a["snapshot_id"] == replay["snapshot_id"]
+    assert a["source_authority"] == "client_supplied_preview"
+
+
+def test_missing_field_status_blocks_health_score_even_with_equipment():
+    twin = compose_digital_twin_snapshot(
+        farm={"farm_id": "f1"},
+        fields=[{"field_id": "x"}],
+        equipment=[{"equipment_id": "pump", "status": "offline"}],
+    )
+    assert twin["health_score"] is None
+    assert any(a["type"] == "equipment_attention" for a in twin["alerts"])

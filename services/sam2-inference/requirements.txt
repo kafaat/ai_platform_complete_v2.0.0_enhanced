@@ -1,11 +1,11 @@
 # SAHOOL sam2-inference — خادم استدلال SAM2 (GPU/CUDA).
 #
-# ملاحظة حرجة (صدق): torch بنسخة CUDA يُثبَّت في Dockerfile من فهرس CUDA الرسميّ
-# (cu121) أو يأتي ضمن قاعدة pytorch/pytorch CUDA. لا تُثبّت torch من PyPI القياسيّ
-# هنا (سيجلب بناء CPU). كذلك sam2 يُثبَّت من مستودع facebookresearch/sam2 (انظر
+# torch يأتي من قاعدة Dockerfile الافتراضيّة pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime
+# (torch 2.7.0 / cu128)، ويمكن تغيير القاعدة عبر PYTORCH_CUDA_IMAGE. لا نعيد تثبيته
+# في هذه المتطلبات. كذلك sam2 يُثبَّت من مستودع facebookresearch/sam2 (انظر
 # Dockerfile) لأنّه غير منشور على PyPI باسم مستقرّ.
 #
-# pip-audit: شغّله على صورة الـGPU النهائيّة لديك (لا يمكن تثبيت torch هنا بلا GPU).
+# pip-audit: شغّله على تبعيّات صورة الـGPU النهائيّة؛ قبول الاستدلال يحتاج عتاد GPU.
 
 # خادم الويب (خفيف، يُترجَم مسار 503 بلا المكتبات الثقيلة).
 fastapi==0.136.3
@@ -19,5 +19,5 @@ shapely==2.0.6
 numpy==1.26.4
 
 # torch / sam2 يُثبَّتان في Dockerfile (CUDA) — انظر التعليقات أعلاه.
-# torch==2.4.1  (CUDA cu121 — من Dockerfile، ليس من هنا)
+# torch==2.7.0  (CUDA cu128 — قاعدة Dockerfile الافتراضيّة، ليس من هنا)
 # sam2          (من github.com/facebookresearch/sam2 — من Dockerfile)

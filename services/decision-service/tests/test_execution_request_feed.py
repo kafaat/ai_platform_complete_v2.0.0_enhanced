@@ -37,14 +37,15 @@ async def _connect():
     return await asyncpg.connect(DB, statement_cache_size=0)
 
 
-async def _seed_authorized_chain():
+async def _seed_authorized_chain(plan_window_s=None):
     """approved decision → plan → dispatch authorization (the governed prerequisites)."""
     did, rid, lin = "dec_" + uuid4().hex, "rev_" + uuid4().hex, "lin_" + uuid4().hex
     pid, aid = "xplan_" + uuid4().hex, "dauth_" + uuid4().hex
     c = await _connect()
     try:
         await c.execute(
-            "INSERT INTO decision_record(decision_id,tenant_id,decision_type,stage,decision_value,review_state,candidate_lineage_id) VALUES($1,$2::uuid,'candidate','candidate',$3::jsonb,'approved',$4)",
+            # The approved decision names its field: an opening command must be field-bound.
+            "INSERT INTO decision_record(decision_id,tenant_id,decision_type,stage,decision_value,review_state,candidate_lineage_id,field_id) VALUES($1,$2::uuid,'candidate','candidate',$3::jsonb,'approved',$4,'pivot-7')",
             did,
             TENANT,
             json.dumps({"candidate_lineage_id": lin}),
@@ -62,7 +63,7 @@ async def _seed_authorized_chain():
         # The plan names the valve it approved: an equipment request on a plan that binds no
         # target is refused (plan_target_unbound).
         await c.execute(
-            "INSERT INTO decision_execution_plans(execution_plan_id,tenant_id,decision_id,review_id,candidate_lineage_id,operation_type,required_resources,status,idempotency_key,request_hash,created_by) VALUES($1,$2::uuid,$3,$4,$5,'irrigation','[{\"target_id\": \"valve-7\"}]'::jsonb,'planned',$6,$7,'p')",
+            "INSERT INTO decision_execution_plans(execution_plan_id,tenant_id,decision_id,review_id,candidate_lineage_id,operation_type,required_resources,status,idempotency_key,request_hash,created_by,planned_end) VALUES($1,$2::uuid,$3,$4,$5,'irrigation','[{\"target_id\": \"valve-7\"}]'::jsonb,'planned',$6,$7,'p',now()+$8::double precision*interval '1 second')",
             pid,
             TENANT,
             did,
@@ -70,6 +71,7 @@ async def _seed_authorized_chain():
             lin,
             "p-" + uuid4().hex,
             uuid4().hex,
+            plan_window_s,
         )
         await c.execute(
             "INSERT INTO decision_dispatch_authorizations(dispatch_authorization_id,tenant_id,execution_plan_id,decision_id,review_id,candidate_lineage_id,expected_plan_state,status,policy_version,weather_snapshot_id,resource_snapshot_id,authorization_reason,idempotency_key,request_hash,authorized_by) VALUES($1,$2::uuid,$3,$4,$5,$6,'planned','authorized','p1','w1','r1','ok',$7,$8,'m')",
@@ -102,7 +104,12 @@ def _queue_equipment_request(aid: str, pid: str, did: str) -> str:
                 target_type="equipment",
                 target_id="valve-7",
                 operation_type="irrigation",
-                command_payload={"device_id": "valve-7", "command": "open", "risk_level": "low"},
+                command_payload={
+                    "device_id": "valve-7",
+                    "command": "open",
+                    "risk_level": "low",
+                    "field_id": "pivot-7",
+                },
                 idempotency_key="e-" + uuid4().hex,
             ),
         )
@@ -262,3 +269,42 @@ def test_recovery_feed_lists_inflight_claims_for_the_same_adapter_only():
     assert receipt["status"] == "ok", receipt
     after = _run(list_inflight_execution_requests(tenant_id=TENANT, adapter_id="actuator-service"))
     assert not [i for i in after["items"] if i["execution_request_id"] == req_id]
+    reclaimed = _run(
+        claim_execution_request(
+            tenant_id=TENANT,
+            execution_request_id=req_id,
+            adapter_id="actuator-service",
+            adapter_kind="equipment",
+            delivery_token=token,
+        )
+    )
+    assert reclaimed["reason"] == "execution_request_already_receipted"
+
+
+@pytest.mark.parametrize("expire", ["request", "plan"])
+def test_recovery_rechecks_age_and_plan_before_republish(expire, monkeypatch):
+    from persistence import claim_execution_request, list_inflight_execution_requests
+
+    aid, pid, did = _run(_seed_authorized_chain(2 if expire == "plan" else None))
+    req_id = _queue_equipment_request(aid, pid, did)
+    auth = dict(
+        tenant_id=TENANT,
+        execution_request_id=req_id,
+        adapter_id="actuator-service",
+        adapter_kind="equipment",
+        delivery_token=uuid4().hex,
+    )
+    assert not _run(claim_execution_request(**auth))["replay"]
+    assert _run(claim_execution_request(**auth))["replay"]
+
+    if expire == "request":
+        monkeypatch.setenv("DECISION_EXECUTION_REQUEST_MAX_AGE_S", "0.000001")
+    else:
+        _run(asyncio.sleep(2.1))
+
+    rejected = _run(claim_execution_request(**auth))
+    assert rejected["reason"] == (
+        "execution_request_expired" if expire == "request" else "plan_expired"
+    )
+    feed = _run(list_inflight_execution_requests(tenant_id=TENANT, adapter_id=auth["adapter_id"]))
+    assert req_id not in [item["execution_request_id"] for item in feed["items"]]

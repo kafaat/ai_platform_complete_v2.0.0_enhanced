@@ -35,6 +35,7 @@ from pydantic import BaseModel, Field
 from api.command_store import CommandStore
 from api.idempotency import request_digest
 from api.main import (
+    Permission,
     UserSchema,
     _assert_field_in_tenant,
     _emit_domain_event,
@@ -42,6 +43,7 @@ from api.main import (
     _idempotent,
     get_current_user,
     get_pool,
+    require_permission,
     tenant_connection,
 )
 
@@ -351,10 +353,14 @@ async def _persist_work_order(user: UserSchema, wo: dict, idem: str | None = Non
 @router.post("/api/v1/work-orders/from-recommendation")
 async def work_order_from_recommendation_endpoint(
     req: WorkOrderFromRecommendationRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.ACTIVITY_PLAN)),
     idem: str | None = Depends(_idem_key),
 ):
     """يحوّل توصية إلى أمر عمل (FOES) ويُثبّته ثمّ يُصدِر WORK_ORDER_CREATED.
+
+    الصلاحية ``ACTIVITY_PLAN`` (مالك/مدير/مهندس زراعيّ): إنشاءُ أمر عملٍ مُثبَّت تخطيطٌ
+    لعملٍ ميدانيّ، لا قراءة. كان المسار بـ``get_current_user`` وحده فكان المشاهِد والعامل
+    يُنشئان أوامر عملٍ دائمة (تمرين المشرف ← المفتّش، ٢٠٢٦-١١-١٢).
 
     `inferred=false` إن تعذّر استنتاج نوع أمر العمل من التوصية (لا نخترع نوعاً) ⇒ لا
     تثبيت ولا حدث. عند الاستنتاج: يُدرَج صفّ work_orders فعليّاً (persist-first) ثمّ

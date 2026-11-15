@@ -129,6 +129,18 @@ def resolve_day_of_year(day_of_year: int | None, today: date | None = None) -> t
     return (today or date.today()).timetuple().tm_yday, "server_date"
 
 
+# A rainfed season gets a water-need estimate, never a refill schedule: supplemental
+# irrigation needs a confirmed water source and delivery method first.
+RAINFED_WATER_ASSESSMENT = {
+    "should_irrigate": None,
+    "trigger_reason": "rainfed_water_assessment",
+    "target_refill_mm": None,
+    "advisory_range_mm": None,
+    "timing_ar": "متابعة رطوبة التربة والمطر.",
+    "rationale_ar": "تقدير احتياج حقل مطري. يتطلب الري التكميلي تأكيد مصدر الماء ووسيلة إيصاله.",
+}
+
+
 class FieldIrrigationRequest(Et0WeatherInput):
     """المسار الأساسيّ: الطقس يُجلَب آليّاً من محرّك الطقس (WS-D.2c). الحرارة اختياريّة
     كتجاوز يدويّ فقط — لا كمسار أساسيّ. الاستنزاف/TAW/التربة تُقرأ آليّاً من حالة الحقل."""

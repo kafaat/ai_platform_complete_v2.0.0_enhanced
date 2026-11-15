@@ -460,6 +460,7 @@ export default function HubMap({
         {indicatorId && selected && !weatherMarker && (
           <TileLayer
             key={`${selected.id}-${indicatorId}-${imageryDate || 'latest'}-${tenantId ?? 'tenant'}-${imageryTs}`}
+            className="sahool-indicator-pixels"
             url={indicatorTileUrl(selected, indicatorId, tenantId, imageryTs, imageryDate, preferPersistedCog)}
             opacity={indicatorOpacity}
             errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg=="

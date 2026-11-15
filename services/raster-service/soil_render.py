@@ -331,28 +331,19 @@ def read_property_bbox(prop: str, depth: str, bbox: list[float], poly: list | No
 
 
 def usda_texture_class(clay_pct: float | None, sand_pct: float | None) -> str | None:
-    """صنف قوام USDA من نسبتَي الطين والرمل (٪) — مثلّث القوام القياسيّ (مبسّط)."""
+    """Estimate USDA texture from two valid percentage layers on the same basis."""
+    from shared.soil_texture import usda_texture_class as classify
+
     if clay_pct is None or sand_pct is None:
         return None
-    c, s = float(clay_pct), float(sand_pct)
-    silt = max(0.0, 100.0 - c - s)
-    if c >= 40 and s <= 45 and silt < 40:
-        return "طينيّ (clay)"
-    if c >= 27 and c < 40 and s <= 45:
-        return "طينيّ مزيجيّ (clay loam)" if s > 20 else "طينيّ غرينيّ مزيجيّ (silty clay loam)"
-    if c >= 35 and s >= 45:
-        return "طينيّ رمليّ (sandy clay)"
-    if s >= 85 and c < 10:
-        return "رمليّ (sand)"
-    if s >= 70 and c < 15:
-        return "رمليّ مزيجيّ (loamy sand)"
-    if silt >= 80 and c < 12:
-        return "غرينيّ (silt)"
-    if silt >= 50 and c < 27:
-        return "غرينيّ مزيجيّ (silt loam)"
-    if s >= 45 and c < 20:
-        return "مزيجيّ رمليّ (sandy loam)"
-    return "مزيجيّ (loam)"
+    clay, sand = float(clay_pct), float(sand_pct)
+    silt = 100 - clay - sand
+    # Same ±1 point tolerance as lab entry: independently predicted clay and sand layers
+    # may sum to slightly over 100; beyond that the pair is not one composition.
+    if not (0 <= clay <= 100 and 0 <= sand <= 100 and silt >= -1):
+        return None
+    result = classify(clay, sand, max(0, silt))
+    return f"{result['label_ar']} ({result['key']})"
 
 
 def compute_field_soil_summary(

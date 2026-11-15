@@ -72,3 +72,34 @@ def test_worker_denied_agronomist_allowed(app_mod):
         headers={"Authorization": f"Bearer {_raw_token(m, 'agronomist', tenant)}"},
     )
     assert r.status_code in (200, 503), r.text
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "role, visible", [("manager", True), ("agronomist", True), ("worker", False), ("viewer", False)]
+)
+def test_task_readback_respects_cost_permission(app_mod, role, visible):
+    from core.canonical_schemas import UserSchema
+
+    user = UserSchema(user_id="u", tenant_id="tenant", role=role, name_ar="مختبر")
+    row = dict.fromkeys(
+        (
+            "recommended_date",
+            "estimated_duration_min",
+            "estimated_cost_usd",
+            "assigned_to",
+            "notes",
+            "photo_url",
+            "completed_at",
+            "created_at",
+        )
+    )
+    row.update(
+        task_id="task",
+        field_id="field",
+        task_type="scouting",
+        priority=3,
+        status="in_progress",
+        actual_cost_usd=12.5,
+    )
+    assert app_mod._row_to_task(row, user).actual_cost_usd == (12.5 if visible else None)

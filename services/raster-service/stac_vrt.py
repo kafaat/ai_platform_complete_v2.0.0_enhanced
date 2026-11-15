@@ -13,7 +13,7 @@ import logging
 import math
 import os
 import uuid
-from contextlib import suppress
+from contextlib import ExitStack, suppress
 from xml.sax.saxutils import escape
 
 import rasterio
@@ -133,6 +133,41 @@ def _stac_calibration(
     return scale, offset
 
 
+def _native_spacing_m(src) -> float:
+    """C1 delivery grids are north-up, square, and projected in metres."""
+    if (
+        not src.crs.is_projected
+        or not math.isclose(src.crs.linear_units_factor[1], 1)
+        or src.transform.b != 0
+        or src.transform.d != 0
+        or src.transform.a <= 0
+        or not math.isclose(src.transform.a, -src.transform.e)
+    ):
+        raise ValueError("Expected a north-up square metric C1 grid")
+    return src.transform.a
+
+
+def _masked_native_source(src, path: str) -> None:
+    """Expose the union of the dataset mask and numeric nodata before averaging.
+
+    GDAL versions differ in whether the warp honours an explicit mask together
+    with source nodata. Map mask-invalid native samples to the numeric sentinel
+    on a 1:1 source VRT, then have the warp ignore that one sentinel.
+    """
+    nodata = src.nodata if src.nodata is not None else float("nan")
+    source = src.name if src.name.startswith("/vsi") else os.path.abspath(src.name)
+    gt = ", ".join(str(value) for value in src.transform.to_gdal())
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(
+            f'<VRTDataset rasterXSize="{src.width}" rasterYSize="{src.height}">'
+            f"<SRS>{escape(src.crs.to_wkt())}</SRS><GeoTransform>{gt}</GeoTransform>"
+            f'<VRTRasterBand dataType="Float32" band="1"><NoDataValue>{nodata}</NoDataValue>'
+            f'<ComplexSource><SourceFilename relativeToVRT="0">{escape(source)}</SourceFilename>'
+            "<SourceBand>1</SourceBand><UseMaskBand>true</UseMaskBand></ComplexSource>"
+            "</VRTRasterBand></VRTDataset>"
+        )
+
+
 def build_band_vrt(
     band_hrefs: dict[str, str],
     out_dir: str = "/tmp",
@@ -141,6 +176,8 @@ def build_band_vrt(
     clip_geometry: dict | None = None,
     max_pixels: int | None = None,
     require_tiff_calibration: bool = False,
+    target_band: str | None = None,
+    native_band_resolution_m: dict[str, float] | None = None,
 ) -> tuple[str, dict[str, int]]:
     """يبني VRT يكدّس COGs المنفصلة لكلّ نطاق ويُرجِع (مسار_vrt، خريطة_فهارس).
 
@@ -167,8 +204,11 @@ def build_band_vrt(
         raise ValueError("band_hrefs فارغة — لا نطاقات لبناء VRT")
 
     sources = [_as_gdal_source(h) for _, h in ordered]
-    # The first band defines the target grid, not the grid of every source.
-    with rasterio.open(sources[0]) as first:
+    # Preserve the legacy grid for callers without a mixed-resolution measurement.
+    if target_band is not None and target_band not in dict(ordered):
+        raise ValueError(f"Missing VRT target band {target_band}")
+    target_source = _as_gdal_source(band_hrefs[target_band]) if target_band else sources[0]
+    with rasterio.open(target_source) as first:
         w, h, gt, crs = first.width, first.height, first.transform, first.crs
         if crs is None:
             raise ValueError("VRT target band has no CRS")
@@ -192,15 +232,21 @@ def build_band_vrt(
         if max_pixels is not None and w * h > max_pixels:
             raise ValueError("STAC processing clip exceeds pixel budget")
         wkt = crs.to_wkt()
+        if target_band:
+            target_spacing = _native_spacing_m(first)
+            if not math.isclose(target_spacing, 20):
+                raise ValueError("Expected native 20 m C1 target band")
     os.makedirs(out_dir, exist_ok=True)
     stem = os.path.join(os.path.abspath(out_dir), f"stac_stack_{uuid.uuid4().hex[:10]}")
     bands_xml = []
     index_map: dict[str, int] = {}
     created = []
+    resolutions = {}
     try:
         for i, ((name, _href), source) in enumerate(zip(ordered, sources, strict=True), start=1):
             aligned_path = f"{stem}_band_{i}.vrt"
-            with rasterio.open(source) as src:
+            with ExitStack() as stack:
+                src = stack.enter_context(rasterio.open(source))
                 if src.crs is None:
                     raise ValueError(f"VRT source band {name} has no CRS")
                 # Preserve declared calibration as metadata. Do not infer a provider
@@ -224,21 +270,40 @@ def build_band_vrt(
                     ):
                         raise ValueError("C1 TIFF sample declaration conflicts with STAC asset")
                 source_nodata = src.nodatavals[0]
+                warp_source = src
+                warp_nodata = None
+                resampling = Resampling.nearest
+                if native_band_resolution_m is not None or target_band is not None:
+                    spacing = _native_spacing_m(src)
+                    resolutions[name] = spacing
+                    if require_tiff_calibration and "spatial_resolution" in declaration:
+                        if declaration["spatial_resolution"] != spacing:
+                            raise ValueError("C1 TIFF resolution conflicts with STAC asset")
+                if target_band:
+                    expected_spacing = 10 if name in {"red", "nir", "green", "blue"} else 20
+                    if src.crs != crs or not math.isclose(spacing, expected_spacing):
+                        raise ValueError(f"Unexpected native C1 grid for {name}")
+                    if name != "scl" and spacing < target_spacing:
+                        native_path = f"{stem}_band_{i}_native.vrt"
+                        created.append(native_path)
+                        _masked_native_source(src, native_path)
+                        warp_source = stack.enter_context(rasterio.open(native_path))
+                        warp_nodata = warp_source.nodata
+                        resampling = Resampling.average
+                        # The warp already excluded the sentinel in native samples.
+                        source_nodata = float("nan")
                 with WarpedVRT(
-                    src,
+                    warp_source,
                     crs=crs,
                     transform=gt,
                     width=w,
                     height=h,
                     dtype="float32",
-                    # GDAL >= 3.12 ignores a dataset mask when warp source
-                    # nodata is configured. Keep that mask here; exclude the
-                    # original numeric nodata separately after nearest sampling.
-                    src_nodata=None,
+                    # Nearest preserves the mask first, then excludes numeric nodata
+                    # below. Average consumes both via the native source wrapper.
+                    src_nodata=warp_nodata,
                     nodata=float("nan"),
-                    # Nearest preserves categorical SCL values and avoids inventing
-                    # interpolated spectral samples in this conservative bridge.
-                    resampling=Resampling.nearest,
+                    resampling=resampling,
                 ) as aligned:
                     created.append(aligned_path)
                     copy_raster(aligned, aligned_path, driver="VRT")
@@ -270,5 +335,7 @@ def build_band_vrt(
             with suppress(OSError):
                 os.unlink(path)
         raise
+    if native_band_resolution_m is not None:
+        native_band_resolution_m.update(resolutions)
     logger.info("بُني VRT من %d نطاق: %s", len(ordered), vrt_path)
     return vrt_path, index_map

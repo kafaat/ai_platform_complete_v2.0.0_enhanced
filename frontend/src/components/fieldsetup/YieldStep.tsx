@@ -136,7 +136,11 @@ export default function YieldStep({
               </div>
             </div>
           </div>
-          <p className="text-[11px] text-slate-500">تقدير نموذجيّ مبكّر — يُنقَّح لاحقاً ببيانات الموسم والأقمار.</p>
+          {yieldEst == null ? (
+            <p className="text-[11px] text-amber-300">لا تتوفر غلّة قابلة للتقدير لهذا المحصول/المدخلات؛ «—» ليست صفراً مرصوداً.</p>
+          ) : (
+            <p className="text-[11px] text-slate-500">تقدير نموذجيّ مبكّر — يُنقَّح لاحقاً ببيانات الموسم والأقمار.</p>
+          )}
         </div>
       )}
     </StepShell>

@@ -1,4 +1,6 @@
 // شاشات عيّنات المختبر ضدّ ApiClient حقيقيّ بمحوّل مزيّف.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -254,6 +256,49 @@ void main() {
     expect(op.body['depth_cm_to'], 30);
     expect(find.text('1 عمليّة بانتظار الإرسال'), findsOneWidget);
   });
+
+  testWidgets(
+    'a late GPS reply does not overwrite coordinates typed by hand meanwhile',
+    (t) async {
+      bigScreen(t);
+      final gps = Completer<GpsFix>();
+      final outbox = FakeOutbox();
+      await t.pumpWidget(
+        host(
+          LabSamplesScreen(
+            fieldId: 'f1',
+            api: apiFor(labAdapter(samples: [])),
+            role: 'owner',
+            outbox: outbox,
+            isOnline: () => false,
+            gpsReader: () => gps.future,
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      await t.tap(find.text('عيّنة جديدة').first);
+      await t.pumpAndSettle();
+      await t.tap(find.text('التقاط موقع العيّنة (GPS)'));
+      await t.pump();
+      await t.enterText(find.byKey(const ValueKey('sample_lat')), '15.1');
+      await t.enterText(find.byKey(const ValueKey('sample_lon')), '44.1');
+      await t.pump();
+      gps.complete(const GpsFix(15.9, 44.9, accuracyM: 4));
+      await t.pumpAndSettle();
+      expect(find.text('15.1'), findsOneWidget);
+      expect(find.text('44.1'), findsOneWidget);
+      expect(find.text('15.900000'), findsNothing);
+      expect(find.textContaining('دقّة الموقع'), findsNothing);
+      await t.enterText(find.byKey(const ValueKey('sample_depth_from')), '0');
+      await t.enterText(find.byKey(const ValueKey('sample_depth_to')), '20');
+      await t.tap(find.text('حفظ العيّنة'));
+      await t.pumpAndSettle();
+      final op = outbox.ops.single;
+      expect(op.body['latitude'], 15.1);
+      expect(op.body['longitude'], 44.1);
+      expect(op.body.containsKey('gps_accuracy_m'), isFalse);
+    },
+  );
 
   testWidgets('offline with no durable queue keeps the form and says so', (
     t,

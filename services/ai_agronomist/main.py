@@ -9,6 +9,7 @@ import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field, StrictBool
 
+from shared.ai.rag_readiness import rag_operational_ready
 from shared.security.gateway_deps import require_authenticated_user, require_trusted_tenant
 
 from . import ai_generation, approval
@@ -97,7 +98,24 @@ def _save_agent_tool_audit(record: dict[str, Any]) -> None:
 
 
 def _save_pending_approval(request: dict[str, Any]) -> None:
-    _APPROVAL_STORE.save(request)
+    """Create-once: raises if the id exists or the store fails (tool_loop reports it as failed)."""
+    _APPROVAL_STORE.create(request)
+
+
+def _commit_decision(decided: dict[str, Any], *, tenant: str) -> None:
+    """Atomic pending -> decided. Only one decision on a record ever wins.
+
+    A store failure is 503 and a lost race (or a record that changed since it was read) is 409,
+    both raised before any success audit is written.
+    """
+    try:
+        won = _APPROVAL_STORE.transition(
+            str(decided.get("id") or ""), tenant, approval.STATUS_PENDING, decided
+        )
+    except Exception as exc:  # noqa: BLE001 — any store error: the decision is not known to hold
+        raise HTTPException(503, "approval_store_unavailable") from exc
+    if not won:
+        raise HTTPException(409, "approval_state_changed")
 
 
 # D01 — الحقولُ التي يملكها **الخادم** وحدَه: لا تُدمَج من جسم الطلب أبداً.
@@ -105,6 +123,8 @@ def _save_pending_approval(request: dict[str, Any]) -> None:
 _SERVER_OWNED_APPROVAL_FIELDS = frozenset(
     {
         "id",
+        # The model's tool call id is recorded by the server at creation (tracing only).
+        "tool_call_id",
         "tenant_id",
         "tool",
         "params",
@@ -285,7 +305,7 @@ async def approve_tool_request(
         )
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc
-    _save_pending_approval(decided)
+    _commit_decision(decided, tenant=tenant)
     _save_agent_tool_audit(
         {
             "tool": decided.get("tool"),
@@ -333,7 +353,7 @@ async def deny_tool_request(
         )
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc
-    _save_pending_approval(decided)
+    _commit_decision(decided, tenant=tenant)
     _save_agent_tool_audit(
         {
             "tool": decided.get("tool"),
@@ -449,6 +469,9 @@ async def readyz() -> dict[str, Any]:
             _get_json(client, f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/readyz"),
             _get_json(client, f"{GUARDRAILS_URL.rstrip('/')}/readyz"),
         )
+    # A 200/status=ready alone does not prove a usable retrieval index or embedding contract.
+    # This checks operational readiness only; authority cutover remains separately gated.
+    rag_ok = rag_ok and rag_operational_ready(rag)
     deps = {"rag": rag_ok, "knowledge_graph": kg_ok, "guardrails": guard_ok}
     if not (rag_ok and kg_ok and guard_ok):
         raise HTTPException(

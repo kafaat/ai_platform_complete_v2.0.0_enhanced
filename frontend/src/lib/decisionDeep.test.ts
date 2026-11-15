@@ -43,6 +43,7 @@ describe('unified state — known values only, neutral fallback', () => {
   it('labels/colors ready and blocked', () => {
     expect(unifiedStateLabel('ready')).toBe('جاهز');
     expect(unifiedStateLabel('blocked')).toBe('محجوب');
+    expect(unifiedStateLabel('insufficient_data')).toBe('بيانات غير كافية');
     expect(unifiedStateColor('ready')).toBe('#86efac');
     expect(unifiedStateColor('blocked')).toBe('#fca5a5');
   });

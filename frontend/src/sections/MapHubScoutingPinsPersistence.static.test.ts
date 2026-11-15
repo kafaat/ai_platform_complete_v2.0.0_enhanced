@@ -21,7 +21,7 @@ describe('MapHub: دبابيس الاستكشاف دائمة (تُحفَظ عل�
   it('يُنشئ الدبّوس عبر الخادم (mutate) لا الحالة المحلّيّة فقط', () => {
     expect(mapHub).toContain('createScoutPin.mutate');
     // التراجُع عن الدبّوس التفاؤليّ عند فشل الحفظ (صدق: لا يبقى دبّوس وهميّ)
-    expect(mapHub).toContain('onError');
+    expect(mapHub).toContain('prev.filter((p) => p.id !== pinId)');
   });
 
   it('يمنع انحدار الحالة المحلّيّة السابقة (session-only pins) والتعليق البائد', () => {
