@@ -3425,6 +3425,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "44d2a33c93bc08ee832585b33d098d0c8190eb697aa179a647d4eafa6fac34cd"
+        }
+      ],
+      "name": "frontend/src/lib/advisorError.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1e3f7dc614cab27c6d7063cb06e36f569ea4ca614c73e1f673a68f05476f5467"
+        }
+      ],
+      "name": "frontend/src/lib/advisorError.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2e338cf253c27fc760dee29221c1587217e09aa509bd3552200df05160fe0094"
         }
       ],
@@ -5615,7 +5635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9cd1b2777b8ee9e45714af47310a2c6a119cc06c30e9adb4020369e3275b35b7"
+          "content": "1d4c7eb03f6496a54f0782bfd0f4661eb90f6fd3060332ce0fb3c096645691a8"
         }
       ],
       "name": "frontend/src/sections/ChatbotAdvisorReach.static.test.ts",
@@ -5685,7 +5705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a9c524822d7fcbbd65aa56e7f0663b31b9af60f89e674d1b223db4c967d63bb8"
+          "content": "206ab566ba74988da6da6e26c0b92fe12f80d4096b818faf7f3bf8abe40224ac"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -19985,7 +20005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f11ad6ad9727631c6c999a36811bfc16e1f3c7025977b269374b57ce045ac3b"
+          "content": "8372190dc6e67ea659c16f3ed09f5b39ecb78425dcb76b6926abe2e3ff2e26b1"
         }
       ],
       "name": "services/edge-inference/models/pest_detector.py",
