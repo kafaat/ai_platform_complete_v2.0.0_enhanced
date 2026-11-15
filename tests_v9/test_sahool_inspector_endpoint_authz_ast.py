@@ -125,3 +125,54 @@ def test_stacked_decorators_map_to_their_own_function(tmp_path, monkeypatch):
         "HIGH نقطة تمسّ قاعدة/مستأجِر بلا مصادقة: GET /api/v1/b-alias "
         "(routers/sample.py:9 — open_db)",
     ]
+
+
+def test_db_access_in_a_helper_after_the_handler_still_counts(tmp_path, monkeypatch):
+    # Review of #1477: the regex scanned up to the next route decorator, the first AST version
+    # only the function body, so an unauthenticated route reaching the DB via a helper defined
+    # right after it fell from HIGH to INFO. The scanned extent is the old one again.
+    result = _run(
+        tmp_path,
+        monkeypatch,
+        """
+        @router.get("/api/v1/leak")
+        async def leak():
+            return await _helper()
+
+
+        async def _helper():
+            async with tenant_connection(None) as conn:
+                return await conn.fetch("SELECT * FROM fields")
+
+
+        @router.get("/api/v1/pure")
+        async def pure():
+            return {"ok": True}
+        """,
+    )
+    assert result.status == inspector.FAIL
+    assert result.findings == [
+        "HIGH نقطة تمسّ قاعدة/مستأجِر بلا مصادقة: GET /api/v1/leak (routers/sample.py:2 — leak)",
+        # The next route's extent starts after the helper, so `pure` stays INFO.
+        "INFO نقطة عامّة (بيانات مرجعيّة نقيّة) بلا مصادقة: GET /api/v1/pure (routers/sample.py:12 — pure)",
+    ]
+
+
+def test_an_unparseable_router_file_is_reported_not_skipped(tmp_path, monkeypatch):
+    result = _run(
+        tmp_path,
+        monkeypatch,
+        """
+        @router.post("/api/v1/x")
+        async def x(body: dict):
+            async with tenant_connection(None) as conn:
+                await conn.execute("DELETE FROM fields")
+
+        def broken(:
+            pass
+        """,
+    )
+    assert result.status == inspector.FAIL
+    assert any("لا يُحلَّل" in f and "routers/sample.py" in f for f in result.findings), (
+        result.findings
+    )

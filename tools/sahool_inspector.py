@@ -485,7 +485,7 @@ def check_nats_published_no_consumer() -> Result:
 _ROUTE_METHODS = frozenset({"get", "post", "put", "patch", "delete"})
 
 
-def _route_handlers(src: str) -> list[tuple[int, str, str, str, str, str]]:
+def _route_handlers(src: str) -> list[tuple[int, str, str, str, str, str]] | None:
     """كلّ ديكور ``@router.<method>("<path>")`` مع دالّته، محلَّلاً بشجرة Python (AST).
 
     يُرجِع ``(سطر الديكور، الطريقة، المسار، اسم الدالّة، التوقيع، الجسم)`` بترتيب المصدر.
@@ -493,21 +493,36 @@ def _route_handlers(src: str) -> list[tuple[int, str, str, str, str, str]]:
 
     لماذا AST لا regex (SAHOOL #1449): التعبير السابق أنهى التوقيع عند أوّل ``):``، فتعليقٌ
     داخل التوقيع مثل ``# صارم (مراجعة #1449): GET ...`` أخفى ``Depends(require_permission(...))``
-    بعده فصُنِّفت النقطة HIGH «بلا مصادقة» كذباً. ملفّ لا يُحلَّل يُرجِع قائمة فارغة كما كان
-    التعبير يُرجِع لا شيء لملفّ غير مقروء.
+    بعده فصُنِّفت النقطة HIGH «بلا مصادقة» كذباً.
+
+    الجسم الممسوح لعلامات القاعدة يبقى بمداه القديم: من أوّل جملة في الدالّة حتّى ديكور
+    المسار التالي في الملفّ (لا نهاية الدالّة)، فمساعدٌ معرَّف بعد المعالج ويلمس القاعدة يبقى
+    محسوباً كما كان (مراجعة #1477). ملفّ لا يُحلَّل يُرجِع ``None`` فيُبلَّغ عنه، لا يُتخطّى بصمت.
     """
     try:
         tree = ast.parse(src)
     except SyntaxError:
-        return []
+        return None
     lines = src.splitlines(keepends=True)
+    route_lines = sorted(
+        dec.lineno
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        for dec in node.decorator_list
+        if isinstance(dec, ast.Call)
+        and isinstance(dec.func, ast.Attribute)
+        and isinstance(dec.func.value, ast.Name)
+        and dec.func.value.id == "router"
+        and dec.func.attr in _ROUTE_METHODS
+    )
     out: list[tuple[int, str, str, str, str, str]] = []
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
         sig = ast.unparse(node.args)
-        first, last = node.body[0], node.body[-1]
-        fnbody = "".join(lines[first.lineno - 1 : last.end_lineno])
+        first = node.body[0]
+        stop = next((ln for ln in route_lines if ln > node.lineno), len(lines) + 1)
+        fnbody = "".join(lines[first.lineno - 1 : stop - 1])
         for dec in node.decorator_list:
             if not (
                 isinstance(dec, ast.Call)
@@ -548,7 +563,12 @@ def check_endpoint_authz() -> Result:
             continue
         src = _read(py)
         rel = py.relative_to(REPO)
-        for lineno, method, path, fn, sig, fnbody in _route_handlers(src):
+        handlers = _route_handlers(src)
+        if handlers is None:
+            # ملفّ راوتر لا يُحلَّل: نقاطه لا تُحصى ولا تُصنَّف — فشلٌ ظاهر لا تخطٍّ صامت.
+            findings.append(f"HIGH ملفّ راوتر لا يُحلَّل (SyntaxError) — نقاطه غير مفحوصة: {rel}")
+            continue
+        for lineno, method, path, fn, sig, fnbody in handlers:
             total += 1
             # نقاط الفحص الصحّي/الرصد عمداً بلا مصادقة: healthchecks في compose/k8s
             # وكاشط Prometheus لا يحملان JWT. readyz يلمس _DB_POOL كمسبار جاهزيّة فقط
