@@ -1644,7 +1644,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 352,
+      "evidence_count": 355,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1698,6 +1698,7 @@
         "migrations/v270_scout_specialist_credential_attestations.sql",
         "migrations/v271_scout_treatment_review_events.sql",
         "migrations/v272_scout_photo_retention_governance.sql",
+        "migrations/v273_soil_sampling_plan_copies.sql",
         "migrations/v50_soil_lab_tests.sql",
         "migrations/v51_review_round2_fixes.sql",
         "migrations/v53_field_state_projection.sql",
@@ -1975,9 +1976,11 @@
         "services/soil-service/p1_store.py",
         "services/soil-service/p3_products.py",
         "services/soil-service/routers/p4_workflow.py",
+        "services/soil-service/routers/plan_copies.py",
         "services/soil-service/test_soil_canonical_duplicate_identity.py",
         "services/soil-service/test_soil_ingest_entrypoint_parity.py",
         "services/soil-service/test_soil_p4_governance.py",
+        "services/soil-service/test_soil_sampling_plan_origin.py",
         "services/supervisor-agent/main.py",
         "services/supervisor-agent/tool_contracts.py",
         "services/tts-service/critical_speech.py",
@@ -3264,7 +3267,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 206,
-      "target_evidence_count": 352,
+      "target_evidence_count": 355,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3310,7 +3313,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 352,
+      "source_evidence_count": 355,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3514,5 +3517,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "d038a25aadf3fecf55029317d0d35d89b95bc1b641934f56bb3037581b7b2e82"
+  "content_sha256": "cba509e1812f0d395eaa3b60f135072b4d9f7057d4e0e53b9bba20254f08fa98"
 }
