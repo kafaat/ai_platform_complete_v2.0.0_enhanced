@@ -453,7 +453,7 @@
       },
       "evidence_truncated": {
         "apis": 227,
-        "tests": 154,
+        "tests": 155,
         "mobile_consumers": 44
       }
     },
@@ -5481,7 +5481,8 @@
         "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
         "services/sahool-platform/tests/test_practice_promotion.py",
         "tests/architecture/test_runtime_verification_promotion_workflow.py",
-        "tests/phase6/test_model_promotion_finite_phase13.py"
+        "tests/phase6/test_model_promotion_finite_phase13.py",
+        "tests_v9/test_field_recommendations_projection_rollback_live_pg.py"
       ],
       "runtime": {
         "metrics": [],
@@ -5516,7 +5517,7 @@
           "path": "services/decision-service/production_promotion.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=8, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=9, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
