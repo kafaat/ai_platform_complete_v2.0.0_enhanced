@@ -51,7 +51,7 @@ crop_rotations,v26_master_data.sql,30,True,False,False,0,False,True,1,1
 crop_stages,init_v8.sql,0,True,True,False,0,False,True,0,0
 crop_stress_events,v153_crop_stress_memory_store.sql,158,True,True,True,1,True,False,1,1
 crop_stress_memory_snapshots,v153_crop_stress_memory_store.sql,158,True,True,True,1,True,False,0,1
-custody_chain_events,v65_harvest_traceability.sql,70,True,True,True,1,False,False,1,1
+custody_chain_events,v65_harvest_traceability.sql,70,True,True,True,1,False,False,2,1
 decision_learning_runs,v227_decision_learning_runtime.sql,224,True,False,False,0,False,True,1,1
 decision_policies,v69_decision_policies.sql,74,True,False,False,0,False,True,1,1
 decision_record,v78_decision_record.sql,83,True,True,True,1,True,False,22,21
@@ -130,7 +130,7 @@ global_gis_release_gate,v117_global_scale_phase8.sql,123,True,True,True,1,False,
 global_gis_topology,v117_global_scale_phase8.sql,123,True,True,True,1,False,False,0,0
 governed_model_promotion_candidates,v227_decision_learning_runtime.sql,224,True,False,False,0,False,True,0,1
 guardrails_log,v9_new_tables.sql,3,True,False,False,0,False,True,0,0
-harvest_lots,v65_harvest_traceability.sql,70,True,True,True,1,False,False,1,2
+harvest_lots,v65_harvest_traceability.sql,70,True,True,True,1,False,False,3,2
 historical_weather_daily,v209_historical_weather_sor.sql,213,True,True,True,1,True,False,2,1
 hourly_energy_envelopes,v174_energy_agricultural_microgrid_capability.sql,179,True,False,False,0,False,True,0,0
 hourly_irrigation_mpc_actions,v179_hourly_energy_aware_irrigation_mpc.sql,184,True,True,True,1,True,False,0,1

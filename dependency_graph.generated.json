@@ -1,5 +1,5 @@
 {
-  "edge_count": 1060,
+  "edge_count": 1063,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -1149,6 +1149,26 @@
       "relation": "READS",
       "resource": "db://approval_workflows",
       "to": "db://approval_workflows",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/mcp_servers/market_server.py",
+      "from": "mcp_servers",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://custody_chain_events",
+      "to": "db://custody_chain_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/mcp_servers/market_server.py",
+      "from": "mcp_servers",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://harvest_lots",
+      "to": "db://harvest_lots",
       "to_kind": "resource"
     },
     {
@@ -3459,6 +3479,16 @@
       "relation": "READS",
       "resource": "db://geometry_locks",
       "to": "db://geometry_locks",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/field_traceability_guard.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://harvest_lots",
+      "to": "db://harvest_lots",
       "to_kind": "resource"
     },
     {
@@ -10620,7 +10650,7 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 565,
+    "READS": 568,
     "ROUTES_TO": 75,
     "WRITES": 369
   },
@@ -10637,8 +10667,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 935,
-      "resolved": 934,
+      "observed": 938,
+      "resolved": 937,
       "unresolved_component_paths": 0
     }
   }
