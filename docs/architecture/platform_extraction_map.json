@@ -5409,6 +5409,16 @@
       "route_key": "api/routers/sharing.py::POST /api/v1/sharing/keys::create_sharing_key"
     },
     {
+      "file": "api/routers/sharing.py",
+      "function": "revoke_sharing_key",
+      "method": "POST",
+      "path": "/api/v1/sharing/keys/{key_id}/revoke",
+      "line": 128,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/sharing.py::POST /api/v1/sharing/keys/{key_id}/revoke::revoke_sharing_key"
+    },
+    {
       "file": "api/routers/simulate.py",
       "function": "simulate_what_if",
       "method": "POST",
