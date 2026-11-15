@@ -4895,7 +4895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c16a2ce4709a657cafc0d2925d9b51bd1caaa313dc5bd8a6aa72980dd794690b"
+          "content": "e231622fec9693afec672ebcb91fcc59a3f439ddb55412f14da2c0b8268d8117"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -5615,6 +5615,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9cd1b2777b8ee9e45714af47310a2c6a119cc06c30e9adb4020369e3275b35b7"
+        }
+      ],
+      "name": "frontend/src/sections/ChatbotAdvisorReach.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "16822ecfb1e05b8ea30ac9feed333deed09f71b3904a7bd95c8458949fb3bd06"
         }
       ],
@@ -5675,7 +5685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "13b8b5c4482e6886da0354fc44574ed2290548dd98938abf16b6f4cba8b8beb0"
+          "content": "a9c524822d7fcbbd65aa56e7f0663b31b9af60f89e674d1b223db4c967d63bb8"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -12245,7 +12255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d75ffe065fbd1a812d6af9fa09c541d7c8cbba5fe78cb8b2b92b2a1e407de355"
+          "content": "ad055262eaca960ebe42ac50ee62670269e744f98c7d86289b8cedc8a8836e38"
         }
       ],
       "name": "mobile/sahool_app/lib/features/auth/data/auth_api.dart",
@@ -12255,10 +12265,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "54b414afb6f7335d50b4ca182ffe6d79de1b832f3af2224389a8bf5f264373c0"
+          "content": "7feedd7d1877d99e7543954d58ac265cc5bf9b1f3eca3e8ad217e05e91f98e1f"
         }
       ],
       "name": "mobile/sahool_app/lib/features/auth/presentation/login_screen.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "08db1a8e88e96e23b40348151368f93d77202dabe8dfa03a7d9aceb6d6ec400f"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart",
       "type": "file"
     },
     {
@@ -15785,6 +15805,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8f5a3d7954e6f1a80eeade3c3e2b064cfead6a68973e2cbd3606cbbee85f6ab3"
+        }
+      ],
+      "name": "mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "006ef8884d313c7a0ea9413223bcd0f58082e86119a92529ac2ce150276baedf"
         }
       ],
@@ -17745,7 +17775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dce53090ca40ec185bc6bc801b226ba64c487d1bc0b0c1dbee5332e968f5edf7"
+          "content": "fd827b5df92ef07fafb03fef6e0e89119731fadce8c5af1fa27055f630af7d18"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -24855,7 +24885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "37e6f42fa4efa4873dcf33faaf91c9ecdf4809e3093a7552af7946ebcdb80d0b"
+          "content": "c71465e8879cc422f1f61b118983bb0167520ce6073285e6ecb79fea27c2bdb4"
         }
       ],
       "name": "services/sahool-platform/api/event_catalog.py",
@@ -26095,7 +26125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0561a3d61997efcd2c5c6a90d916b11841539465696e6b795f534c6ae24aece2"
+          "content": "3f4b017c4cf12a4404fcce0c2f1501abdecd260c8f2e89ee7801ef0989ab9db6"
         }
       ],
       "name": "services/sahool-platform/api/recommendations_hub.py",
@@ -26885,7 +26915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "36c6b77136645b52b2630dd1fc0522b70801ef449d4cdb0dca7bf4b20322e6c7"
+          "content": "c81d42ae048e16bd84bb8392a9f26b3e79baf6aa69bab0e17f9d94db5e2be4bf"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -27225,7 +27255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6fbfca5ca590d0102b2f77bd43d0ccb88801765baafdbe21675419a63c22010d"
+          "content": "9106fcebe4ee4227ab0d17974dfb1c8e008007af6039060bbaa106fee06cd815"
         }
       ],
       "name": "services/sahool-platform/api/routers/notifications.py",
@@ -35275,6 +35305,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "272bf31d24d30bee87743ee14a591add948c03f45ec606e481ab075ce04703f6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0bc1e7b3e07b828d32ab4ec497c16fc7d1e049a8227cbea53c66c32e0997725c"
         }
       ],
@@ -38575,7 +38615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3af8146fb53b3f5356030e672c434a1a4078280e9b8a9b48172965157aee6df"
+          "content": "0fffe14d430063e3a1a9e8fb49d6ed54de5619c1cab8b98e98dac844f1bb352a"
         }
       ],
       "name": "services/supervisor-agent/skills/advisory_skill.py",
@@ -40069,6 +40109,16 @@
         }
       ],
       "name": "shared/ai/provider_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4c8d42a46446cf0a8561186bb5ca32562c20384d1aa1990891dcea46b75ca926"
+        }
+      ],
+      "name": "shared/ai/rag_readiness.py",
       "type": "file"
     },
     {

@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7350,
+    "files_scanned": 7361,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
-      "mobile": 415,
-      "other": 2182,
-      "tests": 2510,
+      "mobile": 416,
+      "other": 2184,
+      "tests": 2518,
       "web": 547
     },
-    "unmapped_artifacts": 3498,
+    "unmapped_artifacts": 3505,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3981,
-      "raw": 3369
+      "python_functional": 3988,
+      "raw": 3373
     },
-    "test_dependency_files": 1909,
-    "test_dependency_edges": 4913,
-    "test_dependency_bounded_files": 1119,
+    "test_dependency_files": 1914,
+    "test_dependency_edges": 4928,
+    "test_dependency_bounded_files": 1124,
     "test_dependency_unresolved_relations": 485
   },
   "capabilities": [
@@ -26821,6 +26821,16 @@
       ],
       "mobile": [
         {
+          "path": "mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart",
+          "score": 18,
+          "signals": [
+            "path:MFA",
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/lib/features/auth/presentation/mfa_setup_screen.dart",
           "score": 17,
           "signals": [
@@ -26873,6 +26883,17 @@
         {
           "path": "tests_v9/test_mfa_hardening_integration_v29_5.py",
           "score": 26,
+          "signals": [
+            "path:MFA",
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:recovery code",
+            "content:totp"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/auth/mfa_enrollment_login_test.dart",
+          "score": 22,
           "signals": [
             "path:MFA",
             "content:MFA",
@@ -27103,8 +27124,8 @@
         "database": 19,
         "events": 1,
         "web": 5,
-        "mobile": 4,
-        "tests": 13,
+        "mobile": 5,
+        "tests": 14,
         "governance": 0,
         "other_evidence": 11
       },
@@ -33378,6 +33399,10 @@
     {
       "path": "frontend/src/sections/CalibrationWorkbenchPage.tsx",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/ChatbotAdvisorReach.static.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/sections/ChatbotAgronomyPanels.v615.static.test.ts",
@@ -40672,6 +40697,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_notifications_ws_handshake.py",
       "kind": "tests"
     },
@@ -43432,6 +43461,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_field_recommendations_projection_rollback_live_pg.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_field_state_full_aggregate_v31_3.py",
       "kind": "tests"
     },
@@ -43629,6 +43662,10 @@
     },
     {
       "path": "tests_v9/test_health_readiness_schema_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_helm_agronomist_readiness_probe.py",
       "kind": "tests"
     },
     {
@@ -44112,6 +44149,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_notification_delivery_transitions_live_pg.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_notification_subjects_prefix.py",
       "kind": "tests"
     },
@@ -44445,6 +44486,10 @@
     },
     {
       "path": "tests_v9/test_rag_owned_gap_witnesses.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_readiness_unified.py",
       "kind": "tests"
     },
     {
@@ -44833,6 +44878,10 @@
     },
     {
       "path": "tests_v9/test_sahool_inspector.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_sahool_inspector_endpoint_authz_ast.py",
       "kind": "tests"
     },
     {
@@ -63315,6 +63364,29 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 12
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 14
+        },
+        {
+          "source": "services/sahool-platform/api/routers/notifications.py",
+          "kind": "import",
+          "line": 14
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_notifications_ws_handshake.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -72374,26 +72446,26 @@
         {
           "source": "services/ai_agronomist/__init__.py",
           "kind": "import",
-          "line": 35
+          "line": 37
         },
         {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
-          "line": 35
+          "line": 37
         },
         {
           "source": "shared/dependency_readiness.py",
           "kind": "import",
-          "line": 79
+          "line": 92
         }
       ],
       "unresolved": [
         {
-          "line": 188,
+          "line": 201,
           "call": "spec_from_file_location"
         },
         {
-          "line": 223,
+          "line": 236,
           "call": "spec_from_file_location"
         }
       ]
@@ -79757,6 +79829,24 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_field_recommendations_projection_rollback_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 69
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 76
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_field_state_full_aggregate_v31_3.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -84433,6 +84523,34 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_notification_delivery_transitions_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 79
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 80
+        },
+        {
+          "source": "services/sahool-platform/api/routers/notifications.py",
+          "kind": "import",
+          "line": 80
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 86
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_notification_queue_rollout.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -86395,6 +86513,11 @@
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
           "kind": "source_read",
           "line": 24
+        },
+        {
+          "source": "shared/ai/rag_readiness.py",
+          "kind": "source_read",
+          "line": 318
         }
       ],
       "unresolved": []
@@ -86727,6 +86850,29 @@
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
           "kind": "source_read",
           "line": 23
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_rag_readiness_unified.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "scripts/ci/ai_rag_live_certification.py",
+          "kind": "source_read",
+          "line": 78
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "source_read",
+          "line": 77
+        },
+        {
+          "source": "shared/ai/rag_readiness.py",
+          "kind": "import",
+          "line": 10
         }
       ],
       "unresolved": []
@@ -89983,6 +90129,24 @@
           "source": "tools/sahool_inspector.py",
           "kind": "source_read",
           "line": 18
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_sahool_inspector_endpoint_authz_ast.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "tools/sahool_inspector.py",
+          "kind": "loader",
+          "line": 20
+        },
+        {
+          "source": "tools/sahool_inspector.py",
+          "kind": "source_read",
+          "line": 19
         }
       ],
       "unresolved": []

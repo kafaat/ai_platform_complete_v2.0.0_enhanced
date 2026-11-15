@@ -313,11 +313,15 @@ def test_readyz_does_not_claim_canonical_payload_parity() -> None:
 
 
 def test_the_live_certification_reads_the_measured_name() -> None:
-    """الشهادةُ تشهد لِما قِيس: تكافؤَ مخطّط المتّجه لا تكافؤَ الـpayload."""
-    source = (ROOT / "scripts/ci/ai_rag_live_certification.py").read_text(encoding="utf-8")
-    assert 'r.get("collection_vector_schema_parity") is True' in source
-    assert 'r.get("collection_schema_parity")' not in source, (
-        "الشهادةُ تقرأ الاسم الواسع — فتشهد لتكافؤٍ لا يُثبِته أيُّ فحصٍ فيها"
+    """The live certificate and advisor must use the measured shared predicate."""
+    script = (ROOT / "scripts/ci/ai_rag_live_certification.py").read_text(encoding="utf-8")
+    predicate = (ROOT / "shared/ai/rag_readiness.py").read_text(encoding="utf-8")
+    assert "from shared.ai.rag_readiness import rag_operational_ready" in script
+    assert "ready.status == 200 and rag_operational_ready(r)" in script
+    assert 'payload.get("collection_vector_schema_parity") is True' in predicate
+    assert 'payload.get("collection_schema_parity")' not in predicate, (
+        "the shared readiness predicate must read the measured collection_vector_schema_parity, "
+        "not the broad collection_schema_parity the readyz used to set without a measurement"
     )
 
 

@@ -153,6 +153,18 @@ def test_the_real_lifespan_and_readyz_report_the_named_reason_without_503(monkey
 
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path.endswith("/readyz"):
+            if "rag-retrieval" in request.url.host:
+                return httpx.Response(
+                    200,
+                    json={
+                        "status": "ready",
+                        "embedding_contract_parity": True,
+                        "collection_vector_schema_parity": True,
+                        "sparse_index_hydrated": True,
+                        "sparse_index_count": 3,
+                        "canonical_payload_parity": False,
+                    },
+                )
             return httpx.Response(200, json={"status": "ready"})
         return _unreachable(request)
 

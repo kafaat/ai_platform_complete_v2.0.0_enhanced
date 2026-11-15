@@ -24,6 +24,7 @@
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 import sys
@@ -481,6 +482,64 @@ def check_nats_published_no_consumer() -> Result:
     return Result(name, status, summary, findings)
 
 
+_ROUTE_METHODS = frozenset({"get", "post", "put", "patch", "delete"})
+
+
+def _route_handlers(src: str) -> list[tuple[int, str, str, str, str, str]] | None:
+    """كلّ ديكور ``@router.<method>("<path>")`` مع دالّته، محلَّلاً بشجرة Python (AST).
+
+    يُرجِع ``(سطر الديكور، الطريقة، المسار، اسم الدالّة، التوقيع، الجسم)`` بترتيب المصدر.
+    التوقيع = ``ast.unparse`` للوسائط (التعليقات ليست فيه)، والجسم = مصدر جمل الدالّة.
+
+    لماذا AST لا regex (SAHOOL #1449): التعبير السابق أنهى التوقيع عند أوّل ``):``، فتعليقٌ
+    داخل التوقيع مثل ``# صارم (مراجعة #1449): GET ...`` أخفى ``Depends(require_permission(...))``
+    بعده فصُنِّفت النقطة HIGH «بلا مصادقة» كذباً.
+
+    الجسم الممسوح لعلامات القاعدة يبقى بمداه القديم: من أوّل جملة في الدالّة حتّى ديكور
+    المسار التالي في الملفّ (لا نهاية الدالّة)، فمساعدٌ معرَّف بعد المعالج ويلمس القاعدة يبقى
+    محسوباً كما كان (مراجعة #1477). ملفّ لا يُحلَّل يُرجِع ``None`` فيُبلَّغ عنه، لا يُتخطّى بصمت.
+    """
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return None
+    lines = src.splitlines(keepends=True)
+    route_lines = sorted(
+        dec.lineno
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        for dec in node.decorator_list
+        if isinstance(dec, ast.Call)
+        and isinstance(dec.func, ast.Attribute)
+        and isinstance(dec.func.value, ast.Name)
+        and dec.func.value.id == "router"
+        and dec.func.attr in _ROUTE_METHODS
+    )
+    out: list[tuple[int, str, str, str, str, str]] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        sig = ast.unparse(node.args)
+        first = node.body[0]
+        stop = next((ln for ln in route_lines if ln > node.lineno), len(lines) + 1)
+        fnbody = "".join(lines[first.lineno - 1 : stop - 1])
+        for dec in node.decorator_list:
+            if not (
+                isinstance(dec, ast.Call)
+                and isinstance(dec.func, ast.Attribute)
+                and isinstance(dec.func.value, ast.Name)
+                and dec.func.value.id == "router"
+                and dec.func.attr in _ROUTE_METHODS
+                and dec.args
+                and isinstance(dec.args[0], ast.Constant)
+                and isinstance(dec.args[0].value, str)
+            ):
+                continue
+            out.append((dec.lineno, dec.func.attr, dec.args[0].value, node.name, sig, fnbody))
+    out.sort(key=lambda r: r[0])
+    return out
+
+
 # ════════════════════════════════════════════════════════════
 # 4. endpoint authz — كلّ نقطة لها تبعيّة مصادقة/تفويض
 # ════════════════════════════════════════════════════════════
@@ -499,17 +558,17 @@ def check_endpoint_authz() -> Result:
         ".execute",
         "_DB_POOL",
     )
-    ep_re = re.compile(r'@router\.(get|post|put|patch|delete)\(\s*["\']([^"\']+)["\']', re.S)
-    body_re = re.compile(r"\n(async def|def)\s+(\w+)\s*\((.*?)\)\s*:(.*?)(?=\n@router\.|\Z)", re.S)
     for py in sorted(ROUTERS.glob("*.py")):
         if py.name == "__init__.py":
             continue
         src = _read(py)
         rel = py.relative_to(REPO)
-        decorators = list(ep_re.finditer(src))
-        bodies = list(body_re.finditer(src))
-        for dm in decorators:
-            method, path = dm.group(1), dm.group(2)
+        handlers = _route_handlers(src)
+        if handlers is None:
+            # ملفّ راوتر لا يُحلَّل: نقاطه لا تُحصى ولا تُصنَّف — فشلٌ ظاهر لا تخطٍّ صامت.
+            findings.append(f"HIGH ملفّ راوتر لا يُحلَّل (SyntaxError) — نقاطه غير مفحوصة: {rel}")
+            continue
+        for lineno, method, path, fn, sig, fnbody in handlers:
             total += 1
             # نقاط الفحص الصحّي/الرصد عمداً بلا مصادقة: healthchecks في compose/k8s
             # وكاشط Prometheus لا يحملان JWT. readyz يلمس _DB_POOL كمسبار جاهزيّة فقط
@@ -518,12 +577,6 @@ def check_endpoint_authz() -> Result:
             # يُثبّت الدلالة القائمة نفسها صراحةً، لا يُضعِف الفحص.
             if method == "get" and path in {"/healthz", "/health", "/readyz", "/metrics"}:
                 continue
-            # طابِق جسم الدالّة التالي للديكور
-            body = next((b for b in bodies if b.start() > dm.start()), None)
-            if body is None:
-                continue
-            sig, fnbody = body.group(3), body.group(4)
-            fn = body.group(2)
             # المصادقة الصالحة: مستخدم (get_current_user/require_permission) أو توكن
             # خدميّ داخليّ (_require_service_token) — كلاهما يمنع الوصول غير المصادَق.
             has_auth = (
@@ -536,7 +589,7 @@ def check_endpoint_authz() -> Result:
             # الخطر الحقيقيّ = وصول قاعدة فعليّ في الجسم؛ وجود وسيط field_id وحده لا يكفي
             # (نقاط حسابيّة نقيّة تأخذ field_id كوسم فقط — تحقّقنا: field/operational-state).
             touches_db = any(mk in sig + fnbody for mk in db_markers)
-            loc = f"{rel}:{_lineno(src, dm.start())} — {fn}"
+            loc = f"{rel}:{lineno} — {fn}"
             if touches_db:
                 findings.append(
                     f"HIGH نقطة تمسّ قاعدة/مستأجِر بلا مصادقة: {method.upper()} {path} ({loc})"
