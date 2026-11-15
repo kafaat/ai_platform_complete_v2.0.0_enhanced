@@ -100,7 +100,10 @@ looks like an identifier.
   digits glued to it is also a code (`field-row3`, `farm-abc7`). A longer word
   without digits ends the run, so `FieldTrial2019`, `field-capacity-33kpa` and
   `Farm-to-fork-2030` pass. Glued (camelCase) codes of three letters or more
-  (`farmABC12`, `farmabc7`) are not refused, so that `FieldTrial2019` stays legal. For `tenant`, `org`, `organization` and
+  (`farmABC12`, `farmabc7`) are not refused, so that `FieldTrial2019` stays legal;
+  nor is a hyphen segment of letters followed by a camelCase code
+  (`field-rowA3`, `plot-blkB3`); and a digit glued to the last word of a slug is
+  refused (`Multi-site-trial3`) while the dashed form passes (`Multi-site-trial-3`). For `tenant`, `org`, `organization` and
   `organisation`, which are never agronomic prose, any token behind `-`:
   `tenant-acme`.
 - After it, behind `_`, an id suffix: `farm_id`.

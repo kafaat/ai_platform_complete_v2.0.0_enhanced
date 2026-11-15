@@ -385,7 +385,9 @@ def identifier_scope_reason(value: object) -> str | None:
     - after it, behind ``: # / = @`` (``tenant:acme``, ``field/7``, ``مزرعة:12``);
     - after it, behind ``-`` or glued, a token with a digit or an id suffix
       (``farm-12``, ``field7``, ``customerId42``), or a short code of one or two
-      letters followed by digits (``farm-a7``, ``farmA7``, ``field-A12``); ``tenant``/``org`` behind ``-``
+      letters followed by digits (``farm-a7``, ``farmA7``, ``field-A12``); behind
+      ``-`` also a segment of letters of any length with digits glued to it
+      (``field-row3``, ``farm-abc7``); ``tenant``/``org`` behind ``-``
       with any token (``tenant-acme``); behind ``_``, an id suffix (``farm_id``);
     - before it, a token with a digit behind ``: # / = @``, ``-`` or glued
       (``7:field``, ``12farm``).
