@@ -1,9 +1,9 @@
 """R13 explorer route export: fail closed and keep source-declaration duplicates."""
 from __future__ import annotations
 
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
