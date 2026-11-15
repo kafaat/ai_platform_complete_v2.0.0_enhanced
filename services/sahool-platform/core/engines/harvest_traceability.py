@@ -342,6 +342,10 @@ def custody_event_refusal(
         return "occurred_at أسبق من آخر حدث مُسجَّل على الدفعة — السلسلة لا تُكتب بأثر رجعيّ"
     qty = normalize_quantity_kg(quantity_kg)
     lot_qty = normalize_quantity_kg(lot_quantity_kg)
+    # An outgoing event without a quantity would skip the remaining-quantity check below, so a
+    # lot could be "sold" any number of times and the mass balance never see it.
+    if event_type in OUTGOING_EVENT_TYPES and qty is None:
+        return "حدث خارج (بيع) بلا كمّيّة — الكمّيّة مطلوبة لموازنة الدفعة ومنع البيع الزائد"
     if qty is not None and lot_qty is not None:
         if qty > lot_qty:
             return "كمّيّة الحدث تتجاوز كمّيّة الدفعة"
