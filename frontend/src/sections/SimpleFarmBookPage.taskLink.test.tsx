@@ -76,7 +76,7 @@ it('keeps the draft visible when FastAPI rejects a task identifier with validati
   expect(screen.getByLabelText('معرّف المهمة المرتبطة بالقيد')).toHaveValue('invalid');
 });
 
-it('prefills the originating task while read-only totals are restricted', async () => {
+it('prefills the originating task and links an old expense while read-only totals are restricted', async () => {
   window.history.replaceState({}, '', `/ops/farm-book?farm_id=farm&field_id=wheat&task_id=${task}&cost_usd=31.25`);
   try {
     api.get.mockImplementation(async (path: string) => {
@@ -88,9 +88,8 @@ it('prefills the originating task while read-only totals are restricted', async 
     expect(field()).toHaveValue('wheat');
     expect(screen.getByLabelText('العملة')).toHaveValue('USD');
     expect(screen.getByPlaceholderText('المبلغ')).toHaveValue(31.25);
-    expect(await screen.findByText('invoice-1')).toBeVisible();
-    // Linking an existing expense to a task is held back with its route (owner decision).
-    expect(screen.queryByRole('button', { name: 'ربط بالمهمة' })).toBeNull();
+    fireEvent.click(await screen.findByRole('button', { name: 'ربط بالمهمة' }));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/api/v1/field-tasks/farm-book/entries/invoice-1/task', { task_id: task }));
     change(screen.getByLabelText('العملة'), 'yer');
     expect(screen.getByLabelText('العملة')).toHaveValue('YER');
     expect(screen.getByPlaceholderText('المبلغ')).toHaveValue(null);

@@ -2295,12 +2295,14 @@ export function useCompleteTask() {
         photo_url: photoUrl,
         ...(actualCostUsd !== undefined && { actual_cost_usd: actualCostUsd }),
       }).then(r => r.data),
-    onSuccess: () => Promise.all([
+    onSuccess: (_data, { taskId }) => Promise.all([
       qc.invalidateQueries({ queryKey: ['tasks', tid] }),
       // أبطِل استعلام المهامّ المُشترَك (F5-03) كي تعكس كلّ الشاشات (MapHub/OperationCommand/
       // FieldTasksCabin/اللوحة) الإكمال فوراً بدل بقائها معلّقةً حتى فترة الاستطلاع.
       qc.invalidateQueries({ queryKey: QK.costAnalytics(tid) }),
       qc.invalidateQueries({ queryKey: ['mc-costs-by-field'] }),
+      // تتبّع تكلفة المهمّة (field-management-service، v276) يقرأ سجلّ التكلفة الذي يكتبه trigger.
+      qc.invalidateQueries({ queryKey: ['task-cost-trace', tid, taskId] }),
       qc.invalidateQueries({ queryKey: ['field-workspace'], predicate: query => query.queryKey[2] === 'tasks' }),
     ]),
   });

@@ -128,6 +128,19 @@ export default function SimpleFarmBookPage() {
     } finally { setSaving(false); }
   }
 
+  async function linkExisting(entryId: string) {
+    setSaving(true);
+    setError('');
+    try {
+      await kongApi.post('/api/v1/field-tasks/farm-book/entries/' + encodeURIComponent(entryId) + '/task', { task_id: form.task_id.trim() });
+      await refresh();
+    } catch {
+      setError('تعذّر ربط القيد بالمهمة. تحقق من المزرعة والحقل والمرجع.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function createParty(e: React.FormEvent) {
     e.preventDefault();
     if (!partyForm.name.trim()) return;
@@ -257,6 +270,8 @@ export default function SimpleFarmBookPage() {
           <td className="font-mono text-xs">
             {e.task_id ?? '—'}
             {e.receipt_document_id && <div>إيصال {e.receipt_document_id}</div>}
+            {!e.task_id && !e.reverses_entry_id && e.entry_type === 'expense' && form.entry_type !== 'payment' && form.task_id.trim() &&
+              <button type="button" disabled={saving} className="underline" onClick={() => void linkExisting(e.entry_id)}>ربط بالمهمة</button>}
           </td>
         </tr>)}</tbody></table>
       </section>
