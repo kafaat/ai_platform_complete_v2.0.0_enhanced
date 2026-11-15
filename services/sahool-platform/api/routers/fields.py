@@ -62,6 +62,7 @@ from api.field_models import (
 # رموز صارت يتيمة في api.main بعد نقل المعالِجات — تُستورَد هنا من وحداتها الحقيقيّة
 # مباشرةً (نفس الرموز التي كان main يستوردها) لإزالة تحذيرات F401 من main بعد النقل.
 from api.field_timeline import assemble_timeline
+from api.field_traceability_guard import refuse_if_fields_have_harvest_lots
 from api.geospatial_integrity import validate_field_geometry
 from api.gis_geometry_guard import (
     area_conservation_issues,
@@ -1639,6 +1640,7 @@ async def delete_field(
                     status_code=409,
                     detail="للحقل موسم نشط — أغلِقه قبل الحذف (تفادي محو بيانات قيد الاستخدام).",
                 )
+            await refuse_if_fields_have_harvest_lots(conn, [field_id], "الحذف")
             # الحدث قبل الحذف (يحفظ ما حُذف)؛ ثمّ DELETE المتتالي.
             await _emit_domain_event(
                 conn,
@@ -1768,6 +1770,7 @@ async def merge_fields(
                             detail="لا يمكن الدمج: موسم نشط على حقل مصدر",
                         )
                     source_geometries.append(_stored_geometry(src["geometry"]))
+                await refuse_if_fields_have_harvest_lots(conn, req.source_field_ids, "الدمج")
                 # 1ب) المدموج = اتّحاد المصادر (422 قبل أيّ كتابة).
                 _assert_area_conserved(source_geometries, [geometry])
                 # 2) أنشئ المدموج أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
@@ -1905,6 +1908,7 @@ async def split_field(
                         status_code=409,
                         detail="لا يمكن الانقسام: موسم نشط على الحقل المصدر",
                     )
+                await refuse_if_fields_have_harvest_lots(conn, [req.source_field_id], "الانقسام")
                 # 1ب) اتّحاد الأطفال = المصدر بلا تداخل (422 قبل أيّ كتابة).
                 _assert_area_conserved(
                     [_stored_geometry(src["geometry"])], [p["geometry"] for p in prepared]
