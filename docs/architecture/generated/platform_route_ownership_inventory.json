@@ -1,13 +1,13 @@
 {
   "counts": {
     "api_route_declarations": 4,
-    "direct_routes": 634,
-    "mapped_routes": 638,
-    "surface_routes": 638
+    "direct_routes": 633,
+    "mapped_routes": 637,
+    "surface_routes": 637
   },
-  "inventory_sha256": "07f085496298d2e92d95fa0ae89d71e8681b92c4d258f85c25b3dc2211c56912",
+  "inventory_sha256": "73d04e62aa61743a757a7f7bbf073f0d3b720bd7b05a4ad1ab423d7dd8dddb58",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "d1d6a064bfc285f1a6a50b3f5f14b0f021dd218cc98ae970b8e9a1621780928e",
+  "map_sha256": "fe44fbe4d40d415c0d5a5bf9f766b043f5401259bbfb5638317cec05147c5819",
   "routes": [
     {
       "classification": null,
@@ -3823,7 +3823,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/sharing.py",
       "function": "list_sharing_keys",
-      "line": 116,
+      "line": 66,
       "method": "GET",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
@@ -7560,22 +7560,8 @@
       "declaration_kind": "direct",
       "domain_budget_counted": null,
       "file": "api/routers/sharing.py",
-      "function": "generate_share_key",
-      "line": 45,
-      "method": "POST",
-      "owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "path": "/api/v1/sharing/generate-key",
-      "route_key": "api/routers/sharing.py::POST /api/v1/sharing/generate-key::generate_share_key",
-      "subclassification": null
-    },
-    {
-      "classification": null,
-      "declaration_kind": "direct",
-      "domain_budget_counted": null,
-      "file": "api/routers/sharing.py",
       "function": "create_sharing_key",
-      "line": 85,
+      "line": 33,
       "method": "POST",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
@@ -7589,7 +7575,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/sharing.py",
       "function": "revoke_sharing_key",
-      "line": 128,
+      "line": 78,
       "method": "POST",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
