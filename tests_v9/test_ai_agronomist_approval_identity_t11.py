@@ -16,7 +16,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 from services.ai_agronomist import main as M  # noqa: E402
 
-_AUTH = {"X-Tenant-Id": "tenant-1", "X-User-Id": "user-1"}
+_AUTH = {"X-Tenant-Id": "tenant-1", "X-User-Id": "user-1", "X-User-Role": "expert"}
 
 
 @pytest.fixture
