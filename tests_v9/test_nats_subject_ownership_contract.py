@@ -86,7 +86,10 @@ def test_phase_worker_subject_transform_is_the_canonical_domain_form() -> None:
     hooks = (ROOT / "shared/marketplace_ecosystem_phase12.py").read_text(encoding="utf-8")
     notifications = (ROOT / "shared/notification_consumers.py").read_text(encoding="utf-8")
     assert 'runtime_event_subject(str(row["event_type"]))' in worker
-    assert "replace('_', '.')" not in worker
+    assert "replace('_', '.')" not in worker, (
+        "CONN-04: the worker publishes the canonical sahool.events.<type> subject; deriving it "
+        "by replacing underscores would bring back the dotted subjects no consumer listens on"
+    )
     assert runtime_event_subject("digital_twin.snapshot.created") == (
         "sahool.events.digital_twin.snapshot.created"
     )
