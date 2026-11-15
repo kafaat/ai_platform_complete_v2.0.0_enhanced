@@ -10,7 +10,7 @@
   {
     "service": "actuator-service",
     "file": "services/actuator-service/routers/commands.py",
-    "line": 115,
+    "line": 126,
     "method": "GET",
     "path": "/v1/commands",
     "function": "list_commands"
@@ -18,7 +18,7 @@
   {
     "service": "actuator-service",
     "file": "services/actuator-service/routers/commands.py",
-    "line": 141,
+    "line": 152,
     "method": "GET",
     "path": "/v1/commands/{command_id}",
     "function": "get_command"

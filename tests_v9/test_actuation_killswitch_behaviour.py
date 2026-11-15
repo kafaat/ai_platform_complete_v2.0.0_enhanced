@@ -141,7 +141,7 @@ class _Trace:
         self.events: list[tuple] = []
         self.halts: dict[tuple, tuple[bool, str | None]] = {}
 
-    async def killswitch(self, _conn, tenant_id, *, field_id=None, valve_id=None):
+    async def killswitch(self, _conn, tenant_id, *, field_id=None, valve_id=None, command=None):
         self.events.append(("killswitch", tenant_id, field_id, valve_id))
         return self.halts.get((field_id, valve_id), (False, None))
 

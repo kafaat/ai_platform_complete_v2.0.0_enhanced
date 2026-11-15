@@ -1644,7 +1644,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 355,
+      "evidence_count": 358,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1706,7 +1706,10 @@
         "migrations/v59_boundary_topology_fn.sql",
         "migrations/v9_foundation.sql",
         "migrations/v_ai_recommendation_runtime.sql",
+        "services/actuator-service/actuator_runtime.py",
+        "services/actuator-service/cmd_signing_v2.py",
         "services/actuator-service/test_actuator_safety_audit_20261101.py",
+        "services/actuator-service/test_cmd_signing_v2.py",
         "services/actuator-service/test_dispatch_bridge.py",
         "services/ai_agronomist/advisory_contract.py",
         "services/ai_agronomist/ai_evidence_runtime.py",
@@ -2337,7 +2340,7 @@
       "kind": "lineage_stage",
       "stage": "request",
       "order": 7,
-      "evidence_count": 47,
+      "evidence_count": 48,
       "owners": [
         "actuator-service",
         "database",
@@ -2353,6 +2356,7 @@
         "services/actuator-service/actuator_runtime.py",
         "services/actuator-service/test_actuator_safety_audit_20261101.py",
         "services/actuator-service/test_dispatch_bridge.py",
+        "services/actuator-service/test_killswitch_close_exemption.py",
         "services/decision-service/main.py",
         "services/decision-service/migrations/005_execution_request.sql",
         "services/decision-service/migrations/006_execution_delivery_receipt.sql",
@@ -2551,7 +2555,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 371,
+      "evidence_count": 374,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2600,6 +2604,9 @@
         "migrations/v9_rls_tenant_isolation.down.sql",
         "migrations/v9_rls_tenant_isolation.sql",
         "services/actuator-service/actuator_runtime.py",
+        "services/actuator-service/cmd_signing_v2.py",
+        "services/actuator-service/test_actuator_safety_audit_20261101.py",
+        "services/actuator-service/test_cmd_signing_v2.py",
         "services/agriai-engine/aquacrop_adapter.py",
         "services/agriai-engine/main.py",
         "services/agriai-engine/pcse_data/wofost72_crop/potato.yaml",
@@ -3267,7 +3274,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 206,
-      "target_evidence_count": 355,
+      "target_evidence_count": 358,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3313,7 +3320,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 355,
+      "source_evidence_count": 358,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3401,7 +3408,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 199,
-      "target_evidence_count": 47,
+      "target_evidence_count": 48,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3435,7 +3442,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
-      "source_evidence_count": 47,
+      "source_evidence_count": 48,
       "target_evidence_count": 47,
       "static_supported": true,
       "runtime_verified": false
@@ -3507,7 +3514,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 60,
-      "target_evidence_count": 371,
+      "target_evidence_count": 374,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3517,5 +3524,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "cba509e1812f0d395eaa3b60f135072b4d9f7057d4e0e53b9bba20254f08fa98"
+  "content_sha256": "3d69dedd07ce703c200717e8620d1c926b275b8c7f868aadfd565882421fee4f"
 }

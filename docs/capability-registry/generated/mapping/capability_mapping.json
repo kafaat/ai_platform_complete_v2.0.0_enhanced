@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7375,
+    "files_scanned": 7382,
     "files_by_kind": {
-      "backend": 1287,
+      "backend": 1289,
       "database": 325,
       "governance": 89,
       "mobile": 416,
-      "other": 2187,
-      "tests": 2523,
+      "other": 2190,
+      "tests": 2525,
       "web": 548
     },
-    "unmapped_artifacts": 3505,
+    "unmapped_artifacts": 3509,
     "ambiguous_artifacts": 239,
     "files_by_reading": {
-      "python_functional": 3997,
-      "raw": 3378
+      "python_functional": 4002,
+      "raw": 3380
     },
-    "test_dependency_files": 1919,
-    "test_dependency_edges": 4948,
-    "test_dependency_bounded_files": 1126,
-    "test_dependency_unresolved_relations": 487
+    "test_dependency_files": 1921,
+    "test_dependency_edges": 4955,
+    "test_dependency_bounded_files": 1127,
+    "test_dependency_unresolved_relations": 488
   },
   "capabilities": [
     {
@@ -36084,11 +36084,19 @@
       "kind": "database"
     },
     {
+      "path": "services/actuator-service/cmd_signing_v2.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/actuator-service/command_delivery.py",
       "kind": "backend"
     },
     {
       "path": "services/actuator-service/main.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/actuator-service/provision_device_key.py",
       "kind": "backend"
     },
     {
@@ -36124,11 +36132,19 @@
       "kind": "tests"
     },
     {
+      "path": "services/actuator-service/test_cmd_signing_v2.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/actuator-service/test_dedup_compensation.py",
       "kind": "tests"
     },
     {
       "path": "services/actuator-service/test_dispatch_bridge.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/actuator-service/test_killswitch_close_exemption.py",
       "kind": "tests"
     },
     {
@@ -52005,27 +52021,27 @@
         {
           "source": "services/actuator-service/actuator_runtime.py",
           "kind": "loader",
-          "line": 278
+          "line": 323
         },
         {
           "source": "services/actuator-service/actuator_runtime.py",
           "kind": "source_read",
-          "line": 279
+          "line": 324
         },
         {
           "source": "services/actuator-service/command_delivery.py",
           "kind": "loader",
-          "line": 37
+          "line": 38
         },
         {
           "source": "services/actuator-service/command_delivery.py",
           "kind": "source_read",
-          "line": 38
+          "line": 39
         },
         {
           "source": "services/actuator-service/routers/commands.py",
           "kind": "import",
-          "line": 457
+          "line": 502
         }
       ],
       "unresolved": []
@@ -52091,10 +52107,48 @@
         {
           "source": "services/actuator-service/routers/commands.py",
           "kind": "import",
-          "line": 587
+          "line": 601
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "services/actuator-service/test_cmd_signing_v2.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "subprocess",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "services/actuator-service/actuator_runtime.py",
+          "kind": "source_read",
+          "line": 506
+        },
+        {
+          "source": "services/actuator-service/cmd_signing_v2.py",
+          "kind": "source_read",
+          "line": 49
+        },
+        {
+          "source": "services/actuator-service/command_delivery.py",
+          "kind": "source_read",
+          "line": 50
+        },
+        {
+          "source": "services/actuator-service/provision_device_key.py",
+          "kind": "source_read",
+          "line": 761
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 42,
+          "call": "spec_from_file_location"
+        }
+      ]
     },
     {
       "test": "services/actuator-service/test_dedup_compensation.py",
@@ -52133,6 +52187,29 @@
           "source": "shared/actuation_killswitch.py",
           "kind": "import",
           "line": 515
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/actuator-service/test_killswitch_close_exemption.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/actuator-service/actuator_runtime.py",
+          "kind": "loader",
+          "line": 128
+        },
+        {
+          "source": "services/actuator-service/actuator_runtime.py",
+          "kind": "source_read",
+          "line": 129
+        },
+        {
+          "source": "services/actuator-service/routers/commands.py",
+          "kind": "import",
+          "line": 167
         }
       ],
       "unresolved": []
@@ -80492,7 +80569,7 @@
         {
           "source": "services/actuator-service/actuator_runtime.py",
           "kind": "source_read",
-          "line": 61
+          "line": 70
         }
       ],
       "unresolved": []

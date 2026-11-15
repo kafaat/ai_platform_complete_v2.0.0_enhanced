@@ -129,13 +129,17 @@ def wired(actuator, monkeypatch):
 
 
 def _halted(value: bool, reason: str | None = None):
-    async def _fn(tenant_id, field_id, valve_id):
+    async def _fn(tenant_id, field_id, valve_id, command=None):
         return value, reason
 
     return _fn
 
 
 _PRIOR = [{"device": "valve-1", "command": "open", "payload": {}, "rule_id": "r1"}]
+# These cases replace the seam with a fake that answers "halted" whatever the command, so they
+# measure that compensation **honours** the answer. Since ACTUATOR-KILLSWITCH-BLOCKS-CLOSE-01 the
+# real seam forwards the inverse command and the shared helper never holds a CLOSE/OFF; that is
+# measured end to end in services/actuator-service/test_killswitch_close_exemption.py.
 
 
 async def test_engaged_killswitch_blocks_the_inverse_command(wired, monkeypatch):
@@ -183,7 +187,7 @@ async def test_the_scope_matches_evaluate_rules(wired, monkeypatch):
     """بوّابتان تختلفان في النطاق تختلفان في المعنى — يُمرَّر الحقل والصمّام معاً."""
     seen: list[dict] = []
 
-    async def _spy(tenant_id, field_id, valve_id):
+    async def _spy(tenant_id, field_id, valve_id, command=None):
         seen.append({"tenant": tenant_id, "field": field_id, "valve": valve_id})
         return False, None
 
@@ -201,7 +205,7 @@ async def test_each_device_in_the_batch_is_consulted_separately(wired, monkeypat
         {"device": "valve-2", "command": "on", "payload": {}, "rule_id": "r2"},
     ]
 
-    async def _only_valve_2(tenant_id, field_id, valve_id):
+    async def _only_valve_2(tenant_id, field_id, valve_id, command=None):
         return (valve_id == "valve-2"), ("صمّام موقوف" if valve_id == "valve-2" else None)
 
     monkeypatch.setattr(wired.mod, "_consult_killswitch", _only_valve_2)
@@ -249,16 +253,18 @@ async def test_the_seam_forwards_the_full_scope(actuator, monkeypatch):
     """
     seen: list[dict] = []
 
-    async def _spy(conn, tenant_id, field_id=None, valve_id=None):
-        seen.append({"tenant": tenant_id, "field": field_id, "valve": valve_id})
+    async def _spy(conn, tenant_id, field_id=None, valve_id=None, command=None):
+        seen.append({"tenant": tenant_id, "field": field_id, "valve": valve_id, "cmd": command})
         return True, "سبب"
 
     monkeypatch.setattr(actuator, "_pool", _FakePool())
     monkeypatch.setattr(actuator, "is_actuation_halted", _spy)
 
-    halted, reason = await actuator._consult_killswitch("t1", "f1", "valve-1")
+    halted, reason = await actuator._consult_killswitch("t1", "f1", "valve-1", command="open")
 
-    assert seen == [{"tenant": "t1", "field": "f1", "valve": "valve-1"}]
+    # ACTUATOR-KILLSWITCH-BLOCKS-CLOSE-01: the command is forwarded so the shared helper can
+    # let the safe direction (CLOSE/OFF) through; dropping it inside the seam would re-block it.
+    assert seen == [{"tenant": "t1", "field": "f1", "valve": "valve-1", "cmd": "open"}]
     assert (halted, reason) == (True, "سبب")
 
 
@@ -266,7 +272,7 @@ async def test_a_command_with_no_inverse_never_reaches_the_killswitch(wired, mon
     """لا عكس ⇒ تعويض يدويّ. لا استشارة ولا إرسال — والسلوك القديم يبقى."""
     consulted: list[int] = []
 
-    async def _spy(tenant_id, field_id, valve_id):
+    async def _spy(tenant_id, field_id, valve_id, command=None):
         consulted.append(1)
         return False, None
 
