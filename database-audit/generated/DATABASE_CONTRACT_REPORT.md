@@ -5,10 +5,10 @@
 ## Summary
 
 - **manifest_entries**: 262
-- **sql_files**: 265
+- **sql_files**: 266
 - **manifest_missing_count**: 0
 - **unlisted_sql_count**: 0
-- **tables**: 357
+- **tables**: 356
 - **tenant_tables**: 337
 - **rls_enabled**: 228
 - **rls_forced**: 209

@@ -1783,8 +1783,8 @@
     "rls_enabled": 228,
     "rls_forced": 209,
     "runtime_verified": false,
-    "sql_files": 265,
-    "tables": 357,
+    "sql_files": 266,
+    "tables": 356,
     "tenant_rls_gaps": 137,
     "tenant_tables": 337,
     "unlisted_sql_count": 0
@@ -2089,10 +2089,13 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/core/tenant_audit.py"
+      ],
       "code_writers": [
         "services/auth/main.py",
         "services/sahool-platform/api/routers/break_glass.py",
+        "services/sahool-platform/core/tenant_audit.py",
         "services/sahool-platform/tests/test_break_glass.py"
       ],
       "created_in": "v9_auth_improvements.sql",
@@ -3675,7 +3678,8 @@
         "services/sahool-platform/api/routers/seasons.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/spatial_sync.py"
+        "services/sahool-platform/api/spatial_sync.py",
+        "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py"
       ],
       "created_in": "v96_spatial_geometry_integrity.sql",
       "has_tenant_id": true,
@@ -4165,19 +4169,6 @@
       "rls_forced": false,
       "table": "hydraulic_capacity_evaluations",
       "tenant_rls_gap": true,
-      "write_policy_with_check": false
-    },
-    {
-      "code_readers": [],
-      "code_writers": [],
-      "created_in": "v36_alerts.sql",
-      "has_tenant_id": false,
-      "manifest_position": 40,
-      "policy_count": 0,
-      "rls_enabled": false,
-      "rls_forced": false,
-      "table": "if",
-      "tenant_rls_gap": false,
       "write_policy_with_check": false
     },
     {
@@ -5636,9 +5627,12 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [],
-      "code_writers": [
+      "code_readers": [
         "services/sahool-platform/api/routers/notifications.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/routers/notifications.py",
+        "services/sahool-platform/tests/test_notification_delivery_transitions.py"
       ],
       "created_in": "v83_notification_delivery.sql",
       "has_tenant_id": true,
@@ -7333,6 +7327,7 @@
         "services/auth/routers/session.py",
         "services/auth/routers/users.py",
         "services/sahool-platform/api/routers/break_glass.py",
+        "services/sahool-platform/core/tenant_audit.py",
         "services/sahool-platform/tests/test_break_glass.py",
         "services/sahool-platform/tests/test_gaps_v91.py",
         "services/scout-ingest-service/credential_status.py",

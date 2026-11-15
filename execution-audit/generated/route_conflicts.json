@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 250,
+          "line": 251,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -325,7 +325,7 @@
         },
         {
           "function": "healthz",
-          "line": 117,
+          "line": 165,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/healthz",
@@ -500,7 +500,7 @@
         },
         {
           "function": "metrics",
-          "line": 445,
+          "line": 446,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -540,7 +540,7 @@
         },
         {
           "function": "metrics",
-          "line": 122,
+          "line": 170,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/metrics",
@@ -635,7 +635,7 @@
         },
         {
           "function": "readyz",
-          "line": 464,
+          "line": 465,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -699,7 +699,7 @@
         },
         {
           "function": "readyz",
-          "line": 139,
+          "line": 187,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/readyz",
@@ -1155,7 +1155,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 508,
+          "line": 512,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1186,7 +1186,7 @@
         },
         {
           "function": "recommend",
-          "line": 541,
+          "line": 545,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1145,
-  "route_inventory_sha256": "f148d7d19416b562f3ba1e11b10607b705e11b1b51a1e3d0f30200a4b3c5f0ab",
+  "route_inventory_sha256": "b3c25d43433c0274aa365268d266b96f2689d491b3e6d21a7542444abd05a73c",
   "runtime_verified": false,
   "schema_version": 1
 }

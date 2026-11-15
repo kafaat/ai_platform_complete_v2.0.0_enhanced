@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "46991ffd692720a5f05aa67698d22c5911feed86f6591da4512635001cb63d50",
+  "inventory_sha256": "29fa11d94a7e774e8f9072e89c74bd61c421a2b8f6f2f04fc28b31aca4cb98e4",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "c52361ce578c82fe6553d583e809f5be267ecf8ba002373dea7ffc59fc5bac93"
+    "policy_sha256": "d1e249900e67526fd6387600295b31db09a9697fe44858c357d83b0b2f437481"
   },
   "routes": [
     {
@@ -1346,7 +1346,7 @@
     {
       "classification": "domain",
       "function": "field_unified_timeline_facade",
-      "line": 31,
+      "line": 33,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/unified-timeline",
       "source": "api/routers/field_workspace_timeline.py"
