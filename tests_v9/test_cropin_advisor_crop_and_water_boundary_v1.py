@@ -62,3 +62,26 @@ def test_water_tool_rejects_mismatched_owner_field():
     )
     with pytest.raises(ValueError, match="canonical_water_field_identity_mismatch"):
         fetcher("get_water_productivity", {"field_id": "field-a"})
+
+
+def test_water_tool_accepts_flattened_canonical_owner_response():
+    """Match _fetch_canonical_field_state's actual {**canonical, ai_context_pack} shape."""
+    field_state = {
+        "schema_version": "canonical_field_state.v1",
+        "field_id": "field-a",
+        "water": {
+            "field_id": "field-a",
+            "depletion_mm": 18.5,
+            "quality_status": "verified",
+        },
+        "ai_context_pack": {"field_id": "field-a"},
+    }
+    fetcher = ER._build_agent_tool_fetcher(
+        field_state=field_state,
+        ai_pack=field_state["ai_context_pack"],
+        annotations={},
+    )
+    result = fetcher("get_water_productivity", {"field_id": "field-a"})
+    assert result["canonical_water_owner_present"] is True
+    assert result["water_productivity"]["depletion_mm"] == 18.5
+    assert result["productivity_measured"] is False
