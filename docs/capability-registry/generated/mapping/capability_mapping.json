@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7349,
+    "files_scanned": 7351,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
-      "other": 2182,
-      "tests": 2509,
+      "other": 2183,
+      "tests": 2510,
       "web": 547
     },
-    "unmapped_artifacts": 3498,
+    "unmapped_artifacts": 3499,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3980,
-      "raw": 3369
+      "python_functional": 3981,
+      "raw": 3370
     },
-    "test_dependency_files": 1909,
+    "test_dependency_files": 1910,
     "test_dependency_edges": 4913,
     "test_dependency_bounded_files": 1119,
-    "test_dependency_unresolved_relations": 485
+    "test_dependency_unresolved_relations": 486
   },
   "capabilities": [
     {
@@ -43848,6 +43848,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_kg_global_reference_only.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_knowledge_context_resolver.py",
       "kind": "tests"
     },
@@ -82733,6 +82737,21 @@
       "unresolved": [
         {
           "line": 24,
+          "call": "spec_from_file_location"
+        }
+      ]
+    },
+    {
+      "test": "tests_v9/test_kg_global_reference_only.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 56,
           "call": "spec_from_file_location"
         }
       ]

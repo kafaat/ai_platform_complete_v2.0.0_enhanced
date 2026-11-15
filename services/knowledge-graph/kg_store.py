@@ -3,6 +3,13 @@
 This is a real persistent graph store with nodes/edges tables. It is not a
 recommendation engine. Every edge is reference-only unless a separate agronomic
 engine and human review convert a recommendation downstream.
+
+The store is a **global, non-tenant agricultural reference store only** (owner
+decision on #1472, 14 November 2026; ADR-0038). Its tables carry no tenant column
+and every authenticated caller reads the same rows. Data specific to a tenant,
+farm, field or user must therefore never enter it: ``upsert_node`` and
+``upsert_edge`` refuse any record that carries such an identifier or is marked
+private (``TenantScopedDataError``).
 """
 
 from __future__ import annotations
@@ -45,6 +52,79 @@ class GraphEdge:
             raise ValueError("Knowledge graph confidence must be 'reference'")
         if self.relation in {"controls", "recommends", "prescribes"}:
             raise ValueError("Use reference relation names such as historically_used_for")
+
+
+# Keys that bind a record to a tenant, farm, field or user. Compared after
+# normalisation (lower-case, separators removed), so ``tenant_id``, ``tenantId``,
+# ``Tenant-ID`` and ``TENANT_ID`` all match.
+FORBIDDEN_SCOPE_KEYS = frozenset(
+    {
+        "tenant",
+        "tenantid",
+        "farm",
+        "farmid",
+        "field",
+        "fieldid",
+        "user",
+        "userid",
+        "owner",
+        "ownerid",
+    }
+)
+# Keys that, when truthy, mark a record private.
+PRIVATE_FLAG_KEYS = frozenset({"private", "isprivate"})
+# Keys whose value names the record's visibility; these values mark it non-global.
+VISIBILITY_KEYS = frozenset({"visibility", "scope", "access"})
+NON_GLOBAL_VISIBILITY = frozenset({"private", "tenant", "farm", "field", "user"})
+
+TENANT_SCOPED_DATA_ERROR = "kg_tenant_scoped_data_forbidden"
+
+
+class TenantScopedDataError(Exception):
+    """A write carried tenant, farm, field or user data into the global graph.
+
+    ``code`` is the stable machine token the API returns; ``path`` names the
+    offending key (for example ``properties.metadata.field_id``). Deliberately not
+    a ``ValueError``, so no generic handler can map it to something else.
+    """
+
+    def __init__(self, path: str, reason: str) -> None:
+        self.code = TENANT_SCOPED_DATA_ERROR
+        self.path = path
+        self.reason = reason
+        super().__init__(f"{TENANT_SCOPED_DATA_ERROR}: {reason} at {path!r}")
+
+
+def _normalise_key(key: object) -> str:
+    return "".join(ch for ch in str(key).lower() if ch.isalnum())
+
+
+def assert_global_reference_payload(payload: Any, path: str = "") -> None:
+    """Refuse a payload that carries tenant/farm/field/user scope or a private mark.
+
+    Walks nested mappings and lists, so a key hidden in ``properties`` or
+    ``properties.metadata`` is found as well as one at the top level. A key such as
+    ``field_id`` is refused whatever its value, including ``None``: the key itself
+    declares a scope this store does not have.
+    """
+    if isinstance(payload, dict):
+        for key, value in payload.items():
+            here = f"{path}.{key}" if path else str(key)
+            norm = _normalise_key(key)
+            if norm in FORBIDDEN_SCOPE_KEYS:
+                raise TenantScopedDataError(here, "scope identifier key")
+            if norm in PRIVATE_FLAG_KEYS and value:
+                raise TenantScopedDataError(here, "record marked private")
+            if (
+                norm in VISIBILITY_KEYS
+                and isinstance(value, str)
+                and value.strip().lower() in NON_GLOBAL_VISIBILITY
+            ):
+                raise TenantScopedDataError(here, "non-global visibility")
+            assert_global_reference_payload(value, here)
+    elif isinstance(payload, (list, tuple)):
+        for index, item in enumerate(payload):
+            assert_global_reference_payload(item, f"{path}[{index}]")
 
 
 class EdgeConflictError(Exception):
@@ -122,6 +202,8 @@ class SQLiteAgGraphStore:
     def upsert_node(self, node: GraphNode) -> None:
         import json
 
+        # #1472 write boundary: every node write passes here (REST, seeding).
+        assert_global_reference_payload(node.properties or {}, "properties")
         with self._connect() as conn:
             conn.execute(
                 "INSERT INTO kg_nodes(node_id,label,name,properties_json) VALUES(?,?,?,?) "
@@ -137,6 +219,8 @@ class SQLiteAgGraphStore:
     def upsert_edge(self, edge: GraphEdge) -> None:
         import json
 
+        # #1472 write boundary: every edge write passes here (REST, seeding).
+        assert_global_reference_payload(edge.properties or {}, "properties")
         with self._connect() as conn:
             # The WHERE makes the conflict path a no-op when the stored endpoints differ;
             # rowcount 0 then means the edge_id is taken by another (subject, object).

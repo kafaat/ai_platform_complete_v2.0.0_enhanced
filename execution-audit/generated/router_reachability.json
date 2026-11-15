@@ -262,7 +262,7 @@
     },
     {
       "kind": "app",
-      "line": 21,
+      "line": 23,
       "module": "services.knowledge-graph.main",
       "node_id": "services.knowledge-graph.main:app",
       "route_count": 7,
@@ -2955,7 +2955,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "63b8461af7545a781de20387b4deb957d2db1b3bc4ed2e7b2c639995d56e59ac",
+  "inventory_sha256": "3ad49f8607543b3ddabd3196d9f80eb0f6d0a2c7bf2b6955a4e9bd3b3714c88d",
   "orphan_candidate_count": 236,
   "orphan_candidates": [
     {

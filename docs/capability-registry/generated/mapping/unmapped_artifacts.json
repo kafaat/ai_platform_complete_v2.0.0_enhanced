@@ -12260,6 +12260,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_kg_global_reference_only.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_knowledge_context_resolver.py",
     "kind": "tests"
   },
