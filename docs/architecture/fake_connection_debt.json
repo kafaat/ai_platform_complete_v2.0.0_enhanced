@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "1595a8cd63276c4a913f24d8e76265bdcda6df7c",
+  "measured_on": "0ad0896c18e2f9599a5f5104a1e348e7c7943c3e",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -35,6 +35,7 @@
     "services/sahool-platform/tests/test_field_auto_imagery_revision.py",
     "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
     "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+    "services/sahool-platform/tests/test_field_timeline_error_mapping.py",
     "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
     "services/sahool-platform/tests/test_governance_modules.py",
     "services/sahool-platform/tests/test_idempotency_server_contract.py",
@@ -678,6 +679,16 @@
         "services/sahool-platform/tests/test_spatial_sync_geometry_revision_contract.py"
       ],
       "justification": "Field geometry atomicity (#1447). The stand-in (_Conn with fetchval only) pins the contract the three geometry handlers rely on from save_field_geometry_revision: one INSERT into field_geometry_history on the caller's connection, the revision returned as an int, and an INSERT error propagated to the caller instead of being turned into None. It exists so the changed lines are measured by platform-unit-tests coverage; it claims nothing about what PostgreSQL enforces. The database behaviour (a refused history INSERT under REVOKE or a restrictive RLS policy aborts the transaction, the handler answers 5xx and the boundary, geometry_version and history stay unchanged) runs against a migrated database under a NOBYPASSRLS role in tests_v9/test_field_geometry_save_atomic_live_pg.py (4 passed; 3 fail on main). No proven_live exemption or database-enforcement claim is added."
+    },
+    {
+      "kind": "field_timeline_error_mapping_unit_contract_20261114",
+      "date": "2026-11-14",
+      "before": 135,
+      "after": 136,
+      "sites": [
+        "services/sahool-platform/tests/test_field_timeline_error_mapping.py"
+      ],
+      "justification": "Unified-timeline tenant scope (#1448). The stand-in (_Conn with fetch only, patched tenant_connection and _assert_field_in_tenant) pins the facade's two error branches so platform-unit-tests coverage measures them: the HTTPException raised by the tenant check propagates as a 404 instead of being folded into 200 degraded, and any other read failure answers degraded with a fixed message that does not echo the database error. Both cases fail on main. It claims nothing about what PostgreSQL enforces. The tenant refusal itself runs against a migrated database under a NOBYPASSRLS role in tests_v9/test_field_timeline_tenant_scope_live_pg.py (another tenant's field is 404; the caller's own field reads the events table with degraded false). No proven_live exemption or database-enforcement claim is added."
     }
   ]
 }
