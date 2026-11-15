@@ -12544,6 +12544,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_notification_delivery_state.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_notification_delivery_transitions_live_pg.py",
     "kind": "tests"
   },
