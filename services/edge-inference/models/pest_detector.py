@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # ("كشف الآفات بنموذج ML — يتطلّب ملفّ ONNX موجوداً"). The real ONNX path activates
 # ONLY when PEST_MODEL_PATH points at an existing file AND onnxruntime is importable
 # (lazy — onnxruntime is NOT a hard dependency). Otherwise the service stays honestly
-# dormant and falls back to the existing rule-based / simulation path, unchanged.
+# dormant: detect() raises ModelNotProvisioned (HTTP 503), with no simulated detections.
 PEST_MODEL_ENV = "PEST_MODEL_PATH"
 
 # Cache model sessions separately for CPU and CUDA device selection.
@@ -90,7 +90,7 @@ def _load_onnx_session(model_path: str, device: str):
     """Lazily import onnxruntime and return a cached InferenceSession, or None.
 
     onnxruntime is intentionally an OPTIONAL dependency: if the import fails the
-    capability is treated as dormant and the caller falls back to the rule-based path.
+    capability is treated as dormant and detect() refuses with ModelNotProvisioned (503).
     """
     providers = onnx_providers(device)
     key = model_path, providers[0]
@@ -102,15 +102,15 @@ def _load_onnx_session(model_path: str, device: str):
     except ImportError:
         logger.info(
             "[EdgePestDetector] onnxruntime not installed — ML pest path dormant, "
-            "falling back to rule-based detection."
+            "detection refused until a model is provisioned."
         )
         return None
-    # نموذج تالف / provider غير متاح ⇒ خامل بصدق (سقوط للمسار القاعديّ، لا كسر طلب)
+    # نموذج تالف / provider غير متاح ⇒ خامل بصدق (رفض ModelNotProvisioned ⇒ 503، لا كشوف مُختلَقة)
     try:
         session = ort.InferenceSession(model_path, providers=providers)
     except Exception as e:  # noqa: BLE001
         logger.warning(
-            "[EdgePestDetector] فشل تحميل نموذج ONNX (%s) — السقوط للمسار القاعديّ: %s",
+            "[EdgePestDetector] فشل تحميل نموذج ONNX (%s) — الكشف مرفوض حتى تجهيز النموذج: %s",
             model_path,
             e,
         )
@@ -123,7 +123,8 @@ class EdgePestDetector:
     """
     On-device pest and disease detection.
     Production: Load ONNX quantized model.
-    MVP: Template-based simulation with realistic latency.
+    Without a provisioned model detect() raises ModelNotProvisioned (503); the simulation
+    helper is kept for tests only and never answers a request.
     """
 
     # Yemen agricultural pests database
@@ -187,7 +188,7 @@ class EdgePestDetector:
         self.input_size = (640, 640)
 
         # Production: Load ONNX Runtime session
-        # For MVP: simulate inference with realistic Yemen pest probabilities
+        # No model ⇒ detect() refuses (ModelNotProvisioned); nothing is simulated for callers.
         self._load_model()
 
     def _load_model(self):
