@@ -7754,6 +7754,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_season_simulate_gateway_route.py",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "tests_v9/test_season_simulation_behavior_v66.py",
           "score": 14,
           "signals": [
@@ -8044,7 +8052,7 @@
         "events": 43,
         "web": 18,
         "mobile": 15,
-        "tests": 55,
+        "tests": 56,
         "governance": 0,
         "other_evidence": 15
       },
