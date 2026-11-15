@@ -69,3 +69,41 @@ def test_rls_and_migration_guards():
         cwd=ROOT,
         check=True,
     )
+
+
+# ── SQL comments are not DDL ─────────────────────────────────────────────────
+
+
+def _strip():
+    sys.path.insert(0, str(ROOT / "scripts" / "ci"))
+    from database_contract_graph import strip_sql_comments
+
+    return strip_sql_comments
+
+
+def test_a_commented_create_table_is_not_a_table():
+    # v36_alerts.sql: an Arabic word after IF NOT EXISTS made the regex take "IF" as the name.
+    names = {x["table"] for x in load()["tables"]}
+    assert "if" not in names
+    assert "alerts" in names
+
+
+def test_comment_stripping_keeps_statements_strings_and_dollar_bodies():
+    strip = _strip()
+    assert "CREATE TABLE" not in strip("-- CREATE TABLE IF NOT EXISTS لا يُغيّر\n")
+    assert strip("SELECT '-- kept', 'it''s'; -- gone\n").startswith("SELECT '-- kept', 'it''s';")
+    assert "gone" not in strip("SELECT 1; -- gone\n")
+    assert strip("A /* x /* nested */ y */ B").split() == ["A", "B"]
+    body = strip("DO $$ BEGIN -- note\n EXECUTE 'CREATE INDEX -- kept'; END $$;")
+    assert "note" not in body and "'CREATE INDEX -- kept'" in body
+    assert strip(r"SELECT E'a\'-- kept'; -- gone").startswith(r"SELECT E'a\'-- kept';")
+    assert strip('SELECT "col--name" -- gone').startswith('SELECT "col--name"')
+
+
+def test_comment_stripping_keeps_line_numbers():
+    strip = _strip()
+    text = "-- one\n/* two\nthree */\nCREATE TABLE t (id int);\n"
+    out = strip(text)
+    assert len(out) == len(text)
+    assert out.count("\n") == text.count("\n")
+    assert out.splitlines()[3] == "CREATE TABLE t (id int);"

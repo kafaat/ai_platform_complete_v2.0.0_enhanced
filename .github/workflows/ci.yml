@@ -1377,6 +1377,11 @@ jobs:
           # handlers under a throwaway NOBYPASSRLS role it creates from this superuser DSN. With
           # the switch, a missing or unmigrated database is a failure, not a green skip.
           FIELD_GEOMETRY_CERTIFICATION_REQUIRED: "1"
+          # The unified timeline answers a foreign field with 404
+          # (tests_v9/test_field_timeline_tenant_scope_live_pg.py): the module drives the real
+          # handler under a throwaway NOBYPASSRLS role it creates from this superuser DSN. With
+          # the switch, a missing or unmigrated database is a failure, not a green skip.
+          FIELD_TIMELINE_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation
