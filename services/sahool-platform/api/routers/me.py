@@ -35,7 +35,11 @@ async def me(user: UserSchema = Depends(get_current_user)):
     يُختَم في حزمة سياق الحقل: صفٌّ غائب أو تعذّرُ القراءة ⇒ الأشدّ (``local_only``)،
     والهويّةُ تُعاد مهما حدث للقراءة.
     """
-    from core.ai_policy_envelope import build_ai_policy_envelope, load_tenant_ai_policy_row
+    from core.ai_policy_envelope import (
+        build_ai_policy_envelope,
+        load_tenant_ai_policy_row,
+        unavailable_tenant_ai_policy_row,
+    )
 
     from api.main import tenant_connection
 
@@ -50,7 +54,7 @@ async def me(user: UserSchema = Depends(get_current_user)):
             user.tenant_id,
             type(exc).__name__,
         )
-        policy_row = None
+        policy_row = unavailable_tenant_ai_policy_row()
     return {
         "user_id": user.user_id,
         "tenant_id": user.tenant_id,
