@@ -27725,7 +27725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "26a9a84e3fbcd884907fc8d208aba72ac630cc9d707542ce5534e9fd5587711e"
+          "content": "a17fb9a78041c373426c984c4f96a49c2d836b94385b251a6b34e7c1506cf443"
         }
       ],
       "name": "services/sahool-platform/api/routers/regional_bulletin.py",
@@ -30395,7 +30395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "daa0ea2ddf91ae920bf3d9cdbb58930c645e14a51cf1648ebb982f1f03049765"
+          "content": "01c4db7daf223f26469e0edc08f90aeabe8398a10fc58bb5be20011108057174"
         }
       ],
       "name": "services/sahool-platform/core/engines/harvest_traceability.py",
@@ -31455,7 +31455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3723c5deef0ab1e1df18e7a4037edb1b70aa665c4da9141015a18e4c0db11d8c"
+          "content": "e3e8674d278563818e05aa6497bfab821a8cbc6bcc02db241b96bbc03ad4309d"
         }
       ],
       "name": "services/sahool-platform/core/regional_bulletin.py",
@@ -36385,7 +36385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5edf589671d7015a9a5adfda98bff3c829e9939c5c136f334a8314daa6d4677"
+          "content": "311ce93c99958725add19f52d4994f6d53a81192e0d9d792122b58f57a811cf7"
         }
       ],
       "name": "services/sahool-platform/tests/test_regional_bulletin.py",
@@ -36395,7 +36395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "914a85b604f070b3c2ad668ff530623549284e8bd0d47821dcc9e70c67e8e49d"
+          "content": "4d0bd949af23afe5f702d9bffbbf02eeeaa8825861c1a04d6e45e09eba3b9666"
         }
       ],
       "name": "services/sahool-platform/tests/test_regional_bulletin_route.py",

@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "bc2fd48e6750b46ce3f497a1c60484a5a60af2a5c18a976692fbfece95456c7a",
+  "inventory_sha256": "fec18afb4d9bc6d998a754c37816e478a1e1aff3a83e12f1bbdd9a6ae7b54d05",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -1986,7 +1986,7 @@
     {
       "classification": "domain",
       "function": "regional_bulletin",
-      "line": 52,
+      "line": 67,
       "method": "GET",
       "path": "/api/v1/regional/bulletin",
       "source": "api/routers/regional_bulletin.py"
