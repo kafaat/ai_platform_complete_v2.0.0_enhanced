@@ -3,7 +3,9 @@
 -- soil_sampling_plans). The platform never reads this table: its lab-sample route asks
 -- soil-service to resolve a plan point, and stores the origin soil-service returns.
 -- A copy is immutable once recorded (the plan id is a digest of the plan's points), so a stored
--- plan point cannot be moved after a sample has been taken against it.
+-- plan point cannot be moved after a sample has been taken against it. The table is append-only:
+-- the trigger refuses UPDATE and DELETE, because a DELETE followed by a new INSERT under the same
+-- plan_id would move the point as surely as an UPDATE (lab receipt on #1456).
 -- Re-run safe: IF NOT EXISTS, policy and trigger dropped before they are created.
 BEGIN;
 SET LOCAL lock_timeout='15s';
@@ -33,7 +35,7 @@ BEGIN
   RAISE EXCEPTION 'soil_sampling_plan_copy_immutable' USING ERRCODE = '55000';
 END; $$;
 DROP TRIGGER IF EXISTS soil_sampling_plan_copies_immutable ON soil_sampling_plan_copies;
-CREATE TRIGGER soil_sampling_plan_copies_immutable BEFORE UPDATE ON soil_sampling_plan_copies
+CREATE TRIGGER soil_sampling_plan_copies_immutable BEFORE UPDATE OR DELETE ON soil_sampling_plan_copies
   FOR EACH ROW EXECUTE FUNCTION soil_sampling_plan_copy_immutable();
 REVOKE ALL ON soil_sampling_plan_copies FROM PUBLIC;
 COMMENT ON TABLE soil_sampling_plan_copies IS

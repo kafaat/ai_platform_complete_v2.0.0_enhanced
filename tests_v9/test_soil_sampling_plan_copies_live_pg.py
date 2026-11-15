@@ -58,6 +58,14 @@ _TENANT_A = "aaaaaaaa-0000-4000-8000-0000000000a6"
 _TENANT_B = "bbbbbbbb-0000-4000-8000-0000000000b6"
 
 
+async def _purge(admin, plan_id: str) -> None:
+    """Test teardown only: the table is append-only (its trigger refuses DELETE), so the superuser
+    removes the test row with triggers suspended for this transaction."""
+    async with admin.transaction():
+        await admin.execute("SET LOCAL session_replication_role = replica")
+        await admin.execute(f"DELETE FROM {_TABLE} WHERE plan_id=$1", plan_id)
+
+
 def _load(name: str):
     """A soil-service module by path, without putting the service directory on sys.path."""
     if name in sys.modules:
@@ -198,10 +206,22 @@ async def test_soil_service_store_isolates_tenants_and_keeps_copies_immutable():
                     await bare.execute(
                         f"UPDATE {_TABLE} SET sample_points='[{{}}]' WHERE plan_id=$1", plan_id
                     )
+            # Lab receipt on #1456: DELETE then INSERT under the same plan_id moved the point by
+            # ~66 km. The copy is append-only, so the DELETE is refused like the UPDATE.
+            async with bare.transaction():
+                await bare.execute("SELECT set_config('app.current_tenant', $1, true)", _TENANT_A)
+                with pytest.raises(asyncpg.exceptions.ObjectNotInPrerequisiteStateError):
+                    await bare.execute(f"DELETE FROM {_TABLE} WHERE plan_id=$1", plan_id)
         finally:
             await bare.close()
+        still = await store.get_plan_copy(
+            pool, tenant_id=_TENANT_A, field_id=field_id, plan_id=plan_id
+        )
+        assert still["sample_points"][0]["point"]["coordinates"] == [44.0, 16.0], (
+            "the stored plan point moved after a refused DELETE"
+        )
     finally:
-        await admin.execute(f"DELETE FROM {_TABLE} WHERE plan_id=$1", plan_id)
+        await _purge(admin, plan_id)
         await pool.close()
         await admin.close()
 
@@ -241,6 +261,6 @@ async def test_negative_control_the_66_km_origin_is_refused_against_the_live_cop
         assert on_plan["collection"]["on_plan"] is True
         assert on_plan["indicator_sources"]["ndvi"]["scene_id"] == "S2A_20260501"
     finally:
-        await admin.execute(f"DELETE FROM {_TABLE} WHERE plan_id=$1", plan_id)
+        await _purge(admin, plan_id)
         await pool.close()
         await admin.close()
