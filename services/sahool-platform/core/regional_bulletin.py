@@ -223,7 +223,9 @@ def _complementary_suppression(groups: list[dict[str, Any]], sizes: list[int], k
             break
         is_governorate = "districts" in groups[i]
         identity = {
-            key: groups[i][key] for key in ("governorate", "district", "unmapped") if key in groups[i]
+            key: groups[i][key]
+            for key in ("governorate", "district", "unmapped")
+            if key in groups[i]
         }
         groups[i] = {**identity, **_suppressed()}
         if is_governorate:
@@ -254,9 +256,11 @@ def _district_breakdown(
     if unmapped:
         # The unmapped remainder is a group in its own right for the subtraction argument.
         groups.append(
-            {"district": None, "unmapped": True, **_aggregate_group(
-                [f for f in gov_fields if not f.get("district")], k, thresholds
-            )}
+            {
+                "district": None,
+                "unmapped": True,
+                **_aggregate_group([f for f in gov_fields if not f.get("district")], k, thresholds),
+            }
         )
         sizes.append(unmapped)
     _complementary_suppression(groups, sizes, k)
