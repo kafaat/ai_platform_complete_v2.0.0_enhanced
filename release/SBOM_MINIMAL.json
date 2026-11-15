@@ -20545,7 +20545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc207f0e5a049e18d4093de244824403b31f4c3e415b3755c8b8afb5f4947e6a"
+          "content": "8eb4cb76e15b62fb8cd9240fb00ed654d477a9ef1669b328ce9fdc7e4d1b9d37"
         }
       ],
       "name": "services/knowledge-graph/kg_store.py",
@@ -20555,7 +20555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "807db042bee5dcb3fd80ebaea4fd872006c1765f375d6f116df675154bbf0883"
+          "content": "010fbef2c6d21bbe433bba4b8a7980f5deb061e3c317771f771e9da1aae6f0e6"
         }
       ],
       "name": "services/knowledge-graph/main.py",

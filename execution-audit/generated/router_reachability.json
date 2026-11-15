@@ -82,7 +82,7 @@
     },
     {
       "kind": "app",
-      "line": 86,
+      "line": 87,
       "module": "services.ai_agronomist.main",
       "node_id": "services.ai_agronomist.main:app",
       "route_count": 13,
@@ -262,7 +262,7 @@
     },
     {
       "kind": "app",
-      "line": 23,
+      "line": 26,
       "module": "services.knowledge-graph.main",
       "node_id": "services.knowledge-graph.main:app",
       "route_count": 7,
@@ -2955,7 +2955,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "3ad49f8607543b3ddabd3196d9f80eb0f6d0a2c7bf2b6955a4e9bd3b3714c88d",
+  "inventory_sha256": "57d876111a97063a052a7cb6d221ace7512abf89eb3be49adcb112484dd358e0",
   "orphan_candidate_count": 236,
   "orphan_candidates": [
     {
