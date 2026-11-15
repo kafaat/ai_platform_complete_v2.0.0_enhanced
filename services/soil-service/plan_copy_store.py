@@ -87,11 +87,15 @@ async def field_covers_points(
 
     The check runs in the database (``sahool_field_covers_points``, SECURITY DEFINER, v273):
     soil-service cannot read ``fields`` under RLS, and the function returns one boolean."""
-    covered = await pool.fetchval(
-        "SELECT sahool_field_covers_points($1, $2, $3::jsonb, $4)",
-        tenant_id,
-        field_id,
-        json.dumps(positions),
-        buffer_m,
-    )
+    # The function answers only for the connection's own tenant, so set it first.
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(_SET_TENANT, tenant_id)
+            covered = await conn.fetchval(
+                "SELECT sahool_field_covers_points($1, $2, $3::jsonb, $4)",
+                tenant_id,
+                field_id,
+                json.dumps(positions),
+                buffer_m,
+            )
     return covered is True

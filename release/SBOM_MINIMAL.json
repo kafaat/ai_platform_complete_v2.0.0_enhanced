@@ -9765,7 +9765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f775699751c06c5d2d5db110a098e0bb7dbd00b3fc939bcc285f18e70c28c93"
+          "content": "c52a4300bd498478150b390792cab22b2127b5ac6c1fba23dbbb3c8089c2b43c"
         }
       ],
       "name": "migrations/v273_soil_sampling_plan_copies.sql",
@@ -38135,7 +38135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73d401b4d9956382d823df5226bf0a95598aac2585fc8700af9ed23f9937410c"
+          "content": "2cf5baf2a0a59c57c09c0228d705fee702bca60b2b2f3f0ceeacd813e523d98a"
         }
       ],
       "name": "services/soil-service/plan_copy_store.py",
