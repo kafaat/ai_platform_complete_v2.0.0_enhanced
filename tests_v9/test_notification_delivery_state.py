@@ -79,7 +79,10 @@ def test_every_writer_of_the_table_builds_its_guard_from_the_shared_rule(path):
     ]
     assert calls, f"{path} writes notification_delivery without the shared transition guard"
     source = (ROOT / path).read_text(encoding="utf-8")
-    assert "notification_delivery.status = 'queued'" not in source
+    assert "notification_delivery.status = 'queued'" not in source, (
+        f"{path} spells out its own transition clause: a second copy of the rule can drift "
+        "from shared/notification_delivery_state.py, the drift the #1468 lab follow-up closed"
+    )
     if path.startswith("agents/"):
         # One outcome write in the agent, and it is the guarded constant.
         assert source.count("UPDATE notification_delivery") == 1
