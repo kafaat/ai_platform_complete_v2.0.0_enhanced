@@ -25,15 +25,15 @@
       "tests": 2510,
       "web": 547
     },
-    "unmapped_artifacts": 3498,
+    "unmapped_artifacts": 3499,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
       "python_functional": 3981,
       "raw": 3369
     },
-    "test_dependency_files": 1909,
-    "test_dependency_edges": 4913,
-    "test_dependency_bounded_files": 1119,
+    "test_dependency_files": 1910,
+    "test_dependency_edges": 4915,
+    "test_dependency_bounded_files": 1120,
     "test_dependency_unresolved_relations": 485
   },
   "capabilities": [
@@ -44833,6 +44833,10 @@
     },
     {
       "path": "tests_v9/test_sahool_inspector.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_sahool_inspector_endpoint_authz_ast.py",
       "kind": "tests"
     },
     {
@@ -89983,6 +89987,24 @@
           "source": "tools/sahool_inspector.py",
           "kind": "source_read",
           "line": 18
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_sahool_inspector_endpoint_authz_ast.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "tools/sahool_inspector.py",
+          "kind": "loader",
+          "line": 20
+        },
+        {
+          "source": "tools/sahool_inspector.py",
+          "kind": "source_read",
+          "line": 19
         }
       ],
       "unresolved": []
