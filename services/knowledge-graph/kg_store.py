@@ -404,6 +404,16 @@ def identifier_scope_reason(value: object) -> str | None:
         if _is_scope(token):
             if kind == "strong":
                 return "scope identifier in id or label"
+            if (
+                kind == "hyphen"
+                and nxt.isalpha()
+                and segs[i + 1][1] == ""
+                and i + 2 < len(segs)
+                and segs[i + 2][0].isdigit()
+            ):
+                # ``field-row3``, ``farm-abc7``: one hyphen segment of letters with digits
+                # glued to it is a code whatever the letter count.
+                return "scope identifier in id or label"
             code = _short_code_run(segs, i + 1)
             if kind in {"hyphen", "glued"} and code[:1].isalpha() and _id_like(code):
                 # ``farm-a7`` / ``farmA7`` / ``field-A12``: the letter/digit split must not

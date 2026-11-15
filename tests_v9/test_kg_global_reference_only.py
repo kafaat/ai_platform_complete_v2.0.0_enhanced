@@ -798,7 +798,33 @@ def test_scan_cli_prints_a_row_with_invalid_utf8(tmp_path, capsys):
 
 @pytest.mark.parametrize(
     "value",
-    ["farm-a7", "field-A12", "plot-b3", "site-x1", "grower-g42", "farm-a-12", "farm\u2013a7"],
+    [
+        # behind a hyphen, any letters with digits glued to them
+        "farm-a7",
+        "field-A12",
+        "plot-b3",
+        "site-x1",
+        "grower-g42",
+        "farm-a-12",
+        "farm\u2013a7",
+        "farm-abc7",
+        "field-row3",
+        "field-blk12",
+        "plot-blk3",
+        "grower-abc123",
+        "field-ABC12",
+        "farm-Abc7",
+        "farm-ida7",
+        "farm-idx2",
+        # glued (camelCase): a short code of one or two letters with digits
+        "farmA7",
+        "fieldB12",
+        "plotC3",
+        "siteX1",
+        "tenantA1",
+        "farmAB12",
+        "farmXy7",
+    ],
 )
 def test_a_letter_digit_code_after_a_hyphen_is_refused(value):
     # Final review of #1478: the letter/digit split turned ``a7`` into ``a`` + ``7`` and hid it.
@@ -806,7 +832,25 @@ def test_a_letter_digit_code_after_a_hyphen_is_refused(value):
 
 
 @pytest.mark.parametrize(
-    "value", ["FieldTrial2019", "Farm-to-fork strategy", "Farm-gate price 2024", "plot_2x2_design"]
+    "value",
+    [
+        "FieldTrial2019",
+        "Farm-to-fork strategy",
+        "Farm-gate price 2024",
+        "plot_2x2_design",
+        # reference slugs: the segment after the scope word is a word without digits
+        "Farm-to-fork-2030 strategy",
+        "Farm-gate-price-2024",
+        "on-farm-trial-2019",
+        "Plot-level-yield-2020",
+        "Multi-site-trial-3",
+        "field-capacity-33kpa",
+        "farm-level-CO2",
+        "Site-specific-N2O emissions",
+        "Field-scale-2D model",
+        "Field-grown-tomato-F1",
+        "Field-pea-cv-L1",
+    ],
 )
 def test_glued_codes_elsewhere_still_follow_the_documented_rule(value):
     assert kg.identifier_scope_reason(value) is None, value

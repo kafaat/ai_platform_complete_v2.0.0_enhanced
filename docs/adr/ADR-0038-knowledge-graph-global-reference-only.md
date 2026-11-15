@@ -96,8 +96,11 @@ looks like an identifier.
   `field7`, `farm12`, `customerId42`. Behind `-` or glued, a short code also counts:
   a run of tokens of at most two letters or digits, joined by `-` or glued, that
   starts with a letter and contains a digit (`farm-a7`, `farmA7`, `field-A12`,
-  `farm-a-12`, `farmAB12`). A longer word ends the run, so `FieldTrial2019`,
-  `field-capacity-33kpa` and `Farm-to-fork-2030` pass. For `tenant`, `org`, `organization` and
+  `farm-a-12`, `farmAB12`). Behind `-`, a segment of letters of any length with
+  digits glued to it is also a code (`field-row3`, `farm-abc7`). A longer word
+  without digits ends the run, so `FieldTrial2019`, `field-capacity-33kpa` and
+  `Farm-to-fork-2030` pass. Glued (camelCase) codes of three letters or more
+  (`farmABC12`, `farmabc7`) are not refused, so that `FieldTrial2019` stays legal. For `tenant`, `org`, `organization` and
   `organisation`, which are never agronomic prose, any token behind `-`:
   `tenant-acme`.
 - After it, behind `_`, an id suffix: `farm_id`.
