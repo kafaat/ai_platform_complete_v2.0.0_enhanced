@@ -6,14 +6,13 @@
 //   POST /api/v1/sharing/keys      → useCreateSharingKey
 // الصدق (ما هو حقيقيّ): الخادم يدعم تقييد المفتاح بحقول محدّدة عبر
 // allowed_field_ids — وهذا هو «المستوى الحقليّ» الفعليّ للمشاركة. النطاق
-// (scope) = 'read' | 'read_write'. لا «حذف/إلغاء» مفتاح من الواجهة (لا نقطة
-// إلغاء مكشوفة عبر هذه الـAPI) — نعرض حالة الإلغاء (revoked_at) إن وردت من
-// الخادم فقط. المفتاح النصّيّ الكامل يُعرَض **مرّة واحدة** بعد الإنشاء ثمّ يُهمَل
+// (scope) = 'read' | 'read_write'. الإلغاء الآن عبر POST /sharing/keys/{id}/revoke.
+// المفتاح النصّيّ الكامل يُعرَض **مرّة واحدة** بعد الإنشاء ثمّ يُهمَل
 // (لا يُعاد عرضه أبداً) — نُبرز ذلك بصدق. يُعاد استخدام عناصر نظام التصميم (DS).
 // واعٍ RTL. مُقيَّد بالدور: الإنشاء يتطلّب صلاحيّة دعوة (canManage) — والإنفاذ
 // الحقيقيّ خادم-جانبيّ (403 لغير المخوّل).
 // ═══════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { KeyRound, Plus, Copy, Check, AlertTriangle, Share2 } from 'lucide-react';
 import { useSharingKeys, useCreateSharingKey } from '../../hooks/useApi';
 import { useSelectedField } from '../../hooks/useSelectedField';
@@ -285,7 +284,7 @@ export default function SharingPanel() {
   const [revokingKeyId, setRevokingKeyId] = useState<string | null>(null);
   const [revokeError, setRevokeError] = useState<string | null>(null);
 
-  const revokeKey = async (keyId: string) => {
+  const revokeKey = useCallback(async (keyId: string) => {
     if (!window.confirm('إلغاء صلاحية هذا المفتاح؟ لا يمكن إعادة تفعيله.')) return;
     setRevokingKeyId(keyId);
     setRevokeError(null);
@@ -297,7 +296,7 @@ export default function SharingPanel() {
     } finally {
       setRevokingKeyId(null);
     }
-  };
+  }, [refetch]);
 
   const keys: SharingKey[] = data ?? [];
 
@@ -366,7 +365,7 @@ export default function SharingPanel() {
         ) : <span style={{ color: T.muted }}>—</span>,
       },
     ];
-  }, [manageable, revokingKeyId, refetch]);
+  }, [manageable, revokingKeyId, revokeKey]);
 
   return (
     <Card>
