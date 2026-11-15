@@ -15,6 +15,7 @@ from statistics import mean
 from typing import Any
 
 from core.ai_policy_envelope import build_ai_policy_envelope, load_tenant_ai_policy_row
+from core.crop_intelligence.advisor_reference import compose_advisor_crop_reference
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -38,6 +39,7 @@ class FieldAiContextPack(BaseModel):
     generated_at: str
     field_profile: dict[str, Any] = Field(default_factory=dict)
     active_season: dict[str, Any] | None = None
+    crop_knowledge: dict[str, Any] = Field(default_factory=dict)
     imagery_timeline: dict[str, Any] = Field(default_factory=dict)
     weather_history: dict[str, Any] = Field(default_factory=dict)
     operations_timeline: dict[str, Any] = Field(default_factory=dict)
@@ -242,6 +244,7 @@ def _apply_final_context_budget(
     payload["active_season"] = (
         _redact_context(payload.get("active_season")) if payload.get("active_season") else None
     )
+    payload["crop_knowledge"] = _redact_context(payload.get("crop_knowledge") or {})
     for section in (
         "operations_timeline",
         "drawing_context",
@@ -492,6 +495,13 @@ async def _optional_imagery_timeline(
         warnings.append("ndvi_grid: acquisition_outside_requested_window_or_unknown")
         ndvi_grid, ndvi_grid_quality = None, None
     total_dates = sum(int(v.get("total", 0)) for v in per_indicator.values())
+    # Preserve total_dates as indicator-record count; also expose distinct scene dates.
+    scene_dates: set[str] = set()
+    for block in per_indicator.values():
+        for item in block.get("dates") or []:
+            observed = item.get("date") if isinstance(item, dict) else item
+            if isinstance(observed, str) and len(observed) >= 10:
+                scene_dates.add(observed[:10])
     result: dict[str, Any] = {
         "available": total_dates > 0,
         "range_days": days,
@@ -499,7 +509,8 @@ async def _optional_imagery_timeline(
         "until": date.today().isoformat(),
         "per_indicator": per_indicator,
         "total_dates": total_dates,
-        "note_ar": "يعرض فقط المشاهد الموجودة/المجهزة؛ استخدم imagery/backfill custom months=24 لتجهيز سنتين.",
+        "unique_scene_dates": len(scene_dates),
+        "note_ar": "total_dates=سجلات المؤشرات؛ unique_scene_dates=تواريخ الالتقاط الفريدة.",
         "freshness_score": _freshness_score(
             [
                 item
@@ -583,13 +594,18 @@ async def _optional_weather_history(
             for d in records
             if d.temp_max_c is not None and d.temp_min_c is not None
         ]
-        precip_vals = [float(d.precipitation_mm or 0) for d in records]
-        et0_vals = [float(d.et0_mm or 0) for d in records]
+        # Unobserved rain/ET0 must not be silently rewritten into measured zero.
+        precip_vals = [float(d.precipitation_mm) for d in records if d.precipitation_mm is not None]
+        et0_vals = [float(d.et0_mm) for d in records if d.et0_mm is not None]
+        precip_complete = len(precip_vals) == len(records)
+        et0_complete = len(et0_vals) == len(records)
         summary = {
             "days": len(records),
             "avg_temp_c": round(mean(temp_vals), 2) if temp_vals else None,
-            "total_precipitation_mm": round(sum(precip_vals), 2),
-            "total_et0_mm": round(sum(et0_vals), 2),
+            "precipitation_covered_days": len(precip_vals),
+            "et0_covered_days": len(et0_vals),
+            "total_precipitation_mm": round(sum(precip_vals), 2) if precip_complete else None,
+            "total_et0_mm": round(sum(et0_vals), 2) if et0_complete else None,
             "first_date": records[0].date,
             "last_date": records[-1].date,
         }
@@ -597,16 +613,31 @@ async def _optional_weather_history(
         monthly: dict[str, dict[str, Any]] = {}
         for d in records:
             key = str(d.date)[:7]
-            b = monthly.setdefault(key, {"days": 0, "precipitation_mm": 0.0, "et0_mm": 0.0})
+            b = monthly.setdefault(key, {
+                "days": 0, "precipitation_mm": 0.0, "et0_mm": 0.0,
+                "precipitation_covered_days": 0, "et0_covered_days": 0,
+            })
             b["days"] += 1
-            b["precipitation_mm"] += float(d.precipitation_mm or 0)
-            b["et0_mm"] += float(d.et0_mm or 0)
+            if d.precipitation_mm is not None:
+                b["precipitation_mm"] += float(d.precipitation_mm)
+                b["precipitation_covered_days"] += 1
+            if d.et0_mm is not None:
+                b["et0_mm"] += float(d.et0_mm)
+                b["et0_covered_days"] += 1
         monthly_items = [
             {
                 "month": k,
                 "days": v["days"],
-                "precipitation_mm": round(v["precipitation_mm"], 2),
-                "et0_mm": round(v["et0_mm"], 2),
+                "precipitation_covered_days": v["precipitation_covered_days"],
+                "et0_covered_days": v["et0_covered_days"],
+                "precipitation_mm": (
+                    round(v["precipitation_mm"], 2)
+                    if v["precipitation_covered_days"] == v["days"] else None
+                ),
+                "et0_mm": (
+                    round(v["et0_mm"], 2)
+                    if v["et0_covered_days"] == v["days"] else None
+                ),
             }
             for k, v in sorted(monthly.items())
         ]
@@ -623,7 +654,10 @@ async def _optional_weather_history(
                     "weather_history", "available", service="open-meteo-archive", total=len(records)
                 )
             ],
-        }, None
+        }, (
+            "weather_history_incomplete: missing precipitation or ET0 observations"
+            if not (precip_complete and et0_complete) else None
+        )
     except Exception as exc:  # noqa: BLE001
         return {
             "available": False,
@@ -642,14 +676,17 @@ def _summary_ar(pack: dict[str, Any]) -> str:
     parts = [
         f"سياق الحقل {name}:",
         f"نطاق الذاكرة {pack.get('days')} يوم.",
-        f"مشاهد الأقمار المتاحة: {imagery.get('total_dates', 0)}.",
+        f"تواريخ التصوير الفريدة: {imagery.get('unique_scene_dates', 0)}؛ "
+        f"سجلات المؤشرات: {imagery.get('total_dates', 0)}.",
         f"أحداث timeline: {events.get('total', 0)}.",
         f"هندسات ومناطق محفوظة: {drawings.get('total', 0)}.",
     ]
     if weather.get("available"):
         s = weather.get("summary") or {}
         parts.append(
-            f"طقس تاريخي: {s.get('days')} يوم، مطر تراكمي {s.get('total_precipitation_mm')} مم، ET0 {s.get('total_et0_mm')} مم."
+            f"طقس تاريخي: {s.get('days')} يوم، مطر "
+            f"{s.get('total_precipitation_mm') if s.get('total_precipitation_mm') is not None else 'غير مكتمل'} مم، "
+            f"ET0 {s.get('total_et0_mm') if s.get('total_et0_mm') is not None else 'غير مكتمل'} مم."
         )
     else:
         parts.append("الطقس التاريخي غير متاح لهذا الحقل حالياً.")
@@ -701,6 +738,7 @@ async def field_ai_context_pack(
         # envelope is tenant-scoped. A missing row (or read failure) ⇒ most-restrictive envelope.
         ai_policy_row = await load_tenant_ai_policy_row(conn, str(user.tenant_id))
 
+    crop_knowledge = compose_advisor_crop_reference(field_profile, active_season)
     imagery = {"available": False, "per_indicator": {}, "total_dates": 0}
     if include_imagery:
         imagery, warn = await _optional_imagery_timeline(field_id, str(user.tenant_id), days)
@@ -725,6 +763,7 @@ async def field_ai_context_pack(
         "generated_at": datetime.now(UTC).isoformat(),
         "field_profile": field_profile,
         "active_season": active_season,
+        "crop_knowledge": crop_knowledge,
         "imagery_timeline": imagery,
         "weather_history": weather,
         "operations_timeline": operations,
