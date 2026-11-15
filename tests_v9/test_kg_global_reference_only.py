@@ -31,7 +31,8 @@ TOKEN = "k" * 32
 WRITE_HEADERS = {"X-Agent-Token": TOKEN}
 CODE = "kg_tenant_scoped_data_forbidden"
 
-# Every forbidden identifier named in the decision, plus spelling variants the
+# Every forbidden identifier named in the decision, the near-variants found in the
+# #1478 review (all of which were stored before), and spelling variants the
 # normaliser must catch.
 FORBIDDEN_KEYS = [
     "tenant_id",
@@ -43,12 +44,59 @@ FORBIDDEN_KEYS = [
     "tenantId",
     "Field-ID",
     "FARM_ID",
+    "farmer_id",
+    "plot_id",
+    "parcel_id",
+    "org_id",
+    "organization_id",
+    "customer_id",
+    "account_id",
+    "created_by",
+    "email",
+    "tenant_uuid",
+    "field_uuid",
+    "tenants",
+    "farm_ids",
+    "geometry",
+    "\uff54\uff45\uff4e\uff41\uff4e\uff54_id",  # full-width tenant_id
+    "tenantid",
+    "source.tenant",
 ]
 PRIVATE_MARKS = [
     {"private": True},
+    {"private": "true"},
     {"is_private": True},
+    {"isPrivate": 1},
     {"visibility": "private"},
+    {"visibility": ["private"]},
+    {"visibility": "restricted"},
+    {"visibility": None},
     {"scope": "tenant"},
+    {"scope": "organization"},
+    {"access": "user"},
+]
+# Agronomic compounds on the explicit allowlist: reference concepts, not scopes.
+ALLOWED_KEYS = ["field_capacity", "fieldCapacity", "field_capacity_pct", "farm_gate_price"]
+# Ids, labels and names that encode a tenant/farm/field scope.
+SCOPED_IDENTIFIERS = [
+    ("node_id", "tenant:acme/farm:12/field:7"),
+    ("node_id", "tenant-acme-wheat"),
+    ("node_id", "org:7"),
+    ("node_id", "field:7"),
+    ("node_id", "farm-12"),
+    ("node_id", "plot_3b"),
+    ("node_id", "customerId42"),
+    ("label", "Tenant acme"),
+    ("name", "field/7 wheat"),
+]
+# Reference vocabulary that merely contains a scope word: still allowed.
+REFERENCE_IDENTIFIERS = [
+    ("label", "Field"),
+    ("label", "Farm"),
+    ("node_id", "field_crops"),
+    ("node_id", "field_pea"),
+    ("node_id", "field_capacity"),
+    ("name", "Field trial"),
 ]
 
 
@@ -139,7 +187,13 @@ def test_store_accepts_a_pure_reference_write(store):
             "barley",
             "Crop",
             "Barley",
-            {"source": "FAO", "private": False, "visibility": "global", "fields_of_use": ["feed"]},
+            {
+                "source": "FAO",
+                "private": False,
+                "visibility": "global",
+                "field_capacity": 0.31,
+                "access": "public",
+            },
         )
     )
     store.upsert_edge(
@@ -310,3 +364,145 @@ def test_writes_still_require_the_service_token(api):
     _main, client = api
     r = client.post("/v1/nodes", json={"node_id": "barley", "label": "Crop", "name": "B"})
     assert r.status_code == 403 and r.json()["detail"] == "service_token_required"
+
+
+# ── #1478 review: near-variants, encodings, ids and labels ────────────────────────
+
+
+@pytest.mark.parametrize("key", ALLOWED_KEYS)
+def test_allowlisted_agronomic_compounds_are_accepted(store, key):
+    store.upsert_node(kg.GraphNode("loam", "SoilTexture", "Loam", {key: 0.3}))
+    assert "loam" in _node_ids(store)
+
+
+@pytest.mark.parametrize("key", ["field_owner", "farm_gate_owner", "field_capacity_tenant"])
+def test_the_allowlist_is_not_a_loophole(store, key):
+    with pytest.raises(kg.TenantScopedDataError):
+        store.upsert_node(kg.GraphNode("loam", "SoilTexture", "Loam", {key: 1}))
+
+
+@pytest.mark.parametrize(
+    "blob",
+    [
+        '{"tenant_id": "acme"}',
+        ' {"meta": {"farm_id": 12}} ',
+        '[{"visibility": "private"}]',
+    ],
+)
+def test_json_string_values_are_parsed_and_checked(api, blob):
+    _main, client = api
+    body = {"node_id": "barley", "label": "Crop", "name": "Barley", "properties": {"raw": blob}}
+    r = client.post("/v1/nodes", json=body, headers=WRITE_HEADERS)
+    assert r.status_code == 422 and r.json()["detail"]["code"] == CODE
+    assert "<json>" in r.json()["detail"]["path"]
+
+
+def test_a_field_polygon_under_geometry_is_refused(api):
+    _main, client = api
+    polygon = {"type": "Polygon", "coordinates": [[[44.1, 15.3], [44.2, 15.3], [44.1, 15.4]]]}
+    body = {"node_id": "barley", "label": "Crop", "name": "B", "properties": {"geometry": polygon}}
+    _assert_refused(client.post("/v1/nodes", json=body, headers=WRITE_HEADERS), "geometry")
+
+
+@pytest.mark.parametrize("value", ["false", "False", "no", "0", False, 0])
+def test_private_false_does_not_count_as_private(store, value):
+    store.upsert_node(kg.GraphNode("loam", "SoilTexture", "Loam", {"private": value}))
+    assert "loam" in _node_ids(store)
+
+
+@pytest.mark.parametrize("value", ["global", "public", "Public"])
+def test_global_or_public_visibility_is_accepted(store, value):
+    for key in ("visibility", "scope", "access"):
+        store.upsert_node(kg.GraphNode("loam", "SoilTexture", "Loam", {key: value}))
+    assert "loam" in _node_ids(store)
+
+
+@pytest.mark.parametrize(("field", "value"), SCOPED_IDENTIFIERS)
+def test_rest_node_with_a_scoped_id_or_label_is_refused(api, field, value):
+    _main, client = api
+    body = {"node_id": "barley", "label": "Crop", "name": "Barley", field: value}
+    _assert_refused(client.post("/v1/nodes", json=body, headers=WRITE_HEADERS), field)
+
+
+@pytest.mark.parametrize("edge_id", ["tenant-acme-e", "farm:12:e1", "e-field-7"])
+def test_rest_edge_with_a_scoped_edge_id_is_refused_and_never_read_back(api, edge_id):
+    main, client = api
+    body = {
+        "edge_id": edge_id,
+        "subject_id": "wheat",
+        "relation": "historically_susceptible_to",
+        "object_id": "stripe_rust",
+    }
+    _assert_refused(client.post("/v1/edges", json=body, headers=WRITE_HEADERS), "edge_id")
+    r = client.get("/v1/edges", headers={"X-Tenant-Id": "tenant-b"})
+    assert edge_id not in {e["edge_id"] for e in r.json()["edges"]}
+
+
+@pytest.mark.parametrize(("field", "value"), REFERENCE_IDENTIFIERS)
+def test_reference_vocabulary_ids_and_labels_are_accepted(api, field, value):
+    _main, client = api
+    body = {"node_id": "barley", "label": "Crop", "name": "Barley", field: value}
+    r = client.post("/v1/nodes", json=body, headers=WRITE_HEADERS)
+    assert r.status_code == 200, r.text
+
+
+# ── read-only scan of rows stored before the guard ───────────────────────────────
+
+
+def test_scan_reports_existing_violations_without_deleting(tmp_path):
+    db = tmp_path / "legacy.sqlite"
+    s = kg.SQLiteAgGraphStore(db)
+    kg.seed_reference_ontology(s)
+    # Simulate rows written before the guard existed, bypassing upsert_*.
+    with s._connect() as conn:
+        conn.execute(
+            "INSERT INTO kg_nodes VALUES(?,?,?,?)",
+            ("tenant:acme/field:7", "Field", "Acme field 7", "{}"),
+        )
+        conn.execute(
+            "INSERT INTO kg_nodes VALUES(?,?,?,?)",
+            ("barley", "Crop", "Barley", '{"meta": {"farm_id": 12}}'),
+        )
+        conn.execute(
+            "INSERT INTO kg_edges VALUES(?,?,?,?,?,?,?)",
+            (
+                "e-legacy",
+                "wheat",
+                "historically_limits",
+                "barley",
+                "reference",
+                0,
+                '{"private": true}',
+            ),
+        )
+    before = db.read_bytes()
+    findings = kg.scan_existing_rows(db)
+    assert sorted((f["table"], f["id"], f["path"]) for f in findings) == [
+        ("kg_edges", "e-legacy", "properties.private"),
+        ("kg_nodes", "barley", "properties.meta.farm_id"),
+        ("kg_nodes", "tenant:acme/field:7", "node_id"),
+    ]
+    assert db.read_bytes() == before, "the scan must not write"
+    assert s.count_edges() == 5
+
+
+def test_scan_cli_exit_codes(tmp_path, capsys):
+    clean = tmp_path / "clean.sqlite"
+    kg.seed_reference_ontology(kg.SQLiteAgGraphStore(clean))
+    assert kg._main(["--scan", str(clean)]) == 0
+    assert '"violations": []' in capsys.readouterr().out
+    dirty = tmp_path / "dirty.sqlite"
+    s = kg.SQLiteAgGraphStore(dirty)
+    with s._connect() as conn:
+        conn.execute("INSERT INTO kg_nodes VALUES('org:9','Org','x','{}')")
+    assert kg._main(["--scan", str(dirty)]) == 1
+
+
+def test_scan_opens_the_database_read_only(tmp_path):
+    db = tmp_path / "ro.sqlite"
+    kg.SQLiteAgGraphStore(db)
+    db.chmod(0o444)
+    try:
+        assert kg.scan_existing_rows(db) == []
+    finally:
+        db.chmod(0o644)

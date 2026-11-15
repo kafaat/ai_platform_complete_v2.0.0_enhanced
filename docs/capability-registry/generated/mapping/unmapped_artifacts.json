@@ -5136,10 +5136,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/knowledge-graph/kg_store.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/knowledge-graph/main.py",
     "kind": "backend"
   },

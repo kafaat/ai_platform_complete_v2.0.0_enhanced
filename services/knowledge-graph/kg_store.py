@@ -14,7 +14,10 @@ private (``TenantScopedDataError``).
 
 from __future__ import annotations
 
+import json
+import re
 import sqlite3
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -54,28 +57,80 @@ class GraphEdge:
             raise ValueError("Use reference relation names such as historically_used_for")
 
 
-# Keys that bind a record to a tenant, farm, field or user. Compared after
-# normalisation (lower-case, separators removed), so ``tenant_id``, ``tenantId``,
-# ``Tenant-ID`` and ``TENANT_ID`` all match.
-FORBIDDEN_SCOPE_KEYS = frozenset(
+# ── #1472 / ADR-0038: the global-reference-only write guard ─────────────────────
+#
+# Keys are normalised (NFKC, case-folded) and split into tokens on ``_ - .``,
+# whitespace and camelCase boundaries; plural tokens are reduced to the singular.
+# So ``tenant_id``, ``tenantId``, ``TENANT-UUID``, ``tenants``, ``farm_ids`` and a
+# full-width ``ｔｅｎａｎｔ_id`` all yield a ``tenant``/``farm`` token.
+
+# A key holding any of these tokens binds the record to a tenant, farm, field, user
+# or organisation and is refused.
+SCOPE_TOKENS = frozenset(
     {
         "tenant",
-        "tenantid",
         "farm",
-        "farmid",
+        "farmer",
         "field",
-        "fieldid",
+        "plot",
+        "parcel",
+        "org",
+        "organization",
+        "organisation",
         "user",
-        "userid",
         "owner",
-        "ownerid",
+        "account",
+        "customer",
     }
 )
-# Keys that, when truthy, mark a record private.
-PRIVATE_FLAG_KEYS = frozenset({"private", "isprivate"})
-# Keys whose value names the record's visibility; these values mark it non-global.
+# A key token glued to an identifier suffix (``tenantid``, ``farmuuid``) counts too.
+_ID_SUFFIXES = ("id", "uuid", "key", "ref", "code")
+# Token sequences that bind a record to a person.
+SCOPE_TOKEN_SEQUENCES = frozenset({("created", "by"), ("updated", "by"), ("owned", "by")})
+# Keys that carry personal or location data: refused whatever the value.
+PERSONAL_OR_LOCATION_TOKENS = frozenset(
+    {"email", "geometry", "geom", "geojson", "polygon", "multipolygon", "wkt", "wkb"}
+)
+# Explicit allowlist of agronomic compounds whose first token is a scope word but
+# that name reference concepts, not a scope. Matched as whole token pairs; nothing
+# else is exempt. Tested in tests_v9/test_kg_global_reference_only.py.
+AGRONOMIC_COMPOUNDS = frozenset(
+    {
+        ("field", "capacity"),  # soil water held after drainage
+        ("field", "crop"),  # crop category (field crops vs horticulture)
+        ("field", "pea"),  # Pisum sativum var. arvense
+        ("field", "bean"),  # Vicia faba
+        ("farm", "gate"),  # farm-gate price, a market reference
+    }
+)
+# Visibility keys: only these values mean global; anything else is private.
 VISIBILITY_KEYS = frozenset({"visibility", "scope", "access"})
-NON_GLOBAL_VISIBILITY = frozenset({"private", "tenant", "farm", "field", "user"})
+GLOBAL_VISIBILITY = frozenset({"global", "public"})
+# Keys that mark a record private when their value is true.
+PRIVATE_FLAG_KEYS = frozenset({("private",), ("is", "private")})
+_FALSE_STRINGS = frozenset({"false", "no", "0", "off", "n", ""})
+
+# Identifier values (node_id, edge_id, subject_id, object_id, label, name,
+# relation). A token from the strict set followed by anything is a scope id
+# (``tenant-acme``, ``org:7``). A token from the ambiguous set, which is also
+# agronomic vocabulary, is a scope id only when followed by ``: / = # @`` or by a
+# token containing a digit (``field:7``, ``farm-12``). A bare label ``Field`` or a
+# reference id ``field_crops`` stays allowed.
+STRICT_ID_SCOPE_TOKENS = frozenset(
+    {
+        "tenant",
+        "org",
+        "organization",
+        "organisation",
+        "user",
+        "owner",
+        "account",
+        "customer",
+        "farmer",
+    }
+)
+AMBIGUOUS_ID_SCOPE_TOKENS = frozenset({"farm", "field", "plot", "parcel"})
+IDENTIFIER_FIELDS = ("node_id", "edge_id", "subject_id", "object_id", "label", "name", "relation")
 
 TENANT_SCOPED_DATA_ERROR = "kg_tenant_scoped_data_forbidden"
 
@@ -95,36 +150,153 @@ class TenantScopedDataError(Exception):
         super().__init__(f"{TENANT_SCOPED_DATA_ERROR}: {reason} at {path!r}")
 
 
-def _normalise_key(key: object) -> str:
-    return "".join(ch for ch in str(key).lower() if ch.isalnum())
+_CAMEL_BOUNDARY = re.compile(r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
+_KEY_SPLIT = re.compile(r"[\s_\-.]+")
+_VALUE_SPLIT = re.compile(r"([:/=#@|,;\s_\-.]+)")
+_STRONG_SEPARATOR = re.compile(r"[:/=#@]")
+
+
+def _singular(token: str) -> str:
+    if len(token) > 4 and token.endswith("ies"):
+        return token[:-3] + "y"
+    if len(token) > 3 and token.endswith("s") and not token.endswith("ss"):
+        return token[:-1]
+    return token
+
+
+def _tokens(text: str) -> list[str]:
+    text = unicodedata.normalize("NFKC", str(text))
+    text = _CAMEL_BOUNDARY.sub("_", text)
+    return [_singular(t.casefold()) for t in _KEY_SPLIT.split(text) if t]
+
+
+def _drop_agronomic_compounds(tokens: list[str]) -> list[str]:
+    out: list[str] = []
+    i = 0
+    while i < len(tokens):
+        if i + 1 < len(tokens) and (tokens[i], tokens[i + 1]) in AGRONOMIC_COMPOUNDS:
+            i += 2
+            continue
+        out.append(tokens[i])
+        i += 1
+    return out
+
+
+def _is_scope_token(token: str) -> bool:
+    if token in SCOPE_TOKENS:
+        return True
+    for base in SCOPE_TOKENS:
+        for suffix in _ID_SUFFIXES:
+            if token in (base + suffix, base + suffix + "s"):
+                return True
+    return False
+
+
+def key_scope_reason(key: object) -> str | None:
+    """Why ``key`` may not appear in the global graph, or ``None`` if it may."""
+    tokens = _tokens(str(key))
+    if tuple(tokens) in PRIVATE_FLAG_KEYS or (len(tokens) == 1 and tokens[0] in VISIBILITY_KEYS):
+        return None  # decided on the value, see _value_reason
+    for a, b in zip(tokens, tokens[1:], strict=False):
+        if (a, b) in SCOPE_TOKEN_SEQUENCES:
+            return "scope identifier key"
+    for token in tokens:
+        if token in PERSONAL_OR_LOCATION_TOKENS:
+            return "personal or location data key"
+    if any(_is_scope_token(t) for t in _drop_agronomic_compounds(tokens)):
+        return "scope identifier key"
+    return None
+
+
+def _value_reason(key: object, value: Any) -> str | None:
+    tokens = tuple(_tokens(str(key)))
+    if tokens in PRIVATE_FLAG_KEYS:
+        if isinstance(value, str):
+            return None if value.strip().casefold() in _FALSE_STRINGS else "record marked private"
+        return "record marked private" if value else None
+    if len(tokens) == 1 and tokens[0] in VISIBILITY_KEYS:
+        if isinstance(value, str) and value.strip().casefold() in GLOBAL_VISIBILITY:
+            return None
+        return "non-global visibility"
+    return None
+
+
+def identifier_scope_reason(value: object) -> str | None:
+    """Why an id, label or name encodes a tenant/farm/field scope, or ``None``."""
+    if not isinstance(value, str):
+        return None
+    text = unicodedata.normalize("NFKC", value)
+    parts = _VALUE_SPLIT.split(_CAMEL_BOUNDARY.sub("_", text))
+    # parts alternates token, separator, token, ...
+    tokens = [
+        (parts[i], parts[i + 1] if i + 1 < len(parts) else "") for i in range(0, len(parts), 2)
+    ]
+    tokens = [(_singular(t.casefold()), sep) for t, sep in tokens if t]
+    for index, (token, sep) in enumerate(tokens):
+        nxt = tokens[index + 1][0] if index + 1 < len(tokens) else None
+        if nxt is None:
+            continue
+        if (token, nxt) in AGRONOMIC_COMPOUNDS:
+            continue
+        if token in STRICT_ID_SCOPE_TOKENS or any(
+            token == base + suffix for base in STRICT_ID_SCOPE_TOKENS for suffix in _ID_SUFFIXES
+        ):
+            return "scope identifier in id or label"
+        if token in AMBIGUOUS_ID_SCOPE_TOKENS and (
+            _STRONG_SEPARATOR.search(sep) or any(ch.isdigit() for ch in nxt)
+        ):
+            return "scope identifier in id or label"
+    return None
+
+
+def _maybe_json(value: str) -> Any:
+    stripped = value.strip()
+    if not stripped or stripped[0] not in "{[":
+        return None
+    try:
+        return json.loads(stripped)
+    except ValueError:
+        return None
 
 
 def assert_global_reference_payload(payload: Any, path: str = "") -> None:
     """Refuse a payload that carries tenant/farm/field/user scope or a private mark.
 
-    Walks nested mappings and lists, so a key hidden in ``properties`` or
-    ``properties.metadata`` is found as well as one at the top level. A key such as
-    ``field_id`` is refused whatever its value, including ``None``: the key itself
-    declares a scope this store does not have.
+    Walks nested mappings and lists, and string values that hold a JSON object or
+    array, so a key hidden in ``properties``, ``properties.metadata`` or an encoded
+    blob is found as well as one at the top level. A scope key is refused whatever
+    its value, including ``None``: the key itself declares a scope this store does
+    not have.
     """
     if isinstance(payload, dict):
         for key, value in payload.items():
             here = f"{path}.{key}" if path else str(key)
-            norm = _normalise_key(key)
-            if norm in FORBIDDEN_SCOPE_KEYS:
-                raise TenantScopedDataError(here, "scope identifier key")
-            if norm in PRIVATE_FLAG_KEYS and value:
-                raise TenantScopedDataError(here, "record marked private")
-            if (
-                norm in VISIBILITY_KEYS
-                and isinstance(value, str)
-                and value.strip().lower() in NON_GLOBAL_VISIBILITY
-            ):
-                raise TenantScopedDataError(here, "non-global visibility")
+            reason = key_scope_reason(key) or _value_reason(key, value)
+            if reason:
+                raise TenantScopedDataError(here, reason)
             assert_global_reference_payload(value, here)
     elif isinstance(payload, (list, tuple)):
         for index, item in enumerate(payload):
             assert_global_reference_payload(item, f"{path}[{index}]")
+    elif isinstance(payload, str):
+        decoded = _maybe_json(payload)
+        if decoded is not None:
+            assert_global_reference_payload(decoded, f"{path}<json>")
+
+
+def assert_global_reference_identifiers(record: Any) -> None:
+    """Refuse a node or edge whose id, label, name or relation encodes a scope."""
+    for field_name in IDENTIFIER_FIELDS:
+        value = getattr(record, field_name, None)
+        reason = identifier_scope_reason(value)
+        if reason:
+            raise TenantScopedDataError(field_name, reason)
+
+
+def assert_global_reference_record(record: Any) -> None:
+    """The full #1472 check for a ``GraphNode`` or ``GraphEdge``."""
+    assert_global_reference_identifiers(record)
+    assert_global_reference_payload(record.properties or {}, "properties")
 
 
 class EdgeConflictError(Exception):
@@ -203,7 +375,7 @@ class SQLiteAgGraphStore:
         import json
 
         # #1472 write boundary: every node write passes here (REST, seeding).
-        assert_global_reference_payload(node.properties or {}, "properties")
+        assert_global_reference_record(node)
         with self._connect() as conn:
             conn.execute(
                 "INSERT INTO kg_nodes(node_id,label,name,properties_json) VALUES(?,?,?,?) "
@@ -220,7 +392,7 @@ class SQLiteAgGraphStore:
         import json
 
         # #1472 write boundary: every edge write passes here (REST, seeding).
-        assert_global_reference_payload(edge.properties or {}, "properties")
+        assert_global_reference_record(edge)
         with self._connect() as conn:
             # The WHERE makes the conflict path a no-op when the stored endpoints differ;
             # rowcount 0 then means the edge_id is taken by another (subject, object).
@@ -336,3 +508,55 @@ def graphql_readonly(store: SQLiteAgGraphStore, query: str) -> dict[str, Any]:
     if 'relation:"' in query:
         relation = query.split('relation:"', 1)[1].split('"', 1)[0]
     return {"edges": store.query_edges(subject_id=subject, relation=relation)}
+
+
+def scan_existing_rows(db_path: str | Path) -> list[dict[str, Any]]:
+    """Report stored rows that violate the #1472 rule. Read-only; deletes nothing.
+
+    The write guard only sees new writes. Rows already in ``/data/kg.sqlite`` from
+    before it existed are checked here: the database is opened with
+    ``mode=ro``, every node and edge is passed through the same checks, and each
+    violation is returned as ``{"table", "id", "path", "reason"}``.
+    """
+    uri = f"{Path(db_path).resolve().as_uri()}?mode=ro"
+    findings: list[dict[str, Any]] = []
+    conn = sqlite3.connect(uri, uri=True)
+    try:
+        conn.row_factory = sqlite3.Row
+        for table, id_col in (("kg_nodes", "node_id"), ("kg_edges", "edge_id")):
+            for row in conn.execute(f"SELECT * FROM {table}"):  # noqa: S608 - fixed names
+                data = dict(row)
+                try:
+                    props = json.loads(data.pop("properties_json") or "{}")
+                except ValueError:
+                    props = data.get("properties_json")
+                fields = {k: v for k, v in data.items() if k in IDENTIFIER_FIELDS}
+                record = type("StoredRow", (), {**fields, "properties": props})()
+                try:
+                    assert_global_reference_record(record)
+                except TenantScopedDataError as exc:
+                    findings.append(
+                        {"table": table, "id": data[id_col], "path": exc.path, "reason": exc.reason}
+                    )
+    finally:
+        conn.close()
+    return findings
+
+
+def _main(argv: list[str] | None = None) -> int:
+    """``python -m kg_store --scan [DB]``: print violations as JSON; exit 1 if any."""
+    import argparse
+    import os
+
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--scan", nargs="?", const=os.getenv("KG_SQLITE_PATH", "/data/kg.sqlite"))
+    args = parser.parse_args(argv)
+    if not args.scan:
+        parser.error("--scan [DB] is the only action")
+    findings = scan_existing_rows(args.scan)
+    print(json.dumps({"db": str(args.scan), "violations": findings}, ensure_ascii=False, indent=2))
+    return 1 if findings else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(_main())

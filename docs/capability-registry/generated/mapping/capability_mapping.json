@@ -25,7 +25,7 @@
       "tests": 2510,
       "web": 547
     },
-    "unmapped_artifacts": 3499,
+    "unmapped_artifacts": 3498,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
       "python_functional": 3981,
@@ -2045,6 +2045,14 @@
           ]
         },
         {
+          "path": "services/knowledge-graph/kg_store.py",
+          "score": 10,
+          "signals": [
+            "content:organization",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "services/sahool-platform/examples/tenant_data/districts/al_jawf/soil.yaml",
           "score": 8,
           "signals": [
@@ -2222,6 +2230,14 @@
         {
           "value": "tenant_ai_policies @ migrations/v125_tenant_ai_capabilities.sql:11",
           "score": 13
+        },
+        {
+          "value": "kg_edges @ services/knowledge-graph/kg_store.py:361",
+          "score": 10
+        },
+        {
+          "value": "kg_nodes @ services/knowledge-graph/kg_store.py:353",
+          "score": 10
         }
       ],
       "events": [
@@ -2802,6 +2818,14 @@
           ]
         },
         {
+          "path": "docs/adr/ADR-0038-knowledge-graph-global-reference-only.md",
+          "score": 11,
+          "signals": [
+            "content:organization",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "certification/evidence/qdrant_tenant_index_20261014/evidence_manifest.json",
           "score": 8,
           "signals": [
@@ -2843,15 +2867,15 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 16,
+        "backend": 17,
         "routes": 2,
-        "database": 28,
+        "database": 30,
         "events": 12,
         "web": 1,
         "mobile": 0,
         "tests": 44,
         "governance": 0,
-        "other_evidence": 25
+        "other_evidence": 26
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -36722,10 +36746,6 @@
     {
       "path": "services/indicators-service/tests/test_observation_timeline.py",
       "kind": "tests"
-    },
-    {
-      "path": "services/knowledge-graph/kg_store.py",
-      "kind": "backend"
     },
     {
       "path": "services/knowledge-graph/main.py",
@@ -82751,7 +82771,7 @@
       "edges": [],
       "unresolved": [
         {
-          "line": 56,
+          "line": 104,
           "call": "spec_from_file_location"
         }
       ]
