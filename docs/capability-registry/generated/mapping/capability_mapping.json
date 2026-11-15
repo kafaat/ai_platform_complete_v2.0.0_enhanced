@@ -15,20 +15,20 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7349,
+    "files_scanned": 7350,
     "files_by_kind": {
       "backend": 1284,
       "database": 323,
       "governance": 89,
       "mobile": 415,
       "other": 2182,
-      "tests": 2509,
+      "tests": 2510,
       "web": 547
     },
     "unmapped_artifacts": 3498,
     "ambiguous_artifacts": 238,
     "files_by_reading": {
-      "python_functional": 3980,
+      "python_functional": 3981,
       "raw": 3369
     },
     "test_dependency_files": 1909,
@@ -7754,6 +7754,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_season_simulate_gateway_route.py",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "tests_v9/test_season_simulation_behavior_v66.py",
           "score": 14,
           "signals": [
@@ -8044,7 +8052,7 @@
         "events": 43,
         "web": 18,
         "mobile": 15,
-        "tests": 55,
+        "tests": 56,
         "governance": 0,
         "other_evidence": 15
       },
