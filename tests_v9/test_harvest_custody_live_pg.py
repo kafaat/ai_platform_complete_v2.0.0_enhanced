@@ -7,7 +7,7 @@ NOBYPASSRLS application role, never a fake connection:
 * harvest_lots: identity and quantity are immutable, status stays writable; a lot with custody
   events cannot be deleted, and a field with lots cannot be deleted (ON DELETE RESTRICT, which
   used to be CASCADE and erased the chain);
-* the platform's field guard (``api.field_traceability_guard``) answers 409 before the DELETE;
+* the platform's field guard (``api.field_context.refuse_if_fields_have_harvest_lots``) answers 409 before the DELETE;
 * the market MCP server's ``tool_create_sales_listing`` with ``harvest_lot_id``: a listing up to
   the lot's remainder passes, beyond it 409, custody sales and active listings both count, a sold
   lot is refused and another tenant's lot is 404 (RLS).
@@ -284,7 +284,7 @@ def test_a_lot_with_custody_events_and_a_field_with_lots_are_not_deleted():
 def test_the_platform_field_guard_answers_409_before_the_delete():
     if str(PLATFORM) not in sys.path:
         sys.path.insert(0, str(PLATFORM))
-    from api.field_traceability_guard import refuse_if_fields_have_harvest_lots
+    from api.field_context import refuse_if_fields_have_harvest_lots
 
     async def go():
         s = await _seed(T1)

@@ -31,6 +31,7 @@ from api import main as api_main
 # validate_field_geometry يُستورَد من مصدره مباشرةً (كان main يعيد تصديره، لكنه صار
 # يتيماً فيه بعد نقل _persist_field إلى هنا — تفكيك B1).
 from api.alert_models import AlertEvaluateResponse
+from api.field_context import refuse_if_fields_have_harvest_lots
 from api.field_geometry_save_guard import sanitize_boundary_metadata, validate_boundary_for_save
 
 # نماذج/مساعدات الحقل نُقِلت إلى api.field_models (تفكيك B1 — نقل عنقوديّ) وتُستورَد
@@ -62,7 +63,6 @@ from api.field_models import (
 # رموز صارت يتيمة في api.main بعد نقل المعالِجات — تُستورَد هنا من وحداتها الحقيقيّة
 # مباشرةً (نفس الرموز التي كان main يستوردها) لإزالة تحذيرات F401 من main بعد النقل.
 from api.field_timeline import assemble_timeline
-from api.field_traceability_guard import refuse_if_fields_have_harvest_lots
 from api.geospatial_integrity import validate_field_geometry
 from api.gis_geometry_guard import (
     area_conservation_issues,
