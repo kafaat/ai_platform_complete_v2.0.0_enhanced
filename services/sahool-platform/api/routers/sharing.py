@@ -123,3 +123,32 @@ async def list_sharing_keys(
         svc = SharingKeyService(get_pool(), conn=conn)
         keys = await svc.list_keys(user.tenant_id, include_revoked=include_revoked)
     return {"keys": keys}
+
+
+@router.post("/api/v1/sharing/keys/{key_id}/revoke")
+async def revoke_sharing_key(
+    key_id: str,
+    user: UserSchema = Depends(require_permission(Permission.USER_INVITE)),
+):
+    """Revoke a persisted sharing credential under the owner's RLS scope.
+
+    This path does not treat /generate-key output as a persisted credential.
+    A missing or foreign key receives the same 404 without disclosing its owner.
+    """
+    try:
+        key_id = str(_uuid.UUID(key_id))
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail="invalid_sharing_key_id") from exc
+    try:
+        async with tenant_connection(user) as conn:
+            svc = SharingKeyService(get_pool(), conn=conn)
+            revoked = await svc.revoke_key(key_id, str(user.tenant_id))
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        from api.main import _db_unavailable
+
+        raise _db_unavailable("إلغاء مفتاح مشاركة", exc) from exc
+    if not revoked:
+        raise HTTPException(status_code=404, detail="sharing_key_not_found")
+    return {"key_id": key_id, "status": "revoked"}
