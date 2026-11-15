@@ -142,8 +142,9 @@ export const fetchTenantConfig = (): Promise<TenantConfig | null> =>
     .then((r) => (r.data && typeof r.data === 'object' ? r.data : null))
     .catch(() => null);
 
-/** أنواع مصدر الماء في WaterAnalysisRequest (Literal في الخادم) — لا نصّ حرّ. */
-export type WaterSourceKind = 'well' | 'canal' | 'mixed';
+/** أنواع مصدر الماء في WaterAnalysisRequest (WaterSourceType في الخادم = v168) — لا نصّ حرّ. */
+export type WaterSourceKind =
+  'well' | 'reservoir' | 'canal' | 'river' | 'municipal' | 'rainwater' | 'other';
 export interface WaterSampleInput {
   sample_id: string;
   source?: WaterSourceKind;
@@ -171,6 +172,8 @@ export interface WaterAnalysisResult {
   source: string;
   /** حسابٌ لا يُخزَّن ولا يُربط بحقل (false صريح؛ الخادم القديم لا يعيده). */
   persisted?: false;
+  /** Type is declared by caller, not verified against a physical water-source record. */
+  source_evidence?: 'caller_declared_unverified' | 'implicit_default_unverified';
   /** مؤشّرات مدخلاتها كاملة لكن تعذّر حسابها (فيض عددي / Ca+Mg = 0) — ليست «بيانات ناقصة». */
   indices_not_computable?: { index: 'sar' | 'rsc_meq_l'; reason: string; code?: string }[];
   indices: { sar: number | null; rsc_meq_l: number | null; ec_dsm: number | null; ph: number | null };

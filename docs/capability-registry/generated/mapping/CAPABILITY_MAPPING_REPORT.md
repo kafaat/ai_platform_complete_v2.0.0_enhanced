@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **43**
-- Files scanned: **7382**
+- Files scanned: **7402**
 - Ambiguous artifacts queued: **239**
-- Unmapped artifacts queued: **3509**
+- Unmapped artifacts queued: **3521**
 
 ## Capability coverage
 
@@ -47,7 +47,7 @@
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 12 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
-| IRR-002 | irrigation | 1 | 6 | 8 | 1 | 0 | 0 | 2 | 5 |
+| IRR-002 | irrigation | 1 | 6 | 8 | 3 | 0 | 0 | 3 | 5 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 3 | 3 |
 | IRR-004 | irrigation | 3 | 1 | 0 | 0 | 0 | 0 | 2 | 3 |
 | IRR-005 | irrigation | 2 | 2 | 0 | 7 | 0 | 0 | 5 | 4 |
@@ -56,9 +56,9 @@
 | IRR-008 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | IRR-009 | irrigation | 8 | 1 | 7 | 9 | 2 | 0 | 13 | 6 |
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| OPS-001 | operations | 0 | 0 | 7 | 6 | 0 | 1 | 1 | 4 |
+| OPS-001 | operations | 0 | 0 | 9 | 7 | 0 | 1 | 3 | 4 |
 | OPS-002 | operations | 3 | 7 | 6 | 3 | 1 | 0 | 7 | 6 |
-| OPS-003 | operations | 5 | 13 | 19 | 8 | 6 | 17 | 17 | 7 |
+| OPS-003 | operations | 6 | 20 | 20 | 8 | 6 | 17 | 17 | 7 |
 | OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 28 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 14 | 1 | 13 | 12 | 7 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
@@ -78,7 +78,7 @@
 | SAT-007 | satellite | 1 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |
 | SAT-009 | satellite | 12 | 52 | 0 | 15 | 2 | 1 | 28 | 6 |
-| SEC-001 | security | 12 | 16 | 100 | 75 | 0 | 0 | 86 | 5 |
+| SEC-001 | security | 12 | 16 | 100 | 76 | 0 | 0 | 87 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-004 | security | 6 | 9 | 19 | 1 | 5 | 5 | 14 | 7 |

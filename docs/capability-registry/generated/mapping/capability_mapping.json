@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7382,
+    "files_scanned": 7402,
     "files_by_kind": {
-      "backend": 1289,
-      "database": 325,
+      "backend": 1292,
+      "database": 333,
       "governance": 89,
-      "mobile": 416,
-      "other": 2190,
-      "tests": 2525,
-      "web": 548
+      "mobile": 417,
+      "other": 2191,
+      "tests": 2528,
+      "web": 552
     },
-    "unmapped_artifacts": 3509,
+    "unmapped_artifacts": 3521,
     "ambiguous_artifacts": 239,
     "files_by_reading": {
-      "python_functional": 4002,
-      "raw": 3380
+      "python_functional": 4009,
+      "raw": 3393
     },
-    "test_dependency_files": 1921,
-    "test_dependency_edges": 4955,
+    "test_dependency_files": 1924,
+    "test_dependency_edges": 4973,
     "test_dependency_bounded_files": 1127,
     "test_dependency_unresolved_relations": 488
   },
@@ -3192,23 +3192,23 @@
           "score": 28
         },
         {
-          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:674",
+          "value": "/api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:702",
           "score": 19
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:405",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:428",
           "score": 19
         },
         {
-          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:599",
+          "value": "/api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:627",
           "score": 19
         },
         {
-          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:700",
+          "value": "/api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:728",
           "score": 19
         },
         {
-          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:634",
+          "value": "/api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:662",
           "score": 19
         },
         {
@@ -13139,6 +13139,14 @@
       ],
       "events": [
         {
+          "value": "v168_irrigation_engineering_foundation.sql @ services/sahool-platform/tests/test_irrigation_water_contract_overflow.py:107",
+          "score": 12
+        },
+        {
+          "value": "waterFieldOps.ts @ services/sahool-platform/tests/test_irrigation_water_contract_overflow.py:127",
+          "score": 12
+        },
+        {
           "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:47",
           "score": 9
         }
@@ -13157,6 +13165,14 @@
         {
           "path": "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
           "score": 12,
+          "signals": [
+            "content:water quality",
+            "content:water sample"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py",
+          "score": 10,
           "signals": [
             "content:water quality",
             "content:water sample"
@@ -13182,10 +13198,10 @@
         "backend": 1,
         "routes": 6,
         "database": 8,
-        "events": 1,
+        "events": 3,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 1
       },
@@ -14140,12 +14156,20 @@
           "score": 14
         },
         {
+          "value": "field_tasks @ tests_v9/test_field_task_inspection_live_pg.py:640",
+          "score": 14
+        },
+        {
           "path": "migrations/v261_field_tasks_reference_fields.sql",
           "score": 14,
           "signals": [
             "path:field task",
             "content:field task"
           ]
+        },
+        {
+          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:1939",
+          "score": 14
         },
         {
           "value": "field_tasks @ migrations/v243_field_task_satellite_sources.sql:1",
@@ -14196,6 +14220,10 @@
         {
           "value": "public.fields @ migrations/v261_field_tasks_reference_fields.sql:22",
           "score": 14
+        },
+        {
+          "value": "public.task_cost_history @ tests_v9/test_field_task_inspection_live_pg.py:1427",
+          "score": 14
         }
       ],
       "web": [],
@@ -14210,6 +14238,22 @@
         }
       ],
       "tests": [
+        {
+          "path": "services/field-management-service/tests/test_field_task_routes_unit.py",
+          "score": 14,
+          "signals": [
+            "path:field task",
+            "content:field task"
+          ]
+        },
+        {
+          "path": "tests_v9/test_field_task_inspection_live_pg.py",
+          "score": 14,
+          "signals": [
+            "path:field task",
+            "content:field task"
+          ]
+        },
         {
           "path": "tests_v9/test_field_task_on_api_field_live_pg.py",
           "score": 14,
@@ -14228,11 +14272,11 @@
       "evidence_counts": {
         "backend": 0,
         "routes": 0,
-        "database": 7,
-        "events": 6,
+        "database": 9,
+        "events": 7,
         "web": 0,
         "mobile": 1,
-        "tests": 1,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 0
       },
@@ -14500,6 +14544,14 @@
           ]
         },
         {
+          "path": "services/field-management-service/fm_task_inspection.py",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "services/scout-ingest-service/grants_admin_api.py",
           "score": 8,
           "signals": [
@@ -14524,6 +14576,34 @@
         {
           "value": "/api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:118",
           "score": 16
+        },
+        {
+          "value": "/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:283",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:302",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:317",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:367",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:458",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:597",
+          "score": 8
+        },
+        {
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:473",
+          "score": 8
         },
         {
           "value": "/internal/scouting-media/admin/credential-events @ services/scout-ingest-service/grants_admin_api.py:585",
@@ -14640,6 +14720,14 @@
         },
         {
           "path": "migrations/v260_scout_photo_evidence.sql",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
+          "path": "migrations/v277_inspection_close_gate.sql",
           "score": 8,
           "signals": [
             "content:Scouting",
@@ -15077,9 +15165,9 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 5,
-        "routes": 13,
-        "database": 19,
+        "backend": 6,
+        "routes": 20,
+        "database": 20,
         "events": 8,
         "web": 6,
         "mobile": 17,
@@ -24574,6 +24662,18 @@
           "score": 22
         },
         {
+          "value": "rls_probe_insert_true @ tests_v9/test_rls_isolation_negative.py:144",
+          "score": 22
+        },
+        {
+          "value": "rls_probe_insert_true @ tests_v9/test_rls_isolation_negative.py:145",
+          "score": 22
+        },
+        {
+          "value": "rls_probe_insert_true @ tests_v9/test_rls_isolation_negative.py:146",
+          "score": 22
+        },
+        {
           "value": "event_outbox @ migrations/v72_event_outbox_rls.sql:16",
           "score": 21
         },
@@ -24600,23 +24700,6 @@
             "content:tenant isolation",
             "content:Tenant RLS"
           ]
-        },
-        {
-          "path": "migrations/v192_fii_rls_write_fail_closed.sql",
-          "score": 20,
-          "signals": [
-            "path:rls",
-            "content:row level security",
-            "content:tenant isolation"
-          ]
-        },
-        {
-          "value": "prescriptions @ migrations/v192_fii_rls_write_fail_closed.sql:38",
-          "score": 20
-        },
-        {
-          "value": "prescriptions @ migrations/v192_fii_rls_write_fail_closed.sql:39",
-          "score": 20
         }
       ],
       "events": [
@@ -24881,6 +24964,10 @@
           "score": 9
         },
         {
+          "value": "public.field_tasks @ migrations/v276_task_cost_trace.sql:134",
+          "score": 9
+        },
+        {
           "value": "soil-observation.v1 @ tests_v9/test_soil_runtime_certification_integration.py:81",
           "score": 9
         },
@@ -24967,6 +25054,16 @@
           ]
         },
         {
+          "path": "tests_v9/test_rls_isolation_negative.py",
+          "score": 22,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:row level security",
+            "content:Tenant RLS"
+          ]
+        },
+        {
           "path": "services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py",
           "score": 21,
           "signals": [
@@ -25043,15 +25140,6 @@
             "content:rls",
             "content:row level security",
             "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "tests_v9/test_rls_isolation_negative.py",
-          "score": 18,
-          "signals": [
-            "path:rls",
-            "content:rls",
-            "content:Tenant RLS"
           ]
         },
         {
@@ -25621,6 +25709,14 @@
         },
         {
           "path": "tests_v9/test_v198_external_ingest_sources_static.py",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
+          "path": "tests_v9/test_water_lab_verdict_recompute_live_pg.py",
           "score": 9,
           "signals": [
             "content:rls",
@@ -26429,16 +26525,16 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 894
+        "database": 900
       },
       "evidence_counts": {
         "backend": 12,
         "routes": 16,
         "database": 100,
-        "events": 75,
+        "events": 76,
         "web": 0,
         "mobile": 0,
-        "tests": 86,
+        "tests": 87,
         "governance": 0,
         "other_evidence": 89
       },
@@ -27584,19 +27680,19 @@
           "score": 11
         },
         {
-          "value": "/ @ services/field-management-service/main.py:272",
+          "value": "/ @ services/field-management-service/main.py:291",
           "score": 9
         },
         {
-          "value": "/contract @ services/field-management-service/main.py:253",
+          "value": "/contract @ services/field-management-service/main.py:268",
           "score": 9
         },
         {
-          "value": "/health @ services/field-management-service/main.py:215",
+          "value": "/health @ services/field-management-service/main.py:230",
           "score": 9
         },
         {
-          "value": "/healthz @ services/field-management-service/main.py:210",
+          "value": "/healthz @ services/field-management-service/main.py:225",
           "score": 9
         },
         {
@@ -27604,11 +27700,11 @@
           "score": 9
         },
         {
-          "value": "/internal/fields @ services/field-management-service/main.py:313",
+          "value": "/internal/fields @ services/field-management-service/main.py:332",
           "score": 9
         },
         {
-          "value": "/internal/fields/{field_id} @ services/field-management-service/main.py:281",
+          "value": "/internal/fields/{field_id} @ services/field-management-service/main.py:300",
           "score": 9
         },
         {
@@ -27616,7 +27712,7 @@
           "score": 9
         },
         {
-          "value": "/readyz @ services/field-management-service/main.py:220",
+          "value": "/readyz @ services/field-management-service/main.py:235",
           "score": 9
         },
         {
@@ -33784,6 +33880,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/InspectionHandoff.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/InspectionHandoff.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/IrrigationEngineeringCalculator.tsx",
       "kind": "web"
     },
@@ -33944,6 +34048,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/PinInspectionTask.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/PinInspectionTask.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/PortfolioCommandPage.test.tsx",
       "kind": "web"
     },
@@ -34008,12 +34120,12 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
-      "kind": "tests"
+      "path": "frontend/src/sections/TaskCostTrace.tsx",
+      "kind": "web"
     },
     {
-      "path": "frontend/src/sections/TaskExpenseLink.tsx",
-      "kind": "web"
+      "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/sections/TaskIrrigationObservationPanel.test.tsx",
@@ -34449,6 +34561,30 @@
     },
     {
       "path": "migrations/v272_scout_photo_retention_governance.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v274_inspection_evidence_versions.down.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v274_inspection_evidence_versions.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v275_inspection_handoffs.down.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v275_inspection_handoffs.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v276_task_cost_trace.down.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v277_inspection_close_gate.down.sql",
       "kind": "database"
     },
     {
@@ -35437,6 +35573,10 @@
     },
     {
       "path": "mobile/sahool_app/lib/features/tasks/presentation/complete_task_sheet.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/tasks/presentation/inspection_review_panel.dart",
       "kind": "mobile"
     },
     {
@@ -36754,6 +36894,14 @@
     {
       "path": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
       "kind": "tests"
+    },
+    {
+      "path": "services/field-management-service/fm_gateway.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/field-management-service/fm_task_costs.py",
+      "kind": "backend"
     },
     {
       "path": "services/field-segmentation/__init__.py",
@@ -40761,10 +40909,6 @@
     },
     {
       "path": "services/sahool-platform/tests/test_irrigation_state_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py",
       "kind": "tests"
     },
     {
@@ -53841,6 +53985,51 @@
       "unresolved": []
     },
     {
+      "test": "services/field-management-service/tests/test_field_task_routes_unit.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "services/field-management-service/fm_gateway.py",
+          "kind": "import",
+          "line": 29
+        },
+        {
+          "source": "services/field-management-service/fm_task_costs.py",
+          "kind": "import",
+          "line": 30
+        },
+        {
+          "source": "services/field-management-service/fm_task_inspection.py",
+          "kind": "import",
+          "line": 31
+        },
+        {
+          "source": "services/field-management-service/main.py",
+          "kind": "loader",
+          "line": 281
+        },
+        {
+          "source": "services/field-management-service/main.py",
+          "kind": "source_read",
+          "line": 281
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "source_read",
+          "line": 121
+        },
+        {
+          "source": "services/sahool-platform/core/authorization.py",
+          "kind": "import",
+          "line": 78
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/field-segmentation/test_exg_preprocess.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -62805,28 +62994,35 @@
     },
     {
       "test": "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
       "edges": [
         {
           "source": "services/sahool-platform/api/api_models.py",
           "kind": "import",
-          "line": 45
+          "line": 50
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 52
+          "line": 57
         },
         {
           "source": "services/sahool-platform/api/routers/irrigation.py",
           "kind": "import",
-          "line": 53
+          "line": 58
+        },
+        {
+          "source": "services/sahool-platform/api/routers/soil_sampling.py",
+          "kind": "import",
+          "line": 148
         },
         {
           "source": "services/sahool-platform/core/irrigation_water_analysis.py",
           "kind": "import",
-          "line": 23
+          "line": 27
         }
       ],
       "unresolved": []
@@ -80330,6 +80526,46 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_field_task_inspection_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference"
+      ],
+      "edges": [
+        {
+          "source": "services/field-management-service/main.py",
+          "kind": "loader",
+          "line": 216
+        },
+        {
+          "source": "services/field-management-service/main.py",
+          "kind": "source_read",
+          "line": 49
+        },
+        {
+          "source": "services/sahool-platform/api/irrigation_observations.py",
+          "kind": "import",
+          "line": 1979
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 226
+        },
+        {
+          "source": "services/sahool-platform/api/task_irrigation_observations.py",
+          "kind": "import",
+          "line": 1980
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 259
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_field_task_on_api_field_live_pg.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -85811,7 +86047,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 318
+          "line": 323
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",
@@ -90735,7 +90971,7 @@
         {
           "source": "services/scout-ingest-service/main.py",
           "kind": "source_read",
-          "line": 386
+          "line": 387
         },
         {
           "source": "services/scout-ingest-service/media_api.py",
@@ -94648,6 +94884,34 @@
           "source": "services/sahool-platform/api/water_efficiency.py",
           "kind": "import",
           "line": 22
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_water_lab_verdict_recompute_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "scripts/ops/recompute_water_lab_verdicts.py",
+          "kind": "loader",
+          "line": 44
+        },
+        {
+          "source": "scripts/ops/recompute_water_lab_verdicts.py",
+          "kind": "source_read",
+          "line": 31
+        },
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 320
+        },
+        {
+          "source": "services/sahool-platform/api/lab_store.py",
+          "kind": "import",
+          "line": 320
         }
       ],
       "unresolved": []

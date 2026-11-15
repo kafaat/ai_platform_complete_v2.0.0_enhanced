@@ -427,7 +427,7 @@
       "id": "sahool-field-management",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 0,
+      "incoming": 1,
       "outgoing": 4,
       "orphan": false
     },
@@ -564,7 +564,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 22,
+      "outgoing": 23,
       "orphan": false
     },
     {
@@ -1623,6 +1623,12 @@
     },
     {
       "source": "sahool-nginx",
+      "target": "sahool-field-management",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-nginx",
       "target": "sahool-frontend",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
@@ -2129,11 +2135,11 @@
   "cycles": [],
   "summary": {
     "nodes": 111,
-    "edges": 195,
+    "edges": 196,
     "orphans": 9,
     "cycles": 0,
     "code_edges": 62,
-    "compose_edges": 133
+    "compose_edges": 134
   },
-  "content_sha256": "7a80a54e3af5007be349380b793dc58d20fb1b518e6c4575c82425fe8f08b0bf"
+  "content_sha256": "4655f492043f5bc4b0fa454fc452ecef37ae24f883253347c475b77a46d4535e"
 }

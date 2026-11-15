@@ -5262,12 +5262,18 @@
           "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py",
+          "signal": "pytest.mark.unit"
         }
       ],
       "title": "Water quality samples",
       "unit_test_paths": [
         "services/sahool-platform/tests/test_irrigation_blend_water_quality.py",
-        "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py"
+        "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
+        "services/sahool-platform/tests/test_irrigation_water_numeric_safety.py"
       ]
     },
     {
@@ -6432,10 +6438,11 @@
       "unit_test_paths": []
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -6472,7 +6479,7 @@
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": false
       },
       "evidence_records": [
@@ -6527,7 +6534,7 @@
           "type": "runtime_instrumentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "unit_tests"
         },
@@ -6537,7 +6544,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 6,
+      "evidence_score": 7,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -6545,15 +6552,26 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "tests_v9/test_field_task_inspection_live_pg.py",
         "tests_v9/test_field_task_on_api_field_live_pg.py"
       ],
       "learning_linked": false,
-      "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "test_evidence_attribution": [
+        {
+          "evidence_type": "unit",
+          "path": "services/field-management-service/tests/test_field_task_routes_unit.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_field_task_inspection_live_pg.py",
+          "signal": "pytest.mark.integration"
+        },
         {
           "evidence_type": "integration",
           "path": "tests_v9/test_field_task_on_api_field_live_pg.py",
@@ -6561,7 +6579,9 @@
         }
       ],
       "title": "Task management",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "services/field-management-service/tests/test_field_task_routes_unit.py"
+      ]
     },
     {
       "assessed_maturity": 2,
@@ -10900,7 +10920,8 @@
         "tests_v9/test_v197_external_submissions_rls_live.py",
         "tests_v9/test_v198_ingest_resolver_owner_live.py",
         "tests_v9/test_v237_tenant_isolation_live_pg.py",
-        "tests_v9/test_v238_actuator_delivery_state_live_pg.py"
+        "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
+        "tests_v9/test_water_lab_verdict_recompute_live_pg.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -11323,6 +11344,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_v9_odoo_rls_hardening_static.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_water_lab_verdict_recompute_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",
@@ -14807,10 +14833,10 @@
   "source_mapping": "docs/capability-registry/generated/mapping/capability_mapping.json",
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
-    "aligned": 37,
-    "average_assessed_maturity": 1.99,
+    "aligned": 38,
+    "average_assessed_maturity": 2.0,
     "capability_count": 81,
-    "declared_above_evidence": 41,
+    "declared_above_evidence": 40,
     "evidence_above_declared": 3,
     "production_certified": 0,
     "promotion_preconditions_satisfied": 0,

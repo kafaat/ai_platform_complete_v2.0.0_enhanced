@@ -1862,6 +1862,59 @@
     },
     {
       "approval_required": false,
+      "capability_id": "field-management-service.internal.field-tasks.farm-book",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /internal/field-tasks/farm-book/entries/{entry_id}/task"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "field-management-service",
+      "producer": "field-management-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "field-management-service.internal.field-tasks.fields",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /internal/field-tasks/fields/{field_id}/inspection-assignees",
+        "GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
+        "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff",
+        "POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign"
+      ],
+      "idempotency_required": false,
+      "kind": "mixed",
+      "owner": "field-management-service",
+      "producer": "field-management-service",
+      "required_context": [
+        "field"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "field-management-service.internal.field-tasks.tasks",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /internal/field-tasks/tasks/{task_id}/cost-trace"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "field-management-service",
+      "producer": "field-management-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "field-management-service.internal.fields",
       "consumers": [],
       "curated": false,
@@ -15937,8 +15990,12 @@
           "fields",
           "geometry_editing_sessions",
           "geometry_locks",
+          "inspection_evidence_versions",
+          "inspection_handoffs",
           "management_zone_sets",
-          "management_zones"
+          "management_zones",
+          "task_cost_history",
+          "task_expense_links"
         ]
       },
       "runtime": {
@@ -17844,9 +17901,9 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 842,
+    "capabilities": 845,
     "capabilities_approval_gated": 6,
-    "capabilities_field_scoped": 98,
+    "capabilities_field_scoped": 99,
     "capabilities_idempotent": 75,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 481,
@@ -17855,9 +17912,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1160,
+    "route_rows": 1169,
     "ui_waivers": 52,
-    "unique_method_path": 1039
+    "unique_method_path": 1048
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18119,7 +18176,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "42171faafd6938124ca0d827e6dc39b38d927a1a5b9a8020e783863301af0064",
+  "fingerprint": "e2b2ae5f6030279a4888611db516003de79ff81dedd0b74e835929a6c05ae312",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18133,6 +18190,7 @@
       "raster-service",
       "remote-sensing-workspace-bff",
       "sahool-ai-agronomist",
+      "sahool-field-management",
       "sahool-platform",
       "sahool-scout-ingest",
       "sahool-vegetation-analysis",
@@ -18153,6 +18211,7 @@
       "raster-service",
       "remote-sensing-workspace-bff",
       "sahool-ai-agronomist",
+      "sahool-field-management",
       "sahool-platform",
       "sahool-scout-ingest",
       "sahool-soil",
@@ -18169,16 +18228,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1040,
+      "edge_count": 1060,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 550,
-        "ROUTES_TO": 74,
-        "WRITES": 365
+        "READS": 565,
+        "ROUTES_TO": 75,
+        "WRITES": 369
       }
     },
     "u3_wiring_ownership": {

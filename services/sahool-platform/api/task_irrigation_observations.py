@@ -10,6 +10,7 @@ import hashlib
 import json
 from datetime import UTC, datetime
 
+from core.authorization import Permission, has_permission
 from fastapi import HTTPException
 
 from api.irrigation_observations import IrrigationObservationInput
@@ -29,7 +30,7 @@ def _payload(row):
 async def _task(conn, user, task_id: str):
     # Explicit tenant predicates supplement RLS, including owner-role deployments.
     row = await conn.fetchrow(
-        "SELECT task_id, field_id FROM field_tasks "
+        "SELECT task_id, field_id, source_scouting_pin_id, assigned_to, status FROM field_tasks "
         "WHERE task_id::text=$1 AND tenant_id=$2::uuid FOR SHARE",
         task_id,
         str(user.tenant_id),
@@ -62,6 +63,7 @@ async def record_observation(conn, user, task_id: str, req: IrrigationObservatio
     digest = hashlib.sha256(
         json.dumps(identity, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
     ).hexdigest()
+    await _require_inspector(conn, user, req, task, digest)
     if execution["state"] in CLOSED_EXECUTION_STATES:
         previous = await _replayed(conn, user, req, digest)
         if previous is not None:
@@ -93,6 +95,38 @@ async def record_observation(conn, user, task_id: str, req: IrrigationObservatio
     if previous is not None:
         return previous
     raise HTTPException(409, "معرّف الملاحظة مستخدم؛ أعد إرسال الملاحظة الأصلية دون تعديل")
+
+
+async def _require_inspector(conn, user, req, task, digest: str) -> None:
+    """A pin inspection task's meter reading comes from its accepted inspector or a supervisor.
+
+    v275 (inspection_handoffs, owner field-management-service; the platform only reads it): without
+    field:edit the caller must be the task's current assignee, still an active inspector account,
+    with an open task whose last hand-off event is an acceptance or a returned finding. An honest
+    replay of an observation already recorded is answered before the gate, as before.
+    """
+    if not task.get("source_scouting_pin_id") or has_permission(user, Permission.FIELD_EDIT):
+        return
+    if await _replayed(conn, user, req, digest) is not None:
+        return
+    if task["assigned_to"] != str(user.user_id):
+        raise HTTPException(403, "إفادة التفتيش متاحة للمفتش المعيّن أو المشرف")
+    active = await conn.fetchval(
+        """SELECT true FROM users WHERE tenant_id=$1::uuid AND id::text=$2 AND active
+           AND role IN ('worker','farmer','agronomist','expert','manager','owner','admin')""",
+        str(user.tenant_id),
+        str(user.user_id),
+    )
+    if not active:
+        raise HTTPException(403, "المفتش غير متاح")
+    action = await conn.fetchval(
+        """SELECT action FROM inspection_handoffs WHERE tenant_id=$1::uuid AND task_id=$2
+           ORDER BY revision DESC LIMIT 1""",
+        str(user.tenant_id),
+        task["task_id"],
+    )
+    if task["status"] not in ("pending", "in_progress") or action not in ("accept", "return"):
+        raise HTTPException(409, "يلزم تكليف مقبول ومفتوح لتسجيل إفادة التفتيش")
 
 
 async def _replayed(conn, user, req: IrrigationObservationInput, digest: str):
