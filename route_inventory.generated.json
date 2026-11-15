@@ -130,7 +130,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 250,
+    "line": 251,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -138,7 +138,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 255,
+    "line": 256,
     "method": "GET",
     "path": "/healthz/ai-provider",
     "function": "ai_provider_snapshot"
@@ -146,7 +146,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 263,
+    "line": 264,
     "method": "GET",
     "path": "/v1/approvals/pending",
     "function": "list_pending_approvals"
@@ -154,7 +154,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 283,
+    "line": 284,
     "method": "POST",
     "path": "/v1/approvals/approve",
     "function": "approve_tool_request"
@@ -162,7 +162,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 336,
+    "line": 337,
     "method": "POST",
     "path": "/v1/approvals/deny",
     "function": "deny_tool_request"
@@ -170,7 +170,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 383,
+    "line": 384,
     "method": "POST",
     "path": "/v1/approvals/resume",
     "function": "resume_approved_tool"
@@ -178,7 +178,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 429,
+    "line": 430,
     "method": "POST",
     "path": "/v1/prescription/export-preview",
     "function": "prescription_export_preview"
@@ -186,7 +186,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 445,
+    "line": 446,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -194,7 +194,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 464,
+    "line": 465,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -202,7 +202,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 508,
+    "line": 512,
     "method": "POST",
     "path": "/v1/query",
     "function": "query"
@@ -210,7 +210,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 519,
+    "line": 523,
     "method": "POST",
     "path": "/v1/chat",
     "function": "chat"
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 530,
+    "line": 534,
     "method": "POST",
     "path": "/v1/explain",
     "function": "explain"
@@ -226,7 +226,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 541,
+    "line": 545,
     "method": "POST",
     "path": "/v1/recommend",
     "function": "recommend"
@@ -242,7 +242,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 23,
+    "line": 24,
     "method": "POST",
     "path": "/v1/auth/verify/request",
     "function": "verify_request"
@@ -250,7 +250,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 56,
+    "line": 57,
     "method": "POST",
     "path": "/v1/auth/verify/confirm",
     "function": "verify_confirm"
@@ -258,7 +258,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 98,
+    "line": 99,
     "method": "GET",
     "path": "/v1/auth/verify",
     "function": "verify"
@@ -266,7 +266,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 108,
+    "line": 115,
     "method": "GET",
     "path": "/v1/auth/verify/status",
     "function": "verify_status"
@@ -394,7 +394,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/season_edge_sign.py",
-    "line": 41,
+    "line": 42,
     "method": "GET",
     "path": "/v1/auth/edge-sign",
     "function": "edge_sign"
@@ -1370,7 +1370,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 117,
+    "line": 165,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1378,7 +1378,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 122,
+    "line": 170,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -1386,7 +1386,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 139,
+    "line": 187,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1394,7 +1394,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 153,
+    "line": 211,
     "method": "POST",
     "path": "/v1/nodes",
     "function": "upsert_node"
@@ -1402,7 +1402,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 161,
+    "line": 224,
     "method": "POST",
     "path": "/v1/edges",
     "function": "upsert_edge"
@@ -1410,7 +1410,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 172,
+    "line": 238,
     "method": "GET",
     "path": "/v1/edges",
     "function": "edges"
@@ -1418,7 +1418,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 186,
+    "line": 254,
     "method": "POST",
     "path": "/graphql",
     "function": "graphql"
@@ -4882,7 +4882,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_timeline.py",
-    "line": 32,
+    "line": 34,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/unified-timeline",
     "function": "field_unified_timeline_facade"
@@ -6274,7 +6274,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/notifications.py",
-    "line": 335,
+    "line": 370,
     "method": "WEBSOCKET",
     "path": "/api/v1/notifications/ws",
     "function": "notifications_ws"

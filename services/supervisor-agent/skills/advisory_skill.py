@@ -69,9 +69,36 @@ async def _query_local_rag(question: str, token: str | None) -> dict[str, Any] |
 
     answer = (data.get("answer") or "").strip()
     # إجابة فارغة أو رفض «لا معرفة كافية» ⇒ ارتداد للقوالب (لا نقدّم لا-جواب صريحاً).
-    if not answer or answer == _RAG_NO_KNOWLEDGE_AR:
+    # الرفض يُعرَف ولو اقتُبِس أو جُرِّد من التشكيل: المساواة الحرفيّة كانت تُمرِّر رفضاً
+    # مُعاد الصياغة إجابةً «مؤرَّضة» موسومة llm-rag ومستشهِدةً بمقاطع لم تدعمه.
+    if not answer or _is_refusal_answer(answer):
         return None
     return data
+
+
+_ALEF_FORMS = str.maketrans({"\u0623": "\u0627", "\u0625": "\u0627", "\u0622": "\u0627"})
+
+
+def _normalize_refusal_text(text: str) -> str:
+    """local-ai-rag's refusal normalisation (quotes, diacritics, tatweel), plus alef forms.
+
+    A model that writes «للاجابة» for «للإجابة» is still refusing; hamza-bearing alef
+    is folded to bare alef so the spelling variant is not read as a grounded answer.
+    """
+    return "".join(
+        ch
+        for ch in (text or "").translate(_ALEF_FORMS)
+        if not ch.isspace()
+        and ch not in "«»\"'“”.,،:؛!"
+        and not ("\u064b" <= ch <= "\u0652")
+        and ch != "\u0640"
+    )
+
+
+def _is_refusal_answer(answer: str) -> bool:
+    """Did local-ai-rag return its refusal, possibly quoted or without diacritics?"""
+    refusal = _normalize_refusal_text(_RAG_NO_KNOWLEDGE_AR)
+    return bool(refusal) and refusal in _normalize_refusal_text(answer)
 
 
 def _source_labels(sources: Any) -> list[str]:
@@ -153,7 +180,8 @@ class AdvisorySkill:
                         "chemical": matched["chemical"],
                         "organic_alternative": matched["organic"],
                     },
-                    "sources": ["SAHOOL Pest Database", "Yemen Plant Protection"],
+                    # No pest database exists behind this keyword table: cite nothing.
+                    "sources": [],
                 }
 
             return {
@@ -198,7 +226,8 @@ class AdvisorySkill:
                     "actionable": True,
                     "action_type": "pesticide",
                     "structured": {"chemical": matched["treatment"]},
-                    "sources": ["SAHOOL Disease Database"],
+                    # No disease database exists behind this keyword table: cite nothing.
+                    "sources": [],
                 }
 
             return {
@@ -245,7 +274,8 @@ class AdvisorySkill:
                         "response": template,
                         "source": "template",
                         "calibrated": False,
-                        "sources": ["SAHOOL Agricultural Knowledge Base", "FAO Yemen Guidelines"],
+                        # A fixed template is not drawn from a knowledge base or FAO guidance.
+                        "sources": [],
                     }
 
             return {

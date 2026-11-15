@@ -5,20 +5,62 @@ import os
 from pathlib import Path
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from kg_store import (
     EdgeConflictError,
     GraphEdge,
     GraphNode,
+    GraphWriteRefused,
     SQLiteAgGraphStore,
+    assert_global_reference_payload,
     graphql_readonly,
     seed_reference_ontology,
 )
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from shared.security.gateway_deps import require_service_token, require_trusted_tenant
 
 app = FastAPI(title="SAHOOL Agricultural Knowledge Graph", version="2026.2")
+
+
+def _contains_lone_surrogate(value: Any) -> bool:
+    # Iterative, so a deeply nested invalid body cannot make the error handler itself fail.
+    stack = [value]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, str):
+            if any("\ud800" <= ch <= "\udfff" for ch in item):
+                return True
+        elif isinstance(item, dict):
+            stack.extend(item.keys())
+            stack.extend(item.values())
+        elif isinstance(item, (list, tuple)):
+            stack.extend(item)
+    return False
+
+
+@app.exception_handler(RequestValidationError)
+async def _validation_error(request: Request, exc: RequestValidationError) -> Response:
+    # With extra="allow" pydantic validates top-level extra keys as strings, so a lone
+    # surrogate there is a validation error, and FastAPI's default handler then fails to
+    # encode the echoed input (a 500 before the guard ever runs). Refuse it as the guard does.
+    if _contains_lone_surrogate(exc.errors()):
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": {
+                    "code": "kg_payload_unprocessable",
+                    "path": "<body>",
+                    "reason": "request is not valid Unicode",
+                }
+            },
+        )
+    return await request_validation_exception_handler(request, exc)
+
+
 store = SQLiteAgGraphStore(os.getenv("KG_SQLITE_PATH", "/data/kg.sqlite"))
 seed_reference_ontology(store)
 
@@ -93,6 +135,10 @@ def _assert_graphql_query_budget(query: str) -> None:
 
 
 class NodeIn(BaseModel):
+    # Extra keys are kept (not silently dropped) so the #1472 guard sees a
+    # top-level ``tenant_id`` and refuses it instead of storing a stripped record.
+    model_config = ConfigDict(extra="allow")
+
     node_id: str
     label: str
     name: str
@@ -100,6 +146,8 @@ class NodeIn(BaseModel):
 
 
 class EdgeIn(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     edge_id: str
     subject_id: str
     relation: str
@@ -149,18 +197,36 @@ async def readyz():
     }
 
 
+def _refuse_tenant_scoped(exc: GraphWriteRefused) -> HTTPException:
+    # #1472 / ADR-0038: the graph is a global reference store. 422 (413 for an
+    # oversized payload) with a stable code.
+    return HTTPException(exc.status, {"code": exc.code, "path": exc.path, "reason": exc.reason})
+
+
+def _declared_fields(model: BaseModel) -> dict[str, Any]:
+    return {name: getattr(model, name) for name in type(model).model_fields}
+
+
 @app.post("/v1/nodes")
 async def upsert_node(node: NodeIn, _token: None = Depends(require_service_token)):
     # SEC-3: graph writes are internal-only; require the trusted service token
     # (X-Agent-Token == SAHOOL_AGENT_TOKEN). Reads require gateway-injected tenant.
-    store.upsert_node(GraphNode(**node.model_dump()))
+    try:
+        # Whole body, extras included: a top-level tenant_id is refused, not dropped.
+        assert_global_reference_payload(node.model_dump())
+        store.upsert_node(GraphNode(**_declared_fields(node)))
+    except GraphWriteRefused as exc:
+        raise _refuse_tenant_scoped(exc) from exc
     return {"ok": True}
 
 
 @app.post("/v1/edges")
 async def upsert_edge(edge: EdgeIn, _token: None = Depends(require_service_token)):
     try:
-        store.upsert_edge(GraphEdge(**edge.model_dump()))
+        assert_global_reference_payload(edge.model_dump())
+        store.upsert_edge(GraphEdge(**_declared_fields(edge)))
+    except GraphWriteRefused as exc:
+        raise _refuse_tenant_scoped(exc) from exc
     except EdgeConflictError as exc:
         raise HTTPException(409, str(exc)) from exc
     except ValueError as exc:
@@ -176,7 +242,9 @@ async def edges(
     _tenant: str = Depends(require_trusted_tenant),
 ):
     # C5: graph reads require a trusted X-Tenant-Id (gateway-injected). A missing
-    # header fails closed (403 missing_tenant), preventing anonymous cross-tenant reads.
+    # header fails closed (403 missing_tenant), preventing anonymous reads.
+    # #1472 / ADR-0038: the header authenticates only; it is NOT a row filter. The
+    # store is global reference data, so every tenant reads the same rows.
     return {
         "edges": store.query_edges(subject_id=subject_id, relation=relation, object_id=object_id)
     }
@@ -184,6 +252,7 @@ async def edges(
 
 @app.post("/graphql")
 async def graphql(req: GraphQLRequest, _tenant: str = Depends(require_trusted_tenant)):
+    # Authentication only (see edges()); the facade is read-only, so no write path.
     _assert_graphql_query_budget(req.query)
     try:
         return graphql_readonly(store, req.query)

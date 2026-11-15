@@ -6,19 +6,19 @@
 |---|---:|
 | Configurations | 4 |
 | Upstreams | 51 |
-| Proxied locations | 73 |
+| Proxied locations | 74 |
 | Gateway-authenticated locations | 11 |
 | Authenticated + trusted tenant injection | 11 |
 | Hard configuration errors | 0 |
-| Review findings | 10 |
+| Review findings | 11 |
 
 ## Per configuration
 
 ### `nginx/nginx.v9.conf`
 
 - Upstreams: 18
-- Proxied locations: 36
-- Review findings: 5
+- Proxied locations: 37
+- Review findings: 6
 - Upstream hosts absent from compose inventory: none
 
 ### `nginx/nginx.unified.conf`
@@ -46,4 +46,4 @@
 
 Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.
 
-Content SHA-256: `167207a71a234748903f11e82b083d2cbbd134ce5a89667dc851123484ff55f3`
+Content SHA-256: `8d4d341eb2f89612d8641b69b1a37b0e2cf635c642dc867bd31413079e2e2558`

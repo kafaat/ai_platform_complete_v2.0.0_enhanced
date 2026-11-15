@@ -17,7 +17,7 @@ approval_workflows,v9_new_tables.sql,3,True,False,False,0,False,True,1,1
 as_applied_irrigation_observations,v178_canonical_as_applied_irrigation_truth.sql,183,True,True,True,1,True,False,1,0
 as_applied_irrigation_receipts,v178_canonical_as_applied_irrigation_truth.sql,183,True,True,True,1,True,False,1,1
 as_applied_irrigation_runs,v178_canonical_as_applied_irrigation_truth.sql,183,True,True,True,1,True,False,2,1
-audit_log,v9_auth_improvements.sql,2,False,True,True,2,True,False,0,3
+audit_log,v9_auth_improvements.sql,2,False,True,True,2,True,False,1,4
 automation_rules,v20_automation_tables.sql,24,True,False,False,0,False,True,1,1
 autonomous_event_store,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0
 autonomous_execution_plan,v118_phase9_autonomous_farm_os.sql,124,True,True,True,1,False,False,0,1
@@ -110,7 +110,7 @@ field_feature_store_candidate,v118_phase9_autonomous_farm_os.sql,124,True,True,T
 field_form_assignments,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_form_definitions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_form_versions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
-field_geometry_history,v96_spatial_geometry_integrity.sql,101,True,True,True,1,True,False,5,1
+field_geometry_history,v96_spatial_geometry_integrity.sql,101,True,True,True,1,True,False,5,2
 field_geometry_versions,v105_enterprise_imagery_best_practices.sql,110,True,True,True,1,True,False,0,1
 field_indicators,init_v8.sql,0,True,True,False,0,False,True,1,0
 field_irrigation_source_assignments,v214_field_irrigation_source_assignments.sql,218,True,True,True,1,True,False,1,0
@@ -136,7 +136,6 @@ hourly_energy_envelopes,v174_energy_agricultural_microgrid_capability.sql,179,Tr
 hourly_irrigation_mpc_actions,v179_hourly_energy_aware_irrigation_mpc.sql,184,True,True,True,1,True,False,0,1
 hourly_irrigation_mpc_schedules,v179_hourly_energy_aware_irrigation_mpc.sql,184,True,True,True,1,True,False,0,2
 hydraulic_capacity_evaluations,v195_irrigation_capacity_reservation_core.sql,200,True,False,False,0,False,True,0,1
-if,v36_alerts.sql,40,False,False,False,0,False,False,0,0
 imagery_automation_fields,v9_automation_persistence.sql,7,True,False,False,0,False,True,5,1
 inventory_batches,v22_inventory.sql,26,True,False,False,0,False,True,2,1
 inventory_items,v22_inventory.sql,26,True,False,False,0,False,True,1,1
@@ -233,7 +232,7 @@ model_serving_aliases_runtime,v108_phase10_feature_store_model_registry_runtime.
 model_versions_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,1,True,False,1,1
 ndvi_timeseries,init_v8.sql,0,True,True,False,0,False,True,2,0
 nl_gis_audit,v85_nl_gis_audit.sql,90,True,True,True,1,True,False,0,1
-notification_delivery,v83_notification_delivery.sql,88,True,True,True,1,True,False,0,1
+notification_delivery,v83_notification_delivery.sql,88,True,True,True,1,True,False,1,2
 notification_preferences,v9_foundation.sql,1,True,True,False,1,False,True,2,1
 nutrient_evidence_observations,v226_canonical_nutrient_ledger.sql,223,True,True,True,1,True,False,0,1
 odoo_sync_log,v9_odoo_bridge.sql,8,False,False,False,0,False,False,1,1
@@ -331,7 +330,7 @@ tenant_ai_policies,v124_tenant_ai_policies.sql,130,True,True,True,1,True,False,1
 training_datasets,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
 trueup_calibrations,v12_trueup_sharing.sql,15,True,True,False,1,False,True,2,1
 usage_metering_records,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,1
-users,v9_foundation.sql,1,True,True,False,2,True,True,17,11
+users,v9_foundation.sql,1,True,True,False,2,True,True,18,11
 vri_as_applied_variances,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_machine_translation_artifacts,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_prescription_zones,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0

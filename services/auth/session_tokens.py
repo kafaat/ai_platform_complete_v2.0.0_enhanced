@@ -65,29 +65,82 @@ async def consume_once(redis: Any, key: str) -> str | None:
     return value if deleted else None
 
 
-async def session_revoked(*checks: Coroutine[Any, Any, bool] | None) -> bool:
+# Safe methods: they read and change nothing, so the owner lets them through while the
+# revocation store is down at runtime (decision of 14 November 2026, AUTH_DENYLIST_DESIGN.md).
+SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+READ_ALLOWED_REASON = "REVOCATION-STORE-UNAVAILABLE-READ-ALLOWED"
+
+
+async def session_revoked(*checks: Coroutine[Any, Any, bool] | None, request: Any = None) -> bool:
     """Whether an access token is revoked: awaits each check (jti, user token floor).
 
     A revocation store that fails after boot (connection refused, timeout, ACL) leaves the
-    state unknown, so the request is refused with 503, in every environment. Before this,
-    the redis error escaped ``main.get_current_user`` as an opaque 500 (live witness:
-    ``tests_v9/test_auth_admin_authz_live_pg_redis.py``, ``[*-unreachable]``). Redis absent
-    since boot is not a failure here: the checks then return ``False`` as before. A falsy
-    entry (no jti in the token) is skipped.
+    state unknown. Before #1427 the redis error escaped ``main.get_current_user`` as an opaque
+    500 (live witness: ``tests_v9/test_auth_admin_authz_live_pg_redis.py``, ``[*-unreachable]``);
+    #1427 refused every request with 503. Owner decision (14 November 2026): a safe method
+    (``SAFE_METHODS`` on ``request.method``) proceeds with a WARNING carrying
+    ``READ_ALLOWED_REASON``, and any other method, or a call without a request (direct callers
+    such as ``mfa_enrollment.user_for``), is still refused with 503, in every environment.
+    Proof of revocation from any check wins over an unknown: 401 for every method.
+
+    Redis absent since boot is not a failure here: the checks then return ``False`` as before
+    (production refuses to start without it, ``main.lifespan``). A falsy entry (no jti in the
+    token) is skipped.
     """
     revoked, failure = False, None
     for check in (c for c in checks if c):
         try:
             revoked = bool(await check) or revoked
-        except Exception as exc:  # noqa: BLE001 — state unknown: refuse, never pass
+        except Exception as exc:  # noqa: BLE001 — state unknown: decided below, never 500
             failure = exc
     if revoked:  # proof of revocation wins over an unknown (401, as in the platform)
         return True
-    if failure is not None:
-        logging.getLogger("auth").warning(
-            "token revocation check failed: %s", type(failure).__name__
+    if failure is None:
+        return False
+    method = str(getattr(request, "method", "") or "").upper()
+    log = logging.getLogger("auth")
+    if method in SAFE_METHODS:
+        log.warning(
+            "%s: token revocation check failed (%s); %s allowed",
+            READ_ALLOWED_REASON,
+            type(failure).__name__,
+            method,
         )
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE, "تعذّر التحقّق من إبطال التوكن — أعد المحاولة"
-        ) from failure
-    return False
+        # Routes whose GET authorizes something else (nginx auth_request gates) read this
+        # mark through ``refuse_unknown_revocation`` and fail closed after all.
+        state = getattr(request, "state", None)
+        if state is not None:
+            state.revocation_unknown = True
+        return False
+    log.warning("token revocation check failed: %s", type(failure).__name__)
+    raise _unknown_revocation() from failure
+
+
+def _unknown_revocation() -> HTTPException:
+    return HTTPException(
+        status.HTTP_503_SERVICE_UNAVAILABLE, "تعذّر التحقّق من إبطال التوكن — أعد المحاولة"
+    )
+
+
+# Set by nginx on every ``auth_request`` subrequest to the client's own method
+# (``proxy_set_header X-Original-Method $request_method``, which also replaces a client value).
+# A subrequest is always GET, so without it the method of the gated request is unknown.
+ORIGINAL_METHOD_HEADER = "X-Original-Method"
+
+
+def refuse_unknown_revocation(request: Any, gated_method: str | None = None) -> None:
+    """503 on a read let through with unknown revocation state, unless the gated method is safe.
+
+    For a GET that authorizes another request rather than reading: ``GET /v1/auth/edge-sign``
+    signs an attestation for ``POST .../accept`` (``gated_method`` None: always refused) and
+    ``GET /v1/auth/verify`` gates whatever the client sent to nginx (``gated_method`` from
+    ``ORIGINAL_METHOD_HEADER``; missing => unknown => refused). Review of #1449.
+    """
+    if not getattr(getattr(request, "state", None), "revocation_unknown", False):
+        return
+    if str(gated_method or "").strip().upper() in SAFE_METHODS:
+        return
+    logging.getLogger("auth").warning(
+        "token revocation unknown on a gate route; gated method %r refused", gated_method
+    )
+    raise _unknown_revocation()

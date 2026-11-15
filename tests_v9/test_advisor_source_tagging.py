@@ -130,3 +130,65 @@ async def test_disease_id_is_template_not_calibrated(adv_mod):
     assert out["type"] == "disease_alert"
     assert out["source"] == "template"
     assert out["calibrated"] is False
+
+
+# ── Templates cite nothing; a paraphrased model refusal is still a refusal ──────
+@pytest.mark.parametrize(
+    ("intent", "query"),
+    [
+        ("pest_id", "أوراق صفراء"),
+        ("disease_id", "بودرة بيضاء"),
+        ("general_advice", "ري ذكي"),
+    ],
+)
+async def test_keyword_templates_cite_no_source(adv_mod, intent, query):
+    """A fixed keyword table is not a pest/disease database, a knowledge base or FAO guidance.
+
+    The fallback used to cite "SAHOOL Pest Database", "Yemen Plant Protection",
+    "SAHOOL Disease Database", "SAHOOL Agricultural Knowledge Base" and
+    "FAO Yemen Guidelines". None of these exists behind the template, so a farmer
+    would read an invented citation as evidence.
+    """
+    out = await _skill(adv_mod).execute(intent=intent, query=query)
+    assert out["source"] == "template"
+    assert out["sources"] == []
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [
+        "لا تتوفر معلومات كافية في قاعدة المعرفة للاجابة على هذا السؤال",
+        "«لا تتوفّر معلومات كافية في قاعدة المعرفة للإجابة على هذا السؤال.»",
+        "عذراً، لا تتوفّر معلومات كافية في قاعدة المعرفة للإجابة على هذا السؤال.",
+    ],
+)
+def test_a_paraphrased_rag_refusal_is_recognised(adv_mod, answer):
+    """Exact equality let a quoted or diacritic-free refusal through as a grounded answer."""
+    assert adv_mod._is_refusal_answer(answer)
+
+
+def test_a_real_answer_is_not_mistaken_for_a_refusal(adv_mod):
+    assert not adv_mod._is_refusal_answer("يُزرع القمح في نوفمبر حسب الأمطار.")
+
+
+async def test_a_paraphrased_refusal_falls_back_instead_of_posing_as_llm_rag(adv_mod, monkeypatch):
+    """End to end through _query_local_rag: the refusal must not surface as source=llm-rag."""
+    import httpx
+
+    monkeypatch.setattr(adv_mod, "LOCAL_AI_RAG_URL", "http://local-ai-rag:8000")
+    refusal = "لا تتوفر معلومات كافية في قاعدة المعرفة للاجابة على هذا السؤال"
+    real_client = httpx.AsyncClient
+
+    def transport(request):
+        return httpx.Response(
+            200, json={"answer": refusal, "model": "llama3.2:3b", "sources": [{"source": "kb.pdf"}]}
+        )
+
+    monkeypatch.setattr(
+        adv_mod.httpx,
+        "AsyncClient",
+        lambda **kw: real_client(transport=httpx.MockTransport(transport), **kw),
+    )
+    out = await _skill(adv_mod).execute(intent="general_advice", query="سؤال لا تغطيه المعرفة")
+    assert out["source"] == "template"
+    assert out["sources"] == []

@@ -77,7 +77,11 @@ def is_canonical_field_id(value: Any) -> bool:
 
 
 def _upstream_unavailable(reason: str, **log_fields: Any) -> dict[str, Any]:
-    """Generic, caller-safe failure: the upstream body/exception stays in the server log only.
+    """Generic, caller-safe failure: neither the caller nor the log sees an upstream body.
+
+    Lab receipt for #1471: the log carried ``resp.text`` and ``repr(exc)`` (a credentialed URL in
+    a ConnectError). Only the reason, the HTTP status, the exception type and the correlation
+    id are logged now, as ``_dependency_http_failure`` does for KG/RAG.
 
     S2 — كان جسم خطأ المنصّة (``resp.text``) ونصّ الاستثناء يُعادان للمتّصل عبر 502؛
     الآن يُسجَّلان خادميّاً مع معرّف ارتباط، والمتّصل يرى المعرّف وحده.
@@ -90,6 +94,30 @@ def _upstream_unavailable(reason: str, **log_fields: Any) -> dict[str, Any]:
         log_fields,
     )
     return {"status": "unavailable", "reason": reason, "correlation_id": correlation_id}
+
+
+def _dependency_http_failure(dependency: str, upstream_status: int) -> HTTPException:
+    """Return a caller-safe 502 without reflecting internal KG/RAG HTTP response bodies.
+
+    A correlation ID ties the client error to the server's status-only log entry.
+    Neither upstream payloads, credentials nor farmer questions are logged.
+    """
+    correlation_id = uuid.uuid4().hex
+    logger.warning(
+        "advisory upstream HTTP error dependency=%s upstream_status=%s correlation_id=%s",
+        dependency,
+        upstream_status,
+        correlation_id,
+    )
+    return HTTPException(
+        502,
+        {
+            "dependency": dependency,
+            "reason_code": "advisory_dependency_unavailable",
+            "message_ar": "تعذّر جلب أدلة المستشار؛ أعد المحاولة لاحقاً.",
+            "correlation_id": correlation_id,
+        },
+    )
 
 
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
@@ -146,9 +174,7 @@ async def _fetch_canonical_field_state(
         if resp.status_code == 404:
             return {"status": "not_found", "field_id": field_id}
         if resp.status_code >= 400:
-            return _upstream_unavailable(
-                "platform_http_error", http_status=resp.status_code, body=resp.text[:500]
-            )
+            return _upstream_unavailable("platform_http_error", http_status=resp.status_code)
         payload = resp.json()
         canonical = payload.get("canonical_field_state")
         pack = payload.get("ai_context_pack")
@@ -163,7 +189,7 @@ async def _fetch_canonical_field_state(
             return {"status": "unavailable", "reason": "canonical_context_identity_mismatch"}
         return {**canonical, "ai_context_pack": pack}
     except Exception as exc:  # noqa: BLE001
-        return _upstream_unavailable("platform_request_failed", error=repr(exc)[:500])
+        return _upstream_unavailable("platform_request_failed", error_type=type(exc).__name__)
 
 
 # العلاقات المحكومة التي **دورها البيانيّ مرجعيّ ودلالتها الدليليّة سياقُ استرجاع
@@ -317,7 +343,8 @@ async def _record_ai_advice_event(
                 timeout=35.0 if model_output is not None or soil_sampling_plans else 3.0,
             )
         if resp.status_code >= 400:
-            return {"status": "failed", "http_status": resp.status_code, "detail": resp.text[:300]}
+            # ``audit_event`` is returned to the client: no platform body in it (review of #1471).
+            return {"status": "failed", "http_status": resp.status_code}
         payload = resp.json()
         # AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01 (الصنفُ نفسُه: صمتٌ يُقرأ نجاحاً):
         # ردٌّ بلا ``persisted`` كان يُقرأ «recorded» — منصّةٌ أقدم، أو ردٌّ مُشوَّه، يصير
@@ -333,7 +360,8 @@ async def _record_ai_advice_event(
             status = "unconfirmed"
         return {**payload, "status": status}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "failed", "reason": str(exc)}
+        # The exception text can hold a credentialed URL; the client sees only its type.
+        return {"status": "failed", "reason": type(exc).__name__}
 
 
 def _generation_allowed(tenant_id: str) -> bool:
@@ -896,7 +924,7 @@ async def build_evidence_response(
                 timeout=5.0,
             )
         if kg_resp.status_code >= 500:
-            raise HTTPException(502, {"dependency": "knowledge-graph", "detail": kg_resp.text})
+            raise _dependency_http_failure("knowledge-graph", kg_resp.status_code)
         # ٤xx من KG (رفض حارس المستأجر مثلاً) يُهبَط به فاشلاً-مغلقاً إلى «لا حواف»،
         # لكنّ الهبوط **يُعلَن**: بدونه يصير «KG لم يُجِب» مطابقاً حرفيّاً لـ«KG لم يجد
         # شيئاً» في الاستجابة، وكلاهما `edges: []`. وهو تدهورُ توافريّةٍ يجب أن يكون
@@ -924,7 +952,7 @@ async def build_evidence_response(
                 timeout=10.0,
             )
         if rag_resp.status_code >= 400:
-            raise HTTPException(502, {"dependency": "rag-retrieval", "detail": rag_resp.text})
+            raise _dependency_http_failure("rag-retrieval", rag_resp.status_code)
 
     from shared.ai.seed_claims import partition_generation_references
 
