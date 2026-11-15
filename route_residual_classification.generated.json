@@ -98,7 +98,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 251,
+      "line": 259,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -107,7 +107,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 256,
+      "line": 264,
       "method": "GET",
       "path": "/healthz/ai-provider",
       "function": "ai_provider_snapshot",
@@ -116,7 +116,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 264,
+      "line": 272,
       "method": "GET",
       "path": "/v1/approvals/pending",
       "function": "list_pending_approvals",
@@ -125,7 +125,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 284,
+      "line": 292,
       "method": "POST",
       "path": "/v1/approvals/approve",
       "function": "approve_tool_request",
@@ -134,7 +134,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 337,
+      "line": 347,
       "method": "POST",
       "path": "/v1/approvals/deny",
       "function": "deny_tool_request",
@@ -143,7 +143,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 384,
+      "line": 395,
       "method": "POST",
       "path": "/v1/approvals/resume",
       "function": "resume_approved_tool",
@@ -152,7 +152,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 430,
+      "line": 455,
       "method": "POST",
       "path": "/v1/prescription/export-preview",
       "function": "prescription_export_preview",
@@ -161,7 +161,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 446,
+      "line": 471,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -170,7 +170,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 465,
+      "line": 490,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -179,7 +179,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 512,
+      "line": 538,
       "method": "POST",
       "path": "/v1/query",
       "function": "query",
@@ -188,7 +188,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 523,
+      "line": 554,
       "method": "POST",
       "path": "/v1/chat",
       "function": "chat",
@@ -197,7 +197,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 534,
+      "line": 570,
       "method": "POST",
       "path": "/v1/explain",
       "function": "explain",
@@ -206,7 +206,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 545,
+      "line": 586,
       "method": "POST",
       "path": "/v1/recommend",
       "function": "recommend",

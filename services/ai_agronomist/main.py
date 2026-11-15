@@ -33,6 +33,12 @@ from .ai_evidence_runtime import (
 from .ai_evidence_runtime import (
     build_evidence_response as _build_evidence_response_runtime,
 )
+from .approval_authz import (
+    STATUS_RESUMED,
+    refuse_self_approval,
+    require_approver_role,
+    stamp_requester,
+)
 
 VERSION = "2026.2-e2e-runtime"
 RAG_BASE_URL = os.getenv("RAG_BASE_URL", "http://sahool-rag-retrieval:8000")
@@ -140,6 +146,8 @@ _SERVER_OWNED_APPROVAL_FIELDS = frozenset(
         # تُدمَج من الجسم فتصل سجلَّ تدقيق الاستئناف بهويّةٍ يختارها المتّصل.
         "user_id",
         "session_id",
+        # Who asked for the action: stamped server-side at creation (approval_authz).
+        "requested_by",
         "decided_by",
         "deny_reason",
         "requested_at",
@@ -285,6 +293,7 @@ async def approve_tool_request(
     req: ApprovalDecisionRequest,
     tenant: str = Depends(require_trusted_tenant),
     user_id: str = Depends(require_authenticated_user),
+    _role: str = Depends(require_approver_role),
 ) -> dict[str, Any]:
     """Normalize a human approval decision for a pending agent tool request.
 
@@ -297,6 +306,7 @@ async def approve_tool_request(
     NOT the JSON body — a caller cannot spoof who approved by editing the payload.
     """
     base = _approval_for_decision(req.approval, tenant=tenant)
+    refuse_self_approval(base, user_id)
     try:
         decided = approval.approve(
             base,
@@ -338,6 +348,7 @@ async def deny_tool_request(
     req: ApprovalDecisionRequest,
     tenant: str = Depends(require_trusted_tenant),
     user_id: str = Depends(require_authenticated_user),
+    _role: str = Depends(require_approver_role),
 ) -> dict[str, Any]:
     """Normalize a human denial decision for a pending agent tool request.
 
@@ -385,6 +396,7 @@ async def resume_approved_tool(
     req: ApprovalResumeRequest,
     tenant: str = Depends(require_trusted_tenant),
     user_id: str = Depends(require_authenticated_user),
+    _role: str = Depends(require_approver_role),
 ) -> dict[str, Any]:
     """V58.2 — resume a human-APPROVED agent tool as a governed execution handoff.
 
@@ -401,6 +413,19 @@ async def resume_approved_tool(
     if str(stored.get("status") or "") != approval.STATUS_APPROVED:
         raise HTTPException(409, f"approval_not_in_approved_state:{stored.get('status')}")
     envelope = _approved_resume_envelope(stored)
+    # Single use: approved -> resumed in the store; a second resume loses the transition.
+    resumed = {
+        **stored,
+        "status": STATUS_RESUMED,
+        "resumed_by": user_id,
+        "resumed_at": _utc_timestamp(),
+    }
+    try:
+        won = _APPROVAL_STORE.transition(req.approval_id, tenant, approval.STATUS_APPROVED, resumed)
+    except Exception as exc:  # noqa: BLE001 — store error: the handoff is not known to be unique
+        raise HTTPException(503, "approval_store_unavailable") from exc
+    if not won:
+        raise HTTPException(409, "approval_already_resumed")
     _save_agent_tool_audit(
         {
             "tool": stored.get("tool"),
@@ -497,6 +522,7 @@ async def _build_evidence_response(
     endpoint_mode: str,
     x_tenant_id: str | None,
     x_agent_token: str | None = None,
+    x_user_id: str | None = None,
 ) -> dict[str, Any]:
     return await _build_evidence_response_runtime(
         req,
@@ -504,7 +530,7 @@ async def _build_evidence_response(
         x_tenant_id=x_tenant_id,
         x_agent_token=x_agent_token,
         save_agent_tool_audit=_save_agent_tool_audit,
-        save_pending_approval=_save_pending_approval,
+        save_pending_approval=stamp_requester(_save_pending_approval, x_user_id),
     )
 
 
@@ -513,9 +539,14 @@ async def query(
     req: AdvisorQuery,
     x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
     x_agent_token: str | None = Header(default=None, alias="X-Agent-Token"),
+    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
 ) -> dict[str, Any]:
     return await _build_evidence_response(
-        req, endpoint_mode="query", x_tenant_id=x_tenant_id, x_agent_token=x_agent_token
+        req,
+        endpoint_mode="query",
+        x_tenant_id=x_tenant_id,
+        x_agent_token=x_agent_token,
+        x_user_id=x_user_id,
     )
 
 
@@ -524,9 +555,14 @@ async def chat(
     req: AdvisorQuery,
     x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
     x_agent_token: str | None = Header(default=None, alias="X-Agent-Token"),
+    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
 ) -> dict[str, Any]:
     return await _build_evidence_response(
-        req, endpoint_mode="chat", x_tenant_id=x_tenant_id, x_agent_token=x_agent_token
+        req,
+        endpoint_mode="chat",
+        x_tenant_id=x_tenant_id,
+        x_agent_token=x_agent_token,
+        x_user_id=x_user_id,
     )
 
 
@@ -535,9 +571,14 @@ async def explain(
     req: AdvisorQuery,
     x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
     x_agent_token: str | None = Header(default=None, alias="X-Agent-Token"),
+    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
 ) -> dict[str, Any]:
     return await _build_evidence_response(
-        req, endpoint_mode="explain", x_tenant_id=x_tenant_id, x_agent_token=x_agent_token
+        req,
+        endpoint_mode="explain",
+        x_tenant_id=x_tenant_id,
+        x_agent_token=x_agent_token,
+        x_user_id=x_user_id,
     )
 
 
@@ -546,6 +587,7 @@ async def recommend(
     req: AdvisorQuery,
     x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
     x_agent_token: str | None = Header(default=None, alias="X-Agent-Token"),
+    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
 ) -> dict[str, Any]:
     # Kept for UI compatibility only. It intentionally returns evidence-only output and never prescriptions/tasks.
     return await _build_evidence_response(
@@ -553,4 +595,5 @@ async def recommend(
         endpoint_mode="recommend_evidence_only",
         x_tenant_id=x_tenant_id,
         x_agent_token=x_agent_token,
+        x_user_id=x_user_id,
     )
