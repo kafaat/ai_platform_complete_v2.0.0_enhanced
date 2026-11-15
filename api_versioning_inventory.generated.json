@@ -7103,7 +7103,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/notifications.py",
-    "line": 58,
+    "line": 79,
     "method": "GET",
     "path": "/api/v1/notifications/preferences",
     "handler": "get_notification_preferences",
@@ -7112,7 +7112,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/notifications.py",
-    "line": 88,
+    "line": 109,
     "method": "PUT",
     "path": "/api/v1/notifications/preferences",
     "handler": "update_notification_preferences",
@@ -7121,7 +7121,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/notifications.py",
-    "line": 183,
+    "line": 204,
     "method": "POST",
     "path": "/api/v1/notifications/delivery",
     "handler": "upsert_notification_delivery",

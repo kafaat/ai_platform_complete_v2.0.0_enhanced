@@ -27455,7 +27455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9106fcebe4ee4227ab0d17974dfb1c8e008007af6039060bbaa106fee06cd815"
+          "content": "affee3f26458a0717a399d0404f6923d46c023f4ea2eec2fc7ab81da20361169"
         }
       ],
       "name": "services/sahool-platform/api/routers/notifications.py",
@@ -41709,6 +41709,16 @@
         }
       ],
       "name": "shared/notification_consumers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "79493e32f8e64de6f1ed415735db511ce2a68ae5cd1f73d96b80e365d77d8934"
+        }
+      ],
+      "name": "shared/notification_delivery_state.py",
       "type": "file"
     },
     {
