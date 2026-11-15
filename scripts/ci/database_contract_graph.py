@@ -59,6 +59,10 @@ def walk_files(roots, suffixes):
                     yield p
 
 
+# A PostgreSQL dollar-quote delimiter: $$ or $tag$ (tag: identifier, no leading digit).
+_DOLLAR_TAG_RE = re.compile(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$")
+
+
 def strip_sql_comments(text: str) -> str:
     """Blank out SQL comments so the DDL regexes only see statements.
 
@@ -68,6 +72,11 @@ def strip_sql_comments(text: str) -> str:
     block or function body holds real DDL (v57 creates indexes inside one), so it is scanned
     like any other code and its comments are stripped too. Comment characters become spaces
     and newlines are kept, so offsets and line numbers do not move.
+
+    Inside a dollar-quoted body a single-quoted string cannot run past that body's closing
+    tag: a lone apostrophe in dollar-quoted *text* (``COMMENT ON TABLE t IS $$it's$$``)
+    is then an ordinary character, instead of opening a string that swallows every later
+    comment and statement in the file.
 
     Without this, the comment "CREATE TABLE IF NOT EXISTS لا يُغيّر" in v36_alerts.sql was
     read as a table named ``if``: the Arabic word after ``IF NOT EXISTS`` cannot be a name,
@@ -81,9 +90,22 @@ def strip_sql_comments(text: str) -> str:
             if out[k] != "\n":
                 out[k] = " "
 
+    dollar_tags: list[str] = []  # open dollar-quote delimiters, innermost last
+
     while i < n:
         c = text[i]
-        if c == "-" and text.startswith("--", i):
+        if c == "$":
+            m = _DOLLAR_TAG_RE.match(text, i)
+            if m:
+                tag = m.group(0)
+                if dollar_tags and dollar_tags[-1] == tag:
+                    dollar_tags.pop()
+                else:
+                    dollar_tags.append(tag)
+                i = m.end()
+                continue
+            i += 1
+        elif c == "-" and text.startswith("--", i):
             j = text.find("\n", i)
             j = n if j == -1 else j
             blank(i, j)
@@ -101,8 +123,13 @@ def strip_sql_comments(text: str) -> str:
             i = j
         elif c == "'":
             escapes = i > 0 and text[i - 1] in "eE" and (i < 2 or not text[i - 2].isalnum())
+            # Inside a dollar-quoted body the string must close before the body does.
+            limit = n
+            if dollar_tags:
+                closer = text.find(dollar_tags[-1], i + 1)
+                limit = n if closer == -1 else closer
             j = i + 1
-            while j < n:
+            while j < limit:
                 if escapes and text[j] == "\\":
                     j += 2
                     continue
@@ -112,7 +139,8 @@ def strip_sql_comments(text: str) -> str:
                         continue
                     break
                 j += 1
-            i = j + 1
+            # No closing quote before the body's closing tag: a literal apostrophe.
+            i = i + 1 if j >= limit and dollar_tags else j + 1
         elif c == '"':
             j = text.find('"', i + 1)
             i = n if j == -1 else j + 1
