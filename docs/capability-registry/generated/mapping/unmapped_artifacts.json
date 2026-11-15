@@ -13240,6 +13240,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_sahool_inspector_endpoint_authz_ast.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_sam2_artifact_digest.py",
     "kind": "tests"
   },
