@@ -10,7 +10,7 @@ from core.canonical_field_state import compose_canonical_field_state
 from core.canonical_schemas import UserRole
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api import main
+from api import main, soil_hydraulic_client
 from api.service_token_auth import _require_service_token
 
 router = APIRouter()
@@ -227,7 +227,26 @@ async def internal_ai_advice_event(
         "event_type": "ai.suggestion.generated",
         "entity_id": req.field_id or req.tenant_id,
         "advisory_validation": validation,
+        "soil_sampling_plans": await _hand_plans_to_soil_service(req),
     }
+
+
+async def _hand_plans_to_soil_service(req) -> dict | None:
+    """soil-service stores the plan copies (it owns them); the platform only forwards them.
+
+    Non-critical for the advice event. A plan that did not reach soil-service is not resolvable,
+    so a lab sample naming one of its points is refused later rather than stored unverified."""
+    if not (req.field_id and req.soil_sampling_plans):
+        return None
+    try:
+        return await soil_hydraulic_client.store_sampling_plan_copies(
+            tenant_id=req.tenant_id,
+            field_id=req.field_id,
+            plans=req.soil_sampling_plans,
+            source="ai_agronomist.plan_soil_sampling",
+        )
+    except soil_hydraulic_client.SamplingPlanVerificationUnavailable as exc:
+        return {"stored": 0, "error": str(exc)[:200]}
 
 
 async def _preview_advice_facts(conn, req) -> dict:
