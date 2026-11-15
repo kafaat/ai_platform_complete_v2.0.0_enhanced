@@ -682,6 +682,6 @@ def test_a_v1_ack_moves_a_command_only_for_an_allowlisted_device(wired, monkeypa
     assert (refused.accepted, refused.reason) == (False, "legacy_v1_ack_not_allowed")
     assert pool.table.find(TENANT, cid)["delivery_state"] == "published"
 
-    monkeypatch.setenv("ACTUATOR_LEGACY_V1_DEVICES", "valve-a")
+    monkeypatch.setenv("ACTUATOR_LEGACY_V1_DEVICES", f"{TENANT}:valve-a")
     accepted = asyncio.run(act.handle_device_ack(_ack_topic(), v1))
     assert accepted.accepted and pool.table.find(TENANT, cid)["delivery_state"] == "device_acked"

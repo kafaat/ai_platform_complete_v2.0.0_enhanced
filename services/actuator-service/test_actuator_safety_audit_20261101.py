@@ -484,8 +484,17 @@ def real_mqtt(act, monkeypatch):
     # only signed while listed in ACTUATOR_LEGACY_V1_DEVICES. v2 is covered by
     # test_cmd_signing_v2.py (a device not listed gets nothing without CMD_HMAC_MASTER_KEY).
     monkeypatch.setenv("CMD_HMAC_SECRET", "s" * 32)
-    monkeypatch.setenv("ACTUATOR_LEGACY_V1_DEVICES", "valve-a")
+    monkeypatch.setenv("ACTUATOR_LEGACY_V1_DEVICES", f"{TENANT}:valve-a")
     monkeypatch.delenv("CMD_HMAC_MASTER_KEY", raising=False)
+    # The allowlist is keyed by tenant and device (review of #1386, M1), and every production
+    # caller passes the tenant, so these direct calls pass it too.
+    send = act.send_mqtt_command
+
+    async def _send_with_tenant(*args, **kwargs):
+        kwargs.setdefault("tenant_id", TENANT)
+        return await send(*args, **kwargs)
+
+    monkeypatch.setattr(act, "send_mqtt_command", _send_with_tenant)
     return act
 
 

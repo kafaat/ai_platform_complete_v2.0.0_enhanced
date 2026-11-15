@@ -855,9 +855,10 @@ def _build_wire_message(
 _LIVE_CTR = cs.LiveCounter()
 
 
-def _signing_plan(device_id: str) -> cs.SigningPlan:
+def _signing_plan(device_id: str, tenant_id: str | None) -> cs.SigningPlan:
     return cs.plan_signing(
         device_id,
+        tenant_id=str(tenant_id or ""),
         master_key=os.getenv("CMD_HMAC_MASTER_KEY", ""),
         legacy_devices=cs.parse_legacy_devices(os.getenv("ACTUATOR_LEGACY_V1_DEVICES")),
         legacy_secret=os.getenv("CMD_HMAC_SECRET", ""),
@@ -881,10 +882,10 @@ def _build_wire_message_v2(
     device = str(device_id).strip()
     key = cs.derive_device_key(master, tenant, device)
     now_ms = int(now.timestamp() * 1000)
-    # A5: a republish (dispatch recovery) keeps its counter, so the device drops it as replay.
-    ctr = cs.stable_counter(issued_at, command_id) if issued_at else None
-    if ctr is None:
-        ctr = _LIVE_CTR.next(now_ms)
+    # A5 + review H1: an OPEN republish keeps its stable counter (dropped as replay); a CLOSE
+    # is always newer than anything sent before it, so the device never drops it.
+    stable = cs.stable_counter(issued_at, command_id) if issued_at else None
+    ctr = cs.dispatch_counter(wire_cmd, stable, _LIVE_CTR, now_ms)
     expiry_ms = cs.resolve_expiry_seconds(os.getenv("ACTUATOR_CMD_EXPIRY_SECONDS")) * 1000
     body = cs.build_command(
         key,
@@ -946,7 +947,7 @@ async def send_mqtt_command(
         return True
     topic = f"sahool/actuator/{device_id}/command"
     # R-C2: choose the protocol per device, fail closed. No key ⇒ nothing is published.
-    plan = _signing_plan(device_id)
+    plan = _signing_plan(device_id, tenant_id)
     if plan.mode == "refuse":
         logger.error(f"command to {device_id} not published: {plan.reason} (fail-closed)")
         return False
@@ -1818,7 +1819,9 @@ def _ack_keys(tenant_id: str, device_id: str) -> dict:
             device_key = cs.derive_device_key(master, tenant_id, device_id)
         except cs.SigningError:
             device_key = ""
-    legacy = device_id in cs.parse_legacy_devices(os.getenv("ACTUATOR_LEGACY_V1_DEVICES"))
+    legacy = cs.is_legacy_device(
+        cs.parse_legacy_devices(os.getenv("ACTUATOR_LEGACY_V1_DEVICES")), tenant_id, device_id
+    )
     return {
         "device_key": device_key,
         "legacy_v1": legacy,

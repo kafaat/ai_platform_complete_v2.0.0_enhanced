@@ -232,9 +232,36 @@ def resolve_expiry_seconds(env_value: str | None) -> int:
     return min(max(seconds, EXPIRY_MIN_SECONDS), EXPIRY_MAX_SECONDS)
 
 
-def parse_legacy_devices(env_value: str | None) -> frozenset[str]:
-    """``ACTUATOR_LEGACY_V1_DEVICES``: explicit comma list of device ids; nothing else."""
-    return frozenset(d.strip() for d in str(env_value or "").split(",") if d.strip())
+def parse_legacy_devices(env_value: str | None) -> frozenset[tuple[str, str]]:
+    """``ACTUATOR_LEGACY_V1_DEVICES``: comma list of ``<tenant-uuid>:<device-id>`` entries.
+
+    An entry names one device of one tenant (independent review of #1386, M1): a bare
+    device id would also put every other tenant's device of that name on v1, where its
+    commands are signed with the shared secret and its forged v1 acks are accepted. An
+    entry without a valid tenant UUID is ignored, so that device stays on v2 (fail closed:
+    an unflashed unit then rejects the command visibly instead of a flashed one accepting v1).
+    """
+    out: set[tuple[str, str]] = set()
+    for raw in str(env_value or "").split(","):
+        tenant, sep, device = raw.strip().partition(":")
+        if not sep or not device.strip():
+            continue
+        try:
+            out.add((str(uuid.UUID(tenant.strip())), device.strip()))
+        except ValueError:
+            continue
+    return frozenset(out)
+
+
+def is_legacy_device(
+    legacy_devices: frozenset[tuple[str, str]], tenant_id: str, device_id: str
+) -> bool:
+    """Whether this tenant's device is on the v1 allowlist (an unknown tenant never is)."""
+    try:
+        tenant = str(uuid.UUID(str(tenant_id or "").strip()))
+    except ValueError:
+        return False
+    return (tenant, str(device_id).strip()) in legacy_devices
 
 
 @dataclass(frozen=True)
@@ -246,7 +273,12 @@ class SigningPlan:
 
 
 def plan_signing(
-    device_id: str, *, master_key: str, legacy_devices: frozenset[str], legacy_secret: str
+    device_id: str,
+    *,
+    tenant_id: str,
+    master_key: str,
+    legacy_devices: frozenset[tuple[str, str]],
+    legacy_secret: str,
 ) -> SigningPlan:
     """Fail-closed choice of protocol for one device.
 
@@ -254,7 +286,7 @@ def plan_signing(
     v1, so it gets v1 (and only if ``CMD_HMAC_SECRET`` is set). Every other device gets v2, and
     only if ``CMD_HMAC_MASTER_KEY`` is set. Otherwise nothing is published.
     """
-    if str(device_id).strip() in legacy_devices:
+    if is_legacy_device(legacy_devices, tenant_id, device_id):
         if not legacy_secret:
             return SigningPlan("refuse", "legacy_v1_device_without_cmd_hmac_secret")
         return SigningPlan("v1", "legacy_v1_allowlisted")
@@ -296,10 +328,32 @@ class LiveCounter:
         self._last = 0
         self._lock = threading.Lock()
 
-    def next(self, now_ms: int) -> int:
+    def next(self, now_ms: int, *, floor: int = 0) -> int:
+        """Next value: above ``now_ms * 1000``, above every earlier value, and >= ``floor``."""
         with self._lock:
-            self._last = max(int(now_ms) * CTR_SUB_RANGE, self._last + 1)
+            self._last = max(int(now_ms) * CTR_SUB_RANGE, self._last + 1, int(floor))
             return self._last
+
+
+def dispatch_counter(wire_cmd: str, stable: int | None, live: LiveCounter, now_ms: int) -> int:
+    """The ``ctr`` for one published command (independent review of #1386, H1).
+
+    The device accepts only ``ctr > last_ctr``. A stable counter is derived from the
+    request time, so it lies in the past of any command published live since then (router,
+    rules, compensation), and two commands from one transaction are ordered by a hash. A
+    CLOSE carrying it can therefore be refused as a replay and leave the valve open.
+
+    * **CLOSE** always gets a live counter, never below its own stable value. It is newer
+      than anything published before it, so the device applies it. Re-applying a CLOSE on
+      a republish is harmless: closed is the safe state.
+    * **OPEN** keeps the stable counter when there is one, so a republish of the same command
+      is dropped as a replay, and an OPEN older than a command the device already applied
+      is refused rather than run late. Both outcomes leave the valve in its last commanded
+      state, and the refusal comes back as a ``replay`` ack.
+    """
+    if wire_cmd == "OPEN" and stable is not None:
+        return stable
+    return live.next(now_ms, floor=(stable + 1) if stable is not None else 0)
 
 
 # ── reference verifier: the firmware's decision, in Python ───────────────────

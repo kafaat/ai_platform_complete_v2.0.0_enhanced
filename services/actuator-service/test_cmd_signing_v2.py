@@ -14,6 +14,7 @@ fake broker, the ack evaluator and the provisioning CLI.
 from __future__ import annotations
 
 import asyncio
+import functools
 import importlib.util
 import json
 import logging
@@ -315,6 +316,80 @@ def test_stable_counter_survives_a_republish_and_separates_one_transaction():
     assert cs.stable_counter("2026-11-01T09:00:00", "k") is None  # naive: refuse to guess
 
 
+def _iso(ms: int) -> str:
+    return datetime.fromtimestamp(ms / 1000, tz=UTC).isoformat()
+
+
+def test_a_queued_close_overtaken_by_a_live_open_is_still_applied():
+    """Review of #1386, H1 (a): CLOSE queued at T0, a manual OPEN published live at T0+5 s,
+    then the dispatcher publishes the queued CLOSE. The device must apply it."""
+    live, dev = cs.LiveCounter(), _device()
+    t0 = NOW_MS
+    open_ctr = cs.dispatch_counter("OPEN", None, live, t0 + 5_000)
+    assert (
+        cs.reference_apply(
+            dev, _msg("OPEN", ctr=open_ctr, iat=t0 + 5_000), time_synced=True, now_ms=t0 + 5_000
+        )
+        == cs.ACCEPT
+    )
+    stable = cs.stable_counter(f"{_iso(t0)}~tag", "k-close")
+    assert stable < open_ctr  # the old counter alone is what dropped the CLOSE
+    close_ctr = cs.dispatch_counter("CLOSE", stable, live, t0 + 10_000)
+    close = _msg("CLOSE", ctr=close_ctr, iat=t0 + 10_000, duration_ms=0, command_id="k-close")
+    assert cs.reference_apply(dev, close, time_synced=True, now_ms=t0 + 10_000) == cs.ACCEPT
+
+
+@pytest.mark.parametrize("close_first", [True, False])
+def test_open_and_close_from_one_transaction_never_drop_the_close(close_first):
+    """Review of #1386, H1 (b): two commands share ``requested_at``. Whatever the order of
+    dispatch, the CLOSE is applied and the valve ends closed or never opens."""
+    for i in range(200):
+        live, dev = cs.LiveCounter(), _device()
+        requested = _iso(NOW_MS)
+        ids = {"OPEN": f"open-{i}", "CLOSE": f"close-{i}"}
+        order = ["CLOSE", "OPEN"] if close_first else ["OPEN", "CLOSE"]
+        outcomes = {}
+        for step, wire in enumerate(order):
+            now = NOW_MS + 10_000 + step
+            stable = cs.stable_counter(f"{requested}~t", ids[wire])
+            ctr = cs.dispatch_counter(wire, stable, live, now)
+            msg = _msg(
+                wire,
+                ctr=ctr,
+                iat=now,
+                duration_ms=60_000 if wire == "OPEN" else 0,
+                command_id=ids[wire],
+            )
+            outcomes[wire] = cs.reference_apply(dev, msg, time_synced=True, now_ms=now)
+        assert outcomes["CLOSE"] == cs.ACCEPT, (i, outcomes)
+        if close_first:  # an OPEN older than the applied CLOSE is refused, not run late
+            assert outcomes["OPEN"] == cs.REJ_REPLAY, (i, outcomes)
+
+
+def test_an_open_republish_keeps_its_counter_and_a_close_republish_is_newer():
+    live = cs.LiveCounter()
+    stable = cs.stable_counter(f"{_iso(NOW_MS)}~t", "k")
+    assert cs.dispatch_counter("OPEN", stable, live, NOW_MS + 1) == stable
+    assert cs.dispatch_counter("OPEN", stable, live, NOW_MS + 9) == stable
+    first = cs.dispatch_counter("CLOSE", stable, live, NOW_MS + 1)
+    again = cs.dispatch_counter("CLOSE", stable, live, NOW_MS + 1)
+    assert stable < first < again
+    # never below its own stable value, even with the clock behind the request time
+    assert cs.dispatch_counter("CLOSE", stable, cs.LiveCounter(), NOW_MS - 60_000) > stable
+
+
+def test_the_legacy_allowlist_names_one_tenants_device_only():
+    """Review of #1386, M1: ``<tenant>:<device>``. Another tenant's device of the same name
+    stays on v2, and a bare device id or a malformed tenant is ignored (fail closed)."""
+    legacy = cs.parse_legacy_devices(f"{TENANT_A}:valve-1,valve-2,not-a-uuid:valve-3,{TENANT_B}:")
+    assert legacy == {(TENANT_A, "valve-1")}
+    kw = {"master_key": MASTER, "legacy_devices": legacy, "legacy_secret": LEGACY_SECRET}
+    assert cs.plan_signing("valve-1", tenant_id=TENANT_A, **kw).mode == "v1"
+    assert cs.plan_signing("valve-1", tenant_id=TENANT_B, **kw).mode == "v2"
+    assert cs.plan_signing("valve-2", tenant_id=TENANT_A, **kw).mode == "v2"
+    assert cs.plan_signing("valve-1", tenant_id="", **kw).mode == "v2"
+
+
 @pytest.mark.parametrize(
     ("raw", "expected"),
     [(None, 120), ("", 120), ("abc", 120), ("60", 60), ("1", 10), ("999999", 3600)],
@@ -324,9 +399,9 @@ def test_expiry_configuration_is_bounded(raw, expected):
 
 
 def test_signing_plan_is_v2_by_default_and_v1_only_for_listed_devices():
-    legacy = cs.parse_legacy_devices(" old-1 , ,old-2")
-    assert legacy == {"old-1", "old-2"}
-    plan = cs.plan_signing
+    legacy = cs.parse_legacy_devices(f" {TENANT_A}:old-1 , ,{TENANT_A.upper()}:old-2")
+    assert legacy == {(TENANT_A, "old-1"), (TENANT_A, "old-2")}
+    plan = functools.partial(cs.plan_signing, tenant_id=TENANT_A)
     assert plan("valve-1", master_key=MASTER, legacy_devices=legacy, legacy_secret="").mode == "v2"
     assert (
         plan("old-1", master_key=MASTER, legacy_devices=legacy, legacy_secret=LEGACY_SECRET).mode
@@ -526,7 +601,7 @@ def test_legacy_v1_only_for_listed_devices_with_a_warning_per_send(act, monkeypa
 
     monkeypatch.setenv("CMD_HMAC_MASTER_KEY", MASTER)
     monkeypatch.setenv("CMD_HMAC_SECRET", LEGACY_SECRET)
-    monkeypatch.setenv("ACTUATOR_LEGACY_V1_DEVICES", "old-1")
+    monkeypatch.setenv("ACTUATOR_LEGACY_V1_DEVICES", f"{TENANT_A}:old-1")
     caplog.set_level(logging.WARNING)
     assert _send(act, device="old-1") is True
     assert _send(act, device="old-1", command="close", payload={}) is True
@@ -636,7 +711,7 @@ def test_a_v1_ack_is_accepted_only_for_an_allowlisted_device():
 def test_the_runtime_derives_ack_keys_and_allows_v1_only_when_listed(act, monkeypatch):
     monkeypatch.setenv("CMD_HMAC_MASTER_KEY", MASTER)
     monkeypatch.setenv("CMD_HMAC_SECRET", LEGACY_SECRET)
-    monkeypatch.setenv("ACTUATOR_LEGACY_V1_DEVICES", "old-1")
+    monkeypatch.setenv("ACTUATOR_LEGACY_V1_DEVICES", f"{TENANT_A}:old-1")
     assert act._ack_keys(TENANT_A, "valve-1") == {
         "device_key": cs.derive_device_key(MASTER, TENANT_A, "valve-1"),
         "legacy_v1": False,
@@ -644,6 +719,12 @@ def test_the_runtime_derives_ack_keys_and_allows_v1_only_when_listed(act, monkey
     }
     assert act._ack_keys(TENANT_A, "old-1")["legacy_v1"] is True
     assert act._ack_keys(TENANT_A, "old-1")["secret"] == LEGACY_SECRET
+    # the same device name under another tenant accepts no v1 ack
+    assert act._ack_keys(TENANT_B, "old-1") == {
+        "device_key": cs.derive_device_key(MASTER, TENANT_B, "old-1"),
+        "legacy_v1": False,
+        "secret": "",
+    }
 
 
 # ══ provisioning CLI ═════════════════════════════════════════════════════════
