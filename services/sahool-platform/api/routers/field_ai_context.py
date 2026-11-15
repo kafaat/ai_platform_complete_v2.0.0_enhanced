@@ -595,9 +595,7 @@ async def _optional_weather_history(
             if d.temp_max_c is not None and d.temp_min_c is not None
         ]
         # Unobserved rain/ET0 must not be silently rewritten into measured zero.
-        precip_vals = [
-            float(d.precipitation_mm) for d in records if d.precipitation_mm is not None
-        ]
+        precip_vals = [float(d.precipitation_mm) for d in records if d.precipitation_mm is not None]
         et0_vals = [float(d.et0_mm) for d in records if d.et0_mm is not None]
         precip_complete = len(precip_vals) == len(records)
         et0_complete = len(et0_vals) == len(records)
@@ -640,12 +638,10 @@ async def _optional_weather_history(
                 "et0_covered_days": v["et0_covered_days"],
                 "precipitation_mm": (
                     round(v["precipitation_mm"], 2)
-                    if v["precipitation_covered_days"] == v["days"] else None
+                    if v["precipitation_covered_days"] == v["days"]
+                    else None
                 ),
-                "et0_mm": (
-                    round(v["et0_mm"], 2)
-                    if v["et0_covered_days"] == v["days"] else None
-                ),
+                "et0_mm": (round(v["et0_mm"], 2) if v["et0_covered_days"] == v["days"] else None),
             }
             for k, v in sorted(monthly.items())
         ]
@@ -697,8 +693,7 @@ def _summary_ar(pack: dict[str, Any]) -> str:
         rain_display = rain_total if rain_total is not None else "غير مكتمل"
         et0_display = et0_total if et0_total is not None else "غير مكتمل"
         parts.append(
-            f"طقس تاريخي: {s.get('days')} يوم، مطر {rain_display} مم، "
-            f"ET0 {et0_display} مم."
+            f"طقس تاريخي: {s.get('days')} يوم، مطر {rain_display} مم، ET0 {et0_display} مم."
         )
     else:
         parts.append("الطقس التاريخي غير متاح لهذا الحقل حالياً.")
