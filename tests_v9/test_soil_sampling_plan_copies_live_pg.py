@@ -293,14 +293,20 @@ async def test_field_cover_check_refuses_a_plan_outside_the_field():
             "SELECT geom IS NOT NULL FROM fields WHERE field_id=$1", field_id
         )
 
-        async def covers(points, field=field_id, buffer_m=50.0, tenant=_TENANT_A):
-            return await app.fetchval(
-                "SELECT sahool_field_covers_points($1, $2, $3::jsonb, $4)",
-                tenant,
-                field,
-                json.dumps(points),
-                buffer_m,
-            )
+        async def covers(points, field=field_id, buffer_m=50.0, tenant=_TENANT_A, session=...):
+            """Call as a connection whose app.current_tenant is ``session`` (default: ``tenant``;
+            ``None`` leaves it unset)."""
+            session = tenant if session is ... else session
+            async with app.transaction():
+                if session is not None:
+                    await app.execute("SELECT set_config('app.current_tenant', $1, true)", session)
+                return await app.fetchval(
+                    "SELECT sahool_field_covers_points($1, $2, $3::jsonb, $4)",
+                    tenant,
+                    field,
+                    json.dumps(points),
+                    buffer_m,
+                )
 
         assert await covers([[44.005, 16.005]]) is True
         assert await covers([[44.005, 16.005], [44.0103, 16.005]]) is True  # ~32 m outside
@@ -312,6 +318,11 @@ async def test_field_cover_check_refuses_a_plan_outside_the_field():
         # Lab receipt on #1456: no oracle on another tenant's geometry. Tenant B cannot learn
         # whether a point lies inside tenant A's field.
         assert await covers([[44.005, 16.005]], tenant=_TENANT_B) is False
+        # Lab, main 8b5300c40: the tenant argument is caller-chosen. Tenant B's connection
+        # passing A's id, or a connection with no tenant set, must learn nothing either.
+        assert await covers([[44.005, 16.005]], session=_TENANT_B) is False
+        assert await covers([[44.005, 16.005]], session=None) is False
+        assert await covers([[44.005, 16.005]], session="") is False
         pool = await asyncpg.create_pool(_APP_DSN, min_size=1, max_size=1)
         try:
             assert await store.field_covers_points(
@@ -391,13 +402,15 @@ async def test_an_operator_planted_in_public_does_not_run_in_the_field_cover_def
                 f" CREATE OPERATOR public.{op} (LEFTARG = {left}, RIGHTARG = {right},"
                 f" FUNCTION = public.p6_hijack_{i});"
             )
-        result = await app.fetchval(
-            "SELECT sahool_field_covers_points($1, $2, $3::jsonb, $4)",
-            _TENANT_A,
-            field_id,
-            json.dumps([[44.005, 16.005]]),
-            50.0,
-        )
+        async with app.transaction():
+            await app.execute("SELECT set_config('app.current_tenant', $1, true)", _TENANT_A)
+            result = await app.fetchval(
+                "SELECT sahool_field_covers_points($1, $2, $3::jsonb, $4)",
+                _TENANT_A,
+                field_id,
+                json.dumps([[44.005, 16.005]]),
+                50.0,
+            )
         assert result is True  # it ran to its answer over a real field; no planted operator ran
     finally:
         for i, (left, right, op) in enumerate(planted):
