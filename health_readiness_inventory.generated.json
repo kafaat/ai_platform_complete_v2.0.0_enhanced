@@ -33,7 +33,7 @@
     "file": "services/ai_agronomist/main.py",
     "function": "readyz",
     "path": "/readyz",
-    "line": 490,
+    "line": 502,
     "has_status": true,
     "has_service": true,
     "has_ready_or_implemented": true,

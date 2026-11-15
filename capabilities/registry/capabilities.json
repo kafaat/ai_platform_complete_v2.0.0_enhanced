@@ -3764,7 +3764,7 @@
         "POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216",
         "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:746",
         "POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1077",
-        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:455"
+        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:467"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

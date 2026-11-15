@@ -5389,10 +5389,12 @@
     },
     {
       "code_readers": [
-        "services/mcp_servers/market_server.py"
+        "services/mcp_servers/market_server.py",
+        "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "code_writers": [
-        "services/mcp_servers/market_server.py"
+        "services/mcp_servers/market_server.py",
+        "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "created_in": "v9_market.sql",
       "has_tenant_id": true,

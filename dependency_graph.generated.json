@@ -1,5 +1,5 @@
 {
-  "edge_count": 1063,
+  "edge_count": 1065,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -4089,6 +4089,16 @@
       "relation": "READS",
       "resource": "db://machinery_export_artifacts",
       "to": "db://machinery_export_artifacts",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/routers/harvest_traceability.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://market_sales_listings",
+      "to": "db://market_sales_listings",
       "to_kind": "resource"
     },
     {
@@ -9152,6 +9162,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/routers/harvest_traceability.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://market_sales_listings",
+      "to": "db://market_sales_listings",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/phase_runtime_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -10650,9 +10670,9 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 568,
+    "READS": 569,
     "ROUTES_TO": 75,
-    "WRITES": 369
+    "WRITES": 370
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -10667,8 +10687,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 938,
-      "resolved": 937,
+      "observed": 940,
+      "resolved": 939,
       "unresolved_component_paths": 0
     }
   }

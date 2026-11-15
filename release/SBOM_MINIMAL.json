@@ -4915,7 +4915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f2bc088439663c775f23388c48cb893447236fcba275a6fda6357e5af5caddbc"
+          "content": "706be43bb2fdcbb108b38f02fa6effce4ff0c8559aa5fac3c89ecadf7bbdf6c5"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -18025,7 +18025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a0eba2ae86ebec4c883f70f390eb9dee67be7752d5cb9cd408ee85ab57c2ef40"
+          "content": "b6f80c7e194663bad4139c63b61376409d71b22bc12ed9bc86165b6ca2285131"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -25365,7 +25365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e6a11ccb8d54f178e56edec2970feaf516f613eba546da6b5c3c971cf590e869"
+          "content": "3d5ebd016e46a91960056535f2f774fabee618dedbb4431c6dd1357cae7ad5fd"
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
@@ -27275,7 +27275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3814f4e5dd0da4100a0eb388792ec3312bec6b248c915df8e847d750b7be64fb"
+          "content": "e8805e225ba0727c721bc27709b07eaa7f14b1a9fbb1e341d40222342d53bbd1"
         }
       ],
       "name": "services/sahool-platform/api/routers/harvest_traceability.py",
@@ -27775,7 +27775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a17fb9a78041c373426c984c4f96a49c2d836b94385b251a6b34e7c1506cf443"
+          "content": "cc897cbdc97d8b05ade35df452bad74ae477f651ba5c87c904e251e2e2fb3dcc"
         }
       ],
       "name": "services/sahool-platform/api/routers/regional_bulletin.py",
@@ -30445,7 +30445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "01c4db7daf223f26469e0edc08f90aeabe8398a10fc58bb5be20011108057174"
+          "content": "15aa4ec26ad42fd1c3a6ca107f00297928beb99bb35c47492f85908fefcead8a"
         }
       ],
       "name": "services/sahool-platform/core/engines/harvest_traceability.py",

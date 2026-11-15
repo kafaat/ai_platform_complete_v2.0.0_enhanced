@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "b03235e094697eb2a23a0b0354b5ce7d2d2bc728a1f6e119f89a5bc2cfc3890c",
+  "inventory_sha256": "b88b6db1e8326c973674dbd30efb1fd980b52a09057dee533e2ca11fd8f8fb84",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "1bd523961e243ec9a3293ac7f2bcba7caeda2d149a42e74ee1a9e0d955de6360"
+    "policy_sha256": "2cc31e02e1b5b48b2633d66edc402a84c426fa199ef2bb54178101ed82747147"
   },
   "routes": [
     {
@@ -1482,7 +1482,7 @@
     {
       "classification": "domain",
       "function": "list_harvest_lots",
-      "line": 144,
+      "line": 179,
       "method": "GET",
       "path": "/api/v1/harvest-lots",
       "source": "api/routers/harvest_traceability.py"
@@ -1490,7 +1490,7 @@
     {
       "classification": "domain",
       "function": "get_harvest_lot",
-      "line": 180,
+      "line": 215,
       "method": "GET",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}",
       "source": "api/routers/harvest_traceability.py"
@@ -1498,7 +1498,7 @@
     {
       "classification": "domain",
       "function": "get_traceability",
-      "line": 354,
+      "line": 402,
       "method": "GET",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
       "source": "api/routers/harvest_traceability.py"
@@ -1986,7 +1986,7 @@
     {
       "classification": "domain",
       "function": "regional_bulletin",
-      "line": 67,
+      "line": 71,
       "method": "GET",
       "path": "/api/v1/regional/bulletin",
       "source": "api/routers/regional_bulletin.py"
@@ -3850,7 +3850,7 @@
     {
       "classification": "domain",
       "function": "create_harvest_lot",
-      "line": 60,
+      "line": 95,
       "method": "POST",
       "path": "/api/v1/harvest-lots",
       "source": "api/routers/harvest_traceability.py"
@@ -3858,7 +3858,7 @@
     {
       "classification": "domain",
       "function": "add_custody_event",
-      "line": 209,
+      "line": 244,
       "method": "POST",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
       "source": "api/routers/harvest_traceability.py"

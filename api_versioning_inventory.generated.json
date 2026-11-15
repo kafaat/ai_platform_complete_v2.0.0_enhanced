@@ -200,7 +200,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 455,
+    "line": 467,
     "method": "POST",
     "path": "/v1/prescription/export-preview",
     "handler": "prescription_export_preview",
@@ -209,7 +209,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 471,
+    "line": 483,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 490,
+    "line": 502,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -227,7 +227,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 538,
+    "line": 550,
     "method": "POST",
     "path": "/v1/query",
     "handler": "query",
@@ -236,7 +236,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 554,
+    "line": 566,
     "method": "POST",
     "path": "/v1/chat",
     "handler": "chat",
@@ -245,7 +245,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 570,
+    "line": 582,
     "method": "POST",
     "path": "/v1/explain",
     "handler": "explain",
@@ -254,7 +254,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 586,
+    "line": 598,
     "method": "POST",
     "path": "/v1/recommend",
     "handler": "recommend",
@@ -6410,7 +6410,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/harvest_traceability.py",
-    "line": 61,
+    "line": 96,
     "method": "POST",
     "path": "/api/v1/harvest-lots",
     "handler": "create_harvest_lot",
@@ -6419,7 +6419,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/harvest_traceability.py",
-    "line": 145,
+    "line": 180,
     "method": "GET",
     "path": "/api/v1/harvest-lots",
     "handler": "list_harvest_lots",
@@ -6428,7 +6428,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/harvest_traceability.py",
-    "line": 181,
+    "line": 216,
     "method": "GET",
     "path": "/api/v1/harvest-lots/{harvest_lot_id}",
     "handler": "get_harvest_lot",
@@ -6437,7 +6437,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/harvest_traceability.py",
-    "line": 214,
+    "line": 249,
     "method": "POST",
     "path": "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
     "handler": "add_custody_event",
@@ -6446,7 +6446,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/harvest_traceability.py",
-    "line": 355,
+    "line": 403,
     "method": "GET",
     "path": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
     "handler": "get_traceability",
@@ -7616,7 +7616,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/regional_bulletin.py",
-    "line": 68,
+    "line": 72,
     "method": "GET",
     "path": "/api/v1/regional/bulletin",
     "handler": "regional_bulletin",

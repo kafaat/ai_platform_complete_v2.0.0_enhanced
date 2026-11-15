@@ -212,7 +212,7 @@ market_price_history,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,
 market_procurement_items,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,1
 market_procurement_orders,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,1
 market_products,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,0
-market_sales_listings,v9_market.sql,5,True,False,False,0,False,True,1,1
+market_sales_listings,v9_market.sql,5,True,False,False,0,False,True,2,2
 market_suppliers,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,0
 marketplace_apps,v121_marketplace_ecosystem.sql,127,False,True,True,1,True,False,1,1
 marketplace_installations,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,1

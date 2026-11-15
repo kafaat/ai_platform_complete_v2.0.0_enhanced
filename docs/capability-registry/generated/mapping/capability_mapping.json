@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7410,
+    "files_scanned": 7411,
     "files_by_kind": {
       "backend": 1293,
       "database": 335,
       "governance": 89,
       "mobile": 417,
       "other": 2191,
-      "tests": 2532,
+      "tests": 2533,
       "web": 553
     },
-    "unmapped_artifacts": 3529,
+    "unmapped_artifacts": 3530,
     "ambiguous_artifacts": 240,
     "files_by_reading": {
-      "python_functional": 4013,
+      "python_functional": 4014,
       "raw": 3397
     },
-    "test_dependency_files": 1928,
-    "test_dependency_edges": 4984,
+    "test_dependency_files": 1929,
+    "test_dependency_edges": 4987,
     "test_dependency_bounded_files": 1129,
     "test_dependency_unresolved_relations": 490
   },
@@ -3324,7 +3324,7 @@
           "score": 12
         },
         {
-          "value": "/api/v1/regional/bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:67",
+          "value": "/api/v1/regional/bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:71",
           "score": 12
         },
         {
@@ -45916,6 +45916,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_work_router_contract_ci.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_worker_assertion_interop.py",
       "kind": "tests"
     },
@@ -72588,7 +72592,7 @@
         {
           "source": "services/ai_agronomist/main.py",
           "kind": "source_read",
-          "line": 154
+          "line": 161
         },
         {
           "source": "services/sahool-platform/api/main.py",
@@ -81907,12 +81911,22 @@
         {
           "source": "services/mcp_servers/market_server.py",
           "kind": "import",
-          "line": 341
+          "line": 342
         },
         {
           "source": "services/sahool-platform/api/field_context.py",
           "kind": "import",
-          "line": 307
+          "line": 308
+        },
+        {
+          "source": "services/sahool-platform/api/routers/harvest_traceability.py",
+          "kind": "import",
+          "line": 439
+        },
+        {
+          "source": "services/sahool-platform/core/engines/harvest_traceability.py",
+          "kind": "import",
+          "line": 440
         }
       ],
       "unresolved": []
@@ -95779,6 +95793,21 @@
           "source": "services/sahool-platform/core/work_order_from_recommendation.py",
           "kind": "import",
           "line": 139
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_work_router_contract_ci.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "subprocess"
+      ],
+      "edges": [
+        {
+          "source": ".claude/skills/work-router/tests/test_pack.py",
+          "kind": "source_read",
+          "line": 19
         }
       ],
       "unresolved": []
