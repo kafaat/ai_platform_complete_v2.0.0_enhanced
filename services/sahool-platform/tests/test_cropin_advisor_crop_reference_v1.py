@@ -24,7 +24,9 @@ def test_missing_crop_does_not_fabricate_knowledge():
 
 
 def test_unlisted_variety_does_not_override_crop_card():
-    out = compose_advisor_crop_reference({"crop": "wheat"}, {"crops": ["wheat"], "cultivar": "not-a-card"})
+    out = compose_advisor_crop_reference(
+        {"crop": "wheat"}, {"crops": ["wheat"], "cultivar": "not-a-card"}
+    )
     assert out["status"] == "reference_only"
     assert out["variety_id"] is None
     assert "season_variety_not_in_reference_catalog" in out["limitations"]

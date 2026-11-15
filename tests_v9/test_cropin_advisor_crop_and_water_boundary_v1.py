@@ -17,7 +17,10 @@ def test_field_crop_overrides_untrusted_request_scope():
 
 
 def test_field_with_no_governed_crop_must_not_retrieve_unscoped_graph():
-    state = {"field_id": "field-a", "ai_context_pack": {"crop_knowledge": {"status": "unavailable"}}}
+    state = {
+        "field_id": "field-a",
+        "ai_context_pack": {"crop_knowledge": {"status": "unavailable"}},
+    }
     assert ER._trusted_crop_for_retrieval("maize", state, "field-a") is None
 
 

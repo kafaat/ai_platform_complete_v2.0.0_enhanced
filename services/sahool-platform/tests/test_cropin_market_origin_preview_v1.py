@@ -14,9 +14,7 @@ def _lot(**kw):
 
 
 def test_upper_bound_subtracts_only_recorded_sales_without_authorizing_listing():
-    out = assess_market_origin_preview(
-        _lot(), [{"event_type": "sales", "quantity_kg": 200}]
-    )
+    out = assess_market_origin_preview(_lot(), [{"event_type": "sales", "quantity_kg": 200}])
     assert out["upper_bound_remaining_kg"] == 800
     assert out["status"] == "preview_only"
     assert out["decision_usable"] is False

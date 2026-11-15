@@ -595,7 +595,9 @@ async def _optional_weather_history(
             if d.temp_max_c is not None and d.temp_min_c is not None
         ]
         # Unobserved rain/ET0 must not be silently rewritten into measured zero.
-        precip_vals = [float(d.precipitation_mm) for d in records if d.precipitation_mm is not None]
+        precip_vals = [
+            float(d.precipitation_mm) for d in records if d.precipitation_mm is not None
+        ]
         et0_vals = [float(d.et0_mm) for d in records if d.et0_mm is not None]
         precip_complete = len(precip_vals) == len(records)
         et0_complete = len(et0_vals) == len(records)
@@ -613,10 +615,16 @@ async def _optional_weather_history(
         monthly: dict[str, dict[str, Any]] = {}
         for d in records:
             key = str(d.date)[:7]
-            b = monthly.setdefault(key, {
-                "days": 0, "precipitation_mm": 0.0, "et0_mm": 0.0,
-                "precipitation_covered_days": 0, "et0_covered_days": 0,
-            })
+            b = monthly.setdefault(
+                key,
+                {
+                    "days": 0,
+                    "precipitation_mm": 0.0,
+                    "et0_mm": 0.0,
+                    "precipitation_covered_days": 0,
+                    "et0_covered_days": 0,
+                },
+            )
             b["days"] += 1
             if d.precipitation_mm is not None:
                 b["precipitation_mm"] += float(d.precipitation_mm)
@@ -656,7 +664,8 @@ async def _optional_weather_history(
             ],
         }, (
             "weather_history_incomplete: missing precipitation or ET0 observations"
-            if not (precip_complete and et0_complete) else None
+            if not (precip_complete and et0_complete)
+            else None
         )
     except Exception as exc:  # noqa: BLE001
         return {
@@ -683,10 +692,13 @@ def _summary_ar(pack: dict[str, Any]) -> str:
     ]
     if weather.get("available"):
         s = weather.get("summary") or {}
+        rain_total = s.get("total_precipitation_mm")
+        et0_total = s.get("total_et0_mm")
+        rain_display = rain_total if rain_total is not None else "غير مكتمل"
+        et0_display = et0_total if et0_total is not None else "غير مكتمل"
         parts.append(
-            f"طقس تاريخي: {s.get('days')} يوم، مطر "
-            f"{s.get('total_precipitation_mm') if s.get('total_precipitation_mm') is not None else 'غير مكتمل'} مم، "
-            f"ET0 {s.get('total_et0_mm') if s.get('total_et0_mm') is not None else 'غير مكتمل'} مم."
+            f"طقس تاريخي: {s.get('days')} يوم، مطر {rain_display} مم، "
+            f"ET0 {et0_display} مم."
         )
     else:
         parts.append("الطقس التاريخي غير متاح لهذا الحقل حالياً.")

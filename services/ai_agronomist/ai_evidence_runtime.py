@@ -383,7 +383,9 @@ def _trusted_crop_for_retrieval(
 ) -> str | None:
     """Field queries use the owner-read crop card, not the client's claim."""
     if not field_id:
-        return requested_crop.strip() if isinstance(requested_crop, str) and requested_crop.strip() else None
+        if isinstance(requested_crop, str) and requested_crop.strip():
+            return requested_crop.strip()
+        return None
     pack = _extract_ai_context_pack(field_state)
     reference = (pack or {}).get("crop_knowledge") or {}
     if isinstance(reference, dict) and reference.get("status") == "reference_only":
@@ -522,15 +524,26 @@ def _build_agent_tool_fetcher(
                     raise ValueError("canonical_water_field_identity_mismatch")
                 # Read the actual owner product; do not calculate fictitious water productivity.
                 for key in (
-                    "depletion_mm", "taw_mm", "raw_mm", "root_depth_m",
-                    "quality_status", "water_state_digest", "season_id",
-                    "water_productivity", "water_use_efficiency",
+                    "depletion_mm",
+                    "taw_mm",
+                    "raw_mm",
+                    "root_depth_m",
+                    "quality_status",
+                    "water_state_digest",
+                    "season_id",
+                    "water_productivity",
+                    "water_use_efficiency",
                 ):
                     if water_owner.get(key) is not None:
                         water[key] = water_owner[key]
             for key in (
-                "water_balance", "water_deficit_mm", "water_deficit",
-                "water_use_efficiency", "irrigation_mm", "et0_mm", "water_productivity",
+                "water_balance",
+                "water_deficit_mm",
+                "water_deficit",
+                "water_use_efficiency",
+                "irrigation_mm",
+                "et0_mm",
+                "water_productivity",
             ):
                 if key not in water:
                     for src in (fs, pack):
@@ -611,10 +624,11 @@ def _ai_context_memory_lines(pack: dict[str, Any] | None) -> list[str]:
     lines = ["• ذاكرة الحقل لسنتين (Field AI Context Pack):"]
     crop_ref = pack.get("crop_knowledge") or {}
     if isinstance(crop_ref, dict) and crop_ref.get("status") == "reference_only":
+        crop_label = str(crop_ref.get("crop_id"))[:80]
+        digest = str(crop_ref.get("knowledge_digest"))[:24]
         lines.append(
-            "  - مرجع المحصول: " + str(crop_ref.get("crop_id"))[:80]
-            + "؛ بصمة المعرفة: " + str(crop_ref.get("knowledge_digest"))[:24]
-            + " (مرجع عام، ليس قرارًا)."
+            f"  - مرجع المحصول: {crop_label}؛ بصمة المعرفة: {digest} "
+            "(مرجع عام، ليس قرارًا)."
         )
     summary = pack.get("ai_context_summary_ar")
     if summary:
