@@ -25,9 +25,20 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
-asyncpg = pytest.importorskip("asyncpg")
-httpx = pytest.importorskip("httpx")
-pytest.importorskip("fastapi")
+# Switch read before any import: on a certifying runner a missing dependency must fail the
+# module, not importorskip it into a green skip (certification-switch-before-importorskip).
+_CERTIFICATION_REQUIRED = os.getenv("FIELD_STATE_ROLLBACK_CERTIFICATION_REQUIRED") == "1"
+
+try:
+    import asyncpg
+    import fastapi  # noqa: F401
+    import httpx
+except ImportError:
+    if _CERTIFICATION_REQUIRED:
+        raise
+    asyncpg = pytest.importorskip("asyncpg")
+    httpx = pytest.importorskip("httpx")
+    pytest.importorskip("fastapi")
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
@@ -57,7 +68,7 @@ _WHY = asyncio.run(_probe())
 # turns a missing database into a failure: the shared integration step gives only the superuser
 # TEST_DATABASE_URL, so without this switch the test skipped green and guarded nothing (lab
 # receipt for #1469).
-if _WHY and os.getenv("FIELD_STATE_ROLLBACK_CERTIFICATION_REQUIRED") == "1":
+if _WHY and _CERTIFICATION_REQUIRED:
     raise RuntimeError(f"FIELD_STATE_ROLLBACK_CERTIFICATION_REQUIRED=1 but: {_WHY}")
 pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
 

@@ -23,12 +23,20 @@ from datetime import UTC, datetime
 
 import pytest
 
-asyncpg = pytest.importorskip("asyncpg", reason="asyncpg غير مثبّت")
+_CERTIFICATION_REQUIRED = os.getenv("RECONCILIATION_RESUMPTION_CERTIFICATION_REQUIRED") == "1"
+
+# Switch read before any import: on a certifying runner a missing dependency must fail the
+# module, not importorskip it into a green skip (certification-switch-before-importorskip).
+try:
+    import asyncpg
+except ImportError:
+    if _CERTIFICATION_REQUIRED:
+        raise
+    asyncpg = pytest.importorskip("asyncpg", reason="asyncpg غير مثبّت")
 
 pytestmark = [pytest.mark.integration]
 
 _DSN = os.getenv("TEST_DATABASE_URL") or os.getenv("TEST_DB_DSN") or ""
-_CERTIFICATION_REQUIRED = os.getenv("RECONCILIATION_RESUMPTION_CERTIFICATION_REQUIRED") == "1"
 
 if not _DSN and _CERTIFICATION_REQUIRED:
     raise RuntimeError(

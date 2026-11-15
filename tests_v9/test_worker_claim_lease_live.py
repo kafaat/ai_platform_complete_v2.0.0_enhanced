@@ -24,7 +24,18 @@ import pytest
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
 
-asyncpg = pytest.importorskip("asyncpg")
+# على غرار `IRR_F01_CERTIFICATION_REQUIRED`: التخطّي مقبولٌ في التطوير، ومرفوضٌ حين
+# تُعلِن الوظيفةُ أنّها تشهد. فبلا هذا يمرّ غيابُ القاعدة خُضرةً صامتة.
+_CERTIFICATION_REQUIRED = os.getenv("CLAIM_LEASE_CERTIFICATION_REQUIRED") == "1"
+
+# Switch read before any import: on a certifying runner a missing dependency must fail the
+# module, not importorskip it into a green skip (certification-switch-before-importorskip).
+try:
+    import asyncpg
+except ImportError:
+    if _CERTIFICATION_REQUIRED:
+        raise
+    asyncpg = pytest.importorskip("asyncpg")
 
 # **`DATABASE_URL` ليس مصدراً هنا — وهذا عطلٌ مقيسٌ لا احتياط.** أوّلُ صياغةٍ لهذا
 # الملفّ رجعت إليه احتياطاً، فالتقطت ما تضعه وحداتٌ أخرى **زمنَ الاستيراد**
@@ -34,10 +45,6 @@ asyncpg = pytest.importorskip("asyncpg")
 # ومتغيّرٌ يكتبه غيرُك عند الاستيراد ليس إعلانَ توفّرِ قاعدة. فالمصدرُ عرفُ المستودع
 # `TEST_DATABASE_URL` (وهو ما تضعه الوظيفة فعلاً)، ثمّ `TEST_DB_DSN` للتشغيل اليدويّ.
 _DSN = os.getenv("TEST_DATABASE_URL") or os.getenv("TEST_DB_DSN") or ""
-
-# على غرار `IRR_F01_CERTIFICATION_REQUIRED`: التخطّي مقبولٌ في التطوير، ومرفوضٌ حين
-# تُعلِن الوظيفةُ أنّها تشهد. فبلا هذا يمرّ غيابُ القاعدة خُضرةً صامتة.
-_CERTIFICATION_REQUIRED = os.getenv("CLAIM_LEASE_CERTIFICATION_REQUIRED") == "1"
 
 # مخطّطٌ خاصٌّ لا `public`: جدولُ المسبار بلا RLS، ولو أُنشئ في `public` لرآه أيُّ
 # جردِ كتالوجٍ يمرّ بعده في الجلسة نفسِها فأدانه. ويُسقَط في `finally` أيّاً كان المآل.

@@ -27,8 +27,18 @@ import pytest
 
 pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
-asyncpg = pytest.importorskip("asyncpg")
-pytest.importorskip("fastapi")
+# Switch read before any import: on a certifying runner a missing dependency must fail the
+# module, not importorskip it into a green skip (certification-switch-before-importorskip).
+_REQUIRED = os.getenv("FIELD_TIMELINE_CERTIFICATION_REQUIRED") == "1"
+
+try:
+    import asyncpg
+    import fastapi  # noqa: F401
+except ImportError:
+    if _REQUIRED:
+        raise
+    asyncpg = pytest.importorskip("asyncpg")
+    pytest.importorskip("fastapi")
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
@@ -57,7 +67,6 @@ async def _probe() -> str:
 
 
 _WHY = asyncio.run(_probe())
-_REQUIRED = os.getenv("FIELD_TIMELINE_CERTIFICATION_REQUIRED") == "1"
 
 
 @pytest.fixture(autouse=True)

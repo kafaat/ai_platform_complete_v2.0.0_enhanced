@@ -19,6 +19,7 @@ database is a failure, not a skip (as in ``test_pool_single_owner_live_pg.py``).
 
 from __future__ import annotations
 
+import importlib
 import json
 import os
 import re
@@ -225,10 +226,21 @@ CASES = {
 }
 
 
+def _require(module: str):
+    """Import ``module``; under ``HIL_CERTIFICATION_REQUIRED=1`` a missing one fails the run.
+
+    ``pytest.importorskip`` alone would turn a missing dependency on the certifying runner into
+    a green skip (certification-switch-before-importorskip, review of the follow-up PR).
+    """
+    if os.getenv("HIL_CERTIFICATION_REQUIRED") == "1":
+        return importlib.import_module(module)
+    return pytest.importorskip(module)
+
+
 @pytest.fixture(scope="module")
 def image_root(tmp_path_factory):
-    pytest.importorskip("fastapi")
-    pytest.importorskip("asyncpg")
+    _require("fastapi")
+    _require("asyncpg")
     return tmp_path_factory.mktemp("pool_shutdown_live_images")
 
 

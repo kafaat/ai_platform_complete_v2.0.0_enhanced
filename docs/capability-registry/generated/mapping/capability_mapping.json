@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7402,
+    "files_scanned": 7403,
     "files_by_kind": {
       "backend": 1292,
       "database": 333,
       "governance": 89,
       "mobile": 417,
       "other": 2191,
-      "tests": 2528,
+      "tests": 2529,
       "web": 552
     },
-    "unmapped_artifacts": 3521,
+    "unmapped_artifacts": 3522,
     "ambiguous_artifacts": 239,
     "files_by_reading": {
-      "python_functional": 4009,
+      "python_functional": 4010,
       "raw": 3393
     },
-    "test_dependency_files": 1924,
-    "test_dependency_edges": 4973,
+    "test_dependency_files": 1926,
+    "test_dependency_edges": 4974,
     "test_dependency_bounded_files": 1127,
-    "test_dependency_unresolved_relations": 488
+    "test_dependency_unresolved_relations": 490
   },
   "capabilities": [
     {
@@ -5552,7 +5552,7 @@
           "score": 14
         },
         {
-          "value": "public.field_geometry_history @ tests_v9/test_field_geometry_save_atomic_live_pg.py:74",
+          "value": "public.field_geometry_history @ tests_v9/test_field_geometry_save_atomic_live_pg.py:84",
           "score": 14
         },
         {
@@ -14156,7 +14156,7 @@
           "score": 14
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_inspection_live_pg.py:640",
+          "value": "field_tasks @ tests_v9/test_field_task_inspection_live_pg.py:651",
           "score": 14
         },
         {
@@ -14168,7 +14168,7 @@
           ]
         },
         {
-          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:1939",
+          "value": "task_expense_links @ tests_v9/test_field_task_inspection_live_pg.py:1950",
           "score": 14
         },
         {
@@ -14222,7 +14222,7 @@
           "score": 14
         },
         {
-          "value": "public.task_cost_history @ tests_v9/test_field_task_inspection_live_pg.py:1427",
+          "value": "public.task_cost_history @ tests_v9/test_field_task_inspection_live_pg.py:1438",
           "score": 14
         }
       ],
@@ -43209,6 +43209,10 @@
     },
     {
       "path": "tests_v9/test_certification_regression_fixes.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_certification_switch_precedes_importorskip.py",
       "kind": "tests"
     },
     {
@@ -76135,6 +76139,21 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_certification_switch_precedes_importorskip.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "tests_v9/test_notification_delivery_transitions_live_pg.py",
+          "kind": "source_read",
+          "line": 108
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_certification_verdict_is_not_forgeable.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -80249,27 +80268,27 @@
         {
           "source": "services/sahool-platform/api/field_models.py",
           "kind": "import",
-          "line": 204
+          "line": 213
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 97
+          "line": 106
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 98
+          "line": 107
         },
         {
           "source": "services/sahool-platform/api/routers/fields.py",
           "kind": "import",
-          "line": 98
+          "line": 107
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 104
+          "line": 113
         }
       ],
       "unresolved": []
@@ -80393,12 +80412,12 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 69
+          "line": 80
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 76
+          "line": 87
         }
       ],
       "unresolved": []
@@ -80535,32 +80554,32 @@
         {
           "source": "services/field-management-service/main.py",
           "kind": "loader",
-          "line": 216
+          "line": 227
         },
         {
           "source": "services/field-management-service/main.py",
           "kind": "source_read",
-          "line": 49
+          "line": 60
         },
         {
           "source": "services/sahool-platform/api/irrigation_observations.py",
           "kind": "import",
-          "line": 1979
+          "line": 1990
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 226
+          "line": 237
         },
         {
           "source": "services/sahool-platform/api/task_irrigation_observations.py",
           "kind": "import",
-          "line": 1980
+          "line": 1991
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 259
+          "line": 270
         }
       ],
       "unresolved": []
@@ -80629,22 +80648,22 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 75
+          "line": 84
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 76
+          "line": 85
         },
         {
           "source": "services/sahool-platform/api/routers/field_workspace_timeline.py",
           "kind": "import",
-          "line": 76
+          "line": 85
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 82
+          "line": 91
         }
       ],
       "unresolved": []
@@ -82695,17 +82714,17 @@
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 66
+          "line": 74
         },
         {
           "source": "services/sahool-platform/api/irrigation_capacity_reservation.py",
           "kind": "import",
-          "line": 66
+          "line": 74
         },
         {
           "source": "services/sahool-platform/api/irrigation_reservation_adapter.py",
           "kind": "import",
-          "line": 67
+          "line": 75
         }
       ],
       "unresolved": []
@@ -85183,37 +85202,37 @@
         {
           "source": "agents/notification/agent.py",
           "kind": "loader",
-          "line": 322
+          "line": 331
         },
         {
           "source": "agents/notification/agent.py",
           "kind": "source_read",
-          "line": 323
+          "line": 332
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 86
+          "line": 95
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 87
+          "line": 96
         },
         {
           "source": "services/sahool-platform/api/routers/notifications.py",
           "kind": "import",
-          "line": 87
+          "line": 96
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 93
+          "line": 102
         },
         {
           "source": "shared/notification_delivery_state.py",
           "kind": "import",
-          "line": 332
+          "line": 341
         }
       ],
       "unresolved": []
@@ -86309,6 +86328,22 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_pool_shutdown_followups_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "subprocess",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 236,
+          "call": "import_module"
+        }
+      ]
+    },
+    {
       "test": "tests_v9/test_pool_single_owner_audit.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -86345,17 +86380,21 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 189
+          "line": 201
         }
       ],
       "unresolved": [
         {
-          "line": 37,
+          "line": 38,
           "call": "spec_from_file_location"
         },
         {
-          "line": 40,
+          "line": 41,
           "call": "spec_from_file_location"
+        },
+        {
+          "line": 183,
+          "call": "import_module"
         }
       ]
     },
@@ -88998,12 +89037,12 @@
         {
           "source": "scripts/soil/reconcile_historical.py",
           "kind": "loader",
-          "line": 60
+          "line": 68
         },
         {
           "source": "scripts/soil/reconcile_historical.py",
           "kind": "source_read",
-          "line": 59
+          "line": 67
         }
       ],
       "unresolved": []
@@ -89233,17 +89272,17 @@
         {
           "source": "services/soil-service/p1_store.py",
           "kind": "loader",
-          "line": 558
+          "line": 565
         },
         {
           "source": "services/soil-service/p1_store.py",
           "kind": "source_read",
-          "line": 558
+          "line": 565
         }
       ],
       "unresolved": [
         {
-          "line": 597,
+          "line": 604,
           "import": "api"
         }
       ]
