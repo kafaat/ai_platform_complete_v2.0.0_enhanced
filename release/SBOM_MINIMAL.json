@@ -8055,7 +8055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc9d923dda3375e24df55b9c9af8a436679e481f089ddcc94fc3b6986a7352fa"
+          "content": "93f0a198f0f4a150070e035188cfd38a67703a6b6ad66d15069eaf83bdbbc56b"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -27175,7 +27175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2e47f16e49dc10428640df442c1f94af1f60696a2fb734860c168e97564a6055"
+          "content": "a14b73ae011bbca21ab9d4740196e5e323f5303b552b422b199ff51f1c9cff73"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
