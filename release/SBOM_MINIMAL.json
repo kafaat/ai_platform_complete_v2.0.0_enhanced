@@ -17755,7 +17755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dce53090ca40ec185bc6bc801b226ba64c487d1bc0b0c1dbee5332e968f5edf7"
+          "content": "fd827b5df92ef07fafb03fef6e0e89119731fadce8c5af1fa27055f630af7d18"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -40079,6 +40079,16 @@
         }
       ],
       "name": "shared/ai/provider_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4c8d42a46446cf0a8561186bb5ca32562c20384d1aa1990891dcea46b75ca926"
+        }
+      ],
+      "name": "shared/ai/rag_readiness.py",
       "type": "file"
     },
     {

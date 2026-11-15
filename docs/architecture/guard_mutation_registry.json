@@ -715,10 +715,10 @@
       "mutations": [
         {
           "expect": "test_the_live_certification_reads_the_measured_name",
-          "find": "        and r.get(\"collection_vector_schema_parity\") is True\n",
-          "replace": "        and r.get(\"collection_schema_parity\") is True\n",
+          "find": "    ready_ok = ready.status == 200 and rag_operational_ready(r)\n",
+          "replace": "    ready_ok = ready.status == 200 and r.get(\"collection_schema_parity\") is True\n",
           "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
-          "why": "عودةُ الشهادة إلى الاسم الواسع ⇒ تشهد لتكافؤ الـpayload الذي لا يُثبِته أيُّ فحصٍ فيها."
+          "why": "Shared operational guard must be consulted by live certification; reverting to the wide legacy collection-schema name would certify something it did not measure."
         }
       ]
     },
@@ -3353,6 +3353,17 @@
           "find": "    if scope.get(\"environmentId\") != STAGING_ID:\n        raise InventoryError(\"PROJECT_TOKEN_ENVIRONMENT_MISMATCH\")",
           "replace": "    if False:\n        raise InventoryError(\"PROJECT_TOKEN_ENVIRONMENT_MISMATCH\")",
           "why": "Removing the project-token environment check must make the named negative test fail, without producing a staging inventory receipt."
+        }
+      ]
+    },
+    "shared/ai/rag_readiness.py": {
+      "mutations": [
+        {
+          "expect": "test_ready_is_an_operational_claim_not_an_authority_cutover",
+          "find": "        and payload.get(\"collection_vector_schema_parity\") is True\n",
+          "replace": "        and payload.get(\"collection_schema_parity\") is True\n",
+          "test": "tests_v9/test_rag_readiness_unified.py",
+          "why": "The shared operational policy must require vector-schema parity, never the deprecated wide label."
         }
       ]
     }

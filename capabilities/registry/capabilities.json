@@ -3737,7 +3737,7 @@
         "POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216",
         "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:746",
         "POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1077",
-        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:429"
+        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:430"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4878,7 +4878,7 @@
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520",
         "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:169",
         "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:175",
-        "POST /v1/approvals/approve @ services/ai_agronomist/main.py:283",
+        "POST /v1/approvals/approve @ services/ai_agronomist/main.py:284",
         "POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42",
         "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:857",
         "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2449",
