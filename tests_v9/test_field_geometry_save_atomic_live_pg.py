@@ -287,3 +287,114 @@ def test_a_refused_history_insert_fails_the_revert_instead_of_dropping_it(monkey
         assert _ring(geometry) == _ring(before_geometry) and version == before_version
 
     _run(case)
+
+
+# ── create and merge: the same refusal fails the whole write ─────────────────
+# Review follow-up on #1447: create goes through ``_insert_field_within_tx`` directly, and merge
+# inserts the merged field (with its history row) before it deletes the sources. A refused history
+# INSERT must leave no new field, no history and, for merge, both sources intact.
+
+EAST = _square(44.310, 15.450)  # shares the eastern edge of ORIGINAL
+MERGED = {
+    "type": "Polygon",
+    "coordinates": [
+        [[44.300, 15.450], [44.320, 15.450], [44.320, 15.460], [44.300, 15.460], [44.300, 15.450]]
+    ],
+}
+
+
+async def _fields_named(live, name: str) -> int:
+    return await live.owner.fetchval(
+        "SELECT COUNT(*) FROM fields WHERE tenant_id = $1::uuid AND name = $2", live.tenant_a, name
+    )
+
+
+async def _history_rows(live, field_ids: list[str]) -> int:
+    return await live.owner.fetchval(
+        "SELECT COUNT(*) FROM field_geometry_history WHERE field_id = ANY($1::text[])", field_ids
+    )
+
+
+async def _drop_named(live, name: str) -> None:
+    ids = [
+        r["field_id"]
+        for r in await live.owner.fetch(
+            "SELECT field_id FROM fields WHERE tenant_id = $1::uuid AND name = $2",
+            live.tenant_a,
+            name,
+        )
+    ]
+    if ids:
+        await live.owner.execute("SET session_replication_role = replica")
+        await live.owner.execute(
+            "DELETE FROM field_geometry_history WHERE field_id = ANY($1::text[])", ids
+        )
+        await live.owner.execute("SET session_replication_role = origin")
+        await live.owner.execute("DELETE FROM fields WHERE field_id = ANY($1::text[])", ids)
+
+
+def test_a_refused_history_insert_fails_the_create_instead_of_dropping_it(monkeypatch):
+    from api.field_models import FieldCreateRequest
+    from fastapi import HTTPException
+
+    main, fields = _platform()
+    name = f"ga-create-{uuid.uuid4().hex[:8]}"
+
+    async def case(live):
+        monkeypatch.setattr(main, "_DB_POOL", live.pool)
+        await live.refuse_history_insert()
+        try:
+            with pytest.raises(HTTPException) as caught:
+                await fields._persist_field(
+                    FieldCreateRequest(name=name, geometry=EAST), _user(live.tenant_a)
+                )
+            assert caught.value.status_code == 503
+            assert await _fields_named(live, name) == 0
+        finally:
+            await _drop_named(live, name)
+
+    _run(case)
+
+
+def test_a_refused_history_insert_fails_the_merge_and_keeps_both_sources(monkeypatch):
+    from api.field_models import FieldMergeRequest
+    from fastapi import BackgroundTasks, HTTPException
+
+    main, fields = _platform()
+    east_id = f"ga-{uuid.uuid4().hex[:12]}"
+    name = f"ga-merged-{uuid.uuid4().hex[:8]}"
+
+    async def case(live):
+        monkeypatch.setattr(main, "_DB_POOL", live.pool)
+        await live.owner.execute(
+            "INSERT INTO fields (field_id, name, tenant_id, geometry) "
+            "VALUES ($1, $2, $3::uuid, $4::jsonb)",
+            east_id,
+            "حقل مجاور شرقاً",
+            live.tenant_a,
+            json.dumps(EAST),
+        )
+        await live.refuse_history_insert()
+        try:
+            with pytest.raises(HTTPException) as caught:
+                await fields.merge_fields(
+                    FieldMergeRequest(
+                        source_field_ids=[live.field_id, east_id], name=name, geometry=MERGED
+                    ),
+                    BackgroundTasks(),
+                    user=_user(live.tenant_a),
+                    idem=None,
+                )
+            assert caught.value.status_code == 503
+            sources = await live.owner.fetchval(
+                "SELECT COUNT(*) FROM fields WHERE field_id = ANY($1::text[])",
+                [live.field_id, east_id],
+            )
+            assert sources == 2, "a source field was deleted although the merge failed"
+            assert await _fields_named(live, name) == 0, "the merged field was stored"
+            assert await _history_rows(live, [live.field_id, east_id]) == 0
+        finally:
+            await _drop_named(live, name)
+            await live.owner.execute("DELETE FROM fields WHERE field_id = $1", east_id)
+
+    _run(case)
