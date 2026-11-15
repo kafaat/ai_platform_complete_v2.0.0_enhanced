@@ -3,7 +3,6 @@
 import pytest
 
 pytestmark = pytest.mark.unit
-pytestmark = pytest.mark.unit
 
 pytest.importorskip("fastapi")
 from services.ai_agronomist import ai_evidence_runtime as ER  # noqa: E402
