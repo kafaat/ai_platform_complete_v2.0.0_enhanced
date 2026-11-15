@@ -4,7 +4,7 @@ agriai-engine,AI Advisor,18,2724,5,9,services/agriai-engine/main.py,services/agr
 ai_agronomist,AI Advisor,47,7539,1,13,services/ai_agronomist/main.py,services/ai_agronomist/Dockerfile,services/ai_agronomist/requirements.txt,normal
 auth,Identity & Access,23,3189,2,29,services/auth/main.py,services/auth/Dockerfile,services/auth/requirements.txt,normal
 decision-service,Decision SoR,96,24553,74,74,services/decision-service/main.py,services/decision-service/Dockerfile,services/decision-service/requirements.txt,normal
-edge-inference,Edge Inference,13,1852,3,7,services/edge-inference/main.py,services/edge-inference/Dockerfile.arm64,services/edge-inference/requirements.txt,normal
+edge-inference,Edge Inference,13,1853,3,7,services/edge-inference/main.py,services/edge-inference/Dockerfile.arm64,services/edge-inference/requirements.txt,normal
 field-management-service,Unclassified / Support,7,1596,3,16,services/field-management-service/main.py,services/field-management-service/Dockerfile,services/field-management-service/requirements.txt,normal
 field-segmentation,Field Boundary AI,5,1479,2,4,services/field-segmentation/main.py,services/field-segmentation/Dockerfile,services/field-segmentation/requirements.txt,normal
 gis-workflow-service,Unclassified / Support,22,1785,11,0,-,-,services/gis-workflow-service/requirements.txt,medium-runtime-contract-gap

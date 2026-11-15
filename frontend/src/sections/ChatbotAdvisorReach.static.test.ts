@@ -25,4 +25,16 @@ describe('ChatbotPage — advisor reach indicator', () => {
     expect(src).toContain('المستشار غير متاح في هذه البيئة');
     expect(src).toMatch(/advisorReach === 'up'\s*\?\s*'bg-emerald-400 animate-pulse'/);
   });
+
+  it('does not claim RAG/KG grounding from a liveness probe', () => {
+    // /healthz proves the process answers, not that RAG, the knowledge graph or field state
+    // are ready; readiness is shown per answer (evidence ids + readiness warnings).
+    expect(src).not.toContain('SAHOOL AI · أدلّة RAG/KG/حالة الحقل');
+    expect(src).toContain('جاهزيّة الأدلّة تُعرَض مع كلّ إجابة');
+  });
+
+  it('explains why a chat request failed instead of one generic message', () => {
+    expect(src).toContain('describeAdvisorFailure(err)');
+    expect(src).not.toContain('تعذّر جلب أدلة المستشار الآن. تحقّق من الاتصال وتسجيل الدخول');
+  });
 });

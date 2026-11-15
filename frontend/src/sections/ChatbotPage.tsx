@@ -33,6 +33,7 @@ import {
 import { useFields, useWeatherForecast } from '../hooks/useApi';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { kongApi } from '../services/api';
+import { describeAdvisorFailure } from '../lib/advisorError';
 import { FieldBoundaryProposalPanel } from '../components/maphub/FieldBoundaryProposalPanel';
 import { ProductivityZonesPanel } from '../components/maphub/ProductivityZonesPanel';
 import { SoilSamplingPlannerPanel } from '../components/maphub/SoilSamplingPlannerPanel';
@@ -524,10 +525,12 @@ export function ChatbotPage() {
       setMessages(m => [...m, botMsg]);
       setLatestId(botMsg.id);
 
-    } catch {
+    } catch (err) {
+      // Say why it failed (login, advisor down, timeout) instead of one generic message.
+      const failure = describeAdvisorFailure(err);
       const botMsg: Msg = {
         id:`b_${Date.now()}`, role:'assistant', source:'fallback',
-        content:'تعذّر جلب أدلة المستشار الآن. تحقّق من الاتصال وتسجيل الدخول ثم أعد المحاولة.',
+        content: failure.messageAr,
         timestamp:new Date(),
       };
       setMessages(m => [...m, botMsg]);
@@ -573,7 +576,7 @@ export function ChatbotPage() {
                   ? 'المستشار غير متاح في هذه البيئة'
                   : advisorReach === 'checking'
                     ? 'جارٍ التحقّق من اتّصال المستشار…'
-                    : 'SAHOOL AI · أدلّة RAG/KG/حالة الحقل'}
+                    : 'المستشار متّصل — جاهزيّة الأدلّة تُعرَض مع كلّ إجابة'}
               </span>
             </div>
           </div>
