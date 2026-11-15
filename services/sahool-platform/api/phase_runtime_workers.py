@@ -172,7 +172,7 @@ async def reclaim_expired(conn: Any, *, table: str) -> int:
     return int(str(result).rsplit(" ", 1)[-1] or 0)
 
 
-async def _publish_nats(subject: str, payload: Json) -> None:
+async def _publish_nats(subject: str, payload: Json, *, msg_id: str | None = None) -> None:
     nats_url = os.getenv("NATS_URL") or os.getenv("SAHOOL_NATS_URL")
     action = build_outbox_action(
         nats_url=nats_url, event_type=subject.replace("sahool.", ""), attempts=0, max_attempts=1
@@ -185,7 +185,10 @@ async def _publish_nats(subject: str, payload: Json) -> None:
         raise RuntimeError("nats client is not installed") from exc
     nc = await nats.connect(nats_url, connect_timeout=5)
     try:
-        await nc.publish(subject, json.dumps(payload, default=str).encode("utf-8"))
+        # Nats-Msg-Id = event_id: a republish after a lease expiry is deduplicated by the
+        # sahool stream, as the platform OutboxWorker does (event_bus.py, msg_id=event_id).
+        headers = {"Nats-Msg-Id": msg_id} if msg_id else None
+        await nc.publish(subject, json.dumps(payload, default=str).encode("utf-8"), headers=headers)
         await nc.flush(timeout=5)
     finally:
         await nc.close()
@@ -220,7 +223,9 @@ async def run_outbox_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
                 if action["action"] != "publish_nats":
                     raise RuntimeError(action.get("reason") or "outbox_not_publishable")
                 subject = action["receipt"]["subject"]
-                await _publish_nats(subject, runtime_event_envelope(row))
+                await _publish_nats(
+                    subject, runtime_event_envelope(row), msg_id=str(row["event_id"])
+                )
                 assignments = "status='published', attempts=attempts+1, published_at=now()"
                 params: tuple[Any, ...] = ()
             except Exception:
@@ -303,6 +308,7 @@ async def run_plugin_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
                 await _publish_nats(
                     runtime_event_subject(str(row["event_type"])),
                     runtime_event_envelope(row),
+                    msg_id=str(row["event_id"]),
                 )
                 assignments = "status='published'"
             except Exception:

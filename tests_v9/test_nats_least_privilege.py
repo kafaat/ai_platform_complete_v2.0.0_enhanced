@@ -500,9 +500,10 @@ def _worker_publish_call(fn_name: str) -> tuple:
         and not isinstance(c.args[0], ast.Constant)
     ]
     assert len(calls) == 1, f"{fn_name}: {len(calls)} نشرٌ ديناميكيّ (المتوقَّع واحد)"
+    msg_id = next((k.value for k in calls[0].keywords if k.arg == "msg_id"), None)
+    exprs = list(calls[0].args) + ([msg_id] if msg_id is not None else [])
     return tuple(
-        compile(ast.Expression(arg), f"<{fn_name} arg{i}>", "eval")
-        for i, arg in enumerate(calls[0].args)
+        compile(ast.Expression(arg), f"<{fn_name} arg{i}>", "eval") for i, arg in enumerate(exprs)
     )
 
 
@@ -529,7 +530,9 @@ def _worker_row(table: str, *, event_type: str, tenant: str | None) -> dict:
     return {c: values[c] for c in cols} | {"claim_token": uuid.uuid4()}
 
 
-async def _publish_through_worker(monkeypatch, fn_name: str, row: dict) -> tuple[str, bytes]:
+async def _publish_through_worker(
+    monkeypatch, fn_name: str, row: dict, headers_out: list | None = None
+) -> tuple[str, bytes]:
     """يُقيِّم موضوعَ النشر وغلافَه من شيفرة ``fn_name`` على ``row`` ثمّ يمرّ بـ``_publish_nats``
     الحقيقيّ — والوسيطُ وحده مُستبدَل (يلتقط ما يُرسَل على السلك)."""
     import nats
@@ -539,8 +542,10 @@ async def _publish_through_worker(monkeypatch, fn_name: str, row: dict) -> tuple
     sent: list[tuple[str, bytes]] = []
 
     class _Wire:
-        async def publish(self, subject, data):
+        async def publish(self, subject, data, headers=None):
             sent.append((subject, data))
+            if headers_out is not None:
+                headers_out.append(headers)
 
         async def flush(self, timeout=None):
             return None
@@ -553,7 +558,7 @@ async def _publish_through_worker(monkeypatch, fn_name: str, row: dict) -> tuple
 
     monkeypatch.setenv("NATS_URL", "nats://witness:4222")
     monkeypatch.setattr(nats, "connect", _connect_stub)
-    subject_expr, envelope_expr = _worker_publish_call(fn_name)
+    subject_expr, envelope_expr, *msg_id_expr = _worker_publish_call(fn_name)
     scope = {"row": row}
     if fn_name == "run_outbox_once":
         scope["subject"] = build_outbox_action(
@@ -565,7 +570,8 @@ async def _publish_through_worker(monkeypatch, fn_name: str, row: dict) -> tuple
     namespace = dict(vars(workers))
     subject = eval(subject_expr, namespace, scope)  # noqa: S307
     envelope = eval(envelope_expr, namespace, scope)  # noqa: S307
-    await workers._publish_nats(subject, envelope)
+    msg_id = eval(msg_id_expr[0], namespace, scope) if msg_id_expr else None  # noqa: S307
+    await workers._publish_nats(subject, envelope, msg_id=msg_id)
     assert len(sent) == 1
     return sent[0]
 
@@ -647,6 +653,25 @@ async def test_conn04_worker_envelope_is_accepted_by_the_notification_consumer(
         assert (envelope["entity_type"], envelope["entity_id"]) == ("plan", "plan-1")
     else:  # لا عمودَ كيانٍ في marketplace_plugin_runtime_events — null لا مُخترَع
         assert (envelope["entity_type"], envelope["entity_id"]) == (None, None)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "fn_name, table, event_type",
+    [
+        ("run_outbox_once", "runtime_event_outbox", "phase9.execution_plan.created"),
+        ("run_plugin_once", "marketplace_plugin_runtime_events", "digital_twin.snapshot.created"),
+    ],
+)
+async def test_conn04_worker_events_carry_the_event_id_as_nats_msg_id(
+    monkeypatch, fn_name, table, event_type
+):
+    """Review of #1464 (M1): a republish after a lease expiry must be deduplicated by the
+    stream, as the platform OutboxWorker's events are, or a tenant sees the event twice."""
+    row = _worker_row(table, event_type=event_type, tenant=TENANT_UUID)
+    headers: list = []
+    await _publish_through_worker(monkeypatch, fn_name, row, headers_out=headers)
+    assert headers == [{"Nats-Msg-Id": row["event_id"]}], headers
 
 
 @pytest.mark.unit

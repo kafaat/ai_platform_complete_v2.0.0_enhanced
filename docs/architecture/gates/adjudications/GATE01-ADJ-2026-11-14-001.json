@@ -18,7 +18,7 @@
     "must_match_policy": true
   },
   "subject": {
-    "base_sha": "d27cda4f32e183d8e9e17c3774b9b25005cdb310",
+    "base_sha": "24e13e2236a7d632e81856e37980e91199b39eb6",
     "base_ref": "origin/main",
     "scope": [
       {
@@ -29,9 +29,9 @@
     "frozen_files": {
       "services/sahool-platform/api/phase_runtime_workers.py": {
         "before_sha256": "43e0f150e13112c48df1007f95fecdd36103186ed26d4ddae01aadd2e019e59e",
-        "after_sha256": "e2e49cc306277cd330165b2af08df0c7f9b808acf1e0eb056ba623e8757ac2d3",
+        "after_sha256": "8980826037ddff07c6fcfcefa18f404bd95cb0b8e568a1a87481df23f39ec838",
         "before_git_blob": "1470e50a5909972509dda32ffeced9ce63b6f8cd",
-        "after_git_blob": "cdef2b1002d2f500636d63b02ff162cde0f44fd8"
+        "after_git_blob": "39622a1ea3cf62dbebfe011a7d46e2140173be68"
       }
     },
     "frozen_files_note_ar": "المسارُ المجمَّد الوحيد الذي يمسّه الفرق: phase_runtime_workers.py. لا يمسّ phase_runtime_store.py ولا event_bus.py ولا actuator ولا الهجرات ولا db_ownership.yml ولا physical_effect_boundary_contract.json."
@@ -43,9 +43,9 @@
     "NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE",
     "CONNECTIVITY-AUDIT-20260910 (CONN-04)"
   ],
-  "authorized_patch_sha256": "41b1daf05ec3c3aa9f7e62888e75a1889b7f1b1b44f915d9684f931a18f0f70f",
+  "authorized_patch_sha256": "47416bb8de8a9643062c9b195d3fcbc7d34b67a3ab9f3157c1c30cdf2aa16f1a",
   "authorized_blobs": {
-    "services/sahool-platform/api/phase_runtime_workers.py": "cdef2b1002d2f500636d63b02ff162cde0f44fd8"
+    "services/sahool-platform/api/phase_runtime_workers.py": "39622a1ea3cf62dbebfe011a7d46e2140173be68"
   },
   "bindings": {
     "require_patch_digest": true,
@@ -60,7 +60,7 @@
     "text_ar": "موافقةٌ على إعداد مسوّدة إصلاح CONN-04؛ الدمجُ بعد توقيع المالك على حكم GATE-01. وقرارُ المالك في اليوم نفسه: المساران ينشران غلافَ event_bus من الصفّ نفسِه.",
     "decision_id": null
   },
-  "scope_limit_ar": "مسارٌ مجمَّدٌ واحد بثلاثة تغييرات: (١) استيرادُ `runtime_event_subject` و`runtime_event_envelope` و`RUNTIME_EVENT_ENVELOPE_COLUMNS` من `shared/runtime_worker_contracts.py`؛ (٢) موضوعُ أحداث `marketplace_plugin_runtime_events` في `run_plugin_once` صار `runtime_event_subject(str(row[\"event_type\"]))` = `sahool.events.<event_type>` بدل `sahool.<event_type بنقاطٍ بدل _>`؛ (٣) بقرار المالك 2026-11-14 ينشر المساران (outbox وplugin) غلافَ event_bus (event_bus.py:780-792) بـ`runtime_event_envelope(row)`، وتُطالِب الدفعتان بأعمدته (aggregate_type/aggregate_id/created_at للأوّل، created_at للثاني). لا يغيّر Core NATS ولا CAS ولا المطالبة ولا الإجارة ولا `FEATURE_NATS_PUBLISHERS` ولا موضوعاتِ plugin.execution.requested والنموذج والمُشغِّل.",
+  "scope_limit_ar": "مسارٌ مجمَّدٌ واحد بأربعة تغييرات: (١) استيرادُ `runtime_event_subject` و`runtime_event_envelope` و`RUNTIME_EVENT_ENVELOPE_COLUMNS` من `shared/runtime_worker_contracts.py`؛ (٢) موضوعُ أحداث `marketplace_plugin_runtime_events` في `run_plugin_once` صار `runtime_event_subject(str(row[\"event_type\"]))` = `sahool.events.<event_type>` بدل `sahool.<event_type بنقاطٍ بدل _>`؛ (٣) بقرار المالك 2026-11-14 ينشر المساران (outbox وplugin) غلافَ event_bus (event_bus.py:780-792) بـ`runtime_event_envelope(row)`، وتُطالِب الدفعتان بأعمدته (aggregate_type/aggregate_id/created_at للأوّل، created_at للثاني). (٤) بمراجعة #1464 (M1) يحمل نشرُ أحداث المسارين ترويسةَ `Nats-Msg-Id` = event_id كما يفعل OutboxWorker في المنصّة، فيُزيل المجرى تكرارَ النشر بعد انقضاء الإجارة. لا يغيّر Core NATS ولا CAS ولا المطالبة ولا الإجارة ولا `FEATURE_NATS_PUBLISHERS` ولا موضوعاتِ plugin.execution.requested والنموذج والمُشغِّل.",
   "why_frozen_paths_ar": "التحويلُ الخاطئ مكتوبٌ داخل حلقة الأحداث في الملفّ المجمَّد نفسه (phase_runtime_workers.py:308 على d27cda4f3)، ولا طبقةَ خارجه تحسب الموضوع.",
   "reissue_rule_ar": "المقترحُ مربوطٌ بالبايتات (`authorized_blobs`). أيُّ تعديلٍ لاحقٍ على phase_runtime_workers.py — ولو إعادةَ أساسٍ تمسّه — يُبطِله ويلزم إعادةُ حساب البصمات قبل التوقيع.",
   "honesty_limit_ar": "الشاهدُ المحلّيّ ساكنٌ بدالّة الموضوع الحقيقيّة وقائمة المستهلكين الحقيقيّة (يحمرّ على التحويل القديم). الشاهدُ الحيّ على nats-server/JetStream لم يُشغَّل محلّيّاً (NOT_RUN: لا nats-server) ويُشغَّل في `notification-rollout.yml`. والغلافُ من الصفّ: حدثُ runtime_event_outbox بلا مستأجِر (التطوير) يُنشَر بلا tenant_id ويُرسَل إلى الرسائل الميتة عمداً بقرار المالك.",
