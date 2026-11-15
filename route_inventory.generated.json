@@ -1394,7 +1394,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 170,
+    "line": 171,
     "method": "POST",
     "path": "/v1/nodes",
     "function": "upsert_node"
@@ -1402,7 +1402,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 183,
+    "line": 184,
     "method": "POST",
     "path": "/v1/edges",
     "function": "upsert_edge"
@@ -1410,7 +1410,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 197,
+    "line": 198,
     "method": "GET",
     "path": "/v1/edges",
     "function": "edges"
@@ -1418,7 +1418,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 213,
+    "line": 214,
     "method": "POST",
     "path": "/graphql",
     "function": "graphql"

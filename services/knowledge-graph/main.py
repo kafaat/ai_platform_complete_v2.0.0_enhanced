@@ -10,8 +10,8 @@ from kg_store import (
     EdgeConflictError,
     GraphEdge,
     GraphNode,
+    GraphWriteRefused,
     SQLiteAgGraphStore,
-    TenantScopedDataError,
     assert_global_reference_payload,
     graphql_readonly,
     seed_reference_ontology,
@@ -157,9 +157,10 @@ async def readyz():
     }
 
 
-def _refuse_tenant_scoped(exc: TenantScopedDataError) -> HTTPException:
-    # #1472 / ADR-0038: the graph is a global reference store; 422 with a stable code.
-    return HTTPException(422, {"code": exc.code, "path": exc.path, "reason": exc.reason})
+def _refuse_tenant_scoped(exc: GraphWriteRefused) -> HTTPException:
+    # #1472 / ADR-0038: the graph is a global reference store. 422 (413 for an
+    # oversized payload) with a stable code.
+    return HTTPException(exc.status, {"code": exc.code, "path": exc.path, "reason": exc.reason})
 
 
 def _declared_fields(model: BaseModel) -> dict[str, Any]:
@@ -174,7 +175,7 @@ async def upsert_node(node: NodeIn, _token: None = Depends(require_service_token
         # Whole body, extras included: a top-level tenant_id is refused, not dropped.
         assert_global_reference_payload(node.model_dump())
         store.upsert_node(GraphNode(**_declared_fields(node)))
-    except TenantScopedDataError as exc:
+    except GraphWriteRefused as exc:
         raise _refuse_tenant_scoped(exc) from exc
     return {"ok": True}
 
@@ -184,7 +185,7 @@ async def upsert_edge(edge: EdgeIn, _token: None = Depends(require_service_token
     try:
         assert_global_reference_payload(edge.model_dump())
         store.upsert_edge(GraphEdge(**_declared_fields(edge)))
-    except TenantScopedDataError as exc:
+    except GraphWriteRefused as exc:
         raise _refuse_tenant_scoped(exc) from exc
     except EdgeConflictError as exc:
         raise HTTPException(409, str(exc)) from exc

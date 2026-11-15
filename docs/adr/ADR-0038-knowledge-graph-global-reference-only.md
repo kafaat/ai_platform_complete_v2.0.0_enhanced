@@ -26,7 +26,7 @@ enter it.
    check the whole request body (extra top-level keys included, which the request
    models now keep instead of dropping). A refused write answers **422** with
    `detail.code = "kg_tenant_scoped_data_forbidden"`, the offending path and a
-   reason. Section "What is enforced" below lists the exact rules.
+   reason (or the limit codes below). Section "What is enforced" below lists the exact rules.
 2. **Reads are global by declaration.** Every authenticated tenant reads the same
    rows through REST and GraphQL. This is the intended behaviour of a reference
    store, not an isolation failure.
@@ -40,48 +40,80 @@ isolation model**, which is a new decision, not an extension of this one.
 
 ## What is enforced
 
-**Keys** in the body, `properties` and any nested mapping or list, and inside
-string values that parse as a JSON object or array, are normalised (Unicode NFKC,
-case-folded), split on `_ - .`, whitespace and camelCase, and reduced to singular
-tokens. A key is refused when:
+The rule refuses what is **shaped like** a scope identifier, not every key that
+contains a scope word (a first, broader token rule had both bypasses and false
+positives; it was replaced in the second #1478 review round).
 
-- a token is a scope word — `tenant`, `farm`, `farmer`, `field`, `plot`, `parcel`,
-  `org`, `organization`/`organisation`, `user`, `owner`, `account`, `customer` —
-  or such a word glued to `id`/`uuid`/`key`/`ref`/`code` (`tenantid`);
-- it contains `created by`, `updated by` or `owned by`;
-- a token is `email`, `geometry`, `geom`, `geojson`, `polygon`, `multipolygon`,
-  `wkt` or `wkb` (personal or location data, whatever the value).
+**Normalisation** of keys, ids, labels and names: Unicode NFKC; format characters
+(category Cf, such as zero-width spaces) removed; a small confusables table maps
+Cyrillic and Greek look-alikes (а е о р с у х і …) and dotless `ı` to ASCII;
+Arabic diacritics and tatweel removed; case-folded; split on `_ - . : /`,
+whitespace, camelCase and digit/letter boundaries (`field7` → `field`, `7`).
+English plurals reduce to the singular, and the Arabic article `ال` is dropped.
 
-The only exemption is an explicit allowlist of agronomic compounds, matched as
-whole token pairs: `field capacity`, `field crop`, `field pea`, `field bean`,
-`farm gate`. A key that holds an allowlisted pair and another scope word
-(`field_capacity_tenant`) is still refused.
+**Scope words:** tenant, farm, farmer, field, plot, parcel, org, organization,
+organisation, user, owner, account, customer, grower, holding, site, company,
+client, member, person, landlord, and مستأجر, مزرعة, مزارع, حقل, قطعة, مالك,
+مستخدم, منظمة, عميل.
 
-**Private marks.** `private` / `is_private` refuse the record when true; the strings
-`false`, `no`, `0`, `off`, `n` and the empty string count as false. `visibility`,
-`scope` and `access` accept only the strings `global` or `public`; any other value,
-including lists, `null`, `restricted`, `organization` and `user`, counts as private.
+**Keys** in the body, `properties`, any nested mapping or list, and inside string
+values holding JSON (a leading BOM and one JSON string-literal layer are
+unwrapped) are refused when:
 
-**Identifiers.** `node_id`, `edge_id`, `subject_id`, `object_id`, `label`, `name` and
-`relation` are refused when they encode a scope. `tenant`, `org`/`organization`,
-`user`, `owner`, `account`, `customer` or `farmer` followed by any further segment
-is refused (`tenant-acme-e`, `org:7`). `farm`, `field`, `plot` and `parcel` are also
-reference vocabulary, so they are refused only when followed by `:` `/` `=` `#` `@`
-or by a segment containing a digit (`field:7`, `farm-12`, `plot_3b`). A bare label
-such as `Field` or `Farm` is legitimate reference vocabulary (the class of things,
-not one tenant's instance) and stays allowed, as do ids such as `field_crops`.
+- the key is a scope word or its plural on its own (`owner`, `tenants`, `حقل`);
+- a scope word is immediately followed by an identifier suffix — `id`, `ids`,
+  `uuid`, `key`, `ref`, `code`, `no`, `number`, `name` — or glued to one
+  (`farm_id`, `tenantID`, `tenant.id`, `farmname`); in Arabic an identifier word
+  (`معرف`, `رقم`, `رمز`, `اسم`, `هوية`) next to a scope word (`معرف_المزرعة`);
+- it carries personal or location data: a token `email`, `phone`, `geometry`,
+  `geojson`, `coordinates`, `latitude`, `longitude` or `address`, or the whole key
+  is `location`, `lat`, `lon`, `lng`, `boundary`, `author`, `geo_point`,
+  `created_by`, `submitted_by`, `updated_by` or `owned_by`;
+- its value is a GeoJSON object (a mapping whose `type` is a GeoJSON geometry or
+  feature type), under any key.
+
+So `field_resistance`, `field_trial_results`, `field_emergence_pct`,
+`farm_size_ha`, `plot_size_m2`, `user_guide_url`, `source_organization`,
+`data_owner` and `owner_institution` pass; they are regression tests.
+
+**Private markers.** `private` / `is_private` refuse when true (the strings
+`false`, `no`, `0`, `off`, `n` and the empty string are false). A key whose tokens
+include visibility, privacy, access, scope, sharing, audience, acl, shared or public
+refuses an explicit marker: a value (or list element) in private, restricted,
+organization, tenant, internal; `public` / `is_public` false; `shared_with`
+non-empty. Free text such as "Applies to cereals in arid zones" or "open data", and
+values such as `user`, are not markers and pass.
+
+**Ids, labels and names** (`node_id`, `edge_id`, `subject_id`, `object_id`,
+`label`, `name`, `relation`) are refused for `<scope>[:#/-]<token>` (`tenant:acme`,
+`farm-12`, `مزرعة:12`), `<token>[:-]<scope>` (`acme-tenant`, `7:field`), a scope
+word glued to a digit run on either side (`farm12`, `12field`), and a scope word
+followed by an id suffix (`customerId42`). Prose and reference vocabulary pass:
+`Field`, `Farmer field schools`, `Tenant farming systems`, `User guide to wheat`,
+`Field capacity of sandy loam`, `FieldTrial2019`, `plot_2x2_design`. A bare label
+such as `Field` or `Farm` names the class of things, not one tenant's instance.
+
+**Limits.** Nesting deeper than 64 levels answers 422 `kg_payload_too_deep`; more
+than 10 000 keys and list items answers 413 `kg_payload_too_large`. A body too
+deep for the JSON parser itself is refused by the framework with 400. No path
+returns 500.
 
 ## What is not enforced
 
-- **Free text.** Values of other properties, and words in names that do not form a
-  scope identifier, are not inspected for private content (for example a
-  description naming a farmer). Curated ingestion remains responsible for that.
+- **Free text.** Descriptions and other prose values are not inspected for
+  private content (for example a description naming a farmer).
+- **Synonyms beyond the lists** (for example `estate`, `ranch`, `household`) and
+  ids joined only by `_` or spaces (`plot_3b`, `farm twelve`).
+- **Other scripts** beyond the confusables table and the listed Arabic words.
+- **Other encodings**: base64, Python `repr`, URL-encoding or anything that is not
+  JSON text inside a string.
 - **Data already stored.** The guard sees only new writes; nothing scans
   `/data/kg.sqlite` automatically. `scan_existing_rows()` in `kg_store.py`, run as
   `python -m kg_store --scan [DB]` (default `KG_SQLITE_PATH`), opens the database
-  read-only (`mode=ro`) and reports every stored node and edge that violates the
-  rules above as JSON, exiting 1 if any. It deletes nothing; what to do with a
-  finding is an owner decision.
+  through a `mode=ro` connection that SQLite refuses to write through, and
+  reports as JSON every stored node and edge that breaks the rules above,
+  including rows whose `properties_json` is not valid JSON. It exits 1 if any are
+  found and deletes nothing; what to do with a finding is an owner decision.
 
 ## Rejected alternative
 
@@ -100,6 +132,5 @@ graph holds only public reference knowledge.
   authority (the graph stays reference-only, non-prescriptive).
 - (−) The guard is rule-based (see "What is not enforced"): free text and rows
   stored before it are outside its reach; the second is reportable with the scan.
-- (−) A reference property whose key holds a scope word outside the allowlist
-  (`owner`, `field_notes`) is refused; it must be renamed (for example
-  `publisher`, `notes`) or the compound added to the tested allowlist by review.
+- (−) A reference property named exactly as a scope word or a scope identifier
+  (`owner`, `site_code`) is refused; it must be renamed (for example `publisher`).

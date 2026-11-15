@@ -170,10 +170,10 @@ indicators-service,GET,/v1/fields/{field_id}/observation-timeline,observation_ti
 knowledge-graph,GET,/healthz,healthz,services/knowledge-graph/main.py,125
 knowledge-graph,GET,/metrics,metrics,services/knowledge-graph/main.py,130
 knowledge-graph,GET,/readyz,readyz,services/knowledge-graph/main.py,147
-knowledge-graph,POST,/v1/nodes,upsert_node,services/knowledge-graph/main.py,170
-knowledge-graph,POST,/v1/edges,upsert_edge,services/knowledge-graph/main.py,183
-knowledge-graph,GET,/v1/edges,edges,services/knowledge-graph/main.py,197
-knowledge-graph,POST,/graphql,graphql,services/knowledge-graph/main.py,213
+knowledge-graph,POST,/v1/nodes,upsert_node,services/knowledge-graph/main.py,171
+knowledge-graph,POST,/v1/edges,upsert_edge,services/knowledge-graph/main.py,184
+knowledge-graph,GET,/v1/edges,edges,services/knowledge-graph/main.py,198
+knowledge-graph,POST,/graphql,graphql,services/knowledge-graph/main.py,214
 local-ai-rag,POST,/v1/query,query_endpoint,services/local-ai-rag/main.py,755
 local-ai-rag,POST,/v1/ingest,ingest_endpoint,services/local-ai-rag/main.py,765
 local-ai-rag,GET,/healthz,healthz,services/local-ai-rag/main.py,820

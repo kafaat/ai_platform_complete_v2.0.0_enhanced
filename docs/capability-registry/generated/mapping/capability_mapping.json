@@ -2232,11 +2232,11 @@
           "score": 13
         },
         {
-          "value": "kg_edges @ services/knowledge-graph/kg_store.py:361",
+          "value": "kg_edges @ services/knowledge-graph/kg_store.py:498",
           "score": 10
         },
         {
-          "value": "kg_nodes @ services/knowledge-graph/kg_store.py:353",
+          "value": "kg_nodes @ services/knowledge-graph/kg_store.py:490",
           "score": 10
         }
       ],
@@ -82771,7 +82771,7 @@
       "edges": [],
       "unresolved": [
         {
-          "line": 104,
+          "line": 165,
           "call": "spec_from_file_location"
         }
       ]

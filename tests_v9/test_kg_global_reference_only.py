@@ -17,6 +17,8 @@ every authenticated caller reads the same rows, so:
 from __future__ import annotations
 
 import importlib.util
+import json
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -31,9 +33,9 @@ TOKEN = "k" * 32
 WRITE_HEADERS = {"X-Agent-Token": TOKEN}
 CODE = "kg_tenant_scoped_data_forbidden"
 
-# Every forbidden identifier named in the decision, the near-variants found in the
-# #1478 review (all of which were stored before), and spelling variants the
-# normaliser must catch.
+# Keys shaped like a scope identifier, or carrying personal/location data: the
+# decision's keys, the near-variants of the #1478 reviews, and encodings the
+# normaliser must see through (full-width, zero-width, Cyrillic, dotless i, Arabic).
 FORBIDDEN_KEYS = [
     "tenant_id",
     "field_id",
@@ -42,6 +44,8 @@ FORBIDDEN_KEYS = [
     "owner",
     "owner_id",
     "tenantId",
+    "tenantID",
+    "tenant.id",
     "Field-ID",
     "FARM_ID",
     "farmer_id",
@@ -51,16 +55,38 @@ FORBIDDEN_KEYS = [
     "organization_id",
     "customer_id",
     "account_id",
-    "created_by",
-    "email",
+    "grower_name",
+    "site_code",
+    "plot_no",
+    "field_number",
+    "farmname",
+    "tenantid",
     "tenant_uuid",
     "field_uuid",
     "tenants",
     "farm_ids",
+    "created_by",
+    "submitted_by",
+    "author",
+    "email",
+    "contact_phone",
     "geometry",
-    "\uff54\uff45\uff4e\uff41\uff4e\uff54_id",  # full-width tenant_id
-    "tenantid",
-    "source.tenant",
+    "geo_point",
+    "coordinates",
+    "location",
+    "lat",
+    "lon",
+    "latitude",
+    "longitude",
+    "boundary",
+    "address",
+    "ｔｅｎａｎｔ_id",  # full-width tenant_id
+    "t​enant_id",  # zero-width space inside
+    "tеnant_id",  # Cyrillic e
+    "tenant_ıd",  # dotless i
+    "حقل",  # حقل
+    "معرف_المزرعة",  # معرف_المزرعة
+    "مزرعة_رقم",  # مزرعة_رقم
 ]
 PRIVATE_MARKS = [
     {"private": True},
@@ -70,33 +96,68 @@ PRIVATE_MARKS = [
     {"visibility": "private"},
     {"visibility": ["private"]},
     {"visibility": "restricted"},
-    {"visibility": None},
     {"scope": "tenant"},
     {"scope": "organization"},
-    {"access": "user"},
+    {"access": "internal"},
+    {"sharing_policy": "tenant"},
+    {"public": False},
+    {"is_public": "false"},
+    {"shared_with": ["t-1"]},
 ]
-# Agronomic compounds on the explicit allowlist: reference concepts, not scopes.
-ALLOWED_KEYS = ["field_capacity", "fieldCapacity", "field_capacity_pct", "farm_gate_price"]
+# Reference properties that merely contain a scope word: regression tests for the
+# false positives of the broad token rule (#1478 re-review).
+FALSE_POSITIVE_KEYS = [
+    "field_resistance",
+    "field_trial_results",
+    "field_emergence_pct",
+    "farm_size_ha",
+    "plot_size_m2",
+    "user_guide_url",
+    "source_organization",
+    "data_owner",
+    "owner_institution",
+    "field_capacity",
+    "fieldCapacity",
+]
+# Free-text values under visibility-like keys that are not private markers.
+FREE_TEXT_VISIBILITY = [
+    {"scope": "Applies to cereals in arid zones"},
+    {"access": "open data"},
+    {"visibility": "global"},
+    {"visibility": "public"},
+    {"shared_with": []},
+    {"public": True},
+]
 # Ids, labels and names that encode a tenant/farm/field scope.
 SCOPED_IDENTIFIERS = [
     ("node_id", "tenant:acme/farm:12/field:7"),
     ("node_id", "tenant-acme-wheat"),
+    ("node_id", "acme-tenant"),
     ("node_id", "org:7"),
     ("node_id", "field:7"),
+    ("node_id", "7:field"),
     ("node_id", "farm-12"),
-    ("node_id", "plot_3b"),
+    ("node_id", "farm12"),
+    ("node_id", "field7"),
     ("node_id", "customerId42"),
-    ("label", "Tenant acme"),
+    ("node_id", "مزرعة:12"),  # مزرعة:12
+    ("label", "Tenant#acme"),
     ("name", "field/7 wheat"),
 ]
-# Reference vocabulary that merely contains a scope word: still allowed.
+# Reference vocabulary and prose that contain a scope word: still allowed.
 REFERENCE_IDENTIFIERS = [
     ("label", "Field"),
     ("label", "Farm"),
+    ("label", "FieldTrial2019"),
     ("node_id", "field_crops"),
     ("node_id", "field_pea"),
     ("node_id", "field_capacity"),
+    ("node_id", "plot_2x2_design"),
     ("name", "Field trial"),
+    ("name", "Farmer field schools"),
+    ("name", "Tenant farming systems"),
+    ("name", "User guide to wheat"),
+    ("name", "Field capacity of sandy loam"),
 ]
 
 
@@ -366,19 +427,28 @@ def test_writes_still_require_the_service_token(api):
     assert r.status_code == 403 and r.json()["detail"] == "service_token_required"
 
 
-# ── #1478 review: near-variants, encodings, ids and labels ────────────────────────
+# ── #1478 reviews: shapes, encodings, ids and labels ──────────────────────────────
 
 
-@pytest.mark.parametrize("key", ALLOWED_KEYS)
-def test_allowlisted_agronomic_compounds_are_accepted(store, key):
+@pytest.mark.parametrize("key", FALSE_POSITIVE_KEYS)
+def test_reference_keys_containing_a_scope_word_are_accepted(store, key):
     store.upsert_node(kg.GraphNode("loam", "SoilTexture", "Loam", {key: 0.3}))
     assert "loam" in _node_ids(store)
 
 
-@pytest.mark.parametrize("key", ["field_owner", "farm_gate_owner", "field_capacity_tenant"])
-def test_the_allowlist_is_not_a_loophole(store, key):
-    with pytest.raises(kg.TenantScopedDataError):
-        store.upsert_node(kg.GraphNode("loam", "SoilTexture", "Loam", {key: 1}))
+@pytest.mark.parametrize("mark", FREE_TEXT_VISIBILITY)
+def test_free_text_under_visibility_keys_is_accepted(store, mark):
+    store.upsert_node(kg.GraphNode("loam", "SoilTexture", "Loam", dict(mark)))
+    assert "loam" in _node_ids(store)
+
+
+@pytest.mark.parametrize("gtype", ["Point", "Polygon", "MultiPolygon", "LineString", "Feature"])
+def test_a_geojson_value_is_refused_under_any_key(store, gtype):
+    with pytest.raises(kg.TenantScopedDataError) as exc:
+        store.upsert_node(
+            kg.GraphNode("loam", "SoilTexture", "Loam", {"shape": {"type": gtype, "x": []}})
+        )
+    assert exc.value.path == "properties.shape"
 
 
 @pytest.mark.parametrize(
@@ -387,6 +457,8 @@ def test_the_allowlist_is_not_a_loophole(store, key):
         '{"tenant_id": "acme"}',
         ' {"meta": {"farm_id": 12}} ',
         '[{"visibility": "private"}]',
+        '\ufeff{"tenant_id": "acme"}',
+        json.dumps(json.dumps({"farm_id": 12})),
     ],
 )
 def test_json_string_values_are_parsed_and_checked(api, blob):
@@ -498,11 +570,72 @@ def test_scan_cli_exit_codes(tmp_path, capsys):
     assert kg._main(["--scan", str(dirty)]) == 1
 
 
-def test_scan_opens_the_database_read_only(tmp_path):
+def test_scan_connection_refuses_writes(tmp_path):
     db = tmp_path / "ro.sqlite"
     kg.SQLiteAgGraphStore(db)
-    db.chmod(0o444)
+    conn = kg.open_readonly(db)
     try:
-        assert kg.scan_existing_rows(db) == []
+        with pytest.raises(sqlite3.OperationalError, match="readonly"):
+            conn.execute("INSERT INTO kg_nodes VALUES('x','X','x','{}')")
     finally:
-        db.chmod(0o644)
+        conn.close()
+    assert kg.scan_existing_rows(db) == []
+
+
+def test_scan_reports_rows_with_invalid_properties_json(tmp_path):
+    db = tmp_path / "bad.sqlite"
+    s = kg.SQLiteAgGraphStore(db)
+    with s._connect() as conn:
+        conn.execute("INSERT INTO kg_nodes VALUES('loam','SoilTexture','Loam','{not json')")
+    assert kg.scan_existing_rows(db) == [
+        {
+            "table": "kg_nodes",
+            "id": "loam",
+            "path": "properties_json",
+            "reason": "properties_json is not valid JSON",
+        }
+    ]
+
+
+# ── robustness: 4xx, never 500 or a stall ───────────────────────────────────────
+
+
+def _nested(depth: int) -> dict:
+    root: dict = {}
+    cur = root
+    for _ in range(depth):
+        cur["a"] = {}
+        cur = cur["a"]
+    return root
+
+
+@pytest.mark.parametrize("depth", [65, 200, 900])
+def test_deep_nesting_is_refused_with_422(api, depth):
+    _main, client = api
+    body = {"node_id": "loam", "label": "S", "name": "L", "properties": _nested(depth)}
+    r = client.post("/v1/nodes", json=body, headers=WRITE_HEADERS)
+    assert r.status_code == 422, r.text[:200]
+    assert r.json()["detail"]["code"] == "kg_payload_too_deep"
+
+
+def test_deep_json_inside_a_string_is_refused_with_422(api):
+    _main, client = api
+    blob = "[" * 5000 + "]" * 5000
+    body = {"node_id": "loam", "label": "S", "name": "L", "properties": {"raw": blob}}
+    r = client.post("/v1/nodes", json=body, headers=WRITE_HEADERS)
+    assert r.status_code == 422, r.text[:200]
+    assert r.json()["detail"]["code"] == "kg_payload_too_deep"
+
+
+def test_nesting_within_the_cap_is_accepted(store):
+    store.upsert_node(kg.GraphNode("loam", "SoilTexture", "Loam", _nested(60)))
+    assert "loam" in _node_ids(store)
+
+
+def test_too_many_keys_is_refused_with_413(api):
+    _main, client = api
+    props = {f"k{i}": i for i in range(10_001)}
+    body = {"node_id": "loam", "label": "S", "name": "L", "properties": props}
+    r = client.post("/v1/nodes", json=body, headers=WRITE_HEADERS)
+    assert r.status_code == 413
+    assert r.json()["detail"]["code"] == "kg_payload_too_large"
