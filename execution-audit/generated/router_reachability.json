@@ -82,7 +82,7 @@
     },
     {
       "kind": "app",
-      "line": 87,
+      "line": 93,
       "module": "services.ai_agronomist.main",
       "node_id": "services.ai_agronomist.main:app",
       "route_count": 13,
@@ -1234,7 +1234,7 @@
     },
     {
       "kind": "router",
-      "line": 158,
+      "line": 159,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -3000,7 +3000,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "ec758480f76d86daa9a45e6cad31ab5fdda2e0d22d694d6ec21f41b2bc7e9c67",
+  "inventory_sha256": "541c4f2c354193fd049014d40e4486109f902ae6a13bc15676145912410a409e",
   "orphan_candidate_count": 237,
   "orphan_candidates": [
     {
@@ -4106,7 +4106,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 158,
+      "line": 159,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
