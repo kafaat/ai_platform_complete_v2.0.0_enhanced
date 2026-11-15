@@ -194,15 +194,30 @@ async def main(argv: list[str] | None = None) -> int:
     import asyncpg
 
     conn = await asyncpg.connect(args.dsn)
+    summaries: list[dict[str, Any]] = []
     try:
-        summaries = [await recompute_tenant(conn, t, apply=args.apply) for t in tenants]
+        for tenant in tenants:
+            summary = await recompute_tenant(conn, tenant, apply=args.apply)
+            summaries.append(summary)
+            # Each tenant commits on its own. Report it now, so a later tenant's failure
+            # cannot hide what was already written.
+            if not args.json:
+                _print(summary)
+                sys.stdout.flush()
+    except BaseException:
+        if summaries:
+            print(
+                "recompute stopped; these tenants had already finished"
+                f"{' (committed)' if args.apply else ''}:\n"
+                + json.dumps(summaries, ensure_ascii=False, indent=2),
+                file=sys.stderr,
+                flush=True,
+            )
+        raise
     finally:
         await conn.close()
     if args.json:
         print(json.dumps(summaries, ensure_ascii=False, indent=2))
-    else:
-        for summary in summaries:
-            _print(summary)
     return 0
 
 
