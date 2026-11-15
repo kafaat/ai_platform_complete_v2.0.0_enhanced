@@ -4895,7 +4895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c16a2ce4709a657cafc0d2925d9b51bd1caaa313dc5bd8a6aa72980dd794690b"
+          "content": "e231622fec9693afec672ebcb91fcc59a3f439ddb55412f14da2c0b8268d8117"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -24885,7 +24885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "37e6f42fa4efa4873dcf33faaf91c9ecdf4809e3093a7552af7946ebcdb80d0b"
+          "content": "c71465e8879cc422f1f61b118983bb0167520ce6073285e6ecb79fea27c2bdb4"
         }
       ],
       "name": "services/sahool-platform/api/event_catalog.py",
@@ -27255,7 +27255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6fbfca5ca590d0102b2f77bd43d0ccb88801765baafdbe21675419a63c22010d"
+          "content": "9106fcebe4ee4227ab0d17974dfb1c8e008007af6039060bbaa106fee06cd815"
         }
       ],
       "name": "services/sahool-platform/api/routers/notifications.py",
@@ -35299,6 +35299,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_notification_delivery_endpoints.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "272bf31d24d30bee87743ee14a591add948c03f45ec606e481ab075ce04703f6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_notification_delivery_transitions.py",
       "type": "file"
     },
     {
