@@ -23,6 +23,9 @@ metadata:
    - push, merge, deploy, send, upload, delete → `safe-delivery`
    - a skill to create, change or adopt → `skill-evaluator`
    `python3 scripts/route_work.py --profile <profile.json>` gives the same answer from flags ([`assets/work-profile.example.json`](assets/work-profile.example.json)) and reports which suggested skills are **not installed**. Do not claim a missing skill ran.
+
+**Router output:** `skills` remains the complete legacy match list (not proof of loading). `selected` proposes at most two skills for this phase (without selecting any reported missing skill); `deferred` names remaining or unavailable skills and why. An external effect with a deferred safety prerequisite has `phase_preconditions`. These are advisory, never a grant of authority.
+
 5. For sustained work, write the contract first: `intent-to-proof` and its checker turn the outcome into requirements with acceptance evidence.
 6. Finish with the evidence-backed outcome and its limits. A skill cannot hold a lock, run tests, store state or grant permission by itself.
 
