@@ -111,6 +111,13 @@ def gateway_errors(values: dict, chart: Path = CHART) -> list[str]:
             errors.append(f"gateway uses unsafe image tag: {gateway.get('image')}")
         if not (gateway.get("auth", {}) or {}).get("serviceName"):
             errors.append("gateway.auth.serviceName is required (auth_request verifier)")
+        if not str(gateway.get("resolver", "")).strip():
+            errors.append("gateway.resolver is required (auth is resolved per request)")
+        if not (values.get("networkPolicy", {}) or {}).get("trustedIngressNamespaces"):
+            errors.append(
+                "networkPolicy.trustedIngressNamespaces must not be empty: an empty `from` "
+                "admits every source in the cluster to the gateway"
+            )
         for rel in ("nginx.conf", "routes.conf", "proxy_params.conf"):
             if not (chart / "files" / "gateway" / rel).is_file():
                 errors.append(f"gateway: missing files/gateway/{rel}")
@@ -123,6 +130,22 @@ def gateway_errors(values: dict, chart: Path = CHART) -> list[str]:
     if ".Values.workloads" in ingress_text:
         errors.append("templates/ingress.yaml must not route to workloads directly")
     return errors
+
+
+def gateway_auth_notice(values: dict) -> str | None:
+    """The deploy-path statement that the chart does not deploy the auth verifier yet."""
+    gateway = values.get("gateway", {}) or {}
+    if not gateway.get("enabled"):
+        return None
+    service = (gateway.get("auth", {}) or {}).get("serviceName", "")
+    if service in (values.get("workloads", {}) or {}):
+        return None
+    return (
+        f"the chart does not deploy the auth Service {service!r} (deploy-3, W3-09). "
+        "The gateway starts without it and resolves it per request; until it exists in "
+        "the namespace every auth_request route answers 500 and /auth/ answers 502 "
+        "(fail closed), and only /api/v1 and /api/guardrails serve."
+    )
 
 
 def source_contract_errors(values: dict, root: Path = ROOT) -> list[str]:
@@ -301,6 +324,10 @@ def main() -> int:
     for snippet in required_snippets:
         if snippet not in template_text:
             failures.append(f"template contract missing: {snippet}")
+
+    notice = gateway_auth_notice(merged)
+    if notice:
+        print(f"WARN: {notice}")
 
     if failures:
         for item in failures:

@@ -89,6 +89,10 @@ spec:
   policyTypes: [Ingress]
   ingress:
     - from:
+        {{- /* An empty `from` would admit every source in the cluster: refuse instead. */}}
+        {{- if not .Values.networkPolicy.trustedIngressNamespaces }}
+        {{- fail "networkPolicy.trustedIngressNamespaces must name the ingress controller namespace(s): an empty list renders a NetworkPolicy `from` with no peers, which admits every source to the gateway" }}
+        {{- end }}
         {{- range .Values.networkPolicy.trustedIngressNamespaces }}
         - namespaceSelector:
             matchLabels:

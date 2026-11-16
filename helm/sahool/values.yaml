@@ -57,10 +57,17 @@ gateway:
   # Unprivileged port: the pod runs as the image's nginx user, not root.
   port: 8080
   runAsUser: 101
+  # Cluster DNS used to resolve the auth host per request (nginx `resolver`). kube-dns is
+  # the Service name on kube-dns and CoreDNS clusters alike.
+  resolver: kube-dns.kube-system.svc.cluster.local
+  clusterDomain: cluster.local
   auth:
     # In-namespace Service of services/auth. The chart does not deploy auth yet (deploy-3,
-    # W3-09): until that Service exists nginx refuses to start, so no request is ever
-    # passed unverified.
+    # W3-09). The gateway resolves it per request, so it starts without it; until the
+    # Service exists every auth_request route answers 500 and /auth/ answers 502 (fail
+    # closed). Only the self-verifying /api/v1 and /api/guardrails routes serve meanwhile.
+    # validate_helm_readiness.py --env production prints this, and
+    # scripts/deploy/deploy_production.sh checks for the Service after the install.
     serviceName: sahool-auth
     port: 8000
   resources:
@@ -136,11 +143,12 @@ workloads:
     port: 8000
     sourceDockerfile: services/ai_agronomist/Dockerfile
     pathPrefix: /api/ai-agronomist
-    # Trusts X-Tenant-Id / X-User-*: reachable only from the gateway and from sahool-platform
-    # (AI_AGRONOMIST_URL, service token).
+    # Trusts X-Tenant-Id / X-User-*: reachable only from the gateway. No chart workload
+    # calls it in-cluster (sahool-platform's code has no ai-agronomist client; its compose
+    # AI_AGRONOMIST_URL is unused), so no internal caller is admitted. Add one here only
+    # with the code that calls it and authenticates with the service token.
     gatewayOnly: true
-    internalCallers:
-      - sahool-platform
+    internalCallers: []
     # Kubernetes readiness = process able to serve. /readyz here is an operational RAG claim
     # (503 while no embedding profile is bound, #1466/#1474) for monitoring and certification;
     # gating rollout on it would hold every pod unready and roll back `helm upgrade --atomic`.
