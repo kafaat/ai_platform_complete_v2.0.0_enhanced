@@ -112,10 +112,15 @@ class AdvisorApi {
   /// تدفّق تصعيد الآفة (POST /api/v1/pest-escalation/run) — يتطلّب
   /// pesticide:approve (مالك/مهندس). أوّل نداء (pest_type/severity) يصل إلى
   /// خطوة الموافقة ويُعلَّق؛ نداء ثانٍ بنفس [workflowId] و[approvalStatus]
-  /// (approved/rejected) يستأنفه.
+  /// (approved/rejected) يستأنفه. W3-07: [seasonId] و[diagnosisRef] و[evidenceRef] مراجع
+  /// سلسلة المبيد (PestEscalationRequest، api_models.py) من ردود الخادم فقط، يدقّقها
+  /// audit_chemical_lineage على الخادم ويعيد حكمه في context.chemical_lineage_audit.
   Future<Map<String, dynamic>> runPestEscalation({
     required String workflowId,
     String? fieldId,
+    String? seasonId,
+    String? diagnosisRef,
+    String? evidenceRef,
     String? pestType,
     double? severity,
     String? approvalStatus,
@@ -125,6 +130,11 @@ class AdvisorApi {
       data: {
         'workflow_id': workflowId,
         if (fieldId != null && fieldId.isNotEmpty) 'field_id': fieldId,
+        if (seasonId != null && seasonId.isNotEmpty) 'season_id': seasonId,
+        if (diagnosisRef != null && diagnosisRef.isNotEmpty)
+          'diagnosis_ref': diagnosisRef,
+        if (evidenceRef != null && evidenceRef.isNotEmpty)
+          'evidence_ref': evidenceRef,
         if (pestType != null) 'pest_type': pestType,
         if (severity != null) 'severity': severity,
         if (approvalStatus != null) 'approval_status': approvalStatus,

@@ -83,30 +83,7 @@ _WEB_GUARD_SPEC.loader.exec_module(web_guard)
 #: guard passes on main without hiding it. Key: (dart file, method or "ANY", public path
 #: with parameters normalised to ``{}``). A new entry is not a fix; an entry that starts
 #: matching (or whose call disappears) must be deleted (see the staleness test).
-_REALTIME_GATEWAY_GAP = (
-    "services/realtime-session serves this route, but the public gateway nginx/nginx.v9.conf "
-    "has no realtime location: `location /api/v1/` sends it to sahool-platform, which has no "
-    "/api/v1/realtime/* handler, so a mobile build pointed at the gateway gets 404. Only the "
-    "web origin's frontend/nginx.conf routes it (`location ^~ /api/v1/realtime/` to "
-    "sahool-realtime-session, with `/api/v1/realtime/internal/` refused)."
-)
-_REALTIME_OWNER = (
-    "owner decision (gateway + realtime-session): add the same `^~ /api/v1/realtime/` "
-    "location (and the internal/ refusal) to nginx.v9.conf, or document that the mobile "
-    "API_URL must be the web origin. Found by MOBILE-BACKEND-CONTRACT-01, 2026-11-13."
-)
-KNOWN_MOBILE_CALLS_WITHOUT_BACKEND: dict[tuple[str, str, str], dict[str, str]] = {
-    (
-        "mobile/sahool_app/lib/features/realtime/realtime_api.dart",
-        "POST",
-        "/api/v1/realtime/sessions",
-    ): {"reason": _REALTIME_GATEWAY_GAP, "owner": _REALTIME_OWNER},
-    (
-        "mobile/sahool_app/lib/features/realtime/realtime_api.dart",
-        "DELETE",
-        "/api/v1/realtime/sessions/{}",
-    ): {"reason": _REALTIME_GATEWAY_GAP, "owner": _REALTIME_OWNER},
-}
+KNOWN_MOBILE_CALLS_WITHOUT_BACKEND: dict[tuple[str, str, str], dict[str, str]] = {}
 
 
 # ── Dart lexing ─────────────────────────────────────────────────────────────

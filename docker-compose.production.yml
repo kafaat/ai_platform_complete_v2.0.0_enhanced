@@ -14,6 +14,16 @@ services:
       RASTER_S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
       RASTER_S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       ZLMEDIAKIT_IMAGE: ${ZLMEDIAKIT_IMAGE:?ZLMEDIAKIT_IMAGE sha256 digest required}
+      # W3-12: service tokens whose absence only shows up at request time, as a 503 from the
+      # endpoint that needs them (field-task verification callback, scouting media, edge sync).
+      # In production the stack refuses to start instead.
+      TASK_SERVICE_CALLBACK_TOKEN: ${TASK_SERVICE_CALLBACK_TOKEN:?TASK_SERVICE_CALLBACK_TOKEN required}
+      SCOUT_MEDIA_SERVICE_TOKEN: ${SCOUT_MEDIA_SERVICE_TOKEN:?SCOUT_MEDIA_SERVICE_TOKEN required}
+      EDGE_SYNC_TOKEN: ${EDGE_SYNC_TOKEN:?EDGE_SYNC_TOKEN required}
+      # nginx injects it as X-Field-Tasks-Token on /api/v1/field-tasks/; field-management's
+      # fm_gateway compares it; unset, every field-task route answers 503
+      # field_tasks_token_unconfigured (fm_gateway.authorize).
+      FIELD_TASKS_SERVICE_TOKEN: ${FIELD_TASKS_SERVICE_TOKEN:?FIELD_TASKS_SERVICE_TOKEN required}
     command: ["sh", "-ec", "test \"$$SAHOOL_ENV\" = production; test $${#FIELD_SERVICE_TENANT_ASSERTION_KEY} -ge 32; case \"$$ZLMEDIAKIT_IMAGE\" in *@sha256:*) ;; *) echo ZLMEDIAKIT_IMAGE-must-use-sha256 >&2; exit 1;; esac; echo production-preflight-ok"]
 
   # W2-02 (routes-3/decision-9): AC-1 is always required in production; the composer is pinned

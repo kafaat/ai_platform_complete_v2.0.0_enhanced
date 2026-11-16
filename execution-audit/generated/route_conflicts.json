@@ -222,7 +222,7 @@
         },
         {
           "function": "healthz",
-          "line": 21,
+          "line": 23,
           "method": "GET",
           "module": "services/vegetation-analysis-service/routers/health.py",
           "path": "/health",
@@ -469,7 +469,7 @@
         },
         {
           "function": "healthz",
-          "line": 21,
+          "line": 23,
           "method": "GET",
           "module": "services/vegetation-analysis-service/routers/health.py",
           "path": "/healthz",
@@ -604,7 +604,7 @@
         },
         {
           "function": "metrics",
-          "line": 61,
+          "line": 68,
           "method": "GET",
           "module": "services/vegetation-analysis-service/routers/health.py",
           "path": "/metrics",
@@ -843,7 +843,7 @@
         },
         {
           "function": "readyz",
-          "line": 26,
+          "line": 28,
           "method": "GET",
           "module": "services/vegetation-analysis-service/routers/health.py",
           "path": "/readyz",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1156,
-  "route_inventory_sha256": "6ca5f62ce977e513209c34187431fcf7919a62f4188226a85f3697e1c07c0f74",
+  "route_inventory_sha256": "85cf18397c81a7eba558a736bed7b98cf74b261dbad43ef079e891d7ede3f607",
   "runtime_verified": false,
   "schema_version": 1
 }

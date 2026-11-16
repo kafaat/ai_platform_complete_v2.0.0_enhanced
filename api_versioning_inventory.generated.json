@@ -8993,7 +8993,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 269,
+    "line": 275,
     "method": "GET",
     "path": "/internal/scouting/external-observations",
     "handler": "read_external_observations",
@@ -9002,7 +9002,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 388,
+    "line": 394,
     "method": "POST",
     "path": "/internal/ingest/submissions/odk",
     "handler": "ingest_odk_submission",
@@ -9011,7 +9011,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 397,
+    "line": 403,
     "method": "POST",
     "path": "/internal/ingest/submissions/kobo",
     "handler": "ingest_kobo_submission",
@@ -10055,7 +10055,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/health.py",
-    "line": 21,
+    "line": 23,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -10064,7 +10064,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/health.py",
-    "line": 21,
+    "line": 23,
     "method": "GET",
     "path": "/health",
     "handler": "healthz",
@@ -10073,7 +10073,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/health.py",
-    "line": 26,
+    "line": 28,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -10082,7 +10082,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/health.py",
-    "line": 61,
+    "line": 68,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",

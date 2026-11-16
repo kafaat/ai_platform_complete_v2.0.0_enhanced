@@ -564,7 +564,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 23,
+      "outgoing": 24,
       "orphan": false
     },
     {
@@ -693,6 +693,14 @@
       "kind": "compose-service",
       "incoming": 1,
       "outgoing": 2,
+      "orphan": false
+    },
+    {
+      "id": "sahool-realtime-session",
+      "paths": [],
+      "kind": "compose-service",
+      "incoming": 1,
+      "outgoing": 0,
       "orphan": false
     },
     {
@@ -1689,6 +1697,12 @@
     },
     {
       "source": "sahool-nginx",
+      "target": "sahool-realtime-session",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-nginx",
       "target": "sahool-remote-sensing-workspace-bff",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
@@ -2146,12 +2160,12 @@
   ],
   "cycles": [],
   "summary": {
-    "nodes": 111,
-    "edges": 198,
+    "nodes": 112,
+    "edges": 199,
     "orphans": 9,
     "cycles": 0,
     "code_edges": 64,
-    "compose_edges": 134
+    "compose_edges": 135
   },
-  "content_sha256": "0d1599148c34e932b537572cdf5e802ff516c85793aa65b049ed11a423772311"
+  "content_sha256": "ba72d2a36a1bd1b189891a6d346f569f173643ea898deda93d6fdd62cc03d4f2"
 }
