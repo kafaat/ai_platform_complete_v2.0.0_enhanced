@@ -16,7 +16,12 @@ from fastapi.security import HTTPBearer
 from mcp_client import MCPClient
 from pydantic import BaseModel, Field
 from router import HierarchicalRouter
-from server_facts import bind_server_facts, request_facts_provenance, resolve_server_facts
+from server_facts import (
+    bind_server_facts,
+    facts_needed,
+    request_facts_provenance,
+    resolve_server_facts,
+)
 from skills.advisory_skill import AdvisorySkill
 from skills.crop_model_skill import CropModelSkill, plan_economics
 from skills.market_skill import MarketSkill
@@ -436,7 +441,7 @@ def _format_arabic_response(result: dict) -> str:
         return result.get("response", "تمت المعالجة بنجاح.")
 
 
-async def _resolve_server_facts(client, field_id, tenant_id):
+async def _resolve_server_facts(client, field_id, tenant_id, *, needs=None):
     """W2-17: season (platform service route) and weather (weather-service) for the field."""
     return await resolve_server_facts(
         client,
@@ -444,23 +449,30 @@ async def _resolve_server_facts(client, field_id, tenant_id):
         tenant_id=str(tenant_id),
         platform_url=PLATFORM_URL,
         signed_headers=_platform_tenant_headers,
+        needs=facts_needed(None) if needs is None else needs,
     )
 
 
-async def _bound_context(query, user: dict, tenant_id: str) -> dict[str, Any]:
+async def _bound_context(
+    query, user: dict, tenant_id: str, domain: str | None = None
+) -> dict[str, Any]:
     """The skill context for a request.
 
     With a ``field_id`` (the trusted path) the canonical field state, the active season's crop,
     cultivar and seeding, and weather-service's season weather are bound from their owners, and
     the same keys in the body are dropped (W2-17: airuntime-4, crop-9, weather-8). Without a
     field the body's agronomic values are a hypothetical and are labelled ``request_body``.
-    Body-supplied trust/credential keys are stripped by bind_field_context in both cases."""
+    Body-supplied trust/credential keys are stripped by bind_field_context in both cases.
+    ``domain`` limits the reads to the facts that skill uses (a remote-sensing question does
+    not wait on the season and weather reads); the body keys are dropped either way."""
     import httpx
 
     if query.field_id:
         async with httpx.AsyncClient(timeout=20.0) as client:
             field_state = await _fetch_field_state(client, query.field_id, tenant_id)
-            facts, provenance = await _resolve_server_facts(client, query.field_id, tenant_id)
+            facts, provenance = await _resolve_server_facts(
+                client, query.field_id, tenant_id, needs=facts_needed(domain)
+            )
         context = bind_server_facts(
             bind_field_context(query.context, field_state),
             facts,
@@ -475,10 +487,12 @@ async def _bound_context(query, user: dict, tenant_id: str) -> dict[str, Any]:
     return context
 
 
-async def _bound_skill_kwargs(query, user: dict, tenant_id: str) -> dict[str, Any]:
+async def _bound_skill_kwargs(
+    query, user: dict, tenant_id: str, domain: str | None = None
+) -> dict[str, Any]:
     """Skill arguments bound as /v1/agent/query binds them: verified identity, the bound
     context of ``_bound_context`` and the caller's verified bearer."""
-    context = await _bound_context(query, user, tenant_id)
+    context = await _bound_context(query, user, tenant_id, domain)
     return {
         "query": query.query,
         "field_id": query.field_id,

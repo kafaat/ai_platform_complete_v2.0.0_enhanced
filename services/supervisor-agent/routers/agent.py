@@ -52,7 +52,7 @@ async def process_query(
         raise HTTPException(401, "Token missing user or tenant identity")
     # W2-17: with a field_id, crop/cultivar/seeding come from the active season and weather
     # from weather-service; the body's values for those keys are ignored and named.
-    agro_context = await main._bound_context(query, user, trusted_tenant_id)
+    agro_context = await main._bound_context(query, user, trusted_tenant_id, domain)
     facts_provenance = agro_context.get("_facts_provenance")
     try:
         with main.mcp_client.bind_credentials(user.get("_mcp_bearer", ""), trusted_tenant_id):
@@ -127,7 +127,7 @@ async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_c
     # Same evidence binding as /v1/agent/query: server-fetched canonical field state and
     # the caller's verified bearer. Without them CropModelSkill never saw the crop and
     # always answered crop_required.
-    skill_kwargs = await main._bound_skill_kwargs(query, user, trusted_tenant_id)
+    skill_kwargs = await main._bound_skill_kwargs(query, user, trusted_tenant_id, "optimization")
     facts_provenance = skill_kwargs["context"].get("_facts_provenance")
     rs_task = main.skill_libraries["remote_sensing"].execute(intent="full_analysis", **skill_kwargs)
     cm_task = main.skill_libraries["crop_model"].execute(intent="simulate_current", **skill_kwargs)

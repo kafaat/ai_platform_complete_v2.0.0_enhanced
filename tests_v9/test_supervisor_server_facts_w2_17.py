@@ -123,16 +123,90 @@ def test_weather_window_reasons(planting, season_end, reason):
 def test_weather_from_view_converts_to_the_engine_shape_without_inventing_values():
     start = date(2026, 10, 1)
     view = _view(start, 3)
-    view["days"][1]["precipitation_mm"] = None  # one day without rain ⇒ no seasonal total
     view["days"][2]["et0_mm"] = 4.2
+    view["days"][2]["wind_max_ms"] = 9.0  # a maximum, never passed as a mean wind
     weather, provenance = sf.weather_from_view(
         view, lat=15.3, lon=44.2, start=start, end=start + timedelta(days=2)
     )
-    assert weather["daily"][1] == {"date": "2026-10-02", "tmax": 26.0, "tmin": 9.0}, weather
+    assert weather["daily"][1] == {
+        "date": "2026-10-02",
+        "tmax": 26.0,
+        "tmin": 9.0,
+        "rain_mm": 0.5,
+    }, weather
     assert weather["daily"][2]["et0_mm"] == 4.2, weather
-    assert "total_rain_mm" not in weather, "a missing rain day became a seasonal total"
+    assert "wind_10m_m_s" not in weather["daily"][2], "wind maximum passed as a mean"
+    assert weather["total_rain_mm"] == 1.5, weather
+    assert "elevation_m" not in weather, "elevation must come from the field, never a default"
     assert weather["latitude"] == 15.3 and weather["canonical_state_id"] == "cws-1", weather
     assert provenance["status"] == "bound" and provenance["days"] == 3, provenance
+    assert provenance["pcse_ready"] is False, provenance
+    assert provenance["pcse_inputs_missing"] == [
+        "elevation_m",
+        "solar_radiation_mj_m2",
+        "vapour_pressure_hpa|vapour_pressure_kpa",
+        "wind_2m_m_s|wind_10m_m_s",
+    ], provenance
+
+
+def test_a_day_without_precipitation_is_absence_not_a_dry_day():
+    """Review finding: a missing rain day left the series bound and agriai's fallback read the
+    absent season total as 0 mm (water-limited yield computed as if no rain fell)."""
+    start = date(2026, 10, 1)
+    view = _view(start, 3)
+    view["days"][1]["precipitation_mm"] = None
+    weather, provenance = sf.weather_from_view(
+        view, lat=15.3, lon=44.2, start=start, end=start + timedelta(days=2)
+    )
+    assert weather is None, f"a series with a rainless gap was bound: {weather}"
+    assert provenance["reason"] == "weather_day_precipitation_missing", provenance
+    assert provenance["date"] == "2026-10-02", provenance
+
+
+def _full_view(start: date, days: int) -> dict:
+    view = _view(start, days)
+    for day in view["days"]:
+        day.update(solar_radiation_mj_m2=18.0, wind_mean_10m_ms=3.0)
+    return view
+
+
+def test_pcse_readiness_matches_what_agriai_pcse_builder_refuses():
+    """The provenance's ``pcse_inputs_missing`` is exactly what agriai's PCSE builder needs
+    and weather-service's archive view does not carry (review finding: the server series was
+    presented as PCSE-able). Elevation comes from ``fields.elevation_m``, the 10 m mean wind
+    from ``wind_mean_10m_ms``; vapour pressure has no server source and is never derived."""
+    agriai = os.path.join(ROOT, "services", "agriai-engine")
+    if agriai not in sys.path:
+        sys.path.insert(0, agriai)
+    import pcse_inputs  # noqa: PLC0415
+
+    start = date(2026, 10, 1)
+    end = start + timedelta(days=2)
+    weather, provenance = sf.weather_from_view(
+        _full_view(start, 3), lat=15.3, lon=44.2, start=start, end=end, elevation_m=2200.0
+    )
+    assert weather["elevation_m"] == 2200.0, weather
+    assert weather["daily"][0]["wind_10m_m_s"] == 3.0, weather
+    assert provenance["elevation_source"] == "fields.elevation_m", provenance
+    assert provenance["pcse_inputs_missing"] == ["vapour_pressure_hpa|vapour_pressure_kpa"], (
+        provenance
+    )
+    with pytest.raises(pcse_inputs.SimulationInputError) as refused:
+        pcse_inputs.build_weather(weather)
+    assert "vapour_pressure" in str(refused.value.detail), refused.value.detail
+    # The only gap is vapour pressure: with it the same series is accepted, and the
+    # supervisor then reports it ready.
+    for day in weather["daily"]:
+        day["vapour_pressure_hpa"] = 12.0
+    built = pcse_inputs.build_weather(weather)
+    assert built["site"]["ELEV"] == 2200.0, built["site"]
+    assert sf.pcse_inputs_missing(weather) == [], sf.pcse_inputs_missing(weather)
+
+
+@pytest.mark.parametrize("elevation", [None, "high", float("nan"), 12000])
+def test_field_elevation_is_never_defaulted(elevation):
+    pack = {"field_profile": {"lat": 15.3, "lon": 44.2, "elevation_m": elevation}}
+    assert sf.field_elevation_m(pack) is None, elevation
 
 
 @pytest.mark.parametrize(
@@ -144,6 +218,8 @@ def test_weather_from_view_converts_to_the_engine_shape_without_inventing_values
         (lambda v: v.update(coverage={"missing_days": 1}), "weather_coverage_incomplete"),
         (lambda v: v["days"].pop(), "weather_coverage_incomplete"),
         (lambda v: v["days"][0].update(temp_min_c=None), "weather_day_temperature_missing"),
+        (lambda v: v["days"][2].update(precipitation_mm=None), "weather_day_precipitation_missing"),
+        (lambda v: v["days"][2].update(precipitation_mm=-1), "weather_day_precipitation_missing"),
         (lambda v: v.pop("days"), "weather_view_invalid"),
     ],
 )
@@ -212,6 +288,70 @@ def test_resolve_server_facts_without_assertion_key_reads_nothing_and_says_why()
     )
     assert facts == {} and calls == [], (facts, calls)
     assert provenance["season"]["reason"] == "platform_season_context_unavailable", provenance
+
+
+class _RecordingClient:
+    """Records the reads; answers the platform pack and the weather view."""
+
+    def __init__(self, pack=None, view=None):
+        self.urls: list[str] = []
+        self.pack, self.view = pack, view
+
+    async def get(self, url, **kwargs):
+        self.urls.append(url)
+        if "/internal/fields/" in url:
+            return httpx.Response(200, json={"ai_context_pack": self.pack})
+        return httpx.Response(200, json=self.view, request=httpx.Request("GET", url))
+
+
+_PACK = {
+    "active_season": {"season_id": "s-1", "crops": ["wheat"], "sowing_date": "2026-11-01"},
+    "field_profile": {"lat": 15.3, "lon": 44.2, "elevation_m": 2200},
+}
+
+
+def _resolve(client, needs):
+    return asyncio.run(
+        sf.resolve_server_facts(
+            client,
+            field_id="f",
+            tenant_id="t",
+            platform_url="http://platform",
+            signed_headers=lambda tenant, path: {"X-Sig": "1"},
+            today=TODAY,
+            needs=needs,
+        )
+    )
+
+
+def test_a_domain_that_reads_no_fact_makes_no_read():
+    """Review finding (latency): a remote-sensing question paid for the season and the
+    archive weather reads it never uses."""
+    client = _RecordingClient(_PACK)
+    facts, provenance = _resolve(client, sf.facts_needed("remote_sensing"))
+    assert client.urls == [] and facts == {}, (client.urls, facts)
+    assert provenance["season"]["status"] == "not_requested", provenance
+    assert provenance["weather"]["status"] == "not_requested", provenance
+
+
+def test_a_season_only_domain_skips_the_weather_read():
+    client = _RecordingClient(_PACK)
+    facts, provenance = _resolve(client, sf.facts_needed("market"))
+    assert len(client.urls) == 1 and "/internal/fields/f/state" in client.urls[0], client.urls
+    assert facts["crop"] == "wheat" and "weather" not in facts, facts
+    assert provenance["weather"]["status"] == "not_requested", provenance
+
+
+def test_crop_model_reads_both_and_binds_the_field_elevation():
+    start = date(2026, 11, 1)
+    days = (TODAY - timedelta(days=sf.ARCHIVE_LAG_DAYS) - start).days + 1
+    client = _RecordingClient(_PACK, _full_view(start, days))
+    facts, provenance = _resolve(client, sf.facts_needed("crop_model"))
+    assert len(client.urls) == 2 and client.urls[1].endswith("/v1/weather/historical"), client.urls
+    assert "weather" in facts, provenance
+    assert facts["weather"]["elevation_m"] == 2200.0, facts["weather"]
+    assert provenance["weather"]["status"] == "bound", provenance
+    assert sf.facts_needed("unknown-domain") == sf.ALL_FACTS, "unknown domain must get all"
 
 
 # ── economics: agriai /v1/plan ────────────────────────────────────────────────────────

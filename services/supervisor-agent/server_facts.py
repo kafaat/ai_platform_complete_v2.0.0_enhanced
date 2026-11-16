@@ -64,6 +64,30 @@ WEATHER_SOURCE = "weather-service GET /v1/weather/historical"
 
 _REJECTED_QUALITY = {"insufficient", "invalid"}
 
+#: Which server facts each skill domain reads. A domain that reads none (remote sensing) does
+#: not pay for the season and weather reads; its body values for the bound keys are still
+#: dropped. An unknown domain gets every fact (the safe default).
+DOMAIN_FACT_NEEDS: dict[str, frozenset[str]] = {
+    "crop_model": frozenset({"season", "weather"}),
+    "optimization": frozenset({"season", "weather"}),
+    "market": frozenset({"season"}),
+    "advisory": frozenset({"season"}),
+    "remote_sensing": frozenset(),
+}
+ALL_FACTS = frozenset({"season", "weather"})
+
+#: What agriai's PCSE input builder (``pcse_inputs.build_weather``) needs beyond the daily
+#: temperatures, rain and radiation. weather-service's historical archive view carries none of
+#: the vapour-pressure family and no daily mean wind, so a server-bound series is reported as
+#: not PCSE-ready instead of being padded (vapour pressure is never derived here).
+_PCSE_DAY_KEYS = ("solar_radiation_mj_m2",)
+_PCSE_VAPOUR_KEYS = ("vapour_pressure_hpa", "vapour_pressure_kpa")
+_PCSE_WIND_KEYS = ("wind_2m_m_s", "wind_10m_m_s")
+
+
+def facts_needed(domain: str | None) -> frozenset[str]:
+    return DOMAIN_FACT_NEEDS.get(domain or "", ALL_FACTS)
+
 
 def weather_service_url() -> str:
     return os.getenv("WEATHER_SERVICE_URL", "http://sahool-weather-service:8000").rstrip("/")
@@ -147,6 +171,29 @@ def season_facts(pack: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     return facts, provenance
 
 
+def field_elevation_m(pack: Any) -> float | None:
+    """The field's stored elevation (``fields.elevation_m``, v37), or None. Never defaulted."""
+    profile = pack.get("field_profile") if isinstance(pack, dict) else None
+    elev = _finite(profile.get("elevation_m")) if isinstance(profile, dict) else None
+    return elev if elev is not None and -500 <= elev <= 9000 else None
+
+
+def pcse_inputs_missing(weather: dict[str, Any]) -> list[str]:
+    """Inputs agriai's PCSE builder would refuse for this series (empty when PCSE-ready)."""
+    missing: list[str] = []
+    if weather.get("elevation_m") is None:
+        missing.append("elevation_m")
+    daily = [d for d in weather.get("daily") or [] if isinstance(d, dict)]
+    for key in _PCSE_DAY_KEYS:
+        if any(d.get(key) is None for d in daily):
+            missing.append(key)
+    if any(all(d.get(k) is None for k in _PCSE_VAPOUR_KEYS) for d in daily):
+        missing.append("|".join(_PCSE_VAPOUR_KEYS))
+    if any(all(d.get(k) is None for k in _PCSE_WIND_KEYS) for d in daily):
+        missing.append("|".join(_PCSE_WIND_KEYS))
+    return missing
+
+
 def field_location(pack: Any) -> tuple[float, float] | None:
     """The field's stored location: ``fields.lat/lon`` from the pack's field profile."""
     if not isinstance(pack, dict):
@@ -190,12 +237,21 @@ def weather_window(
 
 
 def weather_from_view(
-    view: Any, *, lat: float, lon: float, start: date, end: date
+    view: Any,
+    *,
+    lat: float,
+    lon: float,
+    start: date,
+    end: date,
+    elevation_m: float | None = None,
 ) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     """Turn weather-service's ``historical_view`` into the crop model's ``weather`` input.
 
     Fail closed: a view without canonical identity, with a rejected quality, with missing
-    days, or with a day lacking its temperatures is absence, never a series with zeros in it.
+    days, or with a day lacking its temperatures or its precipitation is absence, never a
+    series with zeros in it (agriai's fallback reads an absent season rain total as 0 mm).
+    The provenance says whether the series is complete enough for agriai's PCSE builder and,
+    if not, which inputs are missing (``pcse_inputs_missing``).
     """
     provenance: dict[str, Any] = {
         "source": WEATHER_SOURCE,
@@ -227,7 +283,6 @@ def weather_from_view(
         }
     daily: list[dict[str, Any]] = []
     rain_total = 0.0
-    rain_complete = True
     for day in days:
         tmax, tmin = _finite(day.get("temp_max_c")), _finite(day.get("temp_min_c"))
         if tmax is None or tmin is None:
@@ -238,12 +293,24 @@ def weather_from_view(
             }
         item: dict[str, Any] = {"date": day.get("date"), "tmax": tmax, "tmin": tmin}
         rain = _finite(day.get("precipitation_mm"))
-        if rain is None:
-            rain_complete = False
-        else:
-            item["rain_mm"] = rain
-            rain_total += rain
-        for src, dst in (("et0_mm", "et0_mm"), ("solar_radiation_mj_m2", "solar_radiation_mj_m2")):
+        if rain is None or rain < 0:
+            # A day without rain is not a dry day: the season total would be understated and
+            # the water-limited yield computed as if that rain never fell.
+            return None, {
+                **provenance,
+                "status": "unavailable",
+                "reason": "weather_day_precipitation_missing",
+                "date": day.get("date"),
+            }
+        item["rain_mm"] = rain
+        rain_total += rain
+        for src, dst in (
+            ("et0_mm", "et0_mm"),
+            ("solar_radiation_mj_m2", "solar_radiation_mj_m2"),
+            # Daily mean wind at its declared 10 m height (``wind_max_ms`` is a maximum, not a
+            # mean, and is never passed as one).
+            ("wind_mean_10m_ms", "wind_10m_m_s"),
+        ):
             value = _finite(day.get(src))
             if value is not None:
                 item[dst] = value
@@ -254,10 +321,19 @@ def weather_from_view(
         "longitude": lon,
         "source": "weather-service",
         "canonical_state_id": view.get("canonical_state_id"),
+        "total_rain_mm": round(rain_total, 3),
     }
-    if rain_complete:
-        weather["total_rain_mm"] = round(rain_total, 3)
-    return weather, {**provenance, "status": "bound", "days": len(daily)}
+    if elevation_m is not None:
+        weather["elevation_m"] = elevation_m
+    pcse_missing = pcse_inputs_missing(weather)
+    return weather, {
+        **provenance,
+        "status": "bound",
+        "days": len(daily),
+        "elevation_source": "fields.elevation_m" if elevation_m is not None else None,
+        "pcse_ready": not pcse_missing,
+        "pcse_inputs_missing": pcse_missing,
+    }
 
 
 async def fetch_ai_context_pack(
@@ -316,9 +392,20 @@ async def resolve_server_facts(
     platform_url: str,
     signed_headers,
     today: date | None = None,
+    needs: frozenset[str] = ALL_FACTS,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Season and weather facts for the field, and where each came from (or why it did not)."""
+    """Season and weather facts for the field, and where each came from (or why it did not).
+
+    ``needs`` (see ``facts_needed``) limits the reads to the facts the skill uses; a fact not
+    needed is not read and is recorded as ``not_requested``.
+    """
     today = today or date.today()
+    not_requested = {"status": "not_requested", "reason": "domain_does_not_use_fact"}
+    if "season" not in needs and "weather" not in needs:
+        return {}, {
+            "season": {**not_requested, "source": SEASON_SOURCE},
+            "weather": {**not_requested, "source": WEATHER_SOURCE},
+        }
     pack = await fetch_ai_context_pack(
         client,
         platform_url=platform_url,
@@ -335,7 +422,9 @@ async def resolve_server_facts(
     facts, season_prov = season_facts(pack)
     window = weather_window(facts.get("planting_date"), facts.get("season_end"), today)
     location = field_location(pack)
-    if isinstance(window, str):
+    if "weather" not in needs:
+        weather_prov = {**not_requested, "source": WEATHER_SOURCE}
+    elif isinstance(window, str):
         weather_prov = {"status": "unavailable", "reason": window, "source": WEATHER_SOURCE}
     elif location is None:
         weather_prov = {
@@ -358,7 +447,14 @@ async def resolve_server_facts(
                 "source": WEATHER_SOURCE,
             }
         else:
-            weather, weather_prov = weather_from_view(view, lat=lat, lon=lon, start=start, end=end)
+            weather, weather_prov = weather_from_view(
+                view,
+                lat=lat,
+                lon=lon,
+                start=start,
+                end=end,
+                elevation_m=field_elevation_m(pack),
+            )
             if weather is not None:
                 facts["weather"] = weather
     return facts, {"season": season_prov, "weather": weather_prov}

@@ -668,8 +668,9 @@ def _optimize_http(monkeypatch, skills, body=None, governance=None):
         calls.append(("governance", args))
         return governance or {"allowed": False}
 
-    async def server_facts(client, field_id, tenant_id):
+    async def server_facts(client, field_id, tenant_id, *, needs=None):
         calls.append(("server_facts", (field_id, tenant_id)))
+        assert needs == frozenset({"season", "weather"}), f"optimize needs every fact: {needs}"
         return {"crop": "barley", "planting_date": "2026-10-01"}, {
             "season": {"status": "bound", "season_id": "s-1"},
             "weather": {"status": "unavailable", "reason": "season_weather_not_yet_archived"},
