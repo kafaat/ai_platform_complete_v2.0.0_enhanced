@@ -22,7 +22,7 @@ from anomaly_requests import (
 from anomaly_runtime import store as _store
 from anomaly_store import _ALLOWED_TRANSITIONS, AnomalyNotFound, InvalidTransition
 from fastapi import APIRouter, Depends, Header, HTTPException
-from ground_verification_bridge import GroundVerificationBridge
+from ground_verification_bridge import GroundVerificationBridge, TaskAlreadyExists
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -86,6 +86,10 @@ class VerificationDispatchFailed(Exception):
             "reason": reason,
             "reservation": reservation,
         }
+        if reservation == "pending":
+            # How to finish it: a retry with this version replays the same Idempotency-Key and
+            # attaches the task if the owner stored one; detect resumes it on its own as well.
+            self.detail["resume_expected_version"] = record.get("aggregate_version")
 
 
 class VerificationAttachConflict(Exception):
@@ -101,19 +105,31 @@ def _verification_key(anomaly_ref: str) -> str:
 def _bridge_outcome_is_ambiguous(exc: RuntimeError) -> bool:
     """True when the task service may have stored the task although the call failed.
 
-    A transport failure or a 5xx can come after the owner committed the task. Giving the
-    reservation back then would reopen the orphan window, so it is kept pending: the anomaly
-    stays un-closable until a retry replays the same key and attaches the task. Every other
-    failure (missing configuration, tenant mismatch, a 4xx refusal, a reply that is not a stored
-    task) is known to have stored nothing, so the prior state is restored.
+    A transport failure or a 5xx can come after the owner committed the task, a 409 means the
+    owner already holds a task for this anomaly, and a 2xx whose body does not confirm a stored
+    task (``task_service_persistence_unconfirmed``, ``task_service_missing_task_ref``) was still
+    processed by the owner. Giving the reservation back then would reopen the orphan window, so
+    it is kept pending and resumed (detect, or a verification request with either the original
+    or the current version) by replaying the same key. Only a failure that is known to have
+    stored nothing (missing configuration, tenant mismatch, a 4xx refusal other than 409)
+    restores the prior state.
     """
     reason = str(exc)
-    if reason == "task_service_unavailable":
-        return True
     if reason.startswith("task_service_rejected:"):
         code = reason.rsplit(":", 1)[1]
-        return not (code.isdigit() and 400 <= int(code) < 500)
-    return False
+        return not (code.isdigit() and 400 <= int(code) < 500 and int(code) != 409)
+    return reason not in _KNOWN_NOT_STORED
+
+
+# Raised by the bridge before any request reaches the task service.
+_KNOWN_NOT_STORED = frozenset(
+    {
+        "task_service_not_configured",
+        "task_service_tenant_mismatch",
+        "task_service_token_not_configured",
+        "task_service_tenant_assertion_unavailable",
+    }
+)
 
 
 def _reservation_replay(record: dict[str, Any], expected_version: int, key: str) -> str | None:
@@ -122,20 +138,36 @@ def _reservation_replay(record: dict[str, Any], expected_version: int, key: str)
     Returns ``"attached"`` (the earlier request finished: hand back the same record and task),
     ``"pending"`` (the earlier request reserved but did not attach: resume its dispatch with the
     same key) or ``None`` (a fresh request).
+
+    A pending reservation is resumed for the version it was reserved from *or* for the
+    anomaly's current version, so a caller holding only the record as it reads now (the 424
+    detail, a list, detect) can finish it; otherwise an ambiguous failure would wedge the
+    anomaly behind a version nobody is shown.
     """
     reservation = (record.get("payload") or {}).get("verification_reservation")
     if (
         record.get("status") != "verification_requested"
         or not isinstance(reservation, dict)
         or reservation.get("idempotency_key") != key
-        or reservation.get("reserved_from_version") != expected_version
     ):
         return None
+    reserved_from = reservation.get("reserved_from_version")
     if reservation.get("state") == "attached" and record.get("task_ref"):
-        return "attached"
+        return "attached" if reserved_from == expected_version else None
     if reservation.get("state") == "pending" and not record.get("task_ref"):
-        return "pending"
+        if expected_version in {reserved_from, record.get("aggregate_version")}:
+            return "pending"
     return None
+
+
+def _resumable_reservation(record: dict[str, Any]) -> bool:
+    """A pending reservation of this anomaly's own key that never got its task attached."""
+    return (
+        _reservation_replay(
+            record, record.get("aggregate_version"), _verification_key(record["anomaly_ref"])
+        )
+        == "pending"
+    )
 
 
 async def _reserve_and_dispatch(
@@ -162,11 +194,17 @@ async def _reserve_and_dispatch(
         )
         owns_reservation = True
     try:
-        task = await _bridge.create_scouting_task(
-            anomaly=reserved["payload"],
-            tenant_id=tenant_id,
-            idempotency_key=key,
-        )
+        task_ref = (
+            await _bridge.create_scouting_task(
+                anomaly=reserved["payload"],
+                tenant_id=tenant_id,
+                idempotency_key=key,
+            )
+        ).task_ref
+    except TaskAlreadyExists as exc:
+        # The owner keeps one task per anomaly and named it: attach that task rather than
+        # leaving it unreferenced behind a reservation that every replay would refuse again.
+        task_ref = exc.task_ref
     except RuntimeError as exc:
         state, latest = "pending", reserved
         # Only the request that took the reservation gives it back, and only when the task
@@ -194,15 +232,15 @@ async def _reserve_and_dispatch(
             anomaly_ref,
             expected_version=reserved["aggregate_version"],
             idempotency_key=key,
-            task_ref=task.task_ref,
+            task_ref=task_ref,
             tenant_id=tenant_id,
         )
     except InvalidTransition as exc:
         # A concurrent replay of the same reservation may have attached the same task first.
         current = await _store.get(anomaly_ref, tenant_id=tenant_id)
-        if current.get("task_ref") == task.task_ref:
+        if current.get("task_ref") == task_ref:
             return current
-        raise VerificationAttachConflict(exc, task.task_ref) from exc
+        raise VerificationAttachConflict(exc, task_ref) from exc
 
 
 async def _baselines(field_id: str, request: DetectRequest, token: str) -> list[dict[str, Any]]:
@@ -285,11 +323,16 @@ async def detect_signal_anomalies(
         if record is None:
             record = await _store.upsert_detected(payload)
         record["current_evaluation"] = {**signal.to_dict(), "anomaly_ref": record["anomaly_ref"]}
-        if (
-            request.auto_request_verification
-            and signal.verification_requirement == "required"
-            and record["status"] in {"detected", "triaged"}
-            and not record.get("task_ref")
+        # A reservation left pending by an ambiguous dispatch failure is resumed here too
+        # (same deterministic key, current version), so a transient task-service outage does
+        # not leave the anomaly locked in verification_requested without a task.
+        if request.auto_request_verification and (
+            (
+                signal.verification_requirement == "required"
+                and record["status"] in {"detected", "triaged"}
+                and not record.get("task_ref")
+            )
+            or _resumable_reservation(record)
         ):
             try:
                 record = {

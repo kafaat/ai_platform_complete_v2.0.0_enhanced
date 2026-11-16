@@ -137,6 +137,35 @@ async def test_only_a_stored_task_is_accepted(monkeypatch, service_env, status, 
 
 
 @pytest.mark.asyncio
+async def test_a_409_naming_the_anomalys_task_hands_that_task_back(monkeypatch, service_env):
+    from ground_verification_bridge import TaskAlreadyExists
+
+    async def handler(request):
+        return httpx.Response(
+            409, json={"detail": {"code": "anomaly_already_has_task", "task_ref": "t-existing"}}
+        )
+
+    _route_to(monkeypatch, handler)
+    with pytest.raises(TaskAlreadyExists, match="task_service_rejected:409") as caught:
+        await GroundVerificationBridge("http://fm").create_scouting_task(
+            anomaly=ANOMALY, tenant_id=TENANT, idempotency_key="f" * 64
+        )
+    assert caught.value.task_ref == "urn:sahool:task:t-existing", caught.value.task_ref
+
+
+@pytest.mark.asyncio
+async def test_an_unreadable_2xx_body_is_unconfirmed_not_a_crash(monkeypatch, service_env):
+    async def handler(request):
+        return httpx.Response(201, content=b"<html>proxy</html>")
+
+    _route_to(monkeypatch, handler)
+    with pytest.raises(RuntimeError, match="task_service_persistence_unconfirmed"):
+        await GroundVerificationBridge("http://fm").create_scouting_task(
+            anomaly=ANOMALY, tenant_id=TENANT, idempotency_key="f" * 64
+        )
+
+
+@pytest.mark.asyncio
 async def test_an_anomaly_of_another_tenant_is_refused(monkeypatch, service_env):
     async def handler(request):
         raise AssertionError("a tenant mismatch must not reach the owner")
@@ -181,6 +210,8 @@ class _Bridge:
         self.calls.append(kwargs)
         if self.during is not None:
             self.during()
+        if isinstance(self.error, Exception):
+            raise self.error
         if self.error is not None:
             raise RuntimeError(self.error)
         return type("R", (), {"task_ref": self.task_ref})()
@@ -347,7 +378,8 @@ async def test_a_verification_result_during_dispatch_is_refused(monkeypatch, rou
     [
         "task_service_not_configured",
         "task_service_rejected:422",
-        "task_service_persistence_unconfirmed",
+        "task_service_rejected:403",
+        "task_service_tenant_assertion_unavailable",
     ],
 )
 async def test_a_bridge_failure_that_stored_nothing_restores_the_prior_state(
@@ -540,3 +572,137 @@ async def test_automatic_verification_reports_a_lifecycle_conflict_and_keeps_goi
     assert calm["task_ref"] == "urn:sahool:task:calm", calm
     assert "current_evaluation" in calm, "the evaluation travels with the attached record"
     assert bridge.calls == ["calm"], f"no task is dispatched for the raced anomaly: {bridge.calls}"
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        "task_service_unavailable",
+        "task_service_rejected:503",
+        "task_service_rejected:500",
+        "task_service_rejected:409",
+        "task_service_persistence_unconfirmed",
+        "task_service_missing_task_ref",
+    ],
+)
+async def test_a_failure_that_may_have_stored_a_task_keeps_the_reservation(
+    monkeypatch, route, error
+):
+    """A 5xx, a 409 (the owner already holds a task for this anomaly) or a processed 2xx that
+    does not confirm the task may each leave a stored task behind: the reservation is kept and
+    the detail names the version that resumes it."""
+    from fastapi import HTTPException
+
+    anomalies, backend = route
+    monkeypatch.setattr(anomalies, "_bridge", _Bridge(error=error))
+    with pytest.raises(HTTPException) as caught:
+        await _request(anomalies, 1)
+    pending = backend.get(ANOMALY["anomaly_ref"])
+    assert caught.value.status_code == 424, caught.value.detail
+    assert caught.value.detail == {
+        "code": "verification_dispatch_failed",
+        "reason": error,
+        "reservation": "pending",
+        "resume_expected_version": pending["aggregate_version"],
+    }, caught.value.detail
+    assert pending["payload"]["verification_reservation"]["state"] == "pending", pending
+
+
+async def test_a_pending_reservation_resumes_with_the_current_version(monkeypatch, route):
+    """Review of SCOUTING-ANOMALY-VERIFY-RACE-ORPHAN-TASK-01: the version the reservation was
+    taken from was the only way back in, and nothing showed it. A request with the version the
+    anomaly has now (the one the 424 detail names) resumes the same reservation and key."""
+    from fastapi import HTTPException
+
+    anomalies, backend = route
+    ref = ANOMALY["anomaly_ref"]
+    monkeypatch.setattr(anomalies, "_bridge", _Bridge(error="task_service_rejected:503"))
+    with pytest.raises(HTTPException) as caught:
+        await _request(anomalies, 1)
+    current = caught.value.detail["resume_expected_version"]
+    assert current == backend.get(ref)["aggregate_version"] != 1, caught.value.detail
+    bridge = _Bridge("urn:sahool:task:t-resumed")
+    monkeypatch.setattr(anomalies, "_bridge", bridge)
+    resumed = await _request(anomalies, current)
+    assert [c["idempotency_key"] for c in bridge.calls] == [_key(ref)], bridge.calls
+    assert resumed["task_ref"] == "urn:sahool:task:t-resumed", resumed
+    assert resumed["payload"]["verification_reservation"]["state"] == "attached", resumed
+    # A stale version that is neither the reserved nor the current one is still refused.
+    with pytest.raises(HTTPException) as stale:
+        await _request(anomalies, current)
+    assert stale.value.status_code == 409, stale.value.detail
+
+
+async def test_a_409_naming_the_existing_task_attaches_it(monkeypatch, route):
+    """The owner keeps one task per anomaly; when it answers 409 with that task's ref, the
+    reservation attaches it instead of staying pending behind a refusal every replay repeats."""
+    from ground_verification_bridge import TaskAlreadyExists
+
+    anomalies, backend = route
+    monkeypatch.setattr(
+        anomalies, "_bridge", _Bridge(error=TaskAlreadyExists("urn:sahool:task:t-existing"))
+    )
+    attached = await _request(anomalies, 1)
+    assert attached["task_ref"] == "urn:sahool:task:t-existing", attached
+    assert attached["payload"]["verification_reservation"]["state"] == "attached", attached
+    assert backend.get(ANOMALY["anomaly_ref"])["task_ref"] == "urn:sahool:task:t-existing", (
+        "the existing task is stored on the anomaly"
+    )
+
+
+async def test_detect_resumes_a_reservation_left_by_a_transient_outage(monkeypatch, tmp_path):
+    """Review reproduction: auto-verification met a 503, the reservation stayed pending, and
+    the next detect skipped the anomaly because it was already verification_requested, so it
+    stayed locked with no task. Detect now resumes the reservation with the same key."""
+    import main
+    import routers.anomalies as anomalies
+    from anomaly_requests import DetectRequest
+    from anomaly_runtime import AnomalyStoreFacade
+    from anomaly_store import AnomalyStore
+
+    backend = AnomalyStore(str(tmp_path / "anomalies.db"))
+    original_upsert = backend.upsert_detected
+
+    def upsert(payload):
+        return original_upsert({**ANOMALY, **payload})
+
+    async def baselines(field_id, request, token):
+        return [{"stub": True}]
+
+    monkeypatch.setattr(backend, "upsert_detected", upsert)
+    monkeypatch.setattr(main, "_verify_claims", lambda token: {"tenant_id": TENANT})
+    monkeypatch.setattr(main, "_tenant_from_claims", lambda claims: claims["tenant_id"])
+    monkeypatch.setattr(anomalies, "_store", AnomalyStoreFacade(backend))
+    monkeypatch.setattr(anomalies, "_baselines", baselines)
+    monkeypatch.setattr(anomalies, "detect_signals", lambda **kwargs: [_Signal("outage")])
+
+    async def detect():
+        return await anomalies.detect_signal_anomalies(
+            "fld_demo",
+            DetectRequest(season_id="sea_demo", auto_request_verification=True),
+            authorization="Bearer user-jwt",
+            token=object(),
+        )
+
+    failing = _Bridge(error="task_service_rejected:503")
+    monkeypatch.setattr(anomalies, "_bridge", failing)
+    (first,) = (await detect())["anomalies"]
+    assert first["verification_reservation_outcome"] == "pending", first
+    assert first["status"] == "verification_requested" and not first["task_ref"], first
+    healthy = _Bridge("urn:sahool:task:t-after-outage")
+    monkeypatch.setattr(anomalies, "_bridge", healthy)
+    (second,) = (await detect())["anomalies"]
+    ref = ANOMALY["anomaly_ref"]
+    assert [c["idempotency_key"] for c in healthy.calls] == [_key(ref)], healthy.calls
+    assert failing.calls[0]["idempotency_key"] == _key(ref), "the same key is replayed"
+    assert second["task_ref"] == "urn:sahool:task:t-after-outage", second
+    stored = backend.get(ref)
+    assert stored["payload"]["verification_reservation"]["state"] == "attached", stored
+    # The anomaly is no longer locked: its verification result is accepted.
+    closed = backend.transition(
+        ref, "rejected", expected_version=stored["aggregate_version"], tenant_id=TENANT
+    )
+    assert closed["status"] == "rejected", closed
+    (third,) = (await detect())["anomalies"]
+    assert len(healthy.calls) == 1, "a closed anomaly is not dispatched again"
+    assert third["status"] == "rejected", third
