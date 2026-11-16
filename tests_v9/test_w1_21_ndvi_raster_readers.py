@@ -299,6 +299,50 @@ async def test_nl_gis_partial_outage_is_partial_not_an_honest_empty(monkeypatch)
     assert nl._audit_status(status, 1) == "ok", "partial with results is audited ok (v85 CHECK)"
 
 
+async def test_nl_gis_every_skipped_field_is_counted_with_its_reason(monkeypatch):
+    """Review W1-21: a field with no processed date, one reading, or a non-positive previous
+    mean is unmeasured — it is counted by reason and the scan is not complete."""
+    _, _, nl = _routers()
+    series = {
+        "A": [{"datetime": "2026-11-10", "mean": 0.58}, {"datetime": "2026-10-31", "mean": 0.60}],
+        "B": [],  # no processed NDVI date
+        "C": [{"datetime": "2026-11-10", "mean": 0.50}],  # a single observation
+        "D": [{"datetime": "2026-11-10", "mean": 0.20}, {"datetime": "2026-10-31", "mean": 0.0}],
+    }
+
+    async def raster(field_id, **kw):
+        return series[field_id]
+
+    monkeypatch.setattr(nl, "latest_index_points", raster)
+    fields = [{"field_id": k} for k in series]
+    out = await nl._raster_ndvi_drop({"fields": fields}, {"threshold_pct": 15}, "t")
+    cov = out["coverage"]
+    assert out["items"] == [], f"only A was measured and it did not drop 15%: {out}"
+    assert cov["raster_unavailable"] == 0, f"no outage here: {cov}"
+    assert cov["insufficient_history"] == 2, f"B (no date) and C (one reading) counted: {cov}"
+    assert cov["not_comparable"] == 1, f"D (previous mean 0) counted: {cov}"
+    assert cov["complete"] is False, f"three unmeasured fields are not a complete scan: {cov}"
+    status = nl._status_after_raster(out)
+    assert status == "partial", f"unmeasured fields must not read as an honest empty: {status}"
+    note = nl._response_note_ar(status, 0, cov)
+    assert "2 من 4" in note and "1 من 4" in note, f"the note names each reason: {note}"
+    assert "لا حقول تطابق" not in note, f"partial must never say 'no fields match': {note}"
+
+
+async def test_nl_gis_all_fields_measured_is_complete(monkeypatch):
+    _, _, nl = _routers()
+
+    async def raster(field_id, **kw):
+        return [{"datetime": "2026-11-10", "mean": 0.58}, {"datetime": "2026-10-31", "mean": 0.6}]
+
+    monkeypatch.setattr(nl, "latest_index_points", raster)
+    out = await nl._raster_ndvi_drop(
+        {"fields": [{"field_id": "A"}, {"field_id": "B"}]}, {"threshold_pct": 15}, "t"
+    )
+    assert out["coverage"]["complete"] is True, f"every field measured: {out['coverage']}"
+    assert nl._status_after_raster(out) == "ok", "a fully measured empty scan is an honest empty"
+
+
 def test_nl_gis_truncated_scan_note_names_the_cap():
     _, _, nl = _routers()
     cov = {

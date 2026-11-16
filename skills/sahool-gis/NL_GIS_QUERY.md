@@ -44,8 +44,9 @@
 - **unsupported:** `status:"unsupported"` + `reason_ar` ⇒ اعرض الرفض الصريح + أمثلة موجِّهة. لا تخمين.
 - **needs_data:** `status:"needs_data"` + `note_ar` ⇒ المصدر غائب/تعذّر — **لا تعرض جدولاً فارغاً كأنّه نتيجة صفر حقيقيّة**.
 - **partial (ndvi_drop):** `status:"partial"` + `coverage` (`fields_scanned` · `fields_truncated` ·
-  `raster_unavailable` · `complete:false`) ⇒ raster تعذّر لبعض الحقول أو انقضت مهلة المسح أو بُتر
-  عند سقف ٥٠ حقلاً — **ليس فراغاً صادقاً**؛ اعرض `note_ar` تحذيراً (الحقول غير المقيسة مجهولة).
+  `raster_unavailable` · `insufficient_history` · `not_comparable` · `complete:false`) ⇒ raster تعذّر
+  لبعض الحقول أو انقضت مهلة المسح، أو حقل بلا قراءتَي NDVI مرصودتين (لا تاريخ معالَج أو قراءة
+  واحدة) أو قراءته السابقة ≤ 0، أو بُتر عند سقف ٥٠ حقلاً — **ليس فراغاً صادقاً**؛ اعرض `note_ar` تحذيراً (الحقول غير المقيسة مجهولة).
 - **empty حقيقيّ:** `status:"ok"` و`count:0` و`coverage.complete` ليس `false` + `note_ar` «لا حقول تطابق» (نتيجة صادقة).
 - **error:** `404` (الميزة مُطفأة) ⇒ إشعار تفعيل العلم؛ `503` (قاعدة) ⇒ حالة خطأ صادقة.
 

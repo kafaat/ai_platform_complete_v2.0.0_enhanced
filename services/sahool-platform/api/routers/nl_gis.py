@@ -122,8 +122,10 @@ async def _raster_ndvi_drop(result: dict, slots: dict, tenant_id: str) -> dict:
 
     حقل تعذّرت قراءته (أو لم يُقرأ قبل ``_NDVI_SCAN_DEADLINE_S``) يُعدّ في ``raster_unavailable``
     (لا يُعامَل كحقل بلا انخفاض)؛ إن تعذّر raster لكلّ الحقول يرفع فيصير الردّ ``needs_data``
-    صادقاً. حقل بأقلّ من قراءتين لا يُقارَن. ``coverage.complete`` كاذب إن تعذّر حقل أو بُتر
-    المسح عند السقف — فيصير الردّ ``partial`` لا «لا حقول تطابق».
+    صادقاً. حقل بأقلّ من قراءتين (بلا تاريخ NDVI معالَج أو بقراءة واحدة) يُعدّ في
+    ``insufficient_history``، وحقل قراءته السابقة ≤ 0 (لا نسبة انخفاض معرَّفة) في
+    ``not_comparable`` — كلّ حقل متخطّى يُعدّ بسببه. ``coverage.complete`` كاذب إن تخطّى حقلٌ
+    لأيّ سبب أو بُتر المسح عند السقف — فيصير الردّ ``partial`` لا «لا حقول تطابق».
     """
     threshold = float(slots.get("threshold_pct") or 0)
     candidates = result["fields"]
@@ -157,11 +159,17 @@ async def _raster_ndvi_drop(result: dict, slots: dict, tenant_id: str) -> dict:
     if candidates and unavailable == len(candidates):
         raise RuntimeError("raster-service unavailable for every candidate field")
     items: list[dict] = []
+    insufficient = 0
+    not_comparable = 0
     for field, points in zip(candidates, readings, strict=True):
-        if not points or len(points) < 2:
+        if points is None:
+            continue  # عُدّ أعلاه في raster_unavailable
+        if len(points) < 2:
+            insufficient += 1  # لا قراءتين مرصودتين ⇒ مجهول، لا «بلا انخفاض»
             continue
         latest, prev = points[0]["mean"], points[1]["mean"]
         if prev <= 0:
+            not_comparable += 1  # لا نسبة انخفاض معرَّفة ⇒ مجهول
             continue
         drop_pct = (prev - latest) / prev * 100
         if drop_pct < threshold:
@@ -184,7 +192,9 @@ async def _raster_ndvi_drop(result: dict, slots: dict, tenant_id: str) -> dict:
             "fields_scanned": len(candidates),
             "fields_truncated": truncated,
             "raster_unavailable": unavailable,
-            "complete": not truncated and unavailable == 0,
+            "insufficient_history": insufficient,
+            "not_comparable": not_comparable,
+            "complete": not truncated and unavailable + insufficient + not_comparable == 0,
         },
     }
 
@@ -262,6 +272,18 @@ def _partial_note_ar(coverage: dict, count: int) -> str:
     unavailable = int(coverage.get("raster_unavailable") or 0)
     if unavailable:
         parts.append(f"تعذّرت قراءة NDVI لـ{unavailable} من {coverage.get('fields_scanned')} حقل")
+    insufficient = int(coverage.get("insufficient_history") or 0)
+    if insufficient:
+        parts.append(
+            f"{insufficient} من {coverage.get('fields_scanned')} حقل بلا قراءتَي NDVI مرصودتين"
+            " للمقارنة"
+        )
+    not_comparable = int(coverage.get("not_comparable") or 0)
+    if not_comparable:
+        parts.append(
+            f"{not_comparable} من {coverage.get('fields_scanned')} حقل قراءته السابقة ≤ 0"
+            " فلا نسبة انخفاض معرَّفة"
+        )
     if coverage.get("fields_truncated"):
         parts.append(f"فُحص أوّل {_NDVI_SCAN_FIELDS} حقلاً فقط (ضيّق الطلب بمحصول أو منطقة)")
     head = "نتيجة ناقصة: " + "؛ ".join(parts) + "."
