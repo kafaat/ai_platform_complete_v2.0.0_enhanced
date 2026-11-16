@@ -248,6 +248,12 @@ async def readyz():
         "status": "ready",
         "service": "scout-ingest-service",
         "ingest_enabled": _enabled(),
+        # W3-12: visible, not gating. Each missing token makes its channel answer 503.
+        # Booleans only, never a value; the same non-empty test the endpoints apply.
+        "service_tokens": {
+            name: bool(os.getenv(name))
+            for name in ("SCOUT_MEDIA_SERVICE_TOKEN", "SCOUT_INGEST_READ_TOKEN")
+        },
     }
 
 

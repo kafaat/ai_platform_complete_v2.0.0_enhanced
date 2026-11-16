@@ -2,6 +2,7 @@
 // راجعة بمفتاح منع تكرار واحد لكلّ نيّة.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
+import 'package:sahool_app/features/advisor/data/pest_escalation_lineage.dart';
 import 'package:sahool_app/features/advisor/presentation/pest_escalation_cubit.dart';
 import 'package:sahool_app/features/advisor/presentation/recommendations_cubit.dart';
 import 'package:sahool_app/features/advisor/presentation/recommendations_screen.dart';
@@ -288,11 +289,12 @@ void main() {
       var n = 0;
       final cubit = PestEscalationCubit(
         fakeAdvisorApi(adapter),
-        newId: () => 'pest-${++n}',
+        newId: (pinId) => 'pest-${++n}',
       );
-      await cubit.start(fieldId: 'f', pestType: 'المنّ', severity: 0.5);
+      const refs = EscalationRefs(pinId: 'p1', fieldId: 'f', pestType: 'aphid');
+      await cubit.start(refs: refs, severity: 0.5);
       expect(cubit.state.error, isNotNull);
-      await cubit.start(fieldId: 'f', pestType: 'المنّ', severity: 0.5);
+      await cubit.start(refs: refs, severity: 0.5);
       final ids = adapter.requests
           .map((r) => jsonBody(r.data)['workflow_id'])
           .toList();

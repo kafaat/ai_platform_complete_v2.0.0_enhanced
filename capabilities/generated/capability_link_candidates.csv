@@ -1755,7 +1755,7 @@ OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/r
 OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:612,4,applied
 OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:395,4,applied
 OPS-003,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:280,4,applied
-OPS-003,api,GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:269,4,applied
+OPS-003,api,GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:275,4,applied
 OPS-003,api,GET /internal/seasons @ services/scout-ingest-service/season_api.py:478,2,applied
 OPS-003,api,GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668,2,applied
 OPS-003,api,GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368,2,applied
@@ -1768,8 +1768,8 @@ OPS-003,api,POST /internal/field-forms/submissions @ services/scout-ingest-servi
 OPS-003,api,POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278,2,applied
 OPS-003,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328,2,applied
 OPS-003,api,POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:238,3,applied
-OPS-003,api,POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:397,2,applied
-OPS-003,api,POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:388,2,applied
+OPS-003,api,POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:403,2,applied
+OPS-003,api,POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:394,2,applied
 OPS-003,api,POST /internal/scouting-media/admin/credential-events @ services/scout-ingest-service/grants_admin_api.py:586,4,applied
 OPS-003,api,POST /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:349,4,applied
 OPS-003,api,POST /internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke @ services/scout-ingest-service/grants_admin_api.py:440,4,applied
@@ -2611,6 +2611,7 @@ SEC-006,service,services/auth/main.py,10,applied
 SEC-006,test,mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart,5,applied
 SEC-006,test,services/decision-service/tests/test_service_token_guard.py,5,applied
 SEC-006,test,tests_v9/test_guardrails_service_token_ascii.py,5,applied
+SEC-006,test,tests_v9/test_production_service_tokens_w3_12.py,5,applied
 SEC-006,test,tests_v9/test_raster_service_token_binding.py,5,applied
 SEC-006,test,tests_v9/test_sensing_adapter_service_token.py,5,applied
 SEC-006,test,tests_v9/test_service_token_constant_time.py,5,applied
