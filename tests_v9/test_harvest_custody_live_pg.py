@@ -496,3 +496,46 @@ def test_a_custody_sale_respects_active_listings_and_fulfils_its_own():
             await app.close()
 
     _run(go())
+
+
+def test_before_v278_a_custody_sale_reserves_nothing_and_naming_a_listing_is_503(monkeypatch):
+    """Code ships before the migration. In a rolled-back owner transaction without
+    market_sales_listings.harvest_lot_id, a custody sale must not query the missing column: it
+    reserves nothing, and naming a listing answers 503 rather than failing on the column. After
+    the rollback the column is detected again, with no restart."""
+    if str(PLATFORM) not in sys.path:
+        sys.path.insert(0, str(PLATFORM))
+    os.environ.setdefault("JWT_SECRET", secrets.token_hex(32))
+    import api.routers.harvest_traceability as route
+
+    s = _run(_seed(T1, lot_kg=1000))
+    monkeypatch.setattr(route, "_listing_lot_column_present", False)
+
+    async def go():
+        admin = await asyncpg.connect(ADMIN_DSN)
+        try:
+            tx = admin.transaction()
+            await tx.start()
+            try:
+                await admin.execute("ALTER TABLE market_sales_listings DROP COLUMN harvest_lot_id")
+                assert await route._listing_reservation(admin, s["lot_id"], "sales", {}) == (
+                    0,
+                    None,
+                )
+                with pytest.raises(HTTPException) as err:
+                    await route._listing_reservation(
+                        admin, s["lot_id"], "sales", {"listing_id": str(uuid.uuid4())}
+                    )
+                assert err.value.status_code == 503
+                assert route._listing_lot_column_present is False  # absence is never cached
+            finally:
+                await tx.rollback()
+            app = await _app(T1)
+            try:
+                assert await route._listings_link_lots(app) is True
+            finally:
+                await app.close()
+        finally:
+            await admin.close()
+
+    _run(go())

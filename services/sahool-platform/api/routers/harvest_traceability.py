@@ -57,13 +57,32 @@ def _parse_dt(value: str, field: str) -> datetime:
         raise HTTPException(status_code=422, detail=f"{field}: زمن ISO غير صالح") from e
 
 
+# v278 adds market_sales_listings.harvest_lot_id. Code and schema ship separately: until the
+# migration is applied a listing cannot name a lot, so no listing reserves anything on one.
+# pg_attribute is readable by every role, unlike information_schema, which filters by privilege.
+_LISTING_LOT_COLUMN_SQL = (
+    "SELECT EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid = "
+    "to_regclass('market_sales_listings') AND attname = 'harvest_lot_id' AND NOT attisdropped)"
+)
+_listing_lot_column_present = False
+
+
+async def _listings_link_lots(conn) -> bool:
+    """Whether listings can name a harvest lot yet. Only presence is cached: a later v278 counts."""
+    global _listing_lot_column_present
+    if not _listing_lot_column_present:
+        _listing_lot_column_present = bool(await conn.fetchval(_LISTING_LOT_COLUMN_SQL))
+    return _listing_lot_column_present
+
+
 async def _listing_reservation(conn, harvest_lot_id: str, event_type: str, details) -> tuple:
     """Active market listings on the lot reserve their quantity (v278).
 
     Returns (reserved_kg, listing_id). A sale naming ``event_details.listing_id`` fulfils that
     listing: it is not counted as reserved and is closed in the same transaction. Naming a listing
     that is not active on this lot is refused (409), so a sale cannot release another offer's
-    reservation. Called under the lot's FOR UPDATE lock, the lock the market server takes too."""
+    reservation. Called under the lot's FOR UPDATE lock, the lock the market server takes too.
+    Before v278 no listing names a lot: nothing is reserved, and naming a listing answers 503."""
     if event_type != "sales":
         return 0, None
     listing_id = (details or {}).get("listing_id") if isinstance(details, dict) else None
@@ -73,6 +92,13 @@ async def _listing_reservation(conn, harvest_lot_id: str, event_type: str, detai
             _uuid.UUID(listing_id)
         except ValueError:
             raise HTTPException(status_code=422, detail="listing_id ليس UUID") from None
+    if not await _listings_link_lots(conn):
+        if listing_id is not None:
+            raise HTTPException(
+                status_code=503, detail="ربط عروض البيع بدفعات الحصاد ينتظر تطبيق الهجرة v278"
+            )
+        return 0, None
+    if listing_id is not None:
         if not await conn.fetchval(
             "SELECT 1 FROM market_sales_listings WHERE listing_id = $1::uuid "
             "AND harvest_lot_id = $2 AND status = 'active'",
