@@ -77,9 +77,7 @@ def required_variables(service: dict) -> set[str]:
 
 def rendered_variables(workload: dict) -> set[str]:
     return (
-        set(workload.get("env") or {})
-        | set(workload.get("secretEnv") or {})
-        | set(ALWAYS_RENDERED)
+        set(workload.get("env") or {}) | set(workload.get("secretEnv") or {}) | set(ALWAYS_RENDERED)
     )
 
 
