@@ -23,6 +23,12 @@ global:
     redisUrl: sahool-redis-url
     cdseClientId: sahool-cdse-client-id
     cdseClientSecret: sahool-cdse-client-secret
+    # sahool-auth (W3-09): its Redis ACL user on the state server, the bootstrap admin
+    # password, the MFA secret encryption key and the MFA audit-hash key.
+    authRedisUrl: sahool-auth-redis-url
+    authAdminPassword: sahool-auth-admin-password
+    authMfaSecretEncryptionKey: sahool-auth-mfa-secret-encryption-key
+    authMfaAuditHashKey: sahool-auth-mfa-audit-hash-key
 
 namespace:
   create: true
@@ -64,11 +70,11 @@ gateway:
   resolver: kube-dns.kube-system.svc.cluster.local
   clusterDomain: cluster.local
   auth:
-    # In-namespace Service of services/auth. The chart does not deploy auth yet (deploy-3,
-    # W3-09). The gateway resolves it per request, so it starts without it; until the
-    # Service exists every auth_request route answers 500 and /auth/ answers 502 (fail
-    # closed). Only the self-verifying /api/v1 and /api/guardrails routes serve meanwhile.
-    # validate_helm_readiness.py --env production prints this, and
+    # In-namespace Service of services/auth, deployed by the chart as the sahool-auth
+    # workload (W3-09). The gateway still resolves it per request, so it starts before
+    # auth is ready; while the Service is missing or the workload disabled every
+    # auth_request route answers 500 and /auth/ answers 502 (fail closed).
+    # validate_helm_readiness.py warns when the workload is absent or disabled, and
     # scripts/deploy/deploy_production.sh checks for the Service after the install.
     serviceName: sahool-auth
     port: 8000
@@ -211,6 +217,41 @@ workloads:
       SAHOOL_AGENT_TOKEN: agentToken
       # services/guardrails-engine/main.py refuses to import in production without it.
       JWT_PUBLIC_KEY: jwtPublicKey
+  # W3-09: the gateway's verifier (auth_request -> GET /v1/auth/verify) and the /auth/
+  # login, refresh and logout routes. The gateway addresses it by gateway.auth.serviceName
+  # ($sahool_auth_addr), not through a pathPrefix upstream. Reachable namespace-wide: the
+  # gateway calls it, and its own endpoints authenticate the caller.
+  sahool-auth:
+    enabled: true
+    image: sahool/auth:2026.06.26-rc.15
+    replicas: 2
+    port: 8000
+    sourceDockerfile: services/auth/Dockerfile
+    env:
+      SERVICE_NAME: sahool-auth
+      # Compose values. AUTH_COOKIE_SECURE stays unset (auto): Secure outside local dev.
+      JWT_EXPIRE_MINUTES: "60"
+      REFRESH_EXPIRE_DAYS: "30"
+      ENFORCE_SENSITIVE_MFA: "true"
+      REQUIRE_MFA_ROLES: admin
+      AUTH_COOKIE_SAMESITE: lax
+    secretEnv:
+      # Runtime role sahool_app; auth sets app.current_role per connection and refuses a
+      # BYPASSRLS role (services/auth/main.py lifespan).
+      DATABASE_URL: databaseUrl
+      # Revocation, lockout and refresh state. Production refuses to boot without it
+      # (services/auth/main.py:392). The platform's denylist reads REDIS_URL, so
+      # sahool-redis-url must point at this same server.
+      REDIS_URL: authRedisUrl
+      # RS256 is required in production (services/auth/main.py:337-346); the gateway's
+      # services verify with the matching public key.
+      JWT_PRIVATE_KEY: jwtPrivateKey
+      JWT_PUBLIC_KEY: jwtPublicKey
+      ADMIN_PASSWORD: authAdminPassword
+      MFA_SECRET_ENCRYPTION_KEY: authMfaSecretEncryptionKey
+      # Dedicated audit-hash key: without it production writes no IP hash
+      # (services/auth/mfa_runtime.py:43-46), since the chart sets no HS256 JWT_SECRET.
+      MFA_AUDIT_HASH_KEY: authMfaAuditHashKey
 
 jobs:
   migration:

@@ -15,3 +15,5 @@ workloads:
     replicas: 1
   sahool-guardrails-engine:
     replicas: 1
+  sahool-auth:
+    replicas: 1

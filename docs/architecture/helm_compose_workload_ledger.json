@@ -247,10 +247,6 @@
       "category": "observability",
       "reason": "OpenTelemetry collector; provided by the cluster's monitoring stack."
     },
-    "sahool-auth": {
-      "category": "not_yet_ported",
-      "reason": "The gateway's verifier: every protected route calls auth GET /v1/auth/verify (values.yaml gateway.auth). Until the chart deploys it those routes answer 500 and /auth/ answers 502 (fail closed); porting needs its DSN, Redis, the RS256 key pair and the MFA secrets."
-    },
     "sahool-weather-service": {
       "category": "not_yet_ported",
       "reason": "Called by sahool-platform at WEATHER_SERVICE_URL (default http://sahool-weather-service:8000); porting needs its Redis URL secret and public HTTPS egress to Open-Meteo."
@@ -261,6 +257,9 @@
     }
   },
   "env_excused": {
+    "sahool-auth": {
+      "JWT_SECRET": "HS256 signing secret. The workload signs RS256 with JWT_PRIVATE_KEY/JWT_PUBLIC_KEY, which it renders; with a private key set auth needs no JWT_SECRET (services/auth/main.py:323-326), and production refuses HS256 (main.py:337-346). Its other use, the MFA audit-hash fallback, is covered by MFA_AUDIT_HASH_KEY (services/auth/mfa_runtime.py:43)."
+    },
     "sahool-platform": {
       "JWT_SECRET": "HS256 secret. In production the platform verifies RS256 with JWT_PUBLIC_KEY, which the workload renders (services/sahool-platform/api/main.py:129-141); HS256 is only the SAHOOL_ALLOW_HS256_IN_PROD migration escape, which the chart does not set.",
       "SAHOOL_JWT_SECRET": "Same HS256 secret under the platform's name (services/sahool-platform/api/main.py:129); not used while JWT_PUBLIC_KEY is set.",

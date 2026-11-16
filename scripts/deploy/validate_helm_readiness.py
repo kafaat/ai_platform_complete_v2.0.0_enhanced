@@ -66,6 +66,14 @@ PRODUCTION_REQUIRED_ENV: dict[str, dict[str, str]] = {
     "sahool-ai-agronomist": {
         "SAHOOL_AGENT_REDIS_URL": "services/ai_agronomist/agent_stores.py:296 (fail-closed)",
     },
+    # W3-09: compose leaves the RS256 pair optional (${JWT_PRIVATE_KEY:-}); production
+    # refuses HS256 and refuses to boot without Redis.
+    "sahool-auth": {
+        "DATABASE_URL": "services/auth/main.py:141 (asyncpg pool, RLS-safe role)",
+        "REDIS_URL": "services/auth/main.py:392 Redis required in production (fail-closed)",
+        "JWT_PRIVATE_KEY": "services/auth/main.py:337 RS256 required in production",
+        "JWT_PUBLIC_KEY": "services/auth/main.py:325 JWT_PRIVATE_KEY needs JWT_PUBLIC_KEY",
+    },
 }
 
 # Workloads that derive the tenant from X-Tenant-Id: NetworkPolicy admits only the gateway
@@ -122,6 +130,17 @@ def gateway_errors(values: dict, chart: Path = CHART) -> list[str]:
             if not (chart / "files" / "gateway" / rel).is_file():
                 errors.append(f"gateway: missing files/gateway/{rel}")
     workloads = values.get("workloads", {}) or {}
+    auth = gateway.get("auth", {}) or {}
+    auth_spec = workloads.get(auth.get("serviceName", "")) or {}
+    if (
+        gateway.get("enabled")
+        and auth_spec.get("enabled")
+        and auth_spec.get("port") != auth.get("port")
+    ):
+        errors.append(
+            f"gateway.auth.port {auth.get('port')} does not match the "
+            f"{auth.get('serviceName')} workload port {auth_spec.get('port')}"
+        )
     for name in GATEWAY_ONLY_WORKLOADS:
         spec = workloads.get(name) or {}
         if spec.get("enabled") and spec.get("gatewayOnly") is not True:
@@ -169,12 +188,17 @@ def network_policy_errors(values: dict) -> list[str]:
 
 
 def gateway_auth_notice(values: dict) -> str | None:
-    """The deploy-path statement that the chart does not deploy the auth verifier yet."""
+    """The deploy-path statement when the chart does not deploy the auth verifier.
+
+    W3-09 deploys it as the ``sahool-auth`` workload; the notice remains for values that
+    rename the Service away from it or disable it.
+    """
     gateway = values.get("gateway", {}) or {}
     if not gateway.get("enabled"):
         return None
     service = (gateway.get("auth", {}) or {}).get("serviceName", "")
-    if service in (values.get("workloads", {}) or {}):
+    spec = (values.get("workloads", {}) or {}).get(service) or {}
+    if spec.get("enabled"):
         return None
     return (
         f"the chart does not deploy the auth Service {service!r} (deploy-3, W3-09). "
