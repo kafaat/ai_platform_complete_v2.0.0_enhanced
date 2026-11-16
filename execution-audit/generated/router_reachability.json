@@ -2161,7 +2161,7 @@
     },
     {
       "kind": "app",
-      "line": 47,
+      "line": 48,
       "module": "services.scout-ingest-service.main",
       "node_id": "services.scout-ingest-service.main:app",
       "route_count": 5,
@@ -2422,7 +2422,7 @@
     },
     {
       "kind": "router",
-      "line": 16,
+      "line": 18,
       "module": "services.vegetation-analysis-service.routers.health",
       "node_id": "services.vegetation-analysis-service.routers.health:router",
       "route_count": 4,
@@ -2911,7 +2911,7 @@
     },
     {
       "expression": "season_router",
-      "line": 52,
+      "line": 53,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -2920,7 +2920,7 @@
     },
     {
       "expression": "media_router",
-      "line": 57,
+      "line": 58,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -2929,7 +2929,7 @@
     },
     {
       "expression": "_router",
-      "line": 79,
+      "line": 80,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": false,
@@ -2938,7 +2938,7 @@
     },
     {
       "expression": "field_forms_router",
-      "line": 408,
+      "line": 413,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -3009,7 +3009,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "73bef1449d3fbe8e5a21c3a1bec7f781b7c86c70041e02dca71a25b46587f10b",
+  "inventory_sha256": "aac6117f2be256b5716828bd22ef9079f027ad2638e1fcb5faefd15537383a8c",
   "orphan_candidate_count": 237,
   "orphan_candidates": [
     {
@@ -5335,7 +5335,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 16,
+      "line": 18,
       "module": "services.vegetation-analysis-service.routers.health",
       "node_id": "services.vegetation-analysis-service.routers.health:router",
       "route_count": 4,
@@ -5755,7 +5755,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/scout-ingest-service/main.py",
-      "line": 79,
+      "line": 80,
       "module": "services.scout-ingest-service.main",
       "source": "services.scout-ingest-service.main:app",
       "target_expression": "_router"

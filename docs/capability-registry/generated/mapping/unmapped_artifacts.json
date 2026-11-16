@@ -13768,6 +13768,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_tts_local_arabic_voice_image.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_tts_network_boundary.py",
     "kind": "tests"
   },

@@ -45,7 +45,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "329ab55c1651ad00c3f52e4a4df0df6f05c88fdce8e4ea3133991b825ab58689"
+          "content": "bb0345b65ab440db9cd0d2840e2b1712bf294e6ef679c5f236f7557e42cb0c64"
         }
       ],
       "name": "docker-compose.production.yml",
@@ -4925,7 +4925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "034b0ab6f80ac8fd42a8ce1890f93d7e81e5f55034f38131a86bfdecf7604c8c"
+          "content": "e2997dc2434ca838a905ccfbb82b436b1010a3535b69242190c16673d6e02cbd"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -38305,7 +38305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "28cc8c24c97d2421feed330d60bc973c872beb0078fa42778124c54d27252b83"
+          "content": "feaae90a54b3d2b5249a6cd7cf5509c57d774adc0a527d40aa9ff389159db13c"
         }
       ],
       "name": "services/scout-ingest-service/main.py",
@@ -39335,7 +39335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bca519a210ca9f0ef3f99bf88dd6c188ddf847fb230ba810a7cfbd4790d4e3de"
+          "content": "569083e2ab99d1c326699a5156cbad2a2c5290af4486c1d96ecd8925fd519b78"
         }
       ],
       "name": "services/tts-service/Dockerfile",
@@ -39345,7 +39345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5f36ffdc05e6d593d27e5d04d45a714030041e36e03b7842c19dd0ffa5b6bdce"
+          "content": "3bc861cd6f88d29950c3de18334849382fa8b6e4cfc02614d0819b56fb170245"
         }
       ],
       "name": "services/tts-service/README.md",
@@ -39389,6 +39389,16 @@
         }
       ],
       "name": "services/tts-service/providers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6224f622f0b66b0a6640f428c5e953980bb354f2b9ced466c09536a79a0522f1"
+        }
+      ],
+      "name": "services/tts-service/requirements-piper.txt",
       "type": "file"
     },
     {
@@ -39695,7 +39705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "14427efe692d3548219c4f8b51d28b7970de9ee8c48f55ee0b7f55eff4a8cb7b"
+          "content": "c842342d1039fac76606288ad04eb450efd4c3ee58e63e181c68dd1bb7fcc73a"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/health.py",
@@ -42309,6 +42319,16 @@
         }
       ],
       "name": "shared/security/service_tenant_assertion.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b8bdef97e7b81ef13d964cba90244e11800113a32d848a62d5c1c3e83512564c"
+        }
+      ],
+      "name": "shared/security/service_token_status.py",
       "type": "file"
     },
     {

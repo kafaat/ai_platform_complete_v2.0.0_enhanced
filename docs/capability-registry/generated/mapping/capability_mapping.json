@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7465,
+    "files_scanned": 7468,
     "files_by_kind": {
       "backend": 1295,
       "database": 347,
       "governance": 89,
       "mobile": 417,
-      "other": 2195,
-      "tests": 2569,
+      "other": 2196,
+      "tests": 2571,
       "web": 553
     },
-    "unmapped_artifacts": 3542,
+    "unmapped_artifacts": 3543,
     "ambiguous_artifacts": 254,
     "files_by_reading": {
-      "python_functional": 4053,
+      "python_functional": 4056,
       "raw": 3412
     },
-    "test_dependency_files": 1963,
-    "test_dependency_edges": 5177,
+    "test_dependency_files": 1965,
+    "test_dependency_edges": 5183,
     "test_dependency_bounded_files": 1148,
     "test_dependency_unresolved_relations": 498
   },
@@ -15669,23 +15669,23 @@
           "score": 28
         },
         {
-          "value": "/healthz @ services/scout-ingest-service/main.py:226",
+          "value": "/healthz @ services/scout-ingest-service/main.py:227",
           "score": 10
         },
         {
-          "value": "/internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:396",
+          "value": "/internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:401",
           "score": 10
         },
         {
-          "value": "/internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:387",
+          "value": "/internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:392",
           "score": 10
         },
         {
-          "value": "/internal/scouting/external-observations @ services/scout-ingest-service/main.py:268",
+          "value": "/internal/scouting/external-observations @ services/scout-ingest-service/main.py:273",
           "score": 10
         },
         {
-          "value": "/readyz @ services/scout-ingest-service/main.py:231",
+          "value": "/readyz @ services/scout-ingest-service/main.py:232",
           "score": 10
         }
       ],
@@ -28322,6 +28322,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_production_service_tokens_w3_12.py",
+          "score": 14,
+          "signals": [
+            "path:service token",
+            "content:service token"
+          ]
+        },
+        {
           "path": "tests_v9/test_raster_service_token_binding.py",
           "score": 14,
           "signals": [
@@ -28405,6 +28413,14 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "shared/security/service_token_status.py",
+          "score": 12,
+          "signals": [
+            "path:service token",
+            "content:service token"
+          ]
+        },
+        {
           "path": "scripts/ci/internal_graphql_security_guard.py",
           "score": 9,
           "signals": [
@@ -28432,9 +28448,9 @@
         "events": 3,
         "web": 0,
         "mobile": 0,
-        "tests": 11,
+        "tests": 12,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 3
       },
       "coverage_dimensions": 4,
       "mapped": true
@@ -46420,6 +46436,10 @@
     },
     {
       "path": "tests_v9/test_tts_edge_retry.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_tts_local_arabic_voice_image.py",
       "kind": "tests"
     },
     {
@@ -88814,6 +88834,41 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_production_service_tokens_w3_12.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "services/edge-inference/main.py",
+          "kind": "source_read",
+          "line": 79
+        },
+        {
+          "source": "services/scout-ingest-service/main.py",
+          "kind": "source_read",
+          "line": 64
+        },
+        {
+          "source": "services/vegetation-analysis-service/routers/health.py",
+          "kind": "source_read",
+          "line": 60
+        },
+        {
+          "source": "shared/security/service_token_status.py",
+          "kind": "loader",
+          "line": 28
+        },
+        {
+          "source": "shared/security/service_token_status.py",
+          "kind": "source_read",
+          "line": 27
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_productivity_grid_ground_coordinates.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -95939,6 +95994,21 @@
           "source": "services/tts-service/providers.py",
           "kind": "import",
           "line": 34
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_tts_local_arabic_voice_image.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "services/tts-service/providers.py",
+          "kind": "source_read",
+          "line": 23
         }
       ],
       "unresolved": []

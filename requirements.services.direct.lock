@@ -328,6 +328,9 @@ anthropic>=0.28.0,<1.0
 opentelemetry-instrumentation-fastapi>=0.44b0
 opentelemetry-instrumentation-asyncpg>=0.44b0
 
+# --- services/tts-service/requirements-piper.txt ---
+piper-tts==1.8.0
+
 # --- services/tts-service/requirements.txt ---
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
