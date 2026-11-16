@@ -12989,7 +12989,7 @@
         "documentation": true,
         "events": true,
         "integration_tests": true,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
@@ -13028,7 +13028,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -13058,7 +13058,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 8,
+      "evidence_score": 9,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -13075,6 +13075,11 @@
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "test_evidence_attribution": [
+        {
+          "evidence_type": "unit",
+          "path": "mobile/sahool_app/test/features/field_plans/field_plans_test.dart",
+          "signal": "filename:_test."
+        },
         {
           "evidence_type": "unit",
           "path": "services/raster-service/test_soil_zones.py",
@@ -13118,6 +13123,7 @@
       ],
       "title": "Soil sampling",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/field_plans/field_plans_test.dart",
         "services/raster-service/test_soil_zones.py",
         "services/sahool-platform/tests/test_lab_sampling_router.py",
         "services/sahool-platform/tests/test_soil_plan_origin_client.py",

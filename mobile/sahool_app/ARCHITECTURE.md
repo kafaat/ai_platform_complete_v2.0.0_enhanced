@@ -18,6 +18,10 @@ lib/
     routing/                 AppRoute/FeatureModule, AppRouter (aggregator),
                              AppShell (bottom navigation), shell destinations,
                              ShellScope, navigator key, honest route pages
+    offline/                 OfflineReadCache: encrypted read cache keyed per
+                             tenant+user, each entry with its fetch time; cleared
+                             on logout and on a tenant switch. CachedLoader:
+                             network first, then the saved copy with its age
     session/                 SessionScope (logout cleanups), AuthState
     theme/                   tokens.dart (the single token file), AppTheme,
                              SahoolTokens extension, ThemeController

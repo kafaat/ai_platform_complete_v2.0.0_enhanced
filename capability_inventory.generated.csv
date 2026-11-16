@@ -603,11 +603,8 @@ sahool-platform.phase10.learning.champion-challenger,command,sahool-platform,POS
 sahool-platform.phase10.learning.cycle,command,sahool-platform,POST /v1/phase10/learning/cycle,frontend,route,False
 sahool-platform.phase10.learning.dataset,command,sahool-platform,POST /v1/phase10/learning/dataset,frontend,route,False
 sahool-platform.phase10.learning.drift,command,sahool-platform,POST /v1/phase10/learning/drift,frontend,route,False
-sahool-platform.phase10.learning.experiments,command,sahool-platform,POST /v1/phase10/learning/experiments/evaluate,frontend,route,False
-sahool-platform.phase10.learning.feature-schema,command,sahool-platform,POST /v1/phase10/learning/feature-schema,frontend,route,False
 sahool-platform.phase10.learning.feature-store,command,sahool-platform,POST /v1/phase10/learning/feature-store/offline-dataset|POST /v1/phase10/learning/feature-store/online-materialization|POST /v1/phase10/learning/feature-store/point-in-time|POST /v1/phase10/learning/feature-store/register,frontend,route,False
 sahool-platform.phase10.learning.models,mixed,sahool-platform,GET /v1/phase10/learning/models/serving/{alias:path}|POST /v1/phase10/learning/models/promote|POST /v1/phase10/learning/models/register|POST /v1/phase10/learning/models/serving/promote|POST /v1/phase10/learning/models/serving/rollback,frontend,route,False
-sahool-platform.phase10.learning.online-update,command,sahool-platform,POST /v1/phase10/learning/online-update,frontend,route,False
 sahool-platform.phase10.learning.retraining,command,sahool-platform,POST /v1/phase10/learning/retraining/plan,frontend,route,False
 sahool-platform.phase10.learning.scenario,command,sahool-platform,POST /v1/phase10/learning/scenario,frontend,route,False
 sahool-platform.phase11.federation.agents,command,sahool-platform,POST /v1/phase11/federation/agents/propose,frontend,route,False
@@ -656,11 +653,8 @@ sahool-platform.recommendations.rec_id,query,sahool-platform,GET /api/v1/recomme
 sahool-platform.regional-calendar,query,sahool-platform,GET /api/v1/regional-calendar,frontend,route,False
 sahool-platform.regional.bulletin,query,sahool-platform,GET /api/v1/regional/bulletin,frontend,route,False
 sahool-platform.registry.cost-profiles,query,sahool-platform,GET /api/v1/registry/cost-profiles,frontend,route,False
-sahool-platform.registry.data-quality-rules,query,sahool-platform,GET /api/v1/registry/data-quality-rules,frontend,route,False
-sahool-platform.registry.device-types,query,sahool-platform,GET /api/v1/registry/device-types,frontend,route,False
 sahool-platform.registry.events,query,sahool-platform,GET /api/v1/registry/events,frontend,route,False
 sahool-platform.registry.indices,query,sahool-platform,GET /api/v1/registry/indices,frontend,route,False
-sahool-platform.registry.report-fields,query,sahool-platform,GET /api/v1/registry/report-fields,frontend,route,False
 sahool-platform.registry.workflows,query,sahool-platform,GET /api/v1/registry/workflows,frontend,route,False
 sahool-platform.replay.reconstruct,command,sahool-platform,POST /api/v1/replay/reconstruct,frontend,route,False
 sahool-platform.reports.build,command,sahool-platform,POST /api/v1/reports/build,frontend,route,False

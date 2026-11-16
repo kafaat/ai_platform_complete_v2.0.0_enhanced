@@ -655,12 +655,15 @@ jobs:
             esac
           done
       - name: Validate effective GPU reservations
+        # sahool-video-processor does CPU-only decoding (opencv-python-headless) and sends
+        # frames to sahool-edge over HTTP, so it must carry no NVIDIA reservation.
         run: |
           set -eo pipefail
           docker compose --env-file .ci.env -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml \
             --profile gpu --profile vllm config --format json |
-            jq -e '.services | [.["sahool-edge", "sahool-video-processor", "sahool-sam2-inference", "sahool-vllm-jais"]
-              .deploy.resources.reservations.devices | map(select(.driver == "nvidia" and (.capabilities | index("gpu")))) | length] == [1,1,1,1]'
+            jq -e '.services | ([.["sahool-edge", "sahool-sam2-inference", "sahool-vllm-jais"]
+              .deploy.resources.reservations.devices | map(select(.driver == "nvidia" and (.capabilities | index("gpu")))) | length] == [1,1,1])
+              and ((.["sahool-video-processor"].deploy.resources.reservations.devices // []) | map(select(.driver == "nvidia")) | length == 0)'
       - name: Check for orphaned depends_on blocks
         run: |
           # Defensive: catch the "nats: { condition... }" outside services pattern
@@ -1637,6 +1640,16 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           FIELD_TASK_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_field_task_scouting_anomaly_live_pg.py
+      # SCOUTING-ANOMALY-VERIFY-RACE-ORPHAN-TASK-01: the PostgreSQL anomaly store reserves a ground
+      # verification against the expected version before the field task is dispatched; a racing
+      # resolve or result is refused while the reservation is pending, concurrent reservations have
+      # one winner, a release restores the prior state, other tenants cannot touch it. Restricted
+      # NOBYPASSRLS role; the flag turns any skip into a failure.
+      - name: Vegetation anomaly verification reservation (restricted role)
+        env:
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          ANOMALY_RESERVATION_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_rs_anomaly_reservation_live_pg.py
       # W0-13 (finding mobile-3): an offline irrigation report replayed after the water-balance
       # worker wrote the day keeps ET0 and depletion, and the worker keeps the reported water and
       # recomputes around it (v280). The real router runs on the restricted NOBYPASSRLS role; the
@@ -1709,6 +1722,32 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           YIELD_ESTIMATE_TENANT_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_yield_estimate_tenant_live_pg.py
+      # v238 + R-C2 (#1386): only a v2 device ack signed with the owning device's derived key, on the owning tenant's topic, moves a command to device_acked; v1 acks off the legacy allowlist are refused. Broken on main since #1386 (fixture still signed v1) because no certified step ran it. The flag turns any skip into a failure.
+      - name: Actuator command delivery state and v2 device acks (v238, R-C2, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          ACTUATOR_DELIVERY_STATE_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_v238_actuator_delivery_state_live_pg.py
+      # LIVE-SUITES-OWNER-URL-SEEDING-01: the Field and Water twins read the active season, not
+      # fields.crop, and judge NDVI by its own time; another tenant's field is 404. The owner URL
+      # seeds rows only; the routers run on the restricted role. The flag turns any skip into a failure.
+      - name: Field and Water twins read the active season (restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          DIGITAL_TWIN_SEASON_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_digital_twin_season_live_pg.py
+      # LIVE-SUITES-OWNER-URL-SEEDING-01: an archived season is read by its own window, outcomes
+      # after cutover come only from an authoritative, scoped decision-service reply, and a failed
+      # optional read rolls back its own savepoint (on an owner-created runtime role the restricted
+      # login switches to). The owner URL seeds rows only. The flag turns any skip into a failure.
+      - name: Field-season state reads its platform sources (restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          SEASON_STATE_SOURCES_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_season_state_sources_live_pg.py
       # W1-11 (owner decision 2026-11-16): indicators-service stores each observation raster-service
       # publishes, append-only (v286): created then replayed, conflict on other content under the
       # same id, UPDATE/DELETE/TRUNCATE refused, tenant isolation, and the pull end to end (raster's

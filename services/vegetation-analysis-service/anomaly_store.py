@@ -37,12 +37,27 @@ class AnomalyNotFound(KeyError):
     pass
 
 
+def _pending_reservation(payload: dict) -> dict | None:
+    reservation = payload.get("verification_reservation")
+    if isinstance(reservation, dict) and reservation.get("state") == "pending":
+        return reservation
+    return None
+
+
 def validate_transition(current: str, new_status: str, payload: dict, patch: dict | None) -> None:
     """Allow one metadata-only recovery of a legacy confirmed aggregate.
 
     The trusted task callback supplies the original metadata; no status or
     evidence reference can be replaced during recovery. Both stores use this.
+
+    While a ground-verification reservation is pending (the field task is being
+    dispatched), no generic transition may run: only the reservation's own attach
+    or release operation may move the aggregate. Otherwise a concurrent resolve or
+    a verification result could close the anomaly under the dispatch and strand
+    the field task (SCOUTING-ANOMALY-VERIFY-RACE-ORPHAN-TASK-01).
     """
+    if _pending_reservation(payload) is not None:
+        raise InvalidTransition("verification_reservation_pending")
     if current == new_status == "confirmed":
         patch = patch or {}
         evidence = patch.get("verification_evidence") or []
@@ -56,6 +71,99 @@ def validate_transition(current: str, new_status: str, payload: dict, patch: dic
             return
     if new_status not in _ALLOWED_TRANSITIONS.get(current, set()):
         raise InvalidTransition(f"invalid_transition:{current}->{new_status}")
+
+
+# --- ground-verification reservation (SCOUTING-ANOMALY-VERIFY-RACE-ORPHAN-TASK-01) ---------
+#
+# Each plan takes the locked row's status, payload and task_ref and returns the new
+# (status, payload, task_ref). Both stores run them inside their versioned, row-locked
+# mutation, so the reservation is taken against the expected version atomically.
+
+
+def plan_reservation(
+    current: str,
+    payload: dict,
+    task_ref: str | None,
+    *,
+    idempotency_key: str,
+    reserved_from_version: int,
+) -> tuple[str, dict, str | None]:
+    """Reserve verification before any field task is dispatched.
+
+    The aggregate moves to ``verification_requested`` with a pending reservation and no
+    task yet; the prior status is kept so a dispatch that created no task can restore it.
+    """
+    if not idempotency_key:
+        raise InvalidTransition("verification_reservation_key_required")
+    validate_transition(current, "verification_requested", payload, None)
+    if task_ref:
+        raise InvalidTransition("reverification_not_supported:anomaly_already_has_task")
+    now = datetime.now(UTC).isoformat()
+    payload["verification_reservation"] = {
+        "state": "pending",
+        "prior_status": current,
+        "idempotency_key": idempotency_key,
+        "reserved_from_version": reserved_from_version,
+        "reserved_at": now,
+    }
+    payload.pop("verification_reservation_released", None)
+    return "verification_requested", payload, None
+
+
+def _bound_reservation(current: str, payload: dict, idempotency_key: str) -> dict:
+    reservation = _pending_reservation(payload)
+    if current != "verification_requested" or reservation is None:
+        raise InvalidTransition("verification_reservation_missing")
+    if reservation.get("idempotency_key") != idempotency_key:
+        raise InvalidTransition("verification_reservation_key_mismatch")
+    return reservation
+
+
+def plan_attach(
+    current: str,
+    payload: dict,
+    task_ref: str | None,
+    *,
+    idempotency_key: str,
+    new_task_ref: str,
+) -> tuple[str, dict, str | None]:
+    """Attach the dispatched field task to its pending reservation."""
+    if not new_task_ref:
+        raise InvalidTransition("verification_task_ref_required")
+    reservation = _bound_reservation(current, payload, idempotency_key)
+    if task_ref and task_ref != new_task_ref:
+        raise InvalidTransition("verification_task_ref_mismatch")
+    payload["verification_reservation"] = {
+        **reservation,
+        "state": "attached",
+        "attached_at": datetime.now(UTC).isoformat(),
+    }
+    payload["task_ref"] = new_task_ref
+    return "verification_requested", payload, new_task_ref
+
+
+def plan_release(
+    current: str,
+    payload: dict,
+    task_ref: str | None,
+    *,
+    idempotency_key: str,
+    reason: str,
+) -> tuple[str, dict, str | None]:
+    """Give a pending reservation back: the dispatch created no task, so the prior state returns."""
+    reservation = _bound_reservation(current, payload, idempotency_key)
+    if task_ref:
+        raise InvalidTransition("verification_reservation_already_attached")
+    prior = str(reservation.get("prior_status") or "")
+    if "verification_requested" not in _ALLOWED_TRANSITIONS.get(prior, set()):
+        raise InvalidTransition(f"verification_reservation_prior_status_invalid:{prior}")
+    payload.pop("verification_reservation", None)
+    payload["verification_reservation_released"] = {
+        "prior_status": prior,
+        "reason": reason,
+        "released_at": datetime.now(UTC).isoformat(),
+    }
+    return prior, payload, None
 
 
 class AnomalyStore:
@@ -173,6 +281,82 @@ class AnomalyStore:
         task_ref: str | None = None,
         tenant_id: str | None = None,
     ) -> dict[str, Any]:
+        def plan(current: str, payload: dict, _task_ref: str | None):
+            validate_transition(current, new_status, payload, patch)
+            payload.update(patch or {})
+            return new_status, payload, task_ref
+
+        return self._mutate(anomaly_ref, expected_version, tenant_id, plan)
+
+    def reserve_verification(
+        self,
+        anomaly_ref: str,
+        *,
+        expected_version: int,
+        idempotency_key: str,
+        tenant_id: str | None = None,
+    ) -> dict[str, Any]:
+        return self._mutate(
+            anomaly_ref,
+            expected_version,
+            tenant_id,
+            lambda current, payload, task_ref: plan_reservation(
+                current,
+                payload,
+                task_ref,
+                idempotency_key=idempotency_key,
+                reserved_from_version=expected_version,
+            ),
+        )
+
+    def attach_verification_task(
+        self,
+        anomaly_ref: str,
+        *,
+        expected_version: int,
+        idempotency_key: str,
+        task_ref: str,
+        tenant_id: str | None = None,
+    ) -> dict[str, Any]:
+        return self._mutate(
+            anomaly_ref,
+            expected_version,
+            tenant_id,
+            lambda current, payload, row_task_ref: plan_attach(
+                current,
+                payload,
+                row_task_ref,
+                idempotency_key=idempotency_key,
+                new_task_ref=task_ref,
+            ),
+        )
+
+    def release_verification_reservation(
+        self,
+        anomaly_ref: str,
+        *,
+        expected_version: int,
+        idempotency_key: str,
+        reason: str,
+        tenant_id: str | None = None,
+    ) -> dict[str, Any]:
+        return self._mutate(
+            anomaly_ref,
+            expected_version,
+            tenant_id,
+            lambda current, payload, task_ref: plan_release(
+                current, payload, task_ref, idempotency_key=idempotency_key, reason=reason
+            ),
+        )
+
+    def _mutate(
+        self,
+        anomaly_ref: str,
+        expected_version: int,
+        tenant_id: str | None,
+        plan: Any,
+    ) -> dict[str, Any]:
+        """One versioned, write-locked state change; ``plan`` decides the new state."""
         with self._lock, self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
             if tenant_id is None:
@@ -190,8 +374,7 @@ class AnomalyStore:
             if int(row["version"]) != expected_version:
                 raise InvalidTransition("aggregate_version_conflict")
             payload = json.loads(row["payload_json"])
-            validate_transition(current, new_status, payload, patch)
-            payload.update(patch or {})
+            new_status, payload, task_ref = plan(current, payload, row["task_ref"])
             payload["status"] = new_status
             payload["updated_at"] = datetime.now(UTC).isoformat()
             version = expected_version + 1

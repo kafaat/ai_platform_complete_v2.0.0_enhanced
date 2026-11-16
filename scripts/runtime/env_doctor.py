@@ -313,6 +313,261 @@ def check_compose_static(root: Path, checks: list[Check]) -> None:
     )
 
 
+# COMPOSE-REQUIRED-VARS-ONE-AT-A-TIME-01: Compose interpolates every service of every file it is
+# given (profiles included) before `config`, `build` or `up`, and stops at the FIRST `${VAR:?}`
+# with no value. A GPU build on a fresh machine therefore fails ~57 times, one secret per try.
+# This check reads the same files and reports every missing required variable in one pass.
+# It compares names only: values are never read into the report.
+_COMPOSE_TOKEN = re.compile(r"\$\$|\$\{")
+_COMPOSE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+_COMPOSE_OPS = (":?", "?", ":-", "-", ":+", "+")
+
+
+@dataclass
+class RequiredVar:
+    name: str
+    rule: str  # "unset-or-empty" (`:?`) or "unset" (`?`)
+    message: str
+    location: str
+
+
+def strip_compose_comments(text: str) -> str:
+    """Blank YAML comments so a `${VAR:?}` written inside one is not counted.
+
+    Line-based: a `#` at the start of a line or after whitespace, outside quotes on that line,
+    starts a comment. Line numbers are preserved.
+    """
+    out: list[str] = []
+    for line in text.split("\n"):
+        quote = ""
+        cut = len(line)
+        for i, ch in enumerate(line):
+            if quote:
+                if ch == quote:
+                    quote = ""
+            elif ch in "'\"" and (i == 0 or line[i - 1] in " \t:[{,-"):
+                quote = ch
+            elif ch == "#" and (i == 0 or line[i - 1] in " \t"):
+                cut = i
+                break
+        out.append(line[:cut])
+    return "\n".join(out)
+
+
+def _closing_brace(text: str, start: int) -> int:
+    """Index of the `}` closing the `${` whose body starts at ``start`` (nesting-aware)."""
+    depth = 1
+    i = start
+    while i < len(text):
+        if text.startswith("$$", i):
+            i += 2
+            continue
+        if text.startswith("${", i):
+            depth += 1
+            i += 2
+            continue
+        if text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return i
+        i += 1
+    return -1
+
+
+def _present(env: dict[str, str], name: str, empty_counts: bool) -> bool:
+    if name not in env:
+        return False
+    return bool(env[name]) or not empty_counts
+
+
+def _compose_substitute(
+    text: str,
+    env: dict[str, str],
+    origin: int,
+    locate,
+    found: list[RequiredVar],
+    missing: list[RequiredVar],
+) -> None:
+    """Walk ``text`` with Compose's interpolation rules, recording required variables.
+
+    Like Compose, a nested default is evaluated only when the outer variable needs it
+    (``${DATABASE_URL:-...${APP_DB_PASSWORD:?}...}`` requires APP_DB_PASSWORD only while
+    DATABASE_URL is unset or empty). Unlike Compose, it does not stop at the first miss.
+    """
+    pos = 0
+    while True:
+        m = _COMPOSE_TOKEN.search(text, pos)
+        if not m:
+            return
+        if m.group(0) == "$$":
+            pos = m.end()
+            continue
+        body_start = m.end()
+        end = _closing_brace(text, body_start)
+        if end < 0:
+            return
+        body = text[body_start:end]
+        pos = end + 1
+        nm = _COMPOSE_NAME.match(body)
+        if not nm:
+            continue
+        name = nm.group(0)
+        rest = body[nm.end() :]
+        op = next((o for o in _COMPOSE_OPS if rest.startswith(o)), "")
+        arg = rest[len(op) :]
+        arg_origin = origin + body_start + nm.end() + len(op)
+        if op in (":?", "?"):
+            req = RequiredVar(
+                name=name,
+                rule="unset-or-empty" if op == ":?" else "unset",
+                message=" ".join(arg.split()),
+                location=locate(origin + m.start()),
+            )
+            found.append(req)
+            if not _present(env, name, empty_counts=op == ":?"):
+                missing.append(req)
+        elif op in (":-", "-"):
+            if not _present(env, name, empty_counts=op == ":-"):
+                _compose_substitute(arg, env, arg_origin, locate, found, missing)
+        elif op in (":+", "+"):
+            if _present(env, name, empty_counts=op == ":+"):
+                _compose_substitute(arg, env, arg_origin, locate, found, missing)
+
+
+def _service_locator(path_label: str, text: str):
+    """Map a character offset to `file:line (service)` using the YAML's indentation."""
+    line_starts = [0]
+    owners: list[str] = []
+    top = ""
+    child = ""
+    child_indent = -1
+    for line in text.split("\n"):
+        stripped = line.lstrip(" ")
+        indent = len(line) - len(stripped)
+        key = stripped.split(":", 1)[0].strip() if ":" in stripped else ""
+        if stripped and not stripped.startswith("#"):
+            if indent == 0 and key:
+                top, child, child_indent = key, "", -1
+            elif key and (child_indent < 0 or indent <= child_indent) and indent > 0:
+                child, child_indent = key, indent
+        owners.append(f"{top}.{child}" if top == "services" and child else top)
+        line_starts.append(line_starts[-1] + len(line) + 1)
+
+    def locate(offset: int) -> str:
+        lo, hi = 0, len(line_starts) - 1
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if line_starts[mid] <= offset:
+                lo = mid
+            else:
+                hi = mid - 1
+        owner = owners[lo] if lo < len(owners) else ""
+        owner = owner.split(".", 1)[1] if owner.startswith("services.") else owner
+        return f"{path_label}:{lo + 1}" + (f" ({owner})" if owner else "")
+
+    return locate
+
+
+def load_compose_env_file(path: Path) -> dict[str, str]:
+    """Read a Compose `.env` file: `KEY=VALUE`, optional `export`, quotes, inline ` #` comments."""
+    values: dict[str, str] = {}
+    if not path.is_file():
+        return values
+    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = raw.strip()
+        if line.startswith("export "):
+            line = line[len("export ") :].lstrip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if value[:1] in {"'", '"'} and value.find(value[0], 1) > 0:
+            value = value[1 : value.find(value[0], 1)]
+        else:
+            hash_at = value.find(" #")
+            value = (value[:hash_at] if hash_at >= 0 else value).rstrip()
+        if _COMPOSE_NAME.fullmatch(key):
+            values[key] = value
+    return values
+
+
+def scan_compose_required(
+    compose_files: list[Path], env: dict[str, str], root: Path | None = None
+) -> tuple[list[RequiredVar], list[RequiredVar]]:
+    """Return (every required reference, the ones with no value) across ``compose_files``."""
+    found: list[RequiredVar] = []
+    missing: list[RequiredVar] = []
+    for path in compose_files:
+        try:
+            label = str(path.resolve().relative_to(root.resolve())) if root else str(path)
+        except ValueError:
+            label = str(path)
+        text = strip_compose_comments(path.read_text(encoding="utf-8", errors="replace"))
+        _compose_substitute(text, env, 0, _service_locator(label, text), found, missing)
+    return found, missing
+
+
+def check_compose_required_vars(
+    root: Path,
+    checks: list[Check],
+    compose_files: list[str],
+    env_file: str = "",
+    environ: dict[str, str] | None = None,
+) -> None:
+    paths = [p if p.is_absolute() else root / p for p in (Path(f) for f in compose_files)]
+    absent = [str(p) for p in paths if not p.is_file()]
+    if absent:
+        add(checks, "compose-required-vars", "fail", "compose file not found", {"absent": absent})
+        return
+    env_path = Path(env_file) if env_file else root / ".env"
+    if not env_path.is_absolute():
+        env_path = root / env_path
+    # Compose's precedence: the shell environment, then the env file (a shell value wins even
+    # when empty). Only names and emptiness are compared below.
+    env = load_compose_env_file(env_path)
+    env.update(os.environ if environ is None else environ)
+    found, missing = scan_compose_required(paths, env, root)
+    rules: dict[str, str] = {}
+    messages: dict[str, str] = {}
+    locations: dict[str, list[str]] = {}
+    for req in missing:
+        if rules.get(req.name) != "unset-or-empty":
+            rules[req.name] = req.rule
+        messages.setdefault(req.name, req.message)
+        locations.setdefault(req.name, []).append(req.location)
+    report = [
+        {"name": n, "rule": rules[n], "message": messages[n], "locations": locations[n]}
+        for n in sorted(locations)
+    ]
+    lines = []
+    for n in sorted(locations):
+        need = "must be non-empty" if rules[n] == "unset-or-empty" else "may be empty"
+        more = f" (+{len(locations[n]) - 1} more)" if len(locations[n]) > 1 else ""
+        lines.append(f"  {n}  [{need}]  first: {locations[n][0]}{more}")
+    add(
+        checks,
+        "compose-required-vars",
+        "fail" if report else "pass",
+        (
+            f"{len(report)} required variable(s) have no value; Compose would stop at the first"
+            if report
+            else "every required `${VAR:?}` in these compose files has a value"
+        ),
+        {
+            "compose_files": [
+                str(p.relative_to(root)) if p.is_relative_to(root) else str(p) for p in paths
+            ],
+            "env_file": str(env_path),
+            "env_file_found": env_path.is_file(),
+            "required_names": len({r.name for r in found}),
+            "missing_names": [item["name"] for item in report],
+            "missing": report,
+            "report_lines": lines,
+        },
+    )
+
+
 def command_available(name: str) -> bool:
     """Return True when an executable is discoverable on PATH.
 
@@ -361,7 +616,12 @@ def check_compose_config(root: Path, checks: list[Check]) -> None:
         checks,
         "docker-compose-config",
         "pass" if code == 0 else "fail",
-        "docker compose config passed" if code == 0 else "docker compose config failed",
+        "docker compose config passed"
+        if code == 0
+        else (
+            "docker compose config failed (it stops at the first missing variable; "
+            "`--mode compose-vars` lists them all)"
+        ),
         {"exit_code": code, "output": output},
     )
 
@@ -497,9 +757,19 @@ def render_text(summary: dict[str, object], checks: list[Check]) -> str:
     for c in checks:
         lines.append(f"[{icon.get(c.status, c.status)}] {c.name}: {c.message}")
         if c.detail:
-            compact = {k: v for k, v in c.detail.items() if v not in (None, {}, [], "")}
+            report_lines = c.detail.get("report_lines")
+            hidden = (
+                {"report_lines", "missing", "missing_names"}
+                if isinstance(report_lines, list)
+                else set()
+            )
+            compact = {
+                k: v for k, v in c.detail.items() if k not in hidden and v not in (None, {}, [], "")
+            }
             if compact:
                 lines.append("  " + json.dumps(compact, ensure_ascii=False, sort_keys=True)[:1000])
+            if isinstance(report_lines, list):
+                lines.extend(str(line) for line in report_lines)
     return "\n".join(lines) + "\n"
 
 
@@ -507,7 +777,24 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="SAHOOL runtime bootstrap/environment doctor")
     parser.add_argument("--root", default=".")
     parser.add_argument("--base-url", default=os.environ.get("BASE_URL", "http://localhost"))
-    parser.add_argument("--mode", choices=["preflight", "runtime", "full"], default="preflight")
+    parser.add_argument(
+        "--mode",
+        choices=["preflight", "runtime", "full", "compose-vars"],
+        default="preflight",
+        help="compose-vars: report every required `${VAR:?}` with no value, then stop",
+    )
+    parser.add_argument(
+        "-f",
+        "--compose-file",
+        action="append",
+        default=[],
+        help="compose file for --mode compose-vars (repeatable; default docker-compose.v9.yml)",
+    )
+    parser.add_argument(
+        "--env-file",
+        default="",
+        help="env file for --mode compose-vars (default <root>/.env, as Compose reads it)",
+    )
     parser.add_argument("--format", choices=["text", "json"], default="text")
     parser.add_argument("--output", default="")
     parser.add_argument("--fail-on-warn", action="store_true")
@@ -515,6 +802,11 @@ def main() -> int:
 
     root = find_root(Path(args.root))
     checks: list[Check] = []
+    if args.mode == "compose-vars":
+        check_compose_required_vars(
+            root, checks, args.compose_file or ["docker-compose.v9.yml"], args.env_file
+        )
+        return emit(args, checks)
     check_required_files(root, checks)
     check_env(root, checks)
     check_minio_images(root, checks)
@@ -526,7 +818,10 @@ def main() -> int:
         check_http_runtime(checks, args.base_url)
     if args.mode == "full":
         check_static_gates(root, checks)
+    return emit(args, checks)
 
+
+def emit(args: argparse.Namespace, checks: list[Check]) -> int:
     summary = summarize(checks)
     payload = {"summary": summary, "checks": [asdict(c) for c in checks]}
     output = (
