@@ -46,10 +46,14 @@ _EXPECTED_PUBLIC_EGRESS = {
     "sahool-platform": "Open-Meteo / MET Norway (services/sahool-platform/api/connectors)",
     "sahool-raster-service": "Copernicus Data Space (CDSE_CLIENT_ID/SECRET)",
     "sahool-ai-agronomist": "hosted model providers when AI_PROVIDER is openrouter/anthropic",
+    "sahool-weather-service": "Open-Meteo forecast/archive (services/weather-service/open_meteo.py)",
 }
 
 # Workloads that admit only named callers (no gateway), with those callers.
-_EXPECTED_INTERNAL_ONLY: dict[str, list[str]] = {}
+_EXPECTED_INTERNAL_ONLY: dict[str, list[str]] = {
+    # No auth of its own; sahool-platform's weather_service_client is the in-chart caller.
+    "sahool-weather-service": ["sahool-platform"],
+}
 
 
 def _production_values() -> dict:
@@ -159,3 +163,18 @@ def test_helm_render_without_public_egress_renders_no_public_policy() -> None:
     docs = _render("--set", "networkPolicy.allowPublicHttpsEgress=false")
     names = {d["metadata"]["name"] for d in docs if d.get("kind") == "NetworkPolicy"}
     assert "sahool-public-https-egress" not in names
+
+
+@needs_helm
+def test_helm_render_internal_only_workloads_admit_only_their_callers() -> None:
+    policies = {d["metadata"]["name"]: d for d in _render() if d.get("kind") == "NetworkPolicy"}
+    excluded = policies["sahool-internal-allow"]["spec"]["podSelector"]["matchExpressions"][0]
+    for name, callers in _EXPECTED_INTERNAL_ONLY.items():
+        policy = policies[f"{name}-internal-only"]["spec"]
+        sources = {
+            peer["podSelector"]["matchLabels"]["app.kubernetes.io/component"]
+            for rule in policy["ingress"]
+            for peer in rule["from"]
+        }
+        assert sources == set(callers), f"{name} must admit only {callers}: {sources}"
+        assert name in excluded["values"], f"the namespace-wide allow must exclude {name}"

@@ -29,6 +29,8 @@ global:
     authAdminPassword: sahool-auth-admin-password
     authMfaSecretEncryptionKey: sahool-auth-mfa-secret-encryption-key
     authMfaAuditHashKey: sahool-auth-mfa-audit-hash-key
+    # sahool-weather-service (W3-09): its cache Redis ACL user.
+    weatherRedisUrl: sahool-weather-redis-url
 
 namespace:
   create: true
@@ -252,6 +254,31 @@ workloads:
       # Dedicated audit-hash key: without it production writes no IP hash
       # (services/auth/mfa_runtime.py:43-46), since the chart sets no HS256 JWT_SECRET.
       MFA_AUDIT_HASH_KEY: authMfaAuditHashKey
+  # W3-09: Open-Meteo access, cache and agro computations. No route of its own: the gateway
+  # sends /api/weather/ to sahool-platform, which calls this service at WEATHER_SERVICE_URL
+  # (default http://sahool-weather-service:8000). It has no auth of its own, so it admits
+  # only its in-chart caller. Add another caller here with the code that calls it.
+  sahool-weather-service:
+    enabled: true
+    image: sahool/weather-service:2026.06.26-rc.15
+    replicas: 2
+    port: 8000
+    sourceDockerfile: services/weather-service/Dockerfile
+    internalOnly: true
+    internalCallers:
+      - sahool-platform
+    # Open-Meteo forecast and archive APIs (services/weather-service/open_meteo.py).
+    publicHttpsEgress: true
+    env:
+      SERVICE_NAME: sahool-weather-service
+      # Compose values for the Open-Meteo client and its breaker.
+      WEATHER_OPEN_METEO_TIMEOUT_S: "4"
+      WEATHER_OPEN_METEO_BREAKER_FAILURES: "3"
+      WEATHER_OPEN_METEO_BREAKER_RESET_S: "30"
+    secretEnv:
+      # Response cache shared by the replicas (services/weather-service/cache.py), on its
+      # own Redis ACL user.
+      WEATHER_REDIS_URL: weatherRedisUrl
 
 jobs:
   migration:

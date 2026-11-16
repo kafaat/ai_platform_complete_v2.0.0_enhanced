@@ -17,3 +17,5 @@ workloads:
     replicas: 1
   sahool-auth:
     replicas: 1
+  sahool-weather-service:
+    replicas: 1

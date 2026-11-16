@@ -173,6 +173,8 @@ def _routes() -> dict[str, str]:
 _UNROUTED_WORKLOADS = {
     # Addressed by $sahool_auth_addr (gateway.auth), in /_auth_verify and /auth/.
     "sahool-auth": "gateway.auth",
+    # /api/weather/ goes to sahool-platform, which calls weather-service internally.
+    "sahool-weather-service": "internal: sahool-platform",
 }
 
 
