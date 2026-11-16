@@ -34,7 +34,24 @@ from api.water_balance import kc_map_for_crop
 
 ENGINE_NAME = "rue-fao56"
 ENGINE_VERSION = "rue-fao56/1"
-PARAMETER_VERSION = "sahool-season-defaults/1"
+#: Version of the crop parameters below, stored on every ``season_simulation_runs`` row.
+#: Bump it whenever a value that changes a simulation result changes, and record what
+#: changed in ``PARAMETER_VERSION_HISTORY`` so rows written under an older version stay
+#: interpretable (the run table is append-only; old rows keep their old version).
+PARAMETER_VERSION = "sahool-season-defaults/2"
+PARAMETER_VERSION_HISTORY: dict[str, dict] = {
+    "sahool-season-defaults/1": {
+        "wheat": {"t_base_c": 0.0, "gdd_to_maturity": 1800.0},
+        "note": "module literals; wheat maturity disagreed with the crop card (2000)",
+    },
+    "sahool-season-defaults/2": {
+        "wheat": {"t_base_c": 0.0, "gdd_to_maturity": 2000.0},
+        "note": (
+            "crop-4: wheat t_base_c and gdd_to_maturity read from the crop card "
+            "(core/crop_cards/wheat.yaml thermal.*); other crops unchanged from /1"
+        ),
+    },
+}
 
 # ─── معرفة المحاصيل (معاملات نموذجيّة إرشاديّة) ───────────────────
 # المصادر: FAO-56 (Kc, طول المراحل)، Monteith 1977 / Sinclair & Muchow 1999

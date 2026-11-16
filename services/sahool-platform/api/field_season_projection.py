@@ -230,6 +230,12 @@ def assemble_field_season_state(
     # a field already flowering reported "upcoming", its collisions ignored). A declared
     # gap drops the series, so the window comes from the sum alone or from the calendar,
     # and says why.
+    # Declared limitation (W1-09 review): with the live sources the gap is never zero. The
+    # archive ends at today - SEASON_ARCHIVE_LAG_DAYS and weather-service's forecast view
+    # starts at today with no recent-past days, so the route always takes the sum-only or
+    # calendar path and names ``archive_forecast_gap``. Joining the two needs weather-service
+    # to serve the lag days (a forecast ``past_days`` option, owned there); until then the
+    # series is used only by callers that supply a continuous sum.
     gap_days = archive_forecast_gap_days(accumulated_gdd_through, daily, ref)
     use_series = bool(daily) and accumulated_gdd is not None and not gap_days
     critical_window = project_next_critical_window(
@@ -418,7 +424,10 @@ def blank_counts_when_unavailable(summary: dict) -> None:
 #: ``today - SEASON_ARCHIVE_LAG_DAYS`` and the state says so in ``accumulated_gdd_through``.
 SEASON_ARCHIVE_LAG_DAYS = 5
 SEASON_FORECAST_DAYS = 7
-#: Per-call budget for the season weather reads, as for the canonical field-weather read.
+#: Total budget for all season weather reads of one state read, as for the canonical
+#: field-weather read. It is one deadline shared by every call (archive, then its GDD; the
+#: forecast, then its GDD), not a budget per call: a stalled weather-service therefore costs
+#: at most this long, never two sequential budgets.
 SEASON_WEATHER_TIMEOUT_S = 8.0
 _WEATHER_SOURCE_ERRORS = (HTTPException, ValueError, TypeError, KeyError, TimeoutError)
 #: Stable order of ``unavailable`` reasons (the chains run concurrently).
@@ -545,10 +554,18 @@ async def gather_season_weather_inputs(
     lat_f, lon_f = float(lat), float(lon)
     end = min(as_of, today - timedelta(days=SEASON_ARCHIVE_LAG_DAYS))
 
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + SEASON_WEATHER_TIMEOUT_S
+
     async def bounded(awaitable):
-        # Each weather call has its own short budget: the state read degrades to the calendar
-        # rather than waiting for the client's 20 s default (W1-09 review, latency).
-        return await asyncio.wait_for(awaitable, SEASON_WEATHER_TIMEOUT_S)
+        # One shared deadline: the state read degrades to the calendar rather than waiting
+        # for the client's 20 s default, and a call that starts after the deadline fails at
+        # once instead of opening a fresh budget (W1-09 review, latency).
+        remaining = deadline - loop.time()
+        if remaining <= 0:
+            awaitable.close()
+            raise TimeoutError("season weather budget exhausted")
+        return await asyncio.wait_for(awaitable, remaining)
 
     async def archive_chain() -> None:
         if policy is None:

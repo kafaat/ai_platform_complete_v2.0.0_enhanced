@@ -93,7 +93,11 @@ def gdd_stage_thresholds(crop_id: str | None) -> list[dict]:
 
 
 def stage_from_gdd(crop_id: str | None, accumulated_gdd: float | None) -> dict | None:
-    """المرحلة الطوريّة الموافقة لدرجات نموّ متراكمة — أو None إن تعذّر/تجاوز النضج."""
+    """المرحلة الطوريّة الموافقة لدرجات نموّ متراكمة داخل نطاقات العتبات — أو None إن تعذّر/تجاوز النضج.
+
+    لا تحسم ما بعد النضج: ذلك قرار المحلِّل الواحد ``phenology_progress`` الذي يُبقي المرحلة
+    الأخيرة حراريّةً (``stage_past_maturity``) ولا يهبط إلى التقويم.
+    """
     if accumulated_gdd is None:
         return None
     thresholds = gdd_stage_thresholds(crop_id)
@@ -116,7 +120,7 @@ def phenology_progress(
     التقديران. صدق: المُعمِّرات/الناقص ⇒ gdd_applicable=False دون رقم مُلفَّق.
 
     وهو **محلِّل المرحلة الواحد** للمنصّة: ``stage``/``stage_ar`` المرحلة الفعّالة،
-    ``stage_source`` = ``gdd`` | ``days`` | None، و``stage_fallback`` = ``calendar_days`` حين
+    ``stage_source`` = ``gdd`` | ``days`` | None (بعد النضج الحراريّ ``gdd`` بآخر مرحلة و``stage_past_maturity``)، و``stage_fallback`` = ``calendar_days`` حين
     تُستعمَل الأيّام احتياطاً مُعلَناً مع ``stage_fallback_reason`` (لماذا لم تنطبق الحرارة).
     """
     from core.season_phenology import current_stage  # تفادي دور الاستيراد
@@ -127,6 +131,13 @@ def phenology_progress(
 
     days_st = current_stage(crop_id, days_since_sowing)
     gdd_st = stage_from_gdd(crop_id, accumulated_gdd) if gdd_applicable else None
+    # بعد النضج الحراريّ تبقى المرحلة حراريّة: آخر مرحلة في البطاقة (النضج) لا مرحلة التقويم.
+    # الهبوط إلى الأيّام هنا كان يُرجِع حقلاً ناضجاً حراريّاً إلى «mid» تقويميّاً في موسم حارّ.
+    past_maturity = bool(
+        gdd_applicable and accumulated_gdd is not None and accumulated_gdd >= total_gdd
+    )
+    if gdd_st is None and past_maturity:
+        gdd_st = gdd_stage_thresholds(crop_id)[-1]
 
     result: dict = {
         "gdd_applicable": gdd_applicable,
@@ -158,8 +169,6 @@ def phenology_progress(
             fallback_reason = "gdd_not_applicable"
         elif accumulated_gdd is None:
             fallback_reason = "accumulated_gdd_missing"
-        elif accumulated_gdd >= total_gdd:
-            fallback_reason = "gdd_past_maturity"
         else:
             fallback_reason = "gdd_out_of_range"
         stage_source = "days" if days_st else None
@@ -168,6 +177,7 @@ def phenology_progress(
     result["stage_source"] = stage_source
     result["stage_fallback"] = "calendar_days" if stage_source == "days" else None
     result["stage_fallback_reason"] = fallback_reason
+    result["stage_past_maturity"] = past_maturity
 
     # كشف التباعد: يتطلّب توفّر التقديرين معاً.
     if days_st and gdd_st:

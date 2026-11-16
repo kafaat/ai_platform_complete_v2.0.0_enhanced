@@ -23,7 +23,12 @@ from api.field_season_projection import (
     forecast_stage_signals,
     gather_season_weather_inputs,
 )
-from core.gdd_phenology import gdd_base_c, phenology_progress
+from core.gdd_phenology import (
+    gdd_base_c,
+    gdd_stage_thresholds,
+    gdd_to_maturity,
+    phenology_progress,
+)
 from fastapi import HTTPException
 
 pytestmark = pytest.mark.unit
@@ -259,8 +264,30 @@ def test_resolver_prefers_gdd_and_declares_calendar_fallback():
     )
     assert calendar["stage_fallback"] == "calendar_days", "the fallback is declared"
     assert calendar["stage_fallback_reason"] == "accumulated_gdd_missing", "with its reason"
-    past = phenology_progress("wheat", 100, 5000.0)
-    assert past["stage_fallback_reason"] == "gdd_past_maturity", "past maturity is named"
+
+
+def test_past_thermal_maturity_resolves_to_the_final_stage_not_the_calendar():
+    """W1-10 review: a sum at or past maturity stays thermal; it never drops to the calendar."""
+    last = gdd_stage_thresholds("wheat")[-1]["stage"]
+    for gdd in (gdd_to_maturity("wheat"), 5000.0):
+        past = phenology_progress("wheat", 60, gdd)
+        assert past["days_stage"] != last, "day 60 is not the final stage on the calendar"
+        assert (past["stage"], past["stage_source"]) == (last, "gdd"), (
+            f"GDD {gdd} at/after maturity must resolve to the final stage from GDD, got {past}"
+        )
+        assert past["stage_fallback"] is None, "past maturity is not a calendar fallback"
+        assert past["stage_fallback_reason"] is None, "and carries no fallback reason"
+        assert past["stage_past_maturity"] is True, "the state says the sum is past maturity"
+        assert past["maturity_reached_gdd"] is True, "maturity is reached by GDD"
+    inside = phenology_progress("wheat", 60, 1600.0)
+    assert inside["stage_past_maturity"] is False, "a sum inside the bands is not past maturity"
+    state = assemble_field_season_state(
+        crop="wheat", sowing_date=SOWING, today=SOWING + timedelta(days=60), accumulated_gdd=5000.0
+    )
+    assert (state["current_stage"], state["stage_source"]) == (last, "gdd"), (
+        "the season state follows the resolver past maturity"
+    )
+    assert state["stage_fallback"] is None, "the season state declares no calendar fallback"
 
 
 def test_field_context_season_stage_uses_the_resolver():
@@ -393,6 +420,37 @@ async def test_stalled_archive_is_bounded_and_the_forecast_still_arrives(monkeyp
     assert "weather_historical_unavailable" in weather["unavailable"], "the timeout is named"
     assert weather["accumulated_gdd"] is None, "no sum from a stalled archive"
     assert weather["forecast_daily"] is not None, "the forecast chain does not wait for it"
+
+
+async def test_weather_budget_is_one_deadline_not_one_per_call(monkeypatch):
+    """W1-09 review: a slow archive followed by a stalled GDD call costs one budget, not two."""
+    import asyncio
+    import time
+
+    import api.field_season_projection as fsp
+
+    budget = 0.6
+    monkeypatch.setattr(fsp, "SEASON_WEATHER_TIMEOUT_S", budget)
+    rec = Recorder()
+
+    async def slow_archive(*a, **kw):
+        await asyncio.sleep(budget * 0.8)
+        return await rec.get_historical(*a, **kw)
+
+    async def stalled_gdd(*_a, **_kw):
+        await asyncio.sleep(30)
+
+    started = time.monotonic()
+    weather = await _gather(
+        rec, get_historical=slow_archive, get_gdd=stalled_gdd, get_forecast=None
+    )
+    elapsed = time.monotonic() - started
+    assert elapsed < budget * 1.4, (
+        f"archive then GDD must share one {budget}s deadline, took {elapsed:.2f}s "
+        f"(two sequential budgets would be ~{budget * 1.8:.2f}s)"
+    )
+    assert "weather_gdd_unavailable" in weather["unavailable"], "the GDD timeout is named"
+    assert weather["accumulated_gdd"] is None, "no sum when the GDD call ran out of budget"
 
 
 # ── W1-10 review: /phenology is one stage, its timeline and Kc follow it ──

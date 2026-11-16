@@ -165,6 +165,10 @@ async def _field_season_context(conn, field_id: str):
             crop = str(crops[0])
         sowing_date = season["sowing_date"]
         if sowing_date is not None:
+            # No GDD here (declared, W1-10 review): this runs inside the tenant connection, and
+            # the thermal sum is a weather-service read that the season-state route makes only
+            # after releasing its connection. The stage is therefore the resolver's calendar
+            # fallback; the season state (/seasons/{sid}/state) carries the thermal stage.
             stage = _season_stage(crop, (date.today() - sowing_date).days)
     lat = float(row["lat"]) if row["lat"] is not None else None
     lon = float(row["lon"]) if row["lon"] is not None else None
