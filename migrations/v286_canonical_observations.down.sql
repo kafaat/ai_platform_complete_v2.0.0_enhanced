@@ -1,4 +1,4 @@
--- SAHOOL v286 down — removes the canonical observations store and the raster push outbox.
+-- SAHOOL v286 down — removes the canonical observations store and the raster delivery outbox.
 -- Destroys the stored observations: canonical_observations is append-only by design, so this is
 -- the only way rows leave it. indicators-service falls back to its declared computed path.
 BEGIN;

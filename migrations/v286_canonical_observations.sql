@@ -2,8 +2,11 @@
 -- Canonical satellite-indicator observations as stored facts (plan item W1-11, finding remote-1).
 --
 -- Owner decision of 2026-11-16: indicators-service owns an append-only canonical observations
--- table; raster-service pushes each published asset to it over HTTP (not NATS), idempotent on the
--- existing stable id (services/indicators-service/observation_runtime.py ``_stable_id``).
+-- table, idempotent on the existing stable id (services/indicators-service/observation_runtime.py
+-- ``_stable_id``). Owner decision of 2026-11-16 (later the same day): the delivery is a PULL over
+-- HTTP (not NATS) — indicators-service drains raster-service's outbox through raster's internal
+-- feed (GET /internal/v1/observation-outbox, POST …/acknowledgements); raster-service never calls
+-- indicators-service (a push closed a cycle in the architecture graph, architecture:no_cycles).
 --
 -- What was wrong: an observation existed only while raster-service answered. indicators-service
 -- recomputed it from the latest COG on every read (``/observations``, ``/observation-timeline``),
@@ -21,10 +24,12 @@
 --   (replay); same id, same revision and other content ⇒ the service answers 409 and stores
 --   nothing. Append-only: BEFORE UPDATE OR DELETE (row) and BEFORE TRUNCATE (statement) triggers
 --   raise 55000. RLS ENABLE + FORCE by app.current_tenant with WITH CHECK.
--- ② raster_observation_outbox (owner raster-service). The durable retry marker of the push: the
---   publish path writes the payload here before it calls indicators-service, and the cache
---   invalidation worker re-sends every row still pending. A failed push is retried, never lost.
---   RLS ENABLE + FORCE by app.current_tenant; the worker reads it as sahool_jobs (BYPASSRLS).
+-- ② raster_observation_outbox (owner raster-service). The durable delivery marker: the publish
+--   path writes each published asset's payload here; indicators-service reads the tenant's
+--   pending rows over raster's feed and acknowledges each one it settled (delivered, conflict,
+--   rejected), from pending only, at the payload_sha256 it names. A row nobody acknowledged stays
+--   pending and is read again next cycle; nothing deletes a row. Only raster-service touches the
+--   table, on its restricted runtime role under app.current_tenant (RLS ENABLE + FORCE).
 --
 -- Numbers are NUMERIC columns and JSON numbers in the payload, never decimal text
 -- (gap CANONICAL-DECIMAL-ARRIVES-AS-TEXT-AND-DROPS-NDVI-01 stays closed on this path).
@@ -96,7 +101,7 @@ BEGIN
     END LOOP;
 END $$;
 
--- ② the push outbox (raster-service).
+-- ② the delivery outbox (raster-service).
 CREATE TABLE IF NOT EXISTS raster_observation_outbox (
     id BIGSERIAL PRIMARY KEY,
     tenant_id UUID NOT NULL,
@@ -124,15 +129,9 @@ DROP POLICY IF EXISTS raster_observation_outbox_tenant ON raster_observation_out
 CREATE POLICY raster_observation_outbox_tenant ON raster_observation_outbox
     USING (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''))
     WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''));
-DO $$
-BEGIN
-    IF to_regrole('sahool_jobs') IS NOT NULL THEN
-        GRANT SELECT, UPDATE ON raster_observation_outbox TO sahool_jobs;
-    END IF;
-END $$;
 
 COMMENT ON TABLE canonical_observations IS
     'Append-only canonical satellite-indicator observations, one per published raster asset (v286, owner indicators-service).';
 COMMENT ON TABLE raster_observation_outbox IS
-    'Durable retry marker of the raster to indicators-service observation push (v286, owner raster-service).';
+    'Durable delivery marker of published raster observations, drained by indicators-service over raster-service HTTP (v286, owner raster-service).';
 COMMIT;

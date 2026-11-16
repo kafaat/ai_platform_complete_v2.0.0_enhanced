@@ -873,8 +873,9 @@ v283_ndvi_timeseries_seed_purge.sql
 v284_water_ledger_irrigation_source.sql
 # v286 (plan item W1-11, finding remote-1, owner decision 2026-11-16): canonical_observations,
 #   append-only (triggers refuse UPDATE/DELETE/TRUNCATE), RLS FORCE by tenant, owner
-#   indicators-service; raster_observation_outbox, the durable retry marker of raster-service's
-#   push, owner raster-service. v285 is taken by a parallel group. Before v240.
+#   indicators-service; raster_observation_outbox, the durable delivery marker that
+#   indicators-service drains over raster-service HTTP (pull, owner decision 2026-11-16), owner
+#   raster-service. v285 is taken by a parallel group. Before v240.
 v286_canonical_observations.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).

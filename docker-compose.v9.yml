@@ -1605,8 +1605,6 @@ services:
       # عند التفعيل يستشير raster-service قرار decision-service (/v1/activation/satellite_cdse/source)
       # قبل اختيار CDSE، ويسقط مُغلَقاً إلى element84 عند أيّ تعذُّر. environment_id يطابق جانب البوّابة.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
-      # W1-11: each published asset is pushed to the canonical observation store.
-      INDICATORS_SERVICE_URL: ${INDICATORS_SERVICE_URL:-http://sahool-indicators-service:8000}
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       # Follow-up receipt reads use the canonical token; activation retains its alias.
       DECISION_SERVICE_AUTH_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
@@ -1722,10 +1720,6 @@ services:
         required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       RASTER_CACHE_INVALIDATION_ENABLED: ${RASTER_CACHE_INVALIDATION_ENABLED:-true}
-      # W1-11: re-sends pending canonical observation pushes (raster_observation_outbox) to
-      # indicators-service POST /internal/v1/observations.
-      INDICATORS_SERVICE_URL: ${INDICATORS_SERVICE_URL:-http://sahool-indicators-service:8000}
-      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       TILE_CACHE_TTL_SECONDS: ${TILE_CACHE_TTL_SECONDS:-2592000}
       TILE_CACHE_MAX_BYTES: ${TILE_CACHE_MAX_BYTES:-0}
     command:
@@ -1892,7 +1886,14 @@ services:
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       RS_OBSERVATION_POLICY_ID: ${RS_OBSERVATION_POLICY_ID:-NDVI_CURRENT_REAL_ONLY_V1}
       # W1-11 (owner decision 2026-11-16): owner of canonical_observations (v286), written only
-      # by POST /internal/v1/observations under app.current_tenant (RLS FORCE, NOBYPASSRLS role).
+      # by its drain worker under app.current_tenant (RLS FORCE, NOBYPASSRLS role). The worker
+      # PULLS each tenant's pending published observations from raster-service
+      # (GET /internal/v1/observation-outbox), stores them idempotently, then acknowledges them;
+      # raster-service never calls this service. Tenants are an explicit partition (UUID CSV,
+      # empty = the drain idles and /readyz says so), as RASTER_FOLLOWUP_TENANTS.
+      INDICATORS_OBSERVATION_DRAIN_ENABLED: ${INDICATORS_OBSERVATION_DRAIN_ENABLED:-true}
+      INDICATORS_OBSERVATION_DRAIN_TENANTS: ${INDICATORS_OBSERVATION_DRAIN_TENANTS:-}
+      INDICATORS_OBSERVATION_DRAIN_INTERVAL_SECONDS: ${INDICATORS_OBSERVATION_DRAIN_INTERVAL_SECONDS:-30}
       PGSSLMODE: verify-full
       PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD

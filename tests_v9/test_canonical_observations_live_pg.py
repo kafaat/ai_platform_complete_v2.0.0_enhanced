@@ -3,23 +3,34 @@
 An NDVI observation existed only while raster-service answered: indicators-service recomputed it
 from the latest COG on every read, so nothing could replay what a decision had seen. v286 adds
 ``canonical_observations`` (owner indicators-service, append-only, RLS FORCE) and
-``raster_observation_outbox`` (owner raster-service, the push's durable retry marker). Measured on
-the migrated schema, with the real indicators-service route and store under the NOSUPERUSER /
-NOBYPASSRLS role and the real raster outbox drained on the owner connection:
+``raster_observation_outbox`` (owner raster-service, the durable delivery marker). Owner decision
+of 2026-11-16 (pull form): indicators-service PULLS from raster's outbox over raster's internal
+feed; raster-service never calls indicators-service (a push closed an architecture-graph cycle).
+Measured on the migrated schema, with the real indicators-service drain and store, and the real
+raster outbox and feed routes, all under the NOSUPERUSER / NOBYPASSRLS role:
 
-1. a published observation is stored once: 201, then the same content is a 200 replay, and a
+1. a published observation is stored once: created, then the same content is a replay, and a
    re-written COG (delivery metadata only) is a replay that keeps the first delivery;
-2. other content under the same stable id and product revision is 409 and the row does not move;
+2. other content under the same stable id and product revision is a conflict and the row does
+   not move;
 3. a boundary edit (new geometry revision) or a reprocess (new algorithm version) of the same
-   scene is a new revision: 201, a second row, never a 409 (W1-11 review, HIGH);
+   scene is a new revision: created, a second row, never a conflict (W1-11 review, HIGH);
 4. the table refuses UPDATE, DELETE and TRUNCATE, for the restricted role and for the owner;
 5. another tenant sees none of it, cannot insert under the first tenant, and its read is empty;
 6. ``/observations`` serves the stored fact of the product raster-service serves now, twice
    identically, and after a boundary edit serves raster's current value, never the old polygon's;
    the season timeline serves a stored point only at raster's product revision, so a reprocess
-   whose push is not stored keeps raster's value;
-7. a push that failed stays pending in the outbox and the worker's drain delivers it later;
-8. v286 re-applies cleanly, and its down removes both tables (then it is applied again).
+   that is not stored yet keeps raster's value;
+7. the pull end to end: raster's publish queues the entry; with the drain disabled nothing is
+   stored and the entry stays pending (negative control); enabled, the drain reads the tenant's
+   pending entries through raster's feed route, stores them, and acknowledges them delivered;
+   other content is acknowledged as a conflict (terminal, never a success), an invalid payload as
+   rejected, another tenant's entry is neither read nor settled, and an unavailable store leaves
+   the entry pending for the next cycle;
+8. raster's feed is tenant-bound and its acknowledgement idempotent: another tenant neither sees
+   nor settles an entry, a repeated acknowledgement changes nothing, a wrong digest or another
+   outcome is refused, and no entry is ever deleted;
+9. v286 re-applies cleanly, and its down removes both tables (then it is applied again).
 
 Run: ``TEST_DATABASE_ADMIN_URL=… TEST_DATABASE_URL=… pytest -m integration <this file>``.
 """
@@ -81,13 +92,21 @@ def _load_indicators():
     return module
 
 
-def _load_outbox():
-    if str(_RASTER) not in sys.path:
-        sys.path.append(str(_RASTER))
+def _load_raster(monkeypatch):
+    """raster-service's real outbox module and its real app (tenant middleware, auto-registered
+    routers, including ``routers/observation_feed.py``) on the restricted role."""
+    for path in (str(_ROOT), str(_RASTER)):
+        if path not in sys.path:
+            sys.path.append(path)
     import db_persist
     import observation_outbox
+    import raster_settings
+    from raster_app_factory import create_raster_app
 
-    return observation_outbox, db_persist
+    monkeypatch.setattr(db_persist, "DATABASE_URL", _APP_DSN)
+    monkeypatch.setattr(raster_settings, "AGENT_TOKEN", _TOKEN)
+    app = create_raster_app(title="raster-live", version="live", lifespan=None, cors_origins=[])
+    return observation_outbox, app
 
 
 @pytest.fixture
@@ -131,12 +150,11 @@ def _payload(tenant: str, field: str, **overrides):
     return body
 
 
-def _post(client, body, tenant=None):
-    return client.post(
-        "/internal/v1/observations",
-        json=body,
-        headers={"X-Agent-Token": _TOKEN, "X-Tenant-Id": tenant or body["tenant_id"]},
-    )
+def _store(main, body):
+    """One observation through the store path the drain uses (``insert_observation``)."""
+    store = main.observation_store
+    record = store.PublishedObservationV1.model_validate(body)
+    return asyncio.run(store.insert_observation(record))
 
 
 async def _admin_fetch(sql: str, *args):
@@ -185,14 +203,14 @@ def test_the_role_is_restricted():
 
 
 def test_store_once_replay_and_keep_the_first_delivery(svc):
-    _main, client = svc
+    main, _client = svc
     tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
-    first = _post(client, _payload(tenant, field))
-    assert first.status_code == 201, first.text
-    again = _post(client, _payload(tenant, field))
-    assert again.status_code == 200 and again.json()["status"] == "replayed", again.text
-    rerun = _post(
-        client,
+    first = _store(main, _payload(tenant, field))
+    assert first["status"] == "created", first
+    again = _store(main, _payload(tenant, field))
+    assert again["status"] == "replayed", again
+    rerun = _store(
+        main,
         _payload(
             tenant,
             field,
@@ -201,33 +219,33 @@ def test_store_once_replay_and_keep_the_first_delivery(svc):
             cog_uri="s3://bucket/x/ndvi_2.tif",
         ),
     )
-    assert rerun.status_code == 200, f"a re-written COG is a replay: {rerun.text}"
+    assert rerun["status"] == "replayed", f"a re-written COG is a replay: {rerun}"
     rows = _rows(tenant, field)
     assert len(rows) == 1, f"exactly one stored observation, got {len(rows)}"
-    assert rows[0]["observation_id"] == first.json()["observation_id"], rows[0]
+    assert rows[0]["observation_id"] == first["observation_id"], rows[0]
     assert '"job_1"' in rows[0]["payload"], "append-only: the first delivery is what is kept"
     assert str(rows[0]["mean"]) == "0.61", f"NUMERIC, never text-parsed: {rows[0]['mean']!r}"
 
 
-def test_other_content_under_the_same_id_is_409_and_nothing_moves(svc):
-    _main, client = svc
+def test_other_content_under_the_same_id_is_a_conflict_and_nothing_moves(svc):
+    main, _client = svc
     tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
-    assert _post(client, _payload(tenant, field)).status_code == 201, "seed"
+    assert _store(main, _payload(tenant, field))["status"] == "created", "seed"
     before = _rows(tenant, field)
-    conflict = _post(client, _payload(tenant, field, stats={"mean": 0.7}))
-    assert conflict.status_code == 409, conflict.text
-    assert conflict.json()["detail"]["code"] == "observation_conflict", conflict.json()
+    conflict = _store(main, _payload(tenant, field, stats={"mean": 0.7}))
+    assert conflict["status"] == "conflict", conflict
+    assert conflict["stored_payload_sha256"] != conflict["payload_sha256"], conflict
     after = _rows(tenant, field)
     assert [dict(r) for r in after] == [dict(r) for r in before], "the stored row is untouched"
 
 
 def test_a_new_geometry_or_algorithm_is_a_new_revision_not_a_conflict(svc):
-    _main, client = svc
+    main, _client = svc
     tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
-    first = _post(client, _payload(tenant, field))
-    assert first.status_code == 201, first.text
-    moved = _post(
-        client,
+    first = _store(main, _payload(tenant, field))
+    assert first["status"] == "created", first
+    moved = _store(
+        main,
         _payload(
             tenant,
             field,
@@ -236,9 +254,9 @@ def test_a_new_geometry_or_algorithm_is_a_new_revision_not_a_conflict(svc):
             stats={"mean": 0.42},
         ),
     )
-    assert moved.status_code == 201, f"a boundary edit is a new revision: {moved.text}"
-    reprocessed = _post(
-        client,
+    assert moved["status"] == "created", f"a boundary edit is a new revision: {moved}"
+    reprocessed = _store(
+        main,
         _payload(
             tenant,
             field,
@@ -247,16 +265,16 @@ def test_a_new_geometry_or_algorithm_is_a_new_revision_not_a_conflict(svc):
             stats={"mean": 0.6},
         ),
     )
-    assert reprocessed.status_code == 201, f"a reprocess is a new revision: {reprocessed.text}"
-    ids = {r.json()["observation_id"] for r in (first, moved, reprocessed)}
+    assert reprocessed["status"] == "created", f"a reprocess is a new revision: {reprocessed}"
+    ids = {r["observation_id"] for r in (first, moved, reprocessed)}
     assert len(ids) == 1, f"one observation (the scene's asset), three revisions: {ids}"
     assert len(_rows(tenant, field)) == 3, "every revision is kept, append-only"
 
 
 def test_the_table_is_append_only_for_everyone(svc):
-    _main, client = svc
+    main, _client = svc
     tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
-    assert _post(client, _payload(tenant, field)).status_code == 201, "seed"
+    assert _store(main, _payload(tenant, field))["status"] == "created", "seed"
     for sql in (
         "UPDATE canonical_observations SET mean = 0 WHERE field_id = $1",
         "DELETE FROM canonical_observations WHERE field_id = $1",
@@ -274,9 +292,10 @@ def test_the_table_is_append_only_for_everyone(svc):
 
 
 def test_another_tenant_sees_nothing_and_cannot_write_for_the_first(svc):
-    main, client = svc
+    main, _client = svc
     tenant, other, field = _tenant(), _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
-    assert _post(client, _payload(tenant, field)).status_code == 201, "seed"
+    created = _store(main, _payload(tenant, field))
+    assert created["status"] == "created", "seed"
     seen = asyncio.run(
         _as_app(other, "SELECT 1 FROM canonical_observations WHERE field_id = $1", field)
     )
@@ -294,10 +313,7 @@ def test_another_tenant_sees_nothing_and_cannot_write_for_the_first(svc):
             )
         )
     assert err.value.sqlstate == "42501", f"WITH CHECK must refuse: {err.value}"
-    assert _post(client, _payload(tenant, field), tenant=other).status_code == 403, (
-        "the route refuses a body for another tenant"
-    )
-    asset = _post(client, _payload(tenant, field)).json()["observation_id"]
+    asset = created["observation_id"]
     mine = asyncio.run(
         main.observation_store.observations_for_assets(
             tenant_id=uuid.UUID(tenant), field_id=field, observation_ids=[asset]
@@ -351,8 +367,8 @@ def _raster_bundle(field: str, *, mean: float, revision: int, acquisition: str):
 def test_observations_serve_the_stored_fact_of_raster_s_current_product(svc, monkeypatch):
     main, client = svc
     tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
-    created = _post(client, _payload(tenant, field))
-    assert created.status_code == 201, created.text
+    created = _store(main, _payload(tenant, field))
+    assert created["status"] == "created", created
     current = {"bundle": _raster_bundle(field, mean=0.6, revision=1, acquisition="2026-10-15")}
 
     async def _raster(*, field_id, tenant_id, season_id, indicators):
@@ -378,7 +394,7 @@ def test_observations_serve_the_stored_fact_of_raster_s_current_product(svc, mon
         first
     )
     [obs] = first["observations"]
-    assert obs["asset_ref"] == created.json()["asset_ref"], obs
+    assert obs["asset_ref"] == f"urn:sahool:raster-asset:{created['observation_id']}", obs
     assert float(obs["summary"]["mean"]) == pytest.approx(0.61), "the stored published mean"
     assert first["observations"] == second["observations"], "a stored fact replays exactly"
 
@@ -391,13 +407,13 @@ def test_observations_serve_the_stored_fact_of_raster_s_current_product(svc, mon
     assert float(moved["observations"][0]["summary"]["mean"]) == pytest.approx(0.42), (
         "never the old polygon's stored 0.61"
     )
-    pushed = _post(
-        client,
+    stored = _store(
+        main,
         _payload(
             tenant, field, geometry_revision=2, product_identity_key="pik_r2", stats={"mean": 0.43}
         ),
     )
-    assert pushed.status_code == 201, pushed.text
+    assert stored["status"] == "created", stored
     bound = _read()
     assert bound["observation_source"] == "canonical_store", bound
     assert float(bound["observations"][0]["summary"]["mean"]) == pytest.approx(0.43), bound
@@ -406,11 +422,11 @@ def test_observations_serve_the_stored_fact_of_raster_s_current_product(svc, mon
 def test_the_timeline_serves_a_stored_point_only_at_raster_s_product_revision(svc):
     """W1-11 review (MEDIUM): the season timeline binds a raster point to the stored row the
     store's read returns for that day, at the same product revision (``match_bundle_item``).
-    After a reprocess under a new algorithm whose push is not stored, raster's value is served."""
-    main, client = svc
+    After a reprocess under a new algorithm that is not stored yet, raster's value is served."""
+    main, _client = svc
     store = main.observation_store
     tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
-    assert _post(client, _payload(tenant, field)).status_code == 201, "seed: algorithm 2.1.0"
+    assert _store(main, _payload(tenant, field))["status"] == "created", "seed: algorithm 2.1.0"
     rows = asyncio.run(
         store.observations_between(
             tenant_id=uuid.UUID(tenant),
@@ -443,67 +459,172 @@ def test_the_timeline_serves_a_stored_point_only_at_raster_s_product_revision(sv
     assert _merge(reprocessed) == ([reprocessed], 0), "never the old algorithm's stored 0.61"
 
 
-def test_a_failed_push_stays_pending_and_the_drain_delivers_it(svc, monkeypatch):
-    main, _client = svc
-    outbox, db_persist = _load_outbox()
-    monkeypatch.setattr(db_persist, "DATABASE_URL", _APP_DSN)
-    tenant, other, field = _tenant(), _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
-    payload = _payload(tenant, field)
+_RASTER_URL = "http://raster.test"
 
-    def _down(request):
-        return httpx.Response(503, json={"detail": "store unavailable"})
 
-    status = asyncio.run(outbox.publish(payload, transport=httpx.MockTransport(_down)))
-    assert status == "pending", status
-    [row] = asyncio.run(
+def _outbox(tenant: str):
+    return asyncio.run(
         _admin_fetch(
-            "SELECT id, status, attempts, next_attempt_at > now() AS later "
-            "FROM raster_observation_outbox WHERE tenant_id = $1::uuid",
+            "SELECT id, status, attempts, last_error, delivered_at IS NOT NULL AS done, "
+            "payload_sha256 FROM raster_observation_outbox WHERE tenant_id = $1::uuid ORDER BY id",
             tenant,
         )
     )
-    assert (row["status"], row["attempts"], row["later"]) == ("pending", 1, True), dict(row)
+
+
+def _drain_env(monkeypatch, *tenants: str, enabled: bool = True) -> None:
+    monkeypatch.setenv("INDICATORS_OBSERVATION_DRAIN_ENABLED", "true" if enabled else "false")
+    monkeypatch.setenv("INDICATORS_OBSERVATION_DRAIN_TENANTS", ",".join(tenants))
+    monkeypatch.setenv("RASTER_SERVICE_URL", _RASTER_URL)
+
+
+def _cycle(main, raster_app):
+    drain = main.observation_drain
+    return asyncio.run(drain.run_cycle(transport=httpx.ASGITransport(app=raster_app)))
+
+
+def test_the_pull_stores_what_raster_published_and_nothing_while_the_drain_is_off(svc, monkeypatch):
+    """The owner's pull, end to end on the restricted role: raster's publish queues the entry,
+    the drain reads it over raster's feed route, stores it and acknowledges it delivered."""
+    main, _client = svc
+    outbox, raster_app = _load_raster(monkeypatch)
+    tenant, other, field = _tenant(), _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    payload = _payload(tenant, field)
+    assert asyncio.run(outbox.publish(payload)) == "pending", "raster queues, calls no one"
+    assert asyncio.run(outbox.publish(_payload(other, field))) == "pending"
     assert (
         asyncio.run(
-            _as_app(other, "SELECT 1 FROM raster_observation_outbox WHERE field_id = $1", field)
+            _as_app(
+                other, "SELECT 1 FROM raster_observation_outbox WHERE tenant_id = $1::uuid", tenant
+            )
         )
         == []
     ), "RLS: another tenant does not see the outbox row"
-    assert _rows(tenant, field) == [], "nothing was stored by the failed push"
 
-    asyncio.run(
-        _admin_fetch(
-            "UPDATE raster_observation_outbox SET next_attempt_at = now() WHERE id = $1",
-            row["id"],
+    # Negative control: the drain is off, so nothing is stored and the entry stays pending.
+    _drain_env(monkeypatch, tenant, enabled=False)
+    assert _cycle(main, raster_app) == {"skipped": "disabled"}
+    assert _rows(tenant, field) == [], "drain off: nothing stored"
+    assert [r["status"] for r in _outbox(tenant)] == ["pending"], "drain off: still pending"
+
+    _drain_env(monkeypatch, tenant)
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    rows = _rows(tenant, field)
+    assert len(rows) == 1, f"the pulled observation is stored once: {rows}"
+    [entry] = _outbox(tenant)
+    assert (entry["status"], entry["attempts"], entry["done"]) == ("delivered", 1, True), dict(
+        entry
+    )
+    assert [r["status"] for r in _outbox(other)] == ["pending"], (
+        "another tenant's entry is outside this partition: neither read nor settled"
+    )
+    assert _rows(other, field) == [], "and nothing of it was stored"
+
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}, "nothing pending: no-op"
+    assert len(_rows(tenant, field)) == 1 and _outbox(tenant)[0]["attempts"] == 1
+    assert asyncio.run(outbox.publish(payload)) == "delivered", (
+        "the same content is settled, not queued again"
+    )
+
+
+def test_a_conflict_or_an_invalid_payload_is_settled_terminal_never_as_success(svc, monkeypatch):
+    main, _client = svc
+    outbox, raster_app = _load_raster(monkeypatch)
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    assert asyncio.run(outbox.publish(_payload(tenant, field))) == "pending"
+    assert asyncio.run(outbox.publish(_payload(tenant, field, stats={"mean": 0.7}))) == "pending"
+    assert (
+        asyncio.run(outbox.publish(_payload(tenant, field, scene_id="S2B", stats={"mean": "x"})))
+        == "pending"
+    )
+    _drain_env(monkeypatch, tenant)
+    before = main.observation_drain.state()["counters"]["conflict"]
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    entries = _outbox(tenant)
+    assert [e["status"] for e in entries] == ["delivered", "conflict", "rejected"], [
+        dict(e) for e in entries
+    ]
+    assert "observation_conflict" in entries[1]["last_error"], entries[1]["last_error"]
+    assert not entries[1]["done"] and not entries[2]["done"], "neither counts as delivered"
+    assert entries[2]["last_error"].startswith("invalid payload"), entries[2]["last_error"]
+    rows = _rows(tenant, field)
+    assert len(rows) == 1 and str(rows[0]["mean"]) == "0.61", "the first content stays stored"
+    assert main.observation_drain.state()["counters"]["conflict"] == before + 1
+
+
+def test_an_unavailable_store_leaves_the_entry_pending_for_the_next_cycle(svc, monkeypatch):
+    main, _client = svc
+    outbox, raster_app = _load_raster(monkeypatch)
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    assert asyncio.run(outbox.publish(_payload(tenant, field))) == "pending"
+    _drain_env(monkeypatch, tenant)
+    # A real refused connection: nothing listens on port 1.
+    monkeypatch.setenv("DATABASE_URL", "postgresql://nobody@127.0.0.1:1/none")
+    before = main.observation_drain.state()["counters"]["store_unavailable"]
+    assert _cycle(main, raster_app) == {"tenants": {tenant: False}}
+    assert [e["status"] for e in _outbox(tenant)] == ["pending"], "not acknowledged"
+    assert main.observation_drain.state()["counters"]["store_unavailable"] == before + 1
+    assert main.observation_drain.state()["last_cycle_ok"] is False
+    monkeypatch.setenv("DATABASE_URL", _APP_DSN)
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    assert [e["status"] for e in _outbox(tenant)] == ["delivered"], "the next cycle delivers it"
+    assert len(_rows(tenant, field)) == 1
+
+
+def test_the_feed_is_tenant_bound_and_its_acknowledgement_idempotent(svc, monkeypatch):
+    """raster's feed routes on the real outbox: another tenant neither reads nor settles an
+    entry; a repeated acknowledgement changes nothing; a wrong digest or another outcome is
+    refused; nothing is deleted."""
+    _main, _client = svc
+    outbox, raster_app = _load_raster(monkeypatch)
+    from fastapi.testclient import TestClient
+
+    raster = TestClient(raster_app)
+    tenant, other, field = _tenant(), _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    assert asyncio.run(outbox.publish(_payload(tenant, field))) == "pending"
+    [entry] = _outbox(tenant)
+
+    def _headers(who):
+        return {"X-Agent-Token": _TOKEN, "X-Tenant-Id": who}
+
+    def _ack(who, **overrides):
+        body = {
+            "id": entry["id"],
+            "payload_sha256": entry["payload_sha256"],
+            "outcome": "delivered",
+        }
+        body.update(overrides)
+        response = raster.post(
+            "/internal/v1/observation-outbox/acknowledgements",
+            json={"entries": [body]},
+            headers=_headers(who),
         )
-    )
+        assert response.status_code == 200, response.text
+        [result] = response.json()["results"]
+        return result["result"]
 
-    async def _drain():
-        pool = await asyncpg.create_pool(_ADMIN_DSN, min_size=1, max_size=2)
-        try:
-            transport = httpx.ASGITransport(app=main.app)
-            delivered = await outbox.drain_once(pool, transport=transport)
-            again = await outbox.drain_once(pool, transport=transport)
-            return delivered, again
-        finally:
-            await pool.close()
+    mine = raster.get("/internal/v1/observation-outbox", headers=_headers(tenant))
+    assert mine.status_code == 200, mine.text
+    assert [e["id"] for e in mine.json()["entries"]] == [entry["id"]]
+    assert mine.json()["entries"][0]["payload"]["tenant_id"] == tenant
+    theirs = raster.get("/internal/v1/observation-outbox", headers=_headers(other))
+    assert theirs.status_code == 200 and theirs.json()["entries"] == [], "tenant-bound read"
+    assert (
+        raster.get("/internal/v1/observation-outbox", headers={"X-Tenant-Id": tenant}).status_code
+        == 401
+    ), "no service token, no feed"
 
-    monkeypatch.setenv("INDICATORS_SERVICE_URL", "http://indicators.test")
-    delivered, again = asyncio.run(_drain())
-    assert (delivered, again) == (1, 0), f"one delivery, then nothing pending: {delivered, again}"
-    [after] = asyncio.run(
-        _admin_fetch(
-            "SELECT status, attempts, delivered_at IS NOT NULL AS done "
-            "FROM raster_observation_outbox WHERE id = $1",
-            row["id"],
-        )
-    )
-    assert (after["status"], after["attempts"], after["done"]) == ("delivered", 2, True), dict(
-        after
-    )
-    assert len(_rows(tenant, field)) == 1, "the drained push stored the observation"
-    replay = asyncio.run(outbox.publish(payload))
-    assert replay == "delivered", "the same content is settled, not re-queued"
+    assert _ack(other) == "not_found", "another tenant cannot settle the entry"
+    assert _ack(tenant, payload_sha256="0" * 64) == "payload_mismatch"
+    assert [e["status"] for e in _outbox(tenant)] == ["pending"], "neither changed it"
+    assert _ack(tenant) == "acknowledged"
+    assert _ack(tenant) == "already_acknowledged", "idempotent"
+    assert _ack(tenant, outcome="conflict") == "status_mismatch", "a settled entry stays settled"
+    [after] = _outbox(tenant)
+    assert (after["status"], after["attempts"]) == ("delivered", 1), dict(after)
+    pending = raster.get("/internal/v1/observation-outbox", headers=_headers(tenant))
+    assert pending.json()["entries"] == [], "settled entries leave the pending feed"
+    assert len(_outbox(tenant)) == 1, "and are never deleted"
 
 
 def test_v286_reapplies_and_its_down_removes_both_tables():

@@ -224,7 +224,7 @@ def persist_raster_asset(
                 return False
             if not (ok and _catalogued):
                 if ok:
-                    await _push_observation()
+                    await _queue_observation()
                 return ok
             try:
                 registered = await db_persist.insert_raster_registry_entry(
@@ -273,14 +273,14 @@ def persist_raster_asset(
                 status="ready",
             )
             if published:
-                await _push_observation()
+                await _queue_observation()
             return published
 
-        async def _push_observation() -> None:
-            # W1-11 (owner decision 2026-11-16): every published asset goes to the canonical
-            # observation store in indicators-service over HTTP. Outbox first, then one push;
-            # a failed push stays pending and the cache invalidation worker re-sends it. Runs
-            # after publication and never changes its result.
+        async def _queue_observation() -> None:
+            # W1-11 (owner decision 2026-11-16, pull form): every published asset is written to
+            # raster_observation_outbox; indicators-service drains it over this service's
+            # internal feed (routers/observation_feed.py). raster-service calls no other
+            # service here. Runs after publication and never changes its result.
             try:
                 import observation_outbox
 
@@ -303,15 +303,15 @@ def persist_raster_asset(
                 )
                 if payload is None:
                     logger.warning(
-                        "canonical observation not pushed field_id=%s index=%s: no tenant, scene, "
+                        "canonical observation not queued field_id=%s index=%s: no tenant, scene, "
                         "acquisition time or finite mean",
                         req.field_id,
                         req.indicator.value,
                     )
                     return
                 await observation_outbox.publish(payload)
-            except Exception as _obe:  # noqa: BLE001 — the push never fails the publication
-                logger.warning("canonical observation push skipped: %s", _obe)
+            except Exception as _obe:  # noqa: BLE001 — queueing never fails the publication
+                logger.warning("canonical observation not queued: %s", _obe)
 
         # v5-audit F1: نلتقط نتيجة الحفظ ونُصدِر سطراً منظَّماً — «job completed» وحده
         # كان لا يُميّز «حُفِظ في DB» عن «في الذاكرة فقط والإدراج عاد False بصمت»، فبعد

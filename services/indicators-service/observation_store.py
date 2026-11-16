@@ -1,8 +1,9 @@
 """Canonical observation store (W1-11, owner decision 2026-11-16).
 
 indicators-service owns ``canonical_observations`` (migrations/v286): one append-only row per
-raster product that raster-service published. raster-service pushes it over HTTP
-(``POST /internal/v1/observations``) and never writes the table itself.
+raster product that raster-service published. The drain worker (``observation_drain``) pulls each
+one from raster-service's outbox over HTTP (owner decision 2026-11-16, pull form) and stores it
+here; raster-service never calls this service and never writes the table.
 
 Identity: ``observation_id`` is the asset stable id the canonical contract already uses
 (``observation_runtime.asset_stable_id``: tenant, field, scene, indicator, acquisition instant).
@@ -26,7 +27,8 @@ Numbers stay numbers: the payload is validated with strict, finite floats (decim
 CANONICAL-DECIMAL-ARRIVES-AS-TEXT-AND-DROPS-NDVI-01 closed on this path.
 
 Reads return ``None`` when the store is not configured or not reachable, so the routes keep their
-computed path; writes fail closed (the route answers 503 and the raster outbox retries).
+computed path; writes fail closed (the drain leaves the raster outbox entry pending and reads it
+again next cycle).
 """
 
 from __future__ import annotations
@@ -66,7 +68,7 @@ class ObservationStatsV1(BaseModel):
 
 
 class PublishedObservationV1(BaseModel):
-    """What raster-service sends for one published asset (``raster_observation_outbox.payload``)."""
+    """One published asset as raster-service queues it (``raster_observation_outbox.payload``)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -481,7 +483,7 @@ def merge_timeline_points(
     replaced only by the stored row ``match_bundle_item`` selects for it, the rule the
     ``/observations`` route uses: the same asset (by the id raster's series gives a scene's UTC
     day) and the same product revision (geometry revision, algorithm version, QA mask version).
-    A reprocess under a new algorithm whose push has not been stored, or was refused, therefore
+    A reprocess under a new algorithm whose observation has not been stored, or was refused, therefore
     keeps raster's current value instead of the stored fact of the older revision. A point that
     names no scene is left as raster computed it. A stored row with no current raster point is
     not served: it belongs to a product raster-service no longer publishes. Returns the merged

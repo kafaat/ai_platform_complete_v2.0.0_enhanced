@@ -145,8 +145,9 @@ tables:
     readers: []
     source: "migrations/v80_calibration_override.sql"
   canonical_observations:
-    # W1-11 (owner decision 2026-11-16): append-only canonical observation store. raster-service
-    # pushes each published asset over HTTP (POST /internal/v1/observations); it never writes here.
+    # W1-11 (owner decision 2026-11-16): append-only canonical observation store. indicators-service's
+    # drain pulls each published asset from raster-service over HTTP (pull form, same day);
+    # raster-service never writes here and never calls indicators-service.
     owner: indicators-service
     writers: [indicators-service]
     readers: [indicators-service]
@@ -1018,7 +1019,9 @@ tables:
     readers: [raster-service]
     source: "migrations/v236_raster_follow_up_requests.sql"
   raster_observation_outbox:
-    # W1-11: durable retry marker of the observation push to indicators-service.
+    # W1-11 (pull form, 2026-11-16): durable delivery marker of published observations. Only
+    # raster-service reads and writes it; indicators-service reaches it ONLY through raster's HTTP
+    # feed (GET /internal/v1/observation-outbox, POST .../acknowledgements), so it is no reader.
     owner: raster-service
     writers: [raster-service]
     readers: [raster-service]

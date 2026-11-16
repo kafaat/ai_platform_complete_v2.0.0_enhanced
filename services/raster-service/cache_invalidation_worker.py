@@ -373,8 +373,6 @@ async def loop_worker() -> None:
             # النبضة تُكتَب حتّى في وضع الخمول: الحلقة حيّة (تستطلع الراية) فيبقى الفحص أخضر.
             hb.mark_poll(0)
             hb.write()
-            # W1-11 review: the observation outbox is drained whether or not invalidation runs.
-            pool = await _drain_cycle(pool)
             await asyncio.sleep(WORKER_POLL_SECONDS)
             continue
         _logged_disabled = False
@@ -394,8 +392,6 @@ async def loop_worker() -> None:
                 except Exception:  # noqa: BLE001
                     pass
             pool = None
-        # W1-11 review: an invalidation cycle that failed does not hold back the outbox drain.
-        pool = await _drain_cycle(pool)
         cycle += 1
         if PRUNE_EVERY_CYCLES > 0 and cycle % PRUNE_EVERY_CYCLES == 0:
             try:
@@ -405,62 +401,6 @@ async def loop_worker() -> None:
             except Exception as e:  # noqa: BLE001
                 logger.warning("tile cache prune skipped: %s", e)
         await asyncio.sleep(WORKER_POLL_SECONDS)
-
-
-def _outbox_drain_configured() -> tuple[bool, str]:
-    """Whether this worker re-sends pending observation pushes, and why not.
-
-    On by default (``RASTER_OBSERVATION_OUTBOX_DRAIN_ENABLED``), independent of
-    ``RASTER_CACHE_INVALIDATION_ENABLED``; it needs the mesh token the push carries."""
-    flag = os.getenv("RASTER_OBSERVATION_OUTBOX_DRAIN_ENABLED", "true").strip().lower()
-    if flag not in ("1", "true", "yes", "on"):
-        return False, "RASTER_OBSERVATION_OUTBOX_DRAIN_ENABLED=false"
-    if not os.getenv("SAHOOL_AGENT_TOKEN", ""):
-        return False, "SAHOOL_AGENT_TOKEN is not configured"
-    return True, ""
-
-
-_outbox_drain_warned = False
-
-
-async def _drain_cycle(pool: asyncpg.Pool | None) -> asyncpg.Pool | None:
-    """One outbox drain; opens the pool when invalidation did not. Never raises.
-
-    When the drain is off the worker says so once at WARNING: pending pushes then wait for a
-    worker that drains, and the operator must know they are not being retried."""
-    global _outbox_drain_warned
-    configured, reason = _outbox_drain_configured()
-    if not configured:
-        if not _outbox_drain_warned:
-            logger.warning(
-                "observation outbox drain off (%s): pending canonical observation pushes are "
-                "not retried by this worker",
-                reason,
-            )
-            _outbox_drain_warned = True
-        return pool
-    _outbox_drain_warned = False
-    if pool is None:
-        try:
-            pool = await _connect()
-        except Exception as e:  # noqa: BLE001 — the next cycle connects again
-            logger.warning("observation outbox drain skipped: no database pool (%s)", e)
-            return None
-    await _drain_observation_outbox(pool)
-    return pool
-
-
-async def _drain_observation_outbox(pool: asyncpg.Pool) -> int:
-    """W1-11: re-send published observations whose push to indicators-service is pending
-    (``observation_outbox``). Its own failure never stops the invalidation loop; the rows
-    stay pending and the next cycle tries again."""
-    try:
-        import observation_outbox
-
-        return await observation_outbox.drain_once(pool)
-    except Exception as e:  # noqa: BLE001
-        logger.warning("observation outbox drain skipped: %s", e)
-        return 0
 
 
 def main_cli(argv: list[str] | None = None) -> None:
@@ -478,8 +418,6 @@ def main_cli(argv: list[str] | None = None) -> None:
             try:
                 n = await run_once(pool)
                 logger.info("processed %s invalidations", n)
-                sent = await _drain_observation_outbox(pool)
-                logger.info("delivered %s pending canonical observations", sent)
             finally:
                 await pool.close()
 

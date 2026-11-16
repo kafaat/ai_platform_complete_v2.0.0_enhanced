@@ -1,9 +1,9 @@
 """W1-11 — indicators-service owns the canonical observation store (owner decision 2026-11-16).
 
-Unit level: the ingest route's service-token and tenant assertion, its idempotency contract
-(201 created, 200 replay, 409 conflict, 503 when the store cannot answer), the payload's stable
-id (the asset reference the canonical contract already derives), numbers that are never decimal
-text, and the two read routes serving stored rows with the computed path as declared fallback.
+Unit level: the payload's stable id (the asset reference the canonical contract already
+derives), its validation, numbers that are never decimal text, and the two read routes serving
+stored rows with the computed path as declared fallback. The pull that fills the store (owner
+decision 2026-11-16, pull form) is ``test_observation_drain.py``; there is no ingest route.
 The store is stubbed at its function level; ``tests_v9/test_canonical_observations_live_pg.py``
 measures the same contract on PostgreSQL under a restricted role.
 """
@@ -63,36 +63,6 @@ def _payload(**overrides):
     }
     body.update(overrides)
     return body
-
-
-def _post(body, **headers):
-    base = {"X-Tenant-Id": TENANT, "X-Agent-Token": TOKEN}
-    base.update(headers)
-    return client.post("/internal/v1/observations", json=body, headers=base)
-
-
-@pytest.fixture
-def store(monkeypatch):
-    """Stand in for ``observation_store.insert_observation`` and record what reached it."""
-    state = {"calls": [], "result": "created", "raise": None}
-
-    async def _insert(record):
-        state["calls"].append(record)
-        if state["raise"] is not None:
-            raise state["raise"]
-        digest = record.content_sha256()
-        stored = digest if state["result"] != "conflict" else "f" * 64
-        return {
-            "status": state["result"],
-            "observation_id": record.observation_id(),
-            "payload_sha256": digest,
-            "stored_payload_sha256": stored,
-            "published_at": PUBLISHED,
-        }
-
-    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", TOKEN)
-    monkeypatch.setattr(main.observation_store, "insert_observation", _insert)
-    return state
 
 
 # ── the payload: stable id, content hash, numbers ─────────────────────────────────────────
@@ -210,10 +180,10 @@ def test_a_stored_payload_carries_numbers_never_decimal_text():
         {"unexpected": 1},
     ],
 )
-def test_an_invalid_payload_is_refused_before_the_store(store, overrides):
-    response = _post(_payload(**overrides))
-    assert response.status_code == 422, f"{overrides} must be refused, got {response.status_code}"
-    assert store["calls"] == [], "nothing may reach the store"
+def test_an_invalid_payload_is_refused_by_the_store_model(overrides):
+    """The drain stores nothing it cannot validate (``observation_drain.settle`` rejects it)."""
+    with pytest.raises(ValueError):
+        observation_store.PublishedObservationV1.model_validate(_payload(**overrides))
 
 
 def test_a_non_finite_number_is_refused():
@@ -221,66 +191,6 @@ def test_a_non_finite_number_is_refused():
         observation_store.PublishedObservationV1.model_validate(
             _payload(stats={"mean": float("nan")})
         )
-
-
-# ── the route: who may write, and the idempotency contract ─────────────────────────────────
-def test_ingest_requires_the_service_token(store):
-    assert _post(_payload(), **{"X-Agent-Token": "guessed"}).status_code == 401, (
-        "a wrong token is refused"
-    )
-    response = client.post(
-        "/internal/v1/observations", json=_payload(), headers={"X-Tenant-Id": TENANT}
-    )
-    assert response.status_code == 401, "a missing token is refused"
-    assert store["calls"] == [], "nothing reaches the store without the service token"
-
-
-def test_ingest_fails_closed_without_a_configured_token(store, monkeypatch):
-    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "")
-    assert _post(_payload(), **{"X-Agent-Token": ""}).status_code == 503, (
-        "an unconfigured service token is 503, never an open door"
-    )
-    assert store["calls"] == [], "nothing reaches the store"
-
-
-def test_ingest_refuses_a_body_for_another_tenant(store):
-    response = _post(_payload(tenant_id=OTHER))
-    assert response.status_code == 403, "the asserted tenant must match the body"
-    assert _post(_payload(), **{"X-Tenant-Id": "not-a-uuid"}).status_code == 400, (
-        "a malformed tenant assertion is refused"
-    )
-    assert store["calls"] == [], "nothing reaches the store"
-
-
-def test_a_new_observation_is_created(store):
-    response = _post(_payload())
-    assert response.status_code == 201, response.text
-    body = response.json()
-    record = store["calls"][0]
-    assert body["status"] == "created", body
-    assert body["observation_id"] == record.observation_id(), body
-    assert body["asset_ref"] == f"urn:sahool:raster-asset:{record.observation_id()}", body
-
-
-def test_the_same_content_again_is_a_replay(store):
-    store["result"] = "replayed"
-    response = _post(_payload())
-    assert response.status_code == 200, response.text
-    assert response.json()["status"] == "replayed", response.json()
-
-
-def test_other_content_under_the_same_id_is_409(store):
-    store["result"] = "conflict"
-    response = _post(_payload())
-    assert response.status_code == 409, response.text
-    detail = response.json()["detail"]
-    assert detail["code"] == "observation_conflict", detail
-    assert detail["stored_payload_sha256"] != detail["offered_payload_sha256"], detail
-
-
-def test_an_unavailable_store_is_503_never_a_claimed_write(store):
-    store["raise"] = observation_store.StoreUnavailable("down")
-    assert _post(_payload()).status_code == 503, "the raster outbox must see a retryable status"
 
 
 def test_without_a_database_the_store_refuses_to_write(monkeypatch):
@@ -704,3 +614,11 @@ def test_the_timeline_and_observations_share_one_matching_rule():
         )
         is row
     )
+
+
+def test_there_is_no_ingest_route_raster_could_push_to():
+    """Owner decision 2026-11-16 (pull form): raster-service never calls this service, so the
+    push target ``POST /internal/v1/observations`` is gone, not kept as dead surface."""
+    paths = {(m, r.path) for r in main.app.routes for m in getattr(r, "methods", ()) or ()}
+    assert ("POST", "/internal/v1/observations") not in paths, paths
+    assert "/internal/v1/observations" not in main.app.openapi()["paths"]

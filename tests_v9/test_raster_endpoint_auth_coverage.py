@@ -124,6 +124,11 @@ SERVICE_ONLY: set[str] = {
     "/v1/fields/analytics/geoparquet/export",  # تصدير GeoParquet لحقول — توكن خدمة.
     "/v1/tile-cache/stats",  # إحصاء ذاكرة بلاطات يكشف بنية داخلية — توكن خدمة.
     "/v1/registry/cogs",  # D1: أمرُ تسجيل COG في raster_registry من المنصّة — توكن خدمة + X-Tenant-Id + مطابقة الحقل بمستأجِره.
+    # W1-11 (owner decision 2026-11-16, pull): indicators-service drains raster's outbox of published
+    # observations — read the asserted tenant's pending entries, then acknowledge the ones it stored.
+    # Service token + X-Tenant-Id (REQ_TENANT) binding every statement, as the D1 owner routes.
+    "/internal/v1/observation-outbox",
+    "/internal/v1/observation-outbox/acknowledgements",
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

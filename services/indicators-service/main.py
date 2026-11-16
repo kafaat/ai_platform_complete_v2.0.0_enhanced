@@ -9,20 +9,25 @@ canonical ownership contract and fails closed for spectral computation.
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import json
+import logging
 import os
 import sys
+from collections.abc import AsyncIterator
 from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 from typing import Annotated
 from uuid import UUID
 
 import httpx
-from fastapi import FastAPI, Header, HTTPException, Query, Response
+from fastapi import FastAPI, Header, HTTPException, Query
 
 _SERVICE_DIR = Path(__file__).resolve().parent
 if str(_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVICE_DIR))
+import observation_drain  # noqa: E402
 import observation_runtime  # noqa: E402
 import observation_store  # noqa: E402
 from observation_runtime import canonicalize_bundle, fetch_canonical_observations  # noqa: E402
@@ -56,7 +61,33 @@ def _resolve_manifest() -> Path:
 
 _MANIFEST = _resolve_manifest()
 
-app = FastAPI(title="SAHOOL Indicators Contract Service", version=VERSION)
+logger = logging.getLogger("indicators-service")
+
+
+@contextlib.asynccontextmanager
+async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """W1-11 (pull form): start the canonical observation drain when it can run.
+
+    It runs when ``INDICATORS_OBSERVATION_DRAIN_ENABLED`` is on (the default), the tenant
+    partition is set, and the service token and the store are configured; otherwise the reason
+    is logged once and shown on ``/readyz`` (``observation_drain.last_skip_reason``)."""
+    reason = observation_drain.skip_reason()
+    task = None
+    if reason is None:
+        task = asyncio.create_task(observation_drain.serve())
+    else:
+        observation_drain.record_skip(reason)
+        logger.warning("canonical observation drain not started: %s", reason)
+    try:
+        yield
+    finally:
+        if task is not None:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+
+
+app = FastAPI(title="SAHOOL Indicators Contract Service", version=VERSION, lifespan=_lifespan)
 
 
 def _manifest() -> dict:
@@ -103,6 +134,9 @@ async def ready():
         "spectral_compute": False,
         "observed_spectral_owner": manifest["policy"]["observed_spectral_owner"],
         "schema_version": manifest["schema_version"],
+        # W1-11: the pull of published observations from raster-service. Reported, not gated:
+        # the read routes keep their computed path while the drain is behind.
+        "observation_drain": observation_drain.state(),
     }
 
 
@@ -136,6 +170,7 @@ async def capabilities():
             "timeseries": True,
             "canonical_observation_adapter": True,
             "canonical_observation_store": True,
+            "canonical_observation_drain": True,
         },
         "owners": {
             "observed_spectral": "raster-service",
@@ -162,7 +197,6 @@ async def contract():
             "/v1/indicators/catalog",
             "/v1/fields/{field_id}/observations",
             "/v1/fields/{field_id}/observation-timeline",
-            "/internal/v1/observations",
             "/",
         ],
     }
@@ -426,8 +460,9 @@ async def observation_timeline(
 
 # ── W1-11: the canonical observation store (owner decision 2026-11-16) ─────────────────────
 #
-# raster-service pushes every published product here (``POST /internal/v1/observations``). The
-# two read routes above still ask raster-service which product is current (its asset lifecycle
+# The drain worker (``observation_drain``) pulls every product raster-service published from its
+# outbox and stores it; raster-service never calls this service (owner decision 2026-11-16,
+# pull form). The two read routes above still ask raster-service which product is current (its asset lifecycle
 # drops a stale geometry or a superseded reprocess), then serve the stored fact of exactly that
 # product; a product with no stored row is served from the computed path (``observation_source``).
 async def _bind_stored_observations(
@@ -480,62 +515,3 @@ async def _bind_stored_observations(
         stored += 1
     status = "served" if stored == len(computed) else ("partial" if stored else "not_stored")
     return bound, source_label(len(computed), stored), status
-
-
-def _require_service_caller(x_agent_token: str | None) -> None:
-    expected = os.getenv("SAHOOL_AGENT_TOKEN", "")
-    if not expected:
-        raise HTTPException(503, "SAHOOL_AGENT_TOKEN is not configured")
-    if not service_token_ok(x_agent_token, expected):
-        raise HTTPException(401, "invalid service token")
-
-
-@app.post("/internal/v1/observations")
-async def ingest_published_observation(
-    body: observation_store.PublishedObservationV1,
-    response: Response,
-    x_tenant_id: Annotated[str, Header(alias="X-Tenant-Id")],
-    x_agent_token: Annotated[str | None, Header(alias="X-Agent-Token")] = None,
-):
-    """Store one observation raster-service published (service-to-service only).
-
-    The caller proves the mesh service token and asserts the tenant in ``X-Tenant-Id``; a body
-    for another tenant is refused. 201 created · 200 replay of the same content · 409 the same
-    observation id and product revision with other content (nothing stored) · 503 the store
-    cannot answer. A new geometry revision or algorithm version of the same scene is a new row.
-
-    Trust: the shared mesh token (OI-01), like every internal route of the mesh. A stored row is
-    served only for the product raster-service itself still publishes at the same revision, so
-    a row that matches no raster product is never read; correcting a stored row is a reviewed
-    schema-owner action (v286 header).
-    """
-    _require_service_caller(x_agent_token)
-    tenant_id = _parse_tenant(x_tenant_id)
-    if body.tenant_id != tenant_id:
-        raise HTTPException(403, "tenant_mismatch")
-    try:
-        result = await observation_store.insert_observation(body)
-    except observation_store.StoreUnavailable as exc:
-        raise HTTPException(503, "canonical observation store unavailable") from exc
-    if result["status"] == "conflict":
-        raise HTTPException(
-            409,
-            {
-                "code": "observation_conflict",
-                "observation_id": result["observation_id"],
-                "revision_key": result.get("revision_key"),
-                "stored_payload_sha256": result["stored_payload_sha256"],
-                "offered_payload_sha256": result["payload_sha256"],
-            },
-        )
-    response.status_code = 201 if result["status"] == "created" else 200
-    return {
-        "status": result["status"],
-        "observation_id": result["observation_id"],
-        "revision_key": result.get("revision_key"),
-        "asset_ref": f"urn:sahool:raster-asset:{result['observation_id']}",
-        "payload_sha256": result["payload_sha256"],
-        "published_at": result["published_at"].isoformat()
-        if isinstance(result["published_at"], datetime)
-        else result["published_at"],
-    }

@@ -3,8 +3,9 @@
 RS-3 shadow runtime: raster-service remains the pixel/COG owner. This module
 converts its validated observation bundle into immutable canonical observations
 without recomputing band math. It is stateless; durable persistence is
-``observation_store`` (W1-11, v286): raster-service pushes each published asset over
-HTTP and the read routes project stored rows through this same converter.
+``observation_store`` (W1-11, v286): ``observation_drain`` pulls each published asset from
+raster-service's outbox over HTTP and the read routes project stored rows through this same
+converter.
 """
 
 from __future__ import annotations

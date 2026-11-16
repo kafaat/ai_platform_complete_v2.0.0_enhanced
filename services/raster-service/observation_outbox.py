@@ -1,29 +1,37 @@
-"""Push of published raster assets to the canonical observation store (W1-11).
+"""The durable outbox of published raster observations (W1-11).
 
-Owner decision of 2026-11-16: indicators-service owns the append-only ``canonical_observations``
-table (migrations/v286) and raster-service pushes each published asset to it over HTTP
-(``POST /internal/v1/observations``), not NATS. raster-service never writes that table.
+Owner decision of 2026-11-16 (first form): indicators-service owns the append-only
+``canonical_observations`` table (migrations/v286); raster-service never writes it.
 
-A push that fails is not lost: the publish path first writes the payload to
-``raster_observation_outbox`` (owned here, v286), then calls indicators-service and records the
-outcome on that row. A row still ``pending`` is re-sent by the cache invalidation worker
-(``drain_once``) with a capped exponential backoff, for as long as it takes.
+Owner decision of 2026-11-16 (second form, this module): the direction is PULL. raster-service
+does not call indicators-service. indicators-service already reads raster-service (its
+observation and timeline adapters), and a push back from raster made the two services a cycle in
+the architecture graph (``scripts/ci/architecture_graph.py``, ``architecture:no_cycles``), which
+has no exception list. So:
 
-When the outbox itself cannot be written and the one push does not settle the observation either,
-the payload is ``unqueued``: it is held in this process (bounded, ``UNQUEUED_LIMIT``) and every
-later ``publish`` first writes the held payloads to the outbox, from where the worker drains them.
-Each such payload is counted (``raster_batch_observability``, exported on ``/metrics`` as
+* the publish path writes each published asset's ``PublishedObservationV1`` payload to
+  ``raster_observation_outbox`` (owned here, v286) as soon as the asset is published, once per
+  exact content (``raster_observation_outbox_once``);
+* indicators-service's drain worker reads the tenant's pending entries over this service's
+  internal S2S route (``GET /internal/v1/observation-outbox``, ``pending_entries``), stores each
+  one in its own idempotent store, and then acknowledges what it settled
+  (``POST /internal/v1/observation-outbox/acknowledgements``, ``acknowledge``);
+* an entry stays ``pending`` until it is acknowledged; acknowledgement marks only the entries the
+  caller names, at the content it names (``payload_sha256``), and only from ``pending``; nothing
+  here deletes an entry. ``delivered`` means stored (created or replayed) in the canonical store;
+  ``conflict`` means the store holds the same observation id and revision with other content;
+  ``rejected`` means the payload cannot be a canonical observation. The last two are terminal and
+  stay visible on the row (``last_error``).
+
+When the outbox itself cannot be written, the payload is ``unqueued``: it is held in this process
+(bounded, ``UNQUEUED_LIMIT``) and every later ``publish`` first writes the held payloads to the
+outbox. Each such payload is counted (``raster_batch_observability``, exported on ``/metrics`` as
 ``sahool_raster_batch_observation_outbox_unqueued_total``; ``..._requeued_total`` when it reached
 the outbox, ``..._unqueued_dropped_total`` when the bound drops it) and logged. A held payload
 is durable only once it is in the outbox: a process restart before that loses it, which shows as
 ``unqueued_total`` above ``requeued_total + unqueued_dropped_total``.
 
-Outcomes: 200/201 ``delivered`` · 409 ``conflict`` (the store holds the same observation id with
-other content; terminal, surfaced in the log and on the row) · 400/403/422 ``rejected``
-(terminal: the payload or the tenant assertion is wrong, a retry cannot fix it) · anything else,
-including a network error or an unconfigured URL/token, stays ``pending``.
-
-The push never changes whether the asset counts as published; it runs after publication.
+Queueing never changes whether the asset counts as published; it runs after publication.
 """
 
 from __future__ import annotations
@@ -33,42 +41,27 @@ import json
 import logging
 import math
 import os
-import time
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("raster-service.observation_outbox")
 
 SCHEMA_VERSION = "sahool.published_observation/1"
-INGEST_PATH = "/internal/v1/observations"
-PUSH_TIMEOUT_S = float(os.getenv("OBSERVATION_PUSH_TIMEOUT_SECONDS", "5"))
-BACKOFF_BASE_S = float(os.getenv("OBSERVATION_PUSH_BACKOFF_SECONDS", "30"))
-BACKOFF_MAX_S = float(os.getenv("OBSERVATION_PUSH_BACKOFF_MAX_SECONDS", "3600"))
-#: A claimed row is invisible to another drain for this long (a dead worker's claim expires).
-CLAIM_LEASE_S = float(os.getenv("OBSERVATION_PUSH_LEASE_SECONDS", "120"))
-#: One drain stops sending after this long (the worker's heartbeat max-age is 120 s); the rows it
-#: claimed and did not send are released for the next cycle at once.
-DRAIN_BUDGET_S = float(os.getenv("OBSERVATION_PUSH_DRAIN_BUDGET_SECONDS", "30"))
 
 DELIVERED = "delivered"
 CONFLICT = "conflict"
 REJECTED = "rejected"
 PENDING = "pending"
-#: The push did not settle and the outbox could not be written: held here for the next publish.
+#: The outbox could not be written: held here for the next publish.
 UNQUEUED = "unqueued"
+#: What an acknowledgement may set (from ``pending`` only).
+OUTCOMES = frozenset({DELIVERED, CONFLICT, REJECTED})
 UNQUEUED_LIMIT = int(os.getenv("OBSERVATION_UNQUEUED_LIMIT", "1000"))
+#: Bounds of one read of the pending feed.
+FEED_LIMIT_DEFAULT = 50
+FEED_LIMIT_MAX = 200
 #: Payloads with no outbox row yet, by content digest (insertion order: oldest first).
 _UNQUEUED: dict[str, dict[str, Any]] = {}
-_TERMINAL_CLIENT_ERRORS = {400, 403, 422}
-
-
-def _indicators_url() -> str:
-    return os.getenv("INDICATORS_SERVICE_URL", "http://sahool-indicators-service:8000").rstrip("/")
-
-
-def _service_token() -> str:
-    return os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 
 def _finite(value: Any) -> float | None:
@@ -163,46 +156,6 @@ def payload_sha256(payload: dict[str, Any]) -> str:
     return hashlib.sha256(encoded.encode()).hexdigest()
 
 
-@dataclass(frozen=True)
-class PushOutcome:
-    status: str
-    status_code: int | None = None
-    error: str | None = None
-
-
-async def push(payload: dict[str, Any], *, transport: Any = None) -> PushOutcome:
-    """POST one payload to indicators-service; classify the answer. Never raises."""
-    token = _service_token()
-    if not token:
-        return PushOutcome(PENDING, None, "SAHOOL_AGENT_TOKEN not configured")
-    try:
-        import httpx
-
-        kwargs: dict[str, Any] = {"timeout": PUSH_TIMEOUT_S, "trust_env": False}
-        if transport is not None:
-            kwargs["transport"] = transport
-        async with httpx.AsyncClient(**kwargs) as client:
-            response = await client.post(
-                f"{_indicators_url()}{INGEST_PATH}",
-                json=payload,
-                headers={"X-Agent-Token": token, "X-Tenant-Id": str(payload["tenant_id"])},
-            )
-    except Exception as exc:  # noqa: BLE001 — a transport failure is retried, not raised
-        return PushOutcome(PENDING, None, f"transport: {type(exc).__name__}")
-    code = response.status_code
-    if code in (200, 201):
-        return PushOutcome(DELIVERED, code)
-    if code == 409:
-        return PushOutcome(CONFLICT, code, "observation id stored with other content")
-    if code in _TERMINAL_CLIENT_ERRORS:
-        return PushOutcome(REJECTED, code, response.text[:500])
-    return PushOutcome(PENDING, code, response.text[:500])
-
-
-def backoff_seconds(attempts: int) -> float:
-    return min(BACKOFF_BASE_S * (2 ** max(attempts - 1, 0)), BACKOFF_MAX_S)
-
-
 _ENQUEUE = """
     INSERT INTO raster_observation_outbox (
         tenant_id, field_id, indicator_code, product_identity_key, payload, payload_sha256
@@ -214,43 +167,6 @@ _EXISTING = """
     SELECT id, status FROM raster_observation_outbox
     WHERE tenant_id = $1::uuid AND product_identity_key = $2 AND payload_sha256 = $3
 """
-_RECORD = """
-    UPDATE raster_observation_outbox SET
-        status = $3,
-        attempts = attempts + 1,
-        last_status_code = $4,
-        last_error = $5,
-        delivered_at = CASE WHEN $3 = 'delivered' THEN now() ELSE delivered_at END,
-        next_attempt_at = CASE WHEN $3 = 'pending'
-                               THEN now() + make_interval(secs => $6) ELSE next_attempt_at END
-    WHERE id = $1 AND tenant_id = $2::uuid AND status = 'pending'
-"""
-
-
-async def _record(conn: Any, tenant_id: str, row_id: int, attempts: int, out: PushOutcome) -> None:
-    async with conn.transaction():
-        await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
-        await conn.execute(
-            _RECORD,
-            row_id,
-            tenant_id,
-            out.status,
-            out.status_code,
-            out.error,
-            backoff_seconds(attempts + 1),
-        )
-
-
-def _log_outcome(payload: dict[str, Any], out: PushOutcome, row_id: int | None) -> None:
-    where = (
-        f"field_id={payload.get('field_id')} index={payload.get('indicator')} outbox_id={row_id}"
-    )
-    if out.status == DELIVERED:
-        logger.info("canonical observation delivered %s", where)
-    elif out.status == PENDING:
-        logger.warning("canonical observation push pending retry %s: %s", where, out.error)
-    else:
-        logger.error("canonical observation push %s %s: %s", out.status, where, out.error)
 
 
 async def enqueue(payload: dict[str, Any]) -> tuple[int, str] | None:
@@ -287,23 +203,6 @@ async def enqueue(payload: dict[str, Any]) -> tuple[int, str] | None:
         await conn.close()
 
 
-async def record_outcome(tenant_id: str, row_id: int, attempts: int, out: PushOutcome) -> bool:
-    """Record one push outcome on its outbox row; ``False`` when it could not be recorded."""
-    import db_persist
-
-    conn = await db_persist._connect()
-    if conn is None:
-        return False
-    try:
-        await _record(conn, tenant_id, row_id, attempts, out)
-        return True
-    except Exception as exc:  # noqa: BLE001 — the row stays pending and the worker re-sends
-        logger.warning("raster_observation_outbox outcome not recorded: %s", type(exc).__name__)
-        return False
-    finally:
-        await conn.close()
-
-
 def _count(name: str, amount: int = 1) -> None:
     try:
         import raster_batch_observability
@@ -333,8 +232,7 @@ def _hold(payload: dict[str, Any]) -> None:
             dropped.get("indicator"),
         )
     logger.error(
-        "canonical observation unqueued (outbox unavailable, push not settled) field_id=%s "
-        "index=%s held=%s",
+        "canonical observation unqueued (outbox unavailable) field_id=%s index=%s held=%s",
         payload.get("field_id"),
         payload.get("indicator"),
         len(_UNQUEUED),
@@ -344,7 +242,7 @@ def _hold(payload: dict[str, Any]) -> None:
 async def requeue_unqueued() -> int:
     """Write the held payloads to the outbox (oldest first); stop at the first failure.
 
-    Returns how many reached the outbox; the worker's drain sends them from there."""
+    Returns how many reached the outbox, where indicators-service's drain finds them."""
     moved = 0
     for digest in list(_UNQUEUED):
         if await enqueue(_UNQUEUED[digest]) is None:
@@ -357,37 +255,51 @@ async def requeue_unqueued() -> int:
     return moved
 
 
-async def publish(payload: dict[str, Any], *, transport: Any = None) -> str:
-    """Write the outbox row, push once, record the outcome. Returns the row status. Never raises.
-
-    If the outbox cannot be written the push is still attempted. A push that settles the
-    observation (delivered, conflict, rejected) needs no retry. Otherwise the payload is held as
-    ``unqueued`` (counted, see the module doc) and the next publish writes it to the outbox.
-    """
+async def publish(payload: dict[str, Any]) -> str:
+    """Write the outbox row for this published observation. Returns the row status, or
+    ``unqueued`` when the outbox cannot be written (the payload is then held, see the module
+    doc). Never raises and never calls another service."""
     if _UNQUEUED:
         await requeue_unqueued()
     queued = await enqueue(payload)
-    if queued is not None and queued[1] != PENDING:
-        return queued[1]  # this exact content was already delivered or settled
-    out = await push(payload, transport=transport)
-    _log_outcome(payload, out, queued[0] if queued else None)
     if queued is None:
-        if out.status != PENDING:
-            return out.status
         _hold(payload)
         return UNQUEUED
-    if not await record_outcome(str(payload["tenant_id"]), queued[0], 0, out):
-        return PENDING
-    return out.status
+    if queued[1] == PENDING:
+        logger.info(
+            "canonical observation queued field_id=%s index=%s outbox_id=%s",
+            payload.get("field_id"),
+            payload.get("indicator"),
+            queued[0],
+        )
+    return queued[1]
 
 
-_CLAIM = """
-    SELECT id, tenant_id::text AS tenant_id, payload, attempts
+# ── the pending feed indicators-service drains (routers/observation_feed.py) ───────────────
+class OutboxUnavailable(RuntimeError):
+    """The outbox cannot be read or written now; the caller answers 503 and retries."""
+
+
+_PENDING = """
+    SELECT id, payload, payload_sha256, created_at
     FROM raster_observation_outbox
-    WHERE status = 'pending' AND next_attempt_at <= now()
-    ORDER BY next_attempt_at
-    LIMIT $1
-    FOR UPDATE SKIP LOCKED
+    WHERE tenant_id = $1::uuid AND status = 'pending' AND id > $2
+    ORDER BY id
+    LIMIT $3
+"""
+_ACK = """
+    UPDATE raster_observation_outbox SET
+        status = $4,
+        attempts = attempts + 1,
+        last_status_code = NULL,
+        last_error = $5,
+        delivered_at = CASE WHEN $4 = 'delivered' THEN now() ELSE NULL END
+    WHERE tenant_id = $1::uuid AND id = $2 AND payload_sha256 = $3 AND status = 'pending'
+    RETURNING id
+"""
+_ENTRY = """
+    SELECT status, payload_sha256 FROM raster_observation_outbox
+    WHERE tenant_id = $1::uuid AND id = $2
 """
 
 
@@ -399,60 +311,99 @@ def _payload(value: Any) -> dict[str, Any]:
     return dict(value)
 
 
-def within_budget(started: float, budget_s: float, *, clock: Any = time.monotonic) -> bool:
-    return clock() - started < budget_s
+async def _connection():
+    import db_persist
+
+    conn = await db_persist._connect()
+    if conn is None:
+        raise OutboxUnavailable("database not configured or unreachable")
+    return conn
 
 
-async def drain_once(
-    pool: Any,
-    *,
-    batch_size: int = 20,
-    transport: Any = None,
-    budget_s: float | None = None,
-    clock: Any = time.monotonic,
-) -> int:
-    """Re-send pending outbox rows whose time has come. Returns how many were delivered.
-
-    Runs in the cache invalidation worker on its jobs-role pool. The claim moves
-    ``next_attempt_at`` forward by a lease inside the claiming transaction, so two workers never
-    send the same row at once and a dead worker's claim expires on its own. Sending stops once
-    ``budget_s`` (``DRAIN_BUDGET_S``) has passed; the claimed rows not sent are released.
-    """
-    budget = DRAIN_BUDGET_S if budget_s is None else budget_s
-    started = clock()
-    if not _service_token():
-        return 0
-    async with pool.acquire() as conn:
+async def pending_entries(
+    tenant_id: str, *, limit: int = FEED_LIMIT_DEFAULT, after_id: int = 0
+) -> list[dict[str, Any]]:
+    """The tenant's ``pending`` entries after ``after_id``, oldest first. A read: it changes
+    nothing. Tenant-bound twice: the explicit ``tenant_id`` predicate and RLS FORCE under
+    ``app.current_tenant``. Raises ``OutboxUnavailable`` when it cannot answer."""
+    bounded = max(1, min(int(limit), FEED_LIMIT_MAX))
+    conn = await _connection()
+    try:
         async with conn.transaction():
-            rows = await conn.fetch(_CLAIM, batch_size)
-            if rows:
-                await conn.execute(
-                    "UPDATE raster_observation_outbox "
-                    "SET next_attempt_at = now() + make_interval(secs => $2) "
-                    "WHERE id = ANY($1::bigint[])",
-                    [r["id"] for r in rows],
-                    CLAIM_LEASE_S,
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            rows = await conn.fetch(_PENDING, tenant_id, max(int(after_id), 0), bounded)
+    except Exception as exc:  # noqa: BLE001 — the caller answers 503, the drain retries
+        raise OutboxUnavailable(f"outbox read failed: {type(exc).__name__}") from exc
+    finally:
+        await conn.close()
+    return [
+        {
+            "id": int(r["id"]),
+            "payload": _payload(r["payload"]),
+            "payload_sha256": str(r["payload_sha256"]),
+            "created_at": r["created_at"].isoformat()
+            if isinstance(r["created_at"], datetime)
+            else r["created_at"],
+        }
+        for r in rows
+    ]
+
+
+def _ack_result(entry_id: int, outcome: str, row: Any, digest: str) -> dict[str, Any]:
+    if row is None:
+        return {"id": entry_id, "result": "not_found"}
+    if str(row["payload_sha256"]) != digest:
+        return {"id": entry_id, "result": "payload_mismatch", "status": str(row["status"])}
+    if str(row["status"]) == outcome:
+        return {"id": entry_id, "result": "already_acknowledged", "status": outcome}
+    return {"id": entry_id, "result": "status_mismatch", "status": str(row["status"])}
+
+
+async def acknowledge(tenant_id: str, entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Settle the named entries of this tenant, each at the content it names; one result each.
+
+    ``acknowledged``: the entry was ``pending`` and now carries ``outcome``.
+    ``already_acknowledged``: it already carries that outcome (a repeated acknowledgement).
+    ``status_mismatch``: it is settled with another outcome; left as it is.
+    ``payload_mismatch``: the named digest is not the entry's content; left as it is.
+    ``not_found``: no such entry for this tenant (another tenant's id answers the same).
+    Only the named ids are touched, in one transaction. Raises ``OutboxUnavailable``."""
+    conn = await _connection()
+    results: list[dict[str, Any]] = []
+    try:
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            for entry in entries:
+                entry_id = int(entry["id"])
+                outcome = str(entry["outcome"])
+                digest = str(entry["payload_sha256"])
+                if outcome not in OUTCOMES:
+                    raise ValueError(f"unknown outcome {outcome!r}")
+                detail = entry.get("detail")
+                updated = await conn.fetchval(
+                    _ACK,
+                    tenant_id,
+                    entry_id,
+                    digest,
+                    outcome,
+                    None if outcome == DELIVERED or detail is None else str(detail)[:500],
                 )
-        delivered = 0
-        unsent: list[int] = []
-        for row in rows:
-            if not within_budget(started, budget, clock=clock):
-                unsent.append(int(row["id"]))
-                continue
-            payload = _payload(row["payload"])
-            out = await push(payload, transport=transport)
-            _log_outcome(payload, out, row["id"])
-            await _record(conn, row["tenant_id"], int(row["id"]), int(row["attempts"]), out)
-            delivered += out.status == DELIVERED
-        if unsent:
-            await conn.execute(
-                "UPDATE raster_observation_outbox SET next_attempt_at = now() "
-                "WHERE id = ANY($1::bigint[]) AND status = 'pending'",
-                unsent,
+                if updated is not None:
+                    results.append({"id": entry_id, "result": "acknowledged", "status": outcome})
+                    continue
+                row = await conn.fetchrow(_ENTRY, tenant_id, entry_id)
+                results.append(_ack_result(entry_id, outcome, row, digest))
+    except ValueError:
+        raise
+    except Exception as exc:  # noqa: BLE001 — nothing was settled; the drain retries
+        raise OutboxUnavailable(f"outbox acknowledgement failed: {type(exc).__name__}") from exc
+    finally:
+        await conn.close()
+    for item in results:
+        if item["result"] == "acknowledged" and item["status"] != DELIVERED:
+            logger.error(
+                "canonical observation %s outbox_id=%s (terminal, kept on the row)",
+                item["status"],
+                item["id"],
             )
-            logger.warning(
-                "observation outbox drain budget %.0fs spent: %s claimed rows released unsent",
-                budget,
-                len(unsent),
-            )
-        return delivered
+    return results
