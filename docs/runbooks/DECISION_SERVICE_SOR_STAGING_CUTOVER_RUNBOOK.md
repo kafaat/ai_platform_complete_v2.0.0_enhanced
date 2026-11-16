@@ -27,7 +27,7 @@ and [`DECISION_SERVICE_SOR_PRODUCTION_PROMOTION_RUNBOOK.md`](DECISION_SERVICE_SO
 | 1 | Role certification | `decision_sor_role_certify.py` | `role_separation_confirmed: true` |
 | 2 | Apply migrations | `scripts/deploy/decision_service_migrate.sh` | `decision_service_migrate_ok` |
 | 3 | Backfill verification | `backfill.py --verify-counts`, `--verify-review` | `ok: True`, empty quarantine |
-| 4 | Gates + SoR flag (staging only) | decision-service environment | `/readyz` `sor_capability.review_available: true` |
+| 4 | Gates, SoR flag, outbox proof (staging only) | decision-service environment | 4b `missing_gates` = outbox only; 4c outbox row; 4d `review_available: true`, `gates_complete: true` |
 | 5 | Probe and review queue | `staging_probe.py --live`, review queue | probe `ok: true`, queue 200 |
 | R | Rollback | `rollback.py --live`, flag off | `/readyz` `mode: mirror`, queue 503 |
 
@@ -66,8 +66,12 @@ CREATE ROLE decision_service_app  LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCRE
 CREATE ROLE decision_sor_auditor  LOGIN NOSUPERUSER BYPASSRLS   NOCREATEDB NOCREATEROLE NOINHERIT;
 GRANT CREATE ON SCHEMA public TO decision_schema_owner;
 GRANT USAGE ON SCHEMA public TO decision_service_app, decision_sor_auditor;
-ALTER TABLE decision_record, dispatch_decisions, outcome_record,
-            recommendation_outcomes, online_learning_updates OWNER TO decision_schema_owner;
+-- ALTER TABLE takes one table per statement.
+ALTER TABLE decision_record          OWNER TO decision_schema_owner;
+ALTER TABLE dispatch_decisions       OWNER TO decision_schema_owner;
+ALTER TABLE outcome_record           OWNER TO decision_schema_owner;
+ALTER TABLE recommendation_outcomes  OWNER TO decision_schema_owner;
+ALTER TABLE online_learning_updates  OWNER TO decision_schema_owner;
 ALTER FUNCTION sahool_chain_correlation_root() OWNER TO decision_schema_owner;      -- check the
 ALTER FUNCTION sahool_chain_correlation_immutable() OWNER TO decision_schema_owner; -- signatures
 ALTER DEFAULT PRIVILEGES FOR ROLE decision_schema_owner IN SCHEMA public
@@ -82,7 +86,9 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public TO decision_sor_auditor;
 ```
 
 Check the two function signatures with `\df sahool_chain_correlation_*` before the `ALTER
-FUNCTION`. Changing a table's owner keeps its existing grants, so the platform keeps writing the
+FUNCTION`. The recipe as written here (one `ALTER TABLE` per table) was run through `psql
+-v ON_ERROR_STOP=1` on a disposable PG16 with stub tables and functions of the same names, with no
+error; an earlier draft used a multi-table `ALTER TABLE`, which PostgreSQL rejects. Changing a table's owner keeps its existing grants, so the platform keeps writing the
 five tables while it is still the writer. In the split-database topology the decision database
 has its own owner; only the migrator/app/auditor split applies there.
 
@@ -113,9 +119,18 @@ this sequence and `role_separation_confirmed` is true, role separation is proven
 production REVOKE the owner decides between extending the REVOKE to sequence privileges and
 accepting this path.
 
-**Closes `DECISION-SOR-PRE-CUTOVER-ROLE-CERTIFICATION`:** this run against staging over the two real
-connections, with `role_certification.json` kept as evidence (the gap's closure condition). For
-production the same run is repeated later.
+**`DECISION-SOR-PRE-CUTOVER-ROLE-CERTIFICATION` stays open on a `FAILED` result.** The operator
+does not close it by reading the JSON. It closes only when one of these holds:
+
+1. the run on staging over the two real connections exits 0 with `classification: PASSED`, and
+   `role_certification.json` is kept as evidence; or
+2. the owner records a decision in `sahool-brain/decisions/ledger.md` that accepts the
+   sequence-privilege path, naming that JSON (exit 2, sole blocker
+   `platform_sequence_privilege_present:recommendation_outcomes_outcome_id_seq`,
+   `role_separation_confirmed: true`).
+
+Until then the operator records the run as evidence of role separation and leaves the gap open.
+Production repeats the run later.
 
 ## 2. Apply decision-service migrations
 
@@ -154,7 +169,13 @@ guessed.
 
 ## 4. Gates and the SoR flag (staging decision-service only)
 
-Set each gate only after its proof exists:
+Every gate is set only after its proof exists. The outbox gate cannot be proven before the flag:
+`persistence.sor_enabled()` persists nothing until `DECISION_SERVICE_SOR_ENABLED` is set, and
+`readiness_from_env()` needs every gate, outbox included, for `can_enable_sor`. So the flag comes
+before the outbox gate, in a short window that `/readyz` reports openly. Never set the outbox
+gate before step 4c has shown the row.
+
+**4a. Five gates with proof in hand.** On the staging decision-service:
 
 | Variable | Set after |
 |---|---|
@@ -162,9 +183,34 @@ Set each gate only after its proof exists:
 | `DECISION_SERVICE_MIGRATIONS_VERIFIED=true` | step 2 output and a clean `--check` |
 | `DECISION_SERVICE_BACKFILL_VERIFIED=true` | step 3, both verifiers `ok: True` |
 | `DECISION_SERVICE_TENANT_ISOLATION_VERIFIED=true` | the decision-service real-Postgres tenant suites, green against this schema level |
-| `DECISION_SERVICE_OUTBOX_VERIFIED=true` | a persisted write in step 5 leaves its `decision_outbox_events` row |
 | `DECISION_SERVICE_STAGING_CUTOVER_APPROVED=true` | the owner decision of 2026-11-16 |
-| `DECISION_SERVICE_SOR_ENABLED=true` | all six above |
+
+Leave `DECISION_SERVICE_OUTBOX_VERIFIED` unset.
+
+**4b. The flag, with the outbox gate still missing.** Set `DECISION_SERVICE_SOR_ENABLED=true` and
+redeploy. `/readyz` must show `sor_capability.mode: persisted`,
+`persisted_without_verified_gates: true`, `missing_gates: ["DECISION_SERVICE_OUTBOX_VERIFIED"]`
+(nothing else), `cutover_mode: sor-requested-but-not-ready` and `can_enable_sor: false`. Any other
+missing gate: set the flag back to `false` and return to 4a. The platform is still the writer
+(`SAHOOL_DECISION_WRITE_MODE=shadow`), so this window affects staging decision-service only.
+
+**4c. One persisted write and its outbox row.** On a staging test tenant, make one write that
+must persist, for example `POST /v1/decisions/record` (bearer and `X-Tenant-Id`). The answer must
+carry `persisted: true`. Then, as the auditor, confirm the row:
+
+```sql
+SELECT event_type, aggregate_type, status
+FROM decision_outbox_events
+WHERE aggregate_id = '<decision_id from the answer>';
+-- expect exactly one row: DECISION_RECORDED, decision_record, pending (or already relayed)
+```
+
+No row, or `persisted` not true: set the flag back to `false` (section R) and stop. The outbox gate
+stays unset.
+
+**4d. The outbox gate.** Only now set `DECISION_SERVICE_OUTBOX_VERIFIED=true` and redeploy.
+`/readyz` must show `gates_complete: true`, `persisted_without_verified_gates: false` and
+`can_enable_sor: true` (the full list is below). Step 5's probe passes only from here on.
 
 Also on staging: `DECISION_SERVICE_AUTH_TOKEN` (shared bearer) with
 `DECISION_REQUIRE_AUTH_TOKEN=true`, and the platform stays the writer with
@@ -185,7 +231,7 @@ the same model as `/v1/cutover/readiness` (`services/decision-service/cutover.py
 | `cutover_mode`, `can_enable_sor`, `can_demote_platform` | as in `/v1/cutover/readiness` |
 | `migration_level` | `code_head`, `applied_head`, `pending_count`, `current`, `known_count` |
 
-Expected after step 4: `mode: persisted`, `review_available: true`, `gates_complete: true`,
+Expected after step 4d: `mode: persisted`, `review_available: true`, `gates_complete: true`,
 `cutover_mode: decision-service-sor-staging-shadow`, `can_enable_sor: true`,
 `can_demote_platform: false`, `applied_head == code_head`, `pending_count: 0`.
 
@@ -239,8 +285,10 @@ python services/decision-service/rollback.py --live
 
 ## Open gaps and what closes them
 
-- **`DECISION-SOR-PRE-CUTOVER-ROLE-CERTIFICATION`**: closed by step 1 run on staging over the two
-  real connections with the JSON kept. Production repeats it before any REVOKE.
+- **`DECISION-SOR-PRE-CUTOVER-ROLE-CERTIFICATION`**: closed only by step 1 on staging over the two
+  real connections with `classification: PASSED` and the JSON kept, or by an owner decision in the
+  ledger that accepts the sequence-privilege path for that JSON. A `FAILED` run alone leaves it
+  open. Production repeats it before any REVOKE.
 - **`DECISION-SOR-CUTOVER-WIRING-01`**: **not** closed by a staging cutover. It closes when the
   production cutover applies the platform-write REVOKE on live PG16 (after
   `DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED`), with role separation certified and the sequence

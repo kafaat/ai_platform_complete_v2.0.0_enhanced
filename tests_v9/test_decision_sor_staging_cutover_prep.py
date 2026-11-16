@@ -301,3 +301,93 @@ def test_staging_runbook_sequences_the_cutover():
         assert phrase in text, f"staging runbook must state: {phrase}"
     for gate in GATE_ENVS:
         assert f"{gate}=true" in text, f"staging runbook must sequence gate {gate}"
+
+
+def test_staging_runbook_proves_outbox_after_the_flag_never_before():
+    """The outbox gate needs a persisted write, and a write persists only once the flag is set.
+
+    The runbook must therefore set the flag with the outbox gate still missing (4b), prove one
+    persisted write leaves its outbox row (4c) and only then set the outbox gate (4d). Any other
+    order makes the operator record the gate as true without evidence.
+    """
+    text = RUNBOOK.read_text(encoding="utf-8")
+    section = text[text.index("## 4. Gates and the SoR flag") : text.index("## 5. Staging probe")]
+    ordered = [
+        "**4a.",
+        "Leave `DECISION_SERVICE_OUTBOX_VERIFIED` unset",
+        "**4b.",
+        "DECISION_SERVICE_SOR_ENABLED=true",
+        "persisted_without_verified_gates: true",
+        'missing_gates: ["DECISION_SERVICE_OUTBOX_VERIFIED"]',
+        "**4c.",
+        "FROM decision_outbox_events",
+        "**4d.",
+        "DECISION_SERVICE_OUTBOX_VERIFIED=true",
+        "can_enable_sor: true",
+    ]
+    positions = [section.find(token) for token in ordered]
+    assert all(p >= 0 for p in positions), dict(zip(ordered, positions, strict=True))
+    assert positions == sorted(positions), dict(zip(ordered, positions, strict=True))
+    first_outbox_gate = section.find("DECISION_SERVICE_OUTBOX_VERIFIED=true")
+    assert first_outbox_gate > section.find("FROM decision_outbox_events"), (
+        "the outbox gate must not be set anywhere in step 4 before its outbox-row proof"
+    )
+    gate_table = section[section.index("**4a.") : section.index("**4b.")]
+    assert "DECISION_SERVICE_OUTBOX_VERIFIED=true" not in gate_table, (
+        "step 4a must not list the outbox gate among the gates set before the flag"
+    )
+
+
+def test_staging_runbook_sql_recipe_uses_one_alter_table_per_statement():
+    """PostgreSQL rejects ``ALTER TABLE a, b OWNER TO r``; the recipe must be pasteable."""
+    text = RUNBOOK.read_text(encoding="utf-8")
+    start = text.index("```sql\nCREATE ROLE")
+    recipe = text[start : text.index("```", start + 6)]
+    statements = [s.strip() for s in recipe.split(";")]
+    alter_tables = [s for s in statements if "ALTER TABLE" in s]
+    assert len(alter_tables) == 5, f"one ALTER TABLE per SoR table expected, got {alter_tables}"
+    for stmt in alter_tables:
+        head = stmt[stmt.index("ALTER TABLE") : stmt.index("OWNER TO")]
+        assert "," not in head, f"multi-table ALTER TABLE is invalid PostgreSQL: {stmt!r}"
+
+
+def test_staging_runbook_keeps_the_certification_gap_open_on_failed():
+    """A FAILED certification never closes the role-certification gap on the operator's reading."""
+    text = RUNBOOK.read_text(encoding="utf-8")
+    assert "stays open on a `FAILED` result" in text, (
+        "the runbook must say the role-certification gap stays open on a FAILED run"
+    )
+    assert "classification: PASSED" in text, "closure must name a PASSED classification"
+    assert "owner records a decision" in text, (
+        "the only other closure path must be an owner decision, not the operator's reading"
+    )
+    gaps = text[text.index("## Open gaps and what closes them") :]
+    assert "A `FAILED` run alone leaves it" in gaps, (
+        "the open-gaps section must repeat that a FAILED run does not close the gap"
+    )
+
+
+def test_step_4b_window_matches_what_readyz_reports(cutover, monkeypatch):
+    """The runbook's 4b expectation (flag set, outbox gate only missing) is what the code says."""
+    monkeypatch.setenv("DATABASE_URL", "postgresql://x@y/z")
+    monkeypatch.setenv("DECISION_SERVICE_SOR_ENABLED", "true")
+    for name in GATE_ENVS:
+        if name != "DECISION_SERVICE_OUTBOX_VERIFIED":
+            monkeypatch.setenv(name, "true")
+    signal = cutover.sor_capability_signal(READY_DB, sor_enabled=True, ready=True)
+    assert signal["mode"] == "persisted", f"4b: writes must persist with the flag set: {signal}"
+    assert signal["missing_gates"] == ["DECISION_SERVICE_OUTBOX_VERIFIED"], (
+        f"4b: only the outbox gate may be missing: {signal}"
+    )
+    assert signal["persisted_without_verified_gates"] is True, (
+        f"4b window must be visible: {signal}"
+    )
+    assert signal["cutover_mode"] == "sor-requested-but-not-ready", f"4b cutover_mode: {signal}"
+    assert signal["can_enable_sor"] is False, f"4b: probe readiness must still fail: {signal}"
+    text = RUNBOOK.read_text(encoding="utf-8")
+    for expected in (
+        "`cutover_mode: sor-requested-but-not-ready`",
+        "`can_enable_sor: false`",
+        "`persisted_without_verified_gates: true`",
+    ):
+        assert expected in text, f"runbook 4b must state {expected}"
