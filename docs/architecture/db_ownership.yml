@@ -557,7 +557,7 @@ tables:
   field_indicators:
     owner: field-management-service
     writers: [field-management-service]
-    readers: [sahool-platform]
+    readers: []
     source: "migrations/init_v8.sql"
   field_lifecycle:
     owner: field-management-service
@@ -888,7 +888,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/init_v8.sql"
+    source: "migrations/init_v8.sql, migrations/v280_ndvi_timeseries_seed_purge.sql"
   nl_gis_audit:
     owner: sahool-platform
     writers: [sahool-platform]

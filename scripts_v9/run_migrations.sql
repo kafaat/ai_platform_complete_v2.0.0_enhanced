@@ -677,7 +677,9 @@
 \i migrations/v278_water_ledger_et0_rain_provenance.sql
 \echo '═══ 266. v279_water_ledger_irrigation_report.sql ═══'
 \i migrations/v279_water_ledger_irrigation_report.sql
-\echo '═══ 267. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 267. v280_ndvi_timeseries_seed_purge.sql ═══'
+\i migrations/v280_ndvi_timeseries_seed_purge.sql
+\echo '═══ 268. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 268. v206_rls_final_hardening.sql ═══'
+\echo '═══ 269. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

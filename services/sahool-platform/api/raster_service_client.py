@@ -266,6 +266,39 @@ def timeseries_point_to_vegetation_row(
     }
 
 
+async def get_field_timeseries_or_none(
+    field_id: str,
+    *,
+    tenant_id: str | None = None,
+    index: str = "ndvi",
+    dates: str = "",
+    timeout_s: float = 20.0,
+) -> list[dict[str, Any]] | None:
+    """Canonical index time-series points for a field, or ``None`` when raster-service
+    could not answer (transport/HTTP failure or a malformed body).
+
+    Same read as :func:`get_field_timeseries`, but keeps "raster-service unavailable"
+    (``None``) apart from "no observation" (``[]``), so a consumer can say which one it
+    is instead of presenting an outage as an empty field.
+    """
+    params: dict[str, Any] = {"index": index}
+    if dates:
+        params["dates"] = dates
+    try:
+        data = await raster_get_json(
+            f"/v1/fields/{field_id}/timeseries",
+            tenant_id=tenant_id,
+            params=params,
+            timeout_s=timeout_s,
+        )
+    except Exception:  # noqa: BLE001 — the caller decides how to report the outage
+        return None
+    points = data.get("points")
+    if not isinstance(points, list):
+        return None
+    return [p for p in points if isinstance(p, dict)]
+
+
 async def get_field_timeseries(
     field_id: str,
     *,
@@ -284,22 +317,80 @@ async def get_field_timeseries(
     as they did when the legacy ``ndvi_timeseries`` table was empty — this read never
     breaks the calling path and never invents an observation.
     """
-    params: dict[str, Any] = {"index": index}
-    if dates:
-        params["dates"] = dates
+    points = await get_field_timeseries_or_none(
+        field_id, tenant_id=tenant_id, index=index, dates=dates, timeout_s=timeout_s
+    )
+    return points or []
+
+
+def _finite_mean(point: Mapping[str, Any]) -> float | None:
+    import math
+
+    value = point.get("mean")
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value) if math.isfinite(value) else None
+
+
+async def latest_index_points(
+    field_id: str,
+    *,
+    tenant_id: str,
+    index: str = "ndvi",
+    count: int = 1,
+    timeout_s: float = 20.0,
+) -> list[dict[str, Any]] | None:
+    """The ``count`` most recent observed points of one index for a field, newest first.
+
+    W1-21 (remote-2/data-7/fields-8): the platform's NDVI-freshness, NDVI-drop and twin
+    readers used the seed-only ``ndvi_timeseries``/``field_indicators`` tables. This is
+    their raster read path: the field's processed acquisition dates (``available-dates``,
+    ``has_cog`` only) and then ``/timeseries`` for just the newest few of them, so raster
+    computes a handful of grids, not the field's whole history.
+
+    Returns ``None`` when raster-service could not answer (the caller reports the source
+    as unavailable), ``[]`` when the field has no processed date or no real mean (no
+    observation — nothing is invented). Every returned point has a finite ``mean`` and a
+    ``datetime`` (``YYYY-MM-DD``) that was one of the requested dates.
+    """
+    from datetime import date as _date
+
     try:
-        data = await raster_get_json(
-            f"/v1/fields/{field_id}/timeseries",
-            tenant_id=tenant_id,
-            params=params,
-            timeout_s=timeout_s,
-        )
-    except Exception:  # noqa: BLE001 — canonical NDVI read is fail-soft (degrade to empty)
+        catalogue = await get_available_dates(field_id, tenant_id=tenant_id, index=index, limit=500)
+    except Exception:  # noqa: BLE001 — outage is reported as None, never as "no data"
+        return None
+    if not isinstance(catalogue, dict) or not isinstance(catalogue.get("dates"), list):
+        return None
+    if catalogue.get("field_id") not in (None, field_id):
+        return None  # another field's catalogue is not this field's evidence
+    days: set[str] = set()
+    for row in catalogue["dates"]:
+        if not isinstance(row, dict) or row.get("has_cog") is not True:
+            continue
+        try:
+            days.add(_date.fromisoformat(str(row.get("date"))[:10]).isoformat())
+        except ValueError:
+            continue
+    if not days:
         return []
-    points = data.get("points")
-    if not isinstance(points, list):
-        return []
-    return [p for p in points if isinstance(p, dict)]
+    # A processed date can still yield no real grid (raster drops it), so ask for two spare.
+    wanted = sorted(days, reverse=True)[: max(1, count) + 2]
+    points = await get_field_timeseries_or_none(
+        field_id,
+        tenant_id=tenant_id,
+        index=index,
+        dates=",".join(wanted),
+        timeout_s=timeout_s,
+    )
+    if points is None:
+        return None
+    by_day: dict[str, dict[str, Any]] = {}
+    for point in points:
+        day = str(point.get("datetime") or "")[:10]
+        mean = _finite_mean(point)
+        if day in wanted and mean is not None and day not in by_day:
+            by_day[day] = {**point, "datetime": day, "mean": mean}
+    return [by_day[d] for d in sorted(by_day, reverse=True)][: max(1, count)]
 
 
 async def start_imagery_backfill(

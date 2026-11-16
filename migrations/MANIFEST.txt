@@ -846,6 +846,10 @@ v278_water_ledger_et0_rain_provenance.sql
 #   applied-water report on a day the water-balance worker computes is kept by the worker, which
 #   recomputes the balance around it. Additive, nullable, owner sahool-platform. Before v240.
 v279_water_ledger_irrigation_report.sql
+# v280 (plan item W1-21, findings remote-2/data-7): deletes the tenant-less RANDOM() NDVI seed
+#   rows of ndvi_timeseries (tenant_id IS NULL only). The platform reads NDVI from raster-service.
+#   Idempotent; init_v8 re-seeds on a re-applied manifest and v280 removes it again. Before v240.
+v280_ndvi_timeseries_seed_purge.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

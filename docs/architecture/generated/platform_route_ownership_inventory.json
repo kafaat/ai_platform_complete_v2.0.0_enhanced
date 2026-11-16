@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "6f5c9441552826a8cc3f3684c107fac562d139647230b1e4009b4a7eca02da08",
+  "inventory_sha256": "ac9721a6fc6a417808f2a1357042ae07902db9ec216fff3777d03b8d1b92eee2",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "81db7fbb44b90941a1b1d84cc42eb68ba17754abb7013e337a764a5f91d092bb",
+  "map_sha256": "d3f4349408354a248ef6953e548db2e8b5bc9ff6e27820252da9e1f8e94cb9dd",
   "routes": [
     {
       "classification": null,
@@ -1933,7 +1933,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/decision_confidence.py",
       "function": "decision_confidence_endpoint",
-      "line": 75,
+      "line": 88,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",
@@ -2339,7 +2339,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/field_twin.py",
       "function": "get_field_twin",
-      "line": 38,
+      "line": 44,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",
@@ -7183,7 +7183,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/nl_gis.py",
       "function": "nl_gis_query_endpoint",
-      "line": 198,
+      "line": 248,
       "method": "POST",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",
