@@ -152,7 +152,7 @@ from api.season_models import (
 from api.spatial_sync import mark_raster_cache_stale, save_field_geometry_revision
 from api.trueup import TrueUpInput, TrueUpStatus
 from api.walk_plan_pdf import walk_plan_to_pdf_bytes
-from api.yield_heuristics import LifecycleFeatures, detect_anomalies, estimate_yield
+from api.yield_heuristics import detect_anomalies, estimate_yield
 from api.zones_kmeans import ZoneCell, delineate_zones
 
 router = APIRouter()
@@ -3552,19 +3552,24 @@ async def estimate_field_yield(
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
     """تقدير الإنتاج (heuristic) + الشذوذ. W0-11: FIELD_VIEW + حقل المستأجِر (404/503) قبل الحساب؛
-    المدخل الغائب مجهول، وغياب أدلّة الحالة كلّها ⇒ unavailable_insufficient_evidence بلا رقم."""
+    المدخل الغائب مجهول. W1-08: الميزات من الخادم (أحداث + NDVI + طقس) مع evidence_ids."""
+    from api import yield_heuristics as ysf
+
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
+            loaded = await ysf.load_season_and_events(conn, field_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("التحقّق من الحقل لتقدير الإنتاج", e) from e
 
-    # The path's field_id is the reference; the body's optional field_id is ignored.
-    features = LifecycleFeatures(**{**req.model_dump(exclude={"field_id"}), "field_id": field_id})
-    est = estimate_yield(features)
-    anomalies = detect_anomalies(features)
+    # NDVI/الطقس خارج معاملة القاعدة؛ تعذّرهما ⇒ المدخل مجهول لا صفر.
+    evidence = await ysf.collect_server_evidence(
+        field_id, req.model_dump(exclude_unset=True), loaded, str(user.tenant_id)
+    )
+    est = estimate_yield(evidence.features)
+    anomalies = detect_anomalies(evidence.features)
     result = {
         "field_id": est.field_id,
         "crop": est.crop,
@@ -3577,15 +3582,8 @@ async def estimate_field_yield(
         "contributors": est.contributors,
         "warnings": est.warnings,
         "missing_inputs": est.missing_inputs,
-        "anomalies": [
-            {
-                "type": a.type,
-                "severity": a.severity,
-                "message_ar": a.message_ar,
-                "action_ar": a.suggested_action_ar,
-            }
-            for a in anomalies
-        ],
+        **evidence.response_fields(),
+        "anomalies": ysf.anomalies_payload(anomalies),
     }
 
     # Stage F (تغذية آمنة): نرفق الحالة القانونيّة الموحّدة (Canonical Field State)
@@ -3615,6 +3613,8 @@ async def estimate_field_yield(
             "agronomic": {"operational_truths": _truths},
         }
         result["requires_review"] = field_state.get("execution_mode") != "auto"
+    if evidence.declared_overrides:  # قيمة عميلٍ حلّت محلّ دليل الخادم ⇒ مراجعة (W1-08)
+        result["requires_review"] = True
 
     return result
 

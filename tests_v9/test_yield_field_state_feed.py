@@ -62,7 +62,7 @@ def test_yield_estimate_feeds_from_canonical_state():
     assert 'execution_mode") != "auto"' in body, "requires_review لا يُشتقّ من نمط التنفيذ"
     # رقم التقدير يُحسَب قبل جلب الحالة ولا يُمسّ — استدعاء estimate_yield يسبق
     # استدعاء recompute_field_state (تغذية مرجعيّة لا حسابيّة).
-    assert body.index("estimate_yield(features)") < body.index("recompute_field_state"), (
+    assert body.index("estimate_yield(") < body.index("recompute_field_state"), (
         "حساب التقدير يجب أن يسبق جلب الحالة (لا تغيير رقم التقدير)"
     )
 
