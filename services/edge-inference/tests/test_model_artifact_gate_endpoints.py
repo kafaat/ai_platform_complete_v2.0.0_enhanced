@@ -392,3 +392,74 @@ def test_missing_device_identity_returns_the_detection_instead_of_503(monkeypatc
     assert payload["sync_status"] == "not_synced_identity", payload
     assert payload["detections"][0]["class_name"] == "aphid", payload
     assert _queued(tmp_path) == [], "an observation without a device identity was queued"
+
+
+class _FakeOnnxSession:
+    """An inference session whose head has ``n_classes`` score rows (W1-19)."""
+
+    def __init__(self, n_classes: int):
+        self._n = n_classes
+
+    def get_inputs(self):
+        class _Input:
+            name = "images"
+
+        return [_Input()]
+
+    def run(self, _names, _feeds):
+        import numpy as np
+
+        out = np.zeros((1, 4 + self._n, 64), dtype=np.float32)
+        out[0, :4, 0] = (320, 320, 40, 40)
+        out[0, 4, 0] = 0.95
+        return [out]
+
+
+def _detector_with_head(monkeypatch, n_classes: int):
+    from models import pest_detector
+
+    monkeypatch.setattr(
+        pest_detector, "_load_onnx_session", lambda _p, _d: _FakeOnnxSession(n_classes)
+    )
+    return pest_detector.EdgePestDetector(model_path="/nonexistent/pest.onnx")
+
+
+def _manifest_len() -> int:
+    import json
+
+    doc = json.loads((EDGE / "models_manifest" / "pest_labels.json").read_text(encoding="utf-8"))
+    return len(doc["labels"])
+
+
+def test_a_model_wider_than_its_label_manifest_is_a_503_not_a_mislabelled_pest(
+    monkeypatch, tmp_path
+):
+    """W1-19 (scout-9): 11 classes against a 10-label manifest used to be truncated."""
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    detector = _detector_with_head(monkeypatch, _manifest_len() + 1)
+    monkeypatch.setattr(module, "get_pest_detector", lambda: detector)
+    client = TestClient(module.app)
+    response = client.post(
+        "/v1/inference/pest-detect",
+        files={"file": ("a.png", io.BytesIO(_png(8, 8)), "image/png")},
+        headers=_HEADERS,
+    )
+    assert response.status_code == 503, f"mismatched model answered: {response.text}"
+    detail = response.json()["detail"]
+    assert detail["reason"] == "pest_model_label_contract_violation", f"{detail}"
+
+
+def test_a_model_matching_its_label_manifest_detects_with_a_taxonomy_code(monkeypatch, tmp_path):
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    detector = _detector_with_head(monkeypatch, _manifest_len())
+    monkeypatch.setattr(module, "get_pest_detector", lambda: detector)
+    client = TestClient(module.app)
+    response = client.post(
+        "/v1/inference/pest-detect",
+        files={"file": ("a.png", io.BytesIO(_png(8, 8)), "image/png")},
+        headers=_HEADERS,
+    )
+    assert response.status_code == 200, f"matching model refused: {response.text}"
+    [detection] = response.json()["detections"]
+    assert detection["class_name"] == "aphid", f"{detection}"
+    assert detection["taxonomy_code"] == "aphid", f"{detection}"

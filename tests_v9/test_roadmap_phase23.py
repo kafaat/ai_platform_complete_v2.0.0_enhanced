@@ -561,7 +561,9 @@ def test_ipm_advisor():
     from api.ipm_advisor import IPMStage, ipm_plan, pests_for_crop, supported_pests
 
     r = []
-    if len(supported_pests()) == 3:
+    # W1-19: the advisor now plans every pest/disease code of the shared registry; the three
+    # original plans must still be there.
+    if {"fall_armyworm", "wheat_rust", "aphid"} <= {p["pest"] for p in supported_pests()}:
         r.append(("✓", "3 آفات يمنيّة (دودة الحشد، صدأ القمح، المنّ)"))
     plan = ipm_plan("fall_armyworm")
     if plan["supported"] and len(plan["ipm_ladder"]) == 4:

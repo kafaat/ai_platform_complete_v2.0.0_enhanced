@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from enum import Enum
 
+from shared.agronomy import pest_taxonomy
+
 
 class IPMStage(str, Enum):
     PREVENTION = "prevention"
@@ -116,27 +118,215 @@ _PESTS: dict[str, dict] = {
         ),
         "economic_threshold_ar": "عند تجمّعات كثيفة مع غياب الأعداء الطبيعيّين.",
     },
-}
-
-_ALIASES = {
-    "دودة الحشد": "fall_armyworm",
-    "دودة الحشد الخريفية": "fall_armyworm",
-    "الحشد": "fall_armyworm",
-    "armyworm": "fall_armyworm",
-    "صدأ القمح": "wheat_rust",
-    "صدأ": "wheat_rust",
-    "rust": "wheat_rust",
-    "منّ": "aphid",
-    "المن": "aphid",
-    "المنّ": "aphid",
+    # ── W1-19: plans for every pest/disease code that diagnosis or the edge model emits ──
+    "stem_borer": {
+        "name_ar": "حفّار ساق الذرة",
+        "scientific": "Sesamia spp. / Chilo partellus",
+        "hosts_ar": "الذرة الشاميّة، الذرة الرفيعة، الدخن",
+        "severity_ar": "عالية — اليرقات داخل الساق تُضعف النبات وتسبّب الكسر وفقد الكيزان",
+        "symptoms_ar": [
+            "ثقوب دخول على الساق مع نشارة/فضلات يرقات",
+            "موت القلب (القمّة النامية تذبل وتجفّ) في النباتات الصغيرة",
+            "كسر السيقان وسقوط الكيزان قرب النضج",
+        ],
+        "prevention_ar": [
+            "إتلاف بقايا السيقان بعد الحصاد (تشتو فيها اليرقات)",
+            "الزراعة المبكرة المتزامنة في المنطقة",
+            "الدورة الزراعيّة مع محاصيل غير نجيليّة",
+        ],
+        "monitoring_ar": [
+            "فحص دوري لموت القلب وثقوب الساق في عيّنة نباتات",
+            "المصائد الضوئيّة/الفرمونيّة لرصد الفراشات",
+        ],
+        "biological_ar": [
+            "متطفّلات البيض (Trichogramma)",
+            "المتطفّل اليرقي (Cotesia flavipes)",
+        ],
+        "chemical_note_ar": (
+            "ملاذ أخير وقبل دخول اليرقات الساق فقط (بعدها لا تبلغها المعاملة). استشر "
+            "السلامة الكيميائيّة والتسجيل المحلّي، وطبّق بإشراف فنّي."
+        ),
+        "economic_threshold_ar": "عند موت القلب في نحو 5-10% من النباتات الصغيرة.",
+    },
+    "tomato_leafminer": {
+        "name_ar": "حفّار أوراق الطماطم (توتا)",
+        "scientific": "Tuta absoluta",
+        "hosts_ar": "الطماطم (الأكثر تفضيلاً)، البطاطس، الباذنجان",
+        "severity_ar": "خطيرة جدّاً — أنفاق في الأوراق والثمار وخسائر قد تكون كاملة",
+        "symptoms_ar": [
+            "أنفاق شفّافة غير منتظمة (بقع) في الأوراق",
+            "ثقوب في الثمار والقمم النامية مع فضلات",
+        ],
+        "prevention_ar": [
+            "شتلات سليمة خالية من الإصابة",
+            "شبك مانع للحشرات في البيوت المحميّة",
+            "إزالة وإتلاف الأوراق والثمار المصابة وبقايا المحصول",
+        ],
+        "monitoring_ar": [
+            "المصائد الفرمونيّة للرصد المبكر وتقدير الكثافة",
+            "فحص دوري للأوراق العلويّة بحثاً عن الأنفاق",
+        ],
+        "biological_ar": [
+            "البقّ المفترس (Nesidiocoris tenuis, Macrolophus pygmaeus)",
+            "متطفّلات البيض (Trichogramma)",
+        ],
+        "chemical_note_ar": (
+            "ملاذ أخير مع تدوير مجموعات طرق التأثير لتجنّب المقاومة (تُطوِّرها هذه الآفة "
+            "سريعاً). استشر السلامة الكيميائيّة والتسجيل المحلّي."
+        ),
+        "economic_threshold_ar": "عند ارتفاع صيد المصائد الفرمونيّة أو ظهور أنفاق نشطة على الأوراق.",
+    },
+    "spider_mite": {
+        "name_ar": "العنكبوت الأحمر",
+        "scientific": "Tetranychus urticae",
+        "hosts_ar": "الطماطم، البطاطس، البنّ، الخضروات، الموالح",
+        "severity_ar": "متوسّطة إلى عالية في الجوّ الحارّ الجافّ",
+        "symptoms_ar": [
+            "نقط صفراء دقيقة (تبرقش) على السطح العلوي للورقة",
+            "خيوط عنكبوتيّة دقيقة على السطح السفلي",
+            "اصفرار وجفاف الأوراق عند الإصابة الشديدة",
+        ],
+        "prevention_ar": [
+            "تجنّب الإجهاد المائي والغبار (يشجّعان التكاثر)",
+            "إزالة الحشائش العائلة حول الحقل",
+        ],
+        "monitoring_ar": [
+            "فحص السطح السفلي للأوراق بعدسة مكبّرة",
+            "الانتباه للبؤر في الطقس الحارّ الجافّ",
+        ],
+        "biological_ar": [
+            "الأكاروس المفترس (Phytoseiulus persimilis)",
+            "الحفاظ على الأعداء الطبيعيّين بتجنّب الرشّ العشوائي",
+        ],
+        "chemical_note_ar": (
+            "ملاذ أخير وعلى البؤر فقط، مع تدوير طرق التأثير. الرشّ العامّ يقتل المفترسات "
+            "فيُفاقم الإصابة. استشر السلامة الكيميائيّة."
+        ),
+        "economic_threshold_ar": "عند انتشار التبرقش في نسبة واضحة من الأوراق مع غياب المفترسات.",
+    },
+    "coffee_berry_borer": {
+        "name_ar": "ثاقبة ثمار البنّ",
+        "scientific": "Hypothenemus hampei",
+        "hosts_ar": "البنّ",
+        "severity_ar": "عالية — تُتلف البذور داخل الثمار وتخفض الجودة والكمّيّة",
+        "symptoms_ar": [
+            "ثقب صغير عند طرف الثمرة (القرص)",
+            "بذور مثقوبة/متآكلة وثمار متساقطة",
+        ],
+        "prevention_ar": [
+            "القطف الكامل وعدم ترك ثمار على الشجرة أو الأرض بعد الموسم",
+            "جمع الثمار المتساقطة وإتلافها",
+            "التقليم لتحسين التهوية",
+        ],
+        "monitoring_ar": [
+            "فحص عيّنة ثمار دوريّاً لنسبة الثمار المثقوبة",
+            "مصائد كحوليّة لرصد الطيران",
+        ],
+        "biological_ar": [
+            "الفطر الممرض للحشرات (Beauveria bassiana)",
+            "الدبابير المتطفّلة (Cephalonomia stephanoderis)",
+        ],
+        "chemical_note_ar": (
+            "ملاذ أخير قبل دخول الحشرة إلى البذرة فقط. استشر السلامة الكيميائيّة والتسجيل المحلّي."
+        ),
+        "economic_threshold_ar": "عند تجاوز الثمار المثقوبة نحو 2-5% من العيّنة.",
+    },
+    "coffee_leaf_rust": {
+        "name_ar": "صدأ أوراق البنّ",
+        "scientific": "Hemileia vastatrix",
+        "hosts_ar": "البنّ",
+        "severity_ar": "عالية — تساقط الأوراق وضعف الأشجار وانخفاض الإنتاج في المواسم التالية",
+        "symptoms_ar": [
+            "مسحوق برتقالي على السطح السفلي للورقة",
+            "بقع صفراء على السطح العلوي",
+            "تساقط الأوراق",
+        ],
+        "prevention_ar": [
+            "أصناف متحمّلة/مقاومة",
+            "تظليل وتقليم متوازنان لتقليل بلل الأوراق",
+            "تغذية متوازنة (الأشجار المجهدة أكثر قابليّة)",
+        ],
+        "monitoring_ar": [
+            "فحص دوري للأوراق السفليّة خاصة بعد الأمطار",
+            "مراقبة الطقس: الرطوبة والأمطار تسرّع الانتشار",
+        ],
+        "biological_ar": [
+            "لا مكافحة حيويّة عمليّة واسعة — التركيز على الأصناف والوقاية",
+        ],
+        "chemical_note_ar": (
+            "مبيدات فطريّة وقائيّة قبل موسم الأمطار عند تاريخ إصابة. استشر السلامة "
+            "الكيميائيّة والتسجيل المحلّي."
+        ),
+        "economic_threshold_ar": "عند ظهور البثرات في نسبة متزايدة من الأوراق مع موسم الأمطار.",
+    },
+    "late_blight": {
+        "name_ar": "اللفحة المتأخّرة",
+        "scientific": "Phytophthora infestans",
+        "hosts_ar": "البطاطس، الطماطم",
+        "severity_ar": "خطيرة جدّاً — قد تُتلف الحقل خلال أيّام في الجوّ الرطب البارد",
+        "symptoms_ar": [
+            "بقع مائيّة داكنة على الأوراق تتّسع سريعاً",
+            "نموّ أبيض زغبي على السطح السفلي عند الرطوبة",
+            "تعفّن بنّي في الدرنات/الثمار",
+        ],
+        "prevention_ar": [
+            "تقاوي/شتلات سليمة معتمدة وأصناف متحمّلة",
+            "تجنّب الريّ بالرشّ وبلل الأوراق الطويل",
+            "الدورة الزراعيّة وإتلاف النباتات والدرنات المصابة",
+        ],
+        "monitoring_ar": [
+            "فحص يومي في الطقس الرطب البارد",
+            "متابعة إنذارات الطقس الملائم للمرض",
+        ],
+        "biological_ar": [
+            "لا بديل حيوي موثوق وحده — الوقاية والأصناف أساس المكافحة",
+        ],
+        "chemical_note_ar": (
+            "مبيدات فطريّة وقائيّة في الظروف الملائمة للمرض. استشر السلامة الكيميائيّة "
+            "والتسجيل المحلّي، وطبّق بإشراف فنّي."
+        ),
+        "economic_threshold_ar": "عند أوّل ظهور للبقع مع طقس رطب بارد (لا انتظار).",
+    },
+    "bacterial_wilt": {
+        "name_ar": "الذبول البكتيري",
+        "scientific": "Ralstonia solanacearum",
+        "hosts_ar": "الطماطم، البطاطس، الباذنجان، الفلفل",
+        "severity_ar": "عالية — لا علاج للنبات المصاب، وتبقى البكتيريا في التربة",
+        "symptoms_ar": [
+            "ذبول مفاجئ للنبات والأوراق خضراء",
+            "تلوّن بنّي في الأوعية عند قطع الساق",
+            "إفراز بكتيري لبني من الساق المقطوع في الماء",
+        ],
+        "prevention_ar": [
+            "تقاوي/شتلات سليمة معتمدة",
+            "دورة زراعيّة طويلة مع محاصيل غير عائلة",
+            "تجنّب نقل التربة والماء من الأماكن المصابة وتطهير الأدوات",
+        ],
+        "monitoring_ar": [
+            "فحص النباتات الذابلة واختبار الساق في الماء",
+            "تأكيد مختبري للتشخيص",
+        ],
+        "biological_ar": [
+            "لا مكافحة حيويّة مثبتة على نطاق واسع — الإدارة وقائيّة",
+        ],
+        "chemical_note_ar": (
+            "لا مكافحة كيميائيّة فعّالة للنبات المصاب: اقلع النباتات المصابة وأتلفها. "
+            "استشر مهندساً زراعيّاً."
+        ),
+        "economic_threshold_ar": "أيّ نبات مصاب يستدعي الإزالة الفوريّة ومنع الانتشار.",
+    },
 }
 
 
 def _resolve(pest: str) -> str | None:
-    p = pest.strip().lower()
-    if p in _PESTS:
-        return p
-    return _ALIASES.get(pest.strip())
+    """Any spelling the shared registry knows -> the canonical code, if a plan exists for it.
+
+    W1-19 (scout-3): the registry ``shared.agronomy.pest_taxonomy`` is the one vocabulary;
+    diagnosis codes (``wheat.rust``), edge labels (``rust``, ``armyworm``) and Arabic names
+    all resolve there. This advisor only owns the plans.
+    """
+    code = pest_taxonomy.resolve_code(pest)
+    return code if code in _PESTS else None
 
 
 def supported_pests() -> list[dict]:
@@ -156,7 +346,13 @@ def ipm_plan(pest: str) -> dict:
     """خطّة الإدارة المتكاملة الكاملة لآفة (4 مراحل متدرّجة)."""
     key = _resolve(pest)
     if not key:
+        resolution = pest_taxonomy.ipm_resolution(pest)
+        if resolution["ipm_status"] == "plan_available":
+            # The registry says a plan applies but none is authored here: fail closed and say
+            # so, never answer with another organism's ladder.
+            resolution = {**resolution, "ipm_plan_ref": None, "ipm_status": "plan_missing"}
         return {
+            **resolution,
             "supported": False,
             "message_ar": f"لا خطّة IPM لـ«{pest}». المدعوم: "
             + "، ".join(v["name_ar"] for v in _PESTS.values()),
@@ -165,6 +361,7 @@ def ipm_plan(pest: str) -> dict:
     return {
         "supported": True,
         "pest": key,
+        "taxonomy_code": key,
         "name_ar": p["name_ar"],
         "scientific": p["scientific"],
         "hosts_ar": p["hosts_ar"],
