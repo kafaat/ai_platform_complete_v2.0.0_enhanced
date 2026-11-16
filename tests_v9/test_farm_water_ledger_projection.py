@@ -237,7 +237,8 @@ def test_the_worker_skips_uncomputed_rows_as_the_prior_balance():
     src = inspect.getsource(mod.run_water_ledger_once)
     prev = src.index('"SELECT depletion_mm, ledger_date FROM water_ledger"')
     prev_sql = src[prev : src.index("ORDER BY ledger_date DESC LIMIT 1", prev)]
-    assert '" AND NOT (created_by = $3 AND decision IS NULL)"' in prev_sql, (
+    # NULL-safe (#1500 review): a recorded balance with NULL writer and decision stays eligible.
+    assert '" AND NOT (created_by IS NOT DISTINCT FROM $3 AND decision IS NULL)"' in prev_sql, (
         "a balance-less row a report or projection opened must not be read as the prior day: "
         f"{prev_sql}"
     )
