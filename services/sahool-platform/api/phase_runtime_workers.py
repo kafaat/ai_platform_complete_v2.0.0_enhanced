@@ -529,6 +529,15 @@ class _RainChainChanged(Exception):
     """قيدٌ في سلسلة إعادة تسجيل المطر تغيّر بين القراءة والكتابة ⇒ تُرجَع السلسلة كلُّها."""
 
 
+def _water_deficit_dedup_key(tenant_id: object, field_id: str, day: object, result: dict) -> str:
+    """W2-02: one decision.water_deficit event per field and day — but a blocked outcome
+    (``blocked:lineage_missing`` …) keeps its own key, so a later hourly run whose candidate
+    is recorded is not dropped by ON CONFLICT behind the morning's block."""
+    key = f"water-deficit:{tenant_id}:{field_id}:{day}"
+    status = str(result.get("status") or "")
+    return f"{key}:{status}" if status.startswith("blocked") else key
+
+
 async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
     """WATER-LEDGER-AUTO: يحسب قيد دفتر المياه اليوميّ آليّاً لكلّ حقل بموسم نشط.
 
@@ -1008,7 +1017,9 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                                         "deficit_mm": entry["deficit_mm"],
                                     }
                                 ),
-                                f"water-deficit:{row['tenant_id']}:{field_id}:{today}",
+                                _water_deficit_dedup_key(
+                                    row["tenant_id"], field_id, today, bridge_result
+                                ),
                             )
 
                 except Exception as exc:  # noqa: BLE001 — تخطٍّ لكلّ حقل مُعلَّل، لا انهيار الدفعة

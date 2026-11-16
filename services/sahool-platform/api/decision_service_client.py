@@ -454,12 +454,18 @@ async def submit_governed_candidate(
     Returns ``{"status": "recorded", "record": <decision-service answer>, "lineage": ...}``, or
     ``{"status": "blocked:lineage_missing", "missing": [...], "lineage": ...}`` — never a 422:
     a blocked binding submits nothing, and decision-service's own AC-1 refusal (it enforces
-    where this process did not expect it) is mapped to the same state. Any other error is
-    raised unchanged. ``record`` lets a bridge keep its own (patchable) recorder.
+    where this process did not expect it) is mapped to the same state. A refusal of the lineage
+    itself (stale or mismatched snapshot, season mismatch) is
+    ``{"status": "blocked:lineage_rejected", "reason": <code>}``. Any other error is raised
+    unchanged. ``record`` lets a bridge keep its own (patchable) recorder.
     """
     from fastapi import HTTPException
 
-    from api.agronomic_context_composer import lineage_missing_result
+    from api.agronomic_context_composer import (
+        lineage_missing_result,
+        lineage_rejected_result,
+        lineage_rejection_reason,
+    )
 
     if binding.blocked:
         return lineage_missing_result(binding)
@@ -467,9 +473,12 @@ async def submit_governed_candidate(
     try:
         result = await recorder({**record_payload, **binding.record_fields}, tenant_id=tenant_id)
     except HTTPException as exc:
-        if binding.refusal(exc.status_code, exc.detail) is None:
+        if binding.refusal(exc.status_code, exc.detail) is not None:
+            return lineage_missing_result(binding, exc.detail.get("missing"))
+        reason = lineage_rejection_reason(exc.status_code, exc.detail)
+        if reason is None:
             raise
-        return lineage_missing_result(binding, exc.detail.get("missing"))
+        return lineage_rejected_result(binding, reason)
     return {"status": "recorded", "record": result, "lineage": binding.report()}
 
 

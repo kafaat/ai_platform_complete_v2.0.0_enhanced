@@ -22,6 +22,7 @@ import pytest
 import yaml
 from api.agronomic_context_composer import (
     LINEAGE_MISSING_STATE,
+    LINEAGE_REJECTED_STATE,
     REQUIRED_LINEAGE_FIELDS,
     agronomic_context_startup_error,
 )
@@ -256,6 +257,133 @@ def test_a_422_that_is_not_the_ac1_refusal_is_not_hidden(ds, bridge):
     assert caught.value.status_code == 422, f"{bridge}: unrelated 422 was rewritten"
 
 
+@pytest.mark.parametrize(
+    "reason",
+    [
+        "vegetation_unavailable_at_cutoff",
+        "decision_season_mismatch",
+        "lineage_integrity_violation:x",
+    ],
+)
+@pytest.mark.parametrize("bridge", sorted(BRIDGES))
+def test_decision_services_lineage_refusal_is_named_not_a_bare_422(ds, bridge, reason):
+    # SoR path: decision-service refuses the lineage itself with a string reason code.
+    ds.record_raises = HTTPException(status_code=422, detail=reason)
+    out = asyncio.run(BRIDGES[bridge]())
+    assert _status(bridge, out) == LINEAGE_REJECTED_STATE, f"{bridge}: refusal not named: {out}"
+    assert out["reason"] == reason, f"{bridge}: refusal code lost: {out}"
+
+
+# ── the MPC route binds the canonical season, never the client's ─────────────────────────
+def _canonical_water(season_id="s1"):
+    from api.canonical_water_state import CanonicalWaterState
+
+    return CanonicalWaterState(
+        schema_version="sahool.canonical_water_state.v1",
+        tenant_id="t1",
+        field_id="f1",
+        season_id=season_id,
+        crop="wheat",
+        growth_stage="flowering",
+        depletion_mm=45.0,
+        depletion_confidence=0.9,
+        ledger_date="2026-07-13",
+        ledger_age_hours=3.0,
+        taw_mm=100.0,
+        raw_fraction=0.5,
+        raw_mm=50.0,
+        root_depth_m=0.9,
+        soil_texture="governed_hydraulic_profile",
+        forecast=[
+            {"date": f"2026-07-{13 + i}", "et0_mm": 7.0, "kc": 1.1, "rain_mm": 0.0}
+            for i in range(5)
+        ],
+        evidence={},
+        quality_status="verified",
+        operational_eligible=True,
+        limitations=[],
+        water_state_digest="a" * 64,
+        weather_snapshot_digest="b" * 64,
+        soil_profile_digest="c" * 64,
+        season_state_digest="d" * 64,
+    )
+
+
+class _RouteUser:
+    tenant_id = "t1"
+
+
+@pytest.fixture
+def mpc_route(ds, monkeypatch):
+    import api.routers.irrigation_mpc as route
+
+    async def _owned(_u, _f):
+        return True
+
+    async def _no_bindings(_u, _f):
+        return []
+
+    async def _canonical(_u, _f, _h):
+        return _canonical_water("s1")
+
+    cultivar_reads: list = []
+
+    async def _cultivar(_u, season_id):
+        cultivar_reads.append(season_id)
+        return "yecora" if season_id == "s1" else "other-season-cultivar"
+
+    monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_active_field_source_bindings", _no_bindings)
+    monkeypatch.setattr(route, "_source_canonical_water", _canonical)
+    monkeypatch.setattr(route, "_season_cultivar", _cultivar)
+    route_under_test = type("RouteUnderTest", (), {})()
+    route_under_test.module = route
+    route_under_test.cultivar_reads = cultivar_reads
+    return route_under_test
+
+
+def test_the_mpc_route_without_a_client_season_sends_ac1_for_the_canonical_season(ds, mpc_route):
+    req = mpc_route.module.RecommendationRequest(horizon_days=5, submit=True)
+    out = asyncio.run(mpc_route.module.irrigation_mpc_recommendation("f1", req, user=_RouteUser()))
+    assert out["emit"]["status"] == "candidate_created", f"MPC route did not send AC-1: {out}"
+    assert len(ds.recorded) == 1, f"exactly one candidate must be recorded: {ds.recorded}"
+    sent = ds.recorded[0]
+    assert sent["season_id"] == "s1", f"binding season is not the canonical one: {sent}"
+    assert sent["cultivar_id"] == "yecora", f"cultivar not from the canonical season: {sent}"
+    assert sent["decision_value"]["season_id"] == "s1", f"embedded season drifted: {sent}"
+    assert mpc_route.cultivar_reads == ["s1"], f"cultivar read: {mpc_route.cultivar_reads}"
+
+
+def test_the_mpc_route_refuses_a_client_season_other_than_the_canonical_one(ds, mpc_route):
+    req = mpc_route.module.RecommendationRequest(horizon_days=5, submit=True, season_id="s2")
+    out = asyncio.run(mpc_route.module.irrigation_mpc_recommendation("f1", req, user=_RouteUser()))
+    assert out["status"] == "blocked", f"mismatched season was not refused: {out}"
+    assert out["reason"] == "season_mismatch", f"unexpected reason: {out}"
+    assert out["season_id"] == "s1", f"canonical season not named: {out}"
+    assert ds.recorded == [] and ds.composed == [], "nothing may be composed or recorded"
+    assert mpc_route.cultivar_reads == [], "no cultivar may be read for a refused season"
+
+
+def test_the_mpc_route_accepts_a_client_season_equal_to_the_canonical_one(ds, mpc_route):
+    req = mpc_route.module.RecommendationRequest(horizon_days=5, submit=True, season_id="s1")
+    out = asyncio.run(mpc_route.module.irrigation_mpc_recommendation("f1", req, user=_RouteUser()))
+    assert out["emit"]["status"] == "candidate_created", f"matching season was refused: {out}"
+    assert ds.recorded[0]["season_id"] == "s1", f"wrong season recorded: {ds.recorded}"
+
+
+# ── water-ledger worker: a blocked outcome does not take the day's event key ─────────────
+def test_a_blocked_water_outcome_keeps_its_own_event_dedup_key():
+    from api.phase_runtime_workers import _water_deficit_dedup_key
+
+    day = date(2026, 7, 12)
+    blocked = _water_deficit_dedup_key("t1", "f1", day, {"status": LINEAGE_MISSING_STATE})
+    created = _water_deficit_dedup_key("t1", "f1", day, {"status": "candidate_created"})
+    assert blocked != created, "a morning block would drop the later candidate's event"
+    assert created == "water-deficit:t1:f1:2026-07-12", f"success key changed: {created}"
+    again = _water_deficit_dedup_key("t1", "f1", day, {"status": LINEAGE_MISSING_STATE})
+    assert blocked == again, "the same blocked outcome must still dedupe within the day"
+
+
 @pytest.mark.parametrize("bridge", sorted(BRIDGES))
 def test_enforced_with_the_composer_off_nothing_is_composed_or_recorded(ds, monkeypatch, bridge):
     monkeypatch.delenv("AGRONOMIC_CONTEXT_COMPOSE_ENABLED", raising=False)
@@ -285,7 +413,7 @@ def test_not_enforced_and_composer_off_the_bridge_records_exactly_as_before(
     assert bound == [], f"{bridge}: lineage fields attached with the composer off: {bound}"
 
 
-# ── boot check (decision-9) ──────────────────────────────────────────────────────────────
+# ── boot refusal (decision-9) ──────────────────────────────────────────────────────────────
 @pytest.mark.parametrize(
     "env,compose,refused",
     [
@@ -346,16 +474,15 @@ def test_the_water_ledger_worker_refuses_to_start_with_the_bridge_on_and_compose
     monkeypatch.setenv("WATER_DEFICIT_DECISION_BRIDGE_ENABLED", "true")
     monkeypatch.setenv("DECISION_SERVICE_TOKEN", "x" * 40)
     monkeypatch.delenv("AGRONOMIC_CONTEXT_COMPOSE_ENABLED", raising=False)
-    connected = []
-
-    async def _connect():
-        connected.append(True)
-        raise AssertionError("connected before the boot check")
-
-    monkeypatch.setattr(workers, "_connect", _connect)
-    with pytest.raises(RuntimeError, match="AGRONOMIC_CONTEXT_COMPOSE_ENABLED"):
+    # No database URL: had the worker reached its connection step first, it would fail with
+    # "JOBS_DATABASE_URL is required" instead — so the message proves the order.
+    monkeypatch.delenv("JOBS_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    with pytest.raises(RuntimeError) as refused:
         asyncio.run(workers.loop_worker("water_ledger"))
-    assert connected == [], "the worker connected before refusing"
+    message = str(refused.value)
+    assert "AGRONOMIC_CONTEXT_COMPOSE_ENABLED" in message, f"refused for another reason: {message}"
+    assert "JOBS_DATABASE_URL" not in message, "the worker reached its connection step first"
 
 
 # ── deployment manifests (routes-3) ──────────────────────────────────────────────────────

@@ -447,6 +447,17 @@ async def irrigation_mpc_recommendation(
             "limitations": canonical.limitations,
         }
 
+    # W2-02: the season is the canonical snapshot's, never the client's. A request that names
+    # another season would bind one season's cultivar to another season's lineage.
+    if req.season_id and req.season_id != canonical.season_id:
+        return {
+            "status": "blocked",
+            "reason": "season_mismatch",
+            "field_id": field_id,
+            "season_id": canonical.season_id,
+            "requested_season_id": req.season_id,
+        }
+
     state = {
         "depletion_mm": canonical.depletion_mm,
         "stage": canonical.growth_stage,
@@ -480,7 +491,7 @@ async def irrigation_mpc_recommendation(
         initial_depletion_mm=float(state["depletion_mm"]),
         tenant_id=tenant_id,
         field_id=field_id,
-        season_id=req.season_id,
+        season_id=canonical.season_id,
         crop=soil.get("crop"),
         growth_stage=state.get("stage"),
         yield_floor_ratio=req.yield_floor_ratio,

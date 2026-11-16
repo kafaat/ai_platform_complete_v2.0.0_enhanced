@@ -561,6 +561,49 @@ def lineage_missing_result(binding: Ac1Binding, missing: Any = None) -> dict[str
     }
 
 
+LINEAGE_REJECTED_STATE = "blocked:lineage_rejected"
+
+# decision-service's SoR lineage refusals (persistence.persist_decision_record and its
+# _validate_decision_context / _validate_vegetation_reference): stable reason codes, sent as a
+# string 422 detail. A bridge names them instead of passing a bare 422 on.
+_LINEAGE_REJECTION_CODES = frozenset(
+    {
+        "partial_context_binding",
+        "decision_season_mismatch",
+        "unknown_agronomic_context_snapshot",
+        "context_field_mismatch",
+        "context_season_mismatch",
+        "unknown_historical_context_snapshot",
+        "history_field_mismatch",
+        "history_season_mismatch",
+        "unknown_feature_manifest",
+        "manifest_field_mismatch",
+        "feature_manifest_hash_mismatch",
+        "context_composition_mismatch",
+        "unknown_vegetation_snapshot",
+        "vegetation_field_mismatch",
+        "vegetation_season_mismatch",
+        "vegetation_unavailable_at_cutoff",
+        "vegetation_not_executable",
+    }
+)
+_LINEAGE_REJECTION_PREFIXES = ("lineage_integrity_violation:",)
+
+
+def lineage_rejection_reason(status_code: int, detail: Any) -> str | None:
+    """The reason code when a decision-service 422 is a refusal of the lineage itself."""
+    if status_code != 422 or not isinstance(detail, str):
+        return None
+    if detail in _LINEAGE_REJECTION_CODES or detail.startswith(_LINEAGE_REJECTION_PREFIXES):
+        return detail
+    return None
+
+
+def lineage_rejected_result(binding: Ac1Binding, reason: str) -> dict[str, Any]:
+    """The named state when decision-service refuses the lineage the bridge sent."""
+    return {"status": LINEAGE_REJECTED_STATE, "reason": reason, "lineage": binding.report()}
+
+
 def agronomic_context_startup_error() -> str | None:
     """Boot check: AC-1 enforced with the server-side composer off can only ever block.
 

@@ -304,7 +304,8 @@ async def submit_crop_decision_candidate(
         return {
             **_preview(candidate),
             "approval_state": submitted["status"],
-            "missing": submitted["missing"],
+            "missing": submitted.get("missing", []),
+            **({"reason": submitted["reason"]} if "reason" in submitted else {}),
             "lineage": submitted["lineage"],
         }
     result = submitted["record"]
