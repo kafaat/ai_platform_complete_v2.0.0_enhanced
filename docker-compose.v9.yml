@@ -3166,6 +3166,8 @@ services:
       WATER_LEDGER_AUTO_ENABLED: ${WATER_LEDGER_AUTO_ENABLED:-false}
       # WATER-DEFICIT-BRIDGE: جسر عجز الماء المحكوم — default-off مزدوج (جسر + تنفيذ
       # آليّ)، والتنفيذ الآليّ يتطلّب هدفاً صريحاً؛ بدونهما القيد بشريّ المراجعة دائماً.
+      # W2-04 (2026-11-16): AUTO_EXECUTION يعني اعتماداً آليّاً + خطّة فقط، ثمّ
+      # awaiting_human_authorization؛ التفويض والتنفيذ لإنسانٍ عبر decision-service.
       WATER_DEFICIT_DECISION_BRIDGE_ENABLED: ${WATER_DEFICIT_DECISION_BRIDGE_ENABLED:-false}
       WATER_DEFICIT_DECISION_THRESHOLD_MM: ${WATER_DEFICIT_DECISION_THRESHOLD_MM:-10}
       WATER_DEFICIT_POLICY_VERSION: ${WATER_DEFICIT_POLICY_VERSION:-water-deficit.v1}
