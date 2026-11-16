@@ -16,6 +16,10 @@ MCP ``wofost``. كانت المهارة تنادي أداة MCP ``run_wofost_sim
 ``pcse_inputs``)، لكنّ ``SIM_PCSE_ENABLED`` مطفأة افتراضاً (قرار المالك)، فالمُجاب في النشر ما زال
 البديل الحتميّ حتى تُشعَل — ويُقال المحرّك للمستخدم في نصّ الردّ نفسه، ومعه افتراضات PCSE المُعلَنة
 (تربة افتراضيّة، رطوبة ابتدائيّة، ريّ غير مُعلَن) من ``diagnostics.defaults_applied``.
+
+W2-17: على المسار الموثوق (طلبٌ بـ``field_id``) يصل المحصول والصنف والبذار من الموسم النشط والطقسُ
+من weather-service (``server_facts.py``)، ويُرفَق سجلُّ مصادرها ``facts_provenance`` بالمُخرَج.
+واقتصاد التحسين يُحسَب في agriai ``/v1/plan`` (``plan_economics``) لا هنا.
 """
 
 import asyncio
@@ -50,7 +54,8 @@ class CropModelSkill:
     ) -> dict[str, Any]:
 
         if intent == "simulate_current":
-            return await self._simulate_via_agriai(context or {})
+            result = await self._simulate_via_agriai(context or {})
+            return _with_facts_provenance(result, context or {})
 
         elif intent == "irrigation_advice":
             return await self._irrigation_advice(field_id, context or {})
@@ -70,31 +75,10 @@ class CropModelSkill:
             }
 
     async def _simulate_via_agriai(self, context: dict) -> dict:
-        crop = str(context.get("crop") or "").strip().lower()
-        if not crop:
-            # كان الافتراض الصامت "wheat" + تاريخ زرع 2026-01-15 + تربة medium: مدخلات مُختلَقة.
-            return _unavailable("crop_required", "لا يمكن محاكاة الغلّة دون تحديد المحصول صراحةً.")
-        weather = _dict(context.get("weather"))
-        agronomic_context = _dict(context.get("agronomic_context"))
-        if not (
-            _has_weather(weather) or _has_weather(_dict(agronomic_context.get("weather_snapshot")))
-        ):
-            # البديل الحتميّ يُعيد غلّة 0 من طقس غائب (GDD=0) — رقمٌ بلا دليل لا يُعرَض كتوقّع.
-            return _unavailable(
-                "crop_model_weather_required",
-                "لا يمكن محاكاة الغلّة دون بيانات طقس للموسم (درجات حراريّة تراكميّة أو سلسلة يوميّة).",
-            )
-        management = _dict(context.get("agromanagement"))
-        if context.get("planting_date") and "planting_date" not in management:
-            management["planting_date"] = context["planting_date"]
-        payload = {
-            "crop": {"name": crop},
-            "weather": weather,
-            "soil": _dict(context.get("soil")),
-            "agromanagement": management,
-            "agronomic_context": agronomic_context,
-        }
-        agriai = os.getenv("AGRIAI_ENGINE_URL", "http://sahool-agriai-engine:8000").rstrip("/")
+        inputs = _engine_inputs(context)
+        if "unavailable" in inputs:
+            return inputs["unavailable"]
+        crop, payload, agriai = inputs["crop"]["name"], inputs, _agriai_url()
         # تعذّر الوصول/مهلة/5xx غير مُصنَّف ⇒ يُرفَع httpx.HTTPError فيُحوّله المسار إلى ردّ
         # ``degraded`` (confidence=0، بلا أرقام) — نفس عقد الريّ أعلاه، لا رقم احتياطيّ.
         async with httpx.AsyncClient(timeout=20.0) as client:
@@ -218,6 +202,133 @@ class IrrigationAction(_IrrigationInputs):
 
     net_water_m3: float = Field(ge=0)
     water_m3: float = Field(ge=0, description="Gross withdrawal volume in m3")
+
+
+def _agriai_url() -> str:
+    return os.getenv("AGRIAI_ENGINE_URL", "http://sahool-agriai-engine:8000").rstrip("/")
+
+
+# Numeric crop parameters the agriai deterministic fallback reads (it refuses a bare crop
+# name: airuntime-5). On the trusted path ``crop_parameters`` is a server-bound key and is
+# dropped from the body; no platform source carries these yet, so the engine answers 422.
+_CROP_PARAMETER_KEYS = (
+    "base_temp_c",
+    "max_yield_kg_ha",
+    "gdd_to_maturity",
+    "water_use_efficiency",
+    "harvest_index",
+)
+
+
+def _engine_inputs(context: dict) -> dict:
+    """The agriai request body (crop/weather/soil/agromanagement/agronomic_context) from the
+    bound context, or ``{"unavailable": <result>}`` when the crop or the weather is absent."""
+    crop = str(context.get("crop") or "").strip().lower()
+    if not crop:
+        # كان الافتراض الصامت "wheat" + تاريخ زرع 2026-01-15 + تربة medium: مدخلات مُختلَقة.
+        return {
+            "unavailable": _unavailable(
+                "crop_required", "لا يمكن محاكاة الغلّة دون تحديد المحصول صراحةً."
+            )
+        }
+    weather = _dict(context.get("weather"))
+    agronomic_context = _dict(context.get("agronomic_context"))
+    if not (
+        _has_weather(weather) or _has_weather(_dict(agronomic_context.get("weather_snapshot")))
+    ):
+        # البديل الحتميّ يُعيد غلّة 0 من طقس غائب (GDD=0) — رقمٌ بلا دليل لا يُعرَض كتوقّع.
+        return {
+            "unavailable": _unavailable(
+                "crop_model_weather_required",
+                "لا يمكن محاكاة الغلّة دون بيانات طقس للموسم (درجات حراريّة تراكميّة أو سلسلة يوميّة).",
+            )
+        }
+    crop_input: dict[str, Any] = {"name": crop}
+    params = _dict(context.get("crop_parameters"))
+    for key in _CROP_PARAMETER_KEYS:
+        value = _finite(params.get(key))
+        if value is not None:
+            crop_input[key] = value
+    if isinstance(context.get("cultivar"), str) and context["cultivar"].strip():
+        crop_input["cultivar"] = context["cultivar"].strip()
+    management = _dict(context.get("agromanagement"))
+    if context.get("planting_date") and "planting_date" not in management:
+        management["planting_date"] = context["planting_date"]
+    seed_rate = _finite(context.get("seed_rate_kg_ha"))
+    if seed_rate is not None and "seed_rate_kg_ha" not in management:
+        management["seed_rate_kg_ha"] = seed_rate
+    return {
+        "crop": crop_input,
+        "weather": weather,
+        "soil": _dict(context.get("soil")),
+        "agromanagement": management,
+        "agronomic_context": agronomic_context,
+    }
+
+
+def _with_facts_provenance(result: dict, context: dict) -> dict:
+    """Carry the server-facts record (W2-17) on the skill result and in its structured block."""
+    provenance = context.get("_facts_provenance")
+    if isinstance(provenance, dict) and isinstance(result, dict):
+        result["facts_provenance"] = provenance
+        if isinstance(result.get("structured"), dict):
+            result["structured"]["facts_provenance"] = provenance
+    return result
+
+
+async def plan_economics(context: dict, price_per_kg: float) -> dict:
+    """Profit for the season crop from agriai ``POST /v1/plan`` (airuntime-6).
+
+    The supervisor computes no economics: price is the observed market price, costs come only
+    from a server-side cost source, and agriai owns the profit arithmetic. No cost source is
+    reachable from this agent yet (``farm_operation_ledger`` has no service route: airuntime-3),
+    so no ``costs`` are sent and agriai reports the candidate ``insufficient`` by name; the
+    optimizer then degrades instead of pricing invented unit costs.
+    """
+    inputs = _engine_inputs(context)
+    if "unavailable" in inputs:
+        reason = inputs["unavailable"]["structured"]["reason"]
+        return {"status": "unavailable", "reason": reason, "source": "agriai-engine /v1/plan"}
+    crop_input = inputs.pop("crop")
+    candidate = {"name": crop_input["name"], "crop": crop_input, "price_per_kg": price_per_kg}
+    payload = {"candidates": [candidate], **inputs}
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        resp = await client.post(
+            f"{_agriai_url()}/v1/plan",
+            json=payload,
+            headers={"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")},
+        )
+    if resp.status_code in (422, 503):
+        detail = _detail(resp)
+        return {
+            "status": "unavailable",
+            "reason": "economics_plan_rejected"
+            if resp.status_code == 422
+            else "economics_unavailable",
+            "engine_reason": str(detail.get("reason") or detail.get("error") or "")[:200],
+            "source": "agriai-engine /v1/plan",
+        }
+    resp.raise_for_status()
+    plan = _dict(resp.json())
+    ranked = [r for r in plan.get("ranked") or [] if isinstance(r, dict)]
+    best = next((r for r in ranked if r.get("name") == candidate["name"]), None)
+    if best is None or _finite(best.get("expected_profit")) is None:
+        missing: list[str] = []
+        for item in plan.get("insufficient") or []:
+            if isinstance(item, dict):
+                missing.extend(str(m) for m in item.get("missing_inputs") or [])
+        return {
+            "status": "insufficient",
+            "reason": "economics_inputs_insufficient",
+            "missing_inputs": sorted(set(missing)),
+            "source": "agriai-engine /v1/plan",
+        }
+    return {
+        "status": "costed",
+        "best": best,
+        "evidence_hash": plan.get("evidence_hash"),
+        "source": "agriai-engine /v1/plan",
+    }
 
 
 def _unavailable(code: str, message: str) -> dict:

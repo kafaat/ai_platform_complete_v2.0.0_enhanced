@@ -529,6 +529,15 @@ class _RainChainChanged(Exception):
     """قيدٌ في سلسلة إعادة تسجيل المطر تغيّر بين القراءة والكتابة ⇒ تُرجَع السلسلة كلُّها."""
 
 
+def _water_deficit_dedup_key(tenant_id: object, field_id: str, day: object, result: dict) -> str:
+    """W2-02: one decision.water_deficit event per field and day — but a blocked outcome
+    (``blocked:lineage_missing`` …) keeps its own key, so a later hourly run whose candidate
+    is recorded is not dropped by ON CONFLICT behind the morning's block."""
+    key = f"water-deficit:{tenant_id}:{field_id}:{day}"
+    status = str(result.get("status") or "")
+    return f"{key}:{status}" if status.startswith("blocked") else key
+
+
 async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
     """WATER-LEDGER-AUTO: يحسب قيد دفتر المياه اليوميّ آليّاً لكلّ حقل بموسم نشط.
 
@@ -980,6 +989,9 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             "taw_mm": zone["taw_mm"],
                             "raw_mm": zone["raw_mm"],
                         },
+                        # W2-02: the season's crop and cultivar for the AC-1 lineage.
+                        crop=row["field_crop"],
+                        cultivar_id=row["cultivar"],
                     )
                     if bridge_result.get("status") not in {"disabled", "below_threshold"}:
                         async with conn.transaction():
@@ -1005,7 +1017,9 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                                         "deficit_mm": entry["deficit_mm"],
                                     }
                                 ),
-                                f"water-deficit:{row['tenant_id']}:{field_id}:{today}",
+                                _water_deficit_dedup_key(
+                                    row["tenant_id"], field_id, today, bridge_result
+                                ),
                             )
 
                 except Exception as exc:  # noqa: BLE001 — تخطٍّ لكلّ حقل مُعلَّل، لا انهيار الدفعة
@@ -1035,6 +1049,14 @@ async def loop_worker(kind: str) -> None:
         identity_error = water_ledger_identity_startup_error()
         if identity_error:
             raise RuntimeError(identity_error)
+        from api.water_decision_bridge import bridge_enabled as water_bridge_enabled
+
+        if water_bridge_enabled():
+            # W2-02 (decision-9): a bridge that can never carry AC-1 lineage does not start.
+            from api.agronomic_context_composer import agronomic_context_startup_error
+
+            if ac1_error := agronomic_context_startup_error():
+                raise RuntimeError(ac1_error)
     pool = await _connect()
     interval = float(os.getenv("WORKER_POLL_SECONDS", "5"))
     runners = {

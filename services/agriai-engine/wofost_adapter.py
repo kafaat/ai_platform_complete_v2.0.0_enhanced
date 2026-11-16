@@ -57,14 +57,17 @@ def _crop_name(crop: dict[str, Any] | None) -> str:
     return str(c.get("name") or c.get("crop") or c.get("crop_name") or "").strip().lower()
 
 
-# قيم افتراضيّة زراعيّة معقولة للبديل الحتميّ (تُستبدل بقيم crop عند توفّرها).
-_CROP_DEFAULTS: dict[str, float] = {
-    "base_temp_c": 5.0,  # عتبة النموّ الحراريّ
-    "max_yield_kg_ha": 8000.0,  # سقف الغلّة عند اكتمال الوقت الحراريّ والماء
-    "gdd_to_maturity": 1500.0,  # درجات حراريّة تراكميّة حتّى النضج
-    "water_use_efficiency": 18.0,  # WUE: كغ/هـ لكلّ ملّم ماء
-    "harvest_index": 0.45,  # نسبة الغلّة إلى الكتلة الحيويّة
-}
+# معاملات المحصول التي يقرؤها البديل الحتميّ — **مطلوبة من المُنادي** (W2-17 / airuntime-5).
+# كانت هنا قيمٌ عامّة (5 °م · 8000 كغ/هـ · 1500 GDD · WUE 18 · HI 0.45) تُستعمَل لأيّ محصولٍ
+# مُسمّى بلا معاملات، فيُحاكى البصل والقمح بالأرقام نفسها ويُعرَض الناتج غلّةً. غيابُ أيٍّ منها
+# الآن ⇒ ``SimulationInputError("crop_parameters_required")`` (422 باسم الناقص)، لا افتراض.
+_FALLBACK_CROP_PARAMS: tuple[str, ...] = (
+    "base_temp_c",  # عتبة النموّ الحراريّ (°م؛ صفرٌ أو سالبٌ مشروع)
+    "max_yield_kg_ha",  # سقف الغلّة عند اكتمال الوقت الحراريّ والماء
+    "gdd_to_maturity",  # درجات حراريّة تراكميّة حتّى النضج
+    "water_use_efficiency",  # WUE: كغ/هـ لكلّ ملّم ماء
+    "harvest_index",  # نسبة الغلّة إلى الكتلة الحيويّة (0، 1]
+)
 
 _ROUND = 6
 
@@ -128,9 +131,29 @@ def _num(value: Any, default: float = 0.0) -> float:
 
 
 def _crop_param(crop: dict[str, Any], key: str) -> float:
-    return (
-        _num(crop.get(key), _CROP_DEFAULTS[key]) if isinstance(crop, dict) else _CROP_DEFAULTS[key]
-    )
+    return _num(crop.get(key)) if isinstance(crop, dict) else 0.0
+
+
+def require_fallback_crop_params(crop: dict[str, Any] | None) -> None:
+    """يرفض تشغيل البديل الحتميّ بلا معاملات محصولٍ صريحة صالحة (airuntime-5).
+
+    ``{"name": "wheat"}`` ليس معاملات. كلُّ مفتاحٍ في ``_FALLBACK_CROP_PARAMS`` يجب أن يكون رقماً
+    منتهياً؛ والسقفُ والعتبةُ الحراريّة للنضج وWUE موجبة، ومعامل الحصاد في (0، 1]. الناقصُ أو
+    غيرُ الصالح يُسمّى في ``detail``؛ لا قيمة عامّة تحلّ محلّه.
+    """
+    c = crop if isinstance(crop, dict) else {}
+    bad: list[str] = []
+    for key in _FALLBACK_CROP_PARAMS:
+        raw = c.get(key)
+        value = _num(raw, float("nan"))
+        if raw is None or value != value:
+            bad.append(key)
+        elif key == "harvest_index" and not 0.0 < value <= 1.0:
+            bad.append(key)
+        elif key != "base_temp_c" and key != "harvest_index" and value <= 0.0:
+            bad.append(key)
+    if bad:
+        raise SimulationInputError("crop_parameters_required", ",".join(bad))
 
 
 def _accumulate_gdd(weather: dict[str, Any], base_temp: float) -> float:
@@ -270,12 +293,8 @@ def _yield_uncertainty(
     if is_pcse and any(str(d).startswith("soil.") for d in diag.get("defaults_applied") or ()):
         u += 0.05
         drivers.append("default_soil_hydraulics")
-    # ``{"name": "wheat"}`` ليس معاملات: البديل يقرأ مفاتيح ``_CROP_DEFAULTS`` وحدها، فمحصولٌ
-    # مُسمّى بلا أيٍّ منها يُحسَب بالافتراضات نفسها ويجب أن يُسمّى كذلك (كان يُسقَط الموجِّه).
-    # مسار PCSE يأخذ معاملاته من YAMLCropDataProvider بالاسم، فلا ينطبق عليه.
-    if not is_pcse and not (isinstance(crop, dict) and any(k in crop for k in _CROP_DEFAULTS)):
-        u += 0.05
-        drivers.append("default_crop_params")
+    # لا موجِّه ``default_crop_params``: البديل يرفض المحصول بلا معاملاته الصريحة
+    # (``require_fallback_crop_params``)، ومسار PCSE يأخذها من YAMLCropDataProvider بالاسم.
 
     # قرب عتبة العامل المُقيِّد ⇒ عدم يقين أعلى (تبدّل النظام يقلب الغلّة).
     ty = _num(diag.get("thermal_yield_kg_ha"))
@@ -599,7 +618,8 @@ def simulate(
 
     الراية مشعلة: محصول خارج السجلّ / pcse غائبة أو فشل استيرادها / فشل المحرّك ⇒ RuntimeError
     (503 في main)؛ مدخلٌ ناقص ⇒ ``SimulationInputError`` (422). لا استبدال صامت بالبديل.
-    الراية مطفأة: إنتاج ⇒ فشل مُغلَق؛ تطوير ⇒ البديل الحتميّ الموثّق.
+    الراية مطفأة: إنتاج ⇒ فشل مُغلَق؛ تطوير ⇒ البديل الحتميّ الموثّق، بمعاملات محصولٍ صريحة
+    وإلّا ``SimulationInputError("crop_parameters_required")`` (422) — لا معاملات عامّة.
     """
     crop = crop or {}
     weather = weather or {}
@@ -632,6 +652,8 @@ def simulate(
         # الراية مطفأة ⇒ **السلوك الصادق القائم يبقى**: إنتاج بلا محرّك ⇒ fail-closed؛ تطوير ⇒ بديل حتميّ.
         if production_mode:
             raise RuntimeError("agriai_production_simulation_unavailable:sim_pcse_disabled")
+        # المحرّك موجود (تطوير) لكنّ معاملات المحصول ليست له أن يخترعها ⇒ 422 باسم الناقص.
+        require_fallback_crop_params(crop)
         result = _fallback_simulate(crop, weather, soil, agromanagement)
 
     # «لا غلّة بلا عدم يقين»: كلّ مخرَج simulate يحمل نطاقاً نموذجيّاً (نقطة مصحوبة بحدود).

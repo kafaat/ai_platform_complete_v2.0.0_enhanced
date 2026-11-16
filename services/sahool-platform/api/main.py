@@ -183,6 +183,10 @@ async def _lifespan(_: FastAPI):
     Teardown runs in reverse order and also covers partially-started resources
     when startup fails.
     """
+    from api.agronomic_context_composer import agronomic_context_startup_error
+
+    if ac1_error := agronomic_context_startup_error():  # W2-02: AC-1 on, composer off
+        raise RuntimeError(ac1_error)
     try:
         await _warn_weak_dev_jwt_secret()
         await _init_db_pool()
