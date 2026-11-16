@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "e25b09c3256d9f25b6080082cfcdfaac81a9519e97769a568cb509d96096ec63",
+  "inventory_sha256": "987f78bd0bd0b1dcb35915ccd3c218d8ec817de465488ef61c3df0db1761ba05",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "6c7cf1ad5514dfb9c2eccec76b18195277606f8d83c314d386a84aaed8d0b7a1"
+    "policy_sha256": "72f6a147db7000f07523b79965a0ed27cb69fc15fc7a713180ceb53d63a28d6e"
   },
   "routes": [
     {
@@ -1066,7 +1066,7 @@
     {
       "classification": "domain",
       "function": "field_ai_context_pack",
-      "line": 655,
+      "line": 660,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/ai-context-pack",
       "source": "api/routers/field_ai_context.py"
@@ -2186,7 +2186,7 @@
     {
       "classification": "domain",
       "function": "list_sharing_keys",
-      "line": 116,
+      "line": 64,
       "method": "GET",
       "path": "/api/v1/sharing/keys",
       "source": "api/routers/sharing.py"
@@ -3778,7 +3778,7 @@
     {
       "classification": "domain",
       "function": "field_yield_interval_endpoint",
-      "line": 48,
+      "line": 55,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-interval",
       "source": "api/routers/yield_interval.py"
@@ -4313,18 +4313,18 @@
     },
     {
       "classification": "domain",
-      "function": "generate_share_key",
-      "line": 45,
+      "function": "create_sharing_key",
+      "line": 31,
       "method": "POST",
-      "path": "/api/v1/sharing/generate-key",
+      "path": "/api/v1/sharing/keys",
       "source": "api/routers/sharing.py"
     },
     {
       "classification": "domain",
-      "function": "create_sharing_key",
-      "line": 85,
+      "function": "revoke_sharing_key",
+      "line": 76,
       "method": "POST",
-      "path": "/api/v1/sharing/keys",
+      "path": "/api/v1/sharing/keys/{key_id}/revoke",
       "source": "api/routers/sharing.py"
     },
     {

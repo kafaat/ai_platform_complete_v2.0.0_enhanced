@@ -4826,7 +4826,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_ai_context.py",
-    "line": 656,
+    "line": 661,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/ai-context-pack",
     "function": "field_ai_context_pack"
@@ -7170,15 +7170,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/sharing.py",
-    "line": 46,
-    "method": "POST",
-    "path": "/api/v1/sharing/generate-key",
-    "function": "generate_share_key"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/routers/sharing.py",
-    "line": 86,
+    "line": 32,
     "method": "POST",
     "path": "/api/v1/sharing/keys",
     "function": "create_sharing_key"
@@ -7186,10 +7178,18 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/sharing.py",
-    "line": 117,
+    "line": 65,
     "method": "GET",
     "path": "/api/v1/sharing/keys",
     "function": "list_sharing_keys"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/sharing.py",
+    "line": 77,
+    "method": "POST",
+    "path": "/api/v1/sharing/keys/{key_id}/revoke",
+    "function": "revoke_sharing_key"
   },
   {
     "service": "sahool-platform",
@@ -7802,7 +7802,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/yield_interval.py",
-    "line": 49,
+    "line": 56,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/yield-interval",
     "function": "field_yield_interval_endpoint"
