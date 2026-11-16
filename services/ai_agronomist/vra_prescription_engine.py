@@ -42,6 +42,13 @@ _DEFAULT_UNITS = {
 _CLASS_RATE_FACTOR = {"high": 1.0, "medium": 0.82, "low": 1.16}
 # Analyte names a soil lab record must carry (numerically) to count as lab evidence.
 _LAB_ANALYTES = {a.lower() for a in _FULL_PANEL_ANALYTES}
+# W0-12 — the only source of lab support: an evidence-context block built by the server
+# from the lab owner's approved results. ``soil_lab_results`` is written by
+# sahool-platform only (docs/architecture/db_ownership.yml).
+_OWNER_LAB_BLOCK = "approved_soil_lab"
+_LAB_RESULT_OWNER = "sahool-platform"
+# Tool parameters the model may send that used to grant lab support; now ignored.
+_MODEL_LAB_PARAMS = ("lab_results", "soil_lab_results")
 _CLASS_RATIONALE_AR = {
     "high": "منطقة إنتاجية مرتفعة؛ تُحافظ الوصفة على المعدّل الأساسي مع مراقبة عدم الإفراط.",
     "medium": "منطقة إنتاجية متوسطة؛ تُستخدم جرعة محافظة حتى تظهر نتائج مختبر أدق.",
@@ -109,10 +116,21 @@ def _zone_area(zone: dict[str, Any]) -> float:
     return area_ha_for_bbox(bbox) if bbox else 0.0
 
 
-def _zone_source_lineage(zone: dict[str, Any], evidence_context: dict[str, Any]) -> dict[str, Any]:
-    """Preserve evidence identity; never turn it into an execution authorization."""
+def _zone_source_lineage(
+    zone: dict[str, Any],
+    evidence_context: dict[str, Any],
+    lab_result_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    """Preserve evidence identity; never turn it into an execution authorization.
+
+    ``lab_result_ids`` come only from the owner's lab block; a ``lab_result_ids`` key the
+    model wrote into a zone's lineage is dropped, never repeated as lab provenance.
+    """
     lineage = zone.get("source_lineage") if isinstance(zone.get("source_lineage"), dict) else {}
     out = dict(lineage)
+    out.pop("lab_result_ids", None)
+    if lab_result_ids:
+        out["lab_result_ids"] = sorted(set(lab_result_ids))
     for key in (
         "management_zone_id",
         "yield_processing_digest",
@@ -162,39 +180,66 @@ def _is_analyte_record(record: Any) -> bool:
     )
 
 
-def _lab_zone_ids(params: dict[str, Any]) -> tuple[set[str], bool]:
-    """Return (zone ids with their own analyte record, whether a field-level record exists).
+def _owner_lab_records(
+    evidence_context: dict[str, Any], field_id: str | None
+) -> list[dict[str, Any]]:
+    """Approved lab records the lab owner issued, read only from ``evidence_context``.
+
+    W0-12: lab support is never taken from tool parameters. The model writes the
+    parameters, so ``params["lab_results"]`` (or ``soil_lab_results``) is ignored. The
+    only accepted source is the server-built context block
+    ``evidence_context["approved_soil_lab"]``::
+
+        {"owner": "sahool-platform", "field_id": "<field>",
+         "results": [{"result_id": "...", "analyte": "p", "value": 12,
+                      "quality_status": "approved", "zone_id": "<optional>"}]}
+
+    ``owner`` must name the writer of ``soil_lab_results`` (docs/architecture/
+    db_ownership.yml). A record counts only with a non-empty ``result_id``,
+    ``quality_status == "approved"`` and a finite numeric value for a known analyte. A
+    block for another field is ignored. Anything else is no lab evidence (fail closed).
+    """
+    block = evidence_context.get(_OWNER_LAB_BLOCK)
+    if not isinstance(block, dict) or block.get("owner") != _LAB_RESULT_OWNER:
+        return []
+    block_field = block.get("field_id")
+    if block_field is not None and (field_id is None or str(block_field) != str(field_id)):
+        return []
+    results = block.get("results")
+    if not isinstance(results, list):
+        return []
+    accepted: list[dict[str, Any]] = []
+    for record in results:
+        if not isinstance(record, dict):
+            continue
+        result_id = record.get("result_id")
+        if not isinstance(result_id, str) or not result_id.strip():
+            continue
+        if record.get("quality_status") != "approved":
+            continue
+        if not _is_analyte_record(record):
+            continue
+        accepted.append(record)
+    return accepted
+
+
+def _lab_zone_ids(
+    records: list[dict[str, Any]],
+) -> tuple[dict[str, list[str]], list[str]]:
+    """Return ({zone_id: result ids}, field-level composite result ids).
 
     A record with a ``zone_id`` supports only that zone; a record without one is a
     field-level composite and supports every zone.
     """
-    lab = params.get("lab_results") or params.get("soil_lab_results")
-    records: list[Any]
-    if isinstance(lab, list):
-        records = lab
-    elif isinstance(lab, dict):
-        # Either one record, or a {zone_id: record} mapping.
-        records = (
-            [lab]
-            if _is_analyte_record(lab)
-            else [
-                {**rec, "zone_id": rec.get("zone_id") or zid}
-                for zid, rec in lab.items()
-                if isinstance(rec, dict)
-            ]
-        )
-    else:
-        records = []
-    zone_ids: set[str] = set()
-    field_level = False
+    zone_ids: dict[str, list[str]] = {}
+    field_level: list[str] = []
     for record in records:
-        if not _is_analyte_record(record):
-            continue
+        result_id = str(record["result_id"]).strip()
         zid = str(record.get("zone_id") or "").strip()
         if zid:
-            zone_ids.add(zid)
+            zone_ids.setdefault(zid, []).append(result_id)
         else:
-            field_level = True
+            field_level.append(result_id)
     return zone_ids, field_level
 
 
@@ -271,12 +316,16 @@ def generate_vra_prescription(
     product_type = _normalize_product_type(params.get("product_type"))
     allow_estimated = bool(params.get("allow_estimated"))
     used_zones = zones[:12]
-    lab_zone_ids, field_level_lab = _lab_zone_ids(params)
-    zone_has_lab = [
-        field_level_lab or _zone_id(zone, idx) in lab_zone_ids
+    ctx = evidence_context if isinstance(evidence_context, dict) else {}
+    owner_lab = _owner_lab_records(ctx, field_id)
+    lab_zone_ids, field_level_lab = _lab_zone_ids(owner_lab)
+    zone_lab_ids = [
+        field_level_lab + lab_zone_ids.get(_zone_id(zone, idx), [])
         for idx, zone in enumerate(used_zones)
     ]
+    zone_has_lab = [bool(ids) for ids in zone_lab_ids]
     has_lab = any(zone_has_lab)
+    model_lab_ignored = any(params.get(key) for key in _MODEL_LAB_PARAMS)
     completeness = _data_completeness(params, zones, has_lab)
 
     if not zones:
@@ -315,6 +364,7 @@ def generate_vra_prescription(
             completeness,
             "missing_lab_results_or_estimation_consent",
             ["soil_lab_results", "or_explicit_allow_estimated"],
+            model_lab_results_ignored=model_lab_ignored,
         )
 
     base_rate = _base_rate(params, product_type)
@@ -324,7 +374,6 @@ def generate_vra_prescription(
     estimated_confidence = _confidence(_data_completeness(params, zones, False)["score"], False)
 
     classes = [c for c in zone_classes if c is not None]  # all classified past the gate
-    ctx = evidence_context if isinstance(evidence_context, dict) else {}
     prescription_zones: list[dict[str, Any]] = []
     total_area = 0.0
     weighted_total = 0.0
@@ -359,6 +408,10 @@ def generate_vra_prescription(
                 "source_lineage": _zone_source_lineage(zone, ctx),
             }
         )
+        if zone_lab_ids[idx]:
+            prescription_zones[-1]["source_lineage"]["lab_result_ids"] = sorted(
+                set(zone_lab_ids[idx])
+            )
 
     avg_rate = round(weighted_total / total_area, 2) if total_area > 0 else base_rate
     # Prescription confidence is the area-weighted mean of the zone confidences, so a
@@ -393,6 +446,11 @@ def generate_vra_prescription(
         )
         warnings.append(
             f"بعض المناطق بلا نتائج مختبر مطابقة ({missing})؛ معدّلاتها تقديرية وتحتاج مراجعة مهندس زراعي."
+        )
+    if model_lab_ignored:
+        warnings.append(
+            "نتائج المختبر المرسلة في معاملات الأداة لا تُعتمد دليلاً؛ دعم المختبر يُقرأ فقط من "
+            "النتائج المعتمدة الصادرة عن مالك بيانات المختبر."
         )
     if crop == "unspecified":
         warnings.append(
@@ -439,7 +497,9 @@ def generate_vra_prescription(
             "readiness_status": readiness_status,
             "machine_export_formats": _available_export_formats(),
             "requires_agronomist_review": True,
-            "source_lineage": _zone_source_lineage({}, ctx),
+            "source_lineage": _zone_source_lineage(
+                {}, ctx, [rid for ids in zone_lab_ids for rid in ids]
+            ),
         },
         "prescription_zones": prescription_zones,
         "data_completeness": completeness,
@@ -449,6 +509,8 @@ def generate_vra_prescription(
             if all_lab
             else ("partial_lab_support" if has_lab else "estimated_with_user_consent"),
             "zoning_evidence_backed": zoning_evidence_backed,
+            "lab_evidence_source": _OWNER_LAB_BLOCK if has_lab else None,
+            "model_lab_results_ignored": model_lab_ignored,
             "ready_for_machine_export": False,
             "raster_quality": raster_quality,  # v62.3 verdict (None if no NDVI evidence)
             "required_before_export": [
