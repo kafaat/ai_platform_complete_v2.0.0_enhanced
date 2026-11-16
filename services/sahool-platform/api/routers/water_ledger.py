@@ -113,7 +113,8 @@ async def upsert_water_ledger(
                 " soil_moisture_pct = EXCLUDED.soil_moisture_pct, depletion_mm = EXCLUDED.depletion_mm,"
                 " deficit_mm = EXCLUDED.deficit_mm, stage = EXCLUDED.stage, decision = EXCLUDED.decision,"
                 " confidence = EXCLUDED.confidence, et0_method = NULL, et0_quality = NULL,"  # v278
-                " weather_snapshot_id = NULL, rain_source = NULL, updated_at = now()",
+                " weather_snapshot_id = NULL, rain_source = NULL, taw_mm = NULL, raw_mm = NULL,"
+                " updated_at = now()",
                 str(user.tenant_id),
                 field_id,
                 norm["ledger_date"],

@@ -9,9 +9,12 @@
 --   et0_quality          weather-service quality_status (validated | degraded)
 --   weather_snapshot_id  the ET0 product's weather_snapshot_id (the inputs the value came from)
 --   rain_source          forecast (the day's forecast when the row is written) | observed (the
---                        weather-service archive, re-recorded the next day before the following
---                        entry is built on it)
--- All four are NULL on rows written before v278 and on rows a person or the as-applied paths
+--                        weather-service archive, re-recorded once the archive has the day: the
+--                        worker re-checks a window of recent forecast rows on every cycle, since
+--                        the ERA5 archive lags about five days, and rebuilds the chain after them)
+--   taw_mm, raw_mm       the root-zone TAW/RAW the row's depletion was computed against, so a
+--                        later rebuild uses the row's own values, not today's texture or root zone
+-- All six are NULL on rows written before v278 and on rows a person or the as-applied paths
 -- write without an ET0/rain computation: NULL means "not declared", never "reference".
 -- Owner and only writer: sahool-platform (docs/architecture/db_ownership.yml). The existing
 -- FORCE RLS tenant_isolation policy (v98) covers the new columns. Idempotent (IF NOT EXISTS and
@@ -24,6 +27,8 @@ ALTER TABLE water_ledger ADD COLUMN IF NOT EXISTS et0_method TEXT;
 ALTER TABLE water_ledger ADD COLUMN IF NOT EXISTS et0_quality TEXT;
 ALTER TABLE water_ledger ADD COLUMN IF NOT EXISTS weather_snapshot_id TEXT;
 ALTER TABLE water_ledger ADD COLUMN IF NOT EXISTS rain_source TEXT;
+ALTER TABLE water_ledger ADD COLUMN IF NOT EXISTS taw_mm DOUBLE PRECISION;
+ALTER TABLE water_ledger ADD COLUMN IF NOT EXISTS raw_mm DOUBLE PRECISION;
 
 DO $$
 BEGIN
@@ -49,6 +54,14 @@ BEGIN
         ALTER TABLE water_ledger ADD CONSTRAINT water_ledger_rain_source_check
             CHECK (rain_source IS NULL OR rain_source IN ('forecast', 'observed'));
     END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'water_ledger'::regclass AND conname = 'water_ledger_root_zone_check'
+    ) THEN
+        ALTER TABLE water_ledger ADD CONSTRAINT water_ledger_root_zone_check
+            CHECK ((taw_mm IS NULL OR taw_mm > 0)
+                   AND (raw_mm IS NULL OR (raw_mm >= 0 AND (taw_mm IS NULL OR raw_mm <= taw_mm))));
+    END IF;
 END
 $$;
 
@@ -59,6 +72,10 @@ COMMENT ON COLUMN water_ledger.et0_quality IS
 COMMENT ON COLUMN water_ledger.weather_snapshot_id IS
     'v278: weather_snapshot_id of the ET0 product the row was computed from.';
 COMMENT ON COLUMN water_ledger.rain_source IS
-    'v278: forecast (written from the day''s forecast) | observed (re-recorded from the weather archive the next day).';
+    'v278: forecast (written from the day''s forecast) | observed (re-recorded from the weather archive once it has the day).';
+COMMENT ON COLUMN water_ledger.taw_mm IS
+    'v278: root-zone TAW (mm) the row''s depletion was computed against; NULL = not declared.';
+COMMENT ON COLUMN water_ledger.raw_mm IS
+    'v278: root-zone RAW (mm) the row''s deficit was computed against; NULL = not declared.';
 
 COMMIT;

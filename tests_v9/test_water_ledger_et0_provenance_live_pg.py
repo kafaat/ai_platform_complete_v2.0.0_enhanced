@@ -9,9 +9,13 @@ archive, ET0) and the decision bridge. What is measured on the rows:
   field without an elevation gets no entry (a declared skip, never a sea-level value).
 * Each entry records ``et0_method``, ``et0_quality``, ``weather_snapshot_id`` and
   ``rain_source='forecast'`` (v278).
-* Yesterday's forecast rain is re-recorded from the archive before today's entry is built on
-  it: ``rain_source`` becomes ``observed`` and yesterday's depletion is rebuilt from the day
-  before, so today's balance starts from water that fell, not water that was forecast.
+* Forecast rain is re-recorded from the archive before today's entry is built on it:
+  ``rain_source`` becomes ``observed`` and that day's depletion is rebuilt from the day before,
+  so today's balance starts from water that fell, not water that was forecast. The archive
+  (ERA5) lags about five days, so the worker re-checks a window of recent forecast rows on
+  every cycle: a row the archive fills days later is still re-recorded, and the rows after it
+  are rebuilt from it (their own rain kept, forecast until observed).
+* Each entry stores the root-zone TAW/RAW it was computed against, and a rebuild uses them.
 * A degraded Penman-Monteith (elevation rejected, sea-level default) is not reference ET0: the
   entry carries ``et0_reference_unavailable`` and the lowered confidence.
 * v278 is idempotent, its CHECK constraints refuse an unknown rain source, and its .down.sql
@@ -56,9 +60,9 @@ async def _probe() -> str:
         cols = await conn.fetchval(
             "SELECT count(*) FROM information_schema.columns WHERE table_name = 'water_ledger'"
             " AND column_name IN ('et0_method', 'et0_quality', 'weather_snapshot_id',"
-            " 'rain_source')"
+            " 'rain_source', 'taw_mm', 'raw_mm')"
         )
-        if cols != 4:
+        if cols != 6:
             return "schema not migrated (v278 columns missing)"
     finally:
         await conn.close()
@@ -148,7 +152,16 @@ class _World:
 
         async def historical(lat, lon, *, start_date, end_date, tenant_id=None):
             self.archive_calls.append({"start": start_date, "end": end_date, "tenant": tenant_id})
-            return {"days": [{"date": start_date, "precipitation_mm": self.archive_rain}]}
+            if not isinstance(self.archive_rain, dict):  # every day in the range observed
+                return {"days": [{"date": start_date, "precipitation_mm": self.archive_rain}]}
+            first, last = dt.date.fromisoformat(start_date), dt.date.fromisoformat(end_date)
+            return {
+                "days": [
+                    {"date": d.isoformat(), "precipitation_mm": rain}
+                    for d, rain in sorted(self.archive_rain.items())
+                    if first <= d <= last
+                ]
+            }
 
         async def et0(**kw):
             self.et0_calls.append(kw)
@@ -260,6 +273,8 @@ def test_elevation_reaches_et0_provenance_is_stored_and_yesterdays_rain_is_obser
                 decision="auto:irrigation_unobserved",
                 created_by="water-balance-auto",
                 rain_source="forecast",
+                taw_mm=120.0,
+                raw_mm=60.0,
             )
             processed = await w.workers.run_water_ledger_once(w.pool)
             mine = [c for c in w.et0_calls if c["lat_deg"] in (15.35, 15.99)]
@@ -291,6 +306,9 @@ def test_elevation_reaches_et0_provenance_is_stored_and_yesterdays_rain_is_obser
     ), f"ET0 provenance not stored: {today_row['et0_method']}/{today_row['et0_quality']}"
     assert today_row["weather_snapshot_id"] == "wsnap/test/validated", "snapshot id not stored"
     assert today_row["rain_source"] == "forecast", "today's rain must be declared a forecast"
+    assert today_row["taw_mm"] is not None and today_row["raw_mm"] is not None, (
+        "the root-zone TAW/RAW the entry was computed against was not stored"
+    )
 
     yesterday = today - dt.timedelta(days=1)
     assert archive == [
@@ -311,6 +329,89 @@ def test_elevation_reaches_et0_provenance_is_stored_and_yesterdays_rain_is_obser
     assert today_row["depletion_mm"] == pytest.approx(expected_today, abs=0.01), (
         f"today's balance did not start from the observed day: {today_row['depletion_mm']} "
         f"!= {expected_today}"
+    )
+
+
+def test_a_row_the_lagging_archive_fills_days_later_is_re_recorded_and_the_chain_rebuilt(
+    monkeypatch,
+):
+    """Review: on day D the ERA5 archive has nothing for D-1 (about five days' lag).
+
+    Cycle 1: the archive has no day in the window, so every row stays ``forecast`` (no zero is
+    read from absence). Cycle 2 (the archive has since filled D-5): D-5 becomes ``observed``
+    with its depletion rebuilt from D-6, D-4..D-1 are rebuilt from it with their own rain
+    (still ``forecast``), and today's entry starts from the rebuilt D-1.
+    """
+    from api.water_balance import _effective_rain
+
+    phantom = round(20.0 + 6.0 - _effective_rain(10.0), 2)
+
+    async def run():
+        async with _World(monkeypatch, archive_rain={}) as w:
+            today = _today()
+            field_id = await w.field(elevation=2300.0, lat=15.47)
+            await w.ledger(
+                field_id,
+                today - dt.timedelta(days=6),
+                depletion_mm=20.0,
+                created_by="water-balance-auto",
+                decision="auto:irrigation_unobserved",
+                rain_source="observed",
+            )
+            for k in (5, 4, 3, 2, 1):
+                await w.ledger(
+                    field_id,
+                    today - dt.timedelta(days=k),
+                    et0_mm=5.0,
+                    kc=1.2,
+                    etc_mm=6.0,
+                    rain_mm=10.0 if k == 5 else 0.0,
+                    irrigation_mm=0.0,
+                    depletion_mm=round(phantom + 6.0 * (5 - k), 2),
+                    deficit_mm=0.0,
+                    confidence=0.4,
+                    decision="auto:irrigation_unobserved",
+                    created_by="water-balance-auto",
+                    rain_source="forecast",
+                    taw_mm=120.0,
+                    raw_mm=60.0,
+                )
+            await w.workers.run_water_ledger_once(w.pool)
+            first_cycle = [await w.row(field_id, today - dt.timedelta(days=k)) for k in (5, 1)]
+            first_calls = list(w.archive_calls)
+            w.archive_rain = {today - dt.timedelta(days=5): 0.0}  # the archive filled D-5
+            await w.workers.run_water_ledger_once(w.pool)
+            rows = [await w.row(field_id, today - dt.timedelta(days=k)) for k in (5, 4, 3, 2, 1)]
+            return first_cycle, first_calls, rows, await w.row(field_id, today)
+
+    first_cycle, first_calls, rows, today_row = asyncio.run(run())
+    today = _today()
+    assert first_calls and first_calls[0]["start"] == (today - dt.timedelta(days=5)).isoformat(), (
+        f"the archive was not asked from the oldest forecast row in the window: {first_calls}"
+    )
+    assert first_calls[0]["end"] == (today - dt.timedelta(days=1)).isoformat(), (
+        f"the archive was not asked up to yesterday: {first_calls}"
+    )
+    assert [r["rain_source"] for r in first_cycle] == ["forecast", "forecast"], (
+        "a day the archive did not have was declared observed"
+    )
+    assert first_cycle[0]["depletion_mm"] == phantom, "a row was rebuilt with no observation"
+
+    d5 = rows[0]
+    assert (d5["rain_source"], d5["rain_mm"], d5["depletion_mm"]) == ("observed", 0.0, 26.0), (
+        f"the row the archive filled five days later was not re-recorded: "
+        f"{d5['rain_source']}/{d5['rain_mm']}/{d5['depletion_mm']} (phantom {phantom})"
+    )
+    assert [r["rain_source"] for r in rows[1:]] == ["forecast"] * 4, (
+        "rows the archive has not filled yet were declared observed"
+    )
+    assert [r["depletion_mm"] for r in rows[1:]] == [32.0, 38.0, 44.0, 50.0], (
+        f"the chain after the observed day was not rebuilt: {[r['depletion_mm'] for r in rows]}"
+    )
+    expected_today = round(50.0 + round(_kc_today() * 5.0, 2), 2)
+    assert today_row["depletion_mm"] == pytest.approx(expected_today, abs=0.01), (
+        f"today's balance did not start from the rebuilt yesterday: {today_row['depletion_mm']}"
+        f" != {expected_today}"
     )
 
 
@@ -376,19 +477,25 @@ def test_v278_is_idempotent_constrained_and_reversible():
                     " VALUES ($1::uuid, 'v278-probe', CURRENT_DATE, 'reference')",
                     tenant,
                 )
+            with pytest.raises(asyncpg.CheckViolationError):
+                await admin.execute(
+                    "INSERT INTO water_ledger (tenant_id, field_id, ledger_date, taw_mm, raw_mm)"
+                    " VALUES ($1::uuid, 'v278-probe', CURRENT_DATE, 40, 50)",
+                    tenant,
+                )
             await admin.execute(DOWN.read_text(encoding="utf-8"))
             await admin.execute(DOWN.read_text(encoding="utf-8"))  # idempotent rollback
             after_down = await admin.fetchval(
                 "SELECT count(*) FROM information_schema.columns WHERE table_name='water_ledger'"
                 " AND column_name IN ('et0_method','et0_quality','weather_snapshot_id',"
-                "'rain_source')"
+                "'rain_source','taw_mm','raw_mm')"
             )
             await admin.execute(UP.read_text(encoding="utf-8"))
             after_up = await admin.fetchval(
                 "SELECT count(*) FROM pg_constraint WHERE conrelid='water_ledger'::regclass"
                 " AND conname LIKE 'water_ledger_%_check' AND conname IN"
                 " ('water_ledger_et0_method_check','water_ledger_et0_quality_check',"
-                "'water_ledger_rain_source_check')"
+                "'water_ledger_rain_source_check','water_ledger_root_zone_check')"
             )
             return after_down, after_up
         finally:
@@ -396,4 +503,4 @@ def test_v278_is_idempotent_constrained_and_reversible():
 
     after_down, after_up = asyncio.run(run())
     assert after_down == 0, f"v278.down left {after_down} provenance column(s)"
-    assert after_up == 3, f"v278 after a rollback did not restore its constraints: {after_up}"
+    assert after_up == 4, f"v278 after a rollback did not restore its constraints: {after_up}"

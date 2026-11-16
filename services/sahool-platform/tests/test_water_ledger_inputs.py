@@ -350,25 +350,140 @@ def _prev(**over):
         "etc_mm": 6.0,
         "irrigation_mm": 0.0,
         "rain_mm": 10.0,
+        "taw_mm": 120.0,
+        "raw_mm": 60.0,
     }
     row.update(over)
     return row
 
 
-def test_only_yesterdays_own_forecast_row_with_a_known_start_is_reconcilable():
-    auto = "water-balance-auto"
-    assert wli.prior_rain_reconcilable(_prev(), TODAY, auto), "قيد الأمس المتوقَّع مؤهَّل"
+AUTO = "water-balance-auto"
+
+
+def _day(k: int) -> date:
+    return TODAY - timedelta(days=k)
+
+
+def test_the_window_outlasts_the_archive_lag():
+    from api.season_simulation import _ERA5_LAG_DAYS
+
+    assert wli.RAIN_RECONCILE_WINDOW_DAYS > _ERA5_LAG_DAYS, (
+        "نافذة إعادة تسجيل المطر لا تتجاوز تأخّر أرشيف ERA5: لن يُرصَد مطرٌ أبداً"
+    )
+
+
+def test_the_archive_is_asked_from_the_oldest_rebuildable_forecast_row_in_the_window():
+    rows = [
+        _prev(ledger_date=_day(12), rain_source="forecast"),  # خارج النافذة
+        _prev(ledger_date=_day(6), created_by="farmer-1"),  # يدويّ
+        _prev(ledger_date=_day(5), taw_mm=None),  # بلا TAW مخزَّن (قبل v278)
+        _prev(ledger_date=_day(4), decision="auto:missing_days_consumption_estimated"),
+        _prev(ledger_date=_day(3)),
+        _prev(ledger_date=_day(1)),
+    ]
+    assert wli.rain_reconcile_start(rows, TODAY, AUTO) == _day(3), (
+        "أقدمُ قيدٍ مؤهَّل في النافذة لم يُختَر بدايةً لطلب الأرشيف"
+    )
+    observed_only = [_prev(ledger_date=_day(k), rain_source="observed") for k in (3, 2, 1)]
+    assert wli.rain_reconcile_start(observed_only, TODAY, AUTO) is None, (
+        "لا قيدَ متوقَّعاً ⇒ لا نداءَ للأرشيف"
+    )
     for over, why in (
-        ({"rain_source": "observed"}, "مرصودٌ سلفاً"),
-        ({"rain_source": None}, "قيدٌ بلا نَسَب (قديم أو يدويّ)"),
-        ({"created_by": "farmer-1"}, "قيدٌ يدويّ"),
-        ({"ledger_date": TODAY - timedelta(days=2)}, "ليس الأمس"),
-        ({"decision": "auto:missing_days_consumption_estimated"}, "بدايةٌ مقدَّرة"),
+        ({"rain_source": None}, "قيدٌ بلا نَسَب"),
         ({"decision": "measured_as_applied"}, "ليس قيد العامل"),
         ({"etc_mm": None}, "ETc مفقود"),
+        ({"raw_mm": 130.0}, "RAW فوق TAW"),
     ):
-        assert not wli.prior_rain_reconcilable(_prev(**over), TODAY, auto), why
-    assert not wli.prior_rain_reconcilable(None, TODAY, auto), "لا قيد"
+        assert wli.rain_reconcile_start([_prev(**over)], TODAY, AUTO) is None, why
+
+
+def test_a_row_the_archive_fills_days_later_is_still_re_recorded():
+    """المراجعة: الأرشيف يتأخّر ~5 أيّام؛ قيدٌ عمره خمسة أيّام يجب أن يُرصَد حين يمتلئ."""
+    from api.water_balance import _effective_rain
+
+    anchor = _prev(ledger_date=_day(6), rain_source="observed", depletion_mm=20.0)
+    lagged = _prev(
+        ledger_date=_day(5),
+        depletion_mm=round(20.0 + 6.0 - _effective_rain(10.0), 2),
+    )
+    later = [
+        _prev(
+            ledger_date=_day(k),
+            rain_mm=0.0,
+            depletion_mm=round(lagged["depletion_mm"] + 6.0 * (5 - k), 2),
+        )
+        for k in (4, 3, 2, 1)
+    ]
+    rows = [anchor, lagged, *later]
+    # اليومُ السابقُ وحده بلا رصد (تأخّر): لا شيء يُعاد تسجيله إلّا ما رُصِد.
+    updates, carry = wli.rebuild_rain_chain(rows, {_day(5): 0.0}, TODAY, AUTO)
+    assert [u["ledger_date"] for u in updates] == [_day(k) for k in (5, 4, 3, 2, 1)], (
+        "السلسلة بعد اليوم المرصود لم يُعَد بناؤها حتّى الأمس"
+    )
+    assert updates[0]["rain_source"] == "observed" and updates[0]["rain_mm"] == 0.0, (
+        "المطر المتوقَّع قبل خمسة أيّام لم يُستبدَل بالمرصود"
+    )
+    assert updates[0]["depletion_mm"] == 26.0, "استنزافُ اليوم المرصود لم يُبنَ من مرساته"
+    assert all(u["rain_source"] == "forecast" for u in updates[1:]), (
+        "قيدٌ لم يُرصَد بعد صار مرصوداً بلا أرشيف"
+    )
+    assert [u["depletion_mm"] for u in updates[1:]] == [32.0, 38.0, 44.0, 50.0], (
+        "الاستنزاف لم ينتقل في السلسلة من اليوم المرصود"
+    )
+    assert carry == 50.0, "بدايةُ اليوم لم تُؤخذ من الأمس المُعاد بناؤه"
+    assert updates[0]["expected_rain_source"] == "forecast", "شرطُ UPDATE لا يحمل المصدر السابق"
+    assert updates[1]["expected_depletion_mm"] == later[0]["depletion_mm"], (
+        "شرطُ UPDATE لا يحمل الاستنزاف السابق"
+    )
+
+
+def test_the_chain_stops_at_a_manual_row_a_gap_or_the_window_edge():
+    anchor = _prev(ledger_date=_day(4), rain_source="observed", depletion_mm=20.0)
+    fixed = _prev(ledger_date=_day(3))
+    manual = _prev(ledger_date=_day(2), created_by="farmer-1", depletion_mm=5.0)
+    after = _prev(ledger_date=_day(1), rain_source="observed", depletion_mm=11.0)
+    updates, carry = wli.rebuild_rain_chain(
+        [anchor, fixed, manual, after], {_day(3): 0.0}, TODAY, AUTO
+    )
+    assert [u["ledger_date"] for u in updates] == [_day(3)], "قيدٌ يدويّ أو ما بعده أُعيد بناؤه"
+    assert carry is None, "بدايةُ اليوم أُخذت من سلسلةٍ انقطعت عند قيدٍ يدويّ"
+
+    gap = [anchor, _prev(ledger_date=_day(2), rain_source="observed")]
+    assert wli.rebuild_rain_chain(gap, {}, TODAY, AUTO) == ([], None), "فجوةٌ لا تُعبَر"
+    lone = [_prev(ledger_date=_day(3))]  # لا مرساة ولا تهيئة ⇒ لا بداية
+    assert wli.rebuild_rain_chain(lone, {_day(3): 0.0}, TODAY, AUTO) == ([], None), (
+        "بدايةٌ مفقودة قُرِئت صفراً"
+    )
+    edge = [
+        _prev(ledger_date=_day(12), rain_source="observed"),
+        _prev(ledger_date=_day(11)),
+    ]
+    assert wli.rebuild_rain_chain(edge, {_day(11): 0.0}, TODAY, AUTO) == ([], None), (
+        "قيدٌ خارج النافذة أُعيد تسجيله"
+    )
+
+
+def test_the_row_s_own_taw_is_used_not_today_s():
+    """المراجعة: TAW المخزَّن مع القيد لا TAW اليوم (نسيجٌ تغيّر بين الليلتين)."""
+    anchor = _prev(ledger_date=_day(2), rain_source="observed", depletion_mm=38.0)
+    row = _prev(ledger_date=_day(1), taw_mm=40.0, raw_mm=20.0)
+    updates, _ = wli.rebuild_rain_chain([anchor, row], {_day(1): 0.0}, TODAY, AUTO)
+    assert updates[0]["depletion_mm"] == 40.0, "القصّ لم يتمّ بـTAW القيد نفسه"
+    assert "depletion_capped_at_taw" in updates[0]["decision"], "القصّ لم يُعلَن"
+
+
+def test_observed_rain_by_date_skips_absent_and_malformed_days():
+    archive = {
+        "days": [
+            {"date": "2026-05-29", "precipitation_mm": 3.5},
+            {"date": "2026-05-30", "precipitation_mm": None},
+            {"date": "not-a-date", "precipitation_mm": 1.0},
+            "junk",
+        ]
+    }
+    assert wli.observed_rain_by_date(archive) == {date(2026, 5, 29): 3.5}, (
+        "يومٌ غائب أو تالف قُرِئ رصداً"
+    )
 
 
 def test_forecast_rain_is_replaced_by_the_observed_and_depletion_rebuilt():
@@ -427,8 +542,10 @@ def test_the_frozen_worker_passes_elevation_and_records_provenance():
         "weather_snapshot_id, rain_source,",
         'et0.get("quality_status")',
         "RAIN_SOURCE_FORECAST,",
-        "prior_rain_reconcilable(prev, today, AUTO_CREATED_BY)",
-        "reconcile_forecast_rain(",
+        "rain_reconcile_start(window_rows, today, AUTO_CREATED_BY)",
+        "rebuild_rain_chain(",
+        "RAIN_RECONCILE_WINDOW_DAYS + 1",
+        'zone["taw_mm"],',
         "prev_depletion_mm=prev_depletion,",
     ):
         assert wired in body, f"غير موصول في العامل: {wired}"

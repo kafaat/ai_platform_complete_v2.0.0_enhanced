@@ -525,6 +525,10 @@ async def run_actuator_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
         return len(rows)
 
 
+class _RainChainChanged(Exception):
+    """قيدٌ في سلسلة إعادة تسجيل المطر تغيّر بين القراءة والكتابة ⇒ تُرجَع السلسلة كلُّها."""
+
+
 async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
     """WATER-LEDGER-AUTO: يحسب قيد دفتر المياه اليوميّ آليّاً لكلّ حقل بموسم نشط.
 
@@ -558,15 +562,16 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
         manual_entry_takes_precedence,
     )
     from api.water_ledger_inputs import (
+        RAIN_RECONCILE_WINDOW_DAYS,
         RAIN_SOURCE_FORECAST,
         daily_kc,
         et0_product_is_reference,
         et0_weather_inputs,
         field_elevation_m,
         ledger_root_zone,
-        observed_rain_for_date,
-        prior_rain_reconcilable,
-        reconcile_forecast_rain,
+        observed_rain_by_date,
+        rain_reconcile_start,
+        rebuild_rain_chain,
     )
     from api.weather_service_client import (
         get_et0_product,
@@ -634,24 +639,25 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                         if existing and manual_entry_takes_precedence(existing["created_by"]):
                             continue  # الإنسان سيّد الدفتر — لا كتابة فوق قيد يدويّ.
                         prev = await conn.fetchrow(
-                            "SELECT depletion_mm, ledger_date, created_by, rain_source, rain_mm,"
-                            " etc_mm, irrigation_mm, decision FROM water_ledger"
+                            "SELECT depletion_mm, ledger_date FROM water_ledger"
                             " WHERE field_id=$1 AND ledger_date < $2"
                             " ORDER BY ledger_date DESC LIMIT 1",
                             field_id,
                             today,
                         )
-                        # weather-7: مطرُ الأمس توقّعٌ ⇒ يُعاد تسجيله من الأرشيف قبل بناء اليوم عليه.
-                        # بدايةُ يوم الأمس = استنزافُ ما قبله (التهيئةُ معلنةٌ في أعلامه إن غاب).
-                        reconcile_rain = prior_rain_reconcilable(prev, today, AUTO_CREATED_BY)
-                        prev_start_depletion = None
-                        if reconcile_rain:
-                            prev_start_depletion = await conn.fetchval(
-                                "SELECT depletion_mm FROM water_ledger"
-                                " WHERE field_id=$1 AND ledger_date=$2",
-                                field_id,
-                                prev["ledger_date"] - _dt.timedelta(days=1),
-                            )
+                        # weather-7: المطرُ المتوقَّع يُعاد تسجيله من الأرشيف حين يمتلئ. الأرشيف
+                        # (ERA5) يتأخّر أيّاماً، فتُقرأ نافذةٌ من القيود (ويومٌ قبلها مرساةً) لا
+                        # قيدُ الأمس وحده، ويُعاد فحصُها كلَّ دورة حتّى يُرصَد مطرُها.
+                        window_rows = await conn.fetch(
+                            "SELECT ledger_date, depletion_mm, created_by, rain_source, rain_mm,"
+                            " etc_mm, irrigation_mm, decision, taw_mm, raw_mm FROM water_ledger"
+                            " WHERE field_id=$1 AND ledger_date >= $2 AND ledger_date < $3"
+                            " ORDER BY ledger_date",
+                            field_id,
+                            today - _dt.timedelta(days=RAIN_RECONCILE_WINDOW_DAYS + 1),
+                            today,
+                        )
+                        reconcile_from = rain_reconcile_start(window_rows, today, AUTO_CREATED_BY)
                         # DAILY-WATER-LEDGER-SKIPPED-DAYS-DROP-CONSUMPTION-01: أيّامٌ بلا قيدٍ بين
                         # آخر قيدٍ واليوم يُقدَّر استهلاكُها ويُطرَح ريُّها المسجَّل (لا تُسقَط).
                         # يوماً بيوم (لا مجموعاً): القصُّ بعد كلّ يوم، وريٌّ مجهولٌ في يومٍ متخطّى
@@ -738,21 +744,24 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             flush=True,
                         )
                         continue
-                    observed_rain = None
-                    if reconcile_rain:
+                    rain_updates: list[dict] = []
+                    rebuilt_prev_depletion = None
+                    if reconcile_from is not None:
                         try:
-                            observed_rain = observed_rain_for_date(
+                            observed = observed_rain_by_date(
                                 await get_weather_historical(
                                     float(row["lat"]),
                                     float(row["lon"]),
-                                    start_date=prev["ledger_date"].isoformat(),
-                                    end_date=prev["ledger_date"].isoformat(),
+                                    start_date=reconcile_from.isoformat(),
+                                    end_date=(today - _dt.timedelta(days=1)).isoformat(),
                                     tenant_id=str(row["tenant_id"]),
-                                ),
-                                prev["ledger_date"],
+                                )
                             )
-                        except Exception:  # noqa: BLE001 — الأرشيف غائب ⇒ يبقى التوقّع معلَناً
-                            observed_rain = None
+                            rain_updates, rebuilt_prev_depletion = rebuild_rain_chain(
+                                window_rows, observed, today, AUTO_CREATED_BY
+                            )
+                        except Exception:  # noqa: BLE001 — أرشيفٌ غائب أو قيدٌ لا يُبنى ⇒ يبقى التوقّع معلَناً
+                            rain_updates, rebuilt_prev_depletion = [], None
                     t_max, t_min = day0.get("temp_max_c"), day0.get("temp_min_c")
                     # ميّز «هطول مقيس = 0» عن «هطول مفقود» — الأخير يُفترَض 0 بإعلان لا صامتاً.
                     _precip = day0.get("precipitation_mm")
@@ -783,55 +792,44 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             if prev and prev["depletion_mm"] is not None
                             else None
                         )
-                        prev_kc = (
-                            daily_kc(row["field_crop"], row["sowing_date"], prev["ledger_date"])
-                            if observed_rain is not None
-                            else None
-                        )
-                        fixed = None
-                        if prev_kc is not None:
-                            prev_zone = await ledger_root_zone(
-                                conn,
-                                tenant_id=str(row["tenant_id"]),
-                                field_id=field_id,
-                                season_id=str(row["season_id"]) if row["season_id"] else None,
-                                crop_kc=prev_kc,
-                                variety=row["cultivar"],
-                                texture=texture,
-                                etc_mm_day=float(prev["etc_mm"]),
-                            )
-                            fixed = reconcile_forecast_rain(
-                                prev,
-                                start_depletion_mm=(
-                                    float(prev_start_depletion)
-                                    if prev_start_depletion is not None
-                                    else None
-                                ),
-                                observed_rain_mm=observed_rain,
-                                taw_mm=prev_zone["taw_mm"],
-                                raw_mm=prev_zone["raw_mm"],
-                            )
-                        if fixed is not None:
-                            # الشرطُ يُعاد في UPDATE: لا يُكتب فوق قيدٍ صار يدويّاً أو مرصوداً بين الدورتين.
-                            status = await conn.execute(
-                                "UPDATE water_ledger SET rain_mm=$3, rain_source=$4,"
-                                " depletion_mm=$5, deficit_mm=$6, confidence=$7, decision=$8,"
-                                " updated_at=now()"
-                                " WHERE field_id=$1 AND ledger_date=$2 AND created_by=$9"
-                                " AND rain_source=$10",
-                                field_id,
-                                prev["ledger_date"],
-                                fixed["rain_mm"],
-                                fixed["rain_source"],
-                                fixed["depletion_mm"],
-                                fixed["deficit_mm"],
-                                fixed["confidence"],
-                                fixed["decision"],
-                                AUTO_CREATED_BY,
-                                RAIN_SOURCE_FORECAST,
-                            )
-                            if str(status).endswith(" 1"):
-                                prev_depletion = fixed["depletion_mm"]
+                        if rain_updates:
+                            try:
+                                # نقطةُ حفظ: سلسلةٌ تتغيّر بين الدورتين (قيدٌ صار يدويّاً أو تبدّل)
+                                # تُرجَع كلُّها ولا تُرجِع قيدَ اليوم؛ يُبنى اليومُ عندئذٍ على المخزَّن.
+                                async with conn.transaction():
+                                    # ضبطُ المستأجر داخل نقطة الحفظ أيضاً: كلُّ معاملةٍ تربطه بنفسها.
+                                    await _set_tenant(conn, row["tenant_id"])
+                                    for upd in rain_updates:
+                                        status = await conn.execute(
+                                            "UPDATE water_ledger SET rain_mm=$3, rain_source=$4,"
+                                            " depletion_mm=$5, deficit_mm=$6, confidence=$7,"
+                                            " decision=$8, updated_at=now()"
+                                            " WHERE field_id=$1 AND ledger_date=$2"
+                                            " AND created_by=$9"
+                                            " AND rain_source IS NOT DISTINCT FROM $10"
+                                            " AND depletion_mm IS NOT DISTINCT FROM $11",
+                                            field_id,
+                                            upd["ledger_date"],
+                                            upd["rain_mm"],
+                                            upd["rain_source"],
+                                            upd["depletion_mm"],
+                                            upd["deficit_mm"],
+                                            upd["confidence"],
+                                            upd["decision"],
+                                            AUTO_CREATED_BY,
+                                            upd["expected_rain_source"],
+                                            upd["expected_depletion_mm"],
+                                        )
+                                        if not str(status).endswith(" 1"):
+                                            raise _RainChainChanged(str(upd["ledger_date"]))
+                                if (
+                                    rebuilt_prev_depletion is not None
+                                    and prev is not None
+                                    and rain_updates[-1]["ledger_date"] == prev["ledger_date"]
+                                ):
+                                    prev_depletion = rebuilt_prev_depletion
+                            except _RainChainChanged:
+                                pass
                         kc = crop_kc.kc
                         zone = await ledger_root_zone(
                             conn,
@@ -868,15 +866,17 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                               (tenant_id, field_id, ledger_date, et0_mm, kc, etc_mm, rain_mm,
                                irrigation_mm, depletion_mm, deficit_mm, stage, decision,
                                confidence, created_by, et0_method, et0_quality,
-                               weather_snapshot_id, rain_source, created_at, updated_at)
+                               weather_snapshot_id, rain_source, taw_mm, raw_mm,
+                               created_at, updated_at)
                             VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-                                    $13, $14, $15, $16, $17, $18, now(), now())
+                                    $13, $14, $15, $16, $17, $18, $19, $20, now(), now())
                             ON CONFLICT (field_id, ledger_date) DO UPDATE SET
                               et0_mm = EXCLUDED.et0_mm, kc = EXCLUDED.kc, etc_mm = EXCLUDED.etc_mm,
                               rain_mm = EXCLUDED.rain_mm, irrigation_mm = EXCLUDED.irrigation_mm,
                               depletion_mm = EXCLUDED.depletion_mm, deficit_mm = EXCLUDED.deficit_mm,
                               stage = EXCLUDED.stage, decision = EXCLUDED.decision,
                               confidence = EXCLUDED.confidence, et0_method = EXCLUDED.et0_method,
+                              taw_mm = EXCLUDED.taw_mm, raw_mm = EXCLUDED.raw_mm,
                               et0_quality = EXCLUDED.et0_quality,
                               weather_snapshot_id = EXCLUDED.weather_snapshot_id,
                               rain_source = EXCLUDED.rain_source, updated_at = now()
@@ -899,6 +899,8 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             et0.get("quality_status"),
                             et0.get("weather_snapshot_id"),
                             RAIN_SOURCE_FORECAST,
+                            zone["taw_mm"],
+                            zone["raw_mm"],
                         )
                         processed += 1
                     # Governed bridge: candidate creation is deterministic and default-off.

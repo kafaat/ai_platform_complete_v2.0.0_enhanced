@@ -100,62 +100,99 @@ def field_elevation_m(value) -> float | None:
 
 
 #: مصدر ``water_ledger.rain_mm`` (v278): توقّعُ اليوم حين يُكتب القيد، والأرشيفُ المرصود
-#: حين يُعاد تسجيله في اليوم التالي.
+#: حين يُعاد تسجيله بعد أن يمتلئ الأرشيف.
 RAIN_SOURCE_FORECAST = "forecast"
 RAIN_SOURCE_OBSERVED = "observed"
 
+#: نافذةُ إعادة تسجيل المطر (أيّام قبل اليوم). أرشيفُ خدمة الطقس (إعادة تحليل ERA5) يتأخّر
+#: نحو خمسة أيّام (``season_simulation._ERA5_LAG_DAYS``): مطرُ الأمس غائبٌ عنه عادةً. لذلك
+#: لا يُفحَص قيدُ الأمس وحده بل كلُّ قيدٍ آليٍّ متوقَّع المطر في النافذة، كلَّ دورة، حتّى
+#: يمتلئ الأرشيف. النافذةُ أطولُ من التأخّر بهامش؛ ما يخرج منها متوقَّعاً يبقى معلَناً
+#: ``rain_source='forecast'`` لا مرصوداً.
+RAIN_RECONCILE_WINDOW_DAYS = 10
 
-def observed_rain_for_date(historical: dict | None, day: date) -> float | None:
-    """هطولُ ``day`` من عرض الأرشيف (``/v1/weather/historical``) أو ``None``.
+
+def observed_rain_by_date(historical: dict | None) -> dict[date, float]:
+    """هطولُ كلّ يومٍ مرصود في عرض الأرشيف (``/v1/weather/historical``).
 
     يُطابَق اليومُ بتاريخه لا بموضعه، ولا يُقرأ الغيابُ صفراً: يومٌ بلا ``precipitation_mm``
-    منتهٍ غير سالب ⇒ ``None``، فيبقى القيدُ على التوقّع ``rain_source='forecast'`` معلَناً.
+    منتهٍ غير سالب لا يظهر في الناتج، فيبقى قيدُه على التوقّع معلَناً.
     """
-    wanted = day.isoformat()
+    out: dict[date, float] = {}
     for entry in (historical or {}).get("days") or []:
-        if isinstance(entry, dict) and str(entry.get("date") or "")[:10] == wanted:
-            rain = _finite(entry.get("precipitation_mm"))
-            return rain if rain is not None and rain >= 0 else None
-    return None
+        if not isinstance(entry, dict):
+            continue
+        try:
+            day = date.fromisoformat(str(entry.get("date") or "")[:10])
+        except ValueError:
+            continue
+        rain = _finite(entry.get("precipitation_mm"))
+        if rain is not None and rain >= 0:
+            out[day] = rain
+    return out
 
 
-def prior_rain_reconcilable(prev, today: date, auto_created_by: str) -> bool:
-    """قيدُ الأمس مؤهَّلٌ لإعادة تسجيل مطره من الأرشيف؟
+def observed_rain_for_date(historical: dict | None, day: date) -> float | None:
+    """هطولُ ``day`` من عرض الأرشيف أو ``None`` (الغيابُ ليس صفراً)."""
+    return observed_rain_by_date(historical).get(day)
 
-    الشروط كلّها: قيدُ **الأمس** بالضبط (قبل أن يُبنى عليه قيدُ اليوم)، كتبه العامل نفسه
-    (القيدُ اليدويّ وقيدُ الريّ المطبَّق لا يُلمَسان)، مطرُه توقّعٌ، وبدايةُ يومه معلومة: لا
-    أيّامَ متخطّاةً قبله، لأنّ استنزافَ بدايته عندئذٍ تقديرٌ لا يُعاد بناؤه.
+
+def _row_rebuildable(row, auto_created_by: str) -> bool:
+    """قيدٌ يمكن إعادة بناء استنزافه من بداية يومه؟
+
+    كتبه العامل نفسه (اليدويّ وقيدُ الريّ المطبَّق لا يُلمَسان)، بأعلامٍ مقروءة، بلا أيّامٍ
+    متخطّاةٍ قبله (بدايتُه عندئذٍ تقديرٌ لا يُعاد بناؤه)، بمدخلاتٍ منتهية، و**بـTAW/RAW
+    المخزَّنين معه** (v278): لا يُعاد حسابُ قيدٍ قديمٍ بنسيج اليوم أو جذور اليوم.
     """
     from api.water_ledger_auto import ledger_notes_from_decision
 
-    if not prev or prev["ledger_date"] is None:
+    if row is None or row["ledger_date"] is None or row["created_by"] != auto_created_by:
         return False
-    if prev["ledger_date"] != today - timedelta(days=1):
-        return False
-    if prev["created_by"] != auto_created_by or prev["rain_source"] != RAIN_SOURCE_FORECAST:
-        return False
-    notes = ledger_notes_from_decision(prev["decision"])
+    notes = ledger_notes_from_decision(row["decision"])
     if notes is None or "missing_days_consumption_estimated" in notes:
         return False
-    return all(_finite(prev[k]) is not None for k in ("etc_mm", "irrigation_mm", "rain_mm"))
+    if any(_finite(row[k]) is None for k in ("etc_mm", "irrigation_mm", "rain_mm")):
+        return False
+    taw, raw = _finite(row["taw_mm"]), _finite(row["raw_mm"])
+    return taw is not None and taw > 0 and raw is not None and 0 <= raw <= taw
 
 
-def reconcile_forecast_rain(
-    prev,
+def rain_reconcile_start(
+    rows, today: date, auto_created_by: str, *, window_days: int = RAIN_RECONCILE_WINDOW_DAYS
+) -> date | None:
+    """أقدمُ يومٍ في النافذة قيدُه آليٌّ متوقَّعُ المطر قابلٌ لإعادة البناء، أو ``None``.
+
+    ``None`` ⇒ لا طلبَ إلى الأرشيف في هذه الدورة (لا نداءَ شبكةٍ بلا قيدٍ ينتظره).
+    """
+    first = today - timedelta(days=window_days)
+    for row in rows or []:
+        day = row["ledger_date"]
+        if (
+            day is not None
+            and first <= day < today
+            and row["rain_source"] == RAIN_SOURCE_FORECAST
+            and _row_rebuildable(row, auto_created_by)
+        ):
+            return day
+    return None
+
+
+def rebuild_ledger_row(
+    row,
     *,
     start_depletion_mm: float | None,
-    observed_rain_mm: float,
+    rain_mm: float,
+    rain_source: str | None,
     taw_mm: float,
     raw_mm: float,
 ) -> dict | None:
-    """قيدُ الأمس مُعاداً حسابُه بالمطر المرصود بدل المتوقَّع — نقيّ.
+    """قيدٌ آليٌّ مُعاداً حسابُه من بداية يومه — نقيّ.
 
-    ``Dr = clamp(Dr_start + ETc − P_eff(observed) − I, 0, TAW)`` بالمعادلة نفسها في
-    ``compute_daily_ledger_entry``، و``Dr_start`` استنزافُ قيد ما قبل الأمس، أو التهيئة
-    المعلنة Dr=0 إن حمل قيدُ الأمس ``bootstrap_assumed_field_capacity``. بدايةٌ مفقودة في
-    غير التهيئة ⇒ ``None`` (لا إعادة حساب). يُسقَط علَمُ
-    ``precipitation_assumed_zero`` (المطرُ صار مرصوداً) ويُعاد اشتقاقُ الثقة من الأعلام كما
-    يشتقّها المُنتِج، فلا تبقى ثقةٌ أو قرارٌ يصفان مطراً لم يعد في القيد.
+    ``Dr = clamp(Dr_start + ETc − P_eff(rain) − I, 0, TAW)`` بالمعادلة نفسها في
+    ``compute_daily_ledger_entry``، و``Dr_start`` استنزافُ القيد السابق (مُعاداً بناؤه إن
+    تغيّر)، أو التهيئة المعلنة Dr=0 إن حمل القيدُ ``bootstrap_assumed_field_capacity``.
+    بدايةٌ مفقودة في غير التهيئة ⇒ ``None`` (لا يُختلَق صفر). مطرٌ صار مرصوداً يُسقِط علَمَ
+    ``precipitation_assumed_zero``؛ وتُشتقّ الثقةُ من الأعلام الباقية كما يشتقّها المُنتِج.
     """
     from api.water_balance import _effective_rain
     from api.water_ledger_auto import (
@@ -167,30 +204,28 @@ def reconcile_forecast_rain(
         ledger_notes_from_decision,
     )
 
-    rain = _finite(observed_rain_mm)
+    rain = _finite(rain_mm)
     if rain is None or rain < 0:
-        raise ValueError(f"observed_rain_mm يجب أن يكون عدداً منتهياً ≥ 0 — وصل {observed_rain_mm!r}")
+        raise ValueError(f"rain_mm يجب أن يكون عدداً منتهياً ≥ 0 — وصل {rain_mm!r}")
     if not (_finite(taw_mm) and taw_mm > 0) or _finite(raw_mm) is None or raw_mm > taw_mm:
         raise ValueError("TAW/RAW غير صالحين لإعادة حساب القيد")
-    notes = [
-        n
-        for n in (ledger_notes_from_decision(prev["decision"]) or [])
-        if n not in ("precipitation_assumed_zero", "depletion_capped_at_taw")
-    ]
+    dropped = {"depletion_capped_at_taw"}
+    if rain_source == RAIN_SOURCE_OBSERVED:
+        dropped.add("precipitation_assumed_zero")
+    notes = [n for n in (ledger_notes_from_decision(row["decision"]) or []) if n not in dropped]
     if _BOOTSTRAP_NOTE in notes:
         start = 0.0
     elif _finite(start_depletion_mm) is None:
-        # قيدٌ غير تهيئةٍ وبدايتُه مفقودة (صفُّ ما قبله حُذف) ⇒ لا يُعاد بناؤه ولا يُختلَق صفر.
         return None
     else:
         start = min(max(float(start_depletion_mm), 0.0), taw_mm)
-    raw = start + float(prev["etc_mm"]) - _effective_rain(rain) - float(prev["irrigation_mm"])
+    raw = start + float(row["etc_mm"]) - _effective_rain(rain) - float(row["irrigation_mm"])
     depletion = round(min(max(raw, 0.0), taw_mm), 2)
     if raw > taw_mm:
         notes.append("depletion_capped_at_taw")
     return {
         "rain_mm": rain,
-        "rain_source": RAIN_SOURCE_OBSERVED,
+        "rain_source": rain_source,
         "depletion_mm": depletion,
         "deficit_mm": round(max(depletion - raw_mm, 0.0), 2),
         "confidence": (
@@ -201,6 +236,95 @@ def reconcile_forecast_rain(
         "decision": "auto:" + (";".join(notes) if notes else "daily_balance"),
         "applied_water_status": applied_water_status(notes),
     }
+
+
+def reconcile_forecast_rain(
+    prev,
+    *,
+    start_depletion_mm: float | None,
+    observed_rain_mm: float,
+    taw_mm: float,
+    raw_mm: float,
+) -> dict | None:
+    """قيدٌ مُعاداً حسابُه بالمطر المرصود بدل المتوقَّع (``rebuild_ledger_row`` بمطرٍ مرصود)."""
+    return rebuild_ledger_row(
+        prev,
+        start_depletion_mm=start_depletion_mm,
+        rain_mm=observed_rain_mm,
+        rain_source=RAIN_SOURCE_OBSERVED,
+        taw_mm=taw_mm,
+        raw_mm=raw_mm,
+    )
+
+
+def rebuild_rain_chain(
+    rows,
+    observed: dict[date, float],
+    today: date,
+    auto_created_by: str,
+    *,
+    window_days: int = RAIN_RECONCILE_WINDOW_DAYS,
+) -> tuple[list[dict], float | None]:
+    """إعادةُ تسجيل المطر المرصود في النافذة وإعادةُ بناء السلسلة بعده — نقيّ.
+
+    ``rows`` قيودُ الحقل قبل اليوم تصاعديّاً (بما فيها يومٌ قبل النافذة مرساةً). لكلّ قيد:
+
+    * آليٌّ متوقَّعُ المطر داخل النافذة وله رصدٌ ⇒ مطرُه مرصودٌ واستنزافُه من بداية يومه؛
+    * آليٌّ تغيّرت بدايتُه (القيدُ السابق المتّصل أُعيد بناؤه) ⇒ يُعاد بناؤه بمطره كما هو
+      ومصدره كما هو (توقّعٌ لم يُرصَد بعد يبقى توقّعاً)؛
+    * غيرُ ذلك (يدويّ، بعد فجوة، بلا TAW مخزَّن، …) ⇒ لا يُلمَس وتنقطع السلسلة عنده: قيمتُه
+      هي البداية لما بعده كما هي مخزَّنة.
+
+    يعيد ``(updates, carry)``: التحديثات بالترتيب، كلٌّ يحمل ما كان عليه القيد
+    (``expected_*``) ليُشترَط في UPDATE، و``carry`` استنزافُ آخر قيدٍ إن أُعيد بناؤه (بدايةُ
+    اليوم) أو ``None``.
+    """
+    first = today - timedelta(days=window_days)
+    updates: list[dict] = []
+    carry: float | None = None
+    previous = None
+    for row in rows or []:
+        day = row["ledger_date"]
+        contiguous = (
+            previous is not None
+            and day is not None
+            and previous["ledger_date"] is not None
+            and day == previous["ledger_date"] + timedelta(days=1)
+        )
+        in_window = day is not None and first <= day < today
+        rebuildable = in_window and _row_rebuildable(row, auto_created_by)
+        rain_fix = rebuildable and row["rain_source"] == RAIN_SOURCE_FORECAST and day in observed
+        start_changed = carry is not None and contiguous
+        fixed = None
+        if rebuildable and (rain_fix or start_changed):
+            if start_changed:
+                start = carry
+            elif contiguous:
+                start = _finite(previous["depletion_mm"])
+            else:
+                start = None
+            fixed = rebuild_ledger_row(
+                row,
+                start_depletion_mm=start,
+                rain_mm=observed[day] if rain_fix else float(row["rain_mm"]),
+                rain_source=RAIN_SOURCE_OBSERVED if rain_fix else row["rain_source"],
+                taw_mm=float(row["taw_mm"]),
+                raw_mm=float(row["raw_mm"]),
+            )
+        if fixed is None:
+            carry = None
+        else:
+            updates.append(
+                {
+                    **fixed,
+                    "ledger_date": day,
+                    "expected_rain_source": row["rain_source"],
+                    "expected_depletion_mm": row["depletion_mm"],
+                }
+            )
+            carry = fixed["depletion_mm"]
+        previous = row
+    return updates, carry
 
 
 @dataclass(frozen=True)
