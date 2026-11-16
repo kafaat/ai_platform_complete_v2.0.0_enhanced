@@ -69,6 +69,8 @@ _CI_DIGEST = "d" * 64
 @pytest_asyncio.fixture
 async def database(monkeypatch):
     """Admin is used for setup/inspection only; application calls authenticate afresh."""
+    # Each case gets a fresh database, so the writer's review-column cache must start empty.
+    monkeypatch.setattr(persistence, "_learning_review_columns_present", False)
     root = await _connect(_configured_dsn())
     suffix = uuid4().hex
     dbname, role = f"decision033_{suffix}", f"decision033_app_{suffix}"
@@ -366,6 +368,42 @@ async def test_033_runner_rolls_back_policy_and_journal_on_error(database, monke
     assert (await runner.apply_migrations())["ok"]
 
 
+def _core(result: dict) -> dict:
+    return {k: result[k] for k in ("update_id", "replayed", "write")}
+
+
+def _learning_payload(model_id: str = "model-a", **review):
+    return SimpleNamespace(
+        model_id=model_id,
+        feature_set_id=None,
+        learning_rate=0.01,
+        sample_count=1,
+        label_summary={"ok": 1},
+        drift_score=0.0,
+        action="ci-only",
+        source_type="ci-probe",
+        source_id="ci-source",
+        field_id=None,
+        season_id=None,
+        recommendation_id=None,
+        decision_id=None,
+        evidence_snapshot_id=None,
+        **review,
+    )
+
+
+_APPROVED = {
+    "review_status": "approved",
+    "agronomically_approved": True,
+    "agronomic_review": {"reviewer_id": "agro-1", "verdict": "approved", "evidence_ids": ["ev-1"]},
+}
+_REJECTED = {
+    "review_status": "rejected",
+    "agronomically_approved": False,
+    "agronomic_review": {"reviewer_id": "agro-2", "verdict": "rejected"},
+}
+
+
 @pytest.mark.asyncio
 async def test_learning_writer_survives_033_under_restricted_login(database, observed_writers):
     payload = SimpleNamespace(
@@ -388,7 +426,7 @@ async def test_learning_writer_survives_033_under_restricted_login(database, obs
     before = await persistence.persist_learning_update(
         tenant_id=TENANT, payload=payload, update_id="ci-before", traceability_status="traceable"
     )
-    assert before == {"update_id": "ci-before", "replayed": False}
+    assert _core(before) == {"update_id": "ci-before", "replayed": False, "write": "inserted"}
     assert (await runner.apply_migrations())["ok"]
     try:
         after = await persistence.persist_learning_update(
@@ -403,7 +441,7 @@ async def test_learning_writer_survives_033_under_restricted_login(database, obs
             == 0
         )
         raise
-    assert after == {"update_id": "ci-after", "replayed": False}
+    assert _core(after) == {"update_id": "ci-after", "replayed": False, "write": "inserted"}
     assert "persist_learning_update" in observed_writers
     assert (
         await database.admin.fetchval(
@@ -451,8 +489,16 @@ async def test_learning_update_resend_is_a_replay_and_a_changed_payload_is_refus
             "SELECT count(*) FROM decision_outbox_events WHERE aggregate_id='ci-replay'"
         )
 
-    assert await write(TENANT, "model-a") == {"update_id": "ci-replay", "replayed": False}
-    assert await write(TENANT, "model-a") == {"update_id": "ci-replay", "replayed": True}
+    assert _core(await write(TENANT, "model-a")) == {
+        "update_id": "ci-replay",
+        "replayed": False,
+        "write": "inserted",
+    }
+    assert _core(await write(TENANT, "model-a")) == {
+        "update_id": "ci-replay",
+        "replayed": True,
+        "write": "unchanged",
+    }
     assert await outbox() == 1, "a replay emits no second event"
     with pytest.raises(persistence.LearningUpdateConflict):
         await write(TENANT, "model-b")
@@ -923,3 +969,132 @@ def test_every_outbox_writer_has_a_pg16_witness_and_binds_before_sql():
         "uncovered": discovered - witnessed,
         "stale": witnessed - discovered,
     }
+
+
+@pytest.mark.asyncio
+async def test_learning_update_review_is_stored_upserted_and_read_back(database):
+    """W2-03: the service dropped the agronomic review and refused any resend that changed it.
+    The same tenant may now revise action, source and review on its id (``updated``, one more
+    event); the reply's review comes from the stored row; the 039 checks refuse an approval
+    without evidence or an inconsistent flag, and the stored review is then left as it was."""
+    assert (await runner.apply_migrations())["ok"]
+
+    async def write(**review):
+        return await persistence.persist_learning_update(
+            tenant_id=TENANT,
+            payload=_learning_payload(**review),
+            update_id="ci-review",
+            traceability_status="traceable",
+        )
+
+    async def row():
+        return await database.admin.fetchrow(
+            "SELECT review_status, agronomically_approved, agronomic_review::text AS review "
+            "FROM online_learning_updates WHERE update_id='ci-review'"
+        )
+
+    async def events() -> int:
+        return await database.admin.fetchval(
+            "SELECT count(*) FROM decision_outbox_events WHERE aggregate_id='ci-review'"
+        )
+
+    first = await write()
+    assert (first["write"], first["review_status"], first["agronomically_approved"]) == (
+        "inserted",
+        "unreviewed",
+        False,
+    )
+    assert (await write())["write"] == "unchanged" and await events() == 1
+
+    approved = await write(**_APPROVED)
+    assert (approved["write"], approved["review_status"], approved["agronomically_approved"]) == (
+        "updated",
+        "approved",
+        True,
+    )
+    stored = await row()
+    assert stored["review_status"] == "approved" and '"agro-1"' in stored["review"]
+    assert await events() == 2
+
+    rejected = await write(**_REJECTED)
+    assert (rejected["review_status"], rejected["agronomically_approved"]) == ("rejected", False)
+
+    no_evidence = {**_APPROVED, "agronomic_review": {"reviewer_id": "a", "verdict": "approved"}}
+    with pytest.raises(persistence.LearningUpdateReviewInvalid):
+        await write(**no_evidence)
+    with pytest.raises(persistence.LearningUpdateReviewInvalid):
+        await write(**{**_APPROVED, "agronomically_approved": False})
+    assert (await row())["review_status"] == "rejected"  # refused revisions changed nothing
+    assert await events() == 3
+
+    with pytest.raises(persistence.LearningUpdateConflict):  # identity is not revisable
+        await persistence.persist_learning_update(
+            tenant_id=TENANT,
+            payload=_learning_payload("model-b", **_APPROVED),
+            update_id="ci-review",
+            traceability_status="traceable",
+        )
+
+
+@pytest.mark.asyncio
+async def test_learning_update_in_the_shared_schema_is_keyed_per_tenant(database):
+    """In the shared database the platform's v119 keys the table on (tenant_id, update_id):
+    another tenant's identical id is its own row, and revising one never touches the other."""
+    assert (await runner.apply_migrations())["ok"]
+    await database.admin.execute(
+        "ALTER TABLE online_learning_updates DROP CONSTRAINT online_learning_updates_pkey, "
+        "ADD PRIMARY KEY (tenant_id, update_id)"
+    )
+
+    async def write(tenant: str, **review):
+        return await persistence.persist_learning_update(
+            tenant_id=tenant,
+            payload=_learning_payload(**review),
+            update_id="ci-shared",
+            traceability_status="traceable",
+        )
+
+    assert (await write(TENANT))["write"] == "inserted"
+    assert (await write(OTHER))["write"] == "inserted"
+    assert (await write(OTHER, **_APPROVED))["write"] == "updated"
+    rows = await database.admin.fetch(
+        "SELECT tenant_id::text AS tenant, review_status FROM online_learning_updates "
+        "WHERE update_id='ci-shared' ORDER BY tenant_id"
+    )
+    assert [(r["tenant"], r["review_status"]) for r in rows] == [
+        (TENANT, "unreviewed"),
+        (OTHER, "approved"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_learning_update_before_039_stores_unreviewed_and_refuses_a_review(database):
+    """Code ships before its migration: on the 032 baseline (no review columns) an unreviewed
+    update is still stored, and a supplied review is refused instead of being dropped."""
+
+    async def write(update_id: str, **review):
+        return await persistence.persist_learning_update(
+            tenant_id=TENANT,
+            payload=_learning_payload(**review),
+            update_id=update_id,
+            traceability_status="traceable",
+        )
+
+    plain = await write("ci-pre039")
+    assert (plain["write"], plain["review_status"], plain["agronomically_approved"]) == (
+        "inserted",
+        "unreviewed",
+        False,
+    )
+    assert (await write("ci-pre039"))["write"] == "unchanged"
+    with pytest.raises(persistence.LearningUpdateReviewUnavailable):
+        await write("ci-pre039-reviewed", **_APPROVED)
+    assert (
+        await database.admin.fetchval(
+            "SELECT count(*) FROM online_learning_updates WHERE update_id='ci-pre039-reviewed'"
+        )
+        == 0
+    )
+    # Once 039 runs (with the rest of the pending migrations), the same writer stores reviews.
+    assert (await runner.apply_migrations())["ok"]
+    assert (await write("ci-pre039-reviewed", **_APPROVED))["review_status"] == "approved"

@@ -103,19 +103,19 @@ async def _set_rls_tenant(conn: Any, tenant: UUID | None) -> None:
 def _unproven_learning_update_fields(result: dict, tenant: str, sent: dict) -> list[str]:
     """What the service's success reply does not prove about the learning update it stored.
 
-    ``authoritative``/``persisted`` alone are not enough. The local writer upserts on
-    ``(tenant_id, update_id)`` and keeps the agronomic review, but the service inserts with
-    ``ON CONFLICT (update_id) DO NOTHING`` and has no review columns. A reused id, including
-    another tenant's, therefore reports success while nothing changed, and an approved or
-    rejected review is dropped. The cutover is fail-closed: the reply must echo the tenant, the
-    id, an actual write and the review verdict, or the platform refuses the request.
+    ``authoritative``/``persisted`` alone are not enough. Before W2-03 the service inserted
+    with ``ON CONFLICT DO NOTHING`` and had no review columns: a reused id reported success while
+    nothing changed, and an approved or rejected review was dropped. The cutover stays
+    fail-closed: the reply must echo the tenant, the id, the write outcome and the review verdict
+    read back from the stored row. ``unchanged`` is an exact resend whose stored row equals what
+    was sent, so with a matching review it proves persistence as well as a write does.
     """
     unproven: list[str] = []
     if str(result.get("tenant_id") or "") != str(tenant):
         unproven.append("tenant_id")
     if str(result.get("update_id") or "") != str(sent.get("update_id") or ""):
         unproven.append("update_id")
-    if result.get("write") not in {"inserted", "updated"}:
+    if result.get("write") not in {"inserted", "updated", "unchanged"}:
         unproven.append("write")
     for key in ("review_status", "agronomically_approved"):
         if key not in result or result.get(key) != sent.get(key):

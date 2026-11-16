@@ -863,93 +863,208 @@ async def read_outcomes_for_reconcile(
 
 
 class LearningUpdateConflict(Exception):
-    """The update id is already stored with a different payload (or by another tenant)."""
+    """The update id is already stored with a different identity (or by another tenant)."""
+
+
+class LearningUpdateReviewInvalid(ValueError):
+    """The supplied agronomic review breaks the stored review rules (v234 / service 039)."""
+
+
+class LearningUpdateReviewUnavailable(RuntimeError):
+    """A review was supplied but this schema has no review columns yet (service migration 039)."""
+
+
+# What a learning update *is*: changing any of these under a stored id is a conflict.
+_LEARNING_IDENTITY_COLUMNS = (
+    "model_id",
+    "feature_set_id",
+    "learning_rate",
+    "sample_count",
+    "label_summary",
+    "field_id",
+    "season_id",
+    "recommendation_id",
+    "decision_id",
+    "evidence_snapshot_id",
+)
+# What may change on a resend, exactly the set the platform's local writer updates on
+# ON CONFLICT (tenant_id, update_id): the action and drift, the source, and the agronomic review.
+_LEARNING_MUTABLE_COLUMNS = ("action", "drift_score", "source_type", "source_id")
+_LEARNING_REVIEW_COLUMNS = ("review_status", "agronomically_approved", "agronomic_review")
+_JSONB_COLUMNS = frozenset({"label_summary", "agronomic_review"})
+_REVIEW_COLUMNS_SQL = (
+    "SELECT count(*) = 3 FROM pg_attribute WHERE attrelid = to_regclass('online_learning_updates') "
+    "AND attname IN ('review_status', 'agronomically_approved', 'agronomic_review') "
+    "AND NOT attisdropped"
+)
+_learning_review_columns_present = False
+
+
+async def _learning_review_columns(conn: Any) -> bool:
+    """Whether 039 (or the shared v234) has run. Only presence is cached: a later 039 counts."""
+    global _learning_review_columns_present
+    if not _learning_review_columns_present:
+        _learning_review_columns_present = bool(await conn.fetchval(_REVIEW_COLUMNS_SQL))
+    return _learning_review_columns_present
+
+
+def _placeholders(columns: tuple[str, ...], first_param: int) -> str:
+    return ", ".join(
+        f"${first_param + i}{'::jsonb' if c in _JSONB_COLUMNS else ''}"
+        for i, c in enumerate(columns)
+    )
+
+
+def _same_columns_sql(columns: tuple[str, ...], first_param: int) -> str:
+    return " AND ".join(
+        f"{c} IS NOT DISTINCT FROM ${first_param + i}{'::jsonb' if c in _JSONB_COLUMNS else ''}"
+        for i, c in enumerate(columns)
+    )
+
+
+def _review_violation(exc: Exception) -> LearningUpdateReviewInvalid | None:
+    name = str(getattr(exc, "constraint_name", "") or "")
+    if name.startswith("chk_oluj_agronomic"):
+        return LearningUpdateReviewInvalid(name)
+    return None
 
 
 async def persist_learning_update(
     *, tenant_id: str, payload: Any, update_id: str, traceability_status: str
 ) -> dict[str, Any]:
+    """Store a learning update, upserted per tenant like the platform's local writer.
+
+    Returns ``write``: ``inserted`` for a new id; ``updated`` when the same tenant resends the
+    same update (identity unchanged) with a new action, drift, source or review; ``unchanged``
+    for an exact resend (``replayed``, no second outbox event). ``review_status`` and
+    ``agronomically_approved`` are read from the stored row, never echoed from the request.
+    Before migration 039 an unreviewed update is still stored and a review is refused
+    (``LearningUpdateReviewUnavailable``) rather than dropped.
+    """
     if traceability_status == "rejected_untraceable":
         raise ValueError("learning update must be traceable to source_type/source_id or lineage id")
+    import asyncpg  # lazy like _connect(): only reachable when SoR/asyncpg is available
+
+    review_status = getattr(payload, "review_status", None) or "unreviewed"
+    approved = bool(getattr(payload, "agronomically_approved", False))
+    review_doc = getattr(payload, "agronomic_review", None)
+    identity = (
+        payload.model_id,
+        payload.feature_set_id,
+        payload.learning_rate,
+        payload.sample_count,
+        _json(payload.label_summary),
+        payload.field_id,
+        payload.season_id,
+        payload.recommendation_id,
+        payload.decision_id,
+        payload.evidence_snapshot_id,
+    )
+    review = (review_status, approved, _json(review_doc) if review_doc is not None else None)
     conn = await _connect()
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            has_review = await _learning_review_columns(conn)
+            if not has_review and (review_status != "unreviewed" or approved or review_doc):
+                raise LearningUpdateReviewUnavailable(
+                    "online_learning_updates has no review columns"
+                )
+            mutable_columns = _LEARNING_MUTABLE_COLUMNS + (
+                _LEARNING_REVIEW_COLUMNS if has_review else ()
+            )
+            mutable = (
+                payload.action,
+                payload.drift_score,
+                payload.source_type,
+                payload.source_id,
+            ) + (review if has_review else ())
+            returning = (
+                "RETURNING review_status, agronomically_approved"
+                if has_review
+                else "RETURNING 'unreviewed' AS review_status, false AS agronomically_approved"
+            )
+            columns = _LEARNING_IDENTITY_COLUMNS + mutable_columns
             # No conflict target: this table's unique key is ``update_id`` in this service's own
             # schema (001) but ``(tenant_id, update_id)`` in the shared database, where the
             # platform's v119 creates the table first and 001's CREATE IF NOT EXISTS is a no-op.
             # ``ON CONFLICT (update_id)`` matched no index there and failed with 42P10 on every
-            # call; a bare DO NOTHING is idempotent against either key.
-            values = (
-                payload.model_id,
-                payload.feature_set_id,
-                payload.learning_rate,
-                payload.sample_count,
-                _json(payload.label_summary),
-                payload.drift_score,
-                payload.action,
-                payload.source_type,
-                payload.source_id,
-                payload.field_id,
-                payload.season_id,
-                payload.recommendation_id,
-                payload.decision_id,
-                payload.evidence_snapshot_id,
-            )
-            status = await conn.execute(
-                """
-                INSERT INTO online_learning_updates
-                  (update_id, tenant_id, model_id, feature_set_id, learning_rate, sample_count,
-                   label_summary, drift_score, action, source_type, source_id, field_id,
-                   season_id, recommendation_id, decision_id, evidence_snapshot_id)
-                VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-                ON CONFLICT DO NOTHING
-                """,
-                update_id,
-                tenant_id,
-                *values,
-            )
-            if status == "INSERT 0 0":
-                # Nothing was written: the id is taken. A resend of the same update is a replay
-                # (no second outbox event); anything else must not be reported as stored. The
-                # lookup is bound to this tenant explicitly (RLS is not on this table in every
-                # schema), so an id held by another tenant (this service's own schema keys on
-                # update_id alone) reads as a conflict, never as this tenant's replay.
-                same = await conn.fetchval(
-                    """
-                    SELECT model_id IS NOT DISTINCT FROM $2
-                       AND feature_set_id IS NOT DISTINCT FROM $3
-                       AND learning_rate IS NOT DISTINCT FROM $4
-                       AND sample_count IS NOT DISTINCT FROM $5
-                       AND label_summary IS NOT DISTINCT FROM $6::jsonb
-                       AND drift_score IS NOT DISTINCT FROM $7
-                       AND action IS NOT DISTINCT FROM $8
-                       AND source_type IS NOT DISTINCT FROM $9
-                       AND source_id IS NOT DISTINCT FROM $10
-                       AND field_id IS NOT DISTINCT FROM $11
-                       AND season_id IS NOT DISTINCT FROM $12
-                       AND recommendation_id IS NOT DISTINCT FROM $13
-                       AND decision_id IS NOT DISTINCT FROM $14
-                       AND evidence_snapshot_id IS NOT DISTINCT FROM $15
-                      FROM online_learning_updates
-                     WHERE update_id = $1 AND tenant_id = $16::uuid
-                    """,
+            # call; a bare DO NOTHING followed by a tenant-bound lookup works against either key.
+            try:
+                inserted = await conn.fetchrow(
+                    f"INSERT INTO online_learning_updates (update_id, tenant_id, "
+                    f"{', '.join(columns)}) VALUES ($1, $2::uuid, {_placeholders(columns, 3)}) "
+                    f"ON CONFLICT DO NOTHING {returning}",
                     update_id,
-                    *values,
                     tenant_id,
+                    *identity,
+                    *mutable,
                 )
-                if not same:
+            except asyncpg.exceptions.CheckViolationError as exc:
+                raise (_review_violation(exc) or exc) from None
+            if inserted is not None:
+                write = "inserted"
+                stored = inserted
+            else:
+                # The id is taken. The lookup is bound to this tenant explicitly (RLS is not on
+                # this table in every schema), so an id held by another tenant (this service's own
+                # schema keys on update_id alone) reads as a conflict, never as this tenant's row.
+                first_mutable = 3 + len(_LEARNING_IDENTITY_COLUMNS)
+                existing = await conn.fetchrow(
+                    f"SELECT ({_same_columns_sql(_LEARNING_IDENTITY_COLUMNS, 3)}) AS same_identity, "
+                    f"({_same_columns_sql(mutable_columns, first_mutable)}) AS same_mutable, "
+                    f"{returning.removeprefix('RETURNING ')} FROM online_learning_updates "
+                    "WHERE update_id = $1 AND tenant_id = $2::uuid FOR UPDATE",
+                    update_id,
+                    tenant_id,
+                    *identity,
+                    *mutable,
+                )
+                if existing is None or not existing["same_identity"]:
                     raise LearningUpdateConflict(update_id)
-                return {"update_id": update_id, "replayed": True}
+                if existing["same_mutable"]:
+                    return {
+                        "update_id": update_id,
+                        "replayed": True,
+                        "write": "unchanged",
+                        "review_status": existing["review_status"],
+                        "agronomically_approved": existing["agronomically_approved"],
+                    }
+                assignments = ", ".join(
+                    f"{c} = ${3 + i}{'::jsonb' if c in _JSONB_COLUMNS else ''}"
+                    for i, c in enumerate(mutable_columns)
+                )
+                try:
+                    stored = await conn.fetchrow(
+                        f"UPDATE online_learning_updates SET {assignments} "
+                        f"WHERE update_id = $1 AND tenant_id = $2::uuid {returning}",
+                        update_id,
+                        tenant_id,
+                        *mutable,
+                    )
+                except asyncpg.exceptions.CheckViolationError as exc:
+                    raise (_review_violation(exc) or exc) from None
+                write = "updated"
             await emit_outbox_event(
                 conn,
                 tenant_id=tenant_id,
                 event_type="LEARNING_UPDATE_RECORDED",
                 aggregate_type="online_learning_updates",
                 aggregate_id=update_id,
-                payload={"model_id": payload.model_id, "traceability_status": traceability_status},
+                payload={
+                    "model_id": payload.model_id,
+                    "traceability_status": traceability_status,
+                    "write": write,
+                    "review_status": stored["review_status"],
+                },
             )
-        return {"update_id": update_id, "replayed": False}
+        return {
+            "update_id": update_id,
+            "replayed": False,
+            "write": write,
+            "review_status": stored["review_status"],
+            "agronomically_approved": stored["agronomically_approved"],
+        }
     finally:
         await conn.close()
 
