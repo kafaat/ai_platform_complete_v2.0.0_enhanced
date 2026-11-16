@@ -45,7 +45,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "38515e7768f5d9b0b181a8f1c246a2386587175185b9eb41f92dfb9efccb2f92"
+          "content": "bb843b1db1547107b668f9fe3a839bc3bffbbdc42d7491762f17e62e02f1c3a7"
         }
       ],
       "name": "docker-compose.production.yml",
@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d1c38f62f71eee65b4926062c04addc1d61a9affd01bc13f578d55e2eb46513"
+          "content": "2a3bbec645e31f559499b87dfb397510870296da0ffaf8263c5dd165ea2a6323"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -3315,7 +3315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5825809c598b11c12657b0d4e03be921b97f76bc0c0bbc34593f1f5b75499aa4"
+          "content": "7f9f4428debbfe129ca414d203588cc458941354e6a7d28490f5a9f30e96714c"
         }
       ],
       "name": "frontend/src/hooks/useScouting.ts",
@@ -4905,6 +4905,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d9ab5420b14736ee235a0c2d4aeb1c457f91ab68d57ea7eb5c5486ac83881276"
+        }
+      ],
+      "name": "frontend/src/lib/pestEscalationLineage.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1a7763f4dd94f23aa77b3865f3643f1d538b25fce43ee4935a14265fe9512165"
+        }
+      ],
+      "name": "frontend/src/lib/pestEscalationLineage.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e98a25ee2ae22315b65c4d0592f925842a05637b40f1bd6bb69bf837f9ffb0ee"
         }
       ],
@@ -4925,7 +4945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "034b0ab6f80ac8fd42a8ce1890f93d7e81e5f55034f38131a86bfdecf7604c8c"
+          "content": "e2997dc2434ca838a905ccfbb82b436b1010a3535b69242190c16673d6e02cbd"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6855,7 +6875,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8314fcd780de0efd09eb63fe03c1b9b746dadce7ce5ae9ae4475797464c35d87"
+          "content": "06cae7e1c5a7fd5591516b04343e57005c70b9b7810b6794cc84acf4a4da6ecb"
+        }
+      ],
+      "name": "frontend/src/sections/PestEscalationPage.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b979df5c7030d7cbbf6b42e49f37d13c21e7d9a81e51b1bd7c19626eb272ad9d"
         }
       ],
       "name": "frontend/src/sections/PestEscalationPage.tsx",
@@ -7815,7 +7845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9371f7811dccdf88d12cb2aa697542a6349e221e78bcce71cacdfaa2c577460a"
+          "content": "706c95897190dd3cfb6a5643a0a1f4b8906a50f65103ba3fc5180324c564aeb8"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -12275,7 +12305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "562d71ac474ca7415cfe21d1315e7d24251bbfd4780dc74d0ab4adc90e6f7b9c"
+          "content": "9946edc531017aa27ff54ec1db8fd838c63dc19c3647592e2155c8184f09c5f7"
         }
       ],
       "name": "mobile/sahool_app/lib/features/advisor/data/advisor_api.dart",
@@ -12285,7 +12315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9452f7338adcc01cbb8fcc49beedc8bd4f34cd10927fa2747f14bc9ba318e9fc"
+          "content": "9b43d7ad2a15ef739e72a416746a2d3f60acab1ffad9140d2267171895731ab2"
         }
       ],
       "name": "mobile/sahool_app/lib/features/advisor/data/advisor_models.dart",
@@ -12299,6 +12329,16 @@
         }
       ],
       "name": "mobile/sahool_app/lib/features/advisor/data/chat_history_store.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "32946b4b1d8b5836636c0078704c24ee4cde799b0c1e32734f2193b85056e921"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/features/advisor/data/pest_escalation_lineage.dart",
       "type": "file"
     },
     {
@@ -12325,7 +12365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "87907e7d5b80a9d535e2e4bfdc8a0997552ad8ed3c7f1f4714b5e5dd8ea2fb3a"
+          "content": "e273ccd4437bc67edcefa10a918ac2014776e19d0b0775639c3565bdd201739c"
         }
       ],
       "name": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_cubit.dart",
@@ -12335,7 +12375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03de539fe95dd31a8888dc26018d872fd0dc0f18e9f34db6c08cfa517b963a83"
+          "content": "89eb46f21135ae7212c055a82a6e08278e30baf27f580eed3f0334c5b186ff54"
         }
       ],
       "name": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_screen.dart",
@@ -16065,7 +16105,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08e4b5dbb0f3664b5415e9bffe64c6648e67f839dfbf69dc4d1438f9203d7d97"
+          "content": "275021e1f9f72e426e07855b95f034870bd29335f0b914213bfca42d2ef1a2e0"
+        }
+      ],
+      "name": "mobile/sahool_app/test/features/advisor/pest_escalation_lineage_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a90b5111f11476fbd95d4726e99b7f536e5bd8d077856894ba4e4472d963838d"
         }
       ],
       "name": "mobile/sahool_app/test/features/advisor/recommendations_test.dart",
@@ -38315,7 +38365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "28cc8c24c97d2421feed330d60bc973c872beb0078fa42778124c54d27252b83"
+          "content": "b2601a6cf344b2eab2313787355fe95a2162aedb9859cdc381b31cc4d2646f49"
         }
       ],
       "name": "services/scout-ingest-service/main.py",
@@ -39355,7 +39405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bca519a210ca9f0ef3f99bf88dd6c188ddf847fb230ba810a7cfbd4790d4e3de"
+          "content": "569083e2ab99d1c326699a5156cbad2a2c5290af4486c1d96ecd8925fd519b78"
         }
       ],
       "name": "services/tts-service/Dockerfile",
@@ -39365,7 +39415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5f36ffdc05e6d593d27e5d04d45a714030041e36e03b7842c19dd0ffa5b6bdce"
+          "content": "4909c7196f7f8014ed3a17e90cd503db58175f5f6b0f971872b6f0d37a89eebb"
         }
       ],
       "name": "services/tts-service/README.md",
@@ -39409,6 +39459,16 @@
         }
       ],
       "name": "services/tts-service/providers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c85be65fdae3c54b52a96d50529d34c2645418fbd29aa085b264c97d8a1b9927"
+        }
+      ],
+      "name": "services/tts-service/requirements-piper.txt",
       "type": "file"
     },
     {
@@ -39715,7 +39775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "14427efe692d3548219c4f8b51d28b7970de9ee8c48f55ee0b7f55eff4a8cb7b"
+          "content": "1d1e57e63999670ca4b8569b60d80fe2877ab07b5d1647bb32529d34033d4527"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/health.py",

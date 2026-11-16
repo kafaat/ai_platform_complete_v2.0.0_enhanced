@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7468,
+    "files_scanned": 7476,
     "files_by_kind": {
       "backend": 1296,
       "database": 347,
       "governance": 89,
-      "mobile": 417,
+      "mobile": 418,
       "other": 2195,
-      "tests": 2571,
-      "web": 553
+      "tests": 2576,
+      "web": 555
     },
-    "unmapped_artifacts": 3543,
+    "unmapped_artifacts": 3548,
     "ambiguous_artifacts": 255,
     "files_by_reading": {
-      "python_functional": 4056,
-      "raw": 3412
+      "python_functional": 4059,
+      "raw": 3417
     },
-    "test_dependency_files": 1965,
-    "test_dependency_edges": 5192,
+    "test_dependency_files": 1967,
+    "test_dependency_edges": 5197,
     "test_dependency_bounded_files": 1144,
     "test_dependency_unresolved_relations": 503
   },
@@ -15465,6 +15465,14 @@
             "content:Scouting",
             "dedup:Scouting=scouting"
           ]
+        },
+        {
+          "path": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_screen.dart",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
         }
       ],
       "tests": [
@@ -15586,6 +15594,14 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/test/features/advisor/pest_escalation_lineage_test.dart",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_yield_server_features.py",
           "score": 8,
           "signals": [
@@ -15671,8 +15687,8 @@
         "database": 31,
         "events": 18,
         "web": 6,
-        "mobile": 17,
-        "tests": 21,
+        "mobile": 18,
+        "tests": 22,
         "governance": 0,
         "other_evidence": 1
       },
@@ -15745,15 +15761,15 @@
           "score": 10
         },
         {
-          "value": "/internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:396",
+          "value": "/internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:402",
           "score": 10
         },
         {
-          "value": "/internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:387",
+          "value": "/internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:393",
           "score": 10
         },
         {
-          "value": "/internal/scouting/external-observations @ services/scout-ingest-service/main.py:268",
+          "value": "/internal/scouting/external-observations @ services/scout-ingest-service/main.py:274",
           "score": 10
         },
         {
@@ -28394,6 +28410,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_production_service_tokens_w3_12.py",
+          "score": 14,
+          "signals": [
+            "path:service token",
+            "content:service token"
+          ]
+        },
+        {
           "path": "tests_v9/test_raster_service_token_binding.py",
           "score": 14,
           "signals": [
@@ -28504,7 +28528,7 @@
         "events": 3,
         "web": 0,
         "mobile": 0,
-        "tests": 11,
+        "tests": 12,
         "governance": 0,
         "other_evidence": 2
       },
@@ -34292,6 +34316,14 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/src/lib/pestEscalationLineage.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/pestEscalationLineage.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/lib/plantingAdvisor.test.ts",
       "kind": "tests"
     },
@@ -34897,6 +34929,10 @@
     },
     {
       "path": "frontend/src/sections/OperationCenterWallPage.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/PestEscalationPage.test.tsx",
       "kind": "web"
     },
     {
@@ -35828,6 +35864,10 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/lib/features/advisor/data/pest_escalation_lineage.dart",
+      "kind": "mobile"
+    },
+    {
       "path": "mobile/sahool_app/lib/features/advisor/presentation/advisor_chat_cubit.dart",
       "kind": "mobile"
     },
@@ -35837,10 +35877,6 @@
     },
     {
       "path": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_cubit.dart",
-      "kind": "mobile"
-    },
-    {
-      "path": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_screen.dart",
       "kind": "mobile"
     },
     {
@@ -44816,6 +44852,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gateway_realtime_internal_refused.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_gateway_tls_init.py",
       "kind": "tests"
     },
@@ -46517,6 +46557,10 @@
     },
     {
       "path": "tests_v9/test_tts_edge_retry.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_tts_local_arabic_voice_image.py",
       "kind": "tests"
     },
     {
@@ -89042,6 +89086,37 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_production_service_tokens_w3_12.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/edge-inference/main.py",
+          "kind": "source_read",
+          "line": 101
+        },
+        {
+          "source": "services/field-management-service/fm_gateway.py",
+          "kind": "source_read",
+          "line": 108
+        },
+        {
+          "source": "services/scout-ingest-service/main.py",
+          "kind": "source_read",
+          "line": 34
+        },
+        {
+          "source": "services/vegetation-analysis-service/routers/health.py",
+          "kind": "source_read",
+          "line": 33
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_productivity_grid_ground_coordinates.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -96197,6 +96272,21 @@
           "source": "services/tts-service/providers.py",
           "kind": "import",
           "line": 34
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_tts_local_arabic_voice_image.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "services/tts-service/providers.py",
+          "kind": "source_read",
+          "line": 23
         }
       ],
       "unresolved": []
