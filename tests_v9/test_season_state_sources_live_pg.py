@@ -16,6 +16,13 @@ and a patched ``tenant_connection``), which cannot show what a failed statement 
 enclosing transaction. Here the router runs against the real schema through a pool that
 runs as a NOBYPASSRLS role. Only the HTTP owner (decision-service) and the raster scene
 lookup are replaced.
+
+Rows are seeded by the schema owner (``TEST_DATABASE_ADMIN_URL`` when set); the router runs on
+``TEST_DATABASE_URL``, which the certifying CI step points at the restricted NOBYPASSRLS role,
+and the platform's ``tenant_connection`` sets the tenant GUC exactly as it does in production.
+The savepoint test needs a runtime role whose grants it can narrow without touching the shared
+CI app role: the owner creates it, and when DSN is itself restricted it is granted membership so
+the pool's ``SET ROLE`` reaches it.
 """
 
 from __future__ import annotations
@@ -55,6 +62,9 @@ PLATFORM = ROOT / "services" / "sahool-platform"
 DSN = os.getenv(
     "TEST_DATABASE_URL", "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test"
 )
+# Setup (seed, cleanup, runtime role) runs as the schema owner when one is given; the code under
+# test always runs through DSN.
+ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL", DSN)
 START = date(2024, 11, 1)
 END = date(2025, 3, 20)
 TABLES = ("seasons", "water_ledger", "decision_record", "outcome_record", "recommendation_outcomes")
@@ -101,27 +111,50 @@ def _user(tenant: str):
 
 
 class Live:
-    """Owner connection for setup + a pool that runs as a NOBYPASSRLS role."""
+    """Owner connection (ADMIN_DSN) for setup + a pool on DSN that runs as a NOBYPASSRLS role.
 
-    def __init__(self):
+    ``own_role``: run the pool as a dedicated runtime role even when DSN is already
+    restricted, so a test may revoke grants from it without touching the shared app role.
+    """
+
+    def __init__(self, *, own_role: bool = False):
         self.tenant = str(uuid.uuid4())
         tag = uuid.uuid4().hex[:10]
         self.field_id = f"ss-field-{tag}"
         self.season_id = f"ss-season-{tag}"
+        self.own_role = own_role
         self.role: str | None = None
 
     async def __aenter__(self):
-        self.owner = await asyncpg.connect(DSN)
-        if await self.owner.fetchval(
-            "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
-        ):
-            self.role = f"ss_rls_{uuid.uuid4().hex[:10]}"
-            await self.owner.execute(
-                f'CREATE ROLE "{self.role}" NOLOGIN NOSUPERUSER NOBYPASSRLS;'
-                f'GRANT USAGE ON SCHEMA public TO "{self.role}";'
-                f'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "{self.role}";'
-                f'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO "{self.role}";'
+        self.owner = await asyncpg.connect(ADMIN_DSN)
+        app_conn = await asyncpg.connect(DSN)
+        try:
+            app_user, privileged = await app_conn.fetchrow(
+                "SELECT current_user, rolsuper OR rolbypassrls FROM pg_roles"
+                " WHERE rolname = current_user"
             )
+        finally:
+            await app_conn.close()
+        if privileged or self.own_role:
+            can_create = await self.owner.fetchval(
+                "SELECT rolsuper OR rolcreaterole FROM pg_roles WHERE rolname = current_user"
+            )
+            if can_create:
+                self.role = f"ss_rls_{uuid.uuid4().hex[:10]}"
+                await self.owner.execute(
+                    f'CREATE ROLE "{self.role}" NOLOGIN NOSUPERUSER NOBYPASSRLS;'
+                    f'GRANT USAGE ON SCHEMA public TO "{self.role}";'
+                    f'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "{self.role}";'
+                    f'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO "{self.role}";'
+                    f'GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO "{self.role}";'
+                )
+                if not privileged:
+                    # The restricted login switches to the runtime role on each connection.
+                    await self.owner.execute(f'GRANT "{self.role}" TO "{app_user}"')
+            elif privileged:
+                raise RuntimeError(
+                    "DSN bypasses RLS and the owner cannot create a NOBYPASSRLS runtime role"
+                )
         role = self.role
 
         async def setup(conn):
@@ -207,7 +240,7 @@ class Live:
             await o.close()
 
 
-def _run(monkeypatch, *, platform_writes_required, case):
+def _run(monkeypatch, *, platform_writes_required, case, own_role=False):
     main, seasons, client, sor_mode = _platform()
     monkeypatch.setattr(seasons, "_season_state_scene", AsyncMock(return_value={}))
     monkeypatch.setattr(
@@ -217,7 +250,7 @@ def _run(monkeypatch, *, platform_writes_required, case):
     )
 
     async def body():
-        async with Live() as live:
+        async with Live(own_role=own_role) as live:
             monkeypatch.setattr(main, "_DB_POOL", live.pool)
             await case(live, seasons, client)
 
@@ -327,7 +360,7 @@ def test_failed_optional_water_read_rolls_back_its_savepoint_and_keeps_platform_
         assert (summary["total"], summary["failed"], summary["pending"]) == (1, 0, 1)
         assert "outcomes" in result["evidence_used"]
 
-    _run(monkeypatch, platform_writes_required=True, case=case)
+    _run(monkeypatch, platform_writes_required=True, case=case, own_role=True)
 
 
 def test_another_tenants_season_is_404(monkeypatch):
