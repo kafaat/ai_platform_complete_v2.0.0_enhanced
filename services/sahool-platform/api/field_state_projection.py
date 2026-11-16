@@ -114,7 +114,8 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
     """يقرأ مصادر النضارة القانونيّة للحقل من قاعدة المنصّة.
 
     يُرجِع {last_image_date, latest_soil_sampled_on, weather_age_hours, ndvi_mean,
-    ndvi_date, soil_ec, soil_lab_source, soil_ec_result_id} — أيّ مصدر غائب يكون None (يدع resolve_field_state يعلن «بيانات
+    ndvi_date, soil_ec, soil_lab_source, soil_ec_result_id, soil_ec_other_extract,
+    soil_sampled_on_source} — أيّ مصدر غائب يكون None (يدع resolve_field_state يعلن «بيانات
     ناقصة» بصدق، وتُعلَن قيمة NDVI غير متاحة بدل رقم مُلفَّق).
     """
     # نضارة الصورة (عمود قديم دائم الوجود) — استعلام أساسيّ لا يفشل.
@@ -175,6 +176,8 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
     if soil and soil["source"] == SOIL_LAB_LEGACY_SOURCE:
         soil_ec = _extract_ec(soil["legacy_result"])
     else:
+        # ECe only (saturated paste); an EC 1:5/1:2.5/1:1/unspecified extract stays out of the
+        # salinity signal and is exposed labelled as ``soil_ec_other_extract``.
         soil_ec = (soil or {}).get("values", {}).get("ec_dsm")
     weather_age_hours = await conn.fetchval(
         "SELECT EXTRACT(EPOCH FROM (NOW() - c.fetched_at)) / 3600.0 "
@@ -196,6 +199,8 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
         "soil_ec": soil_ec,
         "soil_lab_source": soil["source"] if soil else None,
         "soil_ec_result_id": (soil or {}).get("result_ids", {}).get("ec_dsm"),
+        "soil_ec_other_extract": (soil or {}).get("ec_other_extract"),
+        "soil_sampled_on_source": soil.get("sampled_on_source") if soil else None,
     }
 
 
@@ -631,6 +636,9 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         "source": fresh.get("soil_lab_source"),
         "ec_dsm": fresh.get("soil_ec"),
         "ec_result_id": fresh.get("soil_ec_result_id"),
+        # EC not measured on a saturated paste: shown labelled, never used as ECe.
+        "ec_other_extract": fresh.get("soil_ec_other_extract"),
+        "sampled_on_source": fresh.get("soil_sampled_on_source"),
     }
 
     tenant_id = await conn.fetchval("SELECT tenant_id FROM fields WHERE field_id = $1", field_id)

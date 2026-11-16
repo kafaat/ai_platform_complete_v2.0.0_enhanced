@@ -14,7 +14,12 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.field_models import _FIELD_DETAIL_SELECT, _row_to_field_detail, field_quality_grade
-from api.lab_store import latest_approved_soil_analysis, legacy_soil_lab_test_rows
+from api.lab_store import (
+    SOIL_LAB_CANONICAL_SOURCE,
+    latest_approved_soil_analysis,
+    latest_approved_soil_analyte,
+    legacy_soil_lab_test_rows,
+)
 from api.main import (
     _TASK_COLS,
     Permission,
@@ -91,23 +96,18 @@ def _latest_published_soil(soil_tests: list[dict]) -> dict | None:
     return None
 
 
-def _accepted_soil(analysis: dict | None) -> dict:
-    """W1-03: accepted soil values from ``lab_store.latest_approved_soil_analysis``.
-
-    An approved v156 analysis is accepted under the readiness keys below; the legacy
-    fallback keeps its own rule (only a *published* soil_lab_tests row counts). None ⇒ {}."""
-    if not analysis:
-        return {}
-    if analysis.get("legacy_result") is not None:
-        return analysis["legacy_result"] if analysis.get("legacy_status") == "published" else {}
-    values = analysis.get("values") or {}
-    return {
-        "ph": values.get("ph"),
-        "ec_ds_m": values.get("ec_dsm"),
-        "n_ppm": values.get("nitrogen_mg_kg"),
-        "p_ppm": values.get("phosphorus_mg_kg"),
-        "k_ppm": values.get("potassium_mg_kg"),
-    }
+def _accepted_soil(soil_tests: list[dict], ph: dict | None = None, ec: dict | None = None) -> dict:
+    """W1-03 readiness soil. Legacy rule unchanged: the newest *published* listed row. The
+    canonical store adds the newest approved v156 pH and ECe per analyte
+    (``latest_approved_soil_analyte``), so a newer texture-only sample does not hide an
+    older EC; a legacy-sourced reading is ignored (approved-not-published was never
+    accepted), and a non-ECe EC never reaches ``ec``.
+    Nothing accepted ⇒ {}."""
+    accepted = dict(_latest_published_soil(soil_tests) or {})
+    for key, reading in (("ph", ph), ("ec_ds_m", ec)):
+        if reading and reading.get("source") == SOIL_LAB_CANONICAL_SOURCE:
+            accepted[key] = reading["value"]
+    return accepted
 
 
 def _readiness(
@@ -346,6 +346,8 @@ async def season_workspace(
             # legacy soil_lab_tests only as a labelled fallback); the legacy list stays a
             # read-only history.
             soil_analysis = await latest_approved_soil_analysis(conn, field_id=field_id)
+            soil_ph = await latest_approved_soil_analyte(conn, field_id=field_id, analyte="ph")
+            soil_ece = await latest_approved_soil_analyte(conn, field_id=field_id, analyte="ec_dsm")
             soil_rows = await legacy_soil_lab_test_rows(conn, field_id=field_id, limit=20)
             soil_tests = [_jsonable(_row_to_soil_test(r)) for r in soil_rows]
 
@@ -387,7 +389,9 @@ async def season_workspace(
                     }
                 )
 
-        readiness = _readiness(field, season, soil_tests, state, _accepted_soil(soil_analysis))
+        readiness = _readiness(
+            field, season, soil_tests, state, _accepted_soil(soil_tests, soil_ph, soil_ece)
+        )
         # Recommendations use live weather best-effort after releasing DB connection.
         try:
             ctx = RecommendationContext(

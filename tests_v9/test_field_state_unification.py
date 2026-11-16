@@ -79,6 +79,7 @@ class _Conn:
             return {
                 "ref_id": "soil_t1",
                 "sampled_on": self._today,
+                "sampled_on_source": "sampled_on",
                 "source_priority": 0,
                 "legacy_result": json.dumps({"ec": self._ec, "ph": 7.5}),
                 "legacy_status": "published",
@@ -407,7 +408,9 @@ async def test_approved_v156_ec_alone_escalates_salinity(core_on_path, monkeypat
             "source": "soil_lab_results",
             "sampled_on": date.today(),
             "values": {"ec_dsm": 10.0},
+            "sampled_on_source": "sampled_on",
             "result_ids": {"ec_dsm": "rid-ec"},
+            "ec_other_extract": None,
             "legacy_result": None,
         },
     )
@@ -419,6 +422,8 @@ async def test_approved_v156_ec_alone_escalates_salinity(core_on_path, monkeypat
         "source": "soil_lab_results",
         "ec_dsm": 10.0,
         "ec_result_id": "rid-ec",
+        "ec_other_extract": None,
+        "sampled_on_source": "sampled_on",
     }, st["soil_lab"]
 
 
@@ -442,7 +447,45 @@ async def test_no_lab_analysis_is_unavailable_not_zero(core_on_path, monkeypatch
         "source": None,
         "ec_dsm": None,
         "ec_result_id": None,
+        "ec_other_extract": None,
+        "sampled_on_source": None,
     }, st["soil_lab"]
     assert st["agronomic"]["operational_truths"].get("salinity_class") != "critical", (
         "no lab EC must not become a salinity class"
+    )
+
+
+@pytest.mark.asyncio
+async def test_non_ece_ec_is_labelled_and_kept_out_of_salinity(core_on_path, monkeypatch):
+    """An EC 1:5 of 2.0 (≈ ECe 12+) read as ECe would classify 'low' and skip the
+    Salinity>Vigor escalation: it must not reach soil_ec, only the labelled block."""
+    from api.field_state_projection import recompute_field_state
+
+    other = {
+        "value_dsm": 2.0,
+        "extraction_method": "soil_water_1_5",
+        "result_id": "r15",
+        "ece": False,
+    }
+    _canonical_analysis(
+        monkeypatch,
+        {
+            "source": "soil_lab_results",
+            "sampled_on": date.today(),
+            "sampled_on_source": "sampled_on",
+            "values": {"ph": 8.1},
+            "result_ids": {"ph": "rid-ph"},
+            "ec_other_extract": other,
+            "legacy_result": None,
+        },
+    )
+    st = (await recompute_field_state(_Conn(ndvi_mean=0.7, ec=1.0), "fld_1"))["state"]
+    assert st["soil_lab"]["ec_dsm"] is None, f"a non-ECe EC must not be ECe: {st['soil_lab']}"
+    assert st["soil_lab"]["ec_other_extract"] == other, "the reading must stay visible, labelled"
+    agronomic = st["agronomic"]
+    assert agronomic["operational_truths"].get("salinity_class") is None, (
+        f"no ECe must mean no salinity class: {agronomic['operational_truths']}"
+    )
+    assert not [p for p in agronomic["provenance"] if p.get("source") == "soil_ec"], (
+        f"no soil_ec may enter the agronomic provenance: {agronomic['provenance']}"
     )

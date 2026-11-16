@@ -39,8 +39,18 @@ def _store():
     return store
 
 
-def _candidate(ref: str, result, sampled_on=date(2026, 11, 1), age=15.0) -> dict:
-    return {"sampled_on": sampled_on, "result": result, "evidence_ref": ref, "age_days": age}
+def _candidate(
+    ref: str, result, sampled_on=date(2026, 11, 1), age=15.0, method="saturated_paste"
+) -> dict:
+    legacy = ref.startswith("soil_lab_tests:")
+    return {
+        "sampled_on": sampled_on,
+        "sampled_on_source": "sampled_on",
+        "result": result,
+        "evidence_ref": ref,
+        "method_code": None if legacy else method,
+        "age_days": age,
+    }
 
 
 def _latest(monkeypatch, rows, analyte="ec_dsm", **kwargs):
@@ -110,6 +120,52 @@ def test_accept_predicate_narrows_usable_values(monkeypatch):
     assert (out["source"], out["value"]) == ("legacy_soil_lab_tests", "clay"), out
 
 
+@pytest.mark.parametrize(
+    "method", ["soil_water_1_1", "soil_water_1_2_5", "soil_water_1_5", "unspecified", None, "SOP-7"]
+)
+def test_ec_not_on_saturated_paste_is_not_an_ece(monkeypatch, method):
+    """An EC 1:5 of 2.0 is roughly an ECe of 12+: it must not come back as ECe, and an older
+    ECe (here legacy 1.0) must not stand in for the newer reading that contradicts it."""
+    rows = [
+        _candidate("soil_lab_results:rid-15", {"ec_dsm": 2.0}, method=method),
+        _candidate("soil_lab_results:rid-old", {"ec_dsm": 1.0}, sampled_on=date(2026, 1, 1)),
+        _candidate("soil_lab_tests:soil_old", {"ec": 1.0}, sampled_on=date(2025, 1, 1)),
+    ]
+    assert _latest(monkeypatch, rows) is None, f"{method} EC must leave ECe unavailable"
+
+
+def test_saturated_paste_ec_is_an_ece_and_other_analytes_ignore_the_method(monkeypatch):
+    rows = [_candidate("soil_lab_results:rid-sp", {"ec_dsm": 2.0})]
+    assert _latest(monkeypatch, rows)["value"] == 2.0, "a saturated-paste EC is an ECe"
+    rows = [_candidate("soil_lab_results:rid-ph", {"ph": 7.7}, method="SOP-7")]
+    assert _latest(monkeypatch, rows, analyte="ph")["value"] == 7.7, "pH has no ECe rule"
+
+
+def test_reading_says_how_its_collection_date_was_known(monkeypatch):
+    row = _candidate("soil_lab_results:rid-n", {"ph": 7.0})
+    row["sampled_on_source"] = "sample_created_at"
+    out = _latest(monkeypatch, [row], analyte="ph")
+    assert out["sampled_on_source"] == "sample_created_at", f"date origin must be labelled: {out}"
+
+
+def test_candidate_sql_dates_undated_samples_and_carries_the_ec_method():
+    """Both readers keep a sample without sampled_on (dated by registration, labelled) and
+    the v156 EC method; the ECe rule is applied on the method in both readers."""
+    import inspect
+
+    store = _store()
+    for fn in (store.soil_analyte_candidates, store.latest_approved_soil_analysis):
+        src = inspect.getsource(fn)
+        assert "COALESCE(s.sampled_on, s.created_at::date)" in src, fn.__name__
+        assert "'sample_created_at'" in src and "'legacy_created_at'" in src, fn.__name__
+        assert "method_code" in src, f"{fn.__name__} must read the EC method"
+    analysis = inspect.getsource(store.latest_approved_soil_analysis)
+    assert "ECE_EXTRACTION_METHOD" in analysis and "ec_other_extract" in analysis, (
+        "the analysis must keep a non-ECe EC out of values and label it"
+    )
+    assert store.ECE_EXTRACTION_METHOD == "saturated_paste", "only the saturated paste is ECe"
+
+
 def test_legacy_aliases_cover_every_migrated_reader():
     store = _store()
     for key in ("ec", "ec_ds_m", "ece", "ece_ds_m", "salinity_ec", "ec_dsm", "soil_ec"):
@@ -130,27 +186,47 @@ def _season_workspace():
     return sw
 
 
-def test_season_readiness_accepts_an_approved_v156_analysis():
+def _reading(source: str, value) -> dict:
+    return {"source": source, "value": value}
+
+
+def test_season_readiness_accepts_approved_v156_ph_and_ece():
     sw = _season_workspace()
     soil = sw._accepted_soil(
-        {
-            "source": "soil_lab_results",
-            "values": {"ec_dsm": 0.0, "ph": 7.2, "nitrogen_mg_kg": 20.0},
-            "legacy_result": None,
-        }
+        [], _reading("soil_lab_results", 7.2), _reading("soil_lab_results", 0.0)
     )
-    assert soil["ec_ds_m"] == 0.0 and soil["ph"] == 7.2 and soil["n_ppm"] == 20.0, soil
-    assert sw._accepted_soil(None) == {}, "no analysis must be empty, never invented"
+    assert soil == {"ph": 7.2, "ec_ds_m": 0.0}, f"zero ECe is a measurement: {soil}"
+    assert sw._accepted_soil([]) == {}, "no analysis must be empty, never invented"
 
 
 def test_season_readiness_keeps_the_published_rule_for_legacy():
+    """Unchanged legacy rule: the newest *published* row of the listed history — an approved
+    newer row does not hide an older published one, and is never itself accepted."""
     sw = _season_workspace()
-    legacy = {"source": "legacy_soil_lab_tests", "legacy_result": {"ec_ds_m": 2.1}}
-    assert sw._accepted_soil({**legacy, "legacy_status": "published"}) == {"ec_ds_m": 2.1}, (
-        "a published legacy row stays accepted"
+    history = [
+        {"status": "approved", "result": {"ec_ds_m": 9.9}},
+        {"status": "published", "result": {"ec_ds_m": 3.1}},
+    ]
+    assert sw._accepted_soil(history) == {"ec_ds_m": 3.1}, "older published row stays accepted"
+    assert sw._accepted_soil(history[:1]) == {}, "approved-not-published was never accepted"
+    legacy_reading = _reading("legacy_soil_lab_tests", 9.9)
+    assert sw._accepted_soil(history, None, legacy_reading) == {"ec_ds_m": 3.1}, (
+        "a legacy-sourced reading must not bypass the published rule"
     )
-    assert sw._accepted_soil({**legacy, "legacy_status": "approved"}) == {}, (
-        "an approved-not-published legacy row was never accepted soil"
+
+
+def test_season_readiness_reads_ece_per_analyte():
+    """A newer texture-only v156 sample must not hide an older sample's ECe: readiness takes
+    each analyte's newest approved value (latest_approved_soil_analyte), not one sample."""
+    sw = _season_workspace()
+    history = [{"status": "published", "result": {"ec_ds_m": 1.0, "ph": 7.0}}]
+    soil = sw._accepted_soil(history, None, _reading("soil_lab_results", 4.2))
+    assert soil == {"ec_ds_m": 4.2, "ph": 7.0}, f"v156 ECe overrides per analyte: {soil}"
+    import inspect
+
+    src = inspect.getsource(sw.season_workspace)
+    assert 'analyte="ec_dsm"' in src and 'analyte="ph"' in src, (
+        "season workspace must read pH and ECe per analyte"
     )
 
 

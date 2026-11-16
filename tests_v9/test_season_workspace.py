@@ -313,6 +313,7 @@ async def test_workspace_projection_failure_does_not_poison_context_query(monkey
         return None
 
     monkeypatch.setattr(sw, "latest_approved_soil_analysis", no_soil_analysis)
+    monkeypatch.setattr(sw, "latest_approved_soil_analyte", no_soil_analysis)
     monkeypatch.setattr(sw, "tenant_connection", tenant_connection)
     monkeypatch.setattr(sw, "_assert_field_in_tenant", assert_field)
     monkeypatch.setattr(sw, "_field_season_context", context)

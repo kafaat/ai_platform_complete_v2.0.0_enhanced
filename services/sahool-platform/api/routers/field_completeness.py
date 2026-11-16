@@ -125,7 +125,10 @@ async def field_data_completeness(
     result = score_field_completeness(signals)
     result["field_id"] = field_id
     result["soil_lab"] = (
-        {k: soil_lab[k] for k in ("source", "evidence_ref", "sampled_on", "result_ids")}
+        {
+            k: soil_lab[k]
+            for k in ("source", "evidence_ref", "sampled_on", "sampled_on_source", "result_ids")
+        }
         if soil_lab
         else {"available": False, "reason": "no_approved_soil_lab_result"}
     )
