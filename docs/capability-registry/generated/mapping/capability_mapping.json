@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7478,
+    "files_scanned": 7492,
     "files_by_kind": {
       "backend": 1296,
       "database": 348,
       "governance": 89,
-      "mobile": 418,
+      "mobile": 429,
       "other": 2195,
-      "tests": 2577,
+      "tests": 2580,
       "web": 555
     },
-    "unmapped_artifacts": 3550,
+    "unmapped_artifacts": 3562,
     "ambiguous_artifacts": 255,
     "files_by_reading": {
       "python_functional": 4060,
-      "raw": 3418
+      "raw": 3432
     },
     "test_dependency_files": 1968,
     "test_dependency_edges": 5200,
@@ -30188,7 +30188,17 @@
           ]
         }
       ],
-      "mobile": [],
+      "mobile": [
+        {
+          "path": "mobile/sahool_app/lib/features/field_plans/data/field_plans_api.dart",
+          "score": 12,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        }
+      ],
       "tests": [
         {
           "path": "services/soil-service/test_soil_sampling_plan_origin.py",
@@ -30236,6 +30246,15 @@
         {
           "path": "services/sahool-platform/tests/test_soil_plan_origin_client.py",
           "score": 12,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/field_plans/field_plans_test.dart",
+          "score": 11,
           "signals": [
             "content:sampling plan",
             "content:Soil sampling",
@@ -30403,12 +30422,12 @@
         "database": 14,
         "events": 9,
         "web": 2,
-        "mobile": 0,
-        "tests": 9,
+        "mobile": 1,
+        "tests": 10,
         "governance": 1,
         "other_evidence": 11
       },
-      "coverage_dimensions": 6,
+      "coverage_dimensions": 7,
       "mapped": true
     },
     {
@@ -35676,6 +35695,22 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/lib/core/offline/cache_backends.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/core/offline/cache_cipher.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/core/offline/cached_loader.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/core/offline/offline_read_cache.dart",
+      "kind": "mobile"
+    },
+    {
       "path": "mobile/sahool_app/lib/core/permissions/permissions.dart",
       "kind": "mobile"
     },
@@ -35753,6 +35788,10 @@
     },
     {
       "path": "mobile/sahool_app/lib/core/widgets/confirm_dialog.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/core/widgets/data_age_banner.dart",
       "kind": "mobile"
     },
     {
@@ -36061,6 +36100,26 @@
     },
     {
       "path": "mobile/sahool_app/lib/features/equipment/presentation/equipment_screen.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/field_plans/data/field_plans_models.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/field_plans/data/field_plans_repository.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/field_plans/field_plans_routes.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/field_plans/presentation/cached_read_view.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/field_plans/presentation/field_plan_screens.dart",
       "kind": "mobile"
     },
     {
@@ -36806,6 +36865,14 @@
     {
       "path": "mobile/sahool_app/test/core/local_commit_server.dart",
       "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/test/core/offline_cache_corruption_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/core/offline_read_cache_test.dart",
+      "kind": "tests"
     },
     {
       "path": "mobile/sahool_app/test/core/response_shape_test.dart",

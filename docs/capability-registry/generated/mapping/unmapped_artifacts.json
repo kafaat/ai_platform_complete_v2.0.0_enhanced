@@ -2900,6 +2900,22 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/core/offline/cache_backends.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/offline/cache_cipher.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/offline/cached_loader.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/offline/offline_read_cache.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/core/permissions/permissions.dart",
     "kind": "mobile"
   },
@@ -2977,6 +2993,10 @@
   },
   {
     "path": "mobile/sahool_app/lib/core/widgets/confirm_dialog.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/data_age_banner.dart",
     "kind": "mobile"
   },
   {
@@ -3285,6 +3305,26 @@
   },
   {
     "path": "mobile/sahool_app/lib/features/equipment/presentation/equipment_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/field_plans/data/field_plans_models.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/field_plans/data/field_plans_repository.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/field_plans/field_plans_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/field_plans/presentation/cached_read_view.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/field_plans/presentation/field_plan_screens.dart",
     "kind": "mobile"
   },
   {
@@ -4030,6 +4070,14 @@
   {
     "path": "mobile/sahool_app/test/core/local_commit_server.dart",
     "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/offline_cache_corruption_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/offline_read_cache_test.dart",
+    "kind": "tests"
   },
   {
     "path": "mobile/sahool_app/test/core/response_shape_test.dart",
