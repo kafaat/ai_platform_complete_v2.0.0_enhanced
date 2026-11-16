@@ -1303,7 +1303,9 @@ services:
       INDICATORS_SERVICE_URL: http://sahool-indicators-service:8000
       VEGETATION_PREFER_CANONICAL_OBSERVATIONS: "1"
       VEGETATION_CANONICAL_SHADOW: "1"
-      TASK_SERVICE_URL: ${TASK_SERVICE_URL:-}
+      # W1-20: field-management-service (owner of field_tasks) stores the anomaly's ground-scouting
+      # task (POST /internal/field-tasks/scouting) under SAHOOL_AGENT_TOKEN + the tenant assertion.
+      TASK_SERVICE_URL: ${TASK_SERVICE_URL:-http://sahool-field-management:8000}
       TASK_SERVICE_CALLBACK_TOKEN: ${TASK_SERVICE_CALLBACK_TOKEN:-}
       VEGETATION_ANOMALY_DB_PATH: /data/vegetation/anomalies.db
       VEGETATION_ANOMALY_STORE: ${VEGETATION_ANOMALY_STORE:-sqlite}
@@ -1366,7 +1368,7 @@ services:
       # Service-token only — a user Bearer JWT is never accepted on this service.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
-      FIELD_SERVICE_ALLOWED_CALLERS: ${FIELD_SERVICE_ALLOWED_CALLERS:-vegetation-analysis-service,video-processor}
+      FIELD_SERVICE_ALLOWED_CALLERS: ${FIELD_SERVICE_ALLOWED_CALLERS:-vegetation-analysis-service,video-processor,remote-sensing-workspace-bff}
       FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
       FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
       FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY:-}
@@ -1544,7 +1546,12 @@ services:
       DECISION_SERVICE_URL: http://sahool-decision-service:8160
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
-      TASK_SERVICE_URL: ${TASK_SERVICE_URL:-}
+      # W1-20: the ground section reads field-management-service's anomaly scouting tasks
+      # (GET /internal/field-tasks/scouting) with the service token and a tenant assertion.
+      TASK_SERVICE_URL: ${TASK_SERVICE_URL:-http://sahool-field-management:8000}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
       WORKSPACE_BFF_TIMEOUT_S: ${WORKSPACE_BFF_TIMEOUT_S:-6}
     depends_on:
       sahool-indicators-service:

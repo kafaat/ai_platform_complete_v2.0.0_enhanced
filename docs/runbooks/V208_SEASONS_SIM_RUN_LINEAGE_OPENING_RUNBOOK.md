@@ -26,7 +26,7 @@ ALTER TABLE seasons
 
 | ما هو | القياس |
 |---|---|
-| موضع `v208` في `MANIFEST.txt` | المُدخَل **٢١٣** من ٢٦٨ |
+| موضع `v208` في `MANIFEST.txt` | المُدخَل **٢١٣** من ٢٦٩ |
 | ترتيبُه مقصود | **يسبق `v206` عمداً** كي يبقى `v206` (تأكيد catalog RLS النهائيّ) آخِرَ ملفٍّ مطبَّق |
 | الكاتب في الشيفرة | `services/sahool-platform/api/routers/seasons.py:403` |
 | أهو داخل معاملة واحدة | **نعم** — `async with conn.transaction():` تضمّ `INSERT INTO season_simulation_runs` ثمّ `UPDATE seasons … sim_run_id = $8` |

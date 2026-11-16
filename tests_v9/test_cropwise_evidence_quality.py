@@ -324,10 +324,15 @@ async def test_task_acknowledgement_requires_persistence_evidence(monkeypatch):
     monkeypatch.setattr(
         httpx, "AsyncClient", lambda **kw: original(transport=httpx.MockTransport(handler), **kw)
     )
+    # W1-20: the bridge calls the owner with service credentials, not the user's bearer.
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "agent-token")
+    monkeypatch.setenv(
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY", "assertion-signing-key-at-least-32-chars"
+    )
     with pytest.raises(RuntimeError, match="persistence_unconfirmed"):
         await bridge.GroundVerificationBridge("http://task-service").create_scouting_task(
             anomaly={"anomaly_ref": "anm_probe", "field_id": "fld_probe", "season_id": "sea_probe"},
-            authorization="Bearer owner",
+            tenant_id="11111111-1111-4111-8111-111111111111",
             idempotency_key="key",
         )
 

@@ -51,6 +51,7 @@ app = FastAPI(title="SAHOOL Field Management Service", version=VERSION)
 _SERVICE_DIR = str(Path(__file__).resolve().parent)
 if _SERVICE_DIR not in sys.path:
     sys.path.append(_SERVICE_DIR)
+from fm_scouting_tasks import build_router as _build_scouting_router  # noqa: E402
 from fm_task_costs import router as _task_costs_router  # noqa: E402
 from fm_task_inspection import router as _task_inspection_router  # noqa: E402
 
@@ -222,6 +223,11 @@ async def _connect():
     return await asyncpg.connect(DATABASE_URL, statement_cache_size=0)
 
 
+# Ground-scouting tasks for vegetation anomalies (W1-20, v280): service-to-service, so they take
+# this module's service-token + tenant-assertion guard, not the gateway identity of fm_gateway.
+app.include_router(_build_scouting_router(_require_tenant, lambda: _connect()))
+
+
 @app.get("/healthz")
 async def healthz():
     return {"status": "alive", "service": "field-management-service", "version": VERSION}
@@ -280,6 +286,7 @@ async def contract():
             "/contract",
             "/internal/fields/{field_id}",
             "/internal/fields",
+            "/internal/field-tasks/scouting",
         ],
         # Gateway-only user routes: nginx verifies the JWT and injects the trusted identity and
         # X-Field-Tasks-Token (fm_gateway.py). Public prefix /api/v1/field-tasks/.

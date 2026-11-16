@@ -583,7 +583,9 @@ tables:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform, scout-ingest-service]  # photo context: v246 pin pointer, column SELECT
-    source: "migrations/v9_new_tables.sql"
+    # v280 (W1-20): anomaly scouting-task columns, written only by field-management-service's
+    # POST /internal/field-tasks/scouting (vegetation-analysis's ground-verification bridge).
+    source: "migrations/v9_new_tables.sql, migrations/v280_field_task_scouting_anomaly.sql"
   # v274-v277 (owner decision 2026-11-14): the pin inspection and task cost work held back by
   # carrier D #1439, rebuilt under field-management-service (owner of field_tasks). The platform
   # reads inspection_handoffs for the inspector-only meter gate and task_expense_links for the farm

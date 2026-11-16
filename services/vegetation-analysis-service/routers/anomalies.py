@@ -118,7 +118,7 @@ async def detect_signal_anomalies(
                 key = hashlib.sha256(f"{record['anomaly_ref']}|verification".encode()).hexdigest()
                 task = await _bridge.create_scouting_task(
                     anomaly=record["payload"],
-                    authorization=authorization,
+                    tenant_id=tenant_id,
                     idempotency_key=key,
                 )
                 record = await _store.transition(
@@ -196,7 +196,7 @@ async def request_ground_verification(
         key = hashlib.sha256(f"{anomaly_ref}|verification".encode()).hexdigest()
         task = await _bridge.create_scouting_task(
             anomaly=record["payload"],
-            authorization=authorization,
+            tenant_id=tenant_id,
             idempotency_key=key,
         )
         return await _store.transition(
