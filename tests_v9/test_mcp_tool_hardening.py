@@ -202,7 +202,37 @@ def market(mcp_env, monkeypatch):
         yield conn
 
     monkeypatch.setattr(module, "tenant_connection", fake_tenant_connection)
+    # The module is shared across tests; its v278 column-presence cache must not leak between them.
+    monkeypatch.setattr(module, "_listing_lot_column_present", False)
     return module, conns
+
+
+class _PreV278Conn(_FakeConn):
+    """A database where migration v278 has not run: no market_sales_listings.harvest_lot_id."""
+
+    async def fetchval(self, sql, *params):
+        self.statements.append((sql, params))
+        if "pg_attribute" in sql:
+            return False
+        return "00000000-0000-0000-0000-0000000000aa"
+
+
+@pytest.fixture
+def market_pre_v278(market, monkeypatch):
+    module, conns = market
+
+    @asynccontextmanager
+    async def fake_tenant_connection(tenant_id):
+        conn = _PreV278Conn()
+        conns.append(conn)
+        yield conn
+
+    monkeypatch.setattr(module, "tenant_connection", fake_tenant_connection)
+    return module, conns
+
+
+def _listing_inserts(conn: _FakeConn) -> list[tuple]:
+    return [(sql, p) for sql, p in conn.statements if "INSERT INTO market_sales_listings" in sql]
 
 
 def _final_status(conn: _FakeConn) -> str:
@@ -293,8 +323,34 @@ async def test_market_sales_listing_refuses_non_positive_or_non_finite(market, f
 async def test_market_sales_listing_persists_validated_numbers(market):
     module, conns = market
     await _list_for_sale(module, quantity_kg="250.5", price_per_kg_usd="1.25")
-    (_sql, params) = conns[-1].statements[0]
+    [(_sql, params)] = _listing_inserts(conns[-1])
     assert params[3:5] == (250.5, 1.25)
+
+
+async def test_market_listing_after_v278_writes_the_lot_column(market):
+    module, conns = market
+    await _list_for_sale(module)
+    [(sql, params)] = _listing_inserts(conns[-1])
+    assert "harvest_lot_id" in sql and len(params) == 13 and params[-1] is None
+
+
+async def test_market_listing_before_v278_is_stored_without_the_lot_column(market_pre_v278):
+    """Code ships before the migration: a listing that names no lot must keep working."""
+    module, conns = market_pre_v278
+    out = await _list_for_sale(module)
+    [(sql, params)] = _listing_inserts(conns[-1])
+    assert "harvest_lot_id" not in sql and len(params) == 12
+    assert out["harvest_lot_id"] is None and out["status"] == "active"
+
+
+async def test_market_listing_naming_a_lot_before_v278_is_refused_not_dropped(market_pre_v278):
+    from fastapi import HTTPException
+
+    module, conns = market_pre_v278
+    with pytest.raises(HTTPException) as caught:
+        await _list_for_sale(module, harvest_lot_id="hl_0123456789abcdef")
+    assert caught.value.status_code == 503 and "v278" in caught.value.detail
+    assert _listing_inserts(conns[-1]) == []
 
 
 @pytest.mark.parametrize("value", _NOT_POSITIVE_FINITE, ids=repr)
