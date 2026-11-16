@@ -35,8 +35,10 @@ networkPolicy:
   # only the gateway (W0-06).
   trustedIngressNamespaces:
     - ingress-nginx
-  # External HTTPS is required for CDSE/weather providers whose addresses rotate.
-  # Clusters with an egress proxy should set this false and add proxy-specific policy.
+  # Egress (W3-09): every pod reaches the cluster; public HTTPS (TCP 443, any address,
+  # because CDSE/weather provider addresses rotate) only for workloads that set
+  # `publicHttpsEgress: true`. Clusters with an egress proxy should set this false, which
+  # withdraws it from all of them, and add proxy-specific policy.
   allowPublicHttpsEgress: true
 
 ingress:
@@ -94,6 +96,8 @@ workloads:
     port: 8000
     sourceDockerfile: services/sahool-platform/Dockerfile
     pathPrefix: /api/v1
+    # Open-Meteo / MET Norway weather fallbacks and other provider calls.
+    publicHttpsEgress: true
     env:
       SERVICE_NAME: sahool-platform
       RUNTIME_ROLE_REQUIRED: "sahool_app"
@@ -112,6 +116,8 @@ workloads:
     port: 8001
     sourceDockerfile: services/raster-service/Dockerfile
     pathPrefix: /api/raster
+    # Copernicus Data Space (CDSE) catalogue and processing API.
+    publicHttpsEgress: true
     # Derives the tenant from X-Tenant-Id: reachable only from the gateway (which injects
     # the verified tenant) and from sahool-platform (raster_service_client, service token).
     gatewayOnly: true
@@ -143,6 +149,8 @@ workloads:
     port: 8000
     sourceDockerfile: services/ai_agronomist/Dockerfile
     pathPrefix: /api/ai-agronomist
+    # Hosted model providers (AI_PROVIDER openrouter/anthropic); the local default needs none.
+    publicHttpsEgress: true
     # Trusts X-Tenant-Id / X-User-*: reachable only from the gateway. No chart workload
     # calls it in-cluster (sahool-platform's code has no ai-agronomist client; its compose
     # AI_AGRONOMIST_URL is unused), so no internal caller is admitted. Add one here only

@@ -132,6 +132,42 @@ def gateway_errors(values: dict, chart: Path = CHART) -> list[str]:
     return errors
 
 
+def network_policy_errors(values: dict) -> list[str]:
+    """W3-09: restricted ingress names real callers; public HTTPS egress is opt-in.
+
+    ``gatewayOnly`` admits the gateway plus ``internalCallers``; ``internalOnly`` admits
+    only ``internalCallers`` (a workload with no auth of its own and no gateway route).
+    A caller that is not an enabled workload admits nobody and hides a broken call path;
+    an ``internalOnly`` workload with no caller would render an empty ``from``.
+    """
+    errors = []
+    workloads = values.get("workloads", {}) or {}
+    enabled = {name for name, spec in workloads.items() if (spec or {}).get("enabled")}
+    for name, spec in workloads.items():
+        spec = spec or {}
+        if not spec.get("enabled"):
+            continue
+        callers = spec.get("internalCallers") or []
+        if spec.get("gatewayOnly") and spec.get("internalOnly"):
+            errors.append(f"{name}: set gatewayOnly or internalOnly, not both")
+        if spec.get("internalOnly") and not callers:
+            errors.append(f"{name}: internalOnly needs at least one internalCallers entry")
+        if callers and not (spec.get("gatewayOnly") or spec.get("internalOnly")):
+            errors.append(f"{name}: internalCallers has no effect without gatewayOnly/internalOnly")
+        for caller in callers:
+            if caller not in enabled:
+                errors.append(f"{name}: internalCallers names {caller!r}, not an enabled workload")
+        if "publicHttpsEgress" in spec and not isinstance(spec["publicHttpsEgress"], bool):
+            errors.append(f"{name}: publicHttpsEgress must be true or false")
+    template = (CHART / "templates" / "networkpolicy.yaml").read_text(encoding="utf-8")
+    if "cidr: 0.0.0.0/0" in template.split("name: sahool-public-https-egress", 1)[0]:
+        errors.append(
+            "templates/networkpolicy.yaml: public egress must be rendered only by "
+            "sahool-public-https-egress, for workloads that set publicHttpsEgress"
+        )
+    return errors
+
+
 def gateway_auth_notice(values: dict) -> str | None:
     """The deploy-path statement that the chart does not deploy the auth verifier yet."""
     gateway = values.get("gateway", {}) or {}
@@ -260,6 +296,7 @@ def main() -> int:
     failures.extend(source_contract_errors(merged))
     failures.extend(migration_job_errors(merged))
     failures.extend(gateway_errors(merged))
+    failures.extend(network_policy_errors(merged))
     if args.env == "production":
         failures.extend(production_env_errors(merged))
         if int((merged.get("gateway", {}) or {}).get("replicas", 0)) < 2:

@@ -12,15 +12,31 @@ X-Tenant-Id) accepts traffic only from the gateway and from the in-namespace cal
 lists in `internalCallers`, which authenticate with the service token. Policies are
 additive, so the namespace-wide allow below excludes those workloads instead of
 overlapping them.
+
+W3-09: a workload marked `internalOnly` (no auth of its own, no gateway route) is
+restricted the same way but admits only its `internalCallers`, not the gateway; an empty
+caller list is refused rather than rendered as a policy that admits nobody or everybody.
+
+W3-09 egress: every pod may reach the cluster (namespaceSelector: DNS, the databases,
+Redis and brokers the chart expects to be provided), and public HTTPS (TCP 443 to any
+address) only for workloads that declare `publicHttpsEgress: true`, because they call an
+external provider (Open-Meteo, MET Norway, CDSE, ISRIC SoilGrids, a hosted model API).
+`networkPolicy.allowPublicHttpsEgress: false` withdraws it from all of them, for clusters
+that egress through a proxy with its own policy. The gateway and the migration Job get no
+public egress.
 */}}
 {{- $ports := list }}
 {{- $gatewayOnly := list "sahool-gateway" }}
+{{- $publicHttps := list }}
 {{- range $name, $workload := .Values.workloads }}
 {{- if $workload.enabled }}
-{{- if $workload.gatewayOnly }}
+{{- if or $workload.gatewayOnly $workload.internalOnly }}
 {{- $gatewayOnly = append $gatewayOnly $name }}
 {{- else }}
 {{- $ports = append $ports (printf "%d" (int $workload.port)) }}
+{{- end }}
+{{- if $workload.publicHttpsEgress }}
+{{- $publicHttps = append $publicHttps $name }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -37,14 +53,33 @@ spec:
   egress:
     - to:
         - namespaceSelector: {}
-    {{- if .Values.networkPolicy.allowPublicHttpsEgress }}
+{{- if and .Values.networkPolicy.allowPublicHttpsEgress $publicHttps }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sahool-public-https-egress
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "sahool.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/component
+        operator: In
+        values:
+          {{- range ($publicHttps | sortAlpha) }}
+          - {{ . | quote }}
+          {{- end }}
+  policyTypes: [Egress]
+  egress:
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0
       ports:
         - protocol: TCP
           port: 443
-    {{- end }}
+{{- end }}
 {{- if $ports }}
 ---
 apiVersion: networking.k8s.io/v1
@@ -103,12 +138,18 @@ spec:
           port: {{ .Values.gateway.port }}
 {{- end }}
 {{- range $name, $workload := .Values.workloads }}
-{{- if and $workload.enabled $workload.gatewayOnly }}
+{{- if and $workload.enabled (or $workload.gatewayOnly $workload.internalOnly) }}
+{{- if and $workload.gatewayOnly $workload.internalOnly }}
+{{- fail (printf "workloads.%s: set gatewayOnly or internalOnly, not both" $name) }}
+{{- end }}
+{{- if and $workload.internalOnly (not $workload.internalCallers) }}
+{{- fail (printf "workloads.%s: internalOnly needs internalCallers; an empty `from` would admit every source" $name) }}
+{{- end }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ $name }}-gateway-only
+  name: {{ $name }}-{{ if $workload.gatewayOnly }}gateway-only{{ else }}internal-only{{ end }}
   namespace: {{ $.Values.namespace.name }}
   labels:
     {{- include "sahool.labels" $ | nindent 4 }}
@@ -119,9 +160,11 @@ spec:
   policyTypes: [Ingress]
   ingress:
     - from:
+        {{- if $workload.gatewayOnly }}
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: sahool-gateway
+        {{- end }}
         {{- range $caller := $workload.internalCallers }}
         - podSelector:
             matchLabels:
