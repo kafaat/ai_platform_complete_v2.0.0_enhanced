@@ -97,6 +97,9 @@ workloads:
     env:
       SERVICE_NAME: sahool-platform
       RUNTIME_ROLE_REQUIRED: "sahool_app"
+      # W2-02: AC-1 is required in production; the platform refuses to boot with it required
+      # and the server-side composer off (agronomic_context_startup_error).
+      AGRONOMIC_CONTEXT_COMPOSE_ENABLED: "true"
       # احتياط اتّجاه الرياح من MET Norway حين يغيب من Open-Meteo (لا قيمة وهميّة).
       METNO_WIND_FALLBACK_ENABLED: "1"
       METNO_USER_AGENT: "SAHOOL-AgriPlatform/1.0 (https://sahool.ye; ops@sahool.ye)"
