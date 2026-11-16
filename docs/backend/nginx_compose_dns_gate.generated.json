@@ -19,6 +19,7 @@
     "sahool-notification-agent:8123",
     "sahool-frontend:8080",
     "sahool-tts-service:8000",
+    "sahool-realtime-session:8000",
     "sahool-video-processor:8000",
     "sahool-agriai-engine:8000",
     "sahool-remote-sensing-workspace-bff:8185"

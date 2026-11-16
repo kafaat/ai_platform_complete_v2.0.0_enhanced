@@ -16942,7 +16942,7 @@
         "tables": []
       },
       "runtime": {
-        "compose_reachable": false,
+        "compose_reachable": true,
         "compose_services": [
           "sahool-realtime-session"
         ],
@@ -18194,7 +18194,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "9cc1a910853669d648033420e0bfacda95840b7bb0b66ac9d4f7abbfc0f13907",
+  "fingerprint": "3df31d47f3c885ba129ef3836a091c60a02539e0562de8024b8fc2c246ed0357",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18206,6 +18206,7 @@
       "notification-agent",
       "rag-retrieval",
       "raster-service",
+      "realtime-session",
       "remote-sensing-workspace-bff",
       "sahool-ai-agronomist",
       "sahool-field-management",
@@ -18227,6 +18228,7 @@
       "notification-agent",
       "rag-retrieval",
       "raster-service",
+      "realtime-session",
       "remote-sensing-workspace-bff",
       "sahool-ai-agronomist",
       "sahool-field-management",
@@ -18246,7 +18248,7 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1086,
+      "edge_count": 1087,
       "failures": [],
       "passed": true,
       "relation_counts": {
@@ -18254,7 +18256,7 @@
         "CONSUMES": 3,
         "EMITS": 3,
         "READS": 589,
-        "ROUTES_TO": 75,
+        "ROUTES_TO": 76,
         "WRITES": 371
       }
     },

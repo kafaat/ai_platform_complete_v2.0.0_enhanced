@@ -4226,7 +4226,7 @@
         "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:612",
         "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/tissue-samples @ services/scout-ingest-service/tissue_samples_api.py:395",
         "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:280",
-        "GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:269",
+        "GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:275",
         "GET /internal/seasons @ services/scout-ingest-service/season_api.py:478",
         "GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668",
         "GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368",
@@ -4239,8 +4239,8 @@
         "POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278",
         "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328",
         "POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:238",
-        "POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:397",
-        "POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:388",
+        "POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:403",
+        "POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:394",
         "POST /internal/scouting-media/admin/credential-events @ services/scout-ingest-service/grants_admin_api.py:586",
         "POST /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:349",
         "POST /internal/scouting-media/admin/fields/{field_id}/grants/{grant_id}/revoke @ services/scout-ingest-service/grants_admin_api.py:440",
@@ -6013,6 +6013,7 @@
         "mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart",
         "services/decision-service/tests/test_service_token_guard.py",
         "tests_v9/test_guardrails_service_token_ascii.py",
+        "tests_v9/test_production_service_tokens_w3_12.py",
         "tests_v9/test_raster_service_token_binding.py",
         "tests_v9/test_sensing_adapter_service_token.py",
         "tests_v9/test_service_token_constant_time.py"
@@ -6034,7 +6035,7 @@
           "path": "services/sahool-platform/api/service_token_auth.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

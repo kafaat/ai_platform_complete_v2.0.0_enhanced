@@ -1544,6 +1544,14 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/lib/pestEscalationLineage.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/pestEscalationLineage.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/plantingAdvisor.test.ts",
     "kind": "tests"
   },
@@ -2149,6 +2157,10 @@
   },
   {
     "path": "frontend/src/sections/OperationCenterWallPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/PestEscalationPage.test.tsx",
     "kind": "web"
   },
   {
@@ -3080,6 +3092,10 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/features/advisor/data/pest_escalation_lineage.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/features/advisor/presentation/advisor_chat_cubit.dart",
     "kind": "mobile"
   },
@@ -3089,10 +3105,6 @@
   },
   {
     "path": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_cubit.dart",
-    "kind": "mobile"
-  },
-  {
-    "path": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_screen.dart",
     "kind": "mobile"
   },
   {
@@ -12076,6 +12088,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gateway_realtime_internal_refused.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gateway_tls_init.py",
     "kind": "tests"
   },
@@ -13785,6 +13801,10 @@
   },
   {
     "path": "tests_v9/test_tts_edge_retry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tts_local_arabic_voice_image.py",
     "kind": "tests"
   },
   {

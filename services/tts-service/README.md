@@ -69,3 +69,29 @@ async def send_voice_alert(chat_id: int, text: str):
 
 For an agricultural platform serving farmers in rural Yemen with limited
 infrastructure, Edge TTS is the pragmatic choice.
+
+## Local Arabic voice for `local_only` tenants (W3-11)
+
+Edge TTS sends the text to Microsoft, so a tenant whose AI policy is `local_only` never
+reaches it (`providers.select_provider_for_policy`). Without a local engine in the image, such a
+tenant gets a named 503 and no speech.
+
+The image can carry a local Arabic voice (Piper `ar_JO-kareem-medium`). It is **off by default**:
+
+```bash
+docker build -f services/tts-service/Dockerfile --build-arg TTS_LOCAL_VOICE=ar_JO-kareem-medium .
+```
+
+- `piper-tts==1.8.0` comes from `requirements-piper.txt`, pinned to the provider's
+  `PIPER_TTS_TARGET_VERSION`. The file hash-pins the whole closure (piper-tts, onnxruntime,
+  pathvalidate, numpy, protobuf, flatbuffers, packaging), so pip runs in `--require-hashes`
+  mode and an unlisted dependency or a changed file fails the build. A hash-checked download
+  of the closure succeeded for CPython 3.12 on Linux x86_64 and aarch64, and `pip-audit -r
+  requirements-piper.txt` found no known vulnerabilities on 2026-11-16.
+- **Engine licence:** piper-tts is **GPL-3.0-or-later** (PyPI metadata for 1.8.0). Building the
+  voice into the image ships a GPL-3.0 engine; that is part of the owner's decision to enable it.
+- Both voice files are fetched from a pinned `rhasspy/piper-voices` revision and verified by
+  sha256. The `.onnx` digest equals the LFS oid that Hugging Face publishes.
+- **Why it is off:** the voice's model card gives the training-data license only as "See URL"
+  (github.com/AliMokhammad/arabicttstrain). Shipping the voice in the default image waits for
+  the owner to confirm that license.

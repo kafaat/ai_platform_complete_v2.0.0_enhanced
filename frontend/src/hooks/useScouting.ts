@@ -19,12 +19,14 @@ import {
 import {
   kongApi,
   fetchScoutingPins,
+  fetchScoutPhotoContext,
   createScoutingPin,
   type ScoutingPinRecord,
   type ScoutingPinsResponse,
   type ScoutingPinCreateInput,
   type ScoutingPinCreated,
 } from '../services/api';
+import type { ScoutPhotoEvidenceContext } from '../lib/pestEscalationLineage';
 
 export type {
   ScoutingPinRecord,
@@ -125,5 +127,21 @@ export function useCreateScoutingPin(
     onSuccess: () => {
       if (fieldId) qc.invalidateQueries({ queryKey: pinsQueryKey(fieldId) });
     },
+  });
+}
+
+// سياق دليل صورة دبّوس (GET /api/v1/scouting-media/fields/{f}/pins/{p}/photo/context).
+// W3-07: مصدر مراجع الدليل والموسم والتشخيص المراجَع لتصعيد الآفة. لا تخزين محلّيّ ولا
+// إعادة صامتة: الخطأ (404 لا صورة/ميزة مطفأة، 403 منحة) يُكشَف للواجهة كما هو.
+export function useScoutPhotoContext(
+  fieldId?: string,
+  pinId?: string,
+): UseQueryResult<ScoutPhotoEvidenceContext, Error> {
+  return useQuery<ScoutPhotoEvidenceContext, Error>({
+    queryKey: ['scouting', 'photo-context', fieldId ?? 'none', pinId ?? 'none'],
+    queryFn: () => fetchScoutPhotoContext(fieldId as string, pinId as string),
+    staleTime: 0,
+    retry: false,
+    enabled: !!fieldId && !!pinId,
   });
 }
