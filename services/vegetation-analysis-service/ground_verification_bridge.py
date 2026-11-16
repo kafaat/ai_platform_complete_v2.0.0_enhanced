@@ -31,6 +31,35 @@ SCOUTING_TASKS_PATH = "/internal/field-tasks/scouting"
 CALLER = "vegetation-analysis-service"
 
 
+class TaskAlreadyExists(RuntimeError):
+    """The owner refused with 409 and named the task this anomaly already has.
+
+    field-management keeps one scouting task per anomaly; ``anomaly_already_has_task`` carries
+    that task's ref. The reason string stays ``task_service_rejected:409`` for callers that only
+    read it, and ``task_ref`` lets the caller attach the existing task instead of leaving it
+    unreferenced.
+    """
+
+    def __init__(self, task_ref: str) -> None:
+        super().__init__("task_service_rejected:409")
+        self.task_ref = task_ref
+
+
+def _normalize_task_ref(task_ref: Any) -> str:
+    ref = str(task_ref)
+    return ref if ref.startswith("urn:sahool:task:") else f"urn:sahool:task:{ref}"
+
+
+def _conflict_task_ref(response: httpx.Response) -> str | None:
+    try:
+        detail = (response.json() or {}).get("detail")
+    except (ValueError, AttributeError):
+        return None
+    if isinstance(detail, dict) and detail.get("task_ref"):
+        return _normalize_task_ref(detail["task_ref"])
+    return None
+
+
 @dataclass(frozen=True)
 class TaskBridgeResult:
     task_ref: str
@@ -106,14 +135,19 @@ class GroundVerificationBridge:
                 )
         except httpx.HTTPError as exc:
             raise RuntimeError("task_service_unavailable") from exc
+        if response.status_code == 409:
+            existing = _conflict_task_ref(response)
+            if existing:
+                raise TaskAlreadyExists(existing)
         if response.status_code not in {200, 201, 202}:
             raise RuntimeError(f"task_service_rejected:{response.status_code}")
-        data = response.json()
-        if data.get("persisted") is not True:
+        try:
+            data = response.json()
+        except ValueError as exc:  # a 2xx the owner processed but whose body is unreadable
+            raise RuntimeError("task_service_persistence_unconfirmed") from exc
+        if not isinstance(data, dict) or data.get("persisted") is not True:
             raise RuntimeError("task_service_persistence_unconfirmed")
         task_ref = data.get("task_ref") or data.get("task_id")
         if not task_ref:
             raise RuntimeError("task_service_missing_task_ref")
-        if not str(task_ref).startswith("urn:sahool:task:"):
-            task_ref = f"urn:sahool:task:{task_ref}"
-        return TaskBridgeResult(task_ref=str(task_ref), persisted=True, raw=data)
+        return TaskBridgeResult(task_ref=_normalize_task_ref(task_ref), persisted=True, raw=data)

@@ -2736,6 +2736,10 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v285_water_ledger_rain_source_reanalysis.down.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },
@@ -9752,6 +9756,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
     "kind": "tests"
   },
@@ -10721,6 +10729,10 @@
   },
   {
     "path": "tests/reliability/test_phase10_reliability_harness_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/runtime/test_compose_required_vars_doctor.py",
     "kind": "tests"
   },
   {
@@ -12188,6 +12200,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gpu_bake_matches_compose_overlay.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_guard_catalogue.py",
     "kind": "tests"
   },
@@ -13376,6 +13392,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rs_anomaly_reservation_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_run_all_minio_health_probe.py",
     "kind": "tests"
   },
@@ -13489,6 +13509,10 @@
   },
   {
     "path": "tests_v9/test_sar_rvi.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_schema_probe_no_sigpipe.py",
     "kind": "tests"
   },
   {

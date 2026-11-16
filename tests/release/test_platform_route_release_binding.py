@@ -41,11 +41,11 @@ def test_archive_binding_rejects_artifact_mutation(tmp_path: Path) -> None:
 def test_source_binding_contains_current_route_counts() -> None:
     source = binding.build_source_binding()
     assert source["route_counts"] == {
-        "raw_routes": 633,
+        "raw_routes": 627,
         "infrastructure_routes": 4,
-        "domain_budget_routes": 629,
-        "domain_route_budget": 629,
-        "full_ownership_surface": 637,
+        "domain_budget_routes": 623,
+        "domain_route_budget": 623,
+        "full_ownership_surface": 631,
     }
     assert len(source["inputs"]) == 3
     assert all(len(item["sha256"]) == 64 for item in source["inputs"])

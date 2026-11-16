@@ -2738,15 +2738,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 151,
-    "method": "POST",
-    "path": "/v1/phase10/learning/feature-schema",
-    "function": "feature_schema"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 156,
+    "line": 140,
     "method": "POST",
     "path": "/v1/phase10/learning/dataset",
     "function": "dataset"
@@ -2754,7 +2746,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 166,
+    "line": 150,
     "method": "POST",
     "path": "/v1/phase10/learning/models/promote",
     "function": "model_promotion"
@@ -2762,23 +2754,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 176,
-    "method": "POST",
-    "path": "/v1/phase10/learning/online-update",
-    "function": "online_update"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 186,
-    "method": "POST",
-    "path": "/v1/phase10/learning/experiments/evaluate",
-    "function": "experiment_evaluation"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 196,
+    "line": 160,
     "method": "POST",
     "path": "/v1/phase10/learning/scenario",
     "function": "scenario"
@@ -2786,7 +2762,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 201,
+    "line": 165,
     "method": "POST",
     "path": "/v1/phase10/learning/cycle",
     "function": "learning_cycle"
@@ -2794,7 +2770,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 213,
+    "line": 177,
     "method": "POST",
     "path": "/v1/phase10/learning/drift",
     "function": "drift"
@@ -2802,7 +2778,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 222,
+    "line": 186,
     "method": "POST",
     "path": "/v1/phase10/learning/retraining/plan",
     "function": "retraining_plan"
@@ -2810,7 +2786,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 229,
+    "line": 193,
     "method": "POST",
     "path": "/v1/phase10/learning/champion-challenger",
     "function": "champion_challenger"
@@ -2818,7 +2794,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 241,
+    "line": 205,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/register",
     "function": "feature_store_register"
@@ -2826,7 +2802,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 248,
+    "line": 212,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/offline-dataset",
     "function": "feature_store_offline_dataset"
@@ -2834,7 +2810,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 259,
+    "line": 223,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/online-materialization",
     "function": "feature_store_online_materialization"
@@ -2842,7 +2818,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 267,
+    "line": 231,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/point-in-time",
     "function": "feature_store_point_in_time"
@@ -2850,7 +2826,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 281,
+    "line": 245,
     "method": "POST",
     "path": "/v1/phase10/learning/models/register",
     "function": "model_register"
@@ -2858,7 +2834,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 302,
+    "line": 266,
     "method": "POST",
     "path": "/v1/phase10/learning/models/serving/promote",
     "function": "model_serving_promote"
@@ -2866,7 +2842,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 309,
+    "line": 273,
     "method": "POST",
     "path": "/v1/phase10/learning/models/serving/rollback",
     "function": "model_serving_rollback"
@@ -2874,7 +2850,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 319,
+    "line": 283,
     "method": "GET",
     "path": "/v1/phase10/learning/models/serving/{alias:path}",
     "function": "model_serving_resolve"
@@ -6818,15 +6794,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 32,
-    "method": "GET",
-    "path": "/api/v1/registry/report-fields",
-    "function": "list_registry_report_fields"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 45,
+    "line": 37,
     "method": "GET",
     "path": "/api/v1/registry/workflows",
     "function": "list_registry_workflows"
@@ -6834,7 +6802,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 58,
+    "line": 50,
     "method": "GET",
     "path": "/api/v1/registry/indices",
     "function": "registry_indices"
@@ -6842,15 +6810,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 68,
-    "method": "GET",
-    "path": "/api/v1/registry/device-types",
-    "function": "registry_device_types"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 78,
+    "line": 60,
     "method": "GET",
     "path": "/api/v1/registry/events",
     "function": "registry_events"
@@ -6858,18 +6818,10 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 88,
+    "line": 70,
     "method": "GET",
     "path": "/api/v1/registry/cost-profiles",
     "function": "registry_cost_profiles"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 98,
-    "method": "GET",
-    "path": "/api/v1/registry/data-quality-rules",
-    "function": "registry_data_quality_rules"
   },
   {
     "service": "sahool-platform",
@@ -8922,7 +8874,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 115,
+    "line": 284,
     "method": "POST",
     "path": "/v1/fields/{field_id}/signal-anomalies/detect",
     "function": "detect_signal_anomalies"
@@ -8930,7 +8882,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 201,
+    "line": 375,
     "method": "GET",
     "path": "/v1/fields/{field_id}/signal-anomalies",
     "function": "list_signal_anomalies"
@@ -8938,7 +8890,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 215,
+    "line": 389,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/transition",
     "function": "transition_anomaly"
@@ -8946,7 +8898,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 239,
+    "line": 413,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-requests",
     "function": "request_ground_verification"
@@ -8954,7 +8906,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 277,
+    "line": 438,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-results",
     "function": "accept_verification_result"

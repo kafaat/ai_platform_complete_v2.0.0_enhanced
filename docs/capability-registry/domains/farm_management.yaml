@@ -645,7 +645,7 @@ capabilities:
   - GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:609
   - GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:729
   - GET /api/v1/orchard/economics @ services/sahool-platform/api/routers/orchard.py:30
-  - GET /api/v1/registry/cost-profiles @ services/sahool-platform/api/routers/registry.py:88
+  - GET /api/v1/registry/cost-profiles @ services/sahool-platform/api/routers/registry.py:70
   - GET /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:194
   - POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:585
   - POST /api/v1/economics/feasibility @ services/sahool-platform/api/routers/economics.py:32

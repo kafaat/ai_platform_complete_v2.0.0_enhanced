@@ -11,6 +11,10 @@ NOBYPASSRLS role, so tenant isolation applies exactly as in production.
 Both views are read models: the assertions also pin ``decision_authority == "none"`` and
 the water twin's ``preview_only``.
 
+Rows are seeded by the schema owner (``TEST_DATABASE_ADMIN_URL`` when set); the routers run on
+``TEST_DATABASE_URL``, which the certifying CI step points at the restricted NOBYPASSRLS role,
+and the platform's ``tenant_connection`` sets the tenant GUC exactly as it does in production.
+
 W1-21 (fields-8): the twin's vegetation indices come from raster-service, not from
 ``field_indicators`` (no live writer). The raster read is stubbed at its function
 (``field_twin.latest_index_points``); the database side stays real.
@@ -51,6 +55,9 @@ PLATFORM = ROOT / "services" / "sahool-platform"
 DSN = os.getenv(
     "TEST_DATABASE_URL", "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test"
 )
+# Setup (seed, cleanup, runtime role) runs as the schema owner when one is given; the code under
+# test always runs through DSN.
+ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL", DSN)
 
 
 async def _probe() -> str:
@@ -93,7 +100,7 @@ def _user(tenant: str):
 
 
 class Live:
-    """Owner connection for setup + a pool that runs as a NOBYPASSRLS role."""
+    """Owner connection (ADMIN_DSN) for setup + a pool on DSN that runs as a NOBYPASSRLS role."""
 
     def __init__(self):
         self.tenant = str(uuid.uuid4())
@@ -105,10 +112,16 @@ class Live:
         self.raster: dict[str, list[dict]] = {}
 
     async def __aenter__(self):
-        self.owner = await asyncpg.connect(DSN)
-        if await self.owner.fetchval(
-            "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
-        ):
+        self.owner = await asyncpg.connect(ADMIN_DSN)
+        app_conn = await asyncpg.connect(DSN)
+        try:
+            privileged = await app_conn.fetchval(
+                "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
+            )
+        finally:
+            await app_conn.close()
+        if privileged:
+            # DSN bypasses RLS: run the routers under a NOBYPASSRLS role so isolation is measured.
             self.role = f"dt_rls_{uuid.uuid4().hex[:10]}"
             await self.owner.execute(
                 f'CREATE ROLE "{self.role}" NOLOGIN NOSUPERUSER NOBYPASSRLS;'

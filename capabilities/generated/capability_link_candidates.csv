@@ -272,8 +272,8 @@ DEC-010,api,POST /v1/learning/activation-requests @ services/decision-service/ma
 DEC-010,api,POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2390,3,applied
 DEC-010,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2645,3,applied
 DEC-010,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2681,3,applied
-DEC-010,api,POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:166,2,applied
-DEC-010,api,POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:309,2,applied
+DEC-010,api,POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:150,2,applied
+DEC-010,api,POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:273,2,applied
 DEC-010,service,services/decision-service/main.py,10,applied
 DEC-010,test,services/decision-service/tests/test_model_promotion_guardrail_direction.py,3,applied
 DEC-010,test,services/decision-service/tests/test_wx11_3_model_promotion_decision.py,3,applied
@@ -588,7 +588,6 @@ FM-003,api,GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool
 FM-003,api,GET /api/v1/geo-locate/field @ services/sahool-platform/api/routers/geo_locate.py:24,2,applied
 FM-003,api,GET /api/v1/gis/cloud-native/ogc/collections/fields/items @ services/sahool-platform/api/routers/gis_cloud_native.py:321,4,applied
 FM-003,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:576,2,applied
-FM-003,api,GET /api/v1/registry/report-fields @ services/sahool-platform/api/routers/registry.py:32,2,applied
 FM-003,api,GET /api/v1/reports/field/{field_id}/summary @ services/sahool-platform/api/routers/reports.py:101,2,applied
 FM-003,api,GET /api/v1/weather/field-weather-summary @ services/sahool-platform/api/routers/weather.py:2526,2,applied
 FM-003,api,GET /api/vegetation/v1/all_fields @ services/sahool-platform/api/routers/compat_gateway.py:55,2,applied
@@ -633,7 +632,7 @@ FM-003,api,GET /v1/fields/{field_id}/observation-timeline @ services/indicators-
 FM-003,api,GET /v1/fields/{field_id}/observations @ services/indicators-service/main.py:294,4,applied
 FM-003,api,GET /v1/fields/{field_id}/pixel @ services/raster-service/routers/fields.py:1017,4,applied
 FM-003,api,GET /v1/fields/{field_id}/remote-sensing-workspace @ services/remote-sensing-workspace-bff/main.py:193,4,applied
-FM-003,api,GET /v1/fields/{field_id}/signal-anomalies @ services/vegetation-analysis-service/routers/anomalies.py:201,4,applied
+FM-003,api,GET /v1/fields/{field_id}/signal-anomalies @ services/vegetation-analysis-service/routers/anomalies.py:375,4,applied
 FM-003,api,GET /v1/fields/{field_id}/soil/analog-estimate @ services/soil-service/routers/p3_products.py:183,4,applied
 FM-003,api,GET /v1/fields/{field_id}/soil/bare-soil-composite @ services/soil-service/routers/p2_products.py:148,4,applied
 FM-003,api,GET /v1/fields/{field_id}/soil/closed-loop @ services/soil-service/routers/p4_workflow.py:139,4,applied
@@ -758,7 +757,7 @@ FM-003,api,POST /v1/fields/{field_id}/post-execution-observations @ services/veg
 FM-003,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1077,4,applied
 FM-003,api,POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:830,4,applied
 FM-003,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:147,4,applied
-FM-003,api,POST /v1/fields/{field_id}/signal-anomalies/detect @ services/vegetation-analysis-service/routers/anomalies.py:115,4,applied
+FM-003,api,POST /v1/fields/{field_id}/signal-anomalies/detect @ services/vegetation-analysis-service/routers/anomalies.py:284,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/actions/{action_type}/evaluate @ services/soil-service/routers/p4_workflow.py:38,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/analog-estimate @ services/soil-service/routers/p3_products.py:78,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/bare-soil-composite @ services/soil-service/routers/p2_products.py:48,4,applied
@@ -1243,7 +1242,7 @@ FM-006,api,GET /api/v1/economics/cost-categories @ services/sahool-platform/api/
 FM-006,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:601,2,applied
 FM-006,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:677,2,applied
 FM-006,api,GET /api/v1/orchard/economics @ services/sahool-platform/api/routers/orchard.py:30,2,applied
-FM-006,api,GET /api/v1/registry/cost-profiles @ services/sahool-platform/api/routers/registry.py:88,2,applied
+FM-006,api,GET /api/v1/registry/cost-profiles @ services/sahool-platform/api/routers/registry.py:70,2,applied
 FM-006,api,GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147,2,applied
 FM-006,api,GET /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:204,2,applied
 FM-006,api,POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:537,2,applied
@@ -1885,7 +1884,7 @@ OPS-004,ui,frontend/src/components/ds/forms.test.tsx,2,applied
 OPS-004,ui,frontend/src/components/ds/forms.tsx,2,applied
 OPS-005,api,GET /v1/offline/packs @ services/raster-service/routers/storage.py:124,2,applied
 OPS-005,api,GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:152,2,applied
-OPS-005,api,POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:248,2,applied
+OPS-005,api,POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:212,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/core/offline/cache_backends.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/core/offline/cache_cipher.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/core/offline/cached_loader.dart,2,applied

@@ -62,6 +62,56 @@ class AnomalyStoreFacade:
             )
         )
 
+    async def reserve_verification(
+        self, anomaly_ref: str, *, expected_version: int, idempotency_key: str, tenant_id: str
+    ) -> dict[str, Any]:
+        return await _maybe(
+            self._backend.reserve_verification(
+                anomaly_ref,
+                expected_version=expected_version,
+                idempotency_key=idempotency_key,
+                tenant_id=tenant_id,
+            )
+        )
+
+    async def attach_verification_task(
+        self,
+        anomaly_ref: str,
+        *,
+        expected_version: int,
+        idempotency_key: str,
+        task_ref: str,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        return await _maybe(
+            self._backend.attach_verification_task(
+                anomaly_ref,
+                expected_version=expected_version,
+                idempotency_key=idempotency_key,
+                task_ref=task_ref,
+                tenant_id=tenant_id,
+            )
+        )
+
+    async def release_verification_reservation(
+        self,
+        anomaly_ref: str,
+        *,
+        expected_version: int,
+        idempotency_key: str,
+        reason: str,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        return await _maybe(
+            self._backend.release_verification_reservation(
+                anomaly_ref,
+                expected_version=expected_version,
+                idempotency_key=idempotency_key,
+                reason=reason,
+                tenant_id=tenant_id,
+            )
+        )
+
 
 def _make_backend() -> Any:
     backend = os.getenv("VEGETATION_ANOMALY_STORE", "sqlite").strip().lower()
