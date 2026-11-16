@@ -850,6 +850,11 @@ v279_water_ledger_irrigation_report.sql
 #   farm_season_projects (no writer) become one trigger that accepts a season of the same tenant
 #   in seasons or farm_season_projects, as the simple farm book does. DDL only. Before v240.
 v280_farm_ledger_season_reference.sql
+# v281 (plan item W1-20, findings remote-7 / scout-5): field_tasks anomaly scouting columns
+#   (anomaly_ref, season_id, geometry_ref, verification_deadline, reason_codes, idempotency key
+#   and request digest, requesting service), one task per key and per anomaly per tenant. Owner
+#   field-management-service (POST/GET /internal/field-tasks/scouting). Additive. Before v240.
+v281_field_task_scouting_anomaly.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

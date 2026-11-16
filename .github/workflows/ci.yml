@@ -1072,7 +1072,7 @@ jobs:
             # edge-inference: عقود AI-02/AI-03 (المصادقة قبل التحقّق · إيقاف مهمّة المزامنة)؛ كانت
             # تُشغَّل في `runtime-real-smoke.yml` وحدها وهي ليست فحصاً مطلوباً ⇒ تحمرّ ولا تحجب.
             run_group services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py services/edge-inference/tests/test_entrypoint_validation_lifecycle.py services/edge-inference/tests/test_model_artifact_gate_endpoints.py
-            run_group services/field-management-service/tests/test_field_management_service_contract.py services/field-management-service/tests/test_field_task_routes_unit.py
+            run_group services/field-management-service/tests/test_field_management_service_contract.py services/field-management-service/tests/test_field_task_routes_unit.py services/field-management-service/tests/test_scouting_tasks_unit.py
             run_group services/field-segmentation/test_exg_preprocess.py services/field-segmentation/test_segmentation.py
             run_group services/guardrails-engine/test_guardrails_router_decomposition_guard.py
             run_group services/indicators-service/tests/test_indicators_service_honest_boundary.py services/indicators-service/tests/test_indicators_service_static_route_smoke.py services/indicators-service/tests/test_observation_runtime.py services/indicators-service/tests/test_observation_timeline.py
@@ -1612,6 +1612,17 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           FIELD_TASK_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_field_task_inspection_live_pg.py
+      # W1-20 (remote-7 / scout-5, v281): a vegetation anomaly sent through the real bridge becomes
+      # one stored scouting task in field-management-service (owner of field_tasks); sequential
+      # and concurrent replays and a reused key write nothing more; tenants stay apart; negative
+      # controls show the v280 index and check refuse at the database. Restricted NOBYPASSRLS
+      # role; the flag turns any skip into a failure.
+      - name: Vegetation anomaly scouting tasks (W1-20, v281, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          FIELD_TASK_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_field_task_scouting_anomaly_live_pg.py
       # W0-13 (finding mobile-3): an offline irrigation report replayed after the water-balance
       # worker wrote the day keeps ET0 and depletion, and the worker keeps the reported water and
       # recomputes around it (v279). The real router runs on the restricted NOBYPASSRLS role; the

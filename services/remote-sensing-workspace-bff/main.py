@@ -8,6 +8,7 @@ import os
 # Identifiers travel into internal upstream URLs; constrain them so an encoded
 # "?"/"#"/"/" can never rewrite the upstream path or query.
 import re
+import uuid
 from typing import Any
 
 import httpx
@@ -16,6 +17,10 @@ from fastapi import FastAPI, Header, HTTPException, Query
 from shared.security.decision_service_auth import (
     DecisionServiceAuthUnavailable,
     decision_service_auth_headers,
+)
+from shared.security.service_tenant_assertion import (
+    TenantAssertionError,
+    create_tenant_assertion,
 )
 
 _ID_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
@@ -31,6 +36,11 @@ VEGETATION_URL = os.getenv(
 DECISION_URL = os.getenv("DECISION_SERVICE_URL", "http://sahool-decision-service:8160").rstrip("/")
 PLATFORM_URL = os.getenv("PLATFORM_API_URL", "http://sahool-platform:8000").rstrip("/")
 TASK_URL = os.getenv("TASK_SERVICE_URL", "").rstrip("/")
+# W1-20: the owner of field tasks (field-management-service) serves the anomaly scouting tasks
+# service-to-service, like its /internal/fields reads: shared service token, this caller's name,
+# the platform-verified tenant and a tenant assertion bound to method, path and request id.
+SCOUTING_TASKS_PATH = "/internal/field-tasks/scouting"
+TASK_CALLER = "remote-sensing-workspace-bff"
 TIMEOUT = float(os.getenv("WORKSPACE_BFF_TIMEOUT_S", "6"))
 _ALLOWED = {"overview", "timeline", "anomalies", "ground", "decisions", "compare", "outcomes"}
 
@@ -74,6 +84,38 @@ async def _get(
     if response.status_code >= 400:
         raise RuntimeError(f"upstream_{response.status_code}")
     return response.json()
+
+
+class TaskServiceAuthUnavailable(RuntimeError):
+    pass
+
+
+def _task_service_headers(tenant: str) -> dict[str, str]:
+    """Service credentials for the scouting-task read; the user's bearer is never forwarded."""
+    token = os.getenv("SAHOOL_AGENT_TOKEN", "")
+    key = os.getenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", "")
+    if not token or not key:
+        raise TaskServiceAuthUnavailable("task_service_auth_not_configured")
+    request_id = str(uuid.uuid4())
+    try:
+        assertion = create_tenant_assertion(
+            key,
+            TASK_CALLER,
+            tenant,
+            key_id=os.getenv("FIELD_SERVICE_TENANT_ASSERTION_KEY_ID", "current"),
+            method="GET",
+            path=SCOUTING_TASKS_PATH,
+            request_id=request_id,
+        )
+    except TenantAssertionError as exc:
+        raise TaskServiceAuthUnavailable("task_service_auth_not_configured") from exc
+    return {
+        "X-Agent-Token": token,
+        "X-Service-Name": TASK_CALLER,
+        "X-Tenant-Id": tenant,
+        "X-Request-Id": request_id,
+        "X-Tenant-Assertion": assertion,
+    }
 
 
 async def _workspace_identity(
@@ -215,13 +257,19 @@ async def workspace(
                 decision_headers,
                 {"field_id": field_id, "season_id": season_id},
             )
+        task_auth_error = ""
         if "ground" in sections and TASK_URL:
-            calls["ground"] = _get(
-                client,
-                f"{TASK_URL}/v1/tasks/scouting",
-                headers,
-                {"field_id": field_id, "season_id": season_id},
-            )
+            try:
+                task_headers = _task_service_headers(tenant)
+            except TaskServiceAuthUnavailable as exc:
+                task_auth_error = str(exc)
+            else:
+                calls["ground"] = _get(
+                    client,
+                    f"{TASK_URL}{SCOUTING_TASKS_PATH}",
+                    task_headers,
+                    {"field_id": field_id, "season_id": season_id},
+                )
 
         names = list(calls)
         values = await asyncio.gather(*(calls[name] for name in names), return_exceptions=True)
@@ -245,13 +293,13 @@ async def workspace(
     if "outcomes" in sections:
         result["sections"]["outcomes"] = raw.get("outcomes", {"outcome_reconciliation": {}})
     if "ground" in sections:
-        if TASK_URL:
+        if TASK_URL and not task_auth_error:
             result["sections"]["ground"] = raw.get("ground", {"items": []})
         else:
             result["sections"]["ground"] = {
                 "configured": False,
                 "items": [],
-                "reason": "task_service_not_configured",
+                "reason": task_auth_error or "task_service_not_configured",
             }
     if "compare" in sections:
         timeline = raw.get("timeline", {})

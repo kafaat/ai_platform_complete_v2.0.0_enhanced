@@ -19,13 +19,40 @@ from anomaly_requests import (
     VerificationRequest,
 )
 from anomaly_runtime import store as _store
-from anomaly_store import AnomalyNotFound, InvalidTransition
+from anomaly_store import _ALLOWED_TRANSITIONS, AnomalyNotFound, InvalidTransition
 from fastapi import APIRouter, Depends, Header, HTTPException
 from ground_verification_bridge import GroundVerificationBridge
 
 router = APIRouter()
 _bridge = GroundVerificationBridge()
 _TASK_CALLBACK_TOKEN = os.getenv("TASK_SERVICE_CALLBACK_TOKEN", "")
+# The lifecycle states that may move to verification_requested (anomaly_store._ALLOWED_TRANSITIONS).
+_VERIFICATION_SOURCES = frozenset(
+    status
+    for status, targets in _ALLOWED_TRANSITIONS.items()
+    if "verification_requested" in targets
+)
+
+
+def _check_verification_allowed(record: dict[str, Any], expected_version: int) -> None:
+    """Refuse a verification request before any field task is created.
+
+    W1-20 made the bridge store a real task in field-management-service, so a request the
+    lifecycle would refuse must be refused *before* the bridge call; otherwise a closed anomaly
+    (resolved, confirmed, rejected) leaves an orphan pending scouting task behind, and the
+    one-task-per-anomaly index then blocks any later correct task.
+
+    Re-verification after ``inconclusive`` would reuse this anomaly's deterministic key and get
+    the old, finished task back as a replay, so nobody would be dispatched. Until the task-side
+    re-verification contract exists (W2-15), it is refused instead of pointing at the old task.
+    """
+    status = record.get("status")
+    if status not in _VERIFICATION_SOURCES:
+        raise InvalidTransition(f"invalid_transition:{status}->verification_requested")
+    if record.get("aggregate_version") != expected_version:
+        raise InvalidTransition("aggregate_version_conflict")
+    if record.get("task_ref"):
+        raise InvalidTransition("reverification_not_supported:anomaly_already_has_task")
 
 
 async def _baselines(field_id: str, request: DetectRequest, token: str) -> list[dict[str, Any]]:
@@ -118,7 +145,7 @@ async def detect_signal_anomalies(
                 key = hashlib.sha256(f"{record['anomaly_ref']}|verification".encode()).hexdigest()
                 task = await _bridge.create_scouting_task(
                     anomaly=record["payload"],
-                    authorization=authorization,
+                    tenant_id=tenant_id,
                     idempotency_key=key,
                 )
                 record = await _store.transition(
@@ -193,10 +220,11 @@ async def request_ground_verification(
         record = await _store.get(anomaly_ref, tenant_id=tenant_id)
         if record["tenant_id"] != tenant_id:
             raise AnomalyNotFound(anomaly_ref)
+        _check_verification_allowed(record, request.expected_version)
         key = hashlib.sha256(f"{anomaly_ref}|verification".encode()).hexdigest()
         task = await _bridge.create_scouting_task(
             anomaly=record["payload"],
-            authorization=authorization,
+            tenant_id=tenant_id,
             idempotency_key=key,
         )
         return await _store.transition(
