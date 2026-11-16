@@ -685,3 +685,146 @@ def test_a_v1_ack_moves_a_command_only_for_an_allowlisted_device(wired, monkeypa
     monkeypatch.setenv("ACTUATOR_LEGACY_V1_DEVICES", f"{TENANT}:valve-a")
     accepted = asyncio.run(act.handle_device_ack(_ack_topic(), v1))
     assert accepted.accepted and pool.table.find(TENANT, cid)["delivery_state"] == "device_acked"
+
+
+# ══ decision dispatch path (W2-07, finding water-1) ══════════════════════════
+# run_dispatch_consumer_once published decision-service commands without a device_commands_log
+# row, so handle_device_ack found no command for the signed ack and dropped it as
+# unknown_command: an automated valve command could never reach device_acked.
+_DISPATCH_IDEMPOTENCY_KEY = "exec-req-1:idem"
+
+
+def _run_dispatch(act, monkeypatch, *, command="open_valve"):
+    """One consumer cycle over one queued decision request; returns (receipts, wire ids)."""
+    item = {
+        "execution_request_id": "exec-req-1",
+        "target_id": "valve-a",
+        "requested_at": "2026-11-16T08:00:00+00:00",
+        "command_payload": {
+            "field_id": "field-9",
+            "device_id": "valve-a",
+            "command": command,
+            "idempotency_key": _DISPATCH_IDEMPOTENCY_KEY,
+            "payload": {"duration_sec": 60},
+        },
+    }
+    receipts: list[dict] = []
+
+    class _Resp:
+        def __init__(self, status_code, body=None):
+            self.status_code = status_code
+            self._body = body or {}
+
+        def json(self):
+            return self._body
+
+    async def decision(_client, method, path, _tenant, json_body=None):
+        if method == "GET":
+            return _Resp(200, {"items": [] if "recovery" in path else [item]})
+        if path.endswith("/receipt"):
+            receipts.append(json_body)
+        return _Resp(200)
+
+    async def device_ok(_tenant, _device, field_id):
+        return True, "ok", field_id
+
+    async def clear(*_a, **_k):
+        return False, None
+
+    monkeypatch.setattr(act, "_decision_request", decision)
+    monkeypatch.setattr(act, "_validate_dispatch_device", device_ok)
+    monkeypatch.setattr(act, "is_actuation_halted", clear)
+    monkeypatch.setattr(act, "ACTUATOR_DELIVERY_TOKEN_KEY", "unit-test-delivery-key")
+    processed = asyncio.run(act.run_dispatch_consumer_once(None, TENANT, allowlist={"low"}))
+    assert processed == 1, f"the queued request was not processed: {receipts}"
+    return receipts, [wire["id"] for _topic, wire in _FakeMQTT.published]
+
+
+def test_a_signed_ack_of_a_dispatched_command_moves_it_to_device_acked(wired, monkeypatch):
+    act, _router_mod, pool = wired
+    states_at_publish: list[str | None] = []
+
+    class _Observing(_FakeMQTT):
+        async def publish(self, topic, message, qos=0, retain=False):
+            row = pool.table.find(TENANT, json.loads(message)["id"])
+            states_at_publish.append(row["delivery_state"] if row else None)
+            await super().publish(topic, message, qos=qos, retain=retain)
+
+    monkeypatch.setattr(act, "MQTTClient", _Observing)
+    receipts, wire_ids = _run_dispatch(act, monkeypatch)
+
+    assert [r["receipt_status"] for r in receipts] == ["accepted"], f"receipts: {receipts}"
+    assert wire_ids == [_DISPATCH_IDEMPOTENCY_KEY], f"wire must carry the stable id: {wire_ids}"
+    assert states_at_publish == ["queued"], (
+        f"the command must be recorded queued before it is published, saw {states_at_publish}"
+    )
+    row = pool.table.find(TENANT, _DISPATCH_IDEMPOTENCY_KEY)
+    assert row is not None, "the dispatched command left no device_commands_log row"
+    assert (row["delivery_state"], row["triggered_by"]) == ("published", "decision_dispatch"), (
+        f"after publish the row must be published by the dispatch path: {row}"
+    )
+
+    ack = json.dumps(_ack_v2(command_id=_DISPATCH_IDEMPOTENCY_KEY)).encode()
+    decision = asyncio.run(act.handle_device_ack(_ack_topic(), ack))
+
+    assert (decision.accepted, decision.target) == (True, "device_acked"), (
+        f"a signed device ack of a dispatched command was refused: {decision.reason}"
+    )
+    assert row["delivery_state"] == "device_acked" and row["device_acked_at"], (
+        f"the ack decision was not persisted: {row}"
+    )
+
+
+def test_without_the_queued_row_the_dispatched_ack_is_dropped(wired, monkeypatch):
+    """Negative control: the old order (publish only, no record_command_queued/log_command)
+    leaves no row, so the same signed ack is refused as unknown_command."""
+    act, _router_mod, pool = wired
+
+    async def _no_write(*_a, **_k):
+        return False
+
+    monkeypatch.setattr(act, "record_command_queued", _no_write)
+    monkeypatch.setattr(act, "log_command", _no_write)
+    receipts, wire_ids = _run_dispatch(act, monkeypatch)
+    assert [r["receipt_status"] for r in receipts] == ["accepted"], f"receipts: {receipts}"
+    assert wire_ids == [_DISPATCH_IDEMPOTENCY_KEY], f"wire ids: {wire_ids}"
+
+    ack = json.dumps(_ack_v2(command_id=_DISPATCH_IDEMPOTENCY_KEY)).encode()
+    decision = asyncio.run(act.handle_device_ack(_ack_topic(), ack))
+
+    assert (decision.accepted, decision.reason) == (False, "unknown_command"), (
+        f"without a recorded command the ack must be refused, got {decision}"
+    )
+    assert pool.table.find(TENANT, _DISPATCH_IDEMPOTENCY_KEY) is None, "no row may be created"
+
+
+def test_a_failed_dispatch_publish_is_recorded_publish_failed(wired, monkeypatch):
+    act, _router_mod, pool = wired
+
+    class _Down(_FakeMQTT):
+        async def __aenter__(self):
+            raise OSError("broker down")
+
+    monkeypatch.setattr(act, "MQTTClient", _Down)
+    receipts, _wire_ids = _run_dispatch(act, monkeypatch)
+    assert [r["receipt_status"] for r in receipts] == ["failed"], f"receipts: {receipts}"
+    row = pool.table.find(TENANT, _DISPATCH_IDEMPOTENCY_KEY)
+    assert row is not None and row["delivery_state"] == "publish_failed", (
+        f"a failed dispatch publish must be recorded publish_failed: {row}"
+    )
+
+
+def test_a_recovery_republish_does_not_move_an_acked_dispatch_back(wired, monkeypatch):
+    """Recovery republishes with the same command id: the queued insert is a no-op and the
+    v238 trigger (imitated by the table) refuses device_acked -> published; log_command
+    swallows that refusal, so the acked evidence survives."""
+    act, _router_mod, pool = wired
+    _run_dispatch(act, monkeypatch)
+    ack = json.dumps(_ack_v2(command_id=_DISPATCH_IDEMPOTENCY_KEY)).encode()
+    assert asyncio.run(act.handle_device_ack(_ack_topic(), ack)).accepted, "first ack refused"
+
+    _run_dispatch(act, monkeypatch)
+
+    rows = [r for r in pool.table.rows if r["command_id"] == _DISPATCH_IDEMPOTENCY_KEY]
+    assert len(rows) == 1, f"a republish must not duplicate the command row: {rows}"
+    assert rows[0]["delivery_state"] == "device_acked", f"acked state regressed: {rows[0]}"
