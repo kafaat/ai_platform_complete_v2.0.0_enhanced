@@ -16,8 +16,9 @@ from fastapi.security import HTTPBearer
 from mcp_client import MCPClient
 from pydantic import BaseModel, Field
 from router import HierarchicalRouter
+from server_facts import bind_server_facts, request_facts_provenance, resolve_server_facts
 from skills.advisory_skill import AdvisorySkill
-from skills.crop_model_skill import CropModelSkill
+from skills.crop_model_skill import CropModelSkill, plan_economics
 from skills.market_skill import MarketSkill
 from skills.remote_sensing_skill import RemoteSensingSkill
 from tool_contracts import (
@@ -187,6 +188,9 @@ class AgentResponse(BaseModel):
     # governed recommendation or a curated template.
     ai_generated: bool = False
     sources: list[str] = Field(default_factory=list)
+    # W2-17: where crop/cultivar/seeding/weather came from (server owners on the trusted path)
+    # and which body keys were ignored.
+    facts_provenance: dict[str, Any] | None = None
     processing_time_ms: int
 
 
@@ -225,7 +229,10 @@ async def _get_current_user(credentials: Optional = Depends(security)):
 
 
 def _degraded_response(
-    start_time: datetime, domain: str, reason: str = "circuit_open"
+    start_time: datetime,
+    domain: str,
+    reason: str = "circuit_open",
+    facts_provenance: dict[str, Any] | None = None,
 ) -> AgentResponse:
     """تدهور لطيف: خدمة MCP خلفيّة متعطّلة (القاطع مفتوح). نُرجِع 200 برسالة
     عربيّة واضحة + وسم `degraded` بدل 500 قاسٍ — المنصّة تبقى مستجيبة والقاطع
@@ -240,6 +247,7 @@ def _degraded_response(
         confidence=0.0,
         sources=[],
         structured_data={"status": "degraded", "reason": reason, "domain": domain},
+        facts_provenance=facts_provenance,
         processing_time_ms=elapsed,
     )
 
@@ -428,18 +436,49 @@ def _format_arabic_response(result: dict) -> str:
         return result.get("response", "تمت المعالجة بنجاح.")
 
 
-async def _bound_skill_kwargs(query, user: dict, tenant_id: str) -> dict[str, Any]:
-    """Skill arguments bound as /v1/agent/query binds them: verified identity, the
-    server-fetched canonical field state and the caller's verified bearer. Body-supplied
-    trust/credential keys are stripped by bind_field_context."""
+async def _resolve_server_facts(client, field_id, tenant_id):
+    """W2-17: season (platform service route) and weather (weather-service) for the field."""
+    return await resolve_server_facts(
+        client,
+        field_id=str(field_id),
+        tenant_id=str(tenant_id),
+        platform_url=PLATFORM_URL,
+        signed_headers=_platform_tenant_headers,
+    )
+
+
+async def _bound_context(query, user: dict, tenant_id: str) -> dict[str, Any]:
+    """The skill context for a request.
+
+    With a ``field_id`` (the trusted path) the canonical field state, the active season's crop,
+    cultivar and seeding, and weather-service's season weather are bound from their owners, and
+    the same keys in the body are dropped (W2-17: airuntime-4, crop-9, weather-8). Without a
+    field the body's agronomic values are a hypothetical and are labelled ``request_body``.
+    Body-supplied trust/credential keys are stripped by bind_field_context in both cases."""
     import httpx
 
-    field_state = None
     if query.field_id:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=20.0) as client:
             field_state = await _fetch_field_state(client, query.field_id, tenant_id)
-    context = bind_field_context(query.context, field_state)
+            facts, provenance = await _resolve_server_facts(client, query.field_id, tenant_id)
+        context = bind_server_facts(
+            bind_field_context(query.context, field_state),
+            facts,
+            provenance,
+            field_state,
+            request_context=query.context,
+        )
+    else:
+        context = bind_field_context(query.context, None)
+        context["_facts_provenance"] = request_facts_provenance(context)
     context["_platform_bearer"] = user.get("_mcp_bearer", "")
+    return context
+
+
+async def _bound_skill_kwargs(query, user: dict, tenant_id: str) -> dict[str, Any]:
+    """Skill arguments bound as /v1/agent/query binds them: verified identity, the bound
+    context of ``_bound_context`` and the caller's verified bearer."""
+    context = await _bound_context(query, user, tenant_id)
     return {
         "query": query.query,
         "field_id": query.field_id,
@@ -454,9 +493,23 @@ def _optimization_inputs_gap(cm: dict, mk: dict) -> str | None:
     """Why optimization cannot run (no crop simulation, no observed price), or None."""
     if cm.get("type") != "crop_simulation":
         return (cm.get("structured") or {}).get("reason") or "crop_model_unavailable"
+    # The scenario grid used to fill a missing yield/water with 2000 kg/ha and 400 mm.
+    if _positive(cm.get("yield_kg_ha")) is None or _positive(cm.get("total_water_mm")) is None:
+        return "crop_model_yield_or_water_unavailable"
     if _observed_price_yer_kg(mk) is None:
         return "market_price_unavailable"
     return None
+
+
+def _positive(value) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value) if math.isfinite(value) and value > 0 else None
+
+
+async def _plan_economics(context: dict, price_yer_kg: float) -> dict:
+    """agriai ``/v1/plan`` for the season crop at the observed price (airuntime-6)."""
+    return await plan_economics(context, price_yer_kg)
 
 
 def _observed_price_yer_kg(mk: dict) -> float | None:
@@ -469,20 +522,32 @@ def _observed_price_yer_kg(mk: dict) -> float | None:
     return float(price)
 
 
-def _generate_scenarios(rs: dict, cm: dict, mk: dict) -> list[dict]:
+def _generate_scenarios(rs: dict, cm: dict, mk: dict, economics: dict | None = None) -> list[dict]:
+    """Management scenarios priced only with agriai's plan (airuntime-6).
+
+    Price and total cost are agriai ``/v1/plan``'s for the season crop (observed market price,
+    server-side cost lines). The supervisor holds no unit costs: the cost was
+    ``water_mm * 0.5 + yield * fert_mult * 0.1`` with invented rates. Without a costed plan
+    there are no scenarios. The plan's cost does not vary with the multipliers (no per-unit
+    water or fertilizer cost is known server-side), and the response says so.
+    """
     price_yer_kg = _observed_price_yer_kg(mk)
-    if price_yer_kg is None:
-        # Profit scenarios need an observed price; none is substituted.
+    best = (economics or {}).get("best") if (economics or {}).get("status") == "costed" else None
+    if price_yer_kg is None or not isinstance(best, dict):
+        # Profit scenarios need an observed price and agriai's costs; none is substituted.
         return []
-    base_yield = cm.get("yield_kg_ha", 2000)
-    base_water = cm.get("total_water_mm", 400)
+    total_cost = _finite_number(best.get("total_cost"))
+    plan_price = _positive(best.get("price_per_kg"))
+    base_yield = _positive(cm.get("yield_kg_ha"))
+    base_water = _positive(cm.get("total_water_mm"))
+    if total_cost is None or plan_price is None or base_yield is None or base_water is None:
+        return []
     scenarios = []
     for irr_mult in [0.8, 0.9, 1.0, 1.1, 1.2]:
         for fert_mult in [0.8, 0.9, 1.0, 1.1, 1.2]:
             yield_est = base_yield * (0.7 + 0.3 * irr_mult) * (0.8 + 0.2 * fert_mult)
             water_use = base_water * irr_mult
-            cost = water_use * 0.5 + base_yield * fert_mult * 0.1
-            profit = yield_est * price_yer_kg / 1000 - cost
+            profit = yield_est * plan_price - total_cost
             carbon = water_use * 0.1
             scenarios.append(
                 {
@@ -493,9 +558,16 @@ def _generate_scenarios(rs: dict, cm: dict, mk: dict) -> list[dict]:
                     "water_mm": round(water_use, 2),
                     "carbon_kg": round(carbon, 2),
                     "risk": round(abs(1 - irr_mult) * 10 + abs(1 - fert_mult) * 5, 2),
+                    "economics_source": economics.get("source"),
                 }
             )
     return scenarios
+
+
+def _finite_number(value) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value) if math.isfinite(value) else None
 
 
 def _pareto_optimal(scenarios: list[dict], objectives: list[str]) -> list[dict]:

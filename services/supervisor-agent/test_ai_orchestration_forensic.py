@@ -319,7 +319,16 @@ def test_query_withholds_quantity_and_actions_until_governance_allows(monkeypatc
         assert [call[0] for call in calls] == ["skill", "governance"]
         assert calls[0][1]["tenant_id"] == "trusted-tenant"
         assert calls[0][1]["user_id"] == "42"
-        assert calls[0][1]["context"] == {"_platform_bearer": "verified-caller"}
+        assert calls[0][1]["context"] == {
+            "_platform_bearer": "verified-caller",
+            # No field: nothing is server-bound, and the record says so (W2-17).
+            "_facts_provenance": {
+                "trusted_path": False,
+                "crop_source": None,
+                "weather_source": None,
+                "request_supplied_keys": [],
+            },
+        }
 
 
 def test_query_legacy_irrigation_without_actionable_flag_still_requires_governance(monkeypatch):
@@ -659,7 +668,15 @@ def _optimize_http(monkeypatch, skills, body=None, governance=None):
         calls.append(("governance", args))
         return governance or {"allowed": False}
 
+    async def server_facts(client, field_id, tenant_id):
+        calls.append(("server_facts", (field_id, tenant_id)))
+        return {"crop": "barley", "planting_date": "2026-10-01"}, {
+            "season": {"status": "bound", "season_id": "s-1"},
+            "weather": {"status": "unavailable", "reason": "season_weather_not_yet_archived"},
+        }
+
     monkeypatch.setattr(main, "_fetch_field_state", field_state)
+    monkeypatch.setattr(main, "_resolve_server_facts", server_facts)
     monkeypatch.setattr(main, "_validate_via_guardrails", validate)
     main.app.dependency_overrides[main._get_current_user] = lambda: {
         "sub": "42",
@@ -691,11 +708,14 @@ def test_optimize_binds_field_state_context_and_bearer_like_query(monkeypatch):
         {"remote_sensing": unavailable, "crop_model": unavailable, "market": unavailable},
     )
     assert ("field_state", ("field-1", "trusted-tenant")) in calls
+    assert ("server_facts", ("field-1", "trusted-tenant")) in calls
     skill_calls = {name: kwargs for name, kwargs in calls if name in main.skill_libraries}
     assert set(skill_calls) == {"remote_sensing", "crop_model", "market"}
     for kwargs in skill_calls.values():
         context = kwargs["context"]
-        assert context["crop"] == "wheat"
+        # W2-17: the season's crop, not the body's "wheat".
+        assert context["crop"] == "barley", context
+        assert context["_facts_provenance"]["ignored_request_keys"] == ["crop"], context
         assert context["field_state"]["validity"] == "valid"
         assert context["_platform_bearer"] == "verified-caller"
         assert kwargs["tenant_id"] == "trusted-tenant"
@@ -722,10 +742,21 @@ def test_optimize_without_observed_price_degrades_instead_of_pricing_a_constant(
         }
         assert "governance" not in [name for name, _ in calls]
     assert main._generate_scenarios({}, simulation, {}) == []
-    priced = main._generate_scenarios({}, simulation, {"price_yer_kg": 250.0})
-    assert len(priced) == 25
+    # airuntime-6: an observed price alone no longer prices scenarios with invented unit costs.
+    market = {"price_yer_kg": 250.0}
+    assert main._generate_scenarios({}, simulation, market) == [], "priced without agriai costs"
+    uncosted = {"status": "insufficient", "missing_inputs": ["costs"]}
+    assert main._generate_scenarios({}, simulation, market, uncosted) == []
+    costed = {
+        "status": "costed",
+        "source": "agriai-engine /v1/plan",
+        "best": {"name": "wheat", "price_per_kg": 250.0, "total_cost": 90000.0},
+    }
+    priced = main._generate_scenarios({}, simulation, market, costed)
+    assert len(priced) == 25, priced
     neutral = next(s for s in priced if s["irrigation_mult"] == 1.0 and s["fertilizer_mult"] == 1.0)
-    assert neutral["profit_yer_ha"] == round(3000.0 * 250.0 / 1000 - (350.0 * 0.5 + 300.0), 2)
+    assert neutral["profit_yer_ha"] == round(3000.0 * 250.0 - 90000.0, 2), neutral
+    assert neutral["economics_source"] == "agriai-engine /v1/plan", neutral
 
 
 def test_general_advice_templates_carry_no_numeric_doses():
@@ -917,3 +948,305 @@ def test_tool_catalog_marks_bootstrap_examples_unavailable_and_invoke_refuses_th
     )
     assert result.success is False and result.output is None
     assert "example-only" in result.error
+
+
+# ── W2-17: server-side season, weather and economics on the trusted path ─────────────────
+
+_W217_KEY = "w2-17-platform-assertion-key-0123456789"
+_FORGED_WEATHER = {"gdd": 9999.0, "total_rain_mm": 5000.0}
+
+
+def _w217_view(start, days, *, drop_tmax_on=None):
+    from datetime import timedelta
+
+    out = []
+    for i in range(days):
+        day = {
+            "date": (start + timedelta(days=i)).isoformat(),
+            "temp_max_c": 24.0,
+            "temp_min_c": 8.0,
+            "precipitation_mm": 1.5,
+            "et0_mm": 3.1,
+        }
+        if drop_tmax_on == i:
+            day["temp_max_c"] = None
+        out.append(day)
+    return {
+        "days": out,
+        "derived_from": "canonical_weather_state",
+        "canonical_state_id": "cws-w217",
+        "source_snapshot_id": "snap-w217",
+        "quality_status": "validated",
+        "coverage": {"missing_days": 0, "coverage_ratio": 1.0},
+    }
+
+
+def _w217_http(monkeypatch, *, weather_view=None, weather_status=200, agriai=None):
+    """Route every outbound httpx call of the supervisor to in-process fakes and record them."""
+    from datetime import date, timedelta
+
+    import server_facts
+
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", _W217_KEY)
+    sowing = date.today() - timedelta(days=40)
+    expected_end = date.today() - timedelta(days=server_facts.ARCHIVE_LAG_DAYS)
+    seen = {"platform": [], "weather": [], "agriai": []}
+    pack = {
+        "field_profile": {"field_id": "field-1", "lat": 15.35, "lon": 44.2},
+        "active_season": {
+            "season_id": "season-7",
+            "crops": ["wheat"],
+            "cultivar": "Bohoth-13",
+            "sowing_date": sowing.isoformat(),
+            "seed_rate_kg_ha": 120.0,
+            "status": "active",
+        },
+    }
+
+    def handler(request):
+        if request.url.path == "/internal/fields/field-1/state":
+            seen["platform"].append(request)
+            assert request.headers.get("x-tenant-assertion"), "unsigned platform call"
+            if request.url.params.get("ai_context") == "true":
+                return httpx.Response(200, json={"state": {}, "ai_context_pack": pack})
+            return httpx.Response(200, json={"validity": "valid", "inputs": {}})
+        if request.url.path == "/v1/weather/historical":
+            seen["weather"].append(request)
+            view = weather_view
+            if view is None:
+                days = (expected_end - sowing).days + 1
+                view = _w217_view(sowing, days)
+            return httpx.Response(weather_status, json=view)
+        if request.url.path in ("/v1/simulate", "/v1/plan"):
+            seen["agriai"].append(request)
+            return (agriai or (lambda r: httpx.Response(500)))(request)
+        raise AssertionError(f"unexpected outbound call {request.url}")
+
+    factory = httpx.AsyncClient
+    monkeypatch.setattr(
+        httpx,
+        "AsyncClient",
+        lambda **kwargs: factory(transport=httpx.MockTransport(handler), **kwargs),
+    )
+    return seen, sowing, expected_end
+
+
+def _w217_query(monkeypatch, context, field_id="field-1"):
+    from fastapi.testclient import TestClient
+
+    async def classify(query):
+        return "crop_model", "simulate_current", 0.9
+
+    monkeypatch.setattr(main.router, "classify_intent", classify)
+    main.app.dependency_overrides[main._get_current_user] = lambda: {
+        "sub": "42",
+        "tenant_id": "trusted-tenant",
+        "_mcp_bearer": "verified-caller",
+    }
+    body = {"query": "توقع محصول القمح", "user_id": "forged", "tenant_id": "forged"}
+    if field_id:
+        body["field_id"] = field_id
+    try:
+        response = TestClient(main.app).post("/v1/agent/query", json={**body, "context": context})
+    finally:
+        main.app.dependency_overrides.clear()
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+_W217_FORGED_CONTEXT = {
+    "crop": "maize",
+    "cultivar": "forged-cultivar",
+    "planting_date": "2020-01-01",
+    "weather": _FORGED_WEATHER,
+    "agronomic_context": {"weather_snapshot": {"gdd": 9999.0}},
+    "crop_parameters": {"max_yield_kg_ha": 99999.0},
+    "weather_age_hours": 0,
+}
+
+
+def test_w217_forged_body_weather_with_field_id_is_ignored_and_all_sources_are_server(
+    monkeypatch,
+):
+    """Acceptance (W2-17): a body with forged weather plus a field_id ⇒ the forged weather is
+    ignored, every source is server-side, and the response provenance records it."""
+
+    def agriai(request):
+        return httpx.Response(
+            422,
+            json={
+                "detail": {
+                    "error": "simulation_inputs_invalid",
+                    "reason": "crop_parameters_required",
+                }
+            },
+        )
+
+    seen, sowing, expected_end = _w217_http(monkeypatch, agriai=agriai)
+    body = _w217_query(monkeypatch, dict(_W217_FORGED_CONTEXT))
+
+    assert len(seen["agriai"]) == 1, seen
+    sent = json.loads(seen["agriai"][0].content)
+    weather = sent["weather"]
+    assert "gdd" not in weather and weather.get("total_rain_mm") != 5000.0, weather
+    assert weather["source"] == "weather-service", weather
+    assert weather["canonical_state_id"] == "cws-w217", weather
+    assert weather["daily"][0] == {
+        "date": sowing.isoformat(),
+        "tmax": 24.0,
+        "tmin": 8.0,
+        "rain_mm": 1.5,
+        "et0_mm": 3.1,
+    }, weather["daily"][0]
+    assert len(weather["daily"]) == (expected_end - sowing).days + 1, len(weather["daily"])
+    assert sent["agronomic_context"] == {}, "the body's agronomic_context reached the engine"
+    assert sent["crop"] == {"name": "wheat", "cultivar": "Bohoth-13"}, sent["crop"]
+    assert sent["agromanagement"] == {
+        "planting_date": sowing.isoformat(),
+        "seed_rate_kg_ha": 120.0,
+    }, sent["agromanagement"]
+
+    weather_call = seen["weather"][0]
+    assert weather_call.url.params["start_date"] == sowing.isoformat(), weather_call.url
+    assert weather_call.url.params["end_date"] == expected_end.isoformat(), weather_call.url
+    assert weather_call.headers["x-tenant-id"] == "trusted-tenant", weather_call.headers
+
+    provenance = body["facts_provenance"]
+    assert provenance["trusted_path"] is True, provenance
+    assert provenance["crop_source"] == "active_season", provenance
+    assert provenance["weather_source"] == "weather-service", provenance
+    assert provenance["season"]["status"] == "bound", provenance
+    assert provenance["season"]["season_id"] == "season-7", provenance
+    assert provenance["weather"]["status"] == "bound", provenance
+    assert provenance["weather"]["canonical_state_id"] == "cws-w217", provenance
+    assert provenance["ignored_request_keys"] == sorted(_W217_FORGED_CONTEXT), provenance
+    structured = body["structured_data"]
+    assert structured["facts_provenance"]["weather_source"] == "weather-service", structured
+    assert structured["engine_reason"] == "crop_parameters_required", structured
+
+
+def test_w217_without_server_weather_the_body_weather_is_still_refused(monkeypatch):
+    """weather-service down ⇒ no weather at all: the body's series never stands in for it."""
+
+    def agriai(request):
+        raise AssertionError("simulated without server weather")
+
+    seen, _, _ = _w217_http(monkeypatch, weather_status=502, agriai=agriai)
+    body = _w217_query(monkeypatch, {"crop": "wheat", "weather": _FORGED_WEATHER})
+    assert seen["agriai"] == [], "agriai was called with the body's weather"
+    assert body["structured_data"]["reason"] == "crop_model_weather_required", body
+    provenance = body["facts_provenance"]
+    assert provenance["weather_source"] is None, provenance
+    assert provenance["weather"]["reason"] == "weather_service_unavailable", provenance
+    assert provenance["crop_source"] == "active_season", provenance
+    detail = body["structured_data"]["facts_provenance"]
+    assert detail["ignored_request_keys"] == ["crop", "weather"], detail
+
+
+def test_w217_incomplete_weather_series_is_absence_not_zeros(monkeypatch):
+    from datetime import date, timedelta
+
+    import server_facts
+
+    sowing = date.today() - timedelta(days=40)
+    end = date.today() - timedelta(days=server_facts.ARCHIVE_LAG_DAYS)
+    view = _w217_view(sowing, (end - sowing).days + 1, drop_tmax_on=3)
+
+    def agriai(request):
+        raise AssertionError("simulated on a series with a missing temperature")
+
+    seen, _, _ = _w217_http(monkeypatch, weather_view=view, agriai=agriai)
+    body = _w217_query(monkeypatch, {})
+    assert seen["agriai"] == [], seen
+    assert body["structured_data"]["reason"] == "crop_model_weather_required", body
+
+
+def test_w217_without_field_the_request_is_labelled_request_body(monkeypatch):
+    def agriai(request):
+        return httpx.Response(422, json={"detail": {"reason": "crop_parameters_required"}})
+
+    seen, _, _ = _w217_http(monkeypatch, agriai=agriai)
+    body = _w217_query(monkeypatch, {"crop": "wheat", "weather": _FORGED_WEATHER}, field_id=None)
+    assert seen["platform"] == [] and seen["weather"] == [], "a field-less request read the field"
+    provenance = body["facts_provenance"]
+    assert provenance == {
+        "trusted_path": False,
+        "crop_source": "request_body",
+        "weather_source": "request_body",
+        "request_supplied_keys": ["crop", "weather"],
+    }, provenance
+
+
+def test_w217_optimize_routes_economics_to_agriai_plan_and_degrades_when_uncosted(monkeypatch):
+    """airuntime-6: the supervisor no longer prices scenarios with invented unit costs."""
+    plan_requests = []
+
+    def agriai(request):
+        plan_requests.append(json.loads(request.content))
+        return httpx.Response(
+            200,
+            json={
+                "ranked": [],
+                "insufficient": [
+                    {"name": "wheat", "status": "insufficient", "missing_inputs": ["costs"]}
+                ],
+                "best": None,
+            },
+        )
+
+    _w217_http(monkeypatch, agriai=agriai)
+    simulation = {
+        "type": "crop_simulation",
+        "yield_kg_ha": 3000.0,
+        "total_water_mm": 350.0,
+        "sources": ["agriai-engine /v1/simulate"],
+    }
+
+    class Fixed:
+        def __init__(self, result):
+            self.result = result
+
+        async def execute(self, **kwargs):
+            return self.result
+
+    monkeypatch.setitem(main.skill_libraries, "crop_model", Fixed(simulation))
+    monkeypatch.setitem(main.skill_libraries, "remote_sensing", Fixed({"type": "ok"}))
+    monkeypatch.setitem(main.skill_libraries, "market", Fixed({"price_yer_kg": 250.0}))
+
+    def never(*args, **kwargs):
+        raise AssertionError("scenarios generated without a costed agriai plan")
+
+    monkeypatch.setattr(main, "_generate_scenarios", never)
+    from fastapi.testclient import TestClient
+
+    main.app.dependency_overrides[main._get_current_user] = lambda: {
+        "sub": "42",
+        "tenant_id": "trusted-tenant",
+        "_mcp_bearer": "verified-caller",
+    }
+    try:
+        response = TestClient(main.app).post(
+            "/v1/agent/optimize",
+            json={
+                "query": "حسّن الحقل",
+                "field_id": "field-1",
+                "user_id": "forged",
+                "tenant_id": "forged",
+                "context": {"costs": {"seed": 1.0}, "weather": _FORGED_WEATHER},
+            },
+        )
+    finally:
+        main.app.dependency_overrides.clear()
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["structured_data"] == {
+        "status": "degraded",
+        "reason": "economics_inputs_insufficient",
+        "domain": "optimization",
+    }, body
+    assert len(plan_requests) == 1, plan_requests
+    candidate = plan_requests[0]["candidates"][0]
+    assert candidate["name"] == "wheat" and candidate["price_per_kg"] == 250.0, candidate
+    assert "costs" not in candidate, "the body's costs reached the economics plan"
+    assert plan_requests[0]["weather"]["source"] == "weather-service", plan_requests[0]
+    assert body["facts_provenance"]["ignored_request_keys"] == ["costs", "weather"], body

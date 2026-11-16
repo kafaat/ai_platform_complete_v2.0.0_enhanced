@@ -50,12 +50,10 @@ async def process_query(
     # Bind only server-fetched field state; client context cannot forge canonical state.
     if not trusted_user_id or not trusted_tenant_id:
         raise HTTPException(401, "Token missing user or tenant identity")
-    agro_context = main.bind_field_context(query.context, None)
-    if query.field_id:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            _fs = await main._fetch_field_state(client, query.field_id, trusted_tenant_id)
-        agro_context = main.bind_field_context(query.context, _fs)
-    agro_context["_platform_bearer"] = user.get("_mcp_bearer", "")
+    # W2-17: with a field_id, crop/cultivar/seeding come from the active season and weather
+    # from weather-service; the body's values for those keys are ignored and named.
+    agro_context = await main._bound_context(query, user, trusted_tenant_id)
+    facts_provenance = agro_context.get("_facts_provenance")
     try:
         with main.mcp_client.bind_credentials(user.get("_mcp_bearer", ""), trusted_tenant_id):
             result = await skill.execute(
@@ -70,7 +68,7 @@ async def process_query(
     except (CircuitOpenError, MCPError, httpx.HTTPError, TimeoutError) as exc:
         reason = classify_mcp_error(exc)
         main.logger.warning("agent.degraded domain=%s reason=%s", domain, reason)
-        return main._degraded_response(start_time, domain, reason)
+        return main._degraded_response(start_time, domain, reason, facts_provenance)
     # حَوكمة موحّدة: إن أنتجت المهارة إجراءات قابلة للتنفيذ، تمرّ عبر البوّابة
     # (سدّ الباب الخلفي: لا مسار توصية→أمر يتجاوز /validate).
     actions = result.get("actions", [])
@@ -112,6 +110,7 @@ async def process_query(
         else confidence,
         sources=result.get("sources", []),
         ai_generated=result.get("ai_generated") is True,
+        facts_provenance=facts_provenance,
         processing_time_ms=elapsed,
     )
 
@@ -129,6 +128,7 @@ async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_c
     # the caller's verified bearer. Without them CropModelSkill never saw the crop and
     # always answered crop_required.
     skill_kwargs = await main._bound_skill_kwargs(query, user, trusted_tenant_id)
+    facts_provenance = skill_kwargs["context"].get("_facts_provenance")
     rs_task = main.skill_libraries["remote_sensing"].execute(intent="full_analysis", **skill_kwargs)
     cm_task = main.skill_libraries["crop_model"].execute(intent="simulate_current", **skill_kwargs)
     mk_task = main.skill_libraries["market"].execute(intent="price_forecast", **skill_kwargs)
@@ -136,15 +136,34 @@ async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_c
         with main.mcp_client.bind_credentials(user.get("_mcp_bearer", ""), trusted_tenant_id):
             rs_result, cm_result, mk_result = await asyncio.gather(rs_task, cm_task, mk_task)
     except (CircuitOpenError, MCPError, httpx.HTTPError, TimeoutError) as exc:
-        return main._degraded_response(start_time, "optimization", classify_mcp_error(exc))
+        return main._degraded_response(
+            start_time, "optimization", classify_mcp_error(exc), facts_provenance
+        )
     # _generate_scenarios يملأ الغائب بثوابت (yield=2000، water=400): محاكاة غير متاحة
     # (بلا محصول/طقس، أو فشل agriai المُغلَق) تُصبح سيناريوهات مُختلَقة. تدهور صريح بدلها.
     # Profit-ranked scenarios also need an observed market price; none is assumed (the
     # market skill reports USD for an unrecorded unit, never YER/kg).
     reason = main._optimization_inputs_gap(cm_result, mk_result)
     if reason:
-        return main._degraded_response(start_time, "optimization", reason)
-    scenarios = main._generate_scenarios(rs_result, cm_result, mk_result)
+        return main._degraded_response(start_time, "optimization", reason, facts_provenance)
+    # airuntime-6: economics come from agriai /v1/plan (observed price, server-side costs);
+    # an uncosted plan degrades instead of pricing invented unit costs.
+    try:
+        economics = await main._plan_economics(
+            skill_kwargs["context"], main._observed_price_yer_kg(mk_result)
+        )
+    except (httpx.HTTPError, TimeoutError) as exc:
+        return main._degraded_response(
+            start_time, "optimization", classify_mcp_error(exc), facts_provenance
+        )
+    if economics.get("status") != "costed":
+        return main._degraded_response(
+            start_time,
+            "optimization",
+            economics.get("reason") or "economics_unavailable",
+            facts_provenance,
+        )
+    scenarios = main._generate_scenarios(rs_result, cm_result, mk_result, economics)
     pareto_front = main._pareto_optimal(scenarios, query.preferred_objectives)
     recommended = main._select_balanced(pareto_front, query.preferred_objectives)
     # حَوكمة البوّابة (الإصلاح الأعلى قيمة): التوصية تمرّ عبر Guardrails /validate
@@ -165,6 +184,7 @@ async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_c
             "trade_off_explanation": "لم تُعتمد سيناريوهات التحسين؛ يلزم استكمال بيانات التحقق.",
             "processing_time_ms": int((datetime.now(UTC) - start_time).total_seconds() * 1000),
             "sources": [],
+            "facts_provenance": facts_provenance,
         }
     elapsed = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
     return {
@@ -175,7 +195,22 @@ async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_c
             recommended, pareto_front, query.preferred_objectives
         ),
         "processing_time_ms": elapsed,
-        "sources": ["RUE-Estimator (FAO-56)", "Sentinel-2", "Open-Meteo", "Market Data"],
+        "economics": {
+            "source": economics.get("source"),
+            "evidence_hash": economics.get("evidence_hash"),
+            "plan": economics.get("best"),
+            "limitations": [
+                "scenario cost is agriai's plan total; it does not vary with the irrigation or "
+                "fertilizer multiplier because no per-unit cost is known server-side"
+            ],
+        },
+        "facts_provenance": facts_provenance,
+        "sources": [
+            *cm_result.get("sources", []),
+            economics.get("source"),
+            "Sentinel-2",
+            "Market Data",
+        ],
     }
 
 
