@@ -267,14 +267,24 @@ def test_v25_live_audit_wiring_regressions():
     agriai = nginx.split("location /api/agriai/", 1)[1].split("location /api/", 1)[0]
     assert 'proxy_set_header X-Agent-Token "${SAHOOL_AGENT_TOKEN}";' in agriai
 
-    # Guardrails keeps the existing caller contract: the browser sends /v1 in
-    # the suffix and nginx only strips /api/guardrails/. The service token stays
-    # private, so direct browser validation still fails closed by design.
+    # Guardrails: nginx only strips /api/guardrails/ and never injects the service
+    # token, so a browser call to /v1/validate fails closed (401) by design.
     guardrails = nginx.split("location /api/guardrails/", 1)[1].split("location /api/rag/", 1)[0]
     assert "proxy_pass http://guardrails_backend/;" in guardrails
     assert "proxy_pass http://guardrails_backend/v1/;" not in guardrails
     assert "proxy_set_header X-Agent-Token" not in guardrails
-    assert "/api/guardrails/v1/validate" in _source("frontend/src/hooks/useApi.ts")
+    # W0-01 (airuntime-1 / web-2): that 401 used to re-enable pesticide approval in the
+    # browser (fail-open). The chemical check now runs server-side inside
+    # /api/v1/pest-escalation/run; no browser code may call guardrails at all.
+    browser_callers = sorted(
+        str(path.relative_to(ROOT))
+        for path in (ROOT / "frontend" / "src").rglob("*")
+        if path.suffix in {".ts", ".tsx", ".js", ".jsx"}
+        and "/api/guardrails" in path.read_text(encoding="utf-8")
+    )
+    assert browser_callers == [], f"browser code calls guardrails directly: {browser_callers}"
+    pest_router = _source("services/sahool-platform/api/routers/pest_escalation.py")
+    assert "safety_gate_fn=_safety_gate" in pest_router, "pest escalation lost its server gate"
 
 
 def _frontend_image_listen_ports() -> set[int]:

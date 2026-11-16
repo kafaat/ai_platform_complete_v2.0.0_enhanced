@@ -212,6 +212,8 @@ def test_pest_hil_executes_only_after_approval():
         tenant_id="t1",
         initial_context={"approval_status": "approved"},
         execute_fn=execute_fn,
+        # W0-01: التنفيذ يتطلّب أيضاً حكم guardrails يسمح صراحةً (هنا مُسمَح).
+        safety_gate_fn=lambda ctx: {"allowed": True, "status": "allowed"},
     )
     assert st2.status.value == "completed"
     assert executed == ["urgent_spray"]  # نُفّذ بعد الموافقة فقط

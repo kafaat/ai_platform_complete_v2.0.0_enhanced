@@ -99,7 +99,9 @@ def test_pest_escalation_durable_hil(client_and_token):
     assert b1["workflow"]["status"] == "suspended"
     assert b1["step_results"].get("execute") is None  # لم يُنفَّذ قبل الموافقة
 
-    # ② نداء ثانٍ بنفس workflow_id + موافقة الخبير ⇒ يُستأنف فينفّذ (durable)
+    # ② نداء ثانٍ بنفس workflow_id + موافقة الخبير ⇒ يُستأنف (durable). W0-01: الموافقة
+    # وحدها لا ترشّ؛ بوّابة guardrails من الخادم لا تجد أدلّة المبيد (مادّة/جرعة/اقتصاد)
+    # فتحجب التنفيذ (fail-closed) بدل أن ينفّذ بلا فحص كيميائيّ.
     r2 = client.post(
         "/api/v1/pest-escalation/run",
         json={"workflow_id": wf, "approval_status": "approved"},
@@ -107,5 +109,77 @@ def test_pest_escalation_durable_hil(client_and_token):
     )
     assert r2.status_code == 200, r2.text
     b2 = r2.json()
-    assert b2["workflow"]["status"] == "completed"
-    assert b2["step_results"]["execute"]["executed"] is True  # نُفّذ بعد الموافقة فقط
+    assert b2["workflow"]["status"] == "completed", b2["workflow"]
+    execute = b2["step_results"]["execute"]
+    assert execute["executed"] is False, f"executed without a guardrails allow: {execute}"
+    assert execute["blocked_by"] == "guardrails", execute
+    assert execute["guardrails"]["allowed"] is False, execute
+    assert execute["guardrails"]["status"] == "evidence_unavailable", execute
+    assert b2["step_results"]["follow_up"]["follow_up_scheduled"] is False, b2["step_results"]
+
+
+def _run_approved(client, token) -> dict:
+    wf = f"pest-{uuid.uuid4()}"
+    r1 = client.post(
+        "/api/v1/pest-escalation/run",
+        json={"workflow_id": wf, "pest_type": "صدأ", "severity": 0.85},
+        headers=_auth(token),
+    )
+    assert r1.status_code == 200, r1.text
+    assert r1.json()["workflow"]["status"] == "suspended", r1.text
+    r2 = client.post(
+        "/api/v1/pest-escalation/run",
+        json={"workflow_id": wf, "approval_status": "approved"},
+        headers=_auth(token),
+    )
+    assert r2.status_code == 200, r2.text
+    return r2.json()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "verdict",
+    [
+        {"allowed": False, "status": "denied", "reason_ar": "محظور"},
+        {"allowed": False, "status": "unauthorized", "http_status": 401},
+        {"allowed": False, "status": "timeout"},
+        {"allowed": "true", "status": "allowed"},  # ليس True حرفيّاً ⇒ حجب
+    ],
+    ids=["deny", "401", "timeout", "truthy-not-true"],
+)
+def test_pest_escalation_execute_blocked_unless_guardrails_allowed(
+    client_and_token, monkeypatch, verdict
+):
+    """W0-01: أيّ حكم guardrails غير allowed is True يحجب التنفيذ بعد موافقة الخبير."""
+    import core.pest_escalation_flow as gate
+
+    seen: list[dict] = []
+
+    def _fake(ctx, *, tenant_id, user_id, **_kw):
+        seen.append({"tenant_id": tenant_id, "action_type": ctx.get("action_type")})
+        return dict(verdict)
+
+    monkeypatch.setattr(gate, "evaluate_pesticide_guardrails", _fake)
+    client, token = client_and_token
+    body = _run_approved(client, token)
+    execute = body["step_results"]["execute"]
+    assert seen and seen[0]["action_type"] == "urgent_spray", seen
+    assert execute["executed"] is False, f"executed on verdict {verdict}: {execute}"
+    assert execute["blocked_by"] == "guardrails", execute
+
+
+@pytest.mark.integration
+def test_pest_escalation_executes_only_on_server_guardrails_allow(client_and_token, monkeypatch):
+    """الضابط الموجب: حكم guardrails allowed is True من الخادم ⇒ ينفّذ بعد الموافقة."""
+    import core.pest_escalation_flow as gate
+
+    monkeypatch.setattr(
+        gate,
+        "evaluate_pesticide_guardrails",
+        lambda ctx, **_kw: {"allowed": True, "status": "allowed", "reason_ar": "سمح"},
+    )
+    client, token = client_and_token
+    body = _run_approved(client, token)
+    execute = body["step_results"]["execute"]
+    assert execute["executed"] is True, execute
+    assert execute["guardrails"]["status"] == "allowed", execute
