@@ -74,6 +74,7 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 18. Harvest custody integrity and market lot link (v278, restricted role)
 19. Vegetation anomaly scouting tasks (W1-20, v282, restricted role)
 20. Water ledger partial irrigation write (W0-13, v280, restricted role)
+21. NDVI seed purge (W1-21, v283, real-PG)
 
 Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 `rolcanlogin` of every restricted role those steps connect as (`sahool_app_test`)

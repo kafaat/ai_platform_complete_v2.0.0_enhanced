@@ -683,7 +683,9 @@
 \i migrations/v281_farm_ledger_season_reference.sql
 \echo '═══ 269. v282_field_task_scouting_anomaly.sql ═══'
 \i migrations/v282_field_task_scouting_anomaly.sql
-\echo '═══ 270. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 270. v283_ndvi_timeseries_seed_purge.sql ═══'
+\i migrations/v283_ndvi_timeseries_seed_purge.sql
+\echo '═══ 271. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 271. v206_rls_final_hardening.sql ═══'
+\echo '═══ 272. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

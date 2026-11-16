@@ -122,6 +122,39 @@ describe('NlGisPage — الحاجة للبيانات', () => {
   });
 });
 
+const PARTIAL: NlGisResult = {
+  ...NEEDS_DATA,
+  status: 'partial',
+  note_ar: 'نتيجة ناقصة: تعذّرت قراءة NDVI لـ2 من 3 حقل.',
+  coverage: { fields_scanned: 3, fields_truncated: false, raster_unavailable: 2, complete: false },
+};
+
+describe('NlGisPage — مسح ناقص (W1-21)', () => {
+  it('status=partial ⇒ تحذير بالنقص لا «لا حقول تطابق»', async () => {
+    mockQuery.mockResolvedValueOnce(PARTIAL);
+    render(<NlGisPage />);
+    fireEvent.change(screen.getByLabelText('استعلام GIS باللغة الطبيعيّة'), {
+      target: { value: 'اعرض الحقول التي انخفض NDVI فيها أكثر من 15%' },
+    });
+    fireEvent.click(screen.getByText('ابحث'));
+
+    expect(await screen.findByText('نتيجة ناقصة: تعذّرت قراءة NDVI لـ2 من 3 حقل.')).toBeInTheDocument();
+    expect(screen.queryByText('لا حقول تطابق هذا الاستعلام.')).not.toBeInTheDocument();
+  });
+
+  it('ok مع coverage.complete=false ⇒ لا يُعرَض كفراغ صادق', async () => {
+    mockQuery.mockResolvedValueOnce({ ...PARTIAL, status: 'ok', note_ar: null });
+    render(<NlGisPage />);
+    fireEvent.change(screen.getByLabelText('استعلام GIS باللغة الطبيعيّة'), {
+      target: { value: 'اعرض الحقول التي انخفض NDVI فيها أكثر من 15%' },
+    });
+    fireEvent.click(screen.getByText('ابحث'));
+
+    expect(await screen.findByText(/نتيجة ناقصة/)).toBeInTheDocument();
+    expect(screen.queryByText('لا حقول تطابق هذا الاستعلام.')).not.toBeInTheDocument();
+  });
+});
+
 describe('NlGisPage — الميزة غير مُفعَّلة (404)', () => {
   it('404 ⇒ رسالة «الميزة غير مُفعَّلة» لا انهيار ولا حالة خطأ', async () => {
     mockQuery.mockRejectedValueOnce({ response: { status: 404 } });
