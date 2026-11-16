@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7496,
+    "files_scanned": 7499,
     "files_by_kind": {
       "backend": 1296,
-      "database": 348,
+      "database": 350,
       "governance": 89,
       "mobile": 429,
-      "other": 2197,
-      "tests": 2582,
+      "other": 2195,
+      "tests": 2585,
       "web": 555
     },
-    "unmapped_artifacts": 3564,
-    "ambiguous_artifacts": 256,
+    "unmapped_artifacts": 3568,
+    "ambiguous_artifacts": 255,
     "files_by_reading": {
-      "python_functional": 4063,
-      "raw": 3433
+      "python_functional": 4065,
+      "raw": 3434
     },
-    "test_dependency_files": 1970,
-    "test_dependency_edges": 5204,
-    "test_dependency_bounded_files": 1144,
-    "test_dependency_unresolved_relations": 503
+    "test_dependency_files": 1971,
+    "test_dependency_edges": 5209,
+    "test_dependency_bounded_files": 1146,
+    "test_dependency_unresolved_relations": 504
   },
   "capabilities": [
     {
@@ -12781,14 +12781,6 @@
           ]
         },
         {
-          "path": "docs/architecture/helm_compose_workload_ledger.json",
-          "score": 10,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
           "path": "shared/notification_consumers.py",
           "score": 10,
           "signals": [
@@ -12899,7 +12891,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 86
+        "events": 85
       },
       "evidence_counts": {
         "backend": 7,
@@ -12910,7 +12902,7 @@
         "mobile": 0,
         "tests": 22,
         "governance": 2,
-        "other_evidence": 35
+        "other_evidence": 34
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -18916,10 +18908,6 @@
           "score": 12
         },
         {
-          "value": "sahool.helm-compose-workload-ledger @ docs/architecture/helm_compose_workload_ledger.json:3",
-          "score": 10
-        },
-        {
           "value": "decision.use_cdse @ services/raster-service/test_imagery_source_gate_no_bypass_static.py:96",
           "score": 9
         },
@@ -20044,14 +20032,6 @@
           ]
         },
         {
-          "path": "docs/architecture/helm_compose_workload_ledger.json",
-          "score": 10,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
           "path": "docs/audits/CODE_REVIEW_REPORT.md",
           "score": 10,
           "signals": [
@@ -20295,12 +20275,12 @@
         "backend": 42,
         "routes": 100,
         "database": 5,
-        "events": 44,
+        "events": 43,
         "web": 6,
         "mobile": 0,
         "tests": 59,
         "governance": 0,
-        "other_evidence": 95
+        "other_evidence": 94
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -23998,10 +23978,6 @@
         {
           "value": "raster_field_runtime.py @ scripts/ci/raster_main_decomposition_gate.py:188",
           "score": 9
-        },
-        {
-          "value": "sahool.helm-compose-workload-ledger @ docs/architecture/helm_compose_workload_ledger.json:3",
-          "score": 9
         }
       ],
       "web": [
@@ -24539,14 +24515,6 @@
           ]
         },
         {
-          "path": "docs/architecture/helm_compose_workload_ledger.json",
-          "score": 9,
-          "signals": [
-            "content:cog",
-            "content:raster tile"
-          ]
-        },
-        {
           "path": "docs/architecture/raster_service_route_migration_plan.md",
           "score": 9,
           "signals": [
@@ -24643,12 +24611,12 @@
         "backend": 12,
         "routes": 52,
         "database": 0,
-        "events": 16,
+        "events": 15,
         "web": 2,
         "mobile": 1,
         "tests": 28,
         "governance": 0,
-        "other_evidence": 45
+        "other_evidence": 44
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -26088,6 +26056,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
+          "score": 12,
+          "signals": [
+            "content:rls",
+            "content:Tenant RLS"
+          ]
+        },
+        {
           "path": "tests_v9/test_weather_intelligence_migration.py",
           "score": 12,
           "signals": [
@@ -26201,14 +26177,6 @@
           "signals": [
             "content:rls",
             "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
-          "score": 10,
-          "signals": [
-            "content:rls",
-            "content:Tenant RLS"
           ]
         },
         {
@@ -27142,7 +27110,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 901
+        "database": 904
       },
       "evidence_counts": {
         "backend": 12,
@@ -35563,6 +35531,10 @@
       "kind": "database"
     },
     {
+      "path": "migrations/v285_water_ledger_rain_source_reanalysis.down.sql",
+      "kind": "database"
+    },
+    {
       "path": "migrations/v28_settings.sql",
       "kind": "database"
     },
@@ -42579,6 +42551,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
       "kind": "tests"
     },
@@ -43548,6 +43524,10 @@
     },
     {
       "path": "tests/reliability/test_phase10_reliability_harness_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/runtime/test_compose_required_vars_doctor.py",
       "kind": "tests"
     },
     {
@@ -45015,6 +44995,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gpu_bake_matches_compose_overlay.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_guard_catalogue.py",
       "kind": "tests"
     },
@@ -45071,10 +45055,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_helm_compose_workload_guard.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_helm_gateway_ingress_contract.py",
       "kind": "tests"
     },
@@ -45084,10 +45064,6 @@
     },
     {
       "path": "tests_v9/test_helm_migration_job_runs_real_migrator.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_helm_network_policy_egress.py",
       "kind": "tests"
     },
     {
@@ -46211,6 +46187,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_rs_anomaly_reservation_live_pg.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_run_all_minio_health_probe.py",
       "kind": "tests"
     },
@@ -46324,6 +46304,10 @@
     },
     {
       "path": "tests_v9/test_sar_rvi.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_schema_probe_no_sigpipe.py",
       "kind": "tests"
     },
     {
@@ -47991,36 +47975,6 @@
           "signals": [
             "content:field form",
             "content:Field forms"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/architecture/helm_compose_workload_ledger.json",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-001",
-          "score": 10,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "capability_id": "INT-002",
-          "score": 10,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
-          "capability_id": "SAT-009",
-          "score": 9,
-          "signals": [
-            "content:cog",
-            "content:raster tile"
           ]
         }
       ]
@@ -69148,6 +69102,36 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ci/platform_route_classification.py",
+          "kind": "import",
+          "line": 33
+        },
+        {
+          "source": "services/sahool-platform/api/phase10_continuous_learning.py",
+          "kind": "import",
+          "line": 88
+        },
+        {
+          "source": "services/sahool-platform/api/phase10_continuous_learning.py",
+          "kind": "source_read",
+          "line": 41
+        },
+        {
+          "source": "services/sahool-platform/api/routers/registry.py",
+          "kind": "source_read",
+          "line": 38
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_water_balance.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -69245,7 +69229,7 @@
         {
           "source": "services/sahool-platform/api/water_balance.py",
           "kind": "import",
-          "line": 402
+          "line": 403
         },
         {
           "source": "services/sahool-platform/api/water_ledger_auto.py",
@@ -71166,12 +71150,17 @@
         {
           "source": "services/vegetation-analysis-service/anomaly_requests.py",
           "kind": "import",
-          "line": 160
+          "line": 221
+        },
+        {
+          "source": "services/vegetation-analysis-service/anomaly_runtime.py",
+          "kind": "import",
+          "line": 191
         },
         {
           "source": "services/vegetation-analysis-service/anomaly_store.py",
           "kind": "import",
-          "line": 298
+          "line": 192
         },
         {
           "source": "services/vegetation-analysis-service/ground_verification_bridge.py",
@@ -71181,12 +71170,12 @@
         {
           "source": "services/vegetation-analysis-service/main.py",
           "kind": "import",
-          "line": 158
+          "line": 189
         },
         {
           "source": "services/vegetation-analysis-service/routers/anomalies.py",
           "kind": "import",
-          "line": 159
+          "line": 190
         },
         {
           "source": "shared/security/service_tenant_assertion.py",
@@ -72936,6 +72925,27 @@
           "source": "scripts/release/validate_release_package.py",
           "kind": "source_read",
           "line": 21
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests/runtime/test_compose_required_vars_doctor.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "subprocess"
+      ],
+      "edges": [
+        {
+          "source": "scripts/runtime/env_doctor.py",
+          "kind": "loader",
+          "line": 29
+        },
+        {
+          "source": "scripts/runtime/env_doctor.py",
+          "kind": "source_read",
+          "line": 24
         }
       ],
       "unresolved": []
@@ -80491,32 +80501,32 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 81
+          "line": 88
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 82
+          "line": 89
         },
         {
           "source": "services/sahool-platform/api/routers/field_twin.py",
           "kind": "import",
-          "line": 82
+          "line": 89
         },
         {
           "source": "services/sahool-platform/api/routers/water_twin.py",
           "kind": "import",
-          "line": 82
+          "line": 89
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 88
+          "line": 95
         }
       ],
       "unresolved": [
         {
-          "line": 42,
+          "line": 46,
           "call": "import_module"
         }
       ]
@@ -84295,27 +84305,6 @@
       "unresolved": []
     },
     {
-      "test": "tests_v9/test_helm_compose_workload_guard.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "reads_repository_data_file",
-        "subprocess"
-      ],
-      "edges": [
-        {
-          "source": "scripts/ci/helm_compose_workload_guard.py",
-          "kind": "loader",
-          "line": 28
-        },
-        {
-          "source": "scripts/ci/helm_compose_workload_guard.py",
-          "kind": "source_read",
-          "line": 24
-        }
-      ],
-      "unresolved": []
-    },
-    {
       "test": "tests_v9/test_helm_gateway_ingress_contract.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -84381,33 +84370,9 @@
       "unresolved": []
     },
     {
-      "test": "tests_v9/test_helm_network_policy_egress.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "directory_reference",
-        "subprocess",
-        "tree_wide_scan"
-      ],
-      "edges": [
-        {
-          "source": "scripts/deploy/validate_helm_readiness.py",
-          "kind": "loader",
-          "line": 34
-        },
-        {
-          "source": "scripts/deploy/validate_helm_readiness.py",
-          "kind": "source_read",
-          "line": 35
-        }
-      ],
-      "unresolved": []
-    },
-    {
       "test": "tests_v9/test_helm_source_contract.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "reads_repository_data_file"
-      ],
+      "bounded": true,
+      "unbounded_reasons": [],
       "edges": [
         {
           "source": "scripts/deploy/validate_helm_readiness.py",
@@ -88714,7 +88679,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 328
+          "line": 333
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",
@@ -92897,6 +92862,24 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_rs_anomaly_reservation_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/vegetation-analysis-service/anomaly_store.py",
+          "kind": "import",
+          "line": 72
+        },
+        {
+          "source": "services/vegetation-analysis-service/anomaly_store_pg.py",
+          "kind": "import",
+          "line": 73
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_run_outcome_guard.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -94001,47 +93984,47 @@
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 89
+          "line": 99
         },
         {
           "source": "services/sahool-platform/api/decision_service_client.py",
           "kind": "import",
-          "line": 89
+          "line": 99
         },
         {
           "source": "services/sahool-platform/api/decision_sor_mode.py",
           "kind": "import",
-          "line": 89
+          "line": 99
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 88
+          "line": 98
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 90
+          "line": 100
         },
         {
           "source": "services/sahool-platform/api/routers/seasons.py",
           "kind": "import",
-          "line": 90
+          "line": 100
         },
         {
           "source": "services/sahool-platform/api/weather_service_client.py",
           "kind": "import",
-          "line": 355
+          "line": 388
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 96
+          "line": 106
         }
       ],
       "unresolved": [
         {
-          "line": 46,
+          "line": 53,
           "call": "import_module"
         }
       ]
@@ -97057,7 +97040,11 @@
       "edges": [],
       "unresolved": [
         {
-          "line": 170,
+          "line": 50,
+          "call": "import_module"
+        },
+        {
+          "line": 215,
           "call": "spec_from_file_location"
         }
       ]
@@ -97298,7 +97285,7 @@
         {
           "source": "scripts/ci/v9_gpu_contract_gate.py",
           "kind": "source_read",
-          "line": 144
+          "line": 169
         }
       ],
       "unresolved": []
@@ -97970,32 +97957,32 @@
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 96
+          "line": 110
         },
         {
           "source": "services/sahool-platform/api/phase_runtime_workers.py",
           "kind": "import",
-          "line": 96
+          "line": 110
         },
         {
           "source": "services/sahool-platform/api/water_balance.py",
           "kind": "import",
-          "line": 272
+          "line": 286
         },
         {
           "source": "services/sahool-platform/api/water_decision_bridge.py",
           "kind": "import",
-          "line": 96
+          "line": 110
         },
         {
           "source": "services/sahool-platform/api/water_ledger_inputs.py",
           "kind": "import",
-          "line": 249
+          "line": 263
         },
         {
           "source": "services/sahool-platform/api/weather_service_client.py",
           "kind": "import",
-          "line": 96
+          "line": 110
         }
       ],
       "unresolved": []

@@ -7,14 +7,26 @@ Measured as the restricted role (``TEST_DATABASE_URL``, NOSUPERUSER NOBYPASSRLS)
 * the real actuator writers (``record_command_queued`` / ``log_command``) persist under the
   tenant RLS context — before this change ``log_command`` inserted with no ``app.current_tenant``
   and the FORCE RLS WITH CHECK refused it (swallowed as a warning: no audit row at all);
-* ``handle_device_ack`` moves a published command to ``device_acked`` only for a signed ack on
-  the owning tenant's topic; the same ack on another tenant's topic changes nothing;
+* ``handle_device_ack`` moves a published command to ``device_acked`` only for a v2 ack signed
+  with the owning device's derived key on the owning tenant's topic. The same ack replayed on
+  another tenant's topic is refused on its signed tenant, and another tenant's own correctly
+  signed ack naming the command finds nothing under its RLS context (``unknown_command``);
+* the actuator stays strict (R-C2, #1386): a v1 ack signed with the shared ``CMD_HMAC_SECRET``
+  for a device not on ``ACTUATOR_LEGACY_V1_DEVICES``, or a v2 ack signed with the wrong key,
+  moves nothing;
 * ``expire_overdue_commands`` expires a published command past its deadline.
+
+The acks are built exactly as the firmware builds them (``publishDeviceAck`` in
+``firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino``): ``v``, ``id``, ``tenant``, ``device``,
+``result``, ``ctr``, ``status`` and ``sig = HMAC(device_key, "v2ack|tenant|device|id|result|ctr")``
+with the per-device key derived from ``CMD_HMAC_MASTER_KEY``.
 """
 
 from __future__ import annotations
 
+import importlib
 import importlib.util
+import itertools
 import json
 import os
 import sys
@@ -27,18 +39,41 @@ import pytest
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
 
-asyncpg = pytest.importorskip("asyncpg")
+# Switch read before any import (test_certification_switch_precedes_importorskip): on the
+# certifying CI step a missing dependency or an unusable database fails the run, not a skip.
+_CERTIFICATION_REQUIRED = os.getenv("ACTUATOR_DELIVERY_STATE_CERTIFICATION_REQUIRED") == "1"
+
+
+def _require(module: str):
+    """Import ``module``; under the certification switch a missing one fails the run."""
+    if _CERTIFICATION_REQUIRED:
+        return importlib.import_module(module)
+    return pytest.importorskip(module)
+
+
+asyncpg = _require("asyncpg")
 
 _ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL") or ""
 _APP_DSN = os.getenv("TEST_DATABASE_URL") or ""
 ROOT = Path(__file__).resolve().parents[1]
 SERVICE = ROOT / "services" / "actuator-service"
+# v1 shared secret: set only to prove a v1 ack is still refused for a device not on the
+# legacy allowlist. v2 master key: what the platform derives every device key from.
 SECRET = "v238-secret-" + "k" * 24
+MASTER = "v238-master-key-" + "m" * 32
+DEVICE = "valve-a"
+
+if _CERTIFICATION_REQUIRED and not (_ADMIN_DSN and _APP_DSN):
+    raise RuntimeError(
+        "ACTUATOR_DELIVERY_STATE_CERTIFICATION_REQUIRED=1 needs TEST_DATABASE_URL and "
+        "TEST_DATABASE_ADMIN_URL"
+    )
 
 pytestmark.append(
     pytest.mark.skipif(
         not (_ADMIN_DSN and _APP_DSN),
-        reason="needs TEST_DATABASE_ADMIN_URL and TEST_DATABASE_URL (migrated DB, restricted role)",
+        reason="declared skip (not a pass): needs TEST_DATABASE_ADMIN_URL and TEST_DATABASE_URL "
+        "(migrated DB, restricted role)",
     )
 )
 
@@ -112,7 +147,7 @@ async def test_the_trigger_refuses_illegal_delivery_edges_and_allows_legal_ones(
                 "SELECT delivery_state FROM device_commands_log WHERE command_id='cmd_q'"
             )
             == "device_acked"
-        )
+        ), "the legal queued -> published -> device_acked path did not persist"
     finally:
         await conn.close()
 
@@ -131,18 +166,24 @@ async def test_another_tenant_cannot_see_or_move_a_command(tenants):
                 "SELECT count(*) FROM device_commands_log WHERE command_id='cmd_iso'"
             )
             == 0
-        )
+        ), "tenant B sees tenant A's command"
         result = await other.execute(
             "UPDATE device_commands_log SET delivery_state='device_acked', "
             "device_acked_at=now() WHERE command_id='cmd_iso'"
         )
-        assert result == "UPDATE 0"
+        assert result == "UPDATE 0", f"tenant B moved tenant A's command: {result}"
     finally:
         await other.close()
 
 
 def _stub_missing_dependencies() -> list[str]:
+    """Stub the broker/JWT clients the runtime imports but these tests never call.
+
+    Under the certification switch nothing is stubbed: a missing dependency fails the import.
+    """
     inserted: list[str] = []
+    if _CERTIFICATION_REQUIRED:
+        return inserted
     for name in ("jwt", "aiomqtt"):
         try:
             __import__(name)
@@ -159,7 +200,11 @@ def _stub_missing_dependencies() -> list[str]:
 async def runtime(monkeypatch):
     stubbed = _stub_missing_dependencies()
     monkeypatch.setenv("ACTUATOR_MODE", "real")
+    # Production configuration after R-C2: every device on v2 (derived key), none on v1. The
+    # v1 secret is set as well, so the refusal of a v1 ack below is the allowlist's doing.
+    monkeypatch.setenv("CMD_HMAC_MASTER_KEY", MASTER)
     monkeypatch.setenv("CMD_HMAC_SECRET", SECRET)
+    monkeypatch.delenv("ACTUATOR_LEGACY_V1_DEVICES", raising=False)
     monkeypatch.syspath_prepend(str(SERVICE))
     monkeypatch.syspath_prepend(str(ROOT))
     names = ("actuator_runtime", "routers", "routers.commands", "command_delivery")
@@ -194,10 +239,55 @@ async def _row(tenant: str, command_id: str):
         await conn.close()
 
 
-def _ack(cd, command_id: str, result: str = "applied") -> bytes:
-    sig = cd.ack_signature(SECRET, command_id, "valve-a", result)
-    body = {"id": command_id, "device": "valve-a", "result": result, "sig": sig}
+_CTR = itertools.count(1_700_000_000_000_000)
+
+
+def _ack(
+    runtime,
+    tenant: str,
+    command_id: str,
+    result: str = "applied",
+    *,
+    key_tenant: str | None = None,
+    master: str = MASTER,
+) -> bytes:
+    """A v2 device ack, field for field as ``publishDeviceAck`` publishes it.
+
+    ``key_tenant`` signs with another tenant's device key (a forged or misprovisioned unit).
+    """
+    cs = runtime.cs
+    key = cs.derive_device_key(master, key_tenant or tenant, DEVICE)
+    ctr = next(_CTR)
+    body = {
+        "v": cs.PROTOCOL_VERSION,
+        "id": command_id,
+        "tenant": tenant,
+        "device": DEVICE,
+        "result": result,
+        "ctr": ctr,
+        "status": "ON",
+        "sig": cs.sign_ack(key, tenant, DEVICE, command_id, result, ctr),
+    }
     return json.dumps(body).encode()
+
+
+def _ack_v1(runtime, command_id: str, result: str = "applied") -> bytes:
+    """A legacy v1 ack signed with the shared secret (what this file sent before #1386)."""
+    sig = runtime.cd.ack_signature(SECRET, command_id, DEVICE, result)
+    return json.dumps({"id": command_id, "device": DEVICE, "result": result, "sig": sig}).encode()
+
+
+async def _published(runtime, tenant: str) -> str:
+    cid = runtime.cd.new_command_id()
+    assert await runtime.record_command_queued(
+        tenant_id=tenant, device_id=DEVICE, command="open", payload={}, command_id=cid
+    ), "record_command_queued wrote nothing under the tenant RLS context"
+    await runtime.log_command(
+        None, DEVICE, "open", {}, "sent", tenant, command_id=cid, delivery_state="published"
+    )
+    row = await _row(tenant, cid)
+    assert row["delivery_state"] == "published" and row["published_at"] is not None, dict(row)
+    return cid
 
 
 async def test_untracked_log_command_persists_under_rls(runtime, tenants):
@@ -220,29 +310,57 @@ async def test_signed_ack_on_the_owning_tenant_topic_is_the_only_way_to_device_a
     cd = runtime.cd
     cid = cd.new_command_id()
     assert await runtime.record_command_queued(
-        tenant_id=a, device_id="valve-a", command="open", payload={}, command_id=cid
-    )
-    assert (await _row(a, cid))["delivery_state"] == "queued"
+        tenant_id=a, device_id=DEVICE, command="open", payload={}, command_id=cid
+    ), "record_command_queued wrote nothing under the tenant RLS context"
+    assert (await _row(a, cid))["delivery_state"] == "queued", "a new command must start queued"
     await runtime.log_command(
-        None, "valve-a", "open", {}, "sent", a, command_id=cid, delivery_state="published"
+        None, DEVICE, "open", {}, "sent", a, command_id=cid, delivery_state="published"
     )
     row = await _row(a, cid)
-    assert row["delivery_state"] == "published" and row["published_at"] is not None
+    assert row["delivery_state"] == "published" and row["published_at"] is not None, dict(row)
 
-    cross = await runtime.handle_device_ack(f"sahool/{b}/actuator/valve-a/ack", _ack(cd, cid))
-    assert (cross.accepted, cross.reason) == (False, "unknown_command")
-    assert (await _row(a, cid))["delivery_state"] == "published"
+    # Tenant A's device ack replayed on tenant B's topic: its signed tenant is A, refused.
+    replay = await runtime.handle_device_ack(
+        f"sahool/{b}/actuator/{DEVICE}/ack", _ack(runtime, a, cid)
+    )
+    assert (replay.accepted, replay.reason) == (False, "ack_tenant_does_not_match_topic"), replay
+    # Tenant B's own device, correctly signed for B, naming A's command: the lookup runs under
+    # B's RLS context and finds nothing; A's command does not move.
+    cross = await runtime.handle_device_ack(
+        f"sahool/{b}/actuator/{DEVICE}/ack", _ack(runtime, b, cid)
+    )
+    assert (cross.accepted, cross.reason) == (False, "unknown_command"), cross
+    assert (await _row(a, cid))["delivery_state"] == "published", "another tenant moved the command"
 
-    ok = await runtime.handle_device_ack(f"sahool/{a}/actuator/valve-a/ack", _ack(cd, cid))
-    assert ok.accepted and ok.target == "device_acked"
+    ok = await runtime.handle_device_ack(f"sahool/{a}/actuator/{DEVICE}/ack", _ack(runtime, a, cid))
+    assert ok.accepted and ok.target == "device_acked", ok
     row = await _row(a, cid)
-    assert row["delivery_state"] == "device_acked" and row["device_acked_at"] is not None
+    assert row["delivery_state"] == "device_acked" and row["device_acked_at"] is not None, dict(row)
 
     again = await runtime.handle_device_ack(
-        f"sahool/{a}/actuator/valve-a/ack", _ack(cd, cid, "unknown_command")
+        f"sahool/{a}/actuator/{DEVICE}/ack", _ack(runtime, a, cid, "unknown_command")
     )
-    assert again.accepted is False
-    assert (await _row(a, cid))["delivery_state"] == "device_acked"
+    assert again.accepted is False, again
+    assert (await _row(a, cid))["delivery_state"] == "device_acked", "a terminal state moved"
+
+
+async def test_a_v1_or_wrongly_keyed_ack_moves_nothing(runtime, tenants):
+    """The fixture change did not loosen the actuator: v1 (not allowlisted) and bad keys fail."""
+    a, b = tenants
+    cid = await _published(runtime, a)
+    topic = f"sahool/{a}/actuator/{DEVICE}/ack"
+
+    v1 = await runtime.handle_device_ack(topic, _ack_v1(runtime, cid))
+    assert (v1.accepted, v1.reason) == (False, "legacy_v1_ack_not_allowed"), v1
+    other_key = await runtime.handle_device_ack(topic, _ack(runtime, a, cid, key_tenant=b))
+    assert (other_key.accepted, other_key.reason) == (False, "bad_ack_signature"), other_key
+    wrong_master = await runtime.handle_device_ack(
+        topic, _ack(runtime, a, cid, master="another-master-key-" + "x" * 32)
+    )
+    assert (wrong_master.accepted, wrong_master.reason) == (False, "bad_ack_signature"), (
+        wrong_master
+    )
+    assert (await _row(a, cid))["delivery_state"] == "published", "a refused ack moved the command"
 
 
 async def test_an_unacked_published_command_expires(runtime, tenants):
@@ -260,18 +378,22 @@ async def test_an_unacked_published_command_expires(runtime, tenants):
         )
         async with conn.transaction():
             await runtime._set_tenant(conn, a)
-            assert await runtime.expire_overdue_commands(conn, a) == 1
+            assert await runtime.expire_overdue_commands(conn, a) == 1, "nothing expired"
     finally:
         await conn.close()
     row = await _row(a, cid)
-    assert row["delivery_state"] == "expired" and row["expired_at"] is not None
-    assert row["delivery_reason"] == "no_device_ack_before_deadline"
+    assert row["delivery_state"] == "expired" and row["expired_at"] is not None, dict(row)
+    assert row["delivery_reason"] == "no_device_ack_before_deadline", dict(row)
     late = await runtime.handle_device_ack(
-        f"sahool/{a}/actuator/valve-a/ack", _ack(runtime.cd, cid)
+        f"sahool/{a}/actuator/{DEVICE}/ack", _ack(runtime, a, cid)
     )
-    assert late.accepted is False
-    assert (await _row(a, cid))["delivery_state"] == "expired"
-    assert timedelta(0) <= datetime.now(UTC) - row["expired_at"] < timedelta(minutes=1)
+    assert late.accepted is False and late.target is None, late
+    assert (await _row(a, cid))["delivery_state"] == "expired", (
+        "a late ack moved an expired command"
+    )
+    assert timedelta(0) <= datetime.now(UTC) - row["expired_at"] < timedelta(minutes=1), (
+        f"expired_at is not the expiry time: {row['expired_at']}"
+    )
 
 
 async def test_a_decision_dispatched_command_reaches_device_acked_on_a_signed_ack(

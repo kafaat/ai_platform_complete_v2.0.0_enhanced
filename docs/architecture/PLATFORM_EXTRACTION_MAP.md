@@ -22,13 +22,13 @@ The following remain domain-budget routes and are not covered by the exception: 
 | Target owner | Routes | Type |
 |---|---:|---|
 | `sahool-platform` | 246 | `bff-orchestrator` |
-| `field-management-service` | 138 | `system-of-record-target` |
+| `field-management-service` | 135 | `system-of-record-target` |
 | `weather-service` | 42 | `system-of-record` |
 | `agriai-engine` | 32 | `decision-compute` |
 | `raster-service` | 27 | `compute-store` |
 | `soil-service` | 18 | `system-of-record` |
 | `erp-bridge` | 17 | `adapter` |
-| `learning-service-target` | 14 | `system-of-record-target` |
+| `learning-service-target` | 11 | `system-of-record-target` |
 | `knowledge-graph` | 11 | `knowledge-store` |
 | `supervisor-agent` | 10 | `orchestrator` |
 | `guardrails-engine` | 7 | `policy-engine` |
@@ -44,11 +44,8 @@ The following remain domain-budget routes and are not covered by the exception: 
 | `api/main.py` | `GET` | `/readyz` | `readyz` | `sahool-platform` | `bff-orchestrator` |
 | `api/main.py` | `GET` | `/internal/fields/{field_id}/state` | `internal_field_state` | `field-management-service` | `system-of-record-target` |
 | `api/main.py` | `POST` | `/internal/events/ai-advice` | `internal_ai_advice_event` | `sahool-platform` | `bff-orchestrator` |
-| `api/phase10_continuous_learning.py` | `POST` | `/feature-schema` | `feature_schema` | `learning-service-target` | `system-of-record-target` |
 | `api/phase10_continuous_learning.py` | `POST` | `/dataset` | `dataset` | `learning-service-target` | `system-of-record-target` |
 | `api/phase10_continuous_learning.py` | `POST` | `/models/promote` | `model_promotion` | `learning-service-target` | `system-of-record-target` |
-| `api/phase10_continuous_learning.py` | `POST` | `/online-update` | `online_update` | `learning-service-target` | `system-of-record-target` |
-| `api/phase10_continuous_learning.py` | `POST` | `/experiments/evaluate` | `experiment_evaluation` | `learning-service-target` | `system-of-record-target` |
 | `api/phase10_continuous_learning.py` | `POST` | `/scenario` | `scenario` | `agriai-engine` | `decision-compute` |
 | `api/phase10_continuous_learning.py` | `POST` | `/cycle` | `learning_cycle` | `learning-service-target` | `system-of-record-target` |
 | `api/phase10_continuous_learning.py` | `POST` | `/drift` | `drift` | `learning-service-target` | `system-of-record-target` |
@@ -494,13 +491,10 @@ The following remain domain-budget routes and are not covered by the exception: 
 | `api/routers/recommendations.py` | `GET` | `/api/v1/recommendations/{rec_id}` | `get_recommendation` | `agriai-engine` | `decision-compute` |
 | `api/routers/regional_bulletin.py` | `GET` | `/api/v1/regional/bulletin` | `regional_bulletin` | `sahool-platform` | `bff-orchestrator` |
 | `api/routers/regional_calendar.py` | `GET` | `/api/v1/regional-calendar` | `regional_calendar` | `sahool-platform` | `bff-orchestrator` |
-| `api/routers/registry.py` | `GET` | `/api/v1/registry/report-fields` | `list_registry_report_fields` | `field-management-service` | `system-of-record-target` |
 | `api/routers/registry.py` | `GET` | `/api/v1/registry/workflows` | `list_registry_workflows` | `field-management-service` | `system-of-record-target` |
 | `api/routers/registry.py` | `GET` | `/api/v1/registry/indices` | `registry_indices` | `field-management-service` | `system-of-record-target` |
-| `api/routers/registry.py` | `GET` | `/api/v1/registry/device-types` | `registry_device_types` | `field-management-service` | `system-of-record-target` |
 | `api/routers/registry.py` | `GET` | `/api/v1/registry/events` | `registry_events` | `field-management-service` | `system-of-record-target` |
 | `api/routers/registry.py` | `GET` | `/api/v1/registry/cost-profiles` | `registry_cost_profiles` | `field-management-service` | `system-of-record-target` |
-| `api/routers/registry.py` | `GET` | `/api/v1/registry/data-quality-rules` | `registry_data_quality_rules` | `field-management-service` | `system-of-record-target` |
 | `api/routers/replay.py` | `POST` | `/api/v1/replay/reconstruct` | `replay_reconstruct` | `sahool-platform` | `bff-orchestrator` |
 | `api/routers/reports.py` | `GET` | `/api/v1/reports/farm-summary` | `report_farm_summary` | `field-management-service` | `system-of-record-target` |
 | `api/routers/reports.py` | `GET` | `/api/v1/reports/field/{field_id}/summary` | `report_field_summary` | `field-management-service` | `system-of-record-target` |

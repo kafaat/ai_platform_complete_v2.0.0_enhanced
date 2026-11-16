@@ -3,7 +3,8 @@
 شريحة من تفكيك ``api/main.py`` إلى وحدات ``APIRouter`` (نمط P0).
 
 سلوك محفوظ بالكامل: مسارات/أذونات/مخرجات/مخطّط OpenAPI مطابقة تماماً لما كان
-في ``main.py`` — نُقلت الدوالّ السبع حرفيّاً مع تغيير ``@app`` إلى ``@router``.
+في ``main.py`` — نُقلت الدوالّ السبع حرفيّاً مع تغيير ``@app`` إلى ``@router``
+(ثمّ أقعد W4-09 ثلاثاً منها؛ انظر التعليق فوق المسارات).
 
 الاعتماديّات المشتركة (التبعيات/الأذونات) تبقى مُعرَّفة في ``api.main`` وتُستورَد
 من هنا تفادياً لكسر ``_rebuild_pydantic_models`` واستيرادات الاختبارات. لتفادي
@@ -24,23 +25,14 @@ from api.main import (
 router = APIRouter()
 
 
-# ─── سجلّات الاستبطان: حقول التقرير + تعريفات سير العمل (قراءة فقط) ──────
-# تكشف الكتالوجات المُعلَنة كبيانات (report_builder/workflow_definitions) لطبقة
-# الواجهة دون قاعدة — دوالّ نقيّة. الصلاحيّة FIELD_VIEW (قراءة) مطابقةً لـendpoints
-# التقارير القائمة.
-@router.get("/api/v1/registry/report-fields")
-def list_registry_report_fields(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """حقول التقرير المتاحة (Report Builder) — كتالوج البيانات الوصفيّة لا بيانات مُجمَّعة.
-
-    مصدر واحد لما يمكن إدراجه في تقرير (المعرّف/الاسم/الكيان/النوع/الوحدة). نقيّ — لا
-    قاعدة. تجميع البيانات الفعليّ متابعة لاحقة (انظر api/report_builder)."""
-    from api.report_builder import list_report_fields
-
-    return {"report_fields": list_report_fields()}
-
-
+# ─── سجلّات الاستبطان (قراءة فقط، FIELD_VIEW) ─────────────────────────────
+# W4-09 (routes-10) أقعد ثلاثةً من سبعة: report-fields · device-types ·
+# data-quality-rules — بلا أيّ مستدعٍ (لا frontend ولا mobile ولا خدمة ولا SDK ولا
+# nginx) ولا اختبار ولا سجلّ قدرات. وحداتها (report_builder · device_registry ·
+# core/data_quality) باقية لمستهلكيها الحيّين داخل العمليّة. أمّا workflows · indices ·
+# events فباقية: هي الجذر الوحيد القابل للتنفيذ لوحداتها في
+# platform_module_reachability_guard، وحذفها يترك تلك الوحدات طرفيّةً في الأساس.
+# إعادة أيّ مسار مُقعَد تمرّ بقرار ميزانية؛ يحرسها tests/test_w4_09_retired_dead_routes.py.
 @router.get("/api/v1/registry/workflows")
 def list_registry_workflows(
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
@@ -64,16 +56,6 @@ async def registry_indices(
     return {"indices": list_indices()}
 
 
-@router.get("/api/v1/registry/device-types")
-async def registry_device_types(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """سجلّ أنواع الأجهزة (device types) المدعومة — بيانات وصفيّة."""
-    from api.device_registry import list_device_types
-
-    return {"device_types": list_device_types()}
-
-
 @router.get("/api/v1/registry/events")
 async def registry_events(
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
@@ -92,13 +74,3 @@ async def registry_cost_profiles(
     from api.cost_governance import list_profiles
 
     return {"cost_profiles": list_profiles()}
-
-
-@router.get("/api/v1/registry/data-quality-rules")
-async def registry_data_quality_rules(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """قواعد جودة البيانات (data-quality rules) — بيانات وصفيّة."""
-    from core.data_quality import list_rules
-
-    return {"data_quality_rules": list_rules()}

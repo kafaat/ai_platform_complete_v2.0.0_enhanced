@@ -55,6 +55,55 @@ docker info --format '{{.OSType}}'
 .\scripts\build-immutable.ps1 -Gpu -NoCache
 ```
 
+#### بناء صور GPU بلا أسرار التشغيل (`docker-bake.gpu.hcl`)
+
+`docker compose -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu build`
+يستوفي نموذج Compose **كاملاً** قبل أن يبني: كلّ `${VAR:?}` في كلّ خدمة (نحو ٥٧ سرّاً،
+وخدمات الملفّات الأخرى غير المفعّلة ضمنها) يجب أن يُضبط لبناء صورتين، ويتوقّف Compose
+عند **أوّل** متغيّر ناقص فيتكرّر الفشل سرّاً بعد سرّ (GPU-BUILD-NEEDS-RUNTIME-SECRETS-01).
+المسار البنائيّ وحده هو Buildx Bake: يقرأ `docker-bake.gpu.hcl` فقط، فلا يحتاج `.env`
+ولا سرّاً. هدفاه `sahool-edge` (`services/edge-inference/Dockerfile.arm64` مع
+`EDGE_REQUIREMENTS=requirements-gpu.txt`) و`sahool-sam2-inference`
+(`services/sam2-inference/Dockerfile` مع `PYTORCH_CUDA_IMAGE`)، بالوسائط والقيم الافتراضيّة
+نفسها في `docker-compose.v9.gpu.yml`. ويفشل
+`tests_v9/test_gpu_bake_matches_compose_overlay.py` إن افترق الملفّان.
+
+```powershell
+# PowerShell، من جذر المستودع
+$env:COMPOSE_PROJECT_NAME = 'sahool'   # الاسم نفسه الذي ستشغّل به Compose
+docker buildx bake -f docker-bake.gpu.hcl --print   # التعريف المحلول، بلا بناء
+docker buildx bake -f docker-bake.gpu.hcl            # الصورتان
+docker buildx bake -f docker-bake.gpu.hcl sahool-sam2-inference
+# مرآة PyPI أو صورة PyTorch أخرى (فارغ = الافتراضيّ، كـ${VAR:-default} في Compose):
+$env:PIP_INDEX_URL = 'https://pypi.org/simple'; docker buildx bake -f docker-bake.gpu.hcl
+```
+
+```bash
+# bash، من جذر المستودع
+export COMPOSE_PROJECT_NAME=sahool
+docker buildx bake -f docker-bake.gpu.hcl --print
+docker buildx bake -f docker-bake.gpu.hcl
+PIP_INDEX_URL=https://pypi.org/simple docker buildx bake -f docker-bake.gpu.hcl sahool-edge
+```
+
+تُوسَم الصورتان `<COMPOSE_PROJECT_NAME>-<service>`، وهو الاسم الذي يعطيه Compose لخدمة
+مبنيّة بلا `image:`. Bake يقرأ المتغيّرات من الصدفة لا من `.env`، فاضبط
+`COMPOSE_PROJECT_NAME` نفسه للأداتين (أو مرّر `-p sahool` إلى Compose)، ثمّ يشغّل
+`docker compose ... --profile gpu up -d --no-build` هذه الصور بدل إعادة بنائها. وصورة
+`build-immutable` تبقى طريق الإصدار: هذا المسار للبناء المحلّيّ على جهاز المطوّر.
+
+**قبل التشغيل** (`up` يحتاج الأسرار فعلاً)، اعرض **كلّ** الناقص في تقرير واحد بدل
+اكتشافه واحداً بعد واحد. يطبع الأسماء ومواضعها (`file:line (service)`) ولا يطبع قيمة:
+
+```powershell
+py scripts\runtime\env_doctor.py --mode compose-vars -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml
+```
+
+```bash
+python scripts/runtime/env_doctor.py --mode compose-vars -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml
+# --env-file <path> لملفّ غير .env، و--format json للآلة. رمز الخروج 1 ما بقي ناقص.
+```
+
 لاختبار إتاحة البطاقة للحاويات وتشغيل SAM2 بعد البناء، اتّبع
 [دليل تشغيل GPU](../backend/RTX5090_GPU_ENABLEMENT_REPORT_20260702.md#windows--wsl2-runbook-rtx-5090-laptop--blackwell-sm_120).
 

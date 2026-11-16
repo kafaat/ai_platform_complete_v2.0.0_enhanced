@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -55,6 +56,30 @@ def test_gpu_overlay_enables_rtx5090_paths():
     seg_env = env(services["sahool-field-segmentation"])
     assert seg_env["SEGMENTATION_BACKEND"] == "sam2"
     assert seg_env["SEGMENTATION_INFERENCE_URL"] == "http://sahool-sam2-inference:8080/v1/predict"
+
+
+def test_video_processor_reserves_no_gpu_because_it_decodes_on_the_cpu():
+    # video-processor: python:3.11-slim + PyPI opencv-python-headless (no CUDA/NVDEC); frames go to
+    # sahool-edge over HTTP. A GPU reservation there only stopped the stack on GPU-less hosts.
+    reqs = (ROOT / "services/video-processor/requirements.txt").read_text(encoding="utf-8")
+    dockerfile = (ROOT / "services/video-processor/Dockerfile").read_text(encoding="utf-8")
+    assert "opencv-python-headless" in reqs, "premise changed: re-check the GPU need"
+    assert not re.search(r"torch|onnxruntime-gpu|cupy|nvidia|cuda", reqs, re.I), (
+        "a GPU library appeared in video-processor; re-check the GPU reservation decision"
+    )
+    assert dockerfile.startswith("FROM python:3.11-slim"), "premise changed: not a CPU base image"
+    overlay = load("docker-compose.v9.gpu.yml")["services"]["sahool-video-processor"]
+    base = load("docker-compose.v9.yml")["services"]["sahool-video-processor"]
+    for svc in (base, overlay):
+        assert "devices" not in svc.get("deploy", {}).get("resources", {}).get(
+            "reservations", {}
+        ), "video-processor must not reserve a GPU"
+    assert not {"NVIDIA_VISIBLE_DEVICES", "NVIDIA_DRIVER_CAPABILITIES"} & set(env(overlay)), (
+        "no NVIDIA runtime env for a CPU-only service"
+    )
+    assert env(overlay)["VIDEO_STRICT_READY"] == "${VIDEO_STRICT_READY:-true}", overlay
+    assert {"sahool-zlmediakit", "sahool-edge"} <= set(overlay["depends_on"]), overlay
+    assert env(base)["EDGE_INFERENCE_URL"] == "http://sahool-edge:8100", "inference stays in edge"
 
 
 def test_sam2_dockerfile_defaults_to_cuda_128_image():
@@ -169,4 +194,49 @@ def test_sample_environment_preserves_sam2_build_and_predict_defaults():
     service = load("docker-compose.v9.yml")["services"]["sahool-field-segmentation"]
     assert env(service)["SEGMENTATION_INFERENCE_URL"] == (
         "${SEGMENTATION_INFERENCE_URL:-" + sample["SEGMENTATION_INFERENCE_URL"] + "}"
+    )
+
+
+def _nvidia_reserving_services() -> set[str]:
+    base = load("docker-compose.v9.yml")["services"]
+    overlay = load("docker-compose.v9.gpu.yml")["services"]
+    found = set()
+    for name in set(base) | set(overlay):
+        devices = None
+        for layer in (base.get(name) or {}, overlay.get(name) or {}):
+            layer_devices = (
+                layer.get("deploy", {}).get("resources", {}).get("reservations", {}).get("devices")
+            )
+            if layer_devices is not None:
+                devices = layer_devices
+        if any(d.get("driver") == "nvidia" for d in devices or []):
+            found.add(name)
+    return found
+
+
+def test_ci_gpu_reservation_step_matches_the_compose_files():
+    # The compose-validate job checks effective reservations with jq; when a reservation moves in
+    # the compose files that step must move with it (it was missed once for video-processor).
+    workflow = load(".github/workflows/ci.yml")
+    steps = workflow["jobs"]["compose-validate"]["steps"]
+    run = next(
+        (s["run"] for s in steps if s.get("name") == "Validate effective GPU reservations"), None
+    )
+    assert run, "compose-validate lost its 'Validate effective GPU reservations' step"
+    listed = re.search(r'\[\.\[((?:"[^"]+",?\s*)+)\]', run)
+    assert listed, f"could not find the jq service list in: {run}"
+    names = re.findall(r'"([^"]+)"', listed.group(1))
+    expected_counts = re.search(r"==\s*\[([\d,\s]+)\]", run)
+    assert expected_counts, f"could not find the expected counts in: {run}"
+    counts = [int(c) for c in expected_counts.group(1).split(",")]
+    assert counts == [1] * len(names), f"one reservation per listed service: {names} vs {counts}"
+    reserving = _nvidia_reserving_services()
+    assert set(names) <= reserving, (
+        f"CI jq list {sorted(names)} names services without an NVIDIA reservation "
+        f"(reserving: {sorted(reserving)})"
+    )
+    assert "sahool-video-processor" not in names, "video-processor reserves no GPU"
+    assert "sahool-video-processor" not in reserving, "video-processor must not reserve a GPU"
+    assert '.["sahool-video-processor"]' in run and "length == 0" in run, (
+        "CI must assert that video-processor carries no NVIDIA reservation"
     )

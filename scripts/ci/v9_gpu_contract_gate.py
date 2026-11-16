@@ -79,19 +79,36 @@ def main() -> int:
     if "sahool-tts-service" not in (services["sahool-notification-agent"].get("depends_on") or {}):
         fail("notification-agent must depend_on sahool-tts-service")
 
-    for name, count in {
-        "sahool-edge": "all",
-        "sahool-video-processor": "all",
-        "sahool-sam2-inference": 1,
-        "sahool-vllm-jais": 1,
-    }.items():
+    def gpu_devices(name: str) -> list:
         devices = []
         for source in (services, gpu_services):
             service = source.get(name, {})
             reservations = service.get("deploy", {}).get("resources", {}).get("reservations", {})
             devices.extend(reservations.get("devices", []))
-        if devices != [{"driver": "nvidia", "capabilities": ["gpu"], "count": count}]:
+        return devices
+
+    for name, count in {
+        "sahool-edge": "all",
+        "sahool-sam2-inference": 1,
+        "sahool-vllm-jais": 1,
+    }.items():
+        if gpu_devices(name) != [{"driver": "nvidia", "capabilities": ["gpu"], "count": count}]:
             fail(f"{name} must have exactly one NVIDIA GPU reservation with count {count}")
+
+    # video-processor decodes on the CPU (PyPI opencv-python-headless, no CUDA/NVDEC) and sends
+    # frames to sahool-edge over HTTP; a GPU reservation there only blocks GPU-less hosts.
+    if gpu_devices("sahool-video-processor"):
+        fail("sahool-video-processor must not reserve a GPU; inference runs in sahool-edge")
+    video_gpu_env = env_of(gpu_services.get("sahool-video-processor", {}))
+    for key in ("NVIDIA_VISIBLE_DEVICES", "NVIDIA_DRIVER_CAPABILITIES"):
+        if key in video_gpu_env:
+            fail(f"sahool-video-processor must not receive {key} from the GPU overlay")
+    if video_gpu_env.get("VIDEO_STRICT_READY") != "${VIDEO_STRICT_READY:-true}":
+        fail("GPU overlay must keep VIDEO_STRICT_READY for sahool-video-processor")
+    video_gpu_deps = gpu_services.get("sahool-video-processor", {}).get("depends_on") or {}
+    for dep in ("sahool-zlmediakit", "sahool-edge"):
+        if dep not in video_gpu_deps:
+            fail(f"GPU overlay must keep sahool-video-processor depends_on {dep}")
 
     seg_env = env_of(gpu_services.get("sahool-field-segmentation", {}))
     if seg_env.get("SEGMENTATION_BACKEND") != "sam2":
