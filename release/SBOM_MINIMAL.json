@@ -7995,7 +7995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04840e3b658458bda1ccb753db6fc1916ce1f1cc91a5622a20ed6d9f2ae17b8a"
+          "content": "64de442c84b2cb99f19e824c8b899a986439a12eabff4cac16fe837cd6ec8c89"
         }
       ],
       "name": "migrations/MANIFEST.md",
@@ -17865,7 +17865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "30bac80cb9658511dd4fcf1699b263c004fe81612f8d4d3da4aa06dcb79f5dd2"
+          "content": "123631303b3650946594adbe479c37f2c074efd851080457b34c25e116f993f5"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -26325,7 +26325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b794c7161cbc6300e6db610041e22915d8b8d41d8013844bb116187b1c7b19a1"
+          "content": "a470631b227fdccec6d5f83449329664e4723a1f3a6e0bd225ee0e5cc37dd395"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_workers.py",

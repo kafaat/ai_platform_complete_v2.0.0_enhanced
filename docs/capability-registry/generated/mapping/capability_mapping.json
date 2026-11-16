@@ -26627,15 +26627,15 @@
       "database": [],
       "events": [
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:249",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:250",
           "score": 9
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:346",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:347",
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:974",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:975",
           "score": 9
         }
       ],
@@ -29575,15 +29575,15 @@
           "score": 20
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:249",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:250",
           "score": 12
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:346",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:347",
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:974",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:975",
           "score": 12
         },
         {
@@ -31759,15 +31759,15 @@
       "database": [],
       "events": [
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:249",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:250",
           "score": 12
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:346",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:347",
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:974",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:975",
           "score": 12
         },
         {
