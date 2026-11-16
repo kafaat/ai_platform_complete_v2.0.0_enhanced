@@ -110,10 +110,11 @@ async def upsert_water_ledger(
                 "ON CONFLICT (field_id, ledger_date) DO UPDATE SET "
                 " et0_mm = EXCLUDED.et0_mm, kc = EXCLUDED.kc, etc_mm = EXCLUDED.etc_mm, "
                 " rain_mm = EXCLUDED.rain_mm, irrigation_mm = EXCLUDED.irrigation_mm, "
-                " soil_moisture_pct = EXCLUDED.soil_moisture_pct, "
-                " depletion_mm = EXCLUDED.depletion_mm, deficit_mm = EXCLUDED.deficit_mm, "
-                " stage = EXCLUDED.stage, decision = EXCLUDED.decision, "
-                " confidence = EXCLUDED.confidence, updated_at = now()",
+                " soil_moisture_pct = EXCLUDED.soil_moisture_pct, depletion_mm = EXCLUDED.depletion_mm,"
+                " deficit_mm = EXCLUDED.deficit_mm, stage = EXCLUDED.stage, decision = EXCLUDED.decision,"
+                " confidence = EXCLUDED.confidence, et0_method = NULL, et0_quality = NULL,"  # v278
+                " weather_snapshot_id = NULL, rain_source = NULL, taw_mm = NULL, raw_mm = NULL,"
+                " updated_at = now()",
                 str(user.tenant_id),
                 field_id,
                 norm["ledger_date"],

@@ -291,6 +291,7 @@ async def field_irrigation_recommendation(
 
         applied_status = await resolve_applied_water_status(conn, field_id, lrow)
         soil_row = await latest_lab_texture_row(conn, field_id)  # WS-D.2b: نسيج مخبريّ ⇒ TAW
+        field_elevation = await _field_elevation_m(conn, field_id)
 
     depletion_mm = lrow["depletion_mm"] if lrow else None
     dep_conf = lrow["confidence"] if lrow else None
@@ -442,12 +443,20 @@ async def field_irrigation_recommendation(
             f"spectral-confirmation:ndmi+msi:{'detected' if stress.get('spectral_stress_detected') else 'no-stress'}"
         )
 
-    _elev_default_m = 2000.0
+    # fields-16: كان ET0 يُحسَب بارتفاعٍ ثابت 2000م لكلّ حقل (تهامة كالمرتفعات). الارتفاعُ
+    # الآن ارتفاعُ الحقل المسجَّل؛ مجهولٌ ⇒ ``None`` يُمرَّر غائباً، فيُعلِن المحرّك الجودة
+    # ``degraded`` وتُعلِن التوصية القيد — لا رقمٌ مُفترَض صامت.
+    elevation_m = field_elevation
     if canonical is not None:
         try:
-            field_lat, field_lon, _elev_default_m = manual_canonical_location(canonical)
+            field_lat, field_lon, elevation_m = manual_canonical_location(canonical)
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if elevation_m is None:
+        state["limitations"] = [
+            *state["limitations"],
+            "field elevation unknown — ET0 is computed without it and declared degraded",
+        ]
 
     # WS-D.2c: الطقس يُجلَب آليّاً من محرّك الطقس (المسار الأساسيّ). حرارة الطلب تجاوز
     # يدويّ فقط. تعذّر جلب الطقس ⇒ dependency_unavailable (لا توصية على طقس مفقود).
@@ -530,7 +539,7 @@ async def field_irrigation_recommendation(
 
     # G15: يوم المحرّك/التجاوز، وإلّا تاريخ الخادم الفعليّ — لا ثابت 100 (مُعلَن المصدر).
     wx_doy, wx_doy_source = resolve_day_of_year(wx.get("day_of_year"))
-    # ET0 from the weather engine; legacy nonmanual elevation remains unchanged.
+    # ET0 from the weather engine at the field's elevation (manual: canonical elevation).
     try:
         et0_prod = await _engine_et0(
             t_min_c=wx["t_min_c"],
@@ -540,7 +549,7 @@ async def field_irrigation_recommendation(
             wind_2m_ms=wx.get("wind_2m_ms"),
             day_of_year=wx_doy,
             latitude_deg=field_lat,
-            elevation_m=_elev_default_m,
+            elevation_m=elevation_m,
             valid_time=wx.get("valid_time"),
             tenant_id=getattr(user, "tenant_id", None),
         )
@@ -798,3 +807,11 @@ async def field_irrigation_recommendation(
         ],
         "calibrated": False,
     }
+
+
+async def _field_elevation_m(conn, field_id: str) -> float | None:
+    """ارتفاع الحقل المسجَّل (``fields.elevation_m``) أو ``None`` — لا افتراض (fields-16)."""
+    from api.water_ledger_inputs import field_elevation_m
+
+    row = await conn.fetchrow("SELECT elevation_m FROM fields WHERE field_id = $1", field_id)
+    return field_elevation_m(row.get("elevation_m")) if row else None

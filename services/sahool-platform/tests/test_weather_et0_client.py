@@ -438,3 +438,33 @@ async def test_field_snapshot_does_not_promote_normalized_wind_max_to_daily_mean
     assert snapshot["rain_recent_mm"] == 0
     assert snapshot["forecast_rain_mm"] == 5
     assert snapshot["valid_time"] == "2026-07-10"
+
+
+@pytest.mark.asyncio
+async def test_field_snapshot_carries_mean_humidity_and_mean_wind_to_et0():
+    """weather-5: RH وريحُ المتوسّط كانتا ``None`` دائماً فيسقط ET0 التوصية إلى Hargreaves."""
+
+    async def forecast_loader(lat, lon, *, days):
+        return {
+            "days": [
+                {
+                    "date": "2026-07-10",
+                    "temp_min_c": 18,
+                    "temp_max_c": 30,
+                    "solar_radiation_mj_m2": 25,
+                    "rh_mean_pct": 42,
+                    "wind_mean_10m_ms": 4.0,
+                    "wind_max_ms": 11.0,
+                    "precipitation_mm": 0,
+                }
+            ]
+            * 3
+        }
+
+    snapshot = await wsc.field_irrigation_weather_snapshot(
+        15.5, 44.2, forecast_loader=forecast_loader
+    )
+    assert snapshot["rh_mean_pct"] == 42.0, "RH المتوسّطة لم تصل لقطة التوصية"
+    assert snapshot["wind_2m_ms"] == pytest.approx(4.0 * 0.748, abs=1e-2), (
+        "ريحُ المتوسّط على 10م لم تُحوَّل إلى 2م (FAO-56 Eq. 47) — أو استُعملت القصوى"
+    )
