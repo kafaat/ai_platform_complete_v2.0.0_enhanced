@@ -267,3 +267,144 @@ def test_the_verification_sources_follow_the_lifecycle():
     assert anomalies._VERIFICATION_SOURCES == {"detected", "triaged", "inconclusive"}, (
         "only states the lifecycle lets move to verification_requested may reach the bridge"
     )
+
+
+class _Signal:
+    """A required-verification signal as anomaly_engine.detect_signals returns it."""
+
+    def __init__(self, observation):
+        self.primary_observation_ref = f"urn:sahool:observation:{observation}"
+        self.signal_type = "ndvi_decline"
+        self.verification_requirement = "required"
+
+    def to_dict(self):
+        return {
+            "primary_observation_ref": self.primary_observation_ref,
+            "signal_type": self.signal_type,
+            "verification_requirement": self.verification_requirement,
+        }
+
+
+@pytest.mark.asyncio
+async def test_a_concurrent_lifecycle_change_after_the_task_is_stored_is_an_explicit_409(
+    monkeypatch,
+):
+    """Review W1-20 (g/B): the anomaly is resolved by another request while its task is being
+    stored. The versioned transition then fails; the caller gets an explicit lifecycle conflict
+    naming the stored task, not a bare version conflict that hides it."""
+    import main
+    import routers.anomalies as anomalies
+    from anomaly_requests import VerificationRequest
+    from anomaly_store import InvalidTransition
+    from fastapi import HTTPException
+
+    record = {
+        "tenant_id": TENANT,
+        "payload": ANOMALY,
+        "status": "detected",
+        "aggregate_version": 1,
+        "task_ref": None,
+    }
+
+    class Store:  # the anomaly store's functions, not a database connection
+        async def get(self, ref, *, tenant_id):
+            return record
+
+        async def transition(self, ref, status, **kwargs):
+            # Another request resolved the anomaly after the pre-check passed.
+            raise InvalidTransition("aggregate_version_conflict")
+
+    class Bridge:
+        async def create_scouting_task(self, **kwargs):
+            return type("R", (), {"task_ref": "urn:sahool:task:t-raced"})()
+
+    monkeypatch.setattr(main, "_verify_claims", lambda token: {"tenant_id": TENANT})
+    monkeypatch.setattr(main, "_tenant_from_claims", lambda claims: claims["tenant_id"])
+    monkeypatch.setattr(anomalies, "_store", Store())
+    monkeypatch.setattr(anomalies, "_bridge", Bridge())
+    with pytest.raises(HTTPException) as caught:
+        await anomalies.request_ground_verification(
+            ANOMALY["anomaly_ref"],
+            VerificationRequest(expected_version=1),
+            authorization="Bearer user-jwt",
+            token=object(),
+        )
+    assert caught.value.status_code == 409, caught.value.detail
+    assert caught.value.detail == {
+        "code": "verification_lifecycle_conflict",
+        "reason": "aggregate_version_conflict",
+        "task_ref": "urn:sahool:task:t-raced",
+        "task_attached": False,
+    }, caught.value.detail
+
+
+@pytest.mark.asyncio
+async def test_automatic_verification_reports_a_lifecycle_conflict_and_keeps_going(monkeypatch):
+    """Review W1-20 (g/B): on the detect route, a lifecycle conflict after the task is stored used
+    to escape as an unhandled InvalidTransition (HTTP 500) and drop every other anomaly of the
+    call. It is now reported on that anomaly, and the next anomaly is still verified."""
+    import main
+    import routers.anomalies as anomalies
+    from anomaly_requests import DetectRequest
+    from anomaly_store import InvalidTransition
+
+    records = {
+        obs: {
+            "anomaly_ref": f"urn:sahool:anomaly:{obs}",
+            "tenant_id": TENANT,
+            "payload": {**ANOMALY, "anomaly_ref": f"urn:sahool:anomaly:{obs}"},
+            "status": "detected",
+            "aggregate_version": 1,
+            "task_ref": None,
+        }
+        for obs in ("raced", "calm")
+    }
+    transitions = []
+
+    class Store:  # the anomaly store's functions, not a database connection
+        async def list(self, tenant_id, field_id, season_id):
+            return []
+
+        async def upsert_detected(self, payload):
+            obs = payload["primary_observation_ref"].rsplit(":", 1)[1]
+            return dict(records[obs])
+
+        async def transition(self, ref, status, **kwargs):
+            transitions.append(ref)
+            if ref.endswith(":raced"):
+                raise InvalidTransition("invalid_transition:resolved->verification_requested")
+            return {**records["calm"], "status": status, "task_ref": kwargs["task_ref"]}
+
+    class Bridge:
+        async def create_scouting_task(self, *, anomaly, **kwargs):
+            name = anomaly["anomaly_ref"].rsplit(":", 1)[1]
+            return type("R", (), {"task_ref": f"urn:sahool:task:{name}"})()
+
+    async def baselines(field_id, request, token):
+        return [{"stub": True}]
+
+    monkeypatch.setattr(main, "_verify_claims", lambda token: {"tenant_id": TENANT})
+    monkeypatch.setattr(main, "_tenant_from_claims", lambda claims: claims["tenant_id"])
+    monkeypatch.setattr(anomalies, "_store", Store())
+    monkeypatch.setattr(anomalies, "_bridge", Bridge())
+    monkeypatch.setattr(anomalies, "_baselines", baselines)
+    monkeypatch.setattr(
+        anomalies, "detect_signals", lambda **kwargs: [_Signal("raced"), _Signal("calm")]
+    )
+    result = await anomalies.detect_signal_anomalies(
+        "fld_demo",
+        DetectRequest(season_id="sea_demo", auto_request_verification=True),
+        authorization="Bearer user-jwt",
+        token=object(),
+    )
+    raced, calm = result["anomalies"]
+    assert raced["verification_lifecycle_conflict"] == {
+        "code": "verification_lifecycle_conflict",
+        "reason": "invalid_transition:resolved->verification_requested",
+        "task_ref": "urn:sahool:task:raced",
+        "task_attached": False,
+    }, raced
+    assert raced["status"] == "detected" and not raced["task_ref"], raced
+    assert calm["status"] == "verification_requested", calm
+    assert calm["task_ref"] == "urn:sahool:task:calm", calm
+    assert transitions == ["urn:sahool:anomaly:raced", "urn:sahool:anomaly:calm"], transitions

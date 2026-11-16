@@ -70,6 +70,8 @@ def test_router_summary_queries_do_not_coalesce_water_to_zero():
     )
     assert src.count("AS water_records_total") == 2
     assert src.count("AS water_records_measured") == 2
+    router_src = (base / "api/routers/farm_operations_ledger.py").read_text(encoding="utf-8")
+    assert router_src.count("AS water_records_total") == 1, "the HTTP summary stays in the router"
     assert "water_summary_payload(row)" in src and "water_summary_from_row(row)" in src
 
 

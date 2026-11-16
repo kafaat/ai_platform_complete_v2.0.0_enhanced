@@ -521,6 +521,26 @@ async def test_a_past_day_projection_never_breaks_the_balance_chain(monkeypatch)
         )
 
 
+async def test_a_prior_balance_with_null_writer_and_decision_is_still_the_prior_day(monkeypatch):
+    """Review of #1500: created_by and decision are nullable (v98). A recorded balance with both
+    NULL must stay the prior day; a NULL-unsafe predicate dropped it and restarted the chain."""
+    async with Live(monkeypatch) as live:
+        yesterday = _today() - _dt.timedelta(days=1)
+        updated = await live.admin.execute(
+            "UPDATE water_ledger SET created_by=NULL, decision=NULL"
+            " WHERE field_id=$1 AND ledger_date=$2 AND depletion_mm IS NOT NULL",
+            live.field_id,
+            yesterday,
+        )
+        assert updated == "UPDATE 1", f"the fixture's prior balance is missing: {updated}"
+        await live.worker()
+        row = await live.today_row()
+        assert row is not None and row["et0_mm"] == _ET0_MM, "the worker must compute today"
+        assert "bootstrap_assumed_field_capacity" not in row["decision"], (
+            f"the prior balance with NULL writer/decision was skipped: {row['decision']}"
+        )
+
+
 async def test_a_field_without_an_area_gets_no_invented_depth(monkeypatch):
     async with Live(monkeypatch, area_ha=None) as live:
         out = await live.operation(volume_m3=500.0)

@@ -39,16 +39,25 @@ ALTER TABLE field_tasks
     ADD COLUMN IF NOT EXISTS requested_by_service text;
 
 DO $$
+DECLARE
+    current_def text;
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint
-                    WHERE conrelid = 'field_tasks'::regclass
-                      AND conname = 'field_task_anomaly_scope_ck') THEN
+    SELECT pg_get_constraintdef(oid) INTO current_def
+      FROM pg_constraint
+     WHERE conrelid = 'field_tasks'::regclass
+       AND conname = 'field_task_anomaly_scope_ck';
+    -- Replace an earlier draft of this check that let a NULL digest through (the regex on NULL is
+    -- NULL, which a CHECK accepts); such a task could never be replayed (store_create answers 409).
+    IF current_def IS NULL OR position('scouting_request_digest IS NOT NULL' IN current_def) = 0 THEN
+        ALTER TABLE field_tasks DROP CONSTRAINT IF EXISTS field_task_anomaly_scope_ck;
         -- An anomaly task has a tenant, a key and its digest, and is not a pin inspection task.
+        -- Every term is NOT NULL-checked, so no NULL can make the conjunction NULL and pass.
         ALTER TABLE field_tasks ADD CONSTRAINT field_task_anomaly_scope_ck CHECK (
             anomaly_ref IS NULL
             OR (tenant_id IS NOT NULL
                 AND source_scouting_pin_id IS NULL
                 AND scouting_idempotency_key IS NOT NULL
+                AND scouting_request_digest IS NOT NULL
                 AND scouting_request_digest ~ '^[0-9a-f]{64}$'
                 AND jsonb_typeof(reason_codes) = 'array')
         );

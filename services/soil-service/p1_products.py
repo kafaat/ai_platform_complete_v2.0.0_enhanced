@@ -178,7 +178,16 @@ def build_hydraulic_profile(snapshot) -> SoilHydraulicProfile:
             )
         )
     score = available / total if total else 0
-    executable = all(lay.field_capacity and lay.wilting_point for lay in layers)
+    values_present = all(lay.field_capacity and lay.wilting_point for lay in layers)
+    reasons = [] if values_present else ["field_capacity_or_wilting_point_missing"]
+    # W1-04: values existing is not enough. A snapshot whose canonical quality gate failed
+    # (e.g. only uncalibrated or stale readings) is rejected evidence; its hydraulic
+    # projection stays non-executable and carries the gate's own reasons.
+    gate = snapshot.quality_gate
+    if not gate.passed:
+        reasons.append("soil_profile_quality_gate_failed")
+        reasons.extend(r for r in gate.reasons if r not in reasons)
+    executable = values_present and gate.passed
     return SoilHydraulicProfile(
         profile_id=f"shp_{uuid4().hex}",
         tenant_id=snapshot.tenant_id or "",
@@ -187,7 +196,7 @@ def build_hydraulic_profile(snapshot) -> SoilHydraulicProfile:
         layers=layers,
         completeness_score=round(score, 4),
         executable=executable,
-        reasons=[] if executable else ["field_capacity_or_wilting_point_missing"],
+        reasons=reasons,
         source_soil_profile_hash=snapshot.profile_hash,
     )
 

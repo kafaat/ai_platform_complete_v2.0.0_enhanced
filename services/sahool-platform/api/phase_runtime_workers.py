@@ -651,7 +651,7 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                         prev = await conn.fetchrow(
                             "SELECT depletion_mm, ledger_date FROM water_ledger"
                             " WHERE field_id=$1 AND ledger_date < $2"
-                            " AND NOT (created_by = $3 AND decision IS NULL)"
+                            " AND NOT (created_by IS NOT DISTINCT FROM $3 AND decision IS NULL)"
                             " ORDER BY ledger_date DESC LIMIT 1",
                             field_id,
                             today,

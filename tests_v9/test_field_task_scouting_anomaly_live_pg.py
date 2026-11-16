@@ -16,8 +16,9 @@ Acceptance: the anomaly becomes one stored task with a task_id; a replay (sequen
 concurrent copies) returns the same task and writes nothing; the same key with another body and
 a second key for the same anomaly are refused; another tenant can neither write a task on this
 tenant's field nor list it; an assertion bound to another path is refused. Negative controls
-show the v282 unique index and check constraint are what refuse a duplicate key and a keyless
-anomaly task at the database, inside rolled-back transactions.
+show the v282 unique index and check constraint are what refuse a duplicate key, a keyless anomaly
+task and a keyed one without a request digest (the first draft of the check admitted that one),
+at the database, inside rolled-back transactions.
 """
 
 from __future__ import annotations
@@ -441,6 +442,100 @@ def test_negative_controls_the_v280_index_and_check_are_what_refuse_at_the_datab
                 await a.execute(
                     insert, live.tenant, live.field, "urn:sahool:anomaly:nc3", None, None
                 )
+            finally:
+                await tx.rollback()
+            assert (
+                await a.fetchval(
+                    "SELECT count(*) FROM field_tasks WHERE tenant_id = $1::uuid", live.tenant
+                )
+                == 0
+            ), "the controls left no row behind"
+
+    asyncio.run(scenario())
+
+
+# The v282 check as first drafted: the digest term was only a regex, which is NULL (accepted by a
+# CHECK) when the digest is NULL. The migration's DO block must replace it where it exists.
+_OLD_SCOPE_CHECK = (
+    "ALTER TABLE field_tasks ADD CONSTRAINT field_task_anomaly_scope_ck CHECK ("
+    " anomaly_ref IS NULL OR (tenant_id IS NOT NULL AND source_scouting_pin_id IS NULL"
+    " AND scouting_idempotency_key IS NOT NULL"
+    " AND scouting_request_digest ~ '^[0-9a-f]{64}$'"
+    " AND jsonb_typeof(reason_codes) = 'array'))"
+)
+
+
+def _v282_scope_check_block() -> str:
+    """The DO block of v282 that installs field_task_anomaly_scope_ck, as the migration has it."""
+    text = (ROOT / "migrations" / "v282_field_task_scouting_anomaly.sql").read_text()
+    start = text.index("DO $$")
+    return text[start : text.index("END $$;", start) + len("END $$;")]
+
+
+def test_a_keyed_anomaly_task_without_a_request_digest_is_refused(monkeypatch):
+    """Review W1-20 (g/A): a valid tenant and key with a NULL digest must not pass the check, since
+    such a task can never be replayed (store_create compares the digest and answers 409)."""
+
+    async def scenario():
+        async with Live(monkeypatch) as live:
+            a = live.admin
+            insert = (
+                "INSERT INTO field_tasks (tenant_id, field_id, task_type, anomaly_ref,"
+                " scouting_idempotency_key, scouting_request_digest)"
+                " VALUES ($1::uuid, $2, 'scouting', $3, $4, NULL)"
+            )
+            key = "nd-key-" + uuid.uuid4().hex
+            tx = a.transaction()
+            await tx.start()
+            try:
+                with pytest.raises(asyncpg.CheckViolationError):
+                    await a.execute(insert, live.tenant, live.field, "urn:sahool:anomaly:nd1", key)
+            finally:
+                await tx.rollback()
+            # Control: under the first draft of the check the same row is admitted.
+            tx = a.transaction()
+            await tx.start()
+            try:
+                await a.execute(
+                    "ALTER TABLE field_tasks DROP CONSTRAINT field_task_anomaly_scope_ck"
+                )
+                await a.execute(_OLD_SCOPE_CHECK)
+                await a.execute(insert, live.tenant, live.field, "urn:sahool:anomaly:nd1", key)
+            finally:
+                await tx.rollback()
+            # A database that already holds the first draft: re-running v282's block replaces it.
+            tx = a.transaction()
+            await tx.start()
+            try:
+                await a.execute(
+                    "ALTER TABLE field_tasks DROP CONSTRAINT field_task_anomaly_scope_ck"
+                )
+                await a.execute(_OLD_SCOPE_CHECK)
+                await a.execute(_v282_scope_check_block())
+                definition = await a.fetchval(
+                    "SELECT pg_get_constraintdef(oid) FROM pg_constraint"
+                    " WHERE conrelid = 'field_tasks'::regclass"
+                    " AND conname = 'field_task_anomaly_scope_ck'"
+                )
+                assert "scouting_request_digest IS NOT NULL" in definition, definition
+                with pytest.raises(asyncpg.CheckViolationError):
+                    await a.execute(insert, live.tenant, live.field, "urn:sahool:anomaly:nd1", key)
+            finally:
+                await tx.rollback()
+            # Re-running the block on the current definition is a no-op (idempotent).
+            tx = a.transaction()
+            await tx.start()
+            try:
+                before = await a.fetchval(
+                    "SELECT oid FROM pg_constraint WHERE conrelid = 'field_tasks'::regclass"
+                    " AND conname = 'field_task_anomaly_scope_ck'"
+                )
+                await a.execute(_v282_scope_check_block())
+                after = await a.fetchval(
+                    "SELECT oid FROM pg_constraint WHERE conrelid = 'field_tasks'::regclass"
+                    " AND conname = 'field_task_anomaly_scope_ck'"
+                )
+                assert before == after, "the current check is kept, not dropped and re-added"
             finally:
                 await tx.rollback()
             assert (
