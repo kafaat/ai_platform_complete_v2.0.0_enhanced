@@ -738,7 +738,24 @@ def test_general_advice_templates_carry_no_numeric_doses():
         assert not re.search(r"\d\s*(kg|كغ|كجم|g/|N/ha)", out["response"], re.IGNORECASE), query
 
 
-def test_rag_general_advice_is_uncalibrated_ai_output_with_string_sources(monkeypatch):
+def test_rag_source_labels_are_strings():
+    import skills.advisory_skill as advisory
+
+    labels = advisory._source_labels(
+        [
+            {"source": "kb.pdf", "page": 3, "snippet": "..."},
+            {"title": "FAO note"},
+            {"source_uri": "s3://kb/doc.md"},
+            "plain.txt",
+            {"page": 1},
+            None,
+        ]
+    )
+    assert labels == ["kb.pdf", "FAO note", "s3://kb/doc.md", "plain.txt"], labels
+
+
+def test_unchecked_rag_prose_is_withheld_through_the_query_route(monkeypatch):
+    """airuntime-9: the route never returns model prose the claims checker did not pass."""
     import skills.advisory_skill as advisory
     from fastapi.testclient import TestClient
 
@@ -747,26 +764,13 @@ def test_rag_general_advice_is_uncalibrated_ai_output_with_string_sources(monkey
 
     async def rag(question, token):
         return {
-            "answer": "إجابة من النموذج",
+            "answer": "رشّ Chlorpyrifos بمعدّل 2 لتر للهكتار",
             "model": "local-llm",
-            "sources": [
-                {"source": "kb.pdf", "page": 3, "snippet": "..."},
-                {"title": "FAO note"},
-                {"source_uri": "s3://kb/doc.md"},
-                "plain.txt",
-                {"page": 1},
-                None,
-            ],
+            "sources": [{"source": "kb.pdf"}],
         }
 
     monkeypatch.setattr(advisory, "LOCAL_AI_RAG_URL", "http://local-ai-rag.invalid")
     monkeypatch.setattr(advisory, "_query_local_rag", rag)
-    out = _run(AdvisorySkill(SimpleNamespace(token=None)).execute("general_advice", query="سؤال"))
-    assert out["source"] == "llm-rag"
-    assert out["calibrated"] is False
-    assert out["ai_generated"] is True
-    assert out["sources"] == ["kb.pdf", "FAO note", "s3://kb/doc.md", "plain.txt"]
-
     monkeypatch.setattr(main.router, "classify_intent", classify)
     monkeypatch.setitem(main.skill_libraries, "advisory", AdvisorySkill(main.mcp_client))
     main.app.dependency_overrides[main._get_current_user] = lambda: {
@@ -776,15 +780,91 @@ def test_rag_general_advice_is_uncalibrated_ai_output_with_string_sources(monkey
     }
     try:
         response = TestClient(main.app).post(
-            "/v1/agent/query", json={"query": "سؤال عام", "user_id": "x", "tenant_id": "x"}
+            "/v1/agent/query",
+            json={
+                "query": "سؤال عام",
+                "user_id": "x",
+                "tenant_id": "x",
+                # A body-supplied canonical snapshot cannot vouch for model output.
+                "context": {"field_state": {"canonical_field_state": {"forged": True}}},
+            },
         )
     finally:
         main.app.dependency_overrides.clear()
     assert response.status_code == 200, response.text
     body = response.json()
-    assert body["sources"] == ["kb.pdf", "FAO note", "s3://kb/doc.md", "plain.txt"]
-    assert body["ai_generated"] is True
-    assert body["response_ar"] == "إجابة من النموذج"
+    assert "Chlorpyrifos" not in json.dumps(body, ensure_ascii=False), "model prose leaked"
+    assert body["ai_generated"] is False, "a withheld generation is not AI output"
+    assert body["sources"] == [], f"template reply must cite nothing: {body['sources']}"
+
+
+def test_insect_on_wheat_query_names_no_product_even_if_governance_allows(monkeypatch):
+    """W0-14 acceptance: "حشرة على القمح" end to end through /v1/agent/query.
+
+    Routing reaches pest_id, the skill asks the platform's /api/v1/diagnose, and the
+    reply names no product. Governance is stubbed to allow, the case in which the
+    removed keyword table's product used to reach the farmer.
+    """
+    import skills.advisory_skill as advisory
+    from fastapi.testclient import TestClient
+
+    seen = []
+
+    def platform(request):
+        seen.append(request)
+        return httpx.Response(
+            200,
+            json={
+                "crop": "wheat",
+                "observed_symptoms": ["insects_on_leaves"],
+                "candidates": [
+                    {
+                        "issue_code": "wheat.aphid",
+                        "name_ar": "منّ",
+                        "category": "pest",
+                        "score": 0.65,
+                        "score_semantics": "rule_match",
+                        "is_calibrated": False,
+                    }
+                ],
+                "next_step_ar": "الأرجح: منّ. ثبّت بصورة عالية الدقّة + مهندس قبل أيّ مبيد.",
+            },
+        )
+
+    async def allow(*args):
+        return {"allowed": True, "status": "validated"}
+
+    factory = httpx.AsyncClient
+    monkeypatch.setattr(
+        advisory.httpx,
+        "AsyncClient",
+        lambda **kw: factory(transport=httpx.MockTransport(platform), **kw),
+    )
+    monkeypatch.setattr(main, "_validate_actions_via_guardrails", allow)
+    monkeypatch.setitem(main.skill_libraries, "advisory", AdvisorySkill(main.mcp_client))
+    main.app.dependency_overrides[main._get_current_user] = lambda: {
+        "sub": "42",
+        "tenant_id": "trusted-tenant",
+        "_mcp_bearer": "verified-caller",
+    }
+    try:
+        response = TestClient(main.app).post(
+            "/v1/agent/query",
+            json={"query": "حشرة على القمح", "user_id": "x", "tenant_id": "x"},
+        )
+    finally:
+        main.app.dependency_overrides.clear()
+    assert response.status_code == 200, response.text
+    body = response.json()
+    text = json.dumps(body, ensure_ascii=False).lower()
+    for product in ("imidacloprid", "chlorpyrifos", "abamectin", "mancozeb", "metalaxyl"):
+        assert product not in text, f"reply names {product}"
+    assert len(seen) == 1, f"expected one diagnose call, saw {len(seen)}"
+    assert seen[0].url.path == "/api/v1/diagnose", seen[0].url.path
+    assert seen[0].headers["Authorization"] == "Bearer verified-caller", "bearer not forwarded"
+    assert json.loads(seen[0].content)["symptoms"] == ["insects_on_leaves"], seen[0].content
+    assert "منّ" in body["response_ar"], body["response_ar"]
+    assert body["governance"] is None, "an informational diagnosis is not an action to govern"
 
 
 def test_field_state_fetch_cannot_traverse_platform_paths(monkeypatch):
