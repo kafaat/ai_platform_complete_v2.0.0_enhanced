@@ -225,9 +225,98 @@ def test_season_readiness_reads_ece_per_analyte():
     import inspect
 
     src = inspect.getsource(sw.season_workspace)
-    assert 'analyte="ec_dsm"' in src and 'analyte="ph"' in src, (
+    assert "soil_ece_evidence(" in src and 'analyte="ph"' in src, (
         "season workspace must read pH and ECe per analyte"
     )
+
+
+def test_season_readiness_drops_legacy_ec_under_a_newer_non_ece_v156_ec():
+    """W1-03 review LOW 2: a v156 value overrides the legacy row per analyte. A newest v156 EC
+    that is not an ECe leaves the ECe unknown, so the legacy row's older EC must not count."""
+    sw = _season_workspace()
+    history = [{"status": "published", "result": {"ec_ds_m": 1.0, "ph": 7.0}}]
+    other = {"source": "soil_lab_results", "value": 2.0, "extraction_method": "soil_water_1_5"}
+    assert sw._accepted_soil(history, None, None, other) == {"ph": 7.0}, (
+        "an older legacy ECe must not stand in for the newer non-ECe v156 reading"
+    )
+    assert sw._accepted_soil(history, None, _reading("soil_lab_results", 4.2), None) == {
+        "ec_ds_m": 4.2,
+        "ph": 7.0,
+    }
+
+
+def test_season_readiness_reads_v156_without_the_legacy_candidates():
+    """W1-03 review LOW 2: readiness never accepts an approved-but-unpublished legacy row, so
+    such a row (newest candidate) must not hide an older approved v156 value."""
+    import inspect
+
+    sw = _season_workspace()
+    src = inspect.getsource(sw.season_workspace)
+    assert src.count("include_legacy=False") == 2, "pH and ECe must skip legacy candidates"
+
+
+def test_include_legacy_false_skips_a_newer_legacy_candidate(monkeypatch):
+    rows = [
+        _candidate("soil_lab_tests:soil_new", {"ph": 6.1}, sampled_on=date(2026, 11, 10)),
+        _candidate("soil_lab_results:rid-ph", {"ph": 7.7}),
+    ]
+    assert _latest(monkeypatch, rows, analyte="ph")["source"] == "legacy_soil_lab_tests"
+    out = _latest(monkeypatch, rows, analyte="ph", include_legacy=False)
+    assert (out["source"], out["value"]) == ("soil_lab_results", 7.7), out
+    ec_rows = [
+        _candidate("soil_lab_tests:soil_new", {"ec": 1.0}, sampled_on=date(2026, 11, 10)),
+        _candidate("soil_lab_results:rid-ece", {"ec_dsm": 9.0}),
+    ]
+    out = _latest(monkeypatch, ec_rows, include_legacy=False)
+    assert (out["source"], out["value"]) == ("soil_lab_results", 9.0), out
+
+
+def test_ece_evidence_keeps_the_prior_ece_behind_a_non_ece_extract():
+    """One ECe rule for every reader: a non-ECe newest EC makes the ECe unknown (None), and
+    the ECe before it comes back as ``prior_ece`` so a critical one is never dropped."""
+    store = _store()
+    rows = [
+        _candidate("soil_lab_results:r15", {"ec_dsm": 0.5}, method="soil_water_1_5"),
+        _candidate("soil_lab_results:r16", {"ec_dsm": 0.6}, method=None),
+        _candidate("soil_lab_results:rid-old", {"ec_dsm": 12.0}, sampled_on=date(2026, 1, 1)),
+    ]
+    out = store.ece_evidence_from_candidates(rows)
+    assert out["ece"] is None, out
+    assert out["newer_other_extract"]["result_id"] == "r15", "the newest extract is labelled"
+    assert out["newer_other_extract"]["extraction_method"] == "soil_water_1_5", out
+    assert out["prior_ece"]["value"] == 12.0 and out["prior_ece"]["result_id"] == "rid-old", out
+    out = store.ece_evidence_from_candidates([rows[2]])
+    assert out["ece"]["value"] == 12.0 and out["prior_ece"] is None, out
+    assert store.ece_evidence_from_candidates([]) == {
+        "ece": None,
+        "newer_other_extract": None,
+        "prior_ece": None,
+    }
+
+
+def test_etc_dual_uses_the_field_state_ece_rule():
+    """etc_dual reads field_state's ECe: a newest non-ECe EC leaves the ECe unknown (the
+    default 0 is labelled so, not 'default' as if there were no lab data) and a critical
+    prior ECe is reported instead of dropped."""
+    import api.main  # noqa: F401 — resolve the application's router import cycle
+    from api.routers.etc_dual import _soil_ece_input
+
+    prior = {"value_dsm": 12.0, "critical": True}
+    other = {"value_dsm": 0.4, "extraction_method": "soil_water_1_5"}
+    assert _soil_ece_input(
+        None, {"soil_ec": None, "soil_ec_other_extract": other, "soil_ec_prior_ece": prior}
+    ) == (
+        0.0,
+        "default_ece_unknown_newer_extract_not_ece",
+        True,
+    )
+    assert _soil_ece_input(None, {"soil_ec": 12.0, "soil_ec_source": "soil_lab_results"}) == (
+        12.0,
+        "soil_lab_results",
+        False,
+    )
+    assert _soil_ece_input(None, {}) == (0.0, "default", False)
+    assert _soil_ece_input(3.0, {"soil_ec_prior_ece": prior}) == (3.0, "request", False)
 
 
 def test_sustainability_signals_read_v156_names_without_inventing_units():

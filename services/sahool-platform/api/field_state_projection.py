@@ -37,7 +37,7 @@ from .canonical_water_stress import (
 from .feature_registry import is_enabled
 from .field_operational_state import resolve_field_state
 from .field_readiness import compute_field_readiness
-from .field_state_gateway import build_state_inputs
+from .field_state_gateway import _days_since, build_state_inputs
 from .irrigation_state_guard import water_ledger_row_freshness
 
 # علم تصعيد الإجهاد المائيّ (D2b) — default OFF (قرار المستخدم 2026-06-23): مراقبة
@@ -88,6 +88,27 @@ def _derive_alerts_from_state(state: dict) -> list[dict]:
                 "message_ar": (
                     "الحالة القانونيّة الموحّدة تُظهر ملوحة تربة حرجة — غسيل وتحسين "
                     "الصرف عاجلاً، وتجنّب الريّ المالح."
+                ),
+                "source": "canonical_field_state",
+            }
+        )
+
+    _soil_lab = state.get("soil_lab")
+    if (
+        truths.get("salinity_class") != "critical"
+        and isinstance(_soil_lab, dict)
+        and _soil_lab.get("ece_unknown_prior_critical")
+    ):
+        # Same rule as the escalation: a critical prior ECe is not dropped because a newer
+        # EC was measured on another extract.
+        alerts.append(
+            {
+                "alert_type": "salinity_critical",
+                "severity": "critical",
+                "title_ar": "ملوحة تربة حرجة (آخر ECe)",
+                "message_ar": (
+                    "آخر ECe معتمَد كان حرجاً، والقياس الأحدث ليس مستخلص عجينة مشبعة — "
+                    "أعد القياس بالعجينة المشبعة؛ حتى ذلك عامِل الملوحة كحرجة."
                 ),
                 "source": "canonical_field_state",
             }
@@ -166,19 +187,20 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
         msi_mean = None
         ndmi_date = None
         msi_date = None
-    # آخر تحليل تربة معتمَد — عيّنة واحدة تعطي النضارة (sampled_on) + EC، فنربط EC بأحدث
-    # عيّنة فعلاً (مراجعة Copilot). W1-03: المخزن القانونيّ soil_lab_results أوّلاً (بـ
-    # result_id)، وsoil_lab_tests القديم احتياطاً موسوماً — عبر lab_store وحده.
-    from api.lab_store import SOIL_LAB_LEGACY_SOURCE, latest_approved_soil_analysis
+    # آخر تحليل تربة معتمَد يعطي نضارة التربة العامّة (sampled_on). W1-03: المخزن القانونيّ
+    # soil_lab_results أوّلاً، وsoil_lab_tests القديم احتياطاً موسوماً — عبر lab_store وحده.
+    # EC (ECe) is read per analyte with the rule every salinity reader shares
+    # (soil_ece_evidence = latest_approved_soil_analyte(ec_dsm)): a newer sample with no EC
+    # (pH-only, texture-only, ...) neither hides an older ECe nor refreshes salinity age.
+    from api.lab_store import latest_approved_soil_analysis, soil_ece_evidence
 
     soil = await latest_approved_soil_analysis(conn, field_id=field_id)
     soil_sampled_on = soil["sampled_on"] if soil else None
-    if soil and soil["source"] == SOIL_LAB_LEGACY_SOURCE:
-        soil_ec = _extract_ec(soil["legacy_result"])
-    else:
-        # ECe only (saturated paste); an EC 1:5/1:2.5/1:1/unspecified extract stays out of the
-        # salinity signal and is exposed labelled as ``soil_ec_other_extract``.
-        soil_ec = (soil or {}).get("values", {}).get("ec_dsm")
+    ece_evidence = await soil_ece_evidence(conn, field_id=field_id)
+    ece = ece_evidence["ece"]
+    other_extract = ece_evidence["newer_other_extract"]
+    prior_ece = ece_evidence["prior_ece"]
+    soil_ec = ece["value"] if ece else None
     weather_age_hours = await conn.fetchval(
         "SELECT EXTRACT(EPOCH FROM (NOW() - c.fetched_at)) / 3600.0 "
         "FROM weather_automation_cache c "
@@ -198,10 +220,62 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
         "msi_date": msi_date,
         "soil_ec": soil_ec,
         "soil_lab_source": soil["source"] if soil else None,
-        "soil_ec_result_id": (soil or {}).get("result_ids", {}).get("ec_dsm"),
-        "soil_ec_other_extract": (soil or {}).get("ec_other_extract"),
+        "soil_ec_source": ece["source"] if ece else None,
+        "soil_ec_result_id": ece["result_id"] if ece else None,
+        "soil_ec_evidence_ref": ece["evidence_ref"] if ece else None,
+        # Salinity age comes from the ECe's own sample, never from a newer sample without EC.
+        "soil_ec_sampled_on": ece["sampled_on"] if ece else None,
+        "soil_ec_other_extract": _other_extract_label(other_extract),
+        # The newest ECe behind a newer non-ECe extract: not the current ECe (the salinity
+        # class is unknown), but a critical one still escalates (_ece_unknown_prior_critical).
+        "soil_ec_prior_ece": _prior_ece_label(prior_ece),
         "soil_sampled_on_source": soil.get("sampled_on_source") if soil else None,
     }
+
+
+def _other_extract_label(reading) -> dict | None:
+    if not reading:
+        return None
+    return {
+        "value_dsm": reading["value"],
+        "extraction_method": reading["extraction_method"],
+        "result_id": reading["result_id"],
+        "sampled_on": reading["sampled_on"].isoformat() if reading.get("sampled_on") else None,
+        "ece": False,
+    }
+
+
+def _prior_ece_label(reading) -> dict | None:
+    if not reading:
+        return None
+    from core.thresholds import SALINITY_CRITICAL_ECE
+
+    return {
+        "value_dsm": reading["value"],
+        "source": reading["source"],
+        "evidence_ref": reading["evidence_ref"],
+        "sampled_on": reading["sampled_on"].isoformat() if reading.get("sampled_on") else None,
+        "critical": float(reading["value"]) >= SALINITY_CRITICAL_ECE,
+    }
+
+
+def _escalate_unknown_ece_prior_critical(state: dict, fresh: dict) -> None:
+    """Escalate auto -> human_review when ``_ece_unknown_prior_critical`` (in place)."""
+    if _ece_unknown_prior_critical(fresh) and state.get("execution_mode") == "auto":
+        state["execution_mode"] = "human_review"
+        if state.get("validity") == "valid":
+            state["validity"] = "degraded"
+        state.setdefault("reasons_ar", []).append(
+            "آخر ECe معتمَد كان حرجاً، والقياس الأحدث ليس مستخلص عجينة مشبعة — الملوحة "
+            "مجهولة حالياً ولا تُسقَط: تتطلّب مراجعة بشريّة."
+        )
+
+
+def _ece_unknown_prior_critical(fresh: dict) -> bool:
+    """The current ECe is unknown because the newest EC is not an ECe, and the ECe before it
+    was critical. Salinity>Vigor must not fail open on that: escalate as if critical."""
+    prior = fresh.get("soil_ec_prior_ece") or {}
+    return fresh.get("soil_ec") is None and bool(prior.get("critical"))
 
 
 def _extract_ec(soil_result) -> float | None:
@@ -635,9 +709,17 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         "available": fresh.get("soil_lab_source") is not None,
         "source": fresh.get("soil_lab_source"),
         "ec_dsm": fresh.get("soil_ec"),
+        "ec_source": fresh.get("soil_ec_source"),
         "ec_result_id": fresh.get("soil_ec_result_id"),
+        "ec_evidence_ref": fresh.get("soil_ec_evidence_ref"),
+        "ec_sampled_on": (
+            fresh["soil_ec_sampled_on"].isoformat() if fresh.get("soil_ec_sampled_on") else None
+        ),
         # EC not measured on a saturated paste: shown labelled, never used as ECe.
         "ec_other_extract": fresh.get("soil_ec_other_extract"),
+        # The ECe behind that extract (not current; a critical one still escalates).
+        "ec_prior_ece": fresh.get("soil_ec_prior_ece"),
+        "ece_unknown_prior_critical": _ece_unknown_prior_critical(fresh),
         "sampled_on_source": fresh.get("soil_sampled_on_source"),
     }
 
@@ -747,7 +829,8 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                     fresh.get("soil_ec"),
                     agronomic["operational_truths"].get("salinity_class"),
                     crop_id,
-                    inputs.get("soil_age_days"),
+                    # The ECe's own sample age: a newer sample without EC is not fresh salinity.
+                    _days_since(fresh.get("soil_ec_sampled_on"), evaluation_date),
                     confidence=agronomic.get("confidence"),
                 )
             except Exception:  # noqa: BLE001 — ملوحة best-effort، لا تكسر الحالة التشغيليّة
@@ -767,6 +850,11 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                 "ملوحة تربة حرجة (تحكيم النواة الزراعيّة: الملوحة تَحكُم رغم خُضرة "
                 "NDVI) — تتطلّب مراجعة بشريّة."
             )
+
+    # W1-03: the newest EC is not an ECe (salinity class unknown) and the ECe before it was
+    # critical. Not fed to the engine as current, but Salinity>Vigor must not fail open: the
+    # same escalation as a critical class, whether or not the agronomic core ran.
+    _escalate_unknown_ece_prior_critical(state, fresh)
 
     # تعارض محصول الحقل/الموسم أو صنفٌ من محصولٍ آخر ⇒ مراجعة بشريّة (تصعيد لا تخفيض).
     escalate_context_conflicts(state)

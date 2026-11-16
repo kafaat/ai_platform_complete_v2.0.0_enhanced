@@ -567,6 +567,10 @@ async def _record_soil_result(
         actor_id=str(user.user_id),
         event_type="lab_result_received",
     )
+    if is_correction:
+        # The correction supersedes the approved rows now (the replacement still needs its
+        # own review), so the canonical soil inputs changed: recompute in this transaction.
+        await _refresh_field_state(conn, user, sample["field_id"], "soil_lab.correction_submitted")
     values = payload.model_dump(
         exclude={
             "observed_at",

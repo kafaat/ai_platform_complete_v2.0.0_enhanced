@@ -5203,7 +5203,7 @@
       "function": "season_workspace",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/season-workspace",
-      "line": 297,
+      "line": 315,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/season_workspace.py::GET /api/v1/fields/{field_id}/season-workspace::season_workspace"
@@ -5423,7 +5423,7 @@
       "function": "field_lab_context",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/lab-context",
-      "line": 822,
+      "line": 826,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/fields/{field_id}/lab-context::field_lab_context"
@@ -5473,7 +5473,7 @@
       "function": "transition_lab_sample",
       "method": "POST",
       "path": "/api/v1/lab/samples/{sample_id}/transition",
-      "line": 678,
+      "line": 682,
       "target_owner": "sahool-platform",
       "owner_type": "platform-lab-intake",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/samples/{sample_id}/transition::transition_lab_sample",
@@ -5504,7 +5504,7 @@
       "function": "submit_water_lab_result",
       "method": "POST",
       "path": "/api/v1/lab/water-results",
-      "line": 603,
+      "line": 607,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/water-results::submit_water_lab_result"

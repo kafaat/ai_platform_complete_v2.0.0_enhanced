@@ -247,6 +247,9 @@ def test_published_sample_correction_is_accepted_for_republication(monkeypatch):
         # إعادة اعتماد مُصرَّح به ثمّ إعادة نشر) — لا اعتماد ذاتيّ من مُدخِل التصحيح.
         assert captured["status"] == "result_received"
         assert captured["correction_reason"] == "instrument recalibration"
+        # W1-03 review LOW 3: the correction supersedes the approved rows at once, so the
+        # canonical field state is recomputed now, not only on the next review decision.
+        assert _STATE_REFRESHES == [("f-1", "soil_lab.correction_submitted")], _STATE_REFRESHES
     finally:
         app.dependency_overrides.clear()
 

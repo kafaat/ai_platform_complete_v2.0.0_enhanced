@@ -803,31 +803,99 @@ def _analyte_reading(row, analyte: str, value) -> dict[str, Any]:
     }
 
 
+def _candidate_value(row, analyte: str):
+    result = _json_object(row["result"])
+    if soil_lab_source(row["evidence_ref"]) == SOIL_LAB_LEGACY_SOURCE:
+        return legacy_analyte_value(result, analyte)
+    return usable_analyte_value(analyte, result.get(analyte))
+
+
+def _is_ece(row) -> bool:
+    """A legacy EC is read as ECe (the frozen table never recorded an extract); a v156 EC is
+    an ECe only when measured on a saturated paste."""
+    return (
+        soil_lab_source(row["evidence_ref"]) == SOIL_LAB_LEGACY_SOURCE
+        or row["method_code"] == ECE_EXTRACTION_METHOD
+    )
+
+
+async def soil_ece_evidence(
+    conn, *, field_id: str, tenant_id: str | None = None, include_legacy: bool = True
+) -> dict[str, Any]:
+    """The field's ECe evidence, one rule for every salinity reader.
+
+    ``ece``: the newest approved EC reading when it is an ECe, else None. Samples with no EC
+    (pH-only, texture-only, ...) are not EC candidates, so they never hide an older ECe.
+    ``newer_other_extract``: the newest approved v156 EC when it is *not* an ECe (1:5, 1:2.5,
+    1:1, unspecified); it makes ``ece`` None because it may contradict an older ECe.
+    ``prior_ece``: the newest ECe older than that extract. It is not the current ECe, but a
+    reader must not drop what it says silently: a critical prior ECe still escalates.
+    ``include_legacy=False`` skips the frozen ``soil_lab_tests`` rows (callers that do not
+    accept an approved-but-unpublished legacy row)."""
+    rows = await soil_analyte_candidates(
+        conn, field_id=field_id, analyte="ec_dsm", tenant_id=tenant_id
+    )
+    return ece_evidence_from_candidates(rows, include_legacy=include_legacy)
+
+
+def ece_evidence_from_candidates(rows, *, include_legacy: bool = True) -> dict[str, Any]:
+    """``soil_ece_evidence`` over ``soil_analyte_candidates(analyte='ec_dsm')`` rows."""
+    ece = other = prior = None
+    for row in rows:
+        if not include_legacy and soil_lab_source(row["evidence_ref"]) == SOIL_LAB_LEGACY_SOURCE:
+            continue
+        value = _candidate_value(row, "ec_dsm")
+        if value is None:
+            continue
+        if _is_ece(row):
+            if other is None:
+                ece = _analyte_reading(row, "ec_dsm", value)
+            else:
+                prior = _analyte_reading(row, "ec_dsm", value)
+            break
+        if other is None:
+            other = {
+                **_analyte_reading(row, "ec_dsm", value),
+                "extraction_method": row["method_code"] or "unspecified",
+                "ece": False,
+            }
+    return {"ece": ece, "newer_other_extract": other, "prior_ece": prior}
+
+
 async def latest_approved_soil_analyte(
-    conn, *, field_id: str, analyte: str, tenant_id: str | None = None, accept=None
+    conn,
+    *,
+    field_id: str,
+    analyte: str,
+    tenant_id: str | None = None,
+    accept=None,
+    include_legacy: bool = True,
 ) -> dict[str, Any] | None:
     """The newest usable approved value of one analyte, labelled with its source, or None.
 
     None means unavailable — never zero. ``accept(value)`` may narrow what counts as usable
-    (the TAW table skips texture labels it does not know).
+    (the TAW table skips texture labels it does not know). ``include_legacy=False`` skips
+    the frozen ``soil_lab_tests`` rows, so a legacy row the caller would reject does not
+    hide an older approved v156 value.
 
-    ``ec_dsm`` is read as ECe: when the newest approved v156 EC was not measured on a
-    saturated paste the ECe is unavailable (None). It does not fall back to an older ECe,
-    which the newer reading may contradict."""
+    ``ec_dsm`` is read as ECe (``soil_ece_evidence``): when the newest approved EC was not
+    measured on a saturated paste the ECe is unavailable (None). It does not fall back to an
+    older ECe, which the newer reading may contradict."""
+    if analyte == "ec_dsm":
+        reading = (
+            await soil_ece_evidence(
+                conn, field_id=field_id, tenant_id=tenant_id, include_legacy=include_legacy
+            )
+        )["ece"]
+        if reading is not None and (accept is None or accept(reading["value"])):
+            return reading
+        return None
     for row in await soil_analyte_candidates(
         conn, field_id=field_id, analyte=analyte, tenant_id=tenant_id
     ):
-        result = _json_object(row["result"])
-        if soil_lab_source(row["evidence_ref"]) == SOIL_LAB_LEGACY_SOURCE:
-            value = legacy_analyte_value(result, analyte)
-        else:
-            value = usable_analyte_value(analyte, result.get(analyte))
-            if (
-                value is not None
-                and analyte == "ec_dsm"
-                and row["method_code"] != ECE_EXTRACTION_METHOD
-            ):
-                return None
+        if not include_legacy and soil_lab_source(row["evidence_ref"]) == SOIL_LAB_LEGACY_SOURCE:
+            continue
+        value = _candidate_value(row, analyte)
         if value is not None and (accept is None or accept(value)):
             return _analyte_reading(row, analyte, value)
     return None

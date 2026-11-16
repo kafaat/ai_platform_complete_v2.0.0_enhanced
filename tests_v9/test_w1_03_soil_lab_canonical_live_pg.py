@@ -338,8 +338,13 @@ def test_field_without_lab_evidence_is_unavailable_not_zero(scenario):
         "available": False,
         "source": None,
         "ec_dsm": None,
+        "ec_source": None,
         "ec_result_id": None,
+        "ec_evidence_ref": None,
+        "ec_sampled_on": None,
         "ec_other_extract": None,
+        "ec_prior_ece": None,
+        "ece_unknown_prior_critical": False,
         "sampled_on_source": None,
     }, f"missing lab evidence must be unavailable, never zero: {soil}"
     done = scenario["empty_completeness"]
