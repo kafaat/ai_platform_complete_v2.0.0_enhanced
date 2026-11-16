@@ -1653,6 +1653,15 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           NDVI_SEED_PURGE_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_ndvi_seed_purge_live_pg.py
+      # W1-13 (finding water-5, manual part): measured farm-ledger water reaches the daily water
+      # ledger as irrigation_mm with source 'farm_ledger' (v284); the worker keeps it and computes
+      # the balance around it. Router on the restricted NOBYPASSRLS role, worker on the owner URL.
+      - name: Farm water to the water ledger (W1-13, v284, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          FARM_WATER_LEDGER_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_farm_water_ledger_projection_live_pg.py
 
       # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
       # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real

@@ -2523,7 +2523,7 @@
       "function": "list_operation_ledger_records",
       "method": "GET",
       "path": "/api/v1/farm-ledger/operations",
-      "line": 315,
+      "line": 331,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/operations::list_operation_ledger_records"
@@ -2543,7 +2543,7 @@
       "function": "farm_ledger_summary",
       "method": "GET",
       "path": "/api/v1/farm-ledger/summary",
-      "line": 367,
+      "line": 383,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/summary::farm_ledger_summary"
@@ -2563,7 +2563,7 @@
       "function": "operation_autowrite_preview",
       "method": "POST",
       "path": "/api/v1/farm-ledger/autowrite-preview",
-      "line": 842,
+      "line": 858,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/autowrite-preview::operation_autowrite_preview"
@@ -2573,7 +2573,7 @@
       "function": "upsert_season_budget_lines",
       "method": "POST",
       "path": "/api/v1/farm-ledger/budgets",
-      "line": 515,
+      "line": 531,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/budgets::upsert_season_budget_lines"
@@ -2583,7 +2583,7 @@
       "function": "create_operation_ledger_record",
       "method": "POST",
       "path": "/api/v1/farm-ledger/operations",
-      "line": 214,
+      "line": 216,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/operations::create_operation_ledger_record"
@@ -2593,7 +2593,7 @@
       "function": "create_revenue_record",
       "method": "POST",
       "path": "/api/v1/farm-ledger/revenues",
-      "line": 633,
+      "line": 649,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/revenues::create_revenue_record"
@@ -4393,7 +4393,7 @@
       "function": "nl_gis_query_endpoint",
       "method": "POST",
       "path": "/api/v1/nl-gis/query",
-      "line": 307,
+      "line": 329,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/nl_gis.py::POST /api/v1/nl-gis/query::nl_gis_query_endpoint"

@@ -867,6 +867,10 @@ v282_field_task_scouting_anomaly.sql
 #   Needs the superuser/BYPASSRLS migration owner: under FORCE RLS any other role sees no
 #   tenant-less row, so v283 raises instead of reporting a purge it did not do.
 v283_ndvi_timeseries_seed_purge.sql
+# v284 (plan item W1-13, finding water-5, manual part): water_ledger.irrigation_source. Measured
+#   farm_water_records are projected onto the day's irrigation_mm with source 'farm_ledger'.
+#   Additive, nullable, owner sahool-platform. Before v240.
+v284_water_ledger_irrigation_source.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

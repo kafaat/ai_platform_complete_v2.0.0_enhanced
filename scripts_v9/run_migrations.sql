@@ -685,7 +685,9 @@
 \i migrations/v282_field_task_scouting_anomaly.sql
 \echo '═══ 270. v283_ndvi_timeseries_seed_purge.sql ═══'
 \i migrations/v283_ndvi_timeseries_seed_purge.sql
-\echo '═══ 271. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 271. v284_water_ledger_irrigation_source.sql ═══'
+\i migrations/v284_water_ledger_irrigation_source.sql
+\echo '═══ 272. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 272. v206_rls_final_hardening.sql ═══'
+\echo '═══ 273. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql
