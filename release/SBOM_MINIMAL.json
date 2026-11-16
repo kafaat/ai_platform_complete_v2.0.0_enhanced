@@ -2945,6 +2945,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "60b5a659b7032c91098f2ec372e61f78cb3378fb5a29b0b4efb135a6a65ad792"
+        }
+      ],
+      "name": "frontend/src/hooks/TenantCacheIsolation.behavior.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8f42166035becbab1af1d70c1a201a9cc749cd8084cd5aa7bcdb927caae4a4b4"
         }
       ],
@@ -27205,7 +27215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a14b73ae011bbca21ab9d4740196e5e323f5303b552b422b199ff51f1c9cff73"
+          "content": "421e862676ab90d06216f316ecb03ba0a02520a6e0c8da12d546b585d8684a7a"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -27495,7 +27505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e4dfe4627fc8654ff0437d5d8afc181c4a682c859ae2ae502dba792979a17dd"
+          "content": "4f6e73b33c8a591b0164d9402fdbd0945b0fa36e3c60c53384641e482b153f9a"
         }
       ],
       "name": "services/sahool-platform/api/routers/me.py",
@@ -28885,7 +28895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec5e52ccd8a92b406ae0fe2fa7954ae28507429f2638bd9c62bccd2dc5c02d62"
+          "content": "58ad119a73c3409e039fecfd30a5afce6ccfd48a7b34d90df6d9a90ad397195f"
         }
       ],
       "name": "services/sahool-platform/core/ai_policy_envelope.py",
@@ -35495,7 +35505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b8d432415291c6aa88529e36718cc253d9f54b919d006ef26b65c889eb462b4f"
+          "content": "d6fa922225414a505b6d36273efa731e36b00d9d4becbfa0026c90ff69652545"
         }
       ],
       "name": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",

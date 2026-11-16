@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 43,
-    "files_scanned": 7411,
+    "files_scanned": 7412,
     "files_by_kind": {
       "backend": 1293,
       "database": 335,
       "governance": 89,
       "mobile": 417,
       "other": 2191,
-      "tests": 2533,
+      "tests": 2534,
       "web": 553
     },
     "unmapped_artifacts": 3530,
     "ambiguous_artifacts": 240,
     "files_by_reading": {
       "python_functional": 4014,
-      "raw": 3397
+      "raw": 3398
     },
     "test_dependency_files": 1929,
-    "test_dependency_edges": 4987,
+    "test_dependency_edges": 4988,
     "test_dependency_bounded_files": 1129,
     "test_dependency_unresolved_relations": 490
   },
@@ -2303,6 +2303,14 @@
       "mobile": [],
       "tests": [
         {
+          "path": "frontend/src/hooks/TenantCacheIsolation.behavior.test.ts",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "frontend/src/hooks/TenantCacheIsolation.static.test.ts",
           "score": 14,
           "signals": [
@@ -2873,7 +2881,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 44,
+        "tests": 45,
         "governance": 0,
         "other_evidence": 26
       },
@@ -63693,22 +63701,27 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 17
+          "line": 20
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 20
+          "line": 23
         },
         {
           "source": "services/sahool-platform/api/routers/me.py",
           "kind": "import",
-          "line": 20
+          "line": 23
+        },
+        {
+          "source": "services/sahool-platform/core/ai_policy_envelope.py",
+          "kind": "import",
+          "line": 24
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 21
+          "line": 29
         }
       ],
       "unresolved": []
