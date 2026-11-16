@@ -71,14 +71,16 @@ def test_pick_ndvi_casts_to_float():
 # ─── _fetch_fresh_ndvi: الجلب الخدميّ (mock لواجهة raster) — صدق real_data ────────
 
 
-def _patch_client(monkeypatch, *, payload=None, raise_exc=None):
+def _patch_client(monkeypatch, *, payload=None, raise_exc=None, seen=None):
     """P2 raster facade: ``_fetch_fresh_ndvi`` يقرأ COG عبر ``get_indicator_grid`` (واجهة
-    raster) بدل فتح ``httpx.AsyncClient`` محلّيّاً. نُرقِّع الواجهة كما تستوردها الوحدة —
-    النيّة محفوظة: real_data=true ⇒ stats.mean؛ محاكاة/شكل ناقص/تعذّر ⇒ None."""
+    raster) بدل فتح ``httpx.AsyncClient`` محلّيّاً. نُرقِّع الواجهة كما تستوردها الوحدة،
+    ونلتقط المستأجِر الممرَّر (W1-01: كلّ قراءة raster ترسل X-Tenant-Id)."""
 
     async def _fake_get_indicator_grid(
         field_id, *, tenant_id=None, index="ndvi", date="latest", timeout_s=8.0
     ):
+        if seen is not None:
+            seen.append(tenant_id)
         if raise_exc is not None:
             raise raise_exc
         return payload
@@ -86,23 +88,80 @@ def _patch_client(monkeypatch, *, payload=None, raise_exc=None):
     monkeypatch.setattr(etc_dual, "get_indicator_grid", _fake_get_indicator_grid)
 
 
-async def test_fetch_fresh_ndvi_real_data_returns_mean(monkeypatch):
-    """real_data=true ⇒ يُرجِع stats.mean كـfloat (الطازج الحقيقيّ)."""
-    _patch_client(monkeypatch, payload={"real_data": True, "stats": {"mean": 0.63}})
-    val = await _fetch_fresh_ndvi("field-1")
-    assert val == pytest.approx(0.63)
+def _observed(mean=0.63, *, acquired="2026-11-09T08:12:00Z", passed=True, field_id="field-1"):
+    """ردّ indicator-grid لمنتجٍ مرصود: حكم raster (quality_gate_passed) + تاريخ الاقتناء."""
+    return {
+        "real_data": True,
+        "field_id": field_id,
+        "index": "ndvi",
+        "grid": [[mean, mean], [mean, mean]],
+        "stats": {"mean": mean},
+        "indicator_product": {
+            "quality_gate_passed": passed,
+            "estimated": False,
+            "provenance": {"acquisition_datetime": acquired},
+        },
+    }
+
+
+async def test_fetch_fresh_ndvi_real_data_returns_mean_and_acquisition_date(monkeypatch):
+    """منتجٌ مرصود ⇒ (stats.mean، تاريخ اقتناء المنتج) — لا date.today()."""
+    seen: list = []
+    _patch_client(monkeypatch, payload=_observed(), seen=seen)
+    val, acquired = await _fetch_fresh_ndvi("field-1", "tenant-a")
+    assert val == pytest.approx(0.63), f"المتوسّط المرصود لم يُرجَع: {val!r}"
+    assert acquired is not None and acquired.isoformat() == "2026-11-09", (
+        f"تاريخ NDVI يجب أن يكون تاريخ الاقتناء لا اليوم: {acquired!r}"
+    )
+    assert seen == ["tenant-a"], f"قراءة raster بلا X-Tenant-Id: {seen!r}"
+
+
+async def test_fetch_fresh_ndvi_without_tenant_does_not_call_raster(monkeypatch):
+    """بلا مستأجِر ⇒ لا نداء أصلاً (raster يحلّ الطبقات بالمستأجِر؛ fail-closed)."""
+    seen: list = []
+    _patch_client(monkeypatch, payload=_observed(), seen=seen)
+    assert await _fetch_fresh_ndvi("field-1", None) == (None, None), "قراءة بلا مستأجِر قُبِلت"
+    assert seen == [], f"نودِي raster بلا مستأجِر: {seen!r}"
+
+
+async def test_fetch_fresh_ndvi_quality_gate_failed_returns_none(monkeypatch):
+    """منتجٌ لم يجتز بوّابة جودة raster ⇒ لا يُستعمَل (حكم الخدمة نفسها)."""
+    _patch_client(monkeypatch, payload=_observed(passed=False))
+    assert await _fetch_fresh_ndvi("field-1", "tenant-a") == (None, None), (
+        "منتجٌ فاشل الجودة صار NDVI طازجاً"
+    )
+
+
+async def test_fetch_fresh_ndvi_other_field_product_returns_none(monkeypatch):
+    """منتجٌ لحقلٍ آخر ⇒ يُرفَض (لا خلط هويّة)."""
+    _patch_client(monkeypatch, payload=_observed(field_id="field-2"))
+    assert await _fetch_fresh_ndvi("field-1", "tenant-a") == (None, None), "منتج حقلٍ آخر قُبِل"
+
+
+async def test_fetch_fresh_ndvi_without_acquisition_date_returns_none(monkeypatch):
+    """بلا تاريخ اقتناء ⇒ لا يُدَّعى طازجاً (كان يُختلَق date.today())."""
+    payload = _observed()
+    payload["indicator_product"]["provenance"] = {}
+    _patch_client(monkeypatch, payload=payload)
+    assert await _fetch_fresh_ndvi("field-1", "tenant-a") == (None, None), (
+        "NDVI بلا تاريخ اقتناء قُبِل طازجاً"
+    )
 
 
 async def test_fetch_fresh_ndvi_simulation_returns_none(monkeypatch):
     """real_data=false (محاكاة) ⇒ None (لا نستخدم قيماً غير حقيقيّة — صدق)."""
-    _patch_client(monkeypatch, payload={"real_data": False, "stats": {"mean": 0.5}})
-    assert await _fetch_fresh_ndvi("field-1") is None
+    payload = _observed(0.5)
+    payload["real_data"] = False
+    _patch_client(monkeypatch, payload=payload)
+    assert await _fetch_fresh_ndvi("field-1", "tenant-a") == (None, None), "محاكاة قُبِلت"
 
 
 async def test_fetch_fresh_ndvi_missing_mean_returns_none(monkeypatch):
-    """real_data=true لكن stats.mean مفقود ⇒ None (شكل ناقص ⇒ تدرّج)."""
-    _patch_client(monkeypatch, payload={"real_data": True, "stats": {}})
-    assert await _fetch_fresh_ndvi("field-1") is None
+    """منتجٌ مرصود لكن stats.mean مفقود ⇒ None (شكل ناقص ⇒ تدرّج)."""
+    payload = _observed()
+    payload["stats"] = {}
+    _patch_client(monkeypatch, payload=payload)
+    assert await _fetch_fresh_ndvi("field-1", "tenant-a") == (None, None), "متوسّط مفقود قُبِل"
 
 
 async def test_fetch_fresh_ndvi_network_error_returns_none(monkeypatch):
@@ -110,7 +169,7 @@ async def test_fetch_fresh_ndvi_network_error_returns_none(monkeypatch):
     import httpx
 
     _patch_client(monkeypatch, raise_exc=httpx.ConnectError("boom"))
-    assert await _fetch_fresh_ndvi("field-1") is None
+    assert await _fetch_fresh_ndvi("field-1", "tenant-a") == (None, None), "تعذّر شبكيّ لم يتدرّج"
 
 
 # ─── علم prefer_fresh_ndvi (افتراضه True — يسمح بتعطيل الجلب الحيّ) ──────────────

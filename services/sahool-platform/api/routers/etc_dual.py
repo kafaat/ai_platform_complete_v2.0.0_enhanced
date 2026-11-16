@@ -6,8 +6,9 @@
 
 صدق منهجيّ:
   - **NDVI لا يُختلَق:** سلّم أولويّة صادق — تجاوز الطلب (`req.ndvi`) > **COG طازج** من
-    raster-service (`/v1/fields/{id}/indicator-grid?index=ndvi&date=latest`، فقط إن
-    `real_data=true`) > المخزَّن (`imagery_automation_fields.last_ndvi_mean` عبر
+    raster-service (`/v1/fields/{id}/indicator-grid?index=ndvi&date=latest` تحت المستأجِر،
+    فقط إن `real_data=true` ومنتجٌ مرصود اجتاز بوّابة الجودة وله تاريخ اقتناء)
+    > المخزَّن (`imagery_automation_fields.last_ndvi_mean` عبر
     `gather_field_freshness`) > لا شيء. أيّ تعذّر/`real_data=false` ⇒ تدرّج صامت للمخزَّن
     (لا خطأ، لا تعطيل النقطة). غيابه كلّه ⇒ ``ndvi=None`` ⇒ Kcb عمريّ + ملاحظة.
   - **الطقس ذاتيّ-الاكتفاء:** يُمرَّر كاملاً، أو يُجلب **حيّاً من Open-Meteo** بإحداثيّات الحقل؛
@@ -42,7 +43,11 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
-from api.raster_service_client import get_indicator_grid
+from api.raster_service_client import (
+    get_indicator_grid,
+    indicator_grid_from_payload,
+    observed_indicator_product,
+)
 from api.weather_service_client import et0_unavailable_http_exception, get_et0_product
 
 logger = logging.getLogger(__name__)
@@ -111,34 +116,54 @@ def _pick_ndvi(
     return None, "none"
 
 
-async def _fetch_fresh_ndvi(field_id: str) -> float | None:
-    """يجلب NDVI الطازج من COG عبر raster-service (خارج اتّصال القاعدة، X-Agent-Token).
+async def _fetch_fresh_ndvi(
+    field_id: str, tenant_id: str | None
+) -> tuple[float | None, date | None]:
+    """يجلب NDVI الطازج من COG عبر raster-service ويُرجِع ``(mean, acquisition_date)``.
 
-    يقرأ ``GET /v1/fields/{id}/indicator-grid?index=ndvi&date=latest`` الذي يقرأ COG
-    حقيقيّاً ويُرجِع ``stats.mean`` + ``real_data``. **صدق:** يُرجِع المتوسّط فقط حين
-    ``real_data is True`` (COG حقيقيّ)؛ أيّ تعذّر/``real_data=false``/شكل غير متوقَّع
-    ⇒ ``None`` (تدرّج صامت للمخزَّن، لا خطأ، لا تعطيل النقطة، لا اختلاق).
+    يقرأ ``GET /v1/fields/{id}/indicator-grid?index=ndvi&date=latest`` **تحت المستأجِر**
+    (``X-Tenant-Id`` — W1-01/remote-5: raster يحلّ طبقات الحقل بالمستأجِر، وبدونه لا طبقة
+    فيسقط الجلب دائماً إلى المخزَّن). **صدق:** يُقبَل المتوسّط فقط حين:
+      · ``real_data is True``؛
+      · و``observed_indicator_product`` (حكم raster نفسه: منتجٌ مرصود اجتاز بوّابة الجودة،
+        لهذا الحقل وهذا المؤشّر، غير مُقدَّر)؛
+      · ولِلقطة تاريخُ اقتناءٍ معلَن (``acquisition_date`` من نَسَب المنتج) — يُعاد هو
+        نفسه كتاريخ NDVI بدل ``date.today()`` (كان التاريخ يُختلَق).
+    أيّ تعذّر/شرطٍ ناقص/بلا مستأجِر ⇒ ``(None, None)`` (تدرّج صامت للمخزَّن، لا اختلاق).
     """
+    if not tenant_id:
+        return None, None
     try:
         data = await get_indicator_grid(
             field_id,
+            tenant_id=str(tenant_id),
             index="ndvi",
             date="latest",
             timeout_s=_FRESH_NDVI_TIMEOUT_S,
         )
     except Exception as e:  # noqa: BLE001 — أيّ تعذّر شبكيّ/تحليل ⇒ تدرّج صامت
         logger.info("جلب NDVI الطازج تعذّر للحقل %s ⇒ تدرّج للمخزَّن: %s", field_id, e)
-        return None
+        return None, None
 
     if not isinstance(data, dict) or data.get("real_data") is not True:
-        return None  # محاكاة/لا COG ⇒ لا نستخدمه (صدق: الطازج حقيقيّ فقط)
+        return None, None  # محاكاة/لا COG ⇒ لا نستخدمه (صدق: الطازج حقيقيّ فقط)
+    if not observed_indicator_product(data, field_id=field_id, index="ndvi"):
+        return None, None  # منتج لم يجتز بوّابة جودة raster أو لحقل/مؤشّر آخر
+    _grid, quality = indicator_grid_from_payload(data)
+    acquired = (quality or {}).get("acquisition_date")
+    try:
+        acquisition_date = date.fromisoformat(acquired) if isinstance(acquired, str) else None
+    except ValueError:
+        acquisition_date = None
+    if acquisition_date is None:
+        return None, None  # بلا تاريخ اقتناء لا يُدَّعى «طازجاً»
     mean = (data.get("stats") or {}).get("mean")
     if mean is None:
-        return None
+        return None, None
     try:
-        return float(mean)
+        return float(mean), acquisition_date
     except (TypeError, ValueError):
-        return None
+        return None, None
 
 
 async def _resolve_weather(
@@ -293,12 +318,14 @@ async def field_etc_dual(
     #    و prefer_fresh_ndvi=True؛ أيّ تعذّر/real_data=false ⇒ تدرّج صامت للمخزَّن.
     stored_ndvi = freshness.get("ndvi_mean")
     ndvi_date = freshness.get("ndvi_date")
-    fresh_ndvi = None
+    fresh_ndvi = fresh_ndvi_date = None
     if req.ndvi is None and req.prefer_fresh_ndvi:
-        fresh_ndvi = await _fetch_fresh_ndvi(field_id)
+        fresh_ndvi, fresh_ndvi_date = await _fetch_fresh_ndvi(
+            field_id, getattr(user, "tenant_id", None)
+        )
     ndvi_used, ndvi_source = _pick_ndvi(req.ndvi, fresh_ndvi, stored_ndvi)
     if ndvi_source == "raster_fresh_cog":
-        ndvi_date = date.today()  # COG طازج (date=latest) ⇒ تاريخه اليوم (لا تاريخ مخزَّن قديم)
+        ndvi_date = fresh_ndvi_date  # تاريخ اقتناء المنتج المرصود (لا date.today())
 
     # 4. الملوحة (تجاوز الطلب > أحدث فحص تربة > 0)
     if req.soil_ece is not None:
