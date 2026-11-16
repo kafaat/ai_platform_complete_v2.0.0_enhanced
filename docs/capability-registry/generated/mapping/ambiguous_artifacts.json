@@ -2585,6 +2585,96 @@
     ]
   },
   {
+    "path": "migrations/v281_farm_ledger_season_reference.down.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 14,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "FM-002",
+        "score": 14,
+        "signals": [
+          "path:farm",
+          "content:farm"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "migrations/v281_farm_ledger_season_reference.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 14,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "FM-002",
+        "score": 14,
+        "signals": [
+          "path:farm",
+          "content:farm"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "migrations/v282_field_task_scouting_anomaly.down.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "OPS-003",
+        "score": 16,
+        "signals": [
+          "path:Scouting",
+          "content:Scouting",
+          "dedup:Scouting=scouting"
+        ]
+      },
+      {
+        "capability_id": "OPS-001",
+        "score": 14,
+        "signals": [
+          "path:field task",
+          "content:field task"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "migrations/v282_field_task_scouting_anomaly.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "OPS-003",
+        "score": 16,
+        "signals": [
+          "path:Scouting",
+          "content:Scouting",
+          "dedup:Scouting=scouting"
+        ]
+      },
+      {
+        "capability_id": "OPS-001",
+        "score": 14,
+        "signals": [
+          "path:field task",
+          "content:field task"
+        ]
+      }
+    ]
+  },
+  {
     "path": "migrations/v58_field_boundary_quality.sql",
     "kind": "database",
     "candidates": [
@@ -4363,7 +4453,7 @@
       },
       {
         "capability_id": "WX-002",
-        "score": 11,
+        "score": 12,
         "signals": [
           "content:forecast",
           "content:Weather forecast",
@@ -4447,6 +4537,29 @@
         "signals": [
           "content:crop season",
           "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/api/routers/seasons.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 14,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 11,
+        "signals": [
+          "content:forecast",
+          "content:Weather forecast",
+          "dedup:Weather forecast=weather forecast"
         ]
       }
     ]
@@ -5149,6 +5262,29 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_season_state_weather_inputs.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 14,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 12,
+        "signals": [
+          "content:forecast",
+          "content:Weather forecast",
+          "dedup:Weather forecast=weather forecast"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
     "kind": "tests",
     "candidates": [
@@ -5171,6 +5307,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_yield_server_features.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "dedup:NDVI=ndvi"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 8,
+        "signals": [
+          "content:Scouting",
+          "dedup:Scouting=scouting"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/scout-ingest-service/tests/test_media_live.py",
     "kind": "tests",
     "candidates": [
@@ -5188,6 +5346,29 @@
         "signals": [
           "content:Scouting",
           "dedup:Scouting=scouting"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/soil-service/p1_store.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SOIL-002",
+        "score": 10,
+        "signals": [
+          "content:sampling plan",
+          "content:Soil sampling",
+          "dedup:Soil sampling=soil sampling"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 8,
+        "signals": [
+          "content:Soil profile",
+          "dedup:Soil profile=soil profile"
         ]
       }
     ]
@@ -5732,6 +5913,29 @@
     ]
   },
   {
+    "path": "tests_v9/test_field_task_scouting_anomaly_live_pg.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "OPS-003",
+        "score": 16,
+        "signals": [
+          "path:Scouting",
+          "content:Scouting",
+          "dedup:Scouting=scouting"
+        ]
+      },
+      {
+        "capability_id": "OPS-001",
+        "score": 14,
+        "signals": [
+          "path:field task",
+          "content:field task"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_imagery_batch_wait_before_read.py",
     "kind": "tests",
     "candidates": [
@@ -5771,6 +5975,29 @@
         "signals": [
           "content:NDVI",
           "dedup:NDVI=ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_ledger_season_currency_governance_live_pg.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 14,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 12,
+        "signals": [
+          "content:rls",
+          "content:row level security",
+          "content:tenant isolation"
         ]
       }
     ]
@@ -5921,6 +6148,28 @@
         "signals": [
           "path:tenant",
           "content:tenant"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_soil_hydraulic_projection_live_pg.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SOIL-005",
+        "score": 11,
+        "signals": [
+          "content:field capacity",
+          "content:wilting point"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 8,
+        "signals": [
+          "content:Soil profile",
+          "dedup:Soil profile=soil profile"
         ]
       }
     ]

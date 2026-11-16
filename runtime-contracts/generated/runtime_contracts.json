@@ -575,6 +575,7 @@
         "MODELS_DIR",
         "MODEL_CACHE",
         "OFFLINE_MODE",
+        "PEST_LABELS_PATH",
         "PEST_MODEL_PATH",
         "PEST_MODEL_SHA256",
         "SAHOOL_CLOUD_URL",
@@ -771,6 +772,7 @@
         ],
         "metrics": [],
         "routes": [
+          "services/field-management-service/fm_scouting_tasks.py",
           "services/field-management-service/fm_task_costs.py",
           "services/field-management-service/fm_task_inspection.py",
           "services/field-management-service/main.py",
@@ -1913,6 +1915,7 @@
       },
       "configuration": [
         "DECISION_SERVICE_URL",
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID",
         "INDICATORS_SERVICE_URL",
         "PLATFORM_API_URL",
         "TASK_SERVICE_URL",
@@ -1952,7 +1955,10 @@
         "trace_spans": [],
         "tracing_instrumented": false
       },
-      "secrets": [],
+      "secrets": [
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY",
+        "SAHOOL_AGENT_TOKEN"
+      ],
       "service": "remote-sensing-workspace-bff",
       "source_service": "remote-sensing-workspace-bff",
       "static_repository_evidence_only": true
@@ -2205,6 +2211,7 @@
           "services/sahool-platform/api/soil_hydraulic_client.py",
           "services/sahool-platform/api/spatial_sync.py",
           "services/sahool-platform/api/water_decision_bridge.py",
+          "services/sahool-platform/api/water_ledger_compute.py",
           "services/sahool-platform/api/weather_service_client.py",
           "services/sahool-platform/api/worker_heartbeat.py",
           "services/sahool-platform/api/workflow_definitions.py",

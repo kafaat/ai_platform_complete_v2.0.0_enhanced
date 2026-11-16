@@ -1,5 +1,5 @@
 {
-  "edge_count": 1065,
+  "edge_count": 1087,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -92,7 +92,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/services/api.ts:560",
+      "evidence": "frontend/src/services/api.ts:562",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -1022,6 +1022,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/field-management-service/fm_scouting_tasks.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/field-management-service/fm_task_costs.py",
       "from": "field-management-service",
       "from_kind": "component",
@@ -1039,6 +1049,16 @@
       "relation": "READS",
       "resource": "db://field_tasks",
       "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_scouting_tasks.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
       "to_kind": "resource"
     },
     {
@@ -2422,7 +2442,27 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/water_ledger_compute.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_operation_ledger",
+      "to": "db://farm_operation_ledger",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_operation_ledger",
+      "to": "db://farm_operation_ledger",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/governance_farm_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -2443,6 +2483,16 @@
     },
     {
       "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_revenue_records",
+      "to": "db://farm_revenue_records",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/governance_farm_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -2502,7 +2552,47 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/core/governance_farm_context.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_season_projects",
+      "to": "db://farm_season_projects",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_ledger_currency_governance_context.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_season_projects",
+      "to": "db://farm_season_projects",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/farm_operations_ledger.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_water_records",
+      "to": "db://farm_water_records",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/water_ledger_compute.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_water_records",
+      "to": "db://farm_water_records",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/governance_farm_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -2659,16 +2749,6 @@
       "relation": "READS",
       "resource": "db://field_geometry_history",
       "to": "db://field_geometry_history",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/field_twin.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://field_indicators",
-      "to": "db://field_indicators",
       "to_kind": "resource"
     },
     {
@@ -3332,7 +3412,37 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/water_ledger_compute.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/weather_service_client.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/yield_heuristics.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/governance_farm_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -4132,26 +4242,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/decision_confidence.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://ndvi_timeseries",
-      "to": "db://ndvi_timeseries",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/nl_gis.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://ndvi_timeseries",
-      "to": "db://ndvi_timeseries",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/routers/notifications.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4463,6 +4553,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/scouting_pins.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_pins",
+      "to": "db://scouting_pins",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/yield_heuristics.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -4792,6 +4892,36 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/yield_heuristics.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/governance_farm_context.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_field_aggregate_ports.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -4813,6 +4943,16 @@
     },
     {
       "evidence": "services/sahool-platform/tests/test_field_twin_endpoint.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_ledger_currency_governance_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -5252,6 +5392,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/water_ledger_compute.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://water_ledger",
+      "to": "db://water_ledger",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/governance_farm_context.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://water_ledger",
+      "to": "db://water_ledger",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -5342,7 +5502,27 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://weather_signals",
+      "to": "db://weather_signals",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_decision_playbook.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://weather_signals",
+      "to": "db://weather_signals",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_field_bound_decision_playbook_w1_17.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -6102,6 +6282,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/soil-service/p1_store.py",
+      "from": "soil-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://soil_hydraulic_profiles",
+      "to": "db://soil_hydraulic_profiles",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/soil-service/soil_store.py",
       "from": "soil-service",
       "from_kind": "component",
@@ -6122,6 +6312,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/soil-service/p1_store.py",
+      "from": "soil-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://soil_profile_current",
+      "to": "db://soil_profile_current",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/soil-service/soil_store.py",
       "from": "soil-service",
       "from_kind": "component",
@@ -6139,6 +6339,16 @@
       "relation": "READS",
       "resource": "db://soil_profile_current",
       "to": "db://soil_profile_current",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/soil-service/p1_store.py",
+      "from": "soil-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://soil_profile_snapshots",
+      "to": "db://soil_profile_snapshots",
       "to_kind": "resource"
     },
     {
@@ -7429,6 +7639,16 @@
       "relation": "WRITES",
       "resource": "db://odoo_sync_state",
       "to": "db://odoo_sync_state",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_scouting_tasks.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
       "to_kind": "resource"
     },
     {
@@ -10670,9 +10890,9 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 569,
+    "READS": 590,
     "ROUTES_TO": 75,
-    "WRITES": 370
+    "WRITES": 371
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -10687,8 +10907,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 940,
-      "resolved": 939,
+      "observed": 962,
+      "resolved": 961,
       "unresolved_component_paths": 0
     }
   }
