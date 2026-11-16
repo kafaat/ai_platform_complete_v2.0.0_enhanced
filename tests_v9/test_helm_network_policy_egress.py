@@ -13,6 +13,7 @@ checks need the helm binary and are skipped without it.
 
 from __future__ import annotations
 
+import ast
 import copy
 import importlib.util
 import os
@@ -54,23 +55,24 @@ _EXPECTED_PUBLIC_EGRESS = {
     "sahool-rag-retrieval": "QDRANT_URL / OLLAMA_BASE_URL (services/rag-retrieval/main.py:53,55)",
 }
 
-# Workloads whose public HTTPS egress W3-09 removed, with the evidence that nothing they can be
-# configured with names an external HTTPS host. Env read by the service and by the shared modules
-# it imports (shared/security/{access_tokens,gateway_deps,cors_policy}: no outbound client).
-_NO_PUBLIC_EGRESS_EVIDENCE = {
-    "sahool-knowledge-graph": (
-        "services/knowledge-graph",
+# Every enabled workload WITHOUT public egress, with the env names its runtime import closure
+# reads (main.py plus every service module and shared/ module it imports, transitively). A
+# workload joins this map when it loses or is deployed without public egress; a new env name in
+# its closure fails the test below, so an outbound setting is judged instead of being silently
+# cut off by the default-deny policy.
+_NO_PUBLIC_EGRESS_EVIDENCE: dict[str, frozenset[str]] = {
+    "sahool-knowledge-graph": frozenset(
         {
             "KG_GRAPHQL_MAX_DEPTH",
             "KG_GRAPHQL_MAX_QUERY_BYTES",
             "KG_GRAPHQL_MAX_TOKENS",
             "KG_SQLITE_PATH",
-        },
+            "SAHOOL_AGENT_TOKEN",
+            "SEASON_EDGE_HMAC_KEY",
+        }
     ),
-    "sahool-guardrails-engine": (
-        "services/guardrails-engine",
-        # DATABASE_URL / REDIS_URL are database ports, never 443; JWT_PUBLIC_KEY is a PEM value,
-        # not a JWKS URL.
+    # DATABASE_URL is a database port, never 443; JWT_PUBLIC_KEY is a PEM value, not a JWKS URL.
+    "sahool-guardrails-engine": frozenset(
         {
             "CORS_ORIGINS",
             "DATABASE_URL",
@@ -78,9 +80,117 @@ _NO_PUBLIC_EGRESS_EVIDENCE = {
             "JWT_SECRET",
             "SAHOOL_AGENT_TOKEN",
             "SAHOOL_ALLOW_HS256_IN_PROD",
+            "SAHOOL_ALLOW_RLS_BYPASS_ROLE",
+            "SAHOOL_ENFORCE_RLS_ROLE",
             "SAHOOL_ENV",
-        },
+        }
     ),
+    # Databases and an assertion Redis only. The httpx users in the service directory
+    # (read_side_compare.py, production_promotion.py, staging_probe.py) are operator scripts
+    # that main.py does not import, so they are outside the closure.
+    "sahool-decision-service": frozenset(
+        {
+            "ACTIVATION_CACHE_TTL_SECONDS",
+            "ACTIVATION_ENVIRONMENT_ID",
+            "ACTIVATION_EVIDENCE_SIGNING_KEY",
+            "ACTIVATION_PROBE_SIGNING_KEY",
+            "DATABASE_URL",
+            "DECISION_DB_POOL_MAX",
+            "DECISION_EXECUTION_REQUEST_MAX_AGE_S",
+            "DECISION_REQUIRE_AGRONOMIC_CONTEXT",
+            "DECISION_REQUIRE_AUTH_TOKEN",
+            "DECISION_REQUIRE_SEPARATION_OF_DUTIES",
+            "DECISION_REQUIRE_SOIL_EVIDENCE_GATE",
+            "DECISION_REQUIRE_SOIL_PROFILE",
+            "DECISION_SERVICE_ALLOW_SCHEMA_CHANGE",
+            "DECISION_SERVICE_AUTH_TOKEN",
+            "DECISION_SERVICE_SOR_ENABLED",
+            "DECISION_STRICT_WORKER_TENANTS",
+            "DECISION_WORKER_ASSERTION_KEY_ID",
+            "DECISION_WORKER_ASSERTION_PREVIOUS_KEY",
+            "DECISION_WORKER_ASSERTION_PREVIOUS_KEY_ID",
+            "DECISION_WORKER_ASSERTION_REDIS_URL",
+            "DEPLOY_BUILD_SHA",
+            "ENVIRONMENT",
+            "IRR_F01_RESERVATION_ENFORCE_ACTIVATION",
+            "RUNTIME_WORK_LEASE_SECONDS",
+            "SAHOOL_ENV",
+        }
+    ),
+    "sahool-field-management": frozenset(
+        {
+            "DATABASE_URL",
+            "FIELD_SERVICE_ALLOWED_CALLERS",
+            "FIELD_SERVICE_ASSERTION_REDIS_URL",
+            "FIELD_SERVICE_TENANT_ASSERTION_KEY",
+            "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID",
+            "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY",
+            "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID",
+            "FIELD_TASKS_SERVICE_TOKEN",
+            "SAHOOL_AGENT_TOKEN",
+            "SAHOOL_ENV",
+            "SERVICE_VERSION",
+        }
+    ),
+    # SMTP_* and SMS_* name external providers; see _GATED_OUTBOUND.
+    "sahool-auth": frozenset(
+        {
+            "ADMIN_PASSWORD",
+            "AUTH_COOKIE_SAMESITE",
+            "AUTH_COOKIE_SECURE",
+            "AUTH_TILE_COOKIE_NAME",
+            "CORS_ORIGINS",
+            "DATABASE_URL",
+            "ENFORCE_ADMIN_STEPUP_MFA",
+            "ENFORCE_SENSITIVE_MFA",
+            "FRONTEND_URL",
+            "JWT_EXPIRE_MINUTES",
+            "JWT_PRIVATE_KEY",
+            "JWT_PUBLIC_KEY",
+            "JWT_SECRET",
+            "LOG_LEVEL",
+            "MFA_ALLOW_DERIVED_KEY",
+            "MFA_AUDIT_HASH_KEY",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "OTP_MAX_REQUESTS",
+            "OTP_TTL_SECONDS",
+            "REDIS_URL",
+            "REFRESH_EXPIRE_DAYS",
+            "REQUIRE_MFA_ROLES",
+            "SAHOOL_ALLOW_HS256_IN_PROD",
+            "SAHOOL_ALLOW_RLS_BYPASS_ROLE",
+            "SAHOOL_ENFORCE_RLS_ROLE",
+            "SAHOOL_ENV",
+            "SMS_API_KEY",
+            "SMS_FROM",
+            "SMS_PROVIDER_URL",
+            "SMTP_FROM",
+            "SMTP_HOST",
+            "SMTP_PASSWORD",
+            "SMTP_PORT",
+            "SMTP_USER",
+            "UVICORN_ACCESS_LEVEL",
+        }
+    ),
+}
+
+# Modules whose import means the code can open a connection outside the cluster.
+_OUTBOUND_MODULES = frozenset(
+    {"aiohttp", "aiosmtplib", "boto3", "botocore", "grpc", "httpx", "requests", "smtplib"}
+    | {"urllib.request", "websockets"}
+)
+
+# Outbound clients a workload without public egress may import, each with the settings that
+# switch it on. The chart must render none of those settings, so the client stays off in a Helm
+# install and the default-deny policy blocks nothing that runs. Turning one on needs the setting
+# and an egress rule together (SMTP is port 587, outside publicHttpsEgress).
+_GATED_OUTBOUND: dict[str, dict[str, frozenset[str]]] = {
+    "sahool-auth": {
+        # Password-reset and verification email (services/auth/main.py send_reset_email).
+        "aiosmtplib": frozenset({"SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD"}),
+        # Phone OTP through an HTTP SMS provider (services/auth/main.py _send_otp_sms).
+        "urllib.request": frozenset({"SMS_PROVIDER_URL", "SMS_API_KEY"}),
+    },
 }
 
 # Workloads that admit only named callers (no gateway), with those callers.
@@ -227,20 +337,114 @@ def test_helm_render_internal_only_workloads_admit_only_their_callers() -> None:
         assert name in excluded["values"], f"the namespace-wide allow must exclude {name}"
 
 
+_ENV_READ = re.compile(r"""(?:getenv|environ\.get|environ\[)\(?\s*["']([A-Z][A-Z0-9_]+)["']""")
+
+
+def _module_file(base: Path, parts: list[str]) -> Path | None:
+    target = base.joinpath(*parts)
+    for candidate in (target.with_suffix(".py"), target / "__init__.py"):
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _runtime_closure(service_dir: Path) -> tuple[set[Path], set[str]]:
+    """The files main.py reaches through service and shared/ imports, and every module imported.
+
+    Absolute imports resolve against the service directory (the image's /app) and ``shared``
+    against the repository root (the image copies shared/ to /app/shared); relative imports
+    resolve against the importing file. Imports inside functions count: they run too.
+    """
+    seen: set[Path] = set()
+    modules: set[str] = set()
+    todo = [service_dir / "main.py"]
+    while todo:
+        path = todo.pop()
+        if path in seen:
+            continue
+        seen.add(path)
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            names: list[str] = []
+            if isinstance(node, ast.Import):
+                names = [alias.name for alias in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                names = [node.module] + [f"{node.module}.{a.name}" for a in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                base = path.parent
+                for _ in range(node.level - 1):
+                    base = base.parent
+                prefix = node.module.split(".") if node.module else []
+                for alias in node.names:
+                    for parts in (prefix + [alias.name], prefix):
+                        found = _module_file(base, parts) if parts else None
+                        if found:
+                            todo.append(found)
+                continue
+            for name in names:
+                modules.add(name)
+                parts = name.split(".")
+                found = _module_file(ROOT if parts[0] == "shared" else service_dir, parts)
+                if found:
+                    todo.append(found)
+    return seen, modules
+
+
+def _service_dir(workload: str) -> Path:
+    dockerfile = _production_values()["workloads"][workload].get("sourceDockerfile")
+    assert dockerfile, f"{workload} declares no sourceDockerfile, so its source cannot be read"
+    return (ROOT / dockerfile).parent
+
+
+def test_every_workload_without_public_egress_has_source_evidence() -> None:
+    workloads = _production_values()["workloads"]
+    unflagged = {
+        n for n, s in workloads.items() if s.get("enabled") and not s.get("publicHttpsEgress")
+    }
+    assert unflagged == set(_NO_PUBLIC_EGRESS_EVIDENCE), (
+        "every enabled workload without public egress needs its env closure frozen in "
+        f"_NO_PUBLIC_EGRESS_EVIDENCE: missing {sorted(unflagged - set(_NO_PUBLIC_EGRESS_EVIDENCE))}, "
+        f"stale {sorted(set(_NO_PUBLIC_EGRESS_EVIDENCE) - unflagged)}"
+    )
+    assert not set(_GATED_OUTBOUND) - unflagged
+
+
 @pytest.mark.parametrize("workload", sorted(_NO_PUBLIC_EGRESS_EVIDENCE))
 def test_a_workload_without_public_egress_reads_no_new_outbound_setting(workload) -> None:
-    """A new env var in these services must be re-judged for egress, not silently cut off."""
-    source_dir, expected = _NO_PUBLIC_EGRESS_EVIDENCE[workload]
-    found = set()
-    for path in (ROOT / source_dir).rglob("*.py"):
-        if "tests" in path.parts or path.name.startswith("test_"):
-            continue
-        text = path.read_text(encoding="utf-8")
-        found |= set(
-            re.findall(
-                r"""(?:getenv|environ\.get|environ\[)\(?\s*["']([A-Z][A-Z0-9_]+)["']""", text
-            )
-        )
-        assert not re.search(r"\b(httpx|aiohttp|urlopen|requests\.(get|post))\b", text), path
+    """A new env var or outbound client in the closure must be re-judged, not silently cut off."""
+    files, modules = _runtime_closure(_service_dir(workload))
+    found: set[str] = set()
+    for path in files:
+        found |= set(_ENV_READ.findall(path.read_text(encoding="utf-8")))
+    expected = _NO_PUBLIC_EGRESS_EVIDENCE[workload]
     assert found == expected, (workload, sorted(found ^ expected))
+    outbound = {
+        m for m in modules if m in _OUTBOUND_MODULES or m.split(".")[0] in _OUTBOUND_MODULES
+    }
+    outbound = {m if m in _OUTBOUND_MODULES else m.split(".")[0] for m in outbound}
+    assert outbound == set(_GATED_OUTBOUND.get(workload, {})), (workload, sorted(outbound))
     assert workload not in _EXPECTED_PUBLIC_EGRESS
+
+
+@pytest.mark.parametrize("workload", sorted(_GATED_OUTBOUND))
+def test_gated_outbound_settings_are_not_rendered_by_the_chart(workload) -> None:
+    spec = _production_values()["workloads"][workload]
+    rendered = set(spec.get("env") or {}) | set(spec.get("secretEnv") or {})
+    for module, settings in _GATED_OUTBOUND[workload].items():
+        assert settings <= _NO_PUBLIC_EGRESS_EVIDENCE[workload], (workload, module)
+        assert not settings & rendered, (
+            f"{workload} renders {sorted(settings & rendered)}, which switches on {module}; "
+            "add the egress rule it needs and move it out of _GATED_OUTBOUND"
+        )
+
+
+def test_the_closure_finds_an_outbound_client_planted_in_an_imported_module(tmp_path) -> None:
+    """Negative control: a client two imports deep, inside a function, is still found."""
+    (tmp_path / "main.py").write_text("from helpers import send\n", encoding="utf-8")
+    (tmp_path / "helpers.py").write_text(
+        "import os\n\ndef send():\n    import httpx\n    return os.getenv('HOOK_URL')\n",
+        encoding="utf-8",
+    )
+    files, modules = _runtime_closure(tmp_path)
+    assert "httpx" in modules
+    assert {"HOOK_URL"} == set().union(*(_ENV_READ.findall(p.read_text()) for p in files))
