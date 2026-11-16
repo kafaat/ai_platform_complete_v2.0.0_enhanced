@@ -385,7 +385,7 @@ def _run_gateway(tmp: Path, auth_addr: str | None = None):
     cmd = ["nginx", "-p", str(tmp), "-c", str(tmp / "nginx.conf")]
     check = subprocess.run(cmd + ["-t"], capture_output=True, text=True, encoding="utf-8")
     assert check.returncode == 0, f"nginx -t rejected the chart gateway config:\n{check.stderr}"
-    log = (tmp / "stderr.log").open("w")
+    log = (tmp / "stderr.log").open("w", encoding="utf-8")
     proc = subprocess.Popen(cmd + ["-g", "daemon off;"], stdout=subprocess.DEVNULL, stderr=log)
     try:
         yield port
