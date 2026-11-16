@@ -25,10 +25,46 @@ ONNX_SHA = "9e95cab07b679da603bba17c4dec7ab3111320571964ee95c0379603c086491e"
 JSON_SHA = "ea6d9b9d9076dbdb6bf5c98c6a141ef154959d2359709b37855727964e7d6c4d"
 
 
+def _requirements() -> dict[str, tuple[str, list[str]]]:
+    """``{name: (version, [sha256, ...])}`` from the hash-pinned requirements file."""
+    joined = re.sub(r"\\\n\s*", " ", PIPER_REQ)
+    out = {}
+    for line in joined.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        spec, *opts = line.split()
+        name, version = spec.split("==")
+        out[name] = (version, [o.removeprefix("--hash=sha256:") for o in opts])
+    return out
+
+
 def test_piper_is_pinned_to_the_providers_target_version():
     target = re.search(r'PIPER_TTS_TARGET_VERSION = "([^"]+)"', PROVIDERS).group(1)
-    pins = [ln for ln in PIPER_REQ.splitlines() if ln.strip() and not ln.startswith("#")]
-    assert pins == [f"piper-tts=={target}"]
+    assert _requirements()["piper-tts"][0] == target
+
+
+def test_the_whole_piper_closure_is_hash_pinned():
+    """--require-hashes mode: every requirement exact, every one with at least one sha256.
+
+    A dependency left unlisted then fails the build instead of resolving freely.
+    """
+    reqs = _requirements()
+    assert set(reqs) == {
+        "piper-tts",
+        "onnxruntime",
+        "pathvalidate",
+        "numpy",
+        "protobuf",
+        "flatbuffers",
+        "packaging",
+    }
+    for name, (version, hashes) in reqs.items():
+        assert re.fullmatch(r"[0-9][0-9A-Za-z.]*", version), (name, version)
+        assert hashes and all(re.fullmatch(r"[0-9a-f]{64}", h) for h in hashes), name
+
+
+def test_the_engine_licence_is_stated():
+    assert "GPL-3.0-or-later" in PIPER_REQ
 
 
 def test_the_default_build_ships_no_voice_until_the_owner_decides():

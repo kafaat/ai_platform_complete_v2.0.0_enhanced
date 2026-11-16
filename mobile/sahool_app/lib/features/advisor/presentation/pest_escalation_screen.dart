@@ -395,7 +395,10 @@ class _WorkflowCard extends StatelessWidget {
     final small = context.textStyles.bodySmall?.copyWith(color: t.muted);
     final rec = wf.context['recommendation_ar'];
     final action = wf.context['action_type'];
-    final outcome = readExecutionOutcome(wf.stepResults);
+    final outcome = readExecutionOutcome(
+      wf.stepResults,
+      contextActionType: action,
+    );
     final tone = switch (wf.status) {
       'completed' => StatusTone.success,
       'suspended' => StatusTone.warning,

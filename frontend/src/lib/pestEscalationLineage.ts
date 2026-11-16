@@ -252,6 +252,7 @@ export type ExecutionOutcome =
 /** نتيجة خطوة التنفيذ كما أعادها الخادم. غياب الخطوة ⇒ pending، لا نجاح. */
 export function readExecutionOutcome(
   stepResults: Record<string, Record<string, unknown>> | null | undefined,
+  contextActionType?: unknown,
 ): ExecutionOutcome {
   const exec = stepResults?.execute;
   if (!exec || typeof exec !== 'object') return { state: 'pending' };
@@ -259,11 +260,24 @@ export function readExecutionOutcome(
     ? exec.guardrails
     : null) as Record<string, unknown> | null;
   if (exec.executed === true) {
-    if (nonEmpty(exec.execution_ref)) return { state: 'executed', executionRef: exec.execution_ref };
-    return {
-      state: 'unconfirmed',
-      reasons: ['أعلن الخادم التنفيذ بلا مرجع تنفيذ — لا يُعدّ تنفيذاً مؤكّداً'],
-    };
+    if (!nonEmpty(exec.execution_ref)) {
+      return {
+        state: 'unconfirmed',
+        reasons: ['أعلن الخادم التنفيذ بلا مرجع تنفيذ — لا يُعدّ تنفيذاً مؤكّداً'],
+      };
+    }
+    // Without an injected execute_fn the server answers executed=true with the placeholder
+    // "exec-<action_type>" (core/pest_escalation_flow.py step_execute). No executor ran.
+    const action = stepResults?.recommend?.action_type ?? contextActionType;
+    if (nonEmpty(action) && exec.execution_ref === `exec-${action}`) {
+      return {
+        state: 'unconfirmed',
+        reasons: [
+          'مرجع التنفيذ افتراضيّ من الخادم (لا منفّذ موصول) — لم يُنفَّذ شيء فعلياً',
+        ],
+      };
+    }
+    return { state: 'executed', executionRef: exec.execution_ref };
   }
   const reasons: string[] = [];
   if (nonEmpty(exec.note_ar)) reasons.push(exec.note_ar);

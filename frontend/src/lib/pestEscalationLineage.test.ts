@@ -176,9 +176,26 @@ describe('readExecutionOutcome — نتيجة التنفيذ كما أعادها
   });
 
   it('executed=true بمرجع ⇒ نُفِّذ بالمرجع؛ بلا مرجع ⇒ غير مؤكَّد', () => {
-    expect(readExecutionOutcome({ execute: { executed: true, execution_ref: 'exec-urgent_spray' } }))
-      .toEqual({ state: 'executed', executionRef: 'exec-urgent_spray' });
+    expect(readExecutionOutcome({ execute: { executed: true, execution_ref: 'task-42' } }))
+      .toEqual({ state: 'executed', executionRef: 'task-42' });
     expect(readExecutionOutcome({ execute: { executed: true } }).state).toBe('unconfirmed');
+  });
+
+  it('the server placeholder exec-<action_type> (no executor wired) is unconfirmed, not executed', () => {
+    const fromRecommend = readExecutionOutcome({
+      recommend: { action_type: 'urgent_spray' },
+      execute: { executed: true, execution_ref: 'exec-urgent_spray' },
+    });
+    expect(fromRecommend.state).toBe('unconfirmed');
+    expect(fromRecommend.state === 'unconfirmed' && fromRecommend.reasons[0]).toContain('لا منفّذ موصول');
+    // The recommend step may be absent from step_results: the context's action_type decides.
+    expect(
+      readExecutionOutcome({ execute: { executed: true, execution_ref: 'exec-biocontrol' } }, 'biocontrol').state,
+    ).toBe('unconfirmed');
+    // A real executor's reference for the same action stays executed.
+    expect(
+      readExecutionOutcome({ execute: { executed: true, execution_ref: 'task-7' } }, 'urgent_spray'),
+    ).toEqual({ state: 'executed', executionRef: 'task-7' });
   });
 
   it('executed ليس true حرفيّاً ⇒ لم يُنفَّذ', () => {

@@ -224,14 +224,28 @@ describe('PestEscalationPage — نتيجة التنفيذ الحقيقيّة', 
   it('executed=true يُعرَض بمرجع التنفيذ الذي أعاده الخادم', () => {
     const res = completedNotExecuted();
     res.step_results.execute = {
-      executed: true, execution_ref: 'exec-urgent_spray',
+      executed: true, execution_ref: 'task-42',
       guardrails: { allowed: true, status: 'allowed', reason_ar: 'سمح' },
     } as never;
     h.mut = { ...h.mut, data: res };
     render(<PestEscalationPage />);
     const box = screen.getByTestId('execution-outcome');
     expect(box.textContent).toContain('نُفِّذ بحسب الخادم');
-    expect(box.textContent).toContain('exec-urgent_spray');
+    expect(box.textContent).toContain('task-42');
+  });
+
+  it('the server placeholder exec-urgent_spray is shown as unconfirmed, never as executed', () => {
+    const res = completedNotExecuted();
+    res.step_results.execute = {
+      executed: true, execution_ref: 'exec-urgent_spray',
+      guardrails: { allowed: true, status: 'allowed', reason_ar: 'سمح' },
+    } as never;
+    h.mut = { ...h.mut, data: res };
+    render(<PestEscalationPage />);
+    const box = screen.getByTestId('execution-outcome');
+    expect(box.textContent).toContain('تنفيذ غير مؤكَّد');
+    expect(box.textContent).toContain('لا منفّذ موصول');
+    expect(box.textContent).not.toContain('نُفِّذ بحسب الخادم');
   });
 
   it('رفض الخادم للسلسلة (422 CHEMICAL_LINEAGE_REQUIRED) يُعرَض بكلماته', () => {

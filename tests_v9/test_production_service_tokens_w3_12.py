@@ -20,7 +20,13 @@ import yaml
 pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
-REQUIRED = ("TASK_SERVICE_CALLBACK_TOKEN", "SCOUT_MEDIA_SERVICE_TOKEN", "EDGE_SYNC_TOKEN")
+REQUIRED = (
+    "TASK_SERVICE_CALLBACK_TOKEN",
+    "SCOUT_MEDIA_SERVICE_TOKEN",
+    "EDGE_SYNC_TOKEN",
+    # The plan row's "tasks" token: the gateway's field-task route credential.
+    "FIELD_TASKS_SERVICE_TOKEN",
+)
 
 
 READYZ = {
@@ -94,3 +100,10 @@ def test_readyz_reports_the_tokens_its_endpoints_need(source, names):
 def test_edge_readiness_already_reports_its_sync_token():
     text = (ROOT / "services/edge-inference/main.py").read_text(encoding="utf-8")
     assert '"sync_token_configured": bool(os.getenv("EDGE_SYNC_TOKEN"))' in text
+
+
+def test_the_field_tasks_token_is_the_one_the_gateway_injects_and_the_service_checks():
+    conf = (ROOT / "nginx/nginx.v9.conf").read_text(encoding="utf-8")
+    assert 'proxy_set_header X-Field-Tasks-Token "${FIELD_TASKS_SERVICE_TOKEN}";' in conf
+    gateway = (ROOT / "services/field-management-service/fm_gateway.py").read_text(encoding="utf-8")
+    assert 'os.getenv("FIELD_TASKS_SERVICE_TOKEN", "")' in gateway

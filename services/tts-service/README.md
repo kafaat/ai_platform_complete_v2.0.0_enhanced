@@ -83,7 +83,13 @@ docker build -f services/tts-service/Dockerfile --build-arg TTS_LOCAL_VOICE=ar_J
 ```
 
 - `piper-tts==1.8.0` comes from `requirements-piper.txt`, pinned to the provider's
-  `PIPER_TTS_TARGET_VERSION`. `pip-audit` found no known vulnerabilities on 2026-11-16.
+  `PIPER_TTS_TARGET_VERSION`. The file hash-pins the whole closure (piper-tts, onnxruntime,
+  pathvalidate, numpy, protobuf, flatbuffers, packaging), so pip runs in `--require-hashes`
+  mode and an unlisted dependency or a changed file fails the build. A hash-checked download
+  of the closure succeeded for CPython 3.12 on Linux x86_64 and aarch64, and `pip-audit -r
+  requirements-piper.txt` found no known vulnerabilities on 2026-11-16.
+- **Engine licence:** piper-tts is **GPL-3.0-or-later** (PyPI metadata for 1.8.0). Building the
+  voice into the image ships a GPL-3.0 engine; that is part of the owner's decision to enable it.
 - Both voice files are fetched from a pinned `rhasspy/piper-voices` revision and verified by
   sha256. The `.onnx` digest equals the LFS oid that Hugging Face publishes.
 - **Why it is off:** the voice's model card gives the training-data license only as "See URL"

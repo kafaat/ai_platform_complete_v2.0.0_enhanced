@@ -115,7 +115,7 @@ export default function PestEscalationPage() {
   const status = res?.workflow?.status ?? '';
   const st = STATUS_STYLE[status] ?? { ar: status || '—', color: '#94a3b8', bg: '#1e293b' };
   const lineage = evaluateApprovalLineage(res ? ctx : null);
-  const outcome = readExecutionOutcome(res?.step_results);
+  const outcome = readExecutionOutcome(res?.step_results, ctx.action_type);
   const approveDisabled = mut.isPending || !mutateAllowed || !lineage.allowed;
 
   const approve = () => {

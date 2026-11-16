@@ -261,23 +261,38 @@ class ExecutionOutcome {
 }
 
 /// نتيجة خطوة التنفيذ كما أعادها الخادم. غياب الخطوة ⇒ pending، لا نجاح.
-ExecutionOutcome readExecutionOutcome(Map<String, dynamic>? stepResults) {
+ExecutionOutcome readExecutionOutcome(
+  Map<String, dynamic>? stepResults, {
+  Object? contextActionType,
+}) {
   final exec = _asMap(stepResults?['execute']);
   if (exec == null) return const ExecutionOutcome(ExecutionState.pending);
   final gr = _asMap(exec['guardrails']);
   if (exec['executed'] == true) {
     final ref = exec['execution_ref'];
-    if (_nonEmpty(ref)) {
-      return ExecutionOutcome(
-        ExecutionState.executed,
-        executionRef: ref as String,
+    if (!_nonEmpty(ref)) {
+      return const ExecutionOutcome(
+        ExecutionState.unconfirmed,
+        reasons: [
+          'أعلن الخادم التنفيذ بلا مرجع تنفيذ — لا يُعدّ تنفيذاً مؤكّداً',
+        ],
       );
     }
-    return const ExecutionOutcome(
-      ExecutionState.unconfirmed,
-      reasons: [
-        'أعلن الخادم التنفيذ بلا مرجع تنفيذ — لا يُعدّ تنفيذاً مؤكّداً',
-      ],
+    // Without an injected execute_fn the server answers executed=true with the placeholder
+    // "exec-<action_type>" (core/pest_escalation_flow.py step_execute). No executor ran.
+    final action =
+        _asMap(stepResults?['recommend'])?['action_type'] ?? contextActionType;
+    if (_nonEmpty(action) && ref == 'exec-$action') {
+      return const ExecutionOutcome(
+        ExecutionState.unconfirmed,
+        reasons: [
+          'مرجع التنفيذ افتراضيّ من الخادم (لا منفّذ موصول) — لم يُنفَّذ شيء فعلياً',
+        ],
+      );
+    }
+    return ExecutionOutcome(
+      ExecutionState.executed,
+      executionRef: ref as String,
     );
   }
   final reasons = <String>[];

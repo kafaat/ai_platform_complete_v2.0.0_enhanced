@@ -245,16 +245,38 @@ void main() {
 
     test('executed=true بمرجع ⇒ نُفِّذ؛ بلا مرجع ⇒ غير مؤكَّد', () {
       final ok = readExecutionOutcome({
-        'execute': {'executed': true, 'execution_ref': 'exec-urgent_spray'},
+        'execute': {'executed': true, 'execution_ref': 'task-42'},
       });
       expect(ok.state, ExecutionState.executed);
-      expect(ok.executionRef, 'exec-urgent_spray');
+      expect(ok.executionRef, 'task-42');
       expect(
         readExecutionOutcome({
           'execute': {'executed': true},
         }).state,
         ExecutionState.unconfirmed,
       );
+    });
+  });
+
+  group('the server placeholder reference', () {
+    test('exec-<action_type> with no executor wired is unconfirmed', () {
+      final fromRecommend = readExecutionOutcome({
+        'recommend': {'action_type': 'urgent_spray'},
+        'execute': {'executed': true, 'execution_ref': 'exec-urgent_spray'},
+      });
+      expect(fromRecommend.state, ExecutionState.unconfirmed);
+      expect(fromRecommend.reasons.single, contains('لا منفّذ موصول'));
+      expect(
+        readExecutionOutcome({
+          'execute': {'executed': true, 'execution_ref': 'exec-biocontrol'},
+        }, contextActionType: 'biocontrol').state,
+        ExecutionState.unconfirmed,
+      );
+      final real = readExecutionOutcome({
+        'execute': {'executed': true, 'execution_ref': 'task-7'},
+      }, contextActionType: 'urgent_spray');
+      expect(real.state, ExecutionState.executed);
+      expect(real.executionRef, 'task-7');
     });
   });
 
