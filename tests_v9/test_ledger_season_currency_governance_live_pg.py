@@ -21,6 +21,7 @@ from __future__ import annotations
 import asyncio
 import importlib
 import os
+import re
 import sys
 import uuid
 from datetime import date, timedelta
@@ -833,19 +834,19 @@ async def _season_fk_state(admin) -> dict[str, bool]:
     return {r["tbl"]: r["convalidated"] for r in rows}
 
 
-def test_v281_rollback_returns_validated_keys_unless_a_row_still_names_a_seasons_season():
-    """Lab receipt on 0f746db: v281's down left the seven season keys NOT VALID even on a clean
-    database, so a rollback was not the pre-v281 schema. Now each key is validated when no row
-    of its table names a season missing from farm_season_projects; a table that still holds
-    such a row keeps its key NOT VALID (and the others validate). v281 is re-applied after."""
+def test_v281_rollback_reports_each_tables_season_orphans_and_refuses_an_rls_migrator():
+    """Lab receipt on 0f746db and on #1503: v281's down restores the seven season keys NOT VALID
+    (no migration runs VALIDATE CONSTRAINT: operator step, docs/runbooks/
+    validate_not_valid_constraints.md). It must tell the operator, per table, how many rows would
+    make VALIDATE fail, and a count FORCE RLS could hide must not be reported: a migrator subject
+    to RLS is refused. v281 is re-applied after."""
     down = (ROOT / "migrations" / "v281_farm_ledger_season_reference.down.sql").read_text(
         encoding="utf-8"
     )
     up = (ROOT / "migrations" / "v281_farm_ledger_season_reference.sql").read_text(encoding="utf-8")
 
     assert "SET LOCAL row_security = off;" in down, (
-        "the down must count orphans and validate with row security off, or a non-bypassing "
-        "migrator marks a key valid over rows FORCE RLS hides from it"
+        "the down must count orphans with row security off, or FORCE RLS hides them from the count"
     )
 
     async def strays(admin, present) -> dict[str, int]:
@@ -893,14 +894,23 @@ def test_v281_rollback_returns_validated_keys_unless_a_row_still_names_a_seasons
             elif _CERTIFICATION_REQUIRED:
                 raise AssertionError("certifying run needs the restricted role sahool_app_test")
 
+            notices: list[str] = []
+            admin.add_log_listener(lambda _c, msg: notices.append(msg.message))
+
+            def reported() -> dict[str, int]:
+                out = {}
+                for m in notices:
+                    hit = re.match(r"v281 rollback: (\w+) restored \w+ NOT VALID; (\d+) row", m)
+                    if hit:
+                        out[hit.group(1)] = int(hit.group(2))
+                return out
+
             before = await strays(admin, present)
             await admin.execute(down)
             clean = await _season_fk_state(admin)
             assert set(clean) == present, f"down restored keys on {sorted(clean)}, not {present}"
-            for t, valid in clean.items():
-                assert valid == (before[t] == 0), (
-                    f"{t}: key validated={valid} with {before[t]} row(s) naming a missing season"
-                )
+            assert not any(clean.values()), f"no migration may validate the keys: {clean}"
+            assert reported() == before, f"per-table orphan report {reported()} != {before}"
             await admin.execute(up)
             assert await _season_fk_state(admin) == {}, "v281 re-applied must drop the keys"
 
@@ -914,14 +924,12 @@ def test_v281_rollback_returns_validated_keys_unless_a_row_still_names_a_seasons
                     str(uuid.uuid4()),
                     f"season-only-{uuid.uuid4().hex[:8]}",
                 )
+            notices.clear()
             await admin.execute(down)
-            held = await _season_fk_state(admin)
-            assert held.get("farm_operation_ledger") is False, (
-                f"a row naming a seasons season must keep the operation ledger key NOT VALID: {held}"
+            expected = {**before, "farm_operation_ledger": before["farm_operation_ledger"] + 1}
+            assert reported() == expected, (
+                f"the orphan must be counted on its own table only: {reported()} != {expected}"
             )
-            for t, valid in held.items():
-                if t != "farm_operation_ledger":
-                    assert valid == (before[t] == 0), f"{t}: validated={valid}, rows={before[t]}"
         finally:
             if admin.is_in_transaction():
                 await admin.execute("ROLLBACK")

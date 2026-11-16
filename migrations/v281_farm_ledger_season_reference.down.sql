@@ -3,18 +3,18 @@
 -- Rollback script, not listed in MANIFEST.txt (forward-only manifest, as for every *.down.sql).
 -- Order: roll back the code first (revert W1-14: core/farm_operations_ledger.py
 -- _TENANT_SCOPE_SQL['season'] accepts seasons.season_id), then run this script. Idempotent.
--- Data note: rows written after v281 may name a season of the `seasons` table. Each foreign key
--- is added NOT VALID, then validated at once when no row of its table names a season missing
--- from farm_season_projects: the rollback then returns the pre-v281 schema exactly. A table that
--- still holds such rows keeps its key NOT VALID (new writes are checked; a seasons id is refused,
--- as before v281) and the script raises a NOTICE naming it and the row count; run
--- `ALTER TABLE ... VALIDATE CONSTRAINT ...` once those rows are resolved (lab receipt on 0f746db).
+-- Data note: rows written after v281 may name a season of the `seasons` table. The foreign keys
+-- are restored NOT VALID (new writes are checked against farm_season_projects again; a seasons
+-- id is refused, as before v281). No migration runs VALIDATE CONSTRAINT
+-- (test_no_blind_validate_constraint_in_migrations): for each table the script raises a NOTICE
+-- with the count of rows that would make VALIDATE fail, and the operator validates per
+-- docs/runbooks/validate_not_valid_constraints.md (section v281 rollback) once it is 0.
 BEGIN;
 SET LOCAL lock_timeout = '15s';
--- The orphan count and VALIDATE CONSTRAINT both run under row security. A migrator that does not
--- bypass RLS would see 0 rows on a FORCE-RLS table and mark a key valid over a violating row
--- (lab receipt on #1503). With row_security off such a migrator gets an error instead; a
--- superuser/BYPASSRLS migrator is unaffected.
+-- The orphan count runs under row security: a migrator that does not bypass RLS would count 0
+-- rows on these FORCE-RLS tables and report a clean table that is not (lab receipt and review of
+-- #1503). Row security is off and such a role is refused; a superuser/BYPASSRLS migrator is
+-- unaffected.
 SET LOCAL row_security = off;
 
 DO $$
@@ -67,12 +67,9 @@ BEGIN
                 '(SELECT 1 FROM farm_season_projects p WHERE p.season_id = x.season_id)',
                 t
             ) INTO orphans;
-            IF orphans = 0 THEN
-                EXECUTE format('ALTER TABLE %I VALIDATE CONSTRAINT %I', t, t || '_season_id_fkey');
-            ELSE
-                RAISE NOTICE 'v281 rollback: % keeps % NOT VALID: % row(s) name a season missing '
-                    'from farm_season_projects', t, t || '_season_id_fkey', orphans;
-            END IF;
+            RAISE NOTICE 'v281 rollback: % restored % NOT VALID; % row(s) name a season missing '
+                'from farm_season_projects (validate per the runbook once 0)',
+                t, t || '_season_id_fkey', orphans;
         END IF;
     END LOOP;
 END $$;
