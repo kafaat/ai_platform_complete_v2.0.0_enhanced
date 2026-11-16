@@ -18,7 +18,7 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import httpx
 import numpy as np
@@ -30,6 +30,10 @@ from pydantic import BaseModel, Field, field_validator
 from zlmedia_client import api_verdict
 
 from shared.security.access_tokens import decode_access_token
+from shared.security.tenant_assertion_headers import (
+    TenantAssertionError,
+    tenant_assertion_headers,
+)
 
 # ── حارس SSRF لمصادر البثّ ────────────────────────────────────
 # الخدمة تتّصل بكاميرات ميدانيّة تعيش غالباً على شبكات LAN خاصّة، فلا نحظر
@@ -239,6 +243,68 @@ def _bound_field_id(field_id: str | None) -> str | None:
     return None if value.lower() in _UNBOUND_FIELD_IDS else value
 
 
+# W0-07 (scout-1): a stream may name only a field of its own tenant. The field owner
+# (field-management-service) answers, scoped by the tenant this service verified from the JWT.
+FIELD_SERVICE_URL = os.getenv("FIELD_SERVICE_URL", "http://sahool-field-management:8000")
+FIELD_SERVICE_CALLER = "video-processor"
+
+
+async def assert_field_in_tenant(field_id: str, tenant_id: str) -> None:
+    """403 when the field is not the tenant's; 503 when ownership cannot be proved (fail-closed)."""
+    key = os.getenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", "")
+    token = os.getenv("SAHOOL_AGENT_TOKEN", "")
+    if not FIELD_SERVICE_URL or not token or not key:
+        raise HTTPException(503, "field_ownership_check_unavailable")
+    # field-management verifies against the decoded path (request.url.path); the URL is encoded.
+    path = f"/internal/fields/{field_id}"
+    url = f"{FIELD_SERVICE_URL.rstrip('/')}/internal/fields/{quote(field_id, safe='')}"
+    try:
+        headers = {
+            "X-Agent-Token": token,
+            **tenant_assertion_headers(
+                key=key,
+                key_id=os.getenv("FIELD_SERVICE_TENANT_ASSERTION_KEY_ID", "current"),
+                service=FIELD_SERVICE_CALLER,
+                tenant_id=tenant_id,
+                method="GET",
+                path=path,
+            ),
+        }
+    except TenantAssertionError as exc:
+        raise HTTPException(503, "field_ownership_check_unavailable") from exc
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            resp = await client.get(url, headers=headers)
+    except Exception as exc:  # noqa: BLE001 — owner unreachable ⇒ cannot prove ownership
+        raise HTTPException(503, "field_ownership_check_unavailable") from exc
+    if resp.status_code == 404:
+        raise HTTPException(403, "field_not_in_tenant")
+    if resp.status_code != 200:
+        logger.warning("field owner check failed status=%s", resp.status_code)
+        raise HTTPException(503, "field_ownership_check_unavailable")
+
+
+def _edge_tenant_headers(tenant_id: str) -> dict[str, str]:
+    """Signed tenant headers for the edge's pest-detect call, or {} without a key.
+
+    Without them the edge still detects and returns the result but syncs nothing
+    (``not_synced_no_tenant``): no result is ever written for an unverified tenant."""
+    key = os.getenv("EDGE_TENANT_ASSERTION_KEY", "")
+    if not key or not tenant_id:
+        return {}
+    try:
+        return tenant_assertion_headers(
+            key=key,
+            key_id=os.getenv("EDGE_TENANT_ASSERTION_KEY_ID", "current"),
+            service="video-processor",
+            tenant_id=tenant_id,
+            method="POST",
+            path="/v1/inference/pest-detect",
+        )
+    except TenantAssertionError:
+        return {}
+
+
 class StreamState:
     def __init__(self, config: StreamConfig):
         self.config = config
@@ -301,11 +367,13 @@ async def run_inference(frame: np.ndarray, cfg: StreamConfig) -> dict:
         "return_image": "false",
     }
     field_id = _bound_field_id(cfg.field_id)
+    headers = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
     if field_id is not None:
         data["field_id"] = field_id
+        # The stream's tenant was bound from the verified JWT at creation (routers/streams.py).
+        headers.update(_edge_tenant_headers(str(cfg.tenant_id)))
     if cfg.crop:
         data["crop"] = cfg.crop
-    headers = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:

@@ -24,6 +24,10 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from shared.security.tenant_assertion_headers import (
+    TenantAssertionError,
+    tenant_assertion_headers,
+)
 
 router = APIRouter()
 
@@ -144,6 +148,7 @@ def _filtered_headers(
     *,
     service_header: tuple[str, str] | None = None,
     inject_actor: bool = False,
+    extra_headers: dict[str, str] | None = None,
 ) -> dict[str, str]:
     headers: dict[str, str] = {}
     for key, value in request.headers.items():
@@ -152,6 +157,9 @@ def _filtered_headers(
             continue
         # لا نثق بأي ترويسات خدمة/مستأجر قادمة من العميل.
         if lk in {"x-agent-token", "x-tenant-id", "x-field-forms-token"}:
+            continue
+        # W0-07: a tenant assertion is minted here for the verified user, never relayed.
+        if lk in {"x-tenant-assertion", "x-service-name"}:
             continue
         # field-forms: هويّة الفاعل تُحقَن من JWT — ادّعاء العميل مرفوض.
         if inject_actor and lk == "x-actor-id":
@@ -171,6 +179,12 @@ def _filtered_headers(
     headers["X-Tenant-Id"] = str(user.tenant_id)
     if inject_actor:
         headers["X-Actor-Id"] = str(user.user_id)
+    if extra_headers:
+        # Replace any client spelling of the same header (e.g. x-request-id) with ours.
+        for name in extra_headers:
+            for key in [k for k in headers if k.lower() == name.lower()]:
+                del headers[key]
+        headers.update(extra_headers)
     return headers
 
 
@@ -209,6 +223,7 @@ async def _proxy(
     timeout: float = 120.0,
     service_header: tuple[str, str] | None = None,
     inject_actor: bool = False,
+    extra_headers: dict[str, str] | None = None,
 ) -> Response:
     if request.method.upper() not in _ALLOWED_METHODS:
         raise HTTPException(405, "method not allowed")
@@ -221,7 +236,11 @@ async def _proxy(
                 target,
                 params=request.query_params.multi_items(),
                 headers=_filtered_headers(
-                    request, user, service_header=service_header, inject_actor=inject_actor
+                    request,
+                    user,
+                    service_header=service_header,
+                    inject_actor=inject_actor,
+                    extra_headers=extra_headers,
                 ),
                 content=body,
             )
@@ -249,10 +268,33 @@ async def proxy_edge(
 ) -> Response:
     """واجهة الويب/Flutter → JWT → platform → X-Agent-Token → edge-inference."""
     path = _authorize_path(path, request.method, user, _EDGE_ROUTES, "الحافة")
+    signed = None
     if path in _EDGE_FIELD_BOUND_ROUTES:
         await _assert_form_field_in_tenant(request, user)
+        signed = _edge_tenant_headers(user, request.method, f"/{path}")
     base = os.getenv("EDGE_INFERENCE_URL", "http://sahool-edge:8100")
-    return await _proxy(request=request, user=user, base_url=base, path=path, timeout=120.0)
+    return await _proxy(
+        request=request, user=user, base_url=base, path=path, timeout=120.0, extra_headers=signed
+    )
+
+
+def _edge_tenant_headers(user: UserSchema, method: str, path: str) -> dict[str, str]:
+    """W0-07: the edge syncs a field-bound result under the tenant it was told, so the platform
+    signs the verified user's tenant for exactly this request (EDGE_TENANT_ASSERTION_KEY)."""
+    key = os.getenv("EDGE_TENANT_ASSERTION_KEY", "")
+    if not key:
+        raise HTTPException(503, "EDGE_TENANT_ASSERTION_KEY غير مضبوط — كشفٌ مربوطٌ بحقل معطّل بأمان")
+    try:
+        return tenant_assertion_headers(
+            key=key,
+            key_id=os.getenv("EDGE_TENANT_ASSERTION_KEY_ID", "current"),
+            service="sahool-platform",
+            tenant_id=str(user.tenant_id),
+            method=method,
+            path=path,
+        )
+    except TenantAssertionError as exc:
+        raise HTTPException(503, "edge_tenant_assertion_unavailable") from exc
 
 
 @router.api_route(

@@ -111,6 +111,7 @@ async def test_platform_field_state_failure_keeps_body_and_url_out_of_the_log(
 
     monkeypatch.setattr(runtime, "PLATFORM_URL", _CRED_URL)
     monkeypatch.setattr(runtime, "AGENT_TOKEN", "agent-token")
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", "k" * 32)
     monkeypatch.setattr(
         httpx,
         "AsyncClient",
@@ -148,6 +149,7 @@ async def test_ai_advice_audit_event_returned_to_the_client_has_no_upstream_text
 
     monkeypatch.setattr(runtime, "PLATFORM_URL", _CRED_URL)
     monkeypatch.setattr(runtime, "AGENT_TOKEN", "agent-token")
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", "k" * 32)
     monkeypatch.setattr(
         httpx,
         "AsyncClient",

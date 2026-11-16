@@ -30,6 +30,12 @@ services:
   sahool-raster-service:
     depends_on:
       production-preflight: {condition: service_completed_successfully}
+  # W0-08 (scout-2): a production edge has a device identity, or none of its observations can be
+  # attributed and synced. Without it the edge still answers (sync_status not_synced_identity),
+  # but production refuses to start that way.
+  sahool-edge:
+    environment:
+      EDGE_DEVICE_ID: ${EDGE_DEVICE_ID:?EDGE_DEVICE_ID required in production (one per edge device)}
 
 # Canonical production command:
 # docker compose -f docker-compose.v9.yml -f docker-compose.production.yml up -d

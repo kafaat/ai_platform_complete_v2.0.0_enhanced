@@ -27,6 +27,10 @@ from shared.ai.structured_advisory import (
 from shared.ai.structured_advisory import (
     digest as advisory_digest,
 )
+from shared.security.tenant_assertion_headers import (
+    TenantAssertionError,
+    tenant_assertion_headers,
+)
 from shared.security.trusted_tenant import (
     TrustedTenantError,
     resolve_trusted_tenant,
@@ -121,6 +125,27 @@ def _dependency_http_failure(dependency: str, upstream_status: int) -> HTTPExcep
 
 
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
+# W0-05: the platform's internal routes also need a tenant assertion signed with this key for
+# the tenant this runtime verified (resolve_trusted_tenant), not only the shared service token.
+PLATFORM_ASSERTION_SERVICE = "ai_agronomist"
+
+
+def _platform_tenant_headers(tenant_id: str, method: str, path: str) -> dict[str, str] | None:
+    """Signed tenant headers for a platform internal call, or None when no key is configured."""
+    key = os.getenv("PLATFORM_TENANT_ASSERTION_KEY", "")
+    if not key:
+        return None
+    try:
+        return tenant_assertion_headers(
+            key=key,
+            key_id=os.getenv("PLATFORM_TENANT_ASSERTION_KEY_ID", "current"),
+            service=PLATFORM_ASSERTION_SERVICE,
+            tenant_id=tenant_id,
+            method=method,
+            path=path,
+        )
+    except TenantAssertionError:
+        return None
 
 # W0-02 (knowledge-1/x-4): rag-retrieval answers 424 TENANT_CORPUS_EMPTY when the tenant
 # has no readable corpus, and 503 when retrieval is unavailable. Neither is a reason to
@@ -201,11 +226,15 @@ async def _fetch_canonical_field_state(
         return {"status": "unavailable", "reason": "invalid_field_id"}
     if not AGENT_TOKEN:
         return {"status": "unavailable", "reason": "SAHOOL_AGENT_TOKEN not configured"}
+    path = _FIELD_STATE_PATH.format(field_id=quote(field_id, safe=""))
+    signed = _platform_tenant_headers(tenant_id, "GET", path)
+    if signed is None:
+        return {"status": "unavailable", "reason": "PLATFORM_TENANT_ASSERTION_KEY not configured"}
     try:
         resp = await client.get(
-            PLATFORM_URL.rstrip("/") + _FIELD_STATE_PATH.format(field_id=quote(field_id, safe="")),
+            PLATFORM_URL.rstrip("/") + path,
             params={"tenant_id": tenant_id, "canonical": "true", "ai_context": "true"},
-            headers={"X-Agent-Token": AGENT_TOKEN},
+            headers={"X-Agent-Token": AGENT_TOKEN, **signed},
             timeout=30.0,
         )
         if resp.status_code == 404:
@@ -359,6 +388,9 @@ async def _record_ai_advice_event(
     """
     if not AGENT_TOKEN:
         return {"status": "skipped", "reason": "SAHOOL_AGENT_TOKEN not configured"}
+    signed = _platform_tenant_headers(tenant_id, "POST", "/internal/events/ai-advice")
+    if signed is None:
+        return {"status": "skipped", "reason": "PLATFORM_TENANT_ASSERTION_KEY not configured"}
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.post(
@@ -374,7 +406,7 @@ async def _record_ai_advice_event(
                     **({"model_output": model_output} if model_output is not None else {}),
                     **({"soil_sampling_plans": soil_sampling_plans} if soil_sampling_plans else {}),
                 },
-                headers={"X-Agent-Token": AGENT_TOKEN},
+                headers={"X-Agent-Token": AGENT_TOKEN, **signed},
                 # Plans are handed on to soil-service inside this request, so they get the
                 # longer budget too.
                 timeout=35.0 if model_output is not None or soil_sampling_plans else 3.0,

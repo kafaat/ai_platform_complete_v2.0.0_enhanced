@@ -25,6 +25,7 @@ pytestmark = pytest.mark.unit
 TENANT = "11111111-1111-4111-8111-111111111111"
 OWN_FIELD = "field-own"
 FOREIGN_FIELD = "field-of-another-tenant"
+EDGE_KEY = "w0-07-edge-assertion-key-0123456789abcdef"
 
 
 def _multipart(field_ids):
@@ -41,7 +42,7 @@ def _multipart(field_ids):
     return "".join(parts).encode(), f"multipart/form-data; boundary={boundary}"
 
 
-def request_as(monkeypatch, role, method, url, *, field_ids=None, json=None):
+def request_as(monkeypatch, role, method, url, *, field_ids=None, json=None, edge_key=EDGE_KEY):
     forwarded = []
     checked = []
     user = UserSchema(user_id="actor", tenant_id=TENANT, role=role, name_ar="t", is_active=True)
@@ -54,6 +55,10 @@ def request_as(monkeypatch, role, method, url, *, field_ids=None, json=None):
     monkeypatch.setitem(app.dependency_overrides, get_current_user, identity)
     monkeypatch.setattr(platform, "_RATE_LIMIT_PER_MIN", 0)
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", secrets.token_hex(20))
+    if edge_key:
+        monkeypatch.setenv("EDGE_TENANT_ASSERTION_KEY", edge_key)
+    else:
+        monkeypatch.delenv("EDGE_TENANT_ASSERTION_KEY", raising=False)
 
     class Conn:
         async def fetchval(self, _sql, field_id):
@@ -167,6 +172,33 @@ def test_mobile_pest_detect_on_an_owned_field_is_forwarded_intact(monkeypatch, r
     assert forwarded[0].url.path == "/v1/inference/pest-detect"
     assert forwarded[0].headers["X-Tenant-Id"] == TENANT
     assert b"JPEGDATA" in forwarded[0].content
+    # W0-07: the edge syncs under the tenant the platform signed for this exact request.
+    from shared.security.service_tenant_assertion import verify_tenant_assertion
+
+    headers = forwarded[0].headers
+    claims = verify_tenant_assertion(
+        headers["X-Tenant-Assertion"],
+        {"current": EDGE_KEY},
+        "sahool-platform",
+        TENANT,
+        expected_method="POST",
+        expected_path="/v1/inference/pest-detect",
+        expected_request_id=headers["X-Request-Id"],
+    )
+    assert claims.tenant_id == TENANT, claims
+
+
+def test_field_bound_edge_call_without_assertion_key_is_refused_before_forwarding(monkeypatch):
+    response, forwarded, _ = request_as(
+        monkeypatch,
+        UserRole.OWNER,
+        "POST",
+        "/api/edge/v1/inference/pest-detect",
+        field_ids=[OWN_FIELD],
+        edge_key=None,
+    )
+    assert response.status_code == 503, response.status_code
+    assert forwarded == [], "no field-bound edge call may leave without a signed tenant"
 
 
 def test_edge_capabilities_are_readable(monkeypatch):

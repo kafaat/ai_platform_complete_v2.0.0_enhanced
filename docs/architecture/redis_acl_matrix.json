@@ -301,6 +301,43 @@
             }
           ]
         },
+        "sahool-platform-assertion": {
+          "service": "sahool-platform",
+          "password_env": "REDIS_PLATFORM_ASSERTION_PASSWORD",
+          "client_env": "PLATFORM_TENANT_ASSERTION_REDIS_URL",
+          "db": 6,
+          "basis": "derived",
+          "note": "W0-05/W0-07: replay store for the tenant assertions the platform verifies on its internal routes (/internal/fields/{id}/state, /internal/events/ai-advice) and on /v1/edge/sync in service mode. A second user of the sahool-platform service, because its cache user (sahool-platform) may not SET. Same SET NX EX contract and key prefix as sahool-field-management, on its own db.",
+          "commands": [
+            "ping",
+            "select",
+            "set"
+          ],
+          "keys": [
+            "sahool:tenant-assertion:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/sahool-platform/api/service_token_auth.py",
+              "line": 117,
+              "needle": "first = client.set(replay_key, \"1\", nx=True, ex=70)",
+              "why": "SET NX EX"
+            },
+            {
+              "path": "services/sahool-platform/api/service_token_auth.py",
+              "line": 108,
+              "needle": "redis_url = os.getenv(\"PLATFORM_TENANT_ASSERTION_REDIS_URL\", \"\")",
+              "why": "client env: PLATFORM_TENANT_ASSERTION_REDIS_URL"
+            },
+            {
+              "path": "shared/security/service_tenant_assertion.py",
+              "line": 33,
+              "needle": "return f\"sahool:tenant-assertion:{digest}\"",
+              "why": "key (replay_key)"
+            }
+          ]
+        },
         "sahool-decision-service": {
           "password_env": "REDIS_DECISION_PASSWORD",
           "client_env": null,

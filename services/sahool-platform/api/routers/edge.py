@@ -12,7 +12,8 @@ B1). لتفادي الاستيراد الدائريّ: ``api.main`` يستورد
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from core.canonical_schemas import UserRole
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
 from api.edge_models import (
     PROVENANCE_RESULT_TYPES,
@@ -22,15 +23,45 @@ from api.edge_models import (
     record_detection_provenance,
 )
 from api.main import UserSchema, _assert_field_in_tenant, get_current_user, tenant_connection
+from api.service_token_auth import EDGE_SYNC, _require_service_token, verify_channel_tenant
 
 router = APIRouter()
+
+
+def edge_sync_actor(
+    request: Request,
+    authorization: str | None = Header(None),
+) -> UserSchema:
+    """Who the edge result is written for (W0-07, finding scout-1).
+
+    * **Service mode** — the edge sends ``X-Agent-Token`` + ``X-Service-Name`` + ``X-Tenant-Id`` +
+      ``X-Tenant-Assertion`` (``EDGE_SYNC_TENANT_ASSERTION_KEY``, held by the edge alone). The
+      tenant is the one the edge carried in that observation's envelope, so each result lands
+      under its own tenant instead of under the single tenant of a shared ``EDGE_SYNC_TOKEN``. The field is still checked inside that tenant.
+    * **Bearer mode** — a user JWT, as before: the tenant comes from the token.
+
+    A request that starts service mode never falls back to the bearer: a bad assertion is a refusal.
+    Synchronous on purpose: FastAPI runs it in the threadpool (Redis replay check, JWT revocation).
+    """
+    headers = request.headers
+    if "x-tenant-assertion" in headers or "x-service-name" in headers:
+        _require_service_token(headers.get("x-agent-token"))
+        tenant = headers.get("x-tenant-id") or ""
+        verify_channel_tenant(EDGE_SYNC, request, tenant)
+        return UserSchema(
+            user_id=f"service:{headers.get('x-service-name')}",
+            tenant_id=tenant,
+            role=UserRole.VIEWER,
+            name_ar="",
+        )
+    return get_current_user(authorization, request)
 
 
 @router.post("/api/v1/edge/sync")
 @router.post("/v1/edge/sync")
 async def edge_sync_receive(
     req: EdgeSyncRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(edge_sync_actor),
 ):
     """يستقبل نتيجة من جهاز edge ويكتبها مع منع التكرار.
 

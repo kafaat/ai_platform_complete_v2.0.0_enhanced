@@ -788,6 +788,7 @@ def test_rag_general_advice_is_uncalibrated_ai_output_with_string_sources(monkey
 
 
 def test_field_state_fetch_cannot_traverse_platform_paths(monkeypatch):
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", "k" * 32)
     seen = []
 
     def handler(request):
