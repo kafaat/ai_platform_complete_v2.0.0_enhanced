@@ -467,7 +467,9 @@ _OLD_SCOPE_CHECK = (
 
 def _v282_scope_check_block() -> str:
     """The DO block of v282 that installs field_task_anomaly_scope_ck, as the migration has it."""
-    text = (ROOT / "migrations" / "v282_field_task_scouting_anomaly.sql").read_text()
+    text = (ROOT / "migrations" / "v282_field_task_scouting_anomaly.sql").read_text(
+        encoding="utf-8"
+    )
     start = text.index("DO $$")
     return text[start : text.index("END $$;", start) + len("END $$;")]
 
