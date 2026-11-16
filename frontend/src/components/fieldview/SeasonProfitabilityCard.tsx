@@ -26,6 +26,11 @@ interface Props {
   /** مساحة الحقل (هـ) — لأداة سعر التعادل مع تكلفة السجلّ الفعليّة. */
   areaHa?: number | null;
   loading?: boolean;
+  /** عملات الموسم حين يرفض الخادم الجمع عبرها (409 mixed_currency). */
+  currencies?: string[] | null;
+  /** عملة العرض المختارة (null = عملة الموسم الوحيدة). */
+  currency?: string | null;
+  onCurrencyChange?: (currency: string) => void;
 }
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -45,7 +50,7 @@ const catLabel = (c: string) => CATEGORY_LABEL[c] ?? c;
 
 /** ربحيّة الموسم: تعكس التكاليف/الإيرادات الفعليّة المُخزَّنة في سجلّ العمليّات (v100–v102).
  *  صدق: أرقام حقيقيّة فقط · «—» للمجهول · حالة صريحة عند تعطّل الميزة أو غياب السجلّ. */
-export default function SeasonProfitabilityCard({ hasSeason, profitability, summary, variance, economicState, areaHa, loading }: Props) {
+export default function SeasonProfitabilityCard({ hasSeason, profitability, summary, variance, economicState, areaHa, loading, currencies, currency, onCurrencyChange }: Props) {
   const view = summarizeProfitability(profitability);
   const slices = rankCostBreakdown(summary?.summary?.cost_breakdown);
   const vars = topVariances(variance?.variance);
@@ -80,6 +85,22 @@ export default function SeasonProfitabilityCard({ hasSeason, profitability, summ
           </span>
         )}
       </div>
+
+      {hasSeason && onCurrencyChange && (currencies?.length || currency) ? (
+        <label className="mb-2 flex items-center gap-2 text-[11px]" style={{ color: T.muted }}>
+          عملة العرض
+          <select
+            value={currency ?? ''}
+            onChange={(e) => { if (e.target.value) onCurrencyChange(e.target.value); }}
+            className="rounded border bg-transparent px-1"
+            style={{ borderColor: T.line, color: T.ink }}
+            data-testid="season-profitability-currency"
+          >
+            {!currency && <option value="">—</option>}
+            {(currencies?.length ? currencies : [currency as string]).map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </label>
+      ) : null}
 
       {!hasSeason ? (
         <div className="text-[11px]" style={{ color: T.muted }}>لا موسم نشط لعرض ربحيّته — أضِف موسماً لبدء تتبّع التكلفة.</div>

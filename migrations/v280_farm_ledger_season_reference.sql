@@ -14,10 +14,12 @@
 -- check stays in the database (a row cannot name an unknown or another tenant's season), and the
 -- same two sources the farm book uses are accepted. The trigger is SECURITY INVOKER: it reads both
 -- tables under row-level security for the row's own tenant (a write with no tenant context reads
--- with app.current_tenant set to the row's tenant for the lookup, then cleared), so a tenant can
+-- with app.current_tenant set to the row's tenant for the lookup, then restored), so a tenant can
 -- only reference its own seasons. Under row-level security, a row for another tenant than the
 -- context is left to the table's WITH CHECK policy, so the trigger never reveals another
 -- tenant's season ids; a role that bypasses row-level security is checked under the row's tenant.
+-- The tenant context is the one row-level security reads, sahool_effective_tenant_id() (v122:
+-- app.current_tenant, else the legacy app.tenant_id), so a legacy writer is treated the same.
 -- A violation raises SQLSTATE 23503 (foreign_key_violation), as the foreign key did.
 --
 -- Not kept: ON DELETE CASCADE / SET NULL from farm_season_projects (which has no writer, so no
@@ -42,7 +44,10 @@ CREATE OR REPLACE FUNCTION farm_ledger_assert_season_ref() RETURNS trigger
     SECURITY INVOKER
 AS $$
 DECLARE
-    ctx text := NULLIF(current_setting('app.current_tenant', true), '');
+    -- The context row-level security reads (v122): app.current_tenant, else the legacy
+    -- app.tenant_id. `saved` is app.current_tenant as found, restored after the lookup.
+    ctx text := public.sahool_effective_tenant_id();
+    saved text := current_setting('app.current_tenant', true);
     found boolean;
 BEGIN
     IF NEW.season_id IS NULL THEN
@@ -55,10 +60,11 @@ BEGIN
         -- the season is checked below like any other write (it can read every tenant anyway).
         RETURN NEW;
     END IF;
-    IF ctx IS DISTINCT FROM NEW.tenant_id::text THEN
-        -- No tenant context (migration, system job) or a bypassing role with another
-        -- tenant's context: read under the row's own tenant, so row-level security applies
-        -- exactly as for that tenant, then restore the caller's context.
+    IF NULLIF(saved, '') IS DISTINCT FROM NEW.tenant_id::text THEN
+        -- No tenant context (migration, system job), only the legacy app.tenant_id (some
+        -- policies read app.current_tenant alone), or a bypassing role with another tenant's
+        -- context: read under the row's own tenant, so row-level security applies exactly as
+        -- for that tenant, then restore the caller's app.current_tenant.
         PERFORM set_config('app.current_tenant', NEW.tenant_id::text, true);
     END IF;
     found := EXISTS (
@@ -68,8 +74,8 @@ BEGIN
         SELECT 1 FROM farm_season_projects p
         WHERE p.season_id = NEW.season_id AND p.tenant_id = NEW.tenant_id
     );
-    IF ctx IS DISTINCT FROM NEW.tenant_id::text THEN
-        PERFORM set_config('app.current_tenant', COALESCE(ctx, ''), true);
+    IF NULLIF(saved, '') IS DISTINCT FROM NEW.tenant_id::text THEN
+        PERFORM set_config('app.current_tenant', COALESCE(saved, ''), true);
     END IF;
     IF found THEN
         RETURN NEW;

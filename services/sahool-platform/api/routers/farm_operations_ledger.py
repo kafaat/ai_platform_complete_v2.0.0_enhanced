@@ -696,12 +696,12 @@ async def get_budget_variance(
             budgets, actuals = await ledger_core.fetch_budget_and_actual(
                 conn, tenant, season_id, cur
             )
-            incomplete = await ledger_core.fetch_unpriced_categories(conn, tenant, season_id)
+            unpriced = await ledger_core.fetch_unpriced_work(conn, tenant, season_id, cur)
     except ledger_core.MixedCurrencyError as e:
         raise _mixed_currency(e) from e
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحليل انحرافات الموسم", e) from e
-    variance, coverage = ledger_core.priced_variance(budgets, actuals, incomplete)
+    variance, coverage = ledger_core.priced_variance(budgets, actuals, *unpriced)
     recs = generate_cost_recommendations(variance)
     return {
         "season_id": season_id,
@@ -1010,14 +1010,14 @@ async def get_economic_state(
             budgets, actuals = await ledger_core.fetch_budget_and_actual(
                 conn, tenant, season_id, cur
             )
-            incomplete = await ledger_core.fetch_unpriced_categories(conn, tenant, season_id)
+            unpriced = await ledger_core.fetch_unpriced_work(conn, tenant, season_id, cur)
             revenue = await ledger_core.fetch_season_revenue(conn, tenant, season_id, cur)
     except ledger_core.MixedCurrencyError as e:
         raise _mixed_currency(e) from e
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("حساب الحالة الاقتصادية", e) from e
     # an unpriced category is not an underspend: its variance line is dropped, as in /variance
-    variances, coverage = ledger_core.priced_variance(budgets, actuals, incomplete)
+    variances, coverage = ledger_core.priced_variance(budgets, actuals, *unpriced)
     profit = compute_profitability(
         season_id,
         revenue=revenue,

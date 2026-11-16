@@ -423,23 +423,40 @@ async def _unpriced_operation(live, category="water"):
     )
 
 
-def test_unpriced_default_currency_work_keeps_a_usd_variance_incomplete(monkeypatch):
-    """Review finding: an unpriced operation keeps the default YER; it is not a USD saving."""
+def test_unpriced_work_counts_in_the_report_of_the_currency_it_is_recorded_in(monkeypatch):
+    """Unpriced work affects completeness only in its own currency's report.
+
+    tests_v9/test_farm_ledger_cost_coverage_live_pg.py holds the other half (an unpriced
+    operation in another currency leaves this currency's category priced). Here: the USD
+    report keeps unpriced USD work incomplete, and lists unpriced work recorded in YER (the
+    column default when a writer omits the currency) beside it instead of hiding it.
+    """
 
     async def case(live, router):
         user = _user(live.tenant)
         await live.budget(100, "USD")
         await live.operation(40, "USD")
-        await _unpriced_operation(live)
+        await live.operation(None, "USD")  # unpriced USD work: the USD water line is incomplete
+        await _unpriced_operation(live, "seed")  # unpriced, column default currency (YER)
         for currency in (None, "USD"):
             out = await router.get_budget_variance(live.season_id, currency=currency, user=user)
             assert out["currency"] == "USD", f"the priced amounts are USD: {out}"
             assert out["cost_coverage"] == "partial" and out["unpriced_operations"] == 1, (
-                f"unpriced work leaves coverage partial whatever its default currency: {out}"
+                f"only the USD-recorded unpriced operation counts in the USD report: {out}"
             )
             assert out["variance"] == [], (
-                f"no -60% underspend is reported for a category with unpriced work: {out}"
+                f"no -60% underspend is reported for a category with unpriced USD work: {out}"
             )
+            assert out["unpriced_in_other_currencies"] == [
+                {"currency": "YER", "category": "seed", "unpriced_operations": 1}
+            ], f"unpriced work recorded in YER is listed beside the USD report: {out}"
+        yer = await router.get_budget_variance(live.season_id, currency="YER", user=user)
+        assert yer["incomplete_categories"] == [
+            {"stage": "whole_season", "category": "seed", "unpriced_operations": 1}
+        ], f"the YER report is where the YER-recorded unpriced work belongs: {yer}"
+        assert yer["unpriced_in_other_currencies"] == [
+            {"currency": "USD", "category": "water", "unpriced_operations": 1}
+        ], f"and the YER report lists the USD one beside it: {yer}"
 
     _run(monkeypatch, case)
 
@@ -472,10 +489,15 @@ def test_economic_state_drops_variance_lines_with_unpriced_work(monkeypatch):
     async def case(live, router):
         await live.budget(100, "USD")
         await live.operation(40, "USD")
-        await _unpriced_operation(live)
+        await live.operation(None, "USD")  # unpriced USD work
+        await _unpriced_operation(live, "seed")  # unpriced, recorded in the default YER
         out = await router.get_economic_state(live.season_id, user=_user(live.tenant))
         assert out["currency"] == "USD", out
         assert out["cost_coverage"] == "partial", f"unpriced work is reported: {out}"
+        assert out["unpriced_operations"] == 1, f"only USD-recorded unpriced work counts: {out}"
+        assert out["unpriced_in_other_currencies"] == [
+            {"currency": "YER", "category": "seed", "unpriced_operations": 1}
+        ], f"YER-recorded unpriced work is listed, not counted: {out}"
         assert out["economic_state"]["budget_variance_status"] != "critical", (
             f"a missing cost is not a critical underspend: {out['economic_state']}"
         )
@@ -541,6 +563,62 @@ def test_a_bypassing_role_with_another_tenants_context_is_still_season_checked(m
                 assert ctx == live.tenant, "the trigger restores the caller's tenant context"
         finally:
             await admin.close()
+
+    _run(monkeypatch, case)
+
+
+def test_legacy_tenant_guc_writes_are_season_checked_like_current_tenant(monkeypatch):
+    """Review finding: RLS reads sahool_effective_tenant_id() (app.current_tenant, else the
+    legacy app.tenant_id); the trigger must read the same context.
+
+    A NOBYPASSRLS writer with only app.tenant_id set to tenant A, writing a row for tenant B,
+    is refused by the WITH CHECK policy (42501) whether or not B has that season: the trigger
+    does not answer first with 23503 and so does not reveal B's season ids. An own-tenant
+    write under app.tenant_id is checked as usual.
+    """
+
+    async def case(live, router):
+        insert = """INSERT INTO farm_operation_ledger
+               (operation_id, tenant_id, season_id, field_id, operation_type, operation_date,
+                status)
+           VALUES ($1, $2::uuid, $3, $4, 'irrigation', CURRENT_DATE, 'completed')"""
+        async with live.pool.acquire() as conn:
+            assert not await conn.fetchval(
+                "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
+            ), "the pool runs as a NOBYPASSRLS role"
+            for season in (f"missing-{uuid.uuid4().hex[:6]}", live.other_season):
+                async with conn.transaction():
+                    await conn.execute("SELECT set_config('app.tenant_id', $1, true)", live.tenant)
+                    with pytest.raises(asyncpg.InsufficientPrivilegeError) as caught:
+                        await conn.execute(
+                            insert,
+                            f"op-{uuid.uuid4().hex[:8]}",
+                            live.other_tenant,
+                            season,
+                            live.other_field,
+                        )
+                    assert "row-level security" in str(caught.value), (
+                        f"another tenant's row is refused by RLS, not by a season lookup "
+                        f"({season!r}): {caught.value}"
+                    )
+            async with conn.transaction():
+                await conn.execute("SELECT set_config('app.tenant_id', $1, true)", live.tenant)
+                with pytest.raises(asyncpg.ForeignKeyViolationError) as caught:
+                    await conn.execute(
+                        insert,
+                        f"op-{uuid.uuid4().hex[:8]}",
+                        live.tenant,
+                        live.other_season,  # tenant B's season on an own-tenant row
+                        live.field_id,
+                    )
+                assert "season_not_found_for_tenant" in str(caught.value), caught.value
+            async with conn.transaction():
+                await conn.execute("SELECT set_config('app.tenant_id', $1, true)", live.tenant)
+                await conn.execute(
+                    insert, f"op-{uuid.uuid4().hex[:8]}", live.tenant, live.season_id, live.field_id
+                )
+                ctx = await conn.fetchval("SELECT current_setting('app.current_tenant', true)")
+                assert not ctx, f"the trigger leaves app.current_tenant as it found it: {ctx!r}"
 
     _run(monkeypatch, case)
 

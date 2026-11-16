@@ -1403,14 +1403,22 @@ function MapHubCore() {
   // ربحيّة الموسم: تعكس التكاليف/الإيرادات الفعليّة المُخزَّنة (farm-ledger v100–v102) في FieldView.
   // مبوَّبة بوضع الخبير + وجود موسم؛ الخطّافات تلتقط 404 (الميزة مُطفأة) كحالة صادقة لا خطأ.
   const activeSeasonId = activeSeason?.season_id ?? null;
-  const ledgerSummaryQ = useFarmLedgerSummary(fieldId ?? null, activeSeasonId, expertMode && !!activeSeasonId);
-  const profitabilityQ = useSeasonProfitability(activeSeasonId, expertMode && !!activeSeasonId);
-  const varianceQ = useSeasonVariance(activeSeasonId, expertMode && !!activeSeasonId);
+  // business-2: موسم بعملتين يُعيد 409 بأسمائهما؛ يختار الخبير عملة العرض (لا جمع عبر العملات).
+  const [ledgerCurrency, setLedgerCurrency] = useState<{ season: string | null; currency: string | null; currencies: string[] | null }>({ season: null, currency: null, currencies: null });
+  const pickedForSeason = ledgerCurrency.season === activeSeasonId;
+  const reportCurrency = pickedForSeason ? ledgerCurrency.currency : null;
+  const ledgerSummaryQ = useFarmLedgerSummary(fieldId ?? null, activeSeasonId, expertMode && !!activeSeasonId, reportCurrency);
+  const profitabilityQ = useSeasonProfitability(activeSeasonId, expertMode && !!activeSeasonId, reportCurrency);
+  const varianceQ = useSeasonVariance(activeSeasonId, expertMode && !!activeSeasonId, reportCurrency);
   const economicStateQ = useSeasonEconomicState(
     activeSeasonId,
     typeof selected?.area === 'number' ? selected.area : null,
     expertMode && !!activeSeasonId,
+    reportCurrency,
   );
+  // بعد الاختيار لا يعود 409، فتبقى قائمة العملات المحفوظة للتبديل بينها.
+  const seasonCurrencies = profitabilityQ.data?.mixed_currency ?? varianceQ.data?.mixed_currency
+    ?? economicStateQ.data?.mixed_currency ?? (pickedForSeason ? ledgerCurrency.currencies : null);
   const completedOps = useMemo(
     () => (tasksQ.data?.tasks ?? [])
       .filter((t) => t.field_id === fieldId && t.status === 'completed')
@@ -1903,6 +1911,9 @@ function MapHubCore() {
           economicState={economicStateQ.data ?? null}
           areaHa={typeof selected.area === 'number' ? selected.area : null}
           loading={profitabilityQ.isLoading || ledgerSummaryQ.isLoading}
+          currencies={seasonCurrencies}
+          currency={reportCurrency}
+          onCurrencyChange={(c) => setLedgerCurrency({ season: activeSeasonId, currency: c, currencies: seasonCurrencies })}
         />
       )}
 

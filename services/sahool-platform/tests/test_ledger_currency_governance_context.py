@@ -105,14 +105,28 @@ def test_farm_context_fn_refuses_another_tenant_and_the_gate_blocks():
     )
 
 
-def test_unpriced_work_is_counted_in_every_currency_report():
-    """Review finding: an unpriced operation's currency is only the column default (YER)."""
-    import inspect
+def test_unpriced_work_is_scoped_to_its_recorded_currency_and_the_rest_listed():
+    """Unpriced work counts only in its own currency's report; other currencies are listed."""
+    from unittest.mock import AsyncMock
 
-    params = inspect.signature(ledger.fetch_unpriced_categories).parameters
-    assert "currency" not in params, (
-        "unpriced work must not be filtered by currency: a missing cost is not a saving"
+    conn = AsyncMock()
+    conn.fetch.return_value = []
+    incomplete, other = asyncio.run(ledger.fetch_unpriced_work(conn, "t1", "s1", "USD"))
+    assert (incomplete, other) == ([], []), "no rows, nothing incomplete or listed"
+    own, others = (call.args for call in conn.fetch.await_args_list)
+    assert own[1:] == ("t1", "s1", "USD") and "upper(trim(currency)) = $3" in own[0], (
+        f"the report's unpriced work is filtered by its currency: {own}"
     )
+    assert others[1:] == ("t1", "s1", "USD") and "IS DISTINCT FROM $3::text" in others[0], (
+        f"unpriced work in other currencies is read apart: {others}"
+    )
+    _, coverage = ledger.priced_variance(
+        [], [], [], [{"currency": "YER", "category": "seed", "unpriced_operations": 1}]
+    )
+    assert coverage["cost_coverage"] == "recorded_operations", (
+        f"another currency's unpriced work does not change this report's coverage: {coverage}"
+    )
+    assert coverage["unpriced_in_other_currencies"][0]["currency"] == "YER", coverage
 
 
 def test_money_filter_matches_one_currency_and_nothing_when_none():

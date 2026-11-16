@@ -4,6 +4,7 @@ import {
   economicIntensities,
   formatMoney,
   formatPercent,
+  mixedCurrencies,
   rankCostBreakdown,
   summarizeProfitability,
   topVariances,
@@ -140,5 +141,27 @@ describe('formatters — never fabricate a zero for missing data', () => {
   it('formatPercent renders — for null and one decimal otherwise', () => {
     expect(formatPercent(null)).toBe('—');
     expect(formatPercent(42.37)).toBe('42.4٪');
+  });
+});
+
+describe('mixedCurrencies — one report, one currency (business-2)', () => {
+  const err = (status: number, detail: unknown) => ({ response: { status, data: { detail } } });
+
+  it('reads the currencies of a 409 mixed_currency refusal', () => {
+    expect(mixedCurrencies(err(409, { code: 'mixed_currency', currencies: ['USD', 'YER'] }))).toEqual(['USD', 'YER']);
+  });
+
+  it('ignores other errors (they stay errors)', () => {
+    expect(mixedCurrencies(err(409, { code: 'conflict', currencies: ['USD'] }))).toBeNull();
+    expect(mixedCurrencies(err(503, { code: 'mixed_currency', currencies: ['USD', 'YER'] }))).toBeNull();
+    expect(mixedCurrencies(err(409, { code: 'mixed_currency', currencies: [] }))).toBeNull();
+    expect(mixedCurrencies(new Error('network'))).toBeNull();
+  });
+
+  it('asks for a currency instead of showing a sum or a generic error', () => {
+    const v = summarizeProfitability({ season_id: 's1', profitability: null, mixed_currency: ['USD', 'YER'] });
+    expect(v.available).toBe(false);
+    expect(v.reason).toContain('USD، YER');
+    expect(v.totalCost).toBeNull();
   });
 });

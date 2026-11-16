@@ -676,31 +676,72 @@ def money_filter_sql(param: int) -> str:
     return f"upper(trim(currency)) IS NOT DISTINCT FROM ${param}::text"
 
 
-async def fetch_unpriced_categories(conn, tenant_id: str, season_id: str):
-    """Completed operations with no recorded cost, per category.
+async def fetch_unpriced_categories(conn, tenant_id: str, season_id: str, currency=None):
+    """Completed operations with no recorded cost, per category, in the report's currency.
 
     Ledger operations carry no budget stage (actuals are keyed ``whole_season``), so an
     unpriced operation makes its whole category incomplete, whatever the budget stage.
 
-    Not filtered by currency: an unpriced operation has no amount, so its ``currency`` is only
-    the column default (``YER``) and says nothing about the currency its cost would be in. It
-    leaves its category incomplete in every currency's report (a missing cost is not a saving).
+    ``currency`` (normalised) keeps the operations recorded in that currency: an unpriced
+    operation leaves its category incomplete only in the report of the currency it is recorded
+    in. Unpriced work recorded in another currency is listed apart
+    (:func:`fetch_unpriced_other_currencies`), never folded into this report's coverage.
     """
+    scope, args = _currency_scope(tenant_id, season_id, currency)
     rows = await conn.fetch(
         f"""SELECT 'whole_season' AS stage, COALESCE(cost_category, operation_type) AS category,
                    COUNT(*)::int AS unpriced_operations
             FROM farm_operation_ledger
             WHERE tenant_id = $1::uuid AND season_id = $2 AND cost_amount IS NULL
-              AND {ACTUAL_OPERATION_SQL}
+              AND {ACTUAL_OPERATION_SQL}{scope}
             GROUP BY COALESCE(cost_category, operation_type) ORDER BY category""",
-        tenant_id,
-        season_id,
+        *args,
     )
     return [dict(row) for row in rows]
 
 
-def priced_variance(budgets, actuals, incomplete: list[dict]) -> tuple[list, dict]:
-    """Drop variance lines whose category has unpriced work: a missing cost is not a saving."""
+async def fetch_unpriced_other_currencies(conn, tenant_id: str, season_id: str, currency):
+    """Unpriced completed work recorded in a currency other than the report's ``currency``.
+
+    Shown beside the report so it is not silent, but it does not change this currency's
+    coverage or variance: the row says its cost will be in another currency. The database
+    cannot tell a currency the writer chose from the column default (``YER``), so a writer that
+    omits the currency of an unpriced operation in a non-YER season sees it listed here. With no
+    report currency (nothing priced in scope) every unpriced row is already in the report.
+    """
+    if currency is None:
+        return []
+    rows = await conn.fetch(
+        f"""SELECT upper(trim(currency)) AS currency,
+                   COALESCE(cost_category, operation_type) AS category,
+                   COUNT(*)::int AS unpriced_operations
+            FROM farm_operation_ledger
+            WHERE tenant_id = $1::uuid AND season_id = $2 AND cost_amount IS NULL
+              AND {ACTUAL_OPERATION_SQL}
+              AND upper(trim(currency)) IS DISTINCT FROM $3::text
+            GROUP BY 1, 2 ORDER BY 1, 2""",
+        tenant_id,
+        season_id,
+        currency,
+    )
+    return [dict(row) for row in rows]
+
+
+async def fetch_unpriced_work(conn, tenant_id: str, season_id: str, currency):
+    """``(incomplete, other_currencies)`` for :func:`priced_variance`, in one call."""
+    incomplete = await fetch_unpriced_categories(conn, tenant_id, season_id, currency)
+    other = await fetch_unpriced_other_currencies(conn, tenant_id, season_id, currency)
+    return incomplete, other
+
+
+def priced_variance(
+    budgets, actuals, incomplete: list[dict], other_currencies: list[dict] | None = None
+) -> tuple[list, dict]:
+    """Drop variance lines whose category has unpriced work: a missing cost is not a saving.
+
+    ``incomplete`` is the report currency's unpriced work only; ``other_currencies`` (unpriced
+    work recorded in other currencies) is reported beside it and changes nothing here.
+    """
     variance = compute_variances(budgets, actuals)
     categories = {row["category"] for row in incomplete}
     coverage = {
@@ -708,6 +749,8 @@ def priced_variance(budgets, actuals, incomplete: list[dict]) -> tuple[list, dic
         "unpriced_operations": sum(row["unpriced_operations"] for row in incomplete),
         "incomplete_categories": incomplete,
     }
+    if other_currencies is not None:  # the routes always pass it
+        coverage["unpriced_in_other_currencies"] = list(other_currencies)
     return [line for line in variance if line.category not in categories], coverage
 
 
