@@ -27,6 +27,7 @@ from api.raster_service_client import (
     observed_indicator_product,
     zoning_grid_metadata,
 )
+from api.weather_service_client import summarize_weather_history
 
 router = APIRouter(tags=["field-ai-context"])
 
@@ -494,13 +495,6 @@ async def _optional_imagery_timeline(
         warnings.append("ndvi_grid: acquisition_outside_requested_window_or_unknown")
         ndvi_grid, ndvi_grid_quality = None, None
     total_dates = sum(int(v.get("total", 0)) for v in per_indicator.values())
-    # Preserve total_dates as indicator-record count; also expose distinct scene dates.
-    scene_dates: set[str] = set()
-    for block in per_indicator.values():
-        for item in block.get("dates") or []:
-            observed = item.get("date") if isinstance(item, dict) else item
-            if isinstance(observed, str) and len(observed) >= 10:
-                scene_dates.add(observed[:10])
     result: dict[str, Any] = {
         "available": total_dates > 0,
         "range_days": days,
@@ -508,7 +502,7 @@ async def _optional_imagery_timeline(
         "until": date.today().isoformat(),
         "per_indicator": per_indicator,
         "total_dates": total_dates,
-        "unique_scene_dates": len(scene_dates),
+        "unique_scene_dates": context_reads.count_distinct_acquisition_dates(per_indicator),
         "note_ar": "total_dates=سجلات المؤشرات؛ unique_scene_dates=تواريخ الالتقاط الفريدة.",
         "freshness_score": _freshness_score(
             [
@@ -565,8 +559,13 @@ async def _optional_imagery_timeline(
 
 
 async def _optional_weather_history(
-    centroid: dict[str, float] | None, days: int
+    centroid: dict[str, float] | None, days: int, tenant_id: str | None = None
 ) -> tuple[dict[str, Any], str | None]:
+    """الطقسُ التاريخيّ للحزمة من weather-service (W1-22) — لا من موصّل المزوّد.
+
+    يُقرأ ``historical_view`` الكنسيّ عبر ``weather_service_client`` بهويّة المستأجِر،
+    وتُنقَل التغطيةُ والجودةُ والحدودُ كما أعلنها المالك فيرى المستشارُ ما غاب.
+    """
     if not centroid:
         return {
             "available": False,
@@ -576,11 +575,16 @@ async def _optional_weather_history(
     end = date.today()
     start = end - timedelta(days=days)
     try:
-        from api.connectors.openmeteo import fetch_historical
+        from api.weather_service_client import daily_from_view, get_weather_historical
 
-        records = await fetch_historical(
-            centroid["lat"], centroid["lon"], start.isoformat(), end.isoformat()
+        view = await get_weather_historical(
+            centroid["lat"],
+            centroid["lon"],
+            start_date=start.isoformat(),
+            end_date=end.isoformat(),
+            tenant_id=tenant_id,
         )
+        records = daily_from_view(view)
         if not records:
             return {
                 "available": False,
@@ -588,8 +592,16 @@ async def _optional_weather_history(
                 "days": [],
                 "summary": {},
             }, None
-        summary, monthly_items, precip_complete, et0_complete = (
-            context_reads.summarize_ai_weather_archive(records)
+        coverage = view.get("coverage") if isinstance(view.get("coverage"), dict) else {}
+        try:
+            source_missing = int(coverage.get("missing_days") or 0)
+        except (TypeError, ValueError):
+            source_missing = 0
+        summary, monthly_items = summarize_weather_history(
+            records,
+            requested_start=start,
+            requested_end=end,
+            source_missing_days=source_missing,
         )
         return {
             "available": True,
@@ -597,18 +609,19 @@ async def _optional_weather_history(
             "location": centroid,
             "summary": summary,
             "monthly": monthly_items,
-            "source": "open-meteo-archive",
+            "source": "weather-service",
+            "derived_from": view.get("derived_from"),
+            "canonical_state_id": view.get("canonical_state_id"),
+            "quality_status": view.get("quality_status"),
+            "coverage": view.get("coverage"),
+            "limitations": list(view.get("limitations") or []),
             "freshness_score": _freshness_score([{"date": summary.get("last_date")}], ("date",)),
             "provenance": [
                 _source_provenance(
-                    "weather_history", "available", service="open-meteo-archive", total=len(records)
+                    "weather_history", "available", service="weather-service", total=len(records)
                 )
             ],
-        }, (
-            "weather_history_incomplete: missing precipitation or ET0 observations"
-            if not (precip_complete and et0_complete)
-            else None
-        )
+        }, None
     except Exception as exc:  # noqa: BLE001
         return {
             "available": False,
@@ -634,13 +647,11 @@ def _summary_ar(pack: dict[str, Any]) -> str:
     ]
     if weather.get("available"):
         s = weather.get("summary") or {}
-        rain_total = s.get("total_precipitation_mm")
-        et0_total = s.get("total_et0_mm")
-        rain_display = rain_total if rain_total is not None else "غير مكتمل"
-        et0_display = et0_total if et0_total is not None else "غير مكتمل"
-        parts.append(
-            f"طقس تاريخي: {s.get('days')} يوم، مطر {rain_display} مم، ET0 {et0_display} مم."
-        )
+        rain = s.get("total_precipitation_mm")
+        et0 = s.get("total_et0_mm")
+        rain_txt = f"{rain} مم" if rain is not None else "غير مكتمل"
+        et0_txt = f"{et0} مم" if et0 is not None else "غير مكتمل"
+        parts.append(f"طقس تاريخي: {s.get('days')} يوم، مطر تراكمي {rain_txt}، ET0 {et0_txt}.")
     else:
         parts.append("الطقس التاريخي غير متاح لهذا الحقل حالياً.")
     return " ".join(parts)
@@ -700,7 +711,7 @@ async def field_ai_context_pack(
 
     weather = {"available": False, "summary": {}}
     if include_weather:
-        weather, warn = await _optional_weather_history(centroid, days)
+        weather, warn = await _optional_weather_history(centroid, days, str(user.tenant_id))
         if warn:
             warnings.append(warn)
 
