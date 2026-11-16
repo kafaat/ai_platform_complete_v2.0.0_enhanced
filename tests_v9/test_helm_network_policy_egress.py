@@ -47,12 +47,16 @@ _EXPECTED_PUBLIC_EGRESS = {
     "sahool-raster-service": "Copernicus Data Space (CDSE_CLIENT_ID/SECRET)",
     "sahool-ai-agronomist": "hosted model providers when AI_PROVIDER is openrouter/anthropic",
     "sahool-weather-service": "Open-Meteo forecast/archive (services/weather-service/open_meteo.py)",
+    "sahool-soil-service": "ISRIC SoilGrids (services/soil-service/soilgrids_client.py)",
 }
 
 # Workloads that admit only named callers (no gateway), with those callers.
 _EXPECTED_INTERNAL_ONLY: dict[str, list[str]] = {
     # No auth of its own; sahool-platform's weather_service_client is the in-chart caller.
     "sahool-weather-service": ["sahool-platform"],
+    # Service token + X-Tenant-Id from the platform's service proxy; every workload holds
+    # the token, so only the platform is admitted.
+    "sahool-soil-service": ["sahool-platform"],
 }
 
 

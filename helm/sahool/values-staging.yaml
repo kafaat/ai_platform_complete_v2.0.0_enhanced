@@ -19,3 +19,5 @@ workloads:
     replicas: 1
   sahool-weather-service:
     replicas: 1
+  sahool-soil-service:
+    replicas: 1

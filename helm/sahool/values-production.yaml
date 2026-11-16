@@ -22,6 +22,8 @@ workloads:
     replicas: 2
   sahool-weather-service:
     replicas: 2
+  sahool-soil-service:
+    replicas: 2
 observability:
   prometheusScrape: true
   serviceMonitor: true

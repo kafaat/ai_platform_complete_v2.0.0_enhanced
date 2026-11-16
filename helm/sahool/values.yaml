@@ -279,6 +279,35 @@ workloads:
       # Response cache shared by the replicas (services/weather-service/cache.py), on its
       # own Redis ACL user.
       WEATHER_REDIS_URL: weatherRedisUrl
+  # W3-09: soil snapshots, SoilGrids ingestion and the soil projection worker. No route of
+  # its own: the gateway sends /api/soil/ to sahool-platform, whose service proxy calls this
+  # service at SOIL_SERVICE_URL (default http://sahool-soil-service:8000) with the service
+  # token and the verified tenant. Every workload holds that token, so ingress is narrowed
+  # to the one in-chart caller.
+  sahool-soil-service:
+    enabled: true
+    image: sahool/soil-service:2026.06.26-rc.15
+    replicas: 2
+    port: 8000
+    sourceDockerfile: services/soil-service/Dockerfile
+    internalOnly: true
+    internalCallers:
+      - sahool-platform
+    # ISRIC SoilGrids (services/soil-service/soilgrids_client.py).
+    publicHttpsEgress: true
+    # Readiness stays on /readyz (the chart's rule; only ai-agronomist is exempt): it checks
+    # the database, and also fails on soil projection lag over 300 s, a dead letter or an
+    # expired lease (projection_observability.readiness_policy). Tune those with
+    # SOIL_PROJECTION_READY_MAX_* if they hold pods unready during a rollout.
+    env:
+      SERVICE_NAME: sahool-soil-service
+      # Compose values.
+      EDGE_READINESS_MODE: partial
+      EDGE_PRODUCTION_REQUIRED: "false"
+    secretEnv:
+      # Runtime role sahool_app, as in compose.
+      DATABASE_URL: databaseUrl
+      SAHOOL_AGENT_TOKEN: agentToken
 
 jobs:
   migration:

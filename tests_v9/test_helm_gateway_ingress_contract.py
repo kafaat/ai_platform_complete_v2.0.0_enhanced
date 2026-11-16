@@ -175,6 +175,8 @@ _UNROUTED_WORKLOADS = {
     "sahool-auth": "gateway.auth",
     # /api/weather/ goes to sahool-platform, which calls weather-service internally.
     "sahool-weather-service": "internal: sahool-platform",
+    # /api/soil/ goes to sahool-platform's service proxy, which calls soil-service.
+    "sahool-soil-service": "internal: sahool-platform",
 }
 
 

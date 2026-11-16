@@ -191,10 +191,6 @@
       "category": "observability",
       "reason": "Tracing backend; provided by the cluster's monitoring stack."
     },
-    "sahool-soil-service": {
-      "category": "not_yet_ported",
-      "reason": "Called by sahool-platform at SOIL_SERVICE_URL (default http://sahool-soil-service:8000); porting needs its DSN, the service token and public HTTPS egress to ISRIC SoilGrids."
-    },
     "sahool-field-segmentation": {
       "category": "not_yet_ported",
       "reason": "Not routed by the chart gateway and not called by any chart workload yet."
