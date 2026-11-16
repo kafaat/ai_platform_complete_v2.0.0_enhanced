@@ -302,7 +302,8 @@ async def test_sales_listing_defaults_ungraded_and_emits_no_dead_trace_url(mkt):
 
     class _CaptureConn:
         async def fetchval(self, sql, *args):
-            captured.append(args)
+            if "INSERT INTO market_sales_listings" in sql:
+                captured.append(args)
             return "44444444-4444-4444-4444-444444444444"
 
     @contextlib.asynccontextmanager

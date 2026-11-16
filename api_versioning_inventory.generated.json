@@ -1784,7 +1784,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 709,
+    "line": 743,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "mcp_tools_list",
@@ -1793,7 +1793,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 709,
+    "line": 743,
     "method": "GET",
     "path": "/v1/mcp/tools/list",
     "handler": "mcp_tools_list",
@@ -1802,7 +1802,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 741,
+    "line": 775,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "mcp_tools_call",
@@ -1811,7 +1811,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 794,
+    "line": 828,
     "method": "GET",
     "path": "/v1/products",
     "handler": "api_search_products",
@@ -1820,7 +1820,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 806,
+    "line": 840,
     "method": "GET",
     "path": "/v1/suppliers/{supplier_id}",
     "handler": "api_get_supplier",
@@ -1829,7 +1829,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 811,
+    "line": 845,
     "method": "POST",
     "path": "/v1/procurement",
     "handler": "api_create_procurement",
@@ -1838,7 +1838,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 819,
+    "line": 853,
     "method": "GET",
     "path": "/v1/procurement/{order_id}",
     "handler": "api_get_procurement",
@@ -1847,7 +1847,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 826,
+    "line": 860,
     "method": "POST",
     "path": "/v1/sales",
     "handler": "api_create_sales",
@@ -1856,7 +1856,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 832,
+    "line": 866,
     "method": "GET",
     "path": "/v1/sales",
     "handler": "api_search_sales",
@@ -1865,7 +1865,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 849,
+    "line": 883,
     "method": "GET",
     "path": "/v1/price-history/{category}",
     "handler": "api_price_history",
@@ -1874,7 +1874,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 856,
+    "line": 890,
     "method": "GET",
     "path": "/v1/analytics/{tenant_id}",
     "handler": "api_analytics",
@@ -1883,7 +1883,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 863,
+    "line": 897,
     "method": "GET",
     "path": "/healthz",
     "handler": "health",
@@ -1892,7 +1892,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 863,
+    "line": 897,
     "method": "GET",
     "path": "/health",
     "handler": "health",
@@ -1901,7 +1901,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 876,
+    "line": 910,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -6428,7 +6428,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/harvest_traceability.py",
-    "line": 96,
+    "line": 122,
     "method": "POST",
     "path": "/api/v1/harvest-lots",
     "handler": "create_harvest_lot",
@@ -6437,7 +6437,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/harvest_traceability.py",
-    "line": 180,
+    "line": 206,
     "method": "GET",
     "path": "/api/v1/harvest-lots",
     "handler": "list_harvest_lots",
@@ -6446,7 +6446,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/harvest_traceability.py",
-    "line": 216,
+    "line": 242,
     "method": "GET",
     "path": "/api/v1/harvest-lots/{harvest_lot_id}",
     "handler": "get_harvest_lot",
@@ -6455,7 +6455,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/harvest_traceability.py",
-    "line": 249,
+    "line": 275,
     "method": "POST",
     "path": "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
     "handler": "add_custody_event",
@@ -6464,7 +6464,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/harvest_traceability.py",
-    "line": 403,
+    "line": 429,
     "method": "GET",
     "path": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
     "handler": "get_traceability",

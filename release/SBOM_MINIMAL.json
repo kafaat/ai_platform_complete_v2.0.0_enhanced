@@ -21135,7 +21135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a9eaa0962d3bbcbb4e6aa8a34b8265c0ab40d0fe5d18c85eebd6a430c2e37805"
+          "content": "5bfa01fe8c528390b0bb3efb6b6590a384d7aa1657c8d5063709aaaccd3ddcde"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -27435,7 +27435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e8805e225ba0727c721bc27709b07eaa7f14b1a9fbb1e341d40222342d53bbd1"
+          "content": "2fbea439edd3a9ee44cac582fafec0342730405ba93ce15bf2014d70d814da46"
         }
       ],
       "name": "services/sahool-platform/api/routers/harvest_traceability.py",

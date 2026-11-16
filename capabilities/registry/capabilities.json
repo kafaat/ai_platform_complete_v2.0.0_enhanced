@@ -27,7 +27,7 @@
         "GET /metrics @ services/auth/routers/ops.py:21",
         "GET /readyz @ services/auth/routers/ops.py:32",
         "GET /runtime-identity @ services/auth/main.py:410",
-        "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:856",
+        "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:890",
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:42",
         "GET /v1/auth/invitations @ services/auth/routers/invitations.py:108",
         "GET /v1/auth/me @ services/auth/routers/session.py:302",
@@ -841,10 +841,10 @@
         "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:889",
         "GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:187",
         "GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:92",
-        "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:819",
+        "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:853",
         "POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:41",
         "POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:123",
-        "POST /v1/procurement @ services/mcp_servers/market_server.py:811"
+        "POST /v1/procurement @ services/mcp_servers/market_server.py:845"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
