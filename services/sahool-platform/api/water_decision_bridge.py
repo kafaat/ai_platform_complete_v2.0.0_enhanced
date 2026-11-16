@@ -1,8 +1,17 @@
 """Governed bridge from canonical water-ledger deficit to decision/execution lifecycle.
 
 Default-off and fail-closed. A deficit creates exactly one deterministic candidate. Optional
-policy auto-approval can continue through plan, authorization, and execution request, but only
-when explicitly enabled and a concrete target device/task is configured.
+policy auto-approval can continue through review and an execution plan, but only when explicitly
+enabled and a concrete target device/task is configured.
+
+W2-04 (owner decision 2026-11-16): the bridge stops at an approved plan. It never authorises
+dispatch and never requests execution: it returns ``awaiting_human_authorization`` with the
+decision, review and plan ids, and a human authoriser (an identity other than the policy actor
+that reviewed) authorises through decision-service's existing
+``POST /v1/execution-plans/{id}/authorize-dispatch`` and then requests execution through
+``POST /v1/dispatch-authorizations/{id}/execute``. One actor reviewing and authorising is what
+decision-service refuses under separation of duties
+(``DECISION_REQUIRE_SEPARATION_OF_DUTIES``, on by default in production).
 """
 
 from __future__ import annotations
@@ -66,7 +75,18 @@ def water_ledger_identity_startup_error() -> str | None:
 
 
 def auto_execution_enabled() -> bool:
+    """``WATER_DEFICIT_AUTO_EXECUTION_ENABLED`` (name kept, env contract unchanged).
+
+    W2-04: since the owner decision of 2026-11-16 the flag means *auto-plan only*: policy
+    approval of the candidate plus an execution plan, then a stop at
+    ``awaiting_human_authorization``. It never makes the bridge authorise or request execution.
+    """
     return _bool("WATER_DEFICIT_AUTO_EXECUTION_ENABLED", False)
+
+
+#: W2-04: the state the bridge ends in once the plan exists. Authorisation and the execution
+#: request belong to a human through decision-service's existing routes.
+AWAITING_HUMAN_AUTHORIZATION = "awaiting_human_authorization"
 
 
 def deficit_threshold_mm() -> float:
@@ -186,9 +206,7 @@ async def process_water_deficit(
         return {"status": "below_threshold"}
 
     from api.decision_service_client import (
-        authorize_dispatch,
         create_execution_plan,
-        create_execution_request,
         governed_candidate_lineage,
         review_decision,
         submit_governed_candidate,
@@ -284,62 +302,17 @@ async def process_water_deficit(
     if not plan_id:
         return {**result, "status": "plan_failed", "review_id": review_id}
 
-    auth = await authorize_dispatch(
-        plan_id,
-        {
-            "decision_id": decision_id,
-            "review_id": review_id,
-            "candidate_lineage_id": lineage,
-            "expected_plan_state": "planned",
-            "policy_version": policy,
-            "weather_snapshot_id": f"weather:{field_id}:{ledger_date.isoformat()}",
-            "resource_snapshot_id": f"resource:{target_id}:{ledger_date.isoformat()}",
-            "authorization_reason": "explicit auto-execution policy",
-            "idempotency_key": _stable("wtrauth_", plan_id),
-        },
-        tenant_id=tenant_id,
-        authorized_by=actor,
-    )
-    auth_id = auth.get("dispatch_authorization_id")
-    if not auth_id:
-        return {**result, "status": "authorization_failed", "execution_plan_id": plan_id}
-
-    req = await create_execution_request(
-        auth_id,
-        {
-            "dispatch_authorization_id": auth_id,
-            "execution_plan_id": plan_id,
-            "decision_id": decision_id,
-            "target_type": target_type,
-            "target_id": target_id,
-            "operation_type": "irrigation",
-            "command_payload": {
-                # عقد المُشغّل (P0 من شهادة الإنتاج): _parse_dispatch_command يتطلّب
-                # device_id + command؛ الشكل القديم (operation/amount فقط) كان سيُرفض
-                # invalid_command عند كلّ تسليم. المفتاح الثابت يمنع التنفيذ المزدوج
-                # عبر النقل at-least-once (MQTT QoS 1).
-                "device_id": target_id,
-                "command": "irrigate",
-                "payload": {
-                    "field_id": field_id,
-                    "season_id": season_id,
-                    "amount_mm": float(deficit),
-                    "risk_level": "low",
-                    "idempotency_key": _stable("wtrcmd_", decision_id),
-                },
-                "risk_level": "low",
-                "idempotency_key": _stable("wtrcmd_", decision_id),
-            },
-            "idempotency_key": _stable("wtrreq_", auth_id),
-        },
-        tenant_id=tenant_id,
-        requested_by=actor,
-    )
+    # W2-04 (owner decision 2026-11-16): stop here. The policy actor reviewed, so it may not
+    # authorise (decision-service refuses reviewer == authoriser under separation of duties);
+    # authorisation and the execution request are a human's, through decision-service's
+    # existing authorize-dispatch and execute routes. No authorisation or execution call is
+    # made from this bridge.
     return {
         **result,
-        "status": "execution_queued",
+        "status": AWAITING_HUMAN_AUTHORIZATION,
         "review_id": review_id,
         "execution_plan_id": plan_id,
-        "dispatch_authorization_id": auth_id,
-        "execution_request_id": req.get("execution_request_id"),
+        "reviewed_by": actor,
+        "execution_target": {"target_type": target_type, "target_id": target_id},
+        "recommended_irrigation_mm": float(deficit),
     }
