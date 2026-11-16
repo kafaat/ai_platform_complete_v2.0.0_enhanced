@@ -1,7 +1,6 @@
 """Unique scene count must not inflate a date counted across several indices."""
 
 import pytest
-
 from api.field_context import count_distinct_acquisition_dates
 
 pytestmark = pytest.mark.unit
