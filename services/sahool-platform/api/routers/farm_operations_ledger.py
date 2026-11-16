@@ -29,7 +29,6 @@ from core.farm_costing import (
     normalize_budget_line,
     project_to_erp_lines,
 )
-from core.farm_operations_ledger import LedgerSummary
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -70,11 +69,6 @@ async def _assert_owned(conn, tenant_id: str, kind: str, value: str | None) -> N
 
 async def _assert_season_in_tenant(conn, tenant_id: str, season_id: str | None) -> None:
     await _assert_owned(conn, tenant_id, "season", season_id)
-
-
-def _mixed_currency(e: ledger_core.MixedCurrencyError) -> HTTPException:
-    """Business-2: one report, one currency. 409 names the currencies found."""
-    return HTTPException(status_code=409, detail=e.detail())
 
 
 async def _assert_production_unit_in_tenant(conn, tenant_id: str, unit_id: str | None) -> None:
@@ -409,21 +403,13 @@ async def farm_ledger_summary(
     if date_to:
         args.append(date_to)
         clauses.append(f"o.operation_date <= ${len(args)}")
-    cur = ledger_core.normalize_currency(currency)
     where_sql = " AND ".join(clauses)
     money = ledger_core.money_filter_sql(len(args) + 1)  # counts and water keep every operation
     try:
         async with tenant_connection(user) as conn:
             if field_id:
                 await _assert_field_in_tenant(conn, field_id)
-            if cur is None:
-                found = await conn.fetch(
-                    f"""SELECT DISTINCT upper(trim(o.currency)) AS currency
-                        FROM farm_operation_ledger o
-                        WHERE {where_sql} AND o.cost_amount IS NOT NULL""",
-                    *args,
-                )
-                cur = ledger_core.resolve_report_currency([r["currency"] for r in found], None)
+            cur = await ledger_core.scope_report_currency(conn, where_sql, args, currency)
             margs = [*args, cur]
             row = await conn.fetchrow(
                 f"""WITH scoped AS (SELECT * FROM farm_operation_ledger o WHERE {where_sql}),
@@ -456,7 +442,7 @@ async def farm_ledger_summary(
     except HTTPException:
         raise
     except ledger_core.MixedCurrencyError as e:
-        raise _mixed_currency(e) from e
+        raise HTTPException(status_code=409, detail=e.detail()) from e  # business-2
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تلخيص سجل العمليات الزراعية", e) from e
     total = float(row["total_cost"] or 0.0)
@@ -632,11 +618,7 @@ async def get_season_budget(
             )
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("جلب موازنة الموسم", e) from e
-    totals: dict[str, float] = {}
-    for r in rows:  # business-2: one total per currency, never one sum across them
-        key = ledger_core.normalize_currency(r["currency"]) or "UNKNOWN"
-        totals[key] = totals.get(key, 0.0) + float(r["planned_cost"] or 0.0)
-    single = next(iter(totals)) if len(totals) == 1 else None
+    totals, single = ledger_core.planned_totals_by_currency(rows)
     return {
         "season_id": season_id,
         "lines": [dict(r) for r in rows],
@@ -714,7 +696,7 @@ async def get_budget_variance(
             )
             unpriced = await ledger_core.fetch_unpriced_work(conn, tenant, season_id, cur)
     except ledger_core.MixedCurrencyError as e:
-        raise _mixed_currency(e) from e
+        raise HTTPException(status_code=409, detail=e.detail()) from e  # business-2
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحليل انحرافات الموسم", e) from e
     variance, coverage = ledger_core.priced_variance(budgets, actuals, *unpriced)
@@ -747,7 +729,7 @@ async def get_season_profitability(
             _, actuals = await ledger_core.fetch_budget_and_actual(conn, tenant, season_id, cur)
             revenue = await ledger_core.fetch_season_revenue(conn, tenant, season_id, cur)
     except ledger_core.MixedCurrencyError as e:
-        raise _mixed_currency(e) from e
+        raise HTTPException(status_code=409, detail=e.detail()) from e  # business-2
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحليل ربحية الموسم", e) from e
     profit = compute_profitability(
@@ -946,63 +928,6 @@ async def get_inventory_projection(
     }
 
 
-async def _fetch_ledger_summary_for_season(
-    conn, tenant_id: str, season_id: str, currency: str | None
-) -> LedgerSummary:
-    """Season summary; money sums only in ``currency`` (business-2), the rest over every row."""
-    money = ledger_core.money_filter_sql(3)
-    row = await conn.fetchrow(
-        f"""WITH ops AS (
-            SELECT * FROM farm_operation_ledger WHERE tenant_id = $1::uuid AND season_id = $2
-              AND {ledger_core.ACTUAL_OPERATION_SQL}
-        )
-        SELECT
-            COUNT(*)::int AS operation_count,
-            COALESCE(SUM(cost_amount) FILTER (WHERE {money}), 0)::float AS total_cost,
-            COALESCE(SUM(cost_amount) FILTER (WHERE {money} AND cost_category IN ('administration','overhead','supervision','security','management')), 0)::float AS indirect_cost,
-            COALESCE(SUM(cost_amount) FILTER (WHERE {money} AND sync_status IN ('ready_for_sync','synced','sync_failed')), 0)::float AS syncable_cost,
-            (SELECT SUM(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::float AS water_volume_m3,
-            (SELECT COUNT(*) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_total,
-            (SELECT COUNT(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_measured,
-            COALESCE((SELECT SUM(kwh) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS energy_kwh,
-            COALESCE((SELECT SUM(diesel_liters) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS diesel_liters,
-            COALESCE((SELECT SUM(hours_worked) FROM farm_equipment_records q JOIN ops ON ops.operation_id = q.operation_id), 0)::float AS equipment_hours,
-            COALESCE((SELECT SUM(hours) FROM farm_labor_records l JOIN ops ON ops.operation_id = l.operation_id), 0)::float AS labor_hours
-        FROM ops""",
-        tenant_id,
-        season_id,
-        currency,
-    )
-    breakdown_rows = await conn.fetch(
-        f"""SELECT COALESCE(cost_category, 'uncategorized') AS category,
-                  COALESCE(SUM(cost_amount) FILTER (WHERE {money}), 0)::float AS amount
-           FROM farm_operation_ledger
-           WHERE tenant_id = $1::uuid AND season_id = $2 AND {ledger_core.ACTUAL_OPERATION_SQL}
-           GROUP BY COALESCE(cost_category, 'uncategorized')""",
-        tenant_id,
-        season_id,
-        currency,
-    )
-    total = float(row["total_cost"] or 0.0)
-    indirect = float(row["indirect_cost"] or 0.0)
-    return LedgerSummary(
-        total_cost=total,
-        direct_cost=total - indirect,
-        indirect_cost=indirect,
-        currency=currency or "YER",  # nothing priced: every sum is 0
-        cost_breakdown={r["category"]: float(r["amount"] or 0.0) for r in breakdown_rows},
-        **ledger_core.water_summary_from_row(row),
-        energy_kwh=float(row["energy_kwh"] or 0.0),
-        diesel_liters=float(row["diesel_liters"] or 0.0),
-        equipment_hours=float(row["equipment_hours"] or 0.0),
-        labor_hours=float(row["labor_hours"] or 0.0),
-        input_quantities={},
-        record_count=int(row["operation_count"] or 0),
-        syncable_cost=float(row["syncable_cost"] or 0.0),
-        control_only=float(row["syncable_cost"] or 0.0) == 0.0,
-    )
-
-
 @router.get("/api/v1/farm-ledger/economic-state/{season_id}")
 async def get_economic_state(
     season_id: str,
@@ -1022,14 +947,16 @@ async def get_economic_state(
     try:
         async with tenant_connection(user) as conn:
             cur = await ledger_core.season_report_currency(conn, tenant, season_id, currency)
-            summary = await _fetch_ledger_summary_for_season(conn, tenant, season_id, cur)
+            summary = await ledger_core.fetch_ledger_summary_for_season(
+                conn, tenant, season_id, cur
+            )
             budgets, actuals = await ledger_core.fetch_budget_and_actual(
                 conn, tenant, season_id, cur
             )
             unpriced = await ledger_core.fetch_unpriced_work(conn, tenant, season_id, cur)
             revenue = await ledger_core.fetch_season_revenue(conn, tenant, season_id, cur)
     except ledger_core.MixedCurrencyError as e:
-        raise _mixed_currency(e) from e
+        raise HTTPException(status_code=409, detail=e.detail()) from e  # business-2
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("حساب الحالة الاقتصادية", e) from e
     # an unpriced category is not an underspend: its variance line is dropped, as in /variance

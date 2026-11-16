@@ -495,11 +495,14 @@ async def gather_season_weather_inputs(
     lat: float | None,
     lon: float | None,
     tenant_id: str,
-    get_historical,
-    get_gdd,
+    get_historical=None,
+    get_gdd=None,
     get_forecast=None,
 ) -> dict:
     """Accumulated GDD (archive + engine GDD at the crop-card base), forecast and signals.
+
+    ``get_historical`` / ``get_gdd`` default to weather-service's client, read at call time
+    (so a patched client is the one used); ``get_forecast`` None means no forecast is read.
 
     Every source is optional for the state read: a failure leaves its value None and names
     the reason in ``unavailable``. No GDD is computed here; the weather engine is the only
@@ -509,11 +512,15 @@ async def gather_season_weather_inputs(
     """
     from core.gdd_phenology import gdd_base_c
 
+    from api import weather_service_client as wsc
     from api.season_simulation import (
         canonical_historical_days,
         crop_gdd_policy,
         weather_product_provenance,
     )
+
+    get_historical = get_historical or wsc.get_weather_historical
+    get_gdd = get_gdd or wsc.get_gdd_product
 
     out: dict = {
         "accumulated_gdd": None,

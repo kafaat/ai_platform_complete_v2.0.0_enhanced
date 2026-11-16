@@ -50,7 +50,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # → 4047 (2026-11-13, v260): the pin photo moved out of the pin route (scout-ingest owns it).
     # → 4044 (2026-11-13, chain A merged with main 7ad892afa): main's own 3-line reduction
     # (4075 → 4072) applies on top of 4047.
-    "services/sahool-platform/api/routers/fields.py": 4044,
+    # → 4040 (2026-11-16, Wave 1 #1500): the yield path calls yield_heuristics (W1-08) and the
+    # lifecycle features are built in one expression (Wave 0 #1498).
+    "services/sahool-platform/api/routers/fields.py": 4040,
     # 3022 → 3013 (W1-22, 2026-11-16): the delegated-breaker state moved to weather_service_client
     # and the probe reuses _get_weather_sample_cached instead of a copy of it.
     "services/sahool-platform/api/routers/weather.py": 3013,
@@ -69,7 +71,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # 1027 → 996 (wave 2, 2026-11-08): budget/actual fetch moved to core.farm_operations_ledger
     # while the planned-vs-executed status filter landed here. 996 → 988 (2026-11-12): tenant-scope
     # lookups moved to core.farm_operations_ledger while the optional task link (v247) landed here.
-    "services/sahool-platform/api/routers/farm_operations_ledger.py": 988,
+    # → 986 (2026-11-16, Wave 1 #1500): the season summary query, the scope currency and the
+    # per-currency budget totals moved to core.farm_operations_ledger.
+    "services/sahool-platform/api/routers/farm_operations_ledger.py": 986,
     "services/sahool-platform/api/routers/decision_review.py": 920,
 }
 

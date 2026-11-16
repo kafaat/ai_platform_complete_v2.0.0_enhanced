@@ -56,8 +56,12 @@ def test_router_summary_queries_do_not_coalesce_water_to_zero():
     """كلا الاستعلامين (ملخّص HTTP وملخّص الموسم) يُصدِران SUM بلا COALESCE مع عدّادي القياس."""
     from pathlib import Path
 
-    router = Path(__file__).resolve().parents[1] / "api/routers/farm_operations_ledger.py"
-    src = router.read_text(encoding="utf-8")
+    base = Path(__file__).resolve().parents[1]
+    # The HTTP summary lives in the router; the season summary moved to the core ledger (#1500).
+    src = "\n".join(
+        (base / rel).read_text(encoding="utf-8")
+        for rel in ("api/routers/farm_operations_ledger.py", "core/farm_operations_ledger.py")
+    )
     assert "COALESCE((SELECT SUM(water_volume_m3)" not in src, (
         "COALESCE(…,0) يحوّل الموسمَ غير المقيس إلى صفر أمتار مكعّبة فيتعلّم النموذج ريّاً بلا ماء"
     )

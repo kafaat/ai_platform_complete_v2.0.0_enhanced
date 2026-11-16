@@ -615,11 +615,10 @@ async def field_season_state_endpoint(
     عجز الماء 7/14 يوم من water_ledger + عدد المهام المفتوحة) ثمّ تستدعي المحرّك النقيّ
     ``field_season_projection.assemble_field_season_state`` وتعيد نتيجته حرفيّاً.
 
-    الطقس (W1-09): بعد تحرير الاتّصال تُجلَب من weather-service سلسلة الأرشيف ثمّ GDD المحرّك
-    بأساس بطاقة المحصول ثمّ توقّع ٧ أيّام (``gather_season_weather_inputs``)؛ تعذّر أيٍّ منها ⇒
-    None مُعلَن في ``weather_inputs.unavailable`` و``evidence_missing`` — لا رقم مُختلَق.
-    404 إن غاب الموسم لهذا الحقل/المستأجِر؛ القراءات التكميليّة best-effort (فشلها ⇒ None
-    لا 500). 503 عند تعذّر القاعدة الأساسيّ.
+    الطقس (W1-09): بعد تحرير الاتّصال يُجلَب من weather-service الأرشيف ثمّ GDD المحرّك بأساس
+    بطاقة المحصول ثمّ توقّع ٧ أيّام (``gather_season_weather_inputs``)؛ تعذّر أيٍّ منها ⇒ None مُعلَن
+    في ``weather_inputs.unavailable`` و``evidence_missing``. 404 إن غاب الموسم لهذا الحقل/المستأجِر؛
+    القراءات التكميليّة best-effort (فشلها ⇒ None لا 500). 503 عند تعذّر القاعدة الأساسيّ.
     """
     from api.decision_sor_mode import get_platform_decision_sor_mode
     from api.field_season_projection import (
@@ -630,11 +629,7 @@ async def field_season_state_endpoint(
         gather_season_weather_inputs,
         reconciled_payload_is_bound,
     )
-    from api.weather_service_client import (
-        get_gdd_product,
-        get_weather_forecast,
-        get_weather_historical,
-    )
+    from api.weather_service_client import get_weather_forecast
 
     tenant = str(user.tenant_id)
     local = get_platform_decision_sor_mode().platform_writes_required
@@ -763,8 +758,6 @@ async def field_season_state_endpoint(
         lat=srow["lat"],
         lon=srow["lon"],
         tenant_id=tenant,
-        get_historical=get_weather_historical,
-        get_gdd=get_gdd_product,
         get_forecast=get_weather_forecast,
     )
 

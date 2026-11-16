@@ -669,6 +669,33 @@ def _currency_scope(tenant_id: str, season_id: str, currency: str | None):
     return " AND upper(trim(currency)) = $3", (tenant_id, season_id, currency)
 
 
+async def scope_report_currency(conn, where_sql: str, args, requested=None) -> str | None:
+    """One currency for a filtered ledger scope (business-2): the one named, else the only one.
+
+    ``where_sql`` filters ``farm_operation_ledger o`` with ``args``; several currencies and none
+    named raise ``MixedCurrencyError`` (409 at the route).
+    """
+    cur = normalize_currency(requested)
+    if cur is not None:
+        return cur
+    found = await conn.fetch(
+        f"""SELECT DISTINCT upper(trim(o.currency)) AS currency
+            FROM farm_operation_ledger o
+            WHERE {where_sql} AND o.cost_amount IS NOT NULL""",
+        *args,
+    )
+    return resolve_report_currency([r["currency"] for r in found], None)
+
+
+def planned_totals_by_currency(rows) -> tuple[dict[str, float], str | None]:
+    """Budget totals per currency, never one sum across them (business-2), and the single one."""
+    totals: dict[str, float] = {}
+    for r in rows:
+        key = normalize_currency(r["currency"]) or "UNKNOWN"
+        totals[key] = totals.get(key, 0.0) + float(r["planned_cost"] or 0.0)
+    return totals, (next(iter(totals)) if len(totals) == 1 else None)
+
+
 def money_filter_sql(param: int) -> str:
     """Business-2: the amounts of a report in one currency, parameter ``$param`` (text).
 
@@ -768,6 +795,63 @@ async def fetch_season_revenue(conn, tenant_id: str, season_id: str, currency=No
         *args,
     )
     return float(row["revenue"] or 0.0)
+
+
+async def fetch_ledger_summary_for_season(
+    conn, tenant_id: str, season_id: str, currency: str | None
+) -> LedgerSummary:
+    """Season summary; money sums only in ``currency`` (business-2), the rest over every row."""
+    money = money_filter_sql(3)
+    row = await conn.fetchrow(
+        f"""WITH ops AS (
+            SELECT * FROM farm_operation_ledger WHERE tenant_id = $1::uuid AND season_id = $2
+              AND {ACTUAL_OPERATION_SQL}
+        )
+        SELECT
+            COUNT(*)::int AS operation_count,
+            COALESCE(SUM(cost_amount) FILTER (WHERE {money}), 0)::float AS total_cost,
+            COALESCE(SUM(cost_amount) FILTER (WHERE {money} AND cost_category IN ('administration','overhead','supervision','security','management')), 0)::float AS indirect_cost,
+            COALESCE(SUM(cost_amount) FILTER (WHERE {money} AND sync_status IN ('ready_for_sync','synced','sync_failed')), 0)::float AS syncable_cost,
+            (SELECT SUM(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::float AS water_volume_m3,
+            (SELECT COUNT(*) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_total,
+            (SELECT COUNT(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_measured,
+            COALESCE((SELECT SUM(kwh) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS energy_kwh,
+            COALESCE((SELECT SUM(diesel_liters) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS diesel_liters,
+            COALESCE((SELECT SUM(hours_worked) FROM farm_equipment_records q JOIN ops ON ops.operation_id = q.operation_id), 0)::float AS equipment_hours,
+            COALESCE((SELECT SUM(hours) FROM farm_labor_records l JOIN ops ON ops.operation_id = l.operation_id), 0)::float AS labor_hours
+        FROM ops""",
+        tenant_id,
+        season_id,
+        currency,
+    )
+    breakdown_rows = await conn.fetch(
+        f"""SELECT COALESCE(cost_category, 'uncategorized') AS category,
+                  COALESCE(SUM(cost_amount) FILTER (WHERE {money}), 0)::float AS amount
+           FROM farm_operation_ledger
+           WHERE tenant_id = $1::uuid AND season_id = $2 AND {ACTUAL_OPERATION_SQL}
+           GROUP BY COALESCE(cost_category, 'uncategorized')""",
+        tenant_id,
+        season_id,
+        currency,
+    )
+    total = float(row["total_cost"] or 0.0)
+    indirect = float(row["indirect_cost"] or 0.0)
+    return LedgerSummary(
+        total_cost=total,
+        direct_cost=total - indirect,
+        indirect_cost=indirect,
+        currency=currency or "YER",  # nothing priced: every sum is 0
+        cost_breakdown={r["category"]: float(r["amount"] or 0.0) for r in breakdown_rows},
+        **water_summary_from_row(row),
+        energy_kwh=float(row["energy_kwh"] or 0.0),
+        diesel_liters=float(row["diesel_liters"] or 0.0),
+        equipment_hours=float(row["equipment_hours"] or 0.0),
+        labor_hours=float(row["labor_hours"] or 0.0),
+        input_quantities={},
+        record_count=int(row["operation_count"] or 0),
+        syncable_cost=float(row["syncable_cost"] or 0.0),
+        control_only=float(row["syncable_cost"] or 0.0) == 0.0,
+    )
 
 
 # ─── Governance farm context (W1-12) ──────────────────────────────────────────────────
