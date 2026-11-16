@@ -18,13 +18,21 @@
 
 ── قواعد القرار الحتميّة (العتبات موثّقة، والأدلّة تستشهد بالإشارات) ──
 ترتيب الأولويّة لاختيار الحُكم الرئيسيّ (الأكثر إلحاحاً يفوز، حتميّاً):
-  صقيع > مرض > إجهاد حراريّ > سوء صلاحيّة المرور > تغذية راجعة سالبة > فرصة رشّ > روتين.
+  صقيع > مرض > إجهاد حراريّ > سوء صلاحيّة المرور > رشّ غير آمن > تغذية راجعة سالبة >
+  طقس مواتٍ للمرض (استشاريّ) > فرصة رشّ > روتين.
+
+  • رشّ غير آمن (W1-17): إشارة `spray_unsafe` (رياح/هبّات/مطر في إطار «الآن» من خطّة
+    عمليّات weather-service، أو تعذّر تأكيد السلامة) ⇒ avoid_now: لا رشّ الآن؛ وإن وُجدت
+    نافذة لاحقة فـdo_today: أجّل الرشّ إليها لا «الآن».
 
   • صقيع: إشارة `frost_imminent` أو خطر `frost_damage` بدرجة عالية (score ≥ 0.66) ⇒
     do_today: حماية من الصقيع (ريّ وقائيّ/تغطية)؛ avoid_now: لا رشّ ولا تسميد ورقيّ
     الليلة؛ review_after قصير (خلال ٢٤ ساعة)؛ escalate_if: استمرار الصقيع أو هبوط الحرارة.
   • مرض: إشارة `disease_risk_high` أو خطر `fungal_disease` عالٍ ⇒ do_today: فحص حقليّ +
     رشّ وقائيّ مناسب؛ avoid_now: ريّ غمر مسائيّ يرفع الرطوبة؛ escalate_if: ظهور بؤر إصابة.
+  • طقس مواتٍ للمرض (W1-17): إشارة `disease_conditions_favourable` (قاعدة طقس وحدها غير
+    معايَرة) ⇒ استشاريّ: do_today فحص حقليّ للتأكّد فقط، لا رشّ وقائيّ ولا حُكم «عاجل»،
+    ولا تحجب نافذة رشّ؛ escalate_if: ظهور أعراض فعليّة.
   • إجهاد حراريّ: إشارة/خطر `heat_stress` ⇒ do_today: تعديل جدولة الريّ لتخفيف الإجهاد؛
     avoid_now: عمليّات تحت ذروة الحرّ.
   • صلاحيّة مرور: إشارة `trafficability_poor` ⇒ avoid_now: دخول الآليّات الثقيلة (انضغاط).
@@ -67,8 +75,37 @@ _VALID_SIGNALS = frozenset(
         "frost_imminent",
         "heat_stress",
         "trafficability_poor",
+        # W1-17: الرشّ غير آمن الآن (رياح/هبّات/مطر من خطّة العمليّات، أو تعذّر تأكيد السلامة).
+        "spray_unsafe",
+        # W1-17: طقس مواتٍ للمرض من قاعدة طقس غير معايَرة — استشاريّ (افحص لتتأكّد)، لا رشّ.
+        "disease_conditions_favourable",
     }
 )
+
+# أسباب منع الرشّ (عوامل weather-service المُقيِّدة) بالعربيّة للأدلّة.
+_SPRAY_REASON_AR = {
+    "wind_speed_high": "رياح قويّة (انجراف الرذاذ)",
+    "wind_gust_high": "هبّات رياح قويّة",
+    "rain_present": "مطر (غسل المبيد)",
+    "insufficient_data": "بيانات الطقس ناقصة",
+    "missing_wind": "سرعة الرياح غير معروفة",
+    "missing_precip": "المطر غير معروف",
+    "operation_plan_unavailable": "خطّة عمليّات الطقس غير متاحة",
+    "temperature_outside_spray_window": "حرارة خارج نافذة الرشّ (5-30 م)",
+    "now_frame_missing": "طقس الساعة الحاليّة غير متاح",
+    "next_hour_frame_missing": "طقس الساعة القادمة غير متاح",
+    "unsafe": "ظروف غير آمنة",
+    "no_operation_decision": "لا حكم تشغيليّ من خدمة الطقس",
+    "frame_stale": "قراءة طقس قديمة من الذاكرة المؤقّتة (تعذّر التحديث)",
+}
+_NEXT_HOUR_SUFFIX = "@next_hour"
+
+
+def _spray_reason_ar(reason: str) -> str:
+    if reason.endswith(_NEXT_HOUR_SUFFIX):
+        base = reason[: -len(_NEXT_HOUR_SUFFIX)]
+        return f"{_SPRAY_REASON_AR.get(base, base)} خلال الساعة القادمة"
+    return _SPRAY_REASON_AR.get(reason, reason)
 
 
 @dataclass(frozen=True)
@@ -173,8 +210,8 @@ def _aggregate_confidence(
 def build_playbook(ctx: PlaybookContext) -> DecisionPlaybook:
     """يبني دليل القرار المُهيكَل من سياق المنصّة المُجمَّع (نقيّ، حتميّ).
 
-    يختار الحُكم الرئيسيّ بترتيب أولويّة ثابت (صقيع > مرض > إجهاد حراريّ > سوء مرور >
-    تغذية راجعة سالبة > فرصة رشّ > روتين)، ويجمع الأدلّة والإجراءات من كلّ الإشارات
+    يختار الحُكم الرئيسيّ بترتيب أولويّة ثابت (صقيع > مرض > إجهاد حراريّ > سوء مرور > رشّ غير آمن >
+    تغذية راجعة سالبة > طقس مواتٍ للمرض > فرصة رشّ > روتين)، ويجمع الأدلّة والإجراءات من كلّ الإشارات
     المنطبقة (لا الحُكم الفائز فقط). سياق فارغ ⇒ حُكم محايد منخفض الثقة دون انهيار.
     نفس السياق ⇒ نفس الدليل تماماً. كلّ قسمة محروسة.
     """
@@ -193,6 +230,8 @@ def build_playbook(ctx: PlaybookContext) -> DecisionPlaybook:
     disease_signal = "disease_risk_high" in smap
     disease_risk = _high_risk_of(risks, "fungal_disease")
     disease = disease_signal or disease_risk is not None
+    # استشاريّ فقط حين لا يوجد مصدر مرض معايَر (الإشارة العالية أو خطر المحصول).
+    disease_advisory = "disease_conditions_favourable" in smap and not disease
 
     heat_signal = "heat_stress" in smap
     heat_risk = _any_risk_of(risks, "heat_stress")
@@ -200,6 +239,7 @@ def build_playbook(ctx: PlaybookContext) -> DecisionPlaybook:
 
     traffic = "trafficability_poor" in smap
     spray = "spray_window_open" in smap
+    spray_unsafe = "spray_unsafe" in smap
 
     # ── التغذية الراجعة نبات-تربة ──
     soil_dir = getattr(soil, "direction", None) if soil is not None else None
@@ -232,8 +272,11 @@ def build_playbook(ctx: PlaybookContext) -> DecisionPlaybook:
                 {},
             )
             fh = payload.get("frost_hours") if isinstance(payload, dict) else None
+            fn = payload.get("frost_nights") if isinstance(payload, dict) else None
             if fh:
                 hours = f" ({fh} ساعة تحت الحرج)"
+            elif fn:
+                hours = f" ({fn} ليلة تحت حدّ الصقيع)"
             evidence.append(f"إشارة صقيع وشيك{hours}.")
         if frost_risk is not None:
             evidence.append(getattr(frost_risk, "reason_ar", "خطر ضرر صقيع عالٍ."))
@@ -246,9 +289,19 @@ def build_playbook(ctx: PlaybookContext) -> DecisionPlaybook:
             evidence.append("إشارة خطر مرض فطريّ مرتفع من تراكب الطقس.")
         if disease_risk is not None:
             evidence.append(getattr(disease_risk, "reason_ar", "خطر مرض فطريّ عالٍ."))
-        do_today.append(f"نفّذ فحصاً حقليّاً{crop_tag} ورشّاً وقائيّاً مناسباً للمرض الفطريّ.")
+        if spray_unsafe:
+            do_today.append(f"نفّذ فحصاً حقليّاً{crop_tag}، وجهّز رشّاً وقائيّاً حين تصير ظروف الرشّ آمنة.")
+        else:
+            do_today.append(f"نفّذ فحصاً حقليّاً{crop_tag} ورشّاً وقائيّاً مناسباً للمرض الفطريّ.")
         avoid_now.append("تجنّب ريّ الغمر المسائيّ الذي يرفع الرطوبة ويُفضّل العدوى.")
         escalate_if.append("ظهرت بؤر إصابة فعليّة أو اتّسعت رقعة الأعراض.")
+
+    if disease_advisory:
+        evidence.append(
+            "الطقس مواتٍ للأمراض الفطريّة (قاعدة طقس غير معايَرة؛ ليست تشخيصاً ولا خطراً مؤكّداً)."
+        )
+        do_today.append(f"افحص الحقل{crop_tag} بحثاً عن أعراض فطريّة قبل أيّ قرار رشّ.")
+        escalate_if.append("ظهرت أعراض إصابة فطريّة فعليّة أثناء الفحص.")
 
     if heat:
         if heat_signal:
@@ -275,10 +328,26 @@ def build_playbook(ctx: PlaybookContext) -> DecisionPlaybook:
             getattr(soil, "verdict_ar", "تغذية راجعة نبات-تربة موجبة: القاعدة الترابيّة سليمة.")
         )
 
+    if spray_unsafe:
+        unsafe_payload = next(
+            (
+                getattr(s, "payload", {})
+                for s in signals
+                if getattr(s, "signal_type", None) == "spray_unsafe"
+            ),
+            {},
+        )
+        reasons = unsafe_payload.get("reasons") if isinstance(unsafe_payload, dict) else None
+        reasons_ar = "، ".join(dict.fromkeys(_spray_reason_ar(str(r)) for r in (reasons or [])))
+        evidence.append(f"الرشّ غير آمن الآن{f' ({reasons_ar})' if reasons_ar else ''}.")
+        avoid_now.append("لا ترشّ الآن: ظروف الرشّ غير آمنة أو غير مؤكّدة.")
+
     if spray:
         spray_conf = smap.get("spray_window_open", 0.0)
         evidence.append(f"نافذة رشّ مفتوحة (ثقة {spray_conf:.2f}).")
-        if not (frost or disease):
+        if spray_unsafe and not (frost or disease):
+            do_today.append("أجّل الرشّ المخطّط إلى نافذة الرشّ الآمنة القادمة.")
+        elif not (frost or disease):
             do_today.append("نفّذ الرشّ المخطّط ضمن النافذة المفتوحة الآن.")
         else:
             avoid_now.append("أجّل الرشّ المخطّط: حاجب أهمّ (صقيع/مرض) يسبق فرصة الرشّ.")
@@ -301,9 +370,15 @@ def build_playbook(ctx: PlaybookContext) -> DecisionPlaybook:
     elif traffic:
         main_judgement = "صلاحيّة مرور التربة ضعيفة: أجّل العمليّات الآليّة الثقيلة."
         review_after = _HORIZON_SOON
+    elif spray_unsafe:
+        main_judgement = "الرشّ غير آمن الآن: أجّل أيّ رشّ مخطّط حتّى تتحسّن الظروف."
+        review_after = _HORIZON_URGENT
     elif soil_negative:
         main_judgement = "تغذية راجعة نبات-تربة سالبة: تدخّل لكسر تراكم الممرضات."
         review_after = _HORIZON_SEASONAL
+    elif disease_advisory:
+        main_judgement = f"الطقس مواتٍ للأمراض الفطريّة{crop_tag}: افحص الحقل للتأكّد قبل أيّ رشّ."
+        review_after = _HORIZON_SOON
     elif spray:
         main_judgement = "نافذة رشّ مفتوحة: نفّذ الرشّ المخطّط ضمن النافذة."
         review_after = _HORIZON_ROUTINE
