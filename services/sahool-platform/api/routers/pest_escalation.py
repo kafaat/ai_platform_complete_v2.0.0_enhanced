@@ -102,7 +102,7 @@ async def pest_escalation_run(
     def _safety_gate(ctx: dict) -> dict:
         # W1-12: farm economics, area and seasonal water from the tenant's recorded ledger
         # (server-side, with provenance). No database ⇒ no facts ⇒ evidence_unavailable.
-        from core.governance_farm_context import threadsafe_farm_context_fn
+        from core.farm_operations_ledger import threadsafe_farm_context_fn
 
         from api import main as api_main
 

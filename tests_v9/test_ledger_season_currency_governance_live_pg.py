@@ -628,7 +628,7 @@ def test_legacy_tenant_guc_writes_are_season_checked_like_current_tenant(monkeyp
 
 async def _context(live, **kw):
     from api.main import tenant_connection
-    from core.governance_farm_context import build_governance_farm_context
+    from core.farm_operations_ledger import build_governance_farm_context
 
     async with tenant_connection(_user(live.tenant)) as conn:
         return await build_governance_farm_context(conn, live.tenant, **kw)
@@ -713,7 +713,7 @@ def test_non_usd_or_unpriced_amounts_are_not_converted_or_completed(monkeypatch)
 def test_the_pesticide_gate_receives_the_recorded_economics(monkeypatch):
     """End to end through the W0-01 gate: only the unsourced cash reserve is still missing."""
     from api.main import tenant_connection
-    from core.governance_farm_context import threadsafe_farm_context_fn
+    from core.farm_operations_ledger import threadsafe_farm_context_fn
     from core.pest_escalation_flow import EVIDENCE_UNAVAILABLE, evaluate_pesticide_guardrails
 
     ctx = {

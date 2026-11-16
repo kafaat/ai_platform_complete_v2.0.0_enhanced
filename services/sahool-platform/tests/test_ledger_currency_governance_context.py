@@ -12,7 +12,6 @@ from datetime import date
 
 import pytest
 from core import farm_operations_ledger as ledger
-from core import governance_farm_context as gov
 from core.pest_escalation_flow import ERROR, evaluate_pesticide_guardrails
 
 pytestmark = pytest.mark.unit
@@ -53,14 +52,14 @@ def test_two_recorded_currencies_without_a_request_are_refused():
     ],
 )
 def test_usd_total_only_for_complete_usd_scopes(amounts, rows, unpriced, expected):
-    assert gov.usd_total(amounts, rows=rows, unpriced=unpriced) == expected, (
+    assert ledger.usd_total(amounts, rows=rows, unpriced=unpriced) == expected, (
         "a USD figure exists only for recorded, fully priced, USD-only amounts"
     )
 
 
 def test_metered_volume_wins_over_the_ledger_depth_of_the_same_day():
     d1, d2 = date(2026, 6, 1), date(2026, 6, 2)
-    water = gov.merge_season_water([(d1, 250.0)], [(d1, 99.0), (d2, 4.0)], 2.5)
+    water = ledger.merge_season_water([(d1, 250.0)], [(d1, 99.0), (d2, 4.0)], 2.5)
     # 250 m3 metered on d1 + 4 mm x 10 x 2.5 ha on d2 = 350 m3 over 2.5 ha
     assert (water["total_m3"], water["m3_ha"]) == (350.0, 140.0), f"no double count: {water}"
     assert (water["metered_days"], water["ledger_days"]) == (1, 1), water
@@ -68,31 +67,31 @@ def test_metered_volume_wins_over_the_ledger_depth_of_the_same_day():
 
 def test_an_unmeasured_day_makes_season_water_incomplete():
     d1, d2 = date(2026, 6, 1), date(2026, 6, 2)
-    water = gov.merge_season_water([(d1, 100.0), (d2, None)], [], 2.0)
+    water = ledger.merge_season_water([(d1, 100.0), (d2, None)], [], 2.0)
     assert water["m3_ha"] is None, "a day without a measured volume is not zero water"
     assert water["reason"] == "unmeasured_days:1", water
 
 
 def test_no_water_records_is_not_zero_water():
-    water = gov.merge_season_water([], [], 2.0)
+    water = ledger.merge_season_water([], [], 2.0)
     assert (water["m3_ha"], water["reason"]) == (None, "no_water_records"), water
 
 
 def test_ledger_depth_needs_the_field_area():
-    water = gov.merge_season_water([], [(date(2026, 6, 1), 5.0)], None)
+    water = ledger.merge_season_water([], [(date(2026, 6, 1), 5.0)], None)
     assert (water["m3_ha"], water["reason"]) == (None, "field_area_unavailable"), water
 
 
 def test_water_source_vocabulary_maps_only_known_sources():
-    assert gov.WATER_SOURCE_CLASS["well"] == "groundwater", "a well is groundwater"
-    assert gov.WATER_SOURCE_CLASS["canal"] == "surface", "a canal is surface water"
-    assert "rainfed" not in gov.WATER_SOURCE_CLASS, "rainfed is not a guardrails water source"
+    assert ledger.WATER_SOURCE_CLASS["well"] == "groundwater", "a well is groundwater"
+    assert ledger.WATER_SOURCE_CLASS["canal"] == "surface", "a canal is surface water"
+    assert "rainfed" not in ledger.WATER_SOURCE_CLASS, "rainfed is not a guardrails water source"
 
 
 def test_farm_context_fn_refuses_another_tenant_and_the_gate_blocks():
     loop = asyncio.new_event_loop()
     try:
-        fn = gov.threadsafe_farm_context_fn(loop, lambda: None, "tenant-a", None)
+        fn = ledger.threadsafe_farm_context_fn(loop, lambda: None, "tenant-a", None)
         with pytest.raises(PermissionError):
             fn("tenant-b", "f-1")
         verdict = evaluate_pesticide_guardrails(
