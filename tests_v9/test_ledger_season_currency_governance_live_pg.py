@@ -843,13 +843,29 @@ def test_v281_rollback_returns_validated_keys_unless_a_row_still_names_a_seasons
     )
     up = (ROOT / "migrations" / "v281_farm_ledger_season_reference.sql").read_text(encoding="utf-8")
 
+    assert "SET LOCAL row_security = off;" in down, (
+        "the down must count orphans and validate with row security off, or a non-bypassing "
+        "migrator marks a key valid over rows FORCE RLS hides from it"
+    )
+
+    async def strays(admin, present) -> dict[str, int]:
+        out = {}
+        for t in sorted(present):
+            out[t] = await admin.fetchval(
+                f"SELECT count(*) FROM {t} x WHERE x.season_id IS NOT NULL AND NOT EXISTS"
+                " (SELECT 1 FROM farm_season_projects p WHERE p.season_id = x.season_id)"
+            )
+        return out
+
     async def body():
         admin = await asyncpg.connect(os.getenv("TEST_DATABASE_ADMIN_URL") or DSN)
         orphan_id = f"op-v281-{uuid.uuid4().hex[:8]}"
+        superuser = False
         try:
-            if not await admin.fetchval(
-                "SELECT rolsuper FROM pg_roles WHERE rolname = current_user"
-            ):
+            superuser = bool(
+                await admin.fetchval("SELECT rolsuper FROM pg_roles WHERE rolname = current_user")
+            )
+            if not superuser:
                 if _CERTIFICATION_REQUIRED:
                     raise AssertionError("certifying run needs a superuser to replay v281's down")
                 pytest.skip("declared skip (not a pass): replaying a migration needs a superuser")
@@ -858,16 +874,33 @@ def test_v281_rollback_returns_validated_keys_unless_a_row_still_names_a_seasons
                 for t in _V281_TABLES
                 if await admin.fetchval("SELECT to_regclass($1)", f"public.{t}") is not None
             }
-            stray = await admin.fetchval(
-                "SELECT count(*) FROM farm_operation_ledger x WHERE x.season_id IS NOT NULL"
-                " AND NOT EXISTS (SELECT 1 FROM farm_season_projects p"
-                " WHERE p.season_id = x.season_id)"
+            # A migrator subject to RLS would count 0 orphans on these FORCE-RLS tables and mark a
+            # key valid over hidden rows (lab receipt and review of #1503): it must be refused.
+            runtime = await admin.fetchval(
+                "SELECT rolname FROM pg_roles WHERE NOT rolsuper AND NOT rolbypassrls"
+                " AND rolname = 'sahool_app_test'"
             )
+            if runtime:
+                await admin.execute("SET ROLE sahool_app_test")
+                try:
+                    with pytest.raises(asyncpg.exceptions.RaiseError, match="v281 rollback: role"):
+                        await admin.execute(down)
+                finally:
+                    if admin.is_in_transaction():
+                        await admin.execute("ROLLBACK")
+                    await admin.execute("RESET ROLE")
+                assert await _season_fk_state(admin) == {}, "a refused down must change nothing"
+            elif _CERTIFICATION_REQUIRED:
+                raise AssertionError("certifying run needs the restricted role sahool_app_test")
+
+            before = await strays(admin, present)
             await admin.execute(down)
             clean = await _season_fk_state(admin)
             assert set(clean) == present, f"down restored keys on {sorted(clean)}, not {present}"
-            if stray == 0:
-                assert all(clean.values()), f"clean rollback left keys NOT VALID: {clean}"
+            for t, valid in clean.items():
+                assert valid == (before[t] == 0), (
+                    f"{t}: key validated={valid} with {before[t]} row(s) naming a missing season"
+                )
             await admin.execute(up)
             assert await _season_fk_state(admin) == {}, "v281 re-applied must drop the keys"
 
@@ -886,18 +919,22 @@ def test_v281_rollback_returns_validated_keys_unless_a_row_still_names_a_seasons
             assert held.get("farm_operation_ledger") is False, (
                 f"a row naming a seasons season must keep the operation ledger key NOT VALID: {held}"
             )
-            others = {t: v for t, v in held.items() if t != "farm_operation_ledger"}
-            assert all(others.values()), f"tables without such rows must validate: {others}"
+            for t, valid in held.items():
+                if t != "farm_operation_ledger":
+                    assert valid == (before[t] == 0), f"{t}: validated={valid}, rows={before[t]}"
         finally:
-            async with admin.transaction():
-                await admin.execute("SET LOCAL session_replication_role = replica")
-                await admin.execute(
-                    "DELETE FROM farm_operation_ledger WHERE operation_id = $1", orphan_id
-                )
-            await admin.execute(up)
-            assert await admin.fetchval(
-                "SELECT 1 FROM pg_proc WHERE proname = 'farm_ledger_assert_season_ref'"
-            ), "v281 must be re-applied after the rollback test"
+            if admin.is_in_transaction():
+                await admin.execute("ROLLBACK")
+            if superuser:
+                async with admin.transaction():
+                    await admin.execute("SET LOCAL session_replication_role = replica")
+                    await admin.execute(
+                        "DELETE FROM farm_operation_ledger WHERE operation_id = $1", orphan_id
+                    )
+                await admin.execute(up)
+                assert await admin.fetchval(
+                    "SELECT 1 FROM pg_proc WHERE proname = 'farm_ledger_assert_season_ref'"
+                ), "v281 must be re-applied after the rollback test"
             await admin.close()
 
     asyncio.run(body())

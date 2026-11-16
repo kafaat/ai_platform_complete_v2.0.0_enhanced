@@ -11,6 +11,23 @@
 -- `ALTER TABLE ... VALIDATE CONSTRAINT ...` once those rows are resolved (lab receipt on 0f746db).
 BEGIN;
 SET LOCAL lock_timeout = '15s';
+-- The orphan count and VALIDATE CONSTRAINT both run under row security. A migrator that does not
+-- bypass RLS would see 0 rows on a FORCE-RLS table and mark a key valid over a violating row
+-- (lab receipt on #1503). With row_security off such a migrator gets an error instead; a
+-- superuser/BYPASSRLS migrator is unaffected.
+SET LOCAL row_security = off;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_roles WHERE rolname = current_user AND (rolsuper OR rolbypassrls)
+    ) THEN
+        RAISE EXCEPTION
+            'v281 rollback: role % is subject to RLS on the FORCE-RLS ledger tables and cannot '
+            'count their season orphans; apply as the superuser/BYPASSRLS migration owner',
+            current_user;
+    END IF;
+END $$;
 
 DO $$
 DECLARE
