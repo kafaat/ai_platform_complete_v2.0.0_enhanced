@@ -29,12 +29,17 @@ core منه سليم (api ← core)، عكسه ممنوع (core لا يستور�
 
 from __future__ import annotations
 
+import asyncio
 import json
 import math
 from datetime import date, timedelta
 
 from core.eo_stage_mismatch import detect_eo_stage_mismatch
-from core.gdd_phenology import phenology_progress, project_next_critical_window
+from core.gdd_phenology import (
+    phenology_progress,
+    project_next_critical_window,
+    stage_equivalent_day,
+)
 from core.season_phenology import resolve_crop_id, stage_kc
 from core.season_stage_risk import critical_window_collisions, stage_weather_risks
 from fastapi import HTTPException
@@ -107,6 +112,34 @@ def _summarize_reconciled_outcomes_for_season(
     }
 
 
+def archive_forecast_gap_days(
+    accumulated_gdd_through: date | str | None, forecast_daily: list[dict] | None, ref: date
+) -> int | None:
+    """Days between the last day of the thermal sum and the first forecast day (0 = continuous).
+
+    ``None`` when the caller declares no coverage date (the sum is then taken to run to the
+    day before the forecast, as before). The first forecast day is the first row's ``date``
+    when it parses, otherwise ``ref``.
+    """
+    if accumulated_gdd_through is None:
+        return None
+    try:
+        through = (
+            accumulated_gdd_through
+            if isinstance(accumulated_gdd_through, date)
+            else date.fromisoformat(str(accumulated_gdd_through))
+        )
+    except ValueError:
+        return None
+    first = ref
+    if forecast_daily:
+        try:
+            first = date.fromisoformat(str(forecast_daily[0].get("date")))
+        except (TypeError, ValueError):
+            first = ref
+    return max(0, (first - through).days - 1)
+
+
 def assemble_field_season_state(
     *,
     field_id: str | None = None,
@@ -128,6 +161,7 @@ def assemble_field_season_state(
     water_stress_factor: float | None = None,
     open_tasks_count: int | None = None,
     forecast_daily: list[dict] | None = None,
+    accumulated_gdd_through: date | str | None = None,
     outcome_records: list[dict] | None = None,
     recommendation_outcomes: list[dict] | None = None,
     dispatch_links: dict | None = None,
@@ -150,7 +184,10 @@ def assemble_field_season_state(
     effective_stage = pheno.get("stage")
     stage_source = pheno.get("stage_source")
     # ③ Kc الطوريّ
-    current_kc = stage_kc(crop_id, days_after_sowing)
+    # Kc على منحنى البطاقة في الموضع الموافق للمرحلة المحلَّلة (حراريّة أو تقويميّة)، لكي لا
+    # يقول الردّ «مرحلة late» مع Kc مرحلةٍ تقويميّة أخرى.
+    kc_day = stage_equivalent_day(crop_id, days_after_sowing, pheno)
+    current_kc = stage_kc(crop_id, kc_day if kc_day is not None else days_after_sowing)
 
     # ④ مخاطر المرحلة (تُغذّى بالطقس + الماء)
     risk_signals = dict(weather_signals or {})
@@ -186,13 +223,25 @@ def assemble_field_season_state(
     # يقيس هل سيصادف الطورُ الأضعف طقساً متطرّفاً — والفرق بينهما الزمن القياديّ.
     # سلسلةُ GDD اليوميّة **مملوكةٌ للطقس** (WS-C.1c): تُستقبَل ولا تُحسَب هنا.
     daily = list(forecast_daily or [])
+    # The thermal sum and the forecast GDD series are added together only when they are
+    # continuous. The archive trails real time (reanalysis lag), so a sum through
+    # today-5 followed by a forecast from today leaves days nobody counted; adding the
+    # two would project the window late by exactly those days (the dangerous direction:
+    # a field already flowering reported "upcoming", its collisions ignored). A declared
+    # gap drops the series, so the window comes from the sum alone or from the calendar,
+    # and says why.
+    gap_days = archive_forecast_gap_days(accumulated_gdd_through, daily, ref)
+    use_series = bool(daily) and accumulated_gdd is not None and not gap_days
     critical_window = project_next_critical_window(
         crop_id,
         accumulated_gdd=accumulated_gdd,
-        forecast_daily_gdd=[d.get("gdd") for d in daily] if daily else None,
+        forecast_daily_gdd=[d.get("gdd") for d in daily] if use_series else None,
         sowing_date=sowing_date,
         today=ref,
     )
+    if gap_days and accumulated_gdd is not None:
+        critical_window["evidence_missing"].append("archive_forecast_gap")
+        critical_window["archive_forecast_gap_days"] = gap_days
     window_collisions = critical_window_collisions(
         crop_id, critical_window, daily or None, today=ref
     )
@@ -233,6 +282,11 @@ def assemble_field_season_state(
         "stage_fallback_reason": pheno.get("stage_fallback_reason"),
         "days_after_sowing": days_after_sowing,
         "accumulated_gdd": accumulated_gdd,
+        "accumulated_gdd_through": (
+            accumulated_gdd_through.isoformat()
+            if isinstance(accumulated_gdd_through, date)
+            else accumulated_gdd_through
+        ),
         "gdd_to_maturity": pheno.get("gdd_to_maturity"),
         "gdd_fraction": pheno.get("gdd_fraction"),
         "phenology_divergence": pheno.get("divergence"),
@@ -364,7 +418,21 @@ def blank_counts_when_unavailable(summary: dict) -> None:
 #: ``today - SEASON_ARCHIVE_LAG_DAYS`` and the state says so in ``accumulated_gdd_through``.
 SEASON_ARCHIVE_LAG_DAYS = 5
 SEASON_FORECAST_DAYS = 7
-_WEATHER_SOURCE_ERRORS = (HTTPException, ValueError, TypeError, KeyError)
+#: Per-call budget for the season weather reads, as for the canonical field-weather read.
+SEASON_WEATHER_TIMEOUT_S = 8.0
+_WEATHER_SOURCE_ERRORS = (HTTPException, ValueError, TypeError, KeyError, TimeoutError)
+#: Stable order of ``unavailable`` reasons (the chains run concurrently).
+_UNAVAILABLE_ORDER = (
+    "field_location_missing",
+    "sowing_date_missing",
+    "crop_card_gdd_base_missing",
+    "archive_window_inside_reanalysis_lag",
+    "weather_historical_unavailable",
+    "weather_gdd_unavailable",
+    "weather_gdd_incomplete",
+    "weather_forecast_unavailable",
+    "forecast_gdd_unavailable",
+)
 
 
 def _finite_or_none(value: object) -> float | None:
@@ -447,6 +515,7 @@ async def gather_season_weather_inputs(
         "gdd_provenance": None,
         "forecast_daily": None,
         "weather_signals": None,
+        "archive_forecast_gap_days": None,
         "unavailable": [],
     }
     missing = out["unavailable"]
@@ -475,25 +544,36 @@ async def gather_season_weather_inputs(
 
     lat_f, lon_f = float(lat), float(lon)
     end = min(as_of, today - timedelta(days=SEASON_ARCHIVE_LAG_DAYS))
-    if policy is not None and end < sowing_date:
-        missing.append("archive_window_inside_reanalysis_lag")
-    elif policy is not None:
+
+    async def bounded(awaitable):
+        # Each weather call has its own short budget: the state read degrades to the calendar
+        # rather than waiting for the client's 20 s default (W1-09 review, latency).
+        return await asyncio.wait_for(awaitable, SEASON_WEATHER_TIMEOUT_S)
+
+    async def archive_chain() -> None:
+        if policy is None:
+            return
+        if end < sowing_date:
+            missing.append("archive_window_inside_reanalysis_lag")
+            return
         try:
-            archive = await get_historical(
-                lat_f,
-                lon_f,
-                start_date=sowing_date.isoformat(),
-                end_date=end.isoformat(),
-                tenant_id=tenant_id,
+            archive = await bounded(
+                get_historical(
+                    lat_f,
+                    lon_f,
+                    start_date=sowing_date.isoformat(),
+                    end_date=end.isoformat(),
+                    tenant_id=tenant_id,
+                )
             )
             days = canonical_historical_days(archive, start=sowing_date, end=end)
             out["archive_provenance"] = weather_product_provenance("archive", archive)
         except _WEATHER_SOURCE_ERRORS:
             missing.append("weather_historical_unavailable")
-            days = None
-        if days is not None:
-            try:
-                product = await get_gdd(
+            return
+        try:
+            product = await bounded(
+                get_gdd(
                     daily_t_min=[d.t_min_c for d in days],
                     daily_t_max=[d.t_max_c for d in days],
                     base_c=policy["base_c"],
@@ -503,57 +583,70 @@ async def gather_season_weather_inputs(
                     end_date=end.isoformat(),
                     tenant_id=tenant_id,
                 )
-                total = _validated_gdd_total(product, len(days))
-            except _WEATHER_SOURCE_ERRORS:
-                missing.append("weather_gdd_unavailable")
-            else:
-                if total is None:
-                    missing.append("weather_gdd_incomplete")
-                else:
-                    out["accumulated_gdd"] = round(total, 1)
-                    out["accumulated_gdd_through"] = end.isoformat()
-                    out["gdd_provenance"] = weather_product_provenance("engine_gdd", product)
-
-    # The forecast describes what comes after today; a closed season has no use for it, and a
-    # caller that needs only the stage passes no forecast fetcher.
-    if as_of != today or get_forecast is None:
-        return out
-    try:
-        forecast = await get_forecast(lat_f, lon_f, days=SEASON_FORECAST_DAYS)
-        rows = forecast.get("days")
-        if not isinstance(rows, list) or not rows or not all(isinstance(r, dict) for r in rows):
-            raise ValueError("forecast has no daily rows")
-    except _WEATHER_SOURCE_ERRORS:
-        missing.append("weather_forecast_unavailable")
-        return out
-    rows = rows[:SEASON_FORECAST_DAYS]
-    daily = [
-        {
-            "date": r.get("date"),
-            "tmax_c": _finite_or_none(r.get("temp_max_c")),
-            "tmin_c": _finite_or_none(r.get("temp_min_c")),
-            "gdd": None,
-        }
-        for r in rows
-    ]
-    if policy is not None:
-        try:
-            fc_gdd = await get_gdd(
-                daily_t_min=[d["tmin_c"] for d in daily],
-                daily_t_max=[d["tmax_c"] for d in daily],
-                base_c=policy["base_c"],
-                upper_cutoff_c=policy["upper_cutoff_c"],
-                method=policy["method"],
-                start_date=daily[0]["date"],
-                end_date=daily[-1]["date"],
-                tenant_id=tenant_id,
             )
-            if _validated_gdd_total(fc_gdd, len(daily)) is None:
-                raise ValueError("forecast GDD incomplete")
-            for d, g in zip(daily, fc_gdd["daily_gdd"], strict=True):
-                d["gdd"] = g
+            total = _validated_gdd_total(product, len(days))
         except _WEATHER_SOURCE_ERRORS:
-            missing.append("forecast_gdd_unavailable")
-    out["forecast_daily"] = daily
-    out["weather_signals"] = forecast_stage_signals(rows) or None
+            missing.append("weather_gdd_unavailable")
+            return
+        if total is None:
+            missing.append("weather_gdd_incomplete")
+            return
+        out["accumulated_gdd"] = round(total, 1)
+        out["accumulated_gdd_through"] = end.isoformat()
+        out["gdd_provenance"] = weather_product_provenance("engine_gdd", product)
+
+    async def forecast_chain() -> None:
+        # The forecast describes what comes after today; a closed season has no use for it,
+        # and a caller that needs only the stage passes no forecast fetcher.
+        if as_of != today or get_forecast is None:
+            return
+        try:
+            forecast = await bounded(get_forecast(lat_f, lon_f, days=SEASON_FORECAST_DAYS))
+            rows = forecast.get("days")
+            if not isinstance(rows, list) or not rows or not all(isinstance(r, dict) for r in rows):
+                raise ValueError("forecast has no daily rows")
+        except _WEATHER_SOURCE_ERRORS:
+            missing.append("weather_forecast_unavailable")
+            return
+        rows = rows[:SEASON_FORECAST_DAYS]
+        daily = [
+            {
+                "date": r.get("date"),
+                "tmax_c": _finite_or_none(r.get("temp_max_c")),
+                "tmin_c": _finite_or_none(r.get("temp_min_c")),
+                "gdd": None,
+            }
+            for r in rows
+        ]
+        if policy is not None:
+            try:
+                fc_gdd = await bounded(
+                    get_gdd(
+                        daily_t_min=[d["tmin_c"] for d in daily],
+                        daily_t_max=[d["tmax_c"] for d in daily],
+                        base_c=policy["base_c"],
+                        upper_cutoff_c=policy["upper_cutoff_c"],
+                        method=policy["method"],
+                        start_date=daily[0]["date"],
+                        end_date=daily[-1]["date"],
+                        tenant_id=tenant_id,
+                    )
+                )
+                if _validated_gdd_total(fc_gdd, len(daily)) is None:
+                    raise ValueError("forecast GDD incomplete")
+                for d, g in zip(daily, fc_gdd["daily_gdd"], strict=True):
+                    d["gdd"] = g
+            except _WEATHER_SOURCE_ERRORS:
+                missing.append("forecast_gdd_unavailable")
+        out["forecast_daily"] = daily
+        out["weather_signals"] = forecast_stage_signals(rows) or None
+
+    # The two chains are independent (the forecast GDD needs only the policy), so they run
+    # together: a stalled weather-service costs one budget per chain step, not the sum of all.
+    await asyncio.gather(archive_chain(), forecast_chain())
+    missing.sort(key=_UNAVAILABLE_ORDER.index)
+    if out["accumulated_gdd_through"] is not None and out["forecast_daily"]:
+        out["archive_forecast_gap_days"] = archive_forecast_gap_days(
+            out["accumulated_gdd_through"], out["forecast_daily"], today
+        )
     return out

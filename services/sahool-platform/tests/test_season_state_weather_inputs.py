@@ -309,3 +309,150 @@ def test_agronomic_state_engine_uses_the_resolver():
         crop_context=CropContext(crop_id="wheat", days_after_planting=10),
     )
     assert cs.operational_truths["phenology_stage_source"] == "days", "calendar fallback"
+
+
+# ── W1-09 review: the archive lag is a gap, not a continuous series ──
+
+
+def _wheat_forecast_daily(first: date, gdd: float = DAILY_GDD) -> list[dict]:
+    return [
+        {"date": (first + timedelta(days=i)).isoformat(), "tmax_c": 25.0, "tmin_c": 9.0, "gdd": gdd}
+        for i in range(7)
+    ]
+
+
+def test_archive_forecast_gap_drops_the_series_and_says_why():
+    """True sum 710 (in window); the stale sum through today-5 is 620 (= 710 - 5*18).
+
+    Adding the forecast to the stale sum reported "upcoming in 4 days" with source
+    gdd_forecast; a frost or heat day at flowering in days 0-3 then raised no collision.
+    """
+    stale = 710.0 - SEASON_ARCHIVE_LAG_DAYS * DAILY_GDD
+    state = assemble_field_season_state(
+        crop="wheat",
+        sowing_date=SOWING,
+        today=TODAY,
+        accumulated_gdd=stale,
+        forecast_daily=_wheat_forecast_daily(TODAY),
+        accumulated_gdd_through=TODAY - timedelta(days=SEASON_ARCHIVE_LAG_DAYS),
+    )
+    window = state["critical_window"]
+    assert window["source"] != "gdd_forecast", (
+        "a forecast that does not start the day after the sum must not be added to it"
+    )
+    assert "archive_forecast_gap" in window["evidence_missing"], "the gap must be declared"
+    assert window["archive_forecast_gap_days"] == SEASON_ARCHIVE_LAG_DAYS - 1, (
+        "the uncounted days between the archive and the forecast are named"
+    )
+    assert (
+        state["accumulated_gdd_through"]
+        == (TODAY - timedelta(days=SEASON_ARCHIVE_LAG_DAYS)).isoformat()
+    ), "the state block itself carries the coverage of its thermal sum"
+
+
+def test_continuous_sum_and_forecast_still_project_thermally():
+    state = assemble_field_season_state(
+        crop="wheat",
+        sowing_date=SOWING,
+        today=TODAY,
+        accumulated_gdd=620.0,
+        forecast_daily=_wheat_forecast_daily(TODAY),
+        accumulated_gdd_through=TODAY - timedelta(days=1),
+    )
+    window = state["critical_window"]
+    assert window["source"] == "gdd_forecast", "a continuous series is projected thermally"
+    assert "archive_forecast_gap" not in window["evidence_missing"], "no gap, none declared"
+
+
+async def test_gatherer_reports_the_archive_forecast_gap():
+    weather = await _gather(Recorder())
+    assert weather["archive_forecast_gap_days"] == SEASON_ARCHIVE_LAG_DAYS - 1, (
+        "the gatherer names the days between the archive end and the first forecast day"
+    )
+
+
+# ── W1-09 review: a stalled weather-service is bounded, and the chains are independent ──
+
+
+async def test_stalled_archive_is_bounded_and_the_forecast_still_arrives(monkeypatch):
+    import asyncio
+    import time
+
+    import api.field_season_projection as fsp
+
+    monkeypatch.setattr(fsp, "SEASON_WEATHER_TIMEOUT_S", 0.2)
+    rec = Recorder()
+
+    async def stalled(*_a, **_kw):
+        await asyncio.sleep(30)
+
+    started = time.monotonic()
+    weather = await _gather(rec, get_historical=stalled)
+    elapsed = time.monotonic() - started
+    assert elapsed < 5, f"a stalled archive must not hold the state read ({elapsed:.1f}s)"
+    assert "weather_historical_unavailable" in weather["unavailable"], "the timeout is named"
+    assert weather["accumulated_gdd"] is None, "no sum from a stalled archive"
+    assert weather["forecast_daily"] is not None, "the forecast chain does not wait for it"
+
+
+# ── W1-10 review: /phenology is one stage, its timeline and Kc follow it ──
+
+
+def test_phenology_timeline_and_kc_follow_the_thermal_stage():
+    from api.routers.phenology import _shape_phenology
+    from core.season_phenology import stage_kc
+
+    ref = SOWING + timedelta(days=30)
+    shaped = _shape_phenology("wheat", SOWING, today=ref, weather={"accumulated_gdd": 1600.0})
+    assert shaped["current_stage"]["stage"] == "late", "the thermal stage is late"
+    statuses = {row["stage"]: row["status"] for row in shaped["timeline"]}
+    assert statuses == {
+        "initial": "past",
+        "development": "past",
+        "mid": "past",
+        "late": "current",
+    }, f"timeline statuses must agree with the resolved stage, got {statuses}"
+    assert shaped["timeline_status_basis"] == "gdd", "the timeline declares its status basis"
+    kc_day = shaped["current_stage_kc_day"]
+    assert 90 <= kc_day < 120, f"the Kc day must lie inside the late stage, got {kc_day}"
+    assert shaped["current_stage_kc"] == stage_kc("wheat", kc_day), "Kc read at that day"
+    assert shaped["current_stage_kc"] != stage_kc("wheat", 30), (
+        "the Kc must not stay at the calendar day when the thermal stage differs"
+    )
+    plain = _shape_phenology("wheat", SOWING, today=ref)
+    assert plain["timeline_status_basis"] == "calendar", "no GDD ⇒ calendar statuses"
+    assert plain["current_stage_kc"] == stage_kc("wheat", 30), "calendar Kc unchanged"
+
+
+def test_season_state_kc_follows_the_thermal_stage():
+    from core.season_phenology import stage_kc
+
+    state = assemble_field_season_state(
+        crop="wheat", sowing_date=SOWING, today=SOWING + timedelta(days=30), accumulated_gdd=1600.0
+    )
+    assert state["current_stage"] == "late", "the thermal stage is late"
+    assert state["current_kc"] != stage_kc("wheat", 30), (
+        "the season state Kc must follow the resolved stage, not the calendar day"
+    )
+
+
+async def test_phenology_route_weather_path_reaches_the_resolver(monkeypatch):
+    """The route's weather step (client functions stubbed, no database) feeds the resolver."""
+    from datetime import UTC, datetime
+    from types import SimpleNamespace
+
+    import api.weather_service_client as wsc
+    from api.routers.phenology import _season_thermal_time, _shape_phenology
+
+    rec = Recorder()
+    monkeypatch.setattr(wsc, "get_weather_historical", rec.get_historical)
+    monkeypatch.setattr(wsc, "get_gdd_product", rec.get_gdd)
+    today = datetime.now(UTC).date()
+    sowing = today - timedelta(days=100)
+    weather = await _season_thermal_time(
+        SimpleNamespace(tenant_id="t-1"), "wheat", sowing, 15.3, 44.2
+    )
+    assert weather["accumulated_gdd"] is not None, "the route gathers the archive GDD"
+    shaped = _shape_phenology("wheat", sowing, today=today, weather=weather)
+    assert shaped["stage_source"] == "gdd", "/phenology resolves the thermal stage"
+    assert "forecast" not in [k for k, _ in rec.calls], "/phenology asks for no forecast"

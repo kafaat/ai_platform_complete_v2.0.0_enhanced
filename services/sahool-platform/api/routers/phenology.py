@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 from datetime import date
 
-from core.gdd_phenology import resolve_stage
+from core.gdd_phenology import resolve_stage, stage_equivalent_day
 from core.season_phenology import (
     resolve_crop_id,
     season_timeline,
@@ -66,6 +66,24 @@ def _stage_basis(resolved: dict, weather: dict | None) -> dict:
     }
 
 
+def _align_timeline(timeline: list[dict], stage: dict | None, source: str | None) -> list[dict]:
+    """حالات خطّ الزمن نسبةً إلى المرحلة المحلَّلة حين تكون حراريّة.
+
+    التواريخ تبقى تقويميّة (من أيّام البطاقة) لأنّ لا تاريخ حراريّاً للمستقبل بلا توقّع؛ أمّا
+    ``status`` فيُشتقّ من ترتيب المرحلة الحراريّة كي لا يقول الردّ «late جارية» و«mid قادمة»
+    معاً. ``status_basis`` يعلن الأساس لكلّ صفّ.
+    """
+    names = [row["stage"] for row in timeline]
+    if source != "gdd" or stage is None or stage.get("stage") not in names:
+        return [{**row, "status_basis": "calendar"} for row in timeline]
+    current = names.index(stage["stage"])
+    out = []
+    for i, row in enumerate(timeline):
+        status = "past" if i < current else ("current" if i == current else "upcoming")
+        out.append({**row, "status": status, "status_basis": "gdd"})
+    return out
+
+
 def _shape_phenology(
     crop: str | None,
     sowing_date: date | None,
@@ -98,6 +116,10 @@ def _shape_phenology(
             "reason_ar": "لا توجد كتلة مراحل نموّ (phenology) لهذا المحصول",
         }
     stage, resolved = resolve_stage(crop_id, das, (weather or {}).get("accumulated_gdd"))
+    # Kc والخطّ الزمنيّ يتبعان المرحلة المحلَّلة نفسها (W1-10 review): مرحلة حراريّة مع Kc
+    # وحالات خطّ زمن تقويميّة تُظهِر للعميل «المرحلة late والقادمة mid».
+    kc_day = stage_equivalent_day(crop_id, das, resolved)
+    timeline = _align_timeline(timeline, stage, resolved.get("stage_source"))
     return {
         "available": True,
         "crop": crop,
@@ -105,8 +127,10 @@ def _shape_phenology(
         "sowing_date": sowing_date.isoformat(),
         "days_after_sowing": das,
         "current_stage": stage,
-        "current_stage_kc": stage_kc(crop_id, das),
+        "current_stage_kc": stage_kc(crop_id, kc_day if kc_day is not None else das),
+        "current_stage_kc_day": kc_day,
         **_stage_basis(resolved, weather),
+        "timeline_status_basis": "gdd" if resolved.get("stage_source") == "gdd" else "calendar",
         "timeline": timeline,
     }
 

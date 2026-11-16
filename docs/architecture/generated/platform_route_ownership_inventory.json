@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "e92d0d2e8ccd16bf2a0d0f5c1b267d3033849bd2e4f12854a1c3dfbd5dd51bef",
+  "inventory_sha256": "a51e9860b8f4eaf5a3a3ef6b8c4aee31fb64a8467aa53dd582498a73450efc88",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "5891350bc1909c63970b7a57240f193847dcffb76caf4fcc8bf63cf4ecf2923f",
+  "map_sha256": "b9bd3df81f489f379096764988f62b1b22b651dcd428416cc7621bc740cc0346",
   "routes": [
     {
       "classification": null,
@@ -2101,7 +2101,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/phenology.py",
       "function": "field_phenology",
-      "line": 215,
+      "line": 239,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",
@@ -2269,7 +2269,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/phenology.py",
       "function": "field_stage_actions",
-      "line": 238,
+      "line": 262,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",

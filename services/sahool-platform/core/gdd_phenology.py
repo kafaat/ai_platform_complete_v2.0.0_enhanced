@@ -217,6 +217,35 @@ def resolve_stage(
     return None, resolved
 
 
+def stage_equivalent_day(
+    crop_id: str | None, days_since_sowing: int | None, resolved: dict
+) -> int | None:
+    """اليوم على منحنى البطاقة الموافق للمرحلة المحلَّلة — لكي يتبع Kc والخطّ الزمنيّ المرحلةَ نفسها.
+
+    مرحلة حراريّة ⇒ استيفاء خطّيّ داخل نطاق المرحلة: موضع GDD بين ``gdd_start``/``gdd_end``
+    يُنقَل إلى الموضع نفسه بين ``day_start``/``day_end`` لصفّ البطاقة، فيقع اليوم داخل المرحلة
+    الحراريّة دائماً (``current_stage`` له = المرحلة المحلَّلة). مرحلة تقويميّة ⇒ أيّام البذار
+    كما هي. لا مرحلة ⇒ None.
+    """
+    if resolved.get("stage_source") != "gdd":
+        return days_since_sowing if resolved.get("stage_source") == "days" else None
+    acc = resolved.get("accumulated_gdd")
+    name = resolved.get("stage")
+    band = next((th for th in gdd_stage_thresholds(crop_id) if th["stage"] == name), None)
+    card = load_crop_card(crop_id) if crop_id else None
+    row = next(
+        (st for st in (card or {}).get("phenology", {}).get("stages", []) if st["stage"] == name),
+        None,
+    )
+    if acc is None or band is None or row is None:
+        return None
+    span = band["gdd_end"] - band["gdd_start"]
+    frac = (acc - band["gdd_start"]) / span if span > 0 else 0.0
+    frac = min(max(frac, 0.0), 1.0)
+    day = row["day_start"] + int(frac * (row["day_end"] - row["day_start"]))
+    return min(day, row["day_end"] - 1) if row["day_end"] > row["day_start"] else row["day_start"]
+
+
 def _critical_gdd_bounds(crop_id: str | None) -> dict | None:
     """حدّا GDD للمرحلة الحرجة، أو None إن تعذّرت العتبات (مُعمِّر/بطاقة ناقصة)."""
     for th in gdd_stage_thresholds(crop_id):

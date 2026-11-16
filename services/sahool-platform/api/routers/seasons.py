@@ -779,6 +779,7 @@ async def field_season_state_endpoint(
         accumulated_gdd=weather["accumulated_gdd"],
         weather_signals=weather["weather_signals"],
         forecast_daily=weather["forecast_daily"],
+        accumulated_gdd_through=weather["accumulated_gdd_through"],
         imagery_date=datetime.fromisoformat(scene["datetime"]).date() if scene else None,
         observed_ndvi=scene.get("mean"),
         observed_ndmi=scene.get("ndmi"),
@@ -793,7 +794,6 @@ async def field_season_state_endpoint(
     )
 
     state["as_of"] = as_of.isoformat()
-    state["accumulated_gdd_through"] = weather["accumulated_gdd_through"]
     state["weather_inputs"] = {k: v for k, v in weather.items() if k != "forecast_daily"}
     state["imagery_acquisition_date"] = scene.get("datetime")
     state["open_operations_basis"] = (
