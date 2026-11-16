@@ -31,6 +31,7 @@ import 'package:sahool_app/features/equipment/equipment_routes.dart';
 import 'package:sahool_app/features/farm_book/farm_book_routes.dart';
 import 'package:sahool_app/features/farms/farms_routes.dart';
 import 'package:sahool_app/features/field_forms/field_forms_routes.dart';
+import 'package:sahool_app/features/field_plans/field_plans_routes.dart';
 import 'package:sahool_app/features/fields/fields_routes.dart';
 import 'package:sahool_app/features/inventory/inventory_routes.dart';
 import 'package:sahool_app/features/irrigation/irrigation_routes.dart';
@@ -80,6 +81,7 @@ final List<FeatureModule> allFeatures = [
   cropSeasonFeature,
   labSamplingFeature,
   farmBookFeature,
+  fieldPlansFeature,
 ];
 
 class AppRouter {
