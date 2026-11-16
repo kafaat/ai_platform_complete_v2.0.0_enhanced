@@ -11785,7 +11785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f209df9789d822108826b6748c735da19f5eaef5fd21d4c35bc12f1007fb506d"
+          "content": "188a7682771ba62be1d3a2e4b16a23c35f07233f818c7331353706e1ec846b66"
         }
       ],
       "name": "mobile/sahool_app/lib/core/offline/cache_backends.dart",
@@ -11815,7 +11815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "31d5cdb87d1b8c8c4513dcf4141a0d18af6849bc418177a533eb9054b4222d4e"
+          "content": "6f8f987a41f407db6b737a9c5d70a307bc4223f4556e6fa974ec54923231f6dd"
         }
       ],
       "name": "mobile/sahool_app/lib/core/offline/offline_read_cache.dart",
@@ -15989,6 +15989,16 @@
         }
       ],
       "name": "mobile/sahool_app/test/core/local_commit_server.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aff742ace68b80a26ed783ddbe67ad4a6a82848921a937511a938b192e6b604d"
+        }
+      ],
+      "name": "mobile/sahool_app/test/core/offline_cache_corruption_test.dart",
       "type": "file"
     },
     {

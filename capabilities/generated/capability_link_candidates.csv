@@ -1908,6 +1908,7 @@ OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/presentation/sync_sta
 OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/presentation/sync_status_screen.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/tasks/data/offline_write.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/widgets/offline_field_map.dart,2,applied
+OPS-005,test,mobile/sahool_app/test/core/offline_cache_corruption_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/core/offline_read_cache_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/maps/offline_field_map_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/maps/offline_packs_test.dart,3,applied

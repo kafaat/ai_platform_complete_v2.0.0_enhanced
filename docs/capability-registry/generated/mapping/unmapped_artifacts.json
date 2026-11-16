@@ -4060,6 +4060,10 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/test/core/offline_cache_corruption_test.dart",
+    "kind": "tests"
+  },
+  {
     "path": "mobile/sahool_app/test/core/offline_read_cache_test.dart",
     "kind": "tests"
   },

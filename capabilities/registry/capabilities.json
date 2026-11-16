@@ -4516,6 +4516,7 @@
         "mobile/sahool_app/lib/features/offline_sync/presentation/sync_status_screen.dart"
       ],
       "tests": [
+        "mobile/sahool_app/test/core/offline_cache_corruption_test.dart",
         "mobile/sahool_app/test/core/offline_read_cache_test.dart",
         "mobile/sahool_app/test/features/maps/offline_field_map_test.dart",
         "mobile/sahool_app/test/features/maps/offline_packs_test.dart",
@@ -4539,8 +4540,7 @@
         "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
         "tests/mobile/test_phase11_mobile_offline_sync_runtime.py",
         "tests_v9/run_offline_suite.py",
-        "tests_v9/test_e2e_offline_flow.py",
-        "tests_v9/test_offline_dispatch_field_update.py"
+        "tests_v9/test_e2e_offline_flow.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4579,7 +4579,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 4,
+        "tests": 5,
         "mobile_consumers": 2
       }
     },
