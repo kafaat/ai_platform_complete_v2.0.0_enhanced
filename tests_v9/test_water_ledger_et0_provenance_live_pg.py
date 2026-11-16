@@ -37,7 +37,16 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
-asyncpg = pytest.importorskip("asyncpg")
+# Switch read before any import (test_certification_switch_precedes_importorskip): on the
+# certifying CI step a missing asyncpg or an unusable database fails the run, not a green skip.
+_CERTIFICATION_REQUIRED = os.getenv("WATER_LEDGER_ET0_CERTIFICATION_REQUIRED") == "1"
+
+try:
+    import asyncpg
+except ImportError:
+    if _CERTIFICATION_REQUIRED:
+        raise
+    asyncpg = pytest.importorskip("asyncpg")
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
@@ -70,6 +79,10 @@ async def _probe() -> str:
 
 
 _WHY = asyncio.run(_probe())
+if _WHY and _CERTIFICATION_REQUIRED:
+    raise RuntimeError(
+        f"WATER_LEDGER_ET0_CERTIFICATION_REQUIRED=1 but the live database is unusable: {_WHY}"
+    )
 pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
 
 

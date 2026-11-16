@@ -760,7 +760,19 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             rain_updates, rebuilt_prev_depletion = rebuild_rain_chain(
                                 window_rows, observed, today, AUTO_CREATED_BY
                             )
-                        except Exception:  # noqa: BLE001 — أرشيفٌ غائب أو قيدٌ لا يُبنى ⇒ يبقى التوقّع معلَناً
+                        except Exception as exc:  # noqa: BLE001 — أرشيفٌ غائب أو قيدٌ لا يُبنى ⇒ يبقى التوقّع معلَناً
+                            # Declared, not silent: an archive that always fails would otherwise
+                            # leave forecast rain booked forever with nothing in the logs.
+                            print(
+                                json.dumps(
+                                    {
+                                        "worker": "water_ledger",
+                                        "skip": "rain_reconcile_unavailable",
+                                        "error": type(exc).__name__,
+                                    }
+                                ),
+                                flush=True,
+                            )
                             rain_updates, rebuilt_prev_depletion = [], None
                     t_max, t_min = day0.get("temp_max_c"), day0.get("temp_min_c")
                     # ميّز «هطول مقيس = 0» عن «هطول مفقود» — الأخير يُفترَض 0 بإعلان لا صامتاً.
