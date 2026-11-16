@@ -433,7 +433,7 @@ tables:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v101_farm_budget_costing.sql"
+    source: "migrations/v101_farm_budget_costing.sql, migrations/v280_farm_ledger_season_reference.sql"
   farm_input_records:
     owner: field-management-service
     writers: [field-management-service]
@@ -448,22 +448,22 @@ tables:
     owner: raster-service
     writers: [raster-service]
     readers: [sahool-platform]
-    source: "migrations/v102_farm_closed_loop.sql"
+    source: "migrations/v102_farm_closed_loop.sql, migrations/v280_farm_ledger_season_reference.sql"
   farm_ledger_erp_projection_outbox:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v102_farm_closed_loop.sql"
+    source: "migrations/v102_farm_closed_loop.sql, migrations/v280_farm_ledger_season_reference.sql"
   farm_ledger_inventory_projections:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v102_farm_closed_loop.sql"
+    source: "migrations/v102_farm_closed_loop.sql, migrations/v280_farm_ledger_season_reference.sql"
   farm_operation_ledger:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v100_farm_operations_ledger.sql"
+    source: "migrations/v100_farm_operations_ledger.sql, migrations/v280_farm_ledger_season_reference.sql"
   farm_production_units:
     owner: field-management-service
     writers: [field-management-service]
@@ -473,12 +473,12 @@ tables:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v101_farm_budget_costing.sql"
+    source: "migrations/v101_farm_budget_costing.sql, migrations/v280_farm_ledger_season_reference.sql"
   farm_season_budget_lines:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v101_farm_budget_costing.sql"
+    source: "migrations/v101_farm_budget_costing.sql, migrations/v280_farm_ledger_season_reference.sql"
   farm_season_projects:
     owner: field-management-service
     writers: [field-management-service]

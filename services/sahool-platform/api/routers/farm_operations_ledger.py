@@ -71,6 +71,11 @@ async def _assert_season_in_tenant(conn, tenant_id: str, season_id: str | None) 
     await _assert_owned(conn, tenant_id, "season", season_id)
 
 
+def _mixed_currency(e: ledger_core.MixedCurrencyError) -> HTTPException:
+    """Business-2: one report, one currency. 409 names the currencies found."""
+    return HTTPException(status_code=409, detail=e.detail())
+
+
 async def _assert_production_unit_in_tenant(conn, tenant_id: str, unit_id: str | None) -> None:
     await _assert_owned(conn, tenant_id, "production_unit", unit_id)
 
@@ -366,9 +371,12 @@ async def farm_ledger_summary(
     season_id: str | None = None,
     date_from: date | None = Query(None, alias="from"),
     date_to: date | None = Query(None, alias="to"),
+    currency: str | None = None,
     user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
 ):
-    """ملخّص رقابي/تكلفة مبسّط من السجلات. لا يختلق أرقاماً ولا يزامن ERP."""
+    """ملخّص رقابي/تكلفة مبسّط من السجلات. لا يختلق أرقاماً ولا يزامن ERP.
+
+    التكاليف بعملةٍ واحدة (business-2): ``?currency=`` أو نطاقٌ فيه عملةٌ واحدة، وإلّا 409."""
     _require_enabled()
     if api_main._DB_POOL is None:
         return {"summary": None, "note_ar": "القاعدة غير مفعلة"}
@@ -386,11 +394,22 @@ async def farm_ledger_summary(
     if date_to:
         args.append(date_to)
         clauses.append(f"o.operation_date <= ${len(args)}")
+    if cur := ledger_core.normalize_currency(currency):
+        args.append(cur)
+        clauses.append(f"upper(trim(o.currency)) = ${len(args)}")
     where_sql = " AND ".join(clauses)
     try:
         async with tenant_connection(user) as conn:
             if field_id:
                 await _assert_field_in_tenant(conn, field_id)
+            if cur is None:
+                found = await conn.fetch(
+                    f"""SELECT DISTINCT upper(trim(o.currency)) AS currency
+                        FROM farm_operation_ledger o
+                        WHERE {where_sql} AND o.cost_amount IS NOT NULL""",
+                    *args,
+                )
+                cur = ledger_core.resolve_report_currency([r["currency"] for r in found], None)
             row = await conn.fetchrow(
                 f"""WITH scoped AS (SELECT * FROM farm_operation_ledger o WHERE {where_sql}),
                 ops AS (SELECT * FROM scoped WHERE {ledger_core.ACTUAL_OPERATION_SQL})
@@ -421,12 +440,15 @@ async def farm_ledger_summary(
             )
     except HTTPException:
         raise
+    except ledger_core.MixedCurrencyError as e:
+        raise _mixed_currency(e) from e
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تلخيص سجل العمليات الزراعية", e) from e
     total = float(row["total_cost"] or 0.0)
     indirect = float(row["indirect_cost"] or 0.0)
     return {
         "summary": {
+            "currency": cur,
             "operation_count": row["operation_count"],  # منجَزة حتى اليوم فقط
             "total_cost": total,
             "planned_operation_count": row["planned_operation_count"],
@@ -567,6 +589,8 @@ async def upsert_season_budget_lines(
                     saved.append(
                         {"budget_line_id": line_id, "planned_cost": normalized.planned_cost}
                     )
+    except HTTPException:  # 404 season / 403 ownership are answers, not an outage
+        raise
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("حفظ موازنة الموسم", e) from e
     return {"saved": saved, "message_ar": "حُفظت بنود موازنة الموسم"}
@@ -593,10 +617,17 @@ async def get_season_budget(
             )
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("جلب موازنة الموسم", e) from e
+    totals: dict[str, float] = {}
+    for r in rows:  # business-2: one total per currency, never one sum across them
+        key = ledger_core.normalize_currency(r["currency"]) or "UNKNOWN"
+        totals[key] = totals.get(key, 0.0) + float(r["planned_cost"] or 0.0)
+    single = next(iter(totals)) if len(totals) == 1 else None
     return {
         "season_id": season_id,
         "lines": [dict(r) for r in rows],
-        "total_planned_cost": sum(float(r["planned_cost"] or 0.0) for r in rows),
+        "currency": single,
+        "total_planned_cost": totals[single] if single else (None if totals else 0.0),
+        "totals_by_currency": totals,
     }
 
 
@@ -659,13 +690,16 @@ async def get_budget_variance(
             "recommendations": [],
             "note_ar": "القاعدة غير مفعلة",
         }
-    cur, tenant = ledger_core.normalize_currency(currency), str(user.tenant_id)
+    tenant = str(user.tenant_id)
     try:
         async with tenant_connection(user) as conn:
+            cur = await ledger_core.season_report_currency(conn, tenant, season_id, currency)
             budgets, actuals = await ledger_core.fetch_budget_and_actual(
                 conn, tenant, season_id, cur
             )
             incomplete = await ledger_core.fetch_unpriced_categories(conn, tenant, season_id, cur)
+    except ledger_core.MixedCurrencyError as e:
+        raise _mixed_currency(e) from e
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحليل انحرافات الموسم", e) from e
     variance, coverage = ledger_core.priced_variance(budgets, actuals, incomplete)
@@ -685,17 +719,20 @@ async def get_season_profitability(
     season_id: str,
     yield_quantity: float | None = None,
     unit: str | None = None,
+    currency: str | None = None,
     user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
 ):
     _require_enabled()
     if api_main._DB_POOL is None:
         return {"season_id": season_id, "profitability": None, "note_ar": "القاعدة غير مفعلة"}
+    tenant = str(user.tenant_id)
     try:
         async with tenant_connection(user) as conn:
-            _, actuals = await ledger_core.fetch_budget_and_actual(
-                conn, str(user.tenant_id), season_id
-            )
-            revenue = await ledger_core.fetch_season_revenue(conn, str(user.tenant_id), season_id)
+            cur = await ledger_core.season_report_currency(conn, tenant, season_id, currency)
+            _, actuals = await ledger_core.fetch_budget_and_actual(conn, tenant, season_id, cur)
+            revenue = await ledger_core.fetch_season_revenue(conn, tenant, season_id, cur)
+    except ledger_core.MixedCurrencyError as e:
+        raise _mixed_currency(e) from e
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تحليل ربحية الموسم", e) from e
     profit = compute_profitability(
@@ -704,6 +741,7 @@ async def get_season_profitability(
         cost_lines=actuals,
         yield_quantity=yield_quantity,
         unit=unit,
+        **({"currency": cur} if cur else {}),
     )
     return {
         "season_id": season_id,

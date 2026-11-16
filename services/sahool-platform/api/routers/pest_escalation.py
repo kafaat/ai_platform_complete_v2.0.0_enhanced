@@ -24,6 +24,7 @@ from api.main import (
     UserSchema,
     _get_workflow_store,
     require_permission,
+    tenant_connection,
 )
 
 router = APIRouter()
@@ -96,9 +97,31 @@ async def pest_escalation_run(
     # الهويّة والمستأجِر من التوكن المُتحقَّق، والأدلّة من سياق الخادم لا من الجسم.
     tenant_id = str(user.tenant_id)
     user_id = user.user_id
+    loop = _aio.get_running_loop()
 
     def _safety_gate(ctx: dict) -> dict:
-        return evaluate_pesticide_guardrails(ctx, tenant_id=tenant_id, user_id=user_id)
+        # W1-12: farm economics, area and seasonal water from the tenant's recorded ledger
+        # (server-side, with provenance). No database ⇒ no facts ⇒ evidence_unavailable.
+        from core.governance_farm_context import threadsafe_farm_context_fn
+
+        from api import main as api_main
+
+        sink: dict = {}
+        farm_fn = None
+        if api_main._DB_POOL is not None:
+            farm_fn = threadsafe_farm_context_fn(
+                loop,
+                lambda: tenant_connection(user),
+                tenant_id,
+                ctx.get("season_id"),
+                sink=sink,
+            )
+        verdict = evaluate_pesticide_guardrails(
+            ctx, tenant_id=tenant_id, user_id=user_id, farm_context_fn=farm_fn
+        )
+        if "farm_context" in sink:  # what the gate saw, kept in the workflow state
+            verdict = {**verdict, "farm_context": sink["farm_context"]}
+        return verdict
 
     store = _get_workflow_store(str(user.tenant_id))  # سياق RLS للقراءة/الاستئناف
     # المخزن المعمّر متزامن (asyncio.run داخليّاً) ⇒ نُشغّله في thread لا في الحلقة
