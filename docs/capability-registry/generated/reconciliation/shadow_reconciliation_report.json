@@ -307,6 +307,14 @@
       "ratchet_identity": "WX-001:declared_above_evidence:evidence-maturity"
     },
     {
+      "assessed_maturity": 3,
+      "capability_id": "WX-004",
+      "declared_maturity": 2,
+      "finding_id": "WX-004:evidence_above_declared",
+      "kind": "evidence_above_declared",
+      "ratchet_identity": "WX-004:evidence_above_declared:evidence-maturity"
+    },
+    {
       "assessed_maturity": 2,
       "capability_id": "WX-005",
       "declared_maturity": 3,
@@ -404,8 +412,10 @@
     "classes": {
       "evidence_maturity": {
         "baseline_count": 43,
-        "new": [],
-        "observed_count": 43,
+        "new": [
+          "WX-004:evidence_above_declared:evidence-maturity"
+        ],
+        "observed_count": 44,
         "stale": []
       },
       "registry_reconciliation": {
@@ -415,7 +425,7 @@
         "stale": []
       }
     },
-    "decision": "PASS",
+    "decision": "BLOCK",
     "mode": "identity-exact-ratchet"
   },
   "schema": "sahool.capability-shadow-reconciliation/v1",

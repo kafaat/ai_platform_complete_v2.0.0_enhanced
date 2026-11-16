@@ -1,5 +1,5 @@
 {
-  "edge_count": 1060,
+  "edge_count": 1061,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -122,7 +122,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/hooks/useApi.ts:263",
+      "evidence": "frontend/src/hooks/useApi.ts:255",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -3153,6 +3153,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/irrigation_mpc.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/routers/irrigation_recommendation.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9852,7 +9862,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/water_ledger.py",
+      "evidence": "services/sahool-platform/api/water_ledger_compute.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -10620,7 +10630,7 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 565,
+    "READS": 566,
     "ROUTES_TO": 75,
     "WRITES": 369
   },
@@ -10637,8 +10647,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 935,
-      "resolved": 934,
+      "observed": 936,
+      "resolved": 935,
       "unresolved_component_paths": 0
     }
   }

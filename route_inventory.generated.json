@@ -1058,7 +1058,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 205,
+    "line": 219,
     "method": "GET",
     "path": "/healthz",
     "function": "health_check"
@@ -1066,7 +1066,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 239,
+    "line": 325,
     "method": "POST",
     "path": "/v1/inference/pest-detect",
     "function": "detect_pest"
@@ -1074,7 +1074,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 316,
+    "line": 409,
     "method": "POST",
     "path": "/v1/inference/yield-estimate",
     "function": "estimate_yield"
@@ -1082,7 +1082,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 385,
+    "line": 481,
     "method": "POST",
     "path": "/v1/sync/trigger",
     "function": "trigger_sync"
@@ -1090,7 +1090,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 417,
+    "line": 513,
     "method": "GET",
     "path": "/capabilities",
     "function": "capabilities"
@@ -1098,7 +1098,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 422,
+    "line": 518,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -1106,7 +1106,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 432,
+    "line": 528,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -4562,7 +4562,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/edge.py",
-    "line": 31,
+    "line": 62,
     "method": "POST",
     "path": "/api/v1/edge/sync",
     "function": "edge_sync_receive"
@@ -4570,7 +4570,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/edge.py",
-    "line": 31,
+    "line": 62,
     "method": "POST",
     "path": "/v1/edge/sync",
     "function": "edge_sync_receive"
@@ -5306,7 +5306,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3623,
+    "line": 3637,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/timeline",
     "function": "field_timeline"
@@ -5314,7 +5314,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3643,
+    "line": 3657,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/history",
     "function": "field_history"
@@ -5322,7 +5322,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3760,
+    "line": 3774,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/pins",
     "function": "create_pin"
@@ -5330,7 +5330,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3782,
+    "line": 3796,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan",
     "function": "field_walk_plan"
@@ -5338,7 +5338,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3792,
+    "line": 3806,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
     "function": "field_walk_plan_pdf"
@@ -5346,7 +5346,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3811,
+    "line": 3825,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/zones",
     "function": "field_zones"
@@ -5354,7 +5354,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3825,
+    "line": 3839,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/water-stress-spectral",
     "function": "field_water_stress_spectral"
@@ -5362,7 +5362,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3857,
+    "line": 3871,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state",
     "function": "field_canonical_state"
@@ -5370,7 +5370,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3885,
+    "line": 3899,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/alerts/derived",
     "function": "field_alerts_derived"
@@ -5378,7 +5378,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/fields.py",
-    "line": 3911,
+    "line": 3925,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state/full",
     "function": "field_state_full"
@@ -5802,7 +5802,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 52,
+    "line": 54,
     "method": "GET",
     "path": "/internal/fields/{field_id}/state",
     "function": "internal_field_state"
@@ -5810,7 +5810,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 181,
+    "line": 186,
     "method": "POST",
     "path": "/internal/events/ai-advice",
     "function": "internal_ai_advice_event"
@@ -7106,7 +7106,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 245,
+    "line": 264,
     "method": "ANY",
     "path": "/api/edge/{path:path}",
     "function": "proxy_edge"
@@ -7114,7 +7114,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 263,
+    "line": 305,
     "method": "ANY",
     "path": "/api/soil/{path:path}",
     "function": "proxy_soil"
@@ -7122,7 +7122,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 281,
+    "line": 323,
     "method": "ANY",
     "path": "/api/segmentation/{path:path}",
     "function": "proxy_segmentation"
@@ -7130,7 +7130,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 299,
+    "line": 341,
     "method": "ANY",
     "path": "/api/field-forms/{path:path}",
     "function": "proxy_field_forms"
@@ -7442,7 +7442,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/water_ledger.py",
-    "line": 78,
+    "line": 83,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/water-ledger",
     "function": "upsert_water_ledger"
@@ -7450,7 +7450,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/water_ledger.py",
-    "line": 145,
+    "line": 153,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/water-ledger",
     "function": "list_water_ledger"
@@ -7458,7 +7458,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/water_ledger.py",
-    "line": 197,
+    "line": 205,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/water-efficiency",
     "function": "field_water_efficiency"
@@ -9066,7 +9066,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 95,
+    "line": 101,
     "method": "DELETE",
     "path": "/v1/streams/{stream_id}",
     "function": "stop_stream"
@@ -9074,7 +9074,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 121,
+    "line": 127,
     "method": "GET",
     "path": "/v1/streams/{stream_id}",
     "function": "get_stream"
@@ -9082,7 +9082,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 144,
+    "line": 150,
     "method": "GET",
     "path": "/v1/streams",
     "function": "list_streams"
@@ -9090,7 +9090,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 170,
+    "line": 176,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/snapshot",
     "function": "snapshot"
@@ -9098,7 +9098,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 188,
+    "line": 194,
     "method": "GET",
     "path": "/v1/streams/{stream_id}/snapshot",
     "function": "snapshot_zlm"
@@ -9106,7 +9106,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 211,
+    "line": 217,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/start",
     "function": "record_start"
@@ -9114,7 +9114,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 231,
+    "line": 237,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/stop",
     "function": "record_stop"

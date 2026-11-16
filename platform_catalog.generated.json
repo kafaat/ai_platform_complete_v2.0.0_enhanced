@@ -17752,6 +17752,7 @@
       "consumes": {
         "services": [
           "sahool-edge",
+          "sahool-field-management",
           "sahool-zlmediakit"
         ]
       },
@@ -18176,7 +18177,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "e2b2ae5f6030279a4888611db516003de79ff81dedd0b74e835929a6c05ae312",
+  "fingerprint": "8a9fdfed6ba19fde8e51004d440d178bbf88d194d1c88a2a7bccdcd8a3280123",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18228,14 +18229,14 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1060,
+      "edge_count": 1061,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 565,
+        "READS": 566,
         "ROUTES_TO": 75,
         "WRITES": 369
       }

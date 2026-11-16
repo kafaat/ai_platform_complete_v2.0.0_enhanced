@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "bc2fd48e6750b46ce3f497a1c60484a5a60af2a5c18a976692fbfece95456c7a",
+  "inventory_sha256": "d680153830c8f31d88dd805650725ffbe8a3776d293ec88122868a5e5309ff2e",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "167c6bce0c537e5b36d382d08c5863baf3b3ad5da0cbd46ba8cda0456bd9380e"
+    "policy_sha256": "81db7fbb44b90941a1b1d84cc42eb68ba17754abb7013e337a764a5f91d092bb"
   },
   "routes": [
     {
@@ -1074,7 +1074,7 @@
     {
       "classification": "domain",
       "function": "field_alerts_derived",
-      "line": 3884,
+      "line": 3898,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/alerts/derived",
       "source": "api/routers/fields.py"
@@ -1154,7 +1154,7 @@
     {
       "classification": "domain",
       "function": "field_history",
-      "line": 3642,
+      "line": 3656,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/history",
       "source": "api/routers/fields.py"
@@ -1306,7 +1306,7 @@
     {
       "classification": "domain",
       "function": "field_canonical_state",
-      "line": 3856,
+      "line": 3870,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state",
       "source": "api/routers/fields.py"
@@ -1314,7 +1314,7 @@
     {
       "classification": "domain",
       "function": "field_state_full",
-      "line": 3910,
+      "line": 3924,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state/full",
       "source": "api/routers/fields.py"
@@ -1354,7 +1354,7 @@
     {
       "classification": "domain",
       "function": "field_water_efficiency",
-      "line": 196,
+      "line": 204,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-efficiency",
       "source": "api/routers/water_ledger.py"
@@ -1362,7 +1362,7 @@
     {
       "classification": "domain",
       "function": "list_water_ledger",
-      "line": 144,
+      "line": 152,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-ledger",
       "source": "api/routers/water_ledger.py"
@@ -1370,7 +1370,7 @@
     {
       "classification": "domain",
       "function": "field_water_stress_spectral",
-      "line": 3824,
+      "line": 3838,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-stress-spectral",
       "source": "api/routers/fields.py"
@@ -2618,7 +2618,7 @@
     {
       "classification": "domain",
       "function": "internal_field_state",
-      "line": 51,
+      "line": 53,
       "method": "GET",
       "path": "/internal/fields/{field_id}/state",
       "source": "api/routers/internal_service.py"
@@ -3330,7 +3330,7 @@
     {
       "classification": "domain",
       "function": "edge_sync_receive",
-      "line": 29,
+      "line": 60,
       "method": "POST",
       "path": "/api/v1/edge/sync",
       "source": "api/routers/edge.py"
@@ -3658,7 +3658,7 @@
     {
       "classification": "domain",
       "function": "create_pin",
-      "line": 3759,
+      "line": 3773,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/pins",
       "source": "api/routers/fields.py"
@@ -3714,7 +3714,7 @@
     {
       "classification": "domain",
       "function": "field_timeline",
-      "line": 3622,
+      "line": 3636,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/timeline",
       "source": "api/routers/fields.py"
@@ -3730,7 +3730,7 @@
     {
       "classification": "domain",
       "function": "field_walk_plan",
-      "line": 3781,
+      "line": 3795,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan",
       "source": "api/routers/fields.py"
@@ -3738,7 +3738,7 @@
     {
       "classification": "domain",
       "function": "field_walk_plan_pdf",
-      "line": 3791,
+      "line": 3805,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
       "source": "api/routers/fields.py"
@@ -3746,7 +3746,7 @@
     {
       "classification": "domain",
       "function": "upsert_water_ledger",
-      "line": 77,
+      "line": 82,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/water-ledger",
       "source": "api/routers/water_ledger.py"
@@ -3802,7 +3802,7 @@
     {
       "classification": "domain",
       "function": "field_zones",
-      "line": 3810,
+      "line": 3824,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/zones",
       "source": "api/routers/fields.py"
@@ -4682,7 +4682,7 @@
     {
       "classification": "domain",
       "function": "internal_ai_advice_event",
-      "line": 180,
+      "line": 185,
       "method": "POST",
       "path": "/internal/events/ai-advice",
       "source": "api/routers/internal_service.py"
@@ -5034,7 +5034,7 @@
     {
       "classification": "domain",
       "function": "edge_sync_receive",
-      "line": 30,
+      "line": 61,
       "method": "POST",
       "path": "/v1/edge/sync",
       "source": "api/routers/edge.py"
