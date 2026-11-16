@@ -3,6 +3,7 @@
 // سقط المستأجِر من مفتاح الكاش.
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -68,6 +69,36 @@ void main() {
       bytes[bytes.length - 20] ^= 0x01;
       expect(c1.open('scope|k', base64.encode(bytes)), isNull,
           reason: 'tampered');
+    });
+
+    test('AEAD: a flip at any byte (nonce, ciphertext or tag) opens to null',
+        () {
+      // GCM authenticates the whole entry: unlike CBC with a hash inside, no single
+      // bit flip may yield a changed plaintext, wherever it lands.
+      final c = CacheCipher(newMasterKey());
+      final sealed = c.seal('scope|k', '{"rate_kg_ha":120,"zone":"A"}');
+      final bytes = base64.decode(sealed);
+      expect(bytes.length, 12 + 29 + 16, reason: 'nonce ‖ ct ‖ 128-bit tag');
+      for (var i = 0; i < bytes.length; i++) {
+        final tampered = Uint8List.fromList(bytes)..[i] ^= 0x01;
+        expect(c.open('scope|k', base64.encode(tampered)), isNull,
+            reason: 'byte $i');
+      }
+      expect(c.open('scope|k', base64.encode(bytes.sublist(0, 27))), isNull,
+          reason: 'truncated');
+      expect(c.open('scope|k', sealed), '{"rate_kg_ha":120,"zone":"A"}');
+    });
+
+    test('AEAD: each seal uses a fresh nonce', () {
+      final c = CacheCipher(newMasterKey());
+      final a = base64.decode(c.seal('scope|k', 'same'));
+      final b = base64.decode(c.seal('scope|k', 'same'));
+      expect(a.sublist(0, 12), isNot(equals(b.sublist(0, 12))));
+      expect(a, isNot(equals(b)));
+    });
+
+    test('a key that is not 32 bytes is refused', () {
+      expect(() => CacheCipher(List<int>.filled(16, 1)), throwsArgumentError);
     });
 
     test('a failing key vault never writes plaintext', () async {
