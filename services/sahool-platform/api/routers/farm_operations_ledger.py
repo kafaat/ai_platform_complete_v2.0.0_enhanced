@@ -48,6 +48,8 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.water_ledger_auto import AUTO_CREATED_BY
+from api.water_ledger_compute import project_farm_water_to_ledger
 
 router = APIRouter()
 _FLAG = "FEATURE_FARM_OPERATIONS_LEDGER"
@@ -280,12 +282,26 @@ async def create_operation_ledger_record(
                         labor=req.labor,
                         inputs=req.inputs,
                     )
+                    # W1-13: the day's measured water reaches the daily water ledger, same txn.
+                    water_ledger = (
+                        await project_farm_water_to_ledger(
+                            conn,
+                            tenant_id=tenant_id,
+                            field_id=req.field_id,
+                            record_date=req.operation_date,
+                            reporter=str(user.user_id),
+                            auto_created_by=AUTO_CREATED_BY,
+                        )
+                        if req.water and req.field_id
+                        else None
+                    )
                 return {
                     "operation_id": operation_id,
                     **({"task_id": str(req.task_id)} if req.task_id else {}),
                     "persisted": True,
                     "sync_status": req.sync_status,
                     "message_ar": "حُفظ سجل العملية الزراعية",
+                    **({"water_ledger": water_ledger} if water_ledger else {}),
                 }
 
             if idem:

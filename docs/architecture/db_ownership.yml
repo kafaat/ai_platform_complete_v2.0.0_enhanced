@@ -1199,7 +1199,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v98_water_ledger.sql, migrations/v278_water_ledger_et0_rain_provenance.sql, migrations/v279_water_ledger_irrigation_report.sql"
+    source: "migrations/v98_water_ledger.sql, migrations/v278_water_ledger_et0_rain_provenance.sql, migrations/v279_water_ledger_irrigation_report.sql, migrations/v280_water_ledger_irrigation_source.sql"
   weather_alerts:
     owner: weather-service
     writers: [weather-service]

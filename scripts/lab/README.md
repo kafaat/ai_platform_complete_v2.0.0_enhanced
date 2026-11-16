@@ -70,6 +70,9 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 14. Field recommendations 503 rolls back field_state (restricted role)
 15. Soil-sampling plan copies (gap P6, real-PG, restricted role)
 16. Field task inspection and cost trace (v274-v277, restricted role)
+17. Water ledger ET0 elevation and rain provenance (W0-10, real-PG)
+18. Water ledger partial irrigation write (W0-13, v279, restricted role)
+19. Farm water to the water ledger (W1-13, v280, restricted role)
 
 Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 `rolcanlogin` of every restricted role those steps connect as (`sahool_app_test`)

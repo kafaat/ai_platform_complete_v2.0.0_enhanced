@@ -695,6 +695,7 @@ async def reconcile_manual_execution_to_water_ledger(
                    ) VALUES ($1::uuid,$2,$3,$4,$5,'verified_manual_as_applied',$6)
                    ON CONFLICT (field_id, ledger_date) DO UPDATE SET
                        irrigation_mm=COALESCE(water_ledger.irrigation_mm,0)+EXCLUDED.irrigation_mm,
+                       irrigation_source=NULL,
                        depletion_mm=EXCLUDED.depletion_mm,
                        decision=EXCLUDED.decision,
                        created_by=EXCLUDED.created_by,
