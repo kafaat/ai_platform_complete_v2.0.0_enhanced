@@ -261,7 +261,7 @@
         "services/sahool-platform"
       ],
       "kind": "service",
-      "incoming": 6,
+      "incoming": 7,
       "outgoing": 30,
       "orphan": false
     },
@@ -900,7 +900,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 4,
+      "outgoing": 5,
       "orphan": false
     },
     {
@@ -2057,6 +2057,12 @@
       "source": "supervisor-agent",
       "target": "platform",
       "kind": "code-reference",
+      "evidence": "services/supervisor-agent/skills/advisory_skill.py"
+    },
+    {
+      "source": "supervisor-agent",
+      "target": "platform",
+      "kind": "code-reference",
       "evidence": "services/supervisor-agent/skills/crop_model_skill.py"
     },
     {
@@ -2135,11 +2141,11 @@
   "cycles": [],
   "summary": {
     "nodes": 111,
-    "edges": 196,
+    "edges": 197,
     "orphans": 9,
     "cycles": 0,
-    "code_edges": 62,
+    "code_edges": 63,
     "compose_edges": 134
   },
-  "content_sha256": "4655f492043f5bc4b0fa454fc452ecef37ae24f883253347c475b77a46d4535e"
+  "content_sha256": "b8509eea52e224cf40ef014e701e26cffb8ef32c77c7df722058643f1f3c84f3"
 }

@@ -48,23 +48,40 @@ class StressLevel(StrEnum):
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
+    # W0-11: لا دليل على الإجهاد المائي ⇒ مجهول، لا «لا إجهاد».
+    UNKNOWN = "unknown"
 
 
 @dataclass
 class LifecycleFeatures:
-    """Features مُستخلَصة من lifecycle events لحقل."""
+    """Features مُستخلَصة من lifecycle events لحقل.
+
+    W0-11 (``fields-4``/``crop-5``): كلّ مدخل اختياريّ و``None`` يعني **مجهول**، لا صفر.
+    كانت القيم الافتراضيّة أصفاراً، فطلبٌ بلا أيّ دليل يُقرأ «صفر إجهاد، صفر آفات» ويُعطي
+    العائد المستهدف كاملاً. الصفر الآن ملاحظةٌ مُعلَنة («رُصد ولا شيء»)، والغياب غياب.
+    """
 
     field_id: str
     crop: str
-    days_in_growing: int = 0
-    irrigation_count: int = 0
-    moisture_stress_events: int = 0
-    pest_alerts: int = 0
-    fertilizer_applications: int = 0
+    days_in_growing: int | None = None
+    irrigation_count: int | None = None
+    moisture_stress_events: int | None = None
+    pest_alerts: int | None = None
+    fertilizer_applications: int | None = None
     avg_ndvi_growing: float | None = None
     avg_ndvi_mature: float | None = None
-    drought_streak_days: int = 0  # أطول فترة بدون ري
-    rain_events: int = 0
+    drought_streak_days: int | None = None  # أطول فترة بدون ري
+    rain_events: int | None = None
+
+
+# مدخلات تصف حالة المحصول فتستطيع خفض التقدير. بلا واحدٍ منها على الأقلّ لا تقدير:
+# البقيّة (المدّة، عدد الريّات، الأمطار) لا تقول شيئاً عن إجهاد أو آفة أو غطاء نباتيّ.
+YIELD_CONDITION_EVIDENCE: tuple[str, ...] = (
+    "moisture_stress_events",
+    "drought_streak_days",
+    "pest_alerts",
+    "avg_ndvi_growing",
+)
 
 
 @dataclass
@@ -72,7 +89,7 @@ class YieldEstimate:
     field_id: str
     crop: str
     estimated_yield_kg_ha: float | None  # None = no estimate, NOT observed crop failure.
-    yield_score: float  # 0-1 (نسبيّ للحقل الأمثل)
+    yield_score: float | None  # 0-1 (نسبيّ للحقل الأمثل)؛ None = لا تقدير (W0-11)
     confidence: float  # 0-1
     stress_level: StressLevel
     rationale_ar: str
@@ -80,6 +97,8 @@ class YieldEstimate:
     warnings: list[str] = field(default_factory=list)
     created_at: str = ""
     yield_status: str = "estimated"
+    # مدخلات حالة المحصول التي لم تصل (لم تُعامَل كصفر) — W0-11.
+    missing_inputs: list[str] = field(default_factory=list)
 
 
 # ─── Knowledge: crop max yields (kg/ha) ─────────────────────────
@@ -171,6 +190,14 @@ def build_features_from_events(
     NDVI history (optional): [{date, ndvi_mean, stage}, ...]
     """
     f = LifecycleFeatures(field_id=field_id, crop=crop.lower())
+    if events:
+        # سجلّ أحداث غير فارغ هو الدليل: غياب صنفٍ فيه «رُصد ولا شيء» فيُعدّ صفراً.
+        # سجلّ فارغ لا يقول شيئاً ⇒ تبقى العدّادات None (مجهول) — W0-11.
+        f.irrigation_count = 0
+        f.moisture_stress_events = 0
+        f.pest_alerts = 0
+        f.fertilizer_applications = 0
+        f.rain_events = 0
 
     growing_start = None
     last_irrigation = None
@@ -210,7 +237,8 @@ def build_features_from_events(
         elif etype == "weather.rain":
             f.rain_events += 1
 
-    f.drought_streak_days = longest_drought
+    if events:
+        f.drought_streak_days = longest_drought
 
     # NDVI averages from history
     if ndvi_history:
@@ -285,53 +313,71 @@ def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
             yield_status="unavailable_unrecognized_crop",
         )
 
+    missing = [name for name in YIELD_CONDITION_EVIDENCE if getattr(features, name) is None]
+    if len(missing) == len(YIELD_CONDITION_EVIDENCE):
+        # W0-11: لا دليل على حالة المحصول ⇒ لا تقدير. كان الغياب يُقرأ صفر إجهاد فيُرجِع
+        # العائد المستهدف كاملاً بثقة 55٪ — رقمٌ يبدو مقيساً وهو افتراض.
+        return YieldEstimate(
+            field_id=features.field_id,
+            crop=crop,
+            estimated_yield_kg_ha=None,
+            yield_score=None,
+            confidence=0,
+            stress_level=StressLevel.UNKNOWN,
+            rationale_ar=(
+                "لا أدلّة على حالة المحصول (إجهاد مائي، جفاف، آفات، NDVI) — "
+                "لا تقدير غلّة. الغياب ليس صفر إجهاد."
+            ),
+            warnings=["insufficient_evidence_no_yield_estimate"],
+            created_at=_now_iso(),
+            yield_status="unavailable_insufficient_evidence",
+            missing_inputs=missing,
+        )
+
+    moisture = features.moisture_stress_events
+    drought = features.drought_streak_days
+    pests = features.pest_alerts
+    days = features.days_in_growing
+    irrigations = features.irrigation_count
+    rains = features.rain_events
+
     yield_score = 1.0
     contributors: list[str] = []
     warnings: list[str] = []
     confidence_factors: list[float] = []
 
     # ١. Moisture stress (penalty)
-    stress_penalty = features.moisture_stress_events * 0.04
+    stress_penalty = (moisture or 0) * 0.04
     if stress_penalty > 0:
         yield_score -= stress_penalty
-        contributors.append(
-            f"−{stress_penalty:.0%} بسبب {features.moisture_stress_events} حالات إجهاد مائي"
-        )
+        contributors.append(f"−{stress_penalty:.0%} بسبب {moisture} حالات إجهاد مائي")
 
     # ٢. Drought streak (penalty if long)
-    if features.drought_streak_days > 7:
-        drought_penalty = min(0.20, (features.drought_streak_days - 7) * 0.02)
+    if drought is not None and drought > 7:
+        drought_penalty = min(0.20, (drought - 7) * 0.02)
         yield_score -= drought_penalty
-        contributors.append(
-            f"−{drought_penalty:.0%} بسبب فترة جفاف ({features.drought_streak_days} يوم بلا ري)"
-        )
-        if features.drought_streak_days > 14:
-            warnings.append(
-                f"فترة جفاف طويلة جدّاً ({features.drought_streak_days} يوم) — الإنتاج قد يكون أقلّ كثيراً"
-            )
+        contributors.append(f"−{drought_penalty:.0%} بسبب فترة جفاف ({drought} يوم بلا ري)")
+        if drought > 14:
+            warnings.append(f"فترة جفاف طويلة جدّاً ({drought} يوم) — الإنتاج قد يكون أقلّ كثيراً")
 
     # ٣. Pest alerts (penalty)
-    if features.pest_alerts > 0:
-        pest_penalty = min(0.15, features.pest_alerts * 0.05)
+    if pests is not None and pests > 0:
+        pest_penalty = min(0.15, pests * 0.05)
         yield_score -= pest_penalty
-        contributors.append(f"−{pest_penalty:.0%} بسبب {features.pest_alerts} تنبيهات آفات/أمراض")
+        contributors.append(f"−{pest_penalty:.0%} بسبب {pests} تنبيهات آفات/أمراض")
 
     # ٤. Growing duration (anomaly detection)
     # صدق: لا نطبّق فحص المدّة إلّا لمحصول معروف مدّته. الأشجار المعمّرة
     # وغير المعروفة لا مدّة "نموذجيّة" لها — رقم افتراضي يولّد تحذيرات كاذبة.
     typical = vegetative_growing_days(crop)
-    if typical and features.days_in_growing > 0:
-        ratio = features.days_in_growing / typical
+    if typical and days is not None and days > 0:
+        ratio = days / typical
         if ratio < 0.7:
             yield_score -= 0.15
-            warnings.append(
-                f"فترة النموّ قصيرة جدّاً ({features.days_in_growing} مقابل {typical} يوم متوقّع)"
-            )
+            warnings.append(f"فترة النموّ قصيرة جدّاً ({days} مقابل {typical} يوم متوقّع)")
         elif ratio > 1.3:
             yield_score -= 0.08
-            contributors.append(
-                f"−٨٪ تأخّر في النضج ({features.days_in_growing} مقابل {typical} يوم)"
-            )
+            contributors.append(f"−٨٪ تأخّر في النضج ({days} مقابل {typical} يوم)")
 
     # ٥. NDVI bonus/penalty
     if features.avg_ndvi_growing is not None:
@@ -344,31 +390,37 @@ def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
             contributors.append(f"−١٠٪ NDVI منخفض ({features.avg_ndvi_growing:.2f})")
 
     # ٦. Irrigation regularity bonus
-    if features.irrigation_count >= 5 and features.moisture_stress_events == 0:
+    # المكافأة تشترط صفر إجهاد **مرصوداً**؛ الإجهاد المجهول لا يمنح «ري منتظم بدون إجهاد».
+    if irrigations is not None and irrigations >= 5 and moisture == 0:
         yield_score += 0.03
         contributors.append("+٣٪ ري منتظم بدون إجهاد")
 
     # ٧. Rain compensation
-    if features.rain_events > 3:
+    if rains is not None and rains > 3:
         yield_score += 0.02
-        contributors.append(f"+٢٪ أمطار مساعدة ({features.rain_events} أحداث)")
+        contributors.append(f"+٢٪ أمطار مساعدة ({rains} أحداث)")
 
     # Clamp
     yield_score = max(0.20, min(1.10, yield_score))
 
     estimated_kg_ha = target * yield_score
 
-    # Stress level classification
-    if features.moisture_stress_events >= 8 or features.drought_streak_days > 21:
+    # Stress level classification — يُقرأ ممّا رُصد فقط. «لا إجهاد» يحتاج المدخلين
+    # المائيّين كليهما مرصودين؛ وإلّا فالمستوى مجهول ما لم يُثبت ما رُصد إجهاداً.
+    m = moisture or 0
+    d = drought or 0
+    if m >= 8 or d > 21:
         stress_level = StressLevel.CRITICAL
-    elif features.moisture_stress_events >= 5 or features.drought_streak_days > 14:
+    elif m >= 5 or d > 14:
         stress_level = StressLevel.HIGH
-    elif features.moisture_stress_events >= 3:
+    elif m >= 3:
         stress_level = StressLevel.MEDIUM
-    elif features.moisture_stress_events >= 1:
+    elif m >= 1:
         stress_level = StressLevel.LOW
-    else:
+    elif moisture is not None and drought is not None:
         stress_level = StressLevel.NONE
+    else:
+        stress_level = StressLevel.UNKNOWN
 
     # Confidence calculation
     # Base 0.5، يرتفع بـNDVI + history، ينخفض بـmissing data
@@ -377,9 +429,9 @@ def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
         base_confidence += 0.15
     if features.avg_ndvi_mature is not None:
         base_confidence += 0.10
-    if features.days_in_growing > 0:
+    if days is not None and days > 0:
         base_confidence += 0.10
-    if features.irrigation_count > 0:
+    if irrigations is not None and irrigations > 0:
         base_confidence += 0.05
     confidence = min(0.92, base_confidence)  # cap عند ٩٢٪ — لا "100% confident" بدون ground truth
 
@@ -389,6 +441,8 @@ def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
         f"الثقة: {confidence:.0%} — "
         + ("بيانات جيّدة" if confidence > 0.75 else "بيانات محدودة، تحقّق ميدانياً")
     )
+    if missing:
+        rationale += f" مدخلات مجهولة لم تُعامَل كصفر: {', '.join(missing)}."
 
     return YieldEstimate(
         field_id=features.field_id,
@@ -401,6 +455,7 @@ def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
         contributors=contributors,
         warnings=warnings,
         created_at=_now_iso(),
+        missing_inputs=missing,
     )
 
 
@@ -421,50 +476,56 @@ def detect_anomalies(features: LifecycleFeatures) -> list[Anomaly]:
     anomalies: list[Anomaly] = []
 
     # Chronic water stress
-    if features.moisture_stress_events >= 5:
+    # المجهول (None) لا يُكشَف منه شذوذ — ولا يُدّعى غيابه.
+    moisture = features.moisture_stress_events or 0
+    drought = features.drought_streak_days or 0
+    pests = features.pest_alerts or 0
+    days = features.days_in_growing or 0
+
+    if moisture >= 5:
         anomalies.append(
             Anomaly(
                 field_id=features.field_id,
                 type="water_stress_chronic",
                 severity="high",
-                message_ar=f"إجهاد مائي مزمن: {features.moisture_stress_events} حالة في الموسم",
+                message_ar=f"إجهاد مائي مزمن: {moisture} حالة في الموسم",
                 suggested_action_ar="راجع جدولة الري + تحقّق من نظام الري (تسرّب؟ توزيع غير متساوٍ؟)",
             )
         )
 
     # Long drought
-    if features.drought_streak_days > 14:
+    if drought > 14:
         anomalies.append(
             Anomaly(
                 field_id=features.field_id,
                 type="drought_streak",
                 severity="high",
-                message_ar=f"فترة جفاف طويلة: {features.drought_streak_days} يوم بلا ري",
+                message_ar=f"فترة جفاف طويلة: {drought} يوم بلا ري",
                 suggested_action_ar="ريّ عاجل قبل وصول الإجهاد إلى مرحلة لا رجعة فيها",
             )
         )
 
     # Pest pressure
-    if features.pest_alerts >= 3:
+    if pests >= 3:
         anomalies.append(
             Anomaly(
                 field_id=features.field_id,
                 type="pest_pressure",
                 severity="medium",
-                message_ar=f"ضغط آفات/أمراض متكرّر: {features.pest_alerts} تنبيهات",
+                message_ar=f"ضغط آفات/أمراض متكرّر: {pests} تنبيهات",
                 suggested_action_ar="جولة scouting ميدانيّة، أو استشارة مهندس زراعي",
             )
         )
 
     # Delayed maturity
     typical = vegetative_growing_days(yield_crop_key(features.crop))
-    if typical and features.days_in_growing > typical * 1.4:
+    if typical and days > typical * 1.4:
         anomalies.append(
             Anomaly(
                 field_id=features.field_id,
                 type="delayed_maturity",
                 severity="medium",
-                message_ar=f"النموّ متأخّر: {features.days_in_growing} يوم بدلاً من {typical}",
+                message_ar=f"النموّ متأخّر: {days} يوم بدلاً من {typical}",
                 suggested_action_ar="تحقّق من النيتروجين + درجات الحرارة + المياه",
             )
         )

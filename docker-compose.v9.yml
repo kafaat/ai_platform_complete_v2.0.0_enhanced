@@ -184,6 +184,13 @@ services:
       ZLMEDIA_API_URL: http://sahool-zlmediakit:80
       ZLMEDIAKIT_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-}
       REDIS_URL: redis://sahool-video-processor:${REDIS_VIDEO_PROCESSOR_PASSWORD:?REDIS_VIDEO_PROCESSOR_PASSWORD required}@sahool-redis:6379/3
+      # W0-07 (scout-1): a stream binds only a field of its JWT tenant (asked of field-management),
+      # and each frame tells the edge that tenant with a signed assertion.
+      FIELD_SERVICE_URL: ${FIELD_SERVICE_URL:-http://sahool-field-management:8000}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
+      EDGE_TENANT_ASSERTION_KEY: ${EDGE_TENANT_ASSERTION_KEY:?EDGE_TENANT_ASSERTION_KEY required}
+      EDGE_TENANT_ASSERTION_KEY_ID: ${EDGE_TENANT_ASSERTION_KEY_ID:-current}
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
@@ -408,6 +415,7 @@ services:
       --user sahool-video-processor on ">${REDIS_VIDEO_PROCESSOR_PASSWORD:?REDIS_VIDEO_PROCESSOR_PASSWORD required}" resetkeys resetchannels -@all +ping +select
       --user sahool-weather-service on ">${REDIS_WEATHER_PASSWORD:?REDIS_WEATHER_PASSWORD required}" resetkeys resetchannels -@all +ping +select +get +setex +ttl ~sahool:weather:fresh:* ~sahool:weather:stale:*
       --user sahool-field-management on ">${REDIS_FIELD_MANAGEMENT_PASSWORD:?REDIS_FIELD_MANAGEMENT_PASSWORD required}" resetkeys resetchannels -@all +ping +select +set ~sahool:tenant-assertion:*
+      --user sahool-platform-assertion on ">${REDIS_PLATFORM_ASSERTION_PASSWORD:?REDIS_PLATFORM_ASSERTION_PASSWORD required}" resetkeys resetchannels -@all +ping +select +set ~sahool:tenant-assertion:*
       --user sahool-decision-service on ">${REDIS_DECISION_PASSWORD:?REDIS_DECISION_PASSWORD required}" resetkeys resetchannels -@all +ping +select +set ~sahool:tenant-assertion:*
       --user sahool-raster-service on ">${REDIS_RASTER_PASSWORD:?REDIS_RASTER_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +del +scan +eval +subscribe +unsubscribe ~stac:* ~sahool:raster:job:* ~sahool:raster:indicator-batch:* "&raster:layer_evict"
       --user sahool-raster-cache-invalidation-worker on ">${REDIS_RASTER_INVALIDATION_PASSWORD:?REDIS_RASTER_INVALIDATION_PASSWORD required}" resetkeys resetchannels -@all +ping +publish "&raster:layer_evict"
@@ -923,6 +931,17 @@ services:
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # W0-05/W0-07: tenant assertions on the internal routes and on /v1/edge/sync (service mode).
+      PLATFORM_TENANT_ASSERTION_KEY: ${PLATFORM_TENANT_ASSERTION_KEY:?PLATFORM_TENANT_ASSERTION_KEY required}
+      PLATFORM_TENANT_ASSERTION_KEY_ID: ${PLATFORM_TENANT_ASSERTION_KEY_ID:-current}
+      PLATFORM_TENANT_ASSERTION_PREVIOUS_KEY: ${PLATFORM_TENANT_ASSERTION_PREVIOUS_KEY:-}
+      PLATFORM_TENANT_ASSERTION_PREVIOUS_KEY_ID: ${PLATFORM_TENANT_ASSERTION_PREVIOUS_KEY_ID:-previous}
+      PLATFORM_TENANT_ASSERTION_REDIS_URL: redis://sahool-platform-assertion:${REDIS_PLATFORM_ASSERTION_PASSWORD:?REDIS_PLATFORM_ASSERTION_PASSWORD required}@sahool-redis:6379/6
+      EDGE_TENANT_ASSERTION_KEY: ${EDGE_TENANT_ASSERTION_KEY:?EDGE_TENANT_ASSERTION_KEY required}
+      EDGE_TENANT_ASSERTION_KEY_ID: ${EDGE_TENANT_ASSERTION_KEY_ID:-current}
+      # W0-07: verifies /v1/edge/sync in service mode; a key only the edge also holds.
+      EDGE_SYNC_TENANT_ASSERTION_KEY: ${EDGE_SYNC_TENANT_ASSERTION_KEY:?EDGE_SYNC_TENANT_ASSERTION_KEY required}
+      EDGE_SYNC_TENANT_ASSERTION_KEY_ID: ${EDGE_SYNC_TENANT_ASSERTION_KEY_ID:-current}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SEGMENTATION_URL: ${SEGMENTATION_URL:-http://sahool-field-segmentation:8000}
@@ -1058,6 +1077,9 @@ services:
       MCP_MARKET_URL: http://sahool-market-mcp:8000
       LOCAL_AI_RAG_URL: ${LOCAL_AI_RAG_URL:-http://sahool-local-ai-rag:8000}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # W0-05: the platform's internal routes need a tenant assertion signed with this key.
+      PLATFORM_TENANT_ASSERTION_KEY: ${PLATFORM_TENANT_ASSERTION_KEY:?PLATFORM_TENANT_ASSERTION_KEY required}
+      PLATFORM_TENANT_ASSERTION_KEY_ID: ${PLATFORM_TENANT_ASSERTION_KEY_ID:-current}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       JWT_SECRET: ${JWT_SECRET}
@@ -1344,7 +1366,7 @@ services:
       # Service-token only — a user Bearer JWT is never accepted on this service.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
-      FIELD_SERVICE_ALLOWED_CALLERS: ${FIELD_SERVICE_ALLOWED_CALLERS:-vegetation-analysis-service}
+      FIELD_SERVICE_ALLOWED_CALLERS: ${FIELD_SERVICE_ALLOWED_CALLERS:-vegetation-analysis-service,video-processor}
       FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
       FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
       FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY:-}
@@ -2152,6 +2174,12 @@ services:
       PEST_MODEL_SHA256: ${PEST_MODEL_SHA256:-}
       YIELD_MODEL_SHA256: ${YIELD_MODEL_SHA256:-}
       EDGE_SYNC_TOKEN: ${EDGE_SYNC_TOKEN:?EDGE_SYNC_TOKEN required for edge sync}
+      # W0-07: verifies the tenant its callers (video-processor, platform BFF) signed.
+      EDGE_TENANT_ASSERTION_KEY: ${EDGE_TENANT_ASSERTION_KEY:?EDGE_TENANT_ASSERTION_KEY required}
+      EDGE_TENANT_ASSERTION_KEY_ID: ${EDGE_TENANT_ASSERTION_KEY_ID:-current}
+      # W0-07: tenant-carrying results are synced as a service (agent token + this separate key).
+      EDGE_SYNC_TENANT_ASSERTION_KEY: ${EDGE_SYNC_TENANT_ASSERTION_KEY:?EDGE_SYNC_TENANT_ASSERTION_KEY required}
+      EDGE_SYNC_TENANT_ASSERTION_KEY_ID: ${EDGE_SYNC_TENANT_ASSERTION_KEY_ID:-current}
       EDGE_DEVICE: ${EDGE_DEVICE:-rpi5}
       OFFLINE_MODE: ${OFFLINE_MODE:-false}
       SYNC_INTERVAL: ${SYNC_INTERVAL:-3600}
@@ -2325,6 +2353,9 @@ services:
       ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-https://api.anthropic.com}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # W0-05: the platform's internal routes need a tenant assertion signed with this key.
+      PLATFORM_TENANT_ASSERTION_KEY: ${PLATFORM_TENANT_ASSERTION_KEY:?PLATFORM_TENANT_ASSERTION_KEY required}
+      PLATFORM_TENANT_ASSERTION_KEY_ID: ${PLATFORM_TENANT_ASSERTION_KEY_ID:-current}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SAHOOL_AGENT_STORE_BACKEND: ${SAHOOL_AGENT_STORE_BACKEND:-redis}

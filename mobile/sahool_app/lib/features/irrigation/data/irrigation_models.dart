@@ -105,7 +105,7 @@ class WaterLedgerEntry {
   factory WaterLedgerEntry.fromJson(Map<String, dynamic> j) =>
       WaterLedgerEntry(Map<String, dynamic>.unmodifiable(j));
 
-  /// الصفّ كما ورد — يُعاد إرسال أعمدته عند الدمج فلا يُمحى ما حسبه الخادم.
+  /// الصفّ كما ورد من الخادم.
   final Map<String, dynamic> raw;
 
   String get ledgerDate => (raw['ledger_date'] ?? '').toString();
@@ -123,6 +123,12 @@ class WaterLedgerEntry {
   /// قيد كتبه العامل الآليّ (water-balance-auto) لا إنسان.
   bool get isAuto => createdBy == 'water-balance-auto';
 
+  /// من أبلغ عن ريّ يومٍ يحسب العاملُ ميزانه (v280)؛ null لريّ العامل أو قيد يدويّ.
+  String? get irrigationReportedBy => _str(raw['irrigation_reported_by']);
+
+  /// الريّ رقمٌ أبلغ عنه إنسان: معلومٌ وإن قال قرار القيد إنّه لم يُرصَد.
+  bool get irrigationReported => irrigationReportedBy != null;
+
   /// أعلام القيد الآليّ من `decision` («auto:a;b» · «auto:daily_balance»)؛
   /// null لقيد يدويّ/قديم (لا يُدَّعى عنه ما لم يُعلنه) — مرآة
   /// ledger_notes_from_decision في water_ledger_auto.py.
@@ -136,30 +142,19 @@ class WaterLedgerEntry {
 
   /// العامل لم يجد سجلّ ريّ لهذا اليوم: irrigation_mm=0 يعني «مجهول» لا «صفر».
   bool get irrigationUnobserved =>
-      isAuto && (autoNotes?.contains('irrigation_unobserved') ?? false);
+      isAuto &&
+      !irrigationReported &&
+      (autoNotes?.contains('irrigation_unobserved') ?? false);
 
   /// رُصد ريّ بلا حجم: الرقم أدنى تقدير.
   bool get irrigationVolumeUntracked =>
-      isAuto && (autoNotes?.contains('irrigation_volume_untracked') ?? false);
+      isAuto &&
+      !irrigationReported &&
+      (autoNotes?.contains('irrigation_volume_untracked') ?? false);
 
   /// كمّيّة الريّ المعروضة: null حين تكون «مجهولة» لا مقيسة.
   num? get knownIrrigationMm => irrigationUnobserved ? null : irrigationMm;
 }
-
-/// أعمدة القيد التي يقبلها POST water-ledger (WaterLedgerUpsertRequest).
-const List<String> kLedgerWritableKeys = [
-  'et0_mm',
-  'kc',
-  'etc_mm',
-  'rain_mm',
-  'irrigation_mm',
-  'soil_moisture_pct',
-  'depletion_mm',
-  'deficit_mm',
-  'stage',
-  'decision',
-  'confidence',
-];
 
 /// حالات استجابة التوصية كما يُعلنها الخادم.
 abstract final class RecommendationStatus {

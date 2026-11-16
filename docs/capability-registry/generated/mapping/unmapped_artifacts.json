@@ -2712,6 +2712,14 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v280_water_ledger_irrigation_report.down.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v280_water_ledger_irrigation_report.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },
@@ -7964,10 +7972,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/core/pest_escalation_flow.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/core/policy_registry.py",
     "kind": "backend"
   },
@@ -8700,10 +8704,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/sahool-platform/tests/test_edge_sync_detection_provenance.py",
     "kind": "tests"
   },
@@ -9304,6 +9304,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_pest_guardrails_gate.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_pesticide.py",
     "kind": "tests"
   },
@@ -9785,6 +9789,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_yemeni_calendars.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_yield_estimate_unknown_evidence.py",
     "kind": "tests"
   },
   {
@@ -10273,10 +10281,6 @@
   },
   {
     "path": "services/vegetation-analysis-service/weekly_insights.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/video-processor/main.py",
     "kind": "backend"
   },
   {
@@ -11984,6 +11988,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_frontend_gateway_v9_api_parity.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_frontend_lint_debt_guard.py",
     "kind": "tests"
   },
@@ -12141,6 +12149,10 @@
   },
   {
     "path": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_gateway_ingress_contract.py",
     "kind": "tests"
   },
   {
@@ -13584,6 +13596,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_supervisor_advisory_diagnose_wiring.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_supervisor_agent.py",
     "kind": "tests"
   },
@@ -13896,6 +13912,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_video_stream_field_ownership_w0_07.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_video_stream_inference_field_binding.py",
     "kind": "tests"
   },
@@ -13909,6 +13929,10 @@
   },
   {
     "path": "tests_v9/test_vllm_jais_runtime_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_vra_owner_lab_evidence_w0_12.py",
     "kind": "tests"
   },
   {
@@ -13933,6 +13957,10 @@
   },
   {
     "path": "tests_v9/test_water_ledger_identity_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_water_ledger_partial_write.py",
     "kind": "tests"
   },
   {

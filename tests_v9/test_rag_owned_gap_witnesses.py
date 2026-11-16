@@ -169,8 +169,46 @@ def test_rag11_other_tenant_corpus_cannot_make_request_ready(rag):
     req = rag.SearchRequest(tenant_id="tenant-a", query="القمح")
     with pytest.raises(Exception) as exc:
         asyncio.run(rag.search(req, x_tenant_id="tenant-a"))
-    assert exc.value.status_code == 503
-    assert "tenant has no active readable corpus" in exc.value.detail
+    # W0-02: an empty tenant corpus is a distinct 424 with a stable reason code, not an
+    # outage-shaped 503, so ai_agronomist can degrade to rag_available:false.
+    assert exc.value.status_code == 424, exc.value.status_code
+    assert exc.value.detail["code"] == "TENANT_CORPUS_EMPTY", exc.value.detail
+    assert "tenant has no active readable corpus" in exc.value.detail["message"], exc.value.detail
+
+
+def test_rag11_quarantine_only_search_is_tenant_corpus_empty_not_outage(rag):
+    """W0-02: the default-compose state (every seed quarantined) answers 424, not 503."""
+    wire(rag, [chunk("__seed_quarantine__")])
+    req = rag.SearchRequest(tenant_id="tenant-a", query="القمح")
+    with pytest.raises(Exception) as exc:
+        asyncio.run(rag.search(req, x_tenant_id="tenant-a"))
+    assert exc.value.status_code == 424, (exc.value.status_code, exc.value.detail)
+    assert exc.value.detail["code"] == "TENANT_CORPUS_EMPTY", exc.value.detail
+    assert not rag._sparse_ready, "a quarantine-only corpus must never be cached as ready"
+
+
+def test_rag11_empty_collection_search_stays_outage_shaped_503(rag):
+    """An empty collection is missing evidence, not a tenant-empty corpus."""
+    wire(rag, [])
+    req = rag.SearchRequest(tenant_id="tenant-a", query="القمح")
+    with pytest.raises(Exception) as exc:
+        asyncio.run(rag.search(req, x_tenant_id="tenant-a"))
+    assert exc.value.status_code == 503, (exc.value.status_code, exc.value.detail)
+    assert "corpus is empty" in exc.value.detail, exc.value.detail
+
+
+def test_rag11_quarantine_plus_noncanonical_stays_503(rag):
+    """A second readiness problem keeps the generic 503; only "no content" alone is 424."""
+    report = {
+        "noncanonical_serving_points": 1,
+        "corpus_identity": {"id_set_digest": "x", "point_count": 1},
+        "serving_chunks_by_tenant": {},
+    }
+    problems = pq.readiness_problems(report)
+    assert len(problems) == 2, problems
+    assert not rag._no_readable_content_only(report, problems), problems
+    only = dict(report, noncanonical_serving_points=0)
+    assert rag._no_readable_content_only(only, pq.readiness_problems(only)), only
 
 
 def test_rag11_global_and_own_content_count_but_quarantine_does_not():

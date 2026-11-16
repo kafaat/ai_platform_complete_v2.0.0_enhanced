@@ -204,14 +204,6 @@ export interface Task {
 }
 
 
-export interface GuardrailsResult {
-  allowed: boolean;
-  overall_risk: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  requires_human_approval: boolean;
-  arabic_explanation: string;
-  diff?: Record<string, unknown>;
-}
-
 // ── Indicator Grid (raster-service per-pixel grid) ──────────────
 export type GridIndex = 'ndvi' | 'ndmi' | 'ndwi' | 'salinity' | 'ndre' | 'msavi' | 'evi' | 'moisture' | 'msi' | 'savi' | 'gndvi';
 
@@ -2844,25 +2836,9 @@ export function useCancelFieldIntelligenceJob() {
 // canonical الخاصة بالسطح المستهلك، لا hook عام داخل useApi.ts.
 
 // ── v9: Guardrails ────────────────────────────────────────────
-export function useGuardrailsValidate() {
-  const { user } = useAuthStore();
-  return useMutation<GuardrailsResult, Error, {
-    actionType: string;
-    actionData: Record<string, unknown>;
-    farmContext:Record<string, unknown>;
-  }>({
-    mutationFn: ({ actionType, actionData, farmContext }) =>
-      kongApi.post('/api/guardrails/v1/validate', {
-        action_type:  actionType,
-        action_data:  actionData,
-        farm_context: farmContext,
-        user_id:      user?.id != null ? String(user.id) : 'unknown',
-        tenant_id:    user?.tenant_id ?? UNAUTH_TENANT_KEY,
-        auto_approve_low_risk: true,
-      }).then(r => r.data),
-  });
-}
-
+// لا عميل guardrails في المتصفّح (W0-01). /v1/validate يقبل توكن خدمة فقط، فكان
+// المتصفّح يحصل على 401 والواجهة تفشل مفتوحة. فحص السلامة الكيميائيّة يجري على الخادم
+// داخل /api/v1/pest-escalation/run ويُعاد حكمه في step_results.execute.guardrails.
 
 // ── Inventory: مخزون المدخلات (حيّ، tenant-scoped + RBAC inventory:view/manage) ──
 // لا fallback وهميّ: عند الخطأ (503 DB / 403 RBAC / انقطاع) يُرفض الاستعلام لتعرض

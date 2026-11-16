@@ -1,5 +1,5 @@
-// دفتر المياه: تحقّق الإدخال (أرقام عربيّة، م³↔مم)، الدمج الذي لا يمحو ما حسبه
-// الخادم، والإيصال الصادق دون اتّصال (في الطابور / لم يُحفَظ).
+// دفتر المياه: تحقّق الإدخال (أرقام عربيّة، م³↔مم)، بلاغ الريّ وحده الذي لا يحمل
+// ما حسبه الخادم (W0-13)، والإيصال الصادق دون اتّصال (في الطابور / لم يُحفَظ).
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
@@ -60,34 +60,32 @@ void main() {
     });
   });
 
-  test(
-    'merge keeps every server-computed column and replaces only irrigation_mm',
-    () {
-      final body = mergeLedgerBody(
-        '2026-10-26',
-        20,
-        WaterLedgerEntry.fromJson(autoRow),
-      );
-      expect(body['irrigation_mm'], 20);
-      expect(body['depletion_mm'], 38.2);
-      expect(body['et0_mm'], 6.1);
-      expect(body['decision'], autoRow['decision']);
-      expect(body['confidence'], 0.4);
-      expect(
-        body.containsKey('created_by'),
-        isFalse,
-      ); // ليس عموداً قابلاً للكتابة
-      expect(body.containsKey('soil_moisture_pct'), isFalse); // null لا يُرسَل
-      expect(mergeLedgerBody('2026-10-25', 7, null), {
-        'ledger_date': '2026-10-25',
-        'irrigation_mm': 7,
-      });
-    },
-  );
+  test('the body is the irrigation report alone, never a copy of the day', () {
+    // W0-13: a copy of the day's columns, replayed from the outbox after the worker
+    // rewrote the day, wrote stale values (or NULL) over the computed balance.
+    expect(irrigationReportBody('2026-10-26', 20), {
+      'ledger_date': '2026-10-26',
+      'irrigation_mm': 20,
+    });
+  });
+
+  test('a reported figure is known though the decision says unobserved', () {
+    final unreported = WaterLedgerEntry.fromJson(autoRow);
+    expect(unreported.irrigationUnobserved, isTrue);
+    expect(unreported.knownIrrigationMm, isNull);
+    final reported = WaterLedgerEntry.fromJson({
+      ...autoRow,
+      'irrigation_mm': 18.0,
+      'irrigation_reported_by': 'u-7',
+    });
+    expect(reported.irrigationReported, isTrue);
+    expect(reported.irrigationUnobserved, isFalse);
+    expect(reported.knownIrrigationMm, 18.0);
+  });
 
   group('cubit', () {
     test(
-      'online: reads the day, then posts the merged row with the intent key',
+      'online: posts the irrigation report alone with the intent key',
       () async {
         final h = IrrigationHarness((o) async {
           if (o.method == 'GET') {
@@ -121,8 +119,11 @@ void main() {
         expect(r, isA<WaterLogSaved>());
         final post = h.posts(ledgerPath).single;
         expect(post.headers[kIdempotencyHeader], key.value);
-        expect(bodyOf(post)['irrigation_mm'], 20);
-        expect(bodyOf(post)['depletion_mm'], 38.2);
+        // No server-computed column rides along, even though the day is loaded.
+        expect(bodyOf(post), {
+          'ledger_date': '2026-10-26',
+          'irrigation_mm': 20,
+        });
         expect(outbox.ops, isEmpty);
         await c.close();
       },
@@ -163,9 +164,9 @@ void main() {
         expect(op.path, ledgerPath);
         expect(op.idempotencyKey, key.value);
         expect(op.fieldId, 'f1');
-        // الدمج من آخر تحميل: لا يُرسَل قيد يمحو استنزاف اليوم.
-        expect(op.body['depletion_mm'], 38.2);
-        expect(op.body['irrigation_mm'], 15);
+        // The replay carries the report alone: a stale copy of the day would overwrite
+        // whatever the worker computes before the phone is back online.
+        expect(op.body, {'ledger_date': '2026-10-26', 'irrigation_mm': 15});
         await c.close();
       },
     );

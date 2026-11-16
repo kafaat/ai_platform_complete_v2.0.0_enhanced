@@ -28,7 +28,7 @@ declare module 'axios' {
 // nginx. الوضع يُضبَط صراحةً بـVITE_API_MODE (الافتراضيّ 'gateway').
 //
 // مهمّ: مسارات الاستدعاء تحمل بادئاتها أصلاً (kongApi ينادي '/api/v1/...' و
-// '/api/agent/...' و'/api/guardrails/...'، وauthApi ينادي '/auth/...')، لذا
+// '/api/agent/...'، وauthApi ينادي '/auth/...')، لذا
 // قاعدة kong/auth فارغة ('') كي لا تتكرّر البادئة:
 //   kongApi.get('/api/v1/fields') + base '' = '/api/v1/fields' → nginx /api/v1/ ✓
 // (الخلل السابق: base='/api' + '/api/v1/...' = '/api/api/v1/...' → 404).

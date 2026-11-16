@@ -40,6 +40,7 @@
         "SOIL-004:declared_above_evidence:evidence-maturity",
         "SOIL-005:declared_above_evidence:evidence-maturity",
         "WX-001:declared_above_evidence:evidence-maturity",
+        "WX-004:evidence_above_declared:evidence-maturity",
         "WX-005:declared_above_evidence:evidence-maturity",
         "WX-007:declared_above_evidence:evidence-maturity",
         "WX-008:declared_above_evidence:evidence-maturity",
@@ -79,6 +80,12 @@
         "IRR-009:evidence_above_declared:evidence-maturity": "now aligned: unit-marked contract tests no longer count as integration evidence (C-40 #1428)",
         "SEC-005:declared_above_evidence:evidence-maturity": "accepted promotion: explicit pytest.mark.integration evidence now counted (C-40 #1428)"
       }
+    },
+    {
+      "admitted": {
+        "WX-004:evidence_above_declared:evidence-maturity": "integration-marked evidence added by W0-10 (tests_v9/test_water_ledger_et0_provenance_live_pg.py, certified CI step); declared held at 2 until a capability review promotes it"
+      },
+      "decision": "owner 2026-11-16, Wave 0 #1498 (admit the drift; no promotion)"
     }
   ],
   "purpose": "Known legacy drift identities only. New drift and stale baseline entries block; this file is not a capability value source of truth.",

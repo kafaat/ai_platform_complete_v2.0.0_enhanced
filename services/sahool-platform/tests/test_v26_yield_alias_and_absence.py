@@ -12,7 +12,12 @@ from api.yield_heuristics import (
 @pytest.mark.unit
 @pytest.mark.parametrize("crop", ["قمح", "Wheat", " wheat ", "wheat"])
 def test_wheat_aliases_do_not_return_false_zero(crop):
-    result = estimate_yield(LifecycleFeatures(field_id="f", crop=crop))
+    # W0-11: الحالة مُعلَنة مرصودةً بلا إجهاد؛ بلا أيّ دليل لا تقدير (اختبار W0-11 المخصّص).
+    result = estimate_yield(
+        LifecycleFeatures(
+            field_id="f", crop=crop, moisture_stress_events=0, drought_streak_days=0, pest_alerts=0
+        )
+    )
     assert result.estimated_yield_kg_ha == 2800
     assert result.crop == "wheat"
     assert result.yield_status == "estimated"

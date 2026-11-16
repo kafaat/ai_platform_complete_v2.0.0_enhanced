@@ -101,7 +101,7 @@ class HierarchicalRouter:
                 r"carbon|كربون|credit|ائتمان|subsidy|إعانة|loan|قرض",
             ],
             "advisory": [
-                r"pest|آفة|disease|مرض|بقع(?:ة)?|weed|أعشاب|advice|نصيحة|recommend|توصية|what.*do|ماذا.*أفعل",
+                r"pest|آفة|insect|insects|حشرة|حشرات|disease|مرض|بقع(?:ة)?|weed|أعشاب|advice|نصيحة|recommend|توصية|what.*do|ماذا.*أفعل",
                 r"help|مساعدة|problem|مشكلة|symptom|عرض|damage|ضرر|treatment|علاج",
             ],
         }
@@ -123,7 +123,7 @@ class HierarchicalRouter:
                 "create_contract": r"contract|عقد|sell.*before|بيع.*قبل|forward|آجل|pre.*harvest|قبل.*الحصاد|buyer|مشتري",
             },
             "advisory": {
-                "pest_id": r"pest|آفة|insect|حشرة|bug|بق|worm|دودة|identify|تشخيص|what.*this|ما.*هذا|photo.*pest|صورة.*آفة",
+                "pest_id": r"pest|آفة|insect|insects|حشرة|حشرات|bug|بق|worm|دودة|identify|تشخيص|what.*this|ما.*هذا|photo.*pest|صورة.*آفة",
                 "disease_id": r"disease|مرض|fungus|فطر|virus|فيروس|bacteria|بكتيريا|spot|بقع(?:ة)?|rot|تعفن|wilt|ذبول",
                 "general_advice": r"advice|نصيحة|recommend|توصية|suggest|أقترح|what.*do|ماذا.*أفعل|how.*improve|كيف.*أحسن|best.*practice|أفضل.*ممارسة",
             },

@@ -3209,6 +3209,14 @@
           "content:Soil sampling",
           "dedup:Soil sampling=soil sampling"
         ]
+      },
+      {
+        "capability_id": "SEC-002",
+        "score": 9,
+        "signals": [
+          "content:signed tenant",
+          "content:tenant assertion"
+        ]
       }
     ]
   },
@@ -5185,6 +5193,28 @@
     ]
   },
   {
+    "path": "services/supervisor-agent/main.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "DEC-003",
+        "score": 12,
+        "signals": [
+          "content:approval workflow",
+          "content:Human approval"
+        ]
+      },
+      {
+        "capability_id": "SEC-002",
+        "score": 9,
+        "signals": [
+          "content:signed tenant",
+          "content:tenant assertion"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/supervisor-agent/tool_contracts.py",
     "kind": "backend",
     "candidates": [
@@ -5339,6 +5369,28 @@
   },
   {
     "path": "shared/security/service_tenant_assertion.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-002",
+        "score": 14,
+        "signals": [
+          "path:tenant assertion",
+          "content:tenant assertion"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "shared/security/tenant_assertion_headers.py",
     "kind": "other",
     "candidates": [
       {
@@ -6025,6 +6077,29 @@
         "signals": [
           "content:rls",
           "content:row level security"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_water_ledger_partial_write_live_pg.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 8,
+        "signals": [
+          "content:forecast",
+          "content:Weather forecast",
+          "dedup:Weather forecast=weather forecast"
         ]
       }
     ]

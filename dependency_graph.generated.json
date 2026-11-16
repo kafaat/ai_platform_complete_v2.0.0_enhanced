@@ -122,7 +122,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/hooks/useApi.ts:263",
+      "evidence": "frontend/src/hooks/useApi.ts:255",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -9902,7 +9902,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/water_ledger.py",
+      "evidence": "services/sahool-platform/api/water_ledger_compute.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",

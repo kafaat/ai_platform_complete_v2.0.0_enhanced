@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "610db86e832eb4616129634282f0b43160ccd56e9435c4e8885d53adf2fcf094",
+  "inventory_sha256": "0c1c9b3ebf46ebc605c31d2b8afea43d7d84a9b335dd0d23dda76feae396479f",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "1d82b8527cf840c0d68a77482533abd12f1e42420f68faf2e6b39bc592f1e240"
+    "policy_sha256": "eb2f79302b9a2ad4e9ed5eff15fc6f4c564ba8ba6199198c226a527e237a8f36"
   },
   "routes": [
     {
@@ -1354,7 +1354,7 @@
     {
       "classification": "domain",
       "function": "field_water_efficiency",
-      "line": 196,
+      "line": 204,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-efficiency",
       "source": "api/routers/water_ledger.py"
@@ -1362,7 +1362,7 @@
     {
       "classification": "domain",
       "function": "list_water_ledger",
-      "line": 144,
+      "line": 152,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-ledger",
       "source": "api/routers/water_ledger.py"
@@ -1482,7 +1482,7 @@
     {
       "classification": "domain",
       "function": "list_harvest_lots",
-      "line": 205,
+      "line": 179,
       "method": "GET",
       "path": "/api/v1/harvest-lots",
       "source": "api/routers/harvest_traceability.py"
@@ -1490,7 +1490,7 @@
     {
       "classification": "domain",
       "function": "get_harvest_lot",
-      "line": 241,
+      "line": 215,
       "method": "GET",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}",
       "source": "api/routers/harvest_traceability.py"
@@ -1498,7 +1498,7 @@
     {
       "classification": "domain",
       "function": "get_traceability",
-      "line": 428,
+      "line": 402,
       "method": "GET",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
       "source": "api/routers/harvest_traceability.py"
@@ -2618,7 +2618,7 @@
     {
       "classification": "domain",
       "function": "internal_field_state",
-      "line": 51,
+      "line": 53,
       "method": "GET",
       "path": "/internal/fields/{field_id}/state",
       "source": "api/routers/internal_service.py"
@@ -3330,7 +3330,7 @@
     {
       "classification": "domain",
       "function": "edge_sync_receive",
-      "line": 29,
+      "line": 60,
       "method": "POST",
       "path": "/api/v1/edge/sync",
       "source": "api/routers/edge.py"
@@ -3626,7 +3626,7 @@
     {
       "classification": "domain",
       "function": "field_irrigation_recommendation",
-      "line": 208,
+      "line": 201,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
       "source": "api/routers/irrigation_recommendation.py"
@@ -3746,7 +3746,7 @@
     {
       "classification": "domain",
       "function": "upsert_water_ledger",
-      "line": 77,
+      "line": 82,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/water-ledger",
       "source": "api/routers/water_ledger.py"
@@ -3850,7 +3850,7 @@
     {
       "classification": "domain",
       "function": "create_harvest_lot",
-      "line": 121,
+      "line": 95,
       "method": "POST",
       "path": "/api/v1/harvest-lots",
       "source": "api/routers/harvest_traceability.py"
@@ -3858,7 +3858,7 @@
     {
       "classification": "domain",
       "function": "add_custody_event",
-      "line": 270,
+      "line": 244,
       "method": "POST",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
       "source": "api/routers/harvest_traceability.py"
@@ -3906,7 +3906,7 @@
     {
       "classification": "domain",
       "function": "irrigation_recommendation",
-      "line": 121,
+      "line": 114,
       "method": "POST",
       "path": "/api/v1/irrigation-recommendation",
       "source": "api/routers/irrigation_recommendation.py"
@@ -4682,7 +4682,7 @@
     {
       "classification": "domain",
       "function": "internal_ai_advice_event",
-      "line": 180,
+      "line": 185,
       "method": "POST",
       "path": "/internal/events/ai-advice",
       "source": "api/routers/internal_service.py"
@@ -5034,7 +5034,7 @@
     {
       "classification": "domain",
       "function": "edge_sync_receive",
-      "line": 30,
+      "line": 61,
       "method": "POST",
       "path": "/v1/edge/sync",
       "source": "api/routers/edge.py"

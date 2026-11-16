@@ -502,6 +502,14 @@ async def harvest_lot_phi_check(conn, user, req, harvest_date):
     )
 
 
+async def field_elevation_or_none(conn, field_id: str) -> float | None:
+    """ارتفاع الحقل المسجَّل (``fields.elevation_m``) أو ``None`` — لا افتراض (fields-16)."""
+    from api.water_ledger_inputs import field_elevation_m
+
+    row = await conn.fetchrow("SELECT elevation_m FROM fields WHERE field_id = $1", field_id)
+    return field_elevation_m(row.get("elevation_m")) if row else None
+
+
 # ─── v278: a field with harvest lots is not deleted, merged away or split away ───
 async def refuse_if_fields_have_harvest_lots(conn, field_ids: list[str], action_ar: str) -> None:
     """A field with harvest lots is not deleted, merged away or split away.

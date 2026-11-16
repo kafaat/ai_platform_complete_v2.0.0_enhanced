@@ -29,6 +29,7 @@ _TRAVERSAL_IDS = ["../../internal/events/ai-advice#", "f1/../../x", "f1?tenant_i
 @pytest.mark.parametrize("bad", _TRAVERSAL_IDS)
 async def test_s2_non_canonical_field_id_never_reaches_the_platform(monkeypatch, bad):
     monkeypatch.setattr(runtime, "AGENT_TOKEN", "unit-credential")
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", "k" * 32)
     client = SimpleNamespace(get=AsyncMock(return_value=httpx.Response(200, json={})))
     result = await runtime._fetch_canonical_field_state(client, tenant_id="t1", field_id=bad)
     client.get.assert_not_awaited()
@@ -38,6 +39,7 @@ async def test_s2_non_canonical_field_id_never_reaches_the_platform(monkeypatch,
 async def test_s2_path_segment_is_percent_encoded(monkeypatch):
     """Defence in depth: even if validation were bypassed, ``/`` cannot leave the segment."""
     monkeypatch.setattr(runtime, "AGENT_TOKEN", "unit-credential")
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", "k" * 32)
     monkeypatch.setattr(runtime, "is_canonical_field_id", lambda _v: True, raising=False)
     client = SimpleNamespace(get=AsyncMock(return_value=httpx.Response(404)))
     await runtime._fetch_canonical_field_state(client, tenant_id="t1", field_id="../x#y")
@@ -47,6 +49,7 @@ async def test_s2_path_segment_is_percent_encoded(monkeypatch):
 
 async def test_s2_upstream_error_body_is_not_echoed(monkeypatch):
     monkeypatch.setattr(runtime, "AGENT_TOKEN", "unit-credential")
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", "k" * 32)
     leaked = "internal-stacktrace postgres://svc:pw@db/sahool"
     client = SimpleNamespace(get=AsyncMock(return_value=httpx.Response(500, text=leaked)))
     result = await runtime._fetch_canonical_field_state(client, tenant_id="t1", field_id="fld_1")
@@ -57,6 +60,7 @@ async def test_s2_upstream_error_body_is_not_echoed(monkeypatch):
 
 async def test_s2_transport_exception_text_is_not_echoed(monkeypatch):
     monkeypatch.setattr(runtime, "AGENT_TOKEN", "unit-credential")
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", "k" * 32)
     client = SimpleNamespace(
         get=AsyncMock(side_effect=RuntimeError("connect http://sahool-platform:8000 failed"))
     )

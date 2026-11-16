@@ -27,6 +27,10 @@ from api.yield_heuristics import (
 
 pytestmark = pytest.mark.unit
 
+# W0-11: الغياب مجهول لا صفر. الاختبارات التي تقيس قاعدةً واحدة (مدّة، أمطار…) على حقلٍ
+# «نظيف» تُعلِن الآن أنّ الحالة رُصدت ولا إجهاد فيها، بدل أن تعتمد على أصفارٍ افتراضيّة.
+_OBSERVED_CLEAN = {"moisture_stress_events": 0, "drought_streak_days": 0, "pest_alerts": 0}
+
 
 # ─── vegetative_growing_days ───────────────────────────────────────────
 
@@ -116,17 +120,29 @@ def test_build_features_lowercases_crop_and_sets_field_id():
     assert f.crop == "wheat"
 
 
-def test_build_features_empty_events_all_zero():
+def test_build_features_empty_events_all_unknown():
+    # W0-11: سجلّ فارغ لا يقول شيئاً ⇒ كلّ عدّاد مجهول (None)، لا «صفر إجهاد».
     f = build_features_from_events("f", "corn", [])
-    assert f.irrigation_count == 0
-    assert f.moisture_stress_events == 0
-    assert f.pest_alerts == 0
-    assert f.fertilizer_applications == 0
-    assert f.rain_events == 0
-    assert f.days_in_growing == 0
-    assert f.drought_streak_days == 0
-    assert f.avg_ndvi_growing is None
-    assert f.avg_ndvi_mature is None
+    assert f.irrigation_count is None, "سجلّ فارغ لا يُثبت صفر ريّات"
+    assert f.moisture_stress_events is None, "سجلّ فارغ لا يُثبت صفر إجهاد"
+    assert f.pest_alerts is None, "سجلّ فارغ لا يُثبت صفر آفات"
+    assert f.fertilizer_applications is None, "سجلّ فارغ لا يُثبت صفر تسميد"
+    assert f.rain_events is None, "سجلّ فارغ لا يُثبت صفر أمطار"
+    assert f.days_in_growing is None, "لا انتقالات ⇒ مدّة النموّ مجهولة"
+    assert f.drought_streak_days is None, "سجلّ فارغ لا يُثبت صفر جفاف"
+    assert f.avg_ndvi_growing is None, "لا تاريخ NDVI ⇒ مجهول"
+    assert f.avg_ndvi_mature is None, "لا تاريخ NDVI ⇒ مجهول"
+
+
+def test_build_features_non_empty_log_counts_absent_categories_as_zero():
+    # سجلّ غير فارغ هو الدليل: صنفٌ غائب عنه «رُصد ولا شيء».
+    f = build_features_from_events(
+        "f", "wheat", [{"event_type": "operation.irrigation", "timestamp": "2026-01-01T00:00:00Z"}]
+    )
+    assert f.irrigation_count == 1, "ريّة واحدة في السجلّ"
+    assert f.pest_alerts == 0, "سجلّ غير فارغ بلا آفات ⇒ صفر مرصود"
+    assert f.moisture_stress_events == 0, "سجلّ غير فارغ بلا إجهاد ⇒ صفر مرصود"
+    assert f.days_in_growing is None, "لا انتقال GROWING→MATURE ⇒ المدّة مجهولة"
 
 
 def test_build_features_counts_each_event_category():
@@ -165,7 +181,7 @@ def test_build_features_growing_to_mature_days():
     assert f.days_in_growing == 90  # Jan 1 → Apr 1 = 31+28+31 = 90 days
 
 
-def test_build_features_mature_without_growing_keeps_zero():
+def test_build_features_mature_without_growing_keeps_unknown():
     events = [
         {
             "event_type": "lifecycle.transition",
@@ -174,7 +190,8 @@ def test_build_features_mature_without_growing_keeps_zero():
         }
     ]
     f = build_features_from_events("f", "wheat", events)
-    assert f.days_in_growing == 0
+    # W0-11: بلا انتقال GROWING لا تُعرف المدّة ⇒ None (مجهول) لا صفر.
+    assert f.days_in_growing is None, "نضج بلا بداية نموّ ⇒ المدّة مجهولة"
 
 
 def test_build_features_drought_from_irrigation_gap():
@@ -257,8 +274,8 @@ def test_estimate_yield_unknown_crop_returns_unavailable_not_zero():
 
 
 def test_estimate_yield_clean_features_full_potential():
-    # لا إجهاد، لا بيانات إضافيّة ⇒ score ثابت عند 1.0، النتيجة = الهدف.
-    f = LifecycleFeatures(field_id="f", crop="wheat")
+    # إجهاد/جفاف/آفات مرصودة أصفاراً ⇒ score ثابت عند 1.0، النتيجة = الهدف.
+    f = LifecycleFeatures(field_id="f", crop="wheat", **_OBSERVED_CLEAN)
     est = estimate_yield(f)
     assert est.yield_score == 1.0
     assert est.estimated_yield_kg_ha == CROP_TARGET_YIELDS["wheat"]  # 2800 * 1.0
@@ -269,7 +286,7 @@ def test_estimate_yield_clean_features_full_potential():
 
 
 def test_estimate_yield_crop_case_insensitive():
-    est = estimate_yield(LifecycleFeatures(field_id="f", crop="WHEAT"))
+    est = estimate_yield(LifecycleFeatures(field_id="f", crop="WHEAT", **_OBSERVED_CLEAN))
     assert est.crop == "wheat"
     assert est.estimated_yield_kg_ha == CROP_TARGET_YIELDS["wheat"]
 
@@ -336,7 +353,7 @@ def test_estimate_yield_single_pest_alert_penalty():
 
 def test_estimate_yield_short_growing_duration_penalty_and_warning():
     # القمح: 90 يوم متوقّع. 40 يوم ⇒ ratio 0.44 < 0.7 ⇒ -0.15 + تحذير.
-    f = LifecycleFeatures(field_id="f", crop="wheat", days_in_growing=40)
+    f = LifecycleFeatures(field_id="f", crop="wheat", days_in_growing=40, **_OBSERVED_CLEAN)
     est = estimate_yield(f)
     assert est.yield_score == pytest.approx(0.85, abs=1e-6)  # 1.0 - 0.15
     assert any("قصيرة" in w for w in est.warnings)
@@ -344,7 +361,7 @@ def test_estimate_yield_short_growing_duration_penalty_and_warning():
 
 def test_estimate_yield_long_growing_duration_penalty():
     # 130 يوم / 90 = 1.44 > 1.3 ⇒ -0.08 (مساهم لا تحذير).
-    f = LifecycleFeatures(field_id="f", crop="wheat", days_in_growing=130)
+    f = LifecycleFeatures(field_id="f", crop="wheat", days_in_growing=130, **_OBSERVED_CLEAN)
     est = estimate_yield(f)
     assert est.yield_score == pytest.approx(0.92, abs=1e-6)  # 1.0 - 0.08
     assert any("تأخّر" in c for c in est.contributors)
@@ -352,14 +369,14 @@ def test_estimate_yield_long_growing_duration_penalty():
 
 def test_estimate_yield_normal_growing_duration_no_penalty():
     # 90 يوم بالضبط ⇒ ratio 1.0، لا عقوبة مدّة.
-    f = LifecycleFeatures(field_id="f", crop="wheat", days_in_growing=90)
+    f = LifecycleFeatures(field_id="f", crop="wheat", days_in_growing=90, **_OBSERVED_CLEAN)
     est = estimate_yield(f)
     assert est.yield_score == 1.0
 
 
 def test_estimate_yield_zero_days_skips_duration_check():
     # days_in_growing == 0 ⇒ لا فحص مدّة حتّى لو كان المحصول معروف المدّة.
-    f = LifecycleFeatures(field_id="f", crop="wheat", days_in_growing=0)
+    f = LifecycleFeatures(field_id="f", crop="wheat", days_in_growing=0, **_OBSERVED_CLEAN)
     est = estimate_yield(f)
     assert est.yield_score == 1.0
     assert est.warnings == []
@@ -368,7 +385,7 @@ def test_estimate_yield_zero_days_skips_duration_check():
 def test_estimate_yield_duration_check_skipped_for_crop_without_typical(monkeypatch):
     # alfalfa لا مدّة نموذجيّة (ولا بطاقة) ⇒ يُتخطّى فحص المدّة، لا تحذير كاذب.
     monkeypatch.setattr("core.crop_cards.loader.load_crop_card", lambda c: None)
-    f = LifecycleFeatures(field_id="f", crop="alfalfa", days_in_growing=5)
+    f = LifecycleFeatures(field_id="f", crop="alfalfa", days_in_growing=5, **_OBSERVED_CLEAN)
     est = estimate_yield(f)
     assert est.yield_score == 1.0
     assert est.warnings == []
@@ -426,7 +443,7 @@ def test_estimate_yield_irrigation_bonus_suppressed_by_stress():
 
 def test_estimate_yield_rain_compensation_bonus():
     # 4 أحداث مطر > 3 ⇒ +0.02.
-    f = LifecycleFeatures(field_id="f", crop="wheat", rain_events=4)
+    f = LifecycleFeatures(field_id="f", crop="wheat", rain_events=4, **_OBSERVED_CLEAN)
     est = estimate_yield(f)
     assert est.yield_score == pytest.approx(1.02, abs=1e-6)
     assert any("أمطار" in c for c in est.contributors)
@@ -434,7 +451,7 @@ def test_estimate_yield_rain_compensation_bonus():
 
 def test_estimate_yield_rain_at_threshold_no_bonus():
     # 3 أحداث ليست > 3 ⇒ لا مكافأة.
-    f = LifecycleFeatures(field_id="f", crop="wheat", rain_events=3)
+    f = LifecycleFeatures(field_id="f", crop="wheat", rain_events=3, **_OBSERVED_CLEAN)
     est = estimate_yield(f)
     assert est.yield_score == 1.0
 
@@ -474,7 +491,7 @@ def test_estimate_yield_score_clamped_high_at_1_10():
 
 
 def test_estimate_yield_stress_level_none():
-    est = estimate_yield(LifecycleFeatures(field_id="f", crop="wheat"))
+    est = estimate_yield(LifecycleFeatures(field_id="f", crop="wheat", **_OBSERVED_CLEAN))
     assert est.stress_level == StressLevel.NONE
 
 
@@ -529,7 +546,7 @@ def test_estimate_yield_confidence_all_factors_capped_at_0_92():
 
 
 def test_estimate_yield_low_confidence_rationale_limited_data():
-    est = estimate_yield(LifecycleFeatures(field_id="f", crop="wheat"))
+    est = estimate_yield(LifecycleFeatures(field_id="f", crop="wheat", **_OBSERVED_CLEAN))
     assert est.confidence == 0.55
     assert "بيانات محدودة" in est.rationale_ar  # ≤ 0.75
 

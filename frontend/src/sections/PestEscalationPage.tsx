@@ -3,10 +3,12 @@
 // يُبرِز تدفّق تصعيد الآفة الدائم (workflow) مع الموافقة البشريّة (HIL):
 // تشغيل → يُعلَّق عند الموافقة → موافقة الخبير → يُستأنف فينفّذ. الاستئناف بنفس
 // workflow_id. صدق: لا تنفيذ قبل موافقة معتمَدة (البوّابة من الخادم).
+// W0-01: فحص السلامة الكيميائيّة (guardrails) يجري على الخادم عند التنفيذ، لا من
+// المتصفّح. الواجهة تعرض حكمه فقط (step_results.execute.guardrails) ولا تقرّره.
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useState } from 'react';
 import { Bug, PlayCircle, ShieldCheck, ShieldAlert, CheckCircle2, Clock } from 'lucide-react';
-import { usePestEscalation, useGuardrailsValidate } from '../hooks/useApi';
+import { usePestEscalation } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import { ErrorState } from '../components/StateViews';
@@ -15,6 +17,14 @@ import { useSelectedField } from '../hooks/useSelectedField';
 const RISK_COLOR: Record<string, string> = {
   LOW: '#16a34a', MEDIUM: '#f59e0b', HIGH: '#f97316', CRITICAL: '#dc2626',
 };
+
+// حكم السلامة الكيميائيّة كما يعيده الخادم في step_results.execute.guardrails.
+interface ServerGuardrailsVerdict {
+  allowed?: unknown;
+  status?: string;
+  reason_ar?: string;
+  overall_risk?: string;
+}
 
 const PESTS = ['صدأ القمح', 'المنّ', 'دودة الحشد', 'الذبابة البيضاء', 'التربس', 'العنكبوت الأحمر'];
 
@@ -41,14 +51,12 @@ export default function PestEscalationPage() {
   }, [activeFieldId, fieldId]);
   const [workflowId, setWorkflowId] = useState('');
   const mut = usePestEscalation();
-  const guard = useGuardrailsValidate();
   const role = useAuthStore(s => s.user?.role);
   const mutateAllowed = canMutate(role);
 
   const start = () => {
     const wid = `pest-${Date.now()}`;
     setWorkflowId(wid);
-    guard.reset(); // إعادة التحقّق الأمنيّ لكلّ تشغيل جديد
     mut.mutate({ workflow_id: wid, pest_type: pestType, severity, field_id: fieldId || undefined });
   };
   const approve = () => {
@@ -61,44 +69,17 @@ export default function PestEscalationPage() {
   const status = res?.workflow?.status ?? '';
   const st = STATUS_STYLE[status] ?? { ar: status || '—', color: '#94a3b8', bg: '#1e293b' };
 
-  // تحقّق السلامة (Guardrails) قبل القرار الحرج: عند تعليق التدفّق بانتظار موافقة
-  // الخبير وكان هناك إجراء فعليّ (رشّ/مكافحة)، نمرّره عبر حواجز السلامة الكيميائيّة/
-  // البيئيّة/الاقتصاديّة. حاجز صارم (allowed=false) يمنع الموافقة.
-  const actionType = String(ctx.action_type ?? '');
-  const hasAction = !!actionType && actionType !== 'none';
-  // الـworkflow الحاليّ فقط (يطابق آخر تشغيل محلّيّ). يتفادى الحالة الحافّة: بعد
-  // guard.reset() لتشغيل جديد يفشل، تبقى استجابة الـworkflow القديم معروضة و
-  // suspendedWfId لا يتغيّر ⇒ لا يُعاد الفحص ⇒ البوّابة تتجمّد. ربطها بالحاليّ يحلّها.
-  const isCurrentWorkflow = !!res && res.workflow.workflow_id === workflowId;
-  const needsSafety = isCurrentWorkflow && status === 'suspended' && hasAction;
-  // معرّف الـworkflow المُعلَّق من الخادم — لا من workflowId المحلّيّ الذي يتغيّر قبل
-  // وصول الاستجابة (سباق).
-  const suspendedWfId = needsSafety ? (res?.workflow.workflow_id ?? '') : '';
-
-  useEffect(() => {
-    if (suspendedWfId && guard.isIdle) {
-      guard.mutate({
-        actionType: 'pesticide',
-        actionData: {
-          intervention: actionType,
-          pest_type: ctx.pest_type,
-          severity: ctx.severity,
-          recommendation_ar: ctx.recommendation_ar,
-        },
-        farmContext: { field_id: fieldId || ctx.field_id },
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [suspendedWfId]);
-
-  const verdict = guard.data;
-  // حظر صارم فقط للرفض القاطع (مادّة محظورة/تجاوز حدّ). حالة «يتطلّب موافقة بشريّة»
-  // (HIGH/CRITICAL) ليست حظراً — هي موافقة الخبير نفسها، فحجبها يُجمّد التدفّق.
-  const hardBlocked = !!verdict && verdict.allowed === false && !verdict.requires_human_approval;
-  // لا نُتيح الموافقة قبل اكتمال الفحص (بوّابة فعليّة). لكن إن تعذّر الفحص نفسه لا
-  // نُجمّد التدفّق — يبقى قرار الخبير (guardrails مُعطّل ≠ منع).
-  const safetyBlocking = needsSafety && !verdict && !guard.isError;
-  const riskColor = verdict ? (RISK_COLOR[verdict.overall_risk] ?? '#94a3b8') : '#94a3b8';
+  // حكم السلامة من الخادم (W0-01): يُقرأ فقط. التنفيذ مسموح حين allowed === true حرفيّاً؛
+  // غير ذلك (رفض، 401، مهلة، أدلّة ناقصة) محجوب على الخادم مهما كانت موافقة الخبير.
+  const execResult = (res?.step_results?.execute ?? {}) as Record<string, unknown>;
+  const verdict = (execResult.guardrails ?? null) as ServerGuardrailsVerdict | null;
+  const safetyAllowed = !!verdict && verdict.allowed === true;
+  const safetyBlocked = execResult.blocked_by === 'guardrails' || (!!verdict && !safetyAllowed);
+  const riskColor = safetyBlocked
+    ? '#dc2626'
+    : verdict?.overall_risk
+      ? (RISK_COLOR[verdict.overall_risk] ?? '#94a3b8')
+      : '#94a3b8';
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto" dir="rtl">
@@ -196,38 +177,24 @@ export default function PestEscalationPage() {
             {res.workflow.error && <Row label="خطأ" value={res.workflow.error} />}
           </div>
 
-          {/* Guardrails — تحقّق السلامة قبل القرار الحرج */}
-          {needsSafety && (
+          {/* Guardrails — حكم الخادم بعد الموافقة (لا فحص من المتصفّح) */}
+          {verdict && (
             <div className="rounded-xl border p-4" style={{ background: '#0f1a16', borderColor: `${riskColor}44` }}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2 text-sm text-slate-200">
                   <ShieldAlert className="w-4 h-4" style={{ color: riskColor }} />
                   حواجز السلامة (Guardrails)
                 </div>
-                {guard.isPending && <span className="text-xs text-slate-500">جارٍ الفحص…</span>}
-                {verdict && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: `${riskColor}22`, color: riskColor }}>
-                    خطر: {verdict.overall_risk}
-                  </span>
-                )}
+                <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: `${riskColor}22`, color: riskColor }}>
+                  {safetyAllowed ? '✓ سمح الفحص' : '✗ محجوب'}
+                </span>
               </div>
-              {guard.isError && <p className="text-xs text-slate-500">تعذّر فحص السلامة — الموافقة تبقى قرار الخبير.</p>}
-              {verdict && (
-                <>
-                  <p className="text-sm text-slate-300">{verdict.arabic_explanation}</p>
-                  <div className="flex flex-wrap gap-3 mt-2 text-[11px]">
-                    <span style={{ color: hardBlocked ? '#f87171' : verdict.requires_human_approval ? '#f59e0b' : '#4ade80' }}>
-                      {hardBlocked ? '✗ محجوب بحاجز صارم'
-                        : verdict.requires_human_approval ? 'يتطلّب مراجعة الخبير'
-                        : '✓ مسموح ضمن الحواجز'}
-                    </span>
-                  </div>
-                  {/* صدق: الفحص أوّليّ — تدفّق الآفة لا يحمل مبيداً/جرعة محدّدين، فالتقييم
-                      الكيميائيّ الدقيق يحتاجهما (وصفة الرشّ). يُعرَض كإرشاد لا كحُكم قاطع. */}
-                  <p className="text-[10px] text-slate-500 mt-2">
-                    فحص أوّليّ — التقييم الدقيق يتطلّب تحديد المبيد والجرعة (وصفة الرشّ).
-                  </p>
-                </>
+              {verdict.reason_ar && <p className="text-sm text-slate-300">{verdict.reason_ar}</p>}
+              {safetyBlocked && (
+                <p className="text-xs text-red-300 mt-2">
+                  لم يُنفَّذ الإجراء: فحص السلامة الكيميائيّة على الخادم لم يسمح به
+                  {verdict.status ? ` (${verdict.status})` : ''}.
+                </p>
               )}
             </div>
           )}
@@ -238,15 +205,11 @@ export default function PestEscalationPage() {
               <div className="text-sm text-amber-200">
                 {!mutateAllowed
                   ? 'دورك لا يملك صلاحيّة الاعتماد.'
-                  : hardBlocked
-                  ? 'محجوب بحاجز السلامة — لا يمكن الموافقة على هذا الإجراء.'
-                  : safetyBlocking
-                    ? 'يجري فحص السلامة قبل إتاحة الموافقة…'
-                    : 'التدفّق مُعلَّق بانتظار موافقة الخبير قبل التنفيذ.'}
+                  : 'التدفّق مُعلَّق بانتظار موافقة الخبير. عند الموافقة يفحص الخادم السلامة الكيميائيّة، ولا يُنفَّذ إلّا إذا سمح الفحص.'}
               </div>
-              <button onClick={approve} disabled={mut.isPending || hardBlocked || safetyBlocking || !mutateAllowed}
+              <button onClick={approve} disabled={mut.isPending || !mutateAllowed}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
-                style={{ background: hardBlocked ? '#6b7280' : '#16a34a' }}>
+                style={{ background: '#16a34a' }}>
                 <ShieldCheck className="w-4 h-4" />
                 {mut.isPending ? 'جارٍ…' : 'موافقة الخبير'}
               </button>

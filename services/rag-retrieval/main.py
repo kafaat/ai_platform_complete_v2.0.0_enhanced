@@ -166,7 +166,7 @@ def _ensure_sparse_index(*, force: bool = False) -> dict[str, Any]:
     # بعد التعطيل الصريح (`if False and …`) فيمرّ العقدُ على حارسٍ معطَّل.
     problems = readiness_problems(report)
     if problems:
-        raise ValueError(" · ".join(problems))
+        raise _readiness_error(report, problems)  # W0-02: typed "no readable content"
     _sparse_report = report
     _sparse_ready = True
     _sparse_checked_at = time.monotonic()
@@ -403,16 +403,77 @@ async def search(req: SearchRequest, x_tenant_id: str = Depends(_search_identity
     return await run_in_threadpool(_search_blocking, req, tenant_id)
 
 
+# W0-02 (knowledge-1/x-4): a tenant with no readable corpus is not an outage. The
+# service and its index are healthy; this tenant simply has nothing to retrieve. A
+# distinct 424 + stable reason code lets callers (ai_agronomist) degrade to
+# ``rag_available: false`` instead of reporting the whole advisory request as failed.
+TENANT_CORPUS_EMPTY = "TENANT_CORPUS_EMPTY"
+
+
+class CorpusHasNoReadableContent(ValueError):
+    """The index rebuilt cleanly, but no stored point is active readable content.
+
+    Subclasses ValueError so every existing readiness consumer still fails closed; only
+    ``/v1/search`` distinguishes it, as a per-tenant 424 rather than an outage.
+    """
+
+
+def _no_readable_content_only(report: dict[str, Any], problems: list[str]) -> bool:
+    """True only when the single readiness problem is "no active readable content".
+
+    Judged on the report's structure, not on message text: canonical payloads only,
+    a measured non-empty corpus identity, and zero serving chunks for every tenant.
+    """
+    identity = report.get("corpus_identity")
+    counts = report.get("serving_chunks_by_tenant")
+    return (
+        len(problems) == 1
+        and not (report.get("noncanonical_serving_points") or 0)
+        and isinstance(identity, dict)
+        and bool(identity.get("id_set_digest"))
+        and bool(identity.get("point_count"))
+        and counts is not None
+        and not sum(counts.values())
+    )
+
+
+def _readiness_error(report: dict[str, Any], problems: list[str]) -> ValueError:
+    """W0-02: a well-formed, non-empty collection whose only fault is that no point is
+    active readable content (default compose: every seed sits in ``__seed_quarantine__``)
+    is typed, so search can answer 424 TENANT_CORPUS_EMPTY instead of an outage-shaped
+    503. It is still a ValueError, so /readyz stays NOT_READY. An empty collection or any
+    other problem stays a generic ValueError (503)."""
+    message = " · ".join(problems)
+    if _no_readable_content_only(report, problems):
+        return CorpusHasNoReadableContent(message)
+    return ValueError(message)
+
+
+def _tenant_corpus_empty() -> HTTPException:
+    return HTTPException(
+        424,
+        {
+            "code": TENANT_CORPUS_EMPTY,
+            "message": "tenant has no active readable corpus",
+        },
+    )
+
+
 def _search_blocking(req: SearchRequest, tenant_id: str) -> dict[str, Any]:
     with _RETRIEVAL_LOCK:
         try:
             sparse = _ensure_sparse_index()
-            if visible_corpus_count(sparse, tenant_id) == 0:
-                raise ValueError("tenant has no active readable corpus")
+            corpus_count = visible_corpus_count(sparse, tenant_id)
+        except CorpusHasNoReadableContent as exc:
+            # No tenant (and no __global__) has readable content, so neither does this
+            # one: the default-compose state where all seeds are quarantined.
+            raise _tenant_corpus_empty() from exc
         except _RETRIEVAL_UNAVAILABLE_ERRORS as exc:
             raise HTTPException(503, "rag_retrieval_unavailable") from exc
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(503, f"hybrid sparse index not ready: {exc}") from exc
+        if corpus_count == 0:
+            raise _tenant_corpus_empty()
         filters = {
             "crop": req.crop,
             "field_id": req.field_id,

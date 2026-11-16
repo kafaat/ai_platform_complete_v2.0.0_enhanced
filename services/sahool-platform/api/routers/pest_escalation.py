@@ -44,7 +44,7 @@ async def pest_escalation_run(
 
     from core.chemical_lineage import ChemicalBoundary, audit_chemical_lineage
     from core.correlation import set_correlation
-    from core.pest_escalation_flow import run_pest_escalation
+    from core.pest_escalation_flow import evaluate_pesticide_guardrails, run_pest_escalation
     from core.workflow_engine import workflow_trace
 
     set_correlation()  # خيط تتبّع موحّد لكلّ ما ينتج عن هذا الطلب
@@ -91,6 +91,15 @@ async def pest_escalation_run(
     if req.approval_status:
         initial["approval_status"] = req.approval_status
 
+    # W0-01: بوّابة السلامة الكيميائيّة من الخادم (لا من المتصفّح). خطوة التنفيذ لا ترشّ
+    # إلّا إذا أعاد guardrails-engine allowed is True؛ الرفض/401/422/المهلة/الخطأ حجب.
+    # الهويّة والمستأجِر من التوكن المُتحقَّق، والأدلّة من سياق الخادم لا من الجسم.
+    tenant_id = str(user.tenant_id)
+    user_id = user.user_id
+
+    def _safety_gate(ctx: dict) -> dict:
+        return evaluate_pesticide_guardrails(ctx, tenant_id=tenant_id, user_id=user_id)
+
     store = _get_workflow_store(str(user.tenant_id))  # سياق RLS للقراءة/الاستئناف
     # المخزن المعمّر متزامن (asyncio.run داخليّاً) ⇒ نُشغّله في thread لا في الحلقة
     state = await _aio.to_thread(
@@ -99,7 +108,16 @@ async def pest_escalation_run(
         store=store,
         tenant_id=str(user.tenant_id),
         initial_context=initial or None,
+        safety_gate_fn=_safety_gate,
     )
+    execute_result = state.step_results.get("execute") or {}
+    if execute_result.get("blocked_by") == "guardrails":
+        logger.warning(
+            "pest escalation execute blocked by guardrails tenant_id=%s workflow_id=%s status=%s",
+            user.tenant_id,
+            req.workflow_id,
+            (execute_result.get("guardrails") or {}).get("status"),
+        )
     return {
         "workflow": workflow_trace(state),
         "context": state.context,
