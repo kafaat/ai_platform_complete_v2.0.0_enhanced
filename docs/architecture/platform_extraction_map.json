@@ -2903,7 +2903,7 @@
       "function": "field_alerts_derived",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/alerts/derived",
-      "line": 3884,
+      "line": 3898,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/alerts/derived::field_alerts_derived"
@@ -2923,7 +2923,7 @@
       "function": "field_history",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/history",
-      "line": 3642,
+      "line": 3656,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/history::field_history"
@@ -3003,7 +3003,7 @@
       "function": "field_state_full",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state/full",
-      "line": 3910,
+      "line": 3924,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/state/full::field_state_full"
@@ -3013,7 +3013,7 @@
       "function": "field_canonical_state",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state",
-      "line": 3856,
+      "line": 3870,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/state::field_canonical_state"
@@ -3033,7 +3033,7 @@
       "function": "field_water_stress_spectral",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-stress-spectral",
-      "line": 3824,
+      "line": 3838,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/water-stress-spectral::field_water_stress_spectral"
@@ -3223,7 +3223,7 @@
       "function": "create_pin",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/pins",
-      "line": 3759,
+      "line": 3773,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/pins::create_pin"
@@ -3273,7 +3273,7 @@
       "function": "field_timeline",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/timeline",
-      "line": 3622,
+      "line": 3636,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/timeline::field_timeline"
@@ -3293,7 +3293,7 @@
       "function": "field_walk_plan_pdf",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
-      "line": 3791,
+      "line": 3805,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/walk-plan/pdf::field_walk_plan_pdf"
@@ -3303,7 +3303,7 @@
       "function": "field_walk_plan",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan",
-      "line": 3781,
+      "line": 3795,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/walk-plan::field_walk_plan"
@@ -3333,7 +3333,7 @@
       "function": "field_zones",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/zones",
-      "line": 3810,
+      "line": 3824,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/zones::field_zones"

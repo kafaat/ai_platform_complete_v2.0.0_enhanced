@@ -3549,9 +3549,22 @@ def prescribe_nitrogen(
 async def estimate_field_yield(
     field_id: str,
     req: YieldEstimateRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
-    """تقدير الإنتاج (heuristic — ليس AI) + كشف الشذوذ."""
+    """تقدير الإنتاج (heuristic — ليس AI) + كشف الشذوذ.
+
+    W0-11: صلاحية عرض الحقل + الحقل ضمن المستأجِر (404 وإلّا) قبل أيّ حساب، وتعذّر القاعدة
+    ⇒ 503 (إغلاق عند الفشل، لا تقدير لحقلٍ لم يُتحقَّق من ملكيّته). المدخلات الغائبة مجهولة،
+    وغياب أدلّة حالة المحصول كلّها ⇒ ``unavailable_insufficient_evidence`` بلا رقم.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("التحقّق من الحقل لتقدير الإنتاج", e) from e
+
     features = LifecycleFeatures(
         field_id=field_id,
         crop=req.crop,
@@ -3577,6 +3590,7 @@ async def estimate_field_yield(
         "rationale_ar": est.rationale_ar,
         "contributors": est.contributors,
         "warnings": est.warnings,
+        "missing_inputs": est.missing_inputs,
         "anomalies": [
             {
                 "type": a.type,
