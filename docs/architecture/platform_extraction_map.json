@@ -2343,7 +2343,7 @@
       "function": "edge_sync_receive",
       "method": "POST",
       "path": "/v1/edge/sync",
-      "line": 61,
+      "line": 60,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/edge.py::POST /v1/edge/sync::edge_sync_receive"
@@ -2643,7 +2643,7 @@
       "function": "field_ai_context_pack",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/ai-context-pack",
-      "line": 659,
+      "line": 655,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/field_ai_context.py::GET /api/v1/fields/{field_id}/ai-context-pack::field_ai_context_pack"
@@ -2893,7 +2893,7 @@
       "function": "list_field_activities",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/activities",
-      "line": 2960,
+      "line": 2956,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/activities::list_field_activities"
@@ -2943,7 +2943,7 @@
       "function": "field_input_traceability",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/input-traceability",
-      "line": 2989,
+      "line": 2985,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/input-traceability::field_input_traceability"
@@ -2953,7 +2953,7 @@
       "function": "field_recommendations",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/recommendations",
-      "line": 2723,
+      "line": 2719,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/recommendations::field_recommendations"
@@ -2963,7 +2963,7 @@
       "function": "list_crop_rotations",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/rotations",
-      "line": 3400,
+      "line": 3396,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/rotations::list_crop_rotations"
@@ -2983,7 +2983,7 @@
       "function": "list_soil_lab_tests",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
-      "line": 3189,
+      "line": 3185,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/soil-lab-tests::list_soil_lab_tests"
@@ -3043,7 +3043,7 @@
       "function": "field_wind_prevailing",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/wind/prevailing",
-      "line": 2589,
+      "line": 2585,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/wind/prevailing::field_wind_prevailing"
@@ -3093,7 +3093,7 @@
       "function": "update_soil_lab_test",
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
-      "line": 3213,
+      "line": 3209,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::PATCH /api/v1/fields/{field_id}/soil-lab-tests/{test_id}::update_soil_lab_test"
@@ -3143,7 +3143,7 @@
       "function": "validate_geometry",
       "method": "POST",
       "path": "/api/v1/fields/validate-geometry",
-      "line": 3486,
+      "line": 3482,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/validate-geometry::validate_geometry"
@@ -3153,7 +3153,7 @@
       "function": "create_activity",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/activities",
-      "line": 2821,
+      "line": 2817,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/activities::create_activity"
@@ -3163,7 +3163,7 @@
       "function": "evaluate_field_alerts_endpoint",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/alerts/evaluate",
-      "line": 3339,
+      "line": 3335,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/alerts/evaluate::evaluate_field_alerts_endpoint"
@@ -3183,7 +3183,7 @@
       "function": "field_growth_narrative",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/growth-narrative",
-      "line": 3091,
+      "line": 3087,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/growth-narrative::field_growth_narrative"
@@ -3233,7 +3233,7 @@
       "function": "prescribe_nitrogen",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
-      "line": 3519,
+      "line": 3515,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/prescriptions/nitrogen::prescribe_nitrogen"
@@ -3243,7 +3243,7 @@
       "function": "add_crop_rotation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/rotations",
-      "line": 3358,
+      "line": 3354,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/rotations::add_crop_rotation"
@@ -3263,7 +3263,7 @@
       "function": "create_soil_lab_test",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
-      "line": 3131,
+      "line": 3127,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/soil-lab-tests::create_soil_lab_test"
@@ -3283,7 +3283,7 @@
       "function": "apply_trueup",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/trueup",
-      "line": 3427,
+      "line": 3423,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/trueup::apply_trueup"
@@ -3313,7 +3313,7 @@
       "function": "field_wind_drift_risk",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/wind/drift-risk",
-      "line": 2646,
+      "line": 2642,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/wind/drift-risk::field_wind_drift_risk"
@@ -3323,7 +3323,7 @@
       "function": "estimate_field_yield",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-estimate",
-      "line": 3548,
+      "line": 3544,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/yield-estimate::estimate_field_yield"
@@ -5744,7 +5744,7 @@
       "function": "weather_action_recommendation",
       "method": "GET",
       "path": "/api/v1/weather/action-recommendation",
-      "line": 2589,
+      "line": 2580,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/action-recommendation::weather_action_recommendation"
@@ -5754,7 +5754,7 @@
       "function": "weather_alerts",
       "method": "GET",
       "path": "/api/v1/weather/alerts",
-      "line": 2654,
+      "line": 2645,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/alerts::weather_alerts"
@@ -5764,7 +5764,7 @@
       "function": "weather_current",
       "method": "GET",
       "path": "/api/v1/weather/current",
-      "line": 2085,
+      "line": 2089,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/current::weather_current"
@@ -5774,7 +5774,7 @@
       "function": "weather_env_doctor",
       "method": "GET",
       "path": "/api/v1/weather/env-doctor",
-      "line": 2064,
+      "line": 2068,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/env-doctor::weather_env_doctor"
@@ -5784,7 +5784,7 @@
       "function": "weather_field_summary",
       "method": "GET",
       "path": "/api/v1/weather/field-weather-summary",
-      "line": 2531,
+      "line": 2522,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/field-weather-summary::weather_field_summary"
@@ -5794,7 +5794,7 @@
       "function": "weather_forecast",
       "method": "GET",
       "path": "/api/v1/weather/forecast",
-      "line": 2091,
+      "line": 2095,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/forecast::weather_forecast"
@@ -5804,7 +5804,7 @@
       "function": "weather_health",
       "method": "GET",
       "path": "/api/v1/weather/health",
-      "line": 1954,
+      "line": 1957,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/health::weather_health"
@@ -5814,7 +5814,7 @@
       "function": "weather_historical",
       "method": "GET",
       "path": "/api/v1/weather/historical",
-      "line": 2097,
+      "line": 2101,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/historical::weather_historical"
@@ -5824,7 +5824,7 @@
       "function": "weather_layers_manifest",
       "method": "GET",
       "path": "/api/v1/weather/layers",
-      "line": 2108,
+      "line": 2112,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/layers::weather_layers_manifest"
@@ -5834,7 +5834,7 @@
       "function": "weather_metrics_prometheus",
       "method": "GET",
       "path": "/api/v1/weather/metrics.prom",
-      "line": 2338,
+      "line": 2342,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/metrics.prom::weather_metrics_prometheus"
@@ -5844,7 +5844,7 @@
       "function": "weather_observability",
       "method": "GET",
       "path": "/api/v1/weather/observability",
-      "line": 2307,
+      "line": 2311,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/observability::weather_observability"
@@ -5854,7 +5854,7 @@
       "function": "weather_operation_plan",
       "method": "GET",
       "path": "/api/v1/weather/operation-plan",
-      "line": 2575,
+      "line": 2566,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/operation-plan::weather_operation_plan"
@@ -5864,7 +5864,7 @@
       "function": "weather_operation_tile_data",
       "method": "GET",
       "path": "/api/v1/weather/operation-tile-data/{z}/{x}/{y}",
-      "line": 2452,
+      "line": 2456,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/operation-tile-data/{z}/{x}/{y}::weather_operation_tile_data"
@@ -5874,7 +5874,7 @@
       "function": "weather_operation_window",
       "method": "GET",
       "path": "/api/v1/weather/operation-window",
-      "line": 2517,
+      "line": 2508,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/operation-window::weather_operation_window"
@@ -5884,7 +5884,7 @@
       "function": "weather_probe",
       "method": "GET",
       "path": "/api/v1/weather/probe",
-      "line": 2471,
+      "line": 2475,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/probe::weather_probe"
@@ -5894,7 +5894,7 @@
       "function": "weather_rate_limit_backend",
       "method": "GET",
       "path": "/api/v1/weather/rate-limit/backend",
-      "line": 2294,
+      "line": 2298,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/rate-limit/backend::weather_rate_limit_backend"
@@ -5904,7 +5904,7 @@
       "function": "weather_readyz",
       "method": "GET",
       "path": "/api/v1/weather/readyz",
-      "line": 1972,
+      "line": 1974,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/readyz::weather_readyz"
@@ -5914,7 +5914,7 @@
       "function": "weather_runtime_contract",
       "method": "GET",
       "path": "/api/v1/weather/runtime-contract",
-      "line": 2051,
+      "line": 2055,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/runtime-contract::weather_runtime_contract"
@@ -5924,7 +5924,7 @@
       "function": "weather_runtime_smoke_plan",
       "method": "GET",
       "path": "/api/v1/weather/runtime-smoke-plan",
-      "line": 2077,
+      "line": 2081,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/runtime-smoke-plan::weather_runtime_smoke_plan"
@@ -5934,7 +5934,7 @@
       "function": "weather_self_test",
       "method": "GET",
       "path": "/api/v1/weather/self-test",
-      "line": 1986,
+      "line": 1988,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/self-test::weather_self_test"
@@ -5944,7 +5944,7 @@
       "function": "weather_tile_cache_backend",
       "method": "GET",
       "path": "/api/v1/weather/tile-cache/backend",
-      "line": 2287,
+      "line": 2291,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/tile-cache/backend::weather_tile_cache_backend"
@@ -5954,7 +5954,7 @@
       "function": "weather_tile_cache_stats",
       "method": "GET",
       "path": "/api/v1/weather/tile-cache/stats",
-      "line": 2301,
+      "line": 2305,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/tile-cache/stats::weather_tile_cache_stats"
@@ -5964,7 +5964,7 @@
       "function": "weather_tile_data",
       "method": "GET",
       "path": "/api/v1/weather/tile-data/{z}/{x}/{y}",
-      "line": 2429,
+      "line": 2433,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/tile-data/{z}/{x}/{y}::weather_tile_data"
@@ -5974,7 +5974,7 @@
       "function": "weather_tile_series",
       "method": "GET",
       "path": "/api/v1/weather/tile-series/{z}/{x}/{y}",
-      "line": 3009,
+      "line": 3000,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/tile-series/{z}/{x}/{y}::weather_tile_series"
@@ -5984,7 +5984,7 @@
       "function": "weather_wind_source_selftest",
       "method": "GET",
       "path": "/api/v1/weather/wind-source-selftest",
-      "line": 1996,
+      "line": 1998,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::GET /api/v1/weather/wind-source-selftest::weather_wind_source_selftest"
@@ -5994,7 +5994,7 @@
       "function": "weather_alerts_notify",
       "method": "POST",
       "path": "/api/v1/weather/alerts/notify",
-      "line": 2723,
+      "line": 2714,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::POST /api/v1/weather/alerts/notify::weather_alerts_notify"
@@ -6004,7 +6004,7 @@
       "function": "weather_recommendation_from_operation_plan",
       "method": "POST",
       "path": "/api/v1/weather/recommendations/from-operation-plan",
-      "line": 2918,
+      "line": 2909,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::POST /api/v1/weather/recommendations/from-operation-plan::weather_recommendation_from_operation_plan"
@@ -6014,7 +6014,7 @@
       "function": "weather_create_task_from_operation_plan",
       "method": "POST",
       "path": "/api/v1/weather/tasks/from-operation-plan",
-      "line": 2817,
+      "line": 2808,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/weather.py::POST /api/v1/weather/tasks/from-operation-plan::weather_create_task_from_operation_plan"
@@ -6024,7 +6024,7 @@
       "function": "weather_tile_cache_prune",
       "method": "POST",
       "path": "/api/v1/weather/tile-cache/prune",
-      "line": 2354,
+      "line": 2358,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/weather.py::POST /api/v1/weather/tile-cache/prune::weather_tile_cache_prune"

@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "76de95e5c73939d51521461e0f48530d0402f34f",
+  "measured_on": "ae5382129d5e0aaf5723ea63d0486b192c67ca3b",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "5ced79675acf9b202b9a3edaf9f34aa492829fb0d5f9b9b2ab8402bd893bbdae",
+  "measurement_input_digest": "7d266559084b5992218a2e8d69adffe7fd0003eda5d78ae11730291892922f6b",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "fd65e5c39e2f9df76fa2c658c721a296ee0749439f2f4f1e540ac72096f18802",
+  "measurement_basis_digest": "da6332c51fee487490740d2702a6fc754dc63db9efab102c097e3c9eb04b4863",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -76,11 +76,11 @@
     },
     {
       "path": "services/field-management-service/fm_scouting_tasks.py",
-      "sha256": "87a991688033d81a6a23dd85714c4af9fd15777c01a5f9281ac452ec4f3a2a38"
+      "sha256": "2a381b915ffd594e126895bcbeb21d92088eee8acb3adc6ba04472e1b72e7bce"
     },
     {
       "path": "services/field-management-service/main.py",
-      "sha256": "2cb50a2ba3b9b1ee48a41d9289e94d7b5e262d21f0483c3d7f816d74b87c89e5"
+      "sha256": "87daddcb9d56f1806364953e78f0b01539d50b070bded34709a8b3552feeb0bc"
     },
     {
       "path": "services/guardrails-engine/human_in_loop.py",
@@ -132,7 +132,7 @@
     },
     {
       "path": "services/sahool-platform/api/main.py",
-      "sha256": "395f84ba72f2fa50bf01b24c31146e63fdb68e8509dfc130e6ad3188ca258bab"
+      "sha256": "173271744ce66c642dde9d6b3eb1cb5eb5163d810a25a7d7ac7adb92f7e2ce7c"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",

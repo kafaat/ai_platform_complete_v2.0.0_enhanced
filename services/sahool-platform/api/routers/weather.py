@@ -26,15 +26,18 @@ from pydantic import BaseModel, Field
 from api.service_token_auth import _require_service_token
 from api.weather_alerts import derive_weather_alerts
 from api.weather_service_client import (
+    delegated_breaker_state,
     get_current_weather,
     get_operation_plan,
     get_operation_tile_data,
     get_operation_window,
+    get_point_weather_sample_with_state,
     get_tile_cache_stats,
     get_weather_forecast,
     get_weather_historical,
     get_weather_tile_data,
     get_weather_tile_series,
+    observed_degraded_reasons,
 )
 from shared.contracts.soil.moisture_policy import MODELLED_SURFACE_MOISTURE_SOURCE as _SM_SRC
 from shared.contracts.soil.moisture_policy import SURFACE_MOISTURE_DRY_M3M3 as _SM_DRY
@@ -884,16 +887,12 @@ def _weather_engine_self_checks() -> dict:
 
 
 def _weather_runtime_readiness() -> dict:
-    from api.connectors.openmeteo import openmeteo_breaker_state
-
     self_checks = _weather_engine_self_checks()
-    breaker = openmeteo_breaker_state()
+    breaker = delegated_breaker_state()  # W1-22: قاطعُ المزوّد في weather-service؛ هنا المرصود.
     cache = _weather_cache_snapshot()
-    degraded_reasons: list[str] = []
+    degraded_reasons: list[str] = observed_degraded_reasons(breaker["observed"])
     if self_checks["status"] != "ok":
-        degraded_reasons.append("self_checks_failed")
-    if str(breaker.get("state", "")).lower() in {"open", "tripped"}:
-        degraded_reasons.append("openmeteo_breaker_open")
+        degraded_reasons.insert(0, "self_checks_failed")
     # Cache pressure is not a hard failure because pruning can recover it.
     if cache["items"] > cache["max_items_soft"]:
         degraded_reasons.append("weather_cache_over_soft_limit")
@@ -1187,11 +1186,14 @@ async def _get_weather_sample_cached(
     if cache_state == "fresh" and sample is not None:
         return sample, cache_state, cache_age_s, upstream_error
     try:
-        from api.connectors.openmeteo import fetch_weather_tile_data
-
-        sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
-        await _cache_set_async(key, sample)
-        return sample, "refreshed", 0, None
+        # W1-22: عيّنةُ النقطة من weather-service (مخبّؤه وقاطعُه) لا من موصّل المزوّد.
+        point = await get_point_weather_sample_with_state(lat, lon, time=time, model=model)
+        if point.is_stale:
+            # عيّنةٌ قديمة من مخبّأ الخدمة: تُنقَل بحالتها وعمرها وخطئها، ولا تُخبَّأ هنا
+            # طازجةً فتُقدَّم بعمر صفر طوال TTL المنصّة.
+            return point.sample, "stale_fallback", point.cache_age_s, point.upstream_error
+        await _cache_set_async(key, point.sample)
+        return point.sample, "refreshed", 0, None
     except Exception as e:
         upstream_error = str(e)
         stale_sample, stale_state, stale_age = await _cache_get_async(key)
@@ -1864,14 +1866,15 @@ def _num(sample: dict, key: str, default: float | None = None) -> float | None:
 def _operation_suitability(sample: dict, operation: str) -> dict:
     """صلاحية عمليات زراعية (score 0..1 + عوامل مانعة) من Open-Meteo لنقطة/بلاطة — طبقة قرار
     قابلة للرسم. رطوبة 1–3 سم مُنمذَجة لا حسّاس؛ عتباتها من moisture_policy كـweather-service."""
-    temp = _num(sample, "temperature_2m_c", 25.0) or 25.0
-    rh = _num(sample, "relative_humidity_2m_pct", 55.0) or 55.0
-    wind = _num(sample, "wind_speed_10m_kmh", 0.0) or 0.0
-    gust = _num(sample, "wind_gusts_10m_kmh", wind) or wind
-    rain = _num(sample, "precipitation_mm", 0.0) or 0.0
-    vpd = _num(sample, "vapour_pressure_deficit_kpa", 1.5) or 1.5
+    # القراءةُ الصفريّة قراءةٌ لا غياب: ``or 25.0`` كان يحوّل 0°م (صقيعاً) إلى 25°م معتدلة.
+    temp = _num(sample, "temperature_2m_c", 25.0)
+    rh = _num(sample, "relative_humidity_2m_pct", 55.0)
+    wind = _num(sample, "wind_speed_10m_kmh", 0.0)
+    gust = _num(sample, "wind_gusts_10m_kmh", wind)
+    rain = _num(sample, "precipitation_mm", 0.0)
+    vpd = _num(sample, "vapour_pressure_deficit_kpa", 1.5)
     soil_m = _num(sample, "soil_moisture_1_to_3cm_m3m3", None)
-    soil_t = _num(sample, "soil_temperature_6cm_c", temp) or temp
+    soil_t = _num(sample, "soil_temperature_6cm_c", temp)
 
     score = 1.0
     factors: list[str] = []
@@ -1955,17 +1958,16 @@ _ALLOWED_WEATHER_TILE_LAYERS = {
 def weather_health():
     """مسبار صحّة لطبقة الطقس الموحّدة (منطق محلّيّ فقط، بلا استدعاء خارجيّ).
 
-    يؤكّد أنّ راوتر الطقس مُركَّب ويكشف حالة قاطع Open-Meteo دون استدعاء المزوّد.
+    يؤكّد أنّ راوتر الطقس مُركَّب. قاطعُ Open-Meteo يملكه weather-service (W1-22): المنصّةُ
+    لا تخرج إلى المزوّد، فتُعلِن `breaker: delegated` بدل حالةٍ محلّيّةٍ لا يمرّ بها طلب.
     nginx /api/weather/health يُوجَّه هنا فلا تضرب واجهات فحص الخدمات جذع weather-service.
     """
-    from api.connectors.openmeteo import openmeteo_breaker_state
-
     return {
         "status": "ok",
         "service": "weather",
         "provider": "open-meteo",
         "mode": "platform",
-        "breaker": openmeteo_breaker_state(),
+        "breaker": delegated_breaker_state(),
     }
 
 
@@ -2006,6 +2008,8 @@ async def weather_wind_source_selftest(
     مسباراً مستقلّاً لـMET.no، فيؤكّد الاتّصال الحيّ ومصدر الاتّجاه فعليّاً (لا mock).
     صادق: أيّ تعذّر يُبلَّغ صراحةً؛ لا يُخزَّن سرّ. الإحداثيّات الافتراضيّة: صنعاء/اليمن.
     """
+    # W1-22: المُستورِدُ الوحيدُ الباقي للموصّل، عن قصد (فحصٌ حيّ له لا مسارُ بيانات) — انظر
+    # weather_direct_wiring_allowlist.json؛ إزالتُه مع الموصّل قرارُ مالك.
     from api.connectors import metno_wind
     from api.connectors.openmeteo import fetch_weather_tile_data
 
@@ -2477,25 +2481,12 @@ async def weather_probe(
 ):
     """قراءة نقطة تحت المؤشر/النقرة + قرارات زراعية مختصرة."""
     time, model = _validate_time_model(time, model)
-    key = f"probe:{round(lat, 4)}:{round(lon, 4)}:{time}:{model}"
-    sample, cache_state, cache_age_s = await _cache_get_async(key)
-    upstream_error = None
-    if cache_state != "fresh":
-        try:
-            from api.connectors.openmeteo import fetch_weather_tile_data
-
-            sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
-            await _cache_set_async(key, sample)
-            cache_state = "refreshed"
-            cache_age_s = 0
-        except Exception as e:
-            upstream_error = str(e)
-            stale_sample, stale_state, stale_age = await _cache_get_async(key)
-            if stale_sample is None or stale_state not in {"stale", "fresh"}:
-                raise HTTPException(status_code=502, detail=f"Open-Meteo probe: {e}") from e
-            sample = stale_sample
-            cache_state = "stale_fallback"
-            cache_age_s = stale_age
+    try:
+        sample, cache_state, cache_age_s, upstream_error = await _get_weather_sample_cached(
+            lat, lon, time, model, "probe"
+        )
+    except Exception as e:  # noqa: BLE001 — لا عيّنة ولا مخبّأ قديم ⇒ 502 صريح
+        raise HTTPException(status_code=502, detail=f"weather-service probe: {e}") from e
     operations = {
         op: _operation_suitability(sample, op)
         for op in ["spraying", "harvesting", "sowing", "irrigation"]

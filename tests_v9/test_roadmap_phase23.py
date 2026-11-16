@@ -1478,9 +1478,7 @@ def test_weather_automation():
     import sys
     import types
 
-    # stub connector (httpx غير متاح في بيئة الاختبار)
-    fake = types.ModuleType("api.connectors.openmeteo")
-
+    # stub weather-service reading (httpx غير متاح في بيئة الاختبار)
     class FD:
         temperature_c = 32.0
         humidity_pct = 20
@@ -1497,9 +1495,12 @@ def test_weather_automation():
             raise RuntimeError("timeout")
         return FD()
 
-    fake.fetch_current = fc
-    fake.describe_weather_ar = lambda c: "صحو"
-    sys.modules["api.connectors.openmeteo"] = fake
+    # W1-22: الأتمتةُ تقرأ weather-service (`current_reading`) لا موصّلَ المزوّد — فيُستبدَل
+    # الاسمُ على الوحدة الحقيقيّة ويُعاد بعد التشغيل (لا وحدةَ مزيّفة تتسرّب لاختباراتٍ أخرى).
+    import api.weather_service_client as _wsc
+
+    _real_current_reading = _wsc.current_reading
+    _wsc.current_reading = fc
     # نظّف أيّ نسخة محمّلة
     sys.modules.pop("api.weather_automation", None)
     from api.weather_automation import WeatherAutomation
@@ -1527,7 +1528,10 @@ def test_weather_automation():
         if res2["refreshed"] == 1 and res2["failed"] == 1:
             r.append(("✓", "عزل: فشل إحداثيّة لا يوقف البقيّة"))
 
-    asyncio.run(run())
+    try:
+        asyncio.run(run())
+    finally:
+        _wsc.current_reading = _real_current_reading
     return r
 
 
@@ -1621,9 +1625,7 @@ def test_automation_persistence():
     import sys
     import types
 
-    # stub connector + httpx
-    om = types.ModuleType("api.connectors.openmeteo")
-
+    # stub weather-service reading + httpx
     class WD:
         temperature_c = 30.0
         humidity_pct = 25
@@ -1636,9 +1638,11 @@ def test_automation_persistence():
     async def wfc(lat, lon):
         return WD()
 
-    om.fetch_current = wfc
-    om.describe_weather_ar = lambda c: "صحو"
-    sys.modules["api.connectors.openmeteo"] = om
+    # W1-22: الأتمتةُ تقرأ weather-service — يُستبدَل الاسمُ على الوحدة الحقيقيّة ثمّ يُعاد.
+    import api.weather_service_client as _wsc
+
+    _real_current_reading = _wsc.current_reading
+    _wsc.current_reading = wfc
     fh = types.ModuleType("httpx")
 
     class FResp:
@@ -1788,7 +1792,10 @@ def test_automation_persistence():
         if ia2.status()["fields"][0]["last_image_id"] == "S2_001":
             r.append(("✓", "صور: بعد إعادة التشغيل لا إعادة معالجة (last_image_id مستعاد)"))
 
-    asyncio.run(run())
+    try:
+        asyncio.run(run())
+    finally:
+        _wsc.current_reading = _real_current_reading
     return r
 
 

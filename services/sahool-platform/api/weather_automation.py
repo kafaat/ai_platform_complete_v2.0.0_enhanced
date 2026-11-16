@@ -1,5 +1,5 @@
 """
-api/weather_automation.py — أتمتة سحب الطقس من Open-Meteo
+api/weather_automation.py — أتمتة سحب الطقس (من weather-service، W1-22)
 
 الفجوة التي يسدّها:
   endpoints الطقس (/weather/current، /weather/forecast) تعمل عند الطلب فقط
@@ -313,15 +313,16 @@ class WeatherAutomation:
         if not self._locations:
             return {"refreshed": 0, "failed": 0, "note": "لا إحداثيّات مسجّلة"}
 
-        # استيراد متأخّر — connector قد يحتاج httpx (متاح في الحاوية)
-        from api.connectors.openmeteo import describe_weather_ar, fetch_current
+        # استيراد متأخّر — العميل يحتاج httpx (متاح في الحاوية). الطقسُ من weather-service
+        # (W1-22) لا من موصّل المزوّد؛ والغيابُ يصل `None` كما هو.
+        from api.weather_service_client import current_reading, describe_weather_ar
 
         refreshed = 0
         failed = 0
         errors: list[str] = []
         for k, loc in list(self._locations.items()):
             try:
-                d = await fetch_current(loc["lat"], loc["lon"])
+                d = await current_reading(loc["lat"], loc["lon"])
                 payload = {
                     "temperature_c": d.temperature_c,
                     "humidity_pct": d.humidity_pct,
@@ -331,7 +332,7 @@ class WeatherAutomation:
                     "weather_code": d.weather_code,
                     "weather_ar": describe_weather_ar(d.weather_code),
                     "timestamp": d.timestamp,
-                    "source": "open-meteo",
+                    "source": "weather-service",
                     "field_id": loc.get("field_id"),
                 }
                 self._cache[k] = CachedWeather(loc["lat"], loc["lon"], payload, time.time())

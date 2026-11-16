@@ -14,7 +14,7 @@
 
 **بلا تبعيّة على ``api.main``:** كلّ الدوالّ المعتمدة على القاعدة تستقبل ``conn`` كمعامل
 (لا تدير اتّصالاً)، وكلّ الاستيرادات الثقيلة (``api.soil_telemetry`` ·
-``api.recommendations_hub`` · ``core.season_phenology`` · ``api.connectors.openmeteo``)
+``api.recommendations_hub`` · ``core.season_phenology`` · ``api.weather_service_client``)
 كسولة داخل الدوالّ — فلا دورة استيراد. تُعاد هذه الأسماء إلى فضاء ``api.main`` (إعادة
 تصدير) كي تبقى نقاط الاستدعاء القائمة (``from api.main import …`` في الموجِّهات) صحيحة
 دون تغيير سلوكيّ.
@@ -210,11 +210,11 @@ async def _historical_rain_3d_mm(
     """
     from datetime import timedelta as _td
 
-    from api.connectors.openmeteo import fetch_historical
+    from api.weather_service_client import historical_readings
 
     try:
         today = datetime.now(UTC).date()
-        hist = await fetch_historical(
+        hist = await historical_readings(
             lat,
             lon,
             (today - _td(days=_HISTORICAL_RAIN_DAYS)).isoformat(),

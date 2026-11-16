@@ -1667,7 +1667,7 @@ async def _evaluate_field_alerts_persist(
 
     منطق مشترك بين endpoint الحقل المفرد (/fields/{id}/alerts/evaluate) وتشغيل
     «كلّ الحقول» الدوريّ (/automation/alerts/run) — لتفادي التكرار. يبني السياق
-    من الطقس الحيّ (Open-Meteo) ومحصول/مرحلة الموسم النشط، يُشغّل قواعد التنبيه
+    من الطقس الحيّ (weather-service) ومحصول/مرحلة الموسم النشط، يُشغّل قواعد التنبيه
     النقيّة (api.alert_rules)، ثمّ يُدرِج النتائج مع تجاوز أيّ نوع تنبيه له تنبيه
     'active' قائم (dedupe).
 
@@ -1682,9 +1682,9 @@ async def _evaluate_field_alerts_persist(
         evaluate_field_alerts,
         thresholds_from_policy,
     )
-    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.soil_telemetry import decision_soil_moisture
     from api.weather_advice import irrigation_advice
+    from api.weather_service_client import current_reading, forecast_readings
 
     # سياسة عتبات التنبيهات لكلّ مستأجِر (best-effort): تُضبَط عبر النقطة الموجودة
     #   PUT /api/v1/settings  مع scope='platform', key='alert_thresholds',
@@ -1720,14 +1720,12 @@ async def _evaluate_field_alerts_persist(
         raise _db_unavailable("قراءة سياق الحقل", e) from e
 
     try:
-        forecast = await fetch_daily_forecast(lat, lon, days=3)
-        current = await fetch_current(lat, lon)
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        forecast = await forecast_readings(lat, lon, days=3)
+        current = await current_reading(lat, lon)
+    except Exception as e:  # noqa: BLE001 — أيُّ تعذّرٍ لخدمة الطقس (502/504/4xx أيضاً) ⇒ 503 الموثَّق
         raise HTTPException(
             status_code=503,
-            detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
+            detail="تعذّر جلب الطقس (خدمة الطقس غير متاحة). حاول لاحقاً.",
         ) from e
 
     # SOIL-MOISTURE-ELIGIBILITY-01: المؤهَّلةُ وحدَها (جودة/عمر/وحدة) تبلغ التوصيةَ والتنبيه.

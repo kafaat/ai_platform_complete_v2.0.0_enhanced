@@ -280,9 +280,9 @@ async def season_workspace(
     tasks, activities, soil tests, timeline and next actions. External/weather-derived
     recommendations are best-effort and reported in `gaps` when unavailable.
     """
-    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.field_state_projection import recompute_field_state
     from api.recommendations_hub import RecommendationContext, build_recommendations
+    from api.weather_service_client import current_reading, forecast_readings
 
     gaps: list[dict] = []
     recommendations: dict | None = None
@@ -375,8 +375,8 @@ async def season_workspace(
             ctx.crop_vigor = truths.get("crop_vigor")
             weather_available = False
             if lat is not None and lon is not None:
-                forecast = await fetch_daily_forecast(lat, lon, days=3)
-                current = await fetch_current(lat, lon)
+                forecast = await forecast_readings(lat, lon, days=3)
+                current = await current_reading(lat, lon)
                 today_fc = forecast[0] if forecast else None
                 ctx.et0_mm = today_fc.et0_mm if today_fc and today_fc.et0_mm is not None else None
                 # الغيابُ يمرّ `None` — والقواعدُ تصمت عليه بدل أن تُوصي على صفرٍ مُختلَق.

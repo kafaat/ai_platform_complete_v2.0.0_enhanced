@@ -1,6 +1,6 @@
-"""P3.5 — weather direct-wiring final sweep guard.
+"""P3.5 / W1-22 — weather direct-wiring final sweep guard.
 
-Scans ``services/sahool-platform/api/**/*.py`` and asserts that every file which really
+Scans every non-test ``services/sahool-platform/**/*.py`` (not only ``api/``) and asserts that every file which really
 wires itself to the Open-Meteo provider adapter — by **importing** ``api.connectors.openmeteo``
 or by **using** one of its provider-touching fetchers — is either:
   - a legitimate home (the Open-Meteo provider adapter or the weather-service transport), or
@@ -25,6 +25,13 @@ through unrelated platform modules after the P3.4 facade extraction.
 
 ويحمل الملفُّ **راتشِتاً** فوق ذلك: عددُ المتبقّيات المُوثَّقة سقفٌ ينزل ولا يصعد.
 انظر ``test_the_documented_residuals_only_ever_shrink``.
+
+**W1-22: نزل الراتشِتُ من ٨ إلى ١.** نُقلت مساراتُ البيانات كلُّها (التوصيات · التنبيهات ·
+ETc · البلاطات والمسبار · حزمة AI · لوحة الحقل · مساحة الموسم · أتمتة الطقس) خلف
+``weather_service_client`` (وقراءاتِه المُصنَّفة)، فصار استيرادُ ``api.connectors.openmeteo``
+ممنوعاً خارج الموصّل نفسِه في المنصّة كلِّها — لا في ``api/`` وحدها: ملفٌّ في ``core/`` أو
+``workers/`` كان يفلت من مسحٍ محصورٍ في ``api/``. والمُعفى الوحيد الباقي **دالّةٌ** لا ملفّ:
+الفحصُ الحيّ للموصّل نفسِه (``test_the_only_residual_is_the_provider_self_test``).
 """
 
 from __future__ import annotations
@@ -70,11 +77,14 @@ def _rel(path: Path) -> str:
     return path.relative_to(PLATFORM).as_posix()
 
 
-def _api_py_files() -> list[Path]:
+def _platform_py_files() -> list[Path]:
+    """كلُّ ملفّات بايثون المنصّة عدا الاختبارات — المنعُ لا يقف عند حدود ``api/``."""
     return sorted(
         p
-        for p in API_DIR.rglob("*.py")
-        if "/tests/" not in p.as_posix() and "__pycache__" not in p.as_posix()
+        for p in PLATFORM.rglob("*.py")
+        if not _rel(p).startswith("tests/")
+        and "/tests/" not in p.as_posix()
+        and "__pycache__" not in p.as_posix()
     )
 
 
@@ -127,7 +137,7 @@ def _offending_files() -> dict[str, list[str]]:
         rel: markers
         for rel, markers in (
             (_rel(p), markers_in_source(p.read_text(encoding="utf-8", errors="ignore")))
-            for p in _api_py_files()
+            for p in _platform_py_files()
         )
         if markers
     }
@@ -135,7 +145,61 @@ def _offending_files() -> dict[str, list[str]]:
 
 def test_allowlist_markers_match_the_guard():
     allow = _load_allowlist()
-    assert set(allow["direct_wiring_markers"]) == set(DIRECT_WIRING_MARKERS)
+    assert set(allow["direct_wiring_markers"]) == set(DIRECT_WIRING_MARKERS), (
+        "the allowlist's documented markers drifted from the guard's markers"
+    )
+
+
+def test_the_scan_covers_the_whole_platform_not_only_api():
+    """W1-22: مسحٌ محصورٌ في ``api/`` كان يُفلِت ``core/`` و``workers/`` بلا إشارة."""
+    scanned = {_rel(p).split("/", 1)[0] for p in _platform_py_files()}
+    assert {"api", "core", "workers"} <= scanned, (
+        f"the direct-wiring scan no longer reaches every platform package: {sorted(scanned)}"
+    )
+    assert not any(_rel(p).startswith("tests/") for p in _platform_py_files()), (
+        "tests must stay out of the scan (they exercise the connector on purpose)"
+    )
+
+
+#: W1-22 — المُعفى الوحيد الباقي، محصوراً في دالّةٍ واحدة لا في الملفّ كلّه.
+SELF_TEST_RESIDUAL = ("api/routers/weather.py", "weather_wind_source_selftest")
+
+
+def _functions_with_markers(source: str) -> set[str]:
+    """أسماءُ الدوالّ (الأعلى مستوى) التي تحمل علامةً — و``<module>`` لعلامةٍ خارج أيّ دالّة."""
+    tree = ast.parse(source)
+    owners: set[str] = set()
+    for top in tree.body:
+        owner = top.name if isinstance(top, ast.FunctionDef | ast.AsyncFunctionDef) else "<module>"
+        if markers_in_source(ast.unparse(top)):
+            owners.add(owner)
+    return owners
+
+
+def test_the_only_residual_is_the_provider_self_test():
+    """W1-22 — مساراتُ البيانات كلُّها تقرأ weather-service. الباقي **دالّةٌ واحدة**: الفحصُ
+    الحيّ لموصّل المزوّد نفسِه (آخرُ جذرٍ تنفيذيٍّ له؛ حذفُه قرارُ مالك). فالإعفاءُ يُقاس على
+    مستوى الدالّة: أيُّ مسارٍ آخر في ``weather.py`` يعود إلى الموصّل يُحمِّر هنا وإن بقي الملفُّ
+    مُدرَجاً."""
+    allow = _load_allowlist()
+    residuals = allow.get("composite_residuals_pending_p4") or {}
+    assert set(residuals) == {SELF_TEST_RESIDUAL[0]}, (
+        "only the provider self-test may stay a residual; route the rest through "
+        f"weather_service_client: {sorted(residuals)}"
+    )
+    assert allow["composite_residuals_ceiling"] == 1, "the residual ceiling must stay at one"
+    source = (PLATFORM / SELF_TEST_RESIDUAL[0]).read_text(encoding="utf-8")
+    owners = _functions_with_markers(source)
+    assert owners == {SELF_TEST_RESIDUAL[1]}, (
+        f"direct Open-Meteo wiring in {SELF_TEST_RESIDUAL[0]} outside the provider self-test: "
+        f"{sorted(owners - {SELF_TEST_RESIDUAL[1]})}"
+    )
+    offenders = {
+        rel: markers
+        for rel, markers in _offending_files().items()
+        if rel not in {"api/connectors/openmeteo.py", SELF_TEST_RESIDUAL[0]}
+    }
+    assert offenders == {}, f"direct Open-Meteo wiring outside the connector: {offenders}"
 
 
 def test_the_detector_reads_code_not_prose():
@@ -145,10 +209,12 @@ def test_the_detector_reads_code_not_prose():
     مخالفاً. والثانيةُ هي الثقب المقيس: إملاءٌ آخرُ للاستيراد لا يُطابِق أيّ سلسلة.
     """
     prose_only = '# نستورد api.connectors.openmeteo? لا — هُجِر.\nX = "fetch_current"\n'
-    assert markers_in_source(prose_only) == []
+    assert markers_in_source(prose_only) == [], "prose must not make a file an offender"
 
     aliased_import = "from api.connectors import openmeteo\n\n\nasync def f(a, b):\n    return await openmeteo.fetch_bundle(a, b)\n"
-    assert markers_in_source(aliased_import) == [MODULE_MARKER, "fetch_bundle"]
+    assert markers_in_source(aliased_import) == [MODULE_MARKER, "fetch_bundle"], (
+        "the alternate import spelling must still be detected"
+    )
 
 
 def test_every_direct_openmeteo_reference_is_a_home_or_documented_residual():
