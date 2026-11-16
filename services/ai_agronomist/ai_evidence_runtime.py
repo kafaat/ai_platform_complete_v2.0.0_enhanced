@@ -147,6 +147,7 @@ def _platform_tenant_headers(tenant_id: str, method: str, path: str) -> dict[str
     except TenantAssertionError:
         return None
 
+
 # W0-02 (knowledge-1/x-4): rag-retrieval answers 424 TENANT_CORPUS_EMPTY when the tenant
 # has no readable corpus, and 503 when retrieval is unavailable. Neither is a reason to
 # fail the whole advisory request: like the KG path, the answer degrades to field-state

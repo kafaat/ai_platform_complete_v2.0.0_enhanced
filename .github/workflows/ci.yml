@@ -1614,9 +1614,9 @@ jobs:
         run: pytest -v -m integration -rs tests_v9/test_field_task_inspection_live_pg.py
       # W0-13 (finding mobile-3): an offline irrigation report replayed after the water-balance
       # worker wrote the day keeps ET0 and depletion, and the worker keeps the reported water and
-      # recomputes around it (v278). The real router runs on the restricted NOBYPASSRLS role; the
+      # recomputes around it (v279). The real router runs on the restricted NOBYPASSRLS role; the
       # worker on the owner URL, as deployed. The flag turns any skip into a failure.
-      - name: Water ledger partial irrigation write (W0-13, v278, restricted role)
+      - name: Water ledger partial irrigation write (W0-13, v279, restricted role)
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
