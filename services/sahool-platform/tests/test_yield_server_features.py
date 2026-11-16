@@ -30,6 +30,7 @@ from api.yield_heuristics import (  # noqa: E402
     SeasonWindow,
     apply_declared_overrides,
     assemble_server_features,
+    detect_anomalies,
     estimate_yield,
     normalize_stored_event,
 )
@@ -88,8 +89,8 @@ def test_pest_and_water_stress_events_give_yield_below_target_with_evidence_ids(
     assert f.pest_alerts == 2, f"آفتان مخزَّنتان (حدث pest.* + تنبيه آفة)؛ أُعيد {f.pest_alerts}"
     assert f.moisture_stress_events == 3, f"ثلاثة أحداث إجهاد مائي؛ أُعيد {f.moisture_stress_events}"
     assert f.irrigation_count == 2, f.irrigation_count
-    # ريّ يوم 0 ويوم 20 وطقس بلا مطر حتّى يوم 39 ⇒ أطول فترة جفاف 19 يوماً (21..39).
-    assert f.drought_streak_days == 19, f"فترة الجفاف من الطقس+الريّ؛ أُعيد {f.drought_streak_days}"
+    # حقلٌ بالتنقيط: سجلّ الريّ لا يرصد أيّام «لا ريّ» ⇒ الجفاف مجهول؛ الآفات والإجهاد يكفيان.
+    assert f.drought_streak_days is None, f"جفافٌ مُصطنَع من سجلّ ريّ ناقص؛ أُعيد {f.drought_streak_days}"
     assert f.rain_events == 0, f.rain_events
 
     est = estimate_yield(f)
@@ -100,9 +101,10 @@ def test_pest_and_water_stress_events_give_yield_below_target_with_evidence_ids(
     for eid in ("e-pest-1", "e-pest-2", "e-moist-1", "e-moist-2", "e-moist-3", "e-irr-1"):
         assert f"event:{eid}" in ev.evidence_ids, f"{eid} دخل الحساب ولا يظهر في evidence_ids"
     assert "event:e-noise" not in ev.evidence_ids, "حدثٌ لم يدخل الحساب لا يُدّعى دليلاً"
-    assert "weather:snap-1" in ev.evidence_ids, "قطعة الطقس دخلت الحساب ولا تظهر دليلاً"
+    assert "weather:snap-1" in ev.evidence_ids, "قطعة الطقس دخلت الحساب (الأمطار) ولا تظهر دليلاً"
     assert ev.input_sources["pest_alerts"] == SOURCE_EVENTS, ev.input_sources
-    assert ev.input_sources["drought_streak_days"] == SOURCE_WEATHER, ev.input_sources
+    assert ev.input_sources["rain_events"] == SOURCE_WEATHER, ev.input_sources
+    assert ev.input_sources["drought_streak_days"] == SOURCE_UNKNOWN, ev.input_sources
     assert ev.window == {
         "season_id": "ssn-1",
         "start": SOW.isoformat(),
@@ -149,6 +151,25 @@ def test_irrigated_field_without_irrigation_log_has_unknown_drought():
     )
     assert ev.features.drought_streak_days is None, "حقل مرويّ بلا سجلّ ريّ: الجفاف مجهول لا ٤٠ يوماً"
     assert ev.features.rain_events == 0, ev.features.rain_events
+
+
+def test_one_irrigation_log_on_a_drip_field_does_not_fabricate_drought():
+    """مراجعة W1-08: سجلّ ريٍّ واحد كان يجعل كلّ يومٍ بلا سجلّ يوماً جافّاً ⇒ جفاف ٤٩ يوماً حرج."""
+    end = date(2026, 10, 20)
+    days = (end - SOW).days + 1
+    window = SeasonWindow("ssn-1", "wheat", SOW, end, "drip")
+    events = [_ev("e-irr-1", "operation.irrigation.completed", 0)]
+    ev = assemble_server_features("fld-1", "wheat", window, events, [], [0.0] * days, "weather:w")
+    f = ev.features
+    assert f.drought_streak_days is None, f"سجلّ ريّ ناقص لا يرصد جفافاً؛ أُعيد {f.drought_streak_days}"
+    assert ev.input_sources["drought_streak_days"] == SOURCE_UNKNOWN, ev.input_sources
+    assert "drought_unknown_irrigation_not_fully_observed" in ev.warnings, ev.warnings
+    est = estimate_yield(f)
+    assert est.estimated_yield_kg_ha is None, (
+        f"بلا دليل حالة لا رقم؛ أُعيد {est.estimated_yield_kg_ha}"
+    )
+    anomalies = detect_anomalies(f)
+    assert not any(a.type == "drought_streak" for a in anomalies), anomalies
 
 
 def test_rainfed_season_measures_drought_from_rain_alone():
@@ -216,6 +237,37 @@ def test_request_values_are_declared_overrides_with_the_server_value_they_replac
     assert by_input["pest_alerts"]["server_value"] == 2, by_input
     assert by_input["pest_alerts"]["server_source"] == SOURCE_EVENTS, by_input
     assert by_input["avg_ndvi_growing"]["server_value"] is None, by_input
+    for eid in ("e-pest-1", "e-pest-2"):
+        assert f"event:{eid}" not in ev.evidence_ids, (
+            f"حدث الآفة {eid} استُبدل بتجاوزٍ مُعلَن فلم يدخل الحساب؛ لا يُستشهد به: {ev.evidence_ids}"
+        )
+    assert "event:e-moist-1" in ev.evidence_ids, "الإجهاد المائي لم يُتجاوَز ويبقى دليلاً"
+
+
+def test_overriding_every_weather_input_drops_the_weather_citation():
+    rain = [0.0] * DAYS
+    ev = assemble_server_features(
+        "fld-1", "wheat", _window("rainfed"), [], [], rain, "weather:snap-r"
+    )
+    assert "weather:snap-r" in ev.evidence_ids, ev.evidence_ids
+    apply_declared_overrides(ev, {"rain_events": 4, "drought_streak_days": 0})
+    assert "weather:snap-r" not in ev.evidence_ids, (
+        f"كلّ ما غذّته قطعة الطقس استُبدل؛ لا يُستشهد بها: {ev.evidence_ids}"
+    )
+
+
+def test_mature_only_ndvi_scenes_are_cited_for_the_mature_average():
+    points = [
+        {"datetime": "2026-10-09T10:00:00Z", "mean": 0.60, "cloud_pct": 5, "scene_id": "S2_M"},
+    ]
+    window = SeasonWindow("ssn-1", "wheat", date(2026, 5, 1), END, "drip")
+    events = [_ev("e-pest-1", "pest.detected", 3)]
+    ev = assemble_server_features("fld-1", "wheat", window, events, points, None, None)
+    assert ev.features.avg_ndvi_growing is None, ev.features.avg_ndvi_growing
+    assert ev.features.avg_ndvi_mature == pytest.approx(0.60), ev.features.avg_ndvi_mature
+    assert "raster:ndvi:S2_M" in ev.evidence_ids, (
+        f"مشهد MATURE دخل الحساب (الثقة) ولا يُستشهد به: {ev.evidence_ids}"
+    )
 
 
 # ─── التجميع غير المتزامن: نوافذ الشبكة والمحصول ───────────────────────
@@ -249,6 +301,26 @@ def test_collect_reads_weather_until_yesterday_and_declares_a_crop_override(monk
         ev.declared_overrides
     ), ev.declared_overrides
     assert ev.features.crop == "barley", "المحصول المُعلَن يحكم الحساب ويُسجَّل تجاوزاً"
+
+
+def test_truncated_season_events_are_declared_in_warnings(monkeypatch):
+    import asyncio
+
+    import api.yield_heuristics as ysf
+
+    async def ndvi(field_id, tenant_id):
+        return []
+
+    async def weather(location, start, end, tenant_id):
+        return None, None
+
+    monkeypatch.setattr(ysf, "load_ndvi_points", ndvi)
+    monkeypatch.setattr(ysf, "load_weather_rain", weather)
+    loaded = ysf.LoadedSeason(END, _window(), _stress_events(), None, events_truncated=True)
+    ev = asyncio.run(ysf.collect_server_evidence("fld-1", {}, loaded, "t-1"))
+    assert f"season_events_truncated_oldest_dropped:{ysf.MAX_SEASON_EVENTS}" in ev.warnings, (
+        f"بلوغ سقف الأحداث يُعلَن لا يُسقَط صامتاً: {ev.warnings}"
+    )
 
 
 def test_collect_without_any_known_crop_is_422(monkeypatch):

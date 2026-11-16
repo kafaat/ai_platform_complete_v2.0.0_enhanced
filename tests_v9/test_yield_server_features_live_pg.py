@@ -267,11 +267,14 @@ def test_stored_pest_and_water_stress_events_give_yield_below_target(monkeypatch
     assert f"event:{stored['other_tenant']}" not in ids, (
         f"another tenant's event leaked into the estimate (RLS): {ids}"
     )
-    assert "weather:snap-live" in ids, f"the weather slice used for drought is not cited: {ids}"
+    assert "weather:snap-live" in ids, f"the weather slice used for rain is not cited: {ids}"
     sources = body.get("input_sources") or {}
     assert sources.get("pest_alerts") == "server:events", sources
     assert sources.get("moisture_stress_events") == "server:events", sources
-    assert sources.get("drought_streak_days") == "server:weather_history", sources
+    assert sources.get("rain_events") == "server:weather_history", sources
+    # A drip field's irrigation log does not observe the days it was not irrigated, so the
+    # weather alone cannot measure its drought: unknown, not a fabricated dry spell.
+    assert sources.get("drought_streak_days") == "unknown", sources
     assert body.get("declared_overrides") == [], (
         f"the request only declared the season's own crop; nothing was overridden: {body}"
     )
