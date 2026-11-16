@@ -8836,11 +8836,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## HELM-RENDER-UNPINNED-RUNNER-BINARY-01 — عرض مخطّط Helm في CI يعتمد على ثنائيّ غير مثبَّت، بلا lint ولا staging
 
-- **الحالة:** fixed — على الفرع `claude/helm-render-ci-20261116`. لا ادّعاء وصول إلى main، ولا نجاح CI بعد.
+- **الحالة:** fixed — في #1509 (فرع `claude/w3-09-helm-workloads-main-20261116`)، بقرار المالك أن تُطوى بوّابة Helm فيه بدل طلب دمج منفصل. لا ادّعاء وصول إلى main، ولا نجاح CI بعد.
 - **الخلل (مقيس):** اختبارات العرض الثمانية `@needs_helm` تعمل في وظيفة Unit Tests، بـhelm الذي تحمله صورة مشغّل GitHub `ubuntu-24.04`: إصداره غير مثبَّت ولا يُتحقَّق منه. وكلّها PASSED في job 133646190750 على `ea522a6f` (#1509)، بلا سطر «helm binary not installed». ولا خطوة في `.github/workflows/` تثبّت helm أو تشغّل `helm lint`، ولا يُعرَض `values-staging.yaml` قطّ. وعلى مشغّل بلا helm تُتخطّى الاختبارات خضراء.
 - **تصحيح:** قيل في رسالة تنسيق 2026-11-16 22:15 إنّ المخطّط «لم يُعرَض قطّ في CI». هذا خطأ، والصحيح ما ورد أعلاه.
 - **الإصلاح:** وظيفة `helm-readiness` في `.github/workflows/sahool-production-gates.yml`:
-  - تنزّل helm v3.16.4 من `get.helm.sh` وتتحقّق من sha256 (`fc307327…d179`، من المالك عن صفحة الإصدار الرسميّة) قبل فكّ الضغط، وتضعه أوّل PATH وتتحقّق من إصداره.
+  - تنزّل helm v3.16.4 من `get.helm.sh`، وتتحقّق من sha256 (`fc307327…d179`) قبل فكّ الضغط، وتضعه أوّل PATH وتتحقّق من إصداره. البصمة تحقّق منها المالك مستقلّاً مقابل الإصدار الرسميّ v3.16.4، وتطابقها الخطوة أيضاً مع ملفّ `….tar.gz.sha256sum` المنشور قبل التنزيل (`HELM_PIN_MISMATCH` عند الاختلاف).
   - تشغّل `helm lint` و`helm template` للطبقتين.
   - تشغّل كلّ اختبارات `helm_render` بـ`HELM_RENDER_REQUIRED=1`.
   - يُفشل `scripts/ci/helm_render_guard.py` الوظيفةَ إن لم يكن helm على PATH هو المثبَّت v3.16.4، أو تخطّى أيّ اختبار عرض أو فشل أو نقص عددها عن 14. مُقَرّ في `blocking_surface_additions.json`، وطفرتاه مسجّلتان.
