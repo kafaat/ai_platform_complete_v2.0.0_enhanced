@@ -345,7 +345,7 @@ workloads:
   # W3-09: owner of fields and field_tasks. Its internal routes need the service token AND
   # a per-request tenant assertion (HMAC, replay-checked in Redis) from a caller in
   # FIELD_SERVICE_ALLOWED_CALLERS, so it is reachable namespace-wide; its callers
-  # (vegetation-analysis, video-processor) are not deployed by the chart yet. The public
+  # (vegetation-analysis, video-processor, remote-sensing-workspace-bff) are not deployed by the chart yet. The public
   # /api/v1/field-tasks/ route is not ported: the compose gateway injects
   # FIELD_TASKS_SERVICE_TOKEN into it, and the chart gateway's ConfigMap carries no secret.
   sahool-field-management:
@@ -358,7 +358,7 @@ workloads:
       SERVICE_NAME: sahool-field-management
       # Compose default. Production readiness fails on an empty allowlist
       # (services/field-management-service/main.py readyz).
-      FIELD_SERVICE_ALLOWED_CALLERS: vegetation-analysis-service,video-processor
+      FIELD_SERVICE_ALLOWED_CALLERS: vegetation-analysis-service,video-processor,remote-sensing-workspace-bff
       FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: current
     secretEnv:
       # Runtime role sahool_app, as in compose.
