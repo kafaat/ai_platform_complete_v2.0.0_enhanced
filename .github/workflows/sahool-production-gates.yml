@@ -77,37 +77,29 @@ jobs:
           echo "$RUNNER_TEMP/helm-bin" >> "$GITHUB_PATH"
       - name: Install render test dependencies
         run: python3 -m pip install pytest==9.2.0 PyYAML==6.0.3 httpx==0.28.1 PyJWT==2.15.0
-      # HELM_RENDER_REQUIRED=1 makes a missing helm a failure in every helm_render test, and the
-      # junit check below fails the job if any of them still skipped or went missing.
+      # HELM_RENDER_REQUIRED=1 makes a missing helm a failure in every helm_render test, and
+      # helm_render_guard.py fails the job if helm is not the pinned binary or any render test
+      # skipped, failed or went missing.
       - name: Lint and render both overlays with the pinned Helm
         env:
           HELM_VERSION: v3.16.4
           HELM_RENDER_REQUIRED: "1"
         run: |
           set -euo pipefail
-          test "$(command -v helm)" = "$RUNNER_TEMP/helm-bin/helm"
-          version="$(helm version --short)"
-          case "$version" in "${HELM_VERSION}+"*) echo "helm $version" ;; *) echo "unexpected helm: $version"; exit 1 ;; esac
           for overlay in values-staging.yaml values-production.yaml; do
             helm lint helm/sahool -f helm/sahool/values.yaml -f "helm/sahool/$overlay"
             helm template sahool helm/sahool -f helm/sahool/values.yaml -f "helm/sahool/$overlay" > "$RUNNER_TEMP/render-${overlay%.yaml}.yaml"
           done
+          # pytest's own exit code is kept for the guard, which reports every problem at once.
+          rc=0
           python3 -m pytest -q -p no:cacheprovider -o addopts= -m helm_render -rs \
             --junitxml="$RUNNER_TEMP/helm-render.xml" \
             tests_v9/test_helm_render_acceptance.py \
             tests_v9/test_helm_network_policy_egress.py \
-            tests_v9/test_helm_gateway_ingress_contract.py
-          python3 - "$RUNNER_TEMP/helm-render.xml" <<'PY'
-          import sys
-          import xml.etree.ElementTree as ET
-
-          root = ET.parse(sys.argv[1]).getroot()
-          suite = root if root.tag == "testsuite" else root.find("testsuite")
-          tests, skipped = int(suite.get("tests")), int(suite.get("skipped"))
-          print(f"helm_render tests={tests} skipped={skipped}")
-          if skipped or tests < 14:
-              sys.exit("HELM_RENDER_INCOMPLETE: a helm_render test skipped or went missing")
-          PY
+            tests_v9/test_helm_gateway_ingress_contract.py || rc=$?
+          python3 scripts/ci/helm_render_guard.py --junit "$RUNNER_TEMP/helm-render.xml" \
+            --expected-version "$HELM_VERSION" --expected-binary "$RUNNER_TEMP/helm-bin/helm"
+          exit "$rc"
       - name: Upload the rendered manifests
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

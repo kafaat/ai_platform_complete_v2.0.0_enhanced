@@ -6689,6 +6689,23 @@
           "why": "تجاهلُ تبدّل السبب يُبقي قراراً مكتوباً يصف سبباً لم يعد قائماً، فيُقرأ الدَّين معروفاً وهو قد تبدّل."
         }
       ]
+    },
+    "helm_render_guard.py": {
+      "test": "tests_v9/test_helm_render_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_skipped_render_test_fails_the_guard",
+          "find": "    for key in (\"skipped\", \"failures\", \"errors\"):",
+          "replace": "    for key in (\"failures\", \"errors\"):  # mutated: a skipped render test no longer fails",
+          "why": "إن قَبِل الحارس تخطّي اختبار عرض عاد الصنف نفسه: مشغّل بلا helm يمرّ أخضر. شاهد التخطّي يجب أن يسقط."
+        },
+        {
+          "expect": "test_the_runner_image_helm_is_refused",
+          "find": "    if tag != expected:",
+          "replace": "    if False:  # mutated: accept any helm version on PATH",
+          "why": "إن قَبِل أيّ إصدار عاد العرض إلى helm صورة المشغّل غير المثبَّت. شاهد رفض الإصدار يجب أن يسقط."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

@@ -238,6 +238,14 @@
       "positive_witness": "test_root_export_preserves_same_basenames_in_two_packages: a root re-export holding services/sahool-platform/api/__init__.py and services/sahool-platform/core/__init__.py side by side is accepted with both files counted, so the legitimate report passes.",
       "impact": "merge",
       "$impact_ar": "يحجب الدمج داخل وظيفة decision-033-pg16-proof فقط عند تقريرٍ بمسارات غير صحيحة؛ خطوة الإثبات الحيّة نفسها بلا --cov-fail-under فلا تفشل بسبب نسبة التغطية. والرفع fail_ci_if_error: false فانقطاع Codecov لا يحمّر فحصاً."
+    },
+    "scripts/ci/helm_render_guard.py::sahool-production-gates.yml::helm-readiness": {
+      "counterexample": "HELM-RENDER-UNPINNED-RUNNER-BINARY-01: Unit Tests job 133646190750 on #1509 head ea522a6f ran all 8 @needs_helm render tests (PASSED) on the helm binary that the GitHub ubuntu-24.04 runner image ships; no step in .github/workflows installed or pinned helm, nothing ran helm lint, values-staging.yaml was never rendered, and the tests' skipif meant a runner without helm would have passed all of them green. Measured locally without helm: the 14 helm_render tests report '14 skipped' and exit 0, which is the green-by-absence this guard closes.",
+      "mutation": "test_a_skipped_render_test_fails_the_guard",
+      "$mutation_ar": "مسجَّلة في guard_mutation_registry.json تحت helm_render_guard.py: حذف \"skipped\" من فحص junit يُسقط test_a_skipped_render_test_fails_the_guard، وتعطيل مقارنة الإصدار (`if False:`) يُسقط test_the_runner_image_helm_is_refused.",
+      "positive_witness": "test_a_complete_render_run_passes: a junit report with 14 helm_render tests and no skip, failure or error passes, so the legitimate run with the pinned helm is accepted.",
+      "impact": "merge",
+      "$impact_ar": "يحجب الدمج داخل وظيفة helm-readiness: helm على PATH غير المثبَّت v3.16.4، أو اختبار عرض تخطّى أو فشل أو نقص عن 14. وتنزيل helm نفسه يفشل قبل فكّ الضغط إن لم تطابق sha256."
     }
   }
 }

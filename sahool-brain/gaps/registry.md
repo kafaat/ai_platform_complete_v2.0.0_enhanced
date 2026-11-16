@@ -8842,7 +8842,8 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الإصلاح:** وظيفة `helm-readiness` في `.github/workflows/sahool-production-gates.yml`:
   - تنزّل helm v3.16.4 من `get.helm.sh` وتتحقّق من sha256 (`fc307327…d179`، من المالك عن صفحة الإصدار الرسميّة) قبل فكّ الضغط، وتضعه أوّل PATH وتتحقّق من إصداره.
   - تشغّل `helm lint` و`helm template` للطبقتين.
-  - تشغّل كلّ اختبارات `helm_render` بـ`HELM_RENDER_REQUIRED=1`، ويُفشلها فحص junit إن تخطّى أيّها أو نقص عددها عن 14.
+  - تشغّل كلّ اختبارات `helm_render` بـ`HELM_RENDER_REQUIRED=1`.
+  - يُفشل `scripts/ci/helm_render_guard.py` الوظيفةَ إن لم يكن helm على PATH هو المثبَّت v3.16.4، أو تخطّى أيّ اختبار عرض أو فشل أو نقص عددها عن 14. مُقَرّ في `blocking_surface_additions.json`، وطفرتاه مسجّلتان.
 - **الشواهد:**
   - `tests_v9/test_helm_render_acceptance.py`: lint للطبقتين؛ Deployment وService لكلّ حِمل مفعَّل بصورته ومنفذه ونسخه؛ default-deny؛ أسماء الأسرار.
   - `test_the_switch_turns_a_missing_helm_into_a_failure` يعمل بلا helm. قِيس محلّيّاً: الـ14 بالمفتاح «14 failed»، وبدونه «14 skipped».
