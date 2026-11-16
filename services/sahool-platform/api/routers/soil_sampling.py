@@ -269,66 +269,6 @@ class LabTransitionIn(BaseModel):
     seal_id: str | None = None
 
 
-def _analytes(payload: SoilLabResultIn) -> list[dict]:
-    units = {
-        "ph": "1",
-        "ec_dsm": "dS/m",
-        "organic_matter_pct": "%",
-        "nitrogen_mg_kg": "mg/kg",
-        "phosphorus_mg_kg": "mg/kg",
-        "potassium_mg_kg": "mg/kg",
-        "cec_cmol_kg": "cmol(+)/kg",
-        "calcium_carbonate_pct": "%",
-        "sand_pct": "%",
-        "silt_pct": "%",
-        "clay_pct": "%",
-        "texture": None,
-    }
-    out = []
-    for name, unit in units.items():
-        value = getattr(payload, name)
-        if value is not None:
-            out.append(
-                {
-                    "analyte": name,
-                    "value": value,
-                    "unit": unit,
-                    "method_code": (
-                        payload.ec_extraction_method or payload.method_code
-                        if name == "ec_dsm"
-                        else payload.method_code
-                    ),
-                    "detection_limit": payload.detection_limit,
-                    "uncertainty": payload.uncertainty,
-                    "supersedes_result_id": payload.supersedes_result_ids.get(name),
-                }
-            )
-    return out
-
-
-# Sand, silt and clay are validated together and texture is derived from them, so a
-# correction resends the whole group. Each resent member supersedes its current row;
-# otherwise the unchanged fractions and the new texture reuse the old idempotency key
-# in soil-service with a different value/time (409) and the old texture stays approved.
-_TEXTURE_GROUP = ("sand_pct", "silt_pct", "clay_pct", "texture")
-
-
-async def _link_texture_group(conn, tenant_id: str, sample_id: str, analytes: list[dict]) -> None:
-    unlinked = [
-        a["analyte"]
-        for a in analytes
-        if a["analyte"] in _TEXTURE_GROUP and not a.get("supersedes_result_id")
-    ]
-    if not unlinked:
-        return
-    current = await lab_store.current_soil_result_ids(
-        conn, tenant_id=tenant_id, sample_id=sample_id, analytes=unlinked
-    )
-    for item in analytes:
-        if item["analyte"] in current and not item.get("supersedes_result_id"):
-            item["supersedes_result_id"] = current[item["analyte"]]
-
-
 @router.get("/api/v1/lab/samples")
 async def list_lab_samples(
     field_id: str | None = None,
@@ -476,7 +416,7 @@ async def submit_soil_lab_result(
     idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
-    analytes = _analytes(payload)
+    analytes = lab_store.soil_result_analytes(payload)
     if not analytes:
         raise HTTPException(422, "at least one analyte is required")
     if payload.supersedes_result_ids.keys() - {item["analyte"] for item in analytes}:
@@ -520,7 +460,7 @@ async def _record_soil_result(
     current = sample["status"]
     is_correction = bool(payload.supersedes_result_ids)
     if is_correction:
-        await _link_texture_group(conn, str(user.tenant_id), payload.sample_id, analytes)
+        await lab_store.link_texture_group(conn, str(user.tenant_id), payload.sample_id, analytes)
     # A published sample can reopen only for a correction with a matching parent.
     # Every replacement still requires fresh approval before republication.
     if not (is_correction and current == "published"):

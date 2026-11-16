@@ -650,6 +650,67 @@ async def current_soil_result_ids(
     return {r["analyte"]: r["result_id"] for r in rows}
 
 
+def soil_result_analytes(payload) -> list[dict]:
+    """One row per analyte present in a ``SoilLabResultIn`` (unit, method, supersession)."""
+    units = {
+        "ph": "1",
+        "ec_dsm": "dS/m",
+        "organic_matter_pct": "%",
+        "nitrogen_mg_kg": "mg/kg",
+        "phosphorus_mg_kg": "mg/kg",
+        "potassium_mg_kg": "mg/kg",
+        "cec_cmol_kg": "cmol(+)/kg",
+        "calcium_carbonate_pct": "%",
+        "sand_pct": "%",
+        "silt_pct": "%",
+        "clay_pct": "%",
+        "texture": None,
+    }
+    out = []
+    for name, unit in units.items():
+        value = getattr(payload, name)
+        if value is not None:
+            out.append(
+                {
+                    "analyte": name,
+                    "value": value,
+                    "unit": unit,
+                    "method_code": (
+                        payload.ec_extraction_method or payload.method_code
+                        if name == "ec_dsm"
+                        else payload.method_code
+                    ),
+                    "detection_limit": payload.detection_limit,
+                    "uncertainty": payload.uncertainty,
+                    "supersedes_result_id": payload.supersedes_result_ids.get(name),
+                }
+            )
+    return out
+
+
+# Sand, silt and clay are validated together and texture is derived from them, so a
+# correction resends the whole group. Each resent member supersedes its current row;
+# otherwise the unchanged fractions and the new texture reuse the old idempotency key
+# in soil-service with a different value/time (409) and the old texture stays approved.
+TEXTURE_GROUP = ("sand_pct", "silt_pct", "clay_pct", "texture")
+
+
+async def link_texture_group(conn, tenant_id: str, sample_id: str, analytes: list[dict]) -> None:
+    unlinked = [
+        a["analyte"]
+        for a in analytes
+        if a["analyte"] in TEXTURE_GROUP and not a.get("supersedes_result_id")
+    ]
+    if not unlinked:
+        return
+    current = await current_soil_result_ids(
+        conn, tenant_id=tenant_id, sample_id=sample_id, analytes=unlinked
+    )
+    for item in analytes:
+        if item["analyte"] in current and not item.get("supersedes_result_id"):
+            item["supersedes_result_id"] = current[item["analyte"]]
+
+
 async def mark_soil_results_published(
     conn,
     *,

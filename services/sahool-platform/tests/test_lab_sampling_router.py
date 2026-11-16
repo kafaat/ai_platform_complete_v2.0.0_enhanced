@@ -449,7 +449,7 @@ def test_soil_ec_method_separates_reference_and_dilution():
             method_code="lab-SOP",
             ec_extraction_method=method,
         )
-        rows = {row["analyte"]: row for row in mod._analytes(payload)}
+        rows = {row["analyte"]: row for row in mod.lab_store.soil_result_analytes(payload)}
         assert rows["ec_dsm"]["method_code"] == (method or "lab-SOP")
         assert rows["ph"]["method_code"] == "lab-SOP"
         result = mod._interpret_lab_values({"sample_id": "sample", "ec_dsm": 8.4}, method)
