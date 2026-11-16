@@ -939,6 +939,9 @@ services:
       PLATFORM_TENANT_ASSERTION_REDIS_URL: redis://sahool-platform-assertion:${REDIS_PLATFORM_ASSERTION_PASSWORD:?REDIS_PLATFORM_ASSERTION_PASSWORD required}@sahool-redis:6379/6
       EDGE_TENANT_ASSERTION_KEY: ${EDGE_TENANT_ASSERTION_KEY:?EDGE_TENANT_ASSERTION_KEY required}
       EDGE_TENANT_ASSERTION_KEY_ID: ${EDGE_TENANT_ASSERTION_KEY_ID:-current}
+      # W0-07: verifies /v1/edge/sync in service mode; a key only the edge also holds.
+      EDGE_SYNC_TENANT_ASSERTION_KEY: ${EDGE_SYNC_TENANT_ASSERTION_KEY:?EDGE_SYNC_TENANT_ASSERTION_KEY required}
+      EDGE_SYNC_TENANT_ASSERTION_KEY_ID: ${EDGE_SYNC_TENANT_ASSERTION_KEY_ID:-current}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SEGMENTATION_URL: ${SEGMENTATION_URL:-http://sahool-field-segmentation:8000}
@@ -2171,9 +2174,12 @@ services:
       PEST_MODEL_SHA256: ${PEST_MODEL_SHA256:-}
       YIELD_MODEL_SHA256: ${YIELD_MODEL_SHA256:-}
       EDGE_SYNC_TOKEN: ${EDGE_SYNC_TOKEN:?EDGE_SYNC_TOKEN required for edge sync}
-      # W0-07: tenant-carrying results are synced as a service (agent token + this assertion key).
+      # W0-07: verifies the tenant its callers (video-processor, platform BFF) signed.
       EDGE_TENANT_ASSERTION_KEY: ${EDGE_TENANT_ASSERTION_KEY:?EDGE_TENANT_ASSERTION_KEY required}
       EDGE_TENANT_ASSERTION_KEY_ID: ${EDGE_TENANT_ASSERTION_KEY_ID:-current}
+      # W0-07: tenant-carrying results are synced as a service (agent token + this separate key).
+      EDGE_SYNC_TENANT_ASSERTION_KEY: ${EDGE_SYNC_TENANT_ASSERTION_KEY:?EDGE_SYNC_TENANT_ASSERTION_KEY required}
+      EDGE_SYNC_TENANT_ASSERTION_KEY_ID: ${EDGE_SYNC_TENANT_ASSERTION_KEY_ID:-current}
       EDGE_DEVICE: ${EDGE_DEVICE:-rpi5}
       OFFLINE_MODE: ${OFFLINE_MODE:-false}
       SYNC_INTERVAL: ${SYNC_INTERVAL:-3600}

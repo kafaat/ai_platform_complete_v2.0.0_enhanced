@@ -48,6 +48,7 @@ def safe_env() -> dict[str, str]:
             # W0-05 / W0-07: the platform-internal and the edge tenant-assertion keys.
             "PLATFORM_TENANT_ASSERTION_KEY": "sahool-platform-tenant-assertion-key",
             "EDGE_TENANT_ASSERTION_KEY": "sahool-edge-tenant-assertion-key",
+            "EDGE_SYNC_TENANT_ASSERTION_KEY": "sahool-edge-sync-tenant-assertion-key",
             "SAHOOL_AGENT_TOKEN": "strong-token-value-for-contract-tests",
             "SAHOOL_BUILD_ID": "test-build",
             "TESTED_SHA": "0000000000000000000000000000000000000",

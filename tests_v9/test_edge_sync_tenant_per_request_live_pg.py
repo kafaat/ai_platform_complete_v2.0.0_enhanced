@@ -73,7 +73,7 @@ async def _run(monkeypatch, tmp_path) -> dict:
     import api.main as main
 
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", TOKEN)
-    monkeypatch.setenv("EDGE_TENANT_ASSERTION_KEY", KEY)
+    monkeypatch.setenv("EDGE_SYNC_TENANT_ASSERTION_KEY", KEY)
     monkeypatch.delenv("EDGE_SYNC_ALLOWED_CALLERS", raising=False)
     monkeypatch.delenv("PLATFORM_TENANT_ASSERTION_REDIS_URL", raising=False)
     monkeypatch.setenv("SAHOOL_ENV", "development")

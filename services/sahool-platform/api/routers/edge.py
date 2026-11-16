@@ -35,9 +35,9 @@ def edge_sync_actor(
     """Who the edge result is written for (W0-07, finding scout-1).
 
     * **Service mode** — the edge sends ``X-Agent-Token`` + ``X-Service-Name`` + ``X-Tenant-Id`` +
-      ``X-Tenant-Assertion`` (``EDGE_TENANT_ASSERTION_KEY``). The tenant is the one the edge carried
-      in that observation's envelope, so each result lands under its own tenant instead of under the
-      single tenant of a shared ``EDGE_SYNC_TOKEN``. The field is still checked inside that tenant.
+      ``X-Tenant-Assertion`` (``EDGE_SYNC_TENANT_ASSERTION_KEY``, held by the edge alone). The
+      tenant is the one the edge carried in that observation's envelope, so each result lands
+      under its own tenant instead of under the single tenant of a shared ``EDGE_SYNC_TOKEN``. The field is still checked inside that tenant.
     * **Bearer mode** — a user JWT, as before: the tenant comes from the token.
 
     A request that starts service mode never falls back to the bearer: a bad assertion is a refusal.

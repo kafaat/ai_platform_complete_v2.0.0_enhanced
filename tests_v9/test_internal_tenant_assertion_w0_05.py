@@ -4,16 +4,14 @@
 from the query or body behind ``SAHOOL_AGENT_TOKEN`` alone, which about twenty services hold.
 Now the caller must also present ``X-Tenant-Assertion`` (shared.security.service_tenant_assertion)
 signed with ``PLATFORM_TENANT_ASSERTION_KEY`` for exactly that tenant, request and path, and be
-in the caller allowlist. Negative control: before the change, each 401/403 case below was a 404
-from the stubbed field check, i.e. the request reached the tenant's data.
+in the caller allowlist. Negative control: before the change, each 401/403 case below was a 503
+(database not enabled), i.e. the request reached the tenant's data.
 """
 
 from __future__ import annotations
 
 import os
 import sys
-from contextlib import asynccontextmanager
-from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import HTTPException
@@ -56,23 +54,21 @@ def client(app_mod, monkeypatch):
     monkeypatch.delenv("REDIS_URL", raising=False)
     monkeypatch.setenv("SAHOOL_ENV", "development")
 
-    seen: list[str] = []
-
-    @asynccontextmanager
-    async def connection(user):
-        seen.append(str(user.tenant_id))
-        yield object()
-
-    # Store-level stubs: a request that passes the assertion reaches the field check, which
-    # answers 404 — that 404 is the proof the request got past the tenant gate.
-    monkeypatch.setattr(app_mod, "tenant_connection", connection)
-    monkeypatch.setattr(
-        app_mod, "_assert_field_in_tenant", AsyncMock(side_effect=HTTPException(404, "nf"))
-    )
+    # No database at all (no fake connection either): a request that gets past the tenant gate
+    # reaches `get_pool()`, which answers 503 "database not enabled". That 503 is the proof the
+    # request got past the gate; every refusal below happens before it. The positive case on a
+    # real database (RLS applied to the asserted tenant) is
+    # tests_v9/test_internal_tenant_assertion_live_pg.py.
+    monkeypatch.setattr(app_mod, "_DB_POOL", None)
     # No `with`: the app's lifespan (database start-up retries) is not what this file measures.
-    c = TestClient(app_mod.app, raise_server_exceptions=False)
-    c.seen_tenants = seen
-    yield c
+    yield TestClient(app_mod.app, raise_server_exceptions=False)
+
+
+DB_DISABLED = "قاعدة البيانات غير مفعّلة"
+
+
+def _reached_db(r) -> bool:
+    return r.status_code == 503 and DB_DISABLED in r.text
 
 
 def _signed(tenant: str, path: str, method: str, service: str = "supervisor-agent", key=KEY):
@@ -88,14 +84,14 @@ def _state(client, headers):
 def test_valid_token_and_query_tenant_without_assertion_is_401(client):
     r = _state(client, {"X-Agent-Token": TOKEN})
     assert r.status_code == 401, r.text
-    assert client.seen_tenants == [], "no tenant connection may open before the assertion"
+    assert not _reached_db(r), "no tenant connection may open before the assertion"
 
 
 def test_assertion_for_another_tenant_is_403(client):
     headers = {"X-Agent-Token": TOKEN, **_signed(TENANT_B, STATE_PATH, "GET")}
     r = _state(client, headers)
     assert r.status_code == 403, r.text
-    assert client.seen_tenants == [], "tenant A data was reached with an assertion for B"
+    assert not _reached_db(r), "tenant A data was reached with an assertion for B"
 
 
 def test_caller_outside_allowlist_is_403(client):
@@ -117,6 +113,7 @@ def test_missing_key_fails_closed_503(client, monkeypatch):
     headers = {"X-Agent-Token": TOKEN, **_signed(TENANT_A, STATE_PATH, "GET")}
     r = _state(client, headers)
     assert r.status_code == 503, r.text
+    assert "tenant_assertion_unavailable" in r.text, f"must fail on the key, not the DB: {r.text}"
 
 
 def test_service_token_still_checked_first(client):
@@ -127,8 +124,7 @@ def test_service_token_still_checked_first(client):
 def test_valid_assertion_reaches_the_tenant_scope(client):
     headers = {"X-Agent-Token": TOKEN, **_signed(TENANT_A, STATE_PATH, "GET")}
     r = _state(client, headers)
-    assert r.status_code == 404, r.text  # the stubbed field check, past the gate
-    assert client.seen_tenants == [TENANT_A], client.seen_tenants
+    assert _reached_db(r), f"a valid assertion must get past the gate to the DB: {r.text}"
 
 
 def test_ai_advice_without_assertion_is_401_and_wrong_tenant_403(client):
@@ -138,11 +134,10 @@ def test_ai_advice_without_assertion_is_401_and_wrong_tenant_403(client):
     signed_b = _signed(TENANT_B, ADVICE_PATH, "POST", service="ai_agronomist")
     r = client.post(ADVICE_PATH, json=body, headers={"X-Agent-Token": TOKEN, **signed_b})
     assert r.status_code == 403, r.text
-    assert client.seen_tenants == [], "the advice event reached a tenant without a valid claim"
+    assert not _reached_db(r), "the advice event reached a tenant without a valid claim"
     signed_a = _signed(TENANT_A, ADVICE_PATH, "POST", service="ai_agronomist")
     r = client.post(ADVICE_PATH, json=body, headers={"X-Agent-Token": TOKEN, **signed_a})
-    assert r.status_code == 404, r.text
-    assert client.seen_tenants == [TENANT_A], client.seen_tenants
+    assert _reached_db(r), f"a valid advice assertion must get past the gate: {r.text}"
 
 
 def test_replay_is_refused_and_production_requires_a_replay_store(app_mod, monkeypatch):
@@ -228,7 +223,8 @@ async def test_ai_agronomist_signs_the_tenant_it_verified(monkeypatch):
 
 
 # ── W0-07: /v1/edge/sync in service mode (the edge-inference channel, its own key) ──────────
-EDGE_KEY = "w0-07-edge-assertion-key-0123456789abcdef"
+EDGE_KEY = "w0-07-edge-sync-assertion-key-0123456789abcdef"
+INBOUND_EDGE_KEY = "w0-07-inbound-edge-assertion-key-0123456789"
 
 
 def _edge_request(headers: dict[str, str]):
@@ -261,7 +257,9 @@ def test_edge_sync_service_mode_writes_for_the_signed_tenant_only(app_mod, monke
     from api.routers.edge import edge_sync_actor
 
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", TOKEN)
-    monkeypatch.setenv("EDGE_TENANT_ASSERTION_KEY", EDGE_KEY)
+    monkeypatch.setenv("EDGE_SYNC_TENANT_ASSERTION_KEY", EDGE_KEY)
+    # The inbound hop's key (video-processor / platform BFF -> edge) is a different key.
+    monkeypatch.setenv("EDGE_TENANT_ASSERTION_KEY", INBOUND_EDGE_KEY)
     monkeypatch.delenv("EDGE_SYNC_ALLOWED_CALLERS", raising=False)
     monkeypatch.delenv("PLATFORM_TENANT_ASSERTION_REDIS_URL", raising=False)
     monkeypatch.setenv("SAHOOL_ENV", "development")
@@ -279,6 +277,13 @@ def test_edge_sync_service_mode_writes_for_the_signed_tenant_only(app_mod, monke
     with pytest.raises(HTTPException) as other_key:
         edge_sync_actor(_edge_request({"X-Agent-Token": TOKEN, **_edge_signed(TENANT_B, key=KEY)}))
     assert other_key.value.status_code == 403, other_key.value.detail
+
+    # A caller of the edge holds only the inbound key: it cannot sign as edge-inference here.
+    with pytest.raises(HTTPException) as inbound_key:
+        edge_sync_actor(
+            _edge_request({"X-Agent-Token": TOKEN, **_edge_signed(TENANT_B, key=INBOUND_EDGE_KEY)})
+        )
+    assert inbound_key.value.status_code == 403, inbound_key.value.detail
 
     with pytest.raises(HTTPException) as stranger:
         edge_sync_actor(

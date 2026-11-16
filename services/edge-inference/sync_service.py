@@ -153,7 +153,7 @@ class CloudSyncService:
         """Service mode for an envelope that carries its tenant; the legacy bearer otherwise.
 
         Service mode: ``X-Agent-Token`` + a tenant assertion signed with
-        ``EDGE_TENANT_ASSERTION_KEY`` for this envelope's tenant and this request. A missing key
+        ``EDGE_SYNC_TENANT_ASSERTION_KEY`` for this envelope's tenant and this request. A missing key
         raises, so the item stays queued (retried once configured) and is never sent under the
         bearer's tenant instead."""
         tenant_id = item.get("tenant_id")

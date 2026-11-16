@@ -92,8 +92,9 @@ def get_sync_service() -> CloudSyncService:
             token=os.getenv("EDGE_SYNC_TOKEN", ""),
             # W0-07: tenant-carrying envelopes are sent as a service (agent token + assertion).
             agent_token=os.getenv("SAHOOL_AGENT_TOKEN", ""),
-            assertion_key=os.getenv("EDGE_TENANT_ASSERTION_KEY", ""),
-            assertion_key_id=os.getenv("EDGE_TENANT_ASSERTION_KEY_ID", "current"),
+            # Its own key for the edge -> platform hop, never the inbound EDGE_TENANT_ASSERTION_KEY.
+            assertion_key=os.getenv("EDGE_SYNC_TENANT_ASSERTION_KEY", ""),
+            assertion_key_id=os.getenv("EDGE_SYNC_TENANT_ASSERTION_KEY_ID", "current"),
             # قابل للضبط: الحاوية تستخدم /data (volume)؛ بيئات الاختبار/CI بلا صلاحيّة
             # كتابة على الجذر تمرّر EDGE_SYNC_DIR لمجلّد مؤقّت.
             sync_dir=os.getenv("EDGE_SYNC_DIR", "/data/sync_queue"),
@@ -163,6 +164,9 @@ def capabilities_payload() -> dict[str, object]:
         "agent_token_configured": bool(AGENT_TOKEN),
         "sync_token_configured": bool(os.getenv("EDGE_SYNC_TOKEN")),
         "tenant_assertion_configured": len(os.getenv("EDGE_TENANT_ASSERTION_KEY", "")) >= 32,
+        "sync_tenant_assertion_configured": (
+            len(os.getenv("EDGE_SYNC_TENANT_ASSERTION_KEY", "")) >= 32
+        ),
         "device_identity_configured": bool(os.getenv("EDGE_DEVICE_ID", "").strip()),
         "capabilities": capabilities,
         "active_capability_count": active_count,

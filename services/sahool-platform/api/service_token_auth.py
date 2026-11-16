@@ -38,11 +38,15 @@ def _require_service_token(x_agent_token: str | None = Header(None, alias="X-Age
 # ``shared.security.service_tenant_assertion`` bound to the caller's name, the tenant, the HTTP
 # method, the path and ``X-Request-Id``. The caller must also be in the route's allowlist.
 #
-# Two channels, two keys, so a holder of one cannot speak on the other:
+# One key per hop, so a holder of one key cannot speak on another hop:
 #
 # * ``PLATFORM_TENANT_ASSERTION_KEY``: ``/internal/fields/{id}/state`` and
 #   ``/internal/events/ai-advice``; callers ``ai_agronomist`` and ``supervisor-agent``.
-# * ``EDGE_TENANT_ASSERTION_KEY``: ``/v1/edge/sync`` in service mode; caller ``edge-inference``.
+# * ``EDGE_SYNC_TENANT_ASSERTION_KEY``: ``/v1/edge/sync`` in service mode; caller
+#   ``edge-inference``, the only service that holds this key. It is deliberately not
+#   ``EDGE_TENANT_ASSERTION_KEY`` (the inbound hop video-processor/platform -> edge): with one
+#   key for both hops, any caller of the edge could sign as ``edge-inference`` and write to
+#   ``/v1/edge/sync`` directly, and the allowlist below would prove nothing.
 #
 # Everything fails closed: no key configured is 503, a missing assertion is 401, and a caller
 # outside the allowlist, a wrong tenant, an expired or replayed assertion are 403.
@@ -89,7 +93,7 @@ PLATFORM_INTERNAL = AssertionChannel(
 
 EDGE_SYNC = AssertionChannel(
     name="edge-sync",
-    key_env="EDGE_TENANT_ASSERTION_KEY",
+    key_env="EDGE_SYNC_TENANT_ASSERTION_KEY",
     allowed_env="EDGE_SYNC_ALLOWED_CALLERS",
     default_allowed=("edge-inference",),
 )
