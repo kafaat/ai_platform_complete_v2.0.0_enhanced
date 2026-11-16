@@ -105,8 +105,9 @@ class _PestViewState extends State<_PestView> {
     super.initState();
     final id = _fieldId;
     // بعد أوّل إطار: _loadPins يستدعي setState.
-    if (id != null)
+    if (id != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadPins(id));
+    }
   }
 
   Future<void> _pickField() async {
