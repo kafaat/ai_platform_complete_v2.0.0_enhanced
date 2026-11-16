@@ -8944,6 +8944,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_governed_bridge_ac1_lineage.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_guardrails.py",
     "kind": "tests"
   },
