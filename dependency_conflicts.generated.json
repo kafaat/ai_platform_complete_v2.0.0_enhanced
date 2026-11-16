@@ -15,10 +15,10 @@
   },
   {
     "package": "numpy",
-    "version_count": 3,
-    "versions": "1.26.4, 2.5.3, 2.5.4",
-    "services": "1.26.4=>sahool-platform,sam2-inference; 2.5.3=>raster-tiler-service; 2.5.4=>realtime-agent",
-    "files": "services/raster-tiler-service/requirements.txt:27; services/realtime-agent/requirements.txt:5; services/sahool-platform/api/requirements.txt:20; services/sam2-inference/requirements.txt:19"
+    "version_count": 4,
+    "versions": "1.26.4, 2.5.3, 2.5.4, 2.5.5 \\",
+    "services": "1.26.4=>sahool-platform,sam2-inference; 2.5.3=>raster-tiler-service; 2.5.4=>realtime-agent; 2.5.5 \\=>tts-service",
+    "files": "services/raster-tiler-service/requirements.txt:27; services/realtime-agent/requirements.txt:5; services/sahool-platform/api/requirements.txt:20; services/sam2-inference/requirements.txt:19; services/tts-service/requirements-piper.txt:21"
   },
   {
     "package": "pydantic",
