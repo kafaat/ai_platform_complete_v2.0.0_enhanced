@@ -496,3 +496,175 @@ async def field_disease_risk_facade(
         }
     )
     return risk
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# W1-17 — server-derived weather signals for the field-bound decision playbook
+# ════════════════════════════════════════════════════════════════════════════
+# The decision playbook (``POST /api/v1/agro/decision-playbook`` with ``field_id``) reads its
+# weather from here, never from the request: operation plan (spraying), thermal stress and
+# disease risk from weather-service, reduced to ``WeatherSignal`` by ``core.weather_signals``.
+# Each product is fetched on its own; a failed product is named in ``unavailable`` and its
+# signals are absent, except spraying, which fails closed to ``spray_unsafe``. When every
+# product fails the playbook answers 503. Tests replace ``fetch_decision_field_context`` and
+# the weather_service_client names bound in this module (store-function level, no fake DB).
+
+# 48 h ladder: the same series the operation-windows facade uses for its default horizon.
+SPRAY_HOURS = "0,1,3,6,12,24,48"
+WEATHER_MODEL = "best_match"
+
+
+async def fetch_decision_field_context(
+    user, field_id: str
+) -> tuple[float, float, str | None, str | None]:
+    """Field location, crop and stage, read under the caller's tenant (RLS)."""
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, stage, _days = await _field_weather_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise _db_unavailable("قراءة سياق طقس الحقل", exc) from exc
+    return lat, lon, crop, stage
+
+
+async def fetch_decision_disease_risk(lat: float, lon: float, crop: str | None) -> dict[str, Any]:
+    """Disease risk from weather-service current + 3-day forecast; incomplete inputs raise.
+
+    Same rule and same fail-closed inputs as ``GET /fields/{id}/weather/disease-risk``:
+    missing temperature, humidity or any of the three rain days is absence, never zero.
+    """
+    from api.weather_advice import complete_rain_total, disease_risk
+
+    current = await get_current_weather(lat, lon, model=WEATHER_MODEL)
+    forecast = await get_weather_forecast(lat, lon, days=3, model=WEATHER_MODEL)
+
+    def _reading(source: Any, key: str) -> float | None:
+        if not isinstance(source, dict):
+            return None
+        try:
+            return float(source.get(key))  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            return None
+
+    temp_c = _reading(current, "temperature_c")
+    humidity_pct = _reading(current, "humidity_pct")
+    days = forecast.get("days") if isinstance(forecast, dict) else None
+    days = [d for d in days if isinstance(d, dict)] if isinstance(days, list) else []
+    rain_3d, missing = complete_rain_total(
+        [_reading(days[i], "precipitation_mm") if i < len(days) else None for i in range(3)],
+        expected_count=3,
+    )
+    if temp_c is None or humidity_pct is None or rain_3d is None or missing:
+        raise ValueError("disease risk inputs incomplete (temperature, humidity or 3-day rain)")
+    risk = disease_risk(temp_c=temp_c, humidity_pct=humidity_pct, rain_mm_3d=rain_3d, crop=crop)
+    risk.update(
+        {
+            "temperature_c": round(temp_c, 1),
+            "humidity_pct": round(humidity_pct, 1),
+            "rain_mm_3d": round(rain_3d, 1),
+            "current_snapshot_id": (
+                current.get("source_snapshot_id") or current.get("weather_snapshot_id")
+            )
+            if isinstance(current, dict)
+            else None,
+        }
+    )
+    return risk
+
+
+async def derive_field_weather_signals(user, field_id: str) -> dict[str, Any]:
+    """``{crop, signals, weather_snapshot_id, unavailable, sources}`` for one field."""
+    import logging
+
+    from core.weather_signals import (
+        WeatherSignal,
+        decision_weather_snapshot_id,
+        disease_signals,
+        spray_signals_from_operation_plan,
+        spraying_frames_for_snapshot,
+        thermal_signals,
+    )
+
+    logger = logging.getLogger("sahool.field_decision_weather")
+    lat, lon, crop, stage = await fetch_decision_field_context(user, field_id)
+
+    products: dict[str, Any] = {}
+    unavailable: dict[str, str] = {}
+
+    async def _collect(name: str, coro) -> None:
+        try:
+            products[name] = await coro
+        except Exception as exc:  # noqa: BLE001 — each product is optional; absence is named
+            logger.warning("decision weather product %s unavailable: %s", name, type(exc).__name__)
+            unavailable[name] = type(exc).__name__
+
+    await _collect(
+        "operation_plan",
+        get_operation_plan(lat, lon, operations="spraying", hours=SPRAY_HOURS, model=WEATHER_MODEL),
+    )
+    await _collect(
+        "thermal_stress",
+        get_thermal_stress(lat, lon, crop=crop, stage=stage, days=3, model=WEATHER_MODEL),
+    )
+    await _collect("disease_risk", fetch_decision_disease_risk(lat, lon, crop))
+
+    if not products:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "FIELD_DECISION_WEATHER_UNAVAILABLE",
+                "message_ar": "تعذّر جلب أيّ منتج طقس للحقل؛ لا يمكن بناء دليل القرار.",
+                "unavailable": unavailable,
+            },
+        )
+
+    plan = products.get("operation_plan")
+    thermal = products.get("thermal_stress")
+    disease = products.get("disease_risk")
+
+    signals: list[WeatherSignal] = [
+        *spray_signals_from_operation_plan(plan),
+        *thermal_signals(thermal),
+        *disease_signals(disease),
+    ]
+    if isinstance(thermal, dict) and thermal.get("status") not in (None, "ok"):
+        unavailable.setdefault("thermal_stress", str(thermal.get("status")))
+
+    snapshot_id = decision_weather_snapshot_id(
+        {
+            "location": {"lat": round(float(lat), 4), "lon": round(float(lon), 4)},
+            "model": WEATHER_MODEL,
+            "crop": crop,
+            "stage": stage,
+            "spraying_frames": spraying_frames_for_snapshot(plan),
+            "thermal_stress": {k: v for k, v in thermal.items() if k != "location"}
+            if isinstance(thermal, dict)
+            else None,
+            "disease_inputs": {
+                k: disease.get(k)
+                for k in ("temperature_c", "humidity_pct", "rain_mm_3d", "current_snapshot_id")
+            }
+            if isinstance(disease, dict)
+            else None,
+            "unavailable": sorted(unavailable),
+        }
+    )
+    return {
+        "crop": crop,
+        "growth_stage": stage,
+        "signals": signals,
+        "weather_snapshot_id": snapshot_id,
+        "unavailable": unavailable,
+        "sources": {
+            "operation_plan": "weather-service:/v1/weather/operation-plan"
+            if plan is not None
+            else None,
+            "thermal_stress": "weather-service:/v1/weather/thermal-stress"
+            if thermal is not None
+            else None,
+            "disease_risk": "weather-service:/v1/weather/current+forecast"
+            if disease is not None
+            else None,
+        },
+    }
