@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 605,
+          "line": 612,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -222,7 +222,7 @@
         },
         {
           "function": "healthz",
-          "line": 23,
+          "line": 21,
           "method": "GET",
           "module": "services/vegetation-analysis-service/routers/health.py",
           "path": "/health",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 552,
+          "line": 559,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -469,7 +469,7 @@
         },
         {
           "function": "healthz",
-          "line": 23,
+          "line": 21,
           "method": "GET",
           "module": "services/vegetation-analysis-service/routers/health.py",
           "path": "/healthz",
@@ -604,7 +604,7 @@
         },
         {
           "function": "metrics",
-          "line": 68,
+          "line": 61,
           "method": "GET",
           "module": "services/vegetation-analysis-service/routers/health.py",
           "path": "/metrics",
@@ -651,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 557,
+          "line": 564,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -843,7 +843,7 @@
         },
         {
           "function": "readyz",
-          "line": 28,
+          "line": 26,
           "method": "GET",
           "module": "services/vegetation-analysis-service/routers/health.py",
           "path": "/readyz",
@@ -882,7 +882,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 546,
+          "line": 553,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1156,
-  "route_inventory_sha256": "8436cc681d3f2249efc9ae72a6ad00238793c8080f8ec56c6e44b0259cdbb869",
+  "route_inventory_sha256": "6ca5f62ce977e513209c34187431fcf7919a62f4188226a85f3697e1c07c0f74",
   "runtime_verified": false,
   "schema_version": 1
 }

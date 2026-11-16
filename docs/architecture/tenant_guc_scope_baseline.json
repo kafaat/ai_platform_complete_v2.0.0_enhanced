@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "34db6ddddf0082183984b121c5686d8c6e32353d",
+  "measured_on": "ec1244448b65ec7b20da284f65ea2f6bfe10f242",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "b8c56efcd51893560aec998f3b73f968f51e4e90885a80e975b0d3fce0ab8063",
+  "measurement_input_digest": "c911cb3f5aa682251c037c694943c17774da0bffb0c0b8b3caf5838cea559ef9",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "77cad0755fcf96b1a51527aba8954285f4044d8803cb69738052e301e5519a97",
+  "measurement_basis_digest": "ef3d2c45cd5206b65ef3f336fb3b5f2d18d948acc489787036d15aa03d3d3fcc",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -68,7 +68,7 @@
     },
     {
       "path": "services/decision-service/persistence.py",
-      "sha256": "8a69c9708f767da8316e1521d7735ae009321e23855000105db397fe3ad28f4a"
+      "sha256": "7ba8a30f86971bae053ef8b8e50edaa0fa4f81af97c878a688ebf55232d131bb"
     },
     {
       "path": "services/field-management-service/fm_gateway.py",
@@ -136,7 +136,7 @@
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",
-      "sha256": "750ce32f9b6df9da44a2a4593e49a417d5bb127fd55be486a7b1bc0c6d039d45"
+      "sha256": "9ce775b08ac818946259ce0ff1ab2db9afd18630557079da3e7b8459baed33d2"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_workers.py",
@@ -168,7 +168,7 @@
     },
     {
       "path": "services/scout-ingest-service/main.py",
-      "sha256": "b2601a6cf344b2eab2313787355fe95a2162aedb9859cdc381b31cc4d2646f49"
+      "sha256": "28cc8c24c97d2421feed330d60bc973c872beb0078fa42778124c54d27252b83"
     },
     {
       "path": "services/scout-ingest-service/projection_worker.py",

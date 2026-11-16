@@ -18865,7 +18865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca53e7645eac3ec16b835e76a15ba26ab10390802ebfe61d391e37e3454611e1"
+          "content": "5fa2890dc116b140cf31219b69b9201a6f5fc20cfafce3215b32864585075554"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -19265,6 +19265,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e13bb522b47f55dff67685e6a1564a7f93eed66e54dfc8ab003fa4b629eb73b6"
+        }
+      ],
+      "name": "services/decision-service/migrations/039_learning_agronomic_review.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "679ee098c8e250b1190727a617d715609933b7b7283879371880db5eae3f725f"
         }
       ],
@@ -19285,7 +19295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a69c9708f767da8316e1521d7735ae009321e23855000105db397fe3ad28f4a"
+          "content": "7ba8a30f86971bae053ef8b8e50edaa0fa4f81af97c878a688ebf55232d131bb"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -19685,6 +19695,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0e0fddfd0b562bdc74e9ab4fd62763b7fb95362d449bd6dbed23c5e677aaaa58"
+        }
+      ],
+      "name": "services/decision-service/tests/test_learning_update_review_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "474b474f1a093c41a4aa53194e22e2030b7912b800adc0faab4aeaf81561b9e2"
         }
       ],
@@ -19705,7 +19725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "46bb790c9e96e18184c0231cf4838ca1aa7595f2037f4722078e2191fff392c6"
+          "content": "89b24567e0956674523a5cbb7880fb448bd2d98a37a3d72758f89def5cfa3635"
         }
       ],
       "name": "services/decision-service/tests/test_migration_033_pg16.py",
@@ -26515,7 +26535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "750ce32f9b6df9da44a2a4593e49a417d5bb127fd55be486a7b1bc0c6d039d45"
+          "content": "9ce775b08ac818946259ce0ff1ab2db9afd18630557079da3e7b8459baed33d2"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_store.py",
@@ -36845,7 +36865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "856acd44d1b7ef60b98f5c6762d36b6247a8ac8ef8d68a52910dad212144b835"
+          "content": "a55b48bdf0afb21b34305e45d2a3c4e2cdab6b1089aeff5f2ae174a6919cb8a8"
         }
       ],
       "name": "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py",

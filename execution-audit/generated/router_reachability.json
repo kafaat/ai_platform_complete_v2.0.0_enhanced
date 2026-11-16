@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 135,
+      "line": 137,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 74,
@@ -2422,7 +2422,7 @@
     },
     {
       "kind": "router",
-      "line": 18,
+      "line": 16,
       "module": "services.vegetation-analysis-service.routers.health",
       "node_id": "services.vegetation-analysis-service.routers.health:router",
       "route_count": 4,
@@ -2938,7 +2938,7 @@
     },
     {
       "expression": "field_forms_router",
-      "line": 414,
+      "line": 408,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -3009,7 +3009,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "a39dd673718e4406659bebea472f849e3569777638e43d9b2ad9deae20ec3756",
+  "inventory_sha256": "4c74910630d0fb230c8db44875412b709257ef9a1679652a660358a2e39d0cbb",
   "orphan_candidate_count": 237,
   "orphan_candidates": [
     {
@@ -5335,7 +5335,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 18,
+      "line": 16,
       "module": "services.vegetation-analysis-service.routers.health",
       "node_id": "services.vegetation-analysis-service.routers.health:router",
       "route_count": 4,

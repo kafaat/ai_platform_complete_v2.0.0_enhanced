@@ -222,6 +222,14 @@
       "positive_witness": "test_root_export_preserves_same_basenames_in_two_packages: a root re-export holding services/sahool-platform/api/__init__.py and services/sahool-platform/core/__init__.py side by side is accepted with both files counted, so the legitimate report passes.",
       "impact": "merge",
       "$impact_ar": "يحجب الدمج داخل وظيفة Integration Tests فقط عند تقريرٍ بمسارات غير صحيحة؛ خطوات الشهادة الحيّة نفسها بلا --cov-fail-under فلا تفشل بسبب نسبة التغطية. والرفع fail_ci_if_error: false فانقطاع Codecov لا يحمّر فحصاً."
+    },
+    "scripts/ci/codecov_coverage_guard.py::ci.yml::decision-033-pg16-proof": {
+      "counterexample": "CODECOV-LIVE-DECISION-PG16-COVERAGE-NOT-UPLOADED: #1502 at ef96c0d showed codecov/patch 29.50% (target 67.52%), with 41 of the 43 missing lines in services/decision-service/persistence.py, because the learning-update upsert runs only in decision-033-pg16-proof against a real PostgreSQL 16 and that job uploaded no coverage. Measured locally with this job's steps on PG16 (80 passed; the one failure, test_v86_definer_catalog_exposes_owner_acl_and_unset_path, fails identically on main against that cluster): CODECOV_REPORT_VALID files=22 measured_lines=5060 covered_lines=2223, and 50 of the 53 executable lines #1502 adds to persistence.py were hit. In this job the guard refuses a report whose paths are missing, untracked, duplicated, outside services/decision-service, under services/decision-service/tests, or that omits persistence.py.",
+      "mutation": "test_forbidden_decision_test_source_is_refused",
+      "$mutation_ar": "مسجَّلة في guard_mutation_registry.json تحت codecov_coverage_guard.py: تعطيل رفض المسار خارج نطاق الخدمة (`if False:`) يُسقط test_unmatched_and_duplicate_paths_fail_closed، وتعطيل رفض مسارات الاختبارات (`pass`) يُسقط test_forbidden_decision_test_source_is_refused.",
+      "positive_witness": "test_root_export_preserves_same_basenames_in_two_packages: a root re-export holding services/sahool-platform/api/__init__.py and services/sahool-platform/core/__init__.py side by side is accepted with both files counted, so the legitimate report passes.",
+      "impact": "merge",
+      "$impact_ar": "يحجب الدمج داخل وظيفة decision-033-pg16-proof فقط عند تقريرٍ بمسارات غير صحيحة؛ خطوة الإثبات الحيّة نفسها بلا --cov-fail-under فلا تفشل بسبب نسبة التغطية. والرفع fail_ci_if_error: false فانقطاع Codecov لا يحمّر فحصاً."
     }
   }
 }
