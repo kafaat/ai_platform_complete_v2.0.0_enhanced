@@ -147,10 +147,13 @@ fi
 
 m_tables=$(printf '%s\n' "$missing" | grep -c '|table|' || true)
 m_columns=$(printf '%s\n' "$missing" | grep -c '|column|' || true)
-first_missing="$(printf '%s\n' "$missing" | head -1 | cut -d'|' -f2)"
+# No pipe from printf into head under pipefail: head exits early, printf takes SIGPIPE and the probe
+# dies with 141 (SCHEMA-PROBE-SIGPIPE-141-01). Take the first line by expansion instead.
+first_missing_line="${missing%%$'\n'*}"
+first_missing="$(cut -d'|' -f2 <<<"$first_missing_line")"
 if [ -n "$missing" ]; then
   echo "─ كائناتٌ غائبة (${m_tables} جدولاً · ${m_columns} عموداً) — أوّلُها في ترتيب MANIFEST: ${first_missing} ─"
-  printf '%s\n' "$missing" | head -20 | awk -F'|' '{printf "  ✗ %s: %s %s%s\n", $2, $3, $4, ($5==""?"":"."$5)}'
+  awk -F'|' 'NR<=20 {printf "  ✗ %s: %s %s%s\n", $2, $3, $4, ($5==""?"":"."$5)}' <<<"$missing"
   [ "$(printf '%s\n' "$missing" | wc -l)" -gt 20 ] && echo "  … (الباقي محذوف من العرض لا من العدّ)"
   status=INCOMPLETE
 else
