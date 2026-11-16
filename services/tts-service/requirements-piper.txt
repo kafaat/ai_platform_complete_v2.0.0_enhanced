@@ -1,0 +1,5 @@
+# Optional local Arabic TTS (Piper) for tenants whose AI policy forbids external TTS (local_only).
+# Installed only when the image is built with --build-arg TTS_LOCAL_VOICE=ar_JO-kareem-medium
+# (services/tts-service/Dockerfile). Pinned to providers.PIPER_TTS_TARGET_VERSION.
+# pip-audit -r services/tts-service/requirements-piper.txt: no known vulnerabilities (2026-11-16).
+piper-tts==1.8.0
