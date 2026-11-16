@@ -242,12 +242,7 @@
     "sahool-otel-collector": {
       "category": "observability",
       "reason": "OpenTelemetry collector; provided by the cluster's monitoring stack."
-    },
-    "sahool-decision-service": {
-      "category": "not_yet_ported",
-      "reason": "Called by sahool-platform at DECISION_SERVICE_URL (default http://sahool-decision-service:8160). In production it refuses to start without DECISION_SERVICE_AUTH_TOKEN, and the platform needs the same token as DECISION_SERVICE_TOKEN."
-    }
-  },
+    }  },
   "env_excused": {
     "sahool-auth": {
       "JWT_SECRET": "HS256 signing secret. The workload signs RS256 with JWT_PRIVATE_KEY/JWT_PUBLIC_KEY, which it renders; with a private key set auth needs no JWT_SECRET (services/auth/main.py:323-326), and production refuses HS256 (main.py:337-346). Its other use, the MFA audit-hash fallback, is covered by MFA_AUDIT_HASH_KEY (services/auth/mfa_runtime.py:43)."

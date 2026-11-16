@@ -31,6 +31,8 @@ global:
     authMfaAuditHashKey: sahool-auth-mfa-audit-hash-key
     # sahool-weather-service (W3-09): its cache Redis ACL user.
     weatherRedisUrl: sahool-weather-redis-url
+    # sahool-decision-service (W3-09): the bearer it requires and its callers present.
+    decisionServiceAuthToken: sahool-decision-service-auth-token
 
 namespace:
   create: true
@@ -117,6 +119,9 @@ workloads:
       JWT_PUBLIC_KEY: jwtPublicKey
       SAHOOL_AGENT_TOKEN: agentToken
       REDIS_URL: redisUrl
+      # W3-09: bearer for sahool-decision-service. In production every decision call
+      # answers 503 without it (shared/security/decision_service_auth.py).
+      DECISION_SERVICE_TOKEN: decisionServiceAuthToken
   sahool-raster-service:
     enabled: true
     image: sahool/raster-service:2026.06.26-rc.15
@@ -150,6 +155,11 @@ workloads:
       JWT_PUBLIC_KEY: jwtPublicKey
       CDSE_CLIENT_ID: cdseClientId
       CDSE_CLIENT_SECRET: cdseClientSecret
+      # W3-09: bearer for sahool-decision-service, under both names raster reads, as in
+      # compose: the imagery-source gate (imagery_source_gate.py) and follow-up receipt
+      # reads (follow_up_runtime.py).
+      DECISION_SERVICE_TOKEN: decisionServiceAuthToken
+      DECISION_SERVICE_AUTH_TOKEN: decisionServiceAuthToken
   sahool-ai-agronomist:
     enabled: true
     image: sahool/ai-agronomist:2026.06.26-rc.15
@@ -308,6 +318,26 @@ workloads:
       # Runtime role sahool_app, as in compose.
       DATABASE_URL: databaseUrl
       SAHOOL_AGENT_TOKEN: agentToken
+  # W3-09: the decision mirror (interim dual-path: sahool-platform stays the Source of
+  # Record and mirrors to it). Called at DECISION_SERVICE_URL (default
+  # http://sahool-decision-service:8160) by sahool-platform and sahool-raster-service with
+  # a bearer token; it refuses to start in production without one
+  # (services/decision-service/main.py production_auth_startup_error), and every request
+  # but the probes must carry it, so it stays reachable namespace-wide. No gateway route.
+  sahool-decision-service:
+    enabled: true
+    image: sahool/decision-service:2026.06.26-rc.15
+    replicas: 2
+    port: 8160
+    sourceDockerfile: services/decision-service/Dockerfile
+    env:
+      SERVICE_NAME: sahool-decision-service
+      # Mirror mode, as in compose: no DATABASE_URL, so the SoR flags stay off and /readyz
+      # does not wait for a database. The SoR cutover is a separate, gated decision.
+      DECISION_SERVICE_SOR_ENABLED: "false"
+      DECISION_REQUIRE_AUTH_TOKEN: "true"
+    secretEnv:
+      DECISION_SERVICE_AUTH_TOKEN: decisionServiceAuthToken
 
 jobs:
   migration:

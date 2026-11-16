@@ -21,3 +21,5 @@ workloads:
     replicas: 1
   sahool-soil-service:
     replicas: 1
+  sahool-decision-service:
+    replicas: 1

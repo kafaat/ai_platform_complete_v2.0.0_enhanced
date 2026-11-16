@@ -177,6 +177,8 @@ _UNROUTED_WORKLOADS = {
     "sahool-weather-service": "internal: sahool-platform",
     # /api/soil/ goes to sahool-platform's service proxy, which calls soil-service.
     "sahool-soil-service": "internal: sahool-platform",
+    # Called with its bearer by sahool-platform and sahool-raster-service; no public route.
+    "sahool-decision-service": "internal: bearer-authenticated",
 }
 
 

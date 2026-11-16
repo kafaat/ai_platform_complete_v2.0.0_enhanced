@@ -55,6 +55,8 @@ PRODUCTION_REQUIRED_ENV: dict[str, dict[str, str]] = {
         "DATABASE_URL": "services/sahool-platform/api/main.py (runtime DB, RLS role)",
         "JWT_PUBLIC_KEY": "services/sahool-platform/api/main.py:134 _refuse_hs256_in_production",
         "REDIS_URL": "services/sahool-platform/api/main.py:1096 _build_denylist (fail-closed)",
+        # W3-09: without it every decision-service call answers 503 in production.
+        "DECISION_SERVICE_TOKEN": "shared/security/decision_service_auth.py:23 required in production",
     },
     "sahool-raster-service": {
         "DATABASE_URL": "services/raster-service/raster_security_context.py:156 ownership",
@@ -73,6 +75,9 @@ PRODUCTION_REQUIRED_ENV: dict[str, dict[str, str]] = {
         "REDIS_URL": "services/auth/main.py:392 Redis required in production (fail-closed)",
         "JWT_PRIVATE_KEY": "services/auth/main.py:337 RS256 required in production",
         "JWT_PUBLIC_KEY": "services/auth/main.py:325 JWT_PRIVATE_KEY needs JWT_PUBLIC_KEY",
+    },
+    "sahool-decision-service": {
+        "DECISION_SERVICE_AUTH_TOKEN": "services/decision-service/main.py:524 refuses to start",
     },
 }
 
