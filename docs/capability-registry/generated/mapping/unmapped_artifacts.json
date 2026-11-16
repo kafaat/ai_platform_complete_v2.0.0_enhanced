@@ -4792,6 +4792,10 @@
     "kind": "database"
   },
   {
+    "path": "services/decision-service/migrations/039_learning_agronomic_review.sql",
+    "kind": "database"
+  },
+  {
     "path": "services/decision-service/outcome_reconcile.py",
     "kind": "backend"
   },
@@ -4901,6 +4905,10 @@
   },
   {
     "path": "services/decision-service/tests/test_irr_f01_reservation_activation_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_learning_update_review_contract.py",
     "kind": "tests"
   },
   {
