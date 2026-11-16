@@ -13,6 +13,9 @@ import 'package:hive/hive.dart';
 abstract class RawCacheStore {
   Future<String?> get(String key);
   Future<void> put(String key, String value);
+
+  /// Removes one entry (an entry that failed authentication or decoding).
+  Future<void> delete(String key);
   Future<void> clear();
 }
 
@@ -34,6 +37,9 @@ class MemoryRawCacheStore implements RawCacheStore {
 
   @override
   Future<void> put(String key, String value) async => entries[key] = value;
+
+  @override
+  Future<void> delete(String key) async => entries.remove(key);
 
   @override
   Future<void> clear() async => entries.clear();
@@ -80,6 +86,9 @@ class HiveRawCacheStore implements RawCacheStore {
   @override
   Future<void> put(String key, String value) async =>
       (await _box())?.put(key, value);
+
+  @override
+  Future<void> delete(String key) async => (await _box())?.delete(key);
 
   @override
   Future<void> clear() async => (await _box())?.clear();

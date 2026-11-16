@@ -146,12 +146,25 @@ class OfflineReadCache {
           final sealed = await _store.get(storageKey);
           if (sealed == null) return null;
           final cipher = await _cipher(scopeId, create: false);
+          // An entry that fails GCM authentication (tampered, truncated, sealed under
+          // another key or moved from another storage key) or whose payload does not
+          // decode is deleted, never shown: the next load fetches it from the server.
+          Future<CachedRead?> discard() async {
+            await _store.delete(storageKey);
+            return null;
+          }
+
           final plain = cipher?.open(storageKey, sealed);
-          if (plain == null) return null;
-          final decoded = jsonDecode(plain);
-          if (decoded is! Map) return null;
+          if (plain == null) return discard();
+          final Object? decoded;
+          try {
+            decoded = jsonDecode(plain);
+          } on FormatException {
+            return discard();
+          }
+          if (decoded is! Map) return discard();
           final at = DateTime.tryParse('${decoded['fetched_at']}');
-          if (at == null) return null;
+          if (at == null) return discard();
           // محفوظ UTC؛ يُعاد محلّيّاً كساعة التطبيق (DateTime.now()).
           return CachedRead(decoded['data'], at.toLocal());
         } catch (e) {
