@@ -26,6 +26,8 @@ workloads:
     replicas: 2
   sahool-decision-service:
     replicas: 2
+  sahool-field-management:
+    replicas: 2
 observability:
   prometheusScrape: true
   serviceMonitor: true

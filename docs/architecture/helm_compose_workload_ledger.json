@@ -115,10 +115,6 @@
       "category": "not_yet_ported",
       "reason": "Assessed under W3-09 and left out: compose requires NATS_URL with a TLS CA mounted at /etc/sahool/nats-ca, and the chart deploys no NATS and has no CA mount; its anomaly store defaults to per-pod SQLite, which needs one replica on a volume, while production requires two replicas, and the multi-replica Postgres store is opt-in until certified (anomaly_runtime.py). A workload would either fail the production replica rule or split anomalies between pods."
     },
-    "sahool-field-management": {
-      "category": "not_yet_ported",
-      "reason": "Owner of field_tasks. Porting needs its DSN, the service token, the field-service tenant assertion key and its assertion replay Redis."
-    },
     "sahool-scout-ingest": {
       "category": "not_yet_ported",
       "reason": "Assessed under W3-09 and left out: every feature flag defaults off, and its public routes (/api/v1/scouting-media/, /api/v1/seasons) need the gateway to inject service tokens (X-Scout-Media-Token, X-Season-Entry-Token) and an edge attestation from auth. The chart gateway's configuration is a ConfigMap with no secret injection, and compose requires S3 credentials for an object store the chart does not deploy. A workload would serve nothing reachable."

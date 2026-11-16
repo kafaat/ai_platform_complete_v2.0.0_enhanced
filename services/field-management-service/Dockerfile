@@ -20,6 +20,8 @@ COPY shared/ /app/shared/
 COPY services/field-management-service/ /app/
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
+# The port uvicorn binds below; the Helm chart's workload port is checked against it.
+EXPOSE 8000
 # Container liveness remains /healthz; readiness validates the canonical contract manifest.
 HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

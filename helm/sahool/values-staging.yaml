@@ -23,3 +23,5 @@ workloads:
     replicas: 1
   sahool-decision-service:
     replicas: 1
+  sahool-field-management:
+    replicas: 1

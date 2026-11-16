@@ -179,6 +179,8 @@ _UNROUTED_WORKLOADS = {
     "sahool-soil-service": "internal: sahool-platform",
     # Called with its bearer by sahool-platform and sahool-raster-service; no public route.
     "sahool-decision-service": "internal: bearer-authenticated",
+    # /api/v1/field-tasks/ needs a gateway-injected token the chart's ConfigMap cannot hold.
+    "sahool-field-management": "internal: token + tenant assertion",
 }
 
 

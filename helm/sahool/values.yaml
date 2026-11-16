@@ -33,6 +33,10 @@ global:
     weatherRedisUrl: sahool-weather-redis-url
     # sahool-decision-service (W3-09): the bearer it requires and its callers present.
     decisionServiceAuthToken: sahool-decision-service-auth-token
+    # sahool-field-management (W3-09): the tenant assertion key its callers sign with, and
+    # its replay-store Redis ACL user.
+    fieldServiceTenantAssertionKey: sahool-field-service-tenant-assertion-key
+    fieldServiceAssertionRedisUrl: sahool-field-service-assertion-redis-url
 
 namespace:
   create: true
@@ -338,6 +342,33 @@ workloads:
       DECISION_REQUIRE_AUTH_TOKEN: "true"
     secretEnv:
       DECISION_SERVICE_AUTH_TOKEN: decisionServiceAuthToken
+  # W3-09: owner of fields and field_tasks. Its internal routes need the service token AND
+  # a per-request tenant assertion (HMAC, replay-checked in Redis) from a caller in
+  # FIELD_SERVICE_ALLOWED_CALLERS, so it is reachable namespace-wide; its callers
+  # (vegetation-analysis, video-processor) are not deployed by the chart yet. The public
+  # /api/v1/field-tasks/ route is not ported: the compose gateway injects
+  # FIELD_TASKS_SERVICE_TOKEN into it, and the chart gateway's ConfigMap carries no secret.
+  sahool-field-management:
+    enabled: true
+    image: sahool/field-management:2026.06.26-rc.15
+    replicas: 2
+    port: 8000
+    sourceDockerfile: services/field-management-service/Dockerfile
+    env:
+      SERVICE_NAME: sahool-field-management
+      # Compose default. Production readiness fails on an empty allowlist
+      # (services/field-management-service/main.py readyz).
+      FIELD_SERVICE_ALLOWED_CALLERS: vegetation-analysis-service,video-processor
+      FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: current
+    secretEnv:
+      # Runtime role sahool_app, as in compose.
+      DATABASE_URL: databaseUrl
+      SAHOOL_AGENT_TOKEN: agentToken
+      # Shared with the callers that sign the tenant assertion; production readiness needs
+      # at least 32 characters.
+      FIELD_SERVICE_TENANT_ASSERTION_KEY: fieldServiceTenantAssertionKey
+      # Nonce store for assertion replay detection, on its own Redis ACL user.
+      FIELD_SERVICE_ASSERTION_REDIS_URL: fieldServiceAssertionRedisUrl
 
 jobs:
   migration:
