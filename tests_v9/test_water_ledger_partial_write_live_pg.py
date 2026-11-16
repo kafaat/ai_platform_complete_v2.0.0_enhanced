@@ -165,13 +165,15 @@ class Live:
             }
 
         async def et0_product(**_kw):
-            return {"et0_mm": _ET0_MM, "method": "hargreaves_samani"}
+            # W0-10: the worker reads the product's quality and needs the field's elevation;
+            # a validated FAO-56 product (a method v278 accepts) keeps this fixture on the computed path.
+            return {"et0_mm": _ET0_MM, "method": "fao56_penman_monteith", "quality_status": "validated"}
 
         self.mp.setattr(weather, "get_weather_forecast", forecast)
         self.mp.setattr(weather, "get_et0_product", et0_product)
         await self.admin.execute(
-            "INSERT INTO fields (field_id, name, tenant_id, lat, lon, crop)"
-            " VALUES ($1, $1, $2::uuid, 15.35, 44.2, 'wheat')",
+            "INSERT INTO fields (field_id, name, tenant_id, lat, lon, crop, elevation_m)"
+            " VALUES ($1, $1, $2::uuid, 15.35, 44.2, 'wheat', 2250)",
             self.field_id,
             self.tenant,
         )
