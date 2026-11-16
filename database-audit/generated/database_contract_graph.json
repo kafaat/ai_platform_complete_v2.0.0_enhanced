@@ -3412,8 +3412,7 @@
       "code_readers": [
         "services/sahool-platform/api/routers/farm_operations_ledger.py",
         "services/sahool-platform/api/water_ledger_compute.py",
-        "services/sahool-platform/core/farm_operations_ledger.py",
-        "services/sahool-platform/core/governance_farm_context.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
@@ -3445,8 +3444,7 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/core/farm_operations_ledger.py",
-        "services/sahool-platform/core/governance_farm_context.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
@@ -3484,7 +3482,6 @@
         "services/sahool-platform/api/routers/operational_truth.py",
         "services/sahool-platform/api/routers/simple_farm_book.py",
         "services/sahool-platform/core/farm_operations_ledger.py",
-        "services/sahool-platform/core/governance_farm_context.py",
         "services/sahool-platform/tests/test_ledger_currency_governance_context.py"
       ],
       "code_writers": [],
@@ -3502,7 +3499,7 @@
       "code_readers": [
         "services/sahool-platform/api/routers/farm_operations_ledger.py",
         "services/sahool-platform/api/water_ledger_compute.py",
-        "services/sahool-platform/core/governance_farm_context.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/core/farm_operations_ledger.py"
@@ -3995,7 +3992,7 @@
         "services/sahool-platform/api/water_ledger_compute.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/api/yield_heuristics.py",
-        "services/sahool-platform/core/governance_farm_context.py",
+        "services/sahool-platform/core/farm_operations_ledger.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
@@ -6785,7 +6782,6 @@
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/yield_heuristics.py",
         "services/sahool-platform/core/farm_operations_ledger.py",
-        "services/sahool-platform/core/governance_farm_context.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_field_twin_endpoint.py",
@@ -7596,7 +7592,7 @@
         "services/sahool-platform/api/routers/water_twin.py",
         "services/sahool-platform/api/water_ledger_auto.py",
         "services/sahool-platform/api/water_ledger_compute.py",
-        "services/sahool-platform/core/governance_farm_context.py",
+        "services/sahool-platform/core/farm_operations_ledger.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py"
       ],

@@ -91,11 +91,11 @@ farm_ledger_entries,v211_simple_farm_book.sql,215,True,True,True,1,True,False,2,
 farm_ledger_erp_projection_outbox,v102_farm_closed_loop.sql,107,True,True,True,1,True,False,1,0
 farm_ledger_inventory_projections,v102_farm_closed_loop.sql,107,True,True,True,1,True,False,0,0
 farm_ledger_parties,v211_simple_farm_book.sql,215,True,True,True,1,True,False,1,1
-farm_operation_ledger,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,4,1
+farm_operation_ledger,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,3,1
 farm_production_units,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,1,0
-farm_revenue_records,v101_farm_budget_costing.sql,106,True,True,True,1,True,False,2,1
+farm_revenue_records,v101_farm_budget_costing.sql,106,True,True,True,1,True,False,1,1
 farm_season_budget_lines,v101_farm_budget_costing.sql,106,True,True,True,1,True,False,2,1
-farm_season_projects,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,5,0
+farm_season_projects,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,4,0
 farm_water_records,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,3,1
 farms,v19_farms.sql,23,True,False,False,0,False,True,6,1
 feature_definitions_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,1,True,False,0,1
@@ -290,7 +290,7 @@ season_harvest,v201_season_records.sql,206,True,False,False,0,False,True,4,2
 season_record_links,v207_historical_season_simulation_bridge.sql,211,True,False,False,0,False,True,2,2
 season_records,v201_season_records.sql,206,True,False,False,0,False,True,7,3
 season_simulation_runs,v207_historical_season_simulation_bridge.sql,211,True,False,False,0,False,True,1,2
-seasons,v32_seasons.sql,36,True,False,False,0,False,True,31,3
+seasons,v32_seasons.sql,36,True,False,False,0,False,True,30,3
 settings,v28_settings.sql,32,True,False,False,0,False,True,5,1
 sharing_keys,v12_trueup_sharing.sql,15,True,True,False,1,False,True,1,1
 signal_anomalies,v191_rs_signal_anomalies_store.sql,196,True,True,True,1,True,False,2,2

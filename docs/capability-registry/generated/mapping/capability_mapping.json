@@ -15,9 +15,9 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7466,
+    "files_scanned": 7465,
     "files_by_kind": {
-      "backend": 1296,
+      "backend": 1295,
       "database": 347,
       "governance": 89,
       "mobile": 417,
@@ -28,11 +28,11 @@
     "unmapped_artifacts": 3542,
     "ambiguous_artifacts": 254,
     "files_by_reading": {
-      "python_functional": 4054,
+      "python_functional": 4053,
       "raw": 3412
     },
     "test_dependency_files": 1963,
-    "test_dependency_edges": 5176,
+    "test_dependency_edges": 5175,
     "test_dependency_bounded_files": 1150,
     "test_dependency_unresolved_relations": 495
   },
@@ -3026,14 +3026,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/core/governance_farm_context.py",
-          "score": 14,
-          "signals": [
-            "path:farm",
-            "content:farm"
-          ]
-        },
-        {
           "path": "services/sahool-platform/core/simple_farm_book.py",
           "score": 14,
           "signals": [
@@ -3909,11 +3901,11 @@
       ],
       "events": [
         {
-          "value": "field_activities_screen.dart @ mobile/sahool_app/lib/features/activities/presentation/farm_activity_feed_screen.dart:17",
-          "score": 14
+          "value": "fields.area_ha @ services/sahool-platform/core/farm_operations_ledger.py:1091",
+          "score": 17
         },
         {
-          "value": "fields.area_ha @ services/sahool-platform/core/governance_farm_context.py:328",
+          "value": "field_activities_screen.dart @ mobile/sahool_app/lib/features/activities/presentation/farm_activity_feed_screen.dart:17",
           "score": 14
         },
         {
@@ -5128,7 +5120,7 @@
         "database": 10
       },
       "evidence_counts": {
-        "backend": 38,
+        "backend": 37,
         "routes": 45,
         "database": 100,
         "events": 30,
@@ -64716,14 +64708,9 @@
           "line": 14
         },
         {
-          "source": "services/sahool-platform/core/governance_farm_context.py",
-          "kind": "import",
-          "line": 15
-        },
-        {
           "source": "services/sahool-platform/core/pest_escalation_flow.py",
           "kind": "import",
-          "line": 16
+          "line": 15
         }
       ],
       "unresolved": []
@@ -85831,7 +85818,7 @@
           "line": 86
         },
         {
-          "source": "services/sahool-platform/core/governance_farm_context.py",
+          "source": "services/sahool-platform/core/farm_operations_ledger.py",
           "kind": "import",
           "line": 631
         },

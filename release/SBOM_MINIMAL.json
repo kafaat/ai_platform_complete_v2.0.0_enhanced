@@ -4925,7 +4925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7cbd979615238e075ba483c44a584b6ce12baf6b0c6b444a32ccf3db69a47af0"
+          "content": "bb2e0b5b85985a2f6b77167cac2c5c53c39659aef6010df471481e0342467100"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -27785,7 +27785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c2a75efb504b2fc61d9168c800d7693fce3f9cad4ab6f3a1692a4538107edd9"
+          "content": "da2683c8e06a3ffb9e1892c90eb1b31e64d70dd589b625f1901958a99f50b2e4"
         }
       ],
       "name": "services/sahool-platform/api/routers/pest_escalation.py",
@@ -30895,7 +30895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3068261ba2143dbe2ec9bebd59925c255329ca802e4a91b942549d05e634cf81"
+          "content": "dfb164660f7eebb89e1374638cf772e9163e0aa07be4c4e4302541a6e9fb9fb2"
         }
       ],
       "name": "services/sahool-platform/core/farm_operations_ledger.py",
@@ -31049,16 +31049,6 @@
         }
       ],
       "name": "services/sahool-platform/core/gdd_phenology.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "fa17492d0a4af12c4da9c75e00044fc7c0ba3d5e470c6e5586b2810e305e1830"
-        }
-      ],
-      "name": "services/sahool-platform/core/governance_farm_context.py",
       "type": "file"
     },
     {
@@ -35595,7 +35585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c9eb10941db70177d6732d907cf153ff85a5c076960277545e927413f5e57fd"
+          "content": "5839b2bf303581aaab42b6d4095af916e2923bf8250aa15d19362b1077ee91bd"
         }
       ],
       "name": "services/sahool-platform/tests/test_ledger_currency_governance_context.py",

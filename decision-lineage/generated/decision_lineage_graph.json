@@ -455,6 +455,7 @@
         "services/sahool-platform/core/farm_closed_loop.py",
         "services/sahool-platform/core/farm_costing.py",
         "services/sahool-platform/core/farm_memory.py",
+        "services/sahool-platform/core/farm_operations_ledger.py",
         "services/sahool-platform/core/field_digital_twin.py",
         "services/sahool-platform/core/field_event_sourcing.py",
         "services/sahool-platform/core/field_intelligence_card.py",
@@ -462,7 +463,6 @@
         "services/sahool-platform/core/field_state_replay_bridge.py",
         "services/sahool-platform/core/field_twin.py",
         "services/sahool-platform/core/gdd_phenology.py",
-        "services/sahool-platform/core/governance_farm_context.py",
         "services/sahool-platform/core/guardrails.py",
         "services/sahool-platform/core/historical_onboarding.py",
         "services/sahool-platform/core/historical_season_context.py",
@@ -3599,5 +3599,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "22fbc86393253a93d6511a0606d55ec7464ac1372cac59771d9ff7e815bb4153"
+  "content_sha256": "65637d9bdce24d82463c17ed46b4950dc67795b82f25655cc74f73a70de70452"
 }
