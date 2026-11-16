@@ -131,10 +131,12 @@ async def upsert_water_ledger(
                 norm["stage"],
                 norm["decision"],
                 norm["confidence"],
-                user.user_id,
+                # A report opens a day the worker owns; any other write is its author's day.
+                AUTO_CREATED_BY if report else user.user_id,
                 user.user_id if report else None,
                 list(columns),
                 AUTO_CREATED_BY,
+                user.user_id,
             )
     except HTTPException:
         raise  # 404 (حقل خارج المستأجِر) يصعد كما هو

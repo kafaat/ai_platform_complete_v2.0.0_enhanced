@@ -55,11 +55,29 @@ def ledger_write_columns(fields_set) -> tuple[str, ...]:
 # W0-13 (finding mobile-3): partial semantics. Each column is written on conflict only when the
 # caller sent it ($17 lists the sent columns), so a body of {ledger_date, irrigation_mm} replayed
 # from the mobile outbox no longer writes NULL over the ET0, depletion and confidence that the
-# water-balance worker computed. irrigation_reported_by (v278) records who reported the applied
-# water when the day's balance belongs to the worker ($18), so the worker keeps that figure and
-# recomputes around it instead of overwriting it with irrigation_runs. On a full manual entry
-# (created_by a person, irrigation_reported_by NULL) the column stays NULL: the worker never
-# touches that day, and the entry's author owns its irrigation as before.
+# water-balance worker computed.
+#
+# Who owns the day stays in created_by alone, which is all the worker reads to decide whether to
+# compute it (manual_entry_takes_precedence) and all its upsert guards on. irrigation_reported_by
+# (v278) only says that a person reported the applied water on a day the worker owns, so the
+# worker keeps that figure and recomputes the balance around it.
+#
+# Parameters: $15 created_by and $16 irrigation_reported_by for a new row (a report: the worker
+# and the reporter; any other write: the author and NULL), $17 the sent columns, $18 the worker's
+# created_by, $19 the author. On conflict:
+#   * a report ($16 set) on a worker day records the reporter; on any other day (a manual entry,
+#     an as-applied reconciliation) it writes the figure and leaves the owner alone;
+#   * any other write onto a day a report opened and the worker has not computed yet (worker row,
+#     a reporter, no decision: the worker always writes one) takes the day for its author, as it
+#     would have taken a new day;
+#   * any other write that sends irrigation_mm onto a worker day records its author as reporter
+#     when it carries a figure, and clears the reporter when it clears the figure, so the stored
+#     irrigation_mm is always the one the worker's balance uses.
+_WORKER_DAY = "water_ledger.created_by = $18"
+_UNCOMPUTED_REPORT_DAY = (
+    f"({_WORKER_DAY} AND water_ledger.irrigation_reported_by IS NOT NULL"
+    " AND water_ledger.decision IS NULL)"
+)
 LEDGER_UPSERT_SQL = (
     "INSERT INTO water_ledger "
     "(tenant_id, field_id, ledger_date, et0_mm, kc, etc_mm, rain_mm, "
@@ -79,9 +97,16 @@ LEDGER_UPSERT_SQL = (
     " stage = CASE WHEN 'stage' = ANY($17::text[]) THEN EXCLUDED.stage ELSE water_ledger.stage END,"
     " decision = CASE WHEN 'decision' = ANY($17::text[]) THEN EXCLUDED.decision ELSE water_ledger.decision END,"
     " confidence = CASE WHEN 'confidence' = ANY($17::text[]) THEN EXCLUDED.confidence ELSE water_ledger.confidence END,"
-    " irrigation_reported_by = CASE WHEN 'irrigation_mm' = ANY($17::text[])"
-    " AND (water_ledger.created_by = $18 OR water_ledger.irrigation_reported_by IS NOT NULL)"
-    " THEN $15 ELSE water_ledger.irrigation_reported_by END,"
+    " created_by = CASE WHEN $16::text IS NULL AND "
+    + _UNCOMPUTED_REPORT_DAY
+    + " THEN $19 ELSE water_ledger.created_by END,"
+    " irrigation_reported_by = CASE"
+    f" WHEN $16::text IS NOT NULL AND {_WORKER_DAY} THEN $16"
+    " WHEN $16::text IS NOT NULL THEN water_ledger.irrigation_reported_by"
+    f" WHEN {_UNCOMPUTED_REPORT_DAY} THEN NULL"
+    f" WHEN 'irrigation_mm' = ANY($17::text[]) AND {_WORKER_DAY}"
+    " THEN CASE WHEN EXCLUDED.irrigation_mm IS NULL THEN NULL ELSE $19 END"
+    " ELSE water_ledger.irrigation_reported_by END,"
     " updated_at = now()"
 )
 
@@ -89,8 +114,9 @@ LEDGER_UPSERT_SQL = (
 def is_irrigation_report(columns) -> bool:
     """A person reporting the water they applied, and nothing else.
 
-    Such a write never takes the day away from the worker: on a new day it creates a row the
-    worker will compute, and on a worker row it changes the applied water only.
+    Such a write never takes the day away from the worker: on a new day it opens a row owned by
+    the worker (``created_by``) with the reporter in ``irrigation_reported_by``, and on a worker
+    row it changes the applied water only.
     """
     return tuple(columns) == ("irrigation_mm",)
 

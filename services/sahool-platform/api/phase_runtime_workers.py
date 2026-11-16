@@ -606,9 +606,7 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             field_id,
                             today,
                         )
-                        if existing and manual_entry_takes_precedence(
-                            existing["created_by"], existing["irrigation_reported_by"]
-                        ):
+                        if existing and manual_entry_takes_precedence(existing["created_by"]):
                             continue  # الإنسان سيّد الدفتر — لا كتابة فوق قيد يدويّ.
                         # W0-13: a person reported today's applied water (v278) ⇒ that figure is
                         # the day's irrigation; the balance is recomputed around it, not over it.
@@ -771,7 +769,10 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             missing_days_irrigation_unobserved=gap_unobserved,
                             missing_days_irrigation_untracked=gap_untracked,
                         )
-                        await conn.execute(
+                        # The WHERE keeps a row another writer took between the read above and
+                        # this write (a manual entry, an as-applied reconciliation): no row is
+                        # returned, nothing is written, and the bridge does not run on it.
+                        stored = await conn.fetchval(
                             """
                             INSERT INTO water_ledger
                               (tenant_id, field_id, ledger_date, et0_mm, kc, etc_mm, rain_mm,
@@ -788,10 +789,9 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                                 ELSE EXCLUDED.irrigation_mm END,
                               depletion_mm = EXCLUDED.depletion_mm, deficit_mm = EXCLUDED.deficit_mm,
                               stage = EXCLUDED.stage, decision = EXCLUDED.decision,
-                              confidence = EXCLUDED.confidence,
-                              created_by = EXCLUDED.created_by, updated_at = now()
+                              confidence = EXCLUDED.confidence, updated_at = now()
                             WHERE water_ledger.created_by = EXCLUDED.created_by
-                               OR water_ledger.irrigation_reported_by IS NOT NULL
+                            RETURNING 1
                             """,
                             str(row["tenant_id"]),
                             field_id,
@@ -808,6 +808,8 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             entry["confidence"],
                             AUTO_CREATED_BY,
                         )
+                        if stored is None:
+                            continue  # الإنسان سيّد الدفتر — كُتِب القيد بعد قراءتنا.
                         processed += 1
                     # Governed bridge: candidate creation is deterministic and default-off.
                     from api.water_decision_bridge import process_water_deficit

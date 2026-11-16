@@ -12,8 +12,14 @@ NOBYPASSRLS role and the real worker (only the weather service is stubbed):
 2. worker first, then the replay, then the worker again: the replay keeps the computed columns,
    and the next worker pass keeps 12 mm and recomputes depletion lower by exactly 12 mm;
 3. negative control: the pre-fix SQL replayed on the same day writes NULL over ET0 and depletion;
-4. a full manual entry is still the person's day: the worker skips it before and after a report;
-5. another tenant's report on the field is 404 and changes nothing.
+4. a full manual entry is still the person's day: the worker skips it before and after a report,
+   and a full entry posted onto a day a report opened (before the worker computed it) takes the
+   day as it would have taken a new one;
+5. an as-applied reconciliation written after a report keeps its day: the worker does not take
+   it back (review finding on the first cut, where a reporter column outranked created_by);
+6. a full entry that clears irrigation_mm on a worker day clears the reporter too, so the stored
+   figure is the one the worker's balance uses;
+7. another tenant's report on the field is 404 and changes nothing.
 
 Run: ``TEST_DATABASE_ADMIN_URL=… TEST_DATABASE_URL=… pytest -m integration <this file>``.
 """
@@ -57,6 +63,24 @@ pytestmark.append(
 _PLATFORM = Path(__file__).resolve().parents[1] / "services" / "sahool-platform"
 _TZ = "Asia/Aden"
 _ET0_MM = 6.0
+
+# The as-applied ledger write of irrigation_closed_loop_runtime.reconcile (measured_as_applied),
+# copied verbatim: it sets created_by and leaves irrigation_reported_by alone. The verified-manual
+# as-applied write in routers/irrigation_engineering.py has the same shape.
+_AS_APPLIED_UPSERT = """
+        INSERT INTO water_ledger (
+            tenant_id, field_id, ledger_date, irrigation_mm, depletion_mm,
+            decision, created_by
+        ) VALUES (
+            current_setting('app.current_tenant')::uuid, $1, $2, $3, $4,
+            'measured_as_applied', $5
+        ) ON CONFLICT (field_id, ledger_date) DO UPDATE SET
+            irrigation_mm = COALESCE(water_ledger.irrigation_mm, 0) + EXCLUDED.irrigation_mm,
+            depletion_mm = EXCLUDED.depletion_mm,
+            decision = EXCLUDED.decision,
+            created_by = EXCLUDED.created_by,
+            updated_at = now()
+        """
 
 # The upsert as it was before W0-13, kept verbatim for the negative control only.
 _PRE_FIX_UPSERT = (
@@ -193,6 +217,25 @@ class Live:
             req=req, field_id=self.field_id, user=_user(tenant or self.tenant, self.farmer)
         )
 
+    async def post(self, **body):
+        """A full (non-report) entry, as an API caller or an older client sends it."""
+        req = self.router.WaterLedgerUpsertRequest(ledger_date=_today().isoformat(), **body)
+        return await self.router.upsert_water_ledger(
+            req=req, field_id=self.field_id, user=_user(self.tenant, self.farmer)
+        )
+
+    async def as_applied(self, applied_mm: float, depletion_after_mm: float, digest: str):
+        async with self.app_pool.acquire() as conn, conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", self.tenant)
+            await conn.execute(
+                _AS_APPLIED_UPSERT,
+                self.field_id,
+                _today(),
+                applied_mm,
+                depletion_after_mm,
+                f"as_applied:{digest}",
+            )
+
     async def worker(self) -> None:
         await self.workers.run_water_ledger_once(self.admin_pool)
 
@@ -212,6 +255,9 @@ async def test_report_first_then_worker_then_replay_keeps_et0_depletion_and_the_
         assert out["persisted"] is True, out
         row = await live.today_row()
         assert row["irrigation_reported_by"] == live.farmer, dict(row)
+        assert row["created_by"] == "water-balance-auto", (
+            f"a report opens a day the worker owns, the reporter is in its own column: {dict(row)}"
+        )
         assert row["et0_mm"] is None, "the report alone must not invent a balance"
 
         await live.worker()
@@ -314,6 +360,68 @@ async def test_a_full_manual_entry_stays_the_persons_day(monkeypatch):
         assert (row["irrigation_mm"], row["et0_mm"], row["depletion_mm"]) == (9.0, 5.0, 20.0), dict(
             row
         )
+
+
+async def test_a_full_entry_onto_a_day_a_report_opened_takes_the_day(monkeypatch):
+    async with Live(monkeypatch) as live:
+        await live.report(12.0)
+        await live.post(et0_mm=5.0, depletion_mm=20.0, irrigation_mm=4.0)
+        row = await live.today_row()
+        assert (row["created_by"], row["irrigation_reported_by"]) == (live.farmer, None), (
+            f"a full entry on an uncomputed report day must take it like a new day: {dict(row)}"
+        )
+        await live.worker()
+        row = await live.today_row()
+        assert (row["et0_mm"], row["depletion_mm"], row["irrigation_mm"], row["created_by"]) == (
+            5.0,
+            20.0,
+            4.0,
+            live.farmer,
+        ), f"the worker wrote over the manual entry: {dict(row)}"
+
+
+@pytest.mark.parametrize("worker_first", [True, False], ids=["worker-first", "report-first"])
+async def test_an_as_applied_reconciliation_after_a_report_keeps_its_day(monkeypatch, worker_first):
+    async with Live(monkeypatch) as live:
+        if worker_first:
+            await live.worker()
+        await live.report(12.0)
+        await live.as_applied(20.0, 5.0, "deadbeef")
+        reconciled = dict(await live.today_row())
+        assert reconciled["created_by"] == "as_applied:deadbeef", reconciled
+        assert reconciled["irrigation_mm"] == 32.0, reconciled
+
+        await live.worker()
+        row = await live.today_row()
+        for col in ("created_by", "decision", "depletion_mm", "irrigation_mm", "et0_mm"):
+            assert row[col] == reconciled[col], (
+                f"the worker took back an as-applied day ({col}): {reconciled} -> {dict(row)}"
+            )
+
+
+async def test_a_full_entry_that_clears_irrigation_clears_the_reporter(monkeypatch):
+    async with Live(monkeypatch) as live:
+        await live.worker()
+        await live.post(et0_mm=5.0, irrigation_mm=7.0)
+        row = await live.today_row()
+        assert row["irrigation_reported_by"] == live.farmer, (
+            f"a figure sent on a worker day is a report the worker keeps: {dict(row)}"
+        )
+        await live.worker()
+        row = await live.today_row()
+        assert (row["irrigation_mm"], row["et0_mm"]) == (7.0, _ET0_MM), dict(row)
+
+        await live.post(et0_mm=5.0, irrigation_mm=None)
+        row = await live.today_row()
+        assert row["irrigation_reported_by"] is None, (
+            f"a cleared figure must not leave a reporter behind: {dict(row)}"
+        )
+        await live.worker()
+        row = await live.today_row()
+        assert row["irrigation_mm"] == 0.0, (
+            f"the stored figure must be the one the balance used (no runs today): {dict(row)}"
+        )
+        assert "irrigation_unobserved" in row["decision"], row["decision"]
 
 
 async def test_another_tenants_report_is_404_and_changes_nothing(monkeypatch):

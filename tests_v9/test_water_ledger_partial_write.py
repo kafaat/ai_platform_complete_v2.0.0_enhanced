@@ -6,6 +6,8 @@ These unit tests pin the pure rules it rests on, so a regression shows up in eve
 * only the columns the caller sent are written on conflict;
 * a body of ``{ledger_date, irrigation_mm}`` is an irrigation report, which does not take the day
   away from the worker, and which the worker keeps as the day's irrigation;
+* only ``created_by`` decides whether the worker computes a day: a reporter column never hands it
+  a day another writer (a manual entry, an as-applied reconciliation) holds;
 * an empty write, or a report without a figure, is refused before the database is touched.
 """
 
@@ -88,8 +90,12 @@ def test_a_report_never_blocks_the_worker_but_a_manual_entry_does():
     assert manual_entry_takes_precedence("u-farmer") is True, "a manual entry is the person's day"
     assert manual_entry_takes_precedence(AUTO_CREATED_BY) is False, "the worker's own row"
     assert manual_entry_takes_precedence(None) is False, "no row yet"
-    assert manual_entry_takes_precedence("u-farmer", "u-farmer") is False, (
-        "a day created by an irrigation report alone is still the worker's to compute"
+    assert manual_entry_takes_precedence("as_applied:deadbeef") is True, (
+        "an as-applied reconciliation holds its day, whoever reported water on it before"
+    )
+    params = inspect.signature(manual_entry_takes_precedence).parameters
+    assert list(params) == ["existing_created_by"], (
+        "the reporter column must not take part in the precedence decision"
     )
 
 
@@ -136,9 +142,20 @@ def test_every_column_is_written_on_conflict_only_when_sent(wl_mod):
         "a bare `x = EXCLUDED.x` overwrites an omitted column with NULL (finding mobile-3)"
     )
     assert "created_by = EXCLUDED" not in update, "a person's write does not rewrite the author"
+    assert ("WHEN $16::text IS NOT NULL AND water_ledger.created_by = $18 THEN $16") in update, (
+        "a report records its reporter only on a day the worker owns"
+    )
+    assert "WHEN $16::text IS NOT NULL THEN water_ledger.irrigation_reported_by" in update, (
+        "a report on a manual or as-applied day must leave the reporter column alone"
+    )
+    assert "THEN CASE WHEN EXCLUDED.irrigation_mm IS NULL THEN NULL ELSE $19 END" in update, (
+        "a full entry that clears the figure must clear the reporter"
+    )
     assert (
-        "(water_ledger.created_by = $18 OR water_ledger.irrigation_reported_by IS NOT NULL)"
-    ) in update, "the reporter is recorded only on a day whose balance is the worker's"
+        "created_by = CASE WHEN $16::text IS NULL AND (water_ledger.created_by = $18"
+        " AND water_ledger.irrigation_reported_by IS NOT NULL AND water_ledger.decision IS NULL)"
+        " THEN $19 ELSE water_ledger.created_by END"
+    ) in update, "a full entry takes a day a report opened and the worker has not computed"
 
 
 async def test_an_empty_write_is_refused_before_the_database(wl_mod, monkeypatch):
@@ -169,10 +186,14 @@ def test_the_worker_keeps_a_reported_figure_and_never_writes_over_a_manual_day()
         "the worker must not overwrite a report that lands between its read and its write"
     )
     assert "THEN water_ledger.irrigation_mm" in src, "the reported figure is kept on conflict"
-    assert "WHERE water_ledger.created_by = EXCLUDED.created_by" in src, (
+    assert "WHERE water_ledger.created_by = EXCLUDED.created_by\n" in src, (
         "the worker's upsert must not write over a manual entry made after its read"
     )
+    assert "OR water_ledger.irrigation_reported_by" not in src, (
+        "a reporter column must never let the worker write over another writer's day"
+    )
+    assert "if stored is None:" in src, "a write the guard refused must not reach the bridge"
     assert "reported_irrigation(existing)" in src, "the report feeds the day's balance"
-    assert 'existing["created_by"], existing["irrigation_reported_by"]' in src, (
-        "the precedence check must see the report column"
+    assert 'manual_entry_takes_precedence(existing["created_by"])' in src, (
+        "only created_by decides whether the worker computes the day"
     )
