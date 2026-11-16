@@ -1682,7 +1682,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 386,
+      "evidence_count": 385,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2051,7 +2051,6 @@
         "services/supervisor-agent/tool_contracts.py",
         "services/tts-service/critical_speech.py",
         "services/vegetation-analysis-service/decision_bridge.py",
-        "services/vegetation-analysis-service/routers/anomalies.py",
         "services/vegetation-analysis-service/test_decision_bridge_candidate.py",
         "services/vegetation-analysis-service/test_ground_verification_bridge.py",
         "services/vegetation-analysis-service/test_rs_review_hardening.py",
@@ -3366,7 +3365,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 208,
-      "target_evidence_count": 386,
+      "target_evidence_count": 385,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3412,7 +3411,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 386,
+      "source_evidence_count": 385,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3616,5 +3615,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "00ba4ff95d5b7edf8238a594871fea6db0ca8b974369e0bf470a0c97c6787133"
+  "content_sha256": "5358d27a1453329ebd8ec8ce321e7593fcb15b31dad506ea9b3b80bd9cea70ed"
 }

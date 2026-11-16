@@ -2724,6 +2724,10 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v285_water_ledger_rain_source_reanalysis.down.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },
@@ -10668,6 +10672,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/runtime/test_compose_required_vars_doctor.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/runtime/test_phase17_runtime_bootstrap_doctor.py",
     "kind": "tests"
   },
@@ -12128,6 +12136,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gpu_bake_matches_compose_overlay.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_guard_catalogue.py",
     "kind": "tests"
   },
@@ -13313,6 +13325,10 @@
   },
   {
     "path": "tests_v9/test_route_residual_classification_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rs_anomaly_reservation_live_pg.py",
     "kind": "tests"
   },
   {

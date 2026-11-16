@@ -9929,7 +9929,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 115,
+    "line": 284,
     "method": "POST",
     "path": "/v1/fields/{field_id}/signal-anomalies/detect",
     "handler": "detect_signal_anomalies",
@@ -9938,7 +9938,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 201,
+    "line": 375,
     "method": "GET",
     "path": "/v1/fields/{field_id}/signal-anomalies",
     "handler": "list_signal_anomalies",
@@ -9947,7 +9947,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 215,
+    "line": 389,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/transition",
     "handler": "transition_anomaly",
@@ -9956,7 +9956,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 239,
+    "line": 413,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-requests",
     "handler": "request_ground_verification",
@@ -9965,7 +9965,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 277,
+    "line": 438,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-results",
     "handler": "accept_verification_result",

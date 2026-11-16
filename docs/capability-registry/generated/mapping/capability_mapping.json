@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7470,
+    "files_scanned": 7476,
     "files_by_kind": {
       "backend": 1296,
-      "database": 348,
+      "database": 350,
       "governance": 89,
       "mobile": 417,
       "other": 2195,
-      "tests": 2572,
+      "tests": 2576,
       "web": 553
     },
-    "unmapped_artifacts": 3545,
+    "unmapped_artifacts": 3550,
     "ambiguous_artifacts": 255,
     "files_by_reading": {
-      "python_functional": 4057,
-      "raw": 3413
+      "python_functional": 4061,
+      "raw": 3415
     },
-    "test_dependency_files": 1966,
-    "test_dependency_edges": 5195,
-    "test_dependency_bounded_files": 1145,
-    "test_dependency_unresolved_relations": 503
+    "test_dependency_files": 1969,
+    "test_dependency_edges": 5204,
+    "test_dependency_bounded_files": 1146,
+    "test_dependency_unresolved_relations": 504
   },
   "capabilities": [
     {
@@ -26040,6 +26040,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
+          "score": 12,
+          "signals": [
+            "content:rls",
+            "content:Tenant RLS"
+          ]
+        },
+        {
           "path": "tests_v9/test_weather_intelligence_migration.py",
           "score": 12,
           "signals": [
@@ -26153,14 +26161,6 @@
           "signals": [
             "content:rls",
             "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
-          "score": 10,
-          "signals": [
-            "content:rls",
-            "content:Tenant RLS"
           ]
         },
         {
@@ -27094,7 +27094,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 901
+        "database": 904
       },
       "evidence_counts": {
         "backend": 12,
@@ -35476,6 +35476,10 @@
       "kind": "database"
     },
     {
+      "path": "migrations/v285_water_ledger_rain_source_reanalysis.down.sql",
+      "kind": "database"
+    },
+    {
       "path": "migrations/v28_settings.sql",
       "kind": "database"
     },
@@ -42444,6 +42448,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
       "kind": "tests"
     },
@@ -43413,6 +43421,10 @@
     },
     {
       "path": "tests/reliability/test_phase10_reliability_harness_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/runtime/test_compose_required_vars_doctor.py",
       "kind": "tests"
     },
     {
@@ -44876,6 +44888,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gpu_bake_matches_compose_overlay.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_guard_catalogue.py",
       "kind": "tests"
     },
@@ -46061,6 +46077,10 @@
     },
     {
       "path": "tests_v9/test_route_residual_classification_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rs_anomaly_reservation_live_pg.py",
       "kind": "tests"
     },
     {
@@ -68967,6 +68987,36 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ci/platform_route_classification.py",
+          "kind": "import",
+          "line": 33
+        },
+        {
+          "source": "services/sahool-platform/api/phase10_continuous_learning.py",
+          "kind": "import",
+          "line": 88
+        },
+        {
+          "source": "services/sahool-platform/api/phase10_continuous_learning.py",
+          "kind": "source_read",
+          "line": 41
+        },
+        {
+          "source": "services/sahool-platform/api/routers/registry.py",
+          "kind": "source_read",
+          "line": 38
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_water_balance.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -69064,7 +69114,7 @@
         {
           "source": "services/sahool-platform/api/water_balance.py",
           "kind": "import",
-          "line": 402
+          "line": 403
         },
         {
           "source": "services/sahool-platform/api/water_ledger_auto.py",
@@ -70985,12 +71035,17 @@
         {
           "source": "services/vegetation-analysis-service/anomaly_requests.py",
           "kind": "import",
-          "line": 160
+          "line": 221
+        },
+        {
+          "source": "services/vegetation-analysis-service/anomaly_runtime.py",
+          "kind": "import",
+          "line": 191
         },
         {
           "source": "services/vegetation-analysis-service/anomaly_store.py",
           "kind": "import",
-          "line": 298
+          "line": 192
         },
         {
           "source": "services/vegetation-analysis-service/ground_verification_bridge.py",
@@ -71000,12 +71055,12 @@
         {
           "source": "services/vegetation-analysis-service/main.py",
           "kind": "import",
-          "line": 158
+          "line": 189
         },
         {
           "source": "services/vegetation-analysis-service/routers/anomalies.py",
           "kind": "import",
-          "line": 159
+          "line": 190
         },
         {
           "source": "shared/security/service_tenant_assertion.py",
@@ -72755,6 +72810,27 @@
           "source": "scripts/release/validate_release_package.py",
           "kind": "source_read",
           "line": 21
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests/runtime/test_compose_required_vars_doctor.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "subprocess"
+      ],
+      "edges": [
+        {
+          "source": "scripts/runtime/env_doctor.py",
+          "kind": "loader",
+          "line": 29
+        },
+        {
+          "source": "scripts/runtime/env_doctor.py",
+          "kind": "source_read",
+          "line": 24
         }
       ],
       "unresolved": []
@@ -80310,32 +80386,32 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 81
+          "line": 88
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 82
+          "line": 89
         },
         {
           "source": "services/sahool-platform/api/routers/field_twin.py",
           "kind": "import",
-          "line": 82
+          "line": 89
         },
         {
           "source": "services/sahool-platform/api/routers/water_twin.py",
           "kind": "import",
-          "line": 82
+          "line": 89
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 88
+          "line": 95
         }
       ],
       "unresolved": [
         {
-          "line": 42,
+          "line": 46,
           "call": "import_module"
         }
       ]
@@ -88488,7 +88564,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 328
+          "line": 333
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",
@@ -92640,6 +92716,24 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_rs_anomaly_reservation_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/vegetation-analysis-service/anomaly_store.py",
+          "kind": "import",
+          "line": 72
+        },
+        {
+          "source": "services/vegetation-analysis-service/anomaly_store_pg.py",
+          "kind": "import",
+          "line": 73
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_run_outcome_guard.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -93744,47 +93838,47 @@
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 89
+          "line": 99
         },
         {
           "source": "services/sahool-platform/api/decision_service_client.py",
           "kind": "import",
-          "line": 89
+          "line": 99
         },
         {
           "source": "services/sahool-platform/api/decision_sor_mode.py",
           "kind": "import",
-          "line": 89
+          "line": 99
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 88
+          "line": 98
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 90
+          "line": 100
         },
         {
           "source": "services/sahool-platform/api/routers/seasons.py",
           "kind": "import",
-          "line": 90
+          "line": 100
         },
         {
           "source": "services/sahool-platform/api/weather_service_client.py",
           "kind": "import",
-          "line": 355
+          "line": 388
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 96
+          "line": 106
         }
       ],
       "unresolved": [
         {
-          "line": 46,
+          "line": 53,
           "call": "import_module"
         }
       ]
@@ -96785,7 +96879,11 @@
       "edges": [],
       "unresolved": [
         {
-          "line": 170,
+          "line": 50,
+          "call": "import_module"
+        },
+        {
+          "line": 215,
           "call": "spec_from_file_location"
         }
       ]
@@ -97026,7 +97124,7 @@
         {
           "source": "scripts/ci/v9_gpu_contract_gate.py",
           "kind": "source_read",
-          "line": 144
+          "line": 169
         }
       ],
       "unresolved": []
@@ -97698,32 +97796,32 @@
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 96
+          "line": 110
         },
         {
           "source": "services/sahool-platform/api/phase_runtime_workers.py",
           "kind": "import",
-          "line": 96
+          "line": 110
         },
         {
           "source": "services/sahool-platform/api/water_balance.py",
           "kind": "import",
-          "line": 272
+          "line": 286
         },
         {
           "source": "services/sahool-platform/api/water_decision_bridge.py",
           "kind": "import",
-          "line": 96
+          "line": 110
         },
         {
           "source": "services/sahool-platform/api/water_ledger_inputs.py",
           "kind": "import",
-          "line": 249
+          "line": 263
         },
         {
           "source": "services/sahool-platform/api/weather_service_client.py",
           "kind": "import",
-          "line": 96
+          "line": 110
         }
       ],
       "unresolved": []

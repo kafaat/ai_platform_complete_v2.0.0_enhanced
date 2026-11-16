@@ -14687,7 +14687,7 @@
       "entrypoints": [
         "POST /v1/anomalies/{anomaly_ref:path}/verification-requests"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "vegetation-analysis-service",
       "producer": "vegetation-analysis-service",
@@ -14794,7 +14794,7 @@
         "GET /v1/fields/{field_id}/signal-anomalies",
         "POST /v1/fields/{field_id}/signal-anomalies/detect"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "mixed",
       "owner": "vegetation-analysis-service",
       "producer": "vegetation-analysis-service",
@@ -17814,7 +17814,7 @@
     "capabilities": 840,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
-    "capabilities_idempotent": 76,
+    "capabilities_idempotent": 74,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 478,
     "components": 37,
@@ -18086,7 +18086,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "502d1e799f7245bbe05a7e27e83cc9dc834670f17c4b33ba1376422b8abd997e",
+  "fingerprint": "cf8f12c60f12e5ba081357059e9faba448a162548e4d61bb69237862af58715c",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

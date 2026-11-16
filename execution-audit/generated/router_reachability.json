@@ -559,10 +559,10 @@
     },
     {
       "kind": "router",
-      "line": 38,
+      "line": 36,
       "module": "services.sahool-platform.api.phase10_continuous_learning",
       "node_id": "services.sahool-platform.api.phase10_continuous_learning:router",
-      "route_count": 18,
+      "route_count": 15,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -1765,10 +1765,10 @@
     },
     {
       "kind": "router",
-      "line": 24,
+      "line": 25,
       "module": "services.sahool-platform.api.routers.registry",
       "node_id": "services.sahool-platform.api.routers.registry:router",
-      "route_count": 7,
+      "route_count": 4,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -2395,7 +2395,7 @@
     },
     {
       "kind": "router",
-      "line": 26,
+      "line": 28,
       "module": "services.vegetation-analysis-service.routers.anomalies",
       "node_id": "services.vegetation-analysis-service.routers.anomalies:router",
       "route_count": 5,
@@ -2484,7 +2484,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 58,
+  "include_edge_count": 59,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2910,6 +2910,15 @@
       "target": null
     },
     {
+      "expression": "router",
+      "line": 91,
+      "module": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_w4_09_retired_dead_routes:<dynamic-source>",
+      "target": null
+    },
+    {
       "expression": "season_router",
       "line": 52,
       "module": "services/scout-ingest-service/main.py",
@@ -3009,7 +3018,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "4c74910630d0fb230c8db44875412b709257ef9a1679652a660358a2e39d0cbb",
+  "inventory_sha256": "22aa0aca26c990a0508da330b6ad8e623943d1345bf026e60963e3a9bb4093f9",
   "orphan_candidate_count": 237,
   "orphan_candidates": [
     {
@@ -3365,10 +3374,10 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 38,
+      "line": 36,
       "module": "services.sahool-platform.api.phase10_continuous_learning",
       "node_id": "services.sahool-platform.api.phase10_continuous_learning:router",
-      "route_count": 18,
+      "route_count": 15,
       "safe_to_delete": false,
       "symbol": "router"
     },
@@ -4705,10 +4714,10 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 24,
+      "line": 25,
       "module": "services.sahool-platform.api.routers.registry",
       "node_id": "services.sahool-platform.api.routers.registry:router",
-      "route_count": 7,
+      "route_count": 4,
       "safe_to_delete": false,
       "symbol": "router"
     },
@@ -5305,7 +5314,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 26,
+      "line": 28,
       "module": "services.vegetation-analysis-service.routers.anomalies",
       "node_id": "services.vegetation-analysis-service.routers.anomalies:router",
       "route_count": 5,
@@ -5390,7 +5399,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 53,
+  "unresolved_include_count": 54,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5751,6 +5760,14 @@
       "module": "services.sahool-platform.tests.test_task_update_idempotency",
       "source": null,
       "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+      "line": 91,
+      "module": "services.sahool-platform.tests.test_w4_09_retired_dead_routes",
+      "source": null,
+      "target_expression": "router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",

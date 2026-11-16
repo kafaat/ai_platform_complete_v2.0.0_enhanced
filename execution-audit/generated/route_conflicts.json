@@ -1023,7 +1023,7 @@
       "registrations": [
         {
           "function": "learning_cycle",
-          "line": 201,
+          "line": 165,
           "method": "POST",
           "module": "services/sahool-platform/api/phase10_continuous_learning.py",
           "path": "/cycle",
@@ -1062,7 +1062,7 @@
       "registrations": [
         {
           "function": "model_register",
-          "line": 281,
+          "line": 245,
           "method": "POST",
           "module": "services/sahool-platform/api/phase10_continuous_learning.py",
           "path": "/models/register",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1156,
-  "route_inventory_sha256": "6ca5f62ce977e513209c34187431fcf7919a62f4188226a85f3697e1c07c0f74",
+  "route_count": 1150,
+  "route_inventory_sha256": "860c984a67a132226cfd2949ff819200ae658fdfcae4e8a5db3474cbcf3b0d61",
   "runtime_verified": false,
   "schema_version": 1
 }
