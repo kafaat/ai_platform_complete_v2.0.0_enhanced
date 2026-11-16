@@ -4,8 +4,8 @@
 - advisory_source (دالّة نقيّة): rag مضبوط وناجح ⇒ "llm-rag"؛ غائب أو فاشل ⇒ "template".
 - مسار general_advice في execute يرتدّ للقوالب بصدق (source="template", calibrated=False)
   حين لا وصل (LOCAL_AI_RAG_URL غائب) — أي السلوك السابق محفوظ.
-- عند توفّر إجابة RAG (محاكاة دالّة الاستدعاء نقيّاً، بلا HTTP حيّ) ⇒ source="llm-rag".
-- مسارات pest_id/disease_id قوالب صريحة (calibrated=False) — لا ادّعاء VLM.
+- إجابة RAG نثريّة تُحجَب (مُدقِّق الادعاءات المهيكلة يرفضها) ⇒ القالب يُجيب (airuntime-9).
+- مسارات pest_id/disease_id لا تسمّي منتجاً: تشخيص المنصّة أو ردّ صريح بلا تشخيص (scout-12).
 
 نواة نقيّة بلا خدمات؛ لا اتّصال شبكيّ حيّ.
 """
@@ -81,8 +81,12 @@ async def test_general_advice_falls_back_to_template(adv_mod):
     assert "الري الذكي" in out["response"]
 
 
-async def test_general_advice_uses_llm_rag_when_available(adv_mod, monkeypatch):
-    # نحاكي توفّر الوصل والاستدعاء الناجح بلا HTTP حيّ: نضبط العلم ونستبدل الدالّة.
+async def test_general_advice_withholds_unchecked_llm_rag_prose(adv_mod, monkeypatch):
+    """airuntime-9: a successful RAG call no longer publishes the model's prose.
+
+    The answer goes through the shared structured-claims checker; free prose fails it,
+    so the honest template answers and the withheld generation is named.
+    """
     monkeypatch.setattr(adv_mod, "LOCAL_AI_RAG_URL", "http://local-ai-rag:8000")
 
     async def _fake_rag(question, token):
@@ -94,13 +98,12 @@ async def test_general_advice_uses_llm_rag_when_available(adv_mod, monkeypatch):
 
     monkeypatch.setattr(adv_mod, "_query_local_rag", _fake_rag)
     out = await _skill(adv_mod).execute(intent="general_advice", query="أيّ صنف قمح؟")
-    assert out["source"] == "llm-rag"
-    # Model output is labelled unvalidated, never calibrated; sources become strings.
-    assert out["calibrated"] is False
-    assert out["ai_generated"] is True
-    assert out["sources"] == ["kb.pdf"]
-    assert out["response"] == "إجابة مُؤرَّضة من النموذج المحليّ"
-    assert out["model"] == "qwen3:32b"
+    assert out["source"] == "template", f"unchecked prose labelled {out['source']}"
+    assert out["calibrated"] is False, "templates are never calibrated"
+    assert out.get("ai_generated") is not True, "withheld output is not presented as AI"
+    assert out["generation_status"] == "suppressed_unvalidated_output", out
+    assert "إجابة مُؤرَّضة من النموذج المحليّ" not in out["response"], "prose surfaced"
+    assert out["sources"] == [], "a template reply cites no retrieved document"
 
 
 async def test_general_advice_rag_failure_falls_back(adv_mod, monkeypatch):
@@ -117,19 +120,22 @@ async def test_general_advice_rag_failure_falls_back(adv_mod, monkeypatch):
     assert "التسميد المتوازن" in out["response"]
 
 
-# ── مسارات القوالب الثابتة موسومة بصدق (لا ادّعاء VLM) ────────────────────────────
-async def test_pest_id_is_template_not_calibrated(adv_mod):
+# ── الآفات/الأمراض: لا جدول محليّ ولا اسم منتج؛ التشخيص عند المنصّة (scout-12) ─────
+async def test_pest_id_without_verified_bearer_is_unavailable_not_a_product(adv_mod):
     out = await _skill(adv_mod).execute(intent="pest_id", query="أوراق صفراء")
-    assert out["type"] == "pest_alert"
-    assert out["source"] == "template"
-    assert out["calibrated"] is False
+    assert out["type"] == "unavailable", f"no caller bearer, got {out['type']}"
+    assert out["source"] == "template", "nothing was diagnosed"
+    assert out["calibrated"] is False, "no calibrated claim without a diagnosis"
+    assert "Mancozeb" not in str(out), "the removed keyword table named Mancozeb here"
+    assert out.get("action_type") is None, "no pesticide proposal without a diagnosis"
 
 
-async def test_disease_id_is_template_not_calibrated(adv_mod):
+async def test_disease_id_with_unknown_symptoms_asks_for_detail(adv_mod):
     out = await _skill(adv_mod).execute(intent="disease_id", query="بقع داكنة")
-    assert out["type"] == "disease_alert"
-    assert out["source"] == "template"
-    assert out["calibrated"] is False
+    assert out["type"] == "disease_unknown", f"unexpected type: {out['type']}"
+    assert out["source"] == "template", "nothing was diagnosed"
+    assert out["calibrated"] is False, "no calibrated claim without a diagnosis"
+    assert "Copper" not in str(out), "the removed keyword table named copper here"
 
 
 # ── Templates cite nothing; a paraphrased model refusal is still a refusal ──────

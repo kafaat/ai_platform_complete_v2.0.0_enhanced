@@ -44,6 +44,13 @@ def test_arabic_pest_routes_advisory():
     assert s == "pest_id"
 
 
+def test_insect_on_wheat_routes_to_pest_identification():
+    """W0-14: "حشرة على القمح" fell through to general_advice (no advisory domain term)."""
+    for query in ("حشرة على القمح", "حشرات على أوراق القمح", "insect on wheat"):
+        d, s, c = _classify(query)
+        assert (d, s) == ("advisory", "pest_id"), f"{query!r} routed to {(d, s)}"
+
+
 def test_arabic_irrigation_routes_crop_model():
     """صيغة الفعل 'أسقي' تُوجَّه للري (إصلاح نمط)."""
     d, s, c = _classify("متى أسقي المحصول؟")
