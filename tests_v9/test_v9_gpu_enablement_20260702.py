@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -55,6 +56,30 @@ def test_gpu_overlay_enables_rtx5090_paths():
     seg_env = env(services["sahool-field-segmentation"])
     assert seg_env["SEGMENTATION_BACKEND"] == "sam2"
     assert seg_env["SEGMENTATION_INFERENCE_URL"] == "http://sahool-sam2-inference:8080/v1/predict"
+
+
+def test_video_processor_reserves_no_gpu_because_it_decodes_on_the_cpu():
+    # video-processor: python:3.11-slim + PyPI opencv-python-headless (no CUDA/NVDEC); frames go to
+    # sahool-edge over HTTP. A GPU reservation there only stopped the stack on GPU-less hosts.
+    reqs = (ROOT / "services/video-processor/requirements.txt").read_text(encoding="utf-8")
+    dockerfile = (ROOT / "services/video-processor/Dockerfile").read_text(encoding="utf-8")
+    assert "opencv-python-headless" in reqs, "premise changed: re-check the GPU need"
+    assert not re.search(r"torch|onnxruntime-gpu|cupy|nvidia|cuda", reqs, re.I), (
+        "a GPU library appeared in video-processor; re-check the GPU reservation decision"
+    )
+    assert dockerfile.startswith("FROM python:3.11-slim"), "premise changed: not a CPU base image"
+    overlay = load("docker-compose.v9.gpu.yml")["services"]["sahool-video-processor"]
+    base = load("docker-compose.v9.yml")["services"]["sahool-video-processor"]
+    for svc in (base, overlay):
+        assert "devices" not in svc.get("deploy", {}).get("resources", {}).get(
+            "reservations", {}
+        ), "video-processor must not reserve a GPU"
+    assert not {"NVIDIA_VISIBLE_DEVICES", "NVIDIA_DRIVER_CAPABILITIES"} & set(env(overlay)), (
+        "no NVIDIA runtime env for a CPU-only service"
+    )
+    assert env(overlay)["VIDEO_STRICT_READY"] == "${VIDEO_STRICT_READY:-true}", overlay
+    assert {"sahool-zlmediakit", "sahool-edge"} <= set(overlay["depends_on"]), overlay
+    assert env(base)["EDGE_INFERENCE_URL"] == "http://sahool-edge:8100", "inference stays in edge"
 
 
 def test_sam2_dockerfile_defaults_to_cuda_128_image():

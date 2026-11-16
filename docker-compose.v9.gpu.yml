@@ -1,6 +1,8 @@
 # SAHOOL v9 GPU overlay — RTX 5090 / Blackwell-ready runtime
 # Usage:
 #   docker compose -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu up -d
+# Build the GPU images without runtime secrets: docker buildx bake -f docker-bake.gpu.hcl
+# (Compose `build` first interpolates every required runtime secret of every service.)
 # Requires NVIDIA Container Toolkit and a CUDA/PyTorch image that supports RTX 50 / sm_120.
 
 services:
@@ -52,23 +54,18 @@ services:
       sahool-sam2-inference:
         condition: service_healthy
 
+  # No GPU reservation here on purpose: video-processor is python:3.11-slim with the PyPI
+  # opencv-python-headless wheel (no CUDA, no NVDEC). It decodes and JPEG-encodes frames on the
+  # CPU and sends them to sahool-edge over HTTP (EDGE_INFERENCE_URL); sahool-edge holds the GPU.
+  # Reserving every GPU for it only made the stack unable to start on a host without one.
   sahool-video-processor:
     environment:
       VIDEO_STRICT_READY: ${VIDEO_STRICT_READY:-true}
-      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
-      NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility,video}
     depends_on:
       sahool-zlmediakit:
         condition: service_healthy
       sahool-edge:
         condition: service_healthy
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
 
   sahool-tts-service:
     environment:
