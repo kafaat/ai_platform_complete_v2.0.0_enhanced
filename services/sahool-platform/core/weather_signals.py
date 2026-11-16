@@ -195,18 +195,39 @@ def aggregate_cells_to_hourly(rows: list[dict]) -> list[HourlyWeather]:
 #
 # Pure and deterministic: no I/O. The caller fetches the products and passes them in.
 #
-# Fail-closed on spraying: a missing plan, a missing "now" frame, an ``insufficient_data``
-# frame or a frame whose limiting factors include wind or rain gives ``spray_unsafe``, never
-# silence and never an open window. Drift above the weather-service wind threshold
-# (``wind_speed_high`` > 18 km/h, ``wind_gust_high`` > 29 km/h) is a safety limit, not a
-# quality penalty, so it blocks spraying even when the service score is still "acceptable".
+# Fail-closed on spraying. "Now" is the frame whose ``hour_offset`` is exactly 0, never merely
+# the nearest frame present: weather-service drops an hour whose fetch failed or timed out
+# (``_operation_samples`` returns a partial plan), so the nearest frame can be +6 h. The
+# spray-now decision also covers the next hour (``hour_offset`` 1): drift and wash-off within
+# an hour of application spoil the application as much as at the moment of spraying.
+# ``spray_unsafe`` is emitted when any of these holds, never silence and never an open window:
+#
+# * no plan, no spraying item or no frames;
+# * the hour-0 frame or the hour-1 frame is missing (``now_frame_missing`` /
+#   ``next_hour_frame_missing``, basis ``unconfirmed``);
+# * the hour-0 or hour-1 decision is ``insufficient_data`` / ``unsafe`` or its limiting factors
+#   include wind, gust, rain or a temperature outside the spray window (next-hour reasons
+#   carry the suffix ``@next_hour``).
+#
+# Drift above the weather-service wind threshold (``wind_speed_high`` > 18 km/h,
+# ``wind_gust_high`` > 29 km/h) is a safety limit, not a quality penalty, so it blocks
+# spraying even when the service score is still "acceptable". ``humidity_high`` and
+# ``vpd_outside_preferred_range`` stay quality penalties: they lower the score and are named
+# in ``cautions`` on an open window.
 
 SPRAY_UNSAFE = "spray_unsafe"
 SPRAY_WINDOW_OPEN = "spray_window_open"
 
 # Limiting factors (weather-service ``operations.operation_suitability``) that make spraying
 # unsafe now, not merely less efficient: drift (wind/gust) and wash-off (rain).
-SPRAY_BLOCKING_FACTORS = frozenset({"wind_speed_high", "wind_gust_high", "rain_present"})
+# A temperature outside 5-30 C (``temperature_outside_spray_window``) blocks as well: above
+# 30 C volatilisation and leaf scorch, below 5 C no uptake; weather-service only scores it down.
+SPRAY_BLOCKING_FACTORS = frozenset(
+    {"wind_speed_high", "wind_gust_high", "rain_present", "temperature_outside_spray_window"}
+)
+NEXT_HOUR_SUFFIX = "@next_hour"
+_NOW_OFFSET = 0.0
+_NEXT_HOUR_OFFSET = 1.0
 _SPRAY_BLOCKING_SUITABILITY = frozenset({"unsafe", "insufficient_data"})
 # Same threshold the weather-service uses for ``recommended`` in the operation plan.
 _SPRAY_OPEN_SCORE = 0.55
@@ -241,7 +262,19 @@ def _spraying_item(plan: dict[str, Any] | None) -> dict[str, Any] | None:
 
 def _frames(item: dict[str, Any]) -> list[dict[str, Any]]:
     frames = [f for f in item.get("frames") or [] if isinstance(f, dict)]
-    return sorted(frames, key=lambda f: (_num(f.get("hour_offset")) is None, f.get("hour_offset")))
+
+    def key(frame: dict[str, Any]) -> tuple[bool, float]:
+        offset = _num(frame.get("hour_offset"))
+        return (offset is None, offset if offset is not None else 0.0)
+
+    return sorted(frames, key=key)
+
+
+def _frame_at(frames: list[dict[str, Any]], offset: float) -> dict[str, Any] | None:
+    for frame in frames:
+        if _num(frame.get("hour_offset")) == offset:
+            return frame
+    return None
 
 
 def _decision(frame: dict[str, Any]) -> dict[str, Any]:
@@ -277,12 +310,14 @@ def _frame_facts(frame: dict[str, Any]) -> dict[str, Any]:
 
 
 def spray_signals_from_operation_plan(plan: dict[str, Any] | None) -> list[WeatherSignal]:
-    """``spray_unsafe`` for the first (nearest) frame when spraying is not safe now, and
-    ``spray_window_open`` for the best later frame that is safe and scores >= 0.55.
+    """``spray_unsafe`` when spraying is not safe now (hour 0 and the next hour), and
+    ``spray_window_open`` for the best frame that is safe and scores >= 0.55.
 
-    No plan, no spraying item or no frames ⇒ ``spray_unsafe`` with ``basis="unconfirmed"``
-    and confidence 0.0: the playbook says "do not spray now" without claiming the weather
-    was measured as bad, and the zero confidence lowers the overall playbook confidence.
+    No plan, no spraying item, no frames, or a missing hour-0 / hour-1 frame ⇒
+    ``spray_unsafe`` with ``basis="unconfirmed"`` and confidence 0.0: the playbook says "do not
+    spray now" without claiming the weather was measured as bad, and the zero confidence lowers
+    the overall playbook confidence. ``opens_now`` is true only for the hour-0 frame and only
+    when no ``spray_unsafe`` was emitted.
     """
     item = _spraying_item(plan)
     frames = _frames(item) if item is not None else []
@@ -300,29 +335,55 @@ def spray_signals_from_operation_plan(plan: dict[str, Any] | None) -> list[Weath
         ]
 
     out: list[WeatherSignal] = []
-    now = frames[0]
-    now_decision = _decision(now)
-    now_reasons = _blocking_reasons(now_decision)
-    if now_reasons:
-        score = _num(now_decision.get("score"))
-        insufficient = now_decision.get("status") == "insufficient_data" or not now_decision
+    now = _frame_at(frames, _NOW_OFFSET)
+    next_hour = _frame_at(frames, _NEXT_HOUR_OFFSET)
+
+    reasons: list[str] = []
+    unconfirmed = False
+    measured_scores: list[float] = []
+    for frame, missing_reason, suffix in (
+        (now, "now_frame_missing", ""),
+        (next_hour, "next_hour_frame_missing", NEXT_HOUR_SUFFIX),
+    ):
+        if frame is None:
+            reasons.append(missing_reason)
+            unconfirmed = True
+            continue
+        decision = _decision(frame)
+        frame_reasons = _blocking_reasons(decision)
+        if not frame_reasons:
+            continue
+        reasons.extend(f"{r}{suffix}" for r in frame_reasons)
+        score = _num(decision.get("score"))
+        if decision.get("status") == "insufficient_data" or not decision or score is None:
+            unconfirmed = True
+        else:
+            measured_scores.append(score)
+
+    if reasons:
         out.append(
             WeatherSignal(
                 SPRAY_UNSAFE,
-                0.0 if insufficient or score is None else _clamp01(1.0 - score),
+                0.0 if unconfirmed else _clamp01(1.0 - min(measured_scores)),
                 {
-                    "basis": "unconfirmed" if insufficient else "forecast",
-                    "reasons": now_reasons,
+                    "basis": "unconfirmed" if unconfirmed else "forecast",
+                    "reasons": list(dict.fromkeys(reasons)),
                     "confidence_basis": "fail_closed_missing_inputs"
-                    if insufficient
+                    if unconfirmed
                     else "one_minus_operation_score",
-                    **_frame_facts(now),
+                    **(_frame_facts(now) if now is not None else {"hour_offset": None}),
+                    "next_hour": _frame_facts(next_hour) if next_hour is not None else None,
                 },
             )
         )
 
     open_frames = []
     for frame in frames:
+        if reasons and frame is now:
+            # Spraying now is not safe (or not confirmed); the hour-0 frame cannot be the window.
+            continue
+        if _num(frame.get("hour_offset")) is None:
+            continue
         decision = _decision(frame)
         score = _num(decision.get("score"))
         if score is None or score < _SPRAY_OPEN_SCORE or _blocking_reasons(decision):
@@ -331,6 +392,11 @@ def spray_signals_from_operation_plan(plan: dict[str, Any] | None) -> list[Weath
     if open_frames:
         # Highest score wins; on a tie the nearer frame (frames are sorted by offset).
         best_score, best = max(open_frames, key=lambda pair: pair[0])
+        cautions = [
+            str(f)
+            for f in _decision(best).get("limiting_factors") or []
+            if str(f) not in SPRAY_BLOCKING_FACTORS
+        ]
         out.append(
             WeatherSignal(
                 SPRAY_WINDOW_OPEN,
@@ -338,7 +404,8 @@ def spray_signals_from_operation_plan(plan: dict[str, Any] | None) -> list[Weath
                 {
                     "suitable_fraction": best_score,
                     "confidence_basis": "operation_score",
-                    "opens_now": best is now,
+                    "opens_now": best is now and not reasons,
+                    "cautions": cautions,
                     **_frame_facts(best),
                 },
             )

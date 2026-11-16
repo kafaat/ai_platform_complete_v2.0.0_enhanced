@@ -104,7 +104,7 @@ def _types(signals) -> set[str]:
 
 
 def test_strong_wind_forecast_is_unsafe_to_spray_even_where_the_service_score_is_not_unsafe():
-    plan = _plan({0: _STRONG_WIND})
+    plan = _plan({0: _STRONG_WIND, 1: _STRONG_WIND})
     decision = plan["operations"][0]["frames"][0]["operation"]
     # The owner's score alone would not say "unsafe" (it says "poor"); drift is the reason.
     assert decision["suitability"] != "unsafe", f"premise changed: {decision}"
@@ -120,7 +120,8 @@ def test_strong_wind_forecast_is_unsafe_to_spray_even_where_the_service_score_is
 
 
 def test_moderate_wind_that_scores_acceptable_still_blocks_spraying():
-    plan = _plan({0: {**_CALM, "wind_speed_10m_kmh": 20.0, "wind_gusts_10m_kmh": 25.0}})
+    moderate = {**_CALM, "wind_speed_10m_kmh": 20.0, "wind_gusts_10m_kmh": 25.0}
+    plan = _plan({0: moderate, 1: moderate})
     decision = plan["operations"][0]["frames"][0]["operation"]
     assert decision["suitability"] == "acceptable", f"premise changed: {decision}"
     assert _types(spray_signals_from_operation_plan(plan)) == {SPRAY_UNSAFE}, (
@@ -129,13 +130,13 @@ def test_moderate_wind_that_scores_acceptable_still_blocks_spraying():
 
 
 def test_calm_forecast_opens_a_spray_window_now():
-    signals = spray_signals_from_operation_plan(_plan({0: _CALM, 3: _CALM}))
+    signals = spray_signals_from_operation_plan(_plan({0: _CALM, 1: _CALM, 3: _CALM}))
     assert _types(signals) == {SPRAY_WINDOW_OPEN}, f"calm weather opens a window: {signals}"
     assert signals[0].payload["opens_now"] is True, f"window should be now: {signals[0].payload}"
 
 
 def test_wind_now_and_calm_later_gives_unsafe_now_and_a_later_window():
-    signals = spray_signals_from_operation_plan(_plan({0: _STRONG_WIND, 6: _CALM}))
+    signals = spray_signals_from_operation_plan(_plan({0: _STRONG_WIND, 1: _STRONG_WIND, 6: _CALM}))
     assert _types(signals) == {SPRAY_UNSAFE, SPRAY_WINDOW_OPEN}, f"both expected: {signals}"
     window = next(s for s in signals if s.signal_type == SPRAY_WINDOW_OPEN)
     assert window.payload["hour_offset"] == 6, f"the later frame opens: {window.payload}"
@@ -159,9 +160,72 @@ def test_no_spraying_forecast_fails_closed_to_unsafe_with_zero_confidence(plan):
 
 def test_missing_wind_reading_fails_closed():
     sample = {k: v for k, v in _CALM.items() if not k.startswith("wind")}
-    signals = spray_signals_from_operation_plan(_plan({0: sample}))
+    signals = spray_signals_from_operation_plan(_plan({0: sample, 1: sample}))
     assert _types(signals) == {SPRAY_UNSAFE}, f"unknown wind is not calm: {signals}"
     assert signals[0].payload["basis"] == "unconfirmed", f"insufficient data: {signals[0]}"
+
+
+def test_partial_plan_without_the_hour_zero_frame_never_says_spray_now():
+    """Review finding: weather-service drops an hour whose fetch failed (partial plan). The
+    nearest frame left (+6 h, calm) must not be judged as "now"."""
+    signals = spray_signals_from_operation_plan(_plan({6: _CALM, 12: _CALM}))
+    unsafe = next((s for s in signals if s.signal_type == SPRAY_UNSAFE), None)
+    assert unsafe is not None, f"unknown current weather must block spraying: {signals}"
+    assert unsafe.payload["basis"] == "unconfirmed", f"absence, not measurement: {unsafe}"
+    assert "now_frame_missing" in unsafe.payload["reasons"], f"reason named: {unsafe.payload}"
+    assert unsafe.confidence_score == 0.0, f"no confidence from no data: {unsafe}"
+    window = next(s for s in signals if s.signal_type == SPRAY_WINDOW_OPEN)
+    assert window.payload["opens_now"] is False, f"a +6 h frame is not now: {window.payload}"
+    playbook = build_playbook(PlaybookContext(weather_signals=tuple(signals)))
+    assert not any("الآن" in d and "نفّذ الرشّ" in d for d in playbook.do_today), (
+        f"must not tell the farmer to spray now: {playbook.do_today}"
+    )
+    assert playbook.main_judgement.startswith("الرشّ غير آمن"), f"unsafe wins: {playbook}"
+
+
+def test_missing_next_hour_frame_blocks_spraying_now():
+    signals = spray_signals_from_operation_plan(_plan({0: _CALM, 3: _CALM}))
+    unsafe = next((s for s in signals if s.signal_type == SPRAY_UNSAFE), None)
+    assert unsafe is not None, f"unknown next hour must block spraying now: {signals}"
+    assert unsafe.payload["reasons"] == ["next_hour_frame_missing"], f"reason: {unsafe.payload}"
+    window = next(s for s in signals if s.signal_type == SPRAY_WINDOW_OPEN)
+    assert window.payload["hour_offset"] == 3, f"hour 0 cannot be the window: {window.payload}"
+    assert window.payload["opens_now"] is False, f"not now: {window.payload}"
+
+
+def test_strong_wind_in_the_next_hour_blocks_spraying_now():
+    signals = spray_signals_from_operation_plan(_plan({0: _CALM, 1: _STRONG_WIND, 3: _CALM}))
+    unsafe = next((s for s in signals if s.signal_type == SPRAY_UNSAFE), None)
+    assert unsafe is not None, f"drift within the hour spoils the application: {signals}"
+    assert unsafe.payload["basis"] == "forecast", f"measured: {unsafe.payload}"
+    assert "wind_speed_high@next_hour" in unsafe.payload["reasons"], f"reason: {unsafe.payload}"
+    windows = [s for s in signals if s.signal_type == SPRAY_WINDOW_OPEN]
+    assert all(w.payload["opens_now"] is False for w in windows), f"not now: {windows}"
+    playbook = build_playbook(PlaybookContext(weather_signals=tuple(signals)))
+    assert any("خلال الساعة القادمة" in e for e in playbook.evidence), (
+        f"next-hour reason must be explained: {playbook.evidence}"
+    )
+
+
+def test_temperature_outside_the_spray_window_blocks_and_humidity_is_a_caution():
+    hot_humid = {**_CALM, "temperature_c": 38.0, "humidity_pct": 90.0}
+    hot = spray_signals_from_operation_plan(_plan({0: hot_humid, 1: hot_humid}))
+    assert _types(hot) == {SPRAY_UNSAFE}, f"38 C must not open a spray window: {hot}"
+    assert "temperature_outside_spray_window" in hot[0].payload["reasons"], f"{hot[0].payload}"
+    humid = {**_CALM, "humidity_pct": 90.0}
+    signals = spray_signals_from_operation_plan(_plan({0: humid, 1: humid}))
+    assert _types(signals) == {SPRAY_WINDOW_OPEN}, f"humidity alone lowers the score: {signals}"
+    assert signals[0].payload["cautions"] == ["humidity_high"], f"named: {signals[0].payload}"
+
+
+def test_frames_without_hour_offset_fail_closed_instead_of_crashing():
+    plan = _plan({0: _CALM, 1: _CALM})
+    frames = plan["operations"][0]["frames"]
+    for frame in frames:
+        frame.pop("hour_offset")
+    signals = spray_signals_from_operation_plan(plan)
+    assert _types(signals) == {SPRAY_UNSAFE}, f"unknown offsets cannot be now: {signals}"
+    assert signals[0].payload["basis"] == "unconfirmed", f"absence: {signals[0]}"
 
 
 def test_thermal_product_maps_to_frost_and_heat_with_its_own_confidence():
@@ -253,7 +317,7 @@ def test_acceptance_no_ui_keys_and_strong_wind_gives_unsafe_to_spray(monkeypatch
 
 def test_negative_control_the_what_if_route_without_keys_has_no_spray_warning(monkeypatch):
     """The pre-W1-17 behaviour, kept as the labelled what-if tool: no keys, no weather."""
-    _stub_weather(monkeypatch, plan=_plan({0: _STRONG_WIND}))
+    _stub_weather(monkeypatch, plan=_plan({0: _STRONG_WIND, 1: _STRONG_WIND}))
     out = _call(DecisionPlaybookRequest())
     assert out["mode"] == "what_if", f"labelled what-if: {out.get('mode')}"
     assert out["weather_signals_source"] == "caller_supplied", "what-if is caller supplied"
@@ -264,9 +328,9 @@ def test_negative_control_the_what_if_route_without_keys_has_no_spray_warning(mo
 
 
 def test_snapshot_id_follows_the_weather(monkeypatch):
-    _stub_weather(monkeypatch, plan=_plan({0: _CALM}))
+    _stub_weather(monkeypatch, plan=_plan({0: _CALM, 1: _CALM}))
     calm = _call(DecisionPlaybookRequest(field_id="fld-1"))
-    _stub_weather(monkeypatch, plan=_plan({0: _STRONG_WIND}))
+    _stub_weather(monkeypatch, plan=_plan({0: _STRONG_WIND, 1: _STRONG_WIND}))
     windy = _call(DecisionPlaybookRequest(field_id="fld-1"))
     assert calm["weather_snapshot_id"] != windy["weather_snapshot_id"], "id binds the weather"
     assert SPRAY_WINDOW_OPEN in {s["signal_type"] for s in calm["weather_signals"]}, "calm opens"
@@ -280,7 +344,7 @@ def test_snapshot_id_follows_the_weather(monkeypatch):
     ],
 )
 def test_field_mode_refuses_weather_from_the_caller(monkeypatch, extra):
-    _stub_weather(monkeypatch, plan=_plan({0: _STRONG_WIND}))
+    _stub_weather(monkeypatch, plan=_plan({0: _STRONG_WIND, 1: _STRONG_WIND}))
     with pytest.raises(HTTPException) as err:
         _call(DecisionPlaybookRequest(field_id="fld-1", **extra))
     assert err.value.status_code == 422, f"422 expected: {err.value.status_code}"
@@ -288,7 +352,7 @@ def test_field_mode_refuses_weather_from_the_caller(monkeypatch, extra):
 
 
 def test_field_mode_refuses_a_crop_that_is_not_the_fields(monkeypatch):
-    _stub_weather(monkeypatch, plan=_plan({0: _CALM}))
+    _stub_weather(monkeypatch, plan=_plan({0: _CALM, 1: _CALM}))
     with pytest.raises(HTTPException) as err:
         _call(DecisionPlaybookRequest(field_id="fld-1", crop="tomato"))
     assert err.value.status_code == 422, f"crop mismatch must be refused: {err.value}"
@@ -314,7 +378,7 @@ def test_all_weather_down_is_503(monkeypatch):
 def test_incomplete_rain_drops_disease_not_the_playbook(monkeypatch):
     _stub_weather(
         monkeypatch,
-        plan=_plan({0: _CALM}),
+        plan=_plan({0: _CALM, 1: _CALM}),
         current={"temperature_c": 20.0, "humidity_pct": 90.0},
         forecast={"days": [{"precipitation_mm": 12.0}, {"precipitation_mm": None}, {}]},
     )
@@ -333,7 +397,43 @@ def test_field_mode_requires_field_view(monkeypatch):
         user_id="u-admin", tenant_id=_USER.tenant_id, role=UserRole.PLATFORM_ADMIN, name_ar="x"
     )
     assert not has_permission(user, Permission.FIELD_VIEW), "premise: admin lacks field:view"
-    _stub_weather(monkeypatch, plan=_plan({0: _CALM}))
+    _stub_weather(monkeypatch, plan=_plan({0: _CALM, 1: _CALM}))
     with pytest.raises(HTTPException) as err:
         _call(DecisionPlaybookRequest(field_id="fld-1"), user=user)
     assert err.value.status_code == 403, f"403 expected: {err.value.status_code}"
+
+
+def test_weather_products_are_fetched_concurrently(monkeypatch):
+    """All four upstream calls must be in flight together (latency = slowest, not the sum).
+
+    Each stub waits until all four have started; a sequential fetcher would time out here.
+    """
+    _stub_weather(monkeypatch, plan=_plan({0: _CALM, 1: _CALM}))
+    started: set[str] = set()
+
+    def _gate(name, value):
+        async def fetch(*args, **kwargs):
+            started.add(name)
+            for _ in range(200):
+                if len(started) == 4:
+                    return value
+                await asyncio.sleep(0.001)
+            raise TimeoutError(f"{name}: other products never started (sequential fetch)")
+
+        return fetch
+
+    monkeypatch.setattr(fdw, "get_operation_plan", _gate("plan", _plan({0: _CALM, 1: _CALM})))
+    monkeypatch.setattr(
+        fdw,
+        "get_thermal_stress",
+        _gate("thermal", {"status": "ok", "confidence": 0.85, "frost_nights": 0}),
+    )
+    monkeypatch.setattr(
+        fdw, "get_current_weather", _gate("current", {"temperature_c": 22.0, "humidity_pct": 40.0})
+    )
+    monkeypatch.setattr(
+        fdw, "get_weather_forecast", _gate("forecast", {"days": [{"precipitation_mm": 0.0}] * 3})
+    )
+    result = asyncio.run(fdw.derive_field_weather_signals(_USER, "field-1"))
+    assert result["unavailable"] == {}, f"every product should arrive together: {result}"
+    assert started == {"plan", "thermal", "current", "forecast"}, f"all called: {started}"

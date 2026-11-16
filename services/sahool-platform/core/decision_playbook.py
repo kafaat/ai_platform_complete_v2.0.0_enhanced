@@ -86,7 +86,20 @@ _SPRAY_REASON_AR = {
     "missing_wind": "سرعة الرياح غير معروفة",
     "missing_precip": "المطر غير معروف",
     "operation_plan_unavailable": "خطّة عمليّات الطقس غير متاحة",
+    "temperature_outside_spray_window": "حرارة خارج نافذة الرشّ (5-30 م)",
+    "now_frame_missing": "طقس الساعة الحاليّة غير متاح",
+    "next_hour_frame_missing": "طقس الساعة القادمة غير متاح",
+    "unsafe": "ظروف غير آمنة",
+    "no_operation_decision": "لا حكم تشغيليّ من خدمة الطقس",
 }
+_NEXT_HOUR_SUFFIX = "@next_hour"
+
+
+def _spray_reason_ar(reason: str) -> str:
+    if reason.endswith(_NEXT_HOUR_SUFFIX):
+        base = reason[: -len(_NEXT_HOUR_SUFFIX)]
+        return f"{_SPRAY_REASON_AR.get(base, base)} خلال الساعة القادمة"
+    return _SPRAY_REASON_AR.get(reason, reason)
 
 
 @dataclass(frozen=True)
@@ -310,9 +323,7 @@ def build_playbook(ctx: PlaybookContext) -> DecisionPlaybook:
             {},
         )
         reasons = unsafe_payload.get("reasons") if isinstance(unsafe_payload, dict) else None
-        reasons_ar = "، ".join(
-            dict.fromkeys(_SPRAY_REASON_AR.get(str(r), str(r)) for r in (reasons or []))
-        )
+        reasons_ar = "، ".join(dict.fromkeys(_spray_reason_ar(str(r)) for r in (reasons or [])))
         evidence.append(f"الرشّ غير آمن الآن{f' ({reasons_ar})' if reasons_ar else ''}.")
         avoid_now.append("لا ترشّ الآن: ظروف الرشّ غير آمنة أو غير مؤكّدة.")
 

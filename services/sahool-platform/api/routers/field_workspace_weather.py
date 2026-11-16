@@ -534,10 +534,14 @@ async def fetch_decision_disease_risk(lat: float, lon: float, crop: str | None) 
     Same rule and same fail-closed inputs as ``GET /fields/{id}/weather/disease-risk``:
     missing temperature, humidity or any of the three rain days is absence, never zero.
     """
+    import asyncio
+
     from api.weather_advice import complete_rain_total, disease_risk
 
-    current = await get_current_weather(lat, lon, model=WEATHER_MODEL)
-    forecast = await get_weather_forecast(lat, lon, days=3, model=WEATHER_MODEL)
+    current, forecast = await asyncio.gather(
+        get_current_weather(lat, lon, model=WEATHER_MODEL),
+        get_weather_forecast(lat, lon, days=3, model=WEATHER_MODEL),
+    )
 
     def _reading(source: Any, key: str) -> float | None:
         if not isinstance(source, dict):
@@ -575,6 +579,7 @@ async def fetch_decision_disease_risk(lat: float, lon: float, crop: str | None) 
 
 async def derive_field_weather_signals(user, field_id: str) -> dict[str, Any]:
     """``{crop, signals, weather_snapshot_id, unavailable, sources}`` for one field."""
+    import asyncio
     import logging
 
     from core.weather_signals import (
@@ -599,15 +604,21 @@ async def derive_field_weather_signals(user, field_id: str) -> dict[str, Any]:
             logger.warning("decision weather product %s unavailable: %s", name, type(exc).__name__)
             unavailable[name] = type(exc).__name__
 
-    await _collect(
-        "operation_plan",
-        get_operation_plan(lat, lon, operations="spraying", hours=SPRAY_HOURS, model=WEATHER_MODEL),
+    # The three products are independent: fetched concurrently, so the latency is the
+    # slowest call, not the sum. ``_collect`` never raises (absence is named instead).
+    await asyncio.gather(
+        _collect(
+            "operation_plan",
+            get_operation_plan(
+                lat, lon, operations="spraying", hours=SPRAY_HOURS, model=WEATHER_MODEL
+            ),
+        ),
+        _collect(
+            "thermal_stress",
+            get_thermal_stress(lat, lon, crop=crop, stage=stage, days=3, model=WEATHER_MODEL),
+        ),
+        _collect("disease_risk", fetch_decision_disease_risk(lat, lon, crop)),
     )
-    await _collect(
-        "thermal_stress",
-        get_thermal_stress(lat, lon, crop=crop, stage=stage, days=3, model=WEATHER_MODEL),
-    )
-    await _collect("disease_risk", fetch_decision_disease_risk(lat, lon, crop))
 
     if not products:
         raise HTTPException(
