@@ -9,12 +9,15 @@ NOBYPASSRLS role and the real raster outbox drained on the owner connection:
 
 1. a published observation is stored once: 201, then the same content is a 200 replay, and a
    re-written COG (delivery metadata only) is a replay that keeps the first delivery;
-2. other content under the same stable id is 409 and the stored row does not move;
-3. the table refuses UPDATE, DELETE and TRUNCATE, for the restricted role and for the owner;
-4. another tenant sees none of it, cannot insert under the first tenant, and its read is empty;
-5. ``/observations`` serves the stored row without calling raster-service, twice identically;
-6. a push that failed stays pending in the outbox and the worker's drain delivers it later;
-7. v286 re-applies cleanly, and its down removes both tables (then it is applied again).
+2. other content under the same stable id and product revision is 409 and the row does not move;
+3. a boundary edit (new geometry revision) or a reprocess (new algorithm version) of the same
+   scene is a new revision: 201, a second row, never a 409 (W1-11 review, HIGH);
+4. the table refuses UPDATE, DELETE and TRUNCATE, for the restricted role and for the owner;
+5. another tenant sees none of it, cannot insert under the first tenant, and its read is empty;
+6. ``/observations`` serves the stored fact of the product raster-service serves now, twice
+   identically, and after a boundary edit serves raster's current value, never the old polygon's;
+7. a push that failed stays pending in the outbox and the worker's drain delivers it later;
+8. v286 re-applies cleanly, and its down removes both tables (then it is applied again).
 
 Run: ``TEST_DATABASE_ADMIN_URL=… TEST_DATABASE_URL=… pytest -m integration <this file>``.
 """
@@ -215,6 +218,38 @@ def test_other_content_under_the_same_id_is_409_and_nothing_moves(svc):
     assert [dict(r) for r in after] == [dict(r) for r in before], "the stored row is untouched"
 
 
+def test_a_new_geometry_or_algorithm_is_a_new_revision_not_a_conflict(svc):
+    _main, client = svc
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    first = _post(client, _payload(tenant, field))
+    assert first.status_code == 201, first.text
+    moved = _post(
+        client,
+        _payload(
+            tenant,
+            field,
+            geometry_revision=2,
+            product_identity_key=f"pik_{field}_r2",
+            stats={"mean": 0.42},
+        ),
+    )
+    assert moved.status_code == 201, f"a boundary edit is a new revision: {moved.text}"
+    reprocessed = _post(
+        client,
+        _payload(
+            tenant,
+            field,
+            algorithm_version="3.0.0",
+            product_identity_key=f"pik_{field}_a3",
+            stats={"mean": 0.6},
+        ),
+    )
+    assert reprocessed.status_code == 201, f"a reprocess is a new revision: {reprocessed.text}"
+    ids = {r.json()["observation_id"] for r in (first, moved, reprocessed)}
+    assert len(ids) == 1, f"one observation (the scene's asset), three revisions: {ids}"
+    assert len(_rows(tenant, field)) == 3, "every revision is kept, append-only"
+
+
 def test_the_table_is_append_only_for_everyone(svc):
     _main, client = svc
     tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
@@ -259,24 +294,72 @@ def test_another_tenant_sees_nothing_and_cannot_write_for_the_first(svc):
     assert _post(client, _payload(tenant, field), tenant=other).status_code == 403, (
         "the route refuses a body for another tenant"
     )
+    asset = _post(client, _payload(tenant, field)).json()["observation_id"]
+    mine = asyncio.run(
+        main.observation_store.observations_for_assets(
+            tenant_id=uuid.UUID(tenant), field_id=field, observation_ids=[asset]
+        )
+    )
+    assert len(mine or []) == 1, f"the owner reads its row: {mine}"
     rows = asyncio.run(
-        main.observation_store.latest_observations(
-            tenant_id=uuid.UUID(other), field_id=field, indicators=["ndvi"]
+        main.observation_store.observations_for_assets(
+            tenant_id=uuid.UUID(other), field_id=field, observation_ids=[asset]
         )
     )
     assert rows == [], "the store's read is tenant-bound"
 
 
-def test_observations_are_served_from_the_store_without_raster(svc, monkeypatch):
+def _raster_bundle(field: str, *, mean: float, revision: int, acquisition: str):
+    """What raster-service's ``/indicator-observation-bundle`` answers for its current product."""
+    return {
+        "field_id": field,
+        "observations": {
+            "ndvi": {
+                "real_data": True,
+                "date": acquisition[:10],
+                "stats": {"mean": mean},
+                "coverage_ratio": 0.94,
+                "valid_pixel_ratio": 0.91,
+                "cloud_pct": 4.0,
+                "confidence": 0.89,
+                "index_quality_flags": [],
+                "grid_identity": {"geometry_revision": revision},
+                "indicator_product": {
+                    "source": "raster-service",
+                    "estimated": False,
+                    "quality_gate_passed": True,
+                    "quality_score": 0.89,
+                    "data_available_at": "2026-10-15T09:00:00+00:00",
+                    "provenance": {
+                        "scene_id": "S2A_LIVE_SCENE",
+                        "qa_mask_version": "scl-v1",
+                        "algorithm_version": "2.1.0",
+                        "acquisition_datetime": acquisition,
+                    },
+                },
+            }
+        },
+        "real_data": True,
+        "bundle_consistency": True,
+        "mixed_scene": False,
+    }
+
+
+def test_observations_serve_the_stored_fact_of_raster_s_current_product(svc, monkeypatch):
     main, client = svc
     tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
     created = _post(client, _payload(tenant, field))
     assert created.status_code == 201, created.text
+    current = {"bundle": _raster_bundle(field, mean=0.6, revision=1, acquisition="2026-10-15")}
 
-    async def _no_raster(**_kw):
-        raise AssertionError("raster-service must not be called for a stored observation")
+    async def _raster(*, field_id, tenant_id, season_id, indicators):
+        # raster-service after a restart: the layer carries its acquisition DATE only
+        main.observation_runtime.LAST_BUNDLE.set(current["bundle"])
+        return main.canonicalize_bundle(
+            bundle=current["bundle"], tenant_id=tenant_id, season_id=season_id
+        )
 
-    monkeypatch.setattr(main, "fetch_canonical_observations", _no_raster)
+    monkeypatch.setattr(main, "fetch_canonical_observations", _raster)
 
     def _read():
         response = client.get(
@@ -288,11 +371,33 @@ def test_observations_are_served_from_the_store_without_raster(svc, monkeypatch)
         return response.json()
 
     first, second = _read(), _read()
-    assert first["observation_source"] == "canonical_store", first
+    assert (first["observation_source"], first["store_status"]) == ("canonical_store", "served"), (
+        first
+    )
     [obs] = first["observations"]
     assert obs["asset_ref"] == created.json()["asset_ref"], obs
-    assert obs["lineage"]["input_hash"], "the observation carries its input hash"
+    assert float(obs["summary"]["mean"]) == pytest.approx(0.61), "the stored published mean"
     assert first["observations"] == second["observations"], "a stored fact replays exactly"
+
+    # The reviewer's live probe: the field boundary changes and raster serves revision 2.
+    current["bundle"] = _raster_bundle(
+        field, mean=0.42, revision=2, acquisition="2026-10-15T07:35:29+00:00"
+    )
+    moved = _read()
+    assert moved["observation_source"] == "raster_computed_fallback", moved
+    assert float(moved["observations"][0]["summary"]["mean"]) == pytest.approx(0.42), (
+        "never the old polygon's stored 0.61"
+    )
+    pushed = _post(
+        client,
+        _payload(
+            tenant, field, geometry_revision=2, product_identity_key="pik_r2", stats={"mean": 0.43}
+        ),
+    )
+    assert pushed.status_code == 201, pushed.text
+    bound = _read()
+    assert bound["observation_source"] == "canonical_store", bound
+    assert float(bound["observations"][0]["summary"]["mean"]) == pytest.approx(0.43), bound
 
 
 def test_a_failed_push_stays_pending_and_the_drain_delivers_it(svc, monkeypatch):

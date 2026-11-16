@@ -9,10 +9,16 @@
 -- recomputed it from the latest COG on every read (``/observations``, ``/observation-timeline``),
 -- so there was no replayable NDVI record and nothing could say what a decision had seen.
 --
--- ① canonical_observations (owner indicators-service). One row per published raster asset:
---   observation_id is ``_stable_id("ast", tenant, field, scene, indicator, acquired)``, the same
---   id the canonical contract already uses as the asset reference. Same id and same content ⇒ the
---   insert is a no-op (replay); same id and other content ⇒ the service answers 409 and stores
+-- ① canonical_observations (owner indicators-service). One row per published raster product:
+--   observation_id is the asset stable id the canonical contract already uses as the asset
+--   reference (``observation_runtime.asset_stable_id``: tenant, field, scene, indicator and the
+--   acquisition instant). acquisition_day_id is the id raster-service's computed path gives the
+--   same asset after a restart, when its layer carries the acquisition DATE only; a read or a
+--   join by either id finds the row. revision_key is the product revision raster-service published it under
+--   (geometry revision, algorithm version, QA mask version, raster product identity): a field
+--   boundary edit or a reprocess publishes the same observation_id under a new revision, and that
+--   is a new row, not a conflict. Same id, same revision and same content ⇒ the insert is a no-op
+--   (replay); same id, same revision and other content ⇒ the service answers 409 and stores
 --   nothing. Append-only: BEFORE UPDATE OR DELETE (row) and BEFORE TRUNCATE (statement) triggers
 --   raise 55000. RLS ENABLE + FORCE by app.current_tenant with WITH CHECK.
 -- ② raster_observation_outbox (owner raster-service). The durable retry marker of the push: the
@@ -41,17 +47,22 @@ CREATE TABLE IF NOT EXISTS canonical_observations (
     coverage_ratio NUMERIC CHECK (coverage_ratio IS NULL OR coverage_ratio BETWEEN 0 AND 1),
     cloud_pct NUMERIC CHECK (cloud_pct IS NULL OR cloud_pct BETWEEN 0 AND 100),
     quality_gate_passed BOOLEAN NOT NULL,
+    geometry_revision INTEGER CHECK (geometry_revision IS NULL OR geometry_revision >= 0),
     algorithm_version TEXT,
     qa_mask_version TEXT,
     product_identity_key TEXT,
+    revision_key TEXT NOT NULL CHECK (revision_key ~ '^[0-9a-f]{64}$'),
+    acquisition_day_id TEXT NOT NULL CHECK (acquisition_day_id ~ '^ast_[0-9a-f]{24}$'),
     payload JSONB NOT NULL CHECK (jsonb_typeof(payload) = 'object'),
     payload_sha256 TEXT NOT NULL CHECK (payload_sha256 ~ '^[0-9a-f]{64}$'),
     source_service TEXT NOT NULL DEFAULT 'raster-service' CHECK (source_service = 'raster-service'),
     published_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT canonical_observations_pk PRIMARY KEY (tenant_id, observation_id)
+    CONSTRAINT canonical_observations_pk PRIMARY KEY (tenant_id, observation_id, revision_key)
 );
 CREATE INDEX IF NOT EXISTS canonical_observations_field_idx
     ON canonical_observations (tenant_id, field_id, indicator_code, acquired_at DESC);
+CREATE INDEX IF NOT EXISTS canonical_observations_day_id_idx
+    ON canonical_observations (tenant_id, field_id, acquisition_day_id);
 
 ALTER TABLE canonical_observations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE canonical_observations FORCE ROW LEVEL SECURITY;

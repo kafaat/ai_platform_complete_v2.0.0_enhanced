@@ -294,3 +294,82 @@ def test_a_push_failure_never_changes_the_publication(monkeypatch):
 
     monkeypatch.setattr(observation_outbox, "publish", explode)
     assert _persist() is True, "publication stands; the outbox or the worker retries the push"
+
+
+# ── the drain: independent of invalidation, bounded per cycle (W1-11 review) ───────────────
+def _worker():
+    import cache_invalidation_worker
+
+    return cache_invalidation_worker
+
+
+@pytest.mark.parametrize(
+    ("flag", "token", "expected"),
+    [
+        (None, "tok", True),
+        ("true", "tok", True),
+        ("false", "tok", False),
+        (None, "", False),
+    ],
+)
+def test_the_drain_is_on_by_default_and_needs_only_its_token(monkeypatch, flag, token, expected):
+    worker = _worker()
+    monkeypatch.setenv("RASTER_CACHE_INVALIDATION_ENABLED", "false")
+    if flag is None:
+        monkeypatch.delenv("RASTER_OBSERVATION_OUTBOX_DRAIN_ENABLED", raising=False)
+    else:
+        monkeypatch.setenv("RASTER_OBSERVATION_OUTBOX_DRAIN_ENABLED", flag)
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", token)
+    on, reason = worker._outbox_drain_configured()
+    assert on is expected, f"flag={flag} token={bool(token)}: {reason}"
+    assert on or reason, "an off drain must say why"
+
+
+def test_a_drain_that_is_off_warns_the_operator_once(monkeypatch, caplog):
+    worker = _worker()
+    monkeypatch.setenv("RASTER_OBSERVATION_OUTBOX_DRAIN_ENABLED", "false")
+    monkeypatch.setattr(worker, "_outbox_drain_warned", False)
+    with caplog.at_level("WARNING", logger=worker.logger.name):
+        assert asyncio.run(worker._drain_cycle(None)) is None, "no pool is opened"
+        asyncio.run(worker._drain_cycle(None))
+    warned = [r for r in caplog.records if "not retried" in r.getMessage()]
+    assert len(warned) == 1, f"one warning, not one per cycle: {[r.getMessage() for r in warned]}"
+
+
+def test_the_drain_runs_when_invalidation_is_disabled_or_failed(monkeypatch):
+    worker = _worker()
+    drained: list = []
+
+    async def _drain(pool):
+        drained.append(pool)
+        return 0
+
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "tok")
+    monkeypatch.delenv("RASTER_OBSERVATION_OUTBOX_DRAIN_ENABLED", raising=False)
+    monkeypatch.setattr(worker, "_drain_observation_outbox", _drain)
+    held = "the-loop-pool"
+    assert asyncio.run(worker._drain_cycle(held)) == held, "the loop keeps its pool"
+    assert drained == [held], drained
+    import inspect
+
+    src = inspect.getsource(worker.loop_worker)
+    assert src.count("_drain_cycle(pool)") == 2, (
+        "the loop must drain both in the disabled branch and after every invalidation cycle"
+    )
+    assert "await _drain_observation_outbox(pool)\n        except" not in src, (
+        "the drain must not sit inside the invalidation try (a failed run_once would skip it)"
+    )
+    assert "pool = await _connect()" in inspect.getsource(worker._drain_cycle), (
+        "with invalidation off the drain opens its own pool"
+    )
+
+
+def test_the_drain_budget_is_spent_on_a_clock():
+    ticks = iter([0.0, 10.0, 31.0])
+    clock = lambda: next(ticks)  # noqa: E731
+    started = clock()
+    assert observation_outbox.within_budget(started, 30, clock=clock), "10s of 30s: send"
+    assert not observation_outbox.within_budget(started, 30, clock=clock), "31s of 30s: stop"
+    assert observation_outbox.DRAIN_BUDGET_S < 120, (
+        "a drain must end well inside the worker heartbeat max-age (120 s)"
+    )

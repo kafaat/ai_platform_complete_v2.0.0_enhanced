@@ -24,6 +24,7 @@ import json
 import logging
 import math
 import os
+import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -37,6 +38,9 @@ BACKOFF_BASE_S = float(os.getenv("OBSERVATION_PUSH_BACKOFF_SECONDS", "30"))
 BACKOFF_MAX_S = float(os.getenv("OBSERVATION_PUSH_BACKOFF_MAX_SECONDS", "3600"))
 #: A claimed row is invisible to another drain for this long (a dead worker's claim expires).
 CLAIM_LEASE_S = float(os.getenv("OBSERVATION_PUSH_LEASE_SECONDS", "120"))
+#: One drain stops sending after this long (the worker's heartbeat max-age is 120 s); the rows it
+#: claimed and did not send are released for the next cycle at once.
+DRAIN_BUDGET_S = float(os.getenv("OBSERVATION_PUSH_DRAIN_BUDGET_SECONDS", "30"))
 
 DELIVERED = "delivered"
 CONFLICT = "conflict"
@@ -329,13 +333,27 @@ def _payload(value: Any) -> dict[str, Any]:
     return dict(value)
 
 
-async def drain_once(pool: Any, *, batch_size: int = 20, transport: Any = None) -> int:
+def within_budget(started: float, budget_s: float, *, clock: Any = time.monotonic) -> bool:
+    return clock() - started < budget_s
+
+
+async def drain_once(
+    pool: Any,
+    *,
+    batch_size: int = 20,
+    transport: Any = None,
+    budget_s: float | None = None,
+    clock: Any = time.monotonic,
+) -> int:
     """Re-send pending outbox rows whose time has come. Returns how many were delivered.
 
     Runs in the cache invalidation worker on its jobs-role pool. The claim moves
     ``next_attempt_at`` forward by a lease inside the claiming transaction, so two workers never
-    send the same row at once and a dead worker's claim expires on its own.
+    send the same row at once and a dead worker's claim expires on its own. Sending stops once
+    ``budget_s`` (``DRAIN_BUDGET_S``) has passed; the claimed rows not sent are released.
     """
+    budget = DRAIN_BUDGET_S if budget_s is None else budget_s
+    started = clock()
     if not _service_token():
         return 0
     async with pool.acquire() as conn:
@@ -350,10 +368,25 @@ async def drain_once(pool: Any, *, batch_size: int = 20, transport: Any = None) 
                     CLAIM_LEASE_S,
                 )
         delivered = 0
+        unsent: list[int] = []
         for row in rows:
+            if not within_budget(started, budget, clock=clock):
+                unsent.append(int(row["id"]))
+                continue
             payload = _payload(row["payload"])
             out = await push(payload, transport=transport)
             _log_outcome(payload, out, row["id"])
             await _record(conn, row["tenant_id"], int(row["id"]), int(row["attempts"]), out)
             delivered += out.status == DELIVERED
+        if unsent:
+            await conn.execute(
+                "UPDATE raster_observation_outbox SET next_attempt_at = now() "
+                "WHERE id = ANY($1::bigint[]) AND status = 'pending'",
+                unsent,
+            )
+            logger.warning(
+                "observation outbox drain budget %.0fs spent: %s claimed rows released unsent",
+                budget,
+                len(unsent),
+            )
         return delivered
