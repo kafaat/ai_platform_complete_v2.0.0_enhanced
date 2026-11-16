@@ -1,6 +1,6 @@
 """Read-only origin projection must never turn a harvest estimate into saleable stock."""
 
-from core.market_origin import assess_market_origin_preview
+from core.engines.harvest_traceability import assess_market_origin_preview
 
 
 def _lot(**kw):

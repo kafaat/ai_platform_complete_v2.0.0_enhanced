@@ -34,7 +34,7 @@ def test_sharing_key_revocation_requires_owner_permission_and_rls_scope():
 def test_market_origins_are_read_only_not_uuid_coercion():
     src = _source("services/sahool-platform/api/routers/harvest_traceability.py")
     assert 'result["market_origin_preview"] = assess_market_origin_preview(lot, chain)' in src
-    core = _source("services/sahool-platform/core/market_origin.py")
+    core = _source("services/sahool-platform/core/engines/harvest_traceability.py")
     assert '"decision_usable": False' in core
     assert "uuid.UUID" not in core
 

@@ -1,6 +1,6 @@
 """Cropin-style advisor reference: a crop card is never a tenant fact."""
 
-from core.crop_intelligence.advisor_reference import compose_advisor_crop_reference
+from core.crop_intelligence.knowledge_layer import compose_advisor_crop_reference
 
 
 def test_single_crop_season_selects_governed_card():

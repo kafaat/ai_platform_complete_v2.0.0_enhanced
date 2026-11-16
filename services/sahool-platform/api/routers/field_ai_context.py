@@ -15,7 +15,7 @@ from statistics import mean
 from typing import Any
 
 from core.ai_policy_envelope import build_ai_policy_envelope, load_tenant_ai_policy_row
-from core.crop_intelligence.advisor_reference import compose_advisor_crop_reference
+from core.crop_intelligence.knowledge_layer import compose_advisor_crop_reference
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 

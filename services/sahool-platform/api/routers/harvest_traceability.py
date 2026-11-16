@@ -397,7 +397,7 @@ async def get_traceability(
     # A quantity remainder is not a sellable stock reservation. Return a
     # transparent upper-bound preview until the market writer boundary is
     # approved and a persisted harvest-lot ⇄ listing link is available.
-    from core.market_origin import assess_market_origin_preview
+    from core.engines.harvest_traceability import assess_market_origin_preview
 
     result["market_origin_preview"] = assess_market_origin_preview(lot, chain)
     return result
