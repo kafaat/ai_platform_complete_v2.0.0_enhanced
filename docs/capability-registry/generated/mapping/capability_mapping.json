@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7503,
+    "files_scanned": 7506,
     "files_by_kind": {
       "backend": 1296,
       "database": 350,
       "governance": 89,
       "mobile": 429,
-      "other": 2197,
-      "tests": 2587,
+      "other": 2198,
+      "tests": 2589,
       "web": 555
     },
-    "unmapped_artifacts": 3570,
+    "unmapped_artifacts": 3572,
     "ambiguous_artifacts": 256,
     "files_by_reading": {
-      "python_functional": 4068,
+      "python_functional": 4071,
       "raw": 3435
     },
-    "test_dependency_files": 1973,
-    "test_dependency_edges": 5213,
-    "test_dependency_bounded_files": 1145,
+    "test_dependency_files": 1974,
+    "test_dependency_edges": 5215,
+    "test_dependency_bounded_files": 1146,
     "test_dependency_unresolved_relations": 504
   },
   "capabilities": [
@@ -45107,6 +45107,14 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_helm_render_acceptance.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_helm_render_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_helm_source_contract.py",
       "kind": "tests"
     },
@@ -84407,12 +84415,12 @@
         {
           "source": "scripts/deploy/validate_helm_readiness.py",
           "kind": "loader",
-          "line": 49
+          "line": 50
         },
         {
           "source": "scripts/deploy/validate_helm_readiness.py",
           "kind": "source_read",
-          "line": 50
+          "line": 51
         }
       ],
       "unresolved": []
@@ -84472,12 +84480,30 @@
         {
           "source": "scripts/deploy/validate_helm_readiness.py",
           "kind": "loader",
-          "line": 34
+          "line": 35
         },
         {
           "source": "scripts/deploy/validate_helm_readiness.py",
           "kind": "source_read",
-          "line": 35
+          "line": 36
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_helm_render_guard.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "scripts/ci/helm_render_guard.py",
+          "kind": "loader",
+          "line": 13
+        },
+        {
+          "source": "scripts/ci/helm_render_guard.py",
+          "kind": "source_read",
+          "line": 14
         }
       ],
       "unresolved": []

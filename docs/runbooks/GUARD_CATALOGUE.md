@@ -10,9 +10,9 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **290**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **61**
-- إجماليّ الطفرات المُسجَّلة: **488**
+- حرّاس تحجب في CI: **291**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **62**
+- إجماليّ الطفرات المُسجَّلة: **490**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **397** على 138 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -27,7 +27,7 @@
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (61)
+## الحرّاس المُثبَتة بالتكذيب (62)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -682,6 +682,19 @@
 - Dropping the services ⊆ workloads ∪ ledger half of the set equality lets a compose service reach production with no chart workload and no recorded reason, which is how 61 of 67 default-profile services came to be missing from the chart unnoticed (W3-09). — يُسقِط `test_a_service_in_neither_list_blocks`
 - Ignoring compose's ${VAR:?} markers renders a pod without a variable its service refuses to start or serve without (W0-04 measured it: no REDIS_URL for the platform, no JWT_PUBLIC_KEY for raster and guardrails). — يُسقِط `test_a_workload_that_drops_a_required_variable_blocks`
 - A ledger that keeps entries for services already ported stops shrinking, and its reasons start describing a chart that no longer exists. — يُسقِط `test_a_ledger_entry_for_a_ported_service_is_stale`
+
+### `helm_render_guard.py`
+
+**يفرض:** Helm render guard: the pinned helm rendered the chart and no render test skipped.
+
+**يحجب في:** `sahool-production-gates.yml` → `helm-readiness`
+
+**الاختبار الشاهد:** `tests_v9/test_helm_render_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- إن قَبِل الحارس تخطّي اختبار عرض عاد الصنف نفسه: مشغّل بلا helm يمرّ أخضر. شاهد التخطّي يجب أن يسقط. — يُسقِط `test_a_skipped_render_test_fails_the_guard`
+- إن قَبِل أيّ إصدار عاد العرض إلى helm صورة المشغّل غير المثبَّت. شاهد رفض الإصدار يجب أن يسقط. — يُسقِط `test_the_runner_image_helm_is_refused`
 
 ### `json_duplicate_key_guard.py`
 
