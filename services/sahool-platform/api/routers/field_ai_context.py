@@ -639,8 +639,7 @@ def _summary_ar(pack: dict[str, Any]) -> str:
         rain_display = rain_total if rain_total is not None else "غير مكتمل"
         et0_display = et0_total if et0_total is not None else "غير مكتمل"
         parts.append(
-            f"طقس تاريخي: {s.get('days')} يوم، مطر {rain_display} مم، "
-            f"ET0 {et0_display} مم."
+            f"طقس تاريخي: {s.get('days')} يوم، مطر {rain_display} مم، ET0 {et0_display} مم."
         )
     else:
         parts.append("الطقس التاريخي غير متاح لهذا الحقل حالياً.")

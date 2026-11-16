@@ -520,7 +520,10 @@ def _build_agent_tool_fetcher(
             canonical = fs.get("canonical_field_state") if isinstance(fs, dict) else None
             # The real internal field endpoint returns {**canonical, "ai_context_pack": ...};
             # the nested form is also accepted for internal compatibility callers.
-            if not isinstance(canonical, dict) and fs.get("schema_version") == "canonical_field_state.v1":
+            if (
+                not isinstance(canonical, dict)
+                and fs.get("schema_version") == "canonical_field_state.v1"
+            ):
                 canonical = fs
             water_owner = canonical.get("water") if isinstance(canonical, dict) else None
             if isinstance(water_owner, dict):
@@ -631,8 +634,7 @@ def _ai_context_memory_lines(pack: dict[str, Any] | None) -> list[str]:
         crop_label = str(crop_ref.get("crop_id"))[:80]
         digest = str(crop_ref.get("knowledge_digest"))[:24]
         lines.append(
-            f"  - مرجع المحصول: {crop_label}؛ بصمة المعرفة: {digest} "
-            "(مرجع عام، ليس قرارًا)."
+            f"  - مرجع المحصول: {crop_label}؛ بصمة المعرفة: {digest} (مرجع عام، ليس قرارًا)."
         )
     summary = pack.get("ai_context_summary_ar")
     if summary:

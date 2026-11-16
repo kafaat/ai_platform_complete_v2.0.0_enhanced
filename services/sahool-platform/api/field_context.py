@@ -504,7 +504,9 @@ async def harvest_lot_phi_check(conn, user, req, harvest_date):
     )
 
 
-def summarize_ai_weather_archive(records: list[Any]) -> tuple[dict[str, Any], list[dict[str, Any]], bool, bool]:
+def summarize_ai_weather_archive(
+    records: list[Any],
+) -> tuple[dict[str, Any], list[dict[str, Any]], bool, bool]:
     """Build read-only weather totals without converting missing observations to zero.
 
     An incomplete metric is null, with covered-day counts retained for the user.
@@ -515,9 +517,7 @@ def summarize_ai_weather_archive(records: list[Any]) -> tuple[dict[str, Any], li
         if d.temp_max_c is not None and d.temp_min_c is not None
     ]
     # Unobserved rain/ET0 must not be silently rewritten into measured zero.
-    precip_vals = [
-        float(d.precipitation_mm) for d in records if d.precipitation_mm is not None
-    ]
+    precip_vals = [float(d.precipitation_mm) for d in records if d.precipitation_mm is not None]
     et0_vals = [float(d.et0_mm) for d in records if d.et0_mm is not None]
     precip_complete = len(precip_vals) == len(records)
     et0_complete = len(et0_vals) == len(records)
@@ -560,12 +560,10 @@ def summarize_ai_weather_archive(records: list[Any]) -> tuple[dict[str, Any], li
             "et0_covered_days": v["et0_covered_days"],
             "precipitation_mm": (
                 round(v["precipitation_mm"], 2)
-                if v["precipitation_covered_days"] == v["days"] else None
+                if v["precipitation_covered_days"] == v["days"]
+                else None
             ),
-            "et0_mm": (
-                round(v["et0_mm"], 2)
-                if v["et0_covered_days"] == v["days"] else None
-            ),
+            "et0_mm": (round(v["et0_mm"], 2) if v["et0_covered_days"] == v["days"] else None),
         }
         for k, v in sorted(monthly.items())
     ]

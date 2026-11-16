@@ -37,4 +37,3 @@ def test_market_origins_are_read_only_not_uuid_coercion():
     core = _source("services/sahool-platform/core/engines/harvest_traceability.py")
     assert '"decision_usable": False' in core
     assert "uuid.UUID" not in core
-

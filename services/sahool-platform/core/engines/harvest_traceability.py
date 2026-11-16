@@ -499,7 +499,8 @@ def assess_market_origin_preview(
         reasons.append("lot_quality_not_declared_for_sale")
     remaining = total - outgoing if total is not None and outgoing <= total else None
     blocked = any(
-        reason not in {
+        reason
+        not in {
             "market_listing_identity_bridge_not_implemented",
             "reservations_and_sorting_losses_unavailable",
         }
