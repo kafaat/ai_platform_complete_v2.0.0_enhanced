@@ -13,7 +13,9 @@ NOBYPASSRLS role and the real water-balance worker (only the weather service is 
 4. nothing is projected, and the response says why, for planned work, a record without a volume,
    a field without an area, or a day a person's full entry owns;
 5. a person's report written over a projection clears the source;
-6. another tenant's operation on the field is 404 and changes nothing.
+6. another tenant's operation on the field is 404 and changes nothing;
+7. two overlapping operations on the same field and day never lose water (advisory lock);
+8. a past day says its balance is not recomputed; actual work is dated by the ledger timezone.
 
 Run: ``TEST_DATABASE_ADMIN_URL=… TEST_DATABASE_URL=… pytest -m integration <this file>``.
 """
@@ -55,8 +57,8 @@ pytestmark.append(
 )
 
 _PLATFORM = Path(__file__).resolve().parents[1] / "services" / "sahool-platform"
-# The farm ledger dates actual work by the database's CURRENT_DATE and the worker its day by the
-# ledger timezone; UTC on both keeps the two on the same calendar day whenever the test runs.
+# The projection and the worker both date the day by the ledger timezone; UTC keeps the test's
+# own calendar day (``_today``) on that day whenever the test runs.
 _TZ = "UTC"
 _ET0_MM = 6.0
 
@@ -274,6 +276,101 @@ async def test_a_second_record_on_the_same_day_makes_the_days_sum(monkeypatch):
         assert row["irrigation_mm"] == pytest.approx(75.0), (
             f"two records (500 + 250 m3 on 1 ha) must make 75 mm, counted once each: {dict(row)}"
         )
+
+
+async def test_overlapping_operations_on_the_same_day_never_lose_water(monkeypatch):
+    """Two operation POSTs whose transactions overlap: both records are stored (uncommitted)
+    before either projects. Without the advisory lock each sums only its own record and the
+    later upsert replaces the earlier figure (750 m3 recorded, 25 mm in the ledger)."""
+    import asyncio
+
+    async with Live(monkeypatch) as live:
+        real = live.ops.project_farm_water_to_ledger
+        arrived = 0
+        both_stored = asyncio.Event()
+
+        async def after_both_records_are_stored(conn, **kw):
+            nonlocal arrived
+            arrived += 1
+            if arrived == 2:
+                both_stored.set()
+            await asyncio.wait_for(both_stored.wait(), timeout=30)
+            return await real(conn, **kw)
+
+        monkeypatch.setattr(live.ops, "project_farm_water_to_ledger", after_both_records_are_stored)
+        outs = await asyncio.wait_for(
+            asyncio.gather(live.operation(volume_m3=500.0), live.operation(volume_m3=250.0)),
+            timeout=60,
+        )
+        assert all(o["water_ledger"]["status"] == "projected" for o in outs), outs
+        recorded = await live.admin.fetchval(
+            "SELECT SUM(water_volume_m3) FROM farm_water_records WHERE field_id=$1",
+            live.field_id,
+        )
+        assert float(recorded) == pytest.approx(750.0), f"both records must be stored: {recorded}"
+        row = await live.today_row()
+        assert row["irrigation_mm"] == pytest.approx(75.0), (
+            f"overlapping projections lost water: 750 m3 on 1 ha recorded, ledger "
+            f"{row['irrigation_mm']} mm (must be 75): {dict(row)}"
+        )
+        first, second = sorted(o["water_ledger"]["irrigation_mm"] for o in outs)
+        assert first in (pytest.approx(25.0), pytest.approx(50.0)), (
+            f"whichever projection takes the lock first sees its own record only: {outs}"
+        )
+        assert second == pytest.approx(75.0), (
+            f"the projection that waited on the lock must see the earlier commit: {outs}"
+        )
+
+
+async def test_a_past_day_says_its_balance_is_not_recomputed(monkeypatch):
+    async with Live(monkeypatch) as live:
+        yesterday = _today() - _dt.timedelta(days=1)
+        req = live.ops.OperationLedgerIn(
+            operation_date=yesterday,
+            operation_type="irrigation",
+            field_id=live.field_id,
+            water=live.ops.WaterRecordIn(
+                well_id="well-1", water_volume_m3=500.0, measurement_method="meter"
+            ),
+        )
+        out = await live.ops.create_operation_ledger_record(
+            req=req, user=_user(live.tenant, live.farmer), idem=None
+        )
+        projection = out["water_ledger"]
+        assert projection["status"] == "projected", projection
+        assert projection["balance_recomputed"] is False, (
+            f"a past day's balance chain is not recomputed, and the response must say so: "
+            f"{projection}"
+        )
+        assert projection["reason"] == "past_day_balance_not_recomputed", projection
+        today = await live.operation(volume_m3=100.0)
+        assert "balance_recomputed" not in today["water_ledger"], (
+            f"today's figure is recomputed by the worker; no warning is due: {today}"
+        )
+
+
+async def test_actual_work_is_dated_by_the_ledger_timezone_not_utc(monkeypatch):
+    """Etc/GMT-14 (UTC+14) is a calendar day ahead of UTC for 14 hours of every UTC day: work
+    completed 'today' there is not future work, whatever the database's CURRENT_DATE says."""
+    tz = "Etc/GMT-14"
+    async with Live(monkeypatch) as live:
+        monkeypatch.setenv("WATER_LEDGER_TIMEZONE", tz)
+        local_today = _dt.datetime.now(ZoneInfo(tz)).date()
+        req = live.ops.OperationLedgerIn(
+            operation_date=local_today,
+            operation_type="irrigation",
+            field_id=live.field_id,
+            water=live.ops.WaterRecordIn(
+                well_id="well-1", water_volume_m3=500.0, measurement_method="meter"
+            ),
+        )
+        out = await live.ops.create_operation_ledger_record(
+            req=req, user=_user(live.tenant, live.farmer), idem=None
+        )
+        assert out["water_ledger"]["status"] == "projected", (
+            f"work completed on the ledger's local day was skipped as future work: {out}"
+        )
+        assert out["water_ledger"]["irrigation_mm"] == pytest.approx(50.0), out
 
 
 async def test_planned_work_is_not_applied_water(monkeypatch):

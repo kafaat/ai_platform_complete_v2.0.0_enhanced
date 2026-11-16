@@ -32,11 +32,16 @@ if CORE not in sys.path:
 
 from api.water_ledger_compute import (  # noqa: E402
     FARM_LEDGER_IRRIGATION_UPSERT_SQL,
+    FARM_WATER_DAY_LOCK_SQL,
     FARM_WATER_DAY_SQL,
     IRRIGATION_SOURCE_FARM_LEDGER,
     LEDGER_SELECT_COLS,
     LEDGER_UPSERT_SQL,
+    farm_water_day_lock_key,
     irrigation_mm_from_volume,
+    ledger_timezone,
+    parse_ledger_date,
+    project_farm_water_to_ledger,
     row_to_ledger_entry,
 )
 
@@ -86,13 +91,42 @@ def test_the_projection_writes_irrigation_only_on_the_workers_day():
 def test_only_actual_completed_work_on_the_tenants_field_is_projected():
     sql = _squash(FARM_WATER_DAY_SQL)
     assert "o.status = 'completed'" in sql, "planned or cancelled water is not applied water"
-    assert "o.operation_date <= CURRENT_DATE" in sql, "future-dated work is not actual work"
+    assert "o.operation_date <= (now() AT TIME ZONE $4)::date" in sql, (
+        "future-dated work is not actual work, and 'today' is the ledger's local day"
+    )
+    assert "CURRENT_DATE" not in sql, (
+        "the database's UTC date skips work completed in the first local hours after midnight"
+    )
     assert "w.tenant_id = $1::uuid" in sql and "f.tenant_id = $1::uuid" in sql, (
         "both the records and the field area are read for the caller's tenant only"
     )
     assert "COUNT(w.water_volume_m3) AS measured" in sql, (
         "records without a volume must be counted apart, so an unknown amount is not read as zero"
     )
+
+
+def test_the_days_sum_is_read_under_a_per_field_day_lock():
+    assert _squash(FARM_WATER_DAY_LOCK_SQL) == (
+        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))"
+    ), "a transaction-scoped lock, released with the operation's own transaction"
+    day = parse_ledger_date("2026-11-16")
+    key = farm_water_day_lock_key("t-1", "f-1", day)
+    assert key == "water-ledger:farm-projection:t-1:f-1:2026-11-16", key
+    assert farm_water_day_lock_key("t-2", "f-1", day) != key, "the lock key is per tenant"
+    src = inspect.getsource(project_farm_water_to_ledger)
+    lock = src.index("FARM_WATER_DAY_LOCK_SQL")
+    read = src.index("FARM_WATER_DAY_SQL,")
+    write = src.index("FARM_LEDGER_IRRIGATION_UPSERT_SQL")
+    assert lock < read < write, (
+        "the lock must be taken before the day's sum, or overlapping projections lose water"
+    )
+
+
+def test_the_ledger_timezone_is_the_workers_setting(monkeypatch):
+    monkeypatch.delenv("WATER_LEDGER_TIMEZONE", raising=False)
+    assert ledger_timezone() == "Asia/Aden", "the worker's default ledger timezone"
+    monkeypatch.setenv("WATER_LEDGER_TIMEZONE", "UTC")
+    assert ledger_timezone() == "UTC", "the same env var as the water-balance worker"
 
 
 def test_every_other_irrigation_write_clears_the_source():

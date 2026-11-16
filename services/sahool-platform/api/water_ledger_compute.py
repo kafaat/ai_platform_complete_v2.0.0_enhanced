@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import datetime as _dt
 import math
+import os
 
 # الحقول الرقميّة الاختياريّة للدفتر (كلّها قد تكون None ⇒ NULL، لا تلفيق).
 _NUMERIC_FIELDS = (
@@ -269,12 +270,35 @@ def irrigation_mm_from_volume(volume_m3, area_ha) -> float | None:
     return volume / area / 10.0
 
 
-#: The day's farm water on one field, actual work only (the farm ledger's own definition of an
-#: actual operation: completed and not dated after today). ``measured`` counts the records that
-#: carry a volume; a record with hours but no volume is water applied in an unknown amount.
+#: Serializes the projections of one (tenant, field, day). The projection reads the day's sum
+#: and then overwrites ``irrigation_mm`` with it; without a lock taken *before* the sum, two
+#: overlapping operation POSTs for the same field and day each sum only their own uncommitted
+#: record (READ COMMITTED) and the later upsert replaces the earlier figure with its partial
+#: sum, losing water. The lock is held to the end of the caller's transaction, and the sum runs
+#: as a later statement, so under READ COMMITTED it sees every record committed by a projection
+#: that held the lock before it.
+FARM_WATER_DAY_LOCK_SQL = "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))"
+
+
+def farm_water_day_lock_key(tenant_id: str, field_id: str, day) -> str:
+    return f"water-ledger:farm-projection:{tenant_id}:{field_id}:{day.isoformat()}"
+
+
+#: The ledger's local day comes from ``WATER_LEDGER_TIMEZONE`` (the water-balance worker's own
+#: setting), not the database's ``CURRENT_DATE`` (UTC): a completed operation recorded in the
+#: first local hours after midnight is today's work in the ledger, not future work.
+def ledger_timezone() -> str:
+    return os.getenv("WATER_LEDGER_TIMEZONE", "Asia/Aden")
+
+
+#: The day's farm water on one field, actual work only (the farm ledger's definition of an
+#: actual operation: completed and not dated after today, today being the ledger's local day).
+#: ``measured`` counts the records that carry a volume; a record with hours but no volume is
+#: water applied in an unknown amount. ``local_today`` is the ledger's local day.
 FARM_WATER_DAY_SQL = (
     "SELECT (SELECT f.area_ha FROM fields f WHERE f.field_id = $2 AND f.tenant_id = $1::uuid)"
     " AS area_ha,"
+    " (now() AT TIME ZONE $4)::date AS local_today,"
     " COUNT(w.water_record_id) AS records,"
     " COUNT(w.water_volume_m3) AS measured,"
     " SUM(w.water_volume_m3) AS volume_m3"
@@ -282,7 +306,7 @@ FARM_WATER_DAY_SQL = (
     " JOIN farm_operation_ledger o"
     " ON o.operation_id = w.operation_id AND o.tenant_id = w.tenant_id"
     " WHERE w.tenant_id = $1::uuid AND w.field_id = $2 AND w.record_date = $3"
-    " AND o.status = 'completed' AND o.operation_date <= CURRENT_DATE"
+    " AND o.status = 'completed' AND o.operation_date <= (now() AT TIME ZONE $4)::date"
 )
 
 # The W0-13 report semantics, for the farm ledger: only irrigation_mm is written, the reporter
@@ -318,9 +342,17 @@ async def project_farm_water_to_ledger(
     water and the worker would take it as the measured total), when the field has no area, or
     when another writer owns the day. Otherwise writes ``volume / area / 10`` mm with
     ``irrigation_source='farm_ledger'``.
+
+    Projections of the same (tenant, field, day) are serialized by a transaction-scoped
+    advisory lock taken before the day's sum, so concurrent operations never lose water.
+
+    A day before the ledger's local today gets its figure, but the worker has already computed
+    that day's balance and does not recompute it: the result carries
+    ``balance_recomputed: False`` so the caller is not told the balance chain reflects it.
     """
     day = parse_ledger_date(record_date)
-    row = await conn.fetchrow(FARM_WATER_DAY_SQL, tenant_id, field_id, day)
+    await conn.execute(FARM_WATER_DAY_LOCK_SQL, farm_water_day_lock_key(tenant_id, field_id, day))
+    row = await conn.fetchrow(FARM_WATER_DAY_SQL, tenant_id, field_id, day, ledger_timezone())
     base = {"ledger_date": day.isoformat(), "source": IRRIGATION_SOURCE_FARM_LEDGER}
     records = int(row["records"] or 0) if row else 0
     if not records:
@@ -345,4 +377,14 @@ async def project_farm_water_to_ledger(
     out = {**base, "volume_m3": volume, "area_ha": area, "irrigation_mm": irrigation_mm}
     if stored is None:
         return {**out, "status": "skipped", "reason": "day_owned_by_another_writer"}
+    local_today = row["local_today"]
+    if local_today is not None and day < local_today:
+        # W0-13 known limit: a past day's depletion is not recomputed, so later days' balance
+        # does not yet reflect this water. Said, not hidden.
+        return {
+            **out,
+            "status": "projected",
+            "balance_recomputed": False,
+            "reason": "past_day_balance_not_recomputed",
+        }
     return {**out, "status": "projected"}
