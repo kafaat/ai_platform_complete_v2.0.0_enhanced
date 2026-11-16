@@ -3,6 +3,8 @@ global:
   imagePullPolicy: IfNotPresent
 ingress:
   host: app.sahool.example.invalid
+gateway:
+  replicas: 2
 workloads:
   sahool-platform:
     replicas: 3
