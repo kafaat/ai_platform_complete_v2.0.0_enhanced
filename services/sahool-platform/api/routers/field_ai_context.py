@@ -18,7 +18,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api import field_context as context_reads
-from api.field_weather_history import summarize_weather_history
 from api.main import Permission, UserSchema, require_permission, tenant_connection
 from api.raster_service_client import (
     get_available_dates,
@@ -27,6 +26,7 @@ from api.raster_service_client import (
     observed_indicator_product,
     zoning_grid_metadata,
 )
+from api.weather_service_client import summarize_weather_history
 
 router = APIRouter(tags=["field-ai-context"])
 

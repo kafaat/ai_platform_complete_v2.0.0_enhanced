@@ -32,6 +32,21 @@ def _unobserved_weather_service():
     reset_observed_weather_service_health()
 
 
+def _pack_router():
+    """The AI-pack router, imported **after** ``api.main``.
+
+    ``field_ai_context`` imports ``api.main``, whose router registry imports every router.
+    Importing the router first leaves it half-initialised (no ``router`` yet) when the
+    registry reaches it, so the app built in this process silently drops its routes and a
+    later ``test_router_decomposition_guard`` run in the same process fails.
+    """
+    pytest.importorskip("fastapi")
+    import api.main  # noqa: F401  (load order: the app registry before the router)
+    from api.routers import field_ai_context
+
+    return field_ai_context
+
+
 def _historical_view(days: list[dict]) -> dict:
     return {
         "derived_from": "canonical_weather_state",
@@ -71,8 +86,7 @@ _DAYS_WITH_A_GAP = [
 
 # ── the AI pack: an incomplete total is None, not a smaller sum ─────────────────────
 def test_pack_summary_never_turns_a_missing_reading_into_zero():
-    from api.routers.field_ai_context import summarize_weather_history
-    from api.weather_service_client import daily_from_view
+    from api.weather_service_client import daily_from_view, summarize_weather_history
 
     records = daily_from_view(_historical_view(_DAYS_WITH_A_GAP))
     summary, monthly = summarize_weather_history(records)
@@ -101,8 +115,7 @@ def test_pack_summary_never_turns_a_missing_reading_into_zero():
 
 
 def test_pack_summary_of_a_complete_series_still_totals():
-    from api.routers.field_ai_context import summarize_weather_history
-    from api.weather_service_client import daily_from_view
+    from api.weather_service_client import daily_from_view, summarize_weather_history
 
     days = [dict(d, precipitation_mm=1.5) for d in _DAYS_WITH_A_GAP]
     summary, _monthly = summarize_weather_history(daily_from_view(_historical_view(days)))
@@ -112,7 +125,8 @@ def test_pack_summary_of_a_complete_series_still_totals():
 
 async def test_pack_reads_weather_service_with_the_tenant_and_reports_incomplete(monkeypatch):
     from api import weather_service_client
-    from api.routers import field_ai_context
+
+    field_ai_context = _pack_router()
 
     calls: list[tuple[str, dict]] = []
 
@@ -145,7 +159,8 @@ async def test_pack_reads_weather_service_with_the_tenant_and_reports_incomplete
 
 async def test_pack_weather_service_failure_is_unavailable_not_zero(monkeypatch):
     from api import weather_service_client
-    from api.routers import field_ai_context
+
+    field_ai_context = _pack_router()
 
     async def unavailable(path, **kwargs):
         raise RuntimeError("weather-service down")
@@ -595,6 +610,72 @@ async def test_readiness_degrades_after_repeated_weather_service_failures(monkey
     weather_service_client.reset_observed_weather_service_health()
 
 
+@pytest.mark.parametrize("status", [502, 503, 504])
+async def test_provider_failure_passed_through_by_the_service_is_not_a_service_outage(
+    monkeypatch, status
+):
+    """weather-service answers 5xx because Open-Meteo is down: the provider is degraded.
+
+    Before this the platform counted it as ``weather_service_unavailable_observed`` although
+    the weather-service process answered, so readiness named the wrong failing component.
+    """
+    import httpx
+    from api import weather_service_client
+    from api.routers import weather
+    from fastapi import HTTPException, Response
+
+    class _ProviderDown(httpx.AsyncClient):
+        async def get(self, url, *args, **kwargs):
+            return httpx.Response(
+                status,
+                json={"detail": "Open-Meteo current: provider unavailable"},
+                request=httpx.Request("GET", url),
+            )
+
+    monkeypatch.setattr(httpx, "AsyncClient", _ProviderDown)
+    for _ in range(weather_service_client.OBSERVED_FAILURE_THRESHOLD):
+        with pytest.raises(HTTPException) as caught:
+            await weather_service_client.get_current_weather(15.0, 44.0)
+        assert caught.value.status_code == status, "the service status is passed through"
+
+    response = Response()
+    result = weather.weather_readyz(response)
+    assert response.status_code == 503, "readiness still fails while the provider keeps failing"
+    assert "weather_provider_degraded_observed" in result["degraded_reasons"], (
+        f"the provider must be named: {result['degraded_reasons']}"
+    )
+    assert "weather_service_unavailable_observed" not in result["degraded_reasons"], (
+        f"the weather-service process answered, so it is not unavailable: "
+        f"{result['degraded_reasons']}"
+    )
+
+
+async def test_internal_error_of_the_service_still_counts_against_the_service(monkeypatch):
+    import httpx
+    from api import weather_service_client
+    from api.routers import weather
+    from fastapi import HTTPException, Response
+
+    class _ServiceBroken(httpx.AsyncClient):
+        async def get(self, url, *args, **kwargs):
+            return httpx.Response(
+                500, text="Internal Server Error", request=httpx.Request("GET", url)
+            )
+
+    monkeypatch.setattr(httpx, "AsyncClient", _ServiceBroken)
+    for _ in range(weather_service_client.OBSERVED_FAILURE_THRESHOLD):
+        with pytest.raises(HTTPException):
+            await weather_service_client.get_current_weather(15.0, 44.0)
+
+    result = weather.weather_readyz(Response())
+    assert "weather_service_unavailable_observed" in result["degraded_reasons"], (
+        f"a 500 from the service is a service failure: {result['degraded_reasons']}"
+    )
+    assert "weather_provider_degraded_observed" not in result["degraded_reasons"], (
+        f"a 500 is not blamed on the provider: {result['degraded_reasons']}"
+    )
+
+
 async def test_readiness_degrades_when_the_service_keeps_serving_stale_provider_data(monkeypatch):
     from api import weather_service_client
     from api.routers import weather
@@ -634,8 +715,7 @@ async def test_readiness_degrades_when_the_service_keeps_serving_stale_provider_
 def test_pack_summary_counts_days_the_source_omitted():
     from datetime import date
 
-    from api.routers.field_ai_context import summarize_weather_history
-    from api.weather_service_client import daily_from_view
+    from api.weather_service_client import daily_from_view, summarize_weather_history
 
     complete = [dict(d, precipitation_mm=1.0) for d in _DAYS_WITH_A_GAP]
     records = daily_from_view(_historical_view(complete))
@@ -658,8 +738,7 @@ def test_pack_summary_counts_days_the_source_omitted():
 
 
 def test_pack_summary_honours_the_owner_declared_missing_days():
-    from api.routers.field_ai_context import summarize_weather_history
-    from api.weather_service_client import daily_from_view
+    from api.weather_service_client import daily_from_view, summarize_weather_history
 
     complete = [dict(d, precipitation_mm=1.0) for d in _DAYS_WITH_A_GAP]
     summary, _ = summarize_weather_history(
@@ -671,7 +750,8 @@ def test_pack_summary_honours_the_owner_declared_missing_days():
 
 async def test_pack_passes_the_requested_window_and_coverage(monkeypatch):
     from api import weather_service_client
-    from api.routers import field_ai_context
+
+    field_ai_context = _pack_router()
 
     async def fake_weather_get_json(path, **kwargs):
         days = [dict(d, precipitation_mm=1.0, et0_mm=1.0) for d in _DAYS_WITH_A_GAP]

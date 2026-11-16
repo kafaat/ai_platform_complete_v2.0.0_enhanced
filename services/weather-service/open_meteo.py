@@ -558,6 +558,45 @@ _HOURLY_ONLY_SAMPLE_FIELDS: dict[str, str] = {
     "soil_moisture_3_to_9cm_m3m3": "soil_moisture_3_to_9cm",
 }
 
+#: حقلُ ``current`` ⇐ متغيّرُ ``hourly`` المقابل. لـ``now`` حين يُعيد المزوّدُ ``current`` بقيمةٍ
+#: ``null`` يُقرأ صفُّ ساعة ``current.time`` بدلها (تكافؤُ الموصّل المُزال)، ويُسمّى الحقلُ في
+#: ``current_fields_from_hourly:`` — **الغيابُ في الاثنين يبقى ``None``**، والصفرُ المرصودُ لا يُستبدَل.
+_CURRENT_FIELDS_WITH_HOURLY_FALLBACK: dict[str, str] = {
+    "temperature_c": "temperature_2m",
+    "humidity_pct": "relative_humidity_2m",
+    "precipitation_mm": "precipitation",
+    "cloud_cover_pct": "cloud_cover",
+    "wind_speed_10m_kmh": "wind_speed_10m",
+    "wind_direction_10m_deg": "wind_direction_10m",
+    "wind_gusts_10m_kmh": "wind_gusts_10m",
+    "surface_pressure_hpa": "surface_pressure",
+    "pressure_msl_hpa": "pressure_msl",
+    "weather_code": "weather_code",
+}
+
+
+def _fill_null_current_from_hourly(
+    sample: dict[str, Any], hourly: dict[str, Any], row_idx: int
+) -> list[str]:
+    """يملأ حقولَ ``current`` الفارغة من صفّ الساعة ويُعيد أسماءَها. لا صفّ ⇒ لا ملء."""
+    filled: list[str] = []
+    for field_name, hourly_key in _CURRENT_FIELDS_WITH_HOURLY_FALLBACK.items():
+        if sample.get(field_name) is not None:
+            continue
+        value = _at(hourly.get(hourly_key) or [], row_idx)
+        if value is None:
+            continue
+        sample[field_name] = value
+        filled.append(field_name)
+    # المشتقّاتُ تتبع أصلَها: السرعةُ بالمتر/ث والاتّجاهُ المكرَّر.
+    if "wind_speed_10m_kmh" in filled:
+        sample["wind_speed_ms"] = round(float(sample["wind_speed_10m_kmh"]) / 3.6, 3)
+    if "wind_gusts_10m_kmh" in filled:
+        sample["wind_gusts_ms"] = round(float(sample["wind_gusts_10m_kmh"]) / 3.6, 3)
+    if "wind_direction_10m_deg" in filled:
+        sample["wind_direction_deg"] = sample["wind_direction_10m_deg"]
+    return filled
+
 
 async def fetch_tile_sample(
     lat: float, lon: float, *, time_key: str = "now", model: str = "best_match"
@@ -673,10 +712,15 @@ def normalize_tile_sample(
         row_idx = row["index"] if row["index"] is not None else -1
         for field_name, hourly_key in _HOURLY_ONLY_SAMPLE_FIELDS.items():
             sample[field_name] = _at(hourly.get(hourly_key) or [], row_idx)
+        filled_from_hourly = _fill_null_current_from_hourly(sample, hourly, row_idx)
         limitations = list(row["limitations"])
         hourly_row_time = row["resolved"]
         if hourly_row_time is not None and hourly_row_time != current.get("time"):
             limitations.append(f"hourly_only_fields_from:{hourly_row_time}")
+        if filled_from_hourly:
+            limitations.append(
+                f"current_fields_from_hourly:{','.join(filled_from_hourly)}@{hourly_row_time}"
+            )
         resolution: dict[str, Any] = {
             "requested_offset_hours": 0,
             "anchor": current.get("time"),
@@ -721,6 +765,14 @@ def normalize_tile_sample(
             "timestamp": _at(times, idx),
             "source": "open-meteo",
         }
+    if sample.get("wind_direction_10m_deg") is None:
+        # الموصّلُ المُزال كان يسأل MET.no عن الاتّجاه الغائب؛ هذه الخدمةُ لا تملك ذلك المزوّد بعد.
+        # يُعلَن الغيابُ ولا يُنسَب إلى Open-Meteo، والرشُّ يبقى «غيرَ معروف» (فشلٌ مغلق).
+        sample["wind_direction_source"] = None
+        resolution["limitations"] = [
+            *resolution.get("limitations", []),
+            "wind_direction_unavailable:no_secondary_provider",
+        ]
     sample["model"] = model
     sample["time_key"] = time_key
     sample["time_resolution"] = resolution

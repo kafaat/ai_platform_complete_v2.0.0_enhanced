@@ -135,3 +135,58 @@ async def test_tile_request_asks_for_the_current_and_hourly_variables_it_normali
     assert {"vapour_pressure_deficit", "et0_fao_evapotranspiration", "soil_moisture_1_to_3cm"} <= (
         hourly
     ), f"the hourly-only fields must be requested: {hourly}"
+
+
+# ── review round 3: a null current reading falls back to the current hour row ──────
+def test_null_current_reading_falls_back_to_the_current_hour_row():
+    """The removed connector used the hour row when ``current`` returned a null reading.
+
+    Without the fallback a null ``current.wind_direction_10m`` left the sample without a wind
+    direction although the hour row had one, so the spraying verdict became unknown.
+    """
+    payload = {
+        "current": {
+            "time": f"{_DAY}T15:10",
+            "temperature_2m": 33.3,
+            "wind_direction_10m": None,
+            "wind_speed_10m": None,
+            "precipitation": 0.0,
+            "weather_code": 0,
+            "is_day": 1,
+        },
+        "hourly": _hourly(),
+    }
+    sample = om.normalize_tile_sample(payload, lat=15.0, lon=44.0, time_key="now", model="m")
+
+    assert sample["wind_direction_10m_deg"] == 90.0, "direction from the 15:00 row"
+    assert sample["wind_direction_deg"] == 90.0, "the duplicated direction follows"
+    assert sample["wind_direction_source"] == "open-meteo", "the hour row is Open-Meteo too"
+    assert sample["wind_speed_10m_kmh"] == 10.0, "speed from the 15:00 row"
+    assert sample["wind_speed_ms"] == pytest.approx(10.0 / 3.6, abs=1e-3), "m/s follows km/h"
+    assert sample["temperature_c"] == 33.3, "a current reading is not replaced by the hour row"
+    assert sample["precipitation_mm"] == 0.0, "an observed zero is a reading, not absence"
+    limitations = sample["time_resolution"]["limitations"]
+    declared = [item for item in limitations if item.startswith("current_fields_from_hourly:")]
+    assert len(declared) == 1, f"the filled fields must be declared once: {limitations}"
+    assert "wind_direction_10m_deg" in declared[0], f"direction named: {declared}"
+    assert "temperature_c" not in declared[0], f"current readings are not named: {declared}"
+    assert declared[0].endswith(f"@{_DAY}T15:00"), f"the hour row is named: {declared}"
+
+
+def test_wind_direction_absent_everywhere_stays_none_and_is_declared():
+    hourly = _hourly()
+    hourly["wind_direction_10m"] = [None] * len(hourly["time"])
+    payload = {
+        "current": {"time": f"{_DAY}T15:10", "temperature_2m": 30.0, "wind_direction_10m": None},
+        "hourly": hourly,
+    }
+    for time_key in ("now", "+1h"):
+        sample = om.normalize_tile_sample(payload, lat=15.0, lon=44.0, time_key=time_key, model="m")
+        assert sample["wind_direction_10m_deg"] is None, f"{time_key}: no invented direction"
+        assert sample["wind_direction_source"] is None, (
+            f"{time_key}: an absent direction is not attributed to Open-Meteo"
+        )
+        assert (
+            "wind_direction_unavailable:no_secondary_provider"
+            in sample["time_resolution"]["limitations"]
+        ), f"{time_key}: the missing secondary provider is declared"

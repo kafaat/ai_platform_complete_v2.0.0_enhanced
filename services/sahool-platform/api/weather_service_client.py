@@ -13,6 +13,8 @@ import functools
 import math
 import os
 from dataclasses import dataclass, field
+from datetime import date, timedelta
+from statistics import mean
 from time import monotonic as _monotonic
 from typing import Any
 
@@ -147,10 +149,34 @@ def reset_observed_weather_service_health() -> None:
     _PROVIDER_HEALTH.reset()
 
 
-def _observed_by_service_health(call):
-    """يسجّل نتيجةَ نداءٍ لـweather-service على ``_SERVICE_HEALTH`` دون لمس جسم النداء.
+# weather-service بوّابةٌ إلى مزوّده: 502/503/504 **يُجيب بها هو** تعني أنّ المزوّد خلفه تعذّر، لا
+# أنّه هو معطّل. أمّا المهلةُ/الشبكةُ/الجسمُ غيرُ المقروء فتُرفَع هنا في المنصّة (``weather_service_*``).
+_PROVIDER_PASSTHROUGH_STATUSES = frozenset({502, 503, 504})
 
-    مهلةٌ/شبكةٌ/جسمٌ غيرُ مقروء (504/502) و5xx ⇒ إخفاق؛ 4xx خطأُ طلبٍ ⇒ لا يُحسَب؛ نجاحٌ ⇒ يُصفّر.
+
+def _passthrough_error(status_code: int, detail: Any) -> Exception:
+    """خطأٌ HTTP **أجاب به** weather-service — موسومٌ كي يفصله السجّلُ عن انقطاع الخدمة نفسها."""
+    from fastapi import HTTPException
+
+    exc = HTTPException(status_code=status_code, detail=detail)
+    exc.weather_service_responded = True  # type: ignore[attr-defined]
+    return exc
+
+
+def _reason_code(detail: Any) -> str | None:
+    """``reason_code`` من تفصيل المنصّة أو من مغلّف FastAPI ``{"detail": {...}}`` للخدمة."""
+    for candidate in (detail, detail.get("detail") if isinstance(detail, dict) else None):
+        if isinstance(candidate, dict) and isinstance(candidate.get("reason_code"), str):
+            return candidate["reason_code"]
+    return None
+
+
+def _observed_by_service_health(call):
+    """يسجّل نتيجةَ نداءٍ لـweather-service على ``_SERVICE_HEALTH``/``_PROVIDER_HEALTH`` دون لمس جسمه.
+
+    مهلةٌ/شبكةٌ/جسمٌ غيرُ مقروء (504/502 من المنصّة) و500 من الخدمة ⇒ إخفاقُ الخدمة؛ 502/503/504
+    **أجابت بها الخدمة** ⇒ الخدمةُ حيّة والمزوّدُ خلفها متعذّر ⇒ إخفاقُ المزوّد (فلا تُسمّي الجاهزيّةُ
+    المكوّنَ الخطأ)؛ 4xx خطأُ طلبٍ ⇒ لا يُحسَب؛ نجاحٌ ⇒ يُصفّر عدّادَ الخدمة.
     """
 
     @functools.wraps(call)
@@ -160,9 +186,13 @@ def _observed_by_service_health(call):
         except Exception as exc:
             status = getattr(exc, "status_code", None)
             if isinstance(status, int) and status >= 500:
-                detail = getattr(exc, "detail", None)
-                reason = detail.get("reason_code") if isinstance(detail, dict) else None
-                _SERVICE_HEALTH.failure(reason or f"weather_service_http_{status}")
+                reason = _reason_code(getattr(exc, "detail", None))
+                responded = getattr(exc, "weather_service_responded", False) is True
+                if responded and status in _PROVIDER_PASSTHROUGH_STATUSES:
+                    _SERVICE_HEALTH.success()
+                    _PROVIDER_HEALTH.failure(reason or f"weather_provider_http_{status}")
+                else:
+                    _SERVICE_HEALTH.failure(reason or f"weather_service_http_{status}")
             raise
         _SERVICE_HEALTH.success()
         return result
@@ -215,7 +245,7 @@ async def weather_get_json(
             },
         ) from exc
     if resp.status_code >= 400:
-        raise HTTPException(status_code=resp.status_code, detail=_detail_from_response(resp))
+        raise _passthrough_error(resp.status_code, _detail_from_response(resp))
     try:
         data = resp.json()
     except ValueError as exc:
@@ -271,7 +301,7 @@ async def weather_post_json(
             },
         ) from exc
     if resp.status_code >= 400:
-        raise HTTPException(status_code=resp.status_code, detail=_detail_from_response(resp))
+        raise _passthrough_error(resp.status_code, _detail_from_response(resp))
     try:
         data = resp.json()
     except ValueError as exc:
@@ -1289,6 +1319,115 @@ async def historical_readings(
         lat, lon, start_date=start_date, end_date=end_date, tenant_id=tenant_id
     )
     return daily_from_view(view)
+
+
+# ─── ملخّصُ الطقس التاريخيّ لحزمة سياق الحقل (W1-22) — دوالُّ نقيّة بلا شبكة ولا قاعدة ────────
+#
+# يقرأ ``DailyReading`` المشتقّةَ من ``historical_view`` (``daily_from_view`` أعلاه)، فموضعُه بجانبها
+# لا في الراوتر (حدُّ حجم الراوترات) ولا في وحدةٍ جديدة. ``api.routers.field_ai_context`` يستدعيه
+# ويُعيد تصديرَه. **الغيابُ يبقى ``None`` في كلّ مستوى**، واليومُ المطلوبُ المحذوفُ من الاستجابة
+# غيابٌ كاليوم الفارغ.
+
+
+def _complete_total(values: list[float | None]) -> float | None:
+    """مجموعُ سلسلةٍ **مكتملة** أو ``None`` — الغيابُ لا يُجمَع صفراً.
+
+    كانت الحزمةُ تجمع ``float(d.precipitation_mm or 0)``: يومٌ بلا قراءة مطرٍ يُحسَب
+    «يوماً جافّاً»، فيصل المستشارَ مجموعٌ أصغرُ من الواقع موسوماً كاملاً، ويُوصي بالريّ
+    على جفافٍ لم يُرصَد (weather-4). عددُ الأيّام الناقصة يُعلَن بجانبه بدل إخفائه.
+    """
+    if not values or any(v is None for v in values):
+        return None
+    return round(sum(v for v in values if v is not None), 2)
+
+
+def _missing_count(values: list[float | None]) -> int:
+    return sum(1 for v in values if v is None)
+
+
+def _observed_total(values: list[float | None]) -> float | None:
+    """مجموعُ الأيّام **المرصودة** وحدها — ``None`` إن لم يُرصَد يوم.
+
+    ليس بديلاً عن ``_complete_total``: يُعرَض بجانبه مع عدد الأيّام المرصودة، فيبقى للمستشار
+    إشارةُ المطر/ET0 حين يتأخّر أرشيف ERA5 أيّاماً في آخر النافذة، دون أن يُقرأ ناقصاً كاملاً.
+    """
+    present = [v for v in values if v is not None]
+    return round(sum(present), 2) if present else None
+
+
+def _expected_dates(start: date | None, end: date | None) -> list[str]:
+    if start is None or end is None or end < start:
+        return []
+    return [(start + timedelta(days=i)).isoformat() for i in range((end - start).days + 1)]
+
+
+def summarize_weather_history(
+    records: list[Any],
+    *,
+    requested_start: date | None = None,
+    requested_end: date | None = None,
+    source_missing_days: int = 0,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """ملخّصُ الطقس التاريخيّ وأشهرُه — دالّةٌ نقيّة، والغيابُ يبقى ``None`` في كلّ مستوى.
+
+    **اليومُ المحذوف من الاستجابة غيابٌ كاليوم الفارغ:** كان العدُّ يرى ``None`` داخل الأيّام
+    المُعادة وحدها، فأرشيفٌ أعاد ٧٠٠ يومٍ كاملة من ٧٣٠ مطلوبة يُجمَع «مكتملاً» ويُقرأ أصغرَ من
+    الواقع. تُحسَب الأيّامُ المطلوبة الغائبة من النافذة المطلوبة (``requested_start..end``، شاملةً)
+    ومن ``coverage.missing_days`` المعلَن من المالك (``source_missing_days``) أيّهما أكبر، فتُضاف
+    إلى ``*_days_missing`` ويصير المجموعُ الكامل ``None``.
+    """
+    temp_vals = [
+        (d.temp_max_c + d.temp_min_c) / 2
+        for d in records
+        if d.temp_max_c is not None and d.temp_min_c is not None
+    ]
+    expected = _expected_dates(requested_start, requested_end)
+    present = {str(d.date)[:10] for d in records if d.date}
+    omitted_dates = [day for day in expected if day not in present]
+    omitted = max(len(omitted_dates), int(source_missing_days or 0))
+    precip: list[float | None] = [d.precipitation_mm for d in records] + [None] * omitted
+    et0: list[float | None] = [d.et0_mm for d in records] + [None] * omitted
+    summary = {
+        "days": len(records),
+        "days_omitted_by_source": omitted,
+        "avg_temp_c": round(mean(temp_vals), 2) if temp_vals else None,
+        "total_precipitation_mm": _complete_total(precip),
+        "precipitation_days_missing": _missing_count(precip),
+        "observed_precipitation_mm": _observed_total(precip),
+        "precipitation_days_observed": len(precip) - _missing_count(precip),
+        "total_et0_mm": _complete_total(et0),
+        "et0_days_missing": _missing_count(et0),
+        "observed_et0_mm": _observed_total(et0),
+        "et0_days_observed": len(et0) - _missing_count(et0),
+        "first_date": records[0].date if records else None,
+        "last_date": records[-1].date if records else None,
+    }
+    # Keep context compact for the chat runtime: monthly buckets by YYYY-MM.
+    monthly: dict[str, dict[str, list[float | None]]] = {}
+    for d in records:
+        bucket = monthly.setdefault(str(d.date)[:7], {"precipitation_mm": [], "et0_mm": []})
+        bucket["precipitation_mm"].append(d.precipitation_mm)
+        bucket["et0_mm"].append(d.et0_mm)
+    omitted_by_month: dict[str, int] = {}
+    for day in omitted_dates:
+        # يومٌ مطلوبٌ غائب يُحسَب على شهره: لا مجموعَ شهريّاً «كاملاً» بأيّامٍ محذوفة.
+        bucket = monthly.setdefault(day[:7], {"precipitation_mm": [], "et0_mm": []})
+        bucket["precipitation_mm"].append(None)
+        bucket["et0_mm"].append(None)
+        omitted_by_month[day[:7]] = omitted_by_month.get(day[:7], 0) + 1
+    monthly_items = [
+        {
+            "month": month,
+            "days": len(v["precipitation_mm"]) - omitted_by_month.get(month, 0),
+            "days_omitted_by_source": omitted_by_month.get(month, 0),
+            "precipitation_mm": _complete_total(v["precipitation_mm"]),
+            "precipitation_days_missing": _missing_count(v["precipitation_mm"]),
+            "et0_mm": _complete_total(v["et0_mm"]),
+            "et0_days_missing": _missing_count(v["et0_mm"]),
+        }
+        for month, v in sorted(monthly.items())
+    ]
+    return summary, monthly_items
 
 
 # ─── أوصافُ رموز WMO (محايدةٌ للمزوّد) ────────────────────────────────────────────
