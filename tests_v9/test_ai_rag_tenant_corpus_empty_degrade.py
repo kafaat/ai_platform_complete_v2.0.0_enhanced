@@ -1,13 +1,16 @@
 """W0-02 (knowledge-1 / x-4): an empty or unavailable RAG corpus must not fail the advice.
 
 Default compose seeds RAG into ``__seed_quarantine__``, so a real tenant has no readable
-corpus and rag-retrieval answers 424 ``TENANT_CORPUS_EMPTY`` (older builds: 503). Before
+corpus and rag-retrieval answers 424 ``TENANT_CORPUS_EMPTY`` (older builds: a free-text
+503); ``test_real_rag_retrieval_quarantine_only_corpus_end_to_end`` joins the real
+rag-retrieval app for that state to the ai_agronomist degrade. Before
 this fix ai_agronomist turned every RAG status >= 400 into a 502, so every
 ``/v1/chat|query|explain|recommend`` failed. Now 424/503 degrade exactly like the KG path:
 the answer continues on canonical field-state evidence and declares
 ``rag_available: false`` with an allow-listed reason code. Other statuses still fail 502.
 
-Only in-memory HTTP transports are used; no network, Qdrant or database.
+Only in-memory HTTP/ASGI transports and an in-memory Qdrant stand-in are used; no network,
+Qdrant or database.
 """
 
 from __future__ import annotations
@@ -27,8 +30,11 @@ pytestmark = pytest.mark.unit
 _SECRET = "TOP_SECRET_RAG_UPSTREAM_BODY_and_TOKEN"
 
 
+_REAL_ASYNC_CLIENT = httpx.AsyncClient
+
+
 def _wire(monkeypatch, rag_response, seen=None):
-    real_client = httpx.AsyncClient
+    real_client = _REAL_ASYNC_CLIENT
 
     def transport(request):
         if seen is not None:
@@ -170,3 +176,51 @@ async def test_non_degradable_rag_statuses_still_fail_closed(monkeypatch, http_s
     assert exc.value.status_code == 502, exc.value.status_code
     assert exc.value.detail["dependency"] == "rag-retrieval", exc.value.detail
     assert _SECRET not in str(exc.value.detail), "upstream body must never be reflected"
+
+
+def test_real_rag_retrieval_quarantine_only_corpus_end_to_end(monkeypatch):
+    """Default compose, joined end to end: real rag-retrieval with only quarantined seeds.
+
+    The RAG call goes through the real rag-retrieval FastAPI app (auth, tenant guard,
+    readiness, error serialization) over an ASGI transport; Qdrant is an in-memory store
+    holding only ``__seed_quarantine__`` points, as the default compose seeding leaves it.
+    """
+    from tests_v9.service_module import load_service_main
+    from tests_v9.test_rag_owned_gap_witnesses import ROOT, chunk, wire
+
+    rag = load_service_main(
+        str(ROOT / "services/rag-retrieval"), required_attrs=("_ensure_sparse_index", "search")
+    )
+    wire(rag, [chunk("__seed_quarantine__")])
+    token = "w0-02-test-agent-token"
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", token)
+    monkeypatch.setattr(runtime, "AGENT_TOKEN", token)
+    rag_transport = httpx.ASGITransport(app=rag.app)
+    seen: list[tuple[str, int]] = []
+
+    async def transport(request):
+        if request.url.path == "/v1/search":
+            async with _REAL_ASYNC_CLIENT(
+                transport=rag_transport, base_url="http://rag-retrieval"
+            ) as rag_client:
+                resp = await rag_client.post(
+                    "/v1/search", content=request.content, headers=dict(request.headers)
+                )
+            seen.append((request.url.path, resp.status_code))
+            return httpx.Response(resp.status_code, content=resp.content, headers=resp.headers)
+        seen.append((request.url.path, 200))
+        return httpx.Response(200, json={"edges": []})
+
+    _wire(monkeypatch, lambda: None)
+    monkeypatch.setattr(
+        httpx,
+        "AsyncClient",
+        lambda **kw: _REAL_ASYNC_CLIENT(transport=httpx.MockTransport(transport), **kw),
+    )
+    resp = _chat(monkeypatch)
+    assert resp.status_code == 200, resp.text
+    assert ("/v1/search", 424) in seen, f"real rag-retrieval must answer 424: {seen}"
+    body = resp.json()
+    assert body["rag_available"] is False, body.get("rag_available")
+    assert body["rag_unavailable_reason"] == "TENANT_CORPUS_EMPTY", body["rag_unavailable_reason"]
+    assert body["annotations"]["rag_retrieval"]["upstream_status"] == 424, body["annotations"]
