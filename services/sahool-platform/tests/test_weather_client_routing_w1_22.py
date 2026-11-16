@@ -74,6 +74,11 @@ def test_pack_summary_never_turns_a_missing_reading_into_zero():
     assert summary["precipitation_days_missing"] == 1, "the missing day must be counted"
     assert summary["total_et0_mm"] == 10.5, "a complete ET0 series must still total"
     assert summary["et0_days_missing"] == 0, "no ET0 day is missing"
+    # The observed-only total keeps the rain signal, labelled with its observed-day count.
+    assert summary["observed_precipitation_mm"] == 4.0, "observed days sum only what was observed"
+    assert summary["precipitation_days_observed"] == 2, "two of three days have a rain reading"
+    assert summary["observed_et0_mm"] == 10.5, "ET0 observed on every day"
+    assert summary["et0_days_observed"] == 3, "all three days have ET0"
 
     by_month = {m["month"]: m for m in monthly}
     assert by_month["2026-01"]["precipitation_mm"] is None, (
@@ -203,21 +208,176 @@ def test_point_sample_tile_contains_the_point():
     assert south < 15.35 <= north, f"tile y={y} does not contain the latitude"
 
 
-async def test_point_sample_reads_weather_service_tile_data(monkeypatch):
-    from api import weather_service_client
+def _load_weather_service_open_meteo():
+    """The real weather-service sample producer, loaded by path under a private name.
 
-    seen: list[str] = []
+    The platform consumes what weather-service produces; faking the producer with a
+    platform-shaped sample is how the schema mismatch went unnoticed (W1-22 review).
+    """
+    import importlib.util
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[3]
+    path = repo / "services" / "weather-service" / "open_meteo.py"
+    spec = importlib.util.spec_from_file_location("_w1_22_weather_service_open_meteo", path)
+    assert spec and spec.loader, f"cannot load the weather-service producer at {path}"
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _open_meteo_payload(temp_c: float | None, rh_pct: float | None) -> dict:
+    hours = ["2026-07-01T12:00", "2026-07-01T13:00", "2026-07-01T14:00", "2026-07-01T15:00"]
+    n = len(hours)
+    return {
+        "timezone": "Asia/Aden",
+        "current": {
+            "time": hours[0],
+            "temperature_2m": temp_c,
+            "relative_humidity_2m": rh_pct,
+            "wind_speed_10m": 6.0,
+            "wind_direction_10m": 0.0,
+            "wind_gusts_10m": 9.0,
+            "precipitation": 0.0,
+            "cloud_cover": 10.0,
+            "surface_pressure": 950.0,
+            "weather_code": 0,
+            "is_day": 1,
+        },
+        "hourly": {
+            "time": hours,
+            "temperature_2m": [temp_c] * n,
+            "relative_humidity_2m": [rh_pct] * n,
+            "precipitation": [0.0] * n,
+            "cloud_cover": [10.0] * n,
+            "wind_speed_10m": [6.0] * n,
+            "wind_gusts_10m": [9.0] * n,
+            "wind_direction_10m": [0.0] * n,
+            "et0_fao_evapotranspiration": [0.6] * n,
+            "vapour_pressure_deficit": [0.6] * n,
+            "soil_temperature_6cm": [35.0] * n,
+            "soil_moisture_1_to_3cm": [0.2] * n,
+            "surface_pressure": [950.0] * n,
+        },
+    }
+
+
+def _service_tile(sample: dict, **extra) -> dict:
+    return {"sample": sample, "cache_state": "refreshed", "cache_age_s": 0, **extra}
+
+
+@pytest.mark.parametrize("time_key", ["now", "+2h"])
+async def test_heat_wave_from_the_real_service_sample_still_blocks_spraying(monkeypatch, time_key):
+    """41 °C / 92 % RH from weather-service must raise heat_wave and make spraying poor.
+
+    Before the review fix the platform read ``temperature_2m_c`` from a sample keyed
+    ``temperature_c``: every reading was None, spraying scored 1.0 (optimal) and the alerts
+    recommended an "excellent spray window" in a heat wave.
+    """
+    from api import weather_service_client
+    from api.routers import weather
+    from api.weather_alerts import derive_weather_alerts
+
+    om = _load_weather_service_open_meteo()
+    service_sample = om.normalize_tile_sample(
+        _open_meteo_payload(41.0, 92.0), lat=15.35, lon=44.21, time_key=time_key, model="best_match"
+    )
+    assert service_sample.get("temperature_c") == 41.0, (
+        f"producer contract changed; the fixture no longer reflects it: {service_sample}"
+    )
 
     async def fake_weather_get_json(path, **kwargs):
-        seen.append(path)
-        return {"sample": {"temperature_2m_c": 30.0}, "cache_state": "fresh"}
+        assert path.startswith("/v1/weather/tile-data/18/"), f"unexpected path {path}"
+        return _service_tile(service_sample)
 
     monkeypatch.setattr(weather_service_client, "weather_get_json", fake_weather_get_json)
-    sample = await weather_service_client.get_point_weather_sample(15.35, 44.21)
-    assert sample == {"temperature_2m_c": 30.0}, "the tile's sample must be returned as is"
-    assert seen and seen[0].startswith("/v1/weather/tile-data/18/"), (
-        f"the point sample must come from weather-service tile-data, got {seen}"
+    sample = await weather_service_client.get_point_weather_sample(15.35, 44.21, time=time_key)
+
+    assert sample["temperature_2m_c"] == 41.0, f"temperature lost in translation: {sample}"
+    assert sample["relative_humidity_2m_pct"] == 92.0, f"humidity lost in translation: {sample}"
+    assert weather._safe_layer_value("temperature", sample) == 41.0, (
+        "the temperature map layer must show the service reading, not null"
     )
+
+    spraying = weather._operation_suitability(sample, "spraying")
+    assert spraying["suitability"] in {"poor", "unsafe"}, f"spraying in a heat wave: {spraying}"
+    assert "temperature_outside_spray_window" in spraying["limiting_factors"], (
+        f"temperature not considered: {spraying}"
+    )
+    assert "humidity_high" in spraying["limiting_factors"], f"humidity not considered: {spraying}"
+
+    alerts = derive_weather_alerts(sample)
+    types = {a["type"]: a["severity"] for a in alerts}
+    assert types.get("heat_wave") == "critical", f"no critical heat_wave alert: {alerts}"
+    assert "excellent_spray_window" not in types, f"spray window offered in a heat wave: {alerts}"
+    assert weather._sample_alerts_ar(sample), "the Arabic field alerts must flag the heat"
+
+
+async def test_platform_sample_keeps_zero_and_absence_apart():
+    from api.weather_service_client import platform_sample_from_service
+
+    zero = platform_sample_from_service(
+        {"temperature_c": 0.0, "humidity_pct": 100.0, "precipitation_mm": 0.0, "vpd_kpa": None}
+    )
+    assert zero["temperature_2m_c"] == 0.0, f"0 °C is a reading (frost), not absence: {zero}"
+    assert zero["precipitation_mm"] == 0.0, "observed zero rain must stay 0.0"
+    assert zero["vapour_pressure_deficit_kpa"] is None, (
+        "VPD is not derived in the platform (the formula belongs to the weather engine)"
+    )
+
+    absent = platform_sample_from_service({"temperature_c": 30.0, "humidity_pct": None})
+    for key in (
+        "relative_humidity_2m_pct",
+        "vapour_pressure_deficit_kpa",
+        "pressure_msl_hpa",
+        "precipitation_mm",
+        "et0_fao_evapotranspiration_mm",
+        "soil_temperature_0cm_c",
+    ):
+        assert absent[key] is None, f"{key} must stay None when the service has no reading"
+
+
+def test_frost_reading_is_not_replaced_by_the_mild_default():
+    from api.routers import weather
+
+    frost = {"temperature_2m_c": 0.0, "relative_humidity_2m_pct": 60.0}
+    spraying = weather._operation_suitability(frost, "spraying")
+    assert "temperature_outside_spray_window" in spraying["limiting_factors"], (
+        f"0 °C was read as the 25 °C default: {spraying}"
+    )
+
+
+async def test_stale_service_sample_is_reported_stale_and_not_cached_fresh(monkeypatch):
+    from api import weather_service_client
+    from api.routers import weather
+
+    weather._WEATHER_TILE_CACHE.clear()
+
+    async def stale_tile(path, **kwargs):
+        return _service_tile(
+            {"temperature_c": 31.0, "humidity_pct": 40.0},
+            cache_state="stale_fallback",
+            cache_age_s=3000,
+            upstream_error="open-meteo timeout",
+        )
+
+    monkeypatch.setattr(weather_service_client, "weather_get_json", stale_tile)
+
+    sample, state, age, err = await weather._get_weather_sample_cached(
+        15.35, 44.21, "now", "best_match", "w1-22-stale"
+    )
+    assert sample["temperature_2m_c"] == 31.0, "the stale sample is still served"
+    assert state == "stale_fallback", f"a stale service sample was reported as {state}"
+    assert age == 3000, f"the service's cache age must reach the caller, got {age}"
+    assert err == "open-meteo timeout", f"the upstream error was dropped: {err}"
+    assert not any("w1-22-stale" in str(k) for k in weather._WEATHER_TILE_CACHE), (
+        "a stale service sample must not be cached as fresh by the platform"
+    )
+
+    probe = await weather.weather_probe(15.35, 44.21, time="now", model="best_match")
+    assert probe["cache_state"] == "stale_fallback", f"probe hid staleness: {probe['cache_state']}"
+    assert probe["cache_age_s"] == 3000, "probe must report the service's cache age"
+    assert probe["upstream_error"] == "open-meteo timeout", "probe must report the upstream error"
 
 
 async def test_point_sample_raises_on_a_neutral_tile(monkeypatch):

@@ -39,11 +39,18 @@ async def test_field_weather_summary_returns_operations_and_alerts(monkeypatch):
 
     weather._WEATHER_TILE_CACHE.clear()
 
-    async def fake_fetch(*_args, **_kwargs):
-        return _sample(wind_speed_10m_kmh=25.0, vapour_pressure_deficit_kpa=2.7)
+    from api.weather_service_client import PointWeatherSample
 
-    # W1-22: the summary samples weather-service (get_point_weather_sample), not the connector.
-    monkeypatch.setattr(weather, "get_point_weather_sample", fake_fetch)
+    async def fake_fetch(*_args, **_kwargs):
+        return PointWeatherSample(
+            sample=_sample(wind_speed_10m_kmh=25.0, vapour_pressure_deficit_kpa=2.7),
+            cache_state="refreshed",
+            cache_age_s=0,
+            upstream_error=None,
+        )
+
+    # W1-22: the summary samples weather-service, not the connector.
+    monkeypatch.setattr(weather, "get_point_weather_sample_with_state", fake_fetch)
     res = await weather.weather_field_summary(15.0, 44.0, time="now", model="best_match")
     assert {"spraying", "irrigation", "harvesting", "sowing"} <= set(res["operations"])
     assert any("رياح" in a for a in res["alerts_ar"])

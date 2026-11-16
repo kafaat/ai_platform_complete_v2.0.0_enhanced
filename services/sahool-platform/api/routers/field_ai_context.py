@@ -570,6 +570,16 @@ def _missing_count(values: list[float | None]) -> int:
     return sum(1 for v in values if v is None)
 
 
+def _observed_total(values: list[float | None]) -> float | None:
+    """مجموعُ الأيّام **المرصودة** وحدها — ``None`` إن لم يُرصَد يوم.
+
+    ليس بديلاً عن ``_complete_total``: يُعرَض بجانبه مع عدد الأيّام المرصودة، فيبقى للمستشار
+    إشارةُ المطر/ET0 حين يتأخّر أرشيف ERA5 أيّاماً في آخر النافذة، دون أن يُقرأ ناقصاً كاملاً.
+    """
+    present = [v for v in values if v is not None]
+    return round(sum(present), 2) if present else None
+
+
 def summarize_weather_history(records: list[Any]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """ملخّصُ الطقس التاريخيّ وأشهرُه — دالّةٌ نقيّة، والغيابُ يبقى ``None`` في كلّ مستوى."""
     temp_vals = [
@@ -584,8 +594,12 @@ def summarize_weather_history(records: list[Any]) -> tuple[dict[str, Any], list[
         "avg_temp_c": round(mean(temp_vals), 2) if temp_vals else None,
         "total_precipitation_mm": _complete_total(precip),
         "precipitation_days_missing": _missing_count(precip),
+        "observed_precipitation_mm": _observed_total(precip),
+        "precipitation_days_observed": len(precip) - _missing_count(precip),
         "total_et0_mm": _complete_total(et0),
         "et0_days_missing": _missing_count(et0),
+        "observed_et0_mm": _observed_total(et0),
+        "et0_days_observed": len(et0) - _missing_count(et0),
         "first_date": records[0].date if records else None,
         "last_date": records[-1].date if records else None,
     }

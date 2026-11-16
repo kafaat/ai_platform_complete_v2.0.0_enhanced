@@ -628,20 +628,104 @@ def point_sample_tile(
     return z, max(0, min(n - 1, x)), max(0, min(n - 1, y))
 
 
-async def get_point_weather_sample(
+#: مفاتيحُ عيّنة weather-service (``open_meteo.normalize_tile_sample``/``normalize_current``) ⇐
+#: مفاتيحُ عيّنة المنصّة التي يقرؤها كلُّ مستهلكٍ فيها والواجهةُ (``temperature_2m_c`` …).
+#: الخدمةُ تُسمّي الحرارةَ ``temperature_c`` والمنصّةُ ``temperature_2m_c``: بلا هذا التحويل يقرأ
+#: ``_operation_suitability`` و``derive_weather_alerts`` ``None`` فيرجعان إلى افتراضاتهما (25°م، 55٪)
+#: ويوصيان بالرشّ في موجة حرّ (W1-22، مراجعة HIGH).
+_SERVICE_TO_PLATFORM_SAMPLE_KEYS: dict[str, str] = {
+    "temperature_c": "temperature_2m_c",
+    "humidity_pct": "relative_humidity_2m_pct",
+    "vpd_kpa": "vapour_pressure_deficit_kpa",
+    "et0_mm": "et0_fao_evapotranspiration_mm",
+}
+
+#: مفاتيحُ يتشاركها المخطّطان بالاسم نفسه — تُنسخ كما هي (``None`` يبقى ``None``).
+_SHARED_SAMPLE_KEYS: tuple[str, ...] = (
+    "precipitation_mm",
+    "cloud_cover_pct",
+    "surface_pressure_hpa",
+    "wind_speed_10m_kmh",
+    "wind_direction_10m_deg",
+    "wind_gusts_10m_kmh",
+    "wind_direction_source",
+    "weather_code",
+    "is_day",
+    "soil_temperature_6cm_c",
+    "soil_temperature_18cm_c",
+    "soil_temperature_54cm_c",
+    "soil_moisture_1_to_3cm_m3m3",
+    "soil_moisture_3_to_9cm_m3m3",
+    "time",
+    "source",
+)
+
+#: مفاتيحُ في مخطّط المنصّة لا تُنتجها الخدمة — تبقى ``None`` صراحةً (غيابٌ لا صفر)، فلا
+#: يُشتقّ ضغطُ سطح البحر من ضغط السطح بلا ارتفاع، ولا احتمالُ مطرٍ من مطرٍ مقيس.
+_PLATFORM_ONLY_SAMPLE_KEYS: tuple[str, ...] = (
+    "pressure_msl_hpa",
+    "precipitation_probability_pct",
+    "soil_temperature_0cm_c",
+    "soil_moisture_0_to_1cm_m3m3",
+)
+
+
+def platform_sample_from_service(sample: dict[str, Any]) -> dict[str, Any]:
+    """يحوّل عيّنةَ weather-service إلى مخطّط العيّنة الذي تقرؤه المنصّةُ والواجهة.
+
+    - المفاتيحُ المختلفة الاسم تُترجَم (``temperature_c`` ⇒ ``temperature_2m_c`` …)؛
+    - المشتركةُ تُنسخ، والخاصّةُ بالمنصّة تبقى ``None`` — **لا ``or 0``**: ``0`` قراءةٌ صحيحة
+      (0°م، 0 ملم) تُحفظ، والغيابُ يبقى غياباً؛
+    - VPD وET0 لا يُشتقّان هنا: معادلاتُهما ملكُ محرّك الطقس (``weather_engine_formula_guard``)،
+      فما لم تُعِده الخدمة يبقى ``None`` ويُقرأ غياباً؛
+    - الحقولُ الأصليّة تبقى تحت ``service_sample`` للتتبّع.
+    """
+    src = dict(sample or {})
+    out: dict[str, Any] = {}
+    location = src.get("location") if isinstance(src.get("location"), dict) else {}
+    out["lat"] = location.get("lat", src.get("lat"))
+    out["lon"] = location.get("lon", src.get("lon"))
+    for service_key, platform_key in _SERVICE_TO_PLATFORM_SAMPLE_KEYS.items():
+        value = src.get(platform_key)
+        out[platform_key] = value if value is not None else src.get(service_key)
+    for key in _SHARED_SAMPLE_KEYS:
+        out[key] = src.get(key)
+    for key in _PLATFORM_ONLY_SAMPLE_KEYS:
+        out[key] = src.get(key)
+    out["timestamp"] = src.get("timestamp", src.get("time"))
+    out["service_sample"] = src
+    return out
+
+
+@dataclass(frozen=True)
+class PointWeatherSample:
+    """عيّنةُ نقطة بمخطّط المنصّة + حالةُ مخبّأ weather-service كما أعلنها (لا «refreshed» مُفترَضة)."""
+
+    sample: dict[str, Any]
+    cache_state: str | None
+    cache_age_s: int | None
+    upstream_error: str | None
+
+    @property
+    def is_stale(self) -> bool:
+        return self.cache_state in {"stale", "stale_fallback"}
+
+
+async def get_point_weather_sample_with_state(
     lat: float, lon: float, *, time: str = "now", model: str = "best_match"
-) -> dict[str, Any]:
+) -> PointWeatherSample:
     """عيّنةُ الطقس الساعيّة لنقطة — من weather-service لا من موصّل المزوّد (W1-22).
 
     كانت مساراتُ الخريطة والتنبيهات والمسبار في المنصّة تستورد
     ``api.connectors.openmeteo.fetch_weather_tile_data`` فتخرج إلى المزوّد مباشرةً متجاوزةً
     مخبّأ خدمة الطقس وعقد الواجهة P3.4. الخدمةُ لا تعرض نقطةً بـlat/lon، لكنّ
-    ``/v1/weather/tile-data`` يُعيد عيّنةَ مركز البلاطة بالشكل نفسه — فنطلب بلاطةَ النقطة
-    عند أعلى تكبير.
+    ``/v1/weather/tile-data`` يُعيد عيّنةَ مركز البلاطة — فنطلب بلاطةَ النقطة عند أعلى تكبير،
+    ثمّ نحوّلها إلى مخطّط المنصّة (``platform_sample_from_service``).
 
     **والغيابُ يرفع ولا يُختلَق:** بلاطةٌ محايدة (الخدمة غير متاحة) أو بلا ``sample`` ⇒
     ``RuntimeError`` يُسمّي السبب، فيقرّر المستدعي (مخبّأٌ قديم أو 502 صريح) — لا عيّنةَ فارغة
-    تُقرأ «لا رياح ولا مطر».
+    تُقرأ «لا رياح ولا مطر». و**القِدَمُ يُنقَل ولا يُمحى:** عيّنةٌ قدّمتها الخدمة من مخبّئها القديم
+    (``stale_fallback``) تصل بحالتها وعمرها وخطئها، لا بوصفها «refreshed» بعمر صفر.
     """
     z, x, y = point_sample_tile(lat, lon)
     tile = await get_weather_tile_data(z, x, y, layer="temperature", time=time, model=model)
@@ -651,7 +735,26 @@ async def get_point_weather_sample(
         if isinstance(tile, dict):
             reason = tile.get("upstream_error") or tile.get("cache_state")
         raise RuntimeError(f"weather-service point sample unavailable: {reason or 'no sample'}")
-    return sample
+    age = tile.get("cache_age_s")
+    try:
+        age_s = int(age) if age is not None else None
+    except (TypeError, ValueError):
+        age_s = None
+    upstream_error = tile.get("upstream_error")
+    return PointWeatherSample(
+        sample=platform_sample_from_service(sample),
+        cache_state=tile.get("cache_state"),
+        cache_age_s=age_s,
+        upstream_error=str(upstream_error) if upstream_error else None,
+    )
+
+
+async def get_point_weather_sample(
+    lat: float, lon: float, *, time: str = "now", model: str = "best_match"
+) -> dict[str, Any]:
+    """العيّنةُ وحدها بمخطّط المنصّة — انظر ``get_point_weather_sample_with_state``."""
+    result = await get_point_weather_sample_with_state(lat, lon, time=time, model=model)
+    return result.sample
 
 
 async def get_operation_tile_data(

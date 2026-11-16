@@ -2456,9 +2456,7 @@ async def field_irrigation_advice(
     try:
         forecast = await forecast_readings(lat, lon, days=3)
         current = await current_reading(lat, lon)
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+    except Exception as e:  # noqa: BLE001 — أيُّ تعذّرٍ لخدمة الطقس (502/504/4xx أيضاً) ⇒ 503 الموثَّق
         raise HTTPException(
             status_code=503,
             detail="تعذّر جلب الطقس (خدمة الطقس غير متاحة). حاول لاحقاً.",
@@ -2547,9 +2545,7 @@ async def field_disease_risk(
     try:
         current = await current_reading(lat, lon)
         forecast = await forecast_readings(lat, lon, days=3)
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+    except Exception as e:  # noqa: BLE001 — أيُّ تعذّرٍ لخدمة الطقس (502/504/4xx أيضاً) ⇒ 503 الموثَّق
         raise HTTPException(
             status_code=503,
             detail="تعذّر جلب الطقس (خدمة الطقس غير متاحة). حاول لاحقاً.",

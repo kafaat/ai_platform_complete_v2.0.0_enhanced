@@ -30,7 +30,7 @@ from api.weather_service_client import (
     get_operation_plan,
     get_operation_tile_data,
     get_operation_window,
-    get_point_weather_sample,
+    get_point_weather_sample_with_state,
     get_tile_cache_stats,
     get_weather_forecast,
     get_weather_historical,
@@ -1191,9 +1191,13 @@ async def _get_weather_sample_cached(
         return sample, cache_state, cache_age_s, upstream_error
     try:
         # W1-22: عيّنةُ النقطة من weather-service (مخبّؤه وقاطعُه) لا من موصّل المزوّد.
-        sample = await get_point_weather_sample(lat, lon, time=time, model=model)
-        await _cache_set_async(key, sample)
-        return sample, "refreshed", 0, None
+        point = await get_point_weather_sample_with_state(lat, lon, time=time, model=model)
+        if point.is_stale:
+            # عيّنةٌ قديمة من مخبّأ الخدمة: تُنقَل بحالتها وعمرها وخطئها، ولا تُخبَّأ هنا
+            # طازجةً فتُقدَّم بعمر صفر طوال TTL المنصّة.
+            return point.sample, "stale_fallback", point.cache_age_s, point.upstream_error
+        await _cache_set_async(key, point.sample)
+        return point.sample, "refreshed", 0, None
     except Exception as e:
         upstream_error = str(e)
         stale_sample, stale_state, stale_age = await _cache_get_async(key)
@@ -1866,14 +1870,15 @@ def _num(sample: dict, key: str, default: float | None = None) -> float | None:
 def _operation_suitability(sample: dict, operation: str) -> dict:
     """صلاحية عمليات زراعية (score 0..1 + عوامل مانعة) من Open-Meteo لنقطة/بلاطة — طبقة قرار
     قابلة للرسم. رطوبة 1–3 سم مُنمذَجة لا حسّاس؛ عتباتها من moisture_policy كـweather-service."""
-    temp = _num(sample, "temperature_2m_c", 25.0) or 25.0
-    rh = _num(sample, "relative_humidity_2m_pct", 55.0) or 55.0
-    wind = _num(sample, "wind_speed_10m_kmh", 0.0) or 0.0
-    gust = _num(sample, "wind_gusts_10m_kmh", wind) or wind
-    rain = _num(sample, "precipitation_mm", 0.0) or 0.0
-    vpd = _num(sample, "vapour_pressure_deficit_kpa", 1.5) or 1.5
+    # القراءةُ الصفريّة قراءةٌ لا غياب: ``or 25.0`` كان يحوّل 0°م (صقيعاً) إلى 25°م معتدلة.
+    temp = _num(sample, "temperature_2m_c", 25.0)
+    rh = _num(sample, "relative_humidity_2m_pct", 55.0)
+    wind = _num(sample, "wind_speed_10m_kmh", 0.0)
+    gust = _num(sample, "wind_gusts_10m_kmh", wind)
+    rain = _num(sample, "precipitation_mm", 0.0)
+    vpd = _num(sample, "vapour_pressure_deficit_kpa", 1.5)
     soil_m = _num(sample, "soil_moisture_1_to_3cm_m3m3", None)
-    soil_t = _num(sample, "soil_temperature_6cm_c", temp) or temp
+    soil_t = _num(sample, "soil_temperature_6cm_c", temp)
 
     score = 1.0
     factors: list[str] = []
@@ -2487,10 +2492,16 @@ async def weather_probe(
     upstream_error = None
     if cache_state != "fresh":
         try:
-            sample = await get_point_weather_sample(lat, lon, time=time, model=model)
-            await _cache_set_async(key, sample)
-            cache_state = "refreshed"
-            cache_age_s = 0
+            point = await get_point_weather_sample_with_state(lat, lon, time=time, model=model)
+            sample = point.sample
+            if point.is_stale:
+                cache_state = "stale_fallback"
+                cache_age_s = point.cache_age_s
+                upstream_error = point.upstream_error
+            else:
+                await _cache_set_async(key, sample)
+                cache_state = "refreshed"
+                cache_age_s = 0
         except Exception as e:
             upstream_error = str(e)
             stale_sample, stale_state, stale_age = await _cache_get_async(key)
