@@ -232,9 +232,20 @@ async def readyz():
             "ready": ready,
             "earth_search": "reachable" if catalog else "unavailable",
             "dependencies": dependencies,
+            # W1-11: reported, not gated (publication does not depend on it).
+            "observation_sweep": _observation_sweep_state(),
             **detail,
         },
     )
+
+
+def _observation_sweep_state() -> dict:
+    try:
+        import observation_sweep
+
+        return observation_sweep.state()
+    except Exception as exc:  # noqa: BLE001 — a readiness report never fails on this
+        return {"error": type(exc).__name__}
 
 
 @router.get("/v1/tile-cache/stats")

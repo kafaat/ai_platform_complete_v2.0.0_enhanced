@@ -363,6 +363,40 @@ def test_readyz_and_metrics_report_the_drain_without_secrets(drain):
     assert 'sahool_indicators_observation_drain_total{result="acknowledged"}' in metrics
 
 
+@pytest.mark.parametrize(
+    ("env", "reason"),
+    [
+        ({"INDICATORS_OBSERVATION_DRAIN_ENABLED": "false"}, "disabled"),
+        ({"INDICATORS_OBSERVATION_DRAIN_TENANTS": ""}, "no_tenants"),
+    ],
+)
+def test_readyz_says_a_drain_that_is_off_or_has_no_tenants_is_not_ready_for_delivery(
+    drain, monkeypatch, env, reason
+):
+    """Owner condition (2026-11-17): a disabled drain or an empty partition is reported as not
+    enabled, never as ready for delivery; and it settles nothing, so raster's pending entries
+    stay pending (no acknowledgement request is ever sent)."""
+    raster, store = drain
+    raster.add(TENANT, _payload())
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+    client = TestClient(main.app)
+    ready = client.get("/readyz").json()
+    assert ready["observation_delivery"] == "not_enabled", ready
+    state = ready["observation_drain"]
+    assert state["ready_for_delivery"] is False and state["not_enabled_reason"] == reason, state
+    assert _cycle(raster) == {"skipped": reason}
+    assert raster.requests == [] and store["calls"] == []
+    assert raster.status(TENANT) == [(1, "pending")], "nothing pending was settled or removed"
+
+
+def test_readyz_says_a_drain_that_can_run_is_ready_for_delivery(drain):
+    ready = TestClient(main.app).get("/readyz").json()
+    assert ready["observation_delivery"] == "enabled", ready
+    assert ready["observation_drain"]["ready_for_delivery"] is True
+    assert ready["observation_drain"]["not_enabled_reason"] is None
+
+
 def test_the_lifespan_starts_the_drain_only_when_it_can_run(drain, monkeypatch):
     started: list = []
 

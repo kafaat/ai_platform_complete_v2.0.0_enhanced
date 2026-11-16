@@ -129,6 +129,10 @@ SERVICE_ONLY: set[str] = {
     # Service token + X-Tenant-Id (REQ_TENANT) binding every statement, as the D1 owner routes.
     "/internal/v1/observation-outbox",
     "/internal/v1/observation-outbox/acknowledgements",
+    # W1-11 hardening (2026-11-17): the operator's explicit re-queue of a conflict / rejected
+    # entry back to pending. Service token AND operator token (X-Operator-Token), actor and
+    # reason recorded on the row; never called automatically.
+    "/internal/v1/observation-outbox/requeue",
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

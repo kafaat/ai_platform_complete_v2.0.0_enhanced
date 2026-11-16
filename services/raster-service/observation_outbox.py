@@ -28,8 +28,20 @@ When the outbox itself cannot be written, the payload is ``unqueued``: it is hel
 outbox. Each such payload is counted (``raster_batch_observability``, exported on ``/metrics`` as
 ``sahool_raster_batch_observation_outbox_unqueued_total``; ``..._requeued_total`` when it reached
 the outbox, ``..._unqueued_dropped_total`` when the bound drops it) and logged. A held payload
-is durable only once it is in the outbox: a process restart before that loses it, which shows as
-``unqueued_total`` above ``requeued_total + unqueued_dropped_total``.
+is durable only once it is in the outbox: a process restart before that loses the hold, which
+shows as ``unqueued_total`` above ``requeued_total + unqueued_dropped_total``.
+
+Publication and the outbox write are two transactions (gap
+RASTER-OBSERVATION-PUBLISH-OUTBOX-NOT-ATOMIC-01, open). What bridges them: the publish path
+stores the exact payload and its digest in the asset's ``provenance``
+(``PROVENANCE_PAYLOAD_KEY``, ``PROVENANCE_DIGEST_KEY``) in the same statement that writes the
+asset, and the reconciliation sweep (``observation_sweep.py``) queues a published asset whose
+stored payload has no outbox row. Assets published before the payload was stored are outside
+the sweep. Whether this closes the window in production is not measured yet.
+
+Conflict and rejected entries stay on the row and are readable by status on the feed; only an
+explicit operator action (``requeue``, service token plus operator token, actor and reason
+recorded in ``requeue_history``) moves one back to ``pending``. Nothing here does it on its own.
 
 Queueing never changes whether the asset counts as published; it runs after publication.
 """
@@ -60,6 +72,13 @@ UNQUEUED_LIMIT = int(os.getenv("OBSERVATION_UNQUEUED_LIMIT", "1000"))
 #: Bounds of one read of the pending feed.
 FEED_LIMIT_DEFAULT = 50
 FEED_LIMIT_MAX = 200
+#: Where the publish path stores the payload in ``raster_assets.provenance`` (sweep source).
+PROVENANCE_PAYLOAD_KEY = "observation_payload"
+PROVENANCE_DIGEST_KEY = "observation_payload_sha256"
+#: Statuses the feed can list; only ``pending`` is what the drain reads.
+FEED_STATUSES = frozenset({PENDING, DELIVERED, CONFLICT, REJECTED})
+#: What an operator may move back to ``pending``.
+REQUEUEABLE = frozenset({CONFLICT, REJECTED})
 #: Payloads with no outbox row yet, by content digest (insertion order: oldest first).
 _UNQUEUED: dict[str, dict[str, Any]] = {}
 
@@ -280,10 +299,11 @@ class OutboxUnavailable(RuntimeError):
     """The outbox cannot be read or written now; the caller answers 503 and retries."""
 
 
-_PENDING = """
-    SELECT id, payload, payload_sha256, created_at
+_BY_STATUS = """
+    SELECT id, payload, payload_sha256, created_at, status, attempts, last_error,
+           delivered_at, requeue_history
     FROM raster_observation_outbox
-    WHERE tenant_id = $1::uuid AND status = 'pending' AND id > $2
+    WHERE tenant_id = $1::uuid AND status = $4 AND id > $2
     ORDER BY id
     LIMIT $3
 """
@@ -320,33 +340,67 @@ async def _connection():
     return conn
 
 
-async def pending_entries(
-    tenant_id: str, *, limit: int = FEED_LIMIT_DEFAULT, after_id: int = 0
+def _iso(value: Any) -> Any:
+    return value.isoformat() if isinstance(value, datetime) else value
+
+
+def _history(value: Any) -> list[Any]:
+    if isinstance(value, (bytes, bytearray)):
+        value = value.decode()
+    if isinstance(value, str):
+        value = json.loads(value)
+    return list(value or [])
+
+
+async def entries_by_status(
+    tenant_id: str,
+    *,
+    status: str = PENDING,
+    limit: int = FEED_LIMIT_DEFAULT,
+    after_id: int = 0,
 ) -> list[dict[str, Any]]:
-    """The tenant's ``pending`` entries after ``after_id``, oldest first. A read: it changes
+    """The tenant's entries in ``status`` after ``after_id``, oldest first. A read: it changes
     nothing. Tenant-bound twice: the explicit ``tenant_id`` predicate and RLS FORCE under
-    ``app.current_tenant``. Raises ``OutboxUnavailable`` when it cannot answer."""
+    ``app.current_tenant``. A ``pending`` entry carries what the drain needs; any other status
+    also carries ``status``, ``attempts``, ``last_error``, ``delivered_at`` and
+    ``requeue_history`` (for inspection). Raises ``OutboxUnavailable`` when it cannot answer."""
+    if status not in FEED_STATUSES:
+        raise ValueError(f"unknown status {status!r}")
     bounded = max(1, min(int(limit), FEED_LIMIT_MAX))
     conn = await _connection()
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
-            rows = await conn.fetch(_PENDING, tenant_id, max(int(after_id), 0), bounded)
+            rows = await conn.fetch(_BY_STATUS, tenant_id, max(int(after_id), 0), bounded, status)
     except Exception as exc:  # noqa: BLE001 — the caller answers 503, the drain retries
         raise OutboxUnavailable(f"outbox read failed: {type(exc).__name__}") from exc
     finally:
         await conn.close()
-    return [
-        {
+    entries = []
+    for r in rows:
+        entry = {
             "id": int(r["id"]),
             "payload": _payload(r["payload"]),
             "payload_sha256": str(r["payload_sha256"]),
-            "created_at": r["created_at"].isoformat()
-            if isinstance(r["created_at"], datetime)
-            else r["created_at"],
+            "created_at": _iso(r["created_at"]),
         }
-        for r in rows
-    ]
+        if status != PENDING:
+            entry |= {
+                "status": str(r["status"]),
+                "attempts": int(r["attempts"]),
+                "last_error": r["last_error"],
+                "delivered_at": _iso(r["delivered_at"]),
+                "requeue_history": _history(r["requeue_history"]),
+            }
+        entries.append(entry)
+    return entries
+
+
+async def pending_entries(
+    tenant_id: str, *, limit: int = FEED_LIMIT_DEFAULT, after_id: int = 0
+) -> list[dict[str, Any]]:
+    """The tenant's ``pending`` entries (what the drain reads); see ``entries_by_status``."""
+    return await entries_by_status(tenant_id, status=PENDING, limit=limit, after_id=after_id)
 
 
 def _ack_result(entry_id: int, outcome: str, row: Any, digest: str) -> dict[str, Any]:
@@ -406,4 +460,82 @@ async def acknowledge(tenant_id: str, entries: list[dict[str, Any]]) -> list[dic
                 item["status"],
                 item["id"],
             )
+    return results
+
+
+# ── the operator's explicit re-queue of a terminal entry (never automatic) ──────────────────
+_REQUEUE = """
+    UPDATE raster_observation_outbox SET
+        status = 'pending',
+        last_error = NULL,
+        last_status_code = NULL,
+        delivered_at = NULL,
+        next_attempt_at = now(),
+        requeue_history = requeue_history || jsonb_build_array(jsonb_build_object(
+            'at', now(),
+            'by', $4::text,
+            'reason', $5::text,
+            'from_status', status,
+            'last_error', last_error,
+            'attempts', attempts
+        ))
+    WHERE tenant_id = $1::uuid AND id = $2 AND payload_sha256 = $3
+      AND status IN ('conflict', 'rejected')
+    RETURNING id
+"""
+
+
+def _requeue_result(entry_id: int, row: Any, digest: str) -> dict[str, Any]:
+    if row is None:
+        return {"id": entry_id, "result": "not_found"}
+    if str(row["payload_sha256"]) != digest:
+        return {"id": entry_id, "result": "payload_mismatch", "status": str(row["status"])}
+    return {"id": entry_id, "result": "status_mismatch", "status": str(row["status"])}
+
+
+async def requeue(
+    tenant_id: str, entries: list[dict[str, Any]], *, actor: str, reason: str
+) -> list[dict[str, Any]]:
+    """Move the named ``conflict`` / ``rejected`` entries of this tenant back to ``pending``,
+    each at the content it names; one result each, in one transaction.
+
+    ``requeued``: done; the row's ``requeue_history`` gains ``{at, by, reason, from_status,
+    last_error, attempts}`` (who, when, why, and what it was). ``status_mismatch``: the entry is
+    ``pending`` or ``delivered`` and stays so. ``payload_mismatch`` and ``not_found`` as for an
+    acknowledgement. Called only from the operator route; nothing in this service calls it on
+    its own. Raises ``OutboxUnavailable``."""
+    actor = str(actor).strip()
+    reason = str(reason).strip()
+    if not actor or not reason:
+        raise ValueError("a re-queue records who and why")
+    conn = await _connection()
+    results: list[dict[str, Any]] = []
+    try:
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            for entry in entries:
+                entry_id = int(entry["id"])
+                digest = str(entry["payload_sha256"])
+                updated = await conn.fetchval(
+                    _REQUEUE, tenant_id, entry_id, digest, actor[:120], reason[:500]
+                )
+                if updated is not None:
+                    results.append({"id": entry_id, "result": "requeued", "status": PENDING})
+                    continue
+                row = await conn.fetchrow(_ENTRY, tenant_id, entry_id)
+                results.append(_requeue_result(entry_id, row, digest))
+    except Exception as exc:  # noqa: BLE001 — nothing was re-queued
+        raise OutboxUnavailable(f"outbox re-queue failed: {type(exc).__name__}") from exc
+    finally:
+        await conn.close()
+    done = sum(1 for item in results if item["result"] == "requeued")
+    if done:
+        _count("observation_outbox_requeued_by_operator_total", done)
+    logger.warning(
+        "observation outbox re-queue by operator actor=%s entries=%s requeued=%s reason=%s",
+        actor[:120],
+        [item["id"] for item in results],
+        done,
+        reason[:200],
+    )
     return results

@@ -28,7 +28,11 @@
 --   path writes each published asset's payload here; indicators-service reads the tenant's
 --   pending rows over raster's feed and acknowledges each one it settled (delivered, conflict,
 --   rejected), from pending only, at the payload_sha256 it names. A row nobody acknowledged stays
---   pending and is read again next cycle; nothing deletes a row. Only raster-service touches the
+--   pending and is read again next cycle; nothing deletes a row. Publication and this write
+--   are two transactions (gap RASTER-OBSERVATION-PUBLISH-OUTBOX-NOT-ATOMIC-01, open); raster's
+--   reconciliation sweep queues a published asset whose stored payload has no row here. A
+--   conflict / rejected row goes back to pending only by an operator's explicit re-queue,
+--   recorded in requeue_history. Only raster-service touches the
 --   table, on its restricted runtime role under app.current_tenant (RLS ENABLE + FORCE).
 --
 -- Numbers are NUMERIC columns and JSON numbers in the payload, never decimal text
@@ -118,6 +122,10 @@ CREATE TABLE IF NOT EXISTS raster_observation_outbox (
     last_error TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     delivered_at TIMESTAMPTZ,
+    -- An operator's explicit re-queue of a conflict / rejected entry (never automatic): each
+    -- appends {at, by, reason, from_status, last_error, attempts}.
+    requeue_history JSONB NOT NULL DEFAULT '[]'::jsonb
+        CHECK (jsonb_typeof(requeue_history) = 'array'),
     CONSTRAINT raster_observation_outbox_once UNIQUE (tenant_id, product_identity_key, payload_sha256)
 );
 CREATE INDEX IF NOT EXISTS raster_observation_outbox_pending_idx

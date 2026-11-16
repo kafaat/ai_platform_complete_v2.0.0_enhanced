@@ -149,8 +149,10 @@ def test_raster_never_calls_indicators_service():
 
 
 # ── the publication path queues only after the asset is published ────────────────────────
-def _patch_db(monkeypatch, *, registry=True, promote=True):
+def _patch_db(monkeypatch, *, registry=True, promote=True, assets=None):
     async def insert_asset(**kwargs):
+        if assets is not None:
+            assets.append(kwargs)
         return True
 
     async def insert_registry(**kwargs):
@@ -205,6 +207,30 @@ def test_a_published_asset_is_queued_once(monkeypatch):
     assert payload["scene_id"] == "scene_1" and payload["stats"]["mean"] == 0.55, payload
     assert payload["tenant_id"] == TENANT and payload["processing_job_id"] == "job_1", payload
     assert payload["product_identity_key"], "the product identity travels with the payload"
+
+
+def test_the_asset_row_stores_the_exact_payload_the_outbox_receives(monkeypatch):
+    """W1-11 hardening: the sweep's source. Publication and the outbox write are two
+    transactions, so the payload is stored with the asset (same statement) with its digest."""
+    assets: list = []
+    published = _patch_db(monkeypatch, assets=assets)
+    assert _persist() is True
+    [asset] = assets
+    [payload] = published
+    provenance = asset["provenance"]
+    assert provenance[observation_outbox.PROVENANCE_PAYLOAD_KEY] == payload, provenance
+    assert provenance[observation_outbox.PROVENANCE_DIGEST_KEY] == (
+        observation_outbox.payload_sha256(payload)
+    )
+    assert payload["product_identity_key"] == asset["product_identity_key"]
+
+
+def test_an_asset_that_is_no_observation_stores_no_payload(monkeypatch):
+    assets: list = []
+    published = _patch_db(monkeypatch, assets=assets)
+    assert _persist(stats={"valid_pixels": 4, "nodata_pixels": 0, "mean": None}) is True
+    assert observation_outbox.PROVENANCE_PAYLOAD_KEY not in assets[0]["provenance"]
+    assert published == []
 
 
 def test_a_local_file_publication_is_queued_too(monkeypatch):

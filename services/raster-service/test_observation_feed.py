@@ -27,11 +27,32 @@ TOKEN = "svc-token"
 DIGEST = "a" * 64
 FEED = "/internal/v1/observation-outbox"
 ACK = f"{FEED}/acknowledgements"
+REQUEUE = f"{FEED}/requeue"
+OPERATOR = "operator-token"
 
 
 @pytest.fixture
 def feed(monkeypatch):
-    state = {"pending_calls": [], "ack_calls": [], "raise": None, "entries": []}
+    state = {
+        "pending_calls": [],
+        "ack_calls": [],
+        "status_calls": [],
+        "requeue_calls": [],
+        "raise": None,
+        "entries": [],
+    }
+
+    async def _by_status(tenant_id, *, status, limit, after_id):
+        state["status_calls"].append((tenant_id, status, limit, after_id))
+        if state["raise"] is not None:
+            raise state["raise"]
+        return state["entries"]
+
+    async def _requeue(tenant_id, entries, *, actor, reason):
+        state["requeue_calls"].append((tenant_id, entries, actor, reason))
+        if state["raise"] is not None:
+            raise state["raise"]
+        return [{"id": e["id"], "result": "requeued", "status": "pending"} for e in entries]
 
     async def _pending(tenant_id, *, limit, after_id):
         state["pending_calls"].append((tenant_id, limit, after_id))
@@ -49,6 +70,9 @@ def feed(monkeypatch):
     monkeypatch.setattr(db_persist, "DATABASE_URL", "postgresql://stub/for-tests")
     monkeypatch.setattr(observation_outbox, "pending_entries", _pending)
     monkeypatch.setattr(observation_outbox, "acknowledge", _ack)
+    monkeypatch.setattr(observation_outbox, "entries_by_status", _by_status)
+    monkeypatch.setattr(observation_outbox, "requeue", _requeue)
+    monkeypatch.setenv("RASTER_OBSERVATION_OUTBOX_OPERATOR_TOKEN", OPERATOR)
     app = create_raster_app(title="t", version="v", lifespan=None, cors_origins=[])
     state["client"] = TestClient(app)
     return state
@@ -73,7 +97,7 @@ def test_both_routes_are_on_the_auto_registered_router():
     from routers import observation_feed
 
     paths = {(next(iter(r.methods)), r.path) for r in observation_feed.router.routes}
-    assert paths == {("GET", FEED), ("POST", ACK)}, paths
+    assert paths == {("GET", FEED), ("POST", ACK), ("POST", REQUEUE)}, paths
 
 
 @pytest.mark.parametrize("token", [None, "guessed"])
@@ -190,3 +214,121 @@ def test_an_unavailable_outbox_is_503_never_an_empty_success(feed):
 def test_an_acknowledgement_that_changed_nothing_says_why(row, outcome, expected):
     result = observation_outbox._ack_result(7, outcome, row, DIGEST)
     assert result["result"] == expected, result
+
+
+# ── inspection by status, and the operator's explicit re-queue ──────────────────────────────
+@pytest.mark.parametrize("status", ["conflict", "rejected", "delivered"])
+def test_terminal_entries_are_inspectable_by_status_for_the_asserted_tenant(feed, status):
+    response = feed["client"].get(FEED, params={"status": status}, headers=_headers(tenant=OTHER))
+    assert response.status_code == 200, response.text
+    assert feed["status_calls"] == [(OTHER, status, 50, 0)], feed["status_calls"]
+    assert feed["pending_calls"] == [], "the drain's pending read is not used for inspection"
+    assert response.json()["status"] == status
+
+
+def test_the_default_feed_is_still_the_pending_read_the_drain_uses(feed):
+    response = feed["client"].get(FEED, headers=_headers())
+    assert response.status_code == 200 and response.json()["status"] == "pending"
+    assert feed["pending_calls"] == [(TENANT, 50, 0)] and feed["status_calls"] == []
+
+
+@pytest.mark.parametrize("status", ["unqueued", "deleted", "PENDING"])
+def test_an_unknown_status_is_refused(feed, status):
+    assert (
+        feed["client"].get(FEED, params={"status": status}, headers=_headers()).status_code == 422
+    )
+    assert feed["status_calls"] == [] and feed["pending_calls"] == []
+
+
+def _requeue_body(**overrides):
+    body = {
+        "entries": [{"id": 9, "payload_sha256": DIGEST}],
+        "actor": "ops.alice",
+        "reason": "store conflict investigated, payload corrected upstream",
+    }
+    body.update(overrides)
+    return body
+
+
+def _op_headers(operator=OPERATOR, **kw):
+    headers = _headers(**kw)
+    if operator is not None:
+        headers["X-Operator-Token"] = operator
+    return headers
+
+
+def test_the_operator_requeue_records_who_and_why_for_the_asserted_tenant(feed):
+    response = feed["client"].post(REQUEUE, json=_requeue_body(), headers=_op_headers())
+    assert response.status_code == 200, response.text
+    [(tenant, entries, actor, reason)] = feed["requeue_calls"]
+    assert (tenant, actor) == (TENANT, "ops.alice"), (tenant, actor)
+    assert reason.startswith("store conflict") and entries == [{"id": 9, "payload_sha256": DIGEST}]
+    assert response.json()["results"] == [{"id": 9, "result": "requeued", "status": "pending"}]
+
+
+@pytest.mark.parametrize(
+    ("token", "operator", "expected"),
+    [(None, OPERATOR, 401), ("guessed", OPERATOR, 401), (TOKEN, None, 403), (TOKEN, "guess", 403)],
+)
+def test_the_requeue_needs_the_service_token_and_the_operator_token(
+    feed, token, operator, expected
+):
+    response = feed["client"].post(
+        REQUEUE, json=_requeue_body(), headers=_op_headers(operator=operator, token=token)
+    )
+    assert response.status_code == expected, response.text
+    assert feed["requeue_calls"] == [], "nothing was re-queued"
+
+
+def test_the_requeue_is_off_without_an_operator_token(feed, monkeypatch):
+    monkeypatch.delenv("RASTER_OBSERVATION_OUTBOX_OPERATOR_TOKEN")
+    response = feed["client"].post(REQUEUE, json=_requeue_body(), headers=_op_headers(operator=""))
+    assert response.status_code == 503, response.text
+    assert feed["requeue_calls"] == []
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        _requeue_body(actor=""),
+        _requeue_body(actor="has space"),
+        _requeue_body(reason="short"),
+        _requeue_body(entries=[]),
+        _requeue_body(entries=[{"id": 9}]),
+        _requeue_body(entries=[{"id": 9, "payload_sha256": DIGEST, "outcome": "pending"}]),
+        _requeue_body(entries=[{"id": 9, "payload_sha256": DIGEST}] * 2),
+        {"entries": [{"id": 9, "payload_sha256": DIGEST}], "actor": "ops.alice"},
+    ],
+)
+def test_an_invalid_requeue_changes_nothing(feed, body):
+    response = feed["client"].post(REQUEUE, json=body, headers=_op_headers())
+    assert response.status_code == 422, (body, response.text)
+    assert feed["requeue_calls"] == []
+
+
+@pytest.mark.parametrize(
+    ("row", "expected"),
+    [
+        (None, "not_found"),
+        ({"status": "pending", "payload_sha256": DIGEST}, "status_mismatch"),
+        ({"status": "delivered", "payload_sha256": DIGEST}, "status_mismatch"),
+        ({"status": "conflict", "payload_sha256": "b" * 64}, "payload_mismatch"),
+    ],
+)
+def test_a_requeue_that_changed_nothing_says_why(row, expected):
+    assert observation_outbox._requeue_result(9, row, DIGEST)["result"] == expected
+
+
+def test_nothing_calls_the_requeue_on_its_own():
+    """The re-queue is an operator action: only its route calls it (never the drain's path,
+    the sweep or the publish path)."""
+    import inspect
+    import re
+
+    import observation_sweep
+    from routers import observation_feed
+
+    for module in (observation_sweep, observation_outbox):
+        source = inspect.getsource(module)
+        assert not re.search(r"(?<!def )\brequeue\(", source), module.__name__
+    assert "observation_outbox.requeue(" in inspect.getsource(observation_feed)

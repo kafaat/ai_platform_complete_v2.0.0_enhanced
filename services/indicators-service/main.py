@@ -126,6 +126,7 @@ async def metrics():
 @app.get("/readyz")
 async def ready():
     manifest = _manifest()
+    drain = observation_drain.state()
     return {
         "status": "ready",
         "service": "indicators-service",
@@ -135,8 +136,10 @@ async def ready():
         "observed_spectral_owner": manifest["policy"]["observed_spectral_owner"],
         "schema_version": manifest["schema_version"],
         # W1-11: the pull of published observations from raster-service. Reported, not gated:
-        # the read routes keep their computed path while the drain is behind.
-        "observation_drain": observation_drain.state(),
+        # the read routes keep their computed path while the drain is behind. A drain that is
+        # off or has no tenants is not ready for delivery and says so here.
+        "observation_delivery": drain["delivery"],
+        "observation_drain": drain,
     }
 
 

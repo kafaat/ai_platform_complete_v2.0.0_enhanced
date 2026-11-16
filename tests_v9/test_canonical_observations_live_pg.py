@@ -627,6 +627,413 @@ def test_the_feed_is_tenant_bound_and_its_acknowledgement_idempotent(svc, monkey
     assert len(_outbox(tenant)) == 1, "and are never deleted"
 
 
+# ── W1-11 hardening (owner acceptance conditions, 2026-11-17): crash and fault cases ─────────
+# Publication and the outbox write are two transactions (gap
+# RASTER-OBSERVATION-PUBLISH-OUTBOX-NOT-ATOMIC-01, open). Each case below injects the fault at
+# the exact step (a monkeypatched function that raises there), then proves the state the next
+# cycle resumes from, on the migrated schema under the restricted role.
+_OPERATOR = "live-operator-token"
+
+
+def _raster_modules(monkeypatch):
+    outbox, raster_app = _load_raster(monkeypatch)
+    import observation_sweep
+    from raster_asset_persistence import persist_raster_asset
+
+    return outbox, raster_app, observation_sweep, persist_raster_asset
+
+
+def _publish_asset(persist, tenant: str, field: str, *, scene: str = "S2A_SWEEP_SCENE") -> bool:
+    """raster-service's real publish path (``persist_raster_asset``) on the live database: a
+    local COG, so the asset is written ``ready`` (published) and then queued."""
+    from raster_api_models import ProcessRequest
+
+    req = ProcessRequest(
+        field_id=field,
+        tenant_id=tenant,
+        scene_id=scene,
+        capture_datetime="2026-09-01T10:15:00Z",
+        indicator="ndvi",
+        source_format="sentinel2_l2a",
+        bands={"red": 1, "nir": 2},
+        provider="cdse",
+        raster_url="file:///scene.tif",
+        precomputed_index=True,
+    )
+    return persist(
+        req,
+        f"file:///data/uploads/{field}_ndvi.tif",
+        {"data_available_at": "2026-09-03T08:30:00+00:00"},
+        [44, 15, 45, 16],
+        {
+            "valid_pixels": 9,
+            "nodata_pixels": 1,
+            "mean": 0.55,
+            "median": 0.56,
+            "min": 0.1,
+            "max": 0.9,
+            "std": 0.05,
+        },
+        job_id=f"job_{field}",
+    )
+
+
+def _assets(tenant: str, field: str):
+    return asyncio.run(
+        _admin_fetch(
+            "SELECT asset_status, product_identity_key, "
+            "provenance -> 'observation_payload' AS payload, "
+            "provenance ->> 'observation_payload_sha256' AS digest "
+            "FROM raster_assets WHERE tenant_id = $1::uuid AND field_id = $2",
+            tenant,
+            field,
+        )
+    )
+
+
+def _crash_the_outbox_write(monkeypatch, outbox):
+    calls: list = []
+
+    async def _crash(payload, **_kw):
+        calls.append(payload)
+        raise RuntimeError("process died after publication, before the outbox write")
+
+    monkeypatch.setattr(outbox, "publish", _crash)
+    return calls
+
+
+def _sweep_env(monkeypatch, *tenants: str, enabled: bool = True) -> None:
+    monkeypatch.setenv("RASTER_OBSERVATION_SWEEP_ENABLED", "true" if enabled else "false")
+    monkeypatch.setenv("RASTER_OBSERVATION_SWEEP_TENANTS", ",".join(tenants))
+
+
+def test_case_a_crash_after_publish_before_the_outbox_write_is_swept_then_delivered_once(
+    svc, monkeypatch
+):
+    main, _client = svc
+    outbox, raster_app, sweep, persist = _raster_modules(monkeypatch)
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    crashed = _crash_the_outbox_write(monkeypatch, outbox)
+    assert _publish_asset(persist, tenant, field) is True, "the asset is published"
+    assert len(crashed) == 1, "the fault fired at the outbox write"
+    [asset] = _assets(tenant, field)
+    assert asset["asset_status"] == "ready", dict(asset)
+    stored = json_loads(asset["payload"])
+    assert stored["acquired_at"] == "2026-09-01T10:15:00+00:00", "the instant, not the DATE"
+    assert stored["stats"]["median"] == 0.56, "what the row's columns do not keep"
+    assert asset["digest"] == outbox.payload_sha256(crashed[0]), "the payload publish built"
+    assert _outbox(tenant) == [], "no outbox row: the crash window"
+
+    # Negative control: with the sweep off, the drain never sees it.
+    _sweep_env(monkeypatch, tenant, enabled=False)
+    assert asyncio.run(sweep.run_once()) == {"skipped": "disabled"}
+    _drain_env(monkeypatch, tenant)
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    assert _outbox(tenant) == [] and _rows(tenant, field) == [], "sweep off: never delivered"
+
+    _sweep_env(monkeypatch, tenant)
+    first = asyncio.run(sweep.run_once())
+    assert first["tenants"][tenant]["enqueued"] == 1, first
+    again = asyncio.run(sweep.run_once())
+    assert again["tenants"][tenant]["found"] == 0, f"idempotent: {again}"
+    [entry] = _outbox(tenant)
+    assert (entry["status"], entry["payload_sha256"]) == ("pending", asset["digest"]), dict(entry)
+
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    rows = _rows(tenant, field)
+    assert len(rows) == 1 and rows[0]["payload_sha256"], f"delivered once: {rows}"
+    [entry] = _outbox(tenant)
+    assert (entry["status"], entry["attempts"]) == ("delivered", 1), dict(entry)
+    assert asyncio.run(sweep.run_once())["tenants"][tenant]["found"] == 0, "nothing left"
+
+
+def json_loads(value):
+    import json
+
+    return json.loads(value) if isinstance(value, str) else value
+
+
+def test_case_b_crash_after_the_outbox_write_before_the_drain_next_drain_delivers(svc, monkeypatch):
+    main, _client = svc
+    _outbox_module, raster_app, sweep, persist = _raster_modules(monkeypatch)
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    assert _publish_asset(persist, tenant, field) is True
+    assert [e["status"] for e in _outbox(tenant)] == ["pending"], "queued by the publish path"
+
+    drain = main.observation_drain
+    real_settle = drain.settle
+
+    async def _crash(entry, who):
+        raise RuntimeError("drain died after reading the entry, before storing it")
+
+    monkeypatch.setattr(drain, "settle", _crash)
+    _drain_env(monkeypatch, tenant)
+    assert _cycle(main, raster_app) == {"tenants": {tenant: False}}
+    assert _rows(tenant, field) == [] and [e["status"] for e in _outbox(tenant)] == ["pending"]
+    _sweep_env(monkeypatch, tenant)
+    assert asyncio.run(sweep.run_once())["tenants"][tenant]["found"] == 0, "no second row"
+
+    monkeypatch.setattr(drain, "settle", real_settle)
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    assert len(_rows(tenant, field)) == 1
+    [entry] = _outbox(tenant)
+    assert (entry["status"], entry["attempts"]) == ("delivered", 1), dict(entry)
+
+
+def test_case_c_crash_after_indicators_stored_before_ack_replays_without_a_duplicate(
+    svc, monkeypatch
+):
+    main, _client = svc
+    _outbox_module, raster_app, _sweep, persist = _raster_modules(monkeypatch)
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    assert _publish_asset(persist, tenant, field) is True
+    drain = main.observation_drain
+    real_ack = drain._acknowledge
+
+    async def _crash(*_a, **_kw):
+        raise RuntimeError("drain died after storing, before the acknowledgement")
+
+    monkeypatch.setattr(drain, "_acknowledge", _crash)
+    _drain_env(monkeypatch, tenant)
+    assert _cycle(main, raster_app) == {"tenants": {tenant: False}}
+    assert len(_rows(tenant, field)) == 1, "stored"
+    assert [e["status"] for e in _outbox(tenant)] == ["pending"], "but not acknowledged"
+
+    monkeypatch.setattr(drain, "_acknowledge", real_ack)
+    replayed = drain.state()["counters"]["replayed"]
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    assert drain.state()["counters"]["replayed"] == replayed + 1, "the next drain replays"
+    assert len(_rows(tenant, field)) == 1, "no duplicate row"
+    [entry] = _outbox(tenant)
+    assert (entry["status"], entry["attempts"]) == ("delivered", 1), dict(entry)
+
+
+def test_case_d_two_concurrent_drains_and_a_duplicate_ack_settle_once(svc, monkeypatch):
+    main, _client = svc
+    outbox, raster_app, _sweep, persist = _raster_modules(monkeypatch)
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    assert _publish_asset(persist, tenant, field) is True
+    [entry] = _outbox(tenant)
+    drain = main.observation_drain
+    real_settle = drain.settle
+    _drain_env(monkeypatch, tenant)
+    mismatch = drain.state()["counters"]["ack_mismatch"]
+
+    async def _both():
+        barrier = asyncio.Barrier(2)
+
+        async def _settle(item, who):
+            await barrier.wait()  # both drains hold the same pending entry before either stores
+            return await real_settle(item, who)
+
+        monkeypatch.setattr(drain, "settle", _settle)
+        transport = httpx.ASGITransport(app=raster_app)
+        async with (
+            httpx.AsyncClient(transport=transport) as one,
+            httpx.AsyncClient(transport=transport) as two,
+        ):
+            return await asyncio.gather(
+                drain.drain_tenant(one, tenant), drain.drain_tenant(two, tenant)
+            )
+
+    assert asyncio.run(_both()) == [True, True], "neither drain errors"
+    assert len(_rows(tenant, field)) == 1, "exactly one canonical row"
+    [after] = _outbox(tenant)
+    assert (after["status"], after["attempts"], after["done"]) == ("delivered", 1, True), dict(
+        after
+    )
+    assert drain.state()["counters"]["ack_mismatch"] == mismatch, "no error state"
+
+    again = asyncio.run(
+        outbox.acknowledge(
+            tenant,
+            [
+                {
+                    "id": entry["id"],
+                    "payload_sha256": entry["payload_sha256"],
+                    "outcome": "delivered",
+                }
+            ],
+        )
+    )
+    assert [r["result"] for r in again] == ["already_acknowledged"], again
+    assert _outbox(tenant)[0]["attempts"] == 1, "a duplicate acknowledgement changes nothing"
+
+
+def test_case_e_another_tenant_cannot_read_ack_requeue_or_sweep_the_first_tenants_outbox(
+    svc, monkeypatch
+):
+    _main, _client = svc
+    outbox, raster_app, sweep, persist = _raster_modules(monkeypatch)
+    from fastapi.testclient import TestClient
+
+    raster = TestClient(raster_app)
+    tenant, other, field = _tenant(), _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    assert _publish_asset(persist, tenant, field) is True
+    [entry] = _outbox(tenant)
+    monkeypatch.setenv("RASTER_OBSERVATION_OUTBOX_OPERATOR_TOKEN", _OPERATOR)
+    headers = {"X-Agent-Token": _TOKEN, "X-Tenant-Id": other, "X-Operator-Token": _OPERATOR}
+    for status in ("pending", "delivered", "conflict", "rejected"):
+        seen = raster.get(
+            "/internal/v1/observation-outbox", params={"status": status}, headers=headers
+        )
+        assert seen.status_code == 200 and seen.json()["entries"] == [], (status, seen.text)
+    ack = raster.post(
+        "/internal/v1/observation-outbox/acknowledgements",
+        json={
+            "entries": [
+                {
+                    "id": entry["id"],
+                    "payload_sha256": entry["payload_sha256"],
+                    "outcome": "delivered",
+                }
+            ]
+        },
+        headers=headers,
+    )
+    assert [r["result"] for r in ack.json()["results"]] == ["not_found"], ack.text
+    requeue = raster.post(
+        "/internal/v1/observation-outbox/requeue",
+        json={
+            "entries": [{"id": entry["id"], "payload_sha256": entry["payload_sha256"]}],
+            "actor": "ops.mallory",
+            "reason": "trying another tenant's entry",
+        },
+        headers=headers,
+    )
+    assert [r["result"] for r in requeue.json()["results"]] == ["not_found"], requeue.text
+    # Directly on the restricted role: B's statements see and change none of A's rows.
+    assert (
+        asyncio.run(
+            _as_app(other, "SELECT 1 FROM raster_observation_outbox WHERE id = $1", entry["id"])
+        )
+        == []
+    )
+    assert (
+        asyncio.run(
+            _as_app(
+                other,
+                "UPDATE raster_observation_outbox SET status = 'delivered' WHERE id = $1 RETURNING id",
+                entry["id"],
+            )
+        )
+        == []
+    )
+    # A's published asset with its outbox row removed (as if never written) is not B's to sweep.
+    asyncio.run(_admin_fetch("DELETE FROM raster_observation_outbox WHERE id = $1", entry["id"]))
+    _sweep_env(monkeypatch, other)
+    assert asyncio.run(sweep.run_once())["tenants"][other]["found"] == 0
+    assert _outbox(tenant) == [] and _outbox(other) == [], "B's sweep queued nothing of A's"
+    _sweep_env(monkeypatch, tenant)
+    assert asyncio.run(sweep.run_once())["tenants"][tenant]["enqueued"] == 1, "A's sweep does"
+
+
+def test_a_drain_that_is_off_or_has_no_tenants_leaves_pending_entries_untouched(svc, monkeypatch):
+    main, client = svc
+    _outbox_module, raster_app, _sweep, persist = _raster_modules(monkeypatch)
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    assert _publish_asset(persist, tenant, field) is True
+    before = [dict(e) for e in _outbox(tenant)]
+    for enabled, tenants, reason in ((False, (tenant,), "disabled"), (True, (), "no_tenants")):
+        _drain_env(monkeypatch, *tenants, enabled=enabled)
+        assert _cycle(main, raster_app) == {"skipped": reason}
+        ready = client.get("/readyz").json()
+        assert ready["observation_delivery"] == "not_enabled", ready
+        assert ready["observation_drain"]["ready_for_delivery"] is False
+        assert [dict(e) for e in _outbox(tenant)] == before, "pending, untouched, not deleted"
+    assert _rows(tenant, field) == []
+
+
+def test_conflict_and_rejected_stay_inspectable_and_requeue_only_by_the_operator(svc, monkeypatch):
+    main, _client = svc
+    outbox, raster_app = _load_raster(monkeypatch)
+    import observation_sweep
+    from fastapi.testclient import TestClient
+
+    raster = TestClient(raster_app)
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    assert asyncio.run(outbox.publish(_payload(tenant, field))) == "pending"
+    assert asyncio.run(outbox.publish(_payload(tenant, field, stats={"mean": 0.7}))) == "pending"
+    assert (
+        asyncio.run(outbox.publish(_payload(tenant, field, scene_id="S2B", stats={"mean": "x"})))
+        == "pending"
+    )
+    _drain_env(monkeypatch, tenant)
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    delivered, conflict, rejected = _outbox(tenant)
+    assert [delivered["status"], conflict["status"], rejected["status"]] == [
+        "delivered",
+        "conflict",
+        "rejected",
+    ]
+    service = {"X-Agent-Token": _TOKEN, "X-Tenant-Id": tenant}
+
+    def _listed(status):
+        response = raster.get(
+            "/internal/v1/observation-outbox", params={"status": status}, headers=service
+        )
+        assert response.status_code == 200, response.text
+        return response.json()["entries"]
+
+    [seen] = _listed("conflict")
+    assert seen["id"] == conflict["id"] and "observation_conflict" in seen["last_error"], seen
+    assert seen["requeue_history"] == [] and seen["attempts"] == 1, seen
+    assert [e["id"] for e in _listed("rejected")] == [rejected["id"]]
+    assert _listed("pending") == [], "terminal entries are not what the drain reads"
+
+    # Nothing re-queues them on its own: another drain cycle and a sweep leave them as they are.
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    _sweep_env(monkeypatch, tenant)
+    asyncio.run(observation_sweep.run_once())
+    assert [e["status"] for e in _outbox(tenant)] == ["delivered", "conflict", "rejected"]
+
+    body = {
+        "entries": [
+            {"id": conflict["id"], "payload_sha256": conflict["payload_sha256"]},
+            {"id": rejected["id"], "payload_sha256": rejected["payload_sha256"]},
+            {"id": delivered["id"], "payload_sha256": delivered["payload_sha256"]},
+        ],
+        "actor": "ops.alice",
+        "reason": "upstream store corrected; retry both",
+    }
+    path = "/internal/v1/observation-outbox/requeue"
+    assert raster.post(path, json=body, headers=service).status_code == 503, "operator token unset"
+    monkeypatch.setenv("RASTER_OBSERVATION_OUTBOX_OPERATOR_TOKEN", _OPERATOR)
+    assert raster.post(path, json=body, headers=service).status_code == 403, "no operator token"
+    assert (
+        raster.post(path, json=body, headers={**service, "X-Operator-Token": "guess"}).status_code
+        == 403
+    )
+    assert [e["status"] for e in _outbox(tenant)] == ["delivered", "conflict", "rejected"]
+
+    done = raster.post(path, json=body, headers={**service, "X-Operator-Token": _OPERATOR})
+    assert done.status_code == 200, done.text
+    assert [r["result"] for r in done.json()["results"]] == [
+        "requeued",
+        "requeued",
+        "status_mismatch",
+    ], "a delivered entry is never re-queued"
+    assert [e["status"] for e in _outbox(tenant)] == ["delivered", "pending", "pending"]
+    history = asyncio.run(
+        _admin_fetch(
+            "SELECT requeue_history FROM raster_observation_outbox WHERE id = $1", conflict["id"]
+        )
+    )[0]["requeue_history"]
+    [record] = json_loads(history)
+    assert (record["by"], record["from_status"]) == ("ops.alice", "conflict"), record
+    assert record["reason"].startswith("upstream store corrected") and record["at"], record
+    assert "observation_conflict" in record["last_error"], "what it was is kept"
+
+    # Re-queued, the drain reads them again; the content still conflicts / is invalid.
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    assert [e["status"] for e in _outbox(tenant)] == ["delivered", "conflict", "rejected"]
+    assert len(_rows(tenant, field)) == 1, "the first content stays the stored one"
+    assert len(json_loads(_listed("conflict")[0]["requeue_history"])) == 1, "history is kept"
+
+
+# Last: the down drops both tables, and the re-apply does not restore the restricted role's
+# grants (the bootstrap grants after the migrations), so nothing on the outbox may run after it.
 def test_v286_reapplies_and_its_down_removes_both_tables():
     async def _run():
         conn = await asyncpg.connect(_ADMIN_DSN)

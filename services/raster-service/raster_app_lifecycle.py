@@ -38,6 +38,17 @@ def make_lifespan(
         await startup_check(tenants)
         follow_up_task = asyncio.create_task(serve(tenants, store, process)) if tenants else None
         app.state.follow_up_ready = bool(tenants)
+        # W1-11: the reconciliation sweep of published assets with no outbox row (same explicit
+        # tenant-partition rule as the follow-up worker; idles and says why otherwise).
+        import observation_sweep
+
+        sweep_reason = observation_sweep.skip_reason()
+        observation_sweep._STATE["last_skip_reason"] = sweep_reason
+        sweep_task = (
+            asyncio.create_task(observation_sweep.serve()) if sweep_reason is None else None
+        )
+        if sweep_reason is not None:
+            logger.warning("observation reconciliation sweep not started: %s", sweep_reason)
         evict_task = None
         if layer_evict_enabled():
             evict_task = asyncio.create_task(layer_evict_subscriber())
@@ -49,6 +60,10 @@ def make_lifespan(
                 follow_up_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await follow_up_task
+            if sweep_task is not None:
+                sweep_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await sweep_task
             if evict_task is not None:
                 evict_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):

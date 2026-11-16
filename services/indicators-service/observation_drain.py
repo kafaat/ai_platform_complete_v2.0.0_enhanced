@@ -25,6 +25,10 @@ Tenants: ``INDICATORS_OBSERVATION_DRAIN_TENANTS``, a UUID CSV, as raster's own d
 (``RASTER_FOLLOWUP_TENANTS``): an operator-assigned partition, no cross-tenant enumeration and no
 read of another service's database. Empty means the drain idles, and ``/readyz`` says so.
 
+A drain that is off or has no tenants is reported on ``/readyz`` as not ready for delivery
+(``ready_for_delivery: false``, ``delivery: not_enabled``); it never deletes or settles
+anything, so raster's pending entries wait for it.
+
 Switch: ``INDICATORS_OBSERVATION_DRAIN_ENABLED`` (default on); interval
 ``INDICATORS_OBSERVATION_DRAIN_INTERVAL_SECONDS`` (default 30); page size
 ``INDICATORS_OBSERVATION_DRAIN_BATCH`` (default 50, at most 200). Observable without secrets:
@@ -133,8 +137,17 @@ def _token() -> str:
 
 
 def state() -> dict[str, Any]:
-    """What ``/readyz`` shows: switches, counts and booleans, never a token or a payload."""
+    """What ``/readyz`` shows: switches, counts and booleans, never a token or a payload.
+
+    ``ready_for_delivery`` is true only when a cycle would drain now (switch on, a non-empty
+    tenant partition, token and store configured); otherwise ``delivery`` is ``not_enabled``
+    with the reason. A drain that is not enabled deletes nothing: raster's entries stay
+    pending in its outbox."""
+    reason = skip_reason()
     return {
+        "ready_for_delivery": reason is None,
+        "delivery": "enabled" if reason is None else "not_enabled",
+        "not_enabled_reason": reason,
         "enabled": enabled(),
         "tenants": len(tenants()),
         "token_configured": bool(_token()),
