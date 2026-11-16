@@ -1662,6 +1662,29 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           FARM_WATER_LEDGER_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_farm_water_ledger_projection_live_pg.py
+      # W1-14/W1-12: the ledger accepts a same-tenant season from seasons or farm_season_projects
+      # (v281 trigger), reports refuse to sum currencies, and the pesticide gate reads its farm
+      # context from the ledger. The flag turns any skip into a failure.
+      - name: Farm ledger season and currency governance (W1-14, W1-12, v281, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          LEDGER_SEASON_CURRENCY_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_ledger_season_currency_governance_live_pg.py
+      # W1-04: soil-service stores the hydraulic profile with every soil snapshot, tenant-scoped. The flag turns any skip into a failure.
+      - name: Soil hydraulic projection (W1-04, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          SOIL_HYDRAULIC_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_soil_hydraulic_projection_live_pg.py
+      # W1-08: the yield estimate is built from stored server evidence, never another tenant's. The flag turns any skip into a failure.
+      - name: Yield estimate from server evidence (W1-08, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          YIELD_SERVER_FEATURES_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_yield_server_features_live_pg.py
 
       # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
       # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real

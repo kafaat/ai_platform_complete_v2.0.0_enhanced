@@ -36,8 +36,20 @@ from tests_v9.service_module import load_service_main
 
 pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
-asyncpg = pytest.importorskip("asyncpg")
-httpx = pytest.importorskip("httpx")
+# Switch read before any import (test_certification_switch_precedes_importorskip): on the
+# certifying CI step a missing dependency or an unusable database fails the run, not a skip.
+_CERTIFICATION_REQUIRED = os.getenv("SOIL_HYDRAULIC_CERTIFICATION_REQUIRED") == "1"
+
+
+def _require(module: str):
+    """Import ``module``; under the certification switch a missing one fails the run."""
+    if _CERTIFICATION_REQUIRED:
+        return importlib.import_module(module)
+    return pytest.importorskip(module)
+
+
+asyncpg = _require("asyncpg")
+httpx = _require("httpx")
 
 ROOT = Path(__file__).resolve().parents[1]
 SOIL = ROOT / "services" / "soil-service"
@@ -75,6 +87,10 @@ async def _probe() -> str:
 
 
 _WHY = asyncio.run(_probe())
+if _WHY and _CERTIFICATION_REQUIRED:
+    raise RuntimeError(
+        f"SOIL_HYDRAULIC_CERTIFICATION_REQUIRED=1 but the live database is unusable: {_WHY}"
+    )
 pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
 
 

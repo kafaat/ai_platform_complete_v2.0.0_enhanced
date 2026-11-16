@@ -19,6 +19,7 @@ NOBYPASSRLS role, so tenant isolation applies exactly as in production.
 from __future__ import annotations
 
 import asyncio
+import importlib
 import os
 import sys
 import uuid
@@ -29,8 +30,20 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
-asyncpg = pytest.importorskip("asyncpg")
-pytest.importorskip("fastapi")
+# Switch read before any import (test_certification_switch_precedes_importorskip): on the
+# certifying CI step a missing dependency or an unusable database fails the run, not a skip.
+_CERTIFICATION_REQUIRED = os.getenv("LEDGER_SEASON_CURRENCY_CERTIFICATION_REQUIRED") == "1"
+
+
+def _require(module: str):
+    """Import ``module``; under the certification switch a missing one fails the run."""
+    if _CERTIFICATION_REQUIRED:
+        return importlib.import_module(module)
+    return pytest.importorskip(module)
+
+
+asyncpg = _require("asyncpg")
+_require("fastapi")
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
@@ -70,6 +83,10 @@ async def _probe() -> str:
 
 
 _WHY = asyncio.run(_probe())
+if _WHY and _CERTIFICATION_REQUIRED:
+    raise RuntimeError(
+        f"LEDGER_SEASON_CURRENCY_CERTIFICATION_REQUIRED=1 but the live database is unusable: {_WHY}"
+    )
 pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
 
 
@@ -530,6 +547,8 @@ def test_a_bypassing_role_with_another_tenants_context_is_still_season_checked(m
             if not await admin.fetchval(
                 "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
             ):
+                if _CERTIFICATION_REQUIRED:
+                    raise AssertionError("certifying run needs a role that bypasses RLS")
                 pytest.skip("declared skip (not a pass): no role that bypasses RLS")
             insert = """INSERT INTO farm_operation_ledger
                    (operation_id, tenant_id, season_id, field_id, operation_type, operation_date,

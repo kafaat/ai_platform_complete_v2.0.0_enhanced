@@ -76,6 +76,9 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 20. Water ledger partial irrigation write (W0-13, v280, restricted role)
 21. NDVI seed purge (W1-21, v283, real-PG)
 22. Farm water to the water ledger (W1-13, v284, restricted role)
+23. Farm ledger season and currency governance (W1-14, W1-12, v281, restricted role)
+24. Soil hydraulic projection (W1-04, restricted role)
+25. Yield estimate from server evidence (W1-08, restricted role)
 
 Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 `rolcanlogin` of every restricted role those steps connect as (`sahool_app_test`)
