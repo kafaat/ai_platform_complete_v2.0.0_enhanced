@@ -23,6 +23,7 @@ import os
 import subprocess
 import sys
 import threading
+import uuid
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
@@ -73,12 +74,16 @@ READY_DB = {
 
 
 def test_capability_carries_no_secret_values(cutover, monkeypatch):
-    monkeypatch.setenv("DATABASE_URL", "postgresql://svc:pw-W201-SECRET@db.internal:5432/sahool")
-    monkeypatch.setenv("DECISION_SERVICE_AUTH_TOKEN", "tok-W201-SECRET")
+    # Values are generated per run so no commit carries a credential-shaped literal
+    # (gitleaks generic-api-key); the assertion is the same: none of them may appear.
+    db_password = f"pw-{uuid.uuid4().hex}"
+    auth_token = f"tok-{uuid.uuid4().hex}"
+    monkeypatch.setenv("DATABASE_URL", f"postgresql://svc:{db_password}@db.internal:5432/sahool")
+    monkeypatch.setenv("DECISION_SERVICE_AUTH_TOKEN", auth_token)
     monkeypatch.setenv("DECISION_SERVICE_SOR_ENABLED", "true")
     signal = cutover.sor_capability_signal(READY_DB, sor_enabled=True, ready=True)
     text = json.dumps(signal)
-    for leaked in ("pw-W201-SECRET", "tok-W201-SECRET", "db.internal", "postgresql://"):
+    for leaked in (db_password, auth_token, "db.internal", "postgresql://"):
         assert leaked not in text, f"capability block leaks {leaked!r}: {text}"
     scalars = [v for v in signal.values() if not isinstance(v, dict | list)]
     assert all(isinstance(v, bool | str) for v in scalars), f"non-identifier scalar: {signal}"

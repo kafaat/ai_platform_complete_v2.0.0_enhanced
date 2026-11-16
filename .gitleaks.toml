@@ -44,6 +44,11 @@ regexes = [
   # and rewriting that history would rewrite delivered handoff commits whose SHAs are
   # cited in their own reports. Narrow and literal: it matches this one dead string.
   '''s3rv1ce-t0ken-for-the-join''',
+  # W2-01 test literal (tests_v9/test_decision_sor_staging_cutover_prep.py, commit 4412c2460 and
+  # carrier merge f5e02e5ee on #1507): a fake DECISION_SERVICE_AUTH_TOKEN that the test asserts
+  # never leaks into /readyz. The test now generates its values per run; the literal stays in
+  # the PR-range history, so it is allowlisted literally. Narrow: it matches this one dead string.
+  '''tok-W201-SECRET''',
   # The shared tests_v9 JWT fixture (`TEST_JWT_SECRET` in tests_v9/conftest.py, already
   # repeated in several test modules on main). The PR-range history scan flagged its copy
   # in `004874c3` (TTS tenant-policy gate test); the working tree now imports it from
