@@ -41,7 +41,9 @@ def _run(block: str, rows: int) -> subprocess.CompletedProcess[str]:
         + ("\nfi\n" if "then" in block else "\n")
         + '\necho "FIRST=${first_missing}"\n'
     )
-    return subprocess.run([BASH, "-c", script], capture_output=True, text=True, timeout=120)
+    return subprocess.run(
+        [BASH, "-c", script], capture_output=True, text=True, encoding="utf-8", timeout=120
+    )
 
 
 def test_no_pipeline_into_head_in_the_probe():
