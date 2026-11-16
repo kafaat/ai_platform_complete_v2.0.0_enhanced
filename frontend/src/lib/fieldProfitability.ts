@@ -52,6 +52,8 @@ export interface ProfitabilityResponse {
   profitability: ProfitabilitySummary | null;
   note_ar?: string;
   disabled?: boolean;
+  /** يُضاف من الخطّاف عند 409 mixed_currency: عملات الموسم، لا مجموع عبرها (business-2). */
+  mixed_currency?: string[];
 }
 
 /** بند انحراف من /api/v1/farm-ledger/variance/{season_id}. */
@@ -80,6 +82,7 @@ export interface VarianceResponse {
   recommendations: CostRecommendation[];
   note_ar?: string;
   disabled?: boolean;
+  mixed_currency?: string[];
 }
 
 export interface CostSlice {
@@ -116,6 +119,9 @@ export function summarizeProfitability(resp: ProfitabilityResponse | null | unde
   };
   if (!resp) return empty;
   if (resp.disabled) return { ...empty, reason: 'سجلّ التكاليف غير مفعّل.' };
+  if (resp.mixed_currency?.length) {
+    return { ...empty, reason: `المبالغ مسجّلة بأكثر من عملة (${resp.mixed_currency.join('، ')}): اختر عملة العرض — لا تُجمَع عملتان.` };
+  }
   if (!resp.profitability) return { ...empty, reason: resp.note_ar ?? 'لا سجلّ تكاليف/إيرادات لهذا الموسم بعد.' };
   const p = resp.profitability;
   return {
@@ -129,6 +135,16 @@ export function summarizeProfitability(resp: ProfitabilityResponse | null | unde
     currency: p.currency || 'YER',
     profitable: p.gross_margin > 0 ? true : p.gross_margin < 0 ? false : null,
   };
+}
+
+/** عملات ردّ 409 ``mixed_currency`` من الخادم (business-2)، وإلّا null.
+ *  التقرير بعملة واحدة: الخادم يرفض الجمع عبر العملات ويسمّيها، فتختار الواجهة واحدة. */
+export function mixedCurrencies(e: unknown): string[] | null {
+  const res = (e as { response?: { status?: number; data?: { detail?: unknown } } })?.response;
+  const detail = res?.data?.detail as { code?: unknown; currencies?: unknown } | undefined;
+  if (res?.status !== 409 || detail?.code !== 'mixed_currency' || !Array.isArray(detail.currencies)) return null;
+  const list = detail.currencies.filter((c): c is string => typeof c === 'string' && c.trim() !== '');
+  return list.length ? list : null;
 }
 
 /** يرتّب تفصيل التكلفة تنازليّاً (أكبر بند أولاً)؛ يتجاهل البنود الصفريّة/السالبة. */
@@ -179,6 +195,7 @@ export interface EconomicStateResponse {
   economic_state: EconomicStateBody | null;
   note_ar?: string;
   disabled?: boolean;
+  mixed_currency?: string[];
 }
 
 export interface EconomicIntensity {

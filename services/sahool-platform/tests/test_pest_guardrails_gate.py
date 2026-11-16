@@ -153,6 +153,25 @@ def test_today_flow_context_has_no_pesticide_evidence_so_blocks_without_calling(
     assert calls == [], "a request the contract rejects must not be sent"
 
 
+def test_evidence_with_no_server_source_is_named_in_the_verdict():
+    """W1-12 review (declared limitation): the treatment and the cash reserve have no server
+    source, so the gate cannot allow; the verdict says so instead of only "missing"."""
+    transport, calls = _transport(200, {"allowed": True})
+    farm = {"annual_revenue_usd": 900.0, "annual_costs_usd": 400.0}
+    verdict = _evaluate(transport, ctx={"field_id": "f1"}, farm_fn=lambda t, f: farm)
+    assert verdict["status"] == gate.EVIDENCE_UNAVAILABLE, verdict
+    assert verdict["allowed"] is False, verdict
+    assert verdict["no_server_source"] == [
+        "action_data.chemical",
+        "action_data.dosage_kg_ha",
+        "action_data.cost_usd",
+        "action_data.projected_revenue_increase_usd",
+        "farm_context.cash_reserve_usd",
+    ], f"keys no server record can fill are named: {verdict}"
+    assert "farm_context.annual_costs_usd" not in verdict["no_server_source"], verdict
+    assert calls == [], "a request the contract rejects must not be sent"
+
+
 @pytest.mark.parametrize("user_id", ["u-uuid-like", "0", "-3", "", None, True])
 def test_non_numeric_identity_blocks(user_id):
     transport, calls = _transport(200, {"allowed": True})

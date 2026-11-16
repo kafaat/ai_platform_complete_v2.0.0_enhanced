@@ -567,8 +567,14 @@ async def task_link_error(conn, tenant_id: str, task_id, field_id: str | None):
 
 #: Tenant-scope lookups of the operations ledger (moved from the router for its size ratchet).
 _TENANT_SCOPE_SQL: dict[str, tuple[str, str]] = {
+    # W1-14 (business-1): a season is an agronomic season (``seasons``, the table farmers write)
+    # or a ledger season project, exactly as the simple farm book accepts it. v280 replaced the
+    # foreign keys to farm_season_projects (no writer) with a trigger checking the same union.
     "season": (
-        "SELECT 1 FROM farm_season_projects WHERE tenant_id = $1::uuid AND season_id = $2",
+        "SELECT 1 FROM seasons WHERE tenant_id = $1::uuid AND season_id = $2"
+        " UNION ALL"
+        " SELECT 1 FROM farm_season_projects WHERE tenant_id = $1::uuid AND season_id = $2"
+        " LIMIT 1",
         "season_not_found_for_tenant",
     ),
     "production_unit": (
@@ -596,17 +602,90 @@ def normalize_currency(currency: str | None) -> str | None:
     return text or None
 
 
+class MixedCurrencyError(ValueError):
+    """A season (or a summary scope) holds amounts in more than one currency.
+
+    Business-2: amounts in different currencies were summed under one label (``YER`` by
+    default). A report is in one currency: the caller names it (``?currency=``) or the scope
+    must hold exactly one. The router turns this into HTTP 409 listing the currencies found.
+    """
+
+    def __init__(self, currencies: list[str]):
+        self.currencies = sorted(currencies)
+        super().__init__("mixed_currency")
+
+    def detail(self) -> dict:
+        return {
+            "code": "mixed_currency",
+            "currencies": self.currencies,
+            "message": "amounts are recorded in more than one currency: pass ?currency=",
+        }
+
+
+#: Distinct currencies of a season's amounts: budget lines, priced operations, revenue.
+#: An unpriced operation carries no amount, so its (default) currency is not counted.
+SEASON_CURRENCIES_SQL = """
+    SELECT DISTINCT upper(trim(currency)) AS currency FROM (
+        SELECT currency FROM farm_season_budget_lines
+         WHERE tenant_id = $1::uuid AND season_id = $2
+        UNION ALL
+        SELECT currency FROM farm_operation_ledger
+         WHERE tenant_id = $1::uuid AND season_id = $2 AND cost_amount IS NOT NULL
+        UNION ALL
+        SELECT currency FROM farm_revenue_records
+         WHERE tenant_id = $1::uuid AND season_id = $2
+    ) amounts ORDER BY 1"""
+
+
+def resolve_report_currency(currencies, requested: str | None) -> str | None:
+    """The one currency a report is in: the requested one, else the only one recorded.
+
+    ``None`` when nothing is recorded and nothing was requested. More than one recorded and
+    none requested raises :class:`MixedCurrencyError`: amounts are never summed across
+    currencies.
+    """
+    requested = normalize_currency(requested)
+    if requested is not None:
+        return requested
+    found = sorted({c for c in (normalize_currency(x) for x in currencies) if c})
+    if len(found) > 1:
+        raise MixedCurrencyError(found)
+    return found[0] if found else None
+
+
+async def season_report_currency(conn, tenant_id: str, season_id: str, requested=None):
+    """:func:`resolve_report_currency` over the season's recorded amounts."""
+    if normalize_currency(requested) is not None:
+        return normalize_currency(requested)
+    rows = await conn.fetch(SEASON_CURRENCIES_SQL, tenant_id, season_id)
+    return resolve_report_currency([r["currency"] for r in rows], None)
+
+
 def _currency_scope(tenant_id: str, season_id: str, currency: str | None):
     if currency is None:
         return "", (tenant_id, season_id)
     return " AND upper(trim(currency)) = $3", (tenant_id, season_id, currency)
 
 
+def money_filter_sql(param: int) -> str:
+    """Business-2: the amounts of a report in one currency, parameter ``$param`` (text).
+
+    Used as ``FILTER (WHERE ...)`` on money sums only, so counts, water, energy and hours keep
+    every operation of the scope. A ``NULL`` currency (nothing priced in scope) matches no row.
+    """
+    return f"upper(trim(currency)) IS NOT DISTINCT FROM ${param}::text"
+
+
 async def fetch_unpriced_categories(conn, tenant_id: str, season_id: str, currency=None):
-    """Completed operations with no recorded cost, per category.
+    """Completed operations with no recorded cost, per category, in the report's currency.
 
     Ledger operations carry no budget stage (actuals are keyed ``whole_season``), so an
     unpriced operation makes its whole category incomplete, whatever the budget stage.
+
+    ``currency`` (normalised) keeps the operations recorded in that currency: an unpriced
+    operation leaves its category incomplete only in the report of the currency it is recorded
+    in. Unpriced work recorded in another currency is listed apart
+    (:func:`fetch_unpriced_other_currencies`), never folded into this report's coverage.
     """
     scope, args = _currency_scope(tenant_id, season_id, currency)
     rows = await conn.fetch(
@@ -621,8 +700,48 @@ async def fetch_unpriced_categories(conn, tenant_id: str, season_id: str, curren
     return [dict(row) for row in rows]
 
 
-def priced_variance(budgets, actuals, incomplete: list[dict]) -> tuple[list, dict]:
-    """Drop variance lines whose category has unpriced work: a missing cost is not a saving."""
+async def fetch_unpriced_other_currencies(conn, tenant_id: str, season_id: str, currency):
+    """Unpriced completed work recorded in a currency other than the report's ``currency``.
+
+    Shown beside the report so it is not silent, but it does not change this currency's
+    coverage or variance: the row says its cost will be in another currency. The database
+    cannot tell a currency the writer chose from the column default (``YER``), so a writer that
+    omits the currency of an unpriced operation in a non-YER season sees it listed here. With no
+    report currency (nothing priced in scope) every unpriced row is already in the report.
+    """
+    if currency is None:
+        return []
+    rows = await conn.fetch(
+        f"""SELECT upper(trim(currency)) AS currency,
+                   COALESCE(cost_category, operation_type) AS category,
+                   COUNT(*)::int AS unpriced_operations
+            FROM farm_operation_ledger
+            WHERE tenant_id = $1::uuid AND season_id = $2 AND cost_amount IS NULL
+              AND {ACTUAL_OPERATION_SQL}
+              AND upper(trim(currency)) IS DISTINCT FROM $3::text
+            GROUP BY 1, 2 ORDER BY 1, 2""",
+        tenant_id,
+        season_id,
+        currency,
+    )
+    return [dict(row) for row in rows]
+
+
+async def fetch_unpriced_work(conn, tenant_id: str, season_id: str, currency):
+    """``(incomplete, other_currencies)`` for :func:`priced_variance`, in one call."""
+    incomplete = await fetch_unpriced_categories(conn, tenant_id, season_id, currency)
+    other = await fetch_unpriced_other_currencies(conn, tenant_id, season_id, currency)
+    return incomplete, other
+
+
+def priced_variance(
+    budgets, actuals, incomplete: list[dict], other_currencies: list[dict] | None = None
+) -> tuple[list, dict]:
+    """Drop variance lines whose category has unpriced work: a missing cost is not a saving.
+
+    ``incomplete`` is the report currency's unpriced work only; ``other_currencies`` (unpriced
+    work recorded in other currencies) is reported beside it and changes nothing here.
+    """
     variance = compute_variances(budgets, actuals)
     categories = {row["category"] for row in incomplete}
     coverage = {
@@ -630,15 +749,20 @@ def priced_variance(budgets, actuals, incomplete: list[dict]) -> tuple[list, dic
         "unpriced_operations": sum(row["unpriced_operations"] for row in incomplete),
         "incomplete_categories": incomplete,
     }
+    if other_currencies is not None:  # the routes always pass it
+        coverage["unpriced_in_other_currencies"] = list(other_currencies)
     return [line for line in variance if line.category not in categories], coverage
 
 
-async def fetch_season_revenue(conn, tenant_id: str, season_id: str) -> float:
-    """Recorded season revenue (moved from the router: size ratchet)."""
+async def fetch_season_revenue(conn, tenant_id: str, season_id: str, currency=None) -> float:
+    """Recorded season revenue (moved from the router: size ratchet).
+
+    ``currency`` (normalised) restricts the sum to one currency (business-2).
+    """
+    scope, args = _currency_scope(tenant_id, season_id, currency)
     row = await conn.fetchrow(
-        """SELECT COALESCE(SUM(amount), 0)::float AS revenue
-           FROM farm_revenue_records WHERE tenant_id = $1::uuid AND season_id = $2""",
-        tenant_id,
-        season_id,
+        f"""SELECT COALESCE(SUM(amount), 0)::float AS revenue
+           FROM farm_revenue_records WHERE tenant_id = $1::uuid AND season_id = $2{scope}""",
+        *args,
     )
     return float(row["revenue"] or 0.0)

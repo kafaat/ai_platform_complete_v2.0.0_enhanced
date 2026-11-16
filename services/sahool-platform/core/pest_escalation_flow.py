@@ -294,6 +294,17 @@ FARM_EVIDENCE_KEYS: tuple[str, ...] = (
     "cash_reserve_usd",
 )
 
+# Declared limitation (W1-12 review): these keys have no server source today, so the gate
+# cannot reach ``allowed`` and every execute step blocks (fail closed). The treatment (product,
+# dose, cost, expected benefit) is not read from any server record (the flow context carries
+# none, and the request body is not trusted), and no table records a farm's cash reserve.
+# Filling them needs an owner decision on the source of record; the verdict names them so a
+# block for a missing source is not read as missing data the farmer could still enter.
+NO_SERVER_SOURCE_EVIDENCE: tuple[str, ...] = (
+    *(f"action_data.{k}" for k in ACTION_EVIDENCE_KEYS),
+    "farm_context.cash_reserve_usd",
+)
+
 # حالات الحكم. ``allowed`` وحدها تسمح بالتنفيذ.
 ALLOWED = "allowed"
 DENIED = "denied"
@@ -417,6 +428,7 @@ def evaluate_pesticide_guardrails(
                 "لا يُنفَّذ المبيد: أدلّة فحص السلامة الكيميائيّة غير متاحة على الخادم "
                 f"({'، '.join(missing)}). القرار يبقى بشريّاً خارج النظام.",
                 missing_fields=missing,
+                no_server_source=[k for k in missing if k in NO_SERVER_SOURCE_EVIDENCE],
             )
 
         token = os.getenv("SAHOOL_AGENT_TOKEN", "").strip()
