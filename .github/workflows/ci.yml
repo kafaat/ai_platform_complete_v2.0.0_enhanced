@@ -1790,6 +1790,12 @@ jobs:
       - name: WX-10.8 review-queue endpoint tests
         working-directory: services/decision-service
         run: pytest tests/test_wx10_8_review_queue.py -q -p no:cacheprovider
+      # W2-03 learning-update contract (monkeypatched writer, no DB): the agronomic review reaches
+      # the writer and the SoR reply proves the stored write and review. Storage itself is proven on
+      # PostgreSQL in test_migration_033_pg16.py (the decision PG16 job).
+      - name: W2-03 learning-update review contract
+        working-directory: services/decision-service
+        run: pytest tests/test_learning_update_review_contract.py -q -p no:cacheprovider
       # S5-EXEC-01 recommendation_outcomes cutover (static/text-inspection, no DB): compat shim,
       # decision_record immutability, outcome_record idempotency, and the preflight guard that
       # blocks the cutover until the new writer path is proven — none touch Postgres.
