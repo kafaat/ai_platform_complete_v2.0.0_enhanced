@@ -60,7 +60,12 @@ It enables GPU reservations and NVIDIA runtime env for:
 
 - `sahool-edge`
 - `sahool-sam2-inference`
-- `sahool-video-processor`
+
+`sahool-video-processor` no longer reserves a GPU (2026-11-16): it decodes and JPEG-encodes
+frames on the CPU with the PyPI `opencv-python-headless` wheel (no CUDA, no NVDEC) and sends
+them to `sahool-edge` over HTTP, which holds the GPU. The overlay keeps its
+`VIDEO_STRICT_READY` and `depends_on`. Build the GPU images without runtime secrets with
+`docker buildx bake -f docker-bake.gpu.hcl` (see `docs/runbooks/LOCAL_ENVIRONMENT_RUNBOOK.md`).
 
 It also activates SAM2 field segmentation:
 
@@ -226,7 +231,7 @@ try {
 }
 ```
 This activates SAM2 (`SEGMENTATION_BACKEND=sam2`), GPU reservations for
-`sahool-edge` / `sahool-sam2-inference` / `sahool-video-processor`, and strict
+`sahool-edge` / `sahool-sam2-inference` (video-processor stays on the CPU), and strict
 video readiness (`VIDEO_STRICT_READY=true`).
 
 ### 4. Prove it works (live gates — run on the GPU host, not in CI)

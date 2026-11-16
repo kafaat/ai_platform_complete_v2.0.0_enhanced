@@ -655,12 +655,15 @@ jobs:
             esac
           done
       - name: Validate effective GPU reservations
+        # sahool-video-processor does CPU-only decoding (opencv-python-headless) and sends
+        # frames to sahool-edge over HTTP, so it must carry no NVIDIA reservation.
         run: |
           set -eo pipefail
           docker compose --env-file .ci.env -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml \
             --profile gpu --profile vllm config --format json |
-            jq -e '.services | [.["sahool-edge", "sahool-video-processor", "sahool-sam2-inference", "sahool-vllm-jais"]
-              .deploy.resources.reservations.devices | map(select(.driver == "nvidia" and (.capabilities | index("gpu")))) | length] == [1,1,1,1]'
+            jq -e '.services | ([.["sahool-edge", "sahool-sam2-inference", "sahool-vllm-jais"]
+              .deploy.resources.reservations.devices | map(select(.driver == "nvidia" and (.capabilities | index("gpu")))) | length] == [1,1,1])
+              and ((.["sahool-video-processor"].deploy.resources.reservations.devices // []) | map(select(.driver == "nvidia")) | length == 0)'
       - name: Check for orphaned depends_on blocks
         run: |
           # Defensive: catch the "nats: { condition... }" outside services pattern
