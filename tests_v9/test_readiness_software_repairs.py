@@ -41,10 +41,25 @@ def test_agriai_never_invents_measurements(monkeypatch, body):
     module = load_service(monkeypatch, "agriai-engine")
     monkeypatch.setattr(module, "AGENT_TOKEN", "unit-service-credential")
     monkeypatch.setattr(module, "STRICT_AGRONOMIC_CONTEXT", False)
+    # An explicit candidate with explicit crop parameters: the deterministic fallback refuses a
+    # bare crop name (W2-17 / airuntime-5), and this test is about measurements, not parameters.
+    candidate = {
+        "name": "wheat",
+        "crop": {
+            "name": "wheat",
+            "base_temp_c": 0.0,
+            "max_yield_kg_ha": 6000.0,
+            "gdd_to_maturity": 2000.0,
+            "water_use_efficiency": 15.0,
+            "harvest_index": 0.4,
+        },
+    }
     response = TestClient(module.app).post(
-        "/v1/recommend", json=body, headers={"X-Agent-Token": "unit-service-credential"}
+        "/v1/recommend",
+        json={**body, "candidates": [candidate]},
+        headers={"X-Agent-Token": "unit-service-credential"},
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.text
     payload = response.json()
     assert payload["evidence_sufficient"] is False
     assert payload["confidence"] == 0
