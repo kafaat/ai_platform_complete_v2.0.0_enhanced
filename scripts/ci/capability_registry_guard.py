@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import io
 import json
 import sys
 from collections import Counter, defaultdict, deque
@@ -12,8 +13,10 @@ from pathlib import Path
 
 try:
     from capability_authority_view import load_authoritative_capabilities
+    from generated_artifact_contract import Artifact, drift, render_json, write_all
 except ModuleNotFoundError:  # pragma: no cover
     from scripts.ci.capability_authority_view import load_authoritative_capabilities
+    from scripts.ci.generated_artifact_contract import Artifact, drift, render_json, write_all
 
 ROOT = Path(__file__).resolve().parents[2]
 GENERATED = ROOT / "capabilities/generated"
@@ -102,8 +105,41 @@ def validate(data: dict) -> list[str]:
     return errors
 
 
-def generate(data: dict) -> None:
-    GENERATED.mkdir(parents=True, exist_ok=True)
+CSV_FIELDS = [
+    "id",
+    "title",
+    "domain",
+    "owner",
+    "lifecycle",
+    "maturity",
+    "evidence_level",
+    "status",
+    "confidence",
+    "production_certified",
+    "dependencies",
+]
+
+
+def _render_registry_csv(caps: list[dict]) -> str:
+    # CRLF on purpose: byte-identical to what this generator has always written, so the
+    # first regeneration shows only the content that changed, not every line ending.
+    buffer = io.StringIO(newline="")
+    writer = csv.DictWriter(buffer, fieldnames=CSV_FIELDS)
+    writer.writeheader()
+    for c in caps:
+        writer.writerow({k: (",".join(c[k]) if k == "dependencies" else c[k]) for k in CSV_FIELDS})
+    return buffer.getvalue()
+
+
+def artifacts(data: dict) -> list[Artifact]:
+    """The three governance outputs, rendered once for both writing and checking.
+
+    ``--check`` used to validate the registry and never look at these files, so
+    ``capability_summary.json`` kept reporting 75 capabilities at maturity 3 for weeks
+    after the authorities had moved 15 of them down (60 at maturity 3) — with every
+    gate green. Rendering through one function and comparing bytes
+    (``generated_artifact_contract``) makes that drift a named failure.
+    """
     caps = data["capabilities"]
     summary = {
         "schema_version": data["schema_version"],
@@ -121,35 +157,16 @@ def generate(data: dict) -> None:
             and not c["mobile_consumers"]
         ),
     }
-    (GENERATED / "capability_summary.json").write_text(
-        json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-    with (GENERATED / "capability_registry.csv").open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=[
-                "id",
-                "title",
-                "domain",
-                "owner",
-                "lifecycle",
-                "maturity",
-                "evidence_level",
-                "status",
-                "confidence",
-                "production_certified",
-                "dependencies",
-            ],
-        )
-        writer.writeheader()
-        for c in caps:
-            writer.writerow(
-                {k: (",".join(c[k]) if k == "dependencies" else c[k]) for k in writer.fieldnames}
-            )
     graph = {c["id"]: c["dependencies"] for c in caps}
-    (GENERATED / "capability_graph.json").write_text(
-        json.dumps(graph, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    return [
+        Artifact(GENERATED / "capability_summary.json", render_json(summary)),
+        Artifact(GENERATED / "capability_registry.csv", _render_registry_csv(caps)),
+        Artifact(GENERATED / "capability_graph.json", render_json(graph)),
+    ]
+
+
+def generate(data: dict) -> None:
+    write_all(artifacts(data))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -163,6 +180,16 @@ def main(argv: list[str] | None = None) -> int:
         for error in errors:
             print(error, file=sys.stderr)
         return 1
+    if args.check and not args.generate:
+        drifting = drift(artifacts(data))
+        if drifting:
+            print(
+                "capability_registry_guard: generated artifact drift — "
+                + " · ".join(drifting)
+                + "\nrun: python scripts/ci/capability_registry_guard.py --generate",
+                file=sys.stderr,
+            )
+            return 1
     if args.generate or not args.check:
         generate(data)
     print("capability_registry_guard_ok")

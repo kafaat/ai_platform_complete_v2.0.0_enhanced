@@ -563,6 +563,25 @@ def test_the_management_engine_is_wired_not_merely_declared():
     )
 
 
+def test_the_registry_guard_is_wired_and_ordered_after_its_input() -> None:
+    """Round four (2 ⇒ 1): wired only after ``--check`` could see its outputs.
+
+    The recorded reason for excluding it ("dirties a file on every run from a clean
+    tree") was drift read as non-idempotence: two consecutive runs are byte-identical,
+    and what changed against the commit was a stale summary (75 at maturity 3; the
+    authorities say 60). It reads ``capability_registry_v1``'s output, which sorts after
+    it alphabetically, so it must sit in a later tier; ``static_governance_closure``
+    fingerprints its outputs and must come after it.
+    """
+    assert MOD._GENERATE_FLAG["capability_registry_guard.py"] == "--generate"
+    baseline = json.loads(MOD.UNMAPPED_BASELINE.read_text(encoding="utf-8"))["unmapped"]
+    assert "scripts/ci/capability_registry_guard.py" not in baseline
+    producer = MOD._sort_key(("scripts/ci/capability_registry_v1.py", []))
+    guard = MOD._sort_key(("scripts/ci/capability_registry_guard.py", []))
+    fingerprint = MOD._sort_key(("scripts/ci/static_governance_closure.py", []))
+    assert producer < guard < fingerprint
+
+
 def test_regenerate_orchestrator_delegates_to_the_fixed_point_engine() -> None:
     """عقد fixed-point (قِيس 2026-08-16، ثلاث جولات CI ضائعة): السكربت الصدفيّ
     كان ثلاث خطوات واسمُه يعِد بالكلّ — فمن استعمله حصل على خضرةٍ عن سؤالٍ

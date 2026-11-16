@@ -11,8 +11,8 @@
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
 - حرّاس تحجب في CI: **289**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **60**
-- إجماليّ الطفرات المُسجَّلة: **481**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **61**
+- إجماليّ الطفرات المُسجَّلة: **482**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **397** على 138 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -20,14 +20,14 @@
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **229** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **228** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (60)
+## الحرّاس المُثبَتة بالتكذيب (61)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -284,6 +284,18 @@
 - مستهلكٌ مباشر جديد للسجلّ القديم يعبر بلا تصنيف ⇒ deny-by-default يصير allow-by-default والهجرة إلى عرض السلطة تتوقّف بصمت — يُسقِط `test_new_direct_consumer_fails_closed`
 - رخصةٌ بائتة لملفٍّ زال وصولُه تبقى ⇒ القائمة تتضخّم برخصٍ ميّتة يرثها ملفٌّ جديد بالاسم نفسه دون قرار — يُسقِط `test_stale_allowance_is_rejected`
 - سياسةٌ مشوّهة تنفجر AttributeError صاخباً بدل بلاغٍ مسمّى — الأثر أحمر لكنّ رسالته لا تقود مصلحاً (رفعته مراجعة آليّة وأصابت) — يُسقِط `test_a_malformed_policy_is_a_named_finding_not_a_stack_trace`
+
+### `capability_registry_guard.py`
+
+**يفرض:** Validate the canonical SAHOOL capability registry and generate governance outputs.
+
+**يحجب في:** `capability-governance.yml` → `capability-registry`
+
+**الاختبار الشاهد:** `tests/architecture/test_capability_registry_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- نزعُ المقارنة يُعيد الحارس إلى ما كان عليه: يتحقّق من السجلّ ولا ينظر إلى مصنوعاته، فيبقى `capability_summary.json` يقول ٧٥ قدرة في النضج ٣ والسلطات تقول ٦٠ — بالحرف ما مرّ أخضر منذ #953 حتّى d5d0507 — يُسقِط `test_check_fails_naming_a_drifted_artifact`
 
 ### `capability_writer_authority_guard.py`
 
@@ -1127,7 +1139,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (229)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (228)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -1165,7 +1177,6 @@
 | `capability_mapping_engine.py` | Build a deterministic repository-to-capability evidence map for SAHOOL. | `capability-registry` |
 | `capability_parity_investment_engine.py` | Generate fail-closed capability parity and investment artifacts. | `capability-registry` |
 | `capability_projection_sync.py` | يجعل الإسقاط التوافقيّ صادقاً: الحقول canonical-owned تُكتَب من مالكها وحده. | `capability-registry` |
-| `capability_registry_guard.py` | Validate the canonical SAHOOL capability registry and generate governance outputs. | `capability-registry` |
 | `capability_registry_v1.py` | — | `capability-registry` |
 | `capability_release_history.py` | Generate deterministic capability history from committed static baselines. | `capability-registry` |
 | `capability_roadmap_linker.py` | Validate and generate the curated roadmap-to-capability linkage. | `capability-registry` |
