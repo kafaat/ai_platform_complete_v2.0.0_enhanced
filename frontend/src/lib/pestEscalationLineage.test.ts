@@ -181,7 +181,25 @@ describe('readExecutionOutcome — نتيجة التنفيذ كما أعادها
     expect(readExecutionOutcome({ execute: { executed: true } }).state).toBe('unconfirmed');
   });
 
-  it('the server placeholder exec-<action_type> (no executor wired) is unconfirmed, not executed', () => {
+  it('the current server shape with no executor (executor_not_configured) is not executed', () => {
+    const o = readExecutionOutcome({
+      recommend: { action_type: 'urgent_spray' },
+      execute: {
+        executed: false,
+        execution_ref: null,
+        reason: 'executor_not_configured',
+        note_ar: 'لم يُنفَّذ: لا منفّذ موصول لهذا الإجراء — القرار يبقى بشريّاً',
+        guardrails: { allowed: true, status: 'allowed', reason_ar: 'سمح محرّك السلامة الكيميائيّة بالتنفيذ.' },
+      },
+    });
+    expect(o.state).toBe('not_executed');
+    if (o.state !== 'not_executed') throw new Error('unreachable');
+    expect(o.reasons).toEqual(['لم يُنفَّذ: لا منفّذ موصول لهذا الإجراء — القرار يبقى بشريّاً']);
+    expect(o.blockedBy).toBeUndefined();
+    expect(o.guardrailsStatus).toBe('allowed');
+  });
+
+  it('an older server placeholder exec-<action_type> (no executor wired) is unconfirmed, not executed', () => {
     const fromRecommend = readExecutionOutcome({
       recommend: { action_type: 'urgent_spray' },
       execute: { executed: true, execution_ref: 'exec-urgent_spray' },

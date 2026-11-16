@@ -258,7 +258,30 @@ void main() {
     });
   });
 
-  group('the server placeholder reference', () {
+  group('the server answer with no executor wired', () {
+    test('executor_not_configured is not executed, with its note only', () {
+      final o = readExecutionOutcome({
+        'recommend': {'action_type': 'urgent_spray'},
+        'execute': {
+          'executed': false,
+          'execution_ref': null,
+          'reason': 'executor_not_configured',
+          'note_ar': 'لم يُنفَّذ: لا منفّذ موصول لهذا الإجراء — القرار يبقى بشريّاً',
+          'guardrails': {
+            'allowed': true,
+            'status': 'allowed',
+            'reason_ar': 'سمح محرّك السلامة الكيميائيّة بالتنفيذ.',
+          },
+        },
+      });
+      expect(o.state, ExecutionState.notExecuted);
+      expect(o.reasons, ['لم يُنفَّذ: لا منفّذ موصول لهذا الإجراء — القرار يبقى بشريّاً']);
+      expect(o.blockedBy, isNull);
+      expect(o.guardrailsStatus, 'allowed');
+    });
+  });
+
+  group('an older server placeholder reference', () {
     test('exec-<action_type> with no executor wired is unconfirmed', () {
       final fromRecommend = readExecutionOutcome({
         'recommend': {'action_type': 'urgent_spray'},

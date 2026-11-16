@@ -73,6 +73,53 @@ ESCALATION_TABLE = MappingProxyType(
 )
 
 
+# ── إثبات التنفيذ (PEST-EXECUTE-DEFAULT-ACK-01) ──
+# executed=True لا يُعلَن إلّا بإقرار صريح من المنفّذ: ``executed is True`` مع مرجع تنفيذ.
+EXECUTOR_NOT_CONFIGURED = "executor_not_configured"
+EXECUTION_NOT_CONFIRMED = "execution_not_confirmed"
+EXECUTION_REF_MISSING = "execution_ref_missing"
+_EXECUTOR_NOT_CONFIGURED_NOTE = "لم يُنفَّذ: لا منفّذ موصول لهذا الإجراء — القرار يبقى بشريّاً"
+_EXECUTION_NOT_CONFIRMED_NOTE = "لم يُنفَّذ: المنفّذ لم يؤكّد التنفيذ صراحةً"
+_EXECUTION_REF_MISSING_NOTE = "لم يُعدّ منفّذاً: أعلن المنفّذ التنفيذ بلا مرجع تنفيذ"
+
+
+def _execution_ref(value: object) -> str | None:
+    if isinstance(value, str) and value.strip():
+        return value
+    return None
+
+
+def is_execution_proven(result: Mapping[str, Any] | None) -> bool:
+    """تنفيذ مُثبَت: ``executed is True`` مع ``execution_ref`` نصّيّ غير فارغ."""
+    return (
+        isinstance(result, Mapping)
+        and result.get("executed") is True
+        and _execution_ref(result.get("execution_ref")) is not None
+    )
+
+
+def _execution_outcome(res: object) -> dict:
+    """يحوّل ردّ execute_fn إلى نتيجة صادقة. لا نجاح بلا إقرار صريح ومرجع."""
+    body = res if isinstance(res, Mapping) else {}
+    ref = _execution_ref(body.get("execution_ref"))
+    if body.get("executed") is True and ref is not None:
+        return {"executed": True, "execution_ref": ref}
+    if body.get("executed") is True:
+        return {
+            "executed": False,
+            "execution_ref": None,
+            "reason": EXECUTION_REF_MISSING,
+            "note_ar": _EXECUTION_REF_MISSING_NOTE,
+        }
+    # المرجع يُحفَظ إن وُجد ليتمكّن تعويض Saga من إلغاء أثرٍ جزئيّ.
+    return {
+        "executed": False,
+        "execution_ref": ref,
+        "reason": EXECUTION_NOT_CONFIRMED,
+        "note_ar": _EXECUTION_NOT_CONFIRMED_NOTE,
+    }
+
+
 def build_pest_escalation_steps(
     *,
     detect_fn: Callable[[dict], dict] | None = None,
@@ -82,8 +129,12 @@ def build_pest_escalation_steps(
 ) -> list[WorkflowStep]:
     """يبني خطوات تصعيد الآفة. الدوال الخارجيّة (رصد/تنفيذ) قابلة للحقن.
 
-    detect_fn(ctx) → {pest_type, severity}؛ execute_fn(ctx) → {executed};
+    detect_fn(ctx) → {pest_type, severity}؛ execute_fn(ctx) → {executed, execution_ref};
     cancel_fn(ctx) تعويض تنفيذ فاشل. بلا حقن تُستخدم منطق افتراضي من السياق.
+
+    التنفيذ مُثبَت فقط حين يعيد execute_fn ``executed is True`` حرفيّاً مع
+    ``execution_ref`` نصّيّ غير فارغ. غير ذلك (حقل غائب، {}، مرجع غائب) ⇒ executed=False
+    مع سبب. بلا execute_fn ⇒ executed=False وسبب ``executor_not_configured``.
 
     safety_gate_fn(ctx) → حكم السلامة الكيميائيّة (guardrails-engine من الخادم، W0-01).
     التنفيذ لا يحدث إلّا إذا أعاد ``{"allowed": True, ...}`` حرفيّاً. غيابه أو رفضه أو
@@ -187,18 +238,19 @@ def build_pest_escalation_steps(
                 "guardrails": verdict,
                 "note_ar": verdict.get("reason_ar") or _GATE_BLOCKED_NOTE,
             }
-        if execute_fn is not None:
-            res = execute_fn(ctx)
+        if execute_fn is None:
+            # PEST-EXECUTE-DEFAULT-ACK-01: no executor wired ⇒ nothing ran. This branch used
+            # to answer executed=True with a made-up ref "exec-<action_type>", which scheduled
+            # a 7-day follow-up for a spray that never happened.
             return {
-                "executed": bool(res.get("executed", True)),
-                "execution_ref": res.get("execution_ref"),
+                "executed": False,
+                "execution_ref": None,
+                "reason": EXECUTOR_NOT_CONFIGURED,
+                "note_ar": _EXECUTOR_NOT_CONFIGURED_NOTE,
                 "guardrails": verdict,
             }
-        return {
-            "executed": True,
-            "execution_ref": f"exec-{ctx.get('action_type')}",
-            "guardrails": verdict,
-        }
+        res = execute_fn(ctx)
+        return {**_execution_outcome(res), "guardrails": verdict}
 
     def undo_execute(ctx: dict) -> None:
         # تعويض Saga: إلغاء التنفيذ إن فشلت خطوة لاحقة (المتابعة)
@@ -206,8 +258,9 @@ def build_pest_escalation_steps(
             cancel_fn(ctx)
 
     def step_follow_up(ctx: dict) -> dict:
-        # جدولة متابعة للتحقّق من نجاح المكافحة
-        if not ctx.get("executed"):
+        # جدولة متابعة للتحقّق من نجاح المكافحة — لتنفيذ مُثبَت فقط (executed is True
+        # مع مرجع تنفيذ غير فارغ). قيمة truthy أو مرجع غائب لا تُجدوِل متابعة لما لم يقع.
+        if not is_execution_proven(ctx):
             return {"follow_up_scheduled": False}
         return {
             "follow_up_scheduled": True,
