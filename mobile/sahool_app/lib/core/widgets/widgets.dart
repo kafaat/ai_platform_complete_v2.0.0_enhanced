@@ -6,6 +6,7 @@ export 'app_scaffold.dart';
 export 'app_states.dart';
 export 'bottom_sheets.dart';
 export 'confirm_dialog.dart';
+export 'data_age_banner.dart';
 export 'form_fields.dart';
 export 'list_tiles.dart';
 export 'metric_tile.dart';

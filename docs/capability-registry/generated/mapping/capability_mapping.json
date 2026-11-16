@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7482,
+    "files_scanned": 7492,
     "files_by_kind": {
       "backend": 1296,
       "database": 348,
       "governance": 89,
-      "mobile": 418,
-      "other": 2197,
-      "tests": 2579,
+      "mobile": 429,
+      "other": 2195,
+      "tests": 2580,
       "web": 555
     },
-    "unmapped_artifacts": 3552,
-    "ambiguous_artifacts": 256,
+    "unmapped_artifacts": 3562,
+    "ambiguous_artifacts": 255,
     "files_by_reading": {
-      "python_functional": 4063,
-      "raw": 3419
+      "python_functional": 4060,
+      "raw": 3432
     },
-    "test_dependency_files": 1970,
-    "test_dependency_edges": 5204,
-    "test_dependency_bounded_files": 1144,
+    "test_dependency_files": 1968,
+    "test_dependency_edges": 5200,
+    "test_dependency_bounded_files": 1145,
     "test_dependency_unresolved_relations": 503
   },
   "capabilities": [
@@ -12781,14 +12781,6 @@
           ]
         },
         {
-          "path": "docs/architecture/helm_compose_workload_ledger.json",
-          "score": 10,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
           "path": "shared/notification_consumers.py",
           "score": 10,
           "signals": [
@@ -12899,7 +12891,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 86
+        "events": 85
       },
       "evidence_counts": {
         "backend": 7,
@@ -12910,7 +12902,7 @@
         "mobile": 0,
         "tests": 22,
         "governance": 2,
-        "other_evidence": 35
+        "other_evidence": 34
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -18916,10 +18908,6 @@
           "score": 12
         },
         {
-          "value": "sahool.helm-compose-workload-ledger @ docs/architecture/helm_compose_workload_ledger.json:3",
-          "score": 10
-        },
-        {
           "value": "decision.use_cdse @ services/raster-service/test_imagery_source_gate_no_bypass_static.py:96",
           "score": 9
         },
@@ -20044,14 +20032,6 @@
           ]
         },
         {
-          "path": "docs/architecture/helm_compose_workload_ledger.json",
-          "score": 10,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
           "path": "docs/audits/CODE_REVIEW_REPORT.md",
           "score": 10,
           "signals": [
@@ -20295,12 +20275,12 @@
         "backend": 42,
         "routes": 100,
         "database": 5,
-        "events": 44,
+        "events": 43,
         "web": 6,
         "mobile": 0,
         "tests": 59,
         "governance": 0,
-        "other_evidence": 95
+        "other_evidence": 94
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -23998,10 +23978,6 @@
         {
           "value": "raster_field_runtime.py @ scripts/ci/raster_main_decomposition_gate.py:188",
           "score": 9
-        },
-        {
-          "value": "sahool.helm-compose-workload-ledger @ docs/architecture/helm_compose_workload_ledger.json:3",
-          "score": 9
         }
       ],
       "web": [
@@ -24539,14 +24515,6 @@
           ]
         },
         {
-          "path": "docs/architecture/helm_compose_workload_ledger.json",
-          "score": 9,
-          "signals": [
-            "content:cog",
-            "content:raster tile"
-          ]
-        },
-        {
           "path": "docs/architecture/raster_service_route_migration_plan.md",
           "score": 9,
           "signals": [
@@ -24643,12 +24611,12 @@
         "backend": 12,
         "routes": 52,
         "database": 0,
-        "events": 16,
+        "events": 15,
         "web": 2,
         "mobile": 1,
         "tests": 28,
         "governance": 0,
-        "other_evidence": 45
+        "other_evidence": 44
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -30220,7 +30188,17 @@
           ]
         }
       ],
-      "mobile": [],
+      "mobile": [
+        {
+          "path": "mobile/sahool_app/lib/features/field_plans/data/field_plans_api.dart",
+          "score": 12,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        }
+      ],
       "tests": [
         {
           "path": "services/soil-service/test_soil_sampling_plan_origin.py",
@@ -30268,6 +30246,15 @@
         {
           "path": "services/sahool-platform/tests/test_soil_plan_origin_client.py",
           "score": 12,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/features/field_plans/field_plans_test.dart",
+          "score": 11,
           "signals": [
             "content:sampling plan",
             "content:Soil sampling",
@@ -30435,12 +30422,12 @@
         "database": 14,
         "events": 9,
         "web": 2,
-        "mobile": 0,
-        "tests": 9,
+        "mobile": 1,
+        "tests": 10,
         "governance": 1,
         "other_evidence": 11
       },
-      "coverage_dimensions": 6,
+      "coverage_dimensions": 7,
       "mapped": true
     },
     {
@@ -35708,6 +35695,22 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/lib/core/offline/cache_backends.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/core/offline/cache_cipher.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/core/offline/cached_loader.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/core/offline/offline_read_cache.dart",
+      "kind": "mobile"
+    },
+    {
       "path": "mobile/sahool_app/lib/core/permissions/permissions.dart",
       "kind": "mobile"
     },
@@ -35785,6 +35788,10 @@
     },
     {
       "path": "mobile/sahool_app/lib/core/widgets/confirm_dialog.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/core/widgets/data_age_banner.dart",
       "kind": "mobile"
     },
     {
@@ -36093,6 +36100,26 @@
     },
     {
       "path": "mobile/sahool_app/lib/features/equipment/presentation/equipment_screen.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/field_plans/data/field_plans_models.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/field_plans/data/field_plans_repository.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/field_plans/field_plans_routes.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/field_plans/presentation/cached_read_view.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/field_plans/presentation/field_plan_screens.dart",
       "kind": "mobile"
     },
     {
@@ -36838,6 +36865,14 @@
     {
       "path": "mobile/sahool_app/test/core/local_commit_server.dart",
       "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/test/core/offline_cache_corruption_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/core/offline_read_cache_test.dart",
+      "kind": "tests"
     },
     {
       "path": "mobile/sahool_app/test/core/response_shape_test.dart",
@@ -45004,10 +45039,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_helm_compose_workload_guard.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_helm_gateway_ingress_contract.py",
       "kind": "tests"
     },
@@ -45017,10 +45048,6 @@
     },
     {
       "path": "tests_v9/test_helm_migration_job_runs_real_migrator.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_helm_network_policy_egress.py",
       "kind": "tests"
     },
     {
@@ -47924,36 +47951,6 @@
           "signals": [
             "content:field form",
             "content:Field forms"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/architecture/helm_compose_workload_ledger.json",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-001",
-          "score": 10,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "capability_id": "INT-002",
-          "score": 10,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
-          "capability_id": "SAT-009",
-          "score": 9,
-          "signals": [
-            "content:cog",
-            "content:raster tile"
           ]
         }
       ]
@@ -84228,27 +84225,6 @@
       "unresolved": []
     },
     {
-      "test": "tests_v9/test_helm_compose_workload_guard.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "reads_repository_data_file",
-        "subprocess"
-      ],
-      "edges": [
-        {
-          "source": "scripts/ci/helm_compose_workload_guard.py",
-          "kind": "loader",
-          "line": 28
-        },
-        {
-          "source": "scripts/ci/helm_compose_workload_guard.py",
-          "kind": "source_read",
-          "line": 24
-        }
-      ],
-      "unresolved": []
-    },
-    {
       "test": "tests_v9/test_helm_gateway_ingress_contract.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -84314,33 +84290,9 @@
       "unresolved": []
     },
     {
-      "test": "tests_v9/test_helm_network_policy_egress.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "directory_reference",
-        "subprocess",
-        "tree_wide_scan"
-      ],
-      "edges": [
-        {
-          "source": "scripts/deploy/validate_helm_readiness.py",
-          "kind": "loader",
-          "line": 34
-        },
-        {
-          "source": "scripts/deploy/validate_helm_readiness.py",
-          "kind": "source_read",
-          "line": 35
-        }
-      ],
-      "unresolved": []
-    },
-    {
       "test": "tests_v9/test_helm_source_contract.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "reads_repository_data_file"
-      ],
+      "bounded": true,
+      "unbounded_reasons": [],
       "edges": [
         {
           "source": "scripts/deploy/validate_helm_readiness.py",
