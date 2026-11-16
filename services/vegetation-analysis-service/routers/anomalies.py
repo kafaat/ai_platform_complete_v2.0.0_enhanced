@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import secrets
 from datetime import UTC, datetime
@@ -23,6 +24,7 @@ from anomaly_store import _ALLOWED_TRANSITIONS, AnomalyNotFound, InvalidTransiti
 from fastapi import APIRouter, Depends, Header, HTTPException
 from ground_verification_bridge import GroundVerificationBridge
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 _bridge = GroundVerificationBridge()
 _TASK_CALLBACK_TOKEN = os.getenv("TASK_SERVICE_CALLBACK_TOKEN", "")
@@ -56,15 +58,14 @@ def _check_verification_allowed(record: dict[str, Any], expected_version: int) -
 
 
 def _lifecycle_conflict(exc: InvalidTransition, task_ref: str) -> dict[str, Any]:
-    """The anomaly changed while its field task was being stored (review W1-20, g/B).
+    """The stored field task could not be attached to the anomaly's reservation.
 
-    The task now exists in field-management-service but is not attached to the anomaly. Say so
-    explicitly, naming the task, instead of a bare version conflict. If the anomaly can still be
-    verified (e.g. it was only triaged meanwhile), a retry with its current version reuses this
-    anomaly's deterministic Idempotency-Key, gets the same task back as a replay and attaches it.
-    If the anomaly was closed meanwhile, the named task is left pending: this service has no
-    reservation in the anomaly store and field-management-service has no cancel route yet, so
-    the conflict is surfaced for the caller rather than hidden.
+    Since SCOUTING-ANOMALY-VERIFY-RACE-ORPHAN-TASK-01 the verification is reserved against the
+    expected version *before* the task is dispatched, and while the reservation is pending no
+    other transition (a resolve, a verification result) may move the anomaly. The attach can
+    therefore only lose to another holder of the same reservation, or to a store failure; the
+    reservation then stays pending, the anomaly cannot be closed, and a retry with the original
+    expected version replays the same deterministic Idempotency-Key and attaches the same task.
     """
     return {
         "code": "verification_lifecycle_conflict",
@@ -72,6 +73,136 @@ def _lifecycle_conflict(exc: InvalidTransition, task_ref: str) -> dict[str, Any]
         "task_ref": task_ref,
         "task_attached": False,
     }
+
+
+class VerificationDispatchFailed(Exception):
+    """The bridge stored no confirmed task; says whether the reservation was given back."""
+
+    def __init__(self, reason: str, *, reservation: str, record: dict[str, Any]) -> None:
+        super().__init__(reason)
+        self.record = record  # the anomaly as this request last wrote or read it
+        self.detail = {
+            "code": "verification_dispatch_failed",
+            "reason": reason,
+            "reservation": reservation,
+        }
+
+
+class VerificationAttachConflict(Exception):
+    def __init__(self, exc: InvalidTransition, task_ref: str) -> None:
+        super().__init__(str(exc))
+        self.detail = _lifecycle_conflict(exc, task_ref)
+
+
+def _verification_key(anomaly_ref: str) -> str:
+    return hashlib.sha256(f"{anomaly_ref}|verification".encode()).hexdigest()
+
+
+def _bridge_outcome_is_ambiguous(exc: RuntimeError) -> bool:
+    """True when the task service may have stored the task although the call failed.
+
+    A transport failure or a 5xx can come after the owner committed the task. Giving the
+    reservation back then would reopen the orphan window, so it is kept pending: the anomaly
+    stays un-closable until a retry replays the same key and attaches the task. Every other
+    failure (missing configuration, tenant mismatch, a 4xx refusal, a reply that is not a stored
+    task) is known to have stored nothing, so the prior state is restored.
+    """
+    reason = str(exc)
+    if reason == "task_service_unavailable":
+        return True
+    if reason.startswith("task_service_rejected:"):
+        code = reason.rsplit(":", 1)[1]
+        return not (code.isdigit() and 400 <= int(code) < 500)
+    return False
+
+
+def _reservation_replay(record: dict[str, Any], expected_version: int, key: str) -> str | None:
+    """Is this request a replay of an earlier one for the same reservation?
+
+    Returns ``"attached"`` (the earlier request finished: hand back the same record and task),
+    ``"pending"`` (the earlier request reserved but did not attach: resume its dispatch with the
+    same key) or ``None`` (a fresh request).
+    """
+    reservation = (record.get("payload") or {}).get("verification_reservation")
+    if (
+        record.get("status") != "verification_requested"
+        or not isinstance(reservation, dict)
+        or reservation.get("idempotency_key") != key
+        or reservation.get("reserved_from_version") != expected_version
+    ):
+        return None
+    if reservation.get("state") == "attached" and record.get("task_ref"):
+        return "attached"
+    if reservation.get("state") == "pending" and not record.get("task_ref"):
+        return "pending"
+    return None
+
+
+async def _reserve_and_dispatch(
+    anomaly_ref: str, record: dict[str, Any], expected_version: int, tenant_id: str
+) -> dict[str, Any]:
+    """Reserve the verification, dispatch the field task, then attach it.
+
+    The reservation is taken against ``expected_version`` atomically in the anomaly store
+    before the task exists, so a concurrent resolve can no longer strand a pending task.
+    """
+    key = _verification_key(anomaly_ref)
+    replay = _reservation_replay(record, expected_version, key)
+    if replay == "attached":
+        return record
+    if replay == "pending":
+        reserved, owns_reservation = record, False
+    else:
+        _check_verification_allowed(record, expected_version)
+        reserved = await _store.reserve_verification(
+            anomaly_ref,
+            expected_version=expected_version,
+            idempotency_key=key,
+            tenant_id=tenant_id,
+        )
+        owns_reservation = True
+    try:
+        task = await _bridge.create_scouting_task(
+            anomaly=reserved["payload"],
+            tenant_id=tenant_id,
+            idempotency_key=key,
+        )
+    except RuntimeError as exc:
+        state, latest = "pending", reserved
+        # Only the request that took the reservation gives it back, and only when the task
+        # service is known to have stored nothing; a resumed replay never releases it under
+        # a concurrent holder.
+        if owns_reservation and not _bridge_outcome_is_ambiguous(exc):
+            try:
+                latest = await _store.release_verification_reservation(
+                    anomaly_ref,
+                    expected_version=reserved["aggregate_version"],
+                    idempotency_key=key,
+                    reason=str(exc),
+                    tenant_id=tenant_id,
+                )
+                state = "released"
+            except Exception as release_exc:  # the reservation stays pending; a retry resumes it
+                logger.warning(
+                    "Verification reservation release failed for %s (%s)",
+                    anomaly_ref,
+                    type(release_exc).__name__,
+                )
+        raise VerificationDispatchFailed(str(exc), reservation=state, record=latest) from exc
+    try:
+        return await _store.attach_verification_task(
+            anomaly_ref,
+            expected_version=reserved["aggregate_version"],
+            idempotency_key=key,
+            task_ref=task.task_ref,
+            tenant_id=tenant_id,
+        )
+    except InvalidTransition as exc:
+        # A concurrent replay of the same reservation may have attached the same task first.
+        current = await _store.get(anomaly_ref, tenant_id=tenant_id)
+        if current.get("task_ref") == task.task_ref:
+            return current
+        raise VerificationAttachConflict(exc, task.task_ref) from exc
 
 
 async def _baselines(field_id: str, request: DetectRequest, token: str) -> list[dict[str, Any]]:
@@ -161,30 +292,30 @@ async def detect_signal_anomalies(
             and not record.get("task_ref")
         ):
             try:
-                key = hashlib.sha256(f"{record['anomaly_ref']}|verification".encode()).hexdigest()
-                task = await _bridge.create_scouting_task(
-                    anomaly=record["payload"],
-                    tenant_id=tenant_id,
-                    idempotency_key=key,
-                )
-            except RuntimeError as exc:
-                record["verification_bridge_error"] = str(exc)
-            else:
-                try:
-                    record = await _store.transition(
-                        record["anomaly_ref"],
-                        "verification_requested",
-                        expected_version=record["aggregate_version"],
-                        task_ref=task.task_ref,
-                        patch={"task_ref": task.task_ref},
-                        tenant_id=tenant_id,
-                    )
-                except InvalidTransition as exc:
-                    # Another request moved the anomaly meanwhile: report it on this anomaly
-                    # and keep evaluating the others, instead of failing the whole detect call.
-                    record["verification_lifecycle_conflict"] = _lifecycle_conflict(
-                        exc, task.task_ref
-                    )
+                record = {
+                    **await _reserve_and_dispatch(
+                        record["anomaly_ref"], record, record["aggregate_version"], tenant_id
+                    ),
+                    "current_evaluation": record["current_evaluation"],
+                }
+            except VerificationDispatchFailed as exc:
+                record = {
+                    **exc.record,
+                    "current_evaluation": record["current_evaluation"],
+                    "verification_bridge_error": exc.detail["reason"],
+                    "verification_reservation_outcome": exc.detail["reservation"],
+                }
+            except VerificationAttachConflict as exc:
+                record["verification_lifecycle_conflict"] = exc.detail
+            except InvalidTransition as exc:
+                # Another request moved the anomaly before the reservation: report it on this
+                # anomaly and keep evaluating the others, instead of failing the whole call.
+                record["verification_lifecycle_conflict"] = {
+                    "code": "verification_lifecycle_conflict",
+                    "reason": str(exc),
+                    "task_ref": None,
+                    "task_attached": False,
+                }
         created.append(record)
     return {
         "field_id": field_id,
@@ -247,24 +378,11 @@ async def request_ground_verification(
         record = await _store.get(anomaly_ref, tenant_id=tenant_id)
         if record["tenant_id"] != tenant_id:
             raise AnomalyNotFound(anomaly_ref)
-        _check_verification_allowed(record, request.expected_version)
-        key = hashlib.sha256(f"{anomaly_ref}|verification".encode()).hexdigest()
-        task = await _bridge.create_scouting_task(
-            anomaly=record["payload"],
-            tenant_id=tenant_id,
-            idempotency_key=key,
-        )
-        try:
-            return await _store.transition(
-                anomaly_ref,
-                "verification_requested",
-                expected_version=request.expected_version,
-                task_ref=task.task_ref,
-                patch={"task_ref": task.task_ref},
-                tenant_id=tenant_id,
-            )
-        except InvalidTransition as exc:
-            raise HTTPException(409, _lifecycle_conflict(exc, task.task_ref)) from exc
+        return await _reserve_and_dispatch(anomaly_ref, record, request.expected_version, tenant_id)
+    except VerificationAttachConflict as exc:
+        raise HTTPException(409, exc.detail) from exc
+    except VerificationDispatchFailed as exc:
+        raise HTTPException(424, exc.detail) from exc
     except AnomalyNotFound as exc:
         raise HTTPException(404, "anomaly not found") from exc
     except InvalidTransition as exc:

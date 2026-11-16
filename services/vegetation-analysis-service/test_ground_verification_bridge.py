@@ -150,55 +150,75 @@ async def test_an_anomaly_of_another_tenant_is_refused(monkeypatch, service_env)
         )
 
 
-@pytest.mark.asyncio
-async def test_the_verification_route_passes_the_verified_tenant_and_stores_the_task_ref(
-    monkeypatch,
-):
-    """routers/anomalies.py hands the bridge the JWT-verified tenant and records its task_ref."""
+def _key(anomaly_ref: str) -> str:
+    return hashlib.sha256(f"{anomaly_ref}|verification".encode()).hexdigest()
+
+
+@pytest.fixture
+def route(monkeypatch, tmp_path):
+    """The verification route over the real SQLite anomaly store (no stubbed store)."""
     import main
     import routers.anomalies as anomalies
-    from anomaly_requests import VerificationRequest
+    from anomaly_runtime import AnomalyStoreFacade
+    from anomaly_store import AnomalyStore
 
-    record = {
-        "tenant_id": TENANT,
-        "payload": ANOMALY,
-        "status": "detected",
-        "aggregate_version": 1,
-        "task_ref": None,
-    }
-    calls = {}
-
-    class Store:  # the anomaly store's functions, not a database connection
-        async def get(self, ref, *, tenant_id):
-            return record
-
-        async def transition(self, ref, status, **kwargs):
-            calls["transition"] = (ref, status, kwargs)
-            return {"status": status, "task_ref": kwargs["task_ref"]}
-
-    class Bridge:
-        async def create_scouting_task(self, **kwargs):
-            calls["bridge"] = kwargs
-            return type("R", (), {"task_ref": "urn:sahool:task:t-1"})()
-
+    backend = AnomalyStore(str(tmp_path / "anomalies.db"))
     monkeypatch.setattr(main, "_verify_claims", lambda token: {"tenant_id": TENANT})
     monkeypatch.setattr(main, "_tenant_from_claims", lambda claims: claims["tenant_id"])
-    monkeypatch.setattr(anomalies, "_store", Store())
-    monkeypatch.setattr(anomalies, "_bridge", Bridge())
-    result = await anomalies.request_ground_verification(
+    monkeypatch.setattr(anomalies, "_store", AnomalyStoreFacade(backend))
+    detected = backend.upsert_detected(dict(ANOMALY))
+    assert detected["aggregate_version"] == 1, detected
+    return anomalies, backend
+
+
+class _Bridge:
+    """The bridge's function, recording calls; ``during`` runs while the task is dispatched."""
+
+    def __init__(self, task_ref="urn:sahool:task:t-1", *, error=None, during=None):
+        self.task_ref, self.error, self.during, self.calls = task_ref, error, during, []
+
+    async def create_scouting_task(self, **kwargs):
+        self.calls.append(kwargs)
+        if self.during is not None:
+            self.during()
+        if self.error is not None:
+            raise RuntimeError(self.error)
+        return type("R", (), {"task_ref": self.task_ref})()
+
+
+async def _request(anomalies, version):
+    from anomaly_requests import VerificationRequest
+
+    return await anomalies.request_ground_verification(
         ANOMALY["anomaly_ref"],
-        VerificationRequest(expected_version=1),
+        VerificationRequest(expected_version=version),
         authorization="Bearer user-jwt",
         token=object(),
     )
-    assert calls["bridge"]["tenant_id"] == TENANT, calls["bridge"]
-    assert "authorization" not in calls["bridge"], "the user's bearer is not handed to the bridge"
-    assert (
-        calls["bridge"]["idempotency_key"]
-        == hashlib.sha256(f"{ANOMALY['anomaly_ref']}|verification".encode()).hexdigest()
-    ), "one deterministic key per anomaly, so a retry replays"
-    assert calls["transition"][1] == "verification_requested", calls["transition"]
+
+
+async def test_the_verification_route_passes_the_verified_tenant_and_stores_the_task_ref(
+    monkeypatch, route
+):
+    """routers/anomalies.py hands the bridge the JWT-verified tenant and records its task_ref."""
+    anomalies, backend = route
+    bridge = _Bridge()
+    monkeypatch.setattr(anomalies, "_bridge", bridge)
+    result = await _request(anomalies, 1)
+    (call,) = bridge.calls
+    assert call["tenant_id"] == TENANT, call
+    assert "authorization" not in call, "the user's bearer is not handed to the bridge"
+    assert call["idempotency_key"] == _key(ANOMALY["anomaly_ref"]), (
+        "one deterministic key per anomaly, so a retry replays"
+    )
+    assert result["status"] == "verification_requested", result
     assert result["task_ref"] == "urn:sahool:task:t-1", result
+    reservation = result["payload"]["verification_reservation"]
+    assert reservation["state"] == "attached", reservation
+    assert reservation["prior_status"] == "detected", reservation
+    assert backend.get(ANOMALY["anomaly_ref"])["task_ref"] == "urn:sahool:task:t-1", (
+        "the task is attached in the store, not only in the response"
+    )
 
 
 @pytest.mark.asyncio
@@ -220,10 +240,10 @@ async def test_a_refused_verification_creates_no_field_task(
     anomaly lifecycle refuses never stores an orphan scouting task in field-management."""
     import main
     import routers.anomalies as anomalies
-    from anomaly_requests import VerificationRequest
     from fastapi import HTTPException
 
     record = {
+        "anomaly_ref": ANOMALY["anomaly_ref"],
         "tenant_id": TENANT,
         "payload": ANOMALY,
         "status": status,
@@ -236,29 +256,26 @@ async def test_a_refused_verification_creates_no_field_task(
         async def get(self, ref, *, tenant_id):
             return record
 
+        async def reserve_verification(self, ref, **kwargs):
+            calls.append("reserve")
+            raise AssertionError("no reservation may be taken for a refused request")
+
         async def transition(self, ref, status, **kwargs):
             calls.append("transition")
             raise AssertionError("no transition may run for a refused request")
 
-    class Bridge:
-        async def create_scouting_task(self, **kwargs):
-            calls.append("bridge")
-            return type("R", (), {"task_ref": "urn:sahool:task:t-orphan"})()
-
+    bridge = _Bridge("urn:sahool:task:t-orphan")
     monkeypatch.setattr(main, "_verify_claims", lambda token: {"tenant_id": TENANT})
     monkeypatch.setattr(main, "_tenant_from_claims", lambda claims: claims["tenant_id"])
     monkeypatch.setattr(anomalies, "_store", Store())
-    monkeypatch.setattr(anomalies, "_bridge", Bridge())
+    monkeypatch.setattr(anomalies, "_bridge", bridge)
     with pytest.raises(HTTPException) as caught:
-        await anomalies.request_ground_verification(
-            ANOMALY["anomaly_ref"],
-            VerificationRequest(expected_version=1),
-            authorization="Bearer user-jwt",
-            token=object(),
-        )
+        await _request(anomalies, 1)
     assert caught.value.status_code == 409, caught.value.detail
     assert reason in str(caught.value.detail), caught.value.detail
-    assert calls == [], f"no field task and no transition for a refused request: {calls}"
+    assert calls == [] and bridge.calls == [], (
+        f"no field task, reservation or transition for a refused request: {calls} {bridge.calls}"
+    )
 
 
 def test_the_verification_sources_follow_the_lifecycle():
@@ -267,6 +284,173 @@ def test_the_verification_sources_follow_the_lifecycle():
     assert anomalies._VERIFICATION_SOURCES == {"detected", "triaged", "inconclusive"}, (
         "only states the lifecycle lets move to verification_requested may reach the bridge"
     )
+
+
+# --- SCOUTING-ANOMALY-VERIFY-RACE-ORPHAN-TASK-01: reserve before dispatch -------------------
+
+
+async def test_a_concurrent_resolve_during_dispatch_cannot_strand_the_task(monkeypatch, route):
+    """The anomaly is reserved against the expected version before the task is dispatched, so
+    a resolve racing the dispatch (with the version it read, or with the current one) is refused
+    and the stored task ends attached. Before the fix the resolve won and the task was left
+    pending in field-management with no anomaly pointing at it."""
+    from anomaly_store import InvalidTransition
+
+    anomalies, backend = route
+    ref = ANOMALY["anomaly_ref"]
+    refused = []
+
+    def concurrent_resolve():
+        for version in (1, backend.get(ref)["aggregate_version"]):
+            try:
+                backend.transition(ref, "resolved", expected_version=version, tenant_id=TENANT)
+            except InvalidTransition as exc:
+                refused.append(str(exc))
+
+    monkeypatch.setattr(
+        anomalies, "_bridge", _Bridge("urn:sahool:task:t-raced", during=concurrent_resolve)
+    )
+    result = await _request(anomalies, 1)
+    assert len(refused) == 2, f"both racing resolves must be refused, got {refused}"
+    assert "verification_reservation_pending" in refused, refused
+    stored = backend.get(ref)
+    assert stored["status"] == "verification_requested", stored
+    assert stored["task_ref"] == "urn:sahool:task:t-raced", "the dispatched task is attached"
+    assert result["task_ref"] == stored["task_ref"], result
+
+
+async def test_a_verification_result_during_dispatch_is_refused(monkeypatch, route):
+    """No result callback may close the anomaly while its task has not been attached yet."""
+    from anomaly_store import InvalidTransition
+
+    anomalies, backend = route
+    ref = ANOMALY["anomaly_ref"]
+    seen = []
+
+    def concurrent_result():
+        current = backend.get(ref)
+        try:
+            backend.transition(
+                ref, "rejected", expected_version=current["aggregate_version"], tenant_id=TENANT
+            )
+        except InvalidTransition as exc:
+            seen.append(str(exc))
+
+    monkeypatch.setattr(anomalies, "_bridge", _Bridge(during=concurrent_result))
+    await _request(anomalies, 1)
+    assert seen == ["verification_reservation_pending"], seen
+    assert backend.get(ref)["status"] == "verification_requested", "not closed under the dispatch"
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        "task_service_not_configured",
+        "task_service_rejected:422",
+        "task_service_persistence_unconfirmed",
+    ],
+)
+async def test_a_bridge_failure_that_stored_nothing_restores_the_prior_state(
+    monkeypatch, route, error
+):
+    from fastapi import HTTPException
+
+    anomalies, backend = route
+    ref = ANOMALY["anomaly_ref"]
+    backend.transition(ref, "triaged", expected_version=1, tenant_id=TENANT)
+    monkeypatch.setattr(anomalies, "_bridge", _Bridge(error=error))
+    with pytest.raises(HTTPException) as caught:
+        await _request(anomalies, 2)
+    assert caught.value.status_code == 424, caught.value.detail
+    assert caught.value.detail == {
+        "code": "verification_dispatch_failed",
+        "reason": error,
+        "reservation": "released",
+    }, caught.value.detail
+    stored = backend.get(ref)
+    assert stored["status"] == "triaged", f"the prior state returns: {stored}"
+    assert not stored["task_ref"], stored
+    assert "verification_reservation" not in stored["payload"], stored["payload"]
+    assert stored["payload"]["verification_reservation_released"]["reason"] == error, stored
+    # The anomaly is open again: it can be resolved, or verified with its current version.
+    monkeypatch.setattr(anomalies, "_bridge", _Bridge("urn:sahool:task:t-2"))
+    retried = await _request(anomalies, stored["aggregate_version"])
+    assert retried["task_ref"] == "urn:sahool:task:t-2", retried
+
+
+async def test_an_ambiguous_bridge_failure_keeps_the_reservation_until_a_replay_attaches(
+    monkeypatch, route
+):
+    """A transport failure may come after the owner stored the task. The reservation is kept, so
+    the anomaly cannot be closed under a possibly stored task; a retry with the original version
+    replays the same key and attaches the same task."""
+    from anomaly_store import InvalidTransition
+    from fastapi import HTTPException
+
+    anomalies, backend = route
+    ref = ANOMALY["anomaly_ref"]
+    monkeypatch.setattr(anomalies, "_bridge", _Bridge(error="task_service_unavailable"))
+    with pytest.raises(HTTPException) as caught:
+        await _request(anomalies, 1)
+    assert caught.value.status_code == 424, caught.value.detail
+    assert caught.value.detail["reservation"] == "pending", caught.value.detail
+    pending = backend.get(ref)
+    assert pending["payload"]["verification_reservation"]["state"] == "pending", pending
+    with pytest.raises(InvalidTransition, match="verification_reservation_pending"):
+        backend.transition(
+            ref, "resolved", expected_version=pending["aggregate_version"], tenant_id=TENANT
+        )
+    bridge = _Bridge("urn:sahool:task:t-replayed")
+    monkeypatch.setattr(anomalies, "_bridge", bridge)
+    resumed = await _request(anomalies, 1)
+    assert [c["idempotency_key"] for c in bridge.calls] == [_key(ref)], bridge.calls
+    assert resumed["task_ref"] == "urn:sahool:task:t-replayed", resumed
+    assert resumed["payload"]["verification_reservation"]["state"] == "attached", resumed
+
+
+async def test_a_replay_after_success_returns_the_same_task(monkeypatch, route):
+    anomalies, backend = route
+    monkeypatch.setattr(anomalies, "_bridge", _Bridge("urn:sahool:task:t-once"))
+    first = await _request(anomalies, 1)
+    replay_bridge = _Bridge("urn:sahool:task:t-other")
+    monkeypatch.setattr(anomalies, "_bridge", replay_bridge)
+    replay = await _request(anomalies, 1)
+    assert replay["task_ref"] == first["task_ref"] == "urn:sahool:task:t-once", replay
+    assert replay["aggregate_version"] == first["aggregate_version"], "a replay writes nothing"
+    assert replay_bridge.calls == [], "a finished request is not dispatched again"
+
+
+async def test_an_attach_failure_is_an_explicit_409_and_a_retry_attaches(monkeypatch, route):
+    """The task is stored but the attach fails (a store failure or a concurrent holder). The
+    caller gets the explicit lifecycle conflict naming the task; the reservation stays pending,
+    so nothing can close the anomaly, and a retry attaches the same task."""
+    from anomaly_store import InvalidTransition
+    from fastapi import HTTPException
+
+    anomalies, backend = route
+    ref = ANOMALY["anomaly_ref"]
+    real_attach = backend.attach_verification_task
+
+    def failing_attach(*args, **kwargs):
+        raise InvalidTransition("aggregate_version_conflict")
+
+    monkeypatch.setattr(backend, "attach_verification_task", failing_attach)
+    monkeypatch.setattr(anomalies, "_bridge", _Bridge("urn:sahool:task:t-stored"))
+    with pytest.raises(HTTPException) as caught:
+        await _request(anomalies, 1)
+    assert caught.value.status_code == 409, caught.value.detail
+    assert caught.value.detail == {
+        "code": "verification_lifecycle_conflict",
+        "reason": "aggregate_version_conflict",
+        "task_ref": "urn:sahool:task:t-stored",
+        "task_attached": False,
+    }, caught.value.detail
+    assert backend.get(ref)["payload"]["verification_reservation"]["state"] == "pending", (
+        "the reservation still holds the anomaly"
+    )
+    monkeypatch.setattr(backend, "attach_verification_task", real_attach)
+    resumed = await _request(anomalies, 1)
+    assert resumed["task_ref"] == "urn:sahool:task:t-stored", resumed
 
 
 class _Signal:
@@ -285,112 +469,59 @@ class _Signal:
         }
 
 
-@pytest.mark.asyncio
-async def test_a_concurrent_lifecycle_change_after_the_task_is_stored_is_an_explicit_409(
-    monkeypatch,
+async def test_automatic_verification_reports_a_lifecycle_conflict_and_keeps_going(
+    monkeypatch, tmp_path
 ):
-    """Review W1-20 (g/B): the anomaly is resolved by another request while its task is being
-    stored. The versioned transition then fails; the caller gets an explicit lifecycle conflict
-    naming the stored task, not a bare version conflict that hides it."""
-    import main
-    import routers.anomalies as anomalies
-    from anomaly_requests import VerificationRequest
-    from anomaly_store import InvalidTransition
-    from fastapi import HTTPException
-
-    record = {
-        "tenant_id": TENANT,
-        "payload": ANOMALY,
-        "status": "detected",
-        "aggregate_version": 1,
-        "task_ref": None,
-    }
-
-    class Store:  # the anomaly store's functions, not a database connection
-        async def get(self, ref, *, tenant_id):
-            return record
-
-        async def transition(self, ref, status, **kwargs):
-            # Another request resolved the anomaly after the pre-check passed.
-            raise InvalidTransition("aggregate_version_conflict")
-
-    class Bridge:
-        async def create_scouting_task(self, **kwargs):
-            return type("R", (), {"task_ref": "urn:sahool:task:t-raced"})()
-
-    monkeypatch.setattr(main, "_verify_claims", lambda token: {"tenant_id": TENANT})
-    monkeypatch.setattr(main, "_tenant_from_claims", lambda claims: claims["tenant_id"])
-    monkeypatch.setattr(anomalies, "_store", Store())
-    monkeypatch.setattr(anomalies, "_bridge", Bridge())
-    with pytest.raises(HTTPException) as caught:
-        await anomalies.request_ground_verification(
-            ANOMALY["anomaly_ref"],
-            VerificationRequest(expected_version=1),
-            authorization="Bearer user-jwt",
-            token=object(),
-        )
-    assert caught.value.status_code == 409, caught.value.detail
-    assert caught.value.detail == {
-        "code": "verification_lifecycle_conflict",
-        "reason": "aggregate_version_conflict",
-        "task_ref": "urn:sahool:task:t-raced",
-        "task_attached": False,
-    }, caught.value.detail
-
-
-@pytest.mark.asyncio
-async def test_automatic_verification_reports_a_lifecycle_conflict_and_keeps_going(monkeypatch):
-    """Review W1-20 (g/B): on the detect route, a lifecycle conflict after the task is stored used
-    to escape as an unhandled InvalidTransition (HTTP 500) and drop every other anomaly of the
-    call. It is now reported on that anomaly, and the next anomaly is still verified."""
+    """Review W1-20 (g/B): on the detect route a lifecycle conflict used to escape as an
+    unhandled InvalidTransition (HTTP 500) and drop every other anomaly of the call. It is now
+    reported on that anomaly, and the next anomaly is still verified. Since the reservation
+    comes first, an anomaly moved by someone else is refused before any task is dispatched."""
     import main
     import routers.anomalies as anomalies
     from anomaly_requests import DetectRequest
-    from anomaly_store import InvalidTransition
+    from anomaly_runtime import AnomalyStoreFacade
+    from anomaly_store import AnomalyStore
 
-    records = {
-        obs: {
-            "anomaly_ref": f"urn:sahool:anomaly:{obs}",
-            "tenant_id": TENANT,
-            "payload": {**ANOMALY, "anomaly_ref": f"urn:sahool:anomaly:{obs}"},
-            "status": "detected",
-            "aggregate_version": 1,
-            "task_ref": None,
-        }
-        for obs in ("raced", "calm")
-    }
-    transitions = []
+    backend = AnomalyStore(str(tmp_path / "anomalies.db"))
+    real_reserve = backend.reserve_verification
 
-    class Store:  # the anomaly store's functions, not a database connection
-        async def list(self, tenant_id, field_id, season_id):
-            return []
+    def reserve_after_a_concurrent_triage(ref, **kwargs):
+        if ref.endswith(":raced"):
+            # Another request moved the anomaly between detection and the reservation.
+            backend.transition(ref, "triaged", expected_version=1, tenant_id=TENANT)
+        return real_reserve(ref, **kwargs)
 
-        async def upsert_detected(self, payload):
-            obs = payload["primary_observation_ref"].rsplit(":", 1)[1]
-            return dict(records[obs])
-
-        async def transition(self, ref, status, **kwargs):
-            transitions.append(ref)
-            if ref.endswith(":raced"):
-                raise InvalidTransition("invalid_transition:resolved->verification_requested")
-            return {**records["calm"], "status": status, "task_ref": kwargs["task_ref"]}
+    monkeypatch.setattr(backend, "reserve_verification", reserve_after_a_concurrent_triage)
 
     class Bridge:
+        def __init__(self):
+            self.calls = []
+
         async def create_scouting_task(self, *, anomaly, **kwargs):
             name = anomaly["anomaly_ref"].rsplit(":", 1)[1]
+            self.calls.append(name)
             return type("R", (), {"task_ref": f"urn:sahool:task:{name}"})()
 
     async def baselines(field_id, request, token):
         return [{"stub": True}]
 
+    def detect(**kwargs):
+        return [_Signal("raced"), _Signal("calm")]
+
+    original_upsert = backend.upsert_detected
+
+    def upsert(payload):
+        obs = payload["primary_observation_ref"].rsplit(":", 1)[1]
+        return original_upsert({**ANOMALY, **payload, "anomaly_ref": f"urn:sahool:anomaly:{obs}"})
+
+    monkeypatch.setattr(backend, "upsert_detected", upsert)
+    bridge = Bridge()
     monkeypatch.setattr(main, "_verify_claims", lambda token: {"tenant_id": TENANT})
     monkeypatch.setattr(main, "_tenant_from_claims", lambda claims: claims["tenant_id"])
-    monkeypatch.setattr(anomalies, "_store", Store())
-    monkeypatch.setattr(anomalies, "_bridge", Bridge())
+    monkeypatch.setattr(anomalies, "_store", AnomalyStoreFacade(backend))
+    monkeypatch.setattr(anomalies, "_bridge", bridge)
     monkeypatch.setattr(anomalies, "_baselines", baselines)
-    monkeypatch.setattr(
-        anomalies, "detect_signals", lambda **kwargs: [_Signal("raced"), _Signal("calm")]
-    )
+    monkeypatch.setattr(anomalies, "detect_signals", detect)
     result = await anomalies.detect_signal_anomalies(
         "fld_demo",
         DetectRequest(season_id="sea_demo", auto_request_verification=True),
@@ -400,11 +531,12 @@ async def test_automatic_verification_reports_a_lifecycle_conflict_and_keeps_goi
     raced, calm = result["anomalies"]
     assert raced["verification_lifecycle_conflict"] == {
         "code": "verification_lifecycle_conflict",
-        "reason": "invalid_transition:resolved->verification_requested",
-        "task_ref": "urn:sahool:task:raced",
+        "reason": "aggregate_version_conflict",
+        "task_ref": None,
         "task_attached": False,
     }, raced
-    assert raced["status"] == "detected" and not raced["task_ref"], raced
+    assert not raced["task_ref"], raced
     assert calm["status"] == "verification_requested", calm
     assert calm["task_ref"] == "urn:sahool:task:calm", calm
-    assert transitions == ["urn:sahool:anomaly:raced", "urn:sahool:anomaly:calm"], transitions
+    assert "current_evaluation" in calm, "the evaluation travels with the attached record"
+    assert bridge.calls == ["calm"], f"no task is dispatched for the raced anomaly: {bridge.calls}"

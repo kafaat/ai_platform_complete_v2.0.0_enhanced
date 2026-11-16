@@ -17,7 +17,14 @@ from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
-from anomaly_store import AnomalyNotFound, InvalidTransition, validate_transition
+from anomaly_store import (
+    AnomalyNotFound,
+    InvalidTransition,
+    plan_attach,
+    plan_release,
+    plan_reservation,
+    validate_transition,
+)
 
 logger = logging.getLogger(__name__)
 _POOL_CLOSE_TIMEOUT_SECONDS = 5.0
@@ -139,6 +146,83 @@ class PostgresAnomalyStore:
         task_ref: str | None = None,
         tenant_id: str,
     ) -> dict[str, Any]:
+        def plan(current: str, payload: dict, _task_ref: str | None):
+            validate_transition(current, new_status, payload, patch)
+            payload.update(patch or {})
+            return new_status, payload, task_ref
+
+        return await self._mutate(anomaly_ref, expected_version, tenant_id, plan)
+
+    async def reserve_verification(
+        self,
+        anomaly_ref: str,
+        *,
+        expected_version: int,
+        idempotency_key: str,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        """Take the ground-verification reservation against ``expected_version`` (row-locked)."""
+        return await self._mutate(
+            anomaly_ref,
+            expected_version,
+            tenant_id,
+            lambda current, payload, task_ref: plan_reservation(
+                current,
+                payload,
+                task_ref,
+                idempotency_key=idempotency_key,
+                reserved_from_version=expected_version,
+            ),
+        )
+
+    async def attach_verification_task(
+        self,
+        anomaly_ref: str,
+        *,
+        expected_version: int,
+        idempotency_key: str,
+        task_ref: str,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        return await self._mutate(
+            anomaly_ref,
+            expected_version,
+            tenant_id,
+            lambda current, payload, row_task_ref: plan_attach(
+                current,
+                payload,
+                row_task_ref,
+                idempotency_key=idempotency_key,
+                new_task_ref=task_ref,
+            ),
+        )
+
+    async def release_verification_reservation(
+        self,
+        anomaly_ref: str,
+        *,
+        expected_version: int,
+        idempotency_key: str,
+        reason: str,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        return await self._mutate(
+            anomaly_ref,
+            expected_version,
+            tenant_id,
+            lambda current, payload, task_ref: plan_release(
+                current, payload, task_ref, idempotency_key=idempotency_key, reason=reason
+            ),
+        )
+
+    async def _mutate(
+        self,
+        anomaly_ref: str,
+        expected_version: int,
+        tenant_id: str,
+        plan: Any,
+    ) -> dict[str, Any]:
+        """One versioned, row-locked state change; ``plan`` decides the new state."""
         pool = await self._get_pool()
         async with pool.acquire() as conn, conn.transaction():
             await self._tenant_conn(conn, tenant_id)
@@ -154,8 +238,7 @@ class PostgresAnomalyStore:
             payload = row["payload_json"]
             if isinstance(payload, str):
                 payload = json.loads(payload)
-            validate_transition(current, new_status, payload, patch)
-            payload.update(patch or {})
+            new_status, payload, task_ref = plan(current, payload, row["task_ref"])
             payload["status"] = new_status
             payload["updated_at"] = datetime.now(UTC).isoformat()
             version = expected_version + 1
