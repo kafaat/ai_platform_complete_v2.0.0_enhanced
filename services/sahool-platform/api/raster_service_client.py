@@ -193,13 +193,22 @@ def get_field_terrain_sync(
 def get_indices_sync(
     field_id: str,
     *,
+    tenant_id: str,
     lat: float,
     lon: float,
     timeout_s: float = 20.0,
 ) -> dict[str, Any] | None:
-    """Return point/field index summary from raster-service /v1/indices, fail-soft."""
+    """Return point/field index summary from raster-service /v1/indices, fail-soft.
+
+    W1-01: raster resolves the field's layers under the request tenant (``X-Tenant-Id``);
+    without it every index is null. The tenant is therefore required, and an empty one
+    returns ``None`` without calling raster (no tenant-less read).
+    """
+    if not tenant_id:
+        return None
     return raster_get_json_sync(
         "/v1/indices",
+        tenant_id=tenant_id,
         params={"field_id": field_id, "lat": lat, "lon": lon},
         timeout_s=timeout_s,
     )

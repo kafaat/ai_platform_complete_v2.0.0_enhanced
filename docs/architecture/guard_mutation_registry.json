@@ -4495,8 +4495,8 @@
         },
         {
           "expect": "test_both_call_shapes_and_the_module_constant_are_read",
-          "find": "            if _PATH_SHAPED.match(value.value):\n                found.add(normalise(value.value))",
-          "replace": "            if False:  # mutated: ثابتُ الوحدة لا يُقرأ\n                found.add(normalise(value.value))",
+          "find": "            if _PATH_SHAPED.match(value.value):\n                found.append(",
+          "replace": "            if False:  # mutated: ثابتُ الوحدة لا يُقرأ\n                found.append(",
           "why": "`irrigation_activation_gate` يحمل مسارَه في ثابتِ وحدةٍ ويبنيه داخل دالّة، فلا يُرى عند موضع النداء. إسقاطُ هذا الشكل يُعيد عقداً حقيقيّاً إلى خارج النطاق بلا أن يُعلَن."
         },
         {
@@ -4507,9 +4507,33 @@
         },
         {
           "expect": "test_the_guard_sees_exactly_the_modules_that_name_an_internal_service",
-          "find": "        if len(hosts) != 1:\n            continue",
-          "replace": "        if len(hosts) != 99:  # mutated: لا وحدةَ تُكتشَف\n            continue",
+          "find": "            if not hosts:\n                continue",
+          "replace": "            if True:  # mutated: لا وحدةَ تُكتشَف\n                continue",
           "why": "صفرُ عقدٍ مكتشَفٍ أخطرُ من عقدٍ منحرف: الحارسُ يعمل ويُنهي بنجاحٍ وهو لا يفحص شيئاً — تأمينٌ على لا شيء، وهو الصنفُ الذي سُجِّل في `MUT-REGISTRY-STRANDED-SPECS-01`."
+        },
+        {
+          "expect": "test_the_guard_sees_exactly_the_modules_that_name_an_internal_service",
+          "find": "CLIENT_DIRS = (PLATFORM_DIR / \"api\", PLATFORM_DIR / \"core\")",
+          "replace": "CLIENT_DIRS = (PLATFORM_DIR / \"api\",)  # mutated: core/ خارج النطاق",
+          "why": "W1-02: `core/field_intelligence_adapters.soil_adapter` طلب `/api/v1/soil/{id}` الذي لا تُعلنه soil-service، ومرّ لأنّ النطاق كان `api/` وحدَه. إسقاطُ `core/` يُعيد العمى نفسَه."
+        },
+        {
+          "expect": "test_a_multi_host_module_attributes_each_call_to_its_own_host",
+          "find": "        target = _hosts_in(item[\"url\"], bound) & hosts",
+          "replace": "        target = set()  # mutated: لا نسبةَ نداءً نداءً",
+          "why": "وحدةٌ بأربعة مضيفين كانت تُسقَط كلُّها. بلا نسبةِ كلّ نداءٍ إلى مضيف عنوانه لا يُقابَل أيُّ مسارٍ فيها بإعلان خدمته."
+        },
+        {
+          "expect": "test_an_unattributable_call_in_a_multi_host_module_fails_closed",
+          "find": "        elif hosts:\n            unattributed.append(item[\"path\"])",
+          "replace": "        elif False:  # mutated: ما لا يُنسَب يسقط صامتاً\n            unattributed.append(item[\"path\"])",
+          "why": "طلبٌ لا يُنسَب يجب أن يُفشِل الحارس؛ إسقاطُه صامتاً هو صنفُ «قراءةٌ صفريّة تمرّ خضراء» نفسُه."
+        },
+        {
+          "expect": "test_the_proxy_allowlists_are_checked_against_each_service",
+          "find": "        elif not any(_segment_match(path, d) for d in declared):\n            missing.append(path)",
+          "replace": "        elif False:  # mutated: قائمةُ السماح لا تُقابَل\n            missing.append(path)",
+          "why": "المُمرِّرُ يكشف مساراتٍ بقائمة سماح؛ مسارٌ فيها لا تُعلنه الخدمةُ ٤٠٤ حتميّ خلف قائمةٍ صحيحة الشكل (edge · segmentation · scout-ingest · soil)."
         }
       ],
       "test": "tests_v9/test_cross_service_path_contract_guard.py"
