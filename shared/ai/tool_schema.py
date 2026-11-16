@@ -116,7 +116,7 @@ _PARAM_DESCRIPTIONS: dict[str, str] = {
     "lab_panel": "Soil test panel: fertility, salinity, micronutrients, irrigation_suitability, or comprehensive.",
     "samples_per_zone": "Target number of samples per productivity zone.",
     "soil_sampling_plan": "Soil sampling plan object from plan_soil_sampling; lab-backed plans are preferred for VRA.",
-    "lab_results": "Optional soil lab result records. Required for stronger production-ready prescriptions unless allow_estimated is true.",
+    "lab_results": "Ignored as lab evidence: lab support is read only from the field's approved lab results issued by the lab owner. Without them, set allow_estimated to true for an estimated proposal.",
     "crop": "Crop name for agronomic rate interpretation.",
     "target_yield": "Optional target yield used to contextualize rates.",
     "product_type": "Prescription product type: fertilizer, lime, seed, or irrigation.",
