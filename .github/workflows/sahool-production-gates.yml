@@ -69,6 +69,14 @@ jobs:
           HELM_SHA256: fc307327959aa38ed8f9f7e66d45492bb022a66c3e5da6063958254b9767d179
         run: |
           set -euo pipefail
+          # The pinned value must equal Helm's own published checksum file for this tarball.
+          curl --fail --location --max-time 30 "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz.sha256sum" -o "$RUNNER_TEMP/helm.sha256sum"
+          official="$(cut -d' ' -f1 "$RUNNER_TEMP/helm.sha256sum")"
+          if [ "$official" != "$HELM_SHA256" ]; then
+            echo "HELM_PIN_MISMATCH: pinned $HELM_SHA256, official checksum file says $official"
+            exit 1
+          fi
+          echo "pinned sha256 equals get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz.sha256sum"
           curl --fail --location --max-time 90 "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" -o "$RUNNER_TEMP/helm.tar.gz"
           printf '%s  %s\n' "$HELM_SHA256" "$RUNNER_TEMP/helm.tar.gz" | sha256sum -c -
           tar -xzf "$RUNNER_TEMP/helm.tar.gz" -C "$RUNNER_TEMP" linux-amd64/helm
