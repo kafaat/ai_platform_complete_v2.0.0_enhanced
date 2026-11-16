@@ -1769,9 +1769,9 @@ async def merge_fields(
                             detail="لا يمكن الدمج: موسم نشط على حقل مصدر",
                         )
                     source_geometries.append(_stored_geometry(src["geometry"]))
-                await refuse_if_fields_have_harvest_lots(conn, req.source_field_ids, "الدمج")
                 # 1ب) المدموج = اتّحاد المصادر (422 قبل أيّ كتابة).
                 _assert_area_conserved(source_geometries, [geometry])
+                await refuse_if_fields_have_harvest_lots(conn, req.source_field_ids, "الدمج")
                 # 2) أنشئ المدموج أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
                 result = await _insert_field_within_tx(
                     conn,
@@ -1906,11 +1906,11 @@ async def split_field(
                         status_code=409,
                         detail="لا يمكن الانقسام: موسم نشط على الحقل المصدر",
                     )
-                await refuse_if_fields_have_harvest_lots(conn, [req.source_field_id], "الانقسام")
                 # 1ب) اتّحاد الأطفال = المصدر بلا تداخل (422 قبل أيّ كتابة).
                 _assert_area_conserved(
                     [_stored_geometry(src["geometry"])], [p["geometry"] for p in prepared]
                 )
+                await refuse_if_fields_have_harvest_lots(conn, [req.source_field_id], "الانقسام")
                 # 2) أنشئ كلّ وليد أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
                 children_out: list[dict] = []
                 for p in prepared:
