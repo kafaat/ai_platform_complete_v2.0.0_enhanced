@@ -1,7 +1,7 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "cfa0d4b4f9d8171eb5aed5fd7dc10ea41aeb5a83",
+  "measured_on": "c720395a86999e6a2991a180556b1a5e21d68553",
   "reads": {
     "$comment": "جهةُ القراءة: readers المُعلَنون مقابل حرفيّات SQL المقيسة (بايثون، f-string نصّاً واحداً). ثلاثُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا محكومٌ عليها. 'لم يُرصَد' ليس 'لا يقرأ': dynamic_table_sql_sites يعدّ ما لا يُرى جدولُه ساكناً، وtable_name_value_sites قرينةُ قراءةٍ عبر مُساعد.",
     "declared_reader_unobserved": [
@@ -658,7 +658,7 @@
       }
     }
   },
-  "violation_count": 67,
+  "violation_count": 66,
   "violations": {
     "actuator_command_outbox::sahool-platform": [
       "services/sahool-platform/api/phase_runtime_store.py"
@@ -825,9 +825,6 @@
     ],
     "scenario_runs::sahool-platform": [
       "services/sahool-platform/api/phase_runtime_store.py"
-    ],
-    "soil_lab_tests::sahool-platform": [
-      "services/sahool-platform/api/routers/fields.py"
     ],
     "soil_observations::scripts": [
       "scripts/soil/reconcile_historical.py"

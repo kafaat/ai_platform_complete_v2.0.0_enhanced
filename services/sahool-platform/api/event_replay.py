@@ -109,8 +109,8 @@ class ReconstructedState:
     last_trueup_error_pct: float | None = None
     last_adjusted_yield_kg_ha: float | None = None
 
-    # نشر نتيجة فحص التربة (soil.lab.result.published — entity_type='soil_lab_test'،
-    # يحمل field_id). payload الحقيقيّ: {field_id} (routers/fields). يُكمّل
+    # نشر نتيجة فحص التربة (soil.lab.result.published — entity_type='sample' (القديم 'soil_lab_test')،
+    # يحمل field_id). payload الحقيقيّ: {field_id} (routers/soil_sampling، W1-03). يُكمّل
     # soil.sample.recorded (طلب الفحص) بحدث «نُشِرت النتيجة».
     soil_lab_published_count: int = 0
 
@@ -496,7 +496,7 @@ class FieldStateReconstructor:
                 state.last_adjusted_yield_kg_ha = payload["adjusted_yield_kg_ha"]
 
         elif etype == "soil.lab.result.published":
-            # payload الحقيقيّ: {field_id} (routers/fields._update_soil_test عند النشر).
+            # payload الحقيقيّ: {field_id} (routers/soil_sampling.transition_lab_sample عند النشر، W1-03).
             # يُكمّل soil.sample.recorded (الطلب) بحدث «نُشِرت النتيجة».
             state.soil_lab_published_count += 1
 

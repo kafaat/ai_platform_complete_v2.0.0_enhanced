@@ -9,7 +9,7 @@ api/field_state_gateway.py — بوّابة الحالة القانونيّة ا
 ما تفعله هذه الطبقة (وما لا تفعله — صدق):
   ✓ تجمع مدخلات القرار من **مصادرها القانونيّة في قاعدة المنصّة** بدل المتّصِل:
       - نضارة NDVI  ← imagery_automation_fields.last_image_date (تتبّع صور Sentinel)
-      - نضارة التربة ← أحدث soil_lab_tests.sampled_on (معتمَد/منشور)
+      - نضارة التربة ← أحدث تحليل معتمَد (soil_lab_results، أو soil_lab_tests القديم موسوماً — W1-03)
       - نضارة الطقس ← weather_automation_cache.fetched_at (عبر موقع الحقل)
   ✓ تشتقّ مستوى الثقة من نضارة NDVI عبر confidence_engine.TemporalConfidence
     (لا أرقام مُلفَّقة — أحدث صورة = ثقة أعلى، غياب الصورة = None).

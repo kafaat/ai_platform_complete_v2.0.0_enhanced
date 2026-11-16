@@ -1148,8 +1148,15 @@ tables:
     readers: []
     source: "migrations/v12_trueup_sharing.sql"
   soil_lab_tests:
+    # W1-03, owner decision 2026-11-16: LEGACY, READ-ONLY. soil_lab_results (v156/v160,
+    # api/lab_store.py, routes /api/v1/lab/*) is the single canonical soil-lab store. The
+    # platform's POST/PATCH /api/v1/fields/{field_id}/soil-lab-tests answer 410 Gone, and
+    # nothing writes this table: `writers` names the owner only because the contract needs
+    # one writer per table (soil-service never wrote it). sahool-platform reads it only in
+    # api/lab_store.py, as the labelled fallback source 'legacy_soil_lab_tests'.
     owner: soil-service
     writers: [soil-service]
+    status: legacy-read-only
     readers: [sahool-platform]
     source: "migrations/v50_soil_lab_tests.sql"
   soil_readings:
