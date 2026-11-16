@@ -223,7 +223,7 @@ async def _connect():
     return await asyncpg.connect(DATABASE_URL, statement_cache_size=0)
 
 
-# Ground-scouting tasks for vegetation anomalies (W1-20, v281): service-to-service, so they take
+# Ground-scouting tasks for vegetation anomalies (W1-20, v282): service-to-service, so they take
 # this module's service-token + tenant-assertion guard, not the gateway identity of fm_gateway.
 app.include_router(_build_scouting_router(_require_tenant, lambda: _connect()))
 

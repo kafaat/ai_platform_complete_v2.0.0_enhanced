@@ -1,6 +1,6 @@
 """Anomaly ground-scouting tasks on field-management-service — unit contract (W1-20, no database).
 
-The stored behaviour (one row per key and per anomaly, replay, concurrency, RLS, the v281 indexes)
+The stored behaviour (one row per key and per anomaly, replay, concurrency, RLS, the v282 indexes)
 is measured on PostgreSQL by tests_v9/test_field_task_scouting_anomaly_live_pg.py. Here: the
 routes exist on the owner, they take the service-token guard (the gateway token alone opens
 nothing), the Idempotency-Key is required, the request is references only, its digest is stable,

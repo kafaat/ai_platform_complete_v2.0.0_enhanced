@@ -2358,11 +2358,11 @@
         },
         {
           "type": "repository",
-          "path": "migrations/v278_water_ledger_et0_rain_provenance.down.sql"
+          "path": "migrations/v279_water_ledger_et0_rain_provenance.down.sql"
         },
         {
           "type": "repository",
-          "path": "migrations/v278_water_ledger_et0_rain_provenance.sql"
+          "path": "migrations/v279_water_ledger_et0_rain_provenance.sql"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=9, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
@@ -2706,11 +2706,11 @@
         },
         {
           "type": "repository",
-          "path": "migrations/v278_water_ledger_et0_rain_provenance.down.sql"
+          "path": "migrations/v279_water_ledger_et0_rain_provenance.down.sql"
         },
         {
           "type": "repository",
-          "path": "migrations/v278_water_ledger_et0_rain_provenance.sql"
+          "path": "migrations/v279_water_ledger_et0_rain_provenance.sql"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=21, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",

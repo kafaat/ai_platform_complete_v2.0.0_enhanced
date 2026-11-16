@@ -1592,7 +1592,7 @@ jobs:
           SOIL_PLAN_COPIES_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_soil_sampling_plan_copies_live_pg.py
       # W0-10 (weather-7): the water-ledger worker computes ET0 at the field elevation, keeps only
-      # validated values as reference, records ET0/rain provenance (v278) and re-records forecast
+      # validated values as reference, records ET0/rain provenance (v279) and re-records forecast
       # rain from the archive. The flag turns any skip (missing asyncpg, unmigrated schema) into a
       # failure, so these paths are measured on every run.
       - name: Water ledger ET0 elevation and rain provenance (W0-10, real-PG)
@@ -1612,12 +1612,23 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           FIELD_TASK_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_field_task_inspection_live_pg.py
-      # W1-20 (remote-7 / scout-5, v281): a vegetation anomaly sent through the real bridge becomes
+      # v278 (owner decisions 2 and 3): custody events append-only (UPDATE/DELETE/TRUNCATE refused),
+      # lots and fields with a custody chain not erased by cascade (RESTRICT), lot identity
+      # immutable, and market listings checked against the lot remainder under its row lock; per
+      # trigger a negative control in a rolled-back owner transaction. The flag turns any skip into
+      # a failure; the owner URL seeds rows only.
+      - name: Harvest custody integrity and market lot link (v278, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          HARVEST_CUSTODY_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_harvest_custody_live_pg.py
+      # W1-20 (remote-7 / scout-5, v282): a vegetation anomaly sent through the real bridge becomes
       # one stored scouting task in field-management-service (owner of field_tasks); sequential
       # and concurrent replays and a reused key write nothing more; tenants stay apart; negative
-      # controls show the v281 index and check refuse at the database. Restricted NOBYPASSRLS
+      # controls show the v282 index and check refuse at the database. Restricted NOBYPASSRLS
       # role; the flag turns any skip into a failure.
-      - name: Vegetation anomaly scouting tasks (W1-20, v281, restricted role)
+      - name: Vegetation anomaly scouting tasks (W1-20, v282, restricted role)
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
@@ -1625,9 +1636,9 @@ jobs:
         run: pytest -v -m integration -rs tests_v9/test_field_task_scouting_anomaly_live_pg.py
       # W0-13 (finding mobile-3): an offline irrigation report replayed after the water-balance
       # worker wrote the day keeps ET0 and depletion, and the worker keeps the reported water and
-      # recomputes around it (v279). The real router runs on the restricted NOBYPASSRLS role; the
+      # recomputes around it (v280). The real router runs on the restricted NOBYPASSRLS role; the
       # worker on the owner URL, as deployed. The flag turns any skip into a failure.
-      - name: Water ledger partial irrigation write (W0-13, v279, restricted role)
+      - name: Water ledger partial irrigation write (W0-13, v280, restricted role)
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test

@@ -1,4 +1,4 @@
--- v278 rollback: removes the ET0/rain provenance columns from water_ledger (W0-10).
+-- v279 rollback: removes the ET0/rain provenance columns from water_ledger (W0-10).
 -- Rollback script, not listed in MANIFEST.txt (forward-only manifest, as for every *.down.sql).
 -- Data note: dropping the columns discards each row's ET0 method, quality, weather snapshot, rain
 -- source and TAW/RAW; et0_mm and rain_mm stay. Roll back the platform code (the W0-10 change to

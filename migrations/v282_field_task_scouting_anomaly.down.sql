@@ -1,4 +1,4 @@
--- v281 rollback: removes the anomaly scouting-task columns, indexes and constraint on field_tasks.
+-- v282 rollback: removes the anomaly scouting-task columns, indexes and constraint on field_tasks.
 -- Rollback script, not listed in MANIFEST.txt (forward-only manifest, as for every *.down.sql).
 -- Order: roll back the code first (revert the W1-20 change: field-management-service's
 -- fm_scouting_tasks.py routes and the vegetation / workspace callers read and write these

@@ -4,13 +4,13 @@ Plan item W1-20 (findings remote-7 / scout-5). vegetation-analysis-service's gro
 bridge asks for a scouting task when a signal anomaly needs a field check, and only moves the
 anomaly to ``verification_requested`` on a reply that says the task is stored and names it. No
 service served that request, so every verification failed. This module serves it on the owner of
-``field_tasks`` (docs/architecture/db_ownership.yml), with the v281 columns:
+``field_tasks`` (docs/architecture/db_ownership.yml), with the v282 columns:
 
 * ``POST /internal/field-tasks/scouting`` stores one ``task_type='scouting'`` row per anomaly and
   answers ``{"persisted": true, "task_id", "task_ref"}``. The ``Idempotency-Key`` header is
   required: a replay with the same key and the same request returns the stored task (200,
   ``replayed: true``) and writes nothing; the same key with another request is 409; a second key
-  for an anomaly that already has a task is 409 (one task per anomaly per tenant, v281 indexes);
+  for an anomaly that already has a task is 409 (one task per anomaly per tenant, v282 indexes);
 * ``GET /internal/field-tasks/scouting?field_id=...`` lists a field's anomaly tasks, for the
   remote-sensing workspace's ground section.
 

@@ -1,11 +1,11 @@
--- v280 rollback: removes the season-reference trigger and restores the foreign keys to
+-- v281 rollback: removes the season-reference trigger and restores the foreign keys to
 -- farm_season_projects(season_id) on the seven ledger tables.
 -- Rollback script, not listed in MANIFEST.txt (forward-only manifest, as for every *.down.sql).
 -- Order: roll back the code first (revert W1-14: core/farm_operations_ledger.py
 -- _TENANT_SCOPE_SQL['season'] accepts seasons.season_id), then run this script. Idempotent.
--- Data note: rows written after v280 may name a season of the `seasons` table. The foreign keys
+-- Data note: rows written after v281 may name a season of the `seasons` table. The foreign keys
 -- are restored NOT VALID so those rows do not block the rollback; new writes are checked against
--- farm_season_projects again (and a seasons id is refused, as before v280). Run
+-- farm_season_projects again (and a seasons id is refused, as before v281). Run
 -- `ALTER TABLE ... VALIDATE CONSTRAINT ...` only once no such rows remain.
 BEGIN;
 SET LOCAL lock_timeout = '15s';

@@ -640,7 +640,7 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                         )
                         if existing and manual_entry_takes_precedence(existing["created_by"]):
                             continue  # الإنسان سيّد الدفتر — لا كتابة فوق قيد يدويّ.
-                        # W0-13: a person reported today's applied water (v279) ⇒ that figure is
+                        # W0-13: a person reported today's applied water (v280) ⇒ that figure is
                         # the day's irrigation; the balance is recomputed around it, not over it.
                         reported_irrigation_mm = reported_irrigation(existing)
                         prev = await conn.fetchrow(

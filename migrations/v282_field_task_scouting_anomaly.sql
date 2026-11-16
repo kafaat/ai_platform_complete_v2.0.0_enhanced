@@ -1,4 +1,4 @@
--- v281: a ground-scouting task created from a vegetation signal anomaly, stored once per
+-- v282: a ground-scouting task created from a vegetation signal anomaly, stored once per
 -- request (plan item W1-20, findings remote-7 / scout-5).
 -- ════════════════════════════════════════════════════════════════════════
 -- The fault: vegetation-analysis-service's ground-verification bridge POSTs a scouting task for a
@@ -68,10 +68,10 @@ CREATE INDEX IF NOT EXISTS field_tasks_scouting_field_season_idx
     WHERE anomaly_ref IS NOT NULL;
 
 COMMENT ON COLUMN field_tasks.anomaly_ref IS
-    'Vegetation signal anomaly this ground-scouting task verifies (v281, W1-20). NULL for other tasks.';
+    'Vegetation signal anomaly this ground-scouting task verifies (v282, W1-20). NULL for other tasks.';
 COMMENT ON COLUMN field_tasks.scouting_idempotency_key IS
-    'Idempotency-Key of the request that created this anomaly task; unique per tenant (v281).';
+    'Idempotency-Key of the request that created this anomaly task; unique per tenant (v282).';
 COMMENT ON COLUMN field_tasks.scouting_request_digest IS
-    'sha256 of the normalized request the key named; a replay with another body is refused (v281).';
+    'sha256 of the normalized request the key named; a replay with another body is refused (v282).';
 
 COMMIT;

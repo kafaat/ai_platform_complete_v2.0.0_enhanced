@@ -276,7 +276,7 @@ def test_unpersisted_approval_is_a_failed_result_not_a_pending_one():
 
 
 # ── API: approve/deny use the atomic transition ─────────────────────────────
-_AUTH = {"X-Tenant-Id": "tenant-A", "X-User-Id": "user-1"}
+_AUTH = {"X-Tenant-Id": "tenant-A", "X-User-Id": "user-1", "X-User-Role": "expert"}
 
 
 @pytest.fixture

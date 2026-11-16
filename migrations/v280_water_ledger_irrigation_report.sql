@@ -1,4 +1,4 @@
--- v279: water_ledger.irrigation_reported_by — a person's applied-water report on a day whose
+-- v280: water_ledger.irrigation_reported_by — a person's applied-water report on a day whose
 -- balance the water-balance worker computes (plan item W0-13, finding mobile-3).
 -- ════════════════════════════════════════════════════════════════════════
 -- The fault: POST /api/v1/fields/{id}/water-ledger was a full upsert. The mobile app logs the
@@ -21,7 +21,7 @@ BEGIN;
 ALTER TABLE water_ledger ADD COLUMN IF NOT EXISTS irrigation_reported_by TEXT;
 
 COMMENT ON COLUMN water_ledger.irrigation_reported_by IS
-    'Who reported irrigation_mm for a day whose balance the water-balance worker computes (v279). '
+    'Who reported irrigation_mm for a day whose balance the water-balance worker computes (v280). '
     'NULL: irrigation_mm is the worker''s (irrigation_runs) or the full manual entry author''s. '
     'NOT NULL: the worker keeps the reported irrigation_mm and recomputes the balance around it.';
 

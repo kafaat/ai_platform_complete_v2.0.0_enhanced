@@ -1,4 +1,4 @@
--- v280: the farm operations ledger accepts an agronomic season (seasons.season_id) as well as a
+-- v281: the farm operations ledger accepts an agronomic season (seasons.season_id) as well as a
 -- ledger season project (plan item W1-14, finding business-1).
 -- ════════════════════════════════════════════════════════════════════════
 -- The fault: every season_id column of the v100-v102 ledger tables was a foreign key to
@@ -86,7 +86,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION farm_ledger_assert_season_ref() IS
-    'v280 (W1-14, business-1): a ledger row''s season_id must name a season of the same tenant in '
+    'v281 (W1-14, business-1): a ledger row''s season_id must name a season of the same tenant in '
     'seasons or farm_season_projects. Replaces the v100-v102 foreign keys to farm_season_projects.';
 
 DO $$

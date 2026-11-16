@@ -59,7 +59,7 @@ def ledger_write_columns(fields_set) -> tuple[str, ...]:
 #
 # Who owns the day stays in created_by alone, which is all the worker reads to decide whether to
 # compute it (manual_entry_takes_precedence) and all its upsert guards on. irrigation_reported_by
-# (v279) only says that a person reported the applied water on a day the worker owns, so the
+# (v280) only says that a person reported the applied water on a day the worker owns, so the
 # worker keeps that figure and recomputes the balance around it.
 #
 # Parameters: $15 created_by and $16 irrigation_reported_by for a new row (a report: the worker
@@ -97,7 +97,7 @@ LEDGER_UPSERT_SQL = (
     " stage = CASE WHEN 'stage' = ANY($17::text[]) THEN EXCLUDED.stage ELSE water_ledger.stage END,"
     " decision = CASE WHEN 'decision' = ANY($17::text[]) THEN EXCLUDED.decision ELSE water_ledger.decision END,"
     " confidence = CASE WHEN 'confidence' = ANY($17::text[]) THEN EXCLUDED.confidence ELSE water_ledger.confidence END,"
-    # v278 provenance (W0-10) describes the worker's own values: a manual write that replaces
+    # v279 provenance (W0-10) describes the worker's own values: a manual write that replaces
     # ET0, rain or the balance clears the matching provenance; an irrigation-only report keeps it.
     " et0_method = CASE WHEN 'et0_mm' = ANY($17::text[]) THEN NULL ELSE water_ledger.et0_method END,"
     " et0_quality = CASE WHEN 'et0_mm' = ANY($17::text[]) THEN NULL ELSE water_ledger.et0_quality END,"
@@ -219,8 +219,8 @@ def row_to_ledger_entry(row) -> dict:
         "confidence": row["confidence"],
         "created_by": row["created_by"],
         "created_at": created_iso,
-        # v279: who reported irrigation_mm on a worker-computed day (None for the worker's own
-        # figure or a full manual entry). A row read before v279, or a stub, has no such key.
+        # v280: who reported irrigation_mm on a worker-computed day (None for the worker's own
+        # figure or a full manual entry). A row read before v280, or a stub, has no such key.
         "irrigation_reported_by": _optional(row, "irrigation_reported_by"),
     }
 

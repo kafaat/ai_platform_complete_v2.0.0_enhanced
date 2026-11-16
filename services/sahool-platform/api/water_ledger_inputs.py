@@ -99,7 +99,7 @@ def field_elevation_m(value) -> float | None:
     return _finite(value)
 
 
-#: مصدر ``water_ledger.rain_mm`` (v278): توقّعُ اليوم حين يُكتب القيد، والأرشيفُ المرصود
+#: مصدر ``water_ledger.rain_mm`` (v279): توقّعُ اليوم حين يُكتب القيد، والأرشيفُ المرصود
 #: حين يُعاد تسجيله بعد أن يمتلئ الأرشيف.
 RAIN_SOURCE_FORECAST = "forecast"
 RAIN_SOURCE_OBSERVED = "observed"
@@ -142,7 +142,7 @@ def _row_rebuildable(row, auto_created_by: str) -> bool:
 
     كتبه العامل نفسه (اليدويّ وقيدُ الريّ المطبَّق لا يُلمَسان)، بأعلامٍ مقروءة، بلا أيّامٍ
     متخطّاةٍ قبله (بدايتُه عندئذٍ تقديرٌ لا يُعاد بناؤه)، بمدخلاتٍ منتهية، و**بـTAW/RAW
-    المخزَّنين معه** (v278): لا يُعاد حسابُ قيدٍ قديمٍ بنسيج اليوم أو جذور اليوم.
+    المخزَّنين معه** (v279): لا يُعاد حسابُ قيدٍ قديمٍ بنسيج اليوم أو جذور اليوم.
     """
     from api.water_ledger_auto import ledger_notes_from_decision
 

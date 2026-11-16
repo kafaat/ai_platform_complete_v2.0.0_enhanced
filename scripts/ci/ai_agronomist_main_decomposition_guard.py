@@ -83,8 +83,13 @@ def main() -> None:
         )
     if "save_agent_tool_audit=_save_agent_tool_audit" not in main_src:
         fail("main.py wrapper must inject audit store callback into evidence runtime")
-    if "save_pending_approval=_save_pending_approval" not in main_src:
-        fail("main.py wrapper must inject approval store callback into evidence runtime")
+    # The store-backed saver, wrapped so each record names the gateway user who asked for it
+    # (approval_authz.stamp_requester: no self-approval without a recorded requester).
+    if "save_pending_approval=stamp_requester(_save_pending_approval, x_user_id)" not in main_src:
+        fail(
+            "main.py wrapper must inject the approval store callback into evidence runtime, "
+            "wrapped by stamp_requester(_save_pending_approval, x_user_id)"
+        )
     for route in (
         '@app.post("/v1/query")',
         '@app.post("/v1/chat")',

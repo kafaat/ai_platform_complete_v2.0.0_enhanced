@@ -3,7 +3,7 @@
 W1-14 (business-1, business-2):
 - a budget, an operation or a revenue sent with an agronomic season (``seasons``, the table
   farmers write) is accepted; before, the tenant check read only ``farm_season_projects`` (no
-  writer) and the v100-v102 foreign keys refused the row. v280 keeps the integrity check in the
+  writer) and the v100-v102 foreign keys refused the row. v281 keeps the integrity check in the
   database as a trigger over the same union the simple farm book uses;
 - amounts in two currencies are never summed under one label: variance, profitability and the
   summary answer 409 unless ``?currency=`` names one, and the budget read gives one total per
@@ -63,7 +63,7 @@ async def _probe() -> str:
             )
             is None
         ):
-            return "schema not migrated (v280 farm_ledger_assert_season_ref missing)"
+            return "schema not migrated (v281 farm_ledger_assert_season_ref missing)"
     finally:
         await conn.close()
     return ""
@@ -297,7 +297,7 @@ def test_operation_and_revenue_routes_accept_a_seasons_table_id(monkeypatch):
 
 def test_the_database_refuses_an_unknown_or_foreign_season(monkeypatch):
     async def case(live, router):
-        await live.operation(5)  # own `seasons` row: accepted by the v280 trigger
+        await live.operation(5)  # own `seasons` row: accepted by the v281 trigger
         for season in (f"missing-{uuid.uuid4().hex[:6]}", live.other_season):
             with pytest.raises(asyncpg.ForeignKeyViolationError) as caught:
                 await live.operation(5, season=season)

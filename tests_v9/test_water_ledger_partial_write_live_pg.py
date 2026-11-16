@@ -166,7 +166,7 @@ class Live:
 
         async def et0_product(**_kw):
             # W0-10: the worker reads the product's quality and needs the field's elevation;
-            # a validated FAO-56 product (a method v278 accepts) keeps this fixture on the computed path.
+            # a validated FAO-56 product (a method v279 accepts) keeps this fixture on the computed path.
             return {
                 "et0_mm": _ET0_MM,
                 "method": "fao56_penman_monteith",

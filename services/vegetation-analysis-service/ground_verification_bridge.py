@@ -2,7 +2,7 @@
 
 W1-20 (findings remote-7 / scout-5): the bridge used to POST ``/v1/tasks/scouting``, which no
 service served, so every ground-verification request failed. field-management-service, the
-owner of ``field_tasks``, now serves ``POST /internal/field-tasks/scouting`` (v281). It is a
+owner of ``field_tasks``, now serves ``POST /internal/field-tasks/scouting`` (v282). It is a
 service-to-service route, called the way this service already reads ``/internal/fields``
 (vegetation_runtime.py): the shared service token, this service's name, the verified tenant and
 a short-lived tenant assertion bound to the method, path and request id. The user's bearer token

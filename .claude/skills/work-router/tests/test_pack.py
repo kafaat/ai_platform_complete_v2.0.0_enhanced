@@ -165,6 +165,102 @@ class Routing(unittest.TestCase):
             router.choose({"multi_agent": "yes"}, self.routing)
 
 
+    def test_three_matching_routes_select_two_and_defer_the_rest(self):
+        profile = {"interrupted": True, "needs_research": True, "multi_agent": True}
+        result = router.choose(profile, self.routing)
+        self.assertEqual("COORDINATED", result["mode"])
+        self.assertEqual(
+            ["work-continuation", "evidence-research", "collaboration-coordination"],
+            [s["skill"] for s in result["skills"]],  # legacy order and completeness
+        )
+        self.assertEqual(
+            ["collaboration-coordination", "work-continuation"],
+            [s["skill"] for s in result["selected"]],
+        )
+        self.assertEqual(
+            [("evidence-research", "later_phase")],
+            [(s["skill"], s["reason_code"]) for s in result["deferred"]],
+        )
+        self.assertEqual([], result["phase_preconditions"])
+
+    def test_external_effect_cannot_hide_deferred_safety_work(self):
+        result = router.choose(
+            {"interrupted": True, "multi_agent": True, "external_action": True},
+            self.routing,
+        )
+        self.assertEqual("COORDINATED", result["mode"])
+        self.assertEqual(
+            ["safe-delivery", "collaboration-coordination"],
+            [s["skill"] for s in result["selected"]],
+        )
+        self.assertIn("work-continuation", [s["skill"] for s in result["deferred"]])
+        self.assertEqual(
+            ["deferred_safety_skill_must_be_resolved_before_external_effect"],
+            result["phase_preconditions"],
+        )
+        self.assertEqual(3, len(result["skills"]))  # legacy matches retained
+
+    def test_single_external_effect_keeps_the_permission_boundary(self):
+        result = router.choose({"external_action": True}, self.routing)
+        self.assertEqual(["safe-delivery"], [s["skill"] for s in result["selected"]])
+        self.assertEqual([], result["deferred"])
+        self.assertIn("Grants no permission", result["note"])
+
+    def test_missing_safety_skill_is_not_counted_as_selected(self):
+        with tempfile.TemporaryDirectory() as empty:
+            result = router.choose(
+                {"external_action": True, "interrupted": True},
+                self.routing,
+                Path(empty),
+            )
+        self.assertEqual([], result["selected"])
+        self.assertEqual(
+            {"safe-delivery", "work-continuation"}, set(result["missing"])
+        )
+        self.assertTrue(all(s["reason_code"] == "not_installed" for s in result["deferred"]))
+        self.assertTrue(result["phase_preconditions"])
+        self.assertEqual(2, len(result["skills"]))  # legacy output unchanged
+
+    def test_unknown_flags_never_turn_into_an_action(self):
+        result = router.choose(
+            {"untrusted_permission": True, "external_actlon": True}, self.routing
+        )
+        self.assertEqual([], result["selected"])
+        self.assertEqual([], result["skills"])
+        self.assertEqual("LIGHT", result["mode"])
+        self.assertEqual([], result["phase_preconditions"])
+
+    def test_backwards_compatible_mode_skills_missing_schema(self):
+        result = router.choose(
+            {"interrupted": True, "external_action": True}, self.routing
+        )
+        self.assertEqual("COORDINATED", result["mode"])
+        self.assertEqual(
+            ["work-continuation", "safe-delivery"],
+            [s["skill"] for s in result["skills"]],
+        )
+        self.assertEqual([], result["missing"])
+        self.assertEqual(2, len(result["selected"]))
+        self.assertEqual([], result["deferred"])
+
+    def test_priorities_checked_before_routing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "routes.json"
+            for bad in (True, "99", -1, 101):
+                payload = json.loads(json.dumps(self.routing))
+                payload["routes"][0]["priority"] = bad
+                path.write_text(json.dumps(payload), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    router.load_routes(path)
+
+    def test_legacy_registry_without_priority_remains_valid(self):
+        legacy = json.loads(json.dumps(self.routing))
+        for rule in legacy["routes"]:
+            rule.pop("priority", None)
+        result = router.choose({"interrupted": True}, legacy)
+        self.assertEqual(["work-continuation"], [s["skill"] for s in result["selected"]])
+
+
 def base_contract():
     return json.loads(
         (ROOT / "intent-to-proof/assets/work-contract.example.json").read_text(

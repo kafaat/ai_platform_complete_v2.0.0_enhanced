@@ -1,4 +1,4 @@
-"""Vegetation anomaly -> stored ground-scouting task, once per request (live PG, W1-20, v280).
+"""Vegetation anomaly -> stored ground-scouting task, once per request (live PG, W1-20, v282).
 
 Findings remote-7 / scout-5: vegetation-analysis-service's ground-verification bridge asked for a
 scouting task at a route no service served, so no anomaly could reach ``verification_requested``.
@@ -16,7 +16,7 @@ Acceptance: the anomaly becomes one stored task with a task_id; a replay (sequen
 concurrent copies) returns the same task and writes nothing; the same key with another body and
 a second key for the same anomaly are refused; another tenant can neither write a task on this
 tenant's field nor list it; an assertion bound to another path is refused. Negative controls
-show the v280 unique index and check constraint are what refuse a duplicate key and a keyless
+show the v282 unique index and check constraint are what refuse a duplicate key and a keyless
 anomaly task at the database, inside rolled-back transactions.
 """
 
@@ -72,7 +72,7 @@ async def _probe() -> str:
             "SELECT count(*) = 1 FROM information_schema.columns"
             " WHERE table_name = 'field_tasks' AND column_name = 'scouting_idempotency_key'"
         ):
-            return "schema not migrated (v280 missing)"
+            return "schema not migrated (v282 missing)"
         if not await conn.fetchval(
             "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
         ):

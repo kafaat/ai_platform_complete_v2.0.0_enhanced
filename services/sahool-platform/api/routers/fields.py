@@ -31,6 +31,7 @@ from api import main as api_main
 # validate_field_geometry يُستورَد من مصدره مباشرةً (كان main يعيد تصديره، لكنه صار
 # يتيماً فيه بعد نقل _persist_field إلى هنا — تفكيك B1).
 from api.alert_models import AlertEvaluateResponse
+from api.field_context import refuse_if_fields_have_harvest_lots
 from api.field_geometry_save_guard import sanitize_boundary_metadata, validate_boundary_for_save
 
 # نماذج/مساعدات الحقل نُقِلت إلى api.field_models (تفكيك B1 — نقل عنقوديّ) وتُستورَد
@@ -1616,9 +1617,8 @@ async def delete_field(
 ):
     """يحذف حقلاً ويُصدِر FIELD_DELETED — حذف متتالٍ لتبعيّاته (مواسم/عمليّات/تنبيهات).
 
-    حارس صدق: يُرفض (409) إن كان للحقل موسم نشط — أغلِقه أوّلاً (يمنع محو حقل قيد
-    الاستخدام بالخطأ). الحدث يُصدَر قبل الحذف ضمن المعاملة (نمط outbox)، وentity_id
-    نصّيّ (events منذ v18) فيبقى الحدث بعد حذف الحقل (لا FK من events إلى fields).
+    يُرفض (409) إن كان للحقل موسم نشط، أو دفعات حصاد (v278: سلسلة الحيازة لا تُمحى). الحدث
+    يُصدَر قبل الحذف ضمن المعاملة (outbox) وentity_id نصّيّ فيبقى بعد الحذف (لا FK من events).
     404 لو الحقل ليس للمستأجِر؛ 503 عند تعذّر القاعدة.
     """
     try:
@@ -1639,6 +1639,7 @@ async def delete_field(
                     status_code=409,
                     detail="للحقل موسم نشط — أغلِقه قبل الحذف (تفادي محو بيانات قيد الاستخدام).",
                 )
+            await refuse_if_fields_have_harvest_lots(conn, [field_id], "الحذف")
             # الحدث قبل الحذف (يحفظ ما حُذف)؛ ثمّ DELETE المتتالي.
             await _emit_domain_event(
                 conn,
@@ -1770,6 +1771,7 @@ async def merge_fields(
                     source_geometries.append(_stored_geometry(src["geometry"]))
                 # 1ب) المدموج = اتّحاد المصادر (422 قبل أيّ كتابة).
                 _assert_area_conserved(source_geometries, [geometry])
+                await refuse_if_fields_have_harvest_lots(conn, req.source_field_ids, "الدمج")
                 # 2) أنشئ المدموج أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
                 result = await _insert_field_within_tx(
                     conn,
@@ -1795,9 +1797,8 @@ async def merge_fields(
                     reason="field.merged",
                     extra_event_meta={"merged_from": req.source_field_ids},
                 )
-                # 3) احذف كلّ مصدر (FIELD_DELETED قبل الحذف — نمط outbox، نفس
-                #    دلالات delete_field). أيّ فشل هنا يتصاعد ⇒ تتراجع المعاملة كاملةً
-                #    (لا حقل مدموج يتيَّم، لا مصدر محذوف بلا بديل) — سدّ خطر اللاذرّيّة.
+                # 3) احذف كلّ مصدر (FIELD_DELETED قبل الحذف، دلالات delete_field)؛ أيّ فشل
+                #    يتصاعد ⇒ تتراجع المعاملة كاملةً (لا مدموج يتيَّم ولا مصدر بلا بديل).
                 for src_id in req.source_field_ids:
                     src = await conn.fetchrow(
                         "SELECT name, crop FROM fields WHERE field_id = $1",
@@ -1909,6 +1910,7 @@ async def split_field(
                 _assert_area_conserved(
                     [_stored_geometry(src["geometry"])], [p["geometry"] for p in prepared]
                 )
+                await refuse_if_fields_have_harvest_lots(conn, [req.source_field_id], "الانقسام")
                 # 2) أنشئ كلّ وليد أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
                 children_out: list[dict] = []
                 for p in prepared:
@@ -1937,9 +1939,8 @@ async def split_field(
                             extra_event_meta={"split_from": req.source_field_id},
                         )
                     )
-                # 3) احذف المصدر (FIELD_DELETED قبل الحذف — نفس دلالات delete_field).
-                #    أيّ فشل يتصاعد ⇒ تتراجع المعاملة كاملةً (لا وليد يتيَّم، لا أصل
-                #    محذوف بلا أطفال) — سدّ خطر اللاذرّيّة.
+                # 3) احذف المصدر (FIELD_DELETED قبل الحذف، دلالات delete_field)؛ أيّ فشل
+                #    يتصاعد ⇒ تتراجع المعاملة كاملةً (لا وليد يتيَّم ولا أصل بلا أطفال).
                 await _emit_domain_event(
                     conn,
                     user,
@@ -3917,7 +3918,6 @@ async def field_state_full(
     المصادر غير الموجودة (عينات ماء مخبريّة، اقتصاد لكل حقل) تُعلَن كذلك مع مؤشّر endpoint.
     البوّابة الصلبة الوحيدة: الحقل ضمن المستأجِر (404)؛ تعذّر القاعدة كلّياً ⇒ 503.
     """
-    from api.field_context import _field_season_context
     from api.field_state_projection import _derive_alerts_from_state, recompute_field_state
 
     out: dict = {"field_id": field_id}

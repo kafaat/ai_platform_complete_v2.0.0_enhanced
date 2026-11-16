@@ -568,7 +568,7 @@ async def task_link_error(conn, tenant_id: str, task_id, field_id: str | None):
 #: Tenant-scope lookups of the operations ledger (moved from the router for its size ratchet).
 _TENANT_SCOPE_SQL: dict[str, tuple[str, str]] = {
     # W1-14 (business-1): a season is an agronomic season (``seasons``, the table farmers write)
-    # or a ledger season project, exactly as the simple farm book accepts it. v280 replaced the
+    # or a ledger season project, exactly as the simple farm book accepts it. v281 replaced the
     # foreign keys to farm_season_projects (no writer) with a trigger checking the same union.
     "season": (
         "SELECT 1 FROM seasons WHERE tenant_id = $1::uuid AND season_id = $2"

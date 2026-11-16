@@ -89,7 +89,7 @@ PINNED_BACKEND_COMPONENTS = 33
 #   inspection assignees, pin inspection task, hand-off and its accept/reassign/finding, task cost
 #   trace, expense link). None removed. A different service: the platform route budget stays
 #   629/629. Measured on top of #1456: 1039 -> 1048.
-# 2026-11-16 (W1-20, remote-7 / scout-5, v280): +2 unique method/path, POST and GET
+# 2026-11-16 (W1-20, remote-7 / scout-5, v282): +2 unique method/path, POST and GET
 #   /internal/field-tasks/scouting in field-management-service (fm_scouting_tasks.py): the
 #   vegetation anomaly's ground-scouting task, service-token routes. None removed. A different
 #   service: the platform route budget is untouched. Measured on a regenerated copy of the Wave 0

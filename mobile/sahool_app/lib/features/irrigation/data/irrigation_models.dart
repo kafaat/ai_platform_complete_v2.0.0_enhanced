@@ -123,7 +123,7 @@ class WaterLedgerEntry {
   /// قيد كتبه العامل الآليّ (water-balance-auto) لا إنسان.
   bool get isAuto => createdBy == 'water-balance-auto';
 
-  /// من أبلغ عن ريّ يومٍ يحسب العاملُ ميزانه (v278)؛ null لريّ العامل أو قيد يدويّ.
+  /// من أبلغ عن ريّ يومٍ يحسب العاملُ ميزانه (v280)؛ null لريّ العامل أو قيد يدويّ.
   String? get irrigationReportedBy => _str(raw['irrigation_reported_by']);
 
   /// الريّ رقمٌ أبلغ عنه إنسان: معلومٌ وإن قال قرار القيد إنّه لم يُرصَد.

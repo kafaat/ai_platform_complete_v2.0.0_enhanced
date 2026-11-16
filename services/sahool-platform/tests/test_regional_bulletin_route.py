@@ -76,3 +76,33 @@ def test_route_is_tenant_scoped_and_privacy_safe():
     assert "_DB_POOL is None" in src, "القاعدة غير مفعّلة ⇒ نشرة فارغة موثَّقة (لا اختلاق)"
     assert "min_fields_privacy" in src, "أرضيّة الخصوصيّة مُمرَّرة"
     assert "status_code=503" in src  # تعذّر القاعدة ⇒ فشل موثَّق
+
+
+def test_route_refuses_a_floor_below_the_server_minimum():
+    """RFC R3 DS-R01: ``Query(5, ge=1)`` let a caller ask for k=1. The floor is now the minimum
+    the query parameter accepts, so a lower value is a 422, not a smaller k."""
+    src = _RB_ROUTE.read_text(encoding="utf-8")
+    assert "ge=1," not in src, "the privacy floor must not be lowerable by the caller"
+    assert "ge=MIN_FIELDS_PRIVACY" in src
+
+
+def test_route_scopes_the_aggregate_to_the_callers_farms():
+    """RLS limits the bulletin to the tenant only; a user limited to some farms used to get
+    aggregates over fields of farms they cannot see (RFC R3 review, farm-level bypass)."""
+    src = _RB_ROUTE.read_text(encoding="utf-8")
+    assert "f.farm_id = ANY($1::text[])" in src
+    assert "conn.fetch(_BULLETIN_SQL, _farm_scope(user))" in src
+
+
+def test_farm_scope_empty_means_every_farm_and_otherwise_exactly_the_listed_ones():
+    from types import SimpleNamespace
+
+    from api.routers.regional_bulletin import _farm_scope
+
+    assert _farm_scope(SimpleNamespace(farm_ids_access=[])) is None
+    assert _farm_scope(SimpleNamespace(farm_ids_access=None)) is None
+    assert _farm_scope(SimpleNamespace()) is None
+    assert _farm_scope(SimpleNamespace(farm_ids_access=["farm_a", "", "farm_b"])) == [
+        "farm_a",
+        "farm_b",
+    ]
