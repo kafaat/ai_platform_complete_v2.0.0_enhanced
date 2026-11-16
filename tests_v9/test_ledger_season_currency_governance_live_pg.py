@@ -810,3 +810,94 @@ def test_pest_escalation_execute_step_carries_the_server_farm_context(monkeypatc
         assert farm["field_area_ha"] == 2.5, farm
 
     _run(monkeypatch, case)
+
+
+_V281_TABLES = (
+    "farm_operation_ledger",
+    "farm_season_budget_lines",
+    "farm_revenue_records",
+    "farm_indirect_cost_pools",
+    "farm_ledger_inventory_projections",
+    "farm_ledger_erp_projection_outbox",
+    "farm_ledger_economic_snapshots",
+)
+
+
+async def _season_fk_state(admin) -> dict[str, bool]:
+    rows = await admin.fetch(
+        "SELECT c.conrelid::regclass::text AS tbl, c.convalidated FROM pg_constraint c"
+        " WHERE c.conname = c.conrelid::regclass::text || '_season_id_fkey'"
+        " AND c.conrelid::regclass::text = ANY($1::text[])",
+        list(_V281_TABLES),
+    )
+    return {r["tbl"]: r["convalidated"] for r in rows}
+
+
+def test_v281_rollback_returns_validated_keys_unless_a_row_still_names_a_seasons_season():
+    """Lab receipt on 0f746db: v281's down left the seven season keys NOT VALID even on a clean
+    database, so a rollback was not the pre-v281 schema. Now each key is validated when no row
+    of its table names a season missing from farm_season_projects; a table that still holds
+    such a row keeps its key NOT VALID (and the others validate). v281 is re-applied after."""
+    down = (ROOT / "migrations" / "v281_farm_ledger_season_reference.down.sql").read_text(
+        encoding="utf-8"
+    )
+    up = (ROOT / "migrations" / "v281_farm_ledger_season_reference.sql").read_text(encoding="utf-8")
+
+    async def body():
+        admin = await asyncpg.connect(os.getenv("TEST_DATABASE_ADMIN_URL") or DSN)
+        orphan_id = f"op-v281-{uuid.uuid4().hex[:8]}"
+        try:
+            if not await admin.fetchval(
+                "SELECT rolsuper FROM pg_roles WHERE rolname = current_user"
+            ):
+                if _CERTIFICATION_REQUIRED:
+                    raise AssertionError("certifying run needs a superuser to replay v281's down")
+                pytest.skip("declared skip (not a pass): replaying a migration needs a superuser")
+            present = {
+                t
+                for t in _V281_TABLES
+                if await admin.fetchval("SELECT to_regclass($1)", f"public.{t}") is not None
+            }
+            stray = await admin.fetchval(
+                "SELECT count(*) FROM farm_operation_ledger x WHERE x.season_id IS NOT NULL"
+                " AND NOT EXISTS (SELECT 1 FROM farm_season_projects p"
+                " WHERE p.season_id = x.season_id)"
+            )
+            await admin.execute(down)
+            clean = await _season_fk_state(admin)
+            assert set(clean) == present, f"down restored keys on {sorted(clean)}, not {present}"
+            if stray == 0:
+                assert all(clean.values()), f"clean rollback left keys NOT VALID: {clean}"
+            await admin.execute(up)
+            assert await _season_fk_state(admin) == {}, "v281 re-applied must drop the keys"
+
+            async with admin.transaction():
+                await admin.execute("SET LOCAL session_replication_role = replica")
+                await admin.execute(
+                    "INSERT INTO farm_operation_ledger (operation_id, tenant_id, season_id,"
+                    " operation_type, operation_date, status)"
+                    " VALUES ($1, $2::uuid, $3, 'irrigation', CURRENT_DATE, 'completed')",
+                    orphan_id,
+                    str(uuid.uuid4()),
+                    f"season-only-{uuid.uuid4().hex[:8]}",
+                )
+            await admin.execute(down)
+            held = await _season_fk_state(admin)
+            assert held.get("farm_operation_ledger") is False, (
+                f"a row naming a seasons season must keep the operation ledger key NOT VALID: {held}"
+            )
+            others = {t: v for t, v in held.items() if t != "farm_operation_ledger"}
+            assert all(others.values()), f"tables without such rows must validate: {others}"
+        finally:
+            async with admin.transaction():
+                await admin.execute("SET LOCAL session_replication_role = replica")
+                await admin.execute(
+                    "DELETE FROM farm_operation_ledger WHERE operation_id = $1", orphan_id
+                )
+            await admin.execute(up)
+            assert await admin.fetchval(
+                "SELECT 1 FROM pg_proc WHERE proname = 'farm_ledger_assert_season_ref'"
+            ), "v281 must be re-applied after the rollback test"
+            await admin.close()
+
+    asyncio.run(body())
