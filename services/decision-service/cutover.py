@@ -143,8 +143,11 @@ def sor_capability_signal(
     (``persisted`` once ``DECISION_SERVICE_SOR_ENABLED`` and ``DATABASE_URL`` are both set,
     else ``mirror``). ``review_available`` is the switch a client uses to show or hide the
     review queue: it is true only when writes persist *and* the service is ready (database
-    reachable, every migration applied), which is exactly when ``/v1/decisions/review-queue``
-    answers 200 instead of 503. The cutover gates come from :func:`readiness_from_env`, the same
+    reachable, every migration applied). The signal is conservative, not an exact mirror of
+    the endpoint: ``/v1/decisions/review-queue`` answers 503 only in mirror mode (it checks
+    ``sor_enabled()`` alone), so ``review_available: true`` implies the queue is served, while
+    ``false`` with ``persisted: true`` means the service is not ready and the queue may still
+    answer, or fail on the database. The cutover gates come from :func:`readiness_from_env`, the same
     model as ``/v1/cutover/readiness``, so the two endpoints cannot disagree.
     ``persisted_without_verified_gates`` makes an operator shortcut visible: the flag was set
     before the verification gates were recorded.

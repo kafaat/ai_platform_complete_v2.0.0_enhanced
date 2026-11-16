@@ -58,7 +58,8 @@ Why each one is needed (measured, not assumed):
   intended: the verifier must never count a tenant-filtered subset. It therefore needs a
   BYPASSRLS read-only auditor.
 
-Recipe (run once as the database admin; adapt role names, set real passwords out of band):
+Recipe (run once as the database admin; adapt role names, set real passwords out of band).
+`sahool_app` stands for the platform app role: replace it with the real name before running.
 
 ```sql
 CREATE ROLE decision_schema_owner LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOINHERIT;
@@ -66,7 +67,9 @@ CREATE ROLE decision_service_app  LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCRE
 CREATE ROLE decision_sor_auditor  LOGIN NOSUPERUSER BYPASSRLS   NOCREATEDB NOCREATEROLE NOINHERIT;
 GRANT CREATE ON SCHEMA public TO decision_schema_owner;
 GRANT USAGE ON SCHEMA public TO decision_service_app, decision_sor_auditor;
--- ALTER TABLE takes one table per statement.
+-- ALTER TABLE takes one table per statement. Changing the owner also moves every sequence the
+-- table owns (recommendation_outcomes_outcome_id_seq) and drops the old owner from the ACL of
+-- the table and of those sequences.
 ALTER TABLE decision_record          OWNER TO decision_schema_owner;
 ALTER TABLE dispatch_decisions       OWNER TO decision_schema_owner;
 ALTER TABLE outcome_record           OWNER TO decision_schema_owner;
@@ -74,23 +77,68 @@ ALTER TABLE recommendation_outcomes  OWNER TO decision_schema_owner;
 ALTER TABLE online_learning_updates  OWNER TO decision_schema_owner;
 ALTER FUNCTION sahool_chain_correlation_root() OWNER TO decision_schema_owner;      -- check the
 ALTER FUNCTION sahool_chain_correlation_immutable() OWNER TO decision_schema_owner; -- signatures
+-- Default privileges cover objects the migrator creates later, never the existing ones.
 ALTER DEFAULT PRIVILEGES FOR ROLE decision_schema_owner IN SCHEMA public
   GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO decision_service_app;
 ALTER DEFAULT PRIVILEGES FOR ROLE decision_schema_owner IN SCHEMA public
   GRANT USAGE, SELECT ON SEQUENCES TO decision_service_app;
 ALTER DEFAULT PRIVILEGES FOR ROLE decision_schema_owner IN SCHEMA public
   GRANT SELECT ON TABLES TO decision_sor_auditor;
+-- Existing tables: explicit grants.
 GRANT SELECT, INSERT, UPDATE, DELETE ON decision_record, dispatch_decisions, outcome_record,
       recommendation_outcomes, online_learning_updates TO decision_service_app;
+-- Interim, while the platform is still the writer (staging): if the platform app role owned
+-- these tables, the owner change above removed it from their ACL. Re-grant its DML. When it
+-- was not the owner this is a no-op. The production REVOKE (platform_sor_revoke.py) removes it.
+GRANT SELECT, INSERT, UPDATE, DELETE ON decision_record, dispatch_decisions, outcome_record,
+      recommendation_outcomes, online_learning_updates TO sahool_app;
+-- Existing sequences owned by the five tables moved with them: both inserting roles need
+-- USAGE (nextval of the BIGSERIAL default) and SELECT on each one.
+DO $grant_sor_sequences$
+DECLARE seq regclass;
+BEGIN
+  FOR seq IN
+    SELECT d.objid::regclass FROM pg_depend d JOIN pg_class s ON s.oid = d.objid
+    WHERE d.classid = 'pg_class'::regclass AND d.refclassid = 'pg_class'::regclass
+      AND s.relkind = 'S' AND d.deptype IN ('a', 'i')
+      AND d.refobjid = ANY (ARRAY['decision_record', 'dispatch_decisions', 'outcome_record',
+                                  'recommendation_outcomes', 'online_learning_updates']::regclass[])
+  LOOP
+    EXECUTE format('GRANT USAGE, SELECT ON SEQUENCE %s TO decision_service_app, sahool_app', seq);
+    RAISE NOTICE 'granted USAGE, SELECT on sequence %', seq;
+  END LOOP;
+END
+$grant_sor_sequences$;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO decision_sor_auditor;
 ```
 
 Check the two function signatures with `\df sahool_chain_correlation_*` before the `ALTER
-FUNCTION`. The recipe as written here (one `ALTER TABLE` per table) was run through `psql
--v ON_ERROR_STOP=1` on a disposable PG16 with stub tables and functions of the same names, with no
-error; an earlier draft used a multi-table `ALTER TABLE`, which PostgreSQL rejects. Changing a table's owner keeps its existing grants, so the platform keeps writing the
-five tables while it is still the writer. In the split-database topology the decision database
-has its own owner; only the migrator/app/auditor split applies there.
+FUNCTION`. The `DO` block prints one `NOTICE` per sequence; on the current schema that is
+`recommendation_outcomes_outcome_id_seq` only.
+
+**What the owner change does to existing grants.** `ALTER TABLE ... OWNER TO` keeps the grants of
+roles other than the old owner, but the old owner itself leaves the ACL of the table and of the
+sequences the table owns. Where the platform app role created the five tables (the usual case: it
+applied the platform manifest), it loses every privilege on them, and `decision_service_app`
+never had any on the moved sequence. Without the explicit grants above, both inserts fail:
+`permission denied for table recommendation_outcomes` for the platform and `permission denied for
+sequence recommendation_outcomes_outcome_id_seq` for decision-service. The interim platform grants
+keep the platform writing the five tables while it is still the writer. In the split-database
+topology the decision database has its own owner; only the migrator/app/auditor split applies
+there, and the `sahool_app` lines are dropped.
+
+**Verified on PG16, verbatim.** `tests_v9/test_decision_sor_staging_recipe_live_pg.py` extracts
+this block from the file and runs it unchanged on a live PostgreSQL in a throwaway database:
+the five tables (with the `BIGSERIAL` on `recommendation_outcomes`) and the two trigger functions
+are first created by a NOSUPERUSER, NOBYPASSRLS `sahool_app`, the recipe then runs in one
+transaction (any error stops it), and an `INSERT` into each table, through the sequence default,
+must succeed as `decision_service_app` and as `sahool_app`. The same test against the previous
+recipe (table grants for `decision_service_app` only) fails with exactly the two errors above.
+The block was also run through `psql -X -v ON_ERROR_STOP=1 -f` on PostgreSQL 16.15 after the same
+setup: rc 0, one `NOTICE` for `recommendation_outcomes_outcome_id_seq`, then
+`INSERT INTO recommendation_outcomes (tenant_id) ... RETURNING outcome_id` returned 1 as
+`decision_service_app` and 2 as `sahool_app`. An earlier draft used a multi-table `ALTER TABLE`,
+which PostgreSQL rejects.
 
 ## 1. Role certification (read-only)
 
@@ -225,7 +273,7 @@ the same model as `/v1/cutover/readiness` (`services/decision-service/cutover.py
 | Field | Meaning |
 |---|---|
 | `mode` | `persisted` when `DECISION_SERVICE_SOR_ENABLED` and `DATABASE_URL` are both set, else `mirror` |
-| `review_available` | `persisted` **and** `/readyz` ready: the condition under which the review queue answers 200. Clients show or hide review on this field |
+| `review_available` | `persisted` **and** `/readyz` ready. Conservative: the review queue itself returns 503 only in mirror mode (it checks the SoR flag alone), so `true` means the queue is served, while `false` with `persisted: true` means the service is not ready and the queue may still answer or fail on the database. Clients show or hide review on this field |
 | `gates`, `missing_gates`, `gates_complete` | the six verification gates, by variable name |
 | `persisted_without_verified_gates` | true when the flag was set before the gates: an operator shortcut made visible |
 | `cutover_mode`, `can_enable_sor`, `can_demote_platform` | as in `/v1/cutover/readiness` |

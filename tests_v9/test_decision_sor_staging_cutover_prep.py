@@ -391,3 +391,45 @@ def test_step_4b_window_matches_what_readyz_reports(cutover, monkeypatch):
         "`persisted_without_verified_gates: true`",
     ):
         assert expected in text, f"runbook 4b must state {expected}"
+
+
+def test_staging_runbook_recipe_grants_existing_sequences_and_interim_platform_dml():
+    """Default privileges reach only future objects; the owner move drops the old owner's ACL.
+
+    The live proof is ``tests_v9/test_decision_sor_staging_recipe_live_pg.py``; this pins the
+    statements it depends on so a docs edit cannot drop them without a unit failure.
+    """
+    text = RUNBOOK.read_text(encoding="utf-8")
+    start = text.index("```sql\nCREATE ROLE")
+    recipe = text[start : text.index("\n```", start)]
+    assert "GRANT USAGE, SELECT ON SEQUENCE %s TO decision_service_app, sahool_app" in recipe, (
+        "sequences owned by the moved tables need explicit USAGE, SELECT for both writers"
+    )
+    assert "'recommendation_outcomes'" in recipe and "d.deptype IN ('a', 'i')" in recipe, recipe
+    tables = (
+        "decision_record, dispatch_decisions, outcome_record,\n"
+        "      recommendation_outcomes, online_learning_updates"
+    )
+    for role in ("decision_service_app", "sahool_app"):
+        assert f"GRANT SELECT, INSERT, UPDATE, DELETE ON {tables} TO {role};" in recipe, role
+    assert "Changing a table's owner keeps its existing grants" not in text, (
+        "false when the platform role was the owner: ALTER OWNER drops the old owner's ACL"
+    )
+
+
+def test_review_available_is_documented_as_conservative_not_exact(cutover):
+    """review-queue checks sor_enabled() alone; review_available also needs ready."""
+    main = (DECISION / "main.py").read_text(encoding="utf-8")
+    queue = main[main.index("async def review_queue(") :]
+    queue = queue[: queue.index("\n@app.")]
+    assert "if not sor_enabled():" in queue and "ready" not in queue.split('"""')[2], (
+        "the wording below assumes the queue gates on the SoR flag only; update both together"
+    )
+    degraded = cutover.sor_capability_signal(READY_DB, sor_enabled=True, ready=False)
+    assert degraded["review_available"] is False and degraded["persisted"] is True, degraded
+    doc = cutover.sor_capability_signal.__doc__
+    assert "exactly when" not in doc and "conservative" in doc, doc
+    text = RUNBOOK.read_text(encoding="utf-8")
+    row = next(line for line in text.splitlines() if line.startswith("| `review_available` |"))
+    assert "the condition under which the review queue answers 200" not in row, row
+    assert "Conservative" in row, row
