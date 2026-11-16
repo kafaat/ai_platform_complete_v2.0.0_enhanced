@@ -36,12 +36,15 @@ def test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion():
     budget = policy["domain_route_budget"]
     raw, infrastructure, domain = _inventory()
 
-    assert budget == policy["new_max_platform_routes"] == 629
+    assert budget == policy["new_max_platform_routes"] == 623, (
+        "the W4-09 ceiling is 623; it only ever goes down"
+    )
     # 632/628 → 633/629: مسارُ M4 الواحد (`indicator-observations/{view}`) استهلك آخرَ هامش.
-    # السقفُ نفسُه لم يُرفَع (629)؛ المسارُ التالي يجب أن يُقاعِد مساراً أو يُسكَن في خدمته.
-    assert len(raw) == 633
-    assert len(infrastructure) == 4
-    assert len(domain) == 629
+    # 633/629 → 627/623 (W4-09): ستّةُ مساراتٍ ميتة أُقعِدت وخُفِّض السقفُ بالعدد نفسه.
+    # المسارُ التالي يجب أن يُقاعِد مساراً أو يُسكَن في خدمته أو يمرّ بقرار ميزانية.
+    assert len(raw) == 627, f"raw platform routes: {len(raw)}"
+    assert len(infrastructure) == 4, f"infrastructure routes: {len(infrastructure)}"
+    assert len(domain) == 623, f"domain routes: {len(domain)}"
     assert len(raw) == len(infrastructure) + len(domain)
     assert len(domain) <= budget, (
         "Platform domain-route budget exceeded:\n"

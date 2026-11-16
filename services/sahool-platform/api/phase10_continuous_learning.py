@@ -10,10 +10,8 @@ from pydantic import BaseModel, Field
 from api.phase_runtime_store import persist_feature_dataset, persist_phase10_learning_outputs
 from api.service_token_auth import _require_service_token
 from shared.continuous_learning_phase10 import (
-    create_online_learning_update,
     decide_model_promotion,
     detect_feature_drift,
-    evaluate_experiment_outcomes,
     infer_feature_schema,
     materialize_training_dataset,
     plan_retraining_job,
@@ -57,20 +55,6 @@ class ModelPromotionRequest(BaseModel):
     champion: dict[str, Any] | None = None
     challenger: dict[str, Any] | None = None
     metric_policy: dict[str, Any] = Field(default_factory=dict)
-
-
-class OnlineLearningRequest(BaseModel):
-    model: dict[str, Any]
-    dataset: dict[str, Any]
-    records: list[dict[str, Any]]
-    drift_threshold: float = 0.35
-
-
-class ExperimentEvaluationRequest(BaseModel):
-    experiment_key: str
-    assignments: list[dict[str, Any]]
-    outcomes: list[dict[str, Any]]
-    metric: str = "net_benefit"
 
 
 class ScenarioRequest(BaseModel):
@@ -147,11 +131,11 @@ class ModelRollbackRequest(BaseModel):
     reason: str
 
 
-@router.post("/feature-schema")
-def feature_schema(req: FeatureRecordsRequest) -> dict[str, Any]:
-    return infer_feature_schema(req.records, name=req.name, version=req.version)
-
-
+# W4-09 (routes-10): POST /feature-schema · /online-update · /experiments/evaluate
+# أُقعِدت — بلا مستدعٍ في أيّ عميل أو خدمة أو SDK أو اختبار أو سجلّ قدرات. الدوالّ
+# الصرفة في shared/continuous_learning_phase10 باقية باختباراتها هناك (و/cycle يستدعي
+# create_online_learning_update عبر run_phase10_learning_cycle)، و/dataset يُعيد
+# feature_set_spec نفسه. يحرسها tests/test_w4_09_retired_dead_routes.py.
 @router.post("/dataset")
 async def dataset(req: FeatureRecordsRequest, request: Request) -> dict[str, Any]:
     spec = infer_feature_schema(req.records, name=req.name, version=req.version)
@@ -169,26 +153,6 @@ def model_promotion(req: ModelPromotionRequest) -> dict[str, Any]:
         champion=req.champion,
         challenger=req.challenger,
         metric_policy=req.metric_policy,
-    )
-
-
-@router.post("/online-update")
-def online_update(req: OnlineLearningRequest) -> dict[str, Any]:
-    return create_online_learning_update(
-        model=req.model,
-        dataset=req.dataset,
-        records=req.records,
-        drift_threshold=req.drift_threshold,
-    )
-
-
-@router.post("/experiments/evaluate")
-def experiment_evaluation(req: ExperimentEvaluationRequest) -> dict[str, Any]:
-    return evaluate_experiment_outcomes(
-        experiment_key=req.experiment_key,
-        assignments=req.assignments,
-        outcomes=req.outcomes,
-        metric=req.metric,
     )
 
 

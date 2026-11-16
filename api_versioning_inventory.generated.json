@@ -3071,16 +3071,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 151,
-    "method": "POST",
-    "path": "/v1/phase10/learning/feature-schema",
-    "handler": "feature_schema",
-    "classification": "versioned"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 156,
+    "line": 140,
     "method": "POST",
     "path": "/v1/phase10/learning/dataset",
     "handler": "dataset",
@@ -3089,7 +3080,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 166,
+    "line": 150,
     "method": "POST",
     "path": "/v1/phase10/learning/models/promote",
     "handler": "model_promotion",
@@ -3098,25 +3089,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 176,
-    "method": "POST",
-    "path": "/v1/phase10/learning/online-update",
-    "handler": "online_update",
-    "classification": "versioned"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 186,
-    "method": "POST",
-    "path": "/v1/phase10/learning/experiments/evaluate",
-    "handler": "experiment_evaluation",
-    "classification": "versioned"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 196,
+    "line": 160,
     "method": "POST",
     "path": "/v1/phase10/learning/scenario",
     "handler": "scenario",
@@ -3125,7 +3098,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 201,
+    "line": 165,
     "method": "POST",
     "path": "/v1/phase10/learning/cycle",
     "handler": "learning_cycle",
@@ -3134,7 +3107,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 213,
+    "line": 177,
     "method": "POST",
     "path": "/v1/phase10/learning/drift",
     "handler": "drift",
@@ -3143,7 +3116,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 222,
+    "line": 186,
     "method": "POST",
     "path": "/v1/phase10/learning/retraining/plan",
     "handler": "retraining_plan",
@@ -3152,7 +3125,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 229,
+    "line": 193,
     "method": "POST",
     "path": "/v1/phase10/learning/champion-challenger",
     "handler": "champion_challenger",
@@ -3161,7 +3134,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 241,
+    "line": 205,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/register",
     "handler": "feature_store_register",
@@ -3170,7 +3143,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 248,
+    "line": 212,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/offline-dataset",
     "handler": "feature_store_offline_dataset",
@@ -3179,7 +3152,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 259,
+    "line": 223,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/online-materialization",
     "handler": "feature_store_online_materialization",
@@ -3188,7 +3161,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 267,
+    "line": 231,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/point-in-time",
     "handler": "feature_store_point_in_time",
@@ -3197,7 +3170,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 281,
+    "line": 245,
     "method": "POST",
     "path": "/v1/phase10/learning/models/register",
     "handler": "model_register",
@@ -3206,7 +3179,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 302,
+    "line": 266,
     "method": "POST",
     "path": "/v1/phase10/learning/models/serving/promote",
     "handler": "model_serving_promote",
@@ -3215,7 +3188,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 309,
+    "line": 273,
     "method": "POST",
     "path": "/v1/phase10/learning/models/serving/rollback",
     "handler": "model_serving_rollback",
@@ -3224,7 +3197,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 319,
+    "line": 283,
     "method": "GET",
     "path": "/v1/phase10/learning/models/serving/{alias:path}",
     "handler": "model_serving_resolve",
@@ -7652,16 +7625,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 32,
-    "method": "GET",
-    "path": "/api/v1/registry/report-fields",
-    "handler": "list_registry_report_fields",
-    "classification": "versioned"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 45,
+    "line": 37,
     "method": "GET",
     "path": "/api/v1/registry/workflows",
     "handler": "list_registry_workflows",
@@ -7670,7 +7634,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 58,
+    "line": 50,
     "method": "GET",
     "path": "/api/v1/registry/indices",
     "handler": "registry_indices",
@@ -7679,16 +7643,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 68,
-    "method": "GET",
-    "path": "/api/v1/registry/device-types",
-    "handler": "registry_device_types",
-    "classification": "versioned"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 78,
+    "line": 60,
     "method": "GET",
     "path": "/api/v1/registry/events",
     "handler": "registry_events",
@@ -7697,19 +7652,10 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 88,
+    "line": 70,
     "method": "GET",
     "path": "/api/v1/registry/cost-profiles",
     "handler": "registry_cost_profiles",
-    "classification": "versioned"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/routers/registry.py",
-    "line": 98,
-    "method": "GET",
-    "path": "/api/v1/registry/data-quality-rules",
-    "handler": "registry_data_quality_rules",
     "classification": "versioned"
   },
   {

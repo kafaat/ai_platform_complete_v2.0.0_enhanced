@@ -2231,6 +2231,7 @@
           "services/sahool-platform/tests/test_phase11_runtime_api.py",
           "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
           "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
+          "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
           "services/sahool-platform/tests/test_water_ledger_auto.py",
           "services/sahool-platform/workers/canonical_execution_learning_worker.py"
         ],
@@ -2464,7 +2465,8 @@
           "services/sahool-platform/tests/test_ui28_ui30_workspace_route_cleanup_guard.py",
           "services/sahool-platform/tests/test_ui31_ui35_workspace_completion_guard.py",
           "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
-          "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py"
+          "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py",
+          "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py"
         ],
         "tracing": []
       },
