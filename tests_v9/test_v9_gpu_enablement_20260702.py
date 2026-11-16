@@ -195,3 +195,48 @@ def test_sample_environment_preserves_sam2_build_and_predict_defaults():
     assert env(service)["SEGMENTATION_INFERENCE_URL"] == (
         "${SEGMENTATION_INFERENCE_URL:-" + sample["SEGMENTATION_INFERENCE_URL"] + "}"
     )
+
+
+def _nvidia_reserving_services() -> set[str]:
+    base = load("docker-compose.v9.yml")["services"]
+    overlay = load("docker-compose.v9.gpu.yml")["services"]
+    found = set()
+    for name in set(base) | set(overlay):
+        devices = None
+        for layer in (base.get(name) or {}, overlay.get(name) or {}):
+            layer_devices = (
+                layer.get("deploy", {}).get("resources", {}).get("reservations", {}).get("devices")
+            )
+            if layer_devices is not None:
+                devices = layer_devices
+        if any(d.get("driver") == "nvidia" for d in devices or []):
+            found.add(name)
+    return found
+
+
+def test_ci_gpu_reservation_step_matches_the_compose_files():
+    # The compose-validate job checks effective reservations with jq; when a reservation moves in
+    # the compose files that step must move with it (it was missed once for video-processor).
+    workflow = load(".github/workflows/ci.yml")
+    steps = workflow["jobs"]["compose-validate"]["steps"]
+    run = next(
+        (s["run"] for s in steps if s.get("name") == "Validate effective GPU reservations"), None
+    )
+    assert run, "compose-validate lost its 'Validate effective GPU reservations' step"
+    listed = re.search(r'\[\.\[((?:"[^"]+",?\s*)+)\]', run)
+    assert listed, f"could not find the jq service list in: {run}"
+    names = re.findall(r'"([^"]+)"', listed.group(1))
+    expected_counts = re.search(r"==\s*\[([\d,\s]+)\]", run)
+    assert expected_counts, f"could not find the expected counts in: {run}"
+    counts = [int(c) for c in expected_counts.group(1).split(",")]
+    assert counts == [1] * len(names), f"one reservation per listed service: {names} vs {counts}"
+    reserving = _nvidia_reserving_services()
+    assert set(names) <= reserving, (
+        f"CI jq list {sorted(names)} names services without an NVIDIA reservation "
+        f"(reserving: {sorted(reserving)})"
+    )
+    assert "sahool-video-processor" not in names, "video-processor reserves no GPU"
+    assert "sahool-video-processor" not in reserving, "video-processor must not reserve a GPU"
+    assert '.["sahool-video-processor"]' in run and "length == 0" in run, (
+        "CI must assert that video-processor carries no NVIDIA reservation"
+    )
