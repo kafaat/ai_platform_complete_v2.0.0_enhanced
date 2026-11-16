@@ -33,8 +33,8 @@
     },
     "test_dependency_files": 1965,
     "test_dependency_edges": 5192,
-    "test_dependency_bounded_files": 1149,
-    "test_dependency_unresolved_relations": 498
+    "test_dependency_bounded_files": 1144,
+    "test_dependency_unresolved_relations": 503
   },
   "capabilities": [
     {
@@ -80267,36 +80267,43 @@
     },
     {
       "test": "tests_v9/test_digital_twin_season_live_pg.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
       "edges": [
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 64
+          "line": 81
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 65
+          "line": 82
         },
         {
           "source": "services/sahool-platform/api/routers/field_twin.py",
           "kind": "import",
-          "line": 65
+          "line": 82
         },
         {
           "source": "services/sahool-platform/api/routers/water_twin.py",
           "kind": "import",
-          "line": 65
+          "line": 82
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 71
+          "line": 88
         }
       ],
-      "unresolved": []
+      "unresolved": [
+        {
+          "line": 42,
+          "call": "import_module"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_disease_field_state_feed.py",
@@ -80717,26 +80724,33 @@
     },
     {
       "test": "tests_v9/test_edge_sync_tenant_per_request_live_pg.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
       "edges": [
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "loader",
-          "line": 51
+          "line": 69
         },
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "source_read",
-          "line": 52
+          "line": 70
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 73
+          "line": 91
         }
       ],
-      "unresolved": []
+      "unresolved": [
+        {
+          "line": 39,
+          "call": "import_module"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_element84_legacy_inventory.py",
@@ -84797,21 +84811,28 @@
     },
     {
       "test": "tests_v9/test_internal_tenant_assertion_live_pg.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
       "edges": [
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 59
+          "line": 77
         },
         {
           "source": "shared/security/tenant_assertion_headers.py",
           "kind": "import",
-          "line": 29
+          "line": 42
         }
       ],
-      "unresolved": []
+      "unresolved": [
+        {
+          "line": 34,
+          "call": "import_module"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_internal_tenant_assertion_w0_05.py",
@@ -86043,53 +86064,54 @@
       "test": "tests_v9/test_ledger_season_currency_governance_live_pg.py",
       "bounded": false,
       "unbounded_reasons": [
+        "reads_repository_data_file",
         "unresolved_dynamic_relation"
       ],
       "edges": [
         {
           "source": "services/sahool-platform/api/api_models.py",
           "kind": "import",
-          "line": 787
+          "line": 788
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 96
+          "line": 97
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 97
+          "line": 98
         },
         {
           "source": "services/sahool-platform/api/routers/farm_operations_ledger.py",
           "kind": "import",
-          "line": 97
+          "line": 98
         },
         {
           "source": "services/sahool-platform/api/routers/pest_escalation.py",
           "kind": "import",
-          "line": 788
+          "line": 789
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 103
+          "line": 104
         },
         {
           "source": "services/sahool-platform/core/farm_operations_ledger.py",
           "kind": "import",
-          "line": 650
+          "line": 651
         },
         {
           "source": "services/sahool-platform/core/pest_escalation_flow.py",
           "kind": "import",
-          "line": 736
+          "line": 737
         }
       ],
       "unresolved": [
         {
-          "line": 41,
+          "line": 42,
           "call": "import_module"
         }
       ]
@@ -93679,51 +93701,58 @@
     },
     {
       "test": "tests_v9/test_season_state_sources_live_pg.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
       "edges": [
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 72
+          "line": 89
         },
         {
           "source": "services/sahool-platform/api/decision_service_client.py",
           "kind": "import",
-          "line": 72
+          "line": 89
         },
         {
           "source": "services/sahool-platform/api/decision_sor_mode.py",
           "kind": "import",
-          "line": 72
+          "line": 89
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 71
+          "line": 88
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 73
+          "line": 90
         },
         {
           "source": "services/sahool-platform/api/routers/seasons.py",
           "kind": "import",
-          "line": 73
+          "line": 90
         },
         {
           "source": "services/sahool-platform/api/weather_service_client.py",
           "kind": "import",
-          "line": 334
+          "line": 355
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 79
+          "line": 96
         }
       ],
-      "unresolved": []
+      "unresolved": [
+        {
+          "line": 46,
+          "call": "import_module"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_season_workspace.py",
@@ -98730,31 +98759,38 @@
     },
     {
       "test": "tests_v9/test_yield_estimate_tenant_live_pg.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
       "edges": [
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 63
+          "line": 80
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 64
+          "line": 81
         },
         {
           "source": "services/sahool-platform/api/routers/fields.py",
           "kind": "import",
-          "line": 64
+          "line": 81
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 71
+          "line": 88
         }
       ],
-      "unresolved": []
+      "unresolved": [
+        {
+          "line": 36,
+          "call": "import_module"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_yield_field_state_feed.py",
