@@ -23,6 +23,8 @@
 from __future__ import annotations
 
 import logging
+from statistics import mean
+from typing import Any
 from datetime import UTC, date, datetime
 
 from fastapi import HTTPException
@@ -500,3 +502,71 @@ async def harvest_lot_phi_check(conn, user, req, harvest_date):
     return await harvest_phi_check(
         conn, user, req.field_id, harvest_date, req.phi_override, req.phi_override_reason
     )
+
+
+def summarize_ai_weather_archive(records: list[Any]) -> tuple[dict[str, Any], list[dict[str, Any]], bool, bool]:
+    """Build read-only weather totals without converting missing observations to zero.
+
+    An incomplete metric is null, with covered-day counts retained for the user.
+    """
+    temp_vals = [
+        ((d.temp_max_c or 0) + (d.temp_min_c or 0)) / 2
+        for d in records
+        if d.temp_max_c is not None and d.temp_min_c is not None
+    ]
+    # Unobserved rain/ET0 must not be silently rewritten into measured zero.
+    precip_vals = [
+        float(d.precipitation_mm) for d in records if d.precipitation_mm is not None
+    ]
+    et0_vals = [float(d.et0_mm) for d in records if d.et0_mm is not None]
+    precip_complete = len(precip_vals) == len(records)
+    et0_complete = len(et0_vals) == len(records)
+    summary = {
+        "days": len(records),
+        "avg_temp_c": round(mean(temp_vals), 2) if temp_vals else None,
+        "precipitation_covered_days": len(precip_vals),
+        "et0_covered_days": len(et0_vals),
+        "total_precipitation_mm": round(sum(precip_vals), 2) if precip_complete else None,
+        "total_et0_mm": round(sum(et0_vals), 2) if et0_complete else None,
+        "first_date": records[0].date,
+        "last_date": records[-1].date,
+    }
+    # Keep context compact for the chat runtime: monthly buckets by YYYY-MM.
+    monthly: dict[str, dict[str, Any]] = {}
+    for d in records:
+        key = str(d.date)[:7]
+        b = monthly.setdefault(
+            key,
+            {
+                "days": 0,
+                "precipitation_mm": 0.0,
+                "et0_mm": 0.0,
+                "precipitation_covered_days": 0,
+                "et0_covered_days": 0,
+            },
+        )
+        b["days"] += 1
+        if d.precipitation_mm is not None:
+            b["precipitation_mm"] += float(d.precipitation_mm)
+            b["precipitation_covered_days"] += 1
+        if d.et0_mm is not None:
+            b["et0_mm"] += float(d.et0_mm)
+            b["et0_covered_days"] += 1
+    monthly_items = [
+        {
+            "month": k,
+            "days": v["days"],
+            "precipitation_covered_days": v["precipitation_covered_days"],
+            "et0_covered_days": v["et0_covered_days"],
+            "precipitation_mm": (
+                round(v["precipitation_mm"], 2)
+                if v["precipitation_covered_days"] == v["days"] else None
+            ),
+            "et0_mm": (
+                round(v["et0_mm"], 2)
+                if v["et0_covered_days"] == v["days"] else None
+            ),
+        }
+        for k, v in sorted(monthly.items())
+    ]
+    return summary, monthly_items, precip_complete, et0_complete
