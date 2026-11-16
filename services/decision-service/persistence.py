@@ -887,8 +887,10 @@ _LEARNING_IDENTITY_COLUMNS = (
     "decision_id",
     "evidence_snapshot_id",
 )
-# What may change on a resend, exactly the set the platform's local writer updates on
-# ON CONFLICT (tenant_id, update_id): the action and drift, the source, and the agronomic review.
+# What may change on a resend: the set the platform's local writer updates on
+# ON CONFLICT (tenant_id, update_id) (the action and drift, the source, and the agronomic review),
+# except traceability_status, which this service computes per request and returns in its reply
+# rather than storing.
 _LEARNING_MUTABLE_COLUMNS = ("action", "drift_score", "source_type", "source_id")
 _LEARNING_REVIEW_COLUMNS = ("review_status", "agronomically_approved", "agronomic_review")
 _JSONB_COLUMNS = frozenset({"label_summary", "agronomic_review"})
@@ -901,7 +903,10 @@ _learning_review_columns_present = False
 
 
 async def _learning_review_columns(conn: Any) -> bool:
-    """Whether 039 (or the shared v234) has run. Only presence is cached: a later 039 counts."""
+    """Whether 039 (or the shared v234) has run. Only presence is cached: a later 039 counts.
+
+    Migrations here are forward-only: 039 has no down script, so a column that was present is
+    never expected to disappear while the process runs, and caching ``True`` is safe."""
     global _learning_review_columns_present
     if not _learning_review_columns_present:
         _learning_review_columns_present = bool(await conn.fetchval(_REVIEW_COLUMNS_SQL))
@@ -966,7 +971,9 @@ async def persist_learning_update(
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             has_review = await _learning_review_columns(conn)
-            if not has_review and (review_status != "unreviewed" or approved or review_doc):
+            if not has_review and (
+                review_status != "unreviewed" or approved or review_doc is not None
+            ):
                 raise LearningUpdateReviewUnavailable(
                     "online_learning_updates has no review columns"
                 )

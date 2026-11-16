@@ -9,6 +9,9 @@ demands. Storage behaviour itself is proven on PostgreSQL in ``test_migration_03
 
 from __future__ import annotations
 
+import ast
+from pathlib import Path
+
 import main
 import pytest
 from fastapi.testclient import TestClient
@@ -92,3 +95,75 @@ def test_an_unreviewed_update_keeps_the_defaults(sor):
     assert payload.review_status == "unreviewed"
     assert payload.agronomically_approved is False
     assert payload.agronomic_review is None
+
+
+def test_a_review_storage_gap_answers_503_with_its_reason(monkeypatch, sor):
+    async def unavailable(**kwargs):
+        raise main.LearningUpdateReviewUnavailable("online_learning_updates has no review columns")
+
+    monkeypatch.setattr(main, "persist_learning_update", unavailable)
+    res = _send(review_status="approved", agronomically_approved=True, agronomic_review=REVIEW)
+    assert res.status_code == 503
+    assert res.json()["detail"] == "agronomic review storage waits for migration 039"
+
+
+def test_an_identity_conflict_answers_409(monkeypatch, sor):
+    async def conflict(**kwargs):
+        raise main.LearningUpdateConflict(kwargs["update_id"])
+
+    monkeypatch.setattr(main, "persist_learning_update", conflict)
+    res = _send()
+    assert res.status_code == 409
+    assert res.json()["detail"] == "learning_update_id_conflict"
+
+
+# ── The real reply through the platform's strict cutover check ────────────────────────────
+# Review of #1502: the link between the two services was a text scan. These run the actual
+# /v1/learning/updates reply through the platform's _unproven_learning_update_fields, loaded from
+# its source (the function is pure, so the platform's dependencies are not needed here).
+_PLATFORM_STORE = Path(__file__).resolve().parents[3] / (
+    "services/sahool-platform/api/phase_runtime_store.py"
+)
+
+
+def _platform_strict_check():
+    tree = ast.parse(_PLATFORM_STORE.read_text(encoding="utf-8"))
+    fn = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_unproven_learning_update_fields"
+    )
+    namespace: dict = {}
+    exec(compile(ast.Module(body=[fn], type_ignores=[]), str(_PLATFORM_STORE), "exec"), namespace)
+    return namespace["_unproven_learning_update_fields"]
+
+
+def _platform_sent(**review):
+    # The keys the platform puts in service_payload and later compares (phase_runtime_store.py).
+    return {"update_id": "lu_1", **review}
+
+
+def test_the_real_reply_passes_the_platform_strict_check(monkeypatch, sor):
+    sent = _platform_sent(review_status="approved", agronomically_approved=True)
+    reply = _send(**sent, agronomic_review=REVIEW).json()
+    assert _platform_strict_check()(reply, HEADERS["X-Tenant-Id"], sent) == []
+
+
+def test_a_stored_review_that_differs_is_refused_by_the_platform(monkeypatch, sor):
+    async def stored_unreviewed(**kwargs):
+        return {
+            "update_id": kwargs["update_id"],
+            "replayed": True,
+            "write": "unchanged",
+            "review_status": "unreviewed",
+            "agronomically_approved": False,
+        }
+
+    monkeypatch.setattr(main, "persist_learning_update", stored_unreviewed)
+    sent = _platform_sent(review_status="approved", agronomically_approved=True)
+    reply = _send(**sent, agronomic_review=REVIEW).json()
+    assert reply["write"] == "unchanged"
+    assert _platform_strict_check()(reply, HEADERS["X-Tenant-Id"], sent) == [
+        "review_status",
+        "agronomically_approved",
+    ]
