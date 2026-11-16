@@ -51,9 +51,23 @@ def test_invalid_humidity_is_absent(rh):
 
 
 def test_et0_reference_requires_penman_monteith():
-    assert wli.et0_is_reference({"method": "fao56_penman_monteith"})
-    assert not wli.et0_is_reference({"method": "hargreaves_fallback"})
-    assert not wli.et0_is_reference({})
+    assert wli.et0_is_reference({"method": "fao56_penman_monteith"}), "PM مرجعٌ في السلسلة"
+    assert not wli.et0_is_reference({"method": "hargreaves_fallback"}), "Hargreaves عُدَّ مرجعاً"
+    assert not wli.et0_is_reference({}), "منتجٌ لا يُعلِن طريقته عُدَّ مرجعاً"
+
+
+def test_a_single_et0_product_is_reference_only_when_validated():
+    """weather-7: PM بلا ارتفاعٍ أو بمدخلٍ مرفوض يصل ``degraded`` — ليس مرجعاً للدفتر."""
+    pm = {"method": "fao56_penman_monteith"}
+    assert wli.et0_product_is_reference({**pm, "quality_status": "validated"}), "PM validated"
+    assert not wli.et0_product_is_reference({**pm, "quality_status": "degraded"}), (
+        "PM degraded (ارتفاعٌ مفقود ⇒ مستوى البحر) عُدَّ مرجعاً"
+    )
+    assert not wli.et0_product_is_reference(pm), "PM بلا جودةٍ مُعلَنة عُدَّ مرجعاً"
+    assert not wli.et0_product_is_reference(
+        {"method": "hargreaves_fallback", "quality_status": "degraded"}
+    ), "Hargreaves عُدَّ مرجعاً"
+    assert not wli.et0_product_is_reference(None), "منتجٌ غائب عُدَّ مرجعاً"
 
 
 # ── Kc الطوريّ: لا منتصف موسمٍ كلَّ يوم ولا احتياطَ القمح ──
@@ -192,8 +206,229 @@ def test_the_frozen_worker_is_wired_to_the_measured_inputs():
         "daily_kc(",
         "**et0_weather_inputs(day0)",
         "ledger_root_zone(",
-        "et0_reference_unavailable=not et0_is_reference(et0)",
+        "et0_reference_unavailable=not et0_product_is_reference(et0)",
         "root_zone_texture_fallback=",
         "crop_kc.stage",
+    ):
+        assert wired in body, f"غير موصول في العامل: {wired}"
+
+
+# ── W0-10 / weather-7: الارتفاع · المرجع · مصدر المطر ──
+
+
+def _weather_et0(monkeypatch):
+    import importlib.util
+
+    owner = Path(__file__).resolve().parents[2] / "weather-service"
+    monkeypatch.syspath_prepend(str(owner))  # et0.py يستورد vapor_pressure من مجلّده
+    path = owner / "et0.py"
+    spec = importlib.util.spec_from_file_location("owner_et0_fixture", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _fao56_pm(*, t_max, t_min, rs, rh, u2, lat_deg, doy, z):
+    """FAO-56 Penman-Monteith (Eq. 6) مكتوباً هنا مستقلاً عن المحرّك — شاهدٌ لا نسخة."""
+    import math
+
+    p_kpa = 101.3 * ((293.0 - 0.0065 * z) / 293.0) ** 5.26  # Eq. 7
+    gamma = 0.665e-3 * p_kpa  # Eq. 8
+    t_mean = (t_max + t_min) / 2.0
+
+    def e0(t):
+        return 0.6108 * math.exp(17.27 * t / (t + 237.3))  # Eq. 11
+
+    es = (e0(t_max) + e0(t_min)) / 2.0
+    ea = rh / 100.0 * es  # Eq. 19 (RH mean)
+    delta = 4098.0 * e0(t_mean) / (t_mean + 237.3) ** 2  # Eq. 13
+    phi = math.radians(lat_deg)
+    dr = 1 + 0.033 * math.cos(2 * math.pi * doy / 365)
+    dec = 0.409 * math.sin(2 * math.pi * doy / 365 - 1.39)
+    ws = math.acos(-math.tan(phi) * math.tan(dec))
+    ra = (
+        24
+        * 60
+        / math.pi
+        * 0.0820
+        * dr
+        * (ws * math.sin(phi) * math.sin(dec) + math.cos(phi) * math.cos(dec) * math.sin(ws))
+    )  # Eq. 21
+    rso = (0.75 + 2e-5 * z) * ra  # Eq. 37
+    rnl = (
+        4.903e-9
+        * ((t_max + 273.16) ** 4 + (t_min + 273.16) ** 4)
+        / 2
+        * (0.34 - 0.14 * math.sqrt(ea))
+        * (1.35 * min(1.0, rs / rso) - 0.35)
+    )  # Eq. 39
+    rn = 0.77 * rs - rnl
+    num = 0.408 * delta * rn + gamma * 900 / (t_mean + 273) * u2 * (es - ea)
+    return num / (delta + gamma * (1 + 0.34 * u2))
+
+
+_HIGHLAND_DAY = {
+    "t_max_c": 27.0,
+    "t_min_c": 11.0,
+    "solar_rad_mj_m2": 24.0,
+    "rh_mean_pct": 20.0,
+    "wind_2m_ms": 4.0,
+    "lat_deg": 15.35,
+    "day_of_year": 150,
+}
+
+
+def test_a_2300m_field_gets_the_fao56_elevation_effect_not_sea_level(monkeypatch):
+    """حقلٌ عند 2300م: ضغطٌ ~76.9 كيلوباسكال (Eq. 7) لا 101.3، وET0 يفرق بالمقدار المتوقّع."""
+    et0 = _weather_et0(monkeypatch)
+    high = et0.compute_et0(**_HIGHLAND_DAY, elevation_m=2300.0)
+    sea = et0.compute_et0(**_HIGHLAND_DAY, elevation_m=0.0)
+    unpassed = et0.compute_et0(**_HIGHLAND_DAY)  # ما كان العامل يرسله: بلا ارتفاع
+    kw = {
+        "t_max": 27.0,
+        "t_min": 11.0,
+        "rs": 24.0,
+        "rh": 20.0,
+        "u2": 4.0,
+        "lat_deg": 15.35,
+        "doy": 150,
+    }
+    expected_high = _fao56_pm(**kw, z=2300.0)
+    expected_sea = _fao56_pm(**kw, z=0.0)
+    assert high["et0_mm"] == pytest.approx(expected_high, abs=2e-3), "PM عند 2300م ≠ FAO-56"
+    assert high["et0_mm"] - sea["et0_mm"] == pytest.approx(
+        expected_high - expected_sea, abs=3e-3
+    ), "فرق الارتفاع لا يطابق FAO-56 Eq. 7"
+    # يومٌ جافّ عاصف في المرتفعات: ~0.25 مم/يوم (~3%) — يتراكم في الدفتر يوماً بعد يوم.
+    assert abs(expected_high - expected_sea) > 0.2, "المثال لا يُميّز الارتفاع (شاهدٌ ضعيف)"
+    assert high["quality_status"] == "validated", "PM بارتفاعٍ معلوم يجب أن يكون validated"
+    # ارتفاعٌ لا يُمرَّر = مستوى البحر بجودةٍ متدهورة — وهذا ليس مرجعاً للدفتر.
+    assert unpassed["et0_mm"] == sea["et0_mm"], "بلا ارتفاع يحسب المحرّك عند مستوى البحر"
+    assert unpassed["quality_status"] == "degraded", "بلا ارتفاع يجب أن يُعلَن degraded"
+    assert wli.et0_product_is_reference(high), "PM validated عند 2300م مرجع"
+    assert not wli.et0_product_is_reference(unpassed), "PM عند مستوى البحر بلا ارتفاع عُدَّ مرجعاً"
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [(None, None), (float("nan"), None), ("2300", None), (True, None), (2300, 2300.0)],
+)
+def test_field_elevation_is_taken_as_recorded_or_absent(raw, expected):
+    assert wli.field_elevation_m(raw) == expected, f"ارتفاع {raw!r}"
+
+
+def test_field_elevation_reads_postgres_numeric():
+    from decimal import Decimal
+
+    assert wli.field_elevation_m(Decimal("2300.0")) == 2300.0, "NUMERIC(7,1) يصل Decimal"
+
+
+def test_observed_rain_is_matched_by_date_and_absence_stays_absent():
+    archive = {
+        "days": [
+            {"date": "2026-05-30", "precipitation_mm": 9.0},
+            {"date": "2026-05-31", "precipitation_mm": 0.0},
+        ]
+    }
+    yesterday = TODAY - timedelta(days=1)
+    assert wli.observed_rain_for_date(archive, yesterday) == 0.0, "يومٌ جافّ مرصود = 0"
+    assert wli.observed_rain_for_date(archive, TODAY) is None, "يومٌ غائب ليس صفراً"
+    missing = {"days": [{"date": "2026-05-31", "precipitation_mm": None}]}
+    assert wli.observed_rain_for_date(missing, yesterday) is None, "هطولٌ مفقود ليس صفراً"
+    broken = {"days": [{"date": "2026-05-31", "precipitation_mm": -1.0}]}
+    assert wli.observed_rain_for_date(broken, yesterday) is None, "هطولٌ سالب قُبِل"
+    assert wli.observed_rain_for_date(None, yesterday) is None, "أرشيفٌ غائب قُرِئ"
+
+
+def _prev(**over):
+    row = {
+        "ledger_date": TODAY - timedelta(days=1),
+        "created_by": "water-balance-auto",
+        "rain_source": "forecast",
+        "decision": "auto:irrigation_unobserved",
+        "depletion_mm": 18.0,
+        "etc_mm": 6.0,
+        "irrigation_mm": 0.0,
+        "rain_mm": 10.0,
+    }
+    row.update(over)
+    return row
+
+
+def test_only_yesterdays_own_forecast_row_with_a_known_start_is_reconcilable():
+    auto = "water-balance-auto"
+    assert wli.prior_rain_reconcilable(_prev(), TODAY, auto), "قيد الأمس المتوقَّع مؤهَّل"
+    for over, why in (
+        ({"rain_source": "observed"}, "مرصودٌ سلفاً"),
+        ({"rain_source": None}, "قيدٌ بلا نَسَب (قديم أو يدويّ)"),
+        ({"created_by": "farmer-1"}, "قيدٌ يدويّ"),
+        ({"ledger_date": TODAY - timedelta(days=2)}, "ليس الأمس"),
+        ({"decision": "auto:missing_days_consumption_estimated"}, "بدايةٌ مقدَّرة"),
+        ({"decision": "measured_as_applied"}, "ليس قيد العامل"),
+        ({"etc_mm": None}, "ETc مفقود"),
+    ):
+        assert not wli.prior_rain_reconcilable(_prev(**over), TODAY, auto), why
+    assert not wli.prior_rain_reconcilable(None, TODAY, auto), "لا قيد"
+
+
+def test_forecast_rain_is_replaced_by_the_observed_and_depletion_rebuilt():
+    from api.water_balance import _effective_rain
+
+    fixed = wli.reconcile_forecast_rain(
+        _prev(), start_depletion_mm=20.0, observed_rain_mm=2.0, taw_mm=120.0, raw_mm=60.0
+    )
+    assert fixed["rain_source"] == "observed", "المصدر لم يصِر مرصوداً"
+    assert fixed["rain_mm"] == 2.0, "المطر المرصود لم يحلّ محلّ المتوقَّع"
+    expected = round(20.0 + 6.0 - _effective_rain(2.0) - 0.0, 2)
+    assert fixed["depletion_mm"] == expected, "الاستنزاف لم يُبنَ من بداية اليوم بالمطر المرصود"
+    # المتوقَّع (10م) كان يُنقِص الاستنزافَ بماءٍ لم يهطل.
+    assert fixed["depletion_mm"] > round(20.0 + 6.0 - _effective_rain(10.0), 2), (
+        "مطرٌ متوقَّع أكبر من المرصود يجب أن يُخفي استنزافاً"
+    )
+    assert fixed["decision"] == "auto:irrigation_unobserved", "أعلام الريّ يجب أن تبقى"
+
+
+def test_reconciliation_drops_the_assumed_zero_flag_and_recaps():
+    prev = _prev(decision="auto:precipitation_assumed_zero", rain_mm=0.0)
+    fixed = wli.reconcile_forecast_rain(
+        prev, start_depletion_mm=115.0, observed_rain_mm=0.0, taw_mm=120.0, raw_mm=60.0
+    )
+    assert "precipitation_assumed_zero" not in fixed["decision"], "علَمُ مطرٍ مفترَض بقي"
+    assert fixed["depletion_mm"] == 120.0 and "depletion_capped_at_taw" in fixed["decision"], (
+        "استنزافٌ فوق TAW يُقَصّ ويُعلَن"
+    )
+    assert fixed["confidence"] == CONFIDENCE_AUTO, "الثقة لم تُشتقَّ من الأعلام الباقية"
+
+
+def test_a_bootstrap_day_restarts_at_field_capacity_and_a_lost_start_is_not_invented():
+    boot = _prev(decision="auto:bootstrap_assumed_field_capacity")
+    fixed = wli.reconcile_forecast_rain(
+        boot, start_depletion_mm=None, observed_rain_mm=0.0, taw_mm=120.0, raw_mm=60.0
+    )
+    assert fixed["depletion_mm"] == 6.0, "التهيئة المعلنة تبدأ من Dr=0"
+    assert fixed["confidence"] == CONFIDENCE_BOOTSTRAP, "يوم التهيئة يبقى بثقة التهيئة"
+    lost = wli.reconcile_forecast_rain(
+        _prev(), start_depletion_mm=None, observed_rain_mm=0.0, taw_mm=120.0, raw_mm=60.0
+    )
+    assert lost is None, "بدايةٌ مفقودة في غير التهيئة قُرِئت صفراً"
+
+
+def test_the_frozen_worker_passes_elevation_and_records_provenance():
+    src = (Path(__file__).parents[1] / "api" / "phase_runtime_workers.py").read_text(
+        encoding="utf-8"
+    )
+    body = src[src.index("async def run_water_ledger_once") : src.index("async def loop_worker")]
+    for wired in (
+        "f.elevation_m",
+        'field_elevation_m(row["elevation_m"])',
+        '"skipped": "field_elevation_missing"',
+        "elevation_m=elevation_m,",
+        "et0_method, et0_quality,",
+        "weather_snapshot_id, rain_source,",
+        'et0.get("quality_status")',
+        "RAIN_SOURCE_FORECAST,",
+        "prior_rain_reconcilable(prev, today, AUTO_CREATED_BY)",
+        "reconcile_forecast_rain(",
+        "prev_depletion_mm=prev_depletion,",
     ):
         assert wired in body, f"غير موصول في العامل: {wired}"

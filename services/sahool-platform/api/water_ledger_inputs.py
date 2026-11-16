@@ -23,7 +23,8 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
+from decimal import Decimal
 
 from core.engines.fao56 import kc_for_age
 from core.season_phenology import crop_kc_profile, resolve_crop_id
@@ -67,8 +68,139 @@ def et0_weather_inputs(day: dict | None) -> dict:
 
 
 def et0_is_reference(product: dict | None) -> bool:
-    """ET0 مرجعيّ (FAO-56 PM) أم احتياطٌ متدهور؟ ما لا يُعلِن طريقته يُعدّ متدهوراً."""
+    """ET0 مرجعيّ (FAO-56 PM) أم احتياطٌ متدهور؟ ما لا يُعلِن طريقته يُعدّ متدهوراً.
+
+    للطريقة وحدها: سلسلةُ ET0 (``/agro/et0/series``) تُعلِن ``methods`` لكلّ يوم ولا تُعلِن
+    جودته، ومستهلكُها (``canonical_water_state``) يحجب قبلها إن غاب الارتفاع. لمنتجٍ واحدٍ
+    يُعلِن جودته استعمل ``et0_product_is_reference``.
+    """
     return (product or {}).get("method") == "fao56_penman_monteith"
+
+
+def et0_product_is_reference(product: dict | None) -> bool:
+    """منتجُ ET0 الواحد (``/agro/et0``) مرجعيّ؟ PM **و** ``quality_status='validated'``.
+
+    weather-7: الطريقةُ وحدها لا تكفي. المحرّك يحسب PM بارتفاعٍ مفقود عند مستوى البحر، أو
+    بمدخلٍ مرفوض، ويُعلِن ذلك ``degraded`` — وكان العامل يعدّه مرجعاً لأنّه يقرأ ``method``
+    وحده. ما لا يُعلِن جودته يُعدّ متدهوراً.
+    """
+    return et0_is_reference(product) and (product or {}).get("quality_status") == "validated"
+
+
+def field_elevation_m(value) -> float | None:
+    """ارتفاع الحقل من ``fields.elevation_m`` (NUMERIC ⇒ ``Decimal``) أو ``None``.
+
+    weather-7: كان العامل لا يمرّر الارتفاع فيحسب المحرّك PM عند مستوى البحر (ضغطٌ 101.3
+    كيلوباسكال بدل ~77 عند 2300م). غائبٌ أو غيرُ منتهٍ ⇒ ``None`` ويتخطّى العامل اليوم
+    بسببٍ معلن؛ لا يُفترَض ارتفاعٌ (لا 0 ولا 2000).
+    """
+    if isinstance(value, Decimal):
+        value = float(value)
+    return _finite(value)
+
+
+#: مصدر ``water_ledger.rain_mm`` (v278): توقّعُ اليوم حين يُكتب القيد، والأرشيفُ المرصود
+#: حين يُعاد تسجيله في اليوم التالي.
+RAIN_SOURCE_FORECAST = "forecast"
+RAIN_SOURCE_OBSERVED = "observed"
+
+
+def observed_rain_for_date(historical: dict | None, day: date) -> float | None:
+    """هطولُ ``day`` من عرض الأرشيف (``/v1/weather/historical``) أو ``None``.
+
+    يُطابَق اليومُ بتاريخه لا بموضعه، ولا يُقرأ الغيابُ صفراً: يومٌ بلا ``precipitation_mm``
+    منتهٍ غير سالب ⇒ ``None``، فيبقى القيدُ على التوقّع ``rain_source='forecast'`` معلَناً.
+    """
+    wanted = day.isoformat()
+    for entry in (historical or {}).get("days") or []:
+        if isinstance(entry, dict) and str(entry.get("date") or "")[:10] == wanted:
+            rain = _finite(entry.get("precipitation_mm"))
+            return rain if rain is not None and rain >= 0 else None
+    return None
+
+
+def prior_rain_reconcilable(prev, today: date, auto_created_by: str) -> bool:
+    """قيدُ الأمس مؤهَّلٌ لإعادة تسجيل مطره من الأرشيف؟
+
+    الشروط كلّها: قيدُ **الأمس** بالضبط (قبل أن يُبنى عليه قيدُ اليوم)، كتبه العامل نفسه
+    (القيدُ اليدويّ وقيدُ الريّ المطبَّق لا يُلمَسان)، مطرُه توقّعٌ، وبدايةُ يومه معلومة: لا
+    أيّامَ متخطّاةً قبله، لأنّ استنزافَ بدايته عندئذٍ تقديرٌ لا يُعاد بناؤه.
+    """
+    from api.water_ledger_auto import ledger_notes_from_decision
+
+    if not prev or prev["ledger_date"] is None:
+        return False
+    if prev["ledger_date"] != today - timedelta(days=1):
+        return False
+    if prev["created_by"] != auto_created_by or prev["rain_source"] != RAIN_SOURCE_FORECAST:
+        return False
+    notes = ledger_notes_from_decision(prev["decision"])
+    if notes is None or "missing_days_consumption_estimated" in notes:
+        return False
+    return all(_finite(prev[k]) is not None for k in ("etc_mm", "irrigation_mm", "rain_mm"))
+
+
+def reconcile_forecast_rain(
+    prev,
+    *,
+    start_depletion_mm: float | None,
+    observed_rain_mm: float,
+    taw_mm: float,
+    raw_mm: float,
+) -> dict | None:
+    """قيدُ الأمس مُعاداً حسابُه بالمطر المرصود بدل المتوقَّع — نقيّ.
+
+    ``Dr = clamp(Dr_start + ETc − P_eff(observed) − I, 0, TAW)`` بالمعادلة نفسها في
+    ``compute_daily_ledger_entry``، و``Dr_start`` استنزافُ قيد ما قبل الأمس، أو التهيئة
+    المعلنة Dr=0 إن حمل قيدُ الأمس ``bootstrap_assumed_field_capacity``. بدايةٌ مفقودة في
+    غير التهيئة ⇒ ``None`` (لا إعادة حساب). يُسقَط علَمُ
+    ``precipitation_assumed_zero`` (المطرُ صار مرصوداً) ويُعاد اشتقاقُ الثقة من الأعلام كما
+    يشتقّها المُنتِج، فلا تبقى ثقةٌ أو قرارٌ يصفان مطراً لم يعد في القيد.
+    """
+    from api.water_balance import _effective_rain
+    from api.water_ledger_auto import (
+        _BIASING_ASSUMPTIONS,
+        _BOOTSTRAP_NOTE,
+        CONFIDENCE_AUTO,
+        CONFIDENCE_BOOTSTRAP,
+        applied_water_status,
+        ledger_notes_from_decision,
+    )
+
+    rain = _finite(observed_rain_mm)
+    if rain is None or rain < 0:
+        raise ValueError(f"observed_rain_mm يجب أن يكون عدداً منتهياً ≥ 0 — وصل {observed_rain_mm!r}")
+    if not (_finite(taw_mm) and taw_mm > 0) or _finite(raw_mm) is None or raw_mm > taw_mm:
+        raise ValueError("TAW/RAW غير صالحين لإعادة حساب القيد")
+    notes = [
+        n
+        for n in (ledger_notes_from_decision(prev["decision"]) or [])
+        if n not in ("precipitation_assumed_zero", "depletion_capped_at_taw")
+    ]
+    if _BOOTSTRAP_NOTE in notes:
+        start = 0.0
+    elif _finite(start_depletion_mm) is None:
+        # قيدٌ غير تهيئةٍ وبدايتُه مفقودة (صفُّ ما قبله حُذف) ⇒ لا يُعاد بناؤه ولا يُختلَق صفر.
+        return None
+    else:
+        start = min(max(float(start_depletion_mm), 0.0), taw_mm)
+    raw = start + float(prev["etc_mm"]) - _effective_rain(rain) - float(prev["irrigation_mm"])
+    depletion = round(min(max(raw, 0.0), taw_mm), 2)
+    if raw > taw_mm:
+        notes.append("depletion_capped_at_taw")
+    return {
+        "rain_mm": rain,
+        "rain_source": RAIN_SOURCE_OBSERVED,
+        "depletion_mm": depletion,
+        "deficit_mm": round(max(depletion - raw_mm, 0.0), 2),
+        "confidence": (
+            CONFIDENCE_BOOTSTRAP
+            if (_BOOTSTRAP_NOTE in notes or _BIASING_ASSUMPTIONS.intersection(notes))
+            else CONFIDENCE_AUTO
+        ),
+        "decision": "auto:" + (";".join(notes) if notes else "daily_balance"),
+        "applied_water_status": applied_water_status(notes),
+    }
 
 
 @dataclass(frozen=True)

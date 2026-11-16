@@ -739,7 +739,12 @@ def test_water_ledger_network_calls_run_outside_any_transaction():
         for n in ast.walk(ast.parse(src))
         if isinstance(n, ast.AsyncFunctionDef) and n.name == "run_water_ledger_once"
     )
-    network = {"get_weather_forecast", "get_et0_product", "process_water_deficit"}
+    network = {
+        "get_weather_forecast",
+        "get_weather_historical",
+        "get_et0_product",
+        "process_water_deficit",
+    }
     inside: list[str] = []
     transactions = 0
     for node in ast.walk(fn):

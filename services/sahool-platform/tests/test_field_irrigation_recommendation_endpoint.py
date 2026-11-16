@@ -1217,3 +1217,39 @@ async def test_rejects_authentic_receipt_for_another_candidate_or_tenant(monkeyp
     )
     assert out["approval_state"] == "submit_unproven"
     assert out["decision_id"] is None
+
+
+def _capture_engine(monkeypatch, elevation):
+    seen = {}
+
+    async def _engine(**kw):
+        seen.update(kw)
+        return _pm_et0_product()
+
+    async def _elev(_conn, _field_id):
+        return elevation
+
+    monkeypatch.setattr(mod, "_engine_et0", _engine)
+    monkeypatch.setattr(mod, "_field_elevation_m", _elev)
+    return seen
+
+
+@pytest.mark.asyncio
+async def test_et0_uses_the_fields_recorded_elevation_not_a_fixed_2000m(monkeypatch):
+    """fields-16: كان كلُّ حقلٍ يُحسَب عند 2000م — تهامة كالمرتفعات."""
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    seen = _capture_engine(monkeypatch, 2300.0)
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert seen["elevation_m"] == 2300.0, f"ET0 لم يُحسَب بارتفاع الحقل: {seen.get('elevation_m')}"
+    assert not any("elevation unknown" in x for x in out["limitations"]), "ارتفاعٌ معلوم أُعلِن مجهولاً"
+
+
+@pytest.mark.asyncio
+async def test_unknown_elevation_is_passed_absent_and_declared(monkeypatch):
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    seen = _capture_engine(monkeypatch, None)
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert seen["elevation_m"] is None, "ارتفاعٌ مجهول استُبدِل برقمٍ مفترَض"
+    assert any("field elevation unknown" in x for x in out["limitations"]), (
+        "غيابُ الارتفاع لم يُعلَن في التوصية"
+    )
