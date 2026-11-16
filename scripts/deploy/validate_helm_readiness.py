@@ -31,6 +31,7 @@ REQUIRED_TEMPLATES = [
     "templates/ingress.yaml",
     "templates/networkpolicy.yaml",
     "templates/migration-job.yaml",
+    "templates/gateway.yaml",
 ]
 
 FORBIDDEN_IMAGE_TAGS = {"latest", "dev", "main", "master"}
@@ -42,6 +43,86 @@ FORBIDDEN_SECRET_LITERALS = [
     "sslmode=disable",
     "BYPASSRLS",
 ]
+
+
+# Environment variables each workload refuses to boot (or to serve) without when
+# SAHOOL_ENV=production, with the code that enforces it. W0-04 / deploy-1: the chart
+# rendered no REDIS_URL for the platform and no JWT_PUBLIC_KEY for guardrails and raster,
+# so a production install could not start. Every name must be rendered by the chart, as a
+# plain value or (for secrets) a secretKeyRef to a declared global.secretRefs entry.
+PRODUCTION_REQUIRED_ENV: dict[str, dict[str, str]] = {
+    "sahool-platform": {
+        "DATABASE_URL": "services/sahool-platform/api/main.py (runtime DB, RLS role)",
+        "JWT_PUBLIC_KEY": "services/sahool-platform/api/main.py:134 _refuse_hs256_in_production",
+        "REDIS_URL": "services/sahool-platform/api/main.py:1096 _build_denylist (fail-closed)",
+    },
+    "sahool-raster-service": {
+        "DATABASE_URL": "services/raster-service/raster_security_context.py:156 ownership",
+        "JWT_PUBLIC_KEY": "shared/security/access_tokens.py:89 access_token_verification_key",
+    },
+    "sahool-guardrails-engine": {
+        "JWT_PUBLIC_KEY": "services/guardrails-engine/main.py:421 RS256 required in production",
+    },
+    "sahool-ai-agronomist": {
+        "SAHOOL_AGENT_REDIS_URL": "services/ai_agronomist/agent_stores.py:296 (fail-closed)",
+    },
+}
+
+# Workloads that derive the tenant from X-Tenant-Id: NetworkPolicy admits only the gateway
+# (which injects the verified tenant) and the in-namespace callers they list.
+GATEWAY_ONLY_WORKLOADS = ("sahool-raster-service", "sahool-ai-agronomist")
+
+
+def production_env_errors(values: dict) -> list[str]:
+    """Every production-mandatory variable must be rendered for its enabled workload."""
+    errors = []
+    secret_refs = values.get("global", {}).get("secretRefs", {}) or {}
+    workloads = values.get("workloads", {}) or {}
+    for name, required in PRODUCTION_REQUIRED_ENV.items():
+        spec = workloads.get(name)
+        if not spec or not spec.get("enabled"):
+            continue
+        env = spec.get("env", {}) or {}
+        secret_env = spec.get("secretEnv", {}) or {}
+        for var, source in required.items():
+            if var in secret_env:
+                ref = secret_env[var]
+                if not secret_refs.get(ref):
+                    errors.append(
+                        f"{name}: secretEnv {var} -> {ref!r} has no global.secretRefs entry"
+                    )
+            elif not str(env.get(var, "")).strip():
+                errors.append(f"{name}: {var} is required in production ({source})")
+    for name, spec in workloads.items():
+        for var, ref in (spec.get("secretEnv", {}) or {}).items():
+            if not secret_refs.get(ref):
+                errors.append(f"{name}: secretEnv {var} -> {ref!r} is not in global.secretRefs")
+    return errors
+
+
+def gateway_errors(values: dict, chart: Path = CHART) -> list[str]:
+    """W0-06: the Ingress reaches only the gateway; raster/ai-agronomist only from it."""
+    errors = []
+    gateway = values.get("gateway", {}) or {}
+    if values.get("ingress", {}).get("enabled") and not gateway.get("enabled"):
+        errors.append("gateway.enabled must be true while ingress.enabled is true")
+    if gateway.get("enabled"):
+        if image_tag(str(gateway.get("image", ""))) in FORBIDDEN_IMAGE_TAGS:
+            errors.append(f"gateway uses unsafe image tag: {gateway.get('image')}")
+        if not (gateway.get("auth", {}) or {}).get("serviceName"):
+            errors.append("gateway.auth.serviceName is required (auth_request verifier)")
+        for rel in ("nginx.conf", "routes.conf", "proxy_params.conf"):
+            if not (chart / "files" / "gateway" / rel).is_file():
+                errors.append(f"gateway: missing files/gateway/{rel}")
+    workloads = values.get("workloads", {}) or {}
+    for name in GATEWAY_ONLY_WORKLOADS:
+        spec = workloads.get(name) or {}
+        if spec.get("enabled") and spec.get("gatewayOnly") is not True:
+            errors.append(f"{name} must set gatewayOnly: true (it trusts X-Tenant-Id)")
+    ingress_text = (chart / "templates" / "ingress.yaml").read_text(encoding="utf-8")
+    if ".Values.workloads" in ingress_text:
+        errors.append("templates/ingress.yaml must not route to workloads directly")
+    return errors
 
 
 def source_contract_errors(values: dict, root: Path = ROOT) -> list[str]:
@@ -155,6 +236,11 @@ def main() -> int:
     merged = deep_merge(values, overlay)
     failures.extend(source_contract_errors(merged))
     failures.extend(migration_job_errors(merged))
+    failures.extend(gateway_errors(merged))
+    if args.env == "production":
+        failures.extend(production_env_errors(merged))
+        if int((merged.get("gateway", {}) or {}).get("replicas", 0)) < 2:
+            failures.append("gateway production replicas must be >=2")
 
     if args.env == "production" and merged.get("global", {}).get("environment") != "production":
         failures.append("production overlay must set global.environment=production")

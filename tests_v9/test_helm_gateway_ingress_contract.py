@@ -1,0 +1,527 @@
+"""Helm production boot env and gateway-only Ingress (W0-04, W0-06; deploy-1/2/12).
+
+W0-04 / deploy-1: the chart rendered no ``REDIS_URL`` for sahool-platform (its JWT
+denylist refuses to boot without Redis in production) and no ``JWT_PUBLIC_KEY`` for
+guardrails and raster (RS256 is mandatory in production), so a production install could
+not start. ``PRODUCTION_REQUIRED_ENV`` in scripts/deploy/validate_helm_readiness.py names
+each mandatory variable with the code that enforces it; the chart must render every one.
+
+W0-06 / deploy-2 / deploy-12: the Ingress routed each workload's prefix straight to its
+Service: no rewrite to the ``/v1/*`` paths the services serve, no JWT verification, and a
+client-sent ``X-Tenant-Id`` reached raster and ai-agronomist, which derive the tenant from
+it. The Ingress now has one backend, the SAHOOL gateway (nginx ``auth_request`` ->
+auth ``/v1/auth/verify`` -> verified tenant injection, client identity headers cleared),
+and NetworkPolicy admits raster and ai-agronomist only from the gateway and sahool-platform.
+
+Three layers, so the contract is enforced in every environment:
+  1. structural checks on values, templates and files/gateway (no helm, no nginx);
+  2. the gateway's own nginx files run in a real nginx against stub auth and services
+     (skipped only when the nginx binary is absent);
+  3. ``helm template`` with values-production.yaml (skipped only when helm is absent).
+"""
+
+from __future__ import annotations
+
+import copy
+import importlib.util
+import re
+import shutil
+import socket
+import subprocess
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+import pytest
+import yaml
+
+pytestmark = pytest.mark.unit
+
+ROOT = Path(__file__).resolve().parents[1]
+CHART = ROOT / "helm" / "sahool"
+GATEWAY_FILES = CHART / "files" / "gateway"
+
+
+def _validator():
+    spec = importlib.util.spec_from_file_location(
+        "validate_helm_readiness", ROOT / "scripts" / "deploy" / "validate_helm_readiness.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+VALIDATOR = _validator()
+
+
+def _production_values() -> dict:
+    base = VALIDATOR.load_yaml(CHART / "values.yaml")
+    overlay = VALIDATOR.load_yaml(CHART / "values-production.yaml")
+    return VALIDATOR.deep_merge(base, overlay)
+
+
+def _upstream_name(workload: str) -> str:
+    return workload.replace("-", "_")
+
+
+# ── 1. structural: production env (W0-04) ───────────────────────────────────────
+
+
+def test_production_values_render_every_mandatory_env_var() -> None:
+    errors = VALIDATOR.production_env_errors(_production_values())
+    assert errors == [], f"production values miss mandatory env vars: {errors}"
+
+
+@pytest.mark.parametrize(
+    ("workload", "var"),
+    [
+        ("sahool-platform", "REDIS_URL"),
+        ("sahool-guardrails-engine", "JWT_PUBLIC_KEY"),
+        ("sahool-raster-service", "JWT_PUBLIC_KEY"),
+    ],
+)
+def test_removing_a_mandatory_var_fails_the_contract(workload: str, var: str) -> None:
+    values = copy.deepcopy(_production_values())
+    values["workloads"][workload]["secretEnv"].pop(var)
+    values["workloads"][workload].get("env", {}).pop(var, None)
+    errors = VALIDATOR.production_env_errors(values)
+    assert any(workload in e and var in e for e in errors), (
+        f"dropping {var} from {workload} must fail the production env contract, got {errors}"
+    )
+
+
+def test_a_secret_env_pointing_at_an_undeclared_secret_ref_fails() -> None:
+    values = copy.deepcopy(_production_values())
+    del values["global"]["secretRefs"]["redisUrl"]
+    errors = VALIDATOR.production_env_errors(values)
+    assert any("REDIS_URL" in e and "redisUrl" in e for e in errors), (
+        f"a secretKeyRef with no global.secretRefs entry renders an empty name: {errors}"
+    )
+
+
+def test_the_contract_names_variables_the_cited_code_actually_reads() -> None:
+    for workload, required in VALIDATOR.PRODUCTION_REQUIRED_ENV.items():
+        for var, source in required.items():
+            path = ROOT / re.split(r"[: ]", source, maxsplit=1)[0]
+            assert path.is_file(), f"{workload}/{var}: cited source {path} does not exist"
+            assert var in path.read_text(encoding="utf-8") or (
+                var == "REDIS_URL" and "denylist_redis_url" in path.read_text(encoding="utf-8")
+            ), f"{workload}/{var}: {path} never reads {var}; the contract has drifted"
+
+
+def test_the_production_readiness_validator_passes() -> None:
+    result = subprocess.run(
+        ["python", "scripts/deploy/validate_helm_readiness.py", "--env", "production"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+    assert result.returncode == 0, f"validator failed:\n{result.stdout}{result.stderr}"
+
+
+# ── 1. structural: gateway-only Ingress (W0-06) ─────────────────────────────────
+
+
+def test_the_ingress_has_one_backend_the_gateway() -> None:
+    text = (CHART / "templates" / "ingress.yaml").read_text(encoding="utf-8")
+    assert ".Values.workloads" not in text, "the Ingress must not loop over workloads"
+    backends = re.findall(r"service:\s*\n\s+name:\s*(\S+)", text)
+    assert backends == ["sahool-gateway"], f"Ingress backends must be only the gateway: {backends}"
+    assert "gateway.enabled" in text and "fail" in text, (
+        "the Ingress must refuse to render without the gateway rather than fall back"
+    )
+
+
+def test_gateway_errors_are_empty_and_catch_a_direct_route() -> None:
+    values = _production_values()
+    assert VALIDATOR.gateway_errors(values) == [], VALIDATOR.gateway_errors(values)
+    broken = copy.deepcopy(values)
+    broken["workloads"]["sahool-raster-service"]["gatewayOnly"] = False
+    assert any("sahool-raster-service" in e for e in VALIDATOR.gateway_errors(broken)), (
+        "raster without gatewayOnly must fail the gateway contract"
+    )
+    broken = copy.deepcopy(values)
+    broken["gateway"]["enabled"] = False
+    assert any("gateway.enabled" in e for e in VALIDATOR.gateway_errors(broken)), (
+        "an enabled Ingress without the gateway must fail the gateway contract"
+    )
+
+
+def _locations(text: str) -> dict[str, str]:
+    """Map each `location` header (modifier + pattern) to its body. No nested blocks."""
+    out: dict[str, str] = {}
+    for m in re.finditer(r"^location\s+([^{]+?)\s*\{", text, re.M):
+        depth, i = 1, m.end()
+        while depth:
+            depth += {"{": 1, "}": -1}.get(text[i], 0)
+            i += 1
+        out[m.group(1).strip()] = text[m.end() : i - 1]
+    return out
+
+
+def _routes() -> dict[str, str]:
+    return _locations((GATEWAY_FILES / "routes.conf").read_text(encoding="utf-8"))
+
+
+def test_every_enabled_workload_prefix_has_a_gateway_route() -> None:
+    routes = _routes()
+    for name, spec in _production_values()["workloads"].items():
+        if not spec.get("enabled"):
+            continue
+        prefix = spec["pathPrefix"].rstrip("/") + "/"
+        assert prefix in routes, f"{name}: no gateway route for {prefix}"
+        assert f"http://{_upstream_name(name)}" in routes[prefix], (
+            f"{name}: the {prefix} route must proxy to upstream {_upstream_name(name)}"
+        )
+
+
+def test_routes_name_only_upstreams_the_chart_renders() -> None:
+    known = {"sahool_auth"} | {_upstream_name(n) for n in _production_values()["workloads"]}
+    text = (GATEWAY_FILES / "routes.conf").read_text(encoding="utf-8")
+    used = set(re.findall(r"proxy_pass\s+http://([a-z_]+)", text))
+    assert used and used <= known, f"routes use upstreams the chart never renders: {used - known}"
+    helper = (CHART / "templates" / "_helpers.tpl").read_text(encoding="utf-8")
+    assert "upstream sahool_auth {" in helper and 'replace "-" "_"' in helper, (
+        "templates/_helpers.tpl must render sahool_auth and the underscored workload upstreams"
+    )
+
+
+def test_identity_is_cleared_first_and_injected_only_after_auth_request() -> None:
+    for header, body in _routes().items():
+        if header == "= /_auth_verify" or "proxy_pass" not in body:
+            continue
+        assert "include proxy_params.conf;" in body, f"{header}: must include proxy_params.conf"
+        include_at = body.index("include proxy_params.conf;")
+        for m in re.finditer(r"proxy_set_header\s+(X-Tenant-Id|X-User-Id|X-User-Role)\s", body):
+            assert m.start() > include_at, (
+                f"{header}: {m.group(1)} set before proxy_params.conf would be cleared again"
+            )
+            assert "auth_request /_auth_verify;" in body, (
+                f"{header}: injects {m.group(1)} without auth_request (unverified identity)"
+            )
+
+
+def test_raster_and_agronomist_routes_verify_the_jwt_and_rewrite_to_v1() -> None:
+    routes = _routes()
+    raster = routes["/api/raster/"]
+    assert "auth_request /_auth_verify;" in raster, "raster route must verify the JWT"
+    assert "proxy_pass http://sahool_raster_service/;" in raster, "raster prefix must be stripped"
+    agronomist = routes["/api/ai-agronomist/"]
+    assert "auth_request /_auth_verify;" in agronomist, "agronomist route must verify the JWT"
+    assert "proxy_pass http://sahool_ai_agronomist/v1/;" in agronomist, (
+        "agronomist prefix must be rewritten to /v1/ (deploy-2)"
+    )
+    assert "internal;" in routes["= /_auth_verify"], "the verify location must be internal"
+    assert "http://sahool_auth/v1/auth/verify" in routes["= /_auth_verify"], (
+        "auth_request must reach auth GET /v1/auth/verify"
+    )
+
+
+def _cleared(path: Path) -> set[str]:
+    text = path.read_text(encoding="utf-8")
+    return {h.lower() for h in re.findall(r'^proxy_set_header\s+(\S+)\s+""\s*;', text, re.M)}
+
+
+def test_gateway_clears_every_header_the_compose_gateway_clears_and_more() -> None:
+    chart = _cleared(GATEWAY_FILES / "proxy_params.conf")
+    compose = _cleared(ROOT / "nginx" / "proxy_params.conf")
+    assert compose <= chart, f"chart gateway forgets to clear: {compose - chart}"
+    for header in ("x-tenant-id", "x-tenant-assertion", "x-user-id", "x-user-role"):
+        assert header in chart, f"chart gateway must clear client-sent {header}"
+
+
+def test_network_policy_admits_gateway_only_workloads_from_gateway_and_callers() -> None:
+    values = _production_values()
+    for name in VALIDATOR.GATEWAY_ONLY_WORKLOADS:
+        spec = values["workloads"][name]
+        assert spec.get("gatewayOnly") is True, f"{name} must be gatewayOnly"
+        assert spec.get("internalCallers") == ["sahool-platform"], (
+            f"{name}: only sahool-platform calls it in-cluster today"
+        )
+    text = (CHART / "templates" / "networkpolicy.yaml").read_text(encoding="utf-8")
+    assert "operator: NotIn" in text and "$workload.gatewayOnly" in text, (
+        "the namespace-wide allow must exclude gatewayOnly workloads (policies are additive)"
+    )
+    assert "app.kubernetes.io/component: sahool-gateway" in text, (
+        "gatewayOnly workloads must admit the gateway pods by label"
+    )
+    gateway_policy = text.split("name: sahool-gateway-from-ingress-controller", 1)
+    assert len(gateway_policy) == 2, "a policy must admit the ingress controller to the gateway"
+    before = gateway_policy[0]
+    assert "trustedIngressNamespaces" not in before, (
+        "ingress controller namespaces must reach only the gateway, not every workload"
+    )
+
+
+# ── 2. real nginx with the chart's gateway files ────────────────────────────────
+
+
+def _free_port() -> int:
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+_ECHO = (
+    'return 200 "{name} $request_uri tenant=[$http_x_tenant_id] '
+    "user=[$http_x_user_id] role=[$http_x_user_role] "
+    'assertion=[$http_x_tenant_assertion] agent=[$http_x_agent_token]\\n";'
+)
+
+
+def _test_upstreams(workloads: list[str]) -> str:
+    """The chart's upstream names, each served by an in-process stub server."""
+    auth_port = _free_port()
+    lines = [
+        f"upstream sahool_auth {{ server 127.0.0.1:{auth_port}; }}",
+        f"""server {{ listen 127.0.0.1:{auth_port};
+  location = /v1/auth/verify {{
+    if ($http_authorization = "Bearer good") {{
+      add_header X-Tenant-ID tenant-verified; add_header X-User-Id user-verified;
+      add_header X-User-Role farmer; return 200;
+    }}
+    return 401;
+  }}
+  location / {{ {_ECHO.format(name="auth")} }}
+}}""",
+    ]
+    for name in workloads:
+        port = _free_port()
+        lines.append(f"upstream {_upstream_name(name)} {{ server 127.0.0.1:{port}; }}")
+        lines.append(
+            f"server {{ listen 127.0.0.1:{port}; location / {{ {_ECHO.format(name=name)} }} }}"
+        )
+    return "\n".join(lines)
+
+
+@pytest.fixture(scope="module")
+def gateway(tmp_path_factory):
+    if shutil.which("nginx") is None:
+        pytest.skip("nginx binary not installed")
+    tmp = tmp_path_factory.mktemp("gateway")
+    port = _free_port()
+    conf = (GATEWAY_FILES / "nginx.conf").read_text(encoding="utf-8")
+    assert "listen 8080;" in conf, "the gateway listens on 8080 (values gateway.port)"
+    conf = conf.replace("listen 8080;", f"listen 127.0.0.1:{port};").replace("/tmp/", f"{tmp}/")
+    (tmp / "nginx.conf").write_text(conf, encoding="utf-8")
+    for rel in ("routes.conf", "proxy_params.conf"):
+        shutil.copy(GATEWAY_FILES / rel, tmp / rel)
+    workloads = sorted(_production_values()["workloads"])
+    (tmp / "upstreams.conf").write_text(_test_upstreams(workloads), encoding="utf-8")
+    cmd = ["nginx", "-p", str(tmp), "-c", str(tmp / "nginx.conf")]
+    check = subprocess.run(cmd + ["-t"], capture_output=True, text=True, encoding="utf-8")
+    assert check.returncode == 0, f"nginx -t rejected the chart gateway config:\n{check.stderr}"
+    log = (tmp / "stderr.log").open("w")
+    proc = subprocess.Popen(cmd + ["-g", "daemon off;"], stdout=subprocess.DEVNULL, stderr=log)
+    try:
+        yield port
+    finally:
+        proc.terminate()
+        proc.wait(timeout=10)
+        log.close()
+
+
+def _get(port: int, path: str, headers: dict[str, str] | None = None) -> tuple[int, str]:
+    req = urllib.request.Request(f"http://127.0.0.1:{port}{path}", headers=headers or {})
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    for _ in range(50):
+        try:
+            with opener.open(req, timeout=5) as r:
+                return r.status, r.read().decode().strip()
+        except urllib.error.HTTPError as e:
+            return e.code, e.read().decode().strip()
+        except urllib.error.URLError:
+            time.sleep(0.1)
+    raise AssertionError(f"gateway did not answer on {port}")
+
+
+_FORGED = {
+    "X-Tenant-Id": "tenant-evil",
+    "X-Tenant-Assertion": "forged",
+    "X-User-Id": "user-evil",
+    "X-User-Role": "admin",
+    "X-Agent-Token": "stolen",
+}
+
+
+def test_raster_gets_the_verified_tenant_not_the_forged_one(gateway: int) -> None:
+    status, body = _get(
+        gateway,
+        "/api/raster/v1/fields/f1/timeseries",
+        {"Authorization": "Bearer good", **_FORGED},
+    )
+    assert status == 200, f"verified raster request must pass: {status} {body}"
+    assert body.startswith("sahool-raster-service /v1/fields/f1/timeseries "), (
+        f"the /api/raster prefix must be stripped to the service's /v1 path: {body}"
+    )
+    assert "tenant=[tenant-verified]" in body, f"forged X-Tenant-Id must be replaced: {body}"
+    assert "assertion=[]" in body and "agent=[]" in body, f"forged headers must be cleared: {body}"
+
+
+def test_raster_without_a_valid_token_is_rejected_before_the_service(gateway: int) -> None:
+    status, body = _get(gateway, "/api/raster/v1/fields/f1/timeseries", dict(_FORGED))
+    assert status == 401, f"no bearer must be rejected by auth_request: {status} {body}"
+    assert "sahool-raster-service" not in body, f"the service must not be reached: {body}"
+    status, body = _get(gateway, "/api/raster/v1/x", {"Authorization": "Bearer bad", **_FORGED})
+    assert status == 401, f"an invalid bearer must be rejected: {status} {body}"
+
+
+def test_raster_tiles_verify_the_session_cookie(gateway: int) -> None:
+    status, body = _get(gateway, "/api/raster/v1/tiles/1/2/3.png", {"Cookie": "sahool_at=good"})
+    assert status == 200 and "tenant=[tenant-verified]" in body, (
+        f"a tile with the HttpOnly session cookie must be verified and pass: {status} {body}"
+    )
+
+
+def test_agronomist_gets_verified_identity_under_v1(gateway: int) -> None:
+    status, body = _get(
+        gateway, "/api/ai-agronomist/ask", {"Authorization": "Bearer good", **_FORGED}
+    )
+    assert status == 200, f"verified agronomist request must pass: {status} {body}"
+    assert body.startswith("sahool-ai-agronomist /v1/ask "), (
+        f"/api/ai-agronomist must be rewritten to /v1 (deploy-2): {body}"
+    )
+    for expected in ("tenant=[tenant-verified]", "user=[user-verified]", "role=[farmer]"):
+        assert expected in body, f"agronomist must get verified {expected}: {body}"
+    status, body = _get(gateway, "/api/ai-agronomist/ask", dict(_FORGED))
+    assert status == 401, f"agronomist without a bearer must be rejected: {status} {body}"
+
+
+def test_agronomist_healthz_is_open_but_carries_no_identity(gateway: int) -> None:
+    status, body = _get(gateway, "/api/ai-agronomist/healthz", dict(_FORGED))
+    assert status == 200 and body.startswith("sahool-ai-agronomist /healthz "), (
+        f"agronomist liveness must stay unauthenticated: {status} {body}"
+    )
+    assert "tenant=[]" in body and "role=[]" in body, f"no identity on healthz: {body}"
+
+
+@pytest.mark.parametrize(
+    ("path", "service", "upstream_path"),
+    [
+        ("/api/v1/fields", "sahool-platform", "/api/v1/fields"),
+        ("/api/guardrails/v1/validate", "sahool-guardrails-engine", "/v1/validate"),
+    ],
+)
+def test_self_verifying_services_never_see_a_client_identity_header(
+    gateway: int, path: str, service: str, upstream_path: str
+) -> None:
+    status, body = _get(gateway, path, {"Authorization": "Bearer any", **_FORGED})
+    assert status == 200 and body.startswith(f"{service} {upstream_path} "), (
+        f"{path} must reach {service} at {upstream_path}: {status} {body}"
+    )
+    assert "tenant=[]" in body and "user=[]" in body and "role=[]" in body, (
+        f"client-sent identity headers must be cleared before {service}: {body}"
+    )
+
+
+@pytest.mark.parametrize(
+    "path", ["/internal/fields/f1/state", "/v1/fields/f1/timeseries", "/_auth_verify"]
+)
+def test_unrouted_and_internal_paths_are_not_forwarded(gateway: int, path: str) -> None:
+    status, body = _get(gateway, path, {"Authorization": "Bearer good"})
+    assert status == 404, f"{path} must not be forwarded anywhere: {status} {body}"
+
+
+# ── 3. helm template with the production overlay ───────────────────────────────
+
+
+def _helm_template(*extra: str) -> list[dict]:
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "sahool",
+            str(CHART),
+            "-f",
+            str(CHART / "values.yaml"),
+            "-f",
+            str(CHART / "values-production.yaml"),
+            *extra,
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+    assert result.returncode == 0, f"helm template failed:\n{result.stderr}"
+    return [doc for doc in yaml.safe_load_all(result.stdout) if doc]
+
+
+def _deployment_env(docs: list[dict], name: str) -> set[str]:
+    for doc in docs:
+        if doc.get("kind") == "Deployment" and doc["metadata"]["name"] == name:
+            return {e["name"] for e in doc["spec"]["template"]["spec"]["containers"][0]["env"]}
+    raise AssertionError(f"no Deployment {name} rendered")
+
+
+needs_helm = pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary not installed")
+
+
+@needs_helm
+def test_helm_production_render_has_every_mandatory_env_var() -> None:
+    docs = _helm_template()
+    for workload, required in VALIDATOR.PRODUCTION_REQUIRED_ENV.items():
+        env = _deployment_env(docs, workload)
+        missing = set(required) - env
+        assert not missing, f"{workload}: rendered Deployment lacks {sorted(missing)}"
+        assert "SAHOOL_ENV" in env, f"{workload}: SAHOOL_ENV must be rendered"
+
+
+@needs_helm
+def test_helm_render_without_platform_redis_url_fails_the_contract() -> None:
+    docs = _helm_template("--set", "workloads.sahool-platform.secretEnv.REDIS_URL=null")
+    assert "REDIS_URL" not in _deployment_env(docs, "sahool-platform"), (
+        "negative control: the override must remove REDIS_URL from the render"
+    )
+
+
+@needs_helm
+def test_helm_render_routes_the_ingress_only_to_the_gateway() -> None:
+    docs = _helm_template()
+    ingresses = [d for d in docs if d.get("kind") == "Ingress"]
+    assert len(ingresses) == 1, f"exactly one Ingress expected, got {len(ingresses)}"
+    paths = ingresses[0]["spec"]["rules"][0]["http"]["paths"]
+    backends = {p["backend"]["service"]["name"] for p in paths}
+    assert backends == {"sahool-gateway"}, f"Ingress backends must be only the gateway: {backends}"
+    config = next(
+        d
+        for d in docs
+        if d.get("kind") == "ConfigMap" and d["metadata"]["name"] == "sahool-gateway"
+    )
+    for workload in _production_values()["workloads"]:
+        assert f"upstream {_upstream_name(workload)} " in config["data"]["upstreams.conf"], (
+            f"gateway upstreams.conf lacks {workload}"
+        )
+
+
+@needs_helm
+def test_helm_render_network_policy_isolates_raster_and_agronomist() -> None:
+    docs = _helm_template()
+    policies = {d["metadata"]["name"]: d for d in docs if d.get("kind") == "NetworkPolicy"}
+    for workload in VALIDATOR.GATEWAY_ONLY_WORKLOADS:
+        policy = policies.get(f"{workload}-gateway-only")
+        assert policy, f"no gateway-only NetworkPolicy for {workload}"
+        sources = {
+            peer["podSelector"]["matchLabels"]["app.kubernetes.io/component"]
+            for rule in policy["spec"]["ingress"]
+            for peer in rule["from"]
+        }
+        assert sources == {"sahool-gateway", "sahool-platform"}, (
+            f"{workload} must admit only the gateway and sahool-platform: {sources}"
+        )
+        internal = policies["sahool-internal-allow"]["spec"]["podSelector"]["matchExpressions"][0]
+        assert internal["operator"] == "NotIn" and workload in internal["values"], (
+            f"the namespace-wide allow must exclude {workload}"
+        )
+    for name, policy in policies.items():
+        has_ns = any(
+            "namespaceSelector" in peer
+            for rule in policy["spec"].get("ingress", [])
+            for peer in rule.get("from", [])
+        )
+        assert not has_ns or name == "sahool-gateway-from-ingress-controller", (
+            f"{name}: only the gateway may admit the ingress controller namespace"
+        )
