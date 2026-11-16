@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "cde34b179324577b1085685d888be27335a8da976991292c2d67ebe46ab04015",
+  "inventory_sha256": "e25b09c3256d9f25b6080082cfcdfaac81a9519e97769a568cb509d96096ec63",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "c57c87330f16e79e818ca1d316d110186d03956c9e0b73078be5abc200d4ddb0"
+    "policy_sha256": "6c7cf1ad5514dfb9c2eccec76b18195277606f8d83c314d386a84aaed8d0b7a1"
   },
   "routes": [
     {
@@ -1482,7 +1482,7 @@
     {
       "classification": "domain",
       "function": "list_harvest_lots",
-      "line": 179,
+      "line": 205,
       "method": "GET",
       "path": "/api/v1/harvest-lots",
       "source": "api/routers/harvest_traceability.py"
@@ -1490,7 +1490,7 @@
     {
       "classification": "domain",
       "function": "get_harvest_lot",
-      "line": 215,
+      "line": 241,
       "method": "GET",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}",
       "source": "api/routers/harvest_traceability.py"
@@ -1498,7 +1498,7 @@
     {
       "classification": "domain",
       "function": "get_traceability",
-      "line": 402,
+      "line": 428,
       "method": "GET",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
       "source": "api/routers/harvest_traceability.py"
@@ -3850,7 +3850,7 @@
     {
       "classification": "domain",
       "function": "create_harvest_lot",
-      "line": 95,
+      "line": 121,
       "method": "POST",
       "path": "/api/v1/harvest-lots",
       "source": "api/routers/harvest_traceability.py"
@@ -3858,7 +3858,7 @@
     {
       "classification": "domain",
       "function": "add_custody_event",
-      "line": 244,
+      "line": 270,
       "method": "POST",
       "path": "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
       "source": "api/routers/harvest_traceability.py"
