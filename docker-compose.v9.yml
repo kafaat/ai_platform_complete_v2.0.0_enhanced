@@ -150,6 +150,11 @@ services:
         condition: service_healthy
       sahool-remote-sensing-workspace-bff:
         condition: service_healthy
+      # realtime-session is opt-in (profile realtime-foundation); nginx waits for it only when
+      # that profile is active, and its location answers 502 until then.
+      sahool-realtime-session:
+        condition: service_healthy
+        required: false
     networks:
     - sahool-public
     - sahool-internal

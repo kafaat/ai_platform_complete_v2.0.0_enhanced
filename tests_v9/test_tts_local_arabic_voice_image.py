@@ -38,7 +38,10 @@ def test_the_default_build_ships_no_voice_until_the_owner_decides():
 
 def test_the_voice_comes_from_a_pinned_revision_and_is_verified():
     assert re.search(r"revision=[0-9a-f]{40};", DOCKERFILE)
-    assert "/resolve/main/" not in DOCKERFILE
+    assert "/resolve/main/" not in DOCKERFILE, (
+        "a moving branch would let the voice change under the pinned sha256, so the build "
+        "breaks on any upstream edit and two builds of one commit can ship different voices"
+    )
     assert ONNX_SHA in DOCKERFILE and JSON_SHA in DOCKERFILE
     assert "| sha256sum -c -" in DOCKERFILE
 
