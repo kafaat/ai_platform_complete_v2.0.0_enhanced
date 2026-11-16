@@ -15,12 +15,15 @@
 -- same two sources the farm book uses are accepted. The trigger is SECURITY INVOKER: it reads both
 -- tables under row-level security for the row's own tenant (a write with no tenant context reads
 -- with app.current_tenant set to the row's tenant for the lookup, then cleared), so a tenant can
--- only reference its own seasons. A row for another tenant than the context is left to the
--- table's WITH CHECK policy, so the trigger never reveals another tenant's season ids.
+-- only reference its own seasons. Under row-level security, a row for another tenant than the
+-- context is left to the table's WITH CHECK policy, so the trigger never reveals another
+-- tenant's season ids; a role that bypasses row-level security is checked under the row's tenant.
 -- A violation raises SQLSTATE 23503 (foreign_key_violation), as the foreign key did.
 --
 -- Not kept: ON DELETE CASCADE / SET NULL from farm_season_projects (which has no writer, so no
--- delete ever reached it). Deleting a season does not delete ledger history.
+-- delete ever reached it). Deleting a season does not delete ledger history, and is not checked
+-- here: `seasons` belongs to sahool-platform (db_ownership.yml), no code path deletes a season,
+-- and a delete guard on that table is its owner's DDL, not this ledger's (left open, see W1-14).
 --
 -- Tables (all owned by field-management-service, db_ownership.yml; this is DDL only, no data is
 -- written): farm_operation_ledger, farm_season_budget_lines, farm_revenue_records,
@@ -45,14 +48,17 @@ BEGIN
     IF NEW.season_id IS NULL THEN
         RETURN NEW;
     END IF;
-    IF ctx IS NOT NULL AND ctx <> NEW.tenant_id::text THEN
-        -- Another tenant's row: the table's own policy (WITH CHECK) refuses it. Answering
-        -- here would tell the caller whether that tenant has such a season.
+    IF ctx IS NOT NULL AND ctx <> NEW.tenant_id::text AND row_security_active(TG_RELID) THEN
+        -- Another tenant's row under row-level security: the table's own policy (WITH CHECK)
+        -- refuses it. Answering here would tell the caller whether that tenant has such a
+        -- season. A role that bypasses row-level security gets no such refusal, so for it
+        -- the season is checked below like any other write (it can read every tenant anyway).
         RETURN NEW;
     END IF;
-    IF ctx IS NULL THEN
-        -- A write with no tenant context (migration, system job): read under the row's own
-        -- tenant, so row-level security applies exactly as for that tenant, then restore.
+    IF ctx IS DISTINCT FROM NEW.tenant_id::text THEN
+        -- No tenant context (migration, system job) or a bypassing role with another
+        -- tenant's context: read under the row's own tenant, so row-level security applies
+        -- exactly as for that tenant, then restore the caller's context.
         PERFORM set_config('app.current_tenant', NEW.tenant_id::text, true);
     END IF;
     found := EXISTS (
@@ -62,8 +68,8 @@ BEGIN
         SELECT 1 FROM farm_season_projects p
         WHERE p.season_id = NEW.season_id AND p.tenant_id = NEW.tenant_id
     );
-    IF ctx IS NULL THEN
-        PERFORM set_config('app.current_tenant', '', true);
+    IF ctx IS DISTINCT FROM NEW.tenant_id::text THEN
+        PERFORM set_config('app.current_tenant', COALESCE(ctx, ''), true);
     END IF;
     IF found THEN
         RETURN NEW;

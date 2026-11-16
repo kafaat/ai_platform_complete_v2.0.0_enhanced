@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "d680153830c8f31d88dd805650725ffbe8a3776d293ec88122868a5e5309ff2e",
+  "inventory_sha256": "6e6513facd0072e3a224a5d317d5330445e38722b36cdbeec82234346f741b41",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "81db7fbb44b90941a1b1d84cc42eb68ba17754abb7013e337a764a5f91d092bb"
+    "policy_sha256": "e8357cef5576c1f4838f0f2941e35756a4e827e356a1e1d934068355644fcdb0"
   },
   "routes": [
     {
@@ -914,7 +914,7 @@
     {
       "classification": "domain",
       "function": "get_season_budget",
-      "line": 575,
+      "line": 598,
       "method": "GET",
       "path": "/api/v1/farm-ledger/budgets/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -922,7 +922,7 @@
     {
       "classification": "domain",
       "function": "get_economic_state",
-      "line": 947,
+      "line": 990,
       "method": "GET",
       "path": "/api/v1/farm-ledger/economic-state/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -930,7 +930,7 @@
     {
       "classification": "domain",
       "function": "get_erp_projection",
-      "line": 715,
+      "line": 752,
       "method": "GET",
       "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -938,7 +938,7 @@
     {
       "classification": "domain",
       "function": "get_inventory_projection",
-      "line": 853,
+      "line": 890,
       "method": "GET",
       "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -946,7 +946,7 @@
     {
       "classification": "domain",
       "function": "list_operation_ledger_records",
-      "line": 311,
+      "line": 315,
       "method": "GET",
       "path": "/api/v1/farm-ledger/operations",
       "source": "api/routers/farm_operations_ledger.py"
@@ -954,7 +954,7 @@
     {
       "classification": "domain",
       "function": "get_season_profitability",
-      "line": 683,
+      "line": 716,
       "method": "GET",
       "path": "/api/v1/farm-ledger/profitability/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -962,7 +962,7 @@
     {
       "classification": "domain",
       "function": "farm_ledger_summary",
-      "line": 363,
+      "line": 367,
       "method": "GET",
       "path": "/api/v1/farm-ledger/summary",
       "source": "api/routers/farm_operations_ledger.py"
@@ -970,7 +970,7 @@
     {
       "classification": "domain",
       "function": "get_budget_variance",
-      "line": 648,
+      "line": 678,
       "method": "GET",
       "path": "/api/v1/farm-ledger/variance/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3418,7 +3418,7 @@
     {
       "classification": "domain",
       "function": "operation_autowrite_preview",
-      "line": 805,
+      "line": 842,
       "method": "POST",
       "path": "/api/v1/farm-ledger/autowrite-preview",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3426,7 +3426,7 @@
     {
       "classification": "domain",
       "function": "upsert_season_budget_lines",
-      "line": 494,
+      "line": 515,
       "method": "POST",
       "path": "/api/v1/farm-ledger/budgets",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3434,7 +3434,7 @@
     {
       "classification": "domain",
       "function": "create_operation_ledger_record",
-      "line": 210,
+      "line": 214,
       "method": "POST",
       "path": "/api/v1/farm-ledger/operations",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3442,7 +3442,7 @@
     {
       "classification": "domain",
       "function": "create_revenue_record",
-      "line": 603,
+      "line": 633,
       "method": "POST",
       "path": "/api/v1/farm-ledger/revenues",
       "source": "api/routers/farm_operations_ledger.py"
@@ -4170,7 +4170,7 @@
     {
       "classification": "domain",
       "function": "pest_escalation_run",
-      "line": 33,
+      "line": 34,
       "method": "POST",
       "path": "/api/v1/pest-escalation/run",
       "source": "api/routers/pest_escalation.py"

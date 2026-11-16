@@ -406,6 +406,145 @@ def test_mixed_currency_summary_is_409(monkeypatch):
     _run(monkeypatch, case)
 
 
+async def _unpriced_operation(live, category="water"):
+    """A completed operation with no cost and the column default currency (YER)."""
+    await live.as_tenant(
+        live.tenant,
+        """INSERT INTO farm_operation_ledger
+               (operation_id, tenant_id, season_id, field_id, operation_type, operation_date,
+                status, cost_category)
+           VALUES ($1, $2::uuid, $3, $4, 'irrigation', $5, 'completed', $6)""",
+        f"op-{uuid.uuid4().hex[:12]}",
+        live.tenant,
+        live.season_id,
+        live.field_id,
+        date.today() - timedelta(days=1),
+        category,
+    )
+
+
+def test_unpriced_default_currency_work_keeps_a_usd_variance_incomplete(monkeypatch):
+    """Review finding: an unpriced operation keeps the default YER; it is not a USD saving."""
+
+    async def case(live, router):
+        user = _user(live.tenant)
+        await live.budget(100, "USD")
+        await live.operation(40, "USD")
+        await _unpriced_operation(live)
+        for currency in (None, "USD"):
+            out = await router.get_budget_variance(live.season_id, currency=currency, user=user)
+            assert out["currency"] == "USD", f"the priced amounts are USD: {out}"
+            assert out["cost_coverage"] == "partial" and out["unpriced_operations"] == 1, (
+                f"unpriced work leaves coverage partial whatever its default currency: {out}"
+            )
+            assert out["variance"] == [], (
+                f"no -60% underspend is reported for a category with unpriced work: {out}"
+            )
+
+    _run(monkeypatch, case)
+
+
+def test_economic_state_is_one_currency_or_409(monkeypatch):
+    """Review finding: business-2 on the route the season profitability card reads."""
+    from fastapi import HTTPException
+
+    async def case(live, router):
+        user = _user(live.tenant)
+        await live.operation(40, "USD")
+        await live.operation(9000, "YER")
+        await live.revenue(500, "USD")
+        with pytest.raises(HTTPException) as caught:
+            await router.get_economic_state(live.season_id, user=user)
+        assert caught.value.status_code == 409, "economic state never sums two currencies"
+        assert caught.value.detail["currencies"] == ["USD", "YER"], caught.value.detail
+        out = await router.get_economic_state(live.season_id, currency="usd", user=user)
+        state = out["economic_state"]
+        assert out["currency"] == "USD", f"the named currency labels the state: {out}"
+        assert state["total_cost"] == 40, f"USD costs only: {state}"
+        assert state["revenue"] == 500, f"USD revenue only: {state}"
+        assert state["gross_margin"] == 460, f"no made-up loss: {state}"
+        assert state["profitability_status"] == "profitable", f"no made-up loss: {state}"
+
+    _run(monkeypatch, case)
+
+
+def test_economic_state_drops_variance_lines_with_unpriced_work(monkeypatch):
+    async def case(live, router):
+        await live.budget(100, "USD")
+        await live.operation(40, "USD")
+        await _unpriced_operation(live)
+        out = await router.get_economic_state(live.season_id, user=_user(live.tenant))
+        assert out["currency"] == "USD", out
+        assert out["cost_coverage"] == "partial", f"unpriced work is reported: {out}"
+        assert out["economic_state"]["budget_variance_status"] != "critical", (
+            f"a missing cost is not a critical underspend: {out['economic_state']}"
+        )
+
+    _run(monkeypatch, case)
+
+
+def test_named_currency_summary_still_counts_every_operation(monkeypatch):
+    async def case(live, router):
+        user = _user(live.tenant)
+        await live.operation(40, "USD")
+        await live.operation(9000, "YER")
+        out = await router.farm_ledger_summary(
+            date_from=None, date_to=None, season_id=live.season_id, currency="USD", user=user
+        )
+        assert out["summary"]["operation_count"] == 2, (
+            f"the currency filters money, not the operations counted: {out['summary']}"
+        )
+        assert out["summary"]["cost_breakdown"] == {"water": 40}, out["summary"]
+
+    _run(monkeypatch, case)
+
+
+def test_a_bypassing_role_with_another_tenants_context_is_still_season_checked(monkeypatch):
+    """Review finding: RLS WITH CHECK does not run for a role that bypasses it."""
+
+    async def case(live, router):
+        admin = await asyncpg.connect(os.getenv("TEST_DATABASE_ADMIN_URL") or DSN)
+        try:
+            if not await admin.fetchval(
+                "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
+            ):
+                pytest.skip("declared skip (not a pass): no role that bypasses RLS")
+            insert = """INSERT INTO farm_operation_ledger
+                   (operation_id, tenant_id, season_id, field_id, operation_type, operation_date,
+                    status)
+               VALUES ($1, $2::uuid, $3, $4, 'irrigation', CURRENT_DATE, 'completed')"""
+            async with admin.transaction():
+                await admin.execute(
+                    "SELECT set_config('app.current_tenant', $1, true)", live.tenant
+                )
+                with pytest.raises(asyncpg.ForeignKeyViolationError) as caught:
+                    await admin.execute(
+                        insert,
+                        f"op-{uuid.uuid4().hex[:8]}",
+                        live.other_tenant,
+                        live.season_id,  # tenant A's season on a tenant B row
+                        live.other_field,
+                    )
+                assert "season_not_found_for_tenant" in str(caught.value), caught.value
+            async with admin.transaction():
+                await admin.execute(
+                    "SELECT set_config('app.current_tenant', $1, true)", live.tenant
+                )
+                await admin.execute(
+                    insert,
+                    f"op-{uuid.uuid4().hex[:8]}",
+                    live.other_tenant,
+                    live.other_season,
+                    live.other_field,
+                )
+                ctx = await admin.fetchval("SELECT current_setting('app.current_tenant', true)")
+                assert ctx == live.tenant, "the trigger restores the caller's tenant context"
+        finally:
+            await admin.close()
+
+    _run(monkeypatch, case)
+
+
 # ── W1-12: the governance farm context ───────────────────────────────────────────────────
 
 

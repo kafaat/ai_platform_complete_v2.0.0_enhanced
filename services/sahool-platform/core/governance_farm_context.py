@@ -407,7 +407,14 @@ def threadsafe_farm_context_fn(
     def farm_context_fn(requested_tenant: str, field_id: str | None) -> dict[str, Any]:
         if str(requested_tenant) != str(tenant_id):
             raise PermissionError("farm_context_tenant_mismatch")
-        farm = asyncio.run_coroutine_threadsafe(_load(field_id), loop).result(timeout=timeout_s)
+        future = asyncio.run_coroutine_threadsafe(_load(field_id), loop)
+        try:
+            farm = future.result(timeout=timeout_s)
+        except BaseException:
+            # A timeout must not leave the load holding its pooled connection: cancelling the
+            # future cancels the task on the loop, which releases the connection. Still raises.
+            future.cancel()
+            raise
         if sink is not None:
             sink["farm_context"] = farm
         return farm

@@ -667,21 +667,34 @@ def _currency_scope(tenant_id: str, season_id: str, currency: str | None):
     return " AND upper(trim(currency)) = $3", (tenant_id, season_id, currency)
 
 
-async def fetch_unpriced_categories(conn, tenant_id: str, season_id: str, currency=None):
+def money_filter_sql(param: int) -> str:
+    """Business-2: the amounts of a report in one currency, parameter ``$param`` (text).
+
+    Used as ``FILTER (WHERE ...)`` on money sums only, so counts, water, energy and hours keep
+    every operation of the scope. A ``NULL`` currency (nothing priced in scope) matches no row.
+    """
+    return f"upper(trim(currency)) IS NOT DISTINCT FROM ${param}::text"
+
+
+async def fetch_unpriced_categories(conn, tenant_id: str, season_id: str):
     """Completed operations with no recorded cost, per category.
 
     Ledger operations carry no budget stage (actuals are keyed ``whole_season``), so an
     unpriced operation makes its whole category incomplete, whatever the budget stage.
+
+    Not filtered by currency: an unpriced operation has no amount, so its ``currency`` is only
+    the column default (``YER``) and says nothing about the currency its cost would be in. It
+    leaves its category incomplete in every currency's report (a missing cost is not a saving).
     """
-    scope, args = _currency_scope(tenant_id, season_id, currency)
     rows = await conn.fetch(
         f"""SELECT 'whole_season' AS stage, COALESCE(cost_category, operation_type) AS category,
                    COUNT(*)::int AS unpriced_operations
             FROM farm_operation_ledger
             WHERE tenant_id = $1::uuid AND season_id = $2 AND cost_amount IS NULL
-              AND {ACTUAL_OPERATION_SQL}{scope}
+              AND {ACTUAL_OPERATION_SQL}
             GROUP BY COALESCE(cost_category, operation_type) ORDER BY category""",
-        *args,
+        tenant_id,
+        season_id,
     )
     return [dict(row) for row in rows]
 
