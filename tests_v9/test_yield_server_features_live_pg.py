@@ -6,15 +6,20 @@ alerts and water stress still came back ``unavailable_insufficient_evidence`` (o
 at the full target) when the client sent only the crop.
 
 This file drives the real routes over HTTP into the platform app, against a migrated Postgres
-through a NOBYPASSRLS role: tenant A creates a farm, a field and a sown drip season; pest, water
-stress and irrigation events for that field are stored in ``events``; tenant B stores a pest event
-that names tenant A's field in its payload. Tenant A then asks for the estimate with only the crop
-and gets a number below the wheat target whose ``evidence_ids`` name A's stored events and the
-weather slice, and never B's event (RLS).
+through a NOBYPASSRLS role, and every piece of evidence comes from a route that produces it in
+production: tenant A creates a farm, a field and a sown drip season; records irrigation through
+``POST /fields/{id}/activities`` (with ``performed_on`` dates, one of them a pre-sowing
+fertilisation recorded today); raises ``low_moisture`` alerts through ``POST /api/v1/alerts``;
+and drops pest and disease scouting pins through ``POST /fields/{id}/pins`` (the only pest
+producer in the schema; nothing emits ``pest.*`` events or a pest alert type). Tenant B's
+``alert.created`` row naming A's field is seeded by the schema owner. Tenant A then asks for the
+estimate with only the crop and gets a number below the wheat target whose ``evidence_ids`` name
+A's activity events, alert events, scouting pins and the weather slice, never the pre-sowing
+fertilisation (windowed on ``performed_on``) and never B's event (RLS).
 
 Raster and weather are HTTP services, not part of this database: they are stubbed at the facade
 function level (``load_ndvi_points`` / ``load_weather_rain``), never with a fake connection.
-Event rows and users are seeded by the schema owner (TEST_DATABASE_ADMIN_URL when set).
+Users and tenant B's event are seeded by the schema owner (TEST_DATABASE_ADMIN_URL when set).
 """
 
 from __future__ import annotations
@@ -51,7 +56,16 @@ async def _probe() -> str:
     except Exception as exc:  # noqa: BLE001 - any failure means "no database here"
         return f"{type(exc).__name__}: {exc}"
     try:
-        for table in ("fields", "farms", "users", "seasons", "events"):
+        for table in (
+            "fields",
+            "farms",
+            "users",
+            "seasons",
+            "events",
+            "activities",
+            "alerts",
+            "scouting_pins",
+        ):
             if await conn.fetchval("SELECT to_regclass($1)", f"public.{table}") is None:
                 return f"schema not migrated ({table} missing)"
     finally:
@@ -191,33 +205,70 @@ async def _journey(monkeypatch) -> dict:
             )
             out["season"] = season.status_code, season.text[:300]
 
-            def at(day: int) -> datetime:
-                return datetime(sow.year, sow.month, sow.day, 9, tzinfo=UTC) + timedelta(days=day)
-
             stored = out["stored"]
-            stored["irr1"] = await _store_event(
-                owner, tenants["a"], field_id, "operation.irrigation.completed", at(0)
-            )
-            stored["irr2"] = await _store_event(
-                owner, tenants["a"], field_id, "operation.irrigation.completed", at(12)
-            )
-            stored["pest1"] = await _store_event(
-                owner, tenants["a"], field_id, "pest.detected", at(8)
-            )
-            stored["pest2"] = await _store_event(
-                owner, tenants["a"], field_id, "alert.created", at(9), {"alert_type": "pest"}
-            )
-            stored["moist1"] = await _store_event(
-                owner, tenants["a"], field_id, "weather.moisture.low", at(20)
-            )
-            stored["moist2"] = await _store_event(
-                owner, tenants["a"], field_id, "weather.moisture.low", at(25)
-            )
-            stored["before_season"] = await _store_event(
-                owner, tenants["a"], field_id, "pest.detected", at(-30)
-            )
+            setup = out["setup"] = []
+
+            async def activity(key: str, activity_type: str, performed_on: date):
+                r = await client.post(
+                    f"/api/v1/fields/{field_id}/activities",
+                    json={"activity_type": activity_type, "performed_on": performed_on.isoformat()},
+                )
+                setup.append((key, r.status_code, r.text[:200]))
+                stored[key] = await owner.fetchval(
+                    "SELECT event_id::text FROM events WHERE entity_id = $1",
+                    r.json().get("activity_id"),
+                )
+
+            async def alert(key: str):
+                r = await client.post(
+                    "/api/v1/alerts",
+                    json={
+                        "alert_type": "low_moisture",
+                        "severity": "warning",
+                        "field_id": field_id,
+                    },
+                )
+                setup.append((key, r.status_code, r.text[:200]))
+                stored[key] = await owner.fetchval(
+                    "SELECT event_id::text FROM events WHERE entity_id = $1",
+                    r.json().get("alert_id"),
+                )
+
+            async def pin(key: str, category: str):
+                pin_id = f"pin-{uuid.uuid4().hex[:10]}"
+                r = await client.post(
+                    f"/api/v1/fields/{field_id}/pins",
+                    json={
+                        "pin_id": pin_id,
+                        "field_id": field_id,
+                        "lat": 15.402,
+                        "lng": 44.302,
+                        "issue_category": category,
+                        "severity": "high",
+                        "location_source": "gps",
+                        "accuracy_m": 5,
+                    },
+                )
+                setup.append((key, r.status_code, r.text[:200]))
+                persisted = r.status_code == 200 and r.json().get("persisted") is True
+                stored[key] = pin_id if persisted else None
+
+            await activity("irr1", "irrigation", sow)
+            await activity("irr2", "irrigation", sow + timedelta(days=12))
+            # Performed before sowing, recorded today: its occurred_at is inside the season.
+            await activity("before_season", "fertilization", sow - timedelta(days=10))
+            await alert("moist1")
+            await alert("moist2")
+            await pin("pest1", "pest")
+            await pin("pest2", "disease")
+            await pin("weed", "weed")
             stored["other_tenant"] = await _store_event(
-                owner, tenants["b"], field_id, "pest.detected", at(10)
+                owner,
+                tenants["b"],
+                field_id,
+                "alert.created",
+                datetime.now(UTC),
+                {"alert_type": "low_moisture"},
             )
 
             as_("a", UserRole.VIEWER)
@@ -231,7 +282,15 @@ async def _journey(monkeypatch) -> dict:
         try:
             # events is append-only (immutable audit): its rows carry fresh random tenants
             # and are left in place, as every other live test that emits events does.
-            for table in ("seasons", "fields", "farms", "users"):
+            for table in (
+                "scouting_pins",
+                "activities",
+                "alerts",
+                "seasons",
+                "fields",
+                "farms",
+                "users",
+            ):
                 await owner.execute(
                     f"DELETE FROM {table} WHERE tenant_id = ANY($1::uuid[])",
                     list(tenants.values()),
@@ -243,11 +302,16 @@ async def _journey(monkeypatch) -> dict:
     return out
 
 
-def test_stored_pest_and_water_stress_events_give_yield_below_target(monkeypatch):
+def test_scouted_pests_and_water_stress_alerts_give_yield_below_target(monkeypatch):
     out = asyncio.run(_journey(monkeypatch))
     assert out["farm"][0] == 201, f"farm setup failed: {out['farm']}"
     assert out["field"][0] == 201, f"field setup failed: {out['field']}"
     assert out["season"][0] == 201, f"season setup failed: {out['season']}"
+    for key, code, text in out["setup"]:
+        assert code in (200, 201), f"evidence setup {key} failed: {code} {text}"
+    stored = out["stored"]
+    for key in ("irr1", "irr2", "before_season", "moist1", "moist2", "pest1", "pest2", "weed"):
+        assert stored.get(key), f"route did not produce stored evidence for {key}: {stored}"
 
     status, body = out["estimate"]
     assert status == 200, f"own field: expected 200, got {status}: {body}"
@@ -258,18 +322,23 @@ def test_stored_pest_and_water_stress_events_give_yield_below_target(monkeypatch
         f"pest alerts and water stress must lower the wheat yield below {WHEAT_TARGET}: {body}"
     )
     ids = set(body.get("evidence_ids") or [])
-    stored = out["stored"]
-    for key in ("irr1", "irr2", "pest1", "pest2", "moist1", "moist2"):
+    for key in ("irr1", "irr2", "moist1", "moist2"):
         assert f"event:{stored[key]}" in ids, f"stored event {key} was used but is not cited: {ids}"
+    for key in ("pest1", "pest2"):
+        assert f"scouting_pin:{stored[key]}" in ids, f"scouted {key} was used but not cited: {ids}"
+    assert f"scouting_pin:{stored['weed']}" not in ids, f"a weed pin is not pest evidence: {ids}"
     assert f"event:{stored['before_season']}" not in ids, (
-        f"an event before the sowing date is not this season's evidence: {ids}"
+        f"an activity performed before sowing is not this season's evidence: {ids}"
     )
     assert f"event:{stored['other_tenant']}" not in ids, (
         f"another tenant's event leaked into the estimate (RLS): {ids}"
     )
     assert "weather:snap-live" in ids, f"the weather slice used for rain is not cited: {ids}"
     sources = body.get("input_sources") or {}
-    assert sources.get("pest_alerts") == "server:events", sources
+    assert sources.get("pest_alerts") == "server:scouting_pins", sources
+    assert sources.get("fertilizer_applications") == "unknown", (
+        f"the only fertilisation was performed before sowing; none is this season's: {sources}"
+    )
     assert sources.get("moisture_stress_events") == "server:events", sources
     assert sources.get("rain_events") == "server:weather_history", sources
     # A drip field's irrigation log does not observe the days it was not irrigated, so the

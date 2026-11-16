@@ -31,6 +31,7 @@ services/sahool-platform/api/yield_heuristics.py — Yield Estimation Heuristics
 from __future__ import annotations
 
 import logging
+import math
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from enum import StrEnum
@@ -548,7 +549,11 @@ def _now_iso() -> str:
 #     مفردات ``build_features_from_events``؛
 #   • سلسلة NDVI من واجهة raster (``raster_service_client.get_field_timeseries``)؛
 #   • الطقس التاريخيّ من مالك الطقس (``weather_service_client.get_weather_historical``)،
-#     مُتحقَّقاً منه بـ``season_simulation.canonical_historical_days``.
+#     مُتحقَّقاً منه بـ``season_simulation.canonical_historical_days``؛
+#   • مشاهدات الآفات/الأمراض الميدانيّة من ``scouting_pins`` (v94، مالكه هذه الخدمة، تكتبه
+#     ``POST /api/v1/fields/{id}/pins``). هذا **المنتِج الوحيد** لرصد الآفات في المخطّط: لا
+#     نوع تنبيه آفة في ``alert_models._ALERT_TYPES`` ولا مُصدِر لأحداث ``pest.*``، فلا تُقرأ
+#     الآفات من جدول ``events`` (لا دليل يُدّعى من مصدرٍ لا يُنتجه شيء).
 #
 # قيم الطلب **تجاوزاتٌ مُعلَنة** فقط: تُسجَّل في ``declared_overrides`` مع قيمة الخادم التي
 # حلّت محلّها، ولا تختفي في الرقم.
@@ -575,13 +580,17 @@ EFFECTIVE_RAIN_MM = 5.0
 NDVI_MAX_CLOUD_PCT = 30.0
 
 _MOISTURE_ALERT_TYPES = frozenset({"low_moisture", "water_stress", "drought"})
-# تنبيهٌ يرصد آفة/مرضاً فعلاً. ``disease_risk`` تنبّؤٌ طقسيّ لا رصد، فلا يُعدّ.
-_PEST_ALERT_TYPES = frozenset({"pest", "pest_detected", "pest_outbreak", "disease_detected"})
+# فئات ``scouting_pins.issue_category`` التي ترصد آفة/مرضاً (``scouting_pins.IssueCategory``).
+# ``disease_risk`` (تنبيه) تنبّؤٌ طقسيّ لا رصد، فلا يُعدّ.
+PEST_PIN_CATEGORIES: tuple[str, ...] = ("pest", "disease")
+# مدى NDVI الفيزيائيّ؛ ما خارجه قراءةٌ تالفة لا قيمة.
+_NDVI_MIN, _NDVI_MAX = -1.0, 1.0
 
 SOURCE_EVENTS = "server:events"
 SOURCE_NDVI = "server:raster_ndvi"
 SOURCE_WEATHER = "server:weather_history"
 SOURCE_SEASON = "server:season_irrigation_type"
+SOURCE_SCOUTING = "server:scouting_pins"
 SOURCE_OVERRIDE = "request_override"
 SOURCE_UNKNOWN = "unknown"
 
@@ -660,10 +669,37 @@ def _iso(value: Any) -> str:
     return str(value or "")
 
 
+def _effective_day(row: dict[str, Any], payload: dict[str, Any]) -> date | None:
+    """يوم وقوع الحدث: ``payload.performed_on`` (تاريخ التنفيذ) إن صلح، وإلّا ``occurred_at``.
+
+    أحداث النشاط تُسجَّل بعد تنفيذها (``field_aggregate.activity_event_payload``)؛ زمن التسجيل
+    ليس يوم الريّ/التسميد. نفس قاعدة ``event_replay._performed_on_or_occurred``.
+    """
+    performed = payload.get("performed_on")
+    if isinstance(performed, str) and performed:
+        try:
+            return date.fromisoformat(performed[:10])
+        except ValueError:
+            pass
+    occurred = row.get("occurred_at")
+    if isinstance(occurred, datetime):
+        return (
+            (occurred if occurred.tzinfo else occurred.replace(tzinfo=UTC)).astimezone(UTC).date()
+        )
+    if isinstance(occurred, date):
+        return occurred
+    try:
+        return date.fromisoformat(str(occurred or "")[:10])
+    except ValueError:
+        return None
+
+
 def normalize_stored_event(row: dict[str, Any]) -> dict[str, Any] | None:
     """صفّ ``events`` ⇒ حدث بمفردات ``build_features_from_events``، أو None إن لم يُعنَ به.
 
-    المطر لا يُقرأ من الأحداث: مصدره الوحيد هنا تاريخ الطقس (لا عدّ مزدوج).
+    المطر لا يُقرأ من الأحداث: مصدره الوحيد هنا تاريخ الطقس (لا عدّ مزدوج). والآفات لا تُقرأ
+    منها: لا منتِج لها في ``events``؛ مصدرها ``scouting_pins`` (``normalize_pest_pin``).
+    الطابع الزمنيّ يوم التنفيذ (``performed_on``) لا زمن التسجيل.
     """
     etype = str(row.get("event_type") or "").lower()
     payload = _payload(row)
@@ -674,23 +710,46 @@ def normalize_stored_event(row: dict[str, Any]) -> dict[str, Any] | None:
         mapped = "operation.fertilizer"
     elif etype == "weather.moisture.low" or "water_stress" in etype or "drought" in etype:
         mapped = "moisture.low"
-    elif etype.startswith("pest.") or etype.startswith("disease."):
-        mapped = etype
     elif etype == "alert.created":
         alert_type = str(payload.get("alert_type") or "").lower()
         if alert_type in _MOISTURE_ALERT_TYPES:
             mapped = "moisture.low"
-        elif alert_type in _PEST_ALERT_TYPES or payload.get("pest_detected") is True:
-            mapped = "pest.alert"
     elif etype == "lifecycle.transitioned" and payload.get("to_stage"):
         mapped = "lifecycle.transition"
     if mapped is None:
         return None
+    day = _effective_day(row, payload)
+    occurred = row.get("occurred_at")
+    # يوم التنفيذ يحلّ محلّ زمن التسجيل حين يختلفان؛ وإلّا يبقى الزمن الكامل (ترتيب اليوم).
+    ts = occurred if isinstance(occurred, datetime) and day == _effective_day(row, {}) else day
     return {
         "event_type": mapped,
-        "timestamp": _iso(row.get("occurred_at")),
+        "timestamp": _iso(ts),
+        "day": day,
         "payload": payload,
-        "event_id": str(row.get("event_id") or ""),
+        "ref": f"event:{row.get('event_id')}" if row.get("event_id") else "",
+    }
+
+
+def normalize_pest_pin(row: dict[str, Any]) -> dict[str, Any] | None:
+    """صفّ ``scouting_pins`` (فئة آفة/مرض) ⇒ حدث ``pest.scouting_pin``، أو None لغيرها.
+
+    ``created_at`` هو وقت المشاهدة (``scouting_pins.make_pin``)؛ الدبّوس رصدٌ لآفة في الحقل.
+    """
+    if str(row.get("issue_category") or "").lower() not in PEST_PIN_CATEGORIES:
+        return None
+    created = row.get("created_at")
+    day = _effective_day({"occurred_at": created}, {})
+    return {
+        "event_type": "pest.scouting_pin",
+        "timestamp": _iso(created),
+        "day": day,
+        "payload": {
+            "issue_category": row.get("issue_category"),
+            "issue_code": row.get("issue_code"),
+            "severity": row.get("severity"),
+        },
+        "ref": f"scouting_pin:{row.get('pin_id')}" if row.get("pin_id") else "",
     }
 
 
@@ -719,6 +778,17 @@ def _category(mapped_type: str) -> str:
 # ─── NDVI من raster ───────────────────────────────────────────────────
 
 
+def _finite(value: Any) -> float | None:
+    """رقمٌ محدود أو None: نقطة raster مشوّهة (نصّ، NaN، bool) تُسقَط ولا ترفع استثناءً."""
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        out = float(value)
+    except (TypeError, ValueError):
+        return None
+    return out if math.isfinite(out) else None
+
+
 def ndvi_history_from_points(
     points: list[dict[str, Any]], window: SeasonWindow, crop: str
 ) -> tuple[list[dict[str, Any]], list[str], list[str]]:
@@ -744,13 +814,18 @@ def ndvi_history_from_points(
             continue
         if day < window.sowing_date or day > window.end_date:
             continue
-        mean = p.get("mean")
-        cloud = p.get("cloud_pct")
-        if mean is None or cloud is None or float(cloud) > NDVI_MAX_CLOUD_PCT:
+        mean = _finite(p.get("mean"))
+        cloud = _finite(p.get("cloud_pct"))
+        if (
+            mean is None
+            or cloud is None
+            or not (_NDVI_MIN <= mean <= _NDVI_MAX)
+            or not (0.0 <= cloud <= NDVI_MAX_CLOUD_PCT)
+        ):
             dropped += 1
             continue
         stage = "GROWING" if (day - window.sowing_date).days <= veg_days else "MATURE"
-        history.append({"date": day_s, "ndvi_mean": float(mean), "stage": stage})
+        history.append({"date": day_s, "ndvi_mean": mean, "stage": stage})
         ids.append(f"raster:ndvi:{p.get('scene_id') or day_s}")
     warnings = [f"ndvi_points_dropped_unqualified:{dropped}"] if dropped else []
     return history, ids, warnings
@@ -796,8 +871,13 @@ def assemble_server_features(
     ndvi_points: list[dict[str, Any]],
     weather_rain_mm: list[float | None] | None,
     weather_evidence_id: str | None,
+    pest_pin_rows: list[dict[str, Any]] | None = None,
 ) -> ServerYieldEvidence:
-    """يبني ``LifecycleFeatures`` من مصادر الخادم وحدها. نقيّ: لا قاعدة ولا شبكة."""
+    """يبني ``LifecycleFeatures`` من مصادر الخادم وحدها. نقيّ: لا قاعدة ولا شبكة.
+
+    ``event_rows`` صفوف ``events``، و``pest_pin_rows`` صفوف ``scouting_pins``. يُقبل منها ما وقع
+    يومُه (التنفيذ/المشاهدة) داخل نافذة الموسم فقط.
+    """
     if window is None:
         return ServerYieldEvidence(
             features=LifecycleFeatures(field_id=field_id, crop=crop.lower()),
@@ -805,7 +885,15 @@ def assemble_server_features(
             input_sources=dict.fromkeys(OVERRIDABLE_INPUTS, SOURCE_UNKNOWN),
         )
 
-    mapped = [m for m in (normalize_stored_event(r) for r in event_rows) if m is not None]
+    candidates = [normalize_stored_event(r) for r in event_rows]
+    candidates += [normalize_pest_pin(r) for r in (pest_pin_rows or [])]
+    mapped = [
+        m
+        for m in candidates
+        if m is not None
+        and m["day"] is not None
+        and window.sowing_date <= m["day"] <= window.end_date
+    ]
     ndvi_history, ndvi_ids, warnings = ndvi_history_from_points(ndvi_points, window, crop)
     features = build_features_from_events(field_id, crop, mapped, ndvi_history=ndvi_history)
 
@@ -814,8 +902,8 @@ def assemble_server_features(
     for ev in mapped:
         cat = _category(ev["event_type"])
         counts[cat] = counts.get(cat, 0) + 1
-        if ev["event_id"]:
-            refs.append((f"event:{ev['event_id']}", (_CATEGORY_INPUT[cat],)))
+        if ev["ref"]:
+            refs.append((ev["ref"], (_CATEGORY_INPUT[cat],)))
 
     sources = dict.fromkeys(OVERRIDABLE_INPUTS, SOURCE_UNKNOWN)
     # عدّاد صنفٍ بلا حدثٍ واحد منه مجهول، لا صفر: سجلّ الأحداث لا يرصد إلّا ما سُجّل.
@@ -825,7 +913,7 @@ def assemble_server_features(
         ("fertilizer_applications", "fertilizer"),
     ):
         if counts.get(cat):
-            sources[name] = SOURCE_EVENTS
+            sources[name] = SOURCE_SCOUTING if cat == "pest" else SOURCE_EVENTS
         else:
             setattr(features, name, None)
     rainfed = (window.irrigation_type or "").lower() == "rainfed"
@@ -930,6 +1018,8 @@ class LoadedSeason:
     event_rows: list[dict[str, Any]]
     location: tuple[float, float] | None
     events_truncated: bool = False
+    pest_pin_rows: list[dict[str, Any]] = field(default_factory=list)
+    pins_truncated: bool = False
 
 
 async def load_season_and_events(conn, field_id: str, today: date | None = None) -> LoadedSeason:
@@ -957,12 +1047,21 @@ async def load_season_and_events(conn, field_id: str, today: date | None = None)
         end_date=end,
         irrigation_type=srow["irrigation_type"],
     )
+    # النافذة على يوم التنفيذ (``performed_on``) لا زمن التسجيل: نشاطٌ نُفِّذ داخل الموسم وسُجِّل
+    # بعد نهايته يُقرأ، ونشاطٌ نُفِّذ قبل البذار يُستبعَد (التصفية الدقيقة في
+    # ``assemble_server_features``). الحدّ الأدنى على ``occurred_at`` صحيح لأنّ التنفيذ لا يكون
+    # بعد التسجيل (``reject_future_performed_on``)؛ يومٌ هامشاً للمنطقة الزمنيّة. مقارنة
+    # ``performed_on`` نصّيّة على ISO (لا تحويل ``::date`` يُسقط الاستعلام على قيمةٍ مشوّهة).
     rows = await conn.fetch(
         """
         SELECT event_id, event_type, payload, occurred_at
         FROM events
         WHERE (entity_id = $1 OR payload->>'field_id' = $1)
-          AND occurred_at >= $2::date AND occurred_at < ($3::date + 1)
+          AND occurred_at >= ($2::date - 1)
+          AND (
+                occurred_at < ($3::date + 1)
+                OR left(payload->>'performed_on', 10) <= $5
+          )
         ORDER BY occurred_at DESC
         LIMIT $4
         """,
@@ -970,12 +1069,40 @@ async def load_season_and_events(conn, field_id: str, today: date | None = None)
         window.sowing_date,
         window.end_date,
         MAX_SEASON_EVENTS + 1,
+        window.end_date.isoformat(),
     )
     # الأحدث أوّلاً ثمّ يُقلَب: إن بلغ السقفُ يُسقَط الأقدم لا الأحدث، ويُعلَن ذلك.
     truncated = len(rows) > MAX_SEASON_EVENTS
     kept = [dict(r) for r in rows[:MAX_SEASON_EVENTS]]
     kept.reverse()
-    return LoadedSeason(today, window, kept, location, events_truncated=truncated)
+    # مشاهدات الآفات/الأمراض الميدانيّة للموسم (scouting_pins، RLS بالمستأجِر).
+    pins = await conn.fetch(
+        """
+        SELECT pin_id, issue_category, issue_code, severity, created_at
+        FROM scouting_pins
+        WHERE field_id = $1 AND issue_category = ANY($2::text[])
+          AND created_at >= $3::date AND created_at < ($4::date + 1)
+        ORDER BY created_at DESC
+        LIMIT $5
+        """,
+        field_id,
+        list(PEST_PIN_CATEGORIES),
+        window.sowing_date,
+        window.end_date,
+        MAX_SEASON_EVENTS + 1,
+    )
+    pins_truncated = len(pins) > MAX_SEASON_EVENTS
+    pin_rows = [dict(r) for r in pins[:MAX_SEASON_EVENTS]]
+    pin_rows.reverse()
+    return LoadedSeason(
+        today,
+        window,
+        kept,
+        location,
+        events_truncated=truncated,
+        pest_pin_rows=pin_rows,
+        pins_truncated=pins_truncated,
+    )
 
 
 async def load_ndvi_points(field_id: str, tenant_id: str) -> list[dict[str, Any]]:
@@ -1012,12 +1139,35 @@ async def collect_server_evidence(
     field_id: str, overrides: dict[str, Any], loaded: LoadedSeason, tenant_id: str
 ) -> ServerYieldEvidence:
     """يجمع الأدلّة: NDVI من raster وطقس الموسم (حتّى أمس) خارج معاملة القاعدة، ثمّ التجميع
-    النقيّ، ثمّ تجاوزات الطلب المُعلَنة. لا محصول من الموسم ولا من الطلب ⇒ 422."""
+    النقيّ، ثمّ تجاوزات الطلب المُعلَنة. لا محصول من الموسم ولا من الطلب ⇒ 422.
+
+    المحصول: محصول الموسم المزروع يحكم. محصولٌ مُعلَن يُقارَن بعد التطبيع (``yield_crop_key``:
+    «قمح» = "Wheat")؛ المطابق ليس تجاوزاً، والمخالف ⇒ 409 (إغلاق عند الفشل: أحداث الموسم
+    وNDVI لمحصولٍ لا تُقدِّر عائد محصولٍ آخر). بلا محصول موسم يكون المُعلَن تجاوزاً مُعلَناً.
+    """
     from fastapi import HTTPException
 
     window = loaded.window
     declared_crop = overrides.get("crop")
-    crop = declared_crop or (window.crop if window is not None else None)
+    if isinstance(declared_crop, str) and not declared_crop.strip():
+        declared_crop = None
+    season_crop = window.crop if window is not None else None
+    if (
+        declared_crop
+        and season_crop
+        and yield_crop_key(declared_crop) != yield_crop_key(season_crop)
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "declared_crop_conflicts_with_season_crop",
+                "message_ar": "المحصول المُرسَل يخالف محصول الموسم المزروع للحقل.",
+                "declared_crop": declared_crop,
+                "season_crop": season_crop,
+                "season_id": window.season_id if window is not None else None,
+            },
+        )
+    crop = season_crop or declared_crop
     if not crop:
         raise HTTPException(
             status_code=422,
@@ -1033,13 +1183,27 @@ async def collect_server_evidence(
             loaded.location, window.sowing_date, weather_end, tenant_id
         )
     evidence = assemble_server_features(
-        field_id, crop, window, loaded.event_rows, ndvi_points, rain_mm, weather_id
+        field_id,
+        crop,
+        window,
+        loaded.event_rows,
+        ndvi_points,
+        rain_mm,
+        weather_id,
+        pest_pin_rows=loaded.pest_pin_rows,
     )
-    if declared_crop and window is not None and window.crop and declared_crop != window.crop:
+    if declared_crop and not season_crop:
         evidence.declared_overrides.append(
-            {"input": "crop", "declared_value": declared_crop, "server_value": window.crop}
+            {
+                "input": "crop",
+                "declared_value": declared_crop,
+                "server_value": None,
+                "server_source": SOURCE_UNKNOWN,
+            }
         )
     if loaded.events_truncated:
         evidence.warnings.append(f"season_events_truncated_oldest_dropped:{MAX_SEASON_EVENTS}")
+    if loaded.pins_truncated:
+        evidence.warnings.append(f"season_pest_pins_truncated_oldest_dropped:{MAX_SEASON_EVENTS}")
     apply_declared_overrides(evidence, overrides)
     return evidence

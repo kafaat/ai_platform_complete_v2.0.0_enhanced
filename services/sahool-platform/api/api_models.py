@@ -356,7 +356,7 @@ class YieldEstimateRequest(BaseModel):
     field_id: str | None = None  # المرجع هو معرّف المسار؛ هذا للتوافق مع العملاء القائمين.
     # W1-08: الميزات تُجمَع من الخادم (أحداث + NDVI + طقس)، وكلّ قيمة أدناه **تجاوزٌ مُعلَن**
     # يُسجَّل في ``declared_overrides`` مع قيمة الخادم التي استبدلها. المحصول من موسم الحقل
-    # المزروع؛ وإن أُرسل فهو تجاوزٌ مُعلَن أيضاً (أو المصدر الوحيد إن لم يُعرف محصول الموسم).
+    # المزروع؛ المُرسَل يُطابَق معه بعد التطبيع، والمخالف ⇒ 409. بلا محصول موسم هو تجاوزٌ مُعلَن.
     crop: str | None = None
     days_in_growing: int | None = Field(default=None, ge=0)
     irrigation_count: int | None = Field(default=None, ge=0)
