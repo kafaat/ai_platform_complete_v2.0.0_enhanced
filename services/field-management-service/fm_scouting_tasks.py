@@ -45,6 +45,10 @@ SEVERITY_PRIORITY = {"critical": 1, "high": 2, "medium": 3, "low": 4, "info": 5}
 _ID = r"[A-Za-z0-9_.:-]"
 _FIELD_ID_RE = re.compile(rf"^{_ID}{{1,50}}$")  # field_tasks.field_id is VARCHAR(50)
 _KEY_RE = re.compile(rf"^{_ID}{{16,128}}$")
+# season_id is accepted as vegetation's DetectRequest accepts it (any 1-128 characters, e.g.
+# "2026/2027" or Arabic text), minus control characters. It is only ever a bound parameter.
+_SEASON = r"[^\x00-\x1f\x7f]"
+_SEASON_RE = re.compile(rf"^{_SEASON}{{1,128}}$")
 
 _COLUMNS = (
     "task_id, field_id, season_id, anomaly_ref, task_type, status, priority, assigned_to, "
@@ -58,7 +62,7 @@ class ScoutingTaskRequest(BaseModel):
 
     anomaly_ref: str = Field(pattern=rf"^urn:sahool:anomaly:{_ID}{{1,200}}$")
     field_id: str = Field(pattern=rf"^{_ID}{{1,50}}$")
-    season_id: str = Field(pattern=rf"^{_ID}{{1,128}}$")
+    season_id: str = Field(pattern=rf"^{_SEASON}{{1,128}}$")
     geometry_ref: str | None = Field(default=None, min_length=1, max_length=512)
     priority: Literal["critical", "high", "medium", "low", "info"] = "medium"
     verification_deadline: AwareDatetime | None = None
@@ -282,9 +286,10 @@ def build_router(require_tenant: Callable[..., str], connect: Connect) -> APIRou
     ):
         if not _FIELD_ID_RE.fullmatch(field_id):
             raise HTTPException(400, "invalid field_id")
-        for name, value in (("season_id", season_id), ("anomaly_ref", anomaly_ref)):
-            if value is not None and not re.fullmatch(rf"{_ID}{{1,220}}", value):
-                raise HTTPException(400, f"invalid {name}")
+        if season_id is not None and not _SEASON_RE.fullmatch(season_id):
+            raise HTTPException(400, "invalid season_id")
+        if anomaly_ref is not None and not re.fullmatch(rf"{_ID}{{1,220}}", anomaly_ref):
+            raise HTTPException(400, "invalid anomaly_ref")
         tid = tenant_uuid(tenant)
         try:
             items = await _in_tenant_tx(

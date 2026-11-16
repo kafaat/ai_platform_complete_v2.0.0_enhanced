@@ -159,7 +159,13 @@ async def test_the_verification_route_passes_the_verified_tenant_and_stores_the_
     import routers.anomalies as anomalies
     from anomaly_requests import VerificationRequest
 
-    record = {"tenant_id": TENANT, "payload": ANOMALY, "aggregate_version": 1}
+    record = {
+        "tenant_id": TENANT,
+        "payload": ANOMALY,
+        "status": "detected",
+        "aggregate_version": 1,
+        "task_ref": None,
+    }
     calls = {}
 
     class Store:  # the anomaly store's functions, not a database connection
@@ -193,3 +199,71 @@ async def test_the_verification_route_passes_the_verified_tenant_and_stores_the_
     ), "one deterministic key per anomaly, so a retry replays"
     assert calls["transition"][1] == "verification_requested", calls["transition"]
     assert result["task_ref"] == "urn:sahool:task:t-1", result
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("status", "version", "task_ref", "reason"),
+    [
+        ("resolved", 1, None, "invalid_transition:resolved->verification_requested"),
+        ("confirmed", 1, None, "invalid_transition:confirmed->verification_requested"),
+        ("rejected", 1, None, "invalid_transition:rejected->verification_requested"),
+        ("verification_requested", 1, "urn:sahool:task:t-0", "invalid_transition"),
+        ("detected", 2, None, "aggregate_version_conflict"),
+        ("inconclusive", 1, "urn:sahool:task:t-0", "reverification_not_supported"),
+    ],
+)
+async def test_a_refused_verification_creates_no_field_task(
+    monkeypatch, status, version, task_ref, reason
+):
+    """Review MEDIUM (W1-20): the lifecycle check runs before the bridge, so a request the
+    anomaly lifecycle refuses never stores an orphan scouting task in field-management."""
+    import main
+    import routers.anomalies as anomalies
+    from anomaly_requests import VerificationRequest
+    from fastapi import HTTPException
+
+    record = {
+        "tenant_id": TENANT,
+        "payload": ANOMALY,
+        "status": status,
+        "aggregate_version": version,
+        "task_ref": task_ref,
+    }
+    calls = []
+
+    class Store:  # the anomaly store's functions, not a database connection
+        async def get(self, ref, *, tenant_id):
+            return record
+
+        async def transition(self, ref, status, **kwargs):
+            calls.append("transition")
+            raise AssertionError("no transition may run for a refused request")
+
+    class Bridge:
+        async def create_scouting_task(self, **kwargs):
+            calls.append("bridge")
+            return type("R", (), {"task_ref": "urn:sahool:task:t-orphan"})()
+
+    monkeypatch.setattr(main, "_verify_claims", lambda token: {"tenant_id": TENANT})
+    monkeypatch.setattr(main, "_tenant_from_claims", lambda claims: claims["tenant_id"])
+    monkeypatch.setattr(anomalies, "_store", Store())
+    monkeypatch.setattr(anomalies, "_bridge", Bridge())
+    with pytest.raises(HTTPException) as caught:
+        await anomalies.request_ground_verification(
+            ANOMALY["anomaly_ref"],
+            VerificationRequest(expected_version=1),
+            authorization="Bearer user-jwt",
+            token=object(),
+        )
+    assert caught.value.status_code == 409, caught.value.detail
+    assert reason in str(caught.value.detail), caught.value.detail
+    assert calls == [], f"no field task and no transition for a refused request: {calls}"
+
+
+def test_the_verification_sources_follow_the_lifecycle():
+    import routers.anomalies as anomalies
+
+    assert anomalies._VERIFICATION_SOURCES == {"detected", "triaged", "inconclusive"}, (
+        "only states the lifecycle lets move to verification_requested may reach the bridge"
+    )

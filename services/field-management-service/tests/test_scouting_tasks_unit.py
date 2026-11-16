@@ -151,6 +151,24 @@ def test_a_new_task_is_201_with_a_task_ref_and_a_replay_is_200(client, monkeypat
     assert replay.json()["task_id"] == data["task_id"], "a replay names the same task"
 
 
+@pytest.mark.parametrize("season_id", ["2026/2027", "موسم 2026", "sea_demo"])
+def test_any_season_id_vegetation_accepts_is_accepted(client, monkeypatch, season_id):
+    """Vegetation's DetectRequest takes any 1-128 character season_id; a stricter pattern here
+    made every verification of such an anomaly fail with 422 (review LOW, W1-20)."""
+    seen = _stub_store(monkeypatch, lambda: (_task(), False))
+    response = client.post(PATH, json={**BODY, "season_id": season_id}, headers=_headers())
+    assert response.status_code == 201, (season_id, response.text)
+    assert seen[0][1].season_id == season_id, "the season reaches the store unchanged"
+
+
+@pytest.mark.parametrize("season_id", ["", "sea\ndemo", "s" * 129])
+def test_an_empty_control_or_overlong_season_id_is_refused(client, monkeypatch, season_id):
+    seen = _stub_store(monkeypatch, lambda: (_task(), False))
+    response = client.post(PATH, json={**BODY, "season_id": season_id}, headers=_headers())
+    assert response.status_code == 422, (season_id, response.text)
+    assert seen == [], "an invalid season never reaches the store"
+
+
 @pytest.mark.parametrize(
     ("raised", "status"),
     [
