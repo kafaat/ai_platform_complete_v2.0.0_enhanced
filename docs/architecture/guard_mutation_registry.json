@@ -5221,6 +5221,29 @@
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
     },
+    "helm_compose_workload_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_service_in_neither_list_blocks",
+          "find": "    for name in sorted(set(services) - set(workloads) - set(excluded)):",
+          "replace": "    for name in sorted(set(services) - set(workloads) - set(excluded) - set(services)):  # mutated",
+          "why": "Dropping the services ⊆ workloads ∪ ledger half of the set equality lets a compose service reach production with no chart workload and no recorded reason, which is how 61 of 67 default-profile services came to be missing from the chart unnoticed (W3-09)."
+        },
+        {
+          "expect": "test_a_workload_that_drops_a_required_variable_blocks",
+          "find": "        for var in sorted(required - rendered - set(excuses)):",
+          "replace": "        for var in sorted(required - rendered - set(excuses) - required):  # mutated",
+          "why": "Ignoring compose's ${VAR:?} markers renders a pod without a variable its service refuses to start or serve without (W0-04 measured it: no REDIS_URL for the platform, no JWT_PUBLIC_KEY for raster and guardrails)."
+        },
+        {
+          "expect": "test_a_ledger_entry_for_a_ported_service_is_stale",
+          "find": "    for name in sorted(set(excluded) & set(workloads)):",
+          "replace": "    for name in sorted(set(excluded) & set(workloads) & set()):  # mutated",
+          "why": "A ledger that keeps entries for services already ported stops shrinking, and its reasons start describing a chart that no longer exists."
+        }
+      ],
+      "test": "tests_v9/test_helm_compose_workload_guard.py"
+    },
     "json_duplicate_key_guard.py": {
       "mutations": [
         {
