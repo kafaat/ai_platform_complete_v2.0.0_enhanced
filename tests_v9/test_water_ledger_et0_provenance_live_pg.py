@@ -10,7 +10,8 @@ archive, ET0) and the decision bridge. What is measured on the rows:
 * Each entry records ``et0_method``, ``et0_quality``, ``weather_snapshot_id`` and
   ``rain_source='forecast'`` (v279).
 * Forecast rain is re-recorded from the archive before today's entry is built on it:
-  ``rain_source`` becomes ``observed`` and that day's depletion is rebuilt from the day before,
+  ``rain_source`` becomes ``reanalysis`` (v285: the archive is the ERA5 reanalysis, not a gauge)
+  and that day's depletion is rebuilt from the day before,
   so today's balance starts from water that fell, not water that was forecast. The archive
   (ERA5) lags about five days, so the worker re-checks a window of recent forecast rows on
   every cycle: a row the archive fills days later is still re-recorded, and the rows after it
@@ -19,7 +20,12 @@ archive, ET0) and the decision bridge. What is measured on the rows:
 * A degraded Penman-Monteith (elevation rejected, sea-level default) is not reference ET0: the
   entry carries ``et0_reference_unavailable`` and the lowered confidence.
 * v279 is idempotent, its CHECK constraints refuse an unknown rain source, and its .down.sql
-  removes the columns and can be followed by v279 again.
+  removes the columns and can be followed by v279 again (and v285 after it).
+* v285 (WATER-LEDGER-RAIN-SOURCE-REANALYSIS-LABEL-01) is idempotent, widens the rain-source CHECK
+  to forecast/reanalysis/station_observed/field_measured/observed and still refuses an unknown
+  value, relabels only the worker's own archive rows, refuses a role subject to RLS, and its
+  .down.sql maps reanalysis back to observed but refuses (changing nothing) while a row holds a
+  gauge value the v279 CHECK has no name for.
 """
 
 from __future__ import annotations
@@ -54,6 +60,12 @@ ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL", "")
 TZ = "Asia/Aden"
 UP = ROOT / "migrations" / "v279_water_ledger_et0_rain_provenance.sql"
 DOWN = ROOT / "migrations" / "v279_water_ledger_et0_rain_provenance.down.sql"
+UP_285 = ROOT / "migrations" / "v285_water_ledger_rain_source_reanalysis.sql"
+DOWN_285 = ROOT / "migrations" / "v285_water_ledger_rain_source_reanalysis.down.sql"
+_RAIN_CHECK_DEF = (
+    "SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid = 'water_ledger'::regclass"
+    " AND conname = 'water_ledger_rain_source_check'"
+)
 
 
 async def _probe() -> str:
@@ -73,6 +85,8 @@ async def _probe() -> str:
         )
         if cols != 6:
             return "schema not migrated (v279 columns missing)"
+        if "reanalysis" not in (await conn.fetchval(_RAIN_CHECK_DEF) or ""):
+            return "schema not migrated (v285 rain-source CHECK missing)"
     finally:
         await conn.close()
     return ""
@@ -331,7 +345,9 @@ def test_elevation_reaches_et0_provenance_is_stored_and_yesterdays_rain_is_obser
             "tenant": archive[0]["tenant"],
         }
     ], f"the archive was not asked for yesterday only: {archive}"
-    assert yday["rain_source"] == "observed", "yesterday's forecast rain was not re-recorded"
+    assert yday["rain_source"] == "reanalysis", (
+        f"yesterday's forecast rain was not re-recorded as reanalysis: {yday['rain_source']}"
+    )
     assert yday["rain_mm"] == 0.0, f"observed rain not stored: {yday['rain_mm']}"
     assert yday["depletion_mm"] == 26.0, (
         f"yesterday's depletion not rebuilt from the day before with observed rain: "
@@ -411,7 +427,7 @@ def test_a_row_the_lagging_archive_fills_days_later_is_re_recorded_and_the_chain
     assert first_cycle[0]["depletion_mm"] == phantom, "a row was rebuilt with no observation"
 
     d5 = rows[0]
-    assert (d5["rain_source"], d5["rain_mm"], d5["depletion_mm"]) == ("observed", 0.0, 26.0), (
+    assert (d5["rain_source"], d5["rain_mm"], d5["depletion_mm"]) == ("reanalysis", 0.0, 26.0), (
         f"the row the archive filled five days later was not re-recorded: "
         f"{d5['rain_source']}/{d5['rain_mm']}/{d5['depletion_mm']} (phantom {phantom})"
     )
@@ -504,16 +520,171 @@ def test_v278_is_idempotent_constrained_and_reversible():
                 "'rain_source','taw_mm','raw_mm')"
             )
             await admin.execute(UP.read_text(encoding="utf-8"))
+            # v279 again restores its own narrow CHECK; v285 (later in the manifest) widens it.
+            narrow = await admin.fetchval(_RAIN_CHECK_DEF)
+            await admin.execute(UP_285.read_text(encoding="utf-8"))
             after_up = await admin.fetchval(
                 "SELECT count(*) FROM pg_constraint WHERE conrelid='water_ledger'::regclass"
                 " AND conname LIKE 'water_ledger_%_check' AND conname IN"
                 " ('water_ledger_et0_method_check','water_ledger_et0_quality_check',"
                 "'water_ledger_rain_source_check','water_ledger_root_zone_check')"
             )
-            return after_down, after_up
+            return after_down, after_up, narrow, await admin.fetchval(_RAIN_CHECK_DEF)
         finally:
+            # Leave the schema as the manifest leaves it, whatever failed above.
+            await admin.execute(UP_285.read_text(encoding="utf-8"))
             await admin.close()
 
-    after_down, after_up = asyncio.run(run())
+    after_down, after_up, narrow, wide = asyncio.run(run())
     assert after_down == 0, f"v279.down left {after_down} provenance column(s)"
     assert after_up == 4, f"v279 after a rollback did not restore its constraints: {after_up}"
+    assert "reanalysis" not in narrow, f"v279 itself was changed to the v285 CHECK: {narrow}"
+    assert "reanalysis" in wide, f"v285 after v279 did not widen the CHECK: {wide}"
+
+
+def test_v285_relabels_only_proven_archive_rows_refuses_unknown_values_and_rolls_back_safely():
+    """v285 (WATER-LEDGER-RAIN-SOURCE-REANALYSIS-LABEL-01) on the migrated schema.
+
+    Three legacy ``observed`` rows: the worker's own archive row (``water-balance-auto`` with a
+    ``rain_mm``) becomes ``reanalysis``; a row without a figure and a person's row stay
+    ``observed`` (origin not proven). The rollback refuses while a gauge value exists and changes
+    nothing, then maps ``reanalysis`` back to v279's ``observed`` and restores the narrow CHECK.
+    """
+    tenant = str(uuid.uuid4())
+    suffix = uuid.uuid4().hex[:8]
+    archive, bare, person, gauge = (
+        f"v285-{k}-{suffix}" for k in ("archive", "bare", "person", "gauge")
+    )
+    role = f"wl_rls_{suffix}"
+
+    async def sources(admin):
+        rows = await admin.fetch(
+            "SELECT field_id, rain_source FROM water_ledger WHERE field_id = ANY($1::text[])",
+            [archive, bare, person, gauge],
+        )
+        return {r["field_id"]: r["rain_source"] for r in rows}
+
+    async def insert(admin, field_id, source, *, created_by="water-balance-auto", rain=0.0):
+        await admin.execute(
+            "INSERT INTO water_ledger (tenant_id, field_id, ledger_date, rain_mm, rain_source,"
+            " created_by) VALUES ($1::uuid, $2, CURRENT_DATE, $3, $4, $5)",
+            tenant,
+            field_id,
+            rain,
+            source,
+            created_by,
+        )
+
+    async def run():
+        admin = await asyncpg.connect(ADMIN_DSN)
+        out = {}
+        try:
+            # Rows as v279 left them: relabel needs the old CHECK, so roll v285 back first.
+            await admin.execute(DOWN_285.read_text(encoding="utf-8"))
+            out["v279_refuses_reanalysis"] = False
+            try:
+                await insert(admin, gauge, "reanalysis")
+            except asyncpg.CheckViolationError:
+                out["v279_refuses_reanalysis"] = True
+            await insert(admin, archive, "observed", rain=3.5)
+            await insert(admin, bare, "observed", rain=None)
+            await insert(admin, person, "observed", created_by="farmer-1", rain=2.0)
+
+            await admin.execute(UP_285.read_text(encoding="utf-8"))
+            out["after_up"] = await sources(admin)
+            await admin.execute(UP_285.read_text(encoding="utf-8"))  # second application: no-op
+            out["after_second_up"] = await sources(admin)
+            out["wide"] = await admin.fetchval(_RAIN_CHECK_DEF)
+            out["refused"] = []
+            for bad in ("guess", "measured", "OBSERVED", "era5"):
+                try:
+                    await insert(admin, gauge, bad)
+                except asyncpg.CheckViolationError:
+                    out["refused"].append(bad)
+
+            # A role subject to RLS sees no row: v285 must raise, not report a relabel.
+            await admin.execute(
+                f'CREATE ROLE "{role}" NOLOGIN NOSUPERUSER NOBYPASSRLS;'
+                f'GRANT USAGE ON SCHEMA public TO "{role}"'
+            )
+            await admin.execute(f'SET ROLE "{role}"')
+            try:
+                await admin.execute(UP_285.read_text(encoding="utf-8"))
+                out["rls_refusal"] = ""
+            except asyncpg.exceptions.RaiseError as exc:
+                out["rls_refusal"] = str(exc)
+            finally:
+                await admin.execute("ROLLBACK")
+                await admin.execute("RESET ROLE")
+
+            # Rollback with a gauge value present: refused, nothing changed.
+            await insert(admin, gauge, "station_observed", rain=1.0)
+            try:
+                await admin.execute(DOWN_285.read_text(encoding="utf-8"))
+                out["down_refusal"] = ""
+            except asyncpg.exceptions.RaiseError as exc:
+                out["down_refusal"] = str(exc)
+            finally:
+                await admin.execute("ROLLBACK")
+            out["after_refused_down"] = await sources(admin)
+            out["check_after_refused_down"] = await admin.fetchval(_RAIN_CHECK_DEF)
+
+            await admin.execute("DELETE FROM water_ledger WHERE field_id = $1", gauge)
+            await admin.execute(DOWN_285.read_text(encoding="utf-8"))
+            await admin.execute(DOWN_285.read_text(encoding="utf-8"))  # idempotent rollback
+            out["after_down"] = await sources(admin)
+            out["narrow"] = await admin.fetchval(_RAIN_CHECK_DEF)
+            out["down_refuses_reanalysis"] = False
+            try:
+                await insert(admin, gauge, "reanalysis")
+            except asyncpg.CheckViolationError:
+                out["down_refuses_reanalysis"] = True
+            await admin.execute(UP_285.read_text(encoding="utf-8"))
+            out["after_reapply"] = await sources(admin)
+            return out
+        finally:
+            await admin.execute("ROLLBACK")
+            await admin.execute("RESET ROLE")
+            await admin.execute(
+                "DELETE FROM water_ledger WHERE field_id = ANY($1::text[])",
+                [archive, bare, person, gauge],
+            )
+            await admin.execute(UP_285.read_text(encoding="utf-8"))
+            if await admin.fetchval("SELECT 1 FROM pg_roles WHERE rolname = $1", role):
+                await admin.execute(
+                    f'REVOKE ALL ON SCHEMA public FROM "{role}"; DROP ROLE "{role}"'
+                )
+            await admin.close()
+
+    out = asyncio.run(run())
+    assert out["v279_refuses_reanalysis"], "the v279 CHECK (after v285.down) accepted 'reanalysis'"
+    expected = {archive: "reanalysis", bare: "observed", person: "observed"}
+    assert out["after_up"] == expected, (
+        f"v285 relabelled an unproven row or missed the worker's archive row: {out['after_up']}"
+    )
+    assert out["after_second_up"] == expected, "a second v285 changed rows"
+    for value in ("forecast", "reanalysis", "station_observed", "field_measured", "observed"):
+        assert f"'{value}'" in out["wide"], f"v285 CHECK does not allow {value}: {out['wide']}"
+    assert out["refused"] == ["guess", "measured", "OBSERVED", "era5"], (
+        f"the v285 CHECK accepted an unknown rain source: refused only {out['refused']}"
+    )
+    assert "subject to RLS" in out["rls_refusal"], (
+        f"v285 ran under a role subject to RLS without refusing: {out['rls_refusal']!r}"
+    )
+    assert "rollback refused" in out["down_refusal"], (
+        f"v285.down did not refuse a station_observed row: {out['down_refusal']!r}"
+    )
+    assert out["after_refused_down"] == {**expected, gauge: "station_observed"}, (
+        f"a refused rollback changed rows: {out['after_refused_down']}"
+    )
+    assert "reanalysis" in out["check_after_refused_down"], "a refused rollback narrowed the CHECK"
+    assert out["after_down"] == {archive: "observed", bare: "observed", person: "observed"}, (
+        f"v285.down did not map reanalysis back to observed: {out['after_down']}"
+    )
+    assert "reanalysis" not in out["narrow"] and "'observed'" in out["narrow"], (
+        f"v285.down did not restore the v279 CHECK: {out['narrow']}"
+    )
+    assert out["down_refuses_reanalysis"], "after v285.down the CHECK still accepts 'reanalysis'"
+    assert out["after_reapply"] == expected, (
+        f"v285 after its rollback did not relabel the archive row again: {out['after_reapply']}"
+    )

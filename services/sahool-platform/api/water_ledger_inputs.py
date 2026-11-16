@@ -99,16 +99,36 @@ def field_elevation_m(value) -> float | None:
     return _finite(value)
 
 
-#: مصدر ``water_ledger.rain_mm`` (v279): توقّعُ اليوم حين يُكتب القيد، والأرشيفُ المرصود
-#: حين يُعاد تسجيله بعد أن يمتلئ الأرشيف.
+#: مصدر ``water_ledger.rain_mm`` (v279، v285): توقّعُ اليوم حين يُكتب القيد، وأرشيفُ خدمة
+#: الطقس حين يُعاد تسجيله بعد أن يمتلئ الأرشيف. الأرشيفُ إعادةُ تحليل ERA5 (ناتجُ نموذج)، لا
+#: مقياسُ مطرٍ في محطّة ولا قياسٌ في الحقل، فيُسمّى ``reanalysis`` لا ``observed``
+#: (WATER-LEDGER-RAIN-SOURCE-REANALYSIS-LABEL-01). ``station_observed`` و``field_measured``
+#: محجوزان في قيد v285 بلا كاتبٍ بعد. ``observed`` قيمةُ v279 القديمة: لا يكتبها أحد، ويبقى
+#: مقبولاً لصفوفٍ لم يُثبِت v285 أنّ مطرها من الأرشيف.
 RAIN_SOURCE_FORECAST = "forecast"
-RAIN_SOURCE_OBSERVED = "observed"
+RAIN_SOURCE_REANALYSIS = "reanalysis"
+RAIN_SOURCE_STATION_OBSERVED = "station_observed"
+RAIN_SOURCE_FIELD_MEASURED = "field_measured"
+RAIN_SOURCE_LEGACY_OBSERVED = "observed"
+
+#: كلُّ قيمةٍ يقبلها ``water_ledger_rain_source_check`` (v285)، بترتيب القيد.
+RAIN_SOURCES = (
+    RAIN_SOURCE_FORECAST,
+    RAIN_SOURCE_REANALYSIS,
+    RAIN_SOURCE_STATION_OBSERVED,
+    RAIN_SOURCE_FIELD_MEASURED,
+    RAIN_SOURCE_LEGACY_OBSERVED,
+)
+
+#: مطرٌ مسجَّلٌ من مصدرٍ غير التوقّع: رقمُه ليس افتراضاً، فلا يبقى معه علَمُ
+#: ``precipitation_assumed_zero``. يشمل ``observed`` القديمة (معناها في v279: الأرشيف).
+RAIN_SOURCES_RECORDED = frozenset(RAIN_SOURCES) - {RAIN_SOURCE_FORECAST}
 
 #: نافذةُ إعادة تسجيل المطر (أيّام قبل اليوم). أرشيفُ خدمة الطقس (إعادة تحليل ERA5) يتأخّر
 #: نحو خمسة أيّام (``season_simulation._ERA5_LAG_DAYS``): مطرُ الأمس غائبٌ عنه عادةً. لذلك
 #: لا يُفحَص قيدُ الأمس وحده بل كلُّ قيدٍ آليٍّ متوقَّع المطر في النافذة، كلَّ دورة، حتّى
 #: يمتلئ الأرشيف. النافذةُ أطولُ من التأخّر بهامش؛ ما يخرج منها متوقَّعاً يبقى معلَناً
-#: ``rain_source='forecast'`` لا مرصوداً.
+#: ``rain_source='forecast'`` لا أرشيفاً.
 RAIN_RECONCILE_WINDOW_DAYS = 10
 
 
@@ -210,7 +230,7 @@ def rebuild_ledger_row(
     if not (_finite(taw_mm) and taw_mm > 0) or _finite(raw_mm) is None or raw_mm > taw_mm:
         raise ValueError("TAW/RAW غير صالحين لإعادة حساب القيد")
     dropped = {"depletion_capped_at_taw"}
-    if rain_source == RAIN_SOURCE_OBSERVED:
+    if rain_source in RAIN_SOURCES_RECORDED:
         dropped.add("precipitation_assumed_zero")
     notes = [n for n in (ledger_notes_from_decision(row["decision"]) or []) if n not in dropped]
     if _BOOTSTRAP_NOTE in notes:
@@ -246,12 +266,12 @@ def reconcile_forecast_rain(
     taw_mm: float,
     raw_mm: float,
 ) -> dict | None:
-    """قيدٌ مُعاداً حسابُه بالمطر المرصود بدل المتوقَّع (``rebuild_ledger_row`` بمطرٍ مرصود)."""
+    """قيدٌ مُعاداً حسابُه بمطر الأرشيف بدل المتوقَّع، مصدرُه ``reanalysis`` (v285)."""
     return rebuild_ledger_row(
         prev,
         start_depletion_mm=start_depletion_mm,
         rain_mm=observed_rain_mm,
-        rain_source=RAIN_SOURCE_OBSERVED,
+        rain_source=RAIN_SOURCE_REANALYSIS,
         taw_mm=taw_mm,
         raw_mm=raw_mm,
     )
@@ -307,7 +327,7 @@ def rebuild_rain_chain(
                 row,
                 start_depletion_mm=start,
                 rain_mm=observed[day] if rain_fix else float(row["rain_mm"]),
-                rain_source=RAIN_SOURCE_OBSERVED if rain_fix else row["rain_source"],
+                rain_source=RAIN_SOURCE_REANALYSIS if rain_fix else row["rain_source"],
                 taw_mm=float(row["taw_mm"]),
                 raw_mm=float(row["raw_mm"]),
             )

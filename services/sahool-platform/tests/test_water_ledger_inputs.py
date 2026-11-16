@@ -384,10 +384,11 @@ def test_the_archive_is_asked_from_the_oldest_rebuildable_forecast_row_in_the_wi
     assert wli.rain_reconcile_start(rows, TODAY, AUTO) == _day(3), (
         "أقدمُ قيدٍ مؤهَّل في النافذة لم يُختَر بدايةً لطلب الأرشيف"
     )
-    observed_only = [_prev(ledger_date=_day(k), rain_source="observed") for k in (3, 2, 1)]
-    assert wli.rain_reconcile_start(observed_only, TODAY, AUTO) is None, (
-        "لا قيدَ متوقَّعاً ⇒ لا نداءَ للأرشيف"
-    )
+    for source in ("reanalysis", "observed", "station_observed", "field_measured"):
+        recorded = [_prev(ledger_date=_day(k), rain_source=source) for k in (3, 2, 1)]
+        assert wli.rain_reconcile_start(recorded, TODAY, AUTO) is None, (
+            f"لا قيدَ متوقَّعاً ({source}) ⇒ لا نداءَ للأرشيف"
+        )
     for over, why in (
         ({"rain_source": None}, "قيدٌ بلا نَسَب"),
         ({"decision": "measured_as_applied"}, "ليس قيد العامل"),
@@ -401,7 +402,7 @@ def test_a_row_the_archive_fills_days_later_is_still_re_recorded():
     """المراجعة: الأرشيف يتأخّر ~5 أيّام؛ قيدٌ عمره خمسة أيّام يجب أن يُرصَد حين يمتلئ."""
     from api.water_balance import _effective_rain
 
-    anchor = _prev(ledger_date=_day(6), rain_source="observed", depletion_mm=20.0)
+    anchor = _prev(ledger_date=_day(6), rain_source="reanalysis", depletion_mm=20.0)
     lagged = _prev(
         ledger_date=_day(5),
         depletion_mm=round(20.0 + 6.0 - _effective_rain(10.0), 2),
@@ -420,7 +421,7 @@ def test_a_row_the_archive_fills_days_later_is_still_re_recorded():
     assert [u["ledger_date"] for u in updates] == [_day(k) for k in (5, 4, 3, 2, 1)], (
         "السلسلة بعد اليوم المرصود لم يُعَد بناؤها حتّى الأمس"
     )
-    assert updates[0]["rain_source"] == "observed" and updates[0]["rain_mm"] == 0.0, (
+    assert updates[0]["rain_source"] == "reanalysis" and updates[0]["rain_mm"] == 0.0, (
         "المطر المتوقَّع قبل خمسة أيّام لم يُستبدَل بالمرصود"
     )
     assert updates[0]["depletion_mm"] == 26.0, "استنزافُ اليوم المرصود لم يُبنَ من مرساته"
@@ -492,7 +493,7 @@ def test_forecast_rain_is_replaced_by_the_observed_and_depletion_rebuilt():
     fixed = wli.reconcile_forecast_rain(
         _prev(), start_depletion_mm=20.0, observed_rain_mm=2.0, taw_mm=120.0, raw_mm=60.0
     )
-    assert fixed["rain_source"] == "observed", "المصدر لم يصِر مرصوداً"
+    assert fixed["rain_source"] == "reanalysis", "مطرُ الأرشيف لم يُسَمَّ إعادةَ تحليل (v285)"
     assert fixed["rain_mm"] == 2.0, "المطر المرصود لم يحلّ محلّ المتوقَّع"
     expected = round(20.0 + 6.0 - _effective_rain(2.0) - 0.0, 2)
     assert fixed["depletion_mm"] == expected, "الاستنزاف لم يُبنَ من بداية اليوم بالمطر المرصود"
@@ -549,3 +550,66 @@ def test_the_frozen_worker_passes_elevation_and_records_provenance():
         "prev_depletion_mm=prev_depletion,",
     ):
         assert wired in body, f"غير موصول في العامل: {wired}"
+
+
+# ── v285: مطرُ الأرشيف إعادةُ تحليل لا رصد (WATER-LEDGER-RAIN-SOURCE-REANALYSIS-LABEL-01) ──
+
+_MIGRATIONS = Path(__file__).resolve().parents[3] / "migrations"
+
+
+def _check_values(sql: str) -> list[str]:
+    import re
+
+    start = sql.index("ADD CONSTRAINT water_ledger_rain_source_check")
+    body = sql[start : sql.index(";", start)]
+    inside = body[body.index("rain_source IN (") :]
+    return re.findall(r"'([a-z_]+)'", inside[: inside.index(")")])
+
+
+def test_the_sources_the_worker_knows_are_exactly_the_v285_check():
+    sql = (_MIGRATIONS / "v285_water_ledger_rain_source_reanalysis.sql").read_text(encoding="utf-8")
+    assert _check_values(sql) == list(wli.RAIN_SOURCES), (
+        f"قيد v285 والثوابت افترقا: {_check_values(sql)} != {list(wli.RAIN_SOURCES)}"
+    )
+    down = (_MIGRATIONS / "v285_water_ledger_rain_source_reanalysis.down.sql").read_text(
+        encoding="utf-8"
+    )
+    assert _check_values(down) == ["forecast", "observed"], "التراجع لا يعيد قيد v279"
+    v279 = (_MIGRATIONS / "v279_water_ledger_et0_rain_provenance.sql").read_text(encoding="utf-8")
+    assert "rain_source IN ('forecast', 'observed')" in v279, "v279 عُدِّل؛ التوسعة مكانها v285"
+
+
+def test_archive_rain_is_written_as_reanalysis_never_as_observed():
+    updates, _ = wli.rebuild_rain_chain(
+        [_prev(ledger_date=_day(2), rain_source="reanalysis", depletion_mm=20.0), _prev()],
+        {_day(1): 0.0},
+        TODAY,
+        AUTO,
+    )
+    assert [u["rain_source"] for u in updates] == ["reanalysis"], (
+        f"مطرُ الأرشيف كُتب بغير reanalysis: {[u['rain_source'] for u in updates]}"
+    )
+    assert updates[0]["expected_rain_source"] == "forecast", "شرطُ UPDATE لا يحمل المصدر السابق"
+
+
+@pytest.mark.parametrize("source", ["reanalysis", "observed", "station_observed", "field_measured"])
+def test_a_rebuilt_recorded_rain_row_drops_the_assumed_zero_flag_like_legacy_observed(source):
+    """قيدٌ مطرُه مسجَّل (لا متوقَّع) يُعاد بناؤه لأنّ بدايته تغيّرت: علَمُ «مطرٌ مفترَضٌ صفراً»
+    لا يبقى معه. كان الشرطُ ``== 'observed'``، فيبقى العلَمُ على قيد ``reanalysis`` وتنخفض ثقتُه."""
+    row = _prev(rain_source=source, rain_mm=0.0, decision="auto:precipitation_assumed_zero")
+    rebuilt = wli.rebuild_ledger_row(
+        row, start_depletion_mm=20.0, rain_mm=0.0, rain_source=source, taw_mm=120.0, raw_mm=60.0
+    )
+    assert "precipitation_assumed_zero" not in rebuilt["decision"], (
+        f"علَمُ مطرٍ مفترَض بقي على قيدٍ مصدرُه {source}"
+    )
+    assert rebuilt["confidence"] == CONFIDENCE_AUTO, f"الثقة لم تُشتقَّ للمصدر {source}"
+    kept = wli.rebuild_ledger_row(
+        _prev(rain_mm=0.0, decision="auto:precipitation_assumed_zero"),
+        start_depletion_mm=20.0,
+        rain_mm=0.0,
+        rain_source="forecast",
+        taw_mm=120.0,
+        raw_mm=60.0,
+    )
+    assert "precipitation_assumed_zero" in kept["decision"], "توقّعٌ مفقود فقد علَمَه"
