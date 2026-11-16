@@ -86,3 +86,27 @@ async def test_unknown_identity_stays_none_not_fabricated(monkeypatch):
     assert point["geometry_revision"] is None
     assert point["source_uri"] is None
     assert point["scene_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_point_carries_its_product_revision(monkeypatch):
+    """W1-11: indicators-service serves a stored observation for a timeline point only at the
+    same product revision; the point names the producer's algorithm and QA mask versions."""
+    payload = _grid(revision=3, source_uri="s3://r/f/ndvi/r3.tif")
+    payload["indicator_product"] = from_grid_response(
+        payload,
+        provenance=ProvenanceRecord(
+            scene_id="S2A_T38PNA_20250110",
+            source_uri="s3://r/f/ndvi/r3.tif",
+            algorithm_version="2.2.0",
+            qa_mask_version="scl-v1",
+        ),
+    )
+    (point,) = await _points(monkeypatch, payload)
+    assert (point["algorithm_version"], point["qa_mask_version"]) == ("2.2.0", "scl-v1")
+
+
+@pytest.mark.asyncio
+async def test_unrecorded_product_revision_stays_none(monkeypatch):
+    (point,) = await _points(monkeypatch, _grid(revision=3, source_uri="s3://r/f/ndvi/r3.tif"))
+    assert point["algorithm_version"] is None and point["qa_mask_version"] is None

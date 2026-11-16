@@ -16,6 +16,8 @@ NOBYPASSRLS role and the real raster outbox drained on the owner connection:
 5. another tenant sees none of it, cannot insert under the first tenant, and its read is empty;
 6. ``/observations`` serves the stored fact of the product raster-service serves now, twice
    identically, and after a boundary edit serves raster's current value, never the old polygon's;
+   the season timeline serves a stored point only at raster's product revision, so a reprocess
+   whose push is not stored keeps raster's value;
 7. a push that failed stays pending in the outbox and the worker's drain delivers it later;
 8. v286 re-applies cleanly, and its down removes both tables (then it is applied again).
 
@@ -29,6 +31,7 @@ import importlib.util
 import os
 import sys
 import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -398,6 +401,46 @@ def test_observations_serve_the_stored_fact_of_raster_s_current_product(svc, mon
     bound = _read()
     assert bound["observation_source"] == "canonical_store", bound
     assert float(bound["observations"][0]["summary"]["mean"]) == pytest.approx(0.43), bound
+
+
+def test_the_timeline_serves_a_stored_point_only_at_raster_s_product_revision(svc):
+    """W1-11 review (MEDIUM): the season timeline binds a raster point to the stored row the
+    store's read returns for that day, at the same product revision (``match_bundle_item``).
+    After a reprocess under a new algorithm whose push is not stored, raster's value is served."""
+    main, client = svc
+    store = main.observation_store
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    assert _post(client, _payload(tenant, field)).status_code == 201, "seed: algorithm 2.1.0"
+    rows = asyncio.run(
+        store.observations_between(
+            tenant_id=uuid.UUID(tenant),
+            field_id=field,
+            indicator="ndvi",
+            start=datetime(2026, 10, 1, tzinfo=UTC),
+            end=datetime(2026, 11, 1, tzinfo=UTC),
+        )
+    )
+    assert rows and rows[0]["acquisition_day_id"], f"the read carries the day id: {rows}"
+
+    def _point(algorithm):
+        return {
+            "datetime": "2026-10-15",
+            "mean": 0.42,
+            "scene_id": "S2A_LIVE_SCENE",
+            "geometry_revision": 1,
+            "algorithm_version": algorithm,
+            "qa_mask_version": "scl-v1",
+        }
+
+    def _merge(point):
+        return store.merge_timeline_points(
+            [point], rows, tenant_id=uuid.UUID(tenant), field_id=field, indicator="ndvi"
+        )
+
+    same, stored = _merge(_point("2.1.0"))
+    assert stored == 1 and same[0]["mean"] == pytest.approx(0.61), "the stored fact"
+    reprocessed = _point("3.0.0")
+    assert _merge(reprocessed) == ([reprocessed], 0), "never the old algorithm's stored 0.61"
 
 
 def test_a_failed_push_stays_pending_and_the_drain_delivers_it(svc, monkeypatch):

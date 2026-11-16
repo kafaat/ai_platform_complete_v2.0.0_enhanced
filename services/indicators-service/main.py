@@ -381,7 +381,9 @@ async def observation_timeline(
         )
         if not rows:
             return points, 0
-        return observation_store.merge_timeline_points(points, rows)
+        return observation_store.merge_timeline_points(
+            points, rows, tenant_id=tenant_id, field_id=field_id, indicator=indicator
+        )
 
     try:
         entries = await fetch_canonical_timeline(

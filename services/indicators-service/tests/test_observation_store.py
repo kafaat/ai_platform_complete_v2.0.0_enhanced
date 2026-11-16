@@ -533,7 +533,8 @@ def _season_client(monkeypatch, points, *, raster_status=200):
     return seen
 
 
-def _raster_point(day, mean, scene=None, revision=3):
+def _raster_point(day, mean, scene=None, revision=3, algorithm="2.1.0", qa="scl-v1"):
+    """One raster ``/timeseries`` point as ``raster_field_runtime._timeseries_point`` builds it."""
     return {
         "datetime": day,
         "mean": mean,
@@ -542,6 +543,9 @@ def _raster_point(day, mean, scene=None, revision=3):
         "cloud_pct": 3.0,
         "scene_id": scene or f"S2A_{day}",
         "geometry_revision": revision,
+        "source_uri": f"s3://bucket/fld_a/ndvi_{day}.tif",
+        "algorithm_version": algorithm,
+        "qa_mask_version": qa,
     }
 
 
@@ -638,7 +642,65 @@ def test_the_timeline_still_fails_when_raster_cannot_answer(monkeypatch):
     assert _timeline().status_code == 424, "no silent store-only history when raster is down"
 
 
+def _merge(points, rows):
+    return observation_store.merge_timeline_points(
+        points, rows, tenant_id=UUID(TENANT), field_id="fld_a", indicator="ndvi"
+    )
+
+
 def test_a_raster_point_without_a_scene_is_left_as_computed():
     point = {"datetime": "2026-10-15", "mean": 0.5, "scene_id": None, "geometry_revision": 3}
-    merged, stored = observation_store.merge_timeline_points([point], [_row()])
+    merged, stored = _merge([point], [_row()])
     assert (merged, stored) == ([point], 0), "an unnamed scene cannot prove the same product"
+
+
+def test_a_reprocessed_scene_serves_raster_current_value_not_the_old_stored_row(monkeypatch):
+    """W1-11 review (MEDIUM): the same scene and geometry revision reprocessed under a new
+    algorithm. The new revision's push has not reached the store (still pending in the raster
+    outbox, or refused), so the store holds only the old algorithm's row. The timeline must serve
+    raster's current value, as /observations does (``match_bundle_item``), not the old fact."""
+    points = [_raster_point("2026-10-15", 0.42, scene="S2A_TEST_SCENE", algorithm="2.2.0")]
+    _season_client(monkeypatch, points)
+    rows = [_row(algorithm_version="2.1.0")]  # mean 0.61, the superseded revision
+
+    async def _between(**_kw):
+        return rows
+
+    monkeypatch.setattr(main.observation_store, "observations_between", _between)
+    body = _timeline().json()
+    assert body["observation_sources"] == {"ndvi": "raster_computed_fallback"}, body
+    [entry] = body["entries"]
+    assert float(entry["summary"]["mean"]) == pytest.approx(0.42), (
+        "raster's current product, not the stored value of the older algorithm"
+    )
+
+
+@pytest.mark.parametrize(
+    "point_overrides",
+    [
+        {"algorithm": "2.2.0"},
+        {"qa": "scl-v2"},
+        {"revision": 4},
+        {"algorithm": None},
+    ],
+    ids=["other_algorithm", "other_qa_mask", "other_geometry", "unreported_algorithm"],
+)
+def test_the_timeline_matches_the_full_product_revision(point_overrides):
+    point = _raster_point("2026-10-15", 0.42, scene="S2A_TEST_SCENE", **point_overrides)
+    merged, stored = _merge([point], [_row()])
+    assert (merged, stored) == ([point], 0), "a row of another revision is never served"
+
+
+def test_the_timeline_and_observations_share_one_matching_rule():
+    point = _raster_point("2026-10-15", 0.42, scene="S2A_TEST_SCENE")
+    row = _row()
+    merged, stored = _merge([point], [row])
+    assert stored == 1 and merged[0]["mean"] == pytest.approx(0.61), merged
+    assert (
+        observation_store.match_bundle_item(
+            [row],
+            observation_id=row["acquisition_day_id"],
+            identity=observation_store.timeline_point_identity(point),
+        )
+        is row
+    )

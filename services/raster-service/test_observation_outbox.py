@@ -202,7 +202,7 @@ def test_an_unrecorded_outcome_is_reported_pending(outbox):
 def test_without_a_database_the_outbox_is_not_claimed(monkeypatch):
     monkeypatch.setattr(db_persist, "DATABASE_URL", "")
     assert asyncio.run(observation_outbox.enqueue(_build())) is None, (
-        "no database: no retry marker, and the caller logs that"
+        "no database: no outbox row, and the caller holds the payload as unqueued"
     )
 
 
@@ -373,3 +373,73 @@ def test_the_drain_budget_is_spent_on_a_clock():
     assert observation_outbox.DRAIN_BUDGET_S < 120, (
         "a drain must end well inside the worker heartbeat max-age (120 s)"
     )
+
+
+# ── an outbox that cannot be written: held, counted, queued by the next publish ─────────────
+@pytest.fixture
+def no_outbox(monkeypatch):
+    """The outbox write fails until ``state["db"]`` is set; the held set starts empty."""
+    import raster_batch_observability
+
+    state = {"db": False, "enqueued": [], "recorded": []}
+
+    async def _enqueue(payload):
+        if not state["db"]:
+            return None
+        state["enqueued"].append(payload)
+        return (len(state["enqueued"]), "pending")
+
+    async def _record(tenant_id, row_id, attempts, out):
+        state["recorded"].append((row_id, out.status))
+        return True
+
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "tok")
+    monkeypatch.setattr(observation_outbox, "enqueue", _enqueue)
+    monkeypatch.setattr(observation_outbox, "record_outcome", _record)
+    monkeypatch.setattr(observation_outbox, "_UNQUEUED", {}, raising=False)
+    raster_batch_observability.reset()
+    yield state
+    raster_batch_observability.reset()
+
+
+def test_a_failed_push_without_an_outbox_is_held_counted_and_queued_later(no_outbox):
+    """W1-11 review (LOW): the outbox write failed and the one push did not settle. The payload
+    must not be lost: it is a counted, retryable state that the next publish writes to the
+    outbox, from where the worker drains it."""
+    import raster_batch_observability
+
+    first = _build()
+    status = asyncio.run(observation_outbox.publish(first, transport=_transport(503, [])))
+    assert status == "unqueued", status
+    assert observation_outbox.unqueued_count() == 1, "held for retry, not only logged"
+    assert raster_batch_observability.snapshot().get("observation_outbox_unqueued_total") == 1
+
+    no_outbox["db"] = True  # the database is back
+    second = _build(scene_id="scene_2")
+    status = asyncio.run(observation_outbox.publish(second, transport=_transport(503, [])))
+    assert status == "pending", status
+    assert [p["scene_id"] for p in no_outbox["enqueued"]] == [first["scene_id"], "scene_2"], (
+        "the held payload reaches the outbox first, then the new one"
+    )
+    assert observation_outbox.unqueued_count() == 0
+    assert raster_batch_observability.snapshot().get("observation_outbox_requeued_total") == 1
+
+
+def test_a_settled_push_without_an_outbox_is_not_held(no_outbox):
+    status = asyncio.run(observation_outbox.publish(_build(), transport=_transport(201, [])))
+    assert status == "delivered", status
+    assert observation_outbox.unqueued_count() == 0, "a delivered observation needs no retry"
+
+
+def test_the_unqueued_hold_is_bounded_and_counts_what_it_drops(no_outbox, monkeypatch):
+    import raster_batch_observability
+
+    monkeypatch.setattr(observation_outbox, "UNQUEUED_LIMIT", 2)
+    for n in range(3):
+        asyncio.run(
+            observation_outbox.publish(_build(scene_id=f"s{n}"), transport=_transport(503, []))
+        )
+    assert observation_outbox.unqueued_count() == 2
+    counters = raster_batch_observability.snapshot()
+    assert counters.get("observation_outbox_unqueued_total") == 3, counters
+    assert counters.get("observation_outbox_unqueued_dropped_total") == 1, counters

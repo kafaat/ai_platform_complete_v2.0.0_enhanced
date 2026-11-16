@@ -4,10 +4,19 @@ Owner decision of 2026-11-16: indicators-service owns the append-only ``canonica
 table (migrations/v286) and raster-service pushes each published asset to it over HTTP
 (``POST /internal/v1/observations``), not NATS. raster-service never writes that table.
 
-A push that fails is never lost: the publish path first writes the payload to
+A push that fails is not lost: the publish path first writes the payload to
 ``raster_observation_outbox`` (owned here, v286), then calls indicators-service and records the
 outcome on that row. A row still ``pending`` is re-sent by the cache invalidation worker
 (``drain_once``) with a capped exponential backoff, for as long as it takes.
+
+When the outbox itself cannot be written and the one push does not settle the observation either,
+the payload is ``unqueued``: it is held in this process (bounded, ``UNQUEUED_LIMIT``) and every
+later ``publish`` first writes the held payloads to the outbox, from where the worker drains them.
+Each such payload is counted (``raster_batch_observability``, exported on ``/metrics`` as
+``sahool_raster_batch_observation_outbox_unqueued_total``; ``..._requeued_total`` when it reached
+the outbox, ``..._unqueued_dropped_total`` when the bound drops it) and logged. A held payload
+is durable only once it is in the outbox: a process restart before that loses it, which shows as
+``unqueued_total`` above ``requeued_total + unqueued_dropped_total``.
 
 Outcomes: 200/201 ``delivered`` · 409 ``conflict`` (the store holds the same observation id with
 other content; terminal, surfaced in the log and on the row) · 400/403/422 ``rejected``
@@ -46,6 +55,11 @@ DELIVERED = "delivered"
 CONFLICT = "conflict"
 REJECTED = "rejected"
 PENDING = "pending"
+#: The push did not settle and the outbox could not be written: held here for the next publish.
+UNQUEUED = "unqueued"
+UNQUEUED_LIMIT = int(os.getenv("OBSERVATION_UNQUEUED_LIMIT", "1000"))
+#: Payloads with no outbox row yet, by content digest (insertion order: oldest first).
+_UNQUEUED: dict[str, dict[str, Any]] = {}
 _TERMINAL_CLIENT_ERRORS = {400, 403, 422}
 
 
@@ -266,7 +280,7 @@ async def enqueue(payload: dict[str, Any]) -> tuple[int, str] | None:
             if row is None:
                 row = await conn.fetchrow(_EXISTING, tenant, identity, digest)
         return (int(row["id"]), str(row["status"])) if row is not None else None
-    except Exception as exc:  # noqa: BLE001 — reported as "no retry marker" by the caller
+    except Exception as exc:  # noqa: BLE001 — the caller holds the payload as unqueued
         logger.error("raster_observation_outbox write failed: %s", type(exc).__name__)
         return None
     finally:
@@ -290,26 +304,78 @@ async def record_outcome(tenant_id: str, row_id: int, attempts: int, out: PushOu
         await conn.close()
 
 
+def _count(name: str, amount: int = 1) -> None:
+    try:
+        import raster_batch_observability
+
+        raster_batch_observability.inc(name, amount)
+    except Exception:  # noqa: BLE001 — a counter never fails the publish path
+        pass
+
+
+def unqueued_count() -> int:
+    """How many payloads are held with no outbox row (the retryable ``unqueued`` state)."""
+    return len(_UNQUEUED)
+
+
+def _hold(payload: dict[str, Any]) -> None:
+    digest = payload_sha256(payload)
+    if digest not in _UNQUEUED:
+        _count("observation_outbox_unqueued_total")
+    _UNQUEUED[digest] = payload
+    while len(_UNQUEUED) > max(UNQUEUED_LIMIT, 1):
+        dropped = _UNQUEUED.pop(next(iter(_UNQUEUED)))
+        _count("observation_outbox_unqueued_dropped_total")
+        logger.error(
+            "canonical observation dropped from the unqueued hold (limit %s) field_id=%s index=%s",
+            UNQUEUED_LIMIT,
+            dropped.get("field_id"),
+            dropped.get("indicator"),
+        )
+    logger.error(
+        "canonical observation unqueued (outbox unavailable, push not settled) field_id=%s "
+        "index=%s held=%s",
+        payload.get("field_id"),
+        payload.get("indicator"),
+        len(_UNQUEUED),
+    )
+
+
+async def requeue_unqueued() -> int:
+    """Write the held payloads to the outbox (oldest first); stop at the first failure.
+
+    Returns how many reached the outbox; the worker's drain sends them from there."""
+    moved = 0
+    for digest in list(_UNQUEUED):
+        if await enqueue(_UNQUEUED[digest]) is None:
+            break
+        _UNQUEUED.pop(digest, None)
+        moved += 1
+    if moved:
+        _count("observation_outbox_requeued_total", moved)
+        logger.info("canonical observation outbox: %s held payloads queued", moved)
+    return moved
+
+
 async def publish(payload: dict[str, Any], *, transport: Any = None) -> str:
     """Write the outbox row, push once, record the outcome. Returns the row status. Never raises.
 
-    If the outbox cannot be written the push is still attempted, and the log says the retry
-    marker is missing; that is the only case in which a failed push is not retried.
+    If the outbox cannot be written the push is still attempted. A push that settles the
+    observation (delivered, conflict, rejected) needs no retry. Otherwise the payload is held as
+    ``unqueued`` (counted, see the module doc) and the next publish writes it to the outbox.
     """
+    if _UNQUEUED:
+        await requeue_unqueued()
     queued = await enqueue(payload)
     if queued is not None and queued[1] != PENDING:
         return queued[1]  # this exact content was already delivered or settled
     out = await push(payload, transport=transport)
     _log_outcome(payload, out, queued[0] if queued else None)
     if queued is None:
-        logger.error(
-            "canonical observation has no retry marker (outbox unavailable) field_id=%s "
-            "index=%s status=%s",
-            payload.get("field_id"),
-            payload.get("indicator"),
-            out.status,
-        )
-        return out.status
+        if out.status != PENDING:
+            return out.status
+        _hold(payload)
+        return UNQUEUED
     if not await record_outcome(str(payload["tenant_id"]), queued[0], 0, out):
         return PENDING
     return out.status

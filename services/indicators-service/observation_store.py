@@ -279,8 +279,8 @@ _FOR_ASSETS = """
 """
 
 _BETWEEN = """
-    SELECT observation_id, indicator_code, scene_id, acquired_at, geometry_revision,
-           algorithm_version, qa_mask_version, payload, published_at
+    SELECT observation_id, acquisition_day_id, indicator_code, scene_id, acquired_at,
+           geometry_revision, algorithm_version, qa_mask_version, payload, published_at
     FROM canonical_observations
     WHERE tenant_id = $1::uuid AND field_id = $2 AND indicator_code = $3
       AND acquired_at >= $4 AND acquired_at < $5
@@ -422,6 +422,15 @@ def _utc_day(value: Any) -> str | None:
     return parsed.astimezone(UTC).date().isoformat()
 
 
+def _day_start(day: str | None) -> datetime | None:
+    if day is None:
+        return None
+    try:
+        return datetime.fromisoformat(day + "T00:00:00+00:00")
+    except ValueError:
+        return None
+
+
 def _stored_point(row: dict[str, Any], day: str) -> dict[str, Any]:
     p = row["payload"]
     stats = p.get("stats") or {}
@@ -436,43 +445,60 @@ def _stored_point(row: dict[str, Any], day: str) -> dict[str, Any]:
         "cloud_pct": p.get("cloud_pct"),
         "scene_id": p.get("scene_id"),
         "geometry_revision": p.get("geometry_revision"),
-        # No algorithm_version: raster's series points carry none, and the timeline's asset
-        # reference hashes the point's keys, so the stored point would get another reference.
+        # The product revision the raster point named (equal, since the row matched it): the
+        # timeline's asset reference hashes algorithm_version, so both sources give one reference.
+        "algorithm_version": p.get("algorithm_version"),
+        "qa_mask_version": p.get("qa_mask_version"),
+    }
+
+
+def timeline_point_identity(point: dict[str, Any]) -> dict[str, Any]:
+    """The product revision of one raster ``/timeseries`` point, in ``match_bundle_item``'s terms.
+
+    raster-service's point carries the grid's geometry revision and the product's algorithm and
+    QA mask versions (``raster_field_runtime._timeseries_point``). A point from a raster-service
+    that does not report the algorithm version has ``None`` there and matches no stored row.
+    """
+    return {
+        "geometry_revision": _revision(point.get("geometry_revision")),
+        "algorithm_version": point.get("algorithm_version"),
+        "qa_mask_version": point.get("qa_mask_version"),
     }
 
 
 def merge_timeline_points(
-    raster_points: list[dict[str, Any]], rows: list[dict[str, Any]]
+    raster_points: list[dict[str, Any]],
+    rows: list[dict[str, Any]],
+    *,
+    tenant_id: UUID | str,
+    field_id: str,
+    indicator: str,
 ) -> tuple[list[dict[str, Any]], int]:
     """raster ``/timeseries`` points with each one replaced by its stored row when there is one.
 
     raster-service decides which days have a current product (its asset lifecycle drops stale
     geometries); the store supplies the published fact of that product. A raster point is
-    replaced only by a row of the same UTC day, the same scene and the same geometry revision; the
-    latest delivery wins, and a point that names no scene is left as raster computed it. A stored row with no current raster point
-    is not served: it belongs to a product raster-service no longer publishes. Returns the
-    merged points and how many came from the store.
+    replaced only by the stored row ``match_bundle_item`` selects for it, the rule the
+    ``/observations`` route uses: the same asset (by the id raster's series gives a scene's UTC
+    day) and the same product revision (geometry revision, algorithm version, QA mask version).
+    A reprocess under a new algorithm whose push has not been stored, or was refused, therefore
+    keeps raster's current value instead of the stored fact of the older revision. A point that
+    names no scene is left as raster computed it. A stored row with no current raster point is
+    not served: it belongs to a product raster-service no longer publishes. Returns the merged
+    points and how many came from the store.
     """
-    by_day: dict[str, list[dict[str, Any]]] = {}
-    for row in rows:
-        day = _utc_day(row["payload"].get("acquired_at"))
-        if day is not None:
-            by_day.setdefault(day, []).append(row)
     merged: list[dict[str, Any]] = []
     stored = 0
     for point in raster_points:
         day = _utc_day(point.get("datetime"))
         scene = point.get("scene_id")
-        revision = _revision(point.get("geometry_revision"))
-        match = _latest(
-            [
-                r
-                for r in by_day.get(day or "", [])
-                if scene is not None
-                and r["payload"].get("scene_id") == scene
-                and _revision(r["payload"].get("geometry_revision")) == revision
-            ]
-        )
+        match = None
+        acquired = _day_start(day)
+        if acquired is not None and scene is not None:
+            day_id = asset_day_id(tenant_id, field_id, scene, indicator, acquired)
+            match = match_bundle_item(
+                rows, observation_id=day_id, identity=timeline_point_identity(point)
+            )
         if match is None or day is None:
             merged.append(point)
         else:

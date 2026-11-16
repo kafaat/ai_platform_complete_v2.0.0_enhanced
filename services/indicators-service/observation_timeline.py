@@ -1,7 +1,8 @@
 """Canonical observation timeline and supersession projection (RS-4).
 
 This module reads raster-service's series as before: raster-service decides which days have
-a current product. Each point whose exact product (day, scene, geometry revision) is stored in
+a current product. Each point whose exact product (day, scene, geometry revision, algorithm and
+QA mask version; ``observation_store.match_bundle_item``) is stored in
 the canonical observation store (W1-11, ``observation_store``) is served from the stored fact;
 the others stay as raster computed them, and ``sources`` says which. It never computes spectral
 pixels; it converts real series points into canonical timeline entries and marks older entries as
