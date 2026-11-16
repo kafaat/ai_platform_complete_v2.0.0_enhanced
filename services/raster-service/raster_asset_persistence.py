@@ -223,6 +223,8 @@ def persist_raster_asset(
             if ok and _all_masked:
                 return False
             if not (ok and _catalogued):
+                if ok:
+                    await _push_observation()
                 return ok
             try:
                 registered = await db_persist.insert_raster_registry_entry(
@@ -264,12 +266,52 @@ def persist_raster_asset(
                     req.indicator.value,
                 )
                 return False
-            return await db_persist.set_raster_asset_status(
+            published = await db_persist.set_raster_asset_status(
                 tenant_id=req.tenant_id,
                 product_identity_key=_product_identity.key(),
                 cog_uri=cog_url,
                 status="ready",
             )
+            if published:
+                await _push_observation()
+            return published
+
+        async def _push_observation() -> None:
+            # W1-11 (owner decision 2026-11-16): every published asset goes to the canonical
+            # observation store in indicators-service over HTTP. Outbox first, then one push;
+            # a failed push stays pending and the cache invalidation worker re-sends it. Runs
+            # after publication and never changes its result.
+            try:
+                import observation_outbox
+
+                payload = observation_outbox.build_payload(
+                    tenant_id=req.tenant_id,
+                    field_id=req.field_id,
+                    indicator=req.indicator.value,
+                    scene_id=req.scene_id,
+                    capture_datetime=req.capture_datetime,
+                    stats=stats,
+                    quality=_quality,
+                    algorithm_version=(_validated.get("provenance") or {}).get("algorithm_version")
+                    or raster_quality.ALGORITHM_VERSION,
+                    qa_mask_version=_qa_mask_version,
+                    product_identity_key=_product_identity.key(),
+                    geometry_revision=getattr(req, "geometry_revision", None),
+                    data_available_at=meta.get("data_available_at"),
+                    processing_job_id=job_id,
+                    cog_uri=cog_url,
+                )
+                if payload is None:
+                    logger.warning(
+                        "canonical observation not pushed field_id=%s index=%s: no tenant, scene, "
+                        "acquisition time or finite mean",
+                        req.field_id,
+                        req.indicator.value,
+                    )
+                    return
+                await observation_outbox.publish(payload)
+            except Exception as _obe:  # noqa: BLE001 — the push never fails the publication
+                logger.warning("canonical observation push skipped: %s", _obe)
 
         # v5-audit F1: نلتقط نتيجة الحفظ ونُصدِر سطراً منظَّماً — «job completed» وحده
         # كان لا يُميّز «حُفِظ في DB» عن «في الذاكرة فقط والإدراج عاد False بصمت»، فبعد

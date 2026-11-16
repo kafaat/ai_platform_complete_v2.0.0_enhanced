@@ -12,19 +12,26 @@ from __future__ import annotations
 import json
 import os
 import sys
-from datetime import date, datetime
+from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 from typing import Annotated
 from uuid import UUID
 
 import httpx
-from fastapi import FastAPI, Header, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query, Response
 
 _SERVICE_DIR = Path(__file__).resolve().parent
 if str(_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVICE_DIR))
-from observation_runtime import fetch_canonical_observations  # noqa: E402
-from observation_timeline import TimelineSourceError, fetch_canonical_timeline  # noqa: E402
+import observation_runtime  # noqa: E402
+import observation_store  # noqa: E402
+from observation_runtime import canonicalize_bundle, fetch_canonical_observations  # noqa: E402
+from observation_timeline import (  # noqa: E402
+    SOURCE_FALLBACK,
+    TimelineSourceError,
+    fetch_canonical_timeline,
+    source_label,
+)
 
 from shared.security.trusted_tenant import service_token_ok  # noqa: E402
 
@@ -128,6 +135,7 @@ async def capabilities():
             "tile_generation": False,
             "timeseries": True,
             "canonical_observation_adapter": True,
+            "canonical_observation_store": True,
         },
         "owners": {
             "observed_spectral": "raster-service",
@@ -154,6 +162,7 @@ async def contract():
             "/v1/indicators/catalog",
             "/v1/fields/{field_id}/observations",
             "/v1/fields/{field_id}/observation-timeline",
+            "/internal/v1/observations",
             "/",
         ],
     }
@@ -304,6 +313,7 @@ async def field_observations(
     requested_extent = _requested_extent(date_from, date_to)
     tenant_id = await _bind_observation_tenant(x_tenant_id, x_agent_token, authorization)
     requested = [v.strip().lower() for v in indicators.split(",") if v.strip()]
+    observation_runtime.LAST_BUNDLE.set(None)
     try:
         observations = await fetch_canonical_observations(
             field_id=field_id, tenant_id=tenant_id, season_id=season_id, indicators=requested
@@ -314,6 +324,9 @@ async def field_observations(
         raise HTTPException(424, "canonical raster observation unavailable") from exc
     if not observations:
         raise HTTPException(424, "no consistent real canonical observation available")
+    observations, source, store_status = await _bind_stored_observations(
+        observations, observation_runtime.LAST_BUNDLE.get(), field_id, tenant_id, season_id
+    )
     acquired = [item.acquired_at for item in observations]
     actual_extent = _actual_extent(acquired)
     if _outside_requested(requested_extent, acquired):
@@ -331,6 +344,8 @@ async def field_observations(
         "season_id": season_id,
         "source": "indicators-service",
         "canonical": True,
+        "observation_source": source,
+        "store_status": store_status,
         "temporal_selection": "latest",
         "requested_temporal_extent": requested_extent,
         "actual_temporal_extent": actual_extent,
@@ -353,6 +368,23 @@ async def observation_timeline(
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "season context requires bearer authorization")
     requested = [v.strip().lower() for v in indicators.split(",") if v.strip()]
+    sources: dict[str, str] = {}
+
+    async def _bind_stored(indicator: str, start: datetime, end: datetime, points: list):
+        # The season window is inclusive by calendar day, as for the raster points.
+        rows = await observation_store.observations_between(
+            tenant_id=tenant_id,
+            field_id=field_id,
+            indicator=indicator,
+            start=datetime.combine(start.date(), time.min, UTC),
+            end=datetime.combine(end.date() + timedelta(days=1), time.min, UTC),
+        )
+        if not rows:
+            return points, 0
+        return observation_store.merge_timeline_points(
+            points, rows, tenant_id=tenant_id, field_id=field_id, indicator=indicator
+        )
+
     try:
         entries = await fetch_canonical_timeline(
             field_id=field_id,
@@ -360,6 +392,8 @@ async def observation_timeline(
             season_id=season_id,
             indicators=requested,
             authorization=authorization,
+            bind_stored=_bind_stored if observation_store.configured() else None,
+            sources=sources,
         )
     except TimelineSourceError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
@@ -384,6 +418,124 @@ async def observation_timeline(
         "latest_observation_refs": latest,
         "source": "indicators-service",
         "canonical": True,
+        "observation_sources": sources,
         "supersession_projected": True,
         "evaluation_status": "available" if entries else "insufficient_history",
+    }
+
+
+# ── W1-11: the canonical observation store (owner decision 2026-11-16) ─────────────────────
+#
+# raster-service pushes every published product here (``POST /internal/v1/observations``). The
+# two read routes above still ask raster-service which product is current (its asset lifecycle
+# drops a stale geometry or a superseded reprocess), then serve the stored fact of exactly that
+# product; a product with no stored row is served from the computed path (``observation_source``).
+async def _bind_stored_observations(
+    computed: list, bundle: dict | None, field_id: str, tenant_id: UUID, season_id: str
+) -> tuple[list, str, str]:
+    """Replace each computed observation by the stored row of the same asset and revision.
+
+    Returns ``(observations, observation_source, store_status)``. The computed observations are
+    kept as they are when the store is not configured, cannot answer, or holds no row of the
+    product raster-service serves now.
+    """
+    if not observation_store.configured():
+        return computed, SOURCE_FALLBACK, "not_configured"
+    items = (bundle or {}).get("observations") or {}
+    if not items:
+        return computed, SOURCE_FALLBACK, "unbound"
+    prefix = "urn:sahool:raster-asset:"
+    ids = sorted({str(obs.asset_ref).removeprefix(prefix) for obs in computed})
+    rows = await observation_store.observations_for_assets(
+        tenant_id=tenant_id, field_id=field_id, observation_ids=ids
+    )
+    if rows is None:
+        return computed, SOURCE_FALLBACK, "unavailable"
+    bound = []
+    stored = 0
+    for obs in computed:
+        code = obs.indicator.code
+        item = items.get(code)
+        row = None
+        if isinstance(item, dict):
+            row = observation_store.match_bundle_item(
+                rows,
+                observation_id=str(obs.asset_ref).removeprefix(prefix),
+                identity=observation_store.bundle_item_identity(item, bundle or {}),
+            )
+        if row is None:
+            bound.append(obs)
+            continue
+        bound.extend(
+            canonicalize_bundle(
+                bundle={
+                    "field_id": field_id,
+                    "observations": {code: observation_store.bundle_item(row)},
+                },
+                tenant_id=tenant_id,
+                season_id=season_id,
+                published_at=row["published_at"],
+            )
+        )
+        stored += 1
+    status = "served" if stored == len(computed) else ("partial" if stored else "not_stored")
+    return bound, source_label(len(computed), stored), status
+
+
+def _require_service_caller(x_agent_token: str | None) -> None:
+    expected = os.getenv("SAHOOL_AGENT_TOKEN", "")
+    if not expected:
+        raise HTTPException(503, "SAHOOL_AGENT_TOKEN is not configured")
+    if not service_token_ok(x_agent_token, expected):
+        raise HTTPException(401, "invalid service token")
+
+
+@app.post("/internal/v1/observations")
+async def ingest_published_observation(
+    body: observation_store.PublishedObservationV1,
+    response: Response,
+    x_tenant_id: Annotated[str, Header(alias="X-Tenant-Id")],
+    x_agent_token: Annotated[str | None, Header(alias="X-Agent-Token")] = None,
+):
+    """Store one observation raster-service published (service-to-service only).
+
+    The caller proves the mesh service token and asserts the tenant in ``X-Tenant-Id``; a body
+    for another tenant is refused. 201 created · 200 replay of the same content · 409 the same
+    observation id and product revision with other content (nothing stored) · 503 the store
+    cannot answer. A new geometry revision or algorithm version of the same scene is a new row.
+
+    Trust: the shared mesh token (OI-01), like every internal route of the mesh. A stored row is
+    served only for the product raster-service itself still publishes at the same revision, so
+    a row that matches no raster product is never read; correcting a stored row is a reviewed
+    schema-owner action (v286 header).
+    """
+    _require_service_caller(x_agent_token)
+    tenant_id = _parse_tenant(x_tenant_id)
+    if body.tenant_id != tenant_id:
+        raise HTTPException(403, "tenant_mismatch")
+    try:
+        result = await observation_store.insert_observation(body)
+    except observation_store.StoreUnavailable as exc:
+        raise HTTPException(503, "canonical observation store unavailable") from exc
+    if result["status"] == "conflict":
+        raise HTTPException(
+            409,
+            {
+                "code": "observation_conflict",
+                "observation_id": result["observation_id"],
+                "revision_key": result.get("revision_key"),
+                "stored_payload_sha256": result["stored_payload_sha256"],
+                "offered_payload_sha256": result["payload_sha256"],
+            },
+        )
+    response.status_code = 201 if result["status"] == "created" else 200
+    return {
+        "status": result["status"],
+        "observation_id": result["observation_id"],
+        "revision_key": result.get("revision_key"),
+        "asset_ref": f"urn:sahool:raster-asset:{result['observation_id']}",
+        "payload_sha256": result["payload_sha256"],
+        "published_at": result["published_at"].isoformat()
+        if isinstance(result["published_at"], datetime)
+        else result["published_at"],
     }

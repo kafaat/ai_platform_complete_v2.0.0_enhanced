@@ -72,6 +72,7 @@
       "sahool-erp-bridge",
       "sahool-field-management",
       "sahool-guardrails-engine",
+      "sahool-indicators-service",
       "sahool-irrigation-reservation-lifecycle-worker",
       "sahool-market-mcp",
       "sahool-migrate",

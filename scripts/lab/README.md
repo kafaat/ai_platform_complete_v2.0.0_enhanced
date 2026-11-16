@@ -82,6 +82,7 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 26. Edge sync carries the verified tenant per request (W0-07, restricted role)
 27. Internal routes require a tenant assertion (W0-05, restricted role)
 28. Yield estimate is tenant-checked (W0-11, restricted role)
+29. Canonical observations store (W1-11, v286, restricted role)
 
 Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 `rolcanlogin` of every restricted role those steps connect as (`sahool_app_test`)

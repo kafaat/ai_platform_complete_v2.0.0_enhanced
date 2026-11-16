@@ -2,10 +2,15 @@
 """Guard the indicators-service canonical-observation-adapter container boundary.
 
 The service publishes canonical ownership/catalog contracts and never computes
-observed spectral products. Since the RS2/RS3 cutover it is a thin
-canonical-observation adapter that reads observations/timeline from raster-service
-over HTTP (httpx), so it stays free of DB/cache/broker drivers but does carry an
-HTTP client. It keeps no direct Postgres/Redis/NATS coupling.
+observed spectral products. Since the RS2/RS3 cutover it is a canonical-observation
+adapter that reads observations/timeline from raster-service over HTTP (httpx).
+
+W1-11 (owner decision 2026-11-16) changed one premise, not the guard's purpose: the
+service now OWNS one table, the append-only ``canonical_observations`` (migrations/v286),
+so it carries asyncpg and DATABASE_URL — and the guard now requires that coupling to be
+exactly that: asyncpg imported by ``observation_store.py`` and by no other module, the
+compose block wired to the database it needs (DATABASE_URL, depends_on sahool-postgres and
+sahool-migrate). Redis and NATS stay forbidden: the decision named HTTP, not a broker.
 """
 
 from __future__ import annotations
@@ -23,7 +28,7 @@ COMPOSE = ROOT / "docker-compose.v9.yml"
 # httpx is the canonical-observation adapter's upstream HTTP client (reads from
 # raster-service). It is not a DB/cache/broker driver, so it stays allowed while
 # the forbidden set below keeps the service infrastructure-free.
-ALLOWED_REQUIREMENTS = {"fastapi", "uvicorn", "httpx", "prometheus-client"}
+ALLOWED_REQUIREMENTS = {"fastapi", "uvicorn", "httpx", "prometheus-client", "asyncpg"}
 # `prometheus-client` خرجت من هذه المجموعة بتغيّر مقدّمتها لا بتخفيف الحارس: الغرضُ
 # المُعلَن أعلاه «بلا اقتران Postgres/Redis/NATS»، وهي مُسلسِلُ مقاييس بلا أيّ اقتران
 # شبكيّ — دخلت القائمة يومَ كانت **غير مستعملة** لا لأنّها بنيةٌ تحتيّة. وصارت مستعملة
@@ -31,9 +36,13 @@ ALLOWED_REQUIREMENTS = {"fastapi", "uvicorn", "httpx", "prometheus-client"}
 # النقطةُ غائبة ⇒ ٤٠٤ ⇒ `up=0` دائماً وتنبيهٌ يُطلِق أبداً (جولة حيّة 2026-09-16).
 # والسائقاتُ الثلاثة تبقى ممنوعة، ووجودُ النقطة نفسه محروسٌ بـ
 # `tests_v9/test_prometheus_target_contract.py` فلا تبقى التبعيّة بلا مُبرِّر.
-FORBIDDEN_RUNTIME_DEPS = {"asyncpg", "redis", "nats-py"}
-FORBIDDEN_COMPOSE_ENV = {"DATABASE_URL", "REDIS_URL", "NATS_URL"}
-FORBIDDEN_COMPOSE_DEPS = {"sahool-postgres", "sahool-redis", "sahool-nats"}
+FORBIDDEN_RUNTIME_DEPS = {"redis", "nats-py"}
+FORBIDDEN_COMPOSE_ENV = {"REDIS_URL", "NATS_URL"}
+FORBIDDEN_COMPOSE_DEPS = {"sahool-redis", "sahool-nats"}
+# W1-11: the one database coupling, and where it must live.
+STORE_MODULE = SERVICE / "observation_store.py"
+REQUIRED_COMPOSE_ENV = {"DATABASE_URL"}
+REQUIRED_COMPOSE_DEPS = {"sahool-postgres", "sahool-migrate"}
 
 
 def fail(message: str) -> None:
@@ -138,10 +147,42 @@ def check_main_is_honest_contract_only() -> None:
         fail("indicators-service retains stale health-only markers: " + repr(present))
 
 
+_ASYNCPG_IMPORT = re.compile(r"(?m)^\s*(?:import\s+asyncpg\b|from\s+asyncpg\b)")
+
+
+def check_database_coupling_is_the_store_only() -> None:
+    """asyncpg is used by the observation store and nowhere else in the service."""
+    if not STORE_MODULE.exists():
+        fail("indicators-service observation_store.py is missing (W1-11 store owner)")
+    if not _ASYNCPG_IMPORT.search(read(STORE_MODULE)):
+        fail("indicators-service carries asyncpg but observation_store.py does not use it")
+    others = sorted(
+        str(path.relative_to(SERVICE))
+        for path in SERVICE.rglob("*.py")
+        if path != STORE_MODULE
+        and "tests" not in path.relative_to(SERVICE).parts
+        and _ASYNCPG_IMPORT.search(read(path))
+    )
+    if others:
+        fail(
+            "indicators-service modules other than observation_store.py import asyncpg: "
+            + repr(others)
+        )
+    block = compose_service_block("sahool-indicators-service")
+    missing_env = sorted(item for item in REQUIRED_COMPOSE_ENV if f"{item}:" not in block)
+    missing_deps = sorted(item for item in REQUIRED_COMPOSE_DEPS if f"{item}:" not in block)
+    if missing_env or missing_deps:
+        fail(
+            "indicators-service compose must wire the observation store's database: missing "
+            + repr(missing_env + missing_deps)
+        )
+
+
 def main() -> None:
     check_requirements_are_health_only()
     check_dockerfile_healthcheck_is_liveness()
     check_compose_is_not_blocked_on_unused_infra()
+    check_database_coupling_is_the_store_only()
     check_main_is_honest_contract_only()
     print("indicators_container_contract_guard_ok")
 
