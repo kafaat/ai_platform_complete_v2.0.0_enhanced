@@ -500,3 +500,11 @@ async def harvest_lot_phi_check(conn, user, req, harvest_date):
     return await harvest_phi_check(
         conn, user, req.field_id, harvest_date, req.phi_override, req.phi_override_reason
     )
+
+
+async def field_elevation_or_none(conn, field_id: str) -> float | None:
+    """ارتفاع الحقل المسجَّل (``fields.elevation_m``) أو ``None`` — لا افتراض (fields-16)."""
+    from api.water_ledger_inputs import field_elevation_m
+
+    row = await conn.fetchrow("SELECT elevation_m FROM fields WHERE field_id = $1", field_id)
+    return field_elevation_m(row.get("elevation_m")) if row else None

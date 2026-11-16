@@ -13,6 +13,7 @@ ET0 يُجلَب من **منتج محرّك الطقس** (``get_et0_product``) �
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import logging
@@ -30,8 +31,10 @@ from api.canonical_water_stress import (
 # مرحلةُ المرشَّح تُستورَد ولا تُكرَّر: سلسلةٌ ثانيةٌ باسم `"candidate"` هنا كانت ستُطابِق
 # اليوم وتنحرف غداً، وشرطُ الإثبات يقارنها بما يُعيده المُسجِّل.
 from api.crop_decision_bridge import CANDIDATE_STAGE
-from api.decision_service_client import irrigation_candidate_lineage, record_decision
+from api.decision_service_client import irrigation_candidate_lineage
+from api.decision_service_client import submit_irrigation_candidate as _submit_candidate_to_decision
 from api.field_context import _field_weather_context, field_irrigation_type
+from api.field_context import field_elevation_or_none as _field_elevation_m
 from api.irrigation_engineering_workspace import (
     build_manual_source,
     manual_canonical_location,
@@ -103,19 +106,9 @@ _LOG = logging.getLogger("sahool.irrigation.et0")
 _ENGINE_DOWN_CODES = (502, 503, 504)
 
 
-async def _field_weather_snapshot(latitude_deg: float, longitude_deg: float) -> dict:
-    return await field_irrigation_weather_snapshot(
-        latitude_deg, longitude_deg, forecast_loader=get_weather_forecast
-    )
-
-
-async def _submit_candidate_to_decision(payload: dict, tenant_id: str | None) -> dict:
-    """يقدّم المرشَّح إلى خدمة القرار (تسجيل معلَّق للموافقة) — نقطة وصل قابلة للـmonkeypatch.
-
-    **لا ينفّذ**: يُسجّل قراراً معلَّقاً (pending_approval) فقط؛ التنفيذ المحروس (حواجز +
-    human-in-loop + طابور) يبقى في مسار decision_dispatch. تعذّر الخدمة ⇒ HTTPException.
-    """
-    return await record_decision(payload, tenant_id=tenant_id)
+_field_weather_snapshot = functools.partial(
+    field_irrigation_weather_snapshot, forecast_loader=get_weather_forecast
+)
 
 
 @router.post("/api/v1/irrigation-recommendation")
@@ -443,9 +436,7 @@ async def field_irrigation_recommendation(
             f"spectral-confirmation:ndmi+msi:{'detected' if stress.get('spectral_stress_detected') else 'no-stress'}"
         )
 
-    # fields-16: كان ET0 يُحسَب بارتفاعٍ ثابت 2000م لكلّ حقل (تهامة كالمرتفعات). الارتفاعُ
-    # الآن ارتفاعُ الحقل المسجَّل؛ مجهولٌ ⇒ ``None`` يُمرَّر غائباً، فيُعلِن المحرّك الجودة
-    # ``degraded`` وتُعلِن التوصية القيد — لا رقمٌ مُفترَض صامت.
+    # fields-16: ارتفاع الحقل المسجَّل لا 2000م ثابتة؛ مجهولٌ ⇒ None فيُعلِن المحرّك degraded.
     elevation_m = field_elevation
     if canonical is not None:
         try:
@@ -807,11 +798,3 @@ async def field_irrigation_recommendation(
         ],
         "calibrated": False,
     }
-
-
-async def _field_elevation_m(conn, field_id: str) -> float | None:
-    """ارتفاع الحقل المسجَّل (``fields.elevation_m``) أو ``None`` — لا افتراض (fields-16)."""
-    from api.water_ledger_inputs import field_elevation_m
-
-    row = await conn.fetchrow("SELECT elevation_m FROM fields WHERE field_id = $1", field_id)
-    return field_elevation_m(row.get("elevation_m")) if row else None

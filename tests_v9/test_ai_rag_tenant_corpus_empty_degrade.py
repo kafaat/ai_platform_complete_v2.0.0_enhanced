@@ -15,6 +15,7 @@ Qdrant or database.
 
 from __future__ import annotations
 
+import sys
 from unittest.mock import AsyncMock
 
 import httpx
@@ -178,7 +179,23 @@ async def test_non_degradable_rag_statuses_still_fail_closed(monkeypatch, http_s
     assert _SECRET not in str(exc.value.detail), "upstream body must never be reflected"
 
 
-def test_real_rag_retrieval_quarantine_only_corpus_end_to_end(monkeypatch):
+@pytest.fixture
+def _restore_sys_modules():
+    """rag-retrieval's ``main`` (and its generic sibling modules) must not outlive this test.
+
+    ``load_service_main`` restores ``sys.path`` but leaves the loaded modules in
+    ``sys.modules``; a later test that patches ``"main._pool"`` by name (auth) would then
+    patch rag-retrieval's module. Snapshot and restore the module table around the test.
+    """
+    saved = dict(sys.modules)
+    yield
+    for name in list(sys.modules):
+        if name not in saved:
+            del sys.modules[name]
+    sys.modules.update(saved)
+
+
+def test_real_rag_retrieval_quarantine_only_corpus_end_to_end(monkeypatch, _restore_sys_modules):
     """Default compose, joined end to end: real rag-retrieval with only quarantined seeds.
 
     The RAG call goes through the real rag-retrieval FastAPI app (auth, tenant guard,

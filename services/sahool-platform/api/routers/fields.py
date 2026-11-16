@@ -3551,12 +3551,8 @@ async def estimate_field_yield(
     req: YieldEstimateRequest,
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
-    """تقدير الإنتاج (heuristic — ليس AI) + كشف الشذوذ.
-
-    W0-11: صلاحية عرض الحقل + الحقل ضمن المستأجِر (404 وإلّا) قبل أيّ حساب، وتعذّر القاعدة
-    ⇒ 503 (إغلاق عند الفشل، لا تقدير لحقلٍ لم يُتحقَّق من ملكيّته). المدخلات الغائبة مجهولة،
-    وغياب أدلّة حالة المحصول كلّها ⇒ ``unavailable_insufficient_evidence`` بلا رقم.
-    """
+    """تقدير الإنتاج (heuristic) + الشذوذ. W0-11: FIELD_VIEW + حقل المستأجِر (404/503) قبل الحساب؛
+    المدخل الغائب مجهول، وغياب أدلّة الحالة كلّها ⇒ unavailable_insufficient_evidence بلا رقم."""
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
@@ -3565,18 +3561,8 @@ async def estimate_field_yield(
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("التحقّق من الحقل لتقدير الإنتاج", e) from e
 
-    features = LifecycleFeatures(
-        field_id=field_id,
-        crop=req.crop,
-        days_in_growing=req.days_in_growing,
-        irrigation_count=req.irrigation_count,
-        moisture_stress_events=req.moisture_stress_events,
-        pest_alerts=req.pest_alerts,
-        fertilizer_applications=req.fertilizer_applications,
-        avg_ndvi_growing=req.avg_ndvi_growing,
-        drought_streak_days=req.drought_streak_days,
-        rain_events=req.rain_events,
-    )
+    # The path's field_id is the reference; the body's optional field_id is ignored.
+    features = LifecycleFeatures(**{**req.model_dump(exclude={"field_id"}), "field_id": field_id})
     est = estimate_yield(features)
     anomalies = detect_anomalies(features)
     result = {
