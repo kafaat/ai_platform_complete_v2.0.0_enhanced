@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7468,
+    "files_scanned": 7473,
     "files_by_kind": {
       "backend": 1295,
       "database": 347,
       "governance": 89,
-      "mobile": 417,
+      "mobile": 418,
       "other": 2196,
-      "tests": 2571,
-      "web": 553
+      "tests": 2573,
+      "web": 555
     },
-    "unmapped_artifacts": 3543,
+    "unmapped_artifacts": 3546,
     "ambiguous_artifacts": 254,
     "files_by_reading": {
       "python_functional": 4056,
-      "raw": 3412
+      "raw": 3417
     },
     "test_dependency_files": 1965,
     "test_dependency_edges": 5183,
@@ -15393,6 +15393,14 @@
             "content:Scouting",
             "dedup:Scouting=scouting"
           ]
+        },
+        {
+          "path": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_screen.dart",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
         }
       ],
       "tests": [
@@ -15514,6 +15522,14 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/test/features/advisor/pest_escalation_lineage_test.dart",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_yield_server_features.py",
           "score": 8,
           "signals": [
@@ -15599,8 +15615,8 @@
         "database": 31,
         "events": 18,
         "web": 6,
-        "mobile": 17,
-        "tests": 21,
+        "mobile": 18,
+        "tests": 22,
         "governance": 0,
         "other_evidence": 1
       },
@@ -34215,6 +34231,14 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/src/lib/pestEscalationLineage.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/pestEscalationLineage.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/lib/plantingAdvisor.test.ts",
       "kind": "tests"
     },
@@ -34820,6 +34844,10 @@
     },
     {
       "path": "frontend/src/sections/OperationCenterWallPage.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/PestEscalationPage.test.tsx",
       "kind": "web"
     },
     {
@@ -35751,6 +35779,10 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/lib/features/advisor/data/pest_escalation_lineage.dart",
+      "kind": "mobile"
+    },
+    {
       "path": "mobile/sahool_app/lib/features/advisor/presentation/advisor_chat_cubit.dart",
       "kind": "mobile"
     },
@@ -35760,10 +35792,6 @@
     },
     {
       "path": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_cubit.dart",
-      "kind": "mobile"
-    },
-    {
-      "path": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_screen.dart",
       "kind": "mobile"
     },
     {

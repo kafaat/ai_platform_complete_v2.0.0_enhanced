@@ -6945,6 +6945,11 @@
       "test_evidence_attribution": [
         {
           "evidence_type": "unit",
+          "path": "mobile/sahool_app/test/features/advisor/pest_escalation_lineage_test.dart",
+          "signal": "filename:_test."
+        },
+        {
+          "evidence_type": "unit",
           "path": "mobile/sahool_app/test/features/scouting/device_photo_path_safety_test.dart",
           "signal": "filename:_test."
         },
@@ -7041,6 +7046,7 @@
       ],
       "title": "Scouting",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/advisor/pest_escalation_lineage_test.dart",
         "mobile/sahool_app/test/features/scouting/device_photo_path_safety_test.dart",
         "mobile/sahool_app/test/features/scouting/disease_symptoms_dialog_test.dart",
         "mobile/sahool_app/test/features/scouting/new_observation_cubit_test.dart",
