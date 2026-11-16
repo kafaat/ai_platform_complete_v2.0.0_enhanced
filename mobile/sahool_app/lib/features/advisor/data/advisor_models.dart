@@ -499,6 +499,7 @@ class PestWorkflow {
     this.completedSteps = const [],
     this.error,
     this.context = const {},
+    this.stepResults = const {},
   });
 
   final String workflowId;
@@ -507,6 +508,10 @@ class PestWorkflow {
   final List<String> completedSteps;
   final String? error;
   final Map<String, dynamic> context;
+
+  /// نتائج الخطوات كما أعادها الخادم (step_results)؛ execute منها هو نتيجة التنفيذ
+  /// الحقيقيّة (executed + execution_ref، أو executed=false مع السبب). W3-07.
+  final Map<String, dynamic> stepResults;
 
   bool get suspended => status == 'suspended';
 
@@ -524,6 +529,7 @@ class PestWorkflow {
       completedSteps: _strList(wf['completed_steps']),
       error: _str(wf['error']),
       context: _map(json['context']) ?? const {},
+      stepResults: _map(json['step_results']) ?? const {},
     );
   }
 }

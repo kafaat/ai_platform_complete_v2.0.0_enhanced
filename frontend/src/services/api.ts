@@ -1,4 +1,5 @@
 import { fieldBoundary } from '../lib/fieldBoundary';
+import type { ScoutPhotoEvidenceContext } from '../lib/pestEscalationLineage';
 // ═══════════════════════════════════════════════════════════════
 // SAHOOL v9.0 — Unified API Client
 // Compatibility facade: keep legacy imports stable while domain modules
@@ -1563,6 +1564,11 @@ export const computeProfitAwareDecision = (payload: ProfitAwareDecisionInput): P
 export interface PestEscalationInput {
   workflow_id: string;
   field_id?: string;
+  // W3-07: مراجع سلسلة المبيد (PestEscalationRequest، api_models.py) — كلّها من ردود خادم
+  // (دبّوس الاستطلاع وسياق دليل صورته)، يدقّقها audit_chemical_lineage على الخادم.
+  season_id?: string;
+  diagnosis_ref?: string;
+  evidence_ref?: string;
   pest_type?: string;
   severity?: number;
   approval_status?: string; // للاستئناف بعد التعليق: approved/rejected
@@ -1583,6 +1589,16 @@ export interface PestEscalationResult {
 }
 export const runPestEscalation = (payload: PestEscalationInput): Promise<PestEscalationResult> =>
   kongApi.post<PestEscalationResult>('/api/v1/pest-escalation/run', payload).then(r => r.data);
+
+// سياق دليل صورة دبّوس (scout-ingest media_api.py: GET …/photo/context، عبر بوّابة nginx
+// /api/v1/scouting-media/). منه وحده تُؤخذ مراجع الدليل والموسم والتشخيص المراجَع للتصعيد.
+// 404 ⇒ لا صورة أو الميزة مطفأة؛ 403 ⇒ الدور/المنحة لا تسمح. الخطأ يُعرَض، لا يُستبدَل.
+export const fetchScoutPhotoContext = (fieldId: string, pinId: string): Promise<ScoutPhotoEvidenceContext> =>
+  kongApi
+    .get<ScoutPhotoEvidenceContext>(
+      `/api/v1/scouting-media/fields/${encodeURIComponent(fieldId)}/pins/${encodeURIComponent(pinId)}/photo/context`,
+    )
+    .then(r => r.data);
 
 export interface FieldRecommendationInput {
   field_id: string;
