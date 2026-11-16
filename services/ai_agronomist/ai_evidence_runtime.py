@@ -122,6 +122,43 @@ def _dependency_http_failure(dependency: str, upstream_status: int) -> HTTPExcep
 
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
+# W0-02 (knowledge-1/x-4): rag-retrieval answers 424 TENANT_CORPUS_EMPTY when the tenant
+# has no readable corpus, and 503 when retrieval is unavailable. Neither is a reason to
+# fail the whole advisory request: like the KG path, the answer degrades to field-state
+# evidence and *declares* ``rag_available: false`` so "RAG absent" never reads as "RAG
+# found nothing". Every other status (auth/tenant refusals, 500, 502...) still fails as 502.
+_RAG_DEGRADABLE_STATUSES = frozenset({424, 503})
+# Only these upstream codes are echoed; anything else (raw bodies, stack text) is never
+# reflected and is replaced by a status-derived code.
+_RAG_UNAVAILABLE_REASON_CODES = frozenset({"TENANT_CORPUS_EMPTY", "rag_retrieval_unavailable"})
+
+
+def _rag_unavailable(resp: httpx.Response) -> dict[str, Any]:
+    """Caller-safe degradation record for a degradable rag-retrieval status."""
+    try:
+        detail = resp.json().get("detail")
+    except Exception:  # noqa: BLE001 — non-JSON upstream body is never reflected
+        detail = None
+    code = detail.get("code") if isinstance(detail, dict) else detail
+    reason_code = (
+        code
+        if isinstance(code, str) and code in _RAG_UNAVAILABLE_REASON_CODES
+        else f"rag_upstream_http_{resp.status_code}"
+    )
+    correlation_id = uuid.uuid4().hex
+    logger.warning(
+        "advisory rag-retrieval degraded upstream_status=%s reason_code=%s correlation_id=%s",
+        resp.status_code,
+        reason_code,
+        correlation_id,
+    )
+    return {
+        "available": False,
+        "reason_code": reason_code,
+        "upstream_status": resp.status_code,
+        "correlation_id": correlation_id,
+    }
+
 
 @asynccontextmanager
 async def _dependency_boundary(dependency: str, timeout_s: float):
@@ -951,12 +988,16 @@ async def build_evidence_response(
                 headers={"X-Tenant-Id": tenant_id, "X-Agent-Token": AGENT_TOKEN},
                 timeout=10.0,
             )
-        if rag_resp.status_code >= 400:
+        rag_retrieval: dict[str, Any] = {"available": True}
+        if rag_resp.status_code in _RAG_DEGRADABLE_STATUSES:
+            rag_retrieval = _rag_unavailable(rag_resp)
+        elif rag_resp.status_code >= 400:
             raise _dependency_http_failure("rag-retrieval", rag_resp.status_code)
 
     from shared.ai.seed_claims import partition_generation_references
 
-    rag_payload = rag_resp.json()
+    rag_available = rag_retrieval["available"] is True
+    rag_payload = rag_resp.json() if rag_available else {"annotations": []}
     # Keep unreviewed seed pointers auditable while excluding their claim text from generation.
     usable, unreviewed = partition_generation_references(rag_payload.get("annotations") or [])
     rag_payload = {**rag_payload, "annotations": usable}
@@ -980,6 +1021,8 @@ async def build_evidence_response(
             # يفرّق «KG غاب» عن «KG لم يجد»: كلاهما `edges: []` ولا يُميَّزان بغيره.
             "knowledge_graph_available": kg_available,
         },
+        # W0-02: "RAG absent" is declared, never disguised as "RAG found nothing".
+        "rag_retrieval": rag_retrieval,
         "canonical_field_state": field_state,
     }
     # Safety invariant: this runtime explains and gathers evidence only. It must not emit decision-shaped outputs.
@@ -1236,6 +1279,8 @@ async def build_evidence_response(
         "annotations": annotations,
         "evidence_ids": evidence_ids,
         "evidence_sources": evidence_sources,
+        "rag_available": rag_available,
+        "rag_unavailable_reason": None if rag_available else rag_retrieval["reason_code"],
         "ai_context_pack_readiness": ai_pack.get("readiness")
         if isinstance(ai_pack, dict)
         else None,

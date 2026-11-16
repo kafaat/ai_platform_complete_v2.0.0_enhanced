@@ -23,7 +23,11 @@ pytestmark = pytest.mark.unit
         ("knowledge-graph", 503),
         ("rag-retrieval", 400),
         ("rag-retrieval", 401),
-        ("rag-retrieval", 503),
+        ("rag-retrieval", 403),
+        ("rag-retrieval", 500),
+        ("rag-retrieval", 502),
+        # 424/503 from rag-retrieval degrade to rag_available:false (W0-02); their
+        # non-reflection is pinned in test_ai_rag_tenant_corpus_empty_degrade.py.
     ],
 )
 async def test_upstream_response_body_is_never_reflected(
