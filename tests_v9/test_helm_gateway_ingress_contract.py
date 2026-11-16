@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import copy
 import importlib.util
+import os
 import re
 import shutil
 import socket
@@ -631,7 +632,17 @@ def _deployment_env(docs: list[dict], name: str) -> set[str]:
     raise AssertionError(f"no Deployment {name} rendered")
 
 
-needs_helm = pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary not installed")
+# Read before the binary lookup: the CI helm-render step sets HELM_RENDER_REQUIRED=1, so a
+# missing helm fails these tests there instead of skipping them green.
+HELM_RENDER_REQUIRED = os.environ.get("HELM_RENDER_REQUIRED") == "1"
+
+
+def needs_helm(test):
+    skip = pytest.mark.skipif(
+        not HELM_RENDER_REQUIRED and shutil.which("helm") is None,
+        reason="helm binary not installed",
+    )
+    return pytest.mark.helm_render(skip(test))
 
 
 @needs_helm
