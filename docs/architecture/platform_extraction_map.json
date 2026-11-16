@@ -2333,7 +2333,7 @@
       "function": "edge_sync_receive",
       "method": "POST",
       "path": "/api/v1/edge/sync",
-      "line": 29,
+      "line": 60,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/edge.py::POST /api/v1/edge/sync::edge_sync_receive"
@@ -2343,7 +2343,7 @@
       "function": "edge_sync_receive",
       "method": "POST",
       "path": "/v1/edge/sync",
-      "line": 30,
+      "line": 61,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/edge.py::POST /v1/edge/sync::edge_sync_receive"
@@ -3883,7 +3883,7 @@
       "function": "internal_field_state",
       "method": "GET",
       "path": "/internal/fields/{field_id}/state",
-      "line": 51,
+      "line": 53,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/internal_service.py::GET /internal/fields/{field_id}/state::internal_field_state"
@@ -3893,7 +3893,7 @@
       "function": "internal_ai_advice_event",
       "method": "POST",
       "path": "/internal/events/ai-advice",
-      "line": 180,
+      "line": 185,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/internal_service.py::POST /internal/events/ai-advice::internal_ai_advice_event"
@@ -4203,7 +4203,7 @@
       "function": "field_irrigation_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
-      "line": 208,
+      "line": 201,
       "target_owner": "sahool-platform",
       "owner_type": "bff-decision-candidate",
       "route_key": "api/routers/irrigation_recommendation.py::POST /api/v1/fields/{field_id}/irrigation-recommendation::field_irrigation_recommendation"
@@ -4213,7 +4213,7 @@
       "function": "irrigation_recommendation",
       "method": "POST",
       "path": "/api/v1/irrigation-recommendation",
-      "line": 121,
+      "line": 114,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/irrigation_recommendation.py::POST /api/v1/irrigation-recommendation::irrigation_recommendation"
@@ -5323,7 +5323,7 @@
       "function": "proxy_edge",
       "method": "DELETE,GET,PATCH,POST,PUT",
       "path": "/api/edge/{path:path}",
-      "line": 240,
+      "line": 259,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/service_proxy.py::DELETE,GET,PATCH,POST,PUT /api/edge/{path:path}::proxy_edge"
@@ -5333,7 +5333,7 @@
       "function": "proxy_segmentation",
       "method": "DELETE,GET,PATCH,POST,PUT",
       "path": "/api/segmentation/{path:path}",
-      "line": 276,
+      "line": 318,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/service_proxy.py::DELETE,GET,PATCH,POST,PUT /api/segmentation/{path:path}::proxy_segmentation"
@@ -5343,7 +5343,7 @@
       "function": "proxy_soil",
       "method": "DELETE,GET,PATCH,POST,PUT",
       "path": "/api/soil/{path:path}",
-      "line": 258,
+      "line": 300,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/service_proxy.py::DELETE,GET,PATCH,POST,PUT /api/soil/{path:path}::proxy_soil"
@@ -5353,7 +5353,7 @@
       "function": "proxy_field_forms",
       "method": "GET,POST",
       "path": "/api/field-forms/{path:path}",
-      "line": 294,
+      "line": 336,
       "target_owner": "scout-ingest-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/service_proxy.py::GET,POST /api/field-forms/{path:path}::proxy_field_forms"
@@ -5654,7 +5654,7 @@
       "function": "field_water_efficiency",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-efficiency",
-      "line": 196,
+      "line": 204,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/water_ledger.py::GET /api/v1/fields/{field_id}/water-efficiency::field_water_efficiency"
@@ -5664,7 +5664,7 @@
       "function": "list_water_ledger",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-ledger",
-      "line": 144,
+      "line": 152,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/water_ledger.py::GET /api/v1/fields/{field_id}/water-ledger::list_water_ledger"
@@ -5674,7 +5674,7 @@
       "function": "upsert_water_ledger",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/water-ledger",
-      "line": 77,
+      "line": 82,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/water_ledger.py::POST /api/v1/fields/{field_id}/water-ledger::upsert_water_ledger"

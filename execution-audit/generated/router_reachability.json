@@ -199,7 +199,7 @@
     },
     {
       "kind": "app",
-      "line": 44,
+      "line": 48,
       "module": "services.edge-inference.main",
       "node_id": "services.edge-inference.main:app",
       "route_count": 7,
@@ -1018,7 +1018,7 @@
     },
     {
       "kind": "router",
-      "line": 26,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.edge",
       "node_id": "services.sahool-platform.api.routers.edge:router",
       "route_count": 2,
@@ -1333,7 +1333,7 @@
     },
     {
       "kind": "router",
-      "line": 16,
+      "line": 18,
       "module": "services.sahool-platform.api.routers.internal_service",
       "node_id": "services.sahool-platform.api.routers.internal_service:router",
       "route_count": 2,
@@ -1423,7 +1423,7 @@
     },
     {
       "kind": "router",
-      "line": 78,
+      "line": 81,
       "module": "services.sahool-platform.api.routers.irrigation_recommendation",
       "node_id": "services.sahool-platform.api.routers.irrigation_recommendation:router",
       "route_count": 2,
@@ -1882,7 +1882,7 @@
     },
     {
       "kind": "router",
-      "line": 28,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.service_proxy",
       "node_id": "services.sahool-platform.api.routers.service_proxy:router",
       "route_count": 4,
@@ -2008,7 +2008,7 @@
     },
     {
       "kind": "router",
-      "line": 51,
+      "line": 56,
       "module": "services.sahool-platform.api.routers.water_ledger",
       "node_id": "services.sahool-platform.api.routers.water_ledger:router",
       "route_count": 3,
@@ -2323,7 +2323,7 @@
     },
     {
       "kind": "app",
-      "line": 54,
+      "line": 58,
       "module": "services.supervisor-agent.main",
       "node_id": "services.supervisor-agent.main:app",
       "route_count": 0,
@@ -2449,7 +2449,7 @@
     },
     {
       "kind": "app",
-      "line": 540,
+      "line": 608,
       "module": "services.video-processor.main",
       "node_id": "services.video-processor.main:app",
       "route_count": 0,
@@ -2650,7 +2650,7 @@
     },
     {
       "expression": "service_proxy.router",
-      "line": 49,
+      "line": 50,
       "module": "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
       "prefix": null,
       "resolved": false,
@@ -3000,7 +3000,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "3bdee31520f8699973b157273c0100bc6b851ed17099b14cbec04b6d3b586f0a",
+  "inventory_sha256": "129e681a52476afa1548f170b9b14b440c175b09d8d5a4c4962ba44d8408acdf",
   "orphan_candidate_count": 237,
   "orphan_candidates": [
     {
@@ -3866,7 +3866,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 26,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.edge",
       "node_id": "services.sahool-platform.api.routers.edge:router",
       "route_count": 2,
@@ -4216,7 +4216,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 16,
+      "line": 18,
       "module": "services.sahool-platform.api.routers.internal_service",
       "node_id": "services.sahool-platform.api.routers.internal_service:router",
       "route_count": 2,
@@ -4316,7 +4316,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 78,
+      "line": 81,
       "module": "services.sahool-platform.api.routers.irrigation_recommendation",
       "node_id": "services.sahool-platform.api.routers.irrigation_recommendation:router",
       "route_count": 2,
@@ -4826,7 +4826,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 28,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.service_proxy",
       "node_id": "services.sahool-platform.api.routers.service_proxy:router",
       "route_count": 4,
@@ -4966,7 +4966,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 51,
+      "line": 56,
       "module": "services.sahool-platform.api.routers.water_ledger",
       "node_id": "services.sahool-platform.api.routers.water_ledger:router",
       "route_count": 3,
@@ -5514,7 +5514,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
-      "line": 49,
+      "line": 50,
       "module": "services.sahool-platform.tests.test_edge_segmentation_proxy_authorization",
       "source": null,
       "target_expression": "service_proxy.router"

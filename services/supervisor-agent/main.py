@@ -27,6 +27,10 @@ from tool_contracts import (
 )
 
 from shared.security.access_tokens import decode_access_token
+from shared.security.tenant_assertion_headers import (
+    TenantAssertionError,
+    tenant_assertion_headers,
+)
 
 # تسجيل منظّم موحّد (JSON) — طبقة التنسيق الحرجة تستحقّ رؤية كاملة.
 try:
@@ -89,19 +93,44 @@ PLATFORM_URL = os.getenv(
 )
 
 
+def _platform_tenant_headers(tenant_id, path: str) -> dict[str, str] | None:
+    """W0-05: signed tenant headers for the platform's internal state route, or None.
+
+    ``tenant_id`` is always the tenant of the verified bearer (callers pass the token's
+    tenant, never the body's), so the assertion speaks only for a tenant this agent proved."""
+    key = os.getenv("PLATFORM_TENANT_ASSERTION_KEY", "")
+    if not key:
+        return None
+    try:
+        return tenant_assertion_headers(
+            key=key,
+            key_id=os.getenv("PLATFORM_TENANT_ASSERTION_KEY_ID", "current"),
+            service="supervisor-agent",
+            tenant_id=str(tenant_id),
+            method="GET",
+            path=path,
+        )
+    except TenantAssertionError:
+        return None
+
+
 async def _fetch_field_state(client, field_id, tenant_id):
     """best-effort: يجلب الحالة القانونيّة للحقل من المنصّة عبر القناة الداخليّة
-    (X-Agent-Token + tenant صريح). يُرجِع dict أو None — fail-safe: أيّ تعذّر ⇒
+    (X-Agent-Token + توكيد مستأجِر موقَّع). يُرجِع dict أو None — fail-safe: أيّ تعذّر ⇒
     None فيتابع التحقّق بلا الحالة (لا يكسر مسار الحَوكمة الحاليّ)."""
     if not field_id or not tenant_id:
         return None
+    # field_id comes from the request body: encode it as one path segment so
+    # "../" cannot reach other platform paths with the agent token.
+    path = f"/internal/fields/{quote(str(field_id), safe='')}/state"
+    signed = _platform_tenant_headers(tenant_id, path)
+    if signed is None:
+        return None  # no assertion key ⇒ the platform would refuse; send nothing
     try:
         r = await client.get(
-            # field_id comes from the request body: encode it as one path segment so
-            # "../" cannot reach other platform paths with the agent token.
-            f"{PLATFORM_URL}/internal/fields/{quote(str(field_id), safe='')}/state",
+            f"{PLATFORM_URL}{path}",
             params={"tenant_id": str(tenant_id)},
-            headers={"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")},
+            headers={"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", ""), **signed},
         )
         if r.status_code == 200:
             return r.json()

@@ -56,6 +56,16 @@ def _zones():
     ]
 
 
+def _owner_lab(*records):
+    """Server-built lab block (W0-12): the lab owner's approved results with result ids."""
+    return {
+        "approved_soil_lab": {
+            "owner": "sahool-platform",
+            "results": [{"quality_status": "approved", **r} for r in records],
+        }
+    }
+
+
 def test_vra_prescription_blocks_without_zones():
     out = generate_vra_prescription({"product_type": "fertilizer", "allow_estimated": True})
     assert out["vra_prescription"] is None
@@ -95,7 +105,8 @@ def test_vra_prescription_proposes_zone_rates_with_estimation_warning():
 def test_vra_prescription_lab_supported_has_higher_confidence():
     estimated = generate_vra_prescription({"zones": _zones(), "allow_estimated": True})
     lab = generate_vra_prescription(
-        {"zones": _zones(), "lab_results": [{"zone_id": "pz-1", "p": 12}]}
+        {"zones": _zones()},
+        evidence_context=_owner_lab({"result_id": "r-1", "zone_id": "pz-1", "p": 12}),
     )
     assert lab["vra_prescription"]["confidence"] > estimated["vra_prescription"]["confidence"]
     assert lab["readiness_gate"]["status"] == "review_required_before_export"
@@ -186,7 +197,8 @@ def test_vra_unstructured_lab_results_are_not_lab_evidence():
 
 def test_vra_zone_lab_record_supports_only_its_own_zone():
     out = generate_vra_prescription(
-        {"zones": _zones(), "lab_results": [{"zone_id": "pz-1", "p": 12}], "allow_estimated": True}
+        {"zones": _zones(), "allow_estimated": True},
+        evidence_context=_owner_lab({"result_id": "r-1", "zone_id": "pz-1", "p": 12}),
     )
     levels = {z["zone_id"]: z["evidence_level"] for z in out["prescription_zones"]}
     assert levels == {

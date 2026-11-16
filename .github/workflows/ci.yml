@@ -1591,6 +1591,16 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           SOIL_PLAN_COPIES_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_soil_sampling_plan_copies_live_pg.py
+      # W0-10 (weather-7): the water-ledger worker computes ET0 at the field elevation, keeps only
+      # validated values as reference, records ET0/rain provenance (v279) and re-records forecast
+      # rain from the archive. The flag turns any skip (missing asyncpg, unmigrated schema) into a
+      # failure, so these paths are measured on every run.
+      - name: Water ledger ET0 elevation and rain provenance (W0-10, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          WATER_LEDGER_ET0_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_water_ledger_et0_provenance_live_pg.py
       # v274-v277 (field-management-service owns the pin inspection and task cost tables): hand-off
       # state machine, evidence-version invalidation (P3), the v277 close gate through the
       # platform's PATCH, the cost trigger history, the expense link's farm/field check and the
@@ -1613,6 +1623,16 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           HARVEST_CUSTODY_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_harvest_custody_live_pg.py
+      # W0-13 (finding mobile-3): an offline irrigation report replayed after the water-balance
+      # worker wrote the day keeps ET0 and depletion, and the worker keeps the reported water and
+      # recomputes around it (v280). The real router runs on the restricted NOBYPASSRLS role; the
+      # worker on the owner URL, as deployed. The flag turns any skip into a failure.
+      - name: Water ledger partial irrigation write (W0-13, v280, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          WATER_LEDGER_PARTIAL_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_water_ledger_partial_write_live_pg.py
 
       # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
       # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real

@@ -701,3 +701,12 @@ async def create_model_registry_rollback_command(
         tenant_id=tenant_id,
         requested_by=requested_by,
     )
+
+
+async def submit_irrigation_candidate(payload: dict, tenant_id: str | None) -> dict:
+    """يقدّم مرشَّح الريّ إلى خدمة القرار (تسجيل معلَّق للموافقة) — لا ينفّذ.
+
+    يُسجّل قراراً معلَّقاً (pending_approval) فقط؛ التنفيذ المحروس (حواجز + human-in-loop +
+    طابور) يبقى في مسار decision_dispatch. تعذّر الخدمة ⇒ HTTPException.
+    """
+    return await record_decision(payload, tenant_id=tenant_id)

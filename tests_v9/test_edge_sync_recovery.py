@@ -210,3 +210,59 @@ def test_ingress_rejects_missing_top_level_identity():
     ).EdgeSyncRequest
     with pytest.raises(ValueError):
         model.model_validate({"type": "pest_detection", "data": observation()})
+
+
+# ── W0-07 (scout-1): the envelope carries its tenant, sent in service mode ──────────────────
+_KEY = "w0-07-edge-assertion-key-0123456789abcdef"
+_TENANT_B = "22222222-2222-2222-2222-222222222222"
+
+
+@pytest.mark.asyncio
+async def test_a_tenant_envelope_is_sent_as_a_service_with_its_own_tenant(tmp_path, respx_mock):
+    from shared.security.service_tenant_assertion import verify_tenant_assertion
+
+    mod = load("edge_transport_w0_07", "services/edge-inference/sync_service.py")
+    svc = mod.CloudSyncService(
+        "https://edge.example.test",
+        "legacy-bearer",
+        str(tmp_path),
+        agent_token="agent",
+        assertion_key=_KEY,
+    )
+    route = respx_mock.post("https://edge.example.test/v1/edge/sync")
+    route.mock(
+        side_effect=lambda req: httpx.Response(
+            200,
+            json={
+                "status": "stored",
+                "idempotency_key": json.loads(req.content)["idempotency_key"],
+            },
+        )
+    )
+    data = {**observation(), "device_id": "dev-1"}
+    assert await svc.sync_result("pest_detection", data, tenant_id=_TENANT_B) is True
+    request = route.calls[0].request
+    assert json.loads(request.content)["tenant_id"] == _TENANT_B, request.content
+    assert "authorization" not in request.headers, "the shared bearer must not speak for B"
+    assert request.headers["x-agent-token"] == "agent", request.headers
+    claims = verify_tenant_assertion(
+        request.headers["x-tenant-assertion"],
+        {"current": _KEY},
+        "edge-inference",
+        _TENANT_B,
+        expected_method="POST",
+        expected_path="/v1/edge/sync",
+        expected_request_id=request.headers["x-request-id"],
+    )
+    assert claims.tenant_id == _TENANT_B, claims
+
+
+@pytest.mark.asyncio
+async def test_a_tenant_envelope_without_an_assertion_key_stays_queued(tmp_path, respx_mock):
+    mod = load("edge_transport_w0_07_nokey", "services/edge-inference/sync_service.py")
+    svc = mod.CloudSyncService("https://edge.example.test", "legacy-bearer", str(tmp_path))
+    route = respx_mock.post("https://edge.example.test/v1/edge/sync")
+    data = {**observation(), "device_id": "dev-1"}
+    assert await svc.sync_result("pest_detection", data, tenant_id=_TENANT_B) is False
+    assert not route.called, "never sent under the bearer's tenant instead"
+    assert svc.queue_size() == 1, "kept for a retry once the key is configured"

@@ -330,11 +330,14 @@ async def get_irrigation_et0_product(
     wind_2m_ms: float | None,
     day_of_year: int,
     latitude_deg: float,
-    elevation_m: float,
+    elevation_m: float | None,
     valid_time: str | None = None,
     tenant_id: str | None = None,
 ) -> dict:
     """ET0 من محرّك الطقس — **مصدر ET0 الوحيد**. تعذّره ⇒ HTTPException (لا محلّيّ).
+
+    ``elevation_m=None`` (ارتفاعُ الحقل مجهول) يُمرَّر غائباً: المحرّك يُعلِن الجودة
+    ``degraded`` وقيدَ «مستوى البحر» بدل ارتفاعٍ ثابتٍ يُفترَض صامتاً.
 
     نقطة وصل قابلة للـmonkeypatch في الاختبار (تُثبِت أنّ المسار يستهلك المحرّك فعلاً).
     """
@@ -769,14 +772,19 @@ async def field_irrigation_weather_snapshot(
     """لقطة طقس اليوم من محرّك الطقس (المصدر الوحيد) — المسار الأساسيّ لـD.2c.
 
     يجلب توقّع اليوم لموقع الحقل ويشتقّ day-of-year من ``valid_time``. تعذّر المحرّك
-    أو غياب أيّام ⇒ HTTPException (fail-closed؛ لا توصية على طقس مفقود). RH غير متوفّر
-    في التوقّع اليوميّ (ساعيّ فقط) ⇒ None (ET0 يسقط لـHargreaves صراحةً). نقطة وصل
+    أو غياب أيّام ⇒ HTTPException (fail-closed؛ لا توصية على طقس مفقود). نقطة وصل
     قابلة للـmonkeypatch.
+
+    weather-5: الرطوبة والريح كانتا مثبّتتين على ``None`` فيسقط ET0 التوصية إلى Hargreaves
+    دائماً، مع أنّ التوقّع اليوميّ يُصدِر ``rh_mean_pct`` و``wind_mean_10m_ms``. تُؤخَذان
+    الآن بالتحويل الواحد مع دفتر الماء (``et0_weather_inputs``): **المتوسّط** على 10م ⇒ 2م
+    بمعادلة FAO-56 47، ولا تُشتقّ الريح من القصوى أبداً؛ غيابُ أيٍّ منهما يبقى ``None``.
     """
     from datetime import date as _date
 
     from fastapi import HTTPException
 
+    from api.water_ledger_inputs import et0_weather_inputs
     from api.weather_advice import RAIN_RECENT_NOT_OBSERVED, irrigation_rain_window
 
     # ثلاثةُ أيّامٍ لا يوم: المطرُ جزءٌ من المدخَل لا زينة — كلُّها لـ``forecast_rain_mm``
@@ -802,14 +810,15 @@ async def field_irrigation_weather_snapshot(
     rain_recent, forecast_rain, _missing = irrigation_rain_window(
         [d.get("precipitation_mm") for d in days[:3]]
     )
+    pm_inputs = et0_weather_inputs(d0)
     return {
         "t_min_c": d0.get("temp_min_c"),
         "t_max_c": d0.get("temp_max_c"),
-        # Forecast maximum at 10 m is not the daily mean at 2 m. Preserve
-        # absence until the owner supplies the required statistic/height.
-        "wind_2m_ms": None,
+        # The daily mean at 10 m converted to 2 m (FAO-56 Eq. 47); the forecast maximum
+        # (wind_max_ms) is never used, so a maximum alone leaves wind absent.
+        "wind_2m_ms": pm_inputs["wind_2m_ms"],
         "solar_rad_mj_m2": d0.get("solar_radiation_mj_m2"),
-        "rh_mean_pct": None,  # غير متوفّر في التوقّع اليوميّ
+        "rh_mean_pct": pm_inputs["rh_mean_pct"],
         "rain_recent_mm": rain_recent,
         "rain_recent_source": RAIN_RECENT_NOT_OBSERVED,
         "forecast_rain_mm": forecast_rain,

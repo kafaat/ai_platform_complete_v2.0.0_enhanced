@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **2201**
+- Python files parsed: **2204**
 - FastAPI-style route handlers: **1099**
-- Static function-call edges: **111590**
-- Dead-code candidates: **675**
+- Static function-call edges: **112436**
+- Dead-code candidates: **678**
 - Duplicate function groups: **63**
 - Automatic deletions: **0**
 
@@ -56,6 +56,7 @@
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_crop_twin_server_spectral.py` | 20 |
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_decision_lineage_endpoints.py` | 31 |
 | `sahool-platform` | `_reset_breaker` | function | `services/sahool-platform/tests/test_openmeteo_circuit.py` | 21 |
+| `sahool-platform` | `_service_env` | function | `services/sahool-platform/tests/test_pest_guardrails_gate.py` | 67 |
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_profit_aware_decision_endpoint.py` | 25 |
 | `sahool-platform` | `_soil_env` | function | `services/sahool-platform/tests/test_soil_plan_origin_client.py` | 33 |
 | `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 43 |

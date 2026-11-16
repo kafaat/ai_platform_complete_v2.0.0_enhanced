@@ -106,14 +106,38 @@ class _FakeClient:
 
 @pytest.mark.asyncio
 async def test_fetch_field_state_calls_internal_channel(sup_mod, monkeypatch):
+    from shared.security.service_tenant_assertion import verify_tenant_assertion
+
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "tkn")
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", "p" * 32)
     client = _FakeClient(_Resp(200, {"validity": "valid", "execution_mode": "auto"}))
     out = await sup_mod._fetch_field_state(client, "fld_1", "t1")
-    assert out == {"validity": "valid", "execution_mode": "auto"}
+    assert out == {"validity": "valid", "execution_mode": "auto"}, out
     url, params, headers = client.calls[0]
-    assert url.endswith("/internal/fields/fld_1/state")
-    assert params == {"tenant_id": "t1"}
-    assert headers["X-Agent-Token"] == "tkn"
+    assert url.endswith("/internal/fields/fld_1/state"), url
+    assert params == {"tenant_id": "t1"}, params
+    assert headers["X-Agent-Token"] == "tkn", "service token not sent"
+    # W0-05: the tenant is also signed, for this caller, this path and this request.
+    claims = verify_tenant_assertion(
+        headers["X-Tenant-Assertion"],
+        {"current": "p" * 32},
+        "supervisor-agent",
+        "t1",
+        expected_method="GET",
+        expected_path="/internal/fields/fld_1/state",
+        expected_request_id=headers["X-Request-Id"],
+    )
+    assert claims.tenant_id == "t1", claims
+    assert headers["X-Service-Name"] == "supervisor-agent", headers
+
+
+@pytest.mark.asyncio
+async def test_fetch_field_state_sends_nothing_without_assertion_key(sup_mod, monkeypatch):
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "tkn")
+    monkeypatch.delenv("PLATFORM_TENANT_ASSERTION_KEY", raising=False)
+    client = _FakeClient(_Resp(200, {"validity": "valid"}))
+    assert await sup_mod._fetch_field_state(client, "fld_1", "t1") is None, "unsigned call made"
+    assert client.calls == [], "the platform would refuse an unsigned call; none is sent"
 
 
 @pytest.mark.asyncio

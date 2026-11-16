@@ -12,6 +12,14 @@ from core.pest_escalation_flow import (
 )
 from core.workflow_engine import InMemoryWorkflowStore, WorkflowStatus
 
+# حكم سلامة مُسمَح (W0-01): التنفيذ يتطلّب بوّابة guardrails تسمح صراحةً. الاختبارات التي
+# تقيس مسار التنفيذ نفسه تحقنه؛ اختبارات الحجب في test_pest_guardrails_gate.py.
+_ALLOW = {"allowed": True, "status": "allowed", "reason_ar": "سمح"}
+
+
+def _allow_gate(ctx):
+    return dict(_ALLOW)
+
 
 def test_high_severity_suspends_for_approval_no_spray_yet():
     store = InMemoryWorkflowStore()
@@ -47,6 +55,7 @@ def test_resume_after_approval_executes_spray_once():
         store=store,
         initial_context={"approval_status": "approved"},
         execute_fn=_exec,
+        safety_gate_fn=_allow_gate,
     )
     assert st.status == WorkflowStatus.COMPLETED
     assert sprayed == [1]  # رُشَّ بعد الموافقة، مرّة واحدة فقط
@@ -180,18 +189,23 @@ def test_execute_no_action_when_action_type_is_none():
 def test_execute_default_ref_when_no_execute_fn():
     # بلا execute_fn محقونة وبموافقة معتمَدة وإجراء فعليّ ⇒ تنفيذ افتراضي
     # ومرجع مشتقّ من نوع الإجراء (exec-<action_type>) — لا تبعيّة حيّة.
-    execute = _steps_by_id()["execute"].fn
+    execute = _steps_by_id(safety_gate_fn=_allow_gate)["execute"].fn
     res = execute({"approval_status": "approved", "action_type": "urgent_spray"})
-    assert res == {"executed": True, "execution_ref": "exec-urgent_spray"}
+    assert res == {
+        "executed": True,
+        "execution_ref": "exec-urgent_spray",
+        "guardrails": _ALLOW,
+    }, res
 
 
 def test_execute_honours_execute_fn_reporting_failure():
     # صدق: لو أبلغت execute_fn فشلاً (executed=False) لا نزيّفه نجاحاً.
-    execute = _steps_by_id(execute_fn=lambda ctx: {"executed": False, "execution_ref": "ref-9"})[
-        "execute"
-    ].fn
+    execute = _steps_by_id(
+        execute_fn=lambda ctx: {"executed": False, "execution_ref": "ref-9"},
+        safety_gate_fn=_allow_gate,
+    )["execute"].fn
     res = execute({"approval_status": "approved", "action_type": "biocontrol"})
-    assert res == {"executed": False, "execution_ref": "ref-9"}
+    assert res == {"executed": False, "execution_ref": "ref-9", "guardrails": _ALLOW}, res
 
 
 # ── خطوة المتابعة (follow_up) — تُجدوَل فقط إثر تنفيذ فعلي ──
@@ -227,13 +241,15 @@ def test_mid_severity_biocontrol_full_flow_after_approval():
         "pe_bio",
         store=store,
         initial_context={"approval_status": "approved"},
+        safety_gate_fn=_allow_gate,
     )
     assert st.status == WorkflowStatus.COMPLETED
     assert st.step_results["recommend"]["action_type"] == "biocontrol"
     assert st.step_results["execute"] == {
         "executed": True,
         "execution_ref": "exec-biocontrol",
-    }
+        "guardrails": _ALLOW,
+    }, st.step_results["execute"]
     assert st.step_results["follow_up"]["follow_up_scheduled"] is True
 
 

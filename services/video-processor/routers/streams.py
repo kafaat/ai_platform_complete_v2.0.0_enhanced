@@ -64,6 +64,12 @@ async def create_stream(
         raise HTTPException(403, "tenant_id mismatch: body must not override token tenant")
     body["tenant_id"] = token_tenant  # الربط الموثوق
 
+    # W0-07 (scout-1): a bound field must belong to the token's tenant, or the edge would sync
+    # this stream's detections into another tenant's field. Checked before anything is created.
+    bound_field = main._bound_field_id(req.field_id)
+    if bound_field is not None:
+        await main.assert_field_in_tenant(bound_field, token_tenant)
+
     cfg = main.StreamConfig(**body)
     state = main.StreamState(cfg)
     main.STREAMS[req.stream_id] = state

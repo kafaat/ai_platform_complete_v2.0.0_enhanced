@@ -39,6 +39,8 @@ SERVICES = {
     "sahool-supervisor-agent": 8000,
     "sahool-guardrails-engine": 8000,
     "sahool-notification-agent": 8123,
+    "sahool-scout-ingest": 8000,
+    "sahool-field-management": 8000,
 }
 
 
@@ -99,6 +101,18 @@ class BackendHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header("X-Tenant-ID", "verified-tenant")
                 self.send_header("X-User-ID", "verified-user")
                 self.send_header("X-User-Role", "farmer")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        if self.server.service == "sahool-auth" and self.path == "/v1/auth/edge-sign":
+            allowed = self.headers.get("Authorization") == "Bearer fixture-valid-token"
+            self.send_response(204 if allowed else 401)
+            if allowed:
+                self.send_header("X-Tenant-ID", "verified-tenant")
+                self.send_header("X-User-ID", "verified-user")
+                self.send_header("X-Roles", "reviewer")
+                self.send_header("X-Edge-Timestamp", "1700000000")
+                self.send_header("X-Edge-Attestation", "fixture-attestation")
             self.send_header("Content-Length", "0")
             self.end_headers()
             return
@@ -388,6 +402,146 @@ class RuntimeContract(unittest.TestCase):
                 for key in ("x-agent-token", "x-user-id", "x-user-role"):
                     self.assertNotIn(key, data["headers"])
             self.assertEqual(self.request("/_auth_verify", headers)[0], 404)
+            self.assertEqual(self.request("/_auth_edge_sign", headers)[0], 404)
+
+            # W0-09 (web-1/deploy-4/deploy-11): routes ported from nginx.v9.conf. Before them
+            # every path below fell to the /api/ catch-all and reached the platform.
+            spoofed = dict(
+                headers,
+                **{
+                    "X-User-Role": "admin",
+                    "X-Roles": "admin",
+                    "X-Edge-Attestation": "forged",
+                    "X-Canonical-Path": "/internal/seasons/other/accept",
+                    "X-Season-Entry-Token": "client-token",
+                    "X-Field-Tasks-Token": "client-token",
+                    "X-Scout-Media-Token": "client-token",
+                },
+            )
+            ported = [
+                (
+                    "GET",
+                    "/api/v1/seasons?year=2026",
+                    "sahool-scout-ingest",
+                    "/internal/seasons?year=2026",
+                    "x-season-entry-token",
+                ),
+                (
+                    "POST",
+                    "/api/v1/seasons/s1/draft",
+                    "sahool-scout-ingest",
+                    "/internal/seasons/s1/draft",
+                    "x-season-entry-token",
+                ),
+                (
+                    "GET",
+                    "/api/v1/field-tasks/t1/cost?x=1",
+                    "sahool-field-management",
+                    "/internal/field-tasks/t1/cost?x=1",
+                    "x-field-tasks-token",
+                ),
+                (
+                    "POST",
+                    "/api/v1/scouting-media/photos",
+                    "sahool-scout-ingest",
+                    "/internal/scouting-media/photos",
+                    "x-scout-media-token",
+                ),
+            ]
+            for method, path, service, target, token in ported:
+                with self.subTest(ported=path):
+                    self.eventually(
+                        lambda p=path, m=method: self.request(p, spoofed, m, "{}")[0] == 200,
+                        f"late DNS for {service}",
+                    )
+                    status, _, body = self.request(path, spoofed, method, "{}")
+                    data = json.loads(body)
+                    self.assertEqual(
+                        (status, data["service"], data["path"]), (200, service, target)
+                    )
+                    self.assertEqual(data["method"], method)
+                    self.assertEqual(data["headers"]["x-tenant-id"], "verified-tenant")
+                    self.assertNotIn("x-agent-token", data["headers"])
+                    # Unrendered config: the literal placeholder, never the client's value.
+                    placeholder = {
+                        "x-season-entry-token": "@SEASON_ENTRY_SERVICE_TOKEN@",
+                        "x-field-tasks-token": "@FIELD_TASKS_SERVICE_TOKEN@",
+                        "x-scout-media-token": "@SCOUT_MEDIA_SERVICE_TOKEN@",
+                    }[token]
+                    self.assertEqual(data["headers"][token], placeholder)
+                    for other in {
+                        "x-season-entry-token",
+                        "x-field-tasks-token",
+                        "x-scout-media-token",
+                    } - {token}:
+                        self.assertNotIn(other, data["headers"])
+                    for key in ("x-roles", "x-edge-attestation", "x-canonical-path"):
+                        self.assertNotIn(key, data["headers"])
+                    if "seasons" in path:
+                        self.assertNotIn("x-user-id", data["headers"])
+                        self.assertNotIn("x-user-role", data["headers"])
+                    else:
+                        self.assertEqual(data["headers"]["x-user-id"], "verified-user")
+                        self.assertEqual(data["headers"]["x-user-role"], "farmer")
+                    count = len(backends[service].snapshot())
+                    self.assertEqual(self.request(path, method=method, body="{}")[0], 401)
+                    self.assertEqual(len(backends[service].snapshot()), count)
+            status, _, body = self.request(
+                "/api/v1/scouting-media/photos",
+                dict(headers, **{"X-Content-SHA256": "ab" * 32}),
+                "POST",
+                "img",
+            )
+            self.assertEqual(json.loads(body)["headers"]["x-content-sha256"], "ab" * 32)
+
+            # Acceptance: identity and the destination-bound attestation come from edge-sign.
+            status, _, body = self.request("/api/v1/seasons/s1/accept", spoofed, "POST", "{}")
+            data = json.loads(body)
+            self.assertEqual(
+                (status, data["service"], data["path"]),
+                (200, "sahool-scout-ingest", "/internal/seasons/s1/accept"),
+            )
+            self.assertEqual(data["headers"]["x-tenant-id"], "verified-tenant")
+            self.assertEqual(data["headers"]["x-user-id"], "verified-user")
+            self.assertEqual(data["headers"]["x-roles"], "reviewer")
+            self.assertEqual(data["headers"]["x-edge-attestation"], "fixture-attestation")
+            self.assertNotIn("x-canonical-path", data["headers"])
+            signs = [
+                r for r in backends["sahool-auth"].snapshot() if r["path"] == "/v1/auth/edge-sign"
+            ]
+            self.assertTrue(signs)
+            self.assertEqual(
+                signs[-1]["headers"]["x-canonical-path"], "/internal/seasons/s1/accept"
+            )
+            self.assertEqual(signs[-1]["headers"]["x-canonical-method"], "POST")
+            for key in ("x-tenant-id", "x-roles", "x-edge-attestation"):
+                self.assertNotIn(key, signs[-1]["headers"])
+            count = len(backends["sahool-scout-ingest"].snapshot())
+            self.assertEqual(self.request("/api/v1/seasons/s1/accept", method="POST")[0], 401)
+            self.assertEqual(len(backends["sahool-scout-ingest"].snapshot()), count)
+
+            # Simulation is a platform route; the platform checks the JWT itself.
+            status, _, body = self.request("/api/v1/seasons/s1/simulate", spoofed, "POST", "{}")
+            data = json.loads(body)
+            self.assertEqual(
+                (status, data["service"], data["path"]),
+                (200, "sahool-platform", "/api/v1/seasons/s1/simulate"),
+            )
+            self.assertEqual(data["headers"]["authorization"], "Bearer fixture-valid-token")
+            for key in ("x-tenant-id", "x-user-id", "x-user-role", "x-agent-token"):
+                self.assertNotIn(key, data["headers"])
+
+            # COG tiles (deploy-11): an <img> carries only the cookie; the platform reads
+            # Authorization only. The .png path must not be taken by the static-asset regex.
+            tile = "/api/v1/gis/cloud-native/rasters/r1/tiles/1/2/3.png"
+            status, _, body = self.request(tile, {"Cookie": "sahool_at=fixture-valid-token"})
+            data = json.loads(body)
+            self.assertEqual(
+                (status, data["service"], data["path"]), (200, "sahool-platform", tile)
+            )
+            self.assertEqual(data["headers"]["authorization"], "Bearer fixture-valid-token")
+            self.assertEqual(data["headers"]["x-tenant-id"], "verified-tenant")
+            self.assertEqual(self.request(tile)[0], 401)
             status, _, body = self.request(
                 "/api/ai-agronomist/chat?stream=0", headers, "POST", '{"text":"hello"}'
             )

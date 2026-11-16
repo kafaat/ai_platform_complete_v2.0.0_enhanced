@@ -151,7 +151,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 69
+        "tests": 74
       }
     },
     {
@@ -318,7 +318,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:299",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:341",
         "DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1614",
         "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:667",
         "GET / @ services/field-management-service/main.py:292",
@@ -455,7 +455,7 @@
       },
       "evidence_truncated": {
         "apis": 238,
-        "tests": 157,
+        "tests": 158,
         "mobile_consumers": 44
       }
     },
@@ -2342,7 +2342,8 @@
         "services/weather-service/tests/test_et0_reference_and_input_validity.py",
         "services/weather-service/tests/test_et0_series.py",
         "tests_v9/test_et0_http_platform_hop.py",
-        "tests_v9/test_mcp_weather_et0_engine_delegation.py"
+        "tests_v9/test_mcp_weather_et0_engine_delegation.py",
+        "tests_v9/test_water_ledger_et0_provenance_live_pg.py"
       ],
       "runtime": {
         "metrics": [],
@@ -2354,9 +2355,17 @@
         {
           "type": "repository",
           "path": "services/weather-service/et0.py"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v279_water_ledger_et0_rain_provenance.down.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v279_water_ledger_et0_rain_provenance.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=8, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=9, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -2659,6 +2668,7 @@
         "tests_v9/test_knowledge_provenance_guard.py",
         "tests_v9/test_sot_provenance_guard.py",
         "tests_v9/test_v239_detection_provenance_live_pg.py",
+        "tests_v9/test_water_ledger_et0_provenance_live_pg.py",
         "tests_v9/test_wofost_weather_provenance.py"
       ],
       "runtime": {
@@ -2693,9 +2703,17 @@
         {
           "type": "repository",
           "path": "migrations/v239_detection_provenance.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v279_water_ledger_et0_rain_provenance.down.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v279_water_ledger_et0_rain_provenance.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=20, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=21, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -3227,10 +3245,10 @@
         "GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:407",
         "GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:761",
         "GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2593",
-        "POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:209",
+        "POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:202",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:542",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329",
-        "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:122",
+        "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:115",
         "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:590",
         "POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922",
         "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:354",
@@ -3774,6 +3792,7 @@
         "tests_v9/test_nitrogen_prescription_honesty.py",
         "tests_v9/test_prescription_export_adapters_v62_1.py",
         "tests_v9/test_prescription_shapefile.py",
+        "tests_v9/test_vra_owner_lab_evidence_w0_12.py",
         "tests_v9/test_vra_prescription_engine_v62.py"
       ],
       "runtime": {
@@ -3804,7 +3823,7 @@
           "path": "services/sahool-platform/api/prescription_shapefile.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "5",
         "CropX": null,
@@ -4337,7 +4356,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:299",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:341",
         "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394",
         "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:362",
         "POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195",
@@ -4768,11 +4787,11 @@
         "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
         "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
         "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+        "services/sahool-platform/tests/test_yield_estimate_unknown_evidence.py",
         "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
         "services/soil-service/test_soil_evidence_adapters_and_policy.py",
         "services/soil-service/test_soil_remote_sensing_evidence.py",
-        "services/vegetation-analysis-service/test_evidence_producer_contract.py",
-        "tests/architecture/test_capability_evidence_maturity_engine.py"
+        "services/vegetation-analysis-service/test_evidence_producer_contract.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4818,7 +4837,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 22
+        "tests": 24
       }
     },
     {
@@ -5674,6 +5693,8 @@
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
+        "tests_v9/test_internal_tenant_assertion_live_pg.py",
+        "tests_v9/test_internal_tenant_assertion_w0_05.py",
         "tests_v9/test_service_tenant_assertion.py"
       ],
       "runtime": {
@@ -5698,9 +5719,13 @@
         {
           "type": "repository",
           "path": "shared/security/service_tenant_assertion.py"
+        },
+        {
+          "type": "repository",
+          "path": "shared/security/tenant_assertion_headers.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=1, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=3, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

@@ -476,5 +476,25 @@ def forecast_day_for_ledger_date(forecast: Mapping, ledger_date: _dt.date) -> di
 
 
 def manual_entry_takes_precedence(existing_created_by: str | None) -> bool:
-    """قيد اليوم الموجود يُحترَم إن لم يكن من العامل نفسه — الإنسان سيّد الدفتر."""
+    """قيد اليوم الموجود يُحترَم إن لم يكن من العامل نفسه — الإنسان سيّد الدفتر.
+
+    W0-13: only ``created_by`` decides. A person's applied-water report (v280) does not take the
+    day: on a new day it opens a row whose ``created_by`` is the worker, and the reporter is in
+    ``irrigation_reported_by`` (``reported_irrigation``). Any other writer that sets
+    ``created_by`` (a full manual entry, the as-applied reconciliations) keeps the day from the
+    worker, whatever ``irrigation_reported_by`` says.
+    """
     return existing_created_by is not None and existing_created_by != AUTO_CREATED_BY
+
+
+def reported_irrigation(existing: Mapping | None) -> float | None:
+    """The applied water a person reported for the day, or ``None`` when there is no report.
+
+    The report is the day's total (the mobile form asks for the water applied that day), so
+    the worker uses it as the day's irrigation instead of the ``irrigation_runs`` sum, and it
+    is measured, not unobserved. A report row whose figure was cleared is no report.
+    """
+    if not existing or existing.get("irrigation_reported_by") is None:
+        return None
+    value = existing.get("irrigation_mm")
+    return None if value is None else float(value)

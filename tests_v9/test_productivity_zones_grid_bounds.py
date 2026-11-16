@@ -184,6 +184,7 @@ def test_query_endpoint_runs_tool_loop_off_the_event_loop(monkeypatch):
 
     monkeypatch.setenv("AI_GENERATION_ENABLED", "false")
     monkeypatch.setattr(R, "AGENT_TOKEN", "svc")
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", "k" * 32)
 
     def handler(req):
         u = str(req.url)
