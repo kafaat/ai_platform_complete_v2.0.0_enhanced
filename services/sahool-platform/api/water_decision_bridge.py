@@ -142,6 +142,33 @@ def build_candidate(
     return decision_id, lineage, payload
 
 
+def _ledger_features(field_id: str, ledger_date: date, entry: dict[str, Any]) -> list[dict]:
+    """The ledger's own values for the composed context: a derived daily balance, never a
+    measurement (``accepted_with_warning``); an absent value is simply not stated."""
+    ref = {
+        "source_snapshot_id": f"water_ledger:{field_id}:{ledger_date.isoformat()}",
+        "formula_version": "water_ledger.daily_balance",
+        "temporal_scope": f"ledger_date:{ledger_date.isoformat()}",
+        "unit": "mm",
+    }
+    return [
+        {
+            "group": "irrigation",
+            "name": "root_zone_depletion_mm",
+            "value": entry.get("depletion_mm"),
+            **ref,
+        },
+        {"group": "irrigation", "name": "deficit_mm", "value": entry.get("deficit_mm"), **ref},
+        {"group": "soil", "name": "total_available_water_mm", "value": entry.get("taw_mm"), **ref},
+        {
+            "group": "soil",
+            "name": "readily_available_water_mm",
+            "value": entry.get("raw_mm"),
+            **ref,
+        },
+    ]
+
+
 async def process_water_deficit(
     *,
     tenant_id: str,
@@ -149,6 +176,8 @@ async def process_water_deficit(
     season_id: str | None,
     ledger_date: date,
     entry: dict[str, Any],
+    crop: str | None = None,
+    cultivar_id: str | None = None,
 ) -> dict[str, Any]:
     if not bridge_enabled():
         return {"status": "disabled"}
@@ -160,8 +189,9 @@ async def process_water_deficit(
         authorize_dispatch,
         create_execution_plan,
         create_execution_request,
-        record_decision,
+        governed_candidate_lineage,
         review_decision,
+        submit_governed_candidate,
     )
 
     policy = os.getenv("WATER_DEFICIT_POLICY_VERSION", "water-deficit.v1")
@@ -173,7 +203,21 @@ async def process_water_deficit(
         entry=entry,
         policy_version=policy,
     )
-    recorded = await record_decision(candidate, tenant_id=tenant_id)
+    # W2-02 (decision-2): the candidate carries its AC-1 lineage, or the bridge names the gap
+    # (blocked:lineage_missing) instead of meeting decision-service's 422.
+    binding = await governed_candidate_lineage(
+        tenant_id=tenant_id,
+        field_id=field_id,
+        season_id=season_id,
+        crop=crop,
+        cultivar_id=cultivar_id,
+        producer="water-ledger-governed-bridge",
+        features=_ledger_features(field_id, ledger_date, entry),
+    )
+    submitted = await submit_governed_candidate(candidate, binding, tenant_id=tenant_id)
+    if submitted["status"] != "recorded":
+        return {**submitted, "decision_id": decision_id, "candidate_lineage_id": lineage}
+    recorded = submitted["record"]
     if not recorded.get("persisted") or not recorded.get("authoritative"):
         return {"status": "candidate_not_authoritative", "decision_id": decision_id}
 

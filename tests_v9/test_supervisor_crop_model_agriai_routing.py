@@ -40,6 +40,14 @@ from skills.crop_model_skill import CropModelSkill  # noqa: E402
 
 TOKEN = "crop-model-routing-token"
 _WEATHER = {"gdd": 1600.0, "total_rain_mm": 300.0}
+# معاملات صريحة لطلبٍ بلا حقل (افتراضيّ): البديل الحتميّ يرفض الاسم المجرّد (airuntime-5).
+_CROP_PARAMETERS = {
+    "base_temp_c": 0.0,
+    "max_yield_kg_ha": 6000.0,
+    "gdd_to_maturity": 2000.0,
+    "water_use_efficiency": 15.0,
+    "harvest_index": 0.4,
+}
 
 
 def _load_agriai(monkeypatch):
@@ -76,7 +84,14 @@ def test_fallback_from_real_agriai_is_labelled_fallback_not_wofost(monkeypatch):
             return await super().handle_async_request(request)
 
     _route_to(monkeypatch, Spy(app=agriai.app))
-    out = _simulate({"crop": "Wheat", "weather": _WEATHER, "soil": {"available_water_mm": 80.0}})
+    out = _simulate(
+        {
+            "crop": "Wheat",
+            "crop_parameters": _CROP_PARAMETERS,
+            "weather": _WEATHER,
+            "soil": {"available_water_mm": 80.0},
+        }
+    )
 
     assert [r.url.path for r in seen] == ["/v1/simulate"]
     assert seen[0].headers["x-agent-token"] == TOKEN
@@ -89,10 +104,25 @@ def test_fallback_from_real_agriai_is_labelled_fallback_not_wofost(monkeypatch):
     assert out["yield_kg_ha"] > 0
     interval = out["yield_interval"]
     assert interval["low_kg_ha"] <= out["yield_kg_ha"] <= interval["high_kg_ha"]
-    # {"name": "wheat"} ليس معاملات: الموجِّه يُسمّي الافتراضات بدل إخفائها.
-    assert "default_crop_params" in interval["drivers"]
+    # المعاملات صريحة (لا افتراضات عامّة بعد airuntime-5)، فلا موجِّه default_crop_params.
+    assert "default_crop_params" not in interval["drivers"]
     assert "deterministic_fallback_model" in interval["drivers"]
     assert out["actionable"] is False
+    sent = seen[0].read()
+    assert b'"max_yield_kg_ha":6000.0' in sent.replace(b" ", b""), sent
+
+
+def test_real_agriai_refuses_a_bare_crop_name_and_the_skill_says_why(monkeypatch):
+    """airuntime-5: agriai كان يُحاكي أيّ اسمٍ بمعاملات عامّة؛ الآن 422 باسم الناقص."""
+    monkeypatch.setenv("SIM_PCSE_ENABLED", "0")
+    monkeypatch.setenv("AGRIAI_PRODUCTION_MODE", "0")
+    agriai = _load_agriai(monkeypatch)
+    _route_to(monkeypatch, httpx.ASGITransport(app=agriai.app))
+    out = _simulate({"crop": "wheat", "weather": _WEATHER, "soil": {"available_water_mm": 80.0}})
+    assert out["type"] == "unavailable", out
+    assert out["structured"]["reason"] == "crop_model_inputs_rejected", out
+    assert out["structured"]["engine_reason"] == "crop_parameters_required", out
+    assert "yield_kg_ha" not in out, out
 
 
 def test_pcse_provenance_is_propagated_as_uncalibrated_pcse(monkeypatch):

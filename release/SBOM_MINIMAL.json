@@ -45,7 +45,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "329ab55c1651ad00c3f52e4a4df0df6f05c88fdce8e4ea3133991b825ab58689"
+          "content": "38515e7768f5d9b0b181a8f1c246a2386587175185b9eb41f92dfb9efccb2f92"
         }
       ],
       "name": "docker-compose.production.yml",
@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f5cc95d0d723ae2081f91e3ea84f89abe4fd8d349aa1483592a1ca37d6eb8259"
+          "content": "4d1c38f62f71eee65b4926062c04addc1d61a9affd01bc13f578d55e2eb46513"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -9995,7 +9995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "12ece50fc1bc2f32acbffdabc4746eeacf458b597ed490863c41e1875b1f064f"
+          "content": "1c6a1d72de530e8f4f12a8a9ed3ed17881134ceb583fdaab078ca8fa602734c9"
         }
       ],
       "name": "migrations/v281_farm_ledger_season_reference.down.sql",
@@ -17575,7 +17575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2390b56b1f930a6350442f769b0d9d8ebcd430b7ee3c0a5f55b41162dcf9a90c"
+          "content": "571d7c5c2bcb0d2c94cfb43166ea19babdaebe215ba3cf21543bce3bd2ec804d"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -17685,7 +17685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "519ef9bf15e84c8a229d77c18cd34367b8cdbad839cc98b837cf2dc850d9d2a6"
+          "content": "d671094df2075d39631cff5f6a417e71416c36781ab0def37726f55cc2694b18"
         }
       ],
       "name": "services/actuator-service/test_actuator_delivery_state_20261103.py",
@@ -18045,7 +18045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "93fc1244c0f183ad0a7d0bfc39ea24954dcfab8b930280945b232cd09b51e84f"
+          "content": "61a5696b140e80453b5987e0e0ff12a64341b4fba8eeaf793702ee112c164b35"
         }
       ],
       "name": "services/agriai-engine/wofost_adapter.py",
@@ -24685,7 +24685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "18357f61af770e61324272626d0808174f3ddc7ca70b71d8aed9d4d546672ba9"
+          "content": "609f3acfaa550ed2d8081c31a28574e85f62934657e99f8b626fdf3cb8ccdb27"
         }
       ],
       "name": "services/sahool-platform/api/agronomic_context_composer.py",
@@ -25185,7 +25185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fac7e9d0ec541166a82cac17cc2e6c4e03c717ed6671b0453bc4e03d5e87b1fd"
+          "content": "fbdf09f6e23cbc1b4fa88e967ac8dae766b27b902b5f695ed286a8579db22dbb"
         }
       ],
       "name": "services/sahool-platform/api/crop_decision_bridge.py",
@@ -25365,7 +25365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "013c46d250f6efc9150e33d6b71a9087429a5c858f33ef20872f6d9ff838fb4f"
+          "content": "e41c399da8070479fb254c83747fe129a6029bcadcd9e0b9d7a8ec1e71821f40"
         }
       ],
       "name": "services/sahool-platform/api/decision_service_client.py",
@@ -26385,7 +26385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03264614a26a2b5c7b9989a102592cc5e30b5f1bb49207599d32319a32087756"
+          "content": "1f3d53b275321e26d4b1cbb097f081446df7b1a7f37adcb7bab0dd2ad628261c"
         }
       ],
       "name": "services/sahool-platform/api/lexicographic_mpc_bridge.py",
@@ -26405,7 +26405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "173271744ce66c642dde9d6b3eb1cb5eb5163d810a25a7d7ac7adb92f7e2ce7c"
+          "content": "316898183b1d3a7faca9b2b6d3e4717564a281234d06191312a6dde192d4a275"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -26545,7 +26545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "959982aad2223f51e3fa04fb34d3170d689840a89cec22372c18cd838552577b"
+          "content": "6c11a3c4585f71fb8e36333c41a3d4f4f2ffa3f2b02d6dff035a0e6dd2682ab5"
         }
       ],
       "name": "services/sahool-platform/api/persisted_canonical_repositories.py",
@@ -26605,7 +26605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "006f778cc26aae1b8aab3e4878ded0eec0a768794aca83dd1d3fbf9eae5c4186"
+          "content": "08193bb65f71689a984d8ae72499aa02390ed0a6d42f3c36187fd3fa7d5c02cd"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_workers.py",
@@ -27065,7 +27065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "20492775e699132ee6203519d26fcabe632a68c7e0235fc36ecdf429c37cc3c0"
+          "content": "d405507adb9f2d8dce4ebce15b1d725092f262b0505200cd4cd4143b10f5ee46"
         }
       ],
       "name": "services/sahool-platform/api/routers/crop_twin.py",
@@ -27675,7 +27675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0cd08b95132ab9cacecd7d8aa4c4d9c7e49523716a0a28d9510ee0e8bc318950"
+          "content": "e384e8eae6b8ad8ade661ea71f470de4713098759c23bb157dce5861f04c8d17"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_mpc.py",
@@ -28815,7 +28815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d980067093d638167a2c36a8c272ba15aaf2a64e1d74e7c209f3381563e5efa5"
+          "content": "750d990ac3b3c36f971276f0fa51d31c470a3af651c10f9c4da73fbc6e72931d"
         }
       ],
       "name": "services/sahool-platform/api/water_decision_bridge.py",
@@ -35125,6 +35125,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9fdcab6c0bcf99f8422bda7ce08cda89f79d2031f112d6983c0a7b70f9f16304"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_governed_bridge_ac1_lineage.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ef94e22c2283a5eb90d63d051399f9df0887653a964b977b3be46f2f148c9caa"
         }
       ],
@@ -37775,7 +37785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c0854fd7dddbef9010aad4cf3167521eac798caac5e6818d97adac34e17ecf4a"
+          "content": "9429d13c155067d5f19ca1ff1f4469cd6f96ecd0b898f249bd8b43ef2741129c"
         }
       ],
       "name": "services/sahool-platform/tests/test_water_decision_bridge.py",
@@ -39245,7 +39255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2e7bcb8e88e514a80eda5df48a326f254f05e4cd35e6624983f15117b1313cca"
+          "content": "a293db5973eca4c9b3084ed7b56007a1d2c471b4ad29d8a61518ae70fb76b04f"
         }
       ],
       "name": "services/supervisor-agent/main.py",
@@ -39305,7 +39315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe9ed4b2d9dfe03a9b2bb4995d6e94f3b4fa86a95a5b8e94d4757d570c6fd4b6"
+          "content": "c6f7fcdf51b7c4d62e452f5f68127d03304b2c3e4b356d7741b1359e46057d04"
         }
       ],
       "name": "services/supervisor-agent/routers/agent.py",
@@ -39319,6 +39329,16 @@
         }
       ],
       "name": "services/supervisor-agent/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "921cebff78c26577de122529738c6bca27a9f78b8ec6b5bb91368c3e5ced3006"
+        }
+      ],
+      "name": "services/supervisor-agent/server_facts.py",
       "type": "file"
     },
     {
@@ -39345,7 +39365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bc1ab828ef026a7a23b9ce60ccf7259e3d8ccb08db4926735b4a22149122750d"
+          "content": "d9316162b0690aa2fd443c6e25637284b9fc675e16f028eca839a49baa7c162b"
         }
       ],
       "name": "services/supervisor-agent/skills/crop_model_skill.py",
@@ -39375,7 +39395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "337e746b6f77437a93797dd5dd98971c6e8053eae1ec85e4b77dab4b051177cc"
+          "content": "ccd102e77a78f22e69e567e4428886f25e8b6541860d399764d7fda3d18c5a3a"
         }
       ],
       "name": "services/supervisor-agent/test_ai_orchestration_forensic.py",

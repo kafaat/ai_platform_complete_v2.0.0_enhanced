@@ -2910,6 +2910,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "tests_v9/test_supervisor_server_facts_w2_17.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_v10_modules.py",
           "signal": "pytest.mark.unit"
         },
@@ -2979,6 +2984,7 @@
         "tests_v9/test_season_simulate_gateway_route.py",
         "tests_v9/test_season_simulation_behavior_v66.py",
         "tests_v9/test_season_workspace.py",
+        "tests_v9/test_supervisor_server_facts_w2_17.py",
         "tests_v9/test_v10_modules.py",
         "tests_v9/test_v150_seasons_yield_check_static.py",
         "tests_v9/test_v201_season_records_static.py",

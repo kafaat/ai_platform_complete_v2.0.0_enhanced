@@ -4247,6 +4247,14 @@
           "content:Weather forecast",
           "dedup:Weather forecast=weather forecast"
         ]
+      },
+      {
+        "capability_id": "FM-005",
+        "score": 9,
+        "signals": [
+          "content:cultivar",
+          "content:variety"
+        ]
       }
     ]
   },
@@ -5391,6 +5399,37 @@
         "signals": [
           "content:signed tenant",
           "content:tenant assertion"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/supervisor-agent/server_facts.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 10,
+        "signals": [
+          "content:crop season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "WX-010",
+        "score": 9,
+        "signals": [
+          "content:canonical weather",
+          "content:weather provenance",
+          "content:weather quality"
+        ]
+      },
+      {
+        "capability_id": "FM-005",
+        "score": 9,
+        "signals": [
+          "content:cultivar",
+          "content:variety"
         ]
       }
     ]

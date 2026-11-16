@@ -1002,25 +1002,6 @@ jobs:
       # never turns a skip into a pass. Pinned by tests_v9/test_unit_skip_inventory_guard.py.
       - name: Unit skip inventory (every skip declared, by node id and reason)
         run: python scripts/ci/unit_skip_inventory_guard.py --junit parallel=unit-par.xml --junit tree_writer=unit-tw.xml
-      # The pytest-cov XML has source=<repo>/services, not the Git root.
-      # Re-export the same data from the Git root before validating/uploading.
-      - name: Export unit coverage with Git-relative paths
-        run: >-
-          python -m coverage xml
-          --data-file=.coverage
-          --include=services/*
-          -o coverage-unit.xml
-      - name: Verify unit Codecov report paths
-        run: >-
-          python scripts/ci/codecov_coverage_guard.py
-          --report coverage-unit.xml
-          --prefix services
-      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
-        with:
-          files: coverage-unit.xml
-          flags: unit-tests
-          disable_search: true
-          fail_ci_if_error: false
       # raster-tiler-service: in-service tests sit outside `testpaths = tests_v9`, so
       # `-m unit` never collects them; TiTiler is stubbed, deps come from requirements-test.
       - name: raster-tiler-service wrapper route contracts
@@ -1057,7 +1038,7 @@ jobs:
         run: |
           pip install "edge-tts>=6.1.12"  # aiomqtt صارت في tests_v9/requirements-test.txt (Q3)
           run_group() {
-            out=$(python -m pytest -q -rs -p no:cacheprovider "$@" 2>&1); rc=$?
+            out=$(python -m pytest -q -rs -p no:cacheprovider --cov=services --cov-append --cov-report= "$@" 2>&1); rc=$?
             printf '%s\n' "$out"
             [ "$rc" -eq 0 ] || exit "$rc"
             if printf '%s\n' "$out" | tail -n 1 | grep -q 'skipped'; then
@@ -1087,6 +1068,28 @@ jobs:
             run_group services/vegetation-analysis-service/test_anomaly_engine.py services/vegetation-analysis-service/test_anomaly_store.py services/vegetation-analysis-service/test_baseline_engine.py services/vegetation-analysis-service/test_decision_bridge_candidate.py services/vegetation-analysis-service/test_diagnosis_engine.py services/vegetation-analysis-service/test_ground_verification_bridge.py services/vegetation-analysis-service/test_platform_field_catalog_boundary.py services/vegetation-analysis-service/test_raster_bundle_boundary.py services/vegetation-analysis-service/test_rs_final_hardening.py services/vegetation-analysis-service/test_rs_review_hardening.py services/vegetation-analysis-service/test_vegetation_event_admission.py services/vegetation-analysis-service/test_vegetation_logic.py services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py
             run_group services/video-processor/test_video_processor_router_decomposition_guard.py
             run_group shared/enterprise_gis/test_phase7_enterprise.py shared/enterprise_gis/test_phase8_global_scale.py shared/gis/test_cloud_native_gis.py shared/gis/test_cloud_native_runtime.py shared/gis/test_phase5_runtime.py shared/precision_agriculture/test_phase6_intelligence.py shared/test_autonomous_farm_os_phase9.py shared/test_continuous_learning_phase10.py shared/test_federated_agent_runtime.py shared/test_federated_agents_phase11.py shared/test_field_runtime_cohesion.py shared/test_marketplace_ecosystem_phase12.py shared/test_marketplace_plugin_runtime.py
+      # Service-local groups append their coverage to the unit data file (--cov-append above),
+      # so the one unit-tests upload counts every test CI runs, not only tests_v9 (codecov/patch
+      # on #1504 read the supervisor-agent tests and the code they cover as unmeasured).
+      # The pytest-cov XML has source=<repo>/services, not the Git root.
+      # Re-export the same data from the Git root before validating/uploading.
+      - name: Export unit coverage with Git-relative paths
+        run: >-
+          python -m coverage xml
+          --data-file=.coverage
+          --include=services/*
+          -o coverage-unit.xml
+      - name: Verify unit Codecov report paths
+        run: >-
+          python scripts/ci/codecov_coverage_guard.py
+          --report coverage-unit.xml
+          --prefix services
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
+        with:
+          files: coverage-unit.xml
+          flags: unit-tests
+          disable_search: true
+          fail_ci_if_error: false
 
   repository-tests:
     name: Repository Tests (tests/)
@@ -1685,6 +1688,27 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           YIELD_SERVER_FEATURES_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_yield_server_features_live_pg.py
+      # W0-07: edge sync writes each detection under the tenant its request asserts. The flag turns any skip into a failure (lab receipt on 0f746db).
+      - name: Edge sync carries the verified tenant per request (W0-07, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          EDGE_SYNC_TENANT_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_edge_sync_tenant_per_request_live_pg.py
+      # W0-05: /internal/fields/{id}/state and /internal/events/ai-advice refuse a caller without a valid tenant assertion. The flag turns any skip into a failure (lab receipt on 0f746db).
+      - name: Internal routes require a tenant assertion (W0-05, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          INTERNAL_TENANT_ASSERTION_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_internal_tenant_assertion_live_pg.py
+      # W0-11: the yield estimate refuses another tenant's field. The flag turns any skip into a failure (lab receipt on 0f746db).
+      - name: Yield estimate is tenant-checked (W0-11, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          YIELD_ESTIMATE_TENANT_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_yield_estimate_tenant_live_pg.py
 
       # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
       # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real

@@ -351,6 +351,9 @@ async def crop_decision_candidate_endpoint(
             tenant_id=str(user.tenant_id) if user.tenant_id else None,
             submit=req.submit,
             created_by=user.user_id,
+            # W2-02: crop identity for the AC-1 lineage (cultivar from the season's owner).
+            crop=req.crop,
+            cultivar_id=await _season_cultivar(user, req.season_id) if req.submit else None,
         )
     except ValueError as exc:
         # fail-closed: أدلة/نَسَب/حدود ناقصة أو غير متسقة ⇒ رفض واضح لا 5xx خام.
@@ -547,3 +550,18 @@ async def profit_aware_decision_endpoint(
     decision["persisted"] = False
     decision["preview_only"] = True
     return decision
+
+
+async def _season_cultivar(user: UserSchema, season_id: str | None) -> str | None:
+    """``seasons.cultivar`` under the caller's tenant; None when absent or unreadable — the
+    AC-1 binding then names it missing, never fills it."""
+    if not season_id:
+        return None
+    from api.main import tenant_connection
+    from api.persisted_canonical_repositories import load_season_cultivar
+
+    try:
+        async with tenant_connection(user) as conn:
+            return await load_season_cultivar(conn, season_id=season_id)
+    except Exception:  # noqa: BLE001 — unreadable is reported as missing downstream
+        return None

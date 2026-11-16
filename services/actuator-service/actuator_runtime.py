@@ -175,6 +175,8 @@ ACTUATOR_DISPATCH_TENANT_IDS = os.getenv("ACTUATOR_DISPATCH_TENANT_IDS", "")
 ACTUATOR_DISPATCH_POLL_SECONDS = float(os.getenv("ACTUATOR_DISPATCH_POLL_SECONDS", "10"))
 ACTUATOR_DISPATCH_RISK_ALLOWLIST = os.getenv("ACTUATOR_DISPATCH_RISK_ALLOWLIST")
 _DISPATCH_ADAPTER_ID = os.getenv("ACTUATOR_DISPATCH_ADAPTER_ID", "actuator-service")
+# device_commands_log.triggered_by for commands the decision dispatch consumer publishes.
+_DISPATCH_TRIGGERED_BY = "decision_dispatch"
 ACTUATOR_DELIVERY_TOKEN_KEY = os.getenv("ACTUATOR_DELIVERY_TOKEN_KEY", "")
 ACTUATOR_DEVICE_STALE_SECONDS = float(os.getenv("ACTUATOR_DEVICE_STALE_SECONDS", "900"))
 
@@ -448,6 +450,20 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
                     device_reason = f"killswitch:{scoped_reason}"
                 else:
                     command_id, issued_at = _dispatch_wire_identity(item, payload, req_id)
+                    # water-1 (W2-07): record the command as queued under the same command_id
+                    # the wire carries, before publishing. handle_device_ack only moves a row
+                    # this tenant published to this device, so without the row a signed device
+                    # ack of a decision-dispatched command was dropped as unknown_command.
+                    # A recovery republish keeps its command_id: the insert is a no-op, and
+                    # the v238 trigger refuses moving an acked row back to published.
+                    await record_command_queued(
+                        tenant_id=tenant_id,
+                        device_id=device_id,
+                        command=cmd,
+                        payload=payload,
+                        command_id=command_id,
+                        triggered_by=_DISPATCH_TRIGGERED_BY,
+                    )
                     sent = await send_mqtt_command(
                         device_id,
                         cmd,
@@ -456,6 +472,17 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
                         issued_at=issued_at,
                         tenant_id=tenant_id,
                         field_id=field_id,
+                    )
+                    await log_command(
+                        rule_id=None,
+                        device_id=device_id,
+                        command=cmd,
+                        payload=payload,
+                        status="sent" if sent else "failed",
+                        tenant_id=tenant_id,
+                        command_id=command_id,
+                        delivery_state=cd.state_after_publish(sent, ACTUATOR_MODE),
+                        triggered_by=_DISPATCH_TRIGGERED_BY,
                     )
                     receipt_status = "accepted" if sent else "failed"
             else:

@@ -79,6 +79,9 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 23. Farm ledger season and currency governance (W1-14, W1-12, v281, restricted role)
 24. Soil hydraulic projection (W1-04, restricted role)
 25. Yield estimate from server evidence (W1-08, restricted role)
+26. Edge sync carries the verified tenant per request (W0-07, restricted role)
+27. Internal routes require a tenant assertion (W0-05, restricted role)
+28. Yield estimate is tenant-checked (W0-11, restricted role)
 
 Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 `rolcanlogin` of every restricted role those steps connect as (`sahool_app_test`)

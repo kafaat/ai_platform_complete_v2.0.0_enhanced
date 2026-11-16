@@ -124,6 +124,19 @@ def test_replay_envelope_shape():
 
 # ── wofost_adapter (مسار البديل الحتميّ) ──
 
+# معاملات محصولٍ صريحة للاختبار: البديل الحتميّ يرفض المحصول بلاها (W2-17 / airuntime-5).
+_PARAMS = {
+    "base_temp_c": 5.0,
+    "max_yield_kg_ha": 8000.0,
+    "gdd_to_maturity": 1500.0,
+    "water_use_efficiency": 18.0,
+    "harvest_index": 0.45,
+}
+
+
+def _crop(name: str) -> dict:
+    return {"name": name, **_PARAMS}
+
 
 @pytest.mark.unit
 def test_wofost_fallback_deterministic_schema():
@@ -153,24 +166,28 @@ def test_wofost_fallback_deterministic_schema():
 @pytest.mark.unit
 def test_wofost_fallback_monotonic_water_and_weather():
     wa = _load("wofost_adapter")
-    crop = {"gdd_to_maturity": 3000.0}  # سقف حراريّ عالٍ كي يبقى القيد مائيّاً
+    crop = {**_PARAMS, "gdd_to_maturity": 3000.0}  # سقف حراريّ عالٍ كي يبقى القيد مائيّاً
     base_w = {"gdd": 1500.0, "total_rain_mm": 100.0}
     low = wa.simulate(crop=crop, weather=base_w, soil={}, agromanagement={"irrigation_mm": 50.0})
     high = wa.simulate(crop=crop, weather=base_w, soil={}, agromanagement={"irrigation_mm": 200.0})
     assert high["yield_kg_ha"] >= low["yield_kg_ha"]  # مزيد من الماء ⇒ ≥ غلّة
     # طقس أفضل (GDD أعلى) ⇒ ≥ غلّة (مع ماء وفير كي لا يُقيّد).
     wet = {"total_rain_mm": 5000.0}
-    cool = wa.simulate(crop={}, weather={"gdd": 500.0, **wet}, soil={}, agromanagement={})
-    warm = wa.simulate(crop={}, weather={"gdd": 1500.0, **wet}, soil={}, agromanagement={})
+    cool = wa.simulate(crop=_PARAMS, weather={"gdd": 500.0, **wet}, soil={}, agromanagement={})
+    warm = wa.simulate(crop=_PARAMS, weather={"gdd": 1500.0, **wet}, soil={}, agromanagement={})
     assert warm["yield_kg_ha"] >= cool["yield_kg_ha"]
 
 
 @pytest.mark.unit
 def test_wofost_never_crashes_on_empty():
+    """مدخلٌ فارغ لا يُسقط المُحوِّل ولا يُحاكى بمعاملات عامّة: يُرفَض مُسمّى (airuntime-5)."""
     wa = _load("wofost_adapter")
-    out = wa.simulate()
-    assert out["provenance"] == "deterministic_fallback"
-    assert out["yield_kg_ha"] == 0.0
+    with pytest.raises(wa.SimulationInputError) as exc:
+        wa.simulate()
+    assert exc.value.code == "crop_parameters_required", exc.value
+    out = wa.simulate(crop=_PARAMS)
+    assert out["provenance"] == "deterministic_fallback", out
+    assert out["yield_kg_ha"] == 0.0, "لا طقس ⇒ GDD صفر ⇒ غلّة صفر (لا رقم مُختلَق)"
 
 
 # ── profit_planner ──
@@ -244,8 +261,13 @@ def test_endpoint_recommend_returns_hashes_and_token_gate(monkeypatch):
         "field_id": "F1",
         "crop": "wheat",
         "candidates": [
-            {"name": "wheat", "price_per_kg": 0.5, "costs": {"seed": 300}},
-            {"name": "barley", "price_per_kg": 0.6, "costs": {"seed": 250}},
+            {"name": "wheat", "crop": _crop("wheat"), "price_per_kg": 0.5, "costs": {"seed": 300}},
+            {
+                "name": "barley",
+                "crop": _crop("barley"),
+                "price_per_kg": 0.6,
+                "costs": {"seed": 250},
+            },
         ],
         "weather": {"gdd": 1500.0, "total_rain_mm": 300.0},
         "soil": {"available_water_mm": 100.0},
@@ -274,7 +296,10 @@ def test_endpoint_replay_verify_roundtrips(monkeypatch):
     inputs = {"a": 1, "b": {"c": 2}}
     rec = client.post(
         "/v1/recommend",
-        json={"field_id": "F1", "candidates": [{"name": "wheat", "price_per_kg": 0.5}]},
+        json={
+            "field_id": "F1",
+            "candidates": [{"name": "wheat", "crop": _crop("wheat"), "price_per_kg": 0.5}],
+        },
         headers=hdr,
     ).json()
     # تحقّق دائريّ لبصمة إعادة التشغيل من نقطة /v1/replay/verify.
@@ -331,10 +356,15 @@ def test_uncosted_candidates_never_outrank_costed_and_profit_band_is_returned(mo
     body = {
         **_SIM_INPUTS,
         "candidates": [
-            {"name": "wheat", "price_per_kg": 0.5, "costs": {"seed": 300}},
-            {"name": "no_costs", "price_per_kg": 0.5, "costs": {}},
-            {"name": "no_price", "costs": {"seed": 1}},
-            {"name": "bad_cost", "price_per_kg": 0.5, "costs": {"seed": "n/a"}},
+            {"name": "wheat", "crop": _crop("wheat"), "price_per_kg": 0.5, "costs": {"seed": 300}},
+            {"name": "no_costs", "crop": _crop("wheat"), "price_per_kg": 0.5, "costs": {}},
+            {"name": "no_price", "crop": _crop("wheat"), "costs": {"seed": 1}},
+            {
+                "name": "bad_cost",
+                "crop": _crop("wheat"),
+                "price_per_kg": 0.5,
+                "costs": {"seed": "n/a"},
+            },
         ],
     }
     r = client.post(path, json=body, headers=_HDR)
@@ -360,7 +390,7 @@ def test_uncosted_candidates_never_outrank_costed_and_profit_band_is_returned(mo
 @pytest.mark.unit
 def test_plan_with_only_uncosted_candidates_has_no_best(monkeypatch):
     _, client = _client(monkeypatch)
-    body = {**_SIM_INPUTS, "candidates": [{"name": "wheat"}]}
+    body = {**_SIM_INPUTS, "candidates": [{"name": "wheat", "crop": _crop("wheat")}]}
     plan = client.post("/v1/plan", json=body, headers=_HDR).json()
     assert plan["best"] is None and plan["best_expected_profit"] is None
     assert plan["ranked"] == []
@@ -409,10 +439,10 @@ def test_recommend_default_candidate_simulates_the_requested_crop(monkeypatch):
 
     monkeypatch.setattr(main.wa, "simulate", _spy)
     r = client.post("/v1/recommend", json={"crop": "barley", **_SIM_INPUTS}, headers=_HDR)
-    assert r.status_code == 200, r.text
-    assert len(seen) == 1
-    assert main.wa._crop_name(seen[0]) == "barley"
-    # المرشّح الافتراضيّ بلا سعر/كلفة ⇒ غير كافٍ لا «ربح» مُختلَق من أصفار.
-    plan = r.json()["plan"]
-    assert plan["best"] is None
-    assert [c["name"] for c in plan["insufficient"]] == ["barley"]
+    assert len(seen) == 1, seen
+    assert main.wa._crop_name(seen[0]) == "barley", seen
+    # المرشّح الافتراضيّ اسمٌ بلا معاملات: البديل الحتميّ يرفضه مُسمّى (airuntime-5) بدل أن
+    # يُحاكي الشعير بمعاملات عامّة.
+    assert r.status_code == 422, r.text
+    detail = r.json()["detail"]
+    assert detail["reason"] == "crop_parameters_required", detail
