@@ -352,7 +352,32 @@ async def latest_index_points(
     as unavailable), ``[]`` when the field has no processed date or no real mean (no
     observation — nothing is invented). Every returned point has a finite ``mean`` and a
     ``datetime`` (``YYYY-MM-DD``) that was one of the requested dates.
+
+    ``timeout_s`` bounds the **whole** read (both raster calls together), so a raster that
+    accepts connections but never answers costs the caller at most ``timeout_s``; running
+    out of time is an outage (``None``), never "no observation".
     """
+    import asyncio
+
+    try:
+        return await asyncio.wait_for(
+            _latest_index_points_unbounded(
+                field_id, tenant_id=tenant_id, index=index, count=count, timeout_s=timeout_s
+            ),
+            timeout=timeout_s,
+        )
+    except TimeoutError:
+        return None
+
+
+async def _latest_index_points_unbounded(
+    field_id: str,
+    *,
+    tenant_id: str,
+    index: str,
+    count: int,
+    timeout_s: float,
+) -> list[dict[str, Any]] | None:
     from datetime import date as _date
 
     try:

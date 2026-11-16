@@ -110,7 +110,9 @@ export default function NlGisPage() {
   // الحالة الفعليّة المعروضة بعد نتيجة ناجحة.
   const isUnsupported = res?.status === 'unsupported' || res?.supported === false;
   const isNeedsData = res?.status === 'needs_data';
-  const isOkEmpty = res?.status === 'ok' && res.count === 0;
+  // مسح ناقص (raster تعذّر لبعض الحقول أو بُتر المسح): لا يُعرَض أبداً كفراغ صادق.
+  const isPartial = res?.status === 'partial' || res?.coverage?.complete === false;
+  const isOkEmpty = res?.status === 'ok' && res.count === 0 && !isPartial;
   const showTable = !!res && !isUnsupported && !isNeedsData && res.count > 0;
 
   return (
@@ -243,6 +245,16 @@ export default function NlGisPage() {
               <Info className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
               <div className="text-sm text-slate-300">
                 {res.note_ar || 'المصدر غير متاح حاليّاً — لا يمكن عرض نتيجة موثوقة الآن.'}
+              </div>
+            </div>
+          )}
+
+          {/* نتيجة ناقصة (partial) — تحذير كهرمانيّ، لا «لا حقول تطابق» */}
+          {isPartial && (
+            <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <div className="text-sm text-amber-200">
+                {res.note_ar || 'نتيجة ناقصة: لم تُقَس كلّ الحقول — الحقول غير المقيسة مجهولة.'}
               </div>
             </div>
           )}

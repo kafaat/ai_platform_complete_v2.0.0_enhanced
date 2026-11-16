@@ -38,13 +38,21 @@ _LEGACY_READ = re.compile(
 _SCANNED = ("services", "bots", "agents")
 
 
+def _legacy_hits(text: str) -> list[tuple[int, str]]:
+    """Matches over the whole text (``\\s+`` spans newlines), so ``FROM`` and the table name on
+    separate lines of a triple-quoted SQL string are still caught; returns (line, match)."""
+    return [
+        (text.count("\n", 0, m.start()) + 1, " ".join(m.group(0).split()))
+        for m in _LEGACY_READ.finditer(text)
+    ]
+
+
 def _legacy_readers(paths) -> list[str]:
     hits = []
     for path in paths:
         text = path.read_text(encoding="utf-8", errors="replace")
-        for n, line in enumerate(text.splitlines(), 1):
-            if _LEGACY_READ.search(line):
-                hits.append(f"{path.relative_to(ROOT)}:{n}: {line.strip()}")
+        for n, match in _legacy_hits(text):
+            hits.append(f"{path.relative_to(ROOT)}:{n}: {match}")
     return hits
 
 
@@ -82,8 +90,14 @@ def test_the_grep_would_catch_the_pre_fix_readers(tmp_path):
         "                FROM field_indicators\n",
         encoding="utf-8",
     )
-    hits = [h for h in _LEGACY_READ.finditer(probe.read_text(encoding="utf-8"))]
+    hits = _legacy_hits(probe.read_text(encoding="utf-8"))
     assert len(hits) == 3, f"the grep missed a pre-fix reader: {hits}"
+
+
+def test_the_grep_spans_a_line_break_between_from_and_the_table():
+    sql = '"""\n    SELECT ndvi_mean FROM\n        ndvi_timeseries\n    WHERE field_id = $1"""\n'
+    hits = _legacy_hits(sql)
+    assert hits == [(2, "FROM ndvi_timeseries")], f"a multi-line reader slipped the grep: {hits}"
 
 
 def _catalogue_and_series(dates, points, *, calls=None, fail=None):
@@ -260,3 +274,79 @@ async def test_nl_gis_ndvi_drop_caps_the_raster_scan(monkeypatch):
     out = await nl._raster_ndvi_drop({"fields": fields}, {"threshold_pct": 1}, "t")
     assert len(calls) == nl._NDVI_SCAN_FIELDS, f"scan must stop at the cap: {len(calls)}"
     assert out["coverage"]["fields_truncated"] is True, "a truncated scan is reported as such"
+    assert out["coverage"]["complete"] is False, "a truncated scan is not a complete scan"
+
+
+async def test_nl_gis_partial_outage_is_partial_not_an_honest_empty(monkeypatch):
+    """Review W1-21 MEDIUM: 2 of 3 fields unmeasured must not read as 'no fields match'."""
+    _, _, nl = _routers()
+    series = {"A": None, "B": None, "C": []}
+
+    async def raster(field_id, **kw):
+        return series[field_id]
+
+    monkeypatch.setattr(nl, "latest_index_points", raster)
+    fields = [{"field_id": k} for k in series]
+    out = await nl._raster_ndvi_drop({"fields": fields}, {"threshold_pct": 15}, "t")
+    assert out["items"] == [], f"no measured field dropped: {out}"
+    assert out["coverage"]["complete"] is False, f"a partial outage is incomplete: {out}"
+    status = nl._status_after_raster(out)
+    assert status == "partial", f"partial coverage must not be status ok: {status}"
+    note = nl._response_note_ar(status, 0, out["coverage"])
+    assert "ناقصة" in note and "2 من 3" in note, f"the note must name the gap: {note}"
+    assert "لا حقول تطابق" not in note, f"partial must never say 'no fields match': {note}"
+    assert nl._audit_status(status, 0) == "needs_data", "an unmeasured empty is not audited ok"
+    assert nl._audit_status(status, 1) == "ok", "partial with results is audited ok (v85 CHECK)"
+
+
+def test_nl_gis_truncated_scan_note_names_the_cap():
+    _, _, nl = _routers()
+    cov = {
+        "fields_scanned": nl._NDVI_SCAN_FIELDS,
+        "fields_truncated": True,
+        "raster_unavailable": 0,
+        "complete": False,
+    }
+    note = nl._response_note_ar("partial", 0, cov)
+    assert str(nl._NDVI_SCAN_FIELDS) in note, f"the note must say the scan stopped: {note}"
+    full = nl._response_note_ar(nl._status_after_raster({"coverage": {"complete": True}}), 0, {})
+    assert "لا حقول تطابق" in full, f"a complete empty scan is an honest empty: {full}"
+
+
+async def test_nl_gis_scan_has_an_overall_deadline(monkeypatch):
+    """Review W1-21 LOW: a hanging raster ends at the scan deadline, unread fields unavailable."""
+    import asyncio
+
+    _, _, nl = _routers()
+
+    async def raster(field_id, **kw):
+        if field_id == "A":
+            return [
+                {"datetime": "2026-11-10", "mean": 0.4},
+                {"datetime": "2026-10-31", "mean": 0.6},
+            ]
+        await asyncio.sleep(30)  # raster accepted the connection and never answered
+        return []
+
+    monkeypatch.setattr(nl, "latest_index_points", raster)
+    monkeypatch.setattr(nl, "_NDVI_SCAN_DEADLINE_S", 0.2)
+    fields = [{"field_id": k} for k in ("A", "B", "C")]
+    out = await asyncio.wait_for(
+        nl._raster_ndvi_drop({"fields": fields}, {"threshold_pct": 15}, "t"), timeout=5
+    )
+    assert [it["field_id"] for it in out["items"]] == ["A"], f"A was measured in time: {out}"
+    assert out["coverage"]["raster_unavailable"] == 2, f"timed-out fields are unavailable: {out}"
+    assert nl._status_after_raster(out) == "partial", "a deadline cut is a partial result"
+
+
+async def test_latest_points_whole_read_is_bounded(monkeypatch):
+    import asyncio
+
+    async def hang(path, **kw):
+        await asyncio.sleep(30)
+
+    monkeypatch.setattr(rsc, "raster_get_json", hang)
+    got = await asyncio.wait_for(
+        rsc.latest_index_points("F-1", tenant_id="t", timeout_s=0.1), timeout=5
+    )
+    assert got is None, f"running out of time is an outage, not {got!r}"

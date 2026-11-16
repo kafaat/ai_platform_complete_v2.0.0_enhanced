@@ -10,7 +10,9 @@
   `RECOMMENDATION_VIEW`. تُصنّف النصّ عبر الطبقة النقيّة `parse_nl_intent`
   (`api/nl_gis_intent.py`) ثمّ تُرسِل لمصدر قراءة موجود بمعاملات مربوطة.
 - المصادر القرائيّة الفعليّة المُستدعاة (لا نقاط جديدة، إعادة استخدام جداول قائمة):
-  `alerts ⋈ fields` · `ndvi_timeseries` · `irrigation_schedules.last_run_at`.
+  `alerts ⋈ fields` · NDVI من raster-service (`latest_index_points`: available-dates ثمّ
+  `/v1/fields/{id}/timeseries`؛ W1-21 — لا قراءة من `ndvi_timeseries`، بذرة RANDOM() أُزيلت في v280)
+  · `irrigation_schedules.last_run_at`.
 
 ## المدخلات (شكل)
 - `{ "query": string }` — نصّ عربيّ حُرّ. لا مدخلات أخرى (tenant من JWT لا من النصّ).
@@ -24,7 +26,7 @@
 { "read_only": true,
   "intent": "alert_filter",              // أو ndvi_drop | irrigation_gap | unsupported
   "supported": true,
-  "status": "ok",                        // ok | needs_data | unsupported
+  "status": "ok",                        // ok | partial | needs_data | unsupported
   "slots": { "crop":"قمح","region":"الجوف","alert_type":"heat_stress" },
   "confidence": 0.84,
   "api_called": "alerts⋈fields",
@@ -41,7 +43,10 @@
 ## empty/loading/error
 - **unsupported:** `status:"unsupported"` + `reason_ar` ⇒ اعرض الرفض الصريح + أمثلة موجِّهة. لا تخمين.
 - **needs_data:** `status:"needs_data"` + `note_ar` ⇒ المصدر غائب/تعذّر — **لا تعرض جدولاً فارغاً كأنّه نتيجة صفر حقيقيّة**.
-- **empty حقيقيّ:** `status:"ok"` و`count:0` + `note_ar` «لا حقول تطابق» (نتيجة صادقة).
+- **partial (ndvi_drop):** `status:"partial"` + `coverage` (`fields_scanned` · `fields_truncated` ·
+  `raster_unavailable` · `complete:false`) ⇒ raster تعذّر لبعض الحقول أو انقضت مهلة المسح أو بُتر
+  عند سقف ٥٠ حقلاً — **ليس فراغاً صادقاً**؛ اعرض `note_ar` تحذيراً (الحقول غير المقيسة مجهولة).
+- **empty حقيقيّ:** `status:"ok"` و`count:0` و`coverage.complete` ليس `false` + `note_ar` «لا حقول تطابق» (نتيجة صادقة).
 - **error:** `404` (الميزة مُطفأة) ⇒ إشعار تفعيل العلم؛ `503` (قاعدة) ⇒ حالة خطأ صادقة.
 
 ## tenant/RLS

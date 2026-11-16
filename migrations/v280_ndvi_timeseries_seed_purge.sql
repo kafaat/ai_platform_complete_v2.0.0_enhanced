@@ -16,10 +16,44 @@
 -- the manifest, deletes it again. Table owner and writer: sahool-platform
 -- (docs/architecture/db_ownership.yml).
 
+--
+-- Fail loudly, never silently: ndvi_timeseries has ENABLE + FORCE ROW LEVEL SECURITY and its
+-- policy needs app.current_tenant, so a role subject to RLS (not superuser, not BYPASSRLS, the
+-- table owner included under FORCE) would see no tenant-less row and "delete" 0 rows while the
+-- comment below claims the purge. The migration therefore refuses such a role, and checks after
+-- the DELETE that no tenant-less row is left.
+
 BEGIN;
 SET LOCAL lock_timeout = '15s';
 
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_roles
+         WHERE rolname = current_user AND (rolsuper OR rolbypassrls)
+    ) AND EXISTS (
+        SELECT 1 FROM pg_class
+         WHERE oid = 'ndvi_timeseries'::regclass AND relrowsecurity
+    ) THEN
+        RAISE EXCEPTION
+            'v280: role % is subject to RLS on ndvi_timeseries and cannot see the tenant-less '
+            'seed rows; apply as the superuser/BYPASSRLS migration owner', current_user;
+    END IF;
+END
+$$;
+
 DELETE FROM ndvi_timeseries WHERE tenant_id IS NULL;
+
+DO $$
+DECLARE
+    left_rows bigint;
+BEGIN
+    SELECT count(*) INTO left_rows FROM ndvi_timeseries WHERE tenant_id IS NULL;
+    IF left_rows > 0 THEN
+        RAISE EXCEPTION 'v280: % tenant-less ndvi_timeseries rows survived the purge', left_rows;
+    END IF;
+END
+$$;
 
 COMMENT ON TABLE ndvi_timeseries IS
     'Legacy NDVI series (init_v8). No live writer and no reader: the platform reads NDVI from '

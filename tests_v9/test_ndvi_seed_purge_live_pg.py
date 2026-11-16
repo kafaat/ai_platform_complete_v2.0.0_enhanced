@@ -9,7 +9,9 @@ schema the full manifest produced:
 2. v280 deletes tenant-less rows and only those: rows that carry a tenant survive, exactly;
    negative control: the tenant-less rows are present right before v280 runs;
 3. v280 is idempotent: a second run deletes nothing and fails nothing;
-4. the rollback restores no synthetic row (documented in the .down.sql) and only clears the
+4. a role subject to RLS (FORCE RLS hides the tenant-less rows) is refused loudly instead of
+   deleting nothing while claiming the purge;
+5. the rollback restores no synthetic row (documented in the .down.sql) and only clears the
    table comment; v280 re-applied afterwards leaves the database as it found it.
 
 Run: ``TEST_DATABASE_ADMIN_URL=… pytest -m integration <this file>``.
@@ -115,6 +117,38 @@ def test_v280_deletes_tenantless_rows_only_and_is_idempotent():
                 "DELETE FROM ndvi_timeseries WHERE field_id = ANY($1::text[])",
                 [seed_field, owned_field],
             )
+
+    _run(body)
+
+
+def test_v280_refuses_a_role_subject_to_rls_instead_of_deleting_nothing():
+    """FORCE RLS hides tenant-less rows from a non-bypass role: v280 must fail, not "succeed"."""
+    tag = uuid.uuid4().hex[:10]
+    seed_field = f"w121-rls-{tag}"
+    role = f"w121_rls_{tag}"
+
+    async def body(conn):
+        await conn.execute(f'CREATE ROLE "{role}" NOSUPERUSER NOBYPASSRLS NOLOGIN')
+        try:
+            await conn.execute(f'GRANT SELECT, DELETE ON ndvi_timeseries TO "{role}"')
+            await _insert(conn, seed_field, None, 1)
+            before = await conn.fetchval("SELECT obj_description('ndvi_timeseries'::regclass)")
+            await conn.execute(f'SET ROLE "{role}"')
+            try:
+                with pytest.raises(asyncpg.PostgresError, match="subject to RLS"):
+                    await conn.execute(_UP)
+            finally:
+                await conn.execute("ROLLBACK")
+                await conn.execute("RESET ROLE")
+            assert await _count(conn, seed_field) == 1, (
+                "setup/negative control: the refused run must leave the tenant-less row in place"
+            )
+            after = await conn.fetchval("SELECT obj_description('ndvi_timeseries'::regclass)")
+            assert after == before, f"a refused v280 run still changed the comment: {after!r}"
+        finally:
+            await conn.execute("DELETE FROM ndvi_timeseries WHERE field_id = $1", seed_field)
+            await conn.execute(f'REVOKE ALL ON ndvi_timeseries FROM "{role}"')
+            await conn.execute(f'DROP ROLE IF EXISTS "{role}"')
 
     _run(body)
 

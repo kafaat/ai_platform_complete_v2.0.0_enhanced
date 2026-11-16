@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "ac9721a6fc6a417808f2a1357042ae07902db9ec216fff3777d03b8d1b92eee2",
+  "inventory_sha256": "444de6735c0595b1620500be80960d19a826bd06b92737a4b430242c3f38b549",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "d3f4349408354a248ef6953e548db2e8b5bc9ff6e27820252da9e1f8e94cb9dd",
+  "map_sha256": "9308288c8719f2a50325199a7cec5c9f5252b7e434ca0c331625265f96b309f4",
   "routes": [
     {
       "classification": null,
@@ -7183,7 +7183,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/nl_gis.py",
       "function": "nl_gis_query_endpoint",
-      "line": 248,
+      "line": 307,
       "method": "POST",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",
