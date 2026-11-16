@@ -13,6 +13,8 @@ import main
 from fastapi import APIRouter
 from starlette.responses import Response
 
+from shared.security.service_token_status import service_token_status
+
 router = APIRouter()
 
 
@@ -54,6 +56,8 @@ async def readyz(http_response: Response):
             "raster_service": raster_detail,
             "nats": "best_effort_publish",
         },
+        # W3-12: visible, not gating. Without it the verification callback answers 503.
+        "service_tokens": service_token_status(("TASK_SERVICE_CALLBACK_TOKEN",)),
     }
 
 

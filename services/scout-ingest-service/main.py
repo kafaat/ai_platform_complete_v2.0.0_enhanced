@@ -35,6 +35,7 @@ from fastapi.responses import JSONResponse
 from shared.contracts.ingest.ingest_handler import IngestPorts, process_submission
 from shared.contracts.ingest.kobo_adapter import build_envelope_from_kobo
 from shared.contracts.ingest.odk_adapter import build_envelope_from_odk
+from shared.security.service_token_status import service_token_status
 from shared.security.trusted_tenant import service_token_ok
 
 VERSION = os.getenv("SERVICE_VERSION", "9.1.0-scout-ingest")
@@ -248,6 +249,10 @@ async def readyz():
         "status": "ready",
         "service": "scout-ingest-service",
         "ingest_enabled": _enabled(),
+        # W3-12: visible, not gating. Each missing token makes its channel answer 503.
+        "service_tokens": service_token_status(
+            ("SCOUT_MEDIA_SERVICE_TOKEN", "SCOUT_INGEST_READ_TOKEN")
+        ),
     }
 
 
