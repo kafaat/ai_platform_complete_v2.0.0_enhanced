@@ -80,10 +80,12 @@ def ledger_write_columns(fields_set) -> tuple[str, ...]:
 #     when it carries a figure, and clears the reporter when it clears the figure, so the stored
 #     irrigation_mm is always the one the worker's balance uses.
 _WORKER_DAY = "water_ledger.created_by = $18"
-_UNCOMPUTED_REPORT_DAY = (
-    f"({_WORKER_DAY} AND water_ledger.irrigation_reported_by IS NOT NULL"
-    " AND water_ledger.decision IS NULL)"
-)
+#
+# A worker row with no decision is a day the worker has not computed (it always writes one). Such
+# a row is opened by a report (W0-13) or the farm-ledger projection (W1-13), and the projection
+# may later clear its figure and reporter (a record of unknown volume arrived), so "uncomputed"
+# rests on the decision alone, not on a reporter being present.
+_UNCOMPUTED_REPORT_DAY = f"({_WORKER_DAY} AND water_ledger.decision IS NULL)"
 LEDGER_UPSERT_SQL = (
     "INSERT INTO water_ledger "
     "(tenant_id, field_id, ledger_date, et0_mm, kc, etc_mm, rain_mm, "
@@ -327,6 +329,31 @@ FARM_LEDGER_IRRIGATION_UPSERT_SQL = (
     " irrigation_source = EXCLUDED.irrigation_source,"
     " updated_at = now()"
     " WHERE water_ledger.created_by = EXCLUDED.created_by"
+    " AND (water_ledger.irrigation_reported_by IS NULL"
+    " OR water_ledger.irrigation_source IS NOT DISTINCT FROM EXCLUDED.irrigation_source)"
+    " RETURNING 1"
+)
+
+#: Why the upsert above wrote nothing: another writer owns the day, or a person reported the
+#: day's applied water (W0-13, ``irrigation_reported_by`` without the farm-ledger source). A
+#: person's report is their own measurement of the day; the projection neither replaces it nor
+#: takes the reporter column away from them.
+FARM_LEDGER_DAY_OWNER_SQL = (
+    "SELECT created_by, irrigation_reported_by, irrigation_source FROM water_ledger"
+    " WHERE tenant_id = $1::uuid AND field_id = $2 AND ledger_date = $3"
+)
+
+#: A record of unknown volume makes the day's measured sum an understatement. A figure an earlier
+#: projection wrote from the measured records alone would stay in the ledger as the day's
+#: measured total, and the worker would keep it (it carries a reporter). It is withdrawn: the
+#: figure, its reporter and its source are cleared, so the worker goes back to the
+#: ``irrigation_runs`` evidence for that day (and says it is unobserved when there is none). Only
+#: a farm-ledger figure on the worker's day is touched; a person's report or entry is left alone.
+FARM_LEDGER_PROJECTION_WITHDRAW_SQL = (
+    "UPDATE water_ledger SET irrigation_mm = NULL, irrigation_reported_by = NULL,"
+    " irrigation_source = NULL, updated_at = now()"
+    " WHERE tenant_id = $1::uuid AND field_id = $2 AND ledger_date = $3"
+    " AND created_by = $4 AND irrigation_source = $5"
     " RETURNING 1"
 )
 
@@ -339,9 +366,14 @@ async def project_farm_water_to_ledger(
     Runs on the caller's connection, inside its transaction (the farm operation and its ledger
     figure commit or roll back together). Writes nothing, and says why, when the day has no
     completed water record, when any record that day has no volume (the sum would understate the
-    water and the worker would take it as the measured total), when the field has no area, or
-    when another writer owns the day. Otherwise writes ``volume / area / 10`` mm with
-    ``irrigation_source='farm_ledger'``.
+    water and the worker would take it as the measured total; a figure an earlier projection
+    wrote for that day is withdrawn), when the field has no area, when another writer owns the
+    day, or when a person reported the day's applied water. Otherwise writes
+    ``volume / area / 10`` mm with ``irrigation_source='farm_ledger'``.
+
+    A day with no ledger row gets a row that carries the figure and no balance (the worker
+    computes only its own today). The worker reads such an uncomputed row as a skipped day, not
+    as the prior balance (``run_water_ledger_once``), so it never breaks the depletion chain.
 
     Projections of the same (tenant, field, day) are serialized by a transaction-scoped
     advisory lock taken before the day's sum, so concurrent operations never lose water.
@@ -358,7 +390,16 @@ async def project_farm_water_to_ledger(
     if not records:
         return {**base, "status": "skipped", "reason": "no_completed_water_record"}
     if int(row["measured"] or 0) < records:
-        return {**base, "status": "skipped", "reason": "unmeasured_water_record"}
+        withdrawn = await conn.fetchval(
+            FARM_LEDGER_PROJECTION_WITHDRAW_SQL,
+            tenant_id,
+            field_id,
+            day,
+            auto_created_by,
+            IRRIGATION_SOURCE_FARM_LEDGER,
+        )
+        out = {**base, "status": "skipped", "reason": "unmeasured_water_record"}
+        return {**out, "withdrawn_projection": True} if withdrawn else out
     volume = float(row["volume_m3"])
     area = None if row["area_ha"] is None else float(row["area_ha"])
     irrigation_mm = irrigation_mm_from_volume(volume, area)
@@ -376,7 +417,13 @@ async def project_farm_water_to_ledger(
     )
     out = {**base, "volume_m3": volume, "area_ha": area, "irrigation_mm": irrigation_mm}
     if stored is None:
-        return {**out, "status": "skipped", "reason": "day_owned_by_another_writer"}
+        owner = await conn.fetchrow(FARM_LEDGER_DAY_OWNER_SQL, tenant_id, field_id, day)
+        reason = (
+            "day_reported_by_person"
+            if owner is not None and owner["created_by"] == auto_created_by
+            else "day_owned_by_another_writer"
+        )
+        return {**out, "status": "skipped", "reason": reason}
     local_today = row["local_today"]
     if local_today is not None and day < local_today:
         # W0-13 known limit: a past day's depletion is not recomputed, so later days' balance

@@ -15,7 +15,10 @@ NOBYPASSRLS role and the real water-balance worker (only the weather service is 
 5. a person's report written over a projection clears the source;
 6. another tenant's operation on the field is 404 and changes nothing;
 7. two overlapping operations on the same field and day never lose water (advisory lock);
-8. a past day says its balance is not recomputed; actual work is dated by the ledger timezone.
+8. a past day says its balance is not recomputed; actual work is dated by the ledger timezone;
+9. a row the projection opens on a day the worker never computed does not break the chain;
+10. a later record of unknown volume withdraws the earlier measured sum;
+11. a person's report of the day's water is not replaced by the farm sum.
 
 Run: ``TEST_DATABASE_ADMIN_URL=… TEST_DATABASE_URL=… pytest -m integration <this file>``.
 """
@@ -387,13 +390,134 @@ async def test_planned_work_is_not_applied_water(monkeypatch):
 
 async def test_a_record_without_a_volume_is_not_read_as_zero(monkeypatch):
     async with Live(monkeypatch) as live:
+        out = await live.operation(volume_m3=None, hours=2.0)
+        assert out["water_ledger"]["reason"] == "unmeasured_water_record", out
+        assert "withdrawn_projection" not in out["water_ledger"], (
+            f"there was no earlier projection to withdraw: {out}"
+        )
+        assert await live.today_row() is None, (
+            "a record of unknown volume must not reach the ledger as a made-up amount"
+        )
+
+
+async def test_a_later_unmeasured_record_withdraws_the_earlier_measured_sum(monkeypatch):
+    """The 50 mm projected from the first record is no longer the day's total once a record of
+    unknown volume arrives: left in place it would stay the 'measured' figure the worker keeps."""
+    async with Live(monkeypatch) as live:
         await live.operation(volume_m3=500.0)
         out = await live.operation(volume_m3=None, hours=2.0)
         assert out["water_ledger"]["reason"] == "unmeasured_water_record", out
+        assert out["water_ledger"].get("withdrawn_projection") is True, (
+            f"the response must say the earlier figure was withdrawn: {out}"
+        )
         row = await live.today_row()
-        assert row["irrigation_mm"] == pytest.approx(50.0), (
-            f"an unmeasured record must neither add a made-up amount nor erase the figure: "
-            f"{dict(row)}"
+        assert (row["irrigation_mm"], row["irrigation_reported_by"], row["irrigation_source"]) == (
+            None,
+            None,
+            None,
+        ), f"the stale measured sum stayed in the ledger as the day's total: {dict(row)}"
+        await live.worker()
+        row = await live.today_row()
+        assert row["et0_mm"] == _ET0_MM, f"the worker must still compute the day: {dict(row)}"
+        assert "irrigation_unobserved" in row["decision"], (
+            f"with the farm figure withdrawn and no irrigation run, the day's water is unknown, "
+            f"not 50 mm: {row['decision']} / {dict(row)}"
+        )
+        assert float(row["irrigation_mm"]) == 0.0, (
+            f"the worker must not keep the withdrawn 50 mm: {dict(row)}"
+        )
+
+
+async def test_a_full_entry_takes_a_day_whose_projection_was_withdrawn(monkeypatch):
+    """The withdrawal leaves the worker's uncomputed row with no reporter; a person's full entry
+    must still take that day, as it would take a new one, so the worker leaves it alone."""
+    async with Live(monkeypatch) as live:
+        await live.operation(volume_m3=500.0)
+        await live.operation(volume_m3=None, hours=2.0)
+        req = live.ledger_router.WaterLedgerUpsertRequest(
+            ledger_date=_today().isoformat(), et0_mm=5.0, depletion_mm=20.0, irrigation_mm=4.0
+        )
+        await live.ledger_router.upsert_water_ledger(
+            req=req, field_id=live.field_id, user=_user(live.tenant, "u-agronomist")
+        )
+        row = await live.today_row()
+        assert row["created_by"] == "u-agronomist", (
+            f"a person's full entry on an uncomputed day must own it: {dict(row)}"
+        )
+        await live.worker()
+        after = await live.today_row()
+        assert (after["et0_mm"], after["depletion_mm"]) == (5.0, 20.0), (
+            f"the worker wrote over a person's full entry: {dict(after)}"
+        )
+
+
+async def test_a_persons_report_is_not_replaced_by_the_farm_sum(monkeypatch):
+    async with Live(monkeypatch) as live:
+        req = live.ledger_router.WaterLedgerUpsertRequest(
+            ledger_date=_today().isoformat(), irrigation_mm=12.0
+        )
+        await live.ledger_router.upsert_water_ledger(
+            req=req, field_id=live.field_id, user=_user(live.tenant, "u-reporter")
+        )
+        before = dict(await live.today_row())
+        out = await live.operation(volume_m3=500.0)
+        assert out["persisted"] is True, out
+        assert out["water_ledger"]["status"] == "skipped", out
+        assert out["water_ledger"]["reason"] == "day_reported_by_person", out
+        after = dict(await live.today_row())
+        assert after == before, (
+            f"the farm sum replaced a person's report and its reporter: {before} -> {after}"
+        )
+
+
+async def test_a_past_day_projection_never_breaks_the_balance_chain(monkeypatch):
+    """A record for a day the worker never computed opens a row with the water and no balance.
+    The worker must not take that row as the prior day (it would restart from field capacity):
+    the prior balance stays the last computed day, and the row's water counts on its own day."""
+    async with Live(monkeypatch) as live:
+        today = _today()
+        yesterday = today - _dt.timedelta(days=1)
+        await live.admin.execute(
+            "UPDATE water_ledger SET ledger_date=$3 WHERE field_id=$1 AND ledger_date=$2",
+            live.field_id,
+            yesterday,
+            today - _dt.timedelta(days=2),
+        )
+        req = live.ops.OperationLedgerIn(
+            operation_date=yesterday,
+            operation_type="irrigation",
+            field_id=live.field_id,
+            water=live.ops.WaterRecordIn(
+                well_id="well-1", water_volume_m3=100.0, measurement_method="meter"
+            ),
+        )
+        out = await live.ops.create_operation_ledger_record(
+            req=req, user=_user(live.tenant, live.farmer), idem=None
+        )
+        assert out["water_ledger"]["status"] == "projected", out
+        gap_row = await live.admin.fetchrow(
+            "SELECT depletion_mm, irrigation_mm FROM water_ledger"
+            " WHERE field_id=$1 AND ledger_date=$2",
+            live.field_id,
+            yesterday,
+        )
+        assert gap_row["depletion_mm"] is None and gap_row["irrigation_mm"] == 10.0, dict(gap_row)
+        await live.worker()
+        row = await live.today_row()
+        assert row is not None and row["et0_mm"] == _ET0_MM, "the worker must compute today"
+        assert "bootstrap_assumed_field_capacity" not in row["decision"], (
+            f"the balance-less row was read as the prior day and the chain restarted from field "
+            f"capacity: {row['decision']}"
+        )
+        assert "missing_days_consumption_estimated" in row["decision"], row["decision"]
+        assert "missing_days_irrigation_unobserved" not in row["decision"], (
+            f"the skipped day's projected water is measured, not unobserved: {row['decision']}"
+        )
+        etc = float(row["etc_mm"])
+        expected = max(max(30.0 + etc - 10.0, 0.0) + etc, 0.0)
+        assert row["depletion_mm"] == pytest.approx(expected, abs=0.01), (
+            f"depletion must be the last balance (30) + two days of ETc - the skipped day's "
+            f"10 mm: {dict(row)}"
         )
 
 

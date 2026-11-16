@@ -32,6 +32,7 @@ if CORE not in sys.path:
 
 from api.water_ledger_compute import (  # noqa: E402
     FARM_LEDGER_IRRIGATION_UPSERT_SQL,
+    FARM_LEDGER_PROJECTION_WITHDRAW_SQL,
     FARM_WATER_DAY_LOCK_SQL,
     FARM_WATER_DAY_SQL,
     IRRIGATION_SOURCE_FARM_LEDGER,
@@ -190,3 +191,75 @@ def test_the_operation_endpoint_projects_inside_its_transaction():
         "the projection must run after the water record is stored, in the same transaction"
     )
     assert "if req.water and req.field_id" in src, "only a field's water record is projected"
+
+
+def test_a_persons_report_is_not_replaced_by_the_projection():
+    guard = _squash(FARM_LEDGER_IRRIGATION_UPSERT_SQL).split("DO UPDATE SET", 1)[1]
+    guard = guard.split(" WHERE ", 1)[1]
+    assert (
+        "AND (water_ledger.irrigation_reported_by IS NULL"
+        " OR water_ledger.irrigation_source IS NOT DISTINCT FROM EXCLUDED.irrigation_source)"
+    ) in guard, (
+        "a person's report (a reporter without the farm_ledger source) must not be overwritten "
+        f"by the farm sum, nor its reporter replaced: {guard}"
+    )
+    src = inspect.getsource(project_farm_water_to_ledger)
+    assert '"day_reported_by_person"' in src, "the response must say why nothing was written"
+
+
+def test_an_unmeasured_record_withdraws_only_a_farm_ledger_figure():
+    sql = _squash(FARM_LEDGER_PROJECTION_WITHDRAW_SQL)
+    assert sql.startswith(
+        "UPDATE water_ledger SET irrigation_mm = NULL, irrigation_reported_by = NULL,"
+        " irrigation_source = NULL"
+    ), f"the stale sum, its reporter and its label must all be withdrawn: {sql}"
+    for cond in (
+        "tenant_id = $1::uuid",
+        "field_id = $2",
+        "ledger_date = $3",
+        "created_by = $4",
+        "irrigation_source = $5",
+    ):
+        assert cond in sql, f"the withdrawal must be limited by {cond}: {sql}"
+    src = inspect.getsource(project_farm_water_to_ledger)
+    skip = src.index('"unmeasured_water_record"')
+    assert src.index("FARM_LEDGER_PROJECTION_WITHDRAW_SQL") < skip, (
+        "the unmeasured path must withdraw an earlier projection, not leave it as measured"
+    )
+    assert src.index("FARM_LEDGER_PROJECTION_WITHDRAW_SQL") < src.index(
+        "FARM_LEDGER_IRRIGATION_UPSERT_SQL"
+    ), "the withdrawal runs on the skip path, before any upsert"
+
+
+def test_the_worker_skips_uncomputed_rows_as_the_prior_balance():
+    from api import phase_runtime_workers as mod
+
+    src = inspect.getsource(mod.run_water_ledger_once)
+    prev = src.index('"SELECT depletion_mm, ledger_date FROM water_ledger"')
+    prev_sql = src[prev : src.index("ORDER BY ledger_date DESC LIMIT 1", prev)]
+    assert '" AND NOT (created_by = $3 AND decision IS NULL)"' in prev_sql, (
+        "a balance-less row a report or projection opened must not be read as the prior day: "
+        f"{prev_sql}"
+    )
+    assert '" AND created_by = $4 AND decision IS NULL"' in src, (
+        "the water reported on a skipped day's uncomputed row must count on that day"
+    )
+    assert '" AND irrigation_reported_by IS NOT NULL"' in src, "only a reported figure counts"
+
+
+def test_a_skipped_days_reported_water_is_its_measured_total():
+    import datetime as dt
+
+    from api.water_ledger_auto import gap_irrigation_by_day
+
+    last = dt.date(2026, 11, 13)
+    today = dt.date(2026, 11, 16)
+    runs = [{"d": dt.date(2026, 11, 15), "mm": 3.0, "untracked": 1, "runs": 2}]
+    mm, unobserved, untracked = gap_irrigation_by_day(runs, last, today)
+    assert (mm, unobserved, untracked) == ([0.0, 3.0], True, True), (mm, unobserved, untracked)
+    reported = {dt.date(2026, 11, 14): 10.0, dt.date(2026, 11, 15): 7.5}
+    mm, unobserved, untracked = gap_irrigation_by_day(runs, last, today, reported)
+    assert mm == [10.0, 7.5], f"a reported figure replaces that day's run sum: {mm}"
+    assert (unobserved, untracked) == (False, False), (
+        "a reported day is measured: neither unobserved nor untracked"
+    )

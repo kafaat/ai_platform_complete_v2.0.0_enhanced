@@ -153,9 +153,12 @@ def test_every_column_is_written_on_conflict_only_when_sent(wl_mod):
     )
     assert (
         "created_by = CASE WHEN $16::text IS NULL AND (water_ledger.created_by = $18"
-        " AND water_ledger.irrigation_reported_by IS NOT NULL AND water_ledger.decision IS NULL)"
+        " AND water_ledger.decision IS NULL)"
         " THEN $19 ELSE water_ledger.created_by END"
-    ) in update, "a full entry takes a day a report opened and the worker has not computed"
+    ) in update, (
+        "a full entry takes any worker day the worker has not computed (a report opened it, or "
+        "a farm-ledger projection opened it and later withdrew its figure, W1-13)"
+    )
 
 
 async def test_an_empty_write_is_refused_before_the_database(wl_mod, monkeypatch):
