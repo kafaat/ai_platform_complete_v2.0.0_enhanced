@@ -3,10 +3,10 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `3df31d47f3c885ba129ef3836a091c60a02539e0562de8024b8fc2c246ed0357`
+- fingerprint: `b9602ff5e26f0f0ddb5bb8704b7b8c6af06de42dfeb8351e10cba6c69e6dcb6f`
 - components: **37** (backend: 33)
-- route rows: **1171** → unique method/path: **1050**
-- capabilities (derived, uncurated): **846**
+- route rows: **1172** → unique method/path: **1051**
+- capabilities (derived, uncurated): **847**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
 - UI waivers pending U4 classification: **52**
@@ -27,7 +27,7 @@
 | frontend | frontend | user-interface | sahool-frontend | 0 | None |
 | gis-workflow-service | tool_bundle | gis-publication | — | 2 | None |
 | guardrails-engine | service | decision-governance | sahool-guardrails-engine | 2 | True |
-| indicators-service | service | indicators | sahool-indicators-service | 0 | True |
+| indicators-service | service | indicators | sahool-indicators-service | 1 | True |
 | knowledge-graph | service | knowledge | sahool-knowledge-graph | 0 | True |
 | local-ai-rag | service | knowledge | sahool-local-ai-rag | 0 | True |
 | mcp_servers | service | agents-mcp | sahool-market-mcp, sahool-sentinel-hub-mcp, sahool-weather-mcp, sahool-wofost-mcp | 6 | True |
@@ -36,7 +36,7 @@
 | notification-agent | worker | notifications | sahool-notification-agent | 0 | None |
 | qdrant-seed | init_job | knowledge | sahool-qdrant-seed | 0 | None |
 | rag-retrieval | service | knowledge | sahool-rag-retrieval | 2 | True |
-| raster-service | service | remote-sensing-truth | sahool-raster-backfill-scan-worker, sahool-raster-cache-invalidation-worker, sahool-raster-service | 14 | True |
+| raster-service | service | remote-sensing-truth | sahool-raster-backfill-scan-worker, sahool-raster-cache-invalidation-worker, sahool-raster-service | 15 | True |
 | raster-tiler-service | service | remote-sensing-truth | — | 0 | True |
 | realtime-agent | worker | realtime-voice-experimental | sahool-realtime-agent | 0 | True |
 | realtime-session | service | realtime-control-plane-experimental | sahool-realtime-session | 0 | True |
@@ -56,8 +56,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **1087**
-- S2 relations: CALLS=45, CONSUMES=3, EMITS=3, READS=589, ROUTES_TO=76, WRITES=371
+- ARCH-S2 dependency truth: `PASS` — edges **1084**
+- S2 relations: CALLS=46, CONSUMES=3, EMITS=3, READS=584, ROUTES_TO=76, WRITES=372
 
 ## Governance gates (U3/U4)
 

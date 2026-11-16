@@ -2736,6 +2736,10 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v286_canonical_observations.down.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },
@@ -5248,6 +5252,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/indicators-service/observation_store.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/indicators-service/observation_timeline.py",
     "kind": "backend"
   },
@@ -5445,6 +5453,10 @@
   },
   {
     "path": "services/raster-service/object_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/observation_outbox.py",
     "kind": "backend"
   },
   {
@@ -5676,6 +5688,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_observation_outbox.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_pixel_georeferencing.py",
     "kind": "tests"
   },
@@ -5805,10 +5821,6 @@
   },
   {
     "path": "services/raster-service/test_time_series_trend_axis.py",
-    "kind": "tests"
-  },
-  {
-    "path": "services/raster-service/test_timeseries_point_asset_identity.py",
     "kind": "tests"
   },
   {
@@ -11348,6 +11360,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_canonical_observations_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_canonical_phenology_state.py",
     "kind": "tests"
   },
@@ -13989,6 +14005,18 @@
   },
   {
     "path": "tests_v9/test_vra_prescription_engine_v62.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_w1_03_soil_ece_rule_live_pg.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_w1_03_soil_lab_canonical_live_pg.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_w1_03_soil_lab_canonical_store.py",
     "kind": "tests"
   },
   {

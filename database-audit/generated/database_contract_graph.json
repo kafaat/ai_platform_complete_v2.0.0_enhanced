@@ -272,6 +272,7 @@
       "v282_field_task_scouting_anomaly.sql",
       "v283_ndvi_timeseries_seed_purge.sql",
       "v284_water_ledger_irrigation_source.sql",
+      "v286_canonical_observations.sql",
       "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
@@ -460,6 +461,13 @@
       "name": "canonical_nutrient_ledgers_tenant_isolation",
       "source": "v226_canonical_nutrient_ledger.sql",
       "table": "canonical_nutrient_ledgers"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "canonical_observations_tenant",
+      "source": "v286_canonical_observations.sql",
+      "table": "canonical_observations"
     },
     {
       "has_using": true,
@@ -1472,6 +1480,13 @@
     {
       "has_using": true,
       "has_with_check": true,
+      "name": "raster_observation_outbox_tenant",
+      "source": "v286_canonical_observations.sql",
+      "table": "raster_observation_outbox"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
       "name": "tenant_isolation",
       "source": "v114_cloud_native_gis_best_practices.sql",
       "table": "raster_registry"
@@ -1829,17 +1844,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 273,
+    "manifest_entries": 274,
     "manifest_missing_count": 0,
-    "policies": 221,
+    "policies": 223,
     "production_certified": false,
-    "rls_enabled": 230,
-    "rls_forced": 211,
+    "rls_enabled": 232,
+    "rls_forced": 213,
     "runtime_verified": false,
-    "sql_files": 288,
-    "tables": 360,
+    "sql_files": 290,
+    "tables": 362,
     "tenant_rls_gaps": 139,
-    "tenant_tables": 341,
+    "tenant_tables": 343,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -2445,6 +2460,23 @@
       "rls_enabled": true,
       "rls_forced": true,
       "table": "canonical_nutrient_ledgers",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/indicators-service/observation_store.py"
+      ],
+      "code_writers": [
+        "services/indicators-service/observation_store.py"
+      ],
+      "created_in": "v286_canonical_observations.sql",
+      "has_tenant_id": true,
+      "manifest_position": 271,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "canonical_observations",
       "tenant_rls_gap": false,
       "write_policy_with_check": true
     },
@@ -5207,7 +5239,6 @@
     {
       "code_readers": [
         "services/sahool-platform/api/lab_store.py",
-        "services/sahool-platform/api/soil_enrichment.py",
         "services/scout-ingest-service/lab_link_api.py"
       ],
       "code_writers": [
@@ -6104,6 +6135,8 @@
     {
       "code_readers": [
         "services/decision-service/tests/test_element84_inventory_pg16.py",
+        "services/indicators-service/observation_runtime.py",
+        "services/indicators-service/tests/test_observation_store.py",
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
@@ -6183,6 +6216,23 @@
       "rls_enabled": true,
       "rls_forced": true,
       "table": "raster_follow_up_requests",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/raster-service/observation_outbox.py"
+      ],
+      "code_writers": [
+        "services/raster-service/observation_outbox.py"
+      ],
+      "created_in": "v286_canonical_observations.sql",
+      "has_tenant_id": true,
+      "manifest_position": 271,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "raster_observation_outbox",
       "tenant_rls_gap": false,
       "write_policy_with_check": true
     },
@@ -6949,8 +6999,7 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/lab_store.py",
-        "services/sahool-platform/api/soil_enrichment.py"
+        "services/sahool-platform/api/lab_store.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/lab_store.py"
@@ -6967,19 +7016,10 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/canonical_root_zone_profile.py",
-        "services/sahool-platform/api/field_state_projection.py",
-        "services/sahool-platform/api/phase_runtime_workers.py",
-        "services/sahool-platform/api/routers/field_completeness.py",
-        "services/sahool-platform/api/routers/fields.py",
-        "services/sahool-platform/api/routers/reports.py",
-        "services/sahool-platform/api/routers/season_workspace.py",
-        "services/sahool-platform/api/soil_enrichment.py",
+        "services/sahool-platform/api/lab_store.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py"
       ],
-      "code_writers": [
-        "services/sahool-platform/api/routers/fields.py"
-      ],
+      "code_writers": [],
       "created_in": "v50_soil_lab_tests.sql",
       "has_tenant_id": true,
       "manifest_position": 54,

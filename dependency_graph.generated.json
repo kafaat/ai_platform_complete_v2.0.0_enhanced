@@ -1,5 +1,5 @@
 {
-  "edge_count": 1087,
+  "edge_count": 1084,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -229,6 +229,16 @@
       "relation": "CALLS",
       "resource": "compose-env-url",
       "to": "decision-service",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "docker-compose.v9.yml",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "http",
+      "relation": "CALLS",
+      "resource": "compose-env-url",
+      "to": "indicators-service",
       "to_kind": "component"
     },
     {
@@ -1172,6 +1182,36 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/indicators-service/observation_store.py",
+      "from": "indicators-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://canonical_observations",
+      "to": "db://canonical_observations",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/indicators-service/observation_runtime.py",
+      "from": "indicators-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://raster_assets",
+      "to": "db://raster_assets",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/indicators-service/tests/test_observation_store.py",
+      "from": "indicators-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://raster_assets",
+      "to": "db://raster_assets",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/mcp_servers/market_server.py",
       "from": "mcp_servers",
       "from_kind": "component",
@@ -1489,6 +1529,16 @@
       "relation": "READS",
       "resource": "db://raster_follow_up_requests",
       "to": "db://raster_follow_up_requests",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/observation_outbox.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://raster_observation_outbox",
+      "to": "db://raster_observation_outbox",
       "to_kind": "resource"
     },
     {
@@ -4162,16 +4212,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/soil_enrichment.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://lab_samples",
-      "to": "db://lab_samples",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/routers/execution_lineage.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -5052,87 +5092,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/soil_enrichment.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://soil_lab_results",
-      "to": "db://soil_lab_results",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://soil_lab_tests",
-      "to": "db://soil_lab_tests",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/field_state_projection.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://soil_lab_tests",
-      "to": "db://soil_lab_tests",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://soil_lab_tests",
-      "to": "db://soil_lab_tests",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/field_completeness.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://soil_lab_tests",
-      "to": "db://soil_lab_tests",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/fields.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://soil_lab_tests",
-      "to": "db://soil_lab_tests",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/reports.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://soil_lab_tests",
-      "to": "db://soil_lab_tests",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/season_workspace.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://soil_lab_tests",
-      "to": "db://soil_lab_tests",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/soil_enrichment.py",
+      "evidence": "services/sahool-platform/api/lab_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -7732,6 +7692,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/indicators-service/observation_store.py",
+      "from": "indicators-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://canonical_observations",
+      "to": "db://canonical_observations",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/mcp_servers/market_server.py",
       "from": "mcp_servers",
       "from_kind": "component",
@@ -7979,6 +7949,16 @@
       "relation": "WRITES",
       "resource": "db://raster_follow_up_requests",
       "to": "db://raster_follow_up_requests",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/observation_outbox.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://raster_observation_outbox",
+      "to": "db://raster_observation_outbox",
       "to_kind": "resource"
     },
     {
@@ -10032,16 +10012,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/fields.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "WRITES",
-      "resource": "db://soil_lab_tests",
-      "to": "db://soil_lab_tests",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/phase_runtime_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -10887,12 +10857,12 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 45,
+    "CALLS": 46,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 589,
+    "READS": 584,
     "ROUTES_TO": 76,
-    "WRITES": 371
+    "WRITES": 372
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -10907,8 +10877,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 961,
-      "resolved": 960,
+      "observed": 957,
+      "resolved": 956,
       "unresolved_component_paths": 0
     }
   }

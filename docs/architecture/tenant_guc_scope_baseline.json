@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "eba2b9196e5da73610cd17d506181957f415f80d",
+  "measured_on": "d3eb2241f481eb84ca8760d1b6c5bd7b69995d09",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "5c0f31d94828020f2b9112c9359defb3f8c4ddfe10ff5e69172355629987ddb9",
+  "measurement_input_digest": "8288b3213dbb800e147dd238f37319dc8386ec6efb00b7f3c157ebca17d67281",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "3023f5b69b1ef92449edd8576d5a955bd4c3257c15c3cde8b2a6307274b5308b",
+  "measurement_basis_digest": "caa0623ce9712f38bfd511963ce1cf2781d85679434cbcf50f44efaefcc3db0d",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -52,7 +52,7 @@
     },
     {
       "path": "scripts/tenant_query_audit.py",
-      "sha256": "629109244d6c8c20b60c5ff61f20722d7dbc107fe14389f75afc3acc2ddb0251"
+      "sha256": "ce4e9e945a4e0623a1b96408be2beebf40d22eb8e5fe363e61e02c3ae290a026"
     },
     {
       "path": "services/actuator-service/actuator_runtime.py",
@@ -87,6 +87,10 @@
       "sha256": "7aeb083aa5646149c169d5dfa8106c39a3a06e42d753d55f9cc49e02abacfa82"
     },
     {
+      "path": "services/indicators-service/observation_store.py",
+      "sha256": "663eae619e14ea4f838f92b28575853ddd1d69e46d3c5c06e599ae339d43cf9f"
+    },
+    {
       "path": "services/mcp_servers/market_db_authz.py",
       "sha256": "350beb2bed90f407b2ac610d5bcdeefd5faf75f49bf299a66213530e9f11387a"
     },
@@ -104,7 +108,7 @@
     },
     {
       "path": "services/raster-service/cache_invalidation_worker.py",
-      "sha256": "8ac5bf447d7df5c1b5871491d2a4c45460984f3aa5db51f8c925262dc94aa76f"
+      "sha256": "586201dfdadb163be7f0fd3b65581eeb34894fcdc92ac817720bb8f403187f91"
     },
     {
       "path": "services/raster-service/db_persist.py",
@@ -113,6 +117,10 @@
     {
       "path": "services/raster-service/follow_up_store.py",
       "sha256": "33fc9c1bb37470ded9a7e34d55ec9284bc09cc3db5e3535f39f2e04f46cd2cf9"
+    },
+    {
+      "path": "services/raster-service/observation_outbox.py",
+      "sha256": "dde202cc7f7a6772e3a1e1ba5f60e47e8f9b1079a789246e9b1b611a6a5e069b"
     },
     {
       "path": "services/raster-service/raster_batch_job_store.py",
@@ -140,7 +148,7 @@
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_workers.py",
-      "sha256": "08193bb65f71689a984d8ae72499aa02390ed0a6d42f3c36187fd3fa7d5c02cd"
+      "sha256": "efc4309bc659202179363b65665bfce5f3f84fc31dc6f395bb506d444f08b80e"
     },
     {
       "path": "services/sahool-platform/api/routers/break_glass.py",

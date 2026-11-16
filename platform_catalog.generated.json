@@ -2154,6 +2154,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "indicators-service.internal.observations",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /internal/v1/observations"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "indicators-service",
+      "producer": "indicators-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "knowledge-graph.edges",
       "consumers": [],
       "curated": false,
@@ -16252,7 +16269,7 @@
       "aliases": [
         "sahool-indicators-service"
       ],
-      "authority_kind": "stateless_compute",
+      "authority_kind": "system_of_record",
       "canonical_name": "indicators-service",
       "component_id": "indicators-service",
       "component_kind": "service",
@@ -16277,7 +16294,9 @@
       ],
       "domain": "indicators",
       "owns": {
-        "tables": []
+        "tables": [
+          "canonical_observations"
+        ]
       },
       "runtime": {
         "compose_reachable": true,
@@ -16290,7 +16309,7 @@
       },
       "source_path": "services/indicators-service",
       "sources": {
-        "db_ownership": false,
+        "db_ownership": true,
         "service_inventory": "indicators-service",
         "ui_contract": "ui"
       },
@@ -16757,6 +16776,7 @@
       "consumes": {
         "services": [
           "decision-service",
+          "indicators-service",
           "raster-tiler-service"
         ]
       },
@@ -16779,6 +16799,7 @@
           "raster_batch_jobs",
           "raster_cache_invalidations",
           "raster_follow_up_requests",
+          "raster_observation_outbox",
           "raster_registry",
           "raster_snapshots",
           "zonal_stats"
@@ -17919,7 +17940,7 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 846,
+    "capabilities": 847,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
     "capabilities_idempotent": 76,
@@ -17930,9 +17951,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1171,
+    "route_rows": 1172,
     "ui_waivers": 52,
-    "unique_method_path": 1050
+    "unique_method_path": 1051
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18194,7 +18215,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "3df31d47f3c885ba129ef3836a091c60a02539e0562de8024b8fc2c246ed0357",
+  "fingerprint": "b9602ff5e26f0f0ddb5bb8704b7b8c6af06de42dfeb8351e10cba6c69e6dcb6f",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18248,16 +18269,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1087,
+      "edge_count": 1084,
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 45,
+        "CALLS": 46,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 589,
+        "READS": 584,
         "ROUTES_TO": 76,
-        "WRITES": 371
+        "WRITES": 372
       }
     },
     "u3_wiring_ownership": {

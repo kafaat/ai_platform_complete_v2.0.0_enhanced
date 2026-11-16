@@ -169,7 +169,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 5,
+      "capability_count": 6,
       "component_id": "indicators-service",
       "domain": "indicators",
       "status": {
@@ -519,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "3df31d47f3c885ba129ef3836a091c60a02539e0562de8024b8fc2c246ed0357",
+  "fingerprint": "b9602ff5e26f0f0ddb5bb8704b7b8c6af06de42dfeb8351e10cba6c69e6dcb6f",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

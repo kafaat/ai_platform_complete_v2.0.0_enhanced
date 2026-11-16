@@ -994,6 +994,7 @@
         "total": 7
       },
       "configuration": [
+        "DATABASE_URL",
         "PLATFORM_API_URL",
         "RASTER_SERVICE_URL",
         "RS_OBSERVATION_POLICY_ID",
@@ -1023,6 +1024,7 @@
         "configuration": [
           "services/indicators-service/main.py",
           "services/indicators-service/observation_runtime.py",
+          "services/indicators-service/observation_store.py",
           "services/indicators-service/observation_timeline.py"
         ],
         "metrics": [
@@ -1030,7 +1032,8 @@
         ],
         "routes": [
           "services/indicators-service/main.py",
-          "services/indicators-service/tests/test_indicators_service_honest_boundary.py"
+          "services/indicators-service/tests/test_indicators_service_honest_boundary.py",
+          "services/indicators-service/tests/test_observation_store.py"
         ],
         "tracing": []
       },
@@ -1536,8 +1539,15 @@
         "GDAL_HTTP_TIMEOUT",
         "HISTORICAL_SEARCH_PROVIDER",
         "HTTP_TIMEOUT",
+        "INDICATORS_SERVICE_URL",
         "JOBS_DATABASE_URL",
         "LOG_LEVEL",
+        "OBSERVATION_PUSH_BACKOFF_MAX_SECONDS",
+        "OBSERVATION_PUSH_BACKOFF_SECONDS",
+        "OBSERVATION_PUSH_DRAIN_BUDGET_SECONDS",
+        "OBSERVATION_PUSH_LEASE_SECONDS",
+        "OBSERVATION_PUSH_TIMEOUT_SECONDS",
+        "OBSERVATION_UNQUEUED_LIMIT",
         "OLMOEARTH_CHECKPOINT",
         "PLANETARY_COMPUTER_URL",
         "RASTER_ACTIVATION_GATE_ENFORCE",
@@ -1555,6 +1565,7 @@
         "RASTER_LAYER_EVICT_ENABLED",
         "RASTER_MAX_READ_BAND_PIXELS",
         "RASTER_MAX_READ_DIM",
+        "RASTER_OBSERVATION_OUTBOX_DRAIN_ENABLED",
         "RASTER_PERSISTENCE_MODE",
         "RASTER_PUBLIC_PREFIX",
         "RASTER_TEMP_RETENTION_DAYS",
@@ -1624,6 +1635,7 @@
           "services/raster-service/job_store.py",
           "services/raster-service/layer_cache_events.py",
           "services/raster-service/object_store.py",
+          "services/raster-service/observation_outbox.py",
           "services/raster-service/raster_batch_job_store.py",
           "services/raster-service/raster_cdse_tile_runtime.py",
           "services/raster-service/raster_field_runtime.py",

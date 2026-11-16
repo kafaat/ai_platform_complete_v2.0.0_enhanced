@@ -271,10 +271,10 @@
     },
     {
       "kind": "app",
-      "line": 52,
+      "line": 59,
       "module": "services.indicators-service.main",
       "node_id": "services.indicators-service.main:app",
-      "route_count": 12,
+      "route_count": 13,
       "statically_reachable": true,
       "symbol": "app"
     },
@@ -1837,7 +1837,7 @@
     },
     {
       "kind": "router",
-      "line": 36,
+      "line": 42,
       "module": "services.sahool-platform.api.routers.season_workspace",
       "node_id": "services.sahool-platform.api.routers.season_workspace:router",
       "route_count": 1,
@@ -1927,7 +1927,7 @@
     },
     {
       "kind": "router",
-      "line": 54,
+      "line": 55,
       "module": "services.sahool-platform.api.routers.soil_sampling",
       "node_id": "services.sahool-platform.api.routers.soil_sampling:router",
       "route_count": 9,
@@ -2767,7 +2767,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 120,
+      "line": 135,
       "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "prefix": null,
       "resolved": false,
@@ -2776,7 +2776,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 214,
+      "line": 232,
       "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "prefix": null,
       "resolved": false,
@@ -2785,7 +2785,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 285,
+      "line": 306,
       "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "prefix": null,
       "resolved": false,
@@ -2794,7 +2794,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 396,
+      "line": 417,
       "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "prefix": null,
       "resolved": false,
@@ -3009,7 +3009,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "68eae449f7a07f4c7c6c5f05187ae698569f9f76861365b5fb47a25a3b93e756",
+  "inventory_sha256": "1828dc65ccfe797b8d53b387d42f7d78a489168779fcf87d2b92b0a99fcec7b1",
   "orphan_candidate_count": 237,
   "orphan_candidates": [
     {
@@ -4785,7 +4785,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 36,
+      "line": 42,
       "module": "services.sahool-platform.api.routers.season_workspace",
       "node_id": "services.sahool-platform.api.routers.season_workspace:router",
       "route_count": 1,
@@ -4885,7 +4885,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 54,
+      "line": 55,
       "module": "services.sahool-platform.api.routers.soil_sampling",
       "node_id": "services.sahool-platform.api.routers.soil_sampling:router",
       "route_count": 9,
@@ -5627,7 +5627,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
-      "line": 120,
+      "line": 135,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
       "source": null,
       "target_expression": "mod.router"
@@ -5635,7 +5635,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
-      "line": 214,
+      "line": 232,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
       "source": null,
       "target_expression": "mod.router"
@@ -5643,7 +5643,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
-      "line": 285,
+      "line": 306,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
       "source": null,
       "target_expression": "mod.router"
@@ -5651,7 +5651,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
-      "line": 396,
+      "line": 417,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
       "source": null,
       "target_expression": "mod.router"

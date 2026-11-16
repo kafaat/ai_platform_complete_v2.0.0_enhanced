@@ -259,14 +259,6 @@
       "ratchet_identity": "SEC-003:declared_above_evidence:evidence-maturity"
     },
     {
-      "assessed_maturity": 2,
-      "capability_id": "SEC-007",
-      "declared_maturity": 3,
-      "finding_id": "SEC-007:declared_above_evidence",
-      "kind": "declared_above_evidence",
-      "ratchet_identity": "SEC-007:declared_above_evidence:evidence-maturity"
-    },
-    {
       "assessed_maturity": 1,
       "capability_id": "SEC-008",
       "declared_maturity": 3,
@@ -413,8 +405,10 @@
       "evidence_maturity": {
         "baseline_count": 44,
         "new": [],
-        "observed_count": 44,
-        "stale": []
+        "observed_count": 43,
+        "stale": [
+          "SEC-007:declared_above_evidence:evidence-maturity"
+        ]
       },
       "registry_reconciliation": {
         "baseline_count": 0,
@@ -423,7 +417,7 @@
         "stale": []
       }
     },
-    "decision": "PASS",
+    "decision": "BLOCK",
     "mode": "identity-exact-ratchet"
   },
   "schema": "sahool.capability-shadow-reconciliation/v1",

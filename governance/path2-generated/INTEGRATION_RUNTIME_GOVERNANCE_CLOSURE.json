@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "scope": "path-2-integration-and-runtime-evidence-governance",
-  "status": "CLOSED",
-  "integration_governance_verified": true,
-  "runtime_verification_framework_ready": true,
+  "status": "OPEN",
+  "integration_governance_verified": false,
+  "runtime_verification_framework_ready": false,
   "runtime_verified": false,
   "production_certified": false,
   "checks": [
@@ -44,8 +44,8 @@
     },
     {
       "name": "path1:closed",
-      "passed": true,
-      "detail": "status=CLOSED"
+      "passed": false,
+      "detail": "status=OPEN"
     },
     {
       "name": "gateway:no_hard_configuration_errors",
@@ -121,5 +121,5 @@
   ],
   "handoff_to_path3": "Execute the stack and ingest plan-bound evidence; only valid evidence may change runtime_verified state.",
   "boundary": "PATH-2 closes repository-side integration and runtime-evidence governance. It does not certify a running stack or production environment.",
-  "content_sha256": "aa1954fdcd1ac06d69f6ce077e5994d818e8bc36e5798a498d223a710a0fef27"
+  "content_sha256": "0608e3cc14017cdd06499c47a2602fc186f998fa5efd432927f37efe9154cfb9"
 }

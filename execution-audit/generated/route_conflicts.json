@@ -17,7 +17,7 @@
         },
         {
           "function": "root",
-          "line": 171,
+          "line": 180,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/",
@@ -40,7 +40,7 @@
         },
         {
           "function": "capabilities",
-          "line": 118,
+          "line": 125,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/capabilities",
@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 612,
+          "line": 613,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -71,7 +71,7 @@
         },
         {
           "function": "contract",
-          "line": 141,
+          "line": 149,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/contract",
@@ -134,7 +134,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 73,
+          "line": 80,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/health",
@@ -317,7 +317,7 @@
         },
         {
           "function": "healthz",
-          "line": 68,
+          "line": 75,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/healthz",
@@ -532,7 +532,7 @@
         },
         {
           "function": "metrics",
-          "line": 78,
+          "line": 85,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/metrics",
@@ -691,7 +691,7 @@
         },
         {
           "function": "ready",
-          "line": 89,
+          "line": 96,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/readyz",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1156,
-  "route_inventory_sha256": "85cf18397c81a7eba558a736bed7b98cf74b261dbad43ef079e891d7ede3f607",
+  "route_count": 1157,
+  "route_inventory_sha256": "123c27c67c5ae915ab064c9b544ff358a47e07530949e8a3a67bdf67be34d738",
   "runtime_verified": false,
   "schema_version": 1
 }

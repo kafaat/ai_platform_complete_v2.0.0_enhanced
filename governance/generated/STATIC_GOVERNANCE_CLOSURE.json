@@ -1,8 +1,8 @@
 {
   "schema_version": "1.1.0",
   "scope": "path-1-static-architecture-governance",
-  "status": "CLOSED",
-  "static_governance_verified": true,
+  "status": "OPEN",
+  "static_governance_verified": false,
   "runtime_verified": false,
   "production_certified": false,
   "checks": [
@@ -63,8 +63,8 @@
     },
     {
       "name": "architecture:no_cycles",
-      "passed": true,
-      "detail": "cycles=0"
+      "passed": false,
+      "detail": "cycles=1"
     },
     {
       "name": "lineage:complete_static_chain",
@@ -114,5 +114,5 @@
     "capabilities without full UI/mobile/runtime traceability"
   ],
   "boundary": "Repository-static evidence only; live stack, telemetry, database, queue, and production execution belong to a separate path.",
-  "content_sha256": "7f6428ee559d664663ea72a1006b513dce3f9ae40e741adadd63b007b83673cc"
+  "content_sha256": "d97cf1cf67702c5a9464746c33e1ab4c5d3bf0316c78ee71ee8ee73946c202b5"
 }

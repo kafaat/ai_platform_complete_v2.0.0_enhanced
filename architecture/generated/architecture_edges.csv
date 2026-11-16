@@ -59,6 +59,7 @@ platform,weather-service,code-reference,services/sahool-platform/core/capabiliti
 platform,weather-service,code-reference,services/sahool-platform/core/field_intelligence_adapters.py
 raster-service,decision-service,code-reference,services/raster-service/follow_up_runtime.py
 raster-service,decision-service,code-reference,services/raster-service/imagery_source_gate.py
+raster-service,indicators-service,code-reference,services/raster-service/observation_outbox.py
 realtime-session,platform,code-reference,services/realtime-session/realtime_session/session_runtime.py
 remote-sensing-workspace-bff,decision-service,code-reference,services/remote-sensing-workspace-bff/main.py
 remote-sensing-workspace-bff,indicators-service,code-reference,services/remote-sensing-workspace-bff/main.py
@@ -94,6 +95,8 @@ sahool-field-management,sahool-redis,compose-depends-on,docker-compose.v9.yml
 sahool-field-segmentation,sahool-sam2-inference,compose-depends-on,docker-compose.v9.gpu.yml
 sahool-guardrails-engine,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-guardrails-engine,sahool-redis-state,compose-depends-on,docker-compose.v9.yml
+sahool-indicators-service,sahool-migrate,compose-depends-on,docker-compose.v9.yml
+sahool-indicators-service,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-irrigation-reservation-lifecycle-worker,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-local-ai-rag,sahool-ollama-models,compose-depends-on,docker-compose.v9.yml
 sahool-local-ai-rag,sahool-qdrant,compose-depends-on,docker-compose.v9.yml

@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "3d4a14ac511ba9c6ff8e338b9963cc4a951ee57e6f7b41231e55d6cd556eb263",
+  "inventory_sha256": "bf2db86aafac753598836999c2b5cdf5da4356ea03d98cb7576d86600433508b",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "067eeb9f767b5e55404eff4ac8a763f0c93ad485afd7260989b8af3bbb25850d"
+    "policy_sha256": "3689994b17d54bbcdce84ce0cf4adaffa5572bbf82540791cd53028a9c831fa5"
   },
   "routes": [
     {
@@ -1194,7 +1194,7 @@
     {
       "classification": "domain",
       "function": "field_lab_context",
-      "line": 822,
+      "line": 826,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/lab-context",
       "source": "api/routers/soil_sampling.py"
@@ -1258,7 +1258,7 @@
     {
       "classification": "domain",
       "function": "season_workspace",
-      "line": 297,
+      "line": 315,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/season-workspace",
       "source": "api/routers/season_workspace.py"
@@ -3986,7 +3986,7 @@
     {
       "classification": "domain",
       "function": "transition_lab_sample",
-      "line": 678,
+      "line": 682,
       "method": "POST",
       "path": "/api/v1/lab/samples/{sample_id}/transition",
       "source": "api/routers/soil_sampling.py"
@@ -4002,7 +4002,7 @@
     {
       "classification": "domain",
       "function": "submit_water_lab_result",
-      "line": 603,
+      "line": 607,
       "method": "POST",
       "path": "/api/v1/lab/water-results",
       "source": "api/routers/soil_sampling.py"

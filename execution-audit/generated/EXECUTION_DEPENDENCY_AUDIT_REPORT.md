@@ -4,11 +4,11 @@
 
 ## Summary
 
-- Python files parsed: **2219**
-- FastAPI-style route handlers: **1099**
-- Static function-call edges: **115657**
-- Dead-code candidates: **683**
-- Duplicate function groups: **64**
+- Python files parsed: **2223**
+- FastAPI-style route handlers: **1100**
+- Static function-call edges: **116680**
+- Dead-code candidates: **685**
+- Duplicate function groups: **65**
 - Automatic deletions: **0**
 
 ## Highest-confidence dead-code candidates
@@ -30,6 +30,7 @@
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_c7_latest_cache_provenance.py` | 40 |
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_cdse_empty_raster_not_cached.py` | 70 |
 | `raster-service` | `_clean_runtime_state` | function | `services/raster-service/test_job_truth_receipts_and_fencing.py` | 77 |
+| `sahool-platform` | `_extract_ec` | function | `services/sahool-platform/api/field_state_projection.py` | 281 |
 | `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 67 |
 | `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1147 |
 | `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 190 |
@@ -55,6 +56,7 @@
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_crop_twin_compose_endpoint.py` | 24 |
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_crop_twin_server_spectral.py` | 20 |
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_decision_lineage_endpoints.py` | 31 |
+| `sahool-platform` | `_stub_field_state_refresh` | function | `services/sahool-platform/tests/test_lab_sampling_router.py` | 15 |
 | `sahool-platform` | `_reset_breaker` | function | `services/sahool-platform/tests/test_openmeteo_circuit.py` | 21 |
 | `sahool-platform` | `_service_env` | function | `services/sahool-platform/tests/test_pest_guardrails_gate.py` | 67 |
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_profit_aware_decision_endpoint.py` | 25 |
@@ -63,8 +65,6 @@
 | `sahool-platform` | `_unobserved_weather_service` | function | `services/sahool-platform/tests/test_weather_client_routing_w1_22.py` | 26 |
 | `sahool-platform` | `_unobserved_weather_service` | function | `services/sahool-platform/tests/test_weather_engine_v20_readiness_selftest.py` | 12 |
 | `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 43 |
-| `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 121 |
-| `weather-service` | `_reset_breaker` | function | `services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py` | 41 |
 
 ## Duplicate implementation groups
 
@@ -72,11 +72,12 @@
 |---|---:|
 | `01e55555d0073910` | 2 |
 | `0791c0d18167f804` | 5 |
+| `0960e2f931c62dae` | 2 |
 | `0978d02a074fea20` | 2 |
 | `1259184f437d28e1` | 3 |
 | `1652c685e5ed27fa` | 4 |
 | `18a46eb263382a99` | 2 |
-| `27213e0b8be4077c` | 4 |
+| `27213e0b8be4077c` | 5 |
 | `2cab8792318c3811` | 2 |
 | `2ed8e51be38a65b6` | 9 |
 | `32d2f14c2fac8b6a` | 2 |
@@ -119,7 +120,6 @@
 | `9fcb13bf88a96d6a` | 2 |
 | `aa517cd1f9c74cf4` | 3 |
 | `abea79905276671b` | 2 |
-| `b5f52c1314625bcb` | 2 |
 
 ## Interpretation
 

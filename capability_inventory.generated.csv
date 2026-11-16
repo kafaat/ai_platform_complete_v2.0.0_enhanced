@@ -134,6 +134,7 @@ indicators-service.fields.field_id.observations,query,indicators-service,GET /v1
 indicators-service.indicators.catalog,query,indicators-service,GET /v1/indicators/catalog,frontend,route,False
 indicators-service.indicators.compute,command,indicators-service,POST /v1/indicators/compute,frontend,route,False
 indicators-service.indicators.ownership,query,indicators-service,GET /v1/indicators/ownership,frontend,route,False
+indicators-service.internal.observations,command,indicators-service,POST /internal/v1/observations,frontend,route,False
 knowledge-graph.edges,mixed,knowledge-graph,GET /v1/edges|POST /v1/edges,,route,False
 knowledge-graph.graphql,command,knowledge-graph,POST /graphql,,route,False
 knowledge-graph.nodes,command,knowledge-graph,POST /v1/nodes,,route,False
