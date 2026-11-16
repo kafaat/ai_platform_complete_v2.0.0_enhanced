@@ -26,6 +26,7 @@ from pydantic import BaseModel, Field
 from api.service_token_auth import _require_service_token
 from api.weather_alerts import derive_weather_alerts
 from api.weather_service_client import (
+    delegated_breaker_state,
     get_current_weather,
     get_operation_plan,
     get_operation_tile_data,
@@ -36,6 +37,7 @@ from api.weather_service_client import (
     get_weather_historical,
     get_weather_tile_data,
     get_weather_tile_series,
+    observed_degraded_reasons,
 )
 from shared.contracts.soil.moisture_policy import MODELLED_SURFACE_MOISTURE_SOURCE as _SM_SRC
 from shared.contracts.soil.moisture_policy import SURFACE_MOISTURE_DRY_M3M3 as _SM_DRY
@@ -884,19 +886,13 @@ def _weather_engine_self_checks() -> dict:
     }
 
 
-#: W1-22 — المنصّةُ لا تخرج إلى المزوّد بعد اليوم: كلُّ قراءة طقسٍ تمرّ بـweather-service، وقاطعُ
-#: Open-Meteo هناك (``/v1/weather/readyz`` في الخدمة). قاطعُ الموصّل داخل هذه العمليّة لم يَعُد
-#: يمرّ به طلبٌ فيبقى «مغلقاً» أبداً؛ عرضُه هنا كان سيقول «المزوّد سليم» من غير قياس.
-_DELEGATED_BREAKER = {"state": "delegated", "owner": "weather-service"}
-
-
 def _weather_runtime_readiness() -> dict:
     self_checks = _weather_engine_self_checks()
-    breaker = dict(_DELEGATED_BREAKER)
+    breaker = delegated_breaker_state()  # W1-22: قاطعُ المزوّد في weather-service؛ هنا المرصود.
     cache = _weather_cache_snapshot()
-    degraded_reasons: list[str] = []
+    degraded_reasons: list[str] = observed_degraded_reasons(breaker["observed"])
     if self_checks["status"] != "ok":
-        degraded_reasons.append("self_checks_failed")
+        degraded_reasons.insert(0, "self_checks_failed")
     # Cache pressure is not a hard failure because pruning can recover it.
     if cache["items"] > cache["max_items_soft"]:
         degraded_reasons.append("weather_cache_over_soft_limit")
@@ -1971,7 +1967,7 @@ def weather_health():
         "service": "weather",
         "provider": "open-meteo",
         "mode": "platform",
-        "breaker": dict(_DELEGATED_BREAKER),
+        "breaker": delegated_breaker_state(),
     }
 
 
@@ -2012,10 +2008,8 @@ async def weather_wind_source_selftest(
     مسباراً مستقلّاً لـMET.no، فيؤكّد الاتّصال الحيّ ومصدر الاتّجاه فعليّاً (لا mock).
     صادق: أيّ تعذّر يُبلَّغ صراحةً؛ لا يُخزَّن سرّ. الإحداثيّات الافتراضيّة: صنعاء/اليمن.
     """
-    # W1-22 — المُستورِدُ الوحيدُ الباقي لموصّل المزوّد، وعن قصد: هذا فحصٌ تشغيليٌّ حيّ لموصّل
-    # Open-Meteo نفسِه واحتياطِ MET.no فيه، لا مسارُ بيانات. كلُّ قراءة طقسٍ أخرى في المنصّة تمرّ
-    # بـweather-service. وحذفُه يترك الموصّلَ وقاطعَه بلا جذرٍ تنفيذيّ (حارسُ قابليّة البلوغ يحجب)،
-    # فإزالتُهما معاً قرارُ مالك — مُسجَّلٌ في weather_direct_wiring_allowlist.json.
+    # W1-22: المُستورِدُ الوحيدُ الباقي للموصّل، عن قصد (فحصٌ حيّ له لا مسارُ بيانات) — انظر
+    # weather_direct_wiring_allowlist.json؛ إزالتُه مع الموصّل قرارُ مالك.
     from api.connectors import metno_wind
     from api.connectors.openmeteo import fetch_weather_tile_data
 
@@ -2487,29 +2481,12 @@ async def weather_probe(
 ):
     """قراءة نقطة تحت المؤشر/النقرة + قرارات زراعية مختصرة."""
     time, model = _validate_time_model(time, model)
-    key = f"probe:{round(lat, 4)}:{round(lon, 4)}:{time}:{model}"
-    sample, cache_state, cache_age_s = await _cache_get_async(key)
-    upstream_error = None
-    if cache_state != "fresh":
-        try:
-            point = await get_point_weather_sample_with_state(lat, lon, time=time, model=model)
-            sample = point.sample
-            if point.is_stale:
-                cache_state = "stale_fallback"
-                cache_age_s = point.cache_age_s
-                upstream_error = point.upstream_error
-            else:
-                await _cache_set_async(key, sample)
-                cache_state = "refreshed"
-                cache_age_s = 0
-        except Exception as e:
-            upstream_error = str(e)
-            stale_sample, stale_state, stale_age = await _cache_get_async(key)
-            if stale_sample is None or stale_state not in {"stale", "fresh"}:
-                raise HTTPException(status_code=502, detail=f"weather-service probe: {e}") from e
-            sample = stale_sample
-            cache_state = "stale_fallback"
-            cache_age_s = stale_age
+    try:
+        sample, cache_state, cache_age_s, upstream_error = await _get_weather_sample_cached(
+            lat, lon, time, model, "probe"
+        )
+    except Exception as e:  # noqa: BLE001 — لا عيّنة ولا مخبّأ قديم ⇒ 502 صريح
+        raise HTTPException(status_code=502, detail=f"weather-service probe: {e}") from e
     operations = {
         op: _operation_suitability(sample, op)
         for op in ["spraying", "harvesting", "sowing", "irrigation"]

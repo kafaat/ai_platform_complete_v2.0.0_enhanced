@@ -22,6 +22,16 @@ import pytest
 pytestmark = pytest.mark.unit
 
 
+@pytest.fixture(autouse=True)
+def _unobserved_weather_service():
+    """The client records the weather-service health it observes; no test leaks it."""
+    from api.weather_service_client import reset_observed_weather_service_health
+
+    reset_observed_weather_service_health()
+    yield
+    reset_observed_weather_service_health()
+
+
 def _historical_view(days: list[dict]) -> dict:
     return {
         "derived_from": "canonical_weather_state",
@@ -418,3 +428,276 @@ async def test_weather_automation_reads_weather_service_and_keeps_absence(monkey
     assert payload["source"] == "weather-service", "the cached payload must name its source"
     assert payload["temperature_c"] is None, "absent temperature must stay None"
     assert payload["weather_ar"] == "غير معروف", "an absent WMO code is unknown, not clear"
+
+
+# ── review round 2: parity of the "now" sample with the removed connector path ─────
+_PARITY_FIELDS = (
+    "temperature_2m_c",
+    "relative_humidity_2m_pct",
+    "precipitation_mm",
+    "precipitation_probability_pct",
+    "cloud_cover_pct",
+    "pressure_msl_hpa",
+    "surface_pressure_hpa",
+    "wind_speed_10m_kmh",
+    "wind_gusts_10m_kmh",
+    "wind_direction_10m_deg",
+    "weather_code",
+    "vapour_pressure_deficit_kpa",
+    "et0_fao_evapotranspiration_mm",
+    "soil_temperature_0cm_c",
+    "soil_temperature_6cm_c",
+    "soil_temperature_18cm_c",
+    "soil_temperature_54cm_c",
+    "soil_moisture_0_to_1cm_m3m3",
+    "soil_moisture_1_to_3cm_m3m3",
+    "soil_moisture_3_to_9cm_m3m3",
+)
+
+
+def _full_open_meteo_payload() -> dict:
+    """Every variable either path requests; ``current.time`` sits inside the 13:00 hour."""
+    hours = [f"2026-07-01T{h:02d}:00" for h in range(24)]
+    n = len(hours)
+
+    def series(base: float, step: float) -> list[float]:
+        return [round(base + i * step, 3) for i in range(n)]
+
+    return {
+        "timezone": "Asia/Aden",
+        "current": {
+            "time": "2026-07-01T13:15",
+            "temperature_2m": 36.0,
+            "relative_humidity_2m": 18.0,
+            "precipitation": 0.0,
+            "cloud_cover": 5.0,
+            "pressure_msl": 1009.0,
+            "surface_pressure": 950.0,
+            "wind_speed_10m": 11.0,
+            "wind_direction_10m": 200.0,
+            "wind_gusts_10m": 19.0,
+            "weather_code": 1,
+            "is_day": 1,
+        },
+        "hourly": {
+            "time": hours,
+            "temperature_2m": series(20.0, 1.0),
+            "relative_humidity_2m": series(60.0, -1.0),
+            "precipitation": [0.0] * n,
+            "precipitation_probability": series(0.0, 2.0),
+            "cloud_cover": series(0.0, 1.0),
+            "pressure_msl": series(1000.0, 0.5),
+            "surface_pressure": series(940.0, 0.5),
+            "wind_speed_10m": series(5.0, 0.5),
+            "wind_direction_10m": series(180.0, 1.0),
+            "wind_gusts_10m": series(8.0, 0.5),
+            "weather_code": [1] * n,
+            "vapour_pressure_deficit": series(0.5, 0.25),
+            "et0_fao_evapotranspiration": series(0.0, 0.05),
+            "soil_temperature_0cm": series(25.0, 1.0),
+            "soil_temperature_6cm": series(24.0, 0.8),
+            "soil_temperature_18cm": series(23.0, 0.4),
+            "soil_temperature_54cm": series(22.0, 0.1),
+            "soil_moisture_0_to_1cm": series(0.10, 0.001),
+            "soil_moisture_1_to_3cm": series(0.15, 0.001),
+            "soil_moisture_3_to_9cm": series(0.20, 0.001),
+        },
+    }
+
+
+async def test_now_sample_matches_the_removed_connector_reading_for_reading(monkeypatch):
+    """The same Open-Meteo payload through the old platform connector and through
+    weather-service + the client mapping must give the same platform sample for ``now``.
+
+    Before review round 2 VPD, ET0, soil temperature/moisture, rain probability, MSL
+    pressure and the WMO code reached the platform as None for ``now`` — the default for
+    the field weather summary, the probe and the weather alerts.
+    """
+    from api import weather_service_client
+    from api.connectors import openmeteo as connector
+
+    payload = _full_open_meteo_payload()
+
+    async def connector_fetch(url, params, timeout_s):
+        return payload
+
+    monkeypatch.setattr(connector, "_fetch_json", connector_fetch)
+    legacy = await connector.fetch_weather_tile_data(15.35, 44.21, time_key="now")
+
+    om = _load_weather_service_open_meteo()
+    service_sample = om.normalize_tile_sample(
+        payload, lat=15.35, lon=44.21, time_key="now", model="best_match"
+    )
+
+    async def fake_weather_get_json(path, **kwargs):
+        return _service_tile(service_sample)
+
+    monkeypatch.setattr(weather_service_client, "weather_get_json", fake_weather_get_json)
+    sample = await weather_service_client.get_point_weather_sample(15.35, 44.21, time="now")
+
+    for key in _PARITY_FIELDS:
+        assert legacy[key] is not None, f"fixture gap: the connector produced no {key}"
+        assert sample[key] == legacy[key], (
+            f"{key}: weather-service path {sample[key]!r} != removed connector {legacy[key]!r}"
+        )
+    assert bool(sample["is_day"]) is bool(legacy["is_day"]), "is_day must agree"
+    assert sample["time_resolution"]["hourly_row_time"] == "2026-07-01T13:00", (
+        "the hour row the hourly-only fields came from must stay visible"
+    )
+    assert sample["missing_fields"] == [], (
+        f"a complete payload must declare nothing missing: {sample['missing_fields']}"
+    )
+
+
+def test_platform_sample_declares_the_readings_it_does_not_have():
+    from api.weather_service_client import platform_sample_from_service
+
+    sample = platform_sample_from_service(
+        {"temperature_c": 0.0, "humidity_pct": 40.0, "precipitation_mm": 0.0, "vpd_kpa": None}
+    )
+    missing = set(sample["missing_fields"])
+    assert "vapour_pressure_deficit_kpa" in missing, f"absent VPD must be declared: {missing}"
+    assert "soil_moisture_1_to_3cm_m3m3" in missing, f"absent soil must be declared: {missing}"
+    assert "temperature_2m_c" not in missing, "an observed 0 °C is a reading, not missing"
+    assert "precipitation_mm" not in missing, "an observed 0 mm is a reading, not missing"
+    assert "time" not in missing and "source" not in missing, "identity keys are not readings"
+
+
+# ── review round 2: readiness reflects the weather-service health it observed ──────
+async def test_readiness_degrades_after_repeated_weather_service_failures(monkeypatch):
+    import httpx
+    from api import weather_service_client
+    from api.routers import weather
+    from fastapi import HTTPException, Response
+
+    weather_service_client.reset_observed_weather_service_health()
+    assert weather.weather_readyz(Response())["status"] == "ready", "unobserved must be ready"
+
+    class _Down(httpx.AsyncClient):
+        async def get(self, *args, **kwargs):
+            raise httpx.ConnectError("connection refused")
+
+    monkeypatch.setattr(httpx, "AsyncClient", _Down)
+    for _ in range(weather_service_client.OBSERVED_FAILURE_THRESHOLD):
+        with pytest.raises(HTTPException):
+            await weather_service_client.get_current_weather(15.0, 44.0)
+
+    response = Response()
+    result = weather.weather_readyz(response)
+    assert response.status_code == 503, "readiness must fail while weather-service keeps failing"
+    assert "weather_service_unavailable_observed" in result["degraded_reasons"], (
+        f"the reason must be named: {result['degraded_reasons']}"
+    )
+    assert result["breaker"]["observed"]["service"]["state"] == "open", "observed state is open"
+    assert weather.weather_health()["breaker"]["observed"]["state"] == "open", (
+        "health must show the same observed state"
+    )
+    weather_service_client.reset_observed_weather_service_health()
+
+
+async def test_readiness_degrades_when_the_service_keeps_serving_stale_provider_data(monkeypatch):
+    from api import weather_service_client
+    from api.routers import weather
+    from fastapi import Response
+
+    weather_service_client.reset_observed_weather_service_health()
+
+    async def stale_tile(path, **kwargs):
+        return _service_tile(
+            {"temperature_c": 31.0},
+            cache_state="stale_fallback",
+            cache_age_s=900,
+            upstream_error="open-meteo timeout",
+        )
+
+    monkeypatch.setattr(weather_service_client, "weather_get_json", stale_tile)
+    for _ in range(weather_service_client.OBSERVED_FAILURE_THRESHOLD):
+        await weather_service_client.get_point_weather_sample_with_state(15.0, 44.0)
+
+    result = weather.weather_readyz(Response())
+    assert "weather_provider_degraded_observed" in result["degraded_reasons"], (
+        f"a provider failing behind the service cache must show: {result['degraded_reasons']}"
+    )
+
+    async def fresh_tile(path, **kwargs):
+        return _service_tile({"temperature_c": 31.0})
+
+    monkeypatch.setattr(weather_service_client, "weather_get_json", fresh_tile)
+    await weather_service_client.get_point_weather_sample_with_state(15.0, 44.0)
+    assert weather.weather_readyz(Response())["status"] == "ready", (
+        "a fresh sample must close the observed provider state"
+    )
+    weather_service_client.reset_observed_weather_service_health()
+
+
+# ── review round 2: days omitted by the source count as missing ────────────────────
+def test_pack_summary_counts_days_the_source_omitted():
+    from datetime import date
+
+    from api.routers.field_ai_context import summarize_weather_history
+    from api.weather_service_client import daily_from_view
+
+    complete = [dict(d, precipitation_mm=1.0) for d in _DAYS_WITH_A_GAP]
+    records = daily_from_view(_historical_view(complete))
+    summary, monthly = summarize_weather_history(
+        records, requested_start=date(2026, 1, 28), requested_end=date(2026, 2, 1)
+    )
+    # Before the fix: 3.0, labelled complete, although 01-28 and 01-29 never came back.
+    assert summary["total_precipitation_mm"] is None, (
+        f"omitted days were left out of the total: {summary['total_precipitation_mm']}"
+    )
+    assert summary["days_omitted_by_source"] == 2, "two requested days were not returned"
+    assert summary["precipitation_days_missing"] == 2, "omitted days count as missing"
+    assert summary["et0_days_missing"] == 2, "omitted days count as missing ET0 too"
+    assert summary["observed_precipitation_mm"] == 3.0, "the observed total is still reported"
+    by_month = {m["month"]: m for m in monthly}
+    assert by_month["2026-01"]["precipitation_mm"] is None, "January lost two days"
+    assert by_month["2026-01"]["days_omitted_by_source"] == 2, "attributed to January"
+    assert by_month["2026-01"]["days"] == 2, "January returned two days"
+    assert by_month["2026-02"]["precipitation_mm"] == 1.0, "February is complete"
+
+
+def test_pack_summary_honours_the_owner_declared_missing_days():
+    from api.routers.field_ai_context import summarize_weather_history
+    from api.weather_service_client import daily_from_view
+
+    complete = [dict(d, precipitation_mm=1.0) for d in _DAYS_WITH_A_GAP]
+    summary, _ = summarize_weather_history(
+        daily_from_view(_historical_view(complete)), source_missing_days=4
+    )
+    assert summary["total_precipitation_mm"] is None, "coverage.missing_days must void the total"
+    assert summary["precipitation_days_missing"] == 4, "the owner's missing count is used"
+
+
+async def test_pack_passes_the_requested_window_and_coverage(monkeypatch):
+    from api import weather_service_client
+    from api.routers import field_ai_context
+
+    async def fake_weather_get_json(path, **kwargs):
+        days = [dict(d, precipitation_mm=1.0, et0_mm=1.0) for d in _DAYS_WITH_A_GAP]
+        view = _historical_view(days)
+        view["coverage"] = {"expected_days": 31, "observed_days": 3, "missing_days": 28}
+        return view
+
+    monkeypatch.setattr(weather_service_client, "weather_get_json", fake_weather_get_json)
+    pack, _warning = await field_ai_context._optional_weather_history(
+        {"lat": 15.0, "lon": 44.0}, 30, "tenant-a"
+    )
+    assert pack["summary"]["total_precipitation_mm"] is None, (
+        "a 3-of-31-day archive must not report a complete rain total"
+    )
+    assert pack["summary"]["days_omitted_by_source"] >= 28, "the omitted days must be counted"
+
+
+# ── review round 2: the harness observation names weather-service ──────────────────
+def test_harness_observation_does_not_label_weather_service_history_open_meteo():
+    from pathlib import Path
+
+    runtime = Path(__file__).resolve().parents[2] / "ai_agronomist" / "ai_evidence_runtime.py"
+    text = runtime.read_text(encoding="utf-8")
+    assert 'weather_source="open-meteo"' not in text, (
+        "the pack's weather history comes from weather-service; the observation must say so"
+    )
+    assert '_weather.get("source") or "weather-service"' in text, (
+        "the observation must take the source the pack declared"
+    )

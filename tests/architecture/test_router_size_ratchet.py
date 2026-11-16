@@ -51,7 +51,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # → 4044 (2026-11-13, chain A merged with main 7ad892afa): main's own 3-line reduction
     # (4075 → 4072) applies on top of 4047.
     "services/sahool-platform/api/routers/fields.py": 4044,
-    "services/sahool-platform/api/routers/weather.py": 3022,
+    # 3022 → 3013 (W1-22, 2026-11-16): the delegated-breaker state moved to weather_service_client
+    # and the probe reuses _get_weather_sample_cached instead of a copy of it.
+    "services/sahool-platform/api/routers/weather.py": 3013,
     # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
     # 1673 → 1668 (unified 2026-10-27): pixel sampling moved to raster_field_runtime and
     # _authenticated_tenant to raster_security_context while the audit fixes landed here.

@@ -9,9 +9,11 @@ P3.4 Platform Weather Facade:
 from __future__ import annotations
 
 import asyncio
+import functools
 import math
 import os
 from dataclasses import dataclass, field
+from time import monotonic as _monotonic
 from typing import Any
 
 # NOTE: fastapi is imported lazily inside the functions that raise/catch HTTPException.
@@ -37,6 +39,137 @@ def weather_service_headers(
     return headers
 
 
+# ─── صحّةُ weather-service كما **رصدتها** المنصّة (W1-22) ─────────────────────────────
+#
+# كانت جاهزيّةُ طبقة الطقس في المنصّة تقرأ قاطعَ موصّل Open-Meteo المحلّيّ. بعد أن صارت كلُّ
+# قراءةٍ تمرّ بـweather-service لم يَعُد يمرّ بذلك القاطع طلبٌ، فإعلانُه كان سيقول «سليم» بلا
+# قياس، وإعلانُ ``delegated`` وحده يُسقط إشارةَ الصحّة كلّياً. هذا عدّادٌ داخل العمليّة يُبنى من
+# حركة المرور الفعليّة وحدها (لا مسبارَ شبكيّاً في readyz): ``service`` لتعذّر الخدمة نفسِها
+# (مهلة/شبكة/5xx/جسمٌ غيرُ مقروء)، و``provider`` لِما تُعلنه الخدمةُ عن مزوّدها (عيّنةٌ محايدة أو
+# قديمة بخطأٍ منبعيّ). 4xx خطأُ طلبٍ لا عطلُ تبعيّة فلا يُحسَب على أيٍّ منهما.
+
+OBSERVED_FAILURE_THRESHOLD = 3
+OBSERVED_FAILURE_WINDOW_S = 60.0
+
+
+class _ObservedHealth:
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.reset()
+
+    def reset(self) -> None:
+        self.consecutive_failures = 0
+        self.last_error: str | None = None
+        self.last_failure_at: float | None = None
+        self.last_success_at: float | None = None
+
+    def success(self) -> None:
+        self.consecutive_failures = 0
+        self.last_error = None
+        self.last_success_at = _monotonic()
+
+    def failure(self, reason: str) -> None:
+        self.consecutive_failures += 1
+        self.last_error = str(reason)[:200]
+        self.last_failure_at = _monotonic()
+
+    def snapshot(self) -> dict[str, Any]:
+        now = _monotonic()
+        recent = (
+            self.last_failure_at is not None
+            and now - self.last_failure_at <= OBSERVED_FAILURE_WINDOW_S
+        )
+        if self.last_failure_at is None and self.last_success_at is None:
+            state = "unobserved"
+        elif recent and self.consecutive_failures >= OBSERVED_FAILURE_THRESHOLD:
+            state = "open"
+        else:
+            state = "closed"
+        return {
+            "state": state,
+            "consecutive_failures": self.consecutive_failures,
+            "opens_after_failures": OBSERVED_FAILURE_THRESHOLD,
+            "window_s": int(OBSERVED_FAILURE_WINDOW_S),
+            "last_error": self.last_error,
+            "last_success_age_s": (
+                None if self.last_success_at is None else round(now - self.last_success_at, 3)
+            ),
+        }
+
+
+_SERVICE_HEALTH = _ObservedHealth("service")
+_PROVIDER_HEALTH = _ObservedHealth("provider")
+
+
+def observed_weather_service_health() -> dict[str, Any]:
+    """حالةُ weather-service ومزوّدِه كما رصدتها هذه العمليّة — بلا نداء شبكة."""
+    service = _SERVICE_HEALTH.snapshot()
+    provider = _PROVIDER_HEALTH.snapshot()
+    states = {service["state"], provider["state"]}
+    if "open" in states:
+        state = "open"
+    elif states == {"unobserved"}:
+        state = "unobserved"
+    else:
+        state = "closed"
+    return {
+        "state": state,
+        "source": "observed_by_platform",
+        "service": service,
+        "provider": provider,
+    }
+
+
+def delegated_breaker_state() -> dict[str, Any]:
+    """قاطعُ Open-Meteo يملكه weather-service (``/v1/weather/readyz`` هناك): قاطعُ موصّل المنصّة لا
+    يمرّ به طلبٌ فيبقى «مغلقاً» أبداً، فعرضُه كان سيقول «المزوّد سليم» بلا قياس. يُعلَن التفويضُ
+    ومعه الصحّةُ **المرصودة** من حركة المرور الفعليّة (W1-22)."""
+    return {
+        "state": "delegated",
+        "owner": "weather-service",
+        "observed": observed_weather_service_health(),
+    }
+
+
+def observed_degraded_reasons(observed: dict[str, Any]) -> list[str]:
+    """تكافؤُ ``openmeteo_breaker_open`` السابق في جاهزيّة المنصّة: إخفاقاتٌ متتالية حديثة مرصودة."""
+    reasons: list[str] = []
+    if (observed.get("service") or {}).get("state") == "open":
+        reasons.append("weather_service_unavailable_observed")
+    if (observed.get("provider") or {}).get("state") == "open":
+        reasons.append("weather_provider_degraded_observed")
+    return reasons
+
+
+def reset_observed_weather_service_health() -> None:
+    """للاختبارات: يُعيد العدّادين إلى «لم يُرصَد»."""
+    _SERVICE_HEALTH.reset()
+    _PROVIDER_HEALTH.reset()
+
+
+def _observed_by_service_health(call):
+    """يسجّل نتيجةَ نداءٍ لـweather-service على ``_SERVICE_HEALTH`` دون لمس جسم النداء.
+
+    مهلةٌ/شبكةٌ/جسمٌ غيرُ مقروء (504/502) و5xx ⇒ إخفاق؛ 4xx خطأُ طلبٍ ⇒ لا يُحسَب؛ نجاحٌ ⇒ يُصفّر.
+    """
+
+    @functools.wraps(call)
+    async def wrapper(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        try:
+            result = await call(*args, **kwargs)
+        except Exception as exc:
+            status = getattr(exc, "status_code", None)
+            if isinstance(status, int) and status >= 500:
+                detail = getattr(exc, "detail", None)
+                reason = detail.get("reason_code") if isinstance(detail, dict) else None
+                _SERVICE_HEALTH.failure(reason or f"weather_service_http_{status}")
+            raise
+        _SERVICE_HEALTH.success()
+        return result
+
+    return wrapper
+
+
 def _detail_from_response(resp: Any) -> Any:
     try:
         return resp.json()
@@ -44,6 +177,7 @@ def _detail_from_response(resp: Any) -> Any:
         return getattr(resp, "text", "weather-service returned an error")
 
 
+@_observed_by_service_health
 async def weather_get_json(
     path: str,
     *,
@@ -95,6 +229,7 @@ async def weather_get_json(
     return data if isinstance(data, dict) else {"value": data}
 
 
+@_observed_by_service_health
 async def weather_post_json(
     path: str,
     *,
@@ -660,8 +795,9 @@ _SHARED_SAMPLE_KEYS: tuple[str, ...] = (
     "source",
 )
 
-#: مفاتيحُ في مخطّط المنصّة لا تُنتجها الخدمة — تبقى ``None`` صراحةً (غيابٌ لا صفر)، فلا
-#: يُشتقّ ضغطُ سطح البحر من ضغط السطح بلا ارتفاع، ولا احتمالُ مطرٍ من مطرٍ مقيس.
+#: مفاتيحُ في مخطّط المنصّة تُنتجها الخدمةُ من متغيّراتٍ مستقلّة (``pressure_msl`` ·
+#: ``precipitation_probability`` …) — وما لم تُعِده يبقى ``None`` (غيابٌ لا صفر)، فلا يُشتقّ ضغطُ
+#: سطح البحر من ضغط السطح بلا ارتفاع، ولا احتمالُ مطرٍ من مطرٍ مقيس.
 _PLATFORM_ONLY_SAMPLE_KEYS: tuple[str, ...] = (
     "pressure_msl_hpa",
     "precipitation_probability_pct",
@@ -693,8 +829,30 @@ def platform_sample_from_service(sample: dict[str, Any]) -> dict[str, Any]:
     for key in _PLATFORM_ONLY_SAMPLE_KEYS:
         out[key] = src.get(key)
     out["timestamp"] = src.get("timestamp", src.get("time"))
+    if isinstance(src.get("time_resolution"), dict):
+        # صفُّ الساعة الذي جاءت منه الحقولُ الساعيّة (``hourly_row_time``) وقيودُه يبقى مرئياً.
+        out["time_resolution"] = src["time_resolution"]
+    # الغيابُ مُعلَنٌ لا مستنتَج: كلُّ قراءةٍ في مخطّط المنصّة لم تُعِدها الخدمة تُسمّى هنا،
+    # فيرى المستهلكُ (والواجهة) أنّ ``vapour_pressure_deficit_kpa: null`` غيابٌ لا قيمة.
+    out["missing_fields"] = sorted(key for key in _SAMPLE_READING_KEYS if out.get(key) is None)
     out["service_sample"] = src
     return out
+
+
+#: قراءاتُ العيّنة (لا الهويّة/الزمن) التي يُعلَن غيابُها في ``missing_fields``.
+_SAMPLE_READING_KEYS: tuple[str, ...] = tuple(
+    sorted(
+        {
+            *_SERVICE_TO_PLATFORM_SAMPLE_KEYS.values(),
+            *(
+                k
+                for k in _SHARED_SAMPLE_KEYS
+                if k not in {"time", "source", "wind_direction_source"}
+            ),
+            *_PLATFORM_ONLY_SAMPLE_KEYS,
+        }
+    )
+)
 
 
 @dataclass(frozen=True)
@@ -734,6 +892,7 @@ async def get_point_weather_sample_with_state(
         reason = None
         if isinstance(tile, dict):
             reason = tile.get("upstream_error") or tile.get("cache_state")
+        _PROVIDER_HEALTH.failure(f"point_sample_unavailable:{reason or 'no sample'}")
         raise RuntimeError(f"weather-service point sample unavailable: {reason or 'no sample'}")
     age = tile.get("cache_age_s")
     try:
@@ -741,6 +900,11 @@ async def get_point_weather_sample_with_state(
     except (TypeError, ValueError):
         age_s = None
     upstream_error = tile.get("upstream_error")
+    if tile.get("cache_state") in {"stale", "stale_fallback"} and upstream_error:
+        # الخدمةُ حيّة لكنّ مزوّدها متعثّر: تخدم من مخبّئها القديم. هذا ما كان قاطعُ الموصّل يقيسه.
+        _PROVIDER_HEALTH.failure(f"provider_stale:{upstream_error}")
+    else:
+        _PROVIDER_HEALTH.success()
     return PointWeatherSample(
         sample=platform_sample_from_service(sample),
         cache_state=tile.get("cache_state"),

@@ -8,6 +8,17 @@ from fastapi import Response
 pytestmark = pytest.mark.unit
 
 
+@pytest.fixture(autouse=True)
+def _unobserved_weather_service():
+    """Readiness now carries the weather-service health observed in this process (W1-22);
+    other tests in the same worker may have recorded failures, so each test starts clean."""
+    from api.weather_service_client import reset_observed_weather_service_health
+
+    reset_observed_weather_service_health()
+    yield
+    reset_observed_weather_service_health()
+
+
 def test_weather_manifest_advertises_readiness_endpoints():
     from api.routers.weather import weather_layers_manifest
 
@@ -57,8 +68,12 @@ def test_weather_readiness_declares_the_breaker_delegated_to_weather_service(mon
     response = Response()
     result = weather.weather_readyz(response)
 
-    assert result["breaker"] == {"state": "delegated", "owner": "weather-service"}, (
-        f"readiness must declare the breaker delegated, got {result['breaker']}"
+    assert (result["breaker"]["state"], result["breaker"]["owner"]) == (
+        "delegated",
+        "weather-service",
+    ), f"readiness must declare the breaker delegated, got {result['breaker']}"
+    assert result["breaker"]["observed"]["source"] == "observed_by_platform", (
+        "the delegated breaker must carry the health the platform observed"
     )
     assert "openmeteo_breaker_open" not in result["degraded_reasons"], (
         "the unused platform connector breaker must not drive platform readiness"

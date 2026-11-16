@@ -11,7 +11,6 @@ from __future__ import annotations
 import asyncio
 import json
 from datetime import UTC, date, datetime, timedelta
-from statistics import mean
 from typing import Any
 
 from core.ai_policy_envelope import build_ai_policy_envelope, load_tenant_ai_policy_row
@@ -19,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api import field_context as context_reads
+from api.field_weather_history import summarize_weather_history
 from api.main import Permission, UserSchema, require_permission, tenant_connection
 from api.raster_service_client import (
     get_available_dates,
@@ -554,75 +554,6 @@ async def _optional_imagery_timeline(
     return result, ("؛ ".join(warnings) if warnings else None)
 
 
-def _complete_total(values: list[float | None]) -> float | None:
-    """مجموعُ سلسلةٍ **مكتملة** أو ``None`` — الغيابُ لا يُجمَع صفراً.
-
-    كانت الحزمةُ تجمع ``float(d.precipitation_mm or 0)``: يومٌ بلا قراءة مطرٍ يُحسَب
-    «يوماً جافّاً»، فيصل المستشارَ مجموعٌ أصغرُ من الواقع موسوماً كاملاً، ويُوصي بالريّ
-    على جفافٍ لم يُرصَد (weather-4). عددُ الأيّام الناقصة يُعلَن بجانبه بدل إخفائه.
-    """
-    if not values or any(v is None for v in values):
-        return None
-    return round(sum(v for v in values if v is not None), 2)
-
-
-def _missing_count(values: list[float | None]) -> int:
-    return sum(1 for v in values if v is None)
-
-
-def _observed_total(values: list[float | None]) -> float | None:
-    """مجموعُ الأيّام **المرصودة** وحدها — ``None`` إن لم يُرصَد يوم.
-
-    ليس بديلاً عن ``_complete_total``: يُعرَض بجانبه مع عدد الأيّام المرصودة، فيبقى للمستشار
-    إشارةُ المطر/ET0 حين يتأخّر أرشيف ERA5 أيّاماً في آخر النافذة، دون أن يُقرأ ناقصاً كاملاً.
-    """
-    present = [v for v in values if v is not None]
-    return round(sum(present), 2) if present else None
-
-
-def summarize_weather_history(records: list[Any]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
-    """ملخّصُ الطقس التاريخيّ وأشهرُه — دالّةٌ نقيّة، والغيابُ يبقى ``None`` في كلّ مستوى."""
-    temp_vals = [
-        (d.temp_max_c + d.temp_min_c) / 2
-        for d in records
-        if d.temp_max_c is not None and d.temp_min_c is not None
-    ]
-    precip = [d.precipitation_mm for d in records]
-    et0 = [d.et0_mm for d in records]
-    summary = {
-        "days": len(records),
-        "avg_temp_c": round(mean(temp_vals), 2) if temp_vals else None,
-        "total_precipitation_mm": _complete_total(precip),
-        "precipitation_days_missing": _missing_count(precip),
-        "observed_precipitation_mm": _observed_total(precip),
-        "precipitation_days_observed": len(precip) - _missing_count(precip),
-        "total_et0_mm": _complete_total(et0),
-        "et0_days_missing": _missing_count(et0),
-        "observed_et0_mm": _observed_total(et0),
-        "et0_days_observed": len(et0) - _missing_count(et0),
-        "first_date": records[0].date if records else None,
-        "last_date": records[-1].date if records else None,
-    }
-    # Keep context compact for the chat runtime: monthly buckets by YYYY-MM.
-    monthly: dict[str, dict[str, list[float | None]]] = {}
-    for d in records:
-        bucket = monthly.setdefault(str(d.date)[:7], {"precipitation_mm": [], "et0_mm": []})
-        bucket["precipitation_mm"].append(d.precipitation_mm)
-        bucket["et0_mm"].append(d.et0_mm)
-    monthly_items = [
-        {
-            "month": month,
-            "days": len(v["precipitation_mm"]),
-            "precipitation_mm": _complete_total(v["precipitation_mm"]),
-            "precipitation_days_missing": _missing_count(v["precipitation_mm"]),
-            "et0_mm": _complete_total(v["et0_mm"]),
-            "et0_days_missing": _missing_count(v["et0_mm"]),
-        }
-        for month, v in sorted(monthly.items())
-    ]
-    return summary, monthly_items
-
-
 async def _optional_weather_history(
     centroid: dict[str, float] | None, days: int, tenant_id: str | None = None
 ) -> tuple[dict[str, Any], str | None]:
@@ -657,7 +588,17 @@ async def _optional_weather_history(
                 "days": [],
                 "summary": {},
             }, None
-        summary, monthly_items = summarize_weather_history(records)
+        coverage = view.get("coverage") if isinstance(view.get("coverage"), dict) else {}
+        try:
+            source_missing = int(coverage.get("missing_days") or 0)
+        except (TypeError, ValueError):
+            source_missing = 0
+        summary, monthly_items = summarize_weather_history(
+            records,
+            requested_start=start,
+            requested_end=end,
+            source_missing_days=source_missing,
+        )
         return {
             "available": True,
             "range": {"start": start.isoformat(), "end": end.isoformat()},

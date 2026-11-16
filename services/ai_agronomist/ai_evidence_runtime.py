@@ -1279,7 +1279,10 @@ async def build_evidence_response(
         field_id=req.field_id,
         selected_date=req.selected_imagery_date,
         raster_state=_raster_state,
-        weather_source="open-meteo" if _weather.get("available") else None,
+        # مصدرُ الطقس كما أعلنته الحزمة (weather-service منذ W1-22) لا اسمُ مزوّدٍ ثابت.
+        weather_source=(
+            (_weather.get("source") or "weather-service") if _weather.get("available") else None
+        ),
         last_api_errors=_readiness.get("warnings"),
         policy=_policy,
     )
