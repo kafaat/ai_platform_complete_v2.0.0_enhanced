@@ -35,7 +35,6 @@ def _sample(**overrides):
 
 @pytest.mark.asyncio
 async def test_field_weather_summary_returns_operations_and_alerts(monkeypatch):
-    from api.connectors import openmeteo
     from api.routers import weather
 
     weather._WEATHER_TILE_CACHE.clear()
@@ -43,7 +42,8 @@ async def test_field_weather_summary_returns_operations_and_alerts(monkeypatch):
     async def fake_fetch(*_args, **_kwargs):
         return _sample(wind_speed_10m_kmh=25.0, vapour_pressure_deficit_kpa=2.7)
 
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
+    # W1-22: the summary samples weather-service (get_point_weather_sample), not the connector.
+    monkeypatch.setattr(weather, "get_point_weather_sample", fake_fetch)
     res = await weather.weather_field_summary(15.0, 44.0, time="now", model="best_match")
     assert {"spraying", "irrigation", "harvesting", "sowing"} <= set(res["operations"])
     assert any("رياح" in a for a in res["alerts_ar"])

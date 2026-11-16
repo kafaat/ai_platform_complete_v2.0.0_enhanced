@@ -554,9 +554,69 @@ async def _optional_imagery_timeline(
     return result, ("؛ ".join(warnings) if warnings else None)
 
 
+def _complete_total(values: list[float | None]) -> float | None:
+    """مجموعُ سلسلةٍ **مكتملة** أو ``None`` — الغيابُ لا يُجمَع صفراً.
+
+    كانت الحزمةُ تجمع ``float(d.precipitation_mm or 0)``: يومٌ بلا قراءة مطرٍ يُحسَب
+    «يوماً جافّاً»، فيصل المستشارَ مجموعٌ أصغرُ من الواقع موسوماً كاملاً، ويُوصي بالريّ
+    على جفافٍ لم يُرصَد (weather-4). عددُ الأيّام الناقصة يُعلَن بجانبه بدل إخفائه.
+    """
+    if not values or any(v is None for v in values):
+        return None
+    return round(sum(v for v in values if v is not None), 2)
+
+
+def _missing_count(values: list[float | None]) -> int:
+    return sum(1 for v in values if v is None)
+
+
+def summarize_weather_history(records: list[Any]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """ملخّصُ الطقس التاريخيّ وأشهرُه — دالّةٌ نقيّة، والغيابُ يبقى ``None`` في كلّ مستوى."""
+    temp_vals = [
+        (d.temp_max_c + d.temp_min_c) / 2
+        for d in records
+        if d.temp_max_c is not None and d.temp_min_c is not None
+    ]
+    precip = [d.precipitation_mm for d in records]
+    et0 = [d.et0_mm for d in records]
+    summary = {
+        "days": len(records),
+        "avg_temp_c": round(mean(temp_vals), 2) if temp_vals else None,
+        "total_precipitation_mm": _complete_total(precip),
+        "precipitation_days_missing": _missing_count(precip),
+        "total_et0_mm": _complete_total(et0),
+        "et0_days_missing": _missing_count(et0),
+        "first_date": records[0].date if records else None,
+        "last_date": records[-1].date if records else None,
+    }
+    # Keep context compact for the chat runtime: monthly buckets by YYYY-MM.
+    monthly: dict[str, dict[str, list[float | None]]] = {}
+    for d in records:
+        bucket = monthly.setdefault(str(d.date)[:7], {"precipitation_mm": [], "et0_mm": []})
+        bucket["precipitation_mm"].append(d.precipitation_mm)
+        bucket["et0_mm"].append(d.et0_mm)
+    monthly_items = [
+        {
+            "month": month,
+            "days": len(v["precipitation_mm"]),
+            "precipitation_mm": _complete_total(v["precipitation_mm"]),
+            "precipitation_days_missing": _missing_count(v["precipitation_mm"]),
+            "et0_mm": _complete_total(v["et0_mm"]),
+            "et0_days_missing": _missing_count(v["et0_mm"]),
+        }
+        for month, v in sorted(monthly.items())
+    ]
+    return summary, monthly_items
+
+
 async def _optional_weather_history(
-    centroid: dict[str, float] | None, days: int
+    centroid: dict[str, float] | None, days: int, tenant_id: str | None = None
 ) -> tuple[dict[str, Any], str | None]:
+    """الطقسُ التاريخيّ للحزمة من weather-service (W1-22) — لا من موصّل المزوّد.
+
+    يُقرأ ``historical_view`` الكنسيّ عبر ``weather_service_client`` بهويّة المستأجِر،
+    وتُنقَل التغطيةُ والجودةُ والحدودُ كما أعلنها المالك فيرى المستشارُ ما غاب.
+    """
     if not centroid:
         return {
             "available": False,
@@ -566,11 +626,16 @@ async def _optional_weather_history(
     end = date.today()
     start = end - timedelta(days=days)
     try:
-        from api.connectors.openmeteo import fetch_historical
+        from api.weather_service_client import daily_from_view, get_weather_historical
 
-        records = await fetch_historical(
-            centroid["lat"], centroid["lon"], start.isoformat(), end.isoformat()
+        view = await get_weather_historical(
+            centroid["lat"],
+            centroid["lon"],
+            start_date=start.isoformat(),
+            end_date=end.isoformat(),
+            tenant_id=tenant_id,
         )
+        records = daily_from_view(view)
         if not records:
             return {
                 "available": False,
@@ -578,49 +643,23 @@ async def _optional_weather_history(
                 "days": [],
                 "summary": {},
             }, None
-        temp_vals = [
-            ((d.temp_max_c or 0) + (d.temp_min_c or 0)) / 2
-            for d in records
-            if d.temp_max_c is not None and d.temp_min_c is not None
-        ]
-        precip_vals = [float(d.precipitation_mm or 0) for d in records]
-        et0_vals = [float(d.et0_mm or 0) for d in records]
-        summary = {
-            "days": len(records),
-            "avg_temp_c": round(mean(temp_vals), 2) if temp_vals else None,
-            "total_precipitation_mm": round(sum(precip_vals), 2),
-            "total_et0_mm": round(sum(et0_vals), 2),
-            "first_date": records[0].date,
-            "last_date": records[-1].date,
-        }
-        # Keep context compact for the chat runtime: monthly buckets by YYYY-MM.
-        monthly: dict[str, dict[str, Any]] = {}
-        for d in records:
-            key = str(d.date)[:7]
-            b = monthly.setdefault(key, {"days": 0, "precipitation_mm": 0.0, "et0_mm": 0.0})
-            b["days"] += 1
-            b["precipitation_mm"] += float(d.precipitation_mm or 0)
-            b["et0_mm"] += float(d.et0_mm or 0)
-        monthly_items = [
-            {
-                "month": k,
-                "days": v["days"],
-                "precipitation_mm": round(v["precipitation_mm"], 2),
-                "et0_mm": round(v["et0_mm"], 2),
-            }
-            for k, v in sorted(monthly.items())
-        ]
+        summary, monthly_items = summarize_weather_history(records)
         return {
             "available": True,
             "range": {"start": start.isoformat(), "end": end.isoformat()},
             "location": centroid,
             "summary": summary,
             "monthly": monthly_items,
-            "source": "open-meteo-archive",
+            "source": "weather-service",
+            "derived_from": view.get("derived_from"),
+            "canonical_state_id": view.get("canonical_state_id"),
+            "quality_status": view.get("quality_status"),
+            "coverage": view.get("coverage"),
+            "limitations": list(view.get("limitations") or []),
             "freshness_score": _freshness_score([{"date": summary.get("last_date")}], ("date",)),
             "provenance": [
                 _source_provenance(
-                    "weather_history", "available", service="open-meteo-archive", total=len(records)
+                    "weather_history", "available", service="weather-service", total=len(records)
                 )
             ],
         }, None
@@ -648,9 +687,11 @@ def _summary_ar(pack: dict[str, Any]) -> str:
     ]
     if weather.get("available"):
         s = weather.get("summary") or {}
-        parts.append(
-            f"طقس تاريخي: {s.get('days')} يوم، مطر تراكمي {s.get('total_precipitation_mm')} مم، ET0 {s.get('total_et0_mm')} مم."
-        )
+        rain = s.get("total_precipitation_mm")
+        et0 = s.get("total_et0_mm")
+        rain_txt = f"{rain} مم" if rain is not None else "غير مكتمل"
+        et0_txt = f"{et0} مم" if et0 is not None else "غير مكتمل"
+        parts.append(f"طقس تاريخي: {s.get('days')} يوم، مطر تراكمي {rain_txt}، ET0 {et0_txt}.")
     else:
         parts.append("الطقس التاريخي غير متاح لهذا الحقل حالياً.")
     return " ".join(parts)
@@ -709,7 +750,7 @@ async def field_ai_context_pack(
 
     weather = {"available": False, "summary": {}}
     if include_weather:
-        weather, warn = await _optional_weather_history(centroid, days)
+        weather, warn = await _optional_weather_history(centroid, days, str(user.tenant_id))
         if warn:
             warnings.append(warn)
 

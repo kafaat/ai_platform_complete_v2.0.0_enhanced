@@ -225,25 +225,22 @@ def test_a_short_archive_window_is_incomplete_not_a_smaller_complete_one():
     """
     import asyncio
 
-    from api import field_context
-    from api.connectors import openmeteo
-
-    class _Day:
-        def __init__(self, mm):
-            self.precipitation_mm = mm
+    from api import field_context, weather_service_client
 
     captured = {}
 
-    async def _short_archive(lat, lon, start, end):
-        captured["window"] = (start, end)
-        return [_Day(1.0), _Day(2.0)]  # يومان فقط — والاستعلامُ طلب ثلاثة
+    # W1-22: المصدرُ مشاهدةُ weather-service التاريخيّة (الأيّامُ تحت `days`) لا الموصّل.
+    async def _short_archive(lat, lon, *, start_date, end_date, tenant_id=None):
+        captured["window"] = (start_date, end_date)
+        # يومان فقط — والاستعلامُ طلب ثلاثة
+        return {"days": [{"precipitation_mm": 1.0}, {"precipitation_mm": 2.0}]}
 
-    original = openmeteo.fetch_historical
-    openmeteo.fetch_historical = _short_archive
+    original = weather_service_client.get_weather_historical
+    weather_service_client.get_weather_historical = _short_archive
     try:
         got = asyncio.run(field_context._historical_rain_3d_mm(15.0, 44.0, None))
     finally:
-        openmeteo.fetch_historical = original
+        weather_service_client.get_weather_historical = original
 
     assert got != 3.0, "مجموعُ يومين قُدِّم مطرَ ثلاثةِ أيّام"
     assert got is None, "أرشيفٌ ناقصٌ ولا fallback ⇒ مجهولٌ لا رقم"
@@ -260,19 +257,16 @@ def test_a_complete_archive_window_still_totals():
     """الحالةُ السويّة — وإلّا كان العلاجُ انحداراً يُصمِت خطرَ المرض دائماً."""
     import asyncio
 
-    from api import field_context
-    from api.connectors import openmeteo
+    from api import field_context, weather_service_client
 
-    class _Day:
-        def __init__(self, mm):
-            self.precipitation_mm = mm
+    async def _full_archive(lat, lon, *, start_date, end_date, tenant_id=None):
+        return {"days": [{"precipitation_mm": mm} for mm in (1.0, 2.0, 0.0)]}
 
-    async def _full_archive(lat, lon, start, end):
-        return [_Day(1.0), _Day(2.0), _Day(0.0)]
-
-    original = openmeteo.fetch_historical
-    openmeteo.fetch_historical = _full_archive
+    original = weather_service_client.get_weather_historical
+    weather_service_client.get_weather_historical = _full_archive
     try:
-        assert asyncio.run(field_context._historical_rain_3d_mm(15.0, 44.0, None)) == 3.0
+        assert asyncio.run(field_context._historical_rain_3d_mm(15.0, 44.0, None)) == 3.0, (
+            "a complete three-day archive must still total"
+        )
     finally:
-        openmeteo.fetch_historical = original
+        weather_service_client.get_weather_historical = original

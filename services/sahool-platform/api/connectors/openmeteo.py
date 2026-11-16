@@ -32,6 +32,9 @@ from datetime import UTC, datetime, timedelta
 import httpx
 from core.circuit_breaker import CircuitBreaker
 
+# وصفُ رمز WMO لا يخصّ المزوّد؛ انتقل إلى `api.weather_service_client` (W1-22) ويُعاد تصديرُه هنا.
+from api.weather_service_client import WMO_DESCRIPTIONS_AR, describe_weather_ar  # noqa: F401
+
 logger = logging.getLogger("sahool.api.openmeteo")
 
 
@@ -785,34 +788,7 @@ async def fetch_weather_tile_data(
 
 # ─── Helpers ──────────────────────────────────────────────────────
 
-WMO_DESCRIPTIONS_AR = {
-    0: "صافٍ",
-    1: "غائم جزئياً",
-    2: "غائم جزئياً",
-    3: "غائم",
-    45: "ضباب",
-    48: "ضباب جامد",
-    51: "رذاذ خفيف",
-    53: "رذاذ متوسّط",
-    55: "رذاذ كثيف",
-    61: "مطر خفيف",
-    63: "مطر متوسّط",
-    65: "مطر غزير",
-    71: "ثلج خفيف",
-    73: "ثلج متوسّط",
-    75: "ثلج كثيف",
-    80: "زخّات مطر خفيفة",
-    81: "زخّات مطر متوسّطة",
-    82: "زخّات مطر عنيفة",
-    95: "عاصفة رعديّة",
-    96: "عاصفة مع برَد خفيف",
-    99: "عاصفة مع برَد عنيف",
-}
-
-
-def describe_weather_ar(code: int | None) -> str:
-    """يحوّل WMO code → وصف عربي؛ والغيابُ (`None`) «غير معروف» لا «صافٍ»."""
-    return WMO_DESCRIPTIONS_AR.get(code, "غير معروف")
+# جدولُ WMO ووصفُه في `api.weather_service_client` (W1-22) ويُعاد تصديرُهما من رأس هذا الملفّ.
 
 
 def spraying_condition_score(forecast: DailyForecast) -> tuple[str, str]:

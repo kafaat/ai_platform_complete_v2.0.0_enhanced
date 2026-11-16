@@ -1,4 +1,4 @@
-"""api/routers/etc_dual.py — ETc المزدوج (FAO-56) لحقل، مُغذّى بـNDVI الحيّ + طقس Open-Meteo.
+"""api/routers/etc_dual.py — ETc المزدوج (FAO-56) لحقل، مُغذّى بـNDVI الحيّ + طقس weather-service.
 
 يُغلق حلقة «Kc الديناميكيّ من NDVI» (#461): محرّك `compute_etc_dual` كان قادراً على اشتقاق Kcb
 **رصداً** من NDVI لكنّه **غير مكشوف**. هذه النقطة field-scoped تجلب **NDVI الحقيقيّ المخزَّن للحقل**
@@ -10,7 +10,7 @@
     `real_data=true`) > المخزَّن (`imagery_automation_fields.last_ndvi_mean` عبر
     `gather_field_freshness`) > لا شيء. أيّ تعذّر/`real_data=false` ⇒ تدرّج صامت للمخزَّن
     (لا خطأ، لا تعطيل النقطة). غيابه كلّه ⇒ ``ndvi=None`` ⇒ Kcb عمريّ + ملاحظة.
-  - **الطقس ذاتيّ-الاكتفاء:** يُمرَّر كاملاً، أو يُجلب **حيّاً من Open-Meteo** بإحداثيّات الحقل؛
+  - **الطقس ذاتيّ-الاكتفاء:** يُمرَّر كاملاً، أو يُجلب **حيّاً من weather-service** بإحداثيّات الحقل؛
     تعذّر الجلب ولا طقس مُمرَّر ⇒ 503 صادق (لا اختلاق طقس). مصدر الطقس مُعلَن في الردّ.
   - **المحصول/العمر/الملوحة** تُشتقّ من الحقل (بطاقة المحصول + تاريخ الزراعة + أحدث فحص تربة).
   - **مصدر كلّ قيمة مُعلَن** (`weather_source`, `ndvi.source`, `soil_ece_source`) + افتراضات المحرّك.
@@ -54,12 +54,12 @@ _FRESH_NDVI_TIMEOUT_S = 8.0
 
 
 class EtcDualRequest(BaseModel):
-    """مدخل ETc المزدوج. **الطقس اختياريّ:** مرّره كاملاً، أو اتركه فيُجلب حيّاً من Open-Meteo.
+    """مدخل ETc المزدوج. **الطقس اختياريّ:** مرّره كاملاً، أو اتركه فيُجلب حيّاً من weather-service.
 
     NDVI/المحصول/العمر/الملوحة/الإحداثيّات تُحقَن من الحقل تلقائيّاً ما لم تُمرَّر صراحةً.
     """
 
-    # الطقس (لـET0 — Penman-Monteith). غياب temp_max_c ⇒ جلب حيّ من Open-Meteo بإحداثيّات الحقل.
+    # الطقس (لـET0 — Penman-Monteith). غياب temp_max_c ⇒ جلب حيّ من weather-service بإحداثيّات الحقل.
     temp_max_c: float | None = None
     temp_min_c: float | None = None
     humidity_pct: float | None = Field(default=None, ge=0, le=100)
@@ -144,10 +144,10 @@ async def _fetch_fresh_ndvi(field_id: str) -> float | None:
 async def _resolve_weather(
     req: EtcDualRequest, field_lat: float | None, field_lon: float | None
 ) -> tuple[WeatherDay, str]:
-    """يبني ``WeatherDay`` من الطلب (إن مُرِّر) أو يجلبه حيّاً من Open-Meteo (إحداثيّات الحقل).
+    """يبني ``WeatherDay`` من الطلب (إن مُرِّر) أو يجلبه حيّاً من weather-service (إحداثيّات الحقل).
 
-    صدق: طقس ناقص جزئيّاً ⇒ 422 (مرّره كاملاً أو اتركه كلّه)؛ تعذّر Open-Meteo ⇒ 503 (لا اختلاق).
-    يُرجِع ``(weather, source)`` حيث source ∈ {"request", "open-meteo"}.
+    صدق: طقس ناقص جزئيّاً ⇒ 422 (مرّره كاملاً أو اتركه كلّه)؛ تعذّر weather-service ⇒ 503 (لا اختلاق).
+    يُرجِع ``(weather, source)`` حيث source ∈ {"request", "weather-service"}.
     """
     # مسار الطلب: temp_max_c حاضر ⇒ يجب اكتمال المجموعة الأساسيّة.
     if req.temp_max_c is not None:
@@ -188,22 +188,22 @@ async def _resolve_weather(
             status_code=422,
             detail="إحداثيّات الحقل مفقودة — تعذّر جلب الطقس؛ مرّر الطقس صراحةً.",
         )
-    import httpx
-
-    from api.connectors import openmeteo
+    # W1-22: الطقسُ من weather-service (نظامُ السجلّ ومخبّؤه) لا من موصّل المزوّد. تعذّرُ الخدمة
+    # (502/504) أو مشاهدةٌ بلا `days` ⇒ 503 صريح، كما كان تعذّرُ المزوّد.
+    from api.weather_service_client import current_reading, forecast_readings
 
     try:
-        daily = await openmeteo.fetch_daily_forecast(field_lat, field_lon, days=1)
-        current = await openmeteo.fetch_current(field_lat, field_lon)
-    except (httpx.HTTPStatusError, httpx.RequestError) as e:
+        daily = await forecast_readings(field_lat, field_lon, days=1)
+        current = await current_reading(field_lat, field_lon)
+    except Exception as e:  # noqa: BLE001 — تعذّر خدمة الطقس ⇒ 503 fail-closed (لا اختلاق)
         raise HTTPException(
             status_code=503,
-            detail="تعذّر جلب الطقس من Open-Meteo — مرّر الطقس صراحةً.",
+            detail="تعذّر جلب الطقس من خدمة الطقس — مرّر الطقس صراحةً.",
         ) from e
     if not daily or daily[0].solar_radiation_mj_m2 is None:
         raise HTTPException(
             status_code=503,
-            detail="Open-Meteo لم يُرجِع إشعاعاً شمسيّاً لليوم — مرّر الطقس صراحةً.",
+            detail="خدمة الطقس لم تُرجِع إشعاعاً شمسيّاً لليوم — مرّر الطقس صراحةً.",
         )
     today = daily[0]
     # الإشعاعُ وحدَه كان محروساً، والحرارتان والرطوبةُ تصل `WeatherDay` (`float`) صفراً من
@@ -223,7 +223,7 @@ async def _resolve_weather(
     if missing:
         raise HTTPException(
             status_code=503,
-            detail=f"Open-Meteo لم يُرجِع {', '.join(missing)} لليوم — مرّر الطقس صراحةً.",
+            detail=f"خدمة الطقس لم تُرجِع {', '.join(missing)} لليوم — مرّر الطقس صراحةً.",
         )
     return (
         WeatherDay(
@@ -236,7 +236,7 @@ async def _resolve_weather(
             elevation_m=(req.elevation_m if req.elevation_m is not None else 0.0),
             day_of_year=resolve_day_of_year(req.day_of_year)[0],
         ),
-        "open-meteo",
+        "weather-service",
     )
 
 
@@ -246,7 +246,7 @@ async def field_etc_dual(
     field_id: str = Path(..., description="معرّف الحقل"),
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
-    """يحسب ETc المزدوج (FAO-56) للحقل: Kcb مرصود من NDVI الحيّ + طقس Open-Meteo (أو مُمرَّر).
+    """يحسب ETc المزدوج (FAO-56) للحقل: Kcb مرصود من NDVI الحيّ + طقس weather-service (أو مُمرَّر).
 
     يقرأ الحقل (محصول/تاريخ زراعة/إحداثيّات) + أحدث NDVI/ملوحة (RLS)، يبني الطقس (مُمرَّر أو حيّ)،
     ويستدعي `compute_etc_dual`. صدق: NDVI/طقس مفقودان ⇒ تدرّج/503 معلَن؛ بطاقة/عمر ⇒ 422؛ DB ⇒ 503.
@@ -308,7 +308,7 @@ async def field_etc_dual(
     else:
         soil_ece, soil_ece_source = 0.0, "default"
 
-    # 5. الطقس (مُمرَّر أو حيّ من Open-Meteo) — خارج اتّصال القاعدة (لا حبس وصلة أثناء HTTP)
+    # 5. الطقس (مُمرَّر أو حيّ من weather-service) — خارج اتّصال القاعدة (لا حبس وصلة أثناء HTTP)
     field_lat = field_row["lat"] if field_row else None
     field_lon = field_row["lon"] if field_row else None
     weather, weather_source = await _resolve_weather(req, field_lat, field_lon)

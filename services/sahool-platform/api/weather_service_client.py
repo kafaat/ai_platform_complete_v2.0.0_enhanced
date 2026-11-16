@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import math
 import os
+from dataclasses import dataclass, field
 from typing import Any
 
 # NOTE: fastapi is imported lazily inside the functions that raise/catch HTTPException.
@@ -609,6 +610,50 @@ async def get_weather_tile_data(
         raise
 
 
+#: أعلى تكبيرٍ تقبله ``/v1/weather/tile-data`` — مركزُ بلاطته على بُعد عشرات الأمتار من النقطة،
+#: أدقّ بكثيرٍ من شبكة نموذج الطقس (~كيلومترات)، فالعيّنةُ هي عيّنةُ النقطة عملياً.
+POINT_SAMPLE_ZOOM = 18
+_MERCATOR_MAX_LAT = 85.05112878
+
+
+def point_sample_tile(
+    lat: float, lon: float, *, z: int = POINT_SAMPLE_ZOOM
+) -> tuple[int, int, int]:
+    """بلاطةُ Web-Mercator التي تحوي النقطة عند التكبير ``z`` — حسابٌ نقيّ بلا شبكة."""
+    lat_c = max(-_MERCATOR_MAX_LAT, min(_MERCATOR_MAX_LAT, float(lat)))
+    n = 2**z
+    x = int((float(lon) + 180.0) / 360.0 * n)
+    lat_rad = math.radians(lat_c)
+    y = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
+    return z, max(0, min(n - 1, x)), max(0, min(n - 1, y))
+
+
+async def get_point_weather_sample(
+    lat: float, lon: float, *, time: str = "now", model: str = "best_match"
+) -> dict[str, Any]:
+    """عيّنةُ الطقس الساعيّة لنقطة — من weather-service لا من موصّل المزوّد (W1-22).
+
+    كانت مساراتُ الخريطة والتنبيهات والمسبار في المنصّة تستورد
+    ``api.connectors.openmeteo.fetch_weather_tile_data`` فتخرج إلى المزوّد مباشرةً متجاوزةً
+    مخبّأ خدمة الطقس وعقد الواجهة P3.4. الخدمةُ لا تعرض نقطةً بـlat/lon، لكنّ
+    ``/v1/weather/tile-data`` يُعيد عيّنةَ مركز البلاطة بالشكل نفسه — فنطلب بلاطةَ النقطة
+    عند أعلى تكبير.
+
+    **والغيابُ يرفع ولا يُختلَق:** بلاطةٌ محايدة (الخدمة غير متاحة) أو بلا ``sample`` ⇒
+    ``RuntimeError`` يُسمّي السبب، فيقرّر المستدعي (مخبّأٌ قديم أو 502 صريح) — لا عيّنةَ فارغة
+    تُقرأ «لا رياح ولا مطر».
+    """
+    z, x, y = point_sample_tile(lat, lon)
+    tile = await get_weather_tile_data(z, x, y, layer="temperature", time=time, model=model)
+    sample = tile.get("sample") if isinstance(tile, dict) else None
+    if not isinstance(sample, dict) or not sample:
+        reason = None
+        if isinstance(tile, dict):
+            reason = tile.get("upstream_error") or tile.get("cache_state")
+        raise RuntimeError(f"weather-service point sample unavailable: {reason or 'no sample'}")
+    return sample
+
+
 async def get_operation_tile_data(
     z: int,
     x: int,
@@ -826,3 +871,189 @@ async def field_irrigation_weather_snapshot(
         "valid_time": valid_time,
         "source": "weather-engine-forecast",
     }
+
+
+# ─── قراءاتٌ مُصنَّفة فوق مشاهدات weather-service (W1-22) ─────────────────────────
+#
+# كانت التوصياتُ والتنبيهاتُ وETc ولوحةُ الحقل ومساحةُ الموسم وحزمةُ AI تستورد
+# ``api.connectors.openmeteo`` فتخرج إلى المزوّد مباشرةً متجاوزةً weather-service (نظامَ السجلّ
+# ومخبّأه وحالتَه الكنسيّة). وتلك المساراتُ تقرأ سماتٍ (``today.et0_mm`` · ``current.humidity_pct``)
+# بينما هذا العميلُ يُعيد المشاهداتِ قواميس: «الآن» مُسطَّحاً، والأيّامُ تحت ``days``. فهذا هو
+# المُحوِّلُ الوحيد بين الشكلين: لا يجلب من مزوّد ولا يحسب طقساً، ينسخ حقولَ المشاهدة إلى
+# أصنافٍ مجمّدة بأسماء سمات الموصّل نفسِها.
+#
+# **والغيابُ يبقى ``None``:** مفتاحٌ غائب أو ``null`` أو غيرُ رقميّ أو منطقيّ أو غيرُ منتهٍ ⇒
+# ``None``، لا ``0``. الصفرُ قراءةٌ فيزيائيّة (0 مم = لا مطر)، وقسرُ الغياب إليه يقلب «مجهول»
+# إلى «جافّ» أو «ساكن».
+
+READING_SOURCE = "weather-service"
+
+
+def reading(source: Any, key: str) -> float | None:
+    """A finite number from ``source[key]`` or ``None`` — there is no zero default."""
+    if not isinstance(source, dict):
+        return None
+    value = source.get(key)
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _code(source: dict[str, Any], key: str) -> int | None:
+    number = reading(source, key)
+    return int(number) if number is not None else None
+
+
+def _text(source: dict[str, Any], key: str) -> str | None:
+    value = source.get(key)
+    return value if isinstance(value, str) and value else None
+
+
+@dataclass(frozen=True)
+class CurrentReading:
+    temperature_c: float | None
+    humidity_pct: float | None
+    wind_speed_ms: float | None
+    wind_direction_deg: float | None
+    wind_direction_source: str | None
+    wind_gusts_ms: float | None
+    precipitation_mm: float | None
+    cloud_cover_pct: float | None
+    weather_code: int | None
+    is_day: bool | None
+    timestamp: str | None
+    quality_status: str | None = None
+    missing_fields: tuple[str, ...] = field(default_factory=tuple)
+    canonical_state_id: str | None = None
+    source: str = READING_SOURCE
+
+
+@dataclass(frozen=True)
+class DailyReading:
+    date: str | None
+    temp_max_c: float | None
+    temp_min_c: float | None
+    precipitation_mm: float | None
+    et0_mm: float | None
+    sunshine_hours: float | None
+    wind_max_ms: float | None
+    weather_code: int | None
+    sunrise: str | None = None
+    sunset: str | None = None
+    daylight_hours: float | None = None
+    solar_radiation_mj_m2: float | None = None
+
+
+def current_from_view(view: Any) -> CurrentReading:
+    """``current_view`` dict → :class:`CurrentReading` (absent ⇒ ``None``)."""
+    if not isinstance(view, dict):
+        raise ValueError("weather-service current view is not an object")
+    is_day = view.get("is_day")
+    missing = view.get("missing_fields")
+    return CurrentReading(
+        temperature_c=reading(view, "temperature_c"),
+        humidity_pct=reading(view, "humidity_pct"),
+        wind_speed_ms=reading(view, "wind_speed_ms"),
+        wind_direction_deg=reading(view, "wind_direction_deg"),
+        wind_direction_source=_text(view, "wind_direction_source"),
+        wind_gusts_ms=reading(view, "wind_gusts_ms"),
+        precipitation_mm=reading(view, "precipitation_mm"),
+        cloud_cover_pct=reading(view, "cloud_cover_pct"),
+        weather_code=_code(view, "weather_code"),
+        is_day=is_day if isinstance(is_day, bool) else None,
+        timestamp=_text(view, "timestamp") or _text(view, "time"),
+        quality_status=_text(view, "quality_status"),
+        missing_fields=tuple(str(m) for m in missing) if isinstance(missing, list) else (),
+        canonical_state_id=_text(view, "canonical_state_id"),
+    )
+
+
+def daily_from_view(view: Any) -> list[DailyReading]:
+    """``forecast_view``/``historical_view`` dict → days in order (absent ⇒ ``None``).
+
+    The days sit under ``days``; reading them from the root yields a silent empty list,
+    so a view without a ``days`` list is an error, not "no days".
+    """
+    if not isinstance(view, dict) or not isinstance(view.get("days"), list):
+        raise ValueError("weather-service daily view has no `days` list")
+    return [
+        DailyReading(
+            date=_text(day, "date"),
+            temp_max_c=reading(day, "temp_max_c"),
+            temp_min_c=reading(day, "temp_min_c"),
+            precipitation_mm=reading(day, "precipitation_mm"),
+            et0_mm=reading(day, "et0_mm"),
+            sunshine_hours=reading(day, "sunshine_hours"),
+            wind_max_ms=reading(day, "wind_max_ms"),
+            weather_code=_code(day, "weather_code"),
+            sunrise=_text(day, "sunrise"),
+            sunset=_text(day, "sunset"),
+            daylight_hours=reading(day, "daylight_hours"),
+            solar_radiation_mj_m2=reading(day, "solar_radiation_mj_m2"),
+        )
+        for day in view["days"]
+        if isinstance(day, dict)
+    ]
+
+
+async def current_reading(lat: float, lon: float, *, model: str = "best_match") -> CurrentReading:
+    return current_from_view(await get_current_weather(lat, lon, model=model))
+
+
+async def forecast_readings(
+    lat: float, lon: float, *, days: int = 7, model: str = "best_match"
+) -> list[DailyReading]:
+    return daily_from_view(await get_weather_forecast(lat, lon, days=days, model=model))
+
+
+async def historical_readings(
+    lat: float,
+    lon: float,
+    start_date: str,
+    end_date: str,
+    *,
+    tenant_id: str | None = None,
+) -> list[DailyReading]:
+    view = await get_weather_historical(
+        lat, lon, start_date=start_date, end_date=end_date, tenant_id=tenant_id
+    )
+    return daily_from_view(view)
+
+
+# ─── أوصافُ رموز WMO (محايدةٌ للمزوّد) ────────────────────────────────────────────
+#
+# انتقلت من ``api.connectors.openmeteo`` (W1-22): وصفُ رمزٍ ليس نداءَ مزوّد، وأتمتةُ الطقس تقرأ من
+# weather-service فلا تستورد الموصّلَ لأجل جدول. والموصّلُ يُعيد تصديرَ الاسمين لمستدعيه.
+
+WMO_DESCRIPTIONS_AR = {
+    0: "صافٍ",
+    1: "غائم جزئياً",
+    2: "غائم جزئياً",
+    3: "غائم",
+    45: "ضباب",
+    48: "ضباب جامد",
+    51: "رذاذ خفيف",
+    53: "رذاذ متوسّط",
+    55: "رذاذ كثيف",
+    61: "مطر خفيف",
+    63: "مطر متوسّط",
+    65: "مطر غزير",
+    71: "ثلج خفيف",
+    73: "ثلج متوسّط",
+    75: "ثلج كثيف",
+    80: "زخّات مطر خفيفة",
+    81: "زخّات مطر متوسّطة",
+    82: "زخّات مطر عنيفة",
+    95: "عاصفة رعديّة",
+    96: "عاصفة مع برَد خفيف",
+    99: "عاصفة مع برَد عنيف",
+}
+
+
+def describe_weather_ar(code: int | None) -> str:
+    """يحوّل WMO code → وصف عربي؛ والغيابُ (`None`) «غير معروف» لا «صافٍ»."""
+    return WMO_DESCRIPTIONS_AR.get(code, "غير معروف")

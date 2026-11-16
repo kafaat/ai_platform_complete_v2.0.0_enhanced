@@ -2431,17 +2431,17 @@ async def field_irrigation_advice(
     """توصية ريّ بنمط FAO-56 للحقل من الطقس الحيّ ومحصول الموسم النشط.
 
     يحسب ET₀ × Kc − المطر الفعّال (api.weather_advice، نقيّ ومُختبَر). يجلب ET₀
-    والمطر من Open-Meteo (نفس مصدر /api/v1/weather). 404 إن غاب الحقل، 503 إن
+    والمطر من weather-service (نفس مصدر /api/v1/weather). 404 إن غاب الحقل، 503 إن
     تعذّر الطقس (لا بيانات وهميّة).
     """
     from core.season_phenology import resolve_crop_id, stage_kc
 
-    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.weather_advice import (
         complete_rain_total,
         irrigation_advice,
         precipitation_incomplete_detail,
     )
+    from api.weather_service_client import current_reading, forecast_readings
 
     try:
         async with tenant_connection(user) as conn:
@@ -2454,14 +2454,14 @@ async def field_irrigation_advice(
         raise _db_unavailable("قراءة سياق الحقل", e) from e
 
     try:
-        forecast = await fetch_daily_forecast(lat, lon, days=3)
-        current = await fetch_current(lat, lon)
+        forecast = await forecast_readings(lat, lon, days=3)
+        current = await current_reading(lat, lon)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
         raise HTTPException(
             status_code=503,
-            detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
+            detail="تعذّر جلب الطقس (خدمة الطقس غير متاحة). حاول لاحقاً.",
         ) from e
 
     today = forecast[0] if forecast else None
@@ -2508,7 +2508,7 @@ async def field_irrigation_advice(
             "field_id": field_id,
             "crop": crop,
             "stage": stage,
-            "source": "open-meteo",
+            "source": "weather-service",
             "soil_moisture_pct": soil_pct,
             "soil_moisture_at": (
                 soil_reading.recorded_at.isoformat() if soil_reading is not None else None
@@ -2527,14 +2527,14 @@ async def field_disease_risk(
     """مخاطر أمراض فطريّة (agro-met) للحقل من الرطوبة/الحرارة/المطر.
 
     منطق التهديف نقيّ (api.weather_advice، مُختبَر offline). يجلب الطقس الحالي +
-    مطر آخر ٣ أيّام من Open-Meteo. 404 إن غاب الحقل، 503 إن تعذّر الطقس.
+    مطر آخر ٣ أيّام من weather-service. 404 إن غاب الحقل، 503 إن تعذّر الطقس.
     """
-    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.weather_advice import (
         complete_rain_total,
         disease_risk,
         precipitation_incomplete_detail,
     )
+    from api.weather_service_client import current_reading, forecast_readings
 
     try:
         async with tenant_connection(user) as conn:
@@ -2545,14 +2545,14 @@ async def field_disease_risk(
         raise _db_unavailable("قراءة سياق الحقل", e) from e
 
     try:
-        current = await fetch_current(lat, lon)
-        forecast = await fetch_daily_forecast(lat, lon, days=3)
+        current = await current_reading(lat, lon)
+        forecast = await forecast_readings(lat, lon, days=3)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
         raise HTTPException(
             status_code=503,
-            detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
+            detail="تعذّر جلب الطقس (خدمة الطقس غير متاحة). حاول لاحقاً.",
         ) from e
 
     # مطرُ ٣ أيّام والحرارةُ والرطوبة تدخل التهديف، والغيابُ المُصفَّر سابقاً يُنقِص الخطرَ المُبلَّغ
@@ -2580,7 +2580,7 @@ async def field_disease_risk(
             "temperature_c": round(current.temperature_c, 1),
             "humidity_pct": round(current.humidity_pct, 1),
             "rain_mm_3d": round(rain_3d, 1),
-            "source": "open-meteo",
+            "source": "weather-service",
         }
     )
     return risk
@@ -2728,13 +2728,13 @@ async def field_recommendations(
     """عمود التوصيات الموحَّد للحقل: ريّ + تسميد + أمراض + حصاد، مفروز بالأولويّة.
 
     التجميع نقيّ (api.recommendations_hub، مُختبَر offline). يجمع سياق الموسم من
-    القاعدة (404 إن غاب الحقل، 503 إن تعذّرت القاعدة) والطقس من Open-Meteo. تدهور
+    القاعدة (404 إن غاب الحقل، 503 إن تعذّرت القاعدة) والطقس من weather-service. تدهور
     رشيق: عند تعذّر الطقس (أو غياب إحداثيّات الحقل) نُرجع توصيات التسميد/الحصاد
     فقط — لا بيانات وهميّة. 503 فقط إن لم تتوفّر أيّة توصية.
     """
-    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.field_state_projection import recompute_field_state
     from api.recommendations_hub import RecommendationContext, build_recommendations
+    from api.weather_service_client import current_reading, forecast_readings
 
     try:
         async with tenant_connection(user) as conn:
@@ -2760,8 +2760,8 @@ async def field_recommendations(
     weather_available = False
     if lat is not None and lon is not None:
         try:
-            forecast = await fetch_daily_forecast(lat, lon, days=3)
-            current = await fetch_current(lat, lon)
+            forecast = await forecast_readings(lat, lon, days=3)
+            current = await current_reading(lat, lon)
             today = forecast[0] if forecast else None
             et0 = today.et0_mm if today and today.et0_mm is not None else None
             ctx.et0_mm = et0

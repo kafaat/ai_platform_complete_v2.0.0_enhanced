@@ -671,10 +671,15 @@ def _ai_context_memory_lines(pack: dict[str, Any] | None) -> list[str]:
     if isinstance(weather, dict) and weather.get("available"):
         ws = weather.get("summary") or {}
         if isinstance(ws, dict):
+            # W1-22: مجموعٌ ناقص يصل `None` من الحزمة (يومٌ بلا قراءة لا يُحسَب جافّاً) — يُقال
+            # «غير مكتمل» للنموذج لا «None مم».
+            def _mm(value: Any) -> str:
+                return f"{value} مم" if value is not None else "غير مكتمل"
+
             lines.append(
                 "  - الطقس التاريخي: "
-                f"{ws.get('days', '—')} يوم، مطر {ws.get('total_precipitation_mm', '—')} مم، "
-                f"ET0 {ws.get('total_et0_mm', '—')} مم، متوسط حرارة {ws.get('avg_temp_c', '—')}°م."
+                f"{ws.get('days', '—')} يوم، مطر {_mm(ws.get('total_precipitation_mm'))}، "
+                f"ET0 {_mm(ws.get('total_et0_mm'))}، متوسط حرارة {ws.get('avg_temp_c', '—')}°م."
             )
     else:
         lines.append("  - الطقس التاريخي: غير متاح أو غير مكتمل.")

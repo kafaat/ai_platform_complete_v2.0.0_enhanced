@@ -25,13 +25,31 @@ scans `api/**/*.py` and **fails on any new offender** — a file that references
 but is neither a legitimate home nor a listed residual. This prevents direct Open-Meteo wiring
 from quietly re-spreading through unrelated platform modules.
 
-## Residuals (pending P4)
+## Residuals (pending P4) — W1-22
 
-- `api/routers/weather.py` — 9 core routes are P3.4 facades; residual local endpoints (probe,
-  field-weather-summary, alerts) still derive from the provider adapter.
-- `api/main.py`, `api/field_context.py`, `api/routers/fields.py`, `api/routers/etc_dual.py`,
-  `api/routers/field_ai_context.py`, `api/routers/season_workspace.py`, `api/routers/seasons.py`,
-  `api/weather_automation.py` — cross-domain aggregators/automation.
+W1-22 moved every data-path residual behind weather-service and lowered
+`composite_residuals_ceiling` to `1`. The one entry left is the provider self-test
+`weather_wind_source_selftest` in `api/routers/weather.py` (held at function level by the
+guard): it is a live diagnostic of the adapter itself, and the adapter's last executable root.
+Removing it needs an owner decision to delete the platform adapter and its breaker, since the
+module reachability guard blocks unreachable baseline modules.
+
+- `api/routers/weather.py` — the tile sampler (tile-data / field-weather-summary / alerts), the
+  point probe and the wind-source self-test use `weather_service_client.get_point_weather_sample`
+  (weather-service `/v1/weather/tile-data` at zoom 18), except the provider self-test above.
+  readyz/health declare
+  `breaker: {state: delegated, owner: weather-service}` instead of the platform's unused breaker.
+- `api/main.py` (field alerts), `api/field_context.py` (3-day historical rain),
+  `api/routers/fields.py` (recommendations), `api/routers/etc_dual.py` (ETc),
+  `api/routers/season_workspace.py` and `api/weather_automation.py` read typed views through
+  the typed readings in `api/weather_service_client.py`, which keep an absent reading as `None`.
+- `api/routers/field_ai_context.py` (AI context pack) reads the canonical historical view with the
+  tenant identity; an incomplete rain/ET0 total is `None` with the missing-day count, never a sum
+  that counts a missing day as a dry one.
+
+The scan now covers every non-test platform package (`api/`, `core/`, `workers/`, root scripts),
+so `api.connectors.openmeteo` may be imported only by the connector module itself and the
+provider self-test.
 
 ## Neutral-tile guarantee (across the network hop)
 
