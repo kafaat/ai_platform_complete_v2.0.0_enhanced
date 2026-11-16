@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "4bd06ae9c6f61fc7c4b6f108aedd6feaaa9adac553852134d1e0c1c514c3a109",
+  "inventory_sha256": "906f6e28f3526e91e5bce74976dead27c4d8f443179db688ec769c43c5268f1e",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "167c6bce0c537e5b36d382d08c5863baf3b3ad5da0cbd46ba8cda0456bd9380e",
+  "map_sha256": "037ba3a88d1979a4c97d4d18186c6238d3f130ee7d34c15c741fc7664b2ae468",
   "routes": [
     {
       "classification": null,
@@ -2367,7 +2367,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/water_ledger.py",
       "function": "field_water_efficiency",
-      "line": 196,
+      "line": 202,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",
@@ -2381,7 +2381,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/water_ledger.py",
       "function": "list_water_ledger",
-      "line": 144,
+      "line": 150,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",
@@ -6567,7 +6567,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/water_ledger.py",
       "function": "upsert_water_ledger",
-      "line": 77,
+      "line": 82,
       "method": "POST",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",

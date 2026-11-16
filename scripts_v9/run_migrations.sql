@@ -673,7 +673,9 @@
 \i migrations/v276_task_cost_trace.sql
 \echo '═══ 264. v277_inspection_close_gate.sql ═══'
 \i migrations/v277_inspection_close_gate.sql
-\echo '═══ 265. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 265. v278_water_ledger_irrigation_report.sql ═══'
+\i migrations/v278_water_ledger_irrigation_report.sql
+\echo '═══ 266. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 266. v206_rls_final_hardening.sql ═══'
+\echo '═══ 267. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

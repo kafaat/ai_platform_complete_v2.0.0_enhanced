@@ -837,6 +837,10 @@ v274_inspection_evidence_versions.sql
 v275_inspection_handoffs.sql
 v276_task_cost_trace.sql
 v277_inspection_close_gate.sql
+# v278 (plan item W0-13, finding mobile-3): water_ledger.irrigation_reported_by. A person's
+#   applied-water report on a day the water-balance worker computes is kept by the worker, which
+#   recomputes the balance around it. Additive, nullable, owner sahool-platform. Before v240.
+v278_water_ledger_irrigation_report.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

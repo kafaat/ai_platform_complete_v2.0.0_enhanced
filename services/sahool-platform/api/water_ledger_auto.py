@@ -475,6 +475,28 @@ def forecast_day_for_ledger_date(forecast: Mapping, ledger_date: _dt.date) -> di
     return None
 
 
-def manual_entry_takes_precedence(existing_created_by: str | None) -> bool:
-    """قيد اليوم الموجود يُحترَم إن لم يكن من العامل نفسه — الإنسان سيّد الدفتر."""
+def manual_entry_takes_precedence(
+    existing_created_by: str | None, irrigation_reported_by: str | None = None
+) -> bool:
+    """قيد اليوم الموجود يُحترَم إن لم يكن من العامل نفسه — الإنسان سيّد الدفتر.
+
+    W0-13: a person's applied-water report (``irrigation_reported_by``, v278) is not a full
+    manual entry. A day created by such a report alone is still the worker's to compute, so
+    it does not block the worker; the report itself is kept (``reported_irrigation``).
+    """
+    if irrigation_reported_by is not None:
+        return False
     return existing_created_by is not None and existing_created_by != AUTO_CREATED_BY
+
+
+def reported_irrigation(existing: Mapping | None) -> float | None:
+    """The applied water a person reported for the day, or ``None`` when there is no report.
+
+    The report is the day's total (the mobile form asks for the water applied that day), so
+    the worker uses it as the day's irrigation instead of the ``irrigation_runs`` sum, and it
+    is measured, not unobserved. A report row whose figure was cleared is no report.
+    """
+    if not existing or existing.get("irrigation_reported_by") is None:
+        return None
+    value = existing.get("irrigation_mm")
+    return None if value is None else float(value)

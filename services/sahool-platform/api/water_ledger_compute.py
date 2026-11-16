@@ -33,8 +33,66 @@ _TEXT_FIELDS = ("stage", "decision")
 LEDGER_SELECT_COLS = (
     "field_id, ledger_date, et0_mm, kc, etc_mm, rain_mm, irrigation_mm, "
     "soil_moisture_pct, depletion_mm, deficit_mm, stage, decision, "
-    "confidence, created_by, created_at"
+    "confidence, created_by, created_at, irrigation_reported_by"
 )
+
+#: Columns a POST may write, in INSERT order. ``ledger_date`` is the key, not a column to write.
+LEDGER_WRITABLE_COLUMNS = (*_NUMERIC_FIELDS[:-1], *_TEXT_FIELDS, "confidence")
+
+
+def ledger_write_columns(fields_set) -> tuple[str, ...]:
+    """The columns the caller actually sent (W0-13, finding mobile-3).
+
+    The upsert used to replace every column of the day, so a body without ``et0_mm`` wrote
+    NULL over the value the water-balance worker had computed. Only the columns present in
+    the request are written on conflict now; an omitted column keeps its stored value, and
+    an explicit ``null`` still clears it.
+    """
+    sent = set(fields_set)
+    return tuple(c for c in LEDGER_WRITABLE_COLUMNS if c in sent)
+
+
+# W0-13 (finding mobile-3): partial semantics. Each column is written on conflict only when the
+# caller sent it ($17 lists the sent columns), so a body of {ledger_date, irrigation_mm} replayed
+# from the mobile outbox no longer writes NULL over the ET0, depletion and confidence that the
+# water-balance worker computed. irrigation_reported_by (v278) records who reported the applied
+# water when the day's balance belongs to the worker ($18), so the worker keeps that figure and
+# recomputes around it instead of overwriting it with irrigation_runs. On a full manual entry
+# (created_by a person, irrigation_reported_by NULL) the column stays NULL: the worker never
+# touches that day, and the entry's author owns its irrigation as before.
+LEDGER_UPSERT_SQL = (
+    "INSERT INTO water_ledger "
+    "(tenant_id, field_id, ledger_date, et0_mm, kc, etc_mm, rain_mm, "
+    " irrigation_mm, soil_moisture_pct, depletion_mm, deficit_mm, "
+    " stage, decision, confidence, created_by, irrigation_reported_by, created_at, updated_at) "
+    "VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, "
+    " $13, $14, $15, $16, now(), now()) "
+    "ON CONFLICT (field_id, ledger_date) DO UPDATE SET "
+    " et0_mm = CASE WHEN 'et0_mm' = ANY($17::text[]) THEN EXCLUDED.et0_mm ELSE water_ledger.et0_mm END,"
+    " kc = CASE WHEN 'kc' = ANY($17::text[]) THEN EXCLUDED.kc ELSE water_ledger.kc END,"
+    " etc_mm = CASE WHEN 'etc_mm' = ANY($17::text[]) THEN EXCLUDED.etc_mm ELSE water_ledger.etc_mm END,"
+    " rain_mm = CASE WHEN 'rain_mm' = ANY($17::text[]) THEN EXCLUDED.rain_mm ELSE water_ledger.rain_mm END,"
+    " irrigation_mm = CASE WHEN 'irrigation_mm' = ANY($17::text[]) THEN EXCLUDED.irrigation_mm ELSE water_ledger.irrigation_mm END,"
+    " soil_moisture_pct = CASE WHEN 'soil_moisture_pct' = ANY($17::text[]) THEN EXCLUDED.soil_moisture_pct ELSE water_ledger.soil_moisture_pct END,"
+    " depletion_mm = CASE WHEN 'depletion_mm' = ANY($17::text[]) THEN EXCLUDED.depletion_mm ELSE water_ledger.depletion_mm END,"
+    " deficit_mm = CASE WHEN 'deficit_mm' = ANY($17::text[]) THEN EXCLUDED.deficit_mm ELSE water_ledger.deficit_mm END,"
+    " stage = CASE WHEN 'stage' = ANY($17::text[]) THEN EXCLUDED.stage ELSE water_ledger.stage END,"
+    " decision = CASE WHEN 'decision' = ANY($17::text[]) THEN EXCLUDED.decision ELSE water_ledger.decision END,"
+    " confidence = CASE WHEN 'confidence' = ANY($17::text[]) THEN EXCLUDED.confidence ELSE water_ledger.confidence END,"
+    " irrigation_reported_by = CASE WHEN 'irrigation_mm' = ANY($17::text[])"
+    " AND (water_ledger.created_by = $18 OR water_ledger.irrigation_reported_by IS NOT NULL)"
+    " THEN $15 ELSE water_ledger.irrigation_reported_by END,"
+    " updated_at = now()"
+)
+
+
+def is_irrigation_report(columns) -> bool:
+    """A person reporting the water they applied, and nothing else.
+
+    Such a write never takes the day away from the worker: on a new day it creates a row the
+    worker will compute, and on a worker row it changes the applied water only.
+    """
+    return tuple(columns) == ("irrigation_mm",)
 
 
 def parse_ledger_date(value) -> _dt.date:
@@ -126,4 +184,14 @@ def row_to_ledger_entry(row) -> dict:
         "confidence": row["confidence"],
         "created_by": row["created_by"],
         "created_at": created_iso,
+        # v278: who reported irrigation_mm on a worker-computed day (None for the worker's own
+        # figure or a full manual entry). A row read before v278, or a stub, has no such key.
+        "irrigation_reported_by": _optional(row, "irrigation_reported_by"),
     }
+
+
+def _optional(row, key: str):
+    try:
+        return row[key]
+    except (KeyError, IndexError):
+        return None
