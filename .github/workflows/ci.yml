@@ -1873,6 +1873,12 @@ jobs:
       - name: WX-10.8 review-queue endpoint tests
         working-directory: services/decision-service
         run: pytest tests/test_wx10_8_review_queue.py -q -p no:cacheprovider
+      # W2-03 learning-update contract (monkeypatched writer, no DB): the agronomic review reaches
+      # the writer and the SoR reply proves the stored write and review. Storage itself is proven on
+      # PostgreSQL in test_migration_033_pg16.py (the decision PG16 job).
+      - name: W2-03 learning-update review contract
+        working-directory: services/decision-service
+        run: pytest tests/test_learning_update_review_contract.py -q -p no:cacheprovider
       # S5-EXEC-01 recommendation_outcomes cutover (static/text-inspection, no DB): compat shim,
       # decision_record immutability, outcome_record idempotency, and the preflight guard that
       # blocks the cutover until the new writer path is proven — none touch Postgres.
@@ -2206,17 +2212,44 @@ jobs:
             sleep 2
           done
           docker exec decision-033-pg16 pg_isready -U decision033_admin -d decision033_test
-      - run: pip install -r services/decision-service/requirements.txt pytest pytest-asyncio
+      - run: pip install -r services/decision-service/requirements.txt pytest pytest-asyncio "pytest-cov>=5.0.0"
+      # The live writers (persistence.py upserts, RLS paths) run only here, against a real PG16.
+      # Their coverage is collected into its own data file with the decision-service .coveragerc
+      # and uploaded as a fifth Codecov report (flag decision-033-pg16); codecov.yml waits for it.
       - name: Prove policy, atomic migration, and application compatibility
         working-directory: services/decision-service
         env:
           DECISION_033_TEST_DATABASE_URL: postgresql://decision033_admin:disposable_test_only@127.0.0.1:5436/decision033_test
           DECISION_033_REQUIRE_PG16: "1"
+          COVERAGE_FILE: ${{ github.workspace }}/.coverage.decision-033-pg16
         run: >-
           pytest tests/test_migration_033_pg16.py tests/test_migration_034_pg16.py
           tests/test_migration_036_correlation_pg16.py tests/test_element84_inventory_pg16.py
           tests/test_platform_v235_correlation_pg16.py tests/test_migration_037_force_rls_pg16.py
           -v -p no:cacheprovider --junitxml=decision-033-pg16.xml
+          --cov=${{ github.workspace }}/services/decision-service
+          --cov-config=${{ github.workspace }}/services/decision-service/.coveragerc
+          --cov-report=
+      - name: Export decision-033 PG16 coverage with Git-relative paths
+        run: >-
+          python -m coverage xml
+          --rcfile=services/decision-service/.coveragerc
+          --data-file=.coverage.decision-033-pg16
+          --include=services/decision-service/*
+          -o coverage-decision-033-pg16.xml
+      - name: Verify decision-033 PG16 Codecov report paths
+        run: >-
+          python scripts/ci/codecov_coverage_guard.py
+          --report coverage-decision-033-pg16.xml
+          --prefix services/decision-service
+          --forbid-prefix services/decision-service/tests
+          --require-file services/decision-service/persistence.py
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
+        with:
+          files: coverage-decision-033-pg16.xml
+          flags: decision-033-pg16
+          disable_search: true
+          fail_ci_if_error: false
       - name: Retain proof even when a regression fails
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

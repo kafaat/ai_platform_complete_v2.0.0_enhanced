@@ -59,12 +59,12 @@ def _unproven():
 _SENT = {"update_id": "lu_1", "review_status": "approved", "agronomically_approved": True}
 
 
-def test_todays_service_reply_does_not_prove_the_learning_update_so_strict_mode_refuses():
-    """The decision-service reply as it is today (main.py record_learning_update).
+def test_the_pre_w2_03_service_reply_does_not_prove_the_learning_update():
+    """The decision-service reply before W2-03 (main.py record_learning_update).
 
-    It carries authoritative/persisted, but no write outcome and no review echo. The service
-    inserts ON CONFLICT (update_id) DO NOTHING and has no review columns, so the cutover must
-    refuse instead of reporting a success that dropped the review or changed nothing.
+    It carried authoritative/persisted, but no write outcome and no review echo: the service
+    inserted ON CONFLICT DO NOTHING and had no review columns, so the cutover must refuse a
+    reply of that shape instead of reporting a success that dropped the review.
     """
     today = {
         "accepted": True,
@@ -97,3 +97,37 @@ def test_a_complete_reply_is_accepted():
         "agronomically_approved": True,
     }
     assert _unproven()(reply, "t1", _SENT) == []
+
+
+def test_an_exact_resend_read_back_as_unchanged_is_proof():
+    """W2-03: an identical resend stores nothing new; the service says ``unchanged`` and reads
+    the review back from the stored row, which equals what was sent."""
+    reply = {
+        "tenant_id": "t1",
+        "update_id": "lu_1",
+        "write": "unchanged",
+        "review_status": "approved",
+        "agronomically_approved": True,
+    }
+    assert _unproven()(reply, "t1", _SENT) == []
+
+
+def test_a_stored_review_that_differs_from_the_sent_one_is_not_proof():
+    reply = {
+        "tenant_id": "t1",
+        "update_id": "lu_1",
+        "write": "unchanged",
+        "review_status": "unreviewed",
+        "agronomically_approved": False,
+    }
+    assert _unproven()(reply, "t1", _SENT) == ["review_status", "agronomically_approved"]
+
+
+def test_the_decision_service_reply_carries_every_field_the_strict_check_reads():
+    """Contract binding across the two services, read from source: every key the platform's
+    strict check reads is a key the decision-service reply builds."""
+    src = (ROOT / "services/decision-service/main.py").read_text(encoding="utf-8")
+    start = src.index('@app.post("/v1/learning/updates")')
+    reply = src[start : src.index("return _mirror_ack(", start)]
+    for key in ("tenant_id", "update_id", "write", "review_status", "agronomically_approved"):
+        assert f'"{key}":' in reply, key

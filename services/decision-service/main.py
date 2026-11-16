@@ -41,6 +41,8 @@ from outcome_reconcile import reconcile_outcomes
 from persistence import (
     SELF_APPROVAL_REASON_PREFIX,
     LearningUpdateConflict,
+    LearningUpdateReviewInvalid,
+    LearningUpdateReviewUnavailable,
     acquire_connection,
     authorize_dispatch,
     build_calibration_dataset,
@@ -431,6 +433,11 @@ class LearningUpdateIn(BaseModel):
     recommendation_id: str | None = None
     decision_id: str | None = None
     evidence_snapshot_id: str | None = None
+    # Agronomic review, kept apart from traceability (shared v234 / service 039). The platform
+    # sends all three; without them here a review was accepted and silently dropped.
+    review_status: Literal["unreviewed", "approved", "rejected"] = "unreviewed"
+    agronomically_approved: bool = False
+    agronomic_review: dict[str, Any] | None = None
 
 
 def _traceability(payload: LearningUpdateIn) -> str:
@@ -1178,14 +1185,27 @@ async def record_learning_update(
             )
         except LearningUpdateConflict:
             raise HTTPException(status_code=409, detail="learning_update_id_conflict") from None
+        except LearningUpdateReviewInvalid as exc:
+            raise HTTPException(
+                status_code=422, detail=f"agronomic_review_invalid: {exc}"
+            ) from None
+        except LearningUpdateReviewUnavailable:
+            raise HTTPException(
+                status_code=503, detail="agronomic review storage waits for migration 039"
+            ) from None
+        # write/review_status/agronomically_approved are read back from the stored row: the
+        # platform's strict cutover accepts nothing less than proof of what was persisted.
         return {
             "accepted": True,
             "authoritative": True,
             "persisted": True,
             "replayed": stored["replayed"],
+            "write": stored["write"],
             "tenant_id": tenant,
             "update_id": update_id,
             "traceability_status": status,
+            "review_status": stored["review_status"],
+            "agronomically_approved": stored["agronomically_approved"],
             "outbox": "decision_outbox_events",
         }
     # Traceability is still validated and echoed back (a useful mirror check), but this
