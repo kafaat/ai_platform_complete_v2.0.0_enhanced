@@ -10,14 +10,14 @@ import {
   useSeasonComparison,
 } from '../../hooks/useAgroAnalytics';
 import {
-  betterBadge, buildSeasonMetrics, CROP_RISK_OPTIONS, cropRiskRows, escalationBadge,
+  betterBadge, buildDecisionPlaybookInput, buildSeasonMetrics, CROP_RISK_OPTIONS, cropRiskRows, escalationBadge,
   feedbackDirectionBadge, fmtNum, KC_SCENARIO_OPTIONS, kcCompareStages, kcSeriesRows,
   lineageDecisionRows, outcomeCount, parseMeasure, parsePctToFraction, pctFromFraction,
   priorityAr, psfFacts, riskTypeAr, rotationFacts, seasonMetricRows,
   severityBadge, shortDate, trendArrow, WEATHER_SIGNAL_OPTIONS,
 } from '../../lib/agroAnalytics';
 import type {
-  DecisionPlaybookInput, DisplayFact, EscalationAssessInput, SeasonCropInput,
+  DecisionPlaybookInput, DisplayFact, EscalationAssessInput, PlaybookMode, SeasonCropInput,
   SoilFeedbackInput,
 } from '../../lib/agroAnalytics';
 import { T } from '../ds';
@@ -173,16 +173,19 @@ export default function AgroAnalyticsCard({ fieldId, cropLabel, enabled = true }
   // فحُذِفت الحالة بدل إسكات الحارس بـ`_setPbCrop`: الإسكات يُبقي حالةً ميّتة
   // ويُخفي أنّ العقد «دليل القرار مربوطٌ بمحصول الحقل». والحذف **حافظٌ للسلوك
   // بالضبط** — بخلاف إضافة مُنتقٍ، وهي قرار منتَج لا تنظيفُ دَين.
+  //
+  // W1-17: مع حقل مختار يُبنى الدليل على طقس الحقل من weather-service (field_id فقط)؛
+  // إشارات الطقس اليدويّة وضعُ «ماذا لو» صريح بلا field_id، موسومٌ في العرض.
   const [pbSignals, setPbSignals] = useState<Set<string>>(new Set());
   const [pbRec, setPbRec] = useState('');
-  const playbookInput = useMemo<DecisionPlaybookInput | null>(() => {
-    if (pbSignals.size === 0) return null; // بلا إشارة ⇒ لا سؤال (تجنّب استدعاء فارغ)
-    return {
-      crop: defaultCrop || null,
-      weather_signals: [...pbSignals].map((s) => ({ signal_type: s, confidence_score: 0.9 })),
-      recommendation_ar: pbRec.trim() || null,
-    };
-  }, [defaultCrop, pbSignals, pbRec]);
+  const [pbWhatIf, setPbWhatIf] = useState(false);
+  const pbMode: PlaybookMode = fieldId && !pbWhatIf ? 'field' : 'what_if';
+  const playbookInput = useMemo<DecisionPlaybookInput | null>(
+    () => buildDecisionPlaybookInput({
+      mode: pbMode, fieldId, crop: defaultCrop, signals: pbSignals, recommendation: pbRec,
+    }),
+    [pbMode, fieldId, defaultCrop, pbSignals, pbRec],
+  );
   const playbookQ = useDecisionPlaybook(isOpen('playbook') ? playbookInput : null);
   const pb = playbookQ.data;
 
@@ -419,6 +422,24 @@ export default function AgroAnalyticsCard({ fieldId, cropLabel, enabled = true }
           <SectionHeader icon={<Sprout className="w-4 h-4 text-emerald-300" aria-hidden="true" />} title="دليل قرارات" open={isOpen('playbook')} onToggle={() => toggle('playbook')} />
           {isOpen('playbook') && (
             <div className="flex flex-col gap-1.5 rounded-xl border p-2" style={{ borderColor: T.line, background: CARD_BG }}>
+              {fieldId ? (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setPbWhatIf((v) => !v)}
+                    className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                    style={{ border: `1px solid ${T.line}`, color: T.muted, background: SUB_BG }}
+                  >
+                    {pbWhatIf ? 'العودة إلى طقس الحقل' : 'تجربة «ماذا لو» بإشارات افتراضيّة'}
+                  </button>
+                </div>
+              ) : null}
+              <div className="text-[10px]" style={{ color: T.faint }}>
+                {pbMode === 'field'
+                  ? 'طقس الحقل من خدمة الطقس (خطّة العمليّات، الإجهاد الحراريّ، خطر المرض).'
+                  : '«ماذا لو»: إشارات افتراضيّة تختارها — ليست طقس الحقل الفعليّ.'}
+              </div>
+              {pbMode === 'what_if' && (
               <div className="flex flex-wrap items-center gap-1.5">
                 {WEATHER_SIGNAL_OPTIONS.map((o) => {
                   const on = pbSignals.has(o.key);
@@ -435,8 +456,9 @@ export default function AgroAnalyticsCard({ fieldId, cropLabel, enabled = true }
                   );
                 })}
               </div>
+              )}
               <LabeledInput id="pb-rec" label="توصية علويّة" value={pbRec} onChange={setPbRec} placeholder="اختياريّ" width="w-48" />
-              {pbSignals.size === 0 ? (
+              {pbMode === 'what_if' && pbSignals.size === 0 ? (
                 <div className="text-[11px]" style={{ color: T.faint }}>اختر إشارة طقس واحدة على الأقلّ لبناء دليل القرار.</div>
               ) : playbookQ.isLoading ? (
                 <div className="text-[11px]" style={{ color: T.faint }}>جارٍ بناء دليل القرار…</div>
@@ -444,6 +466,12 @@ export default function AgroAnalyticsCard({ fieldId, cropLabel, enabled = true }
                 <div className="flex flex-col gap-1 rounded-lg border p-1.5" style={{ borderColor: T.line, background: SUB_BG }}>
                   <div className="text-[11px] font-bold" style={{ color: T.ink }}>{pb.main_judgement ?? '—'}</div>
                   <div className="text-[10px]" style={{ color: T.faint }}>الثقة: {pctFromFraction(pb.confidence)} · المراجعة: {pb.review_after ?? '—'}</div>
+                  <div className="text-[10px]" style={{ color: T.faint }}>
+                    {pb.mode === 'field_bound'
+                      ? `مصدر الطقس: خدمة الطقس · لقطة: ${pb.weather_snapshot_id ?? '—'}`
+                      : 'ماذا لو: إشارات افتراضيّة من المستخدم'}
+                  </div>
+                  {(pb.limitations ?? []).map((x, i) => <div key={`l${i}`} className="text-[10px]" style={{ color: '#fdba74' }}>تنبيه: {x.message_ar}</div>)}
                   {(pb.do_today ?? []).map((x, i) => <div key={`d${i}`} className="text-[11px]" style={{ color: '#86efac' }}>افعل اليوم: {x}</div>)}
                   {(pb.avoid_now ?? []).map((x, i) => <div key={`a${i}`} className="text-[11px]" style={{ color: '#fdba74' }}>تجنّب الآن: {x}</div>)}
                   {(pb.escalate_if ?? []).map((x, i) => <div key={`e${i}`} className="text-[11px]" style={{ color: '#fca5a5' }}>صعّد إن: {x}</div>)}

@@ -450,7 +450,8 @@ async def _field_bound_playbook(req: DecisionPlaybookRequest, user: UserSchema) 
     derived = await derive_field_weather_signals(user, req.field_id)
     field_crop = derived["crop"]
     # المحصول من الموسم النشط للحقل وحده؛ محصولٌ مرسَل لا يطابقه يُرفَض (ولو كان الحقل بلا محصول).
-    if req.crop is not None and req.crop != field_crop:
+    # المطابقة بالاسم المُطبَّع/crop_id لا بالحروف: «Wheat» و«قمح» و«wheat» محصول واحد.
+    if req.crop is not None and not _same_crop(req.crop, field_crop):
         raise HTTPException(
             status_code=422,
             detail={
@@ -471,8 +472,17 @@ async def _field_bound_playbook(req: DecisionPlaybookRequest, user: UserSchema) 
         soil_feedback=soil_feedback,
         recommendation_ar=req.recommendation_ar,
     )
+    playbook = asdict(build_playbook(ctx))
+    limitations = _field_bound_limitations(derived)
+    if limitations:
+        # الغياب يُقال في الدليل نفسه لا في حقل جانبيّ فقط: دليلٌ بلا محصول ليس دليلاً كاملاً.
+        playbook["evidence"] = (
+            *playbook["evidence"],
+            *(item["message_ar"] for item in limitations),
+        )
     return {
-        **asdict(build_playbook(ctx)),
+        **playbook,
+        "limitations": limitations,
         "mode": "field_bound",
         "field_id": req.field_id,
         "crop": ctx.crop,
@@ -482,4 +492,50 @@ async def _field_bound_playbook(req: DecisionPlaybookRequest, user: UserSchema) 
         "weather_signals": [_signal_dict(s) for s in signals],
         "weather_unavailable": derived["unavailable"],
         "weather_sources": derived["sources"],
+        "context_missing": derived["context_missing"],
+        "stale_frames": derived["stale_frames"],
+        "operation_plan_partial": derived["operation_plan_partial"],
     }
+
+
+def _same_crop(sent: str, field_crop: str | None) -> bool:
+    """Same crop after normalisation: crop_id when both resolve, else the normalised name."""
+    from core.season_phenology import normalize_crop_name, resolve_crop_id
+
+    if not field_crop:
+        return False
+    sent_id, field_id = resolve_crop_id(sent), resolve_crop_id(field_crop)
+    if sent_id is not None and field_id is not None:
+        return sent_id == field_id
+    return normalize_crop_name(sent) == normalize_crop_name(field_crop) != ""
+
+
+def _field_bound_limitations(derived: dict) -> list[dict]:
+    """Named gaps in the field-bound playbook (no active crop/stage, stale spray frames)."""
+    out: list[dict] = []
+    missing = derived.get("context_missing") or []
+    if "crop" in missing:
+        out.append(
+            {
+                "code": "NO_ACTIVE_CROP",
+                "message_ar": "لا محصول نشط مسجَّل للحقل: لم يُقيَّم الإجهاد الحراريّ "
+                "ولا خطر المرض الخاصّ بالمحصول؛ سجّل الموسم النشط لاكتمال الدليل.",
+            }
+        )
+    elif "growth_stage" in missing:
+        out.append(
+            {
+                "code": "NO_GROWTH_STAGE",
+                "message_ar": "مرحلة نموّ المحصول غير معروفة: عتبات الإجهاد الحراريّ "
+                "الخاصّة بالمرحلة لم تُطبَّق.",
+            }
+        )
+    if derived.get("stale_frames"):
+        out.append(
+            {
+                "code": "STALE_WEATHER_FRAMES",
+                "message_ar": "بعض ساعات خطّة الرشّ قراءات قديمة من الذاكرة المؤقّتة "
+                "(تعذّر تحديثها)؛ لا تُعتمد نافذةً للرشّ.",
+            }
+        )
+    return out

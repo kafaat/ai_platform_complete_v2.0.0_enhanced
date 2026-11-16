@@ -29,6 +29,7 @@ from api.routers.agro_intelligence import (
 from core.canonical_schemas import UserRole, UserSchema
 from core.decision_playbook import PlaybookContext, build_playbook
 from core.weather_signals import (
+    DISEASE_CONDITIONS_FAVOURABLE,
     SPRAY_UNSAFE,
     SPRAY_WINDOW_OPEN,
     decision_weather_snapshot_id,
@@ -248,8 +249,51 @@ def test_thermal_product_maps_to_frost_and_heat_with_its_own_confidence():
 
 
 def test_disease_high_only():
-    assert _types(disease_signals({"risk_level": "high"})) == {"disease_risk_high"}, "high fires"
+    assert _types(disease_signals({"risk_level": "high"})) == {DISEASE_CONDITIONS_FAVOURABLE}, (
+        "high fires the advisory signal"
+    )
     assert disease_signals({"risk_level": "moderate"}) == [], "moderate does not fire"
+
+
+def test_uncalibrated_weather_disease_rule_is_advisory_not_a_spray_action():
+    """The weather-only rule (declared confidence 0.5) asks for scouting, never a spray."""
+    signals = disease_signals({"risk_level": "high", "temperature_c": 20, "humidity_pct": 92})
+    assert "disease_risk_high" not in _types(signals), f"not the calibrated signal: {signals}"
+    assert signals[0].payload["advisory_only"] is True, f"labelled advisory: {signals[0]}"
+    pb = build_playbook(PlaybookContext(crop="wheat", weather_signals=tuple(signals)))
+    actions = " ".join(pb.do_today)
+    assert "رشّ" not in actions.replace("قبل أيّ قرار رشّ", ""), f"no spray action: {pb.do_today}"
+    assert any("افحص" in a for a in pb.do_today), f"scouting expected: {pb.do_today}"
+    assert "عاجل" not in pb.main_judgement, f"not urgent: {pb.main_judgement}"
+    calm = spray_signals_from_operation_plan(_plan({0: _CALM, 1: _CALM}))
+    with_window = build_playbook(PlaybookContext(crop="wheat", weather_signals=(*signals, *calm)))
+    assert any("نفّذ الرشّ المخطّط" in a for a in with_window.do_today), (
+        f"an advisory must not block a safe spray window: {with_window.do_today}"
+    )
+
+
+def test_stale_fallback_now_frame_is_not_current_weather():
+    plan = _plan({0: _CALM, 1: _CALM, 3: _CALM})
+    frames = plan["operations"][0]["frames"]
+    frames[0]["cache_state"] = "stale_fallback"
+    frames[0]["upstream_error"] = "weather_provider_unavailable"
+    signals = {s.signal_type: s for s in spray_signals_from_operation_plan(plan)}
+    assert SPRAY_UNSAFE in signals, f"stale now-frame must fail closed: {signals}"
+    unsafe = signals[SPRAY_UNSAFE].payload
+    assert unsafe["basis"] == "unconfirmed" and "frame_stale" in unsafe["reasons"], unsafe
+    window = signals.get(SPRAY_WINDOW_OPEN)
+    assert window is not None and window.payload["hour_offset"] != 0, (
+        f"a later fresh frame is the window, never the stale hour 0: {window}"
+    )
+    assert window.payload["opens_now"] is False, f"not open now: {window.payload}"
+
+
+def test_stale_later_frame_is_never_the_open_window():
+    plan = _plan({0: _STRONG_WIND, 1: _STRONG_WIND, 6: _CALM})
+    plan["operations"][0]["frames"][2]["cache_state"] = "stale_fallback"
+    assert _types(spray_signals_from_operation_plan(plan)) == {SPRAY_UNSAFE}, (
+        "a stale reading cannot open a spray window"
+    )
 
 
 def test_snapshot_id_is_deterministic_and_changes_with_the_weather():
@@ -262,10 +306,20 @@ def test_snapshot_id_is_deterministic_and_changes_with_the_weather():
 # ── the route ──────────────────────────────────────────────────────────────
 
 
-def _stub_weather(monkeypatch, *, plan, thermal=None, current=None, forecast=None, fail=()):
+def _stub_weather(
+    monkeypatch,
+    *,
+    plan,
+    thermal=None,
+    current=None,
+    forecast=None,
+    fail=(),
+    crop="wheat",
+    stage="tillering",
+):
     async def context(user, field_id):
         assert user.tenant_id == _USER.tenant_id, "tenant comes from the authenticated user"
-        return 15.35, 44.2, "wheat", "tillering"
+        return 15.35, 44.2, crop, stage
 
     def _maybe(name, value):
         async def fetch(*args, **kwargs):
@@ -437,3 +491,65 @@ def test_weather_products_are_fetched_concurrently(monkeypatch):
     result = asyncio.run(fdw.derive_field_weather_signals(_USER, "field-1"))
     assert result["unavailable"] == {}, f"every product should arrive together: {result}"
     assert started == {"plan", "thermal", "current", "forecast"}, f"all called: {started}"
+
+
+@pytest.mark.parametrize("sent", ["Wheat", " wheat ", "قمح"])
+def test_field_mode_accepts_the_fields_crop_under_another_spelling(monkeypatch, sent):
+    _stub_weather(monkeypatch, plan=_plan({0: _CALM, 1: _CALM}))
+    out = _call(DecisionPlaybookRequest(field_id="fld-1", crop=sent))
+    assert out["crop"] == "wheat", f"same crop, no spurious 422: {sent!r} -> {out.get('crop')}"
+
+
+def test_no_active_crop_is_named_in_the_playbook(monkeypatch):
+    _stub_weather(
+        monkeypatch,
+        plan=_plan({0: _CALM, 1: _CALM}),
+        thermal={"status": "insufficient_context", "confidence": None},
+        crop=None,
+        stage=None,
+    )
+    out = _call(DecisionPlaybookRequest(field_id="fld-1"))
+    assert out["context_missing"] == ["crop", "growth_stage"], f"named: {out['context_missing']}"
+    codes = [item["code"] for item in out["limitations"]]
+    assert codes == ["NO_ACTIVE_CROP"], f"limitation expected: {out['limitations']}"
+    assert any("لا محصول نشط" in e for e in out["evidence"]), (
+        f"the playbook itself must say the crop is absent: {out['evidence']}"
+    )
+
+
+def test_stale_frames_are_surfaced_by_the_route(monkeypatch):
+    plan = _plan({0: _CALM, 1: _CALM})
+    plan["operations"][0]["frames"][0]["cache_state"] = "stale_fallback"
+    plan["partial"] = True
+    _stub_weather(monkeypatch, plan=plan)
+    out = _call(DecisionPlaybookRequest(field_id="fld-1"))
+    assert out["stale_frames"] == [0], f"stale hour named: {out['stale_frames']}"
+    assert out["operation_plan_partial"] is True, f"partial plan named: {out}"
+    assert "STALE_WEATHER_FRAMES" in [i["code"] for i in out["limitations"]], out["limitations"]
+    assert "الرشّ غير آمن" in out["main_judgement"], f"fail closed: {out['main_judgement']}"
+
+
+# ── the only real caller: the UI must take the field-bound path ────────────
+
+_FRONTEND = Path(__file__).resolve().parents[3] / "frontend" / "src"
+
+
+def test_ui_decision_playbook_sends_field_id_for_a_selected_field():
+    """weather-2 end to end: AgroAnalyticsCard builds its body with buildDecisionPlaybookInput,
+    which sends ``field_id`` (and no weather keys) in field mode. Vitest covers the builder's
+    behaviour (``agroAnalytics.test.ts``); this guards the wiring where vitest is not run."""
+    lib = (_FRONTEND / "lib" / "agroAnalytics.ts").read_text(encoding="utf-8")
+    card = (_FRONTEND / "components" / "fieldview" / "AgroAnalyticsCard.tsx").read_text(
+        encoding="utf-8"
+    )
+    assert "export function buildDecisionPlaybookInput" in lib, "builder missing"
+    assert "return { field_id: opts.fieldId, recommendation_ar };" in lib, (
+        "field mode must send field_id and nothing the server derives"
+    )
+    assert "buildDecisionPlaybookInput({" in card, "the card must use the builder"
+    assert "fieldId && !pbWhatIf ? 'field' : 'what_if'" in card, (
+        "a selected field must default to the field-bound mode"
+    )
+    assert "weather_signals: [...pbSignals]" not in card, (
+        "the card must not hand-build a caller-supplied weather body"
+    )

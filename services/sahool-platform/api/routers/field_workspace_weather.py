@@ -578,7 +578,13 @@ async def fetch_decision_disease_risk(lat: float, lon: float, crop: str | None) 
 
 
 async def derive_field_weather_signals(user, field_id: str) -> dict[str, Any]:
-    """``{crop, signals, weather_snapshot_id, unavailable, sources}`` for one field."""
+    """``{crop, signals, weather_snapshot_id, unavailable, sources, ...}`` for one field.
+
+    ``context_missing`` names the field facts that were absent (no active crop, no growth
+    stage), so a playbook built without them says so instead of reading as complete.
+    ``stale_frames`` lists the operation-plan hours weather-service served from an old cache
+    entry after a failed refresh (``cache_state == "stale_fallback"`` or ``upstream_error``).
+    """
     import asyncio
     import logging
 
@@ -661,9 +667,24 @@ async def derive_field_weather_signals(user, field_id: str) -> dict[str, Any]:
             "unavailable": sorted(unavailable),
         }
     )
+    context_missing = [
+        name for name, value in (("crop", crop), ("growth_stage", stage)) if not value
+    ]
+    stale_frames = [
+        frame.get("hour_offset")
+        for frame in spraying_frames_for_snapshot(plan)
+        if str(frame.get("cache_state") or "") == "stale_fallback" or frame.get("upstream_error")
+    ]
+    plan_errors = plan.get("upstream_errors") if isinstance(plan, dict) else None
     return {
         "crop": crop,
         "growth_stage": stage,
+        "context_missing": context_missing,
+        "stale_frames": stale_frames,
+        "operation_plan_partial": bool(plan.get("partial")) if isinstance(plan, dict) else None,
+        "operation_plan_upstream_errors": list(plan_errors)
+        if isinstance(plan_errors, list)
+        else [],
         "signals": signals,
         "weather_snapshot_id": snapshot_id,
         "unavailable": unavailable,

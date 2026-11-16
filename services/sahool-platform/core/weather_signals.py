@@ -207,7 +207,11 @@ def aggregate_cells_to_hourly(rows: list[dict]) -> list[HourlyWeather]:
 #   ``next_hour_frame_missing``, basis ``unconfirmed``);
 # * the hour-0 or hour-1 decision is ``insufficient_data`` / ``unsafe`` or its limiting factors
 #   include wind, gust, rain or a temperature outside the spray window (next-hour reasons
-#   carry the suffix ``@next_hour``).
+#   carry the suffix ``@next_hour``);
+# * the hour-0 or hour-1 frame is a cache fallback (``cache_state == "stale_fallback"``) or
+#   carries an ``upstream_error``: weather-service could not refresh that hour and served an
+#   old reading, so the frame is not current weather (``frame_stale``, basis ``unconfirmed``).
+#   A stale frame is also never chosen as the open window.
 #
 # Drift above the weather-service wind threshold (``wind_speed_high`` > 18 km/h,
 # ``wind_gust_high`` > 29 km/h) is a safety limit, not a quality penalty, so it blocks
@@ -231,10 +235,17 @@ _NEXT_HOUR_OFFSET = 1.0
 _SPRAY_BLOCKING_SUITABILITY = frozenset({"unsafe", "insufficient_data"})
 # Same threshold the weather-service uses for ``recommended`` in the operation plan.
 _SPRAY_OPEN_SCORE = 0.55
+# Cache states weather-service marks on a frame (``weather_runtime._cached_sample``) that mean
+# the reading is not a current fetch: the provider failed and an old sample was served.
+_STALE_CACHE_STATES = frozenset({"stale_fallback", "stale", "unavailable"})
 
 # The disease rule (three weather factors) is not a calibrated probability; its confidence
-# is a declared constant, labelled as such in the payload, not a measured value.
+# is a declared constant, labelled as such in the payload, not a measured value. Because it
+# is uncalibrated and weather-only, it is emitted as the advisory ``disease_conditions_
+# favourable`` (scout to confirm), never as ``disease_risk_high``, which the playbook turns
+# into an urgent preventive spray.
 _DISEASE_RULE_CONFIDENCE = 0.5
+DISEASE_CONDITIONS_FAVOURABLE = "disease_conditions_favourable"
 
 SNAPSHOT_SCHEME = "sahool-decision-weather:v1"
 
@@ -294,6 +305,13 @@ def _blocking_reasons(decision: dict[str, Any]) -> list[str]:
     return list(dict.fromkeys(reasons))
 
 
+def _frame_is_stale(frame: dict[str, Any]) -> bool:
+    """True when weather-service served this frame from an old cache entry or with an error."""
+    return str(frame.get("cache_state") or "") in _STALE_CACHE_STATES or bool(
+        frame.get("upstream_error")
+    )
+
+
 def _frame_facts(frame: dict[str, Any]) -> dict[str, Any]:
     sample = frame.get("sample") if isinstance(frame.get("sample"), dict) else {}
     decision = _decision(frame)
@@ -306,6 +324,8 @@ def _frame_facts(frame: dict[str, Any]) -> dict[str, Any]:
         "wind_speed_10m_kmh": _num(sample.get("wind_speed_10m_kmh")),
         "wind_gusts_10m_kmh": _num(sample.get("wind_gusts_10m_kmh")),
         "precipitation_mm": _num(sample.get("precipitation_mm")),
+        "cache_state": frame.get("cache_state"),
+        "upstream_error": frame.get("upstream_error"),
     }
 
 
@@ -349,6 +369,10 @@ def spray_signals_from_operation_plan(plan: dict[str, Any] | None) -> list[Weath
             reasons.append(missing_reason)
             unconfirmed = True
             continue
+        if _frame_is_stale(frame):
+            # An old reading served after a failed refresh is not current weather.
+            reasons.append(f"frame_stale{suffix}")
+            unconfirmed = True
         decision = _decision(frame)
         frame_reasons = _blocking_reasons(decision)
         if not frame_reasons:
@@ -382,7 +406,7 @@ def spray_signals_from_operation_plan(plan: dict[str, Any] | None) -> list[Weath
         if reasons and frame is now:
             # Spraying now is not safe (or not confirmed); the hour-0 frame cannot be the window.
             continue
-        if _num(frame.get("hour_offset")) is None:
+        if _num(frame.get("hour_offset")) is None or _frame_is_stale(frame):
             continue
         decision = _decision(frame)
         score = _num(decision.get("score"))
@@ -452,12 +476,16 @@ def thermal_signals(product: dict[str, Any] | None) -> list[WeatherSignal]:
 
 
 def disease_signals(risk: dict[str, Any] | None) -> list[WeatherSignal]:
-    """``disease_risk_high`` when the weather disease rule says ``high``; otherwise nothing."""
+    """``disease_conditions_favourable`` when the weather disease rule says ``high``.
+
+    Advisory only: the rule is weather-only and uncalibrated, so it asks for scouting to
+    confirm, not for a preventive spray (``disease_risk_high`` stays for calibrated sources).
+    """
     if not isinstance(risk, dict) or risk.get("risk_level") != "high":
         return []
     return [
         WeatherSignal(
-            "disease_risk_high",
+            DISEASE_CONDITIONS_FAVOURABLE,
             _DISEASE_RULE_CONFIDENCE,
             {
                 "risk_level": "high",
@@ -465,6 +493,7 @@ def disease_signals(risk: dict[str, Any] | None) -> list[WeatherSignal]:
                 "humidity_pct": risk.get("humidity_pct"),
                 "rain_mm_3d": risk.get("rain_mm_3d"),
                 "confidence_basis": "uncalibrated_three_factor_rule",
+                "advisory_only": True,
             },
         )
     ]
@@ -507,6 +536,8 @@ def spraying_frames_for_snapshot(plan: dict[str, Any] | None) -> list[dict[str, 
             "hour_offset": f.get("hour_offset"),
             "weather_time": f.get("weather_time"),
             "sample": f.get("sample") if isinstance(f.get("sample"), dict) else None,
+            "cache_state": f.get("cache_state"),
+            "upstream_error": f.get("upstream_error"),
         }
         for f in _frames(item)
     ]
