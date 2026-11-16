@@ -1615,7 +1615,7 @@ jobs:
       # W1-20 (remote-7 / scout-5, v281): a vegetation anomaly sent through the real bridge becomes
       # one stored scouting task in field-management-service (owner of field_tasks); sequential
       # and concurrent replays and a reused key write nothing more; tenants stay apart; negative
-      # controls show the v280 index and check refuse at the database. Restricted NOBYPASSRLS
+      # controls show the v281 index and check refuse at the database. Restricted NOBYPASSRLS
       # role; the flag turns any skip into a failure.
       - name: Vegetation anomaly scouting tasks (W1-20, v281, restricted role)
         env:
