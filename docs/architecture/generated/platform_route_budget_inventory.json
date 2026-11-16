@@ -1,12 +1,12 @@
 {
   "counts": {
     "domain_budget_headroom": 0,
-    "domain_budget_routes": 629,
-    "domain_route_budget": 629,
+    "domain_budget_routes": 623,
+    "domain_route_budget": 623,
     "infrastructure_routes": 4,
-    "raw_routes": 633
+    "raw_routes": 627
   },
-  "inventory_sha256": "e25b09c3256d9f25b6080082cfcdfaac81a9519e97769a568cb509d96096ec63",
+  "inventory_sha256": "9ce738c20f885ad2b9bf1ae571fa2311a57645997f5b16644aacffbe56e65d68",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -26,9 +26,9 @@
         "path": "/runtime-identity"
       }
     ],
-    "domain_route_budget": 629,
+    "domain_route_budget": 623,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "6c7cf1ad5514dfb9c2eccec76b18195277606f8d83c314d386a84aaed8d0b7a1"
+    "policy_sha256": "713ba95b9dffc38f98bde9b1bcbd26b1e6f3d0721d0164a5d8cac755d9e7468c"
   },
   "routes": [
     {
@@ -1994,31 +1994,15 @@
     {
       "classification": "domain",
       "function": "registry_cost_profiles",
-      "line": 87,
+      "line": 69,
       "method": "GET",
       "path": "/api/v1/registry/cost-profiles",
       "source": "api/routers/registry.py"
     },
     {
       "classification": "domain",
-      "function": "registry_data_quality_rules",
-      "line": 97,
-      "method": "GET",
-      "path": "/api/v1/registry/data-quality-rules",
-      "source": "api/routers/registry.py"
-    },
-    {
-      "classification": "domain",
-      "function": "registry_device_types",
-      "line": 67,
-      "method": "GET",
-      "path": "/api/v1/registry/device-types",
-      "source": "api/routers/registry.py"
-    },
-    {
-      "classification": "domain",
       "function": "registry_events",
-      "line": 77,
+      "line": 59,
       "method": "GET",
       "path": "/api/v1/registry/events",
       "source": "api/routers/registry.py"
@@ -2026,23 +2010,15 @@
     {
       "classification": "domain",
       "function": "registry_indices",
-      "line": 57,
+      "line": 49,
       "method": "GET",
       "path": "/api/v1/registry/indices",
       "source": "api/routers/registry.py"
     },
     {
       "classification": "domain",
-      "function": "list_registry_report_fields",
-      "line": 31,
-      "method": "GET",
-      "path": "/api/v1/registry/report-fields",
-      "source": "api/routers/registry.py"
-    },
-    {
-      "classification": "domain",
       "function": "list_registry_workflows",
-      "line": 44,
+      "line": 36,
       "method": "GET",
       "path": "/api/v1/registry/workflows",
       "source": "api/routers/registry.py"
@@ -2642,7 +2618,7 @@
     {
       "classification": "domain",
       "function": "model_serving_resolve",
-      "line": 318,
+      "line": 282,
       "method": "GET",
       "path": "/models/serving/{alias:path}",
       "source": "api/phase10_continuous_learning.py"
@@ -4466,7 +4442,7 @@
     {
       "classification": "domain",
       "function": "champion_challenger",
-      "line": 228,
+      "line": 192,
       "method": "POST",
       "path": "/champion-challenger",
       "source": "api/phase10_continuous_learning.py"
@@ -4522,7 +4498,7 @@
     {
       "classification": "domain",
       "function": "learning_cycle",
-      "line": 200,
+      "line": 164,
       "method": "POST",
       "path": "/cycle",
       "source": "api/phase10_continuous_learning.py"
@@ -4554,7 +4530,7 @@
     {
       "classification": "domain",
       "function": "dataset",
-      "line": 155,
+      "line": 139,
       "method": "POST",
       "path": "/dataset",
       "source": "api/phase10_continuous_learning.py"
@@ -4562,7 +4538,7 @@
     {
       "classification": "domain",
       "function": "drift",
-      "line": 212,
+      "line": 176,
       "method": "POST",
       "path": "/drift",
       "source": "api/phase10_continuous_learning.py"
@@ -4609,14 +4585,6 @@
     },
     {
       "classification": "domain",
-      "function": "experiment_evaluation",
-      "line": 185,
-      "method": "POST",
-      "path": "/experiments/evaluate",
-      "source": "api/phase10_continuous_learning.py"
-    },
-    {
-      "classification": "domain",
       "function": "shadow_experiment",
       "line": 151,
       "method": "POST",
@@ -4625,16 +4593,8 @@
     },
     {
       "classification": "domain",
-      "function": "feature_schema",
-      "line": 150,
-      "method": "POST",
-      "path": "/feature-schema",
-      "source": "api/phase10_continuous_learning.py"
-    },
-    {
-      "classification": "domain",
       "function": "feature_store_offline_dataset",
-      "line": 247,
+      "line": 211,
       "method": "POST",
       "path": "/feature-store/offline-dataset",
       "source": "api/phase10_continuous_learning.py"
@@ -4642,7 +4602,7 @@
     {
       "classification": "domain",
       "function": "feature_store_online_materialization",
-      "line": 258,
+      "line": 222,
       "method": "POST",
       "path": "/feature-store/online-materialization",
       "source": "api/phase10_continuous_learning.py"
@@ -4650,7 +4610,7 @@
     {
       "classification": "domain",
       "function": "feature_store_point_in_time",
-      "line": 266,
+      "line": 230,
       "method": "POST",
       "path": "/feature-store/point-in-time",
       "source": "api/phase10_continuous_learning.py"
@@ -4658,7 +4618,7 @@
     {
       "classification": "domain",
       "function": "feature_store_register",
-      "line": 240,
+      "line": 204,
       "method": "POST",
       "path": "/feature-store/register",
       "source": "api/phase10_continuous_learning.py"
@@ -4786,7 +4746,7 @@
     {
       "classification": "domain",
       "function": "model_promotion",
-      "line": 165,
+      "line": 149,
       "method": "POST",
       "path": "/models/promote",
       "source": "api/phase10_continuous_learning.py"
@@ -4794,7 +4754,7 @@
     {
       "classification": "domain",
       "function": "model_register",
-      "line": 280,
+      "line": 244,
       "method": "POST",
       "path": "/models/register",
       "source": "api/phase10_continuous_learning.py"
@@ -4810,7 +4770,7 @@
     {
       "classification": "domain",
       "function": "model_serving_promote",
-      "line": 301,
+      "line": 265,
       "method": "POST",
       "path": "/models/serving/promote",
       "source": "api/phase10_continuous_learning.py"
@@ -4818,7 +4778,7 @@
     {
       "classification": "domain",
       "function": "model_serving_rollback",
-      "line": 308,
+      "line": 272,
       "method": "POST",
       "path": "/models/serving/rollback",
       "source": "api/phase10_continuous_learning.py"
@@ -4830,14 +4790,6 @@
       "method": "POST",
       "path": "/network-calculate",
       "source": "api/routers/irrigation_engineering.py"
-    },
-    {
-      "classification": "domain",
-      "function": "online_update",
-      "line": 175,
-      "method": "POST",
-      "path": "/online-update",
-      "source": "api/phase10_continuous_learning.py"
     },
     {
       "classification": "domain",
@@ -4970,7 +4922,7 @@
     {
       "classification": "domain",
       "function": "retraining_plan",
-      "line": 221,
+      "line": 185,
       "method": "POST",
       "path": "/retraining/plan",
       "source": "api/phase10_continuous_learning.py"
@@ -5010,7 +4962,7 @@
     {
       "classification": "domain",
       "function": "scenario",
-      "line": 195,
+      "line": 159,
       "method": "POST",
       "path": "/scenario",
       "source": "api/phase10_continuous_learning.py"

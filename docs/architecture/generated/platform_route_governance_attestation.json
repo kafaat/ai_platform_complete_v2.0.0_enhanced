@@ -6,29 +6,29 @@
     },
     {
       "path": "docs/architecture/platform_extraction_map.json",
-      "sha256": "6c7cf1ad5514dfb9c2eccec76b18195277606f8d83c314d386a84aaed8d0b7a1"
+      "sha256": "713ba95b9dffc38f98bde9b1bcbd26b1e6f3d0721d0164a5d8cac755d9e7468c"
     },
     {
       "path": "docs/architecture/generated/platform_route_budget_inventory.json",
-      "sha256": "c33e04de42d7745cbdad5fe04667997dcb913088b3789052db03e656cf291bda"
+      "sha256": "9537908893d11c9047ed033e1538a0add0d5a54c8c6b1e9c7fc872ce622bf939"
     },
     {
       "path": "docs/architecture/generated/platform_route_ownership_inventory.json",
-      "sha256": "c0734804a6579cf198771e67bed481f17c8ed3bbce7e95903603c48d0f7076f0"
+      "sha256": "726287167ec316e1ec41e1f5b03c2bcabdcd94d92969b143e993f03c48b35630"
     }
   ],
   "schema_version": "sahool.platform-route-governance-attestation.v1",
   "statement": {
     "api_route_declarations": 4,
-    "budget_inventory_sha256": "e25b09c3256d9f25b6080082cfcdfaac81a9519e97769a568cb509d96096ec63",
+    "budget_inventory_sha256": "9ce738c20f885ad2b9bf1ae571fa2311a57645997f5b16644aacffbe56e65d68",
     "classification_sha256": "c8a152411892b5aa921e717ade91f6235f80e62da01cad148bda7de686b6971f",
-    "domain_budget_routes": 629,
-    "domain_route_budget": 629,
-    "full_ownership_surface": 637,
+    "domain_budget_routes": 623,
+    "domain_route_budget": 623,
+    "full_ownership_surface": 631,
     "infrastructure_routes": 4,
-    "map_sha256": "6c7cf1ad5514dfb9c2eccec76b18195277606f8d83c314d386a84aaed8d0b7a1",
-    "ownership_inventory_sha256": "d79ef713ea2ebfd33725db703f524ba029dce985e8a8899085f868d754396005",
-    "raw_routes": 633
+    "map_sha256": "713ba95b9dffc38f98bde9b1bcbd26b1e6f3d0721d0164a5d8cac755d9e7468c",
+    "ownership_inventory_sha256": "c6dccc6ae59dc2189cfe6d8530d82c9fa218aca640d371f10893a950bed5d3fb",
+    "raw_routes": 627
   },
-  "statement_sha256": "ad54bfc6038de8de7288061a75a692f0ac8128637f545ca66d7a7b7427006b7f"
+  "statement_sha256": "12683814db29c098b021bfa296671f8dcb6121c2711c590fe7b1a98fab90dad7"
 }
