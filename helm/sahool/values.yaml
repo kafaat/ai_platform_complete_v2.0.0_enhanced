@@ -200,6 +200,9 @@ workloads:
     port: 8000
     sourceDockerfile: services/rag-retrieval/Dockerfile
     pathPrefix: /api/rag
+    # QDRANT_URL and OLLAMA_BASE_URL are operator-configurable (services/rag-retrieval/main.py:53,55)
+    # and QDRANT_API_KEY exists for a managed Qdrant, so either can point at an external HTTPS host.
+    publicHttpsEgress: true
     env:
       SERVICE_NAME: sahool-rag-retrieval
     secretEnv:

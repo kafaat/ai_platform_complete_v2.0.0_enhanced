@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import copy
 import importlib.util
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -48,6 +49,37 @@ _EXPECTED_PUBLIC_EGRESS = {
     "sahool-ai-agronomist": "hosted model providers when AI_PROVIDER is openrouter/anthropic",
     "sahool-weather-service": "Open-Meteo forecast/archive (services/weather-service/open_meteo.py)",
     "sahool-soil-service": "ISRIC SoilGrids (services/soil-service/soilgrids_client.py)",
+    # Configurable, not literal: QDRANT_URL / OLLAMA_BASE_URL may name a managed external host.
+    "sahool-rag-retrieval": "QDRANT_URL / OLLAMA_BASE_URL (services/rag-retrieval/main.py:53,55)",
+}
+
+# Workloads whose public HTTPS egress W3-09 removed, with the evidence that nothing they can be
+# configured with names an external HTTPS host. Env read by the service and by the shared modules
+# it imports (shared/security/{access_tokens,gateway_deps,cors_policy}: no outbound client).
+_NO_PUBLIC_EGRESS_EVIDENCE = {
+    "sahool-knowledge-graph": (
+        "services/knowledge-graph",
+        {
+            "KG_GRAPHQL_MAX_DEPTH",
+            "KG_GRAPHQL_MAX_QUERY_BYTES",
+            "KG_GRAPHQL_MAX_TOKENS",
+            "KG_SQLITE_PATH",
+        },
+    ),
+    "sahool-guardrails-engine": (
+        "services/guardrails-engine",
+        # DATABASE_URL / REDIS_URL are database ports, never 443; JWT_PUBLIC_KEY is a PEM value,
+        # not a JWKS URL.
+        {
+            "CORS_ORIGINS",
+            "DATABASE_URL",
+            "JWT_PUBLIC_KEY",
+            "JWT_SECRET",
+            "SAHOOL_AGENT_TOKEN",
+            "SAHOOL_ALLOW_HS256_IN_PROD",
+            "SAHOOL_ENV",
+        },
+    ),
 }
 
 # Workloads that admit only named callers (no gateway), with those callers.
@@ -182,3 +214,22 @@ def test_helm_render_internal_only_workloads_admit_only_their_callers() -> None:
         }
         assert sources == set(callers), f"{name} must admit only {callers}: {sources}"
         assert name in excluded["values"], f"the namespace-wide allow must exclude {name}"
+
+
+@pytest.mark.parametrize("workload", sorted(_NO_PUBLIC_EGRESS_EVIDENCE))
+def test_a_workload_without_public_egress_reads_no_new_outbound_setting(workload) -> None:
+    """A new env var in these services must be re-judged for egress, not silently cut off."""
+    source_dir, expected = _NO_PUBLIC_EGRESS_EVIDENCE[workload]
+    found = set()
+    for path in (ROOT / source_dir).rglob("*.py"):
+        if "tests" in path.parts or path.name.startswith("test_"):
+            continue
+        text = path.read_text(encoding="utf-8")
+        found |= set(
+            re.findall(
+                r"""(?:getenv|environ\.get|environ\[)\(?\s*["']([A-Z][A-Z0-9_]+)["']""", text
+            )
+        )
+        assert not re.search(r"\b(httpx|aiohttp|urlopen|requests\.(get|post))\b", text), path
+    assert found == expected, (workload, sorted(found ^ expected))
+    assert workload not in _EXPECTED_PUBLIC_EGRESS

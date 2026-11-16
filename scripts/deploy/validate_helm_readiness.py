@@ -213,6 +213,20 @@ def gateway_auth_notice(values: dict) -> str | None:
     )
 
 
+def dockerfile_ports(text: str) -> set[int]:
+    """Ports the image declares (``EXPOSE``) or binds (``CMD``/``ENTRYPOINT`` ``--port N``).
+
+    A Dockerfile whose uvicorn binds a port without ``EXPOSE`` still serves on it, and adding
+    ``EXPOSE`` only to satisfy this check would rebuild that service wherever its Dockerfile is
+    watched (W3-09: field-management on Railway). The bound port is read from the command the
+    image actually runs, not taken from the chart values it is checked against.
+    """
+    ports = {int(port) for port in re.findall(r"^EXPOSE\s+(\d+)", text, re.M)}
+    for line in re.findall(r"^(?:CMD|ENTRYPOINT)\s+(.+)$", text, re.M):
+        ports.update(int(port) for port in re.findall(r'--port["\s,=]+"?(\d+)', line))
+    return ports
+
+
 def source_contract_errors(values: dict, root: Path = ROOT) -> list[str]:
     """Compare chart ports with the Dockerfile actually named by each workload."""
     errors = []
@@ -223,10 +237,7 @@ def source_contract_errors(values: dict, root: Path = ROOT) -> list[str]:
         if not source.is_file():
             errors.append(f"{name}: sourceDockerfile is required")
             continue
-        ports = {
-            int(port)
-            for port in re.findall(r"^EXPOSE\s+(\d+)", source.read_text(encoding="utf-8"), re.M)
-        }
+        ports = dockerfile_ports(source.read_text(encoding="utf-8"))
         if spec.get("port") not in ports:
             errors.append(
                 f"{name}: port {spec.get('port')} does not match {source.relative_to(root)} EXPOSE {sorted(ports)}"
