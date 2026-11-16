@@ -436,21 +436,32 @@ def compute_daily_ledger_entry(
 
 
 def gap_irrigation_by_day(
-    rows: Sequence[Mapping], last_entry_date: _dt.date, ledger_date: _dt.date
+    rows: Sequence[Mapping],
+    last_entry_date: _dt.date,
+    ledger_date: _dt.date,
+    reported: Mapping[_dt.date, float] | None = None,
 ) -> tuple[list[float], bool, bool]:
     """Per-day irrigation for the skipped days strictly between the last entry and today.
 
     ``rows`` are completed-run aggregates per local date (``d``, ``mm``, ``untracked``,
     ``runs``). Returns ``(mm_per_day, any_day_unobserved, any_volume_untracked)``: a skipped
     day with no run row is "unobserved", not "zero irrigation", exactly as for today.
+
+    ``reported`` maps a skipped day to the applied water reported on its uncomputed row (a
+    person's report, W0-13, or the farm-ledger projection, W1-13). Like today's report it is the
+    day's measured total: it replaces that day's run sum and the day is neither unobserved nor
+    untracked.
     """
     by_day = {r["d"]: r for r in rows}
+    reported = reported or {}
     mm: list[float] = []
     unobserved = untracked = False
     day = last_entry_date + _dt.timedelta(days=1)
     while day < ledger_date:
         r = by_day.get(day)
-        if r is None or not int(r["runs"] or 0):
+        if day in reported:
+            mm.append(float(reported[day]))
+        elif r is None or not int(r["runs"] or 0):
             unobserved = True
             mm.append(0.0)
         else:

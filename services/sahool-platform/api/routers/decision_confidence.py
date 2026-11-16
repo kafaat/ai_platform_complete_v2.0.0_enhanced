@@ -9,7 +9,9 @@
 **عرض ثقة قراءة فقط**: لا يُعدّل القرار ولا ينفّذ. كلّ مصدر best-effort:
   • **حسّاس**: ثقة أسطول أجهزة الحقل (``shape_device_twin`` على ``iot_devices``).
   • **دليل**: مستوى الدليل المُدام من عدد ``outcome_record`` للحقل (عتبة evidence_registry).
-  • **استشعار**: نضارة أحدث ``ndvi_timeseries`` للحقل (حداثة القياس).
+  • **استشعار**: نضارة أحدث NDVI مرصود للحقل من raster-service (``latest_index_points``:
+    تواريخ COG المعالَجة ثمّ ``/timeseries``) — لا من جدول البذرة ``ndvi_timeseries`` (W1-21).
+    تعذّر raster ⇒ مصدر غير متاح معلَن، لا «لا قياس».
   • **طقس**: غير مُدام per-field هنا ⇒ ``needs_data`` صريح (لا يُفترَض).
 
 المصدر الغائب يُعلَن missing (لا تلفيق). 503 إن تعذّرت القاعدة كليّاً.
@@ -31,6 +33,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.raster_service_client import latest_index_points
 from api.sensor_confidence import shape_device_twin
 
 router = APIRouter()
@@ -72,6 +75,16 @@ def _satellite_value(age_days: float | None) -> tuple[float | None, str]:
     return 0.05, f"NDVI متقادم جدّاً (منذ {int(age_days)} يوم)"
 
 
+def _satellite_component(points: list[dict] | None, today: date) -> tuple[float | None, str]:
+    """درجة الاستشعار من نقاط raster: ``None`` ⇒ المصدر غير متاح (لا يُعامَل كـ«لا قياس»)."""
+    if points is None:
+        return None, "raster-service غير متاح الآن — نضارة NDVI غير معروفة (needs_data)"
+    if not points:
+        return _satellite_value(None)
+    observed = date.fromisoformat(points[0]["datetime"])
+    return _satellite_value(max(0, (today - observed).days))
+
+
 @router.get("/api/v1/fields/{field_id}/decision-confidence")
 async def decision_confidence_endpoint(
     field_id: str,
@@ -106,14 +119,6 @@ async def decision_confidence_endpoint(
             outcomes = await _scalar(
                 conn, "outcome_record", field_id, predicate=EVALUATED_OUTCOME_PREDICATE
             )
-            # استشعار: أحدث NDVI.
-            try:
-                ndvi_date = await conn.fetchval(
-                    "SELECT MAX(acquisition_date) FROM ndvi_timeseries WHERE field_id = $1",
-                    field_id,
-                )
-            except Exception:  # noqa: BLE001 — جدول غائب ⇒ لا استشعار
-                ndvi_date = None
     except Exception as e:  # noqa: BLE001 — تعذّر فتح اتّصال المستأجِر ⇒ 503 موثَّق
         raise _db_unavailable("ثقة القرار", e) from e
 
@@ -142,8 +147,11 @@ async def decision_confidence_endpoint(
     )
 
     ev_value, ev_detail = _evidence_value(decisions, outcomes)
-    age_days = (date.today() - ndvi_date).days if ndvi_date is not None else None
-    sat_value, sat_detail = _satellite_value(age_days)
+    # استشعار: أحدث NDVI مرصود من raster-service — خارج اتّصال القاعدة (لا HTTP داخل معاملة).
+    ndvi_points = await latest_index_points(
+        field_id, tenant_id=str(user.tenant_id), index="ndvi", count=1
+    )
+    sat_value, sat_detail = _satellite_component(ndvi_points, now.date())
 
     components = {
         "sensor": {"value": sensor_value, "detail_ar": sensor_detail},

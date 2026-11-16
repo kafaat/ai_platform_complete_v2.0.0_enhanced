@@ -12,6 +12,9 @@
   • /agro/crop-rotation                 ⇐ core.crop_rotation_intelligence
   • /agro/season-comparison             ⇐ core.season_comparison
   • /agro/decision-playbook             ⇐ core.decision_playbook (يركّب السلسلة)
+      - مع ``field_id``: مربوط بالحقل — إشارات الطقس يشتقّها الخادم من weather-service
+        (W1-17)، ولا يقبل إشارات طقس من الطلب.
+      - بلا ``field_id``: أداة «ماذا لو» (what-if) موسومة بإشارات يُدخِلها المستدعي.
   • /work-orders/from-recommendation    ⇐ core.work_order_from_recommendation (FOES)
 """
 
@@ -146,8 +149,14 @@ class WeatherSignalRequest(BaseModel):
 
 
 class DecisionPlaybookRequest(BaseModel):
-    """سياق بناء Playbook القرار — يركّب إشارات الطقس + مخاطر المحصول + التغذية الراجعة."""
+    """سياق بناء Playbook القرار — يركّب إشارات الطقس + مخاطر المحصول + التغذية الراجعة.
 
+    ``field_id`` يجعل الدليل مربوطاً بالحقل: الطقس من weather-service لا من الطلب، فيُرفَض
+    ``weather_signals`` و``crop_risk_inputs`` (مدخلات طقس من الواجهة) و``crop`` المخالف
+    لمحصول الحقل بـ422. بلا ``field_id`` يبقى أداة what-if موسومة (W1-17 / weather-2).
+    """
+
+    field_id: str | None = Field(default=None, min_length=1, max_length=128)
     crop: str | None = None
     weather_signals: list[WeatherSignalRequest] = Field(default_factory=list)
     crop_risk_inputs: CropRiskRequest | None = None
@@ -226,14 +235,22 @@ def season_comparison_endpoint(
 
 
 @router.post("/api/v1/agro/decision-playbook")
-def decision_playbook_endpoint(
+async def decision_playbook_endpoint(
     req: DecisionPlaybookRequest, user: UserSchema = Depends(get_current_user)
 ):
     """يبني Playbook قرار قابل للتفسير (ماذا أفعل اليوم/أتجنّب/متى أراجع/متى أُصعّد).
 
     يركّب السلسلة: إشارات الطقس + مخاطر المحصول (من إدخالاتها) + التغذية الراجعة
     نبات-تربة (من مؤشّراتها) ⇐ حُكم واحد مُهيكَل.
+
+    W1-17: مع ``field_id`` يُبنى الدليل على طقس الحقل من weather-service (خطّة العمليّات،
+    الإجهاد الحراريّ، خطر الأمراض) مع ``weather_snapshot_id``، ولا يُقبَل طقس من الطلب.
+    بلا ``field_id`` يبقى أداة what-if: ``mode="what_if"`` و``weather_signals_source=
+    "caller_supplied"`` — فلا يُقرأ ناتجه كأنّه قرار الحقل.
     """
+    if req.field_id is not None:
+        return await _field_bound_playbook(req, user)
+
     signals = tuple(
         WeatherSignal(
             signal_type=s.signal_type, confidence_score=s.confidence_score, payload=s.payload
@@ -264,7 +281,12 @@ def decision_playbook_endpoint(
         soil_feedback=soil_feedback,
         recommendation_ar=req.recommendation_ar,
     )
-    return asdict(build_playbook(ctx))
+    return {
+        **asdict(build_playbook(ctx)),
+        "mode": "what_if",
+        "weather_signals_source": "caller_supplied",
+        "weather_snapshot_id": None,
+    }
 
 
 async def _persist_work_order(user: UserSchema, wo: dict, idem: str | None = None) -> str | None:
@@ -379,3 +401,141 @@ async def work_order_from_recommendation_endpoint(
         "work_order_id": work_order_id,
         "work_order": wo,
     }
+
+
+# ════════════════════════════════════════════════════════════
+# W1-17 — دليل القرار المربوط بالحقل (طقسٌ من weather-service لا من الطلب)
+# ════════════════════════════════════════════════════════════
+def _signal_dict(signal: WeatherSignal) -> dict:
+    return {
+        "signal_type": signal.signal_type,
+        "confidence_score": signal.confidence_score,
+        "payload": signal.payload,
+    }
+
+
+async def _field_bound_playbook(req: DecisionPlaybookRequest, user: UserSchema) -> dict:
+    """W1-17: دليل قرار مربوط بالحقل — إشارات الطقس من weather-service حصراً.
+
+    في آخر الملفّ كي لا تنزاح مراسي أسطر النقاط في ``platform_extraction_map.json``.
+    """
+    from core.authorization import has_permission
+
+    if not has_permission(user, Permission.FIELD_VIEW):
+        raise HTTPException(
+            status_code=403,
+            detail=f"الدور '{user.role.value}' لا يملك صلاحية '{Permission.FIELD_VIEW.value}'",
+        )
+    rejected = [
+        name
+        for name, present in (
+            ("weather_signals", bool(req.weather_signals)),
+            ("crop_risk_inputs", req.crop_risk_inputs is not None),
+        )
+        if present
+    ]
+    if rejected:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "FIELD_BOUND_WEATHER_IS_SERVER_DERIVED",
+                "message_ar": "الدليل المربوط بالحقل يشتقّ الطقس من خدمة الطقس؛ "
+                "لا تُرسَل إشارات طقس أو مخاطر محصول من الواجهة. استعمل وضع what-if بلا field_id.",
+                "rejected_fields": rejected,
+            },
+        )
+
+    from api.routers.field_workspace_weather import derive_field_weather_signals
+
+    derived = await derive_field_weather_signals(user, req.field_id)
+    field_crop = derived["crop"]
+    # المحصول من الموسم النشط للحقل وحده؛ محصولٌ مرسَل لا يطابقه يُرفَض (ولو كان الحقل بلا محصول).
+    # المطابقة بالاسم المُطبَّع/crop_id لا بالحروف: «Wheat» و«قمح» و«wheat» محصول واحد.
+    if req.crop is not None and not _same_crop(req.crop, field_crop):
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "FIELD_BOUND_CROP_MISMATCH",
+                "message_ar": "المحصول المرسَل يخالف محصول الموسم النشط للحقل.",
+                "field_crop": field_crop,
+            },
+        )
+    signals = tuple(derived["signals"])
+    soil_feedback = (
+        assess_plant_soil_feedback(req.soil_feedback_inputs.to_core())
+        if req.soil_feedback_inputs is not None
+        else None
+    )
+    ctx = PlaybookContext(
+        crop=field_crop,
+        weather_signals=signals,
+        soil_feedback=soil_feedback,
+        recommendation_ar=req.recommendation_ar,
+    )
+    playbook = asdict(build_playbook(ctx))
+    limitations = _field_bound_limitations(derived)
+    if limitations:
+        # الغياب يُقال في الدليل نفسه لا في حقل جانبيّ فقط: دليلٌ بلا محصول ليس دليلاً كاملاً.
+        playbook["evidence"] = (
+            *playbook["evidence"],
+            *(item["message_ar"] for item in limitations),
+        )
+    return {
+        **playbook,
+        "limitations": limitations,
+        "mode": "field_bound",
+        "field_id": req.field_id,
+        "crop": ctx.crop,
+        "growth_stage": derived["growth_stage"],
+        "weather_signals_source": "weather-service",
+        "weather_snapshot_id": derived["weather_snapshot_id"],
+        "weather_signals": [_signal_dict(s) for s in signals],
+        "weather_unavailable": derived["unavailable"],
+        "weather_sources": derived["sources"],
+        "context_missing": derived["context_missing"],
+        "stale_frames": derived["stale_frames"],
+        "operation_plan_partial": derived["operation_plan_partial"],
+    }
+
+
+def _same_crop(sent: str, field_crop: str | None) -> bool:
+    """Same crop after normalisation: crop_id when both resolve, else the normalised name."""
+    from core.season_phenology import normalize_crop_name, resolve_crop_id
+
+    if not field_crop:
+        return False
+    sent_id, field_id = resolve_crop_id(sent), resolve_crop_id(field_crop)
+    if sent_id is not None and field_id is not None:
+        return sent_id == field_id
+    return normalize_crop_name(sent) == normalize_crop_name(field_crop) != ""
+
+
+def _field_bound_limitations(derived: dict) -> list[dict]:
+    """Named gaps in the field-bound playbook (no active crop/stage, stale spray frames)."""
+    out: list[dict] = []
+    missing = derived.get("context_missing") or []
+    if "crop" in missing:
+        out.append(
+            {
+                "code": "NO_ACTIVE_CROP",
+                "message_ar": "لا محصول نشط مسجَّل للحقل: لم يُقيَّم الإجهاد الحراريّ "
+                "ولا خطر المرض الخاصّ بالمحصول؛ سجّل الموسم النشط لاكتمال الدليل.",
+            }
+        )
+    elif "growth_stage" in missing:
+        out.append(
+            {
+                "code": "NO_GROWTH_STAGE",
+                "message_ar": "مرحلة نموّ المحصول غير معروفة: عتبات الإجهاد الحراريّ "
+                "الخاصّة بالمرحلة لم تُطبَّق.",
+            }
+        )
+    if derived.get("stale_frames"):
+        out.append(
+            {
+                "code": "STALE_WEATHER_FRAMES",
+                "message_ar": "بعض ساعات خطّة الرشّ قراءات قديمة من الذاكرة المؤقّتة "
+                "(تعذّر تحديثها)؛ لا تُعتمد نافذةً للرشّ.",
+            }
+        )
+    return out

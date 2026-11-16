@@ -4,9 +4,10 @@
 
   • ``POST /api/v1/nl-gis/query`` — يأخذ نصّاً عربيّاً، يُصنّفه عبر الطبقة النقيّة
     ``parse_nl_intent`` إلى **نيّة من قائمة مغلقة** (whitelist)، ثمّ يُترجم النيّة
-    المعروفة فقط إلى **استعلام قراءة على مصدر موجود** (fields/alerts/ndvi_timeseries/
-    irrigation_schedules) عبر ``tenant_connection`` (عزل RLS). يُدوّن كلّ استعلام في
-    سجلّ التدقيق append-only ``nl_gis_audit`` (best-effort).
+    المعروفة فقط إلى **استعلام قراءة على مصدر موجود** (fields/alerts/irrigation_schedules)
+    عبر ``tenant_connection`` (عزل RLS)، و NDVI من raster-service (W1-21: لا من جدول البذرة
+    ``ndvi_timeseries``). يُدوّن كلّ استعلام في سجلّ التدقيق append-only ``nl_gis_audit``
+    (best-effort).
 
 **حُرّاس صارمة** (شروط القبول):
   • **read_only** ثابت: لا CREATE/UPDATE/DELETE، لا أوامر، لا تغيير قرارات — SELECT فقط.
@@ -21,6 +22,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json as _json
 import os
 
@@ -35,11 +37,20 @@ from api.main import (
     tenant_connection,
 )
 from api.nl_gis_intent import SUPPORTED_INTENTS, parse_nl_intent
+from api.raster_service_client import latest_index_points
 
 router = APIRouter()
 
 _TRUTHY = {"1", "true", "yes", "on"}
 _MAX_ROWS = 200  # سقف نتائج صارم (حماية القاعدة + معاينة لا تفريغ كامل)
+# ndvi_drop يقرأ raster لكلّ حقل: سقف حقول المسح وتزامن النداءات (حماية raster-service).
+_NDVI_SCAN_FIELDS = 50
+_RASTER_CONCURRENCY = 8
+# مهلة المسح كلّه وقراءة الحقل الواحد (ث): raster معلَّق لا يتجاوز مهلة البوّابة (60ث فأكثر)؛
+# حقل لم يُقرأ قبل انقضاء المهلة يُعدّ «تعذّرت قراءته» لا «بلا انخفاض».
+_NDVI_SCAN_DEADLINE_S = 40.0
+_NDVI_FIELD_TIMEOUT_S = 15.0
+_NDVI_SOURCE = "raster-service:/v1/fields/{id}/timeseries"
 
 
 def _nl_gis_enabled() -> bool:
@@ -89,33 +100,102 @@ async def _dispatch_alert_filter(conn, slots: dict) -> dict:
 
 
 async def _dispatch_ndvi_drop(conn, slots: dict) -> dict:
-    """حقول انخفض NDVI فيها ≥ عتبة٪ (أحدث قراءة مقابل سابقتها) — من ndvi_timeseries."""
-    threshold = float(slots.get("threshold_pct") or 0)
-    args: list = [threshold]
-    extra, args = _crop_region_clauses(slots, args, 2)
+    """المرحلة الأولى لـndvi_drop (القاعدة): حقول المستأجِر المرشّحة (محصول/منطقة اختياريّة).
+
+    قيم NDVI لا تُقرأ هنا: W1-21 (remote-2/data-7) — جدول ``ndvi_timeseries`` بذرةُ ``RANDOM()``
+    بلا مستأجِر ولا كاتب حيّ. المرحلة الثانية ``_raster_ndvi_drop`` تقرأ أحدث قراءتين من
+    raster-service بعد إغلاق اتّصال القاعدة.
+    """
+    args: list = []
+    extra, args = _crop_region_clauses(slots, args, 1)
     sql = (
-        "WITH ranked AS ("
-        "  SELECT field_id, ndvi_mean, acquisition_date, "
-        "         ROW_NUMBER() OVER (PARTITION BY field_id ORDER BY acquisition_date DESC) AS rn "
-        "  FROM ndvi_timeseries), "
-        "pair AS ("
-        "  SELECT r1.field_id, r1.ndvi_mean AS latest, r2.ndvi_mean AS prev, "
-        "         r1.acquisition_date AS latest_date "
-        "  FROM ranked r1 JOIN ranked r2 ON r1.field_id = r2.field_id AND r2.rn = 2 "
-        "  WHERE r1.rn = 1) "
-        "SELECT p.field_id, f.name, f.crop, f.gov, "
-        "       ROUND(p.latest, 4) AS ndvi_latest, ROUND(p.prev, 4) AS ndvi_prev, "
-        "       ROUND(((p.prev - p.latest) / NULLIF(p.prev, 0) * 100)::numeric, 1) AS drop_pct, "
-        "       p.latest_date "
-        "FROM pair p JOIN fields f ON f.field_id = p.field_id "
-        "WHERE p.prev > 0 AND ((p.prev - p.latest) / p.prev * 100) >= $1"
-        f"{extra} "
-        f"ORDER BY drop_pct DESC LIMIT {_MAX_ROWS}"
+        "SELECT f.field_id, f.name, f.crop, f.gov FROM fields f "
+        f"WHERE 1 = 1{extra} "
+        f"ORDER BY f.field_id LIMIT {_NDVI_SCAN_FIELDS + 1}"
     )
     rows = await conn.fetch(sql, *args)
+    return {"api_called": _NDVI_SOURCE, "items": [], "fields": [dict(r) for r in rows]}
+
+
+async def _raster_ndvi_drop(result: dict, slots: dict, tenant_id: str) -> dict:
+    """المرحلة الثانية لـndvi_drop: انخفاض أحدث NDVI مرصود عن سابقه ≥ عتبة٪ (raster-service).
+
+    حقل تعذّرت قراءته (أو لم يُقرأ قبل ``_NDVI_SCAN_DEADLINE_S``) يُعدّ في ``raster_unavailable``
+    (لا يُعامَل كحقل بلا انخفاض)؛ إن تعذّر raster لكلّ الحقول يرفع فيصير الردّ ``needs_data``
+    صادقاً. حقل بأقلّ من قراءتين (بلا تاريخ NDVI معالَج أو بقراءة واحدة) يُعدّ في
+    ``insufficient_history``، وحقل قراءته السابقة ≤ 0 (لا نسبة انخفاض معرَّفة) في
+    ``not_comparable`` — كلّ حقل متخطّى يُعدّ بسببه. ``coverage.complete`` كاذب إن تخطّى حقلٌ
+    لأيّ سبب أو بُتر المسح عند السقف — فيصير الردّ ``partial`` لا «لا حقول تطابق».
+    """
+    threshold = float(slots.get("threshold_pct") or 0)
+    candidates = result["fields"]
+    truncated = len(candidates) > _NDVI_SCAN_FIELDS
+    candidates = candidates[:_NDVI_SCAN_FIELDS]
+    gate = asyncio.Semaphore(_RASTER_CONCURRENCY)
+
+    async def read(field: dict):
+        async with gate:
+            return await latest_index_points(
+                str(field["field_id"]),
+                tenant_id=tenant_id,
+                index="ndvi",
+                count=2,
+                timeout_s=_NDVI_FIELD_TIMEOUT_S,
+            )
+
+    tasks = [asyncio.ensure_future(read(f)) for f in candidates]
+    readings: list = [None] * len(tasks)
+    if tasks:
+        _done, pending = await asyncio.wait(tasks, timeout=_NDVI_SCAN_DEADLINE_S)
+        for task in pending:
+            task.cancel()
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+        for i, task in enumerate(tasks):
+            if task in pending or task.cancelled() or task.exception() is not None:
+                continue  # لم يُقرأ قبل المهلة/فشل ⇒ يبقى None (تعذّر، لا «بلا انخفاض»)
+            readings[i] = task.result()
+    unavailable = sum(1 for r in readings if r is None)
+    if candidates and unavailable == len(candidates):
+        raise RuntimeError("raster-service unavailable for every candidate field")
+    items: list[dict] = []
+    insufficient = 0
+    not_comparable = 0
+    for field, points in zip(candidates, readings, strict=True):
+        if points is None:
+            continue  # عُدّ أعلاه في raster_unavailable
+        if len(points) < 2:
+            insufficient += 1  # لا قراءتين مرصودتين ⇒ مجهول، لا «بلا انخفاض»
+            continue
+        latest, prev = points[0]["mean"], points[1]["mean"]
+        if prev <= 0:
+            not_comparable += 1  # لا نسبة انخفاض معرَّفة ⇒ مجهول
+            continue
+        drop_pct = (prev - latest) / prev * 100
+        if drop_pct < threshold:
+            continue
+        items.append(
+            {
+                **field,
+                "ndvi_latest": round(latest, 4),
+                "ndvi_prev": round(prev, 4),
+                "drop_pct": round(drop_pct, 1),
+                "latest_date": points[0]["datetime"],
+                "prev_date": points[1]["datetime"],
+            }
+        )
+    items.sort(key=lambda it: it["drop_pct"], reverse=True)
     return {
-        "api_called": "ndvi_timeseries",
-        "items": [dict(r) for r in rows],
+        "api_called": _NDVI_SOURCE,
+        "items": items[:_MAX_ROWS],
+        "coverage": {
+            "fields_scanned": len(candidates),
+            "fields_truncated": truncated,
+            "raster_unavailable": unavailable,
+            "insufficient_history": insufficient,
+            "not_comparable": not_comparable,
+            "complete": not truncated and unavailable + insufficient + not_comparable == 0,
+        },
     }
 
 
@@ -145,6 +225,8 @@ _DISPATCHERS = {
     "ndvi_drop": _dispatch_ndvi_drop,
     "irrigation_gap": _dispatch_irrigation_gap,
 }
+# نيّات لها مرحلة raster بعد القاعدة (تعمل بعد إغلاق الاتّصال — لا HTTP داخل معاملة).
+_RASTER_STAGES = {"ndvi_drop": _raster_ndvi_drop}
 
 
 async def _append_nl_gis_audit(
@@ -182,6 +264,55 @@ async def _append_nl_gis_audit(
 
 class NlGisQueryRequest(BaseModel):
     query: str
+
+
+def _partial_note_ar(coverage: dict, count: int) -> str:
+    """شرح مسح ناقص: كم حقلاً لم يُقَس، وهل بُتر المسح — فلا يُقرأ الفراغ كنتيجة صادقة."""
+    parts = []
+    unavailable = int(coverage.get("raster_unavailable") or 0)
+    if unavailable:
+        parts.append(f"تعذّرت قراءة NDVI لـ{unavailable} من {coverage.get('fields_scanned')} حقل")
+    insufficient = int(coverage.get("insufficient_history") or 0)
+    if insufficient:
+        parts.append(
+            f"{insufficient} من {coverage.get('fields_scanned')} حقل بلا قراءتَي NDVI مرصودتين"
+            " للمقارنة"
+        )
+    not_comparable = int(coverage.get("not_comparable") or 0)
+    if not_comparable:
+        parts.append(
+            f"{not_comparable} من {coverage.get('fields_scanned')} حقل قراءته السابقة ≤ 0"
+            " فلا نسبة انخفاض معرَّفة"
+        )
+    if coverage.get("fields_truncated"):
+        parts.append(f"فُحص أوّل {_NDVI_SCAN_FIELDS} حقلاً فقط (ضيّق الطلب بمحصول أو منطقة)")
+    head = "نتيجة ناقصة: " + "؛ ".join(parts) + "."
+    if count == 0:
+        return head + " لا يعني ذلك أنّ أيّ حقل لم ينخفض — الحقول غير المقيسة مجهولة."
+    return head + " الحقول المعروضة مقيسة؛ غير المقيسة مجهولة."
+
+
+def _status_after_raster(result: dict) -> str:
+    """``partial`` إن كان مسح raster ناقصاً (حقل تعذّر أو بتر عند السقف)، وإلّا ``ok``."""
+    return "ok" if (result.get("coverage") or {}).get("complete", True) else "partial"
+
+
+def _audit_status(status: str, count: int | None) -> str:
+    """جدول التدقيق يقبل مجموعة مغلقة (v85 CHECK): المسح الناقص بلا نتيجة لا يُدوَّن ``ok``."""
+    if status == "partial":
+        return "ok" if count else "needs_data"
+    return status
+
+
+def _response_note_ar(status: str, count: int | None, coverage: dict) -> str | None:
+    """شرح الحالة للواجهة: الفراغ الصادق يُقال فقط حين قيس كلّ حقل."""
+    if status == "needs_data":
+        return "المصدر غير متاح حاليّاً (جدول غائب أو استعلام تعذّر) — لا تُعرَض طبقة دون بيانات."
+    if status == "partial":
+        return _partial_note_ar(coverage, count or 0)
+    if count == 0:
+        return "لا حقول تطابق هذا الطلب (نتيجة صادقة، لا تلفيق)."
+    return None
 
 
 def _serialize(items: list[dict]) -> list[dict]:
@@ -237,6 +368,8 @@ async def nl_gis_query_endpoint(
         }
 
     # نيّة مدعومة: استعلام قراءة best-effort (غياب المصدر ⇒ needs_data، لا تلفيق).
+    raster_stage = _RASTER_STAGES.get(intent)
+    result: dict = {}
     try:
         async with tenant_connection(user) as conn:
             try:
@@ -252,17 +385,38 @@ async def nl_gis_query_endpoint(
                     "needs_data",
                     None,
                 )
-            await _append_nl_gis_audit(
-                conn, user, req.query, intent, slots, api_called, status, count
-            )
+            if raster_stage is None:
+                await _append_nl_gis_audit(
+                    conn, user, req.query, intent, slots, api_called, status, count
+                )
     except Exception as e:  # noqa: BLE001 — تعذّر فتح اتّصال المستأجِر ⇒ 503 موثَّق
         raise _db_unavailable("استعلام NL-GIS", e) from e
 
-    note_ar = None
-    if status == "needs_data":
-        note_ar = "المصدر غير متاح حاليّاً (جدول غائب أو استعلام تعذّر) — لا تُعرَض طبقة دون بيانات."
-    elif count == 0:
-        note_ar = "لا حقول تطابق هذا الطلب (نتيجة صادقة، لا تلفيق)."
+    if raster_stage is not None:
+        if status == "ok":
+            try:
+                result = await raster_stage(result, slots, str(user.tenant_id))
+                items = _serialize(result["items"])
+                count = len(items)
+                status = _status_after_raster(result)
+            except Exception:  # noqa: BLE001 — raster تعذّر ⇒ needs_data صادق، لا طبقة فارغة
+                items, status, count = [], "needs_data", None
+        try:
+            async with tenant_connection(user) as conn:
+                await _append_nl_gis_audit(
+                    conn,
+                    user,
+                    req.query,
+                    intent,
+                    slots,
+                    api_called,
+                    _audit_status(status, count),
+                    count,
+                )
+        except Exception:  # noqa: BLE001 — تدقيق best-effort: فشله لا يكسر الاستجابة
+            pass
+
+    note_ar = _response_note_ar(status, count, result.get("coverage") or {})
 
     return {
         "read_only": True,
@@ -275,5 +429,6 @@ async def nl_gis_query_endpoint(
         "items": items,
         "count": count if count is not None else 0,
         "note_ar": note_ar,
+        "coverage": result.get("coverage") if status in ("ok", "partial") else None,
         "tenant_id": str(user.tenant_id),
     }

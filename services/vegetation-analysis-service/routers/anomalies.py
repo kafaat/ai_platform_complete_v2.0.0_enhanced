@@ -19,13 +19,59 @@ from anomaly_requests import (
     VerificationRequest,
 )
 from anomaly_runtime import store as _store
-from anomaly_store import AnomalyNotFound, InvalidTransition
+from anomaly_store import _ALLOWED_TRANSITIONS, AnomalyNotFound, InvalidTransition
 from fastapi import APIRouter, Depends, Header, HTTPException
 from ground_verification_bridge import GroundVerificationBridge
 
 router = APIRouter()
 _bridge = GroundVerificationBridge()
 _TASK_CALLBACK_TOKEN = os.getenv("TASK_SERVICE_CALLBACK_TOKEN", "")
+# The lifecycle states that may move to verification_requested (anomaly_store._ALLOWED_TRANSITIONS).
+_VERIFICATION_SOURCES = frozenset(
+    status
+    for status, targets in _ALLOWED_TRANSITIONS.items()
+    if "verification_requested" in targets
+)
+
+
+def _check_verification_allowed(record: dict[str, Any], expected_version: int) -> None:
+    """Refuse a verification request before any field task is created.
+
+    W1-20 made the bridge store a real task in field-management-service, so a request the
+    lifecycle would refuse must be refused *before* the bridge call; otherwise a closed anomaly
+    (resolved, confirmed, rejected) leaves an orphan pending scouting task behind, and the
+    one-task-per-anomaly index then blocks any later correct task.
+
+    Re-verification after ``inconclusive`` would reuse this anomaly's deterministic key and get
+    the old, finished task back as a replay, so nobody would be dispatched. Until the task-side
+    re-verification contract exists (W2-15), it is refused instead of pointing at the old task.
+    """
+    status = record.get("status")
+    if status not in _VERIFICATION_SOURCES:
+        raise InvalidTransition(f"invalid_transition:{status}->verification_requested")
+    if record.get("aggregate_version") != expected_version:
+        raise InvalidTransition("aggregate_version_conflict")
+    if record.get("task_ref"):
+        raise InvalidTransition("reverification_not_supported:anomaly_already_has_task")
+
+
+def _lifecycle_conflict(exc: InvalidTransition, task_ref: str) -> dict[str, Any]:
+    """The anomaly changed while its field task was being stored (review W1-20, g/B).
+
+    The task now exists in field-management-service but is not attached to the anomaly. Say so
+    explicitly, naming the task, instead of a bare version conflict. If the anomaly can still be
+    verified (e.g. it was only triaged meanwhile), a retry with its current version reuses this
+    anomaly's deterministic Idempotency-Key, gets the same task back as a replay and attaches it.
+    If the anomaly was closed meanwhile, the named task is left pending: this service has no
+    reservation in the anomaly store and field-management-service has no cancel route yet, so
+    the conflict is surfaced for the caller rather than hidden.
+    """
+    return {
+        "code": "verification_lifecycle_conflict",
+        "reason": str(exc),
+        "task_ref": task_ref,
+        "task_attached": False,
+    }
 
 
 async def _baselines(field_id: str, request: DetectRequest, token: str) -> list[dict[str, Any]]:
@@ -118,19 +164,27 @@ async def detect_signal_anomalies(
                 key = hashlib.sha256(f"{record['anomaly_ref']}|verification".encode()).hexdigest()
                 task = await _bridge.create_scouting_task(
                     anomaly=record["payload"],
-                    authorization=authorization,
-                    idempotency_key=key,
-                )
-                record = await _store.transition(
-                    record["anomaly_ref"],
-                    "verification_requested",
-                    expected_version=record["aggregate_version"],
-                    task_ref=task.task_ref,
-                    patch={"task_ref": task.task_ref},
                     tenant_id=tenant_id,
+                    idempotency_key=key,
                 )
             except RuntimeError as exc:
                 record["verification_bridge_error"] = str(exc)
+            else:
+                try:
+                    record = await _store.transition(
+                        record["anomaly_ref"],
+                        "verification_requested",
+                        expected_version=record["aggregate_version"],
+                        task_ref=task.task_ref,
+                        patch={"task_ref": task.task_ref},
+                        tenant_id=tenant_id,
+                    )
+                except InvalidTransition as exc:
+                    # Another request moved the anomaly meanwhile: report it on this anomaly
+                    # and keep evaluating the others, instead of failing the whole detect call.
+                    record["verification_lifecycle_conflict"] = _lifecycle_conflict(
+                        exc, task.task_ref
+                    )
         created.append(record)
     return {
         "field_id": field_id,
@@ -193,20 +247,24 @@ async def request_ground_verification(
         record = await _store.get(anomaly_ref, tenant_id=tenant_id)
         if record["tenant_id"] != tenant_id:
             raise AnomalyNotFound(anomaly_ref)
+        _check_verification_allowed(record, request.expected_version)
         key = hashlib.sha256(f"{anomaly_ref}|verification".encode()).hexdigest()
         task = await _bridge.create_scouting_task(
             anomaly=record["payload"],
-            authorization=authorization,
+            tenant_id=tenant_id,
             idempotency_key=key,
         )
-        return await _store.transition(
-            anomaly_ref,
-            "verification_requested",
-            expected_version=request.expected_version,
-            task_ref=task.task_ref,
-            patch={"task_ref": task.task_ref},
-            tenant_id=tenant_id,
-        )
+        try:
+            return await _store.transition(
+                anomaly_ref,
+                "verification_requested",
+                expected_version=request.expected_version,
+                task_ref=task.task_ref,
+                patch={"task_ref": task.task_ref},
+                tenant_id=tenant_id,
+            )
+        except InvalidTransition as exc:
+            raise HTTPException(409, _lifecycle_conflict(exc, task.task_ref)) from exc
     except AnomalyNotFound as exc:
         raise HTTPException(404, "anomaly not found") from exc
     except InvalidTransition as exc:

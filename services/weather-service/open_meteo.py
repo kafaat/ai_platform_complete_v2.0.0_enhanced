@@ -500,6 +500,104 @@ def normalize_daily(
     }
 
 
+#: متغيّراتُ ``current`` لعيّنة البلاطة/النقطة. ``weather_code`` و``is_day`` و``pressure_msl``
+#: يقرؤها ``normalize_current``/التطبيعُ أدناه؛ لم تكن تُطلَب فكانت ``None`` دائماً (W1-22: صارت
+#: المنصّةُ تقرأ عيّنةَ النقطة من هنا بدل موصّلها الذي كان يطلبها).
+_TILE_CURRENT_KEYS: tuple[str, ...] = (
+    "temperature_2m",
+    "relative_humidity_2m",
+    "precipitation",
+    "cloud_cover",
+    "wind_speed_10m",
+    "wind_direction_10m",
+    "wind_gusts_10m",
+    "surface_pressure",
+    "pressure_msl",
+    "weather_code",
+    "is_day",
+)
+
+#: متغيّراتُ ``hourly``. الحقولُ الساعيّةُ وحدها (ET0/VPD/التربة/احتمالُ المطر) لا يُعيدها
+#: ``current``، فتُقرأ لـ``now`` من صفّ ساعة ``current.time`` — انظر ``_HOURLY_ONLY_SAMPLE_FIELDS``.
+_TILE_HOURLY_KEYS: tuple[str, ...] = (
+    "temperature_2m",
+    "relative_humidity_2m",
+    "precipitation",
+    "precipitation_probability",
+    "cloud_cover",
+    "wind_speed_10m",
+    "wind_direction_10m",
+    "wind_gusts_10m",
+    "weather_code",
+    "et0_fao_evapotranspiration",
+    "vapour_pressure_deficit",
+    "soil_temperature_0cm",
+    "soil_temperature_6cm",
+    "soil_temperature_18cm",
+    "soil_temperature_54cm",
+    "soil_moisture_0_to_1cm",
+    "soil_moisture_1_to_3cm",
+    "soil_moisture_3_to_9cm",
+    "surface_pressure",
+    "pressure_msl",
+)
+
+#: حقلُ العيّنة ⇐ متغيّرُ ``hourly`` الذي لا مقابلَ له في ``current``. لـ``now`` كانت هذه تُصفَّر
+#: إلى ``None`` مع أنّ صفّ الساعة الحاليّة في الحمولة نفسِها، فخسرت المنصّةُ VPD وET0 ورطوبةَ
+#: التربة حين انتقلت إلى هذه الخدمة (W1-22). القيمةُ من المزوّد لا مشتقّة، وصفُّها مُعلَن.
+_HOURLY_ONLY_SAMPLE_FIELDS: dict[str, str] = {
+    "et0_mm": "et0_fao_evapotranspiration",
+    "vpd_kpa": "vapour_pressure_deficit",
+    "precipitation_probability_pct": "precipitation_probability",
+    "soil_temperature_0cm_c": "soil_temperature_0cm",
+    "soil_temperature_6cm_c": "soil_temperature_6cm",
+    "soil_temperature_18cm_c": "soil_temperature_18cm",
+    "soil_temperature_54cm_c": "soil_temperature_54cm",
+    "soil_moisture_0_to_1cm_m3m3": "soil_moisture_0_to_1cm",
+    "soil_moisture_1_to_3cm_m3m3": "soil_moisture_1_to_3cm",
+    "soil_moisture_3_to_9cm_m3m3": "soil_moisture_3_to_9cm",
+}
+
+#: حقلُ ``current`` ⇐ متغيّرُ ``hourly`` المقابل. لـ``now`` حين يُعيد المزوّدُ ``current`` بقيمةٍ
+#: ``null`` يُقرأ صفُّ ساعة ``current.time`` بدلها (تكافؤُ الموصّل المُزال)، ويُسمّى الحقلُ في
+#: ``current_fields_from_hourly:`` — **الغيابُ في الاثنين يبقى ``None``**، والصفرُ المرصودُ لا يُستبدَل.
+_CURRENT_FIELDS_WITH_HOURLY_FALLBACK: dict[str, str] = {
+    "temperature_c": "temperature_2m",
+    "humidity_pct": "relative_humidity_2m",
+    "precipitation_mm": "precipitation",
+    "cloud_cover_pct": "cloud_cover",
+    "wind_speed_10m_kmh": "wind_speed_10m",
+    "wind_direction_10m_deg": "wind_direction_10m",
+    "wind_gusts_10m_kmh": "wind_gusts_10m",
+    "surface_pressure_hpa": "surface_pressure",
+    "pressure_msl_hpa": "pressure_msl",
+    "weather_code": "weather_code",
+}
+
+
+def _fill_null_current_from_hourly(
+    sample: dict[str, Any], hourly: dict[str, Any], row_idx: int
+) -> list[str]:
+    """يملأ حقولَ ``current`` الفارغة من صفّ الساعة ويُعيد أسماءَها. لا صفّ ⇒ لا ملء."""
+    filled: list[str] = []
+    for field_name, hourly_key in _CURRENT_FIELDS_WITH_HOURLY_FALLBACK.items():
+        if sample.get(field_name) is not None:
+            continue
+        value = _at(hourly.get(hourly_key) or [], row_idx)
+        if value is None:
+            continue
+        sample[field_name] = value
+        filled.append(field_name)
+    # المشتقّاتُ تتبع أصلَها: السرعةُ بالمتر/ث والاتّجاهُ المكرَّر.
+    if "wind_speed_10m_kmh" in filled:
+        sample["wind_speed_ms"] = round(float(sample["wind_speed_10m_kmh"]) / 3.6, 3)
+    if "wind_gusts_10m_kmh" in filled:
+        sample["wind_gusts_ms"] = round(float(sample["wind_gusts_10m_kmh"]) / 3.6, 3)
+    if "wind_direction_10m_deg" in filled:
+        sample["wind_direction_deg"] = sample["wind_direction_10m_deg"]
+    return filled
+
+
 async def fetch_tile_sample(
     lat: float, lon: float, *, time_key: str = "now", model: str = "best_match"
 ) -> dict[str, Any]:
@@ -509,37 +607,8 @@ async def fetch_tile_sample(
     params = {
         "latitude": lat,
         "longitude": lon,
-        "current": ",".join(
-            [
-                "temperature_2m",
-                "relative_humidity_2m",
-                "precipitation",
-                "cloud_cover",
-                "wind_speed_10m",
-                "wind_direction_10m",
-                "wind_gusts_10m",
-                "surface_pressure",
-            ]
-        ),
-        "hourly": ",".join(
-            [
-                "temperature_2m",
-                "relative_humidity_2m",
-                "precipitation",
-                "cloud_cover",
-                "wind_speed_10m",
-                "wind_direction_10m",
-                "wind_gusts_10m",
-                "et0_fao_evapotranspiration",
-                "vapour_pressure_deficit",
-                "soil_temperature_6cm",
-                "soil_temperature_18cm",
-                "soil_temperature_54cm",
-                "soil_moisture_1_to_3cm",
-                "soil_moisture_3_to_9cm",
-                "surface_pressure",
-            ]
-        ),
+        "current": ",".join(_TILE_CURRENT_KEYS),
+        "hourly": ",".join(_TILE_HOURLY_KEYS),
         "forecast_days": forecast_days,
         "timezone": "auto",
         "wind_speed_unit": "kmh",
@@ -635,23 +704,33 @@ def normalize_tile_sample(
     times = hourly.get("time") if isinstance(hourly.get("time"), list) else []
     if time_key == "now" and current:
         sample = normalize_current(current, lat=lat, lon=lon, source_payload=data)
-        sample.update(
-            {
-                "et0_mm": None,
-                "vpd_kpa": None,
-                "soil_temperature_6cm_c": None,
-                "soil_moisture_1_to_3cm_m3m3": None,
-            }
-        )
+        sample["pressure_msl_hpa"] = current.get("pressure_msl")
+        # الحقولُ الساعيّةُ وحدها من صفّ ساعة ``current.time`` (بالطابع لا بالموضع). حقولُ
+        # ``current`` عند طابعها، وصفُّ الساعة يُسمّى ``hourly_row_time`` مع قيدٍ حين يختلفان —
+        # إعلانان لا يُخفي أحدُهما الآخر. لا صفّ (لا مرساة/سلسلة فارغة) ⇒ ``None`` بصدق.
+        row = resolve_hourly_index(times, current.get("time"), 0)
+        row_idx = row["index"] if row["index"] is not None else -1
+        for field_name, hourly_key in _HOURLY_ONLY_SAMPLE_FIELDS.items():
+            sample[field_name] = _at(hourly.get(hourly_key) or [], row_idx)
+        filled_from_hourly = _fill_null_current_from_hourly(sample, hourly, row_idx)
+        limitations = list(row["limitations"])
+        hourly_row_time = row["resolved"]
+        if hourly_row_time is not None and hourly_row_time != current.get("time"):
+            limitations.append(f"hourly_only_fields_from:{hourly_row_time}")
+        if filled_from_hourly:
+            limitations.append(
+                f"current_fields_from_hourly:{','.join(filled_from_hourly)}@{hourly_row_time}"
+            )
         resolution: dict[str, Any] = {
             "requested_offset_hours": 0,
             "anchor": current.get("time"),
             "target": current.get("time"),
             "resolved": current.get("time"),
-            "index": None,
+            "hourly_row_time": hourly_row_time,
+            "index": row["index"],
             "policy": "current",
             "delta_hours": 0.0,
-            "limitations": [],
+            "limitations": limitations,
         }
     else:
         # الفهرسُ يُحَلّ بالطابع الزمنيّ لا بالموضع — انظر `resolve_hourly_index`.
@@ -675,18 +754,25 @@ def normalize_tile_sample(
             "wind_direction_source": "open-meteo",
             "wind_gusts_10m_kmh": gust,
             "wind_gusts_ms": round(float(gust or 0) / 3.6, 3) if gust is not None else None,
-            "et0_mm": _at(hourly.get("et0_fao_evapotranspiration") or [], idx),
-            "vpd_kpa": _at(hourly.get("vapour_pressure_deficit") or [], idx),
-            "soil_temperature_6cm_c": _at(hourly.get("soil_temperature_6cm") or [], idx),
-            "soil_temperature_18cm_c": _at(hourly.get("soil_temperature_18cm") or [], idx),
-            "soil_temperature_54cm_c": _at(hourly.get("soil_temperature_54cm") or [], idx),
-            "soil_moisture_1_to_3cm_m3m3": _at(hourly.get("soil_moisture_1_to_3cm") or [], idx),
-            "soil_moisture_3_to_9cm_m3m3": _at(hourly.get("soil_moisture_3_to_9cm") or [], idx),
+            **{
+                field_name: _at(hourly.get(hourly_key) or [], idx)
+                for field_name, hourly_key in _HOURLY_ONLY_SAMPLE_FIELDS.items()
+            },
             "surface_pressure_hpa": _at(hourly.get("surface_pressure") or [], idx),
+            "pressure_msl_hpa": _at(hourly.get("pressure_msl") or [], idx),
+            "weather_code": _at(hourly.get("weather_code") or [], idx),
             "time": _at(times, idx),
             "timestamp": _at(times, idx),
             "source": "open-meteo",
         }
+    if sample.get("wind_direction_10m_deg") is None:
+        # الموصّلُ المُزال كان يسأل MET.no عن الاتّجاه الغائب؛ هذه الخدمةُ لا تملك ذلك المزوّد بعد.
+        # يُعلَن الغيابُ ولا يُنسَب إلى Open-Meteo، والرشُّ يبقى «غيرَ معروف» (فشلٌ مغلق).
+        sample["wind_direction_source"] = None
+        resolution["limitations"] = [
+            *resolution.get("limitations", []),
+            "wind_direction_unavailable:no_secondary_provider",
+        ]
     sample["model"] = model
     sample["time_key"] = time_key
     sample["time_resolution"] = resolution

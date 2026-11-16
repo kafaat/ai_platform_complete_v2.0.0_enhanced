@@ -206,6 +206,7 @@ async def reconcile_irrigation_run(
             'measured_as_applied', $5
         ) ON CONFLICT (field_id, ledger_date) DO UPDATE SET
             irrigation_mm = COALESCE(water_ledger.irrigation_mm, 0) + EXCLUDED.irrigation_mm,
+            irrigation_source = NULL,
             depletion_mm = EXCLUDED.depletion_mm,
             decision = EXCLUDED.decision,
             created_by = EXCLUDED.created_by,

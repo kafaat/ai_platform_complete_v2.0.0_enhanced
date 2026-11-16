@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+import asyncio
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from enum import Enum
@@ -567,8 +569,14 @@ async def task_link_error(conn, tenant_id: str, task_id, field_id: str | None):
 
 #: Tenant-scope lookups of the operations ledger (moved from the router for its size ratchet).
 _TENANT_SCOPE_SQL: dict[str, tuple[str, str]] = {
+    # W1-14 (business-1): a season is an agronomic season (``seasons``, the table farmers write)
+    # or a ledger season project, exactly as the simple farm book accepts it. v281 replaced the
+    # foreign keys to farm_season_projects (no writer) with a trigger checking the same union.
     "season": (
-        "SELECT 1 FROM farm_season_projects WHERE tenant_id = $1::uuid AND season_id = $2",
+        "SELECT 1 FROM seasons WHERE tenant_id = $1::uuid AND season_id = $2"
+        " UNION ALL"
+        " SELECT 1 FROM farm_season_projects WHERE tenant_id = $1::uuid AND season_id = $2"
+        " LIMIT 1",
         "season_not_found_for_tenant",
     ),
     "production_unit": (
@@ -596,17 +604,117 @@ def normalize_currency(currency: str | None) -> str | None:
     return text or None
 
 
+class MixedCurrencyError(ValueError):
+    """A season (or a summary scope) holds amounts in more than one currency.
+
+    Business-2: amounts in different currencies were summed under one label (``YER`` by
+    default). A report is in one currency: the caller names it (``?currency=``) or the scope
+    must hold exactly one. The router turns this into HTTP 409 listing the currencies found.
+    """
+
+    def __init__(self, currencies: list[str]):
+        self.currencies = sorted(currencies)
+        super().__init__("mixed_currency")
+
+    def detail(self) -> dict:
+        return {
+            "code": "mixed_currency",
+            "currencies": self.currencies,
+            "message": "amounts are recorded in more than one currency: pass ?currency=",
+        }
+
+
+#: Distinct currencies of a season's amounts: budget lines, priced operations, revenue.
+#: An unpriced operation carries no amount, so its (default) currency is not counted.
+SEASON_CURRENCIES_SQL = """
+    SELECT DISTINCT upper(trim(currency)) AS currency FROM (
+        SELECT currency FROM farm_season_budget_lines
+         WHERE tenant_id = $1::uuid AND season_id = $2
+        UNION ALL
+        SELECT currency FROM farm_operation_ledger
+         WHERE tenant_id = $1::uuid AND season_id = $2 AND cost_amount IS NOT NULL
+        UNION ALL
+        SELECT currency FROM farm_revenue_records
+         WHERE tenant_id = $1::uuid AND season_id = $2
+    ) amounts ORDER BY 1"""
+
+
+def resolve_report_currency(currencies, requested: str | None) -> str | None:
+    """The one currency a report is in: the requested one, else the only one recorded.
+
+    ``None`` when nothing is recorded and nothing was requested. More than one recorded and
+    none requested raises :class:`MixedCurrencyError`: amounts are never summed across
+    currencies.
+    """
+    requested = normalize_currency(requested)
+    if requested is not None:
+        return requested
+    found = sorted({c for c in (normalize_currency(x) for x in currencies) if c})
+    if len(found) > 1:
+        raise MixedCurrencyError(found)
+    return found[0] if found else None
+
+
+async def season_report_currency(conn, tenant_id: str, season_id: str, requested=None):
+    """:func:`resolve_report_currency` over the season's recorded amounts."""
+    if normalize_currency(requested) is not None:
+        return normalize_currency(requested)
+    rows = await conn.fetch(SEASON_CURRENCIES_SQL, tenant_id, season_id)
+    return resolve_report_currency([r["currency"] for r in rows], None)
+
+
 def _currency_scope(tenant_id: str, season_id: str, currency: str | None):
     if currency is None:
         return "", (tenant_id, season_id)
     return " AND upper(trim(currency)) = $3", (tenant_id, season_id, currency)
 
 
+async def scope_report_currency(conn, where_sql: str, args, requested=None) -> str | None:
+    """One currency for a filtered ledger scope (business-2): the one named, else the only one.
+
+    ``where_sql`` filters ``farm_operation_ledger o`` with ``args``; several currencies and none
+    named raise ``MixedCurrencyError`` (409 at the route).
+    """
+    cur = normalize_currency(requested)
+    if cur is not None:
+        return cur
+    found = await conn.fetch(
+        f"""SELECT DISTINCT upper(trim(o.currency)) AS currency
+            FROM farm_operation_ledger o
+            WHERE {where_sql} AND o.cost_amount IS NOT NULL""",
+        *args,
+    )
+    return resolve_report_currency([r["currency"] for r in found], None)
+
+
+def planned_totals_by_currency(rows) -> tuple[dict[str, float], str | None]:
+    """Budget totals per currency, never one sum across them (business-2), and the single one."""
+    totals: dict[str, float] = {}
+    for r in rows:
+        key = normalize_currency(r["currency"]) or "UNKNOWN"
+        totals[key] = totals.get(key, 0.0) + float(r["planned_cost"] or 0.0)
+    return totals, (next(iter(totals)) if len(totals) == 1 else None)
+
+
+def money_filter_sql(param: int) -> str:
+    """Business-2: the amounts of a report in one currency, parameter ``$param`` (text).
+
+    Used as ``FILTER (WHERE ...)`` on money sums only, so counts, water, energy and hours keep
+    every operation of the scope. A ``NULL`` currency (nothing priced in scope) matches no row.
+    """
+    return f"upper(trim(currency)) IS NOT DISTINCT FROM ${param}::text"
+
+
 async def fetch_unpriced_categories(conn, tenant_id: str, season_id: str, currency=None):
-    """Completed operations with no recorded cost, per category.
+    """Completed operations with no recorded cost, per category, in the report's currency.
 
     Ledger operations carry no budget stage (actuals are keyed ``whole_season``), so an
     unpriced operation makes its whole category incomplete, whatever the budget stage.
+
+    ``currency`` (normalised) keeps the operations recorded in that currency: an unpriced
+    operation leaves its category incomplete only in the report of the currency it is recorded
+    in. Unpriced work recorded in another currency is listed apart
+    (:func:`fetch_unpriced_other_currencies`), never folded into this report's coverage.
     """
     scope, args = _currency_scope(tenant_id, season_id, currency)
     rows = await conn.fetch(
@@ -621,8 +729,48 @@ async def fetch_unpriced_categories(conn, tenant_id: str, season_id: str, curren
     return [dict(row) for row in rows]
 
 
-def priced_variance(budgets, actuals, incomplete: list[dict]) -> tuple[list, dict]:
-    """Drop variance lines whose category has unpriced work: a missing cost is not a saving."""
+async def fetch_unpriced_other_currencies(conn, tenant_id: str, season_id: str, currency):
+    """Unpriced completed work recorded in a currency other than the report's ``currency``.
+
+    Shown beside the report so it is not silent, but it does not change this currency's
+    coverage or variance: the row says its cost will be in another currency. The database
+    cannot tell a currency the writer chose from the column default (``YER``), so a writer that
+    omits the currency of an unpriced operation in a non-YER season sees it listed here. With no
+    report currency (nothing priced in scope) every unpriced row is already in the report.
+    """
+    if currency is None:
+        return []
+    rows = await conn.fetch(
+        f"""SELECT upper(trim(currency)) AS currency,
+                   COALESCE(cost_category, operation_type) AS category,
+                   COUNT(*)::int AS unpriced_operations
+            FROM farm_operation_ledger
+            WHERE tenant_id = $1::uuid AND season_id = $2 AND cost_amount IS NULL
+              AND {ACTUAL_OPERATION_SQL}
+              AND upper(trim(currency)) IS DISTINCT FROM $3::text
+            GROUP BY 1, 2 ORDER BY 1, 2""",
+        tenant_id,
+        season_id,
+        currency,
+    )
+    return [dict(row) for row in rows]
+
+
+async def fetch_unpriced_work(conn, tenant_id: str, season_id: str, currency):
+    """``(incomplete, other_currencies)`` for :func:`priced_variance`, in one call."""
+    incomplete = await fetch_unpriced_categories(conn, tenant_id, season_id, currency)
+    other = await fetch_unpriced_other_currencies(conn, tenant_id, season_id, currency)
+    return incomplete, other
+
+
+def priced_variance(
+    budgets, actuals, incomplete: list[dict], other_currencies: list[dict] | None = None
+) -> tuple[list, dict]:
+    """Drop variance lines whose category has unpriced work: a missing cost is not a saving.
+
+    ``incomplete`` is the report currency's unpriced work only; ``other_currencies`` (unpriced
+    work recorded in other currencies) is reported beside it and changes nothing here.
+    """
     variance = compute_variances(budgets, actuals)
     categories = {row["category"] for row in incomplete}
     coverage = {
@@ -630,15 +778,492 @@ def priced_variance(budgets, actuals, incomplete: list[dict]) -> tuple[list, dic
         "unpriced_operations": sum(row["unpriced_operations"] for row in incomplete),
         "incomplete_categories": incomplete,
     }
+    if other_currencies is not None:  # the routes always pass it
+        coverage["unpriced_in_other_currencies"] = list(other_currencies)
     return [line for line in variance if line.category not in categories], coverage
 
 
-async def fetch_season_revenue(conn, tenant_id: str, season_id: str) -> float:
-    """Recorded season revenue (moved from the router: size ratchet)."""
+async def fetch_season_revenue(conn, tenant_id: str, season_id: str, currency=None) -> float:
+    """Recorded season revenue (moved from the router: size ratchet).
+
+    ``currency`` (normalised) restricts the sum to one currency (business-2).
+    """
+    scope, args = _currency_scope(tenant_id, season_id, currency)
     row = await conn.fetchrow(
-        """SELECT COALESCE(SUM(amount), 0)::float AS revenue
-           FROM farm_revenue_records WHERE tenant_id = $1::uuid AND season_id = $2""",
-        tenant_id,
-        season_id,
+        f"""SELECT COALESCE(SUM(amount), 0)::float AS revenue
+           FROM farm_revenue_records WHERE tenant_id = $1::uuid AND season_id = $2{scope}""",
+        *args,
     )
     return float(row["revenue"] or 0.0)
+
+
+async def fetch_ledger_summary_for_season(
+    conn, tenant_id: str, season_id: str, currency: str | None
+) -> LedgerSummary:
+    """Season summary; money sums only in ``currency`` (business-2), the rest over every row."""
+    money = money_filter_sql(3)
+    row = await conn.fetchrow(
+        f"""WITH ops AS (
+            SELECT * FROM farm_operation_ledger WHERE tenant_id = $1::uuid AND season_id = $2
+              AND {ACTUAL_OPERATION_SQL}
+        )
+        SELECT
+            COUNT(*)::int AS operation_count,
+            COALESCE(SUM(cost_amount) FILTER (WHERE {money}), 0)::float AS total_cost,
+            COALESCE(SUM(cost_amount) FILTER (WHERE {money} AND cost_category IN ('administration','overhead','supervision','security','management')), 0)::float AS indirect_cost,
+            COALESCE(SUM(cost_amount) FILTER (WHERE {money} AND sync_status IN ('ready_for_sync','synced','sync_failed')), 0)::float AS syncable_cost,
+            (SELECT SUM(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::float AS water_volume_m3,
+            (SELECT COUNT(*) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_total,
+            (SELECT COUNT(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_measured,
+            COALESCE((SELECT SUM(kwh) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS energy_kwh,
+            COALESCE((SELECT SUM(diesel_liters) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS diesel_liters,
+            COALESCE((SELECT SUM(hours_worked) FROM farm_equipment_records q JOIN ops ON ops.operation_id = q.operation_id), 0)::float AS equipment_hours,
+            COALESCE((SELECT SUM(hours) FROM farm_labor_records l JOIN ops ON ops.operation_id = l.operation_id), 0)::float AS labor_hours
+        FROM ops""",
+        tenant_id,
+        season_id,
+        currency,
+    )
+    breakdown_rows = await conn.fetch(
+        f"""SELECT COALESCE(cost_category, 'uncategorized') AS category,
+                  COALESCE(SUM(cost_amount) FILTER (WHERE {money}), 0)::float AS amount
+           FROM farm_operation_ledger
+           WHERE tenant_id = $1::uuid AND season_id = $2 AND {ACTUAL_OPERATION_SQL}
+           GROUP BY COALESCE(cost_category, 'uncategorized')""",
+        tenant_id,
+        season_id,
+        currency,
+    )
+    total = float(row["total_cost"] or 0.0)
+    indirect = float(row["indirect_cost"] or 0.0)
+    return LedgerSummary(
+        total_cost=total,
+        direct_cost=total - indirect,
+        indirect_cost=indirect,
+        currency=currency or "YER",  # nothing priced: every sum is 0
+        cost_breakdown={r["category"]: float(r["amount"] or 0.0) for r in breakdown_rows},
+        **water_summary_from_row(row),
+        energy_kwh=float(row["energy_kwh"] or 0.0),
+        diesel_liters=float(row["diesel_liters"] or 0.0),
+        equipment_hours=float(row["equipment_hours"] or 0.0),
+        labor_hours=float(row["labor_hours"] or 0.0),
+        input_quantities={},
+        record_count=int(row["operation_count"] or 0),
+        syncable_cost=float(row["syncable_cost"] or 0.0),
+        control_only=float(row["syncable_cost"] or 0.0) == 0.0,
+    )
+
+
+# ─── Governance farm context (W1-12) ──────────────────────────────────────────────────
+# Kept in this module (not a new platform module: test_p0_platform_module_growth_guard).
+# server-side farm facts for the governance gate (W1-12).
+#
+# guardrails-engine asks for farm economics and seasonal water before it rules on a spending
+# action (``services/guardrails-engine/contracts.py``). Those facts are recorded in the farm
+# operations ledger, the revenue records, the water records and ``water_ledger``, and nothing
+# read them (findings x-3, airuntime-3). This module reads them, for one tenant, and returns a
+# ``farm_context`` whose every value carries its source.
+#
+# Rules (fail closed: an absent key makes the gate return ``evidence_unavailable``, never a
+# guess):
+#
+# - Amounts are never converted between currencies and never summed across them. The
+#   guardrails keys are in USD, so ``annual_*_usd`` / ``season_*_usd`` are emitted only when every
+#   amount in their scope is recorded in USD. Other currencies stay in per-currency blocks.
+# - No recorded row is not zero: costs or revenue with no rows are unavailable, not ``0``.
+# - Costs with unpriced completed work are incomplete, so the cost total is not emitted (a
+#   missing cost would read as a lower cost).
+# - ``cash_reserve_usd`` has no server source today and is always unavailable.
+# - Water: a day's metered volume (``farm_water_records``) wins over the ``water_ledger``
+#   irrigation depth for the same day (no double count); a day with an unmeasured record and no
+#   ledger depth makes the season total incomplete, so it is not emitted.
+#
+# The caller passes a connection already scoped to the tenant (``tenant_connection``); every
+# query also binds ``tenant_id`` explicitly.
+SCHEMA = "sahool.governance_farm_context/v1"
+ANNUAL_WINDOW_DAYS = 365
+NO_SERVER_SOURCE = "no_server_source"
+
+#: ``fields.water_source`` vocabulary (well/canal/river/rainfed/tank/mixed) to the classes
+#: guardrails accepts. Anything else (rainfed, tank, free text) is not mapped.
+WATER_SOURCE_CLASS = {
+    "well": "groundwater",
+    "groundwater": "groundwater",
+    "borehole": "groundwater",
+    "canal": "surface",
+    "river": "surface",
+    "surface": "surface",
+    "mixed": "mixed",
+}
+
+_FIELD_SQL = """SELECT field_id, farm_id, area_ha, water_source
+                FROM fields WHERE tenant_id = $1::uuid AND field_id = $2"""
+
+_SEASON_SQL = """
+    SELECT 'seasons' AS source, field_id,
+           COALESCE(sowing_date, plowing_date, land_leveling_date) AS start_date,
+           season_end AS end_date
+      FROM seasons WHERE tenant_id = $1::uuid AND season_id = $2
+    UNION ALL
+    SELECT 'farm_season_projects', NULL, start_date, end_date
+      FROM farm_season_projects WHERE tenant_id = $1::uuid AND season_id = $2
+    LIMIT 1"""
+
+_SEASON_COSTS_SQL = f"""
+    SELECT upper(trim(currency)) AS currency,
+           SUM(cost_amount)::float AS amount,
+           COUNT(*) FILTER (WHERE cost_amount IS NOT NULL)::int AS priced,
+           COUNT(*) FILTER (WHERE cost_amount IS NULL)::int AS unpriced
+      FROM farm_operation_ledger
+     WHERE tenant_id = $1::uuid AND season_id = $2 AND {ACTUAL_OPERATION_SQL}
+     GROUP BY 1 ORDER BY 1"""
+
+_SEASON_REVENUE_SQL = """
+    SELECT upper(trim(currency)) AS currency, SUM(amount)::float AS amount, COUNT(*)::int AS rows
+      FROM farm_revenue_records WHERE tenant_id = $1::uuid AND season_id = $2
+     GROUP BY 1 ORDER BY 1"""
+
+_ANNUAL_COSTS_SQL = f"""
+    SELECT upper(trim(currency)) AS currency,
+           SUM(cost_amount)::float AS amount,
+           COUNT(*) FILTER (WHERE cost_amount IS NOT NULL)::int AS priced,
+           COUNT(*) FILTER (WHERE cost_amount IS NULL)::int AS unpriced
+      FROM farm_operation_ledger
+     WHERE tenant_id = $1::uuid AND operation_date >= $2 AND {ACTUAL_OPERATION_SQL}
+     GROUP BY 1 ORDER BY 1"""
+
+_ANNUAL_REVENUE_SQL = """
+    SELECT upper(trim(currency)) AS currency, SUM(amount)::float AS amount, COUNT(*)::int AS rows
+      FROM farm_revenue_records
+     WHERE tenant_id = $1::uuid AND revenue_date >= $2 AND revenue_date <= $3
+     GROUP BY 1 ORDER BY 1"""
+
+#: Water records of the field in the season: linked to a completed operation of the season,
+#: or unlinked to any season and dated inside the season window. The operation filter is
+#: ``ACTUAL_OPERATION_SQL`` qualified by the join alias.
+_FARM_WATER_SQL = """
+    SELECT w.record_date, w.water_volume_m3
+      FROM farm_water_records w
+      LEFT JOIN farm_operation_ledger o
+        ON o.operation_id = w.operation_id AND o.tenant_id = w.tenant_id
+     WHERE w.tenant_id = $1::uuid AND w.field_id = $2
+       AND (o.operation_id IS NULL
+            OR (o.status = 'completed' AND o.operation_date <= CURRENT_DATE))
+       AND (o.season_id = $3
+            OR (o.season_id IS NULL AND $4::date IS NOT NULL
+                AND w.record_date >= $4::date AND w.record_date <= $5::date))"""
+
+_WATER_LEDGER_SQL = """
+    SELECT ledger_date, irrigation_mm
+      FROM water_ledger
+     WHERE tenant_id = $1::uuid AND field_id = $2
+       AND ledger_date >= $3::date AND ledger_date <= $4::date
+       AND irrigation_mm IS NOT NULL"""
+
+
+def _positive_float(value: Any) -> float | None:
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return None
+    return v if v > 0 and v == v and v != float("inf") else None
+
+
+def _by_currency(rows: Iterable[Any]) -> dict[str, float]:
+    out: dict[str, float] = {}
+    for r in rows:
+        key = normalize_currency(r["currency"]) or "UNKNOWN"
+        if r["amount"] is not None:
+            out[key] = out.get(key, 0.0) + float(r["amount"])
+    return out
+
+
+def usd_total(
+    amounts: dict[str, float], *, rows: int, unpriced: int = 0
+) -> tuple[float | None, str]:
+    """The USD total of a scope and why it is (not) available.
+
+    Only a scope with recorded rows, all priced, all in USD, has a USD total.
+    """
+    if rows == 0:
+        return None, "no_recorded_rows"
+    if unpriced:
+        return None, f"unpriced_operations:{unpriced}"
+    currencies = sorted(amounts)
+    if currencies != ["USD"]:
+        return None, "currency_not_usd:" + ",".join(currencies)
+    return round(amounts["USD"], 2), "ok"
+
+
+def merge_season_water(
+    farm_records: Iterable[tuple[date, float | None]],
+    ledger_days: Iterable[tuple[date, float]],
+    area_ha: float | None,
+) -> dict[str, Any]:
+    """Season water of one field from metered records and ``water_ledger`` depths.
+
+    Per day: the metered volume wins; else the ledger depth (``1 mm × 1 ha = 10 m³``); a day
+    whose only record is unmeasured makes the total incomplete. ``m3_ha`` is ``None`` unless the
+    area is known and every day with water is measured.
+    """
+    metered: dict[date, float] = {}
+    unmeasured: set[date] = set()
+    for day, volume in farm_records:
+        if volume is None:
+            unmeasured.add(day)
+        else:
+            metered[day] = metered.get(day, 0.0) + float(volume)
+    ledger: dict[date, float] = {}
+    for day, mm in ledger_days:
+        ledger[day] = ledger.get(day, 0.0) + float(mm)
+
+    ledger_only = {d: mm for d, mm in ledger.items() if d not in metered}
+    uncovered = sorted(d for d in unmeasured if d not in metered and d not in ledger)
+    total_m3: float | None = sum(metered.values())
+    if ledger_only:
+        total_m3 = None if area_ha is None else total_m3 + sum(ledger_only.values()) * 10 * area_ha
+    days = len(set(metered) | set(ledger_only) | set(uncovered))
+    complete = not uncovered and total_m3 is not None
+    m3_ha = (
+        round(total_m3 / area_ha, 3)
+        if complete and days and area_ha is not None and total_m3 is not None
+        else None
+    )
+    reason = "ok"
+    if not days:
+        reason = "no_water_records"
+    elif area_ha is None:
+        reason = "field_area_unavailable"
+    elif uncovered:
+        reason = f"unmeasured_days:{len(uncovered)}"
+    return {
+        "m3_ha": m3_ha,
+        "reason": reason,
+        "total_m3": round(total_m3, 3) if total_m3 is not None else None,
+        "days": days,
+        "metered_days": len(metered),
+        "ledger_days": len(ledger_only),
+        "unmeasured_days": len(uncovered),
+    }
+
+
+async def build_governance_farm_context(
+    conn,
+    tenant_id: str,
+    *,
+    field_id: str | None = None,
+    season_id: str | None = None,
+    today: date | None = None,
+) -> dict[str, Any]:
+    """Read the tenant's recorded farm facts into a guardrails ``farm_context``.
+
+    Top-level guardrails keys are present only when sourced; ``provenance`` names the source of
+    each, and ``unavailable`` the reason for each key that is absent.
+    """
+    today = today or datetime.now(UTC).date()
+    ctx: dict[str, Any] = {}
+    provenance: dict[str, Any] = {}
+    unavailable: dict[str, str] = {}
+
+    def emit(key: str, value: Any, source: dict[str, Any]) -> None:
+        ctx[key] = value
+        provenance[key] = source
+
+    # ── field: area and water source ───────────────────────────────────────────────
+    area: float | None = None
+    field_row = None
+    if field_id:
+        field_row = await conn.fetchrow(_FIELD_SQL, tenant_id, field_id)
+        if field_row is None:
+            unavailable["field"] = "field_not_found_for_tenant"
+    if field_row is not None:
+        area = _positive_float(field_row["area_ha"])
+        field_src = {"source": "fields", "field_id": field_id, "column": None}
+        if area is not None:
+            emit("field_area_ha", area, {**field_src, "column": "area_ha"})
+        else:
+            unavailable["field_area_ha"] = "area_not_recorded"
+        raw_source = (field_row["water_source"] or "").strip().lower() or None
+        water_class = WATER_SOURCE_CLASS.get(raw_source or "")
+        if water_class:
+            emit(
+                "water_source",
+                water_class,
+                {**field_src, "column": "water_source", "recorded_value": raw_source},
+            )
+        else:
+            unavailable["water_source"] = (
+                f"unmapped_water_source:{raw_source}" if raw_source else "water_source_not_recorded"
+            )
+    elif not field_id:
+        unavailable["field"] = "no_field_in_context"
+
+    # ── season: costs, revenue, water ──────────────────────────────────────────────
+    season = None
+    if season_id:
+        season = await conn.fetchrow(_SEASON_SQL, tenant_id, season_id)
+        if season is None:
+            unavailable["season"] = "season_not_found_for_tenant"
+        elif field_id and season["field_id"] and season["field_id"] != field_id:
+            unavailable["season"] = "season_not_for_field"
+            season = None
+    else:
+        unavailable["season"] = "no_season_in_context"
+
+    if season is not None:
+        costs = await conn.fetch(_SEASON_COSTS_SQL, tenant_id, season_id)
+        revenue = await conn.fetch(_SEASON_REVENUE_SQL, tenant_id, season_id)
+        cost_amounts, revenue_amounts = _by_currency(costs), _by_currency(revenue)
+        priced = sum(r["priced"] for r in costs)
+        unpriced = sum(r["unpriced"] for r in costs)
+        revenue_rows = sum(r["rows"] for r in revenue)
+        season_src = {
+            "season_id": season_id,
+            "season_source": season["source"],
+            "prediction": False,
+        }
+        ctx["season_economics"] = {
+            **season_src,
+            "costs_by_currency": cost_amounts,
+            "revenue_by_currency": revenue_amounts,
+            "priced_operations": priced,
+            "unpriced_operations": unpriced,
+            "cost_coverage": "partial" if unpriced else "recorded_operations",
+            "revenue_records": revenue_rows,
+            "source": ["farm_operation_ledger", "farm_revenue_records"],
+        }
+        value, why = usd_total(cost_amounts, rows=priced + unpriced, unpriced=unpriced)
+        if value is not None:
+            emit("season_costs_usd", value, {**season_src, "source": "farm_operation_ledger"})
+        else:
+            unavailable["season_costs_usd"] = why
+        value, why = usd_total(revenue_amounts, rows=revenue_rows)
+        if value is not None:
+            emit("season_revenue_usd", value, {**season_src, "source": "farm_revenue_records"})
+        else:
+            unavailable["season_revenue_usd"] = why
+
+        if field_id and field_row is not None:
+            start, end = season["start_date"], season["end_date"] or today
+            end = min(end, today)
+            farm_rows = await conn.fetch(
+                _FARM_WATER_SQL, tenant_id, field_id, season_id, start, end
+            )
+            ledger_rows = (
+                await conn.fetch(_WATER_LEDGER_SQL, tenant_id, field_id, start, end)
+                if start is not None
+                else []
+            )
+            water = merge_season_water(
+                [(r["record_date"], r["water_volume_m3"]) for r in farm_rows],
+                [(r["ledger_date"], r["irrigation_mm"]) for r in ledger_rows],
+                area,
+            )
+            window = {
+                "from": start.isoformat() if start else None,
+                "to": end.isoformat(),
+            }
+            ctx["season_water"] = {**water, "window": window, "field_id": field_id}
+            if water["m3_ha"] is not None:
+                emit(
+                    "season_water_used_m3_ha",
+                    water["m3_ha"],
+                    {
+                        **season_src,
+                        "field_id": field_id,
+                        "window": window,
+                        "source": ["farm_water_records", "water_ledger", "fields.area_ha"],
+                        "method": "metered volume per day, else water_ledger irrigation_mm x 10 x area",
+                    },
+                )
+            else:
+                unavailable["season_water_used_m3_ha"] = water["reason"]
+        else:
+            unavailable["season_water_used_m3_ha"] = "no_field_in_context"
+    else:
+        unavailable.setdefault("season_water_used_m3_ha", unavailable.get("season", ""))
+
+    # ── trailing year, whole tenant ────────────────────────────────────────────────
+    since = today - timedelta(days=ANNUAL_WINDOW_DAYS)
+    annual_src = {
+        "scope": "tenant",
+        "window": {"from": since.isoformat(), "to": today.isoformat()},
+        "prediction": False,
+    }
+    costs = await conn.fetch(_ANNUAL_COSTS_SQL, tenant_id, since)
+    revenue = await conn.fetch(_ANNUAL_REVENUE_SQL, tenant_id, since, today)
+    cost_amounts, revenue_amounts = _by_currency(costs), _by_currency(revenue)
+    priced = sum(r["priced"] for r in costs)
+    unpriced = sum(r["unpriced"] for r in costs)
+    revenue_rows = sum(r["rows"] for r in revenue)
+    ctx["annual_economics"] = {
+        **annual_src,
+        "costs_by_currency": cost_amounts,
+        "revenue_by_currency": revenue_amounts,
+        "priced_operations": priced,
+        "unpriced_operations": unpriced,
+        "revenue_records": revenue_rows,
+    }
+    value, why = usd_total(cost_amounts, rows=priced + unpriced, unpriced=unpriced)
+    if value is not None:
+        emit("annual_costs_usd", value, {**annual_src, "source": "farm_operation_ledger"})
+    else:
+        unavailable["annual_costs_usd"] = why
+    value, why = usd_total(revenue_amounts, rows=revenue_rows)
+    if value is not None:
+        emit("annual_revenue_usd", value, {**annual_src, "source": "farm_revenue_records"})
+    else:
+        unavailable["annual_revenue_usd"] = why
+
+    unavailable["cash_reserve_usd"] = NO_SERVER_SOURCE
+    ctx["provenance"] = provenance
+    ctx["unavailable"] = {k: v for k, v in unavailable.items() if v}
+    ctx["context_schema"] = SCHEMA
+    ctx["built_from"] = "server"
+    return ctx
+
+
+FARM_CONTEXT_TIMEOUT_S = 10.0
+
+
+def threadsafe_farm_context_fn(
+    loop: asyncio.AbstractEventLoop,
+    open_connection: Callable[[], Any],
+    tenant_id: str,
+    season_id: str | None,
+    *,
+    timeout_s: float = FARM_CONTEXT_TIMEOUT_S,
+    sink: dict | None = None,
+) -> Callable[[str, str | None], dict[str, Any]]:
+    """A synchronous ``farm_context_fn(tenant_id, field_id)`` for a worker thread.
+
+    The pest-escalation workflow runs in a thread (``asyncio.to_thread``) while the database
+    pool belongs to the request's event loop, so the builder is scheduled back on that loop.
+    ``open_connection()`` returns an async context manager yielding a tenant-scoped connection.
+    The function raises on a tenant mismatch, a timeout or a database error; the gate turns
+    any exception into a block (fail closed). ``sink["farm_context"]`` keeps what was read so
+    the caller can expose it in the workflow state.
+    """
+
+    async def _load(field_id: str | None) -> dict[str, Any]:
+        async with open_connection() as conn:
+            return await build_governance_farm_context(
+                conn, tenant_id, field_id=field_id, season_id=season_id
+            )
+
+    def farm_context_fn(requested_tenant: str, field_id: str | None) -> dict[str, Any]:
+        if str(requested_tenant) != str(tenant_id):
+            raise PermissionError("farm_context_tenant_mismatch")
+        future = asyncio.run_coroutine_threadsafe(_load(field_id), loop)
+        try:
+            farm = future.result(timeout=timeout_s)
+        except BaseException:
+            # A timeout must not leave the load holding its pooled connection: cancelling the
+            # future cancels the task on the loop, which releases the connection. Still raises.
+            future.cancel()
+            raise
+        if sink is not None:
+            sink["farm_context"] = farm
+        return farm
+
+    return farm_context_fn

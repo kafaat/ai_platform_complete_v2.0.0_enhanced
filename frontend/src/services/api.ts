@@ -456,13 +456,15 @@ export interface NlGisResult {
   read_only:   boolean;
   intent:      string;                 // alert_filter | ndvi_drop | irrigation_gap | unsupported
   supported:   boolean;
-  status:      string;                 // ok | needs_data | unsupported
+  status:      string;                 // ok | partial | needs_data | unsupported
   slots?:      Record<string, string | number | null>;
   confidence?: number;
   api_called?: string;
   items:       NlGisItem[];
   count:       number;
-  note_ar?:    string | null;          // شرح الفراغ/الحاجة للبيانات
+  note_ar?:    string | null;          // شرح الفراغ/الحاجة للبيانات/المسح الناقص
+  // ndvi_drop: تغطية مسح raster — partial إن تعذّر حقل أو بُتر المسح (فراغه ليس نتيجة صادقة).
+  coverage?:   { fields_scanned: number; fields_truncated: boolean; raster_unavailable: number; insufficient_history?: number; not_comparable?: number; complete: boolean } | null;
   reason_ar?:  string | null;          // سبب عدم الدعم (intent=unsupported)
   tenant_id?:  string;
 }

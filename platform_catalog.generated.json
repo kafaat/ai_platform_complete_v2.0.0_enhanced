@@ -1900,6 +1900,22 @@
     },
     {
       "approval_required": false,
+      "capability_id": "field-management-service.internal.field-tasks.scouting",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /internal/field-tasks/scouting",
+        "POST /internal/field-tasks/scouting"
+      ],
+      "idempotency_required": true,
+      "kind": "mixed",
+      "owner": "field-management-service",
+      "producer": "field-management-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "field-management-service.internal.field-tasks.tasks",
       "consumers": [],
       "curated": false,
@@ -16970,6 +16986,7 @@
         "services": [
           "decision-service",
           "indicators-service",
+          "sahool-field-management",
           "sahool-platform",
           "sahool-vegetation-analysis"
         ]
@@ -17902,10 +17919,10 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 845,
+    "capabilities": 846,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
-    "capabilities_idempotent": 75,
+    "capabilities_idempotent": 76,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 481,
     "components": 37,
@@ -17913,9 +17930,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1169,
+    "route_rows": 1171,
     "ui_waivers": 52,
-    "unique_method_path": 1048
+    "unique_method_path": 1050
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18177,7 +18194,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "542e900b8fd2e409978c135a6b6cbb7df0412a504ec204c2a1cfebae775c8427",
+  "fingerprint": "9cc1a910853669d648033420e0bfacda95840b7bb0b66ac9d4f7abbfc0f13907",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18229,16 +18246,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1065,
+      "edge_count": 1086,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 569,
+        "READS": 589,
         "ROUTES_TO": 75,
-        "WRITES": 370
+        "WRITES": 371
       }
     },
     "u3_wiring_ownership": {

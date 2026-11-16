@@ -45,6 +45,19 @@ def gdd_base_c(crop_id: str | None) -> float | None:
     return card.get("thermal", {}).get("gdd_base_c")
 
 
+def gdd_to_maturity(crop_id: str | None) -> float | None:
+    """GDD التراكميّ للنضج من بطاقة المحصول (``thermal.gdd_to_maturity``)، أو None.
+
+    المصدر الواحد لعتبة النضج الحراريّة: ``gdd_tracker`` و``season_simulation`` يقرآنها من
+    هنا للمحاصيل الموحَّدة (crop-4)، فلا تتعدّد قيم نضج القمح بين الوحدات. صفر/غياب ⇒ None.
+    """
+    card = load_crop_card(crop_id) if crop_id else None
+    value = (card or {}).get("thermal", {}).get("gdd_to_maturity")
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
+        return None
+    return float(value)
+
+
 def gdd_stage_thresholds(crop_id: str | None) -> list[dict]:
     """عتبات GDD لكلّ مرحلة طوريّة (مشتقّة من stage_days نسبيّاً × gdd_to_maturity).
 
@@ -80,7 +93,11 @@ def gdd_stage_thresholds(crop_id: str | None) -> list[dict]:
 
 
 def stage_from_gdd(crop_id: str | None, accumulated_gdd: float | None) -> dict | None:
-    """المرحلة الطوريّة الموافقة لدرجات نموّ متراكمة — أو None إن تعذّر/تجاوز النضج."""
+    """المرحلة الطوريّة الموافقة لدرجات نموّ متراكمة داخل نطاقات العتبات — أو None إن تعذّر/تجاوز النضج.
+
+    لا تحسم ما بعد النضج: ذلك قرار المحلِّل الواحد ``phenology_progress`` الذي يُبقي المرحلة
+    الأخيرة حراريّةً (``stage_past_maturity``) ولا يهبط إلى التقويم.
+    """
     if accumulated_gdd is None:
         return None
     thresholds = gdd_stage_thresholds(crop_id)
@@ -101,6 +118,10 @@ def phenology_progress(
     ``gdd_fraction`` (0..1+)، ``maturity_reached_gdd``، ``days_stage``/``gdd_stage``
     (اسم كلٍّ)، و``divergence`` {diverged, direction: ahead/behind/aligned} حين يتوفّر
     التقديران. صدق: المُعمِّرات/الناقص ⇒ gdd_applicable=False دون رقم مُلفَّق.
+
+    وهو **محلِّل المرحلة الواحد** للمنصّة: ``stage``/``stage_ar`` المرحلة الفعّالة،
+    ``stage_source`` = ``gdd`` | ``days`` | None (بعد النضج الحراريّ ``gdd`` بآخر مرحلة و``stage_past_maturity``)، و``stage_fallback`` = ``calendar_days`` حين
+    تُستعمَل الأيّام احتياطاً مُعلَناً مع ``stage_fallback_reason`` (لماذا لم تنطبق الحرارة).
     """
     from core.season_phenology import current_stage  # تفادي دور الاستيراد
 
@@ -110,6 +131,13 @@ def phenology_progress(
 
     days_st = current_stage(crop_id, days_since_sowing)
     gdd_st = stage_from_gdd(crop_id, accumulated_gdd) if gdd_applicable else None
+    # بعد النضج الحراريّ تبقى المرحلة حراريّة: آخر مرحلة في البطاقة (النضج) لا مرحلة التقويم.
+    # الهبوط إلى الأيّام هنا كان يُرجِع حقلاً ناضجاً حراريّاً إلى «mid» تقويميّاً في موسم حارّ.
+    past_maturity = bool(
+        gdd_applicable and accumulated_gdd is not None and accumulated_gdd >= total_gdd
+    )
+    if gdd_st is None and past_maturity:
+        gdd_st = gdd_stage_thresholds(crop_id)[-1]
 
     result: dict = {
         "gdd_applicable": gdd_applicable,
@@ -129,6 +157,27 @@ def phenology_progress(
         "gdd_stage_ar": gdd_st.get("name_ar") if gdd_st else None,
         "note_ar": None,
     }
+
+    # ── المحلِّل الواحد للمرحلة (W1-10): الحراريّة أوّلاً، ثمّ الاحتياطي التقويميّ المُعلَن ──
+    # كلّ مستهلك (حالة الموسم، سياق الحقل، /phenology، محرّك الحالة الزراعيّة) يقرأ
+    # ``stage``/``stage_source`` من هنا بدل أن يختار بنفسه، و``stage_fallback_reason`` يقول
+    # لماذا لم تُستعمَل الحرارة حين تكون المرحلة تقويميّة.
+    if gdd_st:
+        stage_source, fallback_reason = "gdd", None
+    else:
+        if not gdd_applicable:
+            fallback_reason = "gdd_not_applicable"
+        elif accumulated_gdd is None:
+            fallback_reason = "accumulated_gdd_missing"
+        else:
+            fallback_reason = "gdd_out_of_range"
+        stage_source = "days" if days_st else None
+    result["stage"] = result["gdd_stage"] or result["days_stage"]
+    result["stage_ar"] = result["gdd_stage_ar"] or result["days_stage_ar"]
+    result["stage_source"] = stage_source
+    result["stage_fallback"] = "calendar_days" if stage_source == "days" else None
+    result["stage_fallback_reason"] = fallback_reason
+    result["stage_past_maturity"] = past_maturity
 
     # كشف التباعد: يتطلّب توفّر التقديرين معاً.
     if days_st and gdd_st:
@@ -157,6 +206,54 @@ def phenology_progress(
             )
 
     return result
+
+
+def resolve_stage(
+    crop_id: str | None,
+    days_since_sowing: int | None,
+    accumulated_gdd: float | None = None,
+) -> tuple[dict | None, dict]:
+    """(صفّ المرحلة من بطاقة المحصول، نتيجة ``phenology_progress``) للمرحلة المحلَّلة.
+
+    لمستهلكٍ يحتاج صفّ البطاقة كاملاً (``key_action_ar``/``day_start``…) لا اسمها فقط —
+    كـ``/phenology`` و``/stage-actions``. المرحلة نفسها من المحلِّل الواحد، لا من الأيّام وحدها.
+    """
+    resolved = phenology_progress(crop_id, days_since_sowing, accumulated_gdd)
+    name = resolved.get("stage")
+    card = load_crop_card(crop_id) if crop_id and name else None
+    for st in (card or {}).get("phenology", {}).get("stages", []):
+        if st.get("stage") == name:
+            return st, resolved
+    return None, resolved
+
+
+def stage_equivalent_day(
+    crop_id: str | None, days_since_sowing: int | None, resolved: dict
+) -> int | None:
+    """اليوم على منحنى البطاقة الموافق للمرحلة المحلَّلة — لكي يتبع Kc والخطّ الزمنيّ المرحلةَ نفسها.
+
+    مرحلة حراريّة ⇒ استيفاء خطّيّ داخل نطاق المرحلة: موضع GDD بين ``gdd_start``/``gdd_end``
+    يُنقَل إلى الموضع نفسه بين ``day_start``/``day_end`` لصفّ البطاقة، فيقع اليوم داخل المرحلة
+    الحراريّة دائماً (``current_stage`` له = المرحلة المحلَّلة). مرحلة تقويميّة ⇒ أيّام البذار
+    كما هي. لا مرحلة ⇒ None.
+    """
+    if resolved.get("stage_source") != "gdd":
+        return days_since_sowing if resolved.get("stage_source") == "days" else None
+    acc = resolved.get("accumulated_gdd")
+    name = resolved.get("stage")
+    band = next((th for th in gdd_stage_thresholds(crop_id) if th["stage"] == name), None)
+    card = load_crop_card(crop_id) if crop_id else None
+    row = next(
+        (st for st in (card or {}).get("phenology", {}).get("stages", []) if st["stage"] == name),
+        None,
+    )
+    if acc is None or band is None or row is None:
+        return None
+    span = band["gdd_end"] - band["gdd_start"]
+    frac = (acc - band["gdd_start"]) / span if span > 0 else 0.0
+    frac = min(max(frac, 0.0), 1.0)
+    day = row["day_start"] + int(frac * (row["day_end"] - row["day_start"]))
+    return min(day, row["day_end"] - 1) if row["day_end"] > row["day_start"] else row["day_start"]
 
 
 def _critical_gdd_bounds(crop_id: str | None) -> dict | None:

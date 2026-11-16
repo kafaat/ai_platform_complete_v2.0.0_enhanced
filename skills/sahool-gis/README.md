@@ -27,7 +27,7 @@
 | المعدّات والأجهزة | [EQUIPMENT_OVERLAY.md](EQUIPMENT_OVERLAY.md) | `GET /equipment`، `GET /devices`، `GET /devices/{id}/telemetry` | overlay |
 | تصدير لقطة وتقرير | [EXPORT_SNAPSHOT.md](EXPORT_SNAPSHOT.md) | canvas + `POST /fields/{id}/walk-plan/pdf` | تصدير |
 | القرار الموحّد | [UNIFIED_DECISION.md](UNIFIED_DECISION.md) | `POST /crop-twin/decision`، `GET /fields/{id}/workspace` | قرار |
-| GIS باللغة الطبيعيّة (قراءة فقط) | [NL_GIS_QUERY.md](NL_GIS_QUERY.md) | `POST /nl-gis/query` (نيّات مغلقة → `alerts⋈fields`/`ndvi_timeseries`/`irrigation_schedules`) | لغة→نيّة |
+| GIS باللغة الطبيعيّة (قراءة فقط) | [NL_GIS_QUERY.md](NL_GIS_QUERY.md) | `POST /nl-gis/query` (نيّات مغلقة → `alerts⋈fields`/raster-service NDVI/`irrigation_schedules`) | لغة→نيّة |
 
 ---
 

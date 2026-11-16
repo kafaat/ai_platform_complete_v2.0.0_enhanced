@@ -25,14 +25,16 @@ from dataclasses import dataclass
 # T_base = الحرارة تحت أيّ نموّ يتوقّف؛ stages = GDD تراكمي لبداية كلّ مرحلة
 GDD_CROP_PARAMS: dict[str, dict] = {
     "wheat": {
-        "t_base": 0.0,
+        # crop-4: الأساس وعتبة النضج من بطاقة المحصول (``CARD_THERMAL_CROPS`` أدناه)؛ القيمتان
+        # هنا تُستبدَلان عند التحميل ولا تُقرَآن. المراحل الوسيطة قيم أدبيّات تحتاج معايرة.
+        "t_base": None,
         "t_upper": 30.0,
         "stages": [
             ("emergence", 120),
             ("tillering", 400),
             ("heading", 900),
             ("flowering", 1100),
-            ("maturity", 1600),
+            ("maturity", None),
         ],
     },
     "barley": {
@@ -80,6 +82,29 @@ GDD_CROP_PARAMS: dict[str, dict] = {
         ],
     },
 }
+
+
+#: المحاصيل التي تُقرأ معاملاتها الحراريّة (أساس GDD + GDD النضج) من بطاقة المحصول، المصدر
+#: الواحد الذي تقرؤه ``core.gdd_phenology`` و``api.season_simulation`` (crop-4: كان للقمح ثلاث
+#: قيم نضج 1600/1800/2000). البقيّة على قيمها الأدبيّة حتّى توفيقٍ زراعيّ لكلّ بطاقة.
+CARD_THERMAL_CROPS = frozenset({"wheat"})
+
+
+def _apply_card_thermal() -> None:
+    from core.gdd_phenology import gdd_base_c, gdd_to_maturity
+
+    for crop in CARD_THERMAL_CROPS:
+        base, maturity = gdd_base_c(crop), gdd_to_maturity(crop)
+        if base is None or maturity is None:
+            raise RuntimeError(f"crop card for {crop} lacks thermal.gdd_base_c/gdd_to_maturity")
+        params = GDD_CROP_PARAMS[crop]
+        params["t_base"] = float(base)
+        params["stages"] = [
+            (name, maturity if name == "maturity" else thr) for name, thr in params["stages"]
+        ]
+
+
+_apply_card_thermal()
 
 
 @dataclass

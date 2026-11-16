@@ -2144,10 +2144,6 @@
     "kind": "tests"
   },
   {
-    "path": "frontend/src/sections/NlGisPage.test.tsx",
-    "kind": "web"
-  },
-  {
     "path": "frontend/src/sections/NotificationSettingsPage.tsx",
     "kind": "web"
   },
@@ -2717,6 +2713,14 @@
   },
   {
     "path": "migrations/v280_water_ledger_irrigation_report.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v284_water_ledger_irrigation_source.down.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v284_water_ledger_irrigation_source.sql",
     "kind": "database"
   },
   {
@@ -5017,6 +5021,10 @@
   },
   {
     "path": "services/edge-inference/models_manifest/edge_models.required.json",
+    "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/models_manifest/pest_labels.json",
     "kind": "backend"
   },
   {
@@ -9104,6 +9112,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_ledger_currency_governance_context.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_ledger_variance_coverage.py",
     "kind": "tests"
   },
@@ -9772,6 +9784,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_wheat_thermal_parameters_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_wind_geometry.py",
     "kind": "tests"
   },
@@ -9977,6 +9993,10 @@
   },
   {
     "path": "services/soil-service/test_soil_evidence_adapters_and_policy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_hydraulic_projection.py",
     "kind": "tests"
   },
   {
@@ -10188,10 +10208,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/vegetation-analysis-service/ground_verification_bridge.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/vegetation-analysis-service/indicator_registry.py",
     "kind": "backend"
   },
@@ -10241,10 +10257,6 @@
   },
   {
     "path": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
-    "kind": "tests"
-  },
-  {
-    "path": "services/vegetation-analysis-service/test_ground_verification_bridge.py",
     "kind": "tests"
   },
   {
@@ -11752,6 +11764,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_edge_pest_label_manifest.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_edge_sync_recovery.py",
     "kind": "tests"
   },
@@ -12721,6 +12737,10 @@
   },
   {
     "path": "tests_v9/test_p3_legacy_routes_and_indicator_ui.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_pest_taxonomy_ipm_resolution.py",
     "kind": "tests"
   },
   {

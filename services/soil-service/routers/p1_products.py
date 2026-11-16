@@ -172,7 +172,7 @@ async def current_hydraulic(field_id: str, x_agent_token: str = Header(None)):
     await main._require_field_tenant(field_id)
     if not main._pool:
         raise HTTPException(503, "database unavailable")
-    out = await p1_store.get_latest(main._pool, t, "soil_hydraulic_profiles", "field_id", field_id)
+    out = await p1_store.get_current_hydraulic(main._pool, t, field_id)
     if not out:
         raise HTTPException(404, "hydraulic profile not found")
     return out

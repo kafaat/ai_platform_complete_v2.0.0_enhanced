@@ -72,8 +72,12 @@ def test_actuals_queries_count_only_completed_operations_up_to_today():
     fetch = core_src.split("async def fetch_budget_and_actual", 1)[1]
     assert "AND {ACTUAL_OPERATION_SQL}" in fetch
     router = (API / "routers/farm_operations_ledger.py").read_text(encoding="utf-8")
-    # HTTP summary (ops CTE + breakdown) and the season summary (CTE + breakdown).
-    assert router.count("{ledger_core.ACTUAL_OPERATION_SQL}") == 4
+    # HTTP summary (ops CTE + breakdown) in the router; the season summary (CTE + breakdown)
+    # moved to core.fetch_ledger_summary_for_season (#1500). All four filter actual work.
+    assert router.count("{ledger_core.ACTUAL_OPERATION_SQL}") == 2
+    season = core_src.split("async def fetch_ledger_summary_for_season", 1)[1]
+    season = season.split("\n\n\n", 1)[0]  # the function body only
+    assert season.count("AND {ACTUAL_OPERATION_SQL}") == 2
     assert '"planned_cost": float(row["planned_cost"] or 0.0)' in router
     assert "async def _fetch_budget_and_actual" not in router, (
         "budget/actual fetch moved to core.farm_operations_ledger; a router copy would split the query"

@@ -160,15 +160,31 @@ async def test_disease_risk_refuses_to_score_absent_temperature_and_humidity(mon
 
     monkeypatch.setattr(fields, "tenant_connection", lambda user: nullcontext())
     monkeypatch.setattr(fields, "_field_weather_context", field_context_without_db)
-    _stub_fetch(
-        monkeypatch,
-        current=_CURRENT_WITHOUT_READINGS,
-        daily={"precipitation_sum": [1.0, 2.0, 3.0], "time": ["a", "b", "c"]},
-    )
+    # W1-22: المسارُ يقرأ مشاهداتِ weather-service لا الموصّل — فالغيابُ يصل `null` في
+    # المشاهدة (`missing_fields`)، ويُستبدَل النقلُ وحدَه (`weather_get_json`) لا المُحوِّل.
+    from api import weather_service_client
+
+    async def fake_weather_get_json(path, **_kw):
+        if path.endswith("/current"):
+            return {
+                "temperature_c": None,
+                "humidity_pct": None,
+                "precipitation_mm": 0.0,
+                "missing_fields": ["temperature_c", "humidity_pct"],
+                "quality_status": "degraded",
+            }
+        return {
+            "days": [
+                {"date": d, "precipitation_mm": mm}
+                for d, mm in zip("abc", (1.0, 2.0, 3.0), strict=True)
+            ]
+        }
+
+    monkeypatch.setattr(weather_service_client, "weather_get_json", fake_weather_get_json)
     with pytest.raises(HTTPException) as ei:
         await fields.field_disease_risk("f1", user=None)
-    assert ei.value.status_code == 503
-    assert "الحرارة" in str(ei.value.detail)
+    assert ei.value.status_code == 503, "absent temperature/humidity must fail closed"
+    assert "الحرارة" in str(ei.value.detail), "the 503 must name the missing reading"
 
 
 def test_the_spray_judgement_does_not_turn_an_absent_temperature_into_permission():

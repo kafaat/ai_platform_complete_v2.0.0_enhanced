@@ -119,6 +119,7 @@ erp-bridge.sync,command,erp-bridge,POST /v1/sync,,route,False
 erp-bridge.webhook.odoo,command,erp-bridge,POST /v1/webhook/odoo,,route,False
 field-management-service.internal.field-tasks.farm-book,command,field-management-service,POST /internal/field-tasks/farm-book/entries/{entry_id}/task,,route,False
 field-management-service.internal.field-tasks.fields,mixed,field-management-service,GET /internal/field-tasks/fields/{field_id}/inspection-assignees|GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task|GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff|POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task|POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept|POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding|POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign,,route,False
+field-management-service.internal.field-tasks.scouting,mixed,field-management-service,GET /internal/field-tasks/scouting|POST /internal/field-tasks/scouting,,route,False
 field-management-service.internal.field-tasks.tasks,query,field-management-service,GET /internal/field-tasks/tasks/{task_id}/cost-trace,,route,False
 field-management-service.internal.fields,query,field-management-service,GET /internal/fields,,route,False
 field-management-service.internal.fields.field_id,query,field-management-service,GET /internal/fields/{field_id},,route,False
