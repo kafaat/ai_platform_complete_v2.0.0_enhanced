@@ -9,7 +9,7 @@
       "registrations": [
         {
           "function": "root",
-          "line": 292,
+          "line": 299,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/",
@@ -32,7 +32,7 @@
       "registrations": [
         {
           "function": "capabilities",
-          "line": 417,
+          "line": 524,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/capabilities",
@@ -63,7 +63,7 @@
         },
         {
           "function": "contract",
-          "line": 269,
+          "line": 275,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/contract",
@@ -110,7 +110,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 231,
+          "line": 237,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/health",
@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 817,
+          "line": 897,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 251,
+          "line": 259,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -285,7 +285,7 @@
         },
         {
           "function": "health_check",
-          "line": 205,
+          "line": 219,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/healthz",
@@ -293,7 +293,7 @@
         },
         {
           "function": "healthz",
-          "line": 226,
+          "line": 232,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/healthz",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 817,
+          "line": 897,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -413,7 +413,7 @@
         },
         {
           "function": "healthz",
-          "line": 39,
+          "line": 49,
           "method": "GET",
           "module": "services/remote-sensing-workspace-bff/main.py",
           "path": "/healthz",
@@ -500,7 +500,7 @@
         },
         {
           "function": "metrics",
-          "line": 446,
+          "line": 483,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -516,7 +516,7 @@
         },
         {
           "function": "metrics",
-          "line": 422,
+          "line": 529,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/metrics",
@@ -635,7 +635,7 @@
         },
         {
           "function": "readyz",
-          "line": 465,
+          "line": 502,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -659,7 +659,7 @@
         },
         {
           "function": "readyz",
-          "line": 432,
+          "line": 539,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/readyz",
@@ -667,7 +667,7 @@
         },
         {
           "function": "readyz",
-          "line": 236,
+          "line": 242,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/readyz",
@@ -723,7 +723,7 @@
         },
         {
           "function": "readyz",
-          "line": 830,
+          "line": 910,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -787,7 +787,7 @@
         },
         {
           "function": "readyz",
-          "line": 44,
+          "line": 54,
           "method": "GET",
           "module": "services/remote-sensing-workspace-bff/main.py",
           "path": "/readyz",
@@ -961,7 +961,7 @@
         },
         {
           "function": "mcp_tools_list",
-          "line": 663,
+          "line": 743,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools",
@@ -1000,7 +1000,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 748,
+          "line": 828,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1116,7 +1116,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 695,
+          "line": 775,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1155,7 +1155,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 512,
+          "line": 550,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1186,7 +1186,7 @@
         },
         {
           "function": "recommend",
-          "line": 545,
+          "line": 598,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1154,
-  "route_inventory_sha256": "928f4fb1b1a3194612b709f5c2b2db82b902b026676abd603e245b665db5b6df",
+  "route_count": 1156,
+  "route_inventory_sha256": "544d54d10f87b86d35da751c0dc70e38c7fff408225dc26a5e6845742357c539",
   "runtime_verified": false,
   "schema_version": 1
 }

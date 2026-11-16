@@ -78,6 +78,14 @@ _PROXIED = (
     "/api/",
     "/auth/",
     "= /runtime-identity",
+    # W0-09 (web-1/deploy-4/deploy-11): routes ported from nginx.v9.conf after main@eb0be3977.
+    # Same two values as every block above (v9's proxy_params.conf); no key or bucket moves.
+    "~ ^/api/v1/gis/cloud-native/rasters/[^/]+/tiles/",
+    "^~ /api/v1/scouting-media/",
+    "^~ /api/v1/field-tasks/",
+    "~ ^/api/v1/seasons/[^/]+/simulate$",
+    "~ ^/api/v1/seasons/[^/]+/accept$",
+    "~ ^/api/v1/seasons",
 )
 MAIN_CLIENT_HEADERS = Counter(
     {

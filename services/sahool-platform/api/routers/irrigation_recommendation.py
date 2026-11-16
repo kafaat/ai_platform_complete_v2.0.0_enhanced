@@ -13,6 +13,7 @@ ET0 يُجلَب من **منتج محرّك الطقس** (``get_et0_product``) �
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import logging
@@ -30,8 +31,10 @@ from api.canonical_water_stress import (
 # مرحلةُ المرشَّح تُستورَد ولا تُكرَّر: سلسلةٌ ثانيةٌ باسم `"candidate"` هنا كانت ستُطابِق
 # اليوم وتنحرف غداً، وشرطُ الإثبات يقارنها بما يُعيده المُسجِّل.
 from api.crop_decision_bridge import CANDIDATE_STAGE
-from api.decision_service_client import irrigation_candidate_lineage, record_decision
+from api.decision_service_client import irrigation_candidate_lineage
+from api.decision_service_client import submit_irrigation_candidate as _submit_candidate_to_decision
 from api.field_context import _field_weather_context, field_irrigation_type
+from api.field_context import field_elevation_or_none as _field_elevation_m
 from api.irrigation_engineering_workspace import (
     build_manual_source,
     manual_canonical_location,
@@ -103,19 +106,9 @@ _LOG = logging.getLogger("sahool.irrigation.et0")
 _ENGINE_DOWN_CODES = (502, 503, 504)
 
 
-async def _field_weather_snapshot(latitude_deg: float, longitude_deg: float) -> dict:
-    return await field_irrigation_weather_snapshot(
-        latitude_deg, longitude_deg, forecast_loader=get_weather_forecast
-    )
-
-
-async def _submit_candidate_to_decision(payload: dict, tenant_id: str | None) -> dict:
-    """يقدّم المرشَّح إلى خدمة القرار (تسجيل معلَّق للموافقة) — نقطة وصل قابلة للـmonkeypatch.
-
-    **لا ينفّذ**: يُسجّل قراراً معلَّقاً (pending_approval) فقط؛ التنفيذ المحروس (حواجز +
-    human-in-loop + طابور) يبقى في مسار decision_dispatch. تعذّر الخدمة ⇒ HTTPException.
-    """
-    return await record_decision(payload, tenant_id=tenant_id)
+_field_weather_snapshot = functools.partial(
+    field_irrigation_weather_snapshot, forecast_loader=get_weather_forecast
+)
 
 
 @router.post("/api/v1/irrigation-recommendation")
@@ -291,6 +284,7 @@ async def field_irrigation_recommendation(
 
         applied_status = await resolve_applied_water_status(conn, field_id, lrow)
         soil_row = await latest_lab_texture_row(conn, field_id)  # WS-D.2b: نسيج مخبريّ ⇒ TAW
+        field_elevation = await _field_elevation_m(conn, field_id)
 
     depletion_mm = lrow["depletion_mm"] if lrow else None
     dep_conf = lrow["confidence"] if lrow else None
@@ -442,12 +436,18 @@ async def field_irrigation_recommendation(
             f"spectral-confirmation:ndmi+msi:{'detected' if stress.get('spectral_stress_detected') else 'no-stress'}"
         )
 
-    _elev_default_m = 2000.0
+    # fields-16: ارتفاع الحقل المسجَّل لا 2000م ثابتة؛ مجهولٌ ⇒ None فيُعلِن المحرّك degraded.
+    elevation_m = field_elevation
     if canonical is not None:
         try:
-            field_lat, field_lon, _elev_default_m = manual_canonical_location(canonical)
+            field_lat, field_lon, elevation_m = manual_canonical_location(canonical)
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if elevation_m is None:
+        state["limitations"] = [
+            *state["limitations"],
+            "field elevation unknown — ET0 is computed without it and declared degraded",
+        ]
 
     # WS-D.2c: الطقس يُجلَب آليّاً من محرّك الطقس (المسار الأساسيّ). حرارة الطلب تجاوز
     # يدويّ فقط. تعذّر جلب الطقس ⇒ dependency_unavailable (لا توصية على طقس مفقود).
@@ -530,7 +530,7 @@ async def field_irrigation_recommendation(
 
     # G15: يوم المحرّك/التجاوز، وإلّا تاريخ الخادم الفعليّ — لا ثابت 100 (مُعلَن المصدر).
     wx_doy, wx_doy_source = resolve_day_of_year(wx.get("day_of_year"))
-    # ET0 from the weather engine; legacy nonmanual elevation remains unchanged.
+    # ET0 from the weather engine at the field's elevation (manual: canonical elevation).
     try:
         et0_prod = await _engine_et0(
             t_min_c=wx["t_min_c"],
@@ -540,7 +540,7 @@ async def field_irrigation_recommendation(
             wind_2m_ms=wx.get("wind_2m_ms"),
             day_of_year=wx_doy,
             latitude_deg=field_lat,
-            elevation_m=_elev_default_m,
+            elevation_m=elevation_m,
             valid_time=wx.get("valid_time"),
             tenant_id=getattr(user, "tenant_id", None),
         )

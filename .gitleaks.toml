@@ -65,6 +65,21 @@ regexes = [
   # log line. Its whole point is to look like a secret; it is never a deployed value. The
   # PR-range history scan re-reads the commit that introduced it, so allowlisted literally.
   '''zlm-S9-canary-7f3a91c2''',
+  # Wave 0 (#1498) fixture literals, flagged by generic-api-key through the `KEY =` /
+  # `token` keyword: the tenant-assertion test keys of W0-05/W0-07 (self-describing,
+  # `<item>-...-assertion-key-0123456789`, compared only against themselves in unit and
+  # live tests), the Railway frontend test's header placeholder, and the `.env.example`
+  # placeholder that tells an operator to supply 32 random bytes. None is a deployed value;
+  # the PR-range history scan re-reads each commit, so allowlisted literally.
+  '''replace-with-at-least-32-random-bytes''',
+  '''w0-05-platform-assertion-key-0123456789''',
+  '''live-w0-05-platform-assertion-key-0123456789''',
+  '''w0-07-edge-assertion-key-0123456789abcdef''',
+  '''w0-07-edge-sync-assertion-key-0123456789abcdef''',
+  '''w0-07-inbound-edge-assertion-key-0123456789''',
+  '''w0-07-field-service-assertion-key-012345''',
+  '''live-edge-tenant-assertion-key-0123456789''',
+  '''fixture-token-0123''',
 ]
 
 # Preserve reviewed evidence across squash/rebase: each exception requires BOTH

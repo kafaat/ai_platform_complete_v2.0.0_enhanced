@@ -196,6 +196,7 @@
         "OLLAMA_BASE_URL",
         "OPENROUTER_APP_TITLE",
         "OPENROUTER_BASE_URL",
+        "PLATFORM_TENANT_ASSERTION_KEY_ID",
         "PLATFORM_URL",
         "RAG_BASE_URL",
         "REDIS_URL",
@@ -256,6 +257,7 @@
         "ANTHROPIC_API_KEY",
         "OLLAMA_API_KEY",
         "OPENROUTER_API_KEY",
+        "PLATFORM_TENANT_ASSERTION_KEY",
         "SAHOOL_AGENT_TOKEN",
         "VLLM_API_KEY"
       ],
@@ -561,14 +563,19 @@
       "configuration": [
         "EDGE_DEVICE",
         "EDGE_DEVICE_ID",
+        "EDGE_INFERENCE_ALLOWED_CALLERS",
         "EDGE_MAX_IMAGE_PIXELS",
         "EDGE_PRODUCTION_REQUIRED",
         "EDGE_READINESS_MODE",
         "EDGE_SYNC_DIR",
+        "EDGE_SYNC_TENANT_ASSERTION_KEY_ID",
+        "EDGE_TENANT_ASSERTION_KEY_ID",
+        "EDGE_TENANT_ASSERTION_PREVIOUS_KEY_ID",
         "MODELS_BASE_URL",
         "MODELS_DIR",
         "MODEL_CACHE",
         "OFFLINE_MODE",
+        "PEST_LABELS_PATH",
         "PEST_MODEL_PATH",
         "PEST_MODEL_SHA256",
         "SAHOOL_CLOUD_URL",
@@ -621,7 +628,10 @@
         "tracing_instrumented": false
       },
       "secrets": [
+        "EDGE_SYNC_TENANT_ASSERTION_KEY",
         "EDGE_SYNC_TOKEN",
+        "EDGE_TENANT_ASSERTION_KEY",
+        "EDGE_TENANT_ASSERTION_PREVIOUS_KEY",
         "SAHOOL_AGENT_TOKEN"
       ],
       "service": "edge-inference",
@@ -762,6 +772,7 @@
         ],
         "metrics": [],
         "routes": [
+          "services/field-management-service/fm_scouting_tasks.py",
           "services/field-management-service/fm_task_costs.py",
           "services/field-management-service/fm_task_inspection.py",
           "services/field-management-service/main.py",
@@ -1904,6 +1915,7 @@
       },
       "configuration": [
         "DECISION_SERVICE_URL",
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID",
         "INDICATORS_SERVICE_URL",
         "PLATFORM_API_URL",
         "TASK_SERVICE_URL",
@@ -1943,7 +1955,10 @@
         "trace_spans": [],
         "tracing_instrumented": false
       },
-      "secrets": [],
+      "secrets": [
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY",
+        "SAHOOL_AGENT_TOKEN"
+      ],
       "service": "remote-sensing-workspace-bff",
       "source_service": "remote-sensing-workspace-bff",
       "static_repository_evidence_only": true
@@ -1986,6 +2001,7 @@
         "DECISION_REQUIRE_AGRONOMIC_CONTEXT",
         "DECISION_SERVICE_URL",
         "EDGE_INFERENCE_URL",
+        "EDGE_TENANT_ASSERTION_KEY_ID",
         "ENABLE_LIVE_GUARDRAILS",
         "ENVIRONMENT",
         "ERP_PROVIDER",
@@ -2015,6 +2031,7 @@
         "FIELD_INTELLIGENCE_DIRECT_EXECUTABLE_ENABLED",
         "FII_PRESCRIPTION_SEASON_MODE",
         "GEOEXPORT_DIR",
+        "GUARDRAILS_TIMEOUT_S",
         "GUARDRAILS_URL",
         "HISTORICAL_SEASON_DECISION_CONTEXT_ENABLED",
         "IMAGERY_BATCH_POLL_INTERVAL_S",
@@ -2041,6 +2058,7 @@
         "OUTBOX_MAX_ATTEMPTS",
         "PHASE_RUNTIME_PERSISTENCE_REQUIRED",
         "PLATFORM_SERVICE_URL",
+        "PLATFORM_TENANT_ASSERTION_REDIS_URL",
         "PLUGIN_EXECUTOR_URL",
         "RAILWAY_ENVIRONMENT_ID",
         "RASTER_INVALIDATION_DISPATCH_SECONDS",
@@ -2193,6 +2211,7 @@
           "services/sahool-platform/api/soil_hydraulic_client.py",
           "services/sahool-platform/api/spatial_sync.py",
           "services/sahool-platform/api/water_decision_bridge.py",
+          "services/sahool-platform/api/water_ledger_compute.py",
           "services/sahool-platform/api/weather_service_client.py",
           "services/sahool-platform/api/worker_heartbeat.py",
           "services/sahool-platform/api/workflow_definitions.py",
@@ -2201,6 +2220,7 @@
           "services/sahool-platform/core/capabilities.py",
           "services/sahool-platform/core/field_intelligence_adapters.py",
           "services/sahool-platform/core/field_intelligence_coordinator.py",
+          "services/sahool-platform/core/pest_escalation_flow.py",
           "services/sahool-platform/core/workflow_engine.py",
           "services/sahool-platform/tests/test_field_overlap_postgis.py",
           "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
@@ -2457,6 +2477,7 @@
       "secrets": [
         "ANTHROPIC_API_KEY",
         "DECISION_SERVICE_TOKEN",
+        "EDGE_TENANT_ASSERTION_KEY",
         "FIELD_FORMS_SERVICE_TOKEN",
         "INTERNAL_SERVICE_TOKEN",
         "JWT_SECRET",
@@ -2808,7 +2829,9 @@
         "MCP_SENTINEL_HUB_URL",
         "MCP_WEATHER_URL",
         "MCP_WOFOST_URL",
+        "PLATFORM_DIAGNOSE_TIMEOUT_S",
         "PLATFORM_SERVICE_URL",
+        "PLATFORM_TENANT_ASSERTION_KEY_ID",
         "PLATFORM_URL",
         "SAHOOL_ALLOW_HS256_IN_PROD",
         "SAHOOL_ENV"
@@ -2865,6 +2888,7 @@
       },
       "secrets": [
         "JWT_SECRET",
+        "PLATFORM_TENANT_ASSERTION_KEY",
         "SAHOOL_AGENT_TOKEN"
       ],
       "service": "supervisor-agent",
@@ -3076,6 +3100,9 @@
       },
       "configuration": [
         "EDGE_INFERENCE_URL",
+        "EDGE_TENANT_ASSERTION_KEY_ID",
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID",
+        "FIELD_SERVICE_URL",
         "FRAME_INTERVAL_SEC",
         "JWT_PUBLIC_KEY",
         "MAX_CONCURRENT_STREAMS",
@@ -3125,6 +3152,8 @@
         "tracing_instrumented": false
       },
       "secrets": [
+        "EDGE_TENANT_ASSERTION_KEY",
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY",
         "JWT_SECRET",
         "MQTT_PASSWORD",
         "SAHOOL_AGENT_TOKEN",

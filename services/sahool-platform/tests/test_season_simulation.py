@@ -111,7 +111,7 @@ class TestSimulateBasics:
 
 class TestMaturityAndConfidence:
     def test_maturity_reached_with_enough_gdd(self):
-        # wheat gdd_to_maturity=1800; 100 warm days * 22 = 2200 ⇒ reached
+        # wheat gdd_to_maturity=2000 (crop card, crop-4); 100 warm days * 22 = 2200 ⇒ reached
         r = _sim("wheat", _warm_days(100))
         assert r.maturity_reached is True
 

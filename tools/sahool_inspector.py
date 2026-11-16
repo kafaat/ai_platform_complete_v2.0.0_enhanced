@@ -540,6 +540,30 @@ def _route_handlers(src: str) -> list[tuple[int, str, str, str, str, str]] | Non
     return out
 
 
+_AUTH_CALLS = ("get_current_user(", "require_permission(", "_require_service_token(")
+
+
+def _module_auth_dependencies(src: str) -> set[str]:
+    """Module-level functions that themselves authenticate, usable as ``Depends(<name>)``.
+
+    A router may wrap authentication in its own dependency (W0-07's ``edge_sync_actor``
+    takes a service token plus a tenant assertion, or falls back to ``get_current_user``).
+    Recognised by what the body calls, not by name: a dependency whose body calls none of
+    ``_AUTH_CALLS`` is not authentication, whatever it is called.
+    """
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return set()
+    deps: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            body = "".join(ast.unparse(stmt) for stmt in node.body)
+            if any(call in body for call in _AUTH_CALLS):
+                deps.add(node.name)
+    return deps
+
+
 # ════════════════════════════════════════════════════════════
 # 4. endpoint authz — كلّ نقطة لها تبعيّة مصادقة/تفويض
 # ════════════════════════════════════════════════════════════
@@ -568,6 +592,7 @@ def check_endpoint_authz() -> Result:
             # ملفّ راوتر لا يُحلَّل: نقاطه لا تُحصى ولا تُصنَّف — فشلٌ ظاهر لا تخطٍّ صامت.
             findings.append(f"HIGH ملفّ راوتر لا يُحلَّل (SyntaxError) — نقاطه غير مفحوصة: {rel}")
             continue
+        auth_deps = _module_auth_dependencies(src)
         for lineno, method, path, fn, sig, fnbody in handlers:
             total += 1
             # نقاط الفحص الصحّي/الرصد عمداً بلا مصادقة: healthchecks في compose/k8s
@@ -583,6 +608,7 @@ def check_endpoint_authz() -> Result:
                 "get_current_user" in sig
                 or "require_permission" in sig
                 or "_require_service_token" in sig
+                or any(f"Depends({dep})" in sig for dep in auth_deps)
             )
             if has_auth:
                 continue

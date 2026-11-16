@@ -182,6 +182,7 @@ sahool-zlmediakit,sahool-zlmediakit-config,compose-depends-on,docker-compose.v9.
 supervisor-agent,agriai-engine,code-reference,services/supervisor-agent/skills/crop_model_skill.py
 supervisor-agent,local-ai-rag,code-reference,services/supervisor-agent/skills/advisory_skill.py
 supervisor-agent,platform,code-reference,services/supervisor-agent/main.py
+supervisor-agent,platform,code-reference,services/supervisor-agent/skills/advisory_skill.py
 supervisor-agent,platform,code-reference,services/supervisor-agent/skills/crop_model_skill.py
 vegetation-analysis-service,decision-service,code-reference,services/vegetation-analysis-service/decision_bridge.py
 vegetation-analysis-service,decision-service,code-reference,services/vegetation-analysis-service/vegetation_runtime.py

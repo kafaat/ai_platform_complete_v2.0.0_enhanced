@@ -269,6 +269,21 @@ SAHOOL_RASTER_SERVICE_UPSTREAM=${{sahool-raster-service.RAILWAY_PRIVATE_DOMAIN}}
 SAHOOL_RAG_RETRIEVAL_UPSTREAM=${{sahool-rag-retrieval.RAILWAY_PRIVATE_DOMAIN}}:8000
 ```
 
+Seasons, scouting photos and field tasks (W0-09) route to scout-ingest and
+field-management, which own them; the platform does not. Point the gateway at them,
+or declare a service that is not deployed `absent` so its routes answer 503
+`service_not_deployed` without DNS lookups. Their dedicated tokens go on the
+frontend service with the same value as on the owning service; an unset token is
+sent empty and the owner refuses the request:
+
+```dotenv
+SAHOOL_SCOUT_INGEST_UPSTREAM=${{sahool-scout-ingest.RAILWAY_PRIVATE_DOMAIN}}:8000   # or: absent
+SAHOOL_FIELD_MANAGEMENT_UPSTREAM=${{sahool-field-management.RAILWAY_PRIVATE_DOMAIN}}:8000   # or: absent
+SEASON_ENTRY_SERVICE_TOKEN=${{sahool-scout-ingest.SEASON_ENTRY_SERVICE_TOKEN}}
+SCOUT_MEDIA_SERVICE_TOKEN=${{sahool-scout-ingest.SCOUT_MEDIA_SERVICE_TOKEN}}
+FIELD_TASKS_SERVICE_TOKEN=${{sahool-field-management.FIELD_TASKS_SERVICE_TOKEN}}
+```
+
 The workspace route separately needs BFF, Indicators and Decision, with Task for
 its task features. Supervisor/MCP is a separate route and is not required merely
 for `/api/chat`. Missing optional upstream DNS does not justify redirecting their

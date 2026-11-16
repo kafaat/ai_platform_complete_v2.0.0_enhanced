@@ -323,6 +323,7 @@ def custody_event_refusal(
     last_occurred_at: datetime | None,
     outgoing_kg_so_far: Any,
     now: datetime | None = None,
+    reserved_kg: Any = 0,
 ) -> str | None:
     """سبب رفض حدث يخالف الكتلة أو الزمن (نصّ عربيّ ⇒ 422 في الراوتر) أو None.
 
@@ -330,7 +331,10 @@ def custody_event_refusal(
     - زمن الحدث في المستقبل أبعد من FUTURE_SKEW.
     - زمن الحدث قبل تاريخ الحصاد (بهامش المنطقة).
     - زمن الحدث أسبق من آخر حدث مُسجَّل (السلسلة لا تُكتب بأثر رجعيّ).
-    - كمّيّة حدث أكبر من كمّيّة الدفعة، أو كمّيّة خارجة تتجاوز المتبقّي."""
+    - كمّيّة حدث أكبر من كمّيّة الدفعة، أو كمّيّة خارجة تتجاوز المتبقّي.
+
+    ``reserved_kg``: active market listings on the lot (v278) that this sale does not fulfil. A
+    listing reserves its quantity, so a sale may not take what an open offer has promised."""
     at = parse_occurred_at(occurred_at)
     now = now or datetime.now(UTC)
     if at > now + FUTURE_SKEW:
@@ -342,12 +346,22 @@ def custody_event_refusal(
         return "occurred_at أسبق من آخر حدث مُسجَّل على الدفعة — السلسلة لا تُكتب بأثر رجعيّ"
     qty = normalize_quantity_kg(quantity_kg)
     lot_qty = normalize_quantity_kg(lot_quantity_kg)
+    # An outgoing event without a quantity would skip the remaining-quantity check below, so a
+    # lot could be "sold" any number of times and the mass balance never see it.
+    if event_type in OUTGOING_EVENT_TYPES and qty is None:
+        return "حدث خارج (بيع) بلا كمّيّة — الكمّيّة مطلوبة لموازنة الدفعة ومنع البيع الزائد"
     if qty is not None and lot_qty is not None:
         if qty > lot_qty:
             return "كمّيّة الحدث تتجاوز كمّيّة الدفعة"
         if event_type in OUTGOING_EVENT_TYPES:
             remaining = lot_qty - (normalize_quantity_kg(outgoing_kg_so_far) or Decimal("0"))
-            if qty > remaining:
+            reserved = normalize_quantity_kg(reserved_kg) or Decimal("0")
+            if qty > remaining - reserved:
+                if reserved:
+                    return (
+                        f"الكمّيّة الخارجة تتجاوز المتبقّي غير المحجوز ({remaining - reserved} كغ؛ "
+                        f"{reserved} كغ محجوزة لعروض بيع نشطة)"
+                    )
                 return f"الكمّيّة الخارجة تتجاوز المتبقّي من الدفعة ({remaining} كغ)"
     return None
 
@@ -451,69 +465,4 @@ def assemble_traceability(
             "hash_verified": overall_hash,
             "hash_status_counts": {st: statuses.count(st) for st in sorted(set(statuses))},
         },
-    }
-
-
-def _quantity(value: Any) -> Decimal | None:
-    if value is None or isinstance(value, bool):
-        return None
-    try:
-        amount = Decimal(str(value))
-    except (InvalidOperation, TypeError, ValueError):
-        return None
-    return amount if amount.is_finite() and amount >= 0 else None
-
-
-def assess_market_origin_preview(
-    lot: dict[str, Any],
-    custody_events: list[dict[str, Any]],
-) -> dict[str, Any]:
-    """Conservative projection for a tenant-owned lot; never authorizes sale.
-
-    Seller reservations, grading splits, spoilage and allocations have no
-    authoritative bridge yet. Even a valid numeric upper bound cannot be
-    promoted to market availability until those owners certify it.
-    """
-    lot_id = lot.get("harvest_lot_id")
-    total = _quantity(lot.get("quantity_kg"))
-    outgoing = Decimal("0")
-    reasons = [
-        "market_listing_identity_bridge_not_implemented",
-        "reservations_and_sorting_losses_unavailable",
-    ]
-    if total is None or not lot_id:
-        reasons.append("origin_quantity_or_identity_invalid")
-    for event in custody_events:
-        if event.get("event_type") != "sales":
-            continue
-        qty = _quantity(event.get("quantity_kg"))
-        if qty is None:
-            reasons.append("recorded_sale_quantity_missing_or_invalid")
-        else:
-            outgoing += qty
-    if total is not None and outgoing > total:
-        reasons.append("recorded_sales_exceed_harvest_quantity")
-    if lot.get("status") in ("sold", "rejected"):
-        reasons.append("lot_closed_or_rejected")
-    if lot.get("quality_grade") not in ("A", "B", "C"):
-        reasons.append("lot_quality_not_declared_for_sale")
-    remaining = total - outgoing if total is not None and outgoing <= total else None
-    blocked = any(
-        reason
-        not in {
-            "market_listing_identity_bridge_not_implemented",
-            "reservations_and_sorting_losses_unavailable",
-        }
-        for reason in reasons
-    )
-    return {
-        "schema": "sahool.market-origin-preview/v1",
-        "origin_kind": "harvest_lot",
-        "origin_id": lot_id,
-        "recorded_harvest_kg": float(total) if total is not None else None,
-        "recorded_sales_kg": float(outgoing),
-        "upper_bound_remaining_kg": float(remaining) if remaining is not None else None,
-        "status": "blocked" if blocked else "preview_only",
-        "decision_usable": False,
-        "reasons": reasons,
     }

@@ -233,21 +233,34 @@ _POLICY_SELECT_SQL = (
 )
 
 
+def unavailable_tenant_ai_policy_row() -> dict[str, Any]:
+    """A failed policy read denies generation; unlike a genuinely absent policy row.
+
+    Keep the existing row-shaped contract for /me, field context and NL→SQL callers.
+    Never copy unverified permissions from a failed database read.
+    """
+    return {
+        "ai_generation_allowed": False,
+        "external_data_sharing_level": POLICY_MODE_LOCAL_ONLY,
+        "allowed_providers": [],
+        "allowed_models": [],
+    }
+
+
 async def load_tenant_ai_policy_row(conn: Any, tenant_id: Any) -> dict[str, Any] | None:
     """Read the tenant's AI policy row over an RLS-scoped connection (or ``None``).
 
-    Any read failure ⇒ ``None`` (⇒ builder falls back to the most restrictive envelope):
-    a policy lookup problem must never widen access nor break the context pack.
+    Missing row ⇒ ``None`` (preserves the explicit no-row default).
+    Read failure ⇒ restrictive row (does NOT grant local AI generation).
     """
     try:
         row = await conn.fetchrow(_POLICY_SELECT_SQL, str(tenant_id))
     except Exception as exc:  # noqa: BLE001 - fail closed: unreadable policy ⇒ restrictive default
-        # Fail closed, but not silently: without this line an outage reads exactly like a tenant
-        # with no policy row (a normal local_only), and TTS honours it as the tenant's intent.
+        # Errors must not masquerade as an absent policy: absent permits local AI.
         logger.warning(
             "AI_POLICY_ROW_UNREADABLE tenant=%s error=%s ⇒ most restrictive envelope",
             tenant_id,
             type(exc).__name__,
         )
-        return None
+        return unavailable_tenant_ai_policy_row()
     return dict(row) if row is not None else None

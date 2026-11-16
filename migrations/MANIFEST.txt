@@ -837,6 +837,40 @@ v274_inspection_evidence_versions.sql
 v275_inspection_handoffs.sql
 v276_task_cost_trace.sql
 v277_inspection_close_gate.sql
+# v278 (owner decisions 2 and 3, 2026-11-15): custody_chain_events append-only (UPDATE/DELETE/
+#   TRUNCATE triggers); harvest_lots and custody foreign keys ON DELETE RESTRICT (a field or lot
+#   with a custody chain is not erased by cascade); harvest_lots identity and quantity immutable;
+#   market_sales_listings.harvest_lot_id (FK harvest_lots) so a listing names the lot it sells
+#   from. Owned by sahool-platform. Inserted after v277, before v240.
+v278_harvest_custody_integrity.sql
+# v279 (W0-10, weather-7): water_ledger ET0/rain provenance columns et0_method, et0_quality,
+#   weather_snapshot_id, rain_source (forecast|observed) and the row's root-zone taw_mm/raw_mm,
+#   written by the platform's daily water-ledger worker. Additive, idempotent. Inserted after
+#   v278, before v240.
+v279_water_ledger_et0_rain_provenance.sql
+# v280 (plan item W0-13, finding mobile-3): water_ledger.irrigation_reported_by. A person's
+#   applied-water report on a day the water-balance worker computes is kept by the worker, which
+#   recomputes the balance around it. Additive, nullable, owner sahool-platform. Before v240.
+v280_water_ledger_irrigation_report.sql
+# v281 (plan item W1-14, finding business-1): the ledger's season_id foreign keys to
+#   farm_season_projects (no writer) become one trigger that accepts a season of the same tenant
+#   in seasons or farm_season_projects, as the simple farm book does. DDL only. Before v240.
+v281_farm_ledger_season_reference.sql
+# v282 (plan item W1-20, findings remote-7 / scout-5): field_tasks anomaly scouting columns
+#   (anomaly_ref, season_id, geometry_ref, verification_deadline, reason_codes, idempotency key
+#   and request digest, requesting service), one task per key and per anomaly per tenant. Owner
+#   field-management-service (POST/GET /internal/field-tasks/scouting). Additive. Before v240.
+v282_field_task_scouting_anomaly.sql
+# v283 (plan item W1-21, findings remote-2/data-7): deletes the tenant-less RANDOM() NDVI seed
+#   rows of ndvi_timeseries (tenant_id IS NULL only). The platform reads NDVI from raster-service.
+#   Idempotent; init_v8 re-seeds on a re-applied manifest and v283 removes it again. Before v240.
+#   Needs the superuser/BYPASSRLS migration owner: under FORCE RLS any other role sees no
+#   tenant-less row, so v283 raises instead of reporting a purge it did not do.
+v283_ndvi_timeseries_seed_purge.sql
+# v284 (plan item W1-13, finding water-5, manual part): water_ledger.irrigation_source. Measured
+#   farm_water_records are projected onto the day's irrigation_mm with source 'farm_ledger'.
+#   Additive, nullable, owner sahool-platform. Before v240.
+v284_water_ledger_irrigation_source.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

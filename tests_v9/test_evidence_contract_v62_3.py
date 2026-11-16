@@ -77,11 +77,17 @@ def test_ndvi_grid_evidence_contract():
     assert empty["scene_id"] is None and empty["acquisition_date"] is None
 
 
+# W0-12: lab support comes only from the owner's approved results in evidence_context.
+_OWNER_LAB = {
+    "owner": "sahool-platform",
+    "results": [{"result_id": "r-1", "quality_status": "approved", "n": 12, "p": 8, "k": 20}],
+}
+
+
 def _lab_zones_params():
     return {
         "product_type": "fertilizer",
         "crop": "wheat",
-        "lab_results": [{"n": 12, "p": 8, "k": 20}],
         "zones": [
             {
                 "zone_id": "z1",
@@ -105,7 +111,7 @@ def test_vra_rejects_low_completeness():
     out = generate_vra_prescription(
         _lab_zones_params(),
         field_id="f",
-        evidence_context={"ndvi_grid_evidence": evidence},
+        evidence_context={"ndvi_grid_evidence": evidence, "approved_soil_lab": _OWNER_LAB},
     )
     rq = out["readiness_gate"]["raster_quality"]
     assert rq is not None
@@ -127,7 +133,7 @@ def test_vra_warns_stale_scene():
     out = generate_vra_prescription(
         _lab_zones_params(),
         field_id="f",
-        evidence_context={"ndvi_grid_evidence": evidence},
+        evidence_context={"ndvi_grid_evidence": evidence, "approved_soil_lab": _OWNER_LAB},
     )
     rq = out["readiness_gate"]["raster_quality"]
     assert rq["machine_ready"] is True  # ratios pass; staleness is advisory only

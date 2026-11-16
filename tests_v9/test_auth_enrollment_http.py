@@ -27,7 +27,8 @@ pytestmark = [pytest.mark.unit, pytest.mark.security]
 
 PASSWORD = "Synthet1c-Password!"
 TENANT = "00000000-0000-0000-0000-000000000007"
-SECRET = "JBSWY3DPEHPK3PXP"
+# 160-bit base32 (pyotp.random_base32 length): pyotp >= 2.12 refuses secrets under 112 bits.
+SECRET = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"
 
 
 def user(role="farmer", mfa=False):

@@ -176,3 +176,46 @@ def test_an_unparseable_router_file_is_reported_not_skipped(tmp_path, monkeypatc
     assert any("لا يُحلَّل" in f and "routers/sample.py" in f for f in result.findings), (
         result.findings
     )
+
+
+def test_a_module_dependency_that_authenticates_counts_as_auth(tmp_path, monkeypatch):
+    # W0-07: edge_sync_actor wraps a service token + tenant assertion, or get_current_user.
+    result = _run(
+        tmp_path,
+        monkeypatch,
+        """
+        def edge_actor(request, authorization=None):
+            if request.headers.get("x-service-name"):
+                _require_service_token(request.headers.get("x-agent-token"))
+                return None
+            return get_current_user(authorization, request)
+
+        @router.post("/v1/edge/sync")
+        async def edge_sync(req, user = Depends(edge_actor)):
+            async with tenant_connection(user) as conn:
+                await conn.execute("INSERT INTO edge_results VALUES (1)")
+        """,
+    )
+    assert result.status == inspector.PASS, (
+        f"an authenticating dependency must count as auth: {result.findings}"
+    )
+
+
+def test_a_module_dependency_that_does_not_authenticate_is_still_high(tmp_path, monkeypatch):
+    # Recognised by what the body calls, not by its name: no auth call -> not auth.
+    result = _run(
+        tmp_path,
+        monkeypatch,
+        """
+        def edge_actor(request):
+            return request.headers.get("x-tenant-id")
+
+        @router.post("/v1/edge/sync")
+        async def edge_sync(req, tenant = Depends(edge_actor)):
+            async with tenant_connection(tenant) as conn:
+                await conn.execute("INSERT INTO edge_results VALUES (1)")
+        """,
+    )
+    assert any(f.startswith("HIGH") for f in result.findings), (
+        f"a dependency without an auth call must not hide a DB route: {result.findings}"
+    )

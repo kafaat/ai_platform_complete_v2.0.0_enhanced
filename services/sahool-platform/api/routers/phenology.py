@@ -18,8 +18,8 @@ from __future__ import annotations
 import json
 from datetime import date
 
+from core.gdd_phenology import resolve_stage, stage_equivalent_day
 from core.season_phenology import (
-    current_stage,
     resolve_crop_id,
     season_timeline,
     stage_kc,
@@ -53,8 +53,47 @@ def _first_season_crop(crops, fallback_crop: str | None) -> str | None:
     return fallback_crop
 
 
-def _shape_phenology(crop: str | None, sowing_date: date | None, today: date | None = None) -> dict:
+def _stage_basis(resolved: dict, weather: dict | None) -> dict:
+    """مصدر المرحلة المُعلَن (W1-10): gdd أو احتياط تقويميّ مع سببه، ومدى GDD المستعمَل."""
+    weather = weather or {}
+    return {
+        "stage_source": resolved.get("stage_source"),
+        "stage_fallback": resolved.get("stage_fallback"),
+        "stage_fallback_reason": resolved.get("stage_fallback_reason"),
+        "accumulated_gdd": resolved.get("accumulated_gdd"),
+        "accumulated_gdd_through": weather.get("accumulated_gdd_through"),
+        "weather_unavailable": list(weather.get("unavailable") or []),
+    }
+
+
+def _align_timeline(timeline: list[dict], stage: dict | None, source: str | None) -> list[dict]:
+    """حالات خطّ الزمن نسبةً إلى المرحلة المحلَّلة حين تكون حراريّة.
+
+    التواريخ تبقى تقويميّة (من أيّام البطاقة) لأنّ لا تاريخ حراريّاً للمستقبل بلا توقّع؛ أمّا
+    ``status`` فيُشتقّ من ترتيب المرحلة الحراريّة كي لا يقول الردّ «late جارية» و«mid قادمة»
+    معاً. ``status_basis`` يعلن الأساس لكلّ صفّ.
+    """
+    names = [row["stage"] for row in timeline]
+    if source != "gdd" or stage is None or stage.get("stage") not in names:
+        return [{**row, "status_basis": "calendar"} for row in timeline]
+    current = names.index(stage["stage"])
+    out = []
+    for i, row in enumerate(timeline):
+        status = "past" if i < current else ("current" if i == current else "upcoming")
+        out.append({**row, "status": status, "status_basis": "gdd"})
+    return out
+
+
+def _shape_phenology(
+    crop: str | None,
+    sowing_date: date | None,
+    today: date | None = None,
+    weather: dict | None = None,
+) -> dict:
     """يشكّل ردّ الـphenology من اسم محصول + تاريخ بذار (دالّة نقيّة، لا قاعدة).
+
+    المرحلة الحاليّة من المحلِّل الواحد ``core.gdd_phenology``: حراريّة حين يحمل ``weather``
+    GDD متراكماً (من ``gather_season_weather_inputs``)، وإلّا تقويميّة مُعلَنة.
 
     يُرجع خطّ زمن المراحل + المرحلة الحاليّة + Kc الطوريّ + أيّام ما بعد البذار.
     صدق: محصول مجهول البطاقة، أو غياب تاريخ البذار ⇒ ``available=False`` بسبب
@@ -76,7 +115,11 @@ def _shape_phenology(crop: str | None, sowing_date: date | None, today: date | N
             "available": False,
             "reason_ar": "لا توجد كتلة مراحل نموّ (phenology) لهذا المحصول",
         }
-    stage = current_stage(crop_id, das)
+    stage, resolved = resolve_stage(crop_id, das, (weather or {}).get("accumulated_gdd"))
+    # Kc والخطّ الزمنيّ يتبعان المرحلة المحلَّلة نفسها (W1-10 review): مرحلة حراريّة مع Kc
+    # وحالات خطّ زمن تقويميّة تُظهِر للعميل «المرحلة late والقادمة mid».
+    kc_day = stage_equivalent_day(crop_id, das, resolved)
+    timeline = _align_timeline(timeline, stage, resolved.get("stage_source"))
     return {
         "available": True,
         "crop": crop,
@@ -84,13 +127,19 @@ def _shape_phenology(crop: str | None, sowing_date: date | None, today: date | N
         "sowing_date": sowing_date.isoformat(),
         "days_after_sowing": das,
         "current_stage": stage,
-        "current_stage_kc": stage_kc(crop_id, das),
+        "current_stage_kc": stage_kc(crop_id, kc_day if kc_day is not None else das),
+        "current_stage_kc_day": kc_day,
+        **_stage_basis(resolved, weather),
+        "timeline_status_basis": "gdd" if resolved.get("stage_source") == "gdd" else "calendar",
         "timeline": timeline,
     }
 
 
 def _shape_stage_actions(
-    crop: str | None, sowing_date: date | None, today: date | None = None
+    crop: str | None,
+    sowing_date: date | None,
+    today: date | None = None,
+    weather: dict | None = None,
 ) -> dict:
     """يشكّل اقتراحات إجراء الطور الحاليّ (دالّة نقيّة، لا قاعدة، لا كتابة مهامّ).
 
@@ -107,7 +156,7 @@ def _shape_stage_actions(
         }
     ref = today or date.today()
     das = (ref - sowing_date).days
-    stage = current_stage(crop_id, das)
+    stage, resolved = resolve_stage(crop_id, das, (weather or {}).get("accumulated_gdd"))
     if stage is None:
         return {
             "available": False,
@@ -130,29 +179,61 @@ def _shape_stage_actions(
         "days_after_sowing": das,
         "current_stage": stage.get("stage"),
         "current_stage_name_ar": stage.get("name_ar"),
+        **_stage_basis(resolved, weather),
         "suggestions": suggestions,
         "note_ar": "اقتراحات إرشاديّة فقط — لا تُنشَأ مهامّ تلقائيّاً",
     }
 
 
 async def _active_season_crop_and_sowing(conn, field_id: str):
-    """يقرأ (اسم المحصول، تاريخ البذار) للموسم النشط للحقل — كما ``main``.
+    """يقرأ (اسم المحصول، تاريخ البذار، lat، lon) للموسم النشط للحقل — كما ``main``.
 
     SELECT crops, sowing_date FROM seasons WHERE field_id=$1 AND status='active'
     ORDER BY created_at DESC LIMIT 1. يتدهور لمحصول الحقل (fields.crop) إن غاب
-    أوّل محصول للموسم. غياب الموسم ⇒ (محصول الحقل، None).
+    أوّل محصول للموسم. غياب الموسم ⇒ (محصول الحقل، None، lat، lon).
     """
-    field_row = await conn.fetchrow("SELECT crop FROM fields WHERE field_id = $1", field_id)
+    field_row = await conn.fetchrow(
+        "SELECT crop, lat, lon FROM fields WHERE field_id = $1", field_id
+    )
     fallback_crop = field_row["crop"] if field_row is not None else None
+    lat = field_row["lat"] if field_row is not None else None
+    lon = field_row["lon"] if field_row is not None else None
     season = await conn.fetchrow(
         "SELECT crops, sowing_date FROM seasons "
         "WHERE field_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1",
         field_id,
     )
     if season is None:
-        return fallback_crop, None
+        return fallback_crop, None, lat, lon
     crop = _first_season_crop(season["crops"], fallback_crop)
-    return crop, season["sowing_date"]
+    return crop, season["sowing_date"], lat, lon
+
+
+async def _season_thermal_time(user, crop, sowing_date, lat, lon) -> dict | None:
+    """GDD المتراكم للموسم من weather-service بعد تحرير الاتّصال (W1-10)، بلا توقّع.
+
+    best-effort: تعذّر الطقس ⇒ ``accumulated_gdd`` None والسبب في ``unavailable``، فتبقى
+    المرحلة تقويميّة مُعلَنة. لا موسم/لا بذار ⇒ None (لا مرحلة تُحلَّل أصلاً).
+    """
+    if sowing_date is None or resolve_crop_id(crop) is None:
+        return None
+    from datetime import UTC, datetime
+
+    from api.field_season_projection import gather_season_weather_inputs
+    from api.weather_service_client import get_gdd_product, get_weather_historical
+
+    today = datetime.now(UTC).date()
+    return await gather_season_weather_inputs(
+        crop=crop,
+        sowing_date=sowing_date,
+        as_of=today,
+        today=today,
+        lat=lat,
+        lon=lon,
+        tenant_id=str(user.tenant_id),
+        get_historical=get_weather_historical,
+        get_gdd=get_gdd_product,
+    )
 
 
 @router.get("/api/v1/fields/{field_id}/phenology")
@@ -169,12 +250,13 @@ async def field_phenology(
     """
     try:
         async with tenant_connection(user) as conn:
-            crop, sowing_date = await _active_season_crop_and_sowing(conn, field_id)
+            crop, sowing_date, lat, lon = await _active_season_crop_and_sowing(conn, field_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("قراءة مراحل نموّ الموسم", e) from e
-    return _shape_phenology(crop, sowing_date)
+    weather = await _season_thermal_time(user, crop, sowing_date, lat, lon)
+    return _shape_phenology(crop, sowing_date, weather=weather)
 
 
 @router.get("/api/v1/fields/{field_id}/stage-actions")
@@ -190,9 +272,10 @@ async def field_stage_actions(
     """
     try:
         async with tenant_connection(user) as conn:
-            crop, sowing_date = await _active_season_crop_and_sowing(conn, field_id)
+            crop, sowing_date, lat, lon = await _active_season_crop_and_sowing(conn, field_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("قراءة إجراءات الطور الحاليّ", e) from e
-    return _shape_stage_actions(crop, sowing_date)
+    weather = await _season_thermal_time(user, crop, sowing_date, lat, lon)
+    return _shape_stage_actions(crop, sowing_date, weather=weather)

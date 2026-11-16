@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   betterBadge,
+  buildDecisionPlaybookInput,
   buildSeasonMetrics,
   cropRiskRows,
   escalationBadge,
@@ -165,5 +166,31 @@ describe('buildSeasonMetrics — empty inputs stay absent (no zero-filling)', ()
     expect(out.yield_t_ha).toBe(5.2);
     expect(out.water_used_m3).toBeUndefined(); // فارغ ⇒ غائب لا صفر
     expect(out.ndvi_peak).toBeUndefined(); // غير رقميّ ⇒ غائب
+  });
+});
+
+describe('buildDecisionPlaybookInput — W1-17: field mode sends field_id, never weather', () => {
+  it('field mode with a field sends field_id and no weather or crop keys', () => {
+    const body = buildDecisionPlaybookInput({
+      mode: 'field', fieldId: 'fld-1', crop: 'wheat', signals: ['spray_window_open'], recommendation: ' ',
+    });
+    expect(body).toEqual({ field_id: 'fld-1', recommendation_ar: null });
+  });
+  it('field mode without a field asks nothing', () => {
+    expect(buildDecisionPlaybookInput({ mode: 'field', fieldId: null, signals: [] })).toBeNull();
+  });
+  it('what-if sends the chosen signals and no field_id', () => {
+    const body = buildDecisionPlaybookInput({
+      mode: 'what_if', fieldId: 'fld-1', crop: 'wheat', signals: ['heat_stress'], recommendation: 'x',
+    });
+    expect(body).toEqual({
+      crop: 'wheat',
+      weather_signals: [{ signal_type: 'heat_stress', confidence_score: 0.9 }],
+      recommendation_ar: 'x',
+    });
+    expect(body && 'field_id' in body).toBe(false);
+  });
+  it('what-if without a signal asks nothing', () => {
+    expect(buildDecisionPlaybookInput({ mode: 'what_if', signals: [] })).toBeNull();
   });
 });

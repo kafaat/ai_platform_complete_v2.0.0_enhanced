@@ -18,6 +18,20 @@ from fastapi.testclient import TestClient
 ROOT = Path(__file__).resolve().parents[3]
 EDGE = ROOT / "services" / "edge-inference"
 _HEADERS = {"X-Agent-Token": "test-agent-token"}
+_EDGE_KEY = "w0-07-edge-assertion-key-0123456789abcdef"
+_TENANT_B = "22222222-2222-2222-2222-222222222222"
+
+
+def _signed(path: str, tenant: str = _TENANT_B, service: str = "video-processor", key=_EDGE_KEY):
+    """Agent token + a tenant assertion for ``path`` (W0-07)."""
+    from shared.security.tenant_assertion_headers import tenant_assertion_headers
+
+    return {
+        **_HEADERS,
+        **tenant_assertion_headers(
+            key=key, key_id="current", service=service, tenant_id=tenant, method="POST", path=path
+        ),
+    }
 
 
 def _load_edge(monkeypatch, tmp_path, *, approve: bool):
@@ -25,6 +39,8 @@ def _load_edge(monkeypatch, tmp_path, *, approve: bool):
     monkeypatch.setenv("EDGE_DEVICE_ID", "edge-unit-device")
     monkeypatch.setenv("EDGE_SYNC_DIR", str(tmp_path / "sync"))
     monkeypatch.setenv("OFFLINE_MODE", "true")
+    monkeypatch.setenv("EDGE_TENANT_ASSERTION_KEY", _EDGE_KEY)
+    monkeypatch.delenv("EDGE_INFERENCE_ALLOWED_CALLERS", raising=False)
     pest = tmp_path / "pest_detector_int8.onnx"
     yld = tmp_path / "yield_estimator_int8.onnx"
     pest.write_bytes(b"pest-bytes")
@@ -183,7 +199,7 @@ def test_pest_detect_does_not_invent_a_crop_for_a_bound_field(monkeypatch, tmp_p
         "/v1/inference/pest-detect",
         data={"field_id": "field-unit"},
         files={"file": ("frame.jpg", io.BytesIO(b"\xff\xd8\xff"), "image/jpeg")},
-        headers=_HEADERS,
+        headers=_signed("/v1/inference/pest-detect"),
     )
     assert response.status_code == 200
     assert response.json()["crop"] is None
@@ -293,7 +309,7 @@ def test_a_synced_detection_carries_the_gate_artifact_sha_and_the_input_digest(
         "/v1/inference/pest-detect",
         data={"field_id": "field-unit", "confidence_threshold": "0.7"},
         files={"file": ("leaf.jpg", io.BytesIO(image), "image/jpeg")},
-        headers=_HEADERS,
+        headers=_signed("/v1/inference/pest-detect"),
     )
     assert response.status_code == 200
     gate_sha = module._model_capability("PEST_MODEL_PATH", "pest_detector_int8.onnx")[
@@ -309,3 +325,141 @@ def test_a_synced_detection_carries_the_gate_artifact_sha_and_the_input_digest(
     assert provenance["threshold"] == 0.7
     assert provenance["calibrated"] is False
     assert response.json()["provenance"] == provenance
+
+
+# ── W0-07 (scout-1) and W0-08 (scout-2) ─────────────────────────────────────────────────────
+
+
+def _pest(client, headers, field_id="field-unit"):
+    return client.post(
+        "/v1/inference/pest-detect",
+        data={"field_id": field_id},
+        files={"file": ("leaf.jpg", io.BytesIO(b"\xff\xd8\xff"), "image/jpeg")},
+        headers=headers,
+    )
+
+
+def test_a_bound_detection_is_queued_under_the_tenant_its_caller_signed(monkeypatch, tmp_path):
+    import json
+
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    monkeypatch.setattr(module, "get_pest_detector", lambda: _StubDetector())
+    client = TestClient(module.app)
+    response = _pest(client, _signed("/v1/inference/pest-detect"))
+    assert response.status_code == 200, response.text
+    assert response.json()["sync_status"] == "queued", response.json()
+    [queued] = _queued(tmp_path)
+    envelope = json.loads(queued.read_text(encoding="utf-8"))
+    assert envelope["tenant_id"] == _TENANT_B, envelope
+    assert envelope["field_id"] == "field-unit", envelope
+
+
+def test_a_bound_detection_without_a_tenant_assertion_is_returned_not_synced(monkeypatch, tmp_path):
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    monkeypatch.setattr(module, "get_pest_detector", lambda: _StubDetector())
+    client = TestClient(module.app)
+    response = _pest(client, _HEADERS)
+    assert response.status_code == 200, response.text
+    assert response.json()["sync_status"] == "not_synced_no_tenant", response.json()
+    assert response.json()["detections"], "the detection itself is still returned"
+    assert _queued(tmp_path) == [], "nothing may be queued for an unverified tenant"
+
+
+def test_a_wrong_or_foreign_tenant_assertion_is_refused(monkeypatch, tmp_path):
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    monkeypatch.setattr(module, "get_pest_detector", lambda: _StubDetector())
+    client = TestClient(module.app)
+    wrong_key = _pest(client, _signed("/v1/inference/pest-detect", key="x" * 40))
+    assert wrong_key.status_code == 403, wrong_key.text
+    other_route = _pest(client, _signed("/v1/inference/yield-estimate"))
+    assert other_route.status_code == 403, other_route.text
+    stranger = _pest(client, _signed("/v1/inference/pest-detect", service="raster"))
+    assert stranger.status_code == 403, stranger.text
+    forged = {**_signed("/v1/inference/pest-detect"), "X-Tenant-Id": "someone-else"}
+    assert _pest(client, forged).status_code == 403, "tenant header swapped after signing"
+    assert _queued(tmp_path) == [], "a refused request queued a result"
+
+
+def test_missing_device_identity_returns_the_detection_instead_of_503(monkeypatch, tmp_path):
+    """W0-08: inference ran; an unset EDGE_DEVICE_ID used to turn it into a 503 and drop it."""
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    monkeypatch.delenv("EDGE_DEVICE_ID")
+    monkeypatch.setattr(module, "get_pest_detector", lambda: _StubDetector())
+    client = TestClient(module.app)
+    response = _pest(client, _signed("/v1/inference/pest-detect"))
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["sync_status"] == "not_synced_identity", payload
+    assert payload["detections"][0]["class_name"] == "aphid", payload
+    assert _queued(tmp_path) == [], "an observation without a device identity was queued"
+
+
+class _FakeOnnxSession:
+    """An inference session whose head has ``n_classes`` score rows (W1-19)."""
+
+    def __init__(self, n_classes: int):
+        self._n = n_classes
+
+    def get_inputs(self):
+        class _Input:
+            name = "images"
+
+        return [_Input()]
+
+    def run(self, _names, _feeds):
+        import numpy as np
+
+        out = np.zeros((1, 4 + self._n, 64), dtype=np.float32)
+        out[0, :4, 0] = (320, 320, 40, 40)
+        out[0, 4, 0] = 0.95
+        return [out]
+
+
+def _detector_with_head(monkeypatch, n_classes: int):
+    from models import pest_detector
+
+    monkeypatch.setattr(
+        pest_detector, "_load_onnx_session", lambda _p, _d: _FakeOnnxSession(n_classes)
+    )
+    return pest_detector.EdgePestDetector(model_path="/nonexistent/pest.onnx")
+
+
+def _manifest_len() -> int:
+    import json
+
+    doc = json.loads((EDGE / "models_manifest" / "pest_labels.json").read_text(encoding="utf-8"))
+    return len(doc["labels"])
+
+
+def test_a_model_wider_than_its_label_manifest_is_a_503_not_a_mislabelled_pest(
+    monkeypatch, tmp_path
+):
+    """W1-19 (scout-9): 11 classes against a 10-label manifest used to be truncated."""
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    detector = _detector_with_head(monkeypatch, _manifest_len() + 1)
+    monkeypatch.setattr(module, "get_pest_detector", lambda: detector)
+    client = TestClient(module.app)
+    response = client.post(
+        "/v1/inference/pest-detect",
+        files={"file": ("a.png", io.BytesIO(_png(8, 8)), "image/png")},
+        headers=_HEADERS,
+    )
+    assert response.status_code == 503, f"mismatched model answered: {response.text}"
+    detail = response.json()["detail"]
+    assert detail["reason"] == "pest_model_label_contract_violation", f"{detail}"
+
+
+def test_a_model_matching_its_label_manifest_detects_with_a_taxonomy_code(monkeypatch, tmp_path):
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    detector = _detector_with_head(monkeypatch, _manifest_len())
+    monkeypatch.setattr(module, "get_pest_detector", lambda: detector)
+    client = TestClient(module.app)
+    response = client.post(
+        "/v1/inference/pest-detect",
+        files={"file": ("a.png", io.BytesIO(_png(8, 8)), "image/png")},
+        headers=_HEADERS,
+    )
+    assert response.status_code == 200, f"matching model refused: {response.text}"
+    [detection] = response.json()["detections"]
+    assert detection["class_name"] == "aphid", f"{detection}"
+    assert detection["taxonomy_code"] == "aphid", f"{detection}"

@@ -389,9 +389,84 @@ async def tool_get_procurement_status(args: dict) -> dict:
     return result
 
 
+# v278 adds market_sales_listings.harvest_lot_id; code and schema ship separately. Until it is
+# applied a listing is stored without the column and cannot name a lot (503, not a silent drop).
+# pg_attribute is readable by every role, unlike information_schema, which filters by privilege.
+_LISTING_LOT_COLUMN_SQL = (
+    "SELECT EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid = "
+    "to_regclass('market_sales_listings') AND attname = 'harvest_lot_id' AND NOT attisdropped)"
+)
+_listing_lot_column_present = False
+
+
+async def _listings_link_lots(conn) -> bool:
+    """Whether listings can name a harvest lot yet. Only presence is cached: a later v278 counts."""
+    global _listing_lot_column_present
+    if not _listing_lot_column_present:
+        _listing_lot_column_present = bool(await conn.fetchval(_LISTING_LOT_COLUMN_SQL))
+    return _listing_lot_column_present
+
+
+_INSERT_LISTING_SQL = (
+    "INSERT INTO market_sales_listings (tenant_id, batch_id, crop_type, quantity_kg, "
+    "price_per_kg_usd, quality_grade, certifications, available_from, available_until, "
+    "pickup_location, notes, status, harvest_lot_id) "
+    "VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) "
+    "RETURNING listing_id"
+)
+_INSERT_LISTING_SQL_PRE_V278 = (
+    "INSERT INTO market_sales_listings (tenant_id, batch_id, crop_type, quantity_kg, "
+    "price_per_kg_usd, quality_grade, certifications, available_from, available_until, "
+    "pickup_location, notes, status) "
+    "VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) "
+    "RETURNING listing_id"
+)
+
+
+async def _reserve_from_harvest_lot(conn, harvest_lot_id: str, qty: float) -> None:
+    """A listing that names a harvest lot may only offer what the lot still holds (v278).
+
+    Remainder = lot quantity - custody sales recorded - quantity of the tenant's active listings
+    on the lot. The lot row is locked FOR UPDATE, the same lock the platform takes before a custody
+    sale, so two listings (or a listing and a sale) cannot both pass on the same remainder. RLS on
+    harvest_lots makes another tenant's lot invisible: it answers 404 like a missing one.
+
+    Listings never leave 'active' in this contract (there is no sell or close path yet), so an
+    active listing keeps its reservation even after the produce is recorded as sold in the custody
+    chain. That over-reserves (a refusal too many), never oversells.
+    """
+    lot = await conn.fetchrow(
+        "SELECT quantity_kg, status FROM harvest_lots WHERE harvest_lot_id = $1 FOR UPDATE",
+        harvest_lot_id,
+    )
+    if lot is None:
+        raise HTTPException(404, "دفعة الحصاد غير موجودة ضمن هذا المستأجِر")
+    if lot["status"] in ("sold", "rejected"):
+        raise HTTPException(409, f"دفعة الحصاد في حالة {lot['status']} — لا تُعرَض للبيع")
+    sold = await conn.fetchval(
+        "SELECT COALESCE(sum(quantity_kg), 0) FROM custody_chain_events "
+        "WHERE harvest_lot_id = $1 AND event_type = 'sales'",
+        harvest_lot_id,
+    )
+    listed = await conn.fetchval(
+        "SELECT COALESCE(sum(quantity_kg), 0) FROM market_sales_listings "
+        "WHERE harvest_lot_id = $1 AND status = 'active'",
+        harvest_lot_id,
+    )
+    remaining = float(lot["quantity_kg"]) - float(sold or 0) - float(listed or 0)
+    if qty > remaining + 1e-9:
+        raise HTTPException(
+            409,
+            f"الكمّيّة المعروضة ({qty:g} كغ) تتجاوز المتبقّي من دفعة الحصاد ({max(remaining, 0):g} كغ)",
+        )
+
+
 async def tool_create_sales_listing(args: dict) -> dict:
     tenant_id = args["tenant_id"]
     batch_id = args.get("batch_id")
+    harvest_lot_id = (str(args.get("harvest_lot_id") or "").strip()) or None
+    if harvest_lot_id is not None and len(harvest_lot_id) > 50:
+        raise HTTPException(422, "harvest_lot_id أطول من 50 حرفاً")
     crop = args["crop_type"]
     # A listing sells a positive quantity at a positive price: negative/zero/NaN/inf were stored
     # and fed total_value_usd and the market stats (MCP-MARKET-SALES-NEGATIVE-VALUES-01). No free
@@ -426,12 +501,12 @@ async def tool_create_sales_listing(args: dict) -> dict:
         if visible is False:
             raise HTTPException(403, "الدفعة لا تخصّ مستأجِرك")
     async with tenant_connection(tenant_id) as conn:
-        listing_id = await conn.fetchval(
-            """INSERT INTO market_sales_listings
-                (tenant_id, batch_id, crop_type, quantity_kg, price_per_kg_usd,
-                 quality_grade, certifications, available_from, available_until, pickup_location, notes, status)
-                VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                RETURNING listing_id""",
+        links_lots = await _listings_link_lots(conn)
+        if harvest_lot_id is not None:
+            if not links_lots:
+                raise HTTPException(503, "ربط عروض البيع بدفعات الحصاد ينتظر تطبيق الهجرة v278")
+            await _reserve_from_harvest_lot(conn, harvest_lot_id, qty)
+        params = [
             tenant_id,
             batch_id if batch_id else None,
             crop,
@@ -444,10 +519,15 @@ async def tool_create_sales_listing(args: dict) -> dict:
             pickup,
             notes,
             "active",
-        )
+        ]
+        if links_lots:
+            listing_id = await conn.fetchval(_INSERT_LISTING_SQL, *params, harvest_lot_id)
+        else:
+            listing_id = await conn.fetchval(_INSERT_LISTING_SQL_PRE_V278, *params)
     return {
         "listing_id": str(listing_id),
         "status": "active",
+        "harvest_lot_id": harvest_lot_id,
         "total_value_usd": round(qty * price, 2),  # FIX: كان المفتاح "" فارغاً
         # لا مسار عامّ /trace/{batch_id} في أيّ خدمة (الأثر الوحيد مُصادَق عليه على دفعة
         # حصاد hl_…، وعرض البيع لا يُربط بها بعدُ) — فلا نُصدر رابط QR ميّتاً. يبقى المفتاح

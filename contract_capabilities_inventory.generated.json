@@ -41,6 +41,7 @@
       "all_required_models_active",
       "capabilities",
       "device",
+      "device_identity_configured",
       "offline_mode",
       "production_required",
       "queue_size",
@@ -48,7 +49,9 @@
       "required_capability_count",
       "schema_version",
       "service",
-      "sync_token_configured"
+      "sync_tenant_assertion_configured",
+      "sync_token_configured",
+      "tenant_assertion_configured"
     ],
     "required_keys": [
       "capabilities",

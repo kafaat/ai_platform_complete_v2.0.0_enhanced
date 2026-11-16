@@ -12,6 +12,16 @@ real errors, and their routes answered an opaque 502. An absent service is
 routed to a local stub that answers 503 ``service_not_deployed`` with no DNS
 lookup. It is an explicit declaration, never inferred from a failed lookup, so a
 service deployed later still needs only its variable removed.
+
+Dedicated service tokens (W0-09) appear in the canonical config as ``@NAME@``
+placeholders, never as ``${NAME}`` (nginx would read that as an unknown variable
+and refuse to start the unrendered development image). Each is filled from the
+environment variable of the same name. An unset token renders as an empty header
+value, which the owning service refuses (fail closed, the route answers 401/503
+instead of reaching data). A token of an absent service is never written into
+the config. A value outside a conservative token alphabet is refused, since it
+would otherwise be pasted into an nginx string. A placeholder this adapter does
+not know is refused too, so a new one cannot reach a backend as a literal.
 """
 
 from __future__ import annotations
@@ -29,7 +39,15 @@ ABSENT_SOCKET = "/tmp/sahool-absent-upstream.sock"
 REQUIRED = ("sahool-auth:8000", "sahool-platform:8000")
 DIRECT_PROXY = re.compile(rf"(?m)^(\s*)proxy_pass\s+http://({SERVICE})([^;\s]*);")
 UPSTREAM = re.compile(r"(?ms)^upstream ([a-zA-Z0-9_]+) \{\n(.*?)^\}")
-LOCATION = re.compile(r"(?ms)^    location (?:= |\^~ |~\* )?(\S+) \{\n(.*?)^    \}")
+LOCATION = re.compile(r"(?ms)^    location (?:= |\^~ |~\* |~ )?(\S+) \{\n(.*?)^    \}")
+# Placeholder -> (environment variable, the service that verifies the token).
+TOKENS = {
+    "@SCOUT_MEDIA_SERVICE_TOKEN@": ("SCOUT_MEDIA_SERVICE_TOKEN", "sahool-scout-ingest:8000"),
+    "@SEASON_ENTRY_SERVICE_TOKEN@": ("SEASON_ENTRY_SERVICE_TOKEN", "sahool-scout-ingest:8000"),
+    "@FIELD_TASKS_SERVICE_TOKEN@": ("FIELD_TASKS_SERVICE_TOKEN", "sahool-field-management:8000"),
+}
+TOKEN_PLACEHOLDER = re.compile(r"@[A-Z][A-Z0-9_]*_TOKEN@")
+TOKEN_VALUE = re.compile(r"[A-Za-z0-9._~+/=-]{1,512}")
 
 
 def variable_name(service: str) -> str:
@@ -48,6 +66,31 @@ def authority(value: str, key: str) -> str:
     elif ".." in match[1]:
         raise ValueError(f"{key} contains an invalid host")
     return value
+
+
+def fill_tokens(config: str, env: Mapping[str, str], absent: set[str]) -> str:
+    """Replace each known token placeholder; refuse unknown placeholders and unsafe values."""
+    for placeholder, (key, service) in TOKENS.items():
+        if placeholder not in config:
+            continue
+        value = "" if service in absent else env.get(key, "")
+        if value and not TOKEN_VALUE.fullmatch(value):
+            raise ValueError(f"{key} contains characters outside the token alphabet")
+        config = config.replace(placeholder, value)
+    leftover = TOKEN_PLACEHOLDER.search(config)
+    if leftover:
+        raise ValueError(f"Unknown service token placeholder {leftover[0]}")
+    return config
+
+
+def unset_tokens(source: str, env: Mapping[str, str]) -> list[str]:
+    """Names of tokens the config uses whose service is present but whose value is unset."""
+    names = set()
+    for placeholder, (key, service) in TOKENS.items():
+        if placeholder in source and env.get(variable_name(service)) != ABSENT:
+            if not env.get(key):
+                names.add(key)
+    return sorted(names)
 
 
 def read_nameservers(path: Path) -> list[str]:
@@ -138,8 +181,9 @@ def render(source: str, env: Mapping[str, str], nameservers: Sequence[str]) -> s
             indentation, service, uri = target.groups()
             address = addresses[service]
             result = f"{indentation}proxy_pass http://{groups[service]}{uri};"
-            # Named upstreams otherwise change nginx's default redirect authority.
-            if not re.search(r"\bproxy_redirect\s+", body):
+            # Named upstreams otherwise change nginx's default redirect authority. A target
+            # built from variables has no default redirect to preserve, so none is added.
+            if "$" not in uri and not re.search(r"\bproxy_redirect\s+", body):
                 result += f"\n        proxy_redirect http://{address}{uri or '/'} {prefix if uri else '/'};"
             if not re.search(r"\bproxy_set_header\s+Host\s+", body):
                 result += f"\n        proxy_set_header Host {address};"
@@ -171,6 +215,7 @@ def render(source: str, env: Mapping[str, str], nameservers: Sequence[str]) -> s
             "    default_type application/json;\n"
             '    return 503 \'{"error":"service_not_deployed"}\';\n}\n'
         )
+    config = fill_tokens(config, env, absent)
     return resolver + "\n".join(added_groups) + "\n" + stub + config
 
 
@@ -181,13 +226,15 @@ def main() -> None:
     parser.add_argument("--resolv-conf", type=Path, default=Path("/etc/resolv.conf"))
     args = parser.parse_args()
     try:
-        config = render(
-            args.source.read_text(encoding="utf-8"), os.environ, read_nameservers(args.resolv_conf)
-        )
+        source = args.source.read_text(encoding="utf-8")
+        config = render(source, os.environ, read_nameservers(args.resolv_conf))
         args.output.write_text(config, encoding="utf-8")
         args.output.chmod(0o600)
     except (OSError, ValueError) as exc:
         raise SystemExit(f"Railway frontend configuration failed: {exc}") from exc
+    for key in unset_tokens(source, os.environ):
+        # Names only, never values. The owning service refuses the empty token.
+        print(f"Railway frontend: {key} is unset; its routes will be refused upstream")
     print("Railway frontend configuration ready")
 
 

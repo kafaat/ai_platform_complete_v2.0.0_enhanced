@@ -106,8 +106,8 @@ class IrrigationApi {
     ),
   );
 
-  /// POST …/water-ledger — upsert قيد يوم كامل (الخادم يستبدل كلّ أعمدة اليوم).
-  /// المستدعي مسؤول عن دمج قيم اليوم القائمة قبل الإرسال (انظر WaterLedgerCubit).
+  /// POST …/water-ledger — upsert جزئيّ: الخادم لا يكتب عند التعارض إلّا الأعمدة
+  /// المُرسَلة (W0-13). بلاغ الريّ يُرسِل {ledger_date, irrigation_mm} وحده.
   Future<Map<String, dynamic>> upsertWaterLedger(
     String fieldId,
     Map<String, dynamic> body, {

@@ -204,14 +204,6 @@ export interface Task {
 }
 
 
-export interface GuardrailsResult {
-  allowed: boolean;
-  overall_risk: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  requires_human_approval: boolean;
-  arabic_explanation: string;
-  diff?: Record<string, unknown>;
-}
-
 // ── Indicator Grid (raster-service per-pixel grid) ──────────────
 export type GridIndex = 'ndvi' | 'ndmi' | 'ndwi' | 'salinity' | 'ndre' | 'msavi' | 'evi' | 'moisture' | 'msi' | 'savi' | 'gndvi';
 
@@ -926,6 +918,7 @@ export function useFieldWaterEfficiency(fieldId: string | null | undefined): Use
 import type {
   LedgerSummaryResponse, ProfitabilityResponse, VarianceResponse,
 } from '../lib/fieldProfitability';
+import { mixedCurrencies } from '../lib/fieldProfitability';
 
 function isDisabled404(e: unknown): boolean {
   const status = (e as { response?: { status?: number } })?.response?.status;
@@ -937,13 +930,18 @@ export function useFarmLedgerSummary(
   fieldId: string | null | undefined,
   seasonId: string | null | undefined,
   enabled = true,
+  currency: string | null = null,
 ): UseQueryResult<LedgerSummaryResponse> {
   return useQuery<LedgerSummaryResponse>({
-    queryKey: ['farm-ledger-summary', fieldId ?? 'none', seasonId ?? 'none'],
+    queryKey: ['farm-ledger-summary', fieldId ?? 'none', seasonId ?? 'none', currency ?? 'auto'],
     queryFn:  () => kongApi
-      .get('/api/v1/farm-ledger/summary', { params: { field_id: fieldId || undefined, season_id: seasonId || undefined } })
+      .get('/api/v1/farm-ledger/summary', { params: { field_id: fieldId || undefined, season_id: seasonId || undefined, currency: currency || undefined } })
       .then(r => r.data as LedgerSummaryResponse)
-      .catch((e) => { if (isDisabled404(e)) return { summary: null, disabled: true }; throw e; }),
+      .catch((e) => {
+        if (isDisabled404(e)) return { summary: null, disabled: true };
+        if (mixedCurrencies(e)) return { summary: null };  // العملة تُختار من بطاقة الربحيّة
+        throw e;
+      }),
     staleTime:15 * 60_000,
     enabled:  enabled && (!!fieldId || !!seasonId),
     retry:    false,
@@ -954,13 +952,19 @@ export function useFarmLedgerSummary(
 export function useSeasonProfitability(
   seasonId: string | null | undefined,
   enabled = true,
+  currency: string | null = null,
 ): UseQueryResult<ProfitabilityResponse> {
   return useQuery<ProfitabilityResponse>({
-    queryKey: ['season-profitability', seasonId ?? 'none'],
+    queryKey: ['season-profitability', seasonId ?? 'none', currency ?? 'auto'],
     queryFn:  () => kongApi
-      .get(`/api/v1/farm-ledger/profitability/${seasonId}`)
+      .get(`/api/v1/farm-ledger/profitability/${seasonId}`, { params: { currency: currency || undefined } })
       .then(r => r.data as ProfitabilityResponse)
-      .catch((e) => { if (isDisabled404(e)) return { season_id: String(seasonId), profitability: null, disabled: true }; throw e; }),
+      .catch((e) => {
+        if (isDisabled404(e)) return { season_id: String(seasonId), profitability: null, disabled: true };
+        const mixed = mixedCurrencies(e);  // 409: الموسم بعملتين ⇒ اختر عملة، لا خطأ
+        if (mixed) return { season_id: String(seasonId), profitability: null, mixed_currency: mixed };
+        throw e;
+      }),
     staleTime:15 * 60_000,
     enabled:  enabled && !!seasonId,
     retry:    false,
@@ -1041,13 +1045,19 @@ export function useVarietySalinity(
 export function useSeasonVariance(
   seasonId: string | null | undefined,
   enabled = true,
+  currency: string | null = null,
 ): UseQueryResult<VarianceResponse> {
   return useQuery<VarianceResponse>({
-    queryKey: ['season-variance', seasonId ?? 'none'],
+    queryKey: ['season-variance', seasonId ?? 'none', currency ?? 'auto'],
     queryFn:  () => kongApi
-      .get(`/api/v1/farm-ledger/variance/${seasonId}`)
+      .get(`/api/v1/farm-ledger/variance/${seasonId}`, { params: { currency: currency || undefined } })
       .then(r => r.data as VarianceResponse)
-      .catch((e) => { if (isDisabled404(e)) return { season_id: String(seasonId), variance: [], recommendations: [], disabled: true }; throw e; }),
+      .catch((e) => {
+        if (isDisabled404(e)) return { season_id: String(seasonId), variance: [], recommendations: [], disabled: true };
+        const mixed = mixedCurrencies(e);
+        if (mixed) return { season_id: String(seasonId), variance: [], recommendations: [], mixed_currency: mixed };
+        throw e;
+      }),
     staleTime:15 * 60_000,
     enabled:  enabled && !!seasonId,
     retry:    false,
@@ -1059,16 +1069,19 @@ export function useSeasonEconomicState(
   seasonId: string | null | undefined,
   areaHa: number | null,
   enabled = true,
+  currency: string | null = null,
 ): UseQueryResult<import('../lib/fieldProfitability').EconomicStateResponse> {
   return useQuery({
-    queryKey: ['season-economic-state', seasonId ?? 'none', areaHa ?? 'none'],
+    queryKey: ['season-economic-state', seasonId ?? 'none', areaHa ?? 'none', currency ?? 'auto'],
     queryFn:  () => kongApi
       .get(`/api/v1/farm-ledger/economic-state/${seasonId}`, {
-        params: { area_ha: areaHa != null && areaHa > 0 ? areaHa : undefined },
+        params: { area_ha: areaHa != null && areaHa > 0 ? areaHa : undefined, currency: currency || undefined },
       })
       .then(r => r.data as import('../lib/fieldProfitability').EconomicStateResponse)
       .catch((e) => {
         if (isDisabled404(e)) return { season_id: String(seasonId), economic_state: null, disabled: true };
+        const mixed = mixedCurrencies(e);
+        if (mixed) return { season_id: String(seasonId), economic_state: null, mixed_currency: mixed };
         throw e;
       }),
     staleTime:15 * 60_000,
@@ -2844,25 +2857,9 @@ export function useCancelFieldIntelligenceJob() {
 // canonical الخاصة بالسطح المستهلك، لا hook عام داخل useApi.ts.
 
 // ── v9: Guardrails ────────────────────────────────────────────
-export function useGuardrailsValidate() {
-  const { user } = useAuthStore();
-  return useMutation<GuardrailsResult, Error, {
-    actionType: string;
-    actionData: Record<string, unknown>;
-    farmContext:Record<string, unknown>;
-  }>({
-    mutationFn: ({ actionType, actionData, farmContext }) =>
-      kongApi.post('/api/guardrails/v1/validate', {
-        action_type:  actionType,
-        action_data:  actionData,
-        farm_context: farmContext,
-        user_id:      user?.id != null ? String(user.id) : 'unknown',
-        tenant_id:    user?.tenant_id ?? UNAUTH_TENANT_KEY,
-        auto_approve_low_risk: true,
-      }).then(r => r.data),
-  });
-}
-
+// لا عميل guardrails في المتصفّح (W0-01). /v1/validate يقبل توكن خدمة فقط، فكان
+// المتصفّح يحصل على 401 والواجهة تفشل مفتوحة. فحص السلامة الكيميائيّة يجري على الخادم
+// داخل /api/v1/pest-escalation/run ويُعاد حكمه في step_results.execute.guardrails.
 
 // ── Inventory: مخزون المدخلات (حيّ، tenant-scoped + RBAC inventory:view/manage) ──
 // لا fallback وهميّ: عند الخطأ (503 DB / 403 RBAC / انقطاع) يُرفض الاستعلام لتعرض

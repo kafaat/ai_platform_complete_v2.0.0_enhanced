@@ -23,6 +23,13 @@ stay fail-closed on a missing, malformed or mismatched digest (`reason` names wh
 model record must separately pin model/version, license, class taxonomy, training-data provenance
 and regional calibration evidence **before** a digest is set — the digest proves identity, not fitness.
 
+**Class index -> label comes from a label manifest** (W1-19).
+`models_manifest/pest_labels.json` lists, by class index, the label each pest-model class means
+and its canonical code in `shared/agronomy/pest_taxonomy.py`. A model whose output width is not
+`4 + len(labels)`, or a missing/invalid manifest, is refused with a 503
+(`pest_model_label_contract_violation`); it is never truncated to the shorter list. A model with
+a different class list ships its own manifest, pointed at with `PEST_LABELS_PATH`.
+
 **The detector is observation-only.** Detections carry class, confidence, bbox, affected crops and
 severity, with `action_policy: observation_only`. No treatment or pesticide is emitted by the
 detector; agronomic action requires a policy layer and an approved diagnosis.

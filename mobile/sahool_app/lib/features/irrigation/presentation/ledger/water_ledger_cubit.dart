@@ -1,12 +1,12 @@
 // SAHOOL — features/irrigation/presentation/ledger/water_ledger_cubit.dart
 // دفتر المياه اليوميّ لحقل: سجلّ آخر 30 يوماً + تسجيل الماء المضاف.
 //
-// لماذا الدمج: POST water-ledger upsert **يستبدل كلّ أعمدة اليوم** (ON CONFLICT DO
-// UPDATE)، وقيد الإنسان يمنع العامل الآليّ من إعادة حساب ذلك اليوم. إرسال
-// irrigation_mm وحده كان سيمحو ET0/الاستنزاف/الثقة التي حسبها الخادم لذلك اليوم
-// فتنقلب توصية الريّ إلى insufficient_data. لذا نقرأ قيد اليوم أوّلاً ونعيد
-// إرسال أعمدته كما هي، ولا نغيّر إلّا irrigation_mm. لا نُعيد حساب الاستنزاف
-// محلّيّاً (ليس للعميل أن يخترع ميزاناً).
+// بلاغ الريّ وحده (W0-13): الجسم {ledger_date, irrigation_mm} فقط. الخادم جزئيّ الدلالة:
+// لا يكتب عند التعارض إلّا ما أُرسِل، فلا يُمحى ET0/الاستنزاف/الثقة التي حسبها العامل الآليّ
+// لذلك اليوم، ويُسجِّل المُبلِّغ (irrigation_reported_by) فيحتفظ العامل برقم الإنسان ويعيد
+// حساب الميزان حوله. كان العميل يقرأ قيد اليوم ويعيد إرسال أعمدته؛ لكنّ إعادة الإرسال من
+// صندوق الإرسال بعد أن يكتب العامل اليوم تُرسِل نسخةً قديمة (أو لا شيء) فتمحو ما حسبه.
+// لا نُعيد حساب الاستنزاف محلّيّاً (ليس للعميل أن يخترع ميزاناً).
 //
 // دون اتّصال: يُودَع الطلب نفسه (المسار والجسم ومفتاح النيّة) في OfflineOutbox
 // بنوع 'water_applied'. الإيصال يقول الحقيقة: queued فقط إن حُفظ فعلاً.
@@ -60,22 +60,14 @@ enum WaterUnit { mm, m3 }
   return (mm: double.parse(mm.toStringAsFixed(2)), error: null);
 }
 
-/// يبني جسم POST: أعمدة قيد اليوم القائم كما هي + irrigation_mm الجديد.
-Map<String, dynamic> mergeLedgerBody(
+/// جسم POST: بلاغ الريّ وحده. لا يحمل أيّ عمود آخر، فلا يكتب الخادم فوق ما حسبه.
+Map<String, dynamic> irrigationReportBody(
   String ledgerDate,
   num irrigationMm,
-  WaterLedgerEntry? existing,
-) {
-  final body = <String, dynamic>{'ledger_date': ledgerDate};
-  if (existing != null) {
-    for (final k in kLedgerWritableKeys) {
-      final v = existing.raw[k];
-      if (v != null) body[k] = v;
-    }
-  }
-  body['irrigation_mm'] = irrigationMm;
-  return body;
-}
+) => <String, dynamic>{
+  'ledger_date': ledgerDate,
+  'irrigation_mm': irrigationMm,
+};
 
 sealed class WaterLedgerState {
   const WaterLedgerState();
@@ -184,11 +176,6 @@ class WaterLedgerCubit extends Cubit<WaterLedgerState> {
     }
   }
 
-  WaterLedgerEntry? _cached(String date) {
-    final s = state;
-    return s is WaterLedgerLoaded ? s.forDate(date) : null;
-  }
-
   /// يسجّل [irrigationMm] إجماليّاً ليوم [ledgerDate]. [key] ثابت لنيّة المستخدم
   /// (يُولَّد عند فتح النموذج) فتكون إعادة الإرسال والإيداع نفس الفعل.
   Future<WaterLogResult> logAppliedWater({
@@ -196,42 +183,10 @@ class WaterLedgerCubit extends Cubit<WaterLedgerState> {
     required num irrigationMm,
     required IdempotencyKey key,
   }) async {
+    final body = irrigationReportBody(ledgerDate, irrigationMm);
     if (!_isOnline()) {
-      return _enqueue(
-        mergeLedgerBody(ledgerDate, irrigationMm, _cached(ledgerDate)),
-        key,
-        ledgerDate,
-        irrigationMm,
-      );
+      return _enqueue(body, key, ledgerDate, irrigationMm);
     }
-    // اقرأ قيد اليوم من الخادم الآن (قد يكون العامل كتبه بعد آخر تحميل).
-    WaterLedgerEntry? existing;
-    try {
-      final json = await _api.listWaterLedger(
-        fieldId,
-        from: ledgerDate,
-        to: ledgerDate,
-      );
-      final raw = json['entries'];
-      if (raw is List) {
-        for (final e in raw.whereType<Map>()) {
-          final entry = WaterLedgerEntry.fromJson(Map<String, dynamic>.from(e));
-          if (entry.ledgerDate == ledgerDate) existing = entry;
-        }
-      }
-    } catch (e) {
-      final err = ApiException.from(e);
-      if (err.isConnectivity) {
-        return _enqueue(
-          mergeLedgerBody(ledgerDate, irrigationMm, _cached(ledgerDate)),
-          key,
-          ledgerDate,
-          irrigationMm,
-        );
-      }
-      return WaterLogFailed(err);
-    }
-    final body = mergeLedgerBody(ledgerDate, irrigationMm, existing);
     try {
       final res = await _api.upsertWaterLedger(
         fieldId,

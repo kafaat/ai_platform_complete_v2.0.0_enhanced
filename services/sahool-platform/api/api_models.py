@@ -347,16 +347,25 @@ class NitrogenRxRequest(BaseModel):
 
 
 class YieldEstimateRequest(BaseModel):
-    field_id: str
-    crop: str
-    days_in_growing: int = 0
-    irrigation_count: int = 0
-    moisture_stress_events: int = 0
-    pest_alerts: int = 0
-    fertilizer_applications: int = 0
-    avg_ndvi_growing: float | None = None
-    drought_streak_days: int = 0
-    rain_events: int = 0
+    """تجاوزات تقدير العائد المُعلَنة. W0-11: كلّ مدخل اختياريّ و``None`` = مجهول (لا صفر).
+
+    الصفر ملاحظةٌ مُعلَنة («رُصد ولا شيء»)؛ الحقل الغائب لا يُفترَض صفراً. ومدخلات الحالة
+    كلّها غائبة ⇒ ``yield_status='unavailable_insufficient_evidence'`` بلا رقم.
+    """
+
+    field_id: str | None = None  # المرجع هو معرّف المسار؛ هذا للتوافق مع العملاء القائمين.
+    # W1-08: الميزات تُجمَع من الخادم (أحداث + NDVI + طقس)، وكلّ قيمة أدناه **تجاوزٌ مُعلَن**
+    # يُسجَّل في ``declared_overrides`` مع قيمة الخادم التي استبدلها. المحصول من موسم الحقل
+    # المزروع؛ المُرسَل يُطابَق معه بعد التطبيع، والمخالف ⇒ 409. بلا محصول موسم هو تجاوزٌ مُعلَن.
+    crop: str | None = None
+    days_in_growing: int | None = Field(default=None, ge=0)
+    irrigation_count: int | None = Field(default=None, ge=0)
+    moisture_stress_events: int | None = Field(default=None, ge=0)
+    pest_alerts: int | None = Field(default=None, ge=0)
+    fertilizer_applications: int | None = Field(default=None, ge=0)
+    avg_ndvi_growing: float | None = Field(default=None, ge=-1.0, le=1.0)
+    drought_streak_days: int | None = Field(default=None, ge=0)
+    rain_events: int | None = Field(default=None, ge=0)
 
 
 class NdviConfidenceRequest(BaseModel):

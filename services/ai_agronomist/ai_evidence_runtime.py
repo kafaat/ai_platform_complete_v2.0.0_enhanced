@@ -27,6 +27,10 @@ from shared.ai.structured_advisory import (
 from shared.ai.structured_advisory import (
     digest as advisory_digest,
 )
+from shared.security.tenant_assertion_headers import (
+    TenantAssertionError,
+    tenant_assertion_headers,
+)
 from shared.security.trusted_tenant import (
     TrustedTenantError,
     resolve_trusted_tenant,
@@ -121,6 +125,65 @@ def _dependency_http_failure(dependency: str, upstream_status: int) -> HTTPExcep
 
 
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
+# W0-05: the platform's internal routes also need a tenant assertion signed with this key for
+# the tenant this runtime verified (resolve_trusted_tenant), not only the shared service token.
+PLATFORM_ASSERTION_SERVICE = "ai_agronomist"
+
+
+def _platform_tenant_headers(tenant_id: str, method: str, path: str) -> dict[str, str] | None:
+    """Signed tenant headers for a platform internal call, or None when no key is configured."""
+    key = os.getenv("PLATFORM_TENANT_ASSERTION_KEY", "")
+    if not key:
+        return None
+    try:
+        return tenant_assertion_headers(
+            key=key,
+            key_id=os.getenv("PLATFORM_TENANT_ASSERTION_KEY_ID", "current"),
+            service=PLATFORM_ASSERTION_SERVICE,
+            tenant_id=tenant_id,
+            method=method,
+            path=path,
+        )
+    except TenantAssertionError:
+        return None
+
+
+# W0-02 (knowledge-1/x-4): rag-retrieval answers 424 TENANT_CORPUS_EMPTY when the tenant
+# has no readable corpus, and 503 when retrieval is unavailable. Neither is a reason to
+# fail the whole advisory request: like the KG path, the answer degrades to field-state
+# evidence and *declares* ``rag_available: false`` so "RAG absent" never reads as "RAG
+# found nothing". Every other status (auth/tenant refusals, 500, 502...) still fails as 502.
+_RAG_DEGRADABLE_STATUSES = frozenset({424, 503})
+# Only these upstream codes are echoed; anything else (raw bodies, stack text) is never
+# reflected and is replaced by a status-derived code.
+_RAG_UNAVAILABLE_REASON_CODES = frozenset({"TENANT_CORPUS_EMPTY", "rag_retrieval_unavailable"})
+
+
+def _rag_unavailable(resp: httpx.Response) -> dict[str, Any]:
+    """Caller-safe degradation record for a degradable rag-retrieval status."""
+    try:
+        detail = resp.json().get("detail")
+    except Exception:  # noqa: BLE001 — non-JSON upstream body is never reflected
+        detail = None
+    code = detail.get("code") if isinstance(detail, dict) else detail
+    reason_code = (
+        code
+        if isinstance(code, str) and code in _RAG_UNAVAILABLE_REASON_CODES
+        else f"rag_upstream_http_{resp.status_code}"
+    )
+    correlation_id = uuid.uuid4().hex
+    logger.warning(
+        "advisory rag-retrieval degraded upstream_status=%s reason_code=%s correlation_id=%s",
+        resp.status_code,
+        reason_code,
+        correlation_id,
+    )
+    return {
+        "available": False,
+        "reason_code": reason_code,
+        "upstream_status": resp.status_code,
+        "correlation_id": correlation_id,
+    }
 
 
 @asynccontextmanager
@@ -164,11 +227,15 @@ async def _fetch_canonical_field_state(
         return {"status": "unavailable", "reason": "invalid_field_id"}
     if not AGENT_TOKEN:
         return {"status": "unavailable", "reason": "SAHOOL_AGENT_TOKEN not configured"}
+    path = _FIELD_STATE_PATH.format(field_id=quote(field_id, safe=""))
+    signed = _platform_tenant_headers(tenant_id, "GET", path)
+    if signed is None:
+        return {"status": "unavailable", "reason": "PLATFORM_TENANT_ASSERTION_KEY not configured"}
     try:
         resp = await client.get(
-            PLATFORM_URL.rstrip("/") + _FIELD_STATE_PATH.format(field_id=quote(field_id, safe="")),
+            PLATFORM_URL.rstrip("/") + path,
             params={"tenant_id": tenant_id, "canonical": "true", "ai_context": "true"},
-            headers={"X-Agent-Token": AGENT_TOKEN},
+            headers={"X-Agent-Token": AGENT_TOKEN, **signed},
             timeout=30.0,
         )
         if resp.status_code == 404:
@@ -322,6 +389,9 @@ async def _record_ai_advice_event(
     """
     if not AGENT_TOKEN:
         return {"status": "skipped", "reason": "SAHOOL_AGENT_TOKEN not configured"}
+    signed = _platform_tenant_headers(tenant_id, "POST", "/internal/events/ai-advice")
+    if signed is None:
+        return {"status": "skipped", "reason": "PLATFORM_TENANT_ASSERTION_KEY not configured"}
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.post(
@@ -337,7 +407,7 @@ async def _record_ai_advice_event(
                     **({"model_output": model_output} if model_output is not None else {}),
                     **({"soil_sampling_plans": soil_sampling_plans} if soil_sampling_plans else {}),
                 },
-                headers={"X-Agent-Token": AGENT_TOKEN},
+                headers={"X-Agent-Token": AGENT_TOKEN, **signed},
                 # Plans are handed on to soil-service inside this request, so they get the
                 # longer budget too.
                 timeout=35.0 if model_output is not None or soil_sampling_plans else 3.0,
@@ -660,10 +730,15 @@ def _ai_context_memory_lines(pack: dict[str, Any] | None) -> list[str]:
     if isinstance(weather, dict) and weather.get("available"):
         ws = weather.get("summary") or {}
         if isinstance(ws, dict):
+            # W1-22: مجموعٌ ناقص يصل `None` من الحزمة (يومٌ بلا قراءة لا يُحسَب جافّاً) — يُقال
+            # «غير مكتمل» للنموذج لا «None مم».
+            def _mm(value: Any) -> str:
+                return f"{value} مم" if value is not None else "غير مكتمل"
+
             lines.append(
                 "  - الطقس التاريخي: "
-                f"{ws.get('days', '—')} يوم، مطر {ws.get('total_precipitation_mm', '—')} مم، "
-                f"ET0 {ws.get('total_et0_mm', '—')} مم، متوسط حرارة {ws.get('avg_temp_c', '—')}°م."
+                f"{ws.get('days', '—')} يوم، مطر {_mm(ws.get('total_precipitation_mm'))}، "
+                f"ET0 {_mm(ws.get('total_et0_mm'))}، متوسط حرارة {ws.get('avg_temp_c', '—')}°م."
             )
     else:
         lines.append("  - الطقس التاريخي: غير متاح أو غير مكتمل.")
@@ -1008,12 +1083,16 @@ async def build_evidence_response(
                 headers={"X-Tenant-Id": tenant_id, "X-Agent-Token": AGENT_TOKEN},
                 timeout=10.0,
             )
-        if rag_resp.status_code >= 400:
+        rag_retrieval: dict[str, Any] = {"available": True}
+        if rag_resp.status_code in _RAG_DEGRADABLE_STATUSES:
+            rag_retrieval = _rag_unavailable(rag_resp)
+        elif rag_resp.status_code >= 400:
             raise _dependency_http_failure("rag-retrieval", rag_resp.status_code)
 
     from shared.ai.seed_claims import partition_generation_references
 
-    rag_payload = rag_resp.json()
+    rag_available = rag_retrieval["available"] is True
+    rag_payload = rag_resp.json() if rag_available else {"annotations": []}
     # Keep unreviewed seed pointers auditable while excluding their claim text from generation.
     usable, unreviewed = partition_generation_references(rag_payload.get("annotations") or [])
     rag_payload = {**rag_payload, "annotations": usable}
@@ -1037,6 +1116,8 @@ async def build_evidence_response(
             # يفرّق «KG غاب» عن «KG لم يجد»: كلاهما `edges: []` ولا يُميَّزان بغيره.
             "knowledge_graph_available": kg_available,
         },
+        # W0-02: "RAG absent" is declared, never disguised as "RAG found nothing".
+        "rag_retrieval": rag_retrieval,
         "canonical_field_state": field_state,
     }
     # Safety invariant: this runtime explains and gathers evidence only. It must not emit decision-shaped outputs.
@@ -1255,7 +1336,10 @@ async def build_evidence_response(
         field_id=req.field_id,
         selected_date=req.selected_imagery_date,
         raster_state=_raster_state,
-        weather_source="open-meteo" if _weather.get("available") else None,
+        # مصدرُ الطقس كما أعلنته الحزمة (weather-service منذ W1-22) لا اسمُ مزوّدٍ ثابت.
+        weather_source=(
+            (_weather.get("source") or "weather-service") if _weather.get("available") else None
+        ),
         last_api_errors=_readiness.get("warnings"),
         policy=_policy,
     )
@@ -1294,6 +1378,8 @@ async def build_evidence_response(
         "annotations": annotations,
         "evidence_ids": evidence_ids,
         "evidence_sources": evidence_sources,
+        "rag_available": rag_available,
+        "rag_unavailable_reason": None if rag_available else rag_retrieval["reason_code"],
         "ai_context_pack_readiness": ai_pack.get("readiness")
         if isinstance(ai_pack, dict)
         else None,

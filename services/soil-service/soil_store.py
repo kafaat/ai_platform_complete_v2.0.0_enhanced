@@ -469,7 +469,27 @@ async def rebuild_snapshot_in_transaction(
         field_id,
         persisted_profile_id,
     )
-    return SoilProfileSnapshot.model_validate(record)
+    current = SoilProfileSnapshot.model_validate(record)
+    await _project_hydraulic_profile(conn, current)
+    return current
+
+
+async def _project_hydraulic_profile(conn, snapshot: SoilProfileSnapshot) -> None:
+    """W1-04 (``soil-2``): keep the hydraulic profile in step with the current snapshot.
+
+    Runs in the snapshot's own transaction, so the current pointer and its hydraulic
+    projection commit together or not at all. A snapshot with no layers has nothing to
+    project (the contract requires at least one layer): no profile is written, and the read
+    side answers 404 (unavailable) rather than a profile describing nothing.
+    """
+    if not snapshot.layers:
+        return
+    import p1_products
+    import p1_store
+
+    await p1_store.project_hydraulic_in_transaction(
+        conn, p1_products.build_hydraulic_profile(snapshot)
+    )
 
 
 async def canonical_sensor_readings(

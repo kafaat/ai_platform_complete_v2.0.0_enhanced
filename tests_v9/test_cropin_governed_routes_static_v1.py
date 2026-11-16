@@ -31,9 +31,11 @@ def test_sharing_key_revocation_requires_owner_permission_and_rls_scope():
     assert "svc.revoke_key(key_id, str(user.tenant_id))" in segment
 
 
-def test_market_origins_are_read_only_not_uuid_coercion():
-    src = _source("services/sahool-platform/api/routers/harvest_traceability.py")
-    assert 'result["market_origin_preview"] = assess_market_origin_preview(lot, chain)' in src
-    core = _source("services/sahool-platform/core/engines/harvest_traceability.py")
-    assert '"decision_usable": False' in core
-    assert "uuid.UUID" not in core
+def test_market_reservations_remain_issued_by_the_authoritative_market_owner():
+    market = _source("services/mcp_servers/market_server.py")
+    assert "async def _reserve_from_harvest_lot(" in market
+    assert "FOR UPDATE" in market
+    assert "status = 'active'" in market
+    custody = _source("services/sahool-platform/api/routers/harvest_traceability.py")
+    assert "async def _listing_reservation(" in custody
+    assert "reserved_kg=reserved_kg" in custody

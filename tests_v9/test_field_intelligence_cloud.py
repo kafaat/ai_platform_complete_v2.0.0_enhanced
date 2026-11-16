@@ -87,11 +87,14 @@ def test_sensing_adapter_passes_cloud_cover(monkeypatch):
     monkeypatch.setattr(
         adapters,
         "get_indices_sync",
-        lambda field_id, *, lat, lon, timeout_s=None: {"ndvi": 0.55, "cloud_cover": 42.0},
+        lambda field_id, *, tenant_id, lat, lon, timeout_s=None: {
+            "ndvi": 0.55,
+            "cloud_cover": 42.0,
+        },
     )
 
     class _Req:
-        field_id, lat, lon = "f1", 15.3, 44.2
+        field_id, lat, lon, tenant_id = "f1", 15.3, 44.2, "t1"
 
     out = adapters.sensing_adapter(_Req())
     assert out is not None and out["cloud_cover"] == 42.0 and out["ndvi"] == 0.55

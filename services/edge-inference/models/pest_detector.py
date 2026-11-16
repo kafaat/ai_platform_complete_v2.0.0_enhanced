@@ -5,12 +5,14 @@ ONNX Runtime with INT8 quantization for ARM64
 Supports: YOLOv8-World / MobileViT / Custom quantized models
 """
 
+import json
 import logging
 import os
+from pathlib import Path
 
 import numpy as np
 from models import onnx_providers
-from models.errors import ModelNotProvisioned
+from models.errors import ModelNotProvisioned, ModelOutputContractError
 from models.image_decode import decode_rgb
 
 logger = logging.getLogger(__name__)
@@ -19,11 +21,54 @@ logger = logging.getLogger(__name__)
 # ("كشف الآفات بنموذج ML — يتطلّب ملفّ ONNX موجوداً"). The real ONNX path activates
 # ONLY when PEST_MODEL_PATH points at an existing file AND onnxruntime is importable
 # (lazy — onnxruntime is NOT a hard dependency). Otherwise the service stays honestly
-# dormant and falls back to the existing rule-based / simulation path, unchanged.
+# dormant: detect() raises ModelNotProvisioned (HTTP 503), with no simulated detections.
 PEST_MODEL_ENV = "PEST_MODEL_PATH"
 
 # Cache model sessions separately for CPU and CUDA device selection.
 _ONNX_SESSION_CACHE: dict[tuple[str, str], object] = {}
+
+# W1-19 (scout-9): class index -> label comes from a label manifest shipped with the model,
+# not from the order of a Python dict. The output width must equal 4 + len(labels).
+PEST_LABELS_ENV = "PEST_LABELS_PATH"
+DEFAULT_PEST_LABELS_PATH = (
+    Path(__file__).resolve().parent.parent / "models_manifest" / "pest_labels.json"
+)
+YOLO_BOX_ROWS = 4
+
+
+def load_label_manifest(path: str | os.PathLike, known_labels) -> tuple[tuple[str, str], ...]:
+    """Read and validate a label manifest -> ``((label, taxonomy_code), ...)`` by class index.
+
+    Fails closed (ModelOutputContractError) on a missing/unreadable file, a gap or repeat in
+    the indices, a duplicate label, a label the detector has no metadata for, or a missing
+    taxonomy code.
+    """
+    try:
+        doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise ModelOutputContractError(f"pest_label_manifest_unreadable: {path}") from exc
+    entries = doc.get("labels") if isinstance(doc, dict) else None
+    if not isinstance(entries, list) or not entries:
+        raise ModelOutputContractError("pest_label_manifest_has_no_labels")
+    if doc.get("box_rows", YOLO_BOX_ROWS) != YOLO_BOX_ROWS:
+        raise ModelOutputContractError("pest_label_manifest_box_rows_unsupported")
+    out: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for position, entry in enumerate(entries):
+        if not isinstance(entry, dict) or entry.get("index") != position:
+            raise ModelOutputContractError(f"pest_label_manifest_index_gap_at_{position}")
+        label = entry.get("label")
+        code = entry.get("taxonomy_code")
+        if not isinstance(label, str) or label not in known_labels:
+            raise ModelOutputContractError(f"pest_label_manifest_unknown_label: {label!r}")
+        if label in seen:
+            raise ModelOutputContractError(f"pest_label_manifest_duplicate_label: {label}")
+        if not isinstance(code, str) or not code.strip():
+            raise ModelOutputContractError(f"pest_label_manifest_missing_taxonomy_code: {label}")
+        seen.add(label)
+        out.append((label, code))
+    return tuple(out)
+
 
 # YOLOv8 heads emit one candidate per anchor; a single insect lights up many
 # neighbouring anchors. Overlapping boxes of the same class are collapsed to
@@ -90,7 +135,7 @@ def _load_onnx_session(model_path: str, device: str):
     """Lazily import onnxruntime and return a cached InferenceSession, or None.
 
     onnxruntime is intentionally an OPTIONAL dependency: if the import fails the
-    capability is treated as dormant and the caller falls back to the rule-based path.
+    capability is treated as dormant and detect() refuses with ModelNotProvisioned (503).
     """
     providers = onnx_providers(device)
     key = model_path, providers[0]
@@ -102,15 +147,15 @@ def _load_onnx_session(model_path: str, device: str):
     except ImportError:
         logger.info(
             "[EdgePestDetector] onnxruntime not installed — ML pest path dormant, "
-            "falling back to rule-based detection."
+            "detection refused until a model is provisioned."
         )
         return None
-    # نموذج تالف / provider غير متاح ⇒ خامل بصدق (سقوط للمسار القاعديّ، لا كسر طلب)
+    # نموذج تالف / provider غير متاح ⇒ خامل بصدق (رفض ModelNotProvisioned ⇒ 503، لا كشوف مُختلَقة)
     try:
         session = ort.InferenceSession(model_path, providers=providers)
     except Exception as e:  # noqa: BLE001
         logger.warning(
-            "[EdgePestDetector] فشل تحميل نموذج ONNX (%s) — السقوط للمسار القاعديّ: %s",
+            "[EdgePestDetector] فشل تحميل نموذج ONNX (%s) — الكشف مرفوض حتى تجهيز النموذج: %s",
             model_path,
             e,
         )
@@ -123,7 +168,8 @@ class EdgePestDetector:
     """
     On-device pest and disease detection.
     Production: Load ONNX quantized model.
-    MVP: Template-based simulation with realistic latency.
+    Without a provisioned model detect() raises ModelNotProvisioned (503); the simulation
+    helper is kept for tests only and never answers a request.
     """
 
     # Yemen agricultural pests database
@@ -185,9 +231,10 @@ class EdgePestDetector:
         self.device = device
         self.version = "2026.1-edge"
         self.input_size = (640, 640)
+        self._label_cache: tuple[str, tuple[tuple[str, str], ...]] | None = None
 
         # Production: Load ONNX Runtime session
-        # For MVP: simulate inference with realistic Yemen pest probabilities
+        # No model ⇒ detect() refuses (ModelNotProvisioned); nothing is simulated for callers.
         self._load_model()
 
     def _load_model(self):
@@ -208,6 +255,13 @@ class EdgePestDetector:
             logger.info(
                 f"[EdgePestDetector] Model not found: {self.model_path}. Capability dormant."
             )
+
+    def labels(self) -> tuple[tuple[str, str], ...]:
+        """The label manifest for the configured model (``PEST_LABELS_PATH`` or the default)."""
+        path = os.getenv(PEST_LABELS_ENV, "").strip() or str(DEFAULT_PEST_LABELS_PATH)
+        if self._label_cache is None or self._label_cache[0] != path:
+            self._label_cache = (path, load_label_manifest(path, self.PEST_DB))
+        return self._label_cache[1]
 
     def predict(self, image_bytes: bytes, confidence_threshold: float = 0.6) -> list[dict]:
         """
@@ -233,6 +287,7 @@ class EdgePestDetector:
         if model_path is not None:
             session = _load_onnx_session(model_path, self.device)
             if session is not None:
+                self.labels()  # an invalid manifest refuses before inference, not after
                 input_name = session.get_inputs()[0].name
                 outputs = session.run(None, {input_name: img_array})
                 detections = self._parse_onnx_outputs(outputs, confidence_threshold, original_size)
@@ -254,22 +309,33 @@ class EdgePestDetector:
 
         Expects a YOLOv8 detection head: [batch, 4 + num_classes, num_anchors],
         where rows 0..3 are the box (cx, cy, w, h in input-normalized or pixel coords)
-        and rows 4.. are per-class scores. Class indices map to PEST_DB keys in order.
-        Real outputs only — no fabrication; an empty model output yields no detections.
+        and rows 4.. are per-class scores. Class index i means the label manifest's labels[i];
+        any other width is refused (ModelOutputContractError), never truncated.
+        Real outputs only — no fabrication; no candidate above threshold yields no detections.
         """
-        pest_keys = list(self.PEST_DB.keys())
+        labels = self.labels()
+        n_classes = len(labels)
+        width = YOLO_BOX_ROWS + n_classes
+        if not outputs:
+            raise ModelOutputContractError("pest_model_returned_no_output")
         preds = np.asarray(outputs[0])
-        # Drop batch dim if present: (1, C, A) -> (C, A).
+        # Drop batch dim (one image per call): (1, C, A) -> (C, A).
         if preds.ndim == 3:
+            if preds.shape[0] != 1:
+                raise ModelOutputContractError(f"pest_model_batch_not_one: {preds.shape}")
             preds = preds[0]
-        if preds.ndim != 2 or preds.shape[0] < 5:
-            return []
-        # Orient to (num_anchors, 4 + num_classes).
-        if preds.shape[0] < preds.shape[1]:
+        if preds.ndim != 2:
+            raise ModelOutputContractError(f"pest_model_output_rank_unsupported: {preds.shape}")
+        # Orient to (num_anchors, 4 + num_classes) by the manifest width, not by a guess.
+        if preds.shape[0] == width:
             preds = preds.T
-        boxes = preds[:, :4]
-        scores = preds[:, 4:]
-        n_classes = min(scores.shape[1], len(pest_keys))
+        elif preds.shape[1] != width:
+            raise ModelOutputContractError(
+                f"pest_model_output_width_mismatch: output {tuple(preds.shape)} does not carry "
+                f"{YOLO_BOX_ROWS} box rows + {n_classes} manifest classes"
+            )
+        boxes = preds[:, :YOLO_BOX_ROWS]
+        scores = preds[:, YOLO_BOX_ROWS:]
 
         # Normalize box coords to [0, 1] if they appear to be in input-pixel space.
         in_w, in_h = self.input_size
@@ -277,7 +343,7 @@ class EdgePestDetector:
         if float(np.nanmax(np.abs(boxes))) > 1.5:
             boxes = boxes / scale
 
-        class_ids = np.argmax(scores[:, :n_classes], axis=1)
+        class_ids = np.argmax(scores, axis=1)
         confidences = scores[np.arange(scores.shape[0]), class_ids].astype(np.float64)
         candidates = np.flatnonzero(confidences >= threshold)
         cx, cy, bw, bh = (boxes[candidates, k].astype(np.float64) for k in range(4))
@@ -294,7 +360,7 @@ class EdgePestDetector:
             i = int(candidates[k])
             class_id = int(class_ids[i])
             confidence = float(confidences[i])
-            pest_key = pest_keys[class_id]
+            pest_key, taxonomy_code = labels[class_id]
             pest_info = self.PEST_DB[pest_key]
             cx, cy, w, h = (float(v) for v in boxes[i, :4])
             x1, y1 = cx - w / 2.0, cy - h / 2.0
@@ -302,6 +368,7 @@ class EdgePestDetector:
                 {
                     "class_id": class_id,
                     "class_name": pest_key,
+                    "taxonomy_code": taxonomy_code,
                     "arabic_name": pest_info["arabic"],
                     "confidence": round(confidence, 3),
                     "bbox": {

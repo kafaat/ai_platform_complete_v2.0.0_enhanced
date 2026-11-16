@@ -14,7 +14,7 @@
 
 **بلا تبعيّة على ``api.main``:** كلّ الدوالّ المعتمدة على القاعدة تستقبل ``conn`` كمعامل
 (لا تدير اتّصالاً)، وكلّ الاستيرادات الثقيلة (``api.soil_telemetry`` ·
-``api.recommendations_hub`` · ``core.season_phenology`` · ``api.connectors.openmeteo``)
+``api.recommendations_hub`` · ``core.season_phenology`` · ``api.weather_service_client``)
 كسولة داخل الدوالّ — فلا دورة استيراد. تُعاد هذه الأسماء إلى فضاء ``api.main`` (إعادة
 تصدير) كي تبقى نقاط الاستدعاء القائمة (``from api.main import …`` في الموجِّهات) صحيحة
 دون تغيير سلوكيّ.
@@ -23,9 +23,9 @@
 from __future__ import annotations
 
 import logging
+from datetime import UTC, date, datetime
 from statistics import mean
 from typing import Any
-from datetime import UTC, date, datetime
 
 from fastapi import HTTPException
 
@@ -44,18 +44,21 @@ def _growth_stage(days_since_sowing: int | None) -> str | None:
     return "late"
 
 
-def _season_stage(crop: str | None, age: int) -> str | None:
-    """مرحلة الموسم: من بطاقة المحصول، أو تقدير الأيّام العامّ لمحصول **معروف** فقط.
+def _season_stage(crop: str | None, age: int, accumulated_gdd: float | None = None) -> str | None:
+    """مرحلة الموسم من المحلِّل الواحد ``core.gdd_phenology.phenology_progress`` (W1-10).
 
-    محصول غير مُعرَّف ⇒ None: حدود الأيّام العامّة لا تخصّه، والمرحلة المُختلَقة تقود
-    Kc/التسميد المرحليّ. البطاقة المعروفة بلا مرحلة جارية ⇒ تقدير عامّ (السلوك السابق).
+    حراريّة حين يُمرَّر GDD متراكم وتنطبق البطاقة، وإلّا تقويميّة من أيّام البطاقة (الاحتياط
+    المُعلَن نفسه الذي تقرؤه حالة الموسم و/phenology). محصول غير مُعرَّف ⇒ None: حدود الأيّام
+    العامّة لا تخصّه، والمرحلة المُختلَقة تقود Kc/التسميد المرحليّ. البطاقة المعروفة بلا مرحلة
+    جارية ⇒ تقدير عامّ (السلوك السابق).
     """
-    from core.season_phenology import current_stage, resolve_crop_id
+    from core.gdd_phenology import phenology_progress
+    from core.season_phenology import resolve_crop_id
 
     crop_id = resolve_crop_id(crop)
-    phase = current_stage(crop_id, age) if age >= 0 else None
-    if phase:
-        return phase["stage"]
+    resolved = phenology_progress(crop_id, age, accumulated_gdd) if age >= 0 else {}
+    if resolved.get("stage"):
+        return resolved["stage"]
     return _growth_stage(age) if crop_id else None
 
 
@@ -164,6 +167,10 @@ async def _field_season_context(conn, field_id: str):
             crop = str(crops[0])
         sowing_date = season["sowing_date"]
         if sowing_date is not None:
+            # No GDD here (declared, W1-10 review): this runs inside the tenant connection, and
+            # the thermal sum is a weather-service read that the season-state route makes only
+            # after releasing its connection. The stage is therefore the resolver's calendar
+            # fallback; the season state (/seasons/{sid}/state) carries the thermal stage.
             stage = _season_stage(crop, (date.today() - sowing_date).days)
     lat = float(row["lat"]) if row["lat"] is not None else None
     lon = float(row["lon"]) if row["lon"] is not None else None
@@ -205,11 +212,11 @@ async def _historical_rain_3d_mm(
     """
     from datetime import timedelta as _td
 
-    from api.connectors.openmeteo import fetch_historical
+    from api.weather_service_client import historical_readings
 
     try:
         today = datetime.now(UTC).date()
-        hist = await fetch_historical(
+        hist = await historical_readings(
             lat,
             lon,
             (today - _td(days=_HISTORICAL_RAIN_DAYS)).isoformat(),
@@ -503,6 +510,49 @@ async def harvest_lot_phi_check(conn, user, req, harvest_date):
         conn, user, req.field_id, harvest_date, req.phi_override, req.phi_override_reason
     )
 
+
+async def field_elevation_or_none(conn, field_id: str) -> float | None:
+    """ارتفاع الحقل المسجَّل (``fields.elevation_m``) أو ``None`` — لا افتراض (fields-16)."""
+    from api.water_ledger_inputs import field_elevation_m
+
+    row = await conn.fetchrow("SELECT elevation_m FROM fields WHERE field_id = $1", field_id)
+    return field_elevation_m(row.get("elevation_m")) if row else None
+
+
+# ─── v278: a field with harvest lots is not deleted, merged away or split away ───
+async def refuse_if_fields_have_harvest_lots(conn, field_ids: list[str], action_ar: str) -> None:
+    """A field with harvest lots is not deleted, merged away or split away.
+
+    v278 made ``harvest_lots.field_id`` ON DELETE RESTRICT: before it, deleting a field (directly,
+    or as the source of a merge or split) cascaded to its harvest lots and from them to their custody
+    chain, erasing the traceability record of everything harvested there. With RESTRICT the DELETE
+    fails inside the transaction; this check answers 409 with the reason first, instead of letting the
+    foreign-key error surface as the generic 503 of the field routes.
+
+    Lots keep naming the field they were harvested from: re-pointing them to a merged or split field
+    would change where the produce came from, so the operator resolves it explicitly.
+    """
+    ids = sorted({str(f) for f in field_ids if f})
+    if not ids:
+        return
+    # Lock the fields first (sorted, so concurrent callers take locks in one order): creating a
+    # lot takes a KEY SHARE lock on its field through the FK, so no lot can be committed between
+    # this count and the DELETE that follows in the caller's transaction.
+    await conn.execute(
+        "SELECT 1 FROM fields WHERE field_id = ANY($1::text[]) ORDER BY field_id FOR UPDATE", ids
+    )
+    held = await conn.fetchval(
+        "SELECT count(*) FROM harvest_lots WHERE field_id = ANY($1::text[])",
+        ids,
+    )
+    if held and int(held) > 0:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"لا يمكن {action_ar}: للحقل دفعات حصاد مسجَّلة ({int(held)}) وسلسلة حيازتها "
+                "سجلّ تتبّع لا يُمحى. يبقى الحقل ما دامت دفعاته قائمة."
+            ),
+        )
 
 def summarize_ai_weather_archive(
     records: list[Any],

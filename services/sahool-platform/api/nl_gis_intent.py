@@ -7,7 +7,7 @@
 حذف، لا أوامر، لا SQL حُرّ.
 
 النيّات المدعومة (المرحلة الأولى — 3 فقط):
-  • ``ndvi_drop``     — حقول انخفض مؤشّر NDVI فيها أكثر من عتبة٪ (من ndvi_timeseries).
+  • ``ndvi_drop``     — حقول انخفض مؤشّر NDVI فيها أكثر من عتبة٪ (من raster-service).
   • ``alert_filter`` — حقول (محصول/منطقة) لديها تنبيه نشط من نوع‑ما (من alerts ⋈ fields).
   • ``irrigation_gap`` — حقول لم تُروَ منذ N يوم (من irrigation_schedules.last_run_at).
 

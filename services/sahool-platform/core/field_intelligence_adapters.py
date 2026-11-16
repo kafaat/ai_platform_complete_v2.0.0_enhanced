@@ -207,19 +207,109 @@ def weather_forecast_adapter(req, *, authorization: str | None = None) -> dict |
     }
 
 
-def soil_adapter(req) -> dict | None:
-    """يجلب تحليل التربة → {ec_dsm, sampled_at}. None عند التعذّر."""
-    data = _get_json(f"{SOIL_URL}/api/v1/soil/{req.field_id}")
-    if not data:
+def _run_coroutine_sync(coro):
+    """يشغّل coroutine من محوّل متزامن (المحوّلات تعمل في thread عبر ``asyncio.to_thread``).
+
+    بلا حلقة جارية في هذا الـthread ⇒ ``asyncio.run``. وإن وُجدت حلقة جارية (نداء مباشر من
+    سياق async) ⇒ يُشغَّل في thread عامل كي لا يُعاد دخول الحلقة نفسها.
+    """
+    import asyncio
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result()
+
+
+def _is_ds_per_m(unit) -> bool:
+    return unit is None or str(unit).replace(" ", "").lower() in {"ds/m", "dsm-1", "ds·m-1"}
+
+
+def soil_signal_from_profile(profile) -> dict | None:
+    """يستخرج إشارة EC من لقطة soil-service المحكومة (``soil-profile.v1``) — دالّة نقيّة.
+
+    W1-01: كان ``soil_adapter`` يطلب ``/api/v1/soil/{field_id}`` الذي لا تُعلنه soil-service
+    (٤٠٤ حتميّ ⇒ إشارة EC غائبة دائماً). المصدر القانونيّ الآن هو اللقطة نفسها التي يقرؤها
+    ``canonical_field_state`` عبر ``resolve_canonical_soil_state``.
+
+    صدق (لا اختلاق): EC يُؤخذ من أضحل طبقة تحمله فقط حين يكون **دليلاً مقيساً**
+    (``verification_required=False``: مختبر/حسّاس/حقل)، وبوحدة dS/m، وبوّابة جودة اللقطة
+    ``passed=True`` (أي فيها دليلٌ مقبول). قيمة نموذجيّة (SoilGrids/نموذج) أو لقطة بلا دليل
+    مقبول ⇒ ``None``؛ فإشارة ``soil_ec`` عالية الثقة لا تُبنى على تقدير.
+    """
+    if not isinstance(profile, dict):
         return None
-    return {"ec_dsm": data.get("ec_dsm", data.get("ec")), "sampled_at": data.get("sampled_at")}
+    gate = profile.get("quality_gate")
+    if not isinstance(gate, dict) or gate.get("passed") is not True:
+        return None
+    layers = profile.get("layers")
+    if not isinstance(layers, list):
+        return None
+
+    def _depth(layer):
+        value = layer.get("depth_from_cm")
+        return float(value) if isinstance(value, (int, float)) else float("inf")
+
+    for layer in sorted((x for x in layers if isinstance(x, dict)), key=_depth):
+        props = layer.get("properties")
+        ec = props.get("ec") if isinstance(props, dict) else None
+        if not isinstance(ec, dict):
+            continue
+        value = ec.get("value")
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        if ec.get("verification_required") is not False or not _is_ds_per_m(ec.get("unit")):
+            continue
+        return {
+            "ec_dsm": float(value),
+            "sampled_at": ec.get("observed_at"),
+            "source": "soil-service:/v1/fields/{field_id}/soil/profile",
+            "selected_source": ec.get("selected_source"),
+            "profile_id": profile.get("profile_id"),
+            "profile_hash": profile.get("profile_hash"),
+            "depth_from_cm": layer.get("depth_from_cm"),
+            "depth_to_cm": layer.get("depth_to_cm"),
+        }
+    return None
+
+
+def soil_adapter(req) -> dict | None:
+    """يجلب EC من لقطة التربة المحكومة → {ec_dsm, sampled_at, ...}. None عند التعذّر.
+
+    يقرأ عبر ``resolve_canonical_soil_state`` (``GET /v1/fields/{id}/soil/profile`` مع
+    ``X-Agent-Token`` و``X-Tenant-Id``). المستأجِر من الطلب الموثوق (``req.tenant_id`` من
+    هويّة المستخدم في المنصّة)؛ غيابه ⇒ ``None`` (fail-closed: لا قراءة بلا مستأجِر).
+    """
+    tenant_id = getattr(req, "tenant_id", None)
+    field_id = getattr(req, "field_id", None)
+    if not tenant_id or not field_id:
+        return None
+    # استيراد كسول: الوحدة تستورد httpx عند التحميل، وطبقة الوحدات الخفيفة بلا httpx.
+    try:
+        from api.canonical_soil_state import resolve_canonical_soil_state
+    except ImportError:
+        return None
+    profile = _run_coroutine_sync(
+        resolve_canonical_soil_state(tenant_id=str(tenant_id), field_id=str(field_id))
+    )
+    return soil_signal_from_profile(profile)
 
 
 def sensing_adapter(req) -> dict | None:
-    """يجلب مؤشّرات الاستشعار → {ndvi, ndre, ...}. None عند التعذّر."""
-    if req.lat is None or req.lon is None:
+    """يجلب مؤشّرات الاستشعار → {ndvi, ndre, ...}. None عند التعذّر.
+
+    W1-01: raster يحلّ طبقات الحقل بـ``X-Tenant-Id``؛ بلا مستأجِر ⇒ ``None`` بلا نداء.
+    """
+    tenant_id = getattr(req, "tenant_id", None)
+    if req.lat is None or req.lon is None or not tenant_id:
         return None
-    data = get_indices_sync(req.field_id, lat=req.lat, lon=req.lon, timeout_s=HTTP_TIMEOUT)
+    data = get_indices_sync(
+        req.field_id, tenant_id=str(tenant_id), lat=req.lat, lon=req.lon, timeout_s=HTTP_TIMEOUT
+    )
     if not data:
         return None
     # تمرير المؤشّرات المتاحة فقط (الغائب يُعلَن في المايسترو)

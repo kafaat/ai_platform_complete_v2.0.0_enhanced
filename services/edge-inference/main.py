@@ -13,13 +13,17 @@ from datetime import UTC, datetime
 
 import model_artifact_gate as artifact_gate
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Response, UploadFile
-from models.errors import ImageTooLarge, ModelNotProvisioned
+from models.errors import ImageTooLarge, ModelNotProvisioned, ModelOutputContractError
 from models.pest_detector import EdgePestDetector
 from models.yield_estimator import EdgeYieldEstimator
 from pydantic import BaseModel, Field
 from sync_service import CloudSyncService
 
 # بلا try/except قصداً: غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع.
+from shared.security.service_tenant_assertion import (
+    TenantAssertionError,
+    verify_tenant_assertion,
+)
 from shared.security.trusted_tenant import service_token_ok
 
 logger = logging.getLogger(__name__)
@@ -86,6 +90,11 @@ def get_sync_service() -> CloudSyncService:
         _sync_service = CloudSyncService(
             cloud_url=os.getenv("SAHOOL_CLOUD_URL", "https://api.sahool.local"),
             token=os.getenv("EDGE_SYNC_TOKEN", ""),
+            # W0-07: tenant-carrying envelopes are sent as a service (agent token + assertion).
+            agent_token=os.getenv("SAHOOL_AGENT_TOKEN", ""),
+            # Its own key for the edge -> platform hop, never the inbound EDGE_TENANT_ASSERTION_KEY.
+            assertion_key=os.getenv("EDGE_SYNC_TENANT_ASSERTION_KEY", ""),
+            assertion_key_id=os.getenv("EDGE_SYNC_TENANT_ASSERTION_KEY_ID", "current"),
             # قابل للضبط: الحاوية تستخدم /data (volume)؛ بيئات الاختبار/CI بلا صلاحيّة
             # كتابة على الجذر تمرّر EDGE_SYNC_DIR لمجلّد مؤقّت.
             sync_dir=os.getenv("EDGE_SYNC_DIR", "/data/sync_queue"),
@@ -154,6 +163,11 @@ def capabilities_payload() -> dict[str, object]:
         "production_required": EDGE_PRODUCTION_REQUIRED,
         "agent_token_configured": bool(AGENT_TOKEN),
         "sync_token_configured": bool(os.getenv("EDGE_SYNC_TOKEN")),
+        "tenant_assertion_configured": len(os.getenv("EDGE_TENANT_ASSERTION_KEY", "")) >= 32,
+        "sync_tenant_assertion_configured": (
+            len(os.getenv("EDGE_SYNC_TENANT_ASSERTION_KEY", "")) >= 32
+        ),
+        "device_identity_configured": bool(os.getenv("EDGE_DEVICE_ID", "").strip()),
         "capabilities": capabilities,
         "active_capability_count": active_count,
         "required_capability_count": len(capabilities),
@@ -233,6 +247,78 @@ def _require_service_token(x_agent_token: str = Header(None)) -> None:
         raise HTTPException(401, "توكن خدمة غير صالح")
 
 
+# W0-07 (scout-1): a field-bound result is synced under the tenant its caller signed for, not under
+# the one tenant of a shared EDGE_SYNC_TOKEN. Callers: video-processor (the stream's verified
+# tenant) and sahool-platform's BFF (the verified user's tenant).
+_DEFAULT_TENANT_CALLERS = "video-processor,sahool-platform"
+
+
+def _verified_caller_tenant(
+    path: str,
+    assertion: str | None,
+    tenant_id: str | None,
+    caller: str | None,
+    request_id: str | None,
+) -> str | None:
+    """The tenant this request may sync for, or None when the caller sent no assertion.
+
+    None ⇒ the detection is returned but never synced (``not_synced_no_tenant``). An assertion
+    that is present but wrong is a refusal (403), and one that cannot be checked is 503: nothing
+    is written for a tenant this edge did not verify. ``path`` is the route's own path, so an
+    assertion minted for another route does not verify here.
+    """
+    if not assertion:
+        return None
+    key = os.getenv("EDGE_TENANT_ASSERTION_KEY", "")
+    if len(key) < 32:
+        raise HTTPException(503, "edge_tenant_assertion_unavailable")
+    keys = {os.getenv("EDGE_TENANT_ASSERTION_KEY_ID", "current"): key}
+    previous = os.getenv("EDGE_TENANT_ASSERTION_PREVIOUS_KEY", "")
+    if len(previous) >= 32:
+        keys[os.getenv("EDGE_TENANT_ASSERTION_PREVIOUS_KEY_ID", "previous")] = previous
+    allowed = {
+        s.strip()
+        for s in os.getenv("EDGE_INFERENCE_ALLOWED_CALLERS", _DEFAULT_TENANT_CALLERS).split(",")
+        if s.strip()
+    }
+    if (caller or "") not in allowed:
+        raise HTTPException(403, "caller_not_allowed")
+    try:
+        verify_tenant_assertion(
+            assertion,
+            keys,
+            caller or "",
+            tenant_id or "",
+            expected_method="POST",
+            expected_path=path,
+            expected_request_id=request_id or "",
+        )
+    except TenantAssertionError as exc:
+        raise HTTPException(403, f"invalid_tenant_assertion:{exc}") from None
+    return tenant_id
+
+
+async def _sync_or_status(result_type: str, result: dict, tenant_id: str | None) -> str:
+    """Queue/send a field-bound result and say what happened.
+
+    W0-08 (scout-2): no device identity is not a reason to throw the detection away with a 503
+    after inference; the result goes back with ``not_synced_identity`` and nothing is queued,
+    because a queued observation without a device cannot be attributed later."""
+    if tenant_id is None:
+        return "not_synced_no_tenant"
+    sync = get_sync_service()
+    if not sync.device_id_for(result):
+        return "not_synced_identity"
+    try:
+        if not OFFLINE_MODE:
+            synced = await sync.sync_result(result_type, result, tenant_id=tenant_id)
+            return "synced" if synced else "queued"
+        sync.queue_result(result_type, result, tenant_id=tenant_id)
+        return "queued"
+    except (OSError, ValueError) as exc:
+        raise HTTPException(503, "edge_sync_queue_or_identity_unavailable") from exc
+
+
 # المصادقة تبعيّةٌ لا نداءٌ داخل المعالِج: FastAPI يحلّ التبعيّات قبل رفع أخطاء تحقّق
 # Form، فالطالب بلا توكن يتلقّى 401 لا 422 يكشف مخطّط القيود (نمط المصادقة قبل التحقّق).
 @app.post("/v1/inference/pest-detect", dependencies=[Depends(_require_service_token)])
@@ -242,12 +328,27 @@ async def detect_pest(
     crop: str | None = Form(None, pattern=CROP_PATTERN),
     confidence_threshold: float = Form(0.6, **CONFIDENCE_LIMITS),
     return_image: bool = Form(False),
+    x_tenant_assertion: str | None = Header(None),
+    x_tenant_id: str | None = Header(None),
+    x_service_name: str | None = Header(None),
+    x_request_id: str | None = Header(None),
 ):
     request = PestDetectionRequest(
         field_id=field_id,
         crop=crop,
         confidence_threshold=confidence_threshold,
         return_image=return_image,
+    )
+    tenant_id = (
+        _verified_caller_tenant(
+            "/v1/inference/pest-detect",
+            x_tenant_assertion,
+            x_tenant_id,
+            x_service_name,
+            x_request_id,
+        )
+        if request.field_id is not None
+        else None
     )
     pest_capability = _require_approved_model("pest_detector_int8.onnx")
     detector = get_pest_detector()
@@ -270,6 +371,17 @@ async def detect_pest(
             503,
             "نموذج كشف الآفات غير مُجهَّز على هذه الحافة — المسار معطّل بأمانة "
             "حتّى توفير نموذج ONNX (لا تُرجَع كشوف مُختلَقة).",
+        ) from e
+    except ModelOutputContractError as e:
+        # W1-19 (scout-9): خرجُ النموذج لا يطابق manifest العلامات (أو الـmanifest تالف) ⇒
+        # رقمُ الصنف لا يعني اسماً معروفاً. 503 مُسمًّى، لا قصٌّ إلى القائمة الأقصر ولا 400.
+        raise HTTPException(
+            503,
+            {
+                "reason": "pest_model_label_contract_violation",
+                "model": "pest_detector_int8.onnx",
+                "detail": str(e),
+            },
         ) from e
     except ImageTooLarge as e:
         raise HTTPException(413, "أبعاد الصورة تتجاوز سقف البكسلات المسموح") from e
@@ -300,16 +412,8 @@ async def detect_pest(
         # لا حقل ⇒ لا مزامنة: المنصّة لا تقبل نتيجةً بلا حقلٍ موجود، وإعادة محاولتها
         # بلا نهاية كانت تُنمّي طابور المزامنة. الكشف نفسه يُرجَع للمستدعي.
         return {**result, "alert_ar": alert, "sync_status": "not_synced_no_field"}
-    sync = get_sync_service()
-    synced = False
-    try:
-        if not OFFLINE_MODE:
-            synced = await sync.sync_result("pest_detection", result)
-        else:
-            sync.queue_result("pest_detection", result)
-    except (OSError, ValueError) as exc:
-        raise HTTPException(503, "edge_sync_queue_or_identity_unavailable") from exc
-    return {**result, "alert_ar": alert, "sync_status": "synced" if synced else "queued"}
+    status = await _sync_or_status("pest_detection", result, tenant_id)
+    return {**result, "alert_ar": alert, "sync_status": status}
 
 
 @app.post("/v1/inference/yield-estimate", dependencies=[Depends(_require_service_token)])
@@ -319,9 +423,20 @@ async def estimate_yield(
     crop: str = Form("wheat"),
     image_count: int = Form(5, **IMAGE_COUNT_LIMITS),
     growth_stage: str = Form("vegetative", pattern=GROWTH_STAGE_PATTERN),
+    x_tenant_assertion: str | None = Header(None),
+    x_tenant_id: str | None = Header(None),
+    x_service_name: str | None = Header(None),
+    x_request_id: str | None = Header(None),
 ):
     request = YieldEstimationRequest(
         field_id=field_id, crop=crop, image_count=image_count, growth_stage=growth_stage
+    )
+    tenant_id = _verified_caller_tenant(
+        "/v1/inference/yield-estimate",
+        x_tenant_assertion,
+        x_tenant_id,
+        x_service_name,
+        x_request_id,
     )
     _require_approved_model("yield_estimator_int8.onnx")
     estimator = get_yield_estimator()
@@ -369,16 +484,8 @@ async def estimate_yield(
         "device": DEVICE,
         "timestamp": datetime.now(UTC).isoformat(),
     }
-    sync = get_sync_service()
-    synced = False
-    try:
-        if not OFFLINE_MODE:
-            synced = await sync.sync_result("yield_estimate", result)
-        else:
-            sync.queue_result("yield_estimate", result)
-    except (OSError, ValueError) as exc:
-        raise HTTPException(503, "edge_sync_queue_or_identity_unavailable") from exc
-    return {**result, "sync_status": "synced" if synced else "queued"}
+    status = await _sync_or_status("yield_estimate", result, tenant_id)
+    return {**result, "sync_status": status}
 
 
 @app.post("/v1/sync/trigger")

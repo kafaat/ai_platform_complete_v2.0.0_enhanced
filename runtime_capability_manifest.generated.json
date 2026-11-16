@@ -99,7 +99,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 5,
+      "capability_count": 6,
       "component_id": "field-management-service",
       "domain": "fields-internal",
       "status": {
@@ -519,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "e2b2ae5f6030279a4888611db516003de79ff81dedd0b74e835929a6c05ae312",
+  "fingerprint": "9cc1a910853669d648033420e0bfacda95840b7bb0b66ac9d4f7abbfc0f13907",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

@@ -673,7 +673,21 @@
 \i migrations/v276_task_cost_trace.sql
 \echo '═══ 264. v277_inspection_close_gate.sql ═══'
 \i migrations/v277_inspection_close_gate.sql
-\echo '═══ 265. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 265. v278_harvest_custody_integrity.sql ═══'
+\i migrations/v278_harvest_custody_integrity.sql
+\echo '═══ 266. v279_water_ledger_et0_rain_provenance.sql ═══'
+\i migrations/v279_water_ledger_et0_rain_provenance.sql
+\echo '═══ 267. v280_water_ledger_irrigation_report.sql ═══'
+\i migrations/v280_water_ledger_irrigation_report.sql
+\echo '═══ 268. v281_farm_ledger_season_reference.sql ═══'
+\i migrations/v281_farm_ledger_season_reference.sql
+\echo '═══ 269. v282_field_task_scouting_anomaly.sql ═══'
+\i migrations/v282_field_task_scouting_anomaly.sql
+\echo '═══ 270. v283_ndvi_timeseries_seed_purge.sql ═══'
+\i migrations/v283_ndvi_timeseries_seed_purge.sql
+\echo '═══ 271. v284_water_ledger_irrigation_source.sql ═══'
+\i migrations/v284_water_ledger_irrigation_source.sql
+\echo '═══ 272. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 266. v206_rls_final_hardening.sql ═══'
+\echo '═══ 273. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

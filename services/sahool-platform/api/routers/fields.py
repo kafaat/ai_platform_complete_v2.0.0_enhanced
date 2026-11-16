@@ -31,6 +31,7 @@ from api import main as api_main
 # validate_field_geometry يُستورَد من مصدره مباشرةً (كان main يعيد تصديره، لكنه صار
 # يتيماً فيه بعد نقل _persist_field إلى هنا — تفكيك B1).
 from api.alert_models import AlertEvaluateResponse
+from api.field_context import refuse_if_fields_have_harvest_lots
 from api.field_geometry_save_guard import sanitize_boundary_metadata, validate_boundary_for_save
 
 # نماذج/مساعدات الحقل نُقِلت إلى api.field_models (تفكيك B1 — نقل عنقوديّ) وتُستورَد
@@ -152,7 +153,7 @@ from api.season_models import (
 from api.spatial_sync import mark_raster_cache_stale, save_field_geometry_revision
 from api.trueup import TrueUpInput, TrueUpStatus
 from api.walk_plan_pdf import walk_plan_to_pdf_bytes
-from api.yield_heuristics import LifecycleFeatures, detect_anomalies, estimate_yield
+from api.yield_heuristics import detect_anomalies, estimate_yield
 from api.zones_kmeans import ZoneCell, delineate_zones
 
 router = APIRouter()
@@ -1616,9 +1617,8 @@ async def delete_field(
 ):
     """يحذف حقلاً ويُصدِر FIELD_DELETED — حذف متتالٍ لتبعيّاته (مواسم/عمليّات/تنبيهات).
 
-    حارس صدق: يُرفض (409) إن كان للحقل موسم نشط — أغلِقه أوّلاً (يمنع محو حقل قيد
-    الاستخدام بالخطأ). الحدث يُصدَر قبل الحذف ضمن المعاملة (نمط outbox)، وentity_id
-    نصّيّ (events منذ v18) فيبقى الحدث بعد حذف الحقل (لا FK من events إلى fields).
+    يُرفض (409) إن كان للحقل موسم نشط، أو دفعات حصاد (v278: سلسلة الحيازة لا تُمحى). الحدث
+    يُصدَر قبل الحذف ضمن المعاملة (outbox) وentity_id نصّيّ فيبقى بعد الحذف (لا FK من events).
     404 لو الحقل ليس للمستأجِر؛ 503 عند تعذّر القاعدة.
     """
     try:
@@ -1639,6 +1639,7 @@ async def delete_field(
                     status_code=409,
                     detail="للحقل موسم نشط — أغلِقه قبل الحذف (تفادي محو بيانات قيد الاستخدام).",
                 )
+            await refuse_if_fields_have_harvest_lots(conn, [field_id], "الحذف")
             # الحدث قبل الحذف (يحفظ ما حُذف)؛ ثمّ DELETE المتتالي.
             await _emit_domain_event(
                 conn,
@@ -1770,6 +1771,7 @@ async def merge_fields(
                     source_geometries.append(_stored_geometry(src["geometry"]))
                 # 1ب) المدموج = اتّحاد المصادر (422 قبل أيّ كتابة).
                 _assert_area_conserved(source_geometries, [geometry])
+                await refuse_if_fields_have_harvest_lots(conn, req.source_field_ids, "الدمج")
                 # 2) أنشئ المدموج أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
                 result = await _insert_field_within_tx(
                     conn,
@@ -1795,9 +1797,8 @@ async def merge_fields(
                     reason="field.merged",
                     extra_event_meta={"merged_from": req.source_field_ids},
                 )
-                # 3) احذف كلّ مصدر (FIELD_DELETED قبل الحذف — نمط outbox، نفس
-                #    دلالات delete_field). أيّ فشل هنا يتصاعد ⇒ تتراجع المعاملة كاملةً
-                #    (لا حقل مدموج يتيَّم، لا مصدر محذوف بلا بديل) — سدّ خطر اللاذرّيّة.
+                # 3) احذف كلّ مصدر (FIELD_DELETED قبل الحذف، دلالات delete_field)؛ أيّ فشل
+                #    يتصاعد ⇒ تتراجع المعاملة كاملةً (لا مدموج يتيَّم ولا مصدر بلا بديل).
                 for src_id in req.source_field_ids:
                     src = await conn.fetchrow(
                         "SELECT name, crop FROM fields WHERE field_id = $1",
@@ -1909,6 +1910,7 @@ async def split_field(
                 _assert_area_conserved(
                     [_stored_geometry(src["geometry"])], [p["geometry"] for p in prepared]
                 )
+                await refuse_if_fields_have_harvest_lots(conn, [req.source_field_id], "الانقسام")
                 # 2) أنشئ كلّ وليد أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
                 children_out: list[dict] = []
                 for p in prepared:
@@ -1937,9 +1939,8 @@ async def split_field(
                             extra_event_meta={"split_from": req.source_field_id},
                         )
                     )
-                # 3) احذف المصدر (FIELD_DELETED قبل الحذف — نفس دلالات delete_field).
-                #    أيّ فشل يتصاعد ⇒ تتراجع المعاملة كاملةً (لا وليد يتيَّم، لا أصل
-                #    محذوف بلا أطفال) — سدّ خطر اللاذرّيّة.
+                # 3) احذف المصدر (FIELD_DELETED قبل الحذف، دلالات delete_field)؛ أيّ فشل
+                #    يتصاعد ⇒ تتراجع المعاملة كاملةً (لا وليد يتيَّم ولا أصل بلا أطفال).
                 await _emit_domain_event(
                     conn,
                     user,
@@ -2431,17 +2432,17 @@ async def field_irrigation_advice(
     """توصية ريّ بنمط FAO-56 للحقل من الطقس الحيّ ومحصول الموسم النشط.
 
     يحسب ET₀ × Kc − المطر الفعّال (api.weather_advice، نقيّ ومُختبَر). يجلب ET₀
-    والمطر من Open-Meteo (نفس مصدر /api/v1/weather). 404 إن غاب الحقل، 503 إن
+    والمطر من weather-service (نفس مصدر /api/v1/weather). 404 إن غاب الحقل، 503 إن
     تعذّر الطقس (لا بيانات وهميّة).
     """
     from core.season_phenology import resolve_crop_id, stage_kc
 
-    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.weather_advice import (
         complete_rain_total,
         irrigation_advice,
         precipitation_incomplete_detail,
     )
+    from api.weather_service_client import current_reading, forecast_readings
 
     try:
         async with tenant_connection(user) as conn:
@@ -2454,14 +2455,12 @@ async def field_irrigation_advice(
         raise _db_unavailable("قراءة سياق الحقل", e) from e
 
     try:
-        forecast = await fetch_daily_forecast(lat, lon, days=3)
-        current = await fetch_current(lat, lon)
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        forecast = await forecast_readings(lat, lon, days=3)
+        current = await current_reading(lat, lon)
+    except Exception as e:  # noqa: BLE001 — أيُّ تعذّرٍ لخدمة الطقس (502/504/4xx أيضاً) ⇒ 503 الموثَّق
         raise HTTPException(
             status_code=503,
-            detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
+            detail="تعذّر جلب الطقس (خدمة الطقس غير متاحة). حاول لاحقاً.",
         ) from e
 
     today = forecast[0] if forecast else None
@@ -2508,7 +2507,7 @@ async def field_irrigation_advice(
             "field_id": field_id,
             "crop": crop,
             "stage": stage,
-            "source": "open-meteo",
+            "source": "weather-service",
             "soil_moisture_pct": soil_pct,
             "soil_moisture_at": (
                 soil_reading.recorded_at.isoformat() if soil_reading is not None else None
@@ -2527,14 +2526,14 @@ async def field_disease_risk(
     """مخاطر أمراض فطريّة (agro-met) للحقل من الرطوبة/الحرارة/المطر.
 
     منطق التهديف نقيّ (api.weather_advice، مُختبَر offline). يجلب الطقس الحالي +
-    مطر آخر ٣ أيّام من Open-Meteo. 404 إن غاب الحقل، 503 إن تعذّر الطقس.
+    مطر آخر ٣ أيّام من weather-service. 404 إن غاب الحقل، 503 إن تعذّر الطقس.
     """
-    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.weather_advice import (
         complete_rain_total,
         disease_risk,
         precipitation_incomplete_detail,
     )
+    from api.weather_service_client import current_reading, forecast_readings
 
     try:
         async with tenant_connection(user) as conn:
@@ -2545,14 +2544,12 @@ async def field_disease_risk(
         raise _db_unavailable("قراءة سياق الحقل", e) from e
 
     try:
-        current = await fetch_current(lat, lon)
-        forecast = await fetch_daily_forecast(lat, lon, days=3)
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        current = await current_reading(lat, lon)
+        forecast = await forecast_readings(lat, lon, days=3)
+    except Exception as e:  # noqa: BLE001 — أيُّ تعذّرٍ لخدمة الطقس (502/504/4xx أيضاً) ⇒ 503 الموثَّق
         raise HTTPException(
             status_code=503,
-            detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
+            detail="تعذّر جلب الطقس (خدمة الطقس غير متاحة). حاول لاحقاً.",
         ) from e
 
     # مطرُ ٣ أيّام والحرارةُ والرطوبة تدخل التهديف، والغيابُ المُصفَّر سابقاً يُنقِص الخطرَ المُبلَّغ
@@ -2580,7 +2577,7 @@ async def field_disease_risk(
             "temperature_c": round(current.temperature_c, 1),
             "humidity_pct": round(current.humidity_pct, 1),
             "rain_mm_3d": round(rain_3d, 1),
-            "source": "open-meteo",
+            "source": "weather-service",
         }
     )
     return risk
@@ -2728,13 +2725,13 @@ async def field_recommendations(
     """عمود التوصيات الموحَّد للحقل: ريّ + تسميد + أمراض + حصاد، مفروز بالأولويّة.
 
     التجميع نقيّ (api.recommendations_hub، مُختبَر offline). يجمع سياق الموسم من
-    القاعدة (404 إن غاب الحقل، 503 إن تعذّرت القاعدة) والطقس من Open-Meteo. تدهور
+    القاعدة (404 إن غاب الحقل، 503 إن تعذّرت القاعدة) والطقس من weather-service. تدهور
     رشيق: عند تعذّر الطقس (أو غياب إحداثيّات الحقل) نُرجع توصيات التسميد/الحصاد
     فقط — لا بيانات وهميّة. 503 فقط إن لم تتوفّر أيّة توصية.
     """
-    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.field_state_projection import recompute_field_state
     from api.recommendations_hub import RecommendationContext, build_recommendations
+    from api.weather_service_client import current_reading, forecast_readings
 
     try:
         async with tenant_connection(user) as conn:
@@ -2760,8 +2757,8 @@ async def field_recommendations(
     weather_available = False
     if lat is not None and lon is not None:
         try:
-            forecast = await fetch_daily_forecast(lat, lon, days=3)
-            current = await fetch_current(lat, lon)
+            forecast = await forecast_readings(lat, lon, days=3)
+            current = await current_reading(lat, lon)
             today = forecast[0] if forecast else None
             et0 = today.et0_mm if today and today.et0_mm is not None else None
             ctx.et0_mm = et0
@@ -3549,23 +3546,27 @@ def prescribe_nitrogen(
 async def estimate_field_yield(
     field_id: str,
     req: YieldEstimateRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
-    """تقدير الإنتاج (heuristic — ليس AI) + كشف الشذوذ."""
-    features = LifecycleFeatures(
-        field_id=field_id,
-        crop=req.crop,
-        days_in_growing=req.days_in_growing,
-        irrigation_count=req.irrigation_count,
-        moisture_stress_events=req.moisture_stress_events,
-        pest_alerts=req.pest_alerts,
-        fertilizer_applications=req.fertilizer_applications,
-        avg_ndvi_growing=req.avg_ndvi_growing,
-        drought_streak_days=req.drought_streak_days,
-        rain_events=req.rain_events,
+    """تقدير الإنتاج (heuristic) + الشذوذ. W0-11: FIELD_VIEW + حقل المستأجِر (404/503) قبل الحساب؛
+    المدخل الغائب مجهول. W1-08: الميزات من الخادم (أحداث + NDVI + طقس) مع evidence_ids."""
+    from api import yield_heuristics as ysf
+
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            loaded = await ysf.load_season_and_events(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("التحقّق من الحقل لتقدير الإنتاج", e) from e
+
+    # NDVI/الطقس خارج معاملة القاعدة؛ تعذّرهما ⇒ المدخل مجهول لا صفر.
+    evidence = await ysf.collect_server_evidence(
+        field_id, req.model_dump(exclude_unset=True), loaded, str(user.tenant_id)
     )
-    est = estimate_yield(features)
-    anomalies = detect_anomalies(features)
+    est = estimate_yield(evidence.features)
+    anomalies = detect_anomalies(evidence.features)
     result = {
         "field_id": est.field_id,
         "crop": est.crop,
@@ -3577,15 +3578,9 @@ async def estimate_field_yield(
         "rationale_ar": est.rationale_ar,
         "contributors": est.contributors,
         "warnings": est.warnings,
-        "anomalies": [
-            {
-                "type": a.type,
-                "severity": a.severity,
-                "message_ar": a.message_ar,
-                "action_ar": a.suggested_action_ar,
-            }
-            for a in anomalies
-        ],
+        "missing_inputs": est.missing_inputs,
+        **evidence.response_fields(),
+        "anomalies": ysf.anomalies_payload(anomalies),
     }
 
     # Stage F (تغذية آمنة): نرفق الحالة القانونيّة الموحّدة (Canonical Field State)
@@ -3615,6 +3610,8 @@ async def estimate_field_yield(
             "agronomic": {"operational_truths": _truths},
         }
         result["requires_review"] = field_state.get("execution_mode") != "auto"
+    if evidence.declared_overrides:  # قيمة عميلٍ حلّت محلّ دليل الخادم ⇒ مراجعة (W1-08)
+        result["requires_review"] = True
 
     return result
 
@@ -3921,7 +3918,6 @@ async def field_state_full(
     المصادر غير الموجودة (عينات ماء مخبريّة، اقتصاد لكل حقل) تُعلَن كذلك مع مؤشّر endpoint.
     البوّابة الصلبة الوحيدة: الحقل ضمن المستأجِر (404)؛ تعذّر القاعدة كلّياً ⇒ 503.
     """
-    from api.field_context import _field_season_context
     from api.field_state_projection import _derive_alerts_from_state, recompute_field_state
 
     out: dict = {"field_id": field_id}

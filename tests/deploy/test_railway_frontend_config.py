@@ -173,3 +173,71 @@ def test_absence_is_declared_never_inferred():
     assert "unix:" not in config
     assert "service_not_deployed" not in config
     assert "server sahool-rag-retrieval.railway.internal:8000 resolve;" in config
+
+
+# ── W0-09: dedicated service tokens of the routes ported from nginx.v9.conf ──
+TOKEN_HEADERS = {
+    "SCOUT_MEDIA_SERVICE_TOKEN": "X-Scout-Media-Token",
+    "SEASON_ENTRY_SERVICE_TOKEN": "X-Season-Entry-Token",
+    "FIELD_TASKS_SERVICE_TOKEN": "X-Field-Tasks-Token",
+}
+
+
+def _token_values(config: str, header: str) -> list[str]:
+    return re.findall(rf'proxy_set_header\s+{header}\s+"([^"]*)";', config)
+
+
+def test_source_carries_placeholders_never_nginx_variables():
+    """``${NAME}`` would be an unknown nginx variable: the unrendered image would not start."""
+    for key, header in TOKEN_HEADERS.items():
+        assert f'"@{key}@"' in SOURCE, f"{header} placeholder missing from frontend/nginx.conf"
+        assert f"${{{key}}}" not in SOURCE, f"{key} written as an nginx variable"
+
+
+def test_tokens_are_filled_from_the_environment():
+    env = {**ENV, **{key: f"{key.lower()}-fixture-0123" for key in TOKEN_HEADERS}}
+    config = adapter.render(SOURCE, env, ["10.0.0.2"])
+    for key, header in TOKEN_HEADERS.items():
+        values = _token_values(config, header)
+        expected = f"{key.lower()}-fixture-0123"
+        assert expected in values, f"{header} not filled in its owning block: {values}"
+        # Blocks of other services clear the header ("") so a client value never passes.
+        assert set(values) == {expected, ""}, f"{header} has an unexpected value: {values}"
+    assert "_TOKEN@" not in config, "a placeholder survived rendering"
+    assert adapter.unset_tokens(SOURCE, env) == [], "all tokens set, none reported"
+
+
+def test_an_unset_token_renders_empty_so_the_owner_refuses():
+    config = adapter.render(SOURCE, ENV, ["10.0.0.2"])
+    for header in TOKEN_HEADERS.values():
+        assert set(_token_values(config, header)) == {""}, f"{header} should be empty"
+    assert adapter.unset_tokens(SOURCE, ENV) == sorted(TOKEN_HEADERS), "unset names not reported"
+
+
+def test_a_token_of_an_absent_service_is_never_written():
+    env = {
+        **ENV,
+        **{key: "fixture-token-0123" for key in TOKEN_HEADERS},
+        "SAHOOL_SCOUT_INGEST_UPSTREAM": "absent",
+        "SAHOOL_FIELD_MANAGEMENT_UPSTREAM": "absent",
+    }
+    config = adapter.render(SOURCE, env, ["10.0.0.2"])
+    assert "fixture-token-0123" not in config, "token of an absent service written into config"
+    assert config.count(f"server unix:{adapter.ABSENT_SOCKET};") == 2, "two absent upstreams"
+    assert adapter.unset_tokens(SOURCE, {**ENV, **env}) == [], "absent services need no token"
+
+
+@pytest.mark.parametrize(
+    "value",
+    ['abc"; include /tmp/x; "', "abc def", "abc\nproxy_pass http://evil", "$host", "a;b", "{x}"],
+)
+def test_a_token_outside_the_alphabet_is_refused(value):
+    with pytest.raises(ValueError, match="token alphabet") as caught:
+        adapter.render(SOURCE, {**ENV, "SEASON_ENTRY_SERVICE_TOKEN": value}, ["10.0.0.2"])
+    assert value not in str(caught.value), "the refusal must not echo the token value"
+
+
+def test_an_unknown_token_placeholder_is_refused():
+    source = SOURCE.replace('"@FIELD_TASKS_SERVICE_TOKEN@"', '"@SOMETHING_NEW_TOKEN@"', 1)
+    with pytest.raises(ValueError, match="Unknown service token placeholder"):
+        adapter.render(source, ENV, ["10.0.0.2"])

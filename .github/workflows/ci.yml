@@ -1072,7 +1072,7 @@ jobs:
             # edge-inference: عقود AI-02/AI-03 (المصادقة قبل التحقّق · إيقاف مهمّة المزامنة)؛ كانت
             # تُشغَّل في `runtime-real-smoke.yml` وحدها وهي ليست فحصاً مطلوباً ⇒ تحمرّ ولا تحجب.
             run_group services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py services/edge-inference/tests/test_entrypoint_validation_lifecycle.py services/edge-inference/tests/test_model_artifact_gate_endpoints.py
-            run_group services/field-management-service/tests/test_field_management_service_contract.py services/field-management-service/tests/test_field_task_routes_unit.py
+            run_group services/field-management-service/tests/test_field_management_service_contract.py services/field-management-service/tests/test_field_task_routes_unit.py services/field-management-service/tests/test_scouting_tasks_unit.py
             run_group services/field-segmentation/test_exg_preprocess.py services/field-segmentation/test_segmentation.py
             run_group services/guardrails-engine/test_guardrails_router_decomposition_guard.py
             run_group services/indicators-service/tests/test_indicators_service_honest_boundary.py services/indicators-service/tests/test_indicators_service_static_route_smoke.py services/indicators-service/tests/test_observation_runtime.py services/indicators-service/tests/test_observation_timeline.py
@@ -1591,6 +1591,16 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           SOIL_PLAN_COPIES_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_soil_sampling_plan_copies_live_pg.py
+      # W0-10 (weather-7): the water-ledger worker computes ET0 at the field elevation, keeps only
+      # validated values as reference, records ET0/rain provenance (v279) and re-records forecast
+      # rain from the archive. The flag turns any skip (missing asyncpg, unmigrated schema) into a
+      # failure, so these paths are measured on every run.
+      - name: Water ledger ET0 elevation and rain provenance (W0-10, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          WATER_LEDGER_ET0_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_water_ledger_et0_provenance_live_pg.py
       # v274-v277 (field-management-service owns the pin inspection and task cost tables): hand-off
       # state machine, evidence-version invalidation (P3), the v277 close gate through the
       # platform's PATCH, the cost trigger history, the expense link's farm/field check and the
@@ -1602,6 +1612,79 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           FIELD_TASK_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_field_task_inspection_live_pg.py
+      # v278 (owner decisions 2 and 3): custody events append-only (UPDATE/DELETE/TRUNCATE refused),
+      # lots and fields with a custody chain not erased by cascade (RESTRICT), lot identity
+      # immutable, and market listings checked against the lot remainder under its row lock; per
+      # trigger a negative control in a rolled-back owner transaction. The flag turns any skip into
+      # a failure; the owner URL seeds rows only.
+      - name: Harvest custody integrity and market lot link (v278, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          HARVEST_CUSTODY_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_harvest_custody_live_pg.py
+      # W1-20 (remote-7 / scout-5, v282): a vegetation anomaly sent through the real bridge becomes
+      # one stored scouting task in field-management-service (owner of field_tasks); sequential
+      # and concurrent replays and a reused key write nothing more; tenants stay apart; negative
+      # controls show the v282 index and check refuse at the database. Restricted NOBYPASSRLS
+      # role; the flag turns any skip into a failure.
+      - name: Vegetation anomaly scouting tasks (W1-20, v282, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          FIELD_TASK_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_field_task_scouting_anomaly_live_pg.py
+      # W0-13 (finding mobile-3): an offline irrigation report replayed after the water-balance
+      # worker wrote the day keeps ET0 and depletion, and the worker keeps the reported water and
+      # recomputes around it (v280). The real router runs on the restricted NOBYPASSRLS role; the
+      # worker on the owner URL, as deployed. The flag turns any skip into a failure.
+      - name: Water ledger partial irrigation write (W0-13, v280, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          WATER_LEDGER_PARTIAL_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_water_ledger_partial_write_live_pg.py
+      # W1-21 (remote-2/data-7): v283 deletes init_v8's tenant-less RANDOM() NDVI seed rows and
+      # only those (tenant rows survive exactly), is idempotent, and its rollback restores no
+      # synthetic row. The flag turns any skip into a failure.
+      - name: NDVI seed purge (W1-21, v283, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          NDVI_SEED_PURGE_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_ndvi_seed_purge_live_pg.py
+      # W1-13 (finding water-5, manual part): measured farm-ledger water reaches the daily water
+      # ledger as irrigation_mm with source 'farm_ledger' (v284); the worker keeps it and computes
+      # the balance around it. Router on the restricted NOBYPASSRLS role, worker on the owner URL.
+      - name: Farm water to the water ledger (W1-13, v284, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          FARM_WATER_LEDGER_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_farm_water_ledger_projection_live_pg.py
+      # W1-14/W1-12: the ledger accepts a same-tenant season from seasons or farm_season_projects
+      # (v281 trigger), reports refuse to sum currencies, and the pesticide gate reads its farm
+      # context from the ledger. The flag turns any skip into a failure.
+      - name: Farm ledger season and currency governance (W1-14, W1-12, v281, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          LEDGER_SEASON_CURRENCY_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_ledger_season_currency_governance_live_pg.py
+      # W1-04: soil-service stores the hydraulic profile with every soil snapshot, tenant-scoped. The flag turns any skip into a failure.
+      - name: Soil hydraulic projection (W1-04, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          SOIL_HYDRAULIC_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_soil_hydraulic_projection_live_pg.py
+      # W1-08: the yield estimate is built from stored server evidence, never another tenant's. The flag turns any skip into a failure.
+      - name: Yield estimate from server evidence (W1-08, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          YIELD_SERVER_FEATURES_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_yield_server_features_live_pg.py
 
       # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
       # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real

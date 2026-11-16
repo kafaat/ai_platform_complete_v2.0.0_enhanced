@@ -168,6 +168,16 @@ class Connection:
                 return None
             self.state["snapshots"][args[1]] = args[-1]
             return args[-1]
+        if "INSERT INTO soil_hydraulic_profiles" in sql:
+            # W1-04: the hydraulic projection rides the snapshot's tenant transaction.
+            self.assert_scope(args[1])
+            if self.pool.failure == "hydraulic":
+                raise RuntimeError("hydraulic")
+            key = (args[1], args[2], args[3])
+            if key in self.state["hydraulic"]:
+                return None
+            self.state["hydraulic"][key] = args[0]
+            return args[0]
         if "SELECT snapshot" in sql:
             return self.state["snapshots"].get(args[2])
         if "SELECT observation_id" in sql:
@@ -192,7 +202,10 @@ class Acquire:
 
 class Pool:
     def __init__(self, *, failure=None, strict=True):
-        self.state = {key: {} for key in ("legacy", "observations", "jobs", "snapshots", "current")}
+        self.state = {
+            key: {}
+            for key in ("legacy", "observations", "jobs", "snapshots", "current", "hydraulic")
+        }
         self.failure, self.strict = failure, strict
         self.commits = self.rollbacks = self.acquires = 0
 
@@ -229,12 +242,24 @@ def test_all_writes_have_one_matching_tenant_transaction(soil, monkeypatch):
     assert (
         len(pool.state["jobs"]) == len(pool.state["snapshots"]) == len(pool.state["current"]) == 1
     )
+    assert len(pool.state["hydraulic"]) == 1, (
+        f"the snapshot's hydraulic profile was not projected in the ingest transaction: "
+        f"{pool.state['hydraulic']}"
+    )
     assert pool.acquires == pool.commits == 1
     assert pool.rollbacks == 0
 
 
 @pytest.mark.parametrize(
-    "failure", ["soil_moisture", "projection_job", "snapshot", "current_pointer", "tenant_context"]
+    "failure",
+    [
+        "soil_moisture",
+        "projection_job",
+        "snapshot",
+        "current_pointer",
+        "hydraulic",
+        "tenant_context",
+    ],
 )
 def test_any_failure_leaves_no_committed_partial_reading(soil, monkeypatch, failure):
     # Disable the adapter's RLS assertion here so the old autocommit path can be

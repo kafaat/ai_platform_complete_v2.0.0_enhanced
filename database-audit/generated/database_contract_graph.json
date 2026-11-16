@@ -265,6 +265,13 @@
       "v275_inspection_handoffs.sql",
       "v276_task_cost_trace.sql",
       "v277_inspection_close_gate.sql",
+      "v278_harvest_custody_integrity.sql",
+      "v279_water_ledger_et0_rain_provenance.sql",
+      "v280_water_ledger_irrigation_report.sql",
+      "v281_farm_ledger_season_reference.sql",
+      "v282_field_task_scouting_anomaly.sql",
+      "v283_ndvi_timeseries_seed_purge.sql",
+      "v284_water_ledger_irrigation_source.sql",
       "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
@@ -1822,14 +1829,14 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 266,
+    "manifest_entries": 273,
     "manifest_missing_count": 0,
     "policies": 221,
     "production_certified": false,
     "rls_enabled": 230,
     "rls_forced": 211,
     "runtime_verified": false,
-    "sql_files": 274,
+    "sql_files": 288,
     "tables": 360,
     "tenant_rls_gaps": 139,
     "tenant_tables": 341,
@@ -2675,6 +2682,7 @@
     },
     {
       "code_readers": [
+        "services/mcp_servers/market_server.py",
         "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "code_writers": [
@@ -3245,7 +3253,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/api/routers/farm_operations_ledger.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/core/farm_operations_ledger.py"
@@ -3262,7 +3271,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/api/routers/farm_operations_ledger.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/core/farm_operations_ledger.py"
@@ -3309,7 +3319,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/api/routers/farm_operations_ledger.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/core/farm_operations_ledger.py"
@@ -3403,6 +3414,7 @@
     {
       "code_readers": [
         "services/sahool-platform/api/routers/farm_operations_ledger.py",
+        "services/sahool-platform/api/water_ledger_compute.py",
         "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
@@ -3472,7 +3484,8 @@
       "code_readers": [
         "services/sahool-platform/api/routers/operational_truth.py",
         "services/sahool-platform/api/routers/simple_farm_book.py",
-        "services/sahool-platform/core/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py",
+        "services/sahool-platform/tests/test_ledger_currency_governance_context.py"
       ],
       "code_writers": [],
       "created_in": "v100_farm_operations_ledger.sql",
@@ -3487,7 +3500,9 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/api/routers/farm_operations_ledger.py",
+        "services/sahool-platform/api/water_ledger_compute.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/core/farm_operations_ledger.py"
@@ -3754,9 +3769,7 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [
-        "services/sahool-platform/api/routers/field_twin.py"
-      ],
+      "code_readers": [],
       "code_writers": [],
       "created_in": "init_v8.sql",
       "has_tenant_id": true,
@@ -3878,6 +3891,7 @@
     },
     {
       "code_readers": [
+        "services/field-management-service/fm_scouting_tasks.py",
         "services/field-management-service/fm_task_costs.py",
         "services/field-management-service/fm_task_inspection.py",
         "services/sahool-platform/api/routers/analytics.py",
@@ -3893,6 +3907,7 @@
         "services/scout-ingest-service/tests/test_media_live.py"
       ],
       "code_writers": [
+        "services/field-management-service/fm_scouting_tasks.py",
         "services/field-management-service/fm_task_inspection.py",
         "services/sahool-platform/api/routers/tasks.py",
         "services/sahool-platform/api/routers/weather.py",
@@ -3925,6 +3940,7 @@
     },
     {
       "code_readers": [
+        "services/field-management-service/fm_scouting_tasks.py",
         "services/field-management-service/fm_task_costs.py",
         "services/field-management-service/fm_task_inspection.py",
         "services/field-management-service/main.py",
@@ -3976,7 +3992,10 @@
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/scheduler.py",
         "services/sahool-platform/api/scouting_pins.py",
+        "services/sahool-platform/api/water_ledger_compute.py",
         "services/sahool-platform/api/weather_service_client.py",
+        "services/sahool-platform/api/yield_heuristics.py",
+        "services/sahool-platform/core/farm_operations_ledger.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
@@ -4130,6 +4149,8 @@
     },
     {
       "code_readers": [
+        "services/mcp_servers/market_server.py",
+        "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "code_writers": [
@@ -5385,10 +5406,12 @@
     },
     {
       "code_readers": [
-        "services/mcp_servers/market_server.py"
+        "services/mcp_servers/market_server.py",
+        "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "code_writers": [
-        "services/mcp_servers/market_server.py"
+        "services/mcp_servers/market_server.py",
+        "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "created_in": "v9_market.sql",
       "has_tenant_id": true,
@@ -5683,10 +5706,7 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [
-        "services/sahool-platform/api/routers/decision_confidence.py",
-        "services/sahool-platform/api/routers/nl_gis.py"
-      ],
+      "code_readers": [],
       "code_writers": [],
       "created_in": "init_v8.sql",
       "has_tenant_id": true,
@@ -6578,6 +6598,7 @@
         "services/field-management-service/fm_task_inspection.py",
         "services/sahool-platform/api/routers/scouting.py",
         "services/sahool-platform/api/scouting_pins.py",
+        "services/sahool-platform/api/yield_heuristics.py",
         "services/scout-ingest-service/media_api.py",
         "services/scout-ingest-service/tests/test_media_live.py"
       ],
@@ -6762,9 +6783,12 @@
         "services/sahool-platform/api/routers/water_twin.py",
         "services/sahool-platform/api/routers/yield_analysis.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
+        "services/sahool-platform/api/yield_heuristics.py",
+        "services/sahool-platform/core/farm_operations_ledger.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_field_twin_endpoint.py",
+        "services/sahool-platform/tests/test_ledger_currency_governance_context.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py"
@@ -6907,7 +6931,9 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/soil-service/p1_store.py"
+      ],
       "code_writers": [
         "services/soil-service/p1_store.py"
       ],
@@ -7053,6 +7079,7 @@
     },
     {
       "code_readers": [
+        "services/soil-service/p1_store.py",
         "services/soil-service/soil_store.py",
         "services/soil-service/test_soil_supersession_current_pointer.py"
       ],
@@ -7086,6 +7113,7 @@
     },
     {
       "code_readers": [
+        "services/soil-service/p1_store.py",
         "services/soil-service/soil_store.py"
       ],
       "code_writers": [
@@ -7566,6 +7594,8 @@
         "services/sahool-platform/api/routers/water_ledger.py",
         "services/sahool-platform/api/routers/water_twin.py",
         "services/sahool-platform/api/water_ledger_auto.py",
+        "services/sahool-platform/api/water_ledger_compute.py",
+        "services/sahool-platform/core/farm_operations_ledger.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py"
       ],
@@ -7573,7 +7603,7 @@
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
         "services/sahool-platform/api/phase_runtime_workers.py",
         "services/sahool-platform/api/routers/irrigation_engineering.py",
-        "services/sahool-platform/api/routers/water_ledger.py",
+        "services/sahool-platform/api/water_ledger_compute.py",
         "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py"
       ],
       "created_in": "v98_water_ledger.sql",
@@ -7679,7 +7709,9 @@
     {
       "code_readers": [
         "services/sahool-platform/api/routers/agro_intelligence.py",
+        "services/sahool-platform/api/routers/field_workspace_weather.py",
         "services/sahool-platform/tests/test_decision_playbook.py",
+        "services/sahool-platform/tests/test_field_bound_decision_playbook_w1_17.py",
         "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
         "services/sahool-platform/tests/test_weather_signals.py",
         "services/weather-signal-engine/src/main.py"

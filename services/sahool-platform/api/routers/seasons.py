@@ -615,9 +615,10 @@ async def field_season_state_endpoint(
     عجز الماء 7/14 يوم من water_ledger + عدد المهام المفتوحة) ثمّ تستدعي المحرّك النقيّ
     ``field_season_projection.assemble_field_season_state`` وتعيد نتيجته حرفيّاً.
 
-    صدق: ما لا يُقرأ بسهولة الآن (accumulated_gdd، إشارات الطقس الحيّة، Ks) يُمرَّر None فيظهر
-    في ``evidence_missing`` — لا رقم مُختلَق. 404 إن غاب الموسم لهذا الحقل/المستأجِر؛ القراءات
-    التكميليّة best-effort (فشلها ⇒ None لا 500). 503 عند تعذّر القاعدة الأساسيّ.
+    الطقس (W1-09): بعد تحرير الاتّصال يُجلَب من weather-service الأرشيف ثمّ GDD المحرّك بأساس
+    بطاقة المحصول ثمّ توقّع ٧ أيّام (``gather_season_weather_inputs``)؛ تعذّر أيٍّ منها ⇒ None مُعلَن
+    في ``weather_inputs.unavailable`` و``evidence_missing``. 404 إن غاب الموسم لهذا الحقل/المستأجِر؛
+    القراءات التكميليّة best-effort (فشلها ⇒ None لا 500). 503 عند تعذّر القاعدة الأساسيّ.
     """
     from api.decision_sor_mode import get_platform_decision_sor_mode
     from api.field_season_projection import (
@@ -625,8 +626,10 @@ async def field_season_state_endpoint(
         blank_counts_when_unavailable,
         declare_outcome_sources,
         first_season_crop,
+        gather_season_weather_inputs,
         reconciled_payload_is_bound,
     )
+    from api.weather_service_client import get_weather_forecast
 
     tenant = str(user.tenant_id)
     local = get_platform_decision_sor_mode().platform_writes_required
@@ -637,8 +640,9 @@ async def field_season_state_endpoint(
     try:
         async with tenant_connection(user) as conn:
             srow = await conn.fetchrow(
-                "SELECT crops, cultivar, sowing_date, season_end, status FROM seasons "
-                "WHERE season_id=$1 AND field_id=$2 AND tenant_id=$3::uuid",
+                "SELECT s.crops, s.cultivar, s.sowing_date, s.season_end, s.status, f.lat, f.lon "
+                "FROM seasons s LEFT JOIN fields f ON f.field_id = s.field_id "
+                "WHERE s.season_id=$1 AND s.field_id=$2 AND s.tenant_id=$3::uuid",
                 season_id,
                 field_id,
                 tenant,
@@ -746,6 +750,16 @@ async def field_season_state_endpoint(
             pass
     scene = await _season_state_scene(field_id, tenant, start, as_of) if dated else {}
     first_crop = first_season_crop(srow["crops"])
+    weather = await gather_season_weather_inputs(
+        crop=first_crop,
+        sowing_date=start if dated else None,
+        as_of=as_of,
+        today=today,
+        lat=srow["lat"],
+        lon=srow["lon"],
+        tenant_id=tenant,
+        get_forecast=get_weather_forecast,
+    )
 
     state = assemble_field_season_state(
         field_id=field_id,
@@ -755,6 +769,10 @@ async def field_season_state_endpoint(
         sowing_date=srow["sowing_date"],
         season_end=srow["season_end"],
         today=as_of,
+        accumulated_gdd=weather["accumulated_gdd"],
+        weather_signals=weather["weather_signals"],
+        forecast_daily=weather["forecast_daily"],
+        accumulated_gdd_through=weather["accumulated_gdd_through"],
         imagery_date=datetime.fromisoformat(scene["datetime"]).date() if scene else None,
         observed_ndvi=scene.get("mean"),
         observed_ndmi=scene.get("ndmi"),
@@ -769,6 +787,7 @@ async def field_season_state_endpoint(
     )
 
     state["as_of"] = as_of.isoformat()
+    state["weather_inputs"] = {k: v for k, v in weather.items() if k != "forecast_daily"}
     state["imagery_acquisition_date"] = scene.get("datetime")
     state["open_operations_basis"] = (
         "current_open_due_in_season" if open_tasks is not None else None
