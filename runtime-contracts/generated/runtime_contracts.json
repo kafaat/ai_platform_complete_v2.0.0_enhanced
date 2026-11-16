@@ -2836,7 +2836,8 @@
         "PLATFORM_TENANT_ASSERTION_KEY_ID",
         "PLATFORM_URL",
         "SAHOOL_ALLOW_HS256_IN_PROD",
-        "SAHOOL_ENV"
+        "SAHOOL_ENV",
+        "WEATHER_SERVICE_URL"
       ],
       "container": {
         "dockerfile": "services/supervisor-agent/Dockerfile",
@@ -2861,6 +2862,7 @@
       "evidence_paths": {
         "configuration": [
           "services/supervisor-agent/main.py",
+          "services/supervisor-agent/server_facts.py",
           "services/supervisor-agent/skills/advisory_skill.py",
           "services/supervisor-agent/skills/crop_model_skill.py",
           "services/supervisor-agent/skills/remote_sensing_skill.py"

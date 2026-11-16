@@ -272,3 +272,104 @@ async def test_an_unacked_published_command_expires(runtime, tenants):
     assert late.accepted is False
     assert (await _row(a, cid))["delivery_state"] == "expired"
     assert timedelta(0) <= datetime.now(UTC) - row["expired_at"] < timedelta(minutes=1)
+
+
+async def test_a_decision_dispatched_command_reaches_device_acked_on_a_signed_ack(
+    runtime, tenants, monkeypatch
+):
+    """W2-07 (water-1): the decision dispatch consumer records the command (queued, then
+    published) under the id the wire carries, so the device's signed v2 ack moves it to
+    device_acked under RLS and the v238 trigger. Before, no row existed and the ack was dropped
+    as unknown_command."""
+    a, _b = tenants
+    master = "v238-live-master-NOT-FOR-PRODUCTION-" + "m" * 16
+    monkeypatch.setenv("CMD_HMAC_MASTER_KEY", master)
+    idem = f"dispatch-{uuid.uuid4().hex}"
+    item = {
+        "execution_request_id": str(uuid.uuid4()),
+        "target_id": "valve-a",
+        "requested_at": "2026-11-16T08:00:00+00:00",
+        "command_payload": {
+            "field_id": "field-9",
+            "device_id": "valve-a",
+            "command": "open_valve",
+            "idempotency_key": idem,
+            "payload": {"duration_sec": 60},
+        },
+    }
+    receipts: list[str] = []
+    seen_at_publish: list[str | None] = []
+
+    class _Resp:
+        def __init__(self, status_code, body=None):
+            self.status_code = status_code
+            self._body = body or {}
+
+        def json(self):
+            return self._body
+
+    async def decision(_client, method, path, _tenant, json_body=None):
+        if method == "GET":
+            return _Resp(200, {"items": [] if "recovery" in path else [item]})
+        if path.endswith("/receipt"):
+            receipts.append(json_body["receipt_status"])
+        return _Resp(200)
+
+    async def device_ok(_tenant, _device, field_id):
+        return True, "ok", field_id
+
+    async def clear(*_a, **_k):
+        return False, None
+
+    async def publish(device_id, command, payload, *, command_id=None, **_kw):
+        row = await _row(a, command_id)
+        seen_at_publish.append(row["delivery_state"] if row else None)
+        return True
+
+    monkeypatch.setattr(runtime, "_decision_request", decision)
+    monkeypatch.setattr(runtime, "_validate_dispatch_device", device_ok)
+    monkeypatch.setattr(runtime, "is_actuation_halted", clear)
+    monkeypatch.setattr(runtime, "send_mqtt_command", publish)
+    monkeypatch.setattr(runtime, "ACTUATOR_DELIVERY_TOKEN_KEY", "live-delivery-key")
+
+    processed = await runtime.run_dispatch_consumer_once(None, a, allowlist={"low"})
+    assert processed == 1 and receipts == ["accepted"], f"dispatch cycle failed: {receipts}"
+    assert seen_at_publish == ["queued"], f"not queued before publish: {seen_at_publish}"
+    row = await _row(a, idem)
+    assert row is not None and row["delivery_state"] == "published", (
+        f"the dispatched command was not recorded published: {row}"
+    )
+    assert row["triggered_by"] == "decision_dispatch", f"triggered_by: {row['triggered_by']}"
+
+    cs = runtime.cs
+    key = cs.derive_device_key(master, a, "valve-a")
+    ack = {
+        "v": 2,
+        "id": idem,
+        "tenant": a,
+        "device": "valve-a",
+        "result": "applied",
+        "ctr": 1,
+        "status": "ON",
+        "sig": cs.sign_ack(key, a, "valve-a", idem, "applied", 1),
+    }
+    ok = await runtime.handle_device_ack(
+        f"sahool/{a}/actuator/valve-a/ack", json.dumps(ack).encode()
+    )
+    assert ok.accepted and ok.target == "device_acked", f"signed ack refused: {ok.reason}"
+    row = await _row(a, idem)
+    assert row["delivery_state"] == "device_acked" and row["device_acked_at"] is not None, (
+        f"device_acked was not persisted: {dict(row)}"
+    )
+
+    # A recovery republish keeps the id: no duplicate row, and the trigger keeps device_acked.
+    await runtime.run_dispatch_consumer_once(None, a, allowlist={"low"})
+    conn = await _app(a)
+    try:
+        n = await conn.fetchval(
+            "SELECT count(*) FROM device_commands_log WHERE command_id = $1", idem
+        )
+    finally:
+        await conn.close()
+    assert n == 1, f"a republish duplicated the command row ({n})"
+    assert (await _row(a, idem))["delivery_state"] == "device_acked", "acked state regressed"

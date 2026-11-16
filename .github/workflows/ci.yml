@@ -1002,25 +1002,6 @@ jobs:
       # never turns a skip into a pass. Pinned by tests_v9/test_unit_skip_inventory_guard.py.
       - name: Unit skip inventory (every skip declared, by node id and reason)
         run: python scripts/ci/unit_skip_inventory_guard.py --junit parallel=unit-par.xml --junit tree_writer=unit-tw.xml
-      # The pytest-cov XML has source=<repo>/services, not the Git root.
-      # Re-export the same data from the Git root before validating/uploading.
-      - name: Export unit coverage with Git-relative paths
-        run: >-
-          python -m coverage xml
-          --data-file=.coverage
-          --include=services/*
-          -o coverage-unit.xml
-      - name: Verify unit Codecov report paths
-        run: >-
-          python scripts/ci/codecov_coverage_guard.py
-          --report coverage-unit.xml
-          --prefix services
-      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
-        with:
-          files: coverage-unit.xml
-          flags: unit-tests
-          disable_search: true
-          fail_ci_if_error: false
       # raster-tiler-service: in-service tests sit outside `testpaths = tests_v9`, so
       # `-m unit` never collects them; TiTiler is stubbed, deps come from requirements-test.
       - name: raster-tiler-service wrapper route contracts
@@ -1057,7 +1038,7 @@ jobs:
         run: |
           pip install "edge-tts>=6.1.12"  # aiomqtt صارت في tests_v9/requirements-test.txt (Q3)
           run_group() {
-            out=$(python -m pytest -q -rs -p no:cacheprovider "$@" 2>&1); rc=$?
+            out=$(python -m pytest -q -rs -p no:cacheprovider --cov=services --cov-append --cov-report= "$@" 2>&1); rc=$?
             printf '%s\n' "$out"
             [ "$rc" -eq 0 ] || exit "$rc"
             if printf '%s\n' "$out" | tail -n 1 | grep -q 'skipped'; then
@@ -1087,6 +1068,28 @@ jobs:
             run_group services/vegetation-analysis-service/test_anomaly_engine.py services/vegetation-analysis-service/test_anomaly_store.py services/vegetation-analysis-service/test_baseline_engine.py services/vegetation-analysis-service/test_decision_bridge_candidate.py services/vegetation-analysis-service/test_diagnosis_engine.py services/vegetation-analysis-service/test_ground_verification_bridge.py services/vegetation-analysis-service/test_platform_field_catalog_boundary.py services/vegetation-analysis-service/test_raster_bundle_boundary.py services/vegetation-analysis-service/test_rs_final_hardening.py services/vegetation-analysis-service/test_rs_review_hardening.py services/vegetation-analysis-service/test_vegetation_event_admission.py services/vegetation-analysis-service/test_vegetation_logic.py services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py
             run_group services/video-processor/test_video_processor_router_decomposition_guard.py
             run_group shared/enterprise_gis/test_phase7_enterprise.py shared/enterprise_gis/test_phase8_global_scale.py shared/gis/test_cloud_native_gis.py shared/gis/test_cloud_native_runtime.py shared/gis/test_phase5_runtime.py shared/precision_agriculture/test_phase6_intelligence.py shared/test_autonomous_farm_os_phase9.py shared/test_continuous_learning_phase10.py shared/test_federated_agent_runtime.py shared/test_federated_agents_phase11.py shared/test_field_runtime_cohesion.py shared/test_marketplace_ecosystem_phase12.py shared/test_marketplace_plugin_runtime.py
+      # Service-local groups append their coverage to the unit data file (--cov-append above),
+      # so the one unit-tests upload counts every test CI runs, not only tests_v9 (codecov/patch
+      # on #1504 read the supervisor-agent tests and the code they cover as unmeasured).
+      # The pytest-cov XML has source=<repo>/services, not the Git root.
+      # Re-export the same data from the Git root before validating/uploading.
+      - name: Export unit coverage with Git-relative paths
+        run: >-
+          python -m coverage xml
+          --data-file=.coverage
+          --include=services/*
+          -o coverage-unit.xml
+      - name: Verify unit Codecov report paths
+        run: >-
+          python scripts/ci/codecov_coverage_guard.py
+          --report coverage-unit.xml
+          --prefix services
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
+        with:
+          files: coverage-unit.xml
+          flags: unit-tests
+          disable_search: true
+          fail_ci_if_error: false
 
   repository-tests:
     name: Repository Tests (tests/)

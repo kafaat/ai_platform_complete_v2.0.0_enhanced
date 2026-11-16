@@ -44,6 +44,13 @@ async def load_active_season_id(conn: Any, *, field_id: str) -> str | None:
     return str(row["season_id"]) if row else None
 
 
+async def load_season_cultivar(conn: Any, *, season_id: str) -> str | None:
+    """The season's cultivar as its owner records it (``seasons.cultivar``); None when absent."""
+    row = await conn.fetchrow("SELECT cultivar FROM seasons WHERE season_id=$1", season_id)
+    cultivar = str(row["cultivar"] or "").strip() if row else ""
+    return cultivar or None
+
+
 async def load_phenology_state(
     conn: Any, *, field_id: str, season_id: str
 ) -> CanonicalPhenologyState | None:

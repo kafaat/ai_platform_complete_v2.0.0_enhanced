@@ -184,6 +184,7 @@ supervisor-agent,local-ai-rag,code-reference,services/supervisor-agent/skills/ad
 supervisor-agent,platform,code-reference,services/supervisor-agent/main.py
 supervisor-agent,platform,code-reference,services/supervisor-agent/skills/advisory_skill.py
 supervisor-agent,platform,code-reference,services/supervisor-agent/skills/crop_model_skill.py
+supervisor-agent,weather-service,code-reference,services/supervisor-agent/server_facts.py
 vegetation-analysis-service,decision-service,code-reference,services/vegetation-analysis-service/decision_bridge.py
 vegetation-analysis-service,decision-service,code-reference,services/vegetation-analysis-service/vegetation_runtime.py
 vegetation-analysis-service,indicators-service,code-reference,services/vegetation-analysis-service/routers/anomalies.py

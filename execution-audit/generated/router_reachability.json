@@ -37,7 +37,7 @@
   "definitions": [
     {
       "kind": "app",
-      "line": 2034,
+      "line": 2061,
       "module": "services.actuator-service.actuator_runtime",
       "node_id": "services.actuator-service.actuator_runtime:app",
       "route_count": 0,
@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 137,
+      "line": 135,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 74,
@@ -550,7 +550,7 @@
     },
     {
       "kind": "app",
-      "line": 200,
+      "line": 204,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -2323,7 +2323,7 @@
     },
     {
       "kind": "app",
-      "line": 58,
+      "line": 64,
       "module": "services.supervisor-agent.main",
       "node_id": "services.supervisor-agent.main:app",
       "route_count": 0,
@@ -3009,7 +3009,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "2569954a1c698e61384d270c1874fcbf89d329ccfbc08acda8006190681cc3bb",
+  "inventory_sha256": "364d21f583a806870e75e07d468c454d188f392e74b48e9e8e48bc355002c1ca",
   "orphan_candidate_count": 237,
   "orphan_candidates": [
     {

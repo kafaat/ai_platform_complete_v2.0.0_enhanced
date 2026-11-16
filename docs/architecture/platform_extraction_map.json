@@ -1647,7 +1647,7 @@
       "function": "profit_aware_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
-      "line": 533,
+      "line": 536,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision/profit-aware::profit_aware_decision_endpoint"
@@ -1657,7 +1657,7 @@
       "function": "crop_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
-      "line": 409,
+      "line": 412,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision::crop_decision_endpoint"
@@ -4133,7 +4133,7 @@
       "function": "irrigation_mpc_hourly_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
-      "line": 541,
+      "line": 552,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation::irrigation_mpc_hourly_recommendation"
@@ -4153,7 +4153,7 @@
       "function": "reconcile_irrigation_execution",
       "method": "POST",
       "path": "/api/v1/irrigation/executions/reconcile",
-      "line": 582,
+      "line": 593,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/executions/reconcile::reconcile_irrigation_execution"

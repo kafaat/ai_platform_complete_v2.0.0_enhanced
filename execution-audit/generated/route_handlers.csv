@@ -467,8 +467,8 @@ sahool-platform,GET,/api/v1/crops/{crop_id}/operations-calendar,crop_operations_
 sahool-platform,POST,/api/v1/crop-suitability,crop_suitability,services/sahool-platform/api/routers/crop_suitability.py,31
 sahool-platform,POST,/api/v1/crop-twin/compose,compose_crop_twin,services/sahool-platform/api/routers/crop_twin.py,245
 sahool-platform,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint,services/sahool-platform/api/routers/crop_twin.py,303
-sahool-platform,POST,/api/v1/crop-twin/decision,crop_decision_endpoint,services/sahool-platform/api/routers/crop_twin.py,410
-sahool-platform,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint,services/sahool-platform/api/routers/crop_twin.py,534
+sahool-platform,POST,/api/v1/crop-twin/decision,crop_decision_endpoint,services/sahool-platform/api/routers/crop_twin.py,413
+sahool-platform,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint,services/sahool-platform/api/routers/crop_twin.py,537
 sahool-platform,GET,/api/v1/crops/drought-resilience,crop_drought_resilience,services/sahool-platform/api/routers/crops.py,26
 sahool-platform,GET,/api/v1/crops/compare-drought-resilience,compare_drought_resilience,services/sahool-platform/api/routers/crops.py,47
 sahool-platform,GET,/api/v1/cultural-calendar,cultural_calendar,services/sahool-platform/api/routers/cultural_calendar.py,24
@@ -727,8 +727,8 @@ sahool-platform,POST,/api/v1/irrigation/mpc/plan,irrigation_mpc_plan,services/sa
 sahool-platform,GET,/api/v1/irrigation/mpc/capabilities,irrigation_mpc_capabilities,services/sahool-platform/api/routers/irrigation_mpc.py,165
 sahool-platform,POST,/api/v1/irrigation/mpc/simulate,irrigation_mpc_simulate,services/sahool-platform/api/routers/irrigation_mpc.py,296
 sahool-platform,POST,/api/v1/fields/{field_id}/irrigation/mpc/recommendation,irrigation_mpc_recommendation,services/sahool-platform/api/routers/irrigation_mpc.py,329
-sahool-platform,POST,/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation,irrigation_mpc_hourly_recommendation,services/sahool-platform/api/routers/irrigation_mpc.py,542
-sahool-platform,POST,/api/v1/irrigation/executions/reconcile,reconcile_irrigation_execution,services/sahool-platform/api/routers/irrigation_mpc.py,583
+sahool-platform,POST,/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation,irrigation_mpc_hourly_recommendation,services/sahool-platform/api/routers/irrigation_mpc.py,553
+sahool-platform,POST,/api/v1/irrigation/executions/reconcile,reconcile_irrigation_execution,services/sahool-platform/api/routers/irrigation_mpc.py,594
 sahool-platform,POST,/api/v1/irrigation/network/feasibility,network_feasibility_endpoint,services/sahool-platform/api/routers/irrigation_network.py,55
 sahool-platform,POST,/api/v1/irrigation-plan,irrigation_plan_endpoint,services/sahool-platform/api/routers/irrigation_plan.py,111
 sahool-platform,POST,/api/v1/irrigation-recommendation,irrigation_recommendation,services/sahool-platform/api/routers/irrigation_recommendation.py,115
@@ -1050,10 +1050,10 @@ soil-service,POST,/v1/soil/ingest,ingest_reading,services/soil-service/routers/r
 soil-service,POST,/v1/soil/suitability,soil_suitability,services/soil-service/routers/soil_profile.py,65
 soil-service,GET,/v1/soil/soilgrids,soil_from_soilgrids,services/soil-service/routers/soil_profile.py,76
 supervisor-agent,POST,/v1/agent/query,process_query,services/supervisor-agent/routers/agent.py,33
-supervisor-agent,POST,/v1/agent/optimize,optimize_farm,services/supervisor-agent/routers/agent.py,120
-supervisor-agent,GET,/v1/agent/tools,list_tools,services/supervisor-agent/routers/agent.py,183
-supervisor-agent,GET,/v1/agent/journal/{invocation_id},get_journal_replay,services/supervisor-agent/routers/agent.py,212
-supervisor-agent,GET,/v1/agent/actuator-audit,get_actuator_audit,services/supervisor-agent/routers/agent.py,236
+supervisor-agent,POST,/v1/agent/optimize,optimize_farm,services/supervisor-agent/routers/agent.py,119
+supervisor-agent,GET,/v1/agent/tools,list_tools,services/supervisor-agent/routers/agent.py,218
+supervisor-agent,GET,/v1/agent/journal/{invocation_id},get_journal_replay,services/supervisor-agent/routers/agent.py,247
+supervisor-agent,GET,/v1/agent/actuator-audit,get_actuator_audit,services/supervisor-agent/routers/agent.py,271
 supervisor-agent,GET,/healthz,healthz,services/supervisor-agent/routers/health.py,21
 supervisor-agent,GET,/readyz,readyz,services/supervisor-agent/routers/health.py,26
 supervisor-agent,GET,/metrics,metrics,services/supervisor-agent/routers/health.py,34

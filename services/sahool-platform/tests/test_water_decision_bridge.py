@@ -112,6 +112,16 @@ def test_auto_execution_payload_matches_actuator_contract(monkeypatch):
         captured.update(args[1])
         return {"execution_request_id": "req-1"}
 
+    # W2-02: the client contract now includes the shared AC-1 helpers. This fake keeps the
+    # staged (not enforced) behaviour: no lineage bound, the candidate recorded unchanged.
+    async def governed_candidate_lineage(**kwargs):
+        return None
+
+    async def submit_governed_candidate(payload, binding, *, tenant_id, record=None):
+        return {"status": "recorded", "record": await record_decision(payload)}
+
+    fake.governed_candidate_lineage = governed_candidate_lineage
+    fake.submit_governed_candidate = submit_governed_candidate
     fake.record_decision = record_decision
     fake.review_decision = review_decision
     fake.create_execution_plan = create_execution_plan
