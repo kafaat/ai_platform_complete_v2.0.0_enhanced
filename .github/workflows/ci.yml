@@ -1709,6 +1709,13 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           YIELD_ESTIMATE_TENANT_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_yield_estimate_tenant_live_pg.py
+      # v238 + R-C2 (#1386): only a v2 device ack signed with the owning device's derived key, on the owning tenant's topic, moves a command to device_acked; v1 acks off the legacy allowlist are refused. Broken on main since #1386 (fixture still signed v1) because no certified step ran it. The flag turns any skip into a failure.
+      - name: Actuator command delivery state and v2 device acks (v238, R-C2, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          ACTUATOR_DELIVERY_STATE_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_v238_actuator_delivery_state_live_pg.py
 
       # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
       # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real
