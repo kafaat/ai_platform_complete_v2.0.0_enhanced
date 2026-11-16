@@ -121,6 +121,7 @@ sahool-nginx,sahool-nginx-tls-init,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-notification-agent,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-rag-retrieval,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-raster-service,compose-depends-on,docker-compose.v9.yml
+sahool-nginx,sahool-realtime-session,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-remote-sensing-workspace-bff,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-scout-ingest,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-supervisor-agent,compose-depends-on,docker-compose.v9.yml
