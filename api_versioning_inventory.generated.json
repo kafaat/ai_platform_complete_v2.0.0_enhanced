@@ -5276,7 +5276,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 217,
+    "line": 211,
     "method": "POST",
     "path": "/api/v1/farm-ledger/operations",
     "handler": "create_operation_ledger_record",
@@ -5285,7 +5285,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 332,
+    "line": 326,
     "method": "GET",
     "path": "/api/v1/farm-ledger/operations",
     "handler": "list_operation_ledger_records",
@@ -5294,7 +5294,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 384,
+    "line": 378,
     "method": "GET",
     "path": "/api/v1/farm-ledger/summary",
     "handler": "farm_ledger_summary",
@@ -5303,7 +5303,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 532,
+    "line": 518,
     "method": "POST",
     "path": "/api/v1/farm-ledger/budgets",
     "handler": "upsert_season_budget_lines",
@@ -5312,7 +5312,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 615,
+    "line": 601,
     "method": "GET",
     "path": "/api/v1/farm-ledger/budgets/{season_id}",
     "handler": "get_season_budget",
@@ -5321,7 +5321,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 650,
+    "line": 632,
     "method": "POST",
     "path": "/api/v1/farm-ledger/revenues",
     "handler": "create_revenue_record",
@@ -5330,7 +5330,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 695,
+    "line": 677,
     "method": "GET",
     "path": "/api/v1/farm-ledger/variance/{season_id}",
     "handler": "get_budget_variance",
@@ -5339,7 +5339,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 733,
+    "line": 715,
     "method": "GET",
     "path": "/api/v1/farm-ledger/profitability/{season_id}",
     "handler": "get_season_profitability",
@@ -5348,7 +5348,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 769,
+    "line": 751,
     "method": "GET",
     "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
     "handler": "get_erp_projection",
@@ -5357,7 +5357,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 859,
+    "line": 841,
     "method": "POST",
     "path": "/api/v1/farm-ledger/autowrite-preview",
     "handler": "operation_autowrite_preview",
@@ -5366,7 +5366,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 907,
+    "line": 889,
     "method": "GET",
     "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
     "handler": "get_inventory_projection",
@@ -5375,7 +5375,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 1007,
+    "line": 932,
     "method": "GET",
     "path": "/api/v1/farm-ledger/economic-state/{season_id}",
     "handler": "get_economic_state",
@@ -9983,7 +9983,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 96,
+    "line": 115,
     "method": "POST",
     "path": "/v1/fields/{field_id}/signal-anomalies/detect",
     "handler": "detect_signal_anomalies",
@@ -9992,7 +9992,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 174,
+    "line": 201,
     "method": "GET",
     "path": "/v1/fields/{field_id}/signal-anomalies",
     "handler": "list_signal_anomalies",
@@ -10001,7 +10001,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 188,
+    "line": 215,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/transition",
     "handler": "transition_anomaly",
@@ -10010,7 +10010,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 212,
+    "line": 239,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-requests",
     "handler": "request_ground_verification",
@@ -10019,7 +10019,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 247,
+    "line": 277,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-results",
     "handler": "accept_verification_result",

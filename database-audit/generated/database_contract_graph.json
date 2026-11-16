@@ -3253,7 +3253,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/api/routers/farm_operations_ledger.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/core/farm_operations_ledger.py"
@@ -3270,7 +3271,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/api/routers/farm_operations_ledger.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/core/farm_operations_ledger.py"
@@ -3317,7 +3319,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/api/routers/farm_operations_ledger.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/core/farm_operations_ledger.py"

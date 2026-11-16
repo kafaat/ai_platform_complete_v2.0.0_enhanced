@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 781,
+      "evidence_count": 782,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -728,6 +728,7 @@
         "services/vegetation-analysis-service/test_decision_bridge_candidate.py",
         "services/vegetation-analysis-service/test_diagnosis_engine.py",
         "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+        "services/vegetation-analysis-service/test_ground_verification_bridge.py",
         "services/vegetation-analysis-service/test_indicator_registry.py",
         "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
         "services/vegetation-analysis-service/test_vegetation_event_admission.py",
@@ -1673,7 +1674,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 381,
+      "evidence_count": 382,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2038,6 +2039,7 @@
         "services/supervisor-agent/tool_contracts.py",
         "services/tts-service/critical_speech.py",
         "services/vegetation-analysis-service/decision_bridge.py",
+        "services/vegetation-analysis-service/routers/anomalies.py",
         "services/vegetation-analysis-service/test_decision_bridge_candidate.py",
         "services/vegetation-analysis-service/test_ground_verification_bridge.py",
         "services/vegetation-analysis-service/test_rs_review_hardening.py",
@@ -3139,7 +3141,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py"
       ],
-      "source_evidence_count": 781,
+      "source_evidence_count": 782,
       "target_evidence_count": 579,
       "static_supported": true,
       "runtime_verified": false
@@ -3349,7 +3351,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 206,
-      "target_evidence_count": 381,
+      "target_evidence_count": 382,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3395,7 +3397,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 381,
+      "source_evidence_count": 382,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3599,5 +3601,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "65637d9bdce24d82463c17ed46b4950dc67795b82f25655cc74f73a70de70452"
+  "content_sha256": "53cbb28384e96fb6cef40f8cf7be4372cceae74547a2102239a432b47e045ed5"
 }

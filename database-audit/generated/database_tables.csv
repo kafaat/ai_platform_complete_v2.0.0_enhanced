@@ -81,11 +81,11 @@ external_ingest_sources,v198_external_ingest_sources.sql,203,True,True,True,1,Tr
 external_submissions,v197_external_submissions_ingest.sql,202,True,True,True,1,True,False,3,3
 farm_business_units,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,0,0
 farm_digital_twin_snapshots,v115_precision_agriculture_phase6.sql,121,True,True,True,1,True,False,0,0
-farm_energy_records,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,1,1
-farm_equipment_records,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,1,1
+farm_energy_records,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,2,1
+farm_equipment_records,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,2,1
 farm_indirect_cost_pools,v101_farm_budget_costing.sql,106,True,True,True,1,True,False,0,0
 farm_input_records,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,1,1
-farm_labor_records,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,1,1
+farm_labor_records,v100_farm_operations_ledger.sql,105,True,True,True,1,True,False,2,1
 farm_ledger_economic_snapshots,v102_farm_closed_loop.sql,107,True,True,True,1,True,False,0,0
 farm_ledger_entries,v211_simple_farm_book.sql,215,True,True,True,1,True,False,2,1
 farm_ledger_erp_projection_outbox,v102_farm_closed_loop.sql,107,True,True,True,1,True,False,1,0

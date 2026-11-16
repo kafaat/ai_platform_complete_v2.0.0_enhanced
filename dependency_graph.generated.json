@@ -1,5 +1,5 @@
 {
-  "edge_count": 1083,
+  "edge_count": 1086,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -2372,7 +2372,27 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_energy_records",
+      "to": "db://farm_energy_records",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/farm_operations_ledger.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_equipment_records",
+      "to": "db://farm_equipment_records",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -2393,6 +2413,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/farm_operations_ledger.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_labor_records",
+      "to": "db://farm_labor_records",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -10850,7 +10880,7 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 586,
+    "READS": 589,
     "ROUTES_TO": 75,
     "WRITES": 371
   },
@@ -10867,8 +10897,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 958,
-      "resolved": 957,
+      "observed": 961,
+      "resolved": 960,
       "unresolved_component_paths": 0
     }
   }
