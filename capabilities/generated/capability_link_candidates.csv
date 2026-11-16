@@ -821,6 +821,12 @@ FM-003,mobile,mobile/sahool_app/lib/features/field_forms/presentation/field_form
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/presentation/field_forms_list_screen.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/presentation/field_widget_registry.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/presentation/schema_form_renderer.dart,2,applied
+FM-003,mobile,mobile/sahool_app/lib/features/field_plans/data/field_plans_api.dart,2,applied
+FM-003,mobile,mobile/sahool_app/lib/features/field_plans/data/field_plans_models.dart,2,applied
+FM-003,mobile,mobile/sahool_app/lib/features/field_plans/data/field_plans_repository.dart,2,applied
+FM-003,mobile,mobile/sahool_app/lib/features/field_plans/field_plans_routes.dart,2,applied
+FM-003,mobile,mobile/sahool_app/lib/features/field_plans/presentation/cached_read_view.dart,2,applied
+FM-003,mobile,mobile/sahool_app/lib/features/field_plans/presentation/field_plan_screens.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/fields/data/field_list_query.dart,4,applied
 FM-003,mobile,mobile/sahool_app/lib/features/fields/data/fields_api.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/fields/data/soil_workspace_model.dart,2,applied
@@ -869,6 +875,7 @@ FM-003,test,mobile/sahool_app/test/features/field_forms/field_forms_reconnect_d3
 FM-003,test,mobile/sahool_app/test/features/field_forms/field_forms_sync_d3_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/field_forms/field_forms_sync_safety_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/field_forms/submission_contract_test.dart,3,applied
+FM-003,test,mobile/sahool_app/test/features/field_plans/field_plans_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/fields/cross_feature_routes_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/features/fields/field_list_query_test.dart,5,applied
 FM-003,test,mobile/sahool_app/test/features/fields/field_workspace_test.dart,5,applied
@@ -1878,6 +1885,10 @@ OPS-004,ui,frontend/src/components/ds/forms.tsx,2,applied
 OPS-005,api,GET /v1/offline/packs @ services/raster-service/routers/storage.py:124,2,applied
 OPS-005,api,GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:152,2,applied
 OPS-005,api,POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:248,2,applied
+OPS-005,mobile,mobile/sahool_app/lib/core/offline/cache_backends.dart,2,applied
+OPS-005,mobile,mobile/sahool_app/lib/core/offline/cache_cipher.dart,2,applied
+OPS-005,mobile,mobile/sahool_app/lib/core/offline/cached_loader.dart,2,applied
+OPS-005,mobile,mobile/sahool_app/lib/core/offline/offline_read_cache.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/core/widgets/offline_banner.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/maps/data/offline_pack_store.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/maps/data/offline_tiles.dart,2,applied
@@ -1896,6 +1907,7 @@ OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/presentation/sync_sta
 OPS-005,mobile,mobile/sahool_app/lib/features/offline_sync/presentation/sync_status_screen.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/features/tasks/data/offline_write.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/widgets/offline_field_map.dart,2,applied
+OPS-005,test,mobile/sahool_app/test/core/offline_read_cache_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/maps/offline_field_map_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/maps/offline_packs_test.dart,3,applied
 OPS-005,test,mobile/sahool_app/test/features/offline_sync/acceptance_retention_expired_probe_test.dart,3,applied
