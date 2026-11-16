@@ -75,7 +75,11 @@ def main(argv: list[str] | None = None) -> int:
     problems = path_problems(args.expected_binary, resolved)
     if resolved is not None:
         reported = subprocess.run(
-            [resolved, "version", "--short"], capture_output=True, text=True, check=False
+            [resolved, "version", "--short"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
         ).stdout
         problems += version_problems(args.expected_version, reported)
     problems += junit_problems(args.junit, args.min_tests)

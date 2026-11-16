@@ -130,11 +130,14 @@ def test_the_switch_turns_a_missing_helm_into_a_failure(tmp_path: Path) -> None:
         env={**base_env, "HELM_RENDER_REQUIRED": "1"},
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
     )
     assert required.returncode != 0, required.stdout
     assert "2 failed" in required.stdout and "skipped" not in required.stdout, required.stdout
 
-    relaxed = subprocess.run(command, cwd=ROOT, env=base_env, capture_output=True, text=True)
+    relaxed = subprocess.run(
+        command, cwd=ROOT, env=base_env, capture_output=True, text=True, encoding="utf-8"
+    )
     assert relaxed.returncode == 0, relaxed.stdout
     assert "2 skipped" in relaxed.stdout, relaxed.stdout
