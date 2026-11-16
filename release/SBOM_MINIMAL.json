@@ -4925,7 +4925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "034b0ab6f80ac8fd42a8ce1890f93d7e81e5f55034f38131a86bfdecf7604c8c"
+          "content": "970c6597e3dc742cdcc709b3585f68e5302bc76f3d9054078f57febe131f4b17"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -26425,7 +26425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a53d963c54d8750412aeeabd3bca7de983ab23fa27847cb0d1b77d2b11f50136"
+          "content": "ba56fdfc01d201cd158194e864cf21bfd7569ac64d57c64fdb5ba9c4a3152f35"
         }
       ],
       "name": "services/sahool-platform/api/phase10_continuous_learning.py",
@@ -27955,7 +27955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9b521b30cb7625f28fc4e088676eaaae112905c40c67284b5dbbde4e4310bf6"
+          "content": "26241f33d205389642bc2658c352bc9abb593f902bfbcef5694e0fdb50c69f77"
         }
       ],
       "name": "services/sahool-platform/api/routers/registry.py",
@@ -36085,7 +36085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e02feedffc6fa6bd24579ea362c72c7ac4a1fac2579304e82d351267e39daa8a"
+          "content": "fc546bfa69e22f34a09a38a57ad24ed42d698a9233a35a77393846789d7869cc"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
@@ -37629,6 +37629,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_vegetative_days.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "003d661e22b008fca3613683b98acb420fd93cb14ca2f97dddf06ab0f9d41e38"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
       "type": "file"
     },
     {

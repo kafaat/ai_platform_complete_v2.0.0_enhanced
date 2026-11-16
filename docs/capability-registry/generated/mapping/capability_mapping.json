@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7465,
+    "files_scanned": 7466,
     "files_by_kind": {
       "backend": 1295,
       "database": 347,
       "governance": 89,
       "mobile": 417,
       "other": 2195,
-      "tests": 2569,
+      "tests": 2570,
       "web": 553
     },
-    "unmapped_artifacts": 3542,
+    "unmapped_artifacts": 3543,
     "ambiguous_artifacts": 254,
     "files_by_reading": {
-      "python_functional": 4053,
+      "python_functional": 4054,
       "raw": 3412
     },
-    "test_dependency_files": 1963,
-    "test_dependency_edges": 5177,
+    "test_dependency_files": 1964,
+    "test_dependency_edges": 5181,
     "test_dependency_bounded_files": 1143,
     "test_dependency_unresolved_relations": 503
   },
@@ -42335,6 +42335,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
       "kind": "tests"
     },
@@ -68731,6 +68735,36 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ci/platform_route_classification.py",
+          "kind": "import",
+          "line": 33
+        },
+        {
+          "source": "services/sahool-platform/api/phase10_continuous_learning.py",
+          "kind": "import",
+          "line": 88
+        },
+        {
+          "source": "services/sahool-platform/api/phase10_continuous_learning.py",
+          "kind": "source_read",
+          "line": 41
+        },
+        {
+          "source": "services/sahool-platform/api/routers/registry.py",
+          "kind": "source_read",
+          "line": 38
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_water_balance.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -88247,7 +88281,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 328
+          "line": 333
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",
