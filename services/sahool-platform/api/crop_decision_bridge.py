@@ -36,7 +36,11 @@ from typing import Any
 
 from fastapi import HTTPException
 
-from api.decision_service_client import record_decision
+from api.decision_service_client import (
+    governed_candidate_lineage,
+    record_decision,
+    submit_governed_candidate,
+)
 
 _ENGINE_DOWN_CODES = {502, 503, 504}
 CANDIDATE_DECISION_TYPE = "crop_decision_candidate"
@@ -238,6 +242,8 @@ async def submit_crop_decision_candidate(
     tenant_id: str | None,
     submit: bool = False,
     created_by: str | None = None,
+    crop: str | None = None,
+    cultivar_id: str | None = None,
 ) -> dict[str, Any]:
     """Preview (no write) or submit a ``pending_approval`` candidate — fail-closed.
 
@@ -261,8 +267,31 @@ async def submit_crop_decision_candidate(
         "decision_value": candidate,  # full candidate incl. lineage + evidence, unchanged
         "created_by": created_by,
     }
+    # W2-02 (decision-2): the candidate carries its AC-1 lineage, or the gap is named
+    # (blocked:lineage_missing) — decision-service's bare 422 never reaches the caller.
+    binding = await governed_candidate_lineage(
+        tenant_id=str(tenant_id or ""),
+        field_id=str(candidate["field_id"] or ""),
+        season_id=candidate.get("season_id"),
+        crop=crop,
+        cultivar_id=cultivar_id,
+        producer="crop-intelligence-governed-bridge",
+        requested_by=created_by,
+        features=[
+            {
+                "group": "crop",
+                "name": "accumulated_gdd",
+                "value": candidate["evidence"].get("accumulated_gdd"),
+                "unit": "degC_day",
+                "source_snapshot_id": candidate["evidence"].get("gdd_lineage_id"),
+            },
+            {"group": "crop", "name": "growth_stage", "value": candidate["evidence"].get("stage")},
+        ],
+    )
     try:
-        result = await record_decision(record_payload, tenant_id=tenant_id)
+        submitted = await submit_governed_candidate(
+            record_payload, binding, tenant_id=tenant_id, record=record_decision
+        )
     except HTTPException as exc:
         if exc.status_code in _ENGINE_DOWN_CODES:
             # fail-closed: decision-service unavailable → no candidate, no fake success.
@@ -271,6 +300,14 @@ async def submit_crop_decision_candidate(
                 detail="decision-service unavailable — candidate not submitted (fail-closed)",
             ) from exc
         raise
+    if submitted["status"] != "recorded":
+        return {
+            **_preview(candidate),
+            "approval_state": submitted["status"],
+            "missing": submitted["missing"],
+            "lineage": submitted["lineage"],
+        }
+    result = submitted["record"]
 
     # fail-closed proof. The record endpoint does not return a `status` field, so we do NOT
     # infer pending_approval locally from the response: instead we require the authoritative

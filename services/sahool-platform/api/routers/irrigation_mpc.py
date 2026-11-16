@@ -515,11 +515,11 @@ async def irrigation_mpc_recommendation(
             "canonical_limitations": list(canonical.limitations),
         },
     }
-    if req.submit:
-        if not bridge_enabled():
-            out["emit"] = {"status": "disabled"}
-        else:
-            out["emit"] = await emit_mpc_candidate(decision, tenant_id=tenant_id)
+    if req.submit and not bridge_enabled():
+        out["emit"] = {"status": "disabled"}
+    elif req.submit:
+        cultivar = await _season_cultivar(user, canonical.season_id)  # W2-02: AC-1 identity
+        out["emit"] = await emit_mpc_candidate(decision, tenant_id=tenant_id, cultivar_id=cultivar)
     return out
 
 
@@ -590,3 +590,18 @@ async def reconcile_irrigation_execution(
     async with tenant_connection(user) as conn:
         async with conn.transaction():
             return await reconcile_irrigation_run(conn, run_id=req.run_id)
+
+
+async def _season_cultivar(user: UserSchema, season_id: str | None) -> str | None:
+    """W2-02: the season's cultivar (its owner, ``seasons.cultivar``) for the AC-1 lineage.
+    None when absent or unreadable — the binding then names it missing, never fills it."""
+    if not season_id:
+        return None
+    from api.persisted_canonical_repositories import load_season_cultivar
+
+    try:
+        async with tenant_connection(user) as conn:
+            return await load_season_cultivar(conn, season_id=season_id)
+    except Exception:
+        logger.warning("season cultivar read failed for season=%s", season_id, exc_info=True)
+        return None

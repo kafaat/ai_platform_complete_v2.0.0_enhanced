@@ -426,15 +426,13 @@ def irrigation_candidate_compose_payload(
     history_from = _day_start(ledger_date) or (cutoff - timedelta(days=1))
     if history_from > cutoff:
         history_from = cutoff - timedelta(days=1)
-    unheld = "not composed by the field irrigation route"
-    payload = assemble_agronomic_context(
+    return producer_compose_payload(
         tenant_id=tenant_id,
         field_id=field_id,
         season_id=season_id,
-        as_of_time=cutoff,
-        decision_cutoff_time=cutoff,
+        cutoff=cutoff,
         features=features,
-        empty_group_reasons={"climate": unheld, "terrain": unheld, "operations": unheld},
+        unheld_reason="not composed by the field irrigation route",
         history={
             "history_from": _iso(history_from),
             "history_to": _iso(cutoff),
@@ -447,6 +445,52 @@ def irrigation_candidate_compose_payload(
                 }
             },
         },
+        soil_profile=soil_profile,
+    )
+
+
+# ── W2-02 (decision-2): one AC-1 path for every governed producer ─────────────────────────
+# The crop, water-ledger and MPC bridges recorded candidates with no agronomic lineage, so once
+# AC-1 is enforced (always in production) decision-service answered each with a bare 422. They
+# now share the irrigation route's binding: the context is composed server-side, the vegetation
+# snapshot is read point-in-time, and a gap is reported under one named state instead of a 422.
+
+LINEAGE_MISSING_STATE = "blocked:lineage_missing"
+_UNHELD_GROUPS = ("climate", "terrain", "operations")
+
+
+def producer_compose_payload(
+    *,
+    tenant_id: str,
+    field_id: str,
+    season_id: str | None,
+    cutoff: datetime,
+    features: list[dict[str, Any]],
+    unheld_reason: str,
+    history: dict[str, Any] | None = None,
+    soil_profile: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """``ContextComposeIn`` body for one producer's candidate, via the existing assembler.
+
+    With a validated canonical soil profile, ``context.soil`` is that profile verbatim (not the
+    assembler's group summary) and the idempotency key covers its hash, so a new profile never
+    collides with a key composed over an older one.
+    """
+    payload = assemble_agronomic_context(
+        tenant_id=tenant_id,
+        field_id=field_id,
+        season_id=season_id,
+        as_of_time=cutoff,
+        decision_cutoff_time=cutoff,
+        features=features,
+        empty_group_reasons={g: unheld_reason for g in _UNHELD_GROUPS},
+        history=history
+        or {
+            "history_from": _iso(cutoff - timedelta(days=1)),
+            "history_to": _iso(cutoff),
+            "manifest_version": "producer-history.v1",
+            "history": {},
+        },
     )["payload"]
     if soil_profile is not None:
         payload["context"]["soil"] = soil_profile
@@ -457,6 +501,81 @@ def irrigation_candidate_compose_payload(
             )[:32]
         )
     return payload
+
+
+def producer_features(
+    *,
+    cutoff: datetime,
+    producer: str,
+    crop_id: str | None,
+    cultivar_id: str | None,
+    features: list[dict[str, Any]] | tuple[dict[str, Any], ...] = (),
+) -> list[dict[str, Any]]:
+    """The crop identity plus the producer's own stated values, as assembler features.
+
+    A value the producer states is observed and available at the cutoff unless it says
+    otherwise; a value it does not hold is absent (its group is then reported missing).
+    """
+    if cutoff.tzinfo is None:
+        raise ValueError("cutoff must carry a timezone")
+    at = {"observed_at": cutoff, "available_at": cutoff}
+    feats: list[dict[str, Any]] = []
+    if crop_id:
+        feats.append(
+            {
+                "group": "crop",
+                "name": "crop_id",
+                "value": crop_id,
+                "source_service": "sahool-platform.crop_cards",
+                "quality_status": "verified",
+                **at,
+            }
+        )
+    if cultivar_id:
+        feats.append(
+            {
+                "group": "crop",
+                "name": "cultivar_id",
+                "value": cultivar_id,
+                "source_service": "sahool-platform.seasons",
+                "quality_status": "verified",
+                **at,
+            }
+        )
+    for f in features:
+        if f.get("value") is None:
+            continue
+        feats.append(
+            {"source_service": producer, "quality_status": "accepted_with_warning", **at, **f}
+        )
+    return feats
+
+
+def lineage_missing_result(binding: Ac1Binding, missing: Any = None) -> dict[str, Any]:
+    """The one named state a governed bridge returns when AC-1 lineage is absent."""
+    names = list(missing) if missing else list(binding.missing)
+    return {
+        "status": LINEAGE_MISSING_STATE,
+        "missing": names,
+        "lineage": binding.report(),
+    }
+
+
+def agronomic_context_startup_error() -> str | None:
+    """Boot check: AC-1 enforced with the server-side composer off can only ever block.
+
+    Every governed candidate would then end in ``blocked:lineage_missing`` (or, before W2-02,
+    an unexplained 422) because nothing composes the lineage decision-service requires. Refuse
+    to start in that configuration instead of running a decision path that cannot succeed.
+    """
+    if agronomic_context_required() and not agronomic_context_compose_enabled():
+        return (
+            "AC-1 agronomic context is required here (production, or "
+            "DECISION_REQUIRE_AGRONOMIC_CONTEXT=true) but AGRONOMIC_CONTEXT_COMPOSE_ENABLED is "
+            "off, so no governed decision could carry its lineage. Set "
+            "AGRONOMIC_CONTEXT_COMPOSE_ENABLED=true (or disable AC-1 outside production)."
+        )
+    return None
 
 
 @dataclass(frozen=True)

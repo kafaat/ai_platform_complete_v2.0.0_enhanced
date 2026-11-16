@@ -65,6 +65,7 @@ async def emit_mpc_candidate(
     decision: LexicographicIrrigationDecision,
     *,
     tenant_id: str,
+    cultivar_id: str | None = None,
 ) -> dict[str, Any]:
     """يُصدِر مرشّح MPC إلى مركز القرار (محكوم، توصية-فقط). مُطفأ افتراضيّاً.
 
@@ -76,10 +77,36 @@ async def emit_mpc_candidate(
     if decision.operating_state.value == "EMERGENCY_FAIL_CLOSED":
         return {"status": "fail_closed", "reason_codes": [c.value for c in decision.reason_codes]}
 
-    from api.decision_service_client import record_decision
+    from api.decision_service_client import (
+        governed_candidate_lineage,
+        submit_governed_candidate,
+    )
 
     decision_id, lineage, candidate = build_mpc_candidate(decision)
-    recorded = await record_decision(candidate, tenant_id=tenant_id)
+    # W2-02 (decision-2): AC-1 lineage travels with the candidate, or the gap is named
+    # (blocked:lineage_missing) — never decision-service's bare 422.
+    binding = await governed_candidate_lineage(
+        tenant_id=tenant_id,
+        field_id=str(decision.field_id or ""),
+        season_id=decision.season_id,
+        crop=decision.crop,
+        cultivar_id=cultivar_id,
+        producer="lexicographic-mpc-governed-bridge",
+        features=[
+            {
+                "group": "irrigation",
+                "name": "root_zone_depletion_mm",
+                "value": decision.root_zone_depletion_before_mm,
+                "unit": "mm",
+            },
+            {"group": "soil", "name": "total_available_water_mm", "value": decision.taw_mm},
+            {"group": "soil", "name": "readily_available_water_mm", "value": decision.raw_mm},
+        ],
+    )
+    submitted = await submit_governed_candidate(candidate, binding, tenant_id=tenant_id)
+    if submitted["status"] != "recorded":
+        return {**submitted, "decision_id": decision_id, "candidate_lineage_id": lineage}
+    recorded = submitted["record"]
     if not recorded.get("persisted") or not recorded.get("authoritative"):
         return {"status": "candidate_not_authoritative", "decision_id": decision_id}
     return {

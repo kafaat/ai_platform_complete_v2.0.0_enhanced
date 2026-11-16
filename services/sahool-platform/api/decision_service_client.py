@@ -244,26 +244,26 @@ def _http_reason(exc: Any) -> str:
     return f"{getattr(exc, 'status_code', '?')}:{detail}"
 
 
-async def irrigation_candidate_lineage(
-    user: Any,
+async def _compose_lineage(
+    *,
+    tenant_id: str,
     field_id: str,
-    season: Any,
-    inputs: dict[str, Any],
-    weather: dict[str, Any],
-    et0: dict[str, Any],
-    ledger_date: Any,
-    days_since_sowing: Any,
+    season_id: str | None,
+    crop_id: str | None,
+    cultivar_id: str | None,
+    requested_by: str,
+    build_payload: Any,
 ) -> Any:
-    """AC-1/AC-6 lineage for the field irrigation candidate (EX-WATER-01, path B).
+    """The network half shared by every governed producer (irrigation route, W2-02 bridges).
 
-    Only runs the composition when the server-side composer is enabled
-    (``AGRONOMIC_CONTEXT_COMPOSE_ENABLED``); otherwise nothing is called and, where AC-1 is
-    enforced, the candidate is blocked with that reason instead of failing in decision-service.
-    Every identity comes from its owner; anything missing is named, never filled in.
+    Composes only when the server-side composer is enabled (``AGRONOMIC_CONTEXT_COMPOSE_ENABLED``);
+    otherwise nothing is called and, where AC-1 is enforced, the binding is blocked with that
+    reason instead of failing in decision-service. ``build_payload(cutoff, soil_profile)`` returns
+    the producer's ``ContextComposeIn`` body. Every identity comes from its owner; anything
+    missing is named, never filled in.
     """
     from datetime import UTC, datetime
 
-    from core.season_phenology import resolve_crop_id
     from fastapi import HTTPException
 
     from api.agronomic_context_composer import (
@@ -272,16 +272,10 @@ async def irrigation_candidate_lineage(
         agronomic_context_compose_enabled,
         agronomic_context_required,
         canonical_soil_profile_for_context,
-        irrigation_candidate_compose_payload,
-        irrigation_candidate_features,
         lineage_binding,
     )
     from api.canonical_soil_state import resolve_canonical_soil_state
 
-    tenant_id = str(getattr(user, "tenant_id", "") or "")
-    season_id = season.get("season_id") if season else None
-    cultivar_id = season.get("cultivar") if season else None
-    crop_id = resolve_crop_id(inputs.get("crop"))
     detail: dict[str, Any] = {}
     context = vegetation = None
     if not agronomic_context_compose_enabled():
@@ -307,29 +301,10 @@ async def irrigation_candidate_lineage(
             # Not fatal here: decision-service decides whether the profile is required and
             # names the violation; this records why none was attached.
             detail["soil_profile"] = soil_gap
-        payload = irrigation_candidate_compose_payload(
-            tenant_id=tenant_id,
-            field_id=field_id,
-            season_id=season_id,
-            cutoff=cutoff,
-            inputs=inputs,
-            ledger_date=ledger_date,
-            soil_profile=soil_profile,
-            features=irrigation_candidate_features(
-                cutoff=cutoff,
-                field_id=field_id,
-                crop_id=crop_id,
-                cultivar_id=cultivar_id,
-                days_since_sowing=days_since_sowing,
-                inputs=inputs,
-                ledger_date=ledger_date,
-                weather=weather,
-                et0=et0,
-            ),
-        )
+        payload = build_payload(cutoff, soil_profile)
         try:
             context = await compose_context_snapshot(
-                payload, tenant_id=tenant_id, requested_by=str(getattr(user, "user_id", "") or "")
+                payload, tenant_id=tenant_id, requested_by=requested_by
             )
         except HTTPException as exc:
             detail["context"] = _http_reason(exc)
@@ -357,6 +332,145 @@ async def irrigation_candidate_lineage(
         required=agronomic_context_required(),
         detail=detail,
     )
+
+
+async def irrigation_candidate_lineage(
+    user: Any,
+    field_id: str,
+    season: Any,
+    inputs: dict[str, Any],
+    weather: dict[str, Any],
+    et0: dict[str, Any],
+    ledger_date: Any,
+    days_since_sowing: Any,
+) -> Any:
+    """AC-1/AC-6 lineage for the field irrigation candidate (EX-WATER-01, path B)."""
+    from core.season_phenology import resolve_crop_id
+
+    from api.agronomic_context_composer import (
+        irrigation_candidate_compose_payload,
+        irrigation_candidate_features,
+    )
+
+    tenant_id = str(getattr(user, "tenant_id", "") or "")
+    season_id = season.get("season_id") if season else None
+    cultivar_id = season.get("cultivar") if season else None
+    crop_id = resolve_crop_id(inputs.get("crop"))
+
+    def _payload(cutoff: Any, soil_profile: Any) -> dict[str, Any]:
+        return irrigation_candidate_compose_payload(
+            tenant_id=tenant_id,
+            field_id=field_id,
+            season_id=season_id,
+            cutoff=cutoff,
+            inputs=inputs,
+            ledger_date=ledger_date,
+            soil_profile=soil_profile,
+            features=irrigation_candidate_features(
+                cutoff=cutoff,
+                field_id=field_id,
+                crop_id=crop_id,
+                cultivar_id=cultivar_id,
+                days_since_sowing=days_since_sowing,
+                inputs=inputs,
+                ledger_date=ledger_date,
+                weather=weather,
+                et0=et0,
+            ),
+        )
+
+    return await _compose_lineage(
+        tenant_id=tenant_id,
+        field_id=field_id,
+        season_id=season_id,
+        crop_id=crop_id,
+        cultivar_id=cultivar_id,
+        requested_by=str(getattr(user, "user_id", "") or ""),
+        build_payload=_payload,
+    )
+
+
+async def governed_candidate_lineage(
+    *,
+    tenant_id: str,
+    field_id: str,
+    season_id: str | None,
+    crop: str | None,
+    cultivar_id: str | None,
+    producer: str,
+    requested_by: str | None = None,
+    features: list[dict[str, Any]] | tuple[dict[str, Any], ...] = (),
+    history: dict[str, Any] | None = None,
+) -> Any:
+    """W2-02: the AC-1/AC-6 binding for a governed bridge (crop, water ledger, MPC).
+
+    ``crop`` is resolved to its crop card; ``features`` are the producer's own stated values
+    (group/name/value/unit), stamped with the producer as source and the cutoff as time.
+    """
+    from core.season_phenology import resolve_crop_id
+
+    from api.agronomic_context_composer import producer_compose_payload, producer_features
+
+    crop_id = resolve_crop_id(crop) if crop else None
+
+    def _payload(cutoff: Any, soil_profile: Any) -> dict[str, Any]:
+        return producer_compose_payload(
+            tenant_id=tenant_id,
+            field_id=field_id,
+            season_id=season_id,
+            cutoff=cutoff,
+            unheld_reason=f"not composed by {producer}",
+            history=history,
+            soil_profile=soil_profile,
+            features=producer_features(
+                cutoff=cutoff,
+                producer=producer,
+                crop_id=crop_id,
+                cultivar_id=cultivar_id,
+                features=features,
+            ),
+        )
+
+    return await _compose_lineage(
+        tenant_id=tenant_id,
+        field_id=field_id,
+        season_id=season_id,
+        crop_id=crop_id,
+        cultivar_id=cultivar_id,
+        requested_by=requested_by or producer,
+        build_payload=_payload,
+    )
+
+
+async def submit_governed_candidate(
+    record_payload: dict[str, Any],
+    binding: Any,
+    *,
+    tenant_id: str | None,
+    record: Any = None,
+) -> dict[str, Any]:
+    """W2-02: record a governed candidate with its AC-1 lineage, or name why it cannot be.
+
+    Returns ``{"status": "recorded", "record": <decision-service answer>, "lineage": ...}``, or
+    ``{"status": "blocked:lineage_missing", "missing": [...], "lineage": ...}`` — never a 422:
+    a blocked binding submits nothing, and decision-service's own AC-1 refusal (it enforces
+    where this process did not expect it) is mapped to the same state. Any other error is
+    raised unchanged. ``record`` lets a bridge keep its own (patchable) recorder.
+    """
+    from fastapi import HTTPException
+
+    from api.agronomic_context_composer import lineage_missing_result
+
+    if binding.blocked:
+        return lineage_missing_result(binding)
+    recorder = record or record_decision
+    try:
+        result = await recorder({**record_payload, **binding.record_fields}, tenant_id=tenant_id)
+    except HTTPException as exc:
+        if binding.refusal(exc.status_code, exc.detail) is None:
+            raise
+        return lineage_missing_result(binding, exc.detail.get("missing"))
+    return {"status": "recorded", "record": result, "lineage": binding.report()}
 
 
 async def list_review_queue(
