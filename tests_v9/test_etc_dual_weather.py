@@ -1,7 +1,7 @@
 """اختبار وحدة لاشتقاق الطقس في نقطة etc-dual (مُمرَّر مقابل جلب حيّ) — مسارات بلا شبكة.
 
 يقفل الصدق: طقس مُمرَّر كامل ⇒ WeatherDay بمصدر "request"؛ طقس ناقص جزئيّاً ⇒ 422؛ جلب حيّ بلا
-إحداثيّات حقل ⇒ 422 (لا اختلاق). مسار Open-Meteo الفعليّ (شبكة) يؤكّده المشغّل حيّاً.
+إحداثيّات حقل ⇒ 422 (لا اختلاق). مسار weather-service الفعليّ (شبكة) يؤكّده المشغّل حيّاً.
 """
 
 from __future__ import annotations
@@ -76,24 +76,25 @@ async def test_resolve_weather_autofetch_without_coords_raises_422():
     assert ei.value.status_code == 422
 
 
-def _stub_openmeteo(monkeypatch, *, daily: dict, current: dict) -> None:
-    """الجلبُ الحيُّ عبر `_fetch_json` مُستبدَلاً — فتمرّ القراءةُ بموضع البناء الحقيقيّ
-    (`_build_daily`/`fetch_current`) لا بكائنٍ مصنوعٍ باليد يتجاوز الحافّة."""
-    from api.connectors import openmeteo
+def _stub_weather_service(monkeypatch, *, daily: dict, current: dict) -> None:
+    """W1-22: الجلبُ الحيُّ من weather-service — يُستبدَل **النقلُ** وحدَه (`weather_get_json`)
+    فتمرّ المشاهدةُ بالمُحوِّل الحقيقيّ (`forecast_readings`/`current_reading`) لا بكائنٍ
+    مصنوعٍ باليد يتجاوز الحافّة. والغيابُ مفتاحٌ غائبٌ عن المشاهدة كما يُصدِرها المالك."""
+    from api import weather_service_client
 
-    async def fake_fetch_json(url, params, timeout_s):
-        if "current" in params:
-            return {"current": {"wind_direction_10m": 90.0, "time": "t", **current}}
-        return {"daily": {"time": ["2026-03-01"], **daily}}
+    async def fake_weather_get_json(path, **_kw):
+        if path.endswith("/current"):
+            return {"wind_direction_deg": 90.0, "time": "t", **current}
+        return {"days": [{"date": "2026-03-01", **daily}]}
 
-    monkeypatch.setattr(openmeteo, "_fetch_json", fake_fetch_json)
+    monkeypatch.setattr(weather_service_client, "weather_get_json", fake_weather_get_json)
 
 
 _FULL_DAILY = {
-    "temperature_2m_max": [34.0],
-    "temperature_2m_min": [18.0],
-    "wind_speed_10m_max": [2.0],
-    "shortwave_radiation_sum": [24.0],
+    "temp_max_c": 34.0,
+    "temp_min_c": 18.0,
+    "wind_max_ms": 2.0,
+    "solar_radiation_mj_m2": 24.0,
 }
 
 
@@ -103,8 +104,8 @@ async def test_live_fetch_refuses_to_build_weather_from_absent_temperatures(monk
     قبل الإصلاح: يومٌ بلا حرارتين ورطوبة ⇒ `WeatherDay(0.0, 0.0, 0.0 …)` بمصدر `open-meteo`،
     فيُحسَب ETc من طقسٍ لم يُرصَد. الآن ٥٠٣ يُسمّي كلَّ ناقص.
     """
-    daily = {k: v for k, v in _FULL_DAILY.items() if not k.startswith("temperature")}
-    _stub_openmeteo(monkeypatch, daily=daily, current={})
+    daily = {k: v for k, v in _FULL_DAILY.items() if not k.startswith("temp_")}
+    _stub_weather_service(monkeypatch, daily=daily, current={})
     with pytest.raises(HTTPException) as ei:
         await _resolve_weather(EtcDualRequest(), field_lat=15.0, field_lon=44.0)
     assert ei.value.status_code == 503
@@ -114,20 +115,20 @@ async def test_live_fetch_refuses_to_build_weather_from_absent_temperatures(monk
 
 async def test_live_fetch_keeps_an_observed_zero_and_builds_weather(monkeypatch):
     """النقيض: `0°م` و`0٪` قياسان مرصودان — يُبنى بهما الطقس ولا يُرفَضان غياباً."""
-    _stub_openmeteo(
+    _stub_weather_service(
         monkeypatch,
-        daily={**_FULL_DAILY, "temperature_2m_min": [0.0]},
-        current={"relative_humidity_2m": 0.0},
+        daily={**_FULL_DAILY, "temp_min_c": 0.0},
+        current={"humidity_pct": 0.0},
     )
     weather, source = await _resolve_weather(EtcDualRequest(), field_lat=15.0, field_lon=44.0)
-    assert source == "open-meteo"
+    assert source == "weather-service", "live weather must come from weather-service"
     assert (weather.temp_min_c, weather.humidity_pct) == (0.0, 0.0)
 
 
 async def test_live_fetch_refuses_unmeasured_wind(monkeypatch):
     """Provider absence must stop at the boundary before entering WeatherDay."""
-    daily = {k: v for k, v in _FULL_DAILY.items() if k != "wind_speed_10m_max"}
-    _stub_openmeteo(monkeypatch, daily=daily, current={"relative_humidity_2m": 45.0})
+    daily = {k: v for k, v in _FULL_DAILY.items() if k != "wind_max_ms"}
+    _stub_weather_service(monkeypatch, daily=daily, current={"humidity_pct": 45.0})
     with pytest.raises(HTTPException) as ei:
         await _resolve_weather(EtcDualRequest(), field_lat=15.0, field_lon=44.0)
     assert ei.value.status_code == 503
@@ -135,11 +136,11 @@ async def test_live_fetch_refuses_unmeasured_wind(monkeypatch):
 
 
 async def test_live_fetch_preserves_measured_calm_wind(monkeypatch):
-    _stub_openmeteo(
+    _stub_weather_service(
         monkeypatch,
-        daily={**_FULL_DAILY, "wind_speed_10m_max": [0.0]},
-        current={"relative_humidity_2m": 45.0},
+        daily={**_FULL_DAILY, "wind_max_ms": 0.0},
+        current={"humidity_pct": 45.0},
     )
     weather, source = await _resolve_weather(EtcDualRequest(), field_lat=15.0, field_lon=44.0)
-    assert source == "open-meteo"
+    assert source == "weather-service", "live weather must come from weather-service"
     assert weather.wind_speed_m_s == 0.0

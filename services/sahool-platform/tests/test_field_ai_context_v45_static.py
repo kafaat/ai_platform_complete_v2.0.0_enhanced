@@ -19,7 +19,10 @@ def test_field_ai_context_router_contract():
 def test_two_year_context_sources_are_explicit():
     src = ROUTER.read_text(encoding="utf-8")
     assert "days: int = Query(730" in src
-    assert "fetch_historical" in src
+    # W1-22: the 2-year weather source is the canonical weather-service historical view,
+    # not the Open-Meteo connector (the sweep guard forbids importing it here).
+    assert "get_weather_historical" in src, "the pack must read weather-service historical"
+    assert "connectors.openmeteo" not in src, "the pack must not import the provider connector"
     # P2.2 raster facade cleanup: the available-dates read moved from an open-coded
     # endpoint literal into the raster_service_client facade. The source stays explicit
     # (the router still fetches available dates), it just goes through the boundary client.

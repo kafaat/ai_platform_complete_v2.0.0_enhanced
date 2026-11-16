@@ -115,11 +115,10 @@ def weather(monkeypatch):
             timestamp="2026-11-02T00:00",
         )
 
-    monkeypatch.setitem(
-        sys.modules,
-        "api.connectors.openmeteo",
-        SimpleNamespace(fetch_current=_fetch_current, describe_weather_ar=lambda c: "صحو"),
-    )
+    # W1-22: الأتمتةُ تقرأ weather-service (`current_reading`) لا موصّلَ المزوّد.
+    import api.weather_service_client as weather_service_client
+
+    monkeypatch.setattr(weather_service_client, "current_reading", _fetch_current)
     wa = WeatherAutomation()
     wa.set_pool(object())
     wa._fetch_tracked_rows = AsyncMock()

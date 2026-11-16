@@ -226,14 +226,24 @@ class TestSimulateConsistency:
         r = _sim("wheat", _warm_days(120))
         p = _params_for("wheat")
         assert r.water_stress_factor == 1.0
-        assert r.yield_kg_ha == pytest.approx(r.biomass_kg_ha * p.harvest_index, rel=1e-6)
+        # Both outputs are rounded to 0.1 independently, so the identity holds within the
+        # rounding of each: 0.05 on the yield plus 0.05 × HI carried from the biomass. The
+        # former rel=1e-6 passed only while wheat's parameters happened to round together
+        # (it broke when wheat's maturity GDD moved to the crop card value, crop-4).
+        assert r.yield_kg_ha == pytest.approx(
+            r.biomass_kg_ha * p.harvest_index, abs=0.05 * (1 + p.harvest_index) + 1e-9
+        ), "yield must equal biomass × HI within the 0.1 rounding of both outputs"
 
     def test_uncertainty_band_is_plus_minus_twenty_percent(self):
-        # الحدّان يُحسبان من الإنتاج المركزي ثمّ يُقرَّبان لخانة عشريّة واحدة،
-        # فنسمح بهامش التقريب (±0.05) حول ±20٪.
+        # الحدّان يُحسبان من الإنتاج المركزي **غير المقرَّب** ثمّ يُقرَّبان لخانة عشريّة واحدة،
+        # والإنتاج المُعاد مقرَّبٌ بدوره: الهامش ±0.05 لتقريب الحدّ + 0.05 × المعامل لتقريب الإنتاج.
         r = _sim("wheat", _warm_days(120))
-        assert r.yield_low_kg_ha == pytest.approx(r.yield_kg_ha * 0.8, abs=0.05)
-        assert r.yield_high_kg_ha == pytest.approx(r.yield_kg_ha * 1.2, abs=0.05)
+        assert r.yield_low_kg_ha == pytest.approx(r.yield_kg_ha * 0.8, abs=0.05 + 0.05 * 0.8), (
+            "the low bound must be −20% of the yield within the rounding of both"
+        )
+        assert r.yield_high_kg_ha == pytest.approx(r.yield_kg_ha * 1.2, abs=0.05 + 0.05 * 1.2), (
+            "the high bound must be +20% of the yield within the rounding of both"
+        )
         assert r.yield_low_kg_ha < r.yield_kg_ha < r.yield_high_kg_ha
 
     def test_cold_season_below_base_yields_nothing(self):

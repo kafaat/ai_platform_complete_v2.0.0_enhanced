@@ -161,8 +161,13 @@ def test_season_comparison_endpoint_crop_mismatch_and_area_contract():
     assert out2["metrics"]["water_m3_per_ha"]["direction"] == "flat"
 
 
+def _run_playbook(req, *, user):
+    """المعالِج صار async (W1-17: الوضع المربوط بالحقل يجلب الطقس)."""
+    return asyncio.run(decision_playbook_endpoint(req, user=user))
+
+
 def test_decision_playbook_endpoint_frost_dominates():
-    out = decision_playbook_endpoint(
+    out = _run_playbook(
         DecisionPlaybookRequest(
             crop="wheat",
             weather_signals=[
@@ -180,7 +185,7 @@ def test_decision_playbook_endpoint_frost_dominates():
 
 
 def test_decision_playbook_endpoint_composes_soil_and_risk():
-    out = decision_playbook_endpoint(
+    out = _run_playbook(
         DecisionPlaybookRequest(
             crop="tomato",
             crop_risk_inputs=CropRiskRequest(crop="tomato", disease_risk_score=0.95),
@@ -193,7 +198,7 @@ def test_decision_playbook_endpoint_composes_soil_and_risk():
 
 
 def test_decision_playbook_endpoint_empty_neutral():
-    out = decision_playbook_endpoint(DecisionPlaybookRequest(), user=_USER)
+    out = _run_playbook(DecisionPlaybookRequest(), user=_USER)
     assert out["review_after"]
     assert out["confidence"] <= 0.5
 

@@ -75,6 +75,15 @@ export interface DecisionPlaybook {
   review_after?: string;
   escalate_if?: string[];
   disabled?: boolean;
+  // W1-17: وسم مصدر الطقس — field_bound (weather-service) أو what_if (إشارات المستدعي).
+  mode?: 'field_bound' | 'what_if';
+  weather_signals_source?: 'weather-service' | 'caller_supplied';
+  weather_snapshot_id?: string | null;
+  field_id?: string;
+  crop?: string | null;
+  weather_signals?: WeatherSignalInput[];
+  weather_unavailable?: Record<string, string>;
+  limitations?: { code: string; message_ar: string }[];
 }
 /** إشارة طقس مُولَّدة (WeatherSignalRequest). */
 export interface WeatherSignalInput {
@@ -82,8 +91,10 @@ export interface WeatherSignalInput {
   confidence_score?: number;
   payload?: Record<string, unknown>;
 }
-/** جسم POST decision-playbook (DecisionPlaybookRequest). */
+/** جسم POST decision-playbook (DecisionPlaybookRequest).
+ *  مع field_id: الخادم يشتقّ الطقس من weather-service (لا weather_signals ولا crop_risk_inputs). */
 export interface DecisionPlaybookInput {
+  field_id?: string;
   crop?: string | null;
   weather_signals?: WeatherSignalInput[];
   crop_risk_inputs?: CropRiskInput | null;
@@ -388,6 +399,38 @@ export const KC_SCENARIO_OPTIONS: { key: string; label_ar: string }[] = [
   { key: 'full_irrigation', label_ar: 'ريّ كامل' },
   { key: 'deficit', label_ar: 'عجز مائيّ' },
 ];
+
+// ── W1-17: بناء جسم دليل القرار ─────────────────────────────────────────────
+
+/** وضع دليل القرار: «field» (طقس الحقل من weather-service) أو «what_if» (إشارات افتراضيّة). */
+export type PlaybookMode = 'field' | 'what_if';
+
+/**
+ * جسم POST decision-playbook.
+ * - حقل مختار + وضع field ⇒ `{field_id, recommendation_ar}` فقط: الطقس والمحصول يشتقّهما
+ *   الخادم للحقل، ولا تُرسَل إشارات طقس ولا محصول من الواجهة (الخادم يرفضها بـ422).
+ * - وضع what_if (أو بلا حقل) ⇒ إشارات المستخدم الافتراضيّة بلا field_id؛ بلا إشارة ⇒ null.
+ */
+export function buildDecisionPlaybookInput(opts: {
+  mode: PlaybookMode;
+  fieldId?: string | null;
+  crop?: string | null;
+  signals: Iterable<string>;
+  recommendation?: string | null;
+}): DecisionPlaybookInput | null {
+  const recommendation_ar = (opts.recommendation ?? '').trim() || null;
+  if (opts.mode === 'field') {
+    if (!opts.fieldId) return null;
+    return { field_id: opts.fieldId, recommendation_ar };
+  }
+  const signals = [...opts.signals];
+  if (signals.length === 0) return null;
+  return {
+    crop: opts.crop || null,
+    weather_signals: signals.map((s) => ({ signal_type: s, confidence_score: 0.9 })),
+    recommendation_ar,
+  };
+}
 
 // ── مشتقّات عرض من أشكال الخادم (الغائب يسقط، لا يُصفَّر) ──────────────────
 

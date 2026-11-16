@@ -9,7 +9,7 @@
       "registrations": [
         {
           "function": "root",
-          "line": 292,
+          "line": 299,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/",
@@ -32,7 +32,7 @@
       "registrations": [
         {
           "function": "capabilities",
-          "line": 513,
+          "line": 524,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/capabilities",
@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 612,
+          "line": 605,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -63,7 +63,7 @@
         },
         {
           "function": "contract",
-          "line": 269,
+          "line": 275,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/contract",
@@ -110,7 +110,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 231,
+          "line": 237,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/health",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 559,
+          "line": 552,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -293,7 +293,7 @@
         },
         {
           "function": "healthz",
-          "line": 226,
+          "line": 232,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/healthz",
@@ -413,7 +413,7 @@
         },
         {
           "function": "healthz",
-          "line": 39,
+          "line": 49,
           "method": "GET",
           "module": "services/remote-sensing-workspace-bff/main.py",
           "path": "/healthz",
@@ -516,7 +516,7 @@
         },
         {
           "function": "metrics",
-          "line": 518,
+          "line": 529,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/metrics",
@@ -651,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 564,
+          "line": 557,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -659,7 +659,7 @@
         },
         {
           "function": "readyz",
-          "line": 528,
+          "line": 539,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/readyz",
@@ -667,7 +667,7 @@
         },
         {
           "function": "readyz",
-          "line": 236,
+          "line": 242,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/readyz",
@@ -787,7 +787,7 @@
         },
         {
           "function": "readyz",
-          "line": 44,
+          "line": 54,
           "method": "GET",
           "module": "services/remote-sensing-workspace-bff/main.py",
           "path": "/readyz",
@@ -882,7 +882,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 553,
+          "line": 546,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1154,
-  "route_inventory_sha256": "d03dca454dfc3b65746b6530657dacf2a689fa4f223ce07ff554b20f5b3660a0",
+  "route_count": 1156,
+  "route_inventory_sha256": "544d54d10f87b86d35da751c0dc70e38c7fff408225dc26a5e6845742357c539",
   "runtime_verified": false,
   "schema_version": 1
 }

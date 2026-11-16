@@ -696,7 +696,7 @@ async def reconcile_manual_execution_to_water_ledger(
                    ON CONFLICT (field_id, ledger_date) DO UPDATE SET
                        irrigation_mm=COALESCE(water_ledger.irrigation_mm,0)+EXCLUDED.irrigation_mm,
                        depletion_mm=EXCLUDED.depletion_mm,
-                       decision=EXCLUDED.decision,
+                       decision=EXCLUDED.decision, irrigation_source=NULL,
                        created_by=EXCLUDED.created_by,
                        updated_at=now()""",
                 str(user.tenant_id),

@@ -283,3 +283,84 @@ def test_overview_rejects_bool_or_negative_verified_count(monkeypatch):
             {"outcome_reconciliation": {"source": "store", "verified_outcome_count": bad}},
         )
         assert ov["verified_outcome_count"] is None
+
+
+# ── W1-20: the ground section reads the owner's anomaly scouting tasks ──────
+
+_ASSERTION_KEY = "assertion-signing-key-at-least-32-chars"
+
+
+def _ground(platform_identity, monkeypatch, *, body=None):
+    monkeypatch.setattr(mod, "TASK_URL", "http://sahool-field-management:8000")
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "agent-token")
+    monkeypatch.setenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", _ASSERTION_KEY)
+    seen = []
+
+    def handler(request):
+        platform_identity["requests"].append(request)
+        if request.url.path == "/api/v1/auth/me":
+            return httpx.Response(200, json=platform_identity["body"])
+        if request.url.path == "/internal/field-tasks/scouting":
+            seen.append(request)
+            return httpx.Response(200, json=body or {"items": [{"task_ref": "urn:sahool:task:t1"}]})
+        return httpx.Response(200, json={"anomalies": []})
+
+    original = httpx._client.AsyncClient  # the autouse fixture already replaced httpx.AsyncClient
+    monkeypatch.setattr(
+        mod.httpx,
+        "AsyncClient",
+        lambda **kw: original(transport=httpx.MockTransport(handler), **kw),
+    )
+    response = client.get(
+        "/v1/fields/fld_a/remote-sensing-workspace",
+        params={"season_id": "s1", "include": "ground"},
+        headers={"Authorization": "Bearer user-jwt", "X-Tenant-Id": "t"},
+    )
+    return response, seen
+
+
+def test_ground_reads_the_owner_route_with_service_credentials(platform_identity, monkeypatch):
+    from shared.security.service_tenant_assertion import verify_tenant_assertion
+
+    response, seen = _ground(platform_identity, monkeypatch)
+    assert response.status_code == 200, response.text
+    assert response.json()["sections"]["ground"]["items"][0]["task_ref"] == "urn:sahool:task:t1"
+    assert len(seen) == 1, "exactly one scouting-task read"
+    request = seen[0]
+    assert request.url.path == "/internal/field-tasks/scouting", request.url
+    assert dict(request.url.params) == {"field_id": "fld_a", "season_id": "s1"}, request.url
+    assert "Authorization" not in request.headers, "the user's bearer is not forwarded"
+    assert request.headers["X-Agent-Token"] == "agent-token", request.headers
+    assert request.headers["X-Service-Name"] == "remote-sensing-workspace-bff", request.headers
+    assert request.headers["X-Tenant-Id"] == "t", "the platform-verified tenant"
+    claims = verify_tenant_assertion(
+        request.headers["X-Tenant-Assertion"],
+        {"current": _ASSERTION_KEY},
+        "remote-sensing-workspace-bff",
+        "t",
+        expected_method="GET",
+        expected_path="/internal/field-tasks/scouting",
+        expected_request_id=request.headers["X-Request-Id"],
+    )
+    assert claims.tenant_id == "t", claims
+
+
+def test_ground_without_service_credentials_is_honest_not_a_user_token_call(
+    platform_identity, monkeypatch
+):
+    monkeypatch.setattr(mod, "TASK_URL", "http://sahool-field-management:8000")
+    monkeypatch.delenv("SAHOOL_AGENT_TOKEN", raising=False)
+    monkeypatch.delenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", raising=False)
+    response = client.get(
+        "/v1/fields/fld_a/remote-sensing-workspace",
+        params={"season_id": "s1", "include": "ground"},
+        headers={"Authorization": "Bearer user-jwt", "X-Tenant-Id": "t"},
+    )
+    assert response.status_code == 200, response.text
+    ground = response.json()["sections"]["ground"]
+    assert ground["configured"] is False, ground
+    assert ground["reason"] == "task_service_auth_not_configured", ground
+    paths = [r.url.path for r in platform_identity["requests"]]
+    assert "/internal/field-tasks/scouting" not in paths, (
+        f"no task read without credentials: {paths}"
+    )

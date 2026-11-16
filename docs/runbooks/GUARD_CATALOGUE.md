@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **289**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **60**
-- إجماليّ الطفرات المُسجَّلة: **481**
+- إجماليّ الطفرات المُسجَّلة: **485**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **397** على 138 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -451,6 +451,10 @@
 - `irrigation_activation_gate` يحمل مسارَه في ثابتِ وحدةٍ ويبنيه داخل دالّة، فلا يُرى عند موضع النداء. إسقاطُ هذا الشكل يُعيد عقداً حقيقيّاً إلى خارج النطاق بلا أن يُعلَن. — يُسقِط `test_both_call_shapes_and_the_module_constant_are_read`
 - هذه هي الطفرةُ الوحيدةُ التي **وقعت فعلاً**: `endswith` أفلت `raster_get_json_sync` فضاع مسارانِ حقيقيّان، ولم يُكشَف إلّا بمقابلة قارئَين. إعادتُها تُعيد الثقبَ بعينه. — يُسقِط `test_the_structural_reader_sees_everything_a_textual_one_sees`
 - صفرُ عقدٍ مكتشَفٍ أخطرُ من عقدٍ منحرف: الحارسُ يعمل ويُنهي بنجاحٍ وهو لا يفحص شيئاً — تأمينٌ على لا شيء، وهو الصنفُ الذي سُجِّل في `MUT-REGISTRY-STRANDED-SPECS-01`. — يُسقِط `test_the_guard_sees_exactly_the_modules_that_name_an_internal_service`
+- W1-02: `core/field_intelligence_adapters.soil_adapter` طلب `/api/v1/soil/{id}` الذي لا تُعلنه soil-service، ومرّ لأنّ النطاق كان `api/` وحدَه. إسقاطُ `core/` يُعيد العمى نفسَه. — يُسقِط `test_the_guard_sees_exactly_the_modules_that_name_an_internal_service`
+- وحدةٌ بأربعة مضيفين كانت تُسقَط كلُّها. بلا نسبةِ كلّ نداءٍ إلى مضيف عنوانه لا يُقابَل أيُّ مسارٍ فيها بإعلان خدمته. — يُسقِط `test_a_multi_host_module_attributes_each_call_to_its_own_host`
+- طلبٌ لا يُنسَب يجب أن يُفشِل الحارس؛ إسقاطُه صامتاً هو صنفُ «قراءةٌ صفريّة تمرّ خضراء» نفسُه. — يُسقِط `test_an_unattributable_call_in_a_multi_host_module_fails_closed`
+- المُمرِّرُ يكشف مساراتٍ بقائمة سماح؛ مسارٌ فيها لا تُعلنه الخدمةُ ٤٠٤ حتميّ خلف قائمةٍ صحيحة الشكل (edge · segmentation · scout-ingest · soil). — يُسقِط `test_the_proxy_allowlists_are_checked_against_each_service`
 
 ### `db_writer_ownership_guard.py`
 

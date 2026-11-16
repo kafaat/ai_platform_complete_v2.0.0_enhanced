@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **2205**
+- Python files parsed: **2216**
 - FastAPI-style route handlers: **1099**
-- Static function-call edges: **112550**
-- Dead-code candidates: **678**
+- Static function-call edges: **114908**
+- Dead-code candidates: **683**
 - Duplicate function groups: **64**
 - Automatic deletions: **0**
 
@@ -17,7 +17,7 @@
 |---|---|---|---|---:|
 | `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 60 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
-| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 167 |
+| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 165 |
 | `decision-service` | `_require_live_when_certifying` | function | `services/decision-service/tests/test_eligibility_assessment_live_pg.py` | 119 |
 | `decision-service` | `_clean_policy_env` | function | `services/decision-service/tests/test_sod_single_operator_self_approval.py` | 32 |
 | `knowledge-graph` | `_validation_error` | function | `services/knowledge-graph/main.py` | 46 |
@@ -34,11 +34,11 @@
 | `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1147 |
 | `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 190 |
 | `sahool-platform` | `_source_current_state` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 208 |
-| `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 428 |
-| `sahool-platform` | `_parse_series_hours` | function | `services/sahool-platform/api/routers/weather.py` | 1203 |
-| `sahool-platform` | `_time_key_from_hour` | function | `services/sahool-platform/api/routers/weather.py` | 1217 |
-| `sahool-platform` | `_best_operation_frame` | function | `services/sahool-platform/api/routers/weather.py` | 1572 |
-| `sahool-platform` | `_unavailable_tile_response` | function | `services/sahool-platform/api/routers/weather.py` | 2393 |
+| `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 431 |
+| `sahool-platform` | `_parse_series_hours` | function | `services/sahool-platform/api/routers/weather.py` | 1205 |
+| `sahool-platform` | `_time_key_from_hour` | function | `services/sahool-platform/api/routers/weather.py` | 1219 |
+| `sahool-platform` | `_best_operation_frame` | function | `services/sahool-platform/api/routers/weather.py` | 1574 |
+| `sahool-platform` | `_unavailable_tile_response` | function | `services/sahool-platform/api/routers/weather.py` | 2397 |
 | `sahool-platform` | `_irrigation_validate` | function | `services/sahool-platform/api/workflow_definitions.py` | 182 |
 | `sahool-platform` | `_irrigation_schedule` | function | `services/sahool-platform/api/workflow_definitions.py` | 188 |
 | `sahool-platform` | `_irrigation_execute` | function | `services/sahool-platform/api/workflow_definitions.py` | 194 |
@@ -58,7 +58,10 @@
 | `sahool-platform` | `_reset_breaker` | function | `services/sahool-platform/tests/test_openmeteo_circuit.py` | 21 |
 | `sahool-platform` | `_service_env` | function | `services/sahool-platform/tests/test_pest_guardrails_gate.py` | 67 |
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_profit_aware_decision_endpoint.py` | 25 |
+| `sahool-platform` | `_Day` | class | `services/sahool-platform/tests/test_season_spatial_provenance.py` | 95 |
 | `sahool-platform` | `_soil_env` | function | `services/sahool-platform/tests/test_soil_plan_origin_client.py` | 33 |
+| `sahool-platform` | `_unobserved_weather_service` | function | `services/sahool-platform/tests/test_weather_client_routing_w1_22.py` | 26 |
+| `sahool-platform` | `_unobserved_weather_service` | function | `services/sahool-platform/tests/test_weather_engine_v20_readiness_selftest.py` | 12 |
 | `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 43 |
 | `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 121 |
 | `weather-service` | `_reset_breaker` | function | `services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py` | 41 |

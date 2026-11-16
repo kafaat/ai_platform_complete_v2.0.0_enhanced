@@ -643,12 +643,19 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                         # W0-13: a person reported today's applied water (v280) ⇒ that figure is
                         # the day's irrigation; the balance is recomputed around it, not over it.
                         reported_irrigation_mm = reported_irrigation(existing)
+                        # W1-13: a report or the farm-ledger projection can open a row the worker
+                        # never computes (an earlier day, or a today the worker skipped). It holds
+                        # the day's water and no balance; read as the prior day it would restart
+                        # the chain from field capacity. The prior balance is the latest row that
+                        # has one; an uncomputed worker row in between is a skipped day.
                         prev = await conn.fetchrow(
                             "SELECT depletion_mm, ledger_date FROM water_ledger"
                             " WHERE field_id=$1 AND ledger_date < $2"
+                            " AND NOT (created_by IS NOT DISTINCT FROM $3 AND decision IS NULL)"
                             " ORDER BY ledger_date DESC LIMIT 1",
                             field_id,
                             today,
+                            AUTO_CREATED_BY,
                         )
                         # weather-7: المطرُ المتوقَّع يُعاد تسجيله من الأرشيف حين يمتلئ. الأرشيف
                         # (ERA5) يتأخّر أيّاماً، فتُقرأ نافذةٌ من القيود (ويومٌ قبلها مرساةً) لا
@@ -688,8 +695,29 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                                 today,
                                 ledger_tz,
                             )
+                            # The water reported on a skipped day's uncomputed row is that
+                            # day's measured total, as it would have been on its own day.
+                            gap_reported = await conn.fetch(
+                                "SELECT ledger_date, irrigation_mm FROM water_ledger"
+                                " WHERE field_id=$1 AND ledger_date > $2 AND ledger_date < $3"
+                                " AND created_by = $4 AND decision IS NULL"
+                                " AND irrigation_reported_by IS NOT NULL"
+                                " AND irrigation_mm IS NOT NULL",
+                                field_id,
+                                prev["ledger_date"],
+                                today,
+                                AUTO_CREATED_BY,
+                            )
                             gap_irrigation_mm, gap_unobserved, gap_untracked = (
-                                gap_irrigation_by_day(gap_rows, prev["ledger_date"], today)
+                                gap_irrigation_by_day(
+                                    gap_rows,
+                                    prev["ledger_date"],
+                                    today,
+                                    {
+                                        r["ledger_date"]: float(r["irrigation_mm"])
+                                        for r in gap_reported
+                                    },
+                                )
                             )
                         # نسيج مخبريّ معتمَد إن وُجد ⇒ TAW أدقّ؛ وإلّا fallback مُعلَن المصدر.
                         soil_row = await conn.fetchrow(

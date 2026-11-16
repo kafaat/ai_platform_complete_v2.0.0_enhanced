@@ -320,3 +320,114 @@ def test_another_tenants_season_is_404(monkeypatch):
         assert caught.value.status_code == 404
 
     _run(monkeypatch, platform_writes_required=False, case=case)
+
+
+@pytest.mark.parametrize("weather_up", [True, False])
+def test_active_season_state_reads_thermal_time_from_weather_service(monkeypatch, weather_up):
+    """W1-09 (crop-2, weather-12): after the DB read the route asks weather-service for the
+    archive, the engine GDD at the crop-card base and a 7-day forecast. With weather available
+    the state carries a non-null accumulated_gdd and a thermal stage; without it the stage
+    falls back to the calendar and says why. The weather client functions are the only stubs.
+    """
+    from datetime import UTC, datetime, timedelta
+
+    from api import weather_service_client as wsc
+    from fastapi import HTTPException
+
+    today = datetime.now(UTC).date()
+    sowing = today - timedelta(days=60)
+    calls: list[str] = []
+
+    async def historical(lat, lon, *, start_date, end_date, tenant_id=None):
+        calls.append("historical")
+        if not weather_up:
+            raise HTTPException(status_code=502, detail="weather-service down")
+        start, end = date.fromisoformat(start_date), date.fromisoformat(end_date)
+        n = (end - start).days + 1
+        return {
+            "derived_from": "canonical_weather_state",
+            "canonical_state_id": "cws",
+            "source_snapshot_id": "snap",
+            "quality_status": "validated",
+            "coverage": {
+                "period_start": start_date,
+                "period_end": end_date,
+                "expected_days": n,
+                "observed_days": n,
+                "missing_days": 0,
+                "coverage_ratio": 1.0,
+            },
+            "days": [
+                {
+                    "date": (start + timedelta(days=i)).isoformat(),
+                    "temp_min_c": 6.0,
+                    "temp_max_c": 24.0,
+                }
+                for i in range(n)
+            ],
+        }
+
+    async def gdd(*, daily_t_min, base_c, **_kw):
+        calls.append(f"gdd:{base_c}")
+        n = len(daily_t_min)
+        return {
+            "daily_gdd": [15.0] * n,
+            "accumulated_gdd": 15.0 * n,
+            "quality_status": "validated",
+            "calculation_version": "gdd/daily/1.0.0",
+        }
+
+    async def forecast(lat, lon, *, days=7):
+        calls.append("forecast")
+        if not weather_up:
+            raise HTTPException(status_code=502, detail="weather-service down")
+        return {
+            "days": [
+                {
+                    "date": (today + timedelta(days=i)).isoformat(),
+                    "temp_min_c": 9.0,
+                    "temp_max_c": 25.0,
+                    "precipitation_mm": 0.0,
+                }
+                for i in range(days)
+            ]
+        }
+
+    monkeypatch.setattr(wsc, "get_weather_historical", historical)
+    monkeypatch.setattr(wsc, "get_gdd_product", gdd)
+    monkeypatch.setattr(wsc, "get_weather_forecast", forecast)
+
+    async def case(live, seasons, _client):
+        await live.owner.execute(
+            "UPDATE fields SET lat = 15.3, lon = 44.2 WHERE field_id = $1", live.field_id
+        )
+        await live.owner.execute(
+            "UPDATE seasons SET status = 'active', sowing_date = $2, season_end = NULL "
+            "WHERE season_id = $1",
+            live.season_id,
+            sowing,
+        )
+        result = await seasons.field_season_state_endpoint(
+            live.field_id, live.season_id, _user(live.tenant)
+        )
+        assert calls[0] == "historical", f"the archive is read after the DB read: {calls}"
+        if weather_up:
+            assert result["accumulated_gdd"] is not None, "season state must carry GDD"
+            assert result["stage_source"] == "gdd", "with weather the stage is thermal"
+            assert "gdd:0.0" in calls, f"GDD is requested at the wheat card base 0.0: {calls}"
+            assert result["accumulated_gdd_through"] is not None, "GDD coverage is declared"
+            assert result["weather_inputs"]["unavailable"] == [], "every source answered"
+            assert result["critical_window"]["source"] != "calendar_fallback", (
+                "the critical window is projected from thermal time, not the calendar"
+            )
+        else:
+            assert result["accumulated_gdd"] is None, "no GDD when weather-service is down"
+            assert result["stage_source"] == "days", "the stage falls back to the calendar"
+            assert result["stage_fallback_reason"] == "accumulated_gdd_missing", (
+                "the fallback names its reason"
+            )
+            assert "weather_historical_unavailable" in result["weather_inputs"]["unavailable"], (
+                "the weather failure is declared, not hidden"
+            )
+
+    _run(monkeypatch, platform_writes_required=True, case=case)

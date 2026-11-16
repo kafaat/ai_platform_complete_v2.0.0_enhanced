@@ -433,7 +433,7 @@ tables:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v101_farm_budget_costing.sql"
+    source: "migrations/v101_farm_budget_costing.sql, migrations/v281_farm_ledger_season_reference.sql"
   farm_input_records:
     owner: field-management-service
     writers: [field-management-service]
@@ -448,22 +448,22 @@ tables:
     owner: raster-service
     writers: [raster-service]
     readers: [sahool-platform]
-    source: "migrations/v102_farm_closed_loop.sql"
+    source: "migrations/v102_farm_closed_loop.sql, migrations/v281_farm_ledger_season_reference.sql"
   farm_ledger_erp_projection_outbox:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v102_farm_closed_loop.sql"
+    source: "migrations/v102_farm_closed_loop.sql, migrations/v281_farm_ledger_season_reference.sql"
   farm_ledger_inventory_projections:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v102_farm_closed_loop.sql"
+    source: "migrations/v102_farm_closed_loop.sql, migrations/v281_farm_ledger_season_reference.sql"
   farm_operation_ledger:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v100_farm_operations_ledger.sql"
+    source: "migrations/v100_farm_operations_ledger.sql, migrations/v281_farm_ledger_season_reference.sql"
   farm_production_units:
     owner: field-management-service
     writers: [field-management-service]
@@ -473,12 +473,12 @@ tables:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v101_farm_budget_costing.sql"
+    source: "migrations/v101_farm_budget_costing.sql, migrations/v281_farm_ledger_season_reference.sql"
   farm_season_budget_lines:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform]
-    source: "migrations/v101_farm_budget_costing.sql"
+    source: "migrations/v101_farm_budget_costing.sql, migrations/v281_farm_ledger_season_reference.sql"
   farm_season_projects:
     owner: field-management-service
     writers: [field-management-service]
@@ -557,7 +557,7 @@ tables:
   field_indicators:
     owner: field-management-service
     writers: [field-management-service]
-    readers: [sahool-platform]
+    readers: []
     source: "migrations/init_v8.sql"
   field_lifecycle:
     owner: field-management-service
@@ -583,7 +583,9 @@ tables:
     owner: field-management-service
     writers: [field-management-service]
     readers: [sahool-platform, scout-ingest-service]  # photo context: v246 pin pointer, column SELECT
-    source: "migrations/v9_new_tables.sql"
+    # v282 (W1-20): anomaly scouting-task columns, written only by field-management-service's
+    # POST /internal/field-tasks/scouting (vegetation-analysis's ground-verification bridge).
+    source: "migrations/v9_new_tables.sql, migrations/v282_field_task_scouting_anomaly.sql"
   # v274-v277 (owner decision 2026-11-14): the pin inspection and task cost work held back by
   # carrier D #1439, rebuilt under field-management-service (owner of field_tasks). The platform
   # reads inspection_handoffs for the inspector-only meter gate and task_expense_links for the farm
@@ -888,7 +890,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/init_v8.sql"
+    source: "migrations/init_v8.sql, migrations/v283_ndvi_timeseries_seed_purge.sql"
   nl_gis_audit:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -1199,7 +1201,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v98_water_ledger.sql, migrations/v279_water_ledger_et0_rain_provenance.sql, migrations/v280_water_ledger_irrigation_report.sql"
+    source: "migrations/v98_water_ledger.sql, migrations/v279_water_ledger_et0_rain_provenance.sql, migrations/v280_water_ledger_irrigation_report.sql, migrations/v284_water_ledger_irrigation_source.sql"
   weather_alerts:
     owner: weather-service
     writers: [weather-service]

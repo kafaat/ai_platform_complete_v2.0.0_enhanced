@@ -13,7 +13,7 @@ from datetime import UTC, datetime
 
 import model_artifact_gate as artifact_gate
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Response, UploadFile
-from models.errors import ImageTooLarge, ModelNotProvisioned
+from models.errors import ImageTooLarge, ModelNotProvisioned, ModelOutputContractError
 from models.pest_detector import EdgePestDetector
 from models.yield_estimator import EdgeYieldEstimator
 from pydantic import BaseModel, Field
@@ -371,6 +371,17 @@ async def detect_pest(
             503,
             "نموذج كشف الآفات غير مُجهَّز على هذه الحافة — المسار معطّل بأمانة "
             "حتّى توفير نموذج ONNX (لا تُرجَع كشوف مُختلَقة).",
+        ) from e
+    except ModelOutputContractError as e:
+        # W1-19 (scout-9): خرجُ النموذج لا يطابق manifest العلامات (أو الـmanifest تالف) ⇒
+        # رقمُ الصنف لا يعني اسماً معروفاً. 503 مُسمًّى، لا قصٌّ إلى القائمة الأقصر ولا 400.
+        raise HTTPException(
+            503,
+            {
+                "reason": "pest_model_label_contract_violation",
+                "model": "pest_detector_int8.onnx",
+                "detail": str(e),
+            },
         ) from e
     except ImageTooLarge as e:
         raise HTTPException(413, "أبعاد الصورة تتجاوز سقف البكسلات المسموح") from e

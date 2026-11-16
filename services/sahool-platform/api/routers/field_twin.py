@@ -1,15 +1,20 @@
 """api/routers/field_twin.py — التوأم الرقميّ للحقل (المرحلة B، الشريحة 6).
 
 نقطة قراءة تُجمِّع حالة الحقل من الجداول القائمة (معزولةً بـRLS) في لقطة واحدة عبر
-`core.field_twin`: المؤشّرات النباتيّة الأحدث (field_indicators) + القرارات المفتوحة
+`core.field_twin`: المؤشّرات النباتيّة الأحدث (من raster-service، W1-21) + القرارات المفتوحة
 (dispatch_decisions) + آخر تنفيذ (execution_ledger) + بيانات الحقل (fields) ⇒ حالة مشتقّة
 صريحة (سليم/يحتاج انتباهاً/محجوب/قديم). محروسة بعلم `SAHOOL_DECISION_DISPATCH`.
 
 قراءة فقط، نقيّة التجميع (المنطق في core)، تربط مخرجات حلقة المرحلة A ببيانات الحقل.
+
+W1-21 (fields-8): كانت المؤشّرات تُقرأ من ``field_indicators`` ولا كاتب حيّ له. تُقرأ الآن
+من raster-service (``latest_index_points``: أحدث متوسّط مرصود لكلّ مؤشّر وتاريخه) بعد إغلاق
+اتّصال القاعدة. مؤشّر تعذّرت قراءته يُعلَن في ``indicator_source.unavailable`` ولا يُختلَق.
 """
 
 from __future__ import annotations
 
+import asyncio
 import os
 from datetime import UTC, datetime
 
@@ -23,6 +28,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.raster_service_client import latest_index_points
 
 router = APIRouter()
 
@@ -57,17 +63,6 @@ async def get_field_twin(
             if field_row is None:
                 raise HTTPException(status_code=404, detail="الحقل غير موجود (أو لمستأجِر آخر).")
 
-            # أحدث قيمة لكلّ مؤشّر غطاء (DISTINCT ON — الأحدث per indicator_id).
-            ind_rows = await conn.fetch(
-                """
-                SELECT DISTINCT ON (indicator_id) indicator_id, value, recorded_at
-                FROM field_indicators
-                WHERE field_id = $1 AND indicator_id = ANY($2::text[])
-                ORDER BY indicator_id, recorded_at DESC
-                """,
-                field_id,
-                list(_TWIN_INDICATORS),
-            )
             # The season is a separate owner from fields.crop; expose it without
             # silently overwriting one identity with the other in a derived view.
             season_row = await conn.fetchrow(
@@ -96,6 +91,7 @@ async def get_field_twin(
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("تجميع التوأم الرقميّ للحقل", e) from e
 
+    ind_rows, unavailable = await _latest_indicator_rows(field_id, str(user.tenant_id))
     indices, index_observed_at = finite_indicator_readings(ind_rows)
     observed_at = max((v for v in index_observed_at.values() if v is not None), default=None)
     open_decisions = [{"state": r["state"], "exec_status": r["exec_status"]} for r in dec_rows]
@@ -125,4 +121,33 @@ async def get_field_twin(
     out["view_role"] = "derived_read_model_only"
     out["decision_authority"] = "none"
     out["season_context"] = active_season_context(season_row)
+    out["indicator_source"] = {
+        "source": "raster-service:/v1/fields/{id}/timeseries",
+        "unavailable": unavailable,
+    }
     return out
+
+
+async def _latest_indicator_rows(field_id: str, tenant_id: str) -> tuple[list[dict], list[str]]:
+    """أحدث قراءة مرصودة لكلّ مؤشّر غطاء من raster-service، بشكل صفّ المؤشّر (indicator_id/
+    value/recorded_at). يعيد أيضاً المؤشّرات التي تعذّرت قراءتها (raster غير متاح)."""
+    results = await asyncio.gather(
+        *(
+            latest_index_points(field_id, tenant_id=tenant_id, index=index, count=1)
+            for index in _TWIN_INDICATORS
+        )
+    )
+    rows: list[dict] = []
+    unavailable: list[str] = []
+    for index, points in zip(_TWIN_INDICATORS, results, strict=True):
+        if points is None:
+            unavailable.append(index)
+        elif points:
+            rows.append(
+                {
+                    "indicator_id": index,
+                    "value": points[0]["mean"],
+                    "recorded_at": points[0]["datetime"],
+                }
+            )
+    return rows, unavailable
