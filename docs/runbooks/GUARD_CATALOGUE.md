@@ -10,9 +10,9 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **289**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **60**
-- إجماليّ الطفرات المُسجَّلة: **485**
+- حرّاس تحجب في CI: **290**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **61**
+- إجماليّ الطفرات المُسجَّلة: **488**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **397** على 138 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -27,7 +27,7 @@
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (60)
+## الحرّاس المُثبَتة بالتكذيب (61)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -668,6 +668,20 @@
 - إقرارُ تقاعدٍ لحاجبٍ يعمل بابُ إسكاتٍ دائم: يُعلَن التقاعدُ اليومَ ويُعاد الاستدعاءُ غداً فلا يُبلَّغ عن نزعِه ثانيةً — أي أنّ سطراً واحداً في السجلّ يشتري صمتاً دائماً عن ثلاثيّة — يُسقِط `test_a_retirement_declared_for_a_blocker_still_running_is_reported`
 - نزعُ فحص اليُتم يُعيد `retired` حقلاً يقبل أيّ مفتاح، فتتراكم فيه أسماءٌ لا تخصّ ثلاثيّةً كانت في الأساس قطّ — سجلٌّ يبدو نظيفاً وهو يحمل ما لا وجودَ له، وهو الصنفُ نفسُه المُغلَق للإقرارات في الاتّجاه الثالث. أصابت مراجعةٌ آليّة على #983 — يُسقِط `test_a_retirement_for_a_triple_never_in_the_baseline_is_reported`
 - عودةُ المطابقة الحرّة على المخرَج كلِّه ⇒ انهيارُ conftest برسالةٍ آخرُها `failed` يُقرأ «pytest عمل» فتُبلَّغ كلُّ طفرةٍ «حمرّت بغير الاختبار المُتوقَّع» (٢٩ من ٢٩) — يُسقِط `test_a_crashing_conftest_whose_message_says_failed_is_not_a_wrong_test`
+
+### `helm_compose_workload_guard.py`
+
+**يفرض:** Every default-profile compose service is a Helm workload or a ledgered exclusion (W3-09).
+
+**يحجب في:** `ci.yml` → `structural-lint`
+
+**الاختبار الشاهد:** `tests_v9/test_helm_compose_workload_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- Dropping the services ⊆ workloads ∪ ledger half of the set equality lets a compose service reach production with no chart workload and no recorded reason, which is how 61 of 67 default-profile services came to be missing from the chart unnoticed (W3-09). — يُسقِط `test_a_service_in_neither_list_blocks`
+- Ignoring compose's ${VAR:?} markers renders a pod without a variable its service refuses to start or serve without (W0-04 measured it: no REDIS_URL for the platform, no JWT_PUBLIC_KEY for raster and guardrails). — يُسقِط `test_a_workload_that_drops_a_required_variable_blocks`
+- A ledger that keeps entries for services already ported stops shrinking, and its reasons start describing a chart that no longer exists. — يُسقِط `test_a_ledger_entry_for_a_ported_service_is_stale`
 
 ### `json_duplicate_key_guard.py`
 

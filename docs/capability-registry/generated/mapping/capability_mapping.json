@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7465,
+    "files_scanned": 7469,
     "files_by_kind": {
       "backend": 1295,
       "database": 347,
       "governance": 89,
       "mobile": 417,
-      "other": 2195,
-      "tests": 2569,
+      "other": 2197,
+      "tests": 2571,
       "web": 553
     },
-    "unmapped_artifacts": 3542,
-    "ambiguous_artifacts": 254,
+    "unmapped_artifacts": 3544,
+    "ambiguous_artifacts": 255,
     "files_by_reading": {
-      "python_functional": 4053,
-      "raw": 3412
+      "python_functional": 4056,
+      "raw": 3413
     },
-    "test_dependency_files": 1963,
-    "test_dependency_edges": 5177,
-    "test_dependency_bounded_files": 1148,
+    "test_dependency_files": 1965,
+    "test_dependency_edges": 5181,
+    "test_dependency_bounded_files": 1147,
     "test_dependency_unresolved_relations": 498
   },
   "capabilities": [
@@ -12705,6 +12705,14 @@
           ]
         },
         {
+          "path": "docs/architecture/helm_compose_workload_ledger.json",
+          "score": 10,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "shared/notification_consumers.py",
           "score": 10,
           "signals": [
@@ -12815,7 +12823,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 85
+        "events": 86
       },
       "evidence_counts": {
         "backend": 7,
@@ -12826,7 +12834,7 @@
         "mobile": 0,
         "tests": 22,
         "governance": 2,
-        "other_evidence": 34
+        "other_evidence": 35
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -18816,6 +18824,10 @@
           "score": 12
         },
         {
+          "value": "sahool.helm-compose-workload-ledger @ docs/architecture/helm_compose_workload_ledger.json:3",
+          "score": 10
+        },
+        {
           "value": "decision.use_cdse @ services/raster-service/test_imagery_source_gate_no_bypass_static.py:96",
           "score": 9
         },
@@ -19940,6 +19952,14 @@
           ]
         },
         {
+          "path": "docs/architecture/helm_compose_workload_ledger.json",
+          "score": 10,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "path": "docs/audits/CODE_REVIEW_REPORT.md",
           "score": 10,
           "signals": [
@@ -20183,12 +20203,12 @@
         "backend": 42,
         "routes": 100,
         "database": 5,
-        "events": 43,
+        "events": 44,
         "web": 6,
         "mobile": 0,
         "tests": 59,
         "governance": 0,
-        "other_evidence": 94
+        "other_evidence": 95
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -23886,6 +23906,10 @@
         {
           "value": "raster_field_runtime.py @ scripts/ci/raster_main_decomposition_gate.py:188",
           "score": 9
+        },
+        {
+          "value": "sahool.helm-compose-workload-ledger @ docs/architecture/helm_compose_workload_ledger.json:3",
+          "score": 9
         }
       ],
       "web": [
@@ -24423,6 +24447,14 @@
           ]
         },
         {
+          "path": "docs/architecture/helm_compose_workload_ledger.json",
+          "score": 9,
+          "signals": [
+            "content:cog",
+            "content:raster tile"
+          ]
+        },
+        {
           "path": "docs/architecture/raster_service_route_migration_plan.md",
           "score": 9,
           "signals": [
@@ -24519,12 +24551,12 @@
         "backend": 12,
         "routes": 52,
         "database": 0,
-        "events": 15,
+        "events": 16,
         "web": 2,
         "mobile": 1,
         "tests": 28,
         "governance": 0,
-        "other_evidence": 44
+        "other_evidence": 45
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -44823,6 +44855,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_helm_compose_workload_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_helm_gateway_ingress_contract.py",
       "kind": "tests"
     },
@@ -44832,6 +44868,10 @@
     },
     {
       "path": "tests_v9/test_helm_migration_job_runs_real_migrator.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_helm_network_policy_egress.py",
       "kind": "tests"
     },
     {
@@ -47731,6 +47771,36 @@
           "signals": [
             "content:field form",
             "content:Field forms"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/helm_compose_workload_ledger.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-001",
+          "score": 10,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "capability_id": "INT-002",
+          "score": 10,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "capability_id": "SAT-009",
+          "score": 9,
+          "signals": [
+            "content:cog",
+            "content:raster tile"
           ]
         }
       ]
@@ -83859,6 +83929,27 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_helm_compose_workload_guard.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "subprocess"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ci/helm_compose_workload_guard.py",
+          "kind": "loader",
+          "line": 28
+        },
+        {
+          "source": "scripts/ci/helm_compose_workload_guard.py",
+          "kind": "source_read",
+          "line": 24
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_helm_gateway_ingress_contract.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -83924,9 +84015,33 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_helm_network_policy_egress.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "subprocess",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "scripts/deploy/validate_helm_readiness.py",
+          "kind": "loader",
+          "line": 34
+        },
+        {
+          "source": "scripts/deploy/validate_helm_readiness.py",
+          "kind": "source_read",
+          "line": 35
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_helm_source_contract.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
       "edges": [
         {
           "source": "scripts/deploy/validate_helm_readiness.py",
