@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from shared.agronomy import pest_taxonomy
+
 
 # قواعد الأعراض: كلّ قاعدة تربط مجموعة أعراض → كود مرض/آفة/نقص + ثقة أساس
 # الأعراض رموز بسيطة يختارها المزارع من قائمة (لا نصّ حرّ — أدقّ للمطابقة)
@@ -128,6 +130,9 @@ class DiagnosisCandidate:
             "is_calibrated": False,
             "producer_type": "rule_engine",
             "matched_ar": self.matched_ar,
+            # W1-19 (scout-3): the code in the shared registry and the IPM plan it points
+            # to (pests/diseases), or a named referral (nutrient/water/salinity).
+            **pest_taxonomy.ipm_resolution(self.issue_code),
         }
 
 
@@ -143,6 +148,12 @@ class DiagnosisResult:
             "crop": self.crop,
             "observed_symptoms": self.observed_symptoms,
             "candidates": [c.to_dict() for c in self.candidates],
+            # The top candidate's plan (or None): what a caller opens next.
+            "ipm_plan_ref": (
+                pest_taxonomy.ipm_plan_ref(self.candidates[0].issue_code)
+                if self.candidates
+                else None
+            ),
             "next_step_ar": self.next_step_ar,
         }
 
