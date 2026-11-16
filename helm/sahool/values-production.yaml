@@ -8,6 +8,9 @@ gateway:
 workloads:
   sahool-platform:
     replicas: 3
+    env:
+      # W2-02: pinned on in production (AC-1 always required there).
+      AGRONOMIC_CONTEXT_COMPOSE_ENABLED: "true"
   sahool-raster-service:
     replicas: 3
   sahool-ai-agronomist:

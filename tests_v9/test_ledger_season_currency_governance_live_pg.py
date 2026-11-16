@@ -21,6 +21,7 @@ from __future__ import annotations
 import asyncio
 import importlib
 import os
+import re
 import sys
 import uuid
 from datetime import date, timedelta
@@ -810,3 +811,138 @@ def test_pest_escalation_execute_step_carries_the_server_farm_context(monkeypatc
         assert farm["field_area_ha"] == 2.5, farm
 
     _run(monkeypatch, case)
+
+
+_V281_TABLES = (
+    "farm_operation_ledger",
+    "farm_season_budget_lines",
+    "farm_revenue_records",
+    "farm_indirect_cost_pools",
+    "farm_ledger_inventory_projections",
+    "farm_ledger_erp_projection_outbox",
+    "farm_ledger_economic_snapshots",
+)
+
+
+async def _season_fk_state(admin) -> dict[str, bool]:
+    rows = await admin.fetch(
+        "SELECT c.conrelid::regclass::text AS tbl, c.convalidated FROM pg_constraint c"
+        " WHERE c.conname = c.conrelid::regclass::text || '_season_id_fkey'"
+        " AND c.conrelid::regclass::text = ANY($1::text[])",
+        list(_V281_TABLES),
+    )
+    return {r["tbl"]: r["convalidated"] for r in rows}
+
+
+def test_v281_rollback_reports_each_tables_season_orphans_and_refuses_an_rls_migrator():
+    """Lab receipt on 0f746db and on #1503: v281's down restores the seven season keys NOT VALID
+    (no migration runs VALIDATE CONSTRAINT: operator step, docs/runbooks/
+    validate_not_valid_constraints.md). It must tell the operator, per table, how many rows would
+    make VALIDATE fail, and a count FORCE RLS could hide must not be reported: a migrator subject
+    to RLS is refused. v281 is re-applied after."""
+    down = (ROOT / "migrations" / "v281_farm_ledger_season_reference.down.sql").read_text(
+        encoding="utf-8"
+    )
+    up = (ROOT / "migrations" / "v281_farm_ledger_season_reference.sql").read_text(encoding="utf-8")
+
+    assert "SET LOCAL row_security = off;" in down, (
+        "the down must count orphans with row security off, or FORCE RLS hides them from the count"
+    )
+
+    async def strays(admin, present) -> dict[str, int]:
+        out = {}
+        for t in sorted(present):
+            out[t] = await admin.fetchval(
+                f"SELECT count(*) FROM {t} x WHERE x.season_id IS NOT NULL AND NOT EXISTS"
+                " (SELECT 1 FROM farm_season_projects p WHERE p.season_id = x.season_id)"
+            )
+        return out
+
+    async def body():
+        admin = await asyncpg.connect(os.getenv("TEST_DATABASE_ADMIN_URL") or DSN)
+        orphan_id = f"op-v281-{uuid.uuid4().hex[:8]}"
+        superuser = False
+        try:
+            superuser = bool(
+                await admin.fetchval("SELECT rolsuper FROM pg_roles WHERE rolname = current_user")
+            )
+            if not superuser:
+                if _CERTIFICATION_REQUIRED:
+                    raise AssertionError("certifying run needs a superuser to replay v281's down")
+                pytest.skip("declared skip (not a pass): replaying a migration needs a superuser")
+            present = {
+                t
+                for t in _V281_TABLES
+                if await admin.fetchval("SELECT to_regclass($1)", f"public.{t}") is not None
+            }
+            # A migrator subject to RLS would count 0 orphans on these FORCE-RLS tables and mark a
+            # key valid over hidden rows (lab receipt and review of #1503): it must be refused.
+            runtime = await admin.fetchval(
+                "SELECT rolname FROM pg_roles WHERE NOT rolsuper AND NOT rolbypassrls"
+                " AND rolname = 'sahool_app_test'"
+            )
+            if runtime:
+                await admin.execute("SET ROLE sahool_app_test")
+                try:
+                    with pytest.raises(asyncpg.exceptions.RaiseError, match="v281 rollback: role"):
+                        await admin.execute(down)
+                finally:
+                    if admin.is_in_transaction():
+                        await admin.execute("ROLLBACK")
+                    await admin.execute("RESET ROLE")
+                assert await _season_fk_state(admin) == {}, "a refused down must change nothing"
+            elif _CERTIFICATION_REQUIRED:
+                raise AssertionError("certifying run needs the restricted role sahool_app_test")
+
+            notices: list[str] = []
+            admin.add_log_listener(lambda _c, msg: notices.append(msg.message))
+
+            def reported() -> dict[str, int]:
+                out = {}
+                for m in notices:
+                    hit = re.match(r"v281 rollback: (\w+) restored \w+ NOT VALID; (\d+) row", m)
+                    if hit:
+                        out[hit.group(1)] = int(hit.group(2))
+                return out
+
+            before = await strays(admin, present)
+            await admin.execute(down)
+            clean = await _season_fk_state(admin)
+            assert set(clean) == present, f"down restored keys on {sorted(clean)}, not {present}"
+            assert not any(clean.values()), f"no migration may validate the keys: {clean}"
+            assert reported() == before, f"per-table orphan report {reported()} != {before}"
+            await admin.execute(up)
+            assert await _season_fk_state(admin) == {}, "v281 re-applied must drop the keys"
+
+            async with admin.transaction():
+                await admin.execute("SET LOCAL session_replication_role = replica")
+                await admin.execute(
+                    "INSERT INTO farm_operation_ledger (operation_id, tenant_id, season_id,"
+                    " operation_type, operation_date, status)"
+                    " VALUES ($1, $2::uuid, $3, 'irrigation', CURRENT_DATE, 'completed')",
+                    orphan_id,
+                    str(uuid.uuid4()),
+                    f"season-only-{uuid.uuid4().hex[:8]}",
+                )
+            notices.clear()
+            await admin.execute(down)
+            expected = {**before, "farm_operation_ledger": before["farm_operation_ledger"] + 1}
+            assert reported() == expected, (
+                f"the orphan must be counted on its own table only: {reported()} != {expected}"
+            )
+        finally:
+            if admin.is_in_transaction():
+                await admin.execute("ROLLBACK")
+            if superuser:
+                async with admin.transaction():
+                    await admin.execute("SET LOCAL session_replication_role = replica")
+                    await admin.execute(
+                        "DELETE FROM farm_operation_ledger WHERE operation_id = $1", orphan_id
+                    )
+                await admin.execute(up)
+                assert await admin.fetchval(
+                    "SELECT 1 FROM pg_proc WHERE proname = 'farm_ledger_assert_season_ref'"
+                ), "v281 must be re-applied after the rollback test"
+            await admin.close()
+
+    asyncio.run(body())

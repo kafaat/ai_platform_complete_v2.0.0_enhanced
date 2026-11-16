@@ -564,7 +564,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 24,
+      "outgoing": 23,
       "orphan": false
     },
     {
@@ -693,14 +693,6 @@
       "kind": "compose-service",
       "incoming": 1,
       "outgoing": 2,
-      "orphan": false
-    },
-    {
-      "id": "sahool-realtime-session",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
       "orphan": false
     },
     {
@@ -908,7 +900,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 5,
+      "outgoing": 6,
       "orphan": false
     },
     {
@@ -947,7 +939,7 @@
         "services/weather-service"
       ],
       "kind": "service",
-      "incoming": 4,
+      "incoming": 5,
       "outgoing": 1,
       "orphan": false
     },
@@ -1697,12 +1689,6 @@
     },
     {
       "source": "sahool-nginx",
-      "target": "sahool-realtime-session",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
       "target": "sahool-remote-sensing-workspace-bff",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
@@ -2080,6 +2066,12 @@
       "evidence": "services/supervisor-agent/skills/crop_model_skill.py"
     },
     {
+      "source": "supervisor-agent",
+      "target": "weather-service",
+      "kind": "code-reference",
+      "evidence": "services/supervisor-agent/server_facts.py"
+    },
+    {
       "source": "vegetation-analysis-service",
       "target": "decision-service",
       "kind": "code-reference",
@@ -2154,12 +2146,12 @@
   ],
   "cycles": [],
   "summary": {
-    "nodes": 112,
+    "nodes": 111,
     "edges": 198,
     "orphans": 9,
     "cycles": 0,
-    "code_edges": 63,
-    "compose_edges": 135
+    "code_edges": 64,
+    "compose_edges": 134
   },
-  "content_sha256": "6ec4320d96c18ff489ad0368f859e687fbd40224eb5f22c3bbdd20df6a0c273c"
+  "content_sha256": "0d1599148c34e932b537572cdf5e802ff516c85793aa65b049ed11a423772311"
 }

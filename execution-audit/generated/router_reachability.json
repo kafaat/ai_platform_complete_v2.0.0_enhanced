@@ -37,7 +37,7 @@
   "definitions": [
     {
       "kind": "app",
-      "line": 2034,
+      "line": 2061,
       "module": "services.actuator-service.actuator_runtime",
       "node_id": "services.actuator-service.actuator_runtime:app",
       "route_count": 0,
@@ -550,7 +550,7 @@
     },
     {
       "kind": "app",
-      "line": 200,
+      "line": 204,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -2161,7 +2161,7 @@
     },
     {
       "kind": "app",
-      "line": 48,
+      "line": 47,
       "module": "services.scout-ingest-service.main",
       "node_id": "services.scout-ingest-service.main:app",
       "route_count": 5,
@@ -2323,7 +2323,7 @@
     },
     {
       "kind": "app",
-      "line": 58,
+      "line": 64,
       "module": "services.supervisor-agent.main",
       "node_id": "services.supervisor-agent.main:app",
       "route_count": 0,
@@ -2422,7 +2422,7 @@
     },
     {
       "kind": "router",
-      "line": 18,
+      "line": 16,
       "module": "services.vegetation-analysis-service.routers.health",
       "node_id": "services.vegetation-analysis-service.routers.health:router",
       "route_count": 4,
@@ -2911,7 +2911,7 @@
     },
     {
       "expression": "season_router",
-      "line": 53,
+      "line": 52,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -2920,7 +2920,7 @@
     },
     {
       "expression": "media_router",
-      "line": 58,
+      "line": 57,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -2929,7 +2929,7 @@
     },
     {
       "expression": "_router",
-      "line": 80,
+      "line": 79,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": false,
@@ -2938,7 +2938,7 @@
     },
     {
       "expression": "field_forms_router",
-      "line": 413,
+      "line": 408,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -3009,7 +3009,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "aac6117f2be256b5716828bd22ef9079f027ad2638e1fcb5faefd15537383a8c",
+  "inventory_sha256": "364d21f583a806870e75e07d468c454d188f392e74b48e9e8e48bc355002c1ca",
   "orphan_candidate_count": 237,
   "orphan_candidates": [
     {
@@ -5335,7 +5335,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 18,
+      "line": 16,
       "module": "services.vegetation-analysis-service.routers.health",
       "node_id": "services.vegetation-analysis-service.routers.health:router",
       "route_count": 4,
@@ -5755,7 +5755,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/scout-ingest-service/main.py",
-      "line": 80,
+      "line": 79,
       "module": "services.scout-ingest-service.main",
       "source": "services.scout-ingest-service.main:app",
       "target_expression": "_router"

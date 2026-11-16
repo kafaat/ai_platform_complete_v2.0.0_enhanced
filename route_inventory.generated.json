@@ -4042,7 +4042,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 410,
+    "line": 413,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision",
     "function": "crop_decision_endpoint"
@@ -4050,7 +4050,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 534,
+    "line": 537,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision/profit-aware",
     "function": "profit_aware_decision_endpoint"
@@ -6138,7 +6138,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 542,
+    "line": 553,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
     "function": "irrigation_mpc_hourly_recommendation"
@@ -6146,7 +6146,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 583,
+    "line": 594,
     "method": "POST",
     "path": "/api/v1/irrigation/executions/reconcile",
     "function": "reconcile_irrigation_execution"
@@ -8730,7 +8730,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 120,
+    "line": 119,
     "method": "POST",
     "path": "/v1/agent/optimize",
     "function": "optimize_farm"
@@ -8738,7 +8738,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 183,
+    "line": 218,
     "method": "GET",
     "path": "/v1/agent/tools",
     "function": "list_tools"
@@ -8746,7 +8746,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 212,
+    "line": 247,
     "method": "GET",
     "path": "/v1/agent/journal/{invocation_id}",
     "function": "get_journal_replay"
@@ -8754,7 +8754,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 236,
+    "line": 271,
     "method": "GET",
     "path": "/v1/agent/actuator-audit",
     "function": "get_actuator_audit"

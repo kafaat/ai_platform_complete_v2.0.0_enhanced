@@ -13,6 +13,7 @@ exactly the asserted tenant, so
 from __future__ import annotations
 
 import asyncio
+import importlib
 import os
 import sys
 import uuid
@@ -22,9 +23,21 @@ import pytest
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
 
-asyncpg = pytest.importorskip("asyncpg")
-httpx = pytest.importorskip("httpx")
-pytest.importorskip("fastapi")
+# Switch read before any import (test_certification_switch_precedes_importorskip): on the
+# certifying CI step a missing dependency or an unusable database fails the run, not a skip.
+_CERTIFICATION_REQUIRED = os.getenv("INTERNAL_TENANT_ASSERTION_CERTIFICATION_REQUIRED") == "1"
+
+
+def _require(module: str):
+    """Import ``module``; under the certification switch a missing one fails the run."""
+    if _CERTIFICATION_REQUIRED:
+        return importlib.import_module(module)
+    return pytest.importorskip(module)
+
+
+asyncpg = _require("asyncpg")
+httpx = _require("httpx")
+_require("fastapi")
 
 from shared.security.tenant_assertion_headers import tenant_assertion_headers  # noqa: E402
 
@@ -35,6 +48,11 @@ ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL", "")
 TOKEN = "live-internal-agent-token-value"
 KEY = "live-w0-05-platform-assertion-key-0123456789"
 ADVICE_PATH = "/internal/events/ai-advice"
+
+if _CERTIFICATION_REQUIRED and not (DSN and ADMIN_DSN):
+    raise RuntimeError(
+        "INTERNAL_TENANT_ASSERTION_CERTIFICATION_REQUIRED=1 needs TEST_DATABASE_URL and TEST_DATABASE_ADMIN_URL"
+    )
 
 pytestmark.append(
     pytest.mark.skipif(

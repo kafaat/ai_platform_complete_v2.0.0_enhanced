@@ -26,6 +26,11 @@ services:
       FIELD_TASKS_SERVICE_TOKEN: ${FIELD_TASKS_SERVICE_TOKEN:?FIELD_TASKS_SERVICE_TOKEN required}
     command: ["sh", "-ec", "test \"$$SAHOOL_ENV\" = production; test $${#FIELD_SERVICE_TENANT_ASSERTION_KEY} -ge 32; case \"$$ZLMEDIAKIT_IMAGE\" in *@sha256:*) ;; *) echo ZLMEDIAKIT_IMAGE-must-use-sha256 >&2; exit 1;; esac; echo production-preflight-ok"]
 
+  # W2-02 (routes-3/decision-9): AC-1 is always required in production; the composer is pinned
+  # on here (not left to an env default) and the platform refuses to boot without it.
+  sahool-platform:
+    environment:
+      AGRONOMIC_CONTEXT_COMPOSE_ENABLED: "true"
   sahool-field-management:
     depends_on:
       production-preflight: {condition: service_completed_successfully}

@@ -935,6 +935,10 @@ services:
       # أن يحمي؛ و`DECISION_REQUIRE_AUTH_TOKEN` يجعل غيابَه فشلاً معلَناً لا صمتاً.
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
+      # W2-02 (routes-3/decision-9): AC-1 is always required in production, so the server-side
+      # composer must be on there or every governed candidate is blocked:lineage_missing. The
+      # platform refuses to boot with AC-1 required and this off (agronomic_context_startup_error).
+      AGRONOMIC_CONTEXT_COMPOSE_ENABLED: ${AGRONOMIC_CONTEXT_COMPOSE_ENABLED:-true}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       # W0-05/W0-07: tenant assertions on the internal routes and on /v1/edge/sync (service mode).
       PLATFORM_TENANT_ASSERTION_KEY: ${PLATFORM_TENANT_ASSERTION_KEY:?PLATFORM_TENANT_ASSERTION_KEY required}
@@ -3182,6 +3186,9 @@ services:
       # إن بقي توكن القرار فارغاً (انظر water_ledger_identity_startup_error) — على
       # المشغّل حقنه من مدير الأسرار؛ الافتراض الفارغ يخدم التطوير/الجسر المُعطَّل فقط.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      # W2-02: the bridge composes AC-1 lineage; with the bridge on, AC-1 required and this off
+      # the worker refuses to start (agronomic_context_startup_error).
+      AGRONOMIC_CONTEXT_COMPOSE_ENABLED: ${AGRONOMIC_CONTEXT_COMPOSE_ENABLED:-true}
       WORKER_POLL_SECONDS: ${WATER_LEDGER_POLL_SECONDS:-3600}
     command:
     - python
