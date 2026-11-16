@@ -22,11 +22,13 @@ import os
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
+from uuid import uuid4
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import backfill  # noqa: E402
 import decision_sor_role_certify as csr  # noqa: E402
 
 DB = os.getenv("DATABASE_URL", "").strip()
@@ -219,6 +221,89 @@ def test_membership_closure_does_not_inherit_across_a_noinherit_middle_role() ->
         finally:
             for role in (CHAIN_A, CHAIN_B, CHAIN_C):
                 await admin.execute(f'DROP ROLE IF EXISTS "{role}"')
+            await admin.close()
+
+    asyncio.run(_run())
+
+
+VERIFY_PROBE = "cert_verify_review_probe"
+
+
+def test_verify_review_refuses_an_rls_bound_role_instead_of_reporting_an_empty_quarantine(
+    monkeypatch,
+) -> None:
+    """W2-01, found in the PG16 staging rehearsal: the review verifier must not be fooled by RLS.
+
+    ``scripts/deploy/decision_service_migrate.sh`` ends with ``backfill.py --verify-review``. Run
+    as an RLS-bound role (the decision-service app role, or the schema owner once FORCE RLS is
+    on) the candidate scan saw zero rows and reported ``ok`` with an empty quarantine while an
+    un-reviewable candidate existed. The verifier now reads with ``row_security=off``, so
+    PostgreSQL refuses an RLS-bound role and only a BYPASSRLS auditor (here: the superuser
+    admin) gets a report, which must contain the quarantined candidate.
+    """
+    import asyncpg
+
+    schema = "vr_" + uuid4().hex[:12]
+
+    async def _run():
+        admin = await _admin()
+        try:
+            if await admin.fetchval("SELECT 1 FROM pg_roles WHERE rolname=$1", VERIFY_PROBE):
+                await admin.execute(f'DROP OWNED BY "{VERIFY_PROBE}"')
+                await admin.execute(f'DROP ROLE "{VERIFY_PROBE}"')
+            await admin.execute(
+                f"CREATE ROLE \"{VERIFY_PROBE}\" LOGIN PASSWORD '{PROBE_PASSWORD}' "
+                "NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOINHERIT"
+            )
+            await admin.execute(f"CREATE SCHEMA {schema}")
+            await admin.execute(
+                f"""CREATE TABLE {schema}.decision_record (
+                      decision_id text PRIMARY KEY, tenant_id uuid NOT NULL, stage text NOT NULL,
+                      review_state text, candidate_lineage_id text,
+                      decision_value jsonb NOT NULL DEFAULT '{{}}'::jsonb)"""
+            )
+            await admin.execute(f"ALTER TABLE {schema}.decision_record ENABLE ROW LEVEL SECURITY")
+            await admin.execute(f"ALTER TABLE {schema}.decision_record FORCE ROW LEVEL SECURITY")
+            await admin.execute(
+                f"CREATE POLICY tenant_only ON {schema}.decision_record USING "
+                "(tenant_id::text = current_setting('app.tenant_id', true))"
+            )
+            await admin.execute(
+                f"INSERT INTO {schema}.decision_record (decision_id, tenant_id, stage, "
+                "review_state, decision_value) VALUES ('cand-no-lineage', "
+                "'00000000-0000-0000-0000-0000000000b7', 'candidate', 'pending_approval', "
+                """'{"status":"pending_approval"}'::jsonb)"""
+            )
+            await admin.execute(f'GRANT USAGE ON SCHEMA {schema} TO "{VERIFY_PROBE}"')
+            await admin.execute(f'GRANT SELECT ON {schema}.decision_record TO "{VERIFY_PROBE}"')
+
+            async def scoped(url):
+                conn = await asyncpg.connect(url, statement_cache_size=0)
+                await conn.execute(f"SET search_path TO {schema}")
+                return conn
+
+            monkeypatch.setattr(backfill, "_connect", scoped)
+
+            monkeypatch.setenv("DATABASE_URL", _probe_url(VERIFY_PROBE))
+            try:
+                silent = await backfill.verify_review()
+            except asyncpg.exceptions.InsufficientPrivilegeError as exc:
+                assert "row-level security" in str(exc), f"unexpected refusal: {exc}"
+            else:
+                raise AssertionError(
+                    "verify_review under an RLS-bound role must refuse, not report: "
+                    f"quarantine_count={silent.get('quarantine_count')} ok={silent.get('ok')}"
+                )
+
+            monkeypatch.setenv("DATABASE_URL", DB)
+            report = await backfill.verify_review()
+            assert report["quarantine_count"] == 1, f"auditor must see the candidate: {report}"
+            assert report["ok"] is False, f"a quarantined candidate must fail the check: {report}"
+        finally:
+            await admin.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE")
+            if await admin.fetchval("SELECT 1 FROM pg_roles WHERE rolname=$1", VERIFY_PROBE):
+                await admin.execute(f'DROP OWNED BY "{VERIFY_PROBE}"')
+                await admin.execute(f'DROP ROLE "{VERIFY_PROBE}"')
             await admin.close()
 
     asyncio.run(_run())
