@@ -1,4 +1,4 @@
--- v278: water_ledger records how each day's ET0 and rain were obtained (W0-10, weather-7).
+-- v279: water_ledger records how each day's ET0 and rain were obtained (W0-10, weather-7).
 -- ════════════════════════════════════════════════════════════════════════
 -- The daily water-ledger worker (sahool-platform phase_runtime_workers.run_water_ledger_once)
 -- wrote et0_mm and rain_mm with no provenance: ET0 was computed at sea level (the field's
@@ -14,7 +14,7 @@
 --                        the ERA5 archive lags about five days, and rebuilds the chain after them)
 --   taw_mm, raw_mm       the root-zone TAW/RAW the row's depletion was computed against, so a
 --                        later rebuild uses the row's own values, not today's texture or root zone
--- All six are NULL on rows written before v278 and on rows a person or the as-applied paths
+-- All six are NULL on rows written before v279 and on rows a person or the as-applied paths
 -- write without an ET0/rain computation: NULL means "not declared", never "reference".
 -- Owner and only writer: sahool-platform (docs/architecture/db_ownership.yml). The existing
 -- FORCE RLS tenant_isolation policy (v98) covers the new columns. Idempotent (IF NOT EXISTS and
@@ -66,16 +66,16 @@ END
 $$;
 
 COMMENT ON COLUMN water_ledger.et0_method IS
-    'v278: weather-service ET0 method for et0_mm (fao56_penman_monteith | hargreaves_fallback); NULL = not declared.';
+    'v279: weather-service ET0 method for et0_mm (fao56_penman_monteith | hargreaves_fallback); NULL = not declared.';
 COMMENT ON COLUMN water_ledger.et0_quality IS
-    'v278: weather-service ET0 quality_status (validated | degraded). Only validated Penman-Monteith is reference ET0.';
+    'v279: weather-service ET0 quality_status (validated | degraded). Only validated Penman-Monteith is reference ET0.';
 COMMENT ON COLUMN water_ledger.weather_snapshot_id IS
-    'v278: weather_snapshot_id of the ET0 product the row was computed from.';
+    'v279: weather_snapshot_id of the ET0 product the row was computed from.';
 COMMENT ON COLUMN water_ledger.rain_source IS
-    'v278: forecast (written from the day''s forecast) | observed (re-recorded from the weather archive once it has the day).';
+    'v279: forecast (written from the day''s forecast) | observed (re-recorded from the weather archive once it has the day).';
 COMMENT ON COLUMN water_ledger.taw_mm IS
-    'v278: root-zone TAW (mm) the row''s depletion was computed against; NULL = not declared.';
+    'v279: root-zone TAW (mm) the row''s depletion was computed against; NULL = not declared.';
 COMMENT ON COLUMN water_ledger.raw_mm IS
-    'v278: root-zone RAW (mm) the row''s deficit was computed against; NULL = not declared.';
+    'v279: root-zone RAW (mm) the row''s deficit was computed against; NULL = not declared.';
 
 COMMIT;

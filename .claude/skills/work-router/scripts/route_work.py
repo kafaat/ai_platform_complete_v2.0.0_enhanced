@@ -17,6 +17,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent
 ORDER = {"LIGHT": 0, "CHECKPOINTED": 1, "COORDINATED": 2}
+MAX_SELECTED_SKILLS = 2
 
 
 def load_routes(path: Path = HERE / "references" / "routing.json") -> dict:
@@ -24,6 +25,10 @@ def load_routes(path: Path = HERE / "references" / "routing.json") -> dict:
     flags = [route["flag"] for route in data["routes"]]
     if len(flags) != len(set(flags)):
         raise ValueError("duplicate routing flag")
+    for route in data["routes"]:
+        priority = route.get("priority", 0)
+        if type(priority) is not int or not 0 <= priority <= 100:
+            raise ValueError(f"invalid routing priority for {route['flag']}")
     return data
 
 
@@ -54,6 +59,8 @@ def choose(profile: dict, routing: dict, skills_root: Path | None = None) -> dic
     elif minutes >= 60 and mode == "LIGHT":
         mode = "CHECKPOINTED"
 
+    # Backward compatibility: skills remains the complete registry-ordered match list.
+    # It is not proof that any agent actually loaded these skills.
     suggestions = []
     for route in picked:
         entry = {"skill": route["skill"], "reason": route["when"]}
@@ -61,11 +68,42 @@ def choose(profile: dict, routing: dict, skills_root: Path | None = None) -> dic
             entry["installed"] = (skills_root / route["skill"] / "SKILL.md").is_file()
         suggestions.append(entry)
     missing = [s["skill"] for s in suggestions if s.get("installed") is False]
+    # Priorities live in the single routing.json source; retain registry order on ties.
+    # Installed=False never means that a skill was selected or executed.
+    ordered = sorted(
+        enumerate(suggestions),
+        key=lambda pair: (-picked[pair[0]].get("priority", 0), pair[0]),
+    )
+    selected: list[dict] = []
+    deferred: list[dict] = []
+    for _index, entry in ordered:
+        if entry.get("installed") is False:
+            deferred.append({**entry, "reason_code": "not_installed"})
+        elif len(selected) < MAX_SELECTED_SKILLS:
+            selected.append(entry)
+        else:
+            deferred.append({**entry, "reason_code": "later_phase"})
+
+    # Safety prerequisites must remain visible before a possible external effect.
+    # The Skill router is advisory and NEVER grants permission for that effect.
+    critical = {"safe-delivery", "collaboration-coordination", "work-continuation"}
+    pending_effect_prerequisites = (
+        profile.get("external_action") is True
+        and any(entry["skill"] in critical for entry in deferred)
+    )
     return {
         "mode": mode,
-        "skills": suggestions,
-        "missing": missing,
+        "skills": suggestions,  # legacy: ALL matches, unchanged order/shape
+        "selected": selected,   # advisory: only this phase, at most two
+        "deferred": deferred,   # never silently discard unmatched phase capacity
+        "missing": missing,    # legacy: ALL matched skills not installed
+        "phase_preconditions": (
+            ["deferred_safety_skill_must_be_resolved_before_external_effect"]
+            if pending_effect_prerequisites
+            else []
+        ),
         "note": "Advisory only. Grants no permission; project rules and the user's instructions win."
+        + " Legacy 'skills' is the full set of matches, not the loaded/selected set."
         + (
             " Missing skills: paste their SKILL.md or install them; do not pretend they ran."
             if missing

@@ -121,7 +121,7 @@ def test_the_entry_exposes_who_reported_and_reads_rows_without_the_column():
         **dict.fromkeys(LEDGER_WRITABLE_COLUMNS),
     }
     assert row_to_ledger_entry(row)["irrigation_reported_by"] is None, (
-        "a row read before v279 (or a stub) has no such key and must still map"
+        "a row read before v280 (or a stub) has no such key and must still map"
     )
     row["irrigation_reported_by"] = "u-farmer"
     assert row_to_ledger_entry(row)["irrigation_reported_by"] == "u-farmer", "the reporter shows"

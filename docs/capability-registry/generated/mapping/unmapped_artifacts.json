@@ -2704,11 +2704,11 @@
     "kind": "database"
   },
   {
-    "path": "migrations/v279_water_ledger_irrigation_report.down.sql",
+    "path": "migrations/v280_water_ledger_irrigation_report.down.sql",
     "kind": "database"
   },
   {
-    "path": "migrations/v279_water_ledger_irrigation_report.sql",
+    "path": "migrations/v280_water_ledger_irrigation_report.sql",
     "kind": "database"
   },
   {

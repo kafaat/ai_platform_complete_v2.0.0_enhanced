@@ -31,6 +31,7 @@ _AGENT_TOKEN = "test-agent-token-sec3"
 _AUTH_HEADERS = {
     "X-Tenant-Id": "tenant-1",
     "X-User-Id": "user-1",
+    "X-User-Role": "expert",
 }  # SEC-3/3.1: approvals require gateway tenant + user
 
 

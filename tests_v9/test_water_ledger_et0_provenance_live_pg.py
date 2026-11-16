@@ -8,7 +8,7 @@ archive, ET0) and the decision bridge. What is measured on the rows:
 * ET0 is requested at the field's elevation (``fields.elevation_m``), not at sea level, and a
   field without an elevation gets no entry (a declared skip, never a sea-level value).
 * Each entry records ``et0_method``, ``et0_quality``, ``weather_snapshot_id`` and
-  ``rain_source='forecast'`` (v278).
+  ``rain_source='forecast'`` (v279).
 * Forecast rain is re-recorded from the archive before today's entry is built on it:
   ``rain_source`` becomes ``observed`` and that day's depletion is rebuilt from the day before,
   so today's balance starts from water that fell, not water that was forecast. The archive
@@ -18,8 +18,8 @@ archive, ET0) and the decision bridge. What is measured on the rows:
 * Each entry stores the root-zone TAW/RAW it was computed against, and a rebuild uses them.
 * A degraded Penman-Monteith (elevation rejected, sea-level default) is not reference ET0: the
   entry carries ``et0_reference_unavailable`` and the lowered confidence.
-* v278 is idempotent, its CHECK constraints refuse an unknown rain source, and its .down.sql
-  removes the columns and can be followed by v278 again.
+* v279 is idempotent, its CHECK constraints refuse an unknown rain source, and its .down.sql
+  removes the columns and can be followed by v279 again.
 """
 
 from __future__ import annotations
@@ -52,8 +52,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
 ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL", "")
 TZ = "Asia/Aden"
-UP = ROOT / "migrations" / "v278_water_ledger_et0_rain_provenance.sql"
-DOWN = ROOT / "migrations" / "v278_water_ledger_et0_rain_provenance.down.sql"
+UP = ROOT / "migrations" / "v279_water_ledger_et0_rain_provenance.sql"
+DOWN = ROOT / "migrations" / "v279_water_ledger_et0_rain_provenance.down.sql"
 
 
 async def _probe() -> str:
@@ -72,7 +72,7 @@ async def _probe() -> str:
             " 'rain_source', 'taw_mm', 'raw_mm')"
         )
         if cols != 6:
-            return "schema not migrated (v278 columns missing)"
+            return "schema not migrated (v279 columns missing)"
     finally:
         await conn.close()
     return ""
@@ -481,19 +481,19 @@ def test_v278_is_idempotent_constrained_and_reversible():
             with pytest.raises(asyncpg.CheckViolationError):
                 await admin.execute(
                     "INSERT INTO water_ledger (tenant_id, field_id, ledger_date, rain_source)"
-                    " VALUES ($1::uuid, 'v278-probe', CURRENT_DATE, 'guess')",
+                    " VALUES ($1::uuid, 'v279-probe', CURRENT_DATE, 'guess')",
                     tenant,
                 )
             with pytest.raises(asyncpg.CheckViolationError):
                 await admin.execute(
                     "INSERT INTO water_ledger (tenant_id, field_id, ledger_date, et0_quality)"
-                    " VALUES ($1::uuid, 'v278-probe', CURRENT_DATE, 'reference')",
+                    " VALUES ($1::uuid, 'v279-probe', CURRENT_DATE, 'reference')",
                     tenant,
                 )
             with pytest.raises(asyncpg.CheckViolationError):
                 await admin.execute(
                     "INSERT INTO water_ledger (tenant_id, field_id, ledger_date, taw_mm, raw_mm)"
-                    " VALUES ($1::uuid, 'v278-probe', CURRENT_DATE, 40, 50)",
+                    " VALUES ($1::uuid, 'v279-probe', CURRENT_DATE, 40, 50)",
                     tenant,
                 )
             await admin.execute(DOWN.read_text(encoding="utf-8"))
@@ -515,5 +515,5 @@ def test_v278_is_idempotent_constrained_and_reversible():
             await admin.close()
 
     after_down, after_up = asyncio.run(run())
-    assert after_down == 0, f"v278.down left {after_down} provenance column(s)"
-    assert after_up == 4, f"v278 after a rollback did not restore its constraints: {after_up}"
+    assert after_down == 0, f"v279.down left {after_down} provenance column(s)"
+    assert after_up == 4, f"v279 after a rollback did not restore its constraints: {after_up}"

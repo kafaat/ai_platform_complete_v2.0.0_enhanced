@@ -1,4 +1,4 @@
--- v279 rollback: removes water_ledger.irrigation_reported_by.
+-- v280 rollback: removes water_ledger.irrigation_reported_by.
 -- Rollback script, not listed in MANIFEST.txt (forward-only manifest, as for every *.down.sql).
 -- Order: roll back the code first (revert the W0-13 change: the platform router, the water-ledger
 -- worker and LEDGER_SELECT_COLS read and write this column), then run this script. Idempotent.

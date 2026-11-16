@@ -187,8 +187,8 @@ tables:
   custody_chain_events:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
-    source: "migrations/v65_harvest_traceability.sql"
+    readers: [mcp_servers]  # v278: the market server sums a lot's sales before listing it
+    source: "migrations/v65_harvest_traceability.sql, migrations/v278_harvest_custody_integrity.sql"
   decision_policies:
     owner: agriai-engine
     writers: [agriai-engine]
@@ -662,8 +662,8 @@ tables:
   harvest_lots:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
-    source: "migrations/v65_harvest_traceability.sql"
+    readers: [mcp_servers]  # v278: a sales listing is checked against the lot it names
+    source: "migrations/v65_harvest_traceability.sql, migrations/v278_harvest_custody_integrity.sql"
   imagery_automation_fields:
     owner: raster-service
     writers: [raster-service]
@@ -788,7 +788,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v9_market.sql"
+    source: "migrations/v9_market.sql, migrations/v278_harvest_custody_integrity.sql"
   market_suppliers:
     owner: mcp_servers
     writers: [mcp_servers]
@@ -1199,7 +1199,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v98_water_ledger.sql, migrations/v278_water_ledger_et0_rain_provenance.sql, migrations/v279_water_ledger_irrigation_report.sql"
+    source: "migrations/v98_water_ledger.sql, migrations/v279_water_ledger_et0_rain_provenance.sql, migrations/v280_water_ledger_irrigation_report.sql"
   weather_alerts:
     owner: weather-service
     writers: [weather-service]

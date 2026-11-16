@@ -13,7 +13,11 @@ from __future__ import annotations
 
 import logging
 
-from core.regional_bulletin import build_regional_bulletin, bulletin_rows_to_records
+from core.regional_bulletin import (
+    MIN_FIELDS_PRIVACY,
+    build_regional_bulletin,
+    bulletin_rows_to_records,
+)
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api import main as api_main
@@ -46,13 +50,31 @@ LEFT JOIN LATERAL (
     SELECT AVG(z.mean) AS mean_hist, COUNT(*) AS n FROM zonal_stats z
     WHERE z.field_id = f.field_id AND z.index_name = 'ndvi'
 ) zh ON TRUE
+WHERE $1::text[] IS NULL OR f.farm_id = ANY($1::text[])
 """
+
+
+def _farm_scope(user: UserSchema) -> list[str] | None:
+    """Farms the caller may aggregate over: None means every farm of the tenant.
+
+    RLS scopes the query to the tenant only. A user limited to some farms (``farm_ids_access``,
+    empty = all, as in ``core.authorization``) could otherwise read aggregates over fields of
+    farms they are not allowed to see.
+
+    Inert today: ``get_current_user`` builds ``UserSchema`` from the token without
+    ``farm_ids_access`` and no trusted per-user farm list exists yet, so every caller is "all
+    farms". The filter takes effect once that scope is populated from a trusted source."""
+    farms = [str(f) for f in (getattr(user, "farm_ids_access", None) or []) if f]
+    return farms or None
 
 
 @router.get("/api/v1/regional/bulletin")
 async def regional_bulletin(
     period: str | None = Query(None, description="وسم فترة اختياريّ للنشرة"),
-    min_fields_privacy: int = Query(5, ge=1, le=100, description="أرضيّة k-anonymity"),
+    # The server floor is a minimum, not a default: below it is refused, not honoured.
+    min_fields_privacy: int = Query(
+        MIN_FIELDS_PRIVACY, ge=MIN_FIELDS_PRIVACY, le=100, description="أرضيّة k-anonymity"
+    ),
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
     """نشرة حالة المحاصيل الإقليميّة (محافظة → مديريّات) — معزولة بالمستأجِر + آمنة الخصوصيّة.
@@ -67,7 +89,7 @@ async def regional_bulletin(
         }
     try:
         async with tenant_connection(user) as conn:
-            rows = await conn.fetch(_BULLETIN_SQL)
+            rows = await conn.fetch(_BULLETIN_SQL, _farm_scope(user))
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001 — تعذّر القاعدة ⇒ 503 موثَّق (لا اختلاق)

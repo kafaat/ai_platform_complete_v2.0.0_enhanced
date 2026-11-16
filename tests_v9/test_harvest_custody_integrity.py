@@ -276,6 +276,19 @@ def test_mass_balance_refused():
     )
 
 
+def test_outgoing_event_without_quantity_is_refused_not_waved_through():
+    """A sale with no quantity used to skip the remaining-quantity check entirely, so one lot
+    could be sold any number of times. Non-outgoing events may still omit the quantity."""
+    assert _refusal(event_type="sales", quantity_kg=None) is not None
+    # Even on a lot already sold out, the missing quantity is what is refused.
+    assert (
+        _refusal(event_type="sales", quantity_kg=None, outgoing_kg_so_far=Decimal("500"))
+        is not None
+    )
+    assert _refusal(event_type="storage", quantity_kg=None) is None
+    assert _refusal(event_type="transport", quantity_kg=None) is None
+
+
 # ── ⑤ حدود event_details ────────────────────────────────────────────────────
 
 
@@ -321,3 +334,21 @@ def test_router_dedupes_by_hash_before_checks_and_refuses_422_before_insert():
     assert "req.quantity_kg,\n" not in src, (
         "the raw request quantity must pass the mass check before it is inserted"
     )
+
+
+def test_active_listing_reservations_reduce_what_a_sale_may_take():
+    """Review of #1497: a 500 kg listing on a 1000 kg lot, then a 1000 kg custody sale, left an
+    active offer above the physical remainder. Reserved quantity now counts against a sale."""
+    base = dict(
+        event_type="sales",
+        occurred_at=datetime(2026, 10, 5, tzinfo=UTC),
+        lot_quantity_kg=1000,
+        harvest_date=datetime(2026, 10, 1, tzinfo=UTC).date(),
+        last_occurred_at=None,
+        outgoing_kg_so_far=0,
+        now=datetime(2026, 10, 6, tzinfo=UTC),
+    )
+    refused = ht.custody_event_refusal(quantity_kg=1000, reserved_kg=500, **base)
+    assert refused is not None and "محجوزة" in refused
+    assert ht.custody_event_refusal(quantity_kg=500, reserved_kg=500, **base) is None
+    assert ht.custody_event_refusal(quantity_kg=1000, reserved_kg=0, **base) is None

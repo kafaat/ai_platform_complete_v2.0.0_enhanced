@@ -478,7 +478,7 @@ def forecast_day_for_ledger_date(forecast: Mapping, ledger_date: _dt.date) -> di
 def manual_entry_takes_precedence(existing_created_by: str | None) -> bool:
     """قيد اليوم الموجود يُحترَم إن لم يكن من العامل نفسه — الإنسان سيّد الدفتر.
 
-    W0-13: only ``created_by`` decides. A person's applied-water report (v279) does not take the
+    W0-13: only ``created_by`` decides. A person's applied-water report (v280) does not take the
     day: on a new day it opens a row whose ``created_by`` is the worker, and the reporter is in
     ``irrigation_reported_by`` (``reported_irrigation``). Any other writer that sets
     ``created_by`` (a full manual entry, the as-applied reconciliations) keeps the day from the

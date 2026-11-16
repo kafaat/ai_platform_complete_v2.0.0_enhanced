@@ -376,7 +376,7 @@ def test_the_archive_is_asked_from_the_oldest_rebuildable_forecast_row_in_the_wi
     rows = [
         _prev(ledger_date=_day(12), rain_source="forecast"),  # خارج النافذة
         _prev(ledger_date=_day(6), created_by="farmer-1"),  # يدويّ
-        _prev(ledger_date=_day(5), taw_mm=None),  # بلا TAW مخزَّن (قبل v278)
+        _prev(ledger_date=_day(5), taw_mm=None),  # بلا TAW مخزَّن (قبل v279)
         _prev(ledger_date=_day(4), decision="auto:missing_days_consumption_estimated"),
         _prev(ledger_date=_day(3)),
         _prev(ledger_date=_day(1)),
