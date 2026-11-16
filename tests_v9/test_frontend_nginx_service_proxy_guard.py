@@ -103,6 +103,18 @@ def test_auth_request_only_in_authenticated_dev_gateways():
     ai_span = _block_span(src, "location ^~ /api/ai-agronomist/")
     rag_span = _block_span(src, "location ^~ /api/rag/")
     tts_span = _block_span(src, "location ^~ /tts/")
+    # W0-09 (web-1/deploy-4/deploy-11): blocks ported from nginx.v9.conf, each behind auth.
+    ported_spans = {
+        header: _block_span(src, header)
+        for header in (
+            "location = /_auth_edge_sign",
+            "location ~ ^/api/v1/gis/cloud-native/rasters/[^/]+/tiles/",
+            "location ^~ /api/v1/scouting-media/",
+            "location ^~ /api/v1/field-tasks/",
+            "location ~ ^/api/v1/seasons/[^/]+/accept$",
+            "location ~ ^/api/v1/seasons {",
+        )
+    }
 
     def _allowed(pos: int) -> bool:
         return (
@@ -112,6 +124,7 @@ def test_auth_request_only_in_authenticated_dev_gateways():
             or (ai_span[0] <= pos < ai_span[1])
             or (rag_span[0] <= pos < rag_span[1])
             or (tts_span[0] <= pos < tts_span[1])
+            or any(a <= pos < b for a, b in ported_spans.values())
         )
 
     offenders = []
@@ -140,6 +153,14 @@ def test_auth_request_only_in_authenticated_dev_gateways():
         assert "$http_x_tenant_id" not in block
         assert 'proxy_set_header X-Agent-Token "";' in block
         assert "auth_request_set" in block
+    for header, span in ported_spans.items():
+        if header == "location = /_auth_edge_sign":
+            continue
+        block = src[span[0] : span[1]]
+        verifier = "/_auth_edge_sign" if "/accept$" in header else "/_auth_verify"
+        assert f"auth_request {verifier};" in block, f"{header} is not behind {verifier}"
+        assert "$http_x_tenant_id" not in block, f"{header} forwards the caller's tenant"
+        assert "auth_request_set" in block, f"{header} takes no identity from auth"
 
 
 def test_raster_still_present_before_catchall():
