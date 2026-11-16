@@ -8,16 +8,24 @@
   • صفٌّ صريح ⇒ ``policy_mode`` منه، بمستأجِر المستخدم الموثَّق.
   • لا صفّ ⇒ الأشدّ (``local_only``) — لا افتراضَ متساهل.
   • عطلُ القاعدة ⇒ الأشدّ، **والهويّةُ تُعاد** (``/me`` لا يسقط بسقوط القراءة).
+  • والفرقُ بينهما مقصود: غيابُ الصفّ يُبقي التوليدَ المحلّيّ مسموحاً (افتراضُ المنتج)،
+    أمّا تعذّرُ القراءة فيمنعه (``ai_generation_allowed=False``) — العطلُ لا يتنكّر في صورة «لا سياسة».
 """
 
 from __future__ import annotations
 
+import asyncio
 from contextlib import asynccontextmanager
 
 import api.main as platform_main
 import pytest
 from api.main import get_current_user
 from api.routers import me as mod
+from core.ai_policy_envelope import (
+    build_ai_policy_envelope,
+    load_tenant_ai_policy_row,
+    unavailable_tenant_ai_policy_row,
+)
 from core.canonical_schemas import UserRole, UserSchema
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -79,6 +87,8 @@ def test_no_policy_row_is_the_most_restrictive_envelope(monkeypatch):
     body = client.get("/api/v1/me").json()
     assert body["ai_policy_envelope"]["policy_mode"] == "local_only"
     assert body["ai_policy_envelope"]["external_llm_allowed"] is False
+    # No row preserves the product default: local AI is allowed, external stays denied.
+    assert body["ai_policy_envelope"]["ai_generation_allowed"] is True
 
 
 def test_a_database_failure_keeps_identity_and_fails_the_envelope_closed(monkeypatch):
@@ -88,6 +98,7 @@ def test_a_database_failure_keeps_identity_and_fails_the_envelope_closed(monkeyp
     body = resp.json()
     assert body["tenant_id"] == _TENANT and body["role"] == "worker"
     assert body["ai_policy_envelope"]["policy_mode"] == "local_only"
+    assert body["ai_policy_envelope"]["ai_generation_allowed"] is False
 
 
 _POLICY_LOGGER = "sahool.ai_policy_envelope"
@@ -108,6 +119,7 @@ def test_a_failed_policy_query_fails_closed_and_is_observable(monkeypatch, caplo
         resp = client.get("/api/v1/me")
     assert resp.status_code == 200, resp.text
     assert resp.json()["ai_policy_envelope"]["policy_mode"] == "local_only"
+    assert resp.json()["ai_policy_envelope"]["ai_generation_allowed"] is False
     [line] = _warnings(caplog)
     assert line.startswith("AI_POLICY_ROW_UNREADABLE") and "TimeoutError" in line
 
@@ -117,6 +129,7 @@ def test_a_failed_connection_fails_closed_and_is_observable(monkeypatch, caplog)
     with caplog.at_level("WARNING", logger=_POLICY_LOGGER):
         body = client.get("/api/v1/me").json()
     assert body["ai_policy_envelope"]["policy_mode"] == "local_only"
+    assert body["ai_policy_envelope"]["ai_generation_allowed"] is False
     [line] = _warnings(caplog)
     assert line.startswith("AI_POLICY_CONNECTION_UNAVAILABLE") and "ConnectionError" in line
 
@@ -126,4 +139,31 @@ def test_a_tenant_without_a_policy_row_is_not_reported_as_an_outage(monkeypatch,
     with caplog.at_level("WARNING", logger=_POLICY_LOGGER):
         body = client.get("/api/v1/me").json()
     assert body["ai_policy_envelope"]["policy_mode"] == "local_only"
+    assert body["ai_policy_envelope"]["ai_generation_allowed"] is True
     assert _warnings(caplog) == []
+
+
+def test_the_loader_returns_a_restrictive_row_on_a_read_failure_and_none_for_no_row():
+    """The loader is shared by /me, field AI context and NL→SQL: all three inherit this split."""
+    assert asyncio.run(load_tenant_ai_policy_row(_Conn(None), _TENANT)) is None
+    failed = asyncio.run(load_tenant_ai_policy_row(_Conn(None, query_error=True), _TENANT))
+    assert failed == unavailable_tenant_ai_policy_row()
+    envelope = build_ai_policy_envelope(_TENANT, failed)
+    assert envelope["ai_generation_allowed"] is False
+    assert envelope["external_llm_allowed"] is False
+
+
+@pytest.mark.parametrize(
+    ("row", "allowed"),
+    [
+        (None, True),
+        ({"ai_generation_allowed": False}, False),
+        ({"ai_generation_allowed": True, "external_data_sharing_level": "local_only"}, True),
+        # A truthy string is not a verified grant.
+        ({"ai_generation_allowed": "true"}, False),
+    ],
+)
+def test_valid_rows_and_the_absent_default_keep_their_meaning(row, allowed):
+    envelope = build_ai_policy_envelope(_TENANT, row)
+    assert envelope["ai_generation_allowed"] is allowed
+    assert envelope["external_llm_allowed"] is False

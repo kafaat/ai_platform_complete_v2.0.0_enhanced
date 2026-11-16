@@ -57,6 +57,41 @@ def _parse_dt(value: str, field: str) -> datetime:
         raise HTTPException(status_code=422, detail=f"{field}: زمن ISO غير صالح") from e
 
 
+async def _listing_reservation(conn, harvest_lot_id: str, event_type: str, details) -> tuple:
+    """Active market listings on the lot reserve their quantity (v278).
+
+    Returns (reserved_kg, listing_id). A sale naming ``event_details.listing_id`` fulfils that
+    listing: it is not counted as reserved and is closed in the same transaction. Naming a listing
+    that is not active on this lot is refused (409), so a sale cannot release another offer's
+    reservation. Called under the lot's FOR UPDATE lock, the lock the market server takes too."""
+    if event_type != "sales":
+        return 0, None
+    listing_id = (details or {}).get("listing_id") if isinstance(details, dict) else None
+    listing_id = str(listing_id).strip() if listing_id else None
+    if listing_id is not None:
+        try:
+            _uuid.UUID(listing_id)
+        except ValueError:
+            raise HTTPException(status_code=422, detail="listing_id ليس UUID") from None
+        if not await conn.fetchval(
+            "SELECT 1 FROM market_sales_listings WHERE listing_id = $1::uuid "
+            "AND harvest_lot_id = $2 AND status = 'active'",
+            listing_id,
+            harvest_lot_id,
+        ):
+            raise HTTPException(
+                status_code=409, detail="عرض البيع المُشار إليه غير نشط على هذه الدفعة"
+            )
+    reserved = await conn.fetchval(
+        "SELECT COALESCE(sum(quantity_kg), 0) FROM market_sales_listings "
+        "WHERE harvest_lot_id = $1 AND status = 'active' "
+        "AND ($2::uuid IS NULL OR listing_id <> $2::uuid)",
+        harvest_lot_id,
+        listing_id,
+    )
+    return reserved or 0, listing_id
+
+
 @router.post("/api/v1/harvest-lots", status_code=201, response_model=HarvestLotSummary)
 async def create_harvest_lot(
     req: HarvestLotCreateRequest,
@@ -280,6 +315,9 @@ async def add_custody_event(
                     "FROM custody_chain_events WHERE harvest_lot_id = $1",
                     harvest_lot_id,
                 )
+                reserved_kg, listing_id = await _listing_reservation(
+                    conn, harvest_lot_id, req.event_type, req.event_details
+                )
                 invalid = custody_event_refusal(
                     event_type=req.event_type,
                     occurred_at=occurred,
@@ -288,6 +326,7 @@ async def add_custody_event(
                     harvest_date=lot["harvest_date"],
                     last_occurred_at=prior["last_at"] if prior else None,
                     outgoing_kg_so_far=prior["outgoing_kg"] if prior else 0,
+                    reserved_kg=reserved_kg,
                 )
                 if invalid is not None:
                     raise HTTPException(status_code=422, detail=invalid)
@@ -310,6 +349,15 @@ async def add_custody_event(
                         occurred,
                         content_hash,
                     )
+                    if (
+                        listing_id is not None
+                    ):  # the sale fulfils this listing: its reservation ends
+                        await conn.execute(
+                            "UPDATE market_sales_listings SET status = 'sold', sold_at = now() "
+                            "WHERE listing_id = $1::uuid AND harvest_lot_id = $2 AND status = 'active'",
+                            listing_id,
+                            harvest_lot_id,
+                        )
                     if new_status != lot["status"]:
                         await conn.execute(
                             "UPDATE harvest_lots SET status = $1 WHERE harvest_lot_id = $2",

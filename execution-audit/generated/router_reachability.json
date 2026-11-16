@@ -82,7 +82,7 @@
     },
     {
       "kind": "app",
-      "line": 87,
+      "line": 93,
       "module": "services.ai_agronomist.main",
       "node_id": "services.ai_agronomist.main:app",
       "route_count": 13,
@@ -1234,7 +1234,7 @@
     },
     {
       "kind": "router",
-      "line": 158,
+      "line": 159,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -1747,7 +1747,7 @@
     },
     {
       "kind": "router",
-      "line": 27,
+      "line": 31,
       "module": "services.sahool-platform.api.routers.regional_bulletin",
       "node_id": "services.sahool-platform.api.routers.regional_bulletin:router",
       "route_count": 1,
@@ -2794,7 +2794,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 58,
+      "line": 66,
       "module": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
       "prefix": null,
       "resolved": false,
@@ -3000,7 +3000,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "fbb7281716a0681476565c773c80f69880a8d9514bb9a34c6a836e88749061b7",
+  "inventory_sha256": "3bdee31520f8699973b157273c0100bc6b851ed17099b14cbec04b6d3b586f0a",
   "orphan_candidate_count": 237,
   "orphan_candidates": [
     {
@@ -4106,7 +4106,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 158,
+      "line": 159,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -4676,7 +4676,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 27,
+      "line": 31,
       "module": "services.sahool-platform.api.routers.regional_bulletin",
       "node_id": "services.sahool-platform.api.routers.regional_bulletin:router",
       "route_count": 1,
@@ -5642,7 +5642,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
-      "line": 58,
+      "line": 66,
       "module": "services.sahool-platform.tests.test_me_ai_policy_envelope",
       "source": null,
       "target_expression": "mod.router"

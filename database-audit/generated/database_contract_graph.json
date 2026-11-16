@@ -265,6 +265,7 @@
       "v275_inspection_handoffs.sql",
       "v276_task_cost_trace.sql",
       "v277_inspection_close_gate.sql",
+      "v278_harvest_custody_integrity.sql",
       "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
@@ -1822,14 +1823,14 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 266,
+    "manifest_entries": 267,
     "manifest_missing_count": 0,
     "policies": 221,
     "production_certified": false,
     "rls_enabled": 230,
     "rls_forced": 211,
     "runtime_verified": false,
-    "sql_files": 274,
+    "sql_files": 276,
     "tables": 360,
     "tenant_rls_gaps": 139,
     "tenant_tables": 341,
@@ -2675,6 +2676,7 @@
     },
     {
       "code_readers": [
+        "services/mcp_servers/market_server.py",
         "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "code_writers": [
@@ -4130,6 +4132,8 @@
     },
     {
       "code_readers": [
+        "services/mcp_servers/market_server.py",
+        "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "code_writers": [
@@ -5385,10 +5389,12 @@
     },
     {
       "code_readers": [
-        "services/mcp_servers/market_server.py"
+        "services/mcp_servers/market_server.py",
+        "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "code_writers": [
-        "services/mcp_servers/market_server.py"
+        "services/mcp_servers/market_server.py",
+        "services/sahool-platform/api/routers/harvest_traceability.py"
       ],
       "created_in": "v9_market.sql",
       "has_tenant_id": true,

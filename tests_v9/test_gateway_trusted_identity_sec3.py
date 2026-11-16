@@ -229,7 +229,7 @@ _APPROVAL_BODY = {
     },
     "approver": "user-1",
 }
-_APPROVAL_HEADERS = {"X-Tenant-Id": "tenant-1", "X-User-Id": "user-1"}
+_APPROVAL_HEADERS = {"X-Tenant-Id": "tenant-1", "X-User-Id": "user-1", "X-User-Role": "expert"}
 
 
 @pytest.mark.parametrize("path", ["/v1/approvals/approve", "/v1/approvals/deny"])
@@ -291,7 +291,7 @@ def test_approvals_approver_of_record_is_authenticated_user(monkeypatch):
     r = client.post(
         "/v1/approvals/approve",
         json=body,
-        headers={"X-Tenant-Id": "tenant-1", "X-User-Id": "real-user-42"},
+        headers={"X-Tenant-Id": "tenant-1", "X-User-Id": "real-user-42", "X-User-Role": "expert"},
     )
     assert r.status_code == 200
     assert r.json()["approval"]["decided_by"] == "real-user-42"

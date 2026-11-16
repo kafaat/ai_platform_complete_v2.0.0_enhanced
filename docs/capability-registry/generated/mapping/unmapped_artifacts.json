@@ -2704,6 +2704,14 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v278_harvest_custody_integrity.down.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v278_harvest_custody_integrity.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },
@@ -4493,6 +4501,10 @@
   },
   {
     "path": "services/ai_agronomist/approval.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/approval_authz.py",
     "kind": "backend"
   },
   {
@@ -10904,6 +10916,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_approval_authz_roles.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_approval_endpoints_v58.py",
     "kind": "tests"
   },
@@ -12101,6 +12117,10 @@
   },
   {
     "path": "tests_v9/test_harvest_custody_integrity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_harvest_custody_live_pg.py",
     "kind": "tests"
   },
   {
@@ -13993,6 +14013,10 @@
   },
   {
     "path": "tests_v9/test_work_continuation_checksum_strict.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_work_router_contract_ci.py",
     "kind": "tests"
   },
   {

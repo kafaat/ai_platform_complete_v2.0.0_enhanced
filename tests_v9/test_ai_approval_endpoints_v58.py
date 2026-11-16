@@ -27,6 +27,7 @@ _AGENT_TOKEN = "test-agent-token-sec3"
 _AUTH_HEADERS = {
     "X-Tenant-Id": "tenant-1",
     "X-User-Id": "user-1",
+    "X-User-Role": "expert",
 }  # SEC-3/3.1: approvals require gateway tenant + user
 
 
@@ -107,7 +108,7 @@ def test_deny_endpoint_normalizes_decision_without_executing_tool(seeded):
 # ثغراتٍ مستقلّة بل أثرُ غياب رابطٍ واحد: السجلُّ لم يكن يُقرأ بـ(المستأجِر، الهويّة)،
 # ولم تكن حقولُه الخادميّةُ محميّةً من الدمج.
 
-_OTHER_TENANT = {"X-Tenant-Id": "tenant-2", "X-User-Id": "user-2"}
+_OTHER_TENANT = {"X-Tenant-Id": "tenant-2", "X-User-Id": "user-2", "X-User-Role": "expert"}
 
 
 def test_another_tenant_cannot_approve_a_record_it_does_not_own(seeded):
