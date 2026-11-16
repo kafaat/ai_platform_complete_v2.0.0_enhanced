@@ -27,8 +27,17 @@ if str(_AGRIAI) not in sys.path:
 import profit_planner as P  # noqa: E402
 import wofost_adapter as W  # noqa: E402
 
+# معاملات محصولٍ صريحة للاختبار: البديل الحتميّ يرفض المحصول بلاها (W2-17 / airuntime-5).
+_CROP = {
+    "base_temp_c": 5.0,
+    "max_yield_kg_ha": 8000.0,
+    "gdd_to_maturity": 1500.0,
+    "water_use_efficiency": 18.0,
+    "harvest_index": 0.45,
+}
+
 _RICH = {
-    "crop": {"max_yield_kg_ha": 8000.0, "water_use_efficiency": 18.0},
+    "crop": dict(_CROP),
     "weather": {"gdd": 1600.0, "total_rain_mm": 300.0},
     "soil": {"available_water_mm": 60.0},
     "agromanagement": {"irrigation_mm": 120.0},
@@ -36,7 +45,7 @@ _RICH = {
 
 
 def test_simulate_always_carries_yield_interval():
-    out = W.simulate({}, {}, {}, {})
+    out = W.simulate(dict(_CROP), {}, {}, {})
     assert "yield_interval" in out, "لا غلّة بلا عدم يقين"
     yi = out["yield_interval"]
     for key in ("point_kg_ha", "low_kg_ha", "high_kg_ha", "relative_uncertainty", "confidence"):
@@ -52,13 +61,13 @@ def test_interval_brackets_point_and_is_ordered():
 
 
 def test_richer_inputs_narrow_the_band():
-    empty = W.simulate({}, {}, {}, {})["yield_interval"]["relative_uncertainty"]
+    empty = W.simulate(dict(_CROP), {}, {}, {})["yield_interval"]["relative_uncertainty"]
     rich = W.simulate(**_RICH)["yield_interval"]["relative_uncertainty"]
     assert rich < empty, "نقص المدخلات يجب أن يوسّع عدم اليقين"
 
 
 def test_missing_inputs_are_named_in_drivers():
-    yi = W.simulate({}, {}, {}, {})["yield_interval"]
+    yi = W.simulate(dict(_CROP), {}, {}, {})["yield_interval"]
     drivers = yi["drivers"]
     for expected in (
         "missing_daily_weather",
@@ -84,7 +93,7 @@ def test_simulate_is_deterministic():
 
 def test_near_crossover_widens_uncertainty():
     # عند تساوي القيد الحراريّ والمائيّ تقريباً ⇒ مُوجِّه قرب العتبة يظهر.
-    crop = {"max_yield_kg_ha": 1800.0, "water_use_efficiency": 18.0, "gdd_to_maturity": 1500.0}
+    crop = {**_CROP, "max_yield_kg_ha": 1800.0, "gdd_to_maturity": 1500.0}
     # water_limited = 100*18 = 1800؛ thermal = 1800*(1500/1500)=1800 ⇒ تساوٍ تامّ
     out = W.simulate(crop, {"gdd": 1500.0}, {"available_water_mm": 0.0}, {"irrigation_mm": 100.0})
     assert "near_limiting_factor_crossover" in out["yield_interval"]["drivers"]

@@ -35,10 +35,36 @@ def _sim(crop, monkeypatch, *, flag, prod):
     return wa.simulate(crop=crop, **_FULL)
 
 
+_FALLBACK_PARAMS = {  # معاملات صريحة يشترطها البديل الحتميّ (W2-17 / airuntime-5)
+    "base_temp_c": 0.0,
+    "max_yield_kg_ha": 6000.0,
+    "gdd_to_maturity": 2000.0,
+    "water_use_efficiency": 15.0,
+    "harvest_index": 0.4,
+}
+
+
 def test_flag_off_dev_keeps_deterministic_fallback(monkeypatch):
-    out = _sim({"crop": "wheat"}, monkeypatch, flag=False, prod=False)
+    out = _sim({"crop": "wheat", **_FALLBACK_PARAMS}, monkeypatch, flag=False, prod=False)
     assert out["provenance"] == "deterministic_fallback"  # السلوك القائم لم يتغيّر
     assert "yield_interval" in out
+
+
+@pytest.mark.parametrize(
+    "crop, missing",
+    [
+        ({"crop": "wheat"}, set(_FALLBACK_PARAMS)),
+        ({"crop": "wheat", **_FALLBACK_PARAMS, "harvest_index": 1.5}, {"harvest_index"}),
+        ({"crop": "wheat", **_FALLBACK_PARAMS, "max_yield_kg_ha": "n/a"}, {"max_yield_kg_ha"}),
+        ({"crop": "wheat", **_FALLBACK_PARAMS, "gdd_to_maturity": 0}, {"gdd_to_maturity"}),
+    ],
+)
+def test_flag_off_dev_refuses_a_crop_without_explicit_parameters(monkeypatch, crop, missing):
+    """airuntime-5: البديل كان يُحاكي أيّ محصولٍ مُسمّى بمعاملات عامّة (8000 كغ/هـ، 1500 GDD...)."""
+    with pytest.raises(wa.SimulationInputError) as e:
+        _sim(crop, monkeypatch, flag=False, prod=False)
+    assert e.value.code == "crop_parameters_required", e.value
+    assert set(e.value.detail.split(",")) == missing, e.value.detail
 
 
 def test_flag_off_production_fails_closed(monkeypatch):

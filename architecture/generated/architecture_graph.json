@@ -900,7 +900,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 5,
+      "outgoing": 6,
       "orphan": false
     },
     {
@@ -939,7 +939,7 @@
         "services/weather-service"
       ],
       "kind": "service",
-      "incoming": 4,
+      "incoming": 5,
       "outgoing": 1,
       "orphan": false
     },
@@ -2066,6 +2066,12 @@
       "evidence": "services/supervisor-agent/skills/crop_model_skill.py"
     },
     {
+      "source": "supervisor-agent",
+      "target": "weather-service",
+      "kind": "code-reference",
+      "evidence": "services/supervisor-agent/server_facts.py"
+    },
+    {
       "source": "vegetation-analysis-service",
       "target": "decision-service",
       "kind": "code-reference",
@@ -2141,11 +2147,11 @@
   "cycles": [],
   "summary": {
     "nodes": 111,
-    "edges": 197,
+    "edges": 198,
     "orphans": 9,
     "cycles": 0,
-    "code_edges": 63,
+    "code_edges": 64,
     "compose_edges": 134
   },
-  "content_sha256": "b8509eea52e224cf40ef014e701e26cffb8ef32c77c7df722058643f1f3c84f3"
+  "content_sha256": "0d1599148c34e932b537572cdf5e802ff516c85793aa65b049ed11a423772311"
 }

@@ -5,8 +5,8 @@ Repository-derived evidence only; runtime activation is not implied.
 ## Summary
 
 - Nodes: 111
-- Edges: 197
-- Code-reference edges: 63
+- Edges: 198
+- Code-reference edges: 64
 - Compose dependency edges: 134
 - Orphan nodes: 9
 - Strongly connected components: 0

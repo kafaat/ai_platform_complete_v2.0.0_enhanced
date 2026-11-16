@@ -104,9 +104,9 @@ sahool-zlmediakit-config,compose-service,1,0,False,
 sam2-inference,service,0,0,True,services/sam2-inference
 scout-ingest-service,service,1,0,False,services/scout-ingest-service
 soil-service,service,17,0,False,services/soil-service
-supervisor-agent,service,0,5,False,services/supervisor-agent
+supervisor-agent,service,0,6,False,services/supervisor-agent
 tts-service,service,0,0,True,services/tts-service
 vegetation-analysis-service,service,0,10,False,services/vegetation-analysis-service
 video-processor,service,0,1,False,services/video-processor
-weather-service,service,4,1,False,services/weather-service
+weather-service,service,5,1,False,services/weather-service
 weather-signal-engine,service,0,0,True,services/weather-signal-engine
