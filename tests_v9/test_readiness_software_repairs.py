@@ -261,6 +261,8 @@ async def test_canonical_context_is_requested_and_identity_bound(monkeypatch):
     from services.ai_agronomist import ai_evidence_runtime as runtime
 
     monkeypatch.setattr(runtime, "AGENT_TOKEN", "unit-credential")
+
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", "k" * 32)
     payload = {
         "state": {"validity": "legacy"},
         "canonical_field_state": {"schema_version": "canonical_field_state.v1", "field_id": "f1"},

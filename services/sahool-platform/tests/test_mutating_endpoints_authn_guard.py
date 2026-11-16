@@ -22,7 +22,10 @@ import api.main as m  # noqa: E402
 
 # دوالّ المصادقة المقبولة في شجرة التبعيّات (get_current_user يظهر أيضاً ضمن
 # require_permission/require_role لأنّهما يعتمدانه؛ والخدمة-لخدمة عبر service token).
-_AUTH_FNS = {"get_current_user", "_require_service_token"}
+_AUTH_FNS = {"get_current_user", "_require_service_token", "edge_sync_actor"}
+# edge_sync_actor (W0-07, api/routers/edge.py) is dual-mode: it calls _require_service_token plus
+# a tenant assertion, or get_current_user, itself rather than declaring either as a dependency.
+# Its name is accepted only because test_dual_mode_auth_functions_fail_closed proves it refuses.
 
 # نقاط مُغيِّرة عامّة صراحةً (لا تتطلّب مصادقة بحكم وظيفتها) — تُراجَع بوعي.
 # الدخول/التسجيل عامّان بالضرورة (لا يمكن المصادقة قبلهما).
@@ -57,3 +60,28 @@ def test_all_mutating_endpoints_require_auth():
     assert not unprotected, "نقاط مُغيِّرة بلا مصادقة (fail-open):\n  " + "\n  ".join(
         sorted(unprotected)
     )
+
+
+def test_dual_mode_auth_functions_fail_closed(monkeypatch):
+    """Every name in _AUTH_FNS beyond the two primitives must refuse an anonymous caller."""
+    from api.routers.edge import edge_sync_actor
+    from fastapi import HTTPException
+    from starlette.requests import Request
+
+    def request(headers):
+        raw = [(k.lower().encode(), v.encode()) for k, v in headers.items()]
+        return Request({"type": "http", "method": "POST", "path": "/v1/edge/sync", "headers": raw})
+
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "unit-service-token")
+    with pytest.raises(HTTPException) as anonymous:
+        edge_sync_actor(request({}), authorization=None)
+    assert anonymous.value.status_code == 401, anonymous.value.detail
+    with pytest.raises(HTTPException) as unsigned:
+        edge_sync_actor(request({"X-Service-Name": "edge-inference"}), authorization=None)
+    assert unsigned.value.status_code == 403, unsigned.value.detail
+    with pytest.raises(HTTPException) as token_only:
+        edge_sync_actor(
+            request({"X-Service-Name": "edge-inference", "X-Agent-Token": "unit-service-token"}),
+            authorization=None,
+        )
+    assert token_only.value.status_code in {401, 403, 503}, token_only.value.detail

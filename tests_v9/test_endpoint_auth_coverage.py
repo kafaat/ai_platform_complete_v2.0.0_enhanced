@@ -47,6 +47,11 @@ AUTH_DEPENDENCIES: frozenset[str] = frozenset(
         "require_tenant",
         "get_current_user",
         "_require_service_token",
+        # W0-07: /v1/edge/sync is dual-mode (service token + tenant assertion, or a user JWT) and
+        # calls those two primitives itself. Its refusal of an anonymous caller is proved by
+        # services/sahool-platform/tests/test_mutating_endpoints_authn_guard.py
+        # ::test_dual_mode_auth_functions_fail_closed.
+        "edge_sync_actor",
     }
 )
 

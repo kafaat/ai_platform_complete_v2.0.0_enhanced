@@ -18,6 +18,7 @@ pytestmark = pytest.mark.unit
 
 async def _record(monkeypatch, reply: dict) -> dict:
     monkeypatch.setattr(runtime, "AGENT_TOKEN", "agent-token-for-test")
+    monkeypatch.setenv("PLATFORM_TENANT_ASSERTION_KEY", "k" * 32)
     real = httpx.AsyncClient
     transport = httpx.MockTransport(lambda request: httpx.Response(200, json=reply))
     monkeypatch.setattr(runtime.httpx, "AsyncClient", lambda **kw: real(transport=transport, **kw))

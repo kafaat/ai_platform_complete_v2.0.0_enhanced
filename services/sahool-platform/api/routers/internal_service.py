@@ -6,12 +6,14 @@ routes remain service-token protected and preserve their paths/contracts.
 
 from __future__ import annotations
 
+import asyncio
+
 from core.canonical_field_state import compose_canonical_field_state
 from core.canonical_schemas import UserRole
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from api import main, soil_hydraulic_client
-from api.service_token_auth import _require_service_token
+from api.service_token_auth import _require_service_token, verify_platform_internal_tenant
 
 router = APIRouter()
 
@@ -68,6 +70,7 @@ async def internal_field_state(
         ),
     ),
     ai_context: bool = Query(False, description="Attach the platform-owned AI context and policy."),
+    request: Request = None,
     _: None = Depends(_require_service_token),
 ):
     """الحالة القانونيّة للحقل لقنوات الخدمة (supervisor→guardrails).
@@ -87,6 +90,8 @@ async def internal_field_state(
     """
     from api.field_state_projection import recompute_field_state
 
+    # W0-05 (fields-5): the shared token says "a service"; the assertion says which tenant.
+    await asyncio.to_thread(verify_platform_internal_tenant, request, tenant_id)
     try:
         async with main.tenant_connection(_ServiceUser(tenant_id)) as conn:
             await main._assert_field_in_tenant(conn, field_id)
@@ -180,9 +185,12 @@ async def internal_field_state(
 @router.post("/internal/events/ai-advice")
 async def internal_ai_advice_event(
     req: main.InternalAIAdviceEventRequest,
+    request: Request,
     _: None = Depends(_require_service_token),
 ):
     """Record evidence-only AI advice as a domain event through the platform outbox."""
+    # W0-05 (routes-5): the body's tenant_id must be the tenant the caller signed for.
+    await asyncio.to_thread(verify_platform_internal_tenant, request, req.tenant_id)
     # هويّةٌ واحدة للمسارين — والصنفُ المحلّيُّ الذي كان هنا كان بلا `role` أصلاً،
     # فحتّى لو وُجِدت `tenant_connection_for` لَسقط تمريرُه إلى `tenant_connection`.
     actor = _ServiceUser(req.tenant_id, user_id="service:ai_agronomist")

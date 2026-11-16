@@ -43,6 +43,9 @@ def main() -> int:
         src = _decorated_function_source(PLATFORM_INTERNAL, route)
         if "Depends(_require_service_token)" not in src:
             raise SystemExit(f"internal route missing service-token dependency: {route}")
+        # W0-05 (fields-5/routes-5): the shared token alone must not choose the tenant.
+        if "verify_platform_internal_tenant" not in src:
+            raise SystemExit(f"internal route missing tenant-assertion check: {route}")
         service_guard = _text(ROOT / "services/sahool-platform/api/service_token_auth.py")
         if (
             'Header(None, alias="X-Agent-Token")' not in service_guard

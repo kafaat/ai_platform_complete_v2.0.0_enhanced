@@ -27,7 +27,11 @@ ROOT = Path(__file__).resolve().parents[1]
 def owner(monkeypatch):
     monkeypatch.syspath_prepend(str(ROOT / "services/sahool-platform"))
     importlib.import_module("api.main")
-    return importlib.import_module("api.routers.internal_service")
+    module = importlib.import_module("api.routers.internal_service")
+    # W0-05: the tenant-assertion check has its own tests (test_internal_tenant_assertion_w0_05);
+    # these tests exercise what happens after it accepted the caller's tenant.
+    monkeypatch.setattr(module, "verify_platform_internal_tenant", lambda _request, tenant: tenant)
+    return module
 
 
 @pytest.mark.parametrize(
@@ -140,7 +144,7 @@ async def test_owner_rejects_cross_tenant_field_before_validation_or_event(monke
         model_output=json.dumps(document(state())),
     )
     with pytest.raises(HTTPException) as exc:
-        await module.internal_ai_advice_event(req)
+        await module.internal_ai_advice_event(req, request=None)
     assert exc.value.status_code == 404
     preview.assert_not_awaited()
     emit.assert_not_awaited()
@@ -162,7 +166,7 @@ async def test_owner_records_only_validated_receipt_not_raw_model_prose(monkeypa
     req = module.main.InternalAIAdviceEventRequest(
         tenant_id=TENANT, field_id=FIELD, question="قياسات", model_output=text
     )
-    result = await module.internal_ai_advice_event(req)
+    result = await module.internal_ai_advice_event(req, request=None)
     assert result["persisted"] is True
     assert result["advisory_validation"]["status"] == "verified"
     payload = emit.call_args.args[-1]
