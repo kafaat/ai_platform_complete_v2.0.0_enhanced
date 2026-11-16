@@ -11,6 +11,7 @@ from __future__ import annotations
 import ast
 import logging
 import os
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -49,6 +50,17 @@ def _client(relative_path: str, dependencies: dict[str, Any]) -> TestClient:
     return TestClient(app)
 
 
+def _decision_cutover_module():
+    import importlib.util
+
+    path = ROOT / "services/decision-service/cutover.py"
+    spec = importlib.util.spec_from_file_location("decision_service_cutover_readyz", path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module  # dataclasses resolve their module through sys.modules
+    spec.loader.exec_module(module)
+    return module
+
+
 def _decision_client(*, sor=True, misconfigured=False, auth_missing=False, db=None):
     probe = AsyncMock(return_value=db or {"db_reachable": True, "migrations_current": True})
     return (
@@ -61,6 +73,8 @@ def _decision_client(*, sor=True, misconfigured=False, auth_missing=False, db=No
                 "auth_token_missing_in_sor": lambda: auth_missing,
                 "strict_worker_tenants_enabled": lambda: True,
                 "LOOP_TABLES": ["decision_record"],
+                # W2-01: the real capability builder, not a stub — /readyz must serialize it.
+                "sor_capability_signal": _decision_cutover_module().sor_capability_signal,
             },
         ),
         probe,
@@ -105,6 +119,25 @@ def test_decision_explicit_mirror_does_not_require_database():
     assert response.status_code == 200
     assert response.json()["ready"] is True
     assert response.json()["mode"] == "interim-mirror"
+
+
+def test_decision_readyz_capability_hides_review_unless_persisted_and_ready():
+    """W2-01: ``sor_capability.review_available`` is the client's switch for the review queue.
+
+    It must be false in mirror mode and whenever /readyz is degraded, true only when writes
+    persist and the service is ready (the same condition under which the queue answers 200).
+    """
+    mirror, _ = _decision_client(sor=False, db={"db_reachable": None, "migrations_current": None})
+    persisted, _ = _decision_client(sor=True)
+    stale, _ = _decision_client(sor=True, db={"db_reachable": True, "migrations_current": False})
+    mirror_cap = mirror.get("/readyz").json()["sor_capability"]
+    persisted_cap = persisted.get("/readyz").json()["sor_capability"]
+    stale_cap = stale.get("/readyz").json()["sor_capability"]
+    assert mirror_cap["mode"] == "mirror", mirror_cap
+    assert mirror_cap["review_available"] is False, "mirror mode must hide the review queue"
+    assert persisted_cap["mode"] == "persisted", persisted_cap
+    assert persisted_cap["review_available"] is True, "persisted + ready must expose review"
+    assert stale_cap["review_available"] is False, "a degraded SoR must not advertise review"
 
 
 def _tts_client(redis):

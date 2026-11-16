@@ -8,7 +8,9 @@ endpoint so Sahool cannot promote decision-service to SoR merely by setting one 
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any
 
 _TRUTHY = {"1", "true", "yes", "on"}
@@ -20,6 +22,10 @@ _REQUIRED_TABLES = (
     "online_learning_updates",
     "decision_outbox_events",
 )
+
+
+MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations"
+SOR_CAPABILITY_CONTRACT = "decision-sor-capability/v1"
 
 
 def _truthy(name: str) -> bool:
@@ -101,3 +107,71 @@ def readiness_from_env() -> CutoverReadiness:
         required_tables=_REQUIRED_TABLES,
         missing_gates=missing,
     )
+
+
+def code_migration_versions() -> list[str]:
+    """Migration identifiers shipped with this image (file names only, sorted)."""
+    return sorted(path.name for path in MIGRATIONS_DIR.glob("*.sql"))
+
+
+def _migration_level(db: Mapping[str, Any]) -> dict[str, Any]:
+    code_versions = code_migration_versions()
+    known = [str(v) for v in (db.get("known_migrations") or code_versions)]
+    pending = {str(v) for v in (db.get("pending_migrations") or [])}
+    reachable = db.get("db_reachable") is True
+    applied = [v for v in known if v not in pending] if reachable else []
+    return {
+        "code_head": code_versions[-1] if code_versions else None,
+        "known_count": len(known),
+        "applied_head": applied[-1] if applied else None,
+        "pending_count": len(pending) if reachable else None,
+        "current": db.get("migrations_current"),
+    }
+
+
+def sor_capability_signal(
+    db: Mapping[str, Any],
+    *,
+    sor_enabled: bool,
+    ready: bool,
+    readiness: CutoverReadiness | None = None,
+) -> dict[str, Any]:
+    """W2-01: the SoR capability block that ``/readyz`` exposes to the BFF and to operators.
+
+    Booleans and identifiers only. It never carries a connection string, a token or an error
+    text, so it is safe on an unauthenticated probe. ``mode`` is what the runtime actually does
+    (``persisted`` once ``DECISION_SERVICE_SOR_ENABLED`` and ``DATABASE_URL`` are both set,
+    else ``mirror``). ``review_available`` is the switch a client uses to show or hide the
+    review queue: it is true only when writes persist *and* the service is ready (database
+    reachable, every migration applied), which is exactly when ``/v1/decisions/review-queue``
+    answers 200 instead of 503. The cutover gates come from :func:`readiness_from_env`, the same
+    model as ``/v1/cutover/readiness``, so the two endpoints cannot disagree.
+    ``persisted_without_verified_gates`` makes an operator shortcut visible: the flag was set
+    before the verification gates were recorded.
+    """
+    r = readiness if readiness is not None else readiness_from_env()
+    persisted = bool(sor_enabled)
+    gates = {
+        "DATABASE_URL": r.database_configured,
+        "DECISION_SERVICE_MIGRATIONS_VERIFIED": r.migrations_verified,
+        "DECISION_SERVICE_BACKFILL_VERIFIED": r.backfill_verified,
+        "DECISION_SERVICE_TENANT_ISOLATION_VERIFIED": r.tenant_isolation_verified,
+        "DECISION_SERVICE_OUTBOX_VERIFIED": r.outbox_verified,
+        "DECISION_SERVICE_STAGING_CUTOVER_APPROVED": r.staging_approved,
+    }
+    return {
+        "contract": SOR_CAPABILITY_CONTRACT,
+        "mode": "persisted" if persisted else "mirror",
+        "persisted": persisted,
+        "review_available": persisted and bool(ready),
+        "requested_sor": r.requested_sor,
+        "cutover_mode": r.mode,
+        "gates": gates,
+        "gates_complete": not r.missing_gates,
+        "missing_gates": list(r.missing_gates),
+        "production_approved": r.production_approved,
+        "can_enable_sor": r.can_enable_sor,
+        "can_demote_platform": r.can_demote_platform,
+        "persisted_without_verified_gates": persisted and bool(r.missing_gates),
+        "migration_level": _migration_level(db),
+    }
