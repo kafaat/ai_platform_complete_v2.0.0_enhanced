@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
@@ -535,3 +535,469 @@ def detect_anomalies(features: LifecycleFeatures) -> list[Anomaly]:
 
 def _now_iso() -> str:
     return datetime.now(UTC).isoformat()
+
+
+# ═══ W1-08: ميزات التقدير من الخادم (أحداث + NDVI + طقس) ═══════════════
+# الدوالّ النقيّة أوّلاً؛ قراءات القاعدة وraster والطقس في آخر القسم باستيراد كسول، فيبقى
+# ما فوقه بلا قاعدة ولا شبكة. (في هذا الملفّ لا في وحدة جديدة: ميزانية وحدات المنصّة لا تنمو.)
+#
+# W1-08 (``fields-4``/``crop-5``): كانت ميزات تقدير العائد تأتي من جسم الطلب وحده، و
+# ``build_features_from_events`` بلا مستدعٍ. هنا تُجمَع من مصادر الخادم المالكة:
+#
+#   • الأحداث المخزَّنة (جدول ``events``، مالكه هذه الخدمة) لموسم الحقل المزروع، مُترجَمةً إلى
+#     مفردات ``build_features_from_events``؛
+#   • سلسلة NDVI من واجهة raster (``raster_service_client.get_field_timeseries``)؛
+#   • الطقس التاريخيّ من مالك الطقس (``weather_service_client.get_weather_historical``)،
+#     مُتحقَّقاً منه بـ``season_simulation.canonical_historical_days``.
+#
+# قيم الطلب **تجاوزاتٌ مُعلَنة** فقط: تُسجَّل في ``declared_overrides`` مع قيمة الخادم التي
+# حلّت محلّها، ولا تختفي في الرقم.
+#
+# المبدأ: الغياب مجهول (W0-11). سجلّ ريٍّ بلا تنبيه آفة لا يرصد «صفر آفات»؛ فعدّاد الصنف
+# يبقى ``None`` ما لم يوجد حدثٌ واحد على الأقلّ من صنفه. الصفر المرصود يُعلَن تجاوزاً.
+
+# مدخلات التقدير التي يجوز للطلب تجاوزها (بإعلان).
+OVERRIDABLE_INPUTS: tuple[str, ...] = (
+    "days_in_growing",
+    "irrigation_count",
+    "moisture_stress_events",
+    "pest_alerts",
+    "fertilizer_applications",
+    "avg_ndvi_growing",
+    "drought_streak_days",
+    "rain_events",
+)
+
+# يومٌ «مطير» يقطع فترة الجفاف: هطول ≥ 5 مم (عتبة المطر الفعّال الشائعة في FAO-56).
+# ⚠ UNVALIDATED DEFAULT — needs agronomist review.
+EFFECTIVE_RAIN_MM = 5.0
+# سياسة جودة NDVI نفسها في مُركِّب الموسم التاريخيّ: الغيم المجهول ليس صفر غيم.
+NDVI_MAX_CLOUD_PCT = 30.0
+
+_MOISTURE_ALERT_TYPES = frozenset({"low_moisture", "water_stress", "drought"})
+# تنبيهٌ يرصد آفة/مرضاً فعلاً. ``disease_risk`` تنبّؤٌ طقسيّ لا رصد، فلا يُعدّ.
+_PEST_ALERT_TYPES = frozenset({"pest", "pest_detected", "pest_outbreak", "disease_detected"})
+
+SOURCE_EVENTS = "server:events"
+SOURCE_NDVI = "server:raster_ndvi"
+SOURCE_WEATHER = "server:weather_history"
+SOURCE_SEASON = "server:season_irrigation_type"
+SOURCE_OVERRIDE = "request_override"
+SOURCE_UNKNOWN = "unknown"
+
+
+@dataclass
+class SeasonWindow:
+    season_id: str
+    crop: str | None
+    sowing_date: date
+    end_date: date
+    irrigation_type: str | None
+
+
+@dataclass
+class ServerYieldEvidence:
+    features: LifecycleFeatures
+    evidence_ids: list[str] = field(default_factory=list)
+    input_sources: dict[str, str] = field(default_factory=dict)
+    declared_overrides: list[dict[str, Any]] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    window: dict[str, Any] | None = None
+
+    def response_fields(self) -> dict[str, Any]:
+        """حقول الاستجابة التي تجعل التقدير قابلاً للتتبّع: ما دخل، ومن أين، وما تُجووِز."""
+        return {
+            "evidence_ids": self.evidence_ids,
+            "input_sources": self.input_sources,
+            "declared_overrides": self.declared_overrides,
+            "evidence_window": self.window,
+            "evidence_warnings": self.warnings,
+        }
+
+
+# ─── ترجمة الأحداث المخزَّنة إلى مفردات المُستخرِج ─────────────────────
+
+
+def _payload(row: dict[str, Any]) -> dict[str, Any]:
+    p = row.get("payload")
+    if isinstance(p, str):
+        import json
+
+        try:
+            p = json.loads(p)
+        except (TypeError, ValueError):
+            p = {}
+    return p if isinstance(p, dict) else {}
+
+
+def _iso(value: Any) -> str:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
+        return datetime(value.year, value.month, value.day, tzinfo=UTC).isoformat()
+    return str(value or "")
+
+
+def normalize_stored_event(row: dict[str, Any]) -> dict[str, Any] | None:
+    """صفّ ``events`` ⇒ حدث بمفردات ``build_features_from_events``، أو None إن لم يُعنَ به.
+
+    المطر لا يُقرأ من الأحداث: مصدره الوحيد هنا تاريخ الطقس (لا عدّ مزدوج).
+    """
+    etype = str(row.get("event_type") or "").lower()
+    payload = _payload(row)
+    mapped: str | None = None
+    if etype == "operation.irrigation.completed":
+        mapped = "operation.irrigation"
+    elif etype == "operation.fertilizer.applied":
+        mapped = "operation.fertilizer"
+    elif etype == "weather.moisture.low" or "water_stress" in etype or "drought" in etype:
+        mapped = "moisture.low"
+    elif etype.startswith("pest.") or etype.startswith("disease."):
+        mapped = etype
+    elif etype == "alert.created":
+        alert_type = str(payload.get("alert_type") or "").lower()
+        if alert_type in _MOISTURE_ALERT_TYPES:
+            mapped = "moisture.low"
+        elif alert_type in _PEST_ALERT_TYPES or payload.get("pest_detected") is True:
+            mapped = "pest.alert"
+    elif etype == "lifecycle.transitioned" and payload.get("to_stage"):
+        mapped = "lifecycle.transition"
+    if mapped is None:
+        return None
+    return {
+        "event_type": mapped,
+        "timestamp": _iso(row.get("occurred_at")),
+        "payload": payload,
+        "event_id": str(row.get("event_id") or ""),
+    }
+
+
+def _category(mapped_type: str) -> str:
+    if mapped_type == "operation.irrigation":
+        return "irrigation"
+    if mapped_type == "operation.fertilizer":
+        return "fertilizer"
+    if mapped_type == "moisture.low":
+        return "moisture"
+    if mapped_type.startswith("pest.") or mapped_type.startswith("disease."):
+        return "pest"
+    return "lifecycle"
+
+
+# ─── NDVI من raster ───────────────────────────────────────────────────
+
+
+def ndvi_history_from_points(
+    points: list[dict[str, Any]], window: SeasonWindow, crop: str
+) -> tuple[list[dict[str, Any]], list[str], list[str]]:
+    """نقاط raster ⇒ تاريخ NDVI مُرحَّل (GROWING/MATURE) + معرّفات الأدلّة + تحذيرات.
+
+    المرحلة من أيّام النموّ الخضريّ للمحصول منذ البذار؛ محصولٌ بلا مدّة معروفة لا يُرحَّل
+    فلا يُستعمل NDVI (لا مرحلة مُفترَضة). نقطةٌ بلا غيم مقيس أو بغيم > 30٪ تُسقَط.
+    """
+    if not points:
+        return [], [], []
+    veg_days = vegetative_growing_days(yield_crop_key(crop))
+    if not veg_days:
+        return [], [], ["ndvi_unstaged_unknown_crop_duration"]
+    history: list[dict[str, Any]] = []
+    ids: list[str] = []
+    dropped = 0
+    for p in points:
+        day_s = str(p.get("datetime") or "")[:10]
+        try:
+            day = date.fromisoformat(day_s)
+        except ValueError:
+            continue
+        if day < window.sowing_date or day > window.end_date:
+            continue
+        mean = p.get("mean")
+        cloud = p.get("cloud_pct")
+        if mean is None or cloud is None or float(cloud) > NDVI_MAX_CLOUD_PCT:
+            dropped += 1
+            continue
+        stage = "GROWING" if (day - window.sowing_date).days <= veg_days else "MATURE"
+        history.append({"date": day_s, "ndvi_mean": float(mean), "stage": stage})
+        ids.append(f"raster:ndvi:{p.get('scene_id') or day_s}")
+    warnings = [f"ndvi_points_dropped_unqualified:{dropped}"] if dropped else []
+    return history, ids, warnings
+
+
+# ─── الطقس التاريخيّ: أمطار وفترة جفاف ─────────────────────────────────
+
+
+def weather_water_inputs(
+    rain_by_day: list[float | None] | None,
+    window_start: date,
+    irrigation_days: set[date],
+    irrigation_type: str | None,
+) -> tuple[int | None, int | None]:
+    """(rain_events, drought_streak_days) من سلسلة هطول يوميّة كاملة، أو None للمجهول.
+
+    يومٌ بهطول مجهول يجعل السلسلة غير صالحة (لا يُقرأ صفراً). فترة الجفاف = أطول تتابع
+    أيّام بلا مطر فعّال ولا ريّ مسجَّل، وتُحسب فقط إن عُرف الريّ: حقلٌ بعليّ (rainfed)،
+    أو حقلٌ مرويّ له سجلّ ريّ. حقلٌ مرويّ بلا سجلّ ريّ ⇒ الجفاف مجهول.
+    """
+    if not rain_by_day or any(v is None for v in rain_by_day):
+        return None, None
+    rain_events = sum(1 for v in rain_by_day if v is not None and v >= EFFECTIVE_RAIN_MM)
+    rainfed = (irrigation_type or "").lower() == "rainfed"
+    if not rainfed and not irrigation_days:
+        return rain_events, None
+    longest = current = 0
+    for i, v in enumerate(rain_by_day):
+        day = window_start + timedelta(days=i)
+        wet = (v is not None and v >= EFFECTIVE_RAIN_MM) or day in irrigation_days
+        current = 0 if wet else current + 1
+        longest = max(longest, current)
+    return rain_events, longest
+
+
+# ─── التجميع (نقيّ) ────────────────────────────────────────────────────
+
+
+def assemble_server_features(
+    field_id: str,
+    crop: str,
+    window: SeasonWindow | None,
+    event_rows: list[dict[str, Any]],
+    ndvi_points: list[dict[str, Any]],
+    weather_rain_mm: list[float | None] | None,
+    weather_evidence_id: str | None,
+) -> ServerYieldEvidence:
+    """يبني ``LifecycleFeatures`` من مصادر الخادم وحدها. نقيّ: لا قاعدة ولا شبكة."""
+    if window is None:
+        return ServerYieldEvidence(
+            features=LifecycleFeatures(field_id=field_id, crop=crop.lower()),
+            warnings=["no_sown_season_no_server_evidence"],
+            input_sources=dict.fromkeys(OVERRIDABLE_INPUTS, SOURCE_UNKNOWN),
+        )
+
+    mapped = [m for m in (normalize_stored_event(r) for r in event_rows) if m is not None]
+    ndvi_history, ndvi_ids, warnings = ndvi_history_from_points(ndvi_points, window, crop)
+    features = build_features_from_events(field_id, crop, mapped, ndvi_history=ndvi_history)
+
+    counts: dict[str, int] = {}
+    evidence_ids: list[str] = []
+    irrigation_days: set[date] = set()
+    for ev in mapped:
+        cat = _category(ev["event_type"])
+        counts[cat] = counts.get(cat, 0) + 1
+        if ev["event_id"]:
+            evidence_ids.append(f"event:{ev['event_id']}")
+        if cat == "irrigation" and ev["timestamp"]:
+            try:
+                irrigation_days.add(datetime.fromisoformat(ev["timestamp"]).date())
+            except ValueError:
+                pass
+
+    sources = dict.fromkeys(OVERRIDABLE_INPUTS, SOURCE_UNKNOWN)
+    # عدّاد صنفٍ بلا حدثٍ واحد منه مجهول، لا صفر: سجلّ الأحداث لا يرصد إلّا ما سُجّل.
+    for name, cat in (
+        ("pest_alerts", "pest"),
+        ("moisture_stress_events", "moisture"),
+        ("fertilizer_applications", "fertilizer"),
+    ):
+        if counts.get(cat):
+            sources[name] = SOURCE_EVENTS
+        else:
+            setattr(features, name, None)
+    rainfed = (window.irrigation_type or "").lower() == "rainfed"
+    if counts.get("irrigation"):
+        sources["irrigation_count"] = SOURCE_EVENTS
+    elif rainfed:
+        features.irrigation_count = 0  # بعليّ مُعلَن في الموسم: لا ريّ بالتعريف.
+        sources["irrigation_count"] = SOURCE_SEASON
+    else:
+        features.irrigation_count = None
+    if features.days_in_growing is not None:
+        sources["days_in_growing"] = SOURCE_EVENTS
+
+    rain_events, drought = weather_water_inputs(
+        weather_rain_mm,
+        window.sowing_date,
+        irrigation_days,
+        window.irrigation_type,
+    )
+    features.rain_events = rain_events
+    features.drought_streak_days = drought
+    if rain_events is not None:
+        sources["rain_events"] = SOURCE_WEATHER
+    if drought is not None:
+        sources["drought_streak_days"] = SOURCE_WEATHER
+    if (rain_events is not None or drought is not None) and weather_evidence_id:
+        evidence_ids.append(weather_evidence_id)
+    if weather_rain_mm is None:
+        warnings.append("weather_history_unavailable")
+
+    if features.avg_ndvi_growing is not None:
+        sources["avg_ndvi_growing"] = SOURCE_NDVI
+        evidence_ids.extend(ndvi_ids)
+    elif not ndvi_points:
+        warnings.append("ndvi_series_unavailable")
+
+    return ServerYieldEvidence(
+        features=features,
+        evidence_ids=evidence_ids,
+        input_sources=sources,
+        warnings=warnings,
+        window={
+            "season_id": window.season_id,
+            "start": window.sowing_date.isoformat(),
+            "end": window.end_date.isoformat(),
+            "irrigation_type": window.irrigation_type,
+        },
+    )
+
+
+def apply_declared_overrides(evidence: ServerYieldEvidence, overrides: dict[str, Any]) -> None:
+    """يُطبّق قيم الطلب تجاوزاتٍ مُعلَنة: كلّ تجاوز يُسجَّل مع قيمة الخادم التي استبدلها."""
+    for name in OVERRIDABLE_INPUTS:
+        if name not in overrides or overrides[name] is None:
+            continue
+        declared = overrides[name]
+        server_value = getattr(evidence.features, name)
+        evidence.declared_overrides.append(
+            {
+                "input": name,
+                "declared_value": declared,
+                "server_value": server_value,
+                "server_source": evidence.input_sources.get(name, SOURCE_UNKNOWN),
+            }
+        )
+        setattr(evidence.features, name, declared)
+        evidence.input_sources[name] = SOURCE_OVERRIDE
+
+
+# ─── التحميل (قاعدة + raster + طقس) ───────────────────────────────────
+
+
+def _season_crop(crops: Any) -> str | None:
+    if isinstance(crops, str):
+        import json
+
+        try:
+            crops = json.loads(crops)
+        except (TypeError, ValueError):
+            return None
+    if isinstance(crops, list):
+        names = [str(c).strip() for c in crops if str(c).strip()]
+        if len(names) == 1:
+            return names[0]
+    return None
+
+
+@dataclass
+class LoadedSeason:
+    """ما قُرئ من القاعدة داخل ``tenant_connection`` (RLS) قبل أيّ نداء شبكة."""
+
+    today: date
+    window: SeasonWindow | None
+    event_rows: list[dict[str, Any]]
+    location: tuple[float, float] | None
+
+
+async def load_season_and_events(conn, field_id: str, today: date | None = None) -> LoadedSeason:
+    """قراءة القاعدة (داخل ``tenant_connection`` — RLS): آخر موسم مزروع + أحداثه + الموقع."""
+    today = today or datetime.now(UTC).date()
+    srow = await conn.fetchrow(
+        "SELECT season_id, crops, sowing_date, season_end, irrigation_type "
+        "FROM seasons WHERE field_id = $1 AND sowing_date IS NOT NULL AND sowing_date <= $2 "
+        "ORDER BY sowing_date DESC, created_at DESC LIMIT 1",
+        field_id,
+        today,
+    )
+    frow = await conn.fetchrow("SELECT lat, lon FROM fields WHERE field_id = $1", field_id)
+    location = None
+    if frow is not None and frow["lat"] is not None and frow["lon"] is not None:
+        location = (float(frow["lat"]), float(frow["lon"]))
+    if srow is None:
+        return LoadedSeason(today, None, [], location)
+    end = srow["season_end"] if srow["season_end"] is not None else today
+    end = min(end, today)
+    window = SeasonWindow(
+        season_id=str(srow["season_id"]),
+        crop=_season_crop(srow["crops"]),
+        sowing_date=srow["sowing_date"],
+        end_date=end,
+        irrigation_type=srow["irrigation_type"],
+    )
+    rows = await conn.fetch(
+        """
+        SELECT event_id, event_type, payload, occurred_at
+        FROM events
+        WHERE (entity_id = $1 OR payload->>'field_id' = $1)
+          AND occurred_at >= $2::date AND occurred_at < ($3::date + 1)
+        ORDER BY occurred_at
+        LIMIT 5000
+        """,
+        field_id,
+        window.sowing_date,
+        window.end_date,
+    )
+    return LoadedSeason(today, window, [dict(r) for r in rows], location)
+
+
+async def load_ndvi_points(field_id: str, tenant_id: str) -> list[dict[str, Any]]:
+    from api.raster_service_client import get_field_timeseries
+
+    return await get_field_timeseries(field_id, tenant_id=tenant_id, index="ndvi")
+
+
+async def load_weather_rain(
+    location: tuple[float, float] | None, start: date, end: date, tenant_id: str
+) -> tuple[list[float | None] | None, str | None]:
+    """هطولٌ يوميّ مُتحقَّق من مالك الطقس للنافذة كاملةً، أو (None, None) عند التعذّر."""
+    if location is None or end < start:
+        return None, None
+    from api.season_simulation import canonical_historical_days
+    from api.weather_service_client import get_weather_historical
+
+    try:
+        archive = await get_weather_historical(
+            location[0],
+            location[1],
+            start_date=start.isoformat(),
+            end_date=end.isoformat(),
+            tenant_id=tenant_id,
+        )
+        days = canonical_historical_days(archive, start=start, end=end)
+    except Exception:  # noqa: BLE001 — تعذّر الطقس ⇒ مجهول (لا صفر مطر ولا جفاف مُفترَض)
+        logger.warning("yield: weather history unavailable", exc_info=True)
+        return None, None
+    return [d.rain_mm for d in days], f"weather:{archive.get('source_snapshot_id')}"
+
+
+async def collect_server_evidence(
+    field_id: str, overrides: dict[str, Any], loaded: LoadedSeason, tenant_id: str
+) -> ServerYieldEvidence:
+    """يجمع الأدلّة: NDVI من raster وطقس الموسم (حتّى أمس) خارج معاملة القاعدة، ثمّ التجميع
+    النقيّ، ثمّ تجاوزات الطلب المُعلَنة. لا محصول من الموسم ولا من الطلب ⇒ 422."""
+    from fastapi import HTTPException
+
+    window = loaded.window
+    declared_crop = overrides.get("crop")
+    crop = declared_crop or (window.crop if window is not None else None)
+    if not crop:
+        raise HTTPException(
+            status_code=422,
+            detail="لا محصول معروف للحقل (لا موسم مزروع بمحصول واحد ولا محصول مُعلَن في الطلب).",
+        )
+    ndvi_points: list[dict[str, Any]] = []
+    rain_mm: list[float | None] | None = None
+    weather_id: str | None = None
+    if window is not None:
+        ndvi_points = await load_ndvi_points(field_id, tenant_id)
+        weather_end = min(window.end_date, loaded.today - timedelta(days=1))
+        rain_mm, weather_id = await load_weather_rain(
+            loaded.location, window.sowing_date, weather_end, tenant_id
+        )
+    evidence = assemble_server_features(
+        field_id, crop, window, loaded.event_rows, ndvi_points, rain_mm, weather_id
+    )
+    if declared_crop and window is not None and window.crop and declared_crop != window.crop:
+        evidence.declared_overrides.append(
+            {"input": "crop", "declared_value": declared_crop, "server_value": window.crop}
+        )
+    apply_declared_overrides(evidence, overrides)
+    return evidence

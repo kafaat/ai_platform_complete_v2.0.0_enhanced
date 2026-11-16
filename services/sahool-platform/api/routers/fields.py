@@ -152,7 +152,7 @@ from api.season_models import (
 from api.spatial_sync import mark_raster_cache_stale, save_field_geometry_revision
 from api.trueup import TrueUpInput, TrueUpStatus
 from api.walk_plan_pdf import walk_plan_to_pdf_bytes
-from api.yield_heuristics import LifecycleFeatures, detect_anomalies, estimate_yield
+from api.yield_heuristics import detect_anomalies, estimate_yield
 from api.zones_kmeans import ZoneCell, delineate_zones
 
 router = APIRouter()
@@ -3555,28 +3555,25 @@ async def estimate_field_yield(
 
     W0-11: صلاحية عرض الحقل + الحقل ضمن المستأجِر (404 وإلّا) قبل أيّ حساب، وتعذّر القاعدة
     ⇒ 503 (إغلاق عند الفشل، لا تقدير لحقلٍ لم يُتحقَّق من ملكيّته). المدخلات الغائبة مجهولة،
-    وغياب أدلّة حالة المحصول كلّها ⇒ ``unavailable_insufficient_evidence`` بلا رقم.
+    وغياب أدلّة حالة المحصول كلّها ⇒ ``unavailable_insufficient_evidence`` بلا رقم. W1-08: الميزات
+    من الخادم (أحداث + NDVI + طقس) مع ``evidence_ids``؛ قيم الطلب تجاوزاتٌ مُعلَنة فقط.
     """
+    from api import yield_heuristics as ysf
+
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
+            loaded = await ysf.load_season_and_events(conn, field_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("التحقّق من الحقل لتقدير الإنتاج", e) from e
 
-    features = LifecycleFeatures(
-        field_id=field_id,
-        crop=req.crop,
-        days_in_growing=req.days_in_growing,
-        irrigation_count=req.irrigation_count,
-        moisture_stress_events=req.moisture_stress_events,
-        pest_alerts=req.pest_alerts,
-        fertilizer_applications=req.fertilizer_applications,
-        avg_ndvi_growing=req.avg_ndvi_growing,
-        drought_streak_days=req.drought_streak_days,
-        rain_events=req.rain_events,
+    # NDVI/الطقس خارج معاملة القاعدة؛ تعذّرهما ⇒ المدخل مجهول لا صفر.
+    evidence = await ysf.collect_server_evidence(
+        field_id, req.model_dump(exclude_unset=True), loaded, str(user.tenant_id)
     )
+    features = evidence.features
     est = estimate_yield(features)
     anomalies = detect_anomalies(features)
     result = {
@@ -3591,6 +3588,7 @@ async def estimate_field_yield(
         "contributors": est.contributors,
         "warnings": est.warnings,
         "missing_inputs": est.missing_inputs,
+        **evidence.response_fields(),
         "anomalies": [
             {
                 "type": a.type,
@@ -3629,6 +3627,8 @@ async def estimate_field_yield(
             "agronomic": {"operational_truths": _truths},
         }
         result["requires_review"] = field_state.get("execution_mode") != "auto"
+    if evidence.declared_overrides:  # قيمة عميلٍ حلّت محلّ دليل الخادم ⇒ مراجعة (W1-08)
+        result["requires_review"] = True
 
     return result
 
