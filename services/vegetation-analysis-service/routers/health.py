@@ -9,11 +9,11 @@
 
 from __future__ import annotations
 
+import os
+
 import main
 from fastapi import APIRouter
 from starlette.responses import Response
-
-from shared.security.service_token_status import service_token_status
 
 router = APIRouter()
 
@@ -57,7 +57,10 @@ async def readyz(http_response: Response):
             "nats": "best_effort_publish",
         },
         # W3-12: visible, not gating. Without it the verification callback answers 503.
-        "service_tokens": service_token_status(("TASK_SERVICE_CALLBACK_TOKEN",)),
+        # Booleans only, never a value; the same non-empty test the endpoint applies.
+        "service_tokens": {
+            name: bool(os.getenv(name)) for name in ("TASK_SERVICE_CALLBACK_TOKEN",)
+        },
     }
 
 
