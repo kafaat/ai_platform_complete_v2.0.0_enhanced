@@ -9,11 +9,11 @@ Repository-derived evidence only; runtime activation is not implied.
 - Code-reference edges: 65
 - Compose dependency edges: 137
 - Orphan nodes: 9
-- Strongly connected components: 1
+- Strongly connected components: 0
 
 ## Cycles
 
-- indicators-service → raster-service
+- None detected by this conservative scanner.
 
 ## Orphans
 

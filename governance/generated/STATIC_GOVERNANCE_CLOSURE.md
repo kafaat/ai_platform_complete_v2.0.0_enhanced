@@ -1,6 +1,6 @@
 # SAHOOL PATH-1 Closure — Static Architecture Governance
 
-**Final status: `OPEN`**
+**Final status: `CLOSED`**
 
 ## Closure gates
 
@@ -17,7 +17,7 @@
 | `artifact:duplicates` | **PASS** | execution-audit/generated/duplicate_definitions.json |
 | `artifact:routes` | **PASS** | execution-audit/generated/route_conflicts.json |
 | `artifact:reachability` | **PASS** | execution-audit/generated/router_reachability.json |
-| `architecture:no_cycles` | **FAIL** | cycles=1 |
+| `architecture:no_cycles` | **PASS** | cycles=0 |
 | `lineage:complete_static_chain` | **PASS** | complete=True |
 | `lineage:no_runtime_claim` | **PASS** | runtime=false, production=false |
 | `runtime_contracts:no_live_claim` | **PASS** | live=0 |
@@ -38,4 +38,4 @@ Repository-static evidence only; live stack, telemetry, database, queue, and pro
 - routers not provably reachable through static resolution
 - capabilities without full UI/mobile/runtime traceability
 
-Content SHA-256: `d97cf1cf67702c5a9464746c33e1ab4c5d3bf0316c78ee71ee8ee73946c202b5`
+Content SHA-256: `7f6428ee559d664663ea72a1006b513dce3f9ae40e741adadd63b007b83673cc`

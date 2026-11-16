@@ -11030,6 +11030,7 @@
         "services/scout-ingest-service/tests/test_ingest_live.py",
         "services/scout-ingest-service/tests/test_media_live.py",
         "tests/integration/irrigation/test_v195_postgres.py",
+        "tests_v9/test_canonical_observations_live_pg.py",
         "tests_v9/test_crop_root_policy_rls_integration.py",
         "tests_v9/test_d1_raster_queue_rls_live_pg.py",
         "tests_v9/test_d4d5_idempotency_irrigation_live_pg.py",
@@ -11213,6 +11214,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_calibration_override.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_canonical_observations_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",

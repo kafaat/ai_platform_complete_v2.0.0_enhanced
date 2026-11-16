@@ -995,6 +995,10 @@
       },
       "configuration": [
         "DATABASE_URL",
+        "INDICATORS_OBSERVATION_DRAIN_BATCH",
+        "INDICATORS_OBSERVATION_DRAIN_ENABLED",
+        "INDICATORS_OBSERVATION_DRAIN_INTERVAL_SECONDS",
+        "INDICATORS_OBSERVATION_DRAIN_TENANTS",
         "PLATFORM_API_URL",
         "RASTER_SERVICE_URL",
         "RS_OBSERVATION_POLICY_ID",
@@ -1023,22 +1027,27 @@
       "evidence_paths": {
         "configuration": [
           "services/indicators-service/main.py",
+          "services/indicators-service/observation_drain.py",
           "services/indicators-service/observation_runtime.py",
           "services/indicators-service/observation_store.py",
           "services/indicators-service/observation_timeline.py"
         ],
         "metrics": [
-          "services/indicators-service/main.py"
+          "services/indicators-service/main.py",
+          "services/indicators-service/observation_drain.py"
         ],
         "routes": [
           "services/indicators-service/main.py",
           "services/indicators-service/tests/test_indicators_service_honest_boundary.py",
+          "services/indicators-service/tests/test_observation_drain.py",
           "services/indicators-service/tests/test_observation_store.py"
         ],
         "tracing": []
       },
       "observability": {
-        "metric_names": [],
+        "metric_names": [
+          "sahool_indicators_observation_drain_total"
+        ],
         "metrics_instrumented": true,
         "trace_spans": [],
         "tracing_instrumented": false
@@ -1539,14 +1548,8 @@
         "GDAL_HTTP_TIMEOUT",
         "HISTORICAL_SEARCH_PROVIDER",
         "HTTP_TIMEOUT",
-        "INDICATORS_SERVICE_URL",
         "JOBS_DATABASE_URL",
         "LOG_LEVEL",
-        "OBSERVATION_PUSH_BACKOFF_MAX_SECONDS",
-        "OBSERVATION_PUSH_BACKOFF_SECONDS",
-        "OBSERVATION_PUSH_DRAIN_BUDGET_SECONDS",
-        "OBSERVATION_PUSH_LEASE_SECONDS",
-        "OBSERVATION_PUSH_TIMEOUT_SECONDS",
         "OBSERVATION_UNQUEUED_LIMIT",
         "OLMOEARTH_CHECKPOINT",
         "PLANETARY_COMPUTER_URL",
@@ -1565,7 +1568,6 @@
         "RASTER_LAYER_EVICT_ENABLED",
         "RASTER_MAX_READ_BAND_PIXELS",
         "RASTER_MAX_READ_DIM",
-        "RASTER_OBSERVATION_OUTBOX_DRAIN_ENABLED",
         "RASTER_PERSISTENCE_MODE",
         "RASTER_PUBLIC_PREFIX",
         "RASTER_TEMP_RETENTION_DAYS",
@@ -1679,6 +1681,7 @@
           "services/raster-service/routers/imagery_search.py",
           "services/raster-service/routers/jobs.py",
           "services/raster-service/routers/observability.py",
+          "services/raster-service/routers/observation_feed.py",
           "services/raster-service/routers/processing.py",
           "services/raster-service/routers/registry_writes.py",
           "services/raster-service/routers/soil_tiles.py",

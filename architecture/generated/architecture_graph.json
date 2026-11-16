@@ -211,8 +211,8 @@
         "services/indicators-service"
       ],
       "kind": "service",
-      "incoming": 7,
-      "outgoing": 2,
+      "incoming": 6,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -299,8 +299,8 @@
         "services/raster-service"
       ],
       "kind": "service",
-      "incoming": 8,
-      "outgoing": 3,
+      "incoming": 9,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -1087,6 +1087,12 @@
       "source": "indicators-service",
       "target": "raster-service",
       "kind": "code-reference",
+      "evidence": "services/indicators-service/observation_drain.py"
+    },
+    {
+      "source": "indicators-service",
+      "target": "raster-service",
+      "kind": "code-reference",
       "evidence": "services/indicators-service/observation_runtime.py"
     },
     {
@@ -1322,12 +1328,6 @@
       "target": "decision-service",
       "kind": "code-reference",
       "evidence": "services/raster-service/imagery_source_gate.py"
-    },
-    {
-      "source": "raster-service",
-      "target": "indicators-service",
-      "kind": "code-reference",
-      "evidence": "services/raster-service/observation_outbox.py"
     },
     {
       "source": "realtime-session",
@@ -2176,19 +2176,14 @@
       "evidence": "services/weather-service/operations.py"
     }
   ],
-  "cycles": [
-    [
-      "indicators-service",
-      "raster-service"
-    ]
-  ],
+  "cycles": [],
   "summary": {
     "nodes": 112,
     "edges": 202,
     "orphans": 9,
-    "cycles": 1,
+    "cycles": 0,
     "code_edges": 65,
     "compose_edges": 137
   },
-  "content_sha256": "10af2467edc9655557ba1d10d81fbe0b9f911425f153e67ae8c837c240d81876"
+  "content_sha256": "438b64189d9fd09a4066185d5084515cd81e0161d186e66992ad02479acfa2bd"
 }

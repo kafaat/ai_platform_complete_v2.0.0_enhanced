@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 798,
+      "evidence_count": 801,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -226,10 +226,12 @@
         "services/guardrails-engine/tiers/economic_tier.py",
         "services/indicators-service/__init__.py",
         "services/indicators-service/main.py",
+        "services/indicators-service/observation_drain.py",
         "services/indicators-service/observation_runtime.py",
         "services/indicators-service/observation_store.py",
         "services/indicators-service/observation_timeline.py",
         "services/indicators-service/tests/test_indicators_service_honest_boundary.py",
+        "services/indicators-service/tests/test_observation_drain.py",
         "services/indicators-service/tests/test_observation_runtime.py",
         "services/indicators-service/tests/test_observation_store.py",
         "services/indicators-service/tests/test_observation_timeline.py",
@@ -244,7 +246,6 @@
         "services/qdrant-seed/reindex.py",
         "services/qdrant-seed/seed.py",
         "services/rag-retrieval/main.py",
-        "services/raster-service/cache_invalidation_worker.py",
         "services/raster-service/cdse_client.py",
         "services/raster-service/cdse_diagnostics.py",
         "services/raster-service/cdse_native_product.py",
@@ -266,6 +267,7 @@
         "services/raster-service/raster_processing_runtime.py",
         "services/raster-service/routers/analysis.py",
         "services/raster-service/routers/fields.py",
+        "services/raster-service/routers/observation_feed.py",
         "services/raster-service/routers/timeseries_routes.py",
         "services/raster-service/sar_tillage_evidence.py",
         "services/raster-service/stac_search.py",
@@ -275,6 +277,7 @@
         "services/raster-service/test_field_change_alignment.py",
         "services/raster-service/test_imagery_source_gate.py",
         "services/raster-service/test_indicator_observation_bundle.py",
+        "services/raster-service/test_observation_feed.py",
         "services/raster-service/test_observation_outbox.py",
         "services/raster-service/test_polygon_mask_metadata.py",
         "services/raster-service/test_raster_publication_gate.py",
@@ -1696,7 +1699,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 395,
+      "evidence_count": 392,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1843,7 +1846,6 @@
         "services/guardrails-engine/main.py",
         "services/guardrails-engine/tiers/chemical_tier.py",
         "services/guardrails-engine/tiers/economic_tier.py",
-        "services/indicators-service/main.py",
         "services/indicators-service/observation_runtime.py",
         "services/indicators-service/tests/test_observation_store.py",
         "services/knowledge-graph/kg_store.py",
@@ -1851,7 +1853,6 @@
         "services/local-ai-rag/main.py",
         "services/qdrant-seed/reindex.py",
         "services/rag-retrieval/reindex_manifest.py",
-        "services/raster-service/cache_invalidation_worker.py",
         "services/raster-service/cloud_native_catalog.py",
         "services/raster-service/raster_scene_model.py",
         "services/raster-service/routers/cdse_tiles.py",
@@ -2075,7 +2076,6 @@
         "services/supervisor-agent/tool_contracts.py",
         "services/tts-service/critical_speech.py",
         "services/vegetation-analysis-service/decision_bridge.py",
-        "services/vegetation-analysis-service/routers/anomalies.py",
         "services/vegetation-analysis-service/test_decision_bridge_candidate.py",
         "services/vegetation-analysis-service/test_ground_verification_bridge.py",
         "services/vegetation-analysis-service/test_rs_review_hardening.py",
@@ -2658,7 +2658,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 392,
+      "evidence_count": 393,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2780,14 +2780,16 @@
         "services/field-management-service/main.py",
         "services/field-management-service/tests/test_field_management_service_contract.py",
         "services/field-management-service/tests/test_scouting_tasks_unit.py",
-        "services/indicators-service/main.py",
+        "services/indicators-service/observation_drain.py",
         "services/indicators-service/observation_store.py",
+        "services/indicators-service/tests/test_observation_drain.py",
         "services/indicators-service/tests/test_observation_store.py",
         "services/model-registry-adapter/runtime.py",
         "services/model-registry-adapter/tests/test_claim_recovery.py",
         "services/model-registry-adapter/tests/test_runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/model-registry-adapter/worker.py",
+        "services/raster-service/observation_outbox.py",
         "services/raster-service/raster_pixel_processing.py",
         "services/raster-service/routers/analysis.py",
         "services/raster-service/routers/fields.py",
@@ -2797,7 +2799,6 @@
         "services/raster-service/stac_search.py",
         "services/raster-service/stac_vrt.py",
         "services/raster-service/test_element84_vrt_defect_witnesses.py",
-        "services/raster-service/test_observation_outbox.py",
         "services/raster-service/test_quotient_index_validity.py",
         "services/raster-service/test_raster_batch_postgres_integration.py",
         "services/raster-service/test_stac_c1_processing.py",
@@ -3139,7 +3140,6 @@
         "services/model-registry-adapter/runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/qdrant-seed/reindex.py",
-        "services/raster-service/cache_invalidation_worker.py",
         "services/raster-service/cdse_native_product.py",
         "services/raster-service/follow_up_store.py",
         "services/raster-service/layer_lookup.py",
@@ -3184,9 +3184,10 @@
         "services/sahool-platform/api/learning_summary.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/offline_sync_contracts.py",
-        "services/sahool-platform/api/outcome_measurement.py"
+        "services/sahool-platform/api/outcome_measurement.py",
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
       ],
-      "source_evidence_count": 798,
+      "source_evidence_count": 801,
       "target_evidence_count": 582,
       "static_supported": true,
       "runtime_verified": false
@@ -3400,7 +3401,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 209,
-      "target_evidence_count": 395,
+      "target_evidence_count": 392,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3446,7 +3447,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 395,
+      "source_evidence_count": 392,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3639,7 +3640,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 60,
-      "target_evidence_count": 392,
+      "target_evidence_count": 393,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3649,5 +3650,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "286b04cb66c9e809371902f9b802379569f04911fd427cbf0b8b05ff0871d1a9"
+  "content_sha256": "b82e8bff7b7b1ba09452158d02530b0f0ee4c359e60c982f90a7f6ea84e62044"
 }

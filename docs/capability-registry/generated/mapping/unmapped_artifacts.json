@@ -2736,6 +2736,10 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v285_water_ledger_rain_source_reanalysis.down.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v286_canonical_observations.down.sql",
     "kind": "database"
   },
@@ -2904,6 +2908,22 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/core/offline/cache_backends.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/offline/cache_cipher.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/offline/cached_loader.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/offline/offline_read_cache.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/core/permissions/permissions.dart",
     "kind": "mobile"
   },
@@ -2981,6 +3001,10 @@
   },
   {
     "path": "mobile/sahool_app/lib/core/widgets/confirm_dialog.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/data_age_banner.dart",
     "kind": "mobile"
   },
   {
@@ -3289,6 +3313,26 @@
   },
   {
     "path": "mobile/sahool_app/lib/features/equipment/presentation/equipment_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/field_plans/data/field_plans_models.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/field_plans/data/field_plans_repository.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/field_plans/field_plans_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/field_plans/presentation/cached_read_view.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/field_plans/presentation/field_plan_screens.dart",
     "kind": "mobile"
   },
   {
@@ -4034,6 +4078,14 @@
   {
     "path": "mobile/sahool_app/test/core/local_commit_server.dart",
     "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/offline_cache_corruption_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/offline_read_cache_test.dart",
+    "kind": "tests"
   },
   {
     "path": "mobile/sahool_app/test/core/response_shape_test.dart",
@@ -5248,6 +5300,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/indicators-service/observation_drain.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/indicators-service/observation_runtime.py",
     "kind": "backend"
   },
@@ -5265,6 +5321,10 @@
   },
   {
     "path": "services/indicators-service/tests/test_indicators_service_static_route_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/indicators-service/tests/test_observation_drain.py",
     "kind": "tests"
   },
   {
@@ -5556,6 +5616,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/routers/observation_feed.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/routers/processing.py",
     "kind": "backend"
   },
@@ -5685,6 +5749,10 @@
   },
   {
     "path": "services/raster-service/test_object_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_observation_feed.py",
     "kind": "tests"
   },
   {
@@ -9716,6 +9784,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
     "kind": "tests"
   },
@@ -10688,6 +10760,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/runtime/test_compose_required_vars_doctor.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/runtime/test_phase17_runtime_bootstrap_doctor.py",
     "kind": "tests"
   },
@@ -11357,10 +11433,6 @@
   },
   {
     "path": "tests_v9/test_canonical_nutrient_ledger_contract.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_canonical_observations_live_pg.py",
     "kind": "tests"
   },
   {
@@ -12153,6 +12225,10 @@
   },
   {
     "path": "tests_v9/test_gitleaks_allowlist_scope.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_gpu_bake_matches_compose_overlay.py",
     "kind": "tests"
   },
   {
@@ -13344,6 +13420,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rs_anomaly_reservation_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_run_all_minio_health_probe.py",
     "kind": "tests"
   },
@@ -13457,6 +13537,10 @@
   },
   {
     "path": "tests_v9/test_sar_rvi.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_schema_probe_no_sigpipe.py",
     "kind": "tests"
   },
   {

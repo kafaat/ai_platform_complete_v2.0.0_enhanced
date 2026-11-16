@@ -2154,23 +2154,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "indicators-service.internal.observations",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /internal/v1/observations"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "indicators-service",
-      "producer": "indicators-service",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "knowledge-graph.edges",
       "consumers": [],
       "curated": false,
@@ -3249,6 +3232,40 @@
       ],
       "idempotency_required": false,
       "kind": "query",
+      "owner": "raster-service",
+      "producer": "raster-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "raster-service.internal.observation-outbox",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /internal/v1/observation-outbox"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "raster-service",
+      "producer": "raster-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "raster-service.internal.observation-outbox.acknowledgements",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /internal/v1/observation-outbox/acknowledgements"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
       "owner": "raster-service",
       "producer": "raster-service",
       "required_context": []
@@ -10995,40 +11012,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.phase10.learning.experiments",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /v1/phase10/learning/experiments/evaluate"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.phase10.learning.feature-schema",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /v1/phase10/learning/feature-schema"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.phase10.learning.feature-store",
       "consumers": [
         "frontend"
@@ -11064,23 +11047,6 @@
       ],
       "idempotency_required": false,
       "kind": "mixed",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.phase10.learning.online-update",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /v1/phase10/learning/online-update"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
       "required_context": []
@@ -11969,44 +11935,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.registry.data-quality-rules",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /api/v1/registry/data-quality-rules"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": [
-        "tenant"
-      ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.registry.device-types",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /api/v1/registry/device-types"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": [
-        "tenant"
-      ]
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.registry.events",
       "consumers": [
         "frontend"
@@ -12034,25 +11962,6 @@
       "derived_from": "route",
       "entrypoints": [
         "GET /api/v1/registry/indices"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": [
-        "tenant"
-      ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.registry.report-fields",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /api/v1/registry/report-fields"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -14812,7 +14721,7 @@
       "entrypoints": [
         "POST /v1/anomalies/{anomaly_ref:path}/verification-requests"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "command",
       "owner": "vegetation-analysis-service",
       "producer": "vegetation-analysis-service",
@@ -14919,7 +14828,7 @@
         "GET /v1/fields/{field_id}/signal-anomalies",
         "POST /v1/fields/{field_id}/signal-anomalies/detect"
       ],
-      "idempotency_required": true,
+      "idempotency_required": false,
       "kind": "mixed",
       "owner": "vegetation-analysis-service",
       "producer": "vegetation-analysis-service",
@@ -16776,7 +16685,6 @@
       "consumes": {
         "services": [
           "decision-service",
-          "indicators-service",
           "raster-tiler-service"
         ]
       },
@@ -17940,20 +17848,20 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 847,
+    "capabilities": 842,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
-    "capabilities_idempotent": 76,
+    "capabilities_idempotent": 74,
     "capabilities_season_scoped": 10,
-    "capabilities_tenant_scoped": 481,
+    "capabilities_tenant_scoped": 478,
     "components": 37,
     "cross_service_duplicate_method_paths": 12,
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1172,
+    "route_rows": 1167,
     "ui_waivers": 52,
-    "unique_method_path": 1051
+    "unique_method_path": 1046
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18215,7 +18123,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "b9602ff5e26f0f0ddb5bb8704b7b8c6af06de42dfeb8351e10cba6c69e6dcb6f",
+  "fingerprint": "37378e8b08c2ad4c22543d23b43f4184bcdd536c57cf1b6a6b1d3a27fc0146dd",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18269,11 +18177,11 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1084,
+      "edge_count": 1083,
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 46,
+        "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
         "READS": 584,

@@ -1,6 +1,6 @@
 # SAHOOL PATH-2 Closure — Integration and Runtime-Evidence Governance
 
-**Final status: `OPEN`**
+**Final status: `CLOSED`**
 
 ## Closure gates
 
@@ -13,7 +13,7 @@
 | `artifact:runtime_plan` | **PASS** | runtime-verification/generated/runtime_verification_summary.json |
 | `artifact:runtime_evidence` | **PASS** | runtime-verification/generated/runtime_evidence_ledger.json |
 | `artifact:certification` | **PASS** | runtime-verification/generated/runtime_certification_summary.json |
-| `path1:closed` | **FAIL** | status=OPEN |
+| `path1:closed` | **PASS** | status=CLOSED |
 | `gateway:no_hard_configuration_errors` | **PASS** | hard_errors=0 |
 | `gateway:no_runtime_or_production_claim` | **PASS** | runtime=false, production=false |
 | `events:no_cross_component_durable_collision` | **PASS** | collisions=0 |
@@ -43,4 +43,4 @@ Execute the stack and ingest plan-bound evidence; only valid evidence may change
 - tenant/RLS review candidates requiring PostgreSQL catalog proof
 - live health, readiness, metrics, queue, database, and end-to-end evidence
 
-Content SHA-256: `0608e3cc14017cdd06499c47a2602fc186f998fa5efd432927f37efe9154cfb9`
+Content SHA-256: `aa1954fdcd1ac06d69f6ce077e5994d818e8bc36e5798a498d223a710a0fef27`

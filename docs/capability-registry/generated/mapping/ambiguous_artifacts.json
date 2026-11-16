@@ -4279,7 +4279,7 @@
     "candidates": [
       {
         "capability_id": "SOIL-004",
-        "score": 11,
+        "score": 12,
         "signals": [
           "content:organic matter",
           "content:soil analysis"

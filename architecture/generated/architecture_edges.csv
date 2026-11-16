@@ -19,6 +19,7 @@ erpnext-queue-short,erpnext-backend,compose-depends-on,docker-compose.erpnext.ym
 erpnext-scheduler,erpnext-backend,compose-depends-on,docker-compose.erpnext.yml
 erpnext-websocket,erpnext-backend,compose-depends-on,docker-compose.erpnext.yml
 evidence-migrate,evidence-postgres,compose-depends-on,docker-compose.evidence-lab.yml
+indicators-service,raster-service,code-reference,services/indicators-service/observation_drain.py
 indicators-service,raster-service,code-reference,services/indicators-service/observation_runtime.py
 indicators-service,raster-service,code-reference,services/indicators-service/observation_timeline.py
 local-ai-rag,rag-retrieval,code-reference,services/local-ai-rag/main.py
@@ -59,7 +60,6 @@ platform,weather-service,code-reference,services/sahool-platform/core/capabiliti
 platform,weather-service,code-reference,services/sahool-platform/core/field_intelligence_adapters.py
 raster-service,decision-service,code-reference,services/raster-service/follow_up_runtime.py
 raster-service,decision-service,code-reference,services/raster-service/imagery_source_gate.py
-raster-service,indicators-service,code-reference,services/raster-service/observation_outbox.py
 realtime-session,platform,code-reference,services/realtime-session/realtime_session/session_runtime.py
 remote-sensing-workspace-bff,decision-service,code-reference,services/remote-sensing-workspace-bff/main.py
 remote-sensing-workspace-bff,indicators-service,code-reference,services/remote-sensing-workspace-bff/main.py
