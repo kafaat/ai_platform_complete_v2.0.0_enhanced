@@ -1,4 +1,4 @@
-"""Test four independent coverage uploads and Git-root path preservation."""
+"""Test five independent coverage uploads and Git-root path preservation."""
 
 from __future__ import annotations
 
@@ -37,9 +37,14 @@ def _upload(job):
             "coverage-decision-service.xml",
         ),
         ("integration-tests", "integration-auth", "coverage-integration-auth.xml"),
+        (
+            "decision-033-pg16-proof",
+            "decision-033-pg16",
+            "coverage-decision-033-pg16.xml",
+        ),
     ],
 )
-def test_four_separate_uploads_without_report_autodiscovery(job, flag, report):
+def test_five_separate_uploads_without_report_autodiscovery(job, flag, report):
     options = _upload(job)
     assert options["files"] == report
     assert options["flags"] == flag
@@ -73,6 +78,31 @@ def test_decision_job_aggregates_existing_real_pg_tests():
     assert any("--data-file=.coverage.decision-service" in text for text in commands)
     assert any("--rcfile=services/decision-service/.coveragerc" in text for text in commands)
     assert any("--forbid-prefix services/decision-service/tests" in text for text in commands)
+
+
+def test_live_pg16_decision_writers_upload_their_coverage():
+    """persistence.py's live writers run only in decision-033-pg16-proof (real PG16).
+
+    Without this upload Codecov sees those lines as unhit, whatever the live job proves.
+    """
+    steps = JOBS["decision-033-pg16-proof"]["steps"]
+    runs = [s.get("run") or "" for s in steps]
+    proof = next(i for i, r in enumerate(runs) if "tests/test_migration_033_pg16.py" in r)
+    export = next(i for i, r in enumerate(runs) if "-o coverage-decision-033-pg16.xml" in r)
+    guard = next(i for i, r in enumerate(runs) if "--report coverage-decision-033-pg16.xml" in r)
+    upload = next(i for i, s in enumerate(steps) if s.get("uses") == ACTION)
+    assert proof < export < guard < upload
+    assert ".coverage.decision-033-pg16" in steps[proof]["env"]["COVERAGE_FILE"]
+    words = runs[proof].split()
+    assert "--cov-report=" in words
+    assert "--cov=${{ github.workspace }}/services/decision-service" in runs[proof]
+    assert "services/decision-service/.coveragerc" in runs[proof]
+    assert not any(w.startswith("--cov-fail-under") for w in words), "no floor on live lanes"
+    assert "--data-file=.coverage.decision-033-pg16" in runs[export]
+    assert "--rcfile=services/decision-service/.coveragerc" in runs[export]
+    assert "--forbid-prefix services/decision-service/tests" in runs[guard]
+    assert "--require-file services/decision-service/persistence.py" in runs[guard]
+    assert any('"pytest-cov>=5.0.0"' in r for r in runs)
 
 
 def test_unit_reexport_is_validated_from_repo_root():
@@ -129,10 +159,17 @@ def test_live_auth_export_is_guarded_after_every_live_step():
         assert f"--require-file {required}" in runs[guard]
 
 
-def test_codecov_waits_for_four_reports_before_notifying():
+def test_codecov_waits_for_every_report_before_notifying():
     options = yaml.safe_load((ROOT / "codecov.yml").read_text(encoding="utf-8"))
-    assert options["codecov"]["notify"]["after_n_builds"] == 4
-    assert options["comment"]["after_n_builds"] == 4
+    uploads = sum(
+        1
+        for job in JOBS.values()
+        for step in job.get("steps", [])
+        if str(step.get("uses", "")).startswith("codecov/codecov-action@")
+    )
+    assert uploads == 5
+    assert options["codecov"]["notify"]["after_n_builds"] == uploads
+    assert options["comment"]["after_n_builds"] == uploads
     assert "coverage" not in options
     assert "ignore" not in options
     assert "fixes" not in options
