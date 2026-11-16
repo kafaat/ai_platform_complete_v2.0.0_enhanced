@@ -565,6 +565,10 @@ def _compose_agronomic(
         # ET0 يُمرَّر عبر CropContext (مع المحصول/العمر) فتُحسَب Kc ويُحقَن ETc = Kc·ET0.
         crop_context = None
         if crop_id is not None and days_after_planting is not None:
+            # accumulated_gdd is not passed (declared, W1-10 review): recompute runs inside the
+            # tenant connection and makes no weather-service read, so the engine's
+            # phenology_stage is the resolver's calendar fallback and says so in
+            # phenology_stage_source / phenology_stage_fallback_reason.
             crop_context = CropContext(
                 crop_id=crop_id,
                 days_after_planting=days_after_planting,

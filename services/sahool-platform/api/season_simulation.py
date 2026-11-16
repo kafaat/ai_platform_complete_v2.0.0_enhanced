@@ -26,7 +26,7 @@ api/season_simulation.py — محاكاة موسم محصوليّة صرفة (RU
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
@@ -34,7 +34,24 @@ from api.water_balance import kc_map_for_crop
 
 ENGINE_NAME = "rue-fao56"
 ENGINE_VERSION = "rue-fao56/1"
-PARAMETER_VERSION = "sahool-season-defaults/1"
+#: Version of the crop parameters below, stored on every ``season_simulation_runs`` row.
+#: Bump it whenever a value that changes a simulation result changes, and record what
+#: changed in ``PARAMETER_VERSION_HISTORY`` so rows written under an older version stay
+#: interpretable (the run table is append-only; old rows keep their old version).
+PARAMETER_VERSION = "sahool-season-defaults/2"
+PARAMETER_VERSION_HISTORY: dict[str, dict] = {
+    "sahool-season-defaults/1": {
+        "wheat": {"t_base_c": 0.0, "gdd_to_maturity": 1800.0},
+        "note": "module literals; wheat maturity disagreed with the crop card (2000)",
+    },
+    "sahool-season-defaults/2": {
+        "wheat": {"t_base_c": 0.0, "gdd_to_maturity": 2000.0},
+        "note": (
+            "crop-4: wheat t_base_c and gdd_to_maturity read from the crop card "
+            "(core/crop_cards/wheat.yaml thermal.*); other crops unchanged from /1"
+        ),
+    },
+}
 
 # ─── معرفة المحاصيل (معاملات نموذجيّة إرشاديّة) ───────────────────
 # المصادر: FAO-56 (Kc, طول المراحل)، Monteith 1977 / Sinclair & Muchow 1999
@@ -55,6 +72,7 @@ class CropParams:
 
 # ملاحظة: الأسماء بالعربيّة والإنجليزيّة معاً (الواجهة قد ترسل أيّاً منهما).
 _CROP_PARAMS: dict[str, CropParams] = {
+    # wheat: t_base_c/gdd_to_maturity are replaced from the crop card at load (crop-4).
     "wheat": CropParams(0.0, 30.0, 1800.0, 1.40, 0.42, 5.5, 0.55),
     "barley": CropParams(0.0, 30.0, 1600.0, 1.35, 0.45, 5.0, 0.55),
     "maize": CropParams(8.0, 34.0, 1500.0, 1.70, 0.50, 5.0, 0.55),
@@ -65,6 +83,26 @@ _CROP_PARAMS: dict[str, CropParams] = {
     "onion": CropParams(4.0, 30.0, 1700.0, 1.20, 0.55, 3.0, 0.50),
     "alfalfa": CropParams(5.0, 32.0, 900.0, 1.50, 0.50, 5.0, 0.60),
 }
+
+#: crop-4: المحاصيل التي يُقرأ أساسُ GDD وGDD نضجها من بطاقة المحصول — المصدر الواحد الذي
+#: تقرؤه ``core.gdd_phenology`` (عتبات المراحل) و``api.gdd_tracker``. كان نضج القمح 1800 هنا
+#: و1600 في المتتبّع و2000 في البطاقة. السقف (t_cap_c) يبقى من هذا النموذج: البطاقة لا تحمله.
+CARD_THERMAL_CROPS = frozenset({"wheat"})
+
+
+def _apply_card_thermal() -> None:
+    from core.gdd_phenology import gdd_base_c, gdd_to_maturity
+
+    for crop in CARD_THERMAL_CROPS:
+        base, maturity = gdd_base_c(crop), gdd_to_maturity(crop)
+        if base is None or maturity is None:
+            raise RuntimeError(f"crop card for {crop} lacks thermal.gdd_base_c/gdd_to_maturity")
+        _CROP_PARAMS[crop] = replace(
+            _CROP_PARAMS[crop], t_base_c=float(base), gdd_to_maturity=maturity
+        )
+
+
+_apply_card_thermal()
 
 # مرادفات عربيّة → مفتاح إنجليزي (احتياط محلّيّ؛ المحلِّل المشترك resolve_crop_id أوّلاً).
 # «ذرة» مفردةً = sorghum (القرار الموحَّد في core/season_phenology.py) — كانت هنا maize.

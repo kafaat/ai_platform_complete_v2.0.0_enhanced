@@ -42,18 +42,21 @@ def _growth_stage(days_since_sowing: int | None) -> str | None:
     return "late"
 
 
-def _season_stage(crop: str | None, age: int) -> str | None:
-    """مرحلة الموسم: من بطاقة المحصول، أو تقدير الأيّام العامّ لمحصول **معروف** فقط.
+def _season_stage(crop: str | None, age: int, accumulated_gdd: float | None = None) -> str | None:
+    """مرحلة الموسم من المحلِّل الواحد ``core.gdd_phenology.phenology_progress`` (W1-10).
 
-    محصول غير مُعرَّف ⇒ None: حدود الأيّام العامّة لا تخصّه، والمرحلة المُختلَقة تقود
-    Kc/التسميد المرحليّ. البطاقة المعروفة بلا مرحلة جارية ⇒ تقدير عامّ (السلوك السابق).
+    حراريّة حين يُمرَّر GDD متراكم وتنطبق البطاقة، وإلّا تقويميّة من أيّام البطاقة (الاحتياط
+    المُعلَن نفسه الذي تقرؤه حالة الموسم و/phenology). محصول غير مُعرَّف ⇒ None: حدود الأيّام
+    العامّة لا تخصّه، والمرحلة المُختلَقة تقود Kc/التسميد المرحليّ. البطاقة المعروفة بلا مرحلة
+    جارية ⇒ تقدير عامّ (السلوك السابق).
     """
-    from core.season_phenology import current_stage, resolve_crop_id
+    from core.gdd_phenology import phenology_progress
+    from core.season_phenology import resolve_crop_id
 
     crop_id = resolve_crop_id(crop)
-    phase = current_stage(crop_id, age) if age >= 0 else None
-    if phase:
-        return phase["stage"]
+    resolved = phenology_progress(crop_id, age, accumulated_gdd) if age >= 0 else {}
+    if resolved.get("stage"):
+        return resolved["stage"]
     return _growth_stage(age) if crop_id else None
 
 
@@ -162,6 +165,10 @@ async def _field_season_context(conn, field_id: str):
             crop = str(crops[0])
         sowing_date = season["sowing_date"]
         if sowing_date is not None:
+            # No GDD here (declared, W1-10 review): this runs inside the tenant connection, and
+            # the thermal sum is a weather-service read that the season-state route makes only
+            # after releasing its connection. The stage is therefore the resolver's calendar
+            # fallback; the season state (/seasons/{sid}/state) carries the thermal stage.
             stage = _season_stage(crop, (date.today() - sowing_date).days)
     lat = float(row["lat"]) if row["lat"] is not None else None
     lon = float(row["lon"]) if row["lon"] is not None else None

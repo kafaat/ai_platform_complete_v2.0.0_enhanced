@@ -84,6 +84,8 @@ class CropContext:
 
     crop_id: str | None = None
     days_after_planting: int | None = None
+    # GDD متراكم من محرّك الطقس (W1-10): يجعل مرحلة المحلِّل الواحد حراريّة لا تقويميّة.
+    accumulated_gdd: float | None = None
     ndvi_series: list | None = None  # [(day_of_year, ndvi), ...] لمرحلة النمو
     et0_mm: float | None = None  # Bundle D: ET0 المرجعيّ (mm) لحقن ETc الكنسيّ = Kc·ET0
     star_id: str | None = None  # نوء حالي (التقويم النجمي)
@@ -530,6 +532,19 @@ def _wire_phenology_and_calendar(state, truths, ctx, prov):
                 prov.append({"source": "ndvi_phenology", "contributes_to": "growth_stage"})
         except Exception as e:  # noqa: BLE001
             state.contradictions.append(f"detect_growth_stage تعذّر: {e}")
+
+    # ①-ب المرحلة الطوريّة من المحلِّل الواحد (W1-10) — نفس ما تقرؤه حالة الموسم و/phenology:
+    # حراريّة حين يُمرَّر GDD متراكم، وإلّا تقويميّة مُعلَنة بسببها. لا تستبدل growth_stage
+    # المرصودة من NDVI؛ تُضاف بمصدرها فيرى المستهلك أيّهما يقرأ.
+    if ctx.crop_id and ctx.days_after_planting is not None:
+        from core.gdd_phenology import phenology_progress
+
+        resolved = phenology_progress(ctx.crop_id, ctx.days_after_planting, ctx.accumulated_gdd)
+        if resolved.get("stage"):
+            truths["phenology_stage"] = resolved["stage"]
+            truths["phenology_stage_source"] = resolved["stage_source"]
+            truths["phenology_stage_fallback_reason"] = resolved["stage_fallback_reason"]
+            prov.append({"source": "gdd_phenology", "contributes_to": "phenology_stage"})
 
     # ② Kc/المرحلة من عمر المحصول (الجانب البيولوجي الثابت — FAO-56)
     if ctx.crop_id and ctx.days_after_planting is not None:
