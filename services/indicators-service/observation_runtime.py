@@ -2,8 +2,9 @@
 
 RS-3 shadow runtime: raster-service remains the pixel/COG owner. This module
 converts its validated observation bundle into immutable canonical observations
-without recomputing band math. It is deliberately stateless; durable persistence
-and NATS consumption can be introduced after parity certification.
+without recomputing band math. It is stateless; durable persistence is
+``observation_store`` (W1-11, v286): raster-service pushes each published asset over
+HTTP and the read routes project stored rows through this same converter.
 """
 
 from __future__ import annotations
@@ -79,10 +80,16 @@ def _algorithm_version(product: dict[str, Any]) -> str:
 
 
 def canonicalize_bundle(
-    *, bundle: dict[str, Any], tenant_id: UUID, season_id: str
+    *,
+    bundle: dict[str, Any],
+    tenant_id: UUID,
+    season_id: str,
+    published_at: datetime | None = None,
 ) -> list[CanonicalObservationV1]:
+    """``published_at``: the stored publication time of a persisted observation (W1-11);
+    a live bundle read is observed and published now."""
     field_id = str(bundle["field_id"])
-    now = datetime.now(UTC)
+    now = published_at or datetime.now(UTC)
     output: list[CanonicalObservationV1] = []
     for indicator_code, item in (bundle.get("observations") or {}).items():
         stats = item.get("stats") or {}

@@ -1,9 +1,10 @@
 """Canonical observation timeline and supersession projection (RS-4).
 
-This module remains a read adapter over raster-service until durable observation
-persistence lands. It never computes spectral pixels; it converts real raster
-series points into canonical timeline entries and marks older entries as
-superseded by the latest valid observation for the same indicator.
+Stored canonical observations (W1-11, ``observation_store``) serve the season window
+when the store has them; otherwise this module reads raster-service as before, and
+says so. It never computes spectral pixels; it converts real series points into
+canonical timeline entries and marks older entries as superseded by the latest valid
+observation for the same indicator.
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
@@ -42,6 +44,14 @@ RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-servi
 )
 RASTER_SERVICE_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN") or os.getenv("RASTER_SERVICE_TOKEN", "")
 TIMELINE_POLICY_ID = os.getenv("RS_TIMELINE_POLICY_ID", "NDVI_TIMELINE_REAL_ONLY_V1")
+
+
+#: Which path served an indicator (W1-11): the stored canonical observations, or the declared
+#: fallback that recomputes them from raster-service.
+SOURCE_STORE = "canonical_store"
+SOURCE_FALLBACK = "raster_computed_fallback"
+
+StoredPoints = Callable[[str, datetime, datetime], Awaitable[list[dict[str, Any]] | None]]
 
 
 class TimelineSourceError(RuntimeError):
@@ -237,7 +247,13 @@ async def fetch_canonical_timeline(
     season_id: str,
     indicators: list[str],
     authorization: str | None = None,
+    stored_points: StoredPoints | None = None,
+    sources: dict[str, str] | None = None,
 ) -> list[CanonicalObservationV1]:
+    """``stored_points(indicator, start, end)`` (W1-11) returns the stored observations of the
+    season window as timeseries points, or ``None``/empty when the store has none; the raster
+    timeseries is then the declared fallback. ``sources`` records which one served each indicator.
+    """
     if not RASTER_SERVICE_TOKEN:
         raise RuntimeError("RASTER_SERVICE_TOKEN/SAHOOL_AGENT_TOKEN is required")
     if not authorization:
@@ -271,6 +287,23 @@ async def fetch_canonical_timeline(
         if end < start:
             raise TimelineSourceError(409, "canonical_season_window_invalid")
         for indicator in indicators:
+            if stored_points is not None:
+                stored = await stored_points(indicator, start, end)
+                if stored:
+                    if sources is not None:
+                        sources[indicator] = SOURCE_STORE
+                    output.extend(
+                        canonicalize_timeseries(
+                            field_id=field_id,
+                            tenant_id=tenant_id,
+                            season_id=season_id,
+                            indicator_code=indicator,
+                            points=stored,
+                        )
+                    )
+                    continue
+            if sources is not None:
+                sources[indicator] = SOURCE_FALLBACK
             response = await client.get(
                 f"{RASTER_SERVICE_URL}/v1/fields/{quote(field_id, safe='')}/timeseries",
                 params={"index": indicator},

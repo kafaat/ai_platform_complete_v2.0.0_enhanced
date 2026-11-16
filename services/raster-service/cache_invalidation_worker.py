@@ -382,6 +382,7 @@ async def loop_worker() -> None:
             processed = await run_once(pool)
             hb.mark_poll(processed)
             hb.write()
+            await _drain_observation_outbox(pool)
         except Exception as e:  # noqa: BLE001 — القاعدة قد تتأخّر عند الإقلاع؛ نُسجّل الفشل بالنبضة
             hb.mark_error(str(e))
             hb.write()
@@ -403,6 +404,19 @@ async def loop_worker() -> None:
         await asyncio.sleep(WORKER_POLL_SECONDS)
 
 
+async def _drain_observation_outbox(pool: asyncpg.Pool) -> int:
+    """W1-11: re-send published observations whose push to indicators-service is pending
+    (``observation_outbox``). Its own failure never stops the invalidation loop; the rows
+    stay pending and the next cycle tries again."""
+    try:
+        import observation_outbox
+
+        return await observation_outbox.drain_once(pool)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("observation outbox drain skipped: %s", e)
+        return 0
+
+
 def main_cli(argv: list[str] | None = None) -> None:
     logging.basicConfig(
         level=os.getenv("LOG_LEVEL", "INFO"),
@@ -418,6 +432,8 @@ def main_cli(argv: list[str] | None = None) -> None:
             try:
                 n = await run_once(pool)
                 logger.info("processed %s invalidations", n)
+                sent = await _drain_observation_outbox(pool)
+                logger.info("delivered %s pending canonical observations", sent)
             finally:
                 await pool.close()
 

@@ -4799,3 +4799,13 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 **السبب:** تعدّد الدامجين على رأسٍ متحرّك كان يُبطل اختبار الرأس قبل الدمج ويُكرّر التحديث المولَّد. بتفويض المالك («قوم بعمل ماتراه مناسب مع دمج الفروع الناجحة») صار المستشفى الدامجَ الوحيد برأس الطابور و`expectedHeadSha`، وتجمع الحاملات الفروعَ الخضراء بلا rebase فيبقى تاريخ كلّ PR وتُغلق الأصول بإشارة. وقاعدة المالك «لا تدمج PR قبل نجاح اختبارات رأسه الحالي» تسري على كلّ حامل.
 **المرجع:** #1418 (`7ad892afa`)، #1421 (`a8629499c`)، #1438 (`53f8c01fe`)، #1439 (`9b50df12b`) · [السجل](../log.md).
 
+
+## 2026-11-16 — W1-11: indicators-service يملك سجلّ الملاحظات القانونيّة الإلحاقيّ، وraster-service يدفع إليه عبر HTTP
+
+- **القرار (المالك، 2026-11-16):** جدول `canonical_observations` (v286) يملكه indicators-service وحده: إلحاقيّ فقط (مشغّلات ترفض UPDATE/DELETE/TRUNCATE بـ55000 حتّى للمالك)، وRLS بـENABLE+FORCE على `app.current_tenant` مع WITH CHECK. raster-service يدفع كلّ أصلٍ منشور إلى `POST /internal/v1/observations` (توكن الخدمة + `X-Tenant-Id` يطابق الجسم) عبر HTTP لا NATS، ولا يكتب الجدول. الهويّة هي المعرّف الثابت القائم `_stable_id("ast", tenant, field, scene, indicator, acquired)` في `observation_runtime.py`: المحتوى نفسه ⇒ 200 إعادة، ومحتوى آخر بالمعرّف نفسه ⇒ 409 ولا يُخزَّن شيء. بيانات التسليم (`data_available_at` و`processing_job_id` و`cog_uri`) خارج بصمة المحتوى، فإعادة كتابة COG للمشهد نفسه إعادةٌ لا تعارض، والتسليم الأوّل هو المحفوظ.
+- **ولا يضيع دفعٌ فاشل:** `raster_observation_outbox` (v286، مالكه raster-service) يُكتب قبل الدفع، والصفّ المعلَّق يُعيد إرساله عامل إبطال الكاش (`observation_outbox.drain_once`) بتراجعٍ أُسّيّ محدود. 409 و400/403/422 نهائيّة ومُسجَّلة على الصفّ.
+- **القراءة:** `/observations` و`/observation-timeline` تقرآن الجدول حين تكون فيه صفوف متّسقة، والمسار المحسوب من raster-service احتياطٌ مُعلَن (`observation_source` / `observation_sources`).
+- **مقدّمة حارسٍ تغيّرت لا حارسٌ خُفِّف:** `indicators_container_contract_guard.py` كان يمنع asyncpg وDATABASE_URL لأنّ الخدمة لا تملك جدولاً؛ صار يسمح بهما **ويشترط** أن يستورد asyncpg `observation_store.py` وحده وأن يربط compose القاعدةَ (DATABASE_URL وsahool-postgres وsahool-migrate). Redis وNATS ما زالا ممنوعين.
+- **الرقم:** v286 (v285 تأخذه مجموعة موازية لـ`water_ledger.rain_source`).
+- **حدود مُعلَنة:** لا تعبئة رجعيّة للأصول المنشورة قبل النشر؛ وحقلٌ له صفوفٌ في الجدول يُقرأ منها وحدها في نافذة موسمه. `zonal_stats` (`data-5`) خارج هذا البند.
+- **المصدر:** `migrations/v286_canonical_observations.sql` · `services/indicators-service/observation_store.py` · `services/raster-service/observation_outbox.py` · `tests_v9/test_canonical_observations_live_pg.py` (خطوة CI مُعتمَدة `CANONICAL_OBSERVATIONS_CERTIFICATION_REQUIRED`).

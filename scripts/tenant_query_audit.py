@@ -129,6 +129,13 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
     "services/raster-service/cache_invalidation_worker.py::raster_cache_invalidations": (
         "background invalidation queue consumer (JOBS role); claims by id via FOR UPDATE SKIP LOCKED"
     ),
+    # W1-11: مُفرِغ outbox دفع الملاحظات القانونيّة (يعمل في عامل إبطال الكاش بدور JOBS):
+    # يطالب صفوف raster_observation_outbox المعلّقة عابرةً للمستأجِرين (FOR UPDATE SKIP LOCKED)
+    # ويمدّ next_attempt_at بإجارة بـid. تسجيلُ النتيجة يضبط app.current_tenant tx-locally
+    # ويفلتر بـtenant_id الصفّ نفسِه، والدفعُ يحمل tenant_id الصفّ إلى indicators-service.
+    "services/raster-service/observation_outbox.py::raster_observation_outbox": (
+        "observation outbox drain (JOBS role): claims pending rows cross-tenant via FOR UPDATE SKIP LOCKED, leases by id; outcome written under the row's tenant GUC"
+    ),
     # عامل فحص backfill (v5/v6): يطالب backfill_runs العابر بدور JOBS (FOR UPDATE SKIP
     # LOCKED) ويُحدّثه بـid؛ كتابة backfill_run_items لكلّ مستأجِر تضبط app.current_tenant
     # tx-locally قبلها (RLS-scoped)؛ preflight على raster_assets بفلتر tenant_id صريح.

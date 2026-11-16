@@ -1,0 +1,346 @@
+"""Canonical observation store (W1-11, owner decision 2026-11-16).
+
+indicators-service owns ``canonical_observations`` (migrations/v286): one append-only row per
+raster asset that raster-service published. raster-service pushes it over HTTP
+(``POST /internal/v1/observations``) and never writes the table itself.
+
+Identity: ``observation_id`` is the asset stable id the canonical contract already uses,
+``_stable_id("ast", tenant, field, scene, indicator, acquired)`` from ``observation_runtime``.
+Content: ``payload_sha256`` over the observation's content, without the delivery metadata
+(``DELIVERY_FIELDS``) that changes when the same COG is rewritten. Same id and same content is a
+replay; same id and other content is a conflict and nothing is stored.
+
+Numbers stay numbers: the payload is validated with strict, finite floats (decimal text such as
+``"0.61"`` is refused) and lands in NUMERIC columns and JSON numbers. That keeps gap
+CANONICAL-DECIMAL-ARRIVES-AS-TEXT-AND-DROPS-NDVI-01 closed on this path.
+
+Reads return ``None`` when the store is not configured or not reachable, so the routes can fall
+back to their declared computed path; writes fail closed (the route answers 503 and the raster
+outbox retries).
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import logging
+import os
+from datetime import UTC, datetime
+from typing import Annotated, Any, Literal
+from uuid import UUID
+
+from observation_runtime import _stable_id
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+logger = logging.getLogger("indicators-service.observation_store")
+
+SCHEMA_VERSION = "sahool.published_observation/1"
+#: Fields that describe this delivery of the asset, not the observation: a re-run of the same scene
+#: rewrites the COG (new uri, new availability time, new job) without changing what was observed.
+DELIVERY_FIELDS = frozenset({"data_available_at", "processing_job_id", "cog_uri"})
+
+_Number = Annotated[float, Field(strict=True, allow_inf_nan=False)]
+_Ratio = Annotated[float, Field(strict=True, allow_inf_nan=False, ge=0, le=1)]
+
+
+class ObservationStatsV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    mean: _Number
+    median: _Number | None = None
+    p10: _Number | None = None
+    p90: _Number | None = None
+    std: _Number | None = None
+    min: _Number | None = None
+    max: _Number | None = None
+
+
+class PublishedObservationV1(BaseModel):
+    """What raster-service sends for one published asset (``raster_observation_outbox.payload``)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal["sahool.published_observation/1"] = SCHEMA_VERSION
+    tenant_id: UUID
+    field_id: str = Field(pattern=r"^[A-Za-z0-9_-]{1,50}$")
+    indicator: str = Field(pattern=r"^[a-z0-9_]{1,32}$")
+    scene_id: str = Field(min_length=1, max_length=256)
+    acquired_at: datetime
+    stats: ObservationStatsV1
+    valid_pixel_ratio: _Ratio | None = None
+    coverage_ratio: _Ratio | None = None
+    cloud_pct: Annotated[float, Field(strict=True, allow_inf_nan=False, ge=0, le=100)] | None = None
+    quality_score: _Number | None = None
+    quality_gate_passed: Annotated[bool, Field(strict=True)]
+    index_quality_flags: tuple[str, ...] = ()
+    algorithm_version: str | None = Field(default=None, max_length=128)
+    qa_mask_version: str | None = Field(default=None, max_length=128)
+    product_identity_key: str | None = Field(default=None, max_length=512)
+    geometry_revision: Annotated[int, Field(strict=True)] | None = None
+    # delivery metadata — stored with the first delivery, outside the content hash
+    data_available_at: datetime | None = None
+    processing_job_id: str | None = Field(default=None, max_length=256)
+    cog_uri: str | None = Field(default=None, max_length=2048)
+
+    @field_validator("acquired_at", "data_available_at")
+    @classmethod
+    def _aware_utc(cls, value: datetime | None) -> datetime | None:
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            raise ValueError("timestamps must carry a timezone")
+        return value.astimezone(UTC)
+
+    @field_validator("scene_id")
+    @classmethod
+    def _scene_not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("scene_id must not be blank")
+        return value
+
+    def observation_id(self) -> str:
+        """The asset stable id ``canonicalize_bundle`` derives for the same observation."""
+        return _stable_id(
+            "ast",
+            self.tenant_id,
+            self.field_id,
+            self.scene_id,
+            self.indicator,
+            self.acquired_at.isoformat(),
+        )
+
+    def stored_payload(self) -> dict[str, Any]:
+        return self.model_dump(mode="json")
+
+    def content_sha256(self) -> str:
+        content = self.model_dump(mode="json", exclude=set(DELIVERY_FIELDS))
+        encoded = json.dumps(content, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        return hashlib.sha256(encoded.encode()).hexdigest()
+
+
+class StoreUnavailable(RuntimeError):
+    """The store is not configured or not reachable; writes must fail closed."""
+
+
+def _dsn() -> str:
+    return os.getenv("DATABASE_URL", "")
+
+
+def configured() -> bool:
+    return bool(_dsn())
+
+
+async def _connect():
+    dsn = _dsn()
+    if not dsn:
+        raise StoreUnavailable("DATABASE_URL is not configured")
+    try:
+        import asyncpg
+    except ImportError as exc:  # pragma: no cover — the image installs it
+        raise StoreUnavailable("asyncpg is not installed") from exc
+    try:
+        return await asyncpg.connect(dsn, statement_cache_size=0, timeout=5)
+    except Exception as exc:  # noqa: BLE001 — any connect failure is "unavailable"
+        raise StoreUnavailable(f"store unreachable: {type(exc).__name__}") from exc
+
+
+_INSERT = """
+    INSERT INTO canonical_observations (
+        tenant_id, observation_id, field_id, indicator_code, scene_id, acquired_at,
+        mean, valid_pixel_ratio, coverage_ratio, cloud_pct, quality_gate_passed,
+        algorithm_version, qa_mask_version, product_identity_key, payload, payload_sha256
+    ) VALUES (
+        $1::uuid, $2, $3, $4, $5, $6,
+        $7::numeric, $8::numeric, $9::numeric, $10::numeric, $11,
+        $12, $13, $14, $15::jsonb, $16
+    )
+    ON CONFLICT (tenant_id, observation_id) DO NOTHING
+    RETURNING published_at
+"""
+
+_SELECT_ONE = """
+    SELECT payload_sha256, published_at FROM canonical_observations
+    WHERE tenant_id = $1::uuid AND observation_id = $2
+"""
+
+
+async def insert_observation(record: PublishedObservationV1) -> dict[str, Any]:
+    """Insert one observation idempotently.
+
+    Returns ``{"status": "created"|"replayed"|"conflict", "observation_id", "payload_sha256",
+    "stored_payload_sha256", "published_at"}``. Raises ``StoreUnavailable`` when it cannot answer.
+    """
+    observation_id = record.observation_id()
+    digest = record.content_sha256()
+    payload = record.stored_payload()
+    tenant = str(record.tenant_id)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant)
+            row = await conn.fetchrow(
+                _INSERT,
+                tenant,
+                observation_id,
+                record.field_id,
+                record.indicator,
+                record.scene_id,
+                record.acquired_at,
+                str(record.stats.mean),
+                _num(record.valid_pixel_ratio),
+                _num(record.coverage_ratio),
+                _num(record.cloud_pct),
+                record.quality_gate_passed,
+                record.algorithm_version,
+                record.qa_mask_version,
+                record.product_identity_key,
+                json.dumps(payload, sort_keys=True, allow_nan=False),
+                digest,
+            )
+            if row is not None:
+                return {
+                    "status": "created",
+                    "observation_id": observation_id,
+                    "payload_sha256": digest,
+                    "stored_payload_sha256": digest,
+                    "published_at": row["published_at"],
+                }
+            existing = await conn.fetchrow(_SELECT_ONE, tenant, observation_id)
+    except StoreUnavailable:
+        raise
+    except Exception as exc:  # noqa: BLE001 — a failed write is never reported as stored
+        raise StoreUnavailable(f"store write failed: {type(exc).__name__}") from exc
+    finally:
+        await conn.close()
+    if existing is None:  # the conflicting row is not visible to this tenant: never claim a replay
+        raise StoreUnavailable("conflicting row not visible under the tenant")
+    stored = existing["payload_sha256"]
+    return {
+        "status": "replayed" if stored == digest else "conflict",
+        "observation_id": observation_id,
+        "payload_sha256": digest,
+        "stored_payload_sha256": stored,
+        "published_at": existing["published_at"],
+    }
+
+
+def _num(value: float | None) -> str | None:
+    return None if value is None else str(value)
+
+
+def _row(record: Any) -> dict[str, Any]:
+    out = dict(record)
+    payload = out.get("payload")
+    if isinstance(payload, (bytes, bytearray)):
+        payload = payload.decode()
+    if isinstance(payload, str):
+        payload = json.loads(payload)
+    out["payload"] = payload
+    return out
+
+
+_LATEST = """
+    SELECT DISTINCT ON (indicator_code)
+           observation_id, indicator_code, scene_id, acquired_at, payload, published_at
+    FROM canonical_observations
+    WHERE tenant_id = $1::uuid AND field_id = $2 AND indicator_code = ANY($3::text[])
+      AND quality_gate_passed
+    ORDER BY indicator_code, acquired_at DESC, published_at DESC
+"""
+
+_BETWEEN = """
+    SELECT observation_id, indicator_code, scene_id, acquired_at, payload, published_at
+    FROM canonical_observations
+    WHERE tenant_id = $1::uuid AND field_id = $2 AND indicator_code = $3
+      AND acquired_at >= $4 AND acquired_at < $5
+    ORDER BY acquired_at, published_at
+"""
+
+
+async def _read(sql: str, tenant_id: UUID, *args: Any) -> list[dict[str, Any]] | None:
+    if not configured():
+        return None
+    try:
+        conn = await _connect()
+    except StoreUnavailable as exc:
+        logger.warning("canonical observation store unavailable for read: %s", exc)
+        return None
+    try:
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
+            rows = await conn.fetch(sql, str(tenant_id), *args)
+        return [_row(r) for r in rows]
+    except Exception as exc:  # noqa: BLE001 — the read path declares its fallback
+        logger.warning("canonical observation store read failed: %s", type(exc).__name__)
+        return None
+    finally:
+        await conn.close()
+
+
+async def latest_observations(
+    *, tenant_id: UUID, field_id: str, indicators: list[str]
+) -> list[dict[str, Any]] | None:
+    """Latest quality-passed stored row per indicator; ``None`` when the store cannot answer."""
+    return await _read(_LATEST, tenant_id, field_id, list(indicators))
+
+
+async def observations_between(
+    *, tenant_id: UUID, field_id: str, indicator: str, start: datetime, end: datetime
+) -> list[dict[str, Any]] | None:
+    """Every stored row of one indicator acquired in ``[start, end)``; ``None`` when unavailable."""
+    return await _read(_BETWEEN, tenant_id, field_id, indicator, start, end)
+
+
+# ── projections onto the existing canonical converters ──────────────────────────────────────
+def bundle_item(row: dict[str, Any]) -> dict[str, Any]:
+    """The stored payload as the raster bundle item ``canonicalize_bundle`` reads."""
+    p = row["payload"]
+    acquired = p["acquired_at"]
+    product: dict[str, Any] = {
+        "source": "raster-service",
+        "estimated": False,
+        "real_data": True,
+        "quality_gate_passed": p.get("quality_gate_passed") is True,
+        "quality_score": p.get("quality_score"),
+        "valid_pixel_ratio": p.get("valid_pixel_ratio"),
+        "data_available_at": p.get("data_available_at"),
+        "provenance": {
+            "scene_id": p.get("scene_id"),
+            "qa_mask_version": p.get("qa_mask_version"),
+            "algorithm_version": p.get("algorithm_version"),
+            "acquisition_datetime": acquired,
+            "processing_job_id": p.get("processing_job_id"),
+            "geometry_revision": p.get("geometry_revision"),
+        },
+    }
+    return {
+        "real_data": True,
+        "date": acquired,
+        "stats": dict(p.get("stats") or {}),
+        "coverage_ratio": p.get("coverage_ratio"),
+        "valid_pixel_ratio": p.get("valid_pixel_ratio"),
+        "cloud_pct": p.get("cloud_pct"),
+        "confidence": p.get("quality_score"),
+        "index_quality_flags": list(p.get("index_quality_flags") or ()),
+        "indicator_product": product,
+    }
+
+
+def timeline_points(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Stored rows as raster ``/timeseries`` points, one per acquisition (latest delivery wins)."""
+    by_time: dict[str, dict[str, Any]] = {}
+    for row in sorted(rows, key=lambda r: (r["acquired_at"], r["published_at"])):
+        p = row["payload"]
+        stats = p.get("stats") or {}
+        by_time[p["acquired_at"]] = {
+            "datetime": p["acquired_at"],
+            "mean": stats.get("mean"),
+            "stddev": stats.get("std"),
+            "valid_pixel_ratio": p.get("valid_pixel_ratio"),
+            "coverage_ratio": p.get("coverage_ratio"),
+            "cloud_pct": p.get("cloud_pct"),
+            "scene_id": p.get("scene_id"),
+            "geometry_revision": p.get("geometry_revision"),
+            "algorithm_version": p.get("algorithm_version"),
+        }
+    return list(by_time.values())
