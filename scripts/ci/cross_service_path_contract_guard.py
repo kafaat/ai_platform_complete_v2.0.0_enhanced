@@ -35,6 +35,24 @@
 تطابق، بل أنّ المسارَ المطلوب **مُعلَنٌ** فيها. وهو بالضبط الصنفُ الذي أفلت —
 انحرافُ سلسلةٍ بين طرفين لا يلتقيان في أيّ اختبار.
 
+**W1-02 — النطاقُ صار ``api/`` و``core/`` وكلَّ مضيفٍ في compose.** كان النطاقُ
+``api/`` وحدَه، والمضيفُ يُعرَف بلاحقة ``-service``، والوحدةُ متعدّدةُ المضيفين تُسقَط
+كلُّها. فمرّ ``soil_adapter`` في ``core/field_intelligence_adapters.py`` (أربعةُ
+مضيفين) وهو يطلب ``/api/v1/soil/{id}`` الذي لا تُعلنه soil-service — ٤٠٤ حتميّ.
+والآن:
+
+* **المضيفون من compose لا من نمطٍ اسميّ:** كلُّ خدمةٍ مبنيّةٍ في ``docker-compose*.yml``
+  (``build``) تُربَط بمجلّد مصدرها؛ فـ``sahool-guardrails-engine`` و``sahool-edge``
+  و``sahool-field-segmentation`` و``sahool-scout-ingest`` و``sahool-vegetation-analysis``
+  دخلت النطاق. مضيفٌ بصورةٍ جاهزة بلا مصدر (ollama · vllm) خارجيٌّ بالتصريح. ومضيفٌ
+  داخليٌّ لا يعرفه compose **يُفشِل الحارس** (اسمٌ لا يُحَلّ).
+* **الوحدةُ متعدّدةُ المضيفين تُنسَب نداءً نداءً:** المضيفُ يُقرأ من تعبير العنوان نفسه
+  (``f"{SOIL_URL}/…"`` ⇐ ``SOIL_URL = os.getenv(…, "http://sahool-soil-service…")``)
+  بنطاق الدالّة ثمّ الوحدة. نداءٌ لا يُنسَب لمضيفٍ واحدٍ **يُفشِل الحارس** بدل أن يسقط.
+* **المُمرِّرُ يُفحَص بقوائمه:** ``service_proxy`` بلا مسارٍ ثابت، لكنّ قوائمَ سماحه
+  (``_SOIL_ROUTES`` …) ومساراتِه المُقالَبة (``path=f"internal/field-forms/{…}"``)
+  تُقابَل بإعلان الخدمة: كلُّ مسارٍ تكشفه القائمة يجب أن تُعلنه الخدمةُ الهدف.
+
     python scripts/ci/cross_service_path_contract_guard.py
 """
 
@@ -59,10 +77,12 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
-CLIENT_DIR = ROOT / "services" / "sahool-platform" / "api"
+PLATFORM_DIR = ROOT / "services" / "sahool-platform"
+# W1-02: ``core/`` يحمل محوّلاتٍ حيّةً تنادي الخدمات (field-intelligence · pest escalation).
+CLIENT_DIRS = (PLATFORM_DIR / "api", PLATFORM_DIR / "core")
 
-# عنوانُ خدمةٍ داخليّة — منه يُشتقّ اسمُ الخدمة الهدف.
-_INTERNAL_HOST = re.compile(r"https?://sahool-([a-z0-9-]+?)-service(?::\d+)?")
+# عنوانُ خدمةٍ داخليّة — اسمُ المضيف كاملاً؛ يُحَلّ إلى مجلّد مصدره من compose.
+_INTERNAL_HOST = re.compile(r"https?://(sahool-[a-z0-9-]+)")
 
 # إعلانُ الخدمة: `app.get("/…")` · `@router.post("/…")` · وكلُّ الأفعال.
 _DECLARED = re.compile(r"""@?(?:app|router)\.(?:get|post|put|patch|delete)\(\s*["']([^"']+)["']""")
@@ -75,23 +95,44 @@ def normalise(path: str) -> str:
     return _PARAM.sub("{}", path.split("?", 1)[0].rstrip("/")) or "/"
 
 
-def _literal_path(node: ast.AST) -> str | None:
-    """يُعيد المسارَ من سلسلةٍ حرفيّة أو مُنسَّقة — والشكلان مُستعمَلان في الشجرة.
+def _render(node: ast.AST, assigns: dict[str, ast.AST] | None = None, depth: int = 0) -> str | None:
+    """يُعيد نصَّ العنوان من سلسلةٍ حرفيّة أو مُنسَّقة أو جمعِ سلاسل (`base + "/v1/…"`).
 
-    السلسلةُ المُنسَّقة تُبنى بوضع `{}` مكان كلّ حقلٍ مُقحَم، ثمّ يُقتطَع ما قبل
-    أوّلَ `/` (فهو جذرُ العنوان `{base}` لا جزءاً من المسار).
+    الحقلُ المُقحَمُ يصير `{}`. واسمٌ محلّيٌّ مُسنَدٌ في الدالّة نفسها (`url = … + "/v1/x"`
+    ثمّ `client.post(url)`) يُتبَع إسنادُه — شكلٌ مقيسٌ في `pest_escalation_flow`.
     """
+    if depth > 4:
+        return None
     if isinstance(node, ast.Constant) and isinstance(node.value, str):
-        text = node.value
-    elif isinstance(node, ast.JoinedStr):
+        return node.value
+    if isinstance(node, ast.JoinedStr):
         parts = []
         for piece in node.values:
             if isinstance(piece, ast.Constant) and isinstance(piece.value, str):
                 parts.append(piece.value)
             else:
                 parts.append("{}")
-        text = "".join(parts)
-    else:
+        return "".join(parts)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        left = _render(node.left, assigns, depth + 1)
+        right = _render(node.right, assigns, depth + 1)
+        return (left if left is not None else "{}") + (right or "")
+    if isinstance(node, ast.IfExp):
+        # لاحقةُ استعلامٍ شرطيّة (`(f"?{q}" if q else "")`): الفرعُ الأوّلُ يمثّل الشكل.
+        return _render(node.body, assigns, depth + 1)
+    if isinstance(node, ast.Name) and assigns and node.id in assigns:
+        return _render(assigns[node.id], assigns, depth + 1)
+    return None
+
+
+def _literal_path(node: ast.AST, assigns: dict[str, ast.AST] | None = None) -> str | None:
+    """يُعيد المسارَ من سلسلةٍ حرفيّة أو مُنسَّقة — والشكلان مُستعمَلان في الشجرة.
+
+    السلسلةُ المُنسَّقة تُبنى بوضع `{}` مكان كلّ حقلٍ مُقحَم، ثمّ يُقتطَع ما قبل
+    أوّلَ `/` (فهو جذرُ العنوان `{base}` لا جزءاً من المسار).
+    """
+    text = _render(node, assigns)
+    if text is None:
         return None
     index = text.find("/")
     if index < 0:
@@ -100,7 +141,11 @@ def _literal_path(node: ast.AST) -> str | None:
     # مسارٌ حقيقيّ يحمل مقطعاً واحداً على الأقلّ بعد الشرطة الأولى.
     if len(candidate) < 2 or candidate.startswith("//"):
         return None
-    return normalise(candidate)
+    path = normalise(candidate)
+    # `f"{base}/{path}"` داخل غلاف النقل نفسه: لا مقطعَ حرفيّ ⇒ ليس مساراً يُقابَل.
+    if all(segment in {"", "{}"} for segment in path.split("/")):
+        return None
+    return path
 
 
 # مسارٌ يُثبَّت في ثابتٍ على مستوى الوحدة — شكلٌ ثانٍ مقيسٌ في الشجرة.
@@ -110,8 +155,22 @@ _PATH_SHAPED = re.compile(r"^/(?:v\d+|api|internal)/")
 _JSON_WRAPPER = re.compile(r"_(?:get|post|put|patch|delete)_json(?:_\w+)?$")
 
 
-def requested_paths(source: str) -> set[str]:
-    """المساراتُ التي يطلبها العميل — من موضعين مقيسين لا من كلّ سلسلة.
+def _local_assigns(scope: ast.AST) -> dict[str, ast.AST]:
+    """إسناداتُ الأسماء البسيطة في نطاقٍ (دالّة أو وحدة) — آخرُ إسنادٍ يغلب."""
+    assigns: dict[str, ast.AST] = {}
+    body = scope.body if isinstance(scope, ast.Module) else list(ast.walk(scope))
+    for node in body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    assigns[target.id] = node.value
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.value:
+            assigns[node.target.id] = node.value
+    return assigns
+
+
+def _requests(tree: ast.Module) -> list[dict]:
+    """كلُّ طلبٍ مقروءٍ في الوحدة: المسار، وتعبيرُ العنوان، والدالّةُ المحيطة (أو None).
 
     ① **عند موضع النداء:** الوسيطُ الأوّل لنداءٍ يبدو نداءَ نقل (`*_get_json`
        وأخواتها، أو `client.get`/`.post`/… من `httpx`).
@@ -119,15 +178,9 @@ def requested_paths(source: str) -> set[str]:
     ② **ثابتٌ على مستوى الوحدة بشكل مسار** (`^/v1/…` · `^/api/…`). وهذا أُضيف
        **بعد أن أفلت عقدٌ حقيقيّ**: `irrigation_activation_gate` يحمل
        `GATE_ENFORCE_PATH = "/v1/activation/irr_f01_reservation/enforce"` ويبنيه
-       داخل `_decision_url()`، فلا يُرى عند موضع النداء إطلاقاً — قراءةٌ صفريّة
-       من وحدةٍ تنادي خدمةً فعلاً. ووحدةٌ تحمل عنوانَ خدمةٍ وثابتاً بشكل مسار
-       **تُصرّح بذلك المسار** أينما بنته.
-
-    وسلسلةٌ في رسالة خطأ أو تعليقٍ تبقى خارج الجرد: الشرطُ موضعُ نداءٍ أو ثابتٌ
-    مُسمًّى على مستوى الوحدة، لا أيُّ سلسلةٍ تبدأ بشرطة.
+       داخل `_decision_url()`، فلا يُرى عند موضع النداء إطلاقاً.
     """
-    tree = ast.parse(source)
-    found: set[str] = set()
+    found: list[dict] = []
 
     for node in tree.body:
         if not isinstance(node, ast.Assign):
@@ -135,19 +188,32 @@ def requested_paths(source: str) -> set[str]:
         value = node.value
         if isinstance(value, ast.Constant) and isinstance(value.value, str):
             if _PATH_SHAPED.match(value.value):
-                found.add(normalise(value.value))
+                found.append({"path": normalise(value.value), "url": value, "scope": None})
 
     # مُزخرِفُ المسار (`@router.get("/api/v1/…")`) **إعلانٌ** على هذا الجانب لا طلبٌ
     # إلى الخدمة — وشكلُه النحويُّ نداءٌ باسم `get`، فكان يُقرأ طلباً. وُجِد حين صار
-    # موجِّهُ المؤشّرات (M4، مراجعة v25) عميلاً لـindicators-service أيضاً: مساراتُه
-    # الأربعة `/api/v1/…` عُدَّت «تُطلَب ولا تُعلَن» فحمّر الحارسُ ما لا يُطلَب أصلاً،
-    # والبديلُ الوحيد كان إخفاءَ عنوان الخدمة عنه — أي إخراجَ العقد من نطاقه.
+    # موجِّهُ المؤشّرات (M4، مراجعة v25) عميلاً لـindicators-service أيضاً.
     declarations = {
         id(dec)
         for fn in ast.walk(tree)
         if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef))
         for dec in fn.decorator_list
     }
+
+    # الدالّةُ الأعمقُ المحيطةُ بكلّ نداء — منها تُقرأ الإسناداتُ المحلّيّة والمضيف.
+    enclosing: dict[int, ast.AST] = {}
+
+    def _mark(scope: ast.AST, owner: ast.AST | None) -> None:
+        for child in ast.iter_child_nodes(scope):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                _mark(child, child)
+            else:
+                if owner is not None:
+                    enclosing[id(child)] = owner
+                _mark(child, owner)
+
+    _mark(tree, None)
+    local_cache: dict[int, dict[str, ast.AST]] = {}
 
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call) or not node.args:
@@ -158,19 +224,30 @@ def requested_paths(source: str) -> set[str]:
         name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")
         # **يُطابَق الاحتواءُ لا النهاية.** كان الشرطُ `endswith` فأفلت
         # `raster_get_json_sync` — لاحقةٌ واحدة (`_sync`) تُخفي مسارَين حقيقيَّين.
-        # وكُشِف بمقابلة قارئَين لا بقراءةٍ واحدة: التعبيرُ النمطيّ أعطى ١٦
-        # و`ast` أعطى ١٤، والفرقُ هو العطل. **قارئٌ واحدٌ لا يُكذِّب نفسَه.**
         is_wrapper = bool(_JSON_WRAPPER.search(name))
         is_httpx = name in {"get", "post", "put", "patch", "delete", "request", "stream"}
         if not (is_wrapper or is_httpx):
             continue
+        scope = enclosing.get(id(node))
+        assigns = None
+        if scope is not None:
+            assigns = local_cache.setdefault(id(scope), _local_assigns(scope))
         # `client.request("GET", url)` يضع الفعلَ أوّلاً والعنوانَ ثانياً.
         for arg in node.args[:2]:
-            path = _literal_path(arg)
+            path = _literal_path(arg, assigns)
             if path:
-                found.add(path)
+                found.append({"path": path, "url": arg, "scope": scope})
                 break
     return found
+
+
+def requested_paths(source: str) -> set[str]:
+    """المساراتُ التي يطلبها العميل — من موضعين مقيسين لا من كلّ سلسلة.
+
+    وسلسلةٌ في رسالة خطأ أو تعليقٍ تبقى خارج الجرد: الشرطُ موضعُ نداءٍ أو ثابتٌ
+    مُسمًّى على مستوى الوحدة، لا أيُّ سلسلةٍ تبدأ بشرطة.
+    """
+    return {item["path"] for item in _requests(ast.parse(source))}
 
 
 def declared_paths(service_dir: Path) -> set[str]:
@@ -186,48 +263,270 @@ def declared_paths(service_dir: Path) -> set[str]:
     return declared
 
 
-def discover_contracts() -> dict[str, dict]:
-    """يُشتقّ العملاءُ وخدماتُهم من الشجرة — لا من قائمةٍ مكتوبة.
+def compose_hosts() -> tuple[dict[str, Path], set[str]]:
+    """كلُّ مضيفٍ في ``docker-compose*.yml`` ⇒ مجلّدُ مصدره (من ``build``).
 
-    القائمةُ المكتوبة تبيت: عميلٌ خامسٌ يدخل غداً فلا يدخل النطاق معه، ويبقى
-    الحارسُ أخضرَ عن سؤالٍ لم يعد يطرحه.
+    مفتاحُ الخدمة في compose هو اسمُ DNS الذي تناديه العملاء. خدمةٌ بلا ``build``
+    (صورةٌ جاهزة: ollama · vllm · postgres) **خارجيّةٌ** — لا مصدرَ في الشجرة يُقابَل.
     """
+    import yaml
+
+    hosts: dict[str, Path] = {}
+    image_only: set[str] = set()
+    for compose in sorted(ROOT.glob("docker-compose*.yml")):
+        data = yaml.safe_load(compose.read_text(encoding="utf-8")) or {}
+        for key, spec in (data.get("services") or {}).items():
+            build = (spec or {}).get("build")
+            if build is None:
+                image_only.add(key)
+                continue
+            context = build if isinstance(build, str) else build.get("context", ".")
+            dockerfile = None if isinstance(build, str) else build.get("dockerfile")
+            source = (
+                (compose.parent / context / dockerfile).parent
+                if dockerfile
+                else (compose.parent / context)
+            )
+            hosts.setdefault(key, source.resolve())
+    return hosts, image_only - set(hosts)
+
+
+def _hosts_in(node: ast.AST, bindings: dict[str, set[str]]) -> set[str]:
+    """المضيفون الذين يُشير إليهم تعبير: سلسلةُ عنوانٍ حرفيّة، أو اسمٌ مربوطٌ بمضيف."""
+    hosts: set[str] = set()
+    for sub in ast.walk(node):
+        if isinstance(sub, ast.Constant) and isinstance(sub.value, str):
+            hosts |= set(_INTERNAL_HOST.findall(sub.value))
+        elif isinstance(sub, ast.Name):
+            hosts |= bindings.get(sub.id, set())
+    return hosts
+
+
+def _bindings(scope: ast.AST, inherited: dict[str, set[str]]) -> dict[str, set[str]]:
+    """اسم ⇒ مضيفون، بنقطةٍ ثابتة: ``BASE = "http://sahool-x…"`` ثمّ ``def url(): return
+    os.getenv(…, BASE)`` ثمّ ``SOIL_URL = url()`` — كلُّها تُربَط بالمضيف نفسه."""
+    bound = dict(inherited)
+    assigns = _local_assigns(scope)
+    functions = (
+        [n for n in scope.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+        if isinstance(scope, ast.Module)
+        else []
+    )
+    for _ in range(4):
+        changed = False
+        for name, value in assigns.items():
+            hosts = _hosts_in(value, bound)
+            if hosts and hosts != bound.get(name):
+                bound[name] = hosts
+                changed = True
+        for fn in functions:
+            hosts: set[str] = set()
+            for ret in ast.walk(fn):
+                if isinstance(ret, ast.Return) and ret.value is not None:
+                    hosts |= _hosts_in(ret.value, bound)
+            if hosts and hosts != bound.get(fn.name):
+                bound[fn.name] = hosts
+                changed = True
+        if not changed:
+            break
+    return bound
+
+
+def scan_module(source: str, known: set[str]) -> dict:
+    """يقرأ وحدةً عميلة: مضيفوها في النطاق، ومساراتُ كلٍّ منهم، وما لم يُنسَب.
+
+    وحدةٌ بمضيفٍ واحد: كلُّ طلبٍ لها (السلوكُ السابق — الغلافُ يحمل العنوانَ داخله).
+    وحدةٌ بأكثر: يُنسَب الطلبُ إلى المضيف الذي يُشير إليه تعبيرُ عنوانه **وحدَه**؛
+    وغيرُ ذلك ``unattributed`` ⇒ فشل. لا إسقاطَ صامتاً للوحدة كلّها.
+    """
+    tree = ast.parse(source)
+    module_bound = _bindings(tree, {})
+    hosts = set(_INTERNAL_HOST.findall(source)) & known
+    per_host: dict[str, set[str]] = {host: set() for host in hosts}
+    unattributed: list[str] = []
+    scope_bound: dict[int, dict[str, set[str]]] = {}
+    for item in _requests(tree):
+        if len(hosts) == 1:
+            per_host[next(iter(hosts))].add(item["path"])
+            continue
+        scope = item["scope"]
+        bound = module_bound
+        if scope is not None:
+            bound = scope_bound.setdefault(id(scope), _bindings(scope, module_bound))
+        target = _hosts_in(item["url"], bound) & hosts
+        if len(target) == 1:
+            per_host[target.pop()].add(item["path"])
+        elif hosts:
+            unattributed.append(item["path"])
+    return {"hosts": hosts, "requested": per_host, "unattributed": sorted(set(unattributed))}
+
+
+def discover_contracts() -> dict[str, dict]:
+    """يُشتقّ العملاءُ وخدماتُهم من الشجرة وcompose — لا من قائمةٍ مكتوبة.
+
+    القائمةُ المكتوبة تبيت: عميلٌ جديدٌ يدخل غداً فلا يدخل النطاق معه، ويبقى
+    الحارسُ أخضرَ عن سؤالٍ لم يعد يطرحه. والمفتاحُ ملفُّ العميل، والقيمةُ مضيفوه
+    المبنيّون في compose بمجلّدات مصادرهم (مضيفٌ أو أكثر).
+    """
+    known, _image_only = compose_hosts()
     contracts: dict[str, dict] = {}
-    for file in sorted(CLIENT_DIR.rglob("*.py")):
-        if "__pycache__" in file.as_posix():
-            continue
-        source = file.read_text(encoding="utf-8", errors="ignore")
-        hosts = {m for m in _INTERNAL_HOST.findall(source)}
-        # عميلُ خدمةٍ واحدة: عنوانٌ داخليٌّ واحد. المُركَّبُ خارج النطاق بلا ادّعاء.
-        if len(hosts) != 1:
-            continue
-        service = f"{hosts.pop()}-service"
-        service_dir = ROOT / "services" / service
-        if not service_dir.is_dir():
-            continue
-        contracts[file.relative_to(ROOT).as_posix()] = {
-            "service": service,
-            "service_dir": service_dir,
-        }
+    for client_dir in CLIENT_DIRS:
+        for file in sorted(client_dir.rglob("*.py")):
+            if "__pycache__" in file.as_posix() or "tests" in file.relative_to(client_dir).parts:
+                continue
+            source = file.read_text(encoding="utf-8", errors="ignore")
+            hosts = set(_INTERNAL_HOST.findall(source)) & set(known)
+            if not hosts:
+                continue
+            contracts[file.relative_to(ROOT).as_posix()] = {
+                "services": {host: known[host] for host in sorted(hosts)},
+            }
     return contracts
+
+
+def unknown_hosts() -> list[str]:
+    """مضيفٌ داخليٌّ تناديه وحدةٌ ولا يعرفه أيُّ compose — اسمٌ لا يُحَلّ ⇒ فشلٌ حتميّ."""
+    known, image_only = compose_hosts()
+    missing: list[str] = []
+    for client_dir in CLIENT_DIRS:
+        for file in sorted(client_dir.rglob("*.py")):
+            if "__pycache__" in file.as_posix() or "tests" in file.relative_to(client_dir).parts:
+                continue
+            for host in sorted(set(_INTERNAL_HOST.findall(file.read_text(encoding="utf-8")))):
+                if host not in known and host not in image_only:
+                    missing.append(f"{file.relative_to(ROOT).as_posix()}: {host}")
+    return missing
 
 
 # وحداتٌ تحمل عنوانَ خدمةٍ ولا مسارَ ثابتاً لها — **وسببُ كلٍّ مكتوب**.
 #
 # وهذا **حدٌّ مُعلَنٌ لا إعفاءٌ مريح.** الفحصُ الساكن لا يُميّز «مُمرِّرٌ ديناميّ
-# بلا عقدٍ ثابت» من «مسارٌ حرفيٌّ عجز مستخرِجي عن رؤيته» — والثاني هو بعينه ما
-# وقع مع `soil_hydraulic_client` (شكلُ نداءٍ ثانٍ) و`irrigation_activation_gate`
-# (ثابتٌ على مستوى الوحدة)، وكلاهما أُغلِق باتّساع المستخرِج لا باستثناء.
-#
-# فالقائمةُ مغلقةٌ بالمساواة: وحدةٌ جديدةٌ بصفر مسارٍ **تُفشِل الحارس** حتّى
-# يقرّر إنسانٌ أيَّ الحالتين هي. وحذفُ مدخلٍ صار له مسارٌ يُفشِله أيضاً.
+# بلا عقدٍ ثابت» من «مسارٌ حرفيٌّ عجز مستخرِجي عن رؤيته». فالقائمةُ مغلقةٌ
+# بالمساواة: وحدةٌ جديدةٌ بصفر مسارٍ **تُفشِل الحارس** حتّى يقرّر إنسانٌ أيَّ
+# الحالتين هي. وحذفُ مدخلٍ صار له مسارٌ يُفشِله أيضاً. **ومنذ W1-02 لا يُعفى
+# المُمرِّرُ من الفحص:** قوائمُ سماحه ومساراتُه المُقالَبة تُقابَل بإعلان كلّ خدمة
+# (``proxy_coverage``)، ومضيفٌ فيه بلا قائمةٍ ولا قالبٍ **يُفشِل الحارس**.
 PATH_LESS_BY_DESIGN = {
     "services/sahool-platform/api/routers/service_proxy.py": (
         "مُمرِّرٌ عامّ: المسارُ مُعامِلُ تشغيلٍ (`/api/soil/{path:path}`) يُعاد بناؤه "
         "من طلب المستخدم، فلا مسارَ ثابتاً يُقابَل بإعلان الخدمة. العقدُ هنا "
-        "«مرّر ما وصل»، وفحصُه يخصّ التفويضَ لا انحرافَ السلاسل."
+        "«مرّر ما وصل» مقيَّداً بقائمة سماح، وقائمةُ السماح هي ما يُقابَل (proxy_coverage)."
     ),
 }
+
+# قائمةُ سماح المُمرِّر: ثابتُ وحدةٍ ``_<X>_ROUTES`` = صفوفٌ أوّلُها نمطُ مسار.
+_ROUTES_CONSTANT = re.compile(r"^_[A-Z0-9_]*ROUTES$")
+_ALTERNATION = re.compile(r"\(\?:([^()]*)\)")
+_SEGMENT_CLASS = re.compile(r"\[[^\]]*\]\+")
+_REGEX_META = re.compile(r"[()\[\]*+?|\\^$]")
+
+
+def expand_pattern(pattern: str) -> list[str] | None:
+    """يفكّ نمطَ السماح إلى مساراتٍ محدّدة: كلُّ ``(?:a|b)`` بدائلُه، وكلُّ ``[…]+`` مقطعٌ
+    متغيّر ``{}``. نمطٌ يبقى فيه رمزٌ آخر ⇒ ``None`` (يُفحَص بالمطابقة لا بالفكّ)."""
+    results = [pattern]
+    for _ in range(8):
+        expanded: list[str] = []
+        progressed = False
+        for text in results:
+            match = _ALTERNATION.search(text)
+            if not match:
+                expanded.append(text)
+                continue
+            progressed = True
+            for option in match.group(1).split("|"):
+                expanded.append(text[: match.start()] + option + text[match.end() :])
+        results = expanded
+        if not progressed:
+            break
+    concrete = []
+    for text in results:
+        text = _SEGMENT_CLASS.sub("{}", text)
+        if _REGEX_META.search(text):
+            return None
+        concrete.append(normalise("/" + text.lstrip("/")))
+    return concrete
+
+
+def _segment_match(requested: str, declared: str) -> bool:
+    """``{}`` في المطلوب مقطعٌ متغيّر يطابق أيَّ مقطعٍ مُعلَن؛ والباقي حرفيّ."""
+    want, have = requested.strip("/").split("/"), declared.strip("/").split("/")
+    return len(want) == len(have) and all(
+        w == "{}" or w == h for w, h in zip(want, have, strict=True)
+    )
+
+
+def proxy_coverage(source: str, known: set[str]) -> dict[str, list[str]]:
+    """مضيف ⇒ المساراتُ التي يكشفها المُمرِّر إليه: من قوائم السماح ومن ``path=`` المُقالَب.
+
+    القائمةُ تُنسَب إلى المضيف بالدالّة التي تحملهما معاً (مباشرةً أو عبر مُساعدٍ
+    واحد، مثل ``_authorize_soil_path``). نمطٌ لا يُفَكّ يُعاد كما هو (``re:…``).
+    """
+    tree = ast.parse(source)
+    module_bound = _bindings(tree, {})
+    routes: dict[str, list[str]] = {}
+    for node in tree.body:
+        if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+            continue
+        target = node.targets[0]
+        if not (isinstance(target, ast.Name) and _ROUTES_CONSTANT.match(target.id)):
+            continue
+        if not isinstance(node.value, ast.Tuple):
+            continue
+        patterns = []
+        for row in node.value.elts:
+            if isinstance(row, ast.Tuple) and row.elts:
+                first = row.elts[0]
+                if isinstance(first, ast.Constant) and isinstance(first.value, str):
+                    patterns.append(first.value)
+        routes[target.id] = patterns
+    functions = {
+        n.name: n for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+
+    def _names(fn: ast.AST) -> set[str]:
+        return {n.id for n in ast.walk(fn) if isinstance(n, ast.Name)}
+
+    coverage: dict[str, list[str]] = {}
+    for fn in functions.values():
+        bound = _bindings(fn, module_bound)
+        fn_hosts: set[str] = set()
+        for sub in ast.walk(fn):
+            if isinstance(sub, ast.Assign):
+                fn_hosts |= _hosts_in(sub.value, bound)
+        fn_hosts &= known
+        if len(fn_hosts) != 1:
+            continue
+        host = next(iter(fn_hosts))
+        names = _names(fn)
+        for helper in names & set(functions):
+            names |= _names(functions[helper])
+        for constant in sorted(names & set(routes)):
+            for pattern in routes[constant]:
+                concrete = expand_pattern(pattern)
+                coverage.setdefault(host, []).extend(concrete or [f"re:{pattern}"])
+        for call in ast.walk(fn):
+            if not isinstance(call, ast.Call):
+                continue
+            for keyword in call.keywords:
+                if keyword.arg == "path" and not isinstance(keyword.value, ast.Name):
+                    text = _render(keyword.value)
+                    if text:
+                        coverage.setdefault(host, []).append(normalise("/" + text.lstrip("/")))
+    return {host: sorted(set(paths)) for host, paths in coverage.items()}
+
+
+def proxied_undeclared(exposed: list[str], declared: set[str]) -> list[str]:
+    """مسارٌ يكشفه المُمرِّر ولا تُعلنه الخدمة ⇒ ٤٠٤ حتميّ خلف قائمة سماحٍ صحيحة الشكل."""
+    missing = []
+    for path in exposed:
+        if path.startswith("re:"):
+            pattern = re.compile(path[3:])
+            if not any(pattern.fullmatch(d.strip("/").replace("{}", "x")) for d in declared):
+                missing.append(path)
+        elif not any(_segment_match(path, d) for d in declared):
+            missing.append(path)
+    return missing
 
 
 def classify(client: str, requested: set[str], declared: set[str]) -> dict:
@@ -235,11 +534,8 @@ def classify(client: str, requested: set[str], declared: set[str]) -> dict:
 
     كانت هذه الأسطرُ داخل `audit()` تقرأ الشجرة، فلم يكن للعمى شاهدٌ **موجب**:
     اختبارُه أكّد أنّ القائمة فارغةٌ على شجرةٍ سليمة، وهي تبقى فارغةً أيضاً لو
-    عُطِّل الكشفُ رأساً. **فالطفرةُ التي تُطفئه نجت** — وهي حالةُ «تأكيدُ غيابٍ
-    بلا شاهدِ حضور»، أي الصنفُ الذي يحرسه هذا الملفّ في طبقةِ اختباره هو.
-
-    فأُخرِج التصنيفُ نقيّاً كي يُقاس بمُدخَلٍ مُصطنَع: عقدٌ بلا مسارٍ **يُعلَن
-    أعمى** بالإيجاب، لا بانتظار أن تُنتِجه شجرةٌ معطوبة.
+    عُطِّل الكشفُ رأساً. **فالطفرةُ التي تُطفئه نجت**. فأُخرِج التصنيفُ نقيّاً كي
+    يُقاس بمُدخَلٍ مُصطنَع: عقدٌ بلا مسارٍ **يُعلَن أعمى** بالإيجاب.
     """
     blind_reasons: list[str] = []
     # قراءةٌ صفريّة ليست عقداً نظيفاً بل قارئاً أعمى — وهي كيف يمرّ هذا الصنفُ
@@ -262,23 +558,41 @@ def audit() -> dict:
         "undeclared": [],
         "path_less": [],
         "stale_exemptions": [],
+        "unattributed": [],
+        "unknown_hosts": unknown_hosts(),
     }
+    known, _image_only = compose_hosts()
+    declared_cache: dict[Path, set[str]] = {}
+    path_less_modules: set[str] = set()
     for client, meta in discover_contracts().items():
-        requested = requested_paths((ROOT / client).read_text(encoding="utf-8"))
-        declared = declared_paths(meta["service_dir"])
-        verdict = classify(client, requested, declared)
-        report["contracts"][client] = {
-            "service": meta["service"],
-            "requested": len(requested),
-            "declared": len(declared),
-            "undeclared": verdict["undeclared"],
-        }
-        if verdict["path_less"]:
-            report["path_less"].append(client)
-        report["blind_clients"] += verdict["blind"]
-        report["undeclared"] += [
-            f"{client} → {meta['service']}: {p}" for p in verdict["undeclared"]
-        ]
+        source = (ROOT / client).read_text(encoding="utf-8")
+        scan = scan_module(source, set(known))
+        proxied = proxy_coverage(source, set(known)) if client in PATH_LESS_BY_DESIGN else {}
+        report["unattributed"] += [f"{client}: {p}" for p in scan["unattributed"]]
+        if not any(scan["requested"].values()) and not scan["unattributed"]:
+            path_less_modules.add(client)
+        for host, service_dir in meta["services"].items():
+            service = service_dir.relative_to(ROOT).as_posix()
+            declared = declared_cache.setdefault(service_dir, declared_paths(service_dir))
+            requested = scan["requested"].get(host, set())
+            single = len(meta["services"]) == 1 or client in PATH_LESS_BY_DESIGN
+            label = client if single else f"{client} → {host}"
+            verdict = classify(label, requested, declared)
+            undeclared = verdict["undeclared"] + proxied_undeclared(proxied.get(host, []), declared)
+            report["contracts"][f"{client} → {host}"] = {
+                "service": service,
+                "requested": len(requested),
+                "proxied": len(proxied.get(host, [])),
+                "declared": len(declared),
+                "undeclared": undeclared,
+            }
+            blind = verdict["blind"]
+            if client in PATH_LESS_BY_DESIGN and not proxied.get(host):
+                # مُمرِّرٌ إلى مضيفٍ بلا قائمة سماحٍ ولا قالبٍ مقروء — صفرُ فحصٍ يمرّ أخضر.
+                blind = blind + [f"{client} → {host}: لا قائمةَ سماحٍ مقروءة"]
+            report["blind_clients"] += blind
+            report["undeclared"] += [f"{client} → {service}: {p}" for p in undeclared]
+    report["path_less"] = sorted(path_less_modules)
 
     # مدخلٌ بائتٌ يُخفي انحداراً قادماً: صار للوحدة مسارٌ ولم يُنزَع إعفاؤها.
     report["stale_exemptions"] = sorted(set(PATH_LESS_BY_DESIGN) - set(report["path_less"]))
@@ -293,9 +607,25 @@ def main() -> int:
         return 1
 
     for client, data in report["contracts"].items():
-        print(f"  {client} → {data['service']}: يطلب {data['requested']} · تُعلن {data['declared']}")
+        print(
+            f"  {client} ({data['service']}): يطلب {data['requested']}"
+            f" · يُمرِّر {data.get('proxied', 0)} · تُعلن {data['declared']}"
+        )
 
     failed = False
+    if report.get("unknown_hosts"):
+        failed = True
+        print("\ncross_service_path_contract_guard FAILED — مضيفٌ داخليٌّ لا يعرفه أيُّ compose:")
+        for entry in report["unknown_hosts"]:
+            print(f"  ✗ {entry}")
+
+    if report.get("unattributed"):
+        failed = True
+        print("\ncross_service_path_contract_guard FAILED — طلبٌ في وحدةٍ متعدّدة المضيفين لا يُنسَب:")
+        for entry in report["unattributed"]:
+            print(f"  ✗ {entry}")
+        print("  اربط العنوانَ باسمٍ يحمل عنوانَ الخدمة (``X_URL = os.getenv(…, 'http://…')``).")
+
     if report["blind_clients"]:
         failed = True
         print("\ncross_service_path_contract_guard FAILED — قراءةٌ صفريّة تمرّ خضراء:")
@@ -327,11 +657,6 @@ def main() -> int:
 
 if __name__ == "__main__":
     if "--json" in sys.argv:
-        data = audit()
-        data["contracts"] = {
-            k: {kk: vv for kk, vv in v.items() if kk != "service_dir"}
-            for k, v in data["contracts"].items()
-        }
-        print(json.dumps(data, ensure_ascii=False, indent=2))
+        print(json.dumps(audit(), ensure_ascii=False, indent=2))
         raise SystemExit(0)
     raise SystemExit(main())
