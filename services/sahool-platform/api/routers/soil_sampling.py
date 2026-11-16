@@ -36,6 +36,7 @@ from api.main import (
     CommandStore,
     Permission,
     UserSchema,
+    _emit_domain_event,
     _idem_key,
     _idempotent,
     get_current_user,
@@ -443,6 +444,15 @@ async def create_lab_sample(
                 actor_id=str(user.user_id),
                 event_type="sample_created",
             )
+            if row["kind"] == "soil":  # W1-03: the producer moved here from the frozen legacy route
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "SOIL_SAMPLE_RECORDED",
+                    "sample",
+                    row["sample_id"],
+                    {"field_id": row["field_id"], "status": row["status"]},
+                )
             # تُخزَّن نتيجةَ أمرٍ وتُعاد حرفيّاً عند الإعادة ⇒ قيم قابلة للتسلسل.
             return json.loads(json.dumps(dict(row), default=str))
 
@@ -641,6 +651,30 @@ async def submit_water_lab_result(
         )
 
 
+async def _refresh_field_state(conn, user, field_id: str, trigger: str) -> None:
+    """W1-03: a v156 soil result that becomes (or stops being) approved changes the canonical
+    soil inputs of the field (freshness + EC ⇒ salinity ⇒ validity/execution mode). Recompute
+    the projection in the same transaction and emit FIELD_STATE_CHANGED when it changed — the
+    live feed the frozen soil_lab_tests publish path used to give. A failure aborts the
+    transition (no approval committed with a stale projection)."""
+    from api.field_state_projection import recompute_field_state
+
+    fs = await recompute_field_state(conn, field_id)
+    if fs["changed"]:
+        await _emit_domain_event(
+            conn,
+            user,
+            "FIELD_STATE_CHANGED",
+            "field",
+            field_id,
+            {
+                "validity": fs["state"]["validity"],
+                "execution_mode": fs["state"]["execution_mode"],
+                "trigger": trigger,
+            },
+        )
+
+
 @router.post("/api/v1/lab/samples/{sample_id}/transition")
 async def transition_lab_sample(
     sample_id: str,
@@ -748,6 +782,10 @@ async def transition_lab_sample(
                 condition_notes=payload.condition_notes,
                 seal_id=payload.seal_id,
             )
+            if is_soil and payload.target_status in {"approved", "rejected", "cancelled"}:
+                await _refresh_field_state(
+                    conn, user, sample["field_id"], f"soil_lab.{payload.target_status}"
+                )
         if payload.target_status == "published" and is_soil:
             publish_payload = (sample, {r["analyte"]: r["value_json"] for r in publish_rows})
         if publish_payload:
@@ -769,6 +807,15 @@ async def transition_lab_sample(
                 result_by_analyte=receipt["result_by_canonical"],
             )
             row["soil_evidence_receipt"] = receipt
+            if changed:  # W1-03: the producer moved here from the frozen legacy route
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "SOIL_LAB_RESULT_PUBLISHED",
+                    "sample",
+                    sample_id,
+                    {"field_id": publish_payload[0]["field_id"]},
+                )
     return row
 
 

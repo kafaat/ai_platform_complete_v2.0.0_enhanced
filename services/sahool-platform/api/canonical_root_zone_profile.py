@@ -15,6 +15,7 @@ from typing import Any
 
 from core.crop_intelligence.roots import build_root_state
 
+from api.lab_store import latest_approved_soil_analyte
 from api.soil_hydraulic_client import get_soil_hydraulic_profile
 
 SCHEMA_VERSION = "canonical_root_zone_profile.v1"
@@ -97,6 +98,7 @@ def build_canonical_root_zone_profile(
     soil_profile: dict[str, Any],
     soil_ec_ds_m: float | None = None,
     now: datetime | None = None,
+    soil_ec_evidence: dict[str, Any] | None = None,
 ) -> CanonicalRootZoneProfile | dict[str, Any]:
     """Build the canonical profile or return a fail-closed blocked payload."""
     now = now or datetime.now(UTC)
@@ -264,6 +266,7 @@ def build_canonical_root_zone_profile(
             if profile_age_days is None
             else round(profile_age_days, 2),
             "root_zone_refill_cap_semantics": "readily_available_water_refill_cap",
+            **({"soil_ec": dict(soil_ec_evidence)} if soil_ec_evidence else {}),
         },
         "quality_status": quality,
         "operational_eligible": operational,
@@ -361,15 +364,17 @@ async def resolve_canonical_root_zone_profile(
     soil_profile = await get_soil_hydraulic_profile(tenant_id=tenant_id, field_id=field_id)
     if soil_profile is None:
         return {"status": "blocked", "reason": "governed_soil_hydraulic_profile_missing"}
-    ec_row = await conn.fetchrow(
-        "SELECT result FROM soil_lab_tests WHERE field_id=$1 "
-        "AND status IN ('approved','published') ORDER BY sampled_on DESC NULLS LAST, created_at DESC LIMIT 1",
-        field_id,
+    # W1-03: أحدث EC معتمَد من المخزن القانونيّ (soil_lab_results بـresult_id) أو القديم
+    # موسوماً — عبر lab_store. غيابه ⇒ None (لا صفر). JSONB نصّاً يُقرأ أيضاً (data-10).
+    ec_reading = await latest_approved_soil_analyte(
+        conn, field_id=field_id, analyte="ec_dsm", tenant_id=tenant_id
     )
-    ec = None
-    if ec_row and isinstance(ec_row.get("result"), dict):
-        result = ec_row["result"]
-        ec = result.get("ec_ds_m") or result.get("ec") or result.get("ece_ds_m")
+    ec = ec_reading["value"] if ec_reading else None
+    ec_evidence = (
+        {k: ec_reading[k] for k in ("source", "evidence_ref", "result_id", "test_id")}
+        if ec_reading
+        else None
+    )
     profile = build_canonical_root_zone_profile(
         tenant_id=tenant_id,
         field_id=field_id,
@@ -380,6 +385,7 @@ async def resolve_canonical_root_zone_profile(
         root_policy=dict(policy),
         soil_profile=soil_profile,
         soil_ec_ds_m=ec,
+        soil_ec_evidence=ec_evidence,
     )
     if isinstance(profile, CanonicalRootZoneProfile):
         await persist_canonical_root_zone_profile(conn, profile)

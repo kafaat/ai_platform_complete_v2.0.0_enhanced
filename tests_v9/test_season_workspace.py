@@ -309,6 +309,10 @@ async def test_workspace_projection_failure_does_not_poison_context_query(monkey
     async def policy(conn):
         return []
 
+    async def no_soil_analysis(conn, **kwargs):  # W1-03 lab_store reader, stubbed at its level
+        return None
+
+    monkeypatch.setattr(sw, "latest_approved_soil_analysis", no_soil_analysis)
     monkeypatch.setattr(sw, "tenant_connection", tenant_connection)
     monkeypatch.setattr(sw, "_assert_field_in_tenant", assert_field)
     monkeypatch.setattr(sw, "_field_season_context", context)

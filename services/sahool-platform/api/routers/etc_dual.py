@@ -331,7 +331,9 @@ async def field_etc_dual(
     if req.soil_ece is not None:
         soil_ece, soil_ece_source = req.soil_ece, "request"
     elif freshness.get("soil_ec") is not None:
-        soil_ece, soil_ece_source = float(freshness["soil_ec"]), "soil_lab_tests"
+        # W1-03: المخزن الذي جاء منه EC (soil_lab_results أو القديم الموسوم).
+        soil_ece = float(freshness["soil_ec"])
+        soil_ece_source = freshness.get("soil_lab_source") or "soil_lab_results"
     else:
         soil_ece, soil_ece_source = 0.0, "default"
 

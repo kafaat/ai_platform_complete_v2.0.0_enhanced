@@ -75,8 +75,14 @@ class _Conn:
             }
         if "imagery_automation_fields" in sql:
             return {"last_ndvi_mean": self._ndvi, "last_ndvi_date": self._today}
-        if "FROM soil_lab_tests" in sql:  # صفّ واحد: sampled_on + result (EC)
-            return {"sampled_on": self._today, "result": json.dumps({"ec": self._ec, "ph": 7.5})}
+        if "FROM soil_lab_tests" in sql:  # W1-03: رأس lab_store — احتياط قديم موسوم (EC)
+            return {
+                "ref_id": "soil_t1",
+                "sampled_on": self._today,
+                "source_priority": 0,
+                "legacy_result": json.dumps({"ec": self._ec, "ph": 7.5}),
+                "legacy_status": "published",
+            }
         if "FROM field_boundaries" in sql:  # Bundle B: جودة الحدّ (None ⇒ لا كتلة)
             if self._boundary_confidence is None:
                 return None
@@ -378,3 +384,65 @@ def test_extract_ec_tolerant_keys(core_on_path):
     assert _extract_ec({"ph": 7}) is None  # لا EC ⇒ None
     assert _extract_ec(None) is None
     assert _extract_ec("{bad json") is None
+
+
+def _canonical_analysis(monkeypatch, analysis):
+    """W1-03: the lab_store reader stubbed at its own level (the legacy row of _Conn unused)."""
+    import api.lab_store as store
+
+    async def latest(conn, *, field_id, tenant_id=None):
+        return analysis
+
+    monkeypatch.setattr(store, "latest_approved_soil_analysis", latest)
+
+
+@pytest.mark.asyncio
+async def test_approved_v156_ec_alone_escalates_salinity(core_on_path, monkeypatch):
+    """W1-03 acceptance: an EC approved only in soil_lab_results changes the escalation."""
+    from api.field_state_projection import recompute_field_state
+
+    _canonical_analysis(
+        monkeypatch,
+        {
+            "source": "soil_lab_results",
+            "sampled_on": date.today(),
+            "values": {"ec_dsm": 10.0},
+            "result_ids": {"ec_dsm": "rid-ec"},
+            "legacy_result": None,
+        },
+    )
+    st = (await recompute_field_state(_Conn(ndvi_mean=0.7, ec=1.0), "fld_1"))["state"]
+    assert st["agronomic"]["operational_truths"].get("salinity_class") == "critical", st
+    assert st["execution_mode"] == "human_review", "approved v156 EC must escalate"
+    assert st["soil_lab"] == {
+        "available": True,
+        "source": "soil_lab_results",
+        "ec_dsm": 10.0,
+        "ec_result_id": "rid-ec",
+    }, st["soil_lab"]
+
+
+@pytest.mark.asyncio
+async def test_legacy_fallback_is_labelled_in_field_state(core_on_path):
+    from api.field_state_projection import recompute_field_state
+
+    st = (await recompute_field_state(_Conn(ndvi_mean=0.7, ec=10.0), "fld_1"))["state"]
+    assert st["soil_lab"]["source"] == "legacy_soil_lab_tests", st["soil_lab"]
+    assert st["soil_lab"]["ec_result_id"] is None, "a legacy row has no v156 result_id"
+
+
+@pytest.mark.asyncio
+async def test_no_lab_analysis_is_unavailable_not_zero(core_on_path, monkeypatch):
+    from api.field_state_projection import recompute_field_state
+
+    _canonical_analysis(monkeypatch, None)
+    st = (await recompute_field_state(_Conn(ndvi_mean=0.7, ec=10.0), "fld_1"))["state"]
+    assert st["soil_lab"] == {
+        "available": False,
+        "source": None,
+        "ec_dsm": None,
+        "ec_result_id": None,
+    }, st["soil_lab"]
+    assert st["agronomic"]["operational_truths"].get("salinity_class") != "critical", (
+        "no lab EC must not become a salinity class"
+    )

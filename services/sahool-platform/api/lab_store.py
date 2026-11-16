@@ -669,3 +669,237 @@ async def mark_soil_results_published(
                 result_id,
                 observation_id,
             )
+
+
+# ─── W1-03: soil_lab_results is the single canonical soil-lab store ─────────────────────
+# Owner decision 2026-11-16: platform readers of a field's soil analysis go through the
+# helpers below. They return approved v156 results (with their result_ids) and fall back to
+# the frozen legacy ``soil_lab_tests`` table only as a labelled source; nothing else in the
+# platform reads that table. Eligibility is that of ``soil_enrichment.latest_lab_texture_row``
+# (an approved result stays eligible while its sample is reopened for another analyte's
+# correction; a rejected/cancelled sample withdraws it), and both sources need a collection
+# date that is not in the future. The newest collection date wins; on a tie, v156 wins.
+SOIL_LAB_CANONICAL_SOURCE = "soil_lab_results"
+SOIL_LAB_LEGACY_SOURCE = "legacy_soil_lab_tests"
+
+# Keys a free-form legacy ``soil_lab_tests.result`` may use for a v156 analyte — the union of
+# what the migrated readers accepted (field_state_projection, root zone, season workspace,
+# reports, soil_enrichment), in one place.
+LEGACY_ANALYTE_KEYS: dict[str, tuple[str, ...]] = {
+    "ec_dsm": ("ec_dsm", "ec_ds_m", "ec", "ece", "ece_ds_m", "salinity_ec", "soil_ec"),
+    "ph": ("ph", "pH", "soil_ph"),
+    "texture": ("texture", "soil_texture", "textural_class", "texture_class"),
+    "organic_matter_pct": ("organic_matter_pct", "om_pct", "organic_matter", "om"),
+    "phosphorus_mg_kg": ("phosphorus_mg_kg", "p_ppm", "phosphorus_ppm", "p"),
+    "potassium_mg_kg": ("potassium_mg_kg", "k_mg_kg", "k_ppm", "k"),
+    "nitrogen_mg_kg": ("nitrogen_mg_kg", "n_ppm"),
+}
+
+
+def _json_object(value) -> dict[str, Any]:
+    value = _analyte_value(value)
+    return value if isinstance(value, dict) else {}
+
+
+def usable_analyte_value(analyte: str, value):
+    """A texture is a non-empty label; every other analyte a real number. Else None."""
+    if analyte == "texture":
+        return value.strip() if isinstance(value, str) and value.strip() else None
+    if isinstance(value, int | float) and not isinstance(value, bool):
+        return float(value)
+    return None
+
+
+def legacy_analyte_value(result, analyte: str):
+    """The analyte's value in a legacy ``soil_lab_tests.result`` (first usable alias), or None."""
+    data = _json_object(result)
+    for key in LEGACY_ANALYTE_KEYS.get(analyte, (analyte,)):
+        value = usable_analyte_value(analyte, data.get(key))
+        if value is not None:
+            return value
+    return None
+
+
+def soil_lab_source(evidence_ref: str | None) -> str:
+    return (
+        SOIL_LAB_LEGACY_SOURCE
+        if str(evidence_ref or "").startswith("soil_lab_tests:")
+        else SOIL_LAB_CANONICAL_SOURCE
+    )
+
+
+async def soil_analyte_candidates(
+    conn, *, field_id: str, analyte: str, tenant_id: str | None = None, limit: int = 20
+) -> list:
+    """Eligible rows for one analyte, newest collection date first (v156 wins a tie).
+
+    Each row: ``sampled_on``, ``result`` (``{analyte: value}`` for v156, the raw legacy
+    object otherwise), ``evidence_ref`` (``soil_lab_results:<result_id>`` or
+    ``soil_lab_tests:<test_id>``) and ``age_days``. Reads under the caller's tenant RLS;
+    ``tenant_id`` adds an explicit filter for callers that hold it.
+    """
+    return await conn.fetch(
+        """SELECT sampled_on, result, evidence_ref,
+                  EXTRACT(EPOCH FROM (now() - sampled_on)) / 86400.0 AS age_days
+           FROM (
+             SELECT s.sampled_on, jsonb_build_object($2::text, r.value_json) AS result,
+                    'soil_lab_results:' || r.result_id::text AS evidence_ref,
+                    1 AS source_priority, r.observed_at AS observed_at
+             FROM lab_samples s JOIN soil_lab_results r
+               ON s.tenant_id=r.tenant_id AND s.sample_id=r.sample_id
+             WHERE s.field_id=$1 AND s.kind='soil' AND s.status NOT IN ('rejected','cancelled')
+               AND r.analyte=$2 AND r.quality_status='approved' AND r.observed_at <= now()
+               AND ($4::uuid IS NULL OR s.tenant_id=$4::uuid)
+             UNION ALL
+             SELECT sampled_on, result, 'soil_lab_tests:' || test_id, 0, updated_at
+             FROM soil_lab_tests WHERE field_id=$1 AND status IN ('approved','published')
+               AND result ?| $3::text[] AND ($4::uuid IS NULL OR tenant_id=$4::uuid)
+           ) AS evidence
+           WHERE sampled_on <= CURRENT_DATE
+           ORDER BY sampled_on DESC, source_priority DESC, observed_at DESC, evidence_ref
+           LIMIT $5""",
+        field_id,
+        analyte,
+        list(LEGACY_ANALYTE_KEYS.get(analyte, (analyte,))),
+        tenant_id,
+        limit,
+    )
+
+
+def _analyte_reading(row, analyte: str, value) -> dict[str, Any]:
+    ref = str(row["evidence_ref"])
+    source = soil_lab_source(ref)
+    row_id = ref.split(":", 1)[1]
+    age = row["age_days"]
+    return {
+        "available": True,
+        "analyte": analyte,
+        "value": value,
+        "source": source,
+        "sampled_on": row["sampled_on"],
+        "age_days": float(age) if age is not None else None,
+        "result_id": row_id if source == SOIL_LAB_CANONICAL_SOURCE else None,
+        "test_id": row_id if source == SOIL_LAB_LEGACY_SOURCE else None,
+        "evidence_ref": ref,
+    }
+
+
+async def latest_approved_soil_analyte(
+    conn, *, field_id: str, analyte: str, tenant_id: str | None = None, accept=None
+) -> dict[str, Any] | None:
+    """The newest usable approved value of one analyte, labelled with its source, or None.
+
+    None means unavailable — never zero. ``accept(value)`` may narrow what counts as usable
+    (the TAW table skips texture labels it does not know)."""
+    for row in await soil_analyte_candidates(
+        conn, field_id=field_id, analyte=analyte, tenant_id=tenant_id
+    ):
+        result = _json_object(row["result"])
+        if soil_lab_source(row["evidence_ref"]) == SOIL_LAB_LEGACY_SOURCE:
+            value = legacy_analyte_value(result, analyte)
+        else:
+            value = usable_analyte_value(analyte, result.get(analyte))
+        if value is not None and (accept is None or accept(value)):
+            return _analyte_reading(row, analyte, value)
+    return None
+
+
+async def latest_approved_soil_analysis(
+    conn, *, field_id: str, tenant_id: str | None = None
+) -> dict[str, Any] | None:
+    """The field's newest approved soil analysis (one sample), labelled with its source.
+
+    v156: ``values`` holds the newest approved value per analyte of that sample and
+    ``result_ids`` the rows they came from. Legacy fallback: ``values`` holds the analytes
+    recognised in the free-form result (``LEGACY_ANALYTE_KEYS``) and ``legacy_result`` the
+    object as stored, so a reader keeps its own key reading. None when neither exists."""
+    head = await conn.fetchrow(
+        """SELECT ref_id, sampled_on, source_priority, legacy_result, legacy_status FROM (
+             SELECT s.sample_id AS ref_id, s.sampled_on, 1 AS source_priority,
+                    max(r.observed_at) AS observed_at, NULL::jsonb AS legacy_result,
+                    NULL::text AS legacy_status
+             FROM lab_samples s JOIN soil_lab_results r
+               ON s.tenant_id=r.tenant_id AND s.sample_id=r.sample_id
+             WHERE s.field_id=$1 AND s.kind='soil' AND s.status NOT IN ('rejected','cancelled')
+               AND r.quality_status='approved' AND r.observed_at <= now()
+               AND ($2::uuid IS NULL OR s.tenant_id=$2::uuid)
+             GROUP BY s.sample_id, s.sampled_on
+             UNION ALL
+             SELECT test_id, sampled_on, 0, updated_at, result, status::text
+             FROM soil_lab_tests WHERE field_id=$1 AND status IN ('approved','published')
+               AND result <> '{}'::jsonb AND ($2::uuid IS NULL OR tenant_id=$2::uuid)
+           ) AS evidence
+           WHERE sampled_on <= CURRENT_DATE
+           ORDER BY sampled_on DESC, source_priority DESC, observed_at DESC, ref_id
+           LIMIT 1""",
+        field_id,
+        tenant_id,
+    )
+    if head is None:
+        return None
+    if head["source_priority"] == 0:
+        legacy = _json_object(head["legacy_result"])
+        values = {
+            analyte: value
+            for analyte in LEGACY_ANALYTE_KEYS
+            if (value := legacy_analyte_value(legacy, analyte)) is not None
+        }
+        return {
+            "available": True,
+            "source": SOIL_LAB_LEGACY_SOURCE,
+            "sample_id": None,
+            "test_id": head["ref_id"],
+            "sampled_on": head["sampled_on"],
+            "values": values,
+            "result_ids": {},
+            "legacy_result": legacy,
+            "legacy_status": head["legacy_status"],
+            "evidence_ref": f"soil_lab_tests:{head['ref_id']}",
+        }
+    rows = await conn.fetch(
+        """SELECT DISTINCT ON (r.analyte) r.analyte, r.result_id, r.value_json
+           FROM lab_samples s JOIN soil_lab_results r
+             ON s.tenant_id=r.tenant_id AND s.sample_id=r.sample_id
+           WHERE s.sample_id=$1 AND r.quality_status='approved' AND r.observed_at <= now()
+             AND ($2::uuid IS NULL OR s.tenant_id=$2::uuid)
+           ORDER BY r.analyte, r.observed_at DESC, r.received_at DESC, r.result_id DESC""",
+        head["ref_id"],
+        tenant_id,
+    )
+    values: dict[str, Any] = {}
+    result_ids: dict[str, str] = {}
+    for row in rows:
+        value = usable_analyte_value(row["analyte"], _analyte_value(row["value_json"]))
+        if value is not None:
+            values[row["analyte"]] = value
+            result_ids[row["analyte"]] = str(row["result_id"])
+    return {
+        "available": True,
+        "source": SOIL_LAB_CANONICAL_SOURCE,
+        "sample_id": head["ref_id"],
+        "test_id": None,
+        "sampled_on": head["sampled_on"],
+        "values": values,
+        "result_ids": result_ids,
+        "legacy_result": None,
+        "legacy_status": None,
+        "evidence_ref": f"lab_samples:{head['ref_id']}",
+    }
+
+
+_LEGACY_SOIL_TEST_COLUMNS = (
+    "test_id, field_id, status, lab_name, sampled_on, result, notes_ar, "
+    "approved_by, published_at, created_at"
+)
+
+
+async def legacy_soil_lab_test_rows(conn, *, field_id: str, limit: int | None = None) -> list:
+    """The frozen legacy ``soil_lab_tests`` rows of a field, newest first (read-only archive).
+
+    New results are recorded through ``/api/v1/lab/*``; this listing only shows history."""
+    return await conn.fetch(
+        f"SELECT {_LEGACY_SOIL_TEST_COLUMNS} FROM soil_lab_tests "
+        "WHERE field_id = $1 ORDER BY created_at DESC LIMIT $2",
+        field_id,
+        limit,
+    )

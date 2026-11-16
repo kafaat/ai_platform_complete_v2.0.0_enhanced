@@ -38,10 +38,15 @@ class _PolicyDB:
         }
         self.calls = []
 
-    async def fetchrow(self, sql, *args):
+    async def fetch(self, sql, *args):
+        # W1-03: the soil EC candidates (lab_store) — no approved lab EC for this field.
         self.calls.append((sql, args))
         if "FROM soil_lab_tests" in sql:
-            return None
+            return []
+        raise AssertionError(f"unexpected query: {sql}")
+
+    async def fetchrow(self, sql, *args):
+        self.calls.append((sql, args))
         if "FROM crop_root_policies" not in sql:
             raise AssertionError(f"unexpected query: {sql}")
         if "variety=$3" in sql:

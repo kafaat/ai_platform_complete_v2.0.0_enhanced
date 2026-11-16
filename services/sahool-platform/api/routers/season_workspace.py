@@ -14,8 +14,8 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.field_models import _FIELD_DETAIL_SELECT, _row_to_field_detail, field_quality_grade
+from api.lab_store import latest_approved_soil_analysis, legacy_soil_lab_test_rows
 from api.main import (
-    _SOIL_TEST_SELECT,
     _TASK_COLS,
     Permission,
     UserSchema,
@@ -91,10 +91,35 @@ def _latest_published_soil(soil_tests: list[dict]) -> dict | None:
     return None
 
 
+def _accepted_soil(analysis: dict | None) -> dict:
+    """W1-03: accepted soil values from ``lab_store.latest_approved_soil_analysis``.
+
+    An approved v156 analysis is accepted under the readiness keys below; the legacy
+    fallback keeps its own rule (only a *published* soil_lab_tests row counts). None ⇒ {}."""
+    if not analysis:
+        return {}
+    if analysis.get("legacy_result") is not None:
+        return analysis["legacy_result"] if analysis.get("legacy_status") == "published" else {}
+    values = analysis.get("values") or {}
+    return {
+        "ph": values.get("ph"),
+        "ec_ds_m": values.get("ec_dsm"),
+        "n_ppm": values.get("nitrogen_mg_kg"),
+        "p_ppm": values.get("phosphorus_mg_kg"),
+        "k_ppm": values.get("potassium_mg_kg"),
+    }
+
+
 def _readiness(
-    field: dict, season: dict | None, soil_tests: list[dict], state: dict | None
+    field: dict,
+    season: dict | None,
+    soil_tests: list[dict],
+    state: dict | None,
+    soil: dict | None = None,
 ) -> dict:
-    """Score accepted data; operational readiness also requires canonical permission."""
+    """Score accepted data; operational readiness also requires canonical permission.
+
+    ``soil`` is the accepted analysis (``_accepted_soil``); without it the legacy list is read."""
     checks: list[dict] = []
 
     def add(key: str, label_ar: str, ok: bool, required: bool = True, action_ar: str = "") -> None:
@@ -108,7 +133,8 @@ def _readiness(
             }
         )
 
-    soil = _latest_published_soil(soil_tests) or {}
+    if soil is None:
+        soil = _latest_published_soil(soil_tests) or {}
     add(
         "boundary",
         "حدود الحقل مرسومة",
@@ -316,10 +342,11 @@ async def season_workspace(
             )
             activities = [_jsonable(_row_to_activity(r)) for r in activity_rows]
 
-            soil_rows = await conn.fetch(
-                f"SELECT {_SOIL_TEST_SELECT} FROM soil_lab_tests WHERE field_id = $1 ORDER BY created_at DESC LIMIT 20",
-                field_id,
-            )
+            # W1-03: the accepted analysis comes from the canonical lab store (soil_lab_results,
+            # legacy soil_lab_tests only as a labelled fallback); the legacy list stays a
+            # read-only history.
+            soil_analysis = await latest_approved_soil_analysis(conn, field_id=field_id)
+            soil_rows = await legacy_soil_lab_test_rows(conn, field_id=field_id, limit=20)
             soil_tests = [_jsonable(_row_to_soil_test(r)) for r in soil_rows]
 
             task_rows = await conn.fetch(
@@ -360,7 +387,7 @@ async def season_workspace(
                     }
                 )
 
-        readiness = _readiness(field, season, soil_tests, state)
+        readiness = _readiness(field, season, soil_tests, state, _accepted_soil(soil_analysis))
         # Recommendations use live weather best-effort after releasing DB connection.
         try:
             ctx = RecommendationContext(
@@ -439,6 +466,9 @@ async def season_workspace(
             "tasks": tasks,
             "activities": activities,
             "soil_tests": soil_tests,
+            "soil_analysis": _jsonable(soil_analysis)
+            if soil_analysis
+            else {"available": False, "reason": "no_approved_soil_lab_result"},
             "timeline": timeline,
             "next_actions": _next_actions(readiness, recommendations, tasks),
             "gaps": gaps,

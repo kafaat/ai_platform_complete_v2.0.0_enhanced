@@ -114,7 +114,7 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
     """يقرأ مصادر النضارة القانونيّة للحقل من قاعدة المنصّة.
 
     يُرجِع {last_image_date, latest_soil_sampled_on, weather_age_hours, ndvi_mean,
-    ndvi_date} — أيّ مصدر غائب يكون None (يدع resolve_field_state يعلن «بيانات
+    ndvi_date, soil_ec, soil_lab_source, soil_ec_result_id} — أيّ مصدر غائب يكون None (يدع resolve_field_state يعلن «بيانات
     ناقصة» بصدق، وتُعلَن قيمة NDVI غير متاحة بدل رقم مُلفَّق).
     """
     # نضارة الصورة (عمود قديم دائم الوجود) — استعلام أساسيّ لا يفشل.
@@ -165,16 +165,17 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
         msi_mean = None
         ndmi_date = None
         msi_date = None
-    # آخر فحص تربة معتمَد/منشور — صفّ واحد يعطي النضارة (sampled_on) + EC (من result)،
-    # فنتفادى استعلامين ونربط EC بأحدث عيّنة فعلاً (مراجعة Copilot).
-    soil_row = await conn.fetchrow(
-        "SELECT sampled_on, result FROM soil_lab_tests "
-        "WHERE field_id = $1 AND status IN ('approved', 'published') AND sampled_on IS NOT NULL "
-        "ORDER BY sampled_on DESC LIMIT 1",
-        field_id,
-    )
-    soil_sampled_on = soil_row["sampled_on"] if soil_row else None
-    soil_ec = _extract_ec(soil_row["result"]) if soil_row else None
+    # آخر تحليل تربة معتمَد — عيّنة واحدة تعطي النضارة (sampled_on) + EC، فنربط EC بأحدث
+    # عيّنة فعلاً (مراجعة Copilot). W1-03: المخزن القانونيّ soil_lab_results أوّلاً (بـ
+    # result_id)، وsoil_lab_tests القديم احتياطاً موسوماً — عبر lab_store وحده.
+    from api.lab_store import SOIL_LAB_LEGACY_SOURCE, latest_approved_soil_analysis
+
+    soil = await latest_approved_soil_analysis(conn, field_id=field_id)
+    soil_sampled_on = soil["sampled_on"] if soil else None
+    if soil and soil["source"] == SOIL_LAB_LEGACY_SOURCE:
+        soil_ec = _extract_ec(soil["legacy_result"])
+    else:
+        soil_ec = (soil or {}).get("values", {}).get("ec_dsm")
     weather_age_hours = await conn.fetchval(
         "SELECT EXTRACT(EPOCH FROM (NOW() - c.fetched_at)) / 3600.0 "
         "FROM weather_automation_cache c "
@@ -193,6 +194,8 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
         "ndmi_date": ndmi_date,
         "msi_date": msi_date,
         "soil_ec": soil_ec,
+        "soil_lab_source": soil["source"] if soil else None,
+        "soil_ec_result_id": (soil or {}).get("result_ids", {}).get("ec_dsm"),
     }
 
 
@@ -621,6 +624,13 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         "ndvi_mean": _ndvi,
         "ndvi_date": fresh["ndvi_date"].isoformat() if fresh.get("ndvi_date") else None,
         "source": "sentinel-2 (raster-service)" if _ndvi is not None else None,
+    }
+    # W1-03: أيّ مخزن مختبريّ غذّى نضارة التربة وEC (soil_lab_results أو القديم الموسوم).
+    state["soil_lab"] = {
+        "available": fresh.get("soil_lab_source") is not None,
+        "source": fresh.get("soil_lab_source"),
+        "ec_dsm": fresh.get("soil_ec"),
+        "ec_result_id": fresh.get("soil_ec_result_id"),
     }
 
     tenant_id = await conn.fetchval("SELECT tenant_id FROM fields WHERE field_id = $1", field_id)

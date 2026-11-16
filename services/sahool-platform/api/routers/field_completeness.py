@@ -69,12 +69,14 @@ async def field_data_completeness(
       - ``fields(geometry, lat, lon)`` — الهندسة + الإحداثيّات.
       - ``seasons(season_id, sowing_date)`` حيث ``status='active'`` — الموسم النشط
         + تاريخ البذار.
-      - ``soil_lab_tests`` حيث ``status IN ('approved','published')`` — حضور تحليل
-        تربة مخبريّ معتمَد.
+      - تحليل تربة مخبريّ معتمَد عبر ``lab_store.latest_approved_soil_analysis``
+        (``soil_lab_results`` القانونيّ؛ ``soil_lab_tests`` احتياطاً موسوماً) — مصدره
+        يُعاد في ``soil_lab``.
       - ``imagery_automation_fields.last_ndvi_mean`` — قراءة دفاعيّة (قد تغيب).
       - أجهزة رطوبة التربة عبر ``_latest_soil_moisture`` (المخزن القانونيّ
         ``soil_observations``).
     """
+    from api.lab_store import latest_approved_soil_analysis
     from api.main import _assert_field_in_tenant, _latest_soil_moisture
 
     try:
@@ -98,12 +100,9 @@ async def field_data_completeness(
                 field_id,
             )
 
-            # حضور تحليل تربة مخبريّ معتمَد/منشور لهذا الحقل (وجوده فقط).
-            soil_lab = await conn.fetchval(
-                "SELECT 1 FROM soil_lab_tests "
-                "WHERE field_id = $1 AND status IN ('approved', 'published') LIMIT 1",
-                field_id,
-            )
+            # حضور تحليل تربة مخبريّ معتمَد (W1-03): المخزن القانونيّ soil_lab_results، و
+            # soil_lab_tests القديم مصدراً احتياطيّاً موسوماً — عبر lab_store وحده.
+            soil_lab = await latest_approved_soil_analysis(conn, field_id=field_id)
 
             ndvi_present = await _ndvi_present(conn, field_id)
 
@@ -125,4 +124,9 @@ async def field_data_completeness(
 
     result = score_field_completeness(signals)
     result["field_id"] = field_id
+    result["soil_lab"] = (
+        {k: soil_lab[k] for k in ("source", "evidence_ref", "sampled_on", "result_ids")}
+        if soil_lab
+        else {"available": False, "reason": "no_approved_soil_lab_result"}
+    )
     return result
