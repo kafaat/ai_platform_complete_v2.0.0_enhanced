@@ -119,3 +119,27 @@ SELECT t.task_id, t.field_id, t.tenant_id FROM field_tasks t
 -- step 4 (operator, monitored window, only after step 2 returns no rows):
 ALTER TABLE field_tasks VALIDATE CONSTRAINT field_tasks_field_id_fkey;
 ```
+
+## Foreign keys restored by the v281 rollback
+
+`v281_farm_ledger_season_reference.down.sql` replaces the season-reference trigger with the
+pre-v281 foreign keys to `farm_season_projects(season_id)` on seven ledger tables
+(`farm_operation_ledger`, `farm_season_budget_lines`, `farm_revenue_records`,
+`farm_indirect_cost_pools`, `farm_ledger_inventory_projections`,
+`farm_ledger_erp_projection_outbox`, `farm_ledger_economic_snapshots`). They come back
+`NOT VALID`: rows written while v281 was in force may name a season of the `seasons` table. The
+rollback must run as the superuser/BYPASSRLS migration owner (it refuses any other role, whose
+counts FORCE RLS would hide) and raises a NOTICE per table with the count of such rows.
+
+```sql
+-- step 2, per table (example: the operation ledger; repeat for the other six), as the
+-- superuser/BYPASSRLS owner with row security off:
+SET row_security = off;
+SELECT count(*) FROM farm_operation_ledger x
+ WHERE x.season_id IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM farm_season_projects p WHERE p.season_id = x.season_id);
+-- step 3: per row, record its season in farm_season_projects or clear season_id per the ledger's
+--         retention policy (do not invent a season)
+-- step 4 (operator, monitored window, only after step 2 returns 0 for that table):
+ALTER TABLE farm_operation_ledger VALIDATE CONSTRAINT farm_operation_ledger_season_id_fkey;
+```
