@@ -16,6 +16,7 @@ HTTP into the real platform route, against a migrated Postgres through a NOBYPAS
 from __future__ import annotations
 
 import asyncio
+import importlib
 import importlib.util
 import json
 import os
@@ -27,9 +28,21 @@ import pytest
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
 
-asyncpg = pytest.importorskip("asyncpg")
-httpx = pytest.importorskip("httpx")
-pytest.importorskip("fastapi")
+# Switch read before any import (test_certification_switch_precedes_importorskip): on the
+# certifying CI step a missing dependency or an unusable database fails the run, not a skip.
+_CERTIFICATION_REQUIRED = os.getenv("EDGE_SYNC_TENANT_CERTIFICATION_REQUIRED") == "1"
+
+
+def _require(module: str):
+    """Import ``module``; under the certification switch a missing one fails the run."""
+    if _CERTIFICATION_REQUIRED:
+        return importlib.import_module(module)
+    return pytest.importorskip(module)
+
+
+asyncpg = _require("asyncpg")
+httpx = _require("httpx")
+_require("fastapi")
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
@@ -37,6 +50,11 @@ DSN = os.getenv("TEST_DATABASE_URL", "")
 ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL", "")
 TOKEN = "live-edge-agent-token-value"
 KEY = "live-edge-tenant-assertion-key-0123456789"
+
+if _CERTIFICATION_REQUIRED and not (DSN and ADMIN_DSN):
+    raise RuntimeError(
+        "EDGE_SYNC_TENANT_CERTIFICATION_REQUIRED=1 needs TEST_DATABASE_URL and TEST_DATABASE_ADMIN_URL"
+    )
 
 pytestmark.append(
     pytest.mark.skipif(
