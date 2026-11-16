@@ -560,6 +560,7 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
         forecast_day_for_ledger_date,
         gap_irrigation_by_day,
         manual_entry_takes_precedence,
+        reported_irrigation,
     )
     from api.water_ledger_inputs import (
         RAIN_RECONCILE_WINDOW_DAYS,
@@ -632,12 +633,16 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                     async with conn.transaction():
                         await _set_tenant(conn, row["tenant_id"])
                         existing = await conn.fetchrow(
-                            "SELECT created_by FROM water_ledger WHERE field_id=$1 AND ledger_date=$2",
+                            "SELECT created_by, irrigation_mm, irrigation_reported_by"
+                            " FROM water_ledger WHERE field_id=$1 AND ledger_date=$2",
                             field_id,
                             today,
                         )
                         if existing and manual_entry_takes_precedence(existing["created_by"]):
                             continue  # الإنسان سيّد الدفتر — لا كتابة فوق قيد يدويّ.
+                        # W0-13: a person reported today's applied water (v278) ⇒ that figure is
+                        # the day's irrigation; the balance is recomputed around it, not over it.
+                        reported_irrigation_mm = reported_irrigation(existing)
                         prev = await conn.fetchrow(
                             "SELECT depletion_mm, ledger_date FROM water_ledger"
                             " WHERE field_id=$1 AND ledger_date < $2"
@@ -853,6 +858,11 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             texture=texture,
                             etc_mm_day=kc * float(et0_mm),
                         )
+                        applied_mm = (
+                            reported_irrigation_mm
+                            if reported_irrigation_mm is not None
+                            else float(irr["mm"] or 0.0)
+                        )
                         entry = compute_daily_ledger_entry(
                             prev_depletion_mm=prev_depletion,
                             taw_mm=zone["taw_mm"],
@@ -860,9 +870,12 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             et0_mm=float(et0_mm),
                             kc=kc,
                             rain_mm=rain_mm,
-                            irrigation_mm=float(irr["mm"] or 0.0),
-                            irrigation_volume_untracked=bool(irr["untracked"]),
-                            irrigation_unobserved=not int(irr["runs"] or 0),
+                            irrigation_mm=applied_mm,
+                            # A reported figure is the day's measured total: neither flag applies.
+                            irrigation_volume_untracked=bool(irr["untracked"])
+                            and reported_irrigation_mm is None,
+                            irrigation_unobserved=not int(irr["runs"] or 0)
+                            and reported_irrigation_mm is None,
                             rain_assumed_zero=rain_assumed_zero,
                             et0_reference_unavailable=not et0_product_is_reference(et0),
                             root_zone_texture_fallback=zone["root_zone_texture_fallback"],
@@ -872,7 +885,10 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             missing_days_irrigation_unobserved=gap_unobserved,
                             missing_days_irrigation_untracked=gap_untracked,
                         )
-                        await conn.execute(
+                        # The WHERE keeps a row another writer took between the read above and
+                        # this write (a manual entry, an as-applied reconciliation): no row is
+                        # returned, nothing is written, and the bridge does not run on it.
+                        stored = await conn.fetchval(
                             """
                             INSERT INTO water_ledger
                               (tenant_id, field_id, ledger_date, et0_mm, kc, etc_mm, rain_mm,
@@ -884,7 +900,11 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                                     $13, $14, $15, $16, $17, $18, $19, $20, now(), now())
                             ON CONFLICT (field_id, ledger_date) DO UPDATE SET
                               et0_mm = EXCLUDED.et0_mm, kc = EXCLUDED.kc, etc_mm = EXCLUDED.etc_mm,
-                              rain_mm = EXCLUDED.rain_mm, irrigation_mm = EXCLUDED.irrigation_mm,
+                              rain_mm = EXCLUDED.rain_mm,
+                              irrigation_mm = CASE
+                                WHEN water_ledger.irrigation_reported_by IS NOT NULL
+                                THEN water_ledger.irrigation_mm
+                                ELSE EXCLUDED.irrigation_mm END,
                               depletion_mm = EXCLUDED.depletion_mm, deficit_mm = EXCLUDED.deficit_mm,
                               stage = EXCLUDED.stage, decision = EXCLUDED.decision,
                               confidence = EXCLUDED.confidence, et0_method = EXCLUDED.et0_method,
@@ -892,6 +912,8 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                               et0_quality = EXCLUDED.et0_quality,
                               weather_snapshot_id = EXCLUDED.weather_snapshot_id,
                               rain_source = EXCLUDED.rain_source, updated_at = now()
+                            WHERE water_ledger.created_by = EXCLUDED.created_by
+                            RETURNING 1
                             """,
                             str(row["tenant_id"]),
                             field_id,
@@ -900,7 +922,7 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             kc,
                             entry["etc_mm"],
                             rain_mm,
-                            float(irr["mm"] or 0.0),
+                            applied_mm,
                             entry["depletion_mm"],
                             entry["deficit_mm"],
                             crop_kc.stage,
@@ -914,6 +936,8 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                             zone["taw_mm"],
                             zone["raw_mm"],
                         )
+                        if stored is None:
+                            continue  # الإنسان سيّد الدفتر — كُتِب القيد بعد قراءتنا.
                         processed += 1
                     # Governed bridge: candidate creation is deterministic and default-off.
                     from api.water_decision_bridge import process_water_deficit

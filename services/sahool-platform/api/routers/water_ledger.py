@@ -12,7 +12,8 @@
 
 النقاط (v98، جدول ``water_ledger`` معزول بالمستأجِر، RLS):
   • POST /api/v1/fields/{field_id}/water-ledger — upsert صفّ يوميّ (FIELD_EDIT)،
-    idempotent عبر ``ON CONFLICT (field_id, ledger_date) DO UPDATE``.
+    idempotent عبر ``ON CONFLICT (field_id, ledger_date) DO UPDATE``، جزئيّ: لا يُكتَب
+    عند التعارض إلّا ما أُرسِل (W0-13).
   • GET  /api/v1/fields/{field_id}/water-ledger?from=&to= — سلسلة مرتّبة بالتاريخ
     (FIELD_VIEW)، معزولة RLS.
 
@@ -39,8 +40,12 @@ from api.main import (
     tenant_connection,
 )
 from api.water_efficiency import compute_water_efficiency
+from api.water_ledger_auto import AUTO_CREATED_BY
 from api.water_ledger_compute import (
     LEDGER_SELECT_COLS,
+    LEDGER_UPSERT_SQL,
+    is_irrigation_report,
+    ledger_write_columns,
     normalize_ledger_input,
     parse_ledger_date,
     row_to_ledger_entry,
@@ -84,14 +89,24 @@ async def upsert_water_ledger(
 
     يتحقّق أوّلاً أنّ الحقل يخصّ المستأجِر (404 وإلّا)، ثمّ يُدرِج/يُحدِّث القيد في
     ``water_ledger`` (v98). idempotent عبر ``ON CONFLICT (field_id, ledger_date)
-    DO UPDATE`` (إعادة الإرسال تُحدِّث لا تُكرّر). صدق: القاعدة غير مفعّلة
-    (``DATABASE_URL``) ⇒ 503 موثَّق (لا ادّعاء حفظ)؛ مدخل غير صالح ⇒ 422؛ لا اختراع
-    أرقام — الناقص يُحفَظ NULL.
+    DO UPDATE`` (إعادة الإرسال تُحدِّث لا تُكرّر). **جزئيّ (W0-13):** عند التعارض لا
+    يُكتَب إلّا ما أرسله المستدعي؛ العمود الغائب يبقى كما هو. وبلاغ ريٍّ وحده
+    (``{ledger_date, irrigation_mm}``) على يومٍ يحسبه العامل يُغيِّر الماء المضاف فقط،
+    ويعيد العامل حساب الميزان حوله. صدق: القاعدة غير مفعّلة (``DATABASE_URL``) ⇒ 503
+    موثَّق (لا ادّعاء حفظ)؛ مدخل غير صالح أو بلا عمود واحد ⇒ 422؛ لا اختراع أرقام —
+    الناقص في قيدٍ جديد يُحفَظ NULL.
     """
     try:
         norm = normalize_ledger_input(req.model_dump())
     except ValueError as e:
         raise HTTPException(status_code=422, detail=f"مدخل دفتر غير صالح: {e}") from e
+    columns = ledger_write_columns(req.model_fields_set)
+    if not columns:
+        # An empty write used to insert a person-owned row of NULLs that also blocked the worker.
+        raise HTTPException(status_code=422, detail="مدخل دفتر غير صالح: لا عمود للكتابة")
+    report = is_irrigation_report(columns)
+    if report and norm["irrigation_mm"] is None:
+        raise HTTPException(status_code=422, detail="مدخل دفتر غير صالح: irrigation_mm فارغ")
     if api_main._DB_POOL is None:
         raise HTTPException(
             status_code=503,
@@ -101,20 +116,7 @@ async def upsert_water_ledger(
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
             await conn.execute(
-                "INSERT INTO water_ledger "
-                "(tenant_id, field_id, ledger_date, et0_mm, kc, etc_mm, rain_mm, "
-                " irrigation_mm, soil_moisture_pct, depletion_mm, deficit_mm, "
-                " stage, decision, confidence, created_by, created_at, updated_at) "
-                "VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, "
-                " $13, $14, $15, now(), now()) "
-                "ON CONFLICT (field_id, ledger_date) DO UPDATE SET "
-                " et0_mm = EXCLUDED.et0_mm, kc = EXCLUDED.kc, etc_mm = EXCLUDED.etc_mm, "
-                " rain_mm = EXCLUDED.rain_mm, irrigation_mm = EXCLUDED.irrigation_mm, "
-                " soil_moisture_pct = EXCLUDED.soil_moisture_pct, depletion_mm = EXCLUDED.depletion_mm,"
-                " deficit_mm = EXCLUDED.deficit_mm, stage = EXCLUDED.stage, decision = EXCLUDED.decision,"
-                " confidence = EXCLUDED.confidence, et0_method = NULL, et0_quality = NULL,"  # v278
-                " weather_snapshot_id = NULL, rain_source = NULL, taw_mm = NULL, raw_mm = NULL,"
-                " updated_at = now()",
+                LEDGER_UPSERT_SQL,
                 str(user.tenant_id),
                 field_id,
                 norm["ledger_date"],
@@ -129,6 +131,11 @@ async def upsert_water_ledger(
                 norm["stage"],
                 norm["decision"],
                 norm["confidence"],
+                # A report opens a day the worker owns; any other write is its author's day.
+                AUTO_CREATED_BY if report else user.user_id,
+                user.user_id if report else None,
+                list(columns),
+                AUTO_CREATED_BY,
                 user.user_id,
             )
     except HTTPException:
