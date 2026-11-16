@@ -3963,7 +3963,6 @@
         "services/sahool-platform/api/routers/internal_service.py",
         "services/sahool-platform/api/routers/irrigation.py",
         "services/sahool-platform/api/routers/irrigation_mpc.py",
-        "services/sahool-platform/api/routers/irrigation_recommendation.py",
         "services/sahool-platform/api/routers/learning_summary.py",
         "services/sahool-platform/api/routers/market.py",
         "services/sahool-platform/api/routers/nl_gis.py",

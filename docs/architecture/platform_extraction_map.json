@@ -2903,7 +2903,7 @@
       "function": "field_alerts_derived",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/alerts/derived",
-      "line": 3898,
+      "line": 3884,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/alerts/derived::field_alerts_derived"
@@ -2923,7 +2923,7 @@
       "function": "field_history",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/history",
-      "line": 3656,
+      "line": 3642,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/history::field_history"
@@ -3003,7 +3003,7 @@
       "function": "field_state_full",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state/full",
-      "line": 3924,
+      "line": 3910,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/state/full::field_state_full"
@@ -3013,7 +3013,7 @@
       "function": "field_canonical_state",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state",
-      "line": 3870,
+      "line": 3856,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/state::field_canonical_state"
@@ -3033,7 +3033,7 @@
       "function": "field_water_stress_spectral",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-stress-spectral",
-      "line": 3838,
+      "line": 3824,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/water-stress-spectral::field_water_stress_spectral"
@@ -3223,7 +3223,7 @@
       "function": "create_pin",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/pins",
-      "line": 3773,
+      "line": 3759,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/pins::create_pin"
@@ -3273,7 +3273,7 @@
       "function": "field_timeline",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/timeline",
-      "line": 3636,
+      "line": 3622,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/timeline::field_timeline"
@@ -3293,7 +3293,7 @@
       "function": "field_walk_plan_pdf",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
-      "line": 3805,
+      "line": 3791,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/walk-plan/pdf::field_walk_plan_pdf"
@@ -3303,7 +3303,7 @@
       "function": "field_walk_plan",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan",
-      "line": 3795,
+      "line": 3781,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/walk-plan::field_walk_plan"
@@ -3333,7 +3333,7 @@
       "function": "field_zones",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/zones",
-      "line": 3824,
+      "line": 3810,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/zones::field_zones"
@@ -4203,7 +4203,7 @@
       "function": "field_irrigation_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
-      "line": 208,
+      "line": 201,
       "target_owner": "sahool-platform",
       "owner_type": "bff-decision-candidate",
       "route_key": "api/routers/irrigation_recommendation.py::POST /api/v1/fields/{field_id}/irrigation-recommendation::field_irrigation_recommendation"
@@ -4213,7 +4213,7 @@
       "function": "irrigation_recommendation",
       "method": "POST",
       "path": "/api/v1/irrigation-recommendation",
-      "line": 121,
+      "line": 114,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/irrigation_recommendation.py::POST /api/v1/irrigation-recommendation::irrigation_recommendation"

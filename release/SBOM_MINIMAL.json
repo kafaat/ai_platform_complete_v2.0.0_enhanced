@@ -4915,7 +4915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e2250ec3c976a8b23af661ef10e1d0a25cc08c19c4762c38dc7d24c5e81f01d"
+          "content": "54270518ae2a6c7ae79d4f181cb83522abed5af7c80fe11e292820ff4be1c667"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -25085,7 +25085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ccc2989eedb0a1a84a31af797ed88ddb70a5d4d96b6deddfe11e0e22ba6f3c61"
+          "content": "013c46d250f6efc9150e33d6b71a9087429a5c858f33ef20872f6d9ff838fb4f"
         }
       ],
       "name": "services/sahool-platform/api/decision_service_client.py",
@@ -25375,7 +25375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5a8fad99132e539bc26063f9bac86b910de84c926b812b9af7d932534f88128"
+          "content": "2bd1b03a32c3f8c931f528bc10a17344277f24decead8ab9ec4b5ccb15971032"
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
@@ -27215,7 +27215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5cdf1cb16773ab7ce748397e7b1f788e1f00c014c8cf0cc279feea65950d1a95"
+          "content": "f82c9a2d01ad0d5cd34af9c4a7ff74bf1b017ebba287d3a01c088ef6835a8c0d"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -27425,7 +27425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "21d98037d2d3873b1b4fc9db1e8419954c2768b22d1bd6569d80ba88978476c8"
+          "content": "dff71c338feea45531f22b030693fa6da533e31806b3e7832410eead878f24aa"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
