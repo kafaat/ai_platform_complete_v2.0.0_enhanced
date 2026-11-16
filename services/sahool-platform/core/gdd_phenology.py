@@ -45,6 +45,19 @@ def gdd_base_c(crop_id: str | None) -> float | None:
     return card.get("thermal", {}).get("gdd_base_c")
 
 
+def gdd_to_maturity(crop_id: str | None) -> float | None:
+    """GDD التراكميّ للنضج من بطاقة المحصول (``thermal.gdd_to_maturity``)، أو None.
+
+    المصدر الواحد لعتبة النضج الحراريّة: ``gdd_tracker`` و``season_simulation`` يقرآنها من
+    هنا للمحاصيل الموحَّدة (crop-4)، فلا تتعدّد قيم نضج القمح بين الوحدات. صفر/غياب ⇒ None.
+    """
+    card = load_crop_card(crop_id) if crop_id else None
+    value = (card or {}).get("thermal", {}).get("gdd_to_maturity")
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
+        return None
+    return float(value)
+
+
 def gdd_stage_thresholds(crop_id: str | None) -> list[dict]:
     """عتبات GDD لكلّ مرحلة طوريّة (مشتقّة من stage_days نسبيّاً × gdd_to_maturity).
 
@@ -101,6 +114,10 @@ def phenology_progress(
     ``gdd_fraction`` (0..1+)، ``maturity_reached_gdd``، ``days_stage``/``gdd_stage``
     (اسم كلٍّ)، و``divergence`` {diverged, direction: ahead/behind/aligned} حين يتوفّر
     التقديران. صدق: المُعمِّرات/الناقص ⇒ gdd_applicable=False دون رقم مُلفَّق.
+
+    وهو **محلِّل المرحلة الواحد** للمنصّة: ``stage``/``stage_ar`` المرحلة الفعّالة،
+    ``stage_source`` = ``gdd`` | ``days`` | None، و``stage_fallback`` = ``calendar_days`` حين
+    تُستعمَل الأيّام احتياطاً مُعلَناً مع ``stage_fallback_reason`` (لماذا لم تنطبق الحرارة).
     """
     from core.season_phenology import current_stage  # تفادي دور الاستيراد
 
@@ -130,6 +147,28 @@ def phenology_progress(
         "note_ar": None,
     }
 
+    # ── المحلِّل الواحد للمرحلة (W1-10): الحراريّة أوّلاً، ثمّ الاحتياطي التقويميّ المُعلَن ──
+    # كلّ مستهلك (حالة الموسم، سياق الحقل، /phenology، محرّك الحالة الزراعيّة) يقرأ
+    # ``stage``/``stage_source`` من هنا بدل أن يختار بنفسه، و``stage_fallback_reason`` يقول
+    # لماذا لم تُستعمَل الحرارة حين تكون المرحلة تقويميّة.
+    if gdd_st:
+        stage_source, fallback_reason = "gdd", None
+    else:
+        if not gdd_applicable:
+            fallback_reason = "gdd_not_applicable"
+        elif accumulated_gdd is None:
+            fallback_reason = "accumulated_gdd_missing"
+        elif accumulated_gdd >= total_gdd:
+            fallback_reason = "gdd_past_maturity"
+        else:
+            fallback_reason = "gdd_out_of_range"
+        stage_source = "days" if days_st else None
+    result["stage"] = result["gdd_stage"] or result["days_stage"]
+    result["stage_ar"] = result["gdd_stage_ar"] or result["days_stage_ar"]
+    result["stage_source"] = stage_source
+    result["stage_fallback"] = "calendar_days" if stage_source == "days" else None
+    result["stage_fallback_reason"] = fallback_reason
+
     # كشف التباعد: يتطلّب توفّر التقديرين معاً.
     if days_st and gdd_st:
         order = ["initial", "development", "mid", "late"]
@@ -157,6 +196,25 @@ def phenology_progress(
             )
 
     return result
+
+
+def resolve_stage(
+    crop_id: str | None,
+    days_since_sowing: int | None,
+    accumulated_gdd: float | None = None,
+) -> tuple[dict | None, dict]:
+    """(صفّ المرحلة من بطاقة المحصول، نتيجة ``phenology_progress``) للمرحلة المحلَّلة.
+
+    لمستهلكٍ يحتاج صفّ البطاقة كاملاً (``key_action_ar``/``day_start``…) لا اسمها فقط —
+    كـ``/phenology`` و``/stage-actions``. المرحلة نفسها من المحلِّل الواحد، لا من الأيّام وحدها.
+    """
+    resolved = phenology_progress(crop_id, days_since_sowing, accumulated_gdd)
+    name = resolved.get("stage")
+    card = load_crop_card(crop_id) if crop_id and name else None
+    for st in (card or {}).get("phenology", {}).get("stages", []):
+        if st.get("stage") == name:
+            return st, resolved
+    return None, resolved
 
 
 def _critical_gdd_bounds(crop_id: str | None) -> dict | None:

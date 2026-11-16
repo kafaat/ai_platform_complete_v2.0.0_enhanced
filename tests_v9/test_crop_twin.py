@@ -45,20 +45,22 @@ def _gdd(crop, days):
 
 
 def test_phenology_progress_and_stage():
-    # 10 أيّام × GDD 20 = 200؛ wheat نضج 1800 ⇒ تقدّم ≈ 0.111 ⇒ مرحلة initial.
+    # 10 أيّام × GDD 20 = 200؛ نضج القمح 2000 من بطاقته (crop-4) ⇒ تقدّم 0.1 ⇒ مرحلة initial.
     days = _wheat_days(10)
     st = crop_twin_state(
         "wheat", days, taw_mm=100.0, raw_fraction=0.5, gdd_daily_override=_gdd("wheat", days)
     )
     assert st["phenology"]["gdd_cumulative"] == pytest.approx(200.0)
-    assert st["phenology"]["progress"] == pytest.approx(200.0 / 1800.0, rel=1e-3)
+    assert st["phenology"]["progress"] == pytest.approx(200.0 / 2000.0, rel=1e-3), (
+        "wheat progress must be measured against the crop-card maturity GDD (2000)"
+    )
     assert st["phenology"]["stage"] == "initial"
     assert st["phenology"]["past_maturity"] is False
 
 
 def test_past_maturity_flagged():
-    # 100 يوم × 20 = 2000 > 1800 ⇒ past_maturity، تقدّم مقصوص عند 1.0، مرحلة late.
-    days = _wheat_days(100)
+    # 110 يوم × 20 = 2200 > 2000 (نضج بطاقة القمح) ⇒ past_maturity، تقدّم مقصوص عند 1.0، late.
+    days = _wheat_days(110)
     st = crop_twin_state(
         "wheat", days, taw_mm=100.0, raw_fraction=0.5, gdd_daily_override=_gdd("wheat", days)
     )
