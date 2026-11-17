@@ -21235,7 +21235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "21d10e5141606294808009b9ffb4bb5fe59e07251ea7a474336796eb3e92587c"
+          "content": "c1c039cddf387bbda23f2b4f5e5d253efbc1cbe19467992733a44b46b1173e23"
         }
       ],
       "name": "services/indicators-service/tests/test_observation_drain.py",
@@ -23635,7 +23635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9918e2d7c7c50b9d6e038e1331e2b6956c3acc293f9133aa0e290120d5e11378"
+          "content": "a33759d1d72b07f18076b648f5ade1c686d54fbcdd11cb076b7868f59c89544d"
         }
       ],
       "name": "services/raster-service/test_observation_outbox.py",
@@ -23645,7 +23645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cff2167ba7e3d35c5cfffea177cce7f441ea8b3ce67310961784a36a1eab40bb"
+          "content": "76760a31cbe51f977d7369f31f75c3a29668fef0233a5612258e8521f03911d7"
         }
       ],
       "name": "services/raster-service/test_observation_sweep.py",
