@@ -1640,6 +1640,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/sharingRevocation.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/sharingRevocation.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/soilWorkspace.test.ts",
     "kind": "tests"
   },

@@ -2815,7 +2815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "49d80a5af8fe820ab9e94ea5b09bd1b8e3595aa7f335b0a512b77d503b859461"
+          "content": "585b0a538bb3ee3e0dd028046d29ce5c6c7dd61c142187c46bae4ef6034609e5"
         }
       ],
       "name": "frontend/src/components/sharing/SharingPanel.tsx",
@@ -3025,7 +3025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ada1b2b9df3dfc456ef7e4f2c04941e5cae745c3060ec5bcfb81b403fae72b1"
+          "content": "2ac64fc3c91c0fe847fd037a5df56b10949a848836ab033a325baa9d218421ac"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -5159,6 +5159,26 @@
         }
       ],
       "name": "frontend/src/lib/seasonDraftStorage.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e0a592f058fbf1d64176166be60278ee1ca4218d0169a8e53ea248adc14cc4c"
+        }
+      ],
+      "name": "frontend/src/lib/sharingRevocation.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a5ee4705dce87efb10032accb4e16ba91231d0cab66a3611b9d64fdc71fc78e6"
+        }
+      ],
+      "name": "frontend/src/lib/sharingRevocation.ts",
       "type": "file"
     },
     {
@@ -7845,7 +7865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb2352f7631a2742d451b9b5821d7729dc58b83ee25c0ec31e7e5fbbf908e30b"
+          "content": "d41f1184d22cbdbcfe9a32ac3379de4550f36ad91a8014f3840c4582e8837cd1"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -28475,7 +28495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "319136526a9c8a901baeefbfa3d57e29b9a7e8f1cd946095d1865f7643e61d08"
+          "content": "3464f7c40a49c8b0250f7ffbf6c5383cc68b2877db350993a919840a306ab4c6"
         }
       ],
       "name": "services/sahool-platform/api/routers/sharing.py",
