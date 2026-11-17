@@ -70,7 +70,7 @@ async def list_sharing_keys(
     async with tenant_connection(user) as conn:
         svc = SharingKeyService(get_pool(), conn=conn)
         keys = await svc.list_keys(user.tenant_id, include_revoked=include_revoked)
-    return {"keys": keys}
+    return {"keys": keys, "capabilities": {"revoke_keys": True}}
 
 
 @router.post("/api/v1/sharing/keys/{key_id}/revoke")

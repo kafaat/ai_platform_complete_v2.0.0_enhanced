@@ -33,7 +33,7 @@
     },
     "test_dependency_files": 1993,
     "test_dependency_edges": 5288,
-    "test_dependency_bounded_files": 1160,
+    "test_dependency_bounded_files": 1159,
     "test_dependency_unresolved_relations": 507
   },
   "capabilities": [
@@ -80337,8 +80337,10 @@
     },
     {
       "test": "tests_v9/test_cropin_governed_routes_static_v1.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
       "edges": [
         {
           "source": "services/mcp_servers/market_server.py",

@@ -14,13 +14,15 @@
 // ═══════════════════════════════════════════════════════════════
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { KeyRound, Plus, Copy, Check, AlertTriangle, Share2 } from 'lucide-react';
-import { useSharingKeys, useCreateSharingKey } from '../../hooks/useApi';
+import { useSharingKeysWithCapabilities, useCreateSharingKey } from '../../hooks/useApi';
 import { useSelectedField } from '../../hooks/useSelectedField';
 import { useAuthStore } from '../../hooks/useAuth';
 import { can } from '../../lib/permissions';
 import { apiErrorMessage, kongApi, type SharingKey, type SharingScope } from '../../services/api';
 import {
   revokeAndReconcileSharingKey,
+  supportsSharingKeyRevocation,
+  SHARING_REVOKE_UNAVAILABLE_AR,
   SHARING_REVOKE_REFRESH_FAILED_AR,
   SHARING_REVOKE_UNKNOWN_AR,
 } from '../../lib/sharingRevocation';
@@ -283,13 +285,18 @@ export default function SharingPanel() {
   // (فعل `manage` على مورد `user`) لا مجرّد canManage الخشنة — العتبة نفسها
   // (owner/manager) لكن بنيّة مصرّحة.
   const manageable = can(role, 'manage', 'user');
-  const { data, isLoading, error, refetch } = useSharingKeys();
+  const { data, isLoading, error, refetch } = useSharingKeysWithCapabilities();
+  const revokeSupported = supportsSharingKeyRevocation(data);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [plaintext, setPlaintext] = useState<string | null>(null);
   const [revokingKeyId, setRevokingKeyId] = useState<string | null>(null);
   const [revokeError, setRevokeError] = useState<string | null>(null);
 
   const revokeKey = useCallback(async (keyId: string) => {
+    if (!revokeSupported) {
+      setRevokeError(SHARING_REVOKE_UNAVAILABLE_AR);
+      return;
+    }
     if (!window.confirm('إلغاء صلاحية هذا المفتاح؟ لا يمكن إعادة تفعيله.')) return;
     setRevokingKeyId(keyId);
     setRevokeError(null);
@@ -297,7 +304,7 @@ export default function SharingPanel() {
       const outcome = await revokeAndReconcileSharingKey(
         keyId,
         (url) => kongApi.post(url),
-        refetch,
+        () => refetch({ throwOnError: true }),
       );
       if (outcome === 'unknown') setRevokeError(SHARING_REVOKE_UNKNOWN_AR);
       if (outcome === 'confirmed_refresh_unavailable') {
@@ -306,9 +313,9 @@ export default function SharingPanel() {
     } finally {
       setRevokingKeyId(null);
     }
-  }, [refetch]);
+  }, [refetch, revokeSupported]);
 
-  const keys: SharingKey[] = data ?? [];
+  const keys: SharingKey[] = Array.isArray(data?.keys) ? data.keys : [];
 
   const columns = useMemo<Column<SharingKey>[]>(() => {
     const fieldCount = (k: SharingKey): number => {
@@ -364,7 +371,7 @@ export default function SharingPanel() {
       {
         key: 'revoke',
         label: 'الإجراء',
-        render: (k) => manageable && k.revoked_at == null ? (
+        render: (k) => manageable && revokeSupported && k.revoked_at == null ? (
           <Button
             full={false}
             onClick={() => void revokeKey(k.key_id)}
@@ -375,7 +382,7 @@ export default function SharingPanel() {
         ) : <span style={{ color: T.muted }}>—</span>,
       },
     ];
-  }, [manageable, revokingKeyId, revokeKey]);
+  }, [manageable, revokeSupported, revokingKeyId, revokeKey]);
 
   return (
     <Card>
@@ -395,11 +402,16 @@ export default function SharingPanel() {
       </SectionLabel>
 
       <p style={{ fontSize: 12, color: T.muted, lineHeight: 1.6, marginBottom: 12 }}>
-        أنشئ مفاتيح مشاركة مؤقتة ومقيّدة بالحقول، ويمكنك إلغاؤها من هنا.
+        أنشئ مفاتيح مشاركة مؤقتة ومقيّدة بالحقول؛ يُتاح الإلغاء فقط عندما يعلن الخادم دعم الوظيفة.
         تطبيق نطاق الوصول الفعلي يعتمد على تحقق الخدمة المستقبلة من المفتاح والصلاحيات؛
         إنشاء المفتاح وحده لا يثبت تفعيل كل مسارات تبادل البيانات.
       </p>
 
+      {manageable && !isLoading && error == null && !revokeSupported && (
+        <p role="status" style={{ fontSize: 12, color: T.muted, marginBottom: 8 }}>
+          إلغاء المفاتيح غير متاح على إصدار الخادم الحالي. يمكن عرض المفاتيح، لكن زر الإلغاء معطّل.
+        </p>
+      )}
       {revokeError && (
         <p role="alert" style={{ fontSize: 12, color: T.danger, marginBottom: 8 }}>{revokeError}</p>
       )}

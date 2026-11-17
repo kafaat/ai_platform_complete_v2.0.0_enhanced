@@ -2,6 +2,17 @@
  * An HTTP transport failure does not establish that a revocation was rolled back.
  * The server may have applied the write before its response was lost.
  */
+/** A route advertised only on newer backends; absence/invalid shapes are UNSUPPORTED. */
+export function supportsSharingKeyRevocation(response: unknown): boolean {
+  if (!response || typeof response !== 'object') return false;
+  const caps = (response as { capabilities?: unknown }).capabilities;
+  return caps !== null && typeof caps === 'object' &&
+    (caps as { revoke_keys?: unknown }).revoke_keys === true;
+}
+
+export const SHARING_REVOKE_UNAVAILABLE_AR =
+  'إلغاء المفاتيح غير متاح على إصدار الخادم الحالي؛ لم يُنفَّذ أي طلب إلغاء.';
+
 export type SharingRevocationOutcome = 'confirmed' | 'unknown' | 'confirmed_refresh_unavailable';
 
 export const SHARING_REVOKE_UNKNOWN_AR =

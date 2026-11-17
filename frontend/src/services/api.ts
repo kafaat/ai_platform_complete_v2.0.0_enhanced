@@ -2391,6 +2391,13 @@ export interface SharingKey {
   revoked_at?:  string | null; // الخادم يُرجِع طابعاً زمنيّاً (أو null) لا boolean
   [k: string]: unknown; // الخادم قد يُرجِع حقولاً إضافيّة — لا نقصّها
 }
+/** Optional capability declaration from the actual backend handling this tenant's request.
+ * Older Railway branches return only {keys}, so missing capability must fail closed.
+ */
+export interface SharingKeysResponse {
+  keys: SharingKey[];
+  capabilities?: { revoke_keys?: boolean };
+}
 // SharingScope على الخادم = 'read' | 'read_write' (لا 'write').
 export type SharingScope = 'read' | 'read_write';
 export interface NewSharingKey {
@@ -2437,8 +2444,8 @@ export const getCommand = (commandId: string): Promise<{ command_id: string; fou
   ).then(r => r.data);
 
 /** سرد مفاتيح المشاركة للمستأجِر. */
-export const listSharingKeys = (includeRevoked = false): Promise<{ keys: SharingKey[] }> =>
-  kongApi.get<{ keys: SharingKey[] }>('/api/v1/sharing/keys', {
+export const listSharingKeys = (includeRevoked = false): Promise<SharingKeysResponse> =>
+  kongApi.get<SharingKeysResponse>('/api/v1/sharing/keys', {
     params: { include_revoked: includeRevoked },
   }).then(r => r.data);
 
