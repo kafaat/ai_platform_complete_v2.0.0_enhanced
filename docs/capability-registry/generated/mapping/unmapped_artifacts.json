@@ -5520,6 +5520,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/observation_sweep.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/quality_metrics.py",
     "kind": "backend"
   },
@@ -5757,6 +5761,10 @@
   },
   {
     "path": "services/raster-service/test_observation_outbox.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_observation_sweep.py",
     "kind": "tests"
   },
   {

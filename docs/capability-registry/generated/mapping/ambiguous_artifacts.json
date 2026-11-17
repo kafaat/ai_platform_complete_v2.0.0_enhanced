@@ -5805,6 +5805,28 @@
     ]
   },
   {
+    "path": "tests_v9/test_canonical_observations_live_pg.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:Tenant RLS"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "dedup:NDVI=ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_canonical_water_state_mpc.py",
     "kind": "tests",
     "candidates": [

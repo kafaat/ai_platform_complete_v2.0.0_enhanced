@@ -733,7 +733,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 144,
+      "line": 147,
       "method": "GET",
       "path": "/v1/indicators/ownership",
       "function": "ownership"
@@ -741,7 +741,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 149,
+      "line": 152,
       "method": "GET",
       "path": "/v1/indicators/catalog",
       "function": "catalog"
@@ -749,7 +749,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 206,
+      "line": 209,
       "method": "POST",
       "path": "/v1/indicators/compute",
       "function": "compute_indicator"
@@ -757,7 +757,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 337,
+      "line": 340,
       "method": "GET",
       "path": "/v1/fields/{field_id}/observations",
       "function": "field_observations"
@@ -765,7 +765,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 391,
+      "line": 394,
       "method": "GET",
       "path": "/v1/fields/{field_id}/observation-timeline",
       "function": "observation_timeline"

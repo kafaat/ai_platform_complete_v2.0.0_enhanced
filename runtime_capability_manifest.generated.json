@@ -295,7 +295,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 80,
+      "capability_count": 81,
       "component_id": "raster-service",
       "domain": "remote-sensing-truth",
       "status": {
@@ -519,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "37378e8b08c2ad4c22543d23b43f4184bcdd536c57cf1b6a6b1d3a27fc0146dd",
+  "fingerprint": "2bcbdebf77a3c9e6177508ed4ab03e6bd1d7d3c0042dc301dec6cf17b814654f",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

@@ -9394,6 +9394,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "tests_v9/test_canonical_observations_live_pg.py",
         "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
         "tests_v9/test_ndvi_seed_purge_live_pg.py",
         "tests_v9/test_vegetation.py"
@@ -9599,6 +9600,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_agronomic_replay_shape.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_canonical_observations_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",

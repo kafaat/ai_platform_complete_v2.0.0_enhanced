@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d56555db8d9de00a893881bc6f531e237148060083657ff298c5c3ba74b8e4f"
+          "content": "58a690fc8160a4bc7fc54e3804da4b5bf83661d795573b47294671680d9fd65e"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4945,7 +4945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc582004f427b635203b760e5476f75f213a808d1e65588a1b263bbff106f1ae"
+          "content": "6030ba95e14ad738bd06f0dc78234d112a6167c490ba4e62b39ba55edf438fec"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -10135,7 +10135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac6723c08bee7df0c3934c3b034423a1209134ace14b19e1c1f4693ce9048149"
+          "content": "1d8e6bc48c9599b5cbb4e2829808f33281d291d33132abbca38ab5b1504d98d3"
         }
       ],
       "name": "migrations/v286_canonical_observations.sql",
@@ -21155,7 +21155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7404d446f790f4c4bb35e9e97a3160abcc837a93456c311257f2a509ad4b56f1"
+          "content": "fa6499f160e9013589e1756865a28bb72459fd69f931ab794ec59650692ee8da"
         }
       ],
       "name": "services/indicators-service/main.py",
@@ -21165,7 +21165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "315f3c7f2b20a5241a1e27cafb2b5d77b093cd29c1710482e3ce4bdaac57d8b7"
+          "content": "f80f7509322a33033d9ab6973bd7a24f2e8a4d06afb4654c2afc537bc878c4ee"
         }
       ],
       "name": "services/indicators-service/observation_drain.py",
@@ -21235,7 +21235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b7f4599733946cf6160d278bccf12350d5c56f3b80f7097a46589a18a05f3f7c"
+          "content": "11891eb5a214bc7fafe46b6c77bf12b19db14a1cfc91c437d24a7b715fafd4fb"
         }
       ],
       "name": "services/indicators-service/tests/test_observation_drain.py",
@@ -22205,10 +22205,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "38b0828d43f751ed988c178e0301bc557ce6271ef3f6a4ab23cd69a023fd7064"
+          "content": "6eb1a92af04d5ce017eef6697d4893343fb6379d80c1f6ae7b9897cdf8b5d96d"
         }
       ],
       "name": "services/raster-service/observation_outbox.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3784e838d9cfa70197126943bdb4cd43c1ba25622d7c00885358f704bfe3ba97"
+        }
+      ],
+      "name": "services/raster-service/observation_sweep.py",
       "type": "file"
     },
     {
@@ -22255,7 +22265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0bded019bd904faa4f4c13cfc428a4edd39e98a46e5632306b5008318b10948c"
+          "content": "b188884c27624ae538bc9b2a7a61684b402bc7b961d541d8cbdaeed2b2142e74"
         }
       ],
       "name": "services/raster-service/raster_app_lifecycle.py",
@@ -22265,7 +22275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "39dcadc7cbb3a9bcd2dec2d8040aebfca02cad3638af0ee536aa1dff486f5b76"
+          "content": "8afceadfe29cb63609a0d837c813887b7ea97310ca731b08158fb89e8ff414f5"
         }
       ],
       "name": "services/raster-service/raster_asset_persistence.py",
@@ -22695,7 +22705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "570cac5d1934a76867dccccab67226a0d836cf896af337947a554f626ff3d52b"
+          "content": "f8316b035a10e3ad59710bf0b35c543f6eee9eaa47658e8d95f0fb7420c0b973"
         }
       ],
       "name": "services/raster-service/routers/observability.py",
@@ -22705,7 +22715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e469f775ae413f22b654e214de3164110f241bef5d74ca34a7c687434edbcf2f"
+          "content": "38655496a9ab28bda356a65aaeabd8a032b7ccbec1897bc72ee2d817750e0397"
         }
       ],
       "name": "services/raster-service/routers/observation_feed.py",
@@ -23615,7 +23625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "39e8a1bef9c7605f9e24060ce62c034d4f04e28db420024eefc6c067eaa38d9f"
+          "content": "cb87d942d5f48e0266c31fb8eabe84fdebf16afb618ddaf8f5330dfe203a1db2"
         }
       ],
       "name": "services/raster-service/test_observation_feed.py",
@@ -23625,10 +23635,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "83fe451265ef80f893ce77591b904adf4b78a456f2d96190e43b0869f0d14542"
+          "content": "9918e2d7c7c50b9d6e038e1331e2b6956c3acc293f9133aa0e290120d5e11378"
         }
       ],
       "name": "services/raster-service/test_observation_outbox.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "991ef191dfb024920f3b2f2a1d29a2b453ddfc7e25d1017bd15e560354f9f7a8"
+        }
+      ],
+      "name": "services/raster-service/test_observation_sweep.py",
       "type": "file"
     },
     {

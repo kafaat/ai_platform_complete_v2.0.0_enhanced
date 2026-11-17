@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7516,
+    "files_scanned": 7518,
     "files_by_kind": {
-      "backend": 1300,
+      "backend": 1301,
       "database": 352,
       "governance": 89,
       "mobile": 429,
       "other": 2196,
-      "tests": 2595,
+      "tests": 2596,
       "web": 555
     },
-    "unmapped_artifacts": 3578,
-    "ambiguous_artifacts": 258,
+    "unmapped_artifacts": 3580,
+    "ambiguous_artifacts": 259,
     "files_by_reading": {
-      "python_functional": 4079,
+      "python_functional": 4081,
       "raw": 3437
     },
-    "test_dependency_files": 1980,
-    "test_dependency_edges": 5253,
-    "test_dependency_bounded_files": 1152,
+    "test_dependency_files": 1981,
+    "test_dependency_edges": 5260,
+    "test_dependency_bounded_files": 1153,
     "test_dependency_unresolved_relations": 506
   },
   "capabilities": [
@@ -22274,6 +22274,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_canonical_observations_live_pg.py",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        },
+        {
           "path": "tests_v9/test_confidence_failures.py",
           "score": 8,
           "signals": [
@@ -22697,7 +22705,7 @@
         "events": 100,
         "web": 39,
         "mobile": 5,
-        "tests": 70,
+        "tests": 71,
         "governance": 0,
         "other_evidence": 33
       },
@@ -23745,19 +23753,19 @@
           "score": 18
         },
         {
-          "value": "/v1/indices @ services/raster-service/routers/observability.py:314",
+          "value": "/v1/indices @ services/raster-service/routers/observability.py:325",
           "score": 18
         },
         {
-          "value": "/v1/info/{layer_id} @ services/raster-service/routers/observability.py:274",
+          "value": "/v1/info/{layer_id} @ services/raster-service/routers/observability.py:285",
           "score": 18
         },
         {
-          "value": "/v1/providers/status @ services/raster-service/routers/observability.py:284",
+          "value": "/v1/providers/status @ services/raster-service/routers/observability.py:295",
           "score": 18
         },
         {
-          "value": "/v1/tile-cache/stats @ services/raster-service/routers/observability.py:240",
+          "value": "/v1/tile-cache/stats @ services/raster-service/routers/observability.py:251",
           "score": 18
         },
         {
@@ -28399,7 +28407,7 @@
           "score": 9
         },
         {
-          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:491",
+          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:495",
           "score": 9
         },
         {
@@ -28411,7 +28419,7 @@
           "score": 9
         },
         {
-          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:485",
+          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:489",
           "score": 9
         },
         {
@@ -28419,15 +28427,15 @@
           "score": 9
         },
         {
-          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:479",
+          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:483",
           "score": 9
         },
         {
-          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:474",
+          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:478",
           "score": 9
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:468",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:472",
           "score": 9
         }
       ],
@@ -38482,6 +38490,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/raster-service/observation_sweep.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/raster-service/quality_metrics.py",
       "kind": "backend"
     },
@@ -38719,6 +38731,10 @@
     },
     {
       "path": "services/raster-service/test_observation_outbox.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/raster-service/test_observation_sweep.py",
       "kind": "tests"
     },
     {
@@ -53081,6 +53097,28 @@
       ]
     },
     {
+      "path": "tests_v9/test_canonical_observations_live_pg.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SEC-001",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:Tenant RLS"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        }
+      ]
+    },
+    {
       "path": "tests_v9/test_canonical_water_state_mpc.py",
       "kind": "tests",
       "candidates": [
@@ -58045,6 +58083,11 @@
           "line": 16
         },
         {
+          "source": "services/raster-service/observation_sweep.py",
+          "kind": "import",
+          "line": 328
+        },
+        {
           "source": "services/raster-service/raster_app_factory.py",
           "kind": "import",
           "line": 20
@@ -58057,12 +58100,12 @@
         {
           "source": "services/raster-service/routers/__init__.py",
           "kind": "import",
-          "line": 73
+          "line": 97
         },
         {
           "source": "services/raster-service/routers/observation_feed.py",
           "kind": "import",
-          "line": 73
+          "line": 97
         }
       ],
       "unresolved": []
@@ -58090,17 +58133,40 @@
         {
           "source": "services/raster-service/raster_api_models.py",
           "kind": "import",
-          "line": 176
+          "line": 178
         },
         {
           "source": "services/raster-service/raster_asset_persistence.py",
           "kind": "import",
-          "line": 177
+          "line": 179
         },
         {
           "source": "services/raster-service/raster_batch_observability.py",
           "kind": "import",
-          "line": 245
+          "line": 271
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/raster-service/test_observation_sweep.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/raster-service/db_persist.py",
+          "kind": "import",
+          "line": 13
+        },
+        {
+          "source": "services/raster-service/observation_outbox.py",
+          "kind": "import",
+          "line": 14
+        },
+        {
+          "source": "services/raster-service/observation_sweep.py",
+          "kind": "import",
+          "line": 15
         }
       ],
       "unresolved": []
@@ -78037,9 +78103,24 @@
           "line": 102
         },
         {
+          "source": "services/raster-service/observation_sweep.py",
+          "kind": "import",
+          "line": 640
+        },
+        {
+          "source": "services/raster-service/raster_api_models.py",
+          "kind": "import",
+          "line": 649
+        },
+        {
           "source": "services/raster-service/raster_app_factory.py",
           "kind": "import",
           "line": 104
+        },
+        {
+          "source": "services/raster-service/raster_asset_persistence.py",
+          "kind": "import",
+          "line": 641
         },
         {
           "source": "services/raster-service/raster_settings.py",
@@ -89184,7 +89265,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 345
+          "line": 349
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",

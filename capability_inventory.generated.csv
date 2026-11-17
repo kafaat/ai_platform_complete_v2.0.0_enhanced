@@ -199,6 +199,7 @@ raster-service.indices,query,raster-service,GET /v1/indices,frontend,route,False
 raster-service.info.layer_id,query,raster-service,GET /v1/info/{layer_id},frontend,route,False
 raster-service.internal.observation-outbox,query,raster-service,GET /internal/v1/observation-outbox,frontend,route,False
 raster-service.internal.observation-outbox.acknowledgements,command,raster-service,POST /internal/v1/observation-outbox/acknowledgements,frontend,route,False
+raster-service.internal.observation-outbox.requeue,command,raster-service,POST /internal/v1/observation-outbox/requeue,frontend,route,False
 raster-service.jobs.job_id,query,raster-service,GET /v1/jobs/{job_id},frontend,route,False
 raster-service.jobs.job_id.result,query,raster-service,GET /v1/jobs/{job_id}/result,frontend,route,False
 raster-service.layers.layer_id.tilejson,query,raster-service,GET /v1/layers/{layer_id}/tilejson,frontend,route,False

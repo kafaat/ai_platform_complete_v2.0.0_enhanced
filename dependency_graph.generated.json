@@ -1,5 +1,5 @@
 {
-  "edge_count": 1083,
+  "edge_count": 1085,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -1442,6 +1442,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/raster-service/observation_sweep.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://raster_assets",
+      "to": "db://raster_assets",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/raster-service/test_backfill_processing_version_preflight.py",
       "from": "raster-service",
       "from_kind": "component",
@@ -1523,6 +1533,16 @@
     },
     {
       "evidence": "services/raster-service/observation_outbox.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://raster_observation_outbox",
+      "to": "db://raster_observation_outbox",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/observation_sweep.py",
       "from": "raster-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -10850,7 +10870,7 @@
     "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 584,
+    "READS": 586,
     "ROUTES_TO": 76,
     "WRITES": 372
   },
@@ -10867,8 +10887,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 957,
-      "resolved": 956,
+      "observed": 959,
+      "resolved": 958,
       "unresolved_component_paths": 0
     }
   }

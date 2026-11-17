@@ -3272,6 +3272,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "raster-service.internal.observation-outbox.requeue",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /internal/v1/observation-outbox/requeue"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "raster-service",
+      "producer": "raster-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "raster-service.jobs.job_id",
       "consumers": [
         "frontend"
@@ -17848,7 +17865,7 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 842,
+    "capabilities": 843,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
     "capabilities_idempotent": 74,
@@ -17859,9 +17876,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1167,
+    "route_rows": 1168,
     "ui_waivers": 52,
-    "unique_method_path": 1046
+    "unique_method_path": 1047
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18123,7 +18140,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "37378e8b08c2ad4c22543d23b43f4184bcdd536c57cf1b6a6b1d3a27fc0146dd",
+  "fingerprint": "2bcbdebf77a3c9e6177508ed4ab03e6bd1d7d3c0042dc301dec6cf17b814654f",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18177,14 +18194,14 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1083,
+      "edge_count": 1085,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 584,
+        "READS": 586,
         "ROUTES_TO": 76,
         "WRITES": 372
       }

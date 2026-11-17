@@ -17,7 +17,7 @@
         },
         {
           "function": "root",
-          "line": 214,
+          "line": 217,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/",
@@ -40,7 +40,7 @@
         },
         {
           "function": "capabilities",
-          "line": 159,
+          "line": 162,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/capabilities",
@@ -71,7 +71,7 @@
         },
         {
           "function": "contract",
-          "line": 184,
+          "line": 187,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/contract",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1152,
-  "route_inventory_sha256": "5385f9dc3a407eb2e07dcd998667feebadbe4e13b91d5e78297e78e86fb97964",
+  "route_count": 1153,
+  "route_inventory_sha256": "247c44fb1a1e7ba5a1cd47ae6afb7bf04ae96ab4669491c9d75422330edf27ba",
   "runtime_verified": false,
   "schema_version": 1
 }

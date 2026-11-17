@@ -1568,7 +1568,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 144,
+    "line": 147,
     "method": "GET",
     "path": "/v1/indicators/ownership",
     "handler": "ownership",
@@ -1577,7 +1577,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 149,
+    "line": 152,
     "method": "GET",
     "path": "/v1/indicators/catalog",
     "handler": "catalog",
@@ -1586,7 +1586,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 159,
+    "line": 162,
     "method": "GET",
     "path": "/capabilities",
     "handler": "capabilities",
@@ -1595,7 +1595,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 184,
+    "line": 187,
     "method": "GET",
     "path": "/contract",
     "handler": "contract",
@@ -1604,7 +1604,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 206,
+    "line": 209,
     "method": "POST",
     "path": "/v1/indicators/compute",
     "handler": "compute_indicator",
@@ -1613,7 +1613,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 214,
+    "line": 217,
     "method": "GET",
     "path": "/",
     "handler": "root",
@@ -1622,7 +1622,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 337,
+    "line": 340,
     "method": "GET",
     "path": "/v1/fields/{field_id}/observations",
     "handler": "field_observations",
@@ -1631,7 +1631,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 391,
+    "line": 394,
     "method": "GET",
     "path": "/v1/fields/{field_id}/observation-timeline",
     "handler": "observation_timeline",
@@ -2657,7 +2657,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 241,
+    "line": 252,
     "method": "GET",
     "path": "/v1/tile-cache/stats",
     "handler": "tile_cache_stats",
@@ -2666,7 +2666,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 275,
+    "line": 286,
     "method": "GET",
     "path": "/v1/info/{layer_id}",
     "handler": "raster_info",
@@ -2675,7 +2675,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 285,
+    "line": 296,
     "method": "GET",
     "path": "/v1/providers/status",
     "handler": "providers_status",
@@ -2684,7 +2684,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 315,
+    "line": 326,
     "method": "GET",
     "path": "/v1/indices",
     "handler": "field_indices",
@@ -2693,7 +2693,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observation_feed.py",
-    "line": 64,
+    "line": 97,
     "method": "GET",
     "path": "/internal/v1/observation-outbox",
     "handler": "list_pending_observations",
@@ -2702,10 +2702,19 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observation_feed.py",
-    "line": 86,
+    "line": 129,
     "method": "POST",
     "path": "/internal/v1/observation-outbox/acknowledgements",
     "handler": "acknowledge_observations",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/routers/observation_feed.py",
+    "line": 150,
+    "method": "POST",
+    "path": "/internal/v1/observation-outbox/requeue",
+    "handler": "requeue_observations",
     "classification": "internal_s2s"
   },
   {

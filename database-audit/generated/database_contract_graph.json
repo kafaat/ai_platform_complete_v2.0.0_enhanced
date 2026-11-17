@@ -6140,6 +6140,7 @@
         "services/indicators-service/tests/test_observation_store.py",
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
+        "services/raster-service/observation_sweep.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
         "services/raster-service/test_cdse_timeline_pg.py",
         "services/raster-service/test_element84_vrt_containment_runtime.py",
@@ -6222,7 +6223,8 @@
     },
     {
       "code_readers": [
-        "services/raster-service/observation_outbox.py"
+        "services/raster-service/observation_outbox.py",
+        "services/raster-service/observation_sweep.py"
       ],
       "code_writers": [
         "services/raster-service/observation_outbox.py"

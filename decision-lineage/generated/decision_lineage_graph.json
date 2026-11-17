@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 801,
+      "evidence_count": 805,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -257,7 +257,9 @@
         "services/raster-service/layer_lookup.py",
         "services/raster-service/main.py",
         "services/raster-service/observation_outbox.py",
+        "services/raster-service/observation_sweep.py",
         "services/raster-service/raster_api_models.py",
+        "services/raster-service/raster_app_lifecycle.py",
         "services/raster-service/raster_asset_persistence.py",
         "services/raster-service/raster_cdse_processing.py",
         "services/raster-service/raster_cdse_tile_runtime.py",
@@ -267,6 +269,7 @@
         "services/raster-service/raster_processing_runtime.py",
         "services/raster-service/routers/analysis.py",
         "services/raster-service/routers/fields.py",
+        "services/raster-service/routers/observability.py",
         "services/raster-service/routers/observation_feed.py",
         "services/raster-service/routers/timeseries_routes.py",
         "services/raster-service/sar_tillage_evidence.py",
@@ -279,6 +282,7 @@
         "services/raster-service/test_indicator_observation_bundle.py",
         "services/raster-service/test_observation_feed.py",
         "services/raster-service/test_observation_outbox.py",
+        "services/raster-service/test_observation_sweep.py",
         "services/raster-service/test_polygon_mask_metadata.py",
         "services/raster-service/test_raster_publication_gate.py",
         "services/raster-service/test_raster_validated_product.py",
@@ -3187,7 +3191,7 @@
         "services/sahool-platform/api/outcome_measurement.py",
         "services/sahool-platform/api/persisted_canonical_repositories.py"
       ],
-      "source_evidence_count": 801,
+      "source_evidence_count": 805,
       "target_evidence_count": 582,
       "static_supported": true,
       "runtime_verified": false
@@ -3650,5 +3654,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "b82e8bff7b7b1ba09452158d02530b0f0ee4c359e60c982f90a7f6ea84e62044"
+  "content_sha256": "717c26e0917290fa6c91bc83662abe1d2dac39c48ff755397254bf08c351c277"
 }
