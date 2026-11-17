@@ -266,6 +266,34 @@ async def test_a_preflight_that_never_passed_stays_failed_not_degraded():
     await state.reset()
 
 
+class _CountingJS(_JS):
+    """A broker that answers slowly and counts how many preflights reached it."""
+
+    def __init__(self, *a, **kw):
+        super().__init__(*a, **kw)
+        self.stream_info_calls = 0
+
+    async def stream_info(self, name):
+        self.stream_info_calls += 1
+        await asyncio.sleep(0.05)
+        return await super().stream_info(name)
+
+
+async def test_concurrent_refreshes_of_a_stale_result_run_one_preflight():
+    """Single flight: callers queued behind a running preflight reuse its result, so a probe
+    storm on /readyz does not become one broker round trip per caller."""
+    from shared.nats_stream_contract import PreflightState
+
+    js = _CountingJS(stream=_spec_config(), consumers=_all_consumers())
+    state = PreflightState()
+    snaps = await asyncio.gather(
+        *(state.refresh(_NC(js), flag=True, url=None, ttl=60) for _ in range(10))
+    )
+    assert js.stream_info_calls == 1, f"{js.stream_info_calls} preflights for 10 concurrent calls"
+    assert {s["status"] for s in snaps} == {"passed"}, snaps
+    await state.reset()
+
+
 class _SlowJS(_JS):
     """A broker whose ACL silently drops the request: the reply never comes."""
 

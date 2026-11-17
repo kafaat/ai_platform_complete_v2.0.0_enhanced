@@ -434,6 +434,14 @@ class PreflightState:
             out["status"] = "degraded"
         return out
 
+    def _fresh(self, ttl: float) -> bool:
+        window = ttl if (self.result or {}).get("status") == "passed" else min(ttl, 5.0)
+        return (
+            self.result is not None
+            and self.checked_at is not None
+            and time.monotonic() - self.checked_at < window
+        )
+
     async def refresh(
         self, nc: Any, *, flag: bool, url: str | None, ttl: float = PREFLIGHT_TTL_SECONDS
     ) -> dict[str, Any]:
@@ -442,17 +450,14 @@ class PreflightState:
             return self.snapshot(flag=False)
         # A failure is re-checked sooner than a pass, but still bounded, so a probe storm on
         # /readyz cannot turn into a request storm on the broker.
-        window = ttl if (self.result or {}).get("status") == "passed" else min(ttl, 5.0)
-        fresh = (
-            self.result is not None
-            and self.checked_at is not None
-            and time.monotonic() - self.checked_at < window
-        )
-        if not fresh:
+        if not self._fresh(ttl):
             if self._lock is None:
                 self._lock = asyncio.Lock()
             async with self._lock:
-                self.record(await run_preflight_bounded(nc, flag=flag, url=url))
+                # Re-check under the lock: callers that queued behind a run reuse its result
+                # instead of each running their own preflight (single flight).
+                if not self._fresh(ttl):
+                    self.record(await run_preflight_bounded(nc, flag=flag, url=url))
         if self.result["status"] == "passed" and self.relay == "held" and self._wake is not None:
             self._wake.set()  # the gate starts the relay now, not at its next retry tick
         return self.snapshot(flag=True)

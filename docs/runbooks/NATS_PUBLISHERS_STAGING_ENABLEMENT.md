@@ -121,6 +121,12 @@
 تشغيلٍ للوسيط، وهي لا تحتاجه لخدمة الطلبات. `degraded` يدوم أكثر من دقائق يستوجب الفحص (`nats` في `/readyz`
 يقول `reconnecting`). ومسبارُ التراكم في `/readyz` و`/metrics` يُخبَّأ 5 ثوانٍ، فقيمُه قد تتأخّر حتّى 5 ثوانٍ.
 
+**`degraded` لا يعني دائماً انقطاع الوسيط.** إن كانت رموز الأخطاء `stream_info`، أو `consumer_missing`، أو
+`stream_drift`، أو `preflight_timeout`، بينما `nats` في `/readyz` يقول `up` لا `reconnecting`، فالطوبولوجيا نفسها
+اختفت أو انحرفت بعد البدء: الـrelay لا يُعاد احتجازه، وكلّ نشرٍ يفشل، فتنتقل الصفوف المحتجزة إلى الرسائل الميتة خلال
+دقيقة تقريباً، ويبقى `/readyz` 200. افحص `sahool_platform_outbox_dead_letter` فوراً، ثمّ أعِد `FEATURE_NATS_PUBLISHERS`
+إلى false أو أعِد تجهيز الـstream والمستهلكين بأداة التجهيز قبل أيّ استئناف.
+
 وفي الوسيط: رسائل `sahool.dlq.canonical_execution_learning` (رسائل عامل التعلّم الميتة) يجب أن تبقى صفراً،
 وتأخّر المستهلكين (`num_pending`) يعود إلى الصفر. شاهدُ القبول الوظيفيّ: حدث `season.closed` حقيقيّ
 يصل إلى العامل ويُنتج صفّ `decision_learning_runs`.
