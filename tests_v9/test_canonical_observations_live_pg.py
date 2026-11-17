@@ -587,6 +587,72 @@ def test_an_unavailable_store_leaves_the_entry_pending_for_the_next_cycle(svc, m
     assert len(_rows(tenant, field)) == 1
 
 
+@pytest.mark.parametrize(
+    ("override", "refusal"),
+    [
+        ({"geometry_revision": 2**31}, "DataError"),  # asyncpg: out of the INTEGER range
+        ({"valid_pixel_ratio": 1.5}, "CheckViolationError"),  # the column's CHECK
+    ],
+)
+def test_a_payload_the_database_refuses_is_store_rejected_not_unavailable(svc, override, refusal):
+    """The real driver and server refusals, past the model (``model_construct``): permanent
+    (``StoreRejected``, class and SQLSTATE only), never ``StoreUnavailable``; nothing stored."""
+    main, _client = svc
+    store = main.observation_store
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    valid = store.PublishedObservationV1.model_validate(_payload(tenant, field))
+    record = valid.model_copy(update=override)
+    with pytest.raises(store.StoreRejected, match=refusal) as caught:
+        asyncio.run(store.insert_observation(record))
+    assert "2147483648" not in str(caught.value), "the offered value stays out of the detail"
+    assert _rows(tenant, field) == []
+
+
+def test_a_refused_payload_is_rejected_and_the_next_entry_of_the_page_is_delivered(
+    svc, monkeypatch
+):
+    """One payload the database refuses no longer holds the tenant's drain: it is settled
+    ``rejected`` (inspectable, re-queueable) and the next entry on the same page is stored.
+    The over-range value reaches the real INSERT the way the original gap let it through (the
+    model then had no upper bound): the bad entry's validated record carries 2**31."""
+    main, _client = svc
+    outbox, raster_app = _load_raster(monkeypatch)
+    store = main.observation_store
+    tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
+    over_range = _payload(tenant, field, scene_id="S2B_BAD", geometry_revision=2**31)
+    assert asyncio.run(outbox.publish(over_range)) == "pending"
+    assert asyncio.run(outbox.publish(_payload(tenant, field))) == "pending"
+    model = store.PublishedObservationV1
+    real_validate = model.model_validate
+
+    def _validate_as_before_the_bound(payload, *args, **kwargs):
+        if isinstance(payload, dict) and payload.get("scene_id") == "S2B_BAD":
+            fixed = real_validate({**payload, "geometry_revision": 1}, *args, **kwargs)
+            return fixed.model_copy(update={"geometry_revision": payload["geometry_revision"]})
+        return real_validate(payload, *args, **kwargs)
+
+    monkeypatch.setattr(model, "model_validate", _validate_as_before_the_bound)
+    _drain_env(monkeypatch, tenant)
+    before = main.observation_drain.state()["counters"]
+    assert _cycle(main, raster_app) == {"tenants": {tenant: True}}
+    bad, good = _outbox(tenant)
+    assert (bad["status"], good["status"]) == ("rejected", "delivered"), (dict(bad), dict(good))
+    assert bad["last_error"].startswith("store refused the payload: DataError"), bad["last_error"]
+    rows = _rows(tenant, field)
+    assert len(rows) == 1 and str(rows[0]["mean"]) == "0.61", rows
+    after = main.observation_drain.state()["counters"]
+    assert after["store_unavailable"] == before["store_unavailable"], "never counted as down"
+
+    # And with the bound in place, the same payload is refused by the model, still unstored.
+    monkeypatch.setattr(model, "model_validate", real_validate)
+    other = _tenant()
+    assert asyncio.run(outbox.publish({**over_range, "tenant_id": other})) == "pending"
+    _drain_env(monkeypatch, other)
+    assert _cycle(main, raster_app) == {"tenants": {other: True}}
+    [entry] = _outbox(other)
+    assert entry["status"] == "rejected" and "geometry_revision" in entry["last_error"], dict(entry)
+
+
 def test_the_feed_is_tenant_bound_and_its_acknowledgement_idempotent(svc, monkeypatch):
     """raster's feed routes on the real outbox: another tenant neither reads nor settles an
     entry; a repeated acknowledgement changes nothing; a wrong digest or another outcome is
