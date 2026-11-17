@@ -1,9 +1,29 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   revokeAndReconcileSharingKey,
+  supportsSharingKeyRevocation,
+  SHARING_REVOKE_UNAVAILABLE_AR,
   SHARING_REVOKE_REFRESH_FAILED_AR,
   SHARING_REVOKE_UNKNOWN_AR,
 } from './sharingRevocation';
+
+describe('sharing-key capability handshake with legacy backends', () => {
+  it('refuses to advertise revocation for a deployed legacy list response', () => {
+    const oldBackend = { keys: [{ key_id: 'legacy-key', revoked_at: null }] };
+    expect(supportsSharingKeyRevocation(oldBackend)).toBe(false);
+    expect(supportsSharingKeyRevocation({ keys: [] })).toBe(false);
+    expect(supportsSharingKeyRevocation(null)).toBe(false);
+    expect(supportsSharingKeyRevocation([])).toBe(false);
+  });
+
+  it('enables the action only for an explicit boolean true from the tenant backend', () => {
+    expect(supportsSharingKeyRevocation({ keys: [], capabilities: { revoke_keys: true } })).toBe(true);
+    for (const value of [false, 1, 'true', null, undefined]) {
+      expect(supportsSharingKeyRevocation({ keys: [], capabilities: { revoke_keys: value } })).toBe(false);
+    }
+    expect(SHARING_REVOKE_UNAVAILABLE_AR).toContain('غير متاح');
+  });
+});
 
 describe('sharing-key revocation result truth', () => {
   it('does not claim unchanged when the server commits but the response is lost', async () => {

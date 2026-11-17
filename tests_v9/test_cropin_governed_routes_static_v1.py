@@ -39,3 +39,16 @@ def test_market_reservations_remain_issued_by_the_authoritative_market_owner():
     custody = _source("services/sahool-platform/api/routers/harvest_traceability.py")
     assert "async def _listing_reservation(" in custody
     assert "reserved_kg=reserved_kg" in custody
+
+
+def test_revoke_capability_handshake_is_fail_closed_for_legacy_backend():
+    """The old /sharing/keys response has keys but no revoke route; don't show its button."""
+    backend = _source("services/sahool-platform/api/routers/sharing.py")
+    assert '"capabilities": {"revoke_keys": True}' in backend
+    panel = (ROOT / "frontend/src/components/sharing/SharingPanel.tsx").read_text(encoding="utf-8")
+    assert "supportsSharingKeyRevocation(data)" in panel
+    assert "manageable && revokeSupported && k.revoked_at == null" in panel
+    assert "() => refetch({ throwOnError: true })" in panel
+    helper = (ROOT / "frontend/src/lib/sharingRevocation.ts").read_text(encoding="utf-8")
+    assert "revoke_keys === true" in helper
+    assert "SHARING_REVOKE_UNAVAILABLE_AR" in helper
