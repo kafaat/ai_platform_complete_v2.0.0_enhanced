@@ -207,6 +207,18 @@ _GENERATE_FLAG.update(
 # `--generate` ⇒ `--check` بصفر **والملفّ مُستعاد بايتاً بايت** (`cmp`).
 _GENERATE_FLAG.update({"capability_management_engine.py": "--generate"})
 
+# الجولة الرابعة (٢ ⇒ ١): `capability_registry_guard`. سببُ استثنائه المُسجَّل («يُوسِّخ ملفّاً
+# في كلّ تشغيل من شجرة نظيفة») كان **قراءةً لانحرافٍ على أنّه عدم ثبات**: المقياس عدّ
+# الملفّات المتغيّرة عن المُلتزَم، والمُلتزَم كان بائتاً — `capability_summary.json` يقول
+# ٧٥ قدرة في النضج ٣ والسلطات تقول ٦٠ (خُفِّضت ١٥ بعد آخر توليد في #953). قِيس على d5d0507
+# بالتمييز بينهما: تشغيلان متتاليان ⇒ بايتات متطابقة (ثابت)، والتغيّر عن المُلتزَم هو
+# الانحراف نفسه. وكان `--check` لا ينظر إلى مصنوعاته أصلاً (صنف
+# GENERATED-CHECK-IGNORES-ITS-OWN-COMPANION-ARTIFACTS-01)، فوُحِّد على
+# `generated_artifact_contract` قبل الوصل، ومرّ الشرط المُعلَن حرفيّاً لكلّ مصنوعة من
+# الثلاث: إفساد ⇒ `--check` يسمّي الملفّ (خرج بـ1) ⇒ `--generate` ⇒ `--check` بصفر والملفّ
+# مُستعاد بايتاً بايت (`cmp`)، والحذف يُسمّى «مفقود».
+_GENERATE_FLAG.update({"capability_registry_guard.py": "--generate"})
+
 # `FAKE-CONNECTION-ENFORCES-NOTHING-01`: أساسٌ **مشتقّ من شجرة الاختبارات** لا مصون
 # بيد، فيلزمه أن يُعاد توليده كلّما تحرّكت الشجرة تحته — وإلّا صار الراتشِت يقيس
 # ماضياً. المكنسة نفسها أمسكت غيابه عند أوّل تشغيل («يملك علم كتابة ولا يذكره
@@ -354,6 +366,11 @@ _ORDER_TIER = {
     # authority producer before the capability evidence consumer in every fix pass.
     "runtime_certification_gate.py": -1,
     "capability_management_engine.py": 1,
+    # يقرأ `docs/capability-registry/generated/capability_registry.json` عبر
+    # `capability_authority_view`، ومُنتِجه `capability_registry_v1` يليه أبجديّاً
+    # (`g` < `v`) ⇒ في الطبقة صفر كان سيقرأ مدخلاً بائتاً. و`static_governance_closure`
+    # يبصم مخرجاته، وهو في `_LATE` فيأتي بعده دائماً.
+    "capability_registry_guard.py": 1,
     "platform_route_governance_attestation.py": 1,
     "platform_route_release_binding.py": 2,
 }
