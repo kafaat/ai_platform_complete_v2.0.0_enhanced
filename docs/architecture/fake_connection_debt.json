@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "bf0e87f8b8074f33089cb401e17abd08e78b9716",
+  "measured_on": "12cdc1c3b92b89247eea43af1f4878d15262d32a",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -13,7 +13,6 @@
     "services/decision-service/tests/test_sod_single_operator_self_approval.py",
     "services/decision-service/tests/test_tenant_binding_force_rls.py",
     "services/decision-service/tests/test_wx10_8_review_queue.py",
-    "services/indicators-service/tests/test_observation_store.py",
     "services/raster-service/test_acquisition_date_provenance.py",
     "services/raster-service/test_backfill_processing_version_preflight.py",
     "services/raster-service/test_backfill_worker_schema_drift_visibility.py",
@@ -148,10 +147,6 @@
     ],
     "services/decision-service/tests/test_decision_provenance_integrity.py": [
       "TRIGGER"
-    ],
-    "services/indicators-service/tests/test_observation_store.py": [
-      "CHECK",
-      "UNIQUE"
     ],
     "services/raster-service/test_raster_durable_identity.py": [
       "UNIQUE"
