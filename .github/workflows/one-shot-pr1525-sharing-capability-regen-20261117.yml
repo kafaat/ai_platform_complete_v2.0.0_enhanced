@@ -1,0 +1,58 @@
+# One-shot review-fix verifier for PR #1526 into draft #1525. Never deploys Railway.
+name: One-shot PR1525 sharing capability regeneration
+on:
+  push:
+    branches:
+      - fix/pr1525-sharing-revoke-capability-20261117
+permissions:
+  contents: write
+concurrency:
+  group: pr1525-sharing-capability-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  certify-and-regenerate:
+    if: github.ref == 'refs/heads/fix/pr1525-sharing-revoke-capability-20261117'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Test legacy backend capability mismatch and unknown revocation result
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd frontend
+          npm ci --ignore-scripts --no-audit --no-fund
+          npx vitest run src/lib/sharingRevocation.test.ts --no-file-parallelism --maxWorkers=1
+          npm run typecheck
+      - name: Install Python CI tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          pip install -r tests_v9/requirements-test.txt
+          pip install -c constraints-ci-tools.txt ruff
+      - name: Test backend revocation permission and capability contract
+        run: python -m pytest -q tests_v9/test_cropin_governed_routes_static_v1.py
+      - name: Remove one-shot workflows and regenerate the derived release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm '.github/workflows/one-shot-pr1525-sharing-capability-regen-20261117.yml'
+          git rm --ignore-unmatch '.github/workflows/one-shot-open-drafts-sharing-revoke-regen-20261117.yml'
+          python scripts/ci/verify_all_generated.py --fix
+          python scripts/ci/verify_all_generated.py --check
+          python scripts/ci/capability_registry_guard.py --check
+          python scripts/release/validate_release_package.py --root .
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(generated): certify legacy sharing capability and refresh release evidence'
+          git push origin HEAD:fix/pr1525-sharing-revoke-capability-20261117
