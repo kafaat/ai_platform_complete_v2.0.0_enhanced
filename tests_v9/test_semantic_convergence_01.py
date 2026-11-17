@@ -283,9 +283,7 @@ async def test_advisory_dependency_transport_failure_is_an_explicit_boundary_err
     )
     req = AdvisorQuery(question="ما حالة القمح؟", crop="wheat")
     expected_reason = (
-        "advisory_dependency_timeout"
-        if failure == "timeout"
-        else "advisory_dependency_unavailable"
+        "advisory_dependency_timeout" if failure == "timeout" else "advisory_dependency_unavailable"
     )
 
     if dependency == "knowledge-graph":
