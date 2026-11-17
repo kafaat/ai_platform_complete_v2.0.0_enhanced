@@ -8895,3 +8895,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الباقي:** التشغيل المشترك `pytest -v -m integration --tb=short` ما زال بلا تغطية لأنّ مُشغِّل المختبر يطابق السطر حرفيّاً؛ ما لا يبلغه إلّا هو يبقى غيرَ مغطّى على codecov/patch.
 - **الشاهد:** [`tests_v9/test_codecov_coverage_wiring.py`](../../tests_v9/test_codecov_coverage_wiring.py).
 - **شرط الإغلاق:** دمجٌ في main وظهور تغطية الخطوات الحيّة في تقرير Codecov.
+
+## W4-09-ROUTE-MARGIN-ZERO-01 — هامش ميزانية مسارات المنصّة صفر بعد تقليص W4-09
+
+- **الحالة:** open — مقيسٌ على main `8725fcfe` ثمّ `91dfe32a` بـ`python scripts/ci/platform_route_budget_guard.py`: خام 627 · بنية 4 · نطاق 623 · الحدّ الأقصى 623 · الهامش **0**.
+- **السبب:** تقليص W4-09 (#1508، «route trim») حذف مسارات ميتة ثمّ خُفِّض السقف من 629 إلى 623، العددِ الجديد، بتعليمات المستشفى، فلم يبقَ هامش. كلّ مسار نطاقٍ جديد في المنصّة يُسقط وظيفة `platform-route-budget` حتّى يُستعاد الهامش.
+- **المصدر:** `docs/architecture/platform_extraction_map.json` (السقف) · `scripts/ci/platform_route_budget_guard.py` · بند W4-09 في خطّة تدقيق التوصيل (`routes-10`).
+- **الإصلاح الجاري:** تقليص انتقائيّ إضافيّ لمسارات ميتة يعيد هامشاً موجباً **دون** رفع السقف؛ ولا يُحلّ بتصنيف مسار نطاقٍ بنيةً ولا بحذف نقطة provenance.
+- **شرط الإغلاق:** هامش موجب على main يطبعه الحارس، والسقف لم يُرفَع.
