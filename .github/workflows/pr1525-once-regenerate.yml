@@ -1,0 +1,80 @@
+# Temporary, same-repo-only PR #1525 reconciliation; deletes its own file before generating.
+name: PR1525 one-shot generated evidence repair
+on:
+  pull_request:
+    types: [synchronize]
+    branches: [main]
+permissions:
+  contents: write
+concurrency:
+  group: pr1525-generated-repair
+  cancel-in-progress: true
+jobs:
+  regenerate:
+    if: ${{ github.event.pull_request.number == 1525 && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Require the exact approved source and PR branch
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          TARGET_BRANCH: ${{ github.head_ref }}
+        run: |
+          test "$TARGET_BRANCH" = "integrate/open-drafts-selective-20261117"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Install the same pinned format and generator dependencies as the required gates
+        run: python -m pip install ruff==0.15.8 pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+      - name: Remove temporary workflow before every inventory/generator measurement
+        run: git rm -- .github/workflows/pr1525-once-regenerate.yml
+      - name: Format just the two new Python fixes
+        run: |
+          ruff format services/ai_agronomist/ai_evidence_runtime.py services/ai_agronomist/test_ai_field_memory_v49.py
+          ruff check services/ai_agronomist/ai_evidence_runtime.py services/ai_agronomist/test_ai_field_memory_v49.py
+          ruff format --check services/ai_agronomist/ai_evidence_runtime.py services/ai_agronomist/test_ai_field_memory_v49.py
+      - name: Rebuild inventory, every discovered derived artifact, and release hashes
+        run: |
+          python scripts/ci/generate_service_inventory.py --write-registry
+          git add -A
+          python scripts/ci/verify_all_generated.py --fix
+          python scripts/ci/verify_all_generated.py --check
+      - name: Ensure automation did not rewrite business source or frozen deployment boundaries
+        run: |
+          python - <<'PY'
+          import subprocess
+          from pathlib import Path
+          changed = subprocess.check_output(
+              ["git", "diff", "--name-only", "HEAD"], text=True
+          ).splitlines()
+          allowed_source = {
+              "services/ai_agronomist/ai_evidence_runtime.py",
+              "services/ai_agronomist/test_ai_field_memory_v49.py",
+          }
+          for p in changed:
+              if p in allowed_source or p == ".github/workflows/pr1525-once-regenerate.yml":
+                  continue
+              if p.startswith(("services/", "shared/", "scripts/", "migrations/", "nginx/", "mobile/", "infra/")):
+                  raise SystemExit(f"REPAIR_SCOPE_VIOLATION: {p}")
+              if p.startswith("frontend/") and not p.endswith(".generated.ts"):
+                  raise SystemExit(f"REPAIR_SCOPE_VIOLATION: {p}")
+              if p.startswith(".github/"):
+                  raise SystemExit(f"REPAIR_SCOPE_VIOLATION: {p}")
+          print(f"Accepted {len(changed)} changed paths; no extra business source edits")
+          print("\\n".join(changed))
+          PY
+      - name: Commit reproducible formatted source and generated output to the SAME PR branch
+        env:
+          TARGET_BRANCH: ${{ github.head_ref }}
+        run: |
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(ci): format PR1525 AI memory fix and regenerate derived evidence"
+          git push origin "HEAD:refs/heads/$TARGET_BRANCH"
