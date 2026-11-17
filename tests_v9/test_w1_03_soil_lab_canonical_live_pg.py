@@ -36,7 +36,8 @@ pytest.importorskip("fastapi")
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
 DSN = os.getenv(
-    "TEST_DATABASE_URL", "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test"
+    "TEST_DATABASE_URL",
+    "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test",
 )
 ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL", DSN)
 _TABLES = ("lab_samples", "soil_lab_results", "soil_lab_tests", "fields", "field_state")
@@ -57,7 +58,9 @@ async def _probe() -> str:
 
 
 _WHY = asyncio.run(_probe())
-pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
+pytestmark.append(
+    pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}")
+)
 
 
 def _platform():
@@ -111,7 +114,11 @@ async def _scenario(monkeypatch) -> dict:
         )
     # Legacy history, written before the freeze: an older low-EC row on the canonical field
     # and the only lab evidence of the legacy-only field.
-    for field, days, ec in ((canonical, 30, 1.0), (legacy_only, 10, 9.5), (ec15, 30, 1.0)):
+    for field, days, ec in (
+        (canonical, 30, 1.0),
+        (legacy_only, 10, 9.5),
+        (ec15, 30, 1.0),
+    ):
         await admin.execute(
             "INSERT INTO soil_lab_tests (test_id, tenant_id, field_id, status, sampled_on, result)"
             " VALUES ($1, $2::uuid, $3, 'published', $4, $5::jsonb)",
@@ -126,7 +133,9 @@ async def _scenario(monkeypatch) -> dict:
     out: dict = {"tenant": tenant}
 
     def as_user(actor: str, role_: UserRole = UserRole.MANAGER) -> None:
-        acting["user"] = UserSchema(user_id=actor, tenant_id=tenant, role=role_, name_ar="مختبر")
+        acting["user"] = UserSchema(
+            user_id=actor, tenant_id=tenant, role=role_, name_ar="مختبر"
+        )
 
     try:
         async with httpx.AsyncClient(
@@ -160,15 +169,38 @@ async def _scenario(monkeypatch) -> dict:
             )
             assert entered.status_code == 200, entered.text
             # Before approval the v156 result is not decision input: the older legacy row is.
-            out["before"] = (await client.get(f"/api/v1/fields/{canonical}/state")).json()
+            out["before"] = (
+                await client.get(f"/api/v1/fields/{canonical}/state")
+            ).json()
             out["computed_before"] = await admin.fetchval(
                 "SELECT computed_at FROM field_state WHERE field_id=$1", canonical
             )
             as_user("reviewer", UserRole.AGRONOMIST)
             approved = await client.post(
-                f"/api/v1/lab/samples/{sid}/transition", json={"target_status": "approved"}
+                f"/api/v1/lab/samples/{sid}/transition",
+                json={"target_status": "approved"},
             )
             assert approved.status_code == 200, approved.text
+            as_user("lab-tech")
+            nutrient_url = "/api/v1/nutrients/4r-plan"
+            stored = await client.post(nutrient_url, params={"field_id": canonical})
+            assert stored.status_code == 200, stored.text
+            plan = stored.json()
+            assert (plan["status"], plan["sample_id"], plan["field_id"]) == (
+                "available",
+                sid,
+                canonical,
+            )
+            ph_id = await admin.fetchval(
+                "SELECT result_id FROM soil_lab_results WHERE sample_id=$1 AND analyte='ph'",
+                sid,
+            )
+            assert plan["evidence_ids"]["ph"] == str(ph_id)
+            missing = await client.post(
+                nutrient_url, params={"field_id": f"missing-{tag}"}
+            )
+            assert missing.status_code == 404, missing.text
+            as_user("reviewer", UserRole.AGRONOMIST)
             out["ec_result_id"] = str(
                 await admin.fetchval(
                     "SELECT result_id FROM soil_lab_results WHERE sample_id=$1 AND analyte='ec_dsm'",
@@ -195,9 +227,17 @@ async def _scenario(monkeypatch) -> dict:
                 (
                     ec15,
                     (date.today() - timedelta(days=3)).isoformat(),
-                    {"ec_dsm": 2.0, "ec_extraction_method": "soil_water_1_5", "ph": 8.1},
+                    {
+                        "ec_dsm": 2.0,
+                        "ec_extraction_method": "soil_water_1_5",
+                        "ph": 8.1,
+                    },
                 ),
-                (nodate, None, {"ec_dsm": 3.0, "ec_extraction_method": "saturated_paste"}),
+                (
+                    nodate,
+                    None,
+                    {"ec_dsm": 3.0, "ec_extraction_method": "saturated_paste"},
+                ),
             ):
                 as_user("lab-tech")
                 body = {
@@ -219,7 +259,8 @@ async def _scenario(monkeypatch) -> dict:
                 assert put.status_code == 200, put.text
                 as_user("reviewer", UserRole.AGRONOMIST)
                 ok = await client.post(
-                    f"/api/v1/lab/samples/{other}/transition", json={"target_status": "approved"}
+                    f"/api/v1/lab/samples/{other}/transition",
+                    json={"target_status": "approved"},
                 )
                 assert ok.status_code == 200, ok.text
                 out[f"{field}_ec_result_id"] = str(
@@ -238,7 +279,9 @@ async def _scenario(monkeypatch) -> dict:
                 ("ec15", ec15),
                 ("nodate", nodate),
             ):
-                out[f"{name}_state"] = (await client.get(f"/api/v1/fields/{field}/state")).json()
+                out[f"{name}_state"] = (
+                    await client.get(f"/api/v1/fields/{field}/state")
+                ).json()
                 out[f"{name}_completeness"] = (
                     await client.get(f"/api/v1/fields/{field}/data-completeness")
                 ).json()
@@ -261,7 +304,8 @@ async def _scenario(monkeypatch) -> dict:
             out["legacy_rows"] = (
                 before,
                 await admin.fetchval(
-                    "SELECT count(*) FROM soil_lab_tests WHERE tenant_id=$1::uuid", tenant
+                    "SELECT count(*) FROM soil_lab_tests WHERE tenant_id=$1::uuid",
+                    tenant,
                 ),
             )
     finally:
@@ -283,23 +327,33 @@ def scenario():
 def test_unapproved_v156_result_is_not_decision_input(scenario):
     soil = scenario["before"]["soil_lab"]
     assert soil["source"] == "legacy_soil_lab_tests", f"pending result leaked: {soil}"
-    assert soil["ec_dsm"] == 1.0, f"the older legacy EC is the only approved input: {soil}"
+    assert (
+        soil["ec_dsm"] == 1.0
+    ), f"the older legacy EC is the only approved input: {soil}"
 
 
 def test_approved_v156_result_reaches_field_state(scenario):
     state = scenario["canon_state"]
     soil = state["soil_lab"]
     assert soil["source"] == "soil_lab_results", f"canonical store not used: {soil}"
-    assert soil["ec_dsm"] == 10.0, f"approved v156 EC must win over the older legacy row: {soil}"
-    assert soil["ec_result_id"] == scenario["ec_result_id"], "EC must cite its v156 result_id"
+    assert (
+        soil["ec_dsm"] == 10.0
+    ), f"approved v156 EC must win over the older legacy row: {soil}"
+    assert (
+        soil["ec_result_id"] == scenario["ec_result_id"]
+    ), "EC must cite its v156 result_id"
     truths = state["agronomic"]["operational_truths"]
-    assert truths.get("salinity_class") == "critical", f"salinity not escalated: {truths}"
+    assert (
+        truths.get("salinity_class") == "critical"
+    ), f"salinity not escalated: {truths}"
     assert state["execution_mode"] == "human_review", "critical salinity must escalate"
     persisted = scenario["persisted_after_approval"]
-    assert persisted["computed_at"] > scenario["computed_before"], (
-        "approval must refresh the persisted field_state projection in its transaction"
-    )
-    assert persisted["execution_mode"] == "human_review", f"projection not escalated: {persisted}"
+    assert (
+        persisted["computed_at"] > scenario["computed_before"]
+    ), "approval must refresh the persisted field_state projection in its transaction"
+    assert (
+        persisted["execution_mode"] == "human_review"
+    ), f"projection not escalated: {persisted}"
     # FIELD_STATE_CHANGED follows the projection's own rule: validity or mode changed.
     before = scenario["before"]
     changed = (before["validity"], before["execution_mode"]) != (
@@ -307,20 +361,24 @@ def test_approved_v156_result_reaches_field_state(scenario):
         persisted["execution_mode"],
     )
     triggers = [r["trigger"] for r in scenario["state_events"]]
-    assert ("soil_lab.approved" in triggers) == changed, (
-        f"FIELD_STATE_CHANGED must be emitted exactly when the state changed: {triggers}"
-    )
+    assert (
+        "soil_lab.approved" in triggers
+    ) == changed, f"FIELD_STATE_CHANGED must be emitted exactly when the state changed: {triggers}"
 
 
 def test_soil_sample_recorded_has_its_canonical_producer(scenario):
-    assert scenario["sample_events"] == 1, "creating a soil lab sample emits SOIL_SAMPLE_RECORDED"
+    assert (
+        scenario["sample_events"] == 1
+    ), "creating a soil lab sample emits SOIL_SAMPLE_RECORDED"
 
 
 def test_approved_v156_result_reaches_field_completeness(scenario):
     done = scenario["canon_completeness"]
     assert "has_soil_lab" in done["present"], f"approved analysis not counted: {done}"
     assert done["soil_lab"]["source"] == "soil_lab_results", done["soil_lab"]
-    assert done["soil_lab"]["result_ids"]["ec_dsm"] == scenario["ec_result_id"], done["soil_lab"]
+    assert done["soil_lab"]["result_ids"]["ec_dsm"] == scenario["ec_result_id"], done[
+        "soil_lab"
+    ]
 
 
 def test_legacy_only_field_is_labelled_fallback(scenario):
@@ -349,49 +407,70 @@ def test_field_without_lab_evidence_is_unavailable_not_zero(scenario):
     }, f"missing lab evidence must be unavailable, never zero: {soil}"
     done = scenario["empty_completeness"]
     assert "has_soil_lab" in done["missing"], done
-    assert done["soil_lab"] == {"available": False, "reason": "no_approved_soil_lab_result"}, done
+    assert done["soil_lab"] == {
+        "available": False,
+        "reason": "no_approved_soil_lab_result",
+    }, done
 
 
 def test_legacy_soil_lab_writes_are_frozen(scenario):
     for name in ("legacy_post", "legacy_patch"):
         response = scenario[name]
-        assert response.status_code == 410, f"{name}: {response.status_code} {response.text}"
+        assert (
+            response.status_code == 410
+        ), f"{name}: {response.status_code} {response.text}"
         detail = response.json()["detail"]
         assert detail["code"] == "legacy_soil_lab_tests_frozen", detail
-        assert "POST /api/v1/lab/soil-results" in detail["use"], "410 must point to /api/v1/lab/*"
+        assert (
+            "POST /api/v1/lab/soil-results" in detail["use"]
+        ), "410 must point to /api/v1/lab/*"
     before, after = scenario["legacy_rows"]
-    assert before == after == 3, f"a frozen route wrote soil_lab_tests: {before} -> {after}"
+    assert (
+        before == after == 3
+    ), f"a frozen route wrote soil_lab_tests: {before} -> {after}"
 
 
 def test_ec_other_than_saturated_paste_never_feeds_salinity(scenario):
     """An EC 1:5 of 2.0 is roughly an ECe of 12 or more: read as ECe it would be 'low'."""
     state = scenario["ec15_state"]
     soil = state["soil_lab"]
-    assert soil["source"] == "soil_lab_results", f"the approved v156 analysis is the head: {soil}"
+    assert (
+        soil["source"] == "soil_lab_results"
+    ), f"the approved v156 analysis is the head: {soil}"
     assert soil["ec_dsm"] is None, f"EC 1:5 must not be handed over as ECe: {soil}"
     other = soil["ec_other_extract"]
     assert other is not None, f"the non-ECe reading must stay visible, labelled: {soil}"
-    assert other["extraction_method"] == "soil_water_1_5" and other["value_dsm"] == 2.0, other
+    assert (
+        other["extraction_method"] == "soil_water_1_5" and other["value_dsm"] == 2.0
+    ), other
     assert other["ece"] is False, other
-    assert other["result_id"] == scenario[f"{scenario['ec15_field']}_ec_result_id"], other
+    assert (
+        other["result_id"] == scenario[f"{scenario['ec15_field']}_ec_result_id"]
+    ), other
     # No ECe (and no NDVI): the agronomic block is absent or carries no soil_ec signal.
     agronomic = state.get("agronomic") or {}
     truths = agronomic.get("operational_truths") or {}
-    assert truths.get("salinity_class") is None, (
-        f"a non-ECe EC must not classify salinity (nor fall back to the older legacy 1.0): {truths}"
-    )
-    assert not [p for p in agronomic.get("provenance", []) if p.get("source") == "soil_ec"], (
-        f"no soil_ec may enter the agronomic provenance: {agronomic}"
-    )
+    assert (
+        truths.get("salinity_class") is None
+    ), f"a non-ECe EC must not classify salinity (nor fall back to the older legacy 1.0): {truths}"
+    assert not [
+        p for p in agronomic.get("provenance", []) if p.get("source") == "soil_ec"
+    ], f"no soil_ec may enter the agronomic provenance: {agronomic}"
 
 
 def test_sample_without_collection_date_still_reaches_completeness_and_state(scenario):
     done = scenario["nodate_completeness"]
-    assert "has_soil_lab" in done["present"], f"approved analysis hidden by NULL sampled_on: {done}"
+    assert (
+        "has_soil_lab" in done["present"]
+    ), f"approved analysis hidden by NULL sampled_on: {done}"
     assert done["soil_lab"]["source"] == "soil_lab_results", done["soil_lab"]
-    assert done["soil_lab"]["sampled_on_source"] == "sample_created_at", done["soil_lab"]
+    assert done["soil_lab"]["sampled_on_source"] == "sample_created_at", done[
+        "soil_lab"
+    ]
     assert done["soil_lab"]["sampled_on"] == date.today().isoformat(), done["soil_lab"]
     soil = scenario["nodate_state"]["soil_lab"]
     assert soil["source"] == "soil_lab_results" and soil["ec_dsm"] == 3.0, soil
     assert soil["sampled_on_source"] == "sample_created_at", soil
-    assert soil["ec_result_id"] == scenario[f"{scenario['nodate_field']}_ec_result_id"], soil
+    assert (
+        soil["ec_result_id"] == scenario[f"{scenario['nodate_field']}_ec_result_id"]
+    ), soil

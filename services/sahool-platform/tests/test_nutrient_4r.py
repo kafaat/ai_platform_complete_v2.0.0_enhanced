@@ -63,15 +63,22 @@ def test_nitrogen_caco3_boundary_is_inclusive():
     )
     # أقلّ بقليل لا يُفعّل (مع pH معروف منخفض — المجهول لا يستبعد الخطر).
     assert (
-        recommend_nitrogen(SoilContext(caco3_pct=_CALCAREOUS_THRESHOLD - 0.1, ph=7.0)).warnings_ar
+        recommend_nitrogen(
+            SoilContext(caco3_pct=_CALCAREOUS_THRESHOLD - 0.1, ph=7.0)
+        ).warnings_ar
         == []
     )
 
 
 def test_nitrogen_ph_boundary_is_inclusive():
-    assert _AMMONIA_WARNING in recommend_nitrogen(SoilContext(ph=_HIGH_PH_THRESHOLD)).warnings_ar
     assert (
-        recommend_nitrogen(SoilContext(ph=_HIGH_PH_THRESHOLD - 0.1, caco3_pct=5.0)).warnings_ar
+        _AMMONIA_WARNING
+        in recommend_nitrogen(SoilContext(ph=_HIGH_PH_THRESHOLD)).warnings_ar
+    )
+    assert (
+        recommend_nitrogen(
+            SoilContext(ph=_HIGH_PH_THRESHOLD - 0.1, caco3_pct=5.0)
+        ).warnings_ar
         == []
     )
 
@@ -90,7 +97,9 @@ def test_nitrogen_unknown_soil_assumes_volatilisation_risk():
 def test_phosphorus_unknown_caco3_assumes_fixation_risk():
     rec = recommend_phosphorus(SoilContext(p_ppm=20.0))
     assert any("CaCO3/pH unknown — assume risk" in w for w in rec.warnings_ar)
-    assert recommend_phosphorus(SoilContext(p_ppm=20.0, caco3_pct=5.0)).warnings_ar == []
+    assert (
+        recommend_phosphorus(SoilContext(p_ppm=20.0, caco3_pct=5.0)).warnings_ar == []
+    )
 
 
 # ─── الفوسفور: محجوب بلا تحليل، وإلّا حسب عتبة Olsen-P ─────────────────────
@@ -126,9 +135,14 @@ def test_phosphorus_low_is_advisory_high_rate():
 
 def test_phosphorus_olsen_threshold_boundary():
     # عتبة low_p هي p_ppm < 10 ⇒ القيمة 10 بالضبط ليست منخفضة ⇒ OK.
-    assert recommend_phosphorus(SoilContext(p_ppm=10.0)).status == RecommendationStatus.OK
+    assert (
+        recommend_phosphorus(SoilContext(p_ppm=10.0)).status == RecommendationStatus.OK
+    )
     # أقلّ بقليل ⇒ ADVISORY.
-    assert recommend_phosphorus(SoilContext(p_ppm=9.9)).status == RecommendationStatus.ADVISORY
+    assert (
+        recommend_phosphorus(SoilContext(p_ppm=9.9)).status
+        == RecommendationStatus.ADVISORY
+    )
 
 
 def test_phosphorus_non_calcareous_with_value_has_no_fixation_warning():
@@ -200,7 +214,9 @@ def test_full_plan_default_covers_npFeZn():
 
 def test_full_plan_blocks_p_fe_zn_for_unanalyzed_soil():
     # تربة بلا تحاليل ⇒ P/Fe/Zn محجوبة، N إرشاديّ.
-    plan = {p["nutrient"]: p["status"] for p in full_4r_plan(SoilContext(caco3_pct=25.0))}
+    plan = {
+        p["nutrient"]: p["status"] for p in full_4r_plan(SoilContext(caco3_pct=25.0))
+    }
     assert plan["nitrogen"] == RecommendationStatus.ADVISORY.value
     assert plan["phosphorus"] == RecommendationStatus.BLOCKED.value
     assert plan["iron"] == RecommendationStatus.BLOCKED.value
@@ -262,12 +278,18 @@ def _approved_p(value, *, unit="mg/kg", method="olsen"):
     }
 
 
-@pytest.mark.parametrize("value, status", [(0, "advisory"), ("5", "advisory"), (15, "ok")])
+@pytest.mark.parametrize(
+    "value, status", [(0, "advisory"), ("5", "advisory"), (15, "ok")]
+)
 def test_approved_olsen_changes_advice_with_sample_level_provenance(value, status):
     from api.nutrient_4r import approved_sample_4r_plan
 
     plan = approved_sample_4r_plan("f-1", [_approved_p(value)])
-    assert (plan["field_id"], plan["sample_id"], plan["zone_id"]) == ("f-1", "s-1", "north")
+    assert (plan["field_id"], plan["sample_id"], plan["zone_id"]) == (
+        "f-1",
+        "s-1",
+        "north",
+    )
     assert plan["scope"] == "sample"
     assert plan["evidence_ids"] == {"p_ppm": "r-1"}
     assert {r["nutrient"]: r["status"] for r in plan["plan"]}["phosphorus"] == status
@@ -290,12 +312,15 @@ def test_missing_or_incomparable_evidence_does_not_issue_plan(rows):
     from api.nutrient_4r import approved_sample_4r_plan
 
     plan = approved_sample_4r_plan("f-1", rows)
-    assert (plan["status"], plan["plan"], plan["evidence_ids"]) == ("unavailable", [], {})
+    assert (plan["status"], plan["plan"], plan["evidence_ids"]) == (
+        "unavailable",
+        [],
+        {},
+    )
 
 
 def test_field_and_manual_http_contracts(monkeypatch):
-    from contextlib import asynccontextmanager
-    from unittest.mock import AsyncMock
+    from api import main
 
     from api.main import get_current_user
     from api.routers import nutrients
@@ -304,17 +329,10 @@ def test_field_and_manual_http_contracts(monkeypatch):
     from fastapi.testclient import TestClient
 
     tenant = "00000000-0000-0000-0000-000000000001"
-    user = UserSchema(user_id="u", tenant_id=tenant, role=UserRole.MANAGER, name_ar="مدير")
-    conn = AsyncMock()
-    conn.fetchval.side_effect = [True, False, True]
-    conn.fetch.side_effect = [[_approved_p("5")], ConnectionError("offline")]
-
-    @asynccontextmanager
-    async def connection(caller):
-        assert caller == user
-        yield conn
-
-    monkeypatch.setattr(nutrients, "tenant_connection", connection)
+    user = UserSchema(
+        user_id="u", tenant_id=tenant, role=UserRole.MANAGER, name_ar="مدير"
+    )
+    monkeypatch.setattr(main, "_DB_POOL", None)
     app = FastAPI()
     app.include_router(nutrients.router)
     app.dependency_overrides[get_current_user] = lambda: user
@@ -323,11 +341,7 @@ def test_field_and_manual_http_contracts(monkeypatch):
     assert client.post(url).status_code == 422
     manual = client.post(url, json={"p_ppm": 5})
     assert manual.status_code == 200 and set(manual.json()) == {"plan"}
-    assert client.post(url, params={"field_id": "f"}, json={"p_ppm": 5}).status_code == 422
-    stored = client.post(url, params={"field_id": "f"})
-    assert stored.status_code == 200
-    assert stored.json()["evidence_ids"] == {"p_ppm": "r-1"}
-    assert conn.fetch.await_args.args[1:] == (tenant, "f")
-    assert client.post(url, params={"field_id": "other"}).status_code == 404
-    assert conn.fetch.await_count == 1
+    assert (
+        client.post(url, params={"field_id": "f"}, json={"p_ppm": 5}).status_code == 422
+    )
     assert client.post(url, params={"field_id": "f"}).status_code == 503
