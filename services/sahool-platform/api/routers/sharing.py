@@ -1,27 +1,19 @@
-"""api/routers/sharing.py — مفاتيح المشاركة (Sharing Keys)
-========================================================
-شريحة من تفكيك ``api/main.py`` إلى وحدات ``APIRouter`` (نمط P0).
+"""Persisted, tenant-scoped sharing credentials and revocation.
 
-سلوك محفوظ بالكامل: مسارات/أذونات/مخرجات/مخطّط OpenAPI مطابقة تماماً لما كان
-في ``main.py`` — نُقلت الدوالّ الثلاث حرفيّاً مع تغيير ``@app`` إلى ``@router``.
-
-النماذج والتبعيات المشتركة تبقى مُعرَّفة في ``api.main`` وتُستورَد من هنا. رموز
-``api.sharing`` (SharingScope/ThirdPartyType/generate_key_plaintext/hash_key/
-SharingKeyService) كانت مُستورَدة على مستوى وحدة ``main`` وتُستخدَم حصريّاً من هذه
-الـendpoints؛ نُقل استيرادها هنا (من المصدر مباشرةً) لتفادي استيراد يتيم في
-``main`` بعد النقل — لا تغيير سلوكيّ.
+The legacy POST /api/v1/sharing/generate-key response never persisted its token;
+it has been superseded by POST /api/v1/sharing/keys. Removing that phantom
+credential endpoint funds the revocation route inside the route-budget ratchet.
+Both operations require the owner's invitation permission and tenant RLS.
 """
 
 from __future__ import annotations
 
 import uuid as _uuid
-from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.main import (
     Permission,
-    ShareKeyRequest,
     SharingKeyCreateRequest,
     UserSchema,
     get_current_user,
@@ -29,57 +21,11 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
-from api.sharing import (
-    SharingKeyService,
-    SharingScope,
-    ThirdPartyType,
-    generate_key_plaintext,
-    hash_key,
-)
+from api.sharing import SharingKeyService
 from api.sharing import SharingScope as _SScope
 from api.sharing import ThirdPartyType as _TPType
 
 router = APIRouter()
-
-
-@router.post("/api/v1/sharing/generate-key")
-def generate_share_key(
-    req: ShareKeyRequest,
-    user: UserSchema = Depends(require_permission(Permission.USER_INVITE)),
-):
-    """يولّد مفتاح مشاركة (يُعرَض الـplaintext مرّة واحدة فقط).
-
-    ملاحظة: الحفظ في DB يحتاج PostgreSQL (غير موصَّل). هذا يولّد المفتاح
-    والـhash والبيانات الوصفيّة — جاهزة للحفظ لاحقاً.
-    """
-    try:
-        scope = SharingScope(req.scope)
-    except ValueError:
-        raise HTTPException(status_code=422, detail=f"نطاق غير صالح: {req.scope}") from None
-    tp_type = None
-    if req.third_party_type:
-        try:
-            tp_type = ThirdPartyType(req.third_party_type)
-        except ValueError:
-            raise HTTPException(
-                status_code=422, detail=f"نوع طرف غير صالح: {req.third_party_type}"
-            ) from None
-
-    plaintext = generate_key_plaintext()
-    now = datetime.now(UTC)
-    return {
-        "key_id": str(_uuid.uuid4()),
-        "key_plaintext": plaintext,  # يُعرَض مرّة واحدة
-        "key_hash": hash_key(plaintext),  # للحفظ في DB
-        "key_prefix": plaintext[:12],
-        "scope": scope.value,
-        "third_party_name": req.third_party_name,
-        "third_party_type": tp_type.value if tp_type else None,
-        "allowed_field_ids": req.allowed_field_ids,
-        "created_at": now.isoformat(),
-        "expires_at": (now + timedelta(days=req.expires_in_days)).isoformat(),
-        "note_ar": "احفظ هذا المفتاح الآن — لن يُعرَض مرّة أخرى. الحفظ في قاعدة البيانات يحتاج تفعيل الخادم.",
-    }
 
 
 @router.post("/api/v1/sharing/keys")
@@ -107,7 +53,9 @@ async def create_sharing_key(
             "key_plaintext": key.key_plaintext,  # مرّة واحدة
             "key_prefix": key.key_prefix,
             "scope": key.scope.value,
+            "third_party_type": tp.value if tp else None,
             "expires_at": key.expires_at,
+            "note_ar": "مفتاح مشاركة محفوظ وقابل للإلغاء؛ احتفظ به الآن لأنه لن يُعرض مجدداً.",
         }
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
@@ -123,3 +71,32 @@ async def list_sharing_keys(
         svc = SharingKeyService(get_pool(), conn=conn)
         keys = await svc.list_keys(user.tenant_id, include_revoked=include_revoked)
     return {"keys": keys}
+
+
+@router.post("/api/v1/sharing/keys/{key_id}/revoke")
+async def revoke_sharing_key(
+    key_id: str,
+    user: UserSchema = Depends(require_permission(Permission.USER_INVITE)),
+):
+    """Revoke a persisted sharing credential under the owner's RLS scope.
+
+    This path does not treat /generate-key output as a persisted credential.
+    A missing or foreign key receives the same 404 without disclosing its owner.
+    """
+    try:
+        key_id = str(_uuid.UUID(key_id))
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail="invalid_sharing_key_id") from exc
+    try:
+        async with tenant_connection(user) as conn:
+            svc = SharingKeyService(get_pool(), conn=conn)
+            revoked = await svc.revoke_key(key_id, str(user.tenant_id))
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        from api.main import _db_unavailable
+
+        raise _db_unavailable("إلغاء مفتاح مشاركة", exc) from exc
+    if not revoked:
+        raise HTTPException(status_code=404, detail="sharing_key_not_found")
+    return {"key_id": key_id, "status": "revoked"}
