@@ -179,7 +179,6 @@ async def test_non_degradable_rag_statuses_still_fail_closed(monkeypatch, http_s
     assert _SECRET not in str(exc.value.detail), "upstream body must never be reflected"
 
 
-
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "failure,expected_transport_reason",

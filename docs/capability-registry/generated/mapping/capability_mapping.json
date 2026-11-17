@@ -75854,12 +75854,12 @@
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "loader",
-          "line": 208
+          "line": 247
         },
         {
           "source": "tests_v9/service_module.py",
           "kind": "import",
-          "line": 205
+          "line": 244
         },
         {
           "source": "tests_v9/test_b6m4_structured_advisory.py",
@@ -75869,7 +75869,7 @@
         {
           "source": "tests_v9/test_rag_owned_gap_witnesses.py",
           "kind": "import",
-          "line": 206
+          "line": 245
         }
       ],
       "unresolved": []
