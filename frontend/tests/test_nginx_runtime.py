@@ -312,6 +312,9 @@ class RuntimeContract(unittest.TestCase):
                 "X-Tenant-Id": "spoofed-tenant",
                 "X-User-Id": "spoofed-user",
                 "X-Agent-Token": "spoofed-agent",
+                # GATEWAY-COOKIE-FORWARD-01: a browser sends its cookies on every request.
+                # No upstream reads them, so none may receive them.
+                "Cookie": "theme=dark; sahool_rt=fixture-refresh",
             }
             routes = [
                 ("/api/rag/search", "sahool-rag-retrieval", "/v1/search"),
@@ -348,6 +351,7 @@ class RuntimeContract(unittest.TestCase):
                     data = json.loads(body)
                     self.assertEqual((data["service"], data["path"]), (service, target + query))
                     self.assertEqual(data["headers"]["host"], "127.0.0.1")
+                    self.assertNotIn("cookie", data["headers"], f"{path} forwards the Cookie")
                     if service in {
                         "sahool-rag-retrieval",
                         "sahool-tts-service",
@@ -370,6 +374,7 @@ class RuntimeContract(unittest.TestCase):
             self.assertEqual(
                 json.loads(body)["headers"]["authorization"], "Bearer fixture-valid-token"
             )
+            self.assertNotIn("cookie", json.loads(body)["headers"], "raster got the cookie")
             auth_requests = backends["sahool-auth"].snapshot()
             verified = [r for r in auth_requests if r["path"] == "/v1/auth/verify"]
             self.assertTrue(verified)
@@ -377,6 +382,7 @@ class RuntimeContract(unittest.TestCase):
                 self.assertNotIn("x-tenant-id", request["headers"])
                 self.assertNotIn("x-user-id", request["headers"])
                 self.assertNotIn("x-agent-token", request["headers"])
+                self.assertNotIn("cookie", request["headers"], "auth verify got the cookie")
                 self.assertEqual(
                     request["headers"]["host"], f"sahool-auth:{backends['sahool-auth'].server_port}"
                 )
@@ -399,7 +405,7 @@ class RuntimeContract(unittest.TestCase):
                 self.assertEqual(data["method"], "POST")
                 self.assertEqual(data["body"], '{"text":"fixture"}')
                 self.assertEqual(data["headers"]["authorization"], "Bearer fixture-valid-token")
-                for key in ("x-agent-token", "x-user-id", "x-user-role"):
+                for key in ("x-agent-token", "x-user-id", "x-user-role", "cookie"):
                     self.assertNotIn(key, data["headers"])
             self.assertEqual(self.request("/_auth_verify", headers)[0], 404)
             self.assertEqual(self.request("/_auth_edge_sign", headers)[0], 404)
@@ -475,7 +481,7 @@ class RuntimeContract(unittest.TestCase):
                         "x-scout-media-token",
                     } - {token}:
                         self.assertNotIn(other, data["headers"])
-                    for key in ("x-roles", "x-edge-attestation", "x-canonical-path"):
+                    for key in ("x-roles", "x-edge-attestation", "x-canonical-path", "cookie"):
                         self.assertNotIn(key, data["headers"])
                     if "seasons" in path:
                         self.assertNotIn("x-user-id", data["headers"])
@@ -506,6 +512,7 @@ class RuntimeContract(unittest.TestCase):
             self.assertEqual(data["headers"]["x-roles"], "reviewer")
             self.assertEqual(data["headers"]["x-edge-attestation"], "fixture-attestation")
             self.assertNotIn("x-canonical-path", data["headers"])
+            self.assertNotIn("cookie", data["headers"], "season accept got the cookie")
             signs = [
                 r for r in backends["sahool-auth"].snapshot() if r["path"] == "/v1/auth/edge-sign"
             ]
@@ -514,7 +521,7 @@ class RuntimeContract(unittest.TestCase):
                 signs[-1]["headers"]["x-canonical-path"], "/internal/seasons/s1/accept"
             )
             self.assertEqual(signs[-1]["headers"]["x-canonical-method"], "POST")
-            for key in ("x-tenant-id", "x-roles", "x-edge-attestation"):
+            for key in ("x-tenant-id", "x-roles", "x-edge-attestation", "cookie"):
                 self.assertNotIn(key, signs[-1]["headers"])
             count = len(backends["sahool-scout-ingest"].snapshot())
             self.assertEqual(self.request("/api/v1/seasons/s1/accept", method="POST")[0], 401)
@@ -528,7 +535,7 @@ class RuntimeContract(unittest.TestCase):
                 (200, "sahool-platform", "/api/v1/seasons/s1/simulate"),
             )
             self.assertEqual(data["headers"]["authorization"], "Bearer fixture-valid-token")
-            for key in ("x-tenant-id", "x-user-id", "x-user-role", "x-agent-token"):
+            for key in ("x-tenant-id", "x-user-id", "x-user-role", "x-agent-token", "cookie"):
                 self.assertNotIn(key, data["headers"])
 
             # COG tiles (deploy-11): an <img> carries only the cookie; the platform reads
@@ -541,6 +548,7 @@ class RuntimeContract(unittest.TestCase):
             )
             self.assertEqual(data["headers"]["authorization"], "Bearer fixture-valid-token")
             self.assertEqual(data["headers"]["x-tenant-id"], "verified-tenant")
+            self.assertNotIn("cookie", data["headers"], "the bridged tile still sent the cookie")
             self.assertEqual(self.request(tile)[0], 401)
             status, _, body = self.request(
                 "/api/ai-agronomist/chat?stream=0", headers, "POST", '{"text":"hello"}'
@@ -549,9 +557,11 @@ class RuntimeContract(unittest.TestCase):
             self.assertEqual(json.loads(body)["body"], '{"text":"hello"}')
             self.assertEqual(json.loads(body)["method"], "POST")
             status, _, body = self.request(
-                "/ws/notifications?token=x", {"Upgrade": "websocket", "Connection": "upgrade"}
+                "/ws/notifications?token=x",
+                {"Upgrade": "websocket", "Connection": "upgrade", "Cookie": "theme=dark"},
             )
             self.assertEqual(status, 200)
+            self.assertNotIn("cookie", json.loads(body)["headers"], "/ws/ forwards the Cookie")
             self.assertEqual(json.loads(body)["headers"]["upgrade"], "websocket")
             self.assertEqual(json.loads(body)["headers"]["connection"], "upgrade")
             for path, expected in (
