@@ -5016,6 +5016,14 @@
     "kind": "tests"
   },
   {
+    "path": "services/decision-service/tests/test_w4_05_model_lifecycle_feed_live_pg.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
     "kind": "tests"
   },
@@ -14077,6 +14085,10 @@
   },
   {
     "path": "tests_v9/test_vra_prescription_engine_v62.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_w4_05_model_lifecycle_defaults_pinned.py",
     "kind": "tests"
   },
   {

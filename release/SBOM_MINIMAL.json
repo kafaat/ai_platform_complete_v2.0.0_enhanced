@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2a3bbec645e31f559499b87dfb397510870296da0ffaf8263c5dd165ea2a6323"
+          "content": "502af43992a8162081020dea9990acad55b4f4ac11dd3d4588e1a629727f19f1"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -19025,7 +19025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5fa2890dc116b140cf31219b69b9201a6f5fc20cfafce3215b32864585075554"
+          "content": "820283bd2e233a8426d321a0dbc80dc795eb60590d498956a3052fedf2b5527e"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -19455,7 +19455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ba8a30f86971bae053ef8b8e50edaa0fa4f81af97c878a688ebf55232d131bb"
+          "content": "79d1756642e9199cffe8e9afb856a86b5d14dc1ad6ce29ea7f9fbb4c2ef89bba"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -19545,7 +19545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ffee7e2470a625e4d6957d5f783c4516842107bd27a91f8a41c6fd7afc4cfc66"
+          "content": "72e11d141a79c7dd447ba4ba8d494dd32451ecdb46760a7e0ffd0001928ceaf7"
         }
       ],
       "name": "services/decision-service/tests/_model_chain.py",
@@ -20109,6 +20109,26 @@
         }
       ],
       "name": "services/decision-service/tests/test_tenant_boundary_migration_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f94c2522ddd6e76ba6c9194fe896637b80789f8ebc46a7338dc7a549e629a2a"
+        }
+      ],
+      "name": "services/decision-service/tests/test_w4_05_model_lifecycle_feed_live_pg.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "808959f63a56e69e989b10c077c96c5cfbbba926150be4801778dac4d8d01cb9"
+        }
+      ],
+      "name": "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py",
       "type": "file"
     },
     {
@@ -21525,7 +21545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa902639d15eb91a234bbd555693bf3f9d78f832ea3c3aaf171a6b6bae8944e1"
+          "content": "2a36404ce768419e1152f846e09afdcd3f28565f3e14f31286c7007467b4fbd9"
         }
       ],
       "name": "services/model-registry-adapter/tests/test_runtime_contract.py",
@@ -29375,7 +29395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "441a50e2795b63161b63339c4a8854b2d979ec91400789d891328e07e0937daa"
+          "content": "d543a6b465393141a2fb3059d28ec1682745297413c9075856fecebb031fd927"
         }
       ],
       "name": "services/sahool-platform/core/capabilities.py",

@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 787,
+      "evidence_count": 788,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -199,6 +199,7 @@
         "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_soil_profile_context_gate.py",
         "services/decision-service/tests/test_tenant_binding_force_rls.py",
+        "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
         "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
@@ -2171,7 +2172,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 208,
+      "evidence_count": 209,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2247,6 +2248,7 @@
         "services/decision-service/tests/test_runtime_worker_tenants.py",
         "services/decision-service/tests/test_service_token_guard.py",
         "services/decision-service/tests/test_sod_single_operator_self_approval.py",
+        "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
@@ -2485,7 +2487,7 @@
       "kind": "lineage_stage",
       "stage": "receipt",
       "order": 8,
-      "evidence_count": 47,
+      "evidence_count": 49,
       "owners": [
         "actuator-service",
         "database",
@@ -2522,6 +2524,8 @@
         "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
         "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
+        "services/decision-service/tests/test_w4_05_model_lifecycle_feed_live_pg.py",
+        "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
@@ -3154,7 +3158,7 @@
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py"
       ],
-      "source_evidence_count": 787,
+      "source_evidence_count": 788,
       "target_evidence_count": 580,
       "static_supported": true,
       "runtime_verified": false
@@ -3459,7 +3463,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 51,
-      "target_evidence_count": 208,
+      "target_evidence_count": 209,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3498,7 +3502,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 208,
+      "source_evidence_count": 209,
       "target_evidence_count": 49,
       "static_supported": true,
       "runtime_verified": false
@@ -3534,7 +3538,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
       "source_evidence_count": 49,
-      "target_evidence_count": 47,
+      "target_evidence_count": 49,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3557,7 +3561,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
-      "source_evidence_count": 47,
+      "source_evidence_count": 49,
       "target_evidence_count": 60,
       "static_supported": true,
       "runtime_verified": false
@@ -3615,5 +3619,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "5358d27a1453329ebd8ec8ce321e7593fcb15b31dad506ea9b3b80bd9cea70ed"
+  "content_sha256": "9b3e3b1c311539fdb188c7d8c27ddae360f08e0c3b39dc78f11987fc3aa87ade"
 }
