@@ -31,6 +31,7 @@ def code_head(root: Path) -> str:
         ["git", "-C", str(root), "rev-parse", "HEAD"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=True,
     )
     sha = result.stdout.strip().lower()

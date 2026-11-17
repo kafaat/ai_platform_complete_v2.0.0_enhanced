@@ -2,6 +2,18 @@
   "$comment": "سجلّ طفرات الحرّاس — لكلّ حارس عطلٌ يُزرَع في مصدره واختبارٌ يجب أن يحمرّ عندها. الحارس الأخضر يقول شيئاً واحداً بيقين: لم يُطلِق؛ و«لم يجد عطلاً» و«لا يرى العطل أصلاً» لا يفرّق بينهما شيء آخر. يفرضه scripts/ci/guard_mutation_guard.py.",
   "adjudicated_on": "2026-08-02",
   "behavioural": {
+    "scripts/ci/export_explorer_routes.py": {
+      "$policy": "New R13 offline exporter checks source route declarations and exact inventories before creating a provenance-labeled CI artifact. It never claims live execution.",
+      "test": "tests_v9/test_explorer_route_export_contract.py",
+      "mutations": [
+        {
+          "expect": "test_missing_inventory_and_unbound_commit_fails",
+          "find": "    if not routes or not services:\n        raise ValueError(\"SOURCE_INVENTORY_MISSING_OR_EMPTY\")",
+          "replace": "    if False:\n        raise ValueError(\"SOURCE_INVENTORY_MISSING_OR_EMPTY\")",
+          "why": "An empty route inventory for a named service must not be accepted as a source-backed export; the named regression demands SOURCE_INVENTORY_MISSING_OR_EMPTY, not a later count mismatch."
+        }
+      ]
+    },
     "scripts/ci/railway_staging_connection_preflight.py": {
       "$policy": "Stage-1 source verifier: staging identity must reject a production environment before issuing a receipt.",
       "test": "tests_v9/test_railway_staging_connection_preflight.py",

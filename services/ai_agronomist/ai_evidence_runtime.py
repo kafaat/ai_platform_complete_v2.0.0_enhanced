@@ -1053,6 +1053,8 @@ async def build_evidence_response(
                 kg_resp = await client.get(
                     f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
                     params={"subject_id": retrieval_crop},
+                    # C2: forward the verified tenant to knowledge-graph's C5 read guard;
+                    # the owner-canonical crop scopes reference retrieval, never the client crop.
                     headers={"X-Tenant-Id": tenant_id},
                     timeout=5.0,
                 )
