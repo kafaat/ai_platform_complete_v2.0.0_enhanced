@@ -1019,9 +1019,10 @@ async def recompute_field_state(
         INSERT INTO field_state
             (field_id, tenant_id, validity, execution_mode, confidence_level,
              ndvi_age_days, soil_age_days, weather_age_hours,
-             reasons_ar, conflicts, freshness_warnings, inputs, agronomic, computed_at)
+             reasons_ar, conflicts, freshness_warnings, inputs, agronomic, computed_at,
+             recomputed_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
-                $9::jsonb, $10::jsonb, $11::jsonb, $12::jsonb, $13::jsonb, NOW())
+                $9::jsonb, $10::jsonb, $11::jsonb, $12::jsonb, $13::jsonb, NOW(), NOW())
         ON CONFLICT (field_id) DO UPDATE SET
             validity = EXCLUDED.validity,
             execution_mode = EXCLUDED.execution_mode,

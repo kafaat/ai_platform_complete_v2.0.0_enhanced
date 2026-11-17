@@ -3357,9 +3357,13 @@ async def verify_execution_outcome(
                     "status": "conflict",
                     "reason": _equipment_receipt_evidence_gap(source.get("receipt_payload")),
                 }
+            if prior:
+                return _authoritative_execution_outcome(prior, replay=True)
             # A vegetation-namespaced evidence id claims to be evidence this service holds: it
             # must resolve, for this tenant (RLS + explicit tenant filter), to a snapshot of the
             # decision's own field. Other evidence ids are held to the format at the HTTP edge.
+            # Checked after the idempotent replay: a byte-identical retry of an outcome already
+            # stored returns that stored outcome and stores nothing new, so it is not re-judged.
             reason = await _outcome_evidence_reference_error(
                 conn,
                 tenant_id=tenant_id,
@@ -3368,8 +3372,6 @@ async def verify_execution_outcome(
             )
             if reason:
                 return {"status": "conflict", "reason": reason}
-            if prior:
-                return _authoritative_execution_outcome(prior, replay=True)
             outcome_id = (
                 "out_"
                 + hashlib.sha256(

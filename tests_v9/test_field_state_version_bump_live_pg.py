@@ -8,6 +8,9 @@ and adds an optional ``expected_version`` for a conditional (optimistic-concurre
 Live PostgreSQL through the restricted role (NOBYPASSRLS, FORCE RLS on field_state): the bump
 is SQL, so a fake connection could not show it. Without the fix the version stays at 1 after
 two recomputes (negative control recorded in the commit).
+
+The CI integration step sets ``FIELD_STATE_VERSION_CERTIFICATION_REQUIRED=1``, so an unreachable
+or unmigrated database fails the module instead of turning the proof into a green skip.
 """
 
 from __future__ import annotations
@@ -22,7 +25,16 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
-asyncpg = pytest.importorskip("asyncpg")
+# Switch read before any import: on a certifying runner a missing dependency must fail the
+# module, not importorskip it into a green skip (certification-switch-before-importorskip).
+_REQUIRED = os.getenv("FIELD_STATE_VERSION_CERTIFICATION_REQUIRED") == "1"
+
+try:
+    import asyncpg
+except ImportError:
+    if _REQUIRED:
+        raise
+    asyncpg = pytest.importorskip("asyncpg")
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
@@ -50,7 +62,15 @@ async def _probe() -> str:
 
 
 _WHY = asyncio.run(_probe())
-pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
+
+
+@pytest.fixture(autouse=True)
+def _database_or_declared_skip():
+    if _WHY:
+        message = f"field_state.version live certification has no database: {_WHY}"
+        if _REQUIRED:
+            pytest.fail(message, pytrace=False)
+        pytest.skip(f"declared skip (not a pass): {message}")
 
 
 def _projection():
@@ -86,6 +106,18 @@ async def _recompute(tenant: str, field: str, **kwargs) -> dict:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant)
             return await proj.recompute_field_state(conn, field, **kwargs)
+    finally:
+        await conn.close()
+
+
+async def _recomputed_at(tenant: str, field: str):
+    conn = await asyncpg.connect(DSN)
+    try:
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant)
+            return await conn.fetchval(
+                "SELECT recomputed_at FROM field_state WHERE field_id = $1", field
+            )
     finally:
         await conn.close()
 
@@ -166,3 +198,18 @@ def test_expected_version_must_be_a_non_negative_integer():
         return await _version(tenant, field)
 
     assert asyncio.run(scenario()) is None, "an invalid expected_version must write nothing"
+
+
+def test_first_recompute_stamps_recomputed_at():
+    async def scenario():
+        tenant, field = await _new_field()
+        await _recompute(tenant, field)
+        first = await _recomputed_at(tenant, field)
+        await _recompute(tenant, field)
+        return first, await _recomputed_at(tenant, field)
+
+    first, second = asyncio.run(scenario())
+    assert first is not None, "the INSERT path must stamp recomputed_at on a new field_state row"
+    assert second is not None and second >= first, (
+        f"a later recompute must keep recomputed_at set and not move it back: {first} -> {second}"
+    )

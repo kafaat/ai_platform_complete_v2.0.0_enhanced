@@ -1,7 +1,7 @@
 {
   "domains": [
     {
-      "average_assessed_maturity": 2.1,
+      "average_assessed_maturity": 2.3,
       "average_declared_maturity": 2.5,
       "capability_count": 10,
       "declared_above_evidence": 3,
@@ -9,8 +9,8 @@
       "maturity_distribution": {
         "0": 0,
         "1": 1,
-        "2": 7,
-        "3": 2,
+        "2": 5,
+        "3": 4,
         "4": 0,
         "5": 0
       },

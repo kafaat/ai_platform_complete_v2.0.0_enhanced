@@ -228,10 +228,9 @@ def test_vegetation_snapshot_id_conflict_is_a_named_409(monkeypatch):
 
 @pytest.mark.unit
 def test_persistence_refuses_a_malformed_id_before_connecting(monkeypatch):
-    async def no_connect():
-        raise AssertionError("must not connect for a malformed id")
-
-    monkeypatch.setattr(persistence, "_connect", no_connect)
+    # No connection stub: the refusal must be the named ValueError raised before any
+    # connection is acquired. With no DATABASE_URL a connection attempt fails differently.
+    monkeypatch.delenv("DATABASE_URL", raising=False)
     payload = SimpleNamespace(
         acquisition_at=datetime(2026, 1, 1, tzinfo=UTC),
         data_available_at=datetime(2026, 1, 1, 1, tzinfo=UTC),
@@ -383,8 +382,8 @@ async def _seed_terminal_request(tenant: str, field_id: str) -> SimpleNamespace:
     )
 
 
-def _verify(tenant: str, chain: SimpleNamespace, evidence_snapshot_id: str) -> dict:
-    payload = SimpleNamespace(
+def _outcome_payload(chain: SimpleNamespace, evidence_snapshot_id: str) -> SimpleNamespace:
+    return SimpleNamespace(
         execution_plan_id=chain.execution_plan_id,
         dispatch_authorization_id=chain.dispatch_authorization_id,
         decision_id=chain.decision_id,
@@ -395,6 +394,15 @@ def _verify(tenant: str, chain: SimpleNamespace, evidence_snapshot_id: str) -> d
         metrics={},
         idempotency_key="idem-" + uuid4().hex,
     )
+
+
+def _verify(
+    tenant: str,
+    chain: SimpleNamespace,
+    evidence_snapshot_id: str,
+    payload: SimpleNamespace | None = None,
+) -> dict:
+    payload = payload or _outcome_payload(chain, evidence_snapshot_id)
     return _run(
         persistence.verify_execution_outcome(
             tenant_id=tenant,
@@ -458,3 +466,49 @@ def test_live_veg_evidence_of_the_decisions_field_is_accepted():
     out = _verify(TENANT_A, chain, sid)
     assert out["status"] == "ok" and out["evidence_snapshot_id"] == sid, out
     assert _outcome_count(chain.execution_request_id) == 1, "the accepted outcome is stored once"
+
+
+async def _store_legacy_outcome(tenant: str, chain: SimpleNamespace, payload: SimpleNamespace):
+    """An outcome stored before evidence resolution existed, naming an unresolvable veg_ id."""
+    c = await _connect()
+    try:
+        async with c.transaction():
+            await c.execute("SELECT set_config('app.current_tenant', $1, true)", tenant)
+            await c.execute(
+                "INSERT INTO outcome_record(outcome_id,tenant_id,decision_id,planned,actual,metrics,"
+                "success,created_by,idempotency_key,execution_request_id,dispatch_authorization_id,"
+                "execution_plan_id,receipt_id,verification_state,evidence_snapshot_id,verified_by,"
+                "verified_at,request_hash) VALUES($1,$2::uuid,$3,'{}'::jsonb,$4::jsonb,'{}'::jsonb,"
+                "true,'operator',$5,$6,$7,$8,$9,$10,$11,'operator',now(),$12)",
+                "out_" + uuid4().hex[:20],
+                tenant,
+                payload.decision_id,
+                json.dumps(payload.actual),
+                payload.idempotency_key,
+                chain.execution_request_id,
+                payload.dispatch_authorization_id,
+                payload.execution_plan_id,
+                payload.receipt_id,
+                payload.verification_state,
+                payload.evidence_snapshot_id,
+                persistence._execution_outcome_hash(
+                    execution_request_id=chain.execution_request_id, payload=payload
+                ),
+            )
+    finally:
+        await c.close()
+
+
+@pytest.mark.integration
+@live
+def test_live_identical_replay_of_a_stored_outcome_is_not_re_judged():
+    """A byte-identical retry returns the stored outcome even if its veg_ id no longer resolves."""
+    chain = _run(_seed_terminal_request(TENANT_A, "f-a"))
+    payload = _outcome_payload(chain, "veg_" + uuid4().hex[:20])
+    _run(_store_legacy_outcome(TENANT_A, chain, payload))
+    out = _verify(TENANT_A, chain, payload.evidence_snapshot_id, payload=payload)
+    assert out["status"] == "ok" and out["replay"] is True, (
+        f"an identical retry must replay the stored outcome, not refuse it: {out}"
+    )
+    assert out["evidence_snapshot_id"] == payload.evidence_snapshot_id, out
+    assert _outcome_count(chain.execution_request_id) == 1, "a replay must store nothing new"
