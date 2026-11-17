@@ -85,7 +85,7 @@ def test_chat_with_empty_tenant_corpus_returns_200_on_field_state_evidence(monke
     resp = _chat(monkeypatch)
     assert resp.status_code == 200, resp.text
     body = resp.json()
-    assert seen == ["/v1/edges", "/v1/search"], f"KG then RAG must both be asked: {seen}"
+    assert seen == ["/v1/search"], f"Without a trusted crop, KG must not be queried: {seen}"
     assert body["rag_available"] is False, body.get("rag_available")
     assert body["rag_unavailable_reason"] == "TENANT_CORPUS_EMPTY", body["rag_unavailable_reason"]
     rag_meta = body["annotations"]["rag_retrieval"]
@@ -100,6 +100,24 @@ def test_chat_with_empty_tenant_corpus_returns_200_on_field_state_evidence(monke
     assert body["annotations"]["canonical_field_state"]["field_id"] == FIELD, (
         "the answer must carry the canonical field-state evidence"
     )
+
+
+
+def test_trusted_field_crop_queries_scoped_kg_before_rag(monkeypatch):
+    """A canonical crop reference enables scoped KG expansion; an untrusted crop cannot."""
+    seen: list[str] = []
+    _wire(monkeypatch, _corpus_empty, seen)
+    owner_state = state()
+    owner_state["ai_context_pack"] = {
+        "crop_knowledge": {"status": "reference_only", "crop_id": "wheat"}
+    }
+    monkeypatch.setattr(
+        runtime, "_fetch_canonical_field_state", AsyncMock(return_value=owner_state)
+    )
+    response = _chat(monkeypatch)
+    assert response.status_code == 200, response.text
+    assert seen == ["/v1/edges", "/v1/search"], seen
+    assert response.json()["rag_available"] is False
 
 
 def test_healthy_rag_declares_available(monkeypatch):
