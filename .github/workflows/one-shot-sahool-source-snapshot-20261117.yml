@@ -1,4 +1,4 @@
-name: One-shot SAHOOL source snapshot for independent local lab
+name: One-shot SAHOOL selective sources for independent local lab
 on:
   push:
     branches: [lab/source-snapshot-pr1525-20261117]
@@ -13,21 +13,30 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Export exact reviewed commit, never the temporary workflow
+      - name: Export exact authored files from both repair heads
         shell: bash
-        env:
-          SOURCE_SHA: bffed764271e93837d0edd9554d522359896cd4b
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
           mkdir -p /tmp/source-export
-          git archive --format=tar "$SOURCE_SHA" | gzip -1 > /tmp/source-export/sahool-source.tar.gz
-          sha256sum /tmp/source-export/sahool-source.tar.gz > /tmp/source-export/SHA256SUMS
-          printf '%s\n' "$SOURCE_SHA" > /tmp/source-export/SOURCE_SHA
-          du -h /tmp/source-export/sahool-source.tar.gz
+          FILES=(
+            scripts/ci/export_explorer_routes.py
+            tests_v9/test_explorer_route_export_contract.py
+            tests_v9/test_semantic_convergence_01.py
+            services/ai_agronomist/ai_evidence_runtime.py
+            docs/architecture/guard_mutation_registry.json
+            docs/architecture/blocking_surface_additions.json
+          )
+          for entry in 1527:9c5f6d34f4e00e3e8a341f1e6607cb58791d65fa 1528:b282ca3394298df9c856bd82292825e755bd8650; do
+            name="${entry%%:*}"; target="${entry#*:}"
+            git fetch --no-tags --quiet origin "$target"
+            test "$(git rev-parse "$target^{commit}")" = "$target"
+            git archive --format=tar "$target" "${FILES[@]}" | gzip -1 > "/tmp/source-export/pr${name}-authored.tar.gz"
+            printf '%s\n' "$target" > "/tmp/source-export/pr${name}-SHA"
+          done
+          (cd /tmp/source-export && sha256sum *.tar.gz > SHA256SUMS)
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: sahool-source-pr1525-exact
+          name: sahool-comparison-authored-1527-1528
           path: /tmp/source-export/
           if-no-files-found: error
           retention-days: 1
