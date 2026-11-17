@@ -8857,3 +8857,16 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
   - `test_the_switch_turns_a_missing_helm_into_a_failure` يعمل بلا helm. قِيس محلّيّاً: الـ14 بالمفتاح «14 failed»، وبدونه «14 skipped».
   - الاختبار المحلّيّ للعرض **NOT_RUN**: لا helm هنا، و`get.helm.sh` محجوب (403)، والبناء من المصدر رُفض بالصلاحيات. أوّل عرض بالثنائيّ المثبَّت يجري في CI.
 - **شرط الإغلاق:** نجاح خطوة «Lint and render both overlays with the pinned Helm» بـ`tests=14 skipped=0`، ثمّ الدمج.
+## HELM-AUTH-NO-SMTP-SMS-EGRESS-01 — auth المنشور بـHelm لا يرسل بريد الاستعادة ولا رمز الهاتف
+
+- **الحالة:** open — قرار مالك؛ لا تغيير في الكود.
+- **المصدر:** #1509 (W3-09) ينشر `sahool-auth` في `helm/sahool/values.yaml` بلا `SMTP_*` ولا `SMS_*`. و`services/auth/main.py` يقرأ `SMTP_HOST`/`SMTP_PORT` (افتراضيّاً 587) و`SMS_PROVIDER_URL`/`SMS_API_KEY` (`main.py:149-156`)، فـ`send_reset_email` (`main.py:825`) و`_send_otp_sms` (`main.py:940`) يسجّلان تحذيراً ويُرجعان `False`.
+- **الأثر:** في تثبيتٍ بـHelm لا يُرسَل بريد إعادة تعيين كلمة المرور ولا رمز التحقّق بالهاتف. الإعدادات اختياريّة في compose أيضاً، فلا يطلبها `helm_compose_workload_guard`.
+- **سبب عدم الإصلاح الآليّ:** تشغيلهما يحتاج الإعدادات **وقاعدة خروج معاً**. سياسة الشبكة ترفض الخروج افتراضيّاً، و`publicHttpsEgress` يفتح 443 فقط، وSMTP على 587.
+- **الخياران (للمالك):**
+  - (أ) خيار خروج SMTP صريح في المخطّط: منفذ ووجهة لكلّ حِمل.
+  - (ب) مُرحِّل بريد داخل العنقود يصله auth، وهو وحده يخرج.
+  
+  ومزوّد SMS عبر HTTPS يحتاج `publicHttpsEgress` لـauth مع ذكر مزوّده في `_EXPECTED_PUBLIC_EGRESS`.
+- **الحارس:** `tests_v9/test_helm_network_policy_egress.py::test_gated_outbound_settings_are_not_rendered_by_the_chart` يفشل إن رَسَم المخطّط أيّاً من هذه الإعدادات دون نقل العميل من `_GATED_OUTBOUND` وإضافة قاعدة الخروج.
+- **شرط الإغلاق:** قرار المالك بين (أ) و(ب)، ثمّ إعدادات مرسومة وقاعدة خروج، وإيصال إرسال حيّ من تثبيت Helm.
