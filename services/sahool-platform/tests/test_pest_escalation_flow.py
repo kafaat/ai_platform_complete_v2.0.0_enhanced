@@ -196,7 +196,6 @@ def test_execute_honours_execute_fn_reporting_failure():
     assert res["reason"] == "execution_not_confirmed"
 
 
-
 def test_an_ack_without_a_receipt_is_not_confirmed():
     execute = _steps_by_id(execute_fn=lambda ctx: {"executed": True})["execute"].fn
     res = execute({"approval_status": "approved", "action_type": "biocontrol"})
@@ -209,7 +208,6 @@ def test_false_shaped_or_non_dict_ack_cannot_claim_spray():
         execute = _steps_by_id(execute_fn=lambda ctx, value=ack: value)["execute"].fn
         res = execute({"approval_status": "approved", "action_type": "urgent_spray"})
         assert res["executed"] is False
-
 
 
 # ── خطوة المتابعة (follow_up) — تُجدوَل فقط إثر تنفيذ فعلي ──
