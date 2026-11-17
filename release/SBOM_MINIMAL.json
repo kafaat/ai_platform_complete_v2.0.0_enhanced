@@ -18225,7 +18225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "af705d7e6a5c1227364955e9f39c78d6014d56ea6611371eb04678c0515b2ba5"
+          "content": "3b1f8ceacce396d543aa11c90de1a0df3e106b43d40ee5717db19c661bdbb75f"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -18615,7 +18615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8e1b3016d412903cee435cfd54cd8f831f3448f84a5b4b02909b3c92ad2d21fa"
+          "content": "8621a590a882e7c78925304a54822a5a6a202432a1840a84c1608ed85709e01c"
         }
       ],
       "name": "services/ai_agronomist/test_ai_field_memory_v49.py",
