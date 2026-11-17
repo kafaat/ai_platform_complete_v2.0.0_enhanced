@@ -268,7 +268,8 @@ async def test_advisory_dependency_transport_failure_is_an_explicit_boundary_err
             if failure == "timeout":
                 raise httpx.ReadTimeout("")
             raise httpx.ConnectError("secret credentials and internal hostname")
-        return httpx.Response(200, json={"edges": []} if current == "knowledge-graph" else {"annotations": []})
+        payload = {"edges": []} if current == "knowledge-graph" else {"annotations": []}
+        return httpx.Response(200, json=payload)
 
     monkeypatch.setattr(
         httpx,
@@ -281,6 +282,11 @@ async def test_advisory_dependency_transport_failure_is_an_explicit_boundary_err
         runtime, "_record_ai_advice_event", AsyncMock(return_value={"status": "skipped"})
     )
     req = AdvisorQuery(question="ما حالة القمح؟", crop="wheat")
+    expected_reason = (
+        "advisory_dependency_timeout"
+        if failure == "timeout"
+        else "advisory_dependency_unavailable"
+    )
 
     if dependency == "knowledge-graph":
         with pytest.raises(HTTPException) as error:
@@ -293,9 +299,7 @@ async def test_advisory_dependency_transport_failure_is_an_explicit_boundary_err
             )
         assert error.value.status_code == (504 if failure == "timeout" else 502)
         assert error.value.detail["dependency"] == "knowledge-graph"
-        assert error.value.detail["reason_code"] == (
-            "advisory_dependency_timeout" if failure == "timeout" else "advisory_dependency_unavailable"
-        )
+        assert error.value.detail["reason_code"] == expected_reason
         assert "secret" not in str(error.value.detail)
         assert calls == ["knowledge-graph"]
     else:
@@ -314,9 +318,7 @@ async def test_advisory_dependency_transport_failure_is_an_explicit_boundary_err
         evidence = result["annotations"]["rag_retrieval"]
         assert evidence["available"] is False
         assert evidence["upstream_status"] is None
-        assert evidence["transport_reason"] == (
-            "advisory_dependency_timeout" if failure == "timeout" else "advisory_dependency_unavailable"
-        )
+        assert evidence["transport_reason"] == expected_reason
         assert len(evidence["correlation_id"]) == 32
         assert "secret" not in repr(result)
         assert calls == ["knowledge-graph", "rag-retrieval"]
