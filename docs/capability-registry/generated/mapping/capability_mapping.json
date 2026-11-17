@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7525,
+    "files_scanned": 7527,
     "files_by_kind": {
       "backend": 1301,
       "database": 352,
       "governance": 89,
       "mobile": 429,
       "other": 2199,
-      "tests": 2600,
+      "tests": 2602,
       "web": 555
     },
-    "unmapped_artifacts": 3584,
+    "unmapped_artifacts": 3586,
     "ambiguous_artifacts": 260,
     "files_by_reading": {
-      "python_functional": 4087,
+      "python_functional": 4089,
       "raw": 3438
     },
-    "test_dependency_files": 1984,
-    "test_dependency_edges": 5267,
-    "test_dependency_bounded_files": 1153,
+    "test_dependency_files": 1985,
+    "test_dependency_edges": 5273,
+    "test_dependency_bounded_files": 1154,
     "test_dependency_unresolved_relations": 506
   },
   "capabilities": [
@@ -6651,7 +6651,7 @@
           "score": 15
         },
         {
-          "value": "/api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:315",
+          "value": "/api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:332",
           "score": 14
         },
         {
@@ -45178,6 +45178,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gateway_cookie_strip_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_gateway_operational_endpoints_contract.py",
       "kind": "tests"
     },
@@ -47115,6 +47119,10 @@
     },
     {
       "path": "tests_v9/test_vra_prescription_engine_v62.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_w1_03_readiness_legacy_ece_live_pg.py",
       "kind": "tests"
     },
     {
@@ -67103,12 +67111,12 @@
         {
           "source": "services/sahool-platform/core/pest_escalation_flow.py",
           "kind": "import",
-          "line": 8
+          "line": 9
         },
         {
           "source": "services/sahool-platform/core/workflow_engine.py",
           "kind": "import",
-          "line": 13
+          "line": 18
         }
       ],
       "unresolved": []
@@ -69685,22 +69693,32 @@
         {
           "source": "scripts/ci/platform_route_classification.py",
           "kind": "import",
-          "line": 33
+          "line": 38
         },
         {
           "source": "services/sahool-platform/api/phase10_continuous_learning.py",
           "kind": "import",
-          "line": 88
+          "line": 100
         },
         {
           "source": "services/sahool-platform/api/phase10_continuous_learning.py",
           "kind": "source_read",
-          "line": 41
+          "line": 46
+        },
+        {
+          "source": "services/sahool-platform/api/phase11_federated_agents.py",
+          "kind": "import",
+          "line": 122
+        },
+        {
+          "source": "services/sahool-platform/api/phase11_federated_agents.py",
+          "kind": "source_read",
+          "line": 53
         },
         {
           "source": "services/sahool-platform/api/routers/registry.py",
           "kind": "source_read",
-          "line": 38
+          "line": 43
         }
       ],
       "unresolved": []
@@ -79368,57 +79386,67 @@
         {
           "source": "scripts/ci/codecov_coverage_guard.py",
           "kind": "import",
-          "line": 15
+          "line": 16
         },
         {
           "source": "services/auth/routers/invitations.py",
           "kind": "source_read",
-          "line": 155
+          "line": 160
         },
         {
           "source": "services/auth/routers/users.py",
           "kind": "source_read",
-          "line": 154
+          "line": 159
         },
         {
           "source": "services/auth/session_tokens.py",
           "kind": "source_read",
-          "line": 156
+          "line": 161
         },
         {
           "source": "services/decision-service/main.py",
           "kind": "source_read",
-          "line": 283
+          "line": 379
         },
         {
           "source": "services/sahool-platform/api/routers/security_audit.py",
           "kind": "source_read",
-          "line": 157
+          "line": 162
+        },
+        {
+          "source": "services/soil-service/plan_copy_store.py",
+          "kind": "source_read",
+          "line": 165
+        },
+        {
+          "source": "services/vegetation-analysis-service/anomaly_store_pg.py",
+          "kind": "source_read",
+          "line": 164
         },
         {
           "source": "tests_v9/test_auth_admin_authz_live_pg_redis.py",
           "kind": "source_read",
-          "line": 120
+          "line": 121
         },
         {
           "source": "tests_v9/test_auth_admin_tenant_scope_live_pg.py",
           "kind": "source_read",
-          "line": 119
+          "line": 120
         },
         {
           "source": "tests_v9/test_mfa_hardening_integration_v29_5.py",
           "kind": "source_read",
-          "line": 118
+          "line": 119
         },
         {
           "source": "tests_v9/test_platform_denial_log_scope_live.py",
           "kind": "source_read",
-          "line": 121
+          "line": 122
         }
       ],
       "unresolved": [
         {
-          "line": 241,
+          "line": 337,
           "call": "run_path"
         }
       ]
@@ -89411,7 +89439,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 349
+          "line": 355
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",
@@ -91825,22 +91853,22 @@
         {
           "source": "scripts/ci/container_fleet_contract_guard.py",
           "kind": "loader",
-          "line": 342
+          "line": 343
         },
         {
           "source": "scripts/ci/container_fleet_contract_guard.py",
           "kind": "source_read",
-          "line": 343
+          "line": 344
         },
         {
           "source": "services/ai_agronomist/ai_evidence_runtime.py",
           "kind": "source_read",
-          "line": 207
+          "line": 208
         },
         {
           "source": "services/raster-service/raster_cdse_tile_runtime.py",
           "kind": "source_read",
-          "line": 401
+          "line": 402
         },
         {
           "source": "services/sahool-platform/api/imagery_automation.py",
@@ -91850,22 +91878,22 @@
         {
           "source": "services/sahool-platform/api/weather_automation.py",
           "kind": "import",
-          "line": 268
+          "line": 269
         },
         {
           "source": "services/sahool-platform/core/guardrails.py",
           "kind": "import",
-          "line": 377
+          "line": 378
         },
         {
           "source": "tests_v9/test_imagery_automation_rls_live_pg.py",
           "kind": "loader",
-          "line": 151
+          "line": 152
         },
         {
           "source": "tests_v9/test_imagery_automation_rls_live_pg.py",
           "kind": "source_read",
-          "line": 150
+          "line": 151
         }
       ],
       "unresolved": []
@@ -98516,6 +98544,24 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_w1_03_readiness_legacy_ece_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 65
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 72
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_w1_03_soil_ece_rule_live_pg.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -98561,7 +98607,7 @@
         {
           "source": "services/sahool-platform/api/canonical_root_zone_profile.py",
           "kind": "import",
-          "line": 334
+          "line": 426
         },
         {
           "source": "services/sahool-platform/api/lab_store.py",
@@ -98576,17 +98622,17 @@
         {
           "source": "services/sahool-platform/api/routers/etc_dual.py",
           "kind": "import",
-          "line": 302
+          "line": 394
         },
         {
           "source": "services/sahool-platform/api/routers/fields.py",
           "kind": "import",
-          "line": 383
+          "line": 475
         },
         {
           "source": "services/sahool-platform/api/routers/reports.py",
           "kind": "import",
-          "line": 324
+          "line": 416
         },
         {
           "source": "services/sahool-platform/api/routers/season_workspace.py",

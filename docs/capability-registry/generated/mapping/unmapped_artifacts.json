@@ -12176,6 +12176,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gateway_cookie_strip_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gateway_operational_endpoints_contract.py",
     "kind": "tests"
   },
@@ -14113,6 +14117,10 @@
   },
   {
     "path": "tests_v9/test_vra_prescription_engine_v62.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_w1_03_readiness_legacy_ece_live_pg.py",
     "kind": "tests"
   },
   {

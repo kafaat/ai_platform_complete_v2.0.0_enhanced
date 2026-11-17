@@ -486,7 +486,7 @@
         "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:889",
         "GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:715",
         "GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:677",
-        "GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:316",
+        "GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:333",
         "GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:607",
         "GET /api/v1/reports/season/{season_id}/summary @ services/sahool-platform/api/routers/reports.py:268",
         "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:612",
@@ -4490,7 +4490,7 @@
       "apis": [
         "GET /v1/offline/packs @ services/raster-service/routers/storage.py:124",
         "GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:152",
-        "POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:212"
+        "POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:163"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -5553,8 +5553,8 @@
         "POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2391",
         "POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2646",
         "POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2682",
-        "POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:150",
-        "POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:273"
+        "POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:129",
+        "POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:224"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

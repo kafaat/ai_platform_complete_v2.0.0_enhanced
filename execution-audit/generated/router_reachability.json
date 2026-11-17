@@ -568,19 +568,19 @@
     },
     {
       "kind": "router",
-      "line": 36,
+      "line": 33,
       "module": "services.sahool-platform.api.phase10_continuous_learning",
       "node_id": "services.sahool-platform.api.phase10_continuous_learning:router",
-      "route_count": 15,
+      "route_count": 12,
       "statically_reachable": false,
       "symbol": "router"
     },
     {
       "kind": "router",
-      "line": 28,
+      "line": 25,
       "module": "services.sahool-platform.api.phase11_federated_agents",
       "node_id": "services.sahool-platform.api.phase11_federated_agents:router",
-      "route_count": 11,
+      "route_count": 8,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -1846,7 +1846,7 @@
     },
     {
       "kind": "router",
-      "line": 42,
+      "line": 43,
       "module": "services.sahool-platform.api.routers.season_workspace",
       "node_id": "services.sahool-platform.api.routers.season_workspace:router",
       "route_count": 1,
@@ -2493,7 +2493,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 59,
+  "include_edge_count": 60,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2920,7 +2920,16 @@
     },
     {
       "expression": "router",
-      "line": 91,
+      "line": 103,
+      "module": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_w4_09_retired_dead_routes:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "router",
+      "line": 125,
       "module": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
       "prefix": null,
       "resolved": false,
@@ -3027,7 +3036,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "8a40165dbcaecaf0878c9c992e241fc7536eb4798fbffffaf0fb3f162ec81a91",
+  "inventory_sha256": "08a7b3d40263dec51c98af539f42dcd69acdbdba89cb84bef83c83fe5e8b3218",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {
@@ -3393,20 +3402,20 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 36,
+      "line": 33,
       "module": "services.sahool-platform.api.phase10_continuous_learning",
       "node_id": "services.sahool-platform.api.phase10_continuous_learning:router",
-      "route_count": 15,
+      "route_count": 12,
       "safe_to_delete": false,
       "symbol": "router"
     },
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 28,
+      "line": 25,
       "module": "services.sahool-platform.api.phase11_federated_agents",
       "node_id": "services.sahool-platform.api.phase11_federated_agents:router",
-      "route_count": 11,
+      "route_count": 8,
       "safe_to_delete": false,
       "symbol": "router"
     },
@@ -4813,7 +4822,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 42,
+      "line": 43,
       "module": "services.sahool-platform.api.routers.season_workspace",
       "node_id": "services.sahool-platform.api.routers.season_workspace:router",
       "route_count": 1,
@@ -5418,7 +5427,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 54,
+  "unresolved_include_count": 55,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5783,7 +5792,15 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
-      "line": 91,
+      "line": 103,
+      "module": "services.sahool-platform.tests.test_w4_09_retired_dead_routes",
+      "source": null,
+      "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+      "line": 125,
       "module": "services.sahool-platform.tests.test_w4_09_retired_dead_routes",
       "source": null,
       "target_expression": "router"

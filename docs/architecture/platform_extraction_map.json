@@ -5083,7 +5083,7 @@
       "function": "season_workspace",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/season-workspace",
-      "line": 315,
+      "line": 332,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/season_workspace.py::GET /api/v1/fields/{field_id}/season-workspace::season_workspace"

@@ -272,8 +272,8 @@ DEC-010,api,POST /v1/learning/activation-requests @ services/decision-service/ma
 DEC-010,api,POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2391,3,applied
 DEC-010,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2646,3,applied
 DEC-010,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2682,3,applied
-DEC-010,api,POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:150,2,applied
-DEC-010,api,POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:273,2,applied
+DEC-010,api,POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:129,2,applied
+DEC-010,api,POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:224,2,applied
 DEC-010,service,services/decision-service/main.py,10,applied
 DEC-010,test,services/decision-service/tests/test_model_promotion_guardrail_direction.py,3,applied
 DEC-010,test,services/decision-service/tests/test_wx11_3_model_promotion_decision.py,3,applied
@@ -561,7 +561,7 @@ FM-003,api,GET /api/v1/fields/{field_id}/priority-queue @ services/sahool-platfo
 FM-003,api,GET /api/v1/fields/{field_id}/readiness @ services/sahool-platform/api/routers/field_readiness.py:56,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/recommendations @ services/sahool-platform/api/routers/fields.py:2721,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3246,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:316,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:333,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2207,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:607,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3154,4,applied
@@ -1069,7 +1069,7 @@ FM-004,api,GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-
 FM-004,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:889,2,applied
 FM-004,api,GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:715,2,applied
 FM-004,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:677,2,applied
-FM-004,api,GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:316,2,applied
+FM-004,api,GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:333,2,applied
 FM-004,api,GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:607,2,applied
 FM-004,api,GET /api/v1/reports/season/{season_id}/summary @ services/sahool-platform/api/routers/reports.py:268,2,applied
 FM-004,api,GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:612,2,applied
@@ -1884,7 +1884,7 @@ OPS-004,ui,frontend/src/components/ds/forms.test.tsx,2,applied
 OPS-004,ui,frontend/src/components/ds/forms.tsx,2,applied
 OPS-005,api,GET /v1/offline/packs @ services/raster-service/routers/storage.py:124,2,applied
 OPS-005,api,GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:152,2,applied
-OPS-005,api,POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:212,2,applied
+OPS-005,api,POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:163,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/core/offline/cache_backends.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/core/offline/cache_cipher.dart,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/core/offline/cached_loader.dart,2,applied
