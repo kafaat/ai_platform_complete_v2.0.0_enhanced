@@ -143,6 +143,14 @@
       "impact": "merge",
       "$scope_limit_ar": "يقيس الملفّاتِ المتعقَّبة بالاسم (docker-)compose*.y(a)ml وأدوارَها المعلنة ودمجَ أسماء الخدمات وdepends_on؛ لا يُشغّل `docker compose config` (تفعله compose-validate لكلّ overlay فوق v9) ولا يحكم على صحّة بيئة الخدمات."
     },
+    "scripts/ci/helm_compose_workload_guard.py::ci.yml::structural-lint": {
+      "counterexample": "W3-09, measured on main 2e3e40b4: docker-compose.v9.yml runs 67 services without a `profiles:` key and helm/sahool/values.yaml declared 6 workloads; nothing recorded why the other 61 were absent, so the chart had no auth verifier and the gateway failed every protected route closed. The six declared workloads also leave 17 compose-required (${VAR:?}) variables unrendered, which no check listed before this guard (W0-04 had found three of that class by hand: no REDIS_URL for the platform, no JWT_PUBLIC_KEY for raster and guardrails).",
+      "mutation": "test_a_service_in_neither_list_blocks",
+      "$mutation_ar": "Three mutations are registered in guard_mutation_registry.json under helm_compose_workload_guard.py: dropping the services ⊆ workloads ∪ ledger half of the set equality, ignoring the required-variable markers, and keeping ledger entries for ported services; each is killed by its named test.",
+      "positive_witness": "test_the_committed_tree_is_clean and test_a_profiled_service_is_out_of_scope: the committed chart and ledger pass, and adding a service behind a compose profile does not ask for a workload.",
+      "impact": "merge",
+      "$scope_limit": "Reads compose, values.yaml and the ledger as data. It does not run helm template, does not check that a secretEnv reference holds the right value, and does not judge whether a workload boots; validate_helm_readiness.py checks secret references and ports, and the production-only variables compose leaves optional stay in its PRODUCTION_REQUIRED_ENV."
+    },
     "scripts/ci/vegetation_smoke.py::railway-dockerfile-pr-build.yml::build": {
       "counterexample": "VEGETATION-IMAGE-BUILDS-WITHOUT-WEEKLY-INSIGHTS-01: main a97cba6f97e1c10745c64c35dcfa67c2106749a1 omitted weekly_insights.py from the image; Railway staging 22432850-dc1f-42f8-a241-d1d453c95e4e and production c4fba1bb-9c85-4cee-98bc-a5afc702d4a3 reported ModuleNotFoundError. The existing build alone did not exercise the report router.",
       "mutation": "test_runtime_contract_rejects_whole_missing_router_and_wrong_http_method",
@@ -230,6 +238,14 @@
       "positive_witness": "test_root_export_preserves_same_basenames_in_two_packages: a root re-export holding services/sahool-platform/api/__init__.py and services/sahool-platform/core/__init__.py side by side is accepted with both files counted, so the legitimate report passes.",
       "impact": "merge",
       "$impact_ar": "يحجب الدمج داخل وظيفة decision-033-pg16-proof فقط عند تقريرٍ بمسارات غير صحيحة؛ خطوة الإثبات الحيّة نفسها بلا --cov-fail-under فلا تفشل بسبب نسبة التغطية. والرفع fail_ci_if_error: false فانقطاع Codecov لا يحمّر فحصاً."
+    },
+    "scripts/ci/helm_render_guard.py::sahool-production-gates.yml::helm-readiness": {
+      "counterexample": "HELM-RENDER-UNPINNED-RUNNER-BINARY-01: Unit Tests job 133646190750 on #1509 head ea522a6f ran all 8 @needs_helm render tests (PASSED) on the helm binary that the GitHub ubuntu-24.04 runner image ships; no step in .github/workflows installed or pinned helm, nothing ran helm lint, values-staging.yaml was never rendered, and the tests' skipif meant a runner without helm would have passed all of them green. Measured locally without helm: the 14 helm_render tests report '14 skipped' and exit 0, which is the green-by-absence this guard closes.",
+      "mutation": "test_a_skipped_render_test_fails_the_guard",
+      "$mutation_ar": "مسجَّلة في guard_mutation_registry.json تحت helm_render_guard.py: حذف \"skipped\" من فحص junit يُسقط test_a_skipped_render_test_fails_the_guard، وتعطيل مقارنة الإصدار (`if False:`) يُسقط test_the_runner_image_helm_is_refused.",
+      "positive_witness": "test_a_complete_render_run_passes: a junit report with 14 helm_render tests and no skip, failure or error passes, so the legitimate run with the pinned helm is accepted.",
+      "impact": "merge",
+      "$impact_ar": "يحجب الدمج داخل وظيفة helm-readiness: helm على PATH غير المثبَّت v3.16.4، أو اختبار عرض تخطّى أو فشل أو نقص عن 14. وتنزيل helm نفسه يفشل قبل فكّ الضغط إن لم تطابق sha256."
     }
   }
 }

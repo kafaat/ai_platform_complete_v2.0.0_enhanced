@@ -55,6 +55,8 @@ PRODUCTION_REQUIRED_ENV: dict[str, dict[str, str]] = {
         "DATABASE_URL": "services/sahool-platform/api/main.py (runtime DB, RLS role)",
         "JWT_PUBLIC_KEY": "services/sahool-platform/api/main.py:134 _refuse_hs256_in_production",
         "REDIS_URL": "services/sahool-platform/api/main.py:1096 _build_denylist (fail-closed)",
+        # W3-09: without it every decision-service call answers 503 in production.
+        "DECISION_SERVICE_TOKEN": "shared/security/decision_service_auth.py:23 required in production",
     },
     "sahool-raster-service": {
         "DATABASE_URL": "services/raster-service/raster_security_context.py:156 ownership",
@@ -65,6 +67,17 @@ PRODUCTION_REQUIRED_ENV: dict[str, dict[str, str]] = {
     },
     "sahool-ai-agronomist": {
         "SAHOOL_AGENT_REDIS_URL": "services/ai_agronomist/agent_stores.py:296 (fail-closed)",
+    },
+    # W3-09: compose leaves the RS256 pair optional (${JWT_PRIVATE_KEY:-}); production
+    # refuses HS256 and refuses to boot without Redis.
+    "sahool-auth": {
+        "DATABASE_URL": "services/auth/main.py:141 (asyncpg pool, RLS-safe role)",
+        "REDIS_URL": "services/auth/main.py:392 Redis required in production (fail-closed)",
+        "JWT_PRIVATE_KEY": "services/auth/main.py:337 RS256 required in production",
+        "JWT_PUBLIC_KEY": "services/auth/main.py:325 JWT_PRIVATE_KEY needs JWT_PUBLIC_KEY",
+    },
+    "sahool-decision-service": {
+        "DECISION_SERVICE_AUTH_TOKEN": "services/decision-service/main.py:524 refuses to start",
     },
 }
 
@@ -122,6 +135,17 @@ def gateway_errors(values: dict, chart: Path = CHART) -> list[str]:
             if not (chart / "files" / "gateway" / rel).is_file():
                 errors.append(f"gateway: missing files/gateway/{rel}")
     workloads = values.get("workloads", {}) or {}
+    auth = gateway.get("auth", {}) or {}
+    auth_spec = workloads.get(auth.get("serviceName", "")) or {}
+    if (
+        gateway.get("enabled")
+        and auth_spec.get("enabled")
+        and auth_spec.get("port") != auth.get("port")
+    ):
+        errors.append(
+            f"gateway.auth.port {auth.get('port')} does not match the "
+            f"{auth.get('serviceName')} workload port {auth_spec.get('port')}"
+        )
     for name in GATEWAY_ONLY_WORKLOADS:
         spec = workloads.get(name) or {}
         if spec.get("enabled") and spec.get("gatewayOnly") is not True:
@@ -132,13 +156,54 @@ def gateway_errors(values: dict, chart: Path = CHART) -> list[str]:
     return errors
 
 
+def network_policy_errors(values: dict) -> list[str]:
+    """W3-09: restricted ingress names real callers; public HTTPS egress is opt-in.
+
+    ``gatewayOnly`` admits the gateway plus ``internalCallers``; ``internalOnly`` admits
+    only ``internalCallers`` (a workload with no auth of its own and no gateway route).
+    A caller that is not an enabled workload admits nobody and hides a broken call path;
+    an ``internalOnly`` workload with no caller would render an empty ``from``.
+    """
+    errors = []
+    workloads = values.get("workloads", {}) or {}
+    enabled = {name for name, spec in workloads.items() if (spec or {}).get("enabled")}
+    for name, spec in workloads.items():
+        spec = spec or {}
+        if not spec.get("enabled"):
+            continue
+        callers = spec.get("internalCallers") or []
+        if spec.get("gatewayOnly") and spec.get("internalOnly"):
+            errors.append(f"{name}: set gatewayOnly or internalOnly, not both")
+        if spec.get("internalOnly") and not callers:
+            errors.append(f"{name}: internalOnly needs at least one internalCallers entry")
+        if callers and not (spec.get("gatewayOnly") or spec.get("internalOnly")):
+            errors.append(f"{name}: internalCallers has no effect without gatewayOnly/internalOnly")
+        for caller in callers:
+            if caller not in enabled:
+                errors.append(f"{name}: internalCallers names {caller!r}, not an enabled workload")
+        if "publicHttpsEgress" in spec and not isinstance(spec["publicHttpsEgress"], bool):
+            errors.append(f"{name}: publicHttpsEgress must be true or false")
+    template = (CHART / "templates" / "networkpolicy.yaml").read_text(encoding="utf-8")
+    if "cidr: 0.0.0.0/0" in template.split("name: sahool-public-https-egress", 1)[0]:
+        errors.append(
+            "templates/networkpolicy.yaml: public egress must be rendered only by "
+            "sahool-public-https-egress, for workloads that set publicHttpsEgress"
+        )
+    return errors
+
+
 def gateway_auth_notice(values: dict) -> str | None:
-    """The deploy-path statement that the chart does not deploy the auth verifier yet."""
+    """The deploy-path statement when the chart does not deploy the auth verifier.
+
+    W3-09 deploys it as the ``sahool-auth`` workload; the notice remains for values that
+    rename the Service away from it or disable it.
+    """
     gateway = values.get("gateway", {}) or {}
     if not gateway.get("enabled"):
         return None
     service = (gateway.get("auth", {}) or {}).get("serviceName", "")
-    if service in (values.get("workloads", {}) or {}):
+    spec = (values.get("workloads", {}) or {}).get(service) or {}
+    if spec.get("enabled"):
         return None
     return (
         f"the chart does not deploy the auth Service {service!r} (deploy-3, W3-09). "
@@ -146,6 +211,20 @@ def gateway_auth_notice(values: dict) -> str | None:
         "the namespace every auth_request route answers 500 and /auth/ answers 502 "
         "(fail closed), and only /api/v1 and /api/guardrails serve."
     )
+
+
+def dockerfile_ports(text: str) -> set[int]:
+    """Ports the image declares (``EXPOSE``) or binds (``CMD``/``ENTRYPOINT`` ``--port N``).
+
+    A Dockerfile whose uvicorn binds a port without ``EXPOSE`` still serves on it, and adding
+    ``EXPOSE`` only to satisfy this check would rebuild that service wherever its Dockerfile is
+    watched (W3-09: field-management on Railway). The bound port is read from the command the
+    image actually runs, not taken from the chart values it is checked against.
+    """
+    ports = {int(port) for port in re.findall(r"^EXPOSE\s+(\d+)", text, re.M)}
+    for line in re.findall(r"^(?:CMD|ENTRYPOINT)\s+(.+)$", text, re.M):
+        ports.update(int(port) for port in re.findall(r'--port["\s,=]+"?(\d+)', line))
+    return ports
 
 
 def source_contract_errors(values: dict, root: Path = ROOT) -> list[str]:
@@ -158,10 +237,7 @@ def source_contract_errors(values: dict, root: Path = ROOT) -> list[str]:
         if not source.is_file():
             errors.append(f"{name}: sourceDockerfile is required")
             continue
-        ports = {
-            int(port)
-            for port in re.findall(r"^EXPOSE\s+(\d+)", source.read_text(encoding="utf-8"), re.M)
-        }
+        ports = dockerfile_ports(source.read_text(encoding="utf-8"))
         if spec.get("port") not in ports:
             errors.append(
                 f"{name}: port {spec.get('port')} does not match {source.relative_to(root)} EXPOSE {sorted(ports)}"
@@ -260,6 +336,7 @@ def main() -> int:
     failures.extend(source_contract_errors(merged))
     failures.extend(migration_job_errors(merged))
     failures.extend(gateway_errors(merged))
+    failures.extend(network_policy_errors(merged))
     if args.env == "production":
         failures.extend(production_env_errors(merged))
         if int((merged.get("gateway", {}) or {}).get("replicas", 0)) < 2:

@@ -8833,3 +8833,19 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الخلل:** v256 المحجوزة كانت تبصم `field_tasks.photo_url` والملاحظات. وعلى main مصدرُ صورة المشاهدة الوحيد هو `scout_photo_evidence` (v260، scout-ingest؛ ملاحظة [`v257_scouting_pin_location_photo.sql:12-16`](../../migrations/v257_scouting_pin_location_photo.sql))، فرابطٌ حرّ لا يربط الاعتماد بالبايتات التي رآها المراجِع.
 - **الإصلاح:** [`v274_inspection_evidence_versions.sql`](../../migrations/v274_inspection_evidence_versions.sql) يسمّي `photo_evidence_id` و`photo_content_sha256` ويعيد حساب البصمة في trigger؛ الاعتماد يسمّي `evidence_version` بعينها؛ و[`v277`](../../migrations/v277_inspection_close_gate.sql) يرفض الإغلاق (SH002) إن لم يعد دليلُ الدبوس الحاليّ هو دليلَ النسخة المعتمدة. الشاهد: `test_close_needs_an_approval_and_a_photo_added_after_it_invalidates_it` و`test_a_review_of_a_submit_whose_photo_changed_since_is_refused`.
 - **شرط الإغلاق:** دمجٌ في main ثمّ إيصالٌ حيّ على staging.
+
+## HELM-RENDER-UNPINNED-RUNNER-BINARY-01 — عرض مخطّط Helm في CI يعتمد على ثنائيّ غير مثبَّت، بلا lint ولا staging
+
+- **الحالة:** fixed — في #1509 (فرع `claude/w3-09-helm-workloads-main-20261116`)، بقرار المالك أن تُطوى بوّابة Helm فيه بدل طلب دمج منفصل. لا ادّعاء وصول إلى main، ولا نجاح CI بعد.
+- **الخلل (مقيس):** اختبارات العرض الثمانية `@needs_helm` تعمل في وظيفة Unit Tests، بـhelm الذي تحمله صورة مشغّل GitHub `ubuntu-24.04`: إصداره غير مثبَّت ولا يُتحقَّق منه. وكلّها PASSED في job 133646190750 على `ea522a6f` (#1509)، بلا سطر «helm binary not installed». ولا خطوة في `.github/workflows/` تثبّت helm أو تشغّل `helm lint`، ولا يُعرَض `values-staging.yaml` قطّ. وعلى مشغّل بلا helm تُتخطّى الاختبارات خضراء.
+- **تصحيح:** قيل في رسالة تنسيق 2026-11-16 22:15 إنّ المخطّط «لم يُعرَض قطّ في CI». هذا خطأ، والصحيح ما ورد أعلاه.
+- **الإصلاح:** وظيفة `helm-readiness` في `.github/workflows/sahool-production-gates.yml`:
+  - تنزّل helm v3.16.4 من `get.helm.sh`، وتتحقّق من sha256 (`fc307327…d179`) قبل فكّ الضغط، وتضعه أوّل PATH وتتحقّق من إصداره. البصمة تحقّق منها المالك مستقلّاً مقابل الإصدار الرسميّ v3.16.4، وتطابقها الخطوة أيضاً مع ملفّ `….tar.gz.sha256sum` المنشور قبل التنزيل (`HELM_PIN_MISMATCH` عند الاختلاف).
+  - تشغّل `helm lint` و`helm template` للطبقتين.
+  - تشغّل كلّ اختبارات `helm_render` بـ`HELM_RENDER_REQUIRED=1`.
+  - يُفشل `scripts/ci/helm_render_guard.py` الوظيفةَ إن لم يكن helm على PATH هو المثبَّت v3.16.4، أو تخطّى أيّ اختبار عرض أو فشل أو نقص عددها عن 14. مُقَرّ في `blocking_surface_additions.json`، وطفرتاه مسجّلتان.
+- **الشواهد:**
+  - `tests_v9/test_helm_render_acceptance.py`: lint للطبقتين؛ Deployment وService لكلّ حِمل مفعَّل بصورته ومنفذه ونسخه؛ default-deny؛ أسماء الأسرار.
+  - `test_the_switch_turns_a_missing_helm_into_a_failure` يعمل بلا helm. قِيس محلّيّاً: الـ14 بالمفتاح «14 failed»، وبدونه «14 skipped».
+  - الاختبار المحلّيّ للعرض **NOT_RUN**: لا helm هنا، و`get.helm.sh` محجوب (403)، والبناء من المصدر رُفض بالصلاحيات. أوّل عرض بالثنائيّ المثبَّت يجري في CI.
+- **شرط الإغلاق:** نجاح خطوة «Lint and render both overlays with the pinned Helm» بـ`tests=14 skipped=0`، ثمّ الدمج.

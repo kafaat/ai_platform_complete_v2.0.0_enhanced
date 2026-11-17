@@ -12260,6 +12260,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_helm_compose_workload_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_helm_gateway_ingress_contract.py",
     "kind": "tests"
   },
@@ -12269,6 +12273,18 @@
   },
   {
     "path": "tests_v9/test_helm_migration_job_runs_real_migrator.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_network_policy_egress.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_render_acceptance.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_render_guard.py",
     "kind": "tests"
   },
   {

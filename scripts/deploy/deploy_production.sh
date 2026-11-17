@@ -7,8 +7,9 @@ python scripts/observability/validate_observability_assets.py
 python scripts/deploy/validate_helm_readiness.py --env production
 python scripts/release/validate_release_package.py
 helm upgrade --install sahool ./helm/sahool   --namespace sahool   --create-namespace   -f helm/sahool/values.yaml   -f helm/sahool/values-production.yaml   --atomic   --timeout 15m
-# The chart does not deploy services/auth yet (deploy-3, W3-09). The gateway starts
-# without it but fails every verified route closed until the Service exists; say so.
+# The chart deploys services/auth as the sahool-auth workload (W3-09), but the gateway
+# resolves it per request and starts without it, failing every verified route closed if
+# the Service is missing (workload disabled, or renamed in values); say so.
 AUTH_SERVICE="$(python - <<'PY'
 import yaml
 base = yaml.safe_load(open("helm/sahool/values.yaml", encoding="utf-8"))
