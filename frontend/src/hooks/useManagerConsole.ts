@@ -229,14 +229,21 @@ export function useWorkOrderFromRecommendation(): UseMutationResult<Record<strin
   });
 }
 
-/** توليد مفتاح مشاركة — POST /api/v1/sharing/generate-key (USER_INVITE). يُعرَض
- *  الـplaintext مرّة واحدة فقط (الحفظ في DB يحتاج تفعيل الخادم). */
+/** Legacy name retained for clients; all new tokens are now persisted under tenant RLS.
+ * The old /sharing/generate-key generated unusable, non-persisted credentials.
+ */
 export function useGenerateShareKey(): UseMutationResult<Record<string, unknown>, unknown, Record<string, unknown>> {
   return useMutation<Record<string, unknown>, unknown, Record<string, unknown>>({
-    mutationFn: (body) => kongApi
-      .post('/api/v1/sharing/generate-key', body)
-      .then((r) => r.data as Record<string, unknown>)
-      .catch((e) => { if (isDisabled404(e)) return { disabled: true }; throw e; }),
+    mutationFn: (body) => {
+      const { expires_in_days, ...payload } = body;
+      return kongApi
+        .post('/api/v1/sharing/keys', {
+          ...payload,
+          valid_days: expires_in_days == null ? 30 : Number(expires_in_days),
+        })
+        .then((r) => r.data as Record<string, unknown>)
+        .catch((e) => { if (isDisabled404(e)) return { disabled: true }; throw e; });
+    },
   });
 }
 
