@@ -179,6 +179,46 @@ async def test_non_degradable_rag_statuses_still_fail_closed(monkeypatch, http_s
     assert _SECRET not in str(exc.value.detail), "upstream body must never be reflected"
 
 
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "failure,expected_transport_reason",
+    [
+        (httpx.ConnectError, "advisory_dependency_unavailable"),
+        (httpx.ReadTimeout, "advisory_dependency_timeout"),
+    ],
+)
+async def test_rag_transport_failure_degrades_without_inventing_an_upstream_response(
+    monkeypatch, caplog, failure, expected_transport_reason
+):
+    """A missing RAG host is not an HTTP 503 and must not fail field-state advice."""
+
+    from services.ai_agronomist.main import AdvisorQuery
+
+    def unavailable():
+        raise failure(_SECRET)
+
+    _wire(monkeypatch, unavailable)
+    result = await runtime.build_evidence_response(
+        AdvisorQuery(question="ما حالة الحقل؟", field_id=FIELD),
+        endpoint_mode="chat",
+        x_tenant_id=TENANT,
+        save_agent_tool_audit=lambda _: None,
+        save_pending_approval=lambda _: None,
+    )
+    assert result["status"] == "ok"
+    assert result["rag_available"] is False
+    assert result["rag_unavailable_reason"] == "rag_transport_unavailable"
+    evidence = result["annotations"]["rag_retrieval"]
+    assert evidence["available"] is False
+    assert evidence["upstream_status"] is None
+    assert evidence["transport_reason"] == expected_transport_reason
+    assert len(evidence["correlation_id"]) == 32
+    assert _SECRET not in repr(result)
+    assert _SECRET not in caplog.text
+    assert result["annotations"]["rag"] == []
+
+
 @pytest.fixture
 def _restore_sys_modules():
     """rag-retrieval's ``main`` (and its generic sibling modules) must not outlive this test.
