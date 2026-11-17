@@ -596,13 +596,7 @@ async def readyz(response: Response) -> dict[str, Any]:
         },
         "mode": "system-of-record" if sor_on else "interim-mirror",
         # W4-05: reported, never part of the readiness verdict above.
-        "capabilities": {
-            "model_lifecycle": {
-                "enabled": model_lifecycle_enabled(),
-                "code": None if model_lifecycle_enabled() else MODEL_LIFECYCLE_DISABLED["code"],
-                "reenable": MODEL_LIFECYCLE_DISABLED["reenable"],
-            }
-        },
+        "capabilities": {"model_lifecycle": _model_lifecycle_capability()},
         "db_readiness": db,
     }
 
@@ -2738,6 +2732,15 @@ MODEL_LIFECYCLE_DISABLED = {
         "training backend, and a tested end-to-end journey; then DECISION_MODEL_LIFECYCLE_ENABLED=1"
     ),
 }
+
+
+def _model_lifecycle_capability() -> dict[str, Any]:
+    enabled = model_lifecycle_enabled()
+    return {
+        "enabled": enabled,
+        "code": None if enabled else MODEL_LIFECYCLE_DISABLED["code"],
+        "reenable": MODEL_LIFECYCLE_DISABLED["reenable"],
+    }
 
 
 def _refuse_while_model_lifecycle_disabled() -> None:

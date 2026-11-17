@@ -61,6 +61,8 @@ def _decision_client(*, sor=True, misconfigured=False, auth_missing=False, db=No
                 "auth_token_missing_in_sor": lambda: auth_missing,
                 "strict_worker_tenants_enabled": lambda: True,
                 "LOOP_TABLES": ["decision_record"],
+                # W4-05: reported beside the verdict, never part of it.
+                "_model_lifecycle_capability": lambda: {"enabled": False},
             },
         ),
         probe,
