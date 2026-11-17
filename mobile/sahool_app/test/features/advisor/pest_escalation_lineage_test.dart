@@ -7,6 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
+import 'package:sahool_app/features/advisor/data/advisor_models.dart';
 import 'package:sahool_app/features/advisor/data/pest_escalation_lineage.dart';
 import 'package:sahool_app/features/advisor/presentation/pest_escalation_cubit.dart';
 import 'package:sahool_app/features/advisor/presentation/pest_escalation_screen.dart';
@@ -255,6 +256,41 @@ void main() {
         }).state,
         ExecutionState.unconfirmed,
       );
+    });
+  });
+
+  group('server execution projection', () {
+    test('unknown physical effect overrides legacy executed=false', () {
+      final wf = PestWorkflow.fromJson({
+        'workflow': {'workflow_id': 'wf-uncertain', 'status': 'completed'},
+        'execution': {
+          'status': 'reconciliation_required',
+          'executed': null,
+          'reason': 'execution_not_confirmed',
+        },
+        'step_results': {
+          'execute': {'executed': false, 'reason': 'execution_not_confirmed'},
+        },
+      });
+      final o = readPestExecutionOutcome(wf.stepResults, wf.execution);
+      expect(o.state, ExecutionState.unconfirmed);
+      expect(o.reasons.single, contains('execution_not_confirmed'));
+    });
+    test('confirmed denial, not attempted, and truthful success stay distinct', () {
+      expect(readPestExecutionOutcome({
+        'execute': {'executed': false, 'blocked_by': 'guardrails'},
+      }, {'status': 'not_executed', 'executed': false}).state, ExecutionState.notExecuted);
+      expect(readPestExecutionOutcome({}, {
+        'status': 'not_attempted', 'executed': false,
+      }).state, ExecutionState.pending);
+      expect(readPestExecutionOutcome({
+        'execute': {'executed': true, 'execution_ref': 'job-7'},
+      }, {
+        'status': 'executed', 'executed': true, 'execution_ref': 'job-7',
+      }).state, ExecutionState.executed);
+      expect(readPestExecutionOutcome({
+        'execute': {'executed': true, 'execution_ref': 'job-7'},
+      }, {'status': 'not_executed', 'executed': false}).state, ExecutionState.unconfirmed);
     });
   });
 

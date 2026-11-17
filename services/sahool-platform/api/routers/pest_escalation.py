@@ -45,7 +45,11 @@ async def pest_escalation_run(
 
     from core.chemical_lineage import ChemicalBoundary, audit_chemical_lineage
     from core.correlation import set_correlation
-    from core.pest_escalation_flow import evaluate_pesticide_guardrails, run_pest_escalation
+    from core.pest_escalation_flow import (
+        evaluate_pesticide_guardrails,
+        run_pest_escalation,
+        summarize_pest_execution,
+    )
     from core.workflow_engine import workflow_trace
 
     set_correlation()  # خيط تتبّع موحّد لكلّ ما ينتج عن هذا الطلب
@@ -143,6 +147,8 @@ async def pest_escalation_run(
         )
     return {
         "workflow": workflow_trace(state),
+        # Physical execution is not inferred from workflow.status == "completed".
+        "execution": summarize_pest_execution(state),
         "context": state.context,
         "step_results": state.step_results,
     }

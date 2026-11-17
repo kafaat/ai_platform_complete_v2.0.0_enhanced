@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7530,
+    "files_scanned": 7532,
     "files_by_kind": {
       "backend": 1301,
       "database": 352,
       "governance": 89,
       "mobile": 429,
-      "other": 2199,
-      "tests": 2605,
+      "other": 2200,
+      "tests": 2606,
       "web": 555
     },
-    "unmapped_artifacts": 3589,
+    "unmapped_artifacts": 3590,
     "ambiguous_artifacts": 261,
     "files_by_reading": {
-      "python_functional": 4092,
-      "raw": 3438
+      "python_functional": 4093,
+      "raw": 3439
     },
-    "test_dependency_files": 1988,
-    "test_dependency_edges": 5278,
-    "test_dependency_bounded_files": 1155,
+    "test_dependency_files": 1989,
+    "test_dependency_edges": 5280,
+    "test_dependency_bounded_files": 1156,
     "test_dependency_unresolved_relations": 507
   },
   "capabilities": [
@@ -42447,6 +42447,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_pest_execution_outcome.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_pest_guardrails_gate.py",
       "kind": "tests"
     },
@@ -67200,6 +67204,24 @@
           "source": "services/sahool-platform/core/workflow_engine.py",
           "kind": "import",
           "line": 18
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_pest_execution_outcome.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/pest_escalation_flow.py",
+          "kind": "import",
+          "line": 9
+        },
+        {
+          "source": "services/sahool-platform/core/workflow_engine.py",
+          "kind": "import",
+          "line": 10
         }
       ],
       "unresolved": []

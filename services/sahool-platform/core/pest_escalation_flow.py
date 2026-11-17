@@ -30,6 +30,7 @@ from typing import Any
 
 from core.workflow_engine import (
     InMemoryWorkflowStore,
+    WorkflowStatus,
     WorkflowStep,
     run_workflow,
 )
@@ -96,6 +97,63 @@ def is_execution_proven(result: Mapping[str, Any] | None) -> bool:
         and result.get("executed") is True
         and _execution_ref(result.get("execution_ref")) is not None
     )
+
+
+def summarize_pest_execution(state: Any) -> dict[str, Any]:
+    """Project physical pest execution without trusting workflow completion.
+
+    A completed workflow can have no executor. Conversely, a crash during
+    execution or an unacknowledged worker reply can have already caused a
+    physical effect. The latter must be reconciled, never called "no spray".
+    The projection is read-only and does not modify the durable workflow.
+    """
+    step = state.step_results.get("execute")
+    if not isinstance(step, Mapping):
+        # A failed/in-flight execute step has no receipt precisely because
+        # its handler can crash AFTER the side effect and BEFORE saving the
+        # result. current_step is saved before invoking the handler.
+        reached_execute = (
+            state.current_step in ("execute", "follow_up") or "execute" in state.completed_steps
+        )
+        uncertain = reached_execute or state.status in (
+            WorkflowStatus.COMPLETED,
+            WorkflowStatus.COMPENSATION_FAILED,
+        )
+        return {
+            "status": "reconciliation_required" if uncertain else "not_attempted",
+            "executed": None if uncertain else False,
+            "execution_ref": None,
+            "reason": "execution_outcome_unknown" if uncertain else "execution_step_not_reached",
+        }
+
+    ref = _execution_ref(step.get("execution_ref"))
+    proven = is_execution_proven(step)
+    ack = step.get("executed")
+    # Both failure reason codes are emitted AFTER the executor was called.
+    # A false-shaped reply from a called executor does not prove no side effect.
+    uncertain = (
+        state.status == WorkflowStatus.COMPENSATION_FAILED
+        or (ref is not None and not proven)
+        or (not proven and ack is not False)
+        or step.get("reason") in (EXECUTION_NOT_CONFIRMED, EXECUTION_REF_MISSING)
+        or (proven and state.status != WorkflowStatus.COMPLETED)
+    )
+    status = "reconciliation_required" if uncertain else "executed" if proven else "not_executed"
+    reason = step.get("reason") or step.get("blocked_by")
+    if not isinstance(reason, str) or not reason.strip():
+        reason = (
+            "execution_reconciliation_required"
+            if uncertain
+            else None
+            if proven
+            else "execution_not_confirmed"
+        )
+    return {
+        "status": status,
+        "executed": None if uncertain else proven,
+        "execution_ref": ref,
+        "reason": reason,
+    }
 
 
 def _execution_outcome(res: object) -> dict:

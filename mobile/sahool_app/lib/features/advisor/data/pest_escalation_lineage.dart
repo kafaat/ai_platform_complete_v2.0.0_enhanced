@@ -323,3 +323,44 @@ ExecutionOutcome readExecutionOutcome(
     guardrailsStatus: _nonEmpty(status) ? status as String : null,
   );
 }
+
+/// العرض الموحّد: status=completed للتدفّق لا يثبت حدوث رشّ فعلي.
+/// الردّ القديم بلا execution يبقى متوافقاً، مع حراسة المرجع الوهمي القائمة.
+ExecutionOutcome readPestExecutionOutcome(
+  Map<String, dynamic>? stepResults,
+  Map<String, dynamic>? projection, {
+  Object? contextActionType,
+}) {
+  final legacy = readExecutionOutcome(
+    stepResults,
+    contextActionType: contextActionType,
+  );
+  if (projection == null) return legacy;
+  final reason = projection['reason'];
+  final unknown = ExecutionOutcome(
+    ExecutionState.unconfirmed,
+    reasons: [
+      'الأثر الزراعي غير محسوم؛ يلزم التحقق من المنفذ قبل الجزم بحدوث الرش أو عدم حدوثه.'
+          '${_nonEmpty(reason) ? ' ($reason)' : ''}',
+    ],
+  );
+  switch (projection['status']) {
+    case 'reconciliation_required':
+      return unknown;
+    case 'not_attempted':
+      return projection['executed'] == false && legacy.state == ExecutionState.pending
+          ? legacy
+          : unknown;
+    case 'not_executed':
+      return projection['executed'] == false && legacy.state == ExecutionState.notExecuted
+          ? legacy
+          : unknown;
+    case 'executed':
+      return projection['executed'] == true && legacy.state == ExecutionState.executed &&
+              projection['execution_ref'] == legacy.executionRef
+          ? legacy
+          : unknown;
+    default:
+      return unknown;
+  }
+}

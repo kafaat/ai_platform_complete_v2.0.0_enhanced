@@ -800,6 +800,11 @@ def test_pest_escalation_execute_step_carries_the_server_farm_context(monkeypatc
         )
         out = await pest_escalation.pest_escalation_run(req, user=_user(live.tenant))
         execute = out["step_results"]["execute"]
+        # HTTP contract: Workflow can complete even though guardrails block
+        # the physical action. Never infer a spray from workflow status.
+        assert out["execution"]["status"] == "not_executed", out
+        assert out["execution"]["executed"] is False, out
+        assert out["execution"]["reason"] == "guardrails", out
         assert execute["executed"] is False and execute["blocked_by"] == "guardrails", (
             f"no chemical/dose on the server yet: execution stays blocked: {execute}"
         )

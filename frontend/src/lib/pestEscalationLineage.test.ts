@@ -8,6 +8,7 @@ import {
   lineageRefsFromContext,
   pestWorkflowIdForPin,
   readExecutionOutcome,
+  readPestExecutionOutcome,
   refsFromPin,
   type ScoutPhotoEvidenceContext,
 } from './pestEscalationLineage';
@@ -219,5 +220,38 @@ describe('readExecutionOutcome — نتيجة التنفيذ كما أعادها
   it('executed ليس true حرفيّاً ⇒ لم يُنفَّذ', () => {
     expect(readExecutionOutcome({ execute: { executed: 'true', execution_ref: 'x' } }).state)
       .toBe('not_executed');
+  });
+});
+
+describe('readPestExecutionOutcome — projection beats legacy status', () => {
+  const noAck = { execute: { executed: false, reason: 'execution_not_confirmed' } };
+  it('never claims no spray when the server requires reconciliation', () => {
+    const result = readPestExecutionOutcome(noAck, {
+      status: 'reconciliation_required', executed: null, execution_ref: null,
+      reason: 'execution_not_confirmed',
+    });
+    expect(result.state).toBe('unconfirmed');
+  });
+  it('keeps explicit guardrails refusal and suspended workflow honest', () => {
+    const denied = { execute: { executed: false, blocked_by: 'guardrails' } };
+    expect(readPestExecutionOutcome(denied, { status: 'not_executed', executed: false }).state)
+      .toBe('not_executed');
+    expect(readPestExecutionOutcome({}, { status: 'not_attempted', executed: false }).state)
+      .toBe('pending');
+  });
+  it('rejects a contradictory or malformed claimed execution', () => {
+    const ack = { execute: { executed: true, execution_ref: 'spray-7' } };
+    expect(readPestExecutionOutcome(ack, {
+      status: 'executed', executed: true, execution_ref: 'spray-7',
+    }).state).toBe('executed');
+    expect(readPestExecutionOutcome(ack, {
+      status: 'not_executed', executed: false,
+    }).state).toBe('unconfirmed');
+    expect(readPestExecutionOutcome(noAck, {
+      status: 'executed', executed: true, execution_ref: 'spray-7',
+    }).state).toBe('unconfirmed');
+  });
+  it('keeps old server response support when projection is absent', () => {
+    expect(readPestExecutionOutcome(noAck, undefined).state).toBe('not_executed');
   });
 });

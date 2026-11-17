@@ -1584,6 +1584,15 @@ export interface WorkflowTrace {
 }
 export interface PestEscalationResult {
   workflow: WorkflowTrace;
+  /** Additive server projection: a completed workflow can still mean NO spray.
+   * Legacy deployments omit this; step_results.execute remains authoritative.
+   * null means the physical side effect needs human/worker reconciliation. */
+  execution?: {
+    status: 'executed' | 'not_executed' | 'not_attempted' | 'reconciliation_required';
+    executed: boolean | null;
+    execution_ref: string | null;
+    reason: string | null;
+  };
   context: Record<string, unknown>;
   step_results: Record<string, Record<string, unknown>>;
 }
