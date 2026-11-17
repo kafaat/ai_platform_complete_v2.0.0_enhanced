@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python scripts/ci/guard_mutation_guard.py --run --only export_explorer_routes.py
+          python scripts/ci/guard_mutation_guard.py --run --only scripts/ci/export_explorer_routes.py
       - name: Regenerate all derived files and verify a stable source tree
         shell: bash
         run: |
