@@ -339,7 +339,7 @@
         "GET /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:979",
         "GET /api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:2958",
         "GET /api/v1/fields/{field_id}/agronomic-replay @ services/sahool-platform/api/routers/agronomic_replay.py:58",
-        "GET /api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:656",
+        "GET /api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:661",
         "GET /api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:3730",
         "GET /api/v1/fields/{field_id}/available-dates @ services/sahool-platform/api/routers/field_workspace_imagery.py:51",
         "GET /api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:265",
@@ -457,7 +457,7 @@
       },
       "evidence_truncated": {
         "apis": 239,
-        "tests": 163,
+        "tests": 164,
         "mobile_consumers": 50
       }
     },
@@ -726,7 +726,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 26
+        "tests": 28
       }
     },
     {
@@ -1138,7 +1138,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 38
+        "tests": 39
       }
     },
     {
@@ -1503,8 +1503,8 @@
         "services/raster-service/test_stac_projection_contract.py",
         "services/raster-service/test_stac_singleflight_provenance.py",
         "services/raster-service/test_stac_vrt.py",
-        "tests_v9/test_backfill_scene_job_threadpool_v30_3.py",
-        "tests_v9/test_catalog_bridge_registry_stac_v30_1.py"
+        "services/sahool-platform/tests/test_cropin_unique_scene_dates_v1.py",
+        "tests_v9/test_backfill_scene_job_threadpool_v30_3.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1551,7 +1551,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 16
+        "tests": 17
       }
     },
     {

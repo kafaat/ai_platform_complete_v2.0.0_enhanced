@@ -12495,25 +12495,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.sharing.generate-key",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /api/v1/sharing/generate-key"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": [
-        "tenant"
-      ]
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.sharing.keys",
       "consumers": [
         "frontend"
@@ -12526,6 +12507,25 @@
       ],
       "idempotency_required": false,
       "kind": "mixed",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.sharing.keys.key_id",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/sharing/keys/{key_id}/revoke"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
       "required_context": [
@@ -18055,7 +18055,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "8eac7cc5d4018e2ce7337aa83b46eb78d68658d9beb0e25429d3612c4b0cfd5d",
+  "fingerprint": "3ea0d301166e3e5e6715835ef12c71bfe665ae77167e65181e85d01ab385b17b",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

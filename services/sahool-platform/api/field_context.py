@@ -552,6 +552,7 @@ async def refuse_if_fields_have_harvest_lots(conn, field_ids: list[str], action_
             ),
         )
 
+
 def count_distinct_acquisition_dates(per_indicator: dict) -> int:
     """One satellite acquisition may contribute several processed indicators."""
     dates: set[str] = set()

@@ -683,8 +683,8 @@ sahool-platform.seed.sowing-depth,query,sahool-platform,GET /api/v1/seed/sowing-
 sahool-platform.seed.storage-check,query,sahool-platform,GET /api/v1/seed/storage-check,frontend,route,False
 sahool-platform.segmentation.path:path,command,sahool-platform,ANY /api/segmentation/{path:path},frontend,route,False
 sahool-platform.settings,mixed,sahool-platform,GET /api/v1/settings|PUT /api/v1/settings,frontend,route,False
-sahool-platform.sharing.generate-key,command,sahool-platform,POST /api/v1/sharing/generate-key,frontend,route,False
 sahool-platform.sharing.keys,mixed,sahool-platform,GET /api/v1/sharing/keys|POST /api/v1/sharing/keys,frontend,route,False
+sahool-platform.sharing.keys.key_id,command,sahool-platform,POST /api/v1/sharing/keys/{key_id}/revoke,frontend,route,False
 sahool-platform.simulate.what-if,command,sahool-platform,POST /api/v1/simulate/what-if,frontend,route,False
 sahool-platform.soil-sampling.depth,query,sahool-platform,GET /api/v1/soil-sampling/depth,frontend,route,False
 sahool-platform.soil-sampling.protocol,query,sahool-platform,GET /api/v1/soil-sampling/protocol,frontend,route,False

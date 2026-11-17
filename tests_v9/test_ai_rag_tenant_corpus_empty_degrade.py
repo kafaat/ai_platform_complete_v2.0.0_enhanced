@@ -102,7 +102,6 @@ def test_chat_with_empty_tenant_corpus_returns_200_on_field_state_evidence(monke
     )
 
 
-
 def test_trusted_field_crop_queries_scoped_kg_before_rag(monkeypatch):
     """A canonical crop reference enables scoped KG expansion; an untrusted crop cannot."""
     seen: list[str] = []

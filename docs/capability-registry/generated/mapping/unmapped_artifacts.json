@@ -7032,10 +7032,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/routers/sharing.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/routers/simulate.py",
     "kind": "backend"
   },
@@ -7673,10 +7669,6 @@
   },
   {
     "path": "services/sahool-platform/core/crop_intelligence/engine.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
     "kind": "backend"
   },
   {
@@ -8673,6 +8665,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_crop_water_sensitivity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_cropin_unique_scene_dates_v1.py",
     "kind": "tests"
   },
   {
@@ -11697,6 +11693,14 @@
   },
   {
     "path": "tests_v9/test_crop_twin_verified_learning_c2.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_cropin_advisor_crop_and_water_boundary_v1.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_cropin_governed_routes_static_v1.py",
     "kind": "tests"
   },
   {

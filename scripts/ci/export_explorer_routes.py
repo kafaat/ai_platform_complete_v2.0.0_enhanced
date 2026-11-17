@@ -4,6 +4,7 @@
 Consumes generated inventories. Does not probe gateway, DB, authorization or runtime.
 Call the existing inventory drift guard before exporting in CI.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -14,7 +15,9 @@ from collections import Counter, defaultdict
 from hashlib import sha256
 from pathlib import Path
 
-METHODS = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "ANY", "WEBSOCKET"})
+METHODS = frozenset(
+    {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "ANY", "WEBSOCKET"}
+)
 KEYS = ("service", "method", "path", "file", "line", "function")
 SCHEMA = "sahool.explorer.code-routes/v1"
 
@@ -26,7 +29,9 @@ def digest(path: Path) -> str:
 def code_head(root: Path) -> str:
     result = subprocess.run(
         ["git", "-C", str(root), "rev-parse", "HEAD"],
-        capture_output=True, text=True, check=True,
+        capture_output=True,
+        text=True,
+        check=True,
     )
     sha = result.stdout.strip().lower()
     if len(sha) != 40 or any(c not in "0123456789abcdef" for c in sha):
@@ -61,7 +66,8 @@ def create_catalog(
         service, method, path, file, line, function = (row[k] for k in KEYS)
         if (
             not all(isinstance(v, str) and v for v in (service, method, path, file, function))
-            or type(line) is not int or line < 1
+            or type(line) is not int
+            or line < 1
         ):
             raise ValueError("MALFORMED_ROUTE_ROW")
         if service not in expected or method not in METHODS:
@@ -78,12 +84,21 @@ def create_catalog(
         keys.add(key)
         actual[service] += 1
         groups[key].append({"file": file, "line": line, "function": function})
-        exported.append({
-            "service": service, "method": method, "path": path, "file": file,
-            "line": line, "function": function,
-            "evidence": "CODE_DECLARED_STATIC", "runtime": "NOT_RUN",
-            "path_resolution": "UNRESOLVED_DYNAMIC" if path == "<dynamic>" else "LITERAL_FROM_AST",
-        })
+        exported.append(
+            {
+                "service": service,
+                "method": method,
+                "path": path,
+                "file": file,
+                "line": line,
+                "function": function,
+                "evidence": "CODE_DECLARED_STATIC",
+                "runtime": "NOT_RUN",
+                "path_resolution": "UNRESOLVED_DYNAMIC"
+                if path == "<dynamic>"
+                else "LITERAL_FROM_AST",
+            }
+        )
     if actual != Counter(expected):
         raise ValueError("SERVICE_ROUTE_COUNTS_DRIFT")
     exported.sort(
@@ -91,14 +106,16 @@ def create_catalog(
     )
     collisions = [
         {"service": s, "method": m, "path": p, "declarations": members}
-        for (s, m, p), members in sorted(groups.items()) if len(members) > 1
+        for (s, m, p), members in sorted(groups.items())
+        if len(members) > 1
     ]
     return {
         "schema": SCHEMA,
         "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
         "source_commit": source_head,
         "source_route_inventory_sha256": source_sha256,
-        "evidence_kind": "CODE_DECLARED_STATIC", "runtime_e2e": "NOT_RUN",
+        "evidence_kind": "CODE_DECLARED_STATIC",
+        "runtime_e2e": "NOT_RUN",
         "ci_statement": "Source inventory consistency is CI-checked; deployed gateway and auth NOT_VERIFIED",
         "counts": {
             "services": len(services),
@@ -156,7 +173,8 @@ def main(argv=None) -> int:
             "output_sha256": sha256(raw).hexdigest(),
             "counts": catalog["counts"],
             "runtime_e2e": "NOT_RUN",
-            "gateway_routing": "NOT_VERIFIED", "auth_tenant": "NOT_VERIFIED",
+            "gateway_routing": "NOT_VERIFIED",
+            "auth_tenant": "NOT_VERIFIED",
         }
         (args.out_dir / "route_ci_receipt.json").write_text(
             json.dumps(receipt, indent=2) + "\n", encoding="utf-8"

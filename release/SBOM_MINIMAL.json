@@ -2815,7 +2815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f5d03c172ee93794ea1cd0b534e2a184baed073b8aa50c6b07f9dbe616ac514"
+          "content": "49d80a5af8fe820ab9e94ea5b09bd1b8e3595aa7f335b0a512b77d503b859461"
         }
       ],
       "name": "frontend/src/components/sharing/SharingPanel.tsx",
@@ -3295,7 +3295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59efa147d20f48b1d9a7af71b13dd28faef9e9b6194d4ad03b934260bdedbce1"
+          "content": "9a2de0787a58070f75b0cfa39055b5ee1ffe300eea3035fc410524ed5a287366"
         }
       ],
       "name": "frontend/src/hooks/useManagerConsole.ts",
@@ -4945,7 +4945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a7cb755ff613d63dcabf6247df3390f00422f6c56f5477e2b83d5b6714408f71"
+          "content": "e69e0aab0f121530c4b4bac1706aada8b28515d4c8d4f16f15223a460148fd09"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6655,7 +6655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4e82e42b60cbffd60899a22c73c8645c77ed5f076ca792bd2f3d1409ebb58635"
+          "content": "84ab2f1274a3bb278182324193aa5858287ba23ae9b45cc73536eb06f88e234a"
         }
       ],
       "name": "frontend/src/sections/ManagerConsolePage.tsx",
@@ -18205,7 +18205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ab464165c74e6301980ad4bef40494ca548d62c018efc23c7ee6453faaa9cc5e"
+          "content": "027cb998dcdcbe03604595cb6637dbb38f2704ea79d8192082c2e6dee665ea1c"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -25895,7 +25895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dcd3feba925be3062065689805064b4497f48f5dd7de95514b9ac80950397649"
+          "content": "8bbf9d73ba93a091c8f13c1b2517a9fb12f252f71f74cb21cf66f53e5316a707"
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
@@ -27625,7 +27625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "63ee4e1fc8c8099ecfed7f183c7e5c6e90624856df311faa819974d35f3bbccb"
+          "content": "fddc0bd099d77a9c58e2985d54266e20d0ebe79483cc643782fac96a48ab7b5b"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_ai_context.py",
@@ -28475,7 +28475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "023a5678cf6bb423e1a1858511e13c811c840798dceda92b1e19cba2fe680760"
+          "content": "319136526a9c8a901baeefbfa3d57e29b9a7e8f1cd946095d1865f7643e61d08"
         }
       ],
       "name": "services/sahool-platform/api/routers/sharing.py",
@@ -28665,7 +28665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca7eac46825d67935c72c415af9a598e4ce051d1447fa23115bda342d7173d31"
+          "content": "543cf38f5c36840b72618868f32b7fa62c84ff35017b348629acd6ea5e9bb319"
         }
       ],
       "name": "services/sahool-platform/api/routers/yield_interval.py",
@@ -30445,7 +30445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb12fc30d6bac8f93df203832a8bc3d87cab65646f1fd02a627ced45fa42049a"
+          "content": "e005b162062280889e268b3bb299d90213dae91a54cdcce174afa57115ee9964"
         }
       ],
       "name": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
@@ -30635,7 +30635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bce277bab2f1212fe0720a936d4642e1de910364179aacb25492e62cc4c27446"
+          "content": "12ad3fff70cde6bbf29bd68e1f3220fafa8c916fd619e4a78b0ba029d8a7ff95"
         }
       ],
       "name": "services/sahool-platform/core/data_quality.py",
@@ -34025,6 +34025,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c6d9d8abf0cd7d655122c8945030d0b811457252b670a61294d756b18bbbf353"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_cropin_advisor_crop_reference_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "02ca2031c31d729e30abf9447f2b7c191e2dede403bea6e55267dc7577a79d84"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_cropin_unique_scene_dates_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "095e318dce978b5b18afd03ba4c6442e2944002ada20845c25f12cc67a8f1be5"
         }
       ],
@@ -34065,7 +34085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76a1e7bad5df2f893f58cb435d65f025a61bf825ab57eeda5886fca020fc8cb6"
+          "content": "e89b06cb7fa26e4948757d2be05324a32924769a2536e3783de19bf6dd854c56"
         }
       ],
       "name": "services/sahool-platform/tests/test_data_quality.py",

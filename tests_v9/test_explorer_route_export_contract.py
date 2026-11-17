@@ -1,4 +1,5 @@
 """R13 explorer route export: fail closed and keep source-declaration duplicates."""
+
 from __future__ import annotations
 
 import subprocess
@@ -13,8 +14,22 @@ pytestmark = pytest.mark.unit
 HEAD = "a" * 40
 SERVICES = [{"service": "svc", "routes": 2}, {"service": "empty", "routes": 0}]
 ROUTES = [
-    {"service": "svc", "method": "GET", "path": "/v1/a", "file": "services/svc/main.py", "line": 3, "function": "get_a"},
-    {"service": "svc", "method": "POST", "path": "/v1/b", "file": "services/svc/main.py", "line": 7, "function": "post_b"},
+    {
+        "service": "svc",
+        "method": "GET",
+        "path": "/v1/a",
+        "file": "services/svc/main.py",
+        "line": 3,
+        "function": "get_a",
+    },
+    {
+        "service": "svc",
+        "method": "POST",
+        "path": "/v1/b",
+        "file": "services/svc/main.py",
+        "line": 7,
+        "function": "post_b",
+    },
 ]
 
 
@@ -22,7 +37,8 @@ def catalog(routes=None, services=None):
     return create_catalog(
         ROUTES if routes is None else routes,
         SERVICES if services is None else services,
-        source_head=HEAD, source_sha256="f" * 64,
+        source_head=HEAD,
+        source_sha256="f" * 64,
     )
 
 
@@ -86,11 +102,19 @@ def test_dynamic_path_is_not_a_literal_verified_route():
 def test_cli_missing_files_is_explicit_failure(tmp_path):
     script = Path(__file__).resolve().parents[1] / "scripts" / "ci" / "export_explorer_routes.py"
     p = subprocess.run(
-        [sys.executable, str(script),
-         "--route-inventory", str(tmp_path / "none.json"),
-         "--service-inventory", str(tmp_path / "none2.json"),
-         "--out-dir", str(tmp_path / "out")],
-        capture_output=True, text=True, check=False,
+        [
+            sys.executable,
+            str(script),
+            "--route-inventory",
+            str(tmp_path / "none.json"),
+            "--service-inventory",
+            str(tmp_path / "none2.json"),
+            "--out-dir",
+            str(tmp_path / "out"),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
     )
     assert p.returncode == 2 and "SOURCE_INVENTORY_MISSING_OR_EMPTY" in p.stderr
     assert not (tmp_path / "out").exists()
