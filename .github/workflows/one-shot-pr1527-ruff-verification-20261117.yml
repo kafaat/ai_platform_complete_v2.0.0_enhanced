@@ -18,13 +18,18 @@ jobs:
           python-version: '3.12'
       - name: Install pinned formatter
         run: pip install -c constraints-ci-tools.txt ruff
-      - name: Check exact changed file with the CI formatter
-        run: ruff format --check tests_v9/test_semantic_convergence_01.py
+      - name: Format exact changed file then prove Ruff clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruff format tests_v9/test_semantic_convergence_01.py
+          ruff format --check tests_v9/test_semantic_convergence_01.py
       - name: Remove branch-only workflow after proof
         shell: bash
         run: |
           set -euo pipefail
           git rm .github/workflows/one-shot-pr1527-ruff-verification-20261117.yml
+          git add tests_v9/test_semantic_convergence_01.py
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'ci: remove one-shot Ruff formatting proof'
