@@ -318,3 +318,22 @@ def test_the_unqueued_hold_is_bounded_and_counts_what_it_drops(no_outbox, monkey
     counters = raster_batch_observability.snapshot()
     assert counters.get("observation_outbox_unqueued_total") == 3, counters
     assert counters.get("observation_outbox_unqueued_dropped_total") == 1, counters
+
+
+# ── stored JSON comes back from asyncpg as text, bytes or a mapping; all decode the same ──────
+def test_payload_and_history_decoding_accept_every_driver_shape():
+    item = {"observation_id": "o-1", "mean": 0.42}
+    for raw in (
+        item,
+        '{"observation_id": "o-1", "mean": 0.42}',
+        b'{"observation_id": "o-1", "mean": 0.42}',
+    ):
+        assert observation_outbox._payload(raw) == item
+    entry = [{"by": "operator", "reason": "fixed the scene"}]
+    for raw in (
+        entry,
+        '[{"by": "operator", "reason": "fixed the scene"}]',
+        bytearray(b'[{"by": "operator", "reason": "fixed the scene"}]'),
+    ):
+        assert observation_outbox._history(raw) == entry
+    assert observation_outbox._history(None) == []

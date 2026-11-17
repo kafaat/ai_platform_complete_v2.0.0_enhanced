@@ -476,3 +476,32 @@ def test_the_lifespan_checks_the_database_role_before_anything_starts(drain, mon
     with pytest.raises(RuntimeError, match="bypass row security"), TestClient(main.app):
         pass
     assert len(refused) == 1 and started == [True], "refused before the drain started again"
+
+
+# ── configuration parsing: bad values fall back to safe defaults, never crash the worker ──────
+def test_the_tenant_partition_ignores_values_that_are_not_uuids(monkeypatch):
+    good = "11111111-1111-4111-8111-111111111111"
+    monkeypatch.setenv("INDICATORS_OBSERVATION_DRAIN_TENANTS", f" not-a-uuid , {good},,{good} ")
+    assert observation_drain.tenants() == (good,)
+
+
+def test_an_unparseable_interval_falls_back_and_never_drops_below_one_second(monkeypatch):
+    monkeypatch.setenv("INDICATORS_OBSERVATION_DRAIN_INTERVAL_SECONDS", "soon")
+    assert observation_drain.interval_seconds() == 30.0
+    monkeypatch.setenv("INDICATORS_OBSERVATION_DRAIN_INTERVAL_SECONDS", "0.01")
+    assert observation_drain.interval_seconds() == 1.0
+
+
+def test_the_batch_size_is_parsed_and_clamped(monkeypatch):
+    monkeypatch.setenv("INDICATORS_OBSERVATION_DRAIN_BATCH", "many")
+    assert observation_drain.batch_size() == 50
+    monkeypatch.setenv("INDICATORS_OBSERVATION_DRAIN_BATCH", "0")
+    assert observation_drain.batch_size() == 1
+    monkeypatch.setenv("INDICATORS_OBSERVATION_DRAIN_BATCH", "10000")
+    assert observation_drain.batch_size() == 200
+
+
+def test_a_zero_count_changes_no_counter():
+    before = dict(observation_drain._STATE["counters"])
+    observation_drain._count("delivered", 0)
+    assert observation_drain._STATE["counters"] == before

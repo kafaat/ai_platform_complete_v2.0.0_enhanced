@@ -224,3 +224,17 @@ def test_the_sweep_reuses_the_publish_path_identity():
     assert "a.id > $3" in sql and "ORDER BY a.id" in sql, "a keyset cursor, not an offset"
     assert observation_outbox.PROVENANCE_PAYLOAD_KEY in sql
     assert observation_outbox.PROVENANCE_DIGEST_KEY in sql
+
+
+# ── configuration parsing: bad values fall back to safe defaults, never crash the sweep ───────
+def test_the_sweep_tenant_partition_ignores_values_that_are_not_uuids(monkeypatch):
+    good = "22222222-2222-4222-8222-222222222222"
+    monkeypatch.setenv("RASTER_OBSERVATION_SWEEP_TENANTS", f"bogus,{good}, ,{good}")
+    assert observation_sweep.tenants() == (good,)
+
+
+def test_an_unparseable_sweep_interval_falls_back_and_has_a_floor(monkeypatch):
+    monkeypatch.setenv("RASTER_OBSERVATION_SWEEP_INTERVAL_SECONDS", "later")
+    assert observation_sweep.interval_seconds() == 300.0
+    monkeypatch.setenv("RASTER_OBSERVATION_SWEEP_INTERVAL_SECONDS", "1")
+    assert observation_sweep.interval_seconds() == 5.0
