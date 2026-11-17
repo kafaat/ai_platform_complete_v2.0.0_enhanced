@@ -280,6 +280,22 @@ def test_the_requeue_needs_the_service_token_and_the_operator_token(
     assert feed["requeue_calls"] == [], "nothing was re-queued"
 
 
+def test_a_non_ascii_token_is_refused_not_a_server_error(feed):
+    """``hmac.compare_digest`` on ``str`` raises TypeError for a non-ASCII value (a 500); the
+    tokens are compared as bytes, so a non-ASCII service or operator token is a refusal."""
+    client = feed["client"]
+    non_ascii = "t\u00e9ken".encode("latin-1")
+    response = client.post(
+        REQUEUE,
+        json=_requeue_body(),
+        headers={**_headers(), "X-Operator-Token": non_ascii},
+    )
+    assert response.status_code == 403, response.text
+    response = client.get(FEED, headers={"X-Tenant-Id": TENANT, "X-Agent-Token": non_ascii})
+    assert response.status_code == 401, response.text
+    assert feed["requeue_calls"] == [] and feed["pending_calls"] == []
+
+
 def test_the_requeue_is_off_without_an_operator_token(feed, monkeypatch):
     monkeypatch.delenv("RASTER_OBSERVATION_OUTBOX_OPERATOR_TOKEN")
     response = feed["client"].post(REQUEUE, json=_requeue_body(), headers=_op_headers(operator=""))

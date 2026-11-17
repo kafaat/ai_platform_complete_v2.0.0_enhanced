@@ -75,7 +75,9 @@ def _require_operator_token(x_operator_token: str | None) -> None:
     expected = os.getenv("RASTER_OBSERVATION_OUTBOX_OPERATOR_TOKEN", "")
     if not expected:
         raise HTTPException(503, "the observation outbox re-queue is not configured")
-    if not hmac.compare_digest(x_operator_token or "", expected):
+    # Compared as bytes: ``hmac.compare_digest`` on ``str`` raises TypeError for a non-ASCII
+    # header value (a 500), where a wrong token must answer 403.
+    if not hmac.compare_digest((x_operator_token or "").encode(), expected.encode()):
         raise HTTPException(403, "operator token required to re-queue an outbox entry")
 
 
