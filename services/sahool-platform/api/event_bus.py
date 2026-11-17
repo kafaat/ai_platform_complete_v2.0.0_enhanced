@@ -31,6 +31,7 @@ import asyncio
 import json
 import logging
 import os
+import time
 import uuid
 from contextlib import asynccontextmanager as _asynccontextmanager
 from dataclasses import dataclass
@@ -200,19 +201,33 @@ async def outbox_backlog(conn, *, flag_enabled: bool) -> dict[str, Any]:
 OUTBOX_BACKLOG_TIMEOUT_SECONDS: float = 2.0
 
 
-async def probe_outbox_backlog(timeout: float = OUTBOX_BACKLOG_TIMEOUT_SECONDS) -> dict[str, Any]:
-    """مسبارُ ``/readyz`` و``/metrics``: التراكم بمسبح الوظائف (عابرٌ للمستأجرين كالعامل نفسه).
+#: عمرُ نتيجة المسبار المخبّأة. ``/readyz`` و``/metrics`` غير مُصادَقَين، ومسبحُ الوظائف
+#: (max_size=4) يتقاسمه الـrelay ومهامُّ الخلفيّة؛ فيضانُ طلباتٍ بلا خبء كان سيحجز اتّصالاته كلّها.
+OUTBOX_BACKLOG_CACHE_SECONDS: float = 5.0
 
-    يُحَلّ المسبحُ هنا لا في الموجِّه: الموجِّهاتُ تخدم طلباتِ مستأجِر ولا تلمس مسبحَ المهامّ
-    (``test_routers_do_not_write_through_the_jobs_pool``). وأيُّ فشلٍ إشارةٌ لا انهيار.
-    """
-    from api import main as platform_main
+#: (المفتاح، وقتُ القياس بساعةٍ رتيبة، النتيجة) — آخرُ قياس، يُقرأ ما دام أحدثَ من العمر أعلاه.
+_BACKLOG_CACHE: tuple[tuple[int, bool], float, dict[str, Any]] | None = None
+#: قفلُ «طائرةٍ واحدة»: طلباتٌ متزامنة على خبءٍ قديم تنتظر قياساً واحداً لا تفتح كلٌّ اتّصالاً.
+_BACKLOG_LOCK: tuple[asyncio.AbstractEventLoop, asyncio.Lock] | None = None
 
-    pool = platform_main._JOBS_POOL or platform_main._DB_POOL
-    if pool is None:
-        return {"status": "disabled"}
-    flag = nats_publishers_enabled()
 
+def _backlog_lock() -> asyncio.Lock:
+    """قفلٌ لكلّ حلقة أحداث (حلقاتُ الاختبار تتبدّل، وقفلُ asyncio مربوطٌ بحلقته)."""
+    global _BACKLOG_LOCK
+    loop = asyncio.get_running_loop()
+    if _BACKLOG_LOCK is None or _BACKLOG_LOCK[0] is not loop:
+        _BACKLOG_LOCK = (loop, asyncio.Lock())
+    return _BACKLOG_LOCK[1]
+
+
+def _cached_backlog(key: tuple[int, bool], max_age: float) -> dict[str, Any] | None:
+    cached = _BACKLOG_CACHE
+    if cached is None or cached[0] != key or time.monotonic() - cached[1] >= max_age:
+        return None
+    return dict(cached[2])
+
+
+async def _probe_outbox_backlog_uncached(pool, *, flag: bool, timeout: float) -> dict[str, Any]:
     async def _probe() -> dict[str, Any]:
         async with pool.acquire() as conn:
             return await outbox_backlog(conn, flag_enabled=flag)
@@ -222,6 +237,38 @@ async def probe_outbox_backlog(timeout: float = OUTBOX_BACKLOG_TIMEOUT_SECONDS) 
     except Exception as exc:  # noqa: BLE001 — إشارةٌ للرصد، لا تُسقط المسبار
         logger.warning("outbox backlog probe failed: %s", type(exc).__name__)
         return {"status": "error", "error": type(exc).__name__}
+
+
+async def probe_outbox_backlog(
+    timeout: float = OUTBOX_BACKLOG_TIMEOUT_SECONDS,
+    *,
+    max_age: float = OUTBOX_BACKLOG_CACHE_SECONDS,
+) -> dict[str, Any]:
+    """مسبارُ ``/readyz`` و``/metrics``: التراكم بمسبح الوظائف (عابرٌ للمستأجرين كالعامل نفسه).
+
+    يُحَلّ المسبحُ هنا لا في الموجِّه: الموجِّهاتُ تخدم طلباتِ مستأجِر ولا تلمس مسبحَ المهامّ
+    (``test_routers_do_not_write_through_the_jobs_pool``). وأيُّ فشلٍ إشارةٌ لا انهيار.
+    النتيجةُ (ومنها الخطأ) تُخبَّأ ``max_age`` ثانيةً بساعةٍ رتيبة وبطائرةٍ واحدة، فلا يستعير
+    المسبارُ من مسبح الوظائف أكثرَ من اتّصالٍ واحد كلَّ ``max_age`` مهما كثرت الطلبات.
+    """
+    global _BACKLOG_CACHE
+    from api import main as platform_main
+
+    pool = platform_main._JOBS_POOL or platform_main._DB_POOL
+    if pool is None:
+        return {"status": "disabled"}
+    flag = nats_publishers_enabled()
+    key = (id(pool), flag)
+    hit = _cached_backlog(key, max_age)
+    if hit is not None:
+        return hit
+    async with _backlog_lock():
+        hit = _cached_backlog(key, max_age)  # قاسَه منتظِرٌ قبلنا
+        if hit is not None:
+            return hit
+        result = await _probe_outbox_backlog_uncached(pool, flag=flag, timeout=timeout)
+        _BACKLOG_CACHE = (key, time.monotonic(), result)
+        return dict(result)
 
 
 # ─── Event types (catalog) ──────────────────────────────────────

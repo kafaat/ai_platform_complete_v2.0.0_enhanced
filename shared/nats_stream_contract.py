@@ -22,7 +22,8 @@ This module is the single declaration of that topology:
   operator states that no learning worker runs yet.
 * ``run_preflight`` — connection, credential presence (booleans only, never values),
   stream existence and drift, required consumers. The platform runs it when the flag is on
-  and reports it on ``/readyz``; readiness fails closed while it does not pass.
+  and reports it on ``/readyz``; readiness fails closed until it passes and the relay has
+  started once. After that a failed re-check is reported as ``degraded`` and readiness holds.
 
 Honesty limit: the preflight proves the topology exists at the moment it runs. It does not
 prove a consumer process is alive, only that its durable exists (messages are retained for
@@ -126,6 +127,22 @@ PREFLIGHT_TIMEOUT_SECONDS = 3.0
 #: ``/readyz`` re-runs the preflight at most this often, so an operator who provisions a
 #: missing consumer sees readiness recover without a restart.
 PREFLIGHT_TTL_SECONDS = 30.0
+#: Overall bound on one whole preflight run (it makes up to six broker requests, each bounded
+#: by ``PREFLIGHT_TIMEOUT_SECONDS``). The first run happens inside platform startup, so a broker
+#: whose ACL silently drops ``CONSUMER.INFO`` must not add ~18 s there; ``/readyz`` uses the same
+#: bound. A run cut off by it is recorded as ``failed`` with ``preflight_timeout``.
+PREFLIGHT_OVERALL_TIMEOUT_ENV = "NATS_PREFLIGHT_TIMEOUT_SECONDS"
+DEFAULT_PREFLIGHT_OVERALL_TIMEOUT_SECONDS = 5.0
+
+
+def preflight_overall_timeout() -> float:
+    """``NATS_PREFLIGHT_TIMEOUT_SECONDS`` (positive float), else the 5 s default."""
+    raw = (os.environ.get(PREFLIGHT_OVERALL_TIMEOUT_ENV) or "").strip()
+    try:
+        value = float(raw) if raw else DEFAULT_PREFLIGHT_OVERALL_TIMEOUT_SECONDS
+    except ValueError:
+        value = DEFAULT_PREFLIGHT_OVERALL_TIMEOUT_SECONDS
+    return value if value > 0 else DEFAULT_PREFLIGHT_OVERALL_TIMEOUT_SECONDS
 
 
 def stream_config() -> Any:
@@ -286,6 +303,23 @@ async def run_preflight(nc: Any, *, flag: bool, url: str | None) -> dict[str, An
     return result
 
 
+async def run_preflight_bounded(
+    nc: Any, *, flag: bool, url: str | None, timeout: float | None = None
+) -> dict[str, Any]:
+    """``run_preflight`` under one overall deadline; a run that exceeds it fails closed."""
+    limit = preflight_overall_timeout() if timeout is None else timeout
+    try:
+        return await asyncio.wait_for(run_preflight(nc, flag=flag, url=url), timeout=limit)
+    except TimeoutError:
+        logger.warning("NATS preflight exceeded its overall %ss bound — recorded as failed", limit)
+        return {
+            "flag": flag,
+            "connected": bool(nc is not None and getattr(nc, "is_connected", False)),
+            "errors": ["preflight_timeout"],
+            "status": "failed",
+        }
+
+
 class PreflightState:
     """Last preflight result as ``/readyz`` reads it, refreshed at most every TTL seconds.
 
@@ -294,6 +328,12 @@ class PreflightState:
     CLI), ``"held"`` (gate waiting), ``"started"`` or ``"start_failed"``. A ``/readyz``
     refresh that sees the topology pass while the gate is held wakes the gate at once, so
     readiness and the relay do not drift apart for a whole retry interval.
+
+    Fail closed only until the relay has started once. After that a failed re-check (a NATS
+    restart while nats-py reconnects reads ``not_connected``) is reported as ``degraded``,
+    not as a readiness failure: a missing broker does not fail readiness once the relay runs,
+    because events wait in ``event_outbox`` and the relay drains them when the broker is back.
+    Failing readiness there would take every platform pod out of service on each broker blip.
     """
 
     def __init__(self) -> None:
@@ -333,6 +373,7 @@ class PreflightState:
         *,
         url: str | None,
         retry_s: float = PREFLIGHT_TTL_SECONDS,
+        timeout: float | None = None,
     ) -> bool:
         """Start the relay only after the preflight passes. Returns: started now.
 
@@ -343,11 +384,12 @@ class PreflightState:
         the topology exists keeps the rows ``pending`` and replayable. A failed preflight
         (or a failed start) is retried every ``retry_s`` in the background, or sooner when
         ``refresh`` sees the topology pass, so provisioning the stream or a consumer later
-        starts the relay without a restart.
+        starts the relay without a restart. Each run is bounded overall by ``timeout``
+        (default ``preflight_overall_timeout()``), because the first one runs inside startup.
         """
         self.relay, self.relay_error = "held", None
         self._wake = asyncio.Event()
-        self.record(await run_preflight(nc, flag=True, url=url))
+        self.record(await run_preflight_bounded(nc, flag=True, url=url, timeout=timeout))
         if self.result["status"] == "passed" and await self._try_start(start):
             return True
         if self.relay == "held":
@@ -364,7 +406,7 @@ class PreflightState:
                 with contextlib.suppress(asyncio.TimeoutError):
                     await asyncio.wait_for(wake.wait(), timeout=retry_s)
                 wake.clear()
-                self.record(await run_preflight(nc, flag=True, url=url))
+                self.record(await run_preflight_bounded(nc, flag=True, url=url, timeout=timeout))
                 if self.result["status"] == "passed":
                     logger.info("NATS preflight passed — starting the outbox relay")
                     if await self._try_start(start):
@@ -387,6 +429,9 @@ class PreflightState:
             out["status"], out["errors"] = "failed", [*out["errors"], self.relay_error]
         elif out["status"] == "passed" and self.relay == "held":
             out["status"], out["errors"] = "pending", [*out["errors"], "relay_not_started_yet"]
+        elif out["status"] != "passed" and self.relay == "started":
+            # Started once: a later failed re-check is a degraded signal, not a 503.
+            out["status"] = "degraded"
         return out
 
     async def refresh(
@@ -407,7 +452,7 @@ class PreflightState:
             if self._lock is None:
                 self._lock = asyncio.Lock()
             async with self._lock:
-                self.record(await run_preflight(nc, flag=flag, url=url))
+                self.record(await run_preflight_bounded(nc, flag=flag, url=url))
         if self.result["status"] == "passed" and self.relay == "held" and self._wake is not None:
             self._wake.set()  # the gate starts the relay now, not at its next retry tick
         return self.snapshot(flag=True)

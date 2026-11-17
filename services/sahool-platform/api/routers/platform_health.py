@@ -94,9 +94,17 @@ async def readyz():
     # W3-01: with FEATURE_NATS_PUBLISHERS on, readiness fails closed until the stream and its
     # required consumers exist — the relay itself is held until then (NATS_PREFLIGHT.gate).
     # Flag off ⇒ "disabled" and readiness is unchanged.
+    # R2 still holds after that: a missing broker does not fail readiness. Once the relay has
+    # started, a failed re-check (NATS restart, reconnect) reads "degraded" with its error
+    # codes and stays 200 — events wait in event_outbox and drain when the broker returns.
     preflight = await _nats_preflight()
     body["nats_preflight"] = _public_preflight(preflight)
-    if preflight["status"] not in ("disabled", "passed"):
+    if preflight["status"] == "degraded":
+        logging.warning(
+            "readyz: NATS preflight degraded after the relay started (%s) — still ready",
+            ",".join(str(e) for e in preflight.get("errors", [])),
+        )
+    elif preflight["status"] not in ("disabled", "passed"):
         body["status"] = "not ready"
         logging.warning(
             "readyz: NATS preflight %s (%s) — not ready (503)",

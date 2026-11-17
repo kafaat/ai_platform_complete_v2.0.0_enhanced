@@ -232,6 +232,80 @@ async def test_a_relay_start_failure_fails_readiness_and_is_retried():
     await state.reset()
 
 
+async def test_a_failed_recheck_after_the_relay_started_is_degraded_not_failed():
+    """Fail closed only until the relay first starts: a broker blip after that (nats-py
+    reconnecting reads ``not_connected``) must not turn readiness red for the whole platform."""
+    from shared.nats_stream_contract import PreflightState
+
+    js = _JS(stream=_spec_config(), consumers=_all_consumers())
+    state, started = PreflightState(), []
+
+    async def start():
+        started.append(True)
+
+    assert await state.gate(_NC(js), start, url=None) is True and started == [True]
+    snap = await state.refresh(_NC(js, connected=False), flag=True, url=None, ttl=0)
+    assert snap["status"] == "degraded", f"a broker blip after start failed readiness: {snap}"
+    assert snap["relay"] == "started" and "not_connected" in snap["errors"], snap
+    snap = await state.refresh(_NC(js), flag=True, url=None, ttl=0)
+    assert snap["status"] == "passed", f"reconnecting did not clear the degraded state: {snap}"
+    await state.reset()
+
+
+async def test_a_preflight_that_never_passed_stays_failed_not_degraded():
+    from shared.nats_stream_contract import PreflightState
+
+    state = PreflightState()
+
+    async def start():
+        raise AssertionError("must not start")
+
+    await state.gate(_NC(_JS(), connected=False), start, url=None, retry_s=3600)
+    snap = await state.refresh(_NC(_JS(), connected=False), flag=True, url=None, ttl=0)
+    assert snap["status"] == "failed" and snap["relay"] == "held", snap
+    await state.reset()
+
+
+class _SlowJS(_JS):
+    """A broker whose ACL silently drops the request: the reply never comes."""
+
+    async def stream_info(self, name):
+        await asyncio.sleep(3600)
+
+
+async def test_the_startup_preflight_is_bounded_by_an_overall_timeout(monkeypatch):
+    from shared import nats_stream_contract as contract
+
+    state = contract.PreflightState()
+
+    async def start():
+        raise AssertionError("must not start")
+
+    loop = asyncio.get_running_loop()
+    t0 = loop.time()
+    started = await asyncio.wait_for(
+        state.gate(_NC(_SlowJS()), start, url=None, retry_s=3600, timeout=0.05), timeout=2
+    )
+    assert started is False and loop.time() - t0 < 1.0, "the startup preflight was not bounded"
+    snap = state.snapshot(flag=True)
+    assert snap["status"] == "failed" and snap["errors"] == ["preflight_timeout"], snap
+    assert state.relay == "held", "a timed-out preflight must hold the relay, not start it"
+    await state.reset()
+
+    monkeypatch.setenv(contract.PREFLIGHT_OVERALL_TIMEOUT_ENV, "0.05")
+    assert contract.preflight_overall_timeout() == 0.05
+    out = await asyncio.wait_for(
+        contract.run_preflight_bounded(_NC(_SlowJS()), flag=True, url=None), timeout=2
+    )
+    assert out["status"] == "failed" and out["errors"] == ["preflight_timeout"], out
+    for bad in ("", "nope", "-1", "0"):
+        monkeypatch.setenv(contract.PREFLIGHT_OVERALL_TIMEOUT_ENV, bad)
+        assert (
+            contract.preflight_overall_timeout()
+            == contract.DEFAULT_PREFLIGHT_OVERALL_TIMEOUT_SECONDS
+        ), bad
+
+
 async def test_learning_worker_group_follows_the_environment(monkeypatch):
     from shared import nats_stream_contract as contract
 
@@ -407,6 +481,30 @@ def test_readyz_flag_on_with_a_passing_preflight_is_ready(client, monkeypatch):
     assert "notif_domain_events" not in json.dumps(body), "consumer name on a public probe"
 
 
+def test_readyz_after_the_relay_started_stays_ready_and_degraded_on_a_broker_blip(
+    client, monkeypatch
+):
+    from api import main
+
+    from shared.nats_stream_contract import NATS_PREFLIGHT
+
+    monkeypatch.setenv("FEATURE_NATS_PUBLISHERS", "true")
+    js = _JS(stream=_spec_config(), consumers=_all_consumers())
+
+    async def start():
+        return None
+
+    assert asyncio.run(NATS_PREFLIGHT.gate(_NC(js), start, url=None)) is True
+    monkeypatch.setattr(main.NATS_RELAY, "conn", _NC(js, connected=False))
+    NATS_PREFLIGHT.checked_at = -1e9  # stale: /readyz re-checks against the disconnected client
+    resp = client.get("/readyz")
+    body = resp.json()
+    assert resp.status_code == 200, f"a broker blip after start took the platform down: {body}"
+    pre = body["nats_preflight"]
+    assert pre["status"] == "degraded" and pre["relay"] == "started", body
+    assert "not_connected" in pre["errors"], body
+
+
 def test_readyz_strips_consumer_names_from_error_codes(client, monkeypatch):
     from api import main
 
@@ -441,6 +539,36 @@ async def test_backlog_probe_without_a_pool_is_disabled_not_zero(monkeypatch):
     monkeypatch.setattr(main, "_JOBS_POOL", None)
     out = await platform_health._outbox_backlog()
     assert out == {"status": "disabled"}, f"no pool must not read as an empty backlog: {out}"
+
+
+async def test_backlog_probe_is_cached_and_single_flight(monkeypatch):
+    """/readyz and /metrics are unauthenticated: a flood must not take one jobs-pool connection
+    per request (max 4, shared with the relay). Concurrent and repeated calls inside the cache
+    window share one measurement."""
+    from api import event_bus, main
+
+    calls = []
+
+    async def _measure(pool, *, flag, timeout):  # the store-level read, not a fake connection
+        calls.append(flag)
+        await asyncio.sleep(0.01)
+        return {"status": "ok", "held": len(calls)}
+
+    monkeypatch.setattr(event_bus, "_probe_outbox_backlog_uncached", _measure)
+    monkeypatch.setattr(event_bus, "_BACKLOG_CACHE", None)
+    monkeypatch.setattr(main, "_JOBS_POOL", object())  # never acquired: _measure replaces that
+    monkeypatch.delenv("FEATURE_NATS_PUBLISHERS", raising=False)
+
+    outs = await asyncio.gather(*(event_bus.probe_outbox_backlog() for _ in range(20)))
+    assert len(calls) == 1, f"{len(calls)} concurrent probes each took a jobs connection"
+    assert all(o == {"status": "ok", "held": 1} for o in outs), outs
+    await event_bus.probe_outbox_backlog()
+    assert len(calls) == 1, "a call inside the cache window re-probed"
+    outs[0]["held"] = 99
+    assert (await event_bus.probe_outbox_backlog())["held"] == 1, "callers share a mutable dict"
+
+    out = await event_bus.probe_outbox_backlog(max_age=0)
+    assert len(calls) == 2 and out["held"] == 2, "an expired cache was not refreshed"
 
 
 # ── the learning worker follows the same flag ──────────────────────────────────────

@@ -18,7 +18,7 @@
 | المكوّن | العلم مطفأ (الافتراض) | العلم مُفعَّل |
 |---|---|---|
 | المنصّة (`OutboxWorker`) | لا يتّصل بـNATS. كلُّ حدثٍ يبقى في `event_outbox` بحالة `pending` | يتّصل (أوّل اتّصالٍ محدود)، ثمّ يشغّل **preflight**، ولا يبدأ الـrelay قبل أن يمرّ |
-| `/readyz` | `nats_preflight.status = disabled`، والرمز لا يتأثّر | 503 حتّى يمرّ الـpreflight (يُعاد فحصُه كلَّ ≤30 ثانية عند النجاح و≤5 عند الفشل) |
+| `/readyz` | `nats_preflight.status = disabled`، والرمز لا يتأثّر | 503 حتّى يمرّ الـpreflight ويبدأ الـrelay أوّلَ مرّة. بعدها يبقى 200، وفحصٌ لاحقٌ فاشل يُعلَن `degraded` (يُعاد الفحص كلَّ ≤30 ثانية عند النجاح و≤5 عند الفشل، وكلُّ تشغيلٍ محدودٌ كلّيّاً بـ`NATS_PREFLIGHT_TIMEOUT_SECONDS`، افتراضُه 5) |
 | `/readyz.outbox` | `held` و`replay_on_enable` وتحذيرٌ صريح بأنّ التفعيل سيُعيد نشر المعلَّق | `held` يتناقص مع التصريف |
 | عامل التعلّم (`--preflight`، فحصُ صحّة الحاوية) | **غير جاهز** (`publishers_disabled`): لا شيءَ يصله | جاهزٌ إن وُجدت الجداول وغطّى الدفقُ مواضيعَه |
 
@@ -91,7 +91,9 @@
 - سجلّ المنصّة: `NATS preflight passed` ثمّ `OutboxWorker بدأ`. وإن ظهر
   `NATS preflight failed (…) — relay held` فالـrelay لم يبدأ والصفوف سليمة. أصلِح السبب المذكور
   (`stream_info:*` أو `consumer_missing:*` أو `stream_drift`) وسيبدأ وحده خلال ≤30 ثانية بلا إعادة تشغيل.
-- `/readyz`: يصير 200 و`nats_preflight.status = passed`. القيمة `pending` مع `relay_not_started_yet` تعني
+- `/readyz`: يصير 200 و`nats_preflight.status = passed`. و`failed` مع `preflight_timeout` تعني أنّ الفحص كلّه
+  تجاوز `NATS_PREFLIGHT_TIMEOUT_SECONDS` (غالباً وسيطٌ يُسقط طلب `CONSUMER.INFO` بصمت لأنّ `nats.conf` قديم)؛
+  الـrelay محجوز والإقلاع لا ينتظر أكثر من هذه المهلة. القيمة `pending` مع `relay_not_started_yet` تعني
   أنّ البنية موجودة والـrelay يبدأ الآن؛ و`failed` مع `relay_start` تعني أنّ بدء العامل نفسه فشل (التفصيل
   في السجلّ، ويُعاد المحاولة). `/readyz` غير مُصادَق، فيعرض الحكم ورموز الأخطاء وأعداد المستهلكين فقط؛
   الأسماء والانحراف والاعتماد في سجلّ المنصّة وفي `python -m shared.nats_stream_contract preflight`.
@@ -104,12 +106,20 @@
 | المقياس | المتوقَّع |
 |---|---|
 | `sahool_platform_nats_publishers_enabled` | 1 |
-| `sahool_platform_nats_preflight_passed` | 1 طوال النافذة |
+| `sahool_platform_nats_preflight_passed` | 1، إلّا لحظاتِ إعادة تشغيل الوسيط (انظر تحت الجدول) |
 | `sahool_platform_outbox_held` | ينزل إلى ما يقارب الصفر ويبقى قريباً منه |
 | `sahool_platform_outbox_oldest_held_age_seconds` | ثوانٍ لا دقائق بعد التصريف |
 | `sahool_platform_outbox_dead_letter` | 0. أيُّ زيادة تستوجب الفحص |
 | `sahool_platform_outbox_backlog_all_tenants` | 1 |
 | `sahool_platform_outbox_backlog_probe_ok` | 1 |
+
+**انقطاع الوسيط بعد بدء الـrelay لا يُسقط الجاهزيّة.** المنصّة تفشل مغلقةً حتّى يبدأ الـrelay أوّلَ مرّة فقط.
+بعدها، إن أُعيد تشغيل NATS أو انقطع الاتّصال، يقرأ الفحصُ التالي `not_connected` فيصير
+`/readyz.nats_preflight.status = degraded` مع `relay: started` ورموز الأخطاء، ويبقى رمزُ `/readyz` 200، وينزل
+`sahool_platform_nats_preflight_passed` إلى 0 ريثما يعود الاتّصال. الأحداث في هذه المدّة تبقى في `event_outbox`
+ويصرّفها الـrelay حين يعود الوسيط. لو أسقطت الجاهزيّةُ كلَّ انقطاع لخرجت كلُّ نُسخ المنصّة من الخدمة مع كلِّ إعادة
+تشغيلٍ للوسيط، وهي لا تحتاجه لخدمة الطلبات. `degraded` يدوم أكثر من دقائق يستوجب الفحص (`nats` في `/readyz`
+يقول `reconnecting`). ومسبارُ التراكم في `/readyz` و`/metrics` يُخبَّأ 5 ثوانٍ، فقيمُه قد تتأخّر حتّى 5 ثوانٍ.
 
 وفي الوسيط: رسائل `sahool.dlq.canonical_execution_learning` (رسائل عامل التعلّم الميتة) يجب أن تبقى صفراً،
 وتأخّر المستهلكين (`num_pending`) يعود إلى الصفر. شاهدُ القبول الوظيفيّ: حدث `season.closed` حقيقيّ
@@ -129,11 +139,14 @@
 - **مُثبَت بمكوّنات حقيقيّة:** `tests_v9/test_nats_outbox_staging_enablement_live.py` على PostgreSQL 16
   مُرحَّلة وnats-server 2.15.0. يثبت أنّ الحدث يبقى معلّقاً والعلمُ مطفأ مع تحذيرٍ بالإعادة، وأنّ البوّابة لا تبدأ
   الـrelay بلا دفق، وأنّ النشر الفاشل يُعاد لا يُفقَد. وبعد إنشاء الدفق من العقد يصل الحدث مرّةً واحدة، وإعادتُه
-  بعد تعطّلٍ بين PubAck والوسم تُسقطها نافذة التكرار فلا يُخزَّن ثانيةً ولا يصل المستهلكَ ثانيةً.
+  بعد تعطّلٍ بين PubAck والوسم تُسقطها نافذة التكرار فلا يُخزَّن ثانيةً ولا يصل المستهلكَ ثانيةً، **بشرط أن تقع
+  الإعادة داخل `duplicate_window` (120 ثانية في `STREAM_SPEC`)**.
   وفي `tests_v9/test_nats_least_privilege.py`: preflight المنصّة بهويّتها وبـTLS يمرّ بلا خرق صلاحيّة،
   والمنصّة لا تستطيع إنشاء الدفق، وإعادةُ نشر حدثٍ بالـ`Nats-Msg-Id` نفسه على الدفق المُنشأ من العقد تُخزَّن
   مرّةً وتصل المستهلكَ مرّةً. هذا الملفّ يعمل على nats-server حقيقيّ في CI (`notification-rollout.yml`)،
   أمّا الاختبار الأوّل فيحتاج PostgreSQL مُرحَّلة ووسيطاً معاً، ولا وظيفة CI تجمعهما بعد، فيتخطّى هناك.
+- **غير مُثبَت:** إعادةٌ بعد أكثر من 120 ثانية من النشر الأوّل (تعطّلٌ ثمّ إعادة تشغيلٍ وpreflight أطول من النافذة)
+  يخزّنها الدفق ويسلّمها ثانيةً؛ عندها لا يمنع التكرارَ إلّا تحمّلُ المستهلك بـ`event_id` (`processed_events`).
 - **غير مُثبَت:** سلوك staging نفسه. لم يُشغَّل هنا أيُّ شيء على Railway. وتدفّق الأحداث بأحجام حقيقيّة،
   وسلوك المستهلكين مع تراكمٍ قديم، يقيسهما هذا الدليل ولا يدّعيهما.
   والـpreflight يثبت وجود المستهلك الدائم ولا يثبت أنّ عمليّته حيّة.

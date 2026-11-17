@@ -12,7 +12,9 @@ What turning the flag on actually does, measured end to end with the production 
    the row is delivered and the consumer receives it exactly once;
 4. a crash after PubAck and before the row is marked ``sent`` (claim and mark roll back
    together): the replay is dropped by the JetStream duplicate window (``Nats-Msg-Id`` =
-   ``event_id``) — no second stored message, no second delivery to the consumer.
+   ``event_id``) — no second stored message, no second delivery to the consumer. This holds
+   only while the replay falls inside ``duplicate_window`` (120 s); a later replay is stored
+   again and only consumer-side idempotency (``processed_events``) stops the duplicate.
 
 Needs ``TEST_DATABASE_ADMIN_URL`` (or ``TEST_DATABASE_URL``) on a migrated database and a
 ``nats-server`` binary (``NATS_SERVER_BIN``). Skips with the reason otherwise, unless
@@ -142,7 +144,7 @@ async def _drain(queue: asyncio.Queue, wait: float) -> list:
         return items
 
 
-def test_staging_enablement_holds_then_delivers_once_and_never_duplicates(tmp_path):
+def test_staging_enablement_holds_then_delivers_once_and_dedups_a_replay_in_the_window(tmp_path):
     _platform_path()
     from api.event_bus import OutboxWorker, outbox_backlog
     from workers.canonical_execution_learning_worker import subscribe_subjects
