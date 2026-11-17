@@ -232,6 +232,33 @@ def test_only_the_entries_stored_are_acknowledged(drain, monkeypatch):
     assert raster.status(TENANT) == [(ok["id"], "delivered"), (later["id"], "pending")]
 
 
+def test_a_payload_the_store_refuses_is_rejected_and_the_page_goes_on(drain, monkeypatch):
+    """A permanent refusal (``StoreRejected``: a data error or a constraint) settles the entry
+    ``rejected`` with its detail; the next entry of the same page is still delivered, so one
+    bad payload cannot hold the tenant's drain."""
+    raster, store = drain
+    bad = raster.add(TENANT, _payload(scene_id="S2B_BAD"))
+    good = raster.add(TENANT, _payload())
+    original = observation_store.insert_observation
+
+    async def _refuse_bad(record):
+        if record.scene_id == "S2B_BAD":
+            raise observation_store.StoreRejected(
+                "store refused the payload: CheckViolationError sqlstate=23514"
+            )
+        return await original(record)
+
+    monkeypatch.setattr(observation_store, "insert_observation", _refuse_bad)
+    before = observation_drain.state()["counters"]
+    assert _cycle(raster) == {"tenants": {TENANT: True}}
+    assert raster.status(TENANT) == [(bad["id"], "rejected"), (good["id"], "delivered")]
+    [acks] = raster.acks()
+    assert acks[0]["outcome"] == "rejected" and "CheckViolationError" in acks[0]["detail"], acks
+    after = observation_drain.state()["counters"]
+    assert after["rejected"] == before["rejected"] + 1
+    assert after["store_unavailable"] == before["store_unavailable"], "not counted as down"
+
+
 @pytest.mark.parametrize(
     ("payload", "detail"),
     [
@@ -405,6 +432,7 @@ def test_the_lifespan_starts_the_drain_only_when_it_can_run(drain, monkeypatch):
         await asyncio.sleep(3600)
 
     monkeypatch.setattr(observation_drain, "serve", _serve)
+    _stub_role_guard(monkeypatch)
     with TestClient(main.app):
         pass
     assert started == [True], "on with a partition, a token and a store: the loop starts"
@@ -413,3 +441,38 @@ def test_the_lifespan_starts_the_drain_only_when_it_can_run(drain, monkeypatch):
         pass
     assert started == [True], "off: no loop"
     assert observation_drain.state()["last_skip_reason"] == "disabled"
+
+
+def _stub_role_guard(monkeypatch, outcome=None):
+    import shared.db_role_guard as role_guard
+
+    calls: list = []
+
+    async def _guard(dsn, *, service=""):
+        calls.append((dsn, service))
+        if outcome is not None:
+            raise outcome
+
+    monkeypatch.setattr(role_guard, "assert_dsn_role_rls_safe", _guard)
+    return calls
+
+
+def test_the_lifespan_checks_the_database_role_before_anything_starts(drain, monkeypatch):
+    """A second layer under RLS FORCE, as raster-service: with ``DATABASE_URL`` set, a role that
+    can bypass row security refuses startup, and the drain never starts."""
+    started: list = []
+
+    async def _serve():
+        started.append(True)
+        await asyncio.sleep(3600)
+
+    monkeypatch.setattr(observation_drain, "serve", _serve)
+    calls = _stub_role_guard(monkeypatch)
+    with TestClient(main.app):
+        pass
+    assert calls == [("postgresql://stub/for-tests", "indicators-service")], calls
+
+    refused = _stub_role_guard(monkeypatch, RuntimeError("role can bypass row security"))
+    with pytest.raises(RuntimeError, match="bypass row security"), TestClient(main.app):
+        pass
+    assert len(refused) == 1 and started == [True], "refused before the drain started again"

@@ -28,7 +28,10 @@ CANONICAL-DECIMAL-ARRIVES-AS-TEXT-AND-DROPS-NDVI-01 closed on this path.
 
 Reads return ``None`` when the store is not configured or not reachable, so the routes keep their
 computed path; writes fail closed (the drain leaves the raster outbox entry pending and reads it
-again next cycle).
+again next cycle). A write the database refuses for the payload itself (a data error such as a
+value out of its column's range, or a constraint other than the unique one) is not transient:
+``StoreRejected``, which the drain acknowledges ``rejected`` (inspectable and re-queueable at
+raster) instead of retrying it forever ahead of the tenant's next entries.
 """
 
 from __future__ import annotations
@@ -53,6 +56,8 @@ DELIVERY_FIELDS = frozenset({"data_available_at", "processing_job_id", "cog_uri"
 
 _Number = Annotated[float, Field(strict=True, allow_inf_nan=False)]
 _Ratio = Annotated[float, Field(strict=True, allow_inf_nan=False, ge=0, le=1)]
+#: ``canonical_observations.geometry_revision`` is an INTEGER (v286): larger values overflow it.
+INTEGER_MAX = 2_147_483_647
 
 
 class ObservationStatsV1(BaseModel):
@@ -88,7 +93,7 @@ class PublishedObservationV1(BaseModel):
     algorithm_version: str | None = Field(default=None, max_length=128)
     qa_mask_version: str | None = Field(default=None, max_length=128)
     product_identity_key: str | None = Field(default=None, max_length=512)
-    geometry_revision: Annotated[int, Field(strict=True, ge=0)] | None = None
+    geometry_revision: Annotated[int, Field(strict=True, ge=0, le=INTEGER_MAX)] | None = None
     # delivery metadata — stored with the first delivery, outside the content hash
     data_available_at: datetime | None = None
     processing_job_id: str | None = Field(default=None, max_length=256)
@@ -146,6 +151,37 @@ class StoreUnavailable(RuntimeError):
     """The store is not configured or not reachable; writes must fail closed."""
 
 
+class StoreRejected(ValueError):
+    """The database refused this payload itself; retrying the same bytes cannot succeed.
+
+    ``str()`` names the error class and SQLSTATE only, never the offered values."""
+
+
+_UNIQUE_VIOLATION = "23505"
+
+
+def _permanent_refusal(exc: BaseException) -> str | None:
+    """A detail when ``exc`` is the database refusing the payload (not the store being down):
+    a data error (SQLSTATE class 22, or asyncpg's own refusal to encode a parameter, such as an
+    int out of the INTEGER range) or an integrity violation other than ``unique_violation``.
+    Connection, timeout, permission and every other error stay transient (``None``)."""
+    try:
+        import asyncpg
+        from asyncpg.exceptions import _base as asyncpg_base
+    except ImportError:  # pragma: no cover — the image installs it
+        return None
+    client_data_error = getattr(asyncpg_base, "DataError", None)
+    if client_data_error is not None and isinstance(exc, client_data_error):
+        return f"store refused the payload: {type(exc).__name__} (parameter encoding)"
+    sqlstate = getattr(exc, "sqlstate", None)
+    if isinstance(exc, asyncpg.exceptions.DataError) or (
+        isinstance(exc, asyncpg.exceptions.IntegrityConstraintViolationError)
+        and sqlstate != _UNIQUE_VIOLATION
+    ):
+        return f"store refused the payload: {type(exc).__name__} sqlstate={sqlstate}"
+    return None
+
+
 def _dsn() -> str:
     return os.getenv("DATABASE_URL", "")
 
@@ -194,7 +230,8 @@ async def insert_observation(record: PublishedObservationV1) -> dict[str, Any]:
     """Insert one observation idempotently.
 
     Returns ``{"status": "created"|"replayed"|"conflict", "observation_id", "revision_key",
-    "payload_sha256", "stored_payload_sha256", "published_at"}``. Raises ``StoreUnavailable`` when it cannot answer.
+    "payload_sha256", "stored_payload_sha256", "published_at"}``. Raises ``StoreUnavailable`` when it cannot answer,
+    ``StoreRejected`` when the database refuses the payload itself (see ``_permanent_refusal``).
     """
     observation_id = record.observation_id()
     revision = record.revision_key()
@@ -240,6 +277,9 @@ async def insert_observation(record: PublishedObservationV1) -> dict[str, Any]:
     except StoreUnavailable:
         raise
     except Exception as exc:  # noqa: BLE001 — a failed write is never reported as stored
+        refusal = _permanent_refusal(exc)
+        if refusal is not None:
+            raise StoreRejected(refusal) from exc
         raise StoreUnavailable(f"store write failed: {type(exc).__name__}") from exc
     finally:
         await conn.close()

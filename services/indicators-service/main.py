@@ -70,7 +70,15 @@ async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
     It runs when ``INDICATORS_OBSERVATION_DRAIN_ENABLED`` is on (the default), the tenant
     partition is set, and the service token and the store are configured; otherwise the reason
-    is logged once and shown on ``/readyz`` (``observation_drain.last_skip_reason``)."""
+    is logged once and shown on ``/readyz`` (``observation_drain.last_skip_reason``).
+
+    With ``DATABASE_URL`` set, the connection role is checked first, as raster-service does
+    (``shared.db_role_guard.assert_dsn_role_rls_safe``): a role that can bypass row security
+    refuses startup. A second layer under the explicit tenant predicate and RLS FORCE of
+    ``canonical_observations``, which such a role would silently ignore."""
+    from shared.db_role_guard import assert_dsn_role_rls_safe
+
+    await assert_dsn_role_rls_safe(os.getenv("DATABASE_URL", ""), service="indicators-service")
     reason = observation_drain.skip_reason()
     task = None
     if reason is None:

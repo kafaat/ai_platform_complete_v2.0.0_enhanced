@@ -17,8 +17,9 @@ One cycle, per tenant of the explicit partition:
 3. ``POST …/acknowledgements`` names exactly the entries this cycle settled, each at the
    ``payload_sha256`` it read: ``delivered`` (created or replayed), ``conflict`` (recorded on
    raster's row as terminal, never acknowledged as a success) or ``rejected`` (the payload is not
-   a valid observation, or names another tenant). An entry the store could not answer for is not
-   acknowledged: it stays pending and the next cycle reads it again. A failed acknowledgement
+   a valid observation, names another tenant, or the database refuses it as data: a value out of
+   its column's range or a violated constraint, ``StoreRejected``). An entry the store could not
+   answer for (unreachable, or any other error) is not acknowledged: it stays pending and the next cycle reads it again. A failed acknowledgement
    leaves the entries pending too; the next cycle stores them again as replays.
 
 Tenants: ``INDICATORS_OBSERVATION_DRAIN_TENANTS``, a UUID CSV, as raster's own durable workers
@@ -210,6 +211,12 @@ async def settle(entry: dict[str, Any], tenant: str) -> dict[str, Any] | None:
         return {**ack, "outcome": "rejected", "detail": "tenant_mismatch"}
     try:
         result = await observation_store.insert_observation(record)
+    except observation_store.StoreRejected as exc:
+        # Permanent: the same bytes fail the same way. Settled ``rejected`` (inspectable and
+        # re-queueable at raster) so it does not hold the tenant's next entries forever.
+        _count("rejected")
+        logger.error("canonical observation refused by the store outbox_id=%s: %s", entry_id, exc)
+        return {**ack, "outcome": "rejected", "detail": str(exc)[:500]}
     except observation_store.StoreUnavailable as exc:
         _count("store_unavailable")
         logger.warning("canonical observation store unavailable, entry left pending: %s", exc)

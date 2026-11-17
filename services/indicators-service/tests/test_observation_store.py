@@ -202,6 +202,96 @@ def test_without_a_database_the_store_refuses_to_write(monkeypatch):
         asyncio.run(observation_store.insert_observation(record))
 
 
+def test_the_geometry_revision_is_bounded_by_its_integer_column():
+    """``canonical_observations.geometry_revision`` is an INTEGER: a value above its range
+    would pass ``ge=0`` and then overflow the column on every retry."""
+    model = observation_store.PublishedObservationV1
+    assert model.model_validate(_payload(geometry_revision=2**31 - 1)).geometry_revision
+    with pytest.raises(ValueError):
+        model.model_validate(_payload(geometry_revision=2**31))
+
+
+class _RefusingConnection:
+    """A connection whose INSERT fails with ``error`` (the store's write path up to the driver)."""
+
+    def __init__(self, error):
+        self.error = error
+        self.closed = False
+
+    def transaction(self):
+        import contextlib
+
+        @contextlib.asynccontextmanager
+        async def _tx():
+            yield
+
+        return _tx()
+
+    async def execute(self, *_args):
+        return None
+
+    async def fetchrow(self, *_args):
+        raise self.error
+
+    async def close(self):
+        self.closed = True
+
+
+def _write_failure(monkeypatch, error):
+    import asyncio
+
+    conn = _RefusingConnection(error)
+
+    async def _connect():
+        return conn
+
+    monkeypatch.setattr(observation_store, "_connect", _connect)
+    record = observation_store.PublishedObservationV1.model_validate(_payload())
+    try:
+        asyncio.run(observation_store.insert_observation(record))
+    finally:
+        assert conn.closed, "the connection is closed either way"
+
+
+def _asyncpg_errors():
+    import asyncpg.exceptions as pg
+    from asyncpg.exceptions import _base as pg_base
+
+    permanent = [
+        pg_base.DataError("invalid input for query argument $12: 2147483648 (out of int32 range)"),
+        pg.NumericValueOutOfRangeError("integer out of range"),
+        pg.CharacterNotInRepertoireError("invalid byte sequence"),
+        pg.CheckViolationError("new row violates check constraint"),
+        pg.NotNullViolationError("null value"),
+    ]
+    transient = [
+        pg.UniqueViolationError("duplicate key"),
+        pg.ConnectionDoesNotExistError("connection was closed"),
+        pg.InsufficientPrivilegeError("permission denied"),
+        pg.SerializationError("could not serialize"),
+        OSError("network down"),
+        TimeoutError(),
+    ]
+    return permanent, transient
+
+
+@pytest.mark.parametrize("index", range(len(_asyncpg_errors()[0])))
+def test_a_payload_the_database_refuses_is_a_permanent_rejection(monkeypatch, index):
+    error = _asyncpg_errors()[0][index]
+    with pytest.raises(observation_store.StoreRejected) as caught:
+        _write_failure(monkeypatch, error)
+    detail = str(caught.value)
+    assert detail.startswith("store refused the payload: ") and type(error).__name__ in detail
+    assert "2147483648" not in detail, "the offered values stay out of the detail"
+
+
+@pytest.mark.parametrize("index", range(len(_asyncpg_errors()[1])))
+def test_an_unavailable_store_stays_transient(monkeypatch, index):
+    error = _asyncpg_errors()[1][index]
+    with pytest.raises(observation_store.StoreUnavailable):
+        _write_failure(monkeypatch, error)
+
+
 # ── the read routes: raster says which product is current, the store serves its fact ────────
 def _raster_item(
     *,

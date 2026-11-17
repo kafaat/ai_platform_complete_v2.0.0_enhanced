@@ -202,6 +202,22 @@ def test_the_role_is_restricted():
     )
 
 
+def test_indicators_startup_refuses_a_role_that_bypasses_row_security(svc, monkeypatch):
+    """The lifespan's role check (``shared.db_role_guard``, as raster-service): the restricted
+    role starts the service; the owner role (superuser) refuses startup."""
+    main, _client = svc
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("INDICATORS_OBSERVATION_DRAIN_ENABLED", "false")
+    monkeypatch.delenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE", raising=False)
+    monkeypatch.delenv("SAHOOL_ENFORCE_RLS_ROLE", raising=False)
+    with TestClient(main.app) as started:
+        assert started.get("/healthz").status_code == 200
+    monkeypatch.setenv("DATABASE_URL", _ADMIN_DSN)
+    with pytest.raises(RuntimeError, match="superuser"), TestClient(main.app):
+        pass
+
+
 def test_store_once_replay_and_keep_the_first_delivery(svc):
     main, _client = svc
     tenant, field = _tenant(), f"fld_{uuid.uuid4().hex[:10]}"
