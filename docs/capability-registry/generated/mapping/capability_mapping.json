@@ -26,7 +26,7 @@
       "web": 555
     },
     "unmapped_artifacts": 3584,
-    "ambiguous_artifacts": 260,
+    "ambiguous_artifacts": 261,
     "files_by_reading": {
       "python_functional": 4087,
       "raw": 3438
@@ -13476,6 +13476,15 @@
             "content:water quality",
             "explicit_id"
           ]
+        },
+        {
+          "path": "docs/architecture/db_writer_ownership_baseline.json",
+          "score": 12,
+          "signals": [
+            "content:water quality",
+            "content:Water quality samples",
+            "content:water sample"
+          ]
         }
       ],
       "ambiguous": [],
@@ -13491,7 +13500,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 2
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -48208,6 +48217,30 @@
           "signals": [
             "content:erp bridge",
             "content:odoo bridge"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/db_writer_ownership_baseline.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "DEC-010",
+          "score": 15,
+          "signals": [
+            "content:model activation",
+            "content:model promotion",
+            "content:model rollback"
+          ]
+        },
+        {
+          "capability_id": "IRR-002",
+          "score": 12,
+          "signals": [
+            "content:water quality",
+            "content:Water quality samples",
+            "content:water sample"
           ]
         }
       ]
