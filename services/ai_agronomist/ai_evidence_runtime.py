@@ -446,6 +446,25 @@ def _utc_timestamp() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def _trusted_crop_for_retrieval(
+    requested_crop: str | None,
+    field_state: dict[str, Any] | None,
+    field_id: str | None,
+) -> str | None:
+    """Field queries use the owner-read crop card, not the client's claim."""
+    if not field_id:
+        if isinstance(requested_crop, str) and requested_crop.strip():
+            return requested_crop.strip()
+        return None
+    pack = _extract_ai_context_pack(field_state)
+    reference = (pack or {}).get("crop_knowledge") or {}
+    if isinstance(reference, dict) and reference.get("status") == "reference_only":
+        crop_id = reference.get("crop_id")
+        if isinstance(crop_id, str) and crop_id.strip():
+            return crop_id
+    return None
+
+
 def _build_agent_tool_fetcher(
     *,
     field_state: dict[str, Any] | None,
@@ -482,6 +501,7 @@ def _build_agent_tool_fetcher(
             return {
                 "field_id": field_id,
                 "canonical_field_state": fs,
+                "crop_knowledge": pack.get("crop_knowledge") or {},
                 "ai_context_readiness": pack.get("readiness") if pack else None,
             }
         if tool_name == "get_truecolor_scene":
@@ -567,6 +587,32 @@ def _build_agent_tool_fetcher(
             # V67.1 — إشارات المياه المتوفّرة في السياق (لا جلب خارجيّ، لا اختلاق).
             # فارغ ⇒ available=False بصدق (لا رقم مُختلَق حتّى يوصَل WaPOR/الميزان المائيّ).
             water: dict[str, Any] = {}
+            canonical = fs.get("canonical_field_state") if isinstance(fs, dict) else None
+            # The real internal field endpoint returns {**canonical, "ai_context_pack": ...};
+            # the nested form is also accepted for internal compatibility callers.
+            if (
+                not isinstance(canonical, dict)
+                and fs.get("schema_version") == "canonical_field_state.v1"
+            ):
+                canonical = fs
+            water_owner = canonical.get("water") if isinstance(canonical, dict) else None
+            if isinstance(water_owner, dict):
+                if field_id and water_owner.get("field_id") not in (None, field_id):
+                    raise ValueError("canonical_water_field_identity_mismatch")
+                # Read the actual owner product; do not calculate fictitious water productivity.
+                for key in (
+                    "depletion_mm",
+                    "taw_mm",
+                    "raw_mm",
+                    "root_depth_m",
+                    "quality_status",
+                    "water_state_digest",
+                    "season_id",
+                    "water_productivity",
+                    "water_use_efficiency",
+                ):
+                    if water_owner.get(key) is not None:
+                        water[key] = water_owner[key]
             for key in (
                 "water_balance",
                 "water_deficit_mm",
@@ -576,15 +622,20 @@ def _build_agent_tool_fetcher(
                 "et0_mm",
                 "water_productivity",
             ):
-                for src in (fs, pack):
-                    if isinstance(src, dict) and src.get(key) is not None:
-                        water[key] = src.get(key)
-                        break
+                if key not in water:
+                    for src in (fs, pack):
+                        if isinstance(src, dict) and src.get(key) is not None:
+                            water[key] = src[key]
+                            break
             return {
                 "field_id": field_id,
                 "days": params.get("days"),
                 "water_productivity": water,
                 "available": bool(water),
+                "productivity_measured": (
+                    "water_productivity" in water or "water_use_efficiency" in water
+                ),
+                "canonical_water_owner_present": isinstance(water_owner, dict),
                 "note_ar": None
                 if water
                 else "لا إشارة إنتاجيّة مياه في السياق بعد (يُغذّيها الميزان المائيّ/WaPOR لاحقاً).",
@@ -648,6 +699,13 @@ def _ai_context_memory_lines(pack: dict[str, Any] | None) -> list[str]:
         return ["• ذاكرة الحقل لسنتين: غير مرفقة في الطلب الحالي."]
 
     lines = ["• ذاكرة الحقل لسنتين (Field AI Context Pack):"]
+    crop_ref = pack.get("crop_knowledge") or {}
+    if isinstance(crop_ref, dict) and crop_ref.get("status") == "reference_only":
+        crop_label = str(crop_ref.get("crop_id"))[:80]
+        digest = str(crop_ref.get("knowledge_digest"))[:24]
+        lines.append(
+            f"  - مرجع المحصول: {crop_label}؛ بصمة المعرفة: {digest} (مرجع عام، ليس قرارًا)."
+        )
     summary = pack.get("ai_context_summary_ar")
     if summary:
         lines.append(f"  - الملخص: {str(summary)[:700]}")
@@ -656,7 +714,8 @@ def _ai_context_memory_lines(pack: dict[str, Any] | None) -> list[str]:
     if isinstance(imagery, dict):
         lines.append(
             "  - المشاهد/المؤشرات التاريخية: "
-            f"{_source_count(imagery.get('total_dates'))} مشهد/تاريخ ضمن النافذة."
+            f"{_source_count(imagery.get('unique_scene_dates'))} تاريخ التقاط فريد "
+            f"و{_source_count(imagery.get('total_dates'))} سجل مؤشر."
         )
         per_indicator = imagery.get("per_indicator") or {}
         if isinstance(per_indicator, dict):
@@ -987,50 +1046,78 @@ async def build_evidence_response(
             ):
                 raise HTTPException(403, "voice_local_policy_required")
 
-        # SEMANTIC-CONVERGENCE-01: resolve reference KG context first, then use it only
-        # to expand RAG retrieval. KG remains reference-only and never becomes decision evidence.
-        async with _dependency_boundary("knowledge-graph", 5.0):
-            kg_resp = await client.get(
-                f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
-                params={"subject_id": req.crop} if req.crop else {},
-                # C2: forward the trusted tenant so knowledge-graph enforces its C5 read
-                # guard (require_trusted_tenant) on this internal service-to-service call.
-                headers={"X-Tenant-Id": tenant_id},
-                timeout=5.0,
-            )
-        if kg_resp.status_code >= 500:
-            raise _dependency_http_failure("knowledge-graph", kg_resp.status_code)
-        # ٤xx من KG (رفض حارس المستأجر مثلاً) يُهبَط به فاشلاً-مغلقاً إلى «لا حواف»،
-        # لكنّ الهبوط **يُعلَن**: بدونه يصير «KG لم يُجِب» مطابقاً حرفيّاً لـ«KG لم يجد
-        # شيئاً» في الاستجابة، وكلاهما `edges: []`. وهو تدهورُ توافريّةٍ يجب أن يكون
-        # صريحاً لا مُلفَّقاً دلاليّاً — فالمستهلك يقرأ ثقةً محسوبةً بلا دليل رسمٍ بيانيّ
-        # ولا شيء يقول له إنّ المصدر كان غائباً.
-        kg_available = kg_resp.status_code < 400
-        kg_payload = kg_resp.json() if kg_available else {"edges": []}
+        # The tenant's active season, not the request body, selects the crop.
+        retrieval_crop = _trusted_crop_for_retrieval(req.crop, field_state, req.field_id)
+        if retrieval_crop:
+            async with _dependency_boundary("knowledge-graph", 5.0):
+                kg_resp = await client.get(
+                    f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
+                    params={"subject_id": retrieval_crop},
+                    headers={"X-Tenant-Id": tenant_id},
+                    timeout=5.0,
+                )
+            if kg_resp.status_code >= 500:
+                raise _dependency_http_failure("knowledge-graph", kg_resp.status_code)
+            kg_available = kg_resp.status_code < 400
+            kg_payload = kg_resp.json() if kg_available else {"edges": []}
+        else:
+            # No indiscriminate graph enumeration when crop is unknown.
+            kg_available = False
+            kg_payload = {"edges": []}
         retrieval_query, graph_terms = _graph_conditioned_retrieval_query(req.question, kg_payload)
 
-        async with _dependency_boundary("rag-retrieval", 10.0):
-            rag_resp = await client.post(
-                f"{RAG_BASE_URL.rstrip('/')}/v1/search",
-                json={
-                    "tenant_id": tenant_id,
-                    "query": retrieval_query,
-                    "crop": req.crop,
-                    "field_id": req.field_id,
-                    "region": req.region,
-                    "source_type": None,
-                    "final_k": req.final_k,
-                },
-                # SEC-3: forward the trusted tenant so rag-retrieval enforces the same
-                # X-Tenant-Id-source-of-truth guard on this internal service-to-service call.
-                headers={"X-Tenant-Id": tenant_id, "X-Agent-Token": AGENT_TOKEN},
-                timeout=10.0,
-            )
+        rag_resp: httpx.Response | None = None
         rag_retrieval: dict[str, Any] = {"available": True}
-        if rag_resp.status_code in _RAG_DEGRADABLE_STATUSES:
-            rag_retrieval = _rag_unavailable(rag_resp)
-        elif rag_resp.status_code >= 400:
-            raise _dependency_http_failure("rag-retrieval", rag_resp.status_code)
+        try:
+            async with _dependency_boundary("rag-retrieval", 10.0):
+                rag_resp = await client.post(
+                    f"{RAG_BASE_URL.rstrip('/')}/v1/search",
+                    json={
+                        "tenant_id": tenant_id,
+                        "query": retrieval_query,
+                        "crop": retrieval_crop,
+                        "field_id": req.field_id,
+                        "region": req.region,
+                        "source_type": None,
+                        "final_k": req.final_k,
+                    },
+                    # SEC-3: forward the trusted tenant so rag-retrieval enforces the same
+                    # X-Tenant-Id-source-of-truth guard on this internal service-to-service call.
+                    headers={"X-Tenant-Id": tenant_id, "X-Agent-Token": AGENT_TOKEN},
+                    timeout=10.0,
+                )
+        except HTTPException as exc:
+            detail = exc.detail
+            if (
+                exc.status_code not in (502, 504)
+                or not isinstance(detail, dict)
+                or detail.get("dependency") != "rag-retrieval"
+                or detail.get("reason_code")
+                not in ("advisory_dependency_unavailable", "advisory_dependency_timeout")
+            ):
+                raise
+            # Transport errors have no HTTP response. An absent optional RAG host must
+            # not prevent field-state advice. Never degrade an upstream HTTP 401/403:
+            # those are processed below and remain fail-closed.
+            correlation_id = uuid.uuid4().hex
+            transport_reason = detail["reason_code"]
+            logger.warning(
+                "advisory rag-retrieval degraded transport_reason=%s correlation_id=%s",
+                transport_reason,
+                correlation_id,
+            )
+            rag_retrieval = {
+                "available": False,
+                "reason_code": "rag_transport_unavailable",
+                "upstream_status": None,
+                "transport_reason": transport_reason,
+                "correlation_id": correlation_id,
+            }
+        if rag_resp is not None:
+            if rag_resp.status_code in _RAG_DEGRADABLE_STATUSES:
+                rag_retrieval = _rag_unavailable(rag_resp)
+            elif rag_resp.status_code >= 400:
+                raise _dependency_http_failure("rag-retrieval", rag_resp.status_code)
 
     from shared.ai.seed_claims import partition_generation_references
 
@@ -1308,6 +1395,7 @@ async def build_evidence_response(
         "message": answer_ar,
         "tenant_id": tenant_id,
         "field_id": req.field_id,
+        "retrieval_crop": retrieval_crop,
         "selected_imagery_date": req.selected_imagery_date,
         "selected_model": req.model,
         # النسبةُ للجواب الظاهر فقط؛ المحاولةُ تبقى مقيسةً في ``generation_attempted_*``.
