@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "58a690fc8160a4bc7fc54e3804da4b5bf83661d795573b47294671680d9fd65e"
+          "content": "af9d90613708e727755f7a2d02f3a89ffcae75dc77776a339e2de0347db2736f"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -375,7 +375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "370b3d8989f1b76b07de937d144afc6ddd00f01854137d3e0859447e8ff8978b"
+          "content": "cfd2fb915fa08ac313e08927341527d03989d56a2dbd8c72ff9ed85d58f7c9ef"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -4905,7 +4905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9ab5420b14736ee235a0c2d4aeb1c457f91ab68d57ea7eb5c5486ac83881276"
+          "content": "380d3ec2480e5c56c3c1c18b4c7aed398cbcdecab1a65b6dae224f72d020fc02"
         }
       ],
       "name": "frontend/src/lib/pestEscalationLineage.test.ts",
@@ -4915,7 +4915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1a7763f4dd94f23aa77b3865f3643f1d538b25fce43ee4935a14265fe9512165"
+          "content": "818160e02aa5fab5d721d36d2e77431e442e40e17fe55d5ad5c6a75a90e8cd6d"
         }
       ],
       "name": "frontend/src/lib/pestEscalationLineage.ts",
@@ -4945,7 +4945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "156b10248fc8ddd0b608f4b9b4812618e1485ef8ecfa2c7074479b3b75e23bd8"
+          "content": "a7cb755ff613d63dcabf6247df3390f00422f6c56f5477e2b83d5b6714408f71"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6875,7 +6875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "06cae7e1c5a7fd5591516b04343e57005c70b9b7810b6794cc84acf4a4da6ecb"
+          "content": "91f48916443c29e9c2a19db57f9a795a4e74d9bcc03cbe689458de632bf7380e"
         }
       ],
       "name": "frontend/src/sections/PestEscalationPage.test.tsx",
@@ -7985,7 +7985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "95c111360d2e75d27eb5db3efaeef21c610a1a217d76f2b42981658e8774d6dc"
+          "content": "ffbe864628bb21a33f824e957cf604e23885a9b66388613735f363e49a02a2f4"
         }
       ],
       "name": "frontend/tests/test_nginx_runtime.py",
@@ -12425,7 +12425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "32946b4b1d8b5836636c0078704c24ee4cde799b0c1e32734f2193b85056e921"
+          "content": "746de6fe229a84482fdc415c69128733a57d2820dc8d4fa758222fc6941f4ec0"
         }
       ],
       "name": "mobile/sahool_app/lib/features/advisor/data/pest_escalation_lineage.dart",
@@ -16275,7 +16275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "275021e1f9f72e426e07855b95f034870bd29335f0b914213bfca42d2ef1a2e0"
+          "content": "bb4355536b6aba49e63d1ff8879d90f3a0fbf876334aed1ac70f8d8db5a8abc3"
         }
       ],
       "name": "mobile/sahool_app/test/features/advisor/pest_escalation_lineage_test.dart",
@@ -19045,7 +19045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "911c220cfcb412c465604479771b5e08c86df81c16f57556b6ecc7a2fb094250"
+          "content": "22745743d9dffb13ea2e9f5b2fe0d650a4da2c14ccce10cbd8c25f97872caea6"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -19475,7 +19475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ba8a30f86971bae053ef8b8e50edaa0fa4f81af97c878a688ebf55232d131bb"
+          "content": "79d1756642e9199cffe8e9afb856a86b5d14dc1ad6ce29ea7f9fbb4c2ef89bba"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -19565,7 +19565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ffee7e2470a625e4d6957d5f783c4516842107bd27a91f8a41c6fd7afc4cfc66"
+          "content": "72e11d141a79c7dd447ba4ba8d494dd32451ecdb46760a7e0ffd0001928ceaf7"
         }
       ],
       "name": "services/decision-service/tests/_model_chain.py",
@@ -20129,6 +20129,26 @@
         }
       ],
       "name": "services/decision-service/tests/test_tenant_boundary_migration_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f94c2522ddd6e76ba6c9194fe896637b80789f8ebc46a7338dc7a549e629a2a"
+        }
+      ],
+      "name": "services/decision-service/tests/test_w4_05_model_lifecycle_feed_live_pg.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "808959f63a56e69e989b10c077c96c5cfbbba926150be4801778dac4d8d01cb9"
+        }
+      ],
+      "name": "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py",
       "type": "file"
     },
     {
@@ -21585,7 +21605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa902639d15eb91a234bbd555693bf3f9d78f832ea3c3aaf171a6b6bae8944e1"
+          "content": "2a36404ce768419e1152f846e09afdcd3f28565f3e14f31286c7007467b4fbd9"
         }
       ],
       "name": "services/model-registry-adapter/tests/test_runtime_contract.py",
@@ -26565,7 +26585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bf0f8116485157686300b3d37d02cf277a310a46bd3d9b01dd50d75560c6c77b"
+          "content": "9ef245d809549da4152945a6f3ea3c6e657c75dd149cb8875ef706dee553633f"
         }
       ],
       "name": "services/sahool-platform/api/lab_store.py",
@@ -26775,7 +26795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ba56fdfc01d201cd158194e864cf21bfd7569ac64d57c64fdb5ba9c4a3152f35"
+          "content": "6a04b55d89d9c86b442676f823468a7818656f75fc6e22be8eb14a2ed3d702b6"
         }
       ],
       "name": "services/sahool-platform/api/phase10_continuous_learning.py",
@@ -26785,7 +26805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9f9409febf291dd1aa7220e711e19a5c770500e5d6440e4e1b3b1c43d0665a19"
+          "content": "6819e00c3a39f24c28c00096ba51222fe094e8b112b2418df1e892e273ccb746"
         }
       ],
       "name": "services/sahool-platform/api/phase11_federated_agents.py",
@@ -28385,7 +28405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "82feafec5779967371cd07637cdd0adfe70aade6cd330db0003733f0cb675f66"
+          "content": "92388a6c10bf575308c4b605dbc71fd566c332964a3aa99144c54457cd392620"
         }
       ],
       "name": "services/sahool-platform/api/routers/season_workspace.py",
@@ -29495,7 +29515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "441a50e2795b63161b63339c4a8854b2d979ec91400789d891328e07e0937daa"
+          "content": "d543a6b465393141a2fb3059d28ec1682745297413c9075856fecebb031fd927"
         }
       ],
       "name": "services/sahool-platform/core/capabilities.py",
@@ -31855,7 +31875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "98840897548216449bc4032a01d0876f46237e400eb2a78e0a5afe76ca1b954b"
+          "content": "0ecb03d8bfbcf47930476331f9feae6217b20219504cb5c85731b9cf1ed2cb35"
         }
       ],
       "name": "services/sahool-platform/core/pest_escalation_flow.py",
@@ -36445,7 +36465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc546bfa69e22f34a09a38a57ad24ed42d698a9233a35a77393846789d7869cc"
+          "content": "bfc6c06b7d5fba6f83053bf03ffcb6a40ef8350565644568a125d4c71df872c6"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
@@ -36575,7 +36595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3883d760459198593a38c1a8309e41b53488465a88a5cd1bdfe3cb694bb12465"
+          "content": "15a30da6beaba8743d71f8a718bfbb1bec348d271b6e995d81196b4cb0473941"
         }
       ],
       "name": "services/sahool-platform/tests/test_pest_escalation_flow.py",
@@ -37995,7 +38015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "003d661e22b008fca3613683b98acb420fd93cb14ca2f97dddf06ab0f9d41e38"
+          "content": "dec35ffb78135ea9e28482069dea22457d66068e3cd1b14765769b735559310c"
         }
       ],
       "name": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",

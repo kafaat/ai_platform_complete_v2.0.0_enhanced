@@ -365,7 +365,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 515,
+      "capability_count": 510,
       "component_id": "sahool-platform",
       "domain": "platform-core",
       "status": {
@@ -519,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "12f47bc80f2c7834b9e37c8ce0a727501a4a7ad7fea46673a325dc479c7397bd",
+  "fingerprint": "8eac7cc5d4018e2ce7337aa83b46eb78d68658d9beb0e25429d3612c4b0cfd5d",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }
