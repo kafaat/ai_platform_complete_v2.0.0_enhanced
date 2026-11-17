@@ -1048,7 +1048,12 @@ jobs:
         run: |
           pip install "edge-tts>=6.1.12"  # aiomqtt صارت في tests_v9/requirements-test.txt (Q3)
           run_group() {
-            out=$(python -m pytest -q -rs -p no:cacheprovider --cov=services --cov-append --cov-report= "$@" 2>&1); rc=$?
+            # Under bash -e, an unguarded failed command substitution hides pytest output.
+            if out=$(python -m pytest -q -rs -p no:cacheprovider --cov=services --cov-append --cov-report= "$@" 2>&1); then
+              rc=0
+            else
+              rc=$?
+            fi
             printf '%s\n' "$out"
             [ "$rc" -eq 0 ] || exit "$rc"
             if printf '%s\n' "$out" | tail -n 1 | grep -q 'skipped'; then

@@ -712,9 +712,13 @@ def _ai_context_memory_lines(pack: dict[str, Any] | None) -> list[str]:
 
     imagery = pack.get("imagery_timeline") or {}
     if isinstance(imagery, dict):
+        # Older accepted packs have total_dates but not unique_scene_dates.
+        # A missing unique count is unknown, not zero indicator acquisitions.
+        unique = imagery.get('unique_scene_dates')
+        unique_text = str(unique) if isinstance(unique, int) and not isinstance(unique, bool) and unique >= 0 else 'غير معروف'
         lines.append(
             "  - المشاهد/المؤشرات التاريخية: "
-            f"{_source_count(imagery.get('unique_scene_dates'))} تاريخ التقاط فريد "
+            f"{unique_text} تاريخ التقاط فريد "
             f"و{_source_count(imagery.get('total_dates'))} سجل مؤشر."
         )
         per_indicator = imagery.get("per_indicator") or {}
