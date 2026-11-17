@@ -43,6 +43,7 @@ from persistence import (
     LearningUpdateConflict,
     LearningUpdateReviewInvalid,
     LearningUpdateReviewUnavailable,
+    SnapshotIdConflict,
     acquire_connection,
     authorize_dispatch,
     build_calibration_dataset,
@@ -95,6 +96,7 @@ from persistence import (
     register_runtime_worker_tenant,
     review_decision,
     review_model_activation_request,
+    snapshot_reference_format_error,
     sor_enabled,
     sor_requested_without_db,
     strict_worker_tenants_enabled,
@@ -371,7 +373,8 @@ class VegetationSnapshotIn(BaseModel):
     """AC-6 immutable vegetation evidence: content-addressed by snapshot_hash (the hash IS the
     idempotency key — a replay returns the canonical existing snapshot, never a duplicate)."""
 
-    snapshot_id: str | None = None
+    # A producer-named id must have the stored shape; the server mints one when absent.
+    snapshot_id: str | None = Field(default=None, pattern=r"^veg_[A-Za-z0-9_-]{8,64}$")
     field_id: str
     season_id: str | None = None
     contract_version: str = "vegetation-snapshot.v2"
@@ -651,7 +654,14 @@ async def create_vegetation_snapshot(
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not authoritative")
     sid = payload.snapshot_id or "veg_" + uuid4().hex[:20]
-    result = await persist_vegetation_snapshot(tenant_id=tenant, payload=payload, snapshot_id=sid)
+    try:
+        result = await persist_vegetation_snapshot(
+            tenant_id=tenant, payload=payload, snapshot_id=sid
+        )
+    except SnapshotIdConflict as exc:
+        raise HTTPException(status_code=409, detail="snapshot_id_conflict") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     return {
         "persisted": True,
         "snapshot_id": result["snapshot_id"],
@@ -1442,6 +1452,18 @@ async def decision_lineage(
     }
 
 
+def _refuse_malformed_snapshot_ids(**ids: Any) -> None:
+    """422 ``invalid_snapshot_id`` naming the first malformed snapshot reference.
+
+    These ids point at evidence other services hold (weather, resources, outcome evidence), so
+    their existence is not resolvable here; before this check any string was stored as given."""
+    for name, value in ids.items():
+        if snapshot_reference_format_error(value):
+            raise HTTPException(
+                status_code=422, detail={"code": "invalid_snapshot_id", "field": name}
+            )
+
+
 class DispatchAuthorizationIn(BaseModel):
     """WX-10.10 non-executing authorization for one planned execution plan."""
 
@@ -1486,6 +1508,10 @@ async def authorize_execution_plan_dispatch(
         raise HTTPException(
             status_code=422, detail=f"required fields missing: {', '.join(missing)}"
         )
+    _refuse_malformed_snapshot_ids(
+        weather_snapshot_id=payload.weather_snapshot_id,
+        resource_snapshot_id=payload.resource_snapshot_id,
+    )
     if payload.expected_plan_state != "planned":
         raise HTTPException(status_code=409, detail="expected_plan_state must be planned")
     if not sor_enabled():
@@ -2230,6 +2256,7 @@ async def verify_terminal_execution_outcome(
     ):
         if not str(getattr(payload, name, "") or "").strip():
             raise HTTPException(status_code=422, detail=f"{name} is required")
+    _refuse_malformed_snapshot_ids(evidence_snapshot_id=payload.evidence_snapshot_id)
     if not sor_enabled():
         raise HTTPException(
             status_code=503,
@@ -2276,6 +2303,7 @@ async def attribute_verified_outcome_to_learning(
     for name in ("model_id", "label", "evidence_snapshot_id", "idempotency_key"):
         if not str(getattr(payload, name, "") or "").strip():
             raise HTTPException(status_code=422, detail=f"{name} is required")
+    _refuse_malformed_snapshot_ids(evidence_snapshot_id=payload.evidence_snapshot_id)
     if payload.attribution_method != "verified_outcome":
         raise HTTPException(status_code=422, detail="attribution_method must be verified_outcome")
     if not sor_enabled():

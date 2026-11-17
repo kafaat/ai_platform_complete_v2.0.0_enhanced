@@ -1955,6 +1955,8 @@ jobs:
           tests/test_wx10_11_execution_request.py
           tests/test_wx10_11b_execution_delivery_receipt.py
           tests/test_wx10_12_execution_outcome.py
+          tests/test_outcome_reconcile_order_live_pg.py
+          tests/test_snapshot_id_validation.py
       # IRR-F01 Gate B-delivery (thin inbox, real Postgres): a delivered reservation dispatch
       # INTENT is recorded idempotently (dedup on tenant+source_event_id), a corrupted redelivery
       # is rejected, the receipt is append-preserving, the consumer heartbeat advances — and a
