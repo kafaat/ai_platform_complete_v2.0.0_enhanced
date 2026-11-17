@@ -49,7 +49,7 @@ The job ends with Codecov reporting steps, from `Export live auth coverage with
 Git-relative paths` on (export, path guard, pinned upload); the lab stops before them
 and refuses the run if anything after that boundary is not a reporting step or calls
 pytest. A step's relative `COVERAGE_FILE` is written into the evidence directory, so
-the live coverage the auth steps append does not dirty the checkout.
+the live coverage every certification step appends does not dirty the checkout.
 
 Steps run today (`tests_v9/test_lab_ci_certification_steps.py` fails CI when this
 list, the runner's reading of `ci.yml` or the test files drift apart):

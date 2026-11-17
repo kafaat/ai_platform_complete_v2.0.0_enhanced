@@ -8878,3 +8878,20 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الإصلاح:** التنفيذ مُثبَت فقط حين يعيد المنفّذ `executed is True` مع `execution_ref` نصّيّ غير فارغ (`is_execution_proven`). بلا منفّذ ⇒ `executed=False` و`reason=executor_not_configured` مع `note_ar`. ردّ بلا إقرار صريح ⇒ `execution_not_confirmed`؛ إقرار بلا مرجع ⇒ `execution_ref_missing`. المتابعة تُجدوَل لتنفيذ مُثبَت فقط، وتعويض Saga يلغي التنفيذ المُثبَت كما كان. قارئا الويب والجوّال لم يعودا يعرضان نصّ سماح البوّابة سبباً لعدم التنفيذ، ويبقى كشف المرجع القديم لردود خوادم سابقة.
 - **الشواهد:** `services/sahool-platform/tests/test_pest_escalation_flow.py` (17 حالة تفشل على منطق `8725fcfe1`: بلا منفّذ، `{}`، `executed` truthy غير True، إقرار بلا مرجع، متابعة بلا إثبات، تعويض بلا تنفيذ) · `tests_v9/test_field_intelligence_endpoints.py::test_pest_escalation_executes_only_on_server_guardrails_allow` · `frontend/src/lib/pestEscalationLineage.test.ts` · `frontend/src/sections/PestEscalationPage.test.tsx` · `mobile/sahool_app/test/features/advisor/pest_escalation_lineage_test.dart`.
 - **الباقي:** لا منفّذ حقيقيّ موصول لتدفّق الآفة؛ وصله (أيّ خدمة تنفّذ الرشّ وتعيد مرجعاً قابلاً للإلغاء) قرار مالك. حتى ذلك يبقى القرار بشريّاً خارج النظام. شرط الإغلاق: دمج في main.
+
+## GATEWAY-COOKIE-FORWARD-01 — بوّابات nginx كانت تمرّر ترويسة Cookie للمتصفّح إلى المنبع
+
+- **الحالة:** open — مُصلَحة في الكود على الفرع `tb-r-gateway-cookie-live-coverage` (`2d866479f`)؛ غير مدموجة.
+- **الخلل:** [`frontend/nginx.conf`](../../frontend/nginx.conf) (بوّابة Railway العامّة) كانت تمرّر ترويسة `Cookie` كما هي، ومعها JWT `sahool_at` (HttpOnly)، من `location /api/` ومن ٢٤ موقعاً آخر إلى المنصّة وكلّ خدمة. لا خدمة تقرأ الكعكة: المصادقة بـ`Authorization: Bearer` فقط، والقارئ الوحيد هو البوّابة نفسها (`$cookie_sahool_at` → Bearer للبلاطات وطلبات التحقّق الفرعيّة).
+- **الإصلاح:** `proxy_set_header Cookie "";` في كلّ موقع وكيل في `frontend/nginx.conf`؛ و[`nginx/proxy_params.conf`](../../nginx/proxy_params.conf) ونظيره في Helm يمسحانها، والمواقع التي لا تضمّنه تمسحها بنفسها. الجسر باقٍ لأنّ `$cookie_*` يقرأ طلب العميل.
+- **الشاهد:** [`tests_v9/test_gateway_cookie_strip_contract.py`](../../tests_v9/test_gateway_cookie_strip_contract.py) (فحص ثابت للبوّابات الثلاث مع تحكّم سلبيّ) و[`frontend/tests/test_nginx_runtime.py`](../../frontend/tests/test_nginx_runtime.py) (nginx حقيقيّ: لا يصل المنبعَ أيّ Cookie).
+- **شرط الإغلاق:** دمجٌ في main ثمّ نشرُ البوّابة والتحقّق من أنّ المنبع لا يستقبل الكعكة.
+
+## CI-LIVE-PG-COVERAGE-UNREPORTED-01 — خطوات الشهادة الحيّة على PostgreSQL لا تجمع التغطية
+
+- **الحالة:** open — مُصلَحة في الكود على الفرع `tb-r-gateway-cookie-live-coverage` (`32e7903b9`)؛ غير مدموجة.
+- **الخلل:** ٢٦ خطوة شهادة في وظيفة Integration Tests من [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) شغّلت pytest بلا `--cov`، فقُرئ الكود الذي لا تبلغه إلّا هي غيرَ مغطّى على codecov/patch (`anomaly_store_pg.py` ٣٥٪ على #1508).
+- **الإصلاح:** كلّ خطوة شهادة تُلحِق بملفّ الوظيفة `.coverage.integration-auth` عبر [`config/coverage-live-integration.rc`](../../config/coverage-live-integration.rc)؛ تصدير واحد وحارس واحد ورفع واحد كما كان، فيبقى عدد الرفعات ٥ و`after_n_builds` ٥.
+- **الباقي:** التشغيل المشترك `pytest -v -m integration --tb=short` ما زال بلا تغطية لأنّ مُشغِّل المختبر يطابق السطر حرفيّاً؛ ما لا يبلغه إلّا هو يبقى غيرَ مغطّى على codecov/patch.
+- **الشاهد:** [`tests_v9/test_codecov_coverage_wiring.py`](../../tests_v9/test_codecov_coverage_wiring.py).
+- **شرط الإغلاق:** دمجٌ في main وظهور تغطية الخطوات الحيّة في تقرير Codecov.
