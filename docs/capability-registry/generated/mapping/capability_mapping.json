@@ -32,7 +32,7 @@
       "raw": 3438
     },
     "test_dependency_files": 1984,
-    "test_dependency_edges": 5266,
+    "test_dependency_edges": 5267,
     "test_dependency_bounded_files": 1153,
     "test_dependency_unresolved_relations": 506
   },
@@ -56202,6 +56202,11 @@
           "source": "services/indicators-service/observation_store.py",
           "kind": "import",
           "line": 33
+        },
+        {
+          "source": "shared/db_role_guard.py",
+          "kind": "import",
+          "line": 447
         }
       ],
       "unresolved": []
@@ -58163,7 +58168,7 @@
         {
           "source": "services/raster-service/observation_sweep.py",
           "kind": "import",
-          "line": 328
+          "line": 344
         },
         {
           "source": "services/raster-service/raster_app_factory.py",
@@ -78183,12 +78188,12 @@
         {
           "source": "services/raster-service/observation_sweep.py",
           "kind": "import",
-          "line": 640
+          "line": 722
         },
         {
           "source": "services/raster-service/raster_api_models.py",
           "kind": "import",
-          "line": 649
+          "line": 731
         },
         {
           "source": "services/raster-service/raster_app_factory.py",
@@ -78198,7 +78203,7 @@
         {
           "source": "services/raster-service/raster_asset_persistence.py",
           "kind": "import",
-          "line": 641
+          "line": 723
         },
         {
           "source": "services/raster-service/raster_settings.py",

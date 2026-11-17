@@ -628,8 +628,8 @@ FM-003,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster
 FM-003,api,GET /v1/fields/{field_id}/indicator-grid @ services/raster-service/routers/fields.py:891,4,applied
 FM-003,api,GET /v1/fields/{field_id}/indicator-observation-bundle @ services/raster-service/routers/fields.py:929,4,applied
 FM-003,api,GET /v1/fields/{field_id}/lineage @ services/decision-service/main.py:1308,4,applied
-FM-003,api,GET /v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:394,4,applied
-FM-003,api,GET /v1/fields/{field_id}/observations @ services/indicators-service/main.py:340,4,applied
+FM-003,api,GET /v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:402,4,applied
+FM-003,api,GET /v1/fields/{field_id}/observations @ services/indicators-service/main.py:348,4,applied
 FM-003,api,GET /v1/fields/{field_id}/pixel @ services/raster-service/routers/fields.py:1017,4,applied
 FM-003,api,GET /v1/fields/{field_id}/remote-sensing-workspace @ services/remote-sensing-workspace-bff/main.py:193,4,applied
 FM-003,api,GET /v1/fields/{field_id}/signal-anomalies @ services/vegetation-analysis-service/routers/anomalies.py:375,4,applied
@@ -2148,7 +2148,7 @@ SAT-006,api,GET /api/v1/weather/history/coverage @ services/sahool-platform/api/
 SAT-006,api,GET /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:172,2,applied
 SAT-006,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:223,3,applied
 SAT-006,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:659,3,applied
-SAT-006,api,GET /v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:394,2,applied
+SAT-006,api,GET /v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:402,2,applied
 SAT-006,api,GET /v1/imagery/backfill/policy @ services/raster-service/routers/imagery.py:22,5,applied
 SAT-006,api,GET /v1/weather/historical @ services/weather-service/main.py:32,2,applied
 SAT-006,api,POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:873,2,applied
@@ -2226,7 +2226,7 @@ SAT-009,api,GET /api/v1/weather/tile-cache/stats @ services/sahool-platform/api/
 SAT-009,api,GET /api/v1/weather/tile-data/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2436,2,applied
 SAT-009,api,GET /api/v1/weather/tile-series/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:3004,2,applied
 SAT-009,api,GET /healthz @ services/raster-service/routers/observability.py:34,3,applied
-SAT-009,api,GET /internal/v1/observation-outbox @ services/raster-service/routers/observation_feed.py:97,3,applied
+SAT-009,api,GET /internal/v1/observation-outbox @ services/raster-service/routers/observation_feed.py:99,3,applied
 SAT-009,api,GET /metrics @ services/raster-service/routers/observability.py:39,3,applied
 SAT-009,api,GET /metrics @ services/raster-tiler-service/main.py:16,2,applied
 SAT-009,api,GET /readyz @ services/raster-service/routers/observability.py:197,3,applied
@@ -2288,8 +2288,8 @@ SAT-009,api,GET /v1/weather/tile-data/{z}/{x}/{y} @ services/weather-service/mai
 SAT-009,api,GET /v1/weather/tile-series/{z}/{x}/{y} @ services/weather-service/main.py:48,2,applied
 SAT-009,api,POST /api/v1/gis/cloud-native/cog-registry @ services/sahool-platform/api/routers/gis_cloud_native.py:425,2,applied
 SAT-009,api,POST /api/v1/weather/tile-cache/prune @ services/sahool-platform/api/routers/weather.py:2359,2,applied
-SAT-009,api,POST /internal/v1/observation-outbox/acknowledgements @ services/raster-service/routers/observation_feed.py:129,3,applied
-SAT-009,api,POST /internal/v1/observation-outbox/requeue @ services/raster-service/routers/observation_feed.py:150,3,applied
+SAT-009,api,POST /internal/v1/observation-outbox/acknowledgements @ services/raster-service/routers/observation_feed.py:131,3,applied
+SAT-009,api,POST /internal/v1/observation-outbox/requeue @ services/raster-service/routers/observation_feed.py:152,3,applied
 SAT-009,api,POST /v1/change/detect @ services/raster-service/routers/analysis.py:48,3,applied
 SAT-009,api,POST /v1/cog/registry/preview @ services/raster-service/routers/imagery.py:130,5,applied
 SAT-009,api,POST /v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:778,3,applied

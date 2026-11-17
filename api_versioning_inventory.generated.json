@@ -1532,7 +1532,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 106,
+    "line": 114,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1541,7 +1541,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 111,
+    "line": 119,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -1550,7 +1550,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 116,
+    "line": 124,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -1559,7 +1559,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 127,
+    "line": 135,
     "method": "GET",
     "path": "/readyz",
     "handler": "ready",
@@ -1568,7 +1568,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 147,
+    "line": 155,
     "method": "GET",
     "path": "/v1/indicators/ownership",
     "handler": "ownership",
@@ -1577,7 +1577,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 152,
+    "line": 160,
     "method": "GET",
     "path": "/v1/indicators/catalog",
     "handler": "catalog",
@@ -1586,7 +1586,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 162,
+    "line": 170,
     "method": "GET",
     "path": "/capabilities",
     "handler": "capabilities",
@@ -1595,7 +1595,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 187,
+    "line": 195,
     "method": "GET",
     "path": "/contract",
     "handler": "contract",
@@ -1604,7 +1604,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 209,
+    "line": 217,
     "method": "POST",
     "path": "/v1/indicators/compute",
     "handler": "compute_indicator",
@@ -1613,7 +1613,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 217,
+    "line": 225,
     "method": "GET",
     "path": "/",
     "handler": "root",
@@ -1622,7 +1622,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 340,
+    "line": 348,
     "method": "GET",
     "path": "/v1/fields/{field_id}/observations",
     "handler": "field_observations",
@@ -1631,7 +1631,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 394,
+    "line": 402,
     "method": "GET",
     "path": "/v1/fields/{field_id}/observation-timeline",
     "handler": "observation_timeline",
@@ -2693,7 +2693,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observation_feed.py",
-    "line": 97,
+    "line": 99,
     "method": "GET",
     "path": "/internal/v1/observation-outbox",
     "handler": "list_pending_observations",
@@ -2702,7 +2702,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observation_feed.py",
-    "line": 129,
+    "line": 131,
     "method": "POST",
     "path": "/internal/v1/observation-outbox/acknowledgements",
     "handler": "acknowledge_observations",
@@ -2711,7 +2711,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observation_feed.py",
-    "line": 150,
+    "line": 152,
     "method": "POST",
     "path": "/internal/v1/observation-outbox/requeue",
     "handler": "requeue_observations",

@@ -271,7 +271,7 @@
     },
     {
       "kind": "app",
-      "line": 90,
+      "line": 98,
       "module": "services.indicators-service.main",
       "node_id": "services.indicators-service.main:app",
       "route_count": 12,
@@ -3027,7 +3027,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "aab4b54bebb516e438c2a60f86efa6bd9dd2b9d3baebbcada01612253846e869",
+  "inventory_sha256": "8a40165dbcaecaf0878c9c992e241fc7536eb4798fbffffaf0fb3f162ec81a91",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {
