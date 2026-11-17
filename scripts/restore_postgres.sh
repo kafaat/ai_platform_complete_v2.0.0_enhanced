@@ -172,11 +172,11 @@ else
         --jobs="$PARALLEL_JOBS" "$BACKUP_FILE"
 fi
 
-log "✓ اكتملت الاستعادة بنجاح"
+log "اكتمل تنفيذ pg_restore"
 
 # ─── ٥. تحقّق سريع بعد الاستعادة ───────────────────────────────
 log "تحقّق: عدد الجداول في القاعدة المستعادة"
-psql --host="$PGHOST" --port="$PGPORT" --username="$PGUSER" \
+psql -X -v ON_ERROR_STOP=1 --host="$PGHOST" --port="$PGPORT" --username="$PGUSER" \
      --dbname="$PGDATABASE" -tAc \
-     "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';" \
-     2>/dev/null || warn "تعذّر التحقّق التلقائي (تحقّق يدويّاً)"
+     "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';"
+log "اكتمل الاستعلام عن عدد الجداول بعد الاستعادة"

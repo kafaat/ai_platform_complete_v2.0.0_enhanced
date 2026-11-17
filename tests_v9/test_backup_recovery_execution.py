@@ -164,3 +164,13 @@ def test_logical_dump_is_not_accepted_as_physical_base(environment, tmp_path):
     dump = tmp_path / "logical.dump"
     dump.write_bytes(b"dump")
     assert run("restore_postgres.sh", "--pitr", dump, env=environment).returncode != 0
+
+
+def test_logical_restore_propagates_verification_failure(environment, tmp_path):
+    dump = tmp_path / "logical.dump"
+    dump.write_bytes(b"dump")
+    client = tmp_path / "bin" / "psql"
+    client.write_text("#!/bin/bash\necho verification-failed >&2\nexit 3\n", encoding="utf-8")
+    result = run("restore_postgres.sh", dump, "--force", env=environment)
+    assert result.returncode == 3
+    assert "verification-failed" in result.stderr
