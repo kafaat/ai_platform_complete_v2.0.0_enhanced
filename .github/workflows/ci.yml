@@ -446,6 +446,13 @@ jobs:
       - name: compose-roster-guard
         run: python scripts/ci/compose_roster_guard.py
 
+      # W3-09: every default-profile service of docker-compose.v9.yml is a Helm workload or an
+      # entry with a reason in docs/architecture/helm_compose_workload_ledger.json (set
+      # equality, stale entries block), and every workload renders the variables compose
+      # requires (${VAR:?}) or the ledger excuses them.
+      - name: helm-compose-workload-guard
+        run: python scripts/ci/helm_compose_workload_guard.py
+
       # MUT-REGISTRY-DUPLICATE-KEY-SHADOWS-A-BLOCK-01. وثيقةٌ صحيحةٌ نحويّاً تُحمَّل
       # غيرَ ما كُتِب فيها: `json.load` آخِريُّ الترجيح، فمفتاحٌ مكرَّر يطرح ما قبله
       # بلا رسالةٍ ولا رمزِ خروج. ومقيسٌ على `a1f5da7f`:

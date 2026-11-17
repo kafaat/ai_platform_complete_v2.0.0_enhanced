@@ -23,6 +23,20 @@ global:
     redisUrl: sahool-redis-url
     cdseClientId: sahool-cdse-client-id
     cdseClientSecret: sahool-cdse-client-secret
+    # sahool-auth (W3-09): its Redis ACL user on the state server, the bootstrap admin
+    # password, the MFA secret encryption key and the MFA audit-hash key.
+    authRedisUrl: sahool-auth-redis-url
+    authAdminPassword: sahool-auth-admin-password
+    authMfaSecretEncryptionKey: sahool-auth-mfa-secret-encryption-key
+    authMfaAuditHashKey: sahool-auth-mfa-audit-hash-key
+    # sahool-weather-service (W3-09): its cache Redis ACL user.
+    weatherRedisUrl: sahool-weather-redis-url
+    # sahool-decision-service (W3-09): the bearer it requires and its callers present.
+    decisionServiceAuthToken: sahool-decision-service-auth-token
+    # sahool-field-management (W3-09): the tenant assertion key its callers sign with, and
+    # its replay-store Redis ACL user.
+    fieldServiceTenantAssertionKey: sahool-field-service-tenant-assertion-key
+    fieldServiceAssertionRedisUrl: sahool-field-service-assertion-redis-url
 
 namespace:
   create: true
@@ -35,8 +49,10 @@ networkPolicy:
   # only the gateway (W0-06).
   trustedIngressNamespaces:
     - ingress-nginx
-  # External HTTPS is required for CDSE/weather providers whose addresses rotate.
-  # Clusters with an egress proxy should set this false and add proxy-specific policy.
+  # Egress (W3-09): every pod reaches the cluster; public HTTPS (TCP 443, any address,
+  # because CDSE/weather provider addresses rotate) only for workloads that set
+  # `publicHttpsEgress: true`. Clusters with an egress proxy should set this false, which
+  # withdraws it from all of them, and add proxy-specific policy.
   allowPublicHttpsEgress: true
 
 ingress:
@@ -62,11 +78,11 @@ gateway:
   resolver: kube-dns.kube-system.svc.cluster.local
   clusterDomain: cluster.local
   auth:
-    # In-namespace Service of services/auth. The chart does not deploy auth yet (deploy-3,
-    # W3-09). The gateway resolves it per request, so it starts without it; until the
-    # Service exists every auth_request route answers 500 and /auth/ answers 502 (fail
-    # closed). Only the self-verifying /api/v1 and /api/guardrails routes serve meanwhile.
-    # validate_helm_readiness.py --env production prints this, and
+    # In-namespace Service of services/auth, deployed by the chart as the sahool-auth
+    # workload (W3-09). The gateway still resolves it per request, so it starts before
+    # auth is ready; while the Service is missing or the workload disabled every
+    # auth_request route answers 500 and /auth/ answers 502 (fail closed).
+    # validate_helm_readiness.py warns when the workload is absent or disabled, and
     # scripts/deploy/deploy_production.sh checks for the Service after the install.
     serviceName: sahool-auth
     port: 8000
@@ -94,6 +110,8 @@ workloads:
     port: 8000
     sourceDockerfile: services/sahool-platform/Dockerfile
     pathPrefix: /api/v1
+    # Open-Meteo / MET Norway weather fallbacks and other provider calls.
+    publicHttpsEgress: true
     env:
       SERVICE_NAME: sahool-platform
       RUNTIME_ROLE_REQUIRED: "sahool_app"
@@ -108,6 +126,9 @@ workloads:
       JWT_PUBLIC_KEY: jwtPublicKey
       SAHOOL_AGENT_TOKEN: agentToken
       REDIS_URL: redisUrl
+      # W3-09: bearer for sahool-decision-service. In production every decision call
+      # answers 503 without it (shared/security/decision_service_auth.py).
+      DECISION_SERVICE_TOKEN: decisionServiceAuthToken
   sahool-raster-service:
     enabled: true
     image: sahool/raster-service:2026.06.26-rc.15
@@ -115,6 +136,8 @@ workloads:
     port: 8001
     sourceDockerfile: services/raster-service/Dockerfile
     pathPrefix: /api/raster
+    # Copernicus Data Space (CDSE) catalogue and processing API.
+    publicHttpsEgress: true
     # Derives the tenant from X-Tenant-Id: reachable only from the gateway (which injects
     # the verified tenant) and from sahool-platform (raster_service_client, service token).
     gatewayOnly: true
@@ -139,6 +162,11 @@ workloads:
       JWT_PUBLIC_KEY: jwtPublicKey
       CDSE_CLIENT_ID: cdseClientId
       CDSE_CLIENT_SECRET: cdseClientSecret
+      # W3-09: bearer for sahool-decision-service, under both names raster reads, as in
+      # compose: the imagery-source gate (imagery_source_gate.py) and follow-up receipt
+      # reads (follow_up_runtime.py).
+      DECISION_SERVICE_TOKEN: decisionServiceAuthToken
+      DECISION_SERVICE_AUTH_TOKEN: decisionServiceAuthToken
   sahool-ai-agronomist:
     enabled: true
     image: sahool/ai-agronomist:2026.06.26-rc.15
@@ -146,6 +174,8 @@ workloads:
     port: 8000
     sourceDockerfile: services/ai_agronomist/Dockerfile
     pathPrefix: /api/ai-agronomist
+    # Hosted model providers (AI_PROVIDER openrouter/anthropic); the local default needs none.
+    publicHttpsEgress: true
     # Trusts X-Tenant-Id / X-User-*: reachable only from the gateway. No chart workload
     # calls it in-cluster (sahool-platform's code has no ai-agronomist client; its compose
     # AI_AGRONOMIST_URL is unused), so no internal caller is admitted. Add one here only
@@ -173,6 +203,9 @@ workloads:
     port: 8000
     sourceDockerfile: services/rag-retrieval/Dockerfile
     pathPrefix: /api/rag
+    # QDRANT_URL and OLLAMA_BASE_URL are operator-configurable (services/rag-retrieval/main.py:53,55)
+    # and QDRANT_API_KEY exists for a managed Qdrant, so either can point at an external HTTPS host.
+    publicHttpsEgress: true
     env:
       SERVICE_NAME: sahool-rag-retrieval
     secretEnv:
@@ -206,6 +239,142 @@ workloads:
       SAHOOL_AGENT_TOKEN: agentToken
       # services/guardrails-engine/main.py refuses to import in production without it.
       JWT_PUBLIC_KEY: jwtPublicKey
+  # W3-09: the gateway's verifier (auth_request -> GET /v1/auth/verify) and the /auth/
+  # login, refresh and logout routes. The gateway addresses it by gateway.auth.serviceName
+  # ($sahool_auth_addr), not through a pathPrefix upstream. Reachable namespace-wide: the
+  # gateway calls it, and its own endpoints authenticate the caller.
+  sahool-auth:
+    enabled: true
+    image: sahool/auth:2026.06.26-rc.15
+    replicas: 2
+    port: 8000
+    sourceDockerfile: services/auth/Dockerfile
+    env:
+      SERVICE_NAME: sahool-auth
+      # Compose values. AUTH_COOKIE_SECURE stays unset (auto): Secure outside local dev.
+      JWT_EXPIRE_MINUTES: "60"
+      REFRESH_EXPIRE_DAYS: "30"
+      ENFORCE_SENSITIVE_MFA: "true"
+      REQUIRE_MFA_ROLES: admin
+      AUTH_COOKIE_SAMESITE: lax
+    secretEnv:
+      # Runtime role sahool_app; auth sets app.current_role per connection and refuses a
+      # BYPASSRLS role (services/auth/main.py lifespan).
+      DATABASE_URL: databaseUrl
+      # Revocation, lockout and refresh state. Production refuses to boot without it
+      # (services/auth/main.py:392). The platform's denylist reads REDIS_URL, so
+      # sahool-redis-url must point at this same server.
+      REDIS_URL: authRedisUrl
+      # RS256 is required in production (services/auth/main.py:337-346); the gateway's
+      # services verify with the matching public key.
+      JWT_PRIVATE_KEY: jwtPrivateKey
+      JWT_PUBLIC_KEY: jwtPublicKey
+      ADMIN_PASSWORD: authAdminPassword
+      MFA_SECRET_ENCRYPTION_KEY: authMfaSecretEncryptionKey
+      # Dedicated audit-hash key: without it production writes no IP hash
+      # (services/auth/mfa_runtime.py:43-46), since the chart sets no HS256 JWT_SECRET.
+      MFA_AUDIT_HASH_KEY: authMfaAuditHashKey
+  # W3-09: Open-Meteo access, cache and agro computations. No route of its own: the gateway
+  # sends /api/weather/ to sahool-platform, which calls this service at WEATHER_SERVICE_URL
+  # (default http://sahool-weather-service:8000). It has no auth of its own, so it admits
+  # only its in-chart caller. Add another caller here with the code that calls it.
+  sahool-weather-service:
+    enabled: true
+    image: sahool/weather-service:2026.06.26-rc.15
+    replicas: 2
+    port: 8000
+    sourceDockerfile: services/weather-service/Dockerfile
+    internalOnly: true
+    internalCallers:
+      - sahool-platform
+    # Open-Meteo forecast and archive APIs (services/weather-service/open_meteo.py).
+    publicHttpsEgress: true
+    env:
+      SERVICE_NAME: sahool-weather-service
+      # Compose values for the Open-Meteo client and its breaker.
+      WEATHER_OPEN_METEO_TIMEOUT_S: "4"
+      WEATHER_OPEN_METEO_BREAKER_FAILURES: "3"
+      WEATHER_OPEN_METEO_BREAKER_RESET_S: "30"
+    secretEnv:
+      # Response cache shared by the replicas (services/weather-service/cache.py), on its
+      # own Redis ACL user.
+      WEATHER_REDIS_URL: weatherRedisUrl
+  # W3-09: soil snapshots, SoilGrids ingestion and the soil projection worker. No route of
+  # its own: the gateway sends /api/soil/ to sahool-platform, whose service proxy calls this
+  # service at SOIL_SERVICE_URL (default http://sahool-soil-service:8000) with the service
+  # token and the verified tenant. Every workload holds that token, so ingress is narrowed
+  # to the one in-chart caller.
+  sahool-soil-service:
+    enabled: true
+    image: sahool/soil-service:2026.06.26-rc.15
+    replicas: 2
+    port: 8000
+    sourceDockerfile: services/soil-service/Dockerfile
+    internalOnly: true
+    internalCallers:
+      - sahool-platform
+    # ISRIC SoilGrids (services/soil-service/soilgrids_client.py).
+    publicHttpsEgress: true
+    # Readiness stays on /readyz (the chart's rule; only ai-agronomist is exempt): it checks
+    # the database, and also fails on soil projection lag over 300 s, a dead letter or an
+    # expired lease (projection_observability.readiness_policy). Tune those with
+    # SOIL_PROJECTION_READY_MAX_* if they hold pods unready during a rollout.
+    env:
+      SERVICE_NAME: sahool-soil-service
+      # Compose values.
+      EDGE_READINESS_MODE: partial
+      EDGE_PRODUCTION_REQUIRED: "false"
+    secretEnv:
+      # Runtime role sahool_app, as in compose.
+      DATABASE_URL: databaseUrl
+      SAHOOL_AGENT_TOKEN: agentToken
+  # W3-09: the decision mirror (interim dual-path: sahool-platform stays the Source of
+  # Record and mirrors to it). Called at DECISION_SERVICE_URL (default
+  # http://sahool-decision-service:8160) by sahool-platform and sahool-raster-service with
+  # a bearer token; it refuses to start in production without one
+  # (services/decision-service/main.py production_auth_startup_error), and every request
+  # but the probes must carry it, so it stays reachable namespace-wide. No gateway route.
+  sahool-decision-service:
+    enabled: true
+    image: sahool/decision-service:2026.06.26-rc.15
+    replicas: 2
+    port: 8160
+    sourceDockerfile: services/decision-service/Dockerfile
+    env:
+      SERVICE_NAME: sahool-decision-service
+      # Mirror mode, as in compose: no DATABASE_URL, so the SoR flags stay off and /readyz
+      # does not wait for a database. The SoR cutover is a separate, gated decision.
+      DECISION_SERVICE_SOR_ENABLED: "false"
+      DECISION_REQUIRE_AUTH_TOKEN: "true"
+    secretEnv:
+      DECISION_SERVICE_AUTH_TOKEN: decisionServiceAuthToken
+  # W3-09: owner of fields and field_tasks. Its internal routes need the service token AND
+  # a per-request tenant assertion (HMAC, replay-checked in Redis) from a caller in
+  # FIELD_SERVICE_ALLOWED_CALLERS, so it is reachable namespace-wide; its callers
+  # (vegetation-analysis, video-processor, remote-sensing-workspace-bff) are not deployed by the chart yet. The public
+  # /api/v1/field-tasks/ route is not ported: the compose gateway injects
+  # FIELD_TASKS_SERVICE_TOKEN into it, and the chart gateway's ConfigMap carries no secret.
+  sahool-field-management:
+    enabled: true
+    image: sahool/field-management:2026.06.26-rc.15
+    replicas: 2
+    port: 8000
+    sourceDockerfile: services/field-management-service/Dockerfile
+    env:
+      SERVICE_NAME: sahool-field-management
+      # Compose default. Production readiness fails on an empty allowlist
+      # (services/field-management-service/main.py readyz).
+      FIELD_SERVICE_ALLOWED_CALLERS: vegetation-analysis-service,video-processor,remote-sensing-workspace-bff
+      FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: current
+    secretEnv:
+      # Runtime role sahool_app, as in compose.
+      DATABASE_URL: databaseUrl
+      SAHOOL_AGENT_TOKEN: agentToken
+      # Shared with the callers that sign the tenant assertion; production readiness needs
+      # at least 32 characters.
+      FIELD_SERVICE_TENANT_ASSERTION_KEY: fieldServiceTenantAssertionKey
+      # Nonce store for assertion replay detection, on its own Redis ACL user.
+      FIELD_SERVICE_ASSERTION_REDIS_URL: fieldServiceAssertionRedisUrl
 
 jobs:
   migration:

@@ -61,6 +61,63 @@ jobs:
         run: python3 -m pip install --upgrade pip pyyaml
       - name: Validate Helm/GitOps readiness
         run: python3 scripts/deploy/validate_helm_readiness.py --env production
+      # The runner image ships its own helm, unpinned. Install the official v3.16.4 release,
+      # check its sha256 before unpacking, and put it first on PATH for the steps below.
+      - name: Install checksum-verified official Helm
+        env:
+          HELM_VERSION: v3.16.4
+          HELM_SHA256: fc307327959aa38ed8f9f7e66d45492bb022a66c3e5da6063958254b9767d179
+        run: |
+          set -euo pipefail
+          # The pinned value must equal Helm's own published checksum file for this tarball.
+          curl --fail --location --max-time 30 "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz.sha256sum" -o "$RUNNER_TEMP/helm.sha256sum"
+          official="$(cut -d' ' -f1 "$RUNNER_TEMP/helm.sha256sum")"
+          if [ "$official" != "$HELM_SHA256" ]; then
+            echo "HELM_PIN_MISMATCH: pinned $HELM_SHA256, official checksum file says $official"
+            exit 1
+          fi
+          echo "pinned sha256 equals get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz.sha256sum"
+          curl --fail --location --max-time 90 "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" -o "$RUNNER_TEMP/helm.tar.gz"
+          printf '%s  %s\n' "$HELM_SHA256" "$RUNNER_TEMP/helm.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/helm.tar.gz" -C "$RUNNER_TEMP" linux-amd64/helm
+          mkdir -p "$RUNNER_TEMP/helm-bin"
+          install -m 0755 "$RUNNER_TEMP/linux-amd64/helm" "$RUNNER_TEMP/helm-bin/helm"
+          echo "$RUNNER_TEMP/helm-bin" >> "$GITHUB_PATH"
+      - name: Install render test dependencies
+        run: python3 -m pip install pytest==9.2.0 PyYAML==6.0.3 httpx==0.28.1 PyJWT==2.15.0
+      # HELM_RENDER_REQUIRED=1 makes a missing helm a failure in every helm_render test, and
+      # helm_render_guard.py fails the job if helm is not the pinned binary or any render test
+      # skipped, failed or went missing.
+      - name: Lint and render both overlays with the pinned Helm
+        env:
+          HELM_VERSION: v3.16.4
+          HELM_RENDER_REQUIRED: "1"
+        run: |
+          set -euo pipefail
+          for overlay in values-staging.yaml values-production.yaml; do
+            helm lint helm/sahool -f helm/sahool/values.yaml -f "helm/sahool/$overlay"
+            helm template sahool helm/sahool -f helm/sahool/values.yaml -f "helm/sahool/$overlay" > "$RUNNER_TEMP/render-${overlay%.yaml}.yaml"
+          done
+          # pytest's own exit code is kept for the guard, which reports every problem at once.
+          rc=0
+          python3 -m pytest -q -p no:cacheprovider -o addopts= -m helm_render -rs \
+            --junitxml="$RUNNER_TEMP/helm-render.xml" \
+            tests_v9/test_helm_render_acceptance.py \
+            tests_v9/test_helm_network_policy_egress.py \
+            tests_v9/test_helm_gateway_ingress_contract.py || rc=$?
+          python3 scripts/ci/helm_render_guard.py --junit "$RUNNER_TEMP/helm-render.xml" \
+            --expected-version "$HELM_VERSION" --expected-binary "$RUNNER_TEMP/helm-bin/helm"
+          exit "$rc"
+      - name: Upload the rendered manifests
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: helm-render
+          path: |
+            ${{ runner.temp }}/render-values-staging.yaml
+            ${{ runner.temp }}/render-values-production.yaml
+            ${{ runner.temp }}/helm-render.xml
+          if-no-files-found: warn
 
   release-package:
     runs-on: ubuntu-24.04

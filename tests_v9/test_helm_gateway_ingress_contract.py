@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import copy
 import importlib.util
+import os
 import re
 import shutil
 import socket
@@ -168,10 +169,37 @@ def _routes() -> dict[str, str]:
     return _locations((GATEWAY_FILES / "routes.conf").read_text(encoding="utf-8"))
 
 
+# W3-09: enabled workloads the gateway does not route by pathPrefix, with the reason. Every
+# other enabled workload must declare a pathPrefix that has a route.
+_UNROUTED_WORKLOADS = {
+    # Addressed by $sahool_auth_addr (gateway.auth), in /_auth_verify and /auth/.
+    "sahool-auth": "gateway.auth",
+    # /api/weather/ goes to sahool-platform, which calls weather-service internally.
+    "sahool-weather-service": "internal: sahool-platform",
+    # /api/soil/ goes to sahool-platform's service proxy, which calls soil-service.
+    "sahool-soil-service": "internal: sahool-platform",
+    # Called with its bearer by sahool-platform and sahool-raster-service; no public route.
+    "sahool-decision-service": "internal: bearer-authenticated",
+    # /api/v1/field-tasks/ needs a gateway-injected token the chart's ConfigMap cannot hold.
+    "sahool-field-management": "internal: token + tenant assertion",
+}
+
+
+def test_workloads_without_a_prefix_are_exactly_the_declared_ones() -> None:
+    unrouted = {
+        name
+        for name, spec in _production_values()["workloads"].items()
+        if spec.get("enabled") and not spec.get("pathPrefix")
+    }
+    assert unrouted == set(_UNROUTED_WORKLOADS), (
+        f"a workload without pathPrefix must be declared unrouted with its reason: {unrouted}"
+    )
+
+
 def test_every_enabled_workload_prefix_has_a_gateway_route() -> None:
     routes = _routes()
     for name, spec in _production_values()["workloads"].items():
-        if not spec.get("enabled"):
+        if not spec.get("enabled") or name in _UNROUTED_WORKLOADS:
             continue
         prefix = spec["pathPrefix"].rstrip("/") + "/"
         assert prefix in routes, f"{name}: no gateway route for {prefix}"
@@ -181,7 +209,11 @@ def test_every_enabled_workload_prefix_has_a_gateway_route() -> None:
 
 
 def test_routes_name_only_upstreams_the_chart_renders() -> None:
-    known = {_upstream_name(n) for n in _production_values()["workloads"]}
+    known = {
+        _upstream_name(n)
+        for n, spec in _production_values()["workloads"].items()
+        if spec.get("pathPrefix")
+    }
     text = (GATEWAY_FILES / "routes.conf").read_text(encoding="utf-8")
     used = set(re.findall(r"proxy_pass\s+http://([a-z_]+)", text))
     assert used and used <= known, f"routes use upstreams the chart never renders: {used - known}"
@@ -218,10 +250,25 @@ def test_auth_is_resolved_per_request_so_the_gateway_starts_without_it() -> None
     )
 
 
-def test_the_deploy_path_states_that_auth_is_not_deployed_yet() -> None:
-    notice = VALIDATOR.gateway_auth_notice(_production_values())
+def test_the_chart_deploys_the_auth_verifier_and_warns_when_it_does_not() -> None:
+    """W3-09: the chart deploys services/auth as the gateway's verifier. The deploy-path
+    notice now speaks only when the auth workload is absent or disabled."""
+    values = _production_values()
+    auth = values["workloads"][values["gateway"]["auth"]["serviceName"]]
+    assert auth["enabled"] and auth["port"] == values["gateway"]["auth"]["port"], (
+        "the gateway's auth address must be the deployed auth workload and its port"
+    )
+    assert VALIDATOR.gateway_auth_notice(values) is None
+    disabled = copy.deepcopy(values)
+    disabled["workloads"]["sahool-auth"]["enabled"] = False
+    notice = VALIDATOR.gateway_auth_notice(disabled)
     assert notice and "sahool-auth" in notice and "fail closed" in notice, (
-        f"validate_helm_readiness must state that the auth Service is not deployed: {notice}"
+        f"a disabled auth workload must still be reported: {notice}"
+    )
+    moved = copy.deepcopy(values)
+    moved["workloads"]["sahool-auth"]["port"] = 8001
+    assert any("gateway.auth.port" in e for e in VALIDATOR.gateway_errors(moved)), (
+        "a gateway auth port that misses the auth workload port must fail"
     )
     result = subprocess.run(
         ["python", "scripts/deploy/validate_helm_readiness.py", "--env", "production"],
@@ -231,8 +278,9 @@ def test_the_deploy_path_states_that_auth_is_not_deployed_yet() -> None:
         encoding="utf-8",
         check=False,
     )
-    assert "WARN: the chart does not deploy the auth Service" in result.stdout, (
-        f"the production validator must print the auth notice:\n{result.stdout}"
+    assert result.returncode == 0, result.stdout
+    assert "does not deploy the auth Service" not in result.stdout, (
+        f"the chart deploys auth, so the validator must not warn about it:\n{result.stdout}"
     )
     deploy = (ROOT / "scripts" / "deploy" / "deploy_production.sh").read_text(encoding="utf-8")
     assert 'kubectl --namespace sahool get service "$AUTH_SERVICE"' in deploy, (
@@ -584,7 +632,17 @@ def _deployment_env(docs: list[dict], name: str) -> set[str]:
     raise AssertionError(f"no Deployment {name} rendered")
 
 
-needs_helm = pytest.mark.skipif(shutil.which("helm") is None, reason="helm binary not installed")
+# Read before the binary lookup: the CI helm-render step sets HELM_RENDER_REQUIRED=1, so a
+# missing helm fails these tests there instead of skipping them green.
+HELM_RENDER_REQUIRED = os.environ.get("HELM_RENDER_REQUIRED") == "1"
+
+
+def needs_helm(test):
+    skip = pytest.mark.skipif(
+        not HELM_RENDER_REQUIRED and shutil.which("helm") is None,
+        reason="helm binary not installed",
+    )
+    return pytest.mark.helm_render(skip(test))
 
 
 @needs_helm
@@ -646,6 +704,8 @@ def test_helm_render_routes_the_ingress_only_to_the_gateway() -> None:
         if d.get("kind") == "ConfigMap" and d["metadata"]["name"] == "sahool-gateway"
     )
     for workload in _production_values()["workloads"]:
+        if workload in _UNROUTED_WORKLOADS:
+            continue
         assert f"upstream {_upstream_name(workload)} " in config["data"]["upstreams.conf"], (
             f"gateway upstreams.conf lacks {workload}"
         )

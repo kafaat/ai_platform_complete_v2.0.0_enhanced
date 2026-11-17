@@ -82,6 +82,10 @@
       "kind": "legacy_schema_version"
     },
     {
+      "path": "docs/architecture/helm_compose_workload_ledger.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/inventory_edge_exemptions.json",
       "kind": "governed"
     },
