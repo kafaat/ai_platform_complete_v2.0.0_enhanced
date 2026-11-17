@@ -661,3 +661,105 @@ def test_the_live_m03_zero_reader_defect_is_measured_and_the_blind_spot_named():
     dispatch = reads["written_never_read"]["iot_command_dispatch"]
     assert workers in dispatch["table_name_value_sites"]
     assert workers in reads["dynamic_table_sql_sites"]
+
+
+# ── W4-07: «يُقرأ ولا يُكتب» · «بلا مرجع» · «كاتبٌ مُعلَنٌ لا يكتب» ─────────────────
+
+
+def test_a_table_read_with_no_writer_is_read_never_written_until_a_writer_appears(
+    tmp_path, monkeypatch
+):
+    """الشكلُ الذي لم يكن يُرى: قراءةُ المالك مأذونة، ولا كتابةَ تُخالَف، و`written_never_read`
+    يشترط كاتباً — فجدولٌ يُقرأ ولا كاتبَ له كان يمرّ من كلّ فحص."""
+    read_only = 'SQL = "SELECT a FROM ledger WHERE b = $1"\n'
+    contract = _contract(ledger="owner: probe-service\nwriters: [probe-service]\nreaders: []")
+    survey = _reads(tmp_path, monkeypatch, contract=contract, source=read_only)
+    assert survey["read_never_written"] == {
+        "ledger": {"measured_readers": ["probe-service"], "table_name_value_sites": []}
+    }
+    assert "ledger" not in survey["unreferenced"]
+
+    written = read_only + 'W = "INSERT INTO ledger (a) VALUES ($1)"\n'
+    survey = _reads(tmp_path, monkeypatch, contract=contract, source=written)
+    assert "ledger" not in survey["read_never_written"]
+
+
+def test_a_contract_table_with_no_read_and_no_write_is_unreferenced(tmp_path, monkeypatch):
+    contract = _contract(
+        ledger="owner: probe-service\nwriters: [probe-service]\nreaders: []",
+        journal="owner: probe-service\nwriters: [probe-service]\nreaders: []",
+    )
+    survey = _reads(
+        tmp_path,
+        monkeypatch,
+        contract=contract,
+        source='SQL = "SELECT a FROM ledger WHERE b = $1"\n',
+    )
+    assert "journal" in survey["unreferenced"]
+    assert "ledger" not in survey["unreferenced"]
+
+
+def test_a_declared_writer_that_never_writes_is_reported_and_does_not_block(tmp_path, monkeypatch):
+    """مُبلَّغٌ لا حاجب (قرار المراجعة): يُخزَّن ويُطبَع عدُّه، ولا يُحمِّر الفحص."""
+    root = _sandbox(
+        tmp_path,
+        monkeypatch,
+        contract=_contract(ledger="owner: other-service\nwriters: [other-service]\nreaders: ['*']"),
+        source='SQL = "SELECT a FROM ledger WHERE b = $1"\n',
+    )
+    survey = MOD.read_survey()
+    assert "ledger::other-service" in survey["declared_writer_unobserved"]
+    stored = dict(survey, declared_writer_unobserved=[])
+    (root / "baseline.json").write_text(
+        json.dumps({"violations": {}, "reads": stored}), encoding="utf-8"
+    )
+    assert MOD.read_findings() == []
+    assert "declared_writer_unobserved=1 (report-only)" in MOD.read_coverage(survey, {})
+
+
+def test_the_w4_07_read_sets_ratchet_in_both_directions(tmp_path, monkeypatch):
+    root = _sandbox(
+        tmp_path,
+        monkeypatch,
+        contract=_contract(ledger="owner: probe-service\nwriters: [probe-service]\nreaders: []"),
+        source='SQL = "SELECT a FROM ledger WHERE b = $1"\n',
+    )
+    current = MOD.read_survey()
+    base = root / "baseline.json"
+
+    grew = dict(current, read_never_written={}, unreferenced=[])
+    base.write_text(json.dumps({"violations": {}, "reads": grew}), encoding="utf-8")
+    found = MOD.read_findings()
+    assert "جدولٌ جديدٌ يُقرأ ولا كاتبَ له: ledger" in found, found
+    assert "جدولٌ جديدٌ في العقد بلا قراءةٍ ولا كتابة: filler_0" in found, found
+
+    stale = dict(
+        current,
+        read_never_written={**current["read_never_written"], "ghost": {}},
+        unreferenced=[*current["unreferenced"], "ghost"],
+    )
+    base.write_text(json.dumps({"violations": {}, "reads": stale}), encoding="utf-8")
+    found = MOD.read_findings()
+    assert "جدولٌ في الأساس صار له كاتبٌ أو لم يعد يُقرأ — احذفه: ghost" in found, found
+    assert "جدولٌ في الأساس صار مُشاراً إليه أو خرج من العقد — احذفه: ghost" in found, found
+
+
+def test_crop_root_policies_is_read_never_written_until_w1_05_lands_a_writer():
+    """قبولُ W4-07: الحارسُ يلتقط `crop_root_policies` على main قبل W1-05.
+
+    يُقرأ في `canonical_root_zone_profile.py` ولا كاتبَ له إلّا اختبار، فكلُّ طلبٍ يعود
+    `validated_crop_root_policy_missing`. **ويقلب نفسَه:** حين يضع W1-05 كاتباً محكوماً يخرج
+    الجدولُ من المجموعة — والاختبارُ يشترط ذلك صراحةً كي لا يبقى فيها صامتاً بعد وجود الكاتب.
+    """
+    sites = MOD.write_sites()
+    has_writer = any(key.startswith("crop_root_policies::") for key in sites)
+    survey = MOD.read_survey(sites=sites)
+    stored = json.loads(MOD.BASELINE.read_text(encoding="utf-8"))["reads"]
+    if has_writer:
+        assert "crop_root_policies" not in survey["read_never_written"]
+        assert "crop_root_policies" not in stored["read_never_written"]
+    else:
+        assert survey["read_never_written"]["crop_root_policies"]["measured_readers"] == [
+            "sahool-platform"
+        ]
+        assert "crop_root_policies" in stored["read_never_written"]

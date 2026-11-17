@@ -229,6 +229,15 @@ tables:
     status: interim-bridge
     readers: [decision-service]
     source: "services/decision-service/migrations/004_dispatch_authorization.sql"
+  decision_eligibility_assessments:
+    # CANONICAL-SNAPSHOT-ELIGIBILITY-POLICY-01: eligibility derived per (tenant, snapshot_hash,
+    # policy_version), kept apart from the content-addressed snapshot. Created by the
+    # decision-service migration runner only; it was missing from this contract (W4-07: the
+    # platform's ownership test scans migrations/ only, not services/*/migrations).
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/031_eligibility_assessment.sql"
   detection_provenance:
     # Per-detection provenance for edge pest/disease results (model artifact sha256, input
     # sha256, threshold, calibration). Written in the same transaction as edge_results by the

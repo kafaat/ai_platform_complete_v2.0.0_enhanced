@@ -639,6 +639,14 @@ def generate_triage() -> None:
 #   والجدولُ لا يعلن ``readers: ["*"]``.
 # - ``declared_reader_unobserved``: قارئٌ مُعلَنٌ لم يُرصَد له موضعُ قراءة.
 # - ``written_never_read``: جدولٌ في العقد له موضعُ كتابةٍ مرصود وصفرُ موضعِ قراءةٍ من أيّ خدمة.
+# - ``read_never_written`` (W4-07): عكسُه — جدولٌ يُقرأ وصفرُ موضعِ كتابةٍ مرصودٍ له. كان يمرّ من
+#   كلّ فحص: لا كتابةَ تُخالَف، وقراءةُ المالك مأذونة، و``written_never_read`` يشترط كاتباً.
+#   ``crop_root_policies`` شاهدُه: يُقرأ في ``canonical_root_zone_profile.py`` ولا كاتبَ له إلّا اختبار،
+#   فكلُّ طلبٍ يعود ``validated_crop_root_policy_missing``.
+# - ``unreferenced`` (W4-07): جدولٌ في العقد بلا قراءةٍ مرصودة ولا كتابة — سقفٌ بالهويّة لا بالعدد،
+#   ينزل ولا يصعد.
+# - ``declared_writer_unobserved`` (W4-07، **مُبلَّغٌ لا حاجب**): كاتبٌ مُعلَنٌ لجدولٍ يُقرأ ولا موضعَ
+#   كتابةٍ مرصودٌ له. يُخزَّن ويُطبَع عدُّه ليُرى اتّجاهه؛ يصير حاجباً بندأً مستقلّاً حين يصغر بالمواءمة.
 #
 # **وحدُّ العمى مقيسٌ لا مذكور:** موضعُ SQL يُركَّب اسمُ جدوله وقتَ التشغيل
 # (``f"… FROM {table}"`` · ``"… FROM %s"`` · ``.format``) لا يُرى جدولُه ساكناً، فيُعدّ في
@@ -796,6 +804,26 @@ def read_survey(
             for table, writers in sorted(writers_seen.items())
             if table not in readers_seen
         },
+        "read_never_written": {
+            table: {
+                "measured_readers": sorted(readers),
+                "table_name_value_sites": named.get(table, []),
+            }
+            for table, readers in sorted(readers_seen.items())
+            if table not in writers_seen
+        },
+        "unreferenced": sorted(
+            table
+            for table, meta in contract.items()
+            if isinstance(meta, dict) and table not in readers_seen and table not in writers_seen
+        ),
+        "declared_writer_unobserved": sorted(
+            f"{table}::{_identity(str(writer))}"
+            for table, meta in contract.items()
+            if isinstance(meta, dict) and table in readers_seen
+            for writer in {meta.get("owner"), *(meta.get("writers") or [])}
+            if writer and _identity(str(writer)) not in writers_seen.get(table, set())
+        ),
         "dynamic_table_sql_sites": dynamic,
     }
 
@@ -810,6 +838,10 @@ def read_coverage(survey_doc: dict[str, Any], contract: dict[str, Any]) -> str:
         f"reads: undeclared={len(survey_doc['undeclared'])} "
         f"declared_reader_edges={edges} unobserved={unseen} "
         f"written_never_read={len(survey_doc['written_never_read'])} "
+        f"read_never_written={len(survey_doc.get('read_never_written') or {})} "
+        f"unreferenced={len(survey_doc.get('unreferenced') or [])}/{len(tables)} "
+        f"declared_writer_unobserved={len(survey_doc.get('declared_writer_unobserved') or [])}"
+        " (report-only) "
         f"blind_dynamic_sql_sites={sum(dynamic.values())} in {len(dynamic)} files"
     )
 
@@ -832,7 +864,16 @@ def read_findings(current: dict[str, Any] | None = None) -> list[str]:
             "جدولٌ جديدٌ يُكتَب ولا يُقرأ",
             "جدولٌ في الأساس صار مقروءاً أو لم يعد يُكتَب — احذفه",
         ),
+        "read_never_written": (
+            "جدولٌ جديدٌ يُقرأ ولا كاتبَ له",
+            "جدولٌ في الأساس صار له كاتبٌ أو لم يعد يُقرأ — احذفه",
+        ),
+        "unreferenced": (
+            "جدولٌ جديدٌ في العقد بلا قراءةٍ ولا كتابة",
+            "جدولٌ في الأساس صار مُشاراً إليه أو خرج من العقد — احذفه",
+        ),
     }
+    # ``declared_writer_unobserved`` مُبلَّغٌ لا حاجب (W4-07): يُخزَّن ويُطبَع، ولا يُقارَن هنا.
     for section, (grew, shrank) in labels.items():
         now, then = set(current[section]), set(stored.get(section) or [])
         out.extend(f"{grew}: {key}" for key in sorted(now - then))
@@ -864,9 +905,10 @@ def generate() -> None:
                     "reads": {
                         "$comment": (
                             "جهةُ القراءة: readers المُعلَنون مقابل حرفيّات SQL المقيسة (بايثون، "
-                            "f-string نصّاً واحداً). ثلاثُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا "
-                            "محكومٌ عليها. 'لم يُرصَد' ليس 'لا يقرأ': dynamic_table_sql_sites يعدّ "
-                            "ما لا يُرى جدولُه ساكناً، وtable_name_value_sites قرينةُ قراءةٍ عبر مُساعد."
+                            "f-string نصّاً واحداً). خمسُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا "
+                            "محكومٌ عليها، وdeclared_writer_unobserved مُبلَّغٌ لا حاجب. 'لم يُرصَد' ليس "
+                            "'لا يقرأ' ولا 'لا يكتب': dynamic_table_sql_sites يعدّ ما لا يُرى جدولُه "
+                            "ساكناً، وtable_name_value_sites قرينةُ قراءةٍ أو كتابةٍ عبر مُساعد."
                         ),
                         **read_survey(sites=write_sites()),
                     },
