@@ -51,10 +51,16 @@ def _strip_comments(text: str) -> str:
     return re.sub(r"(?m)#[^\n]*", "", text)
 
 
-def _locations(text: str) -> dict[str, str]:
-    """``"<modifier> <path>"`` -> block body, braces balanced (comments removed)."""
+def _location_blocks(text: str) -> list[tuple[str, str]]:
+    """``("<modifier> <path>", own body)`` for every location, in file order.
+
+    A list, not a dict: the same location in two server blocks is two entries, so a second
+    ``location /api/`` cannot hide behind the first. A nested location's text is removed
+    from its parent's body, so a parent cannot pass on a child's ``Cookie`` clear (and the
+    child is checked on its own).
+    """
     text = _strip_comments(text)
-    found: dict[str, str] = {}
+    spans: list[tuple[str, int, int]] = []  # key, index of "{", index of matching "}"
     for match in _HEADER.finditer(text):
         key = f"{(match[1] or '').strip()} {match[2]}".strip()
         depth, start = 0, text.index("{", match.start())
@@ -64,21 +70,46 @@ def _locations(text: str) -> dict[str, str]:
             elif text[index] == "}":
                 depth -= 1
                 if depth == 0:
-                    found[key] = text[start + 1 : index]
+                    spans.append((key, start, index))
                     break
         else:
             raise AssertionError(f"unbalanced braces after location {key}")
+    headers = {start: text.rindex("location", 0, start) for _, start, _ in spans}
+    blocks = []
+    for key, start, end in spans:
+        body, cursor = [], start + 1
+        for _, inner_start, inner_end in spans:
+            if start < inner_start < end and headers[inner_start] >= cursor:
+                body.append(text[cursor : headers[inner_start]])
+                cursor = inner_end + 1
+        body.append(text[cursor:end])
+        blocks.append((key, "".join(body)))
+    return blocks
+
+
+def _locations(text: str) -> dict[str, list[str]]:
+    """``"<modifier> <path>"`` -> the own body of every block with that key."""
+    found: dict[str, list[str]] = {}
+    for key, body in _location_blocks(text):
+        found.setdefault(key, []).append(body)
     return found
 
 
-def _proxied(text: str) -> dict[str, str]:
-    return {k: v for k, v in _locations(text).items() if re.search(r"\bproxy_pass\s", v)}
+def _proxied_blocks(text: str) -> list[tuple[str, str]]:
+    return [(k, v) for k, v in _location_blocks(text) if re.search(r"\bproxy_pass\s", v)]
+
+
+def _proxied(text: str) -> dict[str, list[str]]:
+    found: dict[str, list[str]] = {}
+    for key, body in _proxied_blocks(text):
+        found.setdefault(key, []).append(body)
+    return found
 
 
 def frontend_offenders(text: str) -> list[str]:
     return sorted(
         key
-        for key, body in _proxied(text).items()
+        for key, body in _proxied_blocks(text)
         if key not in COOKIE_REQUIRED and not _CLEARS.search(body)
     )
 
@@ -89,7 +120,7 @@ _INCLUDES_PARAMS = re.compile(r"(?m)^\s*include\s+\S*proxy_params\.conf\s*;")
 def included_offenders(text: str) -> list[str]:
     """Locations that neither clear Cookie, include proxy_params.conf, nor inherit it."""
     offenders = []
-    for key, body in _proxied(text).items():
+    for key, body in _proxied_blocks(text):
         if key in COOKIE_REQUIRED or _CLEARS.search(body) or _INCLUDES_PARAMS.search(body):
             continue
         if "proxy_set_header" not in body:
@@ -137,10 +168,12 @@ def test_the_cookie_bridge_still_reads_the_client_cookie() -> None:
         "= /_auth_verify",
         "^~ /api/raster/",
     ):
-        assert 'set $fwd_auth "Bearer $cookie_sahool_at";' in frontend[key], (
-            f"{key}: the cookie->Bearer bridge is gone"
-        )
-        assert _CLEARS.search(frontend[key]), f"{key}: forwards the cookie after bridging it"
+        assert key in frontend, f"{key}: bridge location not found"
+        for body in frontend[key]:
+            assert 'set $fwd_auth "Bearer $cookie_sahool_at";' in body, (
+                f"{key}: the cookie->Bearer bridge is gone"
+            )
+            assert _CLEARS.search(body), f"{key}: forwards the cookie after bridging it"
 
 
 def test_compose_gateway_clears_the_cookie_everywhere() -> None:
@@ -209,4 +242,45 @@ def test_the_check_fails_on_a_location_that_forwards_the_cookie() -> None:
     assert frontend_offenders(commented) == ["/api/", "/auth/"], "a commented-out clear counted"
     assert included_offenders(sample) == ["/api/"], (
         "included-params scan missed a block with its own headers and no include"
+    )
+
+
+def test_a_duplicate_or_nested_location_cannot_hide_a_forwarding_block() -> None:
+    """A second ``/api/`` in another server, or a child inside a parent, is checked on its own."""
+    duplicate = """
+    server {
+        location /api/ {
+            proxy_pass http://frontend_platform/api/;
+            proxy_set_header Host $host;
+        }
+    }
+    server {
+        location /api/ {
+            proxy_pass http://frontend_platform/api/;
+            proxy_set_header Cookie "";
+        }
+    }
+    """
+    assert frontend_offenders(duplicate) == ["/api/"], (
+        "the later /api/ block hid the earlier one that forwards the cookie"
+    )
+    nested = """
+    location /api/ {
+        proxy_pass http://frontend_platform/api/;
+        proxy_set_header Host $host;
+        location /api/inner/ {
+            proxy_pass http://frontend_platform/api/inner/;
+            proxy_set_header Cookie "";
+        }
+    }
+    location /x/ {
+        location /x/y/ {
+            proxy_pass http://frontend_platform/x/y/;
+            proxy_set_header Host $host;
+        }
+        proxy_set_header Cookie "";
+    }
+    """
+    assert frontend_offenders(nested) == ["/api/", "/x/y/"], (
+        "a parent location took credit for its child's Cookie clear, or the reverse"
     )

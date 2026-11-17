@@ -8833,3 +8833,20 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الخلل:** v256 المحجوزة كانت تبصم `field_tasks.photo_url` والملاحظات. وعلى main مصدرُ صورة المشاهدة الوحيد هو `scout_photo_evidence` (v260، scout-ingest؛ ملاحظة [`v257_scouting_pin_location_photo.sql:12-16`](../../migrations/v257_scouting_pin_location_photo.sql))، فرابطٌ حرّ لا يربط الاعتماد بالبايتات التي رآها المراجِع.
 - **الإصلاح:** [`v274_inspection_evidence_versions.sql`](../../migrations/v274_inspection_evidence_versions.sql) يسمّي `photo_evidence_id` و`photo_content_sha256` ويعيد حساب البصمة في trigger؛ الاعتماد يسمّي `evidence_version` بعينها؛ و[`v277`](../../migrations/v277_inspection_close_gate.sql) يرفض الإغلاق (SH002) إن لم يعد دليلُ الدبوس الحاليّ هو دليلَ النسخة المعتمدة. الشاهد: `test_close_needs_an_approval_and_a_photo_added_after_it_invalidates_it` و`test_a_review_of_a_submit_whose_photo_changed_since_is_refused`.
 - **شرط الإغلاق:** دمجٌ في main ثمّ إيصالٌ حيّ على staging.
+
+## GATEWAY-COOKIE-FORWARD-01 — بوّابات nginx كانت تمرّر ترويسة Cookie للمتصفّح إلى المنبع
+
+- **الحالة:** open — مُصلَحة في الكود على الفرع `tb-r-gateway-cookie-live-coverage` (`2d866479f`)؛ غير مدموجة.
+- **الخلل:** [`frontend/nginx.conf`](../../frontend/nginx.conf) (بوّابة Railway العامّة) كانت تمرّر ترويسة `Cookie` كما هي، ومعها JWT `sahool_at` (HttpOnly)، من `location /api/` ومن ٢٤ موقعاً آخر إلى المنصّة وكلّ خدمة. لا خدمة تقرأ الكعكة: المصادقة بـ`Authorization: Bearer` فقط، والقارئ الوحيد هو البوّابة نفسها (`$cookie_sahool_at` → Bearer للبلاطات وطلبات التحقّق الفرعيّة).
+- **الإصلاح:** `proxy_set_header Cookie "";` في كلّ موقع وكيل في `frontend/nginx.conf`؛ و[`nginx/proxy_params.conf`](../../nginx/proxy_params.conf) ونظيره في Helm يمسحانها، والمواقع التي لا تضمّنه تمسحها بنفسها. الجسر باقٍ لأنّ `$cookie_*` يقرأ طلب العميل.
+- **الشاهد:** [`tests_v9/test_gateway_cookie_strip_contract.py`](../../tests_v9/test_gateway_cookie_strip_contract.py) (فحص ثابت للبوّابات الثلاث مع تحكّم سلبيّ) و[`frontend/tests/test_nginx_runtime.py`](../../frontend/tests/test_nginx_runtime.py) (nginx حقيقيّ: لا يصل المنبعَ أيّ Cookie).
+- **شرط الإغلاق:** دمجٌ في main ثمّ نشرُ البوّابة والتحقّق من أنّ المنبع لا يستقبل الكعكة.
+
+## CI-LIVE-PG-COVERAGE-UNREPORTED-01 — خطوات الشهادة الحيّة على PostgreSQL لا تجمع التغطية
+
+- **الحالة:** open — مُصلَحة في الكود على الفرع `tb-r-gateway-cookie-live-coverage` (`32e7903b9`)؛ غير مدموجة.
+- **الخلل:** ٢٦ خطوة شهادة في وظيفة Integration Tests من [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) شغّلت pytest بلا `--cov`، فقُرئ الكود الذي لا تبلغه إلّا هي غيرَ مغطّى على codecov/patch (`anomaly_store_pg.py` ٣٥٪ على #1508).
+- **الإصلاح:** كلّ خطوة شهادة تُلحِق بملفّ الوظيفة `.coverage.integration-auth` عبر [`config/coverage-live-integration.rc`](../../config/coverage-live-integration.rc)؛ تصدير واحد وحارس واحد ورفع واحد كما كان، فيبقى عدد الرفعات ٥ و`after_n_builds` ٥.
+- **الباقي:** التشغيل المشترك `pytest -v -m integration --tb=short` ما زال بلا تغطية لأنّ مُشغِّل المختبر يطابق السطر حرفيّاً؛ ما لا يبلغه إلّا هو يبقى غيرَ مغطّى على codecov/patch.
+- **الشاهد:** [`tests_v9/test_codecov_coverage_wiring.py`](../../tests_v9/test_codecov_coverage_wiring.py).
+- **شرط الإغلاق:** دمجٌ في main وظهور تغطية الخطوات الحيّة في تقرير Codecov.
