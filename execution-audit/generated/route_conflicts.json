@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 621,
+          "line": 615,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1150,
-  "route_inventory_sha256": "26b31c0d1ea9c348bf3d935738a47358a43a8022d5940867668da42c50eef434",
+  "route_inventory_sha256": "fac46c1939fe1fe934fb78305feb71e96f92c690aadc19a211f0f2c02669d9b6",
   "runtime_verified": false,
   "schema_version": 1
 }
