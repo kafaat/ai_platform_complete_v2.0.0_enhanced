@@ -5,9 +5,9 @@
     "mapped_routes": 631,
     "surface_routes": 631
   },
-  "inventory_sha256": "e8265083cf67392a41a78ec2f8a68dae37d10e9a34be363fd205f0eb234fdf1c",
+  "inventory_sha256": "e8f09f8bcbffd71030097a79ba66b65aa8edff664d5cf4bfb1742cf77f0bfa28",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "c22b02c8acaf01171f3ae120b3119b3affd582acb62cd7f2ecfe2afdc6d6a712",
+  "map_sha256": "dde55fae575398b2235ca474f54f2e576f4832fae46fddcf0b8156316391516c",
   "routes": [
     {
       "classification": null,
@@ -4691,7 +4691,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/platform_health.py",
       "function": "readyz",
-      "line": 59,
+      "line": 60,
       "method": "GET",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",

@@ -54,7 +54,9 @@ psql -X -v ON_ERROR_STOP=1 "$DATABASE_URL" \
 psql -X -v ON_ERROR_STOP=1 "$DATABASE_URL" \
   -f scripts/e2e/canonical_execution_learning_rls_live_gate.sql \
   >"$workdir/rls.log" 2>&1
-DATABASE_URL="$DATABASE_URL" NATS_URL="$NATS_URL" \
+# W3-01: the worker is ready only while the platform relays events (the flag it reads);
+# this gate measures that enabled path, so the flag is on for the preflight it records.
+DATABASE_URL="$DATABASE_URL" NATS_URL="$NATS_URL" FEATURE_NATS_PUBLISHERS=true \
   python services/sahool-platform/workers/canonical_execution_learning_worker.py --preflight-json \
   >"$workdir/preflight.json"
 DATABASE_URL="$DATABASE_URL" NATS_URL="$NATS_URL" \

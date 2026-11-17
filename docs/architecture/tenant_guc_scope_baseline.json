@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "a072b4b7f6bc0d3962545ea7d165ee006197da65",
+  "measured_on": "8725fcfe1012d596281e1c0be921d65a5f9d18b7",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "76881c68cbb771b41cf4df8f35baf4b28a91223fc4696ac72334e207a3bd0899",
+  "measurement_input_digest": "b3c815809cb36a96d39b8e8a7fa99b77e052a4f6aec8d4c6d6cf14c997215eac",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "9ac9e4c434959064b062c958f27e2767998c7a7b48dff15054408212200eba51",
+  "measurement_basis_digest": "87f5fda352c4ba62839d928fd353cba65ce0761522f3bc5d615e120f9106b08e",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -12,7 +12,7 @@
     },
     {
       "path": "agents/notification/agent.py",
-      "sha256": "8c5cddcc0261f7e2257410987858984d3daadb3609d047dfb1d5cd388b809bb3"
+      "sha256": "6d12092a32adb241a5782f2382cef4b45452556c4d6e2588c23692fd03634e39"
     },
     {
       "path": "scripts/ci/agronomic_lineage_integrity_gate.py",
@@ -132,7 +132,7 @@
     },
     {
       "path": "services/sahool-platform/api/main.py",
-      "sha256": "316898183b1d3a7faca9b2b6d3e4717564a281234d06191312a6dde192d4a275"
+      "sha256": "39c86fd55bc219569701bed20a4ce277892bc5478010c8b05b0a02f0d7d48467"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",
@@ -156,7 +156,7 @@
     },
     {
       "path": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
-      "sha256": "2247adf261f5b33845d620affdb4045338a5d5402066cc988128ed28e3acab4a"
+      "sha256": "f2d5bf810281776554741c66fdcf1ada2bd92cbdf03180518a81e432bf1d2d6f"
     },
     {
       "path": "services/scout-ingest-service/field_forms_api.py",

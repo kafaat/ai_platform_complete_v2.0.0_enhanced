@@ -527,6 +527,7 @@ _OUTBOX_WORKER = None  # OutboxWorker | None
 _OUTBOX_TASK = None  # asyncio.Task | None
 _NATS_CONN = None  # nats client | None
 from shared.broker_url import NATS_RELAY, start_relay  # noqa: E402 — R2: اتّصال أوّل محدود
+from shared.nats_stream_contract import NATS_PREFLIGHT  # noqa: E402 — W3-01
 
 
 async def _start_outbox_worker():
@@ -557,9 +558,8 @@ async def _start_outbox_worker():
         async def _connect():  # R2: start_relay يحدّ الاتّصال الأوّل بمهلة؛ الأبديّ بعده فقط
             return await nats.connect(nats_url, max_reconnect_attempts=-1, inbox_prefix=inbox)
 
-        async def _on_connected(conn):
-            global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
-            _NATS_CONN = conn
+        async def _start_worker():
+            global _OUTBOX_WORKER, _OUTBOX_TASK
             # عقدُ النشر يسكن مع عاملِه لا هنا — حجّتُه في `event_bus` بفجوتها.
             _publish = make_jetstream_publisher(_NATS_CONN)
             # المرسِل عابر للمستأجرين ⇒ مسبح الوظائف (sahool_jobs/BYPASSRLS، RLS v72).
@@ -567,6 +567,12 @@ async def _start_outbox_worker():
             _OUTBOX_TASK = asyncio.create_task(_OUTBOX_WORKER.run())
             # `NATS_URL` يحمل الاعتماد (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01): يُطبَع مُنقّى.
             logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", redact_broker_url(nats_url))
+
+        async def _on_connected(conn):
+            global _NATS_CONN
+            _NATS_CONN = conn
+            # W3-01: لا relay قبل preflight (الدفق + المستهلكون) — وإلّا استُنفدت محاولاتُ المعلَّق.
+            await NATS_PREFLIGHT.gate(conn, _start_worker, url=nats_url)
 
         await start_relay(_connect, _on_connected, label=redact_broker_url(nats_url))
     except Exception as e:  # noqa: BLE001 — غياب NATS لا يُسقط المنصّة
@@ -576,6 +582,7 @@ async def _start_outbox_worker():
 async def _stop_outbox_worker():
     global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
     await NATS_RELAY.reset()  # R2: أوقف إعادة الاتّصال الخلفيّة قبل العامل
+    await NATS_PREFLIGHT.reset()  # W3-01: وبوّابةَ preflight المعلَّقة
     if _OUTBOX_WORKER is not None:
         _OUTBOX_WORKER.stop()
     if _OUTBOX_TASK is not None:
