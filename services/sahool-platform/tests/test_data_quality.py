@@ -95,3 +95,17 @@ class TestCustomRules:
         rule = QualityRule(id="nn", field="lai", check="not_null")
         assert evaluate_record({"lai": None}, [rule])
         assert evaluate_record({"lai": 2.0}, [rule]) == []
+
+
+class TestNonFiniteValues:
+    def test_nan_cannot_pass_a_range_rule(self):
+        assert any(
+            v["rule_id"] == "ndvi_physical_range" for v in evaluate_record({"ndvi": float("nan")})
+        )
+
+    def test_infinity_and_oversized_integer_fail_closed(self):
+        for value in (float("inf"), float("-inf"), 10**500):
+            assert any(
+                v["rule_id"] == "humidity_pct_range"
+                for v in evaluate_record({"humidity_pct": value})
+            )

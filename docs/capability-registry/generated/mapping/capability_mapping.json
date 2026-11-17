@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7532,
+    "files_scanned": 7537,
     "files_by_kind": {
       "backend": 1301,
       "database": 352,
-      "governance": 89,
+      "governance": 88,
       "mobile": 429,
       "other": 2200,
-      "tests": 2606,
-      "web": 555
+      "tests": 2611,
+      "web": 556
     },
-    "unmapped_artifacts": 3590,
+    "unmapped_artifacts": 3593,
     "ambiguous_artifacts": 261,
     "files_by_reading": {
-      "python_functional": 4093,
-      "raw": 3439
+      "python_functional": 4097,
+      "raw": 3440
     },
-    "test_dependency_files": 1989,
-    "test_dependency_edges": 5280,
-    "test_dependency_bounded_files": 1156,
+    "test_dependency_files": 1993,
+    "test_dependency_edges": 5289,
+    "test_dependency_bounded_files": 1159,
     "test_dependency_unresolved_relations": 507
   },
   "capabilities": [
@@ -8150,6 +8150,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_cropin_advisor_crop_reference_v1.py",
+          "score": 9,
+          "signals": [
+            "content:crop season",
+            "content:season"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_tier2_modules.py",
           "score": 9,
           "signals": [
@@ -8304,7 +8312,7 @@
         "events": 52,
         "web": 18,
         "mobile": 15,
-        "tests": 59,
+        "tests": 60,
         "governance": 0,
         "other_evidence": 15
       },
@@ -8342,6 +8350,14 @@
         },
         {
           "path": "services/sahool-platform/api/season_models.py",
+          "score": 12,
+          "signals": [
+            "content:cultivar",
+            "content:variety"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
           "score": 12,
           "signals": [
             "content:cultivar",
@@ -8431,6 +8447,10 @@
         {
           "value": "unified_decision.py @ tests_v9/test_variety_catalog_reference_only_barrier.py:27",
           "score": 13
+        },
+        {
+          "value": "crop_knowledge_snapshot.v1 @ services/sahool-platform/core/crop_intelligence/knowledge_layer.py:18",
+          "score": 12
         },
         {
           "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:443",
@@ -8616,10 +8636,10 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 12,
+        "backend": 13,
         "routes": 0,
         "database": 0,
-        "events": 14,
+        "events": 15,
         "web": 6,
         "mobile": 1,
         "tests": 8,
@@ -20933,7 +20953,7 @@
           "score": 8
         },
         {
-          "value": "/api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:655",
+          "value": "/api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:660",
           "score": 8
         },
         {
@@ -24753,6 +24773,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/routers/sharing.py",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:Tenant RLS"
+          ]
+        },
+        {
           "path": "services/sahool-platform/core/db_role_guard.py",
           "score": 9,
           "signals": [
@@ -24844,6 +24872,18 @@
         },
         {
           "value": "/api/v1/fields/{field_id}/boundary/score @ services/sahool-platform/api/routers/boundaries.py:78",
+          "score": 9
+        },
+        {
+          "value": "/api/v1/sharing/keys @ services/sahool-platform/api/routers/sharing.py:31",
+          "score": 9
+        },
+        {
+          "value": "/api/v1/sharing/keys @ services/sahool-platform/api/routers/sharing.py:64",
+          "score": 9
+        },
+        {
+          "value": "/api/v1/sharing/keys/{key_id}/revoke @ services/sahool-platform/api/routers/sharing.py:76",
           "score": 9
         },
         {
@@ -27208,8 +27248,8 @@
         "database": 917
       },
       "evidence_counts": {
-        "backend": 12,
-        "routes": 16,
+        "backend": 13,
+        "routes": 19,
         "database": 100,
         "events": 76,
         "web": 0,
@@ -27263,7 +27303,11 @@
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:980",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:595",
+          "score": 9
+        },
+        {
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1047",
           "score": 9
         }
       ],
@@ -27340,7 +27384,7 @@
         "backend": 3,
         "routes": 0,
         "database": 0,
-        "events": 3,
+        "events": 4,
         "web": 0,
         "mobile": 0,
         "tests": 4,
@@ -30315,7 +30359,11 @@
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:980",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:595",
+          "score": 12
+        },
+        {
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1047",
           "score": 12
         },
         {
@@ -30595,7 +30643,7 @@
         "backend": 14,
         "routes": 32,
         "database": 14,
-        "events": 12,
+        "events": 13,
         "web": 2,
         "mobile": 1,
         "tests": 10,
@@ -31858,7 +31906,7 @@
           "score": 11
         },
         {
-          "value": "/api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:655",
+          "value": "/api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:660",
           "score": 9
         }
       ],
@@ -32632,7 +32680,11 @@
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:980",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:595",
+          "score": 12
+        },
+        {
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1047",
           "score": 12
         },
         {
@@ -32710,7 +32762,7 @@
         "backend": 3,
         "routes": 6,
         "database": 0,
-        "events": 5,
+        "events": 6,
         "web": 0,
         "mobile": 1,
         "tests": 2,
@@ -34648,6 +34700,14 @@
     },
     {
       "path": "frontend/src/lib/sceneFreshness.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/lib/sharingRevocation.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/sharingRevocation.ts",
       "kind": "web"
     },
     {
@@ -40043,10 +40103,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/routers/sharing.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/sahool-platform/api/routers/simulate.py",
       "kind": "backend"
     },
@@ -40684,10 +40740,6 @@
     },
     {
       "path": "services/sahool-platform/core/crop_intelligence/engine.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
       "kind": "backend"
     },
     {
@@ -41684,6 +41736,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_crop_water_sensitivity.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_cropin_unique_scene_dates_v1.py",
       "kind": "tests"
     },
     {
@@ -44708,6 +44764,14 @@
     },
     {
       "path": "tests_v9/test_crop_twin_verified_learning_c2.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_cropin_advisor_crop_and_water_boundary_v1.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_cropin_governed_routes_static_v1.py",
       "kind": "tests"
     },
     {
@@ -61793,6 +61857,32 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_cropin_advisor_crop_reference_v1.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+          "kind": "import",
+          "line": 3
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_cropin_unique_scene_dates_v1.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/field_context.py",
+          "kind": "import",
+          "line": 4
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_cross_domain_optimization.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -75854,12 +75944,12 @@
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "loader",
-          "line": 208
+          "line": 264
         },
         {
           "source": "tests_v9/service_module.py",
           "kind": "import",
-          "line": 205
+          "line": 261
         },
         {
           "source": "tests_v9/test_b6m4_structured_advisory.py",
@@ -75869,7 +75959,7 @@
         {
           "source": "tests_v9/test_rag_owned_gap_witnesses.py",
           "kind": "import",
-          "line": 206
+          "line": 262
         }
       ],
       "unresolved": []
@@ -80223,6 +80313,54 @@
           "source": "services/sahool-platform/core/field_digital_twin.py",
           "kind": "import",
           "line": 16
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_cropin_advisor_crop_and_water_boundary_v1.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 8
+        },
+        {
+          "source": "services/ai_agronomist/ai_evidence_runtime.py",
+          "kind": "import",
+          "line": 8
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_cropin_governed_routes_static_v1.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "services/mcp_servers/market_server.py",
+          "kind": "source_read",
+          "line": 35
+        },
+        {
+          "source": "services/sahool-platform/api/routers/harvest_traceability.py",
+          "kind": "source_read",
+          "line": 39
+        },
+        {
+          "source": "services/sahool-platform/api/routers/sharing.py",
+          "kind": "source_read",
+          "line": 27
+        },
+        {
+          "source": "services/sahool-platform/api/routers/yield_interval.py",
+          "kind": "source_read",
+          "line": 19
         }
       ],
       "unresolved": []
@@ -95109,17 +95247,22 @@
         {
           "source": "services/ai_agronomist/__init__.py",
           "kind": "import",
-          "line": 250
+          "line": 256
         },
         {
           "source": "services/ai_agronomist/ai_evidence_runtime.py",
           "kind": "import",
-          "line": 250
+          "line": 256
         },
         {
           "source": "services/ai_agronomist/ai_evidence_runtime.py",
           "kind": "source_read",
           "line": 13
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "import",
+          "line": 257
         },
         {
           "source": "services/knowledge-graph/kg_store.py",

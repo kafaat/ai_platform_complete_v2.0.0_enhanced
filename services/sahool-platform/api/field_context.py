@@ -551,3 +551,16 @@ async def refuse_if_fields_have_harvest_lots(conn, field_ids: list[str], action_
                 "سجلّ تتبّع لا يُمحى. يبقى الحقل ما دامت دفعاته قائمة."
             ),
         )
+
+
+def count_distinct_acquisition_dates(per_indicator: dict) -> int:
+    """One satellite acquisition may contribute several processed indicators."""
+    dates: set[str] = set()
+    for block in per_indicator.values():
+        if not isinstance(block, dict):
+            continue
+        for item in block.get("dates") or []:
+            observed = item.get("date") if isinstance(item, dict) else item
+            if isinstance(observed, str) and len(observed) >= 10:
+                dates.add(observed[:10])
+    return len(dates)

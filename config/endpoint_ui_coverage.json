@@ -2551,14 +2551,14 @@
       "evidence": "/api/v1/settings"
     },
     {
-      "endpoint": "/api/v1/sharing/generate-key",
-      "audience": "manager",
-      "evidence": "/api/v1/sharing/generate-key"
-    },
-    {
       "endpoint": "/api/v1/sharing/keys",
       "audience": "manager",
       "evidence": "/api/v1/sharing/keys"
+    },
+    {
+      "endpoint": "/api/v1/sharing/keys/{key_id}/revoke",
+      "audience": "manager",
+      "evidence": "/api/v1/sharing/keys/"
     },
     {
       "endpoint": "/api/v1/simulate/what-if",

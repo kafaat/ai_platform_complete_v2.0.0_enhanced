@@ -2553,7 +2553,7 @@
       "function": "field_ai_context_pack",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/ai-context-pack",
-      "line": 655,
+      "line": 660,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/field_ai_context.py::GET /api/v1/fields/{field_id}/ai-context-pack::field_ai_context_pack"
@@ -5263,30 +5263,30 @@
       "function": "list_sharing_keys",
       "method": "GET",
       "path": "/api/v1/sharing/keys",
-      "line": 116,
+      "line": 64,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/sharing.py::GET /api/v1/sharing/keys::list_sharing_keys"
     },
     {
       "file": "api/routers/sharing.py",
-      "function": "generate_share_key",
-      "method": "POST",
-      "path": "/api/v1/sharing/generate-key",
-      "line": 45,
-      "target_owner": "sahool-platform",
-      "owner_type": "bff-orchestrator",
-      "route_key": "api/routers/sharing.py::POST /api/v1/sharing/generate-key::generate_share_key"
-    },
-    {
-      "file": "api/routers/sharing.py",
       "function": "create_sharing_key",
       "method": "POST",
       "path": "/api/v1/sharing/keys",
-      "line": 85,
+      "line": 31,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/sharing.py::POST /api/v1/sharing/keys::create_sharing_key"
+    },
+    {
+      "file": "api/routers/sharing.py",
+      "function": "revoke_sharing_key",
+      "method": "POST",
+      "path": "/api/v1/sharing/keys/{key_id}/revoke",
+      "line": 76,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/sharing.py::POST /api/v1/sharing/keys/{key_id}/revoke::revoke_sharing_key"
     },
     {
       "file": "api/routers/simulate.py",
@@ -5964,7 +5964,7 @@
       "function": "field_yield_interval_endpoint",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-interval",
-      "line": 48,
+      "line": 55,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/yield_interval.py::POST /api/v1/fields/{field_id}/yield-interval::field_yield_interval_endpoint"

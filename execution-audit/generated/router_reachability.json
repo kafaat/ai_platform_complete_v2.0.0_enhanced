@@ -1144,7 +1144,7 @@
     },
     {
       "kind": "router",
-      "line": 31,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.field_ai_context",
       "node_id": "services.sahool-platform.api.routers.field_ai_context:router",
       "route_count": 1,
@@ -1909,7 +1909,7 @@
     },
     {
       "kind": "router",
-      "line": 42,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.sharing",
       "node_id": "services.sahool-platform.api.routers.sharing:router",
       "route_count": 3,
@@ -2080,7 +2080,7 @@
     },
     {
       "kind": "router",
-      "line": 21,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.yield_interval",
       "node_id": "services.sahool-platform.api.routers.yield_interval:router",
       "route_count": 1,
@@ -3036,7 +3036,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "3ad3f56db467f517f956265b9e755658ed7ea614d1bcbbe3d2eac80fe687c0ac",
+  "inventory_sha256": "63ade800ffa7d6108ffe66d4fda348e2a0411920436bef4fb96d3f5a2701695d",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {
@@ -4042,7 +4042,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 31,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.field_ai_context",
       "node_id": "services.sahool-platform.api.routers.field_ai_context:router",
       "route_count": 1,
@@ -4892,7 +4892,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 42,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.sharing",
       "node_id": "services.sahool-platform.api.routers.sharing:router",
       "route_count": 3,
@@ -5082,7 +5082,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 21,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.yield_interval",
       "node_id": "services.sahool-platform.api.routers.yield_interval:router",
       "route_count": 1,

@@ -21,6 +21,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 # مجموعة الفحوص المدعومة (ثابتة وصغيرة).
@@ -118,7 +119,13 @@ _RULES: list[QualityRule] = [
 
 def _is_number(value: object) -> bool:
     """هل القيمة عدد صالح للفحوص الرقميّة؟ (نستبعد bool لأنّه فرع من int)."""
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    # NaN fails every range comparison and would otherwise silently pass.
+    try:
+        return math.isfinite(value)
+    except (TypeError, ValueError, OverflowError):
+        return False
 
 
 def _violation(rule: QualityRule, value: object) -> dict:

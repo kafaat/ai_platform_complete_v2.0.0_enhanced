@@ -7,8 +7,9 @@
 // (POST) useMutation. الأذونات تُفرَض خادميّاً (ANALYTICS_VIEW/AUDIT_VIEW/
 // SETTINGS_MANAGE/USER_INVITE/DEVICE_MANAGE…)؛ canManage في الصفحة تلميح صادق.
 
-import { useMutation, useQuery, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
 import { kongApi, provisionTenant } from '../services/api';
+import { useAuthStore } from './useAuth';
 import type {
   CostCategoriesResult,
   FeasibilityResult,
@@ -229,14 +230,30 @@ export function useWorkOrderFromRecommendation(): UseMutationResult<Record<strin
   });
 }
 
-/** توليد مفتاح مشاركة — POST /api/v1/sharing/generate-key (USER_INVITE). يُعرَض
- *  الـplaintext مرّة واحدة فقط (الحفظ في DB يحتاج تفعيل الخادم). */
+/** Legacy name retained for clients; all new tokens are now persisted under tenant RLS.
+ * The old /sharing/generate-key generated unusable, non-persisted credentials.
+ */
 export function useGenerateShareKey(): UseMutationResult<Record<string, unknown>, unknown, Record<string, unknown>> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useMutation<Record<string, unknown>, unknown, Record<string, unknown>>({
-    mutationFn: (body) => kongApi
-      .post('/api/v1/sharing/generate-key', body)
-      .then((r) => r.data as Record<string, unknown>)
-      .catch((e) => { if (isDisabled404(e)) return { disabled: true }; throw e; }),
+    mutationFn: (body) => {
+      const { expires_in_days, ...payload } = body;
+      return kongApi
+        .post('/api/v1/sharing/keys', {
+          ...payload,
+          valid_days: expires_in_days == null ? 30 : Number(expires_in_days),
+        })
+        .then((r) => r.data as Record<string, unknown>)
+        .catch((e) => { if (isDisabled404(e)) return { disabled: true }; throw e; });
+    },
+    // Both creation paths write the same tenant-scoped, persisted sharing keys.
+    // Do not invalidate on a legacy 404 mapped to { disabled: true }.
+    onSuccess: (result) => {
+      if (result.disabled !== true) {
+        return qc.invalidateQueries({ queryKey: ['sharing', 'keys', tid] });
+      }
+    },
   });
 }
 

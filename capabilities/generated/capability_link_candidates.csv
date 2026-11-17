@@ -538,7 +538,7 @@ FM-003,api,GET /api/v1/fields @ services/sahool-platform/api/routers/fields.py:5
 FM-003,api,GET /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:979,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:2958,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/agronomic-replay @ services/sahool-platform/api/routers/agronomic_replay.py:58,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:656,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:661,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:3730,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/available-dates @ services/sahool-platform/api/routers/field_workspace_imagery.py:51,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:265,6,applied
@@ -709,7 +709,7 @@ FM-003,api,POST /api/v1/fields/{field_id}/water-ledger @ services/sahool-platfor
 FM-003,api,POST /api/v1/fields/{field_id}/water-twin @ services/sahool-platform/api/routers/water_twin.py:199,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/wind/drift-risk @ services/sahool-platform/api/routers/fields.py:2644,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/yield-estimate @ services/sahool-platform/api/routers/fields.py:3394,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/yield-interval @ services/sahool-platform/api/routers/yield_interval.py:49,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/yield-interval @ services/sahool-platform/api/routers/yield_interval.py:56,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:85,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/zone-sampling-plan @ services/sahool-platform/api/routers/productivity.py:84,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3656,4,applied
@@ -987,6 +987,7 @@ FM-003,test,tests_v9/test_b6m4_field_bootstrap.py,3,applied
 FM-003,test,tests_v9/test_c4_economics_erp_payment_boundary_guard.py,3,applied
 FM-003,test,tests_v9/test_canonical_boundary.py,3,applied
 FM-003,test,tests_v9/test_canonical_field_geometry_contract.py,3,applied
+FM-003,test,tests_v9/test_cropin_advisor_crop_and_water_boundary_v1.py,3,applied
 FM-003,test,tests_v9/test_decision_review_boundary_guard.py,3,applied
 FM-003,test,tests_v9/test_disease_field_state_feed.py,3,applied
 FM-003,test,tests_v9/test_farm_book_receipt_field.py,3,applied
@@ -1223,6 +1224,7 @@ FM-005,test,services/sahool-platform/tests/test_crop_suitability.py,3,applied
 FM-005,test,services/sahool-platform/tests/test_crop_twin_compose_endpoint.py,3,applied
 FM-005,test,services/sahool-platform/tests/test_crop_twin_server_spectral.py,3,applied
 FM-005,test,services/sahool-platform/tests/test_crop_water_sensitivity.py,3,applied
+FM-005,test,services/sahool-platform/tests/test_cropin_advisor_crop_reference_v1.py,3,applied
 FM-005,test,services/sahool-platform/tests/test_eo_crop_consumer.py,3,applied
 FM-005,test,services/sahool-platform/tests/test_v26_variety_crop_boundary.py,5,applied
 FM-005,test,services/sahool-platform/tests/test_variety_suitability.py,3,applied
@@ -1233,6 +1235,7 @@ FM-005,test,tests_v9/test_crop_picker_options_resolve.py,3,applied
 FM-005,test,tests_v9/test_crop_root_policy_rls_integration.py,3,applied
 FM-005,test,tests_v9/test_crop_twin.py,3,applied
 FM-005,test,tests_v9/test_crop_twin_verified_learning_c2.py,3,applied
+FM-005,test,tests_v9/test_cropin_advisor_crop_and_water_boundary_v1.py,3,applied
 FM-005,test,tests_v9/test_diagnose_crop_normalisation.py,3,applied
 FM-005,test,tests_v9/test_supervisor_crop_model_agriai_routing.py,3,applied
 FM-005,test,tests_v9/test_variety_catalog_reference_only_barrier.py,3,applied
@@ -1409,6 +1412,7 @@ GIS-001,test,tests_v9/test_auth_bcrypt_72_byte_boundary.py,3,applied
 GIS-001,test,tests_v9/test_c4_economics_erp_payment_boundary_guard.py,3,applied
 GIS-001,test,tests_v9/test_canonical_boundary.py,3,applied
 GIS-001,test,tests_v9/test_canonical_field_geometry_contract.py,3,applied
+GIS-001,test,tests_v9/test_cropin_advisor_crop_and_water_boundary_v1.py,3,applied
 GIS-001,test,tests_v9/test_decision_review_boundary_guard.py,3,applied
 GIS-001,test,tests_v9/test_field_boundary_adapters_v59_1.py,3,applied
 GIS-001,test,tests_v9/test_field_boundary_ai_v59.py,3,applied
@@ -2056,6 +2060,7 @@ SAT-001,test,services/raster-service/test_stac_c1_processing.py,3,applied
 SAT-001,test,services/raster-service/test_stac_projection_contract.py,3,applied
 SAT-001,test,services/raster-service/test_stac_singleflight_provenance.py,3,applied
 SAT-001,test,services/raster-service/test_stac_vrt.py,3,applied
+SAT-001,test,services/sahool-platform/tests/test_cropin_unique_scene_dates_v1.py,3,applied
 SAT-001,test,tests_v9/test_backfill_scene_job_threadpool_v30_3.py,3,applied
 SAT-001,test,tests_v9/test_catalog_bridge_registry_stac_v30_1.py,3,applied
 SAT-001,test,tests_v9/test_cdse_and_storage_failclosed_v29_8.py,3,applied

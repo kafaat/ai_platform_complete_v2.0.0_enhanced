@@ -558,7 +558,7 @@ sahool-platform,POST,/api/v1/farms,create_farm,services/sahool-platform/api/rout
 sahool-platform,GET,/api/v1/farms,list_farms,services/sahool-platform/api/routers/farms.py,107
 sahool-platform,GET,/api/v1/farms/{farm_id}/fields,list_farm_fields,services/sahool-platform/api/routers/farms.py,142
 sahool-platform,GET,/api/v1/features,get_features,services/sahool-platform/api/routers/features.py,60
-sahool-platform,GET,/api/v1/fields/{field_id}/ai-context-pack,field_ai_context_pack,services/sahool-platform/api/routers/field_ai_context.py,656
+sahool-platform,GET,/api/v1/fields/{field_id}/ai-context-pack,field_ai_context_pack,services/sahool-platform/api/routers/field_ai_context.py,661
 sahool-platform,GET,/api/v1/fields/{field_id}/data-completeness,field_data_completeness,services/sahool-platform/api/routers/field_completeness.py,56
 sahool-platform,POST,/api/v1/field-intelligence/analyze,field_intelligence_analyze,services/sahool-platform/api/routers/field_intelligence.py,469
 sahool-platform,GET,/api/v1/field-intelligence/analyze/jobs/{job_id},field_intelligence_analyze_job_status,services/sahool-platform/api/routers/field_intelligence.py,516
@@ -847,9 +847,9 @@ sahool-platform,API_ROUTE,/api/segmentation/{path:path},proxy_segmentation,servi
 sahool-platform,API_ROUTE,/api/field-forms/{path:path},proxy_field_forms,services/sahool-platform/api/routers/service_proxy.py,341
 sahool-platform,PUT,/api/v1/settings,upsert_setting,services/sahool-platform/api/routers/settings.py,30
 sahool-platform,GET,/api/v1/settings,list_settings,services/sahool-platform/api/routers/settings.py,63
-sahool-platform,POST,/api/v1/sharing/generate-key,generate_share_key,services/sahool-platform/api/routers/sharing.py,46
-sahool-platform,POST,/api/v1/sharing/keys,create_sharing_key,services/sahool-platform/api/routers/sharing.py,86
-sahool-platform,GET,/api/v1/sharing/keys,list_sharing_keys,services/sahool-platform/api/routers/sharing.py,117
+sahool-platform,POST,/api/v1/sharing/keys,create_sharing_key,services/sahool-platform/api/routers/sharing.py,32
+sahool-platform,GET,/api/v1/sharing/keys,list_sharing_keys,services/sahool-platform/api/routers/sharing.py,65
+sahool-platform,POST,/api/v1/sharing/keys/{key_id}/revoke,revoke_sharing_key,services/sahool-platform/api/routers/sharing.py,77
 sahool-platform,POST,/api/v1/farm-book/parties,create_party,services/sahool-platform/api/routers/simple_farm_book.py,215
 sahool-platform,GET,/api/v1/farm-book/parties,list_parties,services/sahool-platform/api/routers/simple_farm_book.py,247
 sahool-platform,POST,/api/v1/farm-book/entries,create_entry,services/sahool-platform/api/routers/simple_farm_book.py,429
@@ -926,7 +926,7 @@ sahool-platform,POST,/api/v1/weather-analytics/planting-guide,weather_planting_g
 sahool-platform,GET,/api/v1/wofost/crop-types,wofost_crop_types_endpoint,services/sahool-platform/api/routers/wofost.py,27
 sahool-platform,GET,/api/v1/wofost/adaptation-guidance,wofost_adaptation_endpoint,services/sahool-platform/api/routers/wofost.py,33
 sahool-platform,GET,/api/v1/analysis/yield,yield_analysis_endpoint,services/sahool-platform/api/routers/yield_analysis.py,39
-sahool-platform,POST,/api/v1/fields/{field_id}/yield-interval,field_yield_interval_endpoint,services/sahool-platform/api/routers/yield_interval.py,49
+sahool-platform,POST,/api/v1/fields/{field_id}/yield-interval,field_yield_interval_endpoint,services/sahool-platform/api/routers/yield_interval.py,56
 sahool-platform,POST,/api/v1/fields/{field_id}/yield-maps/ingestions,ingest_yield_map,services/sahool-platform/api/routers/yield_map_ingestion.py,85
 sahool-platform,GET,/api/v1/fields/{field_id}/yield-maps/ingestions,list_yield_map_ingestions,services/sahool-platform/api/routers/yield_map_ingestion.py,258
 sahool-platform,GET,/api/v1/fields/{field_id}/yield-map-records,query_yield_map_records,services/sahool-platform/api/routers/yield_map_ingestion.py,292

@@ -14,6 +14,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from core.ai_policy_envelope import build_ai_policy_envelope, load_tenant_ai_policy_row
+from core.crop_intelligence.knowledge_layer import compose_advisor_crop_reference
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -38,6 +39,7 @@ class FieldAiContextPack(BaseModel):
     generated_at: str
     field_profile: dict[str, Any] = Field(default_factory=dict)
     active_season: dict[str, Any] | None = None
+    crop_knowledge: dict[str, Any] = Field(default_factory=dict)
     imagery_timeline: dict[str, Any] = Field(default_factory=dict)
     weather_history: dict[str, Any] = Field(default_factory=dict)
     operations_timeline: dict[str, Any] = Field(default_factory=dict)
@@ -242,6 +244,7 @@ def _apply_final_context_budget(
     payload["active_season"] = (
         _redact_context(payload.get("active_season")) if payload.get("active_season") else None
     )
+    payload["crop_knowledge"] = _redact_context(payload.get("crop_knowledge") or {})
     for section in (
         "operations_timeline",
         "drawing_context",
@@ -499,7 +502,8 @@ async def _optional_imagery_timeline(
         "until": date.today().isoformat(),
         "per_indicator": per_indicator,
         "total_dates": total_dates,
-        "note_ar": "يعرض فقط المشاهد الموجودة/المجهزة؛ استخدم imagery/backfill custom months=24 لتجهيز سنتين.",
+        "unique_scene_dates": context_reads.count_distinct_acquisition_dates(per_indicator),
+        "note_ar": "total_dates=سجلات المؤشرات؛ unique_scene_dates=تواريخ الالتقاط الفريدة.",
         "freshness_score": _freshness_score(
             [
                 item
@@ -636,7 +640,8 @@ def _summary_ar(pack: dict[str, Any]) -> str:
     parts = [
         f"سياق الحقل {name}:",
         f"نطاق الذاكرة {pack.get('days')} يوم.",
-        f"مشاهد الأقمار المتاحة: {imagery.get('total_dates', 0)}.",
+        f"تواريخ التصوير الفريدة: {imagery.get('unique_scene_dates', 0)}؛ "
+        f"سجلات المؤشرات: {imagery.get('total_dates', 0)}.",
         f"أحداث timeline: {events.get('total', 0)}.",
         f"هندسات ومناطق محفوظة: {drawings.get('total', 0)}.",
     ]
@@ -697,6 +702,7 @@ async def field_ai_context_pack(
         # envelope is tenant-scoped. A missing row (or read failure) ⇒ most-restrictive envelope.
         ai_policy_row = await load_tenant_ai_policy_row(conn, str(user.tenant_id))
 
+    crop_knowledge = compose_advisor_crop_reference(field_profile, active_season)
     imagery = {"available": False, "per_indicator": {}, "total_dates": 0}
     if include_imagery:
         imagery, warn = await _optional_imagery_timeline(field_id, str(user.tenant_id), days)
@@ -721,6 +727,7 @@ async def field_ai_context_pack(
         "generated_at": datetime.now(UTC).isoformat(),
         "field_profile": field_profile,
         "active_season": active_season,
+        "crop_knowledge": crop_knowledge,
         "imagery_timeline": imagery,
         "weather_history": weather,
         "operations_timeline": operations,

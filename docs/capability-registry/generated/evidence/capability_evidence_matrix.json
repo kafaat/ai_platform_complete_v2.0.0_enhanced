@@ -2700,6 +2700,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_cropin_advisor_crop_reference_v1.py",
+          "signal": "filename:test_"
+        },
+        {
+          "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_farm_full_season_forensic.py",
           "signal": "filename:test_"
         },
@@ -2946,6 +2951,7 @@
         "mobile/sahool_app/test/features/offline_sync/operation_store_unreadable_test.dart",
         "services/sahool-platform/tests/test_canonical_schemas.py",
         "services/sahool-platform/tests/test_crop_rotation_intelligence.py",
+        "services/sahool-platform/tests/test_cropin_advisor_crop_reference_v1.py",
         "services/sahool-platform/tests/test_farm_full_season_forensic.py",
         "services/sahool-platform/tests/test_field_season_projection.py",
         "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",

@@ -242,12 +242,19 @@ def test_evidence_authority_is_not_declared_none_while_kg_shapes_evidence():
 async def test_advisory_dependency_transport_failure_is_an_explicit_boundary_error(
     monkeypatch, dependency, failure
 ):
-    from types import SimpleNamespace
+    """KG transport errors block; optional RAG transport errors degrade with provenance.
+
+    This single boundary test covers both sides of the post-#1519 contract. A real
+    AdvisorQuery is needed: its tool_calls, language and model defaults remain
+    part of the downstream response path reached by a degraded RAG request.
+    """
+    from unittest.mock import AsyncMock
 
     import httpx
     from fastapi import HTTPException
 
     from services.ai_agronomist import ai_evidence_runtime as runtime
+    from services.ai_agronomist.main import AdvisorQuery
 
     original_client = httpx.AsyncClient
     calls = []
@@ -261,38 +268,56 @@ async def test_advisory_dependency_transport_failure_is_an_explicit_boundary_err
             if failure == "timeout":
                 raise httpx.ReadTimeout("")
             raise httpx.ConnectError("secret credentials and internal hostname")
-        return httpx.Response(200, json={"edges": []})
+        payload = {"edges": []} if current == "knowledge-graph" else {"annotations": []}
+        return httpx.Response(200, json=payload)
 
     monkeypatch.setattr(
         httpx,
         "AsyncClient",
         lambda **kwargs: original_client(transport=httpx.MockTransport(transport), **kwargs),
     )
-    req = SimpleNamespace(
-        tenant_id=tenant_id,
-        current_field_state=None,
-        field_id=None,
-        crop="wheat",
-        question="ما حالة القمح؟",
-        region=None,
-        final_k=5,
+    # Keep this test strictly about the two service-to-service boundaries; an audit
+    # event must not introduce a third, unrelated network request on the success path.
+    monkeypatch.setattr(
+        runtime, "_record_ai_advice_event", AsyncMock(return_value={"status": "skipped"})
     )
-    with pytest.raises(HTTPException) as error:
-        await runtime.build_evidence_response(
+    req = AdvisorQuery(question="ما حالة القمح؟", crop="wheat")
+    expected_reason = (
+        "advisory_dependency_timeout" if failure == "timeout" else "advisory_dependency_unavailable"
+    )
+
+    if dependency == "knowledge-graph":
+        with pytest.raises(HTTPException) as error:
+            await runtime.build_evidence_response(
+                req,
+                endpoint_mode="evidence",
+                x_tenant_id=tenant_id,
+                save_agent_tool_audit=lambda value: None,
+                save_pending_approval=lambda value: None,
+            )
+        assert error.value.status_code == (504 if failure == "timeout" else 502)
+        assert error.value.detail["dependency"] == "knowledge-graph"
+        assert error.value.detail["reason_code"] == expected_reason
+        assert "secret" not in str(error.value.detail)
+        assert calls == ["knowledge-graph"]
+    else:
+        result = await runtime.build_evidence_response(
             req,
             endpoint_mode="evidence",
             x_tenant_id=tenant_id,
             save_agent_tool_audit=lambda value: None,
             save_pending_approval=lambda value: None,
         )
-    assert error.value.status_code == (504 if failure == "timeout" else 502)
-    assert error.value.detail["dependency"] == dependency
-    assert error.value.detail["reason_code"] == (
-        "advisory_dependency_timeout" if failure == "timeout" else "advisory_dependency_unavailable"
-    )
-    assert "secret" not in str(error.value.detail)
-    assert calls == (
-        ["knowledge-graph"]
-        if dependency == "knowledge-graph"
-        else ["knowledge-graph", "rag-retrieval"]
-    )
+        # RAG has no HTTP response on this path; an absent optional transport is not
+        # equivalent to a rejected upstream HTTP 401/403 (tested separately).
+        assert result["status"] == "ok"
+        assert result["rag_available"] is False
+        assert result["rag_unavailable_reason"] == "rag_transport_unavailable"
+        evidence = result["annotations"]["rag_retrieval"]
+        assert evidence["available"] is False
+        assert evidence["upstream_status"] is None
+        assert result["annotations"]["rag"] == []
+        assert evidence["transport_reason"] == expected_reason
+        assert len(evidence["correlation_id"]) == 32
+        assert "secret" not in repr(result)
+        assert calls == ["knowledge-graph", "rag-retrieval"]

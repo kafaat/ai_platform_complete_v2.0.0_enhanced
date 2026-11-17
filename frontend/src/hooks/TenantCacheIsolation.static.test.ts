@@ -55,3 +55,16 @@ describe('F5-01/F5-03 — task query is tenant-scoped and invalidated on mutatio
     expect(block).toContain("invalidateQueries({ queryKey: ['tasks', tid] })");
   });
 });
+
+// The manager-console and SharingPanel creation hooks share the same tenant cache.
+describe('manager sharing-key creation cache invalidation', () => {
+  it('invalidates both sharing-key list variants for the active tenant after a real creation', () => {
+    const manager = read('src/hooks/useManagerConsole.ts');
+    const block = manager.slice(manager.indexOf('export function useGenerateShareKey'), manager.indexOf('export function useSnapshotEvidence'));
+    expect(block).toContain('useQueryClient()');
+    expect(block).toContain("useAuthStore((s) => s.tenantId) ?? 'default'");
+    expect(block).toContain("invalidateQueries({ queryKey: ['sharing', 'keys', tid] })");
+    expect(block).toContain('result.disabled !== true');
+    expect(api).toContain("onSuccess:  () => { qc.invalidateQueries({ queryKey: ['sharing', 'keys', tid] }); }");
+  });
+});

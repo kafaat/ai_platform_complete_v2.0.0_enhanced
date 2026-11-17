@@ -13,10 +13,17 @@
 from __future__ import annotations
 
 from core.yield_interval_service import field_yield_interval
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
-from api.main import Permission, UserSchema, require_permission
+from api.main import (
+    Permission,
+    UserSchema,
+    _assert_field_in_tenant,
+    _db_unavailable,
+    require_permission,
+    tenant_connection,
+)
 
 router = APIRouter()
 
@@ -56,8 +63,27 @@ async def field_yield_interval_endpoint(
     لا قراءة قاعدة — المُدخلات يُوفّرها العميل؛ ``field_id`` سياق فقط.
     422 على تغطية غير صالحة (خارج (0, 1)) عبر التحقّق من Pydantic.
     """
-    return field_yield_interval(
+    # A field path is an authorization boundary, even for read-only previews.
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise _db_unavailable("تحقق ملكية حقل نطاق الغلة", exc) from exc
+
+    # These calibration residuals come from the caller, not an owner-issued,
+    # season-bound validation cohort. A mathematically calculated interval is
+    # therefore NOT certified predictive evidence for a field decision.
+    preview = field_yield_interval(
         point_estimate=body.point_estimate,
         residuals=body.residuals,
         coverage=body.coverage,
     )
+    return {
+        **preview,
+        "field_id": field_id,
+        "evidence_source": "client_supplied_unverified",
+        "calibration_owner_verified": False,
+        "decision_usable": False,
+    }

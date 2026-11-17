@@ -2815,7 +2815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f5d03c172ee93794ea1cd0b534e2a184baed073b8aa50c6b07f9dbe616ac514"
+          "content": "585b0a538bb3ee3e0dd028046d29ce5c6c7dd61c142187c46bae4ef6034609e5"
         }
       ],
       "name": "frontend/src/components/sharing/SharingPanel.tsx",
@@ -2955,7 +2955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8f42166035becbab1af1d70c1a201a9cc749cd8084cd5aa7bcdb927caae4a4b4"
+          "content": "a28a32eef0107f6d9643cf802674de7793657a6150d4518ab3c7a53ffe8e5a09"
         }
       ],
       "name": "frontend/src/hooks/TenantCacheIsolation.static.test.ts",
@@ -3025,7 +3025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ada1b2b9df3dfc456ef7e4f2c04941e5cae745c3060ec5bcfb81b403fae72b1"
+          "content": "2ac64fc3c91c0fe847fd037a5df56b10949a848836ab033a325baa9d218421ac"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -3295,7 +3295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59efa147d20f48b1d9a7af71b13dd28faef9e9b6194d4ad03b934260bdedbce1"
+          "content": "ca2fc19abe5cdacdc99a94d9f4c7ca7d94b18fa997d66c850897bc5541adfe1f"
         }
       ],
       "name": "frontend/src/hooks/useManagerConsole.ts",
@@ -4945,7 +4945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a7cb755ff613d63dcabf6247df3390f00422f6c56f5477e2b83d5b6714408f71"
+          "content": "e69e0aab0f121530c4b4bac1706aada8b28515d4c8d4f16f15223a460148fd09"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -5159,6 +5159,26 @@
         }
       ],
       "name": "frontend/src/lib/seasonDraftStorage.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e0a592f058fbf1d64176166be60278ee1ca4218d0169a8e53ea248adc14cc4c"
+        }
+      ],
+      "name": "frontend/src/lib/sharingRevocation.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a5ee4705dce87efb10032accb4e16ba91231d0cab66a3611b9d64fdc71fc78e6"
+        }
+      ],
+      "name": "frontend/src/lib/sharingRevocation.ts",
       "type": "file"
     },
     {
@@ -6655,7 +6675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4e82e42b60cbffd60899a22c73c8645c77ed5f076ca792bd2f3d1409ebb58635"
+          "content": "84ab2f1274a3bb278182324193aa5858287ba23ae9b45cc73536eb06f88e234a"
         }
       ],
       "name": "frontend/src/sections/ManagerConsolePage.tsx",
@@ -7845,7 +7865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb2352f7631a2742d451b9b5821d7729dc58b83ee25c0ec31e7e5fbbf908e30b"
+          "content": "d41f1184d22cbdbcfe9a32ac3379de4550f36ad91a8014f3840c4582e8837cd1"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -18205,7 +18225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ab464165c74e6301980ad4bef40494ca548d62c018efc23c7ee6453faaa9cc5e"
+          "content": "3b1f8ceacce396d543aa11c90de1a0df3e106b43d40ee5717db19c661bdbb75f"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -18595,7 +18615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ce70828074a7a372047eb7b4411feab506b86a9cb3c7efe735162c34827702e5"
+          "content": "8621a590a882e7c78925304a54822a5a6a202432a1840a84c1608ed85709e01c"
         }
       ],
       "name": "services/ai_agronomist/test_ai_field_memory_v49.py",
@@ -25895,7 +25915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dcd3feba925be3062065689805064b4497f48f5dd7de95514b9ac80950397649"
+          "content": "8bbf9d73ba93a091c8f13c1b2517a9fb12f252f71f74cb21cf66f53e5316a707"
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
@@ -27625,7 +27645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "63ee4e1fc8c8099ecfed7f183c7e5c6e90624856df311faa819974d35f3bbccb"
+          "content": "fddc0bd099d77a9c58e2985d54266e20d0ebe79483cc643782fac96a48ab7b5b"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_ai_context.py",
@@ -28475,7 +28495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "023a5678cf6bb423e1a1858511e13c811c840798dceda92b1e19cba2fe680760"
+          "content": "3464f7c40a49c8b0250f7ffbf6c5383cc68b2877db350993a919840a306ab4c6"
         }
       ],
       "name": "services/sahool-platform/api/routers/sharing.py",
@@ -28665,7 +28685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca7eac46825d67935c72c415af9a598e4ce051d1447fa23115bda342d7173d31"
+          "content": "543cf38f5c36840b72618868f32b7fa62c84ff35017b348629acd6ea5e9bb319"
         }
       ],
       "name": "services/sahool-platform/api/routers/yield_interval.py",
@@ -30445,7 +30465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb12fc30d6bac8f93df203832a8bc3d87cab65646f1fd02a627ced45fa42049a"
+          "content": "e005b162062280889e268b3bb299d90213dae91a54cdcce174afa57115ee9964"
         }
       ],
       "name": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
@@ -30635,7 +30655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bce277bab2f1212fe0720a936d4642e1de910364179aacb25492e62cc4c27446"
+          "content": "12ad3fff70cde6bbf29bd68e1f3220fafa8c916fd619e4a78b0ba029d8a7ff95"
         }
       ],
       "name": "services/sahool-platform/core/data_quality.py",
@@ -34025,6 +34045,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c6d9d8abf0cd7d655122c8945030d0b811457252b670a61294d756b18bbbf353"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_cropin_advisor_crop_reference_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "02ca2031c31d729e30abf9447f2b7c191e2dede403bea6e55267dc7577a79d84"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_cropin_unique_scene_dates_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "095e318dce978b5b18afd03ba4c6442e2944002ada20845c25f12cc67a8f1be5"
         }
       ],
@@ -34065,7 +34105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76a1e7bad5df2f893f58cb435d65f025a61bf825ab57eeda5886fca020fc8cb6"
+          "content": "e89b06cb7fa26e4948757d2be05324a32924769a2536e3783de19bf6dd854c56"
         }
       ],
       "name": "services/sahool-platform/tests/test_data_quality.py",

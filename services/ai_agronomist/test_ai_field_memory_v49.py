@@ -36,7 +36,7 @@ def test_grounding_context_includes_two_year_field_memory():
         {"rag": [], "knowledge_graph": [], "canonical_field_state": {"ai_context_pack": _pack()}}
     )
     assert "ذاكرة الحقل لسنتين" in txt
-    assert "المشاهد/المؤشرات التاريخية: 8" in txt
+    assert "المشاهد/المؤشرات التاريخية: غير معروف تاريخ التقاط فريد و8 سجل مؤشر" in txt
     assert "الطقس التاريخي: 730 يوم" in txt
     assert "warning-a" in txt
 
@@ -64,3 +64,21 @@ def test_evidence_sources_expose_user_facing_source_cards():
         "drawing_context",
     }.issubset(keys)
     assert next(s for s in sources if s["key"] == "imagery_timeline")["count"] == 8
+
+
+def test_legacy_pack_reports_unknown_not_zero_unique_scene_dates():
+    pack = _pack()
+    pack["imagery_timeline"]["total_dates"] = 12
+    txt = _grounding_context_text({"canonical_field_state": {"ai_context_pack": pack}})
+    assert "غير معروف تاريخ التقاط فريد و12 سجل مؤشر" in txt
+    assert "0 تاريخ التقاط فريد" not in txt
+
+
+def test_new_pack_preserves_explicit_unique_scene_count_including_zero():
+    pack = _pack()
+    pack["imagery_timeline"]["unique_scene_dates"] = 4
+    txt = _grounding_context_text({"canonical_field_state": {"ai_context_pack": pack}})
+    assert "4 تاريخ التقاط فريد و8 سجل مؤشر" in txt
+    pack["imagery_timeline"]["unique_scene_dates"] = 0
+    txt = _grounding_context_text({"canonical_field_state": {"ai_context_pack": pack}})
+    assert "0 تاريخ التقاط فريد و8 سجل مؤشر" in txt

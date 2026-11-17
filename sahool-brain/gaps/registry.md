@@ -8959,3 +8959,13 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `docs/architecture/platform_extraction_map.json` (السقف) · `scripts/ci/platform_route_budget_guard.py` · بند W4-09 في خطّة تدقيق التوصيل (`routes-10`).
 - **الإصلاح الجاري:** تقليص انتقائيّ إضافيّ لمسارات ميتة يعيد هامشاً موجباً **دون** رفع السقف؛ ولا يُحلّ بتصنيف مسار نطاقٍ بنيةً ولا بحذف نقطة provenance.
 - **شرط الإغلاق:** هامش موجب على main يطبعه الحارس، والسقف لم يُرفَع.
+
+## SHARE-REVOKE-UNKNOWN-RESULT-01
+
+- **الحالة:** fixed على فرع `integrate/open-drafts-selective-20261117` في PR #1525؛ التحقق على CI الموحّد والنشر NOT_VERIFIED.
+- **الأولوية:** MEDIUM (سلامة تفسير أثر إلغاء بيانات اعتماد مشاركة).
+- **العطل:** كانت `frontend/src/components/sharing/SharingPanel.tsx` تعرض «لم تتغير حالته» عند أيّ إخفاق في طلب `POST /api/v1/sharing/keys/{key_id}/revoke`. انقطاع الرد بعد إتمام `SharingKeyService.revoke_key` لا يثبت أن المفتاح بقي فعالاً؛ إعلان عدم التنفيذ خطأ.
+- **المصدر:** مراجعة #1525 وتعليق `SHARE-REVOKE-UNKNOWN-RESULT-01`؛ `frontend/src/components/sharing/SharingPanel.tsx` و`services/sahool-platform/api/sharing.py` (تنفيذ الإلغاء). الالتزام `7ec1a134e5ddffb6904bc4e8e40e6df2c8823902`.
+- **الإصلاح:** `frontend/src/lib/sharingRevocation.ts` يعيد `unknown` عند فقد الرد ويجري محاولة تحديث القائمة حتى عند الشك؛ `confirmed_refresh_unavailable` لا ينكر إلغاءً أكّده الخادم. الواجهة تعرض صياغة عدم يقين ولا تلفّق حالة المفتاح. لم تتغيّر صلاحية `USER_INVITE` ولا RLS.
+- **شاهد الاختبار:** `frontend/src/lib/sharingRevocation.test.ts` يغطي تطبيق الخادم الإلغاء ثمّ فقد الرد، وفشل التحديث، والنجاح المؤكَّد. اختبار معزول محليّ بثلاث حالات PASS، أمّا Vitest وCI على شجرة الدمج النهائيّة فحالتها PENDING وليست شهادة.
+- **شرط الإغلاق:** `npm run typecheck` وVitest و`verify_all_generated.py --check` وبوابات GitHub الحاجبة PASS على SHA الموحَّد، ثمّ دليل تكامل عند توفر بيئة معزولة. لا يُستدلّ من إصلاح المصدر على نشر Railway.

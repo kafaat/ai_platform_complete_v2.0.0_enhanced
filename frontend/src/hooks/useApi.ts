@@ -52,7 +52,7 @@ import {
   type DocumentRecord, type DocumentCreateInput, type DocumentCategory,
   // ── الحوكمة والتدقيق: أصل/أحداث/أوامر كيان + مفاتيح المشاركة ──
   listSharingKeys, createSharingKey,
-  type SharingKey, type NewSharingKey, type SharingKeyCreated,
+  type SharingKey, type SharingKeysResponse, type NewSharingKey, type SharingKeyCreated,
   // ── المزارع (بوّابة التأهيل): سرد + إنشاء ──
   fetchFarms, createFarm,
   type Farm, type FarmCreateInput, type FarmCreated,
@@ -3177,14 +3177,27 @@ export function useCreateDocument(): UseMutationResult<DocumentRecord, Error, Do
 
 // ── Governance: مفاتيح المشاركة (حيّة، tenant-scoped + RBAC user:invite) ──
 // لا fallback وهميّ: 503 DB مُعطَّلة / 403 RBAC يُرفع لتعرض الواجهة حالة صادقة.
+// Keep the existing array-returning hook compatible with GovernancePage while exposing
+// the server's capability declaration through the SAME React Query cache entry.
+// Do not infer revoke support from a successful list response: older servers list keys too.
+const sharingKeysOptions = (tid: string, includeRevoked: boolean) => ({
+  queryKey: QK.sharingKeys(tid, includeRevoked),
+  queryFn: () => listSharingKeys(includeRevoked),
+  staleTime: 60_000,
+  retry: false,
+});
+
 export function useSharingKeys(includeRevoked = false): UseQueryResult<SharingKey[]> {
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
-  return useQuery<SharingKey[]>({
-    queryKey: QK.sharingKeys(tid, includeRevoked),
-    queryFn:  () => listSharingKeys(includeRevoked).then((r) => (Array.isArray(r.keys) ? r.keys : [])),
-    staleTime:60_000,
-    retry:    false,
+  return useQuery<SharingKeysResponse, Error, SharingKey[]>({
+    ...sharingKeysOptions(tid, includeRevoked),
+    select: (r) => (Array.isArray(r.keys) ? r.keys : []),
   });
+}
+
+export function useSharingKeysWithCapabilities(includeRevoked = false): UseQueryResult<SharingKeysResponse> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<SharingKeysResponse>(sharingKeysOptions(tid, includeRevoked));
 }
 
 // إنشاء مفتاح مشاركة. النصّ الكامل يُعاد مرّة واحدة فقط (يعرضه المُستدعي ثمّ يُهمَل).

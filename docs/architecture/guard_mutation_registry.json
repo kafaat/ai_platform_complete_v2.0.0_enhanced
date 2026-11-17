@@ -2,6 +2,18 @@
   "$comment": "سجلّ طفرات الحرّاس — لكلّ حارس عطلٌ يُزرَع في مصدره واختبارٌ يجب أن يحمرّ عندها. الحارس الأخضر يقول شيئاً واحداً بيقين: لم يُطلِق؛ و«لم يجد عطلاً» و«لا يرى العطل أصلاً» لا يفرّق بينهما شيء آخر. يفرضه scripts/ci/guard_mutation_guard.py.",
   "adjudicated_on": "2026-08-02",
   "behavioural": {
+    "scripts/ci/export_explorer_routes.py": {
+      "$policy": "New R13 offline exporter checks source route declarations and exact inventories before creating a provenance-labeled CI artifact. It never claims live execution.",
+      "test": "tests_v9/test_explorer_route_export_contract.py",
+      "mutations": [
+        {
+          "expect": "test_missing_inventory_and_unbound_commit_fails",
+          "find": "    if not routes or not services:\n        raise ValueError(\"SOURCE_INVENTORY_MISSING_OR_EMPTY\")",
+          "replace": "    if False:\n        raise ValueError(\"SOURCE_INVENTORY_MISSING_OR_EMPTY\")",
+          "why": "An empty route inventory for a named service must not be accepted as a source-backed export; the named regression demands SOURCE_INVENTORY_MISSING_OR_EMPTY, not a later count mismatch."
+        }
+      ]
+    },
     "scripts/ci/railway_staging_connection_preflight.py": {
       "$policy": "Stage-1 source verifier: staging identity must reject a production environment before issuing a receipt.",
       "test": "tests_v9/test_railway_staging_connection_preflight.py",
@@ -6755,6 +6767,17 @@
           "why": "إن قَبِل أيّ إصدار عاد العرض إلى helm صورة المشغّل غير المثبَّت. شاهد رفض الإصدار يجب أن يسقط."
         }
       ]
+    },
+    "capability_registry_guard.py": {
+      "test": "tests/architecture/test_capability_registry_guard.py",
+      "mutations": [
+        {
+          "expect": "test_check_fails_naming_a_drifted_artifact",
+          "find": "        drifting = drift(artifacts(data))",
+          "replace": "        drifting = []",
+          "why": "نزعُ المقارنة يُعيد الحارس إلى ما كان عليه: يتحقّق من السجلّ ولا ينظر إلى مصنوعاته، فيبقى `capability_summary.json` يقول ٧٥ قدرة في النضج ٣ والسلطات تقول ٦٠ — بالحرف ما مرّ أخضر منذ #953 حتّى d5d0507"
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
@@ -6768,7 +6791,6 @@
     "auth_main_decomposition_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "brain_deferral_registry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "capability_core_consumption_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
-    "capability_registry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "container_fleet_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "container_image_pin_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "contract_capabilities_schema_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
@@ -6874,7 +6896,7 @@
     "weather_engine_formula_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "weather_hourly_etc_wx_i1_guard.py": "سابق للآليّة — لم تُقَس تغطيته"
   },
-  "unmutated_debt_ceiling": 113,
+  "unmutated_debt_ceiling": 112,
   "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
   "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل."
 }
