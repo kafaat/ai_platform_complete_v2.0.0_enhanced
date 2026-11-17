@@ -1,11 +1,11 @@
-name: One-shot SAHOOL selective sources for independent local lab
+name: One-shot SAHOOL exact final authored diff for offline validation
 on:
   push:
     branches: [lab/source-snapshot-pr1525-20261117]
 permissions:
   contents: read
 jobs:
-  package:
+  export:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -13,31 +13,22 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Export exact authored files from both repair heads
+      - name: Export exact test from unified commit, do not mutate PR branch
         shell: bash
+        env:
+          SOURCE_SHA: e02cc1b3c107e757eef465f164126f75b43bd833
         run: |
           set -euo pipefail
+          git fetch --quiet --no-tags origin "$SOURCE_SHA"
+          test "$(git rev-parse "$SOURCE_SHA^{commit}")" = "$SOURCE_SHA"
           mkdir -p /tmp/source-export
-          FILES=(
-            scripts/ci/export_explorer_routes.py
-            tests_v9/test_explorer_route_export_contract.py
-            tests_v9/test_semantic_convergence_01.py
-            services/ai_agronomist/ai_evidence_runtime.py
-            docs/architecture/guard_mutation_registry.json
-            docs/architecture/blocking_surface_additions.json
-          )
-          for entry in 1527:9c5f6d34f4e00e3e8a341f1e6607cb58791d65fa 1528:b282ca3394298df9c856bd82292825e755bd8650; do
-            name="${entry%%:*}"; target="${entry#*:}"
-            git fetch --no-tags --quiet origin "$target"
-            test "$(git rev-parse "$target^{commit}")" = "$target"
-            git archive --format=tar "$target" "${FILES[@]}" | gzip -1 > "/tmp/source-export/pr${name}-authored.tar.gz"
-            printf '%s\n' "$target" > "/tmp/source-export/pr${name}-SHA"
-          done
-          (cd /tmp/source-export && sha256sum *.tar.gz > SHA256SUMS)
+          git archive --format=tar "$SOURCE_SHA" tests_v9/test_semantic_convergence_01.py | gzip -1 > /tmp/source-export/exact-semantic-test.tar.gz
+          printf '%s\n' "$SOURCE_SHA" > /tmp/source-export/SOURCE_SHA
+          (cd /tmp/source-export && sha256sum exact-semantic-test.tar.gz > SHA256SUMS)
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: sahool-comparison-authored-1527-1528
+          name: pr1525-unified-exact-test
           path: /tmp/source-export/
-          if-no-files-found: error
           retention-days: 1
           compression-level: 0
+          if-no-files-found: error
