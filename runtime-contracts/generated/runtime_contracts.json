@@ -998,6 +998,11 @@
         "total": 7
       },
       "configuration": [
+        "DATABASE_URL",
+        "INDICATORS_OBSERVATION_DRAIN_BATCH",
+        "INDICATORS_OBSERVATION_DRAIN_ENABLED",
+        "INDICATORS_OBSERVATION_DRAIN_INTERVAL_SECONDS",
+        "INDICATORS_OBSERVATION_DRAIN_TENANTS",
         "PLATFORM_API_URL",
         "RASTER_SERVICE_URL",
         "RS_OBSERVATION_POLICY_ID",
@@ -1026,20 +1031,27 @@
       "evidence_paths": {
         "configuration": [
           "services/indicators-service/main.py",
+          "services/indicators-service/observation_drain.py",
           "services/indicators-service/observation_runtime.py",
+          "services/indicators-service/observation_store.py",
           "services/indicators-service/observation_timeline.py"
         ],
         "metrics": [
-          "services/indicators-service/main.py"
+          "services/indicators-service/main.py",
+          "services/indicators-service/observation_drain.py"
         ],
         "routes": [
           "services/indicators-service/main.py",
-          "services/indicators-service/tests/test_indicators_service_honest_boundary.py"
+          "services/indicators-service/tests/test_indicators_service_honest_boundary.py",
+          "services/indicators-service/tests/test_observation_drain.py",
+          "services/indicators-service/tests/test_observation_store.py"
         ],
         "tracing": []
       },
       "observability": {
-        "metric_names": [],
+        "metric_names": [
+          "sahool_indicators_observation_drain_total"
+        ],
         "metrics_instrumented": true,
         "trace_spans": [],
         "tracing_instrumented": false
@@ -1542,6 +1554,7 @@
         "HTTP_TIMEOUT",
         "JOBS_DATABASE_URL",
         "LOG_LEVEL",
+        "OBSERVATION_UNQUEUED_LIMIT",
         "OLMOEARTH_CHECKPOINT",
         "PLANETARY_COMPUTER_URL",
         "RASTER_ACTIVATION_GATE_ENFORCE",
@@ -1559,6 +1572,10 @@
         "RASTER_LAYER_EVICT_ENABLED",
         "RASTER_MAX_READ_BAND_PIXELS",
         "RASTER_MAX_READ_DIM",
+        "RASTER_OBSERVATION_SWEEP_BATCH",
+        "RASTER_OBSERVATION_SWEEP_ENABLED",
+        "RASTER_OBSERVATION_SWEEP_INTERVAL_SECONDS",
+        "RASTER_OBSERVATION_SWEEP_TENANTS",
         "RASTER_PERSISTENCE_MODE",
         "RASTER_PUBLIC_PREFIX",
         "RASTER_TEMP_RETENTION_DAYS",
@@ -1628,6 +1645,8 @@
           "services/raster-service/job_store.py",
           "services/raster-service/layer_cache_events.py",
           "services/raster-service/object_store.py",
+          "services/raster-service/observation_outbox.py",
+          "services/raster-service/observation_sweep.py",
           "services/raster-service/raster_batch_job_store.py",
           "services/raster-service/raster_cdse_tile_runtime.py",
           "services/raster-service/raster_field_runtime.py",
@@ -1645,6 +1664,7 @@
           "services/raster-service/routers/fields.py",
           "services/raster-service/routers/imagery.py",
           "services/raster-service/routers/observability.py",
+          "services/raster-service/routers/observation_feed.py",
           "services/raster-service/routers/soil_tiles.py",
           "services/raster-service/routers/terrain_tiles.py",
           "services/raster-service/soil_render.py",
@@ -1671,6 +1691,7 @@
           "services/raster-service/routers/imagery_search.py",
           "services/raster-service/routers/jobs.py",
           "services/raster-service/routers/observability.py",
+          "services/raster-service/routers/observation_feed.py",
           "services/raster-service/routers/processing.py",
           "services/raster-service/routers/registry_writes.py",
           "services/raster-service/routers/soil_tiles.py",
@@ -1708,6 +1729,7 @@
         "CDSE_CLIENT_SECRET",
         "DECISION_SERVICE_AUTH_TOKEN",
         "DECISION_SERVICE_TOKEN",
+        "RASTER_OBSERVATION_OUTBOX_OPERATOR_TOKEN",
         "S3_ACCESS_KEY",
         "S3_SECRET_KEY",
         "SAHOOL_AGENT_TOKEN",

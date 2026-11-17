@@ -86,6 +86,7 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 30. Actuator command delivery state and v2 device acks (v238, R-C2, restricted role)
 31. Field and Water twins read the active season (restricted role)
 32. Field-season state reads its platform sources (restricted role)
+33. Canonical observations store (W1-11, v286, restricted role)
 
 Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 `rolcanlogin` of every restricted role those steps connect as (`sahool_app_test`)

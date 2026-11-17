@@ -19,6 +19,7 @@ erpnext-queue-short,erpnext-backend,compose-depends-on,docker-compose.erpnext.ym
 erpnext-scheduler,erpnext-backend,compose-depends-on,docker-compose.erpnext.yml
 erpnext-websocket,erpnext-backend,compose-depends-on,docker-compose.erpnext.yml
 evidence-migrate,evidence-postgres,compose-depends-on,docker-compose.evidence-lab.yml
+indicators-service,raster-service,code-reference,services/indicators-service/observation_drain.py
 indicators-service,raster-service,code-reference,services/indicators-service/observation_runtime.py
 indicators-service,raster-service,code-reference,services/indicators-service/observation_timeline.py
 local-ai-rag,rag-retrieval,code-reference,services/local-ai-rag/main.py
@@ -94,6 +95,8 @@ sahool-field-management,sahool-redis,compose-depends-on,docker-compose.v9.yml
 sahool-field-segmentation,sahool-sam2-inference,compose-depends-on,docker-compose.v9.gpu.yml
 sahool-guardrails-engine,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-guardrails-engine,sahool-redis-state,compose-depends-on,docker-compose.v9.yml
+sahool-indicators-service,sahool-migrate,compose-depends-on,docker-compose.v9.yml
+sahool-indicators-service,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-irrigation-reservation-lifecycle-worker,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-local-ai-rag,sahool-ollama-models,compose-depends-on,docker-compose.v9.yml
 sahool-local-ai-rag,sahool-qdrant,compose-depends-on,docker-compose.v9.yml

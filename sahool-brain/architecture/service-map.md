@@ -46,7 +46,7 @@
 | `sahool-vegetation-analysis` | 8000 | تحليل الغطاء النباتيّ | [`services/vegetation-analysis-service/`](../../services/vegetation-analysis-service/) | `SH_CLIENT_ID/SECRET`, `CDSE_*` | nats (healthy) |
 | `sahool-raster-service` | **8001** | صور Sentinel-2/1 عبر Element84 STAC | [`services/raster-service/main.py`](../../services/raster-service/main.py) | `EARTH_SEARCH_URL`, `TITILER_URL`, `STAC_*` | — |
 | `sahool-titiler` | 8000 | خادم بلاطات COG ديناميكيّ | `ghcr.io/developmentseed/titiler:0.18.6` | `TITILER_API_CORS_ORIGINS` | — |
-| `sahool-indicators-service` | 8000 | مؤشّرات + `/metrics` | [`services/indicators-service/`](../../services/indicators-service/) | `DATABASE_URL`, `NATS_URL` | postgres, redis, nats |
+| `sahool-indicators-service` | 8000 | مؤشّرات + سجلّ الملاحظات القانونيّة `canonical_observations` (v286، W1-11) + `/metrics` | [`services/indicators-service/`](../../services/indicators-service/) | `DATABASE_URL`, `RASTER_SERVICE_URL`, `SAHOOL_AGENT_TOKEN` | postgres, sahool-migrate (`docker-compose.v9.yml`) |
 | `sahool-weather-service` | 8000 | خدمة الطقس | [`services/weather-service/`](../../services/weather-service/) | `NATS_URL` | nats (healthy) |
 | `sahool-weather-polygon-worker` | — (عامل) | ربط تنبّؤ الطقس بالحقول مكانيّاً | [`services/weather-polygon-worker/src/main.py`](../../services/weather-polygon-worker/src/main.py) | `JOBS_DATABASE_URL` (BYPASSRLS) | postgres, nats, migrate |
 | `sahool-weather-signal-engine` | — (عامل) | توليد إشارات الطقس مجدوَلاً | [`services/weather-signal-engine/`](../../services/weather-signal-engine/) | `JOBS_DATABASE_URL` | postgres, migrate |

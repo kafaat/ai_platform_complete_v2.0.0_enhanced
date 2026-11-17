@@ -33,7 +33,7 @@
     "services.video-processor.main:app",
     "services.weather-service.main:app"
   ],
-  "definition_count": 272,
+  "definition_count": 273,
   "definitions": [
     {
       "kind": "app",
@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 138,
+      "line": 137,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 74,
@@ -271,7 +271,7 @@
     },
     {
       "kind": "app",
-      "line": 52,
+      "line": 98,
       "module": "services.indicators-service.main",
       "node_id": "services.indicators-service.main:app",
       "route_count": 12,
@@ -464,6 +464,15 @@
       "module": "services.raster-service.routers.observability",
       "node_id": "services.raster-service.routers.observability:router",
       "route_count": 8,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 41,
+      "module": "services.raster-service.routers.observation_feed",
+      "node_id": "services.raster-service.routers.observation_feed:router",
+      "route_count": 3,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -1837,7 +1846,7 @@
     },
     {
       "kind": "router",
-      "line": 36,
+      "line": 42,
       "module": "services.sahool-platform.api.routers.season_workspace",
       "node_id": "services.sahool-platform.api.routers.season_workspace:router",
       "route_count": 1,
@@ -1927,7 +1936,7 @@
     },
     {
       "kind": "router",
-      "line": 54,
+      "line": 55,
       "module": "services.sahool-platform.api.routers.soil_sampling",
       "node_id": "services.sahool-platform.api.routers.soil_sampling:router",
       "route_count": 9,
@@ -2767,7 +2776,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 120,
+      "line": 135,
       "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "prefix": null,
       "resolved": false,
@@ -2776,7 +2785,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 214,
+      "line": 232,
       "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "prefix": null,
       "resolved": false,
@@ -2785,7 +2794,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 285,
+      "line": 306,
       "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "prefix": null,
       "resolved": false,
@@ -2794,7 +2803,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 396,
+      "line": 417,
       "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "prefix": null,
       "resolved": false,
@@ -3018,8 +3027,8 @@
       "target": null
     }
   ],
-  "inventory_sha256": "6ba2af229a7b2c0c050d4d4dfadfc313cf4434fe726ac070c8a79aa1b0aa1065",
-  "orphan_candidate_count": 237,
+  "inventory_sha256": "8a40165dbcaecaf0878c9c992e241fc7536eb4798fbffffaf0fb3f162ec81a91",
+  "orphan_candidate_count": 238,
   "orphan_candidates": [
     {
       "classification": "review_only_not_statically_reachable",
@@ -3288,6 +3297,16 @@
       "module": "services.raster-service.routers.observability",
       "node_id": "services.raster-service.routers.observability:router",
       "route_count": 8,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 41,
+      "module": "services.raster-service.routers.observation_feed",
+      "node_id": "services.raster-service.routers.observation_feed:router",
+      "route_count": 3,
       "safe_to_delete": false,
       "symbol": "router"
     },
@@ -4794,7 +4813,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 36,
+      "line": 42,
       "module": "services.sahool-platform.api.routers.season_workspace",
       "node_id": "services.sahool-platform.api.routers.season_workspace:router",
       "route_count": 1,
@@ -4894,7 +4913,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 54,
+      "line": 55,
       "module": "services.sahool-platform.api.routers.soil_sampling",
       "node_id": "services.sahool-platform.api.routers.soil_sampling:router",
       "route_count": 9,
@@ -5395,7 +5414,7 @@
   "production_certified": false,
   "reachable_node_count": 35,
   "resolved_include_edge_count": 5,
-  "router_with_routes_count": 242,
+  "router_with_routes_count": 243,
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
@@ -5636,7 +5655,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
-      "line": 120,
+      "line": 135,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
       "source": null,
       "target_expression": "mod.router"
@@ -5644,7 +5663,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
-      "line": 214,
+      "line": 232,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
       "source": null,
       "target_expression": "mod.router"
@@ -5652,7 +5671,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
-      "line": 285,
+      "line": 306,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
       "source": null,
       "target_expression": "mod.router"
@@ -5660,7 +5679,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
-      "line": 396,
+      "line": 417,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
       "source": null,
       "target_expression": "mod.router"

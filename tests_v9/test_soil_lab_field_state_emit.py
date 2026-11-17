@@ -1,10 +1,12 @@
-"""نشر نتيجة التربة يُغذّي الحالة القانونيّة الموحّدة (FIELD_STATE_CHANGED).
+"""اعتماد نتيجة التربة يُغذّي الحالة القانونيّة الموحّدة (FIELD_STATE_CHANGED).
 
-سدّ فجوة كشفها تدقيق سلسلة الأحداث: نشر فحص تربة يُدخِل EC جديداً (تقرؤه
-gather_field_freshness من soil_lab_tests المنشورة) ⇒ قد تتبدّل الملوحة فالحالة.
-يثبّت أنّ update_soil_lab_test عند النشر يُعيد حساب الحالة ويُصدِر field.state_changed
-بمُحفِّز soil_lab.published — **داخل حارس النشر** (لا عند كلّ تحديث)، متّسق مع نمط
-create_alert/create_season. فحص تعاقُد على المصدر (بلا قاعدة)، نمط _func_src نفسه.
+سدّ فجوة كشفها تدقيق سلسلة الأحداث: نتيجة تربة معتمَدة تُدخِل EC جديداً (تقرؤه
+gather_field_freshness) ⇒ قد تتبدّل الملوحة فالحالة. كان المسار القديم نشرَ
+soil_lab_tests في update_soil_lab_test؛ وبقرار المالك (W1-03، 2026-11-16) صار
+soil_lab_results المخزنَ القانونيّ الوحيد والمسارُ القديم مُجمَّداً (410). يثبّت هذا
+الملفّ أنّ انتقال عيّنة المختبر (approved/rejected/cancelled) يُعيد حساب الحالة ويُصدِر
+field.state_changed **داخل حارس تبدّل الحالة** (لا عند كلّ نداء)، وأنّ المسار القديم لا
+يكتب. فحص تعاقُد على المصدر (بلا قاعدة)، نمط _func_src نفسه.
 """
 
 from __future__ import annotations
@@ -51,25 +53,35 @@ def _func_src(name: str) -> str:
     raise AssertionError(f"لم يُعثر على المعالِج `{name}` في main.py ولا في routers/")
 
 
-def test_publish_routes_through_canonical_state():
-    body = _func_src("update_soil_lab_test")
-    assert "FIELD_STATE_CHANGED" in body, "لا يُصدِر حدث تبدّل الحالة عند النشر"
-    assert "soil_lab.published" in body, "لا يوسم المُحفِّز بـsoil_lab.published"
+def test_lab_transition_routes_through_canonical_state():
+    helper = _func_src("_refresh_field_state")
+    assert "recompute_field_state" in helper, "لا يُعيد حساب الحالة القانونيّة"
+    assert "FIELD_STATE_CHANGED" in helper, "لا يُصدِر حدث تبدّل الحالة"
+    assert 'if fs["changed"]' in helper, "يجب أن يُصدِر الحدث فقط حين تتبدّل الحالة"
 
-    # استدعاء recompute_field_state يجب أن يقع داخل حارس النشر (إزاحة أكبر من سطر
-    # `if status_changed and req.status == "published":`) — لا عند كلّ تحديث تربة.
+    body = _func_src("transition_lab_sample")
     lines = body.splitlines()
-    rc_idx = next(
-        (i for i, ln in enumerate(lines) if "recompute_field_state" in ln and "import" not in ln),
-        None,
-    )
-    assert rc_idx is not None, "لا استدعاء لـrecompute_field_state"
+    rc_idx = next((i for i, ln in enumerate(lines) if "await _refresh_field_state(" in ln), None)
+    assert rc_idx is not None, "انتقال العيّنة لا يستدعي _refresh_field_state"
     rc_indent = len(lines[rc_idx]) - len(lines[rc_idx].lstrip())
-    guarded = any(
-        'req.status == "published"' in ln and (len(ln) - len(ln.lstrip())) < rc_indent
+    guard = lines[rc_idx - 1]
+    assert "is_soil" in guard and '"approved"' in guard, (
+        "إعادة الحساب يجب أن تقع خلف حارس عيّنة تربة + انتقال اعتماد/سحب"
+    )
+    assert len(guard) - len(guard.lstrip()) < rc_indent, "الاستدعاء ليس داخل الحارس"
+    changed_guard = any(
+        ln.strip() == "else:" and (len(ln) - len(ln.lstrip())) < rc_indent - 4
         for ln in lines[:rc_idx]
     )
-    assert guarded, "recompute_field_state ليس داخل حارس النشر (status == published)"
+    assert changed_guard, "إعادة الحساب يجب أن تقع في فرع تبدّل الحالة فقط"
+    assert 'f"soil_lab.{payload.target_status}"' in body, "المُحفِّز يجب أن يُسمّي الانتقال"
+
+
+def test_legacy_soil_lab_update_is_frozen():
+    body = _func_src("update_soil_lab_test")
+    assert "status_code=410" in body, "المسار القديم يجب أن يُجيب 410 Gone (W1-03)"
+    assert "soil_lab_tests" not in body.split('"""')[-1], "المسار القديم لا يلمس الجدول"
+    assert "UPDATE" not in body, "المسار القديم لا يكتب"
 
 
 def test_soil_lab_patch_route_registered(core_on_path):

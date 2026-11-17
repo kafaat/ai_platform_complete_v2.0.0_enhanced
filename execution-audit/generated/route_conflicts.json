@@ -17,7 +17,7 @@
         },
         {
           "function": "root",
-          "line": 171,
+          "line": 225,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/",
@@ -40,7 +40,7 @@
         },
         {
           "function": "capabilities",
-          "line": 118,
+          "line": 170,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/capabilities",
@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 615,
+          "line": 613,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -71,7 +71,7 @@
         },
         {
           "function": "contract",
-          "line": 141,
+          "line": 195,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/contract",
@@ -134,7 +134,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 73,
+          "line": 119,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/health",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 560,
+          "line": 559,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -317,7 +317,7 @@
         },
         {
           "function": "healthz",
-          "line": 68,
+          "line": 114,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/healthz",
@@ -532,7 +532,7 @@
         },
         {
           "function": "metrics",
-          "line": 78,
+          "line": 124,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/metrics",
@@ -651,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 565,
+          "line": 564,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -691,7 +691,7 @@
         },
         {
           "function": "ready",
-          "line": 89,
+          "line": 135,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/readyz",
@@ -882,7 +882,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 554,
+          "line": 553,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1150,
-  "route_inventory_sha256": "fac46c1939fe1fe934fb78305feb71e96f92c690aadc19a211f0f2c02669d9b6",
+  "route_count": 1153,
+  "route_inventory_sha256": "0dabda652192cb3e19444abb840f0857f1acf0154f71b03734c1d52210150c33",
   "runtime_verified": false,
   "schema_version": 1
 }

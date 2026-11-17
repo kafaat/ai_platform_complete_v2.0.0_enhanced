@@ -35,7 +35,7 @@ from uuid import UUID, uuid4
 import activation_gate
 import satellite_cdse_activation_gate
 from agronomic_context.contracts import ContextComposeIn  # noqa: E402
-from cutover import readiness_from_env
+from cutover import readiness_from_env, sor_capability_signal
 from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from outcome_reconcile import reconcile_outcomes
 from persistence import (
@@ -598,6 +598,7 @@ async def readyz(response: Response) -> dict[str, Any]:
         # W4-05: reported, never part of the readiness verdict above.
         "capabilities": {"model_lifecycle": _model_lifecycle_capability()},
         "db_readiness": db,
+        "sor_capability": sor_capability_signal(db, sor_enabled=sor_on, ready=ready),
     }
 
 

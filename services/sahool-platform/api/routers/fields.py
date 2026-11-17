@@ -71,11 +71,11 @@ from api.gis_geometry_guard import (
     guard_field_geometry,
 )
 from api.imagery_automation import _kick_imagery_processing
+from api.lab_store import latest_approved_soil_analysis, legacy_soil_lab_test_rows
 
 # بقيّة التبعيّات/النماذج/المساعِدات المشتركة تبقى في api.main وتُستورَد من هناك.
 from api.main import (
     _ACTIVITY_TYPES,
-    _SOIL_TEST_SELECT,
     ActivityCreateRequest,
     ActivitySummary,
     CommandStore,
@@ -3125,6 +3125,14 @@ async def field_growth_narrative(
     return result
 
 
+# W1-03 (owner 2026-11-16): soil_lab_results is the one soil-lab store; soil_lab_tests is frozen.
+_LEGACY_SOIL_LAB_FROZEN = {
+    "code": "legacy_soil_lab_tests_frozen",
+    "message_ar": "سجلّ فحوص التربة القديم للقراءة فقط؛ سجّل العيّنة ونتيجتها عبر /api/v1/lab/*.",
+    "use": ["POST /api/v1/lab/samples", "POST /api/v1/lab/soil-results"],
+}
+
+
 @router.post(
     "/api/v1/fields/{field_id}/soil-lab-tests",
     status_code=201,
@@ -3135,52 +3143,8 @@ async def create_soil_lab_test(
     req: SoilLabTestCreateRequest,
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
-    """ينشئ فحص تربة (حالة requested) — بداية دورة الحياة المخبريّة. يُصدِر SOIL_SAMPLE_RECORDED."""
-    import uuid as _uuid
-
-    sampled = _parse_date(req.sampled_on, "تاريخ العيّنة")
-    test_id = "soil_" + _uuid.uuid4().hex[:12]
-    try:
-        result_json = json.dumps(req.result or {})
-    except (TypeError, ValueError) as e:
-        raise HTTPException(status_code=422, detail="نتيجة الفحص غير قابلة للتسلسل (JSON)") from e
-    try:
-        async with tenant_connection(user) as conn:
-            await _assert_field_in_tenant(conn, field_id)
-            async with conn.transaction():
-                await conn.execute(
-                    "INSERT INTO soil_lab_tests "
-                    "(test_id, tenant_id, field_id, status, lab_name, sampled_on, result, notes_ar) "
-                    "VALUES ($1, $2::uuid, $3, 'requested', $4, $5, $6::jsonb, $7)",
-                    test_id,
-                    str(user.tenant_id),
-                    field_id,
-                    req.lab_name,
-                    sampled,
-                    result_json,
-                    req.notes_ar,
-                )
-                await _emit_domain_event(
-                    conn,
-                    user,
-                    "SOIL_SAMPLE_RECORDED",
-                    "soil_lab_test",
-                    test_id,
-                    {"field_id": field_id, "status": "requested"},
-                )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("إنشاء فحص التربة", e) from e
-    return SoilLabTestSummary(
-        test_id=test_id,
-        field_id=field_id,
-        status="requested",
-        lab_name=req.lab_name,
-        sampled_on=sampled.isoformat() if sampled else None,
-        result=req.result or {},
-        notes_ar=req.notes_ar,
-    )
+    """مُجمَّد (W1-03، قرار المالك 2026-11-16): soil_lab_tests قديم للقراءة فقط ⇒ 410."""
+    raise HTTPException(status_code=410, detail=_LEGACY_SOIL_LAB_FROZEN)
 
 
 @router.get(
@@ -3191,15 +3155,11 @@ async def list_soil_lab_tests(
     field_id: str,
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
-    """فحوص تربة الحقل (الأحدث أولاً) — مُرشَّحة بالمستأجِر (RLS). 503 عند تعذّر القاعدة."""
+    """فحوص التربة القديمة (أرشيف للقراءة؛ الجديد عبر /api/v1/lab/*) — RLS. 503 عند تعذّر القاعدة."""
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
-            rows = await conn.fetch(
-                f"SELECT {_SOIL_TEST_SELECT} FROM soil_lab_tests "
-                "WHERE field_id = $1 ORDER BY created_at DESC",
-                field_id,
-            )
+            rows = await legacy_soil_lab_test_rows(conn, field_id=field_id)  # أرشيف W1-03
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
@@ -3217,120 +3177,8 @@ async def update_soil_lab_test(
     req: SoilLabTestUpdateRequest,
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
-    """يحدّث فحص تربة (انتقال حالة محقَّق + بيانات) — يُصدِر SOIL_LAB_RESULT_PUBLISHED عند النشر.
-
-    الانتقال عبر `soil_lab_workflow` (عيّنة→مختبر→نتيجة→اعتماد→نشر؛ المنشور/الملغى
-    نهائيّان؛ لا اعتماد/نشر بلا نتيجة — 422). تأكيد ملكيّة الحقل (404)؛ الفحص يخصّ
-    الحقل (404). 503 عند تعذّر القاعدة.
-    """
-
-    from core.engines.soil_lab_workflow import SoilWorkflowError, validate_soil_transition
-
-    sampled = _parse_date(req.sampled_on, "تاريخ العيّنة") if req.sampled_on is not None else None
-    if req.result is not None:
-        try:
-            result_json = json.dumps(req.result)
-        except (TypeError, ValueError) as e:
-            raise HTTPException(status_code=422, detail="نتيجة الفحص غير قابلة للتسلسل") from e
-
-    try:
-        async with tenant_connection(user) as conn:
-            await _assert_field_in_tenant(conn, field_id)
-            async with conn.transaction():
-                cur = await conn.fetchrow(
-                    "SELECT status, result FROM soil_lab_tests "
-                    "WHERE test_id = $1 AND field_id = $2 FOR UPDATE",
-                    test_id,
-                    field_id,
-                )
-                if cur is None:
-                    raise HTTPException(status_code=404, detail="فحص التربة غير موجود لهذا الحقل")
-
-                set_parts, params = [], []
-
-                def _add(col, value, cast=""):
-                    params.append(value)
-                    set_parts.append(f"{col} = ${len(params)}{cast}")
-
-                if req.lab_name is not None:
-                    _add("lab_name", req.lab_name)
-                if req.sampled_on is not None:
-                    _add("sampled_on", sampled)
-                if req.notes_ar is not None:
-                    _add("notes_ar", req.notes_ar)
-                if req.result is not None:
-                    _add("result", result_json, "::jsonb")
-
-                status_changed = False
-                if req.status is not None:
-                    # توفّر نتيجة = نتيجة موجودة سابقاً (JSONB غير فارغ) أو ممرَّرة الآن.
-                    existing = cur["result"]
-                    existing_obj = (
-                        json.loads(existing) if isinstance(existing, str) else (existing or {})
-                    )
-                    has_result = bool(req.result) or bool(existing_obj)
-                    try:
-                        status_changed = validate_soil_transition(
-                            cur["status"], req.status, has_result=has_result
-                        )
-                    except SoilWorkflowError as se:
-                        raise HTTPException(
-                            status_code=se.http_status, detail=se.message_ar
-                        ) from se
-                    if status_changed:
-                        _add("status", req.status)
-                        if req.status == "approved":
-                            _add("approved_by", str(user.user_id))
-                        if req.status == "published":
-                            set_parts.append("published_at = now()")  # وقت القاعدة (لا param)
-
-                if not set_parts:
-                    raise HTTPException(status_code=422, detail="لا حقول للتحديث")
-
-                params.extend([test_id, field_id])
-                await conn.execute(
-                    f"UPDATE soil_lab_tests SET {', '.join(set_parts)} "
-                    f"WHERE test_id = ${len(params) - 1} AND field_id = ${len(params)}",
-                    *params,
-                )
-                if status_changed and req.status == "published":
-                    await _emit_domain_event(
-                        conn,
-                        user,
-                        "SOIL_LAB_RESULT_PUBLISHED",
-                        "soil_lab_test",
-                        test_id,
-                        {"field_id": field_id},
-                    )
-                    # نشر نتيجة التربة يُدخِل EC جديداً (تقرؤه gather_field_freshness من
-                    # soil_lab_tests المنشورة) ⇒ قد تتبدّل الملوحة فالحالة القانونيّة
-                    # (نمط التنفيذ/الصلاحيّة). أعِد حساب الإسقاط وأصدِر field.state_changed
-                    # إن تبدّل — تغذية حيّة لمستهلكي الحالة، نفس معاملة الكتابة (outbox).
-                    from api.field_state_projection import recompute_field_state
-
-                    _fs = await recompute_field_state(conn, field_id)
-                    if _fs["changed"]:
-                        await _emit_domain_event(
-                            conn,
-                            user,
-                            "FIELD_STATE_CHANGED",
-                            "field",
-                            field_id,
-                            {
-                                "validity": _fs["state"]["validity"],
-                                "execution_mode": _fs["state"]["execution_mode"],
-                                "trigger": "soil_lab.published",
-                            },
-                        )
-                row = await conn.fetchrow(
-                    f"SELECT {_SOIL_TEST_SELECT} FROM soil_lab_tests WHERE test_id = $1",
-                    test_id,
-                )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("تحديث فحص التربة", e) from e
-    return _row_to_soil_test(row)
+    """مُجمَّد (W1-03): لا تعديل ولا اعتماد ولا نشر على soil_lab_tests ⇒ 410 مع مؤشّر /api/v1/lab/*."""
+    raise HTTPException(status_code=410, detail=_LEGACY_SOIL_LAB_FROZEN)
 
 
 @router.post(
@@ -3857,7 +3705,7 @@ async def field_canonical_state(
 ):
     """الحالة القانونيّة الموحّدة للحقل — مصدر حقيقة واحد للقرار/التنبيه/التوصية.
 
-    يجمع نضارة NDVI (imagery_automation_fields) + التربة (soil_lab_tests) + الطقس
+    يجمع نضارة NDVI (imagery_automation_fields) + التربة (lab_store، W1-03) + الطقس
     (weather_automation_cache) من قاعدة المنصّة، يشتقّ الثقة من نضارة NDVI، يركّبها
     في validity (valid/degraded/conflicted/insufficient) + نمط التنفيذ، **ويحفظ
     النتيجة في إسقاط field_state (read model)** كي يقرأها بقيّة المستهلكين.
@@ -3913,7 +3761,7 @@ async def field_state_full(
 
     يركّب القرّاء الحقيقيّين القائمين (لا يخترع أيّاً منها): معلومات الحقل + الهندسة،
     الموسم/المحصول النشط، الحالة القانونيّة (imagery/NDVI/تربة/طقس/ماء/حدود/جاهزيّة عبر
-    recompute_field_state)، فحوص التربة، التنبيهات المُشتقّة، ودفتر الريّ/التشغيلات.
+    recompute_field_state)، تحليل التربة المعتمَد (lab_store)، التنبيهات المُشتقّة، ودفتر الريّ/التشغيلات.
     كل قسم best-effort: تعذّره ⇒ ``{"available": false, "reason": ...}`` صادق لا تلفيق؛
     المصادر غير الموجودة (عينات ماء مخبريّة، اقتصاد لكل حقل) تُعلَن كذلك مع مؤشّر endpoint.
     البوّابة الصلبة الوحيدة: الحقل ضمن المستأجِر (404)؛ تعذّر القاعدة كلّياً ⇒ 503.
@@ -3967,13 +3815,11 @@ async def field_state_full(
                 }
                 out["alerts"] = []
 
-            # ── فحوص التربة (جدول soil_lab_tests) ──
+            # ── التربة (W1-03): التحليل المعتمَد من المخزن القانونيّ + أرشيف الفحوص القديمة ──
             try:
-                srows = await conn.fetch(
-                    f"SELECT {_SOIL_TEST_SELECT} FROM soil_lab_tests "
-                    "WHERE field_id = $1 ORDER BY created_at DESC LIMIT 20",
-                    field_id,
-                )
+                soil = await latest_approved_soil_analysis(conn, field_id=field_id)
+                out["soil_analysis"] = soil or {"available": False, "reason": "no_approved_result"}
+                srows = await legacy_soil_lab_test_rows(conn, field_id=field_id, limit=20)
                 out["soil_samples"] = [_row_to_soil_test(r).model_dump() for r in srows]
             except Exception:  # noqa: BLE001
                 out["soil_samples"] = {"available": False, "reason": "تعذّر قراءة فحوص التربة"}

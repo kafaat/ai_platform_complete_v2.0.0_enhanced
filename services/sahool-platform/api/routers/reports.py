@@ -210,7 +210,7 @@ def _soil_lab_signals(soil_result) -> dict:
         "ph": _pick("ph", "pH", "soil_ph"),
         "organic_matter": _pick("organic_matter", "om", "om_pct", "organic_matter_pct"),
         "n_kg_ha": _pick("n_kg_ha", "nitrogen_kg_ha", "n"),
-        "p_ppm": _pick("p_ppm", "phosphorus_ppm", "p"),
+        "p_ppm": _pick("p_ppm", "phosphorus_ppm", "phosphorus_mg_kg", "p"),
         "k_mg_kg": _pick("k_mg_kg", "potassium_mg_kg", "k"),
     }
 
@@ -230,6 +230,7 @@ async def field_sustainability(
     """
     from api.field_state_projection import recompute_field_state
     from api.field_sustainability import compute_field_sustainability
+    from api.lab_store import latest_approved_soil_analysis
 
     try:
         async with tenant_connection(user) as conn:
@@ -237,12 +238,8 @@ async def field_sustainability(
             if field is None:
                 raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
             result = await recompute_field_state(conn, field_id)
-            soil_row = await conn.fetchrow(
-                "SELECT result FROM soil_lab_tests "
-                "WHERE field_id = $1 AND status IN ('approved', 'published') "
-                "AND sampled_on IS NOT NULL ORDER BY sampled_on DESC LIMIT 1",
-                field_id,
-            )
+            # W1-03: أحدث تحليل معتمَد من المخزن القانونيّ (أو القديم موسوماً) عبر lab_store.
+            soil = await latest_approved_soil_analysis(conn, field_id=field_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
@@ -256,9 +253,15 @@ async def field_sustainability(
         "salinity_class": truths.get("salinity_class"),
         "water_stress_class": water_stress.get("water_stress_class"),
         "soil_age_days": inputs.get("soil_age_days"),
-        **_soil_lab_signals(soil_row["result"] if soil_row else None),
+        # v156 by analyte name (N in mg/kg is not n_kg_ha: absent, not converted); legacy as stored.
+        **_soil_lab_signals(soil and (soil["legacy_result"] or soil["values"])),
     }
-    return {"field_id": field_id, "sustainability": compute_field_sustainability(signals)}
+    return {
+        "field_id": field_id,
+        "sustainability": compute_field_sustainability(signals),
+        "soil_lab_source": soil["source"] if soil else None,
+        "soil_lab_evidence_ref": soil["evidence_ref"] if soil else None,
+    }
 
 
 @router.get("/api/v1/reports/season/{season_id}/summary")

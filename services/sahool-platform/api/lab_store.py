@@ -650,6 +650,67 @@ async def current_soil_result_ids(
     return {r["analyte"]: r["result_id"] for r in rows}
 
 
+def soil_result_analytes(payload) -> list[dict]:
+    """One row per analyte present in a ``SoilLabResultIn`` (unit, method, supersession)."""
+    units = {
+        "ph": "1",
+        "ec_dsm": "dS/m",
+        "organic_matter_pct": "%",
+        "nitrogen_mg_kg": "mg/kg",
+        "phosphorus_mg_kg": "mg/kg",
+        "potassium_mg_kg": "mg/kg",
+        "cec_cmol_kg": "cmol(+)/kg",
+        "calcium_carbonate_pct": "%",
+        "sand_pct": "%",
+        "silt_pct": "%",
+        "clay_pct": "%",
+        "texture": None,
+    }
+    out = []
+    for name, unit in units.items():
+        value = getattr(payload, name)
+        if value is not None:
+            out.append(
+                {
+                    "analyte": name,
+                    "value": value,
+                    "unit": unit,
+                    "method_code": (
+                        payload.ec_extraction_method or payload.method_code
+                        if name == "ec_dsm"
+                        else payload.method_code
+                    ),
+                    "detection_limit": payload.detection_limit,
+                    "uncertainty": payload.uncertainty,
+                    "supersedes_result_id": payload.supersedes_result_ids.get(name),
+                }
+            )
+    return out
+
+
+# Sand, silt and clay are validated together and texture is derived from them, so a
+# correction resends the whole group. Each resent member supersedes its current row;
+# otherwise the unchanged fractions and the new texture reuse the old idempotency key
+# in soil-service with a different value/time (409) and the old texture stays approved.
+TEXTURE_GROUP = ("sand_pct", "silt_pct", "clay_pct", "texture")
+
+
+async def link_texture_group(conn, tenant_id: str, sample_id: str, analytes: list[dict]) -> None:
+    unlinked = [
+        a["analyte"]
+        for a in analytes
+        if a["analyte"] in TEXTURE_GROUP and not a.get("supersedes_result_id")
+    ]
+    if not unlinked:
+        return
+    current = await current_soil_result_ids(
+        conn, tenant_id=tenant_id, sample_id=sample_id, analytes=unlinked
+    )
+    for item in analytes:
+        if item["analyte"] in current and not item.get("supersedes_result_id"):
+            item["supersedes_result_id"] = current[item["analyte"]]
+
+
 async def mark_soil_results_published(
     conn,
     *,
@@ -669,3 +730,355 @@ async def mark_soil_results_published(
                 result_id,
                 observation_id,
             )
+
+
+# ─── W1-03: soil_lab_results is the single canonical soil-lab store ─────────────────────
+# Owner decision 2026-11-16: platform readers of a field's soil analysis go through the
+# helpers below. They return approved v156 results (with their result_ids) and fall back to
+# the frozen legacy ``soil_lab_tests`` table only as a labelled source; nothing else in the
+# platform reads that table. Eligibility is that of ``soil_enrichment.latest_lab_texture_row``
+# (an approved result stays eligible while its sample is reopened for another analyte's
+# correction; a rejected/cancelled sample withdraws it), and both sources need a collection
+# date that is not in the future. The newest collection date wins; on a tie, v156 wins.
+#
+# Collection date: ``/api/v1/lab/samples`` accepts a sample without ``sampled_on``, so a row
+# without one is dated by when it was registered (``lab_samples.created_at`` /
+# ``soil_lab_tests.created_at``) — never later than the collection it records, so freshness
+# is never overstated — and says so in ``sampled_on_source``. Dropping it would hide an
+# approved analysis from every reader while lab-context shows it.
+#
+# EC: a v156 ``ec_dsm`` is an ECe (saturated paste) only when its method says so. EC 1:1,
+# 1:2.5, 1:5 or unspecified readings are not comparable with the ECe salinity thresholds
+# (``_interpret_lab_values``, ``LAB_EC_PROPERTIES_BY_METHOD``), so they never come back as
+# ``ec_dsm``; the analysis carries them labelled in ``ec_other_extract`` instead.
+SOIL_LAB_CANONICAL_SOURCE = "soil_lab_results"
+SOIL_LAB_LEGACY_SOURCE = "legacy_soil_lab_tests"
+ECE_EXTRACTION_METHOD = "saturated_paste"
+
+# Keys a free-form legacy ``soil_lab_tests.result`` may use for a v156 analyte — the union of
+# what the migrated readers accepted (field_state_projection, root zone, season workspace,
+# reports, soil_enrichment), in one place.
+LEGACY_ANALYTE_KEYS: dict[str, tuple[str, ...]] = {
+    "ec_dsm": ("ec_dsm", "ec_ds_m", "ec", "ece", "ece_ds_m", "salinity_ec", "soil_ec"),
+    "ph": ("ph", "pH", "soil_ph"),
+    "texture": ("texture", "soil_texture", "textural_class", "texture_class"),
+    "organic_matter_pct": ("organic_matter_pct", "om_pct", "organic_matter", "om"),
+    "phosphorus_mg_kg": ("phosphorus_mg_kg", "p_ppm", "phosphorus_ppm", "p"),
+    "potassium_mg_kg": ("potassium_mg_kg", "k_mg_kg", "k_ppm", "k"),
+    "nitrogen_mg_kg": ("nitrogen_mg_kg", "n_ppm"),
+}
+
+
+def _json_object(value) -> dict[str, Any]:
+    value = _analyte_value(value)
+    return value if isinstance(value, dict) else {}
+
+
+def usable_analyte_value(analyte: str, value):
+    """A texture is a non-empty label; every other analyte a real number. Else None."""
+    if analyte == "texture":
+        return value.strip() if isinstance(value, str) and value.strip() else None
+    if isinstance(value, int | float) and not isinstance(value, bool):
+        return float(value)
+    return None
+
+
+def legacy_analyte_value(result, analyte: str):
+    """The analyte's value in a legacy ``soil_lab_tests.result`` (first usable alias), or None."""
+    data = _json_object(result)
+    for key in LEGACY_ANALYTE_KEYS.get(analyte, (analyte,)):
+        value = usable_analyte_value(analyte, data.get(key))
+        if value is not None:
+            return value
+    return None
+
+
+def soil_lab_source(evidence_ref: str | None) -> str:
+    return (
+        SOIL_LAB_LEGACY_SOURCE
+        if str(evidence_ref or "").startswith("soil_lab_tests:")
+        else SOIL_LAB_CANONICAL_SOURCE
+    )
+
+
+async def soil_analyte_candidates(
+    conn, *, field_id: str, analyte: str, tenant_id: str | None = None, limit: int = 20
+) -> list:
+    """Eligible rows for one analyte, newest collection date first (v156 wins a tie).
+
+    Each row: ``sampled_on`` (with ``sampled_on_source``), ``result`` (``{analyte: value}``
+    for v156, the raw legacy object otherwise), ``evidence_ref``
+    (``soil_lab_results:<result_id>`` or ``soil_lab_tests:<test_id>``), ``method_code``
+    (v156 only) and ``age_days``. Reads under the caller's tenant RLS;
+    ``tenant_id`` adds an explicit filter for callers that hold it.
+    """
+    return await conn.fetch(
+        """SELECT sampled_on, sampled_on_source, result, evidence_ref, method_code,
+                  EXTRACT(EPOCH FROM (now() - sampled_on)) / 86400.0 AS age_days
+           FROM (
+             SELECT COALESCE(s.sampled_on, s.created_at::date) AS sampled_on,
+                    CASE WHEN s.sampled_on IS NULL THEN 'sample_created_at'
+                         ELSE 'sampled_on' END AS sampled_on_source,
+                    jsonb_build_object($2::text, r.value_json) AS result,
+                    'soil_lab_results:' || r.result_id::text AS evidence_ref,
+                    r.method_code, 1 AS source_priority, r.observed_at AS observed_at
+             FROM lab_samples s JOIN soil_lab_results r
+               ON s.tenant_id=r.tenant_id AND s.sample_id=r.sample_id
+             WHERE s.field_id=$1 AND s.kind='soil' AND s.status NOT IN ('rejected','cancelled')
+               AND r.analyte=$2 AND r.quality_status='approved' AND r.observed_at <= now()
+               AND ($4::uuid IS NULL OR s.tenant_id=$4::uuid)
+             UNION ALL
+             SELECT COALESCE(sampled_on, created_at::date),
+                    CASE WHEN sampled_on IS NULL THEN 'legacy_created_at' ELSE 'sampled_on' END,
+                    result, 'soil_lab_tests:' || test_id, NULL, 0, updated_at
+             FROM soil_lab_tests WHERE field_id=$1 AND status IN ('approved','published')
+               AND result ?| $3::text[] AND ($4::uuid IS NULL OR tenant_id=$4::uuid)
+           ) AS evidence
+           WHERE sampled_on <= CURRENT_DATE
+           ORDER BY sampled_on DESC, source_priority DESC, observed_at DESC, evidence_ref
+           LIMIT $5""",
+        field_id,
+        analyte,
+        list(LEGACY_ANALYTE_KEYS.get(analyte, (analyte,))),
+        tenant_id,
+        limit,
+    )
+
+
+def _analyte_reading(row, analyte: str, value) -> dict[str, Any]:
+    ref = str(row["evidence_ref"])
+    source = soil_lab_source(ref)
+    row_id = ref.split(":", 1)[1]
+    age = row["age_days"]
+    return {
+        "available": True,
+        "analyte": analyte,
+        "value": value,
+        "source": source,
+        "sampled_on": row["sampled_on"],
+        "sampled_on_source": row["sampled_on_source"],
+        "age_days": float(age) if age is not None else None,
+        "result_id": row_id if source == SOIL_LAB_CANONICAL_SOURCE else None,
+        "test_id": row_id if source == SOIL_LAB_LEGACY_SOURCE else None,
+        "evidence_ref": ref,
+    }
+
+
+def _candidate_value(row, analyte: str):
+    result = _json_object(row["result"])
+    if soil_lab_source(row["evidence_ref"]) == SOIL_LAB_LEGACY_SOURCE:
+        return legacy_analyte_value(result, analyte)
+    return usable_analyte_value(analyte, result.get(analyte))
+
+
+def _is_ece(row) -> bool:
+    """A legacy EC is read as ECe (the frozen table never recorded an extract); a v156 EC is
+    an ECe only when measured on a saturated paste."""
+    return (
+        soil_lab_source(row["evidence_ref"]) == SOIL_LAB_LEGACY_SOURCE
+        or row["method_code"] == ECE_EXTRACTION_METHOD
+    )
+
+
+async def soil_ece_evidence(
+    conn, *, field_id: str, tenant_id: str | None = None, include_legacy: bool = True
+) -> dict[str, Any]:
+    """The field's ECe evidence, one rule for every salinity reader.
+
+    ``ece``: the newest approved EC reading when it is an ECe, else None. Samples with no EC
+    (pH-only, texture-only, ...) are not EC candidates, so they never hide an older ECe.
+    ``newer_other_extract``: the newest approved v156 EC when it is *not* an ECe (1:5, 1:2.5,
+    1:1, unspecified); it makes ``ece`` None because it may contradict an older ECe.
+    ``prior_ece``: the newest ECe older than that extract. It is not the current ECe, but a
+    reader must not drop what it says silently: a critical prior ECe still escalates.
+    ``include_legacy=False`` skips the frozen ``soil_lab_tests`` rows (callers that do not
+    accept an approved-but-unpublished legacy row)."""
+    rows = await soil_analyte_candidates(
+        conn, field_id=field_id, analyte="ec_dsm", tenant_id=tenant_id
+    )
+    return ece_evidence_from_candidates(rows, include_legacy=include_legacy)
+
+
+def ece_evidence_from_candidates(rows, *, include_legacy: bool = True) -> dict[str, Any]:
+    """``soil_ece_evidence`` over ``soil_analyte_candidates(analyte='ec_dsm')`` rows."""
+    ece = other = prior = None
+    for row in rows:
+        if not include_legacy and soil_lab_source(row["evidence_ref"]) == SOIL_LAB_LEGACY_SOURCE:
+            continue
+        value = _candidate_value(row, "ec_dsm")
+        if value is None:
+            continue
+        if _is_ece(row):
+            if other is None:
+                ece = _analyte_reading(row, "ec_dsm", value)
+            else:
+                prior = _analyte_reading(row, "ec_dsm", value)
+            break
+        if other is None:
+            other = {
+                **_analyte_reading(row, "ec_dsm", value),
+                "extraction_method": row["method_code"] or "unspecified",
+                "ece": False,
+            }
+    return {"ece": ece, "newer_other_extract": other, "prior_ece": prior}
+
+
+async def latest_approved_soil_analyte(
+    conn,
+    *,
+    field_id: str,
+    analyte: str,
+    tenant_id: str | None = None,
+    accept=None,
+    include_legacy: bool = True,
+) -> dict[str, Any] | None:
+    """The newest usable approved value of one analyte, labelled with its source, or None.
+
+    None means unavailable — never zero. ``accept(value)`` may narrow what counts as usable
+    (the TAW table skips texture labels it does not know). ``include_legacy=False`` skips
+    the frozen ``soil_lab_tests`` rows, so a legacy row the caller would reject does not
+    hide an older approved v156 value.
+
+    ``ec_dsm`` is read as ECe (``soil_ece_evidence``): when the newest approved EC was not
+    measured on a saturated paste the ECe is unavailable (None). It does not fall back to an
+    older ECe, which the newer reading may contradict."""
+    if analyte == "ec_dsm":
+        reading = (
+            await soil_ece_evidence(
+                conn, field_id=field_id, tenant_id=tenant_id, include_legacy=include_legacy
+            )
+        )["ece"]
+        if reading is not None and (accept is None or accept(reading["value"])):
+            return reading
+        return None
+    for row in await soil_analyte_candidates(
+        conn, field_id=field_id, analyte=analyte, tenant_id=tenant_id
+    ):
+        if not include_legacy and soil_lab_source(row["evidence_ref"]) == SOIL_LAB_LEGACY_SOURCE:
+            continue
+        value = _candidate_value(row, analyte)
+        if value is not None and (accept is None or accept(value)):
+            return _analyte_reading(row, analyte, value)
+    return None
+
+
+async def latest_approved_soil_analysis(
+    conn, *, field_id: str, tenant_id: str | None = None
+) -> dict[str, Any] | None:
+    """The field's newest approved soil analysis (one sample), labelled with its source.
+
+    v156: ``values`` holds the newest approved value per analyte of that sample and
+    ``result_ids`` the rows they came from; ``ec_dsm`` only when it is an ECe (saturated
+    paste), any other EC extract is in ``ec_other_extract``. Legacy fallback: ``values`` holds the analytes
+    recognised in the free-form result (``LEGACY_ANALYTE_KEYS``) and ``legacy_result`` the
+    object as stored, so a reader keeps its own key reading. None when neither exists."""
+    head = await conn.fetchrow(
+        """SELECT ref_id, sampled_on, sampled_on_source, source_priority, legacy_result,
+                  legacy_status FROM (
+             SELECT s.sample_id AS ref_id, COALESCE(s.sampled_on, s.created_at::date) AS sampled_on,
+                    CASE WHEN s.sampled_on IS NULL THEN 'sample_created_at'
+                         ELSE 'sampled_on' END AS sampled_on_source,
+                    1 AS source_priority, max(r.observed_at) AS observed_at,
+                    NULL::jsonb AS legacy_result, NULL::text AS legacy_status
+             FROM lab_samples s JOIN soil_lab_results r
+               ON s.tenant_id=r.tenant_id AND s.sample_id=r.sample_id
+             WHERE s.field_id=$1 AND s.kind='soil' AND s.status NOT IN ('rejected','cancelled')
+               AND r.quality_status='approved' AND r.observed_at <= now()
+               AND ($2::uuid IS NULL OR s.tenant_id=$2::uuid)
+             GROUP BY s.sample_id, s.sampled_on, s.created_at
+             UNION ALL
+             SELECT test_id, COALESCE(sampled_on, created_at::date),
+                    CASE WHEN sampled_on IS NULL THEN 'legacy_created_at' ELSE 'sampled_on' END,
+                    0, updated_at, result, status::text
+             FROM soil_lab_tests WHERE field_id=$1 AND status IN ('approved','published')
+               AND result <> '{}'::jsonb AND ($2::uuid IS NULL OR tenant_id=$2::uuid)
+           ) AS evidence
+           WHERE sampled_on <= CURRENT_DATE
+           ORDER BY sampled_on DESC, source_priority DESC, observed_at DESC, ref_id
+           LIMIT 1""",
+        field_id,
+        tenant_id,
+    )
+    if head is None:
+        return None
+    if head["source_priority"] == 0:
+        legacy = _json_object(head["legacy_result"])
+        values = {
+            analyte: value
+            for analyte in LEGACY_ANALYTE_KEYS
+            if (value := legacy_analyte_value(legacy, analyte)) is not None
+        }
+        return {
+            "available": True,
+            "source": SOIL_LAB_LEGACY_SOURCE,
+            "sample_id": None,
+            "test_id": head["ref_id"],
+            "sampled_on": head["sampled_on"],
+            "sampled_on_source": head["sampled_on_source"],
+            "values": values,
+            "result_ids": {},
+            "ec_other_extract": None,
+            "legacy_result": legacy,
+            "legacy_status": head["legacy_status"],
+            "evidence_ref": f"soil_lab_tests:{head['ref_id']}",
+        }
+    rows = await conn.fetch(
+        """SELECT DISTINCT ON (r.analyte) r.analyte, r.result_id, r.value_json, r.method_code
+           FROM lab_samples s JOIN soil_lab_results r
+             ON s.tenant_id=r.tenant_id AND s.sample_id=r.sample_id
+           WHERE s.sample_id=$1 AND r.quality_status='approved' AND r.observed_at <= now()
+             AND ($2::uuid IS NULL OR s.tenant_id=$2::uuid)
+           ORDER BY r.analyte, r.observed_at DESC, r.received_at DESC, r.result_id DESC""",
+        head["ref_id"],
+        tenant_id,
+    )
+    values: dict[str, Any] = {}
+    result_ids: dict[str, str] = {}
+    ec_other_extract = None
+    for row in rows:
+        value = usable_analyte_value(row["analyte"], _analyte_value(row["value_json"]))
+        if value is None:
+            continue
+        if row["analyte"] == "ec_dsm" and row["method_code"] != ECE_EXTRACTION_METHOD:
+            # Not an ECe: labelled, kept out of ``values`` (and so out of the ECe signal).
+            ec_other_extract = {
+                "value_dsm": value,
+                "extraction_method": row["method_code"] or "unspecified",
+                "result_id": str(row["result_id"]),
+                "ece": False,
+            }
+            continue
+        values[row["analyte"]] = value
+        result_ids[row["analyte"]] = str(row["result_id"])
+    return {
+        "available": True,
+        "source": SOIL_LAB_CANONICAL_SOURCE,
+        "sample_id": head["ref_id"],
+        "test_id": None,
+        "sampled_on": head["sampled_on"],
+        "sampled_on_source": head["sampled_on_source"],
+        "values": values,
+        "result_ids": result_ids,
+        "ec_other_extract": ec_other_extract,
+        "legacy_result": None,
+        "legacy_status": None,
+        "evidence_ref": f"lab_samples:{head['ref_id']}",
+    }
+
+
+_LEGACY_SOIL_TEST_COLUMNS = (
+    "test_id, field_id, status, lab_name, sampled_on, result, notes_ar, "
+    "approved_by, published_at, created_at"
+)
+
+
+async def legacy_soil_lab_test_rows(conn, *, field_id: str, limit: int | None = None) -> list:
+    """The frozen legacy ``soil_lab_tests`` rows of a field, newest first (read-only archive).
+
+    New results are recorded through ``/api/v1/lab/*``; this listing only shows history."""
+    return await conn.fetch(
+        f"SELECT {_LEGACY_SOIL_TEST_COLUMNS} FROM soil_lab_tests "
+        "WHERE field_id = $1 ORDER BY created_at DESC LIMIT $2",
+        field_id,
+        limit,
+    )

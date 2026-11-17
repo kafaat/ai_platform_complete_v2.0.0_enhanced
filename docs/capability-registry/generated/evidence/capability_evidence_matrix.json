@@ -9394,6 +9394,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "tests_v9/test_canonical_observations_live_pg.py",
         "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
         "tests_v9/test_ndvi_seed_purge_live_pg.py",
         "tests_v9/test_vegetation.py"
@@ -9419,6 +9420,11 @@
           "evidence_type": "unit",
           "path": "mobile/sahool_app/test/features/satellite/satellite_screen_test.dart",
           "signal": "filename:_test."
+        },
+        {
+          "evidence_type": "unit",
+          "path": "services/indicators-service/tests/test_observation_store.py",
+          "signal": "pytest.mark.unit"
         },
         {
           "evidence_type": "unit",
@@ -9454,6 +9460,11 @@
           "evidence_type": "unit",
           "path": "services/raster-service/test_raster_publication_gate.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "services/raster-service/test_timeseries_point_asset_identity.py",
+          "signal": "filename:test_"
         },
         {
           "evidence_type": "unit",
@@ -9589,6 +9600,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_agronomic_replay_shape.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_canonical_observations_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",
@@ -9736,6 +9752,7 @@
         "mobile/sahool_app/test/core/theme_tokens_test.dart",
         "mobile/sahool_app/test/features/satellite/field_indicators_cubit_test.dart",
         "mobile/sahool_app/test/features/satellite/satellite_screen_test.dart",
+        "services/indicators-service/tests/test_observation_store.py",
         "services/raster-service/test_acquisition_date_provenance.py",
         "services/raster-service/test_clip_grid.py",
         "services/raster-service/test_indicator_provenance_transport.py",
@@ -9743,6 +9760,7 @@
         "services/raster-service/test_ndvi_numeric_contract.py",
         "services/raster-service/test_persisted_thumbnail_path.py",
         "services/raster-service/test_raster_publication_gate.py",
+        "services/raster-service/test_timeseries_point_asset_identity.py",
         "services/sahool-platform/tests/test_agronomic_state_engine.py",
         "services/sahool-platform/tests/test_alert_rules.py",
         "services/sahool-platform/tests/test_bivariate_raster.py",
@@ -11018,6 +11036,7 @@
         "services/scout-ingest-service/tests/test_ingest_live.py",
         "services/scout-ingest-service/tests/test_media_live.py",
         "tests/integration/irrigation/test_v195_postgres.py",
+        "tests_v9/test_canonical_observations_live_pg.py",
         "tests_v9/test_crop_root_policy_rls_integration.py",
         "tests_v9/test_d1_raster_queue_rls_live_pg.py",
         "tests_v9/test_d4d5_idempotency_irrigation_live_pg.py",
@@ -11065,6 +11084,11 @@
         {
           "evidence_type": "unit",
           "path": "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
+          "signal": "filename:test_"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
           "signal": "filename:test_"
         },
         {
@@ -11196,6 +11220,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_calibration_override.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_canonical_observations_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",
@@ -11503,6 +11532,7 @@
         "TEST_REPAIR_REPORT_20260626.md",
         "services/actuator-service/test_actuator_delivery_state_20261103.py",
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
+        "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
         "services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py",
         "services/decision-service/tests/test_element84_inventory_pg16.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
@@ -12391,10 +12421,11 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -12426,7 +12457,7 @@
         "database": true,
         "documentation": true,
         "events": true,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": false,
         "production": false,
         "runtime": false,
@@ -12461,7 +12492,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -12496,17 +12527,19 @@
           "type": "web"
         }
       ],
-      "evidence_score": 6,
+      "evidence_score": 7,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "tests_v9/test_decision_sor_staging_recipe_live_pg.py"
+      ],
       "learning_linked": false,
-      "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
@@ -12555,6 +12588,16 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_decision_sor_platform_revoke_static.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "tests_v9/test_decision_sor_staging_cutover_prep.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_decision_sor_staging_recipe_live_pg.py",
+          "signal": "pytest.mark.integration"
         }
       ],
       "title": "Decision SoR DB ownership",
@@ -12567,7 +12610,8 @@
         "services/sahool-platform/tests/test_p0_4_decision_sor_staging_probe_guard.py",
         "services/sahool-platform/tests/test_p0_5_decision_sor_final_certification_guard.py",
         "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
-        "tests_v9/test_decision_sor_platform_revoke_static.py"
+        "tests_v9/test_decision_sor_platform_revoke_static.py",
+        "tests_v9/test_decision_sor_staging_cutover_prep.py"
       ]
     },
     {
@@ -15046,10 +15090,10 @@
   "source_mapping": "docs/capability-registry/generated/mapping/capability_mapping.json",
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
-    "aligned": 37,
-    "average_assessed_maturity": 2.01,
+    "aligned": 38,
+    "average_assessed_maturity": 2.02,
     "capability_count": 81,
-    "declared_above_evidence": 40,
+    "declared_above_evidence": 39,
     "evidence_above_declared": 4,
     "production_certified": 0,
     "promotion_preconditions_satisfied": 0,
