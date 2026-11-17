@@ -244,6 +244,13 @@ export interface FourRPlanItem {
   warnings_ar?: string[];
 }
 export interface FourRPlanResponse {
+  field_id?: string;
+  status?: 'available' | 'unavailable';
+  source?: 'approved_soil_lab';
+  sample_id?: string | null;
+  sampled_on?: string | null;
+  zone_id?: string | null;
+  evidence_ids?: Record<string, string>;
   plan?: FourRPlanItem[];
   disabled?: boolean;
 }

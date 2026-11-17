@@ -3650,6 +3650,11 @@ async def build_calibration_dataset(
                        ON o.tenant_id=la.tenant_id AND o.outcome_id=la.outcome_id
                      JOIN decision_record d
                        ON d.tenant_id=la.tenant_id AND d.decision_id=la.decision_id
+                     -- Equipment receipts cannot yet bind independent field measurements.
+                     JOIN decision_execution_requests er
+                       ON er.tenant_id=la.tenant_id AND er.execution_request_id=la.execution_request_id
+                      AND er.execution_request_id=o.execution_request_id AND er.decision_id=la.decision_id
+                      AND er.target_type='task'
                     WHERE la.tenant_id=$1::uuid AND la.model_id=$2
                       AND la.feature_set_id IS NOT DISTINCT FROM $3
                       AND la.learning_state='attributed'
@@ -3827,6 +3832,11 @@ async def create_model_evaluation_run(
                      FROM decision_learning_attributions la
                      JOIN outcome_record o ON o.tenant_id=la.tenant_id AND o.outcome_id=la.outcome_id
                      JOIN decision_record d ON d.tenant_id=la.tenant_id AND d.decision_id=la.decision_id
+                     -- Equipment receipts cannot yet bind independent field measurements.
+                     JOIN decision_execution_requests er
+                       ON er.tenant_id=la.tenant_id AND er.execution_request_id=la.execution_request_id
+                      AND er.execution_request_id=o.execution_request_id AND er.decision_id=la.decision_id
+                      AND er.target_type='task'
                     WHERE la.tenant_id=$1::uuid AND la.model_id=$2
                       AND la.feature_set_id IS NOT DISTINCT FROM $3
                       AND la.learning_state='attributed'

@@ -209,7 +209,8 @@ export default function WaterFieldOpsCard({ fieldId, cropLabel, enabled = true }
   });
   const set4rField = (k: keyof Soil4RFormText) => (v: string) => setSoil4r((p) => ({ ...p, [k]: v }));
   const soil4rReq = useMemo(() => build4rInput(soil4r), [soil4r]);
-  const planQ = useNutrient4rPlan(enabled && open === 'nutrients' ? soil4rReq : null);
+  const showNutrients = enabled && open === 'nutrients';
+  const planQ = useNutrient4rPlan(showNutrients ? soil4rReq : null, showNutrients ? fieldId : null);
   const plan = useMemo(() => planRows(planQ.data), [planQ.data]);
 
   // — تسجيل نتيجة (outcome/record): كتابة تُدِيم في Postgres ⇒ إرسال صريح بزرّ —
@@ -581,7 +582,7 @@ export default function WaterFieldOpsCard({ fieldId, cropLabel, enabled = true }
         <div className="flex flex-col gap-1.5 rounded-xl border p-2" style={boxStyle}>
           <div className="flex flex-wrap items-center gap-1.5 text-[11px]" style={{ color: T.muted }}>
             <Leaf className="w-3.5 h-3.5 shrink-0 text-emerald-300" aria-hidden="true" />
-            <span className="font-bold" style={{ color: T.ink }}>تحليل التربة (المتوفّر فقط):</span>
+            <span className="font-bold" style={{ color: T.ink }}>محاكاة يدوية بقيم بديلة:</span>
             <NumField id="wfo-4r-caco3" label="CaCO₃ (٪):" value={soil4r.caco3Pct} onChange={set4rField('caco3Pct')} width="w-14" />
             <NumField id="wfo-4r-ph" label="pH:" value={soil4r.ph} onChange={set4rField('ph')} width="w-14" />
             <NumField id="wfo-4r-p" label="P (ppm):" value={soil4r.pPpm} onChange={set4rField('pPpm')} width="w-14" />
@@ -589,12 +590,22 @@ export default function WaterFieldOpsCard({ fieldId, cropLabel, enabled = true }
             <NumField id="wfo-4r-zn" label="Zn (ppm):" value={soil4r.znPpm} onChange={set4rField('znPpm')} width="w-14" />
             <NumField id="wfo-4r-om" label="مادّة عضويّة (٪):" value={soil4r.omPct} onChange={set4rField('omPct')} width="w-14" />
           </div>
-          {!soil4rReq ? (
+          {soil4rReq && <div className="text-[11px]" style={{ color: T.muted }}>المصدر: القيم المدخلة يدويًا.</div>}
+          {!soil4rReq && planQ.data?.sample_id && (
+            <div className="text-[11px]" style={{ color: T.muted }}>
+              عينة المختبر المعتمدة: {planQ.data.sample_id}
+              {planQ.data.sampled_on && <> · تاريخ الجمع: {planQ.data.sampled_on}</>}
+              {planQ.data.zone_id && <> · المنطقة: {planQ.data.zone_id}</>}
+            </div>
+          )}
+          {!soil4rReq && !fieldId ? (
             <div className="text-[10px]" style={{ color: T.faint }}>أدخِل قيمة تحليل مخبريّ واحدة على الأقلّ — لا خطّة تسميد من لا شيء.</div>
           ) : planQ.isLoading ? (
             <div className="text-[11px]" style={{ color: T.faint }}>جارٍ بناء خطّة 4R…</div>
           ) : planQ.isError ? (
             <RetryNote q={planQ} label="خطّة 4R" />
+          ) : planQ.data?.status === 'unavailable' ? (
+            <div className="text-[11px]" style={{ color: T.muted }}>لم تتوفر قياسات معتمدة مناسبة لخطة 4R لهذا الحقل.</div>
           ) : planQ.data?.disabled ? (
             <DisabledNote />
           ) : plan.length > 0 ? (

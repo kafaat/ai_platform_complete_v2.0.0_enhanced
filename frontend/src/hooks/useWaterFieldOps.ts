@@ -12,6 +12,7 @@
 // صادقة بدل خطأ مُفزِع؛ باقي الأخطاء (403/5xx) تُرفَع كما هي لتعرضها الواجهة.
 
 import { useRef } from 'react';
+import { useTenantId } from './useAuth';
 import { useMutation, useQuery, UseQueryResult } from '@tanstack/react-query';
 import { kongApi } from '../services/api';
 import type {
@@ -199,19 +200,32 @@ export function useWeatherLayers(enabled = true): UseQueryResult<WeatherLayersRe
   });
 }
 
-/** خطّة تسميد 4R للتربة الكلسيّة — POST /api/v1/nutrients/4r-plan.
- *  حساب نقيّ من تحليل مخبريّ يُدخِله المستخدم (قيمة واحدة على الأقلّ). */
+/** Approved field sample by default; entered values use the manual what-if contract. */
 export function useNutrient4rPlan(
   input: Soil4RInput | null,
+  fieldId?: string | null,
 ): UseQueryResult<FourRPlanResponse> {
+  const tenantId = useTenantId();
   return useQuery<FourRPlanResponse>({
-    queryKey: ['nutrients-4r-plan', input ? JSON.stringify(input) : 'none'],
-    queryFn: () => kongApi
-      .post('/api/v1/nutrients/4r-plan', input)
-      .then((r) => r.data as FourRPlanResponse)
-      .catch((e) => { if (isDisabled404(e)) return { disabled: true }; throw e; }),
+    queryKey: ['nutrients-4r-plan', tenantId, fieldId, input],
+    queryFn: async () => {
+      try {
+        const { data } = input
+          ? await kongApi.post<FourRPlanResponse>('/api/v1/nutrients/4r-plan', input)
+          : await kongApi.post<FourRPlanResponse>('/api/v1/nutrients/4r-plan', null, {
+              params: { field_id: fieldId },
+            });
+        if (!input && (data.source !== 'approved_soil_lab' || data.field_id !== fieldId)) {
+          throw new Error('تعذّر تأكيد مصدر تحليل الحقل.');
+        }
+        return data;
+      } catch (err) {
+        if (isDisabled404(err)) return { disabled: true };
+        throw err;
+      }
+    },
     staleTime: 5 * 60_000,
-    enabled: !!input,
+    enabled: !!input || (!!fieldId && !!tenantId),
     retry: false,
   });
 }

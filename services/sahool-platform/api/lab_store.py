@@ -296,6 +296,30 @@ async def latest_soil_analysis(
     return values
 
 
+async def latest_soil_4r_rows(conn, *, tenant_id: str, field_id: str) -> list:
+    """Read one approved sample and its current results together under tenant RLS."""
+    return await conn.fetch(
+        """WITH sample AS (
+               SELECT s.sample_id, s.tenant_id, s.sampled_on, s.sampling_origin
+               FROM lab_samples s
+               WHERE s.tenant_id=$1::uuid AND s.field_id=$2 AND s.kind='soil'
+                 AND s.status IN ('approved','published')
+                 AND COALESCE(s.sampled_on, s.created_at::date) <= CURRENT_DATE
+               ORDER BY COALESCE(s.sampled_on, s.created_at::date) DESC,
+                        s.created_at DESC, s.sample_id DESC LIMIT 1
+           )
+           SELECT DISTINCT ON (r.analyte) s.sample_id, s.sampled_on,
+                  s.sampling_origin->>'zone_id' AS zone_id,
+                  r.analyte, r.result_id, r.unit, r.value_json, r.method_code
+           FROM sample s JOIN soil_lab_results r
+             ON r.tenant_id=s.tenant_id AND r.sample_id=s.sample_id
+           WHERE r.quality_status='approved' AND r.observed_at<=now()
+           ORDER BY r.analyte, r.observed_at DESC, r.received_at DESC, r.result_id DESC""",
+        tenant_id,
+        field_id,
+    )
+
+
 # Lab review cycle (the delivery's api/lab_review.py, folded here so the platform module
 # count stays within its budget): who entered the current cycle's results, and which
 # measurements a reviewer is shown and must name when approving.

@@ -303,7 +303,7 @@ export default function SharingPanel() {
     try {
       const outcome = await revokeAndReconcileSharingKey(
         keyId,
-        (url) => kongApi.post(url),
+        (url) => kongApi.post<unknown>(url).then(response => response.data),
         () => refetch({ throwOnError: true }),
       );
       if (outcome === 'unknown') setRevokeError(SHARING_REVOKE_UNKNOWN_AR);
