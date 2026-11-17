@@ -21,7 +21,7 @@ stored payload, nothing to queue), and a payload whose stored digest no longer m
 Tenants: ``RASTER_OBSERVATION_SWEEP_TENANTS``, a UUID CSV, the same rule as this service's
 durable follow-up worker (``RASTER_FOLLOWUP_TENANTS``, ``follow_up_runtime.configured_tenants``):
 an operator-assigned partition, one transaction per tenant under ``app.current_tenant`` (RLS
-FORCE on both tables), no cross-tenant enumeration and no BYPASSRLS role. Empty: the sweep idles.
+FORCE on both tables), no cross-tenant enumeration and no role that bypasses row security. Empty: the sweep idles.
 
 Switch: ``RASTER_OBSERVATION_SWEEP_ENABLED`` (default on); interval
 ``RASTER_OBSERVATION_SWEEP_INTERVAL_SECONDS`` (default 300); per-tenant bound per run
