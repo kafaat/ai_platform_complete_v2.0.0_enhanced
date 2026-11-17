@@ -302,3 +302,45 @@ export function readExecutionOutcome(
     guardrailsStatus: gr && nonEmpty(gr.status) ? gr.status : undefined,
   };
 }
+
+/** The server's additive physical-action projection (independent of workflow.status). */
+export interface ServerPestExecution {
+  status?: string;
+  executed?: boolean | null;
+  execution_ref?: string | null;
+  reason?: string | null;
+}
+
+/** Prefer the new server projection; preserve older server compatibility.
+ * A mismatch or uncertain side effect is never presented as a confirmed spray
+ * or a confirmed absence of spraying. */
+export function readPestExecutionOutcome(
+  stepResults: Record<string, Record<string, unknown>> | null | undefined,
+  projection: ServerPestExecution | null | undefined,
+  contextActionType?: unknown,
+): ExecutionOutcome {
+  const legacy = readExecutionOutcome(stepResults, contextActionType);
+  if (!projection) return legacy;
+  const uncertain = (): ExecutionOutcome => ({
+    state: 'unconfirmed',
+    reasons: [
+      'الأثر الزراعي غير محسوم؛ يلزم التحقق من المنفذ قبل الجزم بحدوث الرش أو عدم حدوثه.' +
+        (nonEmpty(projection.reason) ? ' (' + projection.reason + ')' : ''),
+    ],
+  });
+  switch (projection.status) {
+    case 'reconciliation_required':
+      return uncertain();
+    case 'not_attempted':
+      return projection.executed === false && legacy.state === 'pending' ? legacy : uncertain();
+    case 'not_executed':
+      return projection.executed === false && legacy.state === 'not_executed'
+        ? legacy : uncertain();
+    case 'executed':
+      return projection.executed === true && legacy.state === 'executed' &&
+        projection.execution_ref === legacy.executionRef
+        ? legacy : uncertain();
+    default:
+      return uncertain();
+  }
+}
