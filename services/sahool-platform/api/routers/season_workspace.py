@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from api.field_models import _FIELD_DETAIL_SELECT, _row_to_field_detail, field_quality_grade
 from api.lab_store import (
     SOIL_LAB_CANONICAL_SOURCE,
+    SOIL_LAB_LEGACY_SOURCE,
     latest_approved_soil_analysis,
     latest_approved_soil_analyte,
     legacy_soil_lab_test_rows,
@@ -100,6 +101,19 @@ def _latest_published_soil(soil_tests: list[dict]) -> dict | None:
 _LEGACY_EC_KEYS = ("ec_ds_m", "ec", "soil_ec")
 
 
+def _accepted_reading(reading: dict | None) -> bool:
+    """A store reading readiness accepts: an approved v156 value, or a legacy value whose row
+    is ``published`` (the legacy rule); an approved-not-published legacy row never counts."""
+    if not reading:
+        return False
+    if reading.get("source") == SOIL_LAB_CANONICAL_SOURCE:
+        return True
+    return (
+        reading.get("source") == SOIL_LAB_LEGACY_SOURCE
+        and reading.get("legacy_status") == "published"
+    )
+
+
 def _accepted_soil(
     soil_tests: list[dict],
     ph: dict | None = None,
@@ -110,16 +124,19 @@ def _accepted_soil(
     canonical store adds the newest approved v156 pH and ECe per analyte, read with
     ``include_legacy=False`` (an approved-not-published legacy row was never accepted, so it
     must not hide an older approved v156 value), so a newer texture-only sample does not
-    hide an older EC; a legacy-sourced reading is ignored, and a non-ECe EC never reaches
-    ``ec``. A v156 value overrides the legacy row per analyte, so a newest v156 EC that is
+    hide an older EC; a non-ECe EC never reaches ``ec``. The ECe evidence is read with
+    ``legacy_published_only=True``: published legacy rows stay candidates, so a published
+    legacy ECe newer than a v156 extract is the ECe here as it is in ``field_state``
+    (#1507 review LOW). A legacy-sourced reading counts only when its row is published.
+    An accepted reading overrides the legacy row per analyte, so a newest v156 EC that is
     not an ECe (``ec_other_extract``, ECe unknown) also removes the legacy row's EC.
     Nothing accepted ⇒ {}."""
     accepted = dict(_latest_published_soil(soil_tests) or {})
     for key, reading in (("ph", ph), ("ec_ds_m", ec)):
-        if reading and reading.get("source") == SOIL_LAB_CANONICAL_SOURCE:
+        if _accepted_reading(reading):
             accepted[key] = reading["value"]
     if (
-        not (ec and ec.get("source") == SOIL_LAB_CANONICAL_SOURCE)
+        not _accepted_reading(ec)
         and ec_other_extract
         and ec_other_extract.get("source") == SOIL_LAB_CANONICAL_SOURCE
     ):
@@ -367,7 +384,7 @@ async def season_workspace(
             soil_ph = await latest_approved_soil_analyte(
                 conn, field_id=field_id, analyte="ph", include_legacy=False
             )
-            soil_ec = await soil_ece_evidence(conn, field_id=field_id, include_legacy=False)
+            soil_ec = await soil_ece_evidence(conn, field_id=field_id, legacy_published_only=True)
             soil_rows = await legacy_soil_lab_test_rows(conn, field_id=field_id, limit=20)
             soil_tests = [_jsonable(_row_to_soil_test(r)) for r in soil_rows]
 
