@@ -73,8 +73,8 @@ def build_pest_escalation_steps(
 ) -> list[WorkflowStep]:
     """يبني خطوات تصعيد الآفة. الدوال الخارجيّة (رصد/تنفيذ) قابلة للحقن.
 
-    detect_fn(ctx) → {pest_type, severity}؛ execute_fn(ctx) → {executed};
-    cancel_fn(ctx) تعويض تنفيذ فاشل. بلا حقن تُستخدم منطق افتراضي من السياق.
+    detect_fn(ctx) → {pest_type, severity}؛ execute_fn(ctx) → {executed, execution_ref};
+    cancel_fn(ctx) تعويض فشل. بلا منفذ فعليّ لا يوجد إقرار تنفيذ.
     """
     from core.alert_engine import CRITICAL, WARNING
 
@@ -144,13 +144,29 @@ def build_pest_escalation_steps(
             return {"executed": False, "note_ar": "بانتظار موافقة الخبير — لم يُنفَّذ"}
         if ctx.get("action_type") in (None, _NO_ESCALATION_ACTION):
             return {"executed": False, "note_ar": "لا إجراء للتنفيذ"}
-        if execute_fn is not None:
-            res = execute_fn(ctx)
+        if execute_fn is None:
+            # A workflow has no physical actuator unless the caller wires a real one.
             return {
-                "executed": bool(res.get("executed", True)),
-                "execution_ref": res.get("execution_ref"),
+                "executed": False,
+                "execution_ref": None,
+                "reason": "executor_not_configured",
             }
-        return {"executed": True, "execution_ref": f"exec-{ctx.get('action_type')}"}
+        res = execute_fn(ctx)
+        ref = res.get("execution_ref") if isinstance(res, dict) else None
+        if (
+            isinstance(res, dict)
+            and res.get("executed") is True
+            and isinstance(ref, str)
+            and ref.strip()
+        ):
+            return {"executed": True, "execution_ref": ref}
+        # An attempted side effect may be uncertain, but never count it as executed
+        # without a literal positive ACK and nonblank reference.
+        return {
+            "executed": False,
+            "execution_ref": None,
+            "reason": "execution_not_confirmed",
+        }
 
     def undo_execute(ctx: dict) -> None:
         # تعويض Saga: إلغاء التنفيذ إن فشلت خطوة لاحقة (المتابعة)
@@ -159,7 +175,11 @@ def build_pest_escalation_steps(
 
     def step_follow_up(ctx: dict) -> dict:
         # جدولة متابعة للتحقّق من نجاح المكافحة
-        if not ctx.get("executed"):
+        if (
+            ctx.get("executed") is not True
+            or not isinstance(ctx.get("execution_ref"), str)
+            or not ctx["execution_ref"].strip()
+        ):
             return {"follow_up_scheduled": False}
         return {
             "follow_up_scheduled": True,
