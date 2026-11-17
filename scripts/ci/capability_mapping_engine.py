@@ -114,7 +114,7 @@ META_GOVERNANCE_FILES = {
     # paths by construction (positive and negative controls); scanning it would make the
     # witness of the scorer evidence for the capabilities it controls for.
     "tests_v9/test_capability_mapping_dependency_evidence.py",
-}
+    # Route catalogue export and its CI wiring are metadata readouts, not a new\n    # agricultural capability. Scanning their negative-control fixtures as evidence\n    # would self-inflate the mapping without any runtime behavior change.\n    "scripts/ci/export_explorer_routes.py",\n    "tests_v9/test_explorer_route_export_contract.py",\n    ".github/workflows/service-inventory-drift.yml",\n}
 # Extension point for whole witness classes. Breadth must be argued per entry.
 #
 # GATE-01 signature trailer (envelopes directory + the two append-only ledgers, i.e. exactly
