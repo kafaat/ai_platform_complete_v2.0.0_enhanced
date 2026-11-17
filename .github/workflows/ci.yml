@@ -2063,7 +2063,23 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
+          # W4-05: the WX-12 loop is off by default; this step proves the enabled path.
+          DECISION_MODEL_LIFECYCLE_ENABLED: "true"
         run: pytest tests/test_wx12_1_runtime_receipts.py -q -p no:cacheprovider
+      # W4-05: with the WX-12 loop off (the default), the eight write endpoints refuse with
+      # model_lifecycle_disabled after validation and before any write (HTTP, persistence mocked).
+      - name: W4-05 model-lifecycle flag (HTTP boundary, flag off by default)
+        working-directory: services/decision-service
+        run: pytest tests/test_w4_05_model_lifecycle_flag.py -q -p no:cacheprovider
+      # W4-05 (real Postgres, SoR on, flag unset): the feed drops the WX-12 work types in its
+      # query; a pending rollout stays untouched and unleased, and returns when the flag is on.
+      - name: W4-05 model-lifecycle feed (real Postgres, SoR on, flag off)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+          MODEL_LIFECYCLE_CERTIFICATION_REQUIRED: "1"
+        run: pytest tests/test_w4_05_model_lifecycle_feed_live_pg.py -v -rs -p no:cacheprovider
       # WX-12.3 durable schedules (real Postgres, SoR on): feed emits due monitoring windows and
       # reconcile work; append-only evidence closes each item; leases still single-owner.
       - name: WX-12.3 runtime schedules tests (real Postgres, SoR on)
@@ -2071,6 +2087,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
+          # W4-05: the WX-12 loop is off by default; this step proves the enabled path.
+          DECISION_MODEL_LIFECYCLE_ENABLED: "true"
         run: pytest tests/test_wx12_3_runtime_schedules.py -q -p no:cacheprovider
       # AC-1 agronomic context (real Postgres, SoR on): composer determinism + PIT rejection +
       # mandatory decision binding + append-only.
@@ -2126,6 +2144,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
+          # W4-05: the WX-12 loop is off by default; this step proves the enabled path.
+          DECISION_MODEL_LIFECYCLE_ENABLED: "true"
         run: pytest tests/test_runtime_worker_tenants.py -q -p no:cacheprovider
       # Phase E: the decision's full agronomic evidence chain is readable authoritatively
       # (context/historical/manifest/vegetation + PIT stamps), 404 honest, mirror 503.
