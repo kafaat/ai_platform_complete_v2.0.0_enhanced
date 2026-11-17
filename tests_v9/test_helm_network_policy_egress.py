@@ -447,4 +447,6 @@ def test_the_closure_finds_an_outbound_client_planted_in_an_imported_module(tmp_
     )
     files, modules = _runtime_closure(tmp_path)
     assert "httpx" in modules
-    assert {"HOOK_URL"} == set().union(*(_ENV_READ.findall(p.read_text()) for p in files))
+    assert {"HOOK_URL"} == set().union(
+        *(_ENV_READ.findall(p.read_text(encoding="utf-8")) for p in files)
+    )
