@@ -19,6 +19,11 @@ import { useSelectedField } from '../../hooks/useSelectedField';
 import { useAuthStore } from '../../hooks/useAuth';
 import { can } from '../../lib/permissions';
 import { apiErrorMessage, kongApi, type SharingKey, type SharingScope } from '../../services/api';
+import {
+  revokeAndReconcileSharingKey,
+  SHARING_REVOKE_REFRESH_FAILED_AR,
+  SHARING_REVOKE_UNKNOWN_AR,
+} from '../../lib/sharingRevocation';
 import { Card, Button, Pill, SectionLabel } from '../ds/atoms';
 import { Input, Select, Checkbox, FormField } from '../ds/forms';
 import { Modal } from '../ds/modal';
@@ -289,10 +294,15 @@ export default function SharingPanel() {
     setRevokingKeyId(keyId);
     setRevokeError(null);
     try {
-      await kongApi.post(`/api/v1/sharing/keys/${encodeURIComponent(keyId)}/revoke`);
-      await refetch();
-    } catch (err) {
-      setRevokeError(apiErrorMessage(err, 'تعذّر إلغاء المفتاح. لم تتغير حالته.'));
+      const outcome = await revokeAndReconcileSharingKey(
+        keyId,
+        (url) => kongApi.post(url),
+        refetch,
+      );
+      if (outcome === 'unknown') setRevokeError(SHARING_REVOKE_UNKNOWN_AR);
+      if (outcome === 'confirmed_refresh_unavailable') {
+        setRevokeError(SHARING_REVOKE_REFRESH_FAILED_AR);
+      }
     } finally {
       setRevokingKeyId(null);
     }
