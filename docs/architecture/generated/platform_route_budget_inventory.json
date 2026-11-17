@@ -1,12 +1,12 @@
 {
   "counts": {
-    "domain_budget_headroom": 0,
-    "domain_budget_routes": 623,
+    "domain_budget_headroom": 6,
+    "domain_budget_routes": 617,
     "domain_route_budget": 623,
     "infrastructure_routes": 4,
-    "raw_routes": 627
+    "raw_routes": 621
   },
-  "inventory_sha256": "44f7fb1a68d4a55776bcefcce8c82d3ba4bef2d948e3b1d0c8247d4468268117",
+  "inventory_sha256": "1fc743a0feecd1cb3c2565e73c822c897ec0d330aab954432acb26fdad9d0551",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 623,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "62a1310dbad96207ec761eac9ae3ec407595a7085db76408caab0949fc54090e"
+    "policy_sha256": "fbe7c4efa21d918e77a9bf9c9a56f7078b3f971fe05ad6f12aeb3e7d02224599"
   },
   "routes": [
     {
@@ -1074,7 +1074,7 @@
     {
       "classification": "domain",
       "function": "field_alerts_derived",
-      "line": 3729,
+      "line": 3881,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/alerts/derived",
       "source": "api/routers/fields.py"
@@ -1154,7 +1154,7 @@
     {
       "classification": "domain",
       "function": "field_history",
-      "line": 3487,
+      "line": 3639,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/history",
       "source": "api/routers/fields.py"
@@ -1194,7 +1194,7 @@
     {
       "classification": "domain",
       "function": "field_lab_context",
-      "line": 766,
+      "line": 775,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/lab-context",
       "source": "api/routers/soil_sampling.py"
@@ -1250,7 +1250,7 @@
     {
       "classification": "domain",
       "function": "list_crop_rotations",
-      "line": 3245,
+      "line": 3397,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/rotations",
       "source": "api/routers/fields.py"
@@ -1258,7 +1258,7 @@
     {
       "classification": "domain",
       "function": "season_workspace",
-      "line": 315,
+      "line": 271,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/season-workspace",
       "source": "api/routers/season_workspace.py"
@@ -1282,7 +1282,7 @@
     {
       "classification": "domain",
       "function": "list_soil_lab_tests",
-      "line": 3150,
+      "line": 3186,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
       "source": "api/routers/fields.py"
@@ -1306,7 +1306,7 @@
     {
       "classification": "domain",
       "function": "field_canonical_state",
-      "line": 3701,
+      "line": 3853,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state",
       "source": "api/routers/fields.py"
@@ -1314,7 +1314,7 @@
     {
       "classification": "domain",
       "function": "field_state_full",
-      "line": 3755,
+      "line": 3907,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state/full",
       "source": "api/routers/fields.py"
@@ -1370,7 +1370,7 @@
     {
       "classification": "domain",
       "function": "field_water_stress_spectral",
-      "line": 3669,
+      "line": 3821,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-stress-spectral",
       "source": "api/routers/fields.py"
@@ -1666,7 +1666,7 @@
     {
       "classification": "domain",
       "function": "list_lab_samples",
-      "line": 272,
+      "line": 331,
       "method": "GET",
       "path": "/api/v1/lab/samples",
       "source": "api/routers/soil_sampling.py"
@@ -2042,7 +2042,7 @@
     {
       "classification": "domain",
       "function": "report_season_summary",
-      "line": 267,
+      "line": 264,
       "method": "GET",
       "path": "/api/v1/reports/season/{season_id}/summary",
       "source": "api/routers/reports.py"
@@ -2170,7 +2170,7 @@
     {
       "classification": "domain",
       "function": "soil_depth_endpoint",
-      "line": 64,
+      "line": 63,
       "method": "GET",
       "path": "/api/v1/soil-sampling/depth",
       "source": "api/routers/soil_sampling.py"
@@ -2178,7 +2178,7 @@
     {
       "classification": "domain",
       "function": "soil_protocol_endpoint",
-      "line": 70,
+      "line": 69,
       "method": "GET",
       "path": "/api/v1/soil-sampling/protocol",
       "source": "api/routers/soil_sampling.py"
@@ -2186,7 +2186,7 @@
     {
       "classification": "domain",
       "function": "soil_subsamples_endpoint",
-      "line": 58,
+      "line": 57,
       "method": "GET",
       "path": "/api/v1/soil-sampling/subsamples",
       "source": "api/routers/soil_sampling.py"
@@ -2618,7 +2618,7 @@
     {
       "classification": "domain",
       "function": "model_serving_resolve",
-      "line": 282,
+      "line": 233,
       "method": "GET",
       "path": "/models/serving/{alias:path}",
       "source": "api/phase10_continuous_learning.py"
@@ -2818,7 +2818,7 @@
     {
       "classification": "domain",
       "function": "update_soil_lab_test",
-      "line": 3170,
+      "line": 3210,
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
       "source": "api/routers/fields.py"
@@ -2830,14 +2830,6 @@
       "method": "PATCH",
       "path": "/api/v1/tasks/{task_id}",
       "source": "api/routers/tasks.py"
-    },
-    {
-      "classification": "domain",
-      "function": "agents_propose",
-      "line": 124,
-      "method": "POST",
-      "path": "/agents/propose",
-      "source": "api/phase11_federated_agents.py"
     },
     {
       "classification": "domain",
@@ -3506,7 +3498,7 @@
     {
       "classification": "domain",
       "function": "validate_geometry",
-      "line": 3331,
+      "line": 3483,
       "method": "POST",
       "path": "/api/v1/fields/validate-geometry",
       "source": "api/routers/fields.py"
@@ -3522,7 +3514,7 @@
     {
       "classification": "domain",
       "function": "evaluate_field_alerts_endpoint",
-      "line": 3184,
+      "line": 3336,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/alerts/evaluate",
       "source": "api/routers/fields.py"
@@ -3634,7 +3626,7 @@
     {
       "classification": "domain",
       "function": "create_pin",
-      "line": 3604,
+      "line": 3756,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/pins",
       "source": "api/routers/fields.py"
@@ -3650,7 +3642,7 @@
     {
       "classification": "domain",
       "function": "prescribe_nitrogen",
-      "line": 3364,
+      "line": 3516,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
       "source": "api/routers/fields.py"
@@ -3666,7 +3658,7 @@
     {
       "classification": "domain",
       "function": "add_crop_rotation",
-      "line": 3203,
+      "line": 3355,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/rotations",
       "source": "api/routers/fields.py"
@@ -3682,7 +3674,7 @@
     {
       "classification": "domain",
       "function": "create_soil_lab_test",
-      "line": 3136,
+      "line": 3128,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
       "source": "api/routers/fields.py"
@@ -3690,7 +3682,7 @@
     {
       "classification": "domain",
       "function": "field_timeline",
-      "line": 3467,
+      "line": 3619,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/timeline",
       "source": "api/routers/fields.py"
@@ -3698,7 +3690,7 @@
     {
       "classification": "domain",
       "function": "apply_trueup",
-      "line": 3272,
+      "line": 3424,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/trueup",
       "source": "api/routers/fields.py"
@@ -3706,7 +3698,7 @@
     {
       "classification": "domain",
       "function": "field_walk_plan",
-      "line": 3626,
+      "line": 3778,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan",
       "source": "api/routers/fields.py"
@@ -3714,7 +3706,7 @@
     {
       "classification": "domain",
       "function": "field_walk_plan_pdf",
-      "line": 3636,
+      "line": 3788,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
       "source": "api/routers/fields.py"
@@ -3746,7 +3738,7 @@
     {
       "classification": "domain",
       "function": "estimate_field_yield",
-      "line": 3393,
+      "line": 3545,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-estimate",
       "source": "api/routers/fields.py"
@@ -3778,7 +3770,7 @@
     {
       "classification": "domain",
       "function": "field_zones",
-      "line": 3655,
+      "line": 3807,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/zones",
       "source": "api/routers/fields.py"
@@ -3954,7 +3946,7 @@
     {
       "classification": "domain",
       "function": "create_lab_sample",
-      "line": 334,
+      "line": 393,
       "method": "POST",
       "path": "/api/v1/lab/samples",
       "source": "api/routers/soil_sampling.py"
@@ -3962,7 +3954,7 @@
     {
       "classification": "domain",
       "function": "transition_lab_sample",
-      "line": 622,
+      "line": 644,
       "method": "POST",
       "path": "/api/v1/lab/samples/{sample_id}/transition",
       "source": "api/routers/soil_sampling.py"
@@ -3970,7 +3962,7 @@
     {
       "classification": "domain",
       "function": "submit_soil_lab_result",
-      "line": 413,
+      "line": 463,
       "method": "POST",
       "path": "/api/v1/lab/soil-results",
       "source": "api/routers/soil_sampling.py"
@@ -3978,7 +3970,7 @@
     {
       "classification": "domain",
       "function": "submit_water_lab_result",
-      "line": 547,
+      "line": 593,
       "method": "POST",
       "path": "/api/v1/lab/water-results",
       "source": "api/routers/soil_sampling.py"
@@ -4210,7 +4202,7 @@
     {
       "classification": "domain",
       "function": "build_report",
-      "line": 378,
+      "line": 375,
       "method": "POST",
       "path": "/api/v1/reports/build",
       "source": "api/routers/reports.py"
@@ -4218,7 +4210,7 @@
     {
       "classification": "domain",
       "function": "operation_report_csv",
-      "line": 328,
+      "line": 325,
       "method": "POST",
       "path": "/api/v1/reports/operation",
       "source": "api/routers/reports.py"
@@ -4441,14 +4433,6 @@
     },
     {
       "classification": "domain",
-      "function": "champion_challenger",
-      "line": 192,
-      "method": "POST",
-      "path": "/champion-challenger",
-      "source": "api/phase10_continuous_learning.py"
-    },
-    {
-      "classification": "domain",
       "function": "register_cog",
       "line": 424,
       "method": "POST",
@@ -4482,7 +4466,7 @@
     {
       "classification": "domain",
       "function": "consensus",
-      "line": 131,
+      "line": 102,
       "method": "POST",
       "path": "/consensus",
       "source": "api/phase11_federated_agents.py"
@@ -4490,7 +4474,7 @@
     {
       "classification": "domain",
       "function": "context",
-      "line": 114,
+      "line": 92,
       "method": "POST",
       "path": "/context",
       "source": "api/phase11_federated_agents.py"
@@ -4498,7 +4482,7 @@
     {
       "classification": "domain",
       "function": "learning_cycle",
-      "line": 164,
+      "line": 143,
       "method": "POST",
       "path": "/cycle",
       "source": "api/phase10_continuous_learning.py"
@@ -4506,7 +4490,7 @@
     {
       "classification": "domain",
       "function": "cycle",
-      "line": 170,
+      "line": 127,
       "method": "POST",
       "path": "/cycle",
       "source": "api/phase11_federated_agents.py"
@@ -4530,17 +4514,9 @@
     {
       "classification": "domain",
       "function": "dataset",
-      "line": 139,
+      "line": 118,
       "method": "POST",
       "path": "/dataset",
-      "source": "api/phase10_continuous_learning.py"
-    },
-    {
-      "classification": "domain",
-      "function": "drift",
-      "line": 176,
-      "method": "POST",
-      "path": "/drift",
       "source": "api/phase10_continuous_learning.py"
     },
     {
@@ -4585,16 +4561,8 @@
     },
     {
       "classification": "domain",
-      "function": "shadow_experiment",
-      "line": 151,
-      "method": "POST",
-      "path": "/experiments/shadow",
-      "source": "api/phase11_federated_agents.py"
-    },
-    {
-      "classification": "domain",
       "function": "feature_store_offline_dataset",
-      "line": 211,
+      "line": 162,
       "method": "POST",
       "path": "/feature-store/offline-dataset",
       "source": "api/phase10_continuous_learning.py"
@@ -4602,7 +4570,7 @@
     {
       "classification": "domain",
       "function": "feature_store_online_materialization",
-      "line": 222,
+      "line": 173,
       "method": "POST",
       "path": "/feature-store/online-materialization",
       "source": "api/phase10_continuous_learning.py"
@@ -4610,7 +4578,7 @@
     {
       "classification": "domain",
       "function": "feature_store_point_in_time",
-      "line": 230,
+      "line": 181,
       "method": "POST",
       "path": "/feature-store/point-in-time",
       "source": "api/phase10_continuous_learning.py"
@@ -4618,7 +4586,7 @@
     {
       "classification": "domain",
       "function": "feature_store_register",
-      "line": 204,
+      "line": 155,
       "method": "POST",
       "path": "/feature-store/register",
       "source": "api/phase10_continuous_learning.py"
@@ -4746,7 +4714,7 @@
     {
       "classification": "domain",
       "function": "model_promotion",
-      "line": 149,
+      "line": 128,
       "method": "POST",
       "path": "/models/promote",
       "source": "api/phase10_continuous_learning.py"
@@ -4754,7 +4722,7 @@
     {
       "classification": "domain",
       "function": "model_register",
-      "line": 244,
+      "line": 195,
       "method": "POST",
       "path": "/models/register",
       "source": "api/phase10_continuous_learning.py"
@@ -4770,7 +4738,7 @@
     {
       "classification": "domain",
       "function": "model_serving_promote",
-      "line": 265,
+      "line": 216,
       "method": "POST",
       "path": "/models/serving/promote",
       "source": "api/phase10_continuous_learning.py"
@@ -4778,7 +4746,7 @@
     {
       "classification": "domain",
       "function": "model_serving_rollback",
-      "line": 272,
+      "line": 223,
       "method": "POST",
       "path": "/models/serving/rollback",
       "source": "api/phase10_continuous_learning.py"
@@ -4794,7 +4762,7 @@
     {
       "classification": "domain",
       "function": "operation_plan",
-      "line": 141,
+      "line": 112,
       "method": "POST",
       "path": "/operation-plan",
       "source": "api/phase11_federated_agents.py"
@@ -4906,7 +4874,7 @@
     {
       "classification": "domain",
       "function": "quality",
-      "line": 165,
+      "line": 122,
       "method": "POST",
       "path": "/quality",
       "source": "api/phase11_federated_agents.py"
@@ -4921,16 +4889,8 @@
     },
     {
       "classification": "domain",
-      "function": "retraining_plan",
-      "line": 185,
-      "method": "POST",
-      "path": "/retraining/plan",
-      "source": "api/phase10_continuous_learning.py"
-    },
-    {
-      "classification": "domain",
       "function": "runtime_authority_envelope",
-      "line": 205,
+      "line": 162,
       "method": "POST",
       "path": "/runtime/authority-envelope",
       "source": "api/phase11_federated_agents.py"
@@ -4938,23 +4898,15 @@
     {
       "classification": "domain",
       "function": "runtime_event_envelope",
-      "line": 223,
+      "line": 169,
       "method": "POST",
       "path": "/runtime/event-envelope",
       "source": "api/phase11_federated_agents.py"
     },
     {
       "classification": "domain",
-      "function": "runtime_reputation_update",
-      "line": 212,
-      "method": "POST",
-      "path": "/runtime/reputation/update",
-      "source": "api/phase11_federated_agents.py"
-    },
-    {
-      "classification": "domain",
       "function": "runtime_resolve",
-      "line": 194,
+      "line": 151,
       "method": "POST",
       "path": "/runtime/resolve",
       "source": "api/phase11_federated_agents.py"
@@ -4962,7 +4914,7 @@
     {
       "classification": "domain",
       "function": "scenario",
-      "line": 159,
+      "line": 138,
       "method": "POST",
       "path": "/scenario",
       "source": "api/phase10_continuous_learning.py"

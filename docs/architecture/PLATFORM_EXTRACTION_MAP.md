@@ -23,14 +23,14 @@ The following remain domain-budget routes and are not covered by the exception: 
 |---|---:|---|
 | `sahool-platform` | 246 | `bff-orchestrator` |
 | `field-management-service` | 135 | `system-of-record-target` |
-| `weather-service` | 42 | `system-of-record` |
+| `weather-service` | 41 | `system-of-record` |
 | `agriai-engine` | 32 | `decision-compute` |
 | `raster-service` | 27 | `compute-store` |
 | `soil-service` | 18 | `system-of-record` |
 | `erp-bridge` | 17 | `adapter` |
-| `learning-service-target` | 11 | `system-of-record-target` |
+| `learning-service-target` | 9 | `system-of-record-target` |
 | `knowledge-graph` | 11 | `knowledge-store` |
-| `supervisor-agent` | 10 | `orchestrator` |
+| `supervisor-agent` | 7 | `orchestrator` |
 | `guardrails-engine` | 7 | `policy-engine` |
 | `rag-retrieval` | 5 | `knowledge-retrieval` |
 | `actuator-service` | 2 | `execution-adapter` |
@@ -48,9 +48,6 @@ The following remain domain-budget routes and are not covered by the exception: 
 | `api/phase10_continuous_learning.py` | `POST` | `/models/promote` | `model_promotion` | `learning-service-target` | `system-of-record-target` |
 | `api/phase10_continuous_learning.py` | `POST` | `/scenario` | `scenario` | `agriai-engine` | `decision-compute` |
 | `api/phase10_continuous_learning.py` | `POST` | `/cycle` | `learning_cycle` | `learning-service-target` | `system-of-record-target` |
-| `api/phase10_continuous_learning.py` | `POST` | `/drift` | `drift` | `learning-service-target` | `system-of-record-target` |
-| `api/phase10_continuous_learning.py` | `POST` | `/retraining/plan` | `retraining_plan` | `weather-service` | `system-of-record` |
-| `api/phase10_continuous_learning.py` | `POST` | `/champion-challenger` | `champion_challenger` | `learning-service-target` | `system-of-record-target` |
 | `api/phase10_continuous_learning.py` | `POST` | `/feature-store/register` | `feature_store_register` | `field-management-service` | `system-of-record-target` |
 | `api/phase10_continuous_learning.py` | `POST` | `/feature-store/offline-dataset` | `feature_store_offline_dataset` | `learning-service-target` | `system-of-record-target` |
 | `api/phase10_continuous_learning.py` | `POST` | `/feature-store/online-materialization` | `feature_store_online_materialization` | `learning-service-target` | `system-of-record-target` |
@@ -60,15 +57,12 @@ The following remain domain-budget routes and are not covered by the exception: 
 | `api/phase10_continuous_learning.py` | `POST` | `/models/serving/rollback` | `model_serving_rollback` | `learning-service-target` | `system-of-record-target` |
 | `api/phase10_continuous_learning.py` | `GET` | `/models/serving/{alias:path}` | `model_serving_resolve` | `learning-service-target` | `system-of-record-target` |
 | `api/phase11_federated_agents.py` | `POST` | `/context` | `context` | `supervisor-agent` | `orchestrator` |
-| `api/phase11_federated_agents.py` | `POST` | `/agents/propose` | `agents_propose` | `supervisor-agent` | `orchestrator` |
 | `api/phase11_federated_agents.py` | `POST` | `/consensus` | `consensus` | `supervisor-agent` | `orchestrator` |
 | `api/phase11_federated_agents.py` | `POST` | `/operation-plan` | `operation_plan` | `supervisor-agent` | `orchestrator` |
-| `api/phase11_federated_agents.py` | `POST` | `/experiments/shadow` | `shadow_experiment` | `supervisor-agent` | `orchestrator` |
 | `api/phase11_federated_agents.py` | `POST` | `/quality` | `quality` | `supervisor-agent` | `orchestrator` |
 | `api/phase11_federated_agents.py` | `POST` | `/cycle` | `cycle` | `supervisor-agent` | `orchestrator` |
 | `api/phase11_federated_agents.py` | `POST` | `/runtime/resolve` | `runtime_resolve` | `supervisor-agent` | `orchestrator` |
 | `api/phase11_federated_agents.py` | `POST` | `/runtime/authority-envelope` | `runtime_authority_envelope` | `sahool-platform` | `bff-orchestrator` |
-| `api/phase11_federated_agents.py` | `POST` | `/runtime/reputation/update` | `runtime_reputation_update` | `supervisor-agent` | `orchestrator` |
 | `api/phase11_federated_agents.py` | `POST` | `/runtime/event-envelope` | `runtime_event_envelope` | `supervisor-agent` | `orchestrator` |
 | `api/phase12_marketplace_ecosystem.py` | `POST` | `/plugins/validate` | `validate_plugin` | `erp-bridge` | `adapter` |
 | `api/phase12_marketplace_ecosystem.py` | `POST` | `/marketplace/apps` | `create_marketplace_app` | `erp-bridge` | `adapter` |

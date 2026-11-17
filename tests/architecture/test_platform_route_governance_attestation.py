@@ -23,21 +23,21 @@ def test_generated_ownership_inventory_is_current():
     inventory = build_ownership_inventory()
     check_ownership_generated(inventory, OWNERSHIP_GENERATED_PATH)
     assert inventory["counts"] == {
-        "surface_routes": 631,
-        "direct_routes": 627,
+        "surface_routes": 625,
+        "direct_routes": 621,
         "api_route_declarations": 4,
-        "mapped_routes": 631,
+        "mapped_routes": 625,
     }
 
 
 def test_attestation_cross_binds_budget_and_ownership_counts():
     attestation = build_attestation()
     statement = attestation["statement"]
-    assert statement["raw_routes"] == 627
+    assert statement["raw_routes"] == 621
     assert statement["infrastructure_routes"] == 4
-    assert statement["domain_budget_routes"] == 623
+    assert statement["domain_budget_routes"] == 617
     assert statement["domain_route_budget"] == 623
-    assert statement["full_ownership_surface"] == 631
+    assert statement["full_ownership_surface"] == 625
     assert statement["api_route_declarations"] == 4
     assert len(attestation["statement_sha256"]) == 64
 
