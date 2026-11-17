@@ -4815,7 +4815,7 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - #1510 (`91dfe32a`).
 - #1511 (فرع `claude/w4-05-model-lifecycle-off-20261117`).
 - فرع `claude/w4-07-ownership-read-sections-20261117`.
-- `gaps/registry.md`: `WX12-MODEL-LIFECYCLE-NO-BACKEND-OWNER-01` و`DB-READ-NEVER-WRITTEN-INVISIBLE-01`.
+- `gaps/registry.md`: `DB-READ-NEVER-WRITTEN-INVISIBLE-01`. وفجوةُ W4-05 مسجّلةٌ على فرع #1511، ولا تُسمّى هنا قبل دمجه كي لا يروي السجلُّ معرِّفاً لا يعرفه السجلّ الحاليّ.
 
 **2026-11-17 — مُرحِّل بريدٍ داخل العنقود لـauth في Helm: تصميمٌ فقط.**
 **القرار:** يُعتمَد مُرحِّل بريدٍ داخل العنقود **تصميماً فقط**، بشروط:
