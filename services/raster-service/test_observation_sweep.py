@@ -44,11 +44,19 @@ def _payload(tenant=TENANT, scene="scene_1"):
 def sweep(monkeypatch):
     state = {"missing": {}, "enqueued": [], "limits": [], "enqueue_ok": True, "read_raises": False}
 
-    async def _missing(tenant, limit):
+    async def _missing(tenant, limit, after_id=0):
+        # The SQL's contract: assets above ``after_id`` with no outbox row, in id order.
         state["limits"].append((tenant, limit))
+        state.setdefault("after_ids", []).append(after_id)
         if state["read_raises"]:
             raise observation_outbox.OutboxUnavailable("down")
-        return state["missing"].get(tenant, [])[:limit]
+        queued = {p["product_identity_key"] for p in state["enqueued"]}
+        rows = [
+            item
+            for item in state["missing"].get(tenant, [])
+            if item["asset_id"] > after_id and item["product_identity_key"] not in queued
+        ]
+        return sorted(rows, key=lambda item: item["asset_id"])[:limit]
 
     async def _enqueue(payload):
         if not state["enqueue_ok"]:
@@ -63,11 +71,16 @@ def sweep(monkeypatch):
     monkeypatch.setenv("RASTER_OBSERVATION_SWEEP_TENANTS", f"{TENANT}, not-a-uuid")
     monkeypatch.setattr(observation_sweep, "_STATE", dict(observation_sweep._STATE))
     observation_sweep._STATE["counters"] = dict.fromkeys(observation_sweep.RESULTS, 0)
+    observation_sweep._STATE["cursors"] = {}
     return state
 
 
-def _item(payload, digest=None):
+_IDS = iter(range(1, 1_000_000))
+
+
+def _item(payload, digest=None, asset_id=None):
     return {
+        "asset_id": asset_id if asset_id is not None else next(_IDS),
         "product_identity_key": payload["product_identity_key"],
         "payload": payload,
         "digest": digest or observation_outbox.payload_sha256(payload),
@@ -145,6 +158,47 @@ def test_an_unwritable_outbox_stops_the_tenant_and_the_run_reports_it(sweep):
     assert observation_sweep.state()["last_run_ok"] is False
 
 
+def test_mismatched_rows_cannot_hide_a_missing_asset_behind_them(sweep, monkeypatch):
+    """A mismatched row never gets an outbox row, so it matches on every run. With a full batch
+    of them at lower ids than a genuinely missing asset, the keyset cursor still reaches the
+    missing asset within a bounded number of runs, and the runs that met them are not ok."""
+    monkeypatch.setenv("RASTER_OBSERVATION_SWEEP_BATCH", "3")
+    bad = [_item(_payload(scene=f"bad{n}"), digest="0" * 64, asset_id=n + 1) for n in range(3)] + [
+        _item(_payload(tenant=OTHER, scene="other"), asset_id=4)
+    ]
+    missing = _payload(scene="missing")
+    sweep["missing"][TENANT] = [*bad, _item(missing, asset_id=10)]
+    for _ in range(3):
+        asyncio.run(observation_sweep.run_once())
+        if sweep["enqueued"]:
+            break
+    assert sweep["enqueued"] == [missing], sweep["after_ids"]
+    assert sweep["after_ids"][:2] == [0, 3], "the second pass resumes after the first one"
+    state = observation_sweep.state()
+    assert state["last_run_ok"] is False and state["last_run_mismatches"] == 1, state
+    # The short pass wrapped: the next run starts again from the first asset.
+    asyncio.run(observation_sweep.run_once())
+    assert sweep["after_ids"][-1] == 0, sweep["after_ids"]
+    assert observation_sweep.state()["last_run_mismatches"] == 3
+
+
+def test_a_run_with_only_mismatches_is_not_ok(sweep):
+    sweep["missing"][TENANT] = [_item(_payload(), digest="0" * 64)]
+    asyncio.run(observation_sweep.run_once())
+    assert observation_sweep.state()["last_run_ok"] is False
+    assert observation_sweep.state()["last_run_mismatches"] == 1
+
+
+def test_a_failed_enqueue_keeps_the_cursor(sweep, monkeypatch):
+    monkeypatch.setenv("RASTER_OBSERVATION_SWEEP_BATCH", "1")
+    sweep["missing"][TENANT] = [_item(_payload(scene="a"), asset_id=5)]
+    sweep["enqueue_ok"] = False
+    asyncio.run(observation_sweep.run_once())
+    sweep["enqueue_ok"] = True
+    asyncio.run(observation_sweep.run_once())
+    assert sweep["after_ids"] == [0, 0] and len(sweep["enqueued"]) == 1
+
+
 def test_an_unreadable_outbox_is_counted_not_raised(sweep):
     sweep["read_raises"] = True
     result = asyncio.run(observation_sweep.run_once())
@@ -167,5 +221,6 @@ def test_the_sweep_reuses_the_publish_path_identity():
     assert "a.tenant_id = $1::uuid" in sql and "o.tenant_id = $1::uuid" in sql
     assert "'product_identity_key'" in sql and "'observation_payload_sha256'" in sql
     assert "LIMIT $2" in sql
+    assert "a.id > $3" in sql and "ORDER BY a.id" in sql, "a keyset cursor, not an offset"
     assert observation_outbox.PROVENANCE_PAYLOAD_KEY in sql
     assert observation_outbox.PROVENANCE_DIGEST_KEY in sql

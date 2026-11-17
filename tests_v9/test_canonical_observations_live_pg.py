@@ -754,6 +754,50 @@ def json_loads(value):
     return json.loads(value) if isinstance(value, str) else value
 
 
+def test_the_sweep_reaches_a_missing_asset_behind_a_full_batch_of_mismatched_rows(svc, monkeypatch):
+    """A stored payload whose digest no longer matches never gets an outbox row, so it matches
+    the sweep's query on every run. With a full batch of such rows at lower asset ids, the
+    keyset cursor still reaches the genuinely missing asset after them, and the run that met
+    them is reported not ok."""
+    _main, _client = svc
+    outbox, _raster_app, sweep, persist = _raster_modules(monkeypatch)
+    tenant = _tenant()
+    fields = [f"fld_{uuid.uuid4().hex[:10]}" for _ in range(3)]
+    crashed = _crash_the_outbox_write(monkeypatch, outbox)
+    for n, field in enumerate(fields):
+        assert _publish_asset(persist, tenant, field, scene=f"S2A_SWEEP_SCENE_{n}") is True
+    assert len(crashed) == 3 and _outbox(tenant) == [], "three published assets, no outbox row"
+    tampered = asyncio.run(
+        _admin_fetch(
+            "UPDATE raster_assets SET provenance = jsonb_set(provenance, "
+            "'{observation_payload_sha256}', to_jsonb(repeat('0', 64))) "
+            "WHERE tenant_id = $1::uuid AND field_id = ANY($2::text[]) RETURNING id",
+            tenant,
+            fields[:2],
+        )
+    )
+    assert len(tampered) == 2, tampered
+    [missing] = _assets(tenant, fields[2])
+
+    _sweep_env(monkeypatch, tenant)
+    monkeypatch.setenv("RASTER_OBSERVATION_SWEEP_BATCH", "2")
+    runs = []
+    for _ in range(3):
+        runs.append(asyncio.run(sweep.run_once())["tenants"][tenant])
+        if _outbox(tenant):
+            break
+    assert runs[0]["digest_mismatch"] == 2 and runs[0]["enqueued"] == 0, runs
+    [entry] = _outbox(tenant)
+    assert entry["payload_sha256"] == missing["digest"], (dict(entry), runs)
+    assert len(runs) == 2, f"reached on the second run: {runs}"
+    # The second pass was short, so the next one starts again from the first asset: the
+    # tampered rows are met again and the run is still reported not ok.
+    third = asyncio.run(sweep.run_once())["tenants"][tenant]
+    assert third["digest_mismatch"] == 2 and third["enqueued"] == 0, third
+    state = sweep.state()
+    assert state["last_run_ok"] is False and state["last_run_mismatches"] == 2, state
+
+
 def test_case_b_crash_after_the_outbox_write_before_the_drain_next_drain_delivers(svc, monkeypatch):
     main, _client = svc
     _outbox_module, raster_app, sweep, persist = _raster_modules(monkeypatch)
