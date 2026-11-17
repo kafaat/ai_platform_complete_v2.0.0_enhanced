@@ -122,6 +122,21 @@ def all_capabilities() -> list[Capability]:
             "عيّن SAHOOL_FIELD_BOUNDARY_BACKEND=ftw وزوّد SAHOOL_FTW_WEIGHTS بمسار الأوزان",
             "استدلال حتميّ (bbox/تتبّع كنتور مؤشّر) موسوم method في الحمولة — لا نموذج مزيّف",
         ),
+        # W4-05 (قرار المالك 2026-11-16): حلقة دورة حياة النماذج WX-12 متوقّفة بقرار، لا بغياب
+        # شرط بيئيّ هنا. تُعلَن خاملةً ثابتةً: مفتاحها الوحيد DECISION_MODEL_LIFECYCLE_ENABLED في
+        # decision-service (مطفأ افتراضيّاً)، فلا تقرأ المنصّة متغيّراً لا تملكه ولا تستدعي الخدمة.
+        # tests_v9/test_w4_05_model_lifecycle_defaults_pinned.py يربط الافتراضين: قلبُ أحدهما
+        # دون الآخر يُفشل CI.
+        Capability(
+            "model_lifecycle",
+            "دورة حياة النماذج (نشر تدريجيّ، مراقبة، إعادة تدريب) WX-12",
+            False,
+            "مالكٌ مُسمًّى لخلفيّاتها الأربع (التحكّم بالمرور، التحقّق من الاستدلال، مصدر المقاييس، "
+            "خلفيّة التدريب) ورحلةٌ كاملة مختبَرة، ثمّ DECISION_MODEL_LIFECYCLE_ENABLED=1 في "
+            "decision-service وقلبُ هذه القدرة معاً",
+            "decision-service يرفض كتابات WX-12 بحالة model_lifecycle_disabled ولا يقدّم عملها "
+            "للمحوِّل؛ صفوفها القائمة تبقى معلّقة سليمة — لا إعادة تدريب ولا نشر يُوحى بهما",
+        ),
         Capability(
             "aquacrop_salinity",
             "محرّك AquaCrop لإجهاد الملوحة",

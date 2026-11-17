@@ -89,6 +89,24 @@ def _replay(method: str, url: str, headers: dict, body):
     assert resp.status_code != 400, f"required header missing: {method} {path} -> {resp.text[:200]}"
     assert resp.status_code != 422, f"body fails Pydantic: {method} {path} -> {resp.text[:200]}"
     assert resp.status_code == 503, f"expected mirror 503, got {resp.status_code}: {method} {path}"
+    _assert_sor_gate(resp, f"{method} {path}")
+
+
+_SOR_GATE_DETAIL = "decision-service is not the system-of-record"
+
+
+def _assert_sor_gate(resp, what: str) -> None:
+    """A 503 proves validation only if it is the SoR gate itself.
+
+    W4-05 added a second 503, ``model_lifecycle_disabled``, which the decision-service raises
+    after validation while the WX-12 loop is stopped. Here the SoR gate runs first, so seeing the
+    lifecycle refusal means it moved ahead of validation: that is a refusal, not a validation,
+    and must fail this contract instead of passing it silently.
+    """
+    detail = resp.json().get("detail")
+    if isinstance(detail, dict) and detail.get("code") == "model_lifecycle_disabled":
+        raise AssertionError(f"refused by the W4-05 lifecycle flag, not validated: {what}")
+    assert detail == _SOR_GATE_DETAIL, f"503 is not the SoR gate ({detail!r}): {what}"
 
 
 def _capturing(method, url, *, token="", body=None, headers=None, timeout=15.0):
@@ -403,6 +421,7 @@ def test_schedule_endpoint_contract_shape():
         json=body,
     )
     assert ok.status_code == 503  # mirror mode: valid request stops at the SoR gate
+    _assert_sor_gate(ok, "POST /v1/learning/runtime-schedules")
 
 
 def test_resolve_tenants_priority_and_server_discovery(monkeypatch):

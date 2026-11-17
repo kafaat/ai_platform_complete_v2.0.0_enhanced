@@ -20,8 +20,13 @@ async def seed_activated_model(
     model_id: str,
     feature_set_id: str = "f1",
     target_environment: str = "staging",
+    with_receipt: bool = True,
 ) -> dict[str, str]:
-    """Insert evaluation→promotion→request→review→command→claim→activated receipt."""
+    """Insert evaluation→promotion→request→review→command→claim→activated receipt.
+
+    ``with_receipt=False`` stops after the activation command, leaving it pending: the
+    runtime-work feed then surfaces it as an ``activation_command`` item.
+    """
     digest = uuid4().hex + uuid4().hex  # unique per chain (uq_model_eval_artifact_digest)
     ids = {
         "evaluation_run_id": "eval_" + uuid4().hex[:20],
@@ -103,6 +108,10 @@ async def seed_activated_model(
         digest,
         "e" * 64,
     )
+    if not with_receipt:
+        ids.pop("activation_claim_id")
+        ids.pop("activation_receipt_id")
+        return ids
     await conn.execute(
         """INSERT INTO decision_model_registry_activation_claims
            (activation_claim_id,tenant_id,activation_command_id,adapter_id,delivery_token_hash)

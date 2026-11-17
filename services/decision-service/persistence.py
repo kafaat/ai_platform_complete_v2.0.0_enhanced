@@ -33,6 +33,24 @@ def sor_enabled() -> bool:
     )
 
 
+# W4-05 (owner decision 2026-11-16): the WX-12 model-lifecycle loop is stopped until a real owner
+# exists for its four external backends (traffic controller, inference verifier, metrics source,
+# training backend; services/model-registry-adapter/runtime.py). OFF by default. While off, the
+# WX-12 write endpoints refuse before any write and the runtime-work feed omits the WX-12 work
+# types in its query, so their rows stay pending, untouched, and resume when the flag is on.
+MODEL_LIFECYCLE_WORK_TYPES = (
+    "post_activation_verification",
+    "rollout_apply",
+    "retraining_dispatch",
+    "monitoring_window",
+    "active_state_reconcile",
+)
+
+
+def model_lifecycle_enabled() -> bool:
+    return os.getenv("DECISION_MODEL_LIFECYCLE_ENABLED", "").strip().lower() in _TRUTHY
+
+
 def sor_requested_without_db() -> bool:
     return os.getenv("DECISION_SERVICE_SOR_ENABLED", "").strip().lower() in _TRUTHY and not bool(
         os.getenv("DATABASE_URL", "").strip()
@@ -5316,15 +5334,27 @@ async def create_retraining_request(
 # --- WX-12.1 runtime integration: work feed + rollout/retraining dispatch receipts -----------
 
 
-async def list_runtime_work(*, tenant_id: str, worker_id: str, limit: int = 20) -> dict[str, Any]:
+async def list_runtime_work(
+    *,
+    tenant_id: str,
+    worker_id: str,
+    limit: int = 20,
+    include_model_lifecycle: bool | None = None,
+) -> dict[str, Any]:
     """Authoritative pending-work feed for the model-registry-adapter runtime.
 
     Aggregates the not-yet-acknowledged items across the WX-11/WX-12 lifecycle: registry
     activation/rollback commands still needing a receipt, activation receipts awaiting
     post-activation verification, rollout plans awaiting an application receipt, and retraining
     requests awaiting a dispatch receipt. Read-only projection over the SoR tables; fail-closed.
+
+    With the WX-12 loop stopped (W4-05, ``include_model_lifecycle`` false, the default when the
+    flag is off) the query itself keeps only the WX-11.6 activation/rollback commands: the WX-12
+    rows are neither returned nor leased, so they stay pending and reappear when it is on.
     """
     lim = max(1, min(int(limit or 20), 100))
+    if include_model_lifecycle is None:
+        include_model_lifecycle = model_lifecycle_enabled()
     conn = await _connect()
     try:
         async with conn.transaction():
@@ -5466,10 +5496,13 @@ async def list_runtime_work(*, tenant_id: str, worker_id: str, limit: int = 20) 
                                         AND re.target_environment=s.target_environment
                                         AND re.checked_at > now() - make_interval(secs => s.period_seconds))
                 )
-                SELECT work_type, payload FROM work ORDER BY at ASC LIMIT $2
+                SELECT work_type, payload FROM work
+                 WHERE $3::boolean OR work_type IN ('activation_command', 'rollback_command')
+                 ORDER BY at ASC LIMIT $2
                 """,
                 tenant_id,
                 lim,
+                bool(include_model_lifecycle),
             )
             # Multi-replica safety: activation/rollback already have claim tables (the worker claims
             # atomically). For the side-effecting types below, take a durable lease here so at most one
