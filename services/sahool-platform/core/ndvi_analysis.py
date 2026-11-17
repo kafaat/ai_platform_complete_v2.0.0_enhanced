@@ -30,6 +30,7 @@
 
 from __future__ import annotations
 
+import math
 from statistics import mean
 
 from core.time_series import TimePoint, detect_anomalies
@@ -58,6 +59,10 @@ def _clean_series(series: object) -> list[dict]:
         if not isinstance(raw, (int, float)):
             continue
         ndvi = float(raw)
+        # Spectral NDVI is bounded by [-1, 1]; reject non-finite and
+        # nonphysical values before computing trend, mean, or crop vigor.
+        if not math.isfinite(ndvi) or not -1.0 <= ndvi <= 1.0:
+            continue
         date_val = item.get("date")
         cleaned.append({"ndvi": ndvi, "date": str(date_val) if date_val is not None else ""})
     return cleaned
