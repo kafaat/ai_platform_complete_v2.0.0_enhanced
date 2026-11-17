@@ -110,3 +110,25 @@ class TestHealthBands:
         r = analyze_ndvi_series(_series([0.45, 0.40, 0.35, 0.32, 0.30]))
         assert r["latest"] == 0.30
         assert r["health_class"] == "stressed"  # < 0.40
+
+
+class TestPhysicalNdviRange:
+    @pytest.mark.parametrize("bad", [float("nan"), float("inf"), -float("inf"), 1.01, -1.01])
+    def test_non_finite_or_out_of_range_samples_do_not_become_crop_health(self, bad):
+        r = analyze_ndvi_series(_series([0.45, bad, 0.65]))
+        assert r["n_points"] == 2
+        assert r["trend"] == "insufficient"
+        assert r["health_class"] == "unknown"
+        assert r["latest"] == 0.65
+
+    def test_only_invalid_values_are_explicitly_insufficient(self):
+        r = analyze_ndvi_series(_series([float("nan"), float("inf"), 2.0]))
+        assert r["n_points"] == 0
+        assert r["latest"] is None
+        assert r["mean"] is None
+        assert r["health_class"] == "unknown"
+
+    def test_physical_ndvi_boundaries_remain_valid(self):
+        r = analyze_ndvi_series(_series([-1.0, 0.0, 1.0]))
+        assert r["n_points"] == 3
+        assert r["latest"] == 1.0
