@@ -5308,6 +5308,7 @@
         "services/sahool-platform/tests/test_outcome_endpoint.py",
         "services/sahool-platform/tests/test_outcome_reconciler.py",
         "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
+        "services/sahool-platform/tests/test_pest_execution_outcome.py",
         "services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py",
         "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
         "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py",
@@ -5337,6 +5338,7 @@
           "receipt:test:services/sahool-platform/tests/test_outcome_endpoint.py",
           "receipt:test:services/sahool-platform/tests/test_outcome_reconciler.py",
           "receipt:test:services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
+          "receipt:test:services/sahool-platform/tests/test_pest_execution_outcome.py",
           "receipt:test:services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py",
           "receipt:test:services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
           "receipt:test:services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py",
@@ -5367,7 +5369,7 @@
           "path": "services/sahool-platform/api/outcome_measurement.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=13, tests=12, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=13, tests=13, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

@@ -158,4 +158,3 @@ def test_inconsistent_completed_without_execution_step_requires_reconciliation()
     result = summarize_pest_execution(_state(WorkflowStatus.COMPLETED))
     assert result["status"] == "reconciliation_required", result
     assert result["executed"] is None, result
-

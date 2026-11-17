@@ -2587,7 +2587,7 @@
       "kind": "lineage_stage",
       "stage": "outcome",
       "order": 9,
-      "evidence_count": 61,
+      "evidence_count": 62,
       "owners": [
         "database",
         "decision-service",
@@ -2646,6 +2646,7 @@
         "services/sahool-platform/tests/test_outcome_reconciler.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
         "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
+        "services/sahool-platform/tests/test_pest_execution_outcome.py",
         "services/sahool-platform/tests/test_r09_learning_label_integrity.py",
         "services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py",
         "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py",
@@ -3602,7 +3603,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
       "source_evidence_count": 49,
-      "target_evidence_count": 61,
+      "target_evidence_count": 62,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3648,7 +3649,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 61,
+      "source_evidence_count": 62,
       "target_evidence_count": 393,
       "static_supported": true,
       "runtime_verified": false
@@ -3659,5 +3660,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "65c0f7ad9a5b29d4a2dc83501ab546887b90892651f4633cadce9a088de783c1"
+  "content_sha256": "edc896cf9fd4b295e40f5749e47b82aea7a6f8c18f820c9950727faedd6e5da1"
 }

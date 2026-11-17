@@ -9436,6 +9436,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_pest_execution_outcome.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_pest_guardrails_gate.py",
     "kind": "tests"
   },

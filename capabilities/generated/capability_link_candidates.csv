@@ -216,6 +216,7 @@ DEC-007,test,services/decision-service/tests/test_wx10_12_execution_outcome.py,3
 DEC-007,test,services/sahool-platform/tests/test_outcome_endpoint.py,3,applied
 DEC-007,test,services/sahool-platform/tests/test_outcome_reconciler.py,3,applied
 DEC-007,test,services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py,3,applied
+DEC-007,test,services/sahool-platform/tests/test_pest_execution_outcome.py,3,applied
 DEC-007,test,services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py,5,applied
 DEC-007,test,services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py,3,applied
 DEC-007,test,services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py,3,applied

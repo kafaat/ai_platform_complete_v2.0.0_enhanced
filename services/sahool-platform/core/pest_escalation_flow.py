@@ -113,12 +113,11 @@ def summarize_pest_execution(state: Any) -> dict[str, Any]:
         # its handler can crash AFTER the side effect and BEFORE saving the
         # result. current_step is saved before invoking the handler.
         reached_execute = (
-            state.current_step in ("execute", "follow_up")
-            or "execute" in state.completed_steps
+            state.current_step in ("execute", "follow_up") or "execute" in state.completed_steps
         )
-        uncertain = (
-            reached_execute
-            or state.status in (WorkflowStatus.COMPLETED, WorkflowStatus.COMPENSATION_FAILED)
+        uncertain = reached_execute or state.status in (
+            WorkflowStatus.COMPLETED,
+            WorkflowStatus.COMPENSATION_FAILED,
         )
         return {
             "status": "reconciliation_required" if uncertain else "not_attempted",
