@@ -74,6 +74,7 @@ from persistence import (
     list_review_queue,
     list_runtime_work,
     list_worker_tenants,
+    model_lifecycle_enabled,
     normalize_operation_type,
     persist_decision_record,
     persist_dispatch_decision,
@@ -594,6 +595,8 @@ async def readyz(response: Response) -> dict[str, Any]:
             ),
         },
         "mode": "system-of-record" if sor_on else "interim-mirror",
+        # W4-05: reported, never part of the readiness verdict above.
+        "capabilities": {"model_lifecycle": _model_lifecycle_capability()},
         "db_readiness": db,
         "sor_capability": sor_capability_signal(db, sor_enabled=sor_on, ready=ready),
     }
@@ -2715,6 +2718,37 @@ async def record_registry_rollback_receipt_boundary(
     raise HTTPException(status_code=409, detail=result.get("reason", "rollback receipt conflict"))
 
 
+# W4-05 (owner decision 2026-11-16): the WX-12 model-lifecycle loop is stopped until a real owner
+# exists for its four external backends. While DECISION_MODEL_LIFECYCLE_ENABLED is off, every WX-12
+# write endpoint refuses with this named state, after header/body/SoR validation and before any
+# write or outbox insert. No Retry-After: this is a standing decision, not a transient outage.
+MODEL_LIFECYCLE_DISABLED = {
+    "code": "model_lifecycle_disabled",
+    "reason_ar": (
+        "حلقة دورة حياة النماذج (WX-12) متوقّفة بقرار المالك: لا مالك حقيقيّ بعدُ لخلفيّاتها "
+        "الأربع (التحكّم بالمرور، والتحقّق من الاستدلال، ومصدر المقاييس، وخلفيّة التدريب)."
+    ),
+    "reenable": (
+        "a named owner for the traffic controller, inference verifier, metrics source and "
+        "training backend, and a tested end-to-end journey; then DECISION_MODEL_LIFECYCLE_ENABLED=1"
+    ),
+}
+
+
+def _model_lifecycle_capability() -> dict[str, Any]:
+    enabled = model_lifecycle_enabled()
+    return {
+        "enabled": enabled,
+        "code": None if enabled else MODEL_LIFECYCLE_DISABLED["code"],
+        "reenable": MODEL_LIFECYCLE_DISABLED["reenable"],
+    }
+
+
+def _refuse_while_model_lifecycle_disabled() -> None:
+    if not model_lifecycle_enabled():
+        raise HTTPException(status_code=503, detail=dict(MODEL_LIFECYCLE_DISABLED))
+
+
 @app.get("/v1/learning/models/{model_id}/active-state")
 async def active_model_state_boundary(
     model_id: str,
@@ -2769,6 +2803,7 @@ async def post_activation_verification_boundary(
         raise HTTPException(status_code=422, detail="artifact_digest must be sha256")
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    _refuse_while_model_lifecycle_disabled()
     result = await create_post_activation_verification(
         tenant_id=tenant, receipt_id=activation_receipt_id, verified_by=actor, payload=payload
     )
@@ -2803,6 +2838,7 @@ async def rollout_plan_boundary(
         raise HTTPException(status_code=422, detail="shadow traffic_percent must be 0")
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    _refuse_while_model_lifecycle_disabled()
     result = await create_rollout_plan(
         tenant_id=tenant, receipt_id=activation_receipt_id, requested_by=actor, payload=payload
     )
@@ -2846,6 +2882,7 @@ async def monitoring_snapshot_boundary(
         raise HTTPException(status_code=422, detail="invalid monitoring snapshot")
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    _refuse_while_model_lifecycle_disabled()
     result = await record_monitoring_snapshot(tenant_id=tenant, captured_by=actor, payload=payload)
     if result.get("status") == "ok":
         return {"accepted": True, "tenant_id": tenant, **result}
@@ -2885,6 +2922,7 @@ async def retraining_request_boundary(
         )
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    _refuse_while_model_lifecycle_disabled()
     result = await create_retraining_request(tenant_id=tenant, requested_by=actor, payload=payload)
     if result.get("status") == "ok":
         return {"accepted": True, "tenant_id": tenant, **result}
@@ -2922,7 +2960,12 @@ async def runtime_work_feed(
             status_code=403,
             detail={"code": "worker_tenant_unauthorized", "worker_id": wid},
         )
-    return await list_runtime_work(tenant_id=tenant, worker_id=wid, limit=limit)
+    return await list_runtime_work(
+        tenant_id=tenant,
+        worker_id=wid,
+        limit=limit,
+        include_model_lifecycle=model_lifecycle_enabled(),
+    )
 
 
 class RuntimeWorkerTenantIn(BaseModel):
@@ -3006,6 +3049,7 @@ async def rollout_receipt_boundary(
         raise HTTPException(status_code=422, detail="failure_reason is required")
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    _refuse_while_model_lifecycle_disabled()
     result = await record_rollout_receipt(
         tenant_id=tenant, recorded_by=actor, rollout_plan_id=rollout_plan_id, payload=payload
     )
@@ -3049,6 +3093,7 @@ async def retraining_dispatch_receipt_boundary(
         raise HTTPException(status_code=422, detail="failure_reason is required")
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    _refuse_while_model_lifecycle_disabled()
     result = await record_retraining_dispatch_receipt(
         tenant_id=tenant,
         recorded_by=actor,
@@ -3102,6 +3147,7 @@ async def runtime_schedule_boundary(
         raise HTTPException(status_code=422, detail="model_id and idempotency_key are required")
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    _refuse_while_model_lifecycle_disabled()
     result = await create_runtime_schedule(tenant_id=tenant, created_by=actor, payload=payload)
     if result.get("status") == "ok":
         return {"accepted": True, "tenant_id": tenant, **result}
@@ -3142,6 +3188,7 @@ async def reconcile_evidence_boundary(
         raise HTTPException(status_code=422, detail="idempotency_key is required")
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    _refuse_while_model_lifecycle_disabled()
     result = await record_reconcile_evidence(tenant_id=tenant, recorded_by=actor, payload=payload)
     if result.get("status") == "ok":
         return {"accepted": True, "tenant_id": tenant, **result}

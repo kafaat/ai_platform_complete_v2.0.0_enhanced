@@ -601,22 +601,17 @@ sahool-platform.outcome.measure,command,sahool-platform,POST /api/v1/outcome/mea
 sahool-platform.outcome.record,command,sahool-platform,POST /api/v1/outcome/record,frontend,route,False
 sahool-platform.outcomes.outcome_id.learning-attribution,command,sahool-platform,POST /api/v1/outcomes/{outcome_id}/learning-attribution,frontend,route,False
 sahool-platform.pest-escalation.run,command,sahool-platform,POST /api/v1/pest-escalation/run,frontend,route,False
-sahool-platform.phase10.learning.champion-challenger,command,sahool-platform,POST /v1/phase10/learning/champion-challenger,frontend,route,False
 sahool-platform.phase10.learning.cycle,command,sahool-platform,POST /v1/phase10/learning/cycle,frontend,route,False
 sahool-platform.phase10.learning.dataset,command,sahool-platform,POST /v1/phase10/learning/dataset,frontend,route,False
-sahool-platform.phase10.learning.drift,command,sahool-platform,POST /v1/phase10/learning/drift,frontend,route,False
 sahool-platform.phase10.learning.feature-store,command,sahool-platform,POST /v1/phase10/learning/feature-store/offline-dataset|POST /v1/phase10/learning/feature-store/online-materialization|POST /v1/phase10/learning/feature-store/point-in-time|POST /v1/phase10/learning/feature-store/register,frontend,route,False
 sahool-platform.phase10.learning.models,mixed,sahool-platform,GET /v1/phase10/learning/models/serving/{alias:path}|POST /v1/phase10/learning/models/promote|POST /v1/phase10/learning/models/register|POST /v1/phase10/learning/models/serving/promote|POST /v1/phase10/learning/models/serving/rollback,frontend,route,False
-sahool-platform.phase10.learning.retraining,command,sahool-platform,POST /v1/phase10/learning/retraining/plan,frontend,route,False
 sahool-platform.phase10.learning.scenario,command,sahool-platform,POST /v1/phase10/learning/scenario,frontend,route,False
-sahool-platform.phase11.federation.agents,command,sahool-platform,POST /v1/phase11/federation/agents/propose,frontend,route,False
 sahool-platform.phase11.federation.consensus,command,sahool-platform,POST /v1/phase11/federation/consensus,frontend,route,False
 sahool-platform.phase11.federation.context,command,sahool-platform,POST /v1/phase11/federation/context,frontend,route,False
 sahool-platform.phase11.federation.cycle,command,sahool-platform,POST /v1/phase11/federation/cycle,frontend,route,False
-sahool-platform.phase11.federation.experiments,command,sahool-platform,POST /v1/phase11/federation/experiments/shadow,frontend,route,False
 sahool-platform.phase11.federation.operation-plan,command,sahool-platform,POST /v1/phase11/federation/operation-plan,frontend,route,False
 sahool-platform.phase11.federation.quality,command,sahool-platform,POST /v1/phase11/federation/quality,frontend,route,False
-sahool-platform.phase11.federation.runtime,command,sahool-platform,POST /v1/phase11/federation/runtime/authority-envelope|POST /v1/phase11/federation/runtime/event-envelope|POST /v1/phase11/federation/runtime/reputation/update|POST /v1/phase11/federation/runtime/resolve,frontend,route,False
+sahool-platform.phase11.federation.runtime,command,sahool-platform,POST /v1/phase11/federation/runtime/authority-envelope|POST /v1/phase11/federation/runtime/event-envelope|POST /v1/phase11/federation/runtime/resolve,frontend,route,False
 sahool-platform.phase9.autonomy.cycle,command,sahool-platform,POST /v1/phase9/autonomy/cycle,frontend,route,False
 sahool-platform.phase9.autonomy.events,command,sahool-platform,POST /v1/phase9/autonomy/events/from-plan|POST /v1/phase9/autonomy/events/replay,frontend,route,False
 sahool-platform.phase9.autonomy.experiments,command,sahool-platform,POST /v1/phase9/autonomy/experiments/assign,frontend,route,False

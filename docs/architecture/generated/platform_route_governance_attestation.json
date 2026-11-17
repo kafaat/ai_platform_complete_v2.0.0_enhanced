@@ -6,29 +6,29 @@
     },
     {
       "path": "docs/architecture/platform_extraction_map.json",
-      "sha256": "62a1310dbad96207ec761eac9ae3ec407595a7085db76408caab0949fc54090e"
+      "sha256": "63cc9509b4c38fb658d4e813d0a5dc2b273a5e7d8f1291e432b5c9613e088d22"
     },
     {
       "path": "docs/architecture/generated/platform_route_budget_inventory.json",
-      "sha256": "d402d9aecb6179497171c1ad24829080deeca26ffbdbb993e64f76fd33936d93"
+      "sha256": "5f8ae490a69ee2330512da26517e2b33560bbf4de1220c5b364682d4b742c567"
     },
     {
       "path": "docs/architecture/generated/platform_route_ownership_inventory.json",
-      "sha256": "da7f83b95dae9a52c4b72d471c8d0fc0de8684a9e65c16859a8f1d0c9ab1cae8"
+      "sha256": "a81e9bd89b54075a73f934483299aa937e31ac13918beddcd75f19956b5453ee"
     }
   ],
   "schema_version": "sahool.platform-route-governance-attestation.v1",
   "statement": {
     "api_route_declarations": 4,
-    "budget_inventory_sha256": "44f7fb1a68d4a55776bcefcce8c82d3ba4bef2d948e3b1d0c8247d4468268117",
+    "budget_inventory_sha256": "cb6f26719ccc5ef1a8f334f7f43001f26ecef6726ea161e95fba812702912b5d",
     "classification_sha256": "c8a152411892b5aa921e717ade91f6235f80e62da01cad148bda7de686b6971f",
-    "domain_budget_routes": 623,
+    "domain_budget_routes": 617,
     "domain_route_budget": 623,
-    "full_ownership_surface": 631,
+    "full_ownership_surface": 625,
     "infrastructure_routes": 4,
-    "map_sha256": "62a1310dbad96207ec761eac9ae3ec407595a7085db76408caab0949fc54090e",
-    "ownership_inventory_sha256": "043448f6f4cf2e17da2ea3311b8def9d115b87d11e347ab22eb38c98c708647c",
-    "raw_routes": 627
+    "map_sha256": "63cc9509b4c38fb658d4e813d0a5dc2b273a5e7d8f1291e432b5c9613e088d22",
+    "ownership_inventory_sha256": "56d946271739a30087faa8876d71dd11b546d1dd50b7cdc301816ddb0538a2f9",
+    "raw_routes": 621
   },
-  "statement_sha256": "c903a91f515f83e4f217b20001e6741b0e47cc8dfb4964e3c27f8a3d63c25ea5"
+  "statement_sha256": "4e3fb5b8936efa51be2aec46c2b23ced11297c375a5fa91231b7ecf06742560e"
 }

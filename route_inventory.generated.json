@@ -466,7 +466,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 553,
+    "line": 554,
     "method": "GET",
     "path": "/runtime-identity",
     "function": "runtime_identity"
@@ -474,7 +474,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 559,
+    "line": 560,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -482,7 +482,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 564,
+    "line": 565,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -490,7 +490,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 603,
+    "line": 606,
     "method": "GET",
     "path": "/v1/cutover/readiness",
     "function": "cutover_readiness"
@@ -498,7 +498,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 613,
+    "line": 616,
     "method": "GET",
     "path": "/contract",
     "function": "contract"
@@ -506,7 +506,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 646,
+    "line": 649,
     "method": "POST",
     "path": "/v1/evidence/vegetation-snapshots",
     "function": "create_vegetation_snapshot"
@@ -514,7 +514,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 664,
+    "line": 667,
     "method": "GET",
     "path": "/v1/evidence/vegetation-snapshots/latest",
     "function": "read_latest_vegetation_snapshot"
@@ -522,7 +522,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 733,
+    "line": 736,
     "method": "POST",
     "path": "/v1/decisions/record",
     "function": "record_decision"
@@ -530,7 +530,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 807,
+    "line": 810,
     "method": "GET",
     "path": "/v1/decisions/review-queue",
     "function": "review_queue"
@@ -538,7 +538,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 865,
+    "line": 868,
     "method": "POST",
     "path": "/v1/decisions/{decision_id}/review",
     "function": "review_candidate"
@@ -546,7 +546,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 963,
+    "line": 966,
     "method": "POST",
     "path": "/v1/decisions/{decision_id}/execution-plan",
     "function": "build_execution_plan"
@@ -554,7 +554,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1027,
+    "line": 1030,
     "method": "GET",
     "path": "/v1/execution-plans/{execution_plan_id}",
     "function": "read_execution_plan_state"
@@ -562,7 +562,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1047,
+    "line": 1050,
     "method": "POST",
     "path": "/v1/dispatch/decisions",
     "function": "record_dispatch"
@@ -570,7 +570,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1106,
+    "line": 1109,
     "method": "GET",
     "path": "/v1/dispatch/decisions",
     "function": "list_dispatch"
@@ -578,7 +578,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1120,
+    "line": 1123,
     "method": "POST",
     "path": "/v1/outcomes/record",
     "function": "record_outcome"
@@ -586,7 +586,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1147,
+    "line": 1150,
     "method": "POST",
     "path": "/v1/recommendation-outcomes",
     "function": "record_recommendation_outcome"
@@ -594,7 +594,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1174,
+    "line": 1177,
     "method": "POST",
     "path": "/v1/learning/updates",
     "function": "record_learning_update"
@@ -602,7 +602,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1222,
+    "line": 1225,
     "method": "GET",
     "path": "/v1/learning/summary",
     "function": "learning_summary"
@@ -610,7 +610,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1261,
+    "line": 1264,
     "method": "GET",
     "path": "/v1/decisions",
     "function": "list_decisions"
@@ -618,7 +618,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1296,
+    "line": 1299,
     "method": "POST",
     "path": "/v1/evidence/field-counts",
     "function": "read_field_evidence_counts"
@@ -626,7 +626,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1308,
+    "line": 1311,
     "method": "GET",
     "path": "/v1/fields/{field_id}/lineage",
     "function": "field_lineage"
@@ -634,7 +634,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1329,
+    "line": 1332,
     "method": "GET",
     "path": "/v1/outcomes/reconciled",
     "function": "reconciled_outcomes"
@@ -642,7 +642,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1408,
+    "line": 1411,
     "method": "GET",
     "path": "/v1/decisions/{decision_id}/agronomic-evidence",
     "function": "decision_agronomic_evidence"
@@ -650,7 +650,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1426,
+    "line": 1429,
     "method": "GET",
     "path": "/v1/decisions/{decision_id}/lineage",
     "function": "decision_lineage"
@@ -658,7 +658,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1460,
+    "line": 1463,
     "method": "POST",
     "path": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
     "function": "authorize_execution_plan_dispatch"
@@ -666,7 +666,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1530,
+    "line": 1533,
     "method": "POST",
     "path": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
     "function": "execute_authorized_dispatch"
@@ -674,7 +674,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1589,
+    "line": 1592,
     "method": "POST",
     "path": "/v1/reservation-dispatch-intents",
     "function": "ingest_reservation_dispatch_intent"
@@ -682,7 +682,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1719,
+    "line": 1722,
     "method": "POST",
     "path": "/v1/activation/evidence-receipts",
     "function": "store_activation_evidence"
@@ -690,7 +690,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1793,
+    "line": 1796,
     "method": "POST",
     "path": "/v1/activation/evidence-receipts/{evidence_id}/revoke",
     "function": "revoke_activation_evidence"
@@ -698,7 +698,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1836,
+    "line": 1839,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/enforce",
     "function": "activation_enforce"
@@ -706,7 +706,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1861,
+    "line": 1864,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/begin",
     "function": "activation_begin"
@@ -714,7 +714,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1872,
+    "line": 1875,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/complete",
     "function": "activation_complete"
@@ -722,7 +722,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1891,
+    "line": 1894,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/revoke",
     "function": "activation_revoke"
@@ -730,7 +730,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1906,
+    "line": 1909,
     "method": "POST",
     "path": "/v1/activation/irr_f01_reservation/reset",
     "function": "activation_reset"
@@ -738,7 +738,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1917,
+    "line": 1920,
     "method": "GET",
     "path": "/v1/activation/irr_f01_reservation",
     "function": "activation_current"
@@ -746,7 +746,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1924,
+    "line": 1927,
     "method": "GET",
     "path": "/v1/activation/irr_f01_reservation/probe",
     "function": "activation_probe"
@@ -754,7 +754,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1954,
+    "line": 1957,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/begin",
     "function": "cdse_activation_begin"
@@ -762,7 +762,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1967,
+    "line": 1970,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/complete",
     "function": "cdse_activation_complete"
@@ -770,7 +770,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 1986,
+    "line": 1989,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/revoke",
     "function": "cdse_activation_revoke"
@@ -778,7 +778,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2001,
+    "line": 2004,
     "method": "POST",
     "path": "/v1/activation/satellite_cdse/reset",
     "function": "cdse_activation_reset"
@@ -786,7 +786,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2014,
+    "line": 2017,
     "method": "GET",
     "path": "/v1/activation/satellite_cdse",
     "function": "cdse_activation_current"
@@ -794,7 +794,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2021,
+    "line": 2024,
     "method": "GET",
     "path": "/v1/activation/satellite_cdse/source",
     "function": "cdse_active_source"
@@ -802,7 +802,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2030,
+    "line": 2033,
     "method": "GET",
     "path": "/v1/activation/satellite_cdse/probe",
     "function": "cdse_activation_probe"
@@ -810,7 +810,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2061,
+    "line": 2064,
     "method": "GET",
     "path": "/v1/execution-requests",
     "function": "list_execution_requests"
@@ -818,7 +818,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2090,
+    "line": 2093,
     "method": "GET",
     "path": "/v1/execution-requests/recovery",
     "function": "list_execution_request_recovery"
@@ -826,7 +826,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2112,
+    "line": 2115,
     "method": "POST",
     "path": "/v1/execution-requests/{execution_request_id}/claim",
     "function": "claim_execution_delivery"
@@ -834,7 +834,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2144,
+    "line": 2147,
     "method": "POST",
     "path": "/v1/execution-requests/{execution_request_id}/receipt",
     "function": "ingest_execution_receipt"
@@ -842,7 +842,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2190,
+    "line": 2193,
     "method": "GET",
     "path": "/v1/execution-requests/{execution_request_id}/observation-context",
     "function": "execution_observation_context"
@@ -850,7 +850,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2207,
+    "line": 2210,
     "method": "POST",
     "path": "/v1/execution-requests/{execution_request_id}/verify-outcome",
     "function": "verify_terminal_execution_outcome"
@@ -858,7 +858,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2265,
+    "line": 2268,
     "method": "POST",
     "path": "/v1/outcomes/{outcome_id}/learning-attribution",
     "function": "attribute_verified_outcome_to_learning"
@@ -866,7 +866,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2299,
+    "line": 2302,
     "method": "GET",
     "path": "/v1/learning/calibration-dataset",
     "function": "get_calibration_dataset"
@@ -874,7 +874,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2341,
+    "line": 2344,
     "method": "POST",
     "path": "/v1/learning/evaluation-runs",
     "function": "register_model_evaluation_run"
@@ -882,7 +882,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2391,
+    "line": 2394,
     "method": "POST",
     "path": "/v1/learning/promotion-decisions",
     "function": "register_model_promotion_decision"
@@ -890,7 +890,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2427,
+    "line": 2430,
     "method": "POST",
     "path": "/v1/learning/activation-requests",
     "function": "register_model_activation_request"
@@ -898,7 +898,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2470,
+    "line": 2473,
     "method": "POST",
     "path": "/v1/learning/activation-requests/{activation_request_id}/review",
     "function": "review_activation_request_boundary"
@@ -906,7 +906,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2522,
+    "line": 2525,
     "method": "POST",
     "path": "/v1/learning/activation-commands/{activation_command_id}/claim",
     "function": "claim_registry_activation_command_boundary"
@@ -914,7 +914,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2563,
+    "line": 2566,
     "method": "POST",
     "path": "/v1/learning/activation-commands/{activation_command_id}/receipt",
     "function": "record_registry_activation_receipt_boundary"
@@ -922,7 +922,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2609,
+    "line": 2612,
     "method": "POST",
     "path": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
     "function": "create_registry_rollback_command_boundary"
@@ -930,7 +930,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2646,
+    "line": 2649,
     "method": "POST",
     "path": "/v1/learning/rollback-commands/{rollback_command_id}/claim",
     "function": "claim_registry_rollback_command_boundary"
@@ -938,7 +938,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2682,
+    "line": 2685,
     "method": "POST",
     "path": "/v1/learning/rollback-commands/{rollback_command_id}/receipt",
     "function": "record_registry_rollback_receipt_boundary"
@@ -946,7 +946,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2719,
+    "line": 2753,
     "method": "GET",
     "path": "/v1/learning/models/{model_id}/active-state",
     "function": "active_model_state_boundary"
@@ -954,7 +954,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2751,
+    "line": 2785,
     "method": "POST",
     "path": "/v1/learning/activation-receipts/{activation_receipt_id}/verification",
     "function": "post_activation_verification_boundary"
@@ -962,7 +962,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2790,
+    "line": 2825,
     "method": "POST",
     "path": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan",
     "function": "rollout_plan_boundary"
@@ -970,7 +970,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2827,
+    "line": 2863,
     "method": "POST",
     "path": "/v1/learning/monitoring-snapshots",
     "function": "monitoring_snapshot_boundary"
@@ -978,7 +978,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2868,
+    "line": 2905,
     "method": "POST",
     "path": "/v1/learning/retraining-requests",
     "function": "retraining_request_boundary"
@@ -986,7 +986,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2898,
+    "line": 2936,
     "method": "GET",
     "path": "/v1/learning/runtime-work",
     "function": "runtime_work_feed"
@@ -994,7 +994,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2935,
+    "line": 2978,
     "method": "POST",
     "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
     "function": "register_worker_tenant"
@@ -1002,7 +1002,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2959,
+    "line": 3002,
     "method": "GET",
     "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
     "function": "worker_tenants"
@@ -1010,7 +1010,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 2989,
+    "line": 3032,
     "method": "POST",
     "path": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt",
     "function": "rollout_receipt_boundary"
@@ -1018,7 +1018,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 3030,
+    "line": 3074,
     "method": "POST",
     "path": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt",
     "function": "retraining_dispatch_receipt_boundary"
@@ -1026,7 +1026,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 3078,
+    "line": 3123,
     "method": "POST",
     "path": "/v1/learning/runtime-schedules",
     "function": "runtime_schedule_boundary"
@@ -1034,7 +1034,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 3125,
+    "line": 3171,
     "method": "POST",
     "path": "/v1/learning/reconcile-evidence",
     "function": "reconcile_evidence_boundary"
@@ -1042,7 +1042,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 3155,
+    "line": 3202,
     "method": "POST",
     "path": "/v1/context-snapshots",
     "function": "compose_context_snapshot"
@@ -1050,7 +1050,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 3187,
+    "line": 3234,
     "method": "GET",
     "path": "/v1/context-snapshots/{snapshot_id}",
     "function": "read_context_snapshot"
@@ -2762,7 +2762,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 140,
+    "line": 119,
     "method": "POST",
     "path": "/v1/phase10/learning/dataset",
     "function": "dataset"
@@ -2770,7 +2770,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 150,
+    "line": 129,
     "method": "POST",
     "path": "/v1/phase10/learning/models/promote",
     "function": "model_promotion"
@@ -2778,7 +2778,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 160,
+    "line": 139,
     "method": "POST",
     "path": "/v1/phase10/learning/scenario",
     "function": "scenario"
@@ -2786,7 +2786,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 165,
+    "line": 144,
     "method": "POST",
     "path": "/v1/phase10/learning/cycle",
     "function": "learning_cycle"
@@ -2794,31 +2794,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 177,
-    "method": "POST",
-    "path": "/v1/phase10/learning/drift",
-    "function": "drift"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 186,
-    "method": "POST",
-    "path": "/v1/phase10/learning/retraining/plan",
-    "function": "retraining_plan"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 193,
-    "method": "POST",
-    "path": "/v1/phase10/learning/champion-challenger",
-    "function": "champion_challenger"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 205,
+    "line": 156,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/register",
     "function": "feature_store_register"
@@ -2826,7 +2802,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 212,
+    "line": 163,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/offline-dataset",
     "function": "feature_store_offline_dataset"
@@ -2834,7 +2810,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 223,
+    "line": 174,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/online-materialization",
     "function": "feature_store_online_materialization"
@@ -2842,7 +2818,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 231,
+    "line": 182,
     "method": "POST",
     "path": "/v1/phase10/learning/feature-store/point-in-time",
     "function": "feature_store_point_in_time"
@@ -2850,7 +2826,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 245,
+    "line": 196,
     "method": "POST",
     "path": "/v1/phase10/learning/models/register",
     "function": "model_register"
@@ -2858,7 +2834,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 266,
+    "line": 217,
     "method": "POST",
     "path": "/v1/phase10/learning/models/serving/promote",
     "function": "model_serving_promote"
@@ -2866,7 +2842,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 273,
+    "line": 224,
     "method": "POST",
     "path": "/v1/phase10/learning/models/serving/rollback",
     "function": "model_serving_rollback"
@@ -2874,7 +2850,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
-    "line": 283,
+    "line": 234,
     "method": "GET",
     "path": "/v1/phase10/learning/models/serving/{alias:path}",
     "function": "model_serving_resolve"
@@ -2882,7 +2858,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
-    "line": 115,
+    "line": 93,
     "method": "POST",
     "path": "/v1/phase11/federation/context",
     "function": "context"
@@ -2890,15 +2866,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
-    "line": 125,
-    "method": "POST",
-    "path": "/v1/phase11/federation/agents/propose",
-    "function": "agents_propose"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase11_federated_agents.py",
-    "line": 132,
+    "line": 103,
     "method": "POST",
     "path": "/v1/phase11/federation/consensus",
     "function": "consensus"
@@ -2906,7 +2874,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
-    "line": 142,
+    "line": 113,
     "method": "POST",
     "path": "/v1/phase11/federation/operation-plan",
     "function": "operation_plan"
@@ -2914,15 +2882,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
-    "line": 152,
-    "method": "POST",
-    "path": "/v1/phase11/federation/experiments/shadow",
-    "function": "shadow_experiment"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase11_federated_agents.py",
-    "line": 166,
+    "line": 123,
     "method": "POST",
     "path": "/v1/phase11/federation/quality",
     "function": "quality"
@@ -2930,7 +2890,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
-    "line": 171,
+    "line": 128,
     "method": "POST",
     "path": "/v1/phase11/federation/cycle",
     "function": "cycle"
@@ -2938,7 +2898,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
-    "line": 195,
+    "line": 152,
     "method": "POST",
     "path": "/v1/phase11/federation/runtime/resolve",
     "function": "runtime_resolve"
@@ -2946,7 +2906,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
-    "line": 206,
+    "line": 163,
     "method": "POST",
     "path": "/v1/phase11/federation/runtime/authority-envelope",
     "function": "runtime_authority_envelope"
@@ -2954,15 +2914,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
-    "line": 213,
-    "method": "POST",
-    "path": "/v1/phase11/federation/runtime/reputation/update",
-    "function": "runtime_reputation_update"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/phase11_federated_agents.py",
-    "line": 224,
+    "line": 170,
     "method": "POST",
     "path": "/v1/phase11/federation/runtime/event-envelope",
     "function": "runtime_event_envelope"
@@ -7002,7 +6954,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/season_workspace.py",
-    "line": 316,
+    "line": 333,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/season-workspace",
     "function": "season_workspace"

@@ -10961,23 +10961,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.phase10.learning.champion-challenger",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /v1/phase10/learning/champion-challenger"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.phase10.learning.cycle",
       "consumers": [
         "frontend"
@@ -11003,23 +10986,6 @@
       "derived_from": "route",
       "entrypoints": [
         "POST /v1/phase10/learning/dataset"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.phase10.learning.drift",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /v1/phase10/learning/drift"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -11070,23 +11036,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.phase10.learning.retraining",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /v1/phase10/learning/retraining/plan"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.phase10.learning.scenario",
       "consumers": [
         "frontend"
@@ -11095,23 +11044,6 @@
       "derived_from": "route",
       "entrypoints": [
         "POST /v1/phase10/learning/scenario"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.phase11.federation.agents",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /v1/phase11/federation/agents/propose"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -11172,23 +11104,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.phase11.federation.experiments",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /v1/phase11/federation/experiments/shadow"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.phase11.federation.operation-plan",
       "consumers": [
         "frontend"
@@ -11232,7 +11147,6 @@
       "entrypoints": [
         "POST /v1/phase11/federation/runtime/authority-envelope",
         "POST /v1/phase11/federation/runtime/event-envelope",
-        "POST /v1/phase11/federation/runtime/reputation/update",
         "POST /v1/phase11/federation/runtime/resolve"
       ],
       "idempotency_required": false,
@@ -15706,6 +15620,7 @@
           "decision_consumer_heartbeats",
           "decision_context_compositions",
           "decision_dispatch_authorizations",
+          "decision_eligibility_assessments",
           "decision_execution_delivery_attempts",
           "decision_execution_plans",
           "decision_execution_requests",
@@ -17865,7 +17780,7 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 843,
+    "capabilities": 838,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
     "capabilities_idempotent": 74,
@@ -17876,9 +17791,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1168,
+    "route_rows": 1162,
     "ui_waivers": 52,
-    "unique_method_path": 1047
+    "unique_method_path": 1041
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18140,7 +18055,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "2bcbdebf77a3c9e6177508ed4ab03e6bd1d7d3c0042dc301dec6cf17b814654f",
+  "fingerprint": "8eac7cc5d4018e2ce7337aa83b46eb78d68658d9beb0e25429d3612c4b0cfd5d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

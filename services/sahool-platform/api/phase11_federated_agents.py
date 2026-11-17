@@ -13,16 +13,13 @@ from shared.federated_agent_runtime import (
     build_federation_event_envelope,
     create_authority_envelope,
     reputation_weighted_consensus,
-    update_agent_reputation,
 )
 from shared.federated_agents_phase11 import (
     build_agent_context,
     create_autonomous_operation_plan,
-    design_shadow_experiment,
     evaluate_agent_consensus_quality,
     reach_consensus,
     run_phase11_federation_cycle,
-    run_specialist_agents,
 )
 
 router = APIRouter(
@@ -31,18 +28,18 @@ router = APIRouter(
     dependencies=[Depends(_require_service_token)],
 )
 
+# W4-09 (routes-10، تتمّة بقرار المالك 2026-11-16): POST /agents/propose ·
+# /experiments/shadow · /runtime/reputation/update أُقعِدت — بلا مستدعٍ في أيّ عميل أو
+# خدمة أو SDK أو اختبار أو سجلّ قدرات. الدوالّ الصرفة باقية في shared/ باختباراتها، و/cycle
+# ما زال يُشغّل run_specialist_agents وdesign_shadow_experiment عبر run_phase11_federation_cycle.
+# يحرسها tests/test_w4_09_retired_dead_routes.py.
+
 
 class AgentContextRequest(BaseModel):
     canonical_field_state: dict[str, Any]
     phase9_cycle: dict[str, Any] | None = None
     phase10_learning: dict[str, Any] | None = None
     market_context: dict[str, Any] = Field(default_factory=dict)
-
-
-class SpecialistAgentsRequest(BaseModel):
-    context: dict[str, Any]
-    objective: str = "optimize_field_outcome"
-    enabled_roles: list[str] | None = None
 
 
 class ConsensusRequest(BaseModel):
@@ -57,17 +54,6 @@ class OperationPlanRequest(BaseModel):
     context: dict[str, Any]
     execution_mode: str = "human_in_loop"
     max_autonomous_risk: float = 0.35
-
-
-class ShadowExperimentRequest(BaseModel):
-    name: str
-    objective: str = "optimize_field_outcome"
-    champion_policy: str = "current_policy"
-    challenger_policy: str = "challenger_policy"
-    mode: str = "shadow"
-    traffic_pct: float = 0.1
-    guardrails: dict[str, Any] = Field(default_factory=dict)
-    promotion_metrics: list[str] = Field(default_factory=list)
 
 
 class FederationCycleRequest(BaseModel):
@@ -98,14 +84,6 @@ class AuthorityEnvelopeRequest(BaseModel):
     requested_authority: str = "advisory"
 
 
-class ReputationUpdateRequest(BaseModel):
-    prior: dict[str, Any] = Field(default_factory=dict)
-    agent_role: str
-    outcome: str
-    confidence_error: float = 0.0
-    safety_incident: bool = False
-
-
 class FederationEventEnvelopeRequest(BaseModel):
     cycle: dict[str, Any]
     authority: dict[str, Any]
@@ -118,13 +96,6 @@ def context(req: AgentContextRequest) -> dict[str, Any]:
         phase9_cycle=req.phase9_cycle,
         phase10_learning=req.phase10_learning,
         market_context=req.market_context,
-    )
-
-
-@router.post("/agents/propose")
-def agents_propose(req: SpecialistAgentsRequest) -> list[dict[str, Any]]:
-    return run_specialist_agents(
-        req.context, objective=req.objective, enabled_roles=req.enabled_roles
     )
 
 
@@ -145,20 +116,6 @@ def operation_plan(req: OperationPlanRequest) -> dict[str, Any]:
         req.context,
         execution_mode=req.execution_mode,
         max_autonomous_risk=req.max_autonomous_risk,
-    )
-
-
-@router.post("/experiments/shadow")
-def shadow_experiment(req: ShadowExperimentRequest) -> dict[str, Any]:
-    return design_shadow_experiment(
-        name=req.name,
-        objective=req.objective,
-        champion_policy=req.champion_policy,
-        challenger_policy=req.challenger_policy,
-        mode=req.mode,
-        traffic_pct=req.traffic_pct,
-        guardrails=req.guardrails or None,
-        promotion_metrics=req.promotion_metrics or None,
     )
 
 
@@ -206,17 +163,6 @@ def runtime_resolve(req: RuntimeConsensusRequest) -> dict[str, Any]:
 def runtime_authority_envelope(req: AuthorityEnvelopeRequest) -> dict[str, Any]:
     return create_authority_envelope(
         req.cycle, resolution=req.resolution, requested_authority=req.requested_authority
-    )
-
-
-@router.post("/runtime/reputation/update")
-def runtime_reputation_update(req: ReputationUpdateRequest) -> dict[str, Any]:
-    return update_agent_reputation(
-        req.prior,
-        agent_role=req.agent_role,
-        outcome=req.outcome,
-        confidence_error=req.confidence_error,
-        safety_incident=req.safety_incident,
     )
 
 

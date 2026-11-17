@@ -5,6 +5,11 @@ tree (frontend, mobile, services, shared, sdk, scripts, nginx/gateway configs), 
 exercising them as product behaviour, and no entry in a capability registry. They were
 removed and the ceiling was lowered by the same six (629 -> 623).
 
+W4-09 continued (owner decision 2026-11-16) retired six more caller-less service-token routes
+on the phase10 learning and phase11 federation routers, and kept the ceiling at 623 so the
+domain margin is positive again (617 <= 623). Their pure functions stay in shared/ with their
+own tests, and each router's /cycle still runs them.
+
 GET /api/v1/registry/{workflows,indices,events} were also caller-less but stay: they are the
 only executable root of their modules under platform_module_reachability_guard.
 
@@ -41,6 +46,13 @@ RETIRED = {
     ("POST", "/feature-schema", "api/phase10_continuous_learning.py"),
     ("POST", "/online-update", "api/phase10_continuous_learning.py"),
     ("POST", "/experiments/evaluate", "api/phase10_continuous_learning.py"),
+    # W4-09 continued (2026-11-16).
+    ("POST", "/drift", "api/phase10_continuous_learning.py"),
+    ("POST", "/retraining/plan", "api/phase10_continuous_learning.py"),
+    ("POST", "/champion-challenger", "api/phase10_continuous_learning.py"),
+    ("POST", "/agents/propose", "api/phase11_federated_agents.py"),
+    ("POST", "/experiments/shadow", "api/phase11_federated_agents.py"),
+    ("POST", "/runtime/reputation/update", "api/phase11_federated_agents.py"),
 }
 
 
@@ -90,9 +102,32 @@ def test_retired_phase10_routes_answer_404_on_the_live_router():
     app = FastAPI()
     app.include_router(router)
     client = TestClient(app, headers={"X-Agent-Token": os.environ["SAHOOL_AGENT_TOKEN"]})
-    for path in ("/feature-schema", "/online-update", "/experiments/evaluate"):
+    for path in (
+        "/feature-schema",
+        "/online-update",
+        "/experiments/evaluate",
+        "/drift",
+        "/retraining/plan",
+        "/champion-challenger",
+    ):
         res = client.post(f"/v1/phase10/learning{path}", json={"records": []})
         assert res.status_code == 404, f"{path} still served: HTTP {res.status_code}"
     # Positive control: a kept sibling on the same router is still served.
     kept = client.post("/v1/phase10/learning/dataset", json={"records": []})
     assert kept.status_code != 404, f"/dataset must remain served, got HTTP {kept.status_code}"
+
+
+def test_retired_phase11_routes_answer_404_on_the_live_router():
+    os.environ.setdefault("SAHOOL_AGENT_TOKEN", "test-agent-token")
+    from api.phase11_federated_agents import router
+
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app, headers={"X-Agent-Token": os.environ["SAHOOL_AGENT_TOKEN"]})
+    for path in ("/agents/propose", "/experiments/shadow", "/runtime/reputation/update"):
+        res = client.post(f"/v1/phase11/federation{path}", json={})
+        assert res.status_code == 404, f"{path} still served: HTTP {res.status_code}"
+    # Positive control: a kept sibling on the same router is still served (422 on an empty
+    # body proves the route matched).
+    kept = client.post("/v1/phase11/federation/consensus", json={})
+    assert kept.status_code != 404, f"/consensus must remain served, got HTTP {kept.status_code}"

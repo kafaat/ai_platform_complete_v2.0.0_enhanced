@@ -1,9 +1,9 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "c720395a86999e6a2991a180556b1a5e21d68553",
+  "measured_on": "84c6f2846393389fcb402ef3998dd44d295771c4",
   "reads": {
-    "$comment": "جهةُ القراءة: readers المُعلَنون مقابل حرفيّات SQL المقيسة (بايثون، f-string نصّاً واحداً). ثلاثُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا محكومٌ عليها. 'لم يُرصَد' ليس 'لا يقرأ': dynamic_table_sql_sites يعدّ ما لا يُرى جدولُه ساكناً، وtable_name_value_sites قرينةُ قراءةٍ عبر مُساعد.",
+    "$comment": "جهةُ القراءة: readers المُعلَنون مقابل حرفيّات SQL المقيسة (بايثون، f-string نصّاً واحداً). خمسُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا محكومٌ عليها، وdeclared_writer_unobserved مُبلَّغٌ لا حاجب. 'لم يُرصَد' ليس 'لا يقرأ' ولا 'لا يكتب': dynamic_table_sql_sites يعدّ ما لا يُرى جدولُه ساكناً، وtable_name_value_sites قرينةُ قراءةٍ أو كتابةٍ عبر مُساعد.",
     "declared_reader_unobserved": [
       "actuator_command_dedup::sahool-platform",
       "actuator_command_outbox::sahool-platform",
@@ -106,6 +106,73 @@
       "workflow_states::sahool-platform",
       "workflow_transitions::sahool-platform"
     ],
+    "declared_writer_unobserved": [
+      "actuation_killswitch::sahool-platform",
+      "as_applied_irrigation_observations::sahool-platform",
+      "as_applied_irrigation_receipts::sahool-platform",
+      "as_applied_irrigation_runs::sahool-platform",
+      "automation_rules::sahool-platform",
+      "backfill_run_items::sahool-platform",
+      "backfill_runs::sahool-platform",
+      "canonical_hydraulic_capabilities::sahool-platform",
+      "canonical_irrigation_capability_graphs::sahool-platform",
+      "crop_root_policies::sahool-platform",
+      "decision_policies::agriai-engine",
+      "device_telemetry::actuator-service",
+      "distributed_raster_jobs::raster-service",
+      "documents::rag-retrieval",
+      "farm_energy_records::field-management-service",
+      "farm_equipment_records::field-management-service",
+      "farm_input_records::field-management-service",
+      "farm_labor_records::field-management-service",
+      "farm_ledger_erp_projection_outbox::field-management-service",
+      "farm_operation_ledger::field-management-service",
+      "farm_production_units::field-management-service",
+      "farm_revenue_records::field-management-service",
+      "farm_season_budget_lines::field-management-service",
+      "farm_season_projects::field-management-service",
+      "farm_water_records::field-management-service",
+      "farms::field-management-service",
+      "field_boundaries::field-management-service",
+      "field_boundary_graph::field-management-service",
+      "field_evidence_snapshots::raster-service",
+      "field_geometry_history::field-management-service",
+      "field_irrigation_source_assignments::sahool-platform",
+      "field_lifecycle::field-management-service",
+      "field_lifecycle_transitions::field-management-service",
+      "field_state::field-management-service",
+      "field_state_snapshots::raster-service",
+      "field_weather_overlay::weather-service",
+      "fields::field-management-service",
+      "geometry_editing_sessions::field-management-service",
+      "imagery_automation_fields::raster-service",
+      "invitations::sahool-platform",
+      "iot_devices::actuator-service",
+      "irrigation_executability_gates::sahool-platform",
+      "irrigation_hydraulic_nodes::sahool-platform",
+      "irrigation_hydraulic_segments::sahool-platform",
+      "irrigation_target_bindings::sahool-platform",
+      "irrigation_water_quality_samples::sahool-platform",
+      "irrigation_water_sources::sahool-platform",
+      "machine_control_profiles::sahool-platform",
+      "market_price_history::mcp_servers",
+      "market_products::mcp_servers",
+      "market_suppliers::mcp_servers",
+      "marketplace_apps::erp-bridge",
+      "model_versions_runtime::agriai-engine",
+      "recommendations::agriai-engine",
+      "soil_lab_tests::soil-service",
+      "soil_reconciliation_checkpoints::soil-service",
+      "soil_reconciliation_deferrals::soil-service",
+      "stac_item_registry::sahool-platform",
+      "task_cost_history::field-management-service",
+      "tenant_ai_policies::sahool-platform",
+      "users::sahool-platform",
+      "weather_automation_cache::weather-service",
+      "weather_automation_locations::weather-service",
+      "workflow_state::erp-bridge",
+      "zonal_stats::raster-service"
+    ],
     "dynamic_table_sql_sites": {
       "scripts/migrations/report_not_valid_constraint_violations.py": 2,
       "scripts/release/production_readiness_orchestrator.py": 1,
@@ -122,6 +189,174 @@
       "shared/dependency_readiness.py": 1,
       "tools/eo_acceptance/spatial.py": 1,
       "tools/sahool_qa/sahool_qa/sources/postgis.py": 3
+    },
+    "read_never_written": {
+      "actuation_killswitch": {
+        "measured_readers": [
+          "shared"
+        ],
+        "table_name_value_sites": []
+      },
+      "as_applied_irrigation_observations": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "as_applied_irrigation_receipts": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "as_applied_irrigation_runs": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "canonical_hydraulic_capabilities": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "canonical_irrigation_capability_graphs": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "crop_root_policies": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "distributed_raster_jobs": {
+        "measured_readers": [
+          "scripts"
+        ],
+        "table_name_value_sites": []
+      },
+      "farm_ledger_erp_projection_outbox": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "farm_production_units": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "farm_season_projects": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "field_irrigation_source_assignments": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "field_weather_overlay": {
+        "measured_readers": [
+          "weather-signal-engine"
+        ],
+        "table_name_value_sites": []
+      },
+      "irrigation_executability_gates": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "irrigation_hydraulic_nodes": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "irrigation_hydraulic_segments": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "irrigation_target_bindings": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "irrigation_water_quality_samples": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "irrigation_water_sources": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "machine_control_profiles": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "market_price_history": {
+        "measured_readers": [
+          "mcp_servers"
+        ],
+        "table_name_value_sites": [
+          "services/mcp_servers/market_server.py"
+        ]
+      },
+      "market_products": {
+        "measured_readers": [
+          "mcp_servers"
+        ],
+        "table_name_value_sites": []
+      },
+      "market_suppliers": {
+        "measured_readers": [
+          "mcp_servers"
+        ],
+        "table_name_value_sites": []
+      },
+      "soil_lab_tests": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": [
+          "services/sahool-platform/api/irrigation_recommendation_policy.py"
+        ]
+      },
+      "task_cost_history": {
+        "measured_readers": [
+          "field-management-service"
+        ],
+        "table_name_value_sites": []
+      },
+      "tenant_ai_policies": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "zonal_stats": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      }
     },
     "undeclared": {
       "actuation_killswitch::shared": [
@@ -277,6 +512,139 @@
         "services/auth/routers/users.py"
       ]
     },
+    "unreferenced": [
+      "activity_log",
+      "agent_queries",
+      "agent_reputation_scores",
+      "agent_tool_audit",
+      "autonomous_event_store",
+      "autonomous_recommendations",
+      "boundary_extraction_jobs",
+      "calibration_evidence",
+      "canonical_controller_capabilities",
+      "canonical_energy_capabilities",
+      "canonical_irrigation_machine_capabilities",
+      "canonical_sprinkler_runoff_capabilities",
+      "canonical_well_capabilities",
+      "command_verification_loop",
+      "connector_registry",
+      "crop_stages",
+      "decision_eligibility_assessments",
+      "digital_twin_scenarios",
+      "drone_missions",
+      "equipment_telemetry_frames",
+      "experiment_evaluations",
+      "external_ingest_sources",
+      "farm_business_units",
+      "farm_digital_twin_snapshots",
+      "farm_indirect_cost_pools",
+      "farm_ledger_economic_snapshots",
+      "farm_ledger_inventory_projections",
+      "farmer_knowledge",
+      "feature_lineage_registry",
+      "federated_policy_experiments",
+      "field_indicators",
+      "gis_collaboration_events",
+      "gis_collaboration_sessions",
+      "global_gis_release_gate",
+      "global_gis_topology",
+      "guardrails_log",
+      "hourly_energy_envelopes",
+      "irr_f01_reservation_activation",
+      "irr_f01_reservation_activation_events",
+      "irrigation_battery_systems",
+      "irrigation_capability_graph_edges",
+      "irrigation_capability_graph_nodes",
+      "irrigation_commissioning_certifications",
+      "irrigation_commissioning_evidence",
+      "irrigation_commissioning_tests_v2",
+      "irrigation_configs",
+      "irrigation_controller_command_requests",
+      "irrigation_controller_handshakes",
+      "irrigation_controller_telemetry",
+      "irrigation_controllers",
+      "irrigation_energy_loads",
+      "irrigation_energy_systems",
+      "irrigation_engineering_calculations",
+      "irrigation_execution_authorizations_v2",
+      "irrigation_generators",
+      "irrigation_grid_connections",
+      "irrigation_hybrid_inverters",
+      "irrigation_machine_spans",
+      "irrigation_machines",
+      "irrigation_mainlines",
+      "irrigation_production_certifications",
+      "irrigation_projects",
+      "irrigation_pump_curve_points",
+      "irrigation_pumps",
+      "irrigation_pv_arrays",
+      "irrigation_sprinkler_packages",
+      "irrigation_sprinkler_zones",
+      "irrigation_water_allocations",
+      "irrigation_well_measurements",
+      "irrigation_well_pumping_tests",
+      "irrigation_wells",
+      "knowledge_snippets",
+      "lab_requests",
+      "learning_drift_reports",
+      "management_zone_sets",
+      "management_zones",
+      "market_analytics_snapshots",
+      "marketplace_plugin_execution_runs",
+      "marketplace_plugin_output_validations",
+      "marketplace_plugin_quota_ledger",
+      "marketplace_plugin_runtime_events",
+      "mobile_sync_clients",
+      "mobile_sync_conflicts",
+      "model_experiment_assignment",
+      "ndvi_timeseries",
+      "observations",
+      "ogc_conformance_runs",
+      "plugin_permission_audit",
+      "prescription_maps",
+      "raster_snapshots",
+      "recommendation_feedback",
+      "recommendation_reviews",
+      "retraining_jobs",
+      "review_decisions",
+      "satellite_cdse_activation",
+      "satellite_cdse_activation_events",
+      "soil_analog_products",
+      "soil_bare_composites",
+      "soil_drainage_assessments",
+      "soil_execution_records",
+      "soil_field_validations",
+      "soil_learning_attributions",
+      "soil_learning_datasets",
+      "soil_outcome_records",
+      "soil_production_certifications",
+      "soil_reclamation_assessments",
+      "soil_reclamation_economics",
+      "soil_regional_calibrations",
+      "soil_runtime_certification_evidence",
+      "soil_runtime_certification_runs",
+      "soil_salinity_products",
+      "soil_terrain_products",
+      "soil_texture_products",
+      "soil_verification_records",
+      "soil_visual_observations",
+      "user_consent",
+      "variety_trials",
+      "vri_as_applied_variances",
+      "vri_machine_translation_artifacts",
+      "vri_prescription_zones",
+      "vri_prescriptions",
+      "weather_alerts",
+      "weather_forecasts",
+      "weather_grid",
+      "weather_observations",
+      "webhook_deliveries",
+      "wofost_seasons",
+      "workflow_states",
+      "workflow_transitions",
+      "yield_records",
+      "yield_stability_maps"
+    ],
     "written_never_read": {
       "actuator_command_dedup": {
         "measured_writers": [

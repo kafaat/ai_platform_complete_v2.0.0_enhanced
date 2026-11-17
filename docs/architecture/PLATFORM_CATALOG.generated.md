@@ -3,10 +3,10 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `2bcbdebf77a3c9e6177508ed4ab03e6bd1d7d3c0042dc301dec6cf17b814654f`
+- fingerprint: `8eac7cc5d4018e2ce7337aa83b46eb78d68658d9beb0e25429d3612c4b0cfd5d`
 - components: **37** (backend: 33)
-- route rows: **1168** → unique method/path: **1047**
-- capabilities (derived, uncurated): **843**
+- route rows: **1162** → unique method/path: **1041**
+- capabilities (derived, uncurated): **838**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
 - UI waivers pending U4 classification: **52**
@@ -19,7 +19,7 @@
 | agriai-engine | service | simulation-experimental | sahool-agriai-engine | 21 | False |
 | ai_agronomist | service | agents | sahool-ai-agronomist | 0 | True |
 | auth | service | identity | sahool-auth | 0 | True |
-| decision-service | service | decision-governance | sahool-decision-service | 43 | True |
+| decision-service | service | decision-governance | sahool-decision-service | 44 | True |
 | edge-inference | service | edge | sahool-edge | 0 | True |
 | erp-bridge | service | erp-projection | odoo-bridge, sahool-erp-bridge | 15 | True |
 | field-management-service | service | fields-internal | sahool-field-management | 36 | True |

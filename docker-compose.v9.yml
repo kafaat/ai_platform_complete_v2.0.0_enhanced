@@ -2009,6 +2009,9 @@ services:
       DECISION_SERVICE_AUTH_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       DECISION_STRICT_WORKER_TENANTS: ${DECISION_STRICT_WORKER_TENANTS:-false}
+      # W4-05 (owner decision): the WX-12 model-lifecycle loop stays off until its four backends
+      # have a real owner; off ⇒ WX-12 writes refuse with model_lifecycle_disabled.
+      DECISION_MODEL_LIFECYCLE_ENABLED: ${DECISION_MODEL_LIFECYCLE_ENABLED:-false}
       # WORKER-IDENTITY-BINDING (staged): when set, the worker-driven endpoints (work-feed +
       # tenant discovery) require a request-scoped X-Worker-Assertion proving the caller IS the
       # worker_id. Unset = header-only compatibility (dev / existing installs); REQUIRED in

@@ -234,7 +234,23 @@ describe('PestEscalationPage — نتيجة التنفيذ الحقيقيّة', 
     expect(box.textContent).toContain('task-42');
   });
 
-  it('the server placeholder exec-urgent_spray is shown as unconfirmed, never as executed', () => {
+  it('the server answer executor_not_configured is shown as not executed, with its note', () => {
+    const res = completedNotExecuted();
+    res.step_results.execute = {
+      executed: false, execution_ref: null, reason: 'executor_not_configured',
+      note_ar: 'لم يُنفَّذ: لا منفّذ موصول لهذا الإجراء — القرار يبقى بشريّاً',
+      guardrails: { allowed: true, status: 'allowed', reason_ar: 'سمح محرّك السلامة الكيميائيّة بالتنفيذ.' },
+    } as never;
+    h.mut = { ...h.mut, data: res };
+    render(<PestEscalationPage />);
+    const box = screen.getByTestId('execution-outcome');
+    expect(box.textContent).toContain('لم يُنفَّذ (executed=false)');
+    expect(box.textContent).toContain('لا منفّذ موصول');
+    expect(box.textContent).not.toContain('نُفِّذ بحسب الخادم');
+    expect(box.textContent).not.toContain('سمح محرّك السلامة');
+  });
+
+  it('an older server placeholder exec-urgent_spray is shown as unconfirmed, never as executed', () => {
     const res = completedNotExecuted();
     res.step_results.execute = {
       executed: true, execution_ref: 'exec-urgent_spray',

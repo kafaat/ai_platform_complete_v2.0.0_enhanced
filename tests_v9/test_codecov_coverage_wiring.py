@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import runpy
 import subprocess
 import sys
@@ -145,18 +146,113 @@ def test_live_auth_export_is_guarded_after_every_live_step():
     export = next(i for i, r in enumerate(runs) if "-o coverage-integration-auth.xml" in r)
     guard = next(i for i, r in enumerate(runs) if "--report coverage-integration-auth.xml" in r)
     upload = next(i for i, s in enumerate(steps) if s.get("uses") == ACTION)
-    live = [i for i, r in enumerate(runs) if any(f in r for f in LIVE_AUTH_COVERAGE)]
-    assert max(live) < export < guard < upload == len(steps) - 1
-    assert "--data-file=.coverage.integration-auth" in runs[export]
-    assert "--omit=services/auth/tests/*" in runs[export]
-    assert "--forbid-prefix services/auth/tests" in runs[guard]
+    live = [i for i, r in enumerate(runs) if _pytest_calls(r)]
+    assert max(live) < export < guard < upload == len(steps) - 1, "report steps must come last"
+    assert "--data-file=.coverage.integration-auth" in runs[export], runs[export]
+    assert "--include=services/*" in runs[export], "the export must keep every live service"
+    assert "--omit=services/auth/tests/*,*/tests/*,*/test_*.py" in runs[export], runs[export]
+    words = runs[guard].split()
+    prefixes = [words[i + 1] for i, w in enumerate(words) if w == "--prefix"]
+    assert prefixes == ["services"], f"live report prefixes: {prefixes}"
+    assert "--forbid-prefix services/auth/tests" in runs[guard], runs[guard]
     for required in (
         "services/auth/routers/users.py",
         "services/auth/routers/invitations.py",
         "services/auth/session_tokens.py",
         "services/sahool-platform/api/routers/security_audit.py",
+        # Reached only by live certification steps (#1508 read anomaly_store_pg.py at 35%).
+        "services/vegetation-analysis-service/anomaly_store_pg.py",
+        "services/soil-service/plan_copy_store.py",
     ):
-        assert f"--require-file {required}" in runs[guard]
+        assert f"--require-file {required}" in runs[guard], required
+
+
+# CI-LIVE-PG-COVERAGE-UNREPORTED-01: every certification step after the shared integration
+# run appends its coverage to the job's one data file. The shared run stays as it is: the lab
+# runner (scripts/lab/run_certification.py) matches it verbatim.
+SHARED_RUN = "pytest -v -m integration --tb=short"
+LIVE_DATA_FILE = ".coverage.integration-auth"
+LIVE_RC = "config/coverage-live-integration.rc"
+
+
+def _pytest_calls(run: str) -> list[str]:
+    joined = re.sub(r"\\\n\s*", " ", run)
+    return [m.group(0).strip() for m in re.finditer(r"(?<![\w-])pytest\b[^\n]*", joined)]
+
+
+def live_steps_without_coverage(steps: list[dict]) -> list[str]:
+    """Names of certification steps whose pytest calls do not append to the live data file."""
+    runs = [(s.get("run") or "").strip() for s in steps]
+    shared = runs.index(SHARED_RUN)
+    missing = []
+    for step in steps[shared + 1 :]:
+        calls = _pytest_calls(step.get("run") or "")
+        if not calls:
+            continue
+        env = step.get("env") or {}
+        ok = env.get("COVERAGE_FILE") == LIVE_DATA_FILE
+        for call in calls:
+            words = call.split()
+            ok = ok and "--cov-append" in words and "--cov-report=" in words
+            ok = ok and any(w.startswith("--cov=") for w in words)
+            ok = ok and not any(w.startswith("--cov-fail-under") for w in words)
+        if not ok:
+            missing.append(step.get("name", "<unnamed>"))
+    return missing
+
+
+def test_every_live_certification_step_appends_to_the_job_coverage():
+    steps = JOBS["integration-tests"]["steps"]
+    missing = live_steps_without_coverage(steps)
+    assert not missing, (
+        f"certification steps whose live-only lines Codecov would read as uncovered: {missing}"
+    )
+    calls = [c for s in steps for c in _pytest_calls(s.get("run") or "")]
+    certified = [c for c in calls if c.strip() != SHARED_RUN and "--cov=services " in c + " "]
+    assert len(certified) >= 25, f"the service-wide live lane looks empty: {len(certified)}"
+    for call in certified:
+        assert f"--cov-config={LIVE_RC}" in call, (
+            f"{call}: the root .coveragerc omits the soil stores and decision-service, which "
+            "only these live steps reach"
+        )
+
+
+def test_live_coverage_config_omits_only_test_code():
+    import configparser
+
+    parser = configparser.ConfigParser()
+    parser.read(ROOT / LIVE_RC, encoding="utf-8")
+    omit = {line.strip() for line in parser["run"]["omit"].splitlines() if line.strip()}
+    assert omit == {"*/tests/*", "*/test_*.py"}, f"live lane must omit test code only: {omit}"
+
+
+def test_live_coverage_check_flags_a_step_without_coverage():
+    """Negative control: the checker refuses a certification step with no --cov."""
+    steps = [
+        {"run": SHARED_RUN},
+        {
+            "name": "covered",
+            "env": {"COVERAGE_FILE": LIVE_DATA_FILE},
+            "run": "pytest -v -m integration -rs tests_v9/a.py --cov=services --cov-append "
+            "--cov-report=",
+        },
+        {"name": "bare", "env": {}, "run": "pytest -v -m integration -rs tests_v9/b.py"},
+        {
+            "name": "wrong-file",
+            "env": {"COVERAGE_FILE": ".coverage"},
+            "run": "pytest -v -m integration -rs tests_v9/c.py --cov=services --cov-append "
+            "--cov-report=",
+        },
+        {
+            "name": "two-calls",
+            "env": {"COVERAGE_FILE": LIVE_DATA_FILE},
+            "run": "pytest tests_v9/d.py --cov=services --cov-append --cov-report=\n"
+            "pytest tests_v9/e.py",
+        },
+    ]
+    assert live_steps_without_coverage(steps) == ["bare", "wrong-file", "two-calls"], (
+        "the live-coverage checker missed a step that drops its coverage"
+    )
 
 
 def test_codecov_waits_for_every_report_before_notifying():

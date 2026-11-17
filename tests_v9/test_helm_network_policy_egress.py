@@ -96,6 +96,8 @@ _NO_PUBLIC_EGRESS_EVIDENCE: dict[str, frozenset[str]] = {
             "ACTIVATION_PROBE_SIGNING_KEY",
             "DATABASE_URL",
             "DECISION_DB_POOL_MAX",
+            # W4-05: an on/off switch for the WX-12 loop, read in persistence.py; not outbound.
+            "DECISION_MODEL_LIFECYCLE_ENABLED",
             "DECISION_EXECUTION_REQUEST_MAX_AGE_S",
             "DECISION_REQUIRE_AGRONOMIC_CONTEXT",
             "DECISION_REQUIRE_AUTH_TOKEN",
