@@ -1009,28 +1009,58 @@ async def build_evidence_response(
         kg_payload = kg_resp.json() if kg_available else {"edges": []}
         retrieval_query, graph_terms = _graph_conditioned_retrieval_query(req.question, kg_payload)
 
-        async with _dependency_boundary("rag-retrieval", 10.0):
-            rag_resp = await client.post(
-                f"{RAG_BASE_URL.rstrip('/')}/v1/search",
-                json={
-                    "tenant_id": tenant_id,
-                    "query": retrieval_query,
-                    "crop": req.crop,
-                    "field_id": req.field_id,
-                    "region": req.region,
-                    "source_type": None,
-                    "final_k": req.final_k,
-                },
-                # SEC-3: forward the trusted tenant so rag-retrieval enforces the same
-                # X-Tenant-Id-source-of-truth guard on this internal service-to-service call.
-                headers={"X-Tenant-Id": tenant_id, "X-Agent-Token": AGENT_TOKEN},
-                timeout=10.0,
-            )
+        rag_resp: httpx.Response | None = None
         rag_retrieval: dict[str, Any] = {"available": True}
-        if rag_resp.status_code in _RAG_DEGRADABLE_STATUSES:
-            rag_retrieval = _rag_unavailable(rag_resp)
-        elif rag_resp.status_code >= 400:
-            raise _dependency_http_failure("rag-retrieval", rag_resp.status_code)
+        try:
+            async with _dependency_boundary("rag-retrieval", 10.0):
+                rag_resp = await client.post(
+                    f"{RAG_BASE_URL.rstrip('/')}/v1/search",
+                    json={
+                        "tenant_id": tenant_id,
+                        "query": retrieval_query,
+                        "crop": req.crop,
+                        "field_id": req.field_id,
+                        "region": req.region,
+                        "source_type": None,
+                        "final_k": req.final_k,
+                    },
+                    # SEC-3: forward the trusted tenant so rag-retrieval enforces the same
+                    # X-Tenant-Id-source-of-truth guard on this internal service-to-service call.
+                    headers={"X-Tenant-Id": tenant_id, "X-Agent-Token": AGENT_TOKEN},
+                    timeout=10.0,
+                )
+        except HTTPException as exc:
+            detail = exc.detail
+            if (
+                exc.status_code not in (502, 504)
+                or not isinstance(detail, dict)
+                or detail.get("dependency") != "rag-retrieval"
+                or detail.get("reason_code")
+                not in ("advisory_dependency_unavailable", "advisory_dependency_timeout")
+            ):
+                raise
+            # Transport errors have no HTTP response. An absent optional RAG host must
+            # not prevent field-state advice. Never degrade an upstream HTTP 401/403:
+            # those are processed below and remain fail-closed.
+            correlation_id = uuid.uuid4().hex
+            transport_reason = detail["reason_code"]
+            logger.warning(
+                "advisory rag-retrieval degraded transport_reason=%s correlation_id=%s",
+                transport_reason,
+                correlation_id,
+            )
+            rag_retrieval = {
+                "available": False,
+                "reason_code": "rag_transport_unavailable",
+                "upstream_status": None,
+                "transport_reason": transport_reason,
+                "correlation_id": correlation_id,
+            }
+        if rag_resp is not None:
+            if rag_resp.status_code in _RAG_DEGRADABLE_STATUSES:
+                rag_retrieval = _rag_unavailable(rag_resp)
+            elif rag_resp.status_code >= 400:
+                raise _dependency_http_failure("rag-retrieval", rag_resp.status_code)
 
     from shared.ai.seed_claims import partition_generation_references
 
