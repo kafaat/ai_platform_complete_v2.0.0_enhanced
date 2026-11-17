@@ -32,7 +32,7 @@
       "raw": 3440
     },
     "test_dependency_files": 1993,
-    "test_dependency_edges": 5288,
+    "test_dependency_edges": 5289,
     "test_dependency_bounded_files": 1159,
     "test_dependency_unresolved_relations": 507
   },
@@ -95247,17 +95247,22 @@
         {
           "source": "services/ai_agronomist/__init__.py",
           "kind": "import",
-          "line": 250
+          "line": 256
         },
         {
           "source": "services/ai_agronomist/ai_evidence_runtime.py",
           "kind": "import",
-          "line": 250
+          "line": 256
         },
         {
           "source": "services/ai_agronomist/ai_evidence_runtime.py",
           "kind": "source_read",
           "line": 13
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "import",
+          "line": 257
         },
         {
           "source": "services/knowledge-graph/kg_store.py",

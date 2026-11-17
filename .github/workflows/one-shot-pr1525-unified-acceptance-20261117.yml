@@ -1,0 +1,70 @@
+# One-shot verification on a draft branch, never deploy or modify main.
+name: One-shot PR1525 unified acceptance
+on:
+  push:
+    branches: [integrate/open-drafts-selective-20261117]
+permissions:
+  contents: write
+concurrency:
+  group: pr1525-unified-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify-and-regenerate:
+    if: github.ref == 'refs/heads/integrate/open-drafts-selective-20261117'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Install repository test and format tools
+        run: |
+          set -euo pipefail
+          python -m pip install -r tests_v9/requirements-test.txt
+          python -m pip install -c constraints-ci-tools.txt ruff
+      - name: Remove one-shot workflow before guard-surface measurement
+        run: |
+          set -euo pipefail
+          git rm '.github/workflows/one-shot-pr1525-unified-acceptance-20261117.yml'
+      - name: Run targeted R13 RAG sharing regression tests
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests_v9/test_explorer_route_export_contract.py tests_v9/test_text_encoding_locale.py tests_v9/test_semantic_convergence_01.py tests_v9/test_blocking_surface_freeze.py tests_v9/test_ai_rag_tenant_corpus_empty_degrade.py tests_v9/test_cropin_governed_routes_static_v1.py
+          ruff format --check tests_v9/test_semantic_convergence_01.py
+      - name: Verify R13 registered mutation does fail the named test
+        run: |
+          set -euo pipefail
+          python scripts/ci/guard_mutation_guard.py --run --only scripts/ci/export_explorer_routes.py
+      - name: Frontend sharing backwards compatibility
+        run: |
+          set -euo pipefail
+          cd frontend
+          npm ci --ignore-scripts --no-audit --no-fund
+          npx vitest run src/lib/sharingRevocation.test.ts --no-file-parallelism --maxWorkers=1
+          npm run typecheck
+      - name: Regenerate and verify all derived outputs
+        run: |
+          set -euo pipefail
+          git add -A
+          python scripts/ci/verify_all_generated.py --fix
+          python scripts/ci/verify_all_generated.py --check
+          python scripts/ci/capability_registry_guard.py --check
+          python scripts/ci/guard_catalogue.py --check
+          python scripts/ci/capability_mapping_engine.py --check
+          python scripts/release/validate_release_package.py --root .
+          python -m pytest -q tests_v9/test_guard_catalogue.py tests/architecture/test_capability_registry_guard.py tests/architecture/test_capability_mapping_engine.py tests/architecture/test_ci_impact_preflight_skill_mapping.py tests/architecture/test_verify_all_generated.py tests/release/test_phase14_release_packaging_contracts.py
+      - name: Commit verified outputs and push to the SAME draft branch
+        run: |
+          set -euo pipefail
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(generated): certify final PR1525 composite source'
+          git push origin HEAD:integrate/open-drafts-selective-20261117

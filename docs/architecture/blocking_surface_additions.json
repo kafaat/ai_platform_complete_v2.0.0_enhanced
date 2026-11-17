@@ -12,6 +12,14 @@
     "impact": "merge | release | publish | advisory. و`advisory` ليست موضعَ حجبٍ بل إعلانُ أنّ الفحصَ لا يحجب."
   },
   "additions": {
+    "scripts/ci/export_explorer_routes.py::service-inventory-drift.yml::drift": {
+      "counterexample": "Measured on PR #1525 @ 98ee770e and its unit run: enabling the new R13 exporter in service-inventory-drift.yml introduced the unadjudicated blocking triple. Its own test supplies an empty or missing inventory; without fail-closed validation the CI artifact could be falsely labeled as source-backed. The exporter must require the exact Git HEAD and inventory digests, and explicitly say runtime NOT_RUN.",
+      "mutation": "test_missing_inventory_and_unbound_commit_fails",
+      "$mutation_ar": "Register and kill the source mutation in guard_mutation_registry.json, behavioural scripts/ci/export_explorer_routes.py: bypass SOURCE_INVENTORY_MISSING_OR_EMPTY and the named test must fail. The legitimate complete inventory must still pass.",
+      "positive_witness": "test_source_status_and_route_counts — a complete, internally consistent source inventory exports both declarations and correct source commit while reporting runtime NOT_RUN.",
+      "impact": "merge",
+      "$scope_limit_ar": "Only CI-generated offline R13 route provenance, not the deployed gateway, authentication, tenant boundary, live routing or operational authorization."
+    },
     "scripts/ci/railway_staging_connection_preflight.py::railway-staging-connection-preflight.yml::staging-connection": {
       "counterexample": "SECURITY-SCOPE-PRODUCTION-READ-IS-NOT-STAGING-ACCEPTANCE-01: the stage-1 manually dispatched Railway CLI status probe accepts an externally supplied project token. A production environment ID, even with otherwise valid-shaped JSON, must never produce a staging receipt. Measured negative and positive fixtures at PR #1254 head 378d1cc23c72cc5a0b36afe82680f49be844bf3d; the new job was detected by the existing blocking-surface freeze before this declaration.",
       "mutation": "test_rejects_production_environment",
