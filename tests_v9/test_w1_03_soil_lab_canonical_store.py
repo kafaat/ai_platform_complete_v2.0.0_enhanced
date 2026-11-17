@@ -252,7 +252,99 @@ def test_season_readiness_reads_v156_without_the_legacy_candidates():
 
     sw = _season_workspace()
     src = inspect.getsource(sw.season_workspace)
-    assert src.count("include_legacy=False") == 2, "pH and ECe must skip legacy candidates"
+    assert src.count("include_legacy=False") == 1, "pH must skip legacy candidates"
+    assert src.count("legacy_published_only=True") == 1, (
+        "ECe must skip the unpublished legacy candidates (and only those, #1507 review LOW)"
+    )
+
+
+def _ec_candidates(newest_legacy_status: str | None) -> list[dict]:
+    """#1507 review LOW: an older v156 EC 1:5 and a newer published legacy ECe (3.0); with
+    ``newest_legacy_status`` an even newer legacy ECe (9.9) of that status on top."""
+    rows = [
+        {
+            **_candidate("soil_lab_tests:soil_pub", {"ec": 3.0}, sampled_on=date(2026, 11, 10)),
+            "legacy_status": "published",
+        },
+        {
+            **_candidate(
+                "soil_lab_results:rid-15",
+                {"ec_dsm": 0.4},
+                sampled_on=date(2026, 11, 1),
+                method="soil_water_1_5",
+            ),
+            "legacy_status": None,
+        },
+    ]
+    if newest_legacy_status:
+        newest = _candidate("soil_lab_tests:soil_new", {"ec": 9.9}, sampled_on=date(2026, 11, 12))
+        rows.insert(0, {**newest, "legacy_status": newest_legacy_status})
+    return rows
+
+
+def test_published_only_keeps_a_published_legacy_ece_newer_than_a_v156_extract():
+    store = _store()
+    rows = _ec_candidates("approved")
+    out = store.ece_evidence_from_candidates(rows, legacy_published_only=True)
+    assert out["ece"] is not None, f"the published legacy ECe is the newest accepted EC: {out}"
+    assert (out["ece"]["test_id"], out["ece"]["value"]) == ("soil_pub", 3.0), out
+    assert out["ece"]["legacy_status"] == "published", out
+    assert out["newer_other_extract"] is None, "the older 1:5 is not newer than the ECe"
+    # Negative control: the earlier reading (include_legacy=False) loses the published row
+    # and lets the older 1:5 make the ECe unknown.
+    old = store.ece_evidence_from_candidates(rows, include_legacy=False)
+    assert old["ece"] is None and old["newer_other_extract"]["result_id"] == "rid-15", old
+    # field_state's rule (all approved/published legacy rows) still takes the newest one.
+    assert store.ece_evidence_from_candidates(rows)["ece"]["value"] == 9.9, "default unchanged"
+
+
+def test_published_only_skips_a_legacy_row_without_a_status():
+    """Fail closed: a legacy candidate that does not say it is published is not accepted."""
+    store = _store()
+    rows = [{k: v for k, v in r.items() if k != "legacy_status"} for r in _ec_candidates(None)]
+    out = store.ece_evidence_from_candidates(rows, legacy_published_only=True)
+    assert out["ece"] is None, f"an unlabelled legacy row must not be read as published: {out}"
+    assert out["newer_other_extract"]["result_id"] == "rid-15", out
+
+
+@pytest.mark.parametrize("newest_legacy_status", [None, "approved"])
+def test_season_readiness_and_field_state_agree_on_a_published_legacy_ece(
+    monkeypatch, newest_legacy_status
+):
+    """#1507 review LOW: a published legacy ECe newer than an older v156 EC 1:5 is the ECe of
+    field_state; readiness must accept it too instead of reporting soil EC missing. Run the
+    reader exactly as the season workspace calls it (the source assertion above pins that)."""
+    store = _store()
+    sw = _season_workspace()
+    rows = _ec_candidates(newest_legacy_status)
+
+    async def candidates(conn, *, field_id, analyte, tenant_id=None, limit=20):
+        return rows
+
+    monkeypatch.setattr(store, "soil_analyte_candidates", candidates)
+    evidence = asyncio.run(store.soil_ece_evidence(None, field_id="f1", legacy_published_only=True))
+    history = [
+        {"status": newest_legacy_status, "result": {"ec": 9.9}},
+        {"status": "published", "result": {"ec": 3.0, "ph": 7.0}},
+    ][0 if newest_legacy_status else 1 :]
+    soil = sw._accepted_soil(history, None, evidence["ece"], evidence["newer_other_extract"])
+    assert soil.get("ec_ds_m") == 3.0, f"readiness must accept the published legacy ECe: {soil}"
+    checks = {c["key"]: c["ok"] for c in sw._readiness({}, None, history, None, soil)["checks"]}
+    assert checks["soil_ec"] is True, f"soil EC must not be reported missing: {checks}"
+    if newest_legacy_status is None:
+        field_state = asyncio.run(store.soil_ece_evidence(None, field_id="f1"))
+        assert field_state["ece"]["value"] == soil["ec_ds_m"], (
+            f"readiness and field_state must read the same ECe: {field_state} vs {soil}"
+        )
+
+
+def test_season_readiness_ignores_an_unpublished_legacy_reading():
+    """A legacy reading counts only when its row is published."""
+    sw = _season_workspace()
+    approved = {"source": "legacy_soil_lab_tests", "value": 9.9, "legacy_status": "approved"}
+    assert sw._accepted_soil([], None, approved) == {}, "approved-not-published never counts"
+    published = {**approved, "legacy_status": "published", "value": 3.0}
+    assert sw._accepted_soil([], None, published) == {"ec_ds_m": 3.0}, "published counts"
 
 
 def test_include_legacy_false_skips_a_newer_legacy_candidate(monkeypatch):

@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "af9d90613708e727755f7a2d02f3a89ffcae75dc77776a339e2de0347db2736f"
+          "content": "58a690fc8160a4bc7fc54e3804da4b5bf83661d795573b47294671680d9fd65e"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4945,7 +4945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6030ba95e14ad738bd06f0dc78234d112a6167c490ba4e62b39ba55edf438fec"
+          "content": "156b10248fc8ddd0b608f4b9b4812618e1485ef8ecfa2c7074479b3b75e23bd8"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -19045,7 +19045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "22745743d9dffb13ea2e9f5b2fe0d650a4da2c14ccce10cbd8c25f97872caea6"
+          "content": "911c220cfcb412c465604479771b5e08c86df81c16f57556b6ecc7a2fb094250"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -19475,7 +19475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79d1756642e9199cffe8e9afb856a86b5d14dc1ad6ce29ea7f9fbb4c2ef89bba"
+          "content": "7ba8a30f86971bae053ef8b8e50edaa0fa4f81af97c878a688ebf55232d131bb"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -19565,7 +19565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "72e11d141a79c7dd447ba4ba8d494dd32451ecdb46760a7e0ffd0001928ceaf7"
+          "content": "ffee7e2470a625e4d6957d5f783c4516842107bd27a91f8a41c6fd7afc4cfc66"
         }
       ],
       "name": "services/decision-service/tests/_model_chain.py",
@@ -20129,26 +20129,6 @@
         }
       ],
       "name": "services/decision-service/tests/test_tenant_boundary_migration_static.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "1f94c2522ddd6e76ba6c9194fe896637b80789f8ebc46a7338dc7a549e629a2a"
-        }
-      ],
-      "name": "services/decision-service/tests/test_w4_05_model_lifecycle_feed_live_pg.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "808959f63a56e69e989b10c077c96c5cfbbba926150be4801778dac4d8d01cb9"
-        }
-      ],
-      "name": "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py",
       "type": "file"
     },
     {
@@ -21605,7 +21585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2a36404ce768419e1152f846e09afdcd3f28565f3e14f31286c7007467b4fbd9"
+          "content": "aa902639d15eb91a234bbd555693bf3f9d78f832ea3c3aaf171a6b6bae8944e1"
         }
       ],
       "name": "services/model-registry-adapter/tests/test_runtime_contract.py",
@@ -29515,7 +29495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d543a6b465393141a2fb3059d28ec1682745297413c9075856fecebb031fd927"
+          "content": "441a50e2795b63161b63339c4a8854b2d979ec91400789d891328e07e0937daa"
         }
       ],
       "name": "services/sahool-platform/core/capabilities.py",

@@ -5,12 +5,19 @@
 (لا رشّ)، الاستئناف بعد الموافقة يُنفّذ، والشدّة المنخفضة لا تُصعّد ولا تَرشّ.
 """
 
+import pytest
 from core.pest_escalation_flow import (
     ESCALATION_TABLE,
+    EXECUTION_NOT_CONFIRMED,
+    EXECUTION_REF_MISSING,
+    EXECUTOR_NOT_CONFIGURED,
     build_pest_escalation_steps,
+    is_execution_proven,
     run_pest_escalation,
 )
-from core.workflow_engine import InMemoryWorkflowStore, WorkflowStatus
+from core.workflow_engine import InMemoryWorkflowStore, WorkflowStatus, WorkflowStep, run_workflow
+
+pytestmark = pytest.mark.unit
 
 # حكم سلامة مُسمَح (W0-01): التنفيذ يتطلّب بوّابة guardrails تسمح صراحةً. الاختبارات التي
 # تقيس مسار التنفيذ نفسه تحقنه؛ اختبارات الحجب في test_pest_guardrails_gate.py.
@@ -186,43 +193,148 @@ def test_execute_no_action_when_action_type_is_none():
     }
 
 
-def test_execute_default_ref_when_no_execute_fn():
-    # بلا execute_fn محقونة وبموافقة معتمَدة وإجراء فعليّ ⇒ تنفيذ افتراضي
-    # ومرجع مشتقّ من نوع الإجراء (exec-<action_type>) — لا تبعيّة حيّة.
+def test_execute_without_executor_is_not_executed():
+    # PEST-EXECUTE-DEFAULT-ACK-01: بلا execute_fn لم يُنفَّذ شيء. كان الخادم يعلن
+    # executed=True بمرجع مختلَق exec-<action_type> فتُجدوَل متابعة لرشّ لم يقع.
     execute = _steps_by_id(safety_gate_fn=_allow_gate)["execute"].fn
     res = execute({"approval_status": "approved", "action_type": "urgent_spray"})
-    assert res == {
-        "executed": True,
-        "execution_ref": "exec-urgent_spray",
-        "guardrails": _ALLOW,
-    }, res
+    assert res["executed"] is False, f"no executor must not count as executed: {res}"
+    assert res["reason"] == EXECUTOR_NOT_CONFIGURED, res
+    assert res["execution_ref"] is None, f"no made-up execution_ref: {res}"
+    assert "exec-urgent_spray" not in repr(res), f"placeholder ref leaked: {res}"
+    assert res["note_ar"].strip(), f"an Arabic note must explain why: {res}"
+    assert res["guardrails"] == _ALLOW, res
+
+
+def test_execute_with_proven_executor_result():
+    # الضابط الموجب: executed is True مع مرجع غير فارغ ⇒ تنفيذ مُثبَت.
+    execute = _steps_by_id(
+        execute_fn=lambda ctx: {"executed": True, "execution_ref": "job-42"},
+        safety_gate_fn=_allow_gate,
+    )["execute"].fn
+    res = execute({"approval_status": "approved", "action_type": "urgent_spray"})
+    assert res == {"executed": True, "execution_ref": "job-42", "guardrails": _ALLOW}, res
 
 
 def test_execute_honours_execute_fn_reporting_failure():
-    # صدق: لو أبلغت execute_fn فشلاً (executed=False) لا نزيّفه نجاحاً.
+    # صدق: لو أبلغت execute_fn فشلاً (executed=False) لا نزيّفه نجاحاً. المرجع يبقى
+    # ليتمكّن تعويض Saga من إلغاء أثر جزئيّ.
     execute = _steps_by_id(
         execute_fn=lambda ctx: {"executed": False, "execution_ref": "ref-9"},
         safety_gate_fn=_allow_gate,
     )["execute"].fn
     res = execute({"approval_status": "approved", "action_type": "biocontrol"})
-    assert res == {"executed": False, "execution_ref": "ref-9", "guardrails": _ALLOW}, res
+    assert res["executed"] is False, res
+    assert res["execution_ref"] == "ref-9", res
+    assert res["reason"] == EXECUTION_NOT_CONFIRMED, res
 
 
-# ── خطوة المتابعة (follow_up) — تُجدوَل فقط إثر تنفيذ فعلي ──
+@pytest.mark.parametrize(
+    "executor_result",
+    [
+        {},  # كان bool(res.get("executed", True)) يعدّ غياب الحقل نجاحاً
+        {"execution_ref": "job-1"},  # مرجع بلا إقرار صريح
+        {"executed": 1, "execution_ref": "job-1"},  # truthy ليس True حرفيّاً
+        {"executed": "true", "execution_ref": "job-1"},
+        None,  # ليس dict
+    ],
+)
+def test_execute_without_explicit_ack_is_not_executed(executor_result):
+    execute = _steps_by_id(
+        execute_fn=lambda ctx: executor_result,
+        safety_gate_fn=_allow_gate,
+    )["execute"].fn
+    res = execute({"approval_status": "approved", "action_type": "urgent_spray"})
+    assert res["executed"] is False, f"{executor_result!r} must not count as executed: {res}"
+    assert res["reason"] == EXECUTION_NOT_CONFIRMED, res
+
+
+@pytest.mark.parametrize("ref", [None, "", "   ", 42])
+def test_execute_ack_without_execution_ref_is_not_executed(ref):
+    result = {"executed": True} if ref is None else {"executed": True, "execution_ref": ref}
+    execute = _steps_by_id(execute_fn=lambda ctx: result, safety_gate_fn=_allow_gate)["execute"].fn
+    res = execute({"approval_status": "approved", "action_type": "urgent_spray"})
+    assert res["executed"] is False, f"executed True without a ref is unproven: {res}"
+    assert res["reason"] == EXECUTION_REF_MISSING, res
+    assert res["execution_ref"] is None, res
+
+
+def test_is_execution_proven_requires_true_and_ref():
+    assert is_execution_proven({"executed": True, "execution_ref": "j"}) is True, "proven"
+    assert is_execution_proven({"executed": True}) is False, "no ref ⇒ unproven"
+    assert is_execution_proven({"executed": 1, "execution_ref": "j"}) is False, "1 is not True"
+    assert is_execution_proven({"executed": True, "execution_ref": " "}) is False, "blank ref"
+    assert is_execution_proven(None) is False, "None is unproven"
+
+
+# ── خطوة المتابعة (follow_up) — تُجدوَل فقط إثر تنفيذ مُثبَت ──
 
 
 def test_follow_up_skipped_when_not_executed():
     # لم يُنفَّذ ⇒ لا متابعة (لا نجدوِل لما لم يقع).
     follow_up = _steps_by_id()["follow_up"].fn
-    assert follow_up({"executed": False}) == {"follow_up_scheduled": False}
+    assert follow_up({"executed": False}) == {"follow_up_scheduled": False}, "not executed"
+
+
+@pytest.mark.parametrize(
+    "ctx",
+    [
+        {"executed": True},  # بلا مرجع
+        {"executed": True, "execution_ref": ""},
+        {"executed": 1, "execution_ref": "job-1"},
+        {"executed": "yes", "execution_ref": "job-1"},
+    ],
+)
+def test_follow_up_skipped_without_proven_execution(ctx):
+    follow_up = _steps_by_id()["follow_up"].fn
+    assert follow_up(ctx) == {"follow_up_scheduled": False}, f"unproven execution: {ctx}"
 
 
 def test_follow_up_scheduled_after_execution():
-    # نُفِّذ ⇒ تُجدوَل متابعة (7 أيّام) للتحقّق من تراجع الإصابة.
+    # نُفِّذ فعلاً (إقرار + مرجع) ⇒ تُجدوَل متابعة (7 أيّام) للتحقّق من تراجع الإصابة.
     follow_up = _steps_by_id()["follow_up"].fn
-    res = follow_up({"executed": True})
-    assert res["follow_up_scheduled"] is True
-    assert res["follow_up_note_ar"] == "متابعة بعد 7 أيّام للتحقّق من تراجع الإصابة"
+    res = follow_up({"executed": True, "execution_ref": "job-42"})
+    assert res["follow_up_scheduled"] is True, res
+    assert res["follow_up_note_ar"] == "متابعة بعد 7 أيّام للتحقّق من تراجع الإصابة", res
+
+
+# ── تعويض Saga يبقى عاملاً ──
+
+
+def _run_with_failing_tail(execute_fn, cancel_fn, wf_id):
+    steps = build_pest_escalation_steps(
+        execute_fn=execute_fn, cancel_fn=cancel_fn, safety_gate_fn=_allow_gate
+    )
+
+    def _boom(ctx):
+        raise RuntimeError("later step failed")
+
+    steps.append(WorkflowStep("after_follow_up", _boom))
+    return run_workflow(
+        wf_id,
+        steps,
+        store=InMemoryWorkflowStore(),
+        initial_context={"pest_type": "locust", "severity": 0.9, "approval_status": "approved"},
+        compensate_on_failure=True,
+    )
+
+
+def test_compensation_cancels_a_proven_execution():
+    cancelled: list[str] = []
+    st = _run_with_failing_tail(
+        lambda ctx: {"executed": True, "execution_ref": "job-7"},
+        lambda ctx: cancelled.append(ctx["execution_ref"]),
+        "pe_saga",
+    )
+    assert st.status == WorkflowStatus.COMPENSATED, st.status
+    assert cancelled == ["job-7"], f"the proven execution must be cancelled: {cancelled}"
+
+
+def test_compensation_skips_cancel_when_nothing_ran():
+    cancelled: list[object] = []
+    st = _run_with_failing_tail(None, lambda ctx: cancelled.append(1), "pe_saga_none")
+    assert st.status == WorkflowStatus.COMPENSATED, st.status
+    assert cancelled == [], "nothing executed ⇒ nothing to cancel"
 
 
 # ── تدفّقات كاملة لنطاقات لم تُغطَّ طرفيّاً ──
@@ -230,7 +342,7 @@ def test_follow_up_scheduled_after_execution():
 
 def test_mid_severity_biocontrol_full_flow_after_approval():
     # نطاق التدخّل (0.4 ≤ شدّة < 0.7): يُعلَّق ثمّ بعد الموافقة يُنفَّذ مكافحةً
-    # حيويّة بمرجع افتراضي exec-biocontrol، وتُجدوَل المتابعة → COMPLETED.
+    # حيويّة بمرجع المنفّذ، وتُجدوَل المتابعة → COMPLETED.
     store = InMemoryWorkflowStore()
     run_pest_escalation(
         "pe_bio",
@@ -241,16 +353,34 @@ def test_mid_severity_biocontrol_full_flow_after_approval():
         "pe_bio",
         store=store,
         initial_context={"approval_status": "approved"},
+        execute_fn=lambda ctx: {"executed": True, "execution_ref": "bio-1"},
         safety_gate_fn=_allow_gate,
     )
-    assert st.status == WorkflowStatus.COMPLETED
-    assert st.step_results["recommend"]["action_type"] == "biocontrol"
+    assert st.status == WorkflowStatus.COMPLETED, st.status
+    assert st.step_results["recommend"]["action_type"] == "biocontrol", st.step_results
     assert st.step_results["execute"] == {
         "executed": True,
-        "execution_ref": "exec-biocontrol",
+        "execution_ref": "bio-1",
         "guardrails": _ALLOW,
     }, st.step_results["execute"]
-    assert st.step_results["follow_up"]["follow_up_scheduled"] is True
+    assert st.step_results["follow_up"]["follow_up_scheduled"] is True, st.step_results
+
+
+def test_approved_flow_without_executor_schedules_no_follow_up():
+    # PEST-EXECUTE-DEFAULT-ACK-01 طرفيّاً: موافقة + بوّابة تسمح لكن لا منفّذ ⇒ لم يُنفَّذ،
+    # ولا متابعة 7 أيّام لرشّ لم يقع.
+    store = InMemoryWorkflowStore()
+    run_pest_escalation("pe_noexec", store=store, initial_context={"severity": 0.9})
+    st = run_pest_escalation(
+        "pe_noexec",
+        store=store,
+        initial_context={"approval_status": "approved"},
+        safety_gate_fn=_allow_gate,
+    )
+    assert st.status == WorkflowStatus.COMPLETED, st.status
+    assert st.step_results["execute"]["executed"] is False, st.step_results["execute"]
+    assert st.step_results["execute"]["reason"] == EXECUTOR_NOT_CONFIGURED, st.step_results
+    assert st.step_results["follow_up"] == {"follow_up_scheduled": False}, st.step_results
 
 
 def test_low_severity_flow_records_no_action_execute():

@@ -124,7 +124,8 @@ def test_ci_step_pins_the_flag_that_turns_a_missing_database_into_a_failure():
     workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
     steps = workflow["jobs"]["integration-tests"]["steps"]
     target = "pytest -v -m integration -rs tests_v9/test_imagery_automation_rls_live_pg.py"
-    selected = [step for step in steps if step.get("run", "").strip() == target]
+    # The live-coverage flags (CI-LIVE-PG-COVERAGE-UNREPORTED-01) follow the test path.
+    selected = [s for s in steps if s.get("run", "").strip().split(" --cov", 1)[0] == target]
     assert len(selected) == 1, "خطوةُ شهادة RLS لأتمتة الصور غائبة أو مكرّرة"
     env = selected[0].get("env") or {}
     assert env.get("IMAGERY_RLS_CERTIFICATION_REQUIRED") == "1", (

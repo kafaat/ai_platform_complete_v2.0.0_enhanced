@@ -3,7 +3,7 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `2bcbdebf77a3c9e6177508ed4ab03e6bd1d7d3c0042dc301dec6cf17b814654f`
+- fingerprint: `12f47bc80f2c7834b9e37c8ce0a727501a4a7ad7fea46673a325dc479c7397bd`
 - components: **37** (backend: 33)
 - route rows: **1168** → unique method/path: **1047**
 - capabilities (derived, uncurated): **843**
@@ -19,7 +19,7 @@
 | agriai-engine | service | simulation-experimental | sahool-agriai-engine | 21 | False |
 | ai_agronomist | service | agents | sahool-ai-agronomist | 0 | True |
 | auth | service | identity | sahool-auth | 0 | True |
-| decision-service | service | decision-governance | sahool-decision-service | 43 | True |
+| decision-service | service | decision-governance | sahool-decision-service | 44 | True |
 | edge-inference | service | edge | sahool-edge | 0 | True |
 | erp-bridge | service | erp-projection | odoo-bridge, sahool-erp-bridge | 15 | True |
 | field-management-service | service | fields-internal | sahool-field-management | 36 | True |

@@ -873,6 +873,30 @@
     ]
   },
   {
+    "path": "docs/architecture/db_writer_ownership_baseline.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "DEC-010",
+        "score": 15,
+        "signals": [
+          "content:model activation",
+          "content:model promotion",
+          "content:model rollback"
+        ]
+      },
+      {
+        "capability_id": "IRR-002",
+        "score": 12,
+        "signals": [
+          "content:water quality",
+          "content:Water quality samples",
+          "content:water sample"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/architecture/db_writer_ownership_triage.json",
     "kind": "other",
     "candidates": [

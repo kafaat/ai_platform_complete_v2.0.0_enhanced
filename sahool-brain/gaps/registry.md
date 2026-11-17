@@ -8812,7 +8812,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 | RAILWAY-FIELD-MANAGEMENT-UPSTREAM-NAME-01 | اسم خدمة field-management على Railway `sahool-field-management-service` بينما مضيف المُصيِّر الافتراضيّ `sahool-field-management.railway.internal`؛ بلا `SAHOOL_FIELD_MANAGEMENT_UPSTREAM` تشير مسارات مهامّ الحقل إلى مضيف غير موجود. الإصلاح للمالك: ضبط المتغيّر | gateway / deploy | `render_frontend.py` | open |
 | RAILWAY-W3-12-TOKENS-UNSET-01 | بعد #1505: vegetation بلا `TASK_SERVICE_CALLBACK_TOKEN`، وبوّابة الواجهة بلا `SCOUT_MEDIA_SERVICE_TOKEN` و`FIELD_TASKS_SERVICE_TOKEN` في البيئتين (أسماء فقط). تفشل مغلقةً (ترويسة فارغة ⇒ 401/503 من الخدمة المالكة). الإصلاح للمالك: ضبط الرموز | deploy / security | #1505، `docker-compose.production.yml` | open |
 | STAGING-BACKUP-SERVICE-CRASHED-01 | `sahool-backup-20261112` على staging: آخر نشر 2026-11-14 بحالة CRASHED (صورة postgis 15-3.4) والسابقة REMOVED. قبل أيّ ترحيل يُؤكَّد وجود نسخة احتياطيّة حديثة قابلة للاستعادة | deploy / backup | Railway (قراءة حالة النشر فقط، 2026-11-16) | open |
-| PEST-EXECUTE-DEFAULT-ACK-01 | `pest_escalation_flow.step_execute` بلا `execute_fn` موصول يُعيد `executed=true` ومرجعاً افتراضيّاً `exec-<action_type>`؛ #1505 يعرضه في الواجهة غير مؤكَّد، لكنّ الخادم يجب أن يُعيد `executed=false` بسبب `executor_not_configured` (ستّة اختبارات قائمة تتغيّر). مجدول للدفعة الثالثة | sahool-platform / pest | `core/pest_escalation_flow.py` (step_execute)، #1505 | open |
+| PEST-EXECUTE-DEFAULT-ACK-01 | `pest_escalation_flow.step_execute` بلا `execute_fn` موصول يُعيد `executed=true` ومرجعاً افتراضيّاً `exec-<action_type>`؛ #1505 يعرضه في الواجهة غير مؤكَّد، لكنّ الخادم يجب أن يُعيد `executed=false` بسبب `executor_not_configured` (ستّة اختبارات قائمة تتغيّر). مجدول للدفعة الثالثة | sahool-platform / pest | `core/pest_escalation_flow.py` (step_execute)، #1505 | fixed |
 | TTS-KAREEM-VOICE-LINEAGE-LICENCE-01 | بطاقة نموذج `ar_JO-kareem-medium` تقول إنّه مضبوط من صوت lessac الإنجليزيّ، وبطاقة lessac تحيل إلى ترخيص Blizzard 2013 (يُذكَر أنّه غير تجاريّ؛ نصّه لم يُجلَب هنا). المحرّك piper-tts بترخيص GPL-3.0-or-later. الصوت معطّل افتراضيّاً ولا يُشحَن؛ تفعيله قرار المالك | tts-service / licensing | `services/tts-service/requirements-piper.txt`، #1505 | open |
 | SCHEMA-PROBE-SIGPIPE-141-01 | `migrations/probe_schema_state.sh` تحت `set -euo pipefail` كان يمرّر قائمة الغائب إلى `head -1` و`head -20`؛ يخرج head مبكّراً فيأخذ printf إشارة SIGPIPE ويموت المسبار بـ141 (`SCHEMA_PROBE_FAILED` متقطّع، تشغيل CI 43951067986) | migrations / ci | `migrations/probe_schema_state.sh:150-153` | fixed — على الفرع `claude/fx-carrier-20261116` (توسيع المتغيّر وawk على here-string، `tests_v9/test_schema_probe_no_sigpipe.py` والسطر القديم يموت بـ141) |
 | SCOUTING-ANOMALY-VERIFY-RACE-ORPHAN-TASK-01 | طلبُ تحقّقٍ ميدانيّ من شذوذٍ نباتيّ يُنشئ مهمّة الاستكشاف في field-management قبل انتقال الشذوذ بالنسخة المتوقَّعة؛ إن أُغلق الشذوذ في الأثناء تبقى مهمّةٌ معلّقة بلا مرجع دورة حياة. صار التعارضُ 409 صريحًا يسمّي `task_ref` ويُسجَّل في المسار الآليّ بدل 500؛ ويبقى الحلّ المتين (حجز التحقّق قبل الإرسال في مخزنَي الشذوذ، أو مسار إلغاءٍ تعويضيّ للمهمّة المعلّقة) (مراجعة Copilot لـ#1500) — **أُغلِق:** صار التحقّقُ يُحجَز ذرّيًّا بالنسخة المتوقَّعة قبل أيّ إرسال: `reserve_verification` ينقل الشذوذ إلى `verification_requested` بحجزٍ معلَّق بلا مهمّة ويحفظ الحالة السابقة، ثمّ `attach_verification_task` يربط `task_ref` بعد عودة الجسر، أو `release_verification_reservation` يعيد الحالة السابقة حين يُعرَف أنّ الجسر لم يخزّن شيئًا (إعدادٌ ناقص قبل أيّ طلب، رفضُ 4xx عدا 409)؛ وفي الفشل الملتبس (انقطاع، 5xx، 409، ردّ 2xx لا يؤكّد المهمّة) يبقى الحجزُ معلّقًا ويُستأنَف بالمفتاح الحتميّ نفسه: إعادةُ المحاولة بالنسخة الأصليّة أو بالنسخة الحاليّة (يسمّيها تفصيل 424 `resume_expected_version`)، والكشفُ الآليّ يستأنفه وحده فلا يُقفَل الشذوذ بعد عطلٍ عابر؛ و409 الذي يسمّي مهمّة الشذوذ القائمة يربطها. وأثناء الحجز المعلَّق يرفض `validate_transition` أيّ انتقالٍ آخر (`verification_reservation_pending`) فلا يُغلَق الشذوذ تحت الإرسال؛ والإعادةُ بعد النجاح تُرجع السجلّ نفسه بلا إرسالٍ ثانٍ. في المخزنين (SQLite وPostgreSQL) بلا تغيير مخطّط (الحجز في `payload_json`). الاختبارات: `services/vegetation-analysis-service/test_ground_verification_bridge.py` و`test_anomaly_store.py` (ضبطٌ سلبيّ: الحلّ المُقاوِم يفوز على الشيفرة السابقة) و`tests_v9/test_rs_anomaly_reservation_live_pg.py` (PG حيّ، دور NOBYPASSRLS) | vegetation-analysis-service / field-management-service | `services/vegetation-analysis-service/routers/anomalies.py` (`_lifecycle_conflict`)، `services/vegetation-analysis-service/anomaly_store.py`، `anomaly_store_pg.py` | fixed |
@@ -8841,6 +8841,28 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الخلل:** v256 المحجوزة كانت تبصم `field_tasks.photo_url` والملاحظات. وعلى main مصدرُ صورة المشاهدة الوحيد هو `scout_photo_evidence` (v260، scout-ingest؛ ملاحظة [`v257_scouting_pin_location_photo.sql:12-16`](../../migrations/v257_scouting_pin_location_photo.sql))، فرابطٌ حرّ لا يربط الاعتماد بالبايتات التي رآها المراجِع.
 - **الإصلاح:** [`v274_inspection_evidence_versions.sql`](../../migrations/v274_inspection_evidence_versions.sql) يسمّي `photo_evidence_id` و`photo_content_sha256` ويعيد حساب البصمة في trigger؛ الاعتماد يسمّي `evidence_version` بعينها؛ و[`v277`](../../migrations/v277_inspection_close_gate.sql) يرفض الإغلاق (SH002) إن لم يعد دليلُ الدبوس الحاليّ هو دليلَ النسخة المعتمدة. الشاهد: `test_close_needs_an_approval_and_a_photo_added_after_it_invalidates_it` و`test_a_review_of_a_submit_whose_photo_changed_since_is_refused`.
 - **شرط الإغلاق:** دمجٌ في main ثمّ إيصالٌ حيّ على staging.
+
+## DB-READ-NEVER-WRITTEN-INVISIBLE-01 — حارس ملكيّة الكتابة لا يرى جدولاً يُقرأ ولا كاتبَ له (W4-07)
+
+- **الحالة:** fixed — على فرع `claude/w4-07-ownership-read-sections-20261117`. لا ادّعاء وصول إلى main ولا نجاح CI بعد.
+- **الخلل (مقيس على main `91dfe32a`):** `scripts/ci/db_writer_ownership_guard.py` يحكم الكتابة غير المأذونة، والقراءة غير المُعلَنة، و`written_never_read`. أمّا جدولٌ يُقرأ ولا موضعَ كتابةٍ مرصودٍ له فيمرّ من الثلاثة: لا كتابةَ تُخالَف، وقراءةُ المالك مأذونة، و`written_never_read` يشترط كاتباً. المثال: `crop_root_policies` يُقرأ في `services/sahool-platform/api/canonical_root_zone_profile.py:337` و`:350`، ولا كاتبَ له إلّا اختبار، فيعود كلُّ طلبٍ `validated_crop_root_policy_missing`. وعلى main `91dfe32a`: 26 جدولاً تُقرأ ولا تُكتب، و130 جدولاً في العقد بلا قراءةٍ ولا كتابة، و65 كاتباً مُعلَناً لا يكتب. وبعد دمج `cb3e756b` (#1507) صارت الأولى 27: دخلها `soil_lab_tests`، وهو قديمٌ للقراءة فقط بقرار المالك W1-03 (`docs/architecture/db_ownership.yml`)، فالكشفُ صحيحٌ ومقصود.
+- **الإصلاح:** ثلاث مجموعات في `read_survey`:
+  - `read_never_written` (27 على `cb3e756b`): راتشِتٌ بالهويّة في الاتّجاهين داخل الحارس القائم.
+  - `unreferenced` (131 من 415): راتشِتٌ بالهويّة في الاتّجاهين.
+  - `declared_writer_unobserved` (65): **مُبلَّغٌ لا حاجب**. قرار المراجعة: الكاتب الفعليّ ليس المالكَ تلقائيّاً، وكلّ نقلٍ للملكيّة قرارٌ منفصل (W4-07 PR B).
+- **الشواهد:** في `tests_v9/test_db_writer_ownership_guard.py`:
+  - `test_crop_root_policies_is_read_never_written_until_w1_05_lands_a_writer` يقلب نفسه: حين يضع W1-05 كاتباً محكوماً يشترط خروجَ الجدول من المجموعة ومن الأساس.
+  - اختبارات صندوقٍ للمجموعات الثلاث، وللراتشِت في الاتّجاهين، ولكون الثالثة لا تحجب.
+  - سبع طفرات جديدة في `guard_mutation_registry.json`، كلّها قُتلت محلّيّاً: أربعٌ للمجموعات الجديدة، وثلاثٌ لجهة القراءة القائمة التي لم تكن لها طفرة (`_READ` و`_NOT_A_READ_BEFORE` و`written_never_read`).
+- **وُجد أثناء القياس:** `decision_eligibility_assessments` (`services/decision-service/migrations/031_eligibility_assessment.sql`) كان غائباً عن `docs/architecture/db_ownership.yml`، فأُضيف بمالكه. ولا شيفرة تشغيلٍ تقرؤه أو تكتبه (اختبارات فقط)، فهو في `unreferenced`. وسببُ غيابه الفجوة التالية.
+- **شرط الإغلاق:** نجاح CI على رأس الفرع ثمّ الدمج.
+
+## P0-DB-OWNERSHIP-SERVICE-MIGRATIONS-UNSCANNED-01 — اختبار تغطية العقد لا يمسح ترحيلات الخدمات
+
+- **الحالة:** open.
+- **الخلل (مقيس):** `services/sahool-platform/tests/test_p0_db_ownership_guard.py:58-62` يجمع `CREATE TABLE` من `migrations/` و`alembic/versions/` و`services/sahool-platform/storage/` فقط. أمّا `services/*/migrations/` فلا يمسحه، فيدخل جدولٌ جديدٌ بترحيل خدمة دون أن يُطالَب بسطرٍ في `docs/architecture/db_ownership.yml`. الشاهد: `decision_eligibility_assessments` (ترحيل decision-service 031) غاب عن العقد حتّى رآه قياس W4-07.
+- **الإصلاح المقترح:** توسيع جذور المسح إلى `services/*/migrations/` مع راتشِتٍ بالهويّة للغائب الآن، لا قائمةِ استثناءٍ مفتوحة. لم يُنفَّذ في W4-07 كي يبقى نطاق PR A تضييقاً لحارسٍ واحد.
+- **المصدر:** `services/sahool-platform/tests/test_p0_db_ownership_guard.py:53-77`.
 
 ## HELM-RENDER-UNPINNED-RUNNER-BINARY-01 — عرض مخطّط Helm في CI يعتمد على ثنائيّ غير مثبَّت، بلا lint ولا staging
 
@@ -8904,3 +8926,36 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الأثر:** حلقة التحقّق الميدانيّ من الشذوذ تبدأ ولا تُغلَق: تُنشَأ مهمّة التحقّق في field-management، ولا طريق لعودة نتيجتها إلى vegetation-analysis.
 - **المالك الطبيعيّ للإرسال:** field-management، عند إغلاق مهمّة التحقّق (اقتراح جلسة التكامل).
 - **شرط الإغلاق:** مُرسِل في field-management يحمل الرمز ودليل المهمّة، واختبار يُغلق الحلقة على قاعدة حقيقيّة.
+
+## PEST-EXECUTE-DEFAULT-ACK-01 — خطوة تنفيذ الآفة تعلن التنفيذ بلا منفّذ وتجدول متابعة لرشّ لم يقع (HIGH)
+
+- **الحالة:** fixed — على فرع هذا العمل (أساس `8725fcfe1`)؛ لا ادّعاء وصول إلى main ولا تشغيل حيّ بعد.
+- **الخلل على `8725fcfe1`:** في [`core/pest_escalation_flow.py`](../../services/sahool-platform/core/pest_escalation_flow.py) كانت `step_execute` بلا `execute_fn` تعيد `executed=True` ومرجعاً مختلَقاً `exec-<action_type>` (السطور 197-201)، ومع منفّذ كان `bool(res.get("executed", True))` (السطر 193) يعدّ ردّاً بلا الحقل نجاحاً، و`step_follow_up` (السطور 208-210) تجدول متابعة 7 أيّام متى كان `executed` truthy. والمسار `/api/v1/pest-escalation/run` لا يحقن منفّذاً، فكلّ سماح من بوّابة guardrails كان يُسجَّل تنفيذاً ومتابعة لرشّ لم يحدث.
+- **الإصلاح:** التنفيذ مُثبَت فقط حين يعيد المنفّذ `executed is True` مع `execution_ref` نصّيّ غير فارغ (`is_execution_proven`). بلا منفّذ ⇒ `executed=False` و`reason=executor_not_configured` مع `note_ar`. ردّ بلا إقرار صريح ⇒ `execution_not_confirmed`؛ إقرار بلا مرجع ⇒ `execution_ref_missing`. المتابعة تُجدوَل لتنفيذ مُثبَت فقط، وتعويض Saga يلغي التنفيذ المُثبَت كما كان. قارئا الويب والجوّال لم يعودا يعرضان نصّ سماح البوّابة سبباً لعدم التنفيذ، ويبقى كشف المرجع القديم لردود خوادم سابقة.
+- **الشواهد:** `services/sahool-platform/tests/test_pest_escalation_flow.py` (17 حالة تفشل على منطق `8725fcfe1`: بلا منفّذ، `{}`، `executed` truthy غير True، إقرار بلا مرجع، متابعة بلا إثبات، تعويض بلا تنفيذ) · `tests_v9/test_field_intelligence_endpoints.py::test_pest_escalation_executes_only_on_server_guardrails_allow` · `frontend/src/lib/pestEscalationLineage.test.ts` · `frontend/src/sections/PestEscalationPage.test.tsx` · `mobile/sahool_app/test/features/advisor/pest_escalation_lineage_test.dart`.
+- **الباقي:** لا منفّذ حقيقيّ موصول لتدفّق الآفة؛ وصله (أيّ خدمة تنفّذ الرشّ وتعيد مرجعاً قابلاً للإلغاء) قرار مالك. حتى ذلك يبقى القرار بشريّاً خارج النظام. شرط الإغلاق: دمج في main.
+
+## GATEWAY-COOKIE-FORWARD-01 — بوّابات nginx كانت تمرّر ترويسة Cookie للمتصفّح إلى المنبع
+
+- **الحالة:** open — مُصلَحة في الكود على الفرع `tb-r-gateway-cookie-live-coverage` (`2d866479f`)؛ غير مدموجة.
+- **الخلل:** [`frontend/nginx.conf`](../../frontend/nginx.conf) (بوّابة Railway العامّة) كانت تمرّر ترويسة `Cookie` كما هي، ومعها JWT `sahool_at` (HttpOnly)، من `location /api/` ومن ٢٤ موقعاً آخر إلى المنصّة وكلّ خدمة. لا خدمة تقرأ الكعكة: المصادقة بـ`Authorization: Bearer` فقط، والقارئ الوحيد هو البوّابة نفسها (`$cookie_sahool_at` → Bearer للبلاطات وطلبات التحقّق الفرعيّة).
+- **الإصلاح:** `proxy_set_header Cookie "";` في كلّ موقع وكيل في `frontend/nginx.conf`؛ و[`nginx/proxy_params.conf`](../../nginx/proxy_params.conf) ونظيره في Helm يمسحانها، والمواقع التي لا تضمّنه تمسحها بنفسها. الجسر باقٍ لأنّ `$cookie_*` يقرأ طلب العميل.
+- **الشاهد:** [`tests_v9/test_gateway_cookie_strip_contract.py`](../../tests_v9/test_gateway_cookie_strip_contract.py) (فحص ثابت للبوّابات الثلاث مع تحكّم سلبيّ) و[`frontend/tests/test_nginx_runtime.py`](../../frontend/tests/test_nginx_runtime.py) (nginx حقيقيّ: لا يصل المنبعَ أيّ Cookie).
+- **شرط الإغلاق:** دمجٌ في main ثمّ نشرُ البوّابة والتحقّق من أنّ المنبع لا يستقبل الكعكة.
+
+## CI-LIVE-PG-COVERAGE-UNREPORTED-01 — خطوات الشهادة الحيّة على PostgreSQL لا تجمع التغطية
+
+- **الحالة:** open — مُصلَحة في الكود على الفرع `tb-r-gateway-cookie-live-coverage` (`32e7903b9`)؛ غير مدموجة.
+- **الخلل:** ٢٦ خطوة شهادة في وظيفة Integration Tests من [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) شغّلت pytest بلا `--cov`، فقُرئ الكود الذي لا تبلغه إلّا هي غيرَ مغطّى على codecov/patch (`anomaly_store_pg.py` ٣٥٪ على #1508).
+- **الإصلاح:** كلّ خطوة شهادة تُلحِق بملفّ الوظيفة `.coverage.integration-auth` عبر [`config/coverage-live-integration.rc`](../../config/coverage-live-integration.rc)؛ تصدير واحد وحارس واحد ورفع واحد كما كان، فيبقى عدد الرفعات ٥ و`after_n_builds` ٥.
+- **الباقي:** التشغيل المشترك `pytest -v -m integration --tb=short` ما زال بلا تغطية لأنّ مُشغِّل المختبر يطابق السطر حرفيّاً؛ ما لا يبلغه إلّا هو يبقى غيرَ مغطّى على codecov/patch.
+- **الشاهد:** [`tests_v9/test_codecov_coverage_wiring.py`](../../tests_v9/test_codecov_coverage_wiring.py).
+- **شرط الإغلاق:** دمجٌ في main وظهور تغطية الخطوات الحيّة في تقرير Codecov.
+
+## W4-09-ROUTE-MARGIN-ZERO-01 — هامش ميزانية مسارات المنصّة صفر بعد تقليص W4-09
+
+- **الحالة:** fixed — في حامل الدفعة الثالثة (W4-09 المتابَع أزال ستّة مسارات ميتة أخرى): خام 621 · بنية 4 · نطاق 617 ≤ 623، الهامش **6**، والسقف لم يُرفَع. وقبل ذلك: مقيسٌ على main `8725fcfe` ثمّ `91dfe32a` بـ`python scripts/ci/platform_route_budget_guard.py`: خام 627 · بنية 4 · نطاق 623 · الحدّ الأقصى 623 · الهامش **0**.
+- **السبب:** تقليص W4-09 (#1508، «route trim») حذف مسارات ميتة ثمّ خُفِّض السقف من 629 إلى 623، العددِ الجديد، بتعليمات المستشفى، فلم يبقَ هامش. كلّ مسار نطاقٍ جديد في المنصّة يُسقط وظيفة `platform-route-budget` حتّى يُستعاد الهامش.
+- **المصدر:** `docs/architecture/platform_extraction_map.json` (السقف) · `scripts/ci/platform_route_budget_guard.py` · بند W4-09 في خطّة تدقيق التوصيل (`routes-10`).
+- **الإصلاح الجاري:** تقليص انتقائيّ إضافيّ لمسارات ميتة يعيد هامشاً موجباً **دون** رفع السقف؛ ولا يُحلّ بتصنيف مسار نطاقٍ بنيةً ولا بحذف نقطة provenance.
+- **شرط الإغلاق:** هامش موجب على main يطبعه الحارس، والسقف لم يُرفَع.

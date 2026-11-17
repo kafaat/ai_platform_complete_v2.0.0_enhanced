@@ -4595,6 +4595,55 @@
           "replace": "        INSERT\\s+INTO\\s+(?:ONLY\\s+)?(?P<insert>[a-z_][a-z0-9_]*)\\s*(?=\\()  # mutated: قائمةُ الأعمدة وحدَها",
           "test": "tests_v9/test_db_writer_ownership_guard.py",
           "why": "شدٌّ أضيقُ من النحو يُسقِط كتابةً حقيقيّة: `INSERT INTO t VALUES (…)` و`INSERT INTO t DEFAULT VALUES` و`INSERT INTO t SELECT …` صياغاتٌ يقبلها PostgreSQL. وبلا شاهدٍ إيجابيّ يصير الشدُّ عمًى بثوبِ دقّة — وحارسٌ أعمى يُقرَأ تغطيةً."
+        },
+        {
+          "expect": "test_a_table_read_with_no_writer_is_read_never_written_until_a_writer_appears",
+          "find": "            if table not in writers_seen\n",
+          "replace": "            if table not in writers_seen and False  # mutated: لا جدولَ «يُقرأ ولا يُكتب» أبداً\n",
+          "why": "W4-07: مجموعةٌ تُعيد فراغاً دائماً تُخفي `crop_root_policies` — يُقرأ في المنصّة ولا كاتبَ له، فيعود كلُّ طلبٍ `validated_crop_root_policy_missing` والحارسُ أخضر.",
+          "test": "tests_v9/test_db_writer_ownership_guard.py"
+        },
+        {
+          "expect": "test_a_contract_table_with_no_read_and_no_write_is_unreferenced",
+          "find": "and table not in readers_seen and table not in writers_seen",
+          "replace": "and table not in writers_seen  # mutated: المقروءُ يُعدّ بلا مرجع",
+          "why": "W4-07: إسقاطُ شرط القراءة يعدّ الجدولَ المقروء «بلا مرجع» فيخلط الصنفين، ويصير حذفُ جدولٍ يُقرأ مقترحاً مشروعاً.",
+          "test": "tests_v9/test_db_writer_ownership_guard.py"
+        },
+        {
+          "expect": "test_the_w4_07_read_sets_ratchet_in_both_directions",
+          "find": "    for section, (grew, shrank) in labels.items():",
+          "replace": "    for section, (grew, shrank) in list(labels.items())[:3]:  # mutated: المجموعتان الجديدتان تُقاسان ولا تُقارَنان",
+          "why": "W4-07: مجموعةٌ تُخزَّن ولا تُقارَن تقريرٌ لا راتشِت — يدخلها جدولٌ جديدٌ بلا كاتب والفحصُ أخضر.",
+          "test": "tests_v9/test_db_writer_ownership_guard.py"
+        },
+        {
+          "expect": "test_a_declared_writer_that_never_writes_is_reported_and_does_not_block",
+          "find": "    # ``declared_writer_unobserved`` مُبلَّغٌ لا حاجب (W4-07): يُخزَّن ويُطبَع، ولا يُقارَن هنا.",
+          "replace": "    labels[\"declared_writer_unobserved\"] = (\"x\", \"y\")  # mutated: المُبلَّغُ يصير حاجباً",
+          "why": "قرار المراجعة: «الكاتبُ المُعلَنُ لا يكتب» مُبلَّغٌ لا حاجب، لأنّ الكاتب الفعليّ ليس المالكَ تلقائيّاً. جعلُه حاجباً يدفع إلى تعديل العقد ليطابق المرصود — وهو ما رفضه المالك.",
+          "test": "tests_v9/test_db_writer_ownership_guard.py"
+        },
+        {
+          "expect": "test_every_real_read_form_is_captured",
+          "find": "(?:FROM|JOIN)\\s+(?:ONLY",
+          "replace": "(?:FROM)\\s+(?:ONLY",
+          "why": "جهةُ القراءة بلا طفرةٍ قبل W4-07: إسقاطُ JOIN يجعل كلَّ جدولٍ يُقرأ بربطٍ «لا قارئ» — فيكبر `written_never_read` كذباً ويُقترَح حذفُ جدولٍ حيّ.",
+          "test": "tests_v9/test_db_writer_ownership_guard.py"
+        },
+        {
+          "expect": "test_what_only_looks_like_a_read_is_not_one",
+          "find": "        if _NOT_A_READ_BEFORE.search(sql, max(0, match.start() - 16), match.start()):\n            continue\n",
+          "replace": "        pass  # mutated: DELETE FROM وIS DISTINCT FROM تُعدّان قراءة\n",
+          "why": "`DELETE FROM t` كتابةٌ و`IS DISTINCT FROM` مقارنة؛ عدُّهما قراءةً يُخفي «يُكتب ولا يُقرأ» ويختلق قرّاءً يملؤون العقد.",
+          "test": "tests_v9/test_db_writer_ownership_guard.py"
+        },
+        {
+          "expect": "test_a_runtime_table_name_is_counted_blind_not_read",
+          "find": "            if table not in readers_seen\n",
+          "replace": "            if table not in readers_seen and False  # mutated: لا جدولَ «يُكتب ولا يُقرأ» أبداً\n",
+          "why": "صنفُ M-03 (صفرُ قارئ) لا يُرى إن أعادت المجموعة فراغاً — والحارسُ أخضر على الشجرة نفسها التي كشفه فيها فحصٌ يدويّ.",
+          "test": "tests_v9/test_db_writer_ownership_guard.py"
         }
       ],
       "test": "tests_v9/test_db_writer_ownership_guard.py"

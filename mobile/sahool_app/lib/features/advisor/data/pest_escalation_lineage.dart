@@ -278,8 +278,10 @@ ExecutionOutcome readExecutionOutcome(
         ],
       );
     }
-    // Without an injected execute_fn the server answers executed=true with the placeholder
-    // "exec-<action_type>" (core/pest_escalation_flow.py step_execute). No executor ran.
+    // Older servers, without an injected execute_fn, answered executed=true with the
+    // placeholder "exec-<action_type>". No executor ran. Current servers answer
+    // executed=false with reason "executor_not_configured" (PEST-EXECUTE-DEFAULT-ACK-01);
+    // this check stays for responses from a server that predates that fix.
     final action =
         _asMap(stepResults?['recommend'])?['action_type'] ?? contextActionType;
     if (_nonEmpty(action) && ref == 'exec-$action') {
@@ -299,7 +301,11 @@ ExecutionOutcome readExecutionOutcome(
   final note = exec['note_ar'];
   if (_nonEmpty(note)) reasons.add(note as String);
   final grReason = gr?['reason_ar'];
-  if (_nonEmpty(grReason) && grReason != note) reasons.add(grReason as String);
+  // An allowing verdict's text is not a reason for not executing: when the gate allowed
+  // but no executor ran, the note alone explains it.
+  if (gr?['allowed'] != true && _nonEmpty(grReason) && grReason != note) {
+    reasons.add(grReason as String);
+  }
   final noSource = gr?['no_server_source'];
   final missing = noSource is List
       ? noSource.whereType<String>().where((s) => s.trim().isNotEmpty).toList()

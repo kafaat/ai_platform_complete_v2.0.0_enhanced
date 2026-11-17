@@ -41,10 +41,11 @@ def test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion():
     )
     # 632/628 → 633/629: مسارُ M4 الواحد (`indicator-observations/{view}`) استهلك آخرَ هامش.
     # 633/629 → 627/623 (W4-09): ستّةُ مساراتٍ ميتة أُقعِدت وخُفِّض السقفُ بالعدد نفسه.
-    # المسارُ التالي يجب أن يُقاعِد مساراً أو يُسكَن في خدمته أو يمرّ بقرار ميزانية.
-    assert len(raw) == 627, f"raw platform routes: {len(raw)}"
+    # 627/623 → 621/617 (W4-09 تتمّة، قرار المالك 2026-11-16): ستّةٌ أخرى أُقعِدت والسقفُ باقٍ
+    # 623، فالهامشُ ٦. المسارُ الجديد يستهلك الهامش أو يُسكَن في خدمته؛ السقفُ لا يُرفَع.
+    assert len(raw) == 621, f"raw platform routes: {len(raw)}"
     assert len(infrastructure) == 4, f"infrastructure routes: {len(infrastructure)}"
-    assert len(domain) == 623, f"domain routes: {len(domain)}"
+    assert len(domain) == 617, f"domain routes: {len(domain)}"
     assert len(raw) == len(infrastructure) + len(domain)
     assert len(domain) <= budget, (
         "Platform domain-route budget exceeded:\n"

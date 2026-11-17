@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 616,
+          "line": 613,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 560,
+          "line": 559,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -651,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 565,
+          "line": 564,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -882,7 +882,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 554,
+          "line": 553,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -1023,7 +1023,7 @@
       "registrations": [
         {
           "function": "learning_cycle",
-          "line": 165,
+          "line": 144,
           "method": "POST",
           "module": "services/sahool-platform/api/phase10_continuous_learning.py",
           "path": "/cycle",
@@ -1031,7 +1031,7 @@
         },
         {
           "function": "cycle",
-          "line": 171,
+          "line": 128,
           "method": "POST",
           "module": "services/sahool-platform/api/phase11_federated_agents.py",
           "path": "/cycle",
@@ -1062,7 +1062,7 @@
       "registrations": [
         {
           "function": "model_register",
-          "line": 245,
+          "line": 196,
           "method": "POST",
           "module": "services/sahool-platform/api/phase10_continuous_learning.py",
           "path": "/models/register",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1153,
-  "route_inventory_sha256": "60792bc7904a7d2da11dd02d1c09f402adf15c89dacf00f11fc00aa090f56717",
+  "route_count": 1147,
+  "route_inventory_sha256": "4e4c90759f4895152f147875219fc9a60fef8ec53a17f24b6f48757dee96aa31",
   "runtime_verified": false,
   "schema_version": 1
 }

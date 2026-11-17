@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 806,
+      "evidence_count": 805,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -201,7 +201,6 @@
         "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_soil_profile_context_gate.py",
         "services/decision-service/tests/test_tenant_binding_force_rls.py",
-        "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
         "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
@@ -2201,7 +2200,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 211,
+      "evidence_count": 210,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2278,7 +2277,6 @@
         "services/decision-service/tests/test_runtime_worker_tenants.py",
         "services/decision-service/tests/test_service_token_guard.py",
         "services/decision-service/tests/test_sod_single_operator_self_approval.py",
-        "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
@@ -2517,7 +2515,7 @@
       "kind": "lineage_stage",
       "stage": "receipt",
       "order": 8,
-      "evidence_count": 49,
+      "evidence_count": 47,
       "owners": [
         "actuator-service",
         "database",
@@ -2554,8 +2552,6 @@
         "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
         "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
-        "services/decision-service/tests/test_w4_05_model_lifecycle_feed_live_pg.py",
-        "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
@@ -2587,7 +2583,7 @@
       "kind": "lineage_stage",
       "stage": "outcome",
       "order": 9,
-      "evidence_count": 60,
+      "evidence_count": 61,
       "owners": [
         "database",
         "decision-service",
@@ -2636,6 +2632,7 @@
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/core/outcome_reconciler.py",
+        "services/sahool-platform/core/pest_escalation_flow.py",
         "services/sahool-platform/tests/test_decision_dispatch_endpoint.py",
         "services/sahool-platform/tests/test_decision_record_list.py",
         "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",
@@ -3195,7 +3192,7 @@
         "services/sahool-platform/api/outcome_measurement.py",
         "services/sahool-platform/api/persisted_canonical_repositories.py"
       ],
-      "source_evidence_count": 806,
+      "source_evidence_count": 805,
       "target_evidence_count": 582,
       "static_supported": true,
       "runtime_verified": false
@@ -3503,7 +3500,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 51,
-      "target_evidence_count": 211,
+      "target_evidence_count": 210,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3541,7 +3538,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 211,
+      "source_evidence_count": 210,
       "target_evidence_count": 48,
       "static_supported": true,
       "runtime_verified": false
@@ -3577,7 +3574,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
       "source_evidence_count": 48,
-      "target_evidence_count": 49,
+      "target_evidence_count": 47,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3600,8 +3597,8 @@
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
-      "source_evidence_count": 49,
-      "target_evidence_count": 60,
+      "source_evidence_count": 47,
+      "target_evidence_count": 61,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3647,7 +3644,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 60,
+      "source_evidence_count": 61,
       "target_evidence_count": 393,
       "static_supported": true,
       "runtime_verified": false
@@ -3658,5 +3655,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "19b67f05b3dff94753ffda5d677d258d8b0ac6eba106e6ab7a08c12435ee69a9"
+  "content_sha256": "4925bbcf0535ff14e612a1b0bf819c03dc5972677e0e14f60fc2f1cbe32e5fde"
 }

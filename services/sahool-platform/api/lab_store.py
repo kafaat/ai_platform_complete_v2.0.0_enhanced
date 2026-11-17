@@ -809,11 +809,13 @@ async def soil_analyte_candidates(
     Each row: ``sampled_on`` (with ``sampled_on_source``), ``result`` (``{analyte: value}``
     for v156, the raw legacy object otherwise), ``evidence_ref``
     (``soil_lab_results:<result_id>`` or ``soil_lab_tests:<test_id>``), ``method_code``
-    (v156 only) and ``age_days``. Reads under the caller's tenant RLS;
+    (v156 only), ``legacy_status`` (the legacy row's ``status``, ``approved`` or
+    ``published``; None for v156) and ``age_days``. Reads under the caller's tenant RLS;
     ``tenant_id`` adds an explicit filter for callers that hold it.
     """
     return await conn.fetch(
         """SELECT sampled_on, sampled_on_source, result, evidence_ref, method_code,
+                  legacy_status,
                   EXTRACT(EPOCH FROM (now() - sampled_on)) / 86400.0 AS age_days
            FROM (
              SELECT COALESCE(s.sampled_on, s.created_at::date) AS sampled_on,
@@ -821,7 +823,8 @@ async def soil_analyte_candidates(
                          ELSE 'sampled_on' END AS sampled_on_source,
                     jsonb_build_object($2::text, r.value_json) AS result,
                     'soil_lab_results:' || r.result_id::text AS evidence_ref,
-                    r.method_code, 1 AS source_priority, r.observed_at AS observed_at
+                    r.method_code, 1 AS source_priority, r.observed_at AS observed_at,
+                    NULL::text AS legacy_status
              FROM lab_samples s JOIN soil_lab_results r
                ON s.tenant_id=r.tenant_id AND s.sample_id=r.sample_id
              WHERE s.field_id=$1 AND s.kind='soil' AND s.status NOT IN ('rejected','cancelled')
@@ -830,7 +833,7 @@ async def soil_analyte_candidates(
              UNION ALL
              SELECT COALESCE(sampled_on, created_at::date),
                     CASE WHEN sampled_on IS NULL THEN 'legacy_created_at' ELSE 'sampled_on' END,
-                    result, 'soil_lab_tests:' || test_id, NULL, 0, updated_at
+                    result, 'soil_lab_tests:' || test_id, NULL, 0, updated_at, status
              FROM soil_lab_tests WHERE field_id=$1 AND status IN ('approved','published')
                AND result ?| $3::text[] AND ($4::uuid IS NULL OR tenant_id=$4::uuid)
            ) AS evidence
@@ -861,7 +864,28 @@ def _analyte_reading(row, analyte: str, value) -> dict[str, Any]:
         "result_id": row_id if source == SOIL_LAB_CANONICAL_SOURCE else None,
         "test_id": row_id if source == SOIL_LAB_LEGACY_SOURCE else None,
         "evidence_ref": ref,
+        "legacy_status": _row_get(row, "legacy_status")
+        if source == SOIL_LAB_LEGACY_SOURCE
+        else None,
     }
+
+
+def _row_get(row, key: str):
+    try:
+        return row[key]
+    except (KeyError, IndexError):
+        return None
+
+
+def _skip_legacy(row, *, include_legacy: bool, legacy_published_only: bool) -> bool:
+    """True when a legacy ``soil_lab_tests`` candidate must not be read: all of them under
+    ``include_legacy=False``; under ``legacy_published_only`` every legacy row whose status is
+    not ``published`` (a row without a status is skipped: fail closed)."""
+    if soil_lab_source(row["evidence_ref"]) != SOIL_LAB_LEGACY_SOURCE:
+        return False
+    if not include_legacy:
+        return True
+    return legacy_published_only and _row_get(row, "legacy_status") != "published"
 
 
 def _candidate_value(row, analyte: str):
@@ -881,7 +905,12 @@ def _is_ece(row) -> bool:
 
 
 async def soil_ece_evidence(
-    conn, *, field_id: str, tenant_id: str | None = None, include_legacy: bool = True
+    conn,
+    *,
+    field_id: str,
+    tenant_id: str | None = None,
+    include_legacy: bool = True,
+    legacy_published_only: bool = False,
 ) -> dict[str, Any]:
     """The field's ECe evidence, one rule for every salinity reader.
 
@@ -892,18 +921,27 @@ async def soil_ece_evidence(
     ``prior_ece``: the newest ECe older than that extract. It is not the current ECe, but a
     reader must not drop what it says silently: a critical prior ECe still escalates.
     ``include_legacy=False`` skips the frozen ``soil_lab_tests`` rows (callers that do not
-    accept an approved-but-unpublished legacy row)."""
+    accept an approved-but-unpublished legacy row) and so drops published legacy rows too;
+    ``legacy_published_only=True`` skips only the legacy rows that are not ``published``, so
+    a reader that accepts published legacy rows (season readiness) still sees a published
+    legacy ECe newer than a v156 extract, as ``field_state`` does."""
     rows = await soil_analyte_candidates(
         conn, field_id=field_id, analyte="ec_dsm", tenant_id=tenant_id
     )
-    return ece_evidence_from_candidates(rows, include_legacy=include_legacy)
+    return ece_evidence_from_candidates(
+        rows, include_legacy=include_legacy, legacy_published_only=legacy_published_only
+    )
 
 
-def ece_evidence_from_candidates(rows, *, include_legacy: bool = True) -> dict[str, Any]:
+def ece_evidence_from_candidates(
+    rows, *, include_legacy: bool = True, legacy_published_only: bool = False
+) -> dict[str, Any]:
     """``soil_ece_evidence`` over ``soil_analyte_candidates(analyte='ec_dsm')`` rows."""
     ece = other = prior = None
     for row in rows:
-        if not include_legacy and soil_lab_source(row["evidence_ref"]) == SOIL_LAB_LEGACY_SOURCE:
+        if _skip_legacy(
+            row, include_legacy=include_legacy, legacy_published_only=legacy_published_only
+        ):
             continue
         value = _candidate_value(row, "ec_dsm")
         if value is None:
