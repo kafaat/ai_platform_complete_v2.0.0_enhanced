@@ -19,7 +19,9 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import socket
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -147,6 +149,35 @@ def test_nothing_is_downloaded_without_an_approved_digest(downloader, tmp_path, 
     assert ok is False
     assert calls == [], f"نُودي المزوّدُ بلا بصمة: {calls}"
     assert not (tmp_path / "pest_detector_int8.onnx").exists()
+
+
+@pytest.mark.parametrize("downloaded", [b"approved weights", b"wrong weights", None])
+def test_download_publishes_only_verified_bytes(downloader, tmp_path, monkeypatch, downloaded):
+    dest = tmp_path / "pest_detector_int8.onnx"
+    dest.write_bytes(b"previous weights")
+    monkeypatch.setattr(downloader, "MODELS_DIR", str(tmp_path))
+    monkeypatch.setattr(socket, "setdefaulttimeout", lambda _: None)
+    monkeypatch.setattr(time, "sleep", lambda _: None)
+    observed = []
+
+    def retrieve(_url, target):
+        observed.append(dest.read_bytes() if dest.exists() else None)
+        Path(target).write_bytes(downloaded or b"partial download")
+        if downloaded is None:
+            raise OSError("interrupted download")
+
+    monkeypatch.setattr(downloader.urllib.request, "urlretrieve", retrieve)
+    info = {
+        "url": "https://x/pest.onnx",
+        "size_mb": 18,
+        "sha256": hashlib.sha256(b"approved weights").hexdigest(),
+        "fallback": "not_provisioned",
+    }
+    approved = downloaded == b"approved weights"
+    assert downloader.download_model(dest.name, info) is approved
+    assert observed == [b"previous weights"] * (3 if downloaded is None else 1)
+    assert dest.read_bytes() == (b"approved weights" if approved else b"previous weights")
+    assert list(tmp_path.iterdir()) == [dest]
 
 
 # ─── (٢) الكاشفُ ملاحظةٌ لا علاج ──────────────────────────────────────────

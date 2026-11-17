@@ -321,6 +321,16 @@ def test_diagnosis_alternative_rule_is_conditional():
     high = DiagnosisHypothesisV1(confidence=Decimal("0.95"), **base)
     assert high.alternative_conditions == ()
 
+    input_quality = {
+        **base,
+        "confidence": Decimal("0.99"),
+        "confidence_method": "rule_fusion_v1:input_quality_not_diagnostic_probability",
+    }
+    with pytest.raises(ValidationError, match="alternatives_or_assessment_note_required"):
+        DiagnosisHypothesisV1(**input_quality)
+    assert DiagnosisHypothesisV1(**input_quality, alternative_conditions=("nutrient_stress",))
+    assert DiagnosisHypothesisV1(**input_quality, alternative_assessment_note="Reviewed evidence")
+
 
 def test_identifier_and_ownership_invariants():
     assert "mean" not in RasterAssetPersistedV1.model_fields

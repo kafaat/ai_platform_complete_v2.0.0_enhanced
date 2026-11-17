@@ -99,9 +99,11 @@ class DecisionBridge:
                     "confidence_is_probability": False,
                     "evidence_refs": [e.evidence_ref for e in diagnosis.evidence_bundle.evidence],
                 },
-                "confidence": float(diagnosis.confidence),
                 "vegetation_snapshot_id": snapshot_id,
             }
+            # Keep decision_value stable for replay of candidates written by older producers.
+            if not diagnosis.confidence_is_input_quality:
+                decision_payload["confidence"] = float(diagnosis.confidence)
             decision_headers = {**headers, "Idempotency-Key": decision_idempotency}
             dec = await client.post(
                 f"{self.base_url}/v1/decisions/record",

@@ -9,6 +9,7 @@ import logging
 import os
 import re
 import sys
+import tempfile
 import urllib.request
 
 logger = logging.getLogger("model-downloader")
@@ -67,32 +68,30 @@ def download_model(name: str, info: dict) -> bool:
         if verify_sha256(dest, info.get("sha256", "")):
             logger.info(f"  ✅ {name} already present")
             return True
-        else:
-            logger.warning(f"  ⚠️ {name} checksum mismatch — re-downloading")
-            os.remove(dest)
+        logger.warning(f"  ⚠️ {name} checksum mismatch — re-downloading")
     try:
         logger.info(f"  ⬇️  Downloading {name} ({info['size_mb']} MB)...")
-        # Download with timeout and retry
-        for attempt in range(3):
-            try:
-                import socket
+        with tempfile.TemporaryDirectory(prefix=".model-download-", dir=MODELS_DIR) as staging:
+            candidate = os.path.join(staging, name)
+            for attempt in range(3):
+                try:
+                    import socket
 
-                socket.setdefaulttimeout(120)
-                urllib.request.urlretrieve(info["url"], dest)
-                break
-            except Exception:
-                if attempt == 2:
-                    raise
-                import time
+                    socket.setdefaulttimeout(120)
+                    urllib.request.urlretrieve(info["url"], candidate)
+                    break
+                except Exception:
+                    if attempt == 2:
+                        raise
+                    import time
 
-                time.sleep(5 * (attempt + 1))
-        if verify_sha256(dest, info.get("sha256", "")):
-            logger.info(f"  ✅ {name} downloaded OK")
-            return True
-        else:
-            logger.error(f"  ❌ {name} checksum failed")
-            os.remove(dest)
-            return False
+                    time.sleep(5 * (attempt + 1))
+            if not verify_sha256(candidate, info.get("sha256", "")):
+                logger.error(f"  ❌ {name} checksum failed")
+                return False
+            os.replace(candidate, dest)
+        logger.info(f"  ✅ {name} downloaded OK")
+        return True
     except Exception as e:
         logger.warning(f"  ⚠️  Cannot download {name}: {e} — model remains {info['fallback']}")
         return False

@@ -20,6 +20,7 @@ from shared.contracts.remote_sensing import (
     EvidenceBundleV1,
     EvidenceRefV1,
 )
+from shared.contracts.remote_sensing.diagnosis_v1 import INPUT_QUALITY_CONFIDENCE_SUFFIX
 from shared.contracts.remote_sensing.enums import (
     DiagnosisAssessmentStatus,
     EvidenceVerificationState,
@@ -86,7 +87,7 @@ def build_diagnosis(*, anomaly_record: dict[str, Any], tenant_id: UUID) -> Diagn
         alternative_conditions=alternatives,
         evidence_bundle=EvidenceBundleV1(evidence=evidence),
         confidence=confidence,
-        confidence_method=f"{method}:input_quality_not_diagnostic_probability",
+        confidence_method=f"{method}{INPUT_QUALITY_CONFIDENCE_SUFFIX}",
         ground_verification_requirement=VerificationRequirement.NOT_REQUIRED,
         assessment_status=DiagnosisAssessmentStatus.PENDING,
         diagnosis_model_ref="urn:sahool:model:diagnosis_rules_v1",

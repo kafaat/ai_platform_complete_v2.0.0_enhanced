@@ -103,6 +103,10 @@ def test_referral_is_recorded_as_a_reviewable_candidate(monkeypatch):
     assert value["status"] == "pending_approval" and value["approval_required"] is True
     assert value["candidate_lineage_id"].startswith("rs8_")
 
+    assert body.get("confidence") is None
+    assert value["confidence"] == 0.78
+    assert value["confidence_is_probability"] is False
+
 
 def test_a_retry_of_the_same_diagnosis_carries_the_same_lineage(monkeypatch):
     monkeypatch.delenv("DECISION_SERVICE_TOKEN", raising=False)

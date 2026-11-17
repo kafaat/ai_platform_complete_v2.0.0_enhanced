@@ -19,6 +19,8 @@ from .identifiers import (
     UserRef,
 )
 
+INPUT_QUALITY_CONFIDENCE_SUFFIX = ":input_quality_not_diagnostic_probability"
+
 
 class DiagnosisHypothesisV1(ContractModel):
     schema_version: SchemaVersion = "1.0.0"
@@ -48,10 +50,17 @@ class DiagnosisHypothesisV1(ContractModel):
         lambda v: None if v is None else require_aware_utc(v)
     )
 
+    @property
+    def confidence_is_input_quality(self) -> bool:
+        return self.confidence_method.endswith(INPUT_QUALITY_CONFIDENCE_SUFFIX)
+
     @model_validator(mode="after")
     def validate_alternatives(self):
-        if self.confidence < Decimal("0.90") and not (
-            self.alternative_conditions or self.alternative_assessment_note
-        ):
+        has_alternatives = self.alternative_conditions or self.alternative_assessment_note
+        if has_alternatives:
+            return self
+        if self.confidence_is_input_quality:
+            raise ValueError("alternatives_or_assessment_note_required_for_input_quality")
+        if self.confidence < Decimal("0.90"):
             raise ValueError("alternatives_or_assessment_note_required_below_high_confidence")
         return self
