@@ -2280,6 +2280,9 @@ jobs:
         env:
           DECISION_033_TEST_DATABASE_URL: postgresql://decision033_admin:disposable_test_only@127.0.0.1:5436/decision033_test
           DECISION_033_REQUIRE_PG16: "1"
+          # W4-05: these replay WX-12 writers and the runtime feed under the restricted role,
+          # i.e. the enabled path; the loop is off by default elsewhere.
+          DECISION_MODEL_LIFECYCLE_ENABLED: "true"
           COVERAGE_FILE: ${{ github.workspace }}/.coverage.decision-033-pg16
         run: >-
           pytest tests/test_migration_033_pg16.py tests/test_migration_034_pg16.py
