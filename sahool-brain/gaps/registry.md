@@ -8834,6 +8834,28 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الإصلاح:** [`v274_inspection_evidence_versions.sql`](../../migrations/v274_inspection_evidence_versions.sql) يسمّي `photo_evidence_id` و`photo_content_sha256` ويعيد حساب البصمة في trigger؛ الاعتماد يسمّي `evidence_version` بعينها؛ و[`v277`](../../migrations/v277_inspection_close_gate.sql) يرفض الإغلاق (SH002) إن لم يعد دليلُ الدبوس الحاليّ هو دليلَ النسخة المعتمدة. الشاهد: `test_close_needs_an_approval_and_a_photo_added_after_it_invalidates_it` و`test_a_review_of_a_submit_whose_photo_changed_since_is_refused`.
 - **شرط الإغلاق:** دمجٌ في main ثمّ إيصالٌ حيّ على staging.
 
+## DB-READ-NEVER-WRITTEN-INVISIBLE-01 — حارس ملكيّة الكتابة لا يرى جدولاً يُقرأ ولا كاتبَ له (W4-07)
+
+- **الحالة:** fixed — على فرع `claude/w4-07-ownership-read-sections-20261117`. لا ادّعاء وصول إلى main ولا نجاح CI بعد.
+- **الخلل (مقيس على main `91dfe32a`):** `scripts/ci/db_writer_ownership_guard.py` يحكم الكتابة غير المأذونة، والقراءة غير المُعلَنة، و`written_never_read`. أمّا جدولٌ يُقرأ ولا موضعَ كتابةٍ مرصودٍ له فيمرّ من الثلاثة: لا كتابةَ تُخالَف، وقراءةُ المالك مأذونة، و`written_never_read` يشترط كاتباً. المثال: `crop_root_policies` يُقرأ في `services/sahool-platform/api/canonical_root_zone_profile.py:337` و`:350`، ولا كاتبَ له إلّا اختبار، فيعود كلُّ طلبٍ `validated_crop_root_policy_missing`. وعلى main: 26 جدولاً تُقرأ ولا تُكتب، و130 جدولاً في العقد بلا قراءةٍ ولا كتابة، و65 كاتباً مُعلَناً لا يكتب.
+- **الإصلاح:** ثلاث مجموعات في `read_survey`:
+  - `read_never_written` (26): راتشِتٌ بالهويّة في الاتّجاهين داخل الحارس القائم.
+  - `unreferenced` (131 من 413): راتشِتٌ بالهويّة في الاتّجاهين.
+  - `declared_writer_unobserved` (65): **مُبلَّغٌ لا حاجب**. قرار المراجعة: الكاتب الفعليّ ليس المالكَ تلقائيّاً، وكلّ نقلٍ للملكيّة قرارٌ منفصل (W4-07 PR B).
+- **الشواهد:** في `tests_v9/test_db_writer_ownership_guard.py`:
+  - `test_crop_root_policies_is_read_never_written_until_w1_05_lands_a_writer` يقلب نفسه: حين يضع W1-05 كاتباً محكوماً يشترط خروجَ الجدول من المجموعة ومن الأساس.
+  - اختبارات صندوقٍ للمجموعات الثلاث، وللراتشِت في الاتّجاهين، ولكون الثالثة لا تحجب.
+  - سبع طفرات جديدة في `guard_mutation_registry.json`، كلّها قُتلت محلّيّاً: أربعٌ للمجموعات الجديدة، وثلاثٌ لجهة القراءة القائمة التي لم تكن لها طفرة (`_READ` و`_NOT_A_READ_BEFORE` و`written_never_read`).
+- **وُجد أثناء القياس:** `decision_eligibility_assessments` (`services/decision-service/migrations/031_eligibility_assessment.sql`) كان غائباً عن `docs/architecture/db_ownership.yml`، فأُضيف بمالكه. ولا شيفرة تشغيلٍ تقرؤه أو تكتبه (اختبارات فقط)، فهو في `unreferenced`. وسببُ غيابه الفجوة التالية.
+- **شرط الإغلاق:** نجاح CI على رأس الفرع ثمّ الدمج.
+
+## P0-DB-OWNERSHIP-SERVICE-MIGRATIONS-UNSCANNED-01 — اختبار تغطية العقد لا يمسح ترحيلات الخدمات
+
+- **الحالة:** open.
+- **الخلل (مقيس):** `services/sahool-platform/tests/test_p0_db_ownership_guard.py:58-62` يجمع `CREATE TABLE` من `migrations/` و`alembic/versions/` و`services/sahool-platform/storage/` فقط. أمّا `services/*/migrations/` فلا يمسحه، فيدخل جدولٌ جديدٌ بترحيل خدمة دون أن يُطالَب بسطرٍ في `docs/architecture/db_ownership.yml`. الشاهد: `decision_eligibility_assessments` (ترحيل decision-service 031) غاب عن العقد حتّى رآه قياس W4-07.
+- **الإصلاح المقترح:** توسيع جذور المسح إلى `services/*/migrations/` مع راتشِتٍ بالهويّة للغائب الآن، لا قائمةِ استثناءٍ مفتوحة. لم يُنفَّذ في W4-07 كي يبقى نطاق PR A تضييقاً لحارسٍ واحد.
+- **المصدر:** `services/sahool-platform/tests/test_p0_db_ownership_guard.py:53-77`.
+
 ## HELM-RENDER-UNPINNED-RUNNER-BINARY-01 — عرض مخطّط Helm في CI يعتمد على ثنائيّ غير مثبَّت، بلا lint ولا staging
 
 - **الحالة:** fixed — في #1509 (فرع `claude/w3-09-helm-workloads-main-20261116`)، بقرار المالك أن تُطوى بوّابة Helm فيه بدل طلب دمج منفصل. لا ادّعاء وصول إلى main، ولا نجاح CI بعد.
