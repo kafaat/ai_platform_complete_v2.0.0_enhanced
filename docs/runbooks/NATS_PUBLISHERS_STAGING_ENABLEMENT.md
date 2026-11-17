@@ -48,9 +48,28 @@
    دفقٌ قائمٌ يخالف `STREAM_SPEC` يُبلَّغ `drift` بالحقل ورمزِ خروج 1، ولا يُعاد كتابتُه.
    تغييرُ الاحتفاظ قرارُ مالك. وفي وضع `NOTIFICATION_CONSUMER_MODE=legacy` ينشئ الوكيلُ الدفقَ نفسَه
    عند إقلاعه من `stream_config()` ذاتها، فالمساران يُنتجان الإعداد نفسَه.
-3. **تأكّد من المستهلكين المطلوبين** (`REQUIRED_CONSUMERS`): الثلاثة لعامل التعلّم
-   (`canonical-execution-learning-v1-*`، ينشئها العامل عند إقلاعه) و`notif_domain_events`
-   أو `notif_domain_events_queue_v1` (وكيل الإشعارات، أو `shared.notification_consumers --apply` في `queue_v1`).
+3. **تأكّد من المستهلكين المطلوبين** (`required_consumer_groups()` في `shared/nats_stream_contract.py`):
+   - `notif_domain_events` أو `notif_domain_events_queue_v1`: مطلوبٌ دائماً (وكيل الإشعارات، أو
+     `shared.notification_consumers --apply` في `queue_v1`).
+   - الثلاثة لعامل التعلّم (`canonical-execution-learning-v1-*`). **`apply` لا ينشئها؛ ينشئها العامل
+     نفسُه حين يعمل.** فتحقّق أوّلاً أنّ خدمة `sahool-canonical-execution-learning-worker` **منشورةٌ فعلاً**
+     في staging. اللقطة المحفوظة في المستودع (`docs/architecture/railway_watch_patterns.json`، 2026-10-26)
+     لا تذكر خدمةً للعامل، وHelm لا يعرّفها. فإمّا:
+     - **(أ) انشر العامل أوّلاً** (والعلمُ مطفأ ما زال، فـ`--preflight` الخاصّ به يقول `publishers_disabled`،
+       وهذا متوقَّع)، ثمّ تحقّق من وجود الثلاثة بالخطوة 4. هذا هو المسار الافتراضيّ
+       (`NATS_PREFLIGHT_LEARNING_WORKER=required`)؛
+     - **(ب) أو صرِّح على المنصّة بأنّه غير منشور:** `NATS_PREFLIGHT_LEARNING_WORKER=not_deployed`. حينها
+       لا يطلب الـpreflight مستهلكي العامل، ويُعلَن الاختيار في كلّ نتيجة (`learning_worker.mode`) وفي
+       `/readyz` (`learning_worker_mode`). الأحداث تُنشَر وتُحفظ في الدفق (احتفاظٌ بلا حدّ عمر)، وحين يُنشَر
+       العامل لاحقاً تبدأ مستهلكاته من أوّل رسالة مخزّنة (`DeliverPolicy.ALL`، افتراضُ nats-py عند الإنشاء)،
+       فلا يفوته شيء. أزِل المتغيّر بعد نشر العامل. أيُّ قيمةٍ أخرى تُفشل الـpreflight مغلقاً.
+   - **اسمٌ أساسيّ غير الافتراضيّ** (`CANONICAL_LEARNING_DURABLE` على العامل): اضبطه بالقيمة نفسها على
+     المنصّة، فالـpreflight يقرأ المتغيّر نفسَه. لكنّ `nats/nats.conf` يمنح المنصّة `CONSUMER.INFO`
+     على الأسماء الافتراضيّة وحدها، فاسمٌ جديد يحتاج تعديل الـACL أوّلاً، وإلّا رفض الوسيطُ الفحص وقرأه
+     الـpreflight «مستهلكاً غائباً» (ونتيجته تحمل `learning_worker.acl_note` تشرح ذلك).
+   - **لا تقلب العلم والـpreflight يفشل في staging على Railway:** فحصُ صحّة نشر `sahool-platform` هو `/readyz`
+     (`certification/evidence/railway_reconciliation_readonly_20261014.json`)، و`/readyz` يعيد 503 ما دام
+     الـpreflight لا يمرّ، فلا يصير النشرُ حيّاً. الخطوة 4 تمنع ذلك.
 4. **شغّل الـpreflight يدويّاً بهويّة المنصّة** (صلاحيّاتها في `nats/nats.conf` قراءةٌ فقط لهذه الأسماء):
    ```bash
    NATS_URL='tls://sahool-platform:<from-secret-store>@sahool-nats:4222' \
@@ -61,15 +80,21 @@
 
 ## 2. التفعيل
 
+**شرطٌ مسبق:** الخطوة 4 أعطت `"status": "passed"` بالبيئة نفسها التي ستعمل بها المنصّة
+(بما فيها `NATS_PREFLIGHT_LEARNING_WORKER` إن ضُبط).
+
 اضبط `FEATURE_NATS_PUBLISHERS=true` لـ`sahool-platform` و`sahool-canonical-execution-learning-worker`
-معاً في staging، ثمّ أعِد تشغيلهما. العامل يقرأ العلمَ نفسَه، فتفعيلُ أحدهما دون الآخر يُبقي العامل غير جاهز
-أو يُبقي المنصّة صامتة.
+معاً في staging (أو للمنصّة وحدها في المسار (ب) أعلاه)، ثمّ أعِد تشغيلهما. العامل يقرأ العلمَ نفسَه،
+فتفعيلُ أحدهما دون الآخر يُبقي العامل غير جاهز أو يُبقي المنصّة صامتة.
 
 المتوقَّع في الدقائق الأولى:
 - سجلّ المنصّة: `NATS preflight passed` ثمّ `OutboxWorker بدأ`. وإن ظهر
   `NATS preflight failed (…) — relay held` فالـrelay لم يبدأ والصفوف سليمة. أصلِح السبب المذكور
   (`stream_info:*` أو `consumer_missing:*` أو `stream_drift`) وسيبدأ وحده خلال ≤30 ثانية بلا إعادة تشغيل.
-- `/readyz`: يصير 200 و`nats_preflight.status = passed`.
+- `/readyz`: يصير 200 و`nats_preflight.status = passed`. القيمة `pending` مع `relay_not_started_yet` تعني
+  أنّ البنية موجودة والـrelay يبدأ الآن؛ و`failed` مع `relay_start` تعني أنّ بدء العامل نفسه فشل (التفصيل
+  في السجلّ، ويُعاد المحاولة). `/readyz` غير مُصادَق، فيعرض الحكم ورموز الأخطاء وأعداد المستهلكين فقط؛
+  الأسماء والانحراف والاعتماد في سجلّ المنصّة وفي `python -m shared.nats_stream_contract preflight`.
 - **إعادة التراكم:** `outbox.held` يتناقص نحو الصفر بدُفعاتٍ من 50 صفّاً متتالية بلا انتظار ما دام في الصندوق معلَّق.
 
 ## 3. نافذة المراقبة (48 ساعة على الأقلّ)
@@ -106,7 +131,9 @@
   الـrelay بلا دفق، وأنّ النشر الفاشل يُعاد لا يُفقَد. وبعد إنشاء الدفق من العقد يصل الحدث مرّةً واحدة، وإعادتُه
   بعد تعطّلٍ بين PubAck والوسم تُسقطها نافذة التكرار فلا يُخزَّن ثانيةً ولا يصل المستهلكَ ثانيةً.
   وفي `tests_v9/test_nats_least_privilege.py`: preflight المنصّة بهويّتها وبـTLS يمرّ بلا خرق صلاحيّة،
-  والمنصّة لا تستطيع إنشاء الدفق.
+  والمنصّة لا تستطيع إنشاء الدفق، وإعادةُ نشر حدثٍ بالـ`Nats-Msg-Id` نفسه على الدفق المُنشأ من العقد تُخزَّن
+  مرّةً وتصل المستهلكَ مرّةً. هذا الملفّ يعمل على nats-server حقيقيّ في CI (`notification-rollout.yml`)،
+  أمّا الاختبار الأوّل فيحتاج PostgreSQL مُرحَّلة ووسيطاً معاً، ولا وظيفة CI تجمعهما بعد، فيتخطّى هناك.
 - **غير مُثبَت:** سلوك staging نفسه. لم يُشغَّل هنا أيُّ شيء على Railway. وتدفّق الأحداث بأحجام حقيقيّة،
   وسلوك المستهلكين مع تراكمٍ قديم، يقيسهما هذا الدليل ولا يدّعيهما.
   والـpreflight يثبت وجود المستهلك الدائم ولا يثبت أنّ عمليّته حيّة.

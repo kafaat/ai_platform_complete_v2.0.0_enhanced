@@ -17,7 +17,9 @@ This module is the single declaration of that topology:
   rewritten.
 * ``REQUIRED_CONSUMERS`` — the durable consumers that must exist before platform events are
   worth relaying (the canonical learning worker's three durables and the notification
-  domain-events consumer in either of its two modes).
+  domain-events consumer in either of its two modes). ``required_consumer_groups()`` applies
+  the environment: the worker's configured durable base, or ``not_deployed`` when the
+  operator states that no learning worker runs yet.
 * ``run_preflight`` — connection, credential presence (booleans only, never values),
   stream existence and drift, required consumers. The platform runs it when the flag is on
   and reports it on ``/readyz``; readiness fails closed while it does not pass.
@@ -77,6 +79,47 @@ REQUIRED_CONSUMERS: tuple[tuple[str, ...], ...] = (
     ("canonical-execution-learning-v1-agronomy-projection-requested",),
     ("notif_domain_events", "notif_domain_events_queue_v1"),
 )
+
+#: The learning worker's durable base, read from the same variable the worker reads
+#: (``CANONICAL_LEARNING_DURABLE`` in ``canonical_execution_learning_worker.main``).
+LEARNING_DURABLE_ENV = "CANONICAL_LEARNING_DURABLE"
+DEFAULT_LEARNING_DURABLE_BASE = "canonical-execution-learning-v1"
+#: ``required`` (default): the three learning durables must exist. ``not_deployed``: the
+#: operator states that no learning worker runs in this environment yet. Events are still
+#: relayed and the stream keeps them (limits retention, no age limit), and a worker that
+#: binds its durables later starts from the first stored message, because nats-py creates a
+#: durable with ``DeliverPolicy.ALL``. The choice is reported on every preflight result, so
+#: it is never silent. Any other value fails closed.
+LEARNING_WORKER_ENV = "NATS_PREFLIGHT_LEARNING_WORKER"
+LEARNING_WORKER_MODES = ("required", "not_deployed")
+_LEARNING_SUFFIXES = (
+    "irrigation-execution-completed",
+    "season-closed",
+    "agronomy-projection-requested",
+)
+
+
+def learning_worker_mode() -> str:
+    """``required`` | ``not_deployed`` | ``invalid`` (an unknown value fails the preflight)."""
+    raw = (os.environ.get(LEARNING_WORKER_ENV) or "required").strip().lower()
+    return raw if raw in LEARNING_WORKER_MODES else "invalid"
+
+
+def learning_durable_base() -> str:
+    return (os.environ.get(LEARNING_DURABLE_ENV) or "").strip() or DEFAULT_LEARNING_DURABLE_BASE
+
+
+def required_consumer_groups() -> tuple[tuple[str, ...], ...]:
+    """The groups this environment requires: ``REQUIRED_CONSUMERS`` with the learning group
+    renamed to the configured durable base, or left out when the operator declared the
+    worker ``not_deployed``. The notification group is always required."""
+    notification = REQUIRED_CONSUMERS[-1]
+    if learning_worker_mode() == "not_deployed":
+        return (notification,)
+    base = learning_durable_base()
+    learning = tuple((f"{base}-{suffix}",) for suffix in _LEARNING_SUFFIXES)
+    return (*learning, notification)
+
 
 #: Per-call bound on each broker request made by the preflight.
 PREFLIGHT_TIMEOUT_SECONDS = 3.0
@@ -188,8 +231,21 @@ async def run_preflight(nc: Any, *, flag: bool, url: str | None) -> dict[str, An
         "connected": bool(nc is not None and getattr(nc, "is_connected", False)),
         "stream": {"name": STREAM_NAME, "exists": False, "covers_platform_events": False},
         "consumers": {},
+        "learning_worker": {
+            "mode": learning_worker_mode(),
+            "durable_base": learning_durable_base(),
+        },
         "errors": [],
     }
+    if result["learning_worker"]["mode"] == "invalid":
+        result["errors"].append(f"invalid_{LEARNING_WORKER_ENV}")
+    if result["learning_worker"]["durable_base"] != DEFAULT_LEARNING_DURABLE_BASE:
+        # nats/nats.conf grants the platform CONSUMER.INFO on the default names only, so a
+        # renamed base is refused by the broker and would read as "missing". Say why instead.
+        result["learning_worker"]["acl_note"] = (
+            "non-default durable base: nats/nats.conf must grant the platform "
+            "$JS.API.CONSUMER.INFO on the new names"
+        )
     if not result["connected"]:
         result["errors"].append("not_connected")
     else:
@@ -212,7 +268,7 @@ async def run_preflight(nc: Any, *, flag: bool, url: str | None) -> dict[str, An
                 result["errors"].append("stream_drift")
             if not result["stream"]["covers_platform_events"]:
                 result["errors"].append("stream_does_not_cover_platform_events")
-            for group in REQUIRED_CONSUMERS:
+            for group in required_consumer_groups():
                 found = None
                 for name in group:
                     try:
@@ -231,13 +287,23 @@ async def run_preflight(nc: Any, *, flag: bool, url: str | None) -> dict[str, An
 
 
 class PreflightState:
-    """Last preflight result as ``/readyz`` reads it, refreshed at most every TTL seconds."""
+    """Last preflight result as ``/readyz`` reads it, refreshed at most every TTL seconds.
+
+    Readiness reports ``passed`` only when the topology check passed **and** the relay it
+    gates is running: ``relay`` is ``None`` (no gate in this process, e.g. a test or the
+    CLI), ``"held"`` (gate waiting), ``"started"`` or ``"start_failed"``. A ``/readyz``
+    refresh that sees the topology pass while the gate is held wakes the gate at once, so
+    readiness and the relay do not drift apart for a whole retry interval.
+    """
 
     def __init__(self) -> None:
         self.result: dict[str, Any] | None = None
         self.checked_at: float | None = None
         self.gate_task: asyncio.Task | None = None
+        self.relay: str | None = None
+        self.relay_error: str | None = None
         self._lock: asyncio.Lock | None = None
+        self._wake: asyncio.Event | None = None
 
     async def reset(self) -> None:
         """Cancel a pending gate (before the worker stops) and forget the last result."""
@@ -247,6 +313,18 @@ class PreflightState:
             with contextlib.suppress(asyncio.CancelledError):
                 await task
         self.result, self.checked_at = None, None
+        self.relay, self.relay_error, self._wake = None, None, None
+
+    async def _try_start(self, start: Callable[[], Awaitable[None]]) -> bool:
+        """Run ``start``; a raise is recorded (readiness fails) instead of being lost."""
+        try:
+            await start()
+        except Exception as exc:  # noqa: BLE001 — recorded and retried, never swallowed silently
+            self.relay, self.relay_error = "start_failed", f"relay_start:{type(exc).__name__}"
+            logger.exception("NATS outbox relay failed to start — retrying")
+            return False
+        self.relay, self.relay_error = "started", None
+        return True
 
     async def gate(
         self,
@@ -263,28 +341,34 @@ class PreflightState:
         ``max_retries`` attempts with backoff of 2..32 s — the whole held backlog would be
         dead-lettered within about a minute of enabling the flag. Holding the relay until
         the topology exists keeps the rows ``pending`` and replayable. A failed preflight
-        is retried every ``retry_s`` in the background, so provisioning the stream or a
-        consumer later starts the relay without a restart.
+        (or a failed start) is retried every ``retry_s`` in the background, or sooner when
+        ``refresh`` sees the topology pass, so provisioning the stream or a consumer later
+        starts the relay without a restart.
         """
+        self.relay, self.relay_error = "held", None
+        self._wake = asyncio.Event()
         self.record(await run_preflight(nc, flag=True, url=url))
-        if self.result["status"] == "passed":
-            await start()
+        if self.result["status"] == "passed" and await self._try_start(start):
             return True
-        logger.warning(
-            "NATS preflight failed (%s) — relay held, events stay pending in event_outbox; "
-            "retry every %ss",
-            ",".join(self.result["errors"]),
-            retry_s,
-        )
+        if self.relay == "held":
+            logger.warning(
+                "NATS preflight failed (%s) — relay held, events stay pending in event_outbox; "
+                "retry every %ss",
+                ",".join(self.result["errors"]),
+                retry_s,
+            )
+        wake = self._wake
 
         async def _retry() -> None:
             while True:
-                await asyncio.sleep(retry_s)
+                with contextlib.suppress(asyncio.TimeoutError):
+                    await asyncio.wait_for(wake.wait(), timeout=retry_s)
+                wake.clear()
                 self.record(await run_preflight(nc, flag=True, url=url))
                 if self.result["status"] == "passed":
                     logger.info("NATS preflight passed — starting the outbox relay")
-                    await start()
-                    return
+                    if await self._try_start(start):
+                        return
 
         self.gate_task = asyncio.create_task(_retry())
         return False
@@ -298,7 +382,12 @@ class PreflightState:
         if self.result is None:
             return {"status": "pending", "flag": True, "errors": ["preflight_not_run"]}
         age = None if self.checked_at is None else round(time.monotonic() - self.checked_at, 1)
-        return {**self.result, "age_seconds": age}
+        out = {**self.result, "age_seconds": age, "relay": self.relay}
+        if out["status"] == "passed" and self.relay == "start_failed":
+            out["status"], out["errors"] = "failed", [*out["errors"], self.relay_error]
+        elif out["status"] == "passed" and self.relay == "held":
+            out["status"], out["errors"] = "pending", [*out["errors"], "relay_not_started_yet"]
+        return out
 
     async def refresh(
         self, nc: Any, *, flag: bool, url: str | None, ttl: float = PREFLIGHT_TTL_SECONDS
@@ -319,6 +408,8 @@ class PreflightState:
                 self._lock = asyncio.Lock()
             async with self._lock:
                 self.record(await run_preflight(nc, flag=flag, url=url))
+        if self.result["status"] == "passed" and self.relay == "held" and self._wake is not None:
+            self._wake.set()  # the gate starts the relay now, not at its next retry tick
         return self.snapshot(flag=True)
 
 

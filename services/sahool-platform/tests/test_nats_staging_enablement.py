@@ -189,6 +189,83 @@ async def test_reset_cancels_a_pending_gate():
     assert task.cancelled(), "a stopped platform left the gate retrying"
 
 
+async def test_readiness_is_not_passed_while_the_gate_still_holds_the_relay():
+    """A /readyz refresh that sees the topology pass must not report ``passed`` before the
+    relay runs; it wakes the gate instead of waiting for the next retry tick."""
+    from shared.nats_stream_contract import PreflightState
+
+    js = _JS()
+    state, started = PreflightState(), []
+
+    async def start():
+        started.append(True)
+
+    await state.gate(_NC(js), start, url=None, retry_s=3600)
+    js.stream, js.consumers = _spec_config(), _all_consumers()
+    snap = await state.refresh(_NC(js), flag=True, url=None, ttl=0)
+    assert snap["status"] == "pending", f"readiness passed while the relay was held: {snap}"
+    assert "relay_not_started_yet" in snap["errors"], snap
+    await asyncio.wait_for(state.gate_task, timeout=2)
+    assert started == [True], "the refresh did not wake the gate (retry_s is an hour)"
+    assert state.snapshot(flag=True)["status"] == "passed", state.snapshot(flag=True)
+    await state.reset()
+
+
+async def test_a_relay_start_failure_fails_readiness_and_is_retried():
+    from shared.nats_stream_contract import PreflightState
+
+    js = _JS(stream=_spec_config(), consumers=_all_consumers())
+    state, calls = PreflightState(), []
+
+    async def start():
+        calls.append(True)
+        if len(calls) == 1:
+            raise RuntimeError("worker construction failed")
+
+    assert await state.gate(_NC(js), start, url=None, retry_s=0.01) is False, "start raised"
+    snap = state.snapshot(flag=True)
+    assert snap["status"] == "failed", f"a failed relay start read as ready: {snap}"
+    assert "relay_start:RuntimeError" in snap["errors"], snap
+    await asyncio.wait_for(state.gate_task, timeout=2)
+    assert len(calls) == 2 and state.relay == "started", "the failed start was not retried"
+    assert state.snapshot(flag=True)["status"] == "passed", state.snapshot(flag=True)
+    await state.reset()
+
+
+async def test_learning_worker_group_follows_the_environment(monkeypatch):
+    from shared import nats_stream_contract as contract
+
+    monkeypatch.delenv(contract.LEARNING_WORKER_ENV, raising=False)
+    monkeypatch.delenv(contract.LEARNING_DURABLE_ENV, raising=False)
+    assert contract.required_consumer_groups() == contract.REQUIRED_CONSUMERS, (
+        "the default groups must equal the declared REQUIRED_CONSUMERS (and the ACL)"
+    )
+
+    monkeypatch.setenv(contract.LEARNING_DURABLE_ENV, "canonical-execution-learning-v2")
+    groups = contract.required_consumer_groups()
+    assert ("canonical-execution-learning-v2-season-closed",) in groups, groups
+    js = _JS(stream=_spec_config(), consumers=_all_consumers())
+    out = await contract.run_preflight(_NC(js), flag=True, url=None)
+    assert out["status"] == "failed", f"a renamed durable base was satisfied by old names: {out}"
+    assert "acl_note" in out["learning_worker"], "renamed base must explain the ACL limit"
+    monkeypatch.delenv(contract.LEARNING_DURABLE_ENV)
+
+    monkeypatch.setenv(contract.LEARNING_WORKER_ENV, "not_deployed")
+    js = _JS(stream=_spec_config(), consumers={"notif_domain_events"})
+    out = await contract.run_preflight(_NC(js), flag=True, url=None)
+    assert out["status"] == "passed", f"declared not_deployed still required the worker: {out}"
+    assert out["learning_worker"]["mode"] == "not_deployed", "the choice must be reported"
+    js = _JS(stream=_spec_config(), consumers=set())
+    out = await contract.run_preflight(_NC(js), flag=True, url=None)
+    assert out["status"] == "failed", "notification consumer stays required in any mode"
+
+    monkeypatch.setenv(contract.LEARNING_WORKER_ENV, "skip-it")
+    js = _JS(stream=_spec_config(), consumers=_all_consumers())
+    out = await contract.run_preflight(_NC(js), flag=True, url=None)
+    assert out["status"] == "failed", f"an unknown mode must fail closed: {out}"
+    assert f"invalid_{contract.LEARNING_WORKER_ENV}" in out["errors"], out
+
+
 def test_snapshot_reports_disabled_when_the_flag_is_off_and_pending_before_a_run():
     from shared.nats_stream_contract import PreflightState
 
@@ -250,6 +327,9 @@ def test_backlog_sql_counts_dead_letters_at_the_workers_own_retry_limit():
     assert "retry_count >= $1" in OUTBOX_BACKLOG_SQL, "dead letters start at the retry limit"
     upper = OUTBOX_BACKLOG_SQL.upper()
     assert "INSERT" not in upper and "UPDATE" not in upper, "the backlog probe must only read"
+    assert "WHERE STATUS IN ('PENDING', 'FAILED')" in upper, (
+        "the probe must match idx_outbox_pending's predicate, not scan every sent row"
+    )
 
 
 # ── /readyz and /metrics ───────────────────────────────────────────────────────────
@@ -283,8 +363,10 @@ def client(monkeypatch):
 
     monkeypatch.setattr(platform_health, "_outbox_backlog", _backlog)
     NATS_PREFLIGHT.result, NATS_PREFLIGHT.checked_at = None, None
+    NATS_PREFLIGHT.relay, NATS_PREFLIGHT._wake = None, None
     yield TestClient(main.app)
     NATS_PREFLIGHT.result, NATS_PREFLIGHT.checked_at = None, None
+    NATS_PREFLIGHT.relay, NATS_PREFLIGHT._wake = None, None
 
 
 def test_readyz_flag_off_reports_disabled_and_the_replay_warning(client, monkeypatch):
@@ -316,8 +398,23 @@ def test_readyz_flag_on_with_a_passing_preflight_is_ready(client, monkeypatch):
     resp = client.get("/readyz")
     body = resp.json()
     assert resp.status_code == 200, body
-    assert body["nats_preflight"]["status"] == "passed", body
-    assert body["nats_preflight"]["credentials"]["url_present"] in (True, False), body
+    pre = body["nats_preflight"]
+    assert pre["status"] == "passed", body
+    assert pre["consumers_present"] == pre["consumers_checked"] == 4, body
+    # unauthenticated probe: verdict and codes only, never the broker topology
+    leaked = {"credentials", "consumers", "stream"} & set(pre)
+    assert not leaked, f"/readyz leaks broker topology: {sorted(leaked)}"
+    assert "notif_domain_events" not in json.dumps(body), "consumer name on a public probe"
+
+
+def test_readyz_strips_consumer_names_from_error_codes(client, monkeypatch):
+    from api import main
+
+    monkeypatch.setenv("FEATURE_NATS_PUBLISHERS", "true")
+    monkeypatch.setattr(main.NATS_RELAY, "conn", _NC(_JS(stream=_spec_config())))
+    body = client.get("/readyz").json()
+    assert body["nats_preflight"]["errors"] == ["consumer_missing"], body
+    assert "canonical-execution-learning" not in json.dumps(body), "consumer name leaked"
 
 
 def test_metrics_expose_backlog_dead_letter_and_flag_gauges(client, monkeypatch):

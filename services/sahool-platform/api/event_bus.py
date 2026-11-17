@@ -131,6 +131,8 @@ def dead_letter_summary(rows: list[dict[str, Any]] | None) -> dict[str, Any]:
 #: مسمّاةً هنا كي يَعُدّ مؤشّرُ التراكم الصفوفَ الميّتة بالحدّ الذي يستعمله العامل.
 OUTBOX_MAX_RETRIES: int = 5
 
+#: ``WHERE status IN ('pending','failed')`` يطابق شرطَ الفهرس الجزئيّ ``idx_outbox_pending`` (v11)
+#: فلا يمسح المسبارُ صفوفَ ``sent`` المتراكمة في كلّ فحص جاهزيّة أو كشط.
 #: عابرٌ للمستأجرين بالتصميم (كالعامل): يُقرأ بمسبح الوظائف. ودورٌ مقيَّدٌ بـRLS (v72) يرى صفر
 #: صفوفٍ بلا سياق مستأجِر، فيُعلَن ذلك نطاقاً (`scope`) بدل أن يُقرأ الصفرُ «لا تراكم».
 OUTBOX_BACKLOG_SQL = """
@@ -143,6 +145,7 @@ SELECT
     (SELECT r.rolsuper OR r.rolbypassrls FROM pg_roles r WHERE r.rolname = current_user)
         AS sees_all_tenants
 FROM event_outbox
+WHERE status IN ('pending', 'failed')
 """
 
 

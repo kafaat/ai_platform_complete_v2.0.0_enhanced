@@ -37,6 +37,7 @@ import ssl
 import subprocess
 import sys
 import urllib.request
+import uuid
 from pathlib import Path
 
 import pytest
@@ -1473,6 +1474,49 @@ async def test_live_platform_preflight_under_its_own_identity_fails_closed_then_
         assert again == {"stream": STREAM, "exists": True, "action": "none", "drift": []}, again
     finally:
         for nc in (platform, agent, worker_nc):
+            await nc.close()
+
+
+@pytest.mark.integration
+async def test_live_outbox_replay_after_puback_is_deduplicated_by_the_declared_stream(broker):
+    """W3-01 (no-duplicate side effects, broker half): the outbox relay re-publishes a row whose
+    PubAck arrived but whose ``sent`` mark rolled back. On the stream created from the
+    declaration, with the platform's own identity and publisher, the replay (same
+    ``Nats-Msg-Id`` = ``event_id``) is acknowledged as a duplicate, stored once, and delivered
+    to the consumer once. This file runs on a real nats-server in CI
+    (notification-rollout.yml), so dropping the header or the duplicate window turns it red
+    there; the database half lives in ``test_nats_outbox_staging_enablement_live.py``."""
+    from shared import nats_stream_contract as contract
+    from shared.broker_url import make_jetstream_publisher
+
+    agent, agent_client = await _connect(broker, NOTIFICATION)
+    platform, platform_client = await _connect(
+        broker, "sahool-platform", **_inbox("sahool-platform")
+    )
+    try:
+        created = await contract.ensure_stream(agent.jetstream(), apply=True)
+        assert created["action"] == "created", created
+        sub = await agent.jetstream().subscribe(
+            "sahool.events.>", durable="notif_domain_events", manual_ack=True
+        )
+        publish = make_jetstream_publisher(platform)
+        event_id = str(uuid.uuid4())
+        subject = "sahool.events.season.closed"
+        await publish(subject, b'{"tenant_id": "t1"}', msg_id=event_id)
+        # The replay must still succeed (a duplicate PubAck is a stored message, so the relay
+        # may mark the row sent) — and must not be stored a second time.
+        await publish(subject, b'{"tenant_id": "t1"}', msg_id=event_id)
+        info = await agent.jetstream().stream_info(STREAM)
+        assert info.state.messages == 1, f"stream holds {info.state.messages} copies, want 1"
+        msg = await sub.next_msg(timeout=5)
+        await msg.ack_sync()
+        with pytest.raises(Exception) as second:  # noqa: B017 — nats-py raises its TimeoutError
+            await sub.next_msg(timeout=1)
+        assert "Timeout" in type(second.value).__name__, f"second delivery: {second.value!r}"
+        for client in (agent_client, platform_client):
+            assert not client.violations, client.violations
+    finally:
+        for nc in (agent, platform):
             await nc.close()
 
 

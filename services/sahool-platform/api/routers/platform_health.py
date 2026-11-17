@@ -95,10 +95,14 @@ async def readyz():
     # required consumers exist — the relay itself is held until then (NATS_PREFLIGHT.gate).
     # Flag off ⇒ "disabled" and readiness is unchanged.
     preflight = await _nats_preflight()
-    body["nats_preflight"] = preflight
+    body["nats_preflight"] = _public_preflight(preflight)
     if preflight["status"] not in ("disabled", "passed"):
         body["status"] = "not ready"
-        logging.warning("readyz: NATS preflight %s — not ready (503)", preflight["status"])
+        logging.warning(
+            "readyz: NATS preflight %s (%s) — not ready (503)",
+            preflight["status"],
+            ",".join(str(e) for e in preflight.get("errors", [])),
+        )
         return JSONResponse(status_code=503, content=body)
     return JSONResponse(status_code=resp.status_code, content=body)
 
@@ -127,6 +131,25 @@ async def _nats_preflight() -> dict:
     return await NATS_PREFLIGHT.refresh(
         main.NATS_RELAY.conn, flag=True, url=os.getenv("NATS_URL", "nats://sahool-nats:4222")
     )
+
+
+def _public_preflight(preflight: dict) -> dict:
+    """/readyz is unauthenticated: publish the verdict and error codes, not the broker topology
+    (consumer names, drift values, credential facts). The full result is in the platform log
+    and in ``python -m shared.nats_stream_contract preflight`` run by an operator."""
+    keep = ("status", "flag", "connected", "relay", "age_seconds")
+    out = {k: preflight[k] for k in keep if k in preflight}
+    if "stream" in preflight:
+        out["stream_exists"] = bool(preflight["stream"].get("exists"))
+    if "consumers" in preflight:
+        consumers = preflight["consumers"]
+        out["consumers_present"] = sum(1 for v in consumers.values() if v)
+        out["consumers_checked"] = len(consumers)
+    if "learning_worker" in preflight:
+        out["learning_worker_mode"] = preflight["learning_worker"].get("mode")
+    if "errors" in preflight:
+        out["errors"] = sorted({str(e).split(":", 1)[0] for e in preflight["errors"]})
+    return out
 
 
 def _gauge(name: str, help_text: str, value) -> list[str]:
