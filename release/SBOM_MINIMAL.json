@@ -21255,7 +21255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1f60a1ad575aa584d7ad8bed916f4a67fb76a3ce733d49d8f3c792366bcf8946"
+          "content": "586c16f1514f33da6100da8d76242904b451c2abd19aea70d5960d32efa61a4d"
         }
       ],
       "name": "services/indicators-service/tests/test_observation_store.py",
