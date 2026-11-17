@@ -8862,3 +8862,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
   ومزوّد SMS عبر HTTPS يحتاج `publicHttpsEgress` لـauth مع ذكر مزوّده في `_EXPECTED_PUBLIC_EGRESS`.
 - **الحارس:** `tests_v9/test_helm_network_policy_egress.py::test_gated_outbound_settings_are_not_rendered_by_the_chart` يفشل إن رَسَم المخطّط أيّاً من هذه الإعدادات دون نقل العميل من `_GATED_OUTBOUND` وإضافة قاعدة الخروج.
 - **شرط الإغلاق:** قرار المالك بين (أ) و(ب)، ثمّ إعدادات مرسومة وقاعدة خروج، وإيصال إرسال حيّ من تثبيت Helm.
+
+## W4-09-ROUTE-MARGIN-ZERO-01 — هامش ميزانية مسارات المنصّة صفر بعد تقليص W4-09
+
+- **الحالة:** open — مقيسٌ على main `8725fcfe` ثمّ `91dfe32a` بـ`python scripts/ci/platform_route_budget_guard.py`: خام 627 · بنية 4 · نطاق 623 · الحدّ الأقصى 623 · الهامش **0**.
+- **السبب:** تقليص W4-09 (#1508، «route trim») حذف مسارات ميتة ثمّ خُفِّض السقف من 629 إلى 623، العددِ الجديد، بتعليمات المستشفى، فلم يبقَ هامش. كلّ مسار نطاقٍ جديد في المنصّة يُسقط وظيفة `platform-route-budget` حتّى يُستعاد الهامش.
+- **المصدر:** `docs/architecture/platform_extraction_map.json` (السقف) · `scripts/ci/platform_route_budget_guard.py` · بند W4-09 في خطّة تدقيق التوصيل (`routes-10`).
+- **الإصلاح الجاري:** تقليص انتقائيّ إضافيّ لمسارات ميتة يعيد هامشاً موجباً **دون** رفع السقف؛ ولا يُحلّ بتصنيف مسار نطاقٍ بنيةً ولا بحذف نقطة provenance.
+- **شرط الإغلاق:** هامش موجب على main يطبعه الحارس، والسقف لم يُرفَع.
