@@ -1,4 +1,5 @@
 # One-shot consolidation regeneration. Self-removes before final artifact verification.
+# Trigger via a branch push after branch creation (which was a create event).
 name: One-shot consolidation artifact regeneration 1511-1512-1513
 on:
   push:
