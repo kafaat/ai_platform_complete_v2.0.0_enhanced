@@ -185,6 +185,44 @@ def test_learning_attribution_refuses_a_malformed_evidence_id(monkeypatch):
     assert calls == [], "a malformed evidence id must be refused before persistence"
 
 
+def _stub_learning_update_store(monkeypatch) -> list[str]:
+    stored: list[str] = []
+
+    async def persist(**kwargs):
+        stored.append(kwargs["payload"].evidence_snapshot_id)
+        return {
+            "replayed": False,
+            "write": "inserted",
+            "review_status": "unreviewed",
+            "agronomically_approved": False,
+        }
+
+    monkeypatch.setattr(mod, "persist_learning_update", persist)
+    monkeypatch.setattr(mod, "sor_enabled", lambda: True)
+    return stored
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("value", [" x\n", "ev 1", "", "veg_x", "a" * 201])
+def test_learning_update_refuses_a_malformed_evidence_id(monkeypatch, value):
+    stored = _stub_learning_update_store(monkeypatch)
+    body = {"model_id": "m", "decision_id": "dec_1", "evidence_snapshot_id": value}
+    r = client.post("/v1/learning/updates", json=body, headers=HEADERS)
+    assert r.status_code == 422, f"{value!r}: {r.status_code} {r.text}"
+    assert r.json()["detail"] == {"code": "invalid_snapshot_id", "field": "evidence_snapshot_id"}
+    assert stored == [], "a malformed evidence id must be refused before it is stored"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("value", [None, "ev-1", "veg_" + "a" * 20])
+def test_learning_update_stores_a_well_formed_or_absent_evidence_id(monkeypatch, value):
+    stored = _stub_learning_update_store(monkeypatch)
+    body = {"model_id": "m", "decision_id": "dec_1", "evidence_snapshot_id": value}
+    r = client.post("/v1/learning/updates", json=body, headers=HEADERS)
+    assert r.status_code == 200, f"{value!r}: {r.status_code} {r.text}"
+    assert stored == [value]
+
+
 def _veg_body(**over) -> dict:
     body = {
         "field_id": "f1",

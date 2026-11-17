@@ -6502,8 +6502,11 @@ async def persist_vegetation_snapshot(
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             # snapshot_id is the table's global primary key while RLS hides other tenants' rows:
             # a named id already used by different evidence (this tenant's or another's) used to
-            # surface as an unhandled unique violation. It is a named conflict now, and the same
-            # answer for both cases, so it reveals nothing about another tenant's ids.
+            # surface as an unhandled unique violation (500). It is a named 409 now, with the same
+            # answer whether the holder is this tenant or another, so it does not say which
+            # tenant holds the id and returns none of its data. It still reveals that a
+            # producer-named veg_ id exists somewhere (as the 500 did before): producer-chosen
+            # names can be guessed. Server-minted ids (veg_ + 80 random bits) cannot.
             try:
                 row = await conn.fetchrow(
                     """

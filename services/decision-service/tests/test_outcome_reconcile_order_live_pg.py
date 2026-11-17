@@ -116,27 +116,69 @@ def test_same_timestamp_ties_break_on_the_higher_outcome_id():
 @pytest.mark.integration
 @pytest.mark.skipif(not DB, reason="requires real Postgres (DATABASE_URL)")
 def test_latest_recommendation_outcome_wins_even_when_inserted_last():
-    tenant, decision = str(uuid4()), "dec_" + uuid4().hex[:12]
+    """Every natural read order puts a stale row first; only the ORDER BY picks the latest.
 
-    async def seed():
+    The table has an index on (tenant_id, recommendation_id), and a tenant-filtered read may
+    use it, so a random recommendation_id made the unordered read return either row (the
+    earlier version of this test passed 5 times in 6 against the unordered read). Here the
+    stale rows sort first by every natural order: heap position (inserted first),
+    recommendation_id (``rec_0…`` before ``rec_9…``) and outcome_id (BIGSERIAL, lower first).
+    Their timestamps are explicit and distinct, and only the newest row is a success.
+    """
+    tenant, decision = str(uuid4()), "dec_" + uuid4().hex[:12]
+    suffix = uuid4().hex[:8]
+    # (recommendation_id, outcome, issued_at, outcome_recorded_at), stale first in every order.
+    rows = [
+        (f"rec_{i}_{suffix}", "failed", T0 + timedelta(days=i), T0 + timedelta(days=i, hours=1))
+        for i in range(5)
+    ]
+    # The latest outcome by COALESCE(outcome_recorded_at, issued_at): issued before some stale
+    # rows, recorded after all of them, so ordering by issued_at alone would not pick it either.
+    rows.append((f"rec_9_{suffix}", "success", T0 + timedelta(days=1), T0 + timedelta(days=30)))
+
+    async def seed() -> list[str]:
         c = await _connect()
         try:
-            for outcome, issued in (("failed", T0), ("success", T0 + timedelta(days=2))):
+            for rec_id, outcome, issued, recorded in rows:
                 await c.execute(
                     "INSERT INTO recommendation_outcomes"
-                    "(tenant_id,recommendation_id,decision_id,outcome,issued_at) "
-                    "VALUES($1::uuid,$2,$3,$4,$5)",
+                    "(tenant_id,recommendation_id,decision_id,outcome,issued_at,outcome_recorded_at) "
+                    "VALUES($1::uuid,$2,$3,$4,$5,$6)",
                     tenant,
-                    "rec_" + uuid4().hex[:12],
+                    rec_id,
                     decision,
                     outcome,
                     issued,
+                    recorded,
                 )
+            # The production read (persistence.read_outcomes_for_reconcile) minus its ORDER BY,
+            # forced onto each plan the planner may choose. Every plan must return a stale row
+            # first; otherwise this test would no longer fail without the ORDER BY.
+            firsts = []
+            for setting in ("enable_indexscan", "enable_bitmapscan", "enable_seqscan"):
+                async with c.transaction():
+                    for other in ("enable_indexscan", "enable_bitmapscan", "enable_seqscan"):
+                        value = "on" if other == setting else "off"
+                        await c.execute(f"SET LOCAL {other} = {value}")
+                    row = await c.fetchrow(
+                        "SELECT * FROM recommendation_outcomes "
+                        "WHERE tenant_id=$1::uuid AND ($2::text IS NULL OR field_id=$2) "
+                        "AND ($3::text IS NULL OR season_id=$3)",
+                        tenant,
+                        None,
+                        None,
+                    )
+                    firsts.append(row["outcome"])
+            return firsts
         finally:
             await c.close()
 
-    _run(seed())
+    firsts = _run(seed())
+    assert firsts == ["failed", "failed", "failed"], (
+        f"negative control lost: an unordered read must return a stale row first: {firsts}"
+    )
     out = _reconcile(tenant)
+    assert out["unique_decisions"] == 1, f"one decision expected: {out}"
     assert out["by_kind"] == {"success": 1, "failure": 0, "unknown": 0}, (
-        f"the latest recommendation outcome (success, +2 days) must reconcile: {out}"
+        f"the latest recommendation outcome (success, recorded +30 days) must reconcile: {out}"
     )

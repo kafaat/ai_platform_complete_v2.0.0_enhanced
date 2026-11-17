@@ -1186,6 +1186,10 @@ async def record_learning_update(
 ) -> dict[str, Any]:
     status = _traceability(payload)
     tenant = _tenant(x_tenant_id)
+    # The evidence id is optional here, but when present it is held to the same format as on
+    # the dispatch, verify-outcome and attribution endpoints; it used to be stored as given.
+    if payload.evidence_snapshot_id is not None:
+        _refuse_malformed_snapshot_ids(evidence_snapshot_id=payload.evidence_snapshot_id)
     update_id = payload.update_id or "lu_" + uuid4().hex[:16]
     if sor_enabled():
         if status == "rejected_untraceable":
