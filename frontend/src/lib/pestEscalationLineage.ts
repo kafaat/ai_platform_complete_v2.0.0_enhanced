@@ -266,8 +266,10 @@ export function readExecutionOutcome(
         reasons: ['أعلن الخادم التنفيذ بلا مرجع تنفيذ — لا يُعدّ تنفيذاً مؤكّداً'],
       };
     }
-    // Without an injected execute_fn the server answers executed=true with the placeholder
-    // "exec-<action_type>" (core/pest_escalation_flow.py step_execute). No executor ran.
+    // Older servers, without an injected execute_fn, answered executed=true with the
+    // placeholder "exec-<action_type>". No executor ran. Current servers answer
+    // executed=false with reason "executor_not_configured" (PEST-EXECUTE-DEFAULT-ACK-01);
+    // this check stays for responses from a server that predates that fix.
     const action = stepResults?.recommend?.action_type ?? contextActionType;
     if (nonEmpty(action) && exec.execution_ref === `exec-${action}`) {
       return {
@@ -281,7 +283,11 @@ export function readExecutionOutcome(
   }
   const reasons: string[] = [];
   if (nonEmpty(exec.note_ar)) reasons.push(exec.note_ar);
-  if (gr && nonEmpty(gr.reason_ar) && gr.reason_ar !== exec.note_ar) reasons.push(gr.reason_ar);
+  // An allowing verdict's text ("سمح ...") is not a reason for not executing: when the gate
+  // allowed but no executor ran, the note alone explains it.
+  if (gr && gr.allowed !== true && nonEmpty(gr.reason_ar) && gr.reason_ar !== exec.note_ar) {
+    reasons.push(gr.reason_ar);
+  }
   const noSource = Array.isArray(gr?.no_server_source)
     ? (gr?.no_server_source as unknown[]).filter(nonEmpty)
     : [];

@@ -170,7 +170,12 @@ def test_pest_escalation_execute_blocked_unless_guardrails_allowed(
 
 @pytest.mark.integration
 def test_pest_escalation_executes_only_on_server_guardrails_allow(client_and_token, monkeypatch):
-    """الضابط الموجب: حكم guardrails allowed is True من الخادم ⇒ ينفّذ بعد الموافقة."""
+    """الضابط الموجب للبوّابة: حكم guardrails allowed is True من الخادم يتجاوز الحجب.
+
+    PEST-EXECUTE-DEFAULT-ACK-01: المسار لا يوصل منفّذاً اليوم، فلا يُعلَن التنفيذ: الخادم
+    يعيد executed=False بسبب executor_not_configured (لا مرجع مختلَق exec-<action>) ولا
+    تُجدوَل متابعة. كان يعيد executed=True بمرجع افتراضيّ ويجدول متابعة لرشّ لم يقع.
+    """
     import core.pest_escalation_flow as gate
 
     monkeypatch.setattr(
@@ -181,5 +186,10 @@ def test_pest_escalation_executes_only_on_server_guardrails_allow(client_and_tok
     client, token = client_and_token
     body = _run_approved(client, token)
     execute = body["step_results"]["execute"]
-    assert execute["executed"] is True, execute
+    assert execute.get("blocked_by") is None, f"an allowed verdict must not block: {execute}"
     assert execute["guardrails"]["status"] == "allowed", execute
+    assert execute["executed"] is False, f"no executor wired ⇒ not executed: {execute}"
+    assert execute["reason"] == "executor_not_configured", execute
+    assert not execute.get("execution_ref"), f"no made-up execution ref: {execute}"
+    follow_up = body["step_results"]["follow_up"]
+    assert follow_up["follow_up_scheduled"] is False, f"no follow-up without execution: {follow_up}"
