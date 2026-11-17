@@ -8851,7 +8851,17 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **شرط الإغلاق:** نجاح خطوة «Lint and render both overlays with the pinned Helm» بـ`tests=14 skipped=0`، ثمّ الدمج.
 ## HELM-AUTH-NO-SMTP-SMS-EGRESS-01 — auth المنشور بـHelm لا يرسل بريد الاستعادة ولا رمز الهاتف
 
-- **الحالة:** open — قرار مالك؛ لا تغيير في الكود.
+- **الحالة:** open — قرار المالك صدر في 2026-11-17 (أدناه)؛ التنفيذ لم يبدأ.
+- **القرار (المالك، 2026-11-17):** **المُرحِّل داخل العنقود** معتمد **تصميماً فقط**، لا إذنَ نشرٍ ولا تفعيل بريد أو رسائل في أيّ بيئة. هو الخيار (ب) في هذا المدخل، وكان «(a)» في سؤال الجلسة للمالك، فيُذكَر هنا بالاسم لا بالحرف.
+  - يصل auth إلى المُرحِّل بـSMTP مع STARTTLS ومصادقة، والمُرحِّل وحده يصل إلى مزوّد البريد.
+  - دخول المُرحِّل مقصور على خدمات مسمّاة، ولا يكون مُرحِّلاً مفتوحاً قطّ. وخروجه مقصور على وجهة المزوّد ومنافذه المعتمدة.
+  - بيانات اعتماد البريد في Kubernetes Secrets أو مدير أسرار معتمد، لا في قيم Helm ولا في المستودع.
+  - اختياريّ ومطفأ افتراضيّاً. غياب المُرحِّل أو فشل التسليم حالةٌ صريحة، لا نجاحٌ وهميّ.
+  - الاختبارات: تسليم البريد، ورفض الاتّصال غير المصرَّح، وتعطّل المُرحِّل، وعدم تسرّب رموز OTP أو روابط إعادة التعيين.
+  - **غير معتمد:** SMTP مباشر من auth إلى الإنترنت.
+  - **مؤجَّل:** SMS خارجيّ حتى اعتماد مزوّد واختبار خروجه. لا `0.0.0.0/0:443` لـauth، لأنّ NetworkPolicy القياسيّة لا تقيّد بالنطاق؛ يحتاج وكيل خروج أو ما يكافئه.
+  - **مع التنفيذ:** مراجعة `sahool-internal-allow` الواسعة على مخطّط مُصيَّر: قياس الأثر التراكميّ لكلّ السياسات، وقائمة بأيّ pod يصل إلى أيّ pod، وتضييقها إن كانت أوسع من نموذج `internalCallers`.
+  - التنفيذ في طابور جلسة الموجة الثالثة بعد W4-07، بتكليف جلسة التكامل.
 - **المصدر:** #1509 (W3-09) ينشر `sahool-auth` في `helm/sahool/values.yaml` بلا `SMTP_*` ولا `SMS_*`. و`services/auth/main.py` يقرأ `SMTP_HOST`/`SMTP_PORT` (افتراضيّاً 587) و`SMS_PROVIDER_URL`/`SMS_API_KEY` (`main.py:149-156`)، فـ`send_reset_email` (`main.py:825`) و`_send_otp_sms` (`main.py:940`) يسجّلان تحذيراً ويُرجعان `False`.
 - **الأثر:** في تثبيتٍ بـHelm لا يُرسَل بريد إعادة تعيين كلمة المرور ولا رمز التحقّق بالهاتف. الإعدادات اختياريّة في compose أيضاً، فلا يطلبها `helm_compose_workload_guard`.
 - **سبب عدم الإصلاح الآليّ:** تشغيلهما يحتاج الإعدادات **وقاعدة خروج معاً**. سياسة الشبكة ترفض الخروج افتراضيّاً، و`publicHttpsEgress` يفتح 443 فقط، وSMTP على 587.
@@ -8861,4 +8871,28 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
   
   ومزوّد SMS عبر HTTPS يحتاج `publicHttpsEgress` لـauth مع ذكر مزوّده في `_EXPECTED_PUBLIC_EGRESS`.
 - **الحارس:** `tests_v9/test_helm_network_policy_egress.py::test_gated_outbound_settings_are_not_rendered_by_the_chart` يفشل إن رَسَم المخطّط أيّاً من هذه الإعدادات دون نقل العميل من `_GATED_OUTBOUND` وإضافة قاعدة الخروج.
-- **شرط الإغلاق:** قرار المالك بين (أ) و(ب)، ثمّ إعدادات مرسومة وقاعدة خروج، وإيصال إرسال حيّ من تثبيت Helm.
+- **شرط الإغلاق:** مُرحِّل في المخطّط بشروط القرار أعلاه واختبارات قبوله، وإيصال إرسال حيّ من تثبيت Helm حين يُصرَّح بالنشر. SMS خارج هذا الشرط حتى قرار مستقلّ.
+
+## WX12-MODEL-LIFECYCLE-NO-BACKEND-OWNER-01 — حلقة دورة حياة النماذج تقبل عملاً لا ينفّذه أحد
+
+- **الحالة:** fixed — على الفرع `claude/w4-05-model-lifecycle-off-20261117` (W4-05). لا ادّعاء وصول إلى main.
+- **الخلل:** لا مالكَ لأيٍّ من خلفيّات WX-12 الأربع. هي `MODEL_TRAFFIC_CONTROLLER_URL` و`MODEL_INFERENCE_VERIFY_URL` و`MODEL_METRICS_SOURCE_URL` و`MODEL_TRAINING_BACKEND_URL` (`services/model-registry-adapter/runtime.py:146,190,232,254`)، والمحوِّل لا ينشره Railway ولا Helm. ومع ذلك كان decision-service يقبل ويحفظ خطّة نشر وطلب إعادة تدريب وجدولاً (`services/decision-service/main.py` قبل W4-05: 2788 و2866 و3076)، ويقدّم عملها في الخلاصة.
+- **الإصلاح (قرار المالك 2026-11-16، والتصميم راجعته جلسة التكامل):** `DECISION_MODEL_LIFECYCLE_ENABLED`، مطفأ افتراضيّاً.
+  - نقاط كتابة WX-12 الثماني ترفض بـ503 `model_lifecycle_disabled`، بعد التحقّق من الترويسات والجسم وSoR وقبل أيّ كتابة، وبلا Retry-After.
+  - الخلاصة تُسقط أنواع WX-12 الخمسة في الاستعلام نفسه؛ صفوفها تبقى معلّقة بلا عقد إيجار، وتعود عند التشغيل. أوامر التفعيل والتراجع (WX-11.6) تخرج بايتاً ببايت كما هي.
+  - `/readyz` يُبلغ عن `capabilities.model_lifecycle` دون تغيير حكم الجاهزيّة.
+  - المنصّة تعلن `model_lifecycle` خاملةً ثابتةً، ومربوطة بافتراض الخدمة باختبار.
+- **الشواهد:**
+  - `services/decision-service/tests/test_w4_05_model_lifecycle_flag.py`: 36 اختباراً.
+  - `services/decision-service/tests/test_w4_05_model_lifecycle_feed_live_pg.py`: 3 على PostgreSQL 16 حقيقيّ.
+  - `tests_v9/test_w4_05_model_lifecycle_defaults_pinned.py`.
+  - طفرات مقيسة محلّيّاً، كلّها حمراء: تعطيل مرشّح الخلاصة، وحذف الرفض من نقطة، وقلب افتراض الخدمة، وجعل قدرة المنصّة نشطة.
+- **شرط الإغلاق:** الدمج. وإعادة التشغيل تحتاج مالكاً مُسمًّى للخلفيّات الأربع ورحلة كاملة مختبَرة، ثمّ قلب الافتراضين معاً.
+
+## VEGETATION-VERIFICATION-RESULTS-CALLBACK-NO-SENDER-01 — نتيجة التحقّق من الشذوذ النباتيّ لا يرسلها أحد
+
+- **الحالة:** open — طلبتها جلسة التكامل؛ لم يبدأ التنفيذ.
+- **الخلل (مقيس على main `fc091531`):** `POST /v1/anomalies/{anomaly_ref}/verification-results` (`services/vegetation-analysis-service/routers/anomalies.py:437`، محميّة بـ`X-Task-Service-Token` = `TASK_SERVICE_CALLBACK_TOKEN`) لا يستدعيها شيء في `services/` ولا `frontend/src` ولا `mobile/sahool_app/lib` ولا `bots` ولا `agents` ولا `nginx` ولا `scripts`. وجودها الوحيد سطرُ جردٍ في `scripts/ci/vegetation_smoke_contract.json:19`.
+- **الأثر:** حلقة التحقّق الميدانيّ من الشذوذ تبدأ ولا تُغلَق: تُنشَأ مهمّة التحقّق في field-management، ولا طريق لعودة نتيجتها إلى vegetation-analysis.
+- **المالك الطبيعيّ للإرسال:** field-management، عند إغلاق مهمّة التحقّق (اقتراح جلسة التكامل).
+- **شرط الإغلاق:** مُرسِل في field-management يحمل الرمز ودليل المهمّة، واختبار يُغلق الحلقة على قاعدة حقيقيّة.
