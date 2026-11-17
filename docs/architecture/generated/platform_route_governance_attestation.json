@@ -6,29 +6,29 @@
     },
     {
       "path": "docs/architecture/platform_extraction_map.json",
-      "sha256": "c22b02c8acaf01171f3ae120b3119b3affd582acb62cd7f2ecfe2afdc6d6a712"
+      "sha256": "fbe7c4efa21d918e77a9bf9c9a56f7078b3f971fe05ad6f12aeb3e7d02224599"
     },
     {
       "path": "docs/architecture/generated/platform_route_budget_inventory.json",
-      "sha256": "5bc3302b087656301af0c224081d1ec81f027d4906192409400b94d64d14721d"
+      "sha256": "b2c83229dd087a41c229d6b3cdf725882736d593fbe84ce1cca980594afc7ae0"
     },
     {
       "path": "docs/architecture/generated/platform_route_ownership_inventory.json",
-      "sha256": "8e635e49933353a68159f338c5b352c9205b3c6d8d4288034d8a72592a957722"
+      "sha256": "a17679b06afe3eb6a0b0814480dec534846b196c234d0839f53106955c2ae3d7"
     }
   ],
   "schema_version": "sahool.platform-route-governance-attestation.v1",
   "statement": {
     "api_route_declarations": 4,
-    "budget_inventory_sha256": "75fdbe86ac362e7205f4e9711e40648df533419e5457b70372afbfafef50ea4c",
+    "budget_inventory_sha256": "1fc743a0feecd1cb3c2565e73c822c897ec0d330aab954432acb26fdad9d0551",
     "classification_sha256": "c8a152411892b5aa921e717ade91f6235f80e62da01cad148bda7de686b6971f",
-    "domain_budget_routes": 623,
+    "domain_budget_routes": 617,
     "domain_route_budget": 623,
-    "full_ownership_surface": 631,
+    "full_ownership_surface": 625,
     "infrastructure_routes": 4,
-    "map_sha256": "c22b02c8acaf01171f3ae120b3119b3affd582acb62cd7f2ecfe2afdc6d6a712",
-    "ownership_inventory_sha256": "e8265083cf67392a41a78ec2f8a68dae37d10e9a34be363fd205f0eb234fdf1c",
-    "raw_routes": 627
+    "map_sha256": "fbe7c4efa21d918e77a9bf9c9a56f7078b3f971fe05ad6f12aeb3e7d02224599",
+    "ownership_inventory_sha256": "615f7b6ddd42767f47d8c5637d846b7defba355d4dab941d3fda0d2334561b2f",
+    "raw_routes": 621
   },
-  "statement_sha256": "f90ad3e548954717dfbf1019589d0bace558f9510d81fb2d448fee6ccf8f6e76"
+  "statement_sha256": "c06949c1d96059ddeb428bfed4ad46823f265b011d97bad2f39251a3f1e216fb"
 }

@@ -11,11 +11,8 @@ from api.phase_runtime_store import persist_feature_dataset, persist_phase10_lea
 from api.service_token_auth import _require_service_token
 from shared.continuous_learning_phase10 import (
     decide_model_promotion,
-    detect_feature_drift,
     infer_feature_schema,
     materialize_training_dataset,
-    plan_retraining_job,
-    run_champion_challenger_cycle,
     run_phase10_learning_cycle,
     run_scientific_scenario,
 )
@@ -69,28 +66,6 @@ class LearningCycleRequest(BaseModel):
     scenario: dict[str, Any] | None = None
 
 
-class DriftRequest(BaseModel):
-    baseline_stats: dict[str, Any] = Field(default_factory=dict)
-    records: list[dict[str, Any]] = Field(default_factory=list)
-    thresholds: dict[str, float] = Field(default_factory=dict)
-
-
-class RetrainingRequest(BaseModel):
-    drift: dict[str, Any]
-    dataset: dict[str, Any]
-    model: dict[str, Any]
-    policy: dict[str, Any] = Field(default_factory=dict)
-
-
-class ChampionChallengerRequest(BaseModel):
-    task: str
-    champion: dict[str, Any] | None = None
-    challenger: dict[str, Any] | None = None
-    dataset: dict[str, Any]
-    drift: dict[str, Any]
-    metric_policy: dict[str, Any] = Field(default_factory=dict)
-
-
 class FeatureStoreRegisterRequest(BaseModel):
     records: list[dict[str, Any]] = Field(default_factory=list)
     name: str = "canonical_field_features"
@@ -136,6 +111,10 @@ class ModelRollbackRequest(BaseModel):
 # الصرفة في shared/continuous_learning_phase10 باقية باختباراتها هناك (و/cycle يستدعي
 # create_online_learning_update عبر run_phase10_learning_cycle)، و/dataset يُعيد
 # feature_set_spec نفسه. يحرسها tests/test_w4_09_retired_dead_routes.py.
+# W4-09 (تتمّة، قرار المالك 2026-11-16): POST /drift · /retraining/plan ·
+# /champion-challenger أُقعِدت كذلك — بلا مستدعٍ. الدوالّ الصرفة باقية في
+# shared/continuous_learning_phase10 باختباراتها (tests_v9/test_phase9_10_event_drift_hardening.py)،
+# و/cycle ما زال يُشغّل run_champion_challenger_cycle عبر run_phase10_learning_cycle.
 @router.post("/dataset")
 async def dataset(req: FeatureRecordsRequest, request: Request) -> dict[str, Any]:
     spec = infer_feature_schema(req.records, name=req.name, version=req.version)
@@ -171,34 +150,6 @@ async def learning_cycle(req: LearningCycleRequest, request: Request) -> dict[st
     )
     result["runtime_persistence"] = await persist_phase10_learning_outputs(request, result)
     return result
-
-
-@router.post("/drift")
-def drift(req: DriftRequest) -> dict[str, Any]:
-    return detect_feature_drift(
-        baseline_stats=req.baseline_stats,
-        current_records=req.records,
-        thresholds=req.thresholds or None,
-    )
-
-
-@router.post("/retraining/plan")
-def retraining_plan(req: RetrainingRequest) -> dict[str, Any]:
-    return plan_retraining_job(
-        drift=req.drift, dataset=req.dataset, model=req.model, policy=req.policy or None
-    )
-
-
-@router.post("/champion-challenger")
-def champion_challenger(req: ChampionChallengerRequest) -> dict[str, Any]:
-    return run_champion_challenger_cycle(
-        task=req.task,
-        champion=req.champion,
-        challenger=req.challenger,
-        dataset=req.dataset,
-        drift=req.drift,
-        metric_policy=req.metric_policy or None,
-    )
 
 
 @router.post("/feature-store/register")

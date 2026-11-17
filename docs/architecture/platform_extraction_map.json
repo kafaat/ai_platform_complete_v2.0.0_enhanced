@@ -1,5 +1,5 @@
 {
-  "baseline_route_count": 627,
+  "baseline_route_count": 621,
   "routes": [
     {
       "file": "api/chat_proxy_reference.py",
@@ -16,27 +16,17 @@
       "function": "model_serving_resolve",
       "method": "GET",
       "path": "/models/serving/{alias:path}",
-      "line": 282,
+      "line": 233,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::GET /models/serving/{alias:path}::model_serving_resolve"
     },
     {
       "file": "api/phase10_continuous_learning.py",
-      "function": "champion_challenger",
-      "method": "POST",
-      "path": "/champion-challenger",
-      "line": 192,
-      "target_owner": "learning-service-target",
-      "owner_type": "system-of-record-target",
-      "route_key": "api/phase10_continuous_learning.py::POST /champion-challenger::champion_challenger"
-    },
-    {
-      "file": "api/phase10_continuous_learning.py",
       "function": "learning_cycle",
       "method": "POST",
       "path": "/cycle",
-      "line": 164,
+      "line": 143,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /cycle::learning_cycle"
@@ -46,27 +36,17 @@
       "function": "dataset",
       "method": "POST",
       "path": "/dataset",
-      "line": 139,
+      "line": 118,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /dataset::dataset"
     },
     {
       "file": "api/phase10_continuous_learning.py",
-      "function": "drift",
-      "method": "POST",
-      "path": "/drift",
-      "line": 176,
-      "target_owner": "learning-service-target",
-      "owner_type": "system-of-record-target",
-      "route_key": "api/phase10_continuous_learning.py::POST /drift::drift"
-    },
-    {
-      "file": "api/phase10_continuous_learning.py",
       "function": "feature_store_offline_dataset",
       "method": "POST",
       "path": "/feature-store/offline-dataset",
-      "line": 211,
+      "line": 162,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/offline-dataset::feature_store_offline_dataset"
@@ -76,7 +56,7 @@
       "function": "feature_store_online_materialization",
       "method": "POST",
       "path": "/feature-store/online-materialization",
-      "line": 222,
+      "line": 173,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/online-materialization::feature_store_online_materialization"
@@ -86,7 +66,7 @@
       "function": "feature_store_point_in_time",
       "method": "POST",
       "path": "/feature-store/point-in-time",
-      "line": 230,
+      "line": 181,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/point-in-time::feature_store_point_in_time"
@@ -96,7 +76,7 @@
       "function": "feature_store_register",
       "method": "POST",
       "path": "/feature-store/register",
-      "line": 204,
+      "line": 155,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/register::feature_store_register"
@@ -106,7 +86,7 @@
       "function": "model_promotion",
       "method": "POST",
       "path": "/models/promote",
-      "line": 149,
+      "line": 128,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/promote::model_promotion"
@@ -116,7 +96,7 @@
       "function": "model_register",
       "method": "POST",
       "path": "/models/register",
-      "line": 244,
+      "line": 195,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/register::model_register"
@@ -126,7 +106,7 @@
       "function": "model_serving_promote",
       "method": "POST",
       "path": "/models/serving/promote",
-      "line": 265,
+      "line": 216,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/serving/promote::model_serving_promote"
@@ -136,47 +116,27 @@
       "function": "model_serving_rollback",
       "method": "POST",
       "path": "/models/serving/rollback",
-      "line": 272,
+      "line": 223,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/serving/rollback::model_serving_rollback"
     },
     {
       "file": "api/phase10_continuous_learning.py",
-      "function": "retraining_plan",
-      "method": "POST",
-      "path": "/retraining/plan",
-      "line": 185,
-      "target_owner": "weather-service",
-      "owner_type": "system-of-record",
-      "route_key": "api/phase10_continuous_learning.py::POST /retraining/plan::retraining_plan"
-    },
-    {
-      "file": "api/phase10_continuous_learning.py",
       "function": "scenario",
       "method": "POST",
       "path": "/scenario",
-      "line": 159,
+      "line": 138,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/phase10_continuous_learning.py::POST /scenario::scenario"
     },
     {
       "file": "api/phase11_federated_agents.py",
-      "function": "agents_propose",
-      "method": "POST",
-      "path": "/agents/propose",
-      "line": 124,
-      "target_owner": "supervisor-agent",
-      "owner_type": "orchestrator",
-      "route_key": "api/phase11_federated_agents.py::POST /agents/propose::agents_propose"
-    },
-    {
-      "file": "api/phase11_federated_agents.py",
       "function": "consensus",
       "method": "POST",
       "path": "/consensus",
-      "line": 131,
+      "line": 102,
       "target_owner": "supervisor-agent",
       "owner_type": "orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /consensus::consensus"
@@ -186,7 +146,7 @@
       "function": "context",
       "method": "POST",
       "path": "/context",
-      "line": 114,
+      "line": 92,
       "target_owner": "supervisor-agent",
       "owner_type": "orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /context::context"
@@ -196,27 +156,17 @@
       "function": "cycle",
       "method": "POST",
       "path": "/cycle",
-      "line": 170,
+      "line": 127,
       "target_owner": "supervisor-agent",
       "owner_type": "orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /cycle::cycle"
     },
     {
       "file": "api/phase11_federated_agents.py",
-      "function": "shadow_experiment",
-      "method": "POST",
-      "path": "/experiments/shadow",
-      "line": 151,
-      "target_owner": "supervisor-agent",
-      "owner_type": "orchestrator",
-      "route_key": "api/phase11_federated_agents.py::POST /experiments/shadow::shadow_experiment"
-    },
-    {
-      "file": "api/phase11_federated_agents.py",
       "function": "operation_plan",
       "method": "POST",
       "path": "/operation-plan",
-      "line": 141,
+      "line": 112,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase11_federated_agents.py::POST /operation-plan::operation_plan"
@@ -226,7 +176,7 @@
       "function": "quality",
       "method": "POST",
       "path": "/quality",
-      "line": 165,
+      "line": 122,
       "target_owner": "supervisor-agent",
       "owner_type": "orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /quality::quality"
@@ -236,7 +186,7 @@
       "function": "runtime_authority_envelope",
       "method": "POST",
       "path": "/runtime/authority-envelope",
-      "line": 205,
+      "line": 162,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /runtime/authority-envelope::runtime_authority_envelope"
@@ -246,27 +196,17 @@
       "function": "runtime_event_envelope",
       "method": "POST",
       "path": "/runtime/event-envelope",
-      "line": 223,
+      "line": 169,
       "target_owner": "supervisor-agent",
       "owner_type": "orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /runtime/event-envelope::runtime_event_envelope"
     },
     {
       "file": "api/phase11_federated_agents.py",
-      "function": "runtime_reputation_update",
-      "method": "POST",
-      "path": "/runtime/reputation/update",
-      "line": 212,
-      "target_owner": "supervisor-agent",
-      "owner_type": "orchestrator",
-      "route_key": "api/phase11_federated_agents.py::POST /runtime/reputation/update::runtime_reputation_update"
-    },
-    {
-      "file": "api/phase11_federated_agents.py",
       "function": "runtime_resolve",
       "method": "POST",
       "path": "/runtime/resolve",
-      "line": 194,
+      "line": 151,
       "target_owner": "supervisor-agent",
       "owner_type": "orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /runtime/resolve::runtime_resolve"
@@ -6344,6 +6284,7 @@
     "simple_farm_book_recovery_note": "616->623: recovered the previously delivered simple farmer book as a BFF/domain layer over the existing Farm Ledger boundary: parties, entries, monthly/balances and CSV/PDF export. No new service or ERP writer.",
     "v8_05_pr2_process_date_note": "625->626: V8-05 PR2 single-scene process-date proxy (POST /api/v1/fields/{field_id}/imagery/process-date). compute-store; target_owner raster-service; the single-scene sibling of the existing field_imagery_backfill_proxy — same facade pattern (field-ownership + geometry_revision authz at the platform boundary, HTTP pass-through to raster-service which owns the compute/store). Makes date processing an explicit user action after decoupling it from side-effect-free date selection. Documented raise via the sanctioned guard path, not silent growth.",
     "w4_09_dead_route_retirement_note": "629->623 (LOWERED, never raised): W4-09 / routes-10 retired six provably dead platform routes. Each had no caller in frontend/, mobile/, services/, shared/, sdk/, scripts/, nginx or gateway configs, no test exercising it as product behaviour, and no entry in capabilities/registry or docs/capability-registry: GET /api/v1/registry/{report-fields,device-types,data-quality-rules} (introspection catalogs, audience=internal; their modules report_builder, device_registry and core/data_quality keep live in-process consumers) and POST /v1/phase10/learning/{feature-schema,online-update,experiments/evaluate} (service-token wrappers over shared/continuous_learning_phase10 pure functions, which stay with their tests there; /cycle still reaches create_online_learning_update and /dataset already returns feature_set_spec). Kept on purpose: GET /api/v1/registry/cost-profiles (capability registry lists it) and GET /api/v1/registry/{workflows,indices,events}, which are the only executable root of api/workflow_definitions, api/index_registry and api/event_catalog under platform_module_reachability_guard. The ceiling drops by exactly the six removed, so the domain inventory is 623/623 and the next route still needs a budget decision. Re-adding a retired route is blocked by services/sahool-platform/tests/test_w4_09_retired_dead_routes.py.",
+    "w4_09_margin_restoration_note": "623 kept (NOT lowered, NEVER raised) by owner decision 2026-11-16: W4-09 continued retired six more provably dead service-token routes to restore a positive domain margin (raw 621, infra 4, domain 617 <= 623, headroom 6). Each had no caller in frontend/src, mobile/sahool_app/lib, services/ (outside the defining file), shared/, sdk/ (only /v1/ecosystem is exposed there), bots/, agents/, scripts/, nginx/gateway/helm/k8s configs, docs/api contracts, capabilities/registry or docs/capability-registry, and no test exercised it: POST /v1/phase10/learning/{drift,retraining/plan,champion-challenger} and POST /v1/phase11/federation/{agents/propose,experiments/shadow,runtime/reputation/update}. The pure functions stay in shared/ with their tests; /v1/phase10/learning/cycle and /v1/phase11/federation/cycle still run them. Evidence per route: tests/test_w4_09_retired_dead_routes.py and the PR description.",
     "notes": [],
     "raw_route_inventory_policy": "All statically declared platform GET/POST/PUT/PATCH/DELETE routes remain visible in the raw inventory.",
     "infrastructure_route_allowlist": [
