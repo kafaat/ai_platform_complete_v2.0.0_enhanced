@@ -1433,7 +1433,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           IRR_F01_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       - name: IRR-F01 upgrade certification (Gate U1 — v194→v195/v196)
         env:
           PGHOST: localhost
@@ -1444,15 +1445,16 @@ jobs:
           APP_ROLE: sahool_app_test
           APP_PASS: app_test_password
           IRR_F01_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
         run: |
           bash scripts/irr_f01/upgrade_gate_u1.sh
           export IRR_F01_UPGRADE_DATABASE_URL="postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_u1_upgrade"
           export IRR_F01_UPGRADE_ADMIN_URL="postgresql://sahool_test:test_password@localhost:5433/sahool_u1_upgrade"
-          pytest -v -m integration -rs tests_v9/test_irr_f01_upgrade_gate_u1_pg.py
+          pytest -v -m integration -rs tests_v9/test_irr_f01_upgrade_gate_u1_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
           # Gate A + Gate B1 must also pass over the UPGRADED base, not only fresh schema.
           TEST_DATABASE_URL="$IRR_F01_UPGRADE_DATABASE_URL" \
           TEST_DATABASE_ADMIN_URL="$IRR_F01_UPGRADE_ADMIN_URL" \
-            pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py
+            pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # ── H5.1 field↔water-source binding certification ──────────────────────────────
       # The shared integration run connects as the superuser, where the binding resolver's RLS
       # isolation SKIPS (superuser bypasses RLS). This dedicated step runs it as the restricted
@@ -1465,7 +1467,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           H51_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_h51_field_source_binding_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_h51_field_source_binding_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
 
       # عزلُ المستأجرين بـRLS — شاهدان (سالبٌ وموجب) وشاهدُ إبطالِ فراغ. يُشغَّل هنا
       # لا في الجولة العامّة لأنّه يحتاج **الدورَ المقيَّد** في `TEST_DATABASE_URL`:
@@ -1476,7 +1479,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           RLS_ISOLATION_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_rls_tenant_isolation_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_rls_tenant_isolation_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
 
       # الشاهدُ أعلاه يُنشئ جدولَه وسياستَه بنفسه، فيُثبِت أنّ **المحرّك يعزل** لا أنّ
       # **سياسات الهجرات صحيحة** — وهو يقول ذلك صراحةً. هذه الخطوةُ تقيس السياسةَ
@@ -1487,7 +1491,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           IMAGERY_RLS_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_imagery_automation_rls_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_imagery_automation_rls_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
 
       # طابورُ إبطال الراستر بعد D1: الجدولُ صار يحمل نيّاتِ مستأجرين مختلفين على
       # **الحقل نفسِه** (المُوصِّلُ يُسلّم بعد الالتزام بمفتاحٍ حتميّ متطابقِ النصّ عبر
@@ -1499,7 +1504,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           RASTER_QUEUE_RLS_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_d1_raster_queue_rls_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_d1_raster_queue_rls_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
 
       # تدقيق 2026-11-01 (Q5): كان `test_mfa_end_to_end_via_app` موسوماً `xfail(strict=False)`
       # باسم AUTH-E2E-UNDER-RESTRICTED-ROLE (مُغلَقة) فيُقرأ أخضرَ مهما فشل. في الجولة العامّة
@@ -1575,7 +1581,8 @@ jobs:
           DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           SOIL_FUNCTIONAL_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_services_functional.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_services_functional.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
 
       # #1469: a 503 from GET /fields/{id}/recommendations must not commit the field_state
       # projection. The test needs the restricted role and the owner (seed), which the shared
@@ -1586,7 +1593,8 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
           FIELD_STATE_ROLLBACK_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_field_recommendations_projection_rollback_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_field_recommendations_projection_rollback_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # Gap P6: soil-service's soil_sampling_plan_copies (v273) under the restricted role. The
       # role must be NOBYPASSRLS for FORCE RLS to mean anything; v273 is re-applied twice on the
       # migrated schema; the 66 km origin is refused against the live copy. The flag turns any
@@ -1596,7 +1604,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           SOIL_PLAN_COPIES_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_soil_sampling_plan_copies_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_soil_sampling_plan_copies_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W0-10 (weather-7): the water-ledger worker computes ET0 at the field elevation, keeps only
       # validated values as reference, records ET0/rain provenance (v279) and re-records forecast
       # rain from the archive. The flag turns any skip (missing asyncpg, unmigrated schema) into a
@@ -1606,7 +1615,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           WATER_LEDGER_ET0_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_water_ledger_et0_provenance_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_water_ledger_et0_provenance_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # v274-v277 (field-management-service owns the pin inspection and task cost tables): hand-off
       # state machine, evidence-version invalidation (P3), the v277 close gate through the
       # platform's PATCH, the cost trigger history, the expense link's farm/field check and the
@@ -1617,7 +1627,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           FIELD_TASK_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_field_task_inspection_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_field_task_inspection_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # v278 (owner decisions 2 and 3): custody events append-only (UPDATE/DELETE/TRUNCATE refused),
       # lots and fields with a custody chain not erased by cascade (RESTRICT), lot identity
       # immutable, and market listings checked against the lot remainder under its row lock; per
@@ -1628,7 +1639,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           HARVEST_CUSTODY_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_harvest_custody_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_harvest_custody_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W1-20 (remote-7 / scout-5, v282): a vegetation anomaly sent through the real bridge becomes
       # one stored scouting task in field-management-service (owner of field_tasks); sequential
       # and concurrent replays and a reused key write nothing more; tenants stay apart; negative
@@ -1639,7 +1651,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           FIELD_TASK_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_field_task_scouting_anomaly_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_field_task_scouting_anomaly_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # SCOUTING-ANOMALY-VERIFY-RACE-ORPHAN-TASK-01: the PostgreSQL anomaly store reserves a ground
       # verification against the expected version before the field task is dispatched; a racing
       # resolve or result is refused while the reservation is pending, concurrent reservations have
@@ -1649,7 +1662,8 @@ jobs:
         env:
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           ANOMALY_RESERVATION_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_rs_anomaly_reservation_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_rs_anomaly_reservation_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W0-13 (finding mobile-3): an offline irrigation report replayed after the water-balance
       # worker wrote the day keeps ET0 and depletion, and the worker keeps the reported water and
       # recomputes around it (v280). The real router runs on the restricted NOBYPASSRLS role; the
@@ -1659,7 +1673,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           WATER_LEDGER_PARTIAL_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_water_ledger_partial_write_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_water_ledger_partial_write_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W1-21 (remote-2/data-7): v283 deletes init_v8's tenant-less RANDOM() NDVI seed rows and
       # only those (tenant rows survive exactly), is idempotent, and its rollback restores no
       # synthetic row. The flag turns any skip into a failure.
@@ -1668,7 +1683,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           NDVI_SEED_PURGE_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_ndvi_seed_purge_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_ndvi_seed_purge_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W1-13 (finding water-5, manual part): measured farm-ledger water reaches the daily water
       # ledger as irrigation_mm with source 'farm_ledger' (v284); the worker keeps it and computes
       # the balance around it. Router on the restricted NOBYPASSRLS role, worker on the owner URL.
@@ -1677,7 +1693,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           FARM_WATER_LEDGER_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_farm_water_ledger_projection_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_farm_water_ledger_projection_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W1-14/W1-12: the ledger accepts a same-tenant season from seasons or farm_season_projects
       # (v281 trigger), reports refuse to sum currencies, and the pesticide gate reads its farm
       # context from the ledger. The flag turns any skip into a failure.
@@ -1686,49 +1703,56 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           LEDGER_SEASON_CURRENCY_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_ledger_season_currency_governance_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_ledger_season_currency_governance_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W1-04: soil-service stores the hydraulic profile with every soil snapshot, tenant-scoped. The flag turns any skip into a failure.
       - name: Soil hydraulic projection (W1-04, restricted role)
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           SOIL_HYDRAULIC_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_soil_hydraulic_projection_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_soil_hydraulic_projection_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W1-08: the yield estimate is built from stored server evidence, never another tenant's. The flag turns any skip into a failure.
       - name: Yield estimate from server evidence (W1-08, restricted role)
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           YIELD_SERVER_FEATURES_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_yield_server_features_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_yield_server_features_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W0-07: edge sync writes each detection under the tenant its request asserts. The flag turns any skip into a failure (lab receipt on 0f746db).
       - name: Edge sync carries the verified tenant per request (W0-07, restricted role)
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           EDGE_SYNC_TENANT_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_edge_sync_tenant_per_request_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_edge_sync_tenant_per_request_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W0-05: /internal/fields/{id}/state and /internal/events/ai-advice refuse a caller without a valid tenant assertion. The flag turns any skip into a failure (lab receipt on 0f746db).
       - name: Internal routes require a tenant assertion (W0-05, restricted role)
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           INTERNAL_TENANT_ASSERTION_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_internal_tenant_assertion_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_internal_tenant_assertion_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W0-11: the yield estimate refuses another tenant's field. The flag turns any skip into a failure (lab receipt on 0f746db).
       - name: Yield estimate is tenant-checked (W0-11, restricted role)
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           YIELD_ESTIMATE_TENANT_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_yield_estimate_tenant_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_yield_estimate_tenant_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # v238 + R-C2 (#1386): only a v2 device ack signed with the owning device's derived key, on the owning tenant's topic, moves a command to device_acked; v1 acks off the legacy allowlist are refused. Broken on main since #1386 (fixture still signed v1) because no certified step ran it. The flag turns any skip into a failure.
       - name: Actuator command delivery state and v2 device acks (v238, R-C2, restricted role)
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           ACTUATOR_DELIVERY_STATE_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_v238_actuator_delivery_state_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_v238_actuator_delivery_state_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # LIVE-SUITES-OWNER-URL-SEEDING-01: the Field and Water twins read the active season, not
       # fields.crop, and judge NDVI by its own time; another tenant's field is 404. The owner URL
       # seeds rows only; the routers run on the restricted role. The flag turns any skip into a failure.
@@ -1737,7 +1761,8 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           DIGITAL_TWIN_SEASON_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_digital_twin_season_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_digital_twin_season_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # LIVE-SUITES-OWNER-URL-SEEDING-01: an archived season is read by its own window, outcomes
       # after cutover come only from an authoritative, scoped decision-service reply, and a failed
       # optional read rolls back its own savepoint (on an owner-created runtime role the restricted
@@ -1747,35 +1772,39 @@ jobs:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
           SEASON_STATE_SOURCES_CERTIFICATION_REQUIRED: "1"
-        run: pytest -v -m integration -rs tests_v9/test_season_state_sources_live_pg.py
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_season_state_sources_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
 
-      # Live auth/admin coverage (#1427 follow-up): the four certification steps above that
-      # drive the real auth app (MFA e2e, C-01 tenant scope, #1427 authz gates) and the real
-      # platform app (denial log) append to .coverage.integration-auth with --cov-append, so
-      # lines measured only against live PostgreSQL + Redis count toward Codecov patch
-      # coverage. Same export → path guard → pinned upload pattern as the other three lanes;
-      # services/auth/tests is omitted and refused so test code never counts as product.
-      # scripts/lab/run_certification.py stops at the export step: these are reporting steps,
-      # not certification steps, and the lab refuses any pytest call after that boundary.
+      # Live coverage (#1427 follow-up, extended by CI-LIVE-PG-COVERAGE-UNREPORTED-01): every
+      # certification step after the shared run appends to .coverage.integration-auth with
+      # --cov-append. The auth and platform steps measure their app; the others measure
+      # services/ under config/coverage-live-integration.rc, which (unlike the unit-floor
+      # .coveragerc) keeps the soil stores and decision-service measured. Before, code reached
+      # only by these live steps read as uncovered on codecov/patch (anomaly_store_pg.py at 35%
+      # on #1508). One data file, one export, one guarded pinned upload for the job; the flag
+      # keeps its name so Codecov history continues. Test code is omitted and refused so it
+      # never counts as product. scripts/lab/run_certification.py stops at the export step:
+      # these are reporting steps, not certification steps, and the lab refuses any pytest
+      # call after that boundary.
       - name: Export live auth coverage with Git-relative paths
         run: >-
           python -m coverage xml
           --data-file=.coverage.integration-auth
-          --include=services/auth/*,services/sahool-platform/api/*,services/sahool-platform/core/*
-          --omit=services/auth/tests/*
+          --include=services/*
+          --omit=services/auth/tests/*,*/tests/*,*/test_*.py
           -o coverage-integration-auth.xml
       - name: Verify live auth Codecov report paths
         run: >-
           python scripts/ci/codecov_coverage_guard.py
           --report coverage-integration-auth.xml
-          --prefix services/auth
-          --prefix services/sahool-platform/api
-          --prefix services/sahool-platform/core
+          --prefix services
           --forbid-prefix services/auth/tests
           --require-file services/auth/routers/users.py
           --require-file services/auth/routers/invitations.py
           --require-file services/auth/session_tokens.py
           --require-file services/sahool-platform/api/routers/security_audit.py
+          --require-file services/vegetation-analysis-service/anomaly_store_pg.py
+          --require-file services/soil-service/plan_copy_store.py
       - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
         with:
           files: coverage-integration-auth.xml
