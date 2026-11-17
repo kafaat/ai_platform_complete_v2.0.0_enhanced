@@ -7,9 +7,10 @@ Before this, decision-service stored every snapshot id exactly as the caller sen
   used by another tenant (or by other evidence of the same tenant) surfaced as an unhandled
   unique violation (500) instead of a named refusal;
 * ``weather_snapshot_id`` / ``resource_snapshot_id`` (dispatch authorization) and
-  ``evidence_snapshot_id`` (outcome verification, learning attribution) took any string;
-* an outcome could name a ``veg_`` evidence snapshot that did not exist, belonged to another
-  tenant, or showed another field, and it became learning ground truth.
+  ``evidence_snapshot_id`` (outcome verification, learning attribution, learning updates) took
+  any string;
+* an outcome or a learning update could name a ``veg_`` evidence snapshot that did not exist,
+  belonged to another tenant, or showed another field, and it became learning ground truth.
 
 Unit tests drive the HTTP edge with persistence replaced at the function level (no database).
 Live tests (``DATABASE_URL``, decision-service migrations) prove the database-backed refusals.
@@ -221,6 +222,19 @@ def test_learning_update_stores_a_well_formed_or_absent_evidence_id(monkeypatch,
     r = client.post("/v1/learning/updates", json=body, headers=HEADERS)
     assert r.status_code == 200, f"{value!r}: {r.status_code} {r.text}"
     assert stored == [value]
+
+
+@pytest.mark.unit
+def test_learning_update_unresolved_veg_evidence_is_a_named_409(monkeypatch):
+    async def refused(**kwargs):
+        raise persistence.LearningUpdateEvidenceInvalid("unknown_evidence_snapshot")
+
+    monkeypatch.setattr(mod, "persist_learning_update", refused)
+    monkeypatch.setattr(mod, "sor_enabled", lambda: True)
+    body = {"model_id": "m", "decision_id": "dec_1", "evidence_snapshot_id": "veg_" + "c" * 20}
+    r = client.post("/v1/learning/updates", json=body, headers=HEADERS)
+    assert r.status_code == 409, f"{r.status_code} {r.text}"
+    assert r.json()["detail"] == "unknown_evidence_snapshot", r.text
 
 
 def _veg_body(**over) -> dict:
@@ -550,3 +564,133 @@ def test_live_identical_replay_of_a_stored_outcome_is_not_re_judged():
     )
     assert out["evidence_snapshot_id"] == payload.evidence_snapshot_id, out
     assert _outcome_count(chain.execution_request_id) == 1, "a replay must store nothing new"
+
+
+# ── learning updates: veg_ evidence resolves against this tenant's snapshots ────────────
+
+
+def _learning_payload(**over) -> SimpleNamespace:
+    fields = dict(
+        model_id="m-veg",
+        feature_set_id=None,
+        learning_rate=0.01,
+        sample_count=0,
+        label_summary={},
+        drift_score=0.0,
+        action=None,
+        source_type=None,
+        source_id=None,
+        field_id=None,
+        season_id=None,
+        recommendation_id=None,
+        decision_id="dec_" + uuid4().hex[:12],
+        evidence_snapshot_id=None,
+        review_status="unreviewed",
+        agronomically_approved=False,
+        agronomic_review=None,
+    )
+    fields.update(over)
+    return SimpleNamespace(**fields)
+
+
+def _learn(tenant: str, payload: SimpleNamespace, update_id: str | None = None) -> dict:
+    return _run(
+        persistence.persist_learning_update(
+            tenant_id=tenant,
+            payload=payload,
+            update_id=update_id or "lu_" + uuid4().hex[:16],
+            traceability_status="derived_partial",
+        )
+    )
+
+
+def _learning_rows(evidence_snapshot_id: str) -> int:
+    async def count():
+        c = await _connect()
+        try:
+            return await c.fetchval(
+                "SELECT count(*) FROM online_learning_updates WHERE evidence_snapshot_id=$1",
+                evidence_snapshot_id,
+            )
+        finally:
+            await c.close()
+
+    return _run(count())
+
+
+@pytest.mark.integration
+@live
+def test_live_learning_update_refuses_unknown_veg_evidence_and_stores_nothing():
+    sid = "veg_" + uuid4().hex[:20]
+    with pytest.raises(persistence.LearningUpdateEvidenceInvalid) as err:
+        _learn(TENANT_A, _learning_payload(evidence_snapshot_id=sid))
+    assert err.value.reason == "unknown_evidence_snapshot"
+    assert _learning_rows(sid) == 0, "a refused learning update must not be stored"
+
+
+@pytest.mark.integration
+@live
+def test_live_learning_update_refuses_another_tenants_veg_evidence_as_unknown():
+    sid = "veg_" + uuid4().hex[:20]
+    _persist_snapshot(TENANT_B, "f-a", sid)
+    with pytest.raises(persistence.LearningUpdateEvidenceInvalid) as err:
+        _learn(TENANT_A, _learning_payload(evidence_snapshot_id=sid))
+    assert err.value.reason == "unknown_evidence_snapshot"
+    assert _learning_rows(sid) == 0, "another tenant's evidence must not be stored"
+
+
+@pytest.mark.integration
+@live
+def test_live_learning_update_refuses_veg_evidence_of_another_decision_field():
+    sid = "veg_" + uuid4().hex[:20]
+    _persist_snapshot(TENANT_A, "f-other", sid)
+    chain = _run(_seed_terminal_request(TENANT_A, "f-a"))
+    payload = _learning_payload(evidence_snapshot_id=sid, decision_id=chain.decision_id)
+    with pytest.raises(persistence.LearningUpdateEvidenceInvalid) as err:
+        _learn(TENANT_A, payload)
+    assert err.value.reason == "evidence_snapshot_field_mismatch"
+    assert _learning_rows(sid) == 0
+
+
+@pytest.mark.integration
+@live
+def test_live_learning_update_stores_this_tenants_veg_evidence():
+    sid = "veg_" + uuid4().hex[:20]
+    _persist_snapshot(TENANT_A, "f-a", sid)
+    chain = _run(_seed_terminal_request(TENANT_A, "f-a"))
+    payload = _learning_payload(evidence_snapshot_id=sid, decision_id=chain.decision_id)
+    out = _learn(TENANT_A, payload)
+    assert out["write"] == "inserted", out
+    assert _learning_rows(sid) == 1
+
+
+@pytest.mark.integration
+@live
+def test_live_learning_update_resend_of_a_stored_veg_id_is_not_re_judged():
+    """A row stored before resolution existed replays; a NEW update with that id is refused."""
+    sid, update_id = "veg_" + uuid4().hex[:20], "lu_" + uuid4().hex[:16]
+    payload = _learning_payload(evidence_snapshot_id=sid)
+
+    async def store_legacy():
+        c = await _connect()
+        try:
+            await c.execute(
+                "INSERT INTO online_learning_updates(update_id,tenant_id,model_id,decision_id,"
+                "evidence_snapshot_id) VALUES($1,$2::uuid,$3,$4,$5)",
+                update_id,
+                TENANT_A,
+                payload.model_id,
+                payload.decision_id,
+                sid,
+            )
+        finally:
+            await c.close()
+
+    _run(store_legacy())
+    out = _learn(TENANT_A, payload, update_id=update_id)
+    assert out["replayed"] is True and out["write"] == "unchanged", out
+    with pytest.raises(persistence.LearningUpdateEvidenceInvalid):
+        _learn(TENANT_A, payload)  # a fresh update_id: nothing stored to replay
+    with pytest.raises(persistence.LearningUpdateEvidenceInvalid):
+        _learn(TENANT_B, payload, update_id=update_id)  # another tenant's row is not a replay
+    assert _learning_rows(sid) == 1

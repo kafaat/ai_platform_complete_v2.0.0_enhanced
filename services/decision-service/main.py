@@ -1186,8 +1186,8 @@ async def record_learning_update(
 ) -> dict[str, Any]:
     status = _traceability(payload)
     tenant = _tenant(x_tenant_id)
-    # The evidence id is optional here, but when present it is held to the same format as on
-    # the dispatch, verify-outcome and attribution endpoints; it used to be stored as given.
+    # An optional evidence id is held to the format used on dispatch, verify-outcome and
+    # attribution (it was stored as given); a veg_ id is then resolved before storage (409).
     if payload.evidence_snapshot_id is not None:
         _refuse_malformed_snapshot_ids(evidence_snapshot_id=payload.evidence_snapshot_id)
     update_id = payload.update_id or "lu_" + uuid4().hex[:16]
@@ -1198,8 +1198,8 @@ async def record_learning_update(
             stored = await persist_learning_update(
                 tenant_id=tenant, payload=payload, update_id=update_id, traceability_status=status
             )
-        except LearningUpdateConflict:
-            raise HTTPException(status_code=409, detail="learning_update_id_conflict") from None
+        except LearningUpdateConflict as exc:  # an id conflict, or unresolved veg_ evidence
+            raise HTTPException(status_code=409, detail=exc.detail) from None
         except LearningUpdateReviewInvalid as exc:
             raise HTTPException(
                 status_code=422, detail=f"agronomic_review_invalid: {exc}"

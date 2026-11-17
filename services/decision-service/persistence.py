@@ -895,6 +895,8 @@ async def read_outcomes_for_reconcile(
 class LearningUpdateConflict(Exception):
     """The update id is already stored with a different identity (or by another tenant)."""
 
+    detail = "learning_update_id_conflict"
+
 
 class LearningUpdateReviewInvalid(ValueError):
     """The supplied agronomic review breaks the stored review rules (v234 / service 039)."""
@@ -902,6 +904,18 @@ class LearningUpdateReviewInvalid(ValueError):
 
 class LearningUpdateReviewUnavailable(RuntimeError):
     """A review was supplied but this schema has no review columns yet (service migration 039)."""
+
+
+class LearningUpdateEvidenceInvalid(LearningUpdateConflict):
+    """A ``veg_`` evidence id that does not resolve to this tenant's snapshot (or field).
+
+    A conflict subclass so the endpoint's existing 409 handler answers it, with ``detail``
+    naming the reason (``unknown_evidence_snapshot`` / ``evidence_snapshot_field_mismatch``)."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+        self.detail = reason
 
 
 # What a learning update *is*: changing any of these under a stored id is a conflict.
@@ -1007,6 +1021,25 @@ async def persist_learning_update(
                 raise LearningUpdateReviewUnavailable(
                     "online_learning_updates has no review columns"
                 )
+            # A vegetation-namespaced evidence id claims to be evidence this service holds: it is
+            # resolved as on verify-outcome (this tenant's snapshot, of the decision's field when
+            # the decision is known) before anything is stored. An id already stored on this
+            # tenant's row with the same update_id is not re-judged: a resend stores no new
+            # evidence reference (the same rule as verify-outcome's idempotent replay).
+            reason = await _outcome_evidence_reference_error(
+                conn,
+                tenant_id=tenant_id,
+                evidence_snapshot_id=payload.evidence_snapshot_id,
+                decision_id=payload.decision_id,
+            )
+            if reason and not await conn.fetchval(
+                "SELECT EXISTS (SELECT 1 FROM online_learning_updates "
+                "WHERE update_id = $1 AND tenant_id = $2::uuid AND evidence_snapshot_id = $3)",
+                update_id,
+                tenant_id,
+                payload.evidence_snapshot_id,
+            ):
+                raise LearningUpdateEvidenceInvalid(reason)
             mutable_columns = _LEARNING_MUTABLE_COLUMNS + (
                 _LEARNING_REVIEW_COLUMNS if has_review else ()
             )
@@ -6506,7 +6539,8 @@ async def persist_vegetation_snapshot(
             # answer whether the holder is this tenant or another, so it does not say which
             # tenant holds the id and returns none of its data. It still reveals that a
             # producer-named veg_ id exists somewhere (as the 500 did before): producer-chosen
-            # names can be guessed. Server-minted ids (veg_ + 80 random bits) cannot.
+            # names can be guessed. Server-minted ids (veg_ + uuid4().hex[:20]: about 74 random
+            # bits, as 6 of those 80 are uuid4's fixed version and variant bits) cannot.
             try:
                 row = await conn.fetchrow(
                     """

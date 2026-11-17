@@ -5,8 +5,14 @@
 outcome for a decision with several rows was whatever order PostgreSQL returned the heap in.
 The intended semantics are latest-first, by time then id.
 
-The live tests insert the OLDER row first, so plain heap order returns it first: without the
-``ORDER BY`` the stale outcome wins and the tests fail (negative control recorded in the commit).
+The live tests insert the OLDER row first, so a heap-order read returns it first. Heap order is
+not the only plan, though: outcome_record has ``idx_outcome_record_tenant_decision (tenant_id,
+decision_id, created_at DESC)``, and a scan of that index returns the NEWEST row first even
+without ``ORDER BY``. Which plan the unordered read gets is the planner's choice (today it picks
+``idx_outcome_record_content_digest`` on a cost tie, whose order follows the heap). So the
+outcome_record test first runs the production read minus its ``ORDER BY`` under default planner
+settings and fails with "negative control lost" unless a stale row comes first; only then does
+its pass prove the ``ORDER BY``. The recommendation_outcomes test checks every forced plan.
 """
 
 from __future__ import annotations
@@ -72,6 +78,30 @@ async def _seed_outcomes(tenant: str, decision: str, rows: list[tuple[str, bool,
         await c.close()
 
 
+def _unordered_outcome_record_read() -> str:
+    """The production outcome_record read (same SELECT, JOIN and WHERE) without its ORDER BY.
+
+    Taken from persistence.py rather than copied, so the guard follows the production query."""
+    block = _read_block()
+    start = block.index('"""SELECT o.* FROM outcome_record o')
+    sql = block[start + 3 : block.index('"""', start + 3)]
+    return sql.split("ORDER BY", 1)[0].rstrip()
+
+
+async def _unordered_first_success(tenant: str) -> bool:
+    """First row of the unordered production read, under default planner settings."""
+    c = await _connect()
+    try:
+        async with c.transaction():
+            await c.execute("SELECT set_config('app.current_tenant', $1, true)", tenant)
+            for setting in ("enable_indexscan", "enable_bitmapscan", "enable_seqscan"):
+                assert await c.fetchval(f"SHOW {setting}") == "on", f"{setting} is not default"
+            row = await c.fetchrow(_unordered_outcome_record_read(), tenant, None, None)
+            return bool(row["success"])
+    finally:
+        await c.close()
+
+
 def _reconcile(tenant: str) -> dict:
     from outcome_reconcile import reconcile_outcomes
     from persistence import read_outcomes_for_reconcile
@@ -94,6 +124,12 @@ def test_latest_outcome_record_wins_even_when_inserted_last():
                 ("out_" + uuid4().hex[:12], True, T0 + timedelta(days=3)),
             ],
         )
+    )
+    # Without this guard the test would pass with no ORDER BY whenever the planner reads
+    # idx_outcome_record_tenant_decision, which returns the newest row first by itself.
+    assert _run(_unordered_first_success(tenant)) is False, (
+        "negative control lost: the unordered production read returned the newest row first, "
+        "so this test no longer fails without the ORDER BY"
     )
     out = _reconcile(tenant)
     assert out["unique_decisions"] == 1, f"one decision expected: {out}"
