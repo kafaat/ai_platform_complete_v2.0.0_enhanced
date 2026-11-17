@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **291**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **62**
-- إجماليّ الطفرات المُسجَّلة: **490**
+- إجماليّ الطفرات المُسجَّلة: **497**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **397** على 138 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -474,6 +474,13 @@
 - بلا شرطِ `SET` يعود `ON CONFLICT … DO UPDATE SET` يُسجَّل جدولاً اسمُه `set`، و`FOR UPDATE SKIP LOCKED` (قراءةٌ بقفل) كتابةً في جدولٍ اسمُه `skip`. وهو العطلُ المقيس 2026-09-21: أربعةٌ وعشرون مفتاحاً جدولُه لفظةٌ لا جدول، تقرؤه المصنوعةُ دعوى كتابةٍ لا وجود لها. — يُسقِط `test_an_upsert_clause_does_not_name_a_table_called_set`
 - «revoking INSERT/UPDATE/DELETE from the platform role» جملةُ توثيقٍ إنجليزيّة — بلا شرطِ الفاصل النحويّ تصير موضعَ كتابةٍ في جدولٍ اسمُه `the`. والماسحُ يقرأ كلَّ سلسلةٍ طولُها اثنا عشر حرفاً فأكثر، فالـdocstrings داخل نطاقه حتماً. — يُسقِط `test_english_prose_naming_a_statement_is_not_a_write_site`
 - شدٌّ أضيقُ من النحو يُسقِط كتابةً حقيقيّة: `INSERT INTO t VALUES (…)` و`INSERT INTO t DEFAULT VALUES` و`INSERT INTO t SELECT …` صياغاتٌ يقبلها PostgreSQL. وبلا شاهدٍ إيجابيّ يصير الشدُّ عمًى بثوبِ دقّة — وحارسٌ أعمى يُقرَأ تغطيةً. — يُسقِط `test_every_real_write_form_is_still_captured`
+- W4-07: مجموعةٌ تُعيد فراغاً دائماً تُخفي `crop_root_policies` — يُقرأ في المنصّة ولا كاتبَ له، فيعود كلُّ طلبٍ `validated_crop_root_policy_missing` والحارسُ أخضر. — يُسقِط `test_a_table_read_with_no_writer_is_read_never_written_until_a_writer_appears`
+- W4-07: إسقاطُ شرط القراءة يعدّ الجدولَ المقروء «بلا مرجع» فيخلط الصنفين، ويصير حذفُ جدولٍ يُقرأ مقترحاً مشروعاً. — يُسقِط `test_a_contract_table_with_no_read_and_no_write_is_unreferenced`
+- W4-07: مجموعةٌ تُخزَّن ولا تُقارَن تقريرٌ لا راتشِت — يدخلها جدولٌ جديدٌ بلا كاتب والفحصُ أخضر. — يُسقِط `test_the_w4_07_read_sets_ratchet_in_both_directions`
+- قرار المراجعة: «الكاتبُ المُعلَنُ لا يكتب» مُبلَّغٌ لا حاجب، لأنّ الكاتب الفعليّ ليس المالكَ تلقائيّاً. جعلُه حاجباً يدفع إلى تعديل العقد ليطابق المرصود — وهو ما رفضه المالك. — يُسقِط `test_a_declared_writer_that_never_writes_is_reported_and_does_not_block`
+- جهةُ القراءة بلا طفرةٍ قبل W4-07: إسقاطُ JOIN يجعل كلَّ جدولٍ يُقرأ بربطٍ «لا قارئ» — فيكبر `written_never_read` كذباً ويُقترَح حذفُ جدولٍ حيّ. — يُسقِط `test_every_real_read_form_is_captured`
+- `DELETE FROM t` كتابةٌ و`IS DISTINCT FROM` مقارنة؛ عدُّهما قراءةً يُخفي «يُكتب ولا يُقرأ» ويختلق قرّاءً يملؤون العقد. — يُسقِط `test_what_only_looks_like_a_read_is_not_one`
+- صنفُ M-03 (صفرُ قارئ) لا يُرى إن أعادت المجموعة فراغاً — والحارسُ أخضر على الشجرة نفسها التي كشفه فيها فحصٌ يدويّ. — يُسقِط `test_a_runtime_table_name_is_counted_blind_not_read`
 
 ### `env_compose_default_override_guard.py`
 

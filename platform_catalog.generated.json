@@ -15655,6 +15655,7 @@
           "decision_consumer_heartbeats",
           "decision_context_compositions",
           "decision_dispatch_authorizations",
+          "decision_eligibility_assessments",
           "decision_execution_delivery_attempts",
           "decision_execution_plans",
           "decision_execution_requests",
@@ -18086,7 +18087,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "508ba9198f50a072ae6685cf05b4b5649e2ef37f0115f414b31e23499e2a8416",
+  "fingerprint": "8920f3c92bf62505b584b644d894d20e71508d3aba569fac64976ce20e855e5d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
