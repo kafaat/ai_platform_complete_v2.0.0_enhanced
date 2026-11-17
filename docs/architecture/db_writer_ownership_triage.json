@@ -1,7 +1,7 @@
 {
  "$comment": "فرزُ مخالفات ملكيّة الكتابة: كلُّ صفٍّ مقيسٌ بمحرّك db_writer_ownership_guard نفسِه (write_sites + العقد + الأساس)، والصنفُ مشتقٌّ بقاعدةٍ صريحة (derive_category في الحارس) لا مختار، وعددُ الكُتّاب بُعدٌ مستقلٌّ عن الصنف. المصنوعةُ تصنّف ولا تحكم ولا تحلّ: status=triaged لكلّ صفّ. تُولَّد مع الأساس بـ--generate ويُقاس بياتُها صفّاً صفّاً في --check. 'owner_writes_table: false' تعني «لم يُرصد موضع» بحدّ الماسح (حرفيّاتُ SQL في بايثون؛ ملفّاتُ SQLite-only خارج النطاق وتُرى في excluded_write_sites) لا «لا يكتب». 'deployment_evidence' لقطةٌ مؤرَّخة من مراجعةٍ خارجيّة لا حالةٌ حيّة، وcutover_ready فيها false دائماً.",
  "baseline": "docs/architecture/db_writer_ownership_baseline.json",
- "measured_on": "71b28adf8297aeb6b3deb464c0d403a640737d72",
+ "measured_on": "84c6f2846393389fcb402ef3998dd44d295771c4",
  "category_vocabulary": [
   "owner-name-not-in-tree",
   "tooling-writer",
@@ -9,9 +9,9 @@
   "owner-never-writes"
  ],
  "counts": {
-  "total": 67,
+  "total": 66,
   "by_category": {
-   "owner-never-writes": 58,
+   "owner-never-writes": 57,
    "dual-writer": 4,
    "tooling-writer": 5
   },
@@ -1825,40 +1825,6 @@
    "multiple_non_owner_writers": false,
    "owner_writes_table": false,
    "writer_kind": "service-module",
-   "category": "owner-never-writes",
-   "remedy": "لم يُرصد للمالك المُعلَن موضعُ كتابةٍ في نطاق الماسح (حرفيّاتُ SQL في بايثون؛ غيابُ الموضع ليس نفياً)، والكاتبُ المرصودُ الوحيدُ هو المخالف. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً وقتَ الانتقال لا في لقطةٍ قديمة؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged",
-   "deployment_evidence": {
-    "observed_on": "2026-09-20",
-    "source": "docs/evidence/railway_audit_review_20260920.md",
-    "owner_deployed": false,
-    "writer_deployed": true,
-    "cutover_ready": false,
-    "freshness": "historical_snapshot"
-   }
-  },
-  "soil_lab_tests::sahool-platform": {
-   "table": "soil_lab_tests",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/fields.py"
-   ],
-   "declared_owner": "soil-service",
-   "declared_writers": [
-    "soil-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "measured_writer_count": 1,
-   "non_owner_writers": [
-    "sahool-platform"
-   ],
-   "multiple_non_owner_writers": false,
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
    "category": "owner-never-writes",
    "remedy": "لم يُرصد للمالك المُعلَن موضعُ كتابةٍ في نطاق الماسح (حرفيّاتُ SQL في بايثون؛ غيابُ الموضع ليس نفياً)، والكاتبُ المرصودُ الوحيدُ هو المخالف. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً وقتَ الانتقال لا في لقطةٍ قديمة؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
    "decision_owner": "owner",

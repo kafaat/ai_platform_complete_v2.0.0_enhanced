@@ -9,10 +9,14 @@ canonical ownership contract and fails closed for spectral computation.
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import json
+import logging
 import os
 import sys
-from datetime import date, datetime
+from collections.abc import AsyncIterator
+from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 from typing import Annotated
 from uuid import UUID
@@ -23,8 +27,16 @@ from fastapi import FastAPI, Header, HTTPException, Query
 _SERVICE_DIR = Path(__file__).resolve().parent
 if str(_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVICE_DIR))
-from observation_runtime import fetch_canonical_observations  # noqa: E402
-from observation_timeline import TimelineSourceError, fetch_canonical_timeline  # noqa: E402
+import observation_drain  # noqa: E402
+import observation_runtime  # noqa: E402
+import observation_store  # noqa: E402
+from observation_runtime import canonicalize_bundle, fetch_canonical_observations  # noqa: E402
+from observation_timeline import (  # noqa: E402
+    SOURCE_FALLBACK,
+    TimelineSourceError,
+    fetch_canonical_timeline,
+    source_label,
+)
 
 from shared.security.trusted_tenant import service_token_ok  # noqa: E402
 
@@ -49,7 +61,41 @@ def _resolve_manifest() -> Path:
 
 _MANIFEST = _resolve_manifest()
 
-app = FastAPI(title="SAHOOL Indicators Contract Service", version=VERSION)
+logger = logging.getLogger("indicators-service")
+
+
+@contextlib.asynccontextmanager
+async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """W1-11 (pull form): start the canonical observation drain when it can run.
+
+    It runs when ``INDICATORS_OBSERVATION_DRAIN_ENABLED`` is on (the default), the tenant
+    partition is set, and the service token and the store are configured; otherwise the reason
+    is logged once and shown on ``/readyz`` (``observation_drain.last_skip_reason``).
+
+    With ``DATABASE_URL`` set, the connection role is checked first, as raster-service does
+    (``shared.db_role_guard.assert_dsn_role_rls_safe``): a role that can bypass row security
+    refuses startup. A second layer under the explicit tenant predicate and RLS FORCE of
+    ``canonical_observations``, which such a role would silently ignore."""
+    from shared.db_role_guard import assert_dsn_role_rls_safe
+
+    await assert_dsn_role_rls_safe(os.getenv("DATABASE_URL", ""), service="indicators-service")
+    reason = observation_drain.skip_reason()
+    task = None
+    if reason is None:
+        task = asyncio.create_task(observation_drain.serve())
+    else:
+        observation_drain.record_skip(reason)
+        logger.warning("canonical observation drain not started: %s", reason)
+    try:
+        yield
+    finally:
+        if task is not None:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+
+
+app = FastAPI(title="SAHOOL Indicators Contract Service", version=VERSION, lifespan=_lifespan)
 
 
 def _manifest() -> dict:
@@ -88,6 +134,7 @@ async def metrics():
 @app.get("/readyz")
 async def ready():
     manifest = _manifest()
+    drain = observation_drain.state()
     return {
         "status": "ready",
         "service": "indicators-service",
@@ -96,6 +143,11 @@ async def ready():
         "spectral_compute": False,
         "observed_spectral_owner": manifest["policy"]["observed_spectral_owner"],
         "schema_version": manifest["schema_version"],
+        # W1-11: the pull of published observations from raster-service. Reported, not gated:
+        # the read routes keep their computed path while the drain is behind. A drain that is
+        # off or has no tenants is not ready for delivery and says so here.
+        "observation_delivery": drain["delivery"],
+        "observation_drain": drain,
     }
 
 
@@ -128,6 +180,8 @@ async def capabilities():
             "tile_generation": False,
             "timeseries": True,
             "canonical_observation_adapter": True,
+            "canonical_observation_store": True,
+            "canonical_observation_drain": True,
         },
         "owners": {
             "observed_spectral": "raster-service",
@@ -304,6 +358,7 @@ async def field_observations(
     requested_extent = _requested_extent(date_from, date_to)
     tenant_id = await _bind_observation_tenant(x_tenant_id, x_agent_token, authorization)
     requested = [v.strip().lower() for v in indicators.split(",") if v.strip()]
+    observation_runtime.LAST_BUNDLE.set(None)
     try:
         observations = await fetch_canonical_observations(
             field_id=field_id, tenant_id=tenant_id, season_id=season_id, indicators=requested
@@ -314,6 +369,9 @@ async def field_observations(
         raise HTTPException(424, "canonical raster observation unavailable") from exc
     if not observations:
         raise HTTPException(424, "no consistent real canonical observation available")
+    observations, source, store_status = await _bind_stored_observations(
+        observations, observation_runtime.LAST_BUNDLE.get(), field_id, tenant_id, season_id
+    )
     acquired = [item.acquired_at for item in observations]
     actual_extent = _actual_extent(acquired)
     if _outside_requested(requested_extent, acquired):
@@ -331,6 +389,8 @@ async def field_observations(
         "season_id": season_id,
         "source": "indicators-service",
         "canonical": True,
+        "observation_source": source,
+        "store_status": store_status,
         "temporal_selection": "latest",
         "requested_temporal_extent": requested_extent,
         "actual_temporal_extent": actual_extent,
@@ -353,6 +413,23 @@ async def observation_timeline(
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "season context requires bearer authorization")
     requested = [v.strip().lower() for v in indicators.split(",") if v.strip()]
+    sources: dict[str, str] = {}
+
+    async def _bind_stored(indicator: str, start: datetime, end: datetime, points: list):
+        # The season window is inclusive by calendar day, as for the raster points.
+        rows = await observation_store.observations_between(
+            tenant_id=tenant_id,
+            field_id=field_id,
+            indicator=indicator,
+            start=datetime.combine(start.date(), time.min, UTC),
+            end=datetime.combine(end.date() + timedelta(days=1), time.min, UTC),
+        )
+        if not rows:
+            return points, 0
+        return observation_store.merge_timeline_points(
+            points, rows, tenant_id=tenant_id, field_id=field_id, indicator=indicator
+        )
+
     try:
         entries = await fetch_canonical_timeline(
             field_id=field_id,
@@ -360,6 +437,8 @@ async def observation_timeline(
             season_id=season_id,
             indicators=requested,
             authorization=authorization,
+            bind_stored=_bind_stored if observation_store.configured() else None,
+            sources=sources,
         )
     except TimelineSourceError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
@@ -384,6 +463,66 @@ async def observation_timeline(
         "latest_observation_refs": latest,
         "source": "indicators-service",
         "canonical": True,
+        "observation_sources": sources,
         "supersession_projected": True,
         "evaluation_status": "available" if entries else "insufficient_history",
     }
+
+
+# ── W1-11: the canonical observation store (owner decision 2026-11-16) ─────────────────────
+#
+# The drain worker (``observation_drain``) pulls every product raster-service published from its
+# outbox and stores it; raster-service never calls this service (owner decision 2026-11-16,
+# pull form). The two read routes above still ask raster-service which product is current (its asset lifecycle
+# drops a stale geometry or a superseded reprocess), then serve the stored fact of exactly that
+# product; a product with no stored row is served from the computed path (``observation_source``).
+async def _bind_stored_observations(
+    computed: list, bundle: dict | None, field_id: str, tenant_id: UUID, season_id: str
+) -> tuple[list, str, str]:
+    """Replace each computed observation by the stored row of the same asset and revision.
+
+    Returns ``(observations, observation_source, store_status)``. The computed observations are
+    kept as they are when the store is not configured, cannot answer, or holds no row of the
+    product raster-service serves now.
+    """
+    if not observation_store.configured():
+        return computed, SOURCE_FALLBACK, "not_configured"
+    items = (bundle or {}).get("observations") or {}
+    if not items:
+        return computed, SOURCE_FALLBACK, "unbound"
+    prefix = "urn:sahool:raster-asset:"
+    ids = sorted({str(obs.asset_ref).removeprefix(prefix) for obs in computed})
+    rows = await observation_store.observations_for_assets(
+        tenant_id=tenant_id, field_id=field_id, observation_ids=ids
+    )
+    if rows is None:
+        return computed, SOURCE_FALLBACK, "unavailable"
+    bound = []
+    stored = 0
+    for obs in computed:
+        code = obs.indicator.code
+        item = items.get(code)
+        row = None
+        if isinstance(item, dict):
+            row = observation_store.match_bundle_item(
+                rows,
+                observation_id=str(obs.asset_ref).removeprefix(prefix),
+                identity=observation_store.bundle_item_identity(item, bundle or {}),
+            )
+        if row is None:
+            bound.append(obs)
+            continue
+        bound.extend(
+            canonicalize_bundle(
+                bundle={
+                    "field_id": field_id,
+                    "observations": {code: observation_store.bundle_item(row)},
+                },
+                tenant_id=tenant_id,
+                season_id=season_id,
+                published_at=row["published_at"],
+            )
+        )
+        stored += 1
+    status = "served" if stored == len(computed) else ("partial" if stored else "not_stored")
+    return bound, source_label(len(computed), stored), status

@@ -1,8 +1,11 @@
 """Canonical observation timeline and supersession projection (RS-4).
 
-This module remains a read adapter over raster-service until durable observation
-persistence lands. It never computes spectral pixels; it converts real raster
-series points into canonical timeline entries and marks older entries as
+This module reads raster-service's series as before: raster-service decides which days have
+a current product. Each point whose exact product (day, scene, geometry revision, algorithm and
+QA mask version; ``observation_store.match_bundle_item``) is stored in
+the canonical observation store (W1-11, ``observation_store``) is served from the stored fact;
+the others stay as raster computed them, and ``sources`` says which. It never computes spectral
+pixels; it converts real series points into canonical timeline entries and marks older entries as
 superseded by the latest valid observation for the same indicator.
 """
 
@@ -11,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
@@ -42,6 +46,27 @@ RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-servi
 )
 RASTER_SERVICE_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN") or os.getenv("RASTER_SERVICE_TOKEN", "")
 TIMELINE_POLICY_ID = os.getenv("RS_TIMELINE_POLICY_ID", "NDVI_TIMELINE_REAL_ONLY_V1")
+
+
+#: Which path served an indicator (W1-11): every point from the stored canonical observations,
+#: none of them (the declared fallback that recomputes them from raster-service), or some.
+SOURCE_STORE = "canonical_store"
+SOURCE_FALLBACK = "raster_computed_fallback"
+SOURCE_MIXED = "canonical_store_with_raster_computed"
+
+#: ``bind_stored(indicator, start, end, points)``: the raster points with each one whose exact
+#: product is stored replaced by the stored fact, and how many were (``(points, 0)`` when the
+#: store has none or cannot answer).
+BindStored = Callable[
+    [str, datetime, datetime, list[dict[str, Any]]],
+    Awaitable[tuple[list[dict[str, Any]], int]],
+]
+
+
+def source_label(total: int, stored: int) -> str:
+    if total and stored == total:
+        return SOURCE_STORE
+    return SOURCE_MIXED if stored else SOURCE_FALLBACK
 
 
 class TimelineSourceError(RuntimeError):
@@ -237,7 +262,13 @@ async def fetch_canonical_timeline(
     season_id: str,
     indicators: list[str],
     authorization: str | None = None,
+    bind_stored: BindStored | None = None,
+    sources: dict[str, str] | None = None,
 ) -> list[CanonicalObservationV1]:
+    """``bind_stored`` (W1-11) serves each raster point whose exact product is stored from the
+    stored fact (``observation_store.merge_timeline_points``). ``sources``
+    records, per indicator, whether every point, some or none came from the store.
+    """
     if not RASTER_SERVICE_TOKEN:
         raise RuntimeError("RASTER_SERVICE_TOKEN/SAHOOL_AGENT_TOKEN is required")
     if not authorization:
@@ -282,19 +313,27 @@ async def fetch_canonical_timeline(
                 raise TimelineSourceError(424, "raster_timeline_source_unavailable")
             payload = response.json()
             if not payload.get("available") or not payload.get("real_data"):
+                if sources is not None:
+                    sources[indicator] = SOURCE_FALLBACK
                 continue
+            points = [
+                p
+                for p in (payload.get("points") or [])
+                if p.get("datetime")
+                and start.date() <= _parse_date(str(p["datetime"])).date() <= end.date()
+            ]
+            stored = 0
+            if bind_stored is not None and points:
+                points, stored = await bind_stored(indicator, start, end, points)
+            if sources is not None:
+                sources[indicator] = source_label(len(points), stored)
             output.extend(
                 canonicalize_timeseries(
                     field_id=field_id,
                     tenant_id=tenant_id,
                     season_id=season_id,
                     indicator_code=indicator,
-                    points=[
-                        p
-                        for p in (payload.get("points") or [])
-                        if p.get("datetime")
-                        and start.date() <= _parse_date(str(p["datetime"])).date() <= end.date()
-                    ],
+                    points=points,
                 )
             )
     return sorted(output, key=lambda item: item.acquired_at, reverse=True)

@@ -568,6 +568,30 @@
     ]
   },
   {
+    "path": "docker-compose.v9.yml",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-001",
+        "score": 18,
+        "signals": [
+          "content:cdse",
+          "content:sentinel",
+          "content:stac"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 15,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation",
+          "content:Tenant RLS"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/API_WIRING_AUDIT.md",
     "kind": "other",
     "candidates": [
@@ -3501,6 +3525,28 @@
     ]
   },
   {
+    "path": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-007",
+        "score": 14,
+        "signals": [
+          "path:decision sor",
+          "content:decision sor"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 11,
+        "signals": [
+          "content:rls",
+          "content:row level security"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/decision-service/tests/test_migration_033_pg16.py",
     "kind": "tests",
     "candidates": [
@@ -4282,6 +4328,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/api/lab_store.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SOIL-004",
+        "score": 12,
+        "signals": [
+          "content:organic matter",
+          "content:soil analysis"
+        ]
+      },
+      {
+        "capability_id": "SOIL-003",
+        "score": 9,
+        "signals": [
+          "content:lab result",
+          "content:laboratory"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/api/phase_runtime_workers.py",
     "kind": "backend",
     "candidates": [
@@ -4591,6 +4659,14 @@
         "signals": [
           "content:farm",
           "content:farms"
+        ]
+      },
+      {
+        "capability_id": "SOIL-004",
+        "score": 10,
+        "signals": [
+          "content:organic matter",
+          "content:soil analysis"
         ]
       },
       {
@@ -5778,6 +5854,28 @@
         "signals": [
           "content:rls",
           "path:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_canonical_observations_live_pg.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:Tenant RLS"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "dedup:NDVI=ndvi"
         ]
       }
     ]

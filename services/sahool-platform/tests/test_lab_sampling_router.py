@@ -1,11 +1,26 @@
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timezone
 
+import pytest
 from api.main import get_current_user
 from api.routers import soil_sampling as mod
 from core.canonical_schemas import UserRole, UserSchema
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+
+_STATE_REFRESHES: list[tuple[str, str]] = []
+
+
+@pytest.fixture(autouse=True)
+def _stub_field_state_refresh(monkeypatch):
+    """W1-03: the transition recomputes the field state; stubbed at its own function here
+    (the canonical projection has its own tests and a live PG test)."""
+    _STATE_REFRESHES.clear()
+
+    async def refresh(conn, user, field_id, cause):
+        _STATE_REFRESHES.append((field_id, cause))
+
+    monkeypatch.setattr(mod, "_refresh_field_state", refresh)
 
 
 def _user(user_id="u1", role=UserRole.MANAGER):
@@ -172,6 +187,9 @@ def test_lab_sampling_api_roundtrip_and_context(monkeypatch):
             json={"target_status": "approved"},
         )
         assert transition.status_code == 200
+        assert _STATE_REFRESHES == [("field-a", "soil_lab.approved")], (
+            "approving a soil sample must refresh the field's canonical state once"
+        )
         rows = c.get("/api/v1/lab/samples", params={"field_id": "field-a"}).json()
         assert rows[0]["status"] == "approved"
         ctx = c.get("/api/v1/fields/field-a/lab-context").json()
@@ -229,6 +247,9 @@ def test_published_sample_correction_is_accepted_for_republication(monkeypatch):
         # إعادة اعتماد مُصرَّح به ثمّ إعادة نشر) — لا اعتماد ذاتيّ من مُدخِل التصحيح.
         assert captured["status"] == "result_received"
         assert captured["correction_reason"] == "instrument recalibration"
+        # W1-03 review LOW 3: the correction supersedes the approved rows at once, so the
+        # canonical field state is recomputed now, not only on the next review decision.
+        assert _STATE_REFRESHES == [("f-1", "soil_lab.correction_submitted")], _STATE_REFRESHES
     finally:
         app.dependency_overrides.clear()
 
@@ -428,7 +449,7 @@ def test_soil_ec_method_separates_reference_and_dilution():
             method_code="lab-SOP",
             ec_extraction_method=method,
         )
-        rows = {row["analyte"]: row for row in mod._analytes(payload)}
+        rows = {row["analyte"]: row for row in mod.lab_store.soil_result_analytes(payload)}
         assert rows["ec_dsm"]["method_code"] == (method or "lab-SOP")
         assert rows["ph"]["method_code"] == "lab-SOP"
         result = mod._interpret_lab_values({"sample_id": "sample", "ec_dsm": 8.4}, method)

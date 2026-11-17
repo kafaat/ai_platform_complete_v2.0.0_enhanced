@@ -497,6 +497,11 @@ def _timeseries_point(real: dict, date: str) -> dict:
         # مراجعة الهندسة من هويّة الشبكة والأصل المقروء من نَسَب المنتج؛ None حين يغيب.
         "geometry_revision": (real.get("grid_identity") or {}).get("geometry_revision"),
         "source_uri": provenance.get("source_uri"),
+        # W1-11: the product revision of this point (the producer's algorithm and QA mask), so
+        # indicators-service serves a stored observation only for this exact revision; None
+        # when the layer does not record it.
+        "algorithm_version": provenance.get("algorithm_version"),
+        "qa_mask_version": provenance.get("qa_mask_version"),
     }
 
 

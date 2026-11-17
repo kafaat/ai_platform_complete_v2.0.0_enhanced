@@ -212,7 +212,7 @@
       ],
       "kind": "service",
       "incoming": 6,
-      "outgoing": 2,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -299,7 +299,7 @@
         "services/raster-service"
       ],
       "kind": "service",
-      "incoming": 8,
+      "incoming": 9,
       "outgoing": 2,
       "orphan": false
     },
@@ -460,7 +460,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 2,
-      "outgoing": 0,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -499,7 +499,7 @@
       "id": "sahool-migrate",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 19,
+      "incoming": 20,
       "outgoing": 1,
       "orphan": false
     },
@@ -635,7 +635,7 @@
       "id": "sahool-postgres",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 26,
+      "incoming": 27,
       "outgoing": 1,
       "orphan": false
     },
@@ -1087,6 +1087,12 @@
       "source": "indicators-service",
       "target": "raster-service",
       "kind": "code-reference",
+      "evidence": "services/indicators-service/observation_drain.py"
+    },
+    {
+      "source": "indicators-service",
+      "target": "raster-service",
+      "kind": "code-reference",
       "evidence": "services/indicators-service/observation_runtime.py"
     },
     {
@@ -1530,6 +1536,18 @@
     {
       "source": "sahool-guardrails-engine",
       "target": "sahool-redis-state",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-indicators-service",
+      "target": "sahool-migrate",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-indicators-service",
+      "target": "sahool-postgres",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -2161,11 +2179,11 @@
   "cycles": [],
   "summary": {
     "nodes": 112,
-    "edges": 199,
+    "edges": 202,
     "orphans": 9,
     "cycles": 0,
-    "code_edges": 64,
-    "compose_edges": 135
+    "code_edges": 65,
+    "compose_edges": 137
   },
-  "content_sha256": "ba72d2a36a1bd1b189891a6d346f569f173643ea898deda93d6fdd62cc03d4f2"
+  "content_sha256": "438b64189d9fd09a4066185d5084515cd81e0161d186e66992ad02479acfa2bd"
 }

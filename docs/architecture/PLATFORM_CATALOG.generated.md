@@ -3,10 +3,10 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `8920f3c92bf62505b584b644d894d20e71508d3aba569fac64976ce20e855e5d`
+- fingerprint: `2bcbdebf77a3c9e6177508ed4ab03e6bd1d7d3c0042dc301dec6cf17b814654f`
 - components: **37** (backend: 33)
-- route rows: **1165** → unique method/path: **1044**
-- capabilities (derived, uncurated): **840**
+- route rows: **1168** → unique method/path: **1047**
+- capabilities (derived, uncurated): **843**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
 - UI waivers pending U4 classification: **52**
@@ -19,7 +19,7 @@
 | agriai-engine | service | simulation-experimental | sahool-agriai-engine | 21 | False |
 | ai_agronomist | service | agents | sahool-ai-agronomist | 0 | True |
 | auth | service | identity | sahool-auth | 0 | True |
-| decision-service | service | decision-governance | sahool-decision-service | 44 | True |
+| decision-service | service | decision-governance | sahool-decision-service | 43 | True |
 | edge-inference | service | edge | sahool-edge | 0 | True |
 | erp-bridge | service | erp-projection | odoo-bridge, sahool-erp-bridge | 15 | True |
 | field-management-service | service | fields-internal | sahool-field-management | 36 | True |
@@ -27,7 +27,7 @@
 | frontend | frontend | user-interface | sahool-frontend | 0 | None |
 | gis-workflow-service | tool_bundle | gis-publication | — | 2 | None |
 | guardrails-engine | service | decision-governance | sahool-guardrails-engine | 2 | True |
-| indicators-service | service | indicators | sahool-indicators-service | 0 | True |
+| indicators-service | service | indicators | sahool-indicators-service | 1 | True |
 | knowledge-graph | service | knowledge | sahool-knowledge-graph | 0 | True |
 | local-ai-rag | service | knowledge | sahool-local-ai-rag | 0 | True |
 | mcp_servers | service | agents-mcp | sahool-market-mcp, sahool-sentinel-hub-mcp, sahool-weather-mcp, sahool-wofost-mcp | 6 | True |
@@ -36,7 +36,7 @@
 | notification-agent | worker | notifications | sahool-notification-agent | 0 | None |
 | qdrant-seed | init_job | knowledge | sahool-qdrant-seed | 0 | None |
 | rag-retrieval | service | knowledge | sahool-rag-retrieval | 2 | True |
-| raster-service | service | remote-sensing-truth | sahool-raster-backfill-scan-worker, sahool-raster-cache-invalidation-worker, sahool-raster-service | 14 | True |
+| raster-service | service | remote-sensing-truth | sahool-raster-backfill-scan-worker, sahool-raster-cache-invalidation-worker, sahool-raster-service | 15 | True |
 | raster-tiler-service | service | remote-sensing-truth | — | 0 | True |
 | realtime-agent | worker | realtime-voice-experimental | sahool-realtime-agent | 0 | True |
 | realtime-session | service | realtime-control-plane-experimental | sahool-realtime-session | 0 | True |
@@ -56,8 +56,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **1087**
-- S2 relations: CALLS=45, CONSUMES=3, EMITS=3, READS=589, ROUTES_TO=76, WRITES=371
+- ARCH-S2 dependency truth: `PASS` — edges **1085**
+- S2 relations: CALLS=45, CONSUMES=3, EMITS=3, READS=586, ROUTES_TO=76, WRITES=372
 
 ## Governance gates (U3/U4)
 

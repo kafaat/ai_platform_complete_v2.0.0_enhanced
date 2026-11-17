@@ -2,8 +2,10 @@
 
 RS-3 shadow runtime: raster-service remains the pixel/COG owner. This module
 converts its validated observation bundle into immutable canonical observations
-without recomputing band math. It is deliberately stateless; durable persistence
-and NATS consumption can be introduced after parity certification.
+without recomputing band math. It is stateless; durable persistence is
+``observation_store`` (W1-11, v286): ``observation_drain`` pulls each published asset from
+raster-service's outbox over HTTP and the read routes project stored rows through this same
+converter.
 """
 
 from __future__ import annotations
@@ -11,7 +13,8 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from datetime import UTC, datetime
+from contextvars import ContextVar
+from datetime import UTC, datetime, time
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -43,6 +46,41 @@ DEFAULT_POLICY_ID = os.getenv("RS_OBSERVATION_POLICY_ID", "NDVI_CURRENT_REAL_ONL
 def _stable_id(prefix: str, *parts: object) -> str:
     digest = hashlib.sha256("|".join(str(p or "") for p in parts).encode()).hexdigest()[:24]
     return f"{prefix}_{digest}"
+
+
+def asset_stable_id(
+    tenant_id: object,
+    field_id: object,
+    scene_id: object,
+    indicator_code: object,
+    acquired: datetime,
+) -> str:
+    """The asset stable id (``ast_…``) of one scene's indicator for one field (frozen wire id)."""
+    return _stable_id(
+        "ast", tenant_id, field_id, scene_id, indicator_code, acquired.astimezone(UTC).isoformat()
+    )
+
+
+def asset_day_id(
+    tenant_id: object,
+    field_id: object,
+    scene_id: object,
+    indicator_code: object,
+    acquired: datetime,
+) -> str:
+    """The asset stable id raster-service's computed path derives for the same asset after a
+    restart (W1-11 review): a layer rehydrated from ``raster_assets.acquisition_date`` carries the
+    UTC DATE only, so its id hashes that day at 00:00 UTC instead of the capture instant."""
+    day = datetime.combine(acquired.astimezone(UTC).date(), time.min, UTC)
+    return asset_stable_id(tenant_id, field_id, scene_id, indicator_code, day)
+
+
+#: W1-11: the raster bundle the last ``fetch_canonical_observations`` of this task read, so the
+#: read route can bind each computed observation to its stored fact (same asset, same revision).
+#: ``None`` when the call did not reach raster-service (or a stand-in replaced it).
+LAST_BUNDLE: ContextVar[dict[str, Any] | None] = ContextVar(
+    "indicators_last_raster_bundle", default=None
+)
 
 
 def _to_decimal(value: Any) -> Decimal | None:
@@ -79,10 +117,16 @@ def _algorithm_version(product: dict[str, Any]) -> str:
 
 
 def canonicalize_bundle(
-    *, bundle: dict[str, Any], tenant_id: UUID, season_id: str
+    *,
+    bundle: dict[str, Any],
+    tenant_id: UUID,
+    season_id: str,
+    published_at: datetime | None = None,
 ) -> list[CanonicalObservationV1]:
+    """``published_at``: the stored publication time of a persisted observation (W1-11);
+    a live bundle read is observed and published now."""
     field_id = str(bundle["field_id"])
-    now = datetime.now(UTC)
+    now = published_at or datetime.now(UTC)
     output: list[CanonicalObservationV1] = []
     for indicator_code, item in (bundle.get("observations") or {}).items():
         stats = item.get("stats") or {}
@@ -94,9 +138,7 @@ def canonicalize_bundle(
             or item.get("date")
         )
         scene_id = provenance.get("scene_id") or "unknown-scene"
-        asset_native = _stable_id(
-            "ast", tenant_id, field_id, scene_id, indicator_code, acquired.isoformat()
-        )
+        asset_native = asset_stable_id(tenant_id, field_id, scene_id, indicator_code, acquired)
         observation_native = _stable_id(
             "obs",
             tenant_id,
@@ -144,12 +186,11 @@ def canonicalize_bundle(
                         "algorithm_version",
                     )
                 },
-                acquisition_datetime=datetime.fromisoformat(
-                    provenance["acquisition_datetime"].replace("Z", "+00:00")
-                ),
-                data_available_at=datetime.fromisoformat(
-                    product["data_available_at"].replace("Z", "+00:00")
-                ),
+                # W1-11 review: a layer raster-service rehydrated from raster_assets carries its
+                # DATE only ("2026-10-15"); fromisoformat made it naive and the contract refused
+                # it. _parse_time reads a bare date as that day at 00:00 UTC.
+                acquisition_datetime=_parse_time(provenance["acquisition_datetime"]),
+                data_available_at=_parse_time(product["data_available_at"]),
             )
         admission_reasons = quality_reasons(
             {
@@ -242,6 +283,7 @@ async def fetch_canonical_observations(
         )
     response.raise_for_status()
     bundle = response.json()
+    LAST_BUNDLE.set(bundle if isinstance(bundle, dict) else None)
     if (
         not bundle.get("real_data")
         or bundle.get("mixed_scene")

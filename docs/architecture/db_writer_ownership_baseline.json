@@ -1,7 +1,7 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "91dfe32a351d717e2de76d8fffc777732c5dae42",
+  "measured_on": "84c6f2846393389fcb402ef3998dd44d295771c4",
   "reads": {
     "$comment": "جهةُ القراءة: readers المُعلَنون مقابل حرفيّات SQL المقيسة (بايثون، f-string نصّاً واحداً). خمسُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا محكومٌ عليها، وdeclared_writer_unobserved مُبلَّغٌ لا حاجب. 'لم يُرصَد' ليس 'لا يقرأ' ولا 'لا يكتب': dynamic_table_sql_sites يعدّ ما لا يُرى جدولُه ساكناً، وtable_name_value_sites قرينةُ قراءةٍ أو كتابةٍ عبر مُساعد.",
     "declared_reader_unobserved": [
@@ -330,6 +330,14 @@
           "mcp_servers"
         ],
         "table_name_value_sites": []
+      },
+      "soil_lab_tests": {
+        "measured_readers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": [
+          "services/sahool-platform/api/irrigation_recommendation_policy.py"
+        ]
       },
       "task_cost_history": {
         "measured_readers": [
@@ -1018,7 +1026,7 @@
       }
     }
   },
-  "violation_count": 67,
+  "violation_count": 66,
   "violations": {
     "actuator_command_outbox::sahool-platform": [
       "services/sahool-platform/api/phase_runtime_store.py"
@@ -1185,9 +1193,6 @@
     ],
     "scenario_runs::sahool-platform": [
       "services/sahool-platform/api/phase_runtime_store.py"
-    ],
-    "soil_lab_tests::sahool-platform": [
-      "services/sahool-platform/api/routers/fields.py"
     ],
     "soil_observations::scripts": [
       "scripts/soil/reconcile_historical.py"

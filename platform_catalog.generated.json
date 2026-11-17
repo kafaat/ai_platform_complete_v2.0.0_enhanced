@@ -3238,6 +3238,57 @@
     },
     {
       "approval_required": false,
+      "capability_id": "raster-service.internal.observation-outbox",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /internal/v1/observation-outbox"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "raster-service",
+      "producer": "raster-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "raster-service.internal.observation-outbox.acknowledgements",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /internal/v1/observation-outbox/acknowledgements"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "raster-service",
+      "producer": "raster-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "raster-service.internal.observation-outbox.requeue",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /internal/v1/observation-outbox/requeue"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "raster-service",
+      "producer": "raster-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "raster-service.jobs.job_id",
       "consumers": [
         "frontend"
@@ -15655,7 +15706,6 @@
           "decision_consumer_heartbeats",
           "decision_context_compositions",
           "decision_dispatch_authorizations",
-          "decision_eligibility_assessments",
           "decision_execution_delivery_attempts",
           "decision_execution_plans",
           "decision_execution_requests",
@@ -16145,7 +16195,7 @@
       "aliases": [
         "sahool-indicators-service"
       ],
-      "authority_kind": "stateless_compute",
+      "authority_kind": "system_of_record",
       "canonical_name": "indicators-service",
       "component_id": "indicators-service",
       "component_kind": "service",
@@ -16170,7 +16220,9 @@
       ],
       "domain": "indicators",
       "owns": {
-        "tables": []
+        "tables": [
+          "canonical_observations"
+        ]
       },
       "runtime": {
         "compose_reachable": true,
@@ -16183,7 +16235,7 @@
       },
       "source_path": "services/indicators-service",
       "sources": {
-        "db_ownership": false,
+        "db_ownership": true,
         "service_inventory": "indicators-service",
         "ui_contract": "ui"
       },
@@ -16672,6 +16724,7 @@
           "raster_batch_jobs",
           "raster_cache_invalidations",
           "raster_follow_up_requests",
+          "raster_observation_outbox",
           "raster_registry",
           "raster_snapshots",
           "zonal_stats"
@@ -17812,7 +17865,7 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 840,
+    "capabilities": 843,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
     "capabilities_idempotent": 74,
@@ -17823,9 +17876,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1165,
+    "route_rows": 1168,
     "ui_waivers": 52,
-    "unique_method_path": 1044
+    "unique_method_path": 1047
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18087,7 +18140,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "8920f3c92bf62505b584b644d894d20e71508d3aba569fac64976ce20e855e5d",
+  "fingerprint": "2bcbdebf77a3c9e6177508ed4ab03e6bd1d7d3c0042dc301dec6cf17b814654f",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18141,16 +18194,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1087,
+      "edge_count": 1085,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 3,
-        "READS": 589,
+        "READS": 586,
         "ROUTES_TO": 76,
-        "WRITES": 371
+        "WRITES": 372
       }
     },
     "u3_wiring_ownership": {

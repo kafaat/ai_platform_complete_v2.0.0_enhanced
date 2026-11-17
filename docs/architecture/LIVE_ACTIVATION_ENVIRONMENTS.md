@@ -130,7 +130,7 @@
 | MQTT broker | mosquitto v9.yml:1299-1307 | لازم للتسليم الفعليّ |
 
 ### C3 — أثر ماليّ/تنفيذ آليّ
-- `WATER_DEFICIT_AUTO_EXECUTION_ENABLED` water_decision_bridge.py:65 — **تنفيذ آليّ لعجز الماء** (OFF).
+- `WATER_DEFICIT_AUTO_EXECUTION_ENABLED` water_decision_bridge.py — **اعتماد آليّ وخطّة تنفيذ لعجز الماء** (OFF). منذ W2-04 (قرار المالك 2026-11-16) يتوقّف الجسر عند `awaiting_human_authorization` ولا يفوّض ولا يطلب تنفيذاً؛ التفويض لإنسانٍ عبر decision-service.
 - دفتر العمليّات: `routers/farm_operations_ledger.py:218,535,643` · دفتر الماء `water_ledger.py:97-242` — كتابات ماليّة (تحتاج Postgres؛ أثر ماليّ).
 - market MCP: `mcp_servers/market_server.py:60,215,733` — سوق (أثر ماليّ).
 

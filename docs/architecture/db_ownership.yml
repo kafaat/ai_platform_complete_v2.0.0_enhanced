@@ -144,6 +144,14 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v80_calibration_override.sql"
+  canonical_observations:
+    # W1-11 (owner decision 2026-11-16): append-only canonical observation store. indicators-service's
+    # drain pulls each published asset from raster-service over HTTP (pull form, same day);
+    # raster-service never writes here and never calls indicators-service.
+    owner: indicators-service
+    writers: [indicators-service]
+    readers: [indicators-service]
+    source: "migrations/v286_canonical_observations.sql"
   command_verification_loop:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -1019,6 +1027,14 @@ tables:
     writers: [raster-service]
     readers: [raster-service]
     source: "migrations/v236_raster_follow_up_requests.sql"
+  raster_observation_outbox:
+    # W1-11 (pull form, 2026-11-16): durable delivery marker of published observations. Only
+    # raster-service reads and writes it; indicators-service reaches it ONLY through raster's HTTP
+    # feed (GET /internal/v1/observation-outbox, POST .../acknowledgements), so it is no reader.
+    owner: raster-service
+    writers: [raster-service]
+    readers: [raster-service]
+    source: "migrations/v286_canonical_observations.sql"
   raster_registry:
     owner: raster-service
     writers: [raster-service]
@@ -1157,8 +1173,15 @@ tables:
     readers: []
     source: "migrations/v12_trueup_sharing.sql"
   soil_lab_tests:
+    # W1-03, owner decision 2026-11-16: LEGACY, READ-ONLY. soil_lab_results (v156/v160,
+    # api/lab_store.py, routes /api/v1/lab/*) is the single canonical soil-lab store. The
+    # platform's POST/PATCH /api/v1/fields/{field_id}/soil-lab-tests answer 410 Gone, and
+    # nothing writes this table: `writers` names the owner only because the contract needs
+    # one writer per table (soil-service never wrote it). sahool-platform reads it only in
+    # api/lab_store.py, as the labelled fallback source 'legacy_soil_lab_tests'.
     owner: soil-service
     writers: [soil-service]
+    status: legacy-read-only
     readers: [sahool-platform]
     source: "migrations/v50_soil_lab_tests.sql"
   soil_readings:

@@ -350,5 +350,7 @@ def require_service_token(x_agent_token: str | None, agent_token: str | None = N
         agent_token = _settings.AGENT_TOKEN
     if not agent_token:
         raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — الرفع معطّل بأمان")
-    if not hmac.compare_digest(x_agent_token or "", agent_token):
+    # Compared as bytes: ``hmac.compare_digest`` on ``str`` raises TypeError for a non-ASCII
+    # header value (a 500), where a wrong token must answer 401.
+    if not hmac.compare_digest((x_agent_token or "").encode(), agent_token.encode()):
         raise HTTPException(401, "توكن خدمة غير صالح")
