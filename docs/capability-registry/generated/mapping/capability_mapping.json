@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7535,
+    "files_scanned": 7537,
     "files_by_kind": {
       "backend": 1301,
       "database": 352,
       "governance": 88,
       "mobile": 429,
       "other": 2200,
-      "tests": 2610,
-      "web": 555
+      "tests": 2611,
+      "web": 556
     },
-    "unmapped_artifacts": 3591,
+    "unmapped_artifacts": 3593,
     "ambiguous_artifacts": 261,
     "files_by_reading": {
       "python_functional": 4097,
-      "raw": 3438
+      "raw": 3440
     },
     "test_dependency_files": 1993,
     "test_dependency_edges": 5288,
@@ -34700,6 +34700,14 @@
     },
     {
       "path": "frontend/src/lib/sceneFreshness.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/lib/sharingRevocation.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/sharingRevocation.ts",
       "kind": "web"
     },
     {

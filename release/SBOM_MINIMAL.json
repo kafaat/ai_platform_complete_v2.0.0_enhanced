@@ -2815,7 +2815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "49d80a5af8fe820ab9e94ea5b09bd1b8e3595aa7f335b0a512b77d503b859461"
+          "content": "cd098b3232d2388b04f62051bcf04e2ddd6972f658e26267025647cf207a1442"
         }
       ],
       "name": "frontend/src/components/sharing/SharingPanel.tsx",
@@ -5159,6 +5159,26 @@
         }
       ],
       "name": "frontend/src/lib/seasonDraftStorage.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "abf945d44b19752de6782aedfc3f97634979574804adc3e349f33469c6b6419f"
+        }
+      ],
+      "name": "frontend/src/lib/sharingRevocation.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a41514a4c2e9b38db565dc0a870963d7a367cf96f736f868a70d4670a0d24f18"
+        }
+      ],
+      "name": "frontend/src/lib/sharingRevocation.ts",
       "type": "file"
     },
     {
