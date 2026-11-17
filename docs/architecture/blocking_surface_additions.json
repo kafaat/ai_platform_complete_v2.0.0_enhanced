@@ -12,6 +12,14 @@
     "impact": "merge | release | publish | advisory. و`advisory` ليست موضعَ حجبٍ بل إعلانُ أنّ الفحصَ لا يحجب."
   },
   "additions": {
+    "scripts/ci/export_explorer_routes.py::service-inventory-drift.yml::drift": {
+      "counterexample": "Source integrity commitment for R13 offline explorer (PR #1476 source head 7df4f18e): a route catalogue cannot be published when its canonical service/route inventories are empty or absent. An empty or stale catalogue can falsely appear as a code-verified inventory. The negative test refuses empty inputs under SOURCE_INVENTORY_MISSING_OR_EMPTY; this is a provenance requirement, not a claim of live deployment.",
+      "mutation": "test_missing_inventory_and_unbound_commit_fails",
+      "$mutation_ar": "Registered behavioural mutation in guard_mutation_registry.json under scripts/ci/export_explorer_routes.py: bypassing the empty-inventory guard must make the specifically named rejection test fail, not merely break module import.",
+      "positive_witness": "test_source_status_and_route_counts in tests_v9/test_explorer_route_export_contract.py accepts a valid inventory while retaining CODE_DECLARED_STATIC and runtime NOT_RUN; no deployed route, authentication, or runtime validation is asserted.",
+      "impact": "merge",
+      "$impact_ar": "Service Inventory Drift is a PR verification job for R13 source changes; it refuses invalid source catalog exports before uploading the offline artifact. It does not deploy Railway or authenticate live gateway traffic."
+    },
     "scripts/ci/railway_staging_connection_preflight.py::railway-staging-connection-preflight.yml::staging-connection": {
       "counterexample": "SECURITY-SCOPE-PRODUCTION-READ-IS-NOT-STAGING-ACCEPTANCE-01: the stage-1 manually dispatched Railway CLI status probe accepts an externally supplied project token. A production environment ID, even with otherwise valid-shaped JSON, must never produce a staging receipt. Measured negative and positive fixtures at PR #1254 head 378d1cc23c72cc5a0b36afe82680f49be844bf3d; the new job was detected by the existing blocking-surface freeze before this declaration.",
       "mutation": "test_rejects_production_environment",

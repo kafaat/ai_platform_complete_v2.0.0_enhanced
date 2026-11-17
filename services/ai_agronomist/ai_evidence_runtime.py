@@ -1053,6 +1053,8 @@ async def build_evidence_response(
                 kg_resp = await client.get(
                     f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
                     params={"subject_id": retrieval_crop},
+                    # C2: forward the verified tenant to knowledge-graph so its C5
+                    # require_trusted_tenant guard applies to this reference lookup.
                     headers={"X-Tenant-Id": tenant_id},
                     timeout=5.0,
                 )

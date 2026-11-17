@@ -114,6 +114,7 @@ def test_cli_missing_files_is_explicit_failure(tmp_path):
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
     )
     assert p.returncode == 2 and "SOURCE_INVENTORY_MISSING_OR_EMPTY" in p.stderr

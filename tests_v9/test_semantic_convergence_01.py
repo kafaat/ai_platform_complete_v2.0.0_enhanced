@@ -242,13 +242,15 @@ def test_evidence_authority_is_not_declared_none_while_kg_shapes_evidence():
 async def test_advisory_dependency_transport_failure_is_an_explicit_boundary_error(
     monkeypatch, dependency, failure
 ):
-    from types import SimpleNamespace
-
     import httpx
     from fastapi import HTTPException
 
     from services.ai_agronomist import ai_evidence_runtime as runtime
+    from services.ai_agronomist.main import AdvisorQuery
 
+    # This test uses the real request contract: RAG transport failure now degrades
+    # to a response, and a hand-built namespace missing tool_calls is not sufficient.
+    monkeypatch.setattr(runtime, "AGENT_TOKEN", "")
     original_client = httpx.AsyncClient
     calls = []
     tenant_id = "ad063907-fc11-4314-b639-e1c91d820960"
@@ -268,7 +270,7 @@ async def test_advisory_dependency_transport_failure_is_an_explicit_boundary_err
         "AsyncClient",
         lambda **kwargs: original_client(transport=httpx.MockTransport(transport), **kwargs),
     )
-    req = SimpleNamespace(
+    req = AdvisorQuery(
         tenant_id=tenant_id,
         current_field_state=None,
         field_id=None,
@@ -277,22 +279,40 @@ async def test_advisory_dependency_transport_failure_is_an_explicit_boundary_err
         region=None,
         final_k=5,
     )
-    with pytest.raises(HTTPException) as error:
-        await runtime.build_evidence_response(
+
+    async def ask():
+        return await runtime.build_evidence_response(
             req,
             endpoint_mode="evidence",
             x_tenant_id=tenant_id,
             save_agent_tool_audit=lambda value: None,
             save_pending_approval=lambda value: None,
         )
-    assert error.value.status_code == (504 if failure == "timeout" else 502)
-    assert error.value.detail["dependency"] == dependency
-    assert error.value.detail["reason_code"] == (
+
+    reason = (
         "advisory_dependency_timeout" if failure == "timeout" else "advisory_dependency_unavailable"
     )
-    assert "secret" not in str(error.value.detail)
-    assert calls == (
-        ["knowledge-graph"]
-        if dependency == "knowledge-graph"
-        else ["knowledge-graph", "rag-retrieval"]
-    )
+    if dependency == "knowledge-graph":
+        # KG remains an authoritative tenant-bound dependency and fails closed.
+        with pytest.raises(HTTPException) as error:
+            await ask()
+        assert error.value.status_code == (504 if failure == "timeout" else 502)
+        assert error.value.detail["dependency"] == "knowledge-graph"
+        assert error.value.detail["reason_code"] == reason
+        assert "secret" not in str(error.value.detail)
+        assert calls == ["knowledge-graph"]
+    else:
+        # Optional RAG transport absence is explicitly degraded, not converted
+        # to an HTTP success claim from the upstream or masked auth refusal.
+        result = await ask()
+        assert result["status"] == "ok"
+        assert result["rag_available"] is False
+        assert result["rag_unavailable_reason"] == "rag_transport_unavailable"
+        retrieval = result["annotations"]["rag_retrieval"]
+        assert retrieval["available"] is False
+        assert retrieval["transport_reason"] == reason
+        assert retrieval["upstream_status"] is None
+        assert len(retrieval["correlation_id"]) == 32
+        assert result["annotations"]["rag"] == []
+        assert "secret" not in repr(result)
+        assert calls == ["knowledge-graph", "rag-retrieval"]
