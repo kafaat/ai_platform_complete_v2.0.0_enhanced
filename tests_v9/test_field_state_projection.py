@@ -25,6 +25,20 @@ def core_on_path():
     pytest.importorskip("fastapi")
 
 
+@pytest.fixture(autouse=True)
+def _no_ec_candidates(monkeypatch):
+    """W1-03: field_state reads the ECe per analyte (lab_store.soil_analyte_candidates); this
+    stand-in has no lab rows, so that reader is stubbed at function level: no EC evidence."""
+    if CORE not in sys.path:
+        sys.path.insert(0, CORE)
+    import api.lab_store as store
+
+    async def candidates(conn, *, field_id, analyte, tenant_id=None, limit=20):
+        return []
+
+    monkeypatch.setattr(store, "soil_analyte_candidates", candidates)
+
+
 class _FakeConn:
     """conn وهميّ: يجيب fetchval/fetchrow حسب نصّ الاستعلام، ويسجّل execute."""
 

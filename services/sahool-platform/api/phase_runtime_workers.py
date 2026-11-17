@@ -562,7 +562,7 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
     # ومنتصف الليل في عدن يُحسَب ETc والمطر في يومٍ خاطئ أو مرّتين. والريُّ يُجمَع بالتقويم نفسه.
     from zoneinfo import ZoneInfo
 
-    from api.soil_enrichment import extract_texture
+    from api.soil_enrichment import extract_texture, latest_lab_texture_row
     from api.water_ledger_auto import (
         AUTO_CREATED_BY,
         compute_daily_ledger_entry,
@@ -729,12 +729,8 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                                 )
                             )
                         # نسيج مخبريّ معتمَد إن وُجد ⇒ TAW أدقّ؛ وإلّا fallback مُعلَن المصدر.
-                        soil_row = await conn.fetchrow(
-                            "SELECT result FROM soil_lab_tests"
-                            " WHERE field_id=$1 AND status IN ('approved','published')"
-                            " ORDER BY sampled_on DESC NULLS LAST LIMIT 1",
-                            field_id,
-                        )
+                        # W1-03: المخزن القانونيّ (soil_lab_results) أوّلاً، والقديم موسوماً.
+                        soil_row = await latest_lab_texture_row(conn, field_id)
                         texture = extract_texture(soil_row["result"]) if soil_row else None
                         # Kc الطوريّ من بطاقة المحصول وتاريخ الزراعة — لا Kc منتصف الموسم كلَّ يوم ولا
                         # احتياطَ القمح. مجهولٌ ⇒ تخطٍّ مُعلَّل (لا قيدَ بمعاملٍ لا يمثّل الحقل).

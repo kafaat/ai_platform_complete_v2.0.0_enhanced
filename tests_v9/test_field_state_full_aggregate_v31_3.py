@@ -5,7 +5,7 @@ depend on instead of fanning out to many endpoints. Contract:
 - tenant-scoped (FIELD_VIEW) with a hard 404 gate (_assert_field_in_tenant) and 503 on
   total DB failure;
 - composes existing real readers (field/geometry, active season, canonical field_state,
-  soil_lab_tests, water_ledger/irrigation_runs) — never fabricates;
+  lab_store soil analysis, water_ledger/irrigation_runs) — never fabricates;
 - sources with no real per-field store (water lab samples, per-field economics) and the
   heavy live recommendations are declared available=false with a reason/endpoint pointer,
   not faked.
@@ -47,7 +47,9 @@ def test_aggregate_composes_real_readers_tenant_scoped():
     assert "await _assert_field_in_tenant(conn, field_id)" in block
     assert "recompute_field_state" in block
     assert "_field_season_context" in block
-    assert "soil_lab_tests" in block
+    # W1-03: soil comes from the canonical lab store (lab_store), not a direct table read.
+    assert "latest_approved_soil_analysis" in block
+    assert "legacy_soil_lab_test_rows" in block
     assert "water_ledger" in block
     assert "irrigation_runs" in block
     assert "_row_to_field_detail" in block

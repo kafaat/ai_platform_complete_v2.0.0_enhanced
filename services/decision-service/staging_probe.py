@@ -43,13 +43,25 @@ def _truthy(value: str | None) -> bool:
     return str(value or "").strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
+def _decision_service_headers() -> dict[str, str]:
+    """Headers for calls to decision-service itself.
+
+    A staging decision-service runs with DECISION_SERVICE_AUTH_TOKEN (DECISION_REQUIRE_AUTH_TOKEN
+    arms it), and every non-probe path, /v1/cutover/readiness included, answers 401 without the
+    shared bearer. The token comes from the operator's environment and is never printed.
+    """
+    headers = {"content-type": "application/json"}
+    token = os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip()
+    if token:
+        headers["authorization"] = f"Bearer {token}"
+    return headers
+
+
 def _json_request(
     method: str, url: str, payload: dict[str, Any] | None = None, timeout: float = 10.0
 ) -> tuple[int, dict[str, Any]]:
     body = None if payload is None else json.dumps(payload).encode("utf-8")
-    req = request.Request(
-        url, data=body, method=method, headers={"content-type": "application/json"}
-    )
+    req = request.Request(url, data=body, method=method, headers=_decision_service_headers())
     with request.urlopen(req, timeout=timeout) as res:  # noqa: S310 - staging operator-supplied URL
         raw = res.read().decode("utf-8")
         return res.status, json.loads(raw or "{}")

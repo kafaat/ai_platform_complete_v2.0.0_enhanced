@@ -47,6 +47,11 @@
       "anchor": "services/field-management-service/main.py::_connect",
       "evidence": "اتّصالٌ لكلّ طلب؛ غيابُ القاعدة 503 للطلب لا موتٌ للحاوية."
     },
+    "sahool-indicators-service": {
+      "class": "connects_lazily",
+      "anchor": "services/indicators-service/observation_store.py::_connect",
+      "evidence": "W1-11: اتّصالٌ لكلّ عمليّة على canonical_observations؛ غيابُ القاعدة 503 للكتابة واحتياطٌ مُعلَن للقراءة، لا موتٌ للحاوية."
+    },
     "sahool-scout-ingest": {
       "class": "connects_lazily",
       "anchor": "services/scout-ingest-service/main.py::_connect",

@@ -286,30 +286,38 @@ async def verify_review() -> dict[str, Any]:
     """Read-only WX-10.7 review parity + quarantine report (no writes, no guessing)."""
     conn = await _connect(database_url())
     try:
-        schema = await _review_schema_present(conn)
-        schema_ok = all(schema.values())
-        rows: list[dict[str, Any]] = []
-        if (
-            schema["decision_record.review_state"]
-            and schema["decision_record.candidate_lineage_id"]
-        ):
-            fetched = await conn.fetch(
-                "SELECT decision_id, stage, review_state, candidate_lineage_id, "
-                "(decision_value->>'status') AS evidence_status "
-                "FROM decision_record WHERE stage = 'candidate'"
-            )
-            rows = [dict(r) for r in fetched]
-        quarantine, parity, candidates_ok = classify_candidates(rows)
-        return {
-            "ok": schema_ok and candidates_ok,
-            "schema": schema,
-            "schema_ok": schema_ok,
-            "parity": parity,
-            "quarantine_count": len(quarantine),
-            "quarantine": quarantine,
-        }
+        # W2-01: the same RLS guard as verify_counts. Under a role bound by row-level security
+        # (the decision-service app role, or a table owner once FORCE RLS is on) the candidate
+        # scan would silently see zero rows and report an empty quarantine. With row_security
+        # off PostgreSQL refuses the query instead, so the check runs as a BYPASSRLS read-only
+        # auditor or fails loudly. The transaction is read-only: this verifier never writes.
+        async with conn.transaction(isolation="repeatable_read", readonly=True):
+            await conn.execute("SET LOCAL row_security=off")
+            return await _verify_review_on(conn)
     finally:
         await conn.close()
+
+
+async def _verify_review_on(conn: Any) -> dict[str, Any]:
+    schema = await _review_schema_present(conn)
+    schema_ok = all(schema.values())
+    rows: list[dict[str, Any]] = []
+    if schema["decision_record.review_state"] and schema["decision_record.candidate_lineage_id"]:
+        fetched = await conn.fetch(
+            "SELECT decision_id, stage, review_state, candidate_lineage_id, "
+            "(decision_value->>'status') AS evidence_status "
+            "FROM decision_record WHERE stage = 'candidate'"
+        )
+        rows = [dict(r) for r in fetched]
+    quarantine, parity, candidates_ok = classify_candidates(rows)
+    return {
+        "ok": schema_ok and candidates_ok,
+        "schema": schema,
+        "schema_ok": schema_ok,
+        "parity": parity,
+        "quarantine_count": len(quarantine),
+        "quarantine": quarantine,
+    }
 
 
 def main() -> None:

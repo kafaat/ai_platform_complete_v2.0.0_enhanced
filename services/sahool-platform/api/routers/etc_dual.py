@@ -327,13 +327,8 @@ async def field_etc_dual(
     if ndvi_source == "raster_fresh_cog":
         ndvi_date = fresh_ndvi_date  # تاريخ اقتناء المنتج المرصود (لا date.today())
 
-    # 4. الملوحة (تجاوز الطلب > أحدث فحص تربة > 0)
-    if req.soil_ece is not None:
-        soil_ece, soil_ece_source = req.soil_ece, "request"
-    elif freshness.get("soil_ec") is not None:
-        soil_ece, soil_ece_source = float(freshness["soil_ec"]), "soil_lab_tests"
-    else:
-        soil_ece, soil_ece_source = 0.0, "default"
+    # 4. الملوحة (تجاوز الطلب > أحدث ECe معتمَد > 0)
+    soil_ece, soil_ece_source, salinity_review_required = _soil_ece_input(req.soil_ece, freshness)
 
     # 5. الطقس (مُمرَّر أو حيّ من weather-service) — خارج اتّصال القاعدة (لا حبس وصلة أثناء HTTP)
     field_lat = field_row["lat"] if field_row else None
@@ -409,8 +404,32 @@ async def field_etc_dual(
         "days_after_planting": das,
         "soil_ece": soil_ece,
         "soil_ece_source": soil_ece_source,
+        # A critical ECe behind a newer non-ECe extract (field_state escalates it).
+        "salinity_review_required": salinity_review_required,
         # يومُ السنة الذي حُسِب به ET0 ومصدرُه (مُرسَل أو تاريخ الخادم) — G15.
         "day_of_year": weather.day_of_year,
         "day_of_year_source": resolve_day_of_year(req.day_of_year)[1],
     }
     return payload
+
+
+def _soil_ece_input(request_ece, freshness: dict) -> tuple[float, str, bool]:
+    """(ECe, its source, salinity review required) — request > approved ECe > 0.
+
+    The ECe rule is field_state's (gather_field_freshness): a newest EC that is not an ECe
+    leaves the ECe unknown, so the default 0 is labelled unknown, never a measured low; a
+    critical ECe behind that extract is reported (``salinity_review_required``)."""
+    if request_ece is not None:
+        return request_ece, "request", False
+    if freshness.get("soil_ec") is not None:
+        # W1-03: the store the ECe came from (soil_lab_results or the labelled legacy table).
+        source = (
+            freshness.get("soil_ec_source")
+            or freshness.get("soil_lab_source")
+            or "soil_lab_results"
+        )
+        return float(freshness["soil_ec"]), source, False
+    review = bool((freshness.get("soil_ec_prior_ece") or {}).get("critical"))
+    if freshness.get("soil_ec_other_extract"):
+        return 0.0, "default_ece_unknown_newer_extract_not_ece", review
+    return 0.0, "default", False

@@ -125,7 +125,7 @@
       "source_path": "services/guardrails-engine"
     },
     "indicators-service": {
-      "authority_kind": "stateless_compute",
+      "authority_kind": "system_of_record",
       "component_kind": "service",
       "deployment_units": [
         "sahool-indicators-service"

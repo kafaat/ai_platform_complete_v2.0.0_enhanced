@@ -148,6 +148,12 @@ def persist_raster_asset(
             from raster_field_coverage import for_published_asset
 
             meta["field_coverage"] = await for_published_asset(req, stats, meta)
+            # W1-11: the observation payload is fixed here, before the asset row is written, and
+            # stored in its provenance with its digest. The outbox write after publication is a
+            # separate transaction; the reconciliation sweep (observation_sweep.py) re-queues
+            # from this exact stored payload when that write never happened. It cannot be
+            # rebuilt from the row: acquisition_date is a DATE and median/p10/p90 are not kept.
+            _observation["payload"] = _observation_payload()
             ok = await db_persist.insert_raster_asset(
                 field_id=req.field_id,
                 tenant_id=req.tenant_id,
@@ -213,7 +219,8 @@ def persist_raster_asset(
                     },
                     # v143: النَّسَب — مراجعة الهندسة في الأصل نفسه (فوق العمود المخصّص).
                     "geometry_revision": getattr(req, "geometry_revision", None),
-                },
+                }
+                | _observation_provenance(),
             )
             # FINDING-008: جسر الكتالوج — عند نجاح الأصل نكتب صفّاً مُقابِلاً في
             # raster_registry (كان يملؤه فقط مسار REST يدويّ) كي لا يبقى الكتالوج فارغاً.
@@ -223,6 +230,8 @@ def persist_raster_asset(
             if ok and _all_masked:
                 return False
             if not (ok and _catalogued):
+                if ok:
+                    await _queue_observation()
                 return ok
             try:
                 registered = await db_persist.insert_raster_registry_entry(
@@ -264,12 +273,78 @@ def persist_raster_asset(
                     req.indicator.value,
                 )
                 return False
-            return await db_persist.set_raster_asset_status(
+            published = await db_persist.set_raster_asset_status(
                 tenant_id=req.tenant_id,
                 product_identity_key=_product_identity.key(),
                 cog_uri=cog_url,
                 status="ready",
             )
+            if published:
+                await _queue_observation()
+            return published
+
+        _observation: dict = {"payload": None}
+
+        def _observation_payload() -> dict | None:
+            try:
+                import observation_outbox
+
+                return observation_outbox.build_payload(
+                    tenant_id=req.tenant_id,
+                    field_id=req.field_id,
+                    indicator=req.indicator.value,
+                    scene_id=req.scene_id,
+                    capture_datetime=req.capture_datetime,
+                    stats=stats,
+                    quality=_quality,
+                    algorithm_version=(_validated.get("provenance") or {}).get("algorithm_version")
+                    or raster_quality.ALGORITHM_VERSION,
+                    qa_mask_version=_qa_mask_version,
+                    product_identity_key=_product_identity.key(),
+                    geometry_revision=getattr(req, "geometry_revision", None),
+                    data_available_at=meta.get("data_available_at"),
+                    processing_job_id=job_id,
+                    cog_uri=cog_url,
+                )
+            except Exception as _obe:  # noqa: BLE001 — an observation never fails the asset
+                logger.warning("canonical observation payload not built: %s", _obe)
+                return None
+
+        def _observation_provenance() -> dict:
+            payload = _observation["payload"]
+            if payload is None:
+                return {}
+            import observation_outbox
+
+            return {
+                observation_outbox.PROVENANCE_PAYLOAD_KEY: payload,
+                observation_outbox.PROVENANCE_DIGEST_KEY: observation_outbox.payload_sha256(
+                    payload
+                ),
+            }
+
+        async def _queue_observation() -> None:
+            # W1-11 (owner decision 2026-11-16, pull form): every published asset is written to
+            # raster_observation_outbox; indicators-service drains it over this service's
+            # internal feed (routers/observation_feed.py). raster-service calls no other
+            # service here. Runs after publication, in its own transaction, and never changes
+            # its result; when it never runs (crash, outbox down past the hold), the
+            # reconciliation sweep queues the payload stored in the asset's provenance.
+            try:
+                import observation_outbox
+
+                payload = _observation["payload"]
+                if payload is None:
+                    logger.warning(
+                        "canonical observation not queued field_id=%s index=%s: no tenant, scene, "
+                        "acquisition time or finite mean",
+                        req.field_id,
+                        req.indicator.value,
+                    )
+                    return
+                await observation_outbox.publish(payload)
+            except Exception as _obe:  # noqa: BLE001 — queueing never fails the publication
+                logger.warning("canonical observation not queued: %s", _obe)
 
         # v5-audit F1: نلتقط نتيجة الحفظ ونُصدِر سطراً منظَّماً — «job completed» وحده
         # كان لا يُميّز «حُفِظ في DB» عن «في الذاكرة فقط والإدراج عاد False بصمت»، فبعد

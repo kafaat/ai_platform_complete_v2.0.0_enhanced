@@ -1609,6 +1609,16 @@ services:
       # Follow-up receipt reads use the canonical token; activation retains its alias.
       DECISION_SERVICE_AUTH_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       RASTER_FOLLOWUP_TENANTS: ${RASTER_FOLLOWUP_TENANTS:-}
+      # W1-11: reconciliation sweep — queues a published asset whose stored observation payload
+      # has no raster_observation_outbox row (publish and outbox are two transactions). Same
+      # explicit UUID CSV partition rule as RASTER_FOLLOWUP_TENANTS; empty = the sweep idles.
+      RASTER_OBSERVATION_SWEEP_ENABLED: ${RASTER_OBSERVATION_SWEEP_ENABLED:-true}
+      RASTER_OBSERVATION_SWEEP_TENANTS: ${RASTER_OBSERVATION_SWEEP_TENANTS:-}
+      RASTER_OBSERVATION_SWEEP_INTERVAL_SECONDS: ${RASTER_OBSERVATION_SWEEP_INTERVAL_SECONDS:-300}
+      RASTER_OBSERVATION_SWEEP_BATCH: ${RASTER_OBSERVATION_SWEEP_BATCH:-100}
+      # Operator token for POST /internal/v1/observation-outbox/requeue (conflict/rejected back
+      # to pending, explicit only). Empty = the re-queue answers 503.
+      RASTER_OBSERVATION_OUTBOX_OPERATOR_TOKEN: ${RASTER_OBSERVATION_OUTBOX_OPERATOR_TOKEN:-}
       JWT_SECRET: ${JWT_SECRET:-}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
@@ -1885,6 +1895,26 @@ services:
       RASTER_SERVICE_URL: http://sahool-raster-service:8001
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       RS_OBSERVATION_POLICY_ID: ${RS_OBSERVATION_POLICY_ID:-NDVI_CURRENT_REAL_ONLY_V1}
+      # W1-11 (owner decision 2026-11-16): owner of canonical_observations (v286), written only
+      # by its drain worker under app.current_tenant (RLS FORCE, NOBYPASSRLS role). The worker
+      # PULLS each tenant's pending published observations from raster-service
+      # (GET /internal/v1/observation-outbox), stores them idempotently, then acknowledges them;
+      # raster-service never calls this service. Tenants are an explicit partition (UUID CSV,
+      # empty = the drain idles and /readyz says so), as RASTER_FOLLOWUP_TENANTS.
+      INDICATORS_OBSERVATION_DRAIN_ENABLED: ${INDICATORS_OBSERVATION_DRAIN_ENABLED:-true}
+      INDICATORS_OBSERVATION_DRAIN_TENANTS: ${INDICATORS_OBSERVATION_DRAIN_TENANTS:-}
+      INDICATORS_OBSERVATION_DRAIN_INTERVAL_SECONDS: ${INDICATORS_OBSERVATION_DRAIN_INTERVAL_SECONDS:-30}
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -3171,6 +3201,8 @@ services:
       WATER_LEDGER_AUTO_ENABLED: ${WATER_LEDGER_AUTO_ENABLED:-false}
       # WATER-DEFICIT-BRIDGE: جسر عجز الماء المحكوم — default-off مزدوج (جسر + تنفيذ
       # آليّ)، والتنفيذ الآليّ يتطلّب هدفاً صريحاً؛ بدونهما القيد بشريّ المراجعة دائماً.
+      # W2-04 (2026-11-16): AUTO_EXECUTION يعني اعتماداً آليّاً + خطّة فقط، ثمّ
+      # awaiting_human_authorization؛ التفويض والتنفيذ لإنسانٍ عبر decision-service.
       WATER_DEFICIT_DECISION_BRIDGE_ENABLED: ${WATER_DEFICIT_DECISION_BRIDGE_ENABLED:-false}
       WATER_DEFICIT_DECISION_THRESHOLD_MM: ${WATER_DEFICIT_DECISION_THRESHOLD_MM:-10}
       WATER_DEFICIT_POLICY_VERSION: ${WATER_DEFICIT_POLICY_VERSION:-water-deficit.v1}

@@ -11,7 +11,7 @@ field-segmentation,service,sahool-field-segmentation,fields-boundary,stateless_c
 frontend,frontend,sahool-frontend,user-interface,presentation,frontend,sahool-frontend,sahool-frontend,0,,
 gis-workflow-service,tool_bundle,,gis-publication,system_of_record,services/gis-workflow-service,,,2,,True
 guardrails-engine,service,sahool-guardrails-engine,decision-governance,system_of_record,services/guardrails-engine,sahool-guardrails-engine,sahool-guardrails-engine,2,True,True
-indicators-service,service,sahool-indicators-service,indicators,stateless_compute,services/indicators-service,sahool-indicators-service,sahool-indicators-service,0,True,True
+indicators-service,service,sahool-indicators-service,indicators,system_of_record,services/indicators-service,sahool-indicators-service,sahool-indicators-service,1,True,True
 knowledge-graph,service,sahool-knowledge-graph,knowledge,stateless_compute,services/knowledge-graph,sahool-knowledge-graph,sahool-knowledge-graph,0,True,True
 local-ai-rag,service,sahool-local-ai-rag,knowledge,stateless_compute,services/local-ai-rag,sahool-local-ai-rag,sahool-local-ai-rag,0,True,True
 mcp_servers,service,sahool-market-mcp|sahool-sentinel-hub-mcp|sahool-weather-mcp|sahool-wofost-mcp,agents-mcp,system_of_record,services/mcp_servers,sahool-market-mcp|sahool-sentinel-hub-mcp|sahool-weather-mcp|sahool-wofost-mcp,sahool-market-mcp|sahool-sentinel-hub-mcp|sahool-weather-mcp|sahool-wofost-mcp,6,True,True
@@ -20,7 +20,7 @@ model-registry-adapter,worker_adapter,sahool-model-lifecycle-adapter,decision-go
 notification-agent,worker,sahool-notification-agent,notifications,stateless_compute,agents/notification,sahool-notification-agent,sahool-notification-agent,0,,
 qdrant-seed,init_job,sahool-qdrant-seed,knowledge,stateless_compute,services/qdrant-seed,sahool-qdrant-seed,sahool-qdrant-seed,0,,True
 rag-retrieval,service,sahool-rag-retrieval,knowledge,system_of_record,services/rag-retrieval,sahool-rag-retrieval,sahool-rag-retrieval,2,True,True
-raster-service,service,sahool-raster-backfill-scan-worker|sahool-raster-cache-invalidation-worker|sahool-raster-service,remote-sensing-truth,system_of_record,services/raster-service,sahool-raster-backfill-scan-worker|sahool-raster-cache-invalidation-worker|sahool-raster-service,sahool-raster-backfill-scan-worker|sahool-raster-cache-invalidation-worker|sahool-raster-service,14,True,True
+raster-service,service,sahool-raster-backfill-scan-worker|sahool-raster-cache-invalidation-worker|sahool-raster-service,remote-sensing-truth,system_of_record,services/raster-service,sahool-raster-backfill-scan-worker|sahool-raster-cache-invalidation-worker|sahool-raster-service,sahool-raster-backfill-scan-worker|sahool-raster-cache-invalidation-worker|sahool-raster-service,15,True,True
 raster-tiler-service,service,raster-tiler-service,remote-sensing-truth,stateless_compute,services/raster-tiler-service,,raster-tiler-service,0,True,True
 realtime-agent,worker,sahool-realtime-agent,realtime-voice-experimental,stateless_compute,services/realtime-agent,sahool-realtime-agent,sahool-realtime-agent,0,True,True
 realtime-session,service,sahool-realtime-session,realtime-control-plane-experimental,operational_coordination,services/realtime-session,sahool-realtime-session,sahool-realtime-session,0,True,True

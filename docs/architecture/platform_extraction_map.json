@@ -2873,7 +2873,7 @@
       "function": "field_alerts_derived",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/alerts/derived",
-      "line": 3881,
+      "line": 3729,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/alerts/derived::field_alerts_derived"
@@ -2893,7 +2893,7 @@
       "function": "field_history",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/history",
-      "line": 3639,
+      "line": 3487,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/history::field_history"
@@ -2933,7 +2933,7 @@
       "function": "list_crop_rotations",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/rotations",
-      "line": 3397,
+      "line": 3245,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/rotations::list_crop_rotations"
@@ -2953,7 +2953,7 @@
       "function": "list_soil_lab_tests",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
-      "line": 3186,
+      "line": 3150,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/soil-lab-tests::list_soil_lab_tests"
@@ -2973,7 +2973,7 @@
       "function": "field_state_full",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state/full",
-      "line": 3907,
+      "line": 3755,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/state/full::field_state_full"
@@ -2983,7 +2983,7 @@
       "function": "field_canonical_state",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state",
-      "line": 3853,
+      "line": 3701,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/state::field_canonical_state"
@@ -3003,7 +3003,7 @@
       "function": "field_water_stress_spectral",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-stress-spectral",
-      "line": 3821,
+      "line": 3669,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/water-stress-spectral::field_water_stress_spectral"
@@ -3063,7 +3063,7 @@
       "function": "update_soil_lab_test",
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
-      "line": 3210,
+      "line": 3170,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::PATCH /api/v1/fields/{field_id}/soil-lab-tests/{test_id}::update_soil_lab_test"
@@ -3113,7 +3113,7 @@
       "function": "validate_geometry",
       "method": "POST",
       "path": "/api/v1/fields/validate-geometry",
-      "line": 3483,
+      "line": 3331,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/validate-geometry::validate_geometry"
@@ -3133,7 +3133,7 @@
       "function": "evaluate_field_alerts_endpoint",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/alerts/evaluate",
-      "line": 3336,
+      "line": 3184,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/alerts/evaluate::evaluate_field_alerts_endpoint"
@@ -3193,7 +3193,7 @@
       "function": "create_pin",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/pins",
-      "line": 3756,
+      "line": 3604,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/pins::create_pin"
@@ -3203,7 +3203,7 @@
       "function": "prescribe_nitrogen",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
-      "line": 3516,
+      "line": 3364,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/prescriptions/nitrogen::prescribe_nitrogen"
@@ -3213,7 +3213,7 @@
       "function": "add_crop_rotation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/rotations",
-      "line": 3355,
+      "line": 3203,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/rotations::add_crop_rotation"
@@ -3233,7 +3233,7 @@
       "function": "create_soil_lab_test",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
-      "line": 3128,
+      "line": 3136,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/soil-lab-tests::create_soil_lab_test"
@@ -3243,7 +3243,7 @@
       "function": "field_timeline",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/timeline",
-      "line": 3619,
+      "line": 3467,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/timeline::field_timeline"
@@ -3253,7 +3253,7 @@
       "function": "apply_trueup",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/trueup",
-      "line": 3424,
+      "line": 3272,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/trueup::apply_trueup"
@@ -3263,7 +3263,7 @@
       "function": "field_walk_plan_pdf",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
-      "line": 3788,
+      "line": 3636,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/walk-plan/pdf::field_walk_plan_pdf"
@@ -3273,7 +3273,7 @@
       "function": "field_walk_plan",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan",
-      "line": 3778,
+      "line": 3626,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/walk-plan::field_walk_plan"
@@ -3293,7 +3293,7 @@
       "function": "estimate_field_yield",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-estimate",
-      "line": 3545,
+      "line": 3393,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/yield-estimate::estimate_field_yield"
@@ -3303,7 +3303,7 @@
       "function": "field_zones",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/zones",
-      "line": 3807,
+      "line": 3655,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/zones::field_zones"
@@ -4993,7 +4993,7 @@
       "function": "report_season_summary",
       "method": "GET",
       "path": "/api/v1/reports/season/{season_id}/summary",
-      "line": 264,
+      "line": 267,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/reports.py::GET /api/v1/reports/season/{season_id}/summary::report_season_summary"
@@ -5003,7 +5003,7 @@
       "function": "build_report",
       "method": "POST",
       "path": "/api/v1/reports/build",
-      "line": 375,
+      "line": 378,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/reports.py::POST /api/v1/reports/build::build_report"
@@ -5013,7 +5013,7 @@
       "function": "operation_report_csv",
       "method": "POST",
       "path": "/api/v1/reports/operation",
-      "line": 325,
+      "line": 328,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/reports.py::POST /api/v1/reports/operation::operation_report_csv"
@@ -5143,7 +5143,7 @@
       "function": "season_workspace",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/season-workspace",
-      "line": 271,
+      "line": 315,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/season_workspace.py::GET /api/v1/fields/{field_id}/season-workspace::season_workspace"
@@ -5363,7 +5363,7 @@
       "function": "field_lab_context",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/lab-context",
-      "line": 775,
+      "line": 766,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/fields/{field_id}/lab-context::field_lab_context"
@@ -5373,7 +5373,7 @@
       "function": "list_lab_samples",
       "method": "GET",
       "path": "/api/v1/lab/samples",
-      "line": 331,
+      "line": 272,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/lab/samples::list_lab_samples"
@@ -5383,7 +5383,7 @@
       "function": "soil_depth_endpoint",
       "method": "GET",
       "path": "/api/v1/soil-sampling/depth",
-      "line": 63,
+      "line": 64,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/soil-sampling/depth::soil_depth_endpoint"
@@ -5393,7 +5393,7 @@
       "function": "soil_protocol_endpoint",
       "method": "GET",
       "path": "/api/v1/soil-sampling/protocol",
-      "line": 69,
+      "line": 70,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/soil-sampling/protocol::soil_protocol_endpoint"
@@ -5403,7 +5403,7 @@
       "function": "soil_subsamples_endpoint",
       "method": "GET",
       "path": "/api/v1/soil-sampling/subsamples",
-      "line": 57,
+      "line": 58,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::GET /api/v1/soil-sampling/subsamples::soil_subsamples_endpoint"
@@ -5413,7 +5413,7 @@
       "function": "transition_lab_sample",
       "method": "POST",
       "path": "/api/v1/lab/samples/{sample_id}/transition",
-      "line": 644,
+      "line": 622,
       "target_owner": "sahool-platform",
       "owner_type": "platform-lab-intake",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/samples/{sample_id}/transition::transition_lab_sample",
@@ -5424,7 +5424,7 @@
       "function": "create_lab_sample",
       "method": "POST",
       "path": "/api/v1/lab/samples",
-      "line": 393,
+      "line": 334,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/samples::create_lab_sample"
@@ -5434,7 +5434,7 @@
       "function": "submit_soil_lab_result",
       "method": "POST",
       "path": "/api/v1/lab/soil-results",
-      "line": 463,
+      "line": 413,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/soil-results::submit_soil_lab_result"
@@ -5444,7 +5444,7 @@
       "function": "submit_water_lab_result",
       "method": "POST",
       "path": "/api/v1/lab/water-results",
-      "line": 593,
+      "line": 547,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/soil_sampling.py::POST /api/v1/lab/water-results::submit_water_lab_result"

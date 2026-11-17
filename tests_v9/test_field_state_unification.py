@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 
@@ -25,6 +25,40 @@ def core_on_path():
     if CORE not in sys.path:
         sys.path.insert(0, CORE)
     pytest.importorskip("fastapi")
+
+
+def _ec_row(ref, value, *, sampled_on=None, method="saturated_paste"):
+    """One ``soil_analyte_candidates(analyte='ec_dsm')`` row, as lab_store returns it."""
+    legacy = ref.startswith("soil_lab_tests:")
+    return {
+        "sampled_on": sampled_on or date.today(),
+        "sampled_on_source": "sampled_on",
+        "result": json.dumps({"ec": value, "ph": 7.5} if legacy else {"ec_dsm": value}),
+        "evidence_ref": ref,
+        "method_code": None if legacy else method,
+        "age_days": 0.0,
+    }
+
+
+@pytest.fixture(autouse=True)
+def ec_candidates(monkeypatch):
+    """W1-03: the ECe is read per analyte (lab_store.soil_ece_evidence over
+    soil_analyte_candidates). That reader is stubbed at function level: by default the legacy
+    row of _Conn (its ``ec``); a test sets ``ec_candidates["rows"]`` for v156 evidence."""
+    if CORE not in sys.path:
+        sys.path.insert(0, CORE)
+    import api.lab_store as store
+
+    override: dict = {}
+
+    async def candidates(conn, *, field_id, analyte, tenant_id=None, limit=20):
+        if "rows" in override:
+            return override["rows"]
+        ec = getattr(conn, "_ec", None)
+        return [] if ec is None else [_ec_row("soil_lab_tests:soil_t1", ec)]
+
+    monkeypatch.setattr(store, "soil_analyte_candidates", candidates)
+    return override
 
 
 class _Tx:
@@ -75,8 +109,15 @@ class _Conn:
             }
         if "imagery_automation_fields" in sql:
             return {"last_ndvi_mean": self._ndvi, "last_ndvi_date": self._today}
-        if "FROM soil_lab_tests" in sql:  # صفّ واحد: sampled_on + result (EC)
-            return {"sampled_on": self._today, "result": json.dumps({"ec": self._ec, "ph": 7.5})}
+        if "FROM soil_lab_tests" in sql:  # W1-03: رأس lab_store — احتياط قديم موسوم (EC)
+            return {
+                "ref_id": "soil_t1",
+                "sampled_on": self._today,
+                "sampled_on_source": "sampled_on",
+                "source_priority": 0,
+                "legacy_result": json.dumps({"ec": self._ec, "ph": 7.5}),
+                "legacy_status": "published",
+            }
         if "FROM field_boundaries" in sql:  # Bundle B: جودة الحدّ (None ⇒ لا كتلة)
             if self._boundary_confidence is None:
                 return None
@@ -378,3 +419,220 @@ def test_extract_ec_tolerant_keys(core_on_path):
     assert _extract_ec({"ph": 7}) is None  # لا EC ⇒ None
     assert _extract_ec(None) is None
     assert _extract_ec("{bad json") is None
+
+
+def _canonical_analysis(monkeypatch, analysis):
+    """W1-03: the lab_store reader stubbed at its own level (the legacy row of _Conn unused)."""
+    import api.lab_store as store
+
+    async def latest(conn, *, field_id, tenant_id=None):
+        return analysis
+
+    monkeypatch.setattr(store, "latest_approved_soil_analysis", latest)
+
+
+@pytest.mark.asyncio
+async def test_approved_v156_ec_alone_escalates_salinity(core_on_path, monkeypatch, ec_candidates):
+    """W1-03 acceptance: an EC approved only in soil_lab_results changes the escalation."""
+    from api.field_state_projection import recompute_field_state
+
+    ec_candidates["rows"] = [_ec_row("soil_lab_results:rid-ec", 10.0)]
+
+    _canonical_analysis(
+        monkeypatch,
+        {
+            "source": "soil_lab_results",
+            "sampled_on": date.today(),
+            "values": {"ec_dsm": 10.0},
+            "sampled_on_source": "sampled_on",
+            "result_ids": {"ec_dsm": "rid-ec"},
+            "ec_other_extract": None,
+            "legacy_result": None,
+        },
+    )
+    st = (await recompute_field_state(_Conn(ndvi_mean=0.7, ec=1.0), "fld_1"))["state"]
+    assert st["agronomic"]["operational_truths"].get("salinity_class") == "critical", st
+    assert st["execution_mode"] == "human_review", "approved v156 EC must escalate"
+    assert st["soil_lab"] == {
+        "available": True,
+        "source": "soil_lab_results",
+        "ec_dsm": 10.0,
+        "ec_source": "soil_lab_results",
+        "ec_result_id": "rid-ec",
+        "ec_evidence_ref": "soil_lab_results:rid-ec",
+        "ec_sampled_on": date.today().isoformat(),
+        "ec_other_extract": None,
+        "ec_prior_ece": None,
+        "ece_unknown_prior_critical": False,
+        "sampled_on_source": "sampled_on",
+    }, st["soil_lab"]
+
+
+@pytest.mark.asyncio
+async def test_legacy_fallback_is_labelled_in_field_state(core_on_path):
+    from api.field_state_projection import recompute_field_state
+
+    st = (await recompute_field_state(_Conn(ndvi_mean=0.7, ec=10.0), "fld_1"))["state"]
+    assert st["soil_lab"]["source"] == "legacy_soil_lab_tests", st["soil_lab"]
+    assert st["soil_lab"]["ec_result_id"] is None, "a legacy row has no v156 result_id"
+
+
+@pytest.mark.asyncio
+async def test_no_lab_analysis_is_unavailable_not_zero(core_on_path, monkeypatch, ec_candidates):
+    from api.field_state_projection import recompute_field_state
+
+    ec_candidates["rows"] = []
+
+    _canonical_analysis(monkeypatch, None)
+    st = (await recompute_field_state(_Conn(ndvi_mean=0.7, ec=10.0), "fld_1"))["state"]
+    assert st["soil_lab"] == {
+        "available": False,
+        "source": None,
+        "ec_dsm": None,
+        "ec_source": None,
+        "ec_result_id": None,
+        "ec_evidence_ref": None,
+        "ec_sampled_on": None,
+        "ec_other_extract": None,
+        "ec_prior_ece": None,
+        "ece_unknown_prior_critical": False,
+        "sampled_on_source": None,
+    }, st["soil_lab"]
+    assert st["agronomic"]["operational_truths"].get("salinity_class") != "critical", (
+        "no lab EC must not become a salinity class"
+    )
+
+
+@pytest.mark.asyncio
+async def test_non_ece_ec_is_labelled_and_kept_out_of_salinity(
+    core_on_path, monkeypatch, ec_candidates
+):
+    """An EC 1:5 of 2.0 (≈ ECe 12+) read as ECe would classify 'low' and skip the
+    Salinity>Vigor escalation: it must not reach soil_ec, only the labelled block."""
+    from api.field_state_projection import recompute_field_state
+
+    ec_candidates["rows"] = [
+        _ec_row("soil_lab_results:r15", 2.0, method="soil_water_1_5"),
+        _ec_row("soil_lab_tests:soil_t1", 1.0, sampled_on=date(2026, 1, 1)),
+    ]
+    other = {
+        "value_dsm": 2.0,
+        "extraction_method": "soil_water_1_5",
+        "result_id": "r15",
+        "sampled_on": date.today().isoformat(),
+        "ece": False,
+    }
+    _canonical_analysis(
+        monkeypatch,
+        {
+            "source": "soil_lab_results",
+            "sampled_on": date.today(),
+            "sampled_on_source": "sampled_on",
+            "values": {"ph": 8.1},
+            "result_ids": {"ph": "rid-ph"},
+            "ec_other_extract": other,
+            "legacy_result": None,
+        },
+    )
+    st = (await recompute_field_state(_Conn(ndvi_mean=0.7, ec=1.0), "fld_1"))["state"]
+    assert st["soil_lab"]["ec_dsm"] is None, f"a non-ECe EC must not be ECe: {st['soil_lab']}"
+    assert st["soil_lab"]["ec_other_extract"] == other, "the reading must stay visible, labelled"
+    agronomic = st["agronomic"]
+    assert agronomic["operational_truths"].get("salinity_class") is None, (
+        f"no ECe must mean no salinity class: {agronomic['operational_truths']}"
+    )
+    assert not [p for p in agronomic["provenance"] if p.get("source") == "soil_ec"], (
+        f"no soil_ec may enter the agronomic provenance: {agronomic['provenance']}"
+    )
+
+
+# ── W1-03 review: one ECe rule; a sample without EC never drops an older critical ECe ──
+
+
+def _ph_only_newest_analysis(monkeypatch):
+    """The newest approved sample is pH-only (no EC), collected today."""
+    _canonical_analysis(
+        monkeypatch,
+        {
+            "source": "soil_lab_results",
+            "sampled_on": date.today(),
+            "sampled_on_source": "sampled_on",
+            "values": {"ph": 7.9},
+            "result_ids": {"ph": "rid-ph"},
+            "ec_other_extract": None,
+            "legacy_result": None,
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_newer_ph_only_sample_keeps_the_older_critical_ece(
+    core_on_path, monkeypatch, ec_candidates
+):
+    """Older critical ECe (12 dS/m) + newer pH-only sample: the pH-only sample carries no EC,
+    so the ECe is still the older one and Salinity>Vigor still escalates (auto ->
+    human_review). Before the fix the EC came from the newest sample only and was dropped."""
+    from api.field_state_projection import recompute_field_state
+
+    old = date.today() - timedelta(days=20)
+    ec_candidates["rows"] = [_ec_row("soil_lab_results:rid-old-ece", 12.0, sampled_on=old)]
+    _ph_only_newest_analysis(monkeypatch)
+    st = (await recompute_field_state(_Conn(ndvi_mean=0.7, ec=None), "fld_1"))["state"]
+    assert st["soil_lab"]["ec_dsm"] == 12.0, f"older ECe dropped by a pH-only sample: {st}"
+    assert st["soil_lab"]["ec_result_id"] == "rid-old-ece", st["soil_lab"]
+    assert st["soil_lab"]["ec_sampled_on"] == old.isoformat(), (
+        "salinity age must come from the ECe's own sample, not the newer pH-only one"
+    )
+    assert st["agronomic"]["operational_truths"].get("salinity_class") == "critical", st
+    assert st["execution_mode"] == "human_review", "critical ECe must keep escalating"
+    alerts = _derive_alerts(st)
+    assert "salinity_critical" in alerts, alerts
+
+
+def _derive_alerts(state):
+    from api.field_state_projection import _derive_alerts_from_state
+
+    return [a["alert_type"] for a in _derive_alerts_from_state(state)]
+
+
+@pytest.mark.asyncio
+async def test_newer_non_ece_ec_over_critical_prior_ece_still_escalates(
+    core_on_path, monkeypatch, ec_candidates
+):
+    """Older critical ECe + newer EC 1:5: the ECe is unknown (the extract may contradict it),
+    so it is not fed as current, but the critical prior is not dropped: human_review and the
+    critical alert, with the prior labelled."""
+    from api.field_state_projection import recompute_field_state
+
+    ec_candidates["rows"] = [
+        _ec_row("soil_lab_results:r15", 0.4, method="soil_water_1_5"),
+        _ec_row("soil_lab_results:rid-old-ece", 12.0, sampled_on=date(2026, 1, 1)),
+    ]
+    _ph_only_newest_analysis(monkeypatch)
+    st = (await recompute_field_state(_Conn(ndvi_mean=0.7, ec=None), "fld_1"))["state"]
+    soil = st["soil_lab"]
+    assert soil["ec_dsm"] is None, f"a non-ECe extract leaves the ECe unknown: {soil}"
+    assert soil["ec_other_extract"]["result_id"] == "r15", soil
+    assert soil["ec_prior_ece"]["evidence_ref"] == "soil_lab_results:rid-old-ece", soil
+    assert soil["ec_prior_ece"]["critical"] is True, soil
+    assert soil["ece_unknown_prior_critical"] is True, soil
+    assert st["execution_mode"] == "human_review", "a critical prior ECe must not fail open"
+    assert any("ECe" in r for r in st["reasons_ar"]), st["reasons_ar"]
+    assert "salinity_critical" in _derive_alerts(st)
+
+
+@pytest.mark.asyncio
+async def test_newer_non_ece_ec_over_low_prior_ece_does_not_escalate(
+    core_on_path, monkeypatch, ec_candidates
+):
+    from api.field_state_projection import recompute_field_state
+
+    ec_candidates["rows"] = [
+        _ec_row("soil_lab_results:r15", 0.4, method="soil_water_1_5"),
+        _ec_row("soil_lab_results:rid-old-ece", 1.0, sampled_on=date(2026, 1, 1)),
+    ]
+    _ph_only_newest_analysis(monkeypatch)
+    st = (await recompute_field_state(_Conn(ndvi_mean=0.7, ec=None), "fld_1"))["state"]
+    assert st["soil_lab"]["ece_unknown_prior_critical"] is False, st["soil_lab"]
+    assert st["execution_mode"] == "auto", st
+    assert "salinity_critical" not in _derive_alerts(st)
