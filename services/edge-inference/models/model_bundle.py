@@ -71,10 +71,12 @@ def open_session(weights: bytes, device: str):
     import onnxruntime as ort
 
     providers = onnx_providers(device)
-    if providers[0] not in ort.get_available_providers():
+    available = set(ort.get_available_providers())
+    selected = [provider for provider in providers if provider in available]
+    if not selected:
         raise RuntimeError("configured_onnx_provider_unavailable")
-    session = ort.InferenceSession(weights, providers=providers)
-    if providers[0] not in session.get_providers():
+    session = ort.InferenceSession(weights, providers=selected)
+    if not set(session.get_providers()).intersection(selected):
         raise RuntimeError("configured_onnx_provider_not_loaded")
     return session
 
@@ -151,11 +153,11 @@ def _validate_session(session, profile: Preprocessing, class_count: int) -> str:
         if (
             len(shape) not in {2, 3}
             or (len(shape) == 3 and isinstance(shape[0], int) and shape[0] != 1)
-            or all(isinstance(dimension, int) and dimension != width for dimension in shape[-2:])
+            or not any(isinstance(dimension, int) and dimension == width for dimension in shape[-2:])
         ):
             raise _Unavailable("pest_model_label_contract_violation")
     elif len(outputs[0].shape) > 2 or any(
-        isinstance(dimension, int) and dimension != 1 for dimension in outputs[0].shape
+        not isinstance(dimension, int) or dimension != 1 for dimension in outputs[0].shape
     ):
         raise _Unavailable("model_output_contract_violation")
     return inputs[0].name
@@ -167,6 +169,13 @@ class ModelBundleStore:
     def __init__(self) -> None:
         self._lock = Lock()
         self._active: dict[Preprocessing, tuple[tuple, ModelBundle]] = {}
+
+    def health_snapshot(self) -> dict[str, bool]:
+        """Read the published bundle pointers without acquiring the activation lock."""
+        return {
+            "pest_detector": _PEST in self._active,
+            "yield_estimator": _YIELD in self._active,
+        }
 
     def resolve(
         self, *, path: str, sha_env: str, runtime_available: bool, device: str
