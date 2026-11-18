@@ -1,0 +1,23 @@
+name: Materialize verified execution audit for PR 1538
+on:
+  push:
+    branches: [ci/materialize-1538-a6e184ac]
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - run: python3.12 scripts/ci/execution_dependency_audit.py --generate
+      - name: Store verified Git object
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          file=execution-audit/generated/execution_dependency_audit.json
+          expected=a6e184ac594b4838436c981cc7e4c9a7eac66681
+          test "$(git hash-object "$file")" = "$expected"
+          jq -Rs '{content: ., encoding: "utf-8"}' "$file" | gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input - --jq .sha | grep -Fx "$expected"
