@@ -5,6 +5,7 @@ import importlib.util
 import os
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -74,11 +75,11 @@ def test_wrong_or_missing_agent_token_is_rejected(monkeypatch):
     assert response.status_code == 401
 
 
-def test_strict_readyz_is_ready_when_required_models_are_present(monkeypatch, tmp_path):
+def test_strict_readyz_is_ready_when_required_model_bundles_are_loadable(monkeypatch, tmp_path):
     pest = tmp_path / "pest_detector_int8.onnx"
     yld = tmp_path / "yield_estimator_int8.onnx"
-    pest.write_bytes(b"placeholder-for-presence-only")
-    yld.write_bytes(b"placeholder-for-presence-only")
+    pest.write_bytes(b"pest-model")
+    yld.write_bytes(b"yield-model")
     monkeypatch.setenv("EDGE_READINESS_MODE", "strict")
     monkeypatch.setenv("PEST_MODEL_PATH", str(pest))
     monkeypatch.setenv("YIELD_MODEL_PATH", str(yld))
@@ -90,6 +91,22 @@ def test_strict_readyz_is_ready_when_required_models_are_present(monkeypatch, tm
     )
 
     module = _load_edge(monkeypatch, preserve_model_env=True)
+    from models import model_bundle
+
+    def open_session(weights, _device):
+        input_shape, output_shape = (
+            ([1, 3, 640, 640], [1, 14, 64]) if weights == b"pest-model" else ([1, 6], [1, 1])
+        )
+        return SimpleNamespace(
+            get_inputs=lambda: [
+                SimpleNamespace(name="input", type="tensor(float)", shape=input_shape)
+            ],
+            get_outputs=lambda: [
+                SimpleNamespace(name="output", type="tensor(float)", shape=output_shape)
+            ],
+        )
+
+    monkeypatch.setattr(model_bundle, "open_session", open_session)
     client = TestClient(module.app)
     response = client.get("/readyz")
     payload = response.json()
@@ -99,6 +116,42 @@ def test_strict_readyz_is_ready_when_required_models_are_present(monkeypatch, tm
     assert payload["readiness_mode"] == "strict"
     assert payload["all_required_models_active"] is True
     assert payload["active_capability_count"] == 2
+
+
+def test_matching_digest_does_not_make_unloadable_onnx_ready(monkeypatch, tmp_path):
+    pest = tmp_path / "pest_detector_int8.onnx"
+    pest.write_bytes(b"not-an-onnx-model")
+    yld = tmp_path / "yield_estimator_int8.onnx"
+    yld.write_bytes(b"yield-model")
+    monkeypatch.setenv("EDGE_READINESS_MODE", "strict")
+    monkeypatch.setenv("PEST_MODEL_PATH", str(pest))
+    monkeypatch.setenv("PEST_MODEL_SHA256", hashlib.sha256(pest.read_bytes()).hexdigest())
+    monkeypatch.setenv("YIELD_MODEL_PATH", str(yld))
+    monkeypatch.setenv("YIELD_MODEL_SHA256", hashlib.sha256(yld.read_bytes()).hexdigest())
+    monkeypatch.setattr(importlib.util, "find_spec", lambda name: object())
+
+    module = _load_edge(monkeypatch, preserve_model_env=True)
+    from models import model_bundle
+
+    def open_session(weights, _device):
+        if weights != b"yield-model":
+            raise ValueError("unloadable model")
+        return SimpleNamespace(
+            get_inputs=lambda: [SimpleNamespace(name="input", type="tensor(float)", shape=[1, 6])],
+            get_outputs=lambda: [
+                SimpleNamespace(name="output", type="tensor(float)", shape=[1, 1])
+            ],
+        )
+
+    monkeypatch.setattr(model_bundle, "open_session", open_session)
+    client = TestClient(module.app)
+    readiness = client.get("/readyz")
+    capability = client.get("/capabilities").json()["capabilities"]["pest_detect"]
+    assert readiness.status_code == 503
+    assert readiness.json()["active_capability_count"] == 1
+    assert capability["active"] is False
+    assert capability["reason"] == "model_session_unavailable"
+    assert readiness.json()["capabilities"]["pest_detect"] == capability
 
 
 def test_production_required_forces_strict_readyz_when_models_are_absent(monkeypatch):

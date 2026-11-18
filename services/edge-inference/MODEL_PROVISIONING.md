@@ -18,8 +18,9 @@ YIELD_MODEL_SHA256=<64-hex sha256 of the approved yield weight>
 ```
 
 **A file name never activates a capability.** `/capabilities`, `/readyz`, `download_models.py`
-and the two inference endpoints all verify the mounted bytes against the configured SHA-256 and
-stay fail-closed on a missing, malformed or mismatched digest (`reason` names which). The approved
+and the two inference endpoints verify the mounted bytes against the configured SHA-256.
+Readiness additionally requires an initialized ONNX session with compatible inputs, outputs and
+label contract. In strict mode, a failed activation returns 503 from readiness. The approved
 model record must separately pin model/version, license, class taxonomy, training-data provenance
 and regional calibration evidence **before** a digest is set — the digest proves identity, not fitness.
 
@@ -28,7 +29,51 @@ and regional calibration evidence **before** a digest is set — the digest prov
 and its canonical code in `shared/agronomy/pest_taxonomy.py`. A model whose output width is not
 `4 + len(labels)`, or a missing/invalid manifest, is refused with a 503
 (`pest_model_label_contract_violation`); it is never truncated to the shorter list. A model with
-a different class list ships its own manifest, pointed at with `PEST_LABELS_PATH`.
+a different class list ships its own manifest. In static configuration, set `PEST_LABELS_PATH`
+and `PEST_LABELS_SHA256` together. The default shipped dictionary has a repository-pinned digest.
+
+### In-process bundle rotation
+
+Set `PEST_MODEL_BUNDLE_MANIFEST` and/or `YIELD_MODEL_BUNDLE_MANIFEST` to the path of an
+operator-controlled JSON file. When configured, this file supplies the approved paths and hashes
+for that model in place of its static environment configuration. Mount the approval file
+read-only to the inference container. Grant write access only to the approved release process.
+
+For Docker Compose, pass these variables to the container in an override file. A project
+`.env` alone does not forward additional variables to `sahool-edge`.
+
+```yaml
+services:
+  sahool-edge:
+    environment:
+      PEST_MODEL_BUNDLE_MANIFEST: /models/pest-approved.json
+      YIELD_MODEL_BUNDLE_MANIFEST: /models/yield-approved.json
+```
+
+Pest manifest example
+
+```json
+{
+  "weights": "pest-2026-11.onnx",
+  "weights_sha256": "<approved 64-hex sha256>",
+  "labels": "pest-labels-2026-11.json",
+  "labels_sha256": "<approved 64-hex sha256>",
+  "preprocessing": "rgb640-chw-f32-v1"
+}
+```
+
+For yield, supply `weights`, `weights_sha256`, and `preprocessing` set to
+`rgb224-yield-features-v1`. Serve standalone ONNX files with their tensors embedded.
+Place versioned weights and labels next to the respective manifest, then atomically rename the
+reviewed manifest into place. Each request holds its original bundle through completion. The
+next request and readiness probe select the updated approval. An invalid replacement makes new
+inference unavailable until a complete approved bundle is supplied. To roll back, republish the
+prior manifest and keep its versioned files available.
+
+`/capabilities` exposes the active bundle fingerprint, label fingerprint and preprocessing
+profile. Pest provenance preserves the weights digest in `artifact_sha256` and carries
+`bundle_sha256` in the Edge response and sync envelope. The platform's current persisted
+detection provenance records the weights digest. Yield responses include both digests.
 
 **The detector is observation-only.** Detections carry class, confidence, bbox, affected crops and
 severity, with `action_policy: observation_only`. No treatment or pesticide is emitted by the

@@ -5,22 +5,24 @@ MobileViT / EfficientNet-Lite quantized for ARM64
 Extracts phenotypic features from field images
 """
 
+from __future__ import annotations
+
 import logging
 import os
+from typing import TYPE_CHECKING
 
 import numpy as np
 from models import onnx_providers
 from models.errors import ModelNotProvisioned
 from models.image_decode import decode_rgb
 
+if TYPE_CHECKING:
+    from models.model_bundle import ModelBundle
+
 logger = logging.getLogger(__name__)
 
-# Gating mirrors services/sahool-platform/core/capabilities.py :: ml_yield_active()
-# ("تنبّؤ الإنتاج بنموذج ML — يتطلّب ملفّ ONNX موجوداً"). The real ONNX path activates
-# ONLY when YIELD_MODEL_PATH points at an existing file AND onnxruntime is importable
-# (lazy — onnxruntime is NOT a hard dependency). Otherwise the service stays honestly
-# dormant and falls back to the existing rule-based heuristic estimate, unchanged.
 YIELD_MODEL_ENV = "YIELD_MODEL_PATH"
+YIELD_INPUT_SIZE = (224, 224)
 
 # Cache model sessions separately for CPU and CUDA device selection.
 _ONNX_SESSION_CACHE: dict[tuple[str, str], object] = {}
@@ -51,8 +53,7 @@ def _ml_yield_model_path(fallback_path: str | None = None) -> str | None:
 def _load_onnx_session(model_path: str, device: str):
     """Lazily import onnxruntime and return a cached InferenceSession, or None.
 
-    onnxruntime is intentionally an OPTIONAL dependency: if the import fails the
-    capability is treated as dormant and the caller falls back to the rule-based path.
+    onnxruntime is an optional dependency for standalone callers.
     """
     providers = onnx_providers(device)
     key = model_path, providers[0]
@@ -62,17 +63,13 @@ def _load_onnx_session(model_path: str, device: str):
     try:
         import onnxruntime as ort  # lazy: not in requirements, optional
     except ImportError:
-        logger.info(
-            "[EdgeYieldEstimator] onnxruntime not installed — ML yield path dormant, "
-            "falling back to rule-based estimation."
-        )
+        logger.info("[EdgeYieldEstimator] onnxruntime not installed. ML yield path is dormant.")
         return None
-    # نموذج تالف / provider غير متاح ⇒ خامل بصدق (سقوط للمسار القاعديّ، لا كسر طلب)
     try:
         session = ort.InferenceSession(model_path, providers=providers)
     except Exception as e:  # noqa: BLE001
         logger.warning(
-            "[EdgeYieldEstimator] فشل تحميل نموذج ONNX (%s) — السقوط للمسار القاعديّ: %s",
+            "[EdgeYieldEstimator] فشل تحميل نموذج ONNX (%s): %s",
             model_path,
             e,
         )
@@ -87,11 +84,14 @@ class EdgeYieldEstimator:
     Uses plant counting + canopy coverage + growth stage analysis.
     """
 
-    def __init__(self, model_path: str, device: str = "rpi5"):
-        self.model_path = model_path
+    def __init__(self, model_path: str, device: str = "rpi5", *, bundle: ModelBundle | None = None):
+        self._bundle = bundle
+        self.model_path = bundle.weight_path if bundle is not None else model_path
         self.device = device
         self.version = "2026.1-edge"
-        self.input_size = (224, 224)
+        self.input_size = (
+            bundle.preprocessing.input_size if bundle is not None else YIELD_INPUT_SIZE
+        )
 
         # Crop-specific yield factors (kg/ha baseline)
         self.yield_baselines = {
@@ -106,7 +106,8 @@ class EdgeYieldEstimator:
             "coffee": 1500,
         }
 
-        self._load_model()
+        if bundle is None:
+            self._load_model()
 
     def _load_model(self):
         if os.path.exists(self.model_path):
@@ -155,31 +156,28 @@ class EdgeYieldEstimator:
         }
 
     def predict_yield(self, features: list[dict], crop: str, growth_stage: str) -> dict:
-        """
-        Predict yield from multiple sample images.
-
-        Gated on capabilities.ml_yield_active(): when YIELD_MODEL_PATH points at an
-        existing ONNX file AND onnxruntime is importable, run REAL model inference over
-        the already-computed band-stat features and tag the result "source": "ml_onnx".
-        Otherwise fail closed with ModelNotProvisioned; no synthetic yield is returned.
-        """
+        """Predict yield from visual features with a provisioned ONNX model."""
         if not features:
             # غيابُ القياسات البصريّة ليس غلّةً صفراً — كان يُرجِع `yield_kg_ha: 0`
             # فيقرؤه المستهلكُ محصولاً معدوماً. مُدخَلٌ غيرُ صالح يُرفَض، لا يُصفَّر.
             raise ValueError("yield_features_missing")
 
-        # ── Conditional REAL ONNX path (dormant unless a model file is provisioned) ──
-        model_path = _ml_yield_model_path(self.model_path)
-        if model_path is not None:
-            session = _load_onnx_session(model_path, self.device)
-            if session is not None:
-                return self._predict_yield_onnx(session, model_path, features, crop, growth_stage)
-
-        # ── لا نموذج ONNX حقيقيّ ⇒ لا اختلاق ──
-        # سابقاً كان يُرجِع تقدير غلّة تقريبيّاً (baseline × معاملات بصريّة) مُقدَّماً
-        # للمزارع كـ"estimated_yield" بفاصل ثقة ±15% مُصطنَع. أمانةً نرفع استثناءً
-        # تُترجمه طبقة الـAPI إلى 503 بدل رقمٍ مُختلَق يبني عليه المزارع قراراً.
-        raise ModelNotProvisioned("نموذج تقدير الغلّة (ONNX) غير مُجهَّز — لا اختلاق أرقام")
+        if self._bundle is None:
+            model_path = _ml_yield_model_path(self.model_path)
+            session = _load_onnx_session(model_path, self.device) if model_path else None
+        else:
+            model_path = self._bundle.weight_path
+            session = self._bundle.session
+        if session is None:
+            raise ModelNotProvisioned("نموذج تقدير الغلّة (ONNX) غير مُجهَّز — لا اختلاق أرقام")
+        return self._predict_yield_onnx(
+            session,
+            model_path,
+            features,
+            crop,
+            growth_stage,
+            input_name=self._bundle.input_name if self._bundle is not None else None,
+        )
 
     def _predict_yield_onnx(
         self,
@@ -188,6 +186,8 @@ class EdgeYieldEstimator:
         features: list[dict],
         crop: str,
         growth_stage: str,
+        *,
+        input_name: str | None = None,
     ) -> dict:
         """Run REAL ONNX inference over the already-computed band-stat features.
 
@@ -226,7 +226,8 @@ class EdgeYieldEstimator:
             ],
             dtype=np.float32,
         )
-        input_name = session.get_inputs()[0].name
+        if input_name is None:
+            input_name = session.get_inputs()[0].name
         outputs = session.run(None, {input_name: input_vec})
         estimated_yield = float(np.asarray(outputs[0]).reshape(-1)[0])
 

@@ -1616,7 +1616,7 @@
       "apis": [
         "GET /v1/ndvi/current/{field_id} @ services/vegetation-analysis-service/routers/analysis.py:91",
         "POST /api/v1/confidence/ndvi @ services/sahool-platform/api/routers/confidence.py:35",
-        "POST /api/v1/fields/{field_id}/ndvi-analysis @ services/sahool-platform/api/routers/ndvi_analysis.py:35"
+        "POST /api/v1/fields/{field_id}/ndvi-analysis @ services/sahool-platform/api/routers/ndvi_analysis.py:42"
       ],
       "ui_consumers": [
         "frontend/src/sections/MyFieldsPage.ndvi.test.tsx"

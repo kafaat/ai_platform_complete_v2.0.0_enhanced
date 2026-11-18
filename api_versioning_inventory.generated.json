@@ -1190,7 +1190,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 219,
+    "line": 207,
     "method": "GET",
     "path": "/healthz",
     "handler": "health_check",
@@ -1199,7 +1199,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 325,
+    "line": 308,
     "method": "POST",
     "path": "/v1/inference/pest-detect",
     "handler": "detect_pest",
@@ -1208,7 +1208,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 420,
+    "line": 408,
     "method": "POST",
     "path": "/v1/inference/yield-estimate",
     "handler": "estimate_yield",
@@ -1217,7 +1217,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 492,
+    "line": 482,
     "method": "POST",
     "path": "/v1/sync/trigger",
     "handler": "trigger_sync",
@@ -1226,7 +1226,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 524,
+    "line": 514,
     "method": "GET",
     "path": "/capabilities",
     "handler": "capabilities",
@@ -1235,7 +1235,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 529,
+    "line": 519,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -1244,7 +1244,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 539,
+    "line": 529,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -7022,7 +7022,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/ndvi_analysis.py",
-    "line": 35,
+    "line": 42,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/ndvi-analysis",
     "handler": "field_ndvi_analysis",
@@ -7094,7 +7094,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/nutrients.py",
-    "line": 23,
+    "line": 31,
     "method": "POST",
     "path": "/api/v1/nutrients/4r-plan",
     "handler": "nutrient_4r_plan",

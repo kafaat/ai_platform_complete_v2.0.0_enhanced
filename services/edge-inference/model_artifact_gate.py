@@ -30,8 +30,14 @@ _SHA_CACHE: dict[tuple[str, int, int], str] = {}
 
 def expected_sha256(env_name: str) -> str | None:
     """البصمةُ المعتمدة من البيئة، أو ``None`` إن غابت أو لم تكن 64 خانةً ستّ‑عشريّة."""
-    value = (os.getenv(env_name) or "").strip().lower()
-    return value if _SHA256_HEX.match(value) else None
+    return normalize_sha256(os.getenv(env_name))
+
+
+def normalize_sha256(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    value = value.strip().lower()
+    return value if _SHA256_HEX.fullmatch(value) else None
 
 
 def sha256_of_file(path: str) -> str:
