@@ -1,0 +1,65 @@
+name: PR 1533 regenerate verified source artifacts
+on:
+  push:
+    branches:
+      - fix/vision-edge-model-bundle-20261118
+    paths:
+      - .github/workflows/pr-1533-regenerate.yml
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Regenerate inventories from the checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp api_versioning_legacy_allowlist.generated.json /tmp/pr1533-api-before.json 2>/dev/null || true
+          python scripts/ci/generate_service_inventory.py --write-registry
+          python scripts/ci/health_readiness_schema_guard.py --write
+          python scripts/ci/route_residual_classification_guard.py --write
+          python scripts/ci/api_versioning_policy_guard.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          old=Path('/tmp/pr1533-api-before.json')
+          new=Path('api_versioning_legacy_allowlist.generated.json')
+          if old.exists() and new.exists():
+              a=json.loads(old.read_text())
+              b=json.loads(new.read_text())
+              if a != b:
+                  raise SystemExit('API legacy allowlist changed: manual adjudication required')
+          PY
+      - name: Regenerate release artifacts and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/release/build_release_bundle.py
+          python scripts/ci/generate_service_inventory.py --check
+          python scripts/ci/health_readiness_schema_guard.py --check
+          python scripts/ci/route_residual_classification_guard.py --check
+          python scripts/ci/api_versioning_policy_guard.py --check
+          python scripts/release/validate_release_package.py
+      - name: Commit only generated artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git status --short
+          git add -u
+          git diff --cached --name-only
+          if git diff --cached --quiet; then
+            echo 'Nothing to commit'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(edge): regenerate inventories and release checksums after PR 1533 fixes'
+          git push origin HEAD:refs/heads/fix/vision-edge-model-bundle-20261118
