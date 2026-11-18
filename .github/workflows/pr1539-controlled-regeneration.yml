@@ -1,0 +1,94 @@
+name: PR1539 controlled regeneration
+on:
+  push:
+    branches:
+      - ops/pr1539-regenerate-20261119
+    paths:
+      - .github/workflows/pr1539-controlled-regeneration.yml
+permissions:
+  contents: write
+jobs:
+  reconcile:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout PR branch (never main)
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: fix/pr1530-verified-0bf8b558
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Prepare Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Install same pinned dependencies as architecture gate
+        run: python -m pip install --quiet pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+      - name: Check lease and merge current main safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected='8f898d7f9f6876d9f51bc0739f8ab981e7f74e98'
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$expected" || { echo "PR HEAD moved from expected $expected to $actual; stop"; exit 70; }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main
+          if ! git merge --no-commit --no-ff origin/main; then
+            if test -z "$(git ls-files --unmerged)"; then
+              echo "Merge failed without file conflicts. Refusing to proceed"
+              exit 71
+            fi
+          fi
+          mapfile -t conflicts < <(git diff --name-only --diff-filter=U)
+          for f in "${conflicts[@]}"; do
+            case "$f" in
+              SERVICE_REGISTRY.md|service_inventory.csv|service_inventory.generated.json|release/*|docs/capability-registry/generated/*|docs/architecture/generated/*|decision-lineage/generated/*|execution-audit/generated/*|capabilities/generated/*)
+                echo "Reconcile generated conflict from main, then regenerate: $f"
+                git checkout --theirs -- "$f"
+                git add -- "$f"
+                ;;
+              *)
+                echo "Source/policy conflict requires human review, no push: $f"
+                exit 72
+                ;;
+            esac
+          done
+          if test -n "$(git ls-files --unmerged)"; then
+            echo "Unresolved merge conflicts"
+            exit 73
+          fi
+          if git rev-parse -q --verify MERGE_HEAD >/dev/null; then
+            git commit -m "merge: sync PR 1539 with latest main before regeneration"
+          fi
+          git log -2 --oneline
+      - name: Regenerate all discovered inventories, catalogs, runtime ledgers, release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          python scripts/ci/verify_all_generated.py --fix
+      - name: Verify generated files and targeted regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          python scripts/ci/verify_all_generated.py --check
+          python -m pytest -q             tests/architecture/test_arch_s2_dependency_truth.py             tests/architecture/test_capability_evidence_maturity_engine.py             tests/architecture/test_compose_runtime_target_resolver.py             tests/architecture/test_path3_runtime_readiness_closure.py             tests/release/test_phase14_release_packaging_contracts.py             tests_v9/test_platform_catalog_gate.py
+          python scripts/release/validate_release_package.py
+      - name: Commit verified generated artifacts and push only if PR head unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git diff --cached --check
+          echo "Changed files:"
+          git diff --cached --name-only
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: regenerate PR 1539 inventories and release evidence"
+          fi
+          expected='8f898d7f9f6876d9f51bc0739f8ab981e7f74e98'
+          now="$(git ls-remote origin refs/heads/fix/pr1530-verified-0bf8b558 | cut -f1)"
+          test "$now" = "$expected" || { echo "PR branch moved during generation: $now; stop"; exit 74; }
+          git push origin HEAD:refs/heads/fix/pr1530-verified-0bf8b558
