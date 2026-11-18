@@ -7022,7 +7022,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/ndvi_analysis.py",
-    "line": 35,
+    "line": 42,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/ndvi-analysis",
     "handler": "field_ndvi_analysis",

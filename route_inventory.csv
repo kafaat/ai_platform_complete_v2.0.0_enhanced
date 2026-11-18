@@ -780,7 +780,7 @@ sahool-platform,services/sahool-platform/api/routers/market.py,101,GET,/api/v1/m
 sahool-platform,services/sahool-platform/api/routers/master_data.py,36,POST,/api/v1/master-data,create_master_data
 sahool-platform,services/sahool-platform/api/routers/master_data.py,98,GET,/api/v1/master-data,list_master_data
 sahool-platform,services/sahool-platform/api/routers/me.py,29,GET,/api/v1/me,me
-sahool-platform,services/sahool-platform/api/routers/ndvi_analysis.py,35,POST,/api/v1/fields/{field_id}/ndvi-analysis,field_ndvi_analysis
+sahool-platform,services/sahool-platform/api/routers/ndvi_analysis.py,42,POST,/api/v1/fields/{field_id}/ndvi-analysis,field_ndvi_analysis
 sahool-platform,services/sahool-platform/api/routers/niche_crops.py,24,GET,/api/v1/niche-crops/list,niche_crops_list_endpoint
 sahool-platform,services/sahool-platform/api/routers/niche_crops.py,30,GET,/api/v1/niche-crops/detail,niche_crops_detail_endpoint
 sahool-platform,services/sahool-platform/api/routers/nl_gis.py,330,POST,/api/v1/nl-gis/query,nl_gis_query_endpoint

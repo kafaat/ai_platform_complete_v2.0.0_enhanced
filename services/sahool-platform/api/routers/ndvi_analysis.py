@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from core.ndvi_analysis import analyze_ndvi_series
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from api.main import Permission, UserSchema, require_permission
 
@@ -23,6 +23,13 @@ class NdviReading(BaseModel):
 
     date: str = Field(description="تاريخ القراءة ISO (YYYY-MM-DD) أو نصّ زمنيّ")
     ndvi: float = Field(description="قيمة NDVI للقراءة")
+
+    @field_validator("ndvi", mode="before")
+    @classmethod
+    def reject_boolean(cls, value: object) -> object:
+        if isinstance(value, bool):
+            raise ValueError("NDVI must be numeric")
+        return value
 
 
 class NdviAnalysisRequest(BaseModel):

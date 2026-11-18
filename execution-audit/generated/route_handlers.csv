@@ -741,7 +741,7 @@ sahool-platform,GET,/api/v1/market/crop-classification-readiness,crop_classifica
 sahool-platform,POST,/api/v1/master-data,create_master_data,services/sahool-platform/api/routers/master_data.py,36
 sahool-platform,GET,/api/v1/master-data,list_master_data,services/sahool-platform/api/routers/master_data.py,98
 sahool-platform,GET,/api/v1/me,me,services/sahool-platform/api/routers/me.py,29
-sahool-platform,POST,/api/v1/fields/{field_id}/ndvi-analysis,field_ndvi_analysis,services/sahool-platform/api/routers/ndvi_analysis.py,35
+sahool-platform,POST,/api/v1/fields/{field_id}/ndvi-analysis,field_ndvi_analysis,services/sahool-platform/api/routers/ndvi_analysis.py,42
 sahool-platform,GET,/api/v1/niche-crops/list,niche_crops_list_endpoint,services/sahool-platform/api/routers/niche_crops.py,24
 sahool-platform,GET,/api/v1/niche-crops/detail,niche_crops_detail_endpoint,services/sahool-platform/api/routers/niche_crops.py,30
 sahool-platform,POST,/api/v1/nl-gis/query,nl_gis_query_endpoint,services/sahool-platform/api/routers/nl_gis.py,330
