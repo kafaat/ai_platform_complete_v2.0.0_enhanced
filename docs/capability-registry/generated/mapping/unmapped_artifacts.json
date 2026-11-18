@@ -10816,6 +10816,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/runtime/test_zlmediakit_bootstrap.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/security/test_phase12_final_production_gates.py",
     "kind": "tests"
   },
