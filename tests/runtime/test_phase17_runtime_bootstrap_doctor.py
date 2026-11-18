@@ -52,7 +52,7 @@ def safe_env() -> dict[str, str]:
             "SAHOOL_AGENT_TOKEN": "strong-token-value-for-contract-tests",
             "SAHOOL_BUILD_ID": "test-build",
             "TESTED_SHA": "0000000000000000000000000000000000000",
-            "ZLMEDIAKIT_IMAGE": "zlmediakit/zlmediakit:master",
+            "ZLMEDIAKIT_IMAGE": "zlmediakit/zlmediakit@sha256:" + "a" * 64,
             "APP_DB_PASSWORD": "strong-pass",
             "DB_PASSWORD": "strong-pass",
             "INGEST_DB_PASSWORD": "strong-pass",

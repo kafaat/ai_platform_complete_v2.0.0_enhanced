@@ -21,7 +21,7 @@ import urllib.request
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 ROOT_MARKERS = ["docker-compose.v9.yml", "migrations/MANIFEST.txt"]
 REQUIRED_FILES = [
@@ -508,6 +508,19 @@ def scan_compose_required(
     return found, missing
 
 
+def check_zlmediakit_image(image: str, checks: list[Check]) -> None:
+    match = re.fullmatch(r"[^@\s]+@sha256:([0-9a-f]{64})", image)
+    valid = match is not None and match.group(1) != "0" * 64
+    add(
+        checks,
+        "zlmediakit-image-pin",
+        "pass" if valid else "fail",
+        "ZLMediaKit image digest is pinned"
+        if valid
+        else "Set ZLMEDIAKIT_IMAGE to an image reference with a nonzero SHA-256 digest",
+    )
+
+
 def check_compose_required_vars(
     root: Path,
     checks: list[Check],
@@ -528,6 +541,23 @@ def check_compose_required_vars(
     env = load_compose_env_file(env_path)
     env.update(os.environ if environ is None else environ)
     found, missing = scan_compose_required(paths, env, root)
+    if any(req.name == "ZLMEDIAKIT_IMAGE" for req in found) and env.get("ZLMEDIAKIT_IMAGE"):
+        check_zlmediakit_image(env["ZLMEDIAKIT_IMAGE"], checks)
+    if root / "docker-compose.v9.yml" in paths and env.get("DATABASE_URL"):
+        # The v9 auth service already supplies verify-full and its CA via PGSSL*.
+        # Flag concrete DSN overrides before startup without logging credentials.
+        try:
+            dsn = urlparse(env["DATABASE_URL"])
+            modes = parse_qs(dsn.query, keep_blank_values=True).get("sslmode", [])
+            if dsn.username == "build_only" or any(mode != "verify-full" for mode in modes):
+                add(
+                    checks,
+                    "auth-database-url",
+                    "fail",
+                    "Use runtime database credentials and verify-full TLS for sahool-auth",
+                )
+        except ValueError:
+            add(checks, "auth-database-url", "fail", "Invalid DATABASE_URL for sahool-auth")
     rules: dict[str, str] = {}
     messages: dict[str, str] = {}
     locations: dict[str, list[str]] = {}
@@ -810,6 +840,9 @@ def main() -> int:
     check_required_files(root, checks)
     check_env(root, checks)
     check_minio_images(root, checks)
+    image_env = load_compose_env_file(root / ".env")
+    image = os.environ.get("ZLMEDIAKIT_IMAGE", image_env.get("ZLMEDIAKIT_IMAGE", ""))
+    check_zlmediakit_image(image, checks)
     check_migrations(root, checks)
     check_compose_static(root, checks)
     check_compose_config(root, checks)

@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7538,
+    "files_scanned": 7539,
     "files_by_kind": {
       "backend": 1302,
       "database": 352,
       "governance": 88,
       "mobile": 429,
       "other": 2200,
-      "tests": 2611,
+      "tests": 2612,
       "web": 556
     },
-    "unmapped_artifacts": 3594,
+    "unmapped_artifacts": 3595,
     "ambiguous_artifacts": 261,
     "files_by_reading": {
-      "python_functional": 4098,
+      "python_functional": 4099,
       "raw": 3440
     },
-    "test_dependency_files": 1993,
-    "test_dependency_edges": 5294,
+    "test_dependency_files": 1994,
+    "test_dependency_edges": 5295,
     "test_dependency_bounded_files": 1159,
     "test_dependency_unresolved_relations": 507
   },
@@ -43879,6 +43879,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests/runtime/test_zlmediakit_bootstrap.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests/security/test_phase12_final_production_gates.py",
       "kind": "tests"
     },
@@ -73923,6 +73927,23 @@
           "source": "shared/iot_execution_runtime.py",
           "kind": "import",
           "line": 4
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests/runtime/test_zlmediakit_bootstrap.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "subprocess",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "scripts/runtime/env_doctor.py",
+          "kind": "import",
+          "line": 10
         }
       ],
       "unresolved": []
