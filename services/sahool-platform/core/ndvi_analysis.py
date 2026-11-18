@@ -31,6 +31,7 @@
 from __future__ import annotations
 
 import math
+from datetime import datetime
 from statistics import mean
 
 from core.time_series import TimePoint, detect_anomalies
@@ -64,8 +65,33 @@ def _clean_series(series: object) -> list[dict]:
         if not math.isfinite(ndvi) or not -1.0 <= ndvi <= 1.0:
             continue
         date_val = item.get("date")
-        cleaned.append({"ndvi": ndvi, "date": str(date_val) if date_val is not None else ""})
+        cleaned.append({"ndvi": ndvi, "date": date_val})
     return cleaned
+
+
+def _chronological(points: list[dict]) -> list[dict] | None:
+    """Order ISO dates or timestamps. Require one comparable time basis and unique keys."""
+    by_time = {}
+    bases = set()
+    for point in points:
+        raw = point["date"]
+        if not isinstance(raw, str):
+            return None
+        # Calendar dates and timestamps carry different precision. Mixing
+        # them would assign an invented time of day to a date-only reading.
+        if len(raw) < 10 or raw[4] != "-" or raw[7] != "-":
+            return None
+        if len(raw) > 10 and raw[10] not in ("T", " "):
+            return None
+        try:
+            instant = datetime.fromisoformat(raw)
+        except ValueError:
+            return None
+        bases.add((len(raw) == 10, instant.tzinfo is None))
+        if len(bases) > 1 or instant in by_time:
+            return None
+        by_time[instant] = point
+    return [by_time[t] for t in sorted(by_time)]
 
 
 def _linreg_slope(values: list[float]) -> float:
@@ -112,6 +138,11 @@ def analyze_ndvi_series(series: list[dict]) -> dict:
         base["note_ar"] = (
             "لا قراءات NDVI صالحة في السلسلة — لا يمكن التحليل (قرار صادق، لا اختراع)."
         )
+        return base
+
+    points = _chronological(points)
+    if points is None:
+        base["note_ar"] = "تعذّر ترتيب القراءات لغياب تاريخ صالح وفريد لكل قراءة على أساس زمني واحد."
         return base
 
     ndvi_values = [p["ndvi"] for p in points]
