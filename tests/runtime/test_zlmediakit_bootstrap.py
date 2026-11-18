@@ -34,7 +34,7 @@ def service_command(filename, service, key):
 def test_config_job(tmp_path, config, secret, success):
     conf = tmp_path / "config.ini"
     if config is not None:
-        conf.write_text(config)
+        conf.write_text(config, encoding="utf-8")
     (tmp_path / ".sahool_init").touch()
     command = service_command("docker-compose.v9.yml", "sahool-zlmediakit-config", "entrypoint")
     command = command.replace("/conf/", f"{tmp_path}/")
@@ -42,7 +42,7 @@ def test_config_job(tmp_path, config, secret, success):
         ["sh", "-c", command],
         env=dict(os.environ, SAHOOL_ENV="production", ZLM_API_SECRET=secret),
         capture_output=True,
-        text=True,
+        encoding="utf-8",
     )
     assert (result.returncode == 0) == success
     if secret:
@@ -51,7 +51,7 @@ def test_config_job(tmp_path, config, secret, success):
         assert not conf.exists()
     else:
         expected = config.replace("secret=old", "secret=" + secret) if success else config
-        assert conf.read_text() == expected
+        assert conf.read_text(encoding="utf-8") == expected
     assert not list(tmp_path.glob(".config.ini.*"))
 
 
@@ -66,7 +66,7 @@ def test_config_job(tmp_path, config, secret, success):
     ],
 )
 def test_image_pin_in_gpu_env_and_production_preflight(tmp_path, ref, valid):
-    (tmp_path / "gpu-build.vars").write_text(f"ZLMEDIAKIT_IMAGE={ref}\n")
+    (tmp_path / "gpu-build.vars").write_text(f"ZLMEDIAKIT_IMAGE={ref}\n", encoding="utf-8")
     checks = []
     check_compose_required_vars(
         tmp_path, checks, [str(ROOT / "docker-compose.v9.yml")], "gpu-build.vars", environ={}
@@ -98,7 +98,7 @@ def test_image_pin_in_gpu_env_and_production_preflight(tmp_path, ref, valid):
     ],
 )
 def test_auth_dsn_preflight(tmp_path, user, query, valid):
-    (tmp_path / "docker-compose.v9.yml").write_text("services: {}\n")
+    (tmp_path / "docker-compose.v9.yml").write_text("services: {}\n", encoding="utf-8")
     checks = []
     password = "test-password"
     env = {"DATABASE_URL": f"postgresql://{user}:{password}@sahool-postgres/sahool{query}"}
