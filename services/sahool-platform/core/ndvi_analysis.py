@@ -30,7 +30,6 @@
 
 from __future__ import annotations
 
-import math
 from datetime import datetime
 from statistics import mean
 
@@ -59,13 +58,12 @@ def _clean_series(series: object) -> list[dict]:
             continue
         if not isinstance(raw, (int, float)):
             continue
-        ndvi = float(raw)
-        # Spectral NDVI is bounded by [-1, 1]; reject non-finite and
-        # nonphysical values before computing trend, mean, or crop vigor.
-        if not math.isfinite(ndvi) or not -1.0 <= ndvi <= 1.0:
+        # Checking the range first also rejects NaN and avoids overflow when
+        # a caller supplies a large integer.
+        if not -1.0 <= raw <= 1.0:
             continue
         date_val = item.get("date")
-        cleaned.append({"ndvi": ndvi, "date": date_val})
+        cleaned.append({"ndvi": float(raw), "date": date_val})
     return cleaned
 
 

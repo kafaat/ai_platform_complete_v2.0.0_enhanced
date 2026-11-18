@@ -4273,7 +4273,7 @@
       "function": "field_ndvi_analysis",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/ndvi-analysis",
-      "line": 34,
+      "line": 41,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/ndvi_analysis.py::POST /api/v1/fields/{field_id}/ndvi-analysis::field_ndvi_analysis"
