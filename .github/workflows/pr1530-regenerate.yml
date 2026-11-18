@@ -32,6 +32,8 @@ jobs:
       - name: Generate governance, inventory, and release evidence
         run: |
           set -euo pipefail
+          # One-shot: remove privileged repair workflow before the final manifest is measured.
+          git rm .github/workflows/pr1530-regenerate.yml
           python scripts/ci/tenant_guc_scope_guard.py --generate
           python scripts/ci/generate_service_inventory.py --write-registry
           python scripts/ci/api_versioning_policy_guard.py
