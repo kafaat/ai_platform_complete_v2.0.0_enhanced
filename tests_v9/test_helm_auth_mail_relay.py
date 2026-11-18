@@ -43,9 +43,7 @@ def _run(overlay: str, *, enabled: bool = False, extras: tuple[str, ...] = ()):
     if enabled:
         args += ["-f", str(FIXTURE)]
     args += list(extras)
-    return subprocess.run(
-        args, capture_output=True, text=True, encoding="utf-8", check=False
-    )
+    return subprocess.run(args, capture_output=True, text=True, encoding="utf-8", check=False)
 
 
 def _docs(result):
@@ -67,10 +65,7 @@ def test_mail_relay_is_off_by_default_in_all_chart_values():
     auth = values["workloads"]["sahool-auth"]
     assert not auth.get("publicHttpsEgress")
     env_names = set(auth.get("env") or {}) | set(auth.get("secretEnv") or {})
-    assert all(
-        not name.startswith("SMTP_") and not name.startswith("SMS_")
-        for name in env_names
-    )
+    assert all(not name.startswith("SMTP_") and not name.startswith("SMS_") for name in env_names)
 
 
 @needs_helm
@@ -127,15 +122,9 @@ def test_enabled_mail_relay_is_restricted_to_internal_approved_peers(overlay):
     auth_egress = policies["sahool-auth-mail-relay-egress"]["spec"]
     auth_selector = auth_egress["podSelector"]["matchLabels"]
     assert auth_selector["app.kubernetes.io/component"] == "sahool-auth"
-    ports = {
-        port["port"] for entry in auth_egress["egress"] for port in entry["ports"]
-    }
+    ports = {port["port"] for entry in auth_egress["egress"] for port in entry["ports"]}
     assert ports == {53, 587, 5432, 6379}
-    assert not any(
-        "ipBlock" in peer
-        for entry in auth_egress["egress"]
-        for peer in entry["to"]
-    )
+    assert not any("ipBlock" in peer for entry in auth_egress["egress"] for peer in entry["to"])
     relay_smtp = [
         entry
         for entry in auth_egress["egress"]
@@ -143,11 +132,7 @@ def test_enabled_mail_relay_is_restricted_to_internal_approved_peers(overlay):
     ]
     assert len(relay_smtp) == 1
     assert relay_smtp[0]["to"] == [
-        {
-            "podSelector": {
-                "matchLabels": {"app.kubernetes.io/component": "sahool-mail-relay"}
-            }
-        }
+        {"podSelector": {"matchLabels": {"app.kubernetes.io/component": "sahool-mail-relay"}}}
     ]
     ingress = policies["sahool-mail-relay-auth-ingress"]["spec"]
     ingress_label = ingress["podSelector"]["matchLabels"]
@@ -155,11 +140,7 @@ def test_enabled_mail_relay_is_restricted_to_internal_approved_peers(overlay):
     assert ingress["ingress"] == [
         {
             "from": [
-                {
-                    "podSelector": {
-                        "matchLabels": {"app.kubernetes.io/component": "sahool-auth"}
-                    }
-                }
+                {"podSelector": {"matchLabels": {"app.kubernetes.io/component": "sahool-auth"}}}
             ],
             "ports": [{"protocol": "TCP", "port": 587}],
         }
