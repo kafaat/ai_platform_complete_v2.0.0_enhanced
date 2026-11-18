@@ -1,7 +1,10 @@
 {
   "service": "edge-inference",
   "model_cache": "/models",
-  "readiness_modes": ["partial", "strict"],
+  "readiness_modes": [
+    "partial",
+    "strict"
+  ],
   "required_models": [
     {
       "capability": "pest_detect",
@@ -10,7 +13,10 @@
       "format": "onnx",
       "packaged_in_repository": false,
       "operator_must_provision": true,
-      "sha256_env": "PEST_MODEL_SHA256"
+      "sha256_env": "PEST_MODEL_SHA256",
+      "bundle_manifest_env": "PEST_MODEL_BUNDLE_MANIFEST",
+      "preprocessing": "rgb640-chw-f32-v1",
+      "labels_sha256_env": "PEST_LABELS_SHA256"
     },
     {
       "capability": "yield_estimate",
@@ -19,7 +25,9 @@
       "format": "onnx",
       "packaged_in_repository": false,
       "operator_must_provision": true,
-      "sha256_env": "YIELD_MODEL_SHA256"
+      "sha256_env": "YIELD_MODEL_SHA256",
+      "bundle_manifest_env": "YIELD_MODEL_BUNDLE_MANIFEST",
+      "preprocessing": "rgb224-yield-features-v1"
     }
   ]
 }

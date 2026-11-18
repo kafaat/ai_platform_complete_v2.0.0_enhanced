@@ -5,23 +5,24 @@ ONNX Runtime with INT8 quantization for ARM64
 Supports: YOLOv8-World / MobileViT / Custom quantized models
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 from models import onnx_providers
 from models.errors import ModelNotProvisioned, ModelOutputContractError
 from models.image_decode import decode_rgb
 
+if TYPE_CHECKING:
+    from models.model_bundle import ModelBundle
+
 logger = logging.getLogger(__name__)
 
-# Gating mirrors services/sahool-platform/core/capabilities.py :: ml_pest_active()
-# ("كشف الآفات بنموذج ML — يتطلّب ملفّ ONNX موجوداً"). The real ONNX path activates
-# ONLY when PEST_MODEL_PATH points at an existing file AND onnxruntime is importable
-# (lazy — onnxruntime is NOT a hard dependency). Otherwise the service stays honestly
-# dormant: detect() raises ModelNotProvisioned (HTTP 503), with no simulated detections.
 PEST_MODEL_ENV = "PEST_MODEL_PATH"
 
 # Cache model sessions separately for CPU and CUDA device selection.
@@ -34,19 +35,20 @@ DEFAULT_PEST_LABELS_PATH = (
     Path(__file__).resolve().parent.parent / "models_manifest" / "pest_labels.json"
 )
 YOLO_BOX_ROWS = 4
+PEST_INPUT_SIZE = (640, 640)
 
 
 def load_label_manifest(path: str | os.PathLike, known_labels) -> tuple[tuple[str, str], ...]:
-    """Read and validate a label manifest -> ``((label, taxonomy_code), ...)`` by class index.
-
-    Fails closed (ModelOutputContractError) on a missing/unreadable file, a gap or repeat in
-    the indices, a duplicate label, a label the detector has no metadata for, or a missing
-    taxonomy code.
-    """
+    """Read and validate a label manifest from disk."""
     try:
-        doc = json.loads(Path(path).read_text(encoding="utf-8"))
+        return parse_label_manifest(Path(path).read_bytes(), known_labels)
     except (OSError, ValueError) as exc:
         raise ModelOutputContractError(f"pest_label_manifest_unreadable: {path}") from exc
+
+
+def parse_label_manifest(payload: bytes, known_labels) -> tuple[tuple[str, str], ...]:
+    """Validate manifest bytes and return (label, taxonomy_code) pairs in class order."""
+    doc = json.loads(payload.decode("utf-8"))
     entries = doc.get("labels") if isinstance(doc, dict) else None
     if not isinstance(entries, list) or not entries:
         raise ModelOutputContractError("pest_label_manifest_has_no_labels")
@@ -226,16 +228,16 @@ class EdgePestDetector:
         },
     }
 
-    def __init__(self, model_path: str, device: str = "rpi5"):
-        self.model_path = model_path
+    def __init__(self, model_path: str, device: str = "rpi5", *, bundle: ModelBundle | None = None):
+        self._bundle = bundle
+        self.model_path = bundle.weight_path if bundle is not None else model_path
         self.device = device
         self.version = "2026.1-edge"
-        self.input_size = (640, 640)
+        self.input_size = bundle.preprocessing.input_size if bundle is not None else PEST_INPUT_SIZE
         self._label_cache: tuple[str, tuple[tuple[str, str], ...]] | None = None
 
-        # Production: Load ONNX Runtime session
-        # No model ⇒ detect() refuses (ModelNotProvisioned); nothing is simulated for callers.
-        self._load_model()
+        if bundle is None:
+            self._load_model()
 
     def _load_model(self):
         """Load quantized ONNX model."""
@@ -257,22 +259,16 @@ class EdgePestDetector:
             )
 
     def labels(self) -> tuple[tuple[str, str], ...]:
-        """The label manifest for the configured model (``PEST_LABELS_PATH`` or the default)."""
+        """Return the bound labels, or resolve the manifest for standalone callers."""
+        if self._bundle is not None:
+            return self._bundle.labels
         path = os.getenv(PEST_LABELS_ENV, "").strip() or str(DEFAULT_PEST_LABELS_PATH)
         if self._label_cache is None or self._label_cache[0] != path:
             self._label_cache = (path, load_label_manifest(path, self.PEST_DB))
         return self._label_cache[1]
 
     def predict(self, image_bytes: bytes, confidence_threshold: float = 0.6) -> list[dict]:
-        """
-        Run inference on image bytes.
-        Returns list of detections with Arabic names and actions.
-
-        Gated on capabilities.ml_pest_active(): when PEST_MODEL_PATH points at an
-        existing ONNX file AND onnxruntime is importable, run REAL model inference and
-        tag detections "source": "ml_onnx". Otherwise fail closed with ModelNotProvisioned; no synthetic detections are returned.
-        """
-        # Preprocess (shared by both paths — image features are computed here).
+        """Run the ONNX detector and return observations from its label manifest."""
         image = decode_rgb(image_bytes)  # يرفض ما فوق سقف البكسلات قبل الفكّ
         original_size = image.size
 
@@ -282,27 +278,26 @@ class EdgePestDetector:
         img_array = np.transpose(img_array, (2, 0, 1))  # CHW
         img_array = np.expand_dims(img_array, axis=0)
 
-        # ── Conditional REAL ONNX path (dormant unless a model file is provisioned) ──
-        model_path = _ml_pest_model_path(self.model_path)
-        if model_path is not None:
-            session = _load_onnx_session(model_path, self.device)
-            if session is not None:
-                self.labels()  # an invalid manifest refuses before inference, not after
-                input_name = session.get_inputs()[0].name
-                outputs = session.run(None, {input_name: img_array})
-                detections = self._parse_onnx_outputs(outputs, confidence_threshold, original_size)
-                model_name = os.path.basename(model_path)
-                for d in detections:
-                    d["source"] = "ml_onnx"
-                    d["model"] = model_name
-                return detections
+        if self._bundle is None:
+            model_path = _ml_pest_model_path(self.model_path)
+            session = _load_onnx_session(model_path, self.device) if model_path else None
+        else:
+            model_path = self._bundle.weight_path
+            session = self._bundle.session
+        if session is None:
+            raise ModelNotProvisioned("نموذج كشف الآفات (ONNX) غير مُجهَّز — لا اختلاق كشوف")
 
-        # ── لا نموذج ONNX حقيقيّ ⇒ لا اختلاق ──
-        # سابقاً كان يُرجِع _simulate_detection (آفات/ثقة/مربّعات عشوائيّة) مُقدَّمة
-        # للمزارع كمُخرَج نموذج مع تنبيه رشّ مبيد. أمانةً نرفع استثناءً تُترجمه
-        # طبقة الـAPI إلى 503 بدل تنبيهٍ مُختلَق. (_simulate_detection يبقى للاختبار
-        # المحلّيّ فقط، غير مُستخدَم في مسار الإنتاج.)
-        raise ModelNotProvisioned("نموذج كشف الآفات (ONNX) غير مُجهَّز — لا اختلاق كشوف")
+        self.labels()  # Standalone callers also validate the manifest before inference.
+        input_name = (
+            self._bundle.input_name if self._bundle is not None else session.get_inputs()[0].name
+        )
+        outputs = session.run(None, {input_name: img_array})
+        detections = self._parse_onnx_outputs(outputs, confidence_threshold, original_size)
+        model_name = os.path.basename(model_path)
+        for detection in detections:
+            detection["source"] = "ml_onnx"
+            detection["model"] = model_name
+        return detections
 
     def _parse_onnx_outputs(self, outputs, threshold, original_size):
         """Parse YOLOv8-style ONNX outputs into the existing detection shape.
