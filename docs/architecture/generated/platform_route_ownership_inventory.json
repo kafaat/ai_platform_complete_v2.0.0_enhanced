@@ -5,9 +5,9 @@
     "mapped_routes": 625,
     "surface_routes": 625
   },
-  "inventory_sha256": "f13f02c32b3aa661a020c6c944b1f8956c0838829ea1bb7cf33329ddc56ec766",
+  "inventory_sha256": "13bc25ac858f68d873b73dbfeb267fc5b281f508347cca36dd7ea3b78c3b65fe",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "22a4e242cf295e42ed4a80060b30c8a976c8b614bbae1caf7249169c2f291616",
+  "map_sha256": "445c0d88fc7e9de70d781d4f9692a6bb2a7c0482b4a197db354d3d1b054dacef",
   "routes": [
     {
       "classification": null,
@@ -7169,7 +7169,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/nutrients.py",
       "function": "nutrient_4r_plan",
-      "line": 30,
+      "line": 22,
       "method": "POST",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
