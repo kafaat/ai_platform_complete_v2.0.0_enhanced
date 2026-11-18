@@ -206,16 +206,12 @@ _start_time = time.time()
 @app.get("/healthz")
 async def health_check() -> EdgeHealthCheck:
     sync = get_sync_service()
-    capabilities = (await run_in_threadpool(capabilities_payload))["capabilities"]
     return EdgeHealthCheck(
         status="alive",
         service="edge-inference",
         device=DEVICE,
         offline_mode=OFFLINE_MODE,
-        models_loaded={
-            "pest_detector": bool(capabilities["pest_detect"]["active"]),
-            "yield_estimator": bool(capabilities["yield_estimate"]["active"]),
-        },
+        models_loaded=_bundles.health_snapshot(),
         last_sync=sync.last_sync.isoformat() if sync.last_sync else None,
         queue_size=sync.queue_size(),
         uptime_seconds=time.time() - _start_time,
