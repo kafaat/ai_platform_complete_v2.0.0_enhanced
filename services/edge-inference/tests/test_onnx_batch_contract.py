@@ -26,7 +26,7 @@ def test_pest_output_batch_contract(monkeypatch, declared, actual):
     # reshapes to [-1, width, 1]. Thus one symbolic graph emits both sizes.
     width = 4 + len(json.loads(DEFAULT_PEST_LABELS_PATH.read_bytes())["labels"])
     image = np.zeros((1, 3, 640, 640), dtype=np.float32)
-    image.flat[:actual * width] = 1
+    image.flat[: actual * width] = 1
     session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
     assert session.get_outputs()[0].shape == [declared, width, 1]
     outputs = session.run(None, {"image": image})

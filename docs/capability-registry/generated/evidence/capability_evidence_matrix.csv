@@ -72,7 +72,7 @@ SOIL-004,pH EC SOM nutrients,soil,3,1,declared_above_evidence,5,True,True,True,T
 SOIL-005,Soil water properties,soil,3,1,declared_above_evidence,4,True,True,False,False,True,False,False,False,True,False,False,False
 WX-001,Current weather,weather,3,2,declared_above_evidence,3,True,False,True,False,False,False,False,True,False,False,False,False
 WX-002,Weather forecast,weather,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
-WX-003,Weather history,weather,1,1,aligned,4,True,True,True,True,False,False,False,False,False,False,False,False
+WX-003,Weather history,weather,1,2,evidence_above_declared,5,True,True,True,True,False,False,False,False,True,False,False,False
 WX-004,ET0,weather,2,3,evidence_above_declared,7,True,True,True,True,True,False,False,True,True,False,False,False
 WX-005,VPD,weather,3,2,declared_above_evidence,5,True,True,True,False,True,False,False,True,False,False,False,False
 WX-006,GDD,weather,2,2,aligned,5,True,True,True,False,True,False,False,True,False,False,False,False

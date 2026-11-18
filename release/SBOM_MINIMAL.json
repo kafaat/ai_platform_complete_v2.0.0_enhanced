@@ -20605,7 +20605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5a7f66ae8b4b94eaad779ac9b355367597947e8d100b8186ed2fd1c119772ce"
+          "content": "a16a36283f083139e0ff209e790da3946149e0ec387725dedf5246dcf4de2ed4"
         }
       ],
       "name": "services/edge-inference/tests/test_onnx_batch_contract.py",

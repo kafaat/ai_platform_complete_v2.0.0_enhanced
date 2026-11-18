@@ -14,27 +14,27 @@
     "capabilities_total": 81,
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
-    "capabilities_multidimensional": 44,
-    "files_scanned": 7539,
+    "capabilities_multidimensional": 45,
+    "files_scanned": 7545,
     "files_by_kind": {
       "backend": 1302,
       "database": 352,
       "governance": 88,
       "mobile": 429,
-      "other": 2200,
-      "tests": 2612,
+      "other": 2203,
+      "tests": 2615,
       "web": 556
     },
-    "unmapped_artifacts": 3595,
+    "unmapped_artifacts": 3597,
     "ambiguous_artifacts": 261,
     "files_by_reading": {
-      "python_functional": 4099,
-      "raw": 3440
+      "python_functional": 4102,
+      "raw": 3443
     },
-    "test_dependency_files": 1994,
-    "test_dependency_edges": 5295,
-    "test_dependency_bounded_files": 1159,
-    "test_dependency_unresolved_relations": 507
+    "test_dependency_files": 1996,
+    "test_dependency_edges": 5298,
+    "test_dependency_bounded_files": 1160,
+    "test_dependency_unresolved_relations": 509
   },
   "capabilities": [
     {
@@ -31935,7 +31935,17 @@
       "events": [],
       "web": [],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "tests_v9/test_weather_replay_http_live_pg.py",
+          "score": 8,
+          "signals": [
+            "content:historical weather",
+            "content:Weather history",
+            "dedup:Weather history=weather history"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [
         {
@@ -31959,11 +31969,11 @@
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 1
       },
-      "coverage_dimensions": 3,
+      "coverage_dimensions": 4,
       "mapped": true
     },
     {
@@ -38196,6 +38206,10 @@
     },
     {
       "path": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/edge-inference/tests/test_onnx_batch_contract.py",
       "kind": "tests"
     },
     {
@@ -45392,6 +45406,10 @@
     },
     {
       "path": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_helm_auth_mail_relay.py",
       "kind": "tests"
     },
     {
@@ -56028,6 +56046,29 @@
           "source": "shared/security/tenant_assertion_headers.py",
           "kind": "import",
           "line": 30
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/edge-inference/tests/test_onnx_batch_contract.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/edge-inference/models/errors.py",
+          "kind": "import",
+          "line": 16
+        },
+        {
+          "source": "services/edge-inference/models/model_bundle.py",
+          "kind": "import",
+          "line": 17
+        },
+        {
+          "source": "services/edge-inference/models/pest_detector.py",
+          "kind": "import",
+          "line": 18
         }
       ],
       "unresolved": []
@@ -99463,6 +99504,24 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_weather_replay_http_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 27,
+          "import": "api"
+        },
+        {
+          "line": 28,
+          "import": "core.canonical_schemas"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_weather_signal_engine.py",
