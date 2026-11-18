@@ -117,7 +117,7 @@ spec:
         - protocol: TCP
           port: 53
     # Database and Redis destinations must be supplied by the operator.
-    {{- range $peer := $relay.dependencyEgress }}
+    {{ range $peer := $relay.dependencyEgress }}
     - to:
         - namespaceSelector:
             matchLabels:
@@ -128,7 +128,7 @@ spec:
       ports:
         - protocol: TCP
           port: {{ int $peer.port }}
-    {{- end }}
+    {{ end }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
