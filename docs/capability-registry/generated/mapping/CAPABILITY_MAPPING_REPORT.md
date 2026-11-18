@@ -14,7 +14,7 @@
 - Multi-dimensional mappings: **45**
 - Files scanned: **7545**
 - Ambiguous artifacts queued: **261**
-- Unmapped artifacts queued: **3597**
+- Unmapped artifacts queued: **3596**
 
 ## Capability coverage
 
@@ -23,7 +23,7 @@
 | DEC-001 | decision | 2 | 0 | 0 | 3 | 0 | 0 | 3 | 3 |
 | DEC-002 | decision | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | DEC-003 | decision | 3 | 0 | 0 | 0 | 0 | 0 | 3 | 2 |
-| DEC-004 | decision | 6 | 4 | 16 | 4 | 0 | 0 | 8 | 5 |
+| DEC-004 | decision | 6 | 5 | 16 | 5 | 0 | 0 | 9 | 5 |
 | DEC-005 | decision | 0 | 0 | 10 | 1 | 0 | 0 | 2 | 3 |
 | DEC-006 | decision | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | DEC-007 | decision | 4 | 8 | 4 | 3 | 1 | 0 | 4 | 6 |
