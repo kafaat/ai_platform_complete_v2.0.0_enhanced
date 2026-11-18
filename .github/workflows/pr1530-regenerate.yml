@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install verification dependencies
-        run: python -m pip install pytest pytest-asyncio ruff pyyaml
+        run: python -m pip install pytest pytest-asyncio pyyaml ruff pyyaml
       - name: Generate governance, inventory, and release evidence
         run: |
           set -euo pipefail
