@@ -15,9 +15,9 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7537,
+    "files_scanned": 7538,
     "files_by_kind": {
-      "backend": 1301,
+      "backend": 1302,
       "database": 352,
       "governance": 88,
       "mobile": 429,
@@ -25,14 +25,14 @@
       "tests": 2611,
       "web": 556
     },
-    "unmapped_artifacts": 3593,
+    "unmapped_artifacts": 3594,
     "ambiguous_artifacts": 261,
     "files_by_reading": {
-      "python_functional": 4097,
+      "python_functional": 4098,
       "raw": 3440
     },
     "test_dependency_files": 1993,
-    "test_dependency_edges": 5291,
+    "test_dependency_edges": 5294,
     "test_dependency_bounded_files": 1159,
     "test_dependency_unresolved_relations": 507
   },
@@ -38167,6 +38167,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/edge-inference/models/model_bundle.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/edge-inference/models/pest_detector.py",
       "kind": "backend"
     },
@@ -55933,17 +55937,27 @@
         {
           "source": "services/edge-inference/main.py",
           "kind": "loader",
-          "line": 27
+          "line": 28
         },
         {
           "source": "services/edge-inference/main.py",
           "kind": "source_read",
-          "line": 27
+          "line": 28
+        },
+        {
+          "source": "services/edge-inference/models/__init__.py",
+          "kind": "import",
+          "line": 94
+        },
+        {
+          "source": "services/edge-inference/models/model_bundle.py",
+          "kind": "import",
+          "line": 94
         }
       ],
       "unresolved": [
         {
-          "line": 129,
+          "line": 182,
           "call": "import_module"
         }
       ]
@@ -55979,32 +55993,37 @@
         {
           "source": "services/edge-inference/main.py",
           "kind": "loader",
-          "line": 58
+          "line": 72
         },
         {
           "source": "services/edge-inference/main.py",
           "kind": "source_read",
-          "line": 58
+          "line": 72
         },
         {
           "source": "services/edge-inference/models/__init__.py",
           "kind": "import",
-          "line": 419
+          "line": 63
+        },
+        {
+          "source": "services/edge-inference/models/model_bundle.py",
+          "kind": "import",
+          "line": 63
         },
         {
           "source": "services/edge-inference/models/pest_detector.py",
           "kind": "import",
-          "line": 223
+          "line": 237
         },
         {
           "source": "services/edge-inference/models/yield_estimator.py",
           "kind": "import",
-          "line": 231
+          "line": 245
         },
         {
           "source": "shared/security/tenant_assertion_headers.py",
           "kind": "import",
-          "line": 27
+          "line": 30
         }
       ],
       "unresolved": []
@@ -81764,12 +81783,13 @@
       "bounded": false,
       "unbounded_reasons": [
         "directory_reference",
+        "tree_wide_scan",
         "unresolved_dynamic_relation"
       ],
       "edges": [],
       "unresolved": [
         {
-          "line": 37,
+          "line": 39,
           "call": "spec_from_file_location"
         }
       ]

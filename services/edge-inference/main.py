@@ -14,9 +14,11 @@ from datetime import UTC, datetime
 import model_artifact_gate as artifact_gate
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Response, UploadFile
 from models.errors import ImageTooLarge, ModelNotProvisioned, ModelOutputContractError
+from models.model_bundle import ModelBundle, ModelBundleStore
 from models.pest_detector import EdgePestDetector
 from models.yield_estimator import EdgeYieldEstimator
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
 from sync_service import CloudSyncService
 
 # بلا try/except قصداً: غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع.
@@ -61,27 +63,16 @@ EDGE_PRODUCTION_REQUIRED = os.getenv("EDGE_PRODUCTION_REQUIRED", "false").strip(
     "on",
 }
 
-_pest_detector: EdgePestDetector | None = None
-_yield_estimator: EdgeYieldEstimator | None = None
+_bundles = ModelBundleStore()
 _sync_service: CloudSyncService | None = None
 
 
-def get_pest_detector() -> EdgePestDetector:
-    global _pest_detector
-    if _pest_detector is None:
-        _pest_detector = EdgePestDetector(
-            model_path=_model_path("PEST_MODEL_PATH", "pest_detector_int8.onnx"), device=DEVICE
-        )
-    return _pest_detector
+def get_pest_detector(bundle: ModelBundle) -> EdgePestDetector:
+    return EdgePestDetector(bundle.weight_path, device=DEVICE, bundle=bundle)
 
 
-def get_yield_estimator() -> EdgeYieldEstimator:
-    global _yield_estimator
-    if _yield_estimator is None:
-        _yield_estimator = EdgeYieldEstimator(
-            model_path=_model_path("YIELD_MODEL_PATH", "yield_estimator_int8.onnx"), device=DEVICE
-        )
-    return _yield_estimator
+def get_yield_estimator(bundle: ModelBundle) -> EdgeYieldEstimator:
+    return EdgeYieldEstimator(bundle.weight_path, device=DEVICE, bundle=bundle)
 
 
 def get_sync_service() -> CloudSyncService:
@@ -113,41 +104,38 @@ _MODEL_ENV = {
 }
 
 
-def _model_capability(env_name: str, default_name: str) -> dict[str, object]:
-    """EDGE-MODEL-ARTIFACT-INTEGRITY-01: الاسمُ لا يُفعِّل؛ البصمةُ المطابقة تُفعِّل."""
-    _, sha_env = _MODEL_ENV[default_name]
-    return artifact_gate.model_capability(
-        path=_model_path(env_name, default_name),
-        sha_env_name=sha_env,
+def _resolve_model(default_name: str) -> tuple[dict[str, object], ModelBundle | None]:
+    path_env, sha_env = _MODEL_ENV[default_name]
+    return _bundles.resolve(
+        path=_model_path(path_env, default_name),
+        sha_env=sha_env,
         runtime_available=importlib.util.find_spec("onnxruntime") is not None,
+        device=DEVICE,
     )
 
 
-def _require_approved_model(default_name: str) -> dict[str, object]:
-    """الاستدلالُ نفسُه خلف البوّابة — لا `/capabilities` وحدَها.
+def _model_capability(default_name: str) -> dict[str, object]:
+    capability, _ = _resolve_model(default_name)
+    return capability
 
-    بدونها كان ملفٌّ بالاسم المتوقَّع **يُستدلّ به** ولو أعلنت القدرةُ `inactive`:
-    الكاشفُ يحمّل بالمسار لا بالحكم. 503 بسببٍ مسمًّى، لا كشوفٌ من بايتاتٍ مجهولة.
-    """
-    path_env, _ = _MODEL_ENV[default_name]
-    capability = _model_capability(path_env, default_name)
-    if capability["active"]:
-        # الحكمُ نفسُه يُعاد: نسبُ الكشف يُسجِّل البصمةَ التي فُحِصت لا قيمةً ثانية.
-        return capability
+
+def _require_approved_model(default_name: str) -> tuple[dict[str, object], ModelBundle]:
+    capability, bundle = _resolve_model(default_name)
+    if bundle is not None:
+        return capability, bundle
     raise HTTPException(
         503,
         {
             "reason": capability["reason"],
             "model": default_name,
-            "detail_ar": "النموذجُ غيرُ معتمَدٍ على هذه الحافّة — بصمةُ المصنوعة لا تُطابِق أو "
-            "غائبة؛ لا استدلالَ ببايتاتٍ مجهولة الهويّة.",
+            "detail_ar": "حزمة النموذج غير جاهزة للاستدلال على هذه الحافة.",
         },
     )
 
 
 def capabilities_payload() -> dict[str, object]:
-    pest = _model_capability("PEST_MODEL_PATH", "pest_detector_int8.onnx")
-    yld = _model_capability("YIELD_MODEL_PATH", "yield_estimator_int8.onnx")
+    pest = _model_capability("pest_detector_int8.onnx")
+    yld = _model_capability("yield_estimator_int8.onnx")
     sync = get_sync_service()
     capabilities = {
         "pest_detect": pest,
@@ -223,12 +211,7 @@ async def health_check() -> EdgeHealthCheck:
         service="edge-inference",
         device=DEVICE,
         offline_mode=OFFLINE_MODE,
-        models_loaded={
-            "pest_detector": bool(capabilities_payload()["capabilities"]["pest_detect"]["active"]),
-            "yield_estimator": bool(
-                capabilities_payload()["capabilities"]["yield_estimate"]["active"]
-            ),
-        },
+        models_loaded=_bundles.health_snapshot(),
         last_sync=sync.last_sync.isoformat() if sync.last_sync else None,
         queue_size=sync.queue_size(),
         uptime_seconds=time.time() - _start_time,
@@ -350,8 +333,10 @@ async def detect_pest(
         if request.field_id is not None
         else None
     )
-    pest_capability = _require_approved_model("pest_detector_int8.onnx")
-    detector = get_pest_detector()
+    pest_capability, bundle = await run_in_threadpool(
+        _require_approved_model, "pest_detector_int8.onnx"
+    )
+    detector = get_pest_detector(bundle)
     # تحقّق من المدخل: حدّ الحجم (منع DoS) + نوع الملفّ. القراءة نفسها محدودة بالسقف+1
     # كي لا يُحمَّل رفعٌ ضخم كاملاً في الذاكرة قبل رفضه.
     MAX_IMAGE_BYTES = 10 * 1024 * 1024  # 10MB كافٍ لصور المحاصيل
@@ -399,13 +384,16 @@ async def detect_pest(
         "model_version": detector.version,
         # نسبُ الكشف: المصنوعة (بصمة البوّابة) · بصمة الصورة · العتبة — تُزامَن مع النتيجة
         # فتكتبها المنصّة صفّاً لكلّ كشفٍ في detection_provenance (v239).
-        "provenance": artifact_gate.detection_provenance(
-            model_id="pest_detector_int8.onnx",
-            model_version=detector.version,
-            capability=pest_capability,
-            image_bytes=image_bytes,
-            threshold=request.confidence_threshold,
-        ),
+        "provenance": {
+            **artifact_gate.detection_provenance(
+                model_id="pest_detector_int8.onnx",
+                model_version=detector.version,
+                capability=pest_capability,
+                image_bytes=image_bytes,
+                threshold=request.confidence_threshold,
+            ),
+            "bundle_sha256": bundle.sha256,
+        },
     }
     alert = artifact_gate.high_confidence_alert(detections)
     if request.field_id is None:
@@ -438,8 +426,8 @@ async def estimate_yield(
         x_service_name,
         x_request_id,
     )
-    _require_approved_model("yield_estimator_int8.onnx")
-    estimator = get_yield_estimator()
+    _, bundle = await run_in_threadpool(_require_approved_model, "yield_estimator_int8.onnx")
+    estimator = get_yield_estimator(bundle)
     if len(files) < request.image_count:
         raise HTTPException(
             status_code=400, detail=f"Expected {request.image_count} images, got {len(files)}"
@@ -478,6 +466,8 @@ async def estimate_yield(
         "crop": request.crop,
         "growth_stage": request.growth_stage,
         "sample_images": len(all_features),
+        "model_bundle_sha256": bundle.sha256,
+        "model_artifact_sha256": bundle.weight_sha256,
         # لا ±15٪ مُصطنَعة — الفاصلُ يُنشَر إن أنتجه النموذج، وإلّا None بقيدٍ مسمًّى
         **artifact_gate.shape_yield_result(yield_prediction),
         "inference_time_ms": round(inference_time_ms, 2),
@@ -521,7 +511,7 @@ async def _periodic_sync():
 
 
 @app.get("/capabilities")
-async def capabilities():
+def capabilities():
     return capabilities_payload()
 
 
@@ -537,7 +527,7 @@ async def metrics():
 
 @app.get("/readyz")
 async def readyz(response: Response):
-    payload = capabilities_payload()
+    payload = await run_in_threadpool(capabilities_payload)
     any_model_active = payload["active_capability_count"] > 0
     all_models_active = payload["all_required_models_active"] is True
     token_ready = payload["agent_token_configured"] is True

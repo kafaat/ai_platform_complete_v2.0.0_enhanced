@@ -260,45 +260,40 @@ def test_the_downloader_reads_the_declared_digest_names_for_the_declared_models(
     )
 
 
-def _literal_calls(name: str, arity: int) -> list[tuple[str, ...]]:
+def test_every_model_uses_the_approved_bundle_in_capabilities_and_inference() -> None:
+    """Each route gates its actual model, and passes the held bundle to its consumer."""
     tree = ast.parse(EDGE_MAIN.read_text(encoding="utf-8"))
-    return [
-        tuple(a.value for a in node.args)
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Name)
-        and node.func.id == name
-        and len(node.args) == arity
-        and all(isinstance(a, ast.Constant) for a in node.args)
-    ]
+    models = set(_model_env_map())
+    advertised = {
+        call.args[0].value
+        for call in ast.walk(tree)
+        if isinstance(call, ast.Call)
+        and isinstance(call.func, ast.Name)
+        and call.func.id == "_model_capability"
+        and isinstance(call.args[0], ast.Constant)
+    }
+    assert advertised == models
 
-
-def test_every_literal_model_call_in_main_names_the_path_the_gate_hashes() -> None:
-    """البوّابةُ والمُحمِّلُ يقرآن **الملفَّ نفسَه** — وإلّا صار التحقّقُ عن بايتاتٍ لا تُستعمَل.
-
-    `_require_approved_model` يُجزّئ الملفَّ من متغيّر `_MODEL_ENV`، بينما `get_pest_detector`
-    و`get_yield_estimator` يحمّلان من `_model_path("…_PATH", "…onnx")` **بحرفٍ مكرَّر**، ومثلُهما
-    `readiness`. **مقيسٌ على `bcb7f0ed`:** تغييرُ `"PEST_MODEL_PATH"` في مُحمِّل الكاشف وحدَه
-    (`main.py:63`) يُبقي الشواهدَ والحارسَ أخضرَ — فمشغّلٌ يضبط `PEST_MODEL_PATH` تُجزّئ البوّابةُ
-    ملفَّه وتقبله، والكاشفُ يحمّل الافتراضيَّ من `/models`. لا يُعاد تشكيلُ `main.py` هنا (جاهزيّةُ
-    الحافّة في يدٍ أخرى)؛ يُربَط كلُّ حرفٍ مكرَّر بالخريطة الواحدة، **ولكلّ نموذجٍ موضعُه**
-    فلا يمرّ الشاهدُ فارغاً إن تغيّر شكلُ النداء.
-    """
-    runtime = _model_env_map()
-    for fn in ("_model_path", "_model_capability"):
-        calls = _literal_calls(fn, 2)
-        for env, filename in calls:
-            assert filename in runtime, f"`{fn}`: ملفٌّ غيرُ معروفٍ للعقد: {filename}"
-            assert runtime[filename][0] == env, (
-                f'`{fn}("{env}", "{filename}")` يقرأ مساراً غيرَ الذي تُجزّئه البوّابة '
-                f"(`{runtime[filename][0]}`)"
-            )
-        assert {f for _, f in calls} == set(runtime), (
-            f"`{fn}` بحرفَين لم يعد يغطّي كلَّ نموذج ({sorted({f for _, f in calls})}) — "
-            "تغيّر شكلُ النداء، حدِّث الشاهدَ لا الادّعاء"
+    routes = {
+        "detect_pest": ("pest_detector_int8.onnx", "get_pest_detector"),
+        "estimate_yield": ("yield_estimator_int8.onnx", "get_yield_estimator"),
+    }
+    assert {model for model, _ in routes.values()} == models
+    for route, (model, factory) in routes.items():
+        fn = next(
+            node
+            for node in tree.body
+            if isinstance(node, ast.AsyncFunctionDef) and node.name == route
         )
-    gated = {f for (f,) in _literal_calls("_require_approved_model", 1)}
-    assert gated == set(runtime), f"نماذجُ يُستدَلّ بها بلا بوّابة، أو بوّابةٌ لغير نموذج: {gated}"
+        statements = [ast.unparse(node) for node in fn.body]
+        approvals = [
+            index
+            for index, stmt in enumerate(statements)
+            if f"await run_in_threadpool(_require_approved_model, {model!r})" in stmt
+            and ", bundle =" in stmt
+        ]
+        consumers = [index for index, stmt in enumerate(statements) if f"{factory}(bundle)" in stmt]
+        assert len(approvals) == len(consumers) == 1 and approvals[0] < consumers[0]
 
 
 def test_no_declared_digest_value_is_committed_to_the_tree() -> None:

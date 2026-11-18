@@ -32,7 +32,7 @@
       "registrations": [
         {
           "function": "capabilities",
-          "line": 524,
+          "line": 514,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/capabilities",
@@ -285,7 +285,7 @@
         },
         {
           "function": "health_check",
-          "line": 219,
+          "line": 207,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/healthz",
@@ -516,7 +516,7 @@
         },
         {
           "function": "metrics",
-          "line": 529,
+          "line": 519,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/metrics",
@@ -659,7 +659,7 @@
         },
         {
           "function": "readyz",
-          "line": 539,
+          "line": 529,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/readyz",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1147,
-  "route_inventory_sha256": "e94677271140f02031f7b226b564b4133d6cd370042d9b4bd64195cbbd8593f5",
+  "route_inventory_sha256": "830bb13fef6f2908d5451fd6b97faa86f194a702265ec294048eff55b686f9b7",
   "runtime_verified": false,
   "schema_version": 1
 }

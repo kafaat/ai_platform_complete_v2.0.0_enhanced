@@ -62,8 +62,8 @@
   {
     "service": "edge-inference",
     "domain": "Edge Inference",
-    "python_files": 13,
-    "python_loc": 2181,
+    "python_files": 14,
+    "python_loc": 2665,
     "tests": 3,
     "routes": 7,
     "main": "services/edge-inference/main.py",
