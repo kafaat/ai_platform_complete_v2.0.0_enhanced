@@ -103,6 +103,7 @@ jobs:
           python3 -m pytest -q -p no:cacheprovider -o addopts= -m helm_render -rs \
             --junitxml="$RUNNER_TEMP/helm-render.xml" \
             tests_v9/test_helm_render_acceptance.py \
+            tests_v9/test_helm_auth_mail_relay.py \
             tests_v9/test_helm_network_policy_egress.py \
             tests_v9/test_helm_gateway_ingress_contract.py || rc=$?
           python3 scripts/ci/helm_render_guard.py --junit "$RUNNER_TEMP/helm-render.xml" \

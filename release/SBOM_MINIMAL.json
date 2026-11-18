@@ -20455,7 +20455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4b53b4df2075eeb03dfd52755094aad03014f40581a04a2728f322b8dddc5473"
+          "content": "72def14bc8275daba04bf55903ebf830350a27798f33869caf014c5c6d0a051a"
         }
       ],
       "name": "services/edge-inference/models/model_bundle.py",
@@ -20545,6 +20545,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "519b747cdc12344f408583647074597ca70d08d52297f4b15f76100a4b85f678"
+        }
+      ],
+      "name": "services/edge-inference/tests/fixtures/pest_batch_1.onnx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "50777f285b9613e1e6e99eef63c419e184f7fb8c13825d88daf3acd8cf7200e0"
+        }
+      ],
+      "name": "services/edge-inference/tests/fixtures/pest_batch_2.onnx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "07009e4927a1cda930bdec237e073f295088a88aa54cfbfd13697f9bc16af9dd"
+        }
+      ],
+      "name": "services/edge-inference/tests/fixtures/pest_batch_batch.onnx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "38c4535917c288487a1f4dfa7357223d7f5307ca863a4bf434a19f2ce70532a0"
         }
       ],
@@ -20569,6 +20599,16 @@
         }
       ],
       "name": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a5a7f66ae8b4b94eaad779ac9b355367597947e8d100b8186ed2fd1c119772ce"
+        }
+      ],
+      "name": "services/edge-inference/tests/test_onnx_batch_contract.py",
       "type": "file"
     },
     {
@@ -24965,7 +25005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "22080002218ef5a2a76bd21f3d32d34115dd3287da025b994fac148d07bbbbcd"
+          "content": "5a1866aab2caeca19ca9dce791dc0d7b06a6e3f2e2f24ba9b907eb86ee7fd137"
         }
       ],
       "name": "services/sahool-platform/api/agronomic_replay.py",
@@ -27085,7 +27125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b6444356f77e85f81c84adb84ad37d9d6c967eb46c70014b2095cc870ad0466"
+          "content": "3d8a75d9a32a7fea2e19b0373246d065d1372bff5d4fbd6fc0eea3d8117c133c"
         }
       ],
       "name": "services/sahool-platform/api/routers/agronomic_replay.py",
@@ -33295,7 +33335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "06564dd86b6b5e144bca7f02347eec7e6870b19113c467a8d65f3e1b0f1e28b6"
+          "content": "9d4a95ef1b367d4a175afa29c0938e35059784430c6d92af9f4ef86977b0d783"
         }
       ],
       "name": "services/sahool-platform/tests/test_agronomic_replay_historical_sources.py",

@@ -27,6 +27,10 @@ public egress.
 */}}
 {{- $ports := list }}
 {{- $gatewayOnly := list "sahool-gateway" }}
+{{- /* An opt-in relay must NEVER match the namespace-wide ingress policy. */}}
+{{- if .Values.authEmailRelay.enabled }}
+{{- $gatewayOnly = append $gatewayOnly .Values.authEmailRelay.podComponent }}
+{{- end }}
 {{- $publicHttps := list }}
 {{- range $name, $workload := .Values.workloads }}
 {{- if $workload.enabled }}
@@ -48,7 +52,17 @@ metadata:
   labels:
     {{- include "sahool.labels" . | nindent 4 }}
 spec:
+  # NetworkPolicies are additive. Remove auth from this namespace-wide
+  # allowance when its restricted mail-relay policy becomes active.
+  {{- if .Values.authEmailRelay.enabled }}
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/component
+        operator: NotIn
+        values: [sahool-auth]
+  {{- else }}
   podSelector: {}
+  {{- end }}
   policyTypes: [Ingress, Egress]
   egress:
     - to:
