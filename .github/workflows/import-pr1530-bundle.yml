@@ -1,0 +1,22 @@
+name: Transfer verified PR 1530 commit
+on:
+  push:
+    branches: [ci/import-pr1530-bundle-0bf8b558]
+    paths: [.github/workflows/import-pr1530-bundle.yml]
+permissions:
+  contents: write
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Verify bundle and publish exact commit
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin dfeca215b78ed3624104c5e8911131ed5a6fbbb7 74fee49adc124e40cce209a47abf93cae1f15c02
+          base64 --decode pr1530.bundle.b64 > "$RUNNER_TEMP/verified.bundle"
+          git bundle verify "$RUNNER_TEMP/verified.bundle"
+          git fetch "$RUNNER_TEMP/verified.bundle" refs/heads/pr1530-verified
+          test "$(git rev-parse FETCH_HEAD)" = 0bf8b558e3eb7e142e6da061b006ae6bf9bb1c10
+          git push origin 0bf8b558e3eb7e142e6da061b006ae6bf9bb1c10:refs/heads/fix/pr1530-verified-0bf8b558
