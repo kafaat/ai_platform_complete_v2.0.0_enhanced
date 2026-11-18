@@ -134,6 +134,8 @@ def test_enabled_mail_relay_is_restricted_to_internal_approved_peers(overlay):
     assert relay_smtp[0]["to"] == [
         {"podSelector": {"matchLabels": {"app.kubernetes.io/component": "sahool-mail-relay"}}}
     ]
+    internal = policies["sahool-internal-allow"]["spec"]["podSelector"]
+    assert "sahool-mail-relay" in internal["matchExpressions"][0]["values"]
     ingress = policies["sahool-mail-relay-auth-ingress"]["spec"]
     ingress_label = ingress["podSelector"]["matchLabels"]
     assert ingress_label["app.kubernetes.io/component"] == "sahool-mail-relay"
