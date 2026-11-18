@@ -1735,7 +1735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b3445f6a4a8203afb0423667acc2d1d6ef43bc0c01460ae5bd5d3f9b84cba76d"
+          "content": "4638c12853cb12d1320a7a8a4d204ee67c25a266c07109e77cd685d28fd22315"
         }
       ],
       "name": "frontend/src/components/fieldview/WaterFieldOpsCard.tsx",
@@ -2815,7 +2815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "585b0a538bb3ee3e0dd028046d29ce5c6c7dd61c142187c46bae4ef6034609e5"
+          "content": "8a3221da08851907a879301e4d50e896ffa39e98fb1ff6776ae47e8744faae45"
         }
       ],
       "name": "frontend/src/components/sharing/SharingPanel.tsx",
@@ -3375,7 +3375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7618fdfa66fc118e50d52fc557c712fcebe9ac1dc1f10076b3ef02f338e538b6"
+          "content": "b753284a875280914e662f7b4bc0d3431be07fa1e9d7706019d0e7baa7e385cc"
         }
       ],
       "name": "frontend/src/hooks/useWaterFieldOps.ts",
@@ -5165,7 +5165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4e0a592f058fbf1d64176166be60278ee1ca4218d0169a8e53ea248adc14cc4c"
+          "content": "063f2b543c7b36a50a3587b26a332c2f2b000b7b22c482e504f3a2555fe6b3d8"
         }
       ],
       "name": "frontend/src/lib/sharingRevocation.test.ts",
@@ -5175,7 +5175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5ee4705dce87efb10032accb4e16ba91231d0cab66a3611b9d64fdc71fc78e6"
+          "content": "4c22b3fe3b9e20214cc2a8da9a9fee88b082f3fccf48dba6bd800903114f416a"
         }
       ],
       "name": "frontend/src/lib/sharingRevocation.ts",
@@ -5285,7 +5285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fbde2de7c6b1e5cc8c5f2e899323a1c9055728727aa14b99db71219c3d7ddf6a"
+          "content": "bbf0a70feb9a35bcaa17cf8d1ea2134d667c0c13e16374bad7bb80053c4f5ca3"
         }
       ],
       "name": "frontend/src/lib/waterFieldOps.ts",
@@ -18225,7 +18225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3b1f8ceacce396d543aa11c90de1a0df3e106b43d40ee5717db19c661bdbb75f"
+          "content": "d7215f3b62e1e4c69950b876883021e318534d6ca81eba35f3f2d0b1801742b0"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -19495,7 +19495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79d1756642e9199cffe8e9afb856a86b5d14dc1ad6ce29ea7f9fbb4c2ef89bba"
+          "content": "e8d3b55c9bcc52fcaeefc60c9ef98e57f11e3bfd9b3899357760f30f1c9cd42d"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -19575,7 +19575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f998ad69e841c5f93dcbd3dcf28f4da4ff2aed863dedd815e9ad992085b2ba7"
+          "content": "5b2f71dbaad5686114bae3930c8953b6ee4799a3949dac1ee38c24ca4ce81fba"
         }
       ],
       "name": "services/decision-service/staging_probe.py",
@@ -19605,7 +19605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "715bf0f1e580b053f4dc63375ee2d99f1b7bb7112023196b1d948a218f1c34c8"
+          "content": "7226d3ba584509364dcc46c3d12aada372c92201d295f1e6188c9a20d161ffa7"
         }
       ],
       "name": "services/decision-service/tests/decision_chain_fixture.py",
@@ -19925,7 +19925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "89b24567e0956674523a5cbb7880fb448bd2d98a37a3d72758f89def5cfa3635"
+          "content": "5886e56abda0accafeace7d43433a5328d0fe17de08348a1ef41b16d80e41704"
         }
       ],
       "name": "services/decision-service/tests/test_migration_033_pg16.py",
@@ -19955,7 +19955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "245e660e19993f64fdf69f3f0eeb332c4b2e0d7eee1beb06dd30245c47e84101"
+          "content": "571bed4c78301aee66e743466a8bca701a7605ea7dfd3a7e10d10f59e01bd270"
         }
       ],
       "name": "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
@@ -20275,7 +20275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73ac637990b2803dd00a640a21699fe12dbbdf1acabf0ab63aa16eef3ab39f38"
+          "content": "d62f3b7eb3cf9b5ea3e98b621756830e2ffb23b9202ca64afae4e957e7719f48"
         }
       ],
       "name": "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
@@ -26465,7 +26465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "026a6f99e3833b3d63ccf1220bd971f1fb30540c10a4d3b9c611c1bf5a49b1b5"
+          "content": "3f3cd85420fa97b145b5e17de86cc991eefbfc73709bd95f5d02a182a27e5b31"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_manual_ledger_bridge.py",
@@ -26615,7 +26615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ef245d809549da4152945a6f3ea3c6e657c75dd149cb8875ef706dee553633f"
+          "content": "be73a5fa20a50bf8916d09b03bb3f900c567c338817c0b72bae8e8ffd7fe5e48"
         }
       ],
       "name": "services/sahool-platform/api/lab_store.py",
@@ -26735,7 +26735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08c82cf62b6b2392e130e54b2c23194af8a499c51873e02effbb2724ab9244bc"
+          "content": "02c4a8611375d63a21691dc6b5de7d0cf9f8a1911b7501b0ea19aed95cfd0ff7"
         }
       ],
       "name": "services/sahool-platform/api/nutrient_4r.py",
@@ -28115,7 +28115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c09778f4c0938c615b48b919049581655d56c23e35ae1b7affb6601083110fa"
+          "content": "6128b58b793de9b5fff6ebb1cdebbcddd5e39bb10cc509db458c9776b06af9db"
         }
       ],
       "name": "services/sahool-platform/api/routers/nutrients.py",
@@ -36225,7 +36225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ed4bc17a08b4fa9a92f92435f52e408c036c5526acad15d932e784476bc76b0"
+          "content": "e11be73a0acce68b6c55595050532415672cdf380bd255103c71af70901515ba"
         }
       ],
       "name": "services/sahool-platform/tests/test_nutrient_4r.py",

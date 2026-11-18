@@ -6322,7 +6322,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/nutrients.py",
-    "line": 31,
+    "line": 23,
     "method": "POST",
     "path": "/api/v1/nutrients/4r-plan",
     "function": "nutrient_4r_plan"
