@@ -54,6 +54,7 @@ jobs:
           python scripts/release/platform_route_release_binding.py --check-source
           python scripts/release/validate_release_package.py --root .
           ruff check .
+          git diff --check
           python -m pytest -q tests/ci/test_phase16_ci_cd_gates.py tests/deploy/test_phase15_deployment_readiness_contracts.py tests/release/test_phase14_release_packaging_contracts.py tests/observability/test_phase13_observability_assets.py tests/security/test_phase12_final_production_gates.py
       - name: Commit exact regenerated outputs to PR branch
         run: |
