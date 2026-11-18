@@ -153,7 +153,9 @@ def _validate_session(session, profile: Preprocessing, class_count: int) -> str:
         if (
             len(shape) not in {2, 3}
             or (len(shape) == 3 and isinstance(shape[0], int) and shape[0] != 1)
-            or not any(isinstance(dimension, int) and dimension == width for dimension in shape[-2:])
+            or not any(
+                isinstance(dimension, int) and dimension == width for dimension in shape[-2:]
+            )
         ):
             raise _Unavailable("pest_model_label_contract_violation")
     elif len(outputs[0].shape) > 2 or any(
