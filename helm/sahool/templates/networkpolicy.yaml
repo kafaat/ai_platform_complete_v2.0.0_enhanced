@@ -27,6 +27,10 @@ public egress.
 */}}
 {{- $ports := list }}
 {{- $gatewayOnly := list "sahool-gateway" }}
+{{- /* An opt-in relay must NEVER match the namespace-wide ingress policy. */}}
+{{- if .Values.authEmailRelay.enabled }}
+{{- $gatewayOnly = append $gatewayOnly .Values.authEmailRelay.podComponent }}
+{{- end }}
 {{- $publicHttps := list }}
 {{- range $name, $workload := .Values.workloads }}
 {{- if $workload.enabled }}
