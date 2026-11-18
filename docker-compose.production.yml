@@ -24,7 +24,22 @@ services:
       # fm_gateway compares it; unset, every field-task route answers 503
       # field_tasks_token_unconfigured (fm_gateway.authorize).
       FIELD_TASKS_SERVICE_TOKEN: ${FIELD_TASKS_SERVICE_TOKEN:?FIELD_TASKS_SERVICE_TOKEN required}
-    command: ["sh", "-ec", "test \"$$SAHOOL_ENV\" = production; test $${#FIELD_SERVICE_TENANT_ASSERTION_KEY} -ge 32; case \"$$ZLMEDIAKIT_IMAGE\" in *@sha256:*) ;; *) echo ZLMEDIAKIT_IMAGE-must-use-sha256 >&2; exit 1;; esac; echo production-preflight-ok"]
+    command:
+    - sh
+    - -ec
+    - |
+      test "$$SAHOOL_ENV" = production
+      test "$${#FIELD_SERVICE_TENANT_ASSERTION_KEY}" -ge 32
+      if ! printf '%s\n' "$$ZLMEDIAKIT_IMAGE" | awk '
+        NR == 1 && /^[^@[:space:]]+@sha256:[0-9a-f]+$$/ {
+          sub(/^.*@sha256:/, ""); valid = length == 64 && /[1-9a-f]/
+        }
+        END { exit !(NR == 1 && valid) }
+      '; then
+        echo ZLMEDIAKIT_IMAGE-must-use-nonzero-sha256 >&2
+        exit 1
+      fi
+      echo production-preflight-ok
 
   # W2-02 (routes-3/decision-9): AC-1 is always required in production; the composer is pinned
   # on here (not left to an env default) and the platform refuses to boot without it.
