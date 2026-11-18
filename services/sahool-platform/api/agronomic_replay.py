@@ -18,6 +18,8 @@
 
 from __future__ import annotations
 
+import json
+
 _TRACKS = ("ndvi", "weather", "irrigation", "decision", "outcome")
 
 _TRACK_AR = {
@@ -51,6 +53,31 @@ def _event(date, track: str, label_ar: str, *, value=None, ref_id=None) -> dict 
         "value": value,
         "ref_id": ref_id,
     }
+
+
+def historical_weather_replay_row(record: dict) -> dict:
+    """Translate a historical_weather_daily JSONB payload into replay units/keys."""
+    payload = record.get("payload")
+    if isinstance(payload, str):
+        try:
+            payload = json.loads(payload)
+        except ValueError:
+            payload = None
+    day = {"date": record.get("date")}
+    if not isinstance(payload, dict):
+        return day
+    if "summary_ar" in payload:
+        day["summary_ar"] = payload["summary_ar"]
+    for key, historical_key in (
+        ("t_max", "tmax_c"),
+        ("t_min", "tmin_c"),
+        ("rain_mm", "precipitation_mm"),
+    ):
+        if key in payload:
+            day[key] = payload[key]
+        elif payload.get(historical_key) is not None:
+            day[key] = payload[historical_key]
+    return day
 
 
 def build_agronomic_replay(
