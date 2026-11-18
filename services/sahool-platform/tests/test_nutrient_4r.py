@@ -320,13 +320,12 @@ def test_missing_or_incomparable_evidence_does_not_issue_plan(rows):
 
 
 def test_field_and_manual_http_contracts(monkeypatch):
-    from fastapi import FastAPI
-    from fastapi.testclient import TestClient
-
     from api import main
     from api.main import get_current_user
     from api.routers import nutrients
     from core.canonical_schemas import UserRole, UserSchema
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
 
     tenant = "00000000-0000-0000-0000-000000000001"
     user = UserSchema(
