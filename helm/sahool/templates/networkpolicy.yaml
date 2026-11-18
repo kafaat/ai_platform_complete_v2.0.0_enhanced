@@ -48,7 +48,17 @@ metadata:
   labels:
     {{- include "sahool.labels" . | nindent 4 }}
 spec:
+  # NetworkPolicies are additive. Remove auth from this namespace-wide
+  # allowance when its restricted mail-relay policy becomes active.
+  {{- if .Values.authEmailRelay.enabled }}
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/component
+        operator: NotIn
+        values: [sahool-auth]
+  {{- else }}
   podSelector: {}
+  {{- end }}
   policyTypes: [Ingress, Egress]
   egress:
     - to:
