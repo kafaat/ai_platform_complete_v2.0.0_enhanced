@@ -32,7 +32,7 @@
       "raw": 3440
     },
     "test_dependency_files": 1993,
-    "test_dependency_edges": 5289,
+    "test_dependency_edges": 5291,
     "test_dependency_bounded_files": 1159,
     "test_dependency_unresolved_relations": 507
   },
@@ -20905,7 +20905,7 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/ndvi-analysis @ services/sahool-platform/api/routers/ndvi_analysis.py:34",
+          "value": "/api/v1/fields/{field_id}/ndvi-analysis @ services/sahool-platform/api/routers/ndvi_analysis.py:41",
           "score": 16
         },
         {
@@ -66270,6 +66270,16 @@
       "bounded": true,
       "unbounded_reasons": [],
       "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 185
+        },
+        {
+          "source": "services/sahool-platform/api/routers/ndvi_analysis.py",
+          "kind": "import",
+          "line": 186
+        },
         {
           "source": "services/sahool-platform/core/ndvi_analysis.py",
           "kind": "import",

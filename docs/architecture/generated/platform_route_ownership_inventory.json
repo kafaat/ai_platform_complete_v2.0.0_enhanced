@@ -5,9 +5,9 @@
     "mapped_routes": 625,
     "surface_routes": 625
   },
-  "inventory_sha256": "f13f02c32b3aa661a020c6c944b1f8956c0838829ea1bb7cf33329ddc56ec766",
+  "inventory_sha256": "555d44406dc4d808824af3352f042aab6db379aad58bd4feed8c46b88c511f15",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "22a4e242cf295e42ed4a80060b30c8a976c8b614bbae1caf7249169c2f291616",
+  "map_sha256": "b6ec029e72db6453214b34797af0c1260dba8432bc5cd9bf31d4c6750400cc38",
   "routes": [
     {
       "classification": null,
@@ -6343,7 +6343,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/ndvi_analysis.py",
       "function": "field_ndvi_analysis",
-      "line": 34,
+      "line": 41,
       "method": "POST",
       "owner": "raster-service",
       "owner_type": "compute-store",
