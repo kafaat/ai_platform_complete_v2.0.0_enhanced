@@ -20375,7 +20375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5e3ef63b7c97620069520143977dc1301b10e2ca8520ff82d7c22b35cb5658f"
+          "content": "4d6cde62ad7bc65edac3d2439558a856e12ba741a937e3790c102b917c092e7e"
         }
       ],
       "name": "services/edge-inference/MODEL_PROVISIONING.md",
@@ -20395,7 +20395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e160b97b3ff21ba63cda190a18002cca45491b0b3561c46736de81a2425d2d81"
+          "content": "7596d6989b4a920fb8a4939b17aed774d1f6f92416f4c8282208248daf22b966"
         }
       ],
       "name": "services/edge-inference/download_models.py",
@@ -20405,7 +20405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f243f5bb850089626b873edd4f636ab069d6410e5fccc5c11a6ef67c2dd23ff1"
+          "content": "a734a09eb117d1033e609f493f3a73217877dd2c71ea8310f5f11f002eb6dab8"
         }
       ],
       "name": "services/edge-inference/main.py",
@@ -20415,7 +20415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "71e2b298cf7f817de01b9c98b0cd91d462064d4dc6f83c1e2522a6274f54e34e"
+          "content": "092f6cef8b75ff268b649ac6e099e1e8272f03997aab553c325b3ed55860d06e"
         }
       ],
       "name": "services/edge-inference/model_artifact_gate.py",
@@ -20455,7 +20455,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "135a64bafcf446a9af31284f604d4ce13f3d23804e5b41b76f44ac65519e03e6"
+          "content": "177af07d3eb5df68609e3fc416965cbff8389e0f815834281f70a5c75e1dad36"
+        }
+      ],
+      "name": "services/edge-inference/models/model_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "93dfd371c1e7f435bb89853727ff90cbb6b0df1791b188122882c3be4a8b3e9f"
         }
       ],
       "name": "services/edge-inference/models/pest_detector.py",
@@ -20465,7 +20475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d439256b607b570b601c553d3ffa69a3ccec4cb6e6fca072d9f0b3d4f54d660a"
+          "content": "5bca50f958697305a92c92372f51c25e9819844d3b0c9b38c54c3c1540022e95"
         }
       ],
       "name": "services/edge-inference/models/yield_estimator.py",
@@ -20475,7 +20485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ee49efc47486c471e757c2cacff8ee73bdadcd3e40e98593a970a28dc7778b90"
+          "content": "5b49ec0470db3f914896ee7ee6c9a4a8f97c143063bff671be976c4c93c559b7"
         }
       ],
       "name": "services/edge-inference/models_manifest/edge_models.required.json",
@@ -20535,7 +20545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "91f088f371b76cbfb2112773446f76172caf302e147071834ad1f342a6e48c57"
+          "content": "38c4535917c288487a1f4dfa7357223d7f5307ca863a4bf434a19f2ce70532a0"
         }
       ],
       "name": "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",
@@ -20555,7 +20565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ae71afb7969a6b9d2144f968811d523949a2c67ee23c51d2ea496fc3627f175"
+          "content": "2ee546d3894566a84ff1cfbb4a24c44b15ea516806fd0b30e612eb9b6b73fe3e"
         }
       ],
       "name": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",

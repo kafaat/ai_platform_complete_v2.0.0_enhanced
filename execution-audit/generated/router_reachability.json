@@ -199,7 +199,7 @@
     },
     {
       "kind": "app",
-      "line": 48,
+      "line": 50,
       "module": "services.edge-inference.main",
       "node_id": "services.edge-inference.main:app",
       "route_count": 7,
@@ -3036,7 +3036,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "63ade800ffa7d6108ffe66d4fda348e2a0411920436bef4fb96d3f5a2701695d",
+  "inventory_sha256": "b57ae5fe04b9cf730d15023ad455d9f5a54f46d6a92a89fd0eef034e77d1b107",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {
