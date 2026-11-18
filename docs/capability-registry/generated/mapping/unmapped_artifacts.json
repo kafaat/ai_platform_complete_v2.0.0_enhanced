@@ -5136,6 +5136,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/edge-inference/tests/test_onnx_batch_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/field-management-service/fm_gateway.py",
     "kind": "backend"
   },
@@ -12329,6 +12333,10 @@
   },
   {
     "path": "tests_v9/test_helm_ai_agronomist_shared_agent_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_auth_mail_relay.py",
     "kind": "tests"
   },
   {

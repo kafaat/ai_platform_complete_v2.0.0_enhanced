@@ -20,7 +20,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.agronomic_replay import build_agronomic_replay
+from api.agronomic_replay import build_agronomic_replay, historical_weather_replay_row
 from api.main import (
     Permission,
     UserSchema,
@@ -171,13 +171,7 @@ async def agronomic_replay_endpoint(
     weather_status = "available" if weather else simulation_status
     weather_source = "season_simulation_runs.context_snapshot"
     if not weather and canonical_weather:
-        weather = [
-            {
-                "date": row.get("date"),
-                **(row.get("payload") if isinstance(row.get("payload"), dict) else {}),
-            }
-            for row in canonical_weather
-        ]
+        weather = [historical_weather_replay_row(row) for row in canonical_weather]
         weather_status = canonical_weather_status
         weather_source = "historical_weather_daily"
     elif not weather and simulation_status == "empty":

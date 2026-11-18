@@ -152,7 +152,7 @@ def _validate_session(session, profile: Preprocessing, class_count: int) -> str:
         width = YOLO_BOX_ROWS + class_count
         if (
             len(shape) not in {2, 3}
-            or (len(shape) == 3 and isinstance(shape[0], int) and shape[0] != 1)
+            or (len(shape) == 3 and shape[0] != 1)
             or not any(
                 isinstance(dimension, int) and dimension == width for dimension in shape[-2:]
             )

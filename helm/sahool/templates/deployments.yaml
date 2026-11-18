@@ -55,6 +55,26 @@ spec:
                   name: {{ index $.Values.global.secretRefs $secretKey }}
                   key: value
             {{- end }}
+            {{- if and (eq $name "sahool-auth") $.Values.authEmailRelay.enabled }}
+            # The operator-managed relay must present a cert for this internal
+            # DNS name; services/auth/main.py uses STARTTLS and SMTP AUTH.
+            - name: SMTP_HOST
+              value: {{ printf "%s.%s.svc.%s" $.Values.authEmailRelay.serviceName $.Values.namespace.name $.Values.gateway.clusterDomain | quote }}
+            - name: SMTP_PORT
+              value: "587"
+            - name: SMTP_FROM
+              value: {{ $.Values.authEmailRelay.from | quote }}
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.authEmailRelay.credentialsSecret | quote }}
+                  key: {{ $.Values.authEmailRelay.usernameKey | quote }}
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.authEmailRelay.credentialsSecret | quote }}
+                  key: {{ $.Values.authEmailRelay.passwordKey | quote }}
+            {{- end }}
           volumeMounts:
             - name: temporary
               mountPath: /tmp

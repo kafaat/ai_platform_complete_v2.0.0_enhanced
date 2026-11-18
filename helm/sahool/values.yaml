@@ -55,6 +55,26 @@ networkPolicy:
   # withdraws it from all of them, and add proxy-specific policy.
   allowPublicHttpsEgress: true
 
+# HELM-AUTH-NO-SMTP-SMS-EGRESS-01: disabled unless an operator provisions a
+# STARTTLS+SMTP AUTH relay with trusted TLS identity in this namespace.
+# No relay container/image is shipped by this chart. SMS stays disabled.
+authEmailRelay:
+  enabled: false
+  serviceName: ""          # Kubernetes Service, not Internet SMTP hostname
+  podComponent: ""         # Relay Pod label app.kubernetes.io/component
+  port: 587                # authenticated STARTTLS submission only
+  from: ""                 # sender identity approved by the mail provider
+  credentialsSecret: ""    # existing Kubernetes Secret; never store credentials here
+  usernameKey: username
+  passwordKey: password
+  dnsNamespace: kube-system
+  dnsPodComponent: kube-dns  # kube-system/k8s-app selector; operator must verify
+  # When enabled, name BOTH live in-cluster peers. There is no broad fallback.
+  # e.g. {purpose: database, namespace: sahool, podComponent: sahool-postgres, port: 5432}
+  #      {purpose: redis, namespace: sahool, podComponent: sahool-redis, port: 6379}
+  # External/managed DB/Redis require an independently reviewed egress design.
+  dependencyEgress: []
+
 ingress:
   enabled: true
   className: nginx

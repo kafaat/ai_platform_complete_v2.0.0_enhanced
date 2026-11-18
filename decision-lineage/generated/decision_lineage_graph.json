@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 808,
+      "evidence_count": 809,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -532,6 +532,7 @@
         "services/sahool-platform/tests/test_agri_next_decision_support.py",
         "services/sahool-platform/tests/test_agro_intelligence_endpoints.py",
         "services/sahool-platform/tests/test_agronomic_context_composer.py",
+        "services/sahool-platform/tests/test_agronomic_replay_historical_sources.py",
         "services/sahool-platform/tests/test_backend_registry_v50_static.py",
         "services/sahool-platform/tests/test_c4_erp_projection_binding.py",
         "services/sahool-platform/tests/test_calibration_endpoint.py",
@@ -3205,7 +3206,7 @@
         "services/sahool-platform/api/offline_sync_contracts.py",
         "services/sahool-platform/api/outcome_measurement.py"
       ],
-      "source_evidence_count": 808,
+      "source_evidence_count": 809,
       "target_evidence_count": 585,
       "static_supported": true,
       "runtime_verified": false
@@ -3668,5 +3669,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "483c44224b28ce9fd73d733a2640d34035705a6ecdf249da320bf1093ffc99f2"
+  "content_sha256": "598ce2f4fd9584dfe83096780b3e0b7be276dd3d219dc39697a93d6f0c60cb0a"
 }
