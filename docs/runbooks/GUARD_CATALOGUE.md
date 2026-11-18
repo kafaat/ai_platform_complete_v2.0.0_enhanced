@@ -1193,7 +1193,7 @@
 | `agronomic_runtime_terminal_lineage_gate.py` | Terminal lineage gate: rollback/rollout/dispatch receipts + rollback-aware monitoring. | `structural-lint` · `contract` |
 | `ai_agronomist_main_decomposition_guard.py` | Guard the ai-agronomist main.py decomposition boundary. | `guard` |
 | `ai_container_contract_guard.py` | Guard AI-oriented containers for liveness/readiness and post-decomposition copy contracts. | `ai-container-contract` |
-| `api_versioning_policy_guard.py` | Inventory and freeze unversioned business routes. | `capability-registry` · `regenerate` |
+| `api_versioning_policy_guard.py` | Inventory and freeze unversioned business routes. | `capability-registry` |
 | `arch_test_ci_coverage_guard.py` | كلّ اختبار في ``tests/architecture/`` يجب أن يُشغّله workflow — أو يُعفى بسببه. | `capability-registry` |
 | `architecture_graph.py` | Build a conservative service architecture graph from repository evidence. | `capability-registry` |
 | `assertion_presence_guard.py` | حارس «الخضرة الزائفة»: دالّة اختبار بلا تأكيد **وتُرجِع قيمة** لا يمكن أن تفشل. | `capability-registry` |
@@ -1253,7 +1253,7 @@
 | `env_compose_drift_guard.py` | حارس انجراف env↔compose (السجل التشغيليّ #3) — صنف عضّ مرتين، فأُغلِق بحارس. | `structural-lint` |
 | `event_contract_graph.py` | Generate a conservative static NATS/JetStream event contract graph. | `capability-registry` |
 | `execution_delivery_receipt_boundary_gate.py` | — | `structural-lint` |
-| `execution_dependency_audit.py` | Generate a conservative static execution/dead-code audit. | `capability-registry` · `regenerate` |
+| `execution_dependency_audit.py` | Generate a conservative static execution/dead-code audit. | `capability-registry` |
 | `execution_outcome_boundary_gate.py` | WX-10.12 guard: outcome verification must not perform learning updates. | `structural-lint` |
 | `execution_request_boundary_gate.py` | — | `structural-lint` |
 | `expected_control_flow_guard.py` | يفرض عقد الاستثناءات المتوقَّعة — EXPECTED-CONTROL-FLOW-EXCEPTION. | `structural-lint` |
@@ -1265,11 +1265,11 @@
 | `gateway_reachability_guard.py` | Build a deterministic Nginx/API-gateway reachability and security inventory. | `capability-registry` |
 | `generate_indicator_artifacts.py` | — | `structural-lint` |
 | `generate_indicators_frontend_manifest.py` | مولّد مانيفست الواجهة (build-time) لسجلّ المؤشّرات — WS-B.2 (manifest-only). | `structural-lint` |
-| `generate_service_inventory.py` | Generate Sahool service and route inventory from source code. | `structural-lint` · `regenerate` |
+| `generate_service_inventory.py` | Generate Sahool service and route inventory from source code. | `structural-lint` · `drift` |
 | `generated_write_targets.py` | أهدافُ الكتابة المولَّدة — `CLASSIFIER-BLIND-TO-GENERATORS-OUTSIDE-generated-DIRS-01`. | `structural-lint` |
 | `github_actions_policy_guard.py` | Enforce immutable third-party Actions and reject privileged workflow patterns. | `supply-chain-static-scan` |
-| `guard_catalogue.py` | What every guard enforces, what it catches, and where it runs — derived, never listed. | `structural-lint` · `regenerate` |
-| `health_readiness_schema_guard.py` | Guard canonical health/readiness response envelopes. | `health-readiness-schema` · `regenerate` |
+| `guard_catalogue.py` | What every guard enforces, what it catches, and where it runs — derived, never listed. | `structural-lint` |
+| `health_readiness_schema_guard.py` | Guard canonical health/readiness response envelopes. | `health-readiness-schema` |
 | `indicators_container_contract_guard.py` | Guard the indicators-service canonical-observation-adapter container boundary. | `indicators-container-contract` |
 | `indicators_registry_gate.py` | Guard: config/indicators_registry.json is the single source of truth for indicators. | `structural-lint` |
 | `integration_runtime_governance_closure.py` | Artifact-based closure gate for PATH-2 integration/runtime-evidence governance. | `capability-registry` |
@@ -1355,7 +1355,7 @@
 | `rls_policy_guard.py` | — | `capability-registry` |
 | `route_conflict_guard.py` | Static FastAPI/Starlette route collision guard. | `capability-registry` |
 | `route_mount_contract_guard.py` | Guard route-bearing FastAPI services after main.py decomposition. | `structural-lint` |
-| `route_residual_classification_guard.py` | Classify route decorators that remain directly in main.py files. | `regenerate` · `classify-main-route-residuals` |
+| `route_residual_classification_guard.py` | Classify route decorators that remain directly in main.py files. | `classify-main-route-residuals` |
 | `router_reachability_guard.py` | Conservative static FastAPI router reachability inventory and drift guard. | `capability-registry` |
 | `run_livekit_acceptance.py` | Run actual pinned self-hosted SFU admission; publish only sanitized receipts. | `live-sfu` |
 | `run_nats_compose_acceptance.py` | Isolated SAHOOL NATS Compose acceptance; no production credentials required. | `nats-compose` |
