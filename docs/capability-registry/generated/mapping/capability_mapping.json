@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 44,
-    "files_scanned": 7538,
+    "files_scanned": 7539,
     "files_by_kind": {
       "backend": 1302,
       "database": 352,
       "governance": 88,
       "mobile": 429,
       "other": 2200,
-      "tests": 2611,
+      "tests": 2612,
       "web": 556
     },
     "unmapped_artifacts": 3594,
     "ambiguous_artifacts": 261,
     "files_by_reading": {
-      "python_functional": 4098,
+      "python_functional": 4099,
       "raw": 3440
     },
-    "test_dependency_files": 1993,
-    "test_dependency_edges": 5294,
+    "test_dependency_files": 1994,
+    "test_dependency_edges": 5303,
     "test_dependency_bounded_files": 1159,
     "test_dependency_unresolved_relations": 507
   },
@@ -331,6 +331,10 @@
           "score": 8
         },
         {
+          "value": "/v1/learning/calibration-dataset @ services/decision-service/tests/test_wx11_1_calibration_dataset.py:11",
+          "score": 8
+        },
+        {
           "value": "/v1/outcomes/{outcome_id}/remote-sensing-attribution @ services/vegetation-analysis-service/routers/outcomes.py:86",
           "score": 8
         },
@@ -424,6 +428,10 @@
           "score": 15
         },
         {
+          "value": "Permission.DECISION_LEARNING_ATTRIBUTE @ services/decision-service/tests/test_wx11_1_calibration_dataset.py:32",
+          "score": 8
+        },
+        {
           "value": "irrigation.reservation.dispatch_failed @ tests/irrigation/test_gate_b_dispatch_relay_and_contract.py:32",
           "score": 8
         },
@@ -500,6 +508,14 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
+          "score": 8,
+          "signals": [
+            "content:Execution request",
+            "dedup:Execution request=execution request"
+          ]
+        },
+        {
           "path": "tests/irrigation/test_gate_b_dispatch_relay_and_contract.py",
           "score": 8,
           "signals": [
@@ -543,12 +559,12 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 6,
-        "routes": 4,
+        "routes": 5,
         "database": 16,
-        "events": 4,
+        "events": 5,
         "web": 0,
         "mobile": 0,
-        "tests": 8,
+        "tests": 9,
         "governance": 0,
         "other_evidence": 3
       },
@@ -1741,7 +1757,7 @@
           "score": 10
         },
         {
-          "value": "online_learning_updates @ services/decision-service/tests/test_migration_033_pg16.py:1045",
+          "value": "online_learning_updates @ services/decision-service/tests/test_migration_033_pg16.py:1095",
           "score": 8
         }
       ],
@@ -29008,7 +29024,7 @@
       ],
       "database": [
         {
-          "value": "a @ tests_v9/test_decision_sor_staging_cutover_prep.py:347",
+          "value": "a @ tests_v9/test_decision_sor_staging_cutover_prep.py:364",
           "score": 14
         },
         {
@@ -29020,7 +29036,7 @@
           "score": 14
         },
         {
-          "value": "is @ tests_v9/test_decision_sor_staging_cutover_prep.py:356",
+          "value": "is @ tests_v9/test_decision_sor_staging_cutover_prep.py:373",
           "score": 14
         },
         {
@@ -29032,7 +29048,7 @@
           "score": 14
         },
         {
-          "value": "per @ tests_v9/test_decision_sor_staging_cutover_prep.py:353",
+          "value": "per @ tests_v9/test_decision_sor_staging_cutover_prep.py:370",
           "score": 14
         },
         {
@@ -29118,7 +29134,7 @@
           "score": 14
         },
         {
-          "value": "decision_service_migrate.sh @ tests_v9/test_decision_sor_staging_cutover_prep.py:285",
+          "value": "decision_service_migrate.sh @ tests_v9/test_decision_sor_staging_cutover_prep.py:302",
           "score": 14
         },
         {
@@ -29166,7 +29182,7 @@
           "score": 14
         },
         {
-          "value": "decision_sor_role_certify.py @ tests_v9/test_decision_sor_staging_cutover_prep.py:284",
+          "value": "decision_sor_role_certify.py @ tests_v9/test_decision_sor_staging_cutover_prep.py:301",
           "score": 14
         },
         {
@@ -38115,10 +38131,6 @@
       "kind": "tests"
     },
     {
-      "path": "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/decision-service/tests/test_wx11_2_model_evaluation.py",
       "kind": "tests"
     },
@@ -43876,6 +43888,10 @@
     },
     {
       "path": "tests/runtime/test_phase9_iot_execution_runtime.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/runtime/test_zlmediakit_bootstrap.py",
       "kind": "tests"
     },
     {
@@ -55060,6 +55076,7 @@
       "test": "services/decision-service/tests/test_migration_033_pg16.py",
       "bounded": false,
       "unbounded_reasons": [
+        "shared_test_helper",
         "tree_wide_scan",
         "unresolved_dynamic_relation"
       ],
@@ -55067,7 +55084,7 @@
         {
           "source": "services/decision-service/main.py",
           "kind": "import",
-          "line": 646
+          "line": 670
         },
         {
           "source": "services/decision-service/migration_runner.py",
@@ -55080,14 +55097,19 @@
           "line": 25
         },
         {
+          "source": "services/decision-service/tests/decision_chain_fixture.py",
+          "kind": "import",
+          "line": 699
+        },
+        {
           "source": "services/decision-service/tests/test_agronomic_lineage_integrity.py",
           "kind": "import",
-          "line": 647
+          "line": 671
         }
       ],
       "unresolved": [
         {
-          "line": 332,
+          "line": 333,
           "call": "import_module"
         }
       ]
@@ -55165,7 +55187,12 @@
         {
           "source": "services/decision-service/tests/_model_chain.py",
           "kind": "import",
-          "line": 235
+          "line": 238
+        },
+        {
+          "source": "services/decision-service/tests/decision_chain_fixture.py",
+          "kind": "import",
+          "line": 193
         },
         {
           "source": "services/decision-service/tests/test_agronomic_lineage_integrity.py",
@@ -55737,6 +55764,11 @@
           "source": "services/decision-service/main.py",
           "kind": "source_read",
           "line": 4
+        },
+        {
+          "source": "services/decision-service/persistence.py",
+          "kind": "import",
+          "line": 50
         },
         {
           "source": "services/decision-service/persistence.py",
@@ -66417,9 +66449,34 @@
       "unbounded_reasons": [],
       "edges": [
         {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 305
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 305
+        },
+        {
           "source": "services/sahool-platform/api/nutrient_4r.py",
           "kind": "import",
           "line": 11
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 307
+        },
+        {
+          "source": "services/sahool-platform/api/routers/nutrients.py",
+          "kind": "import",
+          "line": 307
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 308
         }
       ],
       "unresolved": []
@@ -73928,6 +73985,23 @@
       "unresolved": []
     },
     {
+      "test": "tests/runtime/test_zlmediakit_bootstrap.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "subprocess",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "scripts/runtime/env_doctor.py",
+          "kind": "import",
+          "line": 10
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests/security/test_fii_rls_role_gate.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -75968,17 +76042,17 @@
         {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
-          "line": 72
+          "line": 74
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "loader",
-          "line": 264
+          "line": 266
         },
         {
           "source": "tests_v9/service_module.py",
           "kind": "import",
-          "line": 261
+          "line": 263
         },
         {
           "source": "tests_v9/test_b6m4_structured_advisory.py",
@@ -75988,7 +76062,7 @@
         {
           "source": "tests_v9/test_rag_owned_gap_witnesses.py",
           "kind": "import",
-          "line": 262
+          "line": 264
         }
       ],
       "unresolved": []
@@ -98865,12 +98939,12 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 68
+          "line": 69
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 75
+          "line": 76
         }
       ],
       "unresolved": []

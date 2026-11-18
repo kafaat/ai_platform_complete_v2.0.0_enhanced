@@ -3331,7 +3331,31 @@ services:
         fi
       fi
       if [ ! -f /conf/.sahool_init ]; then cp -a /opt/media/conf/. /conf/ && touch /conf/.sahool_init; fi
-      sed -i "s|^secret=.*|secret=$$ZLM_API_SECRET|" /conf/config.ini || true
+      tmp=$$(mktemp /conf/.config.ini.XXXXXX)
+      trap 'rm -f "$$tmp"' EXIT
+      # Write beside the original so a missing/ambiguous key or I/O error leaves it intact.
+      # Read the secret from the environment to keep punctuation literal and out of argv.
+      configure_api_secret() {
+        awk -v verify="$$1" '
+          BEGIN { secret = ENVIRON["ZLM_API_SECRET"]; if (secret ~ /[\r\n]/) exit 1 }
+          /^[[:space:]]*\[/ {
+            api = ($$0 ~ /^[[:space:]]*\[api\][[:space:]]*$$/)
+            if (api) sections++
+          }
+          api && /^[[:space:]]*secret[[:space:]]*=/ {
+            keys++
+            if (verify && ("x" $$0) != ("xsecret=" secret)) exit 1
+            $$0 = "secret=" secret
+          }
+          !verify { print }
+          END { if (sections != 1 || keys != 1) exit 1 }
+        ' "$$2"
+      }
+      if ! configure_api_secret 0 /conf/config.ini > "$$tmp" || ! configure_api_secret 1 "$$tmp"; then
+        echo 'FATAL: cannot set and verify [api] secret in config.ini' >&2
+        exit 1
+      fi
+      mv -f "$$tmp" /conf/config.ini
       echo "zlmediakit config: [api] secret pinned"
     volumes:
     - zlm-conf:/conf

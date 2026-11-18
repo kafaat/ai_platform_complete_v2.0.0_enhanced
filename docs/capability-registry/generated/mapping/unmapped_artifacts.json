@@ -5052,10 +5052,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/decision-service/tests/test_wx11_2_model_evaluation.py",
     "kind": "tests"
   },
@@ -10813,6 +10809,10 @@
   },
   {
     "path": "tests/runtime/test_phase9_iot_execution_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/runtime/test_zlmediakit_bootstrap.py",
     "kind": "tests"
   },
   {

@@ -1558,7 +1558,7 @@
     },
     {
       "kind": "router",
-      "line": 27,
+      "line": 19,
       "module": "services.sahool-platform.api.routers.nutrients",
       "node_id": "services.sahool-platform.api.routers.nutrients:router",
       "route_count": 1,
@@ -2493,7 +2493,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 60,
+  "include_edge_count": 61,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2820,6 +2820,15 @@
       "target": null
     },
     {
+      "expression": "nutrients.router",
+      "line": 316,
+      "module": "services/sahool-platform/tests/test_nutrient_4r.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_nutrient_4r:<dynamic-source>",
+      "target": null
+    },
+    {
       "expression": "router",
       "line": 13,
       "module": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
@@ -3036,7 +3045,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "b57ae5fe04b9cf730d15023ad455d9f5a54f46d6a92a89fd0eef034e77d1b107",
+  "inventory_sha256": "1b1b356ecc6950fc56bba9d86ad9222ac7d1b39652e371ff971436255be610ae",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {
@@ -4502,7 +4511,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 27,
+      "line": 19,
       "module": "services.sahool-platform.api.routers.nutrients",
       "node_id": "services.sahool-platform.api.routers.nutrients:router",
       "route_count": 1,
@@ -5427,7 +5436,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 55,
+  "unresolved_include_count": 56,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5700,6 +5709,14 @@
       "module": "services.sahool-platform.tests.test_me_ai_policy_envelope",
       "source": null,
       "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_nutrient_4r.py",
+      "line": 316,
+      "module": "services.sahool-platform.tests.test_nutrient_4r",
+      "source": null,
+      "target_expression": "nutrients.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",

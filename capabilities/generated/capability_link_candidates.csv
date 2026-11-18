@@ -2685,7 +2685,7 @@ SOIL-003,api,POST /api/v1/lab/soil-results @ services/sahool-platform/api/router
 SOIL-003,api,POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:548,4,applied
 SOIL-003,mobile,mobile/sahool_app/lib/features/lab_sampling/presentation/lab_results_screen.dart,4,applied
 SOIL-003,service,services/soil-service/main.py,10,applied
-SOIL-004,api,POST /api/v1/nutrients/4r-plan @ services/sahool-platform/api/routers/nutrients.py:31,2,applied
+SOIL-004,api,POST /api/v1/nutrients/4r-plan @ services/sahool-platform/api/routers/nutrients.py:23,2,applied
 SOIL-004,service,services/soil-service/main.py,10,applied
 SOIL-004,test,services/sahool-platform/tests/test_nutrient_4r.py,3,applied
 SOIL-004,test,services/sahool-platform/tests/test_nutrient_calibration.py,3,applied

@@ -2929,7 +2929,7 @@
         "services/soil-service/main.py"
       ],
       "apis": [
-        "POST /api/v1/nutrients/4r-plan @ services/sahool-platform/api/routers/nutrients.py:31"
+        "POST /api/v1/nutrients/4r-plan @ services/sahool-platform/api/routers/nutrients.py:23"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
