@@ -39,6 +39,7 @@
         "SOIL-004:declared_above_evidence:evidence-maturity",
         "SOIL-005:declared_above_evidence:evidence-maturity",
         "WX-001:declared_above_evidence:evidence-maturity",
+        "WX-003:evidence_above_declared:evidence-maturity",
         "WX-004:evidence_above_declared:evidence-maturity",
         "WX-005:declared_above_evidence:evidence-maturity",
         "WX-007:declared_above_evidence:evidence-maturity",
@@ -91,6 +92,12 @@
       "retired": {
         "SEC-007:declared_above_evidence:evidence-maturity": "now aligned: W2-01 added integration-marked evidence (tests_v9/test_decision_sor_staging_recipe_live_pg.py); declared stays 3, assessed rose 2 -> 3"
       }
+    },
+    {
+      "admitted": {
+        "WX-003:evidence_above_declared:evidence-maturity": "PR #1538 adds tests_v9/test_weather_replay_http_live_pg.py and a dedicated restricted-role CI step. Assessed maturity rose to 2. Declared maturity remains at 1 pending capability review."
+      },
+      "decision": "Record weather history evidence drift on 2026-11-18 without promotion"
     }
   ],
   "purpose": "Known legacy drift identities only. New drift and stale baseline entries block; this file is not a capability value source of truth.",

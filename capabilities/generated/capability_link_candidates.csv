@@ -363,6 +363,7 @@ FM-001,test,services/sahool-platform/tests/test_t4_raster_compat_proxy_auth.py,3
 FM-001,test,services/sahool-platform/tests/test_tenant_audit.py,3,applied
 FM-001,test,services/sahool-platform/tests/test_tenant_config.py,3,applied
 FM-001,test,tests_v9/auth_route_source.py,2,applied
+FM-001,test,tests_v9/fixtures/helm_auth_mail_relay.yaml,2,applied
 FM-001,test,tests_v9/test_ai_rag_tenant_corpus_empty_degrade.py,3,applied
 FM-001,test,tests_v9/test_auth_acquire_admin_context_guard.py,3,applied
 FM-001,test,tests_v9/test_auth_admin_authz_live_pg_redis.py,3,applied
@@ -397,6 +398,7 @@ FM-001,test,tests_v9/test_dev_gateway_raster_tile_auth_guard.py,3,applied
 FM-001,test,tests_v9/test_edge_sync_tenant_per_request_live_pg.py,3,applied
 FM-001,test,tests_v9/test_endpoint_auth_coverage.py,3,applied
 FM-001,test,tests_v9/test_field_timeline_tenant_scope_live_pg.py,3,applied
+FM-001,test,tests_v9/test_helm_auth_mail_relay.py,3,applied
 FM-001,test,tests_v9/test_internal_tenant_assertion_live_pg.py,3,applied
 FM-001,test,tests_v9/test_internal_tenant_assertion_w0_05.py,3,applied
 FM-001,test,tests_v9/test_mcp_auth_first_contract.py,3,applied

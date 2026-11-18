@@ -1786,6 +1786,12 @@ jobs:
           SEASON_STATE_SOURCES_CERTIFICATION_REQUIRED: "1"
           COVERAGE_FILE: .coverage.integration-auth
         run: pytest -v -m integration -rs tests_v9/test_season_state_sources_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      - name: Historical weather ingest and replay over HTTP (two tenants, restricted role)
+        env:
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          WEATHER_REPLAY_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_weather_replay_http_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W1-11 (owner decision 2026-11-16): indicators-service stores each observation raster-service
       # publishes, append-only (v286): created then replayed, conflict on other content under the
       # same id, UPDATE/DELETE/TRUNCATE refused, tenant isolation, and the pull end to end (raster's

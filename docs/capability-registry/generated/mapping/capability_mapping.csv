@@ -72,7 +72,7 @@ SOIL-004,soil,pH EC SOM nutrients,True,4,3,6,7,3,0,0,0,0
 SOIL-005,soil,Soil water properties,True,3,7,0,0,8,0,0,2,0
 WX-001,weather,Current weather,True,1,0,0,0,0,0,0,1,0
 WX-002,weather,Weather forecast,True,7,14,23,6,32,8,1,17,0
-WX-003,weather,Weather history,True,3,2,6,4,0,0,0,0,0
+WX-003,weather,Weather history,True,4,2,6,4,0,0,0,1,0
 WX-004,weather,ET0,True,4,3,0,22,1,0,0,10,0
 WX-005,weather,VPD,True,3,3,0,0,1,0,0,4,0
 WX-006,weather,GDD,True,4,6,1,0,1,0,0,11,0

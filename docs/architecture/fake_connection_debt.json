@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "12cdc1c3b92b89247eea43af1f4878d15262d32a",
+  "measured_on": "374e31c3521039e1843762074b31699188c0b86a",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -138,6 +138,7 @@
     "tests_v9/test_variety_policy_resolution.py",
     "tests_v9/test_vegetation_sqlite_startup.py",
     "tests_v9/test_water_ledger.py",
+    "tests_v9/test_weather_replay_http_live_pg.py",
     "tests_v9/test_work_order_persist_emit.py",
     "tests_v9/test_workflow_store_hardening.py"
   ],
@@ -721,6 +722,16 @@
         "services/actuator-service/test_killswitch_close_exemption.py"
       ],
       "justification": "ACTUATOR-KILLSWITCH-BLOCKS-CLOSE-01. The _EngagedConn/_Pool doubles answer the actuation_killswitch query with one engaged tenant-scoped switch (or raise, to exercise the fail-closed answer) so the REAL shared.actuation_killswitch.is_actuation_halted runs on every actuator call site; their transaction() is a no-op. They measure only that each path passes the command so CLOSE/OFF is not held. No PostgreSQL enforcement is claimed: RLS on actuation_killswitch, the transaction-scoped set_config and switch expiry are not established here. No proven_live exemption is added."
+    },
+    {
+      "kind": "weather_replay_live_pg_transaction_scope",
+      "date": "2026-11-18",
+      "before": 138,
+      "after": 139,
+      "sites": [
+        "tests_v9/test_weather_replay_http_live_pg.py"
+      ],
+      "justification": "TestPool.acquire lends the same live asyncpg connection to each request so the outer rollback removes both tenants’ append-only fixtures. PostgreSQL executes every query and enforces row security under the restricted application role."
     }
   ]
 }
