@@ -55,9 +55,7 @@ async def seed_authorization_for_decision(c, tenant_id, did, lin):
 
 
 async def seed_calibration_task(c, tenant_id, decision_id, request_id):
-    auth, plan, _ = await seed_authorization_for_decision(
-        c, tenant_id, decision_id, uuid4().hex
-    )
+    auth, plan, _ = await seed_authorization_for_decision(c, tenant_id, decision_id, uuid4().hex)
     await c.execute(
         """INSERT INTO decision_execution_requests
            (execution_request_id, tenant_id, dispatch_authorization_id, execution_plan_id,

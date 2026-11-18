@@ -63,22 +63,15 @@ def test_nitrogen_caco3_boundary_is_inclusive():
     )
     # أقلّ بقليل لا يُفعّل (مع pH معروف منخفض — المجهول لا يستبعد الخطر).
     assert (
-        recommend_nitrogen(
-            SoilContext(caco3_pct=_CALCAREOUS_THRESHOLD - 0.1, ph=7.0)
-        ).warnings_ar
+        recommend_nitrogen(SoilContext(caco3_pct=_CALCAREOUS_THRESHOLD - 0.1, ph=7.0)).warnings_ar
         == []
     )
 
 
 def test_nitrogen_ph_boundary_is_inclusive():
+    assert _AMMONIA_WARNING in recommend_nitrogen(SoilContext(ph=_HIGH_PH_THRESHOLD)).warnings_ar
     assert (
-        _AMMONIA_WARNING
-        in recommend_nitrogen(SoilContext(ph=_HIGH_PH_THRESHOLD)).warnings_ar
-    )
-    assert (
-        recommend_nitrogen(
-            SoilContext(ph=_HIGH_PH_THRESHOLD - 0.1, caco3_pct=5.0)
-        ).warnings_ar
+        recommend_nitrogen(SoilContext(ph=_HIGH_PH_THRESHOLD - 0.1, caco3_pct=5.0)).warnings_ar
         == []
     )
 
@@ -97,9 +90,7 @@ def test_nitrogen_unknown_soil_assumes_volatilisation_risk():
 def test_phosphorus_unknown_caco3_assumes_fixation_risk():
     rec = recommend_phosphorus(SoilContext(p_ppm=20.0))
     assert any("CaCO3/pH unknown — assume risk" in w for w in rec.warnings_ar)
-    assert (
-        recommend_phosphorus(SoilContext(p_ppm=20.0, caco3_pct=5.0)).warnings_ar == []
-    )
+    assert recommend_phosphorus(SoilContext(p_ppm=20.0, caco3_pct=5.0)).warnings_ar == []
 
 
 # ─── الفوسفور: محجوب بلا تحليل، وإلّا حسب عتبة Olsen-P ─────────────────────
@@ -135,14 +126,9 @@ def test_phosphorus_low_is_advisory_high_rate():
 
 def test_phosphorus_olsen_threshold_boundary():
     # عتبة low_p هي p_ppm < 10 ⇒ القيمة 10 بالضبط ليست منخفضة ⇒ OK.
-    assert (
-        recommend_phosphorus(SoilContext(p_ppm=10.0)).status == RecommendationStatus.OK
-    )
+    assert recommend_phosphorus(SoilContext(p_ppm=10.0)).status == RecommendationStatus.OK
     # أقلّ بقليل ⇒ ADVISORY.
-    assert (
-        recommend_phosphorus(SoilContext(p_ppm=9.9)).status
-        == RecommendationStatus.ADVISORY
-    )
+    assert recommend_phosphorus(SoilContext(p_ppm=9.9)).status == RecommendationStatus.ADVISORY
 
 
 def test_phosphorus_non_calcareous_with_value_has_no_fixation_warning():
@@ -214,9 +200,7 @@ def test_full_plan_default_covers_npFeZn():
 
 def test_full_plan_blocks_p_fe_zn_for_unanalyzed_soil():
     # تربة بلا تحاليل ⇒ P/Fe/Zn محجوبة، N إرشاديّ.
-    plan = {
-        p["nutrient"]: p["status"] for p in full_4r_plan(SoilContext(caco3_pct=25.0))
-    }
+    plan = {p["nutrient"]: p["status"] for p in full_4r_plan(SoilContext(caco3_pct=25.0))}
     assert plan["nitrogen"] == RecommendationStatus.ADVISORY.value
     assert plan["phosphorus"] == RecommendationStatus.BLOCKED.value
     assert plan["iron"] == RecommendationStatus.BLOCKED.value
@@ -278,9 +262,7 @@ def _approved_p(value, *, unit="mg/kg", method="olsen"):
     }
 
 
-@pytest.mark.parametrize(
-    "value, status", [(0, "advisory"), ("5", "advisory"), (15, "ok")]
-)
+@pytest.mark.parametrize("value, status", [(0, "advisory"), ("5", "advisory"), (15, "ok")])
 def test_approved_olsen_changes_advice_with_sample_level_provenance(value, status):
     from api.nutrient_4r import approved_sample_4r_plan
 
@@ -328,9 +310,7 @@ def test_field_and_manual_http_contracts(monkeypatch):
     from fastapi.testclient import TestClient
 
     tenant = "00000000-0000-0000-0000-000000000001"
-    user = UserSchema(
-        user_id="u", tenant_id=tenant, role=UserRole.MANAGER, name_ar="مدير"
-    )
+    user = UserSchema(user_id="u", tenant_id=tenant, role=UserRole.MANAGER, name_ar="مدير")
     monkeypatch.setattr(main, "_DB_POOL", None)
     app = FastAPI()
     app.include_router(nutrients.router)
@@ -340,7 +320,5 @@ def test_field_and_manual_http_contracts(monkeypatch):
     assert client.post(url).status_code == 422
     manual = client.post(url, json={"p_ppm": 5})
     assert manual.status_code == 200 and set(manual.json()) == {"plan"}
-    assert (
-        client.post(url, params={"field_id": "f"}, json={"p_ppm": 5}).status_code == 422
-    )
+    assert client.post(url, params={"field_id": "f"}, json={"p_ppm": 5}).status_code == 422
     assert client.post(url, params={"field_id": "f"}).status_code == 503

@@ -35,9 +35,7 @@ HARDENING_VERSIONS = [VERSION, COMPOSITION_VERSION]
 # Migrations shipped after the hardening pair (035+). They are applied by the same runner call, so
 # "pending after the 032 baseline" is the hardening pair followed by these — computed from the
 # tree, so a new migration does not silently redefine what this witness proves.
-LATER_VERSIONS = [
-    m.version for m in runner.load_migrations() if m.version > COMPOSITION_VERSION
-]
+LATER_VERSIONS = [m.version for m in runner.load_migrations() if m.version > COMPOSITION_VERSION]
 PENDING_AFTER_BASELINE = HARDENING_VERSIONS + LATER_VERSIONS
 TABLES = ("decision_outbox_events", "decision_reviews")
 
@@ -91,9 +89,7 @@ async def database(monkeypatch):
         parts = urlsplit(ADMIN_DSN)
         admin_dsn = urlunsplit(parts._replace(path=f"/{dbname}"))
         app_dsn = urlunsplit(
-            parts._replace(
-                netloc=f"{role}:disposable_test_only@127.0.0.1:5436", path=f"/{dbname}"
-            )
+            parts._replace(netloc=f"{role}:disposable_test_only@127.0.0.1:5436", path=f"/{dbname}")
         )
         admin = await _connect(admin_dsn)
 
@@ -116,9 +112,7 @@ async def database(monkeypatch):
         await admin.execute(
             f'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "{role}"'
         )
-        await admin.execute(
-            f'GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO "{role}"'
-        )
+        await admin.execute(f'GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO "{role}"')
         app = await app_connection()
         try:
             identity = await app.fetchrow(
@@ -136,9 +130,7 @@ async def database(monkeypatch):
                 "SELECT EXISTS(SELECT 1 FROM pg_auth_members "
                 "WHERE member=(SELECT oid FROM pg_roles WHERE rolname=current_user))"
             )
-            assert not await app.fetchval(
-                "SELECT current_setting('app.current_tenant', true)"
-            )
+            assert not await app.fetchval("SELECT current_setting('app.current_tenant', true)")
         finally:
             await app.close()
         yield SimpleNamespace(
@@ -184,9 +176,7 @@ async def _insert(conn, table, row_id, tenant):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("table", TABLES)
 @pytest.mark.parametrize("owns_table", [False, True], ids=["nonowner", "forced-owner"])
-async def test_033_isolates_reads_writes_and_rolls_back(
-    database, monkeypatch, table, owns_table
-):
+async def test_033_isolates_reads_writes_and_rolls_back(database, monkeypatch, table, owns_table):
     # Isolate the 033/034 policy contract: later parent-link triggers can reject
     # these deliberately minimal rows before RLS. Real application scenarios
     # below still apply EVERY migration, including the 036 correlation contract.
@@ -215,25 +205,19 @@ async def test_033_isolates_reads_writes_and_rolls_back(
             await _insert(app, table, "ci-own", TENANT)
             assert await app.fetchval(f"SELECT count(*) FROM {table}") == 1
             # Savepoints preserve the outer transaction after expected RLS errors.
-            with pytest.raises(
-                asyncpg.InsufficientPrivilegeError, match="row-level security"
-            ):
+            with pytest.raises(asyncpg.InsufficientPrivilegeError, match="row-level security"):
                 async with app.transaction():
                     await _insert(app, table, "ci-cross", OTHER)
             await app.execute("SELECT set_config('app.current_tenant',$1,true)", OTHER)
             assert await app.fetchval(f"SELECT count(*) FROM {table}") == 0
             await app.execute("SELECT set_config('app.current_tenant','',true)")
             assert await app.fetchval(f"SELECT count(*) FROM {table}") == 0
-            with pytest.raises(
-                asyncpg.InsufficientPrivilegeError, match="row-level security"
-            ):
+            with pytest.raises(asyncpg.InsufficientPrivilegeError, match="row-level security"):
                 async with app.transaction():
                     await _insert(app, table, "ci-missing", TENANT)
         finally:
             await tx.rollback()
-        assert not await app.fetchval(
-            "SELECT current_setting('app.current_tenant',true)"
-        )
+        assert not await app.fetchval("SELECT current_setting('app.current_tenant',true)")
         assert await database.admin.fetchval(f"SELECT count(*) FROM {table}") == 0
     finally:
         await app.close()
@@ -267,9 +251,9 @@ def observed_writers(monkeypatch):
     async def emit(conn, **kwargs):
         caller = sys._getframe(1).f_code.co_name
         assert conn.is_in_transaction()
-        assert await conn.fetchval(
-            "SELECT current_setting('app.current_tenant', true)"
-        ) == str(kwargs["tenant_id"])
+        assert await conn.fetchval("SELECT current_setting('app.current_tenant', true)") == str(
+            kwargs["tenant_id"]
+        )
         assert not await conn.fetchval(
             "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname=current_user"
         )
@@ -354,9 +338,9 @@ async def test_existing_writer_scenarios_after_033(
         await asyncio.to_thread(getattr(module, scenario))
     except pytest.skip.Exception as exc:
         pytest.fail(f"required writer scenario must execute: {exc}")
-    assert (
-        expected <= observed_writers
-    ), f"writers never reached real INSERT: {expected - observed_writers}"
+    assert expected <= observed_writers, (
+        f"writers never reached real INSERT: {expected - observed_writers}"
+    )
 
 
 @pytest.mark.asyncio
@@ -429,9 +413,7 @@ _REJECTED = {
 
 
 @pytest.mark.asyncio
-async def test_learning_writer_survives_033_under_restricted_login(
-    database, observed_writers
-):
+async def test_learning_writer_survives_033_under_restricted_login(database, observed_writers):
     payload = SimpleNamespace(
         model_id="ci-model",
         feature_set_id=None,
@@ -600,18 +582,14 @@ async def test_review_idempotency_replay_survives_033_under_restricted_login(dat
     assert before["status"] == "ok" and before["replay"] is True
     assert (await runner.apply_migrations())["ok"]
     after = await persistence.review_decision(**request)
-    assert (
-        after == before
-    ), "033 must not hide a tenant's authoritative idempotency replay"
+    assert after == before, "033 must not hide a tenant's authoritative idempotency replay"
     assert await persistence.review_decision(**{**request, "tenant_id": OTHER}) == {
         "status": "not_found"
     }
 
 
 @pytest.mark.asyncio
-async def test_fresh_review_is_atomic_and_tenant_scoped_after_033(
-    database, observed_writers
-):
+async def test_fresh_review_is_atomic_and_tenant_scoped_after_033(database, observed_writers):
     assert (await runner.apply_migrations())["ok"]
     await database.admin.execute(
         "INSERT INTO decision_record (decision_id,tenant_id,stage,decision_type,"
@@ -687,9 +665,7 @@ MODEL_WRITERS = {
 
 
 @pytest.mark.asyncio
-async def test_model_lifecycle_writers_after_033(
-    database, observed_writers, monkeypatch
-):
+async def test_model_lifecycle_writers_after_033(database, observed_writers, monkeypatch):
     """Execute the persisted model lifecycle; no model training or registry network I/O."""
     import main as api
     import test_agronomic_lineage_integrity as lineage
@@ -722,9 +698,7 @@ async def test_model_lifecycle_writers_after_033(
     )
     from decision_chain_fixture import seed_calibration_task
 
-    await seed_calibration_task(
-        database.admin, TENANT, "ci-model-decision", "ci-model-execution"
-    )
+    await seed_calibration_task(database.admin, TENANT, "ci-model-decision", "ci-model-execution")
     await database.admin.execute(
         "INSERT INTO outcome_record(outcome_id,tenant_id,decision_id,success,verification_state,"
         "evidence_snapshot_id,execution_request_id) "
@@ -855,9 +829,7 @@ async def test_model_lifecycle_writers_after_033(
         "create_rollout_plan",
         receipt_id=receipt_id,
         requested_by="ci",
-        payload=api.RolloutPlanIn(
-            mode="canary", traffic_percent=10, idempotency_key="ci-rollout"
-        ),
+        payload=api.RolloutPlanIn(mode="canary", traffic_percent=10, idempotency_key="ci-rollout"),
     )
     now = datetime.now(UTC)
     monitor = await call(
@@ -892,9 +864,7 @@ async def test_model_lifecycle_writers_after_033(
         "create_model_registry_rollback_command",
         receipt_id=receipt_id,
         requested_by="ci",
-        payload=api.ModelRegistryRollbackIn(
-            reason="ci-only", idempotency_key="ci-rollback"
-        ),
+        payload=api.ModelRegistryRollbackIn(reason="ci-only", idempotency_key="ci-rollback"),
     )
     rollback_id = rollback["rollback_command_id"]
     await call(
@@ -938,17 +908,13 @@ async def test_baseline_outbox_writers_after_033(database, observed_writers):
     dispatch = await persistence.persist_dispatch_decision(
         tenant_id=TENANT,
         decision_id="ci-dispatch",
-        payload=api.DispatchDecisionIn(
-            recommendation_id="ci-rec", action_type="irrigation"
-        ),
+        payload=api.DispatchDecisionIn(recommendation_id="ci-rec", action_type="irrigation"),
     )
     assert dispatch["decision_id"] == "ci-dispatch"
     outcome = await persistence.persist_outcome_record(
         tenant_id=TENANT,
         outcome_id="ci-basic-outcome",
-        payload=api.OutcomeRecordIn(
-            decision_id="ci-dispatch", idempotency_key="ci-basic-outcome"
-        ),
+        payload=api.OutcomeRecordIn(decision_id="ci-dispatch", idempotency_key="ci-basic-outcome"),
     )
     assert outcome["outcome_id"] == "ci-basic-outcome"
     recommendation = await persistence.persist_recommendation_outcome(
@@ -1002,11 +968,7 @@ async def test_baseline_outbox_writers_after_033(database, observed_writers):
 
 def test_every_outbox_writer_has_a_pg16_witness_and_binds_before_sql():
     source = Path(persistence.__file__).read_text()
-    witnessed = (
-        BASELINE_WRITERS
-        | MODEL_WRITERS
-        | {"persist_learning_update", "review_decision"}
-    )
+    witnessed = BASELINE_WRITERS | MODEL_WRITERS | {"persist_learning_update", "review_decision"}
     for _, _, names in WRITER_SCENARIOS:
         witnessed |= names
     discovered = set()
@@ -1027,10 +989,7 @@ def test_every_outbox_writer_has_a_pg16_witness_and_binds_before_sql():
             n
             for n in ast.walk(fn)
             if isinstance(n, ast.AsyncWith)
-            and any(
-                ast.unparse(item.context_expr) == "conn.transaction()"
-                for item in n.items
-            )
+            and any(ast.unparse(item.context_expr) == "conn.transaction()" for item in n.items)
         ]
         assert len(transactions) == 1, fn.name
         tenant = next(k.value for k in emitters[0].keywords if k.arg == "tenant_id")
@@ -1114,9 +1073,7 @@ async def test_learning_update_review_is_stored_upserted_and_read_back(database)
         await write(**no_evidence)
     with pytest.raises(persistence.LearningUpdateReviewInvalid):
         await write(**{**_APPROVED, "agronomically_approved": False})
-    assert (await row())[
-        "review_status"
-    ] == "rejected"  # refused revisions changed nothing
+    assert (await row())["review_status"] == "rejected"  # refused revisions changed nothing
     assert await events() == 3
 
     with pytest.raises(persistence.LearningUpdateConflict):  # identity is not revisable
@@ -1197,6 +1154,4 @@ async def test_learning_update_before_039_stores_unreviewed_and_refuses_a_review
     )
     # Once 039 runs (with the rest of the pending migrations), the same writer stores reviews.
     assert (await runner.apply_migrations())["ok"]
-    assert (await write("ci-pre039-reviewed", **_APPROVED))[
-        "review_status"
-    ] == "approved"
+    assert (await write("ci-pre039-reviewed", **_APPROVED))["review_status"] == "approved"

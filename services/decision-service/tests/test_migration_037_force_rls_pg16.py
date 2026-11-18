@@ -64,9 +64,7 @@ async def _apply_and_hand_ownership(database) -> None:
         "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename"
     )
     for row in tables:
-        await database.admin.execute(
-            f'ALTER TABLE "{row["tablename"]}" OWNER TO "{database.role}"'
-        )
+        await database.admin.execute(f'ALTER TABLE "{row["tablename"]}" OWNER TO "{database.role}"')
     await database.admin.execute("ALTER TABLE decision_record FORCE ROW LEVEL SECURITY")
     owner = await database.admin.fetchval(
         "SELECT pg_get_userbyid(relowner) FROM pg_class WHERE relname='decision_execution_requests'"
@@ -79,13 +77,9 @@ async def _count_as_owner(database, table: str, *, tenant=None, worker=None) -> 
     try:
         async with conn.transaction():
             if tenant is not None:
-                await conn.execute(
-                    "SELECT set_config('app.current_tenant', $1, true)", tenant
-                )
+                await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant)
             if worker is not None:
-                await conn.execute(
-                    "SELECT set_config('app.current_worker', $1, true)", worker
-                )
+                await conn.execute("SELECT set_config('app.current_worker', $1, true)", worker)
             return await conn.fetchval(f"SELECT count(*) FROM {table}")
     finally:
         await conn.close()
@@ -94,16 +88,12 @@ async def _count_as_owner(database, table: str, *, tenant=None, worker=None) -> 
 @pytest.mark.asyncio
 async def test_037_satisfies_the_v206_catalog_assertion(database):
     assert (await runner.apply_migrations())["ok"]
-    offenders = await database.admin.fetchval(
-        V206_OFFENDERS, sorted(_PLATFORM_HARDENED)
-    )
+    offenders = await database.admin.fetchval(V206_OFFENDERS, sorted(_PLATFORM_HARDENED))
     assert offenders == ""
     # Re-running 037 (as every deploy may) changes nothing and still passes.
     sql = next(m.sql for m in runner.load_migrations() if m.version.startswith("037_"))
     await database.admin.execute(sql)
-    assert (
-        await database.admin.fetchval(V206_OFFENDERS, sorted(_PLATFORM_HARDENED)) == ""
-    )
+    assert await database.admin.fetchval(V206_OFFENDERS, sorted(_PLATFORM_HARDENED)) == ""
 
 
 @pytest.mark.asyncio
@@ -169,9 +159,7 @@ async def _governed_decision(database):
     await call(
         "persist_decision_record",
         decision_id="ci-decision-037",
-        payload=lineage._decision(
-            "ci-field-037", ctx, veg["snapshot_id"], manifest_hash
-        ),
+        payload=lineage._decision("ci-field-037", ctx, veg["snapshot_id"], manifest_hash),
     )
     return api, ctx
 
@@ -204,9 +192,7 @@ async def test_evidence_context_and_calibration_reads_return_the_tenants_rows(da
 
     from decision_chain_fixture import seed_calibration_task
 
-    await seed_calibration_task(
-        database.admin, TENANT, "ci-decision-037", "ci-execution-037"
-    )
+    await seed_calibration_task(database.admin, TENANT, "ci-decision-037", "ci-execution-037")
     await database.admin.execute(
         "INSERT INTO outcome_record(outcome_id,tenant_id,decision_id,success,verification_state,"
         "evidence_snapshot_id,execution_request_id) "
@@ -252,9 +238,7 @@ async def test_runtime_work_feed_and_active_state_under_force(database):
     from _model_chain import seed_activated_model
 
     await _apply_and_hand_ownership(database)
-    ids = await seed_activated_model(
-        database.admin, tenant=TENANT, model_id="ci-model-037"
-    )
+    ids = await seed_activated_model(database.admin, tenant=TENANT, model_id="ci-model-037")
 
     state = await persistence.get_active_model_state(
         tenant_id=TENANT,
@@ -274,33 +258,17 @@ async def test_runtime_work_feed_and_active_state_under_force(database):
     )["status"] == "not_found"
 
     work = await persistence.list_runtime_work(tenant_id=TENANT, worker_id=WORKER)
-    verification = [
-        i for i in work["items"] if i["work_type"] == "post_activation_verification"
-    ]
+    verification = [i for i in work["items"] if i["work_type"] == "post_activation_verification"]
     assert len(verification) == 1
-    assert (
-        verification[0]["payload"]["activation_receipt_id"]
-        == ids["activation_receipt_id"]
-    )
+    assert verification[0]["payload"]["activation_receipt_id"] == ids["activation_receipt_id"]
     assert verification[0]["payload"]["work_claim_id"].startswith("wkclaim_")
     # The lease was written by the owner under FORCE and committed with the feed read.
-    assert (
-        await _count_as_owner(
-            database, "decision_model_runtime_work_claims", tenant=TENANT
-        )
-        == 1
-    )
+    assert await _count_as_owner(database, "decision_model_runtime_work_claims", tenant=TENANT) == 1
     assert await _count_as_owner(database, "decision_model_runtime_work_claims") == 0
     # A second replica sees the item but loses the live lease.
-    again = await persistence.list_runtime_work(
-        tenant_id=TENANT, worker_id="ci-other-replica"
-    )
-    assert not [
-        i for i in again["items"] if i["work_type"] == "post_activation_verification"
-    ]
-    assert (await persistence.list_runtime_work(tenant_id=OTHER, worker_id=WORKER))[
-        "items"
-    ] == []
+    again = await persistence.list_runtime_work(tenant_id=TENANT, worker_id="ci-other-replica")
+    assert not [i for i in again["items"] if i["work_type"] == "post_activation_verification"]
+    assert (await persistence.list_runtime_work(tenant_id=OTHER, worker_id=WORKER))["items"] == []
 
 
 @pytest.mark.asyncio
@@ -312,9 +280,7 @@ async def test_worker_tables_are_worker_partitioned_and_authorization_stays_fail
         result = await persistence.register_runtime_worker_tenant(
             worker_id=WORKER,
             created_by="ci-operator",
-            payload=SimpleNamespace(
-                tenant_id=tenant, enabled=True, idempotency_key=key
-            ),
+            payload=SimpleNamespace(tenant_id=tenant, enabled=True, idempotency_key=key),
         )
         assert result["status"] == "ok" and result["replay"] is False, result
 
@@ -323,9 +289,7 @@ async def test_worker_tables_are_worker_partitioned_and_authorization_stays_fail
     conflict = await persistence.register_runtime_worker_tenant(
         worker_id=WORKER,
         created_by="ci-operator",
-        payload=SimpleNamespace(
-            tenant_id=THIRD, enabled=True, idempotency_key="k-037-a"
-        ),
+        payload=SimpleNamespace(tenant_id=THIRD, enabled=True, idempotency_key="k-037-a"),
     )
     assert conflict == {
         "status": "conflict",
@@ -338,31 +302,19 @@ async def test_worker_tables_are_worker_partitioned_and_authorization_stays_fail
         "registered": True,
         "tenants": sorted([TENANT, OTHER]),
     }
-    assert (await persistence.list_worker_tenants(worker_id=STRANGER))[
-        "registered"
-    ] is False
+    assert (await persistence.list_worker_tenants(worker_id=STRANGER))["registered"] is False
 
     for strict in ("", "true"):
         monkeypatch.setenv("DECISION_STRICT_WORKER_TENANTS", strict)
-        assert await persistence.worker_tenant_authorized(
-            worker_id=WORKER, tenant_id=TENANT
-        )
-        assert await persistence.worker_tenant_authorized(
-            worker_id=WORKER, tenant_id=OTHER
-        )
+        assert await persistence.worker_tenant_authorized(worker_id=WORKER, tenant_id=TENANT)
+        assert await persistence.worker_tenant_authorized(worker_id=WORKER, tenant_id=OTHER)
         # Registered worker, unregistered tenant: denied in BOTH modes, i.e. the probe found
         # the registration and never fell into the legacy "unregistered -> allow" branch.
-        assert not await persistence.worker_tenant_authorized(
-            worker_id=WORKER, tenant_id=THIRD
-        )
+        assert not await persistence.worker_tenant_authorized(worker_id=WORKER, tenant_id=THIRD)
     monkeypatch.setenv("DECISION_STRICT_WORKER_TENANTS", "true")
-    assert not await persistence.worker_tenant_authorized(
-        worker_id=STRANGER, tenant_id=TENANT
-    )
+    assert not await persistence.worker_tenant_authorized(worker_id=STRANGER, tenant_id=TENANT)
     monkeypatch.setenv("DECISION_STRICT_WORKER_TENANTS", "")
-    assert await persistence.worker_tenant_authorized(
-        worker_id=STRANGER, tenant_id=TENANT
-    )
+    assert await persistence.worker_tenant_authorized(worker_id=STRANGER, tenant_id=TENANT)
 
     for table in (
         "decision_runtime_worker_tenants",
@@ -377,9 +329,7 @@ async def test_worker_tables_are_worker_partitioned_and_authorization_stays_fail
     conn = await database.app_connection()
     try:
         async with conn.transaction():
-            await conn.execute(
-                "SELECT set_config('app.current_worker', $1, true)", WORKER
-            )
+            await conn.execute("SELECT set_config('app.current_worker', $1, true)", WORKER)
             with pytest.raises(asyncpg.InsufficientPrivilegeError):
                 await conn.execute(
                     "INSERT INTO decision_runtime_worker_tenants (registration_id,worker_id,"
@@ -390,9 +340,7 @@ async def test_worker_tables_are_worker_partitioned_and_authorization_stays_fail
                     "a" * 64,
                 )
         async with conn.transaction():
-            await conn.execute(
-                "SELECT set_config('app.current_worker', $1, true)", WORKER
-            )
+            await conn.execute("SELECT set_config('app.current_worker', $1, true)", WORKER)
             updated = await conn.execute(
                 "UPDATE decision_runtime_worker_tenants SET enabled=false WHERE worker_id=$1",
                 WORKER,
@@ -404,6 +352,6 @@ async def test_worker_tables_are_worker_partitioned_and_authorization_stays_fail
             assert deleted == "DELETE 0"
     finally:
         await conn.close()
-    assert (await persistence.list_worker_tenants(worker_id=WORKER))[
-        "tenants"
-    ] == sorted([TENANT, OTHER])
+    assert (await persistence.list_worker_tenants(worker_id=WORKER))["tenants"] == sorted(
+        [TENANT, OTHER]
+    )
