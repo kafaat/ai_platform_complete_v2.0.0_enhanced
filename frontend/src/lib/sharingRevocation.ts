@@ -28,8 +28,10 @@ export async function revokeAndReconcileSharingKey(
 ): Promise<SharingRevocationOutcome> {
   let confirmed = false;
   try {
-    await request(`/api/v1/sharing/keys/${encodeURIComponent(keyId)}/revoke`);
-    confirmed = true;
+    const receipt = await request(`/api/v1/sharing/keys/${encodeURIComponent(keyId)}/revoke`);
+    confirmed = typeof receipt === 'object' && receipt !== null &&
+      'key_id' in receipt && receipt.key_id === keyId &&
+      'status' in receipt && receipt.status === 'revoked';
   } catch {
     // Could be a lost response after the server committed; outcome is unknown.
   }

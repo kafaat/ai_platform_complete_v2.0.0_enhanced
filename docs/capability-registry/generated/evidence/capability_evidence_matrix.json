@@ -575,6 +575,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
+          "signal": "filename:test_"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests/irrigation/test_gate_b_dispatch_relay_and_contract.py",
           "signal": "filename:contract_without_integration_signal"
         },
@@ -592,6 +597,7 @@
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
+        "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
         "tests/irrigation/test_gate_b_dispatch_relay_and_contract.py",
         "tests_v9/test_wx10_11_execution_request_contract.py"
       ]

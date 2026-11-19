@@ -235,7 +235,8 @@ async def test_033_runner_check_apply_and_reapply(database):
     assert (await runner.check_migrations())["pending"] == []
     assert (
         await database.admin.fetchval(
-            "SELECT count(*) FROM decision_service_schema_migrations WHERE version=$1", VERSION
+            "SELECT count(*) FROM decision_service_schema_migrations WHERE version=$1",
+            VERSION,
         )
         == 1
     )
@@ -349,7 +350,9 @@ async def test_033_runner_rolls_back_policy_and_journal_on_error(database, monke
     broken = replace(target, sql=target.sql + "\nSELECT 1 / 0;")
     with monkeypatch.context() as scoped:
         scoped.setattr(
-            runner, "load_migrations", lambda: [broken if m == target else m for m in migrations]
+            runner,
+            "load_migrations",
+            lambda: [broken if m == target else m for m in migrations],
         )
         with pytest.raises(asyncpg.DivisionByZeroError):
             await runner.apply_migrations()
@@ -361,7 +364,8 @@ async def test_033_runner_rolls_back_policy_and_journal_on_error(database, monke
         )
         assert (
             await database.admin.fetchval(
-                "SELECT count(*) FROM pg_policies WHERE schemaname='public' AND tablename=$1", table
+                "SELECT count(*) FROM pg_policies WHERE schemaname='public' AND tablename=$1",
+                table,
             )
             == 0
         )
@@ -395,7 +399,11 @@ def _learning_payload(model_id: str = "model-a", **review):
 _APPROVED = {
     "review_status": "approved",
     "agronomically_approved": True,
-    "agronomic_review": {"reviewer_id": "agro-1", "verdict": "approved", "evidence_ids": ["ev-1"]},
+    "agronomic_review": {
+        "reviewer_id": "agro-1",
+        "verdict": "approved",
+        "evidence_ids": ["ev-1"],
+    },
 }
 _REJECTED = {
     "review_status": "rejected",
@@ -424,13 +432,23 @@ async def test_learning_writer_survives_033_under_restricted_login(database, obs
     )
     # Positive control: the actual writer succeeds before 033 with the SAME role.
     before = await persistence.persist_learning_update(
-        tenant_id=TENANT, payload=payload, update_id="ci-before", traceability_status="traceable"
+        tenant_id=TENANT,
+        payload=payload,
+        update_id="ci-before",
+        traceability_status="traceable",
     )
-    assert _core(before) == {"update_id": "ci-before", "replayed": False, "write": "inserted"}
+    assert _core(before) == {
+        "update_id": "ci-before",
+        "replayed": False,
+        "write": "inserted",
+    }
     assert (await runner.apply_migrations())["ok"]
     try:
         after = await persistence.persist_learning_update(
-            tenant_id=TENANT, payload=payload, update_id="ci-after", traceability_status="traceable"
+            tenant_id=TENANT,
+            payload=payload,
+            update_id="ci-after",
+            traceability_status="traceable",
         )
     except asyncpg.InsufficientPrivilegeError:
         # Failed outbox write must roll back the learning row, not leave a partial commit.
@@ -441,7 +459,11 @@ async def test_learning_writer_survives_033_under_restricted_login(database, obs
             == 0
         )
         raise
-    assert _core(after) == {"update_id": "ci-after", "replayed": False, "write": "inserted"}
+    assert _core(after) == {
+        "update_id": "ci-after",
+        "replayed": False,
+        "write": "inserted",
+    }
     assert "persist_learning_update" in observed_writers
     assert (
         await database.admin.fetchval(
@@ -452,7 +474,9 @@ async def test_learning_writer_survives_033_under_restricted_login(database, obs
 
 
 @pytest.mark.asyncio
-async def test_learning_update_resend_is_a_replay_and_a_changed_payload_is_refused(database):
+async def test_learning_update_resend_is_a_replay_and_a_changed_payload_is_refused(
+    database,
+):
     """ON CONFLICT DO NOTHING wrote nothing, yet the writer emitted a second outbox event and
     reported stored; a different model under the same id kept the old row silently. In this
     schema the key is update_id alone, so another tenant's id is taken too."""
@@ -659,7 +683,9 @@ async def test_model_lifecycle_writers_after_033(database, observed_writers, mon
         snapshot_id="ci-veg",
     )
     ctx = await call(
-        "compose_agronomic_context", created_by="ci", payload=lineage._compose_payload("ci-field")
+        "compose_agronomic_context",
+        created_by="ci",
+        payload=lineage._compose_payload("ci-field"),
     )
     manifest_hash = await database.admin.fetchval(
         "SELECT content_hash FROM decision_feature_manifests WHERE feature_manifest_id=$1",
@@ -670,6 +696,9 @@ async def test_model_lifecycle_writers_after_033(database, observed_writers, mon
         decision_id="ci-model-decision",
         payload=lineage._decision("ci-field", ctx, veg["snapshot_id"], manifest_hash),
     )
+    from decision_chain_fixture import seed_calibration_task
+
+    await seed_calibration_task(database.admin, TENANT, "ci-model-decision", "ci-model-execution")
     await database.admin.execute(
         "INSERT INTO outcome_record(outcome_id,tenant_id,decision_id,success,verification_state,"
         "evidence_snapshot_id,execution_request_id) "
@@ -753,7 +782,10 @@ async def test_model_lifecycle_writers_after_033(database, observed_writers, mon
         reviewed_by="ci",
         payload=activation_review,
     )
-    assert refused == {"status": "forbidden", "reason": "separation_of_duties_violation"}
+    assert refused == {
+        "status": "forbidden",
+        "reason": "separation_of_duties_violation",
+    }
     monkeypatch.setenv("DECISION_REQUIRE_SEPARATION_OF_DUTIES", "false")
     review = await call(
         "review_model_activation_request",
@@ -888,7 +920,9 @@ async def test_baseline_outbox_writers_after_033(database, observed_writers):
     recommendation = await persistence.persist_recommendation_outcome(
         tenant_id=TENANT,
         payload=api.RecommendationOutcomeIn(
-            recommendation_id="ci-rec", decision_id="ci-dispatch", idempotency_key="ci-rec"
+            recommendation_id="ci-rec",
+            decision_id="ci-dispatch",
+            idempotency_key="ci-rec",
         ),
     )
     assert recommendation["outcome_id"]
@@ -976,7 +1010,8 @@ async def test_learning_update_review_is_stored_upserted_and_read_back(database)
     """W2-03: the service dropped the agronomic review and refused any resend that changed it.
     The same tenant may now revise action, source and review on its id (``updated``, one more
     event); the reply's review comes from the stored row; the 039 checks refuse an approval
-    without evidence or an inconsistent flag, and the stored review is then left as it was."""
+    without evidence or an inconsistent flag, and the stored review is then left as it was.
+    """
     assert (await runner.apply_migrations())["ok"]
 
     async def write(**review):
@@ -999,7 +1034,11 @@ async def test_learning_update_review_is_stored_upserted_and_read_back(database)
         )
 
     first = await write()
-    assert (first["write"], first["review_status"], first["agronomically_approved"]) == (
+    assert (
+        first["write"],
+        first["review_status"],
+        first["agronomically_approved"],
+    ) == (
         "inserted",
         "unreviewed",
         False,
@@ -1007,7 +1046,11 @@ async def test_learning_update_review_is_stored_upserted_and_read_back(database)
     assert (await write())["write"] == "unchanged" and await events() == 1
 
     approved = await write(**_APPROVED)
-    assert (approved["write"], approved["review_status"], approved["agronomically_approved"]) == (
+    assert (
+        approved["write"],
+        approved["review_status"],
+        approved["agronomically_approved"],
+    ) == (
         "updated",
         "approved",
         True,
@@ -1017,9 +1060,15 @@ async def test_learning_update_review_is_stored_upserted_and_read_back(database)
     assert await events() == 2
 
     rejected = await write(**_REJECTED)
-    assert (rejected["review_status"], rejected["agronomically_approved"]) == ("rejected", False)
+    assert (rejected["review_status"], rejected["agronomically_approved"]) == (
+        "rejected",
+        False,
+    )
 
-    no_evidence = {**_APPROVED, "agronomic_review": {"reviewer_id": "a", "verdict": "approved"}}
+    no_evidence = {
+        **_APPROVED,
+        "agronomic_review": {"reviewer_id": "a", "verdict": "approved"},
+    }
     with pytest.raises(persistence.LearningUpdateReviewInvalid):
         await write(**no_evidence)
     with pytest.raises(persistence.LearningUpdateReviewInvalid):
@@ -1039,7 +1088,8 @@ async def test_learning_update_review_is_stored_upserted_and_read_back(database)
 @pytest.mark.asyncio
 async def test_learning_update_in_the_shared_schema_is_keyed_per_tenant(database):
     """In the shared database the platform's v119 keys the table on (tenant_id, update_id):
-    another tenant's identical id is its own row, and revising one never touches the other."""
+    another tenant's identical id is its own row, and revising one never touches the other.
+    """
     assert (await runner.apply_migrations())["ok"]
     await database.admin.execute(
         "ALTER TABLE online_learning_updates DROP CONSTRAINT online_learning_updates_pkey, "
@@ -1068,9 +1118,12 @@ async def test_learning_update_in_the_shared_schema_is_keyed_per_tenant(database
 
 
 @pytest.mark.asyncio
-async def test_learning_update_before_039_stores_unreviewed_and_refuses_a_review(database):
+async def test_learning_update_before_039_stores_unreviewed_and_refuses_a_review(
+    database,
+):
     """Code ships before its migration: on the 032 baseline (no review columns) an unreviewed
-    update is still stored, and a supplied review is refused instead of being dropped."""
+    update is still stored, and a supplied review is refused instead of being dropped.
+    """
 
     async def write(update_id: str, **review):
         return await persistence.persist_learning_update(
@@ -1081,7 +1134,11 @@ async def test_learning_update_before_039_stores_unreviewed_and_refuses_a_review
         )
 
     plain = await write("ci-pre039")
-    assert (plain["write"], plain["review_status"], plain["agronomically_approved"]) == (
+    assert (
+        plain["write"],
+        plain["review_status"],
+        plain["agronomically_approved"],
+    ) == (
         "inserted",
         "unreviewed",
         False,

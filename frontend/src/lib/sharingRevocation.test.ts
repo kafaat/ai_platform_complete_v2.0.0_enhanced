@@ -59,16 +59,25 @@ describe('sharing-key revocation result truth', () => {
   it('preserves a confirmed server revocation when refreshing the list fails', async () => {
     const result = await revokeAndReconcileSharingKey(
       'id',
-      async () => ({}),
+      async () => ({ key_id: 'id', status: 'revoked' }),
       async () => { throw new Error('refresh failure'); },
     );
     expect(result).toBe('confirmed_refresh_unavailable');
     expect(SHARING_REVOKE_REFRESH_FAILED_AR).toContain('أكّد الخادم الإلغاء');
   });
 
+  it.each([null, {}, { key_id: 'other', status: 'revoked' }, { key_id: 'id', status: 'active' }])(
+    'keeps an unmatched acknowledgment uncertain and refreshes',
+    async receipt => {
+      const refresh = vi.fn(async () => {});
+      expect(await revokeAndReconcileSharingKey('id', async () => receipt, refresh)).toBe('unknown');
+      expect(refresh).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it('confirms a normal revocation and refreshes exactly once', async () => {
     const refetch = vi.fn(async () => {});
-    expect(await revokeAndReconcileSharingKey('id', async () => ({}), refetch))
+    expect(await revokeAndReconcileSharingKey('id', async () => ({ key_id: 'id', status: 'revoked' }), refetch))
       .toBe('confirmed');
     expect(refetch).toHaveBeenCalledTimes(1);
   });

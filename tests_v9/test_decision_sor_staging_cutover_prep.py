@@ -275,6 +275,23 @@ def test_staging_probe_readiness_without_token_fails_closed(readiness_server, mo
     assert "401" in step.detail, step.detail
 
 
+@pytest.mark.parametrize(
+    "reported",
+    [
+        {"can_enable_sor": "false", "can_demote_platform": False, "missing_gates": []},
+        {"can_enable_sor": 1, "can_demote_platform": False, "missing_gates": []},
+        {"can_enable_sor": True, "missing_gates": []},
+        {"can_enable_sor": True, "can_demote_platform": False},
+        {"can_enable_sor": True, "can_demote_platform": False, "missing_gates": None},
+        {"can_enable_sor": True, "can_demote_platform": False, "missing_gates": ["outbox"]},
+    ],
+)
+def test_staging_probe_rejects_incomplete_or_inconsistent_readiness(monkeypatch, reported):
+    probe = _load("decision_staging_probe_contract", DECISION / "staging_probe.py")
+    monkeypatch.setattr(probe, "_json_request", lambda method, url: (200, reported))
+    assert not probe._check_readiness("http://localhost").ok
+
+
 # --- staging runbook ---------------------------------------------------------------------------
 
 

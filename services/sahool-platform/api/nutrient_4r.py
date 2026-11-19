@@ -19,6 +19,8 @@ NDVI يحدّد المنطقة، لكنّ المعدّل يبقى BLOCKED حتى
 
 from __future__ import annotations
 
+import json
+import math
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -383,3 +385,49 @@ def full_4r_plan(soil: SoilContext, nutrients: list[str] | None = None) -> list[
         elif nut in (Nutrient.FE, Nutrient.ZN):
             out.append(recommend_micronutrient(soil, nut).to_dict())
     return out
+
+
+def approved_sample_4r_plan(field_id: str, rows) -> dict:
+    """Use the measured sample only. The P threshold in this engine is Olsen-P."""
+    mapping = {
+        "ph": ("ph", "1", 14),
+        "calcium_carbonate_pct": ("caco3_pct", "%", 100),
+        "phosphorus_mg_kg": ("p_ppm", "mg/kg", math.inf),
+    }
+    soil_values = {}
+    evidence_ids = {}
+    for row in rows:
+        binding = mapping.get(row["analyte"])
+        if binding is None or not row["result_id"]:
+            continue
+        name, unit, upper = binding
+        if row["unit"] != unit:
+            continue
+        if name == "p_ppm" and str(row["method_code"]).strip().lower() not in {
+            "olsen",
+            "olsen_p",
+            "olsen-p",
+        }:
+            continue
+        value = row["value_json"]
+        if isinstance(value, str):
+            # asyncpg's default JSONB codec returns JSON text.
+            try:
+                value = json.loads(value)
+            except ValueError:
+                continue
+        if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= upper:
+            continue
+        soil_values[name] = value
+        evidence_ids[name] = str(row["result_id"])
+    return {
+        "field_id": field_id,
+        "status": "available" if evidence_ids else "unavailable",
+        "source": "approved_soil_lab",
+        "scope": "sample",
+        "sample_id": rows[0]["sample_id"] if rows else None,
+        "zone_id": rows[0]["zone_id"] if rows else None,
+        "sampled_on": rows[0]["sampled_on"] if rows else None,
+        "evidence_ids": evidence_ids,
+        "plan": full_4r_plan(SoilContext(**soil_values)) if evidence_ids else [],
+    }

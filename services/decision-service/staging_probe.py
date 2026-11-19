@@ -98,10 +98,10 @@ def _check_readiness(url: str) -> ProbeStep:
     try:
         status, body = _json_request("GET", url.rstrip("/") + "/v1/cutover/readiness")
         elapsed = int((time.monotonic() - start) * 1000)
-        missing = body.get("missing_gates") or []
-        can_enable = bool(body.get("can_enable_sor"))
-        can_demote = bool(body.get("can_demote_platform"))
-        ok = status == 200 and can_enable and not can_demote
+        missing = body.get("missing_gates")
+        can_enable = body.get("can_enable_sor")
+        can_demote = body.get("can_demote_platform")
+        ok = status == 200 and can_enable is True and can_demote is False and missing == []
         detail = json.dumps(
             {
                 "status": status,

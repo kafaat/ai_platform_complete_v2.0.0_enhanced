@@ -190,6 +190,9 @@ async def test_evidence_context_and_calibration_reads_return_the_tenants_rows(da
         tenant_id=OTHER, decision_id="ci-decision-037"
     ) == {"status": "not_found"}
 
+    from decision_chain_fixture import seed_calibration_task
+
+    await seed_calibration_task(database.admin, TENANT, "ci-decision-037", "ci-execution-037")
     await database.admin.execute(
         "INSERT INTO outcome_record(outcome_id,tenant_id,decision_id,success,verification_state,"
         "evidence_snapshot_id,execution_request_id) "
@@ -288,10 +291,17 @@ async def test_worker_tables_are_worker_partitioned_and_authorization_stays_fail
         created_by="ci-operator",
         payload=SimpleNamespace(tenant_id=THIRD, enabled=True, idempotency_key="k-037-a"),
     )
-    assert conflict == {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+    assert conflict == {
+        "status": "conflict",
+        "reason": "idempotency_key_payload_mismatch",
+    }
 
     listed = await persistence.list_worker_tenants(worker_id=WORKER)
-    assert listed == {"worker_id": WORKER, "registered": True, "tenants": sorted([TENANT, OTHER])}
+    assert listed == {
+        "worker_id": WORKER,
+        "registered": True,
+        "tenants": sorted([TENANT, OTHER]),
+    }
     assert (await persistence.list_worker_tenants(worker_id=STRANGER))["registered"] is False
 
     for strict in ("", "true"):
@@ -306,7 +316,10 @@ async def test_worker_tables_are_worker_partitioned_and_authorization_stays_fail
     monkeypatch.setenv("DECISION_STRICT_WORKER_TENANTS", "")
     assert await persistence.worker_tenant_authorized(worker_id=STRANGER, tenant_id=TENANT)
 
-    for table in ("decision_runtime_worker_tenants", "decision_runtime_worker_tenant_commands"):
+    for table in (
+        "decision_runtime_worker_tenants",
+        "decision_runtime_worker_tenant_commands",
+    ):
         assert await _count_as_owner(database, table) == 0, table
         assert await _count_as_owner(database, table, worker=WORKER) == 2, table
         assert await _count_as_owner(database, table, worker=STRANGER) == 0, table

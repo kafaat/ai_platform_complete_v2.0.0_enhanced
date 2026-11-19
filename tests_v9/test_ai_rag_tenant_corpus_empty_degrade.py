@@ -34,7 +34,7 @@ _SECRET = "TOP_SECRET_RAG_UPSTREAM_BODY_and_TOKEN"
 _REAL_ASYNC_CLIENT = httpx.AsyncClient
 
 
-def _wire(monkeypatch, rag_response, seen=None):
+def _wire(monkeypatch, rag_response, seen=None, kg_response=None):
     real_client = _REAL_ASYNC_CLIENT
 
     def transport(request):
@@ -42,6 +42,8 @@ def _wire(monkeypatch, rag_response, seen=None):
             seen.append(request.url.path)
         if request.url.path == "/v1/search":
             return rag_response()
+        if kg_response is not None:
+            return kg_response()
         return httpx.Response(200, json={"edges": []})
 
     monkeypatch.setattr(
@@ -297,3 +299,47 @@ def test_real_rag_retrieval_quarantine_only_corpus_end_to_end(monkeypatch, _rest
     assert body["rag_available"] is False, body.get("rag_available")
     assert body["rag_unavailable_reason"] == "TENANT_CORPUS_EMPTY", body["rag_unavailable_reason"]
     assert body["annotations"]["rag_retrieval"]["upstream_status"] == 424, body["annotations"]
+
+
+@pytest.mark.parametrize(
+    "failure", [httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout, 401, 403, 500, 503]
+)
+@pytest.mark.parametrize("rag_empty", [False, True])
+def test_field_advice_with_missing_or_refusing_graph(monkeypatch, caplog, failure, rag_empty):
+    seen = []
+
+    def graph():
+        if isinstance(failure, int):
+            return httpx.Response(failure, text=_SECRET)
+        raise failure(_SECRET)
+
+    _wire(
+        monkeypatch,
+        _corpus_empty if rag_empty else lambda: httpx.Response(200, json={"annotations": []}),
+        seen,
+        graph,
+    )
+    owner = state()
+    owner["ai_context_pack"] = {"crop_knowledge": {"status": "reference_only", "crop_id": "wheat"}}
+    monkeypatch.setattr(runtime, "_fetch_canonical_field_state", AsyncMock(return_value=owner))
+    response = _chat(monkeypatch)
+    assert _SECRET not in response.text and _SECRET not in caplog.text
+    if isinstance(failure, int):
+        assert response.status_code == 502
+        assert seen == ["/v1/edges"]
+        return
+    assert response.status_code == 200
+    body = response.json()
+    graph_info = body["annotations"]["graph_retrieval_expansion"]
+    assert graph_info["knowledge_graph_available"] is False
+    assert graph_info["upstream_status"] is None
+    assert graph_info["reason_code"] == (
+        "advisory_dependency_unavailable"
+        if failure is httpx.ConnectError
+        else "advisory_dependency_timeout"
+    )
+    assert len(graph_info["correlation_id"]) == 32
+    assert body["annotations"]["knowledge_graph"] == []
+    assert body["annotations"]["canonical_field_state"]["field_id"] == FIELD
+    assert body["rag_available"] is (not rag_empty)
+    assert seen == ["/v1/edges", "/v1/search"]

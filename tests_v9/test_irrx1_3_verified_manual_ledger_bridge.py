@@ -92,3 +92,24 @@ def test_verified_measured_execution_builds_digest_bound_ledger_event():
     assert event.applied_volume_m3 == 1000
     assert event.applied_depth_mm == 2.0
     assert len(event.ledger_event_digest) == 64
+
+
+@pytest.mark.parametrize("quantity", ["actual_volume_m3", "actual_depth_mm"])
+@pytest.mark.parametrize("value", [float("inf"), float("-inf"), float("nan"), None])
+def test_invalid_measurement_cannot_create_water_event(quantity, value):
+    measurement = {"actual_volume_m3": 1000, "actual_depth_mm": 2.0, quantity: value}
+    with pytest.raises(ValueError, match="INVALID_AS_APPLIED_WATER_QUANTITY"):
+        build_manual_water_ledger_event(
+            execution={
+                "execution_id": "exec-1",
+                "tenant_id": "tenant-1",
+                "field_id": "fld-1",
+                "season_id": "season-1",
+                "state": "verified",
+                "ledger_eligible": True,
+                "as_applied": measurement,
+                "confirmation": {"stopped_at": "2026-07-14T12:00:00+00:00"},
+                "as_applied_digest": D,
+            },
+            verification_digest=E,
+        )

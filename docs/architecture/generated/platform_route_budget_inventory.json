@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 621
   },
-  "inventory_sha256": "fe8d55baaf925b2d75ba80af5d9324a1c242b6ce7d1df10f0e044c61c6cf0b4b",
+  "inventory_sha256": "c1c8be6ef6c56a64a54060819282d14472d4f41ff1fe73978ca26cdb1f9225c9",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 623,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "b6ec029e72db6453214b34797af0c1260dba8432bc5cd9bf31d4c6750400cc38"
+    "policy_sha256": "3d3e961861cbf12de83de8c9e096d5e25cb49e4002ac4c13ef1a873bfdf1f2eb"
   },
   "routes": [
     {
@@ -4090,7 +4090,7 @@
     {
       "classification": "domain",
       "function": "nutrient_4r_plan",
-      "line": 30,
+      "line": 22,
       "method": "POST",
       "path": "/api/v1/nutrients/4r-plan",
       "source": "api/routers/nutrients.py"

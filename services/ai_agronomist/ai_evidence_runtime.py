@@ -1056,24 +1056,42 @@ async def build_evidence_response(
 
         # The tenant's active season, not the request body, selects the crop.
         retrieval_crop = _trusted_crop_for_retrieval(req.crop, field_state, req.field_id)
+        kg_available = False
+        kg_payload = {"edges": []}
+        kg_failure = {}
         if retrieval_crop:
-            async with _dependency_boundary("knowledge-graph", 5.0):
-                kg_resp = await client.get(
-                    f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
-                    params={"subject_id": retrieval_crop},
-                    # C2: forward the verified tenant to knowledge-graph's C5 read guard;
-                    # the owner-canonical crop scopes reference retrieval, never the client crop.
-                    headers={"X-Tenant-Id": tenant_id},
-                    timeout=5.0,
-                )
-            if kg_resp.status_code >= 500:
-                raise _dependency_http_failure("knowledge-graph", kg_resp.status_code)
-            kg_available = kg_resp.status_code < 400
-            kg_payload = kg_resp.json() if kg_available else {"edges": []}
-        else:
-            # No indiscriminate graph enumeration when crop is unknown.
-            kg_available = False
-            kg_payload = {"edges": []}
+            try:
+                async with _dependency_boundary("knowledge-graph", 5.0):
+                    kg_resp = await client.get(
+                        f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
+                        params={"subject_id": retrieval_crop},
+                        # C2: forward the verified tenant to knowledge-graph's C5 read guard;
+                        # the owner-canonical crop scopes reference retrieval, never the client crop.
+                        headers={"X-Tenant-Id": tenant_id},
+                        timeout=5.0,
+                    )
+            except HTTPException as exc:
+                # Only field-grounded advice can continue without the reference graph.
+                if (
+                    not req.field_id
+                    or not field_state
+                    or not isinstance(
+                        exc.__cause__, (TimeoutError, httpx.NetworkError, httpx.TimeoutException)
+                    )
+                ):
+                    raise
+                correlation_id = uuid.uuid4().hex
+                kg_failure = {
+                    "reason_code": exc.detail["reason_code"],
+                    "correlation_id": correlation_id,
+                    "upstream_status": None,
+                }
+                logger.warning("KG transport unavailable correlation_id=%s", correlation_id)
+            else:
+                if kg_resp.status_code in (401, 403) or kg_resp.status_code >= 500:
+                    raise _dependency_http_failure("knowledge-graph", kg_resp.status_code)
+                kg_available = kg_resp.status_code < 400
+                kg_payload = kg_resp.json() if kg_available else {"edges": []}
         retrieval_query, graph_terms = _graph_conditioned_retrieval_query(req.question, kg_payload)
 
         rag_resp: httpx.Response | None = None
@@ -1155,6 +1173,7 @@ async def build_evidence_response(
             "governed_relations_only": sorted(RETRIEVAL_CONTEXT_RELATIONS),
             # يفرّق «KG غاب» عن «KG لم يجد»: كلاهما `edges: []` ولا يُميَّزان بغيره.
             "knowledge_graph_available": kg_available,
+            **kg_failure,
         },
         # W0-02: "RAG absent" is declared, never disguised as "RAG found nothing".
         "rag_retrieval": rag_retrieval,

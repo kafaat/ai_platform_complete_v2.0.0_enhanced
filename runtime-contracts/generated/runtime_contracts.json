@@ -497,6 +497,7 @@
           "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
           "services/decision-service/tests/test_wx10_7_decision_review.py",
           "services/decision-service/tests/test_wx10_9_execution_plan.py",
+          "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
           "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
           "services/decision-service/tests/test_wx12_3_runtime_schedules.py"
         ],

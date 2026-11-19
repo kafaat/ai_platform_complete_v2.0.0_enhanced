@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 809,
+      "evidence_count": 812,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -207,6 +207,7 @@
         "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
         "services/decision-service/tests/test_wx10_9_execution_plan.py",
+        "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
         "services/decision-service/tests/test_wx12_3_runtime_schedules.py",
         "services/edge-inference/main.py",
@@ -370,6 +371,7 @@
         "services/sahool-platform/api/learning_feedback.py",
         "services/sahool-platform/api/learning_summary.py",
         "services/sahool-platform/api/main.py",
+        "services/sahool-platform/api/nutrient_4r.py",
         "services/sahool-platform/api/offline_sync_contracts.py",
         "services/sahool-platform/api/outcome_measurement.py",
         "services/sahool-platform/api/persisted_canonical_repositories.py",
@@ -624,6 +626,7 @@
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
         "services/sahool-platform/tests/test_mcp_streaming_review_artifacts.py",
         "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+        "services/sahool-platform/tests/test_nutrient_4r.py",
         "services/sahool-platform/tests/test_offline_first.py",
         "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
@@ -857,7 +860,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 585,
+      "evidence_count": 586,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -994,6 +997,7 @@
         "services/decision-service/tests/test_wx10_7_decision_review.py",
         "services/decision-service/tests/test_wx10_8_review_queue.py",
         "services/decision-service/tests/test_wx10_9_execution_plan.py",
+        "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
         "services/decision-service/tests/test_wx11_2_model_evaluation.py",
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
         "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
@@ -2457,7 +2461,7 @@
       "kind": "lineage_stage",
       "stage": "request",
       "order": 7,
-      "evidence_count": 48,
+      "evidence_count": 50,
       "owners": [
         "actuator-service",
         "database",
@@ -2485,6 +2489,7 @@
         "services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql",
         "services/decision-service/observation_context.py",
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/decision_chain_fixture.py",
         "services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py",
         "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_execution_plan_boundary_normalisation.py",
@@ -2500,6 +2505,7 @@
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
+        "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
         "services/raster-service/follow_up_runtime.py",
         "services/raster-service/routers/follow_up.py",
         "services/sahool-platform/api/decision_service_client.py",
@@ -2525,7 +2531,7 @@
       "kind": "lineage_stage",
       "stage": "receipt",
       "order": 8,
-      "evidence_count": 49,
+      "evidence_count": 50,
       "owners": [
         "actuator-service",
         "database",
@@ -2554,6 +2560,7 @@
         "services/decision-service/observation_context.py",
         "services/decision-service/persistence.py",
         "services/decision-service/tests/_model_chain.py",
+        "services/decision-service/tests/decision_chain_fixture.py",
         "services/decision-service/tests/test_agronomic_runtime_lineage.py",
         "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_execution_request_feed.py",
@@ -2595,7 +2602,7 @@
       "kind": "lineage_stage",
       "stage": "outcome",
       "order": 9,
-      "evidence_count": 62,
+      "evidence_count": 63,
       "owners": [
         "database",
         "decision-service",
@@ -2627,6 +2634,7 @@
         "services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_preflight.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
+        "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
         "services/sahool-platform/api/agronomic_replay.py",
         "services/sahool-platform/api/decision_service_client.py",
         "services/sahool-platform/api/execution_feedback.py",
@@ -2676,7 +2684,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 394,
+      "evidence_count": 395,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2757,6 +2765,7 @@
         "services/decision-service/migrations/032_recommendation_outcomes_cutover_compat.sql",
         "services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql",
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/decision_chain_fixture.py",
         "services/decision-service/tests/test_ac1_agronomic_context.py",
         "services/decision-service/tests/test_agronomic_learning_lineage.py",
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
@@ -3151,6 +3160,7 @@
         "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
         "services/decision-service/tests/test_wx10_9_execution_plan.py",
+        "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
         "services/edge-inference/models/pest_detector.py",
         "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
@@ -3203,11 +3213,10 @@
         "services/sahool-platform/api/learning_feedback.py",
         "services/sahool-platform/api/learning_summary.py",
         "services/sahool-platform/api/main.py",
-        "services/sahool-platform/api/offline_sync_contracts.py",
-        "services/sahool-platform/api/outcome_measurement.py"
+        "services/sahool-platform/api/nutrient_4r.py"
       ],
-      "source_evidence_count": 809,
-      "target_evidence_count": 585,
+      "source_evidence_count": 812,
+      "target_evidence_count": 586,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3269,6 +3278,7 @@
         "services/decision-service/tests/test_wx10_7_decision_review.py",
         "services/decision-service/tests/test_wx10_8_review_queue.py",
         "services/decision-service/tests/test_wx10_9_execution_plan.py",
+        "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
         "services/sahool-platform/api/agronomic_context_composer.py",
         "services/sahool-platform/api/crop_decision_bridge.py",
         "services/sahool-platform/api/decision_service_client.py",
@@ -3315,10 +3325,9 @@
         "services/sahool-platform/tests/test_decision_dispatch_endpoint.py",
         "services/sahool-platform/tests/test_decision_provenance_producers.py",
         "services/sahool-platform/tests/test_decision_review_endpoint.py",
-        "services/sahool-platform/tests/test_decision_sor_write_guard.py",
-        "services/sahool-platform/tests/test_dispatch_executor.py"
+        "services/sahool-platform/tests/test_decision_sor_write_guard.py"
       ],
-      "source_evidence_count": 585,
+      "source_evidence_count": 586,
       "target_evidence_count": 209,
       "static_supported": true,
       "runtime_verified": false
@@ -3532,6 +3541,7 @@
         "services/decision-service/migrations/036_decision_chain_correlation.sql",
         "services/decision-service/migrations/037_force_rls_remaining_tenant_tables.sql",
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/decision_chain_fixture.py",
         "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_execution_plan_boundary_normalisation.py",
         "services/decision-service/tests/test_execution_request_feed.py",
@@ -3553,7 +3563,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 212,
-      "target_evidence_count": 48,
+      "target_evidence_count": 50,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3572,6 +3582,7 @@
         "services/decision-service/migrations/027_reservation_dispatch_inbox.sql",
         "services/decision-service/observation_context.py",
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/decision_chain_fixture.py",
         "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_execution_request_feed.py",
         "services/decision-service/tests/test_execution_request_plan_binding.py",
@@ -3587,8 +3598,8 @@
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
-      "source_evidence_count": 48,
-      "target_evidence_count": 49,
+      "source_evidence_count": 50,
+      "target_evidence_count": 50,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3611,8 +3622,8 @@
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
-      "source_evidence_count": 49,
-      "target_evidence_count": 62,
+      "source_evidence_count": 50,
+      "target_evidence_count": 63,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3636,6 +3647,7 @@
         "services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_compat.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
+        "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
         "services/sahool-platform/api/agronomic_replay.py",
         "services/sahool-platform/api/decision_service_client.py",
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
@@ -3658,8 +3670,8 @@
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 62,
-      "target_evidence_count": 394,
+      "source_evidence_count": 63,
+      "target_evidence_count": 395,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3669,5 +3681,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "598ce2f4fd9584dfe83096780b3e0b7be276dd3d219dc39697a93d6f0c60cb0a"
+  "content_sha256": "7ec8b1877ae4b3c97f4cc1512a780178702d9c5fd7e287962655c003d38b538a"
 }

@@ -36,7 +36,8 @@ pytest.importorskip("fastapi")
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
 DSN = os.getenv(
-    "TEST_DATABASE_URL", "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test"
+    "TEST_DATABASE_URL",
+    "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test",
 )
 ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL", DSN)
 _TABLES = ("lab_samples", "soil_lab_results", "soil_lab_tests", "fields", "field_state")
@@ -111,7 +112,11 @@ async def _scenario(monkeypatch) -> dict:
         )
     # Legacy history, written before the freeze: an older low-EC row on the canonical field
     # and the only lab evidence of the legacy-only field.
-    for field, days, ec in ((canonical, 30, 1.0), (legacy_only, 10, 9.5), (ec15, 30, 1.0)):
+    for field, days, ec in (
+        (canonical, 30, 1.0),
+        (legacy_only, 10, 9.5),
+        (ec15, 30, 1.0),
+    ):
         await admin.execute(
             "INSERT INTO soil_lab_tests (test_id, tenant_id, field_id, status, sampled_on, result)"
             " VALUES ($1, $2::uuid, $3, 'published', $4, $5::jsonb)",
@@ -166,9 +171,28 @@ async def _scenario(monkeypatch) -> dict:
             )
             as_user("reviewer", UserRole.AGRONOMIST)
             approved = await client.post(
-                f"/api/v1/lab/samples/{sid}/transition", json={"target_status": "approved"}
+                f"/api/v1/lab/samples/{sid}/transition",
+                json={"target_status": "approved"},
             )
             assert approved.status_code == 200, approved.text
+            as_user("lab-tech")
+            nutrient_url = "/api/v1/nutrients/4r-plan"
+            stored = await client.post(nutrient_url, params={"field_id": canonical})
+            assert stored.status_code == 200, stored.text
+            plan = stored.json()
+            assert (plan["status"], plan["sample_id"], plan["field_id"]) == (
+                "available",
+                sid,
+                canonical,
+            )
+            ph_id = await admin.fetchval(
+                "SELECT result_id FROM soil_lab_results WHERE sample_id=$1 AND analyte='ph'",
+                sid,
+            )
+            assert plan["evidence_ids"]["ph"] == str(ph_id)
+            missing = await client.post(nutrient_url, params={"field_id": f"missing-{tag}"})
+            assert missing.status_code == 404, missing.text
+            as_user("reviewer", UserRole.AGRONOMIST)
             out["ec_result_id"] = str(
                 await admin.fetchval(
                     "SELECT result_id FROM soil_lab_results WHERE sample_id=$1 AND analyte='ec_dsm'",
@@ -195,9 +219,17 @@ async def _scenario(monkeypatch) -> dict:
                 (
                     ec15,
                     (date.today() - timedelta(days=3)).isoformat(),
-                    {"ec_dsm": 2.0, "ec_extraction_method": "soil_water_1_5", "ph": 8.1},
+                    {
+                        "ec_dsm": 2.0,
+                        "ec_extraction_method": "soil_water_1_5",
+                        "ph": 8.1,
+                    },
                 ),
-                (nodate, None, {"ec_dsm": 3.0, "ec_extraction_method": "saturated_paste"}),
+                (
+                    nodate,
+                    None,
+                    {"ec_dsm": 3.0, "ec_extraction_method": "saturated_paste"},
+                ),
             ):
                 as_user("lab-tech")
                 body = {
@@ -219,7 +251,8 @@ async def _scenario(monkeypatch) -> dict:
                 assert put.status_code == 200, put.text
                 as_user("reviewer", UserRole.AGRONOMIST)
                 ok = await client.post(
-                    f"/api/v1/lab/samples/{other}/transition", json={"target_status": "approved"}
+                    f"/api/v1/lab/samples/{other}/transition",
+                    json={"target_status": "approved"},
                 )
                 assert ok.status_code == 200, ok.text
                 out[f"{field}_ec_result_id"] = str(
@@ -261,7 +294,8 @@ async def _scenario(monkeypatch) -> dict:
             out["legacy_rows"] = (
                 before,
                 await admin.fetchval(
-                    "SELECT count(*) FROM soil_lab_tests WHERE tenant_id=$1::uuid", tenant
+                    "SELECT count(*) FROM soil_lab_tests WHERE tenant_id=$1::uuid",
+                    tenant,
                 ),
             )
     finally:
@@ -349,7 +383,10 @@ def test_field_without_lab_evidence_is_unavailable_not_zero(scenario):
     }, f"missing lab evidence must be unavailable, never zero: {soil}"
     done = scenario["empty_completeness"]
     assert "has_soil_lab" in done["missing"], done
-    assert done["soil_lab"] == {"available": False, "reason": "no_approved_soil_lab_result"}, done
+    assert done["soil_lab"] == {
+        "available": False,
+        "reason": "no_approved_soil_lab_result",
+    }, done
 
 
 def test_legacy_soil_lab_writes_are_frozen(scenario):

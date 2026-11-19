@@ -5052,10 +5052,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/decision-service/tests/test_wx11_2_model_evaluation.py",
     "kind": "tests"
   },
