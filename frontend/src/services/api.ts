@@ -2391,6 +2391,12 @@ export const listSharingKeys = (includeRevoked = false): Promise<{ keys: Sharing
 export const createSharingKey = (payload: NewSharingKey): Promise<SharingKeyCreated> =>
   kongApi.post<SharingKeyCreated>('/api/v1/sharing/keys', payload).then(r => r.data);
 
+/** إلغاء مفتاح مشاركة محفوظ؛ لا يمكن إلغاء مفاتيح مستأجر آخر. */
+export const revokeSharingKey = (keyId: string): Promise<{ key_id: string; status: 'revoked' }> =>
+  kongApi.post<{ key_id: string; status: 'revoked' }>(
+    `/api/v1/sharing/keys/${encodeURIComponent(keyId)}/revoke`,
+  ).then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // FARMS — المزارع (أب الحقول). إنشاء/سرد حيّ عبر البوابة (kong)، مُقيَّد بالدور
 // farm:create / farm:view وبالمستأجِر (RLS). لا fallback وهميّ — 503 عند تعطيل
