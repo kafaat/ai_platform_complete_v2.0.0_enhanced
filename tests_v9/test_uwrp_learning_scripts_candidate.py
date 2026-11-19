@@ -29,6 +29,7 @@ import importlib.util
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -244,20 +245,21 @@ def test_drafts_out_refuses_a_directory(tmp_path: Path, journal: Path) -> None:
     assert target.is_dir()
 
 
-def test_drafts_out_writes_a_new_draft_and_may_replace_its_own(
-    tmp_path: Path, journal: Path
-) -> None:
-    target = tmp_path / "drafts" / "proposals.json"
-    first = _run(DRAFTS_SCRIPT, "--journal", str(journal), "--out", str(target))
-    assert first.returncode == 0, first.stderr
-    written = json.loads(target.read_text(encoding="utf-8"))
-    assert written == json.loads(first.stdout)
-    assert written["proposal_count"] == 1
-    assert written["can_auto_apply"] is False
-    again = _run(DRAFTS_SCRIPT, "--journal", str(journal), "--out", str(target))
-    assert again.returncode == 0, again.stderr
-    assert json.loads(target.read_text(encoding="utf-8")) == written
-    assert sorted(p.name for p in target.parent.iterdir()) == ["proposals.json"]
+def test_drafts_out_writes_a_new_draft_and_may_replace_its_own(journal: Path) -> None:
+    # A valid draft is external even when pytest's --basetemp is in a checkout.
+    # The journal may remain in the ordinary pytest fixture directory.
+    with tempfile.TemporaryDirectory() as out_dir:
+        target = Path(out_dir) / "drafts" / "proposals.json"
+        first = _run(DRAFTS_SCRIPT, "--journal", str(journal), "--out", str(target))
+        assert first.returncode == 0, first.stderr
+        written = json.loads(target.read_text(encoding="utf-8"))
+        assert written == json.loads(first.stdout)
+        assert written["proposal_count"] == 1
+        assert written["can_auto_apply"] is False
+        again = _run(DRAFTS_SCRIPT, "--journal", str(journal), "--out", str(target))
+        assert again.returncode == 0, again.stderr
+        assert json.loads(target.read_text(encoding="utf-8")) == written
+        assert sorted(p.name for p in target.parent.iterdir()) == ["proposals.json"]
 
 
 # --- compare_trials.py: gates the input can satisfy by itself ------------------------

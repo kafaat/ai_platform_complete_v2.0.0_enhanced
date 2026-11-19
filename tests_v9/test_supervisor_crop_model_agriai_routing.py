@@ -221,8 +221,7 @@ def test_agriai_flag_on_without_pcse_returns_classified_503(monkeypatch):
     monkeypatch.setenv("SIM_PCSE_ENABLED", "1")
     monkeypatch.setenv("AGRIAI_PRODUCTION_MODE", "0")
     agriai = _load_agriai(monkeypatch)
-    if agriai.wa.pcse_available():  # pragma: no cover - بيئة بها pcse
-        pytest.skip("pcse مُركَّب هنا؛ الحالة تخصّ غيابه")
+    monkeypatch.setattr(agriai.wa, "_PCSE_AVAILABLE", False)
     from fastapi.testclient import TestClient
 
     resp = TestClient(agriai.app).post(

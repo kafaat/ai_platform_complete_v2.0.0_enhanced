@@ -113,7 +113,8 @@ def test_v141_migration_present_and_wired():
 
 
 # ══ 3. تكامل asyncpg — النمط الذرّيّ يرفض إعادة الخطوة (يتخطّى إن لا DB) ══
-_TEST_DB = os.getenv(
+# Allow this migration fixture to use a disposable database without redirecting other suites.
+_TEST_DB = os.getenv("MFA_TEST_DATABASE_URL") or os.getenv(
     "TEST_DATABASE_URL", "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test"
 )
 
@@ -129,6 +130,8 @@ def _db_available() -> bool:
         asyncio.run(_ping())
         return True
     except Exception:
+        if os.getenv("MFA_TEST_DATABASE_URL"):
+            raise
         return False
 
 

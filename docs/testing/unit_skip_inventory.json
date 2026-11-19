@@ -24,30 +24,6 @@
     },
     {
       "stage": "parallel",
-      "nodeid": "tests_v9/test_canonical_water_state_mpc.py::test_operational_route_carries_source_digests",
-      "reason": "V21 integration: the canonical_water_state→MPC route wiring (resolve_canonical_water_state + MpcRecommendationRequest + source_digests trace) belongs to the zip's divergent P1.1c router, which was NOT adopted — the landed branch keeps its own server-authoritative P1.1c-b router (facts_provenance). The canonical_water_state kernel and its module-level truth/fail-closed/digest tests above are integrated and pass; only this route-level wiring is deferred, matching the forensic P0-2/P0-C finding that these kernels are not yet mounted into a production read path.",
-      "classification": "obsolete-or-inapplicable",
-      "required_gate": "assert the current adopted route explicitly (it does not carry source_digests) or delete with a decision receipt",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_compose_redis_health.py::test_redis_requires_password[docker-compose.erpnext.yml-erpnext-redis-cache-svc0]",
-      "reason": "erpnext-redis-cache: redis داخليّ لـERPNext (بلا مصادقة بحكم العُرف)",
-      "classification": "integration",
-      "required_gate": "rewrite to assert the safe property (internal network only, no published port) or refuse the unsafe state; keeping the convention needs a named owner exception",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_compose_redis_health.py::test_redis_requires_password[docker-compose.erpnext.yml-erpnext-redis-queue-svc1]",
-      "reason": "erpnext-redis-queue: redis داخليّ لـERPNext (بلا مصادقة بحكم العُرف)",
-      "classification": "integration",
-      "required_gate": "rewrite to assert the safe property (internal network only, no published port) or refuse the unsafe state; keeping the convention needs a named owner exception",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
       "nodeid": "tests_v9/test_farm_memory.py::test_export_to_parquet_skips_if_no_pyarrow",
       "reason": "pyarrow not installed — skipping parquet test",
       "classification": "optional-profile",
@@ -57,7 +33,7 @@
     {
       "stage": "parallel",
       "nodeid": "tests_v9/test_frontend_lint_debt_guard.py::test_the_repository_itself_sits_at_its_baseline",
-      "reason": "eslint غير مثبَّت — القياس الحيّ غير متاح، ولا يُدَّعى أنّه مرّ",
+      "reason": "eslint غير مثبَّت ولم يُجهَّز مجلّد أدوات npm للاختبار",
       "classification": "optional-profile",
       "required_gate": "the frontend job that has Node and eslint, by path, failing on skip",
       "status": "open"
@@ -68,22 +44,6 @@
       "reason": "TEST_DATABASE_URL غير متاح — اختبار تكامل",
       "classification": "integration",
       "required_gate": "move to `integration` (Integration Tests sets TEST_DATABASE_URL) with a before/after collected manifest proving it runs there unskipped",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_recommendation_runtime_reachability.py::test_the_measured_zero_is_still_zero_while_the_gap_is_open",
-      "reason": "الفجوة لم تعد `open` — الاتّجاهان أعلاه يحرسان العدد بعد قلبِ الحالة",
-      "classification": "obsolete-or-inapplicable",
-      "required_gate": "the gap is closed: delete with a receipt or flip to asserting the closed state",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/test_redis_acl_per_service.py::test_live_scripts_are_held_to_the_callers_acl[sahool-redis-state]",
-      "reason": "لا مستخدمَ يملك EVAL على هذا الخادم",
-      "classification": "integration",
-      "required_gate": "a live least-privilege Redis ACL gate that grants EVAL to the calling user; never an unauthenticated server",
       "status": "open"
     },
     {

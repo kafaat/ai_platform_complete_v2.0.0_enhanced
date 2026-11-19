@@ -14,36 +14,27 @@
 from __future__ import annotations
 
 import asyncio
-import importlib
 import inspect
 import os
 import sys
 from unittest import mock
 
 import pytest
+from service_module import load_service_main
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _AUTH_DIR = os.path.join(ROOT, "services/auth")
 _AUTH_MAIN = os.path.join(_AUTH_DIR, "main.py")
 
 
-def _load_auth_main():
-    """يُحمّل main.py الخاصّ بخدمة auth، ويتخطّى الاختبار إن غابت تبعيّاتها."""
-    if _AUTH_DIR not in sys.path:
-        sys.path.insert(0, _AUTH_DIR)
-    existing = sys.modules.get("main")
-    if existing is not None and not str(getattr(existing, "__file__", "")).startswith(_AUTH_DIR):
-        # Other service tests sometimes import their own top-level main.py first.
-        # Do not let that generic module-name collision make auth tests inspect
-        # weather/raster/etc. instead of services/auth/main.py.
-        sys.modules.pop("main", None)
-    try:
-        return importlib.import_module("main")
-    except ImportError as e:  # تبعيّات الخدمة (fastapi…) غير مثبّتة في بيئة الوحدات بـCI
-        pytest.skip(f"auth main.py غير قابل للاستيراد (تبعيّة ناقصة): {e}", allow_module_level=True)
+main = load_service_main(_AUTH_DIR, required_attrs=("_admin_stepup_required", "_verify_caller_mfa"))
 
 
-main = _load_auth_main()
+@pytest.fixture(autouse=True)
+def _bind_auth_main(monkeypatch):
+    # mfa_runtime resolves "main" on each call. Another service may own that
+    # name after collection, even though this module retained the auth app.
+    monkeypatch.setitem(sys.modules, "main", main)
 
 
 class TestAdminStepupRequired:
@@ -178,22 +169,13 @@ class TestVerifyCallerMfa:
             assert _run(main._verify_caller_mfa(1, code)) is True
 
 
-def _change_role_handler():
-    """يُرجِع مُعالِج change_role أينما كان (main.py أو routers/users.py بعد التفكيك)."""
-    if hasattr(main, "change_role"):
-        return main.change_role
-    from routers.users import change_role  # noqa: PLC0415 — يُحلّ بعد import main
-
-    return change_role
-
-
-def _deactivate_handler():
-    """يُرجِع مُعالِج deactivate_user أينما كان (main.py أو routers/users.py)."""
-    if hasattr(main, "deactivate_user"):
-        return main.deactivate_user
-    from routers.users import deactivate_user  # noqa: PLC0415 — يُحلّ بعد import main
-
-    return deactivate_user
+def _registered_patch_handler(path):
+    (endpoint,) = (
+        route.endpoint
+        for route in main.app.routes
+        if route.path == path and "PATCH" in route.methods
+    )
+    return endpoint
 
 
 class TestSourceGuard:
@@ -221,13 +203,13 @@ class TestSourceGuard:
     @pytest.mark.unit
     @pytest.mark.security
     def test_change_role_signature_accepts_mfa_header(self):
-        sig = inspect.signature(_change_role_handler())
+        sig = inspect.signature(_registered_patch_handler("/v1/auth/users/{user_id}/role"))
         assert "x_mfa_code" in sig.parameters
         assert "admin" in sig.parameters
 
     @pytest.mark.unit
     @pytest.mark.security
     def test_deactivate_signature_accepts_mfa_header(self):
-        sig = inspect.signature(_deactivate_handler())
+        sig = inspect.signature(_registered_patch_handler("/v1/auth/users/{user_id}/deactivate"))
         assert "x_mfa_code" in sig.parameters
         assert "admin" in sig.parameters
