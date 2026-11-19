@@ -536,7 +536,7 @@ The following remain domain-budget routes and are not covered by the exception: 
 | `api/routers/service_proxy.py` | `DELETE,GET,PATCH,POST,PUT` | `/api/segmentation/{path:path}` | `proxy_segmentation` | `sahool-platform` | `bff-orchestrator` |
 | `api/routers/settings.py` | `PUT` | `/api/v1/settings` | `upsert_setting` | `sahool-platform` | `bff-orchestrator` |
 | `api/routers/settings.py` | `GET` | `/api/v1/settings` | `list_settings` | `sahool-platform` | `bff-orchestrator` |
-| `api/routers/sharing.py` | `POST` | `/api/v1/sharing/generate-key` | `generate_share_key` | `sahool-platform` | `bff-orchestrator` |
+| `api/routers/sharing.py` | `POST` | `/api/v1/sharing/keys/{key_id}/revoke` | `revoke_sharing_key` | `sahool-platform` | `bff-orchestrator` |
 | `api/routers/sharing.py` | `POST` | `/api/v1/sharing/keys` | `create_sharing_key` | `sahool-platform` | `bff-orchestrator` |
 | `api/routers/sharing.py` | `GET` | `/api/v1/sharing/keys` | `list_sharing_keys` | `sahool-platform` | `bff-orchestrator` |
 | `api/routers/simulate.py` | `POST` | `/api/v1/simulate/what-if` | `simulate_what_if` | `agriai-engine` | `decision-compute` |
