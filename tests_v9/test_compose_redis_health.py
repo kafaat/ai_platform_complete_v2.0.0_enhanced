@@ -118,8 +118,12 @@ def _acl_enforces_authentication(svc) -> bool:
 @pytest.mark.parametrize("fname,svc_name,svc", _cases())
 def test_redis_requires_password(fname, svc_name, svc):
     """Redis لا يعمل مكشوفاً: requirepass عبر سطر الأمر أو إعداد بمسار موجود، أو ACL بلا ``default``."""
-    if svc_name in _INTERNAL_NOAUTH_OK:
-        pytest.skip(f"{svc_name}: redis داخليّ لـERPNext (بلا مصادقة بحكم العُرف)")
+    if fname == "docker-compose.erpnext.yml" and svc_name in _INTERNAL_NOAUTH_OK:
+        # The ERPNext exemption covers unpublished services on this Compose network only.
+        assert not svc.get("ports"), svc_name
+        assert not svc.get("network_mode"), svc_name
+        assert set(svc.get("networks") or ()) == {"sahool-internal"}, svc_name
+        return
     cmd = _cmd_text(svc)
     writes_conf_to_valid_path = "requirepass" in cmd and _BROKEN_DIR not in cmd
     assert (

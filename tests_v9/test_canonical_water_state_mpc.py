@@ -380,65 +380,54 @@ def test_canonical_state_blocks_without_root_zone(monkeypatch, canonical_patches
     assert out["reason"] == "governed_soil_hydraulic_profile_missing"
 
 
-@pytest.mark.skip(
-    reason="V21 integration: the canonical_water_state→MPC route wiring "
-    "(resolve_canonical_water_state + MpcRecommendationRequest + source_digests trace) belongs to "
-    "the zip's divergent P1.1c router, which was NOT adopted — the landed branch keeps its own "
-    "server-authoritative P1.1c-b router (facts_provenance). The canonical_water_state kernel and "
-    "its module-level truth/fail-closed/digest tests above are integrated and pass; only this "
-    "route-level wiring is deferred, matching the forensic P0-2/P0-C finding that these kernels are "
-    "not yet mounted into a production read path."
-)
-def test_operational_route_carries_source_digests(monkeypatch):
+def test_operational_route_carries_source_digests(monkeypatch, canonical_patches):
+    from types import SimpleNamespace
+
     import api.routers.irrigation_mpc as route
-    from api.canonical_water_state import CanonicalWaterState
+    from api.canonical_water_state import resolve_canonical_water_state
 
-    state = CanonicalWaterState(
-        schema_version="canonical_water_state.v1",
-        tenant_id="tenant-42",
-        field_id="fld-a",
-        season_id="sea-1",
-        crop="maize",
-        growth_stage="initial",
-        depletion_mm=20,
-        depletion_confidence=0.9,
-        ledger_date="2026-07-13",
-        ledger_age_hours=2,
-        taw_mm=100,
-        raw_fraction=0.5,
-        raw_mm=50,
-        root_depth_m=0.6,
-        soil_texture="loam",
-        forecast=[{"et0_mm": 6, "kc": 0.4, "rain_mm": 0, "runoff_mm": 0}],
-        evidence={},
-        quality_status="verified",
-        operational_eligible=True,
-        limitations=[],
-        water_state_digest="a" * 64,
-        weather_snapshot_digest="b" * 64,
-        soil_profile_digest="c" * 64,
-        season_state_digest="d" * 64,
-    )
+    class FieldConnection(FakeConn):
+        async def fetchrow(self, sql, *args):
+            if "SELECT 1 FROM fields" in sql:
+                assert args == ("fld-1",)
+                return Row(field_id="fld-1")
+            return await super().fetchrow(sql, *args)
 
-    async def resolver(*args, **kwargs):
-        return state
+        async def fetch(self, sql, field_id, now):
+            assert "FROM field_irrigation_source_assignments" in sql
+            assert field_id == "fld-1"
+            return []
 
-    monkeypatch.setattr(route, "resolve_canonical_water_state", resolver)
+    user = SimpleNamespace(tenant_id="tenant-1")
+    conn = FieldConnection()
 
     @asynccontextmanager
-    async def tc(*args, **kwargs):
-        yield object()
+    async def tenant_connection(actor):
+        assert actor is user
+        yield conn
 
-    monkeypatch.setattr(route, "tenant_connection", tc)
+    snapshots = []
 
-    class U:
-        tenant_id = "tenant-42"
+    async def observe_resolution(connection, *, tenant_id, field_id, horizon_days):
+        assert connection is conn
+        assert (tenant_id, field_id, horizon_days) == ("tenant-1", "fld-1", 1)
+        snapshot = await resolve_canonical_water_state(
+            connection, tenant_id=tenant_id, field_id=field_id, horizon_days=horizon_days
+        )
+        snapshots.append(snapshot)
+        return snapshot
 
-    req = route.MpcRecommendationRequest(horizon_days=1)
-    out = asyncio.run(route.irrigation_mpc_recommendation("fld-a", req, user=U()))
-    trace = out["decision"]["constraint_trace"]
-    assert trace["source_digests"]["water_state_digest"] == "a" * 64
+    monkeypatch.setattr(route, "tenant_connection", tenant_connection)
+    monkeypatch.setattr(route, "resolve_canonical_water_state", observe_resolution)
+    request = route.RecommendationRequest(horizon_days=1)
+    out = asyncio.run(route.irrigation_mpc_recommendation("fld-1", request, user=user))
+
+    (snapshot,) = snapshots
     assert out["mode"] == "operational"
+    provenance = out["facts_provenance"]
+    assert provenance["ledger_snapshot_hash"] == snapshot.water_state_digest
+    assert provenance["weather_snapshot_hash"] == snapshot.weather_snapshot_digest
+    assert provenance["soil_snapshot_hash"] == snapshot.soil_profile_digest
 
 
 def test_variety_comes_from_cultivar_only_never_seed_variety_source(monkeypatch, canonical_patches):

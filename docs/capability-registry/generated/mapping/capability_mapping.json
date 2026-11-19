@@ -32,8 +32,8 @@
       "raw": 3443
     },
     "test_dependency_files": 1996,
-    "test_dependency_edges": 5306,
-    "test_dependency_bounded_files": 1160,
+    "test_dependency_edges": 5307,
+    "test_dependency_bounded_files": 1159,
     "test_dependency_unresolved_relations": 509
   },
   "capabilities": [
@@ -76924,18 +76924,18 @@
       "edges": [
         {
           "source": "services/auth/main.py",
-          "kind": "import",
-          "line": 41
-        },
-        {
-          "source": "services/auth/routers/users.py",
-          "kind": "import",
-          "line": 185
+          "kind": "loader",
+          "line": 30
         },
         {
           "source": "tests_v9/auth_route_source.py",
           "kind": "import",
-          "line": 210
+          "line": 192
+        },
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 23
         }
       ],
       "unresolved": []
@@ -78772,17 +78772,17 @@
         {
           "source": "services/weather-service/canonical_weather_state.py",
           "kind": "import",
-          "line": 533
+          "line": 522
         },
         {
           "source": "services/weather-service/et0.py",
           "kind": "import",
-          "line": 534
+          "line": 523
         },
         {
           "source": "services/weather-service/open_meteo.py",
           "kind": "import",
-          "line": 535
+          "line": 524
         }
       ],
       "unresolved": [
@@ -78851,27 +78851,27 @@
           "import": "api.canonical_water_state"
         },
         {
-          "line": 393,
+          "line": 386,
           "import": "api.routers.irrigation_mpc"
         },
         {
-          "line": 394,
+          "line": 387,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 449,
+          "line": 438,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 450,
+          "line": 439,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 530,
+          "line": 519,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 566,
+          "line": 555,
           "import": "api.canonical_water_state"
         }
       ]
@@ -83166,12 +83166,12 @@
         {
           "source": "shared/memory/__init__.py",
           "kind": "import",
-          "line": 24
+          "line": 25
         },
         {
           "source": "shared/memory/export_engine.py",
           "kind": "import",
-          "line": 42
+          "line": 43
         }
       ],
       "unresolved": []
@@ -84362,18 +84362,20 @@
     },
     {
       "test": "tests_v9/test_frontend_lint_debt_guard.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference"
+      ],
       "edges": [
         {
           "source": "scripts/ci/frontend_lint_debt_guard.py",
           "kind": "loader",
-          "line": 30
+          "line": 33
         },
         {
           "source": "scripts/ci/frontend_lint_debt_guard.py",
           "kind": "source_read",
-          "line": 26
+          "line": 29
         }
       ],
       "unresolved": []
@@ -92679,6 +92681,11 @@
       ],
       "edges": [
         {
+          "source": "services/sahool-platform/api/routers/recommendations.py",
+          "kind": "source_read",
+          "line": 117
+        },
+        {
           "source": "tests_v9/static_reading.py",
           "kind": "import",
           "line": 28
@@ -96552,12 +96559,12 @@
         {
           "source": "services/agriai-engine/wofost_adapter.py",
           "kind": "import",
-          "line": 264
+          "line": 263
         },
         {
           "source": "services/mcp_servers/wofost_server.py",
           "kind": "source_read",
-          "line": 281
+          "line": 280
         },
         {
           "source": "services/supervisor-agent/mcp_client.py",
@@ -98018,7 +98025,7 @@
       "edges": [],
       "unresolved": [
         {
-          "line": 46,
+          "line": 47,
           "call": "spec_from_file_location"
         }
       ]

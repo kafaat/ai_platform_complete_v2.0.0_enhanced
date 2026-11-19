@@ -610,8 +610,14 @@ def test_live_scripts_are_held_to_the_callers_acl(live_server):
 
     server, port, admin = live_server
     users = _matrix()["servers"][server]["users"]
-    if "sahool-raster-service" not in users:
-        pytest.skip("لا مستخدمَ يملك EVAL على هذا الخادم")
+    if server == "sahool-redis-state":
+        assert users
+        for name, user in users.items():
+            with _login(port, name, _password_for(user["password_env"])) as client:
+                assert client.ping()
+                with pytest.raises(redis.exceptions.NoPermissionError):
+                    client.eval("return 1", 0)
+        return
     u = users["sahool-raster-service"]
     client = _login(port, "sahool-raster-service", _password_for(u["password_env"]))
     release = (
