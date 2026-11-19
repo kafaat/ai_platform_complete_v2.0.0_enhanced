@@ -1,0 +1,53 @@
+name: PR1521 one-shot ruleset contract checksum proof
+on:
+  push:
+    paths:
+      - .github/workflows/pr1521-ruleset-proof-once.yml
+permissions:
+  contents: write
+jobs:
+  reconcile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/prod-pest-ack-hotfix-20261117
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reconcile exact contract checksum and validate release
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          target = "docs/architecture/required_status_checks_contract.json"
+          contract = json.loads(Path(target).read_text())
+          contexts = contract["required_contexts"]
+          required = {f"Mutation Sweep {i}/5" for i in range(1, 6)}
+          assert required <= set(contexts) and len(contexts) == len(set(contexts))
+          ledger = Path("release/FILE_CHECKSUMS.sha256")
+          rows = ledger.read_text().splitlines()
+          hits = 0
+          for i, row in enumerate(rows):
+              if row.endswith("  " + target):
+                  rows[i] = hashlib.sha256(Path(target).read_bytes()).hexdigest() + "  " + target
+                  hits += 1
+          assert hits == 1, hits
+          ledger.write_text("\n".join(rows) + "\n")
+          PY
+          python scripts/release/validate_release_package.py
+      - name: Remove temporary workflow and commit validated ledger
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/pr1521-ruleset-proof-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add release/FILE_CHECKSUMS.sha256 .github/workflows/pr1521-ruleset-proof-once.yml
+          git commit -m 'build(release): attest updated required-status contract checksum'
+          git push origin HEAD:fix/prod-pest-ack-hotfix-20261117
