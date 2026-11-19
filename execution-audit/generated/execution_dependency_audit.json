@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1893,
   "route_handlers":1050,
-  "call_edges":78265,
+  "call_edges":78284,
   "dead_code_candidates":632,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -278541,8 +278541,15 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/pest_escalation.py",
    "source":"pest_escalation_run",
+   "target":"summarize_pest_execution",
+   "line":103
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/pest_escalation.py",
+   "source":"pest_escalation_run",
    "target":"workflow_trace",
-   "line":104
+   "line":113
   },
   {
    "owner":"sahool-platform",
@@ -349415,401 +349422,478 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"detect_fn",
+   "source":"_execution_ref",
+   "target":"isinstance",
+   "line":74
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"_execution_ref",
+   "target":"strip",
+   "line":74
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"is_execution_proven",
+   "target":"isinstance",
+   "line":82
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"is_execution_proven",
+   "target":"get",
+   "line":83
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"is_execution_proven",
+   "target":"_execution_ref",
    "line":84
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
-   "target":"detect_fn",
+   "source":"is_execution_proven",
+   "target":"get",
    "line":84
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
+   "source":"summarize_pest_execution",
    "target":"get",
-   "line":87
+   "line":97
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
+   "source":"summarize_pest_execution",
+   "target":"isinstance",
+   "line":98
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"summarize_pest_execution",
+   "target":"_execution_ref",
+   "line":116
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"summarize_pest_execution",
    "target":"get",
-   "line":87
+   "line":116
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
+   "source":"summarize_pest_execution",
+   "target":"is_execution_proven",
+   "line":126
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"summarize_pest_execution",
    "target":"get",
-   "line":88
+   "line":127
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
+   "source":"summarize_pest_execution",
    "target":"get",
-   "line":88
+   "line":134
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"float",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
-   "target":"float",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
-   "target":"get",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
-   "target":"get",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"float",
-   "line":95
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":95
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_confirm",
-   "target":"float",
-   "line":95
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_confirm",
-   "target":"get",
-   "line":95
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":108
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_recommend",
-   "target":"get",
-   "line":108
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"float",
-   "line":113
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":113
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_recommend",
-   "target":"float",
-   "line":113
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_recommend",
-   "target":"get",
-   "line":113
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":125
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_await_approval",
-   "target":"get",
-   "line":125
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":131
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_await_approval",
-   "target":"get",
-   "line":131
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"_needs_approval_suspend",
+   "source":"summarize_pest_execution",
    "target":"get",
    "line":138
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
+   "source":"summarize_pest_execution",
    "target":"get",
    "line":138
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":143
+   "source":"summarize_pest_execution",
+   "target":"isinstance",
+   "line":139
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"get",
-   "line":143
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":145
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"get",
-   "line":145
+   "source":"summarize_pest_execution",
+   "target":"strip",
+   "line":139
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"build_pest_escalation_steps",
-   "target":"execute_fn",
-   "line":148
+   "target":"detect_fn",
+   "line":171
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"execute_fn",
-   "line":148
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"bool",
-   "line":150
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":150
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"bool",
-   "line":150
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"get",
-   "line":150
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":151
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"get",
-   "line":151
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":153
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"get",
-   "line":153
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":157
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"undo_execute",
-   "target":"get",
-   "line":157
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"cancel_fn",
-   "line":158
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"undo_execute",
-   "target":"cancel_fn",
-   "line":158
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":162
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_follow_up",
-   "target":"get",
-   "line":162
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"WorkflowStep",
-   "line":170
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"WorkflowStep",
+   "source":"step_detect",
+   "target":"detect_fn",
    "line":171
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"build_pest_escalation_steps",
-   "target":"WorkflowStep",
-   "line":172
+   "target":"get",
+   "line":174
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"WorkflowStep",
-   "line":173
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"WorkflowStep",
+   "source":"step_detect",
+   "target":"get",
    "line":174
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"build_pest_escalation_steps",
-   "target":"WorkflowStep",
+   "target":"get",
    "line":175
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_detect",
+   "target":"get",
+   "line":175
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"float",
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_detect",
+   "target":"float",
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_detect",
+   "target":"get",
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_detect",
+   "target":"get",
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"float",
+   "line":182
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":182
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_confirm",
+   "target":"float",
+   "line":182
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_confirm",
+   "target":"get",
+   "line":182
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":195
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_recommend",
+   "target":"get",
+   "line":195
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"float",
+   "line":200
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":200
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_recommend",
+   "target":"float",
+   "line":200
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_recommend",
+   "target":"get",
+   "line":200
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":212
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_await_approval",
+   "target":"get",
+   "line":212
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":218
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_await_approval",
+   "target":"get",
+   "line":218
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"_needs_approval_suspend",
+   "target":"get",
+   "line":225
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":225
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":230
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"get",
+   "line":230
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":232
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"get",
+   "line":232
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"execute_fn",
+   "line":241
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"execute_fn",
+   "line":241
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"is_execution_proven",
+   "line":242
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"is_execution_proven",
+   "line":242
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":254
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"undo_execute",
+   "target":"get",
+   "line":254
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"cancel_fn",
+   "line":255
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"undo_execute",
+   "target":"cancel_fn",
+   "line":255
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"is_execution_proven",
+   "line":259
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_follow_up",
+   "target":"is_execution_proven",
+   "line":259
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"WorkflowStep",
+   "line":267
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"WorkflowStep",
+   "line":268
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"WorkflowStep",
+   "line":269
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"WorkflowStep",
+   "line":270
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"WorkflowStep",
+   "line":271
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"WorkflowStep",
+   "line":272
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"run_pest_escalation",
    "target":"build_pest_escalation_steps",
-   "line":195
+   "line":292
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"run_pest_escalation",
    "target":"run_workflow",
-   "line":198
+   "line":295
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"run_pest_escalation",
    "target":"InMemoryWorkflowStore",
-   "line":201
+   "line":298
   },
   {
    "owner":"sahool-platform",
@@ -435711,128 +435795,177 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_execute_default_ref_when_no_execute_fn",
+   "source":"test_no_executor_must_not_claim_a_spray_or_fabricate_a_reference",
    "target":"_steps_by_id",
+   "line":182
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_no_executor_must_not_claim_a_spray_or_fabricate_a_reference",
+   "target":"execute",
    "line":183
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_execute_default_ref_when_no_execute_fn",
-   "target":"execute",
-   "line":184
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
    "source":"test_execute_honours_execute_fn_reporting_failure",
    "target":"_steps_by_id",
-   "line":190
+   "line":191
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
    "source":"test_execute_honours_execute_fn_reporting_failure",
    "target":"execute",
-   "line":193
+   "line":194
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_follow_up_skipped_when_not_executed",
+   "source":"test_an_ack_without_a_receipt_is_not_confirmed",
    "target":"_steps_by_id",
-   "line":202
+   "line":200
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_follow_up_skipped_when_not_executed",
-   "target":"follow_up",
-   "line":203
+   "source":"test_an_ack_without_a_receipt_is_not_confirmed",
+   "target":"execute",
+   "line":201
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_follow_up_scheduled_after_execution",
+   "source":"test_false_shaped_or_non_dict_ack_cannot_claim_spray",
    "target":"_steps_by_id",
    "line":208
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_follow_up_scheduled_after_execution",
-   "target":"follow_up",
+   "source":"test_false_shaped_or_non_dict_ack_cannot_claim_spray",
+   "target":"execute",
    "line":209
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
-   "target":"InMemoryWorkflowStore",
-   "line":220
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
-   "target":"run_pest_escalation",
-   "line":221
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
-   "target":"run_pest_escalation",
-   "line":226
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_low_severity_flow_records_no_action_execute",
-   "target":"InMemoryWorkflowStore",
-   "line":243
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_low_severity_flow_records_no_action_execute",
-   "target":"run_pest_escalation",
-   "line":244
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_detect_step_default_reads_context_and_coerces_severity",
+   "source":"test_follow_up_skipped_when_not_executed",
    "target":"_steps_by_id",
+   "line":218
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_follow_up_skipped_when_not_executed",
+   "target":"follow_up",
+   "line":219
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_follow_up_scheduled_after_execution",
+   "target":"_steps_by_id",
+   "line":224
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_follow_up_scheduled_after_execution",
+   "target":"follow_up",
+   "line":225
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
+   "target":"InMemoryWorkflowStore",
+   "line":236
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
+   "target":"run_pest_escalation",
+   "line":237
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
+   "target":"run_pest_escalation",
+   "line":242
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_low_severity_flow_records_no_action_execute",
+   "target":"InMemoryWorkflowStore",
    "line":260
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_detect_step_default_reads_context_and_coerces_severity",
-   "target":"detect",
+   "source":"test_low_severity_flow_records_no_action_execute",
+   "target":"run_pest_escalation",
    "line":261
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
    "source":"test_detect_step_default_reads_context_and_coerces_severity",
+   "target":"_steps_by_id",
+   "line":277
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_detect_step_default_reads_context_and_coerces_severity",
    "target":"detect",
-   "line":266
+   "line":278
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_detect_step_default_reads_context_and_coerces_severity",
+   "target":"detect",
+   "line":283
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
    "source":"test_recommend_confirmed_below_lowest_band_falls_back_honestly",
    "target":"_steps_by_id",
-   "line":272
+   "line":289
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
    "source":"test_recommend_confirmed_below_lowest_band_falls_back_honestly",
    "target":"recommend",
-   "line":273
+   "line":290
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_reserved_legacy_reference_cannot_confirm_new_execution",
+   "target":"_steps_by_id",
+   "line":299
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_reserved_legacy_reference_cannot_confirm_new_execution",
+   "target":"fn",
+   "line":300
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_reserved_legacy_reference_cannot_confirm_new_execution",
+   "target":"fn",
+   "line":302
   },
   {
    "owner":"sahool-platform",
