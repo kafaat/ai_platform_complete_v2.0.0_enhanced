@@ -447,7 +447,7 @@
 | `/api/v1/seed/sowing-depth` | agronomist | ✅ |
 | `/api/v1/seed/storage-check` | agronomist | ✅ |
 | `/api/v1/settings` | manager | ✅ |
-| `/api/v1/sharing/generate-key` | manager | ✅ |
+| `/api/v1/sharing/generate-key` (retired; use `POST /api/v1/sharing/keys`) | manager | ❌ retired |
 | `/api/v1/sharing/keys` | manager | ✅ |
 | `/api/v1/simulate/what-if` | agronomist | ✅ |
 | `/api/v1/soil-sampling/depth` | agronomist | ✅ |

@@ -184,7 +184,7 @@
 | 138 | 18 | P3-منخفض | informational | `/api/v1/rbac/who-can` | button |
 | 139 | 18 | P3-منخفض | informational | `/api/v1/replay/reconstruct` | page |
 | 140 | 18 | P3-منخفض | informational | `/api/v1/seed/evaluate-source` | page |
-| 141 | 18 | P3-منخفض | informational | `/api/v1/sharing/generate-key` | page |
+| 141 | 18 | P3-منخفض | informational | `/api/v1/sharing/generate-key` (retired; use `/api/v1/sharing/keys`) | page |
 | 142 | 18 | P3-منخفض | informational | `/api/v1/trials/analyze` | page |
 | 143 | 18 | P3-منخفض | informational | `/api/v1/work-orders/from-recommendation` | page |
 
