@@ -40,9 +40,10 @@ def _fake_bin(tmp_path: Path, *, succeed_on: int | None) -> Path:
     )
     npx.chmod(npx.stat().st_mode | stat.S_IEXEC)
 
-    for name in ("sudo", "sed"):
+    for name in ("sudo", "sed", "pgrep"):
         p = tmp_path / name
-        body = 'exec "$@"\n' if name == "sudo" else "exit 0\n"
+        # pgrep مزيّف «لا apt حيّ»: وإلّا قاس الاختبارُ عملياتِ المُشغِّل لا السكربت.
+        body = {"sudo": 'exec "$@"\n', "sed": "exit 0\n", "pgrep": "exit 1\n"}[name]
         p.write_text(
             f'#!/usr/bin/env bash\necho "{name} $*" >> "{log}"\n{body}',
             encoding="utf-8",
@@ -170,3 +171,110 @@ def test_the_mirror_fallback_is_shared_not_copied():
         assert "sources.list.d/ubuntu.sources" not in text, (
             f"{caller} يحمل نسخةً ثانية من منطق التبديل"
         )
+
+
+# ── سجلّ CI 2026-09-30 (تثبيت Playwright بعد دمج b0c14b6d): عطلان مقيسان من السجلّ نفسه ──
+
+
+def _script_with(tmp_path: Path, name: str, body: str) -> None:
+    p = tmp_path / name
+    p.write_text("#!/usr/bin/env bash\n" + body, encoding="utf-8")
+    p.chmod(p.stat().st_mode | stat.S_IEXEC)
+
+
+def test_a_retry_waits_for_the_orphaned_apt_that_still_holds_the_dpkg_lock(tmp_path):
+    """المحاولةُ المنتهية تركت `apt-get` حيّاً يحمل القفل، فسقطت التاليتان في ~٣ث لكلٍّ.
+
+    الإعادةُ تنتظر اليتيمَ (بسقف) بدل أن تصطدم بقفله — ولا تقتله: قتلُ dpkg أثناء
+    التثبيت يُفسد حالته.
+    """
+    log = _fake_bin(tmp_path, succeed_on=2)
+    polls = tmp_path / "polls"
+    polls.write_text("0", encoding="utf-8")
+    _script_with(
+        tmp_path,
+        "pgrep",
+        f'echo "pgrep $*" >> "{log}"\n'
+        f'n=$(cat "{polls}"); n=$((n + 1)); echo "$n" > "{polls}"\n'
+        '[ "$n" -le 2 ] && { echo "2655 apt-get install -y fonts-freefont-ttf"; exit 0; }\n'
+        "exit 1\n",
+    )
+    proc, calls = _run(tmp_path, APT_IDLE_POLL="0")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    lines = calls.splitlines()
+    idle = [i for i, x in enumerate(lines) if x.startswith("pgrep")]
+    second = [i for i, x in enumerate(lines) if x.startswith("npx playwright install")][1]
+    assert len(idle) == 3 and idle[-1] < second, "المحاولةُ الثانية بعد تحرّر القفل لا قبله"
+    assert "2655 apt-get" in proc.stdout, "اليتيمُ يُسمّى في السجلّ"
+    assert "تحرّر قفلُ apt" in proc.stdout
+
+
+def test_the_mirror_switch_reaches_the_runner_mirrorlist(tmp_path):
+    """مُشغِّلاتُ GitHub تقرأ المرآة من `mirror+file:/etc/apt/apt-mirrors.txt`.
+
+    السجلّ طبع «المرآة بُدِّلت» ثمّ جلب التحديثُ التالي من `azure.archive.ubuntu.com`
+    نفسِه. ملفُّ المصادر هنا **بصيغة المُشغِّل** و`sed` حقيقيّ — الاختبارُ السابق زيّف
+    `sed` وكتب مصدراً بمضيفٍ صريح لا يوجد على المُشغِّل، فلم يكن ليرى العطل.
+    """
+    _script_with(tmp_path, "sudo", 'exec "$@"\n')
+    sources = tmp_path / "ubuntu.sources"
+    sources.write_text("Types: deb\nURIs: mirror+file:/etc/apt/apt-mirrors.txt\n", encoding="utf-8")
+    mirrors = tmp_path / "apt-mirrors.txt"
+    mirrors.write_text(
+        "http://azure.archive.ubuntu.com/ubuntu/\tpriority:1\n"
+        "https://archive.ubuntu.com/ubuntu/\tpriority:2\n",
+        encoding="utf-8",
+    )
+    helper = ROOT / "scripts/ci/apt_mirror_fallback.sh"
+    env = os.environ.copy()
+    env["PATH"] = f"{tmp_path}:{env['PATH']}"
+    env["APT_SOURCE_FILES"] = f"{mirrors} {sources}"
+    probe = subprocess.run(
+        ["bash", "-c", f'. "{helper}"; switch_apt_mirror'],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=env,
+    )
+    assert "azure" not in mirrors.read_text(encoding="utf-8")
+    assert "بُدِّلت" in probe.stdout and str(mirrors) in probe.stdout, probe.stdout
+
+
+def test_a_switch_that_finds_no_host_does_not_claim_it_switched(tmp_path):
+    """`sed -i` يُعيد صفراً بلا استبدال — فالرمزُ لا يشهد أنّ المرآة بُدِّلت."""
+    _script_with(tmp_path, "sudo", 'exec "$@"\n')
+    sources = tmp_path / "ubuntu.sources"
+    sources.write_text("URIs: mirror+file:/etc/apt/apt-mirrors.txt\n", encoding="utf-8")
+    helper = ROOT / "scripts/ci/apt_mirror_fallback.sh"
+    env = os.environ.copy()
+    env["PATH"] = f"{tmp_path}:{env['PATH']}"
+    env["APT_SOURCE_FILES"] = f"{tmp_path / 'absent.txt'} {sources}"
+    probe = subprocess.run(
+        ["bash", "-c", f'. "{helper}"; switch_apt_mirror'],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=env,
+    )
+    assert probe.returncode == 0, "تبديلُ المرآة تحسينُ فرصة لا شرطُ صحّة"
+    assert "بُدِّلت" not in probe.stdout, probe.stdout
+    assert "لم تُبدَّل" in probe.stdout
+
+
+def test_the_final_error_says_which_attempts_timed_out_and_which_failed(tmp_path):
+    """«تجاوز مهلته ٣ مرّات» ومحاولتان منها سقطتا على القفل في ثوانٍ — ادّعاءٌ لم يقع."""
+    log = _fake_bin(tmp_path, succeed_on=None)
+    counter = tmp_path / "rc_n"
+    counter.write_text("0", encoding="utf-8")
+    _script_with(
+        tmp_path,
+        "npx",
+        f'echo "npx $*" >> "{log}"\n'
+        f'n=$(cat "{counter}"); n=$((n + 1)); echo "$n" > "{counter}"\n'
+        '[ "$n" = 1 ] && exit 124\n'
+        "exit 100\n",
+    )
+    proc, _ = _run(tmp_path, PW_ATTEMPTS="3")
+    assert proc.returncode != 0
+    assert "1:مهلة" in proc.stderr and "2:فشل(100)" in proc.stderr, proc.stderr
+    assert "تجاوز مهلته" not in proc.stderr

@@ -17819,7 +17819,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "d0f8fd16dfad4cf1029e97a826c7c0e9025bdbe56a03b59fda32c9553b0d2b65",
+  "fingerprint": "ccccd34e1c3322a7ba1f761df0b56d4cb1319f6cad268e5ee5e401971d71959e",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17992,7 +17992,7 @@
     },
     {
       "endpoint": "/api/v1/decisions/{decision_id}/execution-plan",
-      "expires_on": "2026-10-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-10.11",
       "waiver_id": "ui-waiver-015"
@@ -18006,14 +18006,14 @@
     },
     {
       "endpoint": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
-      "expires_on": "2026-10-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-10.11",
       "waiver_id": "ui-waiver-017"
     },
     {
       "endpoint": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
-      "expires_on": "2026-10-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-10.13",
       "waiver_id": "ui-waiver-018"
@@ -18104,35 +18104,35 @@
     },
     {
       "endpoint": "/api/v1/learning/activation-requests",
-      "expires_on": "2026-10-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.5",
       "waiver_id": "ui-waiver-031"
     },
     {
       "endpoint": "/api/v1/learning/activation-requests/{activation_request_id}/review",
-      "expires_on": "2026-10-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
       "waiver_id": "ui-waiver-032"
     },
     {
       "endpoint": "/api/v1/learning/calibration-dataset",
-      "expires_on": "2026-10-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.2",
       "waiver_id": "ui-waiver-033"
     },
     {
       "endpoint": "/api/v1/learning/evaluation-runs",
-      "expires_on": "2026-10-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.3",
       "waiver_id": "ui-waiver-034"
     },
     {
       "endpoint": "/api/v1/learning/promotion-decisions",
-      "expires_on": "2026-10-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.4",
       "waiver_id": "ui-waiver-035"
@@ -18153,7 +18153,7 @@
     },
     {
       "endpoint": "/api/v1/outcomes/{outcome_id}/learning-attribution",
-      "expires_on": "2026-10-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11",
       "waiver_id": "ui-waiver-038"
@@ -18251,7 +18251,7 @@
     },
     {
       "endpoint": "/api/v1/scenario/economics",
-      "expires_on": "2026-10-28",
+      "expires_on": "2026-11-27",
       "owner": "sahool-platform",
       "tracking": "ECON-SCENARIO-UI-01",
       "waiver_id": "ui-waiver-052"
