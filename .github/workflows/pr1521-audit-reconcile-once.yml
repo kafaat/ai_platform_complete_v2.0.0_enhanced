@@ -1,0 +1,61 @@
+name: PR1521 one-shot execution audit reconciliation
+
+on:
+  push:
+    branches:
+      - fix/prod-pest-ack-hotfix-20261117
+    paths:
+      - .github/workflows/pr1521-audit-reconcile-once.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pr1521-audit-reconcile-once
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Reconcile generated audit and release records with source verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "kafaat/ai_platform_complete_v2.0.0_enhanced"
+          test "$GITHUB_REF" = "refs/heads/fix/prod-pest-ack-hotfix-20261117"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain)"
+          # Delete this one-shot workflow before computing the tracked release inventory.
+          git rm -- .github/workflows/pr1521-audit-reconcile-once.yml
+          python3 scripts/ci/execution_dependency_audit.py --generate
+          python3 scripts/ci/execution_dependency_audit.py --check
+          python3 scripts/release/build_release_bundle.py --root .
+          python3 scripts/release/validate_release_package.py --root .
+          python3 -m pip install 'pytest==9.1.1'
+          python3 -m pytest -q tests/architecture/test_execution_dependency_audit.py
+          while IFS= read -r f; do
+            case "$f" in
+              .github/workflows/pr1521-audit-reconcile-once.yml|execution-audit/generated/*|release/FILE_CHECKSUMS.sha256|release/SAHOOL_RELEASE_MANIFEST_20260626.json|release/SBOM_MINIMAL.json) ;;
+              *) echo "::error::Unexpected generated path: $f"; exit 1 ;;
+            esac
+          done < <(git diff --name-only HEAD)
+          git add -u -- execution-audit/generated release/FILE_CHECKSUMS.sha256 release/SAHOOL_RELEASE_MANIFEST_20260626.json release/SBOM_MINIMAL.json
+          git diff --cached --check
+          git diff --cached --name-only
+          if ! git diff --cached --name-only | grep -q '^execution-audit/generated/'; then
+            echo "::error::No audit correction produced"; exit 1
+          fi
+          test -z "$(git diff --name-only)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(pest): regenerate execution audit and release receipts on PR1521"
+          # Non-forced push fails closed if another writer has advanced this branch.
+          git push origin HEAD:refs/heads/fix/prod-pest-ack-hotfix-20261117
