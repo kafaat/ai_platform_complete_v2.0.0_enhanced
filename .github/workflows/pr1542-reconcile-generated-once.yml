@@ -1,0 +1,69 @@
+name: "PR1542 one-time generated artifact reconciliation"
+on:
+  push:
+    branches:
+      - upgrade/staging-platform-sharing-soil-water-20261119
+    paths:
+      - ".github/workflows/pr1542-reconcile-generated-once.yml"
+permissions:
+  contents: write
+concurrency:
+  group: pr1542-generated-once
+  cancel-in-progress: false
+jobs:
+  regenerate:
+    if: github.ref == 'refs/heads/upgrade/staging-platform-sharing-soil-water-20261119'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout the exact PR branch
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: upgrade/staging-platform-sharing-soil-water-20261119
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Set up repository Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Install the existing governance prerequisites
+        run: python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+      - name: Remove this temporary workflow before computing generated artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -- .github/workflows/pr1542-reconcile-generated-once.yml
+          git add -A
+          git status --short
+      - name: Generate and verify repository-owned artifacts to fixed point
+        shell: bash
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          set -euo pipefail
+          bash scripts/ci/regenerate_all_generated.sh
+      - name: Verify proposed tree and refuse untracked output
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          git add -u
+          if test -n "$(git ls-files --others --exclude-standard)"; then
+            echo "Unexpected untracked output; refusing push" >&2
+            git ls-files --others --exclude-standard
+            exit 1
+          fi
+          echo "Exact changed paths:"
+          git diff --cached --name-only
+          if git diff --cached --quiet; then
+            echo "No generated drift left to reconcile"
+            exit 0
+          fi
+      - name: Commit to the existing PR branch without bypassing CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(staging): regenerate governed artifacts and release checksums for PR 1542"
+          git push origin HEAD:refs/heads/upgrade/staging-platform-sharing-soil-water-20261119
