@@ -53,7 +53,6 @@ jobs:
           evidence_dir="$(dirname "$GITHUB_WORKSPACE")/pr1543-recovery"
           mkdir -p "$evidence_dir"
           printf 'PR1543_EVIDENCE_DIR=%s\n' "$evidence_dir" >> "$GITHUB_ENV"
-          printf 'SOURCE_DATE_EPOCH=%s\n' "$(git show -s --format=%ct "$EXPECTED_HEAD")" >> "$GITHUB_ENV"
           git rev-parse HEAD HEAD^{tree} > "$evidence_dir/source-identity.txt"
           cp docs/architecture/tenant_guc_scope_baseline.json "$evidence_dir/baseline-before.json"
       - name: Install the repository's declared test dependencies
@@ -64,6 +63,12 @@ jobs:
           sudo systemctl stop redis-server
           sudo systemctl disable redis-server
           redis-server --version
+      - name: Verify GPU Bake contracts without release-only environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -c 'import os; assert "SOURCE_DATE_EPOCH" not in os.environ'
+          python -m pytest -q tests_v9/test_gpu_bake_matches_compose_overlay.py --junitxml="$PR1543_EVIDENCE_DIR/gpu-bake-tests.xml" | tee "$PR1543_EVIDENCE_DIR/gpu-bake-tests.log"
       - name: Verify the immutable continuation package
         working-directory: .claude/skills/work-continuation
         run: sha256sum -c SHA256SUMS
@@ -130,7 +135,7 @@ jobs:
         run: |
           set -euo pipefail
           git add docs/architecture/tenant_guc_scope_baseline.json
-          python scripts/release/build_release_bundle.py --root .
+          SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$EXPECTED_HEAD")" python scripts/release/build_release_bundle.py --root .
           python scripts/release/validate_release_package.py --root . | tee "$PR1543_EVIDENCE_DIR/release-validation.log"
           git add release/FILE_CHECKSUMS.sha256 release/SAHOOL_RELEASE_MANIFEST_20260626.json release/SBOM_MINIMAL.json
           python scripts/ci/verify_all_generated.py --check | tee "$PR1543_EVIDENCE_DIR/generated-check.log"
