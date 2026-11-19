@@ -2123,11 +2123,10 @@ def _build_walk_plan(req: WalkPlanRequest):
         raise HTTPException(status_code=422, detail=str(e)) from e
 
 
-# ─── ١٣. Sharing key generation (سدّ فجوة جزئي) ──────────────────
-# توليد مفتاح مشاركة (نموذج "المهندس الزراعي الموثوق" من FieldView).
-# التوليد والـhashing pure؛ الحفظ/التحقّق في DB يحتاج PostgreSQL pool
-# (يبقى غير موصَّل بصدق — SharingKeyService.create_key/validate_key).
-# المسار القديم POST /api/v1/sharing/generate-key أُلغي؛ البديل المحفوظ POST /api/v1/sharing/keys في routers/sharing.py.
+# ─── ١٣. Sharing credentials (persisted and revocable) ────────────
+# المسار القديم POST /api/v1/sharing/generate-key أُلغي لأنه لم يحفظ المفتاح.
+# إنشاء المفاتيح المحفوظة وسردها وإلغاؤها في api/routers/sharing.py.
+# يتطلب الإنشاء والإلغاء USER_INVITE؛ تستخدم العمليات tenant_connection لعزل المستأجر.
 
 
 # ─── ١٤. الوحدات المعتمدة على PostgreSQL (سدّ الفجوة ١) ──────────
