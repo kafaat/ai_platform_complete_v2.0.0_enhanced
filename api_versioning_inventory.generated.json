@@ -6914,7 +6914,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/nutrients.py",
-    "line": 31,
+    "line": 23,
     "method": "POST",
     "path": "/api/v1/nutrients/4r-plan",
     "handler": "nutrient_4r_plan",
@@ -7778,16 +7778,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/sharing.py",
-    "line": 46,
-    "method": "POST",
-    "path": "/api/v1/sharing/generate-key",
-    "handler": "generate_share_key",
-    "classification": "versioned"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/routers/sharing.py",
-    "line": 86,
+    "line": 32,
     "method": "POST",
     "path": "/api/v1/sharing/keys",
     "handler": "create_sharing_key",
@@ -7796,10 +7787,19 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/sharing.py",
-    "line": 117,
+    "line": 65,
     "method": "GET",
     "path": "/api/v1/sharing/keys",
     "handler": "list_sharing_keys",
+    "classification": "versioned"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/sharing.py",
+    "line": 77,
+    "method": "POST",
+    "path": "/api/v1/sharing/keys/{key_id}/revoke",
+    "handler": "revoke_sharing_key",
     "classification": "versioned"
   },
   {

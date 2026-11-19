@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from datetime import UTC, datetime
 from typing import Any
 
@@ -134,7 +135,7 @@ def build_manual_water_ledger_event(
     confirmation = execution.get("confirmation") or {}
     volume = float(as_applied.get("actual_volume_m3") or 0.0)
     depth = float(as_applied.get("actual_depth_mm") or 0.0)
-    if volume <= 0 or depth <= 0:
+    if not all(math.isfinite(value) and value > 0 for value in (volume, depth)):
         raise ValueError("INVALID_AS_APPLIED_WATER_QUANTITY")
     observed_at = confirmation.get("stopped_at") or execution.get("stopped_at")
     if isinstance(observed_at, str):

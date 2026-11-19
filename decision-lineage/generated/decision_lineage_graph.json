@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 598,
+      "evidence_count": 600,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -269,6 +269,7 @@
         "services/sahool-platform/api/learning_feedback.py",
         "services/sahool-platform/api/learning_summary.py",
         "services/sahool-platform/api/main.py",
+        "services/sahool-platform/api/nutrient_4r.py",
         "services/sahool-platform/api/offline_sync_contracts.py",
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py",
@@ -471,6 +472,7 @@
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_mcp_streaming_review_artifacts.py",
         "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+        "services/sahool-platform/tests/test_nutrient_4r.py",
         "services/sahool-platform/tests/test_offline_first.py",
         "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
@@ -2445,6 +2447,7 @@
         "services/sahool-platform/api/learning_feedback.py",
         "services/sahool-platform/api/learning_summary.py",
         "services/sahool-platform/api/main.py",
+        "services/sahool-platform/api/nutrient_4r.py",
         "services/sahool-platform/api/offline_sync_contracts.py",
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_store.py",
@@ -2463,10 +2466,9 @@
         "services/sahool-platform/api/routers/learning_summary.py",
         "services/sahool-platform/api/routers/prescriptions.py",
         "services/sahool-platform/api/routers/recommendations.py",
-        "services/sahool-platform/api/routers/seasons.py",
-        "services/sahool-platform/api/routers/weather.py"
+        "services/sahool-platform/api/routers/seasons.py"
       ],
-      "source_evidence_count": 598,
+      "source_evidence_count": 600,
       "target_evidence_count": 502,
       "static_supported": true,
       "runtime_verified": false
@@ -2839,5 +2841,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "e124d17f12204c0f3a5a68039fbe50f09d050d23bb0d2ddf6d5ea7cb8c6d9f70"
+  "content_sha256": "c768f5a8376eb29c747d6068e3051f0a056b62d4ab4118574e73f1ef857232f1"
 }

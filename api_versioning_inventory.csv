@@ -767,7 +767,7 @@ sahool-platform,services/sahool-platform/api/routers/nl_sql.py,71,POST,/api/v1/n
 sahool-platform,services/sahool-platform/api/routers/notifications.py,58,GET,/api/v1/notifications/preferences,get_notification_preferences,versioned
 sahool-platform,services/sahool-platform/api/routers/notifications.py,88,PUT,/api/v1/notifications/preferences,update_notification_preferences,versioned
 sahool-platform,services/sahool-platform/api/routers/notifications.py,179,POST,/api/v1/notifications/delivery,upsert_notification_delivery,versioned
-sahool-platform,services/sahool-platform/api/routers/nutrients.py,31,POST,/api/v1/nutrients/4r-plan,nutrient_4r_plan,versioned
+sahool-platform,services/sahool-platform/api/routers/nutrients.py,23,POST,/api/v1/nutrients/4r-plan,nutrient_4r_plan,versioned
 sahool-platform,services/sahool-platform/api/routers/observations.py,34,POST,/api/v1/observations,observations,versioned
 sahool-platform,services/sahool-platform/api/routers/onboarding.py,35,GET,/api/v1/onboarding/questionnaire,onboarding_questionnaire,versioned
 sahool-platform,services/sahool-platform/api/routers/onboarding.py,46,POST,/api/v1/onboarding/responses,submit_onboarding,versioned
@@ -863,9 +863,9 @@ sahool-platform,services/sahool-platform/api/routers/seed.py,50,GET,/api/v1/seed
 sahool-platform,services/sahool-platform/api/routers/seed.py,58,GET,/api/v1/seed/sowing-depth,seed_sowing_depth_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/settings.py,30,PUT,/api/v1/settings,upsert_setting,versioned
 sahool-platform,services/sahool-platform/api/routers/settings.py,63,GET,/api/v1/settings,list_settings,versioned
-sahool-platform,services/sahool-platform/api/routers/sharing.py,46,POST,/api/v1/sharing/generate-key,generate_share_key,versioned
-sahool-platform,services/sahool-platform/api/routers/sharing.py,86,POST,/api/v1/sharing/keys,create_sharing_key,versioned
-sahool-platform,services/sahool-platform/api/routers/sharing.py,117,GET,/api/v1/sharing/keys,list_sharing_keys,versioned
+sahool-platform,services/sahool-platform/api/routers/sharing.py,32,POST,/api/v1/sharing/keys,create_sharing_key,versioned
+sahool-platform,services/sahool-platform/api/routers/sharing.py,65,GET,/api/v1/sharing/keys,list_sharing_keys,versioned
+sahool-platform,services/sahool-platform/api/routers/sharing.py,77,POST,/api/v1/sharing/keys/{key_id}/revoke,revoke_sharing_key,versioned
 sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,130,POST,/api/v1/farm-book/parties,create_party,versioned
 sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,162,GET,/api/v1/farm-book/parties,list_parties,versioned
 sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,247,POST,/api/v1/farm-book/entries,create_entry,versioned

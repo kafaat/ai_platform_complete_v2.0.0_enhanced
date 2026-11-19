@@ -4052,10 +4052,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/routers/sharing.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/routers/sync.py",
     "kind": "backend"
   },
@@ -5881,6 +5877,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_sensor_intake.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_sharing_revoke_contract.py",
     "kind": "tests"
   },
   {

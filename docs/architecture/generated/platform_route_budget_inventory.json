@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 632
   },
-  "inventory_sha256": "f2c106d41fb09e088684f094a2f2ce06d4959c2cf3e50b44f583d41f1f56b0db",
+  "inventory_sha256": "ff6dc6b44b8ffce35e2b26a63cfd6b77b952f39580851e056f6b0fc4814f8ace",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "19a8c2a981fb2c2fd60d100f2e4b03cdab03c4d395b640cf00ad6873865553f9"
+    "policy_sha256": "8b6a9c5bd7ed83ae0b04afb94b8f353817eb3d3c63d6e4d69b9781c457f6807f"
   },
   "routes": [
     {
@@ -2178,7 +2178,7 @@
     {
       "classification": "domain",
       "function": "list_sharing_keys",
-      "line": 116,
+      "line": 64,
       "method": "GET",
       "path": "/api/v1/sharing/keys",
       "source": "api/routers/sharing.py"
@@ -4114,7 +4114,7 @@
     {
       "classification": "domain",
       "function": "nutrient_4r_plan",
-      "line": 30,
+      "line": 22,
       "method": "POST",
       "path": "/api/v1/nutrients/4r-plan",
       "source": "api/routers/nutrients.py"
@@ -4305,18 +4305,18 @@
     },
     {
       "classification": "domain",
-      "function": "generate_share_key",
-      "line": 45,
+      "function": "create_sharing_key",
+      "line": 31,
       "method": "POST",
-      "path": "/api/v1/sharing/generate-key",
+      "path": "/api/v1/sharing/keys",
       "source": "api/routers/sharing.py"
     },
     {
       "classification": "domain",
-      "function": "create_sharing_key",
-      "line": 85,
+      "function": "revoke_sharing_key",
+      "line": 76,
       "method": "POST",
-      "path": "/api/v1/sharing/keys",
+      "path": "/api/v1/sharing/keys/{key_id}/revoke",
       "source": "api/routers/sharing.py"
     },
     {
