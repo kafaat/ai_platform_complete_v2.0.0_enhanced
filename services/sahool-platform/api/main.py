@@ -2127,7 +2127,7 @@ def _build_walk_plan(req: WalkPlanRequest):
 # توليد مفتاح مشاركة (نموذج "المهندس الزراعي الموثوق" من FieldView).
 # التوليد والـhashing pure؛ الحفظ/التحقّق في DB يحتاج PostgreSQL pool
 # (يبقى غير موصَّل بصدق — SharingKeyService.create_key/validate_key).
-# الـendpoint POST /api/v1/sharing/generate-key مُستخرَج إلى routers/sharing.py.
+# المسار القديم POST /api/v1/sharing/generate-key أُلغي؛ البديل المحفوظ POST /api/v1/sharing/keys في routers/sharing.py.
 
 
 # ─── ١٤. الوحدات المعتمدة على PostgreSQL (سدّ الفجوة ١) ──────────
