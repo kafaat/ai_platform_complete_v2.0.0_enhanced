@@ -667,26 +667,6 @@
       "temporary": true
     },
     {
-      "endpoint": "/api/v1/sharing/keys/{key_id}/revoke",
-      "audience": "manager",
-      "methods": [
-        "post@services/sahool-platform/api/routers/sharing.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "PR #1542 staging-only: persisted sharing-key revocation API is delivered, but no verified manager UI consumer exists yet. This is an explicit temporary UI gap, not evidence of completed frontend integration. Replace this waiver with a verified core UI contract before production promotion.",
-      "priority": "high",
-      "ui_effort": "panel",
-      "ui_surface_hint": "sharing-key management UI (not yet verified)",
-      "criticality": "security",
-      "importance": 85,
-      "importance_tier": "P1-عالٍ",
-      "intended_consumer": "human",
-      "owner": "sahool-platform",
-      "tracking": "PR-1542-SHARING-REVOKE-UI",
-      "expiry": "2026-11-27",
-      "temporary": true
-    },
-    {
       "endpoint": "/api/v1/weather/alerts/notify",
       "audience": "farmer",
       "methods": [
