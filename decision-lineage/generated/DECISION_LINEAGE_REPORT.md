@@ -23,7 +23,7 @@
 | 6 | `authorization` | `sahool-platform` | 128 |
 | 7 | `request` | `decision-service` | 29 |
 | 8 | `receipt` | `decision-service` | 33 |
-| 9 | `outcome` | `sahool-platform` | 50 |
+| 9 | `outcome` | `sahool-platform` | 51 |
 | 10 | `learning` | `sahool-platform` | 292 |
 
 ## Remaining static gaps
