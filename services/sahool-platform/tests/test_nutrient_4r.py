@@ -231,3 +231,78 @@ def test_recommendation_default_warnings_is_empty_list():
         placement_ar="p",
     )
     assert rec.warnings_ar == []
+
+
+def _approved_p(value, *, unit="mg/kg", method="olsen"):
+    return {
+        "analyte": "phosphorus_mg_kg",
+        "result_id": "r-1",
+        "sample_id": "s-1",
+        "sampled_on": "2026-11-01",
+        "zone_id": "north",
+        "value_json": value,
+        "method_code": method,
+        "unit": unit,
+    }
+
+
+@pytest.mark.parametrize("value, status", [(0, "advisory"), ("5", "advisory"), (15, "ok")])
+def test_approved_olsen_changes_advice_with_sample_level_provenance(value, status):
+    from api.nutrient_4r import approved_sample_4r_plan
+
+    plan = approved_sample_4r_plan("f-1", [_approved_p(value)])
+    assert (plan["field_id"], plan["sample_id"], plan["zone_id"]) == (
+        "f-1",
+        "s-1",
+        "north",
+    )
+    assert plan["scope"] == "sample"
+    assert plan["evidence_ids"] == {"p_ppm": "r-1"}
+    assert {r["nutrient"]: r["status"] for r in plan["plan"]}["phosphorus"] == status
+
+
+@pytest.mark.parametrize(
+    "rows",
+    [
+        [],
+        [_approved_p(5, method=None)],
+        [_approved_p(5, method="total_p")],
+        [_approved_p(5, unit="%")],
+        [_approved_p(True)],
+        [_approved_p(-2)],
+        [_approved_p("NaN")],
+        [_approved_p(5) | {"result_id": None}],
+    ],
+)
+def test_missing_or_incomparable_evidence_does_not_issue_plan(rows):
+    from api.nutrient_4r import approved_sample_4r_plan
+
+    plan = approved_sample_4r_plan("f-1", rows)
+    assert (plan["status"], plan["plan"], plan["evidence_ids"]) == (
+        "unavailable",
+        [],
+        {},
+    )
+
+
+def test_field_and_manual_http_contracts(monkeypatch):
+    from api import main
+    from api.main import get_current_user
+    from api.routers import nutrients
+    from core.canonical_schemas import UserRole, UserSchema
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    tenant = "00000000-0000-0000-0000-000000000001"
+    user = UserSchema(user_id="u", tenant_id=tenant, role=UserRole.MANAGER, name_ar="مدير")
+    monkeypatch.setattr(main, "_DB_POOL", None)
+    app = FastAPI()
+    app.include_router(nutrients.router)
+    app.dependency_overrides[get_current_user] = lambda: user
+    client = TestClient(app)
+    url = "/api/v1/nutrients/4r-plan"
+    assert client.post(url).status_code == 422
+    manual = client.post(url, json={"p_ppm": 5})
+    assert manual.status_code == 200 and set(manual.json()) == {"plan"}
+    assert client.post(url, params={"field_id": "f"}, json={"p_ppm": 5}).status_code == 422
+    assert client.post(url, params={"field_id": "f"}).status_code == 503
