@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e0dc33fe752f427f5b8624b9180a60a5b54d88abff6959da4a499a2ec1f79da5"
+          "content": "c0cf2da82554b49c599d808e0ee4dff4c4d23326475b65541c5582afed0980fa"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17305,7 +17305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "026a6f99e3833b3d63ccf1220bd971f1fb30540c10a4d3b9c611c1bf5a49b1b5"
+          "content": "3f3cd85420fa97b145b5e17de86cc991eefbfc73709bd95f5d02a182a27e5b31"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_manual_ledger_bridge.py",
@@ -17445,7 +17445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "06e02b8c26bfd652b9a033335b30c6c3eaa1b368103887f5f3c47bb7f463ca2a"
+          "content": "dced8dfecf9a17030fbe34042e98d2fdbee0f8febe9d68f120ef1d0954ab2077"
         }
       ],
       "name": "services/sahool-platform/api/lab_store.py",
@@ -17565,7 +17565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e8fcf5a22f44f4838019a2a1d311109c26c06e35347c31ea929aa6ec32ee4234"
+          "content": "f5e800fe128b14936879028d12c1a38629f522afe87d6de9d32fb292b532eea0"
         }
       ],
       "name": "services/sahool-platform/api/nutrient_4r.py",
@@ -18945,7 +18945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c09778f4c0938c615b48b919049581655d56c23e35ae1b7affb6601083110fa"
+          "content": "6128b58b793de9b5fff6ebb1cdebbcddd5e39bb10cc509db458c9776b06af9db"
         }
       ],
       "name": "services/sahool-platform/api/routers/nutrients.py",
@@ -19335,7 +19335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "023a5678cf6bb423e1a1858511e13c811c840798dceda92b1e19cba2fe680760"
+          "content": "3464f7c40a49c8b0250f7ffbf6c5383cc68b2877db350993a919840a306ab4c6"
         }
       ],
       "name": "services/sahool-platform/api/routers/sharing.py",
@@ -26555,7 +26555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "78156db01bd379a5b081468a91cd56c60f320d6960876c0783658ba1baee055c"
+          "content": "6ec87db6846b6795c982048d11e15b4a1166ade71ad46db4897afd4663f17275"
         }
       ],
       "name": "services/sahool-platform/tests/test_nutrient_4r.py",
@@ -27649,6 +27649,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_sensor_intake.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "19dcfa2a45c45a42c8baba06122517471eaf85c521a32247e5e00e48c85793c2"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_sharing_revoke_contract.py",
       "type": "file"
     },
     {

@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5427,
+    "files_scanned": 5428,
     "files_by_kind": {
       "backend": 1211,
       "database": 280,
       "governance": 64,
       "mobile": 55,
       "other": 1519,
-      "tests": 1840,
+      "tests": 1841,
       "web": 458
     },
     "unmapped_artifacts": 2202,
@@ -24047,6 +24047,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/routers/sharing.py",
+          "score": 9,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
+          ]
+        },
+        {
           "path": "services/sahool-platform/core/db_role_guard.py",
           "score": 9,
           "signals": [
@@ -24138,6 +24146,18 @@
         },
         {
           "value": "/api/v1/fields/{field_id}/boundary/score @ services/sahool-platform/api/routers/boundaries.py:78",
+          "score": 9
+        },
+        {
+          "value": "/api/v1/sharing/keys @ services/sahool-platform/api/routers/sharing.py:31",
+          "score": 9
+        },
+        {
+          "value": "/api/v1/sharing/keys @ services/sahool-platform/api/routers/sharing.py:64",
+          "score": 9
+        },
+        {
+          "value": "/api/v1/sharing/keys/{key_id}/revoke @ services/sahool-platform/api/routers/sharing.py:76",
           "score": 9
         },
         {
@@ -26130,8 +26150,8 @@
         "database": 776
       },
       "evidence_counts": {
-        "backend": 13,
-        "routes": 30,
+        "backend": 14,
+        "routes": 33,
         "database": 100,
         "events": 48,
         "web": 0,
@@ -39962,10 +39982,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/routers/sharing.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/sahool-platform/api/routers/sync.py",
       "kind": "backend"
     },
@@ -41791,6 +41807,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_sensor_intake.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_sharing_revoke_contract.py",
       "kind": "tests"
     },
     {
