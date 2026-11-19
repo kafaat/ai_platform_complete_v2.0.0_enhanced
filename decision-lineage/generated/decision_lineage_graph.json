@@ -1937,7 +1937,7 @@
       "kind": "lineage_stage",
       "stage": "outcome",
       "order": 9,
-      "evidence_count": 50,
+      "evidence_count": 51,
       "owners": [
         "database",
         "decision-service",
@@ -1980,6 +1980,7 @@
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/core/outcome_reconciler.py",
+        "services/sahool-platform/core/pest_escalation_flow.py",
         "services/sahool-platform/tests/test_decision_dispatch_endpoint.py",
         "services/sahool-platform/tests/test_decision_record_list.py",
         "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",
@@ -2752,7 +2753,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
       "source_evidence_count": 33,
-      "target_evidence_count": 50,
+      "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2790,7 +2791,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 50,
+      "source_evidence_count": 51,
       "target_evidence_count": 289,
       "static_supported": true,
       "runtime_verified": false
@@ -2801,5 +2802,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "2ba92b2bdd53111ec5388668343d5944889360b4f323dd2996827f03bf282933"
+  "content_sha256": "88187d682e9adb92d684947ce05080a8fdb39b48287c5c17db6eae1f9ff5dc57"
 }
