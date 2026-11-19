@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7262163bd61979a6ff84054daedde6556f203018e3976a98c643cdccdc3a1d28"
+          "content": "e0dc33fe752f427f5b8624b9180a60a5b54d88abff6959da4a499a2ec1f79da5"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -15675,7 +15675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c36dee64e10e7a44abe8ad58c1b428c96c6cb18774e67a6664a93080472462cf"
+          "content": "63ae66ace9533a912301b41f310fe734d95f33154f1a24f0022b3fb44354621a"
         }
       ],
       "name": "services/raster-tiler-service/requirements.txt",
