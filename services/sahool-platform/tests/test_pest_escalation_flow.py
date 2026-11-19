@@ -292,3 +292,11 @@ def test_recommend_confirmed_below_lowest_band_falls_back_honestly():
         "recommendation_ar": "لا تصعيد — الشدّة دون عتبة التدخّل",
         "action_type": "none",
     }
+
+
+def test_reserved_legacy_reference_cannot_confirm_new_execution():
+    receipt = {"executed": True, "execution_ref": "exec-urgent_spray"}
+    steps = _steps_by_id(execute_fn=lambda ctx: receipt)
+    result = steps["execute"].fn({"approval_status": "approved", "action_type": "urgent_spray"})
+    assert result == {"executed": False, "execution_ref": None, "reason": "execution_not_confirmed"}
+    assert steps["follow_up"].fn(receipt) == {"follow_up_scheduled": False}
