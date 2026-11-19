@@ -29,6 +29,7 @@ import io
 import json
 import os
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -45,7 +46,7 @@ _BASE = {
     "workflow": "CI",
     "workflow_run_id": "1",
     "commit": "a" * 39 + "b",
-    "timestamp_utc": "2026-09-02T00:00:00+00:00",
+    "timestamp_utc": datetime.now(timezone.utc).isoformat(),
 }
 #: كلُّ الحقول الدنيا لكلّ الحواجز — قيمٌ ذاتُ مضمون، لا مفاتيحُ حاضرة.
 _FIELDS = {
