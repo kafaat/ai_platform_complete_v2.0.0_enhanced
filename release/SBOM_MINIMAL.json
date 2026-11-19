@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c0cf2da82554b49c599d808e0ee4dff4c4d23326475b65541c5582afed0980fa"
+          "content": "4cef150607b46aeb4df0eda75d4cc1c791edd5d297b8efa19c703878b7f62895"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6575,7 +6575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6ff9a38920390dc74306c5bac8d34eeac6bfa2300a4892ffc85baf485d35ecf8"
+          "content": "a29168ce5a749e3ea593f800e03bc7e4f9dfb26bbd12010a10c475519bc22880"
         }
       ],
       "name": "frontend/src/services/api.ts",
