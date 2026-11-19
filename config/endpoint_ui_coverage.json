@@ -737,16 +737,6 @@
       "evidence": "/api/v1/calibration"
     },
     {
-      "endpoint": "/api/v1/calibration/feedback",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration/feedback"
-    },
-    {
-      "endpoint": "/api/v1/calibration/overrides/all",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration/overrides/all"
-    },
-    {
       "endpoint": "/api/v1/calibration/{region}",
       "audience": "agronomist",
       "evidence": "/api/v1/calibration"
@@ -795,6 +785,16 @@
       "endpoint": "/api/v1/calibration/{region}/resolved",
       "audience": "agronomist",
       "evidence": "/api/v1/calibration"
+    },
+    {
+      "endpoint": "/api/v1/calibration/feedback",
+      "audience": "agronomist",
+      "evidence": "/api/v1/calibration/feedback"
+    },
+    {
+      "endpoint": "/api/v1/calibration/overrides/all",
+      "audience": "agronomist",
+      "evidence": "/api/v1/calibration/overrides/all"
     },
     {
       "endpoint": "/api/v1/cameras/snapshot-evidence",
@@ -942,16 +942,21 @@
       "evidence": "/api/v1/crop-twin/decision"
     },
     {
-      "endpoint": "/api/v1/crop-twin/decision/profit-aware",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crop-twin/decision/profit-aware"
-    },
-    {
       "endpoint": "/api/v1/crop-twin/decision-candidate",
       "audience": "agronomist",
       "evidence": "/api/v1/decisions/review-queue",
       "downstream_surface": "/api/v1/decisions/review-queue",
       "note": "WX-10.6 producer boundary: emits a pending_approval crop_decision_candidate owned by decision-service. Its UI is the downstream WX-10.8 Approvals Console reviewer surface (review-queue + review), not a self-referential screen — a real downstream-review E2E (test_wx10_6_crop_candidate_downstream_e2e.py) proves the candidate is consumed there. Replaced the temporary 'pending reviewer UI' waiver."
+    },
+    {
+      "endpoint": "/api/v1/crop-twin/decision/profit-aware",
+      "audience": "agronomist",
+      "evidence": "/api/v1/crop-twin/decision/profit-aware"
+    },
+    {
+      "endpoint": "/api/v1/crops/{crop_id}/operations-calendar",
+      "audience": "agronomist",
+      "evidence": "/operations-calendar"
     },
     {
       "endpoint": "/api/v1/crops/compare-drought-resilience",
@@ -964,11 +969,6 @@
       "evidence": "/api/v1/crops/drought-resilience"
     },
     {
-      "endpoint": "/api/v1/crops/{crop_id}/operations-calendar",
-      "audience": "agronomist",
-      "evidence": "/operations-calendar"
-    },
-    {
       "endpoint": "/api/v1/cultural-calendar",
       "audience": "farmer",
       "evidence": "/api/v1/cultural-calendar"
@@ -977,6 +977,21 @@
       "endpoint": "/api/v1/data-readiness",
       "audience": "manager",
       "evidence": "/api/v1/data-readiness"
+    },
+    {
+      "endpoint": "/api/v1/decision/{decision_id}/explain",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision"
+    },
+    {
+      "endpoint": "/api/v1/decision/{decision_id}/lineage",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision"
+    },
+    {
+      "endpoint": "/api/v1/decision/{id}/explain",
+      "audience": "agronomist",
+      "evidence": "/explain"
     },
     {
       "endpoint": "/api/v1/decision/dispatch/decisions",
@@ -1054,26 +1069,6 @@
       "evidence": "/api/v1/decision/unified"
     },
     {
-      "endpoint": "/api/v1/decision/{decision_id}/explain",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision"
-    },
-    {
-      "endpoint": "/api/v1/decision/{decision_id}/lineage",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision"
-    },
-    {
-      "endpoint": "/api/v1/decision/{id}/explain",
-      "audience": "agronomist",
-      "evidence": "/explain"
-    },
-    {
-      "endpoint": "/api/v1/decisions/review-queue",
-      "audience": "manager",
-      "evidence": "/api/v1/decisions/review-queue"
-    },
-    {
       "endpoint": "/api/v1/decisions/{decision_id}/agronomic-evidence",
       "audience": "manager",
       "evidence": "/agronomic-evidence"
@@ -1084,7 +1079,17 @@
       "evidence": "/api/v1/decisions/"
     },
     {
+      "endpoint": "/api/v1/decisions/review-queue",
+      "audience": "manager",
+      "evidence": "/api/v1/decisions/review-queue"
+    },
+    {
       "endpoint": "/api/v1/devices",
+      "audience": "manager",
+      "evidence": "/api/v1/devices"
+    },
+    {
+      "endpoint": "/api/v1/devices/{device_id}/telemetry",
       "audience": "manager",
       "evidence": "/api/v1/devices"
     },
@@ -1092,11 +1097,6 @@
       "endpoint": "/api/v1/devices/twin",
       "audience": "manager",
       "evidence": "/api/v1/devices/twin"
-    },
-    {
-      "endpoint": "/api/v1/devices/{device_id}/telemetry",
-      "audience": "manager",
-      "evidence": "/api/v1/devices"
     },
     {
       "endpoint": "/api/v1/diagnose",
@@ -1144,14 +1144,14 @@
       "evidence": "/api/v1/drawing-features"
     },
     {
-      "endpoint": "/api/v1/drawing-features/validate",
-      "audience": "farmer",
-      "evidence": "/api/v1/drawing-features/validate"
-    },
-    {
       "endpoint": "/api/v1/drawing-features/{feature_id}",
       "audience": "farmer",
       "evidence": "/api/v1/drawing-features"
+    },
+    {
+      "endpoint": "/api/v1/drawing-features/validate",
+      "audience": "farmer",
+      "evidence": "/api/v1/drawing-features/validate"
     },
     {
       "endpoint": "/api/v1/economics/break-even",
@@ -1349,49 +1349,19 @@
       "evidence": "/api/v1/field-portfolio/optimize"
     },
     {
-      "endpoint": "/api/v1/field/operational-state",
-      "audience": "farmer",
-      "evidence": "/api/v1/field/operational-state"
-    },
-    {
       "endpoint": "/api/v1/field/{field_id}/lineage",
       "audience": "farmer",
       "evidence": "/api/v1/field/{field_id}/lineage"
     },
     {
+      "endpoint": "/api/v1/field/operational-state",
+      "audience": "farmer",
+      "evidence": "/api/v1/field/operational-state"
+    },
+    {
       "endpoint": "/api/v1/fields",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/boundary-graph/rebuild",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields/boundary-graph/rebuild"
-    },
-    {
-      "endpoint": "/api/v1/fields/boundary-graph/rebuild (POST)",
-      "audience": "admin",
-      "evidence": "/boundary-graph/rebuild"
-    },
-    {
-      "endpoint": "/api/v1/fields/import",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields/import"
-    },
-    {
-      "endpoint": "/api/v1/fields/merge",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields/merge"
-    },
-    {
-      "endpoint": "/api/v1/fields/split",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields/split"
-    },
-    {
-      "endpoint": "/api/v1/fields/validate-geometry",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields/validate-geometry"
     },
     {
       "endpoint": "/api/v1/fields/{field_id}",
@@ -1504,12 +1474,12 @@
       "evidence": "/api/v1/fields"
     },
     {
-      "endpoint": "/api/v1/fields/{field_id}/imagery/refresh",
+      "endpoint": "/api/v1/fields/{field_id}/imagery/process-date",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
     },
     {
-      "endpoint": "/api/v1/fields/{field_id}/imagery/process-date",
+      "endpoint": "/api/v1/fields/{field_id}/imagery/refresh",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
     },
@@ -1554,12 +1524,12 @@
       "evidence": "/api/v1/fields"
     },
     {
-      "endpoint": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
+      "endpoint": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
     },
     {
-      "endpoint": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export",
+      "endpoint": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
     },
@@ -1829,6 +1799,36 @@
       "evidence": "/water-efficiency"
     },
     {
+      "endpoint": "/api/v1/fields/boundary-graph/rebuild",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields/boundary-graph/rebuild"
+    },
+    {
+      "endpoint": "/api/v1/fields/boundary-graph/rebuild (POST)",
+      "audience": "admin",
+      "evidence": "/boundary-graph/rebuild"
+    },
+    {
+      "endpoint": "/api/v1/fields/import",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields/import"
+    },
+    {
+      "endpoint": "/api/v1/fields/merge",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields/merge"
+    },
+    {
+      "endpoint": "/api/v1/fields/split",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields/split"
+    },
+    {
+      "endpoint": "/api/v1/fields/validate-geometry",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields/validate-geometry"
+    },
+    {
       "endpoint": "/api/v1/fodder-alternatives/list",
       "audience": "farmer",
       "evidence": "/api/v1/fodder-alternatives/list"
@@ -2019,14 +2019,14 @@
       "evidence": "/api/v1/irrigation-method"
     },
     {
-      "endpoint": "/api/v1/irrigation-method/gross",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation-method/gross"
-    },
-    {
       "endpoint": "/api/v1/irrigation-method/{method}",
       "audience": "farmer",
       "evidence": "/api/v1/irrigation-method"
+    },
+    {
+      "endpoint": "/api/v1/irrigation-method/gross",
+      "audience": "farmer",
+      "evidence": "/api/v1/irrigation-method/gross"
     },
     {
       "endpoint": "/api/v1/irrigation-plan",
@@ -2114,11 +2114,6 @@
       "evidence": "/api/v1/learning/summary"
     },
     {
-      "endpoint": "/api/v1/lineage/link",
-      "audience": "agronomist",
-      "evidence": "/api/v1/lineage/link"
-    },
-    {
       "endpoint": "/api/v1/lineage/{entity_type}/{entity_id}",
       "audience": "agronomist",
       "evidence": "/api/v1/lineage"
@@ -2127,6 +2122,11 @@
       "endpoint": "/api/v1/lineage/{lineage_id}",
       "audience": "agronomist",
       "evidence": "/api/v1/lineage"
+    },
+    {
+      "endpoint": "/api/v1/lineage/link",
+      "audience": "agronomist",
+      "evidence": "/api/v1/lineage/link"
     },
     {
       "endpoint": "/api/v1/market/crop-classification-readiness",
@@ -2324,6 +2324,11 @@
       "evidence": "/api/v1/recommendations"
     },
     {
+      "endpoint": "/api/v1/recommendations/{rec_id}",
+      "audience": "farmer",
+      "evidence": "/api/v1/recommendations"
+    },
+    {
       "endpoint": "/api/v1/recommendations/candidates",
       "audience": "farmer",
       "evidence": "/api/v1/recommendations/candidates"
@@ -2352,11 +2357,6 @@
       "endpoint": "/api/v1/recommendations/outcomes",
       "audience": "farmer",
       "evidence": "/api/v1/recommendations/outcomes"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/{rec_id}",
-      "audience": "farmer",
-      "evidence": "/api/v1/recommendations"
     },
     {
       "endpoint": "/api/v1/regional-calendar",
@@ -2542,6 +2542,11 @@
       "endpoint": "/api/v1/sharing/keys",
       "audience": "manager",
       "evidence": "/api/v1/sharing/keys"
+    },
+    {
+      "endpoint": "/api/v1/sharing/keys/{key_id}/revoke",
+      "audience": "manager",
+      "evidence": "/api/v1/sharing/keys/"
     },
     {
       "endpoint": "/api/v1/simulate/what-if",
@@ -2774,14 +2779,14 @@
       "evidence": "/auth/invitations"
     },
     {
-      "endpoint": "/v1/auth/invitations/accept",
-      "audience": "farmer",
-      "evidence": "/auth/invitations/accept"
-    },
-    {
       "endpoint": "/v1/auth/invitations/{invitation_id}",
       "audience": "farmer",
       "evidence": "/auth/invitations"
+    },
+    {
+      "endpoint": "/v1/auth/invitations/accept",
+      "audience": "farmer",
+      "evidence": "/auth/invitations/accept"
     },
     {
       "endpoint": "/v1/auth/login",
