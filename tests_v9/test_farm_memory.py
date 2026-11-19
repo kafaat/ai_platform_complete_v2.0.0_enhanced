@@ -16,6 +16,7 @@ Skips gracefully for pyarrow/qdrant_client if not installed.
 from __future__ import annotations
 
 import json
+import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -399,14 +400,9 @@ def test_export_to_parquet_skips_if_no_pyarrow(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
-def test_export_to_parquet_arabic_error_when_missing(tmp_path: Path) -> None:
-    """If pyarrow is not installed, an Arabic OptionalDependencyError is raised."""
-    try:
-        import pyarrow  # noqa: F401
-
-        pytest.skip("pyarrow is installed — cannot test missing-dep error")
-    except ImportError:
-        pass
+def test_export_to_parquet_arabic_error_when_missing(tmp_path: Path, monkeypatch) -> None:
+    """Exercise the actual import error even on workers that also test Parquet export."""
+    monkeypatch.setitem(sys.modules, "pyarrow", None)
 
     from shared.memory.export_engine import export_to_parquet
 

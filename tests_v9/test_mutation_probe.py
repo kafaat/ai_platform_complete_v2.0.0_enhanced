@@ -58,12 +58,15 @@ def test_mutations_actually_differ():
     assert {"cmp", "bin", "bool", "const"} <= kinds
 
 
-def test_run_restores_original(tmp_path):
+def test_run_restores_original(tmp_path, monkeypatch):
     """run يُعيد المصدر الأصليّ دائماً (لا يترك الملفّ مُطفَّراً)."""
     m = _load()
     f = tmp_path / "mod.py"
     f.write_text("def g():\n    return 1 > 0\n", encoding="utf-8")
     before = f.read_text(encoding="utf-8")
-    # أمر اختبار وهميّ ينجح دائماً ⇒ كلّ الطفرات «تنجو» (لا يهمّنا هنا)، المهمّ الاستعادة
-    m.run(str(f), ["--collect-only", "-q"])
+    test_file = tmp_path / "test_example.py"
+    test_file.write_text("from mod import g\n\ndef test_g():\n    assert g()\n", encoding="utf-8")
+    # The inner pytest measures the mutated fixture. Its reports belong to this probe only.
+    monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
+    assert m.run(str(f), [str(test_file), "-p", "no:cacheprovider"]) == 1
     assert f.read_text(encoding="utf-8") == before, "لم يُستعَد المصدر الأصليّ"

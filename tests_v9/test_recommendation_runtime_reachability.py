@@ -108,11 +108,13 @@ def test_no_code_inside_the_platform_image_imports_ai_agronomist() -> None:
     )
 
 
-def test_the_measured_zero_is_still_zero_while_the_gap_is_open() -> None:
-    """يوثّق الرقمَ الذي بُني عليه القسم — ومشروطٌ بالحالة كي لا يحجب شريحةَ التوصيل نفسَها."""
-    if _gap_status("AI-RUNTIME-WIRING-01") != "open":
-        pytest.skip("الفجوة لم تعد `open` — الاتّجاهان أعلاه يحرسان العدد بعد قلبِ الحالة")
-    assert _production_consumers() == [], _production_consumers()
+def test_platform_recommendation_consumer_matches_gap_status() -> None:
+    """A compatibility import in another service cannot stand in for the served router."""
+    consumers = _production_consumers()
+    if _gap_status("AI-RUNTIME-WIRING-01") == "open":
+        assert consumers == []
+    else:
+        assert Path("services/sahool-platform/api/routers/recommendations.py") in consumers
 
 
 # ── شواهدُ القارئَين أنفسِهما (ملاحظاتُ مراجعة #1018) ────────────────────────────

@@ -15,7 +15,10 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -58,16 +61,35 @@ def test_the_measured_baseline_passes():
     assert MOD.violations(_at_baseline()) == []
 
 
-def test_the_repository_itself_sits_at_its_baseline():
+def test_the_repository_itself_sits_at_its_baseline(monkeypatch):
     """**والأساس يُقاس على الشجرة الحقيقيّة لا على معطياتٍ مُركَّبة وحدها.**
 
     حارسٌ يعمل على نصوصٍ مُصطنَعة فقط يبقى أخضر بينما الواجهة انزلقت — وهو بعينه
-    «أخضرُ لأنّه لا ينظر إلى ما وُجِد له». ويُتخطّى بصدق حين تغيب `node_modules`،
-    لأنّ «لم يُقَس» يُقال ولا يُقرأ نجاحاً.
+    «أخضرُ لأنّه لا ينظر إلى ما وُجِد له». يُشغَّل ESLint المثبّت محلياً أو من مجلّد أدوات
+    مجهّز بملفّ القفل. غياب كليهما يجعل القياس متخطّى.
     """
-    if not (ROOT / "frontend" / "node_modules" / ".bin" / "eslint").exists():
-        pytest.skip("eslint غير مثبَّت — القياس الحيّ غير متاح، ولا يُدَّعى أنّه مرّ")
-    assert MOD.main([]) == 0
+    frontend = ROOT / "frontend"
+    if (frontend / "node_modules" / ".bin" / "eslint").is_file():
+        assert MOD.main([]) == 0
+        return
+
+    toolchain_dir = os.getenv("SAHOOL_TEST_FRONTEND_TOOLCHAIN")
+    if not toolchain_dir:
+        pytest.skip("eslint غير مثبَّت ولم يُجهَّز مجلّد أدوات npm للاختبار")
+    # CI can provision npm ci once outside a clean snapshot. Node resolves the staged sources'
+    # imports from the parent toolchain. Always run the real guard on this checkout's frontend.
+    toolchain = Path(toolchain_dir).resolve()
+    assert not toolchain.is_relative_to(frontend), "prepare the toolchain outside the frontend"
+    for manifest in ("package.json", "package-lock.json"):
+        assert (toolchain / manifest).read_bytes() == (frontend / manifest).read_bytes(), manifest
+    assert (toolchain / "node_modules" / ".bin" / "eslint").is_file()
+
+    with tempfile.TemporaryDirectory(dir=toolchain) as workspace:
+        copy = Path(workspace) / "frontend"
+        shutil.copytree(frontend, copy, ignore=shutil.ignore_patterns("node_modules"))
+        monkeypatch.setattr(MOD, "FRONTEND", copy)
+        monkeypatch.setenv("npm_config_offline", "true")
+        assert MOD.main([]) == 0
 
 
 def test_one_more_warning_is_blocked():
