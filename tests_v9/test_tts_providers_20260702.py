@@ -19,6 +19,7 @@ tts-service:
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -193,7 +194,13 @@ def _bearer(main_mod) -> dict:
     import jwt
 
     token = jwt.encode(
-        {"sub": "tester", "iss": "sahool-auth", "aud": "sahool", "tenant_id": "t1"},
+        {
+            "sub": "tester",
+            "iss": "sahool-auth",
+            "aud": "sahool",
+            "tenant_id": "t1",
+            "exp": int(time.time()) + 300,
+        },
         main_mod.JWT_SECRET,
         algorithm=main_mod._JWT_ALG,
     )
