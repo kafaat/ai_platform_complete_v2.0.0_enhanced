@@ -4,7 +4,7 @@ irrigation water-analysis + pest-escalation (durable workflow + HIL).
 تقوية: الفجوة كانت «الوحدات معزولة — لا endpoint يستدعيها». هذه الاختبارات
 تضرب HTTP فعليّاً (TestClient) عبر التفويض، فتُثبِت أنّ الوصل حيّ لا ادّعاء:
 - irrigation: SAR/RSC يُحسبان ويُعادان عبر الـAPI.
-- pest: التدفّق يُعلَّق عند الموافقة (HIL) ثمّ يُستأنف فينفّذ — durable عبر طلبين.
+- pest: التدفّق يُعلَّق عند الموافقة ثمّ يُستأنف، ويبلّغ بصدق عن غياب منفّذ الرش.
 """
 
 from __future__ import annotations
@@ -99,7 +99,7 @@ def test_pest_escalation_durable_hil(client_and_token):
     assert b1["workflow"]["status"] == "suspended"
     assert b1["step_results"].get("execute") is None  # لم يُنفَّذ قبل الموافقة
 
-    # ② نداء ثانٍ بنفس workflow_id + موافقة الخبير ⇒ يُستأنف فينفّذ (durable)
+    # ② الموافقة تستأنف التدفّق؛ نقطة HTTP هذه لا توصل منفّذ رش.
     r2 = client.post(
         "/api/v1/pest-escalation/run",
         json={"workflow_id": wf, "approval_status": "approved"},
@@ -108,4 +108,57 @@ def test_pest_escalation_durable_hil(client_and_token):
     assert r2.status_code == 200, r2.text
     b2 = r2.json()
     assert b2["workflow"]["status"] == "completed"
-    assert b2["step_results"]["execute"]["executed"] is True  # نُفّذ بعد الموافقة فقط
+    assert b2["step_results"]["execute"] == {
+        "executed": False,
+        "execution_ref": None,
+        "reason": "executor_not_configured",
+    }
+    assert b2["step_results"]["follow_up"] == {"follow_up_scheduled": False}
+    assert b2["execution"] == {
+        "status": "not_executed",
+        "executed": False,
+        "execution_ref": None,
+        "reason": "executor_not_configured",
+    }
+
+
+@pytest.mark.integration
+def test_pest_escalation_ambiguous_executor_ack_requires_reconciliation(
+    client_and_token, monkeypatch
+):
+    from core import pest_escalation_flow
+
+    client, token = client_and_token
+    real_run = pest_escalation_flow.run_pest_escalation
+    calls = []
+
+    def executor_stub(context):
+        calls.append(context["action_type"])
+        return {}
+
+    def run_with_stub(*args, **kwargs):
+        return real_run(*args, execute_fn=executor_stub, **kwargs)
+
+    monkeypatch.setattr(pest_escalation_flow, "run_pest_escalation", run_with_stub)
+    workflow_id = f"pest-{uuid.uuid4()}"
+    payload = {"workflow_id": workflow_id, "pest_type": "صدأ", "severity": 0.85}
+    first = client.post("/api/v1/pest-escalation/run", json=payload, headers=_auth(token))
+    assert first.status_code == 200, first.text
+    assert first.json()["workflow"]["status"] == "suspended"
+    assert calls == []
+
+    result = client.post(
+        "/api/v1/pest-escalation/run",
+        json={"workflow_id": workflow_id, "approval_status": "approved"},
+        headers=_auth(token),
+    )
+    assert result.status_code == 200, result.text
+    body = result.json()
+    assert len(calls) == 1
+    assert body["execution"] == {
+        "status": "reconciliation_required",
+        "executed": None,
+        "execution_ref": None,
+        "reason": "execution_not_confirmed",
+    }
+    assert body["step_results"]["follow_up"] == {"follow_up_scheduled": False}

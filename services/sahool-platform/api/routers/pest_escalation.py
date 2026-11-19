@@ -38,13 +38,13 @@ async def pest_escalation_run(
     """يشغّل/يستأنف تدفّق تصعيد الآفة (durable + HIL).
 
     أوّل نداء (بـpest_type/severity): يصل لخطوة الموافقة ثمّ يُعلَّق (suspended).
-    نداء ثانٍ بنفس workflow_id + approval_status=approved: يُستأنف فينفّذ ثمّ يُتابع.
+    نداء ثانٍ بنفس workflow_id + approval_status=approved: يُستأنف ويعيد حالة التنفيذ والمتابعة.
     سيادة: tenant_id من التوكن (لا من الجسم). HIL: لا تنفيذ قبل موافقة الخبير."""
     import asyncio as _aio
 
     from core.chemical_lineage import ChemicalBoundary, audit_chemical_lineage
     from core.correlation import set_correlation
-    from core.pest_escalation_flow import run_pest_escalation
+    from core.pest_escalation_flow import run_pest_escalation, summarize_pest_execution
     from core.workflow_engine import workflow_trace
 
     set_correlation()  # خيط تتبّع موحّد لكلّ ما ينتج عن هذا الطلب
@@ -104,4 +104,5 @@ async def pest_escalation_run(
         "workflow": workflow_trace(state),
         "context": state.context,
         "step_results": state.step_results,
+        "execution": summarize_pest_execution(state),
     }
