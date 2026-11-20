@@ -54,8 +54,9 @@ async def certify(tenant, delivery):
                 query = "SELECT count(*) FROM decision_reservation_dispatch_inbox WHERE source_event_id=$1"
                 assert await reader.fetchval("SELECT current_user") == "irr_f01_decision"
                 for scope, expected in ((tenant, 1), (str(uuid4()), 0)):
-                    await reader.execute("SELECT set_config('app.current_tenant',$1,false)", scope)
-                    assert await reader.fetchval(query, delivery["source_event_id"]) == expected
+                    async with reader.transaction():
+                        await reader.execute("SELECT set_config('app.current_tenant',$1,true)", scope)
+                        assert await reader.fetchval(query, delivery["source_event_id"]) == expected
             finally:
                 await reader.close()
             return first["receipt_id"]
