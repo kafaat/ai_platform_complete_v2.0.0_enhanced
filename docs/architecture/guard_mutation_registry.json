@@ -80,9 +80,9 @@
         },
         {
           "expect": "test_the_sweep_still_runs_inside_the_job_the_ruleset_actually_requires",
-          "find": "      - name: guard-mutation guard (plant the defects)\n        run: python scripts/ci/guard_mutation_guard.py --run\n",
-          "replace": "      - name: guard-mutation guard (plant the defects)\n        run: echo skipped  # mutated: المكنسة تخرج من الوظيفة الحاجبة\n",
-          "why": "نقلُ المكنسة خارج *Unit Tests* بلا إضافةِ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset يجعلها إرشاديّةً **صامتاً**. و`branch_protection_contract_guard` يفرض حلَّ المحادثات وحده ولا يُعدّد الفحوصَ بالاسم، فلا شيءَ في الشجرة يمنع ذلك. وهو صنفُ «حارسٌ كفّ عن الحجب بلا أن يحمرّ» بعينه. والمَرسى يضمّ سطرَ اسمِ الخطوة لا سطرَ `run` وحده: بعد MUT-SHARD-JOB-01 صار `--run` يظهر مرّتين (المكنسة الكاملة وحزمة المصفوفة)، فالمَرسى القصير يزرع في موضعٍ غير محدَّد."
+          "find": "      - name: Plant this shard's defects\n        run: python scripts/ci/guard_mutation_guard.py --run --shard ${{ matrix.shard }}\n",
+          "replace": "      - name: Plant this shard's defects\n        run: echo skipped  # mutated: required shard stops planting\n",
+          "why": "نقلُ المكنسة خارج *Unit Tests* بلا إضافةِ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset يجعلها إرشاديّةً **صامتاً**. و`branch_protection_contract_guard` يفرض حلَّ المحادثات وحده ولا يُعدّد الفحوصَ بالاسم، فلا شيءَ في الشجرة يمنع ذلك. وهو صنفُ «حارسٌ كفّ عن الحجب بلا أن يحمرّ» بعينه. والمَرسى يضمّ سطرَ اسمِ الخطوة لا سطرَ `run` وحده: بعد MUT-SHARD-JOB-01 صار `--run` يظهر مرّتين (المكنسة الكاملة وحزمة المصفوفة)، فالمَرسى القصير يزرع في موضعٍ غير محدَّد. Follow-up #1521 (2026-11-20): all five literal shard contexts are required in the live ruleset and committed contract. The witness now mutates the actual matrix planting step after removal of the duplicate Unit Tests invocation."
         },
         {
           "expect": "test_hil_ci_requires_the_live_database_certificate",
@@ -4048,8 +4048,8 @@
         },
         {
           "expect": "test_a_passing_narrow_run_falls_back_to_the_full_file",
-          "find": "        return code, out\n    return _run_tests(test_file, root)",
-          "replace": "        return code, out\n    return code, out  # mutated: لا تراجُع",
+          "find": "        return code, out, recorded\n    return _run_tests(test_file, root)",
+          "replace": "        return code, out, recorded\n    return code, out, recorded  # mutated: لا تراجُع",
           "why": "إسقاط التراجع إلى الملفّ الكامل ⇒ مرورُ المتوقَّع وحده يُختَم unexpected_green/survived من مشهدٍ ناقص، وتصنيفا wrong_test/التشخيص يفقدان مصدرهما"
         },
         {
@@ -4093,6 +4093,18 @@
           "replace": "    for key in sorted(set()):",
           "why": "نزعُ فحص اليُتم يُعيد `retired` حقلاً يقبل أيّ مفتاح، فتتراكم فيه أسماءٌ لا تخصّ ثلاثيّةً كانت في الأساس قطّ — سجلٌّ يبدو نظيفاً وهو يحمل ما لا وجودَ له، وهو الصنفُ نفسُه المُغلَق للإقرارات في الاتّجاه الثالث. أصابت مراجعةٌ آليّة على #983",
           "test": "tests_v9/test_blocking_surface_freeze.py"
+        },
+        {
+          "expect": "test_an_unqualified_original_witness_cannot_count_as_a_mutation_kill",
+          "find": "    if _baseline_is_green(code, recorded, selector):",
+          "replace": "    if isinstance(recorded, dict) and recorded.get(\"collected\"):  # mutated: original need not pass",
+          "why": "#1521: a failing, skipped, XFAIL, XPASS, missing or uncollected original cannot qualify a mutation; all original witness cases must pass before planting."
+        },
+        {
+          "expect": "test_a_mutant_without_a_matching_failed_call_is_not_a_kill",
+          "find": "            elif not _mutation_is_kill(code, recorded, baseline_nodes):",
+          "replace": "            elif False:",
+          "why": "#1521: fixture setup/teardown errors or a changed parameter catalog cannot count as a kill; require a failed call from the exact green-original catalog."
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"

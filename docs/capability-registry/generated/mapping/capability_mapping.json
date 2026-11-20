@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5328,
+    "files_scanned": 5329,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1474,
+      "other": 1475,
       "tests": 1794,
       "web": 458
     },
@@ -16092,6 +16092,13 @@
           ]
         },
         {
+          "path": "docs/testing/PR1521_CI_LAB_FIXES_20261120.md",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/architecture/platform_shrink_ratchet.json",
           "score": 11,
           "signals": [
@@ -16113,7 +16120,7 @@
         "mobile": 0,
         "tests": 4,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 4
       },
       "coverage_dimensions": 5,
       "mapped": true

@@ -296,3 +296,111 @@ def test_compiler_importable_pure() -> None:
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     assert callable(mod.build)
+
+
+@pytest.fixture
+def catalog_cli(monkeypatch, tmp_path):
+    """Exercise CLI decisions without building or rewriting the repository catalog."""
+    spec = importlib.util.spec_from_file_location("platform_catalog_cli", COMPILER)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    monkeypatch.setattr(mod, "ROOT", tmp_path)
+    catalog = {
+        "governance": {"fixture": {"passed": True, "failures": []}},
+        "cross_service_duplicate_method_paths": [],
+        "ui_waiver_governance": [],
+        "counts": {"components": 0},
+        "fingerprint": "0" * 64,
+    }
+    rendered = {"platform_catalog.generated.json": json.dumps(catalog)}
+    calls = []
+
+    def build():
+        calls.append("build")
+        return catalog
+
+    def render(_bundle):
+        calls.append("render")
+        return dict(rendered)
+
+    monkeypatch.setattr(mod, "build", build)
+    monkeypatch.setattr(mod, "render", render)
+    for rel in mod.OUTPUTS:
+        path = tmp_path / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"existing output: {rel}\n", encoding="utf-8")
+    return mod, rendered, calls
+
+
+@pytest.mark.parametrize(
+    ("arguments", "expected_exit"),
+    [
+        (["--help"], 0),
+        (["-h"], 0),
+        (["--chek"], 2),
+        (["catalog.json"], 2),
+        (["--check=false"], 2),
+        (["--chec"], 2),
+        (["--check", "--enforce-expiry", "--unknown"], 2),
+    ],
+)
+def test_catalog_cli_help_and_invalid_arguments_never_build_or_write(
+    catalog_cli, monkeypatch, capsys, arguments, expected_exit
+):
+    compiler, _rendered, calls = catalog_cli
+    before = {p: p.read_bytes() for p in compiler.ROOT.rglob("*") if p.is_file()}
+    monkeypatch.setattr(sys, "argv", [str(COMPILER), *arguments])
+    exit_code = None
+    try:
+        compiler.main()
+    except SystemExit as exc:
+        exit_code = exc.code
+    output = capsys.readouterr()
+    assert calls == [], f"argument handling invoked catalog work: {calls}"
+    assert {p: p.read_bytes() for p in compiler.ROOT.rglob("*") if p.is_file()} == before
+    assert exit_code == expected_exit
+    if expected_exit == 0:
+        assert "usage:" in output.out
+        assert "--check" in output.out and "--enforce-expiry" in output.out
+        assert output.err == ""
+    else:
+        assert "usage:" in output.err
+
+
+@pytest.mark.parametrize("existing", ["current", "stale", "missing"])
+def test_catalog_cli_check_is_read_only(catalog_cli, monkeypatch, existing):
+    compiler, rendered, _calls = catalog_cli
+    target = compiler.ROOT / "platform_catalog.generated.json"
+    if existing == "current":
+        target.write_text(rendered[target.name], encoding="utf-8")
+    elif existing == "missing":
+        target.unlink()
+    before = {p: p.read_bytes() for p in compiler.ROOT.rglob("*") if p.is_file()}
+    monkeypatch.setattr(sys, "argv", [str(COMPILER), "--check"])
+    assert compiler.main() == (0 if existing == "current" else 1)
+    assert {p: p.read_bytes() for p in compiler.ROOT.rglob("*") if p.is_file()} == before
+
+
+@pytest.mark.parametrize("arguments", [["--enforce-expiry"], ["--check", "--enforce-expiry"]])
+def test_catalog_cli_expiry_remains_blocking_before_writes(
+    catalog_cli, monkeypatch, capsys, arguments
+):
+    compiler, rendered, _calls = catalog_cli
+    catalog = json.loads(rendered["platform_catalog.generated.json"])
+    catalog["ui_waiver_governance"] = [
+        {"waiver_id": "expired-fixture", "endpoint": "GET /fixture", "expires_on": "2000-01-01"}
+    ]
+    rendered["platform_catalog.generated.json"] = json.dumps(catalog)
+    before = {p: p.read_bytes() for p in compiler.ROOT.rglob("*") if p.is_file()}
+    monkeypatch.setattr(sys, "argv", [str(COMPILER), *arguments])
+    assert compiler.main() == 1
+    assert "expired ui waiver: expired-fixture" in capsys.readouterr().out
+    assert {p: p.read_bytes() for p in compiler.ROOT.rglob("*") if p.is_file()} == before
+
+
+def test_catalog_cli_default_still_writes_outputs(catalog_cli, monkeypatch):
+    compiler, rendered, _calls = catalog_cli
+    monkeypatch.setattr(sys, "argv", [str(COMPILER)])
+    assert compiler.main() == 0
+    for rel, content in rendered.items():
+        assert (compiler.ROOT / rel).read_text(encoding="utf-8") == content

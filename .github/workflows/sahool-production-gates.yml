@@ -129,7 +129,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install gate dependencies
-        run: python3 -m pip install --upgrade pip pyyaml
+        run: python3 -m pip install --upgrade pip pyyaml packaging==26.3
       - name: Validate CI gate wiring
         run: python3 scripts/ci/validate_ci_gates.py --root .
       - name: Enforce immutable GitHub Actions policy

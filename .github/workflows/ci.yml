@@ -781,12 +781,8 @@ jobs:
     # ممّا يُشغَّل، فيُقرأ الهامشُ أوسعَ ممّا هو. فتُكتَب الأرقام بتاريخ قياسها.
     #
     # ٩٠ تُعيد الهامش إلى ~٣٤٪ فوق أبطأ قياس. **ولا تُقرأ رخصةً للنموّ بلا حدّ:**
-    # الحدّ البنيويّ نقلُ المكنسة إلى وظيفةٍ مستقلّة (المكتوب أدناه منذ كُتِب) —
-    # ويلزمه إضافةُ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset، وإلّا
-    # صارت المكنسةُ إرشاديّةً صامتاً؛ وذلك إعدادٌ خارج المستودع لا يُفرَض من هنا.
-    # **والقيدُ مقيس:** القائمةُ المطلوبة أربعةَ عشرَ اسماً حرفيّاً مُدوَّنةً في
-    # `tests_v9/test_ci_pipeline_settings.py` — و`Unit Tests` منها، ووظيفةٌ جديدة
-    # ليست فيها.
+    # The sweep now runs in the five required mutation-sweep checks below.
+    # Keep the existing ceiling until timings justify a separately measured change.
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -805,18 +801,7 @@ jobs:
       # فيبدو حيّاً محلّيّاً وهو ميت في البوّابة. الحارس يمنع وُلود خامد جديد؛ الأساس
       # المُجمَّد (١٥ ملفّاً بأسبابها المقيسة) يتقلّص ولا ينمو.
       - run: python scripts/ci/test_marker_coverage_guard.py --check
-      # الشطر المُنفَّذ من حارس الطفرات — موضعه هنا لا في *Lint & Format*: يزرع
-      # العطل في مصدر كلّ حارس مُواصَف ويُشغّل **pytest** ويؤكّد سقوط الاختبار
-      # المُسمّى، فيلزمه جناح اختبار مُثبَّت. (وُضِع أوّلاً في وظيفة الـlint حيث لا
-      # pytest، فأبلغ ١٨ إخفاقاً صحيحاً بسبب صحيح: انهيار المُشغِّل ليس دليلاً.)
-      # حين يكبر عدد المُواصَفين تُنقَل إلى وظيفة مستقلّة. **وقد كبر** — راجع
-      # MUT-SWEEP-TIMEOUT-01 في تعليق `timeout-minutes` أعلاه: هذه الخطوة وحدها هي
-      # ما رفع الوظيفة من ٤٦ إلى ٥٩ دقيقة. والنقلُ مؤجَّلٌ لسببٍ يُقال صراحةً لا
-      # لإهمال: يلزمه إضافةُ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset،
-      # وبدونها تصير المكنسةُ إرشاديّةً **صامتاً** — وهو صنفُ «حارسٌ كفّ عن الحجب بلا
-      # أن يحمرّ» الذي يطارده هذا المستودع كلّه. فلا يُنقَل قبل أن يُضبَط القفل.
-      - name: guard-mutation guard (plant the defects)
-        run: python scripts/ci/guard_mutation_guard.py --run
+      # Mutation planting runs in the five required matrix checks below.
       # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: حارسٌ يحسب صحيحاً ثمّ
       # يموت وهو يطبع نجاحه ⇒ rc=1 يُقرَأ حجباً وهو قد مرّ. أوّل إشعالٍ لكلّ حارسٍ تحت
       # `LC_ALL=C` أعطى ٣٥ انهياراً في الكتابة و٢٣ في القراءة — وكلّها خضراء في CI،
@@ -927,11 +912,9 @@ jobs:
           --cov-report=term --cov-report=xml
 
   # ── MUT-SWEEP-SHARDING-01: مكنسة الطفرات موزَّعةً على خمسة عمّال ──
-  # **والمكنسة ما تزال داخل *Unit Tests* عمداً في هذه المرحلة.** الازدواج ثمنُ
-  # تجنّب نافذة صمت: لو نُقِلت الآن وأسماءُ الحزم ليست في الفحوص المطلوبة بعد،
-  # صارت المكنسةُ إرشاديّةً — تحمرّ ولا تحجب. الحذف يقع في التزامٍ **واحد** مع
-  # إضافة الأسماء إلى `required_status_checks_contract.json`، بعد ضبط المالك
-  # للـRuleset. (MUT-SWEEP-TIMEOUT-01 · REQUIRED-CHECKS-DRIFT-…-01)
+  # All five contexts are now enforced by main-protection and declared in
+  # required_status_checks_contract.json (live verification 2026-11-20, #1521).
+  # Unit Tests no longer repeats the complete sweep; every shard still blocks.
   #
   # والأسماء **ثابتةٌ حرفيّاً لا مشتقّةٌ من المصفوفة**: الفحص المطلوب يُطابَق
   # بالاسم، واسمٌ يشتقّه `${{ matrix… }}` يُيتّمه أوّلُ تغييرٍ في شكل الاشتقاق —

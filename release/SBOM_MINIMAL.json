@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "55c759791e13cca1dc41db3c416b865922b8a3ef559b8ccbad67acfcd1265136"
+          "content": "cf43b105babb11a6f64f7c47c3d1c8bec8ac62d89ee600fbb62a89ecfcf1161d"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",

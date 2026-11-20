@@ -49,6 +49,7 @@ members). UI waivers get governed owner/expiry/tracking from policy defaults.
 
 from __future__ import annotations
 
+import argparse
 import ast
 import csv
 import hashlib
@@ -56,7 +57,6 @@ import io
 import json
 import re
 import runpy
-import sys
 from datetime import date
 from pathlib import Path
 
@@ -1583,8 +1583,16 @@ def _expiry_failures(catalog: dict) -> list[str]:
 
 
 def main() -> int:
-    check = "--check" in sys.argv
-    enforce_expiry = "--enforce-expiry" in sys.argv
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+    parser.add_argument(
+        "--check", action="store_true", help="Check generated outputs without writing files."
+    )
+    parser.add_argument(
+        "--enforce-expiry",
+        action="store_true",
+        help="Fail on expired decisions and waivers before checking or writing outputs.",
+    )
+    args = parser.parse_args()
     rendered = render(build())
 
     catalog = json.loads(rendered["platform_catalog.generated.json"])
@@ -1596,7 +1604,7 @@ def main() -> int:
         for failure in governance_failures:
             print(f"  ✗ {failure}")
         return 1
-    if enforce_expiry:
+    if args.enforce_expiry:
         expired = _expiry_failures(catalog)
         if expired:
             print("platform-catalog expiry FAIL:")
@@ -1604,7 +1612,7 @@ def main() -> int:
                 print(f"  ✗ {failure}")
             return 1
 
-    if check:
+    if args.check:
         drift = [
             rel
             for rel, content in rendered.items()

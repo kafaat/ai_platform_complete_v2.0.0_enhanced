@@ -277,22 +277,29 @@ def test_both_registry_sections_actually_feed_the_measure():
 
 
 def test_the_sweep_still_runs_inside_the_job_the_ruleset_actually_requires():
-    """نقلُها بلا ضبط القفل يجعلها إرشاديّةً صامتاً — **والقيدُ مقيسٌ لا مُفترَض.**
+    """Each required shard must execute its mutations without an advisory escape.
 
-    القائمةُ المطلوبة في حماية الفرع مُدوَّنةٌ في
-    ``test_check_names_survive_the_slice_and_unit_tests_is_a_singleton``: أربعةَ
-    عشرَ اسماً حرفيّاً، مقروءةً من سجلّ ``branch_protection_contract_guard`` —
-    و**``Unit Tests`` منها**. فوظيفةٌ جديدة باسمٍ جديد ليست فيها، ونقلُ المكنسة
-    إليها يُخرِجها من الحجب **بلا أن يحمرّ شيء**.
-
-    و``branch_protection_contract_guard`` نفسه لا يُعدّد الفحوصَ بالاسم (يفرض حلَّ
-    المحادثات وحده)، فلا شيءَ في الشجرة يمنع ذلك الخروج. فيبقى التأكيدُ هنا: ما دامت
-    المكنسةُ في *Unit Tests* فهي محكومةٌ بما يحكم اسماً **في القائمة فعلاً**.
+    The live main-protection ruleset and the committed contract both require all
+    five literal contexts (verified 2026-11-20 for #1521). Keep the causal witness
+    on the actual matrix invocation after removing the duplicate Unit Tests run.
     """
-    steps = _unit_tests_job().get("steps") or []
-    runs = [str(s.get("run") or "") for s in steps if isinstance(s, dict)]
-    assert any("guard_mutation_guard.py --run" in r for r in runs), (
-        "مكنسةُ الطفرات لم تعد خطوةً في *Unit Tests*. إن نُقِلت عمداً فتأكّد أنّ اسم "
-        "الوظيفة الجديدة أُضيف إلى الفحوص المطلوبة في الـRuleset، ثمّ حدّث هذا العقد — "
-        "وإلّا فقد كفّت عن الحجب بلا أن تحمرّ."
+    workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    job = workflow["jobs"]["mutation-sweep"]
+    contract = json.loads(
+        (ROOT / "docs/architecture/required_status_checks_contract.json").read_text(
+            encoding="utf-8"
+        )
     )
+    names = {entry["check_name"] for entry in job["strategy"]["matrix"]["include"]}
+    assert names == {f"Mutation Sweep {i}/5" for i in range(1, 6)}
+    assert names <= set(contract["required_contexts"])
+    assert job["name"] == "${{ matrix.check_name }}"
+    assert not job.get("continue-on-error")
+    steps = [
+        step
+        for step in job["steps"]
+        if "guard_mutation_guard.py --run --shard ${{ matrix.shard }}" in str(step.get("run", ""))
+    ]
+    assert len(steps) == 1, "Every required shard must plant its registered defects once"
+    assert not steps[0].get("continue-on-error")
+    assert "if" not in steps[0], "A conditional mutation step can silently skip a required shard"
