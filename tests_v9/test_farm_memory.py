@@ -385,9 +385,10 @@ def test_encrypted_tarball_wrong_password_fails_cleanly(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
-def test_export_to_parquet_skips_if_no_pyarrow(tmp_path: Path) -> None:
-    """Parquet export raises OptionalDependencyError when pyarrow absent."""
+def test_export_to_parquet_round_trip(tmp_path: Path) -> None:
+    """Read the exported conversation back with the optional Parquet runtime."""
     pytest.importorskip("pyarrow", reason="pyarrow not installed — skipping parquet test")
+    import pyarrow.parquet as pq
 
     from shared.memory.export_engine import export_to_parquet
 
@@ -395,8 +396,11 @@ def test_export_to_parquet_skips_if_no_pyarrow(tmp_path: Path) -> None:
     mem.add_conversation(_make_turn("farm-par1", query="parquet test query"))
     out = tmp_path / "export.parquet"
     manifest = export_to_parquet("farm-par1", out, mem)
-    assert out.exists()
-    assert manifest["row_count"] >= 1
+    rows = pq.read_table(out).to_pylist()
+    assert manifest["row_count"] == len(rows) == 1
+    assert rows[0]["farm_id"] == "farm-par1"
+    assert rows[0]["kind"] == "conversation"
+    assert json.loads(rows[0]["extra"])["user_query"] == "parquet test query"
 
 
 @pytest.mark.unit
