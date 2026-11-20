@@ -639,7 +639,9 @@ async def test_reservation_mqtt_replay_has_one_simulated_device_effect(live, tmp
 
     password = secrets.token_urlsafe(24)
     credentials = tmp_path / "broker.passwd"
-    credentials.write_text("lab:" + PasswordHash.recommended().hash(password) + "\n")
+    credentials.write_text(
+        "lab:" + PasswordHash.recommended().hash(password) + "\n", encoding="utf-8"
+    )
     broker = Broker(
         {
             "listeners": {"default": {"type": "tcp", "bind": "127.0.0.1:0"}},
@@ -684,9 +686,9 @@ async def test_reservation_mqtt_replay_has_one_simulated_device_effect(live, tmp
                 reason = signing.reference_apply(device, received, time_synced=True, now_ms=now_ms)
                 decisions.append(reason)
                 if reason == signing.ACCEPT:
-                    with effects.open("a") as stream:
+                    with effects.open("a", encoding="utf-8") as stream:
                         print(received["id"], file=stream)
         assert decisions == [signing.ACCEPT, signing.REJ_REPLAY]
-        assert effects.read_text().splitlines() == [reservation_id]
+        assert effects.read_text(encoding="utf-8").splitlines() == [reservation_id]
     finally:
         await broker.shutdown()
