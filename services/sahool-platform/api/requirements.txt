@@ -7,6 +7,7 @@ fastapi==0.136.3
 uvicorn[standard]==0.30.6
 pydantic==2.13.4
 PyJWT[crypto]==2.15.0  # Security: patched JWT algorithm and key validation; RSA provider explicit
+cryptography==50.0.1  # RSA provider for PyJWT pinned explicitly (same pin as main) so image rebuilds are reproducible
 python-multipart==0.0.31   # for form data؛ مثبّت ≥0.0.31: يُغلق DoS في تحليل multipart (CVE-2026-53538/53539/53540)
 
 # Open-Meteo integration

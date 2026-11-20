@@ -137,13 +137,15 @@ def summarize_pest_execution(state: WorkflowState) -> dict[str, Any]:
     status = "reconciliation_required" if uncertain else "executed" if proven else "not_executed"
     reason = step.get("reason") or step.get("blocked_by")
     if not isinstance(reason, str) or not reason.strip():
-        reason = (
-            "execution_reconciliation_required"
-            if uncertain
-            else None
-            if proven
-            else "execution_not_confirmed"
-        )
+        if uncertain:
+            reason = "execution_reconciliation_required"
+        elif proven:
+            reason = None
+        elif "execution_ref" in step:
+            reason = "execution_not_confirmed"
+        else:
+            # Only the approval/no-action exits omit the key: no executor was called.
+            reason = "execution_not_attempted"
     return {
         "status": status,
         "executed": None if uncertain else proven,
@@ -242,10 +244,12 @@ def build_pest_escalation_steps(
         if is_execution_proven(res):
             return {"executed": True, "execution_ref": _execution_ref(res["execution_ref"])}
         # An attempted side effect may be uncertain, but never count it as executed
-        # without a literal positive ACK and nonblank reference.
+        # without a literal positive ACK and nonblank reference. The worker's own
+        # reference is kept so reconciliation and Saga compensation can find it.
+        ref = _execution_ref(res.get("execution_ref")) if isinstance(res, Mapping) else None
         return {
             "executed": False,
-            "execution_ref": None,
+            "execution_ref": None if ref in _LEGACY_EXECUTION_REFS else ref,
             "reason": "execution_not_confirmed",
         }
 

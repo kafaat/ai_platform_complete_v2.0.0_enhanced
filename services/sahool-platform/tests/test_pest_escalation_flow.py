@@ -333,3 +333,54 @@ def test_real_execution_receipt_is_canonicalized_before_persistence():
         "executed": True,
         "execution_ref": "worker-receipt-42",
     }
+
+
+def test_unconfirmed_execution_keeps_worker_reference_for_reconciliation():
+    """A negative ACK is not proof of no effect: keep the operation id, never the claim."""
+    from core.pest_escalation_flow import summarize_pest_execution
+
+    cancelled = []
+    store = InMemoryWorkflowStore()
+    kwargs = {
+        "store": store,
+        "execute_fn": lambda ctx: {"executed": False, "execution_ref": " worker-operation-42 "},
+        "cancel_fn": lambda ctx: cancelled.append(ctx["execution_ref"]),
+    }
+    run_pest_escalation("pe_unconfirmed", initial_context={"severity": 0.85}, **kwargs)
+    state = run_pest_escalation(
+        "pe_unconfirmed", initial_context={"approval_status": "approved"}, **kwargs
+    )
+    assert state.step_results["execute"] == {
+        "executed": False,
+        "execution_ref": "worker-operation-42",
+        "reason": "execution_not_confirmed",
+    }
+    assert state.step_results["follow_up"] == {"follow_up_scheduled": False}
+    assert summarize_pest_execution(store.load("pe_unconfirmed")) == {
+        "status": "reconciliation_required",
+        "executed": None,
+        "execution_ref": "worker-operation-42",
+        "reason": "execution_not_confirmed",
+    }
+    steps = _steps_by_id(cancel_fn=kwargs["cancel_fn"])
+    steps["execute"].compensate(state.context)
+    assert cancelled == ["worker-operation-42"]
+
+
+def test_execution_never_attempted_is_not_reported_as_unconfirmed():
+    from core.pest_escalation_flow import summarize_pest_execution
+
+    calls = []
+    store = InMemoryWorkflowStore()
+    kwargs = {"store": store, "execute_fn": lambda ctx: calls.append(ctx) or {}}
+    run_pest_escalation("pe_rejected", initial_context={"severity": 0.85}, **kwargs)
+    state = run_pest_escalation(
+        "pe_rejected", initial_context={"approval_status": "rejected"}, **kwargs
+    )
+    assert calls == []
+    assert summarize_pest_execution(state) == {
+        "status": "not_executed",
+        "executed": False,
+        "execution_ref": None,
+        "reason": "execution_not_attempted",
+    }
