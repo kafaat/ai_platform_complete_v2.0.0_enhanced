@@ -32,8 +32,8 @@
       "raw": 3444
     },
     "test_dependency_files": 1997,
-    "test_dependency_edges": 5311,
-    "test_dependency_bounded_files": 1160,
+    "test_dependency_edges": 5312,
+    "test_dependency_bounded_files": 1159,
     "test_dependency_unresolved_relations": 509
   },
   "capabilities": [
@@ -86364,13 +86364,20 @@
     },
     {
       "test": "tests_v9/test_irr_f01_junit_gate.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "subprocess"
+      ],
       "edges": [
+        {
+          "source": "scripts/irr_f01/build_report.py",
+          "kind": "source_read",
+          "line": 48
+        },
         {
           "source": "scripts/irr_f01/required_cases.py",
           "kind": "import",
-          "line": 7
+          "line": 12
         }
       ],
       "unresolved": []
