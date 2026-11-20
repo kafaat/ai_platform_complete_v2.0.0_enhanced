@@ -72,7 +72,7 @@ def _sbom_declarations(component: dict[str, object]) -> list[dict[str, object]]:
 
 def test_sbom_preserves_pinned_extras_and_line_provenance(tmp_path: Path) -> None:
     raw = "python-jose[cryptography]==3.5.0  # backend selected explicitly"
-    (tmp_path / "requirements.txt").write_text(f"# dependencies\n{raw}\n")
+    (tmp_path / "requirements.txt").write_text(f"# dependencies\n{raw}\n", encoding="utf-8")
     components = collect(tmp_path)
     assert len(components) == 1
     component = components[0]
@@ -103,7 +103,7 @@ def test_sbom_preserves_pinned_extras_and_line_provenance(tmp_path: Path) -> Non
     ],
 )
 def test_sbom_does_not_invent_python_versions(tmp_path: Path, requirement: str) -> None:
-    (tmp_path / "requirements.txt").write_text(requirement + "\n")
+    (tmp_path / "requirements.txt").write_text(requirement + "\n", encoding="utf-8")
     components = collect(tmp_path)
     assert len(components) == 1
     component = components[0]
@@ -125,7 +125,7 @@ def test_sbom_does_not_invent_python_versions(tmp_path: Path, requirement: str) 
 def test_sbom_retains_satisfiable_declared_pins(
     tmp_path: Path, requirement: str, version: str
 ) -> None:
-    (tmp_path / "requirements.txt").write_text(requirement + "\n")
+    (tmp_path / "requirements.txt").write_text(requirement + "\n", encoding="utf-8")
     component = collect(tmp_path)[0]
     assert component["version"] == version
     assert {"name": "sahool:version-status", "value": "declared-pin"} in component["properties"]
@@ -133,7 +133,8 @@ def test_sbom_retains_satisfiable_declared_pins(
 
 def test_sbom_keeps_conditional_markers_without_evaluating_them(tmp_path: Path) -> None:
     (tmp_path / "requirements.txt").write_text(
-        'example==1.2; python_version < "2.0"\nexample[ssl]==1.2; sys_platform == "win32"\n'
+        'example==1.2; python_version < "2.0"\nexample[ssl]==1.2; sys_platform == "win32"\n',
+        encoding="utf-8",
     )
     components = collect(tmp_path)
     assert len(components) == 1
@@ -150,7 +151,7 @@ def test_sbom_preserves_direct_reference_and_fragment_without_guessing_version(
 ) -> None:
     url = "https://example.invalid/example-1.2.whl#sha256=1234"
     raw = f'example[ssl] @ {url} ; python_version < "2.0"'
-    (tmp_path / "requirements.txt").write_text(raw + "\n")
+    (tmp_path / "requirements.txt").write_text(raw + "\n", encoding="utf-8")
     component = collect(tmp_path)[0]
     assert "version" not in component
     assert "purl" not in component
@@ -161,10 +162,12 @@ def test_sbom_preserves_direct_reference_and_fragment_without_guessing_version(
 
 
 def test_sbom_deduplicates_components_but_keeps_every_declaration(tmp_path: Path) -> None:
-    (tmp_path / "requirements.txt").write_text("Example_Pkg==1.2\nExample_Pkg==1.2\n")
+    (tmp_path / "requirements.txt").write_text(
+        "Example_Pkg==1.2\nExample_Pkg==1.2\n", encoding="utf-8"
+    )
     service = tmp_path / "service"
     service.mkdir()
-    (service / "requirements.txt").write_text("example-pkg[extra]==1.2\n")
+    (service / "requirements.txt").write_text("example-pkg[extra]==1.2\n", encoding="utf-8")
     first = collect(tmp_path)
     assert first == collect(tmp_path)
     assert len(first) == 1
@@ -181,7 +184,9 @@ def test_sbom_deduplicates_components_but_keeps_every_declaration(tmp_path: Path
     ["^1.2.3", "~1.2.3", ">=1.2.3", "1.x", "workspace:*", "file:../pkg", "latest"],
 )
 def test_sbom_does_not_invent_npm_versions(tmp_path: Path, declaration: str) -> None:
-    (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"example": declaration}}))
+    (tmp_path / "package.json").write_text(
+        json.dumps({"dependencies": {"example": declaration}}), encoding="utf-8"
+    )
     component = collect(tmp_path)[0]
     assert "version" not in component
     assert "purl" not in component
@@ -192,7 +197,7 @@ def test_sbom_does_not_invent_npm_versions(tmp_path: Path, declaration: str) -> 
 
 def test_sbom_retains_npm_pin_and_development_provenance(tmp_path: Path) -> None:
     (tmp_path / "package.json").write_text(
-        json.dumps({"devDependencies": {"@scope/example": "1.2.3-beta.1+build"}})
+        json.dumps({"devDependencies": {"@scope/example": "1.2.3-beta.1+build"}}), encoding="utf-8"
     )
     component = collect(tmp_path)[0]
     assert component["version"] == "1.2.3-beta.1+build"
@@ -204,7 +209,7 @@ def test_sbom_retains_npm_pin_and_development_provenance(tmp_path: Path) -> None
 def test_sbom_rejects_unsupported_lines_instead_of_silently_omitting_them(
     tmp_path: Path, raw: str
 ) -> None:
-    (tmp_path / "requirements.txt").write_text("# header\n" + raw + "\n")
+    (tmp_path / "requirements.txt").write_text("# header\n" + raw + "\n", encoding="utf-8")
     with pytest.raises(ValueError, match=r"requirements\.txt:2"):
         collect(tmp_path)
 
@@ -214,6 +219,7 @@ def test_sbom_help_does_not_need_installed_packaging() -> None:
         [sys.executable, "-S", str(ROOT / "scripts/release/generate_dependency_sbom.py"), "--help"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=10,
     )
     assert result.returncode == 0, result.stderr
@@ -221,8 +227,10 @@ def test_sbom_help_does_not_need_installed_packaging() -> None:
 
 
 def test_sbom_cli_declares_prebuild_scope_and_is_deterministic(tmp_path: Path) -> None:
-    (tmp_path / "VERSION").write_text("1.0.0\n")
-    (tmp_path / "requirements.txt").write_text("python-jose[cryptography]>=3.4.0\n")
+    (tmp_path / "VERSION").write_text("1.0.0\n", encoding="utf-8")
+    (tmp_path / "requirements.txt").write_text(
+        "python-jose[cryptography]>=3.4.0\n", encoding="utf-8"
+    )
     output = tmp_path / "sbom.json"
     command = [
         sys.executable,
@@ -232,7 +240,7 @@ def test_sbom_cli_declares_prebuild_scope_and_is_deterministic(tmp_path: Path) -
         "--output",
         str(output),
     ]
-    result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", timeout=10)
     assert result.returncode == 0, result.stdout + result.stderr
     first = output.read_bytes()
     payload = json.loads(first)
@@ -242,6 +250,6 @@ def test_sbom_cli_declares_prebuild_scope_and_is_deterministic(tmp_path: Path) -
     assert {"name": "sahool:dependency-resolution", "value": "not-performed"} in payload[
         "metadata"
     ]["properties"]
-    result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", timeout=10)
     assert result.returncode == 0, result.stdout + result.stderr
     assert output.read_bytes() == first

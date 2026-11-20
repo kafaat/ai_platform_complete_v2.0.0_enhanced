@@ -341,8 +341,8 @@ def test_each_plant_requalifies_its_original_witness(tmp_path: Path, capsys) -> 
         "def test_negative_is_rejected():\n"
         "    if g.check([-2]):\n"
         "        counter = Path(__file__).resolve().parents[1] / 'original-runs'\n"
-        "        runs = int(counter.read_text()) if counter.exists() else 0\n"
-        "        counter.write_text(str(runs + 1))\n"
+        "        runs = int(counter.read_text(encoding='utf-8')) if counter.exists() else 0\n"
+        "        counter.write_text(str(runs + 1), encoding='utf-8')\n"
         "        assert runs == 0, 'the later original is no longer green'\n"
         "    assert g.check([-2])\n"
     )
@@ -358,7 +358,7 @@ def test_each_plant_requalifies_its_original_witness(tmp_path: Path, capsys) -> 
 
     assert len(failures) == 1, failures
     assert "fake_guard.py[1]" in failures[0] and "BASELINE_NOT_GREEN" in failures[0]
-    assert (tmp_path / "original-runs").read_text() == "2"
+    assert (tmp_path / "original-runs").read_text(encoding="utf-8") == "2"
     assert capsys.readouterr().out.count("✓") == 1
     assert source.read_bytes() == original
 
@@ -367,7 +367,8 @@ def test_a_baseline_that_changes_the_guard_is_restored_and_rejected(tmp_path: Pa
     test_src = _TEST_SRC.replace(
         "    assert g.check([1, -2]) != []",
         "    source = Path(g.__file__)\n"
-        "    source.write_text(source.read_text() + '\\n# baseline side effect\\n')\n"
+        "    source.write_text(source.read_text(encoding='utf-8') + "
+        "'\\n# baseline side effect\\n', encoding='utf-8')\n"
         "    assert g.check([1, -2]) != []",
     )
     ci = _fake_repo(tmp_path, test_src=test_src)
