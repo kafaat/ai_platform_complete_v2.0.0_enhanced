@@ -56,7 +56,8 @@ def test_ci_runs_the_concurrent_overcommit_gate_a():
 def test_ci_runs_the_v194_upgrade_certification_gate_u1():
     text = CI.read_text(encoding="utf-8")
     assert "scripts/irr_f01/upgrade_gate_u1.sh" in text
-    assert "IRR_F01_UPGRADE_DATABASE_URL" in text
+    assert "bash scripts/irr_f01/run_suite.sh upgrade" in text
+    assert "IRR_F01_UPGRADE_DATABASE_URL" in (U1_SCRIPT.parent / "run_suite.sh").read_text()
     assert UPGRADE.exists(), "Gate U1 upgrade test module must exist"
     assert U1_SCRIPT.exists(), "Gate U1 upgrade build script must exist"
     upgrade_text = UPGRADE.read_text(encoding="utf-8")

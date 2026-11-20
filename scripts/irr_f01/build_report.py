@@ -39,7 +39,8 @@ def main() -> None:
     ns = ap.parse_args()
     d = Path(ns.report_dir)
     d.mkdir(parents=True, exist_ok=True)
-    junit = junit_summary(d / "pytest-junit.xml")
+    suites = {name: junit_summary(d / f"{name}.xml") for name in ("fresh", "upgrade")}
+    junit = {key: sum(result[key] for result in suites.values()) for key in suites["fresh"]}
     sqlstate = {}
     p = d / "failed-sql-state.json"
     if p.exists():
@@ -57,10 +58,12 @@ def main() -> None:
         "platform": platform.platform(),
         "postgres": os.getenv("IRR_F01_POSTGRES_VERSION", "unknown"),
         "junit": junit,
+        "suites": suites,
         "sql_failure": sqlstate,
         "certification": {
             "fresh_install": "PASS" if ns.status == "passed" else "FAIL/NOT_RUN",
-            "upgrade_v194_to_v195": "NOT_CERTIFIED",
+            "upgrade_v194_to_v195": "PASS" if ns.status == "passed" else "FAIL/NOT_RUN",
+            "mqtt_device_replay": "PASS" if ns.status == "passed" else "FAIL/NOT_RUN",
             "live_event_wiring": "NOT_CERTIFIED",
         },
     }
@@ -84,8 +87,11 @@ def main() -> None:
         "",
         "## Certification boundary",
         "",
-        "- Fresh installation through v195: " + evidence["certification"]["fresh_install"],
-        "- Upgrade v194 → v195: NOT CERTIFIED",
+        "- Fresh installation through the full manifest: "
+        + evidence["certification"]["fresh_install"],
+        "- Upgrade v194 → v195/v196: " + evidence["certification"]["upgrade_v194_to_v195"],
+        "- Loopback MQTT and simulated device replay: "
+        + evidence["certification"]["mqtt_device_replay"],
         "- Live emit_event/worker/actuator wiring: NOT CERTIFIED",
         "",
     ]
@@ -102,7 +108,7 @@ def main() -> None:
         "## Artifacts",
         "",
         "- `pytest-output.log`",
-        "- `pytest-junit.xml`",
+        "- `fresh.xml`, `upgrade.xml`",
         "- `postgres.log`",
         "- `migration-output.log`",
         "- `schema-snapshot.sql`",

@@ -56,7 +56,7 @@ scalar() { db -Atc "$1"; }
 echo "== Gate U1: (re)create $U1_DB =="
 psql_admin -d postgres -c "DROP DATABASE IF EXISTS $U1_DB WITH (FORCE)" >/dev/null 2>&1 \
   || psql_admin -d postgres -c "DROP DATABASE IF EXISTS $U1_DB" >/dev/null
-psql_admin -d postgres -c "CREATE DATABASE $U1_DB OWNER $ADMIN_USER" >/dev/null
+psql_admin -d postgres -c "CREATE DATABASE $U1_DB OWNER $ADMIN_USER TEMPLATE template0" >/dev/null
 
 echo "== Gate U1: apply migration chain through v194 only =="
 # المُشغّل القانونيّ وحده يملك التعداد. كانت هنا نسخةٌ ثالثة من الحلقة المعطوبة،
@@ -139,19 +139,7 @@ for t in hydraulic_capacity_evaluations irrigation_resource_reservations irrigat
 done
 
 echo "== Gate U1: grant restricted NOSUPERUSER/NOBYPASSRLS app role on $U1_DB =="
-db >/dev/null <<SQL
-DO \$\$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$APP_ROLE') THEN
-    CREATE ROLE $APP_ROLE LOGIN PASSWORD '$APP_PASS' NOSUPERUSER NOBYPASSRLS NOINHERIT;
-  END IF;
-END \$\$;
-GRANT CONNECT ON DATABASE $U1_DB TO $APP_ROLE;
-GRANT USAGE ON SCHEMA public TO $APP_ROLE;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO $APP_ROLE;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO $APP_ROLE;
-GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO $APP_ROLE;
-SQL
+db -v writer="$APP_ROLE" -v writer_pass="$APP_PASS" -f "$ROOT/scripts/irr_f01/bootstrap.sql" >/dev/null
 role_flags=$(scalar "SELECT rolsuper::text || ':' || rolbypassrls::text FROM pg_roles WHERE rolname='$APP_ROLE'")
 test "$role_flags" = "false:false" || { echo "::error::invalid RLS role flags: $role_flags"; exit 1; }
 

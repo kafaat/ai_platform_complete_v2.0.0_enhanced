@@ -3,7 +3,8 @@
 # Default probes read data. Optional --require-generation requests /v1/chat and
 # uses the advisor's policies, tools and persistence (advice/tool audit/approval
 # records). Optional --restart-rag restarts only retrieval to prove sparse-index
-# rehydration after process restart.
+# rehydration after process restart. --fixture-roundtrip also publishes the synthetic Arabic
+# fixture in its dedicated lab tenant and verifies its exact revision after restart.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -14,6 +15,7 @@ TENANT_ID=""
 FIELD_ID=""
 CROP=""
 OUT_DIR="artifacts/ai-rag-live-acceptance"
+EXERCISE_FIXTURE=0
 RESTART_RAG=0
 REQUIRE_GENERATION=0
 COMPOSE_FILE="docker-compose.v9.yml"
@@ -26,6 +28,7 @@ while (($#)); do
     --crop) CROP="$2"; shift 2 ;;
     --out-dir) OUT_DIR="$2"; shift 2 ;;
     --compose-file) COMPOSE_FILE="$2"; shift 2 ;;
+    --fixture-roundtrip) EXERCISE_FIXTURE=1; RESTART_RAG=1; shift ;;
     --restart-rag) RESTART_RAG=1; shift ;;
     --require-generation) REQUIRE_GENERATION=1; shift ;;
     *) echo "unknown argument: $1" >&2; exit 4 ;;
@@ -39,6 +42,9 @@ docker compose version >/dev/null 2>&1 || { echo "docker compose missing" >&2; e
 
 DC=(docker compose -f "$COMPOSE_FILE")
 mkdir -p "$OUT_DIR"
+# Reusing evidence from an earlier restart would make a later partial run ambiguous.
+if [[ -n "$(ls -A "$OUT_DIR")" ]]; then OUT_DIR="$(mktemp -d "$OUT_DIR/run-XXXXXXXX")"; fi
+echo "AI/RAG evidence: $OUT_DIR"
 
 # Structural compose validation before touching the running stack.
 "${DC[@]}" config >/dev/null
@@ -63,23 +69,22 @@ run_cert() {
   (( REQUIRE_GENERATION )) && args+=(--require-generation)
   # Stream the exact probe from the tested checkout into a container that is already
   # on sahool-internal. No copy/rebuild and no host-port exposure are required.
-  set +e
   "${DC[@]}" exec -T sahool-rag-retrieval python - "${args[@]}" \
     < scripts/ci/ai_rag_live_certification.py > "$out"
-  local rc=$?
-  set -e
-  return "$rc"
 }
 
-set +e
-run_cert "$OUT_DIR/pre_restart_ai_rag.json"
-PRE_RC=$?
-set -e
-if (( PRE_RC == 2 || PRE_RC == 4 )); then
-  cat "$OUT_DIR/pre_restart_ai_rag.json" >&2
-  exit "$PRE_RC"
-fi
+PRE_RC=0
+run_cert "$OUT_DIR/pre_restart_ai_rag.json" || PRE_RC=$?
+[[ "$PRE_RC" == 0 || "$PRE_RC" == 3 ]] || exit "$PRE_RC"
 
+fixture_probe() {
+  "${DC[@]}" exec -T sahool-rag-retrieval python - "$fixture_run" "$fixture_b64" "$@" < scripts/staging/rag_fixture_probe.py
+}
+if (( EXERCISE_FIXTURE )); then
+  fixture_run="$(python -c 'import uuid; print(uuid.uuid4())')"
+  fixture_b64="$(python -c 'import base64,pathlib; print(base64.b64encode(pathlib.Path("scripts/staging/fixtures/irrigation-ar.txt").read_bytes()).decode())')"
+  fixture_probe --publish > "$OUT_DIR/fixture_before.json"
+fi
 if (( RESTART_RAG )); then
   "${DC[@]}" restart sahool-rag-retrieval >/dev/null
   ready=0
@@ -93,13 +98,12 @@ if (( RESTART_RAG )); then
   done
   (( ready == 1 )) || { echo "rag-retrieval did not become ready after restart" >&2; exit 2; }
 
-  set +e
-  run_cert "$OUT_DIR/post_restart_ai_rag.json"
-  POST_RC=$?
-  set -e
-  if (( POST_RC == 2 || POST_RC == 4 )); then
-    cat "$OUT_DIR/post_restart_ai_rag.json" >&2
-    exit "$POST_RC"
+  POST_RC=0
+  run_cert "$OUT_DIR/post_restart_ai_rag.json" || POST_RC=$?
+  [[ "$POST_RC" == 0 || "$POST_RC" == 3 ]] || exit "$POST_RC"
+  if (( EXERCISE_FIXTURE )); then
+    fixture_probe > "$OUT_DIR/fixture_after.json"
+    cmp "$OUT_DIR/fixture_before.json" "$OUT_DIR/fixture_after.json"
   fi
 
   python - "$OUT_DIR/pre_restart_ai_rag.json" "$OUT_DIR/post_restart_ai_rag.json" <<'PY'
@@ -147,21 +151,21 @@ python scripts/ci/c8_rag_production_certification.py \
   --receipt "$OUT_DIR/rag_live_parity_receipt.json" --subject-sha "${SUBJECT_SHA,,}" \
   | tee "$OUT_DIR/c8_result.json"
 
-python - "$OUT_DIR" "$SUBJECT_SHA" "$PRE_RC" "${POST_RC:-$PRE_RC}" <<'PY'
+python - "$OUT_DIR" "$SUBJECT_SHA" "$PRE_RC" "${POST_RC:-3}" "$EXERCISE_FIXTURE" <<'PY'
 import hashlib,json,os,sys
-root,subject,pre_rc,post_rc=sys.argv[1:]
+root,subject,pre_rc,post_rc,fixture=sys.argv[1:]
 files=[]
 for name in sorted(os.listdir(root)):
     p=os.path.join(root,name)
     if os.path.isfile(p):
         b=open(p,'rb').read(); files.append({'file':name,'sha256':hashlib.sha256(b).hexdigest(),'bytes':len(b)})
-status='PASS' if int(pre_rc)==0 and int(post_rc)==0 else 'EVIDENCE_REQUIRED'
-out={'schema':'sahool.ai-rag-live-acceptance-bundle/v1','subject_sha':subject.lower(),'status':status,'authority_promotion':False,'files':files}
+status='PASS' if int(pre_rc)==0 and int(post_rc)==0 and fixture=='1' else 'EVIDENCE_REQUIRED'
+out={'schema':'sahool.ai-rag-live-acceptance-bundle/v1','subject_sha':subject.lower(),'status':status,'authority_promotion':False,'restart_verified':os.path.isfile(os.path.join(root,'post_restart_ai_rag.json')),'fixture_revision_verified':fixture=='1','files':files}
 open(os.path.join(root,'bundle_manifest.json'),'w',encoding='utf-8').write(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
 print(json.dumps(out,ensure_ascii=False))
 PY
 
 # Preserve EVIDENCE_REQUIRED when grounded generation was explicitly required but
 # the deployed policy/field prerequisites are not enabled yet.
-if (( PRE_RC == 3 || ${POST_RC:-0} == 3 )); then exit 3; fi
+if (( PRE_RC == 3 || ${POST_RC:-3} == 3 || ! EXERCISE_FIXTURE )); then exit 3; fi
 exit 0
