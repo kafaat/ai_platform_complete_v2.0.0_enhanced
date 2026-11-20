@@ -567,3 +567,128 @@ async def test_gate_b1_dispatch_intent_emitted_to_outbox_atomically(live):
         )
         == "cancelled"
     )
+
+
+async def test_reservation_mqtt_replay_has_one_simulated_device_effect(live, tmp_path, monkeypatch):
+    """A lab-issued command for one committed reservation, sent twice on loopback MQTT.
+
+    The test issues the synthetic command explicitly. Production decision authorization
+    and its workers are independent of this simulator transport proof.
+    """
+    import json
+    import secrets
+    import sys
+    from pathlib import Path
+
+    import aiomqtt
+    from amqtt.broker import Broker
+    from pwdlib import PasswordHash
+
+    monkeypatch.syspath_prepend(
+        str(Path(__file__).resolve().parents[1] / "services/actuator-service")
+    )
+    import cmd_signing_v2 as signing
+
+    adapter, kernel = _adapter()
+    from api.irrigation_execution_request_port import EmitEventExecutionRequestPort
+
+    app, tenant = live["app"], live["tenant"]
+    async with app.transaction():
+        result = await adapter.reserve_and_request_dispatch_db(
+            app,
+            tenant_id=tenant,
+            project_id=live["project"],
+            requested_start=START,
+            requested_end=END,
+            resources=[_req(kernel, live["n1"], "shared_capacity", "1", "10")],
+            execution_ref_type="manual_execution",
+            execution_ref_id="local-device",
+            calculation_model_version="v1",
+            execution_port=EmitEventExecutionRequestPort(),
+            correlation_id=tenant,
+        )
+    (reservation_id,) = result.reservation_ids
+    await app.execute("select set_config('app.current_tenant', $1, false)", str(tenant))
+    assert (
+        await app.fetchval(
+            "SELECT count(*) FROM event_outbox WHERE event_id=$1", UUID(result.dispatch_intent_id)
+        )
+        == 1
+    )
+
+    from api.irrigation_dispatch_relay import build_reservation_dispatch_ingest
+
+    event = await app.fetchrow(
+        "SELECT event_type, payload FROM events WHERE event_id=$1", UUID(result.dispatch_intent_id)
+    )
+    delivery = build_reservation_dispatch_ingest(
+        source_event_id=result.dispatch_intent_id,
+        event_type=event["event_type"],
+        payload=json.loads(event["payload"]),
+        correlation_id=str(tenant),
+    )
+    assert delivery["reservation_ids"] == [reservation_id]
+    probe = Path(__file__).resolve().parents[1] / "tests/integration/irrigation/decision_receipt.py"
+    decision = await asyncio.create_subprocess_exec(
+        sys.executable, str(probe), stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
+    )
+    receipt, _ = await decision.communicate(
+        json.dumps({"tenant": str(tenant), "delivery": delivery}).encode()
+    )
+    assert decision.returncode == 0 and receipt.strip().startswith(b"rcpt_")
+
+    password = secrets.token_urlsafe(24)
+    credentials = tmp_path / "broker.passwd"
+    credentials.write_text(
+        "lab:" + PasswordHash.recommended().hash(password) + "\n", encoding="utf-8"
+    )
+    broker = Broker(
+        {
+            "listeners": {"default": {"type": "tcp", "bind": "127.0.0.1:0"}},
+            "plugins": {
+                "amqtt.plugins.authentication.FileAuthPlugin": {"password_file": str(credentials)}
+            },
+        }
+    )
+    await broker.start()
+    try:
+        port = broker._servers["default"].instance.sockets[0].getsockname()[1]
+        endpoint = {"hostname": "127.0.0.1", "port": port, "username": "lab", "password": password}
+        device = signing.DeviceState(str(tenant), "lab-device", "lab-field", secrets.token_hex(32))
+        now_ms = int(datetime.now(UTC).timestamp() * 1000)
+        wire = signing.build_command(
+            device.key_hex,
+            tenant=device.tenant,
+            device=device.device,
+            field=device.field,
+            command_id=reservation_id,
+            cmd="OFF",
+            payload={},
+            duration_ms=0,
+            iat=now_ms,
+            exp=now_ms + 60_000,
+            ctr=1,
+        )
+        payload = json.dumps(wire).encode()
+        topic = f"sahool/actuator/{device.device}/command"
+        effects = tmp_path / "device-effects.txt"
+        decisions = []
+        async with (
+            asyncio.timeout(15),
+            aiomqtt.Client(**endpoint) as subscriber,
+            aiomqtt.Client(**endpoint) as publisher,
+        ):
+            await subscriber.subscribe(topic, qos=1)
+            for _ in range(2):
+                await publisher.publish(topic, payload, qos=1)
+                message = await anext(aiter(subscriber.messages))
+                received = json.loads(message.payload)
+                reason = signing.reference_apply(device, received, time_synced=True, now_ms=now_ms)
+                decisions.append(reason)
+                if reason == signing.ACCEPT:
+                    with effects.open("a", encoding="utf-8") as stream:
+                        print(received["id"], file=stream)
+        assert decisions == [signing.ACCEPT, signing.REJ_REPLAY]
+        assert effects.read_text(encoding="utf-8").splitlines() == [reservation_id]
+    finally:
+        await broker.shutdown()

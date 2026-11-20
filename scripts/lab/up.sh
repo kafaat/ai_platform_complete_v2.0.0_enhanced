@@ -91,13 +91,13 @@ tables="$(PGPASSWORD="$LAB_PG_PASSWORD" psql -X -h 127.0.0.1 -p "$LAB_PG_PORT" -
 # ("Install audited Edge transport for TTS egress acceptance"); the TTS boundary
 # tests fail without it.
 LAB_EDGE_TTS="edge-tts==7.2.8"
-req_hash="$( (cat tests_v9/requirements-test.txt constraints-ci-tools.txt; echo "$LAB_EDGE_TTS") | sha256sum | cut -c1-64)"
+req_hash="$( (cat tests_v9/requirements-test.txt requirements-irr-f01-test.txt constraints-ci-tools.txt; echo "$LAB_EDGE_TTS") | sha256sum | cut -c1-64)"
 venv="$LAB_DIR/venv"
 if [ "$(cat "$venv/.requirements-sha256" 2>/dev/null)" != "$req_hash" ]; then
   rm -rf "$venv"
   "$LAB_PYTHON" -m venv "$venv"
   "$venv/bin/python" -m pip install -q --upgrade pip >"$LAB_DIR/pip.log" 2>&1
-  (cd tests_v9 && "$venv/bin/python" -m pip install -q -r requirements-test.txt) \
+  (cd tests_v9 && "$venv/bin/python" -m pip install -q -r requirements-test.txt -r ../requirements-irr-f01-test.txt) \
     >>"$LAB_DIR/pip.log" 2>&1 || fail "LAB_VENV_INSTALL_FAILED: see $LAB_DIR/pip.log"
   "$venv/bin/python" -m pip install -q "$LAB_EDGE_TTS" >>"$LAB_DIR/pip.log" 2>&1 ||
     fail "LAB_VENV_INSTALL_FAILED: $LAB_EDGE_TTS"
