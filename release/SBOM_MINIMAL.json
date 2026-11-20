@@ -2135,7 +2135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ca365fd7aeb836301a54934994f2992950bcdea7a8b23813a63654f81c7a04a"
+          "content": "88a39eba816c2aea1f0e9cd99f58b2f7cb04e25781a3d25184c7d239319bfdf6"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/PivotPersistence.static.test.ts",
@@ -2635,7 +2635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c62a6c57f67b81cfd99899b28cbfdadfc3d6ec65a620bd52213da35843efc991"
+          "content": "f1bd3b966ae4e3aff469ff250e94dbb2b3eac89777d9b0941a509c7be0453da8"
         }
       ],
       "name": "frontend/src/hooks/fieldViewUiWide.static.test.ts",
@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf43b105babb11a6f64f7c47c3d1c8bec8ac62d89ee600fbb62a89ecfcf1161d"
+          "content": "3bddf546ac582256e9ba6dee6ad0dc68bd2670f9f861d5c1d00f5781302c7728"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -14175,7 +14175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8e42b21c59f2a3e4f5eb30a5609db38963d0229458dbec9bc13b8fabefb405c3"
+          "content": "f6c9db6578d672a87faedcdcd371d3f2981738d78f3f49b7c9857b99bcc1dff8"
         }
       ],
       "name": "services/raster-service/raster_batch_job_store.py",
@@ -14445,7 +14445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df54a16be42465699878e3b6d24ec53a6feb7eb82005ac9985303eb8671eb288"
+          "content": "accab58fcaf42c69662120e438e4d8d41220e5851a049e8f880c20a062695096"
         }
       ],
       "name": "services/raster-service/requirements.txt",
@@ -15145,7 +15145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2bdf41d960e9a2054163c48621d9e5a80aac44ce7cf2a33e49ac237dacb14c13"
+          "content": "28aba3a8d05495a15ef94bd1f6cfeb0c2230aea05eeb38b338081f38709723d9"
         }
       ],
       "name": "services/raster-service/test_raster_batch_postgres_integration.py",
@@ -15165,7 +15165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bfcda8d04035936ef46d4f3312170292da69a395d32ec59f5df3097aa4bdd50a"
+          "content": "ee245b5548f167a372ebdf087cdd2d655fe03dc439ee3030229d7495fc6c9572"
         }
       ],
       "name": "services/raster-service/test_raster_durable_identity.py",
@@ -15345,7 +15345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9500d4bd7d6246ce7ab8b7ae6a881fc0405c27f35234c5f0ddb6b741d9123a0f"
+          "content": "8a051b25d12bb98b630dca97f06fc0bff48e47df4600e8e7d3f19579c5f92e13"
         }
       ],
       "name": "services/raster-service/test_single_scene_concurrent_pg.py",

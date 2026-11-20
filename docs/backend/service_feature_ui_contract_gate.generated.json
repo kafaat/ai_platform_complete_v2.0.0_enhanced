@@ -168,13 +168,13 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/auth/",
-              "line": 176
+              "line": 185
             },
             {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "auth_backend",
-              "line": 79
+              "line": 88
             }
           ],
           "match_count": 8
@@ -213,7 +213,7 @@
               "root": "frontend/src",
               "path": "frontend/src/components/AddFieldWithMap.tsx",
               "pattern": "/api/v1",
-              "line": 430
+              "line": 441
             },
             {
               "root": "frontend/src",
@@ -261,7 +261,7 @@
               "root": "frontend/src",
               "path": "frontend/src/components/fieldsetup/FieldSetupWizard.tsx",
               "pattern": "/api/v1",
-              "line": 19
+              "line": 20
             },
             {
               "root": "frontend/src",
@@ -282,7 +282,7 @@
               "line": 5
             }
           ],
-          "match_count": 209
+          "match_count": 212
         },
         {
           "kind": "gateway",
@@ -316,13 +316,13 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/v1/",
-              "line": 72
+              "line": 81
             },
             {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "platform_backend",
-              "line": 80
+              "line": 89
             }
           ],
           "match_count": 4
@@ -464,13 +464,13 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/raster/",
-              "line": 252
+              "line": 220
             },
             {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "raster_backend",
-              "line": 87
+              "line": 96
             }
           ],
           "match_count": 4
@@ -509,7 +509,7 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "FieldRanking",
-              "line": 122
+              "line": 121
             },
             {
               "root": "frontend/src",
@@ -557,7 +557,7 @@
               "root": "frontend/src",
               "path": "frontend/src/components/fieldview/AgronomyConsistencyCard.tsx",
               "pattern": "NDVI",
-              "line": 406
+              "line": 417
             },
             {
               "root": "frontend/src",
@@ -612,13 +612,13 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/vegetation/",
-              "line": 230
+              "line": 224
             },
             {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "vegetation_backend",
-              "line": 84
+              "line": 93
             }
           ],
           "match_count": 4
@@ -662,7 +662,7 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "indicators",
-              "line": 144
+              "line": 143
             },
             {
               "root": "frontend/src",
@@ -759,13 +759,13 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/indicators/",
-              "line": 225
+              "line": 264
             },
             {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "indicators_backend",
-              "line": 83
+              "line": 92
             }
           ],
           "match_count": 4
@@ -947,28 +947,28 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
               "pattern": "weather",
-              "line": 63
+              "line": 66
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/canonical_water_state.py",
+              "pattern": "weather-service",
+              "line": 180
             },
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/canonical_water_state.py",
               "pattern": "weather",
-              "line": 18
+              "line": 21
             },
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/confidence_aggregation.py",
               "pattern": "weather",
               "line": 15
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/cost_governance.py",
-              "pattern": "weather-service",
-              "line": 102
             }
           ],
-          "match_count": 322
+          "match_count": 330
         }
       ]
     },
@@ -1004,19 +1004,19 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "soil",
-              "line": 438
+              "line": 437
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/components/AddFieldWithMap.tsx",
               "pattern": "soil",
-              "line": 115
+              "line": 118
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/components/AddFieldWithMap.tsx",
               "pattern": "Soil",
-              "line": 410
+              "line": 421
             },
             {
               "root": "frontend/src",
@@ -1034,7 +1034,7 @@
               "root": "frontend/src",
               "path": "frontend/src/components/ds/tokens.ts",
               "pattern": "soil",
-              "line": 92
+              "line": 136
             },
             {
               "root": "frontend/src",
@@ -1073,7 +1073,7 @@
               "line": 9
             }
           ],
-          "match_count": 152
+          "match_count": 154
         },
         {
           "kind": "platform-proxy",
@@ -1166,7 +1166,7 @@
               "line": 22
             }
           ],
-          "match_count": 305
+          "match_count": 312
         }
       ]
     },
@@ -1232,13 +1232,13 @@
               "root": "frontend/src",
               "path": "frontend/src/services/api.ts",
               "pattern": "segmentField",
-              "line": 630
+              "line": 641
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/services/api.ts",
               "pattern": "/api/segmentation",
-              "line": 557
+              "line": 568
             }
           ],
           "match_count": 7
@@ -1302,13 +1302,13 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/segmentation/",
-              "line": 319
+              "line": 358
             },
             {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "segmentation",
-              "line": 316
+              "line": 355
             }
           ],
           "match_count": 8
@@ -1399,28 +1399,28 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "SEGMENTATION_INFERENCE_URL",
-              "line": 2131
+              "line": 2349
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "SEGMENTATION_BACKEND",
-              "line": 2130
+              "line": 2348
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sam2",
-              "line": 2131
+              "line": 2349
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-sam2-inference",
-              "line": 2131
+              "line": 2349
             }
           ],
-          "match_count": 33
+          "match_count": 34
         }
       ]
     },
@@ -1466,9 +1466,15 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/hooks/fieldViewUiWide.static.test.ts",
+              "pattern": "ai-agronomist",
+              "line": 36
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/hooks/useApi.ts",
               "pattern": "ai-agronomist",
-              "line": 1976
+              "line": 1980
             },
             {
               "root": "frontend/src",
@@ -1517,15 +1523,9 @@
               "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
               "pattern": "ChatbotPage",
               "line": 10
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
-              "pattern": "ai-agronomist",
-              "line": 2
             }
           ],
-          "match_count": 18
+          "match_count": 19
         },
         {
           "kind": "gateway",
@@ -1547,13 +1547,13 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/ai-agronomist/",
-              "line": 376
+              "line": 417
             },
             {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "ai_agronomist_backend",
-              "line": 95
+              "line": 104
             }
           ],
           "match_count": 2
@@ -1593,13 +1593,13 @@
               "root": "services/ai_agronomist",
               "path": "services/ai_agronomist/ai_evidence_runtime.py",
               "pattern": "RAG_BASE_URL",
-              "line": 41
+              "line": 44
             },
             {
               "root": "services/ai_agronomist",
               "path": "services/ai_agronomist/ai_evidence_runtime.py",
               "pattern": "rag-retrieval",
-              "line": 41
+              "line": 44
             },
             {
               "root": "services/ai_agronomist",
@@ -1615,9 +1615,39 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_ai_rag_delta_p0.py",
+              "pattern": "rag-retrieval",
+              "line": 312
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_ai_rag_pre_adoption_review.py",
+              "pattern": "rag-retrieval",
+              "line": 18
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_api_versioning_policy_guard.py",
               "pattern": "rag-retrieval",
-              "line": 435
+              "line": 475
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_compose_auth_sink_guard.py",
+              "pattern": "rag-retrieval",
+              "line": 470
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_copilot_review_876_regressions.py",
+              "pattern": "rag-retrieval",
+              "line": 171
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_gap_closure_v6.py",
+              "pattern": "rag-retrieval",
+              "line": 320
             },
             {
               "root": "tests_v9",
@@ -1629,40 +1659,10 @@
               "root": "tests_v9",
               "path": "tests_v9/test_platform_catalog_gate.py",
               "pattern": "rag-retrieval",
-              "line": 36
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_real_findings_closure_20260702.py",
-              "pattern": "rag-retrieval",
-              "line": 43
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_remaining_closure_20260702.py",
-              "pattern": "/api/rag/",
-              "line": 60
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_service_feature_ui_contract_gate.py",
-              "pattern": "rag-retrieval",
-              "line": 32
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
-              "pattern": "rag-retrieval",
-              "line": 11
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
-              "pattern": "/api/rag/",
-              "line": 32
+              "line": 37
             }
           ],
-          "match_count": 19
+          "match_count": 33
         }
       ]
     },
@@ -1703,13 +1703,13 @@
               "root": "services/ai_agronomist",
               "path": "services/ai_agronomist/ai_evidence_runtime.py",
               "pattern": "KNOWLEDGE_GRAPH_URL",
-              "line": 42
+              "line": 45
             },
             {
               "root": "services/ai_agronomist",
               "path": "services/ai_agronomist/ai_evidence_runtime.py",
               "pattern": "knowledge-graph",
-              "line": 42
+              "line": 45
             },
             {
               "root": "services/ai_agronomist",
@@ -1749,30 +1749,30 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_ai_rag_delta_p0.py",
+              "pattern": "knowledge-graph",
+              "line": 315
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_api_versioning_policy_guard.py",
               "pattern": "knowledge-graph",
-              "line": 381
+              "line": 421
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_authority_cutover_guard.py",
+              "pattern": "knowledge-graph",
+              "line": 46
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
               "pattern": "knowledge-graph",
-              "line": 400
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_mcp_generic_context_auth.py",
-              "pattern": "knowledge-graph",
-              "line": 6
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_real_findings_closure_20260702.py",
-              "pattern": "knowledge-graph",
-              "line": 50
+              "line": 416
             }
           ],
-          "match_count": 22
+          "match_count": 27
         }
       ]
     },
@@ -1935,13 +1935,13 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/agent/",
-              "line": 162
+              "line": 171
             },
             {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "supervisor_backend",
-              "line": 91
+              "line": 100
             }
           ],
           "match_count": 8
@@ -1980,7 +1980,7 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "approval",
-              "line": 147
+              "line": 146
             },
             {
               "root": "frontend/src",
@@ -2049,7 +2049,7 @@
               "line": 58
             }
           ],
-          "match_count": 105
+          "match_count": 107
         },
         {
           "kind": "gateway",
@@ -2083,13 +2083,13 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/guardrails/",
-              "line": 343
+              "line": 382
             },
             {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "guardrails_backend",
-              "line": 92
+              "line": 101
             }
           ],
           "match_count": 4
@@ -2261,7 +2261,7 @@
               "root": "services/supervisor-agent",
               "path": "services/supervisor-agent/router.py",
               "pattern": "sentinel",
-              "line": 23
+              "line": 40
             },
             {
               "root": "services/supervisor-agent",
@@ -2291,7 +2291,7 @@
               "root": "services/supervisor-agent",
               "path": "services/supervisor-agent/routers/agent.py",
               "pattern": "MCP",
-              "line": 69
+              "line": 26
             },
             {
               "root": "services/supervisor-agent",
@@ -2306,7 +2306,7 @@
               "line": 20
             }
           ],
-          "match_count": 101
+          "match_count": 103
         }
       ]
     },
@@ -2344,13 +2344,13 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "irrigation",
-              "line": 145
+              "line": 144
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/components/AddFieldWithMap.tsx",
               "pattern": "irrigation",
-              "line": 119
+              "line": 122
             },
             {
               "root": "frontend/src",
@@ -2413,7 +2413,7 @@
               "line": 143
             }
           ],
-          "match_count": 195
+          "match_count": 197
         },
         {
           "kind": "internal-consumer",
@@ -2456,7 +2456,7 @@
               "root": "services/decision-service",
               "path": "services/decision-service/main.py",
               "pattern": "/v1/execution-requests/recovery",
-              "line": 1774
+              "line": 1779
             },
             {
               "root": "services/decision-service",
@@ -2468,7 +2468,7 @@
               "root": "services/decision-service",
               "path": "services/decision-service/persistence.py",
               "pattern": "list_inflight_execution_requests",
-              "line": 1380
+              "line": 1462
             },
             {
               "root": "services/decision-service",
@@ -2515,13 +2515,13 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "pest",
-              "line": 145
+              "line": 144
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "yield",
-              "line": 148
+              "line": 147
             },
             {
               "root": "frontend/src",
@@ -2557,7 +2557,7 @@
               "root": "frontend/src",
               "path": "frontend/src/components/ds/tokens.ts",
               "pattern": "yield",
-              "line": 88
+              "line": 132
             },
             {
               "root": "frontend/src",
@@ -2584,7 +2584,7 @@
               "line": 6
             }
           ],
-          "match_count": 129
+          "match_count": 131
         },
         {
           "kind": "platform-proxy",
@@ -2774,13 +2774,13 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/video/",
-              "line": 499
+              "line": 540
             },
             {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "video_backend",
-              "line": 104
+              "line": 113
             }
           ],
           "match_count": 6
@@ -2909,6 +2909,18 @@
               "line": 1
             },
             {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+              "pattern": "weather_overlay_pipeline",
+              "line": 26
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_container_command_path_guard.py",
+              "pattern": "weather-polygon-worker",
+              "line": 85
+            },
+            {
               "root": "tests_v9",
               "path": "tests_v9/test_container_hardening_ratchet_v21.py",
               "pattern": "weather-polygon-worker",
@@ -2922,6 +2934,12 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_signal_cycle_survives_one_bad_row.py",
+              "pattern": "weather_overlay_pipeline",
+              "line": 38
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_weather_intelligence_migration.py",
               "pattern": "field_weather_overlay",
               "line": 44
@@ -2931,21 +2949,9 @@
               "path": "tests_v9/test_weather_polygon_worker.py",
               "pattern": "weather-polygon-worker",
               "line": 1
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_weather_signal_engine.py",
-              "pattern": "weather_overlay_pipeline",
-              "line": 59
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
-              "pattern": "weather-polygon-worker",
-              "line": 41
             }
           ],
-          "match_count": 11
+          "match_count": 15
         }
       ]
     },
@@ -2982,7 +2988,7 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/field_season_projection.py",
               "pattern": "weather_signals",
-              "line": 115
+              "line": 121
             },
             {
               "root": "services/sahool-platform",
@@ -3030,7 +3036,7 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/core/weather_signals.py",
               "pattern": "generate_signals",
-              "line": 35
+              "line": 65
             },
             {
               "root": "services/sahool-platform",
@@ -3051,7 +3057,7 @@
               "line": 31
             }
           ],
-          "match_count": 20
+          "match_count": 22
         }
       ]
     },
@@ -3103,64 +3109,64 @@
               "root": "services/mcp_servers",
               "path": "services/mcp_servers/market_server.py",
               "pattern": "ERP_BRIDGE_URL",
-              "line": 31
+              "line": 32
             },
             {
               "root": "services/mcp_servers",
               "path": "services/mcp_servers/market_server.py",
               "pattern": "erp-bridge",
-              "line": 31
+              "line": 32
             },
             {
               "root": "services/mcp_servers",
               "path": "services/mcp_servers/market_server.py",
               "pattern": "sahool-erp-bridge",
-              "line": 31
+              "line": 32
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "ERP_BRIDGE_URL",
-              "line": 842
+              "line": 987
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "erp-bridge",
-              "line": 78
+              "line": 92
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-erp-bridge",
-              "line": 78
+              "line": 92
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_ai_rag_delta_p0.py",
+              "pattern": "erp-bridge",
+              "line": 318
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_ai_rag_delta_p0.py",
+              "pattern": "sahool-erp-bridge",
+              "line": 318
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_api_versioning_policy_guard.py",
               "pattern": "erp-bridge",
-              "line": 959
+              "line": 1000
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_erp_bridge_alias_contract.py",
               "pattern": "/api/erp/",
               "line": 63
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_erp_bridge_alias_contract.py",
-              "pattern": "ERP_BRIDGE_URL",
-              "line": 35
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_erp_bridge_alias_contract.py",
-              "pattern": "erp-bridge",
-              "line": 3
             }
           ],
-          "match_count": 20
+          "match_count": 22
         }
       ]
     },
@@ -3240,19 +3246,19 @@
               "root": "frontend/src",
               "path": "frontend/src/services/api.ts",
               "pattern": "synthesize",
-              "line": 1836
+              "line": 1595
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/services/api.ts",
               "pattern": "tts",
-              "line": 1838
+              "line": 1597
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/services/api.ts",
               "pattern": "synthesizeSpeech",
-              "line": 1836
+              "line": 1595
             }
           ],
           "match_count": 10
@@ -3291,6 +3297,12 @@
           "matches": [
             {
               "root": "services/supervisor-agent",
+              "path": "services/supervisor-agent/mcp_client.py",
+              "pattern": "RAG",
+              "line": 74
+            },
+            {
+              "root": "services/supervisor-agent",
               "path": "services/supervisor-agent/test_ai_orchestration_forensic.py",
               "pattern": "LOCAL_AI_RAG_URL",
               "line": 89
@@ -3323,7 +3335,7 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/api_models.py",
               "pattern": "RAG",
-              "line": 473
+              "line": 485
             },
             {
               "root": "services/sahool-platform",
@@ -3354,15 +3366,9 @@
               "path": "services/sahool-platform/api/decision_explainer.py",
               "pattern": "local-ai-rag",
               "line": 38
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/decision_explainer.py",
-              "pattern": "RAG",
-              "line": 37
             }
           ],
-          "match_count": 66
+          "match_count": 90
         }
       ]
     },
@@ -3400,7 +3406,7 @@
               "root": "services/raster-service",
               "path": "services/raster-service/cloud_native_catalog.py",
               "pattern": "tilejson",
-              "line": 100
+              "line": 104
             },
             {
               "root": "services/raster-service",
@@ -3412,7 +3418,7 @@
               "root": "services/raster-service",
               "path": "services/raster-service/raster_cdse_tile_runtime.py",
               "pattern": "tilejson",
-              "line": 269
+              "line": 452
             },
             {
               "root": "services/raster-service",
@@ -3442,7 +3448,7 @@
               "root": "services/raster-service",
               "path": "services/raster-service/raster_pixel_processing.py",
               "pattern": "tilejson",
-              "line": 897
+              "line": 946
             },
             {
               "root": "services/raster-service",
@@ -3466,10 +3472,10 @@
               "root": "services/raster-service",
               "path": "services/raster-service/test_cloud_native_catalog.py",
               "pattern": "tilejson",
-              "line": 28
+              "line": 46
             }
           ],
-          "match_count": 46
+          "match_count": 51
         }
       ]
     },
@@ -3507,13 +3513,13 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "qdrant-seed",
-              "line": 1750
+              "line": 1949
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "QDRANT",
-              "line": 400
+              "line": 427
             },
             {
               "root": "docker-compose.fixed.yml",
@@ -3537,46 +3543,46 @@
               "root": "tests_v9",
               "path": "tests_v9/conftest.py",
               "pattern": "QDRANT",
-              "line": 39
+              "line": 32
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_api_versioning_policy_guard.py",
-              "pattern": "collection",
-              "line": 703
+              "path": "tests_v9/test_ai_rag_delta_p0.py",
+              "pattern": "qdrant-seed",
+              "line": 62
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_catalog_bridge_registry_stac_v30_1.py",
-              "pattern": "collection",
-              "line": 77
+              "path": "tests_v9/test_ai_rag_delta_p0.py",
+              "pattern": "QDRANT",
+              "line": 51
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_crs_service_shared.py",
+              "path": "tests_v9/test_ai_rag_delta_p0.py",
               "pattern": "collection",
-              "line": 75
+              "line": 54
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_deferred_satellite_integration_v30_4.py",
+              "path": "tests_v9/test_ai_rag_live_certification.py",
               "pattern": "collection",
-              "line": 296
+              "line": 46
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py",
-              "pattern": "collection",
-              "line": 976
+              "path": "tests_v9/test_ai_rag_pre_adoption_review.py",
+              "pattern": "qdrant-seed",
+              "line": 37
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_gis_kernel_geojson.py",
-              "pattern": "collection",
-              "line": 72
+              "path": "tests_v9/test_ai_rag_pre_adoption_review.py",
+              "pattern": "QDRANT",
+              "line": 48
             }
           ],
-          "match_count": 27
+          "match_count": 58
         }
       ]
     },
@@ -3618,13 +3624,13 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/decision_service_client.py",
               "pattern": "DECISION_SERVICE_URL",
-              "line": 16
+              "line": 21
             },
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/decision_service_client.py",
               "pattern": "sahool-decision-service",
-              "line": 16
+              "line": 21
             },
             {
               "root": "services/sahool-platform",
@@ -3642,7 +3648,7 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
               "pattern": "decision_service_client",
-              "line": 33
+              "line": 34
             },
             {
               "root": "services/sahool-platform",
@@ -3660,7 +3666,7 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/water_decision_bridge.py",
               "pattern": "decision_service_client",
-              "line": 125
+              "line": 129
             },
             {
               "root": "services/sahool-platform",
@@ -3670,18 +3676,18 @@
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/routers/decision_record.py",
+              "path": "services/sahool-platform/api/routers/decision_impact.py",
               "pattern": "decision_service_client",
-              "line": 33
+              "line": 137
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/routers/decision_review.py",
+              "path": "services/sahool-platform/api/routers/decision_record.py",
               "pattern": "decision_service_client",
-              "line": 23
+              "line": 33
             }
           ],
-          "match_count": 28
+          "match_count": 30
         }
       ]
     },
@@ -3741,19 +3747,19 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "DECISION_SERVICE_URL",
-              "line": 559
+              "line": 659
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-model-registry-worker",
-              "line": 1445
+              "line": 1613
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "model-registry",
-              "line": 1442
+              "line": 1610
             }
           ],
           "match_count": 7
@@ -3854,19 +3860,19 @@
               "root": "frontend/nginx.conf",
               "path": "frontend/nginx.conf",
               "pattern": "/api/remote-sensing-workspace/",
-              "line": 116
+              "line": 131
             },
             {
               "root": "nginx/nginx.v9.conf",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/remote-sensing-workspace/",
-              "line": 272
+              "line": 311
             },
             {
               "root": "nginx/nginx.v9.conf",
               "path": "nginx/nginx.v9.conf",
               "pattern": "remote_sensing_workspace_backend",
-              "line": 106
+              "line": 115
             }
           ],
           "match_count": 6
@@ -3929,13 +3935,13 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "FIELD_SERVICE_URL",
-              "line": 888
+              "line": 1033
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-field-management",
-              "line": 888
+              "line": 1033
             }
           ],
           "match_count": 6
@@ -3993,13 +3999,13 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-scout-ingest",
-              "line": 566
+              "line": 72
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "scout-ingest-service",
-              "line": 962
+              "line": 1108
             },
             {
               "root": "tests_v9/test_scout_ingest_service_ownership.py",

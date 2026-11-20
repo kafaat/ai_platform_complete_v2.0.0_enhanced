@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1893,
   "route_handlers":1050,
-  "call_edges":78356,
+  "call_edges":78445,
   "dead_code_candidates":634,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -120705,56 +120705,42 @@
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"claim_or_recover",
+   "target":"execute",
+   "line":90
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_batch_job_store.py",
+   "source":"claim_or_recover",
    "target":"fetchrow",
-   "line":87
+   "line":91
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"claim_or_recover",
    "target":"str",
-   "line":124
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_batch_job_store.py",
-   "source":"claim_or_recover",
-   "target":"_payload",
-   "line":125
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_batch_job_store.py",
-   "source":"claim_or_recover",
-   "target":"dumps",
-   "line":125
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_batch_job_store.py",
-   "source":"claim_or_recover",
-   "target":"DurableClaim",
    "line":128
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"claim_or_recover",
-   "target":"bool",
-   "line":130
+   "target":"_payload",
+   "line":129
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"claim_or_recover",
-   "target":"str",
-   "line":131
+   "target":"dumps",
+   "line":129
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"claim_or_recover",
-   "target":"str",
+   "target":"DurableClaim",
    "line":132
   },
   {
@@ -120762,154 +120748,161 @@
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"claim_or_recover",
    "target":"bool",
+   "line":134
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_batch_job_store.py",
+   "source":"claim_or_recover",
+   "target":"str",
    "line":135
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"claim_or_recover",
+   "target":"str",
+   "line":136
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_batch_job_store.py",
+   "source":"claim_or_recover",
+   "target":"bool",
+   "line":139
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_batch_job_store.py",
+   "source":"claim_or_recover",
    "target":"_as_obj",
-   "line":136
+   "line":140
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"claim_or_recover",
    "target":"get",
-   "line":136
+   "line":140
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"claim_or_recover",
    "target":"get",
-   "line":137
+   "line":141
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"claim_or_recover",
    "target":"close",
-   "line":140
+   "line":144
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"heartbeat",
    "target":"_connect",
-   "line":146
+   "line":150
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"heartbeat",
    "target":"execute",
-   "line":151
+   "line":155
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"heartbeat",
    "target":"str",
-   "line":151
+   "line":155
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"heartbeat",
    "target":"execute",
-   "line":152
+   "line":156
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"heartbeat",
    "target":"str",
-   "line":158
+   "line":162
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"heartbeat",
    "target":"endswith",
-   "line":161
+   "line":165
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"heartbeat",
    "target":"close",
-   "line":163
+   "line":167
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"finish",
    "target":"ValueError",
-   "line":177
+   "line":181
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"finish",
    "target":"_connect",
-   "line":178
+   "line":182
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"finish",
    "target":"execute",
-   "line":183
+   "line":187
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"finish",
    "target":"str",
-   "line":183
+   "line":187
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"finish",
    "target":"execute",
-   "line":184
+   "line":188
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"finish",
    "target":"dumps",
-   "line":193
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_batch_job_store.py",
-   "source":"finish",
-   "target":"endswith",
    "line":197
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"finish",
+   "target":"endswith",
+   "line":201
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_batch_job_store.py",
+   "source":"finish",
    "target":"close",
-   "line":199
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_batch_job_store.py",
-   "source":"_run_sync",
-   "target":"bool",
-   "line":209
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_batch_job_store.py",
-   "source":"_run_sync",
-   "target":"run",
-   "line":209
+   "line":203
   },
   {
    "owner":"raster-service",
@@ -120924,69 +120917,83 @@
    "source":"_run_sync",
    "target":"run",
    "line":213
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_batch_job_store.py",
+   "source":"_run_sync",
+   "target":"bool",
+   "line":217
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_batch_job_store.py",
+   "source":"_run_sync",
+   "target":"run",
+   "line":217
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"runner",
    "target":"bool",
-   "line":213
+   "line":217
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"runner",
    "target":"run",
-   "line":213
+   "line":217
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"_run_sync",
    "target":"Thread",
-   "line":215
+   "line":219
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"_run_sync",
    "target":"start",
-   "line":216
+   "line":220
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"_run_sync",
    "target":"join",
-   "line":217
+   "line":221
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"heartbeat_sync",
    "target":"_run_sync",
-   "line":224
+   "line":228
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"heartbeat_sync",
    "target":"heartbeat",
-   "line":225
+   "line":229
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"finish_sync",
    "target":"_run_sync",
-   "line":241
+   "line":245
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_batch_job_store.py",
    "source":"finish_sync",
    "target":"finish",
-   "line":242
+   "line":246
   },
   {
    "owner":"raster-service",
@@ -154450,6 +154457,594 @@
   },
   {
    "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"parametrize",
+   "line":131
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"str",
+   "line":134
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"uuid4",
+   "line":134
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"uuid4",
+   "line":135
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"uuid4",
+   "line":136
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"setattr",
+   "line":137
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"Barrier",
+   "line":141
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"Barrier",
+   "line":141
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"connect_together",
+   "target":"original_connect",
+   "line":144
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"original_connect",
+   "line":144
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"original_connect",
+   "line":144
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"connect_together",
+   "target":"wait",
+   "line":147
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"connect_together",
+   "target":"wait_for",
+   "line":147
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"wait",
+   "line":147
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"wait_for",
+   "line":147
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"wait",
+   "line":147
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"wait_for",
+   "line":147
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"connect_together",
+   "target":"close",
+   "line":149
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"close",
+   "line":149
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"close",
+   "line":149
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"setattr",
+   "line":153
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"setattr",
+   "line":153
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"wait_for",
+   "line":155
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"wait_for",
+   "line":155
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"gather",
+   "line":156
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"gather",
+   "line":156
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"claim_or_recover",
+   "line":158
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"claim_or_recover",
+   "line":158
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"_req",
+   "line":163
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"_req",
+   "line":163
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"range",
+   "line":166
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"range",
+   "line":166
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"all",
+   "line":172
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"isinstance",
+   "line":172
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"all",
+   "line":172
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"isinstance",
+   "line":172
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"sum",
+   "line":173
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"sum",
+   "line":173
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"len",
+   "line":175
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"len",
+   "line":175
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"connect",
+   "line":179
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"connect",
+   "line":179
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"execute",
+   "line":181
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"execute",
+   "line":181
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"fetch",
+   "line":182
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"fetch",
+   "line":182
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"len",
+   "line":186
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"len",
+   "line":186
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"close",
+   "line":190
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"close",
+   "line":190
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"_cleanup",
+   "line":192
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"_cleanup",
+   "line":192
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"run",
+   "line":194
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_concurrent_claims_share_one_lease_and_one_attempt",
+   "target":"scenario",
+   "line":194
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"str",
+   "line":201
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"uuid4",
+   "line":201
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"uuid4",
+   "line":202
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"uuid4",
+   "line":203
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"uuid4",
+   "line":204
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"setattr",
+   "line":205
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"claim",
+   "target":"wait_for",
+   "line":208
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"wait_for",
+   "line":208
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"claim",
+   "target":"claim_or_recover",
+   "line":209
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"claim_or_recover",
+   "line":209
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"claim",
+   "target":"_req",
+   "line":214
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"_req",
+   "line":214
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"claim",
+   "line":222
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"claim",
+   "line":222
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"raises",
+   "line":224
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"raises",
+   "line":224
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"claim",
+   "line":225
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"claim",
+   "line":225
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"claim",
+   "line":226
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"claim",
+   "line":226
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"claim",
+   "line":229
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"uuid4",
+   "line":229
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"claim",
+   "line":229
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"uuid4",
+   "line":229
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"_cleanup",
+   "line":233
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"_cleanup",
+   "line":233
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"scenario",
+   "target":"_cleanup",
+   "line":234
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"_cleanup",
+   "line":234
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"run",
+   "line":236
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_batch_postgres_integration.py",
+   "source":"test_distinct_claim_key_cannot_take_an_existing_job_id",
+   "target":"scenario",
+   "line":236
+  },
+  {
+   "owner":"raster-service",
    "file":"services/raster-service/test_raster_crs_window.py",
    "source":"_make_projected_raster",
    "target":"transform_bounds",
@@ -154795,50 +155390,57 @@
    "owner":"raster-service",
    "file":"services/raster-service/test_raster_durable_identity.py",
    "source":"test_durable_claim_returns_database_lease_token",
+   "target":"next",
+   "line":93
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_raster_durable_identity.py",
+   "source":"test_durable_claim_returns_database_lease_token",
    "target":"len",
-   "line":96
+   "line":98
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_raster_durable_identity.py",
    "source":"test_terminal_write_requires_current_lease_token",
    "target":"_Conn",
-   "line":100
+   "line":102
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_raster_durable_identity.py",
    "source":"test_terminal_write_requires_current_lease_token",
    "target":"setattr",
-   "line":105
+   "line":107
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_raster_durable_identity.py",
    "source":"test_terminal_write_requires_current_lease_token",
    "target":"run",
-   "line":106
+   "line":108
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_raster_durable_identity.py",
    "source":"test_terminal_write_requires_current_lease_token",
    "target":"finish",
-   "line":107
+   "line":109
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_raster_durable_identity.py",
    "source":"test_product_identity_is_written_by_persistence_adapter",
    "target":"read_text",
-   "line":123
+   "line":125
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_raster_durable_identity.py",
    "source":"test_lease_token_is_not_persisted_in_public_job_payload",
    "target":"read_text",
-   "line":131
+   "line":133
   },
   {
    "owner":"raster-service",
@@ -157687,13 +158289,27 @@
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"_connect",
    "target":"connect",
-   "line":39
+   "line":36
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"_cleanup",
    "target":"_connect",
+   "line":40
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_single_scene_concurrent_pg.py",
+   "source":"_cleanup",
+   "target":"execute",
+   "line":42
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_single_scene_concurrent_pg.py",
+   "source":"_cleanup",
+   "target":"execute",
    "line":43
   },
   {
@@ -157701,69 +158317,76 @@
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"_cleanup",
    "target":"execute",
-   "line":45
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/test_single_scene_concurrent_pg.py",
-   "source":"_cleanup",
-   "target":"execute",
-   "line":46
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/test_single_scene_concurrent_pg.py",
-   "source":"_cleanup",
-   "target":"execute",
-   "line":49
+   "line":48
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"_cleanup",
    "target":"close",
-   "line":53
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/test_single_scene_concurrent_pg.py",
-   "source":"_run",
-   "target":"_cleanup",
-   "line":62
+   "line":52
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"test_concurrent_enqueue_leaves_one_item_and_no_orphan_run",
-   "target":"_cleanup",
-   "line":62
+   "target":"setattr",
+   "line":58
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_single_scene_concurrent_pg.py",
+   "source":"test_concurrent_enqueue_leaves_one_item_and_no_orphan_run",
+   "target":"str",
+   "line":59
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_single_scene_concurrent_pg.py",
+   "source":"test_concurrent_enqueue_leaves_one_item_and_no_orphan_run",
+   "target":"uuid4",
+   "line":59
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"_run",
    "target":"dict",
-   "line":63
+   "line":62
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"test_concurrent_enqueue_leaves_one_item_and_no_orphan_run",
    "target":"dict",
-   "line":63
+   "line":62
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"_run",
    "target":"gather",
+   "line":72
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_single_scene_concurrent_pg.py",
+   "source":"test_concurrent_enqueue_leaves_one_item_and_no_orphan_run",
+   "target":"gather",
+   "line":72
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_single_scene_concurrent_pg.py",
+   "source":"_run",
+   "target":"enqueue_single_scene_process",
    "line":73
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"test_concurrent_enqueue_leaves_one_item_and_no_orphan_run",
-   "target":"gather",
+   "target":"enqueue_single_scene_process",
    "line":73
   },
   {
@@ -157784,29 +158407,29 @@
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"_run",
-   "target":"enqueue_single_scene_process",
-   "line":75
+   "target":"_connect",
+   "line":76
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"test_concurrent_enqueue_leaves_one_item_and_no_orphan_run",
-   "target":"enqueue_single_scene_process",
-   "line":75
+   "target":"_connect",
+   "line":76
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"_run",
-   "target":"_connect",
-   "line":77
+   "target":"execute",
+   "line":78
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"test_concurrent_enqueue_leaves_one_item_and_no_orphan_run",
-   "target":"_connect",
-   "line":77
+   "target":"execute",
+   "line":78
   },
   {
    "owner":"raster-service",
@@ -157855,14 +158478,14 @@
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"test_concurrent_enqueue_leaves_one_item_and_no_orphan_run",
    "target":"_run",
-   "line":97
+   "line":98
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_single_scene_concurrent_pg.py",
    "source":"test_concurrent_enqueue_leaves_one_item_and_no_orphan_run",
    "target":"run",
-   "line":97
+   "line":98
   },
   {
    "owner":"raster-service",

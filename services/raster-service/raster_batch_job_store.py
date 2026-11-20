@@ -84,6 +84,10 @@ async def claim_or_recover(
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
+            # The claim-key arbiter cannot resolve a concurrent violation of the
+            # separate job_id unique index. Serialize identical claims before
+            # inserting; the transaction releases this lock on commit/rollback.
+            await conn.execute("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", claim_key)
             row = await conn.fetchrow(
                 """
                 INSERT INTO raster_batch_jobs (

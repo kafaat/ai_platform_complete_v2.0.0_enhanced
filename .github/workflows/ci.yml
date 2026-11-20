@@ -910,6 +910,11 @@ jobs:
           PYTHONPATH=. pytest tests -q -p no:cacheprovider
           --cov=api --cov=core --cov-config=.coveragerc
           --cov-report=term --cov-report=xml
+      - name: Round-trip a Parquet export with the platform NumPy pin
+        run: |
+          python -m pip install -c services/raster-service/requirements.txt pyarrow
+          python -c 'import pyarrow.parquet'
+          python -m pytest -q tests_v9/test_farm_memory.py::test_export_to_parquet_round_trip
 
   # ── MUT-SWEEP-SHARDING-01: مكنسة الطفرات موزَّعةً على خمسة عمّال ──
   # All five contexts are now enforced by main-protection and declared in
@@ -1575,6 +1580,11 @@ jobs:
         run: |
           set -euo pipefail
           python scripts/ci/live_pg_evidence_guard.py --schema-only
+      - name: Exercise raster leases and scene enqueue as the restricted application role
+        env:
+          RASTER_TEST_DATABASE_URL: postgresql://sahool_app:test_password@localhost:5435/sahool
+        working-directory: services/raster-service
+        run: python -m pytest -q test_raster_batch_postgres_integration.py test_single_scene_concurrent_pg.py
       - name: Live proofs — absence of the database is a failure, never a skip
         env:
           SAHOOL_REQUIRE_LIVE_PG: "1"

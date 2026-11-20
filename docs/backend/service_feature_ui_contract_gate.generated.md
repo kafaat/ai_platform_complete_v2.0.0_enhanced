@@ -27,8 +27,8 @@ wired: `True`
 classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
-- ui: 209 match(es)
-  - `frontend/src/components/AddFieldWithMap.tsx:430` ← `/api/v1`
+- ui: 212 match(es)
+  - `frontend/src/components/AddFieldWithMap.tsx:441` ← `/api/v1`
   - `frontend/src/components/AddFieldWithMap.tsx:2` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx:6` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx:4` ← `AddFieldWithMap`
@@ -36,8 +36,8 @@ wired: `True`
 - gateway: 4 match(es)
   - `nginx/nginx.fixed.conf:68` ← `/api/v1/`
   - `nginx/nginx.fixed.conf:30` ← `platform_backend`
-  - `nginx/nginx.v9.conf:72` ← `/api/v1/`
-  - `nginx/nginx.v9.conf:80` ← `platform_backend`
+  - `nginx/nginx.v9.conf:81` ← `/api/v1/`
+  - `nginx/nginx.v9.conf:89` ← `platform_backend`
 
 ### `raster-service` — pass
 classification: `ui`
@@ -52,15 +52,15 @@ wired: `True`
 - gateway: 4 match(es)
   - `nginx/nginx.fixed.conf:67` ← `/api/raster/`
   - `nginx/nginx.fixed.conf:26` ← `raster_backend`
-  - `nginx/nginx.v9.conf:252` ← `/api/raster/`
-  - `nginx/nginx.v9.conf:87` ← `raster_backend`
+  - `nginx/nginx.v9.conf:220` ← `/api/raster/`
+  - `nginx/nginx.v9.conf:96` ← `raster_backend`
 
 ### `vegetation-analysis-service` — pass
 classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
 - ui: 97 match(es)
-  - `frontend/src/App.tsx:122` ← `FieldRanking`
+  - `frontend/src/App.tsx:121` ← `FieldRanking`
   - `frontend/src/components/NDVIGauge.tsx:1` ← `NDVI`
   - `frontend/src/components/approvals/DecisionEvidencePanel.tsx:29` ← `vegetation`
   - `frontend/src/components/ds/tokens.ts:10` ← `NDVI`
@@ -68,8 +68,8 @@ wired: `True`
 - gateway: 4 match(es)
   - `nginx/nginx.fixed.conf:66` ← `/api/vegetation/`
   - `nginx/nginx.fixed.conf:23` ← `vegetation_backend`
-  - `nginx/nginx.v9.conf:230` ← `/api/vegetation/`
-  - `nginx/nginx.v9.conf:84` ← `vegetation_backend`
+  - `nginx/nginx.v9.conf:224` ← `/api/vegetation/`
+  - `nginx/nginx.v9.conf:93` ← `vegetation_backend`
 
 ### `indicators-service` — pass
 classification: `ui`
@@ -77,15 +77,15 @@ wiring disposition: `consumed`
 wired: `True`
 - ui: 32 match(es)
   - `frontend/src/App.tsx:64` ← `HybridIndexPage`
-  - `frontend/src/App.tsx:144` ← `indicators`
+  - `frontend/src/App.tsx:143` ← `indicators`
   - `frontend/src/components/insights/MapIndicatorLegend.test.tsx:28` ← `indicators`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts:112` ← `indicators`
   - `frontend/src/config/endpoints.ts:61` ← `indicators`
 - gateway: 4 match(es)
   - `nginx/nginx.fixed.conf:68` ← `/api/indicators/`
   - `nginx/nginx.fixed.conf:24` ← `indicators_backend`
-  - `nginx/nginx.v9.conf:225` ← `/api/indicators/`
-  - `nginx/nginx.v9.conf:83` ← `indicators_backend`
+  - `nginx/nginx.v9.conf:264` ← `/api/indicators/`
+  - `nginx/nginx.v9.conf:92` ← `indicators_backend`
 
 ### `weather-service` — pass
 classification: `ui`
@@ -97,7 +97,7 @@ wired: `True`
   - `frontend/src/components/maphub/weather/README.md:20` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherActionLifecycle.static.test.ts:6` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts:7` ← `WeatherTileLayer`
-- platform-proxy: 322 match(es)
+- platform-proxy: 330 match(es)
   - `services/sahool-platform/api/agronomic_consistency.py:146` ← `weather`
   - `services/sahool-platform/api/agronomic_context_composer.py:32` ← `weather`
   - `services/sahool-platform/api/agronomic_replay.py:8` ← `weather`
@@ -108,13 +108,13 @@ wired: `True`
 classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
-- ui: 152 match(es)
-  - `frontend/src/App.tsx:438` ← `soil`
-  - `frontend/src/components/AddFieldWithMap.tsx:115` ← `soil`
-  - `frontend/src/components/AddFieldWithMap.tsx:410` ← `Soil`
+- ui: 154 match(es)
+  - `frontend/src/App.tsx:437` ← `soil`
+  - `frontend/src/components/AddFieldWithMap.tsx:118` ← `soil`
+  - `frontend/src/components/AddFieldWithMap.tsx:421` ← `Soil`
   - `frontend/src/components/FieldDetailPanel.tsx:17` ← `soil`
   - `frontend/src/components/decision/DecisionDeepPanel.tsx:21` ← `soil`
-- platform-proxy: 305 match(es)
+- platform-proxy: 312 match(es)
   - `services/sahool-platform/README.md:36` ← `soil`
   - `services/sahool-platform/api/agronomic_consistency.py:74` ← `soil`
   - `services/sahool-platform/api/agronomic_context_composer.py:32` ← `soil`
@@ -142,7 +142,7 @@ wired: `True`
 classification: `internal`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 33 match(es)
+- internal-consumer: 34 match(es)
   - `services/field-segmentation/exg_preprocess.py:236` ← `sam2`
   - `services/field-segmentation/main.py:12` ← `SEGMENTATION_INFERENCE_URL`
   - `services/field-segmentation/main.py:12` ← `SEGMENTATION_BACKEND`
@@ -153,34 +153,34 @@ wired: `True`
 classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
-- ui: 18 match(es)
+- ui: 19 match(es)
   - `frontend/src/App.tsx:63` ← `ChatbotPage`
   - `frontend/src/hooks/fieldViewUiWide.static.test.ts:18` ← `ChatbotPage`
-  - `frontend/src/hooks/useApi.ts:1976` ← `ai-agronomist`
+  - `frontend/src/hooks/fieldViewUiWide.static.test.ts:36` ← `ai-agronomist`
+  - `frontend/src/hooks/useApi.ts:1980` ← `ai-agronomist`
   - `frontend/src/lib/approvalsConsole.test.ts:26` ← `ChatbotPage`
-  - `frontend/src/sections/ChatbotAgronomyPanels.v615.static.test.ts:6` ← `ChatbotPage`
 - gateway: 2 match(es)
-  - `nginx/nginx.v9.conf:376` ← `/api/ai-agronomist/`
-  - `nginx/nginx.v9.conf:95` ← `ai_agronomist_backend`
+  - `nginx/nginx.v9.conf:417` ← `/api/ai-agronomist/`
+  - `nginx/nginx.v9.conf:104` ← `ai_agronomist_backend`
 
 ### `rag-retrieval` — pass
 classification: `internal-sensitive`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 19 match(es)
-  - `services/ai_agronomist/ai_evidence_runtime.py:41` ← `RAG_BASE_URL`
-  - `services/ai_agronomist/ai_evidence_runtime.py:41` ← `rag-retrieval`
+- internal-consumer: 33 match(es)
+  - `services/ai_agronomist/ai_evidence_runtime.py:44` ← `RAG_BASE_URL`
+  - `services/ai_agronomist/ai_evidence_runtime.py:44` ← `rag-retrieval`
   - `services/ai_agronomist/main.py:34` ← `RAG_BASE_URL`
   - `services/ai_agronomist/main.py:34` ← `rag-retrieval`
-  - `tests_v9/test_api_versioning_policy_guard.py:435` ← `rag-retrieval`
+  - `tests_v9/test_ai_rag_delta_p0.py:312` ← `rag-retrieval`
 
 ### `knowledge-graph` — pass
 classification: `internal-sensitive`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 22 match(es)
-  - `services/ai_agronomist/ai_evidence_runtime.py:42` ← `KNOWLEDGE_GRAPH_URL`
-  - `services/ai_agronomist/ai_evidence_runtime.py:42` ← `knowledge-graph`
+- internal-consumer: 27 match(es)
+  - `services/ai_agronomist/ai_evidence_runtime.py:45` ← `KNOWLEDGE_GRAPH_URL`
+  - `services/ai_agronomist/ai_evidence_runtime.py:45` ← `knowledge-graph`
   - `services/ai_agronomist/main.py:35` ← `KNOWLEDGE_GRAPH_URL`
   - `services/ai_agronomist/main.py:35` ← `knowledge-graph`
   - `services/mcp_servers/generic_context_server.py:18` ← `knowledge-graph`
@@ -206,8 +206,8 @@ wired: `True`
 classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
-- ui: 105 match(es)
-  - `frontend/src/App.tsx:147` ← `approval`
+- ui: 107 match(es)
+  - `frontend/src/App.tsx:146` ← `approval`
   - `frontend/src/components/AddFieldWithMap.tsx:32` ← `validate`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx:53` ← `validate`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx:18` ← `validate`
@@ -215,8 +215,8 @@ wired: `True`
 - gateway: 4 match(es)
   - `nginx/nginx.fixed.conf:65` ← `/api/guardrails/`
   - `nginx/nginx.fixed.conf:22` ← `guardrails_backend`
-  - `nginx/nginx.v9.conf:343` ← `/api/guardrails/`
-  - `nginx/nginx.v9.conf:92` ← `guardrails_backend`
+  - `nginx/nginx.v9.conf:382` ← `/api/guardrails/`
+  - `nginx/nginx.v9.conf:101` ← `guardrails_backend`
 
 ### `agriai-engine` — pass
 classification: `experimental-model-runtime`
@@ -234,20 +234,20 @@ reopen trigger: `SIM-GOLDEN-01 certification plus eligible real-season data`
 classification: `internal`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 101 match(es)
+- internal-consumer: 103 match(es)
   - `services/supervisor-agent/circuit_breaker.py:2` ← `MCP`
   - `services/supervisor-agent/main.py:14` ← `MCP`
   - `services/supervisor-agent/main.py:71` ← `sentinel`
   - `services/supervisor-agent/mcp_client.py:3` ← `MCP`
-  - `services/supervisor-agent/router.py:23` ← `sentinel`
+  - `services/supervisor-agent/router.py:40` ← `sentinel`
 
 ### `actuator-service` — pass
 classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
-- ui: 195 match(es)
-  - `frontend/src/App.tsx:145` ← `irrigation`
-  - `frontend/src/components/AddFieldWithMap.tsx:119` ← `irrigation`
+- ui: 197 match(es)
+  - `frontend/src/App.tsx:144` ← `irrigation`
+  - `frontend/src/components/AddFieldWithMap.tsx:122` ← `irrigation`
   - `frontend/src/components/AddSeasonWithStages.tsx:29` ← `irrigation`
   - `frontend/src/components/FieldDetailPanel.tsx:153` ← `irrigation`
   - `frontend/src/components/decision/DecisionDeepPanel.tsx:21` ← `irrigation`
@@ -255,16 +255,16 @@ wired: `True`
   - `services/actuator-service/actuator_runtime.py:161` ← `ACTUATOR_DISPATCH_ADAPTER_ID`
   - `services/actuator-service/actuator_runtime.py:289` ← `/v1/execution-requests/recovery`
   - `services/actuator-service/test_dispatch_bridge.py:174` ← `/v1/execution-requests/recovery`
-  - `services/decision-service/main.py:1774` ← `/v1/execution-requests/recovery`
+  - `services/decision-service/main.py:1779` ← `/v1/execution-requests/recovery`
   - `services/decision-service/main.py:63` ← `list_inflight_execution_requests`
 
 ### `edge-inference` — pass
 classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
-- ui: 129 match(es)
-  - `frontend/src/App.tsx:145` ← `pest`
-  - `frontend/src/App.tsx:148` ← `yield`
+- ui: 131 match(es)
+  - `frontend/src/App.tsx:144` ← `pest`
+  - `frontend/src/App.tsx:147` ← `yield`
   - `frontend/src/components/AddSeasonWithStages.tsx:31` ← `yield`
   - `frontend/src/components/FieldDetailPanel.tsx:168` ← `yield`
   - `frontend/src/components/decision/DecisionDeepPanel.tsx:21` ← `pest`
@@ -288,7 +288,7 @@ wired: `True`
   - `nginx/nginx.light.conf:35` ← `video_backend`
   - `nginx/nginx.unified.conf:122` ← `/api/video/`
   - `nginx/nginx.unified.conf:40` ← `video_backend`
-  - `nginx/nginx.v9.conf:499` ← `/api/video/`
+  - `nginx/nginx.v9.conf:540` ← `/api/video/`
 
 ### `weather-polygon-worker` — pass
 classification: `ui-indirect`
@@ -300,7 +300,7 @@ wired: `True`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts:24` ← `operation-tile-data`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts:23` ← `tile-data`
   - `frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx:19` ← `WeatherTileLayer`
-- internal-consumer: 11 match(es)
+- internal-consumer: 15 match(es)
   - `services/sahool-platform/core/weather_overlay_pipeline.py:4` ← `field_weather_overlay`
   - `services/sahool-platform/core/weather_overlay_pipeline.py:1` ← `weather_overlay_pipeline`
   - `services/sahool-platform/core/weather_overlay_pipeline.py:1` ← `weather-polygon-worker`
@@ -311,8 +311,8 @@ wired: `True`
 classification: `internal`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 20 match(es)
-  - `services/sahool-platform/api/field_season_projection.py:115` ← `weather_signals`
+- internal-consumer: 22 match(es)
+  - `services/sahool-platform/api/field_season_projection.py:121` ← `weather_signals`
   - `services/sahool-platform/api/routers/agro_intelligence.py:30` ← `weather_signals`
   - `services/sahool-platform/api/routers/agro_intelligence.py:14` ← `decision_playbook`
   - `services/sahool-platform/core/decision_playbook.py:12` ← `weather_signals`
@@ -322,12 +322,12 @@ wired: `True`
 classification: `integration`
 wiring disposition: `consumed`
 wired: `True`
-- gateway-or-internal: 20 match(es)
+- gateway-or-internal: 22 match(es)
   - `nginx/nginx.unified.conf:156` ← `/api/erp/`
   - `nginx/nginx.unified.conf:46` ← `erp-bridge`
-  - `services/mcp_servers/market_server.py:31` ← `ERP_BRIDGE_URL`
-  - `services/mcp_servers/market_server.py:31` ← `erp-bridge`
-  - `services/mcp_servers/market_server.py:31` ← `sahool-erp-bridge`
+  - `services/mcp_servers/market_server.py:32` ← `ERP_BRIDGE_URL`
+  - `services/mcp_servers/market_server.py:32` ← `erp-bridge`
+  - `services/mcp_servers/market_server.py:32` ← `sahool-erp-bridge`
 
 ### `tts-service` — pass
 classification: `ui`
@@ -344,21 +344,21 @@ wired: `True`
 classification: `internal`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 66 match(es)
+- internal-consumer: 90 match(es)
+  - `services/supervisor-agent/mcp_client.py:74` ← `RAG`
   - `services/supervisor-agent/test_ai_orchestration_forensic.py:89` ← `LOCAL_AI_RAG_URL`
   - `services/supervisor-agent/test_ai_orchestration_forensic.py:89` ← `RAG`
   - `services/supervisor-agent/skills/advisory_skill.py:10` ← `LOCAL_AI_RAG_URL`
   - `services/supervisor-agent/skills/advisory_skill.py:9` ← `local-ai-rag`
-  - `services/supervisor-agent/skills/advisory_skill.py:9` ← `RAG`
 
 ### `raster-tiler-service` — pass
 classification: `internal`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 46 match(es)
-  - `services/raster-service/cloud_native_catalog.py:100` ← `tilejson`
+- internal-consumer: 51 match(es)
+  - `services/raster-service/cloud_native_catalog.py:104` ← `tilejson`
   - `services/raster-service/main.py:48` ← `TITILER_URL`
-  - `services/raster-service/raster_cdse_tile_runtime.py:269` ← `tilejson`
+  - `services/raster-service/raster_cdse_tile_runtime.py:452` ← `tilejson`
   - `services/raster-service/raster_field_runtime.py:62` ← `TITILER_URL`
   - `services/raster-service/raster_job_orchestration.py:198` ← `tilejson`
 
@@ -366,9 +366,9 @@ wired: `True`
 classification: `job`
 wiring disposition: `standalone-job`
 wired: `None`
-- job-contract: 27 match(es)
-  - `docker-compose.v9.yml:1750` ← `qdrant-seed`
-  - `docker-compose.v9.yml:400` ← `QDRANT`
+- job-contract: 58 match(es)
+  - `docker-compose.v9.yml:1949` ← `qdrant-seed`
+  - `docker-compose.v9.yml:427` ← `QDRANT`
   - `docker-compose.fixed.yml:257` ← `qdrant-seed`
   - `docker-compose.fixed.yml:19` ← `QDRANT`
   - `docker-compose.rag-kg-mcp.yml:10` ← `QDRANT`
@@ -377,10 +377,10 @@ wired: `None`
 classification: `internal-sensitive`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 28 match(es)
+- internal-consumer: 30 match(es)
   - `services/sahool-platform/api/crop_decision_bridge.py:38` ← `decision_service_client`
-  - `services/sahool-platform/api/decision_service_client.py:16` ← `DECISION_SERVICE_URL`
-  - `services/sahool-platform/api/decision_service_client.py:16` ← `sahool-decision-service`
+  - `services/sahool-platform/api/decision_service_client.py:21` ← `DECISION_SERVICE_URL`
+  - `services/sahool-platform/api/decision_service_client.py:21` ← `sahool-decision-service`
   - `services/sahool-platform/api/irrigation_activation_gate.py:70` ← `DECISION_SERVICE_URL`
   - `services/sahool-platform/api/irrigation_activation_gate.py:70` ← `sahool-decision-service`
 
@@ -393,7 +393,7 @@ wired: `True`
   - `services/model-registry-adapter/runtime.py:69` ← `model-registry`
   - `services/model-registry-adapter/worker.py:15` ← `DECISION_SERVICE_URL`
   - `services/model-registry-adapter/tests/test_runtime_contract.py:32` ← `DECISION_SERVICE_URL`
-  - `docker-compose.v9.yml:559` ← `DECISION_SERVICE_URL`
+  - `docker-compose.v9.yml:659` ← `DECISION_SERVICE_URL`
 
 ### `gis-workflow-service` — pass
 classification: `batch-job-tool`
@@ -411,8 +411,8 @@ wired: `True`
   - `frontend/src/sections/FieldWorkspaceImageryPanel.tsx:8` ← `getRemoteSensingWorkspaceOverview`
   - `frontend/src/services/api/remoteSensingWorkspace.ts:28` ← `getRemoteSensingWorkspaceOverview`
   - `frontend/src/services/api/remoteSensingWorkspace.ts:33` ← `/api/remote-sensing-workspace/`
-  - `frontend/nginx.conf:116` ← `/api/remote-sensing-workspace/`
-  - `nginx/nginx.v9.conf:272` ← `/api/remote-sensing-workspace/`
+  - `frontend/nginx.conf:131` ← `/api/remote-sensing-workspace/`
+  - `nginx/nginx.v9.conf:311` ← `/api/remote-sensing-workspace/`
 
 ### `field-management-service` — pass
 classification: `internal-sensitive`
@@ -423,7 +423,7 @@ wired: `True`
   - `services/vegetation-analysis-service/test_platform_field_catalog_boundary.py:35` ← `/internal/fields`
   - `services/vegetation-analysis-service/vegetation_runtime.py:105` ← `FIELD_SERVICE_URL`
   - `services/vegetation-analysis-service/vegetation_runtime.py:97` ← `/internal/fields`
-  - `docker-compose.v9.yml:888` ← `FIELD_SERVICE_URL`
+  - `docker-compose.v9.yml:1033` ← `FIELD_SERVICE_URL`
 
 ### `scout-ingest-service` — pass
 classification: `internal-sensitive`
@@ -433,5 +433,5 @@ wired: `True`
   - `services/scout-ingest-service/main.py:334` ← `/internal/ingest/submissions/odk`
   - `services/scout-ingest-service/main.py:2` ← `scout-ingest-service`
   - `services/scout-ingest-service/tests/test_ingest_live.py:1` ← `scout-ingest-service`
-  - `docker-compose.v9.yml:566` ← `sahool-scout-ingest`
-  - `docker-compose.v9.yml:962` ← `scout-ingest-service`
+  - `docker-compose.v9.yml:72` ← `sahool-scout-ingest`
+  - `docker-compose.v9.yml:1108` ← `scout-ingest-service`
