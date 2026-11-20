@@ -91,7 +91,7 @@
     },
     {
       "kind": "app",
-      "line": 396,
+      "line": 397,
       "module": "services.auth.main",
       "node_id": "services.auth.main:app",
       "route_count": 1,
@@ -163,7 +163,7 @@
     },
     {
       "kind": "router",
-      "line": 20,
+      "line": 22,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -325,7 +325,7 @@
     },
     {
       "kind": "app",
-      "line": 160,
+      "line": 167,
       "module": "services.odoo-bridge.main",
       "node_id": "services.odoo-bridge.main:app",
       "route_count": 0,
@@ -2233,7 +2233,7 @@
     },
     {
       "kind": "app",
-      "line": 138,
+      "line": 140,
       "module": "services.tts-service.main",
       "node_id": "services.tts-service.main:app",
       "route_count": 0,
@@ -2323,7 +2323,7 @@
     },
     {
       "kind": "app",
-      "line": 462,
+      "line": 466,
       "module": "services.video-processor.main",
       "node_id": "services.video-processor.main:app",
       "route_count": 0,
@@ -2613,7 +2613,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "398f2cbda81d20dca5a82f43ba4966b46a3484efa1cd14cc1707ae2cde0355e3",
+  "inventory_sha256": "a15a470a663d98383c30a2a2485b3f4cf0417696ec849f4aa05bce53cbb3b267",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -2719,7 +2719,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 20,
+      "line": 22,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,

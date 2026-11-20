@@ -26,11 +26,11 @@
         "GET /healthz @ services/auth/routers/ops.py:27",
         "GET /metrics @ services/auth/routers/ops.py:21",
         "GET /readyz @ services/auth/routers/ops.py:32",
-        "GET /runtime-identity @ services/auth/main.py:400",
+        "GET /runtime-identity @ services/auth/main.py:401",
         "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:702",
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
         "GET /v1/auth/invitations @ services/auth/routers/invitations.py:84",
-        "GET /v1/auth/me @ services/auth/routers/session.py:211",
+        "GET /v1/auth/me @ services/auth/routers/session.py:214",
         "GET /v1/auth/users @ services/auth/routers/users.py:22",
         "GET /v1/auth/verify @ services/auth/routers/email_verify.py:97",
         "GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:107",
@@ -42,14 +42,14 @@
         "POST /v1/auth/change-password @ services/auth/routers/registration.py:74",
         "POST /v1/auth/invitations @ services/auth/routers/invitations.py:25",
         "POST /v1/auth/invitations/accept @ services/auth/routers/invitations.py:115",
-        "POST /v1/auth/login @ services/auth/routers/session.py:24",
-        "POST /v1/auth/logout @ services/auth/routers/session.py:167",
+        "POST /v1/auth/login @ services/auth/routers/session.py:26",
+        "POST /v1/auth/logout @ services/auth/routers/session.py:169",
         "POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:74",
         "POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:144",
         "POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:21",
         "POST /v1/auth/password-reset/confirm @ services/auth/routers/password_reset.py:41",
         "POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:21",
-        "POST /v1/auth/refresh @ services/auth/routers/session.py:125",
+        "POST /v1/auth/refresh @ services/auth/routers/session.py:127",
         "POST /v1/auth/register @ services/auth/routers/registration.py:19",
         "POST /v1/auth/tenants @ services/auth/routers/tenants.py:40",
         "POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:55",
@@ -91,9 +91,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:262",
-          "metric:sahool_auth_register_total@services/auth/main.py:263",
-          "metric:sahool_auth_resets_total@services/auth/main.py:264"
+          "metric:sahool_auth_logins_total@services/auth/main.py:263",
+          "metric:sahool_auth_register_total@services/auth/main.py:264",
+          "metric:sahool_auth_resets_total@services/auth/main.py:265"
         ],
         "traces": [],
         "receipts": [],
@@ -4159,9 +4159,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:262",
-          "metric:sahool_auth_register_total@services/auth/main.py:263",
-          "metric:sahool_auth_resets_total@services/auth/main.py:264"
+          "metric:sahool_auth_logins_total@services/auth/main.py:263",
+          "metric:sahool_auth_register_total@services/auth/main.py:264",
+          "metric:sahool_auth_resets_total@services/auth/main.py:265"
         ],
         "traces": [],
         "receipts": [],
@@ -5154,9 +5154,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:262",
-          "metric:sahool_auth_register_total@services/auth/main.py:263",
-          "metric:sahool_auth_resets_total@services/auth/main.py:264"
+          "metric:sahool_auth_logins_total@services/auth/main.py:263",
+          "metric:sahool_auth_register_total@services/auth/main.py:264",
+          "metric:sahool_auth_resets_total@services/auth/main.py:265"
         ],
         "traces": [],
         "receipts": [],
@@ -5222,9 +5222,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:262",
-          "metric:sahool_auth_register_total@services/auth/main.py:263",
-          "metric:sahool_auth_resets_total@services/auth/main.py:264"
+          "metric:sahool_auth_logins_total@services/auth/main.py:263",
+          "metric:sahool_auth_register_total@services/auth/main.py:264",
+          "metric:sahool_auth_resets_total@services/auth/main.py:265"
         ],
         "traces": [],
         "receipts": [],
@@ -5301,9 +5301,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:262",
-          "metric:sahool_auth_register_total@services/auth/main.py:263",
-          "metric:sahool_auth_resets_total@services/auth/main.py:264"
+          "metric:sahool_auth_logins_total@services/auth/main.py:263",
+          "metric:sahool_auth_register_total@services/auth/main.py:264",
+          "metric:sahool_auth_resets_total@services/auth/main.py:265"
         ],
         "traces": [],
         "receipts": [],
@@ -5367,9 +5367,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:262",
-          "metric:sahool_auth_register_total@services/auth/main.py:263",
-          "metric:sahool_auth_resets_total@services/auth/main.py:264"
+          "metric:sahool_auth_logins_total@services/auth/main.py:263",
+          "metric:sahool_auth_register_total@services/auth/main.py:264",
+          "metric:sahool_auth_resets_total@services/auth/main.py:265"
         ],
         "traces": [],
         "receipts": [],
@@ -5496,9 +5496,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:262",
-          "metric:sahool_auth_register_total@services/auth/main.py:263",
-          "metric:sahool_auth_resets_total@services/auth/main.py:264"
+          "metric:sahool_auth_logins_total@services/auth/main.py:263",
+          "metric:sahool_auth_register_total@services/auth/main.py:264",
+          "metric:sahool_auth_resets_total@services/auth/main.py:265"
         ],
         "traces": [],
         "receipts": [],
