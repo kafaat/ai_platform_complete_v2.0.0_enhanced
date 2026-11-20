@@ -28,7 +28,13 @@ describe('FieldView UI-wide guards', () => {
   it('prevents direct FieldContext store reads in Chatbot runtime', () => {
     const source = read('src/sections/ChatbotPage.tsx');
     expect(source).not.toContain('useFieldContextStore');
-    expect(source).toContain('active_field_name');
+    // The runtime resolves field context from the selected ID, not a client name.
+    expect(source).toMatch(
+      /const\s*\{\s*fieldId:\s*activeFieldId\s*\}\s*=\s*useSelectedField\(\)/,
+    );
+    expect(source).toMatch(
+      /kongApi\.post\(\s*['"]\/api\/ai-agronomist\/chat['"]\s*,\s*\{[^}]*\bfield_id:\s*activeFieldId\s*\|\|\s*undefined\b/,
+    );
   });
 
   it('keeps share/sql utilities FieldView-aware', () => {

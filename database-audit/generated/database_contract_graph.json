@@ -5755,7 +5755,8 @@
       ],
       "code_writers": [
         "services/raster-service/raster_batch_job_store.py",
-        "services/raster-service/test_raster_batch_postgres_integration.py"
+        "services/raster-service/test_raster_batch_postgres_integration.py",
+        "services/raster-service/test_raster_durable_identity.py"
       ],
       "created_in": "v154_raster_product_identity_batch_leases.sql",
       "has_tenant_id": true,

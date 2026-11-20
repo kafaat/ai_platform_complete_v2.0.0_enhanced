@@ -1,5 +1,5 @@
 {
-  "edge_count": 818,
+  "edge_count": 819,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -5862,6 +5862,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/raster-service/test_raster_durable_identity.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://raster_batch_jobs",
+      "to": "db://raster_batch_jobs",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/raster-service/cache_invalidation_worker.py",
       "from": "raster-service",
       "from_kind": "component",
@@ -8202,7 +8212,7 @@
     "EMITS": 1,
     "READS": 420,
     "ROUTES_TO": 71,
-    "WRITES": 282
+    "WRITES": 283
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8217,8 +8227,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 703,
-      "resolved": 702,
+      "observed": 704,
+      "resolved": 703,
       "unresolved_component_paths": 0
     }
   }

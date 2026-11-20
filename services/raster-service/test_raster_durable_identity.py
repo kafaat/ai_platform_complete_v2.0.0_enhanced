@@ -90,7 +90,9 @@ def test_durable_claim_returns_database_lease_token(monkeypatch):
     )
     assert result.available and result.acquired
     assert result.lease_token == "tok"
-    fetch_sql, fetch_args = conn.calls[1]
+    fetch_sql, fetch_args = next(
+        call for call in conn.calls if "INSERT INTO raster_batch_jobs" in call[0]
+    )
     assert "ON CONFLICT (claim_key)" in fetch_sql
     assert "lease_token=$8" in fetch_sql
     assert len(fetch_args) == 8
