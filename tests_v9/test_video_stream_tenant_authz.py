@@ -28,9 +28,9 @@ pytestmark = [pytest.mark.unit, pytest.mark.security]  # CI يشغّل -m unit
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 VIDEO = os.path.join(ROOT, "services/video-processor")
 
-# يتطلّب تبعيّات الخدمة (fastapi/aiomqtt/numpy/httpx/jose). في بيئة CI الخفيفة قد
+# يتطلّب تبعيّات الخدمة (fastapi/aiomqtt/numpy/httpx/jwt — PyJWT بعد إزالة python-jose). في بيئة CI الخفيفة قد
 # تغيب؛ نتخطّى بصدق إن غابت (وظيفة الوحدات الكاملة تُثبّت requirements ⇒ تُشغّلها).
-_DEPS = ("fastapi", "aiomqtt", "numpy", "httpx", "jose", "pydantic")
+_DEPS = ("fastapi", "aiomqtt", "numpy", "httpx", "jwt", "pydantic")
 _have_deps = all(importlib.util.find_spec(m) is not None for m in _DEPS)
 
 

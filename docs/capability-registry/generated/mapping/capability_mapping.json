@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5328,
+    "files_scanned": 5331,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1474,
-      "tests": 1794,
+      "other": 1475,
+      "tests": 1796,
       "web": 458
     },
-    "unmapped_artifacts": 2167,
+    "unmapped_artifacts": 2168,
     "ambiguous_artifacts": 419
   },
   "capabilities": [
@@ -1557,6 +1557,14 @@
             "content:Execution receipt",
             "content:execution receipt"
           ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_pest_escalation_flow.py",
+          "score": 8,
+          "signals": [
+            "content:Execution receipt",
+            "content:execution receipt"
+          ]
         }
       ],
       "governance": [],
@@ -1581,7 +1589,7 @@
         "events": 8,
         "web": 0,
         "mobile": 0,
-        "tests": 3,
+        "tests": 4,
         "governance": 0,
         "other_evidence": 1
       },
@@ -16092,6 +16100,13 @@
           ]
         },
         {
+          "path": "docs/testing/PR1521_CI_LAB_FIXES_20261120.md",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/architecture/platform_shrink_ratchet.json",
           "score": 11,
           "signals": [
@@ -16113,7 +16128,7 @@
         "mobile": 0,
         "tests": 4,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 4
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -26044,7 +26059,7 @@
           "score": 24
         },
         {
-          "value": "/runtime-identity @ services/auth/main.py:399",
+          "value": "/runtime-identity @ services/auth/main.py:400",
           "score": 22
         },
         {
@@ -26096,19 +26111,19 @@
           "score": 12
         },
         {
-          "value": "/v1/auth/login @ services/auth/routers/session.py:23",
+          "value": "/v1/auth/login @ services/auth/routers/session.py:25",
           "score": 12
         },
         {
-          "value": "/v1/auth/logout @ services/auth/routers/session.py:166",
+          "value": "/v1/auth/logout @ services/auth/routers/session.py:168",
           "score": 12
         },
         {
-          "value": "/v1/auth/me @ services/auth/routers/session.py:210",
+          "value": "/v1/auth/me @ services/auth/routers/session.py:213",
           "score": 12
         },
         {
-          "value": "/v1/auth/refresh @ services/auth/routers/session.py:124",
+          "value": "/v1/auth/refresh @ services/auth/routers/session.py:126",
           "score": 12
         }
       ],
@@ -41220,10 +41235,6 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_pest_escalation_flow.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/sahool-platform/tests/test_pesticide.py",
       "kind": "tests"
     },
@@ -43172,6 +43183,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_jwt_decode_shared_decoder.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_jwt_denylist_wired.py",
       "kind": "tests"
     },
@@ -43509,6 +43524,10 @@
     },
     {
       "path": "tests_v9/test_provision_pg_client.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_python_jose_removed.py",
       "kind": "tests"
     },
     {

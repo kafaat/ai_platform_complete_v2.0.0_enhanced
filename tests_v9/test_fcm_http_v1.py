@@ -4,8 +4,9 @@ import json
 from urllib.parse import parse_qs
 
 import httpx
+import jwt
 import pytest
-from jose import jwt
+from cryptography.hazmat.primitives import serialization
 
 from shared import fcm
 from tests_v9.fcm_fixture import service_account_json
@@ -70,10 +71,16 @@ async def test_signed_oauth_and_named_message_receipt(monkeypatch, respx_mock):
     assert oauth.call_count == 1
     assertion = parse_qs(oauth.calls[0].request.content.decode())["assertion"][0]
     account = fcm.credentials()
-    claims = jwt.decode(
-        assertion, account.private_key, algorithms=["RS256"], audience=fcm.TOKEN_URI
+    # يُتحقَّق بالمفتاح **العامّ** وحده (ما تفعله Google)، وبخوارزميّةٍ واحدة مثبَّتة.
+    public_pem = (
+        serialization.load_pem_private_key(account.private_key.encode(), password=None)
+        .public_key()
+        .public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo)
     )
+    assert jwt.get_unverified_header(assertion)["alg"] == "RS256"
+    claims = jwt.decode(assertion, public_pem, algorithms=["RS256"], audience=fcm.TOKEN_URI)
     assert claims["iss"] == account.client_email and claims["scope"] == fcm.SCOPE
+    assert claims["exp"] - claims["iat"] == 3600
     assert message.calls[0].request.headers["authorization"] == "Bearer synthetic-oauth"
     assert json.loads(message.calls[0].request.content)["message"]["token"] == "device-token"
 

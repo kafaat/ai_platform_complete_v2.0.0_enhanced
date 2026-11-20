@@ -216,10 +216,253 @@ def test_a_guard_cannot_be_both_specified_and_in_debt(tmp_path: Path) -> None:
 # ------------------------------------------------------- الزرع الفعليّ (بطيء)
 
 
-def test_a_planted_defect_that_turns_the_suite_red_is_proof(tmp_path: Path) -> None:
+def test_a_planted_defect_that_turns_the_suite_red_is_proof(tmp_path: Path, capsys) -> None:
     ci = _fake_repo(tmp_path)
     reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
     assert gmg.run_mutations(reg, ci=ci, root=tmp_path) == []
+    output = capsys.readouterr().out
+    evidence = json.loads(output.split("MUTATION_EVIDENCE ", 1)[1].splitlines()[0])
+    assert evidence["pytest"]["collected"] == evidence["baseline_nodes"]
+    assert {report["when"]: report["outcome"] for report in evidence["pytest"]["reports"]} == {
+        "setup": "passed",
+        "call": "failed",
+        "teardown": "passed",
+    }
+
+
+@pytest.mark.parametrize(
+    "original_status", ["failed", "skipped", "xfail", "xpass", "missing", "collection_error"]
+)
+def test_an_unqualified_original_witness_cannot_count_as_a_mutation_kill(
+    tmp_path: Path, original_status: str, capsys
+) -> None:
+    """All these witnesses fail under the plant, but none has a green original."""
+    imports = _TEST_SRC.split("def test_negative_is_rejected():", 1)[0] + "import pytest\n\n"
+    if original_status == "missing":
+        test_src = imports + (
+            "if not g.check([-2]):\n"
+            "    def test_negative_is_rejected():\n"
+            "        assert False, 'the plant alone makes this test collectable'\n"
+        )
+    elif original_status == "collection_error":
+        test_src = imports + (
+            "if g.check([-2]):\n"
+            "    raise RuntimeError('original collection is broken')\n\n"
+            "def test_negative_is_rejected():\n"
+            "    assert False, 'mutated collection succeeds but the witness fails'\n"
+        )
+    elif original_status == "xpass":
+        test_src = imports + (
+            "@pytest.mark.xfail(condition=bool(g.check([-2])), reason='original XPASS', strict=False)\n"
+            "def test_negative_is_rejected():\n"
+            "    assert g.check([-2]), 'only the original unexpectedly passes'\n"
+        )
+    else:
+        qualification = {
+            "failed": "",
+            "skipped": "    if g.check([-2]):\n        pytest.skip('original is skipped')\n",
+            "xfail": "    if g.check([-2]):\n        pytest.xfail('original is xfailed')\n",
+        }[original_status]
+        test_src = imports + (
+            "def test_negative_is_rejected():\n"
+            + qualification
+            + "    assert False, 'red before and/or after the plant is not proof'\n"
+        )
+    ci = _fake_repo(tmp_path, test_src=test_src)
+    source = ci / "fake_guard.py"
+    original = source.read_bytes()
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+
+    assert any("BASELINE_NOT_GREEN" in failure for failure in failures), failures
+    assert "✓" not in capsys.readouterr().out
+    assert source.read_bytes() == original
+
+
+@pytest.mark.parametrize("second_case", ["passed", "skipped", "failed"])
+def test_every_parameter_case_must_qualify_before_the_plant(
+    tmp_path: Path, second_case: str, capsys
+) -> None:
+    imports = _TEST_SRC.split("def test_negative_is_rejected():", 1)[0] + "import pytest\n\n"
+    qualification = {
+        "passed": "",
+        "skipped": "    if value == -3 and g.check([-2]):\n        pytest.skip('second original')\n",
+        "failed": "    if value == -3 and g.check([-2]):\n        assert False, 'second original'\n",
+    }[second_case]
+    test_src = imports + (
+        "@pytest.mark.parametrize('value', [-2, -3], ids=['first', 'second'])\n"
+        "def test_negative_is_rejected(value):\n" + qualification + "    assert g.check([value])\n"
+    )
+    ci = _fake_repo(tmp_path, test_src=test_src)
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+    output = capsys.readouterr().out
+
+    if second_case == "passed":
+        assert failures == []
+        assert "2 passed" in output
+        evidence = json.loads(output.split("BASELINE_EVIDENCE ", 1)[1].splitlines()[0])
+        assert evidence["pytest"]["collected"] == [
+            "tests/test_fake.py::test_negative_is_rejected[first]",
+            "tests/test_fake.py::test_negative_is_rejected[second]",
+        ]
+        assert len(evidence["pytest"]["reports"]) == 6
+        assert all(
+            report["outcome"] == "passed" and report["wasxfail"] is False
+            for report in evidence["pytest"]["reports"]
+        )
+    else:
+        assert any("BASELINE_NOT_GREEN" in failure for failure in failures), failures
+        assert "✓" not in output
+
+
+def test_deselected_parameters_do_not_qualify_a_passing_subset(tmp_path: Path, monkeypatch) -> None:
+    imports = _TEST_SRC.split("def test_negative_is_rejected():", 1)[0] + "import pytest\n\n"
+    test_src = imports + (
+        "@pytest.mark.parametrize('value', [-2, -3], ids=['first', 'second'])\n"
+        "def test_negative_is_rejected(value):\n"
+        "    assert g.check([value])\n"
+    )
+    ci = _fake_repo(tmp_path, test_src=test_src)
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+    monkeypatch.setenv("PYTEST_ADDOPTS", "-k first")
+
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+
+    assert any("BASELINE_NOT_GREEN" in failure for failure in failures), failures
+
+
+def test_each_plant_requalifies_its_original_witness(tmp_path: Path, capsys) -> None:
+    """A previous pass cannot be reused after a test has changed a later invocation."""
+    imports = _TEST_SRC.split("def test_negative_is_rejected():", 1)[0]
+    test_src = imports + (
+        "def test_negative_is_rejected():\n"
+        "    if g.check([-2]):\n"
+        "        counter = Path(__file__).resolve().parents[1] / 'original-runs'\n"
+        "        runs = int(counter.read_text(encoding='utf-8')) if counter.exists() else 0\n"
+        "        counter.write_text(str(runs + 1), encoding='utf-8')\n"
+        "        assert runs == 0, 'the later original is no longer green'\n"
+        "    assert g.check([-2])\n"
+    )
+    ci = _fake_repo(tmp_path, test_src=test_src)
+    source = ci / "fake_guard.py"
+    original = source.read_bytes()
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+    reg["mutated"]["fake_guard.py"]["mutations"].append(
+        {"find": "v < 0", "replace": "v < -98", "expect": "test_negative_is_rejected"}
+    )
+
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+
+    assert len(failures) == 1, failures
+    assert "fake_guard.py[1]" in failures[0] and "BASELINE_NOT_GREEN" in failures[0]
+    assert (tmp_path / "original-runs").read_text(encoding="utf-8") == "2"
+    assert capsys.readouterr().out.count("✓") == 1
+    assert source.read_bytes() == original
+
+
+def test_a_baseline_that_changes_the_guard_is_restored_and_rejected(tmp_path: Path, capsys) -> None:
+    test_src = _TEST_SRC.replace(
+        "    assert g.check([1, -2]) != []",
+        "    source = Path(g.__file__)\n"
+        "    source.write_text(source.read_text(encoding='utf-8') + "
+        "'\\n# baseline side effect\\n', encoding='utf-8')\n"
+        "    assert g.check([1, -2]) != []",
+    )
+    ci = _fake_repo(tmp_path, test_src=test_src)
+    source = ci / "fake_guard.py"
+    original = source.read_bytes()
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+
+    assert any("BASELINE_SOURCE_CHANGED" in failure for failure in failures), failures
+    assert "✓" not in capsys.readouterr().out
+    assert source.read_bytes() == original
+
+
+def test_passing_stdout_without_machine_phase_evidence_does_not_qualify(
+    tmp_path: Path, monkeypatch
+) -> None:
+    ci = _fake_repo(tmp_path)
+    monkeypatch.setattr(gmg, "_pytest_process", lambda *a, **k: (0, "1 passed", None))
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+
+    assert any("BASELINE_NOT_GREEN" in failure for failure in failures), failures
+
+
+@pytest.mark.parametrize(
+    "defect", ["setup", "teardown", "call_and_teardown", "new_parameter", "strict_xpass"]
+)
+def test_a_mutant_without_a_matching_failed_call_is_not_a_kill(
+    tmp_path: Path, defect: str, capsys
+) -> None:
+    """An original pass cannot turn harness errors or new test identities into kills."""
+    imports = _TEST_SRC.split("def test_negative_is_rejected():", 1)[0] + "import pytest\n\n"
+    if defect == "new_parameter":
+        test_src = imports + (
+            "values = [-2] if g.check([-2]) else [-2, -3]\n"
+            "@pytest.mark.parametrize('value', values)\n"
+            "def test_negative_is_rejected(value):\n"
+            "    assert value != -3, 'this failing case was absent from the original'\n"
+        )
+    elif defect == "strict_xpass":
+        test_src = imports + (
+            "@pytest.mark.xfail(condition=not bool(g.check([-2])), reason='mutant XPASS', strict=True)\n"
+            "def test_negative_is_rejected():\n"
+            "    assert True, 'strict XPASS is a policy failure, not an assertion kill'\n"
+        )
+    else:
+        fail_fixture = (
+            "    if not g.check([-2]):\n"
+            "        raise RuntimeError('mutated fixture failed outside the test call')\n"
+        )
+        fixture_body = (
+            fail_fixture + "    yield\n" if defect == "setup" else "    yield\n" + fail_fixture
+        )
+        assertion = (
+            "    assert g.check([-2])\n" if defect == "call_and_teardown" else "    assert True\n"
+        )
+        test_src = imports + (
+            "@pytest.fixture\ndef ready():\n"
+            + fixture_body
+            + "\ndef test_negative_is_rejected(ready):\n"
+            + assertion
+        )
+    ci = _fake_repo(tmp_path, test_src=test_src)
+    source = ci / "fake_guard.py"
+    original = source.read_bytes()
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+
+    assert any("MUTANT_NOT_QUALIFIED" in failure for failure in failures), failures
+    assert "✓" not in capsys.readouterr().out
+    assert source.read_bytes() == original
+
+
+def test_failing_stdout_without_machine_phase_evidence_is_not_a_kill(
+    tmp_path: Path, monkeypatch
+) -> None:
+    ci = _fake_repo(tmp_path)
+    monkeypatch.setattr(
+        gmg,
+        "_run_tests",
+        lambda *a, **k: (
+            1,
+            "FAILED tests/test_fake.py::test_negative_is_rejected\n1 failed",
+            None,
+        ),
+    )
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+
+    assert any("MUTANT_NOT_QUALIFIED" in failure for failure in failures), failures
 
 
 def test_a_green_suite_under_a_planted_defect_is_a_failure(tmp_path: Path) -> None:
@@ -235,8 +478,8 @@ def test_a_green_suite_under_a_planted_defect_is_a_failure(tmp_path: Path) -> No
 
 def test_red_by_the_wrong_test_is_not_proof(tmp_path: Path) -> None:
     """طفرةٌ تكسر الاستيراد تُحمِّر كلّ شيء — و«سقط شيء ما» ليس دليل تغطية."""
-    ci = _fake_repo(tmp_path)
-    reg = _reg(mutated=_spec("def check(values):", "def chekc(values):", "test_no_such_name"))
+    ci = _fake_repo(tmp_path, test_src=_TEST_SRC + "\ndef test_unrelated():\n    assert True\n")
+    reg = _reg(mutated=_spec("def check(values):", "def chekc(values):", "test_unrelated"))
     failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
     assert any("حمرّ بغير الاختبار المُتوقَّع" in f for f in failures)
 
@@ -249,7 +492,7 @@ def test_a_runner_that_never_ran_is_not_evidence(tmp_path: Path, monkeypatch) ->
     صحيحٌ حرفيّاً ويُرسِل قارئه إلى المكان الخطأ.
     """
     ci = _fake_repo(tmp_path)
-    monkeypatch.setattr(gmg, "_run_tests", lambda *a, **k: (1, "No module named pytest\n"))
+    monkeypatch.setattr(gmg, "_run_tests", lambda *a, **k: (1, "No module named pytest\n", None))
     reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
     failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
     assert any("لم يُشغّل اختباراً" in f for f in failures)
@@ -261,9 +504,10 @@ def test_a_runner_that_never_ran_is_not_evidence(tmp_path: Path, monkeypatch) ->
 def _recording_runner(monkeypatch, outputs_by_node: dict):
     calls: list[str] = []
 
-    def fake(node: str, _root) -> tuple[int, str]:
+    def fake(node: str, _root) -> tuple[int, str, dict | None]:
         calls.append(node)
-        return outputs_by_node[node]
+        code, out = outputs_by_node[node]
+        return code, out, None
 
     monkeypatch.setattr(gmg, "_run_tests", fake)
     return calls
@@ -280,7 +524,7 @@ def test_a_narrow_kill_skips_the_full_file_run(tmp_path: Path, monkeypatch) -> N
             ),
         },
     )
-    code, out = gmg._run_tests_for_mutation(
+    code, out, _recorded = gmg._run_tests_for_mutation(
         "tests/test_fake.py", "test_negative_is_rejected", tmp_path
     )
     assert calls == ["tests/test_fake.py::test_negative_is_rejected"]
@@ -300,7 +544,7 @@ def test_a_passing_narrow_run_falls_back_to_the_full_file(tmp_path: Path, monkey
             ),
         },
     )
-    code, out = gmg._run_tests_for_mutation(
+    code, out, _recorded = gmg._run_tests_for_mutation(
         "tests/test_fake.py", "test_negative_is_rejected", tmp_path
     )
     assert calls == [
@@ -325,7 +569,7 @@ def test_an_uncollected_narrow_node_falls_back_to_the_full_file(
             ),
         },
     )
-    code, out = gmg._run_tests_for_mutation(
+    code, out, _recorded = gmg._run_tests_for_mutation(
         "tests/test_fake.py", "test_negative_is_rejected", tmp_path
     )
     assert len(calls) == 2
@@ -355,7 +599,9 @@ def test_the_guard_source_is_restored_after_every_mutation(tmp_path: Path) -> No
     """الزرع يكتب في المصدر الحقيقيّ — واستعادته ليست تفصيلاً بل شرط سلامة."""
     ci = _fake_repo(tmp_path)
     before = (ci / "fake_guard.py").read_text(encoding="utf-8")
-    reg = _reg(mutated=_spec("def check(values):", "def chekc(values):", "test_x"))
+    reg = _reg(
+        mutated=_spec("def check(values):", "def chekc(values):", "test_negative_is_rejected")
+    )
     gmg.run_mutations(reg, ci=ci, root=tmp_path)
     assert (ci / "fake_guard.py").read_text(encoding="utf-8") == before
 
@@ -366,17 +612,15 @@ def test_isolated_runner_never_plants_in_the_legal_checkout(tmp_path: Path, monk
     source = ci / "fake_guard.py"
     before = source.read_bytes()
     observed_roots: list[Path] = []
+    actual_run_tests = gmg._run_tests
 
-    def observe_plant(_test_file: str, run_root: Path) -> tuple[int, str]:
+    def observe_plant(test_file: str, run_root: Path) -> tuple[int, str, dict | None]:
         observed_roots.append(run_root)
         assert run_root != tmp_path
         assert source.read_bytes() == before
         mirror_source = run_root / "scripts" / "ci" / "fake_guard.py"
         assert "v < -99" in mirror_source.read_text(encoding="utf-8")
-        return (
-            1,
-            "FAILED tests/test_fake.py::test_negative_is_rejected\n1 failed in 0.01s",
-        )
+        return actual_run_tests(test_file, run_root)
 
     monkeypatch.setattr(gmg, "_run_tests", observe_plant)
     reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
@@ -390,14 +634,12 @@ def test_real_root_defaults_to_an_isolated_workspace(tmp_path: Path, monkeypatch
     ci = _fake_repo(tmp_path)
     source = ci / "fake_guard.py"
     before = source.read_bytes()
+    actual_run_tests = gmg._run_tests
 
-    def observe_default(_test_file: str, run_root: Path) -> tuple[int, str]:
+    def observe_default(test_file: str, run_root: Path) -> tuple[int, str, dict | None]:
         assert run_root != tmp_path
         assert source.read_bytes() == before
-        return (
-            1,
-            "FAILED tests/test_fake.py::test_negative_is_rejected\n1 failed in 0.01s",
-        )
+        return actual_run_tests(test_file, run_root)
 
     monkeypatch.setattr(gmg, "ROOT", tmp_path)
     monkeypatch.setattr(gmg, "_run_tests", observe_default)
@@ -417,7 +659,7 @@ def test_abrupt_isolated_runner_failure_cannot_contaminate_checkout(
     class AbruptRunnerStop(BaseException):
         pass
 
-    def stop_after_plant(_test_file: str, run_root: Path) -> tuple[int, str]:
+    def stop_after_plant(_test_file: str, run_root: Path) -> tuple[int, str, dict | None]:
         mirror_source = run_root / "scripts" / "ci" / "fake_guard.py"
         assert "v < -99" in mirror_source.read_text(encoding="utf-8")
         assert source.read_bytes() == before
@@ -443,8 +685,8 @@ def test_the_wrong_test_branch_names_what_actually_failed(tmp_path: Path) -> Non
     سليمة. أي أنّ اختبار التشخيص وقع في «قدرة موجودة لا تجري» — والمخرَج الجديد نفسه
     هو ما سمّى لي الاختبار الساقط فانكشف العطل في أوّل تشغيل.
     """
-    ci = _fake_repo(tmp_path)
-    reg = _reg(mutated=_spec("def check(values):", "def chekc(values):", "test_no_such_name"))
+    ci = _fake_repo(tmp_path, test_src=_TEST_SRC + "\ndef test_unrelated():\n    assert True\n")
+    reg = _reg(mutated=_spec("def check(values):", "def chekc(values):", "test_unrelated"))
     failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
 
     assert any("حمرّ بغير الاختبار المُتوقَّع" in f for f in failures)
@@ -581,7 +823,7 @@ def test_inconsistent_wrong_test_repeats_are_classified_non_deterministic(
     # المقعد الصحيح للتلقيم هو قياس-الزرعة الواحد (`_run_tests_for_mutation`) لا
     # `_run_tests` الخام: منذ «ضيّق ثم تراجَع» قد يستدعي الأخيرُ مرّتين لكلّ زرعة،
     # فمؤشّرٌ محدود العدد عليه يقيس عدد الاستدعاءات لا سيناريو عدم الحتميّة.
-    monkeypatch.setattr(gmg, "_run_tests_for_mutation", lambda *a, **k: next(outputs))
+    monkeypatch.setattr(gmg, "_run_tests_for_mutation", lambda *a, **k: (*next(outputs), None))
     failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
     assert any("NON_DETERMINISTIC" in failure for failure in failures)
 
@@ -608,7 +850,7 @@ def test_repeats_that_all_say_expected_red_are_not_called_stable_wrong_test():
     source = Path("scripts/ci/guard_mutation_guard.py").read_text(encoding="utf-8")
     assert "FLAKY_FIRST_OBSERVATION" in source
     marker = source.index("repeat_kinds")
-    window = source[marker : marker + 400]
+    window = source[marker : marker + 600]
     assert 'repeat_kinds == {"expected_red"}' in window
     assert "FLAKY_FIRST_OBSERVATION" in window
     # and the branch must come BEFORE the stable branch, or it can never be reached

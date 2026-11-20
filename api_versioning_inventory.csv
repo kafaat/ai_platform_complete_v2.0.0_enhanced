@@ -27,7 +27,7 @@ ai_agronomist,services/ai_agronomist/main.py,360,POST,/v1/query,query,versioned
 ai_agronomist,services/ai_agronomist/main.py,371,POST,/v1/chat,chat,versioned
 ai_agronomist,services/ai_agronomist/main.py,382,POST,/v1/explain,explain,versioned
 ai_agronomist,services/ai_agronomist/main.py,393,POST,/v1/recommend,recommend,versioned
-auth,services/auth/main.py,400,GET,/runtime-identity,runtime_identity,infra
+auth,services/auth/main.py,401,GET,/runtime-identity,runtime_identity,infra
 auth,services/auth/routers/email_verify.py,22,POST,/v1/auth/verify/request,verify_request,versioned
 auth,services/auth/routers/email_verify.py,55,POST,/v1/auth/verify/confirm,verify_confirm,versioned
 auth,services/auth/routers/email_verify.py,97,GET,/v1/auth/verify,verify,versioned
@@ -48,10 +48,10 @@ auth,services/auth/routers/password_reset.py,41,POST,/v1/auth/password-reset/con
 auth,services/auth/routers/registration.py,19,POST,/v1/auth/register,register,versioned
 auth,services/auth/routers/registration.py,74,POST,/v1/auth/change-password,change_password,versioned
 auth,services/auth/routers/season_edge_sign.py,41,GET,/v1/auth/edge-sign,edge_sign,versioned
-auth,services/auth/routers/session.py,24,POST,/v1/auth/login,login,versioned
-auth,services/auth/routers/session.py,125,POST,/v1/auth/refresh,refresh_token,versioned
-auth,services/auth/routers/session.py,167,POST,/v1/auth/logout,logout,versioned
-auth,services/auth/routers/session.py,211,GET,/v1/auth/me,me,versioned
+auth,services/auth/routers/session.py,26,POST,/v1/auth/login,login,versioned
+auth,services/auth/routers/session.py,127,POST,/v1/auth/refresh,refresh_token,versioned
+auth,services/auth/routers/session.py,169,POST,/v1/auth/logout,logout,versioned
+auth,services/auth/routers/session.py,214,GET,/v1/auth/me,me,versioned
 auth,services/auth/routers/tenants.py,40,POST,/v1/auth/tenants,provision_tenant,versioned
 auth,services/auth/routers/users.py,22,GET,/v1/auth/users,list_users,versioned
 auth,services/auth/routers/users.py,31,PATCH,/v1/auth/users/{user_id}/role,change_role,versioned

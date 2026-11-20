@@ -10,7 +10,12 @@
   "$measured_ar": "300 ثلاثيّةً · 271 حارساً · 49 منها له مواصفةُ طفرةٍ مسجَّلة (222 بلا تكذيبٍ مسجَّل).",
   "$why_this_sha_ar": "**خطُّ التجميد هو قاعدةُ الطلبِ الذي يُنزِل الآليّة، لا لقطةٌ أُخِذت قبله.** قِيس الأساسُ أوّلاً على `912ad691`، ثمّ دُمِج #979 فصار `main` عند `d3471e39` وزاد سطحُ الحجب **ستّ ثلاثيّات**. وإبقاءُ اللقطة القديمة كان سيُبلِّغ عن هذه الستّ بوصفها «زيادةً بلا إقرار» — وهي ليست زيادةً بعد التجميد، بل سبقته. فأُعيد القياسُ على القاعدة الجديدة: قاعدةُ الطلب قاعدةٌ تسري على كلّ داخلٍ بالتساوي، ولقطةٌ تُختار بعد رؤية النتيجة ليست كذلك.\n**وإفصاحٌ يلزم:** الستُّ الجديدةُ من #979 وكاتبُها هو كاتبُ هذه الآليّة نفسُه، فتوريثُها إعفاءٌ للنفس. ما يجعله مقبولاً أنّه بالقاعدة لا بالاستثناء، وأنّ `legacy_blocking` لا يشهد لها بشيء — و**لا واحدةَ منها لها طفرةٌ مسجَّلة** (قِيس: صفرٌ من ستّ)، فهي في الدَّين المعلَن لا خارجَه.",
   "$retired_means_ar": "**التقاعدُ مسموحٌ ومنطوق.** ثلاثيّةٌ في الأساس زالت من الشجرة تُبلَّغ حتّى تُدرَج هنا بسببٍ وتاريخ. ولا يُطلَب لها تكذيبٌ ولا شاهدٌ موجب — التقاعدُ إزالةُ حجبٍ لا إضافتُه، فلا شيءَ جديدٌ يُقاس؛ المطلوبُ أن يُقال **لماذا**.\n**والعطلُ المقيس الذي أوجبها:** نُزِع استدعاءُ حارسٍ من `ci.yml` على `a3124ccf` فهبط السطحُ ٣٠١ ⇒ ٣٠٠، ولم يشتكِ إلّا فحصُ انحراف الكتالوج — **وعلاجُه المنصوصُ عليه إعادةُ التوليد**، فإذا فُعِل قال الاثنان `guard_catalogue_ok` و`blocking_surface_ok`. فالعلاجُ الذي يأمر به النظامُ هو ما يمحو الدليل، ويبقى ملفُّ الحارس في مكانه يبدو حمايةً ولا يُشغّله شيء.",
-  "retired": {},
+  "retired": {
+    "scripts/ci/guard_mutation_guard.py::ci.yml::unit-tests": {
+      "reason": "#1521: retired only the duplicate whole mutation sweep from Unit Tests in 4aaeb44d67f19662153673e7cbc9d62ca975a08e. Planting remains in the five Mutation Sweep 1/5 through 5/5 checks, declared by required_status_checks_contract.json and verified against main-protection ruleset 20645828 on 2026-11-20. tests_v9/test_mutation_sweep_headroom.py::test_the_sweep_still_runs_inside_the_job_the_ruleset_actually_requires verifies all five names and the actual unconditional planting step; the original legacy_blocking baseline is retained.",
+      "retired_on": "2026-11-20"
+    }
+  },
   "legacy_blocking": {
     "scripts/ci/action_pin_agreement_guard.py::sahool-production-gates.yml::supply-chain-static-scan": "legacy_blocking",
     "scripts/ci/agronomic_context_gate.py::ci.yml::structural-lint": "legacy_blocking",

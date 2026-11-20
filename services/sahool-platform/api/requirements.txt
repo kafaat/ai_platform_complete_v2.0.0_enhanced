@@ -6,7 +6,8 @@ defusedxml==0.7.1  # تحليل XML آمن لملفّات KML غير الموث�
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 pydantic==2.13.4
-PyJWT==2.13.0   # مثبّت عند 2.13.0: يُغلق crit-bypass (PYSEC-2026-120) + خلط HMAC (179) + نواقل DoS/SSRF (175/177/178)
+PyJWT[crypto]==2.15.0  # Security: patched JWT algorithm and key validation; RSA provider explicit
+cryptography==50.0.1  # RSA provider for PyJWT pinned explicitly (same pin as main) so image rebuilds are reproducible
 python-multipart==0.0.31   # for form data؛ مثبّت ≥0.0.31: يُغلق DoS في تحليل multipart (CVE-2026-53538/53539/53540)
 
 # Open-Meteo integration
@@ -31,6 +32,6 @@ shapely==2.0.6  # spatial RCBD plot clipping/generation in shared.precision_agri
 asyncpg>=0.30.0,<0.32.0  # بركة اتصالات PostgreSQL غير متزامنة (api/main.py → create_pool)
 
 # Explicit OTLP HTTP tracing, audited 2026-09-13.
-opentelemetry-sdk==1.44.0
-opentelemetry-exporter-otlp-proto-http==1.44.0
-opentelemetry-instrumentation-fastapi==0.65b0
+opentelemetry-sdk==1.45.2
+opentelemetry-exporter-otlp-proto-http==1.45.2
+opentelemetry-instrumentation-fastapi==0.66b2

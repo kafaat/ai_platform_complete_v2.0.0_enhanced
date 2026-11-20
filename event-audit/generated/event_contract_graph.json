@@ -139,7 +139,7 @@
       "dynamic_expr": "topic",
       "file": "services/video-processor/main.py",
       "kind": "producer",
-      "line": 382,
+      "line": 383,
       "queue": null,
       "subject": null
     },

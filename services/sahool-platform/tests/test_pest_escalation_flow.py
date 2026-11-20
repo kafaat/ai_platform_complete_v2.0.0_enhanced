@@ -177,12 +177,13 @@ def test_execute_no_action_when_action_type_is_none():
     }
 
 
-def test_execute_default_ref_when_no_execute_fn():
-    # بلا execute_fn محقونة وبموافقة معتمَدة وإجراء فعليّ ⇒ تنفيذ افتراضي
-    # ومرجع مشتقّ من نوع الإجراء (exec-<action_type>) — لا تبعيّة حيّة.
+def test_no_executor_must_not_claim_a_spray_or_fabricate_a_reference():
+    # Production hotfix: a workflow reaching execute cannot invent a physical spray receipt.
     execute = _steps_by_id()["execute"].fn
     res = execute({"approval_status": "approved", "action_type": "urgent_spray"})
-    assert res == {"executed": True, "execution_ref": "exec-urgent_spray"}
+    assert res["executed"] is False
+    assert res["execution_ref"] is None
+    assert res["reason"] == "executor_not_configured"
 
 
 def test_execute_honours_execute_fn_reporting_failure():
@@ -191,7 +192,22 @@ def test_execute_honours_execute_fn_reporting_failure():
         "execute"
     ].fn
     res = execute({"approval_status": "approved", "action_type": "biocontrol"})
-    assert res == {"executed": False, "execution_ref": "ref-9"}
+    assert res["executed"] is False
+    assert res["reason"] == "execution_not_confirmed"
+
+
+def test_an_ack_without_a_receipt_is_not_confirmed():
+    execute = _steps_by_id(execute_fn=lambda ctx: {"executed": True})["execute"].fn
+    res = execute({"approval_status": "approved", "action_type": "biocontrol"})
+    assert res["executed"] is False
+    assert res["reason"] == "execution_not_confirmed"
+
+
+def test_false_shaped_or_non_dict_ack_cannot_claim_spray():
+    for ack in ({}, {"executed": "true", "execution_ref": "r-1"}, None):
+        execute = _steps_by_id(execute_fn=lambda ctx, value=ack: value)["execute"].fn
+        res = execute({"approval_status": "approved", "action_type": "urgent_spray"})
+        assert res["executed"] is False
 
 
 # ── خطوة المتابعة (follow_up) — تُجدوَل فقط إثر تنفيذ فعلي ──
@@ -206,7 +222,7 @@ def test_follow_up_skipped_when_not_executed():
 def test_follow_up_scheduled_after_execution():
     # نُفِّذ ⇒ تُجدوَل متابعة (7 أيّام) للتحقّق من تراجع الإصابة.
     follow_up = _steps_by_id()["follow_up"].fn
-    res = follow_up({"executed": True})
+    res = follow_up({"executed": True, "execution_ref": "spray-receipt-123"})
     assert res["follow_up_scheduled"] is True
     assert res["follow_up_note_ar"] == "متابعة بعد 7 أيّام للتحقّق من تراجع الإصابة"
 
@@ -215,8 +231,8 @@ def test_follow_up_scheduled_after_execution():
 
 
 def test_mid_severity_biocontrol_full_flow_after_approval():
-    # نطاق التدخّل (0.4 ≤ شدّة < 0.7): يُعلَّق ثمّ بعد الموافقة يُنفَّذ مكافحةً
-    # حيويّة بمرجع افتراضي exec-biocontrol، وتُجدوَل المتابعة → COMPLETED.
+    # Without an injected executor, a completed workflow is not a physical spray.
+    # Follow-up must not be scheduled for an action that did not occur.
     store = InMemoryWorkflowStore()
     run_pest_escalation(
         "pe_bio",
@@ -231,10 +247,11 @@ def test_mid_severity_biocontrol_full_flow_after_approval():
     assert st.status == WorkflowStatus.COMPLETED
     assert st.step_results["recommend"]["action_type"] == "biocontrol"
     assert st.step_results["execute"] == {
-        "executed": True,
-        "execution_ref": "exec-biocontrol",
+        "executed": False,
+        "execution_ref": None,
+        "reason": "executor_not_configured",
     }
-    assert st.step_results["follow_up"]["follow_up_scheduled"] is True
+    assert st.step_results["follow_up"]["follow_up_scheduled"] is False
 
 
 def test_low_severity_flow_records_no_action_execute():
@@ -274,4 +291,96 @@ def test_recommend_confirmed_below_lowest_band_falls_back_honestly():
     assert res == {
         "recommendation_ar": "لا تصعيد — الشدّة دون عتبة التدخّل",
         "action_type": "none",
+    }
+
+
+def test_reserved_legacy_reference_cannot_confirm_new_execution():
+    receipt = {"executed": True, "execution_ref": "exec-urgent_spray"}
+    steps = _steps_by_id(execute_fn=lambda ctx: receipt)
+    result = steps["execute"].fn({"approval_status": "approved", "action_type": "urgent_spray"})
+    assert result == {"executed": False, "execution_ref": None, "reason": "execution_not_confirmed"}
+    assert steps["follow_up"].fn(receipt) == {"follow_up_scheduled": False}
+
+
+def test_whitespace_padded_legacy_receipts_are_not_physical_execution_proof():
+    """Old synthetic references remain untrusted even with surrounding whitespace."""
+    from types import SimpleNamespace
+
+    from core.pest_escalation_flow import is_execution_proven, summarize_pest_execution
+
+    for ref in (" exec-urgent_spray ", "\texec-biocontrol\n"):
+        receipt = {"executed": True, "execution_ref": ref}
+        assert is_execution_proven(receipt) is False
+        steps = _steps_by_id(execute_fn=lambda ctx, r=receipt: r)
+        assert steps["execute"].fn(
+            {"approval_status": "approved", "action_type": "urgent_spray"}
+        ) == {
+            "executed": False,
+            "execution_ref": None,
+            "reason": "execution_not_confirmed",
+        }
+        assert steps["follow_up"].fn(receipt) == {"follow_up_scheduled": False}
+        projected = summarize_pest_execution(SimpleNamespace(step_results={"execute": receipt}))
+        assert projected["status"] == "reconciliation_required"
+        assert projected["reason"] == "legacy_synthetic_reference"
+
+
+def test_real_execution_receipt_is_canonicalized_before_persistence():
+    steps = _steps_by_id(
+        execute_fn=lambda ctx: {"executed": True, "execution_ref": " worker-receipt-42 "}
+    )
+    assert steps["execute"].fn({"approval_status": "approved", "action_type": "urgent_spray"}) == {
+        "executed": True,
+        "execution_ref": "worker-receipt-42",
+    }
+
+
+def test_unconfirmed_execution_keeps_worker_reference_for_reconciliation():
+    """A negative ACK is not proof of no effect: keep the operation id, never the claim."""
+    from core.pest_escalation_flow import summarize_pest_execution
+
+    cancelled = []
+    store = InMemoryWorkflowStore()
+    kwargs = {
+        "store": store,
+        "execute_fn": lambda ctx: {"executed": False, "execution_ref": " worker-operation-42 "},
+        "cancel_fn": lambda ctx: cancelled.append(ctx["execution_ref"]),
+    }
+    run_pest_escalation("pe_unconfirmed", initial_context={"severity": 0.85}, **kwargs)
+    state = run_pest_escalation(
+        "pe_unconfirmed", initial_context={"approval_status": "approved"}, **kwargs
+    )
+    assert state.step_results["execute"] == {
+        "executed": False,
+        "execution_ref": "worker-operation-42",
+        "reason": "execution_not_confirmed",
+    }
+    assert state.step_results["follow_up"] == {"follow_up_scheduled": False}
+    assert summarize_pest_execution(store.load("pe_unconfirmed")) == {
+        "status": "reconciliation_required",
+        "executed": None,
+        "execution_ref": "worker-operation-42",
+        "reason": "execution_not_confirmed",
+    }
+    steps = _steps_by_id(cancel_fn=kwargs["cancel_fn"])
+    steps["execute"].compensate(state.context)
+    assert cancelled == ["worker-operation-42"]
+
+
+def test_execution_never_attempted_is_not_reported_as_unconfirmed():
+    from core.pest_escalation_flow import summarize_pest_execution
+
+    calls = []
+    store = InMemoryWorkflowStore()
+    kwargs = {"store": store, "execute_fn": lambda ctx: calls.append(ctx) or {}}
+    run_pest_escalation("pe_rejected", initial_context={"severity": 0.85}, **kwargs)
+    state = run_pest_escalation(
+        "pe_rejected", initial_context={"approval_status": "rejected"}, **kwargs
+    )
+    assert calls == []
+    assert summarize_pest_execution(state) == {
+        "status": "not_executed",
+        "executed": False,
+        "execution_ref": None,
+        "reason": "execution_not_attempted",
     }

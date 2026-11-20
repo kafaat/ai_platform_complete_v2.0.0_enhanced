@@ -31,11 +31,11 @@ MAIN_PATH = os.path.join(ODOO_BRIDGE, "main.py")
 def _load_main(monkeypatch, *, sync_tenant: str | None = None):
     """يحمّل services/odoo-bridge/main.py باسم فريد مع بيئة محدّدة.
 
-    fastapi/httpx/jose/asyncpg مطلوبة للاستيراد؛ بيئة الوحدة الخفيفة قد لا تثبّتها
+    fastapi/httpx/jwt/asyncpg مطلوبة للاستيراد؛ بيئة الوحدة الخفيفة قد لا تثبّتها
     ⇒ نتخطّى بدل الفشل (يُغطّيه job أثقل)."""
     pytest.importorskip("fastapi")
     pytest.importorskip("httpx")
-    pytest.importorskip("jose")
+    pytest.importorskip("jwt")
     pytest.importorskip("asyncpg")
     # This suite verifies the Odoo-backed provider path specifically. ADR-0001
     # allows ERP_PROVIDER to default to another provider/none in deployments, so

@@ -27,7 +27,10 @@
 
 **وما يُنفَّذ فعلاً:** ``--run`` يزرع كلّ طفرة في مصدر حارسها ويُشغّل اختباره ويؤكّد
 أنّه حمرّ **وأنّ الاختبار المُسمّى بعينه** هو الذي سقط. لأنّ «سقط شيء ما» يمرّ على
-طفرة كسرت الاستيراد لا القاعدة.
+طفرة كسرت الاستيراد لا القاعدة. وقبل كلّ زرع يجب أن يمرّ الاختبار المُسمّى على
+المصدر الأصليّ بكلّ معاملاته، بلا تخطٍّ أو xfail؛ الأحمر الموجود سلفاً ليس قتلاً.
+ويجب أن يحمرّ جسم الاختبار CALL نفسه بعد الزرع، بالجرد نفسه وإعداد وتنظيف
+ناجحين؛ خطأ fixture أو ظهور معامل جديد ليس قتلاً لهذا الشاهد.
 
 **وقسمٌ ثانٍ — ``behavioural``:** الحرّاس الساكنة تقيس **وقوع** الشيء لا **أثره**.
 حارسُ تغطية مفتاح الطوارئ مثلاً يُثبِت أنّ كلّ موضع إطلاق **يستشير** المفتاح، ويمرّ
@@ -319,8 +322,59 @@ def failing_tests(out: str) -> list[str]:
     return sorted(set(_FAILED_RE.findall(out)))
 
 
-def _run_tests(test_file: str, root: Path) -> tuple[int, str]:
-    """Run one mutation test in a deterministic, isolated process environment.
+_PYTEST_RECORDER = """\
+import json
+import sys
+from pathlib import Path
+
+import pytest
+
+
+class Recorder:
+    def __init__(self):
+        self.collected = []
+        self.deselected = []
+        self.reports = []
+        self.collection_problems = []
+
+    def pytest_collection_finish(self, session):
+        self.collected = [item.nodeid for item in session.items]
+
+    def pytest_deselected(self, items):
+        self.deselected.extend(item.nodeid for item in items)
+
+    def pytest_collectreport(self, report):
+        if report.outcome != "passed":
+            self.collection_problems.append([report.nodeid, report.outcome])
+
+    def pytest_runtest_logreport(self, report):
+        # Strict XPASS is a failed CALL with a string longrepr, not wasxfail.
+        strict_xpass = isinstance(report.longrepr, str) and report.longrepr.startswith("[XPASS(strict)]")
+        self.reports.append({
+            "nodeid": report.nodeid,
+            "when": report.when,
+            "outcome": report.outcome,
+            "wasxfail": hasattr(report, "wasxfail") or strict_xpass,
+        })
+
+
+recorder = Recorder()
+code = pytest.main(sys.argv[2:], plugins=[recorder])
+Path(sys.argv[1]).write_text(json.dumps({
+    "exitstatus": int(code),
+    "collected": recorder.collected,
+    "deselected": recorder.deselected,
+    "reports": recorder.reports,
+    "collection_problems": recorder.collection_problems,
+}), encoding="utf-8")
+raise SystemExit(code)
+"""
+
+
+def _pytest_process(
+    test_file: str, root: Path, *, baseline: bool = False
+) -> tuple[int, str, dict | None]:
+    """Use the same pytest arguments, cwd and environment before and after a plant.
 
     ``PYTHONDONTWRITEBYTECODE`` ليس تشدّداً — هو **علاج الرقيعة المُسجَّلة** التي أخفقت
     ثلاث مرّات على ``claim_base_guard.py[4]`` (``MUTATION-VERDICT-CONTRADICTS-ITS-OWN-
@@ -350,17 +404,11 @@ def _run_tests(test_file: str, root: Path) -> tuple[int, str]:
         env["TMPDIR"] = tmp
         env["TEMP"] = tmp
         env["TMP"] = tmp
+        receipt = Path(tmp) / ("baseline.json" if baseline else "mutant.json")
+        pytest_args = [test_file, "-q", "--no-cov", "-p", "no:cacheprovider"]
+        command = [sys.executable, "-c", _PYTEST_RECORDER, str(receipt), *pytest_args]
         res = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "pytest",
-                test_file,
-                "-q",
-                "--no-cov",
-                "-p",
-                "no:cacheprovider",
-            ],
+            command,
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -368,28 +416,133 @@ def _run_tests(test_file: str, root: Path) -> tuple[int, str]:
             cwd=root,
             env=env,
         )
-    return res.returncode, res.stdout + res.stderr
+        recorded = None
+        try:
+            recorded = json.loads(receipt.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            pass  # Missing terminal evidence cannot qualify an original or a mutant.
+    return res.returncode, res.stdout + res.stderr, recorded
 
 
-def _run_tests_for_mutation(test_file: str, expected: str, root: Path) -> tuple[int, str]:
+def _run_tests(test_file: str, root: Path) -> tuple[int, str, dict | None]:
+    return _pytest_process(test_file, root)
+
+
+def _baseline_is_green(code: int, recorded: dict | None, selector: str) -> bool:
+    """Every exact selected case must complete all phases, with no xfail or XPASS."""
+    if (
+        code != 0
+        or not isinstance(recorded, dict)
+        or type(recorded.get("exitstatus")) is not int
+        or recorded["exitstatus"] != 0
+    ):
+        return False
+    collected = recorded.get("collected")
+    reports = recorded.get("reports")
+    if (
+        not isinstance(collected, list)
+        or not collected
+        or any(not isinstance(node, str) for node in collected)
+        or len(set(collected)) != len(collected)
+        or any(node != selector and not node.startswith(selector + "[") for node in collected)
+        or recorded.get("deselected") != []
+        or recorded.get("collection_problems") != []
+        or not isinstance(reports, list)
+    ):
+        return False
+    phases: dict[str, set[str]] = {node: set() for node in collected}
+    for report in reports:
+        if not isinstance(report, dict):
+            return False
+        node, phase = report.get("nodeid"), report.get("when")
+        if (
+            not isinstance(node, str)
+            or node not in phases
+            or phase not in ("setup", "call", "teardown")
+            or phase in phases[node]
+            or report.get("outcome") != "passed"
+            or report.get("wasxfail") is not False
+        ):
+            return False
+        phases[node].add(phase)
+    return all(observed == {"setup", "call", "teardown"} for observed in phases.values())
+
+
+def _qualify_baseline(test_file: str, expected: str, root: Path) -> tuple[bool, str, list[str]]:
+    """Fresh proof for this invocation only; no cached success can outlive test side effects."""
+    selector = f"{Path(test_file).as_posix()}::{expected}"
+    code, out, recorded = _pytest_process(selector, root, baseline=True)
+    evidence = json.dumps(
+        {"selector": selector, "process_exit": code, "pytest": recorded},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    if _baseline_is_green(code, recorded, selector):
+        return (
+            True,
+            f"{selector}: {len(recorded['collected'])} passed\n    BASELINE_EVIDENCE {evidence}",
+            recorded["collected"],
+        )
+    return (
+        False,
+        f"{selector} (exit={code})\n    BASELINE_EVIDENCE {evidence}\n    {out.strip()[-500:]}",
+        [],
+    )
+
+
+def _mutation_is_kill(code: int, recorded: dict | None, baseline_nodes: list[str]) -> bool:
+    """Require a failed CALL on the original catalog, with a sound test harness."""
+    if (
+        code != 1
+        or not isinstance(recorded, dict)
+        or type(recorded.get("exitstatus")) is not int
+        or recorded["exitstatus"] != 1
+        or not baseline_nodes
+        or recorded.get("collected") != baseline_nodes
+        or recorded.get("deselected") != []
+        or recorded.get("collection_problems") != []
+        or not isinstance(recorded.get("reports"), list)
+    ):
+        return False
+    phases: dict[str, dict[str, str]] = {node: {} for node in baseline_nodes}
+    for report in recorded["reports"]:
+        if not isinstance(report, dict):
+            return False
+        node, phase, outcome = report.get("nodeid"), report.get("when"), report.get("outcome")
+        if (
+            not isinstance(node, str)
+            or node not in phases
+            or phase not in ("setup", "call", "teardown")
+            or phase in phases[node]
+            or report.get("wasxfail") is not False
+            or (phase == "call" and outcome not in ("passed", "failed"))
+            or (phase != "call" and outcome != "passed")
+        ):
+            return False
+        phases[node][phase] = outcome
+    return all(
+        set(observed) == {"setup", "call", "teardown"} for observed in phases.values()
+    ) and any(observed.get("call") == "failed" for observed in phases.values())
+
+
+def _run_tests_for_mutation(
+    test_file: str, expected: str, root: Path
+) -> tuple[int, str, dict | None]:
     """«ضيّق ثم تراجَع» — `MUT-SWEEP-RUNS-THE-WHOLE-FILE-PER-PLANT-01`.
 
     المقيس قبل هذا: كلّ زرعة كانت تشغّل **ملفّ الاختبار كاملاً** (~9.7ث لملفّ
     يبني مستودعات git) بينما الاختبار المتوقَّع وحده ~0.5ث — ومع مئات الزرعات
     صارت المكنسة ~50 دقيقة في CI.
 
-    المسار السريع يحسم حكماً واحداً فقط: **مقتولة** (خرجٌ أحمر والمُتوقَّع مُسمًّى
-    بين الساقطين) — وهو نفس معيار `_outcome` حرفيّاً، على معرّف عقدة صريح
-    `file::name` لا `-k` (المطابقة الجزئيّة تجرّ اختباراتٍ لم تُقصَد). وكلّ ما عداه
-    — مرّ المُتوقَّع، أو سقط غيرُه، أو لم يُجمَع الاسم أصلاً (`no tests ran` لعقدةٍ
-    غير موجودة أو دالّةٍ داخل صنف)، أو انهار المُشغِّل — **يتراجع إلى الملفّ الكامل**
-    فتُحسَم التصنيفات (`unexpected_green` · `wrong_test` · `runner_did_not_run`)
-    من نفس المشهد الذي كانت تُحسَم منه دائماً. لا حكم يتغيّر؛ فقط الطريق إلى
-    «مقتولة» يقصر — وهي الحالة الغالبة قطعاً في شجرة خضراء (كلّ الطفرات مقتولة).
+    المسار الضيّق يعيد القياس المرشّح إذا سمّى المُلخّص الاختبار المتوقَّع؛ أمّا
+    قبول القتل فيحكمه `_mutation_is_kill`: نفس جرد الأصل، CALL ساقطة، وإعداد
+    وتنظيف ناجحان. وظهور الاسم في ERROR ليس قتلاً. ما عدا المرشّح يعود إلى
+    الملفّ الكامل لتبقى تشخيصات الاختبار الخطأ أو المُشغّل المعطّل متاحةً؛ ولا
+    يجوز لهذا التراجع أن يستبدل جرد الأصل أو يمرّر خطأ fixture كعطلٍ مكشوف.
     """
-    code, out = _run_tests(f"{test_file}::{expected}", root)
+    code, out, recorded = _run_tests(f"{test_file}::{expected}", root)
     if ran_at_all(out) and code != 0 and expected in failing_tests(out):
-        return code, out
+        return code, out, recorded
     return _run_tests(test_file, root)
 
 
@@ -416,6 +569,7 @@ def _diagnose_repeat(
     mutation: dict,
     test_file: str,
     root: Path,
+    baseline_nodes: list[str],
     repeats: int = 3,
 ) -> list[tuple[str, tuple[str, ...]]]:
     """Repeat only an anomalous plant; inconsistency remains a blocking result."""
@@ -427,8 +581,11 @@ def _diagnose_repeat(
                 original.replace(mutation["find"], mutation["replace"], 1),
                 encoding="utf-8",
             )
-            code, out = _run_tests_for_mutation(test_file, mutation["expect"], root)
-            outcomes.append(_outcome(code, out, mutation["expect"]))
+            code, out, recorded = _run_tests_for_mutation(test_file, mutation["expect"], root)
+            kind, names = _outcome(code, out, mutation["expect"])
+            if kind == "expected_red" and not _mutation_is_kill(code, recorded, baseline_nodes):
+                kind = "invalid_mutant_evidence"
+            outcomes.append((kind, names))
         finally:
             src.write_text(original, encoding="utf-8")
             _ACTIVE_RESTORES.pop(src, None)
@@ -532,11 +689,40 @@ def _run_mutations_in_place(
             test_file = mutation_test(spec, m)
             try:
                 _ACTIVE_RESTORES[src] = original
-                src.write_text(original.replace(m["find"], m["replace"], 1), encoding="utf-8")
-                code, out = _run_tests_for_mutation(test_file, m["expect"], root)
+                baseline_green, baseline_detail, baseline_nodes = _qualify_baseline(
+                    test_file, m["expect"], root
+                )
+                baseline_source_unchanged = src.is_file() and src.read_bytes() == original.encode(
+                    "utf-8"
+                )
             finally:
                 src.write_text(original, encoding="utf-8")
                 _ACTIVE_RESTORES.pop(src, None)
+            if not baseline_source_unchanged:
+                failures.append(
+                    f"✗ {label}: BASELINE_SOURCE_CHANGED — the original witness changed its source."
+                )
+                continue
+            if not baseline_green:
+                failures.append(
+                    f"✗ {label}: BASELINE_NOT_GREEN — no mutation was planted."
+                    f"\n    {baseline_detail}"
+                )
+                continue
+            print(f"  BASELINE_GREEN {label}: {baseline_detail}", flush=True)
+            try:
+                _ACTIVE_RESTORES[src] = original
+                src.write_text(original.replace(m["find"], m["replace"], 1), encoding="utf-8")
+                code, out, recorded = _run_tests_for_mutation(test_file, m["expect"], root)
+            finally:
+                src.write_text(original, encoding="utf-8")
+                _ACTIVE_RESTORES.pop(src, None)
+            mutation_evidence = json.dumps(
+                {"baseline_nodes": baseline_nodes, "process_exit": code, "pytest": recorded},
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            print(f"  MUTATION_EVIDENCE {mutation_evidence}", flush=True)
             # الحارس الذي يزرع ويستعيد يحتاج أن **يُثبت** استعادته. بلا هذا، أيّ تسرّب
             # بين طفرتين متتاليتين يظهر «رقيعةً» لا عطلاً — وهو ما كلّف ثلاث ملاحظات
             # قبل أن يُعزَل السبب. المقارنة بالمحتوى لا بالحجم: طفرتان متساويتا الطول
@@ -559,7 +745,7 @@ def _run_mutations_in_place(
                     "\n    بدل أن يمرّ بالقاعدة نفسها."
                 )
             elif m["expect"] not in failing_tests(out):
-                repeats = _diagnose_repeat(src, original, m, test_file, root)
+                repeats = _diagnose_repeat(src, original, m, test_file, root, baseline_nodes)
                 stable = len(set(repeats)) == 1
                 repeat_detail = " · ".join(
                     f"{kind}:{','.join(names) or '-'}" for kind, names in repeats
@@ -583,6 +769,8 @@ def _run_mutations_in_place(
                 repeat_kinds = {kind for kind, _ in repeats}
                 if repeat_kinds == {"expected_red"}:
                     classification = "FLAKY_FIRST_OBSERVATION"
+                elif repeat_kinds == {"invalid_mutant_evidence"}:
+                    classification = "INVALID_MUTANT_EVIDENCE"
                 elif stable:
                     classification = "STABLE_WRONG_TEST"
                 else:
@@ -594,6 +782,12 @@ def _run_mutations_in_place(
                     f"\n    إعادة التشخيص: {repeat_detail}"
                     f"\n    الساقط فعلاً: {detail}"
                     f"\n    آخر ما طُبِع:\n    {out.strip()[-300:]}"
+                )
+            elif not _mutation_is_kill(code, recorded, baseline_nodes):
+                failures.append(
+                    f"✗ {label}: MUTANT_NOT_QUALIFIED — a kill requires a failed CALL on the"
+                    " exact green original catalog, with passed setup/teardown and no skips or xfail."
+                    f"\n    MUTATION_EVIDENCE {mutation_evidence}"
                 )
             else:
                 print(f"  ✓ {label} ⇒ {m['expect']}")

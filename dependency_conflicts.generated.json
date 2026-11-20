@@ -18,7 +18,7 @@
     "version_count": 2,
     "versions": "1.26.4, 2.5.3",
     "services": "1.26.4=>sahool-platform,sam2-inference; 2.5.3=>raster-tiler-service",
-    "files": "services/raster-tiler-service/requirements.txt:27; services/sahool-platform/api/requirements.txt:19; services/sam2-inference/requirements.txt:19"
+    "files": "services/raster-tiler-service/requirements.txt:27; services/sahool-platform/api/requirements.txt:20; services/sam2-inference/requirements.txt:19"
   },
   {
     "package": "pydantic",
@@ -32,7 +32,7 @@
     "version_count": 2,
     "versions": "6.0.2, 6.0.3",
     "services": "6.0.2=>raster-service,sahool-platform; 6.0.3=>raster-tiler-service",
-    "files": "services/raster-service/requirements.txt:7; services/raster-tiler-service/requirements.txt:59; services/sahool-platform/api/requirements.txt:24"
+    "files": "services/raster-service/requirements.txt:7; services/raster-tiler-service/requirements.txt:59; services/sahool-platform/api/requirements.txt:25"
   },
   {
     "package": "rasterio",
@@ -46,14 +46,14 @@
     "version_count": 2,
     "versions": "5.2.1, 5.3.1",
     "services": "5.2.1=>field-management-service; 5.3.1=>ai_agronomist,raster-service,sahool-platform,weather-service",
-    "files": "services/ai_agronomist/requirements.txt:6; services/field-management-service/requirements.txt:8; services/raster-service/requirements.txt:11; services/sahool-platform/api/requirements.txt:26; services/weather-service/requirements.txt:6"
+    "files": "services/ai_agronomist/requirements.txt:6; services/field-management-service/requirements.txt:8; services/raster-service/requirements.txt:11; services/sahool-platform/api/requirements.txt:27; services/weather-service/requirements.txt:6"
   },
   {
     "package": "shapely",
     "version_count": 2,
     "versions": "2.0.6, 2.1.2",
     "services": "2.0.6=>sahool-platform,sam2-inference; 2.1.2=>raster-tiler-service",
-    "files": "services/raster-tiler-service/requirements.txt:64; services/sahool-platform/api/requirements.txt:30; services/sam2-inference/requirements.txt:18"
+    "files": "services/raster-tiler-service/requirements.txt:64; services/sahool-platform/api/requirements.txt:31; services/sam2-inference/requirements.txt:18"
   },
   {
     "package": "uvicorn",

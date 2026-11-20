@@ -93,8 +93,11 @@ def test_every_disallowed_transition_raises(cur, tgt):
 
 
 def _all_valid_pairs():
+    # Targets are a set whose order follows the hash seed, so case ids differed between
+    # pytest-xdist workers ("Different tests were collected"). Enum order pins them.
+    order = list(SoilTestStatus)
     for cur, targets in SOIL_TEST_TRANSITIONS.items():
-        for tgt in targets:
+        for tgt in sorted(targets, key=order.index):
             yield cur, tgt
 
 

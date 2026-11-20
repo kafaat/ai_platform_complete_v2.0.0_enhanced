@@ -127,7 +127,14 @@ def test_check_names_survive_the_slice_and_unit_tests_is_a_singleton() -> None:
         )
     )
     required = set(contract["required_contexts"])
-    present = {j.get("name") for j in jobs.values()}
+    # The five required mutation contexts are literal include entries. The
+    # expression is the wiring, not the check name emitted by GitHub Actions.
+    present = set()
+    for job in jobs.values():
+        if job.get("name") == "${{ matrix.check_name }}":
+            present.update(entry["check_name"] for entry in job["strategy"]["matrix"]["include"])
+        else:
+            present.add(job.get("name"))
     missing = required - present
     assert not missing, f"أسماءٌ مطلوبة في حماية الفرع غابت عن ci.yml: {sorted(missing)}"
 
@@ -140,6 +147,7 @@ def test_the_sharded_sweep_job_declares_literal_check_names() -> None:
     مُركَّباً في نصّ الاسم.
     """
     job = _ci()["jobs"]["mutation-sweep"]
+    assert job["name"] == "${{ matrix.check_name }}", "أسماء الحزم المعلنة غير موصولة بالوظيفة"
     entries = job["strategy"]["matrix"]["include"]
     names = [entry["check_name"] for entry in entries]
 

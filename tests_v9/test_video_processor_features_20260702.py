@@ -247,7 +247,7 @@ def _auth_headers(tenant_id: str = "tenant_a", role: str = "user") -> dict:
     from datetime import UTC, datetime, timedelta
     from uuid import uuid4
 
-    from jose import jwt
+    import jwt
 
     now = datetime.now(UTC)
     token = jwt.encode(

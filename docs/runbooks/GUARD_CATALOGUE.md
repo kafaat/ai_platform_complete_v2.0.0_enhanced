@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **272**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **49**
-- إجماليّ الطفرات المُسجَّلة: **369**
+- إجماليّ الطفرات المُسجَّلة: **371**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **329** على 119 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -486,7 +486,7 @@
 
 **يفرض:** لا حارس بلا عطلٍ مزروع يُثبِت أنّه يُطلِق — GUARDS-WITHOUT-A-PLANTED-DEFECT-01.
 
-**يحجب في:** `capability-governance.yml` → `blocking-surface-advisory` · `ci.yml` → `lint` · `ci.yml` → `mutation-sweep` · `ci.yml` → `unit-tests`
+**يحجب في:** `capability-governance.yml` → `blocking-surface-advisory` · `ci.yml` → `lint` · `ci.yml` → `mutation-sweep`
 
 **الاختبار الشاهد:** `tests_v9/test_guard_mutation_guard.py`
 
@@ -520,6 +520,8 @@
 - نزعُ الاتّجاه الرابع يُعيد **الصمت المقيس**: نُزِع استدعاءُ حارسٍ من `ci.yml` على `a3124ccf` فهبط السطحُ ٣٠١ ⇒ ٣٠٠، ولم يشتكِ إلّا فحصُ انحراف الكتالوج — وعلاجُه المنصوصُ عليه إعادةُ التوليد، فإذا فُعِل قال الاثنان أوكيه. أي أنّ العلاجَ الذي يأمر به النظامُ هو ما يمحو الدليل، ويبقى ملفُّ الحارس يبدو حمايةً ولا يُشغّله شيء — يُسقِط `test_a_blocker_that_vanished_is_reported`
 - إقرارُ تقاعدٍ لحاجبٍ يعمل بابُ إسكاتٍ دائم: يُعلَن التقاعدُ اليومَ ويُعاد الاستدعاءُ غداً فلا يُبلَّغ عن نزعِه ثانيةً — أي أنّ سطراً واحداً في السجلّ يشتري صمتاً دائماً عن ثلاثيّة — يُسقِط `test_a_retirement_declared_for_a_blocker_still_running_is_reported`
 - نزعُ فحص اليُتم يُعيد `retired` حقلاً يقبل أيّ مفتاح، فتتراكم فيه أسماءٌ لا تخصّ ثلاثيّةً كانت في الأساس قطّ — سجلٌّ يبدو نظيفاً وهو يحمل ما لا وجودَ له، وهو الصنفُ نفسُه المُغلَق للإقرارات في الاتّجاه الثالث. أصابت مراجعةٌ آليّة على #983 — يُسقِط `test_a_retirement_for_a_triple_never_in_the_baseline_is_reported`
+- #1521: a failing, skipped, XFAIL, XPASS, missing or uncollected original cannot qualify a mutation; all original witness cases must pass before planting. — يُسقِط `test_an_unqualified_original_witness_cannot_count_as_a_mutation_kill`
+- #1521: fixture setup/teardown errors or a changed parameter catalog cannot count as a kill; require a failed call from the exact green-original catalog. — يُسقِط `test_a_mutant_without_a_matching_failed_call_is_not_a_kill`
 
 ### `json_duplicate_key_guard.py`
 

@@ -259,6 +259,7 @@ def test_the_live_tree_has_no_undeclared_addition():
         MOD.discover_blocking_surface(),
         MOD._load_surface_json(BASELINE, "legacy_blocking"),
         MOD._load_surface_json(ADDITIONS, "additions"),
+        retirements=MOD._load_surface_json(BASELINE, "retired"),
     )
     assert findings == [], findings
 
@@ -437,7 +438,7 @@ def test_a_vanished_addition_is_reported_once_not_twice():
 
 
 def test_the_live_tree_has_no_unspoken_retirement():
-    """الشجرةُ الحيّةُ لا تقاعدَ فيها اليوم — وهذا ما يجعل أوّلَ نزعٍ قادمٍ مرئيّاً."""
+    """كلّ تقاعدٍ في الشجرة الحيّة معلَن — ويبقى النزعُ الصامتُ مرئيّاً."""
     findings = MOD.blocking_surface_findings(
         MOD.discover_blocking_surface(),
         MOD._load_surface_json(BASELINE, "legacy_blocking"),

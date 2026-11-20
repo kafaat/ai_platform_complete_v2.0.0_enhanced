@@ -21,12 +21,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from types import MappingProxyType
 from typing import Any
 
 from core.workflow_engine import (
     InMemoryWorkflowStore,
+    WorkflowState,
+    WorkflowStatus,
     WorkflowStep,
     run_workflow,
 )
@@ -65,6 +67,93 @@ ESCALATION_TABLE = MappingProxyType(
 )
 
 
+_LEGACY_EXECUTION_REFS = frozenset(f"exec-{action}" for _, action, _ in _ACTION_BANDS)
+
+
+def _execution_ref(value: object) -> str | None:
+    if isinstance(value, str):
+        return value.strip() or None
+    return None
+
+
+def is_execution_proven(result: Mapping[str, Any] | None) -> bool:
+    """تنفيذ مُثبَت: ``executed is True`` مع ``execution_ref`` نصّيّ غير فارغ."""
+    return (
+        isinstance(result, Mapping)
+        and result.get("executed") is True
+        and (ref := _execution_ref(result.get("execution_ref"))) is not None
+        and ref not in _LEGACY_EXECUTION_REFS
+    )
+
+
+def summarize_pest_execution(state: WorkflowState) -> dict[str, Any]:
+    """Project physical pest execution without trusting workflow completion.
+
+    A completed workflow can have no executor. Conversely, a crash during
+    execution or an unacknowledged worker reply can have already caused a
+    physical effect. The latter must be reconciled, never called "no spray".
+    The projection is read-only and does not modify the durable workflow.
+    """
+    step = state.step_results.get("execute")
+    if not isinstance(step, Mapping):
+        # A failed/in-flight execute step has no receipt precisely because
+        # its handler can crash AFTER the side effect and BEFORE saving the
+        # result. current_step is saved before invoking the handler.
+        reached_execute = (
+            state.current_step in ("execute", "follow_up") or "execute" in state.completed_steps
+        )
+        uncertain = reached_execute or state.status in (
+            WorkflowStatus.COMPLETED,
+            WorkflowStatus.COMPENSATION_FAILED,
+        )
+        return {
+            "status": "reconciliation_required" if uncertain else "not_attempted",
+            "executed": None if uncertain else False,
+            "execution_ref": None,
+            "reason": "execution_outcome_unknown" if uncertain else "execution_step_not_reached",
+        }
+
+    ref = _execution_ref(step.get("execution_ref"))
+    # The legacy no-executor fallback emitted the same reference for every
+    # workflow with this action. It cannot identify a physical operation.
+    if ref in _LEGACY_EXECUTION_REFS:
+        return {
+            "status": "reconciliation_required",
+            "executed": None,
+            "execution_ref": None,
+            "reason": "legacy_synthetic_reference",
+        }
+    proven = is_execution_proven(step)
+    ack = step.get("executed")
+    # Both failure reason codes are emitted AFTER the executor was called.
+    # A false-shaped reply from a called executor does not prove no side effect.
+    uncertain = (
+        state.status == WorkflowStatus.COMPENSATION_FAILED
+        or (ref is not None and not proven)
+        or (not proven and ack is not False)
+        or step.get("reason") in ("execution_not_confirmed", "execution_ref_missing")
+        or (proven and state.status != WorkflowStatus.COMPLETED)
+    )
+    status = "reconciliation_required" if uncertain else "executed" if proven else "not_executed"
+    reason = step.get("reason") or step.get("blocked_by")
+    if not isinstance(reason, str) or not reason.strip():
+        if uncertain:
+            reason = "execution_reconciliation_required"
+        elif proven:
+            reason = None
+        elif "execution_ref" in step:
+            reason = "execution_not_confirmed"
+        else:
+            # Only the approval/no-action exits omit the key: no executor was called.
+            reason = "execution_not_attempted"
+    return {
+        "status": status,
+        "executed": None if uncertain else proven,
+        "execution_ref": ref,
+        "reason": reason,
+    }
+
+
 def build_pest_escalation_steps(
     *,
     detect_fn: Callable[[dict], dict] | None = None,
@@ -73,8 +162,8 @@ def build_pest_escalation_steps(
 ) -> list[WorkflowStep]:
     """يبني خطوات تصعيد الآفة. الدوال الخارجيّة (رصد/تنفيذ) قابلة للحقن.
 
-    detect_fn(ctx) → {pest_type, severity}؛ execute_fn(ctx) → {executed};
-    cancel_fn(ctx) تعويض تنفيذ فاشل. بلا حقن تُستخدم منطق افتراضي من السياق.
+    detect_fn(ctx) → {pest_type, severity}؛ execute_fn(ctx) → {executed, execution_ref};
+    cancel_fn(ctx) تعويض فشل. بلا منفذ فعليّ لا يوجد إقرار تنفيذ.
     """
     from core.alert_engine import CRITICAL, WARNING
 
@@ -144,13 +233,25 @@ def build_pest_escalation_steps(
             return {"executed": False, "note_ar": "بانتظار موافقة الخبير — لم يُنفَّذ"}
         if ctx.get("action_type") in (None, _NO_ESCALATION_ACTION):
             return {"executed": False, "note_ar": "لا إجراء للتنفيذ"}
-        if execute_fn is not None:
-            res = execute_fn(ctx)
+        if execute_fn is None:
+            # A workflow has no physical actuator unless the caller wires a real one.
             return {
-                "executed": bool(res.get("executed", True)),
-                "execution_ref": res.get("execution_ref"),
+                "executed": False,
+                "execution_ref": None,
+                "reason": "executor_not_configured",
             }
-        return {"executed": True, "execution_ref": f"exec-{ctx.get('action_type')}"}
+        res = execute_fn(ctx)
+        if is_execution_proven(res):
+            return {"executed": True, "execution_ref": _execution_ref(res["execution_ref"])}
+        # An attempted side effect may be uncertain, but never count it as executed
+        # without a literal positive ACK and nonblank reference. The worker's own
+        # reference is kept so reconciliation and Saga compensation can find it.
+        ref = _execution_ref(res.get("execution_ref")) if isinstance(res, Mapping) else None
+        return {
+            "executed": False,
+            "execution_ref": None if ref in _LEGACY_EXECUTION_REFS else ref,
+            "reason": "execution_not_confirmed",
+        }
 
     def undo_execute(ctx: dict) -> None:
         # تعويض Saga: إلغاء التنفيذ إن فشلت خطوة لاحقة (المتابعة)
@@ -159,7 +260,7 @@ def build_pest_escalation_steps(
 
     def step_follow_up(ctx: dict) -> dict:
         # جدولة متابعة للتحقّق من نجاح المكافحة
-        if not ctx.get("executed"):
+        if not is_execution_proven(ctx):
             return {"follow_up_scheduled": False}
         return {
             "follow_up_scheduled": True,

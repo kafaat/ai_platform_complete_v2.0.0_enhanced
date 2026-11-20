@@ -5,8 +5,8 @@
   "runtime_verified":false,
   "python_files_parsed":1893,
   "route_handlers":1050,
-  "call_edges":78265,
-  "dead_code_candidates":632,
+  "call_edges":78356,
+  "dead_code_candidates":634,
   "duplicate_function_groups":60,
   "route_owners":27,
   "automatic_deletions":0
@@ -231,7 +231,7 @@
   {
    "owner":"auth",
    "file":"services/auth/main.py",
-   "line":400,
+   "line":401,
    "handler":"runtime_identity",
    "method":"GET",
    "path":"/runtime-identity"
@@ -391,7 +391,7 @@
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
-   "line":24,
+   "line":26,
    "handler":"login",
    "method":"POST",
    "path":"/v1/auth/login"
@@ -399,7 +399,7 @@
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
-   "line":125,
+   "line":127,
    "handler":"refresh_token",
    "method":"POST",
    "path":"/v1/auth/refresh"
@@ -407,7 +407,7 @@
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
-   "line":167,
+   "line":169,
    "handler":"logout",
    "method":"POST",
    "path":"/v1/auth/logout"
@@ -415,7 +415,7 @@
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
-   "line":211,
+   "line":214,
    "handler":"me",
    "method":"GET",
    "path":"/v1/auth/me"
@@ -31813,517 +31813,524 @@
    "file":"services/auth/main.py",
    "source":"_tile_cookie_secure",
    "target":"get",
-   "line":99
+   "line":100
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_tile_cookie_secure",
    "target":"lower",
-   "line":100
+   "line":101
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_tile_cookie_secure",
    "target":"split",
-   "line":100
+   "line":101
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_tile_cookie_secure",
    "target":"strip",
-   "line":100
+   "line":101
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_tile_cookie_secure",
    "target":"lower",
-   "line":102
+   "line":103
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_tile_cookie_secure",
    "target":"str",
-   "line":102
+   "line":103
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"set_tile_auth_cookie",
    "target":"set_cookie",
-   "line":112
+   "line":113
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"set_tile_auth_cookie",
    "target":"_tile_cookie_secure",
-   "line":117
+   "line":118
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"clear_tile_auth_cookie",
    "target":"delete_cookie",
-   "line":125
+   "line":126
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"clear_tile_auth_cookie",
    "target":"_tile_cookie_secure",
-   "line":128
+   "line":129
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_is_production",
    "target":"getenv",
-   "line":156
+   "line":157
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_is_production",
    "target":"lower",
-   "line":156
+   "line":157
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_is_production",
    "target":"strip",
-   "line":156
+   "line":157
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_refuse_hs256_in_production",
    "target":"lower",
-   "line":169
+   "line":170
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_refuse_hs256_in_production",
    "target":"strip",
-   "line":169
+   "line":170
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_parse_required_mfa_roles",
    "target":"frozenset",
-   "line":179
+   "line":180
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_parse_required_mfa_roles",
    "target":"lower",
-   "line":179
+   "line":180
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_parse_required_mfa_roles",
    "target":"split",
-   "line":179
+   "line":180
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_parse_required_mfa_roles",
    "target":"strip",
-   "line":179
+   "line":180
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_parse_required_mfa_roles",
    "target":"strip",
-   "line":179
+   "line":180
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_mfa_required_but_missing",
    "target":"lower",
-   "line":207
+   "line":208
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_mfa_required_but_missing",
    "target":"strip",
-   "line":207
+   "line":208
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_admin_stepup_required",
    "target":"getenv",
-   "line":222
+   "line":223
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_admin_stepup_required",
    "target":"lower",
-   "line":222
+   "line":223
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_admin_stepup_required",
    "target":"strip",
-   "line":222
+   "line":223
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_admin_stepup_required",
    "target":"_is_production",
-   "line":223
+   "line":224
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_safe_counter",
    "target":"Counter",
-   "line":255
+   "line":256
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_safe_counter",
    "target":"str",
-   "line":257
+   "line":258
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_safe_counter",
    "target":"Counter",
-   "line":259
+   "line":260
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_acquire",
    "target":"acquire",
-   "line":281
+   "line":282
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_acquire",
    "target":"getattr",
-   "line":284
+   "line":285
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_set_admin_context",
    "target":"getattr",
-   "line":284
+   "line":285
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_acquire",
    "target":"execute",
-   "line":286
+   "line":287
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_set_admin_context",
    "target":"execute",
-   "line":286
+   "line":287
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_acquire",
    "target":"hasattr",
-   "line":291
+   "line":292
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_acquire",
    "target":"_set_admin_context",
-   "line":293
+   "line":294
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_acquire",
    "target":"_set_admin_context",
-   "line":299
+   "line":300
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_acquire",
    "target":"getattr",
-   "line":302
+   "line":303
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_acquire",
    "target":"release",
-   "line":304
+   "line":305
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"RuntimeError",
-   "line":313
+   "line":314
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"RuntimeError",
-   "line":318
+   "line":319
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"len",
-   "line":321
+   "line":322
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"RuntimeError",
-   "line":323
+   "line":324
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"_refuse_hs256_in_production",
-   "line":325
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"lifespan",
-   "target":"bool",
    "line":326
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
-   "target":"_is_production",
+   "target":"bool",
    "line":327
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
-   "target":"getenv",
+   "target":"_is_production",
    "line":328
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
+   "target":"getenv",
+   "line":329
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"lifespan",
    "target":"RuntimeError",
-   "line":330
+   "line":331
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"_is_production",
-   "line":339
+   "line":340
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"getenv",
-   "line":339
+   "line":340
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"warning",
-   "line":340
+   "line":341
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_init_auth_conn",
    "target":"execute",
-   "line":356
+   "line":357
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"execute",
-   "line":356
+   "line":357
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"create_pool",
-   "line":358
+   "line":359
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"assert_db_role_rls_safe",
-   "line":369
+   "line":370
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"from_url",
-   "line":373
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"lifespan",
-   "target":"ping",
    "line":374
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
-   "target":"info",
+   "target":"ping",
    "line":375
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
-   "target":"_is_production",
-   "line":381
+   "target":"info",
+   "line":376
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
-   "target":"RuntimeError",
+   "target":"_is_production",
    "line":382
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
+   "target":"RuntimeError",
+   "line":383
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"lifespan",
    "target":"warning",
-   "line":384
+   "line":385
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"_ensure_admin_user",
-   "line":387
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"lifespan",
-   "target":"info",
    "line":388
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
-   "target":"close",
-   "line":391
+   "target":"info",
+   "line":389
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"lifespan",
    "target":"close",
-   "line":393
+   "line":392
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"lifespan",
+   "target":"close",
+   "line":394
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"runtime_identity",
    "target":"get",
-   "line":399
+   "line":400
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"runtime_identity",
    "target":"load_build_identity",
-   "line":402
+   "line":403
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"tenant_header_middleware",
    "target":"middleware",
-   "line":416
+   "line":417
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"tenant_header_middleware",
    "target":"call_next",
-   "line":418
+   "line":419
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"tenant_header_middleware",
    "target":"get",
-   "line":420
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"tenant_header_middleware",
-   "target":"startswith",
    "line":421
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"tenant_header_middleware",
-   "target":"decode",
-   "line":423
+   "target":"startswith",
+   "line":422
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"tenant_header_middleware",
+   "target":"_decode_issued_token",
+   "line":424
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"tenant_header_middleware",
    "target":"get",
-   "line":427
+   "line":426
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"tenant_header_middleware",
    "target":"ValueError",
+   "line":427
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"tenant_header_middleware",
+   "target":"get",
    "line":428
   },
   {
@@ -32331,7 +32338,7 @@
    "file":"services/auth/main.py",
    "source":"tenant_header_middleware",
    "target":"get",
-   "line":429
+   "line":432
   },
   {
    "owner":"auth",
@@ -32344,231 +32351,238 @@
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"tenant_header_middleware",
-   "target":"get",
-   "line":434
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"tenant_header_middleware",
    "target":"debug",
-   "line":437
+   "line":436
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"tenant_header_middleware",
    "target":"type",
-   "line":437
+   "line":436
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"is_inviteable_role",
    "target":"lower",
-   "line":462
+   "line":461
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"is_inviteable_role",
    "target":"strip",
-   "line":462
+   "line":461
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"can_invite",
    "target":"lower",
-   "line":467
+   "line":466
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"can_invite",
    "target":"strip",
-   "line":467
+   "line":466
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"field_validator",
-   "line":478
+   "line":477
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"any",
-   "line":481
+   "line":480
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"isupper",
-   "line":481
+   "line":480
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"ValueError",
+   "line":481
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"strong_password",
+   "target":"any",
    "line":482
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
-   "target":"any",
-   "line":483
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"strong_password",
    "target":"isdigit",
-   "line":483
+   "line":482
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"ValueError",
+   "line":483
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"strong_password",
+   "target":"any",
    "line":484
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
-   "target":"any",
+   "target":"ValueError",
    "line":485
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
-   "target":"ValueError",
-   "line":486
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"strong_password",
    "target":"field_validator",
-   "line":512
+   "line":511
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"any",
-   "line":515
+   "line":514
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"isupper",
-   "line":515
+   "line":514
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"ValueError",
+   "line":515
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"strong_password",
+   "target":"any",
    "line":516
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
-   "target":"any",
-   "line":517
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"strong_password",
    "target":"isdigit",
-   "line":517
+   "line":516
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"ValueError",
-   "line":518
+   "line":517
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"field_validator",
-   "line":540
+   "line":539
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"any",
-   "line":543
+   "line":542
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"isupper",
+   "line":542
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"strong_password",
+   "target":"ValueError",
    "line":543
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
-   "target":"ValueError",
+   "target":"any",
    "line":544
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
-   "target":"any",
-   "line":545
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"strong_password",
    "target":"isdigit",
-   "line":545
+   "line":544
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
    "target":"ValueError",
+   "line":545
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"strong_password",
+   "target":"any",
    "line":546
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"strong_password",
-   "target":"any",
-   "line":547
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"strong_password",
    "target":"ValueError",
-   "line":548
+   "line":547
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"create_access_token",
    "target":"now",
+   "line":603
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"create_access_token",
+   "target":"str",
+   "line":604
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"create_access_token",
+   "target":"uuid4",
    "line":604
   },
   {
@@ -32576,21 +32590,21 @@
    "file":"services/auth/main.py",
    "source":"create_access_token",
    "target":"str",
-   "line":605
+   "line":606
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"create_access_token",
-   "target":"uuid4",
-   "line":605
+   "target":"int",
+   "line":615
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"create_access_token",
-   "target":"str",
-   "line":607
+   "target":"timestamp",
+   "line":615
   },
   {
    "owner":"auth",
@@ -32612,153 +32626,146 @@
    "source":"create_access_token",
    "target":"int",
    "line":617
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"create_access_token",
-   "target":"timestamp",
-   "line":617
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"create_access_token",
-   "target":"int",
-   "line":618
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"create_access_token",
    "target":"timedelta",
-   "line":618
+   "line":617
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"create_access_token",
    "target":"timestamp",
-   "line":618
+   "line":617
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"create_access_token",
    "target":"encode",
-   "line":620
+   "line":619
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"create_refresh_token",
    "target":"token_urlsafe",
-   "line":627
+   "line":626
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"create_refresh_token",
    "target":"setex",
-   "line":629
+   "line":628
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"create_refresh_token",
    "target":"sadd",
-   "line":632
+   "line":631
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"create_refresh_token",
    "target":"expire",
-   "line":633
+   "line":632
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_jti",
    "target":"int",
-   "line":641
+   "line":640
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_jti",
    "target":"max",
-   "line":641
+   "line":640
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_jti",
    "target":"now",
-   "line":641
+   "line":640
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_jti",
    "target":"timestamp",
-   "line":641
+   "line":640
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_jti",
    "target":"setex",
-   "line":642
+   "line":641
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"is_jti_revoked",
    "target":"exists",
-   "line":648
+   "line":647
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_refresh_token",
    "target":"delete",
-   "line":653
+   "line":652
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"set_user_token_floor",
    "target":"int",
-   "line":666
+   "line":665
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"set_user_token_floor",
    "target":"now",
-   "line":666
+   "line":665
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"set_user_token_floor",
    "target":"timestamp",
-   "line":666
+   "line":665
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"set_user_token_floor",
    "target":"setex",
-   "line":668
+   "line":667
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"set_user_token_floor",
    "target":"str",
-   "line":669
+   "line":668
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"is_token_below_floor",
+   "target":"get",
+   "line":676
   },
   {
    "owner":"auth",
@@ -32772,55 +32779,55 @@
    "file":"services/auth/main.py",
    "source":"is_token_below_floor",
    "target":"get",
-   "line":678
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"is_token_below_floor",
-   "target":"get",
-   "line":681
+   "line":680
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"is_token_below_floor",
    "target":"int",
-   "line":685
+   "line":684
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"is_token_below_floor",
    "target":"int",
-   "line":685
+   "line":684
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_all_user_sessions",
    "target":"set_user_token_floor",
-   "line":694
+   "line":693
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_all_user_sessions",
    "target":"smembers",
-   "line":696
+   "line":695
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_all_user_sessions",
    "target":"decode",
-   "line":698
+   "line":697
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_all_user_sessions",
    "target":"isinstance",
+   "line":697
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"revoke_all_user_sessions",
+   "target":"delete",
    "line":698
   },
   {
@@ -32833,30 +32840,30 @@
   {
    "owner":"auth",
    "file":"services/auth/main.py",
-   "source":"revoke_all_user_sessions",
-   "target":"delete",
-   "line":700
+   "source":"_decode_issued_token",
+   "target":"decode_access_token",
+   "line":707
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"get_current_user",
    "target":"Depends",
-   "line":708
+   "line":713
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"get_current_user",
    "target":"HTTPException",
-   "line":711
+   "line":716
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"get_current_user",
-   "target":"decode",
-   "line":713
+   "target":"_decode_issued_token",
+   "line":718
   },
   {
    "owner":"auth",
@@ -36468,153 +36475,132 @@
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"post",
-   "line":23
+   "line":25
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"check_ip_rate",
-   "line":26
+   "line":28
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"check_lockout",
-   "line":27
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"_acquire",
    "line":29
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
+   "target":"_acquire",
+   "line":31
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
    "target":"fetchrow",
-   "line":30
+   "line":32
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"checkpw",
-   "line":40
+   "line":42
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"encode",
-   "line":41
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"isinstance",
    "line":43
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
+   "target":"isinstance",
+   "line":45
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
    "target":"encode",
-   "line":44
+   "line":46
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"record_failed_login",
-   "line":47
+   "line":49
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"inc",
-   "line":50
+   "line":52
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"labels",
-   "line":50
+   "line":52
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"HTTPException",
-   "line":51
+   "line":53
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"record_failed_login",
-   "line":57
+   "line":59
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"inc",
-   "line":58
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"labels",
-   "line":58
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"HTTPException",
    "line":60
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"mfa_login_verify",
-   "line":67
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"record_failed_login",
-   "line":70
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"inc",
-   "line":71
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
    "target":"labels",
-   "line":71
+   "line":60
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"HTTPException",
+   "line":62
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"mfa_login_verify",
+   "line":69
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"record_failed_login",
    "line":72
   },
   {
@@ -36622,294 +36608,294 @@
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"inc",
-   "line":80
+   "line":73
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"labels",
-   "line":80
+   "line":73
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"HTTPException",
-   "line":81
+   "line":74
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"inc",
+   "line":82
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"labels",
+   "line":82
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"HTTPException",
+   "line":83
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"record_failed_login",
-   "line":85
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"inc",
-   "line":86
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"labels",
-   "line":86
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"HTTPException",
    "line":87
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"_mfa_required_but_missing",
-   "line":91
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
    "target":"inc",
-   "line":92
+   "line":88
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"labels",
-   "line":92
+   "line":88
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"HTTPException",
+   "line":89
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"_mfa_required_but_missing",
    "line":93
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"clear_failed_logins",
-   "line":99
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"str",
-   "line":100
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"create_access_token",
-   "line":101
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"create_refresh_token",
-   "line":104
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"info",
-   "line":106
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"audit_log",
-   "line":107
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
    "target":"inc",
-   "line":108
+   "line":94
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"labels",
+   "line":94
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"HTTPException",
+   "line":95
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"clear_failed_logins",
+   "line":101
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"str",
+   "line":102
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"create_access_token",
+   "line":103
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"create_refresh_token",
+   "line":106
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"info",
    "line":108
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
+   "target":"audit_log",
+   "line":109
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"inc",
+   "line":110
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"labels",
+   "line":110
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
    "target":"set_tile_auth_cookie",
-   "line":111
+   "line":113
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"TokenResponse",
-   "line":113
+   "line":115
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
    "target":"post",
-   "line":124
+   "line":126
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
    "target":"HTTPException",
-   "line":128
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"refresh_token",
-   "target":"get",
    "line":130
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
-   "target":"HTTPException",
+   "target":"get",
    "line":132
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
-   "target":"split",
+   "target":"HTTPException",
    "line":134
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
-   "target":"int",
-   "line":135
+   "target":"split",
+   "line":136
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
-   "target":"_acquire",
+   "target":"int",
    "line":137
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
+   "target":"_acquire",
+   "line":139
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"refresh_token",
    "target":"fetchrow",
-   "line":138
+   "line":140
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
    "target":"revoke_refresh_token",
-   "line":142
+   "line":144
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
    "target":"HTTPException",
-   "line":143
+   "line":145
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
    "target":"revoke_refresh_token",
-   "line":146
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"refresh_token",
-   "target":"create_refresh_token",
-   "line":147
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"refresh_token",
-   "target":"create_access_token",
    "line":148
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
+   "target":"create_refresh_token",
+   "line":149
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"refresh_token",
+   "target":"create_access_token",
+   "line":150
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"refresh_token",
    "target":"set_tile_auth_cookie",
-   "line":153
+   "line":155
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
    "target":"TokenResponse",
-   "line":155
+   "line":157
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
    "target":"post",
-   "line":166
+   "line":168
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
    "target":"Depends",
-   "line":170
+   "line":172
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
-   "target":"decode",
-   "line":176
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"logout",
-   "target":"get",
-   "line":183
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"logout",
-   "target":"JWTError",
-   "line":184
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"logout",
-   "target":"get",
-   "line":185
+   "target":"decode_access_token",
+   "line":178
   },
   {
    "owner":"auth",
@@ -36922,78 +36908,99 @@
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
-   "target":"revoke_jti",
+   "target":"InvalidIssuerError",
+   "line":187
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"logout",
+   "target":"get",
    "line":188
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
-   "target":"debug",
+   "target":"get",
+   "line":189
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"logout",
+   "target":"revoke_jti",
    "line":191
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
+   "target":"debug",
+   "line":194
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"logout",
    "target":"json",
-   "line":196
+   "line":199
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
    "target":"debug",
-   "line":199
+   "line":202
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
    "target":"type",
-   "line":199
+   "line":202
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
    "target":"get",
-   "line":200
+   "line":203
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
    "target":"revoke_refresh_token",
-   "line":201
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"logout",
-   "target":"clear_tile_auth_cookie",
    "line":204
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
+   "target":"clear_tile_auth_cookie",
+   "line":207
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"logout",
    "target":"audit_log",
-   "line":206
+   "line":209
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"me",
    "target":"get",
-   "line":210
+   "line":213
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"me",
    "target":"Depends",
-   "line":211
+   "line":214
   },
   {
    "owner":"auth",
@@ -95469,463 +95476,505 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "source":"decode",
-   "target":"_JE",
-   "line":38
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
    "source":"_validate_tenant_id",
    "target":"match",
-   "line":94
+   "line":90
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_validate_tenant_id",
    "target":"str",
-   "line":94
+   "line":90
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_validate_tenant_id",
    "target":"HTTPException",
-   "line":95
+   "line":91
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_validate_tenant_id",
    "target":"str",
-   "line":96
+   "line":92
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_validate_tenant_id",
    "target":"HTTPException",
-   "line":97
+   "line":93
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_validate_tenant_id",
    "target":"str",
-   "line":98
+   "line":94
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_require_service_token",
    "target":"Header",
+   "line":97
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_require_service_token",
+   "target":"HTTPException",
+   "line":99
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_require_service_token",
+   "target":"HTTPException",
    "line":101
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_require_service_token",
-   "target":"HTTPException",
-   "line":103
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_require_service_token",
-   "target":"HTTPException",
-   "line":105
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_model_name",
    "target":"strip",
-   "line":117
+   "line":113
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_model_name",
    "target":"rsplit",
+   "line":114
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"wait_for_ollama",
+   "target":"get_event_loop",
    "line":118
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
-   "target":"get_event_loop",
-   "line":122
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"wait_for_ollama",
    "target":"time",
-   "line":122
+   "line":118
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"AsyncClient",
-   "line":123
+   "line":119
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"get_event_loop",
-   "line":124
+   "line":120
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"time",
+   "line":120
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"wait_for_ollama",
+   "target":"get",
+   "line":122
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"wait_for_ollama",
+   "target":"get",
    "line":124
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
-   "target":"get",
-   "line":126
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"wait_for_ollama",
-   "target":"get",
-   "line":128
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"wait_for_ollama",
    "target":"json",
-   "line":128
+   "line":124
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"_model_name",
-   "line":129
+   "line":125
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"get",
-   "line":129
+   "line":125
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"_model_name",
-   "line":131
+   "line":127
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"info",
-   "line":134
+   "line":130
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"info",
-   "line":139
+   "line":135
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"fromkeys",
-   "line":140
+   "line":136
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"post",
-   "line":141
+   "line":137
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"raise_for_status",
-   "line":146
+   "line":142
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"type",
-   "line":148
+   "line":144
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"warning",
-   "line":148
+   "line":144
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"sleep",
-   "line":149
+   "line":145
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"RuntimeError",
-   "line":150
+   "line":146
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"OllamaEmbeddings",
-   "line":161
+   "line":157
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"QdrantClient",
-   "line":167
+   "line":163
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"collection_exists",
-   "line":168
+   "line":164
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"RuntimeError",
-   "line":172
+   "line":168
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"from_existing_collection",
-   "line":173
+   "line":169
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"info",
-   "line":180
+   "line":176
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_llm",
    "target":"ChatOllama",
-   "line":191
+   "line":187
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_llm",
    "target":"info",
-   "line":197
+   "line":193
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"lower",
-   "line":205
+   "line":201
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"PyPDFLoader",
-   "line":207
+   "line":203
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"str",
-   "line":207
+   "line":203
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"TextLoader",
-   "line":209
+   "line":205
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"str",
-   "line":209
+   "line":205
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"ValueError",
-   "line":211
+   "line":207
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"load",
-   "line":212
+   "line":208
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"split_docs",
    "target":"RecursiveCharacterTextSplitter",
-   "line":216
+   "line":212
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"split_docs",
    "target":"split_documents",
-   "line":221
+   "line":217
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"get",
-   "line":239
+   "line":235
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"str",
-   "line":239
+   "line":235
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"hexdigest",
-   "line":240
+   "line":236
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"read_bytes",
-   "line":240
+   "line":236
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"sha256",
-   "line":240
+   "line":236
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"load_document",
-   "line":241
+   "line":237
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"isoformat",
-   "line":248
+   "line":244
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"now",
-   "line":248
+   "line":244
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"extend",
-   "line":249
+   "line":245
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"warning",
-   "line":251
+   "line":247
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"split_docs",
-   "line":256
+   "line":252
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"append",
-   "line":259
+   "line":255
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"get",
-   "line":259
+   "line":255
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"setdefault",
-   "line":259
+   "line":255
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"str",
-   "line":259
+   "line":255
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"items",
-   "line":262
+   "line":258
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"sorted",
+   "line":258
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"encode",
+   "line":259
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"hexdigest",
+   "line":259
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"sha256",
+   "line":259
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"len",
+   "line":260
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"enumerate",
+   "line":261
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"hexdigest",
+   "line":262
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"sha256",
    "line":262
   },
   {
@@ -95939,512 +95988,491 @@
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
-   "target":"hexdigest",
-   "line":263
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"sha256",
-   "line":263
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"len",
-   "line":264
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"enumerate",
-   "line":265
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"hexdigest",
-   "line":266
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"sha256",
-   "line":266
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
    "target":"encode",
-   "line":267
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"encode",
-   "line":267
+   "line":263
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"dict",
-   "line":269
+   "line":265
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"update",
-   "line":270
+   "line":266
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"append",
-   "line":275
+   "line":271
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"HTTPException",
-   "line":289
+   "line":285
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"AsyncClient",
-   "line":291
+   "line":287
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"post",
-   "line":292
+   "line":288
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"raise_for_status",
-   "line":297
+   "line":293
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"get",
-   "line":298
+   "line":294
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"int",
-   "line":298
+   "line":294
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"json",
-   "line":298
+   "line":294
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"type",
-   "line":300
+   "line":296
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"warning",
+   "line":296
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"HTTPException",
+   "line":297
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"len",
+   "line":298
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"HTTPException",
+   "line":299
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"len",
    "line":300
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"HTTPException",
-   "line":301
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"len",
-   "line":302
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"HTTPException",
-   "line":303
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"len",
-   "line":304
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_retrieval_fingerprint",
    "target":"encode",
-   "line":321
+   "line":317
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_retrieval_fingerprint",
    "target":"join",
-   "line":321
+   "line":317
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_retrieval_fingerprint",
    "target":"split",
-   "line":321
+   "line":317
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_retrieval_fingerprint",
    "target":"hexdigest",
-   "line":322
+   "line":318
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_retrieval_fingerprint",
    "target":"sha256",
-   "line":322
+   "line":318
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"min",
-   "line":336
+   "line":332
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"AsyncClient",
-   "line":338
+   "line":334
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"post",
-   "line":339
+   "line":335
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"raise_for_status",
-   "line":344
+   "line":340
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"get",
-   "line":345
+   "line":341
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"json",
+   "line":341
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_shadow_canonical_retrieval",
+   "target":"type",
+   "line":343
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_shadow_canonical_retrieval",
+   "target":"warning",
+   "line":343
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_shadow_canonical_retrieval",
+   "target":"_retrieval_fingerprint",
    "line":345
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
-   "target":"type",
+   "target":"_retrieval_fingerprint",
    "line":347
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
-   "target":"warning",
+   "target":"get",
    "line":347
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
-   "target":"_retrieval_fingerprint",
-   "line":349
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_shadow_canonical_retrieval",
-   "target":"_retrieval_fingerprint",
-   "line":351
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_shadow_canonical_retrieval",
    "target":"get",
-   "line":351
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_shadow_canonical_retrieval",
-   "target":"get",
-   "line":351
+   "line":347
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"str",
-   "line":351
+   "line":347
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"len",
-   "line":354
+   "line":350
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"len",
-   "line":354
+   "line":350
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"info",
-   "line":355
+   "line":351
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"len",
-   "line":357
+   "line":353
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"len",
-   "line":358
+   "line":354
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"init_vectorstore",
-   "line":372
+   "line":368
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"init_llm",
-   "line":373
+   "line":369
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"Filter",
-   "line":379
+   "line":375
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"FieldCondition",
-   "line":381
+   "line":377
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"MatchAny",
-   "line":383
+   "line":379
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"as_retriever",
-   "line":387
+   "line":383
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"to_thread",
-   "line":390
+   "line":386
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"type",
-   "line":392
+   "line":388
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"warning",
-   "line":392
+   "line":388
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"HTTPException",
-   "line":393
+   "line":389
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"_shadow_canonical_retrieval",
-   "line":398
+   "line":394
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"isoformat",
-   "line":407
+   "line":403
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"now",
-   "line":407
+   "line":403
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"join",
-   "line":410
+   "line":406
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"format",
-   "line":411
+   "line":407
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"to_thread",
-   "line":413
+   "line":409
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"type",
-   "line":415
+   "line":411
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"warning",
-   "line":415
+   "line":411
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"HTTPException",
-   "line":416
+   "line":412
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"getattr",
-   "line":418
+   "line":414
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"str",
+   "line":414
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"get",
+   "line":417
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"get",
    "line":418
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
-   "target":"get",
-   "line":421
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
-   "target":"get",
-   "line":422
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
    "target":"len",
-   "line":424
+   "line":420
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"isoformat",
-   "line":434
+   "line":430
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"now",
-   "line":434
+   "line":430
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_init_models_once",
+   "target":"info",
+   "line":463
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_init_models_once",
+   "target":"wait_for_ollama",
+   "line":464
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_init_models_once",
+   "target":"init_llm",
+   "line":465
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_init_models_once",
+   "target":"init_vectorstore",
+   "line":466
   },
   {
    "owner":"local-ai-rag",
@@ -96456,100 +96484,86 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "source":"_init_models_once",
-   "target":"wait_for_ollama",
-   "line":468
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_init_models_once",
-   "target":"init_llm",
-   "line":469
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_init_models_once",
-   "target":"init_vectorstore",
-   "line":470
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_init_models_once",
-   "target":"info",
-   "line":471
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
    "source":"_init_models_background",
    "target":"run_init_with_retry",
-   "line":478
+   "line":474
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":490
+   "line":486
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"_init_models_background",
-   "line":494
+   "line":490
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"create_task",
-   "line":494
+   "line":490
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":495
+   "line":491
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"done",
-   "line":499
+   "line":495
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"cancel",
-   "line":500
+   "line":496
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"suppress",
-   "line":501
+   "line":497
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":503
+   "line":499
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"Depends",
+   "line":525
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
+   "target":"HTTPException",
    "line":529
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
+   "target":"len",
+   "line":532
   },
   {
    "owner":"local-ai-rag",
@@ -96562,29 +96576,15 @@
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
-   "target":"len",
-   "line":536
+   "target":"HTTPException",
+   "line":535
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
-   "target":"HTTPException",
+   "target":"decode_access_token",
    "line":537
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"HTTPException",
-   "line":539
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"decode",
-   "line":541
   },
   {
    "owner":"local-ai-rag",
@@ -106741,196 +106741,196 @@
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
    "target":"create_pool",
-   "line":81
-  },
-  {
-   "owner":"odoo-bridge",
-   "file":"services/odoo-bridge/main.py",
-   "source":"lifespan",
-   "target":"info",
    "line":82
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
-   "target":"assert_db_role_rls_safe",
-   "line":86
+   "target":"info",
+   "line":83
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
-   "target":"_run_migrations",
+   "target":"assert_db_role_rls_safe",
    "line":87
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
+   "target":"_run_migrations",
+   "line":88
+  },
+  {
+   "owner":"odoo-bridge",
+   "file":"services/odoo-bridge/main.py",
+   "source":"lifespan",
    "target":"getenv",
-   "line":90
+   "line":91
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
    "target":"lower",
-   "line":90
+   "line":91
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
    "target":"strip",
-   "line":90
+   "line":91
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
    "target":"get_odoo",
-   "line":92
-  },
-  {
-   "owner":"odoo-bridge",
-   "file":"services/odoo-bridge/main.py",
-   "source":"lifespan",
-   "target":"authenticate",
    "line":93
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
-   "target":"info",
+   "target":"authenticate",
    "line":94
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
+   "target":"info",
+   "line":95
+  },
+  {
+   "owner":"odoo-bridge",
+   "file":"services/odoo-bridge/main.py",
+   "source":"lifespan",
    "target":"warning",
-   "line":96
+   "line":97
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":98
+   "line":99
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
    "target":"create_task",
-   "line":100
+   "line":101
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
    "target":"periodic_sync",
-   "line":100
+   "line":101
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
    "target":"close",
-   "line":103
+   "line":104
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"lifespan",
    "target":"close",
-   "line":105
+   "line":106
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"verify_token",
-   "target":"decode",
-   "line":133
+   "target":"decode_access_token",
+   "line":134
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"verify_token",
    "target":"ValueError",
-   "line":135
+   "line":142
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"verify_token",
    "target":"get",
-   "line":137
+   "line":144
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"verify_token",
    "target":"ValueError",
-   "line":138
+   "line":145
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"require_auth",
    "target":"Header",
-   "line":142
+   "line":149
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"require_auth",
    "target":"len",
-   "line":150
+   "line":157
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"require_auth",
    "target":"HTTPException",
-   "line":151
+   "line":158
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"require_auth",
    "target":"startswith",
-   "line":152
+   "line":159
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"require_auth",
    "target":"HTTPException",
-   "line":153
+   "line":160
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"require_auth",
    "target":"split",
-   "line":155
+   "line":162
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"require_auth",
    "target":"verify_token",
-   "line":155
+   "line":162
   },
   {
    "owner":"odoo-bridge",
    "file":"services/odoo-bridge/main.py",
    "source":"require_auth",
    "target":"HTTPException",
-   "line":157
+   "line":164
   },
   {
    "owner":"odoo-bridge",
@@ -278541,8 +278541,15 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/pest_escalation.py",
    "source":"pest_escalation_run",
+   "target":"summarize_pest_execution",
+   "line":103
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/pest_escalation.py",
+   "source":"pest_escalation_run",
    "target":"workflow_trace",
-   "line":104
+   "line":113
   },
   {
    "owner":"sahool-platform",
@@ -349415,401 +349422,534 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"detect_fn",
+   "source":"_execution_ref",
+   "target":"isinstance",
+   "line":74
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"_execution_ref",
+   "target":"strip",
+   "line":75
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"is_execution_proven",
+   "target":"isinstance",
+   "line":82
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"is_execution_proven",
+   "target":"get",
+   "line":83
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"is_execution_proven",
+   "target":"_execution_ref",
    "line":84
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
-   "target":"detect_fn",
+   "source":"is_execution_proven",
+   "target":"get",
    "line":84
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
+   "source":"summarize_pest_execution",
    "target":"get",
-   "line":87
+   "line":97
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
+   "source":"summarize_pest_execution",
+   "target":"isinstance",
+   "line":98
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"summarize_pest_execution",
+   "target":"_execution_ref",
+   "line":116
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"summarize_pest_execution",
    "target":"get",
-   "line":87
+   "line":116
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
+   "source":"summarize_pest_execution",
+   "target":"is_execution_proven",
+   "line":126
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"summarize_pest_execution",
    "target":"get",
-   "line":88
+   "line":127
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
+   "source":"summarize_pest_execution",
    "target":"get",
-   "line":88
+   "line":134
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"float",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
-   "target":"float",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
-   "target":"get",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_detect",
-   "target":"get",
-   "line":90
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"float",
-   "line":95
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":95
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_confirm",
-   "target":"float",
-   "line":95
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_confirm",
-   "target":"get",
-   "line":95
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":108
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_recommend",
-   "target":"get",
-   "line":108
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"float",
-   "line":113
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":113
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_recommend",
-   "target":"float",
-   "line":113
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_recommend",
-   "target":"get",
-   "line":113
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":125
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_await_approval",
-   "target":"get",
-   "line":125
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":131
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_await_approval",
-   "target":"get",
-   "line":131
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"_needs_approval_suspend",
+   "source":"summarize_pest_execution",
    "target":"get",
    "line":138
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
+   "source":"summarize_pest_execution",
    "target":"get",
    "line":138
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":143
+   "source":"summarize_pest_execution",
+   "target":"isinstance",
+   "line":139
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"get",
-   "line":143
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":145
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"get",
-   "line":145
+   "source":"summarize_pest_execution",
+   "target":"strip",
+   "line":139
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"build_pest_escalation_steps",
-   "target":"execute_fn",
-   "line":148
+   "target":"detect_fn",
+   "line":173
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"execute_fn",
-   "line":148
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"bool",
-   "line":150
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":150
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"bool",
-   "line":150
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"get",
-   "line":150
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":151
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"get",
-   "line":151
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":153
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_execute",
-   "target":"get",
-   "line":153
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":157
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"undo_execute",
-   "target":"get",
-   "line":157
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"cancel_fn",
-   "line":158
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"undo_execute",
-   "target":"cancel_fn",
-   "line":158
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"get",
-   "line":162
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"step_follow_up",
-   "target":"get",
-   "line":162
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"WorkflowStep",
-   "line":170
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"WorkflowStep",
-   "line":171
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"WorkflowStep",
-   "line":172
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/pest_escalation_flow.py",
-   "source":"build_pest_escalation_steps",
-   "target":"WorkflowStep",
+   "source":"step_detect",
+   "target":"detect_fn",
    "line":173
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"build_pest_escalation_steps",
-   "target":"WorkflowStep",
-   "line":174
+   "target":"get",
+   "line":176
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_detect",
+   "target":"get",
+   "line":176
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_detect",
+   "target":"get",
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"float",
+   "line":179
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":179
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":179
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_detect",
+   "target":"float",
+   "line":179
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_detect",
+   "target":"get",
+   "line":179
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_detect",
+   "target":"get",
+   "line":179
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"float",
+   "line":184
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":184
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_confirm",
+   "target":"float",
+   "line":184
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_confirm",
+   "target":"get",
+   "line":184
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":197
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_recommend",
+   "target":"get",
+   "line":197
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"float",
+   "line":202
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":202
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_recommend",
+   "target":"float",
+   "line":202
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_recommend",
+   "target":"get",
+   "line":202
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":214
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_await_approval",
+   "target":"get",
+   "line":214
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":220
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_await_approval",
+   "target":"get",
+   "line":220
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"_needs_approval_suspend",
+   "target":"get",
+   "line":227
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":227
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":232
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"get",
+   "line":232
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":234
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"get",
+   "line":234
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"execute_fn",
+   "line":243
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"execute_fn",
+   "line":243
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"is_execution_proven",
+   "line":244
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"is_execution_proven",
+   "line":244
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"_execution_ref",
+   "line":245
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"_execution_ref",
+   "line":245
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"_execution_ref",
+   "line":249
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":249
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"isinstance",
+   "line":249
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"_execution_ref",
+   "line":249
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"get",
+   "line":249
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_execute",
+   "target":"isinstance",
+   "line":249
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"get",
+   "line":258
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"undo_execute",
+   "target":"get",
+   "line":258
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"cancel_fn",
+   "line":259
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"undo_execute",
+   "target":"cancel_fn",
+   "line":259
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"is_execution_proven",
+   "line":263
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"step_follow_up",
+   "target":"is_execution_proven",
+   "line":263
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"build_pest_escalation_steps",
    "target":"WorkflowStep",
-   "line":175
+   "line":271
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"WorkflowStep",
+   "line":272
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"WorkflowStep",
+   "line":273
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"WorkflowStep",
+   "line":274
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"WorkflowStep",
+   "line":275
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/pest_escalation_flow.py",
+   "source":"build_pest_escalation_steps",
+   "target":"WorkflowStep",
+   "line":276
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"run_pest_escalation",
    "target":"build_pest_escalation_steps",
-   "line":195
+   "line":296
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"run_pest_escalation",
    "target":"run_workflow",
-   "line":198
+   "line":299
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/pest_escalation_flow.py",
    "source":"run_pest_escalation",
    "target":"InMemoryWorkflowStore",
-   "line":201
+   "line":302
   },
   {
    "owner":"sahool-platform",
@@ -435711,128 +435851,324 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_execute_default_ref_when_no_execute_fn",
+   "source":"test_no_executor_must_not_claim_a_spray_or_fabricate_a_reference",
    "target":"_steps_by_id",
+   "line":182
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_no_executor_must_not_claim_a_spray_or_fabricate_a_reference",
+   "target":"execute",
    "line":183
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_execute_default_ref_when_no_execute_fn",
-   "target":"execute",
-   "line":184
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
    "source":"test_execute_honours_execute_fn_reporting_failure",
    "target":"_steps_by_id",
-   "line":190
+   "line":191
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
    "source":"test_execute_honours_execute_fn_reporting_failure",
    "target":"execute",
-   "line":193
+   "line":194
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_follow_up_skipped_when_not_executed",
+   "source":"test_an_ack_without_a_receipt_is_not_confirmed",
    "target":"_steps_by_id",
-   "line":202
+   "line":200
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_follow_up_skipped_when_not_executed",
-   "target":"follow_up",
-   "line":203
+   "source":"test_an_ack_without_a_receipt_is_not_confirmed",
+   "target":"execute",
+   "line":201
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_follow_up_scheduled_after_execution",
+   "source":"test_false_shaped_or_non_dict_ack_cannot_claim_spray",
    "target":"_steps_by_id",
    "line":208
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_follow_up_scheduled_after_execution",
-   "target":"follow_up",
+   "source":"test_false_shaped_or_non_dict_ack_cannot_claim_spray",
+   "target":"execute",
    "line":209
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
-   "target":"InMemoryWorkflowStore",
-   "line":220
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
-   "target":"run_pest_escalation",
-   "line":221
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
-   "target":"run_pest_escalation",
-   "line":226
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_low_severity_flow_records_no_action_execute",
-   "target":"InMemoryWorkflowStore",
-   "line":243
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_low_severity_flow_records_no_action_execute",
-   "target":"run_pest_escalation",
-   "line":244
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_detect_step_default_reads_context_and_coerces_severity",
+   "source":"test_follow_up_skipped_when_not_executed",
    "target":"_steps_by_id",
+   "line":218
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_follow_up_skipped_when_not_executed",
+   "target":"follow_up",
+   "line":219
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_follow_up_scheduled_after_execution",
+   "target":"_steps_by_id",
+   "line":224
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_follow_up_scheduled_after_execution",
+   "target":"follow_up",
+   "line":225
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
+   "target":"InMemoryWorkflowStore",
+   "line":236
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
+   "target":"run_pest_escalation",
+   "line":237
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_mid_severity_biocontrol_full_flow_after_approval",
+   "target":"run_pest_escalation",
+   "line":242
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_low_severity_flow_records_no_action_execute",
+   "target":"InMemoryWorkflowStore",
    "line":260
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
-   "source":"test_detect_step_default_reads_context_and_coerces_severity",
-   "target":"detect",
+   "source":"test_low_severity_flow_records_no_action_execute",
+   "target":"run_pest_escalation",
    "line":261
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
    "source":"test_detect_step_default_reads_context_and_coerces_severity",
+   "target":"_steps_by_id",
+   "line":277
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_detect_step_default_reads_context_and_coerces_severity",
    "target":"detect",
-   "line":266
+   "line":278
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_detect_step_default_reads_context_and_coerces_severity",
+   "target":"detect",
+   "line":283
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
    "source":"test_recommend_confirmed_below_lowest_band_falls_back_honestly",
    "target":"_steps_by_id",
-   "line":272
+   "line":289
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
    "source":"test_recommend_confirmed_below_lowest_band_falls_back_honestly",
    "target":"recommend",
-   "line":273
+   "line":290
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_reserved_legacy_reference_cannot_confirm_new_execution",
+   "target":"_steps_by_id",
+   "line":299
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_reserved_legacy_reference_cannot_confirm_new_execution",
+   "target":"fn",
+   "line":300
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_reserved_legacy_reference_cannot_confirm_new_execution",
+   "target":"fn",
+   "line":302
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_whitespace_padded_legacy_receipts_are_not_physical_execution_proof",
+   "target":"is_execution_proven",
+   "line":313
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_whitespace_padded_legacy_receipts_are_not_physical_execution_proof",
+   "target":"_steps_by_id",
+   "line":314
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_whitespace_padded_legacy_receipts_are_not_physical_execution_proof",
+   "target":"fn",
+   "line":315
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_whitespace_padded_legacy_receipts_are_not_physical_execution_proof",
+   "target":"fn",
+   "line":322
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_whitespace_padded_legacy_receipts_are_not_physical_execution_proof",
+   "target":"SimpleNamespace",
+   "line":323
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_whitespace_padded_legacy_receipts_are_not_physical_execution_proof",
+   "target":"summarize_pest_execution",
+   "line":323
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_real_execution_receipt_is_canonicalized_before_persistence",
+   "target":"_steps_by_id",
+   "line":329
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_real_execution_receipt_is_canonicalized_before_persistence",
+   "target":"fn",
+   "line":332
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_unconfirmed_execution_keeps_worker_reference_for_reconciliation",
+   "target":"InMemoryWorkflowStore",
+   "line":343
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_unconfirmed_execution_keeps_worker_reference_for_reconciliation",
+   "target":"append",
+   "line":347
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_unconfirmed_execution_keeps_worker_reference_for_reconciliation",
+   "target":"run_pest_escalation",
+   "line":349
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_unconfirmed_execution_keeps_worker_reference_for_reconciliation",
+   "target":"run_pest_escalation",
+   "line":350
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_unconfirmed_execution_keeps_worker_reference_for_reconciliation",
+   "target":"load",
+   "line":359
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_unconfirmed_execution_keeps_worker_reference_for_reconciliation",
+   "target":"summarize_pest_execution",
+   "line":359
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_unconfirmed_execution_keeps_worker_reference_for_reconciliation",
+   "target":"_steps_by_id",
+   "line":365
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_unconfirmed_execution_keeps_worker_reference_for_reconciliation",
+   "target":"compensate",
+   "line":366
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_execution_never_attempted_is_not_reported_as_unconfirmed",
+   "target":"InMemoryWorkflowStore",
+   "line":374
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_execution_never_attempted_is_not_reported_as_unconfirmed",
+   "target":"append",
+   "line":375
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_execution_never_attempted_is_not_reported_as_unconfirmed",
+   "target":"run_pest_escalation",
+   "line":376
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_execution_never_attempted_is_not_reported_as_unconfirmed",
+   "target":"run_pest_escalation",
+   "line":377
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_pest_escalation_flow.py",
+   "source":"test_execution_never_attempted_is_not_reported_as_unconfirmed",
+   "target":"summarize_pest_execution",
+   "line":381
   },
   {
    "owner":"sahool-platform",
@@ -490971,105 +491307,98 @@
    "file":"services/tts-service/main.py",
    "source":"_metric",
    "target":"factory",
-   "line":95
+   "line":97
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_metric",
    "target":"get",
-   "line":97
+   "line":99
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"lifespan",
    "target":"from_url",
-   "line":125
-  },
-  {
-   "owner":"tts-service",
-   "file":"services/tts-service/main.py",
-   "source":"lifespan",
-   "target":"ping",
-   "line":126
-  },
-  {
-   "owner":"tts-service",
-   "file":"services/tts-service/main.py",
-   "source":"lifespan",
-   "target":"info",
    "line":127
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"lifespan",
-   "target":"warning",
+   "target":"ping",
+   "line":128
+  },
+  {
+   "owner":"tts-service",
+   "file":"services/tts-service/main.py",
+   "source":"lifespan",
+   "target":"info",
    "line":129
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"lifespan",
-   "target":"info",
+   "target":"warning",
    "line":131
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"lifespan",
+   "target":"info",
+   "line":133
+  },
+  {
+   "owner":"tts-service",
+   "file":"services/tts-service/main.py",
+   "source":"lifespan",
    "target":"aclose",
-   "line":134
+   "line":136
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":135
+   "line":137
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_agent_token_valid",
    "target":"getenv",
-   "line":153
+   "line":155
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_agent_token_valid",
    "target":"compare_digest",
-   "line":156
+   "line":158
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"get_current_user",
    "target":"Depends",
-   "line":160
+   "line":162
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"get_current_user",
    "target":"Header",
-   "line":161
+   "line":163
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"get_current_user",
    "target":"_agent_token_valid",
-   "line":172
-  },
-  {
-   "owner":"tts-service",
-   "file":"services/tts-service/main.py",
-   "source":"get_current_user",
-   "target":"HTTPException",
-   "line":176
+   "line":174
   },
   {
    "owner":"tts-service",
@@ -491082,22 +491411,15 @@
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"get_current_user",
-   "target":"decode",
+   "target":"HTTPException",
    "line":180
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"get_current_user",
-   "target":"HTTPException",
-   "line":187
-  },
-  {
-   "owner":"tts-service",
-   "file":"services/tts-service/main.py",
-   "source":"get_current_user",
-   "target":"get",
-   "line":189
+   "target":"decode_access_token",
+   "line":182
   },
   {
    "owner":"tts-service",
@@ -491109,135 +491431,149 @@
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
+   "source":"get_current_user",
+   "target":"get",
+   "line":192
+  },
+  {
+   "owner":"tts-service",
+   "file":"services/tts-service/main.py",
+   "source":"get_current_user",
+   "target":"HTTPException",
+   "line":193
+  },
+  {
+   "owner":"tts-service",
+   "file":"services/tts-service/main.py",
    "source":"validate_voice",
    "target":"field_validator",
-   "line":208
+   "line":211
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"validate_voice",
    "target":"ValueError",
-   "line":212
+   "line":215
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"validate_voice",
    "target":"keys",
-   "line":212
+   "line":215
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"validate_voice",
    "target":"list",
-   "line":212
-  },
-  {
-   "owner":"tts-service",
-   "file":"services/tts-service/main.py",
-   "source":"validate_percent",
-   "target":"field_validator",
    "line":215
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"validate_percent",
+   "target":"field_validator",
+   "line":218
+  },
+  {
+   "owner":"tts-service",
+   "file":"services/tts-service/main.py",
+   "source":"validate_percent",
    "target":"fullmatch",
-   "line":220
+   "line":223
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"validate_percent",
    "target":"ValueError",
-   "line":221
+   "line":224
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_cache_key",
    "target":"bool",
-   "line":257
+   "line":260
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_cache_key",
    "target":"int",
-   "line":257
+   "line":260
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_cache_key",
    "target":"encode",
-   "line":258
+   "line":261
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_cache_key",
    "target":"hexdigest",
-   "line":258
+   "line":261
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_cache_key",
    "target":"sha256",
-   "line":258
+   "line":261
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_generate_speech",
    "target":"ArabicTextNormalizer",
-   "line":279
+   "line":282
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_generate_speech",
    "target":"normalize",
-   "line":279
+   "line":282
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_generate_speech",
    "target":"select_provider",
-   "line":280
+   "line":283
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_generate_speech",
    "target":"labels",
-   "line":282
+   "line":285
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_generate_speech",
    "target":"time",
-   "line":282
+   "line":285
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_generate_speech",
    "target":"synthesize",
-   "line":283
+   "line":286
   },
   {
    "owner":"tts-service",
    "file":"services/tts-service/main.py",
    "source":"_provider_status",
    "target":"available",
-   "line":323
+   "line":326
   },
   {
    "owner":"tts-service",
@@ -501163,406 +501499,399 @@
    "file":"services/video-processor/main.py",
    "source":"_validate_stream_source",
    "target":"urlparse",
-   "line":42
+   "line":43
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_validate_stream_source",
    "target":"ValueError",
-   "line":44
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"_validate_stream_source",
-   "target":"lower",
    "line":45
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_validate_stream_source",
-   "target":"ValueError",
-   "line":47
+   "target":"lower",
+   "line":46
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_validate_stream_source",
    "target":"ValueError",
-   "line":50
+   "line":48
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"_validate_stream_source",
+   "target":"ValueError",
+   "line":51
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_validate_stream_source",
    "target":"getaddrinfo",
-   "line":52
+   "line":53
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_validate_stream_source",
    "target":"ValueError",
-   "line":54
+   "line":55
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_validate_stream_source",
    "target":"ip_address",
-   "line":56
+   "line":57
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_validate_stream_source",
    "target":"ValueError",
-   "line":64
+   "line":65
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_mqtt_auth_kwargs",
    "target":"getenv",
-   "line":87
+   "line":88
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_mqtt_auth_kwargs",
    "target":"strip",
-   "line":87
+   "line":88
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_mqtt_auth_kwargs",
    "target":"getenv",
-   "line":89
+   "line":90
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_parse_mqtt_broker_url",
    "target":"urlparse",
-   "line":98
+   "line":99
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_mqtt_disabled",
    "target":"startswith",
-   "line":104
+   "line":105
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"zlmediakit_secret_startup_error",
    "target":"lower",
-   "line":134
+   "line":135
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"zlmediakit_secret_startup_error",
    "target":"strip",
-   "line":134
+   "line":135
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"zlmediakit_secret_startup_error",
    "target":"strip",
-   "line":136
+   "line":137
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_zlmedia_params",
    "target":"setdefault",
-   "line":164
+   "line":165
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"check_video_dependencies",
    "target":"AsyncClient",
-   "line":175
+   "line":176
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"check_video_dependencies",
    "target":"get",
-   "line":178
+   "line":179
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"check_video_dependencies",
    "target":"_zlmedia_params",
-   "line":179
+   "line":180
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"check_video_dependencies",
    "target":"rstrip",
-   "line":179
+   "line":180
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"check_video_dependencies",
    "target":"type",
-   "line":183
+   "line":184
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"check_video_dependencies",
    "target":"get",
-   "line":186
+   "line":187
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"check_video_dependencies",
    "target":"rstrip",
-   "line":186
+   "line":187
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"check_video_dependencies",
    "target":"type",
-   "line":189
+   "line":190
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"capture_frame",
    "target":"VideoCapture",
-   "line":230
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"capture_frame",
-   "target":"isOpened",
    "line":231
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"capture_frame",
-   "target":"read",
-   "line":233
+   "target":"isOpened",
+   "line":232
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"capture_frame",
-   "target":"release",
+   "target":"read",
    "line":234
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"capture_frame",
+   "target":"release",
+   "line":235
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"capture_frame",
    "target":"warning",
-   "line":238
+   "line":239
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"async_capture",
    "target":"to_thread",
-   "line":243
+   "line":244
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"run_inference",
    "target":"imencode",
-   "line":253
+   "line":254
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"run_inference",
    "target":"tobytes",
-   "line":257
+   "line":258
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"run_inference",
    "target":"getenv",
-   "line":265
+   "line":266
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"run_inference",
    "target":"AsyncClient",
-   "line":268
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"run_inference",
-   "target":"post",
    "line":269
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"run_inference",
+   "target":"post",
+   "line":270
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"run_inference",
    "target":"warning",
-   "line":277
+   "line":278
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"run_inference",
    "target":"raise_for_status",
-   "line":283
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"run_inference",
-   "target":"json",
    "line":284
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"run_inference",
+   "target":"json",
+   "line":285
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"run_inference",
    "target":"type",
-   "line":286
+   "line":287
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"run_inference",
    "target":"warning",
-   "line":286
+   "line":287
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
    "target":"str",
-   "line":298
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"process_stream_loop",
-   "target":"startswith",
    "line":299
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
-   "target":"rstrip",
-   "line":302
+   "target":"startswith",
+   "line":300
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
-   "target":"AsyncClient",
+   "target":"rstrip",
    "line":303
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
-   "target":"post",
+   "target":"AsyncClient",
    "line":304
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
+   "target":"post",
+   "line":305
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"process_stream_loop",
    "target":"_zlmedia_params",
-   "line":306
+   "line":307
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
    "target":"rstrip",
-   "line":314
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"process_stream_loop",
-   "target":"info",
    "line":315
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
+   "target":"info",
+   "line":316
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"process_stream_loop",
    "target":"debug",
-   "line":317
+   "line":318
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
    "target":"type",
-   "line":317
+   "line":318
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
    "target":"async_capture",
-   "line":324
+   "line":325
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
    "target":"error",
-   "line":328
+   "line":329
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
    "target":"sleep",
-   "line":331
+   "line":332
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
    "target":"time",
-   "line":338
+   "line":339
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
    "target":"run_inference",
-   "line":340
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"process_stream_loop",
-   "target":"get",
-   "line":345
+   "line":341
   },
   {
    "owner":"video-processor",
@@ -501575,246 +501904,253 @@
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
+   "target":"get",
+   "line":347
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"process_stream_loop",
    "target":"publish_alert",
-   "line":348
+   "line":349
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
    "target":"sleep",
-   "line":350
+   "line":351
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
    "target":"error",
-   "line":356
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"process_stream_loop",
-   "target":"sleep",
    "line":357
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"process_stream_loop",
+   "target":"sleep",
+   "line":358
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"process_stream_loop",
    "target":"info",
-   "line":359
+   "line":360
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"publish_alert",
    "target":"_mqtt_disabled",
-   "line":364
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"publish_alert",
-   "target":"debug",
    "line":365
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"publish_alert",
+   "target":"debug",
+   "line":366
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"publish_alert",
    "target":"dumps",
-   "line":369
+   "line":370
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"publish_alert",
    "target":"isoformat",
-   "line":374
+   "line":375
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"publish_alert",
    "target":"now",
-   "line":374
+   "line":375
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"publish_alert",
    "target":"_parse_mqtt_broker_url",
-   "line":380
+   "line":381
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"publish_alert",
    "target":"MQTTClient",
-   "line":381
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"publish_alert",
-   "target":"_mqtt_auth_kwargs",
-   "line":381
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"publish_alert",
-   "target":"publish",
    "line":382
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"publish_alert",
+   "target":"_mqtt_auth_kwargs",
+   "line":382
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"publish_alert",
+   "target":"publish",
+   "line":383
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"publish_alert",
    "target":"warning",
-   "line":384
+   "line":385
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":392
+   "line":393
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"lifespan",
    "target":"items",
-   "line":395
+   "line":396
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"lifespan",
    "target":"list",
-   "line":395
+   "line":396
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"lifespan",
    "target":"cancel",
-   "line":398
+   "line":399
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":399
+   "line":400
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_get_current_user",
    "target":"Depends",
-   "line":422
+   "line":423
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_get_current_user",
    "target":"HTTPException",
-   "line":425
+   "line":426
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_get_current_user",
    "target":"getenv",
-   "line":427
-  },
-  {
-   "owner":"video-processor",
-   "file":"services/video-processor/main.py",
-   "source":"_get_current_user",
-   "target":"decode",
    "line":428
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_get_current_user",
+   "target":"decode_access_token",
+   "line":431
+  },
+  {
+   "owner":"video-processor",
+   "file":"services/video-processor/main.py",
+   "source":"_get_current_user",
    "target":"getenv",
-   "line":430
+   "line":433
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_get_current_user",
    "target":"HTTPException",
-   "line":435
+   "line":439
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_get_current_user",
    "target":"get",
-   "line":437
+   "line":441
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_get_current_user",
    "target":"HTTPException",
-   "line":438
+   "line":442
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_token_tenant",
    "target":"get",
-   "line":445
+   "line":449
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_token_tenant",
    "target":"str",
-   "line":445
+   "line":449
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_assert_stream_tenant",
    "target":"_token_tenant",
-   "line":456
+   "line":460
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_assert_stream_tenant",
    "target":"str",
-   "line":457
+   "line":461
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_assert_stream_tenant",
    "target":"HTTPException",
-   "line":458
+   "line":462
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_check_source",
    "target":"field_validator",
-   "line":481
+   "line":485
   },
   {
    "owner":"video-processor",
    "file":"services/video-processor/main.py",
    "source":"_check_source",
    "target":"_validate_stream_source",
-   "line":486
+   "line":490
   },
   {
    "owner":"video-processor",
@@ -552361,175 +552697,476 @@
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"getenv",
-   "line":17
+   "line":85
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"validate_rsa_public_key_pem",
-   "line":17
+   "line":85
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"getenv",
-   "line":20
+   "line":88
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"lower",
-   "line":20
+   "line":88
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"strip",
-   "line":20
+   "line":88
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"getenv",
-   "line":21
+   "line":89
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"lower",
-   "line":21
+   "line":89
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"strip",
-   "line":21
+   "line":89
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"ValueError",
-   "line":28
+   "line":96
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"getenv",
-   "line":29
+   "line":97
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"len",
-   "line":30
+   "line":98
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"looks_like_placeholder",
-   "line":30
+   "line":98
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"access_token_verification_key",
    "target":"ValueError",
-   "line":31
+   "line":99
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"claim_policy_mode",
+   "target":"getenv",
+   "line":105
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"claim_policy_mode",
+   "target":"lower",
+   "line":105
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"claim_policy_mode",
+   "target":"strip",
+   "line":105
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"strict_claim_violations",
+   "target":"get",
+   "line":111
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"strict_claim_violations",
+   "target":"get",
+   "line":112
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"strict_claim_violations",
+   "target":"append",
+   "line":114
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"strict_claim_violations",
+   "target":"tuple",
+   "line":115
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"would_reject_counts",
+   "target":"items",
+   "line":122
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"would_reject_counts",
+   "target":"setdefault",
+   "line":123
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"reset_would_reject_counts",
+   "target":"clear",
+   "line":129
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_record",
+   "target":"append",
+   "line":137
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_record",
+   "target":"inc",
+   "line":140
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_record",
+   "target":"labels",
+   "line":140
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_record",
+   "target":"any",
+   "line":141
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_record",
+   "target":"warning",
+   "line":143
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_record",
+   "target":"join",
+   "line":146
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_python_jose_issued_at",
+   "target":"int",
+   "line":158
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_python_jose_issued_at",
+   "target":"InvalidIssuedAtError",
+   "line":160
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_python_jose_audience",
+   "target":"isinstance",
+   "line":170
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_python_jose_audience",
+   "target":"any",
+   "line":172
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_python_jose_audience",
+   "target":"isinstance",
+   "line":172
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_python_jose_audience",
+   "target":"isinstance",
+   "line":172
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_python_jose_audience",
+   "target":"InvalidAudienceError",
+   "line":173
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_python_jose_audience",
+   "target":"InvalidAudienceError",
+   "line":175
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_pyjwt_decode",
+   "target":"list",
+   "line":190
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_pyjwt_decode",
+   "target":"decode",
+   "line":191
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_pyjwt_decode",
+   "target":"ValueError",
+   "line":195
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_pyjwt_decode",
+   "target":"decode",
+   "line":196
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_pyjwt_decode",
+   "target":"list",
+   "line":200
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_pyjwt_decode",
+   "target":"_python_jose_issued_at",
+   "line":202
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"_pyjwt_decode",
+   "target":"_python_jose_audience",
+   "line":203
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"ValueError",
+   "line":228
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"isinstance",
+   "line":230
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"InvalidTokenError",
+   "line":231
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"isinstance",
+   "line":232
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"strip",
+   "line":232
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"InvalidTokenError",
+   "line":233
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"_pyjwt_decode",
+   "line":234
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"strict_claim_violations",
+   "line":235
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"claim_policy_mode",
+   "line":237
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"_record",
+   "line":238
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"InvalidTokenError",
+   "line":240
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"decode_access_token",
+   "target":"join",
+   "line":241
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"verify_access_token",
    "target":"isinstance",
-   "line":36
+   "line":249
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"verify_access_token",
    "target":"ValueError",
-   "line":37
+   "line":250
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"verify_access_token",
    "target":"access_token_verification_key",
-   "line":38
+   "line":251
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"verify_access_token",
-   "target":"decode",
-   "line":40
-  },
-  {
-   "owner":"shared",
-   "file":"shared/security/access_tokens.py",
-   "source":"verify_access_token",
-   "target":"ValueError",
-   "line":53
-  },
-  {
-   "owner":"shared",
-   "file":"shared/security/access_tokens.py",
-   "source":"verify_access_token",
-   "target":"get",
-   "line":54
+   "target":"_pyjwt_decode",
+   "line":253
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"verify_access_token",
    "target":"ValueError",
-   "line":55
+   "line":261
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"verify_access_token",
    "target":"get",
-   "line":57
+   "line":262
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"verify_access_token",
+   "target":"ValueError",
+   "line":263
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"verify_access_token",
    "target":"get",
-   "line":58
+   "line":265
+  },
+  {
+   "owner":"shared",
+   "file":"shared/security/access_tokens.py",
+   "source":"verify_access_token",
+   "target":"get",
+   "line":266
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"verify_access_token",
    "target":"isinstance",
-   "line":58
+   "line":266
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"verify_access_token",
    "target":"strip",
-   "line":59
+   "line":267
   },
   {
    "owner":"shared",
    "file":"shared/security/access_tokens.py",
    "source":"verify_access_token",
    "target":"ValueError",
-   "line":61
+   "line":269
   },
   {
    "owner":"shared",
@@ -556957,7 +557594,7 @@
    "symbol":"tenant_header_middleware",
    "kind":"function",
    "file":"services/auth/main.py",
-   "line":417,
+   "line":418,
    "owner":"auth",
    "decorated_route":false,
    "reference_count":0,
@@ -557067,7 +557704,7 @@
    "symbol":"OdooConfigResponse",
    "kind":"class",
    "file":"services/odoo-bridge/main.py",
-   "line":185,
+   "line":192,
    "owner":"odoo-bridge",
    "decorated_route":false,
    "reference_count":0,
@@ -563158,6 +563795,28 @@
    "action":"review_before_delete"
   },
   {
+   "symbol":"would_reject_counts",
+   "kind":"function",
+   "file":"shared/security/access_tokens.py",
+   "line":118,
+   "owner":"shared",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
+   "symbol":"reset_would_reject_counts",
+   "kind":"function",
+   "file":"shared/security/access_tokens.py",
+   "line":127,
+   "owner":"shared",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
    "symbol":"wildcard_with_credentials",
    "kind":"function",
    "file":"shared/security/cors_policy.py",
@@ -563491,7 +564150,7 @@
     {
      "file":"services/video-processor/main.py",
      "symbol":"_parse_mqtt_broker_url",
-     "line":93,
+     "line":94,
      "owner":"video-processor"
     }
    ]
@@ -563878,13 +564537,13 @@
     {
      "file":"services/auth/main.py",
      "symbol":"strong_password",
-     "line":480,
+     "line":479,
      "owner":"auth"
     },
     {
      "file":"services/auth/main.py",
      "symbol":"strong_password",
-     "line":542,
+     "line":541,
      "owner":"auth"
     }
    ]
