@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ef338b15275abbc9e898d223e962aed400d148859f344f0f69b99df20244f404"
+          "content": "a5925792d24b1b2bb7989495b2cb1eb20ea67b4be9323dabfb8f95a5334f337a"
         }
       ],
       "name": "docker-compose.irr-f01-test.yml",
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0bec5cf199e6eae2bca2647071514b0ce2fcb4cd16780f6e5cf0bec1e7e3b0b7"
+          "content": "1de533e154a196d6eff41f303153029596d26256a3c2705de79ad6f353ea9f67"
         }
       ],
       "name": "docker-compose.test.yml",

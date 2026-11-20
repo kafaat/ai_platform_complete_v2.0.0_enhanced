@@ -11047,7 +11047,6 @@
         "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
         "services/scout-ingest-service/tests/test_ingest_live.py",
         "services/scout-ingest-service/tests/test_media_live.py",
-        "tests/integration/irrigation/test_v195_postgres.py",
         "tests_v9/test_canonical_observations_live_pg.py",
         "tests_v9/test_crop_root_policy_rls_integration.py",
         "tests_v9/test_d1_raster_queue_rls_live_pg.py",
@@ -11167,11 +11166,6 @@
           "evidence_type": "integration",
           "path": "services/scout-ingest-service/tests/test_media_live.py",
           "signal": "pytest.mark.integration"
-        },
-        {
-          "evidence_type": "integration",
-          "path": "tests/integration/irrigation/test_v195_postgres.py",
-          "signal": "filename:integration"
         },
         {
           "evidence_type": "unit",

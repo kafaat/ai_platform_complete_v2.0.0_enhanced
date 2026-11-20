@@ -1,71 +1,98 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-COMPOSE_FILE="$ROOT/docker-compose.irr-f01-test.yml"
+cd "$ROOT"
 REPORT_DIR="${REPORT_DIR:-$ROOT/artifacts/irr-f01-local-test}"
 mkdir -p "$REPORT_DIR"
-: > "$REPORT_DIR/pytest-output.log"
-: > "$REPORT_DIR/migration-output.log"
-: > "$REPORT_DIR/postgres.log"
-echo '{}' > "$REPORT_DIR/failed-sql-state.json"
-STATUS=failed; STAGE=preflight; RC=1
-
-cleanup() {
-  docker compose -f "$COMPOSE_FILE" logs postgres > "$REPORT_DIR/postgres.log" 2>&1 || true
-  docker compose -f "$COMPOSE_FILE" down -v --remove-orphans >> "$REPORT_DIR/cleanup.log" 2>&1 || true
-}
-finish() {
-  python "$ROOT/scripts/irr_f01/build_report.py" --report-dir "$REPORT_DIR" --status "$STATUS" --stage "$STAGE" --exit-code "$RC" || true
-  (cd "$REPORT_DIR" && zip -qr IRR_F01_LOCAL_GATE_ARTIFACTS.zip .) || true
-}
-trap 'cleanup; finish' EXIT
-
-for bin in docker python zip; do
-  command -v "$bin" >/dev/null || { echo "missing dependency: $bin" | tee -a "$REPORT_DIR/preflight.log"; STATUS=not-certified; RC=127; exit "$RC"; }
-done
-docker compose version >> "$REPORT_DIR/preflight.log" 2>&1 || { STATUS=not-certified; RC=127; exit "$RC"; }
-
-STAGE=postgres_start
-docker compose -f "$COMPOSE_FILE" up -d --wait --wait-timeout 60 postgres > "$REPORT_DIR/postgres-start.log" 2>&1
-PORT="$(docker compose -f "$COMPOSE_FILE" port postgres 5432 | sed -E 's/.*:([0-9]+)$/\1/')"
-[[ "$PORT" =~ ^[0-9]+$ ]] || { echo "could not resolve mapped postgres port"; exit 1; }
-export ADMIN_DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:${PORT}/sahool_irr_test"
-export APP_DATABASE_URL="postgresql://sahool_app:sahool_app@127.0.0.1:${PORT}/sahool_irr_test"
-export OTHER_TENANT_DATABASE_URL="postgresql://sahool_other:sahool_other@127.0.0.1:${PORT}/sahool_irr_test"
+# A failed rerun must never package an earlier green report.
+export REPORT_DIR="$(mktemp -d "$REPORT_DIR/run-XXXXXXXX")"
 export IRR_F01_SQLSTATE_FILE="$REPORT_DIR/failed-sql-state.json"
-export IRR_F01_POSTGRES_VERSION="$(docker compose -f "$COMPOSE_FILE" exec -T postgres psql -U postgres -d sahool_irr_test -Atc 'show server_version')"
+backend="${IRR_F01_BACKEND:-compose}"
+stage=preflight
+owned="$(mktemp -d)"
+compose=()
+started=false
+finish() {
+  rc=$?
+  trap - EXIT
+  set +e
+  if [[ "$started" == true && "$backend" == compose ]]; then
+    "${compose[@]}" logs postgres >"$REPORT_DIR/postgres.log" 2>&1
+    "${compose[@]}" down -v >>"$REPORT_DIR/cleanup.log" 2>&1 || rc=1
+  elif [[ "$started" == true && -f "$owned/db/postmaster.pid" ]]; then
+    pg_ctl -D "$owned/db" -m fast -w stop >>"$REPORT_DIR/cleanup.log" 2>&1 || rc=1
+  fi
+  if [[ ! -f "$owned/db/postmaster.pid" ]]; then rm -rf "$owned"; fi
+  status=failed
+  if (( rc == 0 )); then status=passed; fi
+  python scripts/irr_f01/build_report.py --report-dir "$REPORT_DIR" --status "$status" --stage "$stage" --exit-code "$rc" || rc=1
+  (cd "$REPORT_DIR" && zip -q IRR_F01_LOCAL_GATE_ARTIFACTS.zip ./*) || rc=1
+  echo "IRR-F01 evidence: $REPORT_DIR"
+  exit "$rc"
+}
+trap finish EXIT
 
-STAGE=migration
-{
-  docker compose -f "$COMPOSE_FILE" exec -T postgres psql -U postgres -d sahool_irr_test < "$ROOT/scripts/irr_f01/bootstrap.sql"
-  # Apply the project migration chain in lexical/version order. The test fails at the first invalid dependency.
-  while IFS= read -r f; do
-    docker compose -f "$COMPOSE_FILE" exec -T postgres psql -v ON_ERROR_STOP=1 -U postgres -d sahool_irr_test < "$f"
-  done < <(find "$ROOT/migrations" -maxdepth 1 -type f -name 'v*.sql' -print | sort -V)
-  docker compose -f "$COMPOSE_FILE" exec -T postgres psql -U postgres -d sahool_irr_test <<'SQL'
-GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO sahool_app, sahool_other;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO sahool_app, sahool_other;
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname IN ('sahool_app','sahool_other') AND (rolsuper OR rolbypassrls)) THEN
-    RAISE EXCEPTION 'RLS test role is superuser or BYPASSRLS';
-  END IF;
-END $$;
-SQL
-} > "$REPORT_DIR/migration-output.log" 2>&1
+python -c 'import asyncpg, httpx, jwt, pytest, pytest_asyncio; print("pytest", pytest.__version__, "pytest-asyncio", pytest_asyncio.__version__, "asyncpg", asyncpg.__version__)' | tee "$REPORT_DIR/preflight.log"
+command -v zip >/dev/null
+export PGHOST=127.0.0.1 ADMIN_USER=postgres ADMIN_PASS=postgres PGPASSWORD=postgres
+export U1_DB=sahool_u1_upgrade APP_ROLE=irr_f01_writer APP_PASS=irr_f01_writer
+# docker exec runs psql beside the server; SQL file arguments resolve in the checkout.
+case "$backend" in
+  compose)
+    # Compose project names must be lowercase.
+    project="$(basename "$owned" | tr '[:upper:].' '[:lower:]-')"
+    compose=(docker compose -p "irr-f01-$project" -f docker-compose.irr-f01-test.yml)
+    stage=postgres_start
+    started=true
+    "${compose[@]}" up -d --wait --wait-timeout 90 postgres
+    PGPORT="$("${compose[@]}" port postgres 5432 | awk -F: 'END {print $NF}')"
+    db_command() {
+      "${compose[@]}" exec -T -w /checkout -e PGPASSWORD -e PGHOST -e PGPORT=5432 \
+        -e ADMIN_USER -e ADMIN_PASS -e U1_DB -e APP_ROLE -e APP_PASS postgres "$@"
+    }
+    db_port=5432
+    ;;
+  native)
+    for exe in initdb pg_ctl psql pg_dump; do command -v "$exe" >/dev/null; done
+    stage=postgres_start
+    PGPORT="$(python -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1])')"
+    printf '%s\n' "$ADMIN_PASS" >"$owned/password"
+    initdb -D "$owned/db" -U postgres --encoding=UTF8 --locale=C --auth=scram-sha-256 \
+      --pwfile="$owned/password" >"$REPORT_DIR/initdb.log"
+    started=true
+    pg_ctl -D "$owned/db" -l "$REPORT_DIR/postgres.log" -o "-h 127.0.0.1 -p $PGPORT -c unix_socket_directories=''" -w start
+    db_command() { "$@"; }
+    db_port="$PGPORT"
+    ;;
+  *) echo "Unknown IRR_F01_BACKEND: $backend" >&2; exit 2 ;;
+esac
+export PGPORT
+sql=(psql -X -h 127.0.0.1 -p "$db_port" -U postgres -d sahool_irr_test -v ON_ERROR_STOP=1)
+stage=migration
+db_command psql -X -h 127.0.0.1 -p "$db_port" -U postgres -d postgres -v ON_ERROR_STOP=1 \
+  -c 'CREATE DATABASE sahool_irr_test TEMPLATE template0'
+db_command bash scripts/ci/apply_migration_manifest.sh --host 127.0.0.1 --port "$db_port" \
+  --user postgres --db sahool_irr_test >"$REPORT_DIR/migration-output.log" 2>&1
+sed -nE 's/^migration\[[0-9]+\/[0-9]+\] (.+)$/\1/p' "$REPORT_DIR/migration-output.log" >"$REPORT_DIR/applied.txt"
+grep -vE '^[[:space:]]*(#|$)' migrations/MANIFEST.txt >"$REPORT_DIR/expected.txt"
+diff -u "$REPORT_DIR/expected.txt" "$REPORT_DIR/applied.txt"
+IRR_F01_POSTGRES_VERSION="$(db_command "${sql[@]}" -Atc "SELECT current_setting('server_version') || ', PostGIS ' || postgis_lib_version()")"
+export IRR_F01_POSTGRES_VERSION
+echo "$IRR_F01_POSTGRES_VERSION" | tee -a "$REPORT_DIR/preflight.log"
+[[ "$IRR_F01_POSTGRES_VERSION" == 15.* ]]
+db_command "${sql[@]}" -v writer="$APP_ROLE" -v writer_pass="$APP_PASS" -f scripts/irr_f01/bootstrap.sql
+db_command pg_dump -h 127.0.0.1 -p "$db_port" -U postgres --schema-only --no-owner --no-privileges sahool_irr_test >"$REPORT_DIR/schema-snapshot.sql"
 
-docker compose -f "$COMPOSE_FILE" exec -T postgres pg_dump -U postgres --schema-only --no-owner --no-privileges sahool_irr_test > "$REPORT_DIR/schema-snapshot.sql" 2> "$REPORT_DIR/schema-snapshot.err" || true
-
-STAGE=tests
-set +e
-python -m pytest \
-  "$ROOT/tests/irrigation/test_irrigation_capacity_reservation.py" \
-  "$ROOT/tests/irrigation/test_irrigation_reservation_adapter.py" \
-  "$ROOT/tests/irrigation/test_irrigation_v195_capacity_reservation_core.py" \
-  "$ROOT/tests/integration/irrigation/test_v195_postgres.py" \
-  -q --junitxml="$REPORT_DIR/pytest-junit.xml" 2>&1 | tee "$REPORT_DIR/pytest-output.log"
-RC=${PIPESTATUS[0]}
-set -e
-if (( RC != 0 )); then STATUS=failed; exit "$RC"; fi
-STATUS=passed; STAGE=complete; RC=0
+run_tests() {
+  local suite="$1" db="$2"
+  TEST_DATABASE_ADMIN_URL="postgresql://postgres:postgres@127.0.0.1:$PGPORT/$db" \
+  TEST_DATABASE_URL="postgresql://$APP_ROLE:$APP_PASS@127.0.0.1:$PGPORT/$db" \
+  OTHER_TENANT_DATABASE_URL="postgresql://irr_f01_decision:irr_f01_decision@127.0.0.1:$PGPORT/$db" \
+    bash scripts/irr_f01/run_suite.sh "$suite" 2>&1 | tee -a "$REPORT_DIR/pytest-output.log"
+}
+stage=fresh
+run_tests fresh sahool_irr_test
+stage=upgrade
+db_command bash scripts/irr_f01/upgrade_gate_u1.sh >"$REPORT_DIR/upgrade-output.log" 2>&1
+run_tests upgrade "$U1_DB"
+stage=complete

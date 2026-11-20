@@ -1326,7 +1326,7 @@ jobs:
             echo "بانتظار Redis ($i)"; sleep 2
           done
           docker exec sahool-redis redis-cli ping | grep -qx PONG
-      - run: pip install -r tests_v9/requirements-test.txt
+      - run: pip install -r tests_v9/requirements-test.txt -r requirements-irr-f01-test.txt
       - name: Install audited Edge transport for TTS egress acceptance
         run: pip install 'edge-tts==7.2.8'
       # تطبيق مخطّط الترحيلات على قاعدة الاختبار قبل اختبارات التكامل (RLS/DB)،
@@ -1451,10 +1451,14 @@ jobs:
       - name: IRR-F01 fresh-schema certification (Gate A + Gate B1)
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
-          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://irr_f01_writer:irr_f01_writer@localhost:5433/sahool_test
+          OTHER_TENANT_DATABASE_URL: postgresql://irr_f01_decision:irr_f01_decision@localhost:5433/sahool_test
           IRR_F01_CERTIFICATION_REQUIRED: "1"
           COVERAGE_FILE: .coverage.integration-auth
-        run: pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+        run: |
+          PGPASSWORD=test_password psql -h localhost -p 5433 -U sahool_test -d sahool_test -v ON_ERROR_STOP=1 \
+            -v writer=irr_f01_writer -v writer_pass=irr_f01_writer -f scripts/irr_f01/bootstrap.sql
+          bash scripts/irr_f01/run_suite.sh fresh --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       - name: IRR-F01 upgrade certification (Gate U1 — v194→v195/v196)
         env:
           PGHOST: localhost
@@ -1462,19 +1466,14 @@ jobs:
           ADMIN_USER: sahool_test
           ADMIN_PASS: test_password
           U1_DB: sahool_u1_upgrade
-          APP_ROLE: sahool_app_test
-          APP_PASS: app_test_password
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_u1_upgrade
+          TEST_DATABASE_URL: postgresql://irr_f01_writer:irr_f01_writer@localhost:5433/sahool_u1_upgrade
+          OTHER_TENANT_DATABASE_URL: postgresql://irr_f01_decision:irr_f01_decision@localhost:5433/sahool_u1_upgrade
           IRR_F01_CERTIFICATION_REQUIRED: "1"
           COVERAGE_FILE: .coverage.integration-auth
         run: |
-          bash scripts/irr_f01/upgrade_gate_u1.sh
-          export IRR_F01_UPGRADE_DATABASE_URL="postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_u1_upgrade"
-          export IRR_F01_UPGRADE_ADMIN_URL="postgresql://sahool_test:test_password@localhost:5433/sahool_u1_upgrade"
-          pytest -v -m integration -rs tests_v9/test_irr_f01_upgrade_gate_u1_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
-          # Gate A + Gate B1 must also pass over the UPGRADED base, not only fresh schema.
-          TEST_DATABASE_URL="$IRR_F01_UPGRADE_DATABASE_URL" \
-          TEST_DATABASE_ADMIN_URL="$IRR_F01_UPGRADE_ADMIN_URL" \
-            pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+          APP_ROLE=irr_f01_writer APP_PASS=irr_f01_writer bash scripts/irr_f01/upgrade_gate_u1.sh
+          bash scripts/irr_f01/run_suite.sh upgrade --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # ── H5.1 field↔water-source binding certification ──────────────────────────────
       # The shared integration run connects as the superuser, where the binding resolver's RLS
       # isolation SKIPS (superuser bypasses RLS). This dedicated step runs it as the restricted

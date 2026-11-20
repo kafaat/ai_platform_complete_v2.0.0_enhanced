@@ -11,19 +11,22 @@ import asyncio
 import json
 import os
 from pathlib import Path
-from uuid import UUID
+from uuid import uuid4
 
 import pytest
 
-asyncpg = pytest.importorskip("asyncpg")
+if os.getenv("IRR_F01_CERTIFICATION_REQUIRED") == "1":
+    import asyncpg
+else:
+    asyncpg = pytest.importorskip("asyncpg")
 ADMIN_URL = os.getenv("ADMIN_DATABASE_URL")
 APP_URL = os.getenv("APP_DATABASE_URL")
 OTHER_URL = os.getenv("OTHER_TENANT_DATABASE_URL")
 if not all((ADMIN_URL, APP_URL, OTHER_URL)):
+    if os.getenv("IRR_F01_CERTIFICATION_REQUIRED") == "1":
+        raise RuntimeError("IRR-F01 certification requires admin, writer and reader URLs")
     pytest.skip("IRR-F01 local PostgreSQL URLs are not configured", allow_module_level=True)
 
-TENANT_A = UUID("11111111-1111-1111-1111-111111111111")
-TENANT_B = UUID("22222222-2222-2222-2222-222222222222")
 SQLSTATE_FILE = Path(
     os.getenv("IRR_F01_SQLSTATE_FILE", "artifacts/irr-f01-local-test/failed-sql-state.json")
 )
@@ -50,13 +53,22 @@ def test_rls_roles_are_not_privileged():
     async def case():
         conn = await asyncpg.connect(ADMIN_URL)
         try:
-            rows = await conn.fetch(
-                "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles "
-                "WHERE rolname = ANY($1::text[]) ORDER BY rolname",
-                ["sahool_app", "sahool_other"],
+            names = []
+            for url in (APP_URL, OTHER_URL):
+                role = await asyncpg.connect(url)
+                try:
+                    names.append(await role.fetchval("select current_user"))
+                finally:
+                    await role.close()
+            assert len(set(names)) == 2
+            assert (
+                await conn.fetchval(
+                    "SELECT count(*) FROM pg_roles WHERE rolname = ANY($1::text[]) "
+                    "AND NOT (rolsuper OR rolbypassrls OR rolinherit OR rolcreatedb OR rolcreaterole)",
+                    names,
+                )
+                == 2
             )
-            assert [r["rolname"] for r in rows] == ["sahool_app", "sahool_other"]
-            assert all(not r["rolsuper"] and not r["rolbypassrls"] for r in rows)
         finally:
             await conn.close()
 
@@ -100,41 +112,39 @@ def test_missing_tenant_context_is_fail_closed():
     run(case())
 
 
-def test_wrong_tenant_context_cannot_observe_rows_seeded_by_admin():
-    """Proves policy isolation without relying on project/hydraulic FK fixtures."""
-
+def test_reader_is_scoped_and_cannot_write():
     async def case():
+        tenant, other, project = uuid4(), uuid4(), uuid4()
         admin = await asyncpg.connect(ADMIN_URL)
-        app = await asyncpg.connect(APP_URL)
+        writer = await asyncpg.connect(APP_URL)
+        reader = await asyncpg.connect(OTHER_URL)
         try:
-            # Admin-owned probe table has the exact same forced policy shape. This avoids
-            # fabricating the large pre-v195 irrigation dependency graph in this slice.
-            await admin.execute("DROP TABLE IF EXISTS irr_f01_rls_probe")
             await admin.execute(
-                "CREATE TABLE irr_f01_rls_probe(tenant_id uuid NOT NULL, value text)"
+                "INSERT INTO irrigation_projects(id, tenant_id, name) VALUES ($1,$2,'role proof')",
+                project,
+                tenant,
             )
-            await admin.execute("ALTER TABLE irr_f01_rls_probe ENABLE ROW LEVEL SECURITY")
-            await admin.execute("ALTER TABLE irr_f01_rls_probe FORCE ROW LEVEL SECURITY")
-            await admin.execute(
-                "CREATE POLICY tenant_isolation ON irr_f01_rls_probe "
-                "USING (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), '')) "
-                "WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''))"
+            await writer.execute("SELECT set_config('app.current_tenant',$1,false)", str(tenant))
+            insert = (
+                "INSERT INTO hydraulic_capacity_evaluations(tenant_id,project_id,execution_ref_type,"
+                "execution_ref_id,requested_interval,requested_flow_m3h,eligible,calculation_model_version) "
+                "VALUES ($1,$2,'manual_execution','test',tstzrange(now(), now()+interval '1 hour'),1,true,'v1') "
+                "RETURNING evaluation_id"
             )
-            await admin.execute("GRANT SELECT, INSERT ON irr_f01_rls_probe TO sahool_app")
-            await admin.execute(
-                "INSERT INTO irr_f01_rls_probe VALUES($1, 'A'),($2, 'B')", TENANT_A, TENANT_B
-            )
-            await app.execute("SELECT set_config('app.current_tenant', $1, false)", str(TENANT_A))
-            assert await app.fetchval("SELECT count(*) FROM irr_f01_rls_probe") == 1
+            key = await writer.fetchval(insert, tenant, project)
+            read = "SELECT count(*) FROM hydraulic_capacity_evaluations WHERE evaluation_id=$1"
+            await reader.execute("SELECT set_config('app.current_tenant',$1,false)", str(tenant))
+            assert await reader.fetchval(read, key) == 1
             with pytest.raises(asyncpg.InsufficientPrivilegeError):
-                await app.execute("INSERT INTO irr_f01_rls_probe VALUES($1, 'forbidden')", TENANT_B)
-        except BaseException as exc:
-            capture_sql_failure(
-                "test_wrong_tenant_context_cannot_observe_rows_seeded_by_admin", exc
-            )
+                await reader.fetchval(insert, tenant, project)
+            await reader.execute("SELECT set_config('app.current_tenant',$1,false)", str(other))
+            assert await reader.fetchval(read, key) == 0
+        except Exception as exc:
+            capture_sql_failure("test_reader_is_scoped_and_cannot_write", exc)
             raise
         finally:
-            await app.close()
+            await reader.close()
+            await writer.close()
             await admin.close()
 
     run(case())

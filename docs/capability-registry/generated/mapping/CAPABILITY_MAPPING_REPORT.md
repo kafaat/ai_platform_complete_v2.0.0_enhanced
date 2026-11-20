@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **45**
-- Files scanned: **7545**
+- Files scanned: **7551**
 - Ambiguous artifacts queued: **261**
-- Unmapped artifacts queued: **3596**
+- Unmapped artifacts queued: **3600**
 
 ## Capability coverage
 
@@ -78,7 +78,7 @@
 | SAT-007 | satellite | 1 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |
 | SAT-009 | satellite | 12 | 52 | 0 | 16 | 2 | 1 | 28 | 6 |
-| SEC-001 | security | 13 | 19 | 100 | 76 | 0 | 0 | 91 | 5 |
+| SEC-001 | security | 13 | 19 | 100 | 76 | 0 | 0 | 90 | 5 |
 | SEC-002 | security | 3 | 0 | 0 | 4 | 0 | 0 | 4 | 3 |
 | SEC-003 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-004 | security | 6 | 9 | 19 | 1 | 5 | 5 | 14 | 7 |

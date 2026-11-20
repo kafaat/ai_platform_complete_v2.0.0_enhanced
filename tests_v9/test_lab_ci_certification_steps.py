@@ -69,7 +69,10 @@ def test_every_pytest_call_names_existing_files_and_a_required_switch() -> None:
 
 def test_restricted_role_is_the_ci_app_role() -> None:
     runner = _runner()
-    assert runner.restricted_roles(runner.certification_steps(WORKFLOW)) == ["sahool_app_test"]
+    assert runner.restricted_roles(runner.certification_steps(WORKFLOW)) == [
+        "irr_f01_writer",
+        "sahool_app_test",
+    ]
 
 
 # Tests that once hid behind ``xfail(strict=False)`` naming the closed gap
