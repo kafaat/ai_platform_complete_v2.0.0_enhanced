@@ -21,11 +21,11 @@
       "database": 352,
       "governance": 88,
       "mobile": 429,
-      "other": 2207,
-      "tests": 2617,
+      "other": 2206,
+      "tests": 2618,
       "web": 556
     },
-    "unmapped_artifacts": 3599,
+    "unmapped_artifacts": 3600,
     "ambiguous_artifacts": 261,
     "files_by_reading": {
       "python_functional": 4107,
@@ -43764,6 +43764,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests/integration/irrigation/decision_receipt.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests/integration/irrigation/test_v195_postgres.py",
       "kind": "tests"
     },
@@ -86377,11 +86381,6 @@
       "unbounded_reasons": [],
       "edges": [
         {
-          "source": "scripts/irr_f01/decision_receipt.py",
-          "kind": "source_read",
-          "line": 631
-        },
-        {
           "source": "services/actuator-service/cmd_signing_v2.py",
           "kind": "import",
           "line": 590
@@ -86410,6 +86409,11 @@
           "source": "services/sahool-platform/api/irrigation_reservation_adapter.py",
           "kind": "import",
           "line": 74
+        },
+        {
+          "source": "tests/integration/irrigation/decision_receipt.py",
+          "kind": "source_read",
+          "line": 631
         }
       ],
       "unresolved": []

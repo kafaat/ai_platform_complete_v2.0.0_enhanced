@@ -628,7 +628,7 @@ async def test_reservation_mqtt_replay_has_one_simulated_device_effect(live, tmp
         correlation_id=str(tenant),
     )
     assert delivery["reservation_ids"] == [reservation_id]
-    probe = Path(__file__).resolve().parents[1] / "scripts/irr_f01/decision_receipt.py"
+    probe = Path(__file__).resolve().parents[1] / "tests/integration/irrigation/decision_receipt.py"
     decision = await asyncio.create_subprocess_exec(
         sys.executable, str(probe), stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
     )

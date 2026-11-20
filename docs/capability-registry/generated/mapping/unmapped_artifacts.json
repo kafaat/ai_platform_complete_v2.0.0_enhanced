@@ -10684,6 +10684,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/integration/irrigation/decision_receipt.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/integration/irrigation/test_v195_postgres.py",
     "kind": "tests"
   },

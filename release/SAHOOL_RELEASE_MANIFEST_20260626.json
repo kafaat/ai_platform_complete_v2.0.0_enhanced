@@ -7,10 +7,10 @@
       "migrations": 301,
       "mobile": 662,
       "prometheus": 2,
-      "scripts": 515,
+      "scripts": 514,
       "services": 2347,
       "shared": 190,
-      "tests": 168
+      "tests": 169
     }
   },
   "deployment_gates": [
@@ -133,5 +133,5 @@
     "bash scripts/chaos/run_chaos_tests.sh",
     "bash scripts/recovery/recovery_smoke.sh"
   ],
-  "total_size_bytes": 105065781
+  "total_size_bytes": 105065852
 }

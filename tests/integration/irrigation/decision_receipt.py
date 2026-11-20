@@ -13,7 +13,7 @@ from uuid import uuid4
 
 import asyncpg
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "services/decision-service"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "services/decision-service"))
 import migration_runner  # noqa: E402
 import persistence  # noqa: E402
 
