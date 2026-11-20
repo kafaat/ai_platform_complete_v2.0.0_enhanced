@@ -6014,3 +6014,5 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 ## PR1521-CI-POLICY-BLOCKERS-01 — open
 
 **المصدر:** #1521؛ `config/security_exceptions.json` (انتهاء PYSEC-2026-1325)، `services/rag-retrieval/requirements.txt` (python-jose3.5.0)، واختبارات شواهد `tests_v9/test_rag_cutover_admission_guard.py` و`tests_v9/test_c8_c13_certification_contracts.py`. لا إغلاق بمجرد إعادة البصمات أو إصلاح قارئ SBOM؛ يتطلب القبول معالجة الثغرة وسياسات RAG والانتهاء بأدلة مستقلة. [الحدود](../../docs/testing/PR1521_CI_LAB_FIXES_20261120.md).
+
+**تحديث 2026-11-20 فوق `4d76d33d0627a24f0bf0f47aaa2cfe22d164dc9a`:** بأمر المالك جُدِّد `PYSEC-2026-1325` وطوبقت تواريخ استثناء Qdrant المباشر ومرايا decision-service مع `main` (2026-11-30)، فتزول إخفاقات الانتهاء الأحد عشر. الفجوة تبقى مفتوحة: `python-jose==3.5.0 / PYSEC-2026-4298` بلا إصدار مُصلَح (`services/rag-retrieval/requirements.txt`)، والاستثناءات المجدَّدة تنتهي 2026-11-30. [التفاصيل](../../docs/testing/PR1521_CI_LAB_FIXES_20261120.md).
