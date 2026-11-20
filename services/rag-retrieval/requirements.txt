@@ -1,4 +1,4 @@
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 pydantic==2.13.4
-python-jose[cryptography]==3.5.0
+PyJWT[crypto]==2.15.0  # بديلُ python-jose (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01)؛ ==2.15.0 كالمنصّة (CVE-2026-101918)

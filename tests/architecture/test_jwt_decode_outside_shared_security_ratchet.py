@@ -43,28 +43,29 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[2]
 SEARCH_ROOTS = ("services", "shared", "agents", "bots")
 CANONICAL = "shared/security/"
-#: الوحداتُ التي تُصدِر فكَّ JWT: PyJWT و python-jose.
+#: الوحداتُ التي تُصدِر فكَّ JWT: PyJWT، و python-jose (أُزيل؛ يبقى مرصوداً كي لا يعود صامتاً).
 JWT_MODULES = frozenset({"jwt", "jose.jwt"})
 
 #: الأساسُ المُجمَّد — مقيسٌ على `9613db9a` بالكاشف الـAST. كلُّ مدخلٍ دَينٌ مُعلَن والقيمةُ
 #: سقفُه (عددُ النداءات). **يُخفَّض عند النقل إلى `shared.security` ولا يُرفَع.**
 FROZEN_SITES: dict[str, int] = {
     # notification moved to shared/security/access_tokens.py in #997 (f7cd7848; local 1091c55).
+    # GATE-01 freezes actuator_runtime.py (docs/architecture/gate01_policy.json frozen_paths).
     "services/actuator-service/actuator_runtime.py": 1,
-    "services/auth/main.py": 2,
-    "services/auth/routers/session.py": 1,
+    # Legacy backport of the python-jose removal (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01):
+    # the 7 python-jose calls (auth 3, local-ai-rag, odoo-bridge, tts-service, video-processor)
+    # moved to ``decode_access_token`` with python-jose claim semantics. The PyJWT sites
+    # below were not touched on this branch; main moved them in #1198.
     "services/guardrails-engine/main.py": 2,
-    "services/local-ai-rag/main.py": 1,
-    "services/mcp_servers/market_server.py": 1,
-    "services/mcp_servers/shared/oauth_middleware.py": 1,
-    "services/odoo-bridge/main.py": 1,
     "services/sahool-platform/api/chat_proxy_reference.py": 2,
     "services/sahool-platform/api/main.py": 1,
     "services/sahool-platform/api/routers/auth.py": 1,
     "services/supervisor-agent/main.py": 1,
-    "services/tts-service/main.py": 1,
     "services/vegetation-analysis-service/vegetation_runtime.py": 1,
-    "services/video-processor/main.py": 1,
+    # MCP: in the dev tree ``shared`` is services/mcp_servers/shared alone (merged only in the
+    # image), and test_blob_store_immune_to_shared_package_shadow pins that shadow on purpose.
+    "services/mcp_servers/market_server.py": 1,
+    "services/mcp_servers/shared/oauth_middleware.py": 1,
 }
 
 

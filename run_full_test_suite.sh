@@ -22,7 +22,7 @@ echo "════════════════════════�
 echo ""
 echo "━━━ [0/6] تثبيت أدوات الفحص ━━━"
 pip install -q pytest pytest-asyncio pytest-cov ruff bandit mypy \
-    python-jose[cryptography] fastapi pydantic httpx asyncpg redis \
+    "PyJWT[crypto]==2.15.0" fastapi pydantic httpx asyncpg redis \
     numpy 2>/dev/null
 echo "  ✓ الأدوات مثبّتة"
 
