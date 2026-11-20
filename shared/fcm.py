@@ -16,9 +16,9 @@ import time
 from dataclasses import dataclass, field
 
 import httpx
+import jwt
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from jose import jwt
 
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 SCOPE = "https://www.googleapis.com/auth/firebase.messaging"

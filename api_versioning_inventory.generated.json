@@ -254,7 +254,7 @@
   {
     "service": "auth",
     "file": "services/auth/main.py",
-    "line": 400,
+    "line": 401,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_identity",
@@ -443,7 +443,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 24,
+    "line": 26,
     "method": "POST",
     "path": "/v1/auth/login",
     "handler": "login",
@@ -452,7 +452,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 125,
+    "line": 127,
     "method": "POST",
     "path": "/v1/auth/refresh",
     "handler": "refresh_token",
@@ -461,7 +461,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 167,
+    "line": 169,
     "method": "POST",
     "path": "/v1/auth/logout",
     "handler": "logout",
@@ -470,7 +470,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 211,
+    "line": 214,
     "method": "GET",
     "path": "/v1/auth/me",
     "handler": "me",

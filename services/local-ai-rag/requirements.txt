@@ -13,4 +13,4 @@ qdrant-client>=1.14.0,<2.0
 python-multipart>=0.0.18
 aiofiles>=24.0.0
 pypdf>=6.7.1,<7.0  # تبعيّة PyPDFLoader؛ يتضمّن إصلاحات CVE في pypdf 6.x
-python-jose[cryptography]>=3.4.0
+PyJWT[crypto]==2.15.0  # بديلُ python-jose (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01)؛ ==2.15.0 كالمنصّة (CVE-2026-101918)
