@@ -10684,6 +10684,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/integration/irrigation/test_v195_postgres.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/integration/s3_minio_gdal.compose.yml",
     "kind": "tests"
   },
@@ -12456,6 +12460,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_irr_f01_junit_gate.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_irr_f01_reservation_live_pg.py",
     "kind": "tests"
   },
@@ -13153,6 +13161,10 @@
   },
   {
     "path": "tests_v9/test_rag_embedding_space_identity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_fixture_roundtrip.py",
     "kind": "tests"
   },
   {

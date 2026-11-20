@@ -87,7 +87,7 @@ run_tests() {
   local suite="$1" db="$2"
   TEST_DATABASE_ADMIN_URL="postgresql://postgres:postgres@127.0.0.1:$PGPORT/$db" \
   TEST_DATABASE_URL="postgresql://$APP_ROLE:$APP_PASS@127.0.0.1:$PGPORT/$db" \
-  OTHER_TENANT_DATABASE_URL="postgresql://irr_f01_reader:irr_f01_reader@127.0.0.1:$PGPORT/$db" \
+  OTHER_TENANT_DATABASE_URL="postgresql://irr_f01_decision:irr_f01_decision@127.0.0.1:$PGPORT/$db" \
     bash scripts/irr_f01/run_suite.sh "$suite" 2>&1 | tee -a "$REPORT_DIR/pytest-output.log"
 }
 stage=fresh

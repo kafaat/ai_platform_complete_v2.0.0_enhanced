@@ -1444,7 +1444,7 @@ jobs:
         env:
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_DATABASE_URL: postgresql://irr_f01_writer:irr_f01_writer@localhost:5433/sahool_test
-          OTHER_TENANT_DATABASE_URL: postgresql://irr_f01_reader:irr_f01_reader@localhost:5433/sahool_test
+          OTHER_TENANT_DATABASE_URL: postgresql://irr_f01_decision:irr_f01_decision@localhost:5433/sahool_test
           IRR_F01_CERTIFICATION_REQUIRED: "1"
           COVERAGE_FILE: .coverage.integration-auth
         run: |
@@ -1460,7 +1460,7 @@ jobs:
           U1_DB: sahool_u1_upgrade
           TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_u1_upgrade
           TEST_DATABASE_URL: postgresql://irr_f01_writer:irr_f01_writer@localhost:5433/sahool_u1_upgrade
-          OTHER_TENANT_DATABASE_URL: postgresql://irr_f01_reader:irr_f01_reader@localhost:5433/sahool_u1_upgrade
+          OTHER_TENANT_DATABASE_URL: postgresql://irr_f01_decision:irr_f01_decision@localhost:5433/sahool_u1_upgrade
           IRR_F01_CERTIFICATION_REQUIRED: "1"
           COVERAGE_FILE: .coverage.integration-auth
         run: |

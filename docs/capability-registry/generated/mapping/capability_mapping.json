@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7545,
+    "files_scanned": 7551,
     "files_by_kind": {
       "backend": 1302,
       "database": 352,
       "governance": 88,
       "mobile": 429,
-      "other": 2203,
-      "tests": 2615,
+      "other": 2207,
+      "tests": 2617,
       "web": 556
     },
-    "unmapped_artifacts": 3596,
+    "unmapped_artifacts": 3599,
     "ambiguous_artifacts": 261,
     "files_by_reading": {
-      "python_functional": 4102,
-      "raw": 3443
+      "python_functional": 4107,
+      "raw": 3444
     },
-    "test_dependency_files": 1996,
-    "test_dependency_edges": 5307,
-    "test_dependency_bounded_files": 1159,
+    "test_dependency_files": 1997,
+    "test_dependency_edges": 5311,
+    "test_dependency_bounded_files": 1160,
     "test_dependency_unresolved_relations": 509
   },
   "capabilities": [
@@ -26006,15 +26006,6 @@
           ]
         },
         {
-          "path": "tests/integration/irrigation/test_v195_postgres.py",
-          "score": 13,
-          "signals": [
-            "content:rls",
-            "content:row level security",
-            "content:tenant isolation"
-          ]
-        },
-        {
           "path": "tests_v9/test_automation_register_tenant_isolation.py",
           "score": 13,
           "signals": [
@@ -27261,7 +27252,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 917
+        "database": 914
       },
       "evidence_counts": {
         "backend": 13,
@@ -27270,7 +27261,7 @@
         "events": 76,
         "web": 0,
         "mobile": 0,
-        "tests": 91,
+        "tests": 90,
         "governance": 0,
         "other_evidence": 91
       },
@@ -43773,6 +43764,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests/integration/irrigation/test_v195_postgres.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests/integration/s3_minio_gdal.compose.yml",
       "kind": "tests"
     },
@@ -45545,6 +45540,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_irr_f01_junit_gate.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_irr_f01_reservation_live_pg.py",
       "kind": "tests"
     },
@@ -46242,6 +46241,10 @@
     },
     {
       "path": "tests_v9/test_rag_embedding_space_identity.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_fixture_roundtrip.py",
       "kind": "tests"
     },
     {
@@ -86356,10 +86359,33 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_irr_f01_junit_gate.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "scripts/irr_f01/required_cases.py",
+          "kind": "import",
+          "line": 7
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_irr_f01_reservation_live_pg.py",
       "bounded": true,
       "unbounded_reasons": [],
       "edges": [
+        {
+          "source": "scripts/irr_f01/decision_receipt.py",
+          "kind": "source_read",
+          "line": 631
+        },
+        {
+          "source": "services/actuator-service/cmd_signing_v2.py",
+          "kind": "import",
+          "line": 590
+        },
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
@@ -86369,6 +86395,11 @@
           "source": "services/sahool-platform/api/irrigation_capacity_reservation.py",
           "kind": "import",
           "line": 73
+        },
+        {
+          "source": "services/sahool-platform/api/irrigation_dispatch_relay.py",
+          "kind": "import",
+          "line": 619
         },
         {
           "source": "services/sahool-platform/api/irrigation_execution_request_port.py",
@@ -87269,12 +87300,12 @@
         {
           "source": "tests_v9/test_mfa_hardening_integration_v29_5.py",
           "kind": "source_read",
-          "line": 80
+          "line": 83
         },
         {
           "source": "tests_v9/test_services_functional.py",
           "kind": "source_read",
-          "line": 81
+          "line": 84
         }
       ],
       "unresolved": []

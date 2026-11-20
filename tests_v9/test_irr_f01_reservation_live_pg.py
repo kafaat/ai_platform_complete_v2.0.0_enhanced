@@ -577,6 +577,7 @@ async def test_reservation_mqtt_replay_has_one_simulated_device_effect(live, tmp
     """
     import json
     import secrets
+    import sys
     from pathlib import Path
 
     import aiomqtt
@@ -614,6 +615,27 @@ async def test_reservation_mqtt_replay_has_one_simulated_device_effect(live, tmp
         )
         == 1
     )
+
+    from api.irrigation_dispatch_relay import build_reservation_dispatch_ingest
+
+    event = await app.fetchrow(
+        "SELECT event_type, payload FROM events WHERE event_id=$1", UUID(result.dispatch_intent_id)
+    )
+    delivery = build_reservation_dispatch_ingest(
+        source_event_id=result.dispatch_intent_id,
+        event_type=event["event_type"],
+        payload=json.loads(event["payload"]),
+        correlation_id=str(tenant),
+    )
+    assert delivery["reservation_ids"] == [reservation_id]
+    probe = Path(__file__).resolve().parents[1] / "scripts/irr_f01/decision_receipt.py"
+    decision = await asyncio.create_subprocess_exec(
+        sys.executable, str(probe), stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
+    )
+    receipt, _ = await decision.communicate(
+        json.dumps({"tenant": str(tenant), "delivery": delivery}).encode()
+    )
+    assert decision.returncode == 0 and receipt.strip().startswith(b"rcpt_")
 
     password = secrets.token_urlsafe(24)
     credentials = tmp_path / "broker.passwd"
