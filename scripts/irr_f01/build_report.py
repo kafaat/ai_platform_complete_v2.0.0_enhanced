@@ -13,7 +13,7 @@ from xml.etree import ElementTree as ET
 
 def cmd(*args: str) -> str:
     try:
-        return subprocess.check_output(args, text=True, stderr=subprocess.STDOUT).strip()
+        return subprocess.check_output(args, encoding="utf-8", stderr=subprocess.STDOUT).strip()
     except Exception as exc:
         return f"unavailable: {exc}"
 
@@ -67,7 +67,7 @@ def main() -> None:
             "live_event_wiring": "NOT_CERTIFIED",
         },
     }
-    (d / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n")
+    (d / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
     title = "IRR-F01 LOCAL GATE — " + ns.status.upper()
     lines = [
         f"# {title}",
@@ -118,7 +118,7 @@ def main() -> None:
     ]
     (
         d / ("IRR_F01_SUCCESS_REPORT.md" if ns.status == "passed" else "IRR_F01_FAILURE_REPORT.md")
-    ).write_text("\n".join(lines))
+    ).write_text("\n".join(lines), encoding="utf-8")
 
 
 if __name__ == "__main__":

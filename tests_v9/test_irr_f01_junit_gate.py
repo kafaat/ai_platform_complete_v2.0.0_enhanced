@@ -1,5 +1,10 @@
 """The irrigation CI suite cannot certify a missing or skipped PostgreSQL case."""
 
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
 from xml.etree import ElementTree as ET
 
 import pytest
@@ -36,3 +41,16 @@ def test_required_evidence(tmp_path, suite, extra, module):
     tree.write(report)
     with pytest.raises(ValueError, match="missing JUnit cases"):
         validate(report, suite)
+
+
+@pytest.mark.parametrize(("status", "filename"), [("passed", "SUCCESS"), ("failed", "FAILURE")])
+def test_certification_report_writes_utf8_under_c_locale(tmp_path, status, filename):
+    script = Path(__file__).resolve().parents[1] / "scripts/irr_f01/build_report.py"
+    subprocess.run(
+        [sys.executable, str(script), "--report-dir", str(tmp_path), "--status", status],
+        env={**os.environ, "LC_ALL": "C", "PYTHONUTF8": "0"},
+        check=True,
+    )
+    report = (tmp_path / f"IRR_F01_{filename}_REPORT.md").read_text(encoding="utf-8")
+    assert f"IRR-F01 LOCAL GATE — {status.upper()}" in report
+    assert json.loads((tmp_path / "evidence.json").read_text(encoding="utf-8"))["status"] == status

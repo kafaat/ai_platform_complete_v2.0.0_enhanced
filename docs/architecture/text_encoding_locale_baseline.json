@@ -100,10 +100,6 @@
       "reads": 0,
       "subprocess": 1
     },
-    "scripts/irr_f01/build_report.py": {
-      "reads": 2,
-      "subprocess": 1
-    },
     "scripts/ops/branch_funeral.py": {
       "reads": 0,
       "subprocess": 1
