@@ -71,8 +71,8 @@ _LEGACY_EXECUTION_REFS = frozenset(f"exec-{action}" for _, action, _ in _ACTION_
 
 
 def _execution_ref(value: object) -> str | None:
-    if isinstance(value, str) and value.strip():
-        return value
+    if isinstance(value, str):
+        return value.strip() or None
     return None
 
 
@@ -240,7 +240,7 @@ def build_pest_escalation_steps(
             }
         res = execute_fn(ctx)
         if is_execution_proven(res):
-            return {"executed": True, "execution_ref": res["execution_ref"]}
+            return {"executed": True, "execution_ref": _execution_ref(res["execution_ref"])}
         # An attempted side effect may be uncertain, but never count it as executed
         # without a literal positive ACK and nonblank reference.
         return {

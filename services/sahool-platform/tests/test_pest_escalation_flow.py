@@ -300,3 +300,36 @@ def test_reserved_legacy_reference_cannot_confirm_new_execution():
     result = steps["execute"].fn({"approval_status": "approved", "action_type": "urgent_spray"})
     assert result == {"executed": False, "execution_ref": None, "reason": "execution_not_confirmed"}
     assert steps["follow_up"].fn(receipt) == {"follow_up_scheduled": False}
+
+
+def test_whitespace_padded_legacy_receipts_are_not_physical_execution_proof():
+    """Old synthetic references remain untrusted even with surrounding whitespace."""
+    from types import SimpleNamespace
+
+    from core.pest_escalation_flow import is_execution_proven, summarize_pest_execution
+
+    for ref in (" exec-urgent_spray ", "\texec-biocontrol\n"):
+        receipt = {"executed": True, "execution_ref": ref}
+        assert is_execution_proven(receipt) is False
+        steps = _steps_by_id(execute_fn=lambda ctx, r=receipt: r)
+        assert steps["execute"].fn(
+            {"approval_status": "approved", "action_type": "urgent_spray"}
+        ) == {
+            "executed": False,
+            "execution_ref": None,
+            "reason": "execution_not_confirmed",
+        }
+        assert steps["follow_up"].fn(receipt) == {"follow_up_scheduled": False}
+        projected = summarize_pest_execution(SimpleNamespace(step_results={"execute": receipt}))
+        assert projected["status"] == "reconciliation_required"
+        assert projected["reason"] == "legacy_synthetic_reference"
+
+
+def test_real_execution_receipt_is_canonicalized_before_persistence():
+    steps = _steps_by_id(
+        execute_fn=lambda ctx: {"executed": True, "execution_ref": " worker-receipt-42 "}
+    )
+    assert steps["execute"].fn({"approval_status": "approved", "action_type": "urgent_spray"}) == {
+        "executed": True,
+        "execution_ref": "worker-receipt-42",
+    }
