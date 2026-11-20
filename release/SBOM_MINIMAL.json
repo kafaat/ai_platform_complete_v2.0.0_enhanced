@@ -17725,7 +17725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "63aeb9412f325806816b503f949eb6af430339ef3e7dd3b560b5436a599cb483"
+          "content": "dae66834bcafb48537e5167965e0fb23952bf4a038bccd1263892fff4c68331f"
         }
       ],
       "name": "services/sahool-platform/api/requirements.txt",
@@ -22605,7 +22605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8160001dd0c9699a9147d9eb14745083c1f2c17026a2a0cf569bd7d6098f4554"
+          "content": "6f36b1b4148dbd4f53b5c624621ad2947ad9fca4ac755962791309af03265ac2"
         }
       ],
       "name": "services/sahool-platform/core/pest_escalation_flow.py",
@@ -26845,7 +26845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "74fcb7f93220eadd79f00538a0924b4acb71f14bad63426a8e65aa1ccf95b6a6"
+          "content": "c5fb136b64d19cec292a068f75217ff047c75331aaf491edd6461ac28117f643"
         }
       ],
       "name": "services/sahool-platform/tests/test_pest_escalation_flow.py",
