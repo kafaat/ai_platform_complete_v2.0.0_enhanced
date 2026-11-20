@@ -778,6 +778,7 @@
       "title": "Execution receipt",
       "unit_test_paths": [
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
+        "services/sahool-platform/tests/test_pest_escalation_flow.py",
         "tests_v9/test_canonical_as_applied_irrigation.py"
       ]
     },

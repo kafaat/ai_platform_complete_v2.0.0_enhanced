@@ -25,7 +25,7 @@
       "tests": 1794,
       "web": 458
     },
-    "unmapped_artifacts": 2167,
+    "unmapped_artifacts": 2166,
     "ambiguous_artifacts": 419
   },
   "capabilities": [
@@ -1557,6 +1557,14 @@
             "content:Execution receipt",
             "content:execution receipt"
           ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_pest_escalation_flow.py",
+          "score": 8,
+          "signals": [
+            "content:Execution receipt",
+            "content:execution receipt"
+          ]
         }
       ],
       "governance": [],
@@ -1581,7 +1589,7 @@
         "events": 8,
         "web": 0,
         "mobile": 0,
-        "tests": 3,
+        "tests": 4,
         "governance": 0,
         "other_evidence": 1
       },
@@ -41224,10 +41232,6 @@
     },
     {
       "path": "services/sahool-platform/tests/test_p6_gateway_split_contract_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/sahool-platform/tests/test_pest_escalation_flow.py",
       "kind": "tests"
     },
     {
