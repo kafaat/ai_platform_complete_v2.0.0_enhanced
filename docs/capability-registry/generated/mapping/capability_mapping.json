@@ -101307,17 +101307,17 @@
         {
           "source": "services/actuator-service/actuator_runtime.py",
           "kind": "source_read",
-          "line": 84
+          "line": 85
         },
         {
           "source": "services/tts-service/critical_speech.py",
           "kind": "loader",
-          "line": 26
+          "line": 27
         },
         {
           "source": "services/tts-service/critical_speech.py",
           "kind": "source_read",
-          "line": 27
+          "line": 28
         }
       ],
       "unresolved": []
