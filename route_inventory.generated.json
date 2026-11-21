@@ -6506,7 +6506,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/platform_health.py",
-    "line": 60,
+    "line": 61,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"

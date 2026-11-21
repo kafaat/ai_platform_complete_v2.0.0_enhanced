@@ -48,6 +48,7 @@ def relay_env(monkeypatch):
     import api.main as main
 
     import nats
+    from shared import nats_stream_contract
 
     monkeypatch.setenv("FEATURE_NATS_PUBLISHERS", "true")
     monkeypatch.setenv("NATS_INITIAL_CONNECT_TIMEOUT_SECONDS", "0.2")
@@ -57,7 +58,16 @@ def relay_env(monkeypatch):
     monkeypatch.setattr(event_bus, "OutboxWorker", _FakeWorker)
 
     calls: list[dict] = []
-    behaviour = {"reachable": False}
+    behaviour = {"reachable": False, "preflight": "passed"}
+
+    # W3-01: the relay starts only after the stream/consumer preflight passes. These tests
+    # are about the bounded first connect, so the preflight verdict is a switch here; its
+    # own verdicts are measured in test_nats_staging_enablement.py and on a real broker.
+    async def _preflight(nc, *, flag, url):
+        status = behaviour["preflight"]
+        return {"status": status, "errors": [] if status == "passed" else ["stream_info:X"]}
+
+    monkeypatch.setattr(nats_stream_contract, "run_preflight", _preflight)
 
     async def _connect(url, **kwargs):
         calls.append(kwargs)
@@ -113,6 +123,32 @@ async def test_reachable_nats_starts_relay_immediately(relay_env):
         assert isinstance(main._OUTBOX_WORKER, _FakeWorker)
     finally:
         await main._stop_outbox_worker()
+
+
+async def test_failed_preflight_holds_the_relay_until_it_passes(relay_env, monkeypatch):
+    """W3-01: connected but no stream/consumers ⇒ no OutboxWorker (held rows keep attempts)."""
+    main, _, behaviour = relay_env
+    from shared.broker_url import NATS_RELAY
+    from shared.nats_stream_contract import NATS_PREFLIGHT
+
+    behaviour.update(reachable=True, preflight="failed")
+    real_gate = NATS_PREFLIGHT.gate
+
+    async def fast_gate(nc, start, *, url, retry_s=0.05):
+        return await real_gate(nc, start, url=url, retry_s=0.05)
+
+    monkeypatch.setattr(NATS_PREFLIGHT, "gate", fast_gate)
+    try:
+        await asyncio.wait_for(main._start_outbox_worker(), timeout=3)
+        assert NATS_RELAY.status == "up", "the broker connection itself is up"
+        assert main._OUTBOX_WORKER is None, "the relay started while the preflight failed"
+        assert NATS_PREFLIGHT.gate_task is not None, "no background preflight retry"
+        behaviour["preflight"] = "passed"
+        await asyncio.wait_for(NATS_PREFLIGHT.gate_task, timeout=3)
+        assert isinstance(main._OUTBOX_WORKER, _FakeWorker), "passing preflight did not start it"
+    finally:
+        await main._stop_outbox_worker()
+    assert NATS_PREFLIGHT.gate_task is None, "stop left the preflight gate running"
 
 
 def test_readyz_reports_nats_relay_state(monkeypatch):

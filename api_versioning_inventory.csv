@@ -810,7 +810,7 @@ sahool-platform,services/sahool-platform/api/routers/planting.py,42,GET,/api/v1/
 sahool-platform,services/sahool-platform/api/routers/platform_health.py,25,GET,/runtime-identity,runtime_evidence_identity,infra
 sahool-platform,services/sahool-platform/api/routers/platform_health.py,32,GET,/healthz,healthz,infra
 sahool-platform,services/sahool-platform/api/routers/platform_health.py,39,GET,/metrics,metrics,infra
-sahool-platform,services/sahool-platform/api/routers/platform_health.py,60,GET,/readyz,readyz,infra
+sahool-platform,services/sahool-platform/api/routers/platform_health.py,61,GET,/readyz,readyz,infra
 sahool-platform,services/sahool-platform/api/routers/policy_learning.py,37,GET,/api/v1/policy-learning/threshold-suggestions,threshold_suggestions,versioned
 sahool-platform,services/sahool-platform/api/routers/portfolio_command.py,70,POST,/api/v1/portfolio/command,portfolio_command_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/postharvest.py,28,GET,/api/v1/postharvest/moisture-check,postharvest_moisture_endpoint,versioned

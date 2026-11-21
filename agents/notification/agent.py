@@ -698,8 +698,10 @@ def _nats_error_detail(exc: Exception) -> str:
 
 
 async def _ensure_subscriptions():
-    from nats.js.api import ConsumerConfig, StreamConfig
+    from nats.js.api import ConsumerConfig
     from nats.js.errors import NotFoundError
+
+    from shared.nats_stream_contract import stream_config
 
     if CONSUMER_MODE not in {"legacy", "queue_v1"}:
         raise ValueError("invalid_notification_consumer_mode")
@@ -708,7 +710,8 @@ async def _ensure_subscriptions():
     except NotFoundError:
         if CONSUMER_MODE == "queue_v1":
             raise  # Provisioning is an explicit operator step, never a startup reset.
-        await _js.add_stream(StreamConfig(name="sahool", subjects=["sahool.>"]))
+        # W3-01: the stream's configuration is declared once, in shared.nats_stream_contract.
+        await _js.add_stream(stream_config())
     for subject, durable in SUBSCRIPTIONS:
         if durable in _subscriptions:
             continue
