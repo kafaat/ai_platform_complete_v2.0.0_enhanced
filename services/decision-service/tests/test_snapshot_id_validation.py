@@ -694,3 +694,78 @@ def test_live_learning_update_resend_of_a_stored_veg_id_is_not_re_judged():
     with pytest.raises(persistence.LearningUpdateEvidenceInvalid):
         _learn(TENANT_B, payload, update_id=update_id)  # another tenant's row is not a replay
     assert _learning_rows(sid) == 1
+
+
+@pytest.mark.integration
+@live
+def test_live_mutating_resend_of_a_legacy_row_with_unresolved_evidence_is_409(monkeypatch):
+    """Only a true replay is exempt: a resend that changes any mutable column (action, drift,
+    source, or the agronomic review) must resolve its evidence, so a row stored before resolution
+    existed cannot be rewritten, or approved, under a dead id."""
+    sid, update_id = "veg_" + uuid4().hex[:20], "lu_" + uuid4().hex[:16]
+    decision_id = "dec_" + uuid4().hex[:12]
+
+    async def store_legacy():
+        c = await _connect()
+        try:
+            await c.execute(
+                "INSERT INTO online_learning_updates(update_id,tenant_id,model_id,decision_id,"
+                "evidence_snapshot_id) VALUES($1,$2::uuid,'m-veg',$3,$4)",
+                update_id,
+                TENANT_A,
+                decision_id,
+                sid,
+            )
+        finally:
+            await c.close()
+
+    async def stored_state():
+        c = await _connect()
+        try:
+            row = await c.fetchrow(
+                "SELECT to_jsonb(u) AS row FROM online_learning_updates u "
+                "WHERE update_id=$1 AND tenant_id=$2::uuid",
+                update_id,
+                TENANT_A,
+            )
+            events = await c.fetchval(
+                "SELECT count(*) FROM decision_outbox_events WHERE aggregate_id=$1", update_id
+            )
+            return row["row"], events
+        finally:
+            await c.close()
+
+    _run(store_legacy())
+    before = _run(stored_state())
+    monkeypatch.setattr(mod, "sor_enabled", lambda: True)
+    body = {
+        "update_id": update_id,
+        "model_id": "m-veg",
+        "decision_id": decision_id,
+        "evidence_snapshot_id": sid,
+    }
+    approval = {
+        "review_status": "approved",
+        "agronomically_approved": True,
+        "agronomic_review": {
+            "reviewer_id": "agro-1",
+            "verdict": "approved",
+            "evidence_ids": ["ev-1"],
+        },
+    }
+    for change in (
+        {"action": "promote"},
+        {"drift_score": 0.4},
+        {"source_type": "x"},
+        {"source_id": "src-changed"},
+        approval,
+    ):
+        r = client.post("/v1/learning/updates", json={**body, **change}, headers=HEADERS)
+        assert r.status_code == 409, f"{change}: {r.status_code} {r.text}"
+        assert r.json()["detail"] == "unknown_evidence_snapshot", r.text
+    assert _run(stored_state()) == before, "a refused resend must change nothing"
+    # The exact resend still replays: it stores nothing, so there is nothing to re-judge.
+    r = client.post("/v1/learning/updates", json=body, headers=HEADERS)
+    assert r.status_code == 200, r.text
+    assert r.json()["replayed"] is True, r.text
+    assert _run(stored_state()) == before

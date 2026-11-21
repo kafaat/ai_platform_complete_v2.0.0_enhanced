@@ -145,7 +145,7 @@ async def _governed_decision(database):
     veg = await call(
         "persist_vegetation_snapshot",
         payload=lineage._veg_payload("ci-field-037", "c" * 64),
-        snapshot_id="ci-veg-037",
+        snapshot_id="veg_ci-force-rls-037",
     )
     ctx = await call(
         "compose_agronomic_context",
@@ -184,7 +184,7 @@ async def test_evidence_context_and_calibration_reads_return_the_tenants_rows(da
     assert evidence["context_snapshot"]["snapshot_id"] == ctx["snapshot_id"]
     assert evidence["historical_snapshot"] is not None
     assert evidence["feature_manifest"]["entries"]
-    assert evidence["vegetation_snapshot"]["snapshot_id"] == "ci-veg-037"
+    assert evidence["vegetation_snapshot"]["snapshot_id"] == "veg_ci-force-rls-037"
     assert evidence["evidence_complete"] is True
     assert await persistence.get_decision_agronomic_evidence(
         tenant_id=OTHER, decision_id="ci-decision-037"
