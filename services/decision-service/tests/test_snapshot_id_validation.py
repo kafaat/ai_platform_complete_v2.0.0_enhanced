@@ -55,7 +55,17 @@ WELL_FORMED = ["w1", "wsnap/sha1/1:deadbeefcafef00d", "hop/station-7/day-100", "
 
 
 def _run(coro):
-    return asyncio.run(coro)
+    # Each asyncio.run gets a fresh loop, and persistence keeps one pool per loop. Close it when
+    # the scenario ends, so the file's live tests do not accumulate pools in one process (the
+    # WX-10.9..10.12 CI step runs seven files in one process against max_connections=100; gap
+    # DECISION-SERVICE-PER-LOOP-POOL-NEVER-CLOSED-01).
+    async def _closing():
+        try:
+            return await coro
+        finally:
+            await persistence.close_pools()
+
+    return asyncio.run(_closing())
 
 
 def _refuse_persistence(monkeypatch):
