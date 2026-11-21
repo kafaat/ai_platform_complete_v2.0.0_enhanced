@@ -22,7 +22,11 @@ router = APIRouter()
 
 def _prepared_text(req: main.TTSRequest) -> str:
     try:
-        rendered = prepare_critical_speech(req.text, req.critical_slots)
+        if req.validation_text is not None and not req.no_store:
+            raise CriticalSpeechError("chunk validation context requires no_store")
+        rendered = prepare_critical_speech(
+            req.text, req.critical_slots, validation_text=req.validation_text
+        )
         return main.ArabicTextNormalizer().normalize(rendered) if req.normalize else rendered
     except CriticalSpeechError as exc:
         raise HTTPException(422, detail={"error": "critical_speech_invalid"}) from exc
@@ -95,6 +99,8 @@ async def tts_status(
     return {
         "default": main.DEFAULT_PROVIDER_NAME,
         "providers": main._provider_status(),
+        "max_text_length": main.MAX_TEXT_LEN,
+        "max_validation_text_length": main.MAX_VALIDATION_TEXT_LEN,
         "policy_mode": policy.mode,
         "policy_eligible_provider": chosen.name if chosen else None,
         "unavailable_reason": None if chosen else tts_tenant_policy.POLICY_BLOCKED_ERROR,
@@ -186,6 +192,11 @@ async def synthesize(
             "X-Cache": "BYPASS" if req.no_store else "MISS",
             # private: انظر مسار الـHIT أعلاه — عزل المستأجِر يمنع التخزين العامّ.
             "Cache-Control": "no-store" if req.no_store else "private, max-age=86400",
+            **(
+                {"X-Speech-Validation": "full-context-v1"}
+                if req.validation_text is not None
+                else {}
+            ),
         },
     )
 
@@ -231,7 +242,15 @@ async def stream(
         return StreamingResponse(
             local_stream(),
             media_type=chosen.media_type,
-            headers={"Cache-Control": "no-store", "X-Cache": "BYPASS"},
+            headers={
+                "Cache-Control": "no-store",
+                "X-Cache": "BYPASS",
+                **(
+                    {"X-Speech-Validation": "full-context-v1"}
+                    if req.validation_text is not None
+                    else {}
+                ),
+            },
         )
 
     async def audio_stream():
@@ -262,5 +281,13 @@ async def stream(
     return StreamingResponse(
         audio_stream(),
         media_type=chosen.media_type,
-        headers={"Cache-Control": "no-store", "X-Cache": "BYPASS"},
+        headers={
+            "Cache-Control": "no-store",
+            "X-Cache": "BYPASS",
+            **(
+                {"X-Speech-Validation": "full-context-v1"}
+                if req.validation_text is not None
+                else {}
+            ),
+        },
     )

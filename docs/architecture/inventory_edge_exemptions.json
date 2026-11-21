@@ -20,6 +20,10 @@
     "not_seen_by_axios_scanner": {
       "justification": "The gateway routes a browser path to this operation, yet no axios call reaches it. The scanner reads axios client calls only; fetch, WebSocket, EventSource and asset URLs (map tiles) are outside it, so absence of a call is absence of sight, not of the relation. Its site is the gateway rule that makes the operation reachable.",
       "closing_condition": "An evidence class for the remaining transport (e.g. WebSocket constructors) is built and proves or leaves it, or the operation is withdrawn from the frontend consumer declaration."
+    },
+    "no_static_evidence_class_for_this_edge_kind": {
+      "justification": "A declared consumer edge whose transport has no evidence class in the resolver. Today this is only the MQTT mesh telemetry topic `sahool/+/+/telemetry/+/mesh` (event_publish_contracts.yaml): its producer is ESP32 firmware (C++) and its consumer subscribes through aiomqtt, while the resolver proves edges only from axios calls and Python NATS subscriptions. The catalog labels the entrypoint `NATS ...` because it reads every event contract as NATS; the topic is MQTT. tests_v9/test_nats_publisher_coverage.py checks that the named firmware still builds the topic.",
+      "closing_condition": "An MQTT evidence class (an aiomqtt subscribe call site plus the firmware topic builder) proves the edge, or the mesh profile is withdrawn and the contract entry removed; this reason then goes stale and must be deleted."
     }
   }
 }

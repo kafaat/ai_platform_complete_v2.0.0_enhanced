@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import ast
 import importlib.util
 from pathlib import Path
 
@@ -144,3 +145,99 @@ def test_removing_an_allowlist_entry_makes_the_live_emitter_fail(monkeypatch):
     monkeypatch.setattr(guard, "_contract", lambda: contract)
     errors = guard.check()
     assert any(dropped in e and "غير مُدرَج" in e for e in errors)
+
+
+# The ACL renderer contains command-topic STRINGS, which the conservative global
+# detector deliberately matches. Its named classification permits pure text only;
+# the closed call/import boundary below prevents adding I/O under that exception.
+_ACL_RENDERER = ROOT / "mosquitto/device_acl.py"
+
+
+def _acl_effects(code: str) -> list[str]:
+    tree = ast.parse(code)
+    allowed_imports = {
+        "__future__": {"annotations"},
+        "collections.abc": {"Iterable", "Mapping"},
+        "uuid": {"UUID"},
+    }
+    pure_calls = {
+        "set",
+        "all",
+        "isinstance",
+        "str",
+        "UUID",
+        "ValueError",
+        "sorted",
+        "re.compile",
+        "_SEGMENT.fullmatch",
+        "device.get",
+        "seen.add",
+        "entries.append",
+        "lines.extend",
+    }
+    violations = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            if any(alias.name != "re" or alias.asname for alias in node.names):
+                violations.append("non-renderer import")
+        elif isinstance(node, ast.ImportFrom):
+            names = {alias.name for alias in node.names}
+            if (
+                node.level
+                or names - allowed_imports.get(node.module, set())
+                or any(alias.asname for alias in node.names)
+            ):
+                violations.append("non-renderer import")
+        elif isinstance(node, ast.Call):
+            func = node.func
+            if (
+                isinstance(func, ast.Attribute)
+                and isinstance(func.value, ast.Constant)
+                and func.value.value == "\n"
+                and func.attr == "join"
+            ):
+                continue
+            if ast.unparse(func) not in pure_calls:
+                violations.append("non-renderer call: " + ast.unparse(func))
+    return violations
+
+
+def test_acl_renderer_is_pure_configuration_not_an_actuator():
+    source = _ACL_RENDERER.read_text(encoding="utf-8")
+    assert _emits(source) == {"http_actuator_endpoint", "broker_command_publish"}
+    assert _acl_effects(source) == []
+    spec = importlib.util.spec_from_file_location("_boundary_acl_renderer", _ACL_RENDERER)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    result = module.render_device_acl(
+        [{"tenant_id": "11111111-1111-1111-1111-111111111111", "field_id": "f1", "device_id": "d1"}]
+    )
+    assert isinstance(result, str)
+    assert "topic read sahool/actuator/d1/command\n" in result
+    assert "topic write sahool/actuator/d1/command\n" not in result
+
+
+@pytest.mark.parametrize(
+    "effect",
+    [
+        'mqtt.publish("sahool/actuator/d1/command", "OPEN")',
+        'client.post("http://sahool-actuator/command", json={})',
+        'open("/etc/mosquitto/acl", "w")',
+        '__import__("socket")',
+    ],
+)
+def test_acl_classification_does_not_permit_io_inside_the_renderer(effect):
+    source = _ACL_RENDERER.read_text(encoding="utf-8")
+    mutated = source + "\n" + effect + "\n"
+    assert _acl_effects(mutated), "the pure-text exception must fail if I/O is added"
+
+
+def test_acl_classification_does_not_authorize_an_unlisted_publisher(monkeypatch):
+    emissions, reaches = guard.scan()
+    unlisted = "mosquitto/unreviewed_sender.py"
+    emissions[unlisted] = _emits(
+        'def go(mqtt):\n    mqtt.publish("sahool/actuator/d1/command", "OPEN")\n'
+    )
+    monkeypatch.setattr(guard, "scan", lambda: (emissions, reaches))
+    errors = guard.check()
+    assert any(unlisted in error and "غير مُدرَج" in error for error in errors)

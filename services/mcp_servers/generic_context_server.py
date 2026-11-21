@@ -6,9 +6,11 @@ import os
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 from shared.oauth_middleware import MCPPreAuthMiddleware, require_scope
+from shared.owner_telemetry import SENSOR_SCHEMA, platform_origin, sensor_signal
+from shared.streamable_http import StreamableHTTPTransport
 
 app = FastAPI(title="SAHOOL Independent MCP Context Server", version="2026.2")
 SERVICE = os.getenv("MCP_SERVICE", "field")
@@ -155,6 +157,8 @@ async def healthz() -> dict[str, str]:
 async def readyz() -> dict[str, str]:
     if SERVICE not in TOOLSETS:
         raise HTTPException(503, f"Unsupported MCP_SERVICE={SERVICE}")
+    if SERVICE == "iot":
+        platform_origin(os.getenv("PLATFORM_API_URL", ""))
     return {"status": "ready", "service": SERVICE}
 
 
@@ -169,6 +173,7 @@ async def list_tools() -> dict[str, Any]:
             {
                 "name": name,
                 "description": f"Return {SERVICE} context as Observation/Signal/Annotation only",
+                **({"inputSchema": SENSOR_SCHEMA} if SERVICE == "iot" else {}),
             }
             for name in TOOLSETS[SERVICE]
         ],
@@ -177,15 +182,26 @@ async def list_tools() -> dict[str, Any]:
 
 @app.post("/v1/mcp/tools/call", dependencies=[Depends(_require_context_scope)])
 async def call_tool(
-    call: ToolCall, user: dict[str, Any] = Depends(_require_context_scope)
+    call: ToolCall, request: Request, user: dict[str, Any] = Depends(_require_context_scope)
 ) -> dict[str, Any]:
     tools = TOOLSETS.get(SERVICE)
     if not tools or call.name not in tools:
         raise HTTPException(404, "Unknown tool")
     # The tenant is the token's, never the one in the (model-written) arguments.
-    result = tools[call.name]({**call.arguments, "tenant_id": user["tenant_id"]})
+    if SERVICE == "iot":
+        arguments = dict(call.arguments)
+        if "tenant_id" in arguments and arguments.pop("tenant_id") != user["tenant_id"]:
+            raise HTTPException(403, "telemetry_identity_mismatch")
+        result = await sensor_signal(
+            arguments, user["tenant_id"], request.headers.get("authorization", "")
+        )
+    else:
+        result = tools[call.name]({**call.arguments, "tenant_id": user["tenant_id"]})
     if result.get("type") not in {"observation", "signal", "annotation"}:
         raise HTTPException(500, "MCP output contract violation")
     if "recommendation" in result or "prescription" in result:
         raise HTTPException(500, "MCP servers cannot emit recommendations/prescriptions")
     return result
+
+
+transport = StreamableHTTPTransport(app, required_scope=MCP_CONTEXT_SCOPE)

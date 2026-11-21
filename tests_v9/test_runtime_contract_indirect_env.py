@@ -117,3 +117,136 @@ def test_service_scan_does_not_turn_response_keys_into_probe_routes(tmp_path, mo
     monkeypatch.setattr(generator, "ROOT", tmp_path)
     contract = generator.scan_service({"service": "fixture", "main": "services/fixture/main.py"})
     assert contract["endpoints"] == {"health": [], "readiness": ["/readyz"], "metrics": []}
+
+
+@pytest.mark.parametrize(
+    "test_path",
+    [
+        "tests/test_probe.py",
+        "tests/helpers.py",
+        "tests_v9/helpers.py",
+        "test_probe.py",
+        "probe_test.py",
+        "conftest.py",
+    ],
+)
+def test_service_scan_excludes_test_clients_and_fixture_routes(tmp_path, monkeypatch, test_path):
+    service = tmp_path / "services" / "fixture"
+    (service / "routers").mkdir(parents=True)
+    (service / "main.py").write_text(
+        '@app.get("/healthz")\ndef health():\n    return {"status": "ok"}\n',
+        encoding="utf-8",
+    )
+    (service / "routers" / "readiness.py").write_text(
+        '@router.get("/ready")\ndef ready():\n    return {"status": "ok"}\n',
+        encoding="utf-8",
+    )
+    fixture = service / test_path
+    fixture.parent.mkdir(parents=True, exist_ok=True)
+    fixture.write_text(
+        'assert client.get("/readyz").status_code == 503\n'
+        '@fixture_app.get("/metrics")\ndef fixture_metrics():\n    return {}\n'
+        'test_token = os.getenv("FIXTURE_ONLY_API_KEY")\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(generator, "ROOT", tmp_path)
+
+    contract = generator.scan_service({"service": "fixture", "main": "services/fixture/main.py"})
+
+    assert contract["endpoints"] == {
+        "health": ["/healthz"],
+        "readiness": ["/ready"],
+        "metrics": [],
+    }
+    assert contract["evidence_paths"]["routes"] == [
+        "services/fixture/main.py",
+        "services/fixture/routers/readiness.py",
+    ]
+    assert "FIXTURE_ONLY_API_KEY" not in contract["secrets"]
+
+
+_STDLIB_HTTP_HANDLER = """from http.server import BaseHTTPRequestHandler
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path not in {"/healthz", "/readyz"}:
+            self.send_response(404)
+            self.end_headers()
+            return
+        self.send_response(200)
+        self.end_headers()
+"""
+
+
+def _scan_fixture_source(tmp_path, monkeypatch, source, filename="main.py"):
+    path = tmp_path / "services" / "fixture" / filename
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(source, encoding="utf-8")
+    monkeypatch.setattr(generator, "ROOT", tmp_path)
+    return generator.scan_service({"service": "fixture", "main": "services/fixture/main.py"})
+
+
+def test_service_scan_preserves_real_stdlib_http_handler_routes():
+    contract = generator.scan_service(
+        {"service": "model-registry-adapter", "main": "services/model-registry-adapter/service.py"}
+    )
+    assert contract["endpoints"] == {
+        "health": ["/healthz"],
+        "readiness": ["/readyz"],
+        "metrics": [],
+    }
+    assert "services/model-registry-adapter/service.py" in contract["evidence_paths"]["routes"]
+
+
+@pytest.mark.parametrize("alias", ["BaseHTTPRequestHandler", "ImportedHandler"])
+def test_service_scan_reads_imported_stdlib_handler_allowlists(tmp_path, monkeypatch, alias):
+    source = _STDLIB_HTTP_HANDLER.replace(
+        "import BaseHTTPRequestHandler", f"import BaseHTTPRequestHandler as {alias}"
+    ).replace("HealthHandler(BaseHTTPRequestHandler)", f"HealthHandler({alias})")
+    contract = _scan_fixture_source(tmp_path, monkeypatch, source)
+    assert contract["endpoints"] == {
+        "health": ["/healthz"],
+        "readiness": ["/readyz"],
+        "metrics": [],
+    }
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        'ROUTES = {"/healthz", "/readyz"}\n',
+        repr(_STDLIB_HTTP_HANDLER),
+        _STDLIB_HTTP_HANDLER.replace("from http.server", "from unrelated_module"),
+        _STDLIB_HTTP_HANDLER.replace(
+            "HealthHandler(BaseHTTPRequestHandler)", "HealthHandler(object)"
+        ),
+        _STDLIB_HTTP_HANDLER.replace("def do_GET", "def do_POST"),
+        _STDLIB_HTTP_HANDLER.replace("self.path", "self.upstream_path"),
+        _STDLIB_HTTP_HANDLER.replace(" not in ", " in "),
+        _STDLIB_HTTP_HANDLER.replace('{"/healthz", "/readyz"}', "configured_paths"),
+        _STDLIB_HTTP_HANDLER.replace("self.send_response(404)", "self.send_response(200)"),
+        _STDLIB_HTTP_HANDLER.replace("            return\n", ""),
+    ],
+    ids=[
+        "arbitrary-strings",
+        "quoted-example",
+        "other-import",
+        "unrelated-class",
+        "other-method",
+        "other-attribute",
+        "not-an-exclusion",
+        "nonliteral-paths",
+        "not-found-status-missing",
+        "reject-return-missing",
+    ],
+)
+def test_service_scan_does_not_invent_stdlib_handler_routes(tmp_path, monkeypatch, source):
+    contract = _scan_fixture_source(tmp_path, monkeypatch, source)
+    assert contract["endpoints"] == {"health": [], "readiness": [], "metrics": []}
+
+
+@pytest.mark.parametrize("filename", ["tests/fixture_handler.py", "test_http_handler.py"])
+def test_service_scan_excludes_stdlib_handler_test_copies(tmp_path, monkeypatch, filename):
+    contract = _scan_fixture_source(tmp_path, monkeypatch, _STDLIB_HTTP_HANDLER, filename)
+    assert contract["endpoints"] == {"health": [], "readiness": [], "metrics": []}
+    assert contract["evidence_paths"]["routes"] == []

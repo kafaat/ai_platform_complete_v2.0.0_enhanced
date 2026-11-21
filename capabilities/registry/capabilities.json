@@ -27,7 +27,7 @@
         "GET /metrics @ services/auth/routers/ops.py:21",
         "GET /readyz @ services/auth/routers/ops.py:32",
         "GET /runtime-identity @ services/auth/main.py:410",
-        "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:890",
+        "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:913",
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:42",
         "GET /v1/auth/invitations @ services/auth/routers/invitations.py:108",
         "GET /v1/auth/me @ services/auth/routers/session.py:302",
@@ -841,10 +841,10 @@
         "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:889",
         "GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:187",
         "GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:92",
-        "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:853",
+        "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:876",
         "POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:41",
         "POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:123",
-        "POST /v1/procurement @ services/mcp_servers/market_server.py:845"
+        "POST /v1/procurement @ services/mcp_servers/market_server.py:868"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -3987,6 +3987,7 @@
       "tests": [
         "services/sahool-platform/tests/test_soil_telemetry.py",
         "tests_v9/test_device_telemetry_time_identity.py",
+        "tests_v9/test_mcp_owner_telemetry.py",
         "tests_v9/test_sensor_telemetry_consumer_reachability.py",
         "tests_v9/test_telemetry_backfill_key_parity.py",
         "tests_v9/test_telemetry_freshness.py"
@@ -4009,9 +4010,17 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/api/soil_telemetry.py"
+        },
+        {
+          "type": "repository",
+          "path": "services/actuator-service/device_telemetry.py"
+        },
+        {
+          "type": "repository",
+          "path": "services/mcp_servers/shared/owner_telemetry.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=3, tests=5, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=3, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "5",
         "CropX": null,
@@ -5048,7 +5057,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 1
+        "tests": 2
       }
     },
     {
@@ -6357,6 +6366,10 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/sensor_health.yaml"
+        },
+        {
+          "type": "repository",
+          "path": "services/actuator-service/mqtt_transport.py"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=8, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",

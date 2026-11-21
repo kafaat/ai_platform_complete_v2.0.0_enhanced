@@ -50,6 +50,16 @@ _LITERAL_UNIT = re.compile(rf"(?<!\w){_UNIT_PATTERN}(?!\w)", re.IGNORECASE)
 _CRITICAL_NUMBER = re.compile(
     rf"[0-9٠-٩۰-۹][0-9٠-٩۰-۹.,،٫\-–/\s]*{_UNIT_PATTERN}(?!\w)", re.IGNORECASE
 )
+# Linear form of _CRITICAL_NUMBER for detection. A unit always starts with a letter
+# and the run class holds none, so a unit can only begin where a maximal run ends:
+# matching from any digit inside a run is the same as matching from the run's first
+# digit. Scanning maximal runs once (finditer resumes after each run) avoids the
+# quadratic backtracking a long digit/space run without a unit caused on the
+# 8000-character validation_text.
+_NUMBER_RUN = re.compile(r"[0-9٠-٩۰-۹][0-9٠-٩۰-۹.,،٫\-–/\s]*")
+_UNIT_AT = re.compile(rf"{_UNIT_PATTERN}(?!\w)", re.IGNORECASE)
+_DOSE_LABEL = re.compile(r"(?:جرعة|فترة\s+ما\s+قبل\s+الحصاد|\bPHI\b|\bdose\b)", re.IGNORECASE)
+_ANY_DIGIT = re.compile(r"[0-9٠-٩۰-۹]")
 _DOSE_LABEL_NUMBER = re.compile(
     r"(?:جرعة|فترة\s+ما\s+قبل\s+الحصاد|\bPHI\b|\bdose\b).*?[0-9٠-٩۰-۹]",
     re.IGNORECASE | re.DOTALL,
@@ -57,6 +67,24 @@ _DOSE_LABEL_NUMBER = re.compile(
 _NUMBER = re.compile(r"(?:0|[1-9][0-9]*)(?:\.[0-9]{1,6})?\Z")
 _KEYS = {"quantity", "unit", "basis_quantity", "basis_unit", "interval_days", "phi_days"}
 _TATWEEL = "\u0640"
+MAX_VALIDATION_TEXT_LEN = 8000
+
+
+def _has_critical_number(view: str) -> bool:
+    """Same answer as ``_CRITICAL_NUMBER.search(view)``, in one linear pass."""
+    for run in _NUMBER_RUN.finditer(view):
+        if _UNIT_AT.match(view, run.end()):
+            return True
+    return False
+
+
+def _has_dose_label_number(view: str) -> bool:
+    """Same answer as ``_DOSE_LABEL_NUMBER.search(view)``: a digit after the first label.
+
+    The lazy DOTALL form rescans to the end from every label when no digit follows.
+    """
+    label = _DOSE_LABEL.search(view)
+    return bool(label and _ANY_DIGIT.search(view, label.end()))
 
 
 def _gate_view(text: str) -> str:
@@ -127,7 +155,12 @@ def _number_words(raw: str, *, allow_zero: bool = False, whole: bool = False) ->
     return result
 
 
-def prepare_critical_speech(text: str, slots: dict[str, str] | None = None) -> str:
+def prepare_critical_speech(
+    text: str,
+    slots: dict[str, str] | None = None,
+    *,
+    validation_text: str | None = None,
+) -> str:
     """Return speech text or reject obvious unsupported critical numeric speech.
 
     With slots, text must be a placeholder template: every supplied field exactly
@@ -137,9 +170,22 @@ def prepare_critical_speech(text: str, slots: dict[str, str] | None = None) -> s
     """
     if not isinstance(text, str):
         raise CriticalSpeechError("speech text must be a string")
+    if validation_text is not None:
+        # A long voice answer is split only for provider transport. Inspect its
+        # whole text as well: DOTALL dose/PHI patterns and quantity+unit can span
+        # chunks. Context grants no trust and never bypasses the chunk's gate.
+        if (
+            not isinstance(validation_text, str)
+            or not validation_text.strip()
+            or len(validation_text) > MAX_VALIDATION_TEXT_LEN
+            or text not in validation_text
+            or slots is not None
+        ):
+            raise CriticalSpeechError("invalid critical speech validation context")
+        prepare_critical_speech(validation_text)
     if slots is None:
         view = _gate_view(text)
-        if _CRITICAL_NUMBER.search(view) or _DOSE_LABEL_NUMBER.search(view):
+        if _has_critical_number(view) or _has_dose_label_number(view):
             raise CriticalSpeechError("critical numeric speech requires structured quantity slots")
         return text
     if (

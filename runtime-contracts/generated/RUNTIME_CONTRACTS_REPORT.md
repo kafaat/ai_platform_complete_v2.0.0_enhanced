@@ -6,7 +6,7 @@
 
 - Services: **33**
 - Health contract: **28**
-- Readiness contract: **27**
+- Readiness contract: **28**
 - Metrics endpoint or instrumentation: **17**
 - Tracing instrumentation: **4**
 - Declared configuration/secrets: **31**
@@ -32,7 +32,7 @@
 | knowledge-graph | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | local-ai-rag | 85.7% | ✓ | ✓ | — | ✓ | ✓ |
 | mcp_servers | 71.4% | ✓ | ✓ | — | ✓ | ✓ |
-| model-registry-adapter | 42.9% | ✓ | — | — | — | ✓ |
+| model-registry-adapter | 57.1% | ✓ | ✓ | — | — | ✓ |
 | qdrant-seed | 28.6% | — | — | — | — | ✓ |
 | rag-retrieval | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | raster-service | 85.7% | ✓ | ✓ | ✓ | — | ✓ |

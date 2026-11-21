@@ -8326,7 +8326,8 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## MCP-STREAMABLE-HTTP-TRANSPORT-BROKEN-ON-HTTPX-028-01 — نقلُ MCP المتدفّق معطَّل
 
-- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **الحالة:** fixed (2026-11-21) في تنفيذ الرقعة المحلي `da71997249c705cd18a33b218aba30948e613b27`، بلا PR أو نشر؛ استخدام ASGITransport ومصادقة قبل تحليل الجسم في services/mcp_servers/shared/streamable_http.py:252؛ الشاهد tests_v9/test_mcp_streamable_http_contract.py:1 وtests_v9/test_mcp_auth_first_contract.py:1. عقد HTTP عديم الحالة 2025-06-18؛ القبول التشغيلي مستقل.
+- **الحالة عند الاكتشاف:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
 - **المصدر:** `services/mcp_servers/shared/streamable_http.py:83,98` — `AsyncClient(app=)` أُزيل في httpx 0.28، ويقرأ الجسم قبل المصادقة.
 - **شرط الإغلاق:** `httpx.ASGITransport` ومصادقةٌ مسبقة، أو حذفُ النقل.
 - **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
@@ -8431,7 +8432,8 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## REALTIME-VOICE-ANSWER-EXCEEDS-TTS-LIMIT-01 — إجابة الصوت تتجاوز حدّ TTS
 
-- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **الحالة:** fixed (2026-11-21) في تنفيذ الرقعة المحلي `da71997249c705cd18a33b218aba30948e613b27`، بلا PR أو نشر؛ تقطيع بلا فقد في services/realtime-agent/realtime_agent/providers.py:28، مع validation_text للنص الكامل وإقرار full-context-v1؛ الشاهد services/realtime-agent/tests/test_voice_chunking.py:1 وtests_v9/test_tts_chunk_validation_context.py:1. حد PCM المجمع 45 ثانية باقٍ.
+- **الحالة عند الاكتشاف:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
 - **المصدر:** `services/realtime-agent/realtime_agent/providers.py:102,168` مقابل `tts-service/main.py:73,200` (1000 حرف).
 - **شرط الإغلاق:** تقطيعٌ بحسب الأسطر أو سقفٌ للإجابة الصوتيّة.
 - **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
@@ -9105,6 +9107,46 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
   - (أ) `normalized_difference` يُرجِع NaN لنطاقين صفريّين، متّسقاً مع CDSE الأصليّ. ويُستبدَل اختبار `isfinite` باختبارٍ يشترط NaN، ويُثبَت أنّ NDVI لا يساوي 0 لبكسلٍ بلا بيانات على مصدرٍ بلا nodata معلَن.
   - (ب) **مقترحٌ منفصل لا يُغلَق بتعديل `band_math` وحده:** حدٌّ مشترك للمقام القريب من الصفر لمؤشّرات الفرق المعياريّ يُطبَّق في المسارين معاً (`band_math` وتعبيرات CDSE)، وإلّا نشأ عدمُ اتّساقٍ جديد.
 
+## XIAOZHI-LOCAL-VOICE-ADAPTER-MISSING-01 — مدخل ESP32 إلى الصوت المحلي المحكوم
+
+- **الحالة:** fixed (2026-11-21) في تنفيذ الرقعة المحلي `da71997249c705cd18a33b218aba30948e613b27`؛ لا PR أو نشر.
+- **المصدر:** `services/realtime-session/realtime_session/xiaozhi_gateway.py:60` و`xiaozhi_leases.py:37`؛ البرنامج كان يملك مدخل LiveKit ولا موائم Xiaozhi مباشرًا.
+- **الإصلاح والشاهد:** WSS اختياري بإصدارات تغليف 1/2/3، ورمز جهاز مربوط بالمستخدم والحقل والموافقة، وOpus فعلي؛ `services/realtime-agent/tests/test_xiaozhi.py:1` و`test_xiaozhi_lifecycle.py:1`.
+- **حد الحكم:** تسجيل قصير أحادي الاتصال؛ لا OTA دائم ولا تجديد آلي. قبول النماذج واللوحة يبقى في الفجوة التشغيلية أدناه، وليس ادعاء verified.
+
+## IOT-MCP-CALLER-VALUES-INSTEAD-OF-OWNER-READ-01 — قيم العميل لا تثبت قياس جهاز
+
+- **الحالة:** fixed (2026-11-21) في تنفيذ الرقعة المحلي `da71997249c705cd18a33b218aba30948e613b27`؛ لا PR أو نشر.
+- **المصدر:** `services/mcp_servers/shared/owner_telemetry.py:62` و`services/mcp_servers/generic_context_server.py`؛ مسار IoT كان يردد وسيط العميل بدل قراءة المالك القانوني.
+- **الإصلاح والشاهد:** مصادقة المنصة والحقل وربط الجهاز والقياس ثم إعادة فحص الربط، ورفض قياس العميل؛ `tests_v9/test_mcp_owner_telemetry.py:1` و`test_mcp_generic_context_auth.py:1`. مصدر موثق مع `verified=false` و`governing=false`؛ الغياب ليس صفرًا.
+- **حد الحكم:** الربط الحالي للجهاز لا يثبت الحقل وقت القياس التاريخي؛ نافذة المالك آخر 100 سجل، ولا إثبات معايرة حساس.
+
+## XIAOZHI-DEVICE-AND-LOCAL-VOICE-ACCEPTANCE-01 — قبول البوابة والنماذج والعتاد الفعلي
+
+- **الحالة:** open (2026-11-21)؛ نجاح اختبارات المصدر لا يحقق القبول التشغيلي.
+- **المصدر:** `docs/runbooks/XIAOZHI_LOCAL_GATEWAY_AR.md` و`LOCAL_VOICE_ACCEPTANCE_AR.md` و`MQTT_DEVICE_PROFILE_AR.md`؛ `services/realtime-session/Dockerfile.xiaozhi` و`firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino`.
+- **الباقي:** صورة حاوية مبنية، وأوزان محلية مصرح بها مثبتة البصمة، ومفتاح تحقق المصدر، وشهادات TLS، وتزويد جهاز معروف، وبناء Arduino كامل، واختبار broker ACL حقيقي، وجودة الصوت العربي والمقاطعة وإبطال الصلاحية على اللوحة.
+- **شرط الإغلاق:** إيصالات مرتبطة بالنسخة وإعداداتها والجهاز ونتائج خطوات القبول في الأدلة الأربعة؛ لا تسجيل أسرار أو صوت شخصي داخل الإيصال.
+
+## 2026-11-21 — حدود إصلاحات Xiaozhi وMQTT
+
+- `REALTIME-VOICE-STAGE-TIMEOUTS-SHORTER-THAN-WORK-01` تبقى open: فصلت ميزانية التحضير والنشر في `services/realtime-agent/realtime_agent/turns.py`، لكن مهلات HTTP الفردية ومسار voice_jobs الأوسع لم تُقبل تشغيليًا بهذه الرقعة.
+- `MQTT-SHARED-ACCOUNT-NO-ACL-NO-TLS-01` تبقى open تشغيليًا: أضيف ملف TLS وهوية وACL لكل جهاز وتزويد NVS في `mosquitto/device_acl.py` و`mosquitto/mosquitto-device-tls.conf` و`firmware/esp32_mesh_gateway/mqtt_device_profile.h`، واختبر المصدر في `tests_v9/test_mesh_device_profile_20261121.py`. تفعيل الوسيط وتزويد الأجهزة الفعلية لم يحدثا.
+- مرجع التنفيذ `da71997249c705cd18a33b218aba30948e613b27`؛ [التقرير وحدود الشواهد](../../docs/reviews/xiaozhi_patch_20261121.md). لا تغيير لحراس توقيع أوامر المشغلات أو سلطة القرار الزراعي.
+
+## RUNTIME-CONTRACT-TEST-CLIENT-ROUTES-01 — طلب عميل في اختبار يظهر كنقطة تشغيل
+
+- **الحالة:** fixed (2026-11-21) في التصحيح المحلي `d63381e4bb1acbe94dbf6601b919a9f494dc0a65`؛ لا PR أو نشر.
+- **المصدر:** `scripts/ci/runtime_contract_generator.py:134`؛ كان اكتشاف المصدر يشمل الاختبارات، فأنتج `services/realtime-agent/tests/test_xiaozhi.py:313` نقطة `/readyz` وهمية للعامل بلا منفذ HTTP، وحجب PATH3 بحق عند تعذر حل هدفها.
+- **الإصلاح والشاهد:** استبعاد أدلة وملفات الاختبار من اكتشاف إنتاج الخدمة؛ تبقى قواعد استخراج نقاط الإنتاج كما هي. `tests_v9/test_runtime_contract_indirect_env.py` يتضمن ست حالات انحدار حمراء قبل الإصلاح وخضراء بعده؛ جناح المولد المركز 49 حالة ناجحة.
+- **حد الحكم:** تصحيح اكتشاف المصدر، لا إضافة نقطة صحة إلى العامل ولا شهادة جاهزية حية؛ لا ادعاء بإصلاح كل استعمال نظري لقواعد استخراج المسارات.
+
+## RUNTIME-CONTRACT-STDLIB-HANDLER-PROBES-01 — نقاط HTTP القياسية لا تأتي من اختبار عميل
+
+- **الحالة:** fixed (2026-11-21) في التصحيح المحلي `1536a260559aefabc51f15194e29565e229e449f`؛ لا PR أو نشر.
+- **المصدر:** `services/model-registry-adapter/service.py:57` يملك `HealthHandler(BaseHTTPRequestHandler)` و`do_GET` الحقيقي، لكن مولد العقد لم يتعرف النمط، وكان وجود health سابقًا مستمدًا من اختبار لا من المعالج.
+- **الإصلاح والشاهد:** تعرف AST محدود للاستيراد القياسي والفئة وdo_GET وقائمة المسارات الحرفية مع رد 404 والعودة عند الخروج عنها. `scripts/ci/runtime_contract_generator.py:210` و`tests_v9/test_runtime_contract_indirect_env.py`؛ 15 حالة إضافية، منها ثلاث موجبة حمراء قبل الإصلاح، وجناح المولد الكامل المركز 64 ناجحًا.
+- **حد الحكم:** الاكتشاف ساكن ومن المصدر؛ لا شهادة تشغيل حي ولا تعميم على كل أطر HTTP أو dispatch ديناميكي. تبقى بوابة PATH3 ومطلوب الملف model-lifecycle كما هما.
 ## RASTER-LIVE-PG-CERTIFICATION-UNWIRED-01
 
 - **الحالة:** fixed في المرشح المحلي `6122ed4c642390b32d6c36873e27a425c0d309af` على فرع `fix/raster-live-pg-certification-20261121`؛ لم تُثبت CI على رأس منشور أو أي بيئة منشورة بعد. (المرشحات المحلية لا تُحلّ على المستودع البعيد؛ الالتزام القابل للوصول `a421eec6` في #1556)

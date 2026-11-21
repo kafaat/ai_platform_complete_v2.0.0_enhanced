@@ -502,7 +502,7 @@ async def _execute_tool(tool_input: ToolInput, user: dict[str, Any]) -> dict[str
         raise HTTPException(status_code=400, detail=f"Unknown tool: {name}")
 
 
-transport = StreamableHTTPTransport(app, path="/mcp/v1/stream")
+transport = StreamableHTTPTransport(app, path="/mcp/v1/stream", required_scope="satellite:read")
 
 
 @app.get("/healthz")

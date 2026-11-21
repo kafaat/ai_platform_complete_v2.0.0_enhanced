@@ -23,6 +23,7 @@ from contextlib import asynccontextmanager
 # (تفكيك محفوظ السلوك) — إزالته تكسر البثّ. التركيب غير-البثّيّ يمرّ عبر providers.
 import edge_tts  # noqa: F401
 import redis.asyncio as aioredis
+from critical_speech import MAX_VALIDATION_TEXT_LEN
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.security import (
     HTTPAuthorizationCredentials,
@@ -198,6 +199,12 @@ async def get_current_user(
 class TTSRequest(BaseModel):
     no_store: StrictBool = False
     text: str = Field(..., min_length=1, max_length=MAX_TEXT_LEN)
+    validation_text: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=MAX_VALIDATION_TEXT_LEN,
+        description="Complete no-store answer for the critical-speech gate when text is a chunk",
+    )
     voice: str = Field(default=DEFAULT_VOICE, description="Voice key from VOICES")
     rate: str = Field(default="+0%", description="Speech rate (e.g. -20%, +10%)")
     pitch: str = Field(default="+0Hz", description="Pitch adjustment")

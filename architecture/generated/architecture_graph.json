@@ -261,7 +261,7 @@
         "services/sahool-platform"
       ],
       "kind": "service",
-      "incoming": 7,
+      "incoming": 8,
       "outgoing": 30,
       "orphan": false
     },
@@ -319,9 +319,9 @@
         "services/realtime-agent"
       ],
       "kind": "service",
-      "incoming": 0,
+      "incoming": 2,
       "outgoing": 0,
-      "orphan": true
+      "orphan": false
     },
     {
       "id": "realtime-session",
@@ -330,7 +330,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 1,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -1336,6 +1336,24 @@
       "evidence": "services/realtime-session/realtime_session/session_runtime.py"
     },
     {
+      "source": "realtime-session",
+      "target": "platform",
+      "kind": "code-reference",
+      "evidence": "services/realtime-session/realtime_session/xiaozhi_gateway.py"
+    },
+    {
+      "source": "realtime-session",
+      "target": "realtime-agent",
+      "kind": "code-reference",
+      "evidence": "services/realtime-session/realtime_session/xiaozhi_gateway.py"
+    },
+    {
+      "source": "realtime-session",
+      "target": "realtime-agent",
+      "kind": "code-reference",
+      "evidence": "services/realtime-session/realtime_session/xiaozhi_leases.py"
+    },
+    {
       "source": "remote-sensing-workspace-bff",
       "target": "decision-service",
       "kind": "code-reference",
@@ -2179,11 +2197,11 @@
   "cycles": [],
   "summary": {
     "nodes": 112,
-    "edges": 202,
-    "orphans": 9,
+    "edges": 205,
+    "orphans": 8,
     "cycles": 0,
-    "code_edges": 65,
+    "code_edges": 68,
     "compose_edges": 137
   },
-  "content_sha256": "438b64189d9fd09a4066185d5084515cd81e0161d186e66992ad02479acfa2bd"
+  "content_sha256": "c5e527e2fb96ede772536694d1bf540d1c5b011e33a3d515e56d9b90bac4bf3d"
 }

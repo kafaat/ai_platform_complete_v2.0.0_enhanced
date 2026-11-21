@@ -55,7 +55,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c6c43fd22a503410ee79fce551b2f1f9e0125d124c2cec0adde589117e58e6db"
+          "content": "2821694c923df9d2d942b1f5ad224a591ab0d14a1c2d727c17cae0c06132b4db"
         }
       ],
       "name": "docker-compose.rag-kg-mcp.yml",
@@ -4945,7 +4945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4b6ba2b05e8237a8a5427ff34611524b4d64088abdee94541d329473c6c751de"
+          "content": "e187832c062149ec8c745576d7daf733dfcdab8564d38ccb0a016b336ec00af8"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17705,7 +17705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "571d7c5c2bcb0d2c94cfb43166ea19babdaebe215ba3cf21543bce3bd2ec804d"
+          "content": "aaf191d507aebecbca3006c2ea74d369f1670b7b94eb2351a9490831f934b16b"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -17735,10 +17735,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1e133fcbdd4aff72c7e096877e39cc43c17ec47713309a602e4372db08669396"
+        }
+      ],
+      "name": "services/actuator-service/device_telemetry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "237f2f1c21f08d52b4c75399a21effcaa1fb04a68bf23ca8eb3177afb464cf2b"
         }
       ],
       "name": "services/actuator-service/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "357deb97321a05d4f476a8aebb464b9987a24fb5160b8660264392e6227adf18"
+        }
+      ],
+      "name": "services/actuator-service/mqtt_transport.py",
       "type": "file"
     },
     {
@@ -21525,7 +21545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9be7ebb17c4558077a8833fb5ab5ef65a564d4564cb99d9b5b68de17e6c652bb"
+          "content": "5a6be49d79bd0bd02ba9cd53bca332452c983d852ad73a7919c788eda70ac37e"
         }
       ],
       "name": "services/mcp_servers/generic_context_server.py",
@@ -21545,7 +21565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5bfa01fe8c528390b0bb3efb6b6590a384d7aa1657c8d5063709aaaccd3ddcde"
+          "content": "4f0034cbfa11e630d9ff53c5db206635c99f564503b9932ced8425104366f813"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -21565,7 +21585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2cd0d680f6f2e721f0cd3dc123b4540950ae8627546eb4805e6a98336ad635ee"
+          "content": "03925ee063cde37ce56950c9523d208af8a348e8cc1f70491d3b225b8f44d095"
         }
       ],
       "name": "services/mcp_servers/sentinel_hub_server.py",
@@ -21595,6 +21615,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "bf37f2e221c20ef2872835a726186c1648c610d073716a52d5e441d74c57bc06"
+        }
+      ],
+      "name": "services/mcp_servers/shared/owner_telemetry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "114e8193679c135983c7bb74004bec2f05240875d10f1f3af64889b57da6f5ce"
         }
       ],
@@ -21605,7 +21635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1fc1c2af70a9ca006c7d763e5ea4632ed637b2d270a9651a69eb38943ab1f7ec"
+          "content": "31a9ac7b0db469c41cf2795ab04822e707c7075752a5d5d55ff51d7554a7e028"
         }
       ],
       "name": "services/mcp_servers/shared/streamable_http.py",
@@ -21625,7 +21655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d603a5c5d8084ce82c58176e2d7eddb9fb972f588a08261deb6583e572b2b79"
+          "content": "25387eaecfa41e6f9d338623deb4f6357bc83dcfbafa926e6bf53350915c210d"
         }
       ],
       "name": "services/mcp_servers/weather_server.py",
@@ -21635,7 +21665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d6c9050f66df85a8d872ab7522f646557339d3b14200332e3fc0b9f0d088cce"
+          "content": "7c1e1649cff325b6cbb50f82732bfa98dd69aaad50d5874d8959a92ca3a4b4fc"
         }
       ],
       "name": "services/mcp_servers/wofost_server.py",
@@ -24575,7 +24605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2edfd041eafd8b341077b7b70e451604afc35979b2b0181c002ee354f482a97c"
+          "content": "8f4a93b422480df5bca892761d3be00122697dbfb10f35225ac4936c5249db40"
         }
       ],
       "name": "services/realtime-agent/README.md",
@@ -24635,7 +24665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1af06bb1fb6cc516d4f3dd6dbac53be949e127772f66ebb796e2948981901d0a"
+          "content": "b73fdc5f858af1d017e0c92cbb3379e14d10f550e99f7dca74d6436ebced6ff4"
         }
       ],
       "name": "services/realtime-agent/realtime_agent/providers.py",
@@ -24655,7 +24685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bd5f8d4a63dff762fe2cddb45054280ded6197ebfa092cc81a671d4e607255e4"
+          "content": "93af685dfccd372a17123f03f03a78e9cc3af8950fc1d1835074977d437860ef"
         }
       ],
       "name": "services/realtime-agent/realtime_agent/turns.py",
@@ -24669,6 +24699,16 @@
         }
       ],
       "name": "services/realtime-agent/realtime_agent/worker.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3793724ce30de7d7246d901ffb783831aeb1554324595e9bf3f45da0015fc38"
+        }
+      ],
+      "name": "services/realtime-agent/realtime_agent/xiaozhi_codec.py",
       "type": "file"
     },
     {
@@ -24745,6 +24785,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cdd4957084e9cc059f6f0c0ca1b32d861a20035a24ed67d3d90e522110af0d71"
+        }
+      ],
+      "name": "services/realtime-agent/tests/test_voice_chunking.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e1f5ad56eac4aec9f19b70747e27c738d71e5d565f1ced174994b60f83209129"
         }
       ],
@@ -24755,10 +24805,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "bf01a6ea139e1a80ebf54b5dedfd16292560d3fd15b9aacb4c6f426c436dcfba"
+        }
+      ],
+      "name": "services/realtime-agent/tests/test_xiaozhi.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b0cf3f8fe9b391f78c9ae835d9c7955ea961a3558d425b4517240b8ada7ed209"
+        }
+      ],
+      "name": "services/realtime-agent/tests/test_xiaozhi_lifecycle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9167242e3b54cf901763aab90e3f0c9dbb4c05c8362801e66b4c2b31f3f7f254"
         }
       ],
       "name": "services/realtime-session/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d2d3fa2bcf5b2ff01bf045cf225d4f471978cd92a11f69279491f19f1c6de716"
+        }
+      ],
+      "name": "services/realtime-session/Dockerfile.xiaozhi",
       "type": "file"
     },
     {
@@ -24885,6 +24965,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "56c34b112be7d68c960ab0899988fbc70b36b2e42f97316b923c083b4e3b4203"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aff875c9e5ab8db441dbcac553a65c814615a30e07abdc1eec983b02f10c42bc"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/xiaozhi_leases.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8c8e1fe87ad8ee59bda75b2e2a786cdc11af92361ba3c806cfbd49ecba41a4d8"
         }
       ],
@@ -24899,6 +24999,16 @@
         }
       ],
       "name": "services/realtime-session/tests/test_livekit_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5964c6883367a1b20438ed16f526b1e311b5a22346d16161a1880464ce2be643"
+        }
+      ],
+      "name": "services/realtime-session/xiaozhi_main.py",
       "type": "file"
     },
     {
@@ -39905,7 +40015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3b57ef89fd7e1687de1091e0450d8972cdc6eca977fa088d3b33e485cee2745"
+          "content": "27644ac18c288155557c721aa7069434b70f3501a7d63f576aa6443996de416d"
         }
       ],
       "name": "services/tts-service/critical_speech.py",
@@ -39915,7 +40025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "633bfacac685c38a8a02520fd1447df625c7612f6eaca02f3fd9b44dd092a9ee"
+          "content": "16f7ae696402b62dfba58ba7cacc1a8d3a522c1f9ba33617054252e213784e30"
         }
       ],
       "name": "services/tts-service/main.py",
@@ -39985,7 +40095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a03662c6e3d93972df56fbedc2e6576cf8329167f1d1556d2859380e90924eb"
+          "content": "786e910c4e1ac31bc06704a4377b11ab683bb47fc1fcf780ada413a72f15dc83"
         }
       ],
       "name": "services/tts-service/routers/tts.py",

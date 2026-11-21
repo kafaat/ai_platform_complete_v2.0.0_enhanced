@@ -9,12 +9,17 @@ BUILD_DIR ?= /tmp/sahool-cmd-auth-v2-test
 HERE := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 .PHONY: test clean
-test: $(BUILD_DIR)/test_cmd_auth_v2
+test: $(BUILD_DIR)/test_cmd_auth_v2 $(BUILD_DIR)/test_mqtt_device_profile
 	$(BUILD_DIR)/test_cmd_auth_v2 $(HERE)cmd_auth_v2_vectors.json
+	$(BUILD_DIR)/test_mqtt_device_profile
 
 $(BUILD_DIR)/test_cmd_auth_v2: $(HERE)test_cmd_auth_v2.cpp $(HERE)../cmd_auth_v2.h
 	mkdir -p $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(HERE)test_cmd_auth_v2.cpp -lcrypto
+
+$(BUILD_DIR)/test_mqtt_device_profile: $(HERE)test_mqtt_device_profile.cpp $(HERE)../mqtt_device_profile.h
+	mkdir -p $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(HERE)test_mqtt_device_profile.cpp
 
 clean:
 	rm -rf $(BUILD_DIR)

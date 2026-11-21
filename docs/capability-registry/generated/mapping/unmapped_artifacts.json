@@ -4448,6 +4448,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/actuator-service/device_telemetry.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/actuator-service/main.py",
     "kind": "backend"
   },
@@ -6000,6 +6004,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/realtime-agent/realtime_agent/xiaozhi_codec.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/realtime-agent/tests/conftest.py",
     "kind": "tests"
   },
@@ -6024,7 +6032,19 @@
     "kind": "tests"
   },
   {
+    "path": "services/realtime-agent/tests/test_voice_chunking.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/realtime-agent/tests/test_worker.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_xiaozhi.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_xiaozhi_lifecycle.py",
     "kind": "tests"
   },
   {
@@ -6072,8 +6092,20 @@
     "kind": "backend"
   },
   {
+    "path": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/xiaozhi_leases.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/realtime-session/tests/test_livekit_adapter.py",
     "kind": "tests"
+  },
+  {
+    "path": "services/realtime-session/xiaozhi_main.py",
+    "kind": "backend"
   },
   {
     "path": "services/remote-sensing-workspace-bff/main.py",
@@ -12728,7 +12760,15 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_mcp_owner_telemetry.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_mcp_raster_status_relay_v58.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_mcp_streamable_http_contract.py",
     "kind": "tests"
   },
   {
@@ -12749,6 +12789,10 @@
   },
   {
     "path": "tests_v9/test_merge_safety_bootstrap.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_mesh_device_profile_20261121.py",
     "kind": "tests"
   },
   {
@@ -13984,6 +14028,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_tts_chunk_validation_context.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_tts_critical_speech.py",
     "kind": "tests"
   },
@@ -14369,6 +14417,10 @@
   },
   {
     "path": "tests_v9/test_wx11_closed_loop_completion_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_xiaozhi_review_followups.py",
     "kind": "tests"
   },
   {

@@ -38,12 +38,34 @@ GUARDED_ROUTES = {("GET", "/v1/mcp/tools"), ("POST", "/v1/mcp/tools/call")}
 OPEN_ROUTES = {("GET", "/healthz"), ("GET", "/readyz")}
 
 
-@pytest.fixture(scope="module")
-def mcp_on_path():
-    if str(MCP_DIR) not in sys.path:
-        sys.path.insert(0, str(MCP_DIR))
+@pytest.fixture
+def mcp_on_path(monkeypatch):
     pytest.importorskip("fastapi")
     pytest.importorskip("jwt")
+    import shared
+
+    # Match Dockerfile's merge of root shared/ and MCP shared/, with test-local
+    # imports and environment. Do not leave a stale guard or service after teardown.
+    monkeypatch.syspath_prepend(str(MCP_DIR))
+    monkeypatch.setattr(shared, "__path__", [str(ROOT / "shared"), str(MCP_DIR / "shared")])
+    monkeypatch.setenv("MCP_SERVICE", "field")
+    monkeypatch.setenv("JWT_SECRET", "x" * 40)
+    monkeypatch.setenv("SAHOOL_ENV", "development")
+    monkeypatch.delenv("JWT_PUBLIC_KEY", raising=False)
+    monkeypatch.setenv("MCP_ALLOWED_ORIGINS", "")
+    names = (
+        "shared.oauth_middleware",
+        "shared.owner_telemetry",
+        "shared.streamable_http",
+        "generic_context_server",
+    )
+    for name in names:
+        monkeypatch.delitem(sys.modules, name, raising=False)
+    try:
+        yield
+    finally:
+        for name in names:
+            sys.modules.pop(name, None)
 
 
 def _install_real_oauth_middleware() -> None:
@@ -61,11 +83,13 @@ def _install_real_oauth_middleware() -> None:
 
     فيُحمَّل الملفّ الحقيقيّ بمساره ويُثبَّت — فلا تعتمد النتيجة على ترتيب الجمع.
     """
-    real = MCP_DIR / "shared" / "oauth_middleware.py"
-    spec = importlib.util.spec_from_file_location("shared.oauth_middleware", real)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["shared.oauth_middleware"] = module
-    spec.loader.exec_module(module)
+    for filename in ("oauth_middleware", "owner_telemetry", "streamable_http"):
+        name = "shared." + filename
+        real = MCP_DIR / "shared" / (filename + ".py")
+        spec = importlib.util.spec_from_file_location(name, real)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
 
 
 def _app_for(service: str):
@@ -187,6 +211,65 @@ def test_the_deployed_service_list_matches_compose(mcp_on_path):
         f"قائمة الخدمات المشتقّة تغيّرت في compose: {sorted(declared)} — "
         "حدّث DEPLOYED_SERVICES كي لا تبقى خدمة بلا برهان حراسة"
     )
+
+
+def test_context_overlay_requires_public_verifier_without_distributing_signing_secrets():
+    import yaml
+
+    compose = yaml.safe_load((ROOT / "docker-compose.rag-kg-mcp.yml").read_text(encoding="utf-8"))
+    contexts = [
+        service["environment"]
+        for service in compose["services"].values()
+        if service.get("environment", {}).get("MCP_SERVER_MODULE") == "generic_context_server"
+    ]
+    assert {env["MCP_SERVICE"] for env in contexts} == set(DEPLOYED_SERVICES)
+    for env in contexts:
+        # :? checks missing AND empty; ? alone would silently accept an empty key.
+        assert env["JWT_PUBLIC_KEY"].startswith("${JWT_PUBLIC_KEY:?")
+        assert env["JWT_PUBLIC_KEY"].endswith("}")
+        assert env["SAHOOL_ENV"] == "${SAHOOL_ENV:-production}"
+        assert "JWT_SECRET" not in env and "JWT_PRIVATE_KEY" not in env
+        assert "SAHOOL_ALLOW_HS256_IN_PROD" not in env
+    iot = next(env for env in contexts if env["MCP_SERVICE"] == "iot")
+    assert iot["PLATFORM_API_URL"] == "http://sahool-platform:8000"
+
+
+@pytest.mark.parametrize("service", DEPLOYED_SERVICES)
+def test_context_public_verifier_accepts_rs256_and_rejects_hs256(mcp_on_path, monkeypatch, service):
+    import time
+
+    import jwt
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from fastapi.testclient import TestClient
+
+    # Ephemeral test-only issuer; no key is written into the checkout or output.
+    private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    public = (
+        private.public_key()
+        .public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo)
+        .decode()
+    )
+    monkeypatch.setenv("JWT_PUBLIC_KEY", public)
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    module = _app_for(service)
+    claims = {
+        "iss": "sahool-auth",
+        "aud": "sahool",
+        "sub": "42",
+        "tenant_id": "tenant-a",
+        "scope": module.MCP_CONTEXT_SCOPE,
+        "exp": int(time.time()) + 300,
+    }
+    client = TestClient(module.app, raise_server_exceptions=False)
+    rs256 = jwt.encode(claims, private, algorithm="RS256")
+    allowed = client.get("/v1/mcp/tools", headers={"Authorization": "Bearer " + rs256})
+    assert allowed.status_code == 200 and allowed.json()["tools"]
+    # Even when the same local test secret exists, a configured public key forbids
+    # symmetric tokens; the issuer verification algorithm is never caller-selected.
+    hs256 = jwt.encode(claims, "x" * 40, algorithm="HS256")
+    denied = client.get("/v1/mcp/tools", headers={"Authorization": "Bearer " + hs256})
+    assert denied.status_code == 401
 
 
 def test_the_guard_bound_to_the_route_is_the_real_one(mcp_on_path):

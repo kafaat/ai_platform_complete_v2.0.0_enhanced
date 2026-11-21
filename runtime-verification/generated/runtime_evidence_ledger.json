@@ -1,7 +1,7 @@
 {
   "fail_closed": true,
-  "ledger_sha256": "68c3940f262e902f691c69118304751495eb1c5a468d372cb8762452c2b7a731",
-  "plan_sha256": "969660d3f7232bf76e3d1fa68f744d9a6d3dff059faa12399182ee29218e1197",
+  "ledger_sha256": "d561bfd91f9bbff7fc431c24e78fa932a6d6c4a4662517395fb861a06d2fd350",
+  "plan_sha256": "70a47796eb40757c6a478b0c46e01968472f37c9e29b5b9a96088a3018b15b59",
   "schema_version": "2.0",
   "services": [
     {
@@ -47,7 +47,7 @@
     {
       "evidence_files": [],
       "latest_valid_evidence": null,
-      "planned_probe_count": 4,
+      "planned_probe_count": 2,
       "probeable": true,
       "production_certified": false,
       "runtime_verified": false,
@@ -157,7 +157,7 @@
     {
       "evidence_files": [],
       "latest_valid_evidence": null,
-      "planned_probe_count": 1,
+      "planned_probe_count": 2,
       "probeable": true,
       "production_certified": false,
       "runtime_verified": false,

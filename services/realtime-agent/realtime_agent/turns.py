@@ -11,7 +11,11 @@ from collections.abc import Awaitable, Callable
 from typing import Protocol
 
 from .context import VoiceContext
+from .providers import speech_chunks
 from .speech import decode_audio
+
+PREPARATION_TIMEOUT_SECONDS = 45
+PUBLICATION_TIMEOUT_SECONDS = 46
 
 
 class SpeechRecognizer(Protocol):
@@ -21,6 +25,9 @@ class SpeechRecognizer(Protocol):
 class Providers(Protocol):
     async def answer(self, context: dict, text: str) -> str: ...
     async def synthesize(self, context: dict, text: str) -> bytes: ...
+    async def synthesize_chunk(
+        self, context: dict, text: str, *, validation_text: str
+    ) -> bytes: ...
 
 
 class VoiceActivity:
@@ -87,12 +94,23 @@ class TurnRunner:
         providers: Providers,
         publish: Callable[[bytes], Awaitable[None]],
         clear: Callable[[], None],
+        *,
+        on_error: Callable[[str], Awaitable[None]] | None = None,
+        publication_timeout_seconds: float | None = None,
     ):
+        if publication_timeout_seconds is not None and (
+            type(publication_timeout_seconds) not in (int, float)
+            or not math.isfinite(publication_timeout_seconds)
+            or not 0 < publication_timeout_seconds <= 65
+        ):
+            raise ValueError("invalid_publication_timeout")
         self._fetch = lease_fetch
         self._stt = recognizer
         self._providers = providers
         self._publish = publish
         self._clear = clear
+        self._on_error = on_error
+        self._publication_timeout = publication_timeout_seconds
         self._task: asyncio.Task | None = None
         self._tasks: set[asyncio.Task] = set()
         self._epoch = 0
@@ -115,7 +133,7 @@ class TurnRunner:
 
     async def _run(self, pcm16: bytes, epoch: int) -> None:
         try:
-            async with asyncio.timeout(45):
+            async with asyncio.timeout(PREPARATION_TIMEOUT_SECONDS):
                 await self._fetch()
                 question = await self._stt.transcribe(pcm16, 16000)
                 if not question.strip():
@@ -124,19 +142,49 @@ class TurnRunner:
                 answer = await self._providers.answer(context.provider_context(), question)
                 if not answer.strip():
                     return
-                context = await self._fetch()
-                payload = await self._providers.synthesize(context.provider_context(), answer)
-                pcm = await asyncio.to_thread(decode_audio, payload)
+                chunks = speech_chunks(answer)
+                pcm = bytearray()
+                for chunk in chunks:
+                    context = await self._fetch()
+                    if len(chunks) == 1:
+                        payload = await self._providers.synthesize(
+                            context.provider_context(), chunk
+                        )
+                    else:
+                        payload = await self._providers.synthesize_chunk(
+                            context.provider_context(), chunk, validation_text=answer
+                        )
+                    part = await asyncio.to_thread(decode_audio, payload)
+                    # Preserve the original decompressed-duration cap across the
+                    # entire answer; chunking must not multiply memory/play time.
+                    if len(pcm) + len(part) > 48000 * 2 * 45:
+                        raise ValueError("tts_audio_too_long")
+                    pcm.extend(part)
                 await self._fetch()
-                if not self._closed and epoch == self._epoch:
-                    await self._publish(pcm)
+            if not self._closed and epoch == self._epoch:
+                # Generation time must not consume paced playback's budget.
+                # The independent lease guard still expires/revokes the job.
+                async with asyncio.timeout(
+                    self._publication_timeout or PUBLICATION_TIMEOUT_SECONDS
+                ):
+                    # Do not publish a partial advisory if a later chunk fails.
+                    await self._publish(bytes(pcm))
         except asyncio.CancelledError:
-            self._clear()
+            if epoch == self._epoch:
+                self._clear()
             raise
         except Exception:
             # No raw provider exceptions, transcript, bearer or audio is logged.
             if epoch == self._epoch:
                 self._clear()
+                if not self._closed and self._on_error is not None:
+                    try:
+                        async with asyncio.timeout(2):
+                            await self._on_error("voice_turn_failed")
+                    except Exception:
+                        # Error signalling is best-effort and contains no
+                        # transcript, raw provider exception or credentials.
+                        pass
 
     async def close(self) -> None:
         self._closed = True
