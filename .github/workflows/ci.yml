@@ -1479,6 +1479,28 @@ jobs:
         run: |
           APP_ROLE=irr_f01_writer APP_PASS=irr_f01_writer bash scripts/irr_f01/upgrade_gate_u1.sh
           bash scripts/irr_f01/run_suite.sh upgrade --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      - name: Exercise raster leases and scene enqueue as the restricted application role
+        env:
+          RASTER_TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          APP_ROLE: sahool_app_test
+          PGHOST: localhost
+          PGPORT: "5433"
+          PGPASSWORD: test_password
+          SAHOOL_TEST_PGDATABASE: sahool_test
+          SAHOOL_TEST_PGOWNER: sahool_test
+          SAHOOL_TEST_PGROLE: sahool_app_test
+          PYTHONPATH: .:services/raster-service
+          COVERAGE_FILE: .coverage.integration-auth
+        run: |
+          set -euo pipefail
+          report_dir="${RUNNER_TEMP:-/tmp}/raster-live-pg"
+          mkdir -p "$report_dir"
+          pytest -v -rs -p scripts.raster_pg.required_cases --raster-pg-major=15 \
+            services/raster-service/test_raster_batch_postgres_integration.py \
+            services/raster-service/test_single_scene_concurrent_pg.py \
+            --junitxml="$report_dir/certification.xml" \
+            --cov=services --cov-config=config/coverage-live-integration.rc \
+            --cov-append --cov-report=
       # ── H5.1 field↔water-source binding certification ──────────────────────────────
       # The shared integration run connects as the superuser, where the binding resolver's RLS
       # isolation SKIPS (superuser bypasses RLS). This dedicated step runs it as the restricted
@@ -1853,6 +1875,14 @@ jobs:
           flags: integration-auth
           disable_search: true
           fail_ci_if_error: false
+      - name: Preserve raster PostgreSQL certification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: raster-live-pg-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/raster-live-pg/
+          if-no-files-found: error
+          retention-days: 14
 
   decision-service-tests:
     permissions:
@@ -2530,6 +2560,33 @@ jobs:
           set -euo pipefail
           python scripts/ci/live_pg_evidence_guard.py --junit live_pg_evidence.xml \
             --min-executed 30 --evidence live_pg_evidence.json
+      - name: Certify raster concurrency on PostgreSQL 16
+        id: raster_live_pg16
+        env:
+          PGHOST: localhost
+          PGPORT: "5435"
+          PGPASSWORD: test_password
+          SAHOOL_TEST_PGDATABASE: sahool
+          SAHOOL_TEST_PGOWNER: sahool_user
+          SAHOOL_TEST_PGROLE: sahool_app
+          RASTER_TEST_DATABASE_URL: postgresql://sahool_app@localhost:5435/sahool
+          PYTHONPATH: .:services/raster-service
+        run: |
+          set -euo pipefail
+          report_dir="$RUNNER_TEMP/raster-live-pg16"
+          mkdir -p "$report_dir"
+          python -m pytest -q -rs -o addopts= -p scripts.raster_pg.required_cases --raster-pg-major=16 \
+            services/raster-service/test_raster_batch_postgres_integration.py \
+            services/raster-service/test_single_scene_concurrent_pg.py \
+            --junitxml="$report_dir/certification.xml"
+      - name: Retain PostgreSQL 16 raster certification evidence
+        if: always() && steps.raster_live_pg16.outcome != 'skipped'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: raster-live-pg16-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/raster-live-pg16/
+          if-no-files-found: error
+          retention-days: 14
       - name: Prove the evidence role has no direct or transitive role memberships
         # `direct_role_attributes` proves only the named row in pg_roles. This
         # companion proof closes pg_auth_members / SET ROLE ambiguity for the

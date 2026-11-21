@@ -2513,6 +2513,7 @@ SAT-009,test,tests_v9/test_raster_invalidation_redis_acl.py,3,applied
 SAT-009,test,tests_v9/test_raster_job_store.py,3,applied
 SAT-009,test,tests_v9/test_raster_latest_not_stale_after_rehydrate_v2.py,3,applied
 SAT-009,test,tests_v9/test_raster_persist_observability_v30_2.py,3,applied
+SAT-009,test,tests_v9/test_raster_pg_certification.py,3,applied
 SAT-009,test,tests_v9/test_raster_pixel_processing_edge_cases.py,3,applied
 SAT-009,test,tests_v9/test_raster_pixel_qa_indicator_guard.py,3,applied
 SAT-009,test,tests_v9/test_raster_quality_columns_populated_v62_3b.py,3,applied

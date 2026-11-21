@@ -130,6 +130,14 @@
       "kind": "governed"
     },
     {
+      "path": "docs/architecture/raster_live_pg16_schema_contract.json",
+      "kind": "governed"
+    },
+    {
+      "path": "docs/architecture/raster_live_pg_schema_contract.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/required_status_checks_contract.json",
       "kind": "governed"
     },

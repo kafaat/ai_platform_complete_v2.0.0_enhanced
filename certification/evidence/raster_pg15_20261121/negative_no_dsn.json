@@ -1,0 +1,10 @@
+{
+  "head": "e823a1aa2dc3bb94fcc8c7e2af11c76eb3b1fab6",
+  "exit_code": 1,
+  "cases": 6,
+  "skipped": 6,
+  "evidence_emitted": false,
+  "command_log_sha256": "ecd669217ec23abadae9d14d096e6e5e9e0739c652a1567997e9d30c0d74894e",
+  "kind": "negative proof: no DSN must fail certification, not product acceptance",
+  "verdict": "PASS"
+}

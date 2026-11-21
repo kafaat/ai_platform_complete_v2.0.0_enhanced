@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7555,
+    "files_scanned": 7576,
     "files_by_kind": {
       "backend": 1302,
       "database": 352,
-      "governance": 88,
+      "governance": 90,
       "mobile": 429,
-      "other": 2209,
-      "tests": 2619,
+      "other": 2227,
+      "tests": 2620,
       "web": 556
     },
-    "unmapped_artifacts": 3601,
+    "unmapped_artifacts": 3602,
     "ambiguous_artifacts": 262,
     "files_by_reading": {
-      "python_functional": 4108,
-      "raw": 3447
+      "python_functional": 4110,
+      "raw": 3466
     },
     "test_dependency_files": 1998,
-    "test_dependency_edges": 5315,
+    "test_dependency_edges": 5317,
     "test_dependency_bounded_files": 1159,
     "test_dependency_unresolved_relations": 509
   },
@@ -13679,6 +13679,13 @@
           "signals": [
             "explicit_id"
           ]
+        },
+        {
+          "path": "certification/evidence/raster_pg15_reviewed_20261121/source-bindings.json",
+          "score": 8,
+          "signals": [
+            "path:source binding"
+          ]
         }
       ],
       "ambiguous": [],
@@ -13694,7 +13701,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 1,
-        "other_evidence": 4
+        "other_evidence": 5
       },
       "coverage_dimensions": 3,
       "mapped": true
@@ -46448,6 +46455,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_raster_pg_certification.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_raster_pixel_processing_edge_cases.py",
       "kind": "tests"
     },
@@ -59607,7 +59618,7 @@
         {
           "source": "services/raster-service/db_persist.py",
           "kind": "import",
-          "line": 57
+          "line": 58
         }
       ],
       "unresolved": []
@@ -79871,67 +79882,67 @@
         {
           "source": "scripts/ci/codecov_coverage_guard.py",
           "kind": "import",
-          "line": 16
+          "line": 17
         },
         {
           "source": "services/auth/routers/invitations.py",
           "kind": "source_read",
-          "line": 160
+          "line": 180
         },
         {
           "source": "services/auth/routers/users.py",
           "kind": "source_read",
-          "line": 159
+          "line": 179
         },
         {
           "source": "services/auth/session_tokens.py",
           "kind": "source_read",
-          "line": 161
+          "line": 181
         },
         {
           "source": "services/decision-service/main.py",
           "kind": "source_read",
-          "line": 379
+          "line": 465
         },
         {
           "source": "services/sahool-platform/api/routers/security_audit.py",
           "kind": "source_read",
-          "line": 162
+          "line": 182
         },
         {
           "source": "services/soil-service/plan_copy_store.py",
           "kind": "source_read",
-          "line": 165
+          "line": 185
         },
         {
           "source": "services/vegetation-analysis-service/anomaly_store_pg.py",
           "kind": "source_read",
-          "line": 164
+          "line": 184
         },
         {
           "source": "tests_v9/test_auth_admin_authz_live_pg_redis.py",
           "kind": "source_read",
-          "line": 121
+          "line": 133
         },
         {
           "source": "tests_v9/test_auth_admin_tenant_scope_live_pg.py",
           "kind": "source_read",
-          "line": 120
+          "line": 132
         },
         {
           "source": "tests_v9/test_mfa_hardening_integration_v29_5.py",
           "kind": "source_read",
-          "line": 119
+          "line": 131
         },
         {
           "source": "tests_v9/test_platform_denial_log_scope_live.py",
           "kind": "source_read",
-          "line": 122
+          "line": 134
         }
       ],
       "unresolved": [
         {
-          "line": 337,
+          "line": 423,
           "call": "run_path"
         }
       ]
@@ -87434,28 +87445,39 @@
       "test": "tests_v9/test_lab_ci_certification_steps.py",
       "bounded": false,
       "unbounded_reasons": [
+        "directory_reference",
         "reads_repository_data_file"
       ],
       "edges": [
         {
           "source": "scripts/lab/run_certification.py",
           "kind": "loader",
-          "line": 39
+          "line": 44
         },
         {
           "source": "scripts/lab/run_certification.py",
           "kind": "source_read",
-          "line": 40
+          "line": 45
+        },
+        {
+          "source": "services/raster-service/test_raster_batch_postgres_integration.py",
+          "kind": "source_read",
+          "line": 125
+        },
+        {
+          "source": "services/raster-service/test_single_scene_concurrent_pg.py",
+          "kind": "source_read",
+          "line": 126
         },
         {
           "source": "tests_v9/test_mfa_hardening_integration_v29_5.py",
           "kind": "source_read",
-          "line": 83
+          "line": 212
         },
         {
           "source": "tests_v9/test_services_functional.py",
           "kind": "source_read",
-          "line": 84
+          "line": 213
         }
       ],
       "unresolved": []
@@ -87854,17 +87876,17 @@
         {
           "source": "scripts/ci/live_pg_evidence_guard.py",
           "kind": "loader",
-          "line": 29
+          "line": 30
         },
         {
           "source": "scripts/ci/live_pg_evidence_guard.py",
           "kind": "source_read",
-          "line": 25
+          "line": 26
         },
         {
           "source": "tests_v9/test_live_pg_fake_connection_debt.py",
           "kind": "source_read",
-          "line": 320
+          "line": 388
         }
       ],
       "unresolved": []
