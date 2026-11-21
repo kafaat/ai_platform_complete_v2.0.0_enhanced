@@ -3289,6 +3289,28 @@
     ]
   },
   {
+    "path": "scripts/lab/README.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 9,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      }
+    ]
+  },
+  {
     "path": "scripts/simulation/sim_golden.py",
     "kind": "other",
     "candidates": [
@@ -3624,6 +3646,28 @@
         "signals": [
           "path:outcome record",
           "content:outcome record"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/decision-service/tests/test_snapshot_id_validation.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "DEC-005",
+        "score": 8,
+        "signals": [
+          "content:Dispatch authorization",
+          "dedup:Dispatch authorization=dispatch authorization"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "dedup:Execution request=execution request"
         ]
       }
     ]

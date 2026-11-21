@@ -6972,10 +6972,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/routers/platform_health.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/routers/policy_learning.py",
     "kind": "backend"
   },
@@ -12128,6 +12124,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_field_state_version_bump_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_field_sustainability.py",
     "kind": "tests"
   },
@@ -12589,6 +12589,10 @@
   },
   {
     "path": "tests_v9/test_kg_edge_upsert_conflict.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_kg_edges_bounded_read.py",
     "kind": "tests"
   },
   {

@@ -83,6 +83,8 @@ def reconcile_outcomes(
     # النسبة المنشورة تُحسَب على القرارات **المميَّزة** لا بجمع عدّي الجدولَين: قرارٌ موصوفٌ
     # في الجدولَين يُحسَب مرّة (وإلّا انتُهِك عقد «لا عدّ مزدوج»). أولويّة الحالة لـoutcome_record
     # (جدول النتيجة الرسميّ) عبر setdefault. صفوف بلا decision_id تُعدّ مباشرةً (لا مفتاح لدمجها).
+    # Within one source the first row per decision wins, so callers pass rows latest-first
+    # (read_outcomes_for_reconcile orders by time then id, descending).
     status_by_decision: dict[str, Any] = {}
     keyless: list[Any] = []
     for r in outcome_rows:

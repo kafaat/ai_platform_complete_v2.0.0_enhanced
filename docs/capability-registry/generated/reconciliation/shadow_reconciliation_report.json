@@ -11,6 +11,22 @@
       "ratchet_identity": "DEC-001:declared_above_evidence:evidence-maturity"
     },
     {
+      "assessed_maturity": 3,
+      "capability_id": "DEC-004",
+      "declared_maturity": 2,
+      "finding_id": "DEC-004:evidence_above_declared",
+      "kind": "evidence_above_declared",
+      "ratchet_identity": "DEC-004:evidence_above_declared:evidence-maturity"
+    },
+    {
+      "assessed_maturity": 3,
+      "capability_id": "DEC-005",
+      "declared_maturity": 2,
+      "finding_id": "DEC-005:evidence_above_declared",
+      "kind": "evidence_above_declared",
+      "ratchet_identity": "DEC-005:evidence_above_declared:evidence-maturity"
+    },
+    {
       "assessed_maturity": 2,
       "capability_id": "DEC-008",
       "declared_maturity": 3,
@@ -411,9 +427,9 @@
     "baseline_source": "docs/capability-registry/reconciliation_drift_baseline.json",
     "classes": {
       "evidence_maturity": {
-        "baseline_count": 44,
+        "baseline_count": 46,
         "new": [],
-        "observed_count": 44,
+        "observed_count": 46,
         "stale": []
       },
       "registry_reconciliation": {

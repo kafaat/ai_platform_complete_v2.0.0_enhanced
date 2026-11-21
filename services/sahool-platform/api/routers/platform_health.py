@@ -36,11 +36,12 @@ def healthz():
 
 
 @router.get("/metrics")
-def metrics():
+async def metrics():
     """Minimal Prometheus-compatible platform metrics endpoint."""
     db_enabled = 1 if main._DB_POOL is not None else 0
     payload = "\n".join(
         [
+            *await _w301_event_relay_gauges(),
             "# HELP sahool_platform_up Platform process is serving requests",
             "# TYPE sahool_platform_up gauge",
             "sahool_platform_up 1",
@@ -86,7 +87,132 @@ async def readyz():
     body = dict(base)
     body["db"] = "up" if main._DB_POOL is not None else "disabled"
     body["decision_sor"] = get_platform_decision_sor_mode().as_dict()
-    # R2: additive relay state (disabled|connecting|degraded|up|reconnecting). A missing broker
-    # does not fail readiness — events stay durable in event_outbox and retry in the background.
+    # R2: additive relay state (disabled|connecting|degraded|up|reconnecting).
     body["nats"] = main.NATS_RELAY.status
+    # W3-01: the held backlog is a signal (never a 503): it says what enabling the flag replays.
+    body["outbox"] = await _outbox_backlog()
+    # W3-01: with FEATURE_NATS_PUBLISHERS on, readiness fails closed until the stream and its
+    # required consumers exist — the relay itself is held until then (NATS_PREFLIGHT.gate).
+    # Flag off ⇒ "disabled" and readiness is unchanged.
+    # R2 still holds after that: a missing broker does not fail readiness. Once the relay has
+    # started, a failed re-check (NATS restart, reconnect) reads "degraded" with its error
+    # codes and stays 200 — events wait in event_outbox and drain when the broker returns.
+    preflight = await _nats_preflight()
+    body["nats_preflight"] = _public_preflight(preflight)
+    if preflight["status"] == "degraded":
+        logging.warning(
+            "readyz: NATS preflight degraded after the relay started (%s) — still ready",
+            ",".join(str(e) for e in preflight.get("errors", [])),
+        )
+    elif preflight["status"] not in ("disabled", "passed"):
+        body["status"] = "not ready"
+        logging.warning(
+            "readyz: NATS preflight %s (%s) — not ready (503)",
+            preflight["status"],
+            ",".join(str(e) for e in preflight.get("errors", [])),
+        )
+        return JSONResponse(status_code=503, content=body)
     return JSONResponse(status_code=resp.status_code, content=body)
+
+
+async def _outbox_backlog() -> dict:
+    """W3-01: event_outbox backlog signal (held / oldest age / dead letter) — read-only.
+
+    The pool choice (jobs pool, cross-tenant like the relay) lives in ``api.event_bus``:
+    routers serve tenant requests and never touch the jobs pool themselves.
+    """
+    from api.event_bus import probe_outbox_backlog
+
+    return await probe_outbox_backlog()
+
+
+async def _nats_preflight() -> dict:
+    """W3-01: flag off ⇒ ``disabled``; flag on ⇒ the (TTL-cached) preflight result."""
+    import os
+
+    from api.event_bus import nats_publishers_enabled
+    from shared.nats_stream_contract import NATS_PREFLIGHT
+
+    flag = nats_publishers_enabled()
+    if not flag:
+        return NATS_PREFLIGHT.snapshot(flag=False)
+    return await NATS_PREFLIGHT.refresh(
+        main.NATS_RELAY.conn, flag=True, url=os.getenv("NATS_URL", "nats://sahool-nats:4222")
+    )
+
+
+def _public_preflight(preflight: dict) -> dict:
+    """/readyz is unauthenticated: publish the verdict and error codes, not the broker topology
+    (consumer names, drift values, credential facts). The full result is in the platform log
+    and in ``python -m shared.nats_stream_contract preflight`` run by an operator."""
+    keep = ("status", "flag", "connected", "relay", "age_seconds")
+    out = {k: preflight[k] for k in keep if k in preflight}
+    if "stream" in preflight:
+        out["stream_exists"] = bool(preflight["stream"].get("exists"))
+    if "consumers" in preflight:
+        consumers = preflight["consumers"]
+        out["consumers_present"] = sum(1 for v in consumers.values() if v)
+        out["consumers_checked"] = len(consumers)
+    if "learning_worker" in preflight:
+        out["learning_worker_mode"] = preflight["learning_worker"].get("mode")
+    if "errors" in preflight:
+        out["errors"] = sorted({str(e).split(":", 1)[0] for e in preflight["errors"]})
+    return out
+
+
+def _gauge(name: str, help_text: str, value) -> list[str]:
+    return [f"# HELP {name} {help_text}", f"# TYPE {name} gauge", f"{name} {value}"]
+
+
+async def _w301_event_relay_gauges() -> list[str]:
+    """W3-01: backlog and DLQ as gauges so a staging enablement can be watched over time
+    (held should fall to ~0 after the flag flips; dead_letter should stay 0)."""
+    from api.event_bus import nats_publishers_enabled
+    from shared.nats_stream_contract import NATS_PREFLIGHT
+
+    flag = nats_publishers_enabled()
+    backlog = await _outbox_backlog()
+    preflight = NATS_PREFLIGHT.snapshot(flag=flag)
+    lines = [
+        *_gauge(
+            "sahool_platform_nats_publishers_enabled",
+            "FEATURE_NATS_PUBLISHERS effective value",
+            1 if flag else 0,
+        ),
+        *_gauge(
+            "sahool_platform_nats_preflight_passed",
+            "1 when the last NATS stream/consumer preflight passed (0 when off or failed)",
+            1 if preflight.get("status") == "passed" else 0,
+        ),
+        *_gauge(
+            "sahool_platform_outbox_backlog_probe_ok",
+            "1 when the event_outbox backlog probe succeeded",
+            1 if backlog.get("status") == "ok" else 0,
+        ),
+    ]
+    if backlog.get("status") != "ok":
+        return lines
+    age = backlog["oldest_held_age_seconds"]
+    return [
+        *lines,
+        *_gauge(
+            "sahool_platform_outbox_held",
+            "Unpublished replayable event_outbox rows",
+            backlog["held"],
+        ),
+        *_gauge(
+            "sahool_platform_outbox_dead_letter",
+            "event_outbox rows that exhausted their attempts",
+            backlog["dead_letter"],
+        ),
+        *_gauge(
+            "sahool_platform_outbox_oldest_held_age_seconds",
+            "Age of the oldest held event_outbox row (0 when none)",
+            0 if age is None else age,
+        ),
+        *_gauge(
+            "sahool_platform_outbox_backlog_all_tenants",
+            "1 when the backlog probe sees every tenant (jobs role), 0 when RLS-scoped",
+            1 if backlog["scope"] == "all_tenants" else 0,
+        ),
+    ]

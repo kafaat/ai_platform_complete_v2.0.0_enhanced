@@ -37,6 +37,7 @@ import ssl
 import subprocess
 import sys
 import urllib.request
+import uuid
 from pathlib import Path
 
 import pytest
@@ -796,7 +797,43 @@ def test_publishers_may_publish_only_their_own_subjects():
     ]
     migration = (ROOT / "migrations" / "v18_entity_ids_text.sql").read_text(encoding="utf-8")
     assert "'sahool.events.' || p_event_type" in migration
-    assert _allow(users["sahool-platform"], "publish") == ["sahool.events.>"]
+    platform_publish = [
+        s for s in _allow(users["sahool-platform"], "publish") if not s.startswith("$")
+    ]
+    assert platform_publish == ["sahool.events.>"], f"المنصّةُ تنشر خارج أحداثها: {platform_publish}"
+
+
+@pytest.mark.unit
+def test_the_platform_may_only_read_the_topology_its_preflight_checks():
+    """W3-01: preflight المنصّة يقرأ الدفقَ والمستهلكين المطلوبين **بأسمائهم** — لا إنشاءَ ولا
+    إدارةَ ولا قراءةَ مستهلكٍ آخر. والأسماءُ مُشتقّةٌ من العقد التصريحيّ لا منسوخة."""
+    from shared import nats_stream_contract as contract
+
+    allowed = {s for s in _allow(_users()["sahool-platform"], "publish") if s.startswith("$")}
+    expected = {f"$JS.API.STREAM.INFO.{contract.STREAM_NAME}"} | {
+        f"$JS.API.CONSUMER.INFO.{contract.STREAM_NAME}.{name}"
+        for group in contract.REQUIRED_CONSUMERS
+        for name in group
+    }
+    assert allowed == expected, (
+        f"ناقص: {sorted(expected - allowed)}\n زائد: {sorted(allowed - expected)}"
+    )
+    assert contract.STREAM_NAME == STREAM, "اسمُ الدفق في العقد غيرُ اسمه في الإعداد"
+
+
+@pytest.mark.unit
+def test_required_consumers_are_the_names_their_owners_create():
+    """أسماءُ `REQUIRED_CONSUMERS` تساوي ما يُنشئه عاملُ التعلّم ووكيلُ الإشعارات فعلاً — وإلّا
+    مرّ preflight على اسمٍ لا يُنشئه أحد (أحمرُ دائم) أو نجا مستهلكٌ أُعيدت تسميتُه من الفحص."""
+    from shared import nats_stream_contract as contract
+    from shared import notification_consumers
+
+    learning = {(d,) for d in _canonical_durables()}
+    domain = next(n for s, n in notification_consumers.SUBSCRIPTIONS if s == "sahool.events.>")
+    notification = {(domain, notification_consumers.queue_name(domain))}
+    assert set(contract.REQUIRED_CONSUMERS) == learning | notification, (
+        f"العقد: {sorted(contract.REQUIRED_CONSUMERS)} · المالكون: {sorted(learning | notification)}"
+    )
 
 
 def _expected() -> dict[str, dict[str, set[str]]]:
@@ -1376,6 +1413,111 @@ async def test_live_conn04_phase_worker_publish_reaches_a_consumer_bound_to_saho
         assert "Publish Violation" not in broker.log_text()
     finally:
         await agent.close()
+
+
+@pytest.mark.integration
+async def test_live_platform_preflight_under_its_own_identity_fails_closed_then_passes(broker):
+    """W3-01: preflight المنصّة بهويّتها الحقيقيّة — يفشل مغلقاً بلا دفق ثمّ بلا مستهلكين، ويمرّ
+    حين يُنشئ المالكُ الدفقَ **من العقد التصريحيّ** ويربط المستهلكون أنفسَهم؛ وكلُّ ذلك بلا خرقِ
+    صلاحيّةٍ واحد، والمنصّةُ لا تستطيع إنشاءَ الدفق بنفسها."""
+    from shared import nats_stream_contract as contract
+
+    platform, platform_client = await _connect(
+        broker, "sahool-platform", **_inbox("sahool-platform")
+    )
+    agent, agent_client = await _connect(broker, NOTIFICATION)
+    worker_nc, worker_client = await _connect(
+        broker,
+        "sahool-canonical-execution-learning-worker",
+        **_inbox("sahool-canonical-execution-learning-worker"),
+    )
+    url = broker.url("sahool-platform")
+    try:
+        out = await contract.run_preflight(platform, flag=True, url=url)
+        assert out["status"] == "failed" and not out["stream"]["exists"], out
+        assert out["credentials"] == {
+            "url_present": True,
+            "user_present": True,
+            "password_present": True,
+            "tls": True,
+        }, out
+        assert broker.by_user["sahool-platform"] not in json.dumps(out), "كلمةُ المرور تسرّبت"
+        # المنصّة لا تُنشئ الدفق: ذاك للمالك وحدَه.
+        with pytest.raises(Exception):  # noqa: B017 — طلبٌ مرفوضٌ يعود مهلةً لا ردّاً
+            await asyncio.wait_for(platform.jetstream().add_stream(contract.stream_config()), 3)
+        assert platform_client.denied(f"$JS.API.STREAM.CREATE.{STREAM}"), "إنشاءٌ لم يُرفَض"
+        platform_client.violations.clear()
+
+        created = await contract.ensure_stream(agent.jetstream(), apply=True)
+        assert created["action"] == "created", created
+        out = await contract.run_preflight(platform, flag=True, url=url)
+        assert out["stream"]["exists"] and out["stream"]["drift"] == [], out
+        assert out["status"] == "failed", f"المستهلكون غائبون والفحصُ مرّ: {out}"
+
+        worker = _canonical_worker()
+
+        async def on_message(msg):
+            await msg.ack()
+
+        await worker.subscribe_subjects(
+            worker_nc.jetstream(), durable_base=_canonical_base(), callback=on_message
+        )
+        await agent.jetstream().subscribe(
+            "sahool.events.>", durable="notif_domain_events", manual_ack=True
+        )
+        out = await contract.run_preflight(platform, flag=True, url=url)
+        assert out["status"] == "passed", out
+        # الفحصُ نفسُه لم يطلب ما لا تملكه هويّتُه.
+        for client in (platform_client, agent_client, worker_client):
+            assert not client.violations, client.violations
+        again = await contract.ensure_stream(agent.jetstream(), apply=True)
+        assert again == {"stream": STREAM, "exists": True, "action": "none", "drift": []}, again
+    finally:
+        for nc in (platform, agent, worker_nc):
+            await nc.close()
+
+
+@pytest.mark.integration
+async def test_live_outbox_replay_after_puback_is_deduplicated_by_the_declared_stream(broker):
+    """W3-01 (no-duplicate side effects, broker half): the outbox relay re-publishes a row whose
+    PubAck arrived but whose ``sent`` mark rolled back. On the stream created from the
+    declaration, with the platform's own identity and publisher, the replay (same
+    ``Nats-Msg-Id`` = ``event_id``) is acknowledged as a duplicate, stored once, and delivered
+    to the consumer once. This file runs on a real nats-server in CI
+    (notification-rollout.yml), so dropping the header or the duplicate window turns it red
+    there; the database half lives in ``test_nats_outbox_staging_enablement_live.py``."""
+    from shared import nats_stream_contract as contract
+    from shared.broker_url import make_jetstream_publisher
+
+    agent, agent_client = await _connect(broker, NOTIFICATION)
+    platform, platform_client = await _connect(
+        broker, "sahool-platform", **_inbox("sahool-platform")
+    )
+    try:
+        created = await contract.ensure_stream(agent.jetstream(), apply=True)
+        assert created["action"] == "created", created
+        sub = await agent.jetstream().subscribe(
+            "sahool.events.>", durable="notif_domain_events", manual_ack=True
+        )
+        publish = make_jetstream_publisher(platform)
+        event_id = str(uuid.uuid4())
+        subject = "sahool.events.season.closed"
+        await publish(subject, b'{"tenant_id": "t1"}', msg_id=event_id)
+        # The replay must still succeed (a duplicate PubAck is a stored message, so the relay
+        # may mark the row sent) — and must not be stored a second time.
+        await publish(subject, b'{"tenant_id": "t1"}', msg_id=event_id)
+        info = await agent.jetstream().stream_info(STREAM)
+        assert info.state.messages == 1, f"stream holds {info.state.messages} copies, want 1"
+        msg = await sub.next_msg(timeout=5)
+        await msg.ack_sync()
+        with pytest.raises(Exception) as second:  # noqa: B017 — nats-py raises its TimeoutError
+            await sub.next_msg(timeout=1)
+        assert "Timeout" in type(second.value).__name__, f"second delivery: {second.value!r}"
+        for client in (agent_client, platform_client):
+            assert not client.violations, client.violations
+    finally:
+        for nc in (agent, platform):
+            await nc.close()
 
 
 @pytest.mark.integration

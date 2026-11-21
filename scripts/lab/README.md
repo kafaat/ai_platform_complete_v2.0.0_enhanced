@@ -92,6 +92,8 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 33. Field-season state reads its platform sources (restricted role)
 34. Historical weather ingest and replay over HTTP (two tenants, restricted role)
 35. Canonical observations store (W1-11, v286, restricted role)
+36. Install pinned nats-server for the W3-01 outbox proof
+37. NATS outbox staging enablement on real PostgreSQL and JetStream (W3-01)
 
 The raster step loads `scripts.raster_pg.required_cases`, which requires all seven
 live cases without skips, failures or duplicates. It validates the JUnit path
@@ -111,6 +113,12 @@ Afterwards the runner reads `rolsuper`, `rolbypassrls`, `rolinherit` and
 from `pg_roles`; either of the first two true fails the run. Steps, exit codes,
 switches, suites and role flags are recorded under `ci_certification_steps` in
 `lab_evidence.json`, and the verdict is `PASS` only when all of them pass.
+
+Step 35 downloads nats-server v2.15.0 from github.com into
+`/tmp/sahool-nats-server-v2.15.0/` and checks the sha256 that
+`notification-rollout.yml` pins. Without network to github.com, place the release
+tarball there as `nats-server.tar.gz` first: it is used only if it matches that
+digest, otherwise the step fails (and step 36 fails rather than skips).
 
 ## What it does not cover
 

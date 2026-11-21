@@ -1418,6 +1418,10 @@ jobs:
           # real handler under a throwaway NOBYPASSRLS role it creates from this superuser DSN.
           # With the switch, a missing or unmigrated database is a failure, not a green skip.
           NOTIFICATION_DELIVERY_CERTIFICATION_REQUIRED: "1"
+          # FIELD-STATE-VERSION-NEVER-BUMPED-01: every recompute bumps field_state.version
+          # (tests_v9/test_field_state_version_bump_live_pg.py). With the switch, a missing or
+          # unmigrated database is a failure, not a green skip.
+          FIELD_STATE_VERSION_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation
@@ -1838,6 +1842,48 @@ jobs:
           CANONICAL_OBSERVATIONS_CERTIFICATION_REQUIRED: "1"
           COVERAGE_FILE: .coverage.integration-auth
         run: pytest -v -m integration -rs tests_v9/test_canonical_observations_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # W3-01: turning FEATURE_NATS_PUBLISHERS on, measured on the migrated database of this job
+      # and a real JetStream broker (tests_v9/test_nats_outbox_staging_enablement_live.py): held
+      # while off, no relay without the stream, one delivery once provisioned, and a replay after
+      # PubAck dropped by the duplicate window. Until this step it skipped in every workflow: the
+      # notification-rollout job has the broker but no migrated platform schema. The broker is
+      # the release notification-rollout.yml pins, checked against the same sha256; it goes to a
+      # fixed path outside the checkout because certification steps carry no ${{ }} expression
+      # (scripts/lab/run_certification.py runs them as written), and a tarball already there is
+      # reused only when it matches the same digest. Both switches make a missing database,
+      # broker or client module a failure, not a green skip: NATS_OUTBOX_LIVE_REQUIRED is the
+      # test's own name, NATS_OUTBOX_CERTIFICATION_REQUIRED the one every certification step
+      # carries (tests_v9/test_lab_ci_certification_steps.py).
+      - name: Install pinned nats-server for the W3-01 outbox proof
+        run: |
+          set -euo pipefail
+          dir=/tmp/sahool-nats-server-v2.15.0
+          tgz="$dir/nats-server.tar.gz"
+          sum=5d2c51caca950333aba84911df7d377f826f3a59ec36061c6539105084f65c92
+          mkdir -p "$dir"
+          # A shared host must not hand us a directory someone else controls.
+          if [ -L "$dir" ] || [ ! -O "$dir" ]; then
+            echo "refusing $dir: symlink or not owned by $(id -un)" >&2
+            exit 1
+          fi
+          chmod 700 "$dir"
+          if ! echo "$sum  $tgz" | sha256sum --check --status 2>/dev/null; then
+            curl --fail --location --retry 3 --max-time 90 \
+              https://github.com/nats-io/nats-server/releases/download/v2.15.0/nats-server-v2.15.0-linux-amd64.tar.gz \
+              -o "$tgz"
+          fi
+          echo "$sum  $tgz" | sha256sum --check
+          tar -xzf "$tgz" -C "$dir"
+          "$dir/nats-server-v2.15.0-linux-amd64/nats-server" --version
+      - name: NATS outbox staging enablement on real PostgreSQL and JetStream (W3-01)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          NATS_SERVER_BIN: /tmp/sahool-nats-server-v2.15.0/nats-server-v2.15.0-linux-amd64/nats-server
+          NATS_OUTBOX_LIVE_REQUIRED: "1"
+          NATS_OUTBOX_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_nats_outbox_staging_enablement_live.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
 
       # Live coverage (#1427 follow-up, extended by CI-LIVE-PG-COVERAGE-UNREPORTED-01): every
       # certification step after the shared run appends to .coverage.integration-auth with
@@ -2038,6 +2084,8 @@ jobs:
           tests/test_wx10_11_execution_request.py
           tests/test_wx10_11b_execution_delivery_receipt.py
           tests/test_wx10_12_execution_outcome.py
+          tests/test_outcome_reconcile_order_live_pg.py
+          tests/test_snapshot_id_validation.py
       # IRR-F01 Gate B-delivery (thin inbox, real Postgres): a delivered reservation dispatch
       # INTENT is recorded idempotently (dedup on tenant+source_event_id), a corrupted redelivery
       # is rejected, the receipt is append-preserving, the consumer heartbeat advances — and a

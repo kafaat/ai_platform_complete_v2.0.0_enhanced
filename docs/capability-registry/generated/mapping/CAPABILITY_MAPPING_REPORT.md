@@ -12,8 +12,8 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **45**
-- Files scanned: **7576**
-- Ambiguous artifacts queued: **262**
+- Files scanned: **7563**
+- Ambiguous artifacts queued: **264**
 - Unmapped artifacts queued: **3602**
 
 ## Capability coverage
@@ -23,10 +23,10 @@
 | DEC-001 | decision | 2 | 0 | 0 | 3 | 0 | 0 | 3 | 3 |
 | DEC-002 | decision | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | DEC-003 | decision | 3 | 0 | 0 | 0 | 0 | 0 | 3 | 2 |
-| DEC-004 | decision | 6 | 5 | 16 | 5 | 0 | 0 | 9 | 5 |
-| DEC-005 | decision | 0 | 0 | 10 | 1 | 0 | 0 | 2 | 3 |
+| DEC-004 | decision | 6 | 5 | 16 | 5 | 0 | 0 | 10 | 5 |
+| DEC-005 | decision | 0 | 0 | 10 | 1 | 0 | 0 | 3 | 3 |
 | DEC-006 | decision | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
-| DEC-007 | decision | 4 | 8 | 4 | 3 | 1 | 0 | 4 | 6 |
+| DEC-007 | decision | 4 | 8 | 4 | 3 | 1 | 0 | 5 | 6 |
 | DEC-008 | decision | 0 | 1 | 2 | 1 | 0 | 0 | 1 | 4 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 93 | 50 | 7 | 0 | 0 | 7 | 5 |
@@ -43,7 +43,7 @@
 | GIS-003 | gis | 33 | 100 | 16 | 70 | 13 | 4 | 43 | 7 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 3 | 0 | 0 | 0 | 0 | 1 | 2 |
-| INT-002 | farm_management | 7 | 15 | 2 | 100 | 0 | 0 | 22 | 5 |
+| INT-002 | farm_management | 8 | 19 | 2 | 100 | 0 | 0 | 24 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 12 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
