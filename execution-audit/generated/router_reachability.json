@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 138,
+      "line": 140,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 74,
@@ -280,7 +280,7 @@
     },
     {
       "kind": "app",
-      "line": 26,
+      "line": 27,
       "module": "services.knowledge-graph.main",
       "node_id": "services.knowledge-graph.main:app",
       "route_count": 7,
@@ -3045,7 +3045,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "1b1b356ecc6950fc56bba9d86ad9222ac7d1b39652e371ff971436255be610ae",
+  "inventory_sha256": "665bf5984c5d25779e6c4f19ab1aa639367402ba294f47a0d95cc3fe5ae6532d",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {

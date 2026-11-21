@@ -6968,10 +6968,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/routers/platform_health.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/routers/policy_learning.py",
     "kind": "backend"
   },

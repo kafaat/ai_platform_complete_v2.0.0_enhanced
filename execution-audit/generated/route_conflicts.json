@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 616,
+          "line": 619,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 560,
+          "line": 563,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -325,7 +325,7 @@
         },
         {
           "function": "healthz",
-          "line": 165,
+          "line": 166,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/healthz",
@@ -540,7 +540,7 @@
         },
         {
           "function": "metrics",
-          "line": 170,
+          "line": 171,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/metrics",
@@ -651,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 565,
+          "line": 568,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -699,7 +699,7 @@
         },
         {
           "function": "readyz",
-          "line": 187,
+          "line": 188,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/readyz",
@@ -795,7 +795,7 @@
         },
         {
           "function": "readyz",
-          "line": 60,
+          "line": 61,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/readyz",
@@ -882,7 +882,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 554,
+          "line": 557,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1147,
-  "route_inventory_sha256": "85be61c0c96a588e53b2a43d920def54cf1e4afccbac88c3fdb48580518f36bf",
+  "route_inventory_sha256": "ff62bfb01d5851556b8125816e55855ba44a2e41d43f80b23f3e6aad0139dd27",
   "runtime_verified": false,
   "schema_version": 1
 }
