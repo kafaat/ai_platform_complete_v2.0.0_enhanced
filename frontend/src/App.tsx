@@ -205,6 +205,8 @@ export default function App() {
         ? 'forgot-password'
         : 'login';
   const goToLogin = () => navigate('/login');
+  // Browser history state preserves a non-secret typed address without putting it in a URL.
+  const recoveryEmail = typeof location.state?.email === 'string' ? location.state.email : '';
 
   // Connect WebSocket after login — بهويّة المستخدم الفعليّة (لا الثابت 1 الذي كان
   // يسرّب إشعارات المستخدم 1 للجميع). بلا id: لا نتّصل (الخادم يجب أن يتحقّق بالتوكن).
@@ -257,9 +259,10 @@ export default function App() {
               : <LoginPage
                   key={authScreen}
                   initialView={authScreen === 'forgot-password' ? 'reset-request' : 'login'}
+                  initialEmail={recoveryEmail}
                   onLogin={goToLogin}
                   onSignup={() => navigate('/signup')}
-                  onForgotPassword={() => navigate('/forgot-password')}
+                  onForgotPassword={(email) => navigate('/forgot-password', { state: { email } })}
                 />}
         </Suspense>
         <ToastContainer />
