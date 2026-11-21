@@ -271,6 +271,9 @@ def test_u4_ui_waivers_governed() -> None:
     """U4: كلّ الإعفاءات محكومة — مالك (مكوّن كتالوج فعليّ) + انتهاء صالح
     + تتبّع؛ ومالك إعفاءات break-glass مُشتقّ من مصدر مساره لا من الافتراض الأعمى.
 
+    2026-11-21: العدد 54 (كان 52): إعفاءا `backlog-ui` لمسارَي جلسة جهاز Xiaozhi في realtime-session
+    (`POST /api/v1/realtime/xiaozhi/leases` و`DELETE .../{session_id}`): خطوة تزويد بشريّة بموافقة صريحة
+    تُدار اليوم بدليل التشغيل لا بشاشة؛ مالك وتتبّع `XIAOZHI-DEVICE-LEASE-UI` وانتهاء 2026-12-31.
     2026-11-14: العدد 52 (كان 53): حُذف إعفاء ui-waiver-028 لـ`POST /api/v1/lab/samples/{sample_id}/transition`
     (chain A، رحلة الحقل والمختبر v26) — المسار صار في العقد الملزِم بدليل واجهة فعليّ
     (frontend/src/services/api.ts يستدعيه لمراجعة العيّنة واعتمادها)، فلا إعفاء ميّت.
@@ -285,7 +288,7 @@ def test_u4_ui_waivers_governed() -> None:
     (مستوى بيانات خلفيّ/مكتبيّ بلا شاشة مستخدم نهائيّ)."""
     cat = _catalog()
     waivers = cat["ui_waiver_governance"]
-    assert len(waivers) == cat["counts"]["ui_waivers"] == 52
+    assert len(waivers) == cat["counts"]["ui_waivers"] == 54
     component_ids = {c["component_id"] for c in cat["components"]}
     from datetime import date
 
