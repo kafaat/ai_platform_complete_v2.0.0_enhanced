@@ -142,10 +142,14 @@ def test_latest_outcome_record_wins_even_when_inserted_last():
 @pytest.mark.skipif(not DB, reason="requires real Postgres (DATABASE_URL)")
 def test_same_timestamp_ties_break_on_the_higher_outcome_id():
     tenant, decision = str(uuid4()), "dec_" + uuid4().hex[:12]
-    _run(_seed_outcomes(tenant, decision, [("out_a", False, T0), ("out_b", True, T0)]))
+    # outcome_id is a global primary key: a shared random part keeps re-runs on the same
+    # database apart, and the _a/_b tail keeps their order (``_b`` is the higher id).
+    s = uuid4().hex[:12]
+    low, high = f"out_{s}_a", f"out_{s}_b"
+    _run(_seed_outcomes(tenant, decision, [(low, False, T0), (high, True, T0)]))
     out = _reconcile(tenant)
     assert out["by_kind"] == {"success": 1, "failure": 0, "unknown": 0}, (
-        f"on equal created_at the higher outcome_id (out_b, success) must win: {out}"
+        f"on equal created_at the higher outcome_id ({high}, success) must win over {low}: {out}"
     )
 
 

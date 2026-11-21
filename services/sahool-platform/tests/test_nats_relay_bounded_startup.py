@@ -51,6 +51,8 @@ def relay_env(monkeypatch):
     from shared import nats_stream_contract
 
     monkeypatch.setenv("FEATURE_NATS_PUBLISHERS", "true")
+    # The deployed shape; the real preflight fails closed without a user and a password.
+    monkeypatch.setenv("NATS_URL", "tls://sahool-platform:test-only-password@sahool-nats:4222")
     monkeypatch.setenv("NATS_INITIAL_CONNECT_TIMEOUT_SECONDS", "0.2")
     monkeypatch.setenv("NATS_CONNECT_RETRY_SECONDS", "0.05")
     monkeypatch.setattr(main, "_DB_POOL", object())

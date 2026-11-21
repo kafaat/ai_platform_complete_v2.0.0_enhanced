@@ -19,6 +19,10 @@ pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[3]
 
+#: The deployed shape (compose: ``tls://<identity>:<password>@sahool-nats:4222``). A test-only
+#: value: the preflight fails closed as ``credentials_missing`` without a user and a password.
+_URL = "tls://sahool-platform:test-only-password@sahool-nats:4222"
+
 
 # ── doubles for the broker (not the database) ──────────────────────────────────────
 
@@ -115,23 +119,71 @@ def test_credential_facts_are_booleans_and_never_carry_the_secret():
 # ── preflight verdicts (fail closed) ───────────────────────────────────────────────
 
 
+async def test_preflight_fails_closed_without_credentials_even_when_the_topology_matches():
+    """A broker that accepts anyone (no ``authorization``) connects fine and has the topology:
+    the relay must still not publish tenant events over an unauthenticated connection."""
+    from shared.nats_stream_contract import run_preflight
+
+    js = _JS(stream=_spec_config(), consumers=_all_consumers())
+    for url in (
+        "nats://sahool-nats:4222",
+        "tls://sahool-nats:4222",
+        "tls://sahool-platform@sahool-nats:4222",  # a bare user is a token to nats-py
+        "tls://:only-a-password@sahool-nats:4222",
+        None,
+        "",
+    ):
+        out = await run_preflight(_NC(js), flag=True, url=url)
+        assert out["status"] == "failed", f"{url!r}: unauthenticated connection passed: {out}"
+        assert out["errors"] == ["credentials_missing"], (url, out)
+    out = await run_preflight(_NC(js), flag=True, url=_URL)
+    assert out["status"] == "passed" and out["errors"] == [], out
+    # Plain ``nats://`` with credentials is accepted: nats-py upgrades it to TLS when the
+    # broker announces ``tls_required``, so the scheme is not the connection's TLS state.
+    out = await run_preflight(_NC(js), flag=True, url="nats://u:p@sahool-nats:4222")
+    assert out["status"] == "passed", out
+    assert "only-a-password" not in json.dumps(out) and "test-only" not in json.dumps(out)
+
+
+async def test_gate_does_not_start_the_relay_without_credentials():
+    from shared.nats_stream_contract import PreflightState
+
+    js = _JS(stream=_spec_config(), consumers=_all_consumers())
+    state, started = PreflightState(), []
+
+    async def start():
+        started.append(True)
+
+    assert await state.gate(_NC(js), start, url="nats://sahool-nats:4222", retry_s=0.01) is False
+    await asyncio.sleep(0.05)  # several background retries: still no credentials, still held
+    assert started == [], "the relay started over an unauthenticated connection"
+    snap = state.snapshot(flag=True)
+    assert snap["status"] == "failed" and snap["relay"] == "held", snap
+    assert "credentials_missing" in snap["errors"], snap
+    await state.reset()
+
+    state = PreflightState()
+    assert await state.gate(_NC(js), start, url=_URL) is True and started == [True]
+    await state.reset()
+
+
 async def test_preflight_fails_closed_when_not_connected():
     from shared.nats_stream_contract import run_preflight
 
-    out = await run_preflight(_NC(_JS(), connected=False), flag=True, url=None)
+    out = await run_preflight(_NC(_JS(), connected=False), flag=True, url=_URL)
     assert out["status"] == "failed" and "not_connected" in out["errors"], out
-    out = await run_preflight(None, flag=True, url=None)
+    out = await run_preflight(None, flag=True, url=_URL)
     assert out["status"] == "failed", f"no connection must not pass: {out}"
 
 
 async def test_preflight_fails_on_missing_stream_then_on_missing_consumers():
     from shared.nats_stream_contract import run_preflight
 
-    out = await run_preflight(_NC(_JS()), flag=True, url=None)
+    out = await run_preflight(_NC(_JS()), flag=True, url=_URL)
     assert out["status"] == "failed" and out["stream"]["exists"] is False, out
     assert out["errors"] == ["stream_info:_NotFound"], out
 
-    out = await run_preflight(_NC(_JS(stream=_spec_config())), flag=True, url=None)
+    out = await run_preflight(_NC(_JS(stream=_spec_config())), flag=True, url=_URL)
     assert out["stream"]["exists"] and out["stream"]["covers_platform_events"], out
     missing = [e for e in out["errors"] if e.startswith("consumer_missing:")]
     assert out["status"] == "failed" and len(missing) == 4, out
@@ -142,11 +194,11 @@ async def test_preflight_passes_with_either_notification_mode_and_rejects_drift(
 
     for queue_mode in (False, True):
         js = _JS(stream=_spec_config(), consumers=_all_consumers(pick_queue=queue_mode))
-        out = await run_preflight(_NC(js), flag=True, url=None)
+        out = await run_preflight(_NC(js), flag=True, url=_URL)
         assert out["status"] == "passed", f"queue_mode={queue_mode}: {out}"
 
     js = _JS(stream=_spec_config(subjects=["other.>"]), consumers=_all_consumers())
-    out = await run_preflight(_NC(js), flag=True, url=None)
+    out = await run_preflight(_NC(js), flag=True, url=_URL)
     assert out["status"] == "failed", out
     assert {"stream_drift", "stream_does_not_cover_platform_events"} <= set(out["errors"]), out
 
@@ -163,7 +215,7 @@ async def test_gate_holds_the_relay_until_the_preflight_passes():
     async def start():
         started.append(True)
 
-    assert await state.gate(_NC(js), start, url=None, retry_s=0.01) is False
+    assert await state.gate(_NC(js), start, url=_URL, retry_s=0.01) is False
     assert started == [], "the relay started while the stream was missing"
     assert state.gate_task is not None and not state.gate_task.done(), "no background retry"
 
@@ -183,7 +235,7 @@ async def test_reset_cancels_a_pending_gate():
     async def start():
         raise AssertionError("must not start")
 
-    await state.gate(_NC(_JS()), start, url=None, retry_s=3600)
+    await state.gate(_NC(_JS()), start, url=_URL, retry_s=3600)
     task = state.gate_task
     await state.reset()
     assert task.cancelled(), "a stopped platform left the gate retrying"
@@ -200,9 +252,9 @@ async def test_readiness_is_not_passed_while_the_gate_still_holds_the_relay():
     async def start():
         started.append(True)
 
-    await state.gate(_NC(js), start, url=None, retry_s=3600)
+    await state.gate(_NC(js), start, url=_URL, retry_s=3600)
     js.stream, js.consumers = _spec_config(), _all_consumers()
-    snap = await state.refresh(_NC(js), flag=True, url=None, ttl=0)
+    snap = await state.refresh(_NC(js), flag=True, url=_URL, ttl=0)
     assert snap["status"] == "pending", f"readiness passed while the relay was held: {snap}"
     assert "relay_not_started_yet" in snap["errors"], snap
     await asyncio.wait_for(state.gate_task, timeout=2)
@@ -222,7 +274,7 @@ async def test_a_relay_start_failure_fails_readiness_and_is_retried():
         if len(calls) == 1:
             raise RuntimeError("worker construction failed")
 
-    assert await state.gate(_NC(js), start, url=None, retry_s=0.01) is False, "start raised"
+    assert await state.gate(_NC(js), start, url=_URL, retry_s=0.01) is False, "start raised"
     snap = state.snapshot(flag=True)
     assert snap["status"] == "failed", f"a failed relay start read as ready: {snap}"
     assert "relay_start:RuntimeError" in snap["errors"], snap
@@ -243,11 +295,11 @@ async def test_a_failed_recheck_after_the_relay_started_is_degraded_not_failed()
     async def start():
         started.append(True)
 
-    assert await state.gate(_NC(js), start, url=None) is True and started == [True]
-    snap = await state.refresh(_NC(js, connected=False), flag=True, url=None, ttl=0)
+    assert await state.gate(_NC(js), start, url=_URL) is True and started == [True]
+    snap = await state.refresh(_NC(js, connected=False), flag=True, url=_URL, ttl=0)
     assert snap["status"] == "degraded", f"a broker blip after start failed readiness: {snap}"
     assert snap["relay"] == "started" and "not_connected" in snap["errors"], snap
-    snap = await state.refresh(_NC(js), flag=True, url=None, ttl=0)
+    snap = await state.refresh(_NC(js), flag=True, url=_URL, ttl=0)
     assert snap["status"] == "passed", f"reconnecting did not clear the degraded state: {snap}"
     await state.reset()
 
@@ -260,8 +312,8 @@ async def test_a_preflight_that_never_passed_stays_failed_not_degraded():
     async def start():
         raise AssertionError("must not start")
 
-    await state.gate(_NC(_JS(), connected=False), start, url=None, retry_s=3600)
-    snap = await state.refresh(_NC(_JS(), connected=False), flag=True, url=None, ttl=0)
+    await state.gate(_NC(_JS(), connected=False), start, url=_URL, retry_s=3600)
+    snap = await state.refresh(_NC(_JS(), connected=False), flag=True, url=_URL, ttl=0)
     assert snap["status"] == "failed" and snap["relay"] == "held", snap
     await state.reset()
 
@@ -287,7 +339,7 @@ async def test_concurrent_refreshes_of_a_stale_result_run_one_preflight():
     js = _CountingJS(stream=_spec_config(), consumers=_all_consumers())
     state = PreflightState()
     snaps = await asyncio.gather(
-        *(state.refresh(_NC(js), flag=True, url=None, ttl=60) for _ in range(10))
+        *(state.refresh(_NC(js), flag=True, url=_URL, ttl=60) for _ in range(10))
     )
     assert js.stream_info_calls == 1, f"{js.stream_info_calls} preflights for 10 concurrent calls"
     assert {s["status"] for s in snaps} == {"passed"}, snaps
@@ -312,7 +364,7 @@ async def test_the_startup_preflight_is_bounded_by_an_overall_timeout(monkeypatc
     loop = asyncio.get_running_loop()
     t0 = loop.time()
     started = await asyncio.wait_for(
-        state.gate(_NC(_SlowJS()), start, url=None, retry_s=3600, timeout=0.05), timeout=2
+        state.gate(_NC(_SlowJS()), start, url=_URL, retry_s=3600, timeout=0.05), timeout=2
     )
     assert started is False and loop.time() - t0 < 1.0, "the startup preflight was not bounded"
     snap = state.snapshot(flag=True)
@@ -323,7 +375,7 @@ async def test_the_startup_preflight_is_bounded_by_an_overall_timeout(monkeypatc
     monkeypatch.setenv(contract.PREFLIGHT_OVERALL_TIMEOUT_ENV, "0.05")
     assert contract.preflight_overall_timeout() == 0.05
     out = await asyncio.wait_for(
-        contract.run_preflight_bounded(_NC(_SlowJS()), flag=True, url=None), timeout=2
+        contract.run_preflight_bounded(_NC(_SlowJS()), flag=True, url=_URL), timeout=2
     )
     assert out["status"] == "failed" and out["errors"] == ["preflight_timeout"], out
     for bad in ("", "nope", "-1", "0"):
@@ -347,23 +399,23 @@ async def test_learning_worker_group_follows_the_environment(monkeypatch):
     groups = contract.required_consumer_groups()
     assert ("canonical-execution-learning-v2-season-closed",) in groups, groups
     js = _JS(stream=_spec_config(), consumers=_all_consumers())
-    out = await contract.run_preflight(_NC(js), flag=True, url=None)
+    out = await contract.run_preflight(_NC(js), flag=True, url=_URL)
     assert out["status"] == "failed", f"a renamed durable base was satisfied by old names: {out}"
     assert "acl_note" in out["learning_worker"], "renamed base must explain the ACL limit"
     monkeypatch.delenv(contract.LEARNING_DURABLE_ENV)
 
     monkeypatch.setenv(contract.LEARNING_WORKER_ENV, "not_deployed")
     js = _JS(stream=_spec_config(), consumers={"notif_domain_events"})
-    out = await contract.run_preflight(_NC(js), flag=True, url=None)
+    out = await contract.run_preflight(_NC(js), flag=True, url=_URL)
     assert out["status"] == "passed", f"declared not_deployed still required the worker: {out}"
     assert out["learning_worker"]["mode"] == "not_deployed", "the choice must be reported"
     js = _JS(stream=_spec_config(), consumers=set())
-    out = await contract.run_preflight(_NC(js), flag=True, url=None)
+    out = await contract.run_preflight(_NC(js), flag=True, url=_URL)
     assert out["status"] == "failed", "notification consumer stays required in any mode"
 
     monkeypatch.setenv(contract.LEARNING_WORKER_ENV, "skip-it")
     js = _JS(stream=_spec_config(), consumers=_all_consumers())
-    out = await contract.run_preflight(_NC(js), flag=True, url=None)
+    out = await contract.run_preflight(_NC(js), flag=True, url=_URL)
     assert out["status"] == "failed", f"an unknown mode must fail closed: {out}"
     assert f"invalid_{contract.LEARNING_WORKER_ENV}" in out["errors"], out
 
@@ -446,6 +498,7 @@ def client(monkeypatch):
     from shared.nats_stream_contract import NATS_PREFLIGHT
 
     monkeypatch.setenv("SAHOOL_ENV", "development")
+    monkeypatch.setenv("NATS_URL", _URL)
     monkeypatch.setenv("DATABASE_URL", "")
     monkeypatch.delenv("RAILWAY_ENVIRONMENT_ID", raising=False)
     monkeypatch.setattr(main, "_DB_POOL", None)
@@ -522,7 +575,7 @@ def test_readyz_after_the_relay_started_stays_ready_and_degraded_on_a_broker_bli
     async def start():
         return None
 
-    assert asyncio.run(NATS_PREFLIGHT.gate(_NC(js), start, url=None)) is True
+    assert asyncio.run(NATS_PREFLIGHT.gate(_NC(js), start, url=_URL)) is True
     monkeypatch.setattr(main.NATS_RELAY, "conn", _NC(js, connected=False))
     NATS_PREFLIGHT.checked_at = -1e9  # stale: /readyz re-checks against the disconnected client
     resp = client.get("/readyz")
@@ -531,6 +584,20 @@ def test_readyz_after_the_relay_started_stays_ready_and_degraded_on_a_broker_bli
     pre = body["nats_preflight"]
     assert pre["status"] == "degraded" and pre["relay"] == "started", body
     assert "not_connected" in pre["errors"], body
+
+
+def test_readyz_flag_on_without_credentials_reports_credentials_missing(client, monkeypatch):
+    from api import main
+
+    monkeypatch.setenv("FEATURE_NATS_PUBLISHERS", "true")
+    monkeypatch.setenv("NATS_URL", "nats://sahool-nats:4222")
+    js = _JS(stream=_spec_config(), consumers=_all_consumers())
+    monkeypatch.setattr(main.NATS_RELAY, "conn", _NC(js))
+    resp = client.get("/readyz")
+    body = resp.json()
+    assert resp.status_code == 503, f"an unauthenticated relay connection read as ready: {body}"
+    assert body["nats_preflight"]["status"] == "failed", body
+    assert body["nats_preflight"]["errors"] == ["credentials_missing"], body
 
 
 def test_readyz_strips_consumer_names_from_error_codes(client, monkeypatch):

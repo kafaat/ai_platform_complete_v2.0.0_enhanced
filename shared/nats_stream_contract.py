@@ -215,6 +215,23 @@ def credential_facts(url: str | None) -> dict[str, bool]:
     }
 
 
+def credentials_authenticate(facts: dict[str, bool]) -> bool:
+    """Does ``NATS_URL`` carry the only authentication form this platform deploys?
+
+    The broker (``nats/nats.conf``) defines per-service ``user`` + ``password`` identities
+    and nothing else: no ``token``, no ``nkey``, no ``accounts`` / creds-file JWTs. Every
+    client connects with the URL alone (``nats.connect(nats_url, ...)``, no ``user=`` /
+    ``token=`` / ``user_credentials=`` / ``nkeys_seed=`` argument anywhere), and compose
+    hands each one ``tls://<identity>:<password>@sahool-nats:4222``. So the URL is the only
+    credential channel, and authentication means a user **and** a password in it. A user
+    without a password is what nats-py sends as an auth token, which no identity accepts.
+    TLS is not decided here: nats-py upgrades a ``nats://`` URL when the broker announces
+    ``tls_required``, so the scheme is not the connection's TLS state; the broker enforces
+    TLS itself (``nats.conf`` ``tls`` block, proven live in the least-privilege suite).
+    """
+    return bool(facts.get("user_present") and facts.get("password_present"))
+
+
 def _subject_covered(stream_subjects: list[str], subject: str) -> bool:
     """Does any stream subject filter cover ``subject`` (token-wise ``*`` / ``>`` match)?"""
     target = subject.split(".")
@@ -240,7 +257,9 @@ async def run_preflight(nc: Any, *, flag: bool, url: str | None) -> dict[str, An
 
     Fails closed: any error, timeout or permission refusal marks the check failed with the
     exception type (never its text, which can carry the broker URL). Returns a JSON-safe dict
-    with ``status`` = ``passed`` | ``failed``.
+    with ``status`` = ``passed`` | ``failed``. With ``flag`` on, a ``url`` without a user and
+    a password fails as ``credentials_missing`` (see ``credentials_authenticate``) even when
+    the broker accepted the connection and the topology matches.
     """
     result: dict[str, Any] = {
         "flag": flag,
@@ -254,6 +273,10 @@ async def run_preflight(nc: Any, *, flag: bool, url: str | None) -> dict[str, An
         },
         "errors": [],
     }
+    if flag and not credentials_authenticate(result["credentials"]):
+        # An unauthenticated connection must not relay tenant events even when the broker
+        # accepts it (a broker without ``authorization`` takes anyone). Booleans only above.
+        result["errors"].append("credentials_missing")
     if result["learning_worker"]["mode"] == "invalid":
         result["errors"].append(f"invalid_{LEARNING_WORKER_ENV}")
     if result["learning_worker"]["durable_base"] != DEFAULT_LEARNING_DURABLE_BASE:

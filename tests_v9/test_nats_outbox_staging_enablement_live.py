@@ -93,19 +93,27 @@ def _free_port() -> int:
 
 
 class _Broker:
-    """A throw-away JetStream server (no auth: identities are proven in the least-privilege suite)."""
+    """A throw-away JetStream server with one user and password (the preflight fails closed as
+    ``credentials_missing`` without them). The per-service identities, their permissions and
+    TLS are proven in the least-privilege suite."""
 
     def __init__(self, tmp: Path):
         self.port = _free_port()
         self.log = tmp / "nats.log"
+        self.password = uuid.uuid4().hex
         self.proc = subprocess.Popen(
-            [NATS_BIN, "-js", "-sd", str(tmp / "js"), "-a", "127.0.0.1", "-p", str(self.port)],
+            [NATS_BIN, "-js", "-sd", str(tmp / "js"), "-a", "127.0.0.1", "-p", str(self.port)]
+            + ["--user", "sahool-platform", "--pass", self.password],
             stdout=self.log.open("w", encoding="utf-8"),
             stderr=subprocess.STDOUT,
         )
 
     @property
     def url(self) -> str:
+        return f"nats://sahool-platform:{self.password}@127.0.0.1:{self.port}"
+
+    @property
+    def anonymous_url(self) -> str:
         return f"nats://127.0.0.1:{self.port}"
 
     async def ready(self) -> None:
@@ -237,6 +245,12 @@ def test_staging_enablement_holds_then_delivers_once_and_dedups_a_replay_in_the_
             domain = await js.subscribe(
                 "sahool.events.>", durable="notif_domain_events", manual_ack=True
             )
+            # The topology now matches; a URL without a user and a password still fails
+            # closed, so the relay never publishes over an unauthenticated connection.
+            bare = await contract.run_preflight(nc, flag=True, url=broker.anonymous_url)
+            assert bare["status"] == "failed", bare
+            assert bare["errors"] == ["credentials_missing"], bare
+            assert broker.password not in json.dumps(bare), "a credential value leaked"
             assert await state.gate(nc, start, url=broker.url, retry_s=3600), state.result
             assert started == [True], "a passing preflight did not start the relay"
             assert state.result["stream"]["drift"] == [], state.result
