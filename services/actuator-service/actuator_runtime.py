@@ -1956,7 +1956,13 @@ async def mqtt_ack_listener():
         logger.info("لا مسار أوامر مفعَّل — لا اشتراك بإقرارات الأجهزة")
         return
     topic = "sahool/+/actuator/+/ack"
-    host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
+    try:
+        host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
+    except ValueError as e:
+        # A malformed broker URL is a configuration error: log it once and stop,
+        # instead of letting the task die with an unobserved exception.
+        logger.error(f"MQTT ack listener not started: invalid MQTT_BROKER_URL ({e})")
+        return
     while True:
         try:
             async with MQTTClient(
@@ -2058,7 +2064,11 @@ async def mqtt_sensor_listener():
         logger.info("أتمتة القواعد معطّلة (FEATURE_AUTOMATION_RULES_ACTUATION) — لا اشتراك")
         return
     topic = "sahool/+/+/telemetry/+"  # tenant/field/telemetry/sensor_type
-    host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
+    try:
+        host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
+    except ValueError as e:
+        logger.error(f"MQTT listener not started: invalid MQTT_BROKER_URL ({e})")
+        return
     while True:
         try:
             async with MQTTClient(

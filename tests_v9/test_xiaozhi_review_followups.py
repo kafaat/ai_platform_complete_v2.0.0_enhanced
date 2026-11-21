@@ -5,7 +5,8 @@
    digit/space run with no unit (1.4-1.7 s per request, blocking the TTS event loop).
    The linear helpers must give exactly the old answers.
 2. A malformed MQTT broker URL is a failed send, not an exception: the parse sits inside
-   the try of `send_mqtt_command`, so the caller still writes the failure record.
+   the try of `send_mqtt_command`, so the caller still writes the failure record. The two
+   listeners parse it inside a try too, so a bad URL is logged instead of killing the task.
 """
 
 from __future__ import annotations
@@ -76,7 +77,10 @@ def test_a_dose_split_across_chunks_is_still_refused():
         cs.prepare_critical_speech("الجرعة الموصى بها", validation_text=full)
 
 
-def test_broker_url_parse_is_inside_the_send_try():
+@pytest.mark.parametrize(
+    "function_name", ["send_mqtt_command", "mqtt_ack_listener", "mqtt_sensor_listener"]
+)
+def test_broker_url_parse_is_inside_a_try(function_name):
     source = (ROOT / "services" / "actuator-service" / "actuator_runtime.py").read_text(
         encoding="utf-8"
     )
@@ -84,7 +88,7 @@ def test_broker_url_parse_is_inside_the_send_try():
     send = next(
         node
         for node in ast.walk(tree)
-        if isinstance(node, ast.AsyncFunctionDef) and node.name == "send_mqtt_command"
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == function_name
     )
     parses = [
         node
@@ -93,7 +97,7 @@ def test_broker_url_parse_is_inside_the_send_try():
         and isinstance(node.func, ast.Name)
         and node.func.id == "_parse_mqtt_broker_url"
     ]
-    assert parses, "send_mqtt_command no longer parses the broker URL"
+    assert parses, f"{function_name} no longer parses the broker URL"
     guarded = {
         id(inner)
         for node in ast.walk(send)
