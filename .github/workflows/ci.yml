@@ -1834,6 +1834,9 @@ jobs:
           tgz="$dir/nats-server.tar.gz"
           sum=5d2c51caca950333aba84911df7d377f826f3a59ec36061c6539105084f65c92
           mkdir -p "$dir"
+          # A shared host must not hand us a directory someone else controls.
+          [ ! -L "$dir" ] && [ -O "$dir" ] || { echo "refusing $dir: symlink or not owned by $(id -un)" >&2; exit 1; }
+          chmod 700 "$dir"
           if ! echo "$sum  $tgz" | sha256sum --check --status 2>/dev/null; then
             curl --fail --location --retry 3 --max-time 90 \
               https://github.com/nats-io/nats-server/releases/download/v2.15.0/nats-server-v2.15.0-linux-amd64.tar.gz \

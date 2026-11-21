@@ -828,7 +828,7 @@ def test_live_replay_exemption_locks_the_row_until_the_write_decision():
                         await asyncio.sleep(0.02)
                 assert not resend.done(), (
                     "the exact resend finished while another transaction held the row: "
-                    f"{resend.result() if not resend.exception() else resend.exception()!r}"
+                    f"{'cancelled' if resend.cancelled() else (resend.exception() or resend.result())!r}"
                 )
                 assert blocked_query is not None, "the resend never waited on the row lock"
                 assert blocked_query.lstrip().startswith("SELECT 1 FROM online_learning_updates"), (
@@ -842,7 +842,10 @@ def test_live_replay_exemption_locks_the_row_until_the_write_decision():
                     TENANT_A,
                 )
             except BaseException:
-                await tx.rollback()
+                try:
+                    await tx.rollback()
+                except Exception:  # noqa: BLE001 - keep the original failure visible
+                    pass
                 raise
             await tx.commit()
             with pytest.raises(persistence.LearningUpdateEvidenceInvalid) as err:
@@ -862,5 +865,9 @@ def test_live_replay_exemption_locks_the_row_until_the_write_decision():
         finally:
             await locker.close()
             await c.close()
+            # This loop's pool would otherwise stay open for the rest of the process; the CI step
+            # runs seven files in one process close to max_connections (gap
+            # DECISION-SERVICE-PER-LOOP-POOL-NEVER-CLOSED-01).
+            await persistence.close_pools()
 
     _run(scenario())

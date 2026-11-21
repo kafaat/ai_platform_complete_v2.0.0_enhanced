@@ -9000,9 +9000,10 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الإصلاح:** ترتيب حتميّ (subject, relation, object, edge_id)؛ `limit` بحدّ أقصى 500 (فوقه 422)؛ القراءة بلا مُرشِّح مسقوفة بـ100 مع `filtered`/`truncated`، فالمستدعي يبقى يعمل. GraphQL مسقوفة بالمثل. الشاهد: [`test_kg_edges_bounded_read.py`](../../tests_v9/test_kg_edges_bounded_read.py) (بلا الإصلاح ٦ إخفاقات).
 - **الباقي:** عدم توسيع KG العامّ حين لا محصول قرارٌ في ai_agronomist هو W2-19.
 
-## DECISION-SERVICE-PER-LOOP-POOL-NEVER-CLOSED-01 — مُجمِّعات اتّصال decision-service لكلّ حلقة أحداث لا تُغلَق، فالجناح الكامل في عمليّة واحدة يستنفد الاتّصالات (P3)
+## DECISION-SERVICE-PER-LOOP-POOL-NEVER-CLOSED-01 — مُجمِّع decision-service لحلقةٍ تنتهي بلا إغلاق دورة الحياة يبقى مفتوحاً، فالجناح في عمليّة واحدة يستنفد الاتّصالات (P3)
 
 - **الحالة:** open — مقيسٌ، لا إصلاح بعد.
-- **الخلل:** `acquire_connection` ([`persistence.py:408-427`](../../services/decision-service/persistence.py)) تحفظ مُجمِّعاً لكلّ حلقة أحداث في `_POOLS` (السطر 385) ولا تُغلقه حين تنتهي الحلقة. وكلّ `asyncio.run` أو طلبٍ عبر TestClient يفتح حلقة جديدة، فتتراكم المُجمِّعات المفتوحة.
-- **الأثر المقيس:** تشغيل جناح `services/decision-service/tests` كاملاً في عمليّة pytest واحدة على PostgreSQL حيّ بـ`max_connections=300` أعطى `TooManyConnectionsError` في 9 حالات على `cb3e756be` و28 على `a2a1a7c50`؛ وكلّ ملفّ منها ينجح وحده. خطوات CI تشغّل الملفّات لكلّ خطوة، فلا يظهر هناك.
-- **شرط الإغلاق:** إغلاق مُجمِّع الحلقة حين تنتهي (أو مُجمِّع واحد بدورة حياة التطبيق)، مع اختبار يشغّل الجناح الحيّ كلّه في عمليّة واحدة دون استنفاد.
+- **الخلل:** `acquire_connection` ([`persistence.py:408-428`](../../services/decision-service/persistence.py)) تحفظ مُجمِّعاً لكلّ حلقة أحداث في `_POOLS` (السطر 385) مفتاحُه `id(loop)`. التطبيق تحت uvicorn يُغلق مُجمِّعه في `finally` دورة الحياة ([`main.py:137`](../../services/decision-service/main.py) يستدعي `close_pools()`)، لكنّ الحلقات التي تنتهي بلا إغلاق دورة الحياة (`asyncio.run` في الاختبارات، وTestClient بلا `with`) تُبقي مُجمِّعها مفتوحاً. وخطرٌ ثانٍ: قد يُعاد استعمال `id` لحلقة ميتة فيُسلَّم مُجمِّعها لحلقة جديدة.
+- **الأثر المقيس:** تشغيل جناح `services/decision-service/tests` كاملاً في عمليّة pytest واحدة على PostgreSQL حيّ بـ`max_connections=300` أعطى `TooManyConnectionsError` في 9 حالات على `cb3e756be` و28 على `a2a1a7c50`؛ وكلّ ملفّ منها ينجح وحده. وخطوة CI «WX-10.9..10.12 execution chain» تشغّل سبعة ملفّات في عمليّة واحدة على حاوية بـ`max_connections=100`: قِيس أنّها تحتاج 95 اتّصالاً على `044990921` (93 على `b8180e940`)، أي هامش خمسة فقط؛ واختبار القفل الجديد يُغلق مُجمِّعه فلا يزيد الذروة.
+- **شرط الإغلاق:** إغلاق مُجمِّع الحلقة حين تنتهي (أو مُجمِّع واحد بدورة حياة التطبيق) ومفتاحٌ لا يُعاد استعماله، مع اختبار يشغّل الجناح الحيّ كلّه في عمليّة واحدة دون استنفاد.
+
