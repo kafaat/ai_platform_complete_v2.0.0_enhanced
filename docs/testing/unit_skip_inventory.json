@@ -24,10 +24,10 @@
     },
     {
       "stage": "parallel",
-      "nodeid": "tests_v9/test_farm_memory.py::test_export_to_parquet_skips_if_no_pyarrow",
+      "nodeid": "tests_v9/test_farm_memory.py::test_export_to_parquet_round_trip",
       "reason": "pyarrow not installed — skipping parquet test",
       "classification": "optional-profile",
-      "required_gate": "an environment with pyarrow, or assert the absent-pyarrow behaviour explicitly instead of skipping",
+      "required_gate": "Platform Unit Tests runs the Parquet round trip with the platform NumPy pin and the raster PyArrow requirement",
       "status": "open"
     },
     {
