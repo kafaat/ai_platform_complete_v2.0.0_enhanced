@@ -733,6 +733,16 @@
         "tests_v9/test_weather_replay_http_live_pg.py"
       ],
       "justification": "TestPool.acquire lends the same live asyncpg connection to each request so the outer rollback removes both tenants’ append-only fixtures. PostgreSQL executes every query and enforces row security under the restricted application role."
+    },
+    {
+      "kind": "band_math_version_preflight_unit_harness_20261121",
+      "date": "2026-11-21",
+      "before": 139,
+      "after": 140,
+      "sites": [
+        "tests_v9/test_band_math_version_reuse.py"
+      ],
+      "justification": "#1554 bumps the band-math algorithm version to sahool.band_math/2. The stand-in (_Conn with fetchval/fetchrow/execute/transaction, patched db_persist._connect) answers the ready-asset preflight from an in-memory table and filters on the algorithm version only when the SQL text itself names `algorithm_version=$N`, reading the parameter position from the query. It measures that both preflights (backfill_scan_worker._ready_asset and db_persist.enqueue_single_scene_process) bind the current version to that clause, that a /1 or version-less ready asset is not answered as ready, and that no legacy item is re-keyed onto the /2 identity. Removing the clause from either preflight or reverting the version constant, the fallback or the fixed legacy baseline fails it (1, 2, 3 or 6 tests). Its green says nothing about what PostgreSQL decides: column types, NULL comparison and RLS are not exercised here. The live single-scene enqueue runs under a restricted role in services/raster-service/test_single_scene_concurrent_pg.py once the raster PG15/PG16 certification lands; no proven_live exemption or database-enforcement claim is added."
     }
   ]
 }
