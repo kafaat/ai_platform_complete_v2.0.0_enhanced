@@ -26,7 +26,7 @@
       "web": 556
     },
     "unmapped_artifacts": 3601,
-    "ambiguous_artifacts": 262,
+    "ambiguous_artifacts": 263,
     "files_by_reading": {
       "python_functional": 4108,
       "raw": 3447
@@ -18403,6 +18403,14 @@
           ]
         },
         {
+          "path": "services/raster-service/band_math.py",
+          "score": 8,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
           "path": "services/raster-service/follow_up_runtime.py",
           "score": 8,
           "signals": [
@@ -20381,7 +20389,7 @@
         "routes": 34
       },
       "evidence_counts": {
-        "backend": 42,
+        "backend": 43,
         "routes": 100,
         "database": 5,
         "events": 47,
@@ -51351,6 +51359,28 @@
       ]
     },
     {
+      "path": "services/raster-service/band_math.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        },
+        {
+          "capability_id": "SAT-001",
+          "score": 8,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
+          ]
+        }
+      ]
+    },
+    {
       "path": "services/raster-service/cloud_native_catalog.py",
       "kind": "backend",
       "candidates": [
@@ -58511,7 +58541,7 @@
         {
           "source": "services/raster-service/raster_pixel_processing.py",
           "kind": "source_read",
-          "line": 43
+          "line": 45
         }
       ],
       "unresolved": []
@@ -58529,7 +58559,7 @@
         {
           "source": "services/raster-service/raster_pixel_processing.py",
           "kind": "source_read",
-          "line": 62
+          "line": 66
         }
       ],
       "unresolved": []

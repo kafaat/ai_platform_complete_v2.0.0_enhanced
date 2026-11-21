@@ -3785,6 +3785,28 @@
     ]
   },
   {
+    "path": "services/raster-service/band_math.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "dedup:NDVI=ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 8,
+        "signals": [
+          "content:cdse",
+          "content:sentinel"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/raster-service/cloud_native_catalog.py",
     "kind": "backend",
     "candidates": [
