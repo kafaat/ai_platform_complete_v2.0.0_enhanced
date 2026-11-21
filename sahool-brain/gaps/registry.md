@@ -9045,7 +9045,9 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## ND-INDEX-ZERO-DENOMINATOR-PUBLISHES-ZERO-01 — مؤشّرات الفرق المعياريّ تنشر 0.0 حين يكون النطاقان صفراً، بخلاف بقيّة المسارات
 
-- **الحالة:** open.
+- **الحالة:** (أ) fixed — على فرع `claude/nd-index-exact-zero-nan-20261121`: صار الصفر التامّ NaN في `band_math.normalized_difference` (`denominator > 0` شرطاً للصلاحية، وأُزيل `_eps`)، متّسقاً مع تعبير CDSE الخام. ولا ادّعاء وصول إلى main ولا نجاح CI بعد. (ب) open — حدٌّ مشترك للمقام القريب من الصفر في المسارين معاً، مقترحٌ لم يُنفَّذ.
+  - **الشواهد:** قُلِبت أربعة اختباراتٍ كانت تثبّت «عقد epsilon القديم» عمداً: `test_normalized_difference_validity.py` و`test_band_math_zones.py` و`test_ndvi_numeric_contract.py` و`test_quotient_index_validity.py` (NDTI/NDSI/BSI). وصارت خواصّ Hypothesis الثلاث في `services/sahool-platform/tests/test_property_invariants.py` تشترط NaN لنطاقين صفريّين وحدهما. وأُضيف شاهدٌ طرفيّ عبر `process_pixels` الحقيقيّ على مصدرٍ بلا nodata معلَن لسبعة مؤشّرات: يسقط بلا الإصلاح (7 failed) وينجح به.
+
 - **الخلل (مقيس على `9fdaefc9`، قراءةً مباشرة للشيفرة):**
   - `services/raster-service/band_math.py`: `normalized_difference` (`:41-72`)، نواةُ NDVI/NDRE/NDWI/NDMI/NBR، تقسم على `_eps(denominator)` بحدّ 1e-10. وتنصّ على «legacy epsilon contract» (`:52-53`): نطاقان صفريّان يعطيان **0.0 منشوراً قيمةً صالحة**، ومقامٌ مثل 0.001 يُقبَل.
   - **منتج CDSE الأصليّ** يحسب مؤشّرات الفرق المعياريّ بتعبيرٍ خام بلا حدّ، مثل `(s.B08 - s.B04) / (s.B08 + s.B04)` (`cdse_client.py:343`، `:358`)، و`index_value_function` يُرجِع التعبير كما هو لكلّ مؤشّرٍ خارج `_QUOTIENT_DOMAIN` (`cdse_native_product.py:125-126`). فنطاقان صفريّان يعطيان **NaN** هناك (0/0 في JavaScript).
