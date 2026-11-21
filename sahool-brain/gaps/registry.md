@@ -9104,7 +9104,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## RASTER-LIVE-PG-CERTIFICATION-UNWIRED-01
 
-- **الحالة:** fixed في المرشح المحلي `6122ed4c642390b32d6c36873e27a425c0d309af` على فرع `fix/raster-live-pg-certification-20261121`؛ لم تُثبت CI على رأس منشور أو أي بيئة منشورة بعد.
+- **الحالة:** fixed في المرشح المحلي `6122ed4c642390b32d6c36873e27a425c0d309af` على فرع `fix/raster-live-pg-certification-20261121`؛ لم تُثبت CI على رأس منشور أو أي بيئة منشورة بعد. (المرشحات المحلية لا تُحلّ على المستودع البعيد؛ الالتزام القابل للوصول `a421eec6` في #1556)
 - **العطل:** اختبارات الإجارات وإدراج المشهد تحت `services/raster-service/` تتخطى عند غياب `RASTER_TEST_DATABASE_URL`، وكانت وظيفة خدمة الراستر العامة لا تزودها بقاعدة. نجاح الجناح العام لا يثبت تنفيذ هذه الحالات.
 - **الإصلاح:** خطوة مستقلة داخل وظيفة التكامل PG15 القائمة، بعد البيان والدور المقيّد، تحمل adapter إلزاميًا؛ توسعت القائمة إلى سبع حالات بعد مراجعة التنافس في 2026-11-21. يتحقق من JUnit الفعلي، ويرفض الحالة الغائبة أو المتخطاة أو المكررة؛ ثم يستعمل حارس PG الموجود بعقد مخطط PG15 صريح. بقي عقد PG16 الافتراضي كما هو.
 - **المصدر:** [CI](../../.github/workflows/ci.yml) · [adapter](../../scripts/raster_pg/required_cases.py) · [اختبارات الإجارات](../../services/raster-service/test_raster_batch_postgres_integration.py) · [اختبار المشهد](../../services/raster-service/test_single_scene_concurrent_pg.py) · [عقد المختبر](../../tests_v9/test_lab_ci_certification_steps.py).
@@ -9114,7 +9114,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## RASTER-SCENE-RACE-TEST-NOT-SYNCHRONIZED-01
 
-- **الحالة:** fixed في المصدر المحلي فوق `a2d9d0e1`؛ قبول الرأس المنشور وCI منفصلان.
+- **الحالة:** fixed في المصدر المحلي فوق `a2d9d0e1`؛ قبول الرأس المنشور وCI منفصلان. (المرشحات المحلية لا تُحلّ على المستودع البعيد؛ الالتزام القابل للوصول `a421eec6` في #1556)
 - **العطل:** `asyncio.gather` وحده يسمح بأن يرى الطلب الثاني العنصر بعد تثبيت الأول، فلا يثبت فرع خسارة `ON CONFLICT` وتنظيف التشغيل.
 - **الإصلاح والشاهد:** [اختبار المشهد](../../services/raster-service/test_single_scene_concurrent_pg.py) يفرض حاجزًا بعد القراءة الحقيقية الفارغة بعاملين وثمانية، ويتحقق من إنشاء N تشغيلات وخسارة N-1 إدراجًا وحذفها فعليًا وبقاء تشغيل وعنصر واحدين.
 - **القياس:** [إيصال تطوير محلي: سبع حالات بلا تخط](../../certification/evidence/raster_pg15_reviewed_20261121/README.md). لا إغلاق لقبول GeoRAG أو staging بهذا القياس.
@@ -9134,7 +9134,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## RASTER-PG16-CERTIFICATION-NOT-GUARDED-01
 
-- **الحالة:** fixed في المرشح المحلي فوق `3339d318`؛ قبول الرأس المنشور في GitHub منفصل.
+- **الحالة:** fixed في المرشح المحلي فوق `3339d318`؛ قبول الرأس المنشور في GitHub منفصل. (المرشحات المحلية لا تُحلّ على المستودع البعيد؛ الالتزام القابل للوصول `a421eec6` في #1556)
 - **العطل:** اختبارات عقد شهادة الراستر كانت تفرض خطوة PG15 وحدها؛ حذف خطوة PG16 ورفع أدلتها لا يسقط تلك الاختبارات.
 - **الإصلاح والشاهد:** [test_pg16_raster_certification_enforces_cases_role_and_evidence](../../tests_v9/test_lab_ci_certification_steps.py) يفرض خطوة PG16، والقائمة الإلزامية والإصدار ودور التطبيق وقاعدة البيانات، وحفظ الدليل بعد الفشل بإجراء مثبت. نجح على الربط الصحيح وفشل عند حذف خطوة PG16 في نسخة معزولة.
 - **الحدود:** [قياس 7/7 التاريخي لكل إصدار](../../certification/evidence/raster_pg15_pg16_20261121/README.md) يثبت تنفيذ الحالات على `3339d318`؛ شاهد الانحدار بنيوي ولا يحل محل التشغيل الحي أو CI على الالتزام النهائي.
