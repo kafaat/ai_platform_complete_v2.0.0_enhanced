@@ -95,10 +95,16 @@ def test_the_whole_retry_budget_fits_inside_the_ci_step_with_room_for_the_test()
         for step in job.get("steps", [])
         if "frontend/tests/test_nginx_runtime.py --docker" in str(step.get("run", ""))
     ]
-    assert len(steps) == 1, "خطوةُ اختبار تشغيل nginx يجب أن تكون واحدة"
-    step_seconds = int(steps[0]["timeout-minutes"]) * 60
+    assert {step["run"] for step in steps} == {
+        "python3 frontend/tests/test_nginx_runtime.py --docker",
+        "python3 frontend/tests/test_nginx_runtime.py --docker --profile v9",
+    }, "Both supported gateway profiles need a named runtime step"
+    assert len(steps) == 2, "Each supported profile must run exactly once"
     test_reserve_seconds = 60  # الخطوةُ كاملةً ~36ث على main@76a5ca58
-    assert mod.pull_budget_seconds() + test_reserve_seconds <= step_seconds, (
-        mod.pull_budget_seconds(),
-        step_seconds,
-    )
+    for step in steps:
+        step_seconds = int(step["timeout-minutes"]) * 60
+        assert mod.pull_budget_seconds() + test_reserve_seconds <= step_seconds, (
+            step["name"],
+            mod.pull_budget_seconds(),
+            step_seconds,
+        )

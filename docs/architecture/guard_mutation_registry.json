@@ -6778,6 +6778,29 @@
           "why": "نزعُ المقارنة يُعيد الحارس إلى ما كان عليه: يتحقّق من السجلّ ولا ينظر إلى مصنوعاته، فيبقى `capability_summary.json` يقول ٧٥ قدرة في النضج ٣ والسلطات تقول ٦٠ — بالحرف ما مرّ أخضر منذ #953 حتّى d5d0507"
         }
       ]
+    },
+    "weather_engine_formula_guard.py": {
+      "test": "tests_v9/test_weather_engine_formula_guard.py",
+      "mutations": [
+        {
+          "expect": "test_ast_detects_svp_et0_and_gdd_kernels",
+          "find": "            if name == \"_svp\" or \"penman_monteith\" in name or \"hargreaves\" in name:",
+          "replace": "            if False:  # mutated: named ET0/SVP kernels escape detection",
+          "why": "Disabling name detection must fail the existing kernel detector test, not merely a source-text comparison."
+        },
+        {
+          "expect": "test_main_rejects_formula_outside_weather_engine",
+          "find": "    if violations:\n",
+          "replace": "    if False:  # mutated: noncanonical formula violations are ignored\n",
+          "why": "A synthetic noncanonical formula with a valid canonical source must make main reject; dropping this branch would otherwise return success."
+        },
+        {
+          "expect": "test_main_rejects_missing_canonical_fingerprint",
+          "find": "    if not canonical_ok:\n",
+          "replace": "    if False:  # mutated: missing canonical fingerprint is ignored\n",
+          "why": "A synthetic tree without the canonical fingerprint must be rejected even when no foreign formulas exist."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
@@ -6893,10 +6916,9 @@
     "vegetation_real_only_posture_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "vegetation_runtime_truth_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "waiver_expiry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
-    "weather_engine_formula_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "weather_hourly_etc_wx_i1_guard.py": "سابق للآليّة — لم تُقَس تغطيته"
   },
-  "unmutated_debt_ceiling": 112,
+  "unmutated_debt_ceiling": 111,
   "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
   "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل."
 }

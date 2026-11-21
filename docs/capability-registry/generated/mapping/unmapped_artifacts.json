@@ -2500,6 +2500,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/tests/nginx_v9_runtime_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/tests/test_nginx_runtime.py",
     "kind": "tests"
   },

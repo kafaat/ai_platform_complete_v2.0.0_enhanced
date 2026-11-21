@@ -4873,3 +4873,11 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **الموعد:** استثناءات السلطة المرتبطة بـ`DECISION-SOR-CUTOVER-WIRING-01` تنتهي في **2026-11-30** (`AUTHORITY-EXCEPTIONS-CO-EXPIRE-ON-2026-11-30-01`). تحويل staging لا يُغلق الفجوة؛ فقبل ذلك التاريخ إمّا تُغلَق أو يُتّخذ قرارٌ جديد.
 - **ما يبقى لقرار المالك:** المنصّة تملك `USAGE` على `recommendation_outcomes_outcome_id_seq` ما دامت تكتب، والتصديق يحجبه (`platform_sequence_privilege_present`)، و`platform_sor_revoke.py` لا يسحب صلاحيّات التسلسلات. يُقرَّر قبل أيّ REVOKE إنتاجيّ: توسيع الـREVOKE أو قبول المسار. ولذلك لا تُغلَق `DECISION-SOR-PRE-CUTOVER-ROLE-CERTIFICATION` بنتيجة `FAILED` بقراءة المشغّل: تُغلَق بتصنيف `PASSED` على staging، أو بقرار مالكٍ مُسجَّل هنا يقبل مسار التسلسل لذلك الـJSON.
 - **المصدر:** فرع `dc/j-w2-01-sor-staging-prep-20261116` · `services/decision-service/cutover.py` (`sor_capability_signal`) · `services/decision-service/backfill.py` (`verify_review`) · `scripts/deploy/decision_service_migrate.sh` · `services/decision-service/staging_probe.py`.
+
+
+## 2026-11-21 — نطاق رقعة تصحيحات الخطة الموحدة
+
+- **التكليف:** طلب المستخدم تطبيق قائمة الإغلاق المقبولة بالتتابع وإنتاج patch. النطاق التصحيحات الثمانية وشواهدها المساندة؛ لا تنفيذ مهام المنتج الـ161 أو اختراع موافقات تشغيل.
+- **القرار التقني:** حذف حافتي D01 من R00 ضمن مخرج corpus المعزول، مع بقاء سلطة أهلية الوثائق وقبول الرحلة الكاملة في مواضعها.
+- **السبب:** المخرج المستهلك Qdrant manifest/vectors/payload ولا يستهلك هجرات D01؛ تحفظ عقود الترميز والترتيب القائمة.
+- **المصدر:** أساس `9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0`؛ تطبيق التصحيح موثق في [إيصال §15.1](../../docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md) و[تقرير الرقعة](../../docs/reviews/unified_plan_patch_20261121.md). لا يسجل هذا اعتمادًا إنتاجيًا أو تمديدًا بعد 30 نوفمبر.
