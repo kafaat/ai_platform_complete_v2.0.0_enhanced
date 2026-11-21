@@ -26,7 +26,7 @@
       "web": 556
     },
     "unmapped_artifacts": 3601,
-    "ambiguous_artifacts": 262,
+    "ambiguous_artifacts": 263,
     "files_by_reading": {
       "python_functional": 4114,
       "raw": 3445
@@ -12262,7 +12262,7 @@
           "score": 24
         },
         {
-          "value": "sahool.events.> @ tests_v9/test_nats_outbox_staging_enablement_live.py:227",
+          "value": "sahool.events.> @ tests_v9/test_nats_outbox_staging_enablement_live.py:238",
           "score": 23
         },
         {
@@ -12989,6 +12989,14 @@
           ]
         },
         {
+          "path": "scripts/lab/README.md",
+          "score": 9,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "shared/helpers.py",
           "score": 9,
           "signals": [
@@ -13029,7 +13037,7 @@
         "mobile": 0,
         "tests": 24,
         "governance": 2,
-        "other_evidence": 37
+        "other_evidence": 38
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -50819,6 +50827,28 @@
           "signals": [
             "content:cog",
             "content:tilejson"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "scripts/lab/README.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-001",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "capability_id": "INT-002",
+          "score": 9,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
           ]
         }
       ]
@@ -88915,27 +88945,27 @@
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "import",
-          "line": 149
+          "line": 160
         },
         {
           "source": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
           "kind": "import",
-          "line": 150
+          "line": 161
         },
         {
           "source": "shared/__init__.py",
           "kind": "import",
-          "line": 153
+          "line": 164
         },
         {
           "source": "shared/broker_url.py",
           "kind": "import",
-          "line": 154
+          "line": 165
         },
         {
           "source": "shared/nats_stream_contract.py",
           "kind": "import",
-          "line": 153
+          "line": 164
         }
       ],
       "unresolved": []

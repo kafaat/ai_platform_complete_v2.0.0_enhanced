@@ -3251,6 +3251,28 @@
     ]
   },
   {
+    "path": "scripts/lab/README.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 9,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      }
+    ]
+  },
+  {
     "path": "scripts/simulation/sim_golden.py",
     "kind": "other",
     "candidates": [
