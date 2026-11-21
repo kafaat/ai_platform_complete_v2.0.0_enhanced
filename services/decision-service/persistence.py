@@ -1021,25 +1021,6 @@ async def persist_learning_update(
                 raise LearningUpdateReviewUnavailable(
                     "online_learning_updates has no review columns"
                 )
-            # A vegetation-namespaced evidence id claims to be evidence this service holds: it is
-            # resolved as on verify-outcome (this tenant's snapshot, of the decision's field when
-            # the decision is known) before anything is stored. An id already stored on this
-            # tenant's row with the same update_id is not re-judged: a resend stores no new
-            # evidence reference (the same rule as verify-outcome's idempotent replay).
-            reason = await _outcome_evidence_reference_error(
-                conn,
-                tenant_id=tenant_id,
-                evidence_snapshot_id=payload.evidence_snapshot_id,
-                decision_id=payload.decision_id,
-            )
-            if reason and not await conn.fetchval(
-                "SELECT EXISTS (SELECT 1 FROM online_learning_updates "
-                "WHERE update_id = $1 AND tenant_id = $2::uuid AND evidence_snapshot_id = $3)",
-                update_id,
-                tenant_id,
-                payload.evidence_snapshot_id,
-            ):
-                raise LearningUpdateEvidenceInvalid(reason)
             mutable_columns = _LEARNING_MUTABLE_COLUMNS + (
                 _LEARNING_REVIEW_COLUMNS if has_review else ()
             )
@@ -1054,6 +1035,31 @@ async def persist_learning_update(
                 if has_review
                 else "RETURNING 'unreviewed' AS review_status, false AS agronomically_approved"
             )
+            # A vegetation-namespaced evidence id claims to be evidence this service holds: it is
+            # resolved as on verify-outcome (this tenant's snapshot, of the decision's field when
+            # the decision is known) before anything is stored. The one exemption is a true
+            # replay: this tenant's row under this update_id already holds every identity column
+            # (the evidence id included) AND every mutable column (action, drift, source, review)
+            # as sent, so the request stores nothing and is answered ``unchanged``. A resend that
+            # would change any mutable column writes the row, so its evidence is resolved and an
+            # unresolved id is refused (409) even on a row stored before resolution existed.
+            reason = await _outcome_evidence_reference_error(
+                conn,
+                tenant_id=tenant_id,
+                evidence_snapshot_id=payload.evidence_snapshot_id,
+                decision_id=payload.decision_id,
+            )
+            if reason and not await conn.fetchval(
+                "SELECT EXISTS (SELECT 1 FROM online_learning_updates "
+                "WHERE update_id = $1 AND tenant_id = $2::uuid AND "
+                f"{_same_columns_sql(_LEARNING_IDENTITY_COLUMNS, 3)} AND "
+                f"{_same_columns_sql(mutable_columns, 3 + len(_LEARNING_IDENTITY_COLUMNS))})",
+                update_id,
+                tenant_id,
+                *identity,
+                *mutable,
+            ):
+                raise LearningUpdateEvidenceInvalid(reason)
             columns = _LEARNING_IDENTITY_COLUMNS + mutable_columns
             # No conflict target: this table's unique key is ``update_id`` in this service's own
             # schema (001) but ``(tenant_id, update_id)`` in the shared database, where the

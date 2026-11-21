@@ -656,7 +656,7 @@ async def test_model_lifecycle_writers_after_033(database, observed_writers, mon
     veg = await call(
         "persist_vegetation_snapshot",
         payload=lineage._veg_payload("ci-field", "a" * 64),
-        snapshot_id="ci-veg",
+        snapshot_id="veg_ci-model-033",
     )
     ctx = await call(
         "compose_agronomic_context", created_by="ci", payload=lineage._compose_payload("ci-field")
