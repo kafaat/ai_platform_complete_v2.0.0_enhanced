@@ -1,10 +1,10 @@
 confidence,owner,kind,symbol,file,line,reference_count,action,decorated_route
 high,ai-agronomist,function,_zone_polygon,services/ai_agronomist/productivity_zones.py,60,0,review_before_delete,False
 high,decision-service,function,_memberships,services/decision-service/decision_sor_role_certify.py,163,0,review_before_delete,False
-high,decision-service,function,_service_token_guard,services/decision-service/main.py,168,0,review_before_delete,False
+high,decision-service,function,_service_token_guard,services/decision-service/main.py,170,0,review_before_delete,False
 high,decision-service,function,_require_live_when_certifying,services/decision-service/tests/test_eligibility_assessment_live_pg.py,119,0,review_before_delete,False
 high,decision-service,function,_clean_policy_env,services/decision-service/tests/test_sod_single_operator_self_approval.py,32,0,review_before_delete,False
-high,knowledge-graph,function,_validation_error,services/knowledge-graph/main.py,46,0,review_before_delete,False
+high,knowledge-graph,function,_validation_error,services/knowledge-graph/main.py,47,0,review_before_delete,False
 high,raster-service,function,_endpoint_host,services/raster-service/object_store.py,69,0,review_before_delete,False
 high,raster-service,function,_scene_band_mapping,services/raster-service/raster_main_compat_exports.py,92,0,review_before_delete,False
 high,raster-service,function,_bbox_from_geom,services/raster-service/raster_main_compat_exports.py,97,0,review_before_delete,False
@@ -75,7 +75,7 @@ medium,ai-agronomist,function,trace_decision,services/ai_agronomist/runtime_trac
 medium,auth,function,tenant_header_middleware,services/auth/main.py,427,0,review_before_delete,False
 medium,auth,function,verify_recovery_code,services/auth/mfa_crypto.py,209,0,review_before_delete,False
 medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_before_delete,False
-medium,decision-service,function,now_iso,services/decision-service/persistence.py,64,0,review_before_delete,False
+medium,decision-service,function,now_iso,services/decision-service/persistence.py,87,0,review_before_delete,False
 medium,decision-service,function,mirror_runtime,services/decision-service/tests/test_p4_decision_service_runtime.py,12,0,review_before_delete,False
 medium,edge-inference,function,model_capability,services/edge-inference/model_artifact_gate.py,60,0,review_before_delete,False
 medium,field-management-service,function,build_router,services/field-management-service/fm_scouting_tasks.py,232,0,review_before_delete,False
@@ -178,7 +178,7 @@ medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-plat
 medium,sahool-platform,function,live_water_sets,services/sahool-platform/api/lab_store.py,470,0,review_before_delete,False
 medium,sahool-platform,function,append_water_analysis_revision,services/sahool-platform/api/lab_store.py,481,0,review_before_delete,False
 medium,sahool-platform,function,plan_and_maybe_emit,services/sahool-platform/api/lexicographic_mpc_bridge.py,123,0,review_before_delete,False
-medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,852,0,review_before_delete,False
+medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,859,0,review_before_delete,False
 medium,sahool-platform,function,should_fail,services/sahool-platform/api/offline_pending_db.py,71,0,review_before_delete,False
 medium,sahool-platform,function,reclaim_stuck_processing,services/sahool-platform/api/offline_pending_db.py,253,0,review_before_delete,False
 medium,sahool-platform,function,clear_processed,services/sahool-platform/api/offline_pending_db.py,279,0,review_before_delete,False

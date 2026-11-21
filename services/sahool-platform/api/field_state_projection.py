@@ -677,13 +677,39 @@ def _compose_agronomic(
         return None
 
 
-async def recompute_field_state(conn, field_id: str) -> dict:
+class FieldStateVersionConflict(Exception):
+    """An ``expected_version`` write found another version stored (optimistic concurrency)."""
+
+    def __init__(self, field_id: str, expected_version: int):
+        super().__init__(
+            f"field_state_version_conflict: field {field_id!r} is not at version {expected_version}"
+        )
+        self.field_id = field_id
+        self.expected_version = expected_version
+
+
+async def recompute_field_state(
+    conn, field_id: str, *, expected_version: int | None = None
+) -> dict:
     """يعيد حساب الحالة القانونيّة للحقل ويحفظها في إسقاط field_state (UPSERT).
 
     يُرجِع {"state": <dict>, "changed": <bool>} حيث changed = تبدّلت الصلاحيّة أو
     نمط التنفيذ عن المحفوظ سابقاً (أو لا صفّ سابق). يُستدعى ضمن tenant_connection.
     صدق: غياب tenant_id للحقل (غير موجود) ⇒ لا حفظ، تُعاد الحالة المحسوبة فقط.
+
+    Versioning (v132 ``field_state.version``): every write that changes the row bumps
+    ``version`` by one inside the same UPSERT statement (``version = field_state.version + 1``),
+    so two recomputes always leave version+2, whatever their interleaving. A new row starts at 1.
+    ``expected_version`` makes the write conditional: the UPDATE applies only while the stored
+    version still equals it, and a stale writer gets ``FieldStateVersionConflict`` with nothing
+    written. ``expected_version=0`` means "create only": it refuses when a row already exists.
     """
+    if expected_version is not None and (
+        isinstance(expected_version, bool)
+        or not isinstance(expected_version, int)
+        or expected_version < 0
+    ):
+        raise ValueError("expected_version must be a non-negative integer")
     evaluation_date = date.today()
     fresh = await gather_field_freshness(conn, field_id)
     inputs = build_state_inputs(
@@ -980,15 +1006,23 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         or prev["validity"] != state["validity"]
         or prev["execution_mode"] != state["execution_mode"]
     )
+    if expected_version is not None and prev is None and expected_version != 0:
+        # The caller read a version that no longer exists (or never did): refuse the write.
+        raise FieldStateVersionConflict(field_id, expected_version)
 
-    await conn.execute(
+    # Optimistic concurrency: with an expected version the conflict branch updates only while
+    # the stored version still matches; a stale writer then affects no row ("INSERT 0 0").
+    version_guard = "" if expected_version is None else "\n        WHERE field_state.version = $14"
+    version_args = () if expected_version is None else (expected_version,)
+    status = await conn.execute(
         """
         INSERT INTO field_state
             (field_id, tenant_id, validity, execution_mode, confidence_level,
              ndvi_age_days, soil_age_days, weather_age_hours,
-             reasons_ar, conflicts, freshness_warnings, inputs, agronomic, computed_at)
+             reasons_ar, conflicts, freshness_warnings, inputs, agronomic, computed_at,
+             recomputed_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
-                $9::jsonb, $10::jsonb, $11::jsonb, $12::jsonb, $13::jsonb, NOW())
+                $9::jsonb, $10::jsonb, $11::jsonb, $12::jsonb, $13::jsonb, NOW(), NOW())
         ON CONFLICT (field_id) DO UPDATE SET
             validity = EXCLUDED.validity,
             execution_mode = EXCLUDED.execution_mode,
@@ -1001,8 +1035,10 @@ async def recompute_field_state(conn, field_id: str) -> dict:
             freshness_warnings = EXCLUDED.freshness_warnings,
             inputs = EXCLUDED.inputs,
             agronomic = EXCLUDED.agronomic,
-            computed_at = NOW()
-        """,
+            computed_at = NOW(),
+            version = field_state.version + 1,
+            recomputed_at = NOW()"""
+        + version_guard,
         field_id,
         tenant_id,
         state["validity"],
@@ -1016,5 +1052,10 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         json.dumps(state.get("freshness_warnings", [])),
         json.dumps(inputs),
         json.dumps(state.get("agronomic")),  # الحقائق الزراعيّة (NULL إن لا إشارات)
+        *version_args,
     )
+    if expected_version is not None:
+        if not (isinstance(status, str) and status.split()[-1:] == ["1"]):
+            raise FieldStateVersionConflict(field_id, expected_version)
+        return {"state": state, "changed": changed, "version": expected_version + 1}
     return {"state": state, "changed": changed}

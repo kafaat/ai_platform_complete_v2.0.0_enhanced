@@ -3422,6 +3422,9 @@ services:
       NATS_URL: tls://sahool-canonical-execution-learning-worker:${NATS_LEARNING_WORKER_PASSWORD:?NATS_LEARNING_WORKER_PASSWORD مطلوب — هويّة sahool-canonical-execution-learning-worker في nats/nats.conf}@sahool-nats:4222
       SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       CANONICAL_LEARNING_DURABLE: ${CANONICAL_LEARNING_DURABLE:-canonical-execution-learning-v1}
+      # W3-01: same flag as sahool-platform — `--preflight` (the healthcheck) reports not ready
+      # while it is off, because no event reaches this worker. Off by default.
+      FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}
     command:
     - python
     - /app/workers/canonical_execution_learning_worker.py
