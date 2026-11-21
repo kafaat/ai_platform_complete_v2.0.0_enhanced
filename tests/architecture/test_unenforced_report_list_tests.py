@@ -74,9 +74,11 @@ def _enforces_something(node: ast.AST) -> bool:
                 target = target.value
             if not attribute_chain:
                 continue
-            dotted = ".".join(reversed(attribute_chain))
-            if dotted in {"pytest.raises", "pytest.warns", "pytest.fail"}:
-                return True
+            # Keep the root name so lookalike attribute chains are not pytest calls.
+            if isinstance(target, ast.Name):
+                dotted = ".".join([target.id, *reversed(attribute_chain)])
+                if dotted in {"pytest.raises", "pytest.warns", "pytest.fail"}:
+                    return True
             if attribute_chain[-1].startswith("assert"):
                 return True
     return False
@@ -157,9 +159,10 @@ def test_the_baseline_is_lowered_in_the_same_commit_that_repairs_a_test():
 
 def test_the_detector_separates_an_enforced_property_from_a_recorded_one():
     """أرضيّةُ صدقٍ للكاشف: يجب أن يُميّز فعلاً، لا أن يُصنّف كلَّ شيءٍ ديناً."""
-    recorded = ast.parse(
+    recorded_source = (
         "def test_x():\n    report = []\n    if compute() == 'ok':\n        report.append('✓')\n"
-    ).body[0]
+    )
+    recorded = ast.parse(recorded_source).body[0]
     enforced = ast.parse(
         "def test_x():\n"
         "    report = []\n"
@@ -170,6 +173,23 @@ def test_the_detector_separates_an_enforced_property_from_a_recorded_one():
     ).body[0]
     assert _records_only_when_true(recorded) and not _enforces_something(recorded)
     assert _records_only_when_true(enforced) and _enforces_something(enforced)
+
+    for enforcer in (
+        "with pytest.raises(ValueError):\n        operation()\n",
+        "with pytest.warns(UserWarning):\n        operation()\n",
+        "pytest.fail('broken')\n",
+    ):
+        actual = ast.parse(recorded_source + "    " + enforcer).body[0]
+        assert _records_only_when_true(actual) and _enforces_something(actual), enforcer
+        for lookalike_root in ("obj.pytest", "factory().pytest"):
+            lookalike = ast.parse(
+                recorded_source + "    " + enforcer.replace("pytest", lookalike_root, 1)
+            ).body[0]
+            assert _records_only_when_true(lookalike)
+            assert not _enforces_something(lookalike), lookalike_root
+
+    unittest_assert = ast.parse("def test_x(self):\n    self.assertTrue(condition())\n").body[0]
+    assert _enforces_something(unittest_assert)
 
 
 def test_the_repaired_erp_switch_is_no_longer_counted_as_debt():

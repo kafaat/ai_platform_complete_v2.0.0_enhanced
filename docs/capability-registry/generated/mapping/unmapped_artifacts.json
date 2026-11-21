@@ -13296,6 +13296,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_raster_pg_certification.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_raster_pixel_processing_edge_cases.py",
     "kind": "tests"
   },

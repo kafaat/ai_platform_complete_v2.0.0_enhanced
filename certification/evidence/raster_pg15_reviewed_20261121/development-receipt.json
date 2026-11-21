@@ -1,0 +1,96 @@
+{
+  "started_at": "2026-11-21T10:32:35.201621+00:00",
+  "status": "COMMAND_PASSED",
+  "source_before": {
+    "head": "a2d9d0e14626e0f5d42be974fcedb191dafc9ec5",
+    "tree": "85c51ca92e53ae3a0da51f11c87ed16fe74e701d",
+    "status": " M .github/workflows/ci.yml\n M scripts/lab/README.md\n M scripts/lab/run_certification.py\n M scripts/raster_pg/required_cases.py\n M services/raster-service/test_single_scene_concurrent_pg.py\n M tests_v9/test_lab_ci_certification_steps.py\n M tests_v9/test_raster_pg_certification.py\n",
+    "tracked_diff_sha256": "90ed5a63d04a8121cb84af2d18f9facde7d206fb021857bd62f2cf997fa489f0",
+    "dirty_file_sha256": {
+      ".github/workflows/ci.yml": "bc46d147cd042d68a25684091c79de75617926adc9f007610bd35f9296e0020e",
+      "scripts/lab/README.md": "b2117af97264994a6992bdcbf249b6db853b8dfecdefec6fa209f13b1d8f4a49",
+      "scripts/lab/run_certification.py": "cf20890585df8f3c35fdd5c43759a03f1fa4a5c31eeae3b36a7ff2f3ade71b1c",
+      "scripts/raster_pg/required_cases.py": "0dc9d8ccdbd5814ca7ef97e7738038d46fcf18ade2156a5406755f9fbba8a200",
+      "services/raster-service/test_single_scene_concurrent_pg.py": "7f77dfe710858ad2b95ab83d0f31a0899a4878309fa18c23d4c8bce8d3042d5e",
+      "tests_v9/test_lab_ci_certification_steps.py": "15152b70f31b595404750904cbc5a883092f5ccb7eb3dc64d230c97607146585",
+      "tests_v9/test_raster_pg_certification.py": "420d0ab6b7a491c1bae2115b709ed09854149f532f950df43d138443458dc109"
+    }
+  },
+  "product_tests_run": true,
+  "local_only": true,
+  "fixture_data_dir": "/workspace/scratch/06c84e71d12d/runtime/pgdata-raster-reviewed",
+  "expected_cases": 7,
+  "relocations": [
+    "RUNNER_TEMP",
+    "COVERAGE_FILE"
+  ],
+  "migrations": {
+    "argv": [
+      "bash",
+      "scripts/ci/apply_migration_manifest.sh",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "5433",
+      "--user",
+      "sahool_test",
+      "--db",
+      "sahool_test"
+    ],
+    "returncode": 0,
+    "expected": 275,
+    "observed": 275,
+    "order_matches_manifest": true,
+    "log_sha256": "d5b01d4ec13b6be8d85ad954645491d0c88bf1d33d17bd8cc35564896011e5f1"
+  },
+  "database_identity": {
+    "server_version_num": "150020",
+    "postgresql": "PostgreSQL 15.20 (Debian 15.20-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "postgis": "POSTGIS=\"3.7.0 1fdbb1c\" [EXTENSION] PGSQL=\"150\" GEOS=\"3.15.0-CAPI-1.21.0\" PROJ=\"9.6.0 NETWORK_ENABLED=OFF URL_ENDPOINT=https://cdn.proj.org USER_WRITABLE_DIRECTORY=/home/agent/.local/share/proj DATABASE_PATH=/usr/share/proj/proj.db\" (compiled against PROJ 9.9.0) LIBXML=\"2.9.14\" LIBJSON=\"0.18\" LIBPROTOBUF=\"1.5.1\" WAGYU=\"0.5.0 (Internal)\"",
+    "unsafe_flags": false,
+    "memberships": 0,
+    "owned_relations": 0,
+    "app_session_identity": "sahool_app_test:sahool_app_test"
+  },
+  "collection_command": [
+    "/workspace/scratch/fb7e65be7e00/raster-live-integration-20261121/runtime/venv/bin/python",
+    "-m",
+    "pytest",
+    "--collect-only",
+    "-q",
+    "-p",
+    "raster_exact_catalog",
+    "services/raster-service/test_raster_batch_postgres_integration.py",
+    "services/raster-service/test_single_scene_concurrent_pg.py"
+  ],
+  "manifest_sha256": "5a7f4edd593ebbaefe07ae2fed1a53e6ce9e221344f64c31eabbd9e4cf222282",
+  "command_exit_code": 0,
+  "command_log_sha256": "b15ddfeb37871b9a67be4a4aa90fc6f19a0537e612a27702d1852560c01fd285",
+  "execution": {
+    "collected": 7,
+    "executed": 7,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0
+  },
+  "source_after": {
+    "head": "a2d9d0e14626e0f5d42be974fcedb191dafc9ec5",
+    "tree": "85c51ca92e53ae3a0da51f11c87ed16fe74e701d",
+    "status": " M .github/workflows/ci.yml\n M scripts/lab/README.md\n M scripts/lab/run_certification.py\n M scripts/raster_pg/required_cases.py\n M services/raster-service/test_single_scene_concurrent_pg.py\n M tests_v9/test_lab_ci_certification_steps.py\n M tests_v9/test_raster_pg_certification.py\n",
+    "tracked_diff_sha256": "90ed5a63d04a8121cb84af2d18f9facde7d206fb021857bd62f2cf997fa489f0",
+    "dirty_file_sha256": {
+      ".github/workflows/ci.yml": "bc46d147cd042d68a25684091c79de75617926adc9f007610bd35f9296e0020e",
+      "scripts/lab/README.md": "b2117af97264994a6992bdcbf249b6db853b8dfecdefec6fa209f13b1d8f4a49",
+      "scripts/lab/run_certification.py": "cf20890585df8f3c35fdd5c43759a03f1fa4a5c31eeae3b36a7ff2f3ade71b1c",
+      "scripts/raster_pg/required_cases.py": "0dc9d8ccdbd5814ca7ef97e7738038d46fcf18ade2156a5406755f9fbba8a200",
+      "services/raster-service/test_single_scene_concurrent_pg.py": "7f77dfe710858ad2b95ab83d0f31a0899a4878309fa18c23d4c8bce8d3042d5e",
+      "tests_v9/test_lab_ci_certification_steps.py": "15152b70f31b595404750904cbc5a883092f5ccb7eb3dc64d230c97607146585",
+      "tests_v9/test_raster_pg_certification.py": "420d0ab6b7a491c1bae2115b709ed09854149f532f950df43d138443458dc109"
+    }
+  },
+  "source_unchanged": true,
+  "owned_server_stopped": true,
+  "finished_at": "2026-11-21T10:32:48.563288+00:00",
+  "elapsed_seconds": 13.284,
+  "wrapper_exit_code": 0
+}

@@ -1,0 +1,57 @@
+{
+  "started_at": "2026-11-21T08:56:59.726687+00:00",
+  "command": [
+    "/workspace/scratch/fb7e65be7e00/raster-live-integration-20261121/runtime/venv/bin/python",
+    "/workspace/scratch/fb7e65be7e00/raster-live-integration-20261121/runtime/run_raster_candidate.py",
+    "/workspace/scratch/fb7e65be7e00/raster-live-integration-20261121/evidence/pg-candidate-03"
+  ],
+  "status": "COMMAND_PASSED",
+  "source_before": {
+    "head": "6122ed4c642390b32d6c36873e27a425c0d309af",
+    "tree": "ef12ac7e31f2dec8328e8a311e69c9b6fb293bbf",
+    "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dirty_file_sha256": {}
+  },
+  "local_only": true,
+  "host": "127.0.0.1",
+  "port": 5433,
+  "manifest_sha256": "5a7f4edd593ebbaefe07ae2fed1a53e6ce9e221344f64c31eabbd9e4cf222282",
+  "migrations": {
+    "argv": [
+      "bash",
+      "scripts/ci/apply_migration_manifest.sh",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "5433",
+      "--user",
+      "sahool_test",
+      "--db",
+      "sahool_test"
+    ],
+    "returncode": 0,
+    "expected": 275,
+    "observed": 275,
+    "order_matches_manifest": true
+  },
+  "database_identity": {
+    "server_version_num": "150020",
+    "postgis": "3.7.0",
+    "unsafe_flags": false,
+    "memberships": 0,
+    "owned_relations": 0
+  },
+  "command_exit_code": 0,
+  "command_log_sha256": "04ff4e3e7aa5c8eadebdffa0e7793b42d8298bc1ac718018c50883feb8dc8a18",
+  "source_after": {
+    "head": "6122ed4c642390b32d6c36873e27a425c0d309af",
+    "tree": "ef12ac7e31f2dec8328e8a311e69c9b6fb293bbf",
+    "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dirty_file_sha256": {}
+  },
+  "source_unchanged": true,
+  "finished_at": "2026-11-21T08:57:11.621203+00:00",
+  "elapsed_seconds": 11.854,
+  "owned_server_stopped": true,
+  "wrapper_exit_code": 0
+}

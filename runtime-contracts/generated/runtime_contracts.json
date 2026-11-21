@@ -1598,6 +1598,7 @@
         "S3_REGION",
         "S3_USE_SSL",
         "SAHOOL_ENV",
+        "SAHOOL_TEST_PGROLE",
         "SH_BASE_URL",
         "SH_CLIENT_ID",
         "SOILGRIDS_COG_DIR",
