@@ -109,7 +109,7 @@ def test_broker_url_parse_is_inside_a_try(function_name):
     assert all(id(call) in guarded for call in parses)
 
 
-# Debian's base-passwd ships these groups and users in every python:*-slim image
+# Debian's base-passwd ships these groups and users in every Debian-family image
 # (/usr/share/base-passwd/{group,passwd}.master). `groupadd voice` therefore exits 9
 # and the image never builds, which is what broke the Xiaozhi gateway image.
 _DEBIAN_BASE_NAMES = frozenset(
@@ -118,37 +118,148 @@ _DEBIAN_BASE_NAMES = frozenset(
     "gnats shadow utmp video sasl plugdev staff games users nogroup nobody sync "
     "_apt".split()
 )
-_ACCOUNT_CMD = re.compile(r"\b(groupadd|useradd|addgroup|adduser)\b([^&;|\n]*)")
+_DEBIAN_FAMILY_IMAGE = re.compile(r"^(?:docker\.io/)?(?:library/)?(python|debian|ubuntu)[:@]")
+_ACCOUNT_COMMANDS = frozenset({"groupadd", "useradd", "addgroup", "adduser"})
+# Options whose value is the next token (shadow-utils and Debian adduser).
+_OPTIONS_WITH_VALUE = frozenset(
+    "-b --base-dir -c --comment -d --home-dir -e --expiredate -f --inactive -g --gid "
+    "-G --groups -k --skel -K --key -p --password -R --root -P --prefix -s --shell "
+    "-u --uid -Z --selinux-user --home --ingroup --gecos --firstuid --lastuid "
+    "--firstgid --lastgid --conf".split()
+)
+_FORCE = frozenset({"-f", "--force"})
+
+
+def _instructions(text):
+    """Dockerfile instructions with continuations joined and comment lines dropped."""
+    joined, pending = [], ""
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not pending and (not line or line.startswith("#")):
+            continue
+        if pending and line.startswith("#"):
+            continue  # a comment line inside a continued instruction
+        if line.endswith("\\"):
+            pending += line[:-1] + " "
+            continue
+        joined.append(pending + line)
+        pending = ""
+    if pending:
+        joined.append(pending)
+    return joined
+
+
+def _resolve(image, args):
+    def sub(match):
+        return args.get(match.group(1) or match.group(2), match.group(0))
+
+    return re.sub(r"\$\{(\w+)(?::?-[^}]*)?\}|\$(\w+)", sub, image)
+
+
+def _debian_run_commands(text):
+    """RUN bodies of every stage whose base image is Debian-family (ARG defaults resolved)."""
+    args, debian_stage = {}, False
+    for instruction in _instructions(text):
+        keyword, _, rest = instruction.partition(" ")
+        keyword = keyword.upper()
+        if keyword == "ARG":
+            name, _, default = rest.strip().partition("=")
+            if default:
+                args.setdefault(name.strip(), default.strip().strip("\"'"))
+        elif keyword == "FROM":
+            tokens = [t for t in rest.split() if not t.startswith("--")]
+            image = _resolve(tokens[0], args) if tokens else ""
+            debian_stage = bool(_DEBIAN_FAMILY_IMAGE.match(image)) and "alpine" not in image
+        elif keyword == "RUN" and debian_stage:
+            yield rest
+
+
+def _created_account_names(run_body):
+    """Names that groupadd/useradd/addgroup/adduser would create in a RUN body."""
+    names = []
+    for segment in re.split(r"&&|\|\||;|\|", run_body):
+        tokens = segment.split()
+        while tokens and tokens[0] in {"sudo", "exec", "command"}:
+            tokens = tokens[1:]
+        if not tokens or tokens[0].rsplit("/", 1)[-1] not in _ACCOUNT_COMMANDS:
+            continue
+        command, positional, forced, skip = tokens[0].rsplit("/", 1)[-1], [], False, False
+        for token in tokens[1:]:
+            if skip:
+                skip = False
+                continue
+            if token in _FORCE:
+                forced = True
+            elif token in _OPTIONS_WITH_VALUE:
+                skip = True
+            elif not token.startswith("-"):
+                positional.append(token)
+        if forced or not positional:
+            continue  # an explicit "reuse if present" is a deliberate choice
+        if command in {"adduser", "addgroup"} and len(positional) == 2:
+            continue  # `adduser USER GROUP` adds an existing user to an existing group
+        names.append((command, positional[-1]))
+    return names
 
 
 def _debian_dockerfiles():
     for path in sorted(ROOT.rglob("Dockerfile*")):
         if "node_modules" in path.parts or not path.is_file():
             continue
-        text = path.read_text(encoding="utf-8", errors="replace")
-        froms = re.findall(r"(?im)^FROM\s+(\S+)", text)
-        if any(re.match(r"python:[\w.]+-slim", image) for image in froms):
-            yield path, text.replace("\\\n", " ")
+        yield path, path.read_text(encoding="utf-8", errors="replace")
 
 
 def test_dockerfile_accounts_do_not_reuse_debian_base_names():
     offenders = []
     for path, text in _debian_dockerfiles():
-        for command, args in _ACCOUNT_CMD.findall(text):
-            tokens = args.split()
-            if "-f" in tokens or "--force" in tokens:
-                continue  # an explicit "reuse if present" is a deliberate choice
-            positional = [t for t in tokens if not t.startswith("-") and not t.isdigit()]
-            # Option values (gid/uid/group/shell/home) precede the account name.
-            name = positional[-1] if positional else ""
-            if name in _DEBIAN_BASE_NAMES:
-                offenders.append(f"{path.relative_to(ROOT)}: {command} {name}")
+        for body in _debian_run_commands(text):
+            for command, name in _created_account_names(body):
+                if name in _DEBIAN_BASE_NAMES:
+                    offenders.append(f"{path.relative_to(ROOT)}: {command} {name}")
     assert not offenders, offenders
 
 
-def test_the_base_name_check_catches_the_original_voice_group():
-    text = (
-        "RUN groupadd --gid 10001 voice && useradd --uid 10001 --gid voice --no-create-home voice"
-    )
-    hits = [args.split()[-1] for _, args in _ACCOUNT_CMD.findall(text)]
-    assert "voice" in hits and set(hits) & _DEBIAN_BASE_NAMES
+@pytest.mark.parametrize(
+    "dockerfile, expected",
+    [
+        (
+            "FROM python:3.12-slim-bookworm\n"
+            "RUN groupadd --gid 10001 voice \\\n"
+            "    && useradd --uid 10001 --gid voice --no-create-home voice\n",
+            [("groupadd", "voice"), ("useradd", "voice")],
+        ),
+        (
+            "ARG BASE=python:3.12-slim-bookworm\nFROM ${BASE}\nRUN groupadd audio\n",
+            [("groupadd", "audio")],
+        ),
+        (
+            "FROM --platform=linux/amd64 debian:bookworm\nRUN useradd -m video\n",
+            [("useradd", "video")],
+        ),
+        ("FROM ubuntu:24.04 AS build\nRUN addgroup --system staff\n", [("addgroup", "staff")]),
+        ("FROM python:3.12-slim\n# RUN groupadd voice\nRUN groupadd app\n", [("groupadd", "app")]),
+        ("FROM python:3.12-slim\nRUN adduser app audio\n", []),
+        ("FROM python:3.12-slim\nRUN groupadd -f voice\n", []),
+        ("FROM python:3.12-alpine\nRUN addgroup voice\n", []),
+        (
+            "FROM node:20-bookworm AS ui\nRUN groupadd voice\nFROM python:3.12-slim\nRUN groupadd app\n",
+            [("groupadd", "app")],
+        ),
+    ],
+    ids=[
+        "original-voice-defect",
+        "arg-default-base",
+        "platform-flag-debian",
+        "ubuntu-addgroup",
+        "comment-ignored",
+        "adduser-membership",
+        "forced-reuse",
+        "alpine-not-debian",
+        "per-stage-base",
+    ],
+)
+def test_the_base_name_scanner(dockerfile, expected):
+    found = [
+        pair for body in _debian_run_commands(dockerfile) for pair in _created_account_names(body)
+    ]
+    assert found == expected
