@@ -9105,3 +9105,12 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
   - (أ) `normalized_difference` يُرجِع NaN لنطاقين صفريّين، متّسقاً مع CDSE الأصليّ. ويُستبدَل اختبار `isfinite` باختبارٍ يشترط NaN، ويُثبَت أنّ NDVI لا يساوي 0 لبكسلٍ بلا بيانات على مصدرٍ بلا nodata معلَن.
   - (ب) **مقترحٌ منفصل لا يُغلَق بتعديل `band_math` وحده:** حدٌّ مشترك للمقام القريب من الصفر لمؤشّرات الفرق المعياريّ يُطبَّق في المسارين معاً (`band_math` وتعبيرات CDSE)، وإلّا نشأ عدمُ اتّساقٍ جديد.
 
+
+## RASTER-SERVICE-TESTS-COVERAGE-NOT-UPLOADED-01 — اختبارات خدمة الراستر تعمل ولا تبلغ تغطيتُها Codecov، فيُقرأ كودُها غيرَ مُغطّى
+
+- **الحالة:** open — فجوة إبلاغ لا فجوة اختبار؛ مقيسة 2026-11-21 على #1554.
+- **المصدر:** `.github/workflows/ci.yml:2799-2803` (خطوة «Raster service unit/runtime contracts» تشغّل `pytest -q -p no:cacheprovider test_*.py` بلا `--cov`) · رفعات Codecov الخمس في `ci.yml` (`:1107` `unit-tests` · `:1205` `platform-unit-tests` · `:1896` `integration-auth` · `:2334` `decision-service-tests` · `:2421` `decision-033-pg16`)، ولا رفع لوظيفة `Raster Service Tests` · `codecov.yml` (`after_n_builds: 5`) · `tests_v9/test_codecov_coverage_wiring.py:260-267` (يعدّ الرفعات ويشترط تساويها مع `after_n_builds`).
+- **المقيس:** على رأس #1554 `04cb1458` شغّلت `Raster Service Tests` 1539 اختباراً ونجحت، ومنها ما يمرّ بسطر `band_math.py` المعدَّل، بينما قرأ `codecov/patch` «0.00% of diff hit». فخطوة الوحدة المقيسة (`unit-tests`) لا تستورد `band_math`، وخطوة الراستر لا تجمع تغطية.
+- **الأثر:** كلّ تعديلٍ في `services/raster-service` يُقرأ غير مُغطّى مهما اختُبر، فيصير `codecov/patch` إنذاراً كاذباً على الراستر ويفقد دلالته. و`codecov/patch` ليس من السياقات المطلوبة (`docs/architecture/required_status_checks_contract.json` `required_contexts`) فلا يحجب الدمج، ووظيفة الراستر نفسها خارجها أيضاً (RASTER-SERVICE-TESTS-RUNS-BUT-NEITHER-BLOCKS-NOR-IS-REGISTERED-01).
+- **شرط الإغلاق:** وظيفة الراستر تجمع التغطية بمسارات جذر Git (كما تفعل `unit-tests` عبر `coverage xml --include=services/*` و`codecov_coverage_guard.py`) وترفعها بعلَمٍ خاصّ، ويُرفع `after_n_builds` إلى ستّة مع اختبار التوصيل في الالتزام نفسه. ولم يُنفَّذ في #1554 حفاظاً على نطاقه.
+- **التخفيف في #1554:** `tests_v9/test_nd_index_zero_denominator_contract.py` يثبّت قاعدة المقام الصفريّ داخل بوّابة الوحدة المقيسة، فيبلغ السطرُ المعدَّل Codecov.
