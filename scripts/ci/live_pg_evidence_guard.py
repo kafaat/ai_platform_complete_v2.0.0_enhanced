@@ -40,6 +40,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -280,14 +281,15 @@ _QUERY = {
 }
 
 
-def schema_drift(database: str, owner: str) -> list[str]:
+def schema_drift(database: str, owner: str, *, contract: Path | None = None) -> list[str]:
     """الغائب يُدان؛ والزائد لا.
 
     العقد يصف **ما تستند إليه الأدلّة**، لا كامل المخطّط. فهجرةٌ تُضيف قيداً جديداً
     ليست انحرافاً — وإدانتها تجعل العقد جرداً عامّاً يَبيت مع كلّ هجرة فيُدرَّب قارئه
     على تجاهله، وهو ما يُبطِل الحارس بدل أن يُشدّده.
     """
-    doc = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    selected = CONTRACT if contract is None else contract
+    doc = json.loads(selected.read_text(encoding="utf-8"))
     problems: list[str] = []
 
     # الإصدار الرئيسيّ عقدٌ، والتفصيليّ ليس: `16.4` في CI و`16.13` محليّاً وكلاهما
@@ -342,6 +344,7 @@ def evidence_document(
     drift: list[str],
     problems: list[str],
     app_role: str,
+    schema_contract: Path | None = None,
 ) -> dict:
     """الدليل يربط نفسه **بما اختُبِر**، ويقول مدى ما يُثبِته داخله.
 
@@ -355,6 +358,8 @@ def evidence_document(
     وحدُّ الصدق مكتوبٌ **داخل** الوثيقة لا في مراجعةٍ خارجها: من يقرأ الـJSON وحده
     يجب أن يعرف ما لا يُثبِته.
     """
+    contract = (CONTRACT if schema_contract is None else schema_contract).resolve()
+    contract_path = contract.relative_to(ROOT) if contract.is_relative_to(ROOT) else contract
     return {
         "$comment": (
             "دليل وظيفة PG المخصّصة — يُكتَب بحكمه قبل أيّ رمز خروج. "
@@ -375,6 +380,10 @@ def evidence_document(
         },
         "execution": counts,
         "server": identity,
+        "schema_contract": {
+            "path": str(contract_path),
+            "sha256": hashlib.sha256(contract.read_bytes()).hexdigest(),
+        },
         "direct_role_attributes": {
             "$comment": (
                 "خصائص الدور المُسمّى نفسه من pg_roles. **لا يُثبَت** الإغلاق الانتقاليّ "
@@ -403,6 +412,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--owner", default=os.environ.get("SAHOOL_TEST_PGOWNER", "sahool_user"))
     ap.add_argument("--app-role", default=os.environ.get("SAHOOL_TEST_PGROLE", "sahool_app"))
     ap.add_argument("--min-executed", type=int, default=30)
+    ap.add_argument("--schema-contract", type=Path, default=CONTRACT)
     ap.add_argument(
         "--schema-only",
         action="store_true",
@@ -412,14 +422,14 @@ def main(argv: list[str] | None = None) -> int:
     a = ap.parse_args(argv)
 
     if a.schema_only:
-        drift = schema_drift(a.database, a.owner)
+        drift = schema_drift(a.database, a.owner, contract=a.schema_contract)
         if drift:
             print("live_pg_schema_drift FAILED:")
             for d in drift:
                 print(f"  {d}")
             return 1
         print(
-            f"live_pg_schema_contract_ok ({len(json.loads(CONTRACT.read_text(encoding='utf-8'))['objects'])} جدولاً)"
+            f"live_pg_schema_contract_ok ({len(json.loads(a.schema_contract.read_text(encoding='utf-8'))['objects'])} جدولاً)"
         )
         return 0
 
@@ -444,6 +454,7 @@ def main(argv: list[str] | None = None) -> int:
                     drift=drift,
                     problems=problems,
                     app_role=a.app_role,
+                    schema_contract=a.schema_contract,
                 ),
                 ensure_ascii=False,
                 indent=2,
@@ -468,7 +479,7 @@ def main(argv: list[str] | None = None) -> int:
         counts = tally(a.junit)
         identity = server_identity(a.database, a.owner)
         role = role_properties(a.database, a.owner, a.app_role)
-        drift = schema_drift(a.database, a.owner)
+        drift = schema_drift(a.database, a.owner, contract=a.schema_contract)
     except SystemExit as exit_:
         reason = getattr(exit_, "evidence_reason", EVIDENCE_REASON_UNCLASSIFIED)
         _emit("FAIL", None, None, None, [], [reason])

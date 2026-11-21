@@ -17,24 +17,24 @@
     "capabilities_multidimensional": 45,
     "files_scanned": 7586,
     "files_by_kind": {
-      "backend": 1309,
+      "backend": 1302,
       "database": 352,
-      "governance": 88,
+      "governance": 90,
       "mobile": 429,
-      "other": 2217,
-      "tests": 2635,
+      "other": 2229,
+      "tests": 2628,
       "web": 556
     },
-    "unmapped_artifacts": 3616,
+    "unmapped_artifacts": 3604,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4133,
-      "raw": 3453
+      "python_functional": 4119,
+      "raw": 3467
     },
-    "test_dependency_files": 2014,
-    "test_dependency_edges": 5375,
-    "test_dependency_bounded_files": 1167,
-    "test_dependency_unresolved_relations": 513
+    "test_dependency_files": 2006,
+    "test_dependency_edges": 5349,
+    "test_dependency_bounded_files": 1164,
+    "test_dependency_unresolved_relations": 510
   },
   "capabilities": [
     {
@@ -8876,59 +8876,59 @@
           "score": 14
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:919",
+          "value": "/health @ services/mcp_servers/market_server.py:896",
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:918",
+          "value": "/healthz @ services/mcp_servers/market_server.py:895",
           "score": 12
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:932",
+          "value": "/readyz @ services/mcp_servers/market_server.py:909",
           "score": 12
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:912",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:889",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:738",
+          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:737",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:797",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:774",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:739",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:738",
           "score": 12
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:905",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:882",
           "score": 12
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:867",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:844",
           "score": 12
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:875",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:852",
           "score": 12
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:850",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:827",
           "score": 12
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:882",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:859",
           "score": 12
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:888",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:865",
           "score": 12
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:862",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:839",
           "score": 12
         },
         {
@@ -9261,7 +9261,7 @@
           "score": 10
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:919",
+          "value": "/health @ services/mcp_servers/market_server.py:896",
           "score": 10
         },
         {
@@ -9269,7 +9269,7 @@
           "score": 10
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:918",
+          "value": "/healthz @ services/mcp_servers/market_server.py:895",
           "score": 10
         },
         {
@@ -9281,51 +9281,51 @@
           "score": 10
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:932",
+          "value": "/readyz @ services/mcp_servers/market_server.py:909",
           "score": 10
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:912",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:889",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:738",
+          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:737",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:797",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:774",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:739",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:738",
           "score": 10
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:905",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:882",
           "score": 10
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:867",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:844",
           "score": 10
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:875",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:852",
           "score": 10
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:850",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:827",
           "score": 10
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:882",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:859",
           "score": 10
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:888",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:865",
           "score": 10
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:862",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:839",
           "score": 10
         },
         {
@@ -12490,27 +12490,27 @@
           "score": 15
         },
         {
-          "value": "SAHOOL.AI.FEEDBACK @ event_publish_contracts.yaml:197",
+          "value": "SAHOOL.AI.FEEDBACK @ event_publish_contracts.yaml:185",
           "score": 14
         },
         {
-          "value": "SAHOOL.AI.GUARDRAIL @ event_publish_contracts.yaml:187",
+          "value": "SAHOOL.AI.GUARDRAIL @ event_publish_contracts.yaml:175",
           "score": 14
         },
         {
-          "value": "SAHOOL.AI.REVIEW @ event_publish_contracts.yaml:192",
+          "value": "SAHOOL.AI.REVIEW @ event_publish_contracts.yaml:180",
           "score": 14
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ event_publish_contracts.yaml:138",
+          "value": "sahool.actuator.dispatch.requested @ event_publish_contracts.yaml:126",
           "score": 14
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_publisher_coverage.py:373",
+          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_publisher_coverage.py:335",
           "score": 14
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_publisher_coverage.py:406",
+          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_publisher_coverage.py:368",
           "score": 14
         }
       ],
@@ -13094,16 +13094,7 @@
       "capability_id": "INT-003",
       "domain": "irrigation",
       "title": "IoT and sensors",
-      "backend": [
-        {
-          "path": "services/actuator-service/mqtt_transport.py",
-          "score": 14,
-          "signals": [
-            "path:mqtt",
-            "content:mqtt"
-          ]
-        }
-      ],
+      "backend": [],
       "routes": [],
       "database": [],
       "events": [],
@@ -13128,22 +13119,13 @@
         }
       ],
       "governance": [],
-      "other_evidence": [
-        {
-          "path": "docs/runbooks/MQTT_DEVICE_PROFILE_AR.md",
-          "score": 14,
-          "signals": [
-            "path:mqtt",
-            "content:mqtt"
-          ]
-        }
-      ],
+      "other_evidence": [],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 1,
+        "backend": 0,
         "routes": 0,
         "database": 0,
         "events": 0,
@@ -13151,9 +13133,9 @@
         "mobile": 0,
         "tests": 2,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 0
       },
-      "coverage_dimensions": 2,
+      "coverage_dimensions": 1,
       "mapped": true
     },
     {
@@ -13812,6 +13794,13 @@
           "signals": [
             "explicit_id"
           ]
+        },
+        {
+          "path": "certification/evidence/raster_pg15_reviewed_20261121/source-bindings.json",
+          "score": 8,
+          "signals": [
+            "path:source binding"
+          ]
         }
       ],
       "ambiguous": [],
@@ -13827,7 +13816,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 1,
-        "other_evidence": 4
+        "other_evidence": 5
       },
       "coverage_dimensions": 3,
       "mapped": true
@@ -25002,14 +24991,6 @@
           ]
         },
         {
-          "path": "services/mcp_servers/shared/owner_telemetry.py",
-          "score": 8,
-          "signals": [
-            "content:rls",
-            "content:Tenant RLS"
-          ]
-        },
-        {
           "path": "services/realtime-session/realtime_session/platform.py",
           "score": 8,
           "signals": [
@@ -27492,7 +27473,7 @@
         "database": 914
       },
       "evidence_counts": {
-        "backend": 14,
+        "backend": 13,
         "routes": 19,
         "database": 100,
         "events": 80,
@@ -37765,10 +37746,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/actuator-service/device_telemetry.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/actuator-service/main.py",
       "kind": "backend"
     },
@@ -39321,10 +39298,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/realtime-agent/realtime_agent/xiaozhi_codec.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/realtime-agent/tests/conftest.py",
       "kind": "tests"
     },
@@ -39349,19 +39322,7 @@
       "kind": "tests"
     },
     {
-      "path": "services/realtime-agent/tests/test_voice_chunking.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/realtime-agent/tests/test_worker.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/realtime-agent/tests/test_xiaozhi.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/realtime-agent/tests/test_xiaozhi_lifecycle.py",
       "kind": "tests"
     },
     {
@@ -39409,20 +39370,8 @@
       "kind": "backend"
     },
     {
-      "path": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/realtime-session/realtime_session/xiaozhi_leases.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/realtime-session/tests/test_livekit_adapter.py",
       "kind": "tests"
-    },
-    {
-      "path": "services/realtime-session/xiaozhi_main.py",
-      "kind": "backend"
     },
     {
       "path": "services/remote-sensing-workspace-bff/main.py",
@@ -46077,15 +46026,7 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_mcp_owner_telemetry.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_mcp_raster_status_relay_v58.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_mcp_streamable_http_contract.py",
       "kind": "tests"
     },
     {
@@ -46106,10 +46047,6 @@
     },
     {
       "path": "tests_v9/test_merge_safety_bootstrap.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_mesh_device_profile_20261121.py",
       "kind": "tests"
     },
     {
@@ -46654,6 +46591,10 @@
     },
     {
       "path": "tests_v9/test_raster_persist_observability_v30_2.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_raster_pg_certification.py",
       "kind": "tests"
     },
     {
@@ -47341,10 +47282,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_tts_chunk_validation_context.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_tts_critical_speech.py",
       "kind": "tests"
     },
@@ -47730,10 +47667,6 @@
     },
     {
       "path": "tests_v9/test_wx11_closed_loop_completion_contract.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_xiaozhi_review_followups.py",
       "kind": "tests"
     },
     {
@@ -59936,7 +59869,7 @@
         {
           "source": "services/raster-service/db_persist.py",
           "kind": "import",
-          "line": 57
+          "line": 58
         }
       ],
       "unresolved": []
@@ -60668,44 +60601,6 @@
       "unresolved": []
     },
     {
-      "test": "services/realtime-agent/tests/test_voice_chunking.py",
-      "bounded": true,
-      "unbounded_reasons": [],
-      "edges": [
-        {
-          "source": "services/realtime-agent/realtime_agent/context.py",
-          "kind": "import",
-          "line": 8
-        },
-        {
-          "source": "services/realtime-agent/realtime_agent/providers.py",
-          "kind": "import",
-          "line": 9
-        },
-        {
-          "source": "services/realtime-agent/realtime_agent/turns.py",
-          "kind": "import",
-          "line": 10
-        },
-        {
-          "source": "services/realtime-agent/tests/test_context.py",
-          "kind": "import",
-          "line": 11
-        },
-        {
-          "source": "services/realtime-agent/tests/test_speech.py",
-          "kind": "import",
-          "line": 12
-        },
-        {
-          "source": "services/realtime-agent/tests/test_turns.py",
-          "kind": "import",
-          "line": 13
-        }
-      ],
-      "unresolved": []
-    },
-    {
       "test": "services/realtime-agent/tests/test_worker.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -60746,57 +60641,6 @@
           "source": "services/realtime-agent/tests/test_turns.py",
           "kind": "import",
           "line": 146
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "services/realtime-agent/tests/test_xiaozhi.py",
-      "bounded": true,
-      "unbounded_reasons": [],
-      "edges": [
-        {
-          "source": "services/realtime-agent/realtime_agent/xiaozhi_codec.py",
-          "kind": "import",
-          "line": 10
-        },
-        {
-          "source": "services/realtime-agent/tests/test_speech.py",
-          "kind": "import",
-          "line": 12
-        },
-        {
-          "source": "services/realtime-session/realtime_session/contracts.py",
-          "kind": "import",
-          "line": 15
-        },
-        {
-          "source": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
-          "kind": "import",
-          "line": 16
-        },
-        {
-          "source": "services/realtime-session/realtime_session/xiaozhi_leases.py",
-          "kind": "import",
-          "line": 17
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "services/realtime-agent/tests/test_xiaozhi_lifecycle.py",
-      "bounded": true,
-      "unbounded_reasons": [],
-      "edges": [
-        {
-          "source": "services/realtime-agent/realtime_agent/xiaozhi_codec.py",
-          "kind": "import",
-          "line": 7
-        },
-        {
-          "source": "services/realtime-agent/tests/test_xiaozhi.py",
-          "kind": "import",
-          "line": 8
         }
       ],
       "unresolved": []
@@ -80387,67 +80231,67 @@
         {
           "source": "scripts/ci/codecov_coverage_guard.py",
           "kind": "import",
-          "line": 16
+          "line": 17
         },
         {
           "source": "services/auth/routers/invitations.py",
           "kind": "source_read",
-          "line": 160
+          "line": 180
         },
         {
           "source": "services/auth/routers/users.py",
           "kind": "source_read",
-          "line": 159
+          "line": 179
         },
         {
           "source": "services/auth/session_tokens.py",
           "kind": "source_read",
-          "line": 161
+          "line": 181
         },
         {
           "source": "services/decision-service/main.py",
           "kind": "source_read",
-          "line": 379
+          "line": 465
         },
         {
           "source": "services/sahool-platform/api/routers/security_audit.py",
           "kind": "source_read",
-          "line": 162
+          "line": 182
         },
         {
           "source": "services/soil-service/plan_copy_store.py",
           "kind": "source_read",
-          "line": 165
+          "line": 185
         },
         {
           "source": "services/vegetation-analysis-service/anomaly_store_pg.py",
           "kind": "source_read",
-          "line": 164
+          "line": 184
         },
         {
           "source": "tests_v9/test_auth_admin_authz_live_pg_redis.py",
           "kind": "source_read",
-          "line": 121
+          "line": 133
         },
         {
           "source": "tests_v9/test_auth_admin_tenant_scope_live_pg.py",
           "kind": "source_read",
-          "line": 120
+          "line": 132
         },
         {
           "source": "tests_v9/test_mfa_hardening_integration_v29_5.py",
           "kind": "source_read",
-          "line": 119
+          "line": 131
         },
         {
           "source": "tests_v9/test_platform_denial_log_scope_live.py",
           "kind": "source_read",
-          "line": 122
+          "line": 134
         }
       ],
       "unresolved": [
         {
-          "line": 337,
+          "line": 423,
           "call": "run_path"
         }
       ]
@@ -87983,28 +87827,39 @@
       "test": "tests_v9/test_lab_ci_certification_steps.py",
       "bounded": false,
       "unbounded_reasons": [
+        "directory_reference",
         "reads_repository_data_file"
       ],
       "edges": [
         {
           "source": "scripts/lab/run_certification.py",
           "kind": "loader",
-          "line": 39
+          "line": 44
         },
         {
           "source": "scripts/lab/run_certification.py",
           "kind": "source_read",
-          "line": 40
+          "line": 45
+        },
+        {
+          "source": "services/raster-service/test_raster_batch_postgres_integration.py",
+          "kind": "source_read",
+          "line": 125
+        },
+        {
+          "source": "services/raster-service/test_single_scene_concurrent_pg.py",
+          "kind": "source_read",
+          "line": 126
         },
         {
           "source": "tests_v9/test_mfa_hardening_integration_v29_5.py",
           "kind": "source_read",
-          "line": 83
+          "line": 212
         },
         {
           "source": "tests_v9/test_services_functional.py",
           "kind": "source_read",
-          "line": 84
+          "line": 213
         }
       ],
       "unresolved": []
@@ -88403,17 +88258,17 @@
         {
           "source": "scripts/ci/live_pg_evidence_guard.py",
           "kind": "loader",
-          "line": 29
+          "line": 30
         },
         {
           "source": "scripts/ci/live_pg_evidence_guard.py",
           "kind": "source_read",
-          "line": 25
+          "line": 26
         },
         {
           "source": "tests_v9/test_live_pg_fake_connection_debt.py",
           "kind": "source_read",
-          "line": 320
+          "line": 388
         }
       ],
       "unresolved": []
@@ -88797,17 +88652,17 @@
         {
           "source": "services/mcp_servers/shared/__init__.py",
           "kind": "import",
-          "line": 32
+          "line": 54
         },
         {
           "source": "services/supervisor-agent/circuit_breaker.py",
           "kind": "import",
-          "line": 70
+          "line": 66
         },
         {
           "source": "services/supervisor-agent/mcp_client.py",
           "kind": "source_read",
-          "line": 69
+          "line": 65
         }
       ],
       "unresolved": [
@@ -88836,7 +88691,6 @@
       "test": "tests_v9/test_mcp_generic_context_auth.py",
       "bounded": false,
       "unbounded_reasons": [
-        "directory_reference",
         "reads_repository_data_file",
         "unresolved_dynamic_relation"
       ],
@@ -88844,38 +88698,15 @@
         {
           "source": "services/mcp_servers/generic_context_server.py",
           "kind": "import",
-          "line": 100
-        },
-        {
-          "source": "services/mcp_servers/shared/__init__.py",
-          "kind": "import",
-          "line": 45
+          "line": 76
         }
       ],
       "unresolved": [
         {
-          "line": 89,
+          "line": 65,
           "call": "spec_from_file_location"
         }
       ]
-    },
-    {
-      "test": "tests_v9/test_mcp_owner_telemetry.py",
-      "bounded": true,
-      "unbounded_reasons": [],
-      "edges": [
-        {
-          "source": "services/mcp_servers/shared/owner_telemetry.py",
-          "kind": "loader",
-          "line": 15
-        },
-        {
-          "source": "services/mcp_servers/shared/owner_telemetry.py",
-          "kind": "source_read",
-          "line": 14
-        }
-      ],
-      "unresolved": []
     },
     {
       "test": "tests_v9/test_mcp_raster_status_relay_v58.py",
@@ -88889,27 +88720,6 @@
         }
       ],
       "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_mcp_streamable_http_contract.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "directory_reference",
-        "unresolved_dynamic_relation"
-      ],
-      "edges": [
-        {
-          "source": "services/mcp_servers/shared/__init__.py",
-          "kind": "import",
-          "line": 39
-        }
-      ],
-      "unresolved": [
-        {
-          "line": 30,
-          "call": "spec_from_file_location"
-        }
-      ]
     },
     {
       "test": "tests_v9/test_mcp_tool_hardening.py",
@@ -89037,27 +88847,6 @@
         }
       ],
       "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_mesh_device_profile_20261121.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "directory_reference",
-        "unresolved_dynamic_relation"
-      ],
-      "edges": [
-        {
-          "source": "mosquitto/device_acl.py",
-          "kind": "source_read",
-          "line": 34
-        }
-      ],
-      "unresolved": [
-        {
-          "line": 25,
-          "call": "spec_from_file_location"
-        }
-      ]
     },
     {
       "test": "tests_v9/test_mfa_crypto_v29_5.py",
@@ -89444,12 +89233,12 @@
         {
           "source": "conftest.py",
           "kind": "source_read",
-          "line": 105
+          "line": 95
         },
         {
           "source": "shared/notification_consumers.py",
           "kind": "source_read",
-          "line": 211
+          "line": 201
         },
         {
           "source": "tools/sahool_inspector.py",
@@ -90636,35 +90425,23 @@
     },
     {
       "test": "tests_v9/test_physical_effect_boundary_guard.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "tree_wide_scan"
-      ],
+      "bounded": true,
+      "unbounded_reasons": [],
       "edges": [
         {
-          "source": "mosquitto/device_acl.py",
+          "source": "scripts/ci/physical_effect_boundary_guard.py",
           "kind": "loader",
-          "line": 209
-        },
-        {
-          "source": "mosquitto/device_acl.py",
-          "kind": "source_read",
-          "line": 153
+          "line": 19
         },
         {
           "source": "scripts/ci/physical_effect_boundary_guard.py",
-          "kind": "loader",
+          "kind": "source_read",
           "line": 20
-        },
-        {
-          "source": "scripts/ci/physical_effect_boundary_guard.py",
-          "kind": "source_read",
-          "line": 21
         },
         {
           "source": "services/mcp_servers/weather_server.py",
           "kind": "source_read",
-          "line": 122
+          "line": 121
         }
       ],
       "unresolved": []
@@ -90695,7 +90472,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 358
+          "line": 355
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",
@@ -94989,11 +94766,6 @@
       ],
       "edges": [
         {
-          "source": "conftest.py",
-          "kind": "source_read",
-          "line": 130
-        },
-        {
           "source": "scripts/ci/runtime_contract_generator.py",
           "kind": "loader",
           "line": 32
@@ -95002,11 +94774,6 @@
           "source": "scripts/ci/runtime_contract_generator.py",
           "kind": "source_read",
           "line": 33
-        },
-        {
-          "source": "services/model-registry-adapter/service.py",
-          "kind": "source_read",
-          "line": 191
         },
         {
           "source": "services/raster-service/cdse_client.py",
@@ -98497,36 +98264,6 @@
       "unresolved": []
     },
     {
-      "test": "tests_v9/test_tts_chunk_validation_context.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "unresolved_dynamic_relation"
-      ],
-      "edges": [
-        {
-          "source": "services/tts-service/critical_speech.py",
-          "kind": "loader",
-          "line": 9
-        },
-        {
-          "source": "services/tts-service/critical_speech.py",
-          "kind": "source_read",
-          "line": 11
-        },
-        {
-          "source": "tests_v9/test_tts_tenant_policy_gate.py",
-          "kind": "import",
-          "line": 63
-        }
-      ],
-      "unresolved": [
-        {
-          "line": 105,
-          "import": "routers.tts"
-        }
-      ]
-    },
-    {
       "test": "tests_v9/test_tts_critical_speech.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -101271,31 +101008,6 @@
           "source": "services/decision-service/persistence.py",
           "kind": "source_read",
           "line": 8
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_xiaozhi_review_followups.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "tree_wide_scan"
-      ],
-      "edges": [
-        {
-          "source": "services/actuator-service/actuator_runtime.py",
-          "kind": "source_read",
-          "line": 80
-        },
-        {
-          "source": "services/tts-service/critical_speech.py",
-          "kind": "loader",
-          "line": 25
-        },
-        {
-          "source": "services/tts-service/critical_speech.py",
-          "kind": "source_read",
-          "line": 26
         }
       ],
       "unresolved": []

@@ -1,0 +1,42 @@
+{
+  "workflow_sha256": "2a33e072d2b8a3dcea9de5123e71d93b441d542143f045a2bd2148327d3e1707",
+  "run_sha256": "a6ce4e29ead6ba5362d92ba6f324f2a07e03cdbc104b97ec36fc77eeb1547da0",
+  "catalog_sha256": "6f43ca8712a5549ff6d7e8c59ec5b576d1e543ef97ed2d50378810b3c525de69",
+  "runner": "workflow run body, native PG15.20/PostGIS3.7",
+  "relocations": [
+    "RUNNER_TEMP",
+    "COVERAGE_FILE"
+  ],
+  "test_files": [
+    "services/raster-service/test_raster_batch_postgres_integration.py",
+    "services/raster-service/test_single_scene_concurrent_pg.py"
+  ]
+}
+/workspace/scratch/fb7e65be7e00/raster-live-integration-20261121/runtime/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:306: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to "function" scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session". Set it to "fixture-scope" to keep the current behavior.
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.2.0, pluggy-1.7.0 -- /workspace/scratch/fb7e65be7e00/raster-live-integration-20261121/runtime/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /workspace/scratch/fb7e65be7e00/raster-live-integration-20261121/source
+configfile: pytest.ini
+plugins: asyncio-1.5.0, cov-7.1.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 6 items
+
+services/raster-service/test_raster_batch_postgres_integration.py::test_database_connection_uses_an_unprivileged_nonowner_role PASSED [ 16%]
+services/raster-service/test_raster_batch_postgres_integration.py::test_real_postgres_dual_worker_recovery_and_fencing PASSED [ 33%]
+services/raster-service/test_raster_batch_postgres_integration.py::test_distinct_claim_cannot_reuse_an_existing_job_id PASSED [ 50%]
+services/raster-service/test_raster_batch_postgres_integration.py::test_concurrent_claims_share_one_lease_and_one_attempt[2] PASSED [ 66%]
+services/raster-service/test_raster_batch_postgres_integration.py::test_concurrent_claims_share_one_lease_and_one_attempt[8] PASSED [ 83%]
+services/raster-service/test_single_scene_concurrent_pg.py::test_concurrent_enqueue_leaves_one_item_and_no_orphan_run PASSED [100%]
+
+- generated xml file: /workspace/scratch/fb7e65be7e00/raster-live-integration-20261121/evidence/pg-candidate-03/raster-live-pg/certification.xml -
+============================== 6 passed in 1.45s ===============================
+─── أدلّة PG الحيّة — ملخّص مُشتقّ ───
+  التنفيذ: collected=6 executed=6 passed=6 failed=0 skipped=0
+  الخادم: PostgreSQL 15.20 (Debian 15.20-1.pgdg13+1) · PostGIS 3.7.0
+  الدور «sahool_app_test»: superuser=false bypassrls=false createdb=false createrole=false
+  عقد المخطّط: مطابق
+live_pg_evidence_ok

@@ -12,10 +12,10 @@ exactly the step's ``env``), so the lab cannot drift from CI. Only three things 
 * a step's relative ``COVERAGE_FILE`` is written into the evidence directory, not the
   checkout, so the appended coverage data does not leave the worktree dirty.
 
-The job ends with Codecov reporting steps (export, path guard, upload) starting at
-``COVERAGE_EXPORT_STEP``. They report on the certification steps rather than certify,
-so the lab stops before them, and refuses the boundary when anything after it is not a
-reporting step or calls pytest: a certification step cannot hide behind the reports.
+The job ends with Codecov reporting and a narrowly validated raster evidence upload,
+starting at ``COVERAGE_EXPORT_STEP``. The lab retains JUnit and evidence locally, so it
+does not replay these remote uploads. It refuses any other step after the boundary:
+a certification command cannot hide behind the reports.
 
 A step is refused, not approximated, when the lab cannot run it as written: it uses an
 action (``uses``), a GitHub expression (``${{``), a ``shell``/``working-directory``/``if``
@@ -31,6 +31,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 import time
@@ -44,7 +45,11 @@ JOB = "integration-tests"
 SHARED_RUN = "pytest -v -m integration --tb=short"
 UNSUPPORTED_KEYS = ("uses", "shell", "working-directory", "if", "with")
 COVERAGE_EXPORT_STEP = "Export live auth coverage with Git-relative paths"
-_REPORTING_RUNS = ("python -m coverage xml", "python scripts/ci/codecov_coverage_guard.py")
+RASTER_EVIDENCE_UPLOAD_STEP = "Preserve raster PostgreSQL certification evidence"
+_REPORTING_ARGV = (
+    ["python", "-m", "coverage", "xml"],
+    ["python", "scripts/ci/codecov_coverage_guard.py"],
+)
 _STRIP_PREFIXES = ("TEST_", "PG", "IRR_F01_")
 
 SHIM = """#!/usr/bin/env bash
@@ -73,9 +78,14 @@ def certification_steps(workflow: Path = CI_WORKFLOW) -> list[dict]:
     boundary = [i for i, s in enumerate(selected) if s.get("name") == COVERAGE_EXPORT_STEP]
     if boundary:
         for step in selected[boundary[0] :]:
-            if not _is_coverage_reporting(step):
+            supported = (
+                _is_raster_evidence_upload(step)
+                if step.get("name") == RASTER_EVIDENCE_UPLOAD_STEP
+                else _is_coverage_reporting(step)
+            )
+            if not supported:
                 name = step.get("name", step.get("uses", "<unnamed>"))
-                raise SystemExit(f"LAB_CI_STEP_UNSUPPORTED: {name}: not a coverage report step")
+                raise SystemExit(f"LAB_CI_STEP_UNSUPPORTED: {name}: not a supported report step")
         selected = selected[: boundary[0]]
     if not selected:
         raise SystemExit("LAB_CI_STEPS_UNREADABLE: no steps after the shared integration run")
@@ -89,16 +99,44 @@ def certification_steps(workflow: Path = CI_WORKFLOW) -> list[dict]:
     return selected
 
 
+def _is_raster_evidence_upload(step: dict) -> bool:
+    """Allow only a pinned upload of the raster receipt directory after execution."""
+    return (
+        set(step) == {"name", "if", "uses", "with"}
+        and step.get("name") == RASTER_EVIDENCE_UPLOAD_STEP
+        and step.get("if") == "always()"
+        and re.fullmatch(r"actions/upload-artifact@[0-9a-f]{40}", str(step.get("uses", "")))
+        is not None
+        and step.get("with")
+        == {
+            "name": "raster-live-pg-${{ github.run_id }}-${{ github.run_attempt }}",
+            "path": "${{ runner.temp }}/raster-live-pg/",
+            "if-no-files-found": "error",
+            "retention-days": 14,
+        }
+    )
+
+
 def _is_coverage_reporting(step: dict) -> bool:
     """An export, path-guard or pinned Codecov upload step that runs no pytest."""
     run = step.get("run") or ""
+    if not isinstance(run, str):
+        return False
     if pytest_calls(run):
         return False
     if "uses" in step:
         return set(step) <= {"uses", "with"} and str(step["uses"]).startswith(
             "codecov/codecov-action@"
         )
-    return set(step) <= {"name", "run"} and run.lstrip().startswith(_REPORTING_RUNS)
+    # A report is one command, not a shell program whose first command reports.
+    # Refuse shell composition and expansions before parsing its exact argv prefix.
+    if set(step) - {"name", "run"} or re.search(r"[;&|<>()`$\r\n]", run.strip()):
+        return False
+    try:
+        argv = shlex.split(run)
+    except ValueError:
+        return False
+    return any(argv[: len(prefix)] == prefix for prefix in _REPORTING_ARGV)
 
 
 def pytest_calls(run: str) -> list[str]:

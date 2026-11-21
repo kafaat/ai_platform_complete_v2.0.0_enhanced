@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import sys
@@ -301,6 +302,72 @@ def test_an_object_the_contract_does_not_name_is_not_drift(tmp_path, monkeypatch
     assert MOD.schema_drift("d", "o") == []
 
 
+@pytest.mark.parametrize("schema_only", [True, False], ids=["schema-only", "evidence"])
+@pytest.mark.parametrize(
+    ("explicit", "major", "expected_code"),
+    [(False, 16, 0), (False, 15, 1), (True, 15, 0), (True, 16, 1)],
+    ids=["default-pg16", "default-rejects-pg15", "explicit-pg15", "explicit-rejects-pg16"],
+)
+def test_cli_selects_and_binds_the_schema_contract(
+    tmp_path, monkeypatch, schema_only, explicit, major, expected_code
+):
+    contracts = {}
+    for required_major in (15, 16):
+        path = tmp_path / f"pg{required_major}.json"
+        path.write_text(
+            json.dumps(
+                {
+                    "postgres_major": required_major,
+                    "objects": {"required_table": {"primary_key": "PRIMARY KEY (id)"}},
+                }
+            ),
+            encoding="utf-8",
+        )
+        contracts[required_major] = path
+    monkeypatch.setattr(MOD, "CONTRACT", contracts[16])
+    _catalogue(monkeypatch, "PRIMARY KEY (id)", version=f"{major}0013")
+    monkeypatch.setattr(
+        MOD, "server_identity", lambda *a, **k: {"postgresql": f"{major}.13", "postgis": "3.4.2"}
+    )
+    monkeypatch.setattr(MOD, "role_properties", lambda *a, **k: _restricted())
+    out = tmp_path / "evidence.json"
+    args = (
+        ["--schema-only"]
+        if schema_only
+        else ["--junit", str(_junit(tmp_path, tests=30)), "--evidence", str(out)]
+    )
+    selected = contracts[15] if explicit else contracts[16]
+    if explicit:
+        args.extend(["--schema-contract", str(selected)])
+
+    assert MOD.main(args) == expected_code
+
+    if not schema_only:
+        doc = json.loads(out.read_text(encoding="utf-8"))
+        assert doc["verdict"] == ("PASS" if expected_code == 0 else "FAIL")
+        assert doc["schema_contract"] == {
+            "path": str(selected.resolve()),
+            "sha256": hashlib.sha256(selected.read_bytes()).hexdigest(),
+        }
+
+
+def test_explicit_contract_still_rejects_a_missing_object(tmp_path, monkeypatch):
+    contract = tmp_path / "pg15.json"
+    contract.write_text(
+        json.dumps(
+            {
+                "postgres_major": 15,
+                "objects": {"raster_batch_jobs": {"primary_key": "PRIMARY KEY (claim_key)"}},
+            }
+        ),
+        encoding="utf-8",
+    )
+    _catalogue(monkeypatch, "PRIMARY KEY (unrelated)", version="150020")
+    drift = MOD.schema_drift("d", "o", contract=contract)
+    assert len(drift) == 1
+    assert "raster_batch_jobs.primary_key" in drift[0]
+
+
 def test_a_missing_report_is_not_silently_treated_as_zero(tmp_path, monkeypatch):
     """تقريرٌ غائب ≠ صفر اختبار: الأوّل «لم يُشغَّل pytest»، والثاني نتيجة.
 
@@ -317,6 +384,7 @@ def test_the_contract_covers_every_table_the_proofs_assert_on():
     contract = json.loads(
         (ROOT / "docs/architecture/live_pg_schema_contract.json").read_text(encoding="utf-8")
     )
+    assert contract["postgres_major"] == 16
     proofs = (ROOT / "tests_v9/test_live_pg_fake_connection_debt.py").read_text(encoding="utf-8")
     for table in contract["objects"]:
         assert table in proofs, f"{table} في العقد ولا تلمسه الأدلّة — مدخل بائت"
@@ -458,6 +526,14 @@ def test_the_evidence_binds_the_tested_commit_and_tree(tmp_path, monkeypatch):
     assert binding["github_sha"] != binding["checkout_sha"], (
         "‏github_sha لا يُشتقّ من checkout_sha — الفارق هو المعلومة"
     )
+
+
+def test_default_contract_evidence_uses_a_checkout_relative_path(tmp_path, monkeypatch):
+    doc = _evidence(tmp_path, monkeypatch)["doc"]
+    assert doc["schema_contract"] == {
+        "path": "docs/architecture/live_pg_schema_contract.json",
+        "sha256": hashlib.sha256(MOD.CONTRACT.read_bytes()).hexdigest(),
+    }
 
 
 def test_the_evidence_names_its_scope_and_carries_all_four_attributes(tmp_path, monkeypatch):

@@ -23925,7 +23925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "26331abc214512bdb3a58b7be99f0139c46dd804894c16fb4399ac51f66feb8a"
+          "content": "5bcf079cb4874f4de3abd9b81dd3889f5a7c811091b673c1bcb18a8758ca9a6c"
         }
       ],
       "name": "services/raster-service/test_raster_batch_postgres_integration.py",
@@ -24215,7 +24215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9500d4bd7d6246ce7ab8b7ae6a881fc0405c27f35234c5f0ddb6b741d9123a0f"
+          "content": "7f77dfe710858ad2b95ab83d0f31a0899a4878309fa18c23d4c8bce8d3042d5e"
         }
       ],
       "name": "services/raster-service/test_single_scene_concurrent_pg.py",

@@ -1,0 +1,66 @@
+{
+  "schema": "sahool.live_pg_schema_contract",
+  "version": 1,
+  "adjudicated_on": "2026-11-21",
+  "$comment": "Required raster catalogue after migrations v144, v154 and v213. The restricted PostgreSQL 16 CI job checks these objects and the server major independently of its existing live proof suite.",
+  "postgres_major": 16,
+  "objects": {
+    "raster_batch_jobs": {
+      "primary_key": "PRIMARY KEY (claim_key)",
+      "rls_enabled_forced": "true/true",
+      "column": [
+        "claim_key text",
+        "job_id text",
+        "tenant_id uuid",
+        "lease_owner text",
+        "lease_token text",
+        "lease_expires_at timestamp with time zone",
+        "attempt_count integer",
+        "status text"
+      ],
+      "unique": [
+        "UNIQUE (job_id)"
+      ],
+      "check": [
+        "CHECK ((status = ANY (ARRAY['pending'::text, 'processing'::text, 'completed'::text, 'failed'::text])))"
+      ]
+    },
+    "backfill_runs": {
+      "primary_key": "PRIMARY KEY (id)",
+      "rls_enabled_forced": "true/true",
+      "column": [
+        "id bigint",
+        "tenant_id uuid",
+        "field_id character varying",
+        "run_kind text",
+        "status text"
+      ],
+      "check": [
+        "CHECK ((run_kind = ANY (ARRAY['backfill'::text, 'single_scene'::text])))"
+      ]
+    },
+    "backfill_run_items": {
+      "primary_key": "PRIMARY KEY (id)",
+      "rls_enabled_forced": "true/true",
+      "column": [
+        "id bigint",
+        "run_id bigint",
+        "tenant_id uuid",
+        "field_id character varying",
+        "scene_id text",
+        "index_name text",
+        "idempotency_key text",
+        "status text"
+      ],
+      "unique": [
+        "UNIQUE (tenant_id, idempotency_key)"
+      ],
+      "foreign_key": [
+        "FOREIGN KEY (run_id) REFERENCES backfill_runs(id) ON DELETE CASCADE"
+      ],
+      "check": [
+        "CHECK ((status = ANY (ARRAY['queued'::text, 'processing'::text, 'persisted'::text, 'skipped'::text, 'failed'::text])))"
+      ]
+    }
+  }
+}
