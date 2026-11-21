@@ -861,13 +861,17 @@ async def enqueue_single_scene_process(
                 "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
                 "AND index_name=$3 AND acquisition_date=$4::text::date AND scene_id=$5 "
                 "AND asset_status='ready' "
-                "AND ($6::int IS NULL OR geometry_revision=$6::int) LIMIT 1",
+                "AND ($6::int IS NULL OR geometry_revision=$6::int) "
+                "AND algorithm_version=$7::text LIMIT 1",
                 str(tenant_id),
                 field_id,
                 index_name,
                 acq,
                 scene_id,
                 geometry_revision,
+                # أصلٌ جاهز حُسب بإصدار خوارزميّة آخر (أو بلا إصدار) ليس «جاهزاً» لهذه الهويّة،
+                # كما في preflight العامل (backfill_scan_worker._ready_asset).
+                identity.processing_version,
             )
             if ready:
                 return {

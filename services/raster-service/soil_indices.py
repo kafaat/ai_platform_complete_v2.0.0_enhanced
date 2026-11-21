@@ -28,8 +28,9 @@ from __future__ import annotations
 # Validity (G4): Sentinel-2 L2A baseline ≥04.00 applies BOA_ADD_OFFSET −0.1, so
 # dark/water pixels carry negative reflectance; with mixed signs the old
 # ``_eps`` (1e-10) published ±6e7. Normalized differences now go through the
-# shared band_math kernel (negative/nonfinite band or result outside [-1, 1]
-# ⇒ NaN, excluded from stats). سالب الانعكاس ⇒ NaN لا قيمة مختلَقة.
+# shared band_math kernel (negative/nonfinite band, zero denominator — i.e. all
+# bands zero, which is no-data — or result outside [-1, 1] ⇒ NaN, excluded from
+# stats). سالب الانعكاس أو مقامٌ صفريّ ⇒ NaN لا قيمة مختلَقة.
 from band_math import nonnegative_finite, normalized_difference
 
 # الصيغ (توثيق + مرجع للتنفيذ) — تُطابق _INDICATOR_FORMULAS في main.py

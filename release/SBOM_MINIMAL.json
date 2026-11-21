@@ -22045,7 +22045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d0829f616ee7e22fd96e103dc9c8aa60ab1ea75ce3e736217af012974f7ad89"
+          "content": "df6c4b44c27c96b037727daf5bf8097292738b15c76077c18770fa1da613dfe7"
         }
       ],
       "name": "services/raster-service/band_math.py",
@@ -22145,7 +22145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "47ddc62a46640a3f665cd5785773a357597e6946fbf9780873fbcb0c3dbbeece"
+          "content": "160a227be1fb1f084ed61189d85cef4c1da66dd8aa8eade7cfe472ae664de018"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -22165,7 +22165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "68d978dfcb85112c8f27bab9e260d858ed9ef05b1cbfafb21687c8c2c0b3921c"
+          "content": "813170332e0501b94f3fddcd2b3cfe77ff85a9628eb9d6c7c66a9b82b592f525"
         }
       ],
       "name": "services/raster-service/follow_up_runtime.py",
@@ -22215,7 +22215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3815369e949ae39b901ad2cb88a9c14415203d1cc44a45932a9a4746e9f54b0f"
+          "content": "4aec5fbe44adf2c1024622d959eb12df244f2c5a5bcd82186a19f08c8253150f"
         }
       ],
       "name": "services/raster-service/imagery_product_identity.py",
@@ -22595,7 +22595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42d8362e743bfa3f48329502a7f992b0807b6a63a9d752cc678c108508d18424"
+          "content": "159d09e6fff3afc39e6eb69ad9d079202a9e45f83b559efba74ccc94888fd4bf"
         }
       ],
       "name": "services/raster-service/raster_pixel_processing.py",
@@ -22625,7 +22625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a67f2fdc4cdbf98963c84fd91bb63fdce60ad7569a5c3308bdfbad337f79f27d"
+          "content": "899f2a272483061ce47b4b578505853ec46609320126892f42348469bb3938a1"
         }
       ],
       "name": "services/raster-service/raster_quality.py",
@@ -22965,7 +22965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0dedb3b9bbd2dea13f0e69813e3134bc8311f1f1e8d1c5fc5843d12feff11515"
+          "content": "e0ce67c07b68e4ffe5f4f5890b44cdf167ddf54277f71b25c3b18d45ca27a7be"
         }
       ],
       "name": "services/raster-service/soil_indices.py",
@@ -23135,7 +23135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a6cc844f973cbdce878f0311ec93015b53f5a4b09f1f9b6c7eeb448c7923015a"
+          "content": "d43691316c7d366ae0f37e1c302c46088b7c7a0d0d9fddb1a7192bdb70ac5dc2"
         }
       ],
       "name": "services/raster-service/test_band_math_zones.py",
@@ -23715,7 +23715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e142e15a2e2258520aa2ca80817d773eb8923fd422a7b7d1874a475eea119773"
+          "content": "f13259bac2477ae08650469f8d797e9cb317ed43dc1ad9bdc31189854cc93686"
         }
       ],
       "name": "services/raster-service/test_ndvi_numeric_contract.py",
@@ -23725,7 +23725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e0beba97b186c3bde301f0b0051a36c26f99ad44a134c9bbca6712e009b9d630"
+          "content": "016708ceb56bd3239c6a764316b03538127f41de9a52930fad368f09f98fa660"
         }
       ],
       "name": "services/raster-service/test_normalized_difference_validity.py",
@@ -23865,7 +23865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "61bbffbf2659e20f237f9ce9e744f6e4a5978396b26e188c131f74bdff2e0b09"
+          "content": "cd5b0e134d86c0d8d0ef434091d1416f572f7d604b31675fb2ef71756dae03b7"
         }
       ],
       "name": "services/raster-service/test_quotient_index_validity.py",
@@ -37025,7 +37025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e5739d8a60e4113822df888957d6a19139cd594047c655af35b0d4c4cc2a0d9"
+          "content": "ea7989c9ede2df8f71415c67fa509d066af86e6d0307276828d85e06c83d841d"
         }
       ],
       "name": "services/sahool-platform/tests/test_property_invariants.py",

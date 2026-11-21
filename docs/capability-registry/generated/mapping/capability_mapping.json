@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7563,
+    "files_scanned": 7565,
     "files_by_kind": {
       "backend": 1302,
       "database": 352,
       "governance": 88,
       "mobile": 429,
       "other": 2211,
-      "tests": 2625,
+      "tests": 2627,
       "web": 556
     },
-    "unmapped_artifacts": 3602,
-    "ambiguous_artifacts": 264,
+    "unmapped_artifacts": 3603,
+    "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4115,
+      "python_functional": 4117,
       "raw": 3448
     },
-    "test_dependency_files": 2004,
-    "test_dependency_edges": 5341,
-    "test_dependency_bounded_files": 1162,
+    "test_dependency_files": 2006,
+    "test_dependency_edges": 5347,
+    "test_dependency_bounded_files": 1164,
     "test_dependency_unresolved_relations": 510
   },
   "capabilities": [
@@ -18518,6 +18518,14 @@
           ]
         },
         {
+          "path": "services/raster-service/band_math.py",
+          "score": 8,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
           "path": "services/raster-service/follow_up_runtime.py",
           "score": 8,
           "signals": [
@@ -20496,7 +20504,7 @@
         "routes": 34
       },
       "evidence_counts": {
-        "backend": 42,
+        "backend": 43,
         "routes": 100,
         "database": 5,
         "events": 47,
@@ -22590,6 +22598,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_nd_index_zero_denominator_contract.py",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        },
+        {
           "path": "tests_v9/test_nitrogen_prescription_honesty.py",
           "score": 8,
           "signals": [
@@ -22933,7 +22949,7 @@
         "events": 100,
         "web": 39,
         "mobile": 5,
-        "tests": 71,
+        "tests": 72,
         "governance": 0,
         "other_evidence": 33
       },
@@ -44615,6 +44631,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_band_math_version_reuse.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_bff_execution_plan_operation_canonical.py",
       "kind": "tests"
     },
@@ -51509,6 +51529,28 @@
           "signals": [
             "content:procurement",
             "content:warehouse"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/raster-service/band_math.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        },
+        {
+          "capability_id": "SAT-001",
+          "score": 8,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
           ]
         }
       ]
@@ -58720,7 +58762,7 @@
         {
           "source": "services/raster-service/raster_pixel_processing.py",
           "kind": "source_read",
-          "line": 43
+          "line": 45
         }
       ],
       "unresolved": []
@@ -58738,7 +58780,7 @@
         {
           "source": "services/raster-service/raster_pixel_processing.py",
           "kind": "source_read",
-          "line": 62
+          "line": 66
         }
       ],
       "unresolved": []
@@ -78166,6 +78208,34 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_band_math_version_reuse.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/raster-service/backfill_scan_worker.py",
+          "kind": "import",
+          "line": 136
+        },
+        {
+          "source": "services/raster-service/db_persist.py",
+          "kind": "import",
+          "line": 175
+        },
+        {
+          "source": "services/raster-service/imagery_product_identity.py",
+          "kind": "import",
+          "line": 34
+        },
+        {
+          "source": "services/raster-service/raster_quality.py",
+          "kind": "import",
+          "line": 35
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_bff_execution_plan_operation_canonical.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -89152,6 +89222,24 @@
           "source": "tools/sahool_inspector.py",
           "kind": "import",
           "line": 23
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_nd_index_zero_denominator_contract.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/raster-service/band_math.py",
+          "kind": "import",
+          "line": 27
+        },
+        {
+          "source": "services/raster-service/soil_indices.py",
+          "kind": "import",
+          "line": 28
         }
       ],
       "unresolved": []

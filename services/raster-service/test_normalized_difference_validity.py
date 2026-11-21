@@ -45,16 +45,20 @@ def test_every_band_math_normalized_difference_masks_invalid_inputs(fn):
     b = np.array([0.003, -0.003, -0.02, -1e-6, 0.2, 0.0, 0.2])
     out = fn(a, b)
     assert np.isnan(out[:5]).all()  # any negative or nonfinite input band
-    np.testing.assert_allclose(out[5:], [0.0, 0.5])  # legacy 0/0 contract kept
+    # Two zero bands are no-data, not "no vegetation": NaN, as on the CDSE native
+    # path (0/0). The legacy epsilon contract published 0.0 here.
+    assert np.isnan(out[5])
+    assert out[6] == pytest.approx(0.5)
     finite = out[np.isfinite(out)]
     assert (np.abs(finite) <= 1.0).all()
 
 
-def _run_process_pixels(tmp_path, indicator, band_attrs, *band_values):
+def _run_process_pixels(tmp_path, indicator, band_attrs, *band_values, declared_nodata=-9999):
     """Execute the real process_pixels on an N-band float32 GeoTIFF (no services).
 
     ``band_attrs[i]`` is read from file band i+1, whose first row starts with
-    ``band_values[i]``; every other pixel is nodata.
+    ``band_values[i]``; every other pixel holds -9999. With ``declared_nodata=None``
+    the file declares no nodata at all, as some sources do.
     """
     import rasterio
     from rasterio.transform import from_origin
@@ -118,7 +122,7 @@ def _run_process_pixels(tmp_path, indicator, band_attrs, *band_values):
         height=16,
         count=len(band_values),
         dtype="float32",
-        nodata=-9999,
+        nodata=declared_nodata,
         crs="EPSG:32638",
         transform=from_origin(400000, 1772000, 10, 10),
     ) as dst:
@@ -154,3 +158,20 @@ def test_runtime_negative_reflectance_pixel_does_not_corrupt_published_mean(
     assert stats["valid_pixels"] == 1
     assert stats["mean"] == pytest.approx(0.5, rel=1e-6)
     assert stats["min"] >= -1.0 and stats["max"] <= 1.0
+
+
+@pytest.mark.parametrize("indicator,band_attrs", _RUNTIME_ND)
+def test_two_zero_bands_on_a_source_without_declared_nodata_are_not_published_as_zero(
+    tmp_path, indicator, band_attrs
+):
+    """ND-INDEX-ZERO-DENOMINATOR-PUBLISHES-ZERO-01, end to end through process_pixels.
+
+    A source that declares no nodata (the runtime falls back to -9999) and applies no
+    offset hands two zero bands to the kernel. That pixel is missing data: it must
+    leave the statistics instead of entering the mean as an index of 0.0.
+    """
+    stats = _run_process_pixels(
+        tmp_path, indicator, band_attrs, [0.0, 0.2], [0.0, 0.6], declared_nodata=None
+    )
+    assert stats["valid_pixels"] == 1
+    assert stats["mean"] == pytest.approx(0.5, rel=1e-6)

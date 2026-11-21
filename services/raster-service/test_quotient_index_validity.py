@@ -188,13 +188,13 @@ def test_dbsi_and_satvi_mask_negative_reflectance_and_keep_valid_values():
     assert np.isnan(satvi[1])
 
 
-def test_soil_nd_indices_keep_the_shared_kernel_all_zero_contract():
-    # Same contract as band_math.normalized_difference: 0/0 with valid (non-negative)
-    # bands → 0, not NaN; the mixed-sign A + B == 0 case is what is masked.
+def test_soil_nd_indices_follow_the_shared_kernel_all_zero_contract():
+    # Same contract as band_math.normalized_difference: all-zero bands are no-data,
+    # so 0/0 → NaN, not a published 0.0 (ND-INDEX-ZERO-DENOMINATOR-PUBLISHES-ZERO-01).
     z = np.array([0.0])
-    assert soil_indices.compute_ndti(z, z, np)[0] == 0.0
-    assert soil_indices.compute_ndsi(z, z, np)[0] == 0.0
-    assert soil_indices.compute_bsi(z, z, z, z, np)[0] == 0.0
+    assert np.isnan(soil_indices.compute_ndti(z, z, np)[0])
+    assert np.isnan(soil_indices.compute_ndsi(z, z, np)[0])
+    assert np.isnan(soil_indices.compute_bsi(z, z, z, z, np)[0])
 
 
 def test_guarded_quotient_refuses_a_missing_band():
