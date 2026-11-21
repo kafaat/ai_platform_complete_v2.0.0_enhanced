@@ -5,7 +5,13 @@ WORKDIR /app
 # Reuse both isolated services' reviewed pins; no third dependency authority.
 COPY services/realtime-agent/requirements.txt /tmp/worker-requirements.txt
 COPY services/realtime-session/requirements.txt /tmp/session-requirements.txt
-RUN python -m pip install --no-cache-dir -r /tmp/worker-requirements.txt -r /tmp/session-requirements.txt \
+ARG PIP_INDEX_URL=https://pypi.org/simple
+# Optional operator override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG PIP_TRUSTED_HOST=
+ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
+    PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
+RUN python -m pip install --no-cache-dir --timeout 300 --retries 10 \
+        -r /tmp/worker-requirements.txt -r /tmp/session-requirements.txt \
     && groupadd --gid 10001 voice \
     && useradd --uid 10001 --gid voice --no-create-home voice
 COPY services/realtime-agent/realtime_agent/ /app/realtime_agent/

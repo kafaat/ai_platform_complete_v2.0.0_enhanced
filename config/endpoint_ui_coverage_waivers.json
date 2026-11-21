@@ -877,6 +877,46 @@
       "tracking": "ECON-SCENARIO-UI-01",
       "expiry": "2026-11-27",
       "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/realtime/xiaozhi/leases",
+      "methods": [
+        "post@services/realtime-session/realtime_session/xiaozhi_gateway.py"
+      ],
+      "reason": "بوّابة Xiaozhi المحلّيّة اختياريّة ومعطّلة افتراضيّاً (SAHOOL_XIAOZHI_ENABLED=0). ينشئ مستخدم سهول جلسة جهاز قصيرة (≤5 دقائق، مربوطة بالـMAC ومعرّف العميل، بموافقة صريحة) أو يُبطلها؛ اليوم عبر دليل التشغيل docs/runbooks/XIAOZHI_LOCAL_GATEWAY_AR.md لا عبر شاشة. دَين واجهة مُعلَن بدل ادّعاء تغطية غير موجودة. (إنشاء الجلسة)",
+      "audience": "farmer",
+      "reason_category": "backlog-ui",
+      "priority": "medium",
+      "ui_effort": "panel",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/LearningEvidenceCard.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human",
+      "owner": "realtime-session",
+      "tracking": "XIAOZHI-DEVICE-LEASE-UI",
+      "expiry": "2026-12-31",
+      "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/realtime/xiaozhi/leases/{session_id}",
+      "methods": [
+        "delete@services/realtime-session/realtime_session/xiaozhi_gateway.py"
+      ],
+      "reason": "بوّابة Xiaozhi المحلّيّة اختياريّة ومعطّلة افتراضيّاً (SAHOOL_XIAOZHI_ENABLED=0). ينشئ مستخدم سهول جلسة جهاز قصيرة (≤5 دقائق، مربوطة بالـMAC ومعرّف العميل، بموافقة صريحة) أو يُبطلها؛ اليوم عبر دليل التشغيل docs/runbooks/XIAOZHI_LOCAL_GATEWAY_AR.md لا عبر شاشة. دَين واجهة مُعلَن بدل ادّعاء تغطية غير موجودة. (إبطال الجلسة)",
+      "audience": "farmer",
+      "reason_category": "backlog-ui",
+      "priority": "medium",
+      "ui_effort": "panel",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/LearningEvidenceCard.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human",
+      "owner": "realtime-session",
+      "tracking": "XIAOZHI-DEVICE-LEASE-UI",
+      "expiry": "2026-12-31",
+      "temporary": true
     }
   ]
 }

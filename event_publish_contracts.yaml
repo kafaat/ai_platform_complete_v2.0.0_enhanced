@@ -34,6 +34,18 @@ subjects:
       - producer: "sahool-plugin-runtime-worker (run_plugin_once)"
         source_table: "marketplace_plugin_runtime_events"
 
+  # ── موضوع MQTT ينشره البرنامج الثابت لا Python في الشجرة ──
+  # ملفّ الجهاز الخاصّ بالشبكة (mesh): يُستهلَك في actuator-service فقط حين يُضبط
+  # FEATURE_DEVICE_MESH_TELEMETRY مع mqtts وبيانات الوسيط (معطّل افتراضيّاً). منتِجه بوّابة
+  # ESP32 المبنيّة بـSAHOOL_MQTT_TLS؛ يفحص tests_v9/test_nats_publisher_coverage.py أنّ الملفّ
+  # ما زال يبني الموضوع.
+  - subject: "sahool/+/+/telemetry/+/mesh"
+    transport: "mqtt"
+    consumer: "actuator-service mesh telemetry listener (services/actuator-service/actuator_runtime.py)"
+    producer: "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino (MQTT device profile, SAHOOL_MQTT_TLS build)"
+    source: "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino — forwardToMqtt() يبني sahool/<tenant>/<field>/telemetry/<device>/mesh"
+    schema_version: 1
+
   # ── موضوعات توجيه دقيق محجوزة للمستقبل (waiver، قرار معماريّ) ──
   # الأحداث الفعليّة تتدفّق الآن عبر التيّار العامّ ``sahool.events.<type>`` أعلاه
   # (المُستهلَك بـ notif_domain_events). هذه الموضوعات الدقيقة محجوزة لتوجيه أدقّ
