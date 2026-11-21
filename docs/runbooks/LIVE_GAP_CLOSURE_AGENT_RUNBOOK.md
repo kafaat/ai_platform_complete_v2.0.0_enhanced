@@ -587,10 +587,14 @@ pytest -v -m integration tests_v9/test_actuation_killswitch_v29_5_op.py \
 
 > **حقيقة مقيسة تُغيّر شكل هذا الاختبار (أُعيد قياسها على `8b644c6d9`):** على `4ad1b1cc` كان
 > `correlation_id` **غائباً** عن `decision_record` و`execution_ledger` و`as_applied_irrigation_receipts`.
-> منذ `v235_decision_chain_correlation.sql` صار في **9** جداول لا 4: أُضيف إلى `decision_record` و`dispatch_decisions`
+> منذ `v235_decision_chain_correlation.sql` صار في **9** جداول من مخطّط المنصّة (`migrations/`) لا 4: أُضيف إلى `decision_record` و`dispatch_decisions`
 > و`execution_ledger` و`as_applied_irrigation_runs` و`as_applied_irrigation_receipts`، بجانب
 > `irrigation_resource_reservations` و`irrigation_resource_reservation_events` و`workflow_state`
-> و`hydraulic_capacity_evaluations`؛ و`decision_reviews` ما زال بلا عمود، و`analysis_id` في `field_evidence_snapshots` وحده.
+> و`hydraulic_capacity_evaluations`؛ و`analysis_id` في `field_evidence_snapshots` وحده.
+> وفي مخطّط decision-service نفسه (`services/decision-service/migrations/`، قاعدة `DECISION_SERVICE_DATABASE_URL`) تُضيف
+> `036_decision_chain_correlation.sql` العمودَ ذاته `uuid` مملوكاً للخادم وموروثاً إلى `decision_reviews` و`decision_execution_plans`
+> و`decision_dispatch_authorizations` و`decision_execution_requests`؛ و`027_reservation_dispatch_inbox.sql` يحمل `correlation_id` نصّيّاً
+> في `decision_reservation_dispatch_inbox`. فلا تَعُدّ `decision_reviews` نقطة انقطاع قبل أن تفحص قاعدة decision-service.
 > لكنّ عمود v235 **يملكه الخادم** (`uuid` يولّده مشغّل الجذر ويرفض أيّ قيمة من المُستدعي، ثمّ يرثه الابن من أبيه)،
 > فلا يحمل `X-Correlation-ID` الذي يرسله المُستدعي، ولا يُطابق `$CID` النصّيّ. **الجسر قائم في المخطّط
 > داخل سلسلة القرار والتنفيذ، ومفقودٌ بين ترويسة الطلب وتلك السلسلة وبين الحجز والقرار** — وهو تضييق للفجوة لا إغلاق لها.

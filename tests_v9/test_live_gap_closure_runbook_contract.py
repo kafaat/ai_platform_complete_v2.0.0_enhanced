@@ -108,13 +108,29 @@ def test_readonly_helper_neither_executes_env_file_nor_copies_nats_secrets() -> 
     assert "password_present" not in helper  # derived at runtime; never a copied value
 
 
-def _migration_columns(table: str) -> set[str]:
-    """Columns declared for ``table`` by CREATE TABLE / ALTER TABLE ADD COLUMN in migrations."""
+def _created_tables(migrations_dir: str) -> set[str]:
+    """Tables created by any CREATE TABLE in ``migrations_dir``."""
+    import re
+
+    names: set[str] = set()
+    for path in sorted((ROOT / migrations_dir).glob("*.sql")):
+        sql = re.sub(r"--[^\n]*", "", _text(path))
+        names.update(
+            m.lower()
+            for m in re.findall(
+                r'CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:"?\w+"?\.)?"?(\w+)"?', sql, re.I
+            )
+        )
+    return names
+
+
+def _migration_columns(table: str, migrations_dir: str = "migrations") -> set[str]:
+    """Columns declared for ``table`` by CREATE TABLE / ALTER TABLE ADD COLUMN in ``migrations_dir``."""
     import re
 
     columns: set[str] = set()
     ident = r'(?:"?\w+"?\.)?"?(\w+)"?'
-    for path in sorted((ROOT / "migrations").glob("*.sql")):
+    for path in sorted((ROOT / migrations_dir).glob("*.sql")):
         if path.name.endswith(".down.sql"):
             continue
         sql = re.sub(r"--[^\n]*", "", _text(path))
@@ -209,7 +225,20 @@ def test_correlation_measurement_matches_the_migrated_decision_chain() -> None:
         assert f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS correlation_id uuid;" in migration
         assert "correlation_id" in _migration_columns(table)
     assert "root correlation is server-owned" in migration
-    assert "correlation_id" not in _migration_columns("decision_reviews")
+    # decision_reviews lives in decision-service's own schema, not migrations/, so a
+    # migrations/-only scan would return an empty set and prove nothing about it.
+    assert "decision_reviews" not in _created_tables("migrations")
+    decision_dir = "services/decision-service/migrations"
+    assert "decision_reviews" in _created_tables(decision_dir)
+    for table in (
+        "decision_reviews",
+        "decision_execution_plans",
+        "decision_dispatch_authorizations",
+        "decision_execution_requests",
+    ):
+        assert "correlation_id" in _migration_columns(table, decision_dir), table
+    assert "036_decision_chain_correlation.sql" in runbook
+    assert "ما زال بلا عمود" not in runbook
     assert "v235_decision_chain_correlation.sql" in runbook
     assert "**يملكه الخادم**" in runbook
 
