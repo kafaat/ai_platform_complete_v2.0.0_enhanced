@@ -227,6 +227,57 @@ async def test_registry_rejects_cross_scope_or_wrong_device(act, record):
     act.evaluate_rules.assert_not_awaited()
 
 
+@pytest.mark.parametrize(
+    "record, reason",
+    [
+        (None, "device_not_registered"),
+        (
+            {"tenant_id": "other", "field_id": "field-9", "device_id": "sensor-1"},
+            "topic_tenant_mismatch",
+        ),
+        (
+            {"tenant_id": TENANT, "field_id": "other", "device_id": "sensor-1"},
+            "topic_field_mismatch",
+        ),
+        (
+            {"tenant_id": TENANT, "field_id": "field-9", "device_id": "peer"},
+            "registry_device_id_mismatch",
+        ),
+    ],
+)
+async def test_a_refused_mesh_sample_logs_its_reason_once_per_interval(
+    act, monkeypatch, caplog, record, reason
+):
+    clock = [1000.0]
+    monkeypatch.setattr(act.time, "monotonic", lambda: clock[0])
+    act._mesh_reject_logged.clear()
+    act._registry_device.return_value = record
+    caplog.set_level("WARNING", logger="actuator-service")
+
+    def rejections():
+        return [
+            r.getMessage() for r in caplog.records if "mesh telemetry rejected" in r.getMessage()
+        ]
+
+    for _ in range(3):
+        assert await act._handle_telemetry_message(TOPIC, _payload()) is None
+    assert len(rejections()) == 1
+    assert reason in rejections()[0] and "'sensor-1'" in rejections()[0]
+
+    clock[0] += act._MESH_REJECT_LOG_INTERVAL_S
+    assert await act._handle_telemetry_message(TOPIC, _payload()) is None
+    assert len(rejections()) == 2
+    act.evaluate_rules.assert_not_awaited()
+
+
+def test_the_mesh_rejection_log_memory_is_bounded(act, monkeypatch):
+    monkeypatch.setattr(act.time, "monotonic", lambda: 5.0)
+    act._mesh_reject_logged.clear()
+    for index in range(act._MESH_REJECT_LOG_MAX_KEYS + 10):
+        assert act._log_mesh_rejection(TENANT, f"device-{index}", "device_not_registered")
+    assert len(act._mesh_reject_logged) <= act._MESH_REJECT_LOG_MAX_KEYS
+
+
 async def test_retained_and_unbound_mesh_are_not_replayed(act):
     await act._handle_telemetry_message(TOPIC, _payload(), retained=True)
     await act._handle_telemetry_message(TOPIC.replace("/sensor-1/", "/"), _payload())
