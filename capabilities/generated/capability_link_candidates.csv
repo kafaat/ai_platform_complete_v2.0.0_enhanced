@@ -140,6 +140,7 @@ DEC-003,test,tests_v9/test_practice_dataset_review.py,3,applied
 DEC-003,test,tests_v9/test_security_review_fixes.py,3,applied
 DEC-003,test,tests_v9/test_trial_review_guards.py,3,applied
 DEC-003,test,tests_v9/test_trial_spatial_review_guards.py,3,applied
+DEC-003,test,tests_v9/test_xiaozhi_review_followups.py,3,applied
 DEC-004,api,GET /v1/execution-requests @ services/decision-service/main.py:2094,5,applied
 DEC-004,api,GET /v1/execution-requests/recovery @ services/decision-service/main.py:2123,5,applied
 DEC-004,api,GET /v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2223,5,applied

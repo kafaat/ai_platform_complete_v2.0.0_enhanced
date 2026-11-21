@@ -2235,10 +2235,12 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
+        "DELETE <dynamic>",
+        "GET <dynamic>",
         "POST <dynamic>"
       ],
       "idempotency_required": false,
-      "kind": "command",
+      "kind": "mixed",
       "owner": "mcp_servers",
       "producer": "mcp_servers",
       "required_context": []
@@ -3931,6 +3933,39 @@
       "required_context": [
         "tenant"
       ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "realtime-session.realtime.xiaozhi.leases",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "DELETE /api/v1/realtime/xiaozhi/leases/{session_id}",
+        "POST /api/v1/realtime/xiaozhi/leases"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "realtime-session",
+      "producer": "realtime-session",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "realtime-session.xiaozhi",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "WEBSOCKET /xiaozhi/v1/"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "realtime-session",
+      "producer": "realtime-session",
+      "required_context": []
     },
     {
       "approval_required": false,
@@ -17780,20 +17815,20 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 838,
+    "capabilities": 840,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
     "capabilities_idempotent": 74,
     "capabilities_season_scoped": 10,
-    "capabilities_tenant_scoped": 478,
+    "capabilities_tenant_scoped": 479,
     "components": 37,
     "cross_service_duplicate_method_paths": 12,
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1162,
+    "route_rows": 1169,
     "ui_waivers": 52,
-    "unique_method_path": 1041
+    "unique_method_path": 1046
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18055,7 +18090,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "2469ad854b48cb65b19772a5779e0e6441bd8fa9ef94299d3bc2abca4f85539a",
+  "fingerprint": "558955c7dc0de701cb719190779acdf0ed5e503d03270c5f449aff810e8e9ed5",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18109,14 +18144,14 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1096,
+      "edge_count": 1098,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
-        "CONSUMES": 3,
+        "CONSUMES": 4,
         "EMITS": 3,
-        "READS": 590,
+        "READS": 591,
         "ROUTES_TO": 76,
         "WRITES": 379
       }

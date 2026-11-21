@@ -7,7 +7,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 1944,
+      "line": 1965,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -19,7 +19,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 2013,
+      "line": 2067,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -43,7 +43,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "producer",
-      "line": 1021,
+      "line": 1041,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -215,7 +215,8 @@
     "consumer_only_subjects": [
       "sahool.events.agronomy.projection.requested",
       "sahool.events.irrigation.execution.completed",
-      "sahool.events.season.closed"
+      "sahool.events.season.closed",
+      "sahool/+/+/telemetry/+/mesh"
     ],
     "cross_component_duplicate_durables": [],
     "producer_only_subjects": [
@@ -340,18 +341,37 @@
       ],
       "status": "producer_only",
       "subject": "sahool.tenant.*.satellite.*.computed"
+    },
+    {
+      "consumers": [
+        {
+          "client_expr": "client",
+          "component": "actuator-service",
+          "durable": null,
+          "dynamic_expr": null,
+          "file": "services/actuator-service/actuator_runtime.py",
+          "kind": "consumer",
+          "line": 2069,
+          "queue": null,
+          "resolution": "literal",
+          "subject": "sahool/+/+/telemetry/+/mesh"
+        }
+      ],
+      "producers": [],
+      "status": "consumer_only",
+      "subject": "sahool/+/+/telemetry/+/mesh"
     }
   ],
   "summary": {
-    "consumer_only_subjects": 3,
+    "consumer_only_subjects": 4,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 17,
-    "files_scanned": 1315,
+    "files_scanned": 1322,
     "matched_subjects": 0,
     "producer_only_subjects": 3,
     "production_certified": false,
-    "resolved_contracts": 6,
+    "resolved_contracts": 7,
     "runtime_verified": false,
-    "subjects": 6
+    "subjects": 7
   }
 }

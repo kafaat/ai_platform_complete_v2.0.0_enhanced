@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 897,
+          "line": 920,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -341,7 +341,7 @@
         },
         {
           "function": "healthz",
-          "line": 150,
+          "line": 152,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/healthz",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 897,
+          "line": 920,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -408,6 +408,14 @@
           "line": 170,
           "method": "GET",
           "module": "services/realtime-session/realtime_session/session_runtime.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "health",
+          "line": 395,
+          "method": "GET",
+          "module": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
           "path": "/healthz",
           "receiver": "app"
         },
@@ -715,7 +723,7 @@
         },
         {
           "function": "readyz",
-          "line": 155,
+          "line": 157,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/readyz",
@@ -723,7 +731,7 @@
         },
         {
           "function": "readyz",
-          "line": 910,
+          "line": 933,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -782,6 +790,14 @@
           "line": 174,
           "method": "GET",
           "module": "services/realtime-session/realtime_session/session_runtime.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "ready",
+          "line": 399,
+          "method": "GET",
+          "module": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
           "path": "/readyz",
           "receiver": "app"
         },
@@ -953,7 +969,7 @@
       "registrations": [
         {
           "function": "list_tools",
-          "line": 162,
+          "line": 166,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/v1/mcp/tools",
@@ -961,7 +977,7 @@
         },
         {
           "function": "mcp_tools_list",
-          "line": 743,
+          "line": 744,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools",
@@ -1000,7 +1016,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 828,
+          "line": 851,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1108,7 +1124,7 @@
       "registrations": [
         {
           "function": "call_tool",
-          "line": 179,
+          "line": 184,
           "method": "POST",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1116,7 +1132,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 775,
+          "line": 798,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1198,8 +1214,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1147,
-  "route_inventory_sha256": "ff62bfb01d5851556b8125816e55855ba44a2e41d43f80b23f3e6aad0139dd27",
+  "route_count": 1151,
+  "route_inventory_sha256": "d765f50772ef0a7b5191ed8ba9c8e013ed44d82ca3b732ae7e266689075cab40",
   "runtime_verified": false,
   "schema_version": 1
 }

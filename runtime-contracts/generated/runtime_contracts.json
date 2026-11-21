@@ -32,10 +32,12 @@
         "DATABASE_URL",
         "DECISION_SERVICE_URL",
         "FEATURE_AUTOMATION_RULES_ACTUATION",
+        "FEATURE_DEVICE_MESH_TELEMETRY",
         "FEATURE_DISPATCH_ACTUATOR",
         "FEATURE_MANUAL_ACTUATOR_COMMANDS",
         "JWT_PUBLIC_KEY",
         "MQTT_BROKER_URL",
+        "MQTT_TLS_CA_FILE",
         "MQTT_USERNAME",
         "REDIS_URL",
         "SAHOOL_ALLOW_HS256_IN_PROD",
@@ -69,8 +71,7 @@
         "routes": [
           "services/actuator-service/routers/commands.py",
           "services/actuator-service/routers/health.py",
-          "services/actuator-service/routers/metrics.py",
-          "services/actuator-service/test_actuator_safety.py"
+          "services/actuator-service/routers/metrics.py"
         ],
         "tracing": [
           "services/actuator-service/actuator_runtime.py"
@@ -397,8 +398,6 @@
         "ACTIVATION_CACHE_TTL_SECONDS",
         "ACTIVATION_ENVIRONMENT_ID",
         "DATABASE_URL",
-        "DECISION_033_REQUIRE_PG16",
-        "DECISION_033_TEST_DATABASE_URL",
         "DECISION_DATABASE_URL",
         "DECISION_DB_POOL_MAX",
         "DECISION_EXECUTION_REQUEST_MAX_AGE_S",
@@ -423,18 +422,12 @@
         "DECISION_WORKER_ASSERTION_PREVIOUS_KEY_ID",
         "DECISION_WORKER_ASSERTION_REDIS_URL",
         "DEPLOY_BUILD_SHA",
-        "ELIGIBILITY_CERTIFICATION_REQUIRED",
         "ENVIRONMENT",
         "IRR_F01_RESERVATION_ENFORCE_ACTIVATION",
-        "MODEL_LIFECYCLE_CERTIFICATION_REQUIRED",
         "PLATFORM_DATABASE_URL",
         "RUNTIME_WORK_LEASE_SECONDS",
         "SAHOOL_ENV",
         "SAHOOL_PLATFORM_URL",
-        "SAHOOL_TEST_PGDATABASE",
-        "SAHOOL_TEST_PGPORT",
-        "SAHOOL_TEST_PG_ADMIN_ROLE",
-        "SAHOOL_TEST_PG_APP_ROLE",
         "STAGING_FIELD_ID",
         "STAGING_PROBE_IDEMPOTENCY_KEY",
         "STAGING_TENANT_ID"
@@ -447,13 +440,11 @@
       "domain": "Decision SoR",
       "endpoints": {
         "health": [
-          "/healthz",
-          "/livez"
+          "/healthz"
         ],
         "metrics": [],
         "readiness": [
-          "/readyz",
-          "/readyz/"
+          "/readyz"
         ]
       },
       "entrypoint": "services/decision-service/main.py",
@@ -470,69 +461,11 @@
           "services/decision-service/platform_sor_revoke.py",
           "services/decision-service/production_promotion.py",
           "services/decision-service/read_side_compare.py",
-          "services/decision-service/staging_probe.py",
-          "services/decision-service/tests/test_ac1_agronomic_context.py",
-          "services/decision-service/tests/test_activation_evidence_contract.py",
-          "services/decision-service/tests/test_agronomic_lineage_integrity.py",
-          "services/decision-service/tests/test_backfill_row_coverage.py",
-          "services/decision-service/tests/test_decision_evidence_read.py",
-          "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
-          "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-          "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
-          "services/decision-service/tests/test_execution_request_feed.py",
-          "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
-          "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
-          "services/decision-service/tests/test_irr_f01_reservation_activation_gate.py",
-          "services/decision-service/tests/test_migration_033_pg16.py",
-          "services/decision-service/tests/test_no_leakage_certification.py",
-          "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
-          "services/decision-service/tests/test_runtime_worker_tenants.py",
-          "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
-          "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
-          "services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py",
-          "services/decision-service/tests/test_snapshot_id_validation.py",
-          "services/decision-service/tests/test_w4_05_model_lifecycle_feed_live_pg.py",
-          "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
-          "services/decision-service/tests/test_wx10_11_execution_request.py",
-          "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
-          "services/decision-service/tests/test_wx10_12_execution_outcome.py",
-          "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
-          "services/decision-service/tests/test_wx10_7_decision_review.py",
-          "services/decision-service/tests/test_wx10_9_execution_plan.py",
-          "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
-          "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
-          "services/decision-service/tests/test_wx12_3_runtime_schedules.py"
+          "services/decision-service/staging_probe.py"
         ],
         "metrics": [],
         "routes": [
-          "services/decision-service/main.py",
-          "services/decision-service/tests/test_ac1_boundary_finiteness_timezone.py",
-          "services/decision-service/tests/test_activation_evidence_contract.py",
-          "services/decision-service/tests/test_agronomic_evidence_contract.py",
-          "services/decision-service/tests/test_correlation_http_projection.py",
-          "services/decision-service/tests/test_decision_evidence_read.py",
-          "services/decision-service/tests/test_decision_provenance_integrity.py",
-          "services/decision-service/tests/test_execution_plan_boundary_normalisation.py",
-          "services/decision-service/tests/test_execution_request_feed.py",
-          "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
-          "services/decision-service/tests/test_learning_update_review_contract.py",
-          "services/decision-service/tests/test_p4_decision_service_runtime.py",
-          "services/decision-service/tests/test_runtime_worker_tenants.py",
-          "services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_compat.py",
-          "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
-          "services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py",
-          "services/decision-service/tests/test_service_token_guard.py",
-          "services/decision-service/tests/test_snapshot_id_validation.py",
-          "services/decision-service/tests/test_sod_single_operator_self_approval.py",
-          "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py",
-          "services/decision-service/tests/test_wx10_13_learning_attribution.py",
-          "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
-          "services/decision-service/tests/test_wx10_7_decision_review.py",
-          "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
-          "services/decision-service/tests/test_wx11_2_model_evaluation.py",
-          "services/decision-service/tests/test_wx11_3_model_promotion_decision.py",
-          "services/decision-service/tests/test_wx11_4_model_activation_request.py",
-          "services/decision-service/tests/test_wx11_5_model_activation_approval.py"
+          "services/decision-service/main.py"
         ],
         "tracing": []
       },
@@ -623,10 +556,7 @@
           "services/edge-inference/main.py"
         ],
         "routes": [
-          "services/edge-inference/main.py",
-          "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",
-          "services/edge-inference/tests/test_entrypoint_validation_lifecycle.py",
-          "services/edge-inference/tests/test_model_artifact_gate_endpoints.py"
+          "services/edge-inference/main.py"
         ],
         "tracing": []
       },
@@ -776,16 +706,14 @@
       "evidence_paths": {
         "configuration": [
           "services/field-management-service/fm_gateway.py",
-          "services/field-management-service/main.py",
-          "services/field-management-service/tests/test_field_management_pg_isolation_integration.py"
+          "services/field-management-service/main.py"
         ],
         "metrics": [],
         "routes": [
           "services/field-management-service/fm_scouting_tasks.py",
           "services/field-management-service/fm_task_costs.py",
           "services/field-management-service/fm_task_inspection.py",
-          "services/field-management-service/main.py",
-          "services/field-management-service/tests/test_field_management_service_contract.py"
+          "services/field-management-service/main.py"
         ],
         "tracing": []
       },
@@ -853,8 +781,7 @@
         ],
         "metrics": [],
         "routes": [
-          "services/field-segmentation/main.py",
-          "services/field-segmentation/test_segmentation.py"
+          "services/field-segmentation/main.py"
         ],
         "tracing": []
       },
@@ -1045,10 +972,7 @@
           "services/indicators-service/observation_drain.py"
         ],
         "routes": [
-          "services/indicators-service/main.py",
-          "services/indicators-service/tests/test_indicators_service_honest_boundary.py",
-          "services/indicators-service/tests/test_observation_drain.py",
-          "services/indicators-service/tests/test_observation_store.py"
+          "services/indicators-service/main.py"
         ],
         "tracing": []
       },
@@ -1229,9 +1153,11 @@
         "ERP_BRIDGE_URL",
         "JWT_PUBLIC_KEY",
         "MARKET_AUTO_APPROVE_BELOW_USD",
+        "MCP_ALLOWED_ORIGINS",
         "MCP_SERVICE",
         "ODOO_BRIDGE_URL",
         "OPEN_METEO_ARCHIVE_URL",
+        "PLATFORM_API_URL",
         "RASTER_SERVICE_URL",
         "SAHOOL_ALLOW_HS256_IN_PROD",
         "SAHOOL_API_URL",
@@ -1264,6 +1190,8 @@
           "services/mcp_servers/market_server.py",
           "services/mcp_servers/sentinel_hub_server.py",
           "services/mcp_servers/shared/oauth_middleware.py",
+          "services/mcp_servers/shared/owner_telemetry.py",
+          "services/mcp_servers/shared/streamable_http.py",
           "services/mcp_servers/weather_server.py"
         ],
         "metrics": [],
@@ -1305,11 +1233,11 @@
           "entrypoint": false,
           "health": true,
           "metrics_endpoint_or_instrumentation": false,
-          "readiness": false,
+          "readiness": true,
           "tracing_instrumentation": false
         },
-        "passed": 3,
-        "score_pct": 42.9,
+        "passed": 4,
+        "score_pct": 57.1,
         "total": 7
       },
       "configuration": [
@@ -1339,7 +1267,9 @@
           "/healthz"
         ],
         "metrics": [],
-        "readiness": []
+        "readiness": [
+          "/readyz"
+        ]
       },
       "entrypoint": "-",
       "evidence_paths": {
@@ -1353,7 +1283,6 @@
         "routes": [
           "services/model-registry-adapter/runtime.py",
           "services/model-registry-adapter/service.py",
-          "services/model-registry-adapter/tests/test_runtime_contract.py",
           "services/model-registry-adapter/worker.py"
         ],
         "tracing": []
@@ -1422,8 +1351,7 @@
       "evidence_paths": {
         "configuration": [
           "services/qdrant-seed/reindex.py",
-          "services/qdrant-seed/seed.py",
-          "services/qdrant-seed/test_aljawf_knowledge.py"
+          "services/qdrant-seed/seed.py"
         ],
         "metrics": [],
         "routes": [],
@@ -1551,9 +1479,6 @@
         "FIELD_DEM_NATIVE_RES_M",
         "FIELD_DEM_PATH",
         "GDAL_DISABLE_READDIR_ON_OPEN",
-        "GDAL_HTTP_CONNECTTIMEOUT",
-        "GDAL_HTTP_MAX_RETRY",
-        "GDAL_HTTP_TIMEOUT",
         "HISTORICAL_SEARCH_PROVIDER",
         "HTTP_TIMEOUT",
         "JOBS_DATABASE_URL",
@@ -1583,7 +1508,6 @@
         "RASTER_PERSISTENCE_MODE",
         "RASTER_PUBLIC_PREFIX",
         "RASTER_TEMP_RETENTION_DAYS",
-        "RASTER_TEST_DATABASE_URL",
         "RASTER_THUMB_RETENTION_DAYS",
         "RASTER_TIMESERIES_MAX_DATES",
         "RASTER_UPLOAD_DIR",
@@ -1673,13 +1597,6 @@
           "services/raster-service/routers/terrain_tiles.py",
           "services/raster-service/soil_render.py",
           "services/raster-service/terrain_source_registry.py",
-          "services/raster-service/test_cdse_timeline_pg.py",
-          "services/raster-service/test_raster_batch_postgres_integration.py",
-          "services/raster-service/test_raster_io_offload_r9.py",
-          "services/raster-service/test_single_scene_concurrent_pg.py",
-          "services/raster-service/test_soil_render.py",
-          "services/raster-service/test_soil_zones.py",
-          "services/raster-service/test_stac_vrt.py",
           "services/raster-service/tile_cache_maint.py",
           "services/raster-service/tile_render.py",
           "services/raster-service/worker_heartbeat.py"
@@ -1703,21 +1620,7 @@
           "services/raster-service/routers/storage.py",
           "services/raster-service/routers/terrain_tiles.py",
           "services/raster-service/routers/tiles.py",
-          "services/raster-service/routers/timeseries_routes.py",
-          "services/raster-service/test_change_detection_validity.py",
-          "services/raster-service/test_clip_grid.py",
-          "services/raster-service/test_container_healthcheck_status.py",
-          "services/raster-service/test_db_rehydrate.py",
-          "services/raster-service/test_enterprise_imagery_best_practices.py",
-          "services/raster-service/test_field_tile_asset_cache.py",
-          "services/raster-service/test_historical_backfill.py",
-          "services/raster-service/test_indicator_provenance_transport.py",
-          "services/raster-service/test_job_tenant_binding.py",
-          "services/raster-service/test_p2_tile_observability_static.py",
-          "services/raster-service/test_stac_vrt.py",
-          "services/raster-service/test_tile_http_policy.py",
-          "services/raster-service/test_tile_tenant_query.py",
-          "services/raster-service/test_tiles.py"
+          "services/raster-service/routers/timeseries_routes.py"
         ],
         "tracing": []
       },
@@ -1777,19 +1680,15 @@
       "evidence_paths": {
         "configuration": [],
         "metrics": [
-          "services/raster-tiler-service/main.py",
-          "services/raster-tiler-service/tests/test_raster_tiler_wrapper_routes.py"
+          "services/raster-tiler-service/main.py"
         ],
         "routes": [
-          "services/raster-tiler-service/main.py",
-          "services/raster-tiler-service/tests/test_raster_tiler_wrapper_routes.py"
+          "services/raster-tiler-service/main.py"
         ],
         "tracing": []
       },
       "observability": {
-        "metric_names": [
-          "sahool_raster_tiler_contract_probe"
-        ],
+        "metric_names": [],
         "metrics_instrumented": true,
         "trace_spans": [],
         "tracing_instrumented": false
@@ -1881,10 +1780,19 @@
         "LIVEKIT_URL",
         "LIVEKIT_WS_URL",
         "PLATFORM_API_URL",
+        "REALTIME_AI_ORIGIN",
         "REALTIME_SQLITE_PATH",
+        "REALTIME_STT_BUNDLE_SHA256",
+        "REALTIME_STT_MODEL_PATH",
+        "REALTIME_STT_MODEL_SHA256",
+        "REALTIME_TTS_ORIGIN",
+        "REALTIME_TTS_PROVIDER",
         "SAHOOL_REALTIME_ENABLED",
         "SAHOOL_REALTIME_MEDIA_TRUST",
-        "SAHOOL_REALTIME_VOICE_ENABLED"
+        "SAHOOL_REALTIME_VOICE_ENABLED",
+        "SAHOOL_XIAOZHI_ENABLED",
+        "XIAOZHI_PUBLIC_WSS_URL",
+        "XIAOZHI_TRUSTED_PROXY_IPS"
       ],
       "container": {
         "dockerfile": "services/realtime-session/Dockerfile",
@@ -1904,13 +1812,16 @@
       "entrypoint": "services/realtime-session/main.py",
       "evidence_paths": {
         "configuration": [
-          "services/realtime-session/realtime_session/session_runtime.py"
+          "services/realtime-session/realtime_session/session_runtime.py",
+          "services/realtime-session/realtime_session/xiaozhi_gateway.py",
+          "services/realtime-session/xiaozhi_main.py"
         ],
         "metrics": [],
         "routes": [
           "services/realtime-session/realtime_session/platform.py",
           "services/realtime-session/realtime_session/session_runtime.py",
-          "services/realtime-session/realtime_session/webhooks.py"
+          "services/realtime-session/realtime_session/webhooks.py",
+          "services/realtime-session/realtime_session/xiaozhi_gateway.py"
         ],
         "tracing": []
       },
@@ -1975,8 +1886,7 @@
         ],
         "metrics": [],
         "routes": [
-          "services/remote-sensing-workspace-bff/main.py",
-          "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py"
+          "services/remote-sensing-workspace-bff/main.py"
         ],
         "tracing": []
       },
@@ -2106,7 +2016,6 @@
         "SAHOOL_DEV_AUTH",
         "SAHOOL_ENV",
         "SAHOOL_FIELD_BOUNDARY_BACKEND",
-        "SAHOOL_FIELD_POSTGIS_TEST_URL",
         "SAHOOL_FTW_WEIGHTS",
         "SAHOOL_IDEMPOTENCY_RETENTION_DAYS",
         "SAHOOL_IRRIGATION_SALINITY_POLICY",
@@ -2254,21 +2163,10 @@
           "services/sahool-platform/core/field_intelligence_coordinator.py",
           "services/sahool-platform/core/pest_escalation_flow.py",
           "services/sahool-platform/core/workflow_engine.py",
-          "services/sahool-platform/tests/test_field_overlap_postgis.py",
-          "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
-          "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py",
-          "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py",
-          "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
-          "services/sahool-platform/tests/test_phase11_runtime_api.py",
-          "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
-          "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
-          "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
-          "services/sahool-platform/tests/test_water_ledger_auto.py",
           "services/sahool-platform/workers/canonical_execution_learning_worker.py"
         ],
         "metrics": [
-          "services/sahool-platform/api/routers/weather.py",
-          "services/sahool-platform/tests/test_farm_closed_loop.py"
+          "services/sahool-platform/api/routers/weather.py"
         ],
         "routes": [
           "services/sahool-platform/api/chat_proxy_reference.py",
@@ -2443,69 +2341,12 @@
           "services/sahool-platform/api/routers/yield_analysis.py",
           "services/sahool-platform/api/routers/yield_interval.py",
           "services/sahool-platform/api/routers/yield_map_ingestion.py",
-          "services/sahool-platform/api/weather_service_client.py",
-          "services/sahool-platform/smoke_e2e_test.py",
-          "services/sahool-platform/tests/test_break_glass.py",
-          "services/sahool-platform/tests/test_chat_proxy.py",
-          "services/sahool-platform/tests/test_correlation_middleware.py",
-          "services/sahool-platform/tests/test_crop_stress_facades_guard.py",
-          "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
-          "services/sahool-platform/tests/test_drawing_features_v38_static.py",
-          "services/sahool-platform/tests/test_drawing_features_v39_postgis_static.py",
-          "services/sahool-platform/tests/test_evidence_graph_analytics_endpoints_static.py",
-          "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
-          "services/sahool-platform/tests/test_feature_flag_navigation_alignment_guard.py",
-          "services/sahool-platform/tests/test_field_intelligence_async_job_guard.py",
-          "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
-          "services/sahool-platform/tests/test_idempotency_server_contract.py",
-          "services/sahool-platform/tests/test_indicator_observations_route.py",
-          "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-          "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
-          "services/sahool-platform/tests/test_irrigation_water_contract_overflow.py",
-          "services/sahool-platform/tests/test_lab_sampling_router.py",
-          "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
-          "services/sahool-platform/tests/test_nats_relay_bounded_startup.py",
-          "services/sahool-platform/tests/test_nats_staging_enablement.py",
-          "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
-          "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
-          "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
-          "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
-          "services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py",
-          "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
-          "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-          "services/sahool-platform/tests/test_p3_weather_service_realization_guard.py",
-          "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
-          "services/sahool-platform/tests/test_p4_6_decision_read_side_facade_guard.py",
-          "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
-          "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
-          "services/sahool-platform/tests/test_phase11_runtime_api.py",
-          "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
-          "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
-          "services/sahool-platform/tests/test_productivity_router.py",
-          "services/sahool-platform/tests/test_r09_learning_label_integrity.py",
-          "services/sahool-platform/tests/test_readyz_db_probe.py",
-          "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
-          "services/sahool-platform/tests/test_s5_exec_01_decision_record_cutover.py",
-          "services/sahool-platform/tests/test_s5_exec_01_dispatch_cutover.py",
-          "services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py",
-          "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
-          "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py",
-          "services/sahool-platform/tests/test_t4_raster_compat_proxy_auth.py",
-          "services/sahool-platform/tests/test_task_update_idempotency.py",
-          "services/sahool-platform/tests/test_thermal_stress_facade_guard.py",
-          "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
-          "services/sahool-platform/tests/test_ui28_ui30_workspace_route_cleanup_guard.py",
-          "services/sahool-platform/tests/test_ui31_ui35_workspace_completion_guard.py",
-          "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
-          "services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py",
-          "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py"
+          "services/sahool-platform/api/weather_service_client.py"
         ],
         "tracing": []
       },
       "observability": {
-        "metric_names": [
-          "wheat-2026"
-        ],
+        "metric_names": [],
         "metrics_instrumented": true,
         "trace_spans": [],
         "tracing_instrumented": false
@@ -2550,8 +2391,6 @@
       },
       "configuration": [
         "EARTH_SEARCH_URL",
-        "GDAL_HTTP_CONNECTTIMEOUT",
-        "GDAL_HTTP_TIMEOUT",
         "HTTP_TIMEOUT",
         "MAX_IMAGE_DIM",
         "SAM2_CHECKPOINT",
@@ -2584,13 +2423,11 @@
       "entrypoint": "services/sam2-inference/main.py",
       "evidence_paths": {
         "configuration": [
-          "services/sam2-inference/sam2_runtime.py",
-          "services/sam2-inference/tests/test_sam2_inference_http_contract.py"
+          "services/sam2-inference/sam2_runtime.py"
         ],
         "metrics": [],
         "routes": [
-          "services/sam2-inference/main.py",
-          "services/sam2-inference/tests/test_sam2_inference_http_contract.py"
+          "services/sam2-inference/main.py"
         ],
         "tracing": []
       },
@@ -2623,7 +2460,6 @@
         "total": 7
       },
       "configuration": [
-        "CI_INTEGRATION_REQUIRED",
         "DATABASE_URL",
         "FIELD_FORMS_DEVICE_ROTATION_GRACE_SECONDS",
         "FIELD_FORMS_ENABLED",
@@ -2633,7 +2469,6 @@
         "FIELD_FORMS_SYNC_HMAC_KEY_PREVIOUS",
         "FIELD_FORMS_SYNC_HMAC_PREVIOUS_KEY_ID",
         "FIELD_FORMS_SYNC_PREVIOUS_UNTIL_EPOCH",
-        "LOGBOOK_LOCAL_DIR",
         "SCOUT_GRANT_ADMIN_DATABASE_URL",
         "SCOUT_INGEST_ENABLED",
         "SCOUT_INGEST_PROJECTION_BATCH",
@@ -2653,8 +2488,7 @@
         "SCOUT_MEDIA_TISSUE_SAMPLE_ENABLED",
         "SCOUT_MEDIA_TREATMENT_REVIEW_ENABLED",
         "SEASON_ENTRY_ENABLED",
-        "SERVICE_VERSION",
-        "TEST_ADMIN_URL"
+        "SERVICE_VERSION"
       ],
       "container": {
         "dockerfile": "services/scout-ingest-service/Dockerfile",
@@ -2685,10 +2519,6 @@
           "services/scout-ingest-service/media_api.py",
           "services/scout-ingest-service/projection_worker.py",
           "services/scout-ingest-service/season_api.py",
-          "services/scout-ingest-service/tests/test_ingest_live.py",
-          "services/scout-ingest-service/tests/test_media_live.py",
-          "services/scout-ingest-service/tests/test_projection_live.py",
-          "services/scout-ingest-service/tests/test_season_live.py",
           "services/scout-ingest-service/tissue_samples_api.py",
           "services/scout-ingest-service/treatment_review_api.py"
         ],
@@ -2703,8 +2533,6 @@
           "services/scout-ingest-service/main.py",
           "services/scout-ingest-service/media_api.py",
           "services/scout-ingest-service/season_api.py",
-          "services/scout-ingest-service/tests/test_ingest_live.py",
-          "services/scout-ingest-service/tests/test_season_live.py",
           "services/scout-ingest-service/tissue_samples_api.py",
           "services/scout-ingest-service/treatment_review_api.py"
         ],
@@ -2785,10 +2613,7 @@
           "services/soil-service/projection_jobs.py",
           "services/soil-service/projection_observability.py",
           "services/soil-service/routers/soil_profile.py",
-          "services/soil-service/soilgrids_client.py",
-          "services/soil-service/test_soil_canonical_duplicate_identity.py",
-          "services/soil-service/test_soil_ingest_entrypoint_parity.py",
-          "services/soil-service/test_soil_sampling_plan_origin.py"
+          "services/soil-service/soilgrids_client.py"
         ],
         "metrics": [
           "services/soil-service/projection_observability.py",
@@ -2807,10 +2632,7 @@
           "services/soil-service/routers/p6_certification.py",
           "services/soil-service/routers/plan_copies.py",
           "services/soil-service/routers/readings.py",
-          "services/soil-service/routers/soil_profile.py",
-          "services/soil-service/test_soil_canonical_duplicate_identity.py",
-          "services/soil-service/test_soil_ingest_entrypoint_parity.py",
-          "services/soil-service/test_soil_sampling_plan_origin.py"
+          "services/soil-service/routers/soil_profile.py"
         ],
         "tracing": []
       },
@@ -2903,14 +2725,11 @@
         ],
         "metrics": [
           "services/supervisor-agent/circuit_breaker.py",
-          "services/supervisor-agent/routers/health.py",
-          "services/supervisor-agent/test_circuit_observability.py"
+          "services/supervisor-agent/routers/health.py"
         ],
         "routes": [
           "services/supervisor-agent/routers/agent.py",
-          "services/supervisor-agent/routers/health.py",
-          "services/supervisor-agent/test_ai_orchestration_forensic.py",
-          "services/supervisor-agent/test_graceful_degradation.py"
+          "services/supervisor-agent/routers/health.py"
         ],
         "tracing": []
       },
@@ -3084,7 +2903,6 @@
           "services/vegetation-analysis-service/post_execution_bridge.py",
           "services/vegetation-analysis-service/routers/anomalies.py",
           "services/vegetation-analysis-service/routers/baselines.py",
-          "services/vegetation-analysis-service/test_evidence_producer_contract.py",
           "services/vegetation-analysis-service/vegetation_runtime.py"
         ],
         "metrics": [
@@ -3098,8 +2916,7 @@
           "services/vegetation-analysis-service/routers/diagnoses.py",
           "services/vegetation-analysis-service/routers/health.py",
           "services/vegetation-analysis-service/routers/insights.py",
-          "services/vegetation-analysis-service/routers/outcomes.py",
-          "services/vegetation-analysis-service/test_production_truth_closure.py"
+          "services/vegetation-analysis-service/routers/outcomes.py"
         ],
         "tracing": [
           "services/vegetation-analysis-service/main.py"
@@ -3226,7 +3043,6 @@
         "WEATHER_OPEN_METEO_BREAKER_FAILURES",
         "WEATHER_OPEN_METEO_BREAKER_RESET_S",
         "WEATHER_OPEN_METEO_TIMEOUT_S",
-        "WEATHER_REDIS_INTEGRATION_URL",
         "WEATHER_REDIS_URL"
       ],
       "container": {
@@ -3251,27 +3067,13 @@
       "evidence_paths": {
         "configuration": [
           "services/weather-service/cache.py",
-          "services/weather-service/open_meteo.py",
-          "services/weather-service/tests/test_weather_redis_live_optional.py"
+          "services/weather-service/open_meteo.py"
         ],
         "metrics": [
           "services/weather-service/weather_runtime.py"
         ],
         "routes": [
-          "services/weather-service/main.py",
-          "services/weather-service/tests/test_archive_coverage_is_exposed.py",
-          "services/weather-service/tests/test_et0_agro_product.py",
-          "services/weather-service/tests/test_et0_series.py",
-          "services/weather-service/tests/test_every_registered_route_is_named_by_a_test.py",
-          "services/weather-service/tests/test_gdd.py",
-          "services/weather-service/tests/test_gdd_agro_product.py",
-          "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
-          "services/weather-service/tests/test_p3_tile_neutral_resilience.py",
-          "services/weather-service/tests/test_p3_weather_service_runtime.py",
-          "services/weather-service/tests/test_raw_weather_processing.py",
-          "services/weather-service/tests/test_routes_witnessed_through_the_request_path.py",
-          "services/weather-service/tests/test_vpd_agro_product.py",
-          "services/weather-service/tests/test_weather_readyz_and_cache_backend.py"
+          "services/weather-service/main.py"
         ],
         "tracing": []
       },
