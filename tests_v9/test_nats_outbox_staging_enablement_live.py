@@ -18,7 +18,9 @@ What turning the flag on actually does, measured end to end with the production 
 
 Needs ``TEST_DATABASE_ADMIN_URL`` (or ``TEST_DATABASE_URL``) on a migrated database and a
 ``nats-server`` binary (``NATS_SERVER_BIN``). Skips with the reason otherwise, unless
-``NATS_OUTBOX_LIVE_REQUIRED=1``, which turns a missing dependency into a failure.
+``NATS_OUTBOX_LIVE_REQUIRED=1`` or ``NATS_OUTBOX_CERTIFICATION_REQUIRED=1`` (the name the CI
+certification step and the lab runner key on), which turns a missing dependency, the
+``asyncpg``/``nats`` client modules included, into a failure.
 """
 
 from __future__ import annotations
@@ -37,8 +39,17 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
-asyncpg = pytest.importorskip("asyncpg")
-pytest.importorskip("nats")
+REQUIRED = "1" in (
+    os.getenv("NATS_OUTBOX_LIVE_REQUIRED"),
+    os.getenv("NATS_OUTBOX_CERTIFICATION_REQUIRED"),
+)
+if REQUIRED:  # a missing client module is a failure, not a skip, when the proof is required
+    import asyncpg
+
+    import nats  # noqa: F401
+else:
+    asyncpg = pytest.importorskip("asyncpg")
+    pytest.importorskip("nats")
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
@@ -64,8 +75,8 @@ async def _db_why() -> str:
 
 
 _WHY = asyncio.run(_db_why()) or ("" if NATS_BIN else "no nats-server (NATS_SERVER_BIN)")
-if _WHY and os.getenv("NATS_OUTBOX_LIVE_REQUIRED") == "1":
-    raise RuntimeError(f"NATS_OUTBOX_LIVE_REQUIRED=1 and the live proof cannot run: {_WHY}")
+if _WHY and REQUIRED:
+    raise RuntimeError(f"the live outbox proof is required and cannot run: {_WHY}")
 pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
 
 
