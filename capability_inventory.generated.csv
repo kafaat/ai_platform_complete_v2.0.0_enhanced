@@ -124,6 +124,7 @@ field-management-service.internal.field-tasks.tasks,query,field-management-servi
 field-management-service.internal.fields,query,field-management-service,GET /internal/fields,,route,False
 field-management-service.internal.fields.field_id,query,field-management-service,GET /internal/fields/{field_id},,route,False
 field-segmentation.segment,command,field-segmentation,POST /v1/segment,frontend,route,False
+"firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino (MQTT device profile, SAHOOL_MQTT_TLS build).event.341a5497",event,"firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino (MQTT device profile, SAHOOL_MQTT_TLS build)",NATS sahool/+/+/telemetry/+/mesh,actuator-service mesh telemetry listener (services/actuator-service/actuator_runtime.py),event,False
 guardrails-engine.approve.workflow_id,command,guardrails-engine,POST /v1/approve/{workflow_id},frontend,route,False
 guardrails-engine.evaluate,command,guardrails-engine,POST /v1/evaluate,frontend,route,False
 guardrails-engine.runtime-identity,query,guardrails-engine,GET /runtime-identity,frontend,route,False

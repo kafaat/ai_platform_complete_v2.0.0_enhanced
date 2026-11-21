@@ -12470,27 +12470,27 @@
           "score": 15
         },
         {
-          "value": "SAHOOL.AI.FEEDBACK @ event_publish_contracts.yaml:185",
+          "value": "SAHOOL.AI.FEEDBACK @ event_publish_contracts.yaml:197",
           "score": 14
         },
         {
-          "value": "SAHOOL.AI.GUARDRAIL @ event_publish_contracts.yaml:175",
+          "value": "SAHOOL.AI.GUARDRAIL @ event_publish_contracts.yaml:187",
           "score": 14
         },
         {
-          "value": "SAHOOL.AI.REVIEW @ event_publish_contracts.yaml:180",
+          "value": "SAHOOL.AI.REVIEW @ event_publish_contracts.yaml:192",
           "score": 14
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ event_publish_contracts.yaml:126",
+          "value": "sahool.actuator.dispatch.requested @ event_publish_contracts.yaml:138",
           "score": 14
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_publisher_coverage.py:335",
+          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_publisher_coverage.py:373",
           "score": 14
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_publisher_coverage.py:368",
+          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_publisher_coverage.py:406",
           "score": 14
         }
       ],
@@ -89354,12 +89354,12 @@
         {
           "source": "conftest.py",
           "kind": "source_read",
-          "line": 95
+          "line": 105
         },
         {
           "source": "shared/notification_consumers.py",
           "kind": "source_read",
-          "line": 201
+          "line": 211
         },
         {
           "source": "tools/sahool_inspector.py",

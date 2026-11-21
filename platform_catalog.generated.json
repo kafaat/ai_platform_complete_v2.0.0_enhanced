@@ -1980,6 +1980,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino (MQTT device profile, SAHOOL_MQTT_TLS build).event.341a5497",
+      "consumers": [
+        "actuator-service mesh telemetry listener (services/actuator-service/actuator_runtime.py)"
+      ],
+      "curated": false,
+      "derived_from": "event",
+      "entrypoints": [
+        "NATS sahool/+/+/telemetry/+/mesh"
+      ],
+      "idempotency_required": false,
+      "kind": "event",
+      "owner": "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino (MQTT device profile, SAHOOL_MQTT_TLS build)",
+      "producer": "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino (MQTT device profile, SAHOOL_MQTT_TLS build)",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "guardrails-engine.approve.workflow_id",
       "consumers": [
         "frontend"
@@ -17815,7 +17832,7 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 840,
+    "capabilities": 841,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
     "capabilities_idempotent": 74,
@@ -17827,7 +17844,7 @@
     "indicator_products": 34,
     "ownership_conflicts": 0,
     "route_rows": 1169,
-    "ui_waivers": 52,
+    "ui_waivers": 54,
     "unique_method_path": 1046
   },
   "cross_service_duplicate_method_paths": [
@@ -18090,7 +18107,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "558955c7dc0de701cb719190779acdf0ed5e503d03270c5f449aff810e8e9ed5",
+  "fingerprint": "f4893da7d582c7d884fda2d8cf1d4c772bb46055e35fcdfeb122226606c76c17",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18530,6 +18547,20 @@
       "owner": "sahool-platform",
       "tracking": "ECON-SCENARIO-UI-01",
       "waiver_id": "ui-waiver-052"
+    },
+    {
+      "endpoint": "/api/v1/realtime/xiaozhi/leases",
+      "expires_on": "2026-12-31",
+      "owner": "realtime-session",
+      "tracking": "XIAOZHI-DEVICE-LEASE-UI",
+      "waiver_id": "ui-waiver-053"
+    },
+    {
+      "endpoint": "/api/v1/realtime/xiaozhi/leases/{session_id}",
+      "expires_on": "2026-12-31",
+      "owner": "realtime-session",
+      "tracking": "XIAOZHI-DEVICE-LEASE-UI",
+      "waiver_id": "ui-waiver-054"
     }
   ]
 }

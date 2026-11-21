@@ -4945,7 +4945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "462b65495d3d095dca70ad7a51208091e792aa2806754047cfae3e6d67a1bcf1"
+          "content": "e187832c062149ec8c745576d7daf733dfcdab8564d38ccb0a016b336ec00af8"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -24835,7 +24835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cce2734df009d0f77fa14120eb5559022620a5a47f4246405f38403a3556083c"
+          "content": "3ab3645f43ffc5fe873bfb0e63f9ae92c6bf8fbb29da848140e015d22e8bec66"
         }
       ],
       "name": "services/realtime-session/Dockerfile.xiaozhi",
