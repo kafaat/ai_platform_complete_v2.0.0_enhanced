@@ -12,6 +12,7 @@
 #   bash scripts/ci/preflight.sh --pr-body-file body.md
 #                                         # يُشغّل بوّابة الحجب ذاتها على متن الـPR
 #   bash scripts/ci/preflight.sh --no-fetch  # لا تجلب origin/main عند حلّ الأساس
+#   فعِّل بيئة الاختبار أو قدِّم bin الخاص بها في PATH. رمز 4 يعني فشل إعداد Python.
 #
 # ── صفته: أداة تطوير محلّيّة (أو pre-push اختياريّ) ─────────────────────────
 # **ليست بوّابة CI ولا مصدر قرار.** وقيدٌ يتبع ذلك ويُفرَض باختبار عقد: لا تقرأ
@@ -181,6 +182,55 @@ print_tail_summary() {  # $1 = fast أو فارغة — كلُّ طبقةٍ تح
 }
 
 echo "═══ preflight ($TIER) — أساس المقارنة: $BASE ═══"
+
+# Keep the same python3 lookup as the gates and their child processes. Never
+# fall back to another interpreter if the one selected by PATH is unusable.
+check_python_environment() {
+  local pytest_version
+  pytest_version="$(python3 - <<'PYENV'
+import os
+import sys
+
+print(f"preflight: Python {sys.version.split()[0]} ({sys.executable})", file=sys.stderr)
+if sys.version_info < (3, 11):  # tests_v9/conftest.py imports datetime.UTC
+    sys.exit("Python >= 3.11 required")
+venv = os.environ.get("VIRTUAL_ENV")
+if venv and os.path.realpath(venv) != os.path.realpath(sys.prefix):
+    sys.exit(f"VIRTUAL_ENV={venv} differs from python3 sys.prefix={sys.prefix}")
+
+try:
+    import pytest
+    import httpx  # tests_v9/conftest.py
+    import jwt
+    import yaml  # fast YAML guards
+except ImportError as exc:
+    sys.exit(str(exc))
+
+print(pytest.__version__)
+PYENV
+)" || return 1
+  if [ -z "$pytest_version" ]; then
+    echo "python3 returned no pytest version" >&2
+    return 1
+  fi
+  echo "preflight: pytest $pytest_version"
+  # Parse the actual plugin options without loading project tests or conftests.
+  # --version alone succeeds even when --no-cov is unrecognised.
+  if ! python3 -m pytest -c /dev/null --noconftest --markers --no-cov --asyncio-mode=auto >"$STEP_LOG" 2>&1; then
+    cat "$STEP_LOG" >&2
+    return 1
+  fi
+}
+# A developer's pytest defaults (e.g. --collect-only) must not change a gate.
+if [ -n "${PYTEST_ADDOPTS:-}" ]; then
+  echo "preflight: ignoring PYTEST_ADDOPTS for the required gates"
+  unset PYTEST_ADDOPTS
+fi
+if ! check_python_environment; then
+  echo "PREFLIGHT_ENV_ERROR: فشل إعداد Python. فعِّل بيئة الاختبار وتحقّق من python3 على PATH." >&2
+  echo "  python3 -m pip install -r tests_v9/requirements-test.txt" >&2
+  exit 4
+fi
 
 # ── ٠) حداثة الفرع — أوّلاً عمداً ──────────────────────────────────────────
 # الترتيب قرار لا تفضيل: التوليد على قاعدة بائتة يُعاد دفع ثمنه كاملاً بعد الدمج،
