@@ -125,6 +125,9 @@ async def test_missing_or_malformed_bearer_never_contacts_owner(authorization):
 async def test_stale_and_future_readings_never_report_available(kwargs):
     signal = await read(Owner(**kwargs))
     assert signal["status"] == "stale" and signal["stale"] is True
+    # A stale number is never offered as the current value.
+    assert signal["value"] is None
+    assert isinstance(signal["last_observed_value_not_current"], (int, float))
 
 
 @pytest.mark.asyncio

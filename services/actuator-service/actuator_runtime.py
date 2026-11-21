@@ -1030,8 +1030,10 @@ async def send_mqtt_command(
         except cs.SigningError as exc:
             logger.error(f"command to {device_id} not published: {exc} (fail-closed)")
             return False
-    host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
     try:
+        # Inside the try: a malformed broker URL is a failed send (False, logged and
+        # receipted by the caller), not an exception that skips the failure record.
+        host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
         async with MQTTClient(
             host, port=port, **_mqtt_auth_kwargs(), **_mqtt_transport_kwargs()
         ) as client:

@@ -205,10 +205,14 @@ async def sensor_signal(
         ):
             raise HTTPException(503, "telemetry_owner_response_invalid")
         stale = row.get("stale") is not False or age is None or age < 0 or age > stale_after
+        # A stale, future-dated or undated reading is not a current measurement: its
+        # number moves to a name no reader can mistake for one, and `value` stays None
+        # exactly as for a missing reading.
         return {
             **base,
             "status": "stale" if stale else "available",
-            "value": value,
+            "value": None if stale else value,
+            "last_observed_value_not_current": value if stale else None,
             "unit": row["unit"],
             "observed_at": recorded,
             "age_sec": age,
