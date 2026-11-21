@@ -4,7 +4,10 @@ from __future__ import annotations
 
 # Versioned identity of THIS band-math implementation (published in indicator
 # provenance so downstream authority gates can pin the computing algorithm).
-ALGORITHM_VERSION = "sahool.band_math/1"
+# /2: a normalized-difference pixel whose two bands are both 0 is no-data (NaN),
+# not a valid 0.0. A ready asset computed under /1 is not reused (backfill and
+# single-scene preflights match on this value), so it is recomputed on request.
+ALGORITHM_VERSION = "sahool.band_math/2"
 
 INDICATOR_FORMULAS = {
     "ndvi": "(NIR - RED) / (NIR + RED)",
