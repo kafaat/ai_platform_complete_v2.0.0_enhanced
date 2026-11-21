@@ -769,3 +769,98 @@ def test_live_mutating_resend_of_a_legacy_row_with_unresolved_evidence_is_409(mo
     assert r.status_code == 200, r.text
     assert r.json()["replayed"] is True, r.text
     assert _run(stored_state()) == before
+
+
+@pytest.mark.integration
+@live
+def test_live_replay_exemption_locks_the_row_until_the_write_decision():
+    """The replay exemption reads the stored row FOR UPDATE. A concurrent writer that holds the
+    row must make the exact resend wait ON THE EXEMPTION QUERY; once that writer changes a
+    mutable column and commits, the resend no longer matches and is refused (409). Without the
+    lock the exemption passes against the old row, the later lock sees ``same_mutable=false`` and
+    the UPDATE path rewrites the row under an evidence id that does not resolve."""
+    sid, update_id = "veg_" + uuid4().hex[:20], "lu_" + uuid4().hex[:16]
+    payload = _learning_payload(evidence_snapshot_id=sid)
+
+    async def scenario():
+        c = await _connect()
+        locker = await _connect()
+        try:
+            await c.execute(
+                "INSERT INTO online_learning_updates(update_id,tenant_id,model_id,decision_id,"
+                "evidence_snapshot_id) VALUES($1,$2::uuid,$3,$4,$5)",
+                update_id,
+                TENANT_A,
+                payload.model_id,
+                payload.decision_id,
+                sid,
+            )
+            locker_pid = await locker.fetchval("SELECT pg_backend_pid()")
+            tx = locker.transaction()
+            await tx.start()
+            try:
+                await locker.execute(
+                    "SELECT 1 FROM online_learning_updates WHERE update_id=$1 AND "
+                    "tenant_id=$2::uuid FOR UPDATE",
+                    update_id,
+                    TENANT_A,
+                )
+                resend = asyncio.create_task(
+                    persistence.persist_learning_update(
+                        tenant_id=TENANT_A,
+                        payload=payload,
+                        update_id=update_id,
+                        traceability_status="derived_partial",
+                    )
+                )
+                # Wait (bounded, no fixed sleep) until the resend's backend is blocked by the
+                # locker, then record which statement it is blocked on.
+                blocked_query = None
+                loop = asyncio.get_running_loop()
+                deadline = loop.time() + 15.0
+                while blocked_query is None and not resend.done() and loop.time() < deadline:
+                    blocked_query = await c.fetchval(
+                        "SELECT query FROM pg_stat_activity WHERE wait_event_type = 'Lock' "
+                        "AND $1::int = ANY(pg_blocking_pids(pid))",
+                        locker_pid,
+                    )
+                    if blocked_query is None:
+                        await asyncio.sleep(0.02)
+                assert not resend.done(), (
+                    "the exact resend finished while another transaction held the row: "
+                    f"{resend.result() if not resend.exception() else resend.exception()!r}"
+                )
+                assert blocked_query is not None, "the resend never waited on the row lock"
+                assert blocked_query.lstrip().startswith("SELECT 1 FROM online_learning_updates"), (
+                    "the resend must wait on the replay-exemption query, not a later one: "
+                    f"{blocked_query}"
+                )
+                await locker.execute(
+                    "UPDATE online_learning_updates SET action='promote' "
+                    "WHERE update_id=$1 AND tenant_id=$2::uuid",
+                    update_id,
+                    TENANT_A,
+                )
+            except BaseException:
+                await tx.rollback()
+                raise
+            await tx.commit()
+            with pytest.raises(persistence.LearningUpdateEvidenceInvalid) as err:
+                await asyncio.wait_for(resend, timeout=15.0)
+            assert err.value.reason == "unknown_evidence_snapshot"
+            row = await c.fetchrow(
+                "SELECT action FROM online_learning_updates WHERE update_id=$1 AND "
+                "tenant_id=$2::uuid",
+                update_id,
+                TENANT_A,
+            )
+            events = await c.fetchval(
+                "SELECT count(*) FROM decision_outbox_events WHERE aggregate_id=$1", update_id
+            )
+            assert row["action"] == "promote", "the refused resend must not rewrite the row"
+            assert events == 0, "the refused resend must not emit an outbox event"
+        finally:
+            await locker.close()
+            await c.close()
+
+    _run(scenario())
