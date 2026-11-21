@@ -8969,3 +8969,12 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الإصلاح:** `frontend/src/lib/sharingRevocation.ts` يعيد `unknown` عند فقد الرد ويجري محاولة تحديث القائمة حتى عند الشك؛ `confirmed_refresh_unavailable` لا ينكر إلغاءً أكّده الخادم. الواجهة تعرض صياغة عدم يقين ولا تلفّق حالة المفتاح. لم تتغيّر صلاحية `USER_INVITE` ولا RLS.
 - **شاهد الاختبار:** `frontend/src/lib/sharingRevocation.test.ts` يغطي تطبيق الخادم الإلغاء ثمّ فقد الرد، وفشل التحديث، والنجاح المؤكَّد. اختبار معزول محليّ بثلاث حالات PASS، أمّا Vitest وCI على شجرة الدمج النهائيّة فحالتها PENDING وليست شهادة.
 - **شرط الإغلاق:** `npm run typecheck` وVitest و`verify_all_generated.py --check` وبوابات GitHub الحاجبة PASS على SHA الموحَّد، ثمّ دليل تكامل عند توفر بيئة معزولة. لا يُستدلّ من إصلاح المصدر على نشر Railway.
+
+
+## 2026-11-21 — إيصالات اعتماد الخطة الموحدة
+
+### UNIFIED-PLAN-OPERATIONAL-ACCEPTANCE-01
+
+- **الحالة:** open — تصحيحات الجدولة وشواهد المصدر لا تستبدل قرارات المالك وإيصالات البيئة المستهدفة.
+- **المصدر:** [سجل الإيصالات](../../docs/plans/governance_receipt_register.json) و[تقرير النطاق](../../docs/reviews/unified_plan_patch_20261121.md)، أساس `9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0`.
+- **شرط الإغلاق:** مطابقة القرار الفعلي بنطاق العمل، وتفويض المكامل ونائبه، وقياس التعرض، وتمرين رجوع التحويلات وإثبات الصلاحيات الفعلية في الهدف بعد bootstrap. لا تدعي الرقعة امتلاك هذه الأدلة، ولا تمنع أعمالًا مستقلة استوفت بواباتها.
