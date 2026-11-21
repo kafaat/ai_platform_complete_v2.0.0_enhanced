@@ -3,6 +3,8 @@
     "evidence_maturity": {
       "identities": [
         "DEC-001:declared_above_evidence:evidence-maturity",
+        "DEC-004:evidence_above_declared:evidence-maturity",
+        "DEC-005:evidence_above_declared:evidence-maturity",
         "DEC-008:declared_above_evidence:evidence-maturity",
         "DEC-009:declared_above_evidence:evidence-maturity",
         "FM-005:declared_above_evidence:evidence-maturity",
@@ -98,6 +100,13 @@
         "WX-003:evidence_above_declared:evidence-maturity": "PR #1538 adds tests_v9/test_weather_replay_http_live_pg.py and a dedicated restricted-role CI step. Assessed maturity rose to 2. Declared maturity remains at 1 pending capability review."
       },
       "decision": "Record weather history evidence drift on 2026-11-18 without promotion"
+    },
+    {
+      "admitted": {
+        "DEC-004:evidence_above_declared:evidence-maturity": "Mapper attribution, not new execution-request evidence. services/decision-service/tests/test_snapshot_id_validation.py names execution_request_id in its fixture SQL. Its integration tests exercise outcome verification (DEC-007) and vegetation snapshots, not execution-request creation. Declared maturity stays at 2.",
+        "DEC-005:evidence_above_declared:evidence-maturity": "Mapper attribution from the same file. Dispatch authorization is covered there by unit tests only (snapshot-reference format); the integration tests only seed dispatch-authorization rows. Declared maturity stays at 2. Supersedes the C-40 (#1428) registry_lowered_not_admitted note for DEC-004 and DEC-005."
+      },
+      "decision": "Owner decision 2026-11-17 (exploration-bug fixes, second third-batch carrier): admit the drift without promotion"
     }
   ],
   "purpose": "Known legacy drift identities only. New drift and stale baseline entries block; this file is not a capability value source of truth.",
