@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -87,3 +88,71 @@ def test_zero_legacy_allowlist_is_empty_and_locked():
     # الحارس نفسه يفرض القفل ويبقى أخضر على الشجرة الحاليّة.
     violations, canonical_ok = mod.scan()
     assert canonical_ok and not violations
+
+
+def _isolated_guard(tmp_path, monkeypatch):
+    """Keep planted source faults out of the checkout and other test workers."""
+    mod = _load()
+    canonical = "services/weather-service/vapor_pressure.py"
+    source = tmp_path / canonical
+    source.parent.mkdir(parents=True)
+    source.write_text("def svp(t): return 0.6108 * (17.27 + t)\n", encoding="utf-8")
+    config = tmp_path / "allowlist.json"
+    config.write_text(
+        json.dumps({"canonical": canonical, "temporary_legacy_allowlist": []}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(mod, "_ROOT", tmp_path)
+    monkeypatch.setattr(mod, "_ALLOWLIST", config)
+    return mod, source, config
+
+
+def test_main_rejects_formula_outside_weather_engine(tmp_path, monkeypatch, capsys):
+    mod, _, _ = _isolated_guard(tmp_path, monkeypatch)
+    assert mod.main() == 0
+    capsys.readouterr()
+    copied = tmp_path / "services/sahool-platform/api/parallel_et0.py"
+    copied.parent.mkdir(parents=True)
+    copied.write_text("def local_et0(t): return 0.0023 * (t + 17.8)\n", encoding="utf-8")
+    assert mod.main() == 1
+    diagnostic = capsys.readouterr().err
+    assert "SVP/ET0/GDD kernel outside the Weather Engine" in diagnostic
+    assert "services/sahool-platform/api/parallel_et0.py" in diagnostic
+
+
+def test_main_rejects_missing_canonical_fingerprint(tmp_path, monkeypatch, capsys):
+    mod, source, _ = _isolated_guard(tmp_path, monkeypatch)
+    assert mod.main() == 0
+    capsys.readouterr()
+    source.write_text("def svp(t): return t\n", encoding="utf-8")
+    assert mod.main() == 1
+    assert "canonical vapor_pressure.py lost the SVP fingerprint" in capsys.readouterr().err
+
+
+def test_main_rejects_reopened_legacy_allowlist(tmp_path, monkeypatch, capsys):
+    mod, _, config = _isolated_guard(tmp_path, monkeypatch)
+    assert mod.main() == 0
+    capsys.readouterr()
+    cfg = json.loads(config.read_text(encoding="utf-8"))
+    cfg["temporary_legacy_allowlist"] = [
+        {
+            "path": "services/sahool-platform/api/parallel_et0.py",
+            "owner": "fixture",
+            "expires": "2026-11-30",
+            "purpose": "A dated exception cannot reopen the zero-legacy lock",
+        }
+    ]
+    config.write_text(json.dumps(cfg), encoding="utf-8")
+    assert mod.main() == 1
+    assert "Zero-Legacy is LOCKED" in capsys.readouterr().err
+
+
+def test_stage_kc_policy_is_not_an_et0_kernel(tmp_path, monkeypatch):
+    mod, _, _ = _isolated_guard(tmp_path, monkeypatch)
+    season = tmp_path / "services/sahool-platform/core/season_phenology.py"
+    season.parent.mkdir(parents=True)
+    season.write_text(
+        "def stage_kc(card, stage): return card['stage_kc_map'][stage]\n",
+        encoding="utf-8",
+    )
+    assert mod.main() == 0

@@ -655,9 +655,17 @@ def main():
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--docker", action="store_true")
     mode.add_argument("--nginx", help="nginx binary compiled with http_auth_request_module")
-    parser.add_argument("--config", type=Path, default=FRONTEND / "nginx.conf")
+    parser.add_argument("--profile", choices=("frontend", "v9"), default="frontend")
+    parser.add_argument("--config", type=Path, help="override the selected profile's config")
     args = parser.parse_args()
-    RuntimeContract.config = args.config
+    test_case = RuntimeContract
+    default_config = FRONTEND / "nginx.conf"
+    if args.profile == "v9":
+        from nginx_v9_runtime_contract import V9RuntimeContract
+
+        test_case = V9RuntimeContract
+        default_config = FRONTEND.parent / "nginx/nginx.v9.conf"
+    test_case.config = args.config or default_config
     if args.docker:
         image = re.findall(
             r"^FROM (public\.ecr\.aws/docker/library/nginx@sha256:[0-9a-f]{64})",
@@ -705,8 +713,10 @@ def main():
         def command(_directory):
             return [args.nginx]
 
-    RuntimeContract.command = staticmethod(command)
-    unittest.main(argv=[__file__], verbosity=2)
+    test_case.command = staticmethod(command)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(test_case)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    raise SystemExit(not result.wasSuccessful())
 
 
 if __name__ == "__main__":

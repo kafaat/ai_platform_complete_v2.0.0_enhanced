@@ -836,6 +836,11 @@ jobs:
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 frontend/tests/test_nginx_runtime.py --docker
+      - name: v9 gateway TLS, authenticated identity and DNS recovery
+        timeout-minutes: 5
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 frontend/tests/test_nginx_runtime.py --docker --profile v9
 
   frontend-e2e:
     name: Frontend E2E (Playwright · MapLibre/WebGL QA)

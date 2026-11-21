@@ -8005,7 +8005,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ffbe864628bb21a33f824e957cf604e23885a9b66388613735f363e49a02a2f4"
+          "content": "6f19ccb38a10b4192ff56c78d282b293bd231a7d5bfbf177a8a30742a4de71f6"
+        }
+      ],
+      "name": "frontend/tests/nginx_v9_runtime_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c003d635e7a90df26f077e10379cae61053bf407f3b42c51b75515e7c4afb157"
         }
       ],
       "name": "frontend/tests/test_nginx_runtime.py",
