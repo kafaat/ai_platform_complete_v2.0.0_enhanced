@@ -12098,7 +12098,7 @@
           "score": 24
         },
         {
-          "value": "sahool.> @ services/sahool-platform/tests/test_nats_staging_enablement.py:74",
+          "value": "sahool.> @ services/sahool-platform/tests/test_nats_staging_enablement.py:78",
           "score": 24
         },
         {
@@ -12154,7 +12154,7 @@
           "score": 24
         },
         {
-          "value": "sahool.events.> @ services/sahool-platform/tests/test_nats_staging_enablement.py:86",
+          "value": "sahool.events.> @ services/sahool-platform/tests/test_nats_staging_enablement.py:90",
           "score": 24
         },
         {
@@ -12262,7 +12262,7 @@
           "score": 24
         },
         {
-          "value": "sahool.events.> @ tests_v9/test_nats_outbox_staging_enablement_live.py:238",
+          "value": "sahool.events.> @ tests_v9/test_nats_outbox_staging_enablement_live.py:246",
           "score": 23
         },
         {
@@ -12278,7 +12278,7 @@
           "score": 20
         },
         {
-          "value": "sahool.events.x @ shared/nats_stream_contract.py:281",
+          "value": "sahool.events.x @ shared/nats_stream_contract.py:304",
           "score": 20
         },
         {
@@ -66533,7 +66533,7 @@
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 155
+          "line": 157
         },
         {
           "source": "services/sahool-platform/api/event_bus.py",
@@ -66553,7 +66553,7 @@
         {
           "source": "shared/broker_url.py",
           "kind": "import",
-          "line": 84
+          "line": 86
         },
         {
           "source": "shared/nats_stream_contract.py",
@@ -66573,52 +66573,52 @@
         {
           "source": "agents/notification/agent.py",
           "kind": "source_read",
-          "line": 92
+          "line": 96
         },
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 442
+          "line": 494
         },
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "import",
-          "line": 383
+          "line": 435
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 442
+          "line": 494
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 443
+          "line": 495
         },
         {
           "source": "services/sahool-platform/api/routers/platform_health.py",
           "kind": "import",
-          "line": 443
+          "line": 495
         },
         {
           "source": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
           "kind": "loader",
-          "line": 609
+          "line": 676
         },
         {
           "source": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
           "kind": "source_read",
-          "line": 608
+          "line": 675
         },
         {
           "source": "shared/__init__.py",
           "kind": "import",
-          "line": 305
+          "line": 357
         },
         {
           "source": "shared/nats_stream_contract.py",
           "kind": "import",
-          "line": 55
+          "line": 59
         }
       ],
       "unresolved": []
@@ -88945,27 +88945,27 @@
         {
           "source": "services/sahool-platform/api/event_bus.py",
           "kind": "import",
-          "line": 160
+          "line": 168
         },
         {
           "source": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
           "kind": "import",
-          "line": 161
+          "line": 169
         },
         {
           "source": "shared/__init__.py",
           "kind": "import",
-          "line": 164
+          "line": 172
         },
         {
           "source": "shared/broker_url.py",
           "kind": "import",
-          "line": 165
+          "line": 173
         },
         {
           "source": "shared/nats_stream_contract.py",
           "kind": "import",
-          "line": 164
+          "line": 172
         }
       ],
       "unresolved": []

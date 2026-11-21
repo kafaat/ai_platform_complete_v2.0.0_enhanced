@@ -2219,7 +2219,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 213,
+      "evidence_count": 215,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2413,6 +2413,7 @@
         "services/sahool-platform/tests/test_indicator_observations_route.py",
         "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
         "services/sahool-platform/tests/test_mutating_endpoints_authn_guard.py",
+        "services/sahool-platform/tests/test_nats_staging_enablement.py",
         "services/sahool-platform/tests/test_notifications_ws_handshake.py",
         "services/sahool-platform/tests/test_p2_4_compat_gateway_raster_facade_guard.py",
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
@@ -2458,6 +2459,7 @@
         "shared/iot_execution_runtime.py",
         "shared/mlops/agronomic_candidate.py",
         "shared/mlops/runtime.py",
+        "shared/nats_stream_contract.py",
         "shared/security/cors_policy.py",
         "shared/security/decision_service_auth.py",
         "shared/storage/s3_endpoint_security.py"
@@ -3542,7 +3544,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 52,
-      "target_evidence_count": 213,
+      "target_evidence_count": 215,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3582,7 +3584,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 213,
+      "source_evidence_count": 215,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3704,5 +3706,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "4a9ce6043852d0ba9b7b36033ec3c4b7e8e73427bc2b9bbe0b85e7e3ce81aebe"
+  "content_sha256": "433d3c888f5f92d4cc1ac183550278c6d4ed082e4a783344f22b5a57486683a2"
 }
