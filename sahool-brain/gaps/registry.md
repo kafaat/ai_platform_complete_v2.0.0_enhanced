@@ -8969,3 +8969,33 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الإصلاح:** `frontend/src/lib/sharingRevocation.ts` يعيد `unknown` عند فقد الرد ويجري محاولة تحديث القائمة حتى عند الشك؛ `confirmed_refresh_unavailable` لا ينكر إلغاءً أكّده الخادم. الواجهة تعرض صياغة عدم يقين ولا تلفّق حالة المفتاح. لم تتغيّر صلاحية `USER_INVITE` ولا RLS.
 - **شاهد الاختبار:** `frontend/src/lib/sharingRevocation.test.ts` يغطي تطبيق الخادم الإلغاء ثمّ فقد الرد، وفشل التحديث، والنجاح المؤكَّد. اختبار معزول محليّ بثلاث حالات PASS، أمّا Vitest وCI على شجرة الدمج النهائيّة فحالتها PENDING وليست شهادة.
 - **شرط الإغلاق:** `npm run typecheck` وVitest و`verify_all_generated.py --check` وبوابات GitHub الحاجبة PASS على SHA الموحَّد، ثمّ دليل تكامل عند توفر بيئة معزولة. لا يُستدلّ من إصلاح المصدر على نشر Railway.
+
+- **شرط الإغلاق:** قرار المالك بين (أ) و(ب)، ثمّ إعدادات مرسومة وقاعدة خروج، وإيصال إرسال حيّ من تثبيت Helm.
+
+## OUTCOME-RECONCILE-NONDETERMINISTIC-ORDER-01 — أيّ نتيجةٍ تُصالَح كان يقرّره ترتيب الكومة (P2)
+
+- **الحالة:** open — مُصلَحة في الكود على الفرع `tb/q-exploration-bugs-20261117`؛ غير مدموجة.
+- **الخلل:** [`outcome_reconcile.py:91-95`](../../services/decision-service/outcome_reconcile.py) يأخذ أوّل صفّ لكلّ `decision_id` (`setdefault`)، و`read_outcomes_for_reconcile` ([`persistence.py:826-860`](../../services/decision-service/persistence.py) على الأساس `8725fcfe1`) يقرأ `outcome_record` و`recommendation_outcomes` بلا `ORDER BY`، فالنتيجة الفائزة لقرارٍ له أكثر من صفّ كانت ترتيبَ الكومة.
+- **الإصلاح:** القراءتان مرتّبتان الأحدثَ أوّلاً بالزمن ثمّ المعرّف (`created_at DESC, outcome_id DESC` و`COALESCE(outcome_recorded_at, issued_at) DESC, outcome_id DESC`). الشاهد الحيّ: [`test_outcome_reconcile_order_live_pg.py`](../../services/decision-service/tests/test_outcome_reconcile_order_live_pg.py) (الصفّ الأقدم يُدرَج أوّلاً؛ بلا الإصلاح ٤ إخفاقات). ولأنّ فهرس `idx_outcome_record_tenant_decision (tenant_id, decision_id, created_at DESC)` يعيد الأحدث أوّلاً بلا `ORDER BY`، يشغّل اختبار `outcome_record` القراءةَ الإنتاجيّة بلا `ORDER BY` بإعدادات المخطِّط الافتراضيّة ويفشل بـ«negative control lost» إن لم يأتِ صفٌّ قديم أوّلاً (مُثبَت بنسخةٍ بلا `idx_outcome_record_content_digest`).
+- **شرط الإغلاق:** دمجٌ في main.
+
+## FIELD-STATE-VERSION-NEVER-BUMPED-01 — `field_state.version` لا يرتفع أبداً (P2)
+
+- **الحالة:** open — مُصلَحة في الكود على الفرع `tb/q-exploration-bugs-20261117`؛ غير مدموجة.
+- **الخلل:** v132 أضاف `version` عدّاداً أحاديّ التزايد، لكنّ الكاتب الوحيد `recompute_field_state` ([`field_state_projection.py:878-899`](../../services/sahool-platform/api/field_state_projection.py) على الأساس `8725fcfe1`) لا يلمسه، فكلّ صفّ بقي على 1 ولا يُميَّز إسقاطٌ قديم من أحدث.
+- **الإصلاح:** الـUPSERT نفسه يكتب `version = field_state.version + 1` و`recomputed_at`، و`expected_version` اختياريّ يجعل الكتابة شرطيّة (`WHERE field_state.version = $14`) ويرفع `FieldStateVersionConflict` للكاتب المتقادم بلا كتابة. الشاهد الحيّ: [`test_field_state_version_bump_live_pg.py`](../../tests_v9/test_field_state_version_bump_live_pg.py) بالدور المقيَّد (بلا الإصلاح: الإصدار 1 بعد ثلاث كتابات).
+- **الباقي:** لا مستدعٍ يمرّر `expected_version` بعد؛ نقل إعادة الحساب من GET إلى مستهلك أحداث مع `source_event_id` هو W4-08.
+
+## DECISION-SNAPSHOT-IDS-STORED-UNCHECKED-01 — معرّفات اللقطات تُخزَّن كما وصلت (P2)
+
+- **الحالة:** open — مُصلَحة جزئيّاً في الكود على الفرع `tb/q-exploration-bugs-20261117`؛ غير مدموجة.
+- **الخلل:** decision-service خزّن (الأسطر على الأساس `cb3e756be`) `snapshot_id` الذي يسمّيه المنتِج ([`main.py:374`](../../services/decision-service/main.py)، ويُسكّ عند غيابه في `main.py:653`) و`weather_snapshot_id`/`resource_snapshot_id` (`main.py:1453-1454`) و`evidence_snapshot_id` (`main.py:2183` للتحقّق من النتيجة، `main.py:2259` لإسناد التعلّم، ومسار تحديث التعلّم `LearningUpdateIn.evidence_snapshot_id` `main.py:435` ← `persist_learning_update` في `persistence.py:937`) بلا فحص. و`snapshot_id` مفتاحٌ أساسيّ عامّ بينما RLS يخفي صفوف المستأجرين الآخرين، فمعرّفٌ مأخوذ كان خطأً غير معالَج (500).
+- **الإصلاح:** شكل `veg_` محدود في المدخل والمخزن (422)؛ إعادة استعمال المعرّف (المستأجر نفسه أو غيره) `409 snapshot_id_conflict` بالجواب نفسه؛ مراجع اللقطات الخارجيّة بشكلٍ محدود (`422 invalid_snapshot_id` يسمّي الحقل)، ومنها `evidence_snapshot_id` الاختياريّ في `POST /v1/learning/updates` حين يحضر؛ ودليلٌ بنطاق `veg_` في نتيجةٍ أو في تحديث تعلّم يجب أن يوجد لهذا المستأجر ولحقل القرار نفسه حين يُعرف القرار (`unknown_evidence_snapshot` / `evidence_snapshot_field_mismatch`؛ في تحديث التعلّم `409` قبل أيّ كتابة، وإعادة إرسال صفٍّ مخزَّن بالمعرّف نفسه لا يُعاد الحكم عليها). الشاهد: [`test_snapshot_id_validation.py`](../../services/decision-service/tests/test_snapshot_id_validation.py) (وحدة + حيّ على PG16). القياس قابل للإعادة: ملف الاختبار من رأس الفرع مقابل شجرة الأساس `cb3e756be` (`git archive cb3e756be services/decision-service shared pytest.ini conftest.py`) يُخفق في ٥٥ من ٦٥؛ وعلى رأس الفرع بعد إزالة فحصَي مسار تحديث التعلّم وحدهما (الشكل في `record_learning_update` والحلّ في `persist_learning_update`) ٩ إخفاقات (٥ وحدة + ٤ حيّة).
+- **الباقي (شرط الإغلاق):** وجود لقطات الطقس والموارد ودليل النتيجة أو تحديث التعلّم خارج نطاق `veg_` يعيش في خدمات أخرى، فحلّها مقابل مالكها هو W4-01 (`decision-7`/`decision-10`). وفي تحديث التعلّم يُقارَن حقل لقطة `veg_` بحقل القرار فقط، لا بـ`field_id` المُرسَل حين لا قرار؛ وصفوفٌ خُزّنت قبل الحلّ بمعرّف `veg_` لا يُحَلّ تبقى كما هي (لا تُفحَص بأثرٍ رجعيّ).
+
+## KG-EDGES-UNBOUNDED-UNORDERED-01 — `GET /v1/edges` بلا حدّ ولا ترتيب ويعدّد الرسم كلّه (P2)
+
+- **الحالة:** open — مُصلَحة في الكود على الفرع `tb/q-exploration-bugs-20261117`؛ غير مدموجة.
+- **الخلل:** `query_edges` ([`kg_store.py:669-695`](../../services/knowledge-graph/kg_store.py) على الأساس `8725fcfe1`) بلا `ORDER BY` ولا `LIMIT`، و`GET /v1/edges` ([`main.py:237-250`](../../services/knowledge-graph/main.py)) بلا مُرشِّح يعيد الرسم كلّه؛ وai_agronomist يستدعيه بلا معاملات حين لا محصول (`agent-10`).
+- **الإصلاح:** ترتيب حتميّ (subject, relation, object, edge_id)؛ `limit` بحدّ أقصى 500 (فوقه 422)؛ القراءة بلا مُرشِّح مسقوفة بـ100 مع `filtered`/`truncated`، فالمستدعي يبقى يعمل. GraphQL مسقوفة بالمثل. الشاهد: [`test_kg_edges_bounded_read.py`](../../tests_v9/test_kg_edges_bounded_read.py) (بلا الإصلاح ٦ إخفاقات).
+- **الباقي:** عدم توسيع KG العامّ حين لا محصول قرارٌ في ai_agronomist هو W2-19.

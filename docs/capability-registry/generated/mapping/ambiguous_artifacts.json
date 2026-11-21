@@ -3591,6 +3591,28 @@
     ]
   },
   {
+    "path": "services/decision-service/tests/test_snapshot_id_validation.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "DEC-005",
+        "score": 8,
+        "signals": [
+          "content:Dispatch authorization",
+          "dedup:Dispatch authorization=dispatch authorization"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "dedup:Execution request=execution request"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/decision-service/tests/test_tenant_binding_force_rls.py",
     "kind": "tests",
     "candidates": [

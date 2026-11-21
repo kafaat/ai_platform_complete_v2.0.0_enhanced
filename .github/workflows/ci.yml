@@ -1413,6 +1413,10 @@ jobs:
           # real handler under a throwaway NOBYPASSRLS role it creates from this superuser DSN.
           # With the switch, a missing or unmigrated database is a failure, not a green skip.
           NOTIFICATION_DELIVERY_CERTIFICATION_REQUIRED: "1"
+          # FIELD-STATE-VERSION-NEVER-BUMPED-01: every recompute bumps field_state.version
+          # (tests_v9/test_field_state_version_bump_live_pg.py). With the switch, a missing or
+          # unmigrated database is a failure, not a green skip.
+          FIELD_STATE_VERSION_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation
@@ -2003,6 +2007,8 @@ jobs:
           tests/test_wx10_11_execution_request.py
           tests/test_wx10_11b_execution_delivery_receipt.py
           tests/test_wx10_12_execution_outcome.py
+          tests/test_outcome_reconcile_order_live_pg.py
+          tests/test_snapshot_id_validation.py
       # IRR-F01 Gate B-delivery (thin inbox, real Postgres): a delivered reservation dispatch
       # INTENT is recorded idempotently (dedup on tenant+source_event_id), a corrupted redelivery
       # is rejected, the receipt is append-preserving, the consumer heartbeat advances — and a

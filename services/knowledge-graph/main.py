@@ -5,11 +5,12 @@ import os
 from pathlib import Path
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from kg_store import (
+    EDGE_QUERY_MAX_LIMIT,
     EdgeConflictError,
     GraphEdge,
     GraphNode,
@@ -239,15 +240,19 @@ async def edges(
     subject_id: str | None = None,
     relation: str | None = None,
     object_id: str | None = None,
+    limit: int | None = Query(default=None, ge=1, le=EDGE_QUERY_MAX_LIMIT),
     _tenant: str = Depends(require_trusted_tenant),
 ):
     # C5: graph reads require a trusted X-Tenant-Id (gateway-injected). A missing
     # header fails closed (403 missing_tenant), preventing anonymous reads.
     # #1472 / ADR-0038: the header authenticates only; it is NOT a row filter. The
     # store is global reference data, so every tenant reads the same rows.
-    return {
-        "edges": store.query_edges(subject_id=subject_id, relation=relation, object_id=object_id)
-    }
+    # Bounded and ordered: a limit above EDGE_QUERY_MAX_LIMIT is refused (422); a read with
+    # no filter is capped at EDGE_QUERY_UNFILTERED_MAX rows and says so (filtered/truncated),
+    # so it can no longer enumerate the whole graph.
+    return store.query_edges_page(
+        subject_id=subject_id, relation=relation, object_id=object_id, limit=limit
+    )
 
 
 @app.post("/graphql")
