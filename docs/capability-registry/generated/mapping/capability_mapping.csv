@@ -50,7 +50,7 @@ PA-004,precision,As-applied data,True,4,1,0,18,2,0,0,1,0
 PA-005,precision,Machine telemetry,True,1,1,0,0,0,0,0,0,0
 SAT-001,satellite,Satellite scene search,True,6,43,100,5,47,6,0,59,0
 SAT-002,satellite,True color imagery,True,4,0,1,0,1,1,0,5,0
-SAT-003,satellite,NDVI,True,7,57,42,8,100,39,5,71,0
+SAT-003,satellite,NDVI,True,7,57,42,8,100,39,5,72,0
 SAT-004,satellite,NDMI,True,6,9,4,5,13,3,0,8,0
 SAT-005,satellite,Cloud screening,True,4,6,6,0,1,0,0,14,0
 SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0
