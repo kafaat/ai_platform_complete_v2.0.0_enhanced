@@ -12,8 +12,8 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
 RUN python -m pip install --no-cache-dir --timeout 300 --retries 10 \
         -r /tmp/worker-requirements.txt -r /tmp/session-requirements.txt \
-    && groupadd --gid 10001 voice \
-    && useradd --uid 10001 --gid voice --no-create-home voice
+    && groupadd --gid 10001 realtime \
+    && useradd --uid 10001 --gid realtime --no-create-home realtime
 COPY services/realtime-agent/realtime_agent/ /app/realtime_agent/
 COPY services/realtime-session/realtime_session/ /app/realtime_session/
 COPY services/realtime-session/xiaozhi_main.py /app/xiaozhi_main.py
