@@ -24,6 +24,29 @@ from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+# Snapshot identifiers (exploration bug: snapshot ids were stored without checks).
+# A vegetation snapshot id this service stores is ``veg_`` + a bounded token; the server mints
+# ``veg_`` + 20 hex, a producer may name its own within the same shape. A snapshot REFERENCE to
+# evidence held by another service (weather, resources, outcome evidence) cannot be resolved
+# here, so it is held to a format: printable, no whitespace or control characters, bounded.
+VEGETATION_SNAPSHOT_ID_RE = re.compile(r"^veg_[A-Za-z0-9_-]{8,64}$")
+SNAPSHOT_REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/=+-]{0,199}$")
+
+
+def snapshot_reference_format_error(value: Any) -> str | None:
+    """``invalid_snapshot_id`` when ``value`` is not a well-formed snapshot reference."""
+    if not isinstance(value, str) or not SNAPSHOT_REFERENCE_RE.fullmatch(value):
+        return "invalid_snapshot_id"
+    if value.startswith("veg_") and not VEGETATION_SNAPSHOT_ID_RE.fullmatch(value):
+        return "invalid_snapshot_id"
+    return None
+
+
+class SnapshotIdConflict(Exception):
+    """A client-named snapshot id is already taken (by other evidence, or another tenant)."""
+
+
 _TRUTHY = {"1", "true", "yes", "on"}
 
 
@@ -848,6 +871,11 @@ async def read_outcomes_for_reconcile(
 
     ``SELECT *`` عمداً — المُصالِح متسامح مع الأعمدة، فلا نُثبّت أسماءً قد تختلف بين نسخ المخطّط.
     تُنسب نتيجة التنفيذ إلى موسم رأس قرارها عند تصفية موسم محدد.
+
+    The reconciler keeps the FIRST row it sees per decision_id (``setdefault``), so the row
+    order decides which outcome wins when a decision has several. Both reads are therefore
+    ordered latest-first, by time then id: without ``ORDER BY`` PostgreSQL returns heap order,
+    which changes with updates, vacuum and plans, and the winning outcome was nondeterministic.
     """
     conn = await _connect()
     try:
@@ -862,7 +890,8 @@ async def read_outcomes_for_reconcile(
                      AND ($3::text IS NULL OR (
                        COALESCE(d.season_id, d.decision_value->>'season_id')=$3
                        AND (d.decision_value->>'season_id' IS NULL OR d.season_id IS NULL
-                            OR d.season_id=d.decision_value->>'season_id')))""",
+                            OR d.season_id=d.decision_value->>'season_id')))
+                   ORDER BY o.created_at DESC, o.outcome_id DESC""",
                 tenant_id,
                 field_id,
                 season_id,
@@ -870,7 +899,8 @@ async def read_outcomes_for_reconcile(
             rrows = await conn.fetch(
                 "SELECT * FROM recommendation_outcomes "
                 "WHERE tenant_id=$1::uuid AND ($2::text IS NULL OR field_id=$2) "
-                "AND ($3::text IS NULL OR season_id=$3)",
+                "AND ($3::text IS NULL OR season_id=$3) "
+                "ORDER BY COALESCE(outcome_recorded_at, issued_at) DESC, outcome_id DESC",
                 tenant_id,
                 field_id,
                 season_id,
@@ -883,6 +913,8 @@ async def read_outcomes_for_reconcile(
 class LearningUpdateConflict(Exception):
     """The update id is already stored with a different identity (or by another tenant)."""
 
+    detail = "learning_update_id_conflict"
+
 
 class LearningUpdateReviewInvalid(ValueError):
     """The supplied agronomic review breaks the stored review rules (v234 / service 039)."""
@@ -890,6 +922,18 @@ class LearningUpdateReviewInvalid(ValueError):
 
 class LearningUpdateReviewUnavailable(RuntimeError):
     """A review was supplied but this schema has no review columns yet (service migration 039)."""
+
+
+class LearningUpdateEvidenceInvalid(LearningUpdateConflict):
+    """A ``veg_`` evidence id that does not resolve to this tenant's snapshot (or field).
+
+    A conflict subclass so the endpoint's existing 409 handler answers it, with ``detail``
+    naming the reason (``unknown_evidence_snapshot`` / ``evidence_snapshot_field_mismatch``)."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+        self.detail = reason
 
 
 # What a learning update *is*: changing any of these under a stored id is a conflict.
@@ -1009,6 +1053,35 @@ async def persist_learning_update(
                 if has_review
                 else "RETURNING 'unreviewed' AS review_status, false AS agronomically_approved"
             )
+            # A vegetation-namespaced evidence id claims to be evidence this service holds: it is
+            # resolved as on verify-outcome (this tenant's snapshot, of the decision's field when
+            # the decision is known) before anything is stored. The one exemption is a true
+            # replay: this tenant's row under this update_id already holds every identity column
+            # (the evidence id included) AND every mutable column (action, drift, source, review)
+            # as sent, so the request stores nothing and is answered ``unchanged``. A resend that
+            # would change any mutable column writes the row, so its evidence is resolved and an
+            # unresolved id is refused (409) even on a row stored before resolution existed.
+            reason = await _outcome_evidence_reference_error(
+                conn,
+                tenant_id=tenant_id,
+                evidence_snapshot_id=payload.evidence_snapshot_id,
+                decision_id=payload.decision_id,
+            )
+            # FOR UPDATE: the matching row stays locked until this transaction ends, so no other
+            # writer (the platform's local writer shares the table) can change a mutable column
+            # between this exemption and the write below.
+            if reason and not await conn.fetchval(
+                "SELECT 1 FROM online_learning_updates "
+                "WHERE update_id = $1 AND tenant_id = $2::uuid AND "
+                f"{_same_columns_sql(_LEARNING_IDENTITY_COLUMNS, 3)} AND "
+                f"{_same_columns_sql(mutable_columns, 3 + len(_LEARNING_IDENTITY_COLUMNS))} "
+                "FOR UPDATE",
+                update_id,
+                tenant_id,
+                *identity,
+                *mutable,
+            ):
+                raise LearningUpdateEvidenceInvalid(reason)
             columns = _LEARNING_IDENTITY_COLUMNS + mutable_columns
             # No conflict target: this table's unique key is ``update_id`` in this service's own
             # schema (001) but ``(tenant_id, update_id)`` in the shared database, where the
@@ -3253,6 +3326,31 @@ def _equipment_receipt_evidence_gap(receipt_payload: Any) -> str:
     return "independent_equipment_evidence_unavailable"
 
 
+async def _outcome_evidence_reference_error(
+    conn: Any, *, tenant_id: str, evidence_snapshot_id: Any, decision_id: str
+) -> str | None:
+    """Resolve a ``veg_`` evidence id against this tenant's vegetation snapshots."""
+    if not isinstance(evidence_snapshot_id, str) or not evidence_snapshot_id.startswith("veg_"):
+        return None
+    if not VEGETATION_SNAPSHOT_ID_RE.fullmatch(evidence_snapshot_id):
+        return "invalid_snapshot_id"
+    row = await conn.fetchrow(
+        """SELECT v.field_id AS snapshot_field_id, d.field_id AS decision_field_id
+             FROM decision_vegetation_snapshots v
+             LEFT JOIN decision_record d
+               ON d.tenant_id=v.tenant_id AND d.decision_id=$3
+            WHERE v.tenant_id=$1::uuid AND v.snapshot_id=$2""",
+        tenant_id,
+        evidence_snapshot_id,
+        decision_id,
+    )
+    if not row:
+        return "unknown_evidence_snapshot"
+    if row["decision_field_id"] and row["decision_field_id"] != row["snapshot_field_id"]:
+        return "evidence_snapshot_field_mismatch"
+    return None
+
+
 async def verify_execution_outcome(
     *, tenant_id: str, execution_request_id: str, verified_by: str, payload: Any
 ) -> dict[str, Any]:
@@ -3322,6 +3420,19 @@ async def verify_execution_outcome(
                 }
             if prior:
                 return _authoritative_execution_outcome(prior, replay=True)
+            # A vegetation-namespaced evidence id claims to be evidence this service holds: it
+            # must resolve, for this tenant (RLS + explicit tenant filter), to a snapshot of the
+            # decision's own field. Other evidence ids are held to the format at the HTTP edge.
+            # Checked after the idempotent replay: a byte-identical retry of an outcome already
+            # stored returns that stored outcome and stores nothing new, so it is not re-judged.
+            reason = await _outcome_evidence_reference_error(
+                conn,
+                tenant_id=tenant_id,
+                evidence_snapshot_id=payload.evidence_snapshot_id,
+                decision_id=payload.decision_id,
+            )
+            if reason:
+                return {"status": "conflict", "reason": reason}
             outcome_id = (
                 "out_"
                 + hashlib.sha256(
@@ -6467,31 +6578,46 @@ async def persist_vegetation_snapshot(
     canonical existing snapshot (created=False) — truly idempotent, never a duplicate row."""
     if payload.data_available_at < payload.acquisition_at:
         raise ValueError("data_available_at must be >= acquisition_at")
+    if not isinstance(snapshot_id, str) or not VEGETATION_SNAPSHOT_ID_RE.fullmatch(snapshot_id):
+        raise ValueError("invalid_snapshot_id")
+    import asyncpg  # lazy like _connect(): only reachable when SoR/asyncpg is available
+
     conn = await _connect()
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
-            row = await conn.fetchrow(
-                """
-                INSERT INTO decision_vegetation_snapshots
-                  (snapshot_id, tenant_id, field_id, season_id, contract_version, snapshot_hash,
-                   acquisition_at, data_available_at, quality_gate, feature_manifest, payload)
-                VALUES ($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11::jsonb)
-                ON CONFLICT (tenant_id, snapshot_hash) DO NOTHING
-                RETURNING snapshot_id
-                """,
-                snapshot_id,
-                tenant_id,
-                payload.field_id,
-                payload.season_id,
-                payload.contract_version,
-                payload.snapshot_hash,
-                payload.acquisition_at,
-                payload.data_available_at,
-                _json(payload.quality_gate),
-                _json(payload.feature_manifest),
-                _json(payload.payload),
-            )
+            # snapshot_id is the table's global primary key while RLS hides other tenants' rows:
+            # a named id already used by different evidence (this tenant's or another's) used to
+            # surface as an unhandled unique violation (500). It is a named 409 now, with the same
+            # answer whether the holder is this tenant or another, so it does not say which
+            # tenant holds the id and returns none of its data. It still reveals that a
+            # producer-named veg_ id exists somewhere (as the 500 did before): producer-chosen
+            # names can be guessed. Server-minted ids (veg_ + uuid4().hex[:20]: about 74 random
+            # bits, as 6 of those 80 are uuid4's fixed version and variant bits) cannot.
+            try:
+                row = await conn.fetchrow(
+                    """
+                    INSERT INTO decision_vegetation_snapshots
+                      (snapshot_id, tenant_id, field_id, season_id, contract_version, snapshot_hash,
+                       acquisition_at, data_available_at, quality_gate, feature_manifest, payload)
+                    VALUES ($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11::jsonb)
+                    ON CONFLICT (tenant_id, snapshot_hash) DO NOTHING
+                    RETURNING snapshot_id
+                    """,
+                    snapshot_id,
+                    tenant_id,
+                    payload.field_id,
+                    payload.season_id,
+                    payload.contract_version,
+                    payload.snapshot_hash,
+                    payload.acquisition_at,
+                    payload.data_available_at,
+                    _json(payload.quality_gate),
+                    _json(payload.feature_manifest),
+                    _json(payload.payload),
+                )
+            except asyncpg.exceptions.UniqueViolationError as exc:
+                raise SnapshotIdConflict("snapshot_id_conflict") from exc
             canonical = (
                 str(row["snapshot_id"])
                 if row

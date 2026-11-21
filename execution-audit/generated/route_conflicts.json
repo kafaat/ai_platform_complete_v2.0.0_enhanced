@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 616,
+          "line": 619,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 920,
+          "line": 897,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 560,
+          "line": 563,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -325,7 +325,7 @@
         },
         {
           "function": "healthz",
-          "line": 165,
+          "line": 166,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/healthz",
@@ -341,7 +341,7 @@
         },
         {
           "function": "healthz",
-          "line": 152,
+          "line": 150,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/healthz",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 920,
+          "line": 897,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -408,14 +408,6 @@
           "line": 170,
           "method": "GET",
           "module": "services/realtime-session/realtime_session/session_runtime.py",
-          "path": "/healthz",
-          "receiver": "app"
-        },
-        {
-          "function": "health",
-          "line": 395,
-          "method": "GET",
-          "module": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
           "path": "/healthz",
           "receiver": "app"
         },
@@ -548,7 +540,7 @@
         },
         {
           "function": "metrics",
-          "line": 170,
+          "line": 171,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/metrics",
@@ -659,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 565,
+          "line": 568,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -707,7 +699,7 @@
         },
         {
           "function": "readyz",
-          "line": 187,
+          "line": 188,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/readyz",
@@ -723,7 +715,7 @@
         },
         {
           "function": "readyz",
-          "line": 157,
+          "line": 155,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/readyz",
@@ -731,7 +723,7 @@
         },
         {
           "function": "readyz",
-          "line": 933,
+          "line": 910,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -794,14 +786,6 @@
           "receiver": "app"
         },
         {
-          "function": "ready",
-          "line": 399,
-          "method": "GET",
-          "module": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
-          "path": "/readyz",
-          "receiver": "app"
-        },
-        {
           "function": "readyz",
           "line": 54,
           "method": "GET",
@@ -811,7 +795,7 @@
         },
         {
           "function": "readyz",
-          "line": 60,
+          "line": 61,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/readyz",
@@ -898,7 +882,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 554,
+          "line": 557,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -969,7 +953,7 @@
       "registrations": [
         {
           "function": "list_tools",
-          "line": 166,
+          "line": 162,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/v1/mcp/tools",
@@ -977,7 +961,7 @@
         },
         {
           "function": "mcp_tools_list",
-          "line": 744,
+          "line": 743,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools",
@@ -1016,7 +1000,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 851,
+          "line": 828,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1124,7 +1108,7 @@
       "registrations": [
         {
           "function": "call_tool",
-          "line": 184,
+          "line": 179,
           "method": "POST",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1132,7 +1116,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 798,
+          "line": 775,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1214,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1151,
-  "route_inventory_sha256": "d9ebed85e76badf244f0952ec5d9538eab1d186075b349e69f08ff9fd80342cf",
+  "route_count": 1147,
+  "route_inventory_sha256": "ff62bfb01d5851556b8125816e55855ba44a2e41d43f80b23f3e6aad0139dd27",
   "runtime_verified": false,
   "schema_version": 1
 }

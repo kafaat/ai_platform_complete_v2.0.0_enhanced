@@ -1,5 +1,5 @@
 {
-  "edge_count": 1089,
+  "edge_count": 1096,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -452,16 +452,6 @@
       "to_kind": "component"
     },
     {
-      "evidence": "services/actuator-service/actuator_runtime.py:2067",
-      "from": "actuator-service",
-      "from_kind": "component",
-      "protocol": "nats",
-      "relation": "CONSUMES",
-      "resource": "nats://sahool/+/+/telemetry/+/mesh",
-      "to": "nats://sahool/+/+/telemetry/+/mesh",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:134",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -559,16 +549,6 @@
       "relation": "READS",
       "resource": "db://device_commands_log",
       "to": "db://device_commands_log",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/actuator-service/actuator_runtime.py",
-      "from": "actuator-service",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://device_telemetry",
-      "to": "db://device_telemetry",
       "to_kind": "resource"
     },
     {
@@ -922,6 +902,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_snapshot_id_validation.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://online_learning_updates",
+      "to": "db://online_learning_updates",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/persistence.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -943,6 +933,26 @@
     },
     {
       "evidence": "services/decision-service/tests/test_migration_033_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_snapshot_id_validation.py",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -993,6 +1003,16 @@
     },
     {
       "evidence": "services/decision-service/tests/test_migration_033_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://recommendation_outcomes",
+      "to": "db://recommendation_outcomes",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -7452,6 +7472,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_snapshot_id_validation.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -7552,6 +7582,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_snapshot_id_validation.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://online_learning_updates",
+      "to": "db://online_learning_updates",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/persistence.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -7592,6 +7632,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_snapshot_id_validation.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -7613,6 +7673,16 @@
     },
     {
       "evidence": "services/decision-service/persistence.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://recommendation_outcomes",
+      "to": "db://recommendation_outcomes",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -10908,11 +10978,11 @@
   ],
   "relation_counts": {
     "CALLS": 45,
-    "CONSUMES": 4,
+    "CONSUMES": 3,
     "EMITS": 3,
-    "READS": 587,
+    "READS": 590,
     "ROUTES_TO": 76,
-    "WRITES": 374
+    "WRITES": 379
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -10922,13 +10992,13 @@
       "runtime_upstream_targets": 21
     },
     "nats": {
-      "observed": 7,
-      "resolved": 7,
+      "observed": 6,
+      "resolved": 6,
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 962,
-      "resolved": 961,
+      "observed": 970,
+      "resolved": 969,
       "unresolved_component_paths": 0
     }
   }

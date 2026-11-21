@@ -7,7 +7,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 1963,
+      "line": 1944,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -19,7 +19,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 2065,
+      "line": 2013,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -43,7 +43,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "producer",
-      "line": 1039,
+      "line": 1021,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -67,7 +67,7 @@
       "dynamic_expr": "row['nats_subject']",
       "file": "services/sahool-platform/api/event_bus.py",
       "kind": "producer",
-      "line": 832,
+      "line": 978,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -215,8 +215,7 @@
     "consumer_only_subjects": [
       "sahool.events.agronomy.projection.requested",
       "sahool.events.irrigation.execution.completed",
-      "sahool.events.season.closed",
-      "sahool/+/+/telemetry/+/mesh"
+      "sahool.events.season.closed"
     ],
     "cross_component_duplicate_durables": [],
     "producer_only_subjects": [
@@ -341,37 +340,18 @@
       ],
       "status": "producer_only",
       "subject": "sahool.tenant.*.satellite.*.computed"
-    },
-    {
-      "consumers": [
-        {
-          "client_expr": "client",
-          "component": "actuator-service",
-          "durable": null,
-          "dynamic_expr": null,
-          "file": "services/actuator-service/actuator_runtime.py",
-          "kind": "consumer",
-          "line": 2067,
-          "queue": null,
-          "resolution": "literal",
-          "subject": "sahool/+/+/telemetry/+/mesh"
-        }
-      ],
-      "producers": [],
-      "status": "consumer_only",
-      "subject": "sahool/+/+/telemetry/+/mesh"
     }
   ],
   "summary": {
-    "consumer_only_subjects": 4,
+    "consumer_only_subjects": 3,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 17,
-    "files_scanned": 1321,
+    "files_scanned": 1315,
     "matched_subjects": 0,
     "producer_only_subjects": 3,
     "production_certified": false,
-    "resolved_contracts": 7,
+    "resolved_contracts": 6,
     "runtime_verified": false,
-    "subjects": 7
+    "subjects": 6
   }
 }

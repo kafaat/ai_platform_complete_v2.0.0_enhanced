@@ -4,9 +4,9 @@
 
 ## Summary
 
-- Python files parsed: **2247**
+- Python files parsed: **2241**
 - FastAPI-style route handlers: **1090**
-- Static function-call edges: **119607**
+- Static function-call edges: **119407**
 - Dead-code candidates: **689**
 - Duplicate function groups: **66**
 - Automatic deletions: **0**
@@ -17,10 +17,10 @@
 |---|---|---|---|---:|
 | `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 60 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
-| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 168 |
+| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 170 |
 | `decision-service` | `_require_live_when_certifying` | function | `services/decision-service/tests/test_eligibility_assessment_live_pg.py` | 119 |
 | `decision-service` | `_clean_policy_env` | function | `services/decision-service/tests/test_sod_single_operator_self_approval.py` | 32 |
-| `knowledge-graph` | `_validation_error` | function | `services/knowledge-graph/main.py` | 46 |
+| `knowledge-graph` | `_validation_error` | function | `services/knowledge-graph/main.py` | 47 |
 | `raster-service` | `_endpoint_host` | function | `services/raster-service/object_store.py` | 69 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |
 | `raster-service` | `_bbox_from_geom` | function | `services/raster-service/raster_main_compat_exports.py` | 97 |
@@ -81,6 +81,7 @@
 | `2cab8792318c3811` | 2 |
 | `2ed8e51be38a65b6` | 9 |
 | `32d2f14c2fac8b6a` | 2 |
+| `342931e6449b397f` | 2 |
 | `3565ba6cb7cbd2dd` | 3 |
 | `3634c7c73fa8d02f` | 9 |
 | `38f3e26a90604c6a` | 3 |
@@ -97,7 +98,6 @@
 | `558f76feaf3a04fa` | 3 |
 | `5727c6ada3b74a40` | 2 |
 | `5c83798b883cda7e` | 2 |
-| `6192b8e19852105f` | 2 |
 | `62a08c439a5d8220` | 2 |
 | `69e415224b4d3b71` | 4 |
 | `6dcb6ad9fc0cd5a9` | 2 |

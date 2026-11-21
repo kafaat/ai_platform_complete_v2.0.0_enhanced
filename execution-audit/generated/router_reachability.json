@@ -37,7 +37,7 @@
   "definitions": [
     {
       "kind": "app",
-      "line": 2117,
+      "line": 2061,
       "module": "services.actuator-service.actuator_runtime",
       "node_id": "services.actuator-service.actuator_runtime:app",
       "route_count": 0,
@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 138,
+      "line": 140,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 74,
@@ -280,7 +280,7 @@
     },
     {
       "kind": "app",
-      "line": 26,
+      "line": 27,
       "module": "services.knowledge-graph.main",
       "node_id": "services.knowledge-graph.main:app",
       "route_count": 7,
@@ -298,7 +298,7 @@
     },
     {
       "kind": "app",
-      "line": 15,
+      "line": 13,
       "module": "services.mcp_servers.generic_context_server",
       "node_id": "services.mcp_servers.generic_context_server:app",
       "route_count": 4,
@@ -307,7 +307,7 @@
     },
     {
       "kind": "app",
-      "line": 132,
+      "line": 131,
       "module": "services.mcp_servers.market_server",
       "node_id": "services.mcp_servers.market_server:app",
       "route_count": 14,
@@ -2359,7 +2359,7 @@
     },
     {
       "kind": "app",
-      "line": 141,
+      "line": 140,
       "module": "services.tts-service.main",
       "node_id": "services.tts-service.main:app",
       "route_count": 0,
@@ -3045,7 +3045,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "8fae596d919f36aad3c16a0558108079c63aafbd3a5e118ef56776a8ab8761ce",
+  "inventory_sha256": "665bf5984c5d25779e6c4f19ab1aa639367402ba294f47a0d95cc3fe5ae6532d",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {

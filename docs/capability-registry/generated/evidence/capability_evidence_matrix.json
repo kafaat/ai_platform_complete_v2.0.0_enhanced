@@ -423,10 +423,11 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -458,7 +459,7 @@
         "database": true,
         "documentation": true,
         "events": true,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": false,
         "production": false,
         "runtime": false,
@@ -493,7 +494,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -528,17 +529,19 @@
           "type": "web"
         }
       ],
-      "evidence_score": 7,
+      "evidence_score": 8,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "services/decision-service/tests/test_snapshot_id_validation.py"
+      ],
       "learning_linked": false,
-      "maturity_alignment": "aligned",
-      "maturity_delta": 0,
+      "maturity_alignment": "evidence_above_declared",
+      "maturity_delta": 1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
@@ -557,6 +560,11 @@
           "evidence_type": "unit",
           "path": "services/decision-service/tests/test_execution_request_plan_binding.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "services/decision-service/tests/test_snapshot_id_validation.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",
@@ -603,10 +611,11 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -638,7 +647,7 @@
         "database": true,
         "documentation": true,
         "events": true,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": false,
         "production": false,
         "runtime": false,
@@ -673,7 +682,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -708,21 +717,28 @@
           "type": "web"
         }
       ],
-      "evidence_score": 6,
+      "evidence_score": 7,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "services/decision-service/tests/test_snapshot_id_validation.py"
+      ],
       "learning_linked": false,
-      "maturity_alignment": "aligned",
-      "maturity_delta": 0,
+      "maturity_alignment": "evidence_above_declared",
+      "maturity_delta": 1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "test_evidence_attribution": [
+        {
+          "evidence_type": "integration",
+          "path": "services/decision-service/tests/test_snapshot_id_validation.py",
+          "signal": "pytest.mark.integration"
+        },
         {
           "evidence_type": "unit",
           "path": "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
@@ -987,6 +1003,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py"
       ],
       "learning_linked": false,
@@ -996,6 +1013,11 @@
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "test_evidence_attribution": [
+        {
+          "evidence_type": "integration",
+          "path": "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
+          "signal": "pytest.mark.integration"
+        },
         {
           "evidence_type": "unit",
           "path": "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
@@ -4653,6 +4675,7 @@
       },
       "integration_test_paths": [
         "tests_v9/test_nats_least_privilege.py",
+        "tests_v9/test_nats_outbox_staging_enablement_live.py",
         "tests_v9/test_nats_password_expansion.py",
         "tests_v9/test_notification_queue_rollout.py",
         "tests_v9/test_outbox_delivery_attempts_v19_5.py"
@@ -4667,6 +4690,11 @@
         {
           "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_nats_relay_bounded_startup.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_nats_staging_enablement.py",
           "signal": "pytest.mark.unit"
         },
         {
@@ -4717,6 +4745,11 @@
         {
           "evidence_type": "integration",
           "path": "tests_v9/test_nats_least_privilege.py",
+          "signal": "pytest.mark.integration"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_nats_outbox_staging_enablement_live.py",
           "signal": "pytest.mark.integration"
         },
         {
@@ -4778,6 +4811,7 @@
       "title": "Event bus integration",
       "unit_test_paths": [
         "services/sahool-platform/tests/test_nats_relay_bounded_startup.py",
+        "services/sahool-platform/tests/test_nats_staging_enablement.py",
         "services/vegetation-analysis-service/test_vegetation_event_admission.py",
         "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
         "tests_v9/test_canonical_execution_learning_worker_subscriptions.py",
@@ -15105,11 +15139,11 @@
   "source_mapping": "docs/capability-registry/generated/mapping/capability_mapping.json",
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
-    "aligned": 37,
-    "average_assessed_maturity": 2.04,
+    "aligned": 35,
+    "average_assessed_maturity": 2.06,
     "capability_count": 81,
     "declared_above_evidence": 39,
-    "evidence_above_declared": 5,
+    "evidence_above_declared": 7,
     "production_certified": 0,
     "promotion_preconditions_satisfied": 0,
     "runtime_verified": 0
