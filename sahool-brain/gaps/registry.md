@@ -8970,10 +8970,9 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **شاهد الاختبار:** `frontend/src/lib/sharingRevocation.test.ts` يغطي تطبيق الخادم الإلغاء ثمّ فقد الرد، وفشل التحديث، والنجاح المؤكَّد. اختبار معزول محليّ بثلاث حالات PASS، أمّا Vitest وCI على شجرة الدمج النهائيّة فحالتها PENDING وليست شهادة.
 - **شرط الإغلاق:** `npm run typecheck` وVitest و`verify_all_generated.py --check` وبوابات GitHub الحاجبة PASS على SHA الموحَّد، ثمّ دليل تكامل عند توفر بيئة معزولة. لا يُستدلّ من إصلاح المصدر على نشر Railway.
 
+## UNIFIED-PLAN-OPERATIONAL-ACCEPTANCE-01 — إيصالات اعتماد الخطة الموحدة (2026-11-21)
 
-## 2026-11-21 — إيصالات اعتماد الخطة الموحدة
-
-### UNIFIED-PLAN-OPERATIONAL-ACCEPTANCE-01
+- **أصل المدخل:** رقعة إغلاق المراجعة على `9fdaefc9`. كان عنوانه من المستوى الثالث تحت عنوانٍ مؤرَّخ، فرُفع إلى `## المعرّف — العنوان` الذي يشترطه حارس العناوين.
 
 - **الحالة:** open — تصحيحات الجدولة وشواهد المصدر لا تستبدل قرارات المالك وإيصالات البيئة المستهدفة.
 - **المصدر:** [سجل الإيصالات](../../docs/plans/governance_receipt_register.json) و[تقرير النطاق](../../docs/reviews/unified_plan_patch_20261121.md)، أساس `9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0`.
