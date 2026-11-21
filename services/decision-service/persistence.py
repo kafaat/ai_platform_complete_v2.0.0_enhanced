@@ -1049,11 +1049,15 @@ async def persist_learning_update(
                 evidence_snapshot_id=payload.evidence_snapshot_id,
                 decision_id=payload.decision_id,
             )
+            # FOR UPDATE: the matching row stays locked until this transaction ends, so no other
+            # writer (the platform's local writer shares the table) can change a mutable column
+            # between this exemption and the write below.
             if reason and not await conn.fetchval(
-                "SELECT EXISTS (SELECT 1 FROM online_learning_updates "
+                "SELECT 1 FROM online_learning_updates "
                 "WHERE update_id = $1 AND tenant_id = $2::uuid AND "
                 f"{_same_columns_sql(_LEARNING_IDENTITY_COLUMNS, 3)} AND "
-                f"{_same_columns_sql(mutable_columns, 3 + len(_LEARNING_IDENTITY_COLUMNS))})",
+                f"{_same_columns_sql(mutable_columns, 3 + len(_LEARNING_IDENTITY_COLUMNS))} "
+                "FOR UPDATE",
                 update_id,
                 tenant_id,
                 *identity,

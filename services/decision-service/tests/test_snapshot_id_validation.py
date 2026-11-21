@@ -699,8 +699,9 @@ def test_live_learning_update_resend_of_a_stored_veg_id_is_not_re_judged():
 @pytest.mark.integration
 @live
 def test_live_mutating_resend_of_a_legacy_row_with_unresolved_evidence_is_409(monkeypatch):
-    """Only a true replay is exempt: a resend that changes action or drift must resolve its
-    evidence, so a row stored before resolution existed cannot be rewritten under a dead id."""
+    """Only a true replay is exempt: a resend that changes any mutable column (action, drift,
+    source, or the agronomic review) must resolve its evidence, so a row stored before resolution
+    existed cannot be rewritten, or approved, under a dead id."""
     sid, update_id = "veg_" + uuid4().hex[:20], "lu_" + uuid4().hex[:16]
     decision_id = "dec_" + uuid4().hex[:12]
 
@@ -743,7 +744,22 @@ def test_live_mutating_resend_of_a_legacy_row_with_unresolved_evidence_is_409(mo
         "decision_id": decision_id,
         "evidence_snapshot_id": sid,
     }
-    for change in ({"action": "promote"}, {"drift_score": 0.4}, {"source_type": "x"}):
+    approval = {
+        "review_status": "approved",
+        "agronomically_approved": True,
+        "agronomic_review": {
+            "reviewer_id": "agro-1",
+            "verdict": "approved",
+            "evidence_ids": ["ev-1"],
+        },
+    }
+    for change in (
+        {"action": "promote"},
+        {"drift_score": 0.4},
+        {"source_type": "x"},
+        {"source_id": "src-changed"},
+        approval,
+    ):
         r = client.post("/v1/learning/updates", json={**body, **change}, headers=HEADERS)
         assert r.status_code == 409, f"{change}: {r.status_code} {r.text}"
         assert r.json()["detail"] == "unknown_evidence_snapshot", r.text
