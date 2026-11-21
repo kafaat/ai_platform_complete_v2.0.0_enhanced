@@ -20,14 +20,16 @@ export default function LoginPage({
   onForgotPassword,
   onLogin,
   initialView = 'login',
+  initialEmail = '',
 }: {
   onSignup?: () => void;
-  onForgotPassword?: () => void;
+  onForgotPassword?: (email: string) => void;
   onLogin?: () => void;
   initialView?: 'login' | 'reset-request';
+  initialEmail?: string;
 }) {
   const [view, setView]       = useState<View>(initialView);
-  const [email, setEmail]     = useState('');
+  const [email, setEmail]     = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [showPw, setShowPw]   = useState(false);
   const [error, setError]     = useState('');
@@ -175,7 +177,7 @@ export default function LoginPage({
             {/* Forgot password */}
             <div className="text-center">
               <button type="button"
-                onClick={() => { setError(''); if (onForgotPassword) onForgotPassword(); else setView('reset-request'); }}
+                onClick={() => { setError(''); if (onForgotPassword) onForgotPassword(email.trim()); else setView('reset-request'); }}
                 className="text-xs text-slate-400 hover:text-emerald-400">
                 نسيت كلمة المرور؟
               </button>
