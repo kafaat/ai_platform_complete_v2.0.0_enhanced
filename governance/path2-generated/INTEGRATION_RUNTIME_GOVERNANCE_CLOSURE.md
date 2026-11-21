@@ -20,7 +20,7 @@
 | `events:no_runtime_or_production_claim` | **PASS** | runtime=false, production=false |
 | `database:manifest_complete` | **PASS** | missing=0, unlisted=0 |
 | `database:no_runtime_or_production_claim` | **PASS** | runtime=false, production=false |
-| `runtime_plan:nonempty` | **PASS** | planned_probes=102 |
+| `runtime_plan:nonempty` | **PASS** | planned_probes=101 |
 | `runtime_plan:fail_closed_static_state` | **PASS** | static plan only; verified=0; certified=0 |
 | `runtime_evidence:fail_closed` | **PASS** | fail_closed=True |
 | `runtime_evidence:no_unknown_files` | **PASS** | unknown_or_unbound=0 |
@@ -43,4 +43,4 @@ Execute the stack and ingest plan-bound evidence; only valid evidence may change
 - tenant/RLS review candidates requiring PostgreSQL catalog proof
 - live health, readiness, metrics, queue, database, and end-to-end evidence
 
-Content SHA-256: `aa1954fdcd1ac06d69f6ce077e5994d818e8bc36e5798a498d223a710a0fef27`
+Content SHA-256: `5ec81d9a16630fd4cf272ff16071fe067c50409f25af4f87c16ab81904d08216`

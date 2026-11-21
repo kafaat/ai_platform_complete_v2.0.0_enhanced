@@ -15,7 +15,7 @@
 | agriai-engine | 4 | 0 | false |
 | ai_agronomist | 4 | 0 | false |
 | auth | 4 | 0 | false |
-| decision-service | 4 | 0 | false |
+| decision-service | 2 | 0 | false |
 | edge-inference | 3 | 0 | false |
 | erp-bridge | 4 | 0 | false |
 | field-management-service | 3 | 0 | false |
@@ -26,7 +26,7 @@
 | knowledge-graph | 3 | 0 | false |
 | local-ai-rag | 3 | 0 | false |
 | mcp_servers | 3 | 0 | false |
-| model-registry-adapter | 1 | 0 | false |
+| model-registry-adapter | 2 | 0 | false |
 | qdrant-seed | 0 | 0 | false |
 | rag-retrieval | 3 | 0 | false |
 | raster-service | 3 | 0 | false |

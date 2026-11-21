@@ -57,6 +57,7 @@ _DOSE_LABEL_NUMBER = re.compile(
 _NUMBER = re.compile(r"(?:0|[1-9][0-9]*)(?:\.[0-9]{1,6})?\Z")
 _KEYS = {"quantity", "unit", "basis_quantity", "basis_unit", "interval_days", "phi_days"}
 _TATWEEL = "\u0640"
+MAX_VALIDATION_TEXT_LEN = 8000
 
 
 def _gate_view(text: str) -> str:
@@ -127,7 +128,12 @@ def _number_words(raw: str, *, allow_zero: bool = False, whole: bool = False) ->
     return result
 
 
-def prepare_critical_speech(text: str, slots: dict[str, str] | None = None) -> str:
+def prepare_critical_speech(
+    text: str,
+    slots: dict[str, str] | None = None,
+    *,
+    validation_text: str | None = None,
+) -> str:
     """Return speech text or reject obvious unsupported critical numeric speech.
 
     With slots, text must be a placeholder template: every supplied field exactly
@@ -137,6 +143,19 @@ def prepare_critical_speech(text: str, slots: dict[str, str] | None = None) -> s
     """
     if not isinstance(text, str):
         raise CriticalSpeechError("speech text must be a string")
+    if validation_text is not None:
+        # A long voice answer is split only for provider transport. Inspect its
+        # whole text as well: DOTALL dose/PHI patterns and quantity+unit can span
+        # chunks. Context grants no trust and never bypasses the chunk's gate.
+        if (
+            not isinstance(validation_text, str)
+            or not validation_text.strip()
+            or len(validation_text) > MAX_VALIDATION_TEXT_LEN
+            or text not in validation_text
+            or slots is not None
+        ):
+            raise CriticalSpeechError("invalid critical speech validation context")
+        prepare_critical_speech(validation_text)
     if slots is None:
         view = _gate_view(text)
         if _CRITICAL_NUMBER.search(view) or _DOSE_LABEL_NUMBER.search(view):

@@ -139,7 +139,7 @@ knowledge-graph.graphql,command,knowledge-graph,POST /graphql,,route,False
 knowledge-graph.nodes,command,knowledge-graph,POST /v1/nodes,,route,False
 local-ai-rag.ingest,command,local-ai-rag,POST /v1/ingest,,route,False
 local-ai-rag.query,command,local-ai-rag,POST /v1/query,,route,False
-mcp_servers.<dynamic>,command,mcp_servers,POST <dynamic>,,route,False
+mcp_servers.<dynamic>,mixed,mcp_servers,DELETE <dynamic>|GET <dynamic>|POST <dynamic>,,route,False
 mcp_servers.analytics.tenant_id,query,mcp_servers,GET /v1/analytics/{tenant_id},,route,False
 mcp_servers.mcp.tools,query,mcp_servers,GET /v1/mcp/tools,,route,False
 mcp_servers.mcp.tools.call,command,mcp_servers,POST /v1/mcp/tools/call,,route,False
@@ -238,6 +238,8 @@ realtime-session.realtime.hooks.livekit,command,realtime-session,POST /api/v1/re
 realtime-session.realtime.internal.jobs,query,realtime-session,GET /api/v1/realtime/internal/jobs/{session_id},,route,False
 realtime-session.realtime.sessions,command,realtime-session,POST /api/v1/realtime/sessions,,route,False
 realtime-session.realtime.sessions.session_id,mixed,realtime-session,DELETE /api/v1/realtime/sessions/{session_id}|GET /api/v1/realtime/sessions/{session_id},,route,False
+realtime-session.realtime.xiaozhi.leases,command,realtime-session,DELETE /api/v1/realtime/xiaozhi/leases/{session_id}|POST /api/v1/realtime/xiaozhi/leases,,route,False
+realtime-session.xiaozhi,command,realtime-session,WEBSOCKET /xiaozhi/v1/,,route,False
 remote-sensing-workspace-bff.fields.field_id.remote-sensing-workspace,query,remote-sensing-workspace-bff,GET /v1/fields/{field_id}/remote-sensing-workspace,,route,False
 sahool-platform OutboxWorker.event.9fe71469,event,sahool-platform OutboxWorker,NATS sahool.events.>,notification-agent (notif_domain_events),event,False
 sahool-platform.admin.break-glass,command,sahool-platform,POST /api/v1/admin/break-glass,frontend,route,False

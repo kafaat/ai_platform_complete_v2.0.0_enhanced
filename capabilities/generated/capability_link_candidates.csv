@@ -293,7 +293,7 @@ FM-001,api,GET /healthz @ services/auth/routers/ops.py:27,3,applied
 FM-001,api,GET /metrics @ services/auth/routers/ops.py:21,3,applied
 FM-001,api,GET /readyz @ services/auth/routers/ops.py:32,3,applied
 FM-001,api,GET /runtime-identity @ services/auth/main.py:410,3,applied
-FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:890,2,applied
+FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:913,2,applied
 FM-001,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:42,3,applied
 FM-001,api,GET /v1/auth/invitations @ services/auth/routers/invitations.py:108,3,applied
 FM-001,api,GET /v1/auth/me @ services/auth/routers/session.py:302,3,applied
@@ -1272,10 +1272,10 @@ FM-006,ui,frontend/src/sections/TasksPage.cost.test.tsx,2,applied
 FM-007,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:889,2,applied
 FM-007,api,GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:187,2,applied
 FM-007,api,GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:92,2,applied
-FM-007,api,GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:853,2,applied
+FM-007,api,GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:876,2,applied
 FM-007,api,POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:41,2,applied
 FM-007,api,POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:123,2,applied
-FM-007,api,POST /v1/procurement @ services/mcp_servers/market_server.py:845,2,applied
+FM-007,api,POST /v1/procurement @ services/mcp_servers/market_server.py:868,2,applied
 FM-007,mobile,mobile/sahool_app/lib/features/inventory/data/inventory_api.dart,2,applied
 FM-007,mobile,mobile/sahool_app/lib/features/inventory/data/inventory_models.dart,2,applied
 FM-007,mobile,mobile/sahool_app/lib/features/inventory/inventory_routes.dart,2,applied
@@ -2002,6 +2002,7 @@ PA-005,api,POST /api/v1/devices/{device_id}/telemetry @ services/sahool-platform
 PA-005,api,POST /v1/phase9/autonomy/iot/telemetry/verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:251,2,applied
 PA-005,test,services/sahool-platform/tests/test_soil_telemetry.py,3,applied
 PA-005,test,tests_v9/test_device_telemetry_time_identity.py,3,applied
+PA-005,test,tests_v9/test_mcp_owner_telemetry.py,3,applied
 PA-005,test,tests_v9/test_sensor_telemetry_consumer_reachability.py,3,applied
 PA-005,test,tests_v9/test_telemetry_backfill_key_parity.py,3,applied
 PA-005,test,tests_v9/test_telemetry_freshness.py,3,applied

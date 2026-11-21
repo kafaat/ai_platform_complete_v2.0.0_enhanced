@@ -3,12 +3,14 @@ on:
   pull_request:
     paths:
       - 'services/realtime-agent/**'
+      - 'services/realtime-session/**'
       - 'services/ai_agronomist/**'
       - '.github/workflows/realtime-agent.yml'
   push:
     branches: [main]
     paths:
       - 'services/realtime-agent/**'
+      - 'services/realtime-session/**'
       - 'services/ai_agronomist/**'
       - '.github/workflows/realtime-agent.yml'
 permissions:
@@ -28,15 +30,20 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install isolated runtime and test tools
-        run: python -m pip install -r services/realtime-agent/requirements.txt pytest==9.1.1 pytest-asyncio==1.4.0 pip-audit==2.10.1
+        run: python -m pip install -r services/realtime-agent/requirements.txt -r services/realtime-session/requirements.txt pytest==9.1.1 pytest-asyncio==1.4.0 pip-audit==2.10.1
       - name: Audit full worker dependency set
-        run: python -m pip_audit -r services/realtime-agent/requirements.txt
+        run: python -m pip_audit -r services/realtime-agent/requirements.txt -r services/realtime-session/requirements.txt
       - name: Test actual SDK boundaries and publication refusal
         run: python -m pytest -q -o addopts='' services/realtime-agent/tests/ --junitxml=realtime-agent-results.xml
       - name: Build isolated worker
         run: docker build -f services/realtime-agent/Dockerfile -t sahool-realtime-agent:test .
       - name: Disabled image must exit without network or models
         run: docker run --rm --network none sahool-realtime-agent:test
+      - name: Build and check the opt-in Xiaozhi gateway
+        run: |
+          docker build -f services/realtime-session/Dockerfile.xiaozhi -t sahool-xiaozhi:test .
+          docker run --rm --network none sahool-xiaozhi:test
+          docker run --rm --network none sahool-xiaozhi:test python -c 'from realtime_session.xiaozhi_gateway import create_gateway; assert create_gateway()'
       - name: Import native speech and SDK runtimes without network or models
         run: |
           docker run --rm --network none sahool-realtime-agent:test python -c '

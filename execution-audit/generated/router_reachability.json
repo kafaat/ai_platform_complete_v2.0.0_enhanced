@@ -37,7 +37,7 @@
   "definitions": [
     {
       "kind": "app",
-      "line": 2061,
+      "line": 2117,
       "module": "services.actuator-service.actuator_runtime",
       "node_id": "services.actuator-service.actuator_runtime:app",
       "route_count": 0,
@@ -298,7 +298,7 @@
     },
     {
       "kind": "app",
-      "line": 13,
+      "line": 15,
       "module": "services.mcp_servers.generic_context_server",
       "node_id": "services.mcp_servers.generic_context_server:app",
       "route_count": 4,
@@ -307,7 +307,7 @@
     },
     {
       "kind": "app",
-      "line": 131,
+      "line": 132,
       "module": "services.mcp_servers.market_server",
       "node_id": "services.mcp_servers.market_server:app",
       "route_count": 14,
@@ -2359,7 +2359,7 @@
     },
     {
       "kind": "app",
-      "line": 140,
+      "line": 141,
       "module": "services.tts-service.main",
       "node_id": "services.tts-service.main:app",
       "route_count": 0,
@@ -3045,7 +3045,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "1b1b356ecc6950fc56bba9d86ad9222ac7d1b39652e371ff971436255be610ae",
+  "inventory_sha256": "8fae596d919f36aad3c16a0558108079c63aafbd3a5e118ef56776a8ab8761ce",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {

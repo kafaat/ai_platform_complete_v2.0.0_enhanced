@@ -337,7 +337,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 4,
+      "capability_count": 6,
       "component_id": "realtime-session",
       "domain": "realtime-control-plane-experimental",
       "status": {
@@ -519,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "2e375fa389de5be5bd0ddebfbbc6dfc629fce41b1bf760b3ba3b777edd003aaf",
+  "fingerprint": "c69686f01e1b46213e6f3ac21755a86fa67da3f04f9b23644d9b33003f5ced13",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

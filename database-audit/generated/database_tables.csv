@@ -58,7 +58,7 @@ decision_policies,v69_decision_policies.sql,74,True,False,False,0,False,True,1,1
 decision_record,v78_decision_record.sql,83,True,True,True,1,True,False,22,22
 detection_provenance,v239_detection_provenance.sql,236,True,True,True,1,True,False,3,3
 device_commands_log,v20_automation_tables.sql,24,True,False,False,0,False,True,2,2
-device_telemetry,v24_iot_devices.sql,28,True,False,False,0,False,True,2,1
+device_telemetry,v24_iot_devices.sql,28,True,False,False,0,False,True,3,1
 digital_twin_scenarios,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
 dispatch_decisions,v66_dispatch_decisions.sql,71,True,False,False,0,False,True,8,5
 distributed_raster_jobs,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0

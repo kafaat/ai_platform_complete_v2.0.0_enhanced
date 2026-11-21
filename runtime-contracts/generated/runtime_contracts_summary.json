@@ -12,10 +12,6 @@
     },
     {
       "score_pct": 42.9,
-      "service": "model-registry-adapter"
-    },
-    {
-      "score_pct": 42.9,
       "service": "raster-tiler-service"
     },
     {
@@ -25,6 +21,10 @@
     {
       "score_pct": 42.9,
       "service": "weather-signal-engine"
+    },
+    {
+      "score_pct": 57.1,
+      "service": "model-registry-adapter"
     },
     {
       "score_pct": 71.4,
@@ -48,6 +48,6 @@
   "with_declared_configuration": 31,
   "with_health": 28,
   "with_metrics": 17,
-  "with_readiness": 27,
+  "with_readiness": 28,
   "with_tracing": 4
 }

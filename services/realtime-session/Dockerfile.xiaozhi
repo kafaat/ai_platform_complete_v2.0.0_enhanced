@@ -1,0 +1,16 @@
+FROM python:3.12-slim-bookworm
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 SAHOOL_XIAOZHI_ENABLED=0 \
+    HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1
+WORKDIR /app
+# Reuse both isolated services' reviewed pins; no third dependency authority.
+COPY services/realtime-agent/requirements.txt /tmp/worker-requirements.txt
+COPY services/realtime-session/requirements.txt /tmp/session-requirements.txt
+RUN python -m pip install --no-cache-dir -r /tmp/worker-requirements.txt -r /tmp/session-requirements.txt \
+    && groupadd --gid 10001 voice \
+    && useradd --uid 10001 --gid voice --no-create-home voice
+COPY services/realtime-agent/realtime_agent/ /app/realtime_agent/
+COPY services/realtime-session/realtime_session/ /app/realtime_session/
+COPY services/realtime-session/xiaozhi_main.py /app/xiaozhi_main.py
+USER 10001:10001
+EXPOSE 8011
+CMD ["python", "xiaozhi_main.py"]

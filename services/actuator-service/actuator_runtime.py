@@ -46,6 +46,8 @@ if str(Path(__file__).resolve().parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cmd_signing_v2 as cs  # noqa: E402
 import command_delivery as cd  # noqa: E402
+from device_telemetry import MeshReplayWindow, parse_mesh_sample  # noqa: E402
+from mqtt_transport import mqtt_endpoint, mqtt_tls_kwargs  # noqa: E402
 
 try:
     from shared.logging_config import setup_logging
@@ -64,6 +66,10 @@ MQTT_BROKER_URL = os.getenv("MQTT_BROKER_URL", "mqtt://sahool-fastbee:1883")
 # الاختبار التي تشغّل وسيطًا مفتوحًا. لا سرّ في المستودع (يُقرأ من env حصرًا).
 MQTT_USERNAME = os.getenv("MQTT_USERNAME", "").strip()
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
+MQTT_TLS_CA_FILE = os.getenv("MQTT_TLS_CA_FILE", "").strip()
+# Explicit migration only: requires the dedicated TLS broker with device-bound ACLs.
+FEATURE_DEVICE_MESH_TELEMETRY = os.getenv("FEATURE_DEVICE_MESH_TELEMETRY", "")
+_mesh_replay = MeshReplayWindow()
 
 
 def _mqtt_auth_kwargs() -> dict:
@@ -71,6 +77,20 @@ def _mqtt_auth_kwargs() -> dict:
     if MQTT_USERNAME:
         return {"username": MQTT_USERNAME, "password": MQTT_PASSWORD}
     return {}
+
+
+def _mqtt_transport_kwargs() -> dict:
+    return mqtt_tls_kwargs(MQTT_BROKER_URL, MQTT_TLS_CA_FILE)
+
+
+def _device_mesh_enabled() -> bool:
+    return (
+        FEATURE_DEVICE_MESH_TELEMETRY.strip().lower() in {"1", "true", "yes", "on"}
+        and MQTT_BROKER_URL.startswith("mqtts://")
+        and MQTT_USERNAME == "sahool-actuator-service"
+        and bool(MQTT_PASSWORD)
+        and bool(MQTT_TLS_CA_FILE)
+    )
 
 
 # وضع المُشغِّل (الإغلاق المرن، PR #394): real | simulation | disabled.
@@ -734,12 +754,8 @@ async def _authorize_device_control(claims: dict, device_id: str) -> str | None:
 # MQTT Command Publisher
 # ══════════════════════════════════════════════════════════════
 def _parse_mqtt_broker_url(url: str) -> tuple[str, int]:
-    """يستخرج (hostname, port) من mqtt://host:port — aiomqtt.Client يحتاج المضيف
-    والمنفذ لا URL كاملاً (تمرير URL كاملاً كـhostname يفشل في DNS)."""
-    from urllib.parse import urlparse
-
-    parsed = urlparse(url)
-    return (parsed.hostname or "localhost"), (parsed.port or 1883)
+    """Extract the MQTT host/port; mqtts uses 8883 and the verified TLS context."""
+    return mqtt_endpoint(url)
 
 
 # ── مفردات الأوامر الكنسيّة ⇒ صيغة البرنامج الثابت (ACTUATOR-COMMAND-VOCABULARY, A4) ──
@@ -1016,7 +1032,9 @@ async def send_mqtt_command(
             return False
     host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
     try:
-        async with MQTTClient(host, port=port, **_mqtt_auth_kwargs()) as client:
+        async with MQTTClient(
+            host, port=port, **_mqtt_auth_kwargs(), **_mqtt_transport_kwargs()
+        ) as client:
             # QoS 1 (A7): الأمر يُقَرّ من الوسيط؛ لا retain (أمرٌ قديم لا يُعاد على كلّ اشتراك).
             await client.publish(topic, message, qos=1)
             logger.info(f"MQTT → {device_id}: {command}")
@@ -1939,15 +1957,17 @@ async def mqtt_ack_listener():
     host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
     while True:
         try:
-            async with MQTTClient(host, port=port, **_mqtt_auth_kwargs()) as client:
-                async with client.messages() as messages:
-                    await client.subscribe(topic, qos=1)
-                    logger.info(f"MQTT ack listener subscribed: {topic}")
-                    async for message in messages:
-                        try:
-                            await handle_device_ack(message.topic.value, message.payload)
-                        except Exception as e:
-                            logger.warning(f"Ack processing error: {e}")
+            async with MQTTClient(
+                host, port=port, **_mqtt_auth_kwargs(), **_mqtt_transport_kwargs()
+            ) as client:
+                await client.subscribe(topic, qos=1)
+                logger.info(f"MQTT ack listener subscribed: {topic}")
+                # aiomqtt >= 2 exposes an async iterator property, not messages().
+                async for message in client.messages:
+                    try:
+                        await handle_device_ack(message.topic.value, message.payload)
+                    except Exception as e:
+                        logger.warning(f"Ack processing error: {e}")
         except Exception as e:
             logger.error(f"MQTT ack listener crashed: {e}")
             await asyncio.sleep(10)
@@ -1956,7 +1976,7 @@ async def mqtt_ack_listener():
 # ══════════════════════════════════════════════════════════════
 # MQTT Sensor Listener (background task)
 # ══════════════════════════════════════════════════════════════
-async def _handle_telemetry_message(topic: str, raw) -> list | None:
+async def _handle_telemetry_message(topic: str, raw, *, retained: bool = False) -> list | None:
     """قراءة مستشعر واحدة ⇒ تقييم القواعد، بمستأجرٍ وحقلٍ **من السجلّ** لا من الموضوع (A3).
 
     الموضوع ``sahool/<tenant>/<field>/telemetry/<sensor>`` والحمولة ``{device_id, value}``.
@@ -1964,14 +1984,45 @@ async def _handle_telemetry_message(topic: str, raw) -> list | None:
     مستأجر/حقل لا يطابق السجلّ ⇒ رفض + تسجيل. قيمة مفقودة/غير رقميّة ⇒ تُتجاهَل القراءة.
     """
     parts = str(topic).split("/")
+    if len(parts) == 6:
+        # A different topic prevents treating unauthenticated mesh relay payloads as
+        # a gateway's own sensor. The dedicated broker ACL attests the topic device;
+        # the registry remains authoritative for tenant and field ownership.
+        if not _device_mesh_enabled() or retained:
+            return None
+        now_ms = int(time.time() * 1000)
+        sample = parse_mesh_sample(str(topic), raw, now_ms=now_ms)
+        if sample is None:
+            return None
+        record = await _registry_device(sample.tenant_id, sample.device_id)
+        ok, _reason = _telemetry_source_gate(
+            record, topic_tenant=sample.tenant_id, topic_field=sample.field_id
+        )
+        if not ok or str(record.get("device_id") or "") != sample.device_id:
+            return None
+        if not _mesh_replay.accept(sample, now_ms=now_ms):
+            return None
+        results = []
+        for reading in sample.readings:
+            triggered = await evaluate_rules(
+                reading.sensor_type,
+                reading.value,
+                str(record["tenant_id"]),
+                str(record["field_id"]),
+            )
+            results.extend(triggered or [])
+        return results
     if len(parts) != 5 or parts[0] != "sahool" or parts[3] != "telemetry":
         return None
     topic_tenant, topic_field, sensor_type = parts[1], parts[2], parts[4]
-    if isinstance(raw, bytes | bytearray):
-        raw = raw.decode()
+    # The legacy unbound mesh envelope is not an authorised automation source.
+    if sensor_type == "mesh":
+        return None
     try:
+        if isinstance(raw, bytes | bytearray):
+            raw = raw.decode()
         payload = json.loads(raw)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, UnicodeError):
         logger.warning(f"telemetry ignored on {topic}: malformed JSON")
         return None
     value = _reading_value(payload)
@@ -2008,15 +2059,20 @@ async def mqtt_sensor_listener():
     host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
     while True:
         try:
-            async with MQTTClient(host, port=port, **_mqtt_auth_kwargs()) as client:
-                async with client.messages() as messages:
-                    await client.subscribe(topic, qos=1)
-                    logger.info(f"MQTT listener subscribed: {topic}")
-                    async for message in messages:
-                        try:
-                            await _handle_telemetry_message(message.topic.value, message.payload)
-                        except Exception as e:
-                            logger.warning(f"Message processing error: {e}")
+            async with MQTTClient(
+                host, port=port, **_mqtt_auth_kwargs(), **_mqtt_transport_kwargs()
+            ) as client:
+                await client.subscribe(topic, qos=1)
+                if _device_mesh_enabled():
+                    await client.subscribe("sahool/+/+/telemetry/+/mesh", qos=1)
+                logger.info(f"MQTT listener subscribed: {topic}")
+                async for message in client.messages:
+                    try:
+                        await _handle_telemetry_message(
+                            message.topic.value, message.payload, retained=message.retain
+                        )
+                    except Exception as e:
+                        logger.warning(f"Message processing error: {e}")
         except Exception as e:
             logger.error(f"MQTT listener crashed: {e}")
             await asyncio.sleep(10)

@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **45**
-- Files scanned: **7555**
+- Files scanned: **7575**
 - Ambiguous artifacts queued: **262**
-- Unmapped artifacts queued: **3601**
+- Unmapped artifacts queued: **3613**
 
 ## Capability coverage
 
@@ -44,7 +44,7 @@
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 3 | 0 | 0 | 0 | 0 | 1 | 2 |
 | INT-002 | farm_management | 7 | 15 | 2 | 100 | 0 | 0 | 22 | 5 |
-| INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 1 |
+| INT-003 | irrigation | 1 | 0 | 0 | 0 | 0 | 0 | 2 | 2 |
 | INT-004 | precision | 5 | 9 | 8 | 12 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
 | IRR-002 | irrigation | 1 | 6 | 8 | 3 | 0 | 0 | 3 | 5 |
@@ -78,7 +78,7 @@
 | SAT-007 | satellite | 1 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |
 | SAT-009 | satellite | 12 | 52 | 0 | 16 | 2 | 1 | 28 | 6 |
-| SEC-001 | security | 13 | 19 | 100 | 80 | 0 | 0 | 90 | 5 |
+| SEC-001 | security | 14 | 19 | 100 | 80 | 0 | 0 | 90 | 5 |
 | SEC-002 | security | 3 | 0 | 0 | 4 | 0 | 0 | 4 | 3 |
 | SEC-003 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-004 | security | 6 | 9 | 19 | 1 | 5 | 5 | 14 | 7 |
