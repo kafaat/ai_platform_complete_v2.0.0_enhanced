@@ -1835,7 +1835,10 @@ jobs:
           sum=5d2c51caca950333aba84911df7d377f826f3a59ec36061c6539105084f65c92
           mkdir -p "$dir"
           # A shared host must not hand us a directory someone else controls.
-          [ ! -L "$dir" ] && [ -O "$dir" ] || { echo "refusing $dir: symlink or not owned by $(id -un)" >&2; exit 1; }
+          if [ -L "$dir" ] || [ ! -O "$dir" ]; then
+            echo "refusing $dir: symlink or not owned by $(id -un)" >&2
+            exit 1
+          fi
           chmod 700 "$dir"
           if ! echo "$sum  $tgz" | sha256sum --check --status 2>/dev/null; then
             curl --fail --location --retry 3 --max-time 90 \
