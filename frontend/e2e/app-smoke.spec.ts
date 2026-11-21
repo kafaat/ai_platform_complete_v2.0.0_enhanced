@@ -30,7 +30,9 @@ test('signup has a shareable URL, survives refresh and uses a telephone input', 
 
 test('password recovery keeps its own URL through refresh and browser back', async ({ page }) => {
   await page.goto('/login');
+  await page.locator('#login-email').fill('example+recovery@example.test');
   await page.getByRole('button', { name: 'نسيت كلمة المرور؟' }).click();
+  await expect(page.getByPlaceholder('you@example.com')).toHaveValue('example+recovery@example.test');
   await expect(page).toHaveURL(/\/forgot-password$/);
   await expect(page.getByText('إعادة تعيين كلمة المرور', { exact: true })).toBeVisible();
   await page.reload();
