@@ -31,6 +31,7 @@ import asyncio
 import json
 import logging
 import os
+import time
 import uuid
 from contextlib import asynccontextmanager as _asynccontextmanager
 from dataclasses import dataclass
@@ -123,6 +124,151 @@ def dead_letter_summary(rows: list[dict[str, Any]] | None) -> dict[str, Any]:
         "total": len(rows),
         "sample": [_shape(r) for r in rows[:50]],
     }
+
+
+# ─── Outbox backlog signal (W3-01: /readyz + /metrics) ──────────
+
+#: محاولاتُ صفّ outbox قبل أن يصير «ميّتاً» (DLQ) — القيمةُ الافتراضيّة لـOutboxWorker نفسها،
+#: مسمّاةً هنا كي يَعُدّ مؤشّرُ التراكم الصفوفَ الميّتة بالحدّ الذي يستعمله العامل.
+OUTBOX_MAX_RETRIES: int = 5
+
+#: ``WHERE status IN ('pending','failed')`` يطابق شرطَ الفهرس الجزئيّ ``idx_outbox_pending`` (v11)
+#: فلا يمسح المسبارُ صفوفَ ``sent`` المتراكمة في كلّ فحص جاهزيّة أو كشط.
+#: عابرٌ للمستأجرين بالتصميم (كالعامل): يُقرأ بمسبح الوظائف. ودورٌ مقيَّدٌ بـRLS (v72) يرى صفر
+#: صفوفٍ بلا سياق مستأجِر، فيُعلَن ذلك نطاقاً (`scope`) بدل أن يُقرأ الصفرُ «لا تراكم».
+OUTBOX_BACKLOG_SQL = """
+SELECT
+    count(*) FILTER (WHERE status IN ('pending', 'failed') AND retry_count < $1) AS held,
+    count(*) FILTER (WHERE status = 'failed' AND retry_count >= $1) AS dead_letter,
+    EXTRACT(EPOCH FROM (now() - min(created_at) FILTER (
+        WHERE status IN ('pending', 'failed') AND retry_count < $1
+    )))::float8 AS oldest_held_age_seconds,
+    (SELECT r.rolsuper OR r.rolbypassrls FROM pg_roles r WHERE r.rolname = current_user)
+        AS sees_all_tenants
+FROM event_outbox
+WHERE status IN ('pending', 'failed')
+"""
+
+
+def outbox_backlog_summary(row: dict[str, Any] | None, *, flag_enabled: bool) -> dict[str, Any]:
+    """يُشكّل إشارة التراكم من صفّ ``OUTBOX_BACKLOG_SQL`` (pure).
+
+    ``held`` = أحداثٌ لم تُنشَر بعد وما زالت قابلةً للإعادة. والعلمُ مطفأ ⇒ هذه **ستُعاد كلُّها**
+    إلى NATS لحظةَ تفعيله، فيُعلَن ذلك تحذيراً صريحاً: تفعيلُ العلم ليس «بدءاً من الآن».
+    """
+    row = row or {}
+    held = int(row.get("held") or 0)
+    dead = int(row.get("dead_letter") or 0)
+    age = row.get("oldest_held_age_seconds")
+    age = None if age is None else round(float(age), 1)
+    scope = "all_tenants" if row.get("sees_all_tenants") else "tenant_scoped_undercount"
+    warnings: list[str] = []
+    if held and not flag_enabled:
+        warnings.append(
+            f"{NATS_PUBLISHERS_FLAG} is off: enabling it will replay {held} held event(s) "
+            f"to NATS (oldest {age}s old); consumers must tolerate the replay"
+        )
+    elif held:
+        warnings.append(f"relay is draining {held} held event(s) (oldest {age}s old)")
+    if dead:
+        warnings.append(
+            f"{dead} event(s) exhausted {OUTBOX_MAX_RETRIES} attempts (dead letter); "
+            "inspect and requeue via /api/v1/admin/events/dead-letter"
+        )
+    if scope != "all_tenants":
+        warnings.append(
+            "probe role is subject to RLS (event_outbox v72): counts exclude other tenants; "
+            "configure JOBS_DATABASE_URL"
+        )
+    return {
+        "status": "ok",
+        "held": held,
+        "dead_letter": dead,
+        "oldest_held_age_seconds": age,
+        "scope": scope,
+        "replay_on_enable": held if not flag_enabled else 0,
+        "warnings": warnings,
+    }
+
+
+async def outbox_backlog(conn, *, flag_enabled: bool) -> dict[str, Any]:
+    """يقرأ تراكم ``event_outbox`` (عدد المعلَّق وأقدمه والميّت) — قراءةٌ لا كتابة."""
+    row = await conn.fetchrow(OUTBOX_BACKLOG_SQL, OUTBOX_MAX_RETRIES)
+    return outbox_backlog_summary(dict(row) if row is not None else None, flag_enabled=flag_enabled)
+
+
+#: سقفُ مسبار التراكم (الاستعارةُ والاستعلامُ معاً) كي لا يُعلِّق قاعدةٌ بطيئة الجاهزيّةَ أو الكشط.
+OUTBOX_BACKLOG_TIMEOUT_SECONDS: float = 2.0
+
+
+#: عمرُ نتيجة المسبار المخبّأة. ``/readyz`` و``/metrics`` غير مُصادَقَين، ومسبحُ الوظائف
+#: (max_size=4) يتقاسمه الـrelay ومهامُّ الخلفيّة؛ فيضانُ طلباتٍ بلا خبء كان سيحجز اتّصالاته كلّها.
+OUTBOX_BACKLOG_CACHE_SECONDS: float = 5.0
+
+#: (المفتاح، وقتُ القياس بساعةٍ رتيبة، النتيجة) — آخرُ قياس، يُقرأ ما دام أحدثَ من العمر أعلاه.
+_BACKLOG_CACHE: tuple[tuple[int, bool], float, dict[str, Any]] | None = None
+#: قفلُ «طائرةٍ واحدة»: طلباتٌ متزامنة على خبءٍ قديم تنتظر قياساً واحداً لا تفتح كلٌّ اتّصالاً.
+_BACKLOG_LOCK: tuple[asyncio.AbstractEventLoop, asyncio.Lock] | None = None
+
+
+def _backlog_lock() -> asyncio.Lock:
+    """قفلٌ لكلّ حلقة أحداث (حلقاتُ الاختبار تتبدّل، وقفلُ asyncio مربوطٌ بحلقته)."""
+    global _BACKLOG_LOCK
+    loop = asyncio.get_running_loop()
+    if _BACKLOG_LOCK is None or _BACKLOG_LOCK[0] is not loop:
+        _BACKLOG_LOCK = (loop, asyncio.Lock())
+    return _BACKLOG_LOCK[1]
+
+
+def _cached_backlog(key: tuple[int, bool], max_age: float) -> dict[str, Any] | None:
+    cached = _BACKLOG_CACHE
+    if cached is None or cached[0] != key or time.monotonic() - cached[1] >= max_age:
+        return None
+    return dict(cached[2])
+
+
+async def _probe_outbox_backlog_uncached(pool, *, flag: bool, timeout: float) -> dict[str, Any]:
+    async def _probe() -> dict[str, Any]:
+        async with pool.acquire() as conn:
+            return await outbox_backlog(conn, flag_enabled=flag)
+
+    try:
+        return await asyncio.wait_for(_probe(), timeout=timeout)
+    except Exception as exc:  # noqa: BLE001 — إشارةٌ للرصد، لا تُسقط المسبار
+        logger.warning("outbox backlog probe failed: %s", type(exc).__name__)
+        return {"status": "error", "error": type(exc).__name__}
+
+
+async def probe_outbox_backlog(
+    timeout: float = OUTBOX_BACKLOG_TIMEOUT_SECONDS,
+    *,
+    max_age: float = OUTBOX_BACKLOG_CACHE_SECONDS,
+) -> dict[str, Any]:
+    """مسبارُ ``/readyz`` و``/metrics``: التراكم بمسبح الوظائف (عابرٌ للمستأجرين كالعامل نفسه).
+
+    يُحَلّ المسبحُ هنا لا في الموجِّه: الموجِّهاتُ تخدم طلباتِ مستأجِر ولا تلمس مسبحَ المهامّ
+    (``test_routers_do_not_write_through_the_jobs_pool``). وأيُّ فشلٍ إشارةٌ لا انهيار.
+    النتيجةُ (ومنها الخطأ) تُخبَّأ ``max_age`` ثانيةً بساعةٍ رتيبة وبطائرةٍ واحدة، فلا يستعير
+    المسبارُ من مسبح الوظائف أكثرَ من اتّصالٍ واحد كلَّ ``max_age`` مهما كثرت الطلبات.
+    """
+    global _BACKLOG_CACHE
+    from api import main as platform_main
+
+    pool = platform_main._JOBS_POOL or platform_main._DB_POOL
+    if pool is None:
+        return {"status": "disabled"}
+    flag = nats_publishers_enabled()
+    key = (id(pool), flag)
+    hit = _cached_backlog(key, max_age)
+    if hit is not None:
+        return hit
+    async with _backlog_lock():
+        hit = _cached_backlog(key, max_age)  # قاسَه منتظِرٌ قبلنا
+        if hit is not None:
+            return hit
+        result = await _probe_outbox_backlog_uncached(pool, flag=flag, timeout=timeout)
+        _BACKLOG_CACHE = (key, time.monotonic(), result)
+        return dict(result)
 
 
 # ─── Event types (catalog) ──────────────────────────────────────
@@ -614,7 +760,7 @@ class OutboxWorker:
         nats_publish_fn,  # async callable(subject, payload_bytes, msg_id=None)
         batch_size: int = 50,
         poll_interval_sec: float = 1.0,
-        max_retries: int = 5,
+        max_retries: int = OUTBOX_MAX_RETRIES,
     ):
         self.pool = pool
         self.publish = nats_publish_fn

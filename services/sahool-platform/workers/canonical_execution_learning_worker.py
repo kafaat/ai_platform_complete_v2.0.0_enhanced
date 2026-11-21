@@ -507,12 +507,37 @@ async def settle_delivery(msg: Any, *, pool: Any, js: Any, handler: Any = None) 
     return "ack"
 
 
+def event_source_readiness() -> dict[str, Any]:
+    """W3-01: this worker is ready only when the platform actually relays events to it.
+
+    Every subject it consumes is published by the platform outbox relay, and that relay
+    runs only with ``FEATURE_NATS_PUBLISHERS`` on. With the flag off the worker binds its
+    consumers and then waits forever on subjects nobody publishes: alive, healthy by every
+    other check, and idle. Readiness therefore follows the same flag the platform reads,
+    so "the learning loop is running" can never be claimed while it receives nothing.
+    """
+    from api.event_bus import NATS_PUBLISHERS_FLAG, nats_publishers_enabled
+
+    enabled = nats_publishers_enabled()
+    return {
+        "flag": NATS_PUBLISHERS_FLAG,
+        "enabled": enabled,
+        "status": "passed" if enabled else "publishers_disabled",
+    }
+
+
 async def preflight() -> dict[str, Any]:
     """Fail-closed connectivity/schema check and return auditable facts."""
     import asyncpg
 
     import nats
 
+    event_source = event_source_readiness()
+    if not event_source["enabled"]:
+        raise RuntimeError(
+            f"{event_source['flag']} is off: the platform relays no events, so this worker "
+            "would receive nothing — not ready"
+        )
     database_url = os.environ["DATABASE_URL"]
     nats_url = os.getenv("NATS_URL", "nats://localhost:4222")
     conn = await asyncpg.connect(database_url)
@@ -562,6 +587,7 @@ async def preflight() -> dict[str, Any]:
     return {
         "database": {"required_tables": tables, "status": "passed"},
         "jetstream": {"subject_streams": subject_streams, "status": "passed"},
+        "event_source": event_source,
     }
 
 

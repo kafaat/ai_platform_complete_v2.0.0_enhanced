@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 621
   },
-  "inventory_sha256": "c1c8be6ef6c56a64a54060819282d14472d4f41ff1fe73978ca26cdb1f9225c9",
+  "inventory_sha256": "c7a0a5452d15704599d3f1f2bc516c6389f19a9237d66884bf5da14b7633c523",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 623,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "3d3e961861cbf12de83de8c9e096d5e25cb49e4002ac4c13ef1a873bfdf1f2eb"
+    "policy_sha256": "f3f185ef7f174a995aa682e791fce7745a4a9ec06693233d65cbfe3769a90fa3"
   },
   "routes": [
     {
@@ -2682,7 +2682,7 @@
     {
       "classification": "infrastructure",
       "function": "readyz",
-      "line": 59,
+      "line": 60,
       "method": "GET",
       "path": "/readyz",
       "source": "api/routers/platform_health.py"

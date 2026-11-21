@@ -2799,6 +2799,7 @@
         "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_migration_036_correlation_pg16.py",
         "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
+        "services/decision-service/tests/test_snapshot_id_validation.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
@@ -5948,10 +5949,12 @@
     {
       "code_readers": [
         "services/decision-service/persistence.py",
-        "services/decision-service/tests/test_migration_033_pg16.py"
+        "services/decision-service/tests/test_migration_033_pg16.py",
+        "services/decision-service/tests/test_snapshot_id_validation.py"
       ],
       "code_writers": [
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/test_snapshot_id_validation.py",
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
         "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
@@ -5987,6 +5990,8 @@
         "services/decision-service/persistence.py",
         "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
+        "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
+        "services/decision-service/tests/test_snapshot_id_validation.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/sahool-platform/api/routers/agronomic_replay.py",
         "services/sahool-platform/api/routers/calibration.py",
@@ -6004,6 +6009,8 @@
         "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
+        "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
+        "services/decision-service/tests/test_snapshot_id_validation.py",
         "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
         "services/sahool-platform/api/routers/decision_record.py",
         "services/sahool-platform/tests/test_decision_interim_bridge.py",
@@ -6278,6 +6285,7 @@
         "services/decision-service/persistence.py",
         "services/decision-service/recommendation_outcomes_cutover_preflight.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
+        "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
         "services/sahool-platform/api/learning_feedback.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/learning.py",
@@ -6287,6 +6295,7 @@
       ],
       "code_writers": [
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
         "services/sahool-platform/tests/test_r09_learning_label_integrity.py",

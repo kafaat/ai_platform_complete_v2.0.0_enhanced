@@ -555,6 +555,13 @@ class EdgeConflictError(Exception):
     """
 
 
+# Edge reads are bounded (exploration bug: /v1/edges enumerated the whole graph unordered).
+# A filtered read returns at most EDGE_QUERY_MAX_LIMIT rows; an unfiltered one, which no
+# consumer needs in full, at most EDGE_QUERY_UNFILTERED_MAX.
+EDGE_QUERY_MAX_LIMIT = 500
+EDGE_QUERY_UNFILTERED_MAX = 100
+
+
 class SQLiteAgGraphStore:
     def __init__(self, db_path: str | Path) -> None:
         self.db_path = Path(db_path)
@@ -666,13 +673,29 @@ class SQLiteAgGraphStore:
         with self._connect() as conn:
             return int(conn.execute("SELECT COUNT(*) FROM kg_edges").fetchone()[0])
 
-    def query_edges(
+    def query_edges_page(
         self,
         *,
         subject_id: str | None = None,
         relation: str | None = None,
         object_id: str | None = None,
-    ) -> list[dict[str, Any]]:
+        limit: int | None = None,
+    ) -> dict[str, Any]:
+        """One bounded, deterministically ordered page of edges.
+
+        Before this, the read had no ``ORDER BY`` and no ``LIMIT``: an unfiltered call returned
+        the whole graph in whatever order SQLite produced. Now every read is ordered by
+        (subject, relation, object, edge_id) and capped: at most ``EDGE_QUERY_MAX_LIMIT`` rows,
+        and at most ``EDGE_QUERY_UNFILTERED_MAX`` when no filter narrows the read. ``truncated``
+        says whether more rows matched than were returned.
+        """
+        filtered = bool(subject_id or relation or object_id)
+        ceiling = EDGE_QUERY_MAX_LIMIT if filtered else EDGE_QUERY_UNFILTERED_MAX
+        if limit is None:
+            limit = ceiling
+        if isinstance(limit, bool) or not isinstance(limit, int) or limit < 1:
+            raise ValueError("limit must be a positive integer")
+        effective = min(limit, ceiling)
         query = """
             SELECT e.edge_id,e.subject_id,s.name AS subject_name,e.relation,e.object_id,o.name AS object_name,
                    e.confidence,e.prescriptive,e.properties_json
@@ -691,8 +714,29 @@ class SQLiteAgGraphStore:
         if object_id:
             query += " AND e.object_id=?"
             params.append(object_id)
+        # One extra row tells a full page from a truncated one.
+        query += " ORDER BY e.subject_id, e.relation, e.object_id, e.edge_id LIMIT ?"
+        params.append(effective + 1)
         with self._connect() as conn:
-            return [dict(row) for row in conn.execute(query, params).fetchall()]
+            rows = [dict(row) for row in conn.execute(query, params).fetchall()]
+        return {
+            "edges": rows[:effective],
+            "truncated": len(rows) > effective,
+            "limit": effective,
+            "filtered": filtered,
+        }
+
+    def query_edges(
+        self,
+        *,
+        subject_id: str | None = None,
+        relation: str | None = None,
+        object_id: str | None = None,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
+        return self.query_edges_page(
+            subject_id=subject_id, relation=relation, object_id=object_id, limit=limit
+        )["edges"]
 
     def graph_context_for_crop(self, crop_id: str) -> dict[str, Any]:
         return {
@@ -753,7 +797,8 @@ def graphql_readonly(store: SQLiteAgGraphStore, query: str) -> dict[str, Any]:
         subject = query.split('subject:"', 1)[1].split('"', 1)[0]
     if 'relation:"' in query:
         relation = query.split('relation:"', 1)[1].split('"', 1)[0]
-    return {"edges": store.query_edges(subject_id=subject, relation=relation)}
+    page = store.query_edges_page(subject_id=subject, relation=relation)
+    return {"edges": page["edges"], "truncated": page["truncated"], "limit": page["limit"]}
 
 
 def _printable(value: object) -> str:
