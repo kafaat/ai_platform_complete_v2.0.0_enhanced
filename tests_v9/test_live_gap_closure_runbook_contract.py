@@ -30,6 +30,13 @@ def test_runbook_does_not_retain_the_invalid_live_references() -> None:
         "nats pub 'actuator.command'",
         "/api/v1/irrigation/recommendations",
         "pytest -v -m integration tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py",
+        # Recalibration 2026-11-21: unmounted routes and nonexistent columns.
+        '/api/v1/fields/${FIELD_ID}/canonical-state"',
+        "localhost:8000/mcp/v1/tools",
+        "localhost:8000/v1/cutover/readiness",
+        "SELECT domain, count(*) FROM evidence_graph_nodes",
+        "INSERT INTO evidence_graph_nodes (evidence_id",
+        "SELECT asset_id, usable, quality_status FROM raster_assets",
     )
     assert not [literal for literal in forbidden if literal in text]
 
@@ -99,3 +106,123 @@ def test_readonly_helper_neither_executes_env_file_nor_copies_nats_secrets() -> 
     assert "sed -n" not in helper
     assert "11_nats_security_flags" in helper
     assert "password_present" not in helper  # derived at runtime; never a copied value
+
+
+def _migration_columns(table: str) -> set[str]:
+    """Columns declared for ``table`` by CREATE TABLE / ALTER TABLE ADD COLUMN in migrations."""
+    import re
+
+    columns: set[str] = set()
+    ident = r'(?:"?\w+"?\.)?"?(\w+)"?'
+    for path in sorted((ROOT / "migrations").glob("*.sql")):
+        if path.name.endswith(".down.sql"):
+            continue
+        sql = re.sub(r"--[^\n]*", "", _text(path))
+        for m in re.finditer(
+            r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?" + ident + r"\s*\(", sql, re.I
+        ):
+            if m.group(1).lower() != table:
+                continue
+            depth, j = 1, m.end()
+            while j < len(sql) and depth:
+                depth += {"(": 1, ")": -1}.get(sql[j], 0)
+                j += 1
+            for part in re.split(r",(?![^()]*\))", sql[m.end() : j - 1]):
+                words = part.strip().split()
+                if words:
+                    columns.add(words[0].strip('"').lower())
+        for m in re.finditer(
+            r"ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?:ONLY\s+)?" + ident + r"(.*?);", sql, re.I | re.S
+        ):
+            if m.group(1).lower() == table:
+                for c in re.finditer(
+                    r"ADD\s+COLUMN\s+(?:IF\s+NOT\s+EXISTS\s+)?\"?(\w+)\"?", m.group(2), re.I
+                ):
+                    columns.add(c.group(1).lower())
+    return columns
+
+
+def test_runbook_and_preflight_name_the_same_measurement_base() -> None:
+    import re
+
+    helper = _text(ROOT / "scripts/ops/live_gap_closure/run_preflight.sh")
+    match = re.search(r'BASE_SHA="\$\{BASE_SHA:-([0-9a-f]{40})\}"', helper)
+    assert match, "run_preflight.sh must pin a full 40-hex BASE_SHA"
+    base = match.group(1)
+    runbook = _text(RUNBOOK)
+    assert f"إعادة المعايرة الحاليّة (2026-11-21) على `{base}`" in runbook
+    assert f"git diff --name-only {base[:9]} HEAD -- migrations/ services/" in runbook
+    assert "## سجلّ إعادة المعايرة — 2026-11-21" in runbook
+
+
+def test_field_state_and_mcp_probes_use_mounted_routes() -> None:
+    runbook = _text(RUNBOOK)
+    inventory = _text(ROOT / "route_inventory.csv")
+    assert ",GET,/api/v1/fields/{field_id}/state,field_canonical_state" in inventory
+    assert "canonical-state," not in inventory.replace("/v1/weather/agro/canonical-state,", "")
+    assert runbook.count('"http://localhost:8000/api/v1/fields/${FIELD_ID}/state"') == 3
+    assert ",GET,/v1/mcp/tools," in inventory
+    assert "M=http://localhost:8000/v1/mcp/tools" in runbook
+    assert "decision-service,services/decision-service/main.py" in inventory
+    assert ",GET,/v1/cutover/readiness,cutover_readiness" in inventory
+    assert '"${DECISION_URL:-http://127.0.0.1:8160}/v1/cutover/readiness"' in runbook
+
+
+def test_evidence_and_raster_probes_name_only_migrated_columns() -> None:
+    runbook = _text(RUNBOOK)
+    nodes = _migration_columns("evidence_graph_nodes")
+    assets = _migration_columns("raster_assets")
+    assert {
+        "node_type",
+        "source",
+        "tenant_id",
+        "field_id",
+        "snapshot_id",
+        "node_id",
+        "status",
+    } <= nodes
+    assert not {"domain", "evidence_id", "observed_at"} & nodes
+    assert "SELECT node_type, source, count(*) FROM evidence_graph_nodes" in runbook
+    assert (
+        "INSERT INTO evidence_graph_nodes (tenant_id, field_id, snapshot_id, node_id, node_type, status)"
+        in runbook
+    )
+    assert "ROLLBACK;" in runbook
+    assert {"id", "asset_status", "cog_uri", "quality_score", "valid_pixel_ratio"} <= assets
+    assert not {"asset_id", "usable", "quality_status"} & assets
+    assert (
+        "SELECT id, asset_status, cog_uri IS NOT NULL AS has_cog, quality_score, valid_pixel_ratio"
+        in runbook
+    )
+
+
+def test_correlation_measurement_matches_the_migrated_decision_chain() -> None:
+    runbook = _text(RUNBOOK)
+    migration = _text(ROOT / "migrations/v235_decision_chain_correlation.sql")
+    for table in (
+        "decision_record",
+        "dispatch_decisions",
+        "execution_ledger",
+        "as_applied_irrigation_runs",
+        "as_applied_irrigation_receipts",
+    ):
+        assert f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS correlation_id uuid;" in migration
+        assert "correlation_id" in _migration_columns(table)
+    assert "root correlation is server-owned" in migration
+    assert "correlation_id" not in _migration_columns("decision_reviews")
+    assert "v235_decision_chain_correlation.sql" in runbook
+    assert "**يملكه الخادم**" in runbook
+
+
+def test_deferred_import_debt_claim_matches_the_contract() -> None:
+    import json
+
+    contract = json.loads(
+        _text(ROOT / "docs/architecture/deferred_import_declaration_contract.json")
+    )
+    runbook = _text(RUNBOOK)
+    fixed = contract["fixed_in_this_slice"]
+    for key in ("sahool-platform:sklearn", "raster-service:yaml", "ai_agronomist:redis"):
+        assert key in fixed
+    assert contract["undeclared_debt"] == []
+    assert "**على `8b644c6d9` صار صفراً:**" in runbook

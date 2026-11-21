@@ -8,9 +8,14 @@
 > `4ad1b1cc`. أمّا أوامر المرحلة الثالثة فقد أُعيدت معايرتها على
 > `9b1f630b42044d8516c6420c5139cfcf901e2b95` بعد أن أثبت التشغيل الحيّ أنّ
 > marker الاختبار وعمود ledger وموضوع NATS ومسار HTTP القديمة لا تنفّذ القياس المعلن.
+> **إعادة المعايرة الحاليّة (2026-11-21) على `8b644c6d953399cb4fb187221e40aa8f618d074b`** (رأس `origin/main`): الفرق منذ
+> `4ad1b1cc` بلغ 1,275 مساراً تحت `migrations/` و`services/` (83 منها هجرات)، فأُعيد قياس كلّ رقم
+> واسم ومسار ومرساة هنا ساكناً (بلا قاعدة بيانات ولا Railway)؛ كلّ تغيير مسجّل «قديم → جديد» مع
+> أمره في [سجلّ إعادة المعايرة](#سجلّ-إعادة-المعايرة--2026-11-21) آخر الدليل، و`BASE_SHA` في
+> `scripts/ops/live_gap_closure/run_preflight.sh` صار هذا الالتزام.
 > لم أذكر التزام الفرع لأنّه يتغيّر مع كلّ إعادة تأسيس فيبيت النصّ — والتحقّق
 > الصحيح ليس مقارنة رقمين بل أمرٌ تُشغّله أنت:
-> `git diff --name-only 4ad1b1cc HEAD -- migrations/ services/` — إن كان فارغاً فالأرقام قائمة،
+> `git diff --name-only 8b644c6d9 HEAD -- migrations/ services/` — إن كان فارغاً فالأرقام قائمة،
 > وإلّا فأعِد قياس ما مسّه الفرق قبل أن تستعمله. البيئة والرفع موصوفان في
 > [`REAL_ENV_VERIFICATION_RUNBOOK.md`](REAL_ENV_VERIFICATION_RUNBOOK.md) — هذا الدليل **لا يكرّره**،
 > بل يُضيف ما ينقصه: **برهان إغلاق لكلّ فجوة على حدة، مع حزمة دليل**.
@@ -116,7 +121,7 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres \
 ## المرحلة 1 — فجوات طبقة البيانات (PostgreSQL وحده، بلا mesh)
 
 > **قبل أيّ استعلام أدناه — اكتشف الأسماء الفعليّة، لا تثق بما هنا.**
-> أسماء الجداول في هذا الدليل مقيسة من `migrations/` على `4ad1b1cc`، وقد تتغيّر. الاستعلام على
+> أسماء الجداول والأعمدة في هذا الدليل مقيسة من `migrations/` على `8b644c6d9` (كانت على `4ad1b1cc`)، وقد تتغيّر. الاستعلام على
 > جدول غير موجود يُنتِج خطأً يُقرأ خطأً على أنّه «لا بيانات» — وهو أسوأ من الفشل الصريح.
 
 ```bash
@@ -163,8 +168,10 @@ DATABASE_URL="postgresql://sahool_app:${SAHOOL_APP_PW}@localhost:5432/sahool" \
 ```bash
 : "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
 
-# 2.1 جاهزيّة القلب — النقطة قائمة في decision-service
-curl -sS http://localhost:8000/v1/cutover/readiness | tee "$EV/20_cutover_readiness.json"
+# 2.1 جاهزيّة القلب — النقطة قائمة في decision-service (منفذها 8160 لا منفذ المنصّة 8000؛
+# المسار مُعلَن في services/decision-service/main.py لا في المنصّة). DECISION_URL هو نفسه في
+# scripts/ops/live_gap_closure/run_readonly_baseline.sh.
+curl -sS "${DECISION_URL:-http://127.0.0.1:8160}/v1/cutover/readiness" | tee "$EV/20_cutover_readiness.json"
 ```
 
 ```bash
@@ -222,10 +229,14 @@ pytest -v -m integration -k "snapshot or eligibility" \
   > "$EV/30_snapshot_eligibility.log" 2>&1; echo "exit=$?" | tee -a "$EV/30_snapshot_eligibility.log"
 ```
 
-> **تصحيح مقيس قبل أن تستعلم:** بحثتُ في `migrations/` على `4ad1b1cc` فلا يوجد عمود اسمه
-> `snapshot_digest` في أيّ جدول، و`policy_version` موجود في `canonical_root_zone_hydraulic_profile`
-> وحده (و`selection_policy_version` في التربة). فالثنائيّة «بصمة مقابل نسخة سياسة» **مفهوم في
-> الشيفرة** (`services/decision-service/main.py:332`) لا زوج أعمدة جاهز للاستعلام.
+> **تصحيح مقيس قبل أن تستعلم:** بحثتُ في `migrations/` على `8b644c6d9` (والنتيجة نفسها على `4ad1b1cc`)
+> فلا يوجد عمود اسمه `snapshot_digest` في أيّ جدول، و`policy_version` عمودٌ في جدول `crop_root_policies`
+> وحده — المُنشأ في الهجرة `v169_canonical_root_zone_hydraulic_profile.sql` (كان النصّ يسمّي الهجرة
+> جدولاً) — و`selection_policy_version` في `soil_profile_snapshots`. فالثنائيّة «بصمة مقابل نسخة سياسة»
+> **مفهوم في الشيفرة** (`services/decision-service/main.py:374`، كانت `:332`) لا زوج أعمدة جاهز للاستعلام.
+> **وقيدٌ مقيس على الكتلة التالية:** لا خدمة تقرأ ترويسة `X-Policy-Version`
+> (`git grep -n -i "x-policy-version" -- services` فارغ)، فالطلبان متطابقان من جهة الخادم؛ تطابق البصمة
+> هنا لا يُثبت ثباتها أمام تغيّر السياسة — سجّل النتيجة `PARTIAL` بهذا السبب ما لم يوجد مدخل سياسة فعليّ.
 >
 > لذلك الإثبات هنا **من الخدمة لا من SQL**:
 
@@ -238,7 +249,7 @@ pytest -v -m integration -k "snapshot or eligibility" \
 for POL in v1 v2; do
   curl -sS -H "Authorization: Bearer $SAHOOL_AGENT_TOKEN" \
        -H "X-Policy-Version: $POL" \
-       "http://localhost:8000/api/v1/fields/${FIELD_ID}/canonical-state" \
+       "http://localhost:8000/api/v1/fields/${FIELD_ID}/state" \
     | tee "$EV/31_state_policy_$POL.json"
 done
 # المسار يُمرَّر وسيطاً لا داخل النصّ: `<<'EOF'` يمنع توسيع `$EV`، فلو كُتِب في
@@ -275,8 +286,10 @@ EOF
 pytest -v -m integration -k "evidence" \
   > "$EV/40_evidence_envelope.log" 2>&1; echo "exit=$?" | tee -a "$EV/40_evidence_envelope.log"
 
+# الجدول لا يحمل عمود domain (أعمدته من v149: node_type · source · status · snapshot_id …)؛
+# المجال يُقرأ من node_type (soil_baseline/terrain/…) ومصدره من source.
 docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres -d sahool -c "
-  SELECT domain, count(*) FROM evidence_graph_nodes GROUP BY domain ORDER BY 2 DESC;
+  SELECT node_type, source, count(*) FROM evidence_graph_nodes GROUP BY 1, 2 ORDER BY 3 DESC;
 " | tee "$EV/41_evidence_domains.txt"
 ```
 
@@ -284,11 +297,16 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres
 : "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
 
 # الرفض المُغلَق: بصمة غير مطابقة · مستأجِر مفقود · طابع زمنيّ مستقبليّ · معرّف مكرّر
+# أعمدة حقيقيّة فقط: إدراجٌ على عمود غير موجود يفشل بـ«column does not exist» فيُقرأ رفضاً وهو
+# خطأ اسم. والمعاملة تُلغى دائماً فلا يبقى صفّ إن نجح الإدراج خطأً.
 docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres -d sahool -c "
+  BEGIN;
   -- يجب أن يفشل كلّ إدراج أدناه؛ نجاح أيّها = فجوة مفتوحة
-  INSERT INTO evidence_graph_nodes (evidence_id, tenant_id, observed_at)
-  VALUES ('dup-probe', NULL, now());
+  INSERT INTO evidence_graph_nodes (tenant_id, field_id, snapshot_id, node_id, node_type, status)
+  VALUES (NULL, 'probe-field', 0, 'dup-probe', 'probe', 'present');
+  ROLLBACK;
 " 2>&1 | tee "$EV/42_evidence_fail_closed.txt"
+# الرفض لا يُحتسَب إلّا إذا سمّت رسالة الخطأ tenant_id؛ «column ... does not exist» ليست رفضاً.
 ```
 
 **معيار الإغلاق:** مجالان مختلفان في `41` **و** كلّ محاولة في `42` مرفوضة.
@@ -310,7 +328,7 @@ sleep 20
 
 # المسار السعيد
 curl -sS -H "Authorization: Bearer $SAHOOL_AGENT_TOKEN" \
-  "http://localhost:8000/api/v1/fields/${FIELD_ID}/canonical-state" \
+  "http://localhost:8000/api/v1/fields/${FIELD_ID}/state" \
   | tee "$EV/50_weather_happy.json"
 python -c "
 import json;d=json.load(open('$EV/50_weather_happy.json'))
@@ -327,7 +345,7 @@ print('schema_version:',(w or {}).get('schema_version'));print('observed_at:',(w
 docker compose -f docker-compose.v9.yml stop sahool-weather-service
 curl -sS -o "$EV/51_weather_down.json" -w "http_code=%{http_code}\n" \
   -H "Authorization: Bearer $SAHOOL_AGENT_TOKEN" \
-  "http://localhost:8000/api/v1/fields/${FIELD_ID}/canonical-state" | tee "$EV/51_weather_down_code.txt"
+  "http://localhost:8000/api/v1/fields/${FIELD_ID}/state" | tee "$EV/51_weather_down_code.txt"
 docker compose -f docker-compose.v9.yml start sahool-weather-service
 ```
 
@@ -363,12 +381,14 @@ print('real_data:',d.get('real_data'));print('usable:',d.get('usable'))"
 
 # أصل كاذب: بيانات وصفيّة بلا COG ⇒ usable=false لا استنتاج
 docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres -d sahool -c "
-  SELECT asset_id, usable, quality_status FROM raster_assets ORDER BY created_at DESC LIMIT 10;
+  SELECT id, asset_status, cog_uri IS NOT NULL AS has_cog, quality_score, valid_pixel_ratio
+  FROM raster_assets ORDER BY created_at DESC LIMIT 10;
 " | tee "$EV/61_raster_assets.txt"
 docker compose -f docker-compose.v9.yml logs --tail=200 sahool-raster-service > "$EV/62_raster_logs.txt" 2>&1
 ```
 
-**معيار الإغلاق:** `real_data=true` مع `VEGETATION_REAL_ONLY=1` · وأصلٌ بلا COG يظهر `usable=false`.
+**معيار الإغلاق:** `real_data=true` مع `VEGETATION_REAL_ONLY=1` · وأصلٌ بلا COG (`has_cog=f`) لا يظهر
+`asset_status=ready` في `61` ولا `usable=true` في ردّ الخدمة (`raster_assets` لا يحمل عمود `usable`).
 **إن رجع `real_data=false` والراية مفعّلة** فهذه خرق عقد — سجّلها `BLOCKED` وأبلغ فوراً.
 
 ---
@@ -376,7 +396,9 @@ docker compose -f docker-compose.v9.yml logs --tail=200 sahool-raster-service > 
 ### ⑦ `MCP-PREAUTH-STATUS-01` — مصفوفة الحالات
 
 > **صحّح قبل أن تقيس:** التقرير قال إنّ الموضع يُعيد **400** بدل 401. قراءة الشيفرة على
-> `4ad1b1cc` تُظهر `HTTPBearer(auto_error=False)` ⇒ الغياب يصل الدالّة فترفع **401** صراحةً.
+> `8b644c6d9` (كما على `4ad1b1cc`) تُظهر `HTTPBearer(auto_error=False)`
+> (`services/mcp_servers/market_server.py:44` و`services/mcp_servers/shared/oauth_middleware.py:29`)
+> ⇒ الغياب يصل الدالّة فترفع **401** صراحةً.
 > فلا تفترض الرقم — **قِسه**، وسجّل ما تراه لا ما قرأتَه في تقرير.
 
 ```bash
@@ -386,7 +408,7 @@ docker compose -f docker-compose.v9.yml logs --tail=200 sahool-raster-service > 
 
 docker compose -f docker-compose.v9.yml up -d sahool-weather-mcp sahool-market-mcp sahool-nginx
 sleep 15
-M=http://localhost:8000/mcp/v1/tools
+M=http://localhost:8000/v1/mcp/tools   # المسار المُعلَن في route_inventory.csv (لا /mcp/v1/tools)
 
 for case in "no-token:" "malformed:Bearer abc" "expired:Bearer $EXPIRED_JWT" "valid:Bearer $VALID_JWT"; do
   name=${case%%:*}; hdr=${case#*:}
@@ -403,8 +425,10 @@ done | tee "$EV/70_mcp_preauth_matrix.txt"
 
 ### ⑧ `DEFERRED-IMPORT-UNDECLARED-01` — حاوية نظيفة
 
-الدَّين المُجمَّد ثلاثة: `sahool-platform:sklearn` (أخطرها — استيراد مؤجَّل **عارٍ بلا try/except**) ·
-`raster-service:yaml` · `ai_agronomist:redis`.
+كان الدَّين المُجمَّد ثلاثة: `sahool-platform:sklearn` (أخطرها — استيراد مؤجَّل **عارٍ بلا try/except**) ·
+`raster-service:yaml` · `ai_agronomist:redis`. **على `8b644c6d9` صار صفراً:** `undeclared_debt` فارغ في
+`docs/architecture/deferred_import_declaration_contract.json` والثلاثة في `fixed_in_this_slice` معلَنةً في
+requirements خدماتها. فالكتلة أدناه **تأكيديّة** (يجب `exit=0`) لا إغلاقيّة.
 
 ```bash
 : "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
@@ -504,8 +528,9 @@ printf 'subject=%s\nstatus=BLOCKED_UNTIL_LIVE_SUBSCRIBER_IS_READY\n' \
 
 ### ⑪ `AGENT-TO-ACTUATOR-BYPASS-NOT-GUARDED`
 
-> **اكتشاف المصدر على `9b1f630b`:** يوجد ناشر واحد للموضوع
-> `sahool.actuator.dispatch.requested` وصفر مستهلكين داخل المستودع؛
+> **اكتشاف المصدر على `9b1f630b`، وأُعيد قياسه على `8b644c6d9` بالنتيجة نفسها:** يوجد ناشر واحد للموضوع
+> `sahool.actuator.dispatch.requested` (`services/sahool-platform/api/phase_runtime_workers.py:518`، كان `:507`)
+> وصفر مستهلكين داخل المستودع؛
 > `services/actuator-service` يستخدم MQTT ولا يشترك بهذا الموضوع. لذلك نجاح منع
 > publisher غير المصرح لا يغلق المسار الشرعي: يلزم adapter مملوك ومُصدَّر أو
 > إثبات adapter خارجي. الجرد القانوني وحالة namespace الإضافية في
@@ -560,11 +585,16 @@ pytest -v -m integration tests_v9/test_actuation_killswitch_v29_5_op.py \
 
 ### ⑫ `CORRELATION-ID-NOT-BRIDGED-TO-ACTUATOR`
 
-> **حقيقة مقيسة تُغيّر شكل هذا الاختبار:** بحثٌ في `migrations/` على `4ad1b1cc` يُظهر أنّ
-> `correlation_id` **غير موجود** في `decision_record` ولا `execution_ledger` ولا
-> `as_applied_irrigation_receipts` ولا `decision_reviews`. يوجد في `irrigation_resource_reservations`
-> و`irrigation_resource_reservation_events` و`workflow_state`، وكـ`analysis_id` في
-> `field_evidence_snapshots`. **أي أنّ الجسر مفقود في المخطّط نفسه** — وهو تأكيد للفجوة لا نفي لها.
+> **حقيقة مقيسة تُغيّر شكل هذا الاختبار (أُعيد قياسها على `8b644c6d9`):** على `4ad1b1cc` كان
+> `correlation_id` **غائباً** عن `decision_record` و`execution_ledger` و`as_applied_irrigation_receipts`.
+> منذ `v235_decision_chain_correlation.sql` صار في **9** جداول لا 4: أُضيف إلى `decision_record` و`dispatch_decisions`
+> و`execution_ledger` و`as_applied_irrigation_runs` و`as_applied_irrigation_receipts`، بجانب
+> `irrigation_resource_reservations` و`irrigation_resource_reservation_events` و`workflow_state`
+> و`hydraulic_capacity_evaluations`؛ و`decision_reviews` ما زال بلا عمود، و`analysis_id` في `field_evidence_snapshots` وحده.
+> لكنّ عمود v235 **يملكه الخادم** (`uuid` يولّده مشغّل الجذر ويرفض أيّ قيمة من المُستدعي، ثمّ يرثه الابن من أبيه)،
+> فلا يحمل `X-Correlation-ID` الذي يرسله المُستدعي، ولا يُطابق `$CID` النصّيّ. **الجسر قائم في المخطّط
+> داخل سلسلة القرار والتنفيذ، ومفقودٌ بين ترويسة الطلب وتلك السلسلة وبين الحجز والقرار** — وهو تضييق للفجوة لا إغلاق لها.
+> ولا تفترض أنّ v235 مطبَّقة في البيئة: كتلة C1 تكتشف ذلك.
 >
 > فمهمّتك ليست «هل تمرّ السلسلة؟» بل **«إلى أين يصل المعرّف، وأين ينقطع بالضبط؟»**
 
@@ -618,8 +648,8 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres
 ```
 
 **معيار الإغلاق:** المعرّف يصل الحجز **و** يظهر في سجلّات الخدمات الأربع **و** `C4` فارغ.
-**والنتيجة المتوقّعة اليوم `PARTIAL` لا `CLOSED_LIVE`** — لأنّ العمود غائب عن جداول القرار
-والتنفيذ والإيصال. سجّل **أين انقطع بالضبط**؛ ذلك هو شرط إغلاق الفجوة لاحقاً بهجرة تُضيف العمود.
+**والنتيجة المتوقّعة اليوم `PARTIAL` لا `CLOSED_LIVE`** — لأنّ عمود جداول القرار والتنفيذ والإيصال
+(v235) مولَّد في الخادم ولا يُربَط بمعرّف الطلب ولا بمعرّف الحجز. سجّل **أين انقطع بالضبط**؛ ذلك هو شرط إغلاق الفجوة لاحقاً بهجرة تُضيف العمود.
 
 
 ---
@@ -699,6 +729,43 @@ sha256sum sahool-live-evidence-*.tar.gz | tee "$EV/99_bundle_sha256.txt"
 python scripts/ci/brain_commit_claim_guard.py --base origin/main --head HEAD; echo "guard exit=$?"
 # ولا تدفع إلّا إذا كان 0
 ```
+
+---
+
+## سجلّ إعادة المعايرة — 2026-11-21
+
+القياس ساكن على `8b644c6d953399cb4fb187221e40aa8f618d074b` (رأس `origin/main`)، بلا قاعدة بيانات ولا Railway ولا تشغيل خدمات. الأداة
+الوحيدة غير الموجودة في المستودع ماسحٌ ساكن لأعمدة `CREATE TABLE`/`ALTER TABLE … ADD COLUMN` في
+`migrations/*.sql` (استثناء `*.down.sql`)، شُغِّل على `4ad1b1cc` أوّلاً فأعاد قيم الدليل القديمة نفسها
+(صفر `snapshot_digest`، أربعة جداول لـ`correlation_id`) قبل تشغيله على الرأس.
+
+| البند | قديم → جديد | الأمر |
+|---|---|---|
+| أساس القياس / `BASE_SHA` في `run_preflight.sh` | `4ad1b1cc` و`9b1f630b42044d8516c6420c5139cfcf901e2b95` → `8b644c6d953399cb4fb187221e40aa8f618d074b` | `git rev-parse origin/main` · `git merge-base --is-ancestor 9b1f630b HEAD` |
+| مسارات متغيّرة تحت `migrations/` و`services/` | «فارغ ⇒ الأرقام قائمة» → 1,275 من `4ad1b1cc` (83 هجرة) · 1,172 من `9b1f630b` (78 هجرة) | `git diff --name-only <sha> HEAD -- migrations/ services/ \| wc -l` |
+| جدول `policy_version` | `canonical_root_zone_hydraulic_profile` (اسم هجرة) → `crop_root_policies` (لم يتغيّر منذ `4ad1b1cc`) | `grep -n "policy_version" migrations/*.sql` |
+| جدول `selection_policy_version` | «التربة» → `soil_profile_snapshots` (v155) | الماسح الساكن |
+| `snapshot_digest` | 0 جداول → 0 جداول | الماسح الساكن |
+| مرساة البصمة/السياسة | `services/decision-service/main.py:332` → `:374` (`VegetationSnapshotIn`) | `grep -n "content-addressed by snapshot_hash" services/decision-service/main.py` |
+| مستهلك `X-Policy-Version` | (لم يُقَس) → 0 | `git grep -n -i "x-policy-version" -- services` |
+| `correlation_id` | 4 جداول (بلا قرار/تنفيذ/إيصال) → 9 جداول، منها الخمسة في `v235_decision_chain_correlation.sql` | الماسح الساكن · `grep -ln correlation_id migrations/*.sql` |
+| مسار الحالة القانونيّة للحقل | `/api/v1/fields/{id}/canonical-state` (غير مُعلَن على الشجرتين) → `/api/v1/fields/{field_id}/state` | `grep -n "field_canonical_state" route_inventory.csv` |
+| مسار أدوات MCP | `/mcp/v1/tools` (غير مُعلَن) → `/v1/mcp/tools` | `grep -n "/v1/mcp/tools," route_inventory.csv` |
+| منفذ `/v1/cutover/readiness` | `localhost:8000` (منفذ المنصّة) → `${DECISION_URL:-http://127.0.0.1:8160}` | `grep -n "cutover/readiness" route_inventory.csv` · `healthcheck` في `docker-compose.v9.yml` |
+| مرساة `HTTPBearer(auto_error=False)` | `4ad1b1cc` بلا سطر → `market_server.py:44` · `shared/oauth_middleware.py:29` | `git grep -n "HTTPBearer(" -- services/mcp_servers` |
+| دَين الاستيراد المؤجَّل | 3 → 0 | `python -c` على `undeclared_debt` في `docs/architecture/deferred_import_declaration_contract.json` |
+| ناشرو/مستهلكو `sahool.actuator.dispatch.requested` | 1/0 → 1/0 (المرساة `:507` → `:518`) | `git grep -n "sahool.actuator.dispatch.requested" -- services` · `nats_subject_ownership_contract.json` |
+| أعمدة `evidence_graph_nodes` في 41/42 | `domain` · `evidence_id` · `observed_at` (غير موجودة على الشجرتين) → `node_type` · `source` · `tenant_id` · `field_id` · `snapshot_id` · `node_id` · `status` | الماسح الساكن على v149 |
+| أعمدة `raster_assets` في 61 | `asset_id` · `usable` · `quality_status` (غير موجودة على الشجرتين) → `id` · `asset_status` · `cog_uri` · `quality_score` · `valid_pixel_ratio` | الماسح الساكن على v14/v143 |
+| عمود `execution_ledger.outcome` | `VARCHAR(16)` → بلا تغيير | `grep -n "outcome" migrations/v68_execution_ledger.sql` |
+| مسار `irrigation-recommendation` | `routers/irrigation_recommendation.py:245` → `:202` (المسار نفسه) | `grep -n "irrigation-recommendation" route_inventory.csv` |
+| مسارات السكربتات والاختبارات والخدمات المذكورة | كلّها موجودة → كلّها موجودة (`sahool-titiler` في ملفّ `legacy-tiler`، و`sahool-reservation-dispatch-relay-worker` في `relay`) | `test -e` لكلّ مسار · قراءة `services:` من `docker-compose.v9.yml` |
+| اختيارات `-m integration -k` | (لم تُقَس) → `snapshot or eligibility`: 1 · `evidence`: 5 · `irrigation or reservation or actuator`: 45 (من 16,204 في `testpaths = tests_v9`) | `pytest --collect-only -q -m integration -k "<expr>"` |
+
+**مقيسٌ ولم يُصحَّح هنا لأنّه إعادة تصميم لا معايرة:** `docker-compose.v9.yml` لا ينشر منفذ مضيف لـ`sahool-platform`
+ولا `sahool-decision-service` ولا خوادم MCP (على الشجرتين)، و`sahool-nginx` ينشر 80/443 فقط؛ فعناوين
+`http://localhost:8000/...` في الكتل لا تصل خدمة ما لم يُضَف منفذ أو يُستعمَل `docker compose exec`. سجّل ذلك
+`BLOCKED` بسببه المقيس بدل قراءة خطأ الاتّصال نتيجة.
 
 ---
 

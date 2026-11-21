@@ -10839,6 +10839,18 @@
           "score": 10
         },
         {
+          "value": "sahool.actuator.dispatch.requested @ docs/runbooks/LIVE_GAP_CLOSURE_AGENT_RUNBOOK.md:522",
+          "score": 9
+        },
+        {
+          "value": "sahool.actuator.dispatch.requested @ docs/runbooks/LIVE_GAP_CLOSURE_AGENT_RUNBOOK.md:566",
+          "score": 9
+        },
+        {
+          "value": "sahool.actuator.dispatch.requested @ docs/runbooks/LIVE_GAP_CLOSURE_AGENT_RUNBOOK.md:757",
+          "score": 9
+        },
+        {
           "value": "sahool.field_intelligence @ services/sahool-platform/api/routers/field_intelligence.py:26",
           "score": 9
         },
@@ -11718,6 +11730,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/LIVE_GAP_CLOSURE_AGENT_RUNBOOK.md",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "P2_RASTER_FACADE_CLEANUP_REPORT.md",
           "score": 8,
           "signals": [
@@ -11761,12 +11781,12 @@
         "backend": 33,
         "routes": 100,
         "database": 16,
-        "events": 70,
+        "events": 73,
         "web": 13,
         "mobile": 4,
         "tests": 43,
         "governance": 0,
-        "other_evidence": 37
+        "other_evidence": 38
       },
       "coverage_dimensions": 7,
       "mapped": true
