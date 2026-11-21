@@ -8999,3 +8999,10 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الخلل:** `query_edges` ([`kg_store.py:669-695`](../../services/knowledge-graph/kg_store.py) على الأساس `8725fcfe1`) بلا `ORDER BY` ولا `LIMIT`، و`GET /v1/edges` ([`main.py:237-250`](../../services/knowledge-graph/main.py)) بلا مُرشِّح يعيد الرسم كلّه؛ وai_agronomist يستدعيه بلا معاملات حين لا محصول (`agent-10`).
 - **الإصلاح:** ترتيب حتميّ (subject, relation, object, edge_id)؛ `limit` بحدّ أقصى 500 (فوقه 422)؛ القراءة بلا مُرشِّح مسقوفة بـ100 مع `filtered`/`truncated`، فالمستدعي يبقى يعمل. GraphQL مسقوفة بالمثل. الشاهد: [`test_kg_edges_bounded_read.py`](../../tests_v9/test_kg_edges_bounded_read.py) (بلا الإصلاح ٦ إخفاقات).
 - **الباقي:** عدم توسيع KG العامّ حين لا محصول قرارٌ في ai_agronomist هو W2-19.
+
+## DECISION-SERVICE-PER-LOOP-POOL-NEVER-CLOSED-01 — مُجمِّعات اتّصال decision-service لكلّ حلقة أحداث لا تُغلَق، فالجناح الكامل في عمليّة واحدة يستنفد الاتّصالات (P3)
+
+- **الحالة:** open — مقيسٌ، لا إصلاح بعد.
+- **الخلل:** `acquire_connection` ([`persistence.py:408-427`](../../services/decision-service/persistence.py)) تحفظ مُجمِّعاً لكلّ حلقة أحداث في `_POOLS` (السطر 385) ولا تُغلقه حين تنتهي الحلقة. وكلّ `asyncio.run` أو طلبٍ عبر TestClient يفتح حلقة جديدة، فتتراكم المُجمِّعات المفتوحة.
+- **الأثر المقيس:** تشغيل جناح `services/decision-service/tests` كاملاً في عمليّة pytest واحدة على PostgreSQL حيّ بـ`max_connections=300` أعطى `TooManyConnectionsError` في 9 حالات على `cb3e756be` و28 على `a2a1a7c50`؛ وكلّ ملفّ منها ينجح وحده. خطوات CI تشغّل الملفّات لكلّ خطوة، فلا يظهر هناك.
+- **شرط الإغلاق:** إغلاق مُجمِّع الحلقة حين تنتهي (أو مُجمِّع واحد بدورة حياة التطبيق)، مع اختبار يشغّل الجناح الحيّ كلّه في عمليّة واحدة دون استنفاد.
