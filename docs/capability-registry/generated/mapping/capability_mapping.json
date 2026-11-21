@@ -1791,11 +1791,11 @@
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:2456",
+          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:2466",
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:2455",
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:2465",
           "score": 12
         },
         {
@@ -25496,6 +25496,14 @@
           "score": 17
         },
         {
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/tests/test_migration_037_force_rls_pg16.py:105",
+          "score": 17
+        },
+        {
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/tests/test_migration_037_force_rls_pg16.py:112",
+          "score": 17
+        },
+        {
           "value": "public.imagery_automation_fields @ tests_v9/test_imagery_automation_rls_live_pg.py:49",
           "score": 17
         },
@@ -25541,14 +25549,6 @@
         },
         {
           "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2745",
-          "score": 16
-        },
-        {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/tests/test_migration_037_force_rls_pg16.py:105",
-          "score": 16
-        },
-        {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/tests/test_migration_037_force_rls_pg16.py:112",
           "score": 16
         },
         {
@@ -25942,6 +25942,15 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
+          "score": 17,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
           "path": "tests_v9/test_crop_root_policy_rls_integration.py",
           "score": 17,
           "signals": [
@@ -25976,15 +25985,6 @@
             "path:rls",
             "content:rls",
             "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
-          "score": 16,
-          "signals": [
-            "path:rls",
-            "content:rls",
-            "content:row level security"
           ]
         },
         {
