@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "b0d7c436a29a7c099daded3a2e243396e194576f",
+  "measured_on": "26f5b131f68fa3c7cbc76a27ad13b3f98fa78dbf",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "5083763c81786b722418de94c6ac52fdfcd4e9cbd246d5bf86a46b7cd648ec9f",
+  "measurement_input_digest": "12981b86aa084dbdf2cc301a3623c2fcf2ed2b24ac152d8670ee1f76bcd4d46e",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "21a471cb3843a71f28e0a9963f850a46a46f5fd33b1419614109e7ff5a9596f3",
+  "measurement_basis_digest": "94bb882db492cb9dc438b039987dac7e17822005b48dccf6d06aadc647a9e9d7",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -56,7 +56,7 @@
     },
     {
       "path": "services/actuator-service/actuator_runtime.py",
-      "sha256": "ef4fbbd0ffdc15667231d4dafeabd8648b4bf38273e8af88e64dca55f0debb20"
+      "sha256": "571d7c5c2bcb0d2c94cfb43166ea19babdaebe215ba3cf21543bce3bd2ec804d"
     },
     {
       "path": "services/auth/main.py",
@@ -96,7 +96,7 @@
     },
     {
       "path": "services/mcp_servers/market_server.py",
-      "sha256": "4f0034cbfa11e630d9ff53c5db206635c99f564503b9932ced8425104366f813"
+      "sha256": "5bfa01fe8c528390b0bb3efb6b6590a384d7aa1657c8d5063709aaaccd3ddcde"
     },
     {
       "path": "services/mcp_servers/shared/oauth_middleware.py",
@@ -112,7 +112,7 @@
     },
     {
       "path": "services/raster-service/db_persist.py",
-      "sha256": "47ddc62a46640a3f665cd5785773a357597e6946fbf9780873fbcb0c3dbbeece"
+      "sha256": "160a227be1fb1f084ed61189d85cef4c1da66dd8aa8eade7cfe472ae664de018"
     },
     {
       "path": "services/raster-service/follow_up_store.py",
@@ -233,7 +233,7 @@
   ],
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
-    "services/actuator-service/actuator_runtime.py:1691",
+    "services/actuator-service/actuator_runtime.py:1671",
     "services/auth/main.py:993",
     "services/raster-service/backfill_scan_worker.py:170",
     "services/raster-service/cache_invalidation_worker.py:126",

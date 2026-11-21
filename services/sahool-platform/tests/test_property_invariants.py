@@ -156,26 +156,34 @@ def _scalar(fn, *vals):
     return float(out[0])
 
 
+def _assert_nd_contract(out, a, b, name):
+    """فرقٌ معياريّ: نطاقان صفريّان = غياب بيانات (NaN)، وغير ذلك منتهٍ داخل [-1،1].
+
+    كان 0/0 يُنشَر 0.0 «لا نبات» (ND-INDEX-ZERO-DENOMINATOR-PUBLISHES-ZERO-01).
+    """
+    if a == 0.0 and b == 0.0:
+        assert math.isnan(out), f"{name}: نطاقان صفريّان يجب أن يكونا غياب بيانات (NaN) لا {out}"
+        return
+    assert math.isfinite(out), f"{name} غير منتهٍ (حارس القسمة فشل)"
+    assert -1.0 - 1e-9 <= out <= 1.0 + 1e-9, f"{name} خارج [-1,1]"
+
+
 @settings(max_examples=400)
 @given(red=_refl, nir=_refl)
 def test_ndvi_bounded(red, nir):
-    out = _scalar(_BM.ndvi, red, nir)
-    assert math.isfinite(out), "NDVI غير منتهٍ (حارس القسمة فشل)"
-    assert -1.0 - 1e-9 <= out <= 1.0 + 1e-9, "NDVI خارج [-1,1]"
+    _assert_nd_contract(_scalar(_BM.ndvi, red, nir), red, nir, "NDVI")
 
 
 @settings(max_examples=400)
 @given(nir=_refl, rededge=_refl)
 def test_ndre_bounded(nir, rededge):
-    out = _scalar(_BM.ndre, nir, rededge)
-    assert math.isfinite(out) and -1.0 - 1e-9 <= out <= 1.0 + 1e-9, "NDRE خارج [-1,1]"
+    _assert_nd_contract(_scalar(_BM.ndre, nir, rededge), nir, rededge, "NDRE")
 
 
 @settings(max_examples=400)
 @given(nir=_refl, swir1=_refl)
 def test_moisture_bounded(nir, swir1):
-    out = _scalar(_BM.moisture, nir, swir1)
-    assert math.isfinite(out) and -1.0 - 1e-9 <= out <= 1.0 + 1e-9, "NDMI خارج [-1,1]"
+    _assert_nd_contract(_scalar(_BM.moisture, nir, swir1), nir, swir1, "NDMI")
 
 
 @settings(max_examples=400)

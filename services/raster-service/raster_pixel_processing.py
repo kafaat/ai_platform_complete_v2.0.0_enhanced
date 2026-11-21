@@ -923,7 +923,8 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
                 arr = si.compute_satvi(red, swir1, swir2, np)
         elif ind == "fapar":
             # حماية القسمة: بكسل أسود/ماء عميق (nir+red=0) كان يعطي nan/inf، وclip
-            # كان يحوّل inf→fapar=1 خاطئة فيفسد المتوسّط بصمت. الآن →0 (لا غطاء).
+            # كان يحوّل inf→fapar=1 خاطئة فيفسد المتوسّط بصمت. والآن يبقى NaN (لا بيانات):
+            # NDVI لنطاقين صفريّين NaN في النواة المشتركة، وnp.clip يُبقي NaN، فلا «غطاء 0» مختلَق.
             ndvi = ctx.band_math.ndvi(red, nir, np)
             arr = np.clip(1.24 * ndvi - 0.168, 0, 1)
         else:

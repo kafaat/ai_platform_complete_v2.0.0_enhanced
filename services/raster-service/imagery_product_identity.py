@@ -65,8 +65,13 @@ def canonical_processing_version(explicit: str | None = None) -> str:
         import raster_quality
 
         return str(raster_quality.ALGORITHM_VERSION)
-    except Exception:  # noqa: BLE001 — غياب الوحدة (اختبار) ⇒ إصدار أساس ثابت
-        return "sahool.band_math/1"
+    except Exception:  # noqa: BLE001 — غياب الوحدة (اختبار) ⇒ الإصدار الحاليّ الثابت
+        return "sahool.band_math/2"
+
+
+# إصدار الأساس الذي حُسبت تحته السجلّات القديمة (بلا processing_version) — ثابتٌ لا يتبع
+# رفع الإصدار الحاليّ (``raster_quality.ALGORITHM_VERSION``).
+LEGACY_BASELINE_PROCESSING_VERSION = "sahool.band_math/1"
 
 
 @dataclass(frozen=True)
@@ -150,5 +155,8 @@ class ImageryProductIdentity:
 
     def legacy_matches_baseline(self) -> bool:
         """هل يجوز إعادة استعمال عنصر قديم (بلا processing_version)؟ فقط إذا كان الإصدار الحاليّ
-        هو إصدار الأساس القانونيّ الذي أُنشئت تحته السجلّات القديمة — وإلّا فالتطابق غامض (لا نعيد الاستعمال)."""
-        return self.processing_version == canonical_processing_version()
+        هو إصدار الأساس القانونيّ الذي أُنشئت تحته السجلّات القديمة — وإلّا فالتطابق غامض (لا نعيد الاستعمال).
+
+        يُقارَن بإصدار الأساس الثابت لا بالإصدار الحاليّ: بعد رفع ``ALGORITHM_VERSION`` لا يُعاد
+        استعمال عنصرٍ قديم حُسب تحت الأساس لهويّةٍ بإصدارٍ أحدث."""
+        return self.processing_version == LEGACY_BASELINE_PROCESSING_VERSION

@@ -11372,6 +11372,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_band_math_version_reuse.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_bff_execution_plan_operation_canonical.py",
     "kind": "tests"
   },

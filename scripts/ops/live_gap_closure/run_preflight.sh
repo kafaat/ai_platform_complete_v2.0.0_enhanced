@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-BASE_SHA="${BASE_SHA:-9b1f630b42044d8516c6420c5139cfcf901e2b95}"
+BASE_SHA="${BASE_SHA:-8b644c6d953399cb4fb187221e40aa8f618d074b}"
 REPO="${1:-$PWD}"
 MODE="${MODE:-static}"
 
