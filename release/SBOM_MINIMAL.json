@@ -17705,7 +17705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ef4fbbd0ffdc15667231d4dafeabd8648b4bf38273e8af88e64dca55f0debb20"
+          "content": "aaf191d507aebecbca3006c2ea74d369f1670b7b94eb2351a9490831f934b16b"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -24835,7 +24835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ab3645f43ffc5fe873bfb0e63f9ae92c6bf8fbb29da848140e015d22e8bec66"
+          "content": "d2d3fa2bcf5b2ff01bf045cf225d4f471978cd92a11f69279491f19f1c6de716"
         }
       ],
       "name": "services/realtime-session/Dockerfile.xiaozhi",

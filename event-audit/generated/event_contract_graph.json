@@ -7,7 +7,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 1965,
+      "line": 1971,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -19,7 +19,7 @@
       "dynamic_expr": "topic",
       "file": "services/actuator-service/actuator_runtime.py",
       "kind": "consumer",
-      "line": 2067,
+      "line": 2077,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -351,7 +351,7 @@
           "dynamic_expr": null,
           "file": "services/actuator-service/actuator_runtime.py",
           "kind": "consumer",
-          "line": 2069,
+          "line": 2079,
           "queue": null,
           "resolution": "literal",
           "subject": "sahool/+/+/telemetry/+/mesh"

@@ -3,7 +3,7 @@
     "service": "actuator-service",
     "domain": "IoT Actuation",
     "python_files": 20,
-    "python_loc": 5644,
+    "python_loc": 5652,
     "tests": 8,
     "routes": 7,
     "main": "services/actuator-service/main.py",

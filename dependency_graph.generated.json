@@ -452,7 +452,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "services/actuator-service/actuator_runtime.py:2069",
+      "evidence": "services/actuator-service/actuator_runtime.py:2079",
       "from": "actuator-service",
       "from_kind": "component",
       "protocol": "nats",
