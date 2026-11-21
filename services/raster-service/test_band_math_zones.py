@@ -10,6 +10,7 @@ test_band_math_zones.py — تحقّق offline لدوالّ المؤشّرات �
 import band_math
 import management_zones as mz
 import numpy as np
+import pytest
 
 
 # ─── band_math: صيغ المؤشّرات الموسّعة ─────────────────────────────
@@ -80,12 +81,14 @@ def test_msavi_radicand_clipped_no_nan():
     assert np.isfinite(out[0]), "MSAVI يجب أن يقصّ الجذر السالب لا أن يُنتج NaN"
 
 
-def test_zero_denominator_safe():
-    # NIR+REDEDGE=0 → epsilon يمنع القسمة على صفر (لا inf/NaN غير محكوم)
-    nir = np.array([0.0])
-    rededge = np.array([0.0])
+def test_zero_denominator_is_nodata_not_zero():
+    # NIR+REDEDGE=0 بنطاقين صفريّين = غياب بيانات لا «لا نبات»: NaN لا 0.0،
+    # ولا inf ولا قيمة مختلَقة تدخل المتوسّط (ND-INDEX-ZERO-DENOMINATOR-PUBLISHES-ZERO-01).
+    nir = np.array([0.0, 0.4])
+    rededge = np.array([0.0, 0.2])
     out = band_math.ndre(nir, rededge, np)
-    assert np.isfinite(out[0])
+    assert np.isnan(out[0])
+    assert out[1] == pytest.approx(1 / 3)
 
 
 def test_compute_dispatch_and_missing_band():

@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7584,
+    "files_scanned": 7565,
     "files_by_kind": {
       "backend": 1302,
       "database": 352,
-      "governance": 90,
+      "governance": 88,
       "mobile": 429,
-      "other": 2229,
-      "tests": 2626,
+      "other": 2211,
+      "tests": 2627,
       "web": 556
     },
     "unmapped_artifacts": 3603,
-    "ambiguous_artifacts": 264,
+    "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4117,
-      "raw": 3467
+      "raw": 3448
     },
-    "test_dependency_files": 2004,
-    "test_dependency_edges": 5343,
-    "test_dependency_bounded_files": 1162,
+    "test_dependency_files": 2006,
+    "test_dependency_edges": 5347,
+    "test_dependency_bounded_files": 1164,
     "test_dependency_unresolved_relations": 510
   },
   "capabilities": [
@@ -10839,6 +10839,18 @@
           "score": 10
         },
         {
+          "value": "sahool.actuator.dispatch.requested @ docs/runbooks/LIVE_GAP_CLOSURE_AGENT_RUNBOOK.md:522",
+          "score": 9
+        },
+        {
+          "value": "sahool.actuator.dispatch.requested @ docs/runbooks/LIVE_GAP_CLOSURE_AGENT_RUNBOOK.md:566",
+          "score": 9
+        },
+        {
+          "value": "sahool.actuator.dispatch.requested @ docs/runbooks/LIVE_GAP_CLOSURE_AGENT_RUNBOOK.md:761",
+          "score": 9
+        },
+        {
           "value": "sahool.field_intelligence @ services/sahool-platform/api/routers/field_intelligence.py:26",
           "score": 9
         },
@@ -11718,6 +11730,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/LIVE_GAP_CLOSURE_AGENT_RUNBOOK.md",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "P2_RASTER_FACADE_CLEANUP_REPORT.md",
           "score": 8,
           "signals": [
@@ -11761,12 +11781,12 @@
         "backend": 33,
         "routes": 100,
         "database": 16,
-        "events": 70,
+        "events": 73,
         "web": 13,
         "mobile": 4,
         "tests": 43,
         "governance": 0,
-        "other_evidence": 37
+        "other_evidence": 38
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -13774,13 +13794,6 @@
           "signals": [
             "explicit_id"
           ]
-        },
-        {
-          "path": "certification/evidence/raster_pg15_reviewed_20261121/source-bindings.json",
-          "score": 8,
-          "signals": [
-            "path:source binding"
-          ]
         }
       ],
       "ambiguous": [],
@@ -13796,7 +13809,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 1,
-        "other_evidence": 5
+        "other_evidence": 4
       },
       "coverage_dimensions": 3,
       "mapped": true
@@ -18505,6 +18518,14 @@
           ]
         },
         {
+          "path": "services/raster-service/band_math.py",
+          "score": 8,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
           "path": "services/raster-service/follow_up_runtime.py",
           "score": 8,
           "signals": [
@@ -20483,7 +20504,7 @@
         "routes": 34
       },
       "evidence_counts": {
-        "backend": 42,
+        "backend": 43,
         "routes": 100,
         "database": 5,
         "events": 47,
@@ -22577,6 +22598,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_nd_index_zero_denominator_contract.py",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        },
+        {
           "path": "tests_v9/test_nitrogen_prescription_honesty.py",
           "score": 8,
           "signals": [
@@ -22920,7 +22949,7 @@
         "events": 100,
         "web": 39,
         "mobile": 5,
-        "tests": 71,
+        "tests": 72,
         "governance": 0,
         "other_evidence": 33
       },
@@ -44602,6 +44631,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_band_math_version_reuse.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_bff_execution_plan_operation_canonical.py",
       "kind": "tests"
     },
@@ -46551,10 +46584,6 @@
     },
     {
       "path": "tests_v9/test_raster_persist_observability_v30_2.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_raster_pg_certification.py",
       "kind": "tests"
     },
     {
@@ -51500,6 +51529,28 @@
           "signals": [
             "content:procurement",
             "content:warehouse"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/raster-service/band_math.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        },
+        {
+          "capability_id": "SAT-001",
+          "score": 8,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
           ]
         }
       ]
@@ -58711,7 +58762,7 @@
         {
           "source": "services/raster-service/raster_pixel_processing.py",
           "kind": "source_read",
-          "line": 43
+          "line": 45
         }
       ],
       "unresolved": []
@@ -58729,7 +58780,7 @@
         {
           "source": "services/raster-service/raster_pixel_processing.py",
           "kind": "source_read",
-          "line": 62
+          "line": 66
         }
       ],
       "unresolved": []
@@ -59807,7 +59858,7 @@
         {
           "source": "services/raster-service/db_persist.py",
           "kind": "import",
-          "line": 58
+          "line": 57
         }
       ],
       "unresolved": []
@@ -78157,6 +78208,34 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_band_math_version_reuse.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/raster-service/backfill_scan_worker.py",
+          "kind": "import",
+          "line": 136
+        },
+        {
+          "source": "services/raster-service/db_persist.py",
+          "kind": "import",
+          "line": 175
+        },
+        {
+          "source": "services/raster-service/imagery_product_identity.py",
+          "kind": "import",
+          "line": 34
+        },
+        {
+          "source": "services/raster-service/raster_quality.py",
+          "kind": "import",
+          "line": 35
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_bff_execution_plan_operation_canonical.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -80141,67 +80220,67 @@
         {
           "source": "scripts/ci/codecov_coverage_guard.py",
           "kind": "import",
-          "line": 17
+          "line": 16
         },
         {
           "source": "services/auth/routers/invitations.py",
           "kind": "source_read",
-          "line": 180
+          "line": 160
         },
         {
           "source": "services/auth/routers/users.py",
           "kind": "source_read",
-          "line": 179
+          "line": 159
         },
         {
           "source": "services/auth/session_tokens.py",
           "kind": "source_read",
-          "line": 181
+          "line": 161
         },
         {
           "source": "services/decision-service/main.py",
           "kind": "source_read",
-          "line": 465
+          "line": 379
         },
         {
           "source": "services/sahool-platform/api/routers/security_audit.py",
           "kind": "source_read",
-          "line": 182
+          "line": 162
         },
         {
           "source": "services/soil-service/plan_copy_store.py",
           "kind": "source_read",
-          "line": 185
+          "line": 165
         },
         {
           "source": "services/vegetation-analysis-service/anomaly_store_pg.py",
           "kind": "source_read",
-          "line": 184
+          "line": 164
         },
         {
           "source": "tests_v9/test_auth_admin_authz_live_pg_redis.py",
           "kind": "source_read",
-          "line": 133
+          "line": 121
         },
         {
           "source": "tests_v9/test_auth_admin_tenant_scope_live_pg.py",
           "kind": "source_read",
-          "line": 132
+          "line": 120
         },
         {
           "source": "tests_v9/test_mfa_hardening_integration_v29_5.py",
           "kind": "source_read",
-          "line": 131
+          "line": 119
         },
         {
           "source": "tests_v9/test_platform_denial_log_scope_live.py",
           "kind": "source_read",
-          "line": 134
+          "line": 122
         }
       ],
       "unresolved": [
         {
-          "line": 423,
+          "line": 337,
           "call": "run_path"
         }
       ]
@@ -87737,39 +87816,28 @@
       "test": "tests_v9/test_lab_ci_certification_steps.py",
       "bounded": false,
       "unbounded_reasons": [
-        "directory_reference",
         "reads_repository_data_file"
       ],
       "edges": [
         {
           "source": "scripts/lab/run_certification.py",
           "kind": "loader",
-          "line": 44
+          "line": 39
         },
         {
           "source": "scripts/lab/run_certification.py",
           "kind": "source_read",
-          "line": 45
-        },
-        {
-          "source": "services/raster-service/test_raster_batch_postgres_integration.py",
-          "kind": "source_read",
-          "line": 125
-        },
-        {
-          "source": "services/raster-service/test_single_scene_concurrent_pg.py",
-          "kind": "source_read",
-          "line": 126
+          "line": 40
         },
         {
           "source": "tests_v9/test_mfa_hardening_integration_v29_5.py",
           "kind": "source_read",
-          "line": 212
+          "line": 83
         },
         {
           "source": "tests_v9/test_services_functional.py",
           "kind": "source_read",
-          "line": 213
+          "line": 84
         }
       ],
       "unresolved": []
@@ -88168,17 +88236,17 @@
         {
           "source": "scripts/ci/live_pg_evidence_guard.py",
           "kind": "loader",
-          "line": 30
+          "line": 29
         },
         {
           "source": "scripts/ci/live_pg_evidence_guard.py",
           "kind": "source_read",
-          "line": 26
+          "line": 25
         },
         {
           "source": "tests_v9/test_live_pg_fake_connection_debt.py",
           "kind": "source_read",
-          "line": 388
+          "line": 320
         }
       ],
       "unresolved": []
@@ -89154,6 +89222,24 @@
           "source": "tools/sahool_inspector.py",
           "kind": "import",
           "line": 23
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_nd_index_zero_denominator_contract.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/raster-service/band_math.py",
+          "kind": "import",
+          "line": 27
+        },
+        {
+          "source": "services/raster-service/soil_indices.py",
+          "kind": "import",
+          "line": 28
         }
       ],
       "unresolved": []
