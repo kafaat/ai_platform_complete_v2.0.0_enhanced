@@ -40,6 +40,9 @@ services:
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     restart: unless-stopped
     environment:
+      # Verification only: never distribute the issuer signing secret to MCP.
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY required for MCP RS256 verification}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
       MCP_SERVER_MODULE: generic_context_server
       MCP_SERVICE: field
     networks: [sahool-internal]
@@ -52,6 +55,9 @@ services:
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     restart: unless-stopped
     environment:
+      # Verification only: never distribute the issuer signing secret to MCP.
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY required for MCP RS256 verification}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
       MCP_SERVER_MODULE: generic_context_server
       MCP_SERVICE: lab
     networks: [sahool-internal]
@@ -64,6 +70,9 @@ services:
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     restart: unless-stopped
     environment:
+      # Verification only: never distribute the issuer signing secret to MCP.
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY required for MCP RS256 verification}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
       MCP_SERVER_MODULE: generic_context_server
       MCP_SERVICE: satellite
     networks: [sahool-internal]
@@ -76,8 +85,12 @@ services:
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     restart: unless-stopped
     environment:
+      # Verification only: never distribute the issuer signing secret to MCP.
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY required for MCP RS256 verification}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
       MCP_SERVER_MODULE: generic_context_server
       MCP_SERVICE: iot
+      PLATFORM_API_URL: http://sahool-platform:8000
     networks: [sahool-internal]
 
   sahool-rag-mcp:
@@ -88,6 +101,9 @@ services:
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     restart: unless-stopped
     environment:
+      # Verification only: never distribute the issuer signing secret to MCP.
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY required for MCP RS256 verification}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
       MCP_SERVER_MODULE: generic_context_server
       MCP_SERVICE: rag
     networks: [sahool-internal]
@@ -100,6 +116,9 @@ services:
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     restart: unless-stopped
     environment:
+      # Verification only: never distribute the issuer signing secret to MCP.
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY required for MCP RS256 verification}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
       MCP_SERVER_MODULE: generic_context_server
       MCP_SERVICE: knowledge-graph
     networks: [sahool-internal]

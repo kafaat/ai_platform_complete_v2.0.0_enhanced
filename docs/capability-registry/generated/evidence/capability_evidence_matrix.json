@@ -4863,7 +4863,7 @@
       "domain": "irrigation",
       "evidence": {
         "api": true,
-        "backend": false,
+        "backend": true,
         "database": false,
         "documentation": true,
         "events": false,
@@ -4882,7 +4882,7 @@
           "type": "api"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "backend"
         },
@@ -4937,7 +4937,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 3,
+      "evidence_score": 4,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -9724,6 +9724,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "tests_v9/test_nd_index_zero_denominator_contract.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_ndvi_evidence_policy.py",
           "signal": "pytest.mark.unit"
         },
@@ -9847,6 +9852,7 @@
         "tests_v9/test_kc_from_ndvi.py",
         "tests_v9/test_kc_ndvi.py",
         "tests_v9/test_live_guardrails_adapter.py",
+        "tests_v9/test_nd_index_zero_denominator_contract.py",
         "tests_v9/test_ndvi_evidence_policy.py",
         "tests_v9/test_ndvi_repoint_raster_service.py",
         "tests_v9/test_ndvi_threshold_gating.py",

@@ -1980,6 +1980,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino (MQTT device profile, SAHOOL_MQTT_TLS build).event.341a5497",
+      "consumers": [
+        "actuator-service mesh telemetry listener (services/actuator-service/actuator_runtime.py)"
+      ],
+      "curated": false,
+      "derived_from": "event",
+      "entrypoints": [
+        "NATS sahool/+/+/telemetry/+/mesh"
+      ],
+      "idempotency_required": false,
+      "kind": "event",
+      "owner": "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino (MQTT device profile, SAHOOL_MQTT_TLS build)",
+      "producer": "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino (MQTT device profile, SAHOOL_MQTT_TLS build)",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "guardrails-engine.approve.workflow_id",
       "consumers": [
         "frontend"
@@ -2235,10 +2252,12 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
+        "DELETE <dynamic>",
+        "GET <dynamic>",
         "POST <dynamic>"
       ],
       "idempotency_required": false,
-      "kind": "command",
+      "kind": "mixed",
       "owner": "mcp_servers",
       "producer": "mcp_servers",
       "required_context": []
@@ -3931,6 +3950,39 @@
       "required_context": [
         "tenant"
       ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "realtime-session.realtime.xiaozhi.leases",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "DELETE /api/v1/realtime/xiaozhi/leases/{session_id}",
+        "POST /api/v1/realtime/xiaozhi/leases"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "realtime-session",
+      "producer": "realtime-session",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "realtime-session.xiaozhi",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "WEBSOCKET /xiaozhi/v1/"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "realtime-session",
+      "producer": "realtime-session",
+      "required_context": []
     },
     {
       "approval_required": false,
@@ -17780,20 +17832,20 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 838,
+    "capabilities": 841,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
     "capabilities_idempotent": 74,
     "capabilities_season_scoped": 10,
-    "capabilities_tenant_scoped": 478,
+    "capabilities_tenant_scoped": 479,
     "components": 37,
     "cross_service_duplicate_method_paths": 12,
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1162,
-    "ui_waivers": 52,
-    "unique_method_path": 1041
+    "route_rows": 1169,
+    "ui_waivers": 54,
+    "unique_method_path": 1046
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18055,7 +18107,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "2469ad854b48cb65b19772a5779e0e6441bd8fa9ef94299d3bc2abca4f85539a",
+  "fingerprint": "f4893da7d582c7d884fda2d8cf1d4c772bb46055e35fcdfeb122226606c76c17",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18109,14 +18161,14 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1096,
+      "edge_count": 1098,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
-        "CONSUMES": 3,
+        "CONSUMES": 4,
         "EMITS": 3,
-        "READS": 590,
+        "READS": 591,
         "ROUTES_TO": 76,
         "WRITES": 379
       }
@@ -18495,6 +18547,20 @@
       "owner": "sahool-platform",
       "tracking": "ECON-SCENARIO-UI-01",
       "waiver_id": "ui-waiver-052"
+    },
+    {
+      "endpoint": "/api/v1/realtime/xiaozhi/leases",
+      "expires_on": "2026-12-31",
+      "owner": "realtime-session",
+      "tracking": "XIAOZHI-DEVICE-LEASE-UI",
+      "waiver_id": "ui-waiver-053"
+    },
+    {
+      "endpoint": "/api/v1/realtime/xiaozhi/leases/{session_id}",
+      "expires_on": "2026-12-31",
+      "owner": "realtime-session",
+      "tracking": "XIAOZHI-DEVICE-LEASE-UI",
+      "waiver_id": "ui-waiver-054"
     }
   ]
 }

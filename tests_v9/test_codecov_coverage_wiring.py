@@ -7,6 +7,7 @@ import runpy
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
+from copy import deepcopy
 from pathlib import Path
 
 import coverage
@@ -19,6 +20,17 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
 JOBS = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))["jobs"]
 ACTION = "codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5"
+RASTER_EVIDENCE_UPLOAD = {
+    "name": "Preserve raster PostgreSQL certification evidence",
+    "if": "always()",
+    "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+    "with": {
+        "name": "raster-live-pg-${{ github.run_id }}-${{ github.run_attempt }}",
+        "path": "${{ runner.temp }}/raster-live-pg/",
+        "if-no-files-found": "error",
+        "retention-days": 14,
+    },
+}
 
 
 def _upload(job):
@@ -140,14 +152,22 @@ def test_live_auth_steps_append_to_one_coverage_file(test_file, sources):
     assert set(sources) <= set(words), step["run"]
 
 
-def test_live_auth_export_is_guarded_after_every_live_step():
-    steps = JOBS["integration-tests"]["steps"]
+def _live_auth_reporting_positions(steps):
+    """Preserve coverage ordering and allow only the exact raster evidence tail."""
     runs = [s.get("run") or "" for s in steps]
     export = next(i for i, r in enumerate(runs) if "-o coverage-integration-auth.xml" in r)
     guard = next(i for i, r in enumerate(runs) if "--report coverage-integration-auth.xml" in r)
     upload = next(i for i, s in enumerate(steps) if s.get("uses") == ACTION)
     live = [i for i, r in enumerate(runs) if _pytest_calls(r)]
-    assert max(live) < export < guard < upload == len(steps) - 1, "report steps must come last"
+    assert max(live) < export < guard < upload, "live < export < guard < Codecov is required"
+    assert steps[upload + 1 :] == [RASTER_EVIDENCE_UPLOAD], (
+        "only the exact raster evidence upload may follow Codecov"
+    )
+    return runs, export, guard
+
+
+def test_live_auth_export_is_guarded_after_every_live_step():
+    runs, export, guard = _live_auth_reporting_positions(JOBS["integration-tests"]["steps"])
     assert "--data-file=.coverage.integration-auth" in runs[export], runs[export]
     assert "--include=services/*" in runs[export], "the export must keep every live service"
     assert "--omit=services/auth/tests/*,*/tests/*,*/test_*.py" in runs[export], runs[export]
@@ -165,6 +185,72 @@ def test_live_auth_export_is_guarded_after_every_live_step():
         "services/soil-service/plan_copy_store.py",
     ):
         assert f"--require-file {required}" in runs[guard], required
+
+
+@pytest.mark.parametrize(
+    "change",
+    ["missing", "duplicate", "extra-command", "extra-action", "late-pytest", "early-codecov"],
+)
+def test_live_auth_reporting_rejects_extra_steps_and_reordering(change):
+    steps = deepcopy(JOBS["integration-tests"]["steps"])
+    expected_error = "only the exact raster evidence upload"
+    if change == "missing":
+        steps.pop()
+    elif change == "duplicate":
+        steps.append(deepcopy(steps[-1]))
+    elif change == "extra-command":
+        steps.append({"name": "Unexpected command", "run": "echo unreviewed"})
+    elif change == "extra-action":
+        steps.append({"uses": RASTER_EVIDENCE_UPLOAD["uses"]})
+    elif change == "late-pytest":
+        steps.insert(
+            -1, {"name": "Late test", "run": "pytest tests_v9/test_codecov_coverage_wiring.py"}
+        )
+        expected_error = "live < export < guard < Codecov"
+    else:
+        upload = next(i for i, step in enumerate(steps) if step.get("uses") == ACTION)
+        steps.insert(upload - 1, steps.pop(upload))
+        expected_error = "live < export < guard < Codecov"
+    with pytest.raises(AssertionError, match=expected_error):
+        _live_auth_reporting_positions(steps)
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        pytest.param({"name": "Other upload"}, id="different-name"),
+        pytest.param({"if": "success()"}, id="conditional-upload"),
+        pytest.param({"uses": "actions/upload-artifact@v7"}, id="unpinned-action"),
+        pytest.param({"uses": "actions/upload-artifact@" + "0" * 40}, id="different-action-pin"),
+        pytest.param({"run": "echo hidden-command"}, id="injected-command"),
+        pytest.param({"env": {"UPLOAD_MODE": "changed"}}, id="extra-env"),
+        pytest.param({"shell": "bash"}, id="extra-shell"),
+        pytest.param({"working-directory": "."}, id="different-working-directory"),
+        pytest.param({"continue-on-error": True}, id="ignore-upload-failure"),
+    ],
+)
+def test_live_auth_reporting_rejects_changed_raster_upload_headers(overrides):
+    steps = deepcopy(JOBS["integration-tests"]["steps"])
+    steps[-1].update(overrides)
+    with pytest.raises(AssertionError, match="only the exact raster evidence upload"):
+        _live_auth_reporting_positions(steps)
+
+
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [
+        ("name", "other-evidence"),
+        ("path", "${{ runner.temp }}/"),
+        ("if-no-files-found", "warn"),
+        ("retention-days", 90),
+        ("overwrite", True),
+    ],
+)
+def test_live_auth_reporting_rejects_changed_raster_upload_inputs(key, value):
+    steps = deepcopy(JOBS["integration-tests"]["steps"])
+    steps[-1]["with"][key] = value
+    with pytest.raises(AssertionError, match="only the exact raster evidence upload"):
+        _live_auth_reporting_positions(steps)
 
 
 # CI-LIVE-PG-COVERAGE-UNREPORTED-01: every certification step after the shared integration

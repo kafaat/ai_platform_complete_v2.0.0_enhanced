@@ -26,6 +26,7 @@ from shared.oauth_middleware import (  # FIX(أمان): حارس نطاق لنق
     require_scope,
     require_tenant,
 )
+from shared.streamable_http import StreamableHTTPTransport
 
 from shared.security.access_tokens import decode_access_token
 
@@ -754,8 +755,30 @@ async def mcp_tools_list():
             {"name": "market_search_sales", "description": "Search crop sales listings"},
             {"name": "market_price_history", "description": "Get historical price trends"},
             {"name": "market_analytics_dashboard", "description": "Market analytics snapshot"},
-            {"name": "get_market_price", "description": "Current market price for crop"},
-            {"name": "get_price_trend", "description": "Price trend analysis"},
+            {
+                "name": "get_market_price",
+                "description": "Current market price for crop",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "crop": {"type": "string", "default": "wheat"},
+                        "market": {"type": "string", "default": "sanaa"},
+                    },
+                },
+                "annotations": {"readOnlyHint": True, "destructiveHint": False},
+            },
+            {
+                "name": "get_price_trend",
+                "description": "Observed price history; not a forecast",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "crop": {"type": "string", "default": "wheat"},
+                        "market": {"type": "string", "default": "sanaa"},
+                    },
+                },
+                "annotations": {"readOnlyHint": True, "destructiveHint": False},
+            },
             {
                 "name": "create_forward_contract",
                 "description": "Create forward sales contract (NOT IMPLEMENTED — returns 501; no fabricated price)",
@@ -923,6 +946,13 @@ async def readyz():
         logger.warning("readyz: فحص جاهزيّة القاعدة فشل: %s", type(e).__name__)
         raise HTTPException(503, "قاعدة البيانات غير جاهزة") from e
     return {"status": "ready", "version": "9.1.0", "db_configured": True}
+
+
+transport = StreamableHTTPTransport(
+    app,
+    required_scope="market:read",
+    allowed_tools=frozenset({"get_market_price", "get_price_trend"}),
+)
 
 
 if __name__ == "__main__":

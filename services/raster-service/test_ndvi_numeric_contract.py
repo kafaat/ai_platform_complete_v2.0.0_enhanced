@@ -35,7 +35,9 @@ def test_ndvi_nonfinite_and_zero_contract():
         np,
     )
     assert np.isnan(out[:3]).all()
-    np.testing.assert_allclose(out[3:], [0.0, 0.5])
+    # Two zero bands are missing data, not a valid NDVI of 0.0.
+    assert np.isnan(out[3])
+    assert out[4] == pytest.approx(0.5)
 
 
 def test_runtime_ndvi_branch_reuses_safe_arithmetic():

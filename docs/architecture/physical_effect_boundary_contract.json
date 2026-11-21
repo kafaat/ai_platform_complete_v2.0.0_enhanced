@@ -36,6 +36,11 @@
       "path": "services/sahool-platform/api/phase_runtime_workers.py",
       "category": "approved_relay_worker",
       "why": "عامل الترحيل المعتمَد: ينشر موضوع NATS sahool.actuator.dispatch.requested كإشعار توزيع للقرارات المُدرَجة (READY فقط، بعد الحواجز والموافقة). ترحيل بين طبقتين معتمدتين، لا إصدار أمر من دماغ."
+    },
+    {
+      "path": "mosquitto/device_acl.py",
+      "category": "side_effect_free_acl_renderer",
+      "why": "تصنيف مطابقة نصّيّة، لا ترخيص تنفيذ: render_device_acl يعيد نص ACL فقط؛ اسم حساب sahool-actuator-service وموضوع sahool/actuator/ داخل أسطر المنح يجعلان كاشفَي HTTP والوسيط يطابقان الملفّ. لا يفتح ملفّاً ولا يتصل بوسيط ولا يستورد عميل تشغيل. يمنع tests_v9/test_physical_effect_boundary_guard.py::test_acl_renderer_is_pure_configuration_not_an_actuator أي استيراد أو نداء خارج عمليات التحقق والتجميع النصّي المحددة، وتثبت طفرة mqtt.publish رفض تحويله إلى مُطلِق. السماح محصور بهذا الملفّ وبهذه الوظيفة النقيّة؛ إضافة I/O تحتاج مراجعة مستقلة وليست مشمولة."
     }
   ],
   "not_in_allowlist_by_measurement": {

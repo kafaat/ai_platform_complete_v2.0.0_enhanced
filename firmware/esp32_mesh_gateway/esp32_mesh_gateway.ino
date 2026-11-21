@@ -9,12 +9,15 @@
 
 #include <painlessMesh.h>
 #include <PubSubClient.h>
-// HIGH-FIRM-01 FIX: Use TLS for production MQTT
-// #include <WiFiClientSecure.h>
-// WiFiClientSecure tlsClient;
-// tlsClient.setCACert(root_ca_cert);
-// PubSubClient mqttClient(tlsClient);  // ← TLS version
-// For development, plain WiFiClient is used below — change for production
+// Explicit migration: build with -DSAHOOL_MQTT_TLS=1 for the dedicated device broker.
+// The legacy internal deployment remains unchanged until that profile is selected.
+#ifndef SAHOOL_MQTT_TLS
+#define SAHOOL_MQTT_TLS 0
+#endif
+#if SAHOOL_MQTT_TLS
+#include <WiFiClientSecure.h>
+#endif
+#include "mqtt_device_profile.h"
 // ctr/iat/exp are epoch-millisecond counters (< 2^53): 64-bit integers in the JSON reader.
 #define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
@@ -71,7 +74,14 @@
 
 // ── Globals ─────────────────────────────────────────────────
 painlessMesh  mesh;
+#if SAHOOL_MQTT_TLS
+WiFiClientSecure wifiClient;
+String g_mqttHost, g_mqttPassword, g_mqttCa;
+bool g_meshRoot = false;
+int g_soilDry = -1, g_soilWet = -1;
+#else
 WiFiClient    wifiClient;
+#endif
 Preferences   prefs;
 cmdauth::Config g_cfg;   // tenant/device/field/key/last_ctr — من NVS
 
@@ -103,7 +113,13 @@ void receivedCallback(uint32_t from, String &msg) {
   Serial.printf("Mesh: received from %u msg=%s\n", from, msg.c_str());
   // If this node is the root, forward to MQTT
   if (mesh.isRoot()) {
+#if !SAHOOL_MQTT_TLS
     forwardToMqtt(msg);
+#else
+    // A shared mesh password cannot attest a peer's device identity. Never relay
+    // peer payloads under this gateway's broker identity into automation.
+    Serial.println("Mesh peer reading retained locally; authenticated uplink required");
+#endif
   }
 }
 
@@ -118,15 +134,35 @@ void changedConnectionCallback() {
 // ── MQTT Functions ────────────────────────────────────────────
 void forwardToMqtt(String &msg) {
   if (!mqttClient.connected()) return;
-  // Topic: sahool/tenant/{tenant}/field/{field}/telemetry/{sensor}
+#if SAHOOL_MQTT_TLS
+  StaticJsonDocument<1024> source;
+  if (deserializeJson(source, msg)) return;
+  if (!mqttprofile::local_source(source["tenant_id"], source["field_id"], source["device_id"],
+                                 g_cfg.tenant, g_cfg.field, g_cfg.device)) return;
+  String topic = String("sahool/") + tenantId() + "/" + fieldId() + "/telemetry/" + devId() + "/mesh";
+#else
   String topic = String("sahool/") + tenantId() + "/" + fieldId() + "/telemetry/mesh";
+#endif
   mqttClient.publish(topic.c_str(), msg.c_str());
   Serial.println("MQTT forwarded: " + topic);
 }
 
 boolean mqttReconnect() {
   String clientId = "sahool-mesh-" + String(devId());
-  if (mqttClient.connect(clientId.c_str(), MQTT_USER, MQTT_PASS)) {
+#if SAHOOL_MQTT_TLS
+  if (!clockSynced() || !mqttprofile::ready(g_cfg.tenant, g_cfg.field, g_cfg.device,
+      g_mqttHost.c_str(), g_mqttPassword.c_str(), g_mqttCa.c_str())) return false;
+  // CA chain + server hostname validation; no plaintext/insecure fallback.
+  // https://github.com/espressif/arduino-esp32/tree/master/libraries/NetworkClientSecure
+  wifiClient.setCACert(g_mqttCa.c_str());
+  wifiClient.setHandshakeTimeout(5);
+  mqttClient.setSocketTimeout(5);
+  mqttClient.setServer(g_mqttHost.c_str(), 8883);
+  bool connected = mqttClient.connect(clientId.c_str(), g_cfg.device, g_mqttPassword.c_str());
+#else
+  bool connected = mqttClient.connect(clientId.c_str(), MQTT_USER, MQTT_PASS);
+#endif
+  if (connected) {
     // Subscribe to actuator commands for this device
     // FIX: كان الـtopic مشوّهاً (تكرار DEVICE_ID + /command) فلا يصل أيّ أمر
     String cmdTopic = String("sahool/actuator/") + String(devId()) + String("/command");
@@ -141,6 +177,10 @@ boolean mqttReconnect() {
 // الهويّة والمفتاح وlast_ctr تبقى عبر إعادة التشغيل؛ last_ctr يُكتب **قبل** التحريك، فأمرٌ
 // مُلتقَط لا يُعاد بعد إقلاع (كانت نافذة RAM من ١٦ طابعاً تضيع عند كلّ إعادة تشغيل).
 static void loadConfig() {
+#if SAHOOL_MQTT_TLS
+  mqttClient.disconnect();
+  wifiClient.stop();  // CA/hostname String storage may change below.
+#endif
   memset(&g_cfg, 0, sizeof(g_cfg));
   prefs.begin(NVS_NAMESPACE, true);
   prefs.getString("tenant", g_cfg.tenant, sizeof(g_cfg.tenant));
@@ -148,6 +188,14 @@ static void loadConfig() {
   prefs.getString("field", g_cfg.field, sizeof(g_cfg.field));
   g_cfg.has_key = prefs.getBytes("cmdkey", g_cfg.key, sizeof(g_cfg.key)) == sizeof(g_cfg.key);
   g_cfg.last_ctr = prefs.getULong64("last_ctr", 0);
+#if SAHOOL_MQTT_TLS
+  g_mqttHost = prefs.getString("mqtt_host", "");
+  g_mqttPassword = prefs.getString("mqtt_pass", "");
+  g_mqttCa = prefs.getString("mqtt_ca", "");
+  g_meshRoot = prefs.getBool("mesh_root", false);
+  g_soilDry = prefs.getInt("soil_dry", -1);
+  g_soilWet = prefs.getInt("soil_wet", -1);
+#endif
   prefs.end();
 }
 
@@ -185,6 +233,72 @@ static void printConfig() {
 static void handleSerialLine(String line) {
   line.trim();
   if (line.length() == 0) return;
+#if SAHOOL_MQTT_TLS
+  // USB-only provisioning preserves cmdkey and last_ctr; never reflash/erase the
+  // entire NVS partition merely to rotate MQTT credentials or the CA.
+  static bool readingCa = false;
+  static String caBuffer;
+  if (line == "SET_MQTT_CA_BEGIN") {
+    readingCa = true;
+    caBuffer = "";
+    Serial.println("CA input started (PEM lines, then SET_MQTT_CA_END)");
+    return;
+  }
+  if (readingCa) {
+    if (line == "SET_MQTT_CA_END") {
+      readingCa = false;
+      if (!caBuffer.startsWith("-----BEGIN CERTIFICATE-----\n") ||
+          caBuffer.indexOf("-----END CERTIFICATE-----") < 0) {
+        caBuffer = "";
+        Serial.println("ERR: invalid CA PEM envelope");
+        return;
+      }
+      prefs.begin(NVS_NAMESPACE, false);
+      size_t n = prefs.putString("mqtt_ca", caBuffer);
+      prefs.end();
+      caBuffer = "";
+      loadConfig();
+      Serial.println(n > 0 ? "OK CA saved; TLS verifies it on connect" : "ERR: NVS write failed");
+      return;
+    }
+    if (caBuffer.length() + line.length() + 1 > 4096) {
+      readingCa = false;
+      caBuffer = "";
+      Serial.println("ERR: CA exceeds 4096 bytes");
+      return;
+    }
+    caBuffer += line + "\n";
+    return;
+  }
+  if (line.startsWith("SET_MQTT_HOST:") || line.startsWith("SET_MQTT_PASS:") ||
+      line.startsWith("SET_MQTT_ROOT:") || line.startsWith("SET_SOIL_DRY:") ||
+      line.startsWith("SET_SOIL_WET:")) {
+    int colon = line.indexOf(':');
+    String name = line.substring(0, colon);
+    String value = line.substring(colon + 1);
+    if (value.length() == 0) { Serial.println("ERR: empty provisioning value"); return; }
+    int adc = -1;
+    if ((name == "SET_SOIL_DRY" || name == "SET_SOIL_WET") &&
+        !mqttprofile::adc_value(value.c_str(), &adc)) {
+      Serial.println("ERR: calibration must be an ADC integer 0..4095"); return;
+    }
+    if (name == "SET_MQTT_ROOT" && value != "0" && value != "1") {
+      Serial.println("ERR: root must be 0 or 1"); return;
+    }
+    prefs.begin(NVS_NAMESPACE, false);
+    size_t n = 0;
+    if (name == "SET_MQTT_HOST") n = prefs.putString("mqtt_host", value);
+    else if (name == "SET_MQTT_PASS") n = prefs.putString("mqtt_pass", value);
+    else if (name == "SET_MQTT_ROOT") n = prefs.putBool("mesh_root", value == "1");
+    else if (name == "SET_SOIL_DRY") n = prefs.putInt("soil_dry", adc);
+    else if (name == "SET_SOIL_WET") n = prefs.putInt("soil_wet", adc);
+    prefs.end();
+    loadConfig();
+    Serial.println(n > 0 ? "OK profile value stored (not echoed); REBOOT to apply root role" :
+                          "ERR: NVS write failed");
+    return;
+  }
+#endif
   bool identityChanged = false;
   if (line.startsWith("SET_TENANT:") || line.startsWith("SET_DEVICE:") ||
       line.startsWith("SET_FIELD:")) {
@@ -237,13 +351,18 @@ static void handleSerialLine(String line) {
 
 static void pollSerial() {
   static String buf;
+  static bool overflow = false;
   while (Serial.available()) {
     char c = (char)Serial.read();
     if (c == '\n' || c == '\r') {
-      if (buf.length()) handleSerialLine(buf);
+      if (overflow) Serial.println("ERR: provisioning line too long; ignored");
+      else if (buf.length()) handleSerialLine(buf);
       buf = "";
+      overflow = false;
     } else if (buf.length() < 200) {
       buf += c;
+    } else {
+      overflow = true;
     }
   }
 }
@@ -355,16 +474,36 @@ String readSensors() {
   if (isnan(temp)) temp = -999;
   if (isnan(hum))  hum  = -999;
 
-  StaticJsonDocument<256> doc;
+  StaticJsonDocument<1024> doc;
   doc["device_id"] = devId();
   doc["field_id"]  = fieldId();
   doc["tenant_id"] = tenantId();
   doc["ts"]        = millis();
+#if SAHOOL_MQTT_TLS
+  doc["v"] = 1;
+  doc["source"] = "device_local";
+  if (clockSynced()) doc["measured_at_ms"] = nowEpochMs();
+  const bool calibrated = mqttprofile::calibrated_soil(g_soilDry, g_soilWet);
+  doc["soil_calibrated"] = calibrated;
+  JsonObject units = doc.createNestedObject("units");
+  units["air_temp_c"] = "degC";
+  units["air_humidity_pct"] = "%";
+  units["soil_moisture_pct"] = "%";
+  if (calibrated) {
+    soilPct = 100.0f * (soilRaw - g_soilDry) / (g_soilWet - g_soilDry);
+    soilPct = constrain(soilPct, 0.0f, 100.0f);
+  }
+#endif
 
   JsonObject data = doc.createNestedObject("data");
   data["air_temp_c"]   = temp;
   data["air_humidity_pct"] = hum;
+#if SAHOOL_MQTT_TLS
+  // Uncalibrated ADC counts are diagnostics, not a moisture percentage for rules.
+  if (calibrated) data["soil_moisture_pct"] = soilPct;
+#else
   data["soil_moisture_pct"] = soilPct;
+#endif
   data["soil_raw"]     = soilRaw;
   data["relay_state"]  = digitalRead(RELAY_PIN) ? true : false;
   data["mesh_nodes"]   = mesh.getNodeList().size();
@@ -399,13 +538,19 @@ void setup() {
   mesh.onReceive(&receivedCallback);
   mesh.onNewConnection(&newConnectionCallback);
   mesh.onChangedConnections(&changedConnectionCallback);
+#if SAHOOL_MQTT_TLS
+  mesh.setRoot(g_meshRoot);  // Provision one root per mesh; default false.
+  mesh.setContainsRoot(true);
+#endif
 
   // If root, also connect to WiFi STA for MQTT
   if (mesh.isRoot()) {
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     // R-C2: SNTP — الانتهاء (exp) يُفحَص فقط بعد التزامن؛ قبله يحكم العدّاد (ctr) وحده.
     configTime(0, 0, NTP_SERVER_1, NTP_SERVER_2);
+#if !SAHOOL_MQTT_TLS
     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+#endif
     mqttClient.setBufferSize(1024);  // A4: الافتراضيّ 256 يُسقط أوامر المنصّة بصمت
     mqttClient.setCallback(mqttCallback);
   }

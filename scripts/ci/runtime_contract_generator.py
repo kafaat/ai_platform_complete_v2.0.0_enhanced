@@ -8,6 +8,7 @@ is present in a live deployment.
 from __future__ import annotations
 
 import argparse
+import ast
 import csv
 import json
 import re
@@ -134,6 +135,15 @@ def text_files(base: Path) -> list[Path]:
             continue
         if any(part in EXCLUDED for part in p.parts):
             continue
+        # Test clients and fixture applications describe exercised dependencies, not
+        # this service's production surface (e.g. a worker testing another app's /readyz).
+        if (
+            any(part in {"tests", "tests_v9"} for part in p.relative_to(base).parts)
+            or p.name.startswith("test_")
+            or p.name.endswith("_test.py")
+            or p.name == "conftest.py"
+        ):
+            continue
         if p.stat().st_size > 2_000_000:
             continue
         out.append(p)
@@ -197,6 +207,80 @@ def classify_routes(routes: set[str]) -> dict[str, list[str]]:
     return {"health": health, "readiness": ready, "metrics": metrics}
 
 
+def stdlib_http_get_routes(content: str) -> set[str]:
+    """Read the explicit 404-and-return allowlist of an imported stdlib handler.
+
+    This intentionally recognizes only a top-level BaseHTTPRequestHandler subclass
+    with an initial ``self.path not in {literal paths}`` guard in ``do_GET``. Strings,
+    client calls, unrelated classes, and dynamic dispatch are not route declarations.
+    """
+    if "BaseHTTPRequestHandler" not in content:
+        return set()
+    try:
+        tree = ast.parse(content)
+    except SyntaxError:
+        return set()
+    imported = {
+        alias.asname or alias.name
+        for node in tree.body
+        if isinstance(node, ast.ImportFrom) and node.module == "http.server" and node.level == 0
+        for alias in node.names
+        if alias.name == "BaseHTTPRequestHandler"
+    }
+    routes: set[str] = set()
+    for handler in tree.body:
+        if not isinstance(handler, ast.ClassDef) or not any(
+            isinstance(base, ast.Name) and base.id in imported for base in handler.bases
+        ):
+            continue
+        for method in handler.body:
+            if not isinstance(method, ast.FunctionDef) or method.name != "do_GET":
+                continue
+            if not method.args.args or not method.body:
+                continue
+            receiver = method.args.args[0].arg
+            guard = method.body[0]
+            if not isinstance(guard, ast.If) or guard.orelse or len(guard.body) < 2:
+                continue
+            condition = guard.test
+            if not (
+                isinstance(condition, ast.Compare)
+                and len(condition.ops) == len(condition.comparators) == 1
+                and isinstance(condition.ops[0], ast.NotIn)
+                and isinstance(condition.left, ast.Attribute)
+                and isinstance(condition.left.value, ast.Name)
+                and condition.left.value.id == receiver
+                and condition.left.attr == "path"
+                and isinstance(condition.comparators[0], (ast.Set, ast.List, ast.Tuple))
+            ):
+                continue
+            response = guard.body[0]
+            finish = guard.body[-1]
+            if not (
+                isinstance(response, ast.Expr)
+                and isinstance(response.value, ast.Call)
+                and isinstance(response.value.func, ast.Attribute)
+                and isinstance(response.value.func.value, ast.Name)
+                and response.value.func.value.id == receiver
+                and response.value.func.attr == "send_response"
+                and response.value.args
+                and isinstance(response.value.args[0], ast.Constant)
+                and response.value.args[0].value == 404
+                and isinstance(finish, ast.Return)
+                and finish.value is None
+            ):
+                continue
+            paths = condition.comparators[0].elts
+            if all(
+                isinstance(path, ast.Constant)
+                and isinstance(path.value, str)
+                and path.value.startswith("/")
+                for path in paths
+            ):
+                routes.update(path.value for path in paths)
+    return routes
+
+
 def scan_service(row: dict[str, str]) -> dict[str, Any]:
     raw_name = row["service"]
     name = norm_service(raw_name)
@@ -218,6 +302,8 @@ def scan_service(row: dict[str, str]) -> dict[str, Any]:
         if not content:
             continue
         found_routes = set(ROUTE_RE.findall(content))
+        if path.suffix.lower() == ".py":
+            found_routes.update(stdlib_http_get_routes(content))
         if found_routes:
             routes.update(found_routes)
             evidence["routes"].add(rel(path))

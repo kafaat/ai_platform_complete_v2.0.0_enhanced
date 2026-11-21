@@ -8326,7 +8326,8 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## MCP-STREAMABLE-HTTP-TRANSPORT-BROKEN-ON-HTTPX-028-01 — نقلُ MCP المتدفّق معطَّل
 
-- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **الحالة:** fixed (2026-11-21) في تنفيذ الرقعة المحلي `da71997249c705cd18a33b218aba30948e613b27`، بلا PR أو نشر؛ استخدام ASGITransport ومصادقة قبل تحليل الجسم في services/mcp_servers/shared/streamable_http.py:252؛ الشاهد tests_v9/test_mcp_streamable_http_contract.py:1 وtests_v9/test_mcp_auth_first_contract.py:1. عقد HTTP عديم الحالة 2025-06-18؛ القبول التشغيلي مستقل.
+- **الحالة عند الاكتشاف:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
 - **المصدر:** `services/mcp_servers/shared/streamable_http.py:83,98` — `AsyncClient(app=)` أُزيل في httpx 0.28، ويقرأ الجسم قبل المصادقة.
 - **شرط الإغلاق:** `httpx.ASGITransport` ومصادقةٌ مسبقة، أو حذفُ النقل.
 - **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
@@ -8431,7 +8432,8 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## REALTIME-VOICE-ANSWER-EXCEEDS-TTS-LIMIT-01 — إجابة الصوت تتجاوز حدّ TTS
 
-- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **الحالة:** fixed (2026-11-21) في تنفيذ الرقعة المحلي `da71997249c705cd18a33b218aba30948e613b27`، بلا PR أو نشر؛ تقطيع بلا فقد في services/realtime-agent/realtime_agent/providers.py:28، مع validation_text للنص الكامل وإقرار full-context-v1؛ الشاهد services/realtime-agent/tests/test_voice_chunking.py:1 وtests_v9/test_tts_chunk_validation_context.py:1. حد PCM المجمع 45 ثانية باقٍ.
+- **الحالة عند الاكتشاف:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
 - **المصدر:** `services/realtime-agent/realtime_agent/providers.py:102,168` مقابل `tts-service/main.py:73,200` (1000 حرف).
 - **شرط الإغلاق:** تقطيعٌ بحسب الأسطر أو سقفٌ للإجابة الصوتيّة.
 - **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
@@ -8703,7 +8705,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 | SOIL-FUNCTIONAL-XFAIL-NONSTRICT-REMAINS-01 | (متابعة Q5) النمط نفسه `xfail(strict=False)` باقٍ على الحالة الثالثة للفجوة المغلقة نفسها في soil-service | متوسّطة | test-integrity · soil | `tests_v9/test_services_functional.py:147` | **open** — إصلاحٌ في PR #1328، مدموجٌ في `main` (`36995ff06`، #1328) ويبقى `open` حتّى PR يحمل شاهداً تنفيذيّاً (`fb42ad6b2`، مكدَّسٌ فوق #1323): H5/L5 تعمل بالدور المقيَّد بدل `xfail(strict=False)`. |
 | DRAWING-FEATURES-UPSERT-CONFLICT-TARGET-WITHOUT-TENANT-01 | (موجة 2026-11-02) حفظ الرسم `INSERT … ON CONFLICT (feature_id) DO UPDATE` بلا مستأجرٍ في هدف التعارض، و`feature_id` مفتاحٌ أساسيّ عامّ يختاره العميل (`req.id`). ومعرّفات المحور (pivot) مشتقّة من الوقت وحده (`Date.now().toString(36)`)، فمحوران في الملّي‑ثانية نفسها يتصادمان ويحلّ الثاني محلّ الأوّل بصمت (`version + 1`). والتصادم مع صفّ مستأجرٍ آخر تحكمه FORCE RLS، فالمتوقَّع خطأ سياسةٍ يظهر 503 لا كتابةٌ عابرة، ولم يُقَس | متوسّطة | tenant-isolation · drawing · frontend | `services/sahool-platform/api/routers/drawing_features.py:436,466` · `migrations/v230_drawing_features.sql:7,35-40` · `frontend/src/components/maphub/drawing/pivotDesigner.ts:133,173` | **open** — لم يعالجه أيّ فريق. يحتاج هدف تعارضٍ `(tenant_id, feature_id)` بهجرة، ومعرّفاتٍ عشوائيّة للمحور. |
 | CDSE-EVALSCRIPT-INDEX-EXPRESSIONS-UNGUARDED-01 | (متابعة G4) تعبيرات المؤشّرات في evalscript المُرسَل إلى CDSE نسبٌ خامّة: لا قناع لانعكاسيّةٍ سالبة ولا لمقامٍ صغير (و`msi` قسمةٌ على B08 وحده). فمسار CDSE الخادميّ ما زال ينتج القيم المنفجرة التي أصلحها G4 في المسار العميل | متوسّطة | raster · indices · cdse | `services/raster-service/cdse_client.py:343-385,460` · `services/raster-service/cdse_native_product.py:117` · النظير المحميّ `guarded_quotient` في `services/raster-service/band_math.py:92` على فرع #1329 | **open** — لم يعالجه أيّ فريق. تركه فريق الموجة الثانية مفتوحاً (سجلّ فرع #1329). |
-| RASTER-ALGORITHM-VERSION-NOT-BUMPED-AFTER-FORMULA-CHANGES-01 | (متابعة G4) هويّة خوارزميّة band-math المنشورة في نَسَب المؤشّرات ما زالت `sahool.band_math/1` على #1322 و#1329، وكلاهما يغيّر ناتج الصيغ (قناع الانعكاسيّة السالبة و`guarded_quotient`). فمنتجٌ قبل الإصلاح وآخر بعده يحملان الهويّة نفسها، ولا تميّزهما بوّابةٌ تثبّت الخوارزميّة | منخفضة-متوسّطة | raster · provenance | `services/raster-service/raster_quality.py:7` (القيمة نفسها على الفرعين) · `services/raster-service/imagery_product_identity.py:67` · `services/raster-service/raster_asset_persistence.py:130,178` | **open** — قرار مالك: الرفع يفصل المنتجات القديمة عن الجديدة، وقد يُبطل مطابقاتٍ مخزّنة. |
+| RASTER-ALGORITHM-VERSION-NOT-BUMPED-AFTER-FORMULA-CHANGES-01 | (متابعة G4) هويّة خوارزميّة band-math المنشورة في نَسَب المؤشّرات ما زالت `sahool.band_math/1` على #1322 و#1329، وكلاهما يغيّر ناتج الصيغ (قناع الانعكاسيّة السالبة و`guarded_quotient`). فمنتجٌ قبل الإصلاح وآخر بعده يحملان الهويّة نفسها، ولا تميّزهما بوّابةٌ تثبّت الخوارزميّة | منخفضة-متوسّطة | raster · provenance | `services/raster-service/raster_quality.py:7` (القيمة نفسها على الفرعين) · `services/raster-service/imagery_product_identity.py:67` · `services/raster-service/raster_asset_persistence.py:130,178` | **open** — قرار مالك: الرفع يفصل المنتجات القديمة عن الجديدة، وقد يُبطل مطابقاتٍ مخزّنة. والرفع إلى `sahool.band_math/2` مقترَحٌ على #1554 مع تغيير الصفر التامّ في مؤشّرات الفرق المعياريّ، ولا يُدمَج إلّا بموافقة المالك. وقد فوّض المالك القرار («قوم بعمل ماتراه مناسب»، 2026-11-21)، فيُدمَج الرفع مع #1554 بعد شروطه القائمة (CI أخضر ومراجعة مستقلّة وإيصال المختبر). |
 | PLATFORM-BREAK-GLASS-MFA-READS-PLAINTEXT-SECRET-ONLY-01 | (متابعة T8) break-glass في المنصّة يتحقّق من MFA بـ`users.mfa_secret` وحده، بينما تكتب auth السرّ مشفَّراً في `encrypted_mfa_secret` وتضع `mfa_secret=NULL`. فكلّ مديرٍ فعّل MFA بعد v128 يُرفض break-glass له دائماً (fail-closed «مفعّل بلا سرّ»). الأثر على التوفّر لا تجاوز | متوسّطة | auth · platform · break-glass | الفرع `claude/audit-w2-remediation-20261102` (#1327): `services/sahool-platform/api/routers/break_glass.py:94,103-106` (على `main`: `:87,96`) · `services/auth/mfa_runtime.py:185` · `services/auth/routers/mfa.py:56,112` · `migrations/v128_mfa_hardening.sql:15` | **open** — تركه فريق الموجة الثانية مفتوحاً بقرار: فكّ التشفير في المنصّة (مشاركة مفتاح MFA) أو تفويض التحقّق إلى auth. |
 | RASTER-TRUSTS-X-TENANT-ID-HEADER-FROM-ANY-CALLER-01 | (متابعة T4/T10) `raster-service` يأخذ المستأجر من رأس `X-Tenant-Id` كما يصل، مقدَّماً على JWT المُتحقَّق، بلا دليلٍ على أنّ البوّابة حقنته. هذا آمنٌ فقط إن مسحت كلّ طريقٍ إليه نسخةَ العميل (`frontend/nginx.conf` و`nginx.v9.conf` تفعل). أمّا من يبلغ الخدمة مباشرةً أو عبر حزمةٍ لا تمسح الرأس فيختار مستأجره. وأوامر `registry_writes` (خلف رمز الخدمة) تأخذ المستأجر منه حصراً. بقي بعد إغلاق `tid` في #1330 | متوسّطة | tenant-isolation · raster | `services/raster-service/raster_security_context.py:60` (فرع #1330) · على `main`: `services/raster-service/raster_security_context.py:41-47` ← `shared/security/tenant_context.py:35` · `services/raster-service/routers/registry_writes.py:12,70` · مرتبط بـ`RASTER-TENANT-FROM-TID-QUERY-WITHOUT-GATEWAY-01` و`NGINX-FIXED-RASTER-ROUTE-WITHOUT-AUTH-REQUEST-01` | **open** — لم يعالجه أيّ فريق. يحتاج إثبات منشأ الرأس (توقيعٌ داخليّ، أو شبكةٌ خاصّة لا يبلغها غير البوّابة). |
 | RAILWAY-GATEWAY-HSTS-INCLUDESUBDOMAINS-UNDECIDED-01 | (متابعة S6) HSTS الجديد على بوّابة Railway يحمل `max-age=63072000; includeSubDomains`، منسوخاً من سياسة v9. `includeSubDomains` يُلزم كلّ النطاقات الفرعيّة للمضيف بـHTTPS سنتين في كلّ متصفّحٍ زاره، فأثره يتوقّف على النطاق الذي تُخدَم منه البوّابة | منخفضة | security · gateway · deploy | الفرع `claude/audit-w2-remediation-20261102` (#1327): `frontend/nginx.conf:501,531,553` | **open** — قرار مالك، تركه فريق الموجة الثانية مفتوحاً. |
@@ -9082,7 +9084,10 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## ND-INDEX-ZERO-DENOMINATOR-PUBLISHES-ZERO-01 — مؤشّرات الفرق المعياريّ تنشر 0.0 حين يكون النطاقان صفراً، بخلاف بقيّة المسارات
 
-- **الحالة:** open.
+- **الحالة:** open — يبقى الكلّ مفتوحاً ما دام الجزء (ب) لم يُنفَّذ؛ والجزء (أ) مُصلَح. (أ) على فرع `claude/nd-index-exact-zero-nan-20261121`: صار الصفر التامّ NaN في `band_math.normalized_difference` (`denominator > 0` شرطاً للصلاحية، وأُزيل `_eps`)، متّسقاً مع تعبير CDSE الخام. ولا ادّعاء وصول إلى main ولا نجاح CI بعد. (ب) open — حدٌّ مشترك للمقام القريب من الصفر في المسارين معاً، مقترحٌ لم يُنفَّذ.
+  - **الشواهد:** قُلِبت أربعة اختباراتٍ كانت تثبّت «عقد epsilon القديم» عمداً: `test_normalized_difference_validity.py` و`test_band_math_zones.py` و`test_ndvi_numeric_contract.py` و`test_quotient_index_validity.py` (NDTI/NDSI/BSI). وصارت خواصّ Hypothesis الثلاث في `services/sahool-platform/tests/test_property_invariants.py` تشترط NaN لنطاقين صفريّين وحدهما. وأُضيف شاهدٌ طرفيّ عبر `process_pixels` الحقيقيّ على مصدرٍ بلا nodata معلَن لسبعة مؤشّرات: يسقط بلا الإصلاح (7 failed) وينجح به.
+  - **هويّة الخوارزميّة رُفعت على الفرع نفسه، بانتظار قرار المالك عند الدمج:** صار `ALGORITHM_VERSION = "sahool.band_math/2"` (`services/raster-service/raster_quality.py:10`) لأنّ ناتج الصفر التامّ تغيّر. فحصا «الأصل الجاهز» يرفضان الآن أصلاً حُسب بـ/1 أو بلا إصدار: العامل الجماعيّ (`backfill_scan_worker.py:134-147`، كان يطابق الإصدار أصلاً) والمشهد المفرد (`db_persist.enqueue_single_scene_process`، **لم يكن يطابق الإصدار** فأُضيف الشرط). و`legacy_matches_baseline` صار يقارن بإصدار أساسٍ ثابت `LEGACY_BASELINE_PROCESSING_VERSION = "sahool.band_math/1"` (`imagery_product_identity.py`) لا بالإصدار الحاليّ، وإلّا رُحِّلت عناصر قديمة حُسبت تحت /1 إلى مفاتيح /2. الشاهد `tests_v9/test_band_math_version_reuse.py` (7 اختبارات) يسقط عند إرجاع أيٍّ من التعديلات الثلاثة أو حذف شرط الإصدار من العامل. الرفع قرار مالك مسجَّل في RASTER-ALGORITHM-VERSION-NOT-BUMPED-AFTER-FORMULA-CHANGES-01، وهذا تغييرٌ ثالث في الناتج تحت الهويّة نفسها. (رصدته مراجعة آليّة على #1554، وطلبه المستشفى.)
+
 - **الخلل (مقيس على `9fdaefc9`، قراءةً مباشرة للشيفرة):**
   - `services/raster-service/band_math.py`: `normalized_difference` (`:41-72`)، نواةُ NDVI/NDRE/NDWI/NDMI/NBR، تقسم على `_eps(denominator)` بحدّ 1e-10. وتنصّ على «legacy epsilon contract» (`:52-53`): نطاقان صفريّان يعطيان **0.0 منشوراً قيمةً صالحة**، ومقامٌ مثل 0.001 يُقبَل.
   - **منتج CDSE الأصليّ** يحسب مؤشّرات الفرق المعياريّ بتعبيرٍ خام بلا حدّ، مثل `(s.B08 - s.B04) / (s.B08 + s.B04)` (`cdse_client.py:343`، `:358`)، و`index_value_function` يُرجِع التعبير كما هو لكلّ مؤشّرٍ خارج `_QUOTIENT_DOMAIN` (`cdse_native_product.py:125-126`). فنطاقان صفريّان يعطيان **NaN** هناك (0/0 في JavaScript).
@@ -9102,3 +9107,102 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
   - (أ) `normalized_difference` يُرجِع NaN لنطاقين صفريّين، متّسقاً مع CDSE الأصليّ. ويُستبدَل اختبار `isfinite` باختبارٍ يشترط NaN، ويُثبَت أنّ NDVI لا يساوي 0 لبكسلٍ بلا بيانات على مصدرٍ بلا nodata معلَن.
   - (ب) **مقترحٌ منفصل لا يُغلَق بتعديل `band_math` وحده:** حدٌّ مشترك للمقام القريب من الصفر لمؤشّرات الفرق المعياريّ يُطبَّق في المسارين معاً (`band_math` وتعبيرات CDSE)، وإلّا نشأ عدمُ اتّساقٍ جديد.
 
+## XIAOZHI-LOCAL-VOICE-ADAPTER-MISSING-01 — مدخل ESP32 إلى الصوت المحلي المحكوم
+
+- **الحالة:** fixed (2026-11-21) في تنفيذ الرقعة المحلي `da71997249c705cd18a33b218aba30948e613b27`؛ لا PR أو نشر.
+- **المصدر:** `services/realtime-session/realtime_session/xiaozhi_gateway.py:60` و`xiaozhi_leases.py:37`؛ البرنامج كان يملك مدخل LiveKit ولا موائم Xiaozhi مباشرًا.
+- **الإصلاح والشاهد:** WSS اختياري بإصدارات تغليف 1/2/3، ورمز جهاز مربوط بالمستخدم والحقل والموافقة، وOpus فعلي؛ `services/realtime-agent/tests/test_xiaozhi.py:1` و`test_xiaozhi_lifecycle.py:1`.
+- **حد الحكم:** تسجيل قصير أحادي الاتصال؛ لا OTA دائم ولا تجديد آلي. قبول النماذج واللوحة يبقى في الفجوة التشغيلية أدناه، وليس ادعاء verified.
+
+## IOT-MCP-CALLER-VALUES-INSTEAD-OF-OWNER-READ-01 — قيم العميل لا تثبت قياس جهاز
+
+- **الحالة:** fixed (2026-11-21) في تنفيذ الرقعة المحلي `da71997249c705cd18a33b218aba30948e613b27`؛ لا PR أو نشر.
+- **المصدر:** `services/mcp_servers/shared/owner_telemetry.py:62` و`services/mcp_servers/generic_context_server.py`؛ مسار IoT كان يردد وسيط العميل بدل قراءة المالك القانوني.
+- **الإصلاح والشاهد:** مصادقة المنصة والحقل وربط الجهاز والقياس ثم إعادة فحص الربط، ورفض قياس العميل؛ `tests_v9/test_mcp_owner_telemetry.py:1` و`test_mcp_generic_context_auth.py:1`. مصدر موثق مع `verified=false` و`governing=false`؛ الغياب ليس صفرًا.
+- **حد الحكم:** الربط الحالي للجهاز لا يثبت الحقل وقت القياس التاريخي؛ نافذة المالك آخر 100 سجل، ولا إثبات معايرة حساس.
+
+## XIAOZHI-DEVICE-AND-LOCAL-VOICE-ACCEPTANCE-01 — قبول البوابة والنماذج والعتاد الفعلي
+
+- **الحالة:** open (2026-11-21)؛ نجاح اختبارات المصدر لا يحقق القبول التشغيلي.
+- **المصدر:** `docs/runbooks/XIAOZHI_LOCAL_GATEWAY_AR.md` و`LOCAL_VOICE_ACCEPTANCE_AR.md` و`MQTT_DEVICE_PROFILE_AR.md`؛ `services/realtime-session/Dockerfile.xiaozhi` و`firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino`.
+- **الباقي:** صورة حاوية مبنية، وأوزان محلية مصرح بها مثبتة البصمة، ومفتاح تحقق المصدر، وشهادات TLS، وتزويد جهاز معروف، وبناء Arduino كامل، واختبار broker ACL حقيقي، وجودة الصوت العربي والمقاطعة وإبطال الصلاحية على اللوحة.
+- **شرط الإغلاق:** إيصالات مرتبطة بالنسخة وإعداداتها والجهاز ونتائج خطوات القبول في الأدلة الأربعة؛ لا تسجيل أسرار أو صوت شخصي داخل الإيصال.
+
+## 2026-11-21 — حدود إصلاحات Xiaozhi وMQTT
+
+- `REALTIME-VOICE-STAGE-TIMEOUTS-SHORTER-THAN-WORK-01` تبقى open: فصلت ميزانية التحضير والنشر في `services/realtime-agent/realtime_agent/turns.py`، لكن مهلات HTTP الفردية ومسار voice_jobs الأوسع لم تُقبل تشغيليًا بهذه الرقعة.
+- `MQTT-SHARED-ACCOUNT-NO-ACL-NO-TLS-01` تبقى open تشغيليًا: أضيف ملف TLS وهوية وACL لكل جهاز وتزويد NVS في `mosquitto/device_acl.py` و`mosquitto/mosquitto-device-tls.conf` و`firmware/esp32_mesh_gateway/mqtt_device_profile.h`، واختبر المصدر في `tests_v9/test_mesh_device_profile_20261121.py`. تفعيل الوسيط وتزويد الأجهزة الفعلية لم يحدثا.
+- مرجع التنفيذ `da71997249c705cd18a33b218aba30948e613b27`؛ [التقرير وحدود الشواهد](../../docs/reviews/xiaozhi_patch_20261121.md). لا تغيير لحراس توقيع أوامر المشغلات أو سلطة القرار الزراعي.
+
+## RUNTIME-CONTRACT-TEST-CLIENT-ROUTES-01 — طلب عميل في اختبار يظهر كنقطة تشغيل
+
+- **الحالة:** fixed (2026-11-21) في التصحيح المحلي `d63381e4bb1acbe94dbf6601b919a9f494dc0a65`؛ لا PR أو نشر.
+- **المصدر:** `scripts/ci/runtime_contract_generator.py:134`؛ كان اكتشاف المصدر يشمل الاختبارات، فأنتج `services/realtime-agent/tests/test_xiaozhi.py:313` نقطة `/readyz` وهمية للعامل بلا منفذ HTTP، وحجب PATH3 بحق عند تعذر حل هدفها.
+- **الإصلاح والشاهد:** استبعاد أدلة وملفات الاختبار من اكتشاف إنتاج الخدمة؛ تبقى قواعد استخراج نقاط الإنتاج كما هي. `tests_v9/test_runtime_contract_indirect_env.py` يتضمن ست حالات انحدار حمراء قبل الإصلاح وخضراء بعده؛ جناح المولد المركز 49 حالة ناجحة.
+- **حد الحكم:** تصحيح اكتشاف المصدر، لا إضافة نقطة صحة إلى العامل ولا شهادة جاهزية حية؛ لا ادعاء بإصلاح كل استعمال نظري لقواعد استخراج المسارات.
+
+## RUNTIME-CONTRACT-STDLIB-HANDLER-PROBES-01 — نقاط HTTP القياسية لا تأتي من اختبار عميل
+
+- **الحالة:** fixed (2026-11-21) في التصحيح المحلي `1536a260559aefabc51f15194e29565e229e449f`؛ لا PR أو نشر.
+- **المصدر:** `services/model-registry-adapter/service.py:57` يملك `HealthHandler(BaseHTTPRequestHandler)` و`do_GET` الحقيقي، لكن مولد العقد لم يتعرف النمط، وكان وجود health سابقًا مستمدًا من اختبار لا من المعالج.
+- **الإصلاح والشاهد:** تعرف AST محدود للاستيراد القياسي والفئة وdo_GET وقائمة المسارات الحرفية مع رد 404 والعودة عند الخروج عنها. `scripts/ci/runtime_contract_generator.py:210` و`tests_v9/test_runtime_contract_indirect_env.py`؛ 15 حالة إضافية، منها ثلاث موجبة حمراء قبل الإصلاح، وجناح المولد الكامل المركز 64 ناجحًا.
+- **حد الحكم:** الاكتشاف ساكن ومن المصدر؛ لا شهادة تشغيل حي ولا تعميم على كل أطر HTTP أو dispatch ديناميكي. تبقى بوابة PATH3 ومطلوب الملف model-lifecycle كما هما.
+## RASTER-LIVE-PG-CERTIFICATION-UNWIRED-01
+
+- **الحالة:** fixed في المرشح المحلي `6122ed4c642390b32d6c36873e27a425c0d309af` على فرع `fix/raster-live-pg-certification-20261121`؛ لم تُثبت CI على رأس منشور أو أي بيئة منشورة بعد. (المرشحات المحلية لا تُحلّ على المستودع البعيد؛ الالتزام القابل للوصول `a421eec6` في #1556)
+- **العطل:** اختبارات الإجارات وإدراج المشهد تحت `services/raster-service/` تتخطى عند غياب `RASTER_TEST_DATABASE_URL`، وكانت وظيفة خدمة الراستر العامة لا تزودها بقاعدة. نجاح الجناح العام لا يثبت تنفيذ هذه الحالات.
+- **الإصلاح:** خطوة مستقلة داخل وظيفة التكامل PG15 القائمة، بعد البيان والدور المقيّد، تحمل adapter إلزاميًا؛ توسعت القائمة إلى سبع حالات بعد مراجعة التنافس في 2026-11-21. يتحقق من JUnit الفعلي، ويرفض الحالة الغائبة أو المتخطاة أو المكررة؛ ثم يستعمل حارس PG الموجود بعقد مخطط PG15 صريح. بقي عقد PG16 الافتراضي كما هو.
+- **المصدر:** [CI](../../.github/workflows/ci.yml) · [adapter](../../scripts/raster_pg/required_cases.py) · [اختبارات الإجارات](../../services/raster-service/test_raster_batch_postgres_integration.py) · [اختبار المشهد](../../services/raster-service/test_single_scene_concurrent_pg.py) · [عقد المختبر](../../tests_v9/test_lab_ci_certification_steps.py).
+- **الإثبات وحدوده:** [ست حالات حية على PG15.20/PostGIS3.7 بلا تخطٍّ](../../certification/evidence/raster_pg15_20261121/README.md)، ورفض فعلي للشهادة عند غياب DSN. تطبيق 275 ترحيلًا وإعادة تطبيقها بالترتيب القانوني؛ ليست بروفة ترقية من نسخة إنتاج مستعادة أو شهادة Docker/staging/إنتاج.
+- **شرط الإغلاق التشغيلي:** نجاح خطوة الراستر الإلزامية على رأس GitHub المقبول، ثم قبول البيئة المستهدفة عند طلب نشر مستقل. حالة إصلاح المصدر لا تمنح صلاحية تشغيل الري أو تغيير سلطة RAG.
+
+
+## RASTER-SCENE-RACE-TEST-NOT-SYNCHRONIZED-01
+
+- **الحالة:** fixed في المصدر المحلي فوق `a2d9d0e1`؛ قبول الرأس المنشور وCI منفصلان. (المرشحات المحلية لا تُحلّ على المستودع البعيد؛ الالتزام القابل للوصول `a421eec6` في #1556)
+- **العطل:** `asyncio.gather` وحده يسمح بأن يرى الطلب الثاني العنصر بعد تثبيت الأول، فلا يثبت فرع خسارة `ON CONFLICT` وتنظيف التشغيل.
+- **الإصلاح والشاهد:** [اختبار المشهد](../../services/raster-service/test_single_scene_concurrent_pg.py) يفرض حاجزًا بعد القراءة الحقيقية الفارغة بعاملين وثمانية، ويتحقق من إنشاء N تشغيلات وخسارة N-1 إدراجًا وحذفها فعليًا وبقاء تشغيل وعنصر واحدين.
+- **القياس:** [إيصال تطوير محلي: سبع حالات بلا تخط](../../certification/evidence/raster_pg15_reviewed_20261121/README.md). لا إغلاق لقبول GeoRAG أو staging بهذا القياس.
+
+## RASTER-LIVE-PG-EVIDENCE-NOT-RETAINED-01
+
+- **الحالة:** fixed في المصدر المحلي؛ تنزيل artifact من CI على الرأس المنشور غير مثبت بعد.
+- **العطل:** كانت خطوة PG تكتب JUnit وJSON تحت RUNNER_TEMP دون حفظهما بعد انتهاء المشغل.
+- **الإصلاح والشاهد:** [.github/workflows/ci.yml](../../.github/workflows/ci.yml) يحفظ مجلد الراستر عند النجاح والفشل؛ [عقد المختبر](../../tests_v9/test_lab_ci_certification_steps.py) يفرض الاسم والمسار والمرجع المثبت ورفض غياب الملفات، ويرفض تنفيذًا مخفيًا في خطوة الرفع.
+
+## LAB-COVERAGE-REPORT-PREFIX-HIDES-COMMAND-01
+
+- **الحالة:** fixed في المصدر المحلي؛ اختبارات العقد المركزة ناجحة ضمن [105 حالة](../../certification/evidence/raster_pg15_reviewed_20261121/focused-contracts.xml).
+- **العطل:** تصنيف التقرير بواسطة startswith كان يسمح بأمر إضافي بعد سطر تقرير التغطية فيُحذف من التنفيذ المحلي.
+- **الإصلاح والشاهد:** [run_certification.py](../../scripts/lab/run_certification.py) يفرض أمرًا واحدًا وحدود argv ويرفض تركيب shell وتوسعاته؛ [الاختبارات السالبة](../../tests_v9/test_lab_ci_certification_steps.py) تغطي السطر الثاني والفواصل والتوسع والبداية المشابهة واستبدال خطوة الرفع بالكامل.
+
+
+## RASTER-PG16-CERTIFICATION-NOT-GUARDED-01
+
+- **الحالة:** fixed في المرشح المحلي فوق `3339d318`؛ قبول الرأس المنشور في GitHub منفصل. (المرشحات المحلية لا تُحلّ على المستودع البعيد؛ الالتزام القابل للوصول `a421eec6` في #1556)
+- **العطل:** اختبارات عقد شهادة الراستر كانت تفرض خطوة PG15 وحدها؛ حذف خطوة PG16 ورفع أدلتها لا يسقط تلك الاختبارات.
+- **الإصلاح والشاهد:** [test_pg16_raster_certification_enforces_cases_role_and_evidence](../../tests_v9/test_lab_ci_certification_steps.py) يفرض خطوة PG16، والقائمة الإلزامية والإصدار ودور التطبيق وقاعدة البيانات، وحفظ الدليل بعد الفشل بإجراء مثبت. نجح على الربط الصحيح وفشل عند حذف خطوة PG16 في نسخة معزولة.
+- **الحدود:** [قياس 7/7 التاريخي لكل إصدار](../../certification/evidence/raster_pg15_pg16_20261121/README.md) يثبت تنفيذ الحالات على `3339d318`؛ شاهد الانحدار بنيوي ولا يحل محل التشغيل الحي أو CI على الالتزام النهائي.
+
+## RASTER-SERVICE-TESTS-COVERAGE-NOT-UPLOADED-01 — اختبارات خدمة الراستر تعمل ولا تبلغ تغطيتُها Codecov، فيُقرأ كودُها غيرَ مُغطّى
+
+- **الحالة:** open — فجوة إبلاغ لا فجوة اختبار؛ مقيسة 2026-11-21 على #1554.
+- **المصدر:** `.github/workflows/ci.yml:2799-2803` (خطوة «Raster service unit/runtime contracts» تشغّل `pytest -q -p no:cacheprovider test_*.py` بلا `--cov`) · رفعات Codecov الخمس في `ci.yml` (`:1107` `unit-tests` · `:1205` `platform-unit-tests` · `:1896` `integration-auth` · `:2334` `decision-service-tests` · `:2421` `decision-033-pg16`)، ولا رفع لوظيفة `Raster Service Tests` · `codecov.yml` (`after_n_builds: 5`) · `tests_v9/test_codecov_coverage_wiring.py:260-267` (يعدّ الرفعات ويشترط تساويها مع `after_n_builds`).
+- **المقيس:** على رأس #1554 `04cb1458` شغّلت `Raster Service Tests` 1539 اختباراً ونجحت، ومنها ما يمرّ بسطر `band_math.py` المعدَّل، بينما قرأ `codecov/patch` «0.00% of diff hit». فخطوة الوحدة المقيسة (`unit-tests`) لا تستورد `band_math`، وخطوة الراستر لا تجمع تغطية.
+- **الأثر:** كلّ تعديلٍ في `services/raster-service` يُقرأ غير مُغطّى مهما اختُبر، فيصير `codecov/patch` إنذاراً كاذباً على الراستر ويفقد دلالته. و`codecov/patch` ليس من السياقات المطلوبة (`docs/architecture/required_status_checks_contract.json` `required_contexts`) فلا يحجب الدمج، ووظيفة الراستر نفسها خارجها أيضاً (RASTER-SERVICE-TESTS-RUNS-BUT-NEITHER-BLOCKS-NOR-IS-REGISTERED-01).
+- **شرط الإغلاق:** وظيفة الراستر تجمع التغطية بمسارات جذر Git (كما تفعل `unit-tests` عبر `coverage xml --include=services/*` و`codecov_coverage_guard.py`) وترفعها بعلَمٍ خاصّ، ويُرفع `after_n_builds` إلى ستّة مع اختبار التوصيل في الالتزام نفسه. ولم يُنفَّذ في #1554 حفاظاً على نطاقه.
+- **التخفيف في #1554:** `tests_v9/test_nd_index_zero_denominator_contract.py` يثبّت قاعدة المقام الصفريّ داخل بوّابة الوحدة المقيسة، فيبلغ السطرُ المعدَّل Codecov.
+
+## RASTER-NATIVE-REUSE-BOUND-TO-LOCAL-BAND-MATH-VERSION-01 — إعادة استعمال منتج CDSE الأصليّ مربوطة بإصدار band-math المحلّيّ، فيُبطلها رفعٌ لا يمسّ بكسلاتها
+
+- **الحالة:** open — مقيسة 2026-11-21 في المراجعة المستقلّة لـ#1554.
+- **المصدر:** `services/raster-service/backfill_scan_worker.py:122` (فحص الأصل الجاهز الأصليّ يشترط `local_processing_version = proc_ver`، و`proc_ver` من `canonical_processing_version()` في `:351`) · `services/raster-service/cdse_native_product.py:289` (يكتب `local_processing_version` من `canonical_processing_version()` نفسه).
+- **الخلل:** منتج CDSE الأصليّ يحسب المؤشّر في CDSE لا في `band_math`، وله هويّة خوارزميّة مستقلّة (`backfill_request_identity`). لكنّ إعادة استعماله مربوطة أيضاً بإصدار `band_math` المحلّيّ، فرفعُ `sahool.band_math/1` إلى `/2` في #1554 يُبطل أصولاً أصليّة لم يتغيّر بكسلها.
+- **الأثر:** عند تفعيل `RASTER_ASYNC_BACKFILL_ENABLED` يعيد backfill طلب تلك المشاهد من CDSE ويستهلك وحدات معالجة. لا أثر اليوم: المتغيّر غير مضبوط في staging ولا الإنتاج (مقيس بالاسم 2026-11-21، القيمة لم تُقرأ)، والقيمة الافتراضيّة `false`.
+- **شرط الإغلاق:** قرارٌ صريح هل يبقى الربط. فإن فُكّ، تُربط إعادة الاستعمال الأصليّة بهويّتها الأصليّة وإصدار قناعها وحدهما، مع اختبارٍ يثبت أنّ رفع إصدار `band_math` لا يُبطل أصلاً أصليّاً. تغييرٌ منفصل عن #1554.
+
+## 2026-11-21 — شواهد هجرة production إلى v286 ونقل المنصّة إلى main (بلا تغيير حالة)
+
+- **`MIGRATOR-AHEAD-OF-DEPLOYED-APP-01` (open):** الخطر وقع: طُبِّقت v237 وv241 على production (`81a4f219`، 19:36Z) وعلى staging (`5a236ba2`، 17:09Z). ثبت في الشيفرة أنّ المنصّتين المنشورتين (`9b7e88ae` و`04577fe4`) تستعملان `ON CONFLICT (idempotency_key)` (`services/sahool-platform/api/routers/edge.py:51` فيهما) بينما صار الفهرس `(tenant_id, idempotency_key)`. عولج الأثر بنقل المنصّة إلى main `c0dd35a4` (`deploy/sahool-platform-main-c0dd35a4`؛ production `91a77ec8`، staging `704ccd33`، `/readyz` 200). صفر طلبات HTTP على المنصّة في البيئتين خلال الساعة السابقة للنقل. تبقى open: السبب البنيويّ (مهاجرٌ يتبع main بلا بوّابة توسيعيّة ولا سجلّ هجرات مُطبَّقة) قائم.
+- **`MIGRATION-STATE-IN-PRODUCTION-IS-UNREAD-01` (open):** قراءة إنتاج قراءةً فقط متاحة الآن: `cfd31667` → `SCHEMA_STATE readable=true tables=363/363 columns=215/215 first_missing=none`، manifest `5a7f4edd…`. الحالة بلا تغيير حتّى يُحكم شرط إغلاقها المسجَّل في صفّها.
+- **`PROD-DECISION-SERVICE-AHEAD-OF-PLATFORM-01` (open):** سببها المعلَن (المنصّة على `fa92a1f7e` لا ترسل `decision_value_digest`) زال: المنصّة في production صارت على main `c0dd35a4`. الحالة بلا تغيير حتّى يُقاس اعتمادٌ حيّ عبر المنصّة.

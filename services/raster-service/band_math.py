@@ -15,11 +15,6 @@ indicator-grid + tiles، إضافةً للمؤشّرات السابقة.
 from __future__ import annotations
 
 
-def _eps(arr, _np):
-    """يتجنّب القسمة على صفر بإبدال المقام الصفري بـepsilon صغير."""
-    return _np.where(arr == 0, 1e-10, arr)
-
-
 def to_reflectance(arr, scale, offset, _np):
     """يحوّل قيم النطاق الخام إلى انعكاس [0,1] بتطبيق scale/offset المُعلَن (نقيّ).
 
@@ -49,16 +44,22 @@ def normalized_difference(a, b, _np):
         BOA_ADD_OFFSET −1000 (−0.1), so dark/water pixels go below zero; with
         mixed signs A + B → 0 and the epsilon guard used to emit ±6e7 (G4);
       * result outside [-1, 1] (impossible for valid non-negative inputs).
-    For non-negative inputs the denominator is 0 only when both bands are 0;
-    that pixel keeps the legacy epsilon contract (→ 0, numerator is also 0).
-    سالب الانعكاس أو ناتج خارج [-1،1] ⇒ NaN (لا قيمة مختلَقة تُفسد المتوسّط).
+      * **zero denominator** — for non-negative inputs that means both bands are
+        0, which is no-data rather than "no vegetation". The legacy epsilon
+        contract published 0.0 there; the CDSE native path computes the raw
+        expression and gets NaN (0/0), so the two paths disagreed
+        (ND-INDEX-ZERO-DENOMINATOR-PUBLISHES-ZERO-01).
+    There is deliberately no near-zero floor here: a shared floor for
+    normalized-difference indices has to change this kernel and the CDSE
+    expressions together, or it creates a new mismatch.
+    سالب الانعكاس أو مقامٌ صفريّ أو ناتج خارج [-1،1] ⇒ NaN (لا قيمة مختلَقة تُفسد المتوسّط).
     """
     a = _np.asarray(a, dtype="float64")
     b = _np.asarray(b, dtype="float64")
     with _np.errstate(over="ignore", invalid="ignore", divide="ignore"):
         numerator = a - b
         denominator = a + b
-        result = numerator / _eps(denominator, _np)
+        result = numerator / denominator
         valid = (
             _np.isfinite(a)
             & _np.isfinite(b)
@@ -66,6 +67,7 @@ def normalized_difference(a, b, _np):
             & (b >= 0)
             & _np.isfinite(numerator)
             & _np.isfinite(denominator)
+            & (denominator > 0)
             & _np.isfinite(result)
             & (_np.abs(result) <= 1.0)
         )

@@ -2867,6 +2867,7 @@
     },
     {
       "code_readers": [
+        "services/actuator-service/actuator_runtime.py",
         "services/sahool-platform/api/routers/device_twin.py",
         "services/sahool-platform/api/routers/devices.py"
       ],

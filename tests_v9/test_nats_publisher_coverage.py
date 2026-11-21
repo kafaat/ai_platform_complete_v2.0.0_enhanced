@@ -89,6 +89,16 @@ _ROUTING_SUBJECTS_WITHOUT_IN_TREE_PUBLISHER = {
     "sahool.economic.analysis": "لا مصدر تحليل اقتصاديّ بعد؛ يصل عبر sahool.events.* عند بنائه",
 }
 
+# Subjects produced by device firmware over MQTT, not by Python in this tree. They are not
+# "reserved for the future": the producer exists, in C++. Each must name its firmware
+# source, that source must still build the topic, and the contract must name it as producer.
+_DEVICE_PRODUCED_SUBJECTS = {
+    "sahool/+/+/telemetry/+/mesh": (
+        "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino",
+        '"/telemetry/" + devId() + "/mesh"',
+    ),
+}
+
 
 def _is_test_path(rel: Path) -> bool:
     return any(part in {"tests", "test", "__pycache__"} for part in rel.parts) or (
@@ -214,7 +224,11 @@ def test_consumed_subjects_include_the_shared_subscription_list():
 
 def test_every_consumed_subject_has_a_publisher_in_the_tree():
     """كلّ موضوع مُستهلَك له قالب ناشر في الشجرة، إلّا موضوعات التوجيه المحجوزة بالاسم."""
-    unpublished = _unpublished_consumed_subjects()
+    unpublished = {
+        subj: loc
+        for subj, loc in _unpublished_consumed_subjects().items()
+        if subj not in _DEVICE_PRODUCED_SUBJECTS
+    }
     assert set(unpublished) == set(_ROUTING_SUBJECTS_WITHOUT_IN_TREE_PUBLISHER), (
         "مُستهلَك بلا ناشر في الشجرة خارج القائمة المحجوزة: "
         f"{sorted(set(unpublished) - set(_ROUTING_SUBJECTS_WITHOUT_IN_TREE_PUBLISHER))} ؛ "
@@ -222,6 +236,30 @@ def test_every_consumed_subject_has_a_publisher_in_the_tree():
         f"{sorted(set(_ROUTING_SUBJECTS_WITHOUT_IN_TREE_PUBLISHER) - set(unpublished))} ؛ "
         f"المواضع: {unpublished}"
     )
+
+
+def test_device_produced_subjects_name_a_live_firmware_producer():
+    """A device-produced subject is exempt from the Python publisher index only while its
+    firmware still builds the topic and the contract names that firmware as producer."""
+    import yaml
+
+    doc = yaml.safe_load((_ROOT / "event_publish_contracts.yaml").read_text(encoding="utf-8"))
+    by_subject = {e["subject"]: e for e in doc.get("subjects") or [] if e.get("subject")}
+    consumed = si._consumed_subjects()
+    for subj, (source, marker) in _DEVICE_PRODUCED_SUBJECTS.items():
+        assert subj in consumed, f"`{subj}` is no longer consumed; drop it from the list"
+        firmware = _ROOT / source
+        assert firmware.is_file(), f"`{subj}`: firmware producer `{source}` is missing"
+        assert marker in firmware.read_text(encoding="utf-8"), (
+            f"`{subj}`: `{source}` no longer builds the topic ({marker})"
+        )
+        entry = by_subject.get(subj) or {}
+        assert source in str(entry.get("producer") or ""), (
+            f"`{subj}`: the contract must name `{source}` as producer"
+        )
+        assert not entry.get("reserved_future_subject"), (
+            f"`{subj}` has a real producer; it is not a reserved future subject"
+        )
 
 
 def test_routing_subjects_without_publisher_stay_reserved_in_the_contract():

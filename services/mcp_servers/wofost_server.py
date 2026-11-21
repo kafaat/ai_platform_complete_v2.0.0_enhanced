@@ -248,7 +248,7 @@ def _simulate_wofost(req: WOFOSTRequest) -> WOFOSTResult:
     )
 
 
-transport = StreamableHTTPTransport(app, path="/mcp/v1/stream")
+transport = StreamableHTTPTransport(app, path="/mcp/v1/stream", required_scope="crop:read")
 
 
 @app.get("/healthz")

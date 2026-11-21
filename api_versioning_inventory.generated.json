@@ -1748,7 +1748,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 150,
+    "line": 152,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1757,7 +1757,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 155,
+    "line": 157,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1766,7 +1766,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 162,
+    "line": 166,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "list_tools",
@@ -1775,7 +1775,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 179,
+    "line": 184,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "call_tool",
@@ -1784,7 +1784,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 743,
+    "line": 744,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "mcp_tools_list",
@@ -1793,7 +1793,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 743,
+    "line": 744,
     "method": "GET",
     "path": "/v1/mcp/tools/list",
     "handler": "mcp_tools_list",
@@ -1802,7 +1802,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 775,
+    "line": 798,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "mcp_tools_call",
@@ -1811,7 +1811,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 828,
+    "line": 851,
     "method": "GET",
     "path": "/v1/products",
     "handler": "api_search_products",
@@ -1820,7 +1820,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 840,
+    "line": 863,
     "method": "GET",
     "path": "/v1/suppliers/{supplier_id}",
     "handler": "api_get_supplier",
@@ -1829,7 +1829,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 845,
+    "line": 868,
     "method": "POST",
     "path": "/v1/procurement",
     "handler": "api_create_procurement",
@@ -1838,7 +1838,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 853,
+    "line": 876,
     "method": "GET",
     "path": "/v1/procurement/{order_id}",
     "handler": "api_get_procurement",
@@ -1847,7 +1847,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 860,
+    "line": 883,
     "method": "POST",
     "path": "/v1/sales",
     "handler": "api_create_sales",
@@ -1856,7 +1856,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 866,
+    "line": 889,
     "method": "GET",
     "path": "/v1/sales",
     "handler": "api_search_sales",
@@ -1865,7 +1865,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 883,
+    "line": 906,
     "method": "GET",
     "path": "/v1/price-history/{category}",
     "handler": "api_price_history",
@@ -1874,7 +1874,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 890,
+    "line": 913,
     "method": "GET",
     "path": "/v1/analytics/{tenant_id}",
     "handler": "api_analytics",
@@ -1883,7 +1883,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 897,
+    "line": 920,
     "method": "GET",
     "path": "/healthz",
     "handler": "health",
@@ -1892,7 +1892,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 897,
+    "line": 920,
     "method": "GET",
     "path": "/health",
     "handler": "health",
@@ -1901,7 +1901,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 910,
+    "line": 933,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -3066,6 +3066,42 @@
     "method": "POST",
     "path": "/api/v1/realtime/hooks/livekit",
     "handler": "livekit_webhook",
+    "classification": "versioned"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
+    "line": 395,
+    "method": "GET",
+    "path": "/healthz",
+    "handler": "health",
+    "classification": "infra"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
+    "line": 399,
+    "method": "GET",
+    "path": "/readyz",
+    "handler": "ready",
+    "classification": "infra"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
+    "line": 411,
+    "method": "POST",
+    "path": "/api/v1/realtime/xiaozhi/leases",
+    "handler": "enroll",
+    "classification": "versioned"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/xiaozhi_gateway.py",
+    "line": 419,
+    "method": "DELETE",
+    "path": "/api/v1/realtime/xiaozhi/leases/{session_id}",
+    "handler": "revoke",
     "classification": "versioned"
   },
   {
@@ -9812,7 +9848,7 @@
   {
     "service": "tts-service",
     "file": "services/tts-service/routers/tts.py",
-    "line": 70,
+    "line": 74,
     "method": "GET",
     "path": "/v1/tts/voices",
     "handler": "list_voices",
@@ -9821,7 +9857,7 @@
   {
     "service": "tts-service",
     "file": "services/tts-service/routers/tts.py",
-    "line": 80,
+    "line": 84,
     "method": "GET",
     "path": "/v1/tts/status",
     "handler": "tts_status",
@@ -9830,7 +9866,7 @@
   {
     "service": "tts-service",
     "file": "services/tts-service/routers/tts.py",
-    "line": 105,
+    "line": 111,
     "method": "POST",
     "path": "/v1/tts/synthesize",
     "handler": "synthesize",
@@ -9839,7 +9875,7 @@
   {
     "service": "tts-service",
     "file": "services/tts-service/routers/tts.py",
-    "line": 194,
+    "line": 205,
     "method": "POST",
     "path": "/v1/tts/stream",
     "handler": "stream",

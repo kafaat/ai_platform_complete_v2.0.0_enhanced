@@ -15,10 +15,64 @@ from urllib.parse import urlsplit
 import httpx
 
 _SERVICE_NAME = re.compile(r"[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?")
+MAX_ANSWER_CHARS = 8000
+# The default TTSRequest bound; operators must not configure TTS below this
+# without also choosing a lower chunk limit in their voice adapter.
+MAX_TTS_CHUNK_CHARS = 1000
 
 
 class VoiceProviderError(RuntimeError):
     """Stable errors never echo transcripts, credentials or provider payloads."""
+
+
+def speech_chunks(text: str, *, max_chars: int = MAX_TTS_CHUNK_CHARS) -> list[str]:
+    """Lossless bounded text slices; never cut a number, word or identifier.
+
+    Prefer a sentence/newline boundary in the latter half of each chunk, then a
+    whitespace boundary. A token/whitespace run that cannot fit is rejected,
+    never clipped. Every TTS chunk also carries the *whole* original answer for
+    the service's critical-speech gate; splitting is not semantic validation.
+    """
+    if (
+        not isinstance(text, str)
+        or not text.strip()
+        or len(text) > MAX_ANSWER_CHARS
+        or type(max_chars) is not int
+        or not 1 <= max_chars <= MAX_TTS_CHUNK_CHARS
+    ):
+        raise VoiceProviderError("voice_answer_invalid")
+    remaining = text
+    chunks: list[str] = []
+    while len(remaining) > max_chars:
+        boundaries = [
+            match.end()
+            for match in re.finditer(r"\s+", remaining[: max_chars + 1])
+            if match.end() <= max_chars
+            and (match.end() == len(remaining) or not remaining[match.end()].isspace())
+            and remaining[: match.end()].strip()
+        ]
+        if not boundaries:
+            raise VoiceProviderError("voice_answer_unsplittable")
+        sentence_ends = [
+            boundary
+            for boundary in boundaries
+            if boundary >= max_chars // 2
+            and (
+                remaining[:boundary].rstrip().endswith((".", "!", "؟", "?", ";", "؛"))
+                or "\n" in remaining[boundary - 2 : boundary]
+            )
+        ]
+        boundary = (sentence_ends or boundaries)[-1]
+        chunks.append(remaining[:boundary])
+        remaining = remaining[boundary:]
+    if not remaining.strip():
+        # A trailing whitespace-only fragment cannot be silently removed.
+        if not chunks or len(chunks[-1]) + len(remaining) > max_chars:
+            raise VoiceProviderError("voice_answer_unsplittable")
+        chunks[-1] += remaining
+    else:
+        chunks.append(remaining)
+    return chunks
 
 
 def _plaintext_host_allowed(hostname: str | None) -> bool:
@@ -122,7 +176,7 @@ def published_answer(payload: Any, context: dict[str, Any]) -> str:
         or not re.fullmatch(r"[0-9a-f]{64}", str(validation.get("model_output_digest", "")))
         or not isinstance(answer, str)
         or not answer.strip()
-        or len(answer) > 8000
+        or len(answer) > MAX_ANSWER_CHARS
         or answer != validation.get("answer_ar")
     ):
         raise VoiceProviderError("voice_publication_rejected")
@@ -188,18 +242,44 @@ class HttpVoiceProviders:
         return published_answer(payload, context)
 
     async def synthesize(self, context: dict[str, Any], text: str) -> bytes:
-        if not isinstance(text, str) or not text.strip() or len(text) > 8000:
+        return await self._synthesize(context, text)
+
+    async def synthesize_chunk(
+        self, context: dict[str, Any], text: str, *, validation_text: str
+    ) -> bytes:
+        """Send complete gate context so a boundary cannot hide a dose/unit."""
+        if (
+            not isinstance(validation_text, str)
+            or not validation_text.strip()
+            or len(validation_text) > MAX_ANSWER_CHARS
+            or not isinstance(text, str)
+            or text not in validation_text
+        ):
             raise VoiceProviderError("voice_answer_invalid")
+        return await self._synthesize(context, text, validation_text=validation_text)
+
+    async def _synthesize(
+        self, context: dict[str, Any], text: str, *, validation_text: str | None = None
+    ) -> bytes:
+        if not isinstance(text, str) or not text.strip() or len(text) > MAX_TTS_CHUNK_CHARS:
+            raise VoiceProviderError("voice_answer_invalid")
+        body: dict[str, Any] = {"text": text, "provider": self.tts_provider, "no_store": True}
+        if validation_text is not None:
+            body["validation_text"] = validation_text
         response = await self._post(
             self.tts_origin + "/tts/synthesize",
             context,
-            {"text": text, "provider": self.tts_provider, "no_store": True},
+            body,
         )
         if (
             response.headers.get("cache-control", "").lower() != "no-store"
             or response.headers.get("x-cache") != "BYPASS"
             or response.headers.get("content-type", "").split(";", 1)[0]
             not in {"audio/wav", "audio/x-wav", "audio/mpeg"}
+            or (
+                validation_text is not None
+                and response.headers.get("x-speech-validation") != "full-context-v1"
+            )
             or not response.content
             or len(response.content) > 16 * 1024 * 1024
         ):

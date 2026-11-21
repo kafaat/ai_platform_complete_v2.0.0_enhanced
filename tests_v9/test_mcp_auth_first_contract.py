@@ -29,6 +29,10 @@ def _load(name: str, path: Path):
 
 
 def test_missing_token_beats_malformed_body(monkeypatch: pytest.MonkeyPatch) -> None:
+    import shared
+
+    # Match the MCP image's merged shared package before importing real adapters.
+    monkeypatch.setattr(shared, "__path__", [str(ROOT / "shared"), str(MCP / "shared")])
     _load("shared.oauth_middleware", MCP / "shared/oauth_middleware.py")
     monkeypatch.setenv("JWT_SECRET", "x" * 32)
     monkeypatch.setenv("MCP_SERVICE", "field")

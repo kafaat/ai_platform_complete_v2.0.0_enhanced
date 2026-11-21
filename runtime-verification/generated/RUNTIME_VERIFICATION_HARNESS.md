@@ -6,7 +6,7 @@
 
 - Services: **33**
 - Services with probeable endpoints: **29**
-- Planned probes: **102**
+- Planned probes: **101**
 - Valid live evidence files: **0**
 - Runtime verified services: **0**
 - Production certified services: **0**
@@ -23,7 +23,7 @@ Each evidence file must bind the tested Git SHA, immutable live runtime identity
 | agriai-engine | 4 | not verified |
 | ai_agronomist | 4 | not verified |
 | auth | 4 | not verified |
-| decision-service | 4 | not verified |
+| decision-service | 2 | not verified |
 | edge-inference | 3 | not verified |
 | erp-bridge | 4 | not verified |
 | field-management-service | 3 | not verified |
@@ -34,7 +34,7 @@ Each evidence file must bind the tested Git SHA, immutable live runtime identity
 | knowledge-graph | 3 | not verified |
 | local-ai-rag | 3 | not verified |
 | mcp_servers | 3 | not verified |
-| model-registry-adapter | 1 | not verified |
+| model-registry-adapter | 2 | not verified |
 | qdrant-seed | 0 | not verified |
 | rag-retrieval | 3 | not verified |
 | raster-service | 3 | not verified |

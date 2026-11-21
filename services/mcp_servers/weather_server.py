@@ -370,7 +370,7 @@ async def _execute(name: str, args: dict) -> dict:
         raise HTTPException(status_code=400, detail=f"Unknown tool: {name}")
 
 
-transport = StreamableHTTPTransport(app, path="/mcp/v1/stream")
+transport = StreamableHTTPTransport(app, path="/mcp/v1/stream", required_scope="weather:read")
 
 
 @app.get("/healthz")

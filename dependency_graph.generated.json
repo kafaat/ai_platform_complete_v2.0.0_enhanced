@@ -1,5 +1,5 @@
 {
-  "edge_count": 1096,
+  "edge_count": 1098,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -452,6 +452,16 @@
       "to_kind": "component"
     },
     {
+      "evidence": "services/actuator-service/actuator_runtime.py:2079",
+      "from": "actuator-service",
+      "from_kind": "component",
+      "protocol": "nats",
+      "relation": "CONSUMES",
+      "resource": "nats://sahool/+/+/telemetry/+/mesh",
+      "to": "nats://sahool/+/+/telemetry/+/mesh",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:134",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -549,6 +559,16 @@
       "relation": "READS",
       "resource": "db://device_commands_log",
       "to": "db://device_commands_log",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/actuator-service/actuator_runtime.py",
+      "from": "actuator-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://device_telemetry",
+      "to": "db://device_telemetry",
       "to_kind": "resource"
     },
     {
@@ -10978,9 +10998,9 @@
   ],
   "relation_counts": {
     "CALLS": 45,
-    "CONSUMES": 3,
+    "CONSUMES": 4,
     "EMITS": 3,
-    "READS": 590,
+    "READS": 591,
     "ROUTES_TO": 76,
     "WRITES": 379
   },
@@ -10992,13 +11012,13 @@
       "runtime_upstream_targets": 21
     },
     "nats": {
-      "observed": 6,
-      "resolved": 6,
+      "observed": 7,
+      "resolved": 7,
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 970,
-      "resolved": 969,
+      "observed": 971,
+      "resolved": 970,
       "unresolved_component_paths": 0
     }
   }

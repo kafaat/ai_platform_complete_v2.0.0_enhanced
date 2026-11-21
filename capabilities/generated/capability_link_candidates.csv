@@ -140,6 +140,7 @@ DEC-003,test,tests_v9/test_practice_dataset_review.py,3,applied
 DEC-003,test,tests_v9/test_security_review_fixes.py,3,applied
 DEC-003,test,tests_v9/test_trial_review_guards.py,3,applied
 DEC-003,test,tests_v9/test_trial_spatial_review_guards.py,3,applied
+DEC-003,test,tests_v9/test_xiaozhi_review_followups.py,3,applied
 DEC-004,api,GET /v1/execution-requests @ services/decision-service/main.py:2094,5,applied
 DEC-004,api,GET /v1/execution-requests/recovery @ services/decision-service/main.py:2123,5,applied
 DEC-004,api,GET /v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2223,5,applied
@@ -294,7 +295,7 @@ FM-001,api,GET /healthz @ services/auth/routers/ops.py:27,3,applied
 FM-001,api,GET /metrics @ services/auth/routers/ops.py:21,3,applied
 FM-001,api,GET /readyz @ services/auth/routers/ops.py:32,3,applied
 FM-001,api,GET /runtime-identity @ services/auth/main.py:410,3,applied
-FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:890,2,applied
+FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:913,2,applied
 FM-001,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:42,3,applied
 FM-001,api,GET /v1/auth/invitations @ services/auth/routers/invitations.py:108,3,applied
 FM-001,api,GET /v1/auth/me @ services/auth/routers/session.py:302,3,applied
@@ -1274,10 +1275,10 @@ FM-006,ui,frontend/src/sections/TasksPage.cost.test.tsx,2,applied
 FM-007,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:889,2,applied
 FM-007,api,GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:187,2,applied
 FM-007,api,GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:92,2,applied
-FM-007,api,GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:853,2,applied
+FM-007,api,GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:876,2,applied
 FM-007,api,POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:41,2,applied
 FM-007,api,POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:123,2,applied
-FM-007,api,POST /v1/procurement @ services/mcp_servers/market_server.py:845,2,applied
+FM-007,api,POST /v1/procurement @ services/mcp_servers/market_server.py:868,2,applied
 FM-007,mobile,mobile/sahool_app/lib/features/inventory/data/inventory_api.dart,2,applied
 FM-007,mobile,mobile/sahool_app/lib/features/inventory/data/inventory_models.dart,2,applied
 FM-007,mobile,mobile/sahool_app/lib/features/inventory/inventory_routes.dart,2,applied
@@ -2006,6 +2007,7 @@ PA-005,api,POST /api/v1/devices/{device_id}/telemetry @ services/sahool-platform
 PA-005,api,POST /v1/phase9/autonomy/iot/telemetry/verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:251,2,applied
 PA-005,test,services/sahool-platform/tests/test_soil_telemetry.py,3,applied
 PA-005,test,tests_v9/test_device_telemetry_time_identity.py,3,applied
+PA-005,test,tests_v9/test_mcp_owner_telemetry.py,3,applied
 PA-005,test,tests_v9/test_sensor_telemetry_consumer_reachability.py,3,applied
 PA-005,test,tests_v9/test_telemetry_backfill_key_parity.py,3,applied
 PA-005,test,tests_v9/test_telemetry_freshness.py,3,applied
@@ -2517,6 +2519,7 @@ SAT-009,test,tests_v9/test_raster_invalidation_redis_acl.py,3,applied
 SAT-009,test,tests_v9/test_raster_job_store.py,3,applied
 SAT-009,test,tests_v9/test_raster_latest_not_stale_after_rehydrate_v2.py,3,applied
 SAT-009,test,tests_v9/test_raster_persist_observability_v30_2.py,3,applied
+SAT-009,test,tests_v9/test_raster_pg_certification.py,3,applied
 SAT-009,test,tests_v9/test_raster_pixel_processing_edge_cases.py,3,applied
 SAT-009,test,tests_v9/test_raster_pixel_qa_indicator_guard.py,3,applied
 SAT-009,test,tests_v9/test_raster_quality_columns_populated_v62_3b.py,3,applied
