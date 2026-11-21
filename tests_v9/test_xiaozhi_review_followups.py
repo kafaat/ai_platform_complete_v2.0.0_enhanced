@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import ast
 import importlib.util
+import re
 import time
 from pathlib import Path
 
@@ -106,3 +107,48 @@ def test_broker_url_parse_is_inside_a_try(function_name):
         for inner in ast.walk(statement)
     }
     assert all(id(call) in guarded for call in parses)
+
+
+# Debian's base-passwd ships these groups and users in every python:*-slim image
+# (/usr/share/base-passwd/{group,passwd}.master). `groupadd voice` therefore exits 9
+# and the image never builds, which is what broke the Xiaozhi gateway image.
+_DEBIAN_BASE_NAMES = frozenset(
+    "root daemon bin sys adm tty disk lp mail news uucp man proxy kmem dialout fax "
+    "voice cdrom floppy tape sudo audio dip www-data backup operator list irc src "
+    "gnats shadow utmp video sasl plugdev staff games users nogroup nobody sync "
+    "_apt".split()
+)
+_ACCOUNT_CMD = re.compile(r"\b(groupadd|useradd|addgroup|adduser)\b([^&;|\n]*)")
+
+
+def _debian_dockerfiles():
+    for path in sorted(ROOT.rglob("Dockerfile*")):
+        if "node_modules" in path.parts or not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        froms = re.findall(r"(?im)^FROM\s+(\S+)", text)
+        if any(re.match(r"python:[\w.]+-slim", image) for image in froms):
+            yield path, text.replace("\\\n", " ")
+
+
+def test_dockerfile_accounts_do_not_reuse_debian_base_names():
+    offenders = []
+    for path, text in _debian_dockerfiles():
+        for command, args in _ACCOUNT_CMD.findall(text):
+            tokens = args.split()
+            if "-f" in tokens or "--force" in tokens:
+                continue  # an explicit "reuse if present" is a deliberate choice
+            positional = [t for t in tokens if not t.startswith("-") and not t.isdigit()]
+            # Option values (gid/uid/group/shell/home) precede the account name.
+            name = positional[-1] if positional else ""
+            if name in _DEBIAN_BASE_NAMES:
+                offenders.append(f"{path.relative_to(ROOT)}: {command} {name}")
+    assert not offenders, offenders
+
+
+def test_the_base_name_check_catches_the_original_voice_group():
+    text = (
+        "RUN groupadd --gid 10001 voice && useradd --uid 10001 --gid voice --no-create-home voice"
+    )
+    hits = [args.split()[-1] for _, args in _ACCOUNT_CMD.findall(text)]
+    assert "voice" in hits and set(hits) & _DEBIAN_BASE_NAMES
