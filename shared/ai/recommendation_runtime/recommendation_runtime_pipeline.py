@@ -36,6 +36,12 @@ class RuntimePipelineResult:
     recommendation: dict[str, Any] | None
     review_id: str | None
     events_published: int
+    #: ``published`` only when the publisher actually hands events to a broker client;
+    #: the in-memory default keeps a local list and is ``not_published``.
+    event_delivery: str = "not_published"
+    #: ``persisted`` only when the review store is durable; ``not_persisted`` for the
+    #: in-memory default; ``None`` when no review was created.
+    review_persistence: str | None = None
 
 
 class RecommendationRuntimePipeline:
@@ -92,6 +98,10 @@ class RecommendationRuntimePipeline:
             or bool(recommendation.get("requires_human_review"))
         )
 
+        event_delivery = (
+            "published" if getattr(self.event_publisher, "delivers", False) else "not_published"
+        )
+
         if needs_review:
             review = self.review_repo.create_review(
                 ReviewRecord(
@@ -118,8 +128,16 @@ class RecommendationRuntimePipeline:
                 recommendation,
                 review.review_id,
                 len(self.event_publisher.published),
+                event_delivery=event_delivery,
+                review_persistence=(
+                    "persisted" if getattr(self.review_repo, "durable", False) else "not_persisted"
+                ),
             )
 
         return RuntimePipelineResult(
-            "ready", recommendation, None, len(self.event_publisher.published)
+            "ready",
+            recommendation,
+            None,
+            len(self.event_publisher.published),
+            event_delivery=event_delivery,
         )

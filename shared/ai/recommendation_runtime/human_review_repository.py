@@ -50,6 +50,9 @@ class ReviewRepository(Protocol):
 class InMemoryReviewRepository:
     """Test-safe repository. Replace with SQL repository in live runtime."""
 
+    #: Reviews live only in this instance; callers must not report them as saved.
+    durable = False
+
     def __init__(self) -> None:
         self._reviews: dict[str, ReviewRecord] = {}
         self._decisions: list[ReviewDecisionRecord] = []
