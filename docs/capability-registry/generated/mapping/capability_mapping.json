@@ -3554,7 +3554,7 @@
           "score": 20
         },
         {
-          "value": "farm_access_grants @ tests_v9/test_farm_access_scope_live_pg.py:636",
+          "value": "farm_access_grants @ tests_v9/test_farm_access_scope_live_pg.py:660",
           "score": 20
         },
         {
@@ -3567,7 +3567,7 @@
           ]
         },
         {
-          "value": "users @ tests_v9/test_farm_access_scope_live_pg.py:284",
+          "value": "users @ tests_v9/test_farm_access_scope_live_pg.py:286",
           "score": 20
         },
         {
@@ -83886,32 +83886,32 @@
         {
           "source": "scripts/ops/farm_access_backfill.py",
           "kind": "source_read",
-          "line": 343
+          "line": 342
         },
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 27
+          "line": 25
         },
         {
           "source": "services/sahool-platform/api/farm_scope.py",
           "kind": "import",
-          "line": 27
+          "line": 25
         },
         {
           "source": "services/sahool-platform/api/routers/regional_bulletin.py",
           "kind": "import",
-          "line": 352
+          "line": 351
         },
         {
           "source": "services/sahool-platform/core/authorization.py",
           "kind": "import",
-          "line": 28
+          "line": 26
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 35
+          "line": 33
         }
       ],
       "unresolved": []
@@ -83928,42 +83928,42 @@
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 360
+          "line": 362
         },
         {
           "source": "services/sahool-platform/api/farm_scope.py",
           "kind": "import",
-          "line": 360
+          "line": 362
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 359
+          "line": 361
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 361
+          "line": 363
         },
         {
           "source": "services/sahool-platform/api/routers/farms.py",
           "kind": "import",
-          "line": 361
+          "line": 363
         },
         {
           "source": "services/sahool-platform/api/routers/regional_bulletin.py",
           "kind": "import",
-          "line": 853
+          "line": 877
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 367
+          "line": 369
         }
       ],
       "unresolved": [
         {
-          "line": 350,
+          "line": 352,
           "call": "spec_from_file_location"
         }
       ]
