@@ -82,18 +82,19 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 23. NDVI seed purge (W1-21, v283, real-PG)
 24. Farm water to the water ledger (W1-13, v284, restricted role)
 25. Farm ledger season and currency governance (W1-14, W1-12, v281, restricted role)
-26. Soil hydraulic projection (W1-04, restricted role)
-27. Yield estimate from server evidence (W1-08, restricted role)
-28. Edge sync carries the verified tenant per request (W0-07, restricted role)
-29. Internal routes require a tenant assertion (W0-05, restricted role)
-30. Yield estimate is tenant-checked (W0-11, restricted role)
-31. Actuator command delivery state and v2 device acks (v238, R-C2, restricted role)
-32. Field and Water twins read the active season (restricted role)
-33. Field-season state reads its platform sources (restricted role)
-34. Historical weather ingest and replay over HTTP (two tenants, restricted role)
-35. Canonical observations store (W1-11, v286, restricted role)
-36. Install pinned nats-server for the W3-01 outbox proof
-37. NATS outbox staging enablement on real PostgreSQL and JetStream (W3-01)
+26. Farm scope grants and policies (SC-1, v287, restricted role)
+27. Soil hydraulic projection (W1-04, restricted role)
+28. Yield estimate from server evidence (W1-08, restricted role)
+29. Edge sync carries the verified tenant per request (W0-07, restricted role)
+30. Internal routes require a tenant assertion (W0-05, restricted role)
+31. Yield estimate is tenant-checked (W0-11, restricted role)
+32. Actuator command delivery state and v2 device acks (v238, R-C2, restricted role)
+33. Field and Water twins read the active season (restricted role)
+34. Field-season state reads its platform sources (restricted role)
+35. Historical weather ingest and replay over HTTP (two tenants, restricted role)
+36. Canonical observations store (W1-11, v286, restricted role)
+37. Install pinned nats-server for the W3-01 outbox proof
+38. NATS outbox staging enablement on real PostgreSQL and JetStream (W3-01)
 
 The raster step loads `scripts.raster_pg.required_cases`, which requires all seven
 live cases without skips, failures or duplicates. It validates the JUnit path
