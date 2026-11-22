@@ -27785,7 +27785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0d74cea66fa63006e75c1b7ab30c1ac93b13e443f3673988d0dec2af5cf9b61f"
+          "content": "bf6222bcb2db73c5dbbf8d3d066e991f078af97dfaa501a64376066e99af822a"
         }
       ],
       "name": "services/sahool-platform/api/routers/edge.py",
