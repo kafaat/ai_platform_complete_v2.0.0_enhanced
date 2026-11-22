@@ -11136,6 +11136,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_advisor_generation_scope.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_advisor_source_tagging.py",
     "kind": "tests"
   },
