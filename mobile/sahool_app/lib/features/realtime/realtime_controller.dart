@@ -149,8 +149,9 @@ class RealtimeController extends ChangeNotifier {
     _enabling = true;
     RealtimeCapture? capture;
     try {
-      if (!await _transport.requestMicrophone() || !_current(generation))
+      if (!await _transport.requestMicrophone() || !_current(generation)) {
         return;
+      }
       capture = await _transport.createMicrophone();
       if (!_current(generation)) {
         await capture.stop();
