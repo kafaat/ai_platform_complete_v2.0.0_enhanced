@@ -1463,6 +1463,7 @@ GIS-002,mobile,mobile/sahool_app/lib/features/maps/presentation/widgets/sahool_m
 GIS-002,mobile,mobile/sahool_app/lib/features/scouting/presentation/pins_map.dart,2,applied
 GIS-002,mobile,mobile/sahool_app/lib/widgets/offline_field_map.dart,2,applied
 GIS-002,service,services/raster-service/main.py,10,applied
+GIS-002,test,frontend/test-results/map-tools-the-map-toolbar--5fdda-tre-pivot-tools-to-an-owner-chromium/error-context.md,3,applied
 GIS-002,test,mobile/sahool_app/test/features/maps/draw/draw_map_test.dart,3,applied
 GIS-002,test,mobile/sahool_app/test/features/maps/farm_map_screen_test.dart,3,applied
 GIS-002,test,mobile/sahool_app/test/features/maps/layers_test.dart,3,applied
