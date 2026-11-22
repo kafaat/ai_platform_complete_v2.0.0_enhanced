@@ -270,12 +270,30 @@ async def test_a_refused_mesh_sample_logs_its_reason_once_per_interval(
     act.evaluate_rules.assert_not_awaited()
 
 
-def test_the_mesh_rejection_log_memory_is_bounded(act, monkeypatch):
-    monkeypatch.setattr(act.time, "monotonic", lambda: 5.0)
+def test_a_full_throttle_table_keeps_live_throttles_and_stays_bounded(act, monkeypatch, caplog):
+    clock = [5.0]
+    monkeypatch.setattr(act.time, "monotonic", lambda: clock[0])
     act._mesh_reject_logged.clear()
-    for index in range(act._MESH_REJECT_LOG_MAX_KEYS + 10):
-        assert act._log_mesh_rejection(TENANT, f"device-{index}", "device_not_registered")
-    assert len(act._mesh_reject_logged) <= act._MESH_REJECT_LOG_MAX_KEYS
+    act._mesh_reject_overflow.update(last=None, suppressed=0)
+    caplog.set_level("WARNING", logger="actuator-service")
+    limit = act._MESH_REJECT_LOG_MAX_KEYS
+
+    def warnings():
+        return [r.getMessage() for r in caplog.records if "mesh telemetry reject" in r.getMessage()]
+
+    # Two passes over limit + 1 distinct keys at a fixed clock: each tracked key logs once,
+    # the overflow logs one summary, and the second pass logs nothing (no throttle reset).
+    for _ in range(2):
+        for index in range(limit + 1):
+            act._log_mesh_rejection(TENANT, f"device-{index}", "device_not_registered")
+    assert len(warnings()) == limit + 1
+    assert "not logged individually" in warnings()[-1]
+    assert len(act._mesh_reject_logged) == limit
+
+    # After the interval the expired keys make room, so new keys log individually again.
+    clock[0] += act._MESH_REJECT_LOG_INTERVAL_S
+    assert act._log_mesh_rejection(TENANT, "device-new", "device_not_registered")
+    assert len(act._mesh_reject_logged) <= limit
 
 
 async def test_retained_and_unbound_mesh_are_not_replayed(act):

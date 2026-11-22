@@ -14,6 +14,7 @@ from __future__ import annotations
 import ast
 import importlib.util
 import re
+import shlex
 import time
 from pathlib import Path
 
@@ -157,8 +158,12 @@ def _resolve(image, args):
 
 
 def _debian_run_commands(text):
-    """RUN bodies of every stage whose base image is Debian-family (ARG defaults resolved)."""
-    args, debian_stage = {}, False
+    """RUN bodies of every stage whose base is Debian-family.
+
+    ARG defaults are resolved in FROM, and a stage built FROM an earlier stage's alias
+    inherits that stage's classification (`FROM python:3.12-slim AS base` then `FROM base`).
+    """
+    args, stages, debian_stage = {}, {}, False
     for instruction in _instructions(text):
         keyword, _, rest = instruction.partition(" ")
         keyword = keyword.upper()
@@ -169,16 +174,47 @@ def _debian_run_commands(text):
         elif keyword == "FROM":
             tokens = [t for t in rest.split() if not t.startswith("--")]
             image = _resolve(tokens[0], args) if tokens else ""
-            debian_stage = bool(_DEBIAN_FAMILY_IMAGE.match(image)) and "alpine" not in image
+            if image.lower() in stages:
+                debian_stage = stages[image.lower()]
+            else:
+                debian_stage = bool(_DEBIAN_FAMILY_IMAGE.match(image)) and "alpine" not in image
+            if len(tokens) >= 3 and tokens[1].upper() == "AS":
+                stages[tokens[2].lower()] = debian_stage
         elif keyword == "RUN" and debian_stage:
             yield rest
+
+
+_SEPARATORS = frozenset({"&&", "||", ";", "|", "&"})
+
+
+def _shell_segments(run_body):
+    """Split a RUN body into simple commands with shell quoting respected.
+
+    `--gecos "Voice service"` stays one token, so a quoted option value is never
+    mistaken for a positional name. An unparsable body falls back to whitespace.
+    """
+    lexer = shlex.shlex(run_body, posix=True, punctuation_chars=";&|")
+    lexer.whitespace_split = True
+    try:
+        tokens = list(lexer)
+    except ValueError:
+        tokens = run_body.split()
+    segment = []
+    for token in tokens:
+        if token in _SEPARATORS:
+            if segment:
+                yield segment
+            segment = []
+        else:
+            segment.append(token)
+    if segment:
+        yield segment
 
 
 def _created_account_names(run_body):
     """Names that groupadd/useradd/addgroup/adduser would create in a RUN body."""
     names = []
-    for segment in re.split(r"&&|\|\||;|\|", run_body):
-        tokens = segment.split()
+    for tokens in _shell_segments(run_body):
         while tokens and tokens[0] in {"sudo", "exec", "command"}:
             tokens = tokens[1:]
         if not tokens or tokens[0].rsplit("/", 1)[-1] not in _ACCOUNT_COMMANDS:
@@ -245,6 +281,18 @@ def test_dockerfile_accounts_do_not_reuse_debian_base_names():
             "FROM node:20-bookworm AS ui\nRUN groupadd voice\nFROM python:3.12-slim\nRUN groupadd app\n",
             [("groupadd", "app")],
         ),
+        (
+            "FROM python:3.12-slim AS base\nFROM base AS runtime\nRUN groupadd voice\n",
+            [("groupadd", "voice")],
+        ),
+        (
+            'FROM python:3.12-slim\nRUN adduser --gecos "Voice service" --disabled-password voice\n',
+            [("adduser", "voice")],
+        ),
+        (
+            "FROM python:3.12-slim\nRUN echo 'a; groupadd voice' && groupadd app\n",
+            [("groupadd", "app")],
+        ),
     ],
     ids=[
         "original-voice-defect",
@@ -256,6 +304,9 @@ def test_dockerfile_accounts_do_not_reuse_debian_base_names():
         "forced-reuse",
         "alpine-not-debian",
         "per-stage-base",
+        "derived-stage-inherits-debian",
+        "quoted-option-value",
+        "quoted-separator-is-not-a-command",
     ],
 )
 def test_the_base_name_scanner(dockerfile, expected):

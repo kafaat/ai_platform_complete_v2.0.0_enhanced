@@ -75,6 +75,9 @@ _mesh_replay = MeshReplayWindow()
 _MESH_REJECT_LOG_INTERVAL_S = 60.0
 _MESH_REJECT_LOG_MAX_KEYS = 1024
 _mesh_reject_logged: dict[tuple[str, str, str], float] = {}
+# When the table is full of unexpired keys, new keys are not logged one by one: a single
+# summary per interval counts them, so the table never resets live throttles.
+_mesh_reject_overflow = {"last": None, "suppressed": 0}
 
 
 def _mqtt_auth_kwargs() -> dict:
@@ -1348,11 +1351,31 @@ def _log_mesh_rejection(tenant_id: str, device_id: str, reason: str) -> bool:
     if last is not None and now - last < _MESH_REJECT_LOG_INTERVAL_S:
         return False
     if key not in _mesh_reject_logged and len(_mesh_reject_logged) >= _MESH_REJECT_LOG_MAX_KEYS:
-        _mesh_reject_logged.clear()
+        for stale in [
+            k for k, t in _mesh_reject_logged.items() if now - t >= _MESH_REJECT_LOG_INTERVAL_S
+        ]:
+            del _mesh_reject_logged[stale]
+        if len(_mesh_reject_logged) >= _MESH_REJECT_LOG_MAX_KEYS:
+            return _note_mesh_rejection_overflow(now)
     _mesh_reject_logged[key] = now
     logger.warning(
         f"mesh telemetry rejected from device {device_id!r} (tenant {tenant_id!r}): {reason}"
     )
+    return True
+
+
+def _note_mesh_rejection_overflow(now: float) -> bool:
+    """Count a rejection the full table cannot track; log one summary per interval."""
+    _mesh_reject_overflow["suppressed"] += 1
+    last = _mesh_reject_overflow["last"]
+    if last is not None and now - last < _MESH_REJECT_LOG_INTERVAL_S:
+        return False
+    logger.warning(
+        f"mesh telemetry rejections: {_mesh_reject_overflow['suppressed']} not logged individually"
+        f" (throttle table full at {_MESH_REJECT_LOG_MAX_KEYS} unexpired keys)"
+    )
+    _mesh_reject_overflow["last"] = now
+    _mesh_reject_overflow["suppressed"] = 0
     return True
 
 
