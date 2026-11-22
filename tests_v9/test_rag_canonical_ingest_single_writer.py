@@ -167,3 +167,35 @@ def test_the_canonical_call_stays_inside_the_publication_lock():
         if isinstance(n, ast.Call) and getattr(n.func, "attr", None) == "post"
     ]
     assert posts and posts == guarded, "every canonical ingest POST must run inside _publishing"
+
+
+def _seed_tenant_check(env_value: str | None):
+    """Run seed.py's module-level tenant statements (and only those) under an environment."""
+    import os as _os
+
+    tree = ast.parse((ROOT / "services" / "qdrant-seed" / "seed.py").read_text(encoding="utf-8"))
+    nodes = [
+        n
+        for n in tree.body
+        if (
+            isinstance(n, ast.Assign)
+            and any(getattr(t, "id", "") == "SEED_TENANT_ID" for t in n.targets)
+        )
+        or (isinstance(n, ast.If) and "SEED_TENANT_ID" in ast.unparse(n.test))
+    ]
+    env = {} if env_value is None else {"QDRANT_SEED_TENANT_ID": env_value}
+    fake_os = type("O", (), {"getenv": staticmethod(lambda k, d=None: env.get(k, d))})
+    ns = {"os": fake_os, "RuntimeError": RuntimeError, "_os": _os}
+    exec(compile(ast.Module(nodes, []), "seed.py", "exec"), ns)  # noqa: S102 - our own source
+    return ns["SEED_TENANT_ID"]
+
+
+@pytest.mark.parametrize("tenant", [None, "__seed_quarantine__", "__global__"])
+def test_the_reference_seeder_accepts_only_the_reserved_tenants(tenant):
+    assert _seed_tenant_check(tenant) == (tenant or "__seed_quarantine__")
+
+
+@pytest.mark.parametrize("tenant", ["tenant-a", "00000000-0000-0000-0000-000000000001", " "])
+def test_the_reference_seeder_refuses_a_tenant_it_could_publish_past_the_lock(tenant):
+    with pytest.raises(RuntimeError):
+        _seed_tenant_check(tenant)
