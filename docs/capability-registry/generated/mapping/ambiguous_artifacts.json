@@ -893,14 +893,6 @@
           "content:Water quality samples",
           "content:water sample"
         ]
-      },
-      {
-        "capability_id": "FM-002",
-        "score": 12,
-        "signals": [
-          "content:farm",
-          "content:farms"
-        ]
       }
     ]
   },
