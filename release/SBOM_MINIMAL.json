@@ -525,7 +525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02f36475b74b3c0d2861f2a193311001cd74aa8c61d0a5b23861018d2979d90b"
+          "content": "4e9c4831946e66dacc9acf8c24fa2f53fcc1c31b958790a7d5fdf211f2c96125"
         }
       ],
       "name": "frontend/src/App.tsx",
