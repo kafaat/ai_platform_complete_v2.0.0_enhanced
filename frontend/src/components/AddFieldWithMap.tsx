@@ -119,6 +119,9 @@ interface Props {
   // حدود الحقول القائمة (هندسات GeoJSON) لالتقاط الرؤوس إليها أثناء الرسم.
   // اختياريّة وتوافقيّة خلفيّاً: إن غابت يبقى الالتقاط مقتصراً على إغلاق رأس البداية.
   existingFields?: ReadonlyArray<{ geometry: unknown }>;
+  // أداة الرسم عند الفتح (مثلاً «حقل دائري» من شريط الخريطة يفتح بالدائرة جاهزة).
+  // اختياريّة: بلا قيمة يبدأ الرسم بلا أداة كما كان.
+  initialDrawTool?: DrawTool;
 }
 
 // مفردات المحاصيل المشتركة (lib/cropOptions): كلّ خيار يُحلّ إلى بطاقة محصول قانونيّة.
@@ -353,7 +356,7 @@ function circleToPolygon(center: L.LatLng, radiusM: number): L.LatLng[] {
 }
 
 // ── Main component ─────────────────────────────────────────────
-export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFields }: Props) {
+export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFields, initialDrawTool = null }: Props) {
   const fgRef = useRef<L.FeatureGroup>(null);
   // mode: 'draw' (الرسم اليدويّ — الافتراضيّ) أو 'import' (استيراد ملفّ).
   const [mode, setMode] = useState<'draw' | 'import'>('draw');
@@ -380,7 +383,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   const pickedRadiusRef = useRef<HTMLInputElement | null>(null);
   // أداة الرسم التفاعليّة المختارة (دائرة/مستطيل) + سطر إرشاد حيّ. المضلّع يبقى على
   // شريط leaflet-draw؛ هاتان عبر InteractiveDrawLayer (نقر + معاينة بحركة الفأرة).
-  const [drawTool, setDrawTool] = useState<DrawTool>(null);
+  const [drawTool, setDrawTool] = useState<DrawTool>(initialDrawTool);
   const [drawStatus, setDrawStatus] = useState<string | null>(null);
   // Canonical pivot params sent to the backend.  Without these, a pivot circle is just
   // a raw polygon and the backend cannot re-derive it later without drift.

@@ -72,3 +72,32 @@ test('all public auth pages fit a phone viewport without horizontal scrolling', 
   }
 });
 
+
+// The auth service mails reset links, and the new tenant owner's setup link, as
+// /reset-password?token=…. They used to open the invitation page («قبول دعوة الانضمام»).
+test('a password-reset link opens the new-password step, not the invitation page', async ({ page }) => {
+  await page.goto('/reset-password?token=e2e-not-a-real-token');
+  await expect(page.getByText('تعيين كلمة مرور جديدة', { exact: true })).toBeVisible();
+  const password = page.locator('input[autocomplete="new-password"]');
+  await expect(password).toBeVisible();
+  await expect(page.getByText('قبول دعوة الانضمام')).toHaveCount(0);
+  // The token leaves the address bar, and typing keeps the step (it is held in state).
+  await expect(page).toHaveURL(/\/reset-password$/);
+  await password.fill('Strong#Pass1');
+  await expect(page.getByText('تعيين كلمة مرور جديدة', { exact: true })).toBeVisible();
+  // A reload no longer carries the token, so it asks for a new link, never the invitation.
+  await page.reload();
+  await expect(page.getByText('إعادة تعيين كلمة المرور', { exact: true })).toBeVisible();
+  await expect(page.getByText('قبول دعوة الانضمام')).toHaveCount(0);
+});
+
+test('an invitation token wins on any other path and survives the URL clean-up', async ({ page }) => {
+  for (const path of ['/signup?token=e2e-invite', '/accept-invitation?token=e2e-invite', '/?token=e2e-invite']) {
+    await page.goto(path);
+    const heading = page.getByRole('heading', { name: 'قبول دعوة الانضمام' });
+    await expect(heading).toBeVisible();
+    await expect(page).not.toHaveURL(/token=/);
+    await page.locator('input').first().fill('اسم تجريبي');
+    await expect(heading).toBeVisible();
+  }
+});
