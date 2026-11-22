@@ -15,7 +15,7 @@ local-ai-rag,Knowledge Retrieval,3,923,1,5,services/local-ai-rag/main.py,service
 mcp_servers,Agent Tools,13,2742,1,36,-,services/mcp_servers/Dockerfile,services/mcp_servers/requirements.txt,normal
 model-registry-adapter,Unclassified / Support,8,1672,3,0,-,services/model-registry-adapter/Dockerfile,-,medium-runtime-contract-gap
 odoo-bridge,ERP Integration,11,1963,2,11,services/odoo-bridge/main.py,services/odoo-bridge/Dockerfile,services/odoo-bridge/requirements.txt,normal
-qdrant-seed,Unclassified / Support,6,1257,2,0,-,services/qdrant-seed/Dockerfile,services/qdrant-seed/requirements.txt,medium-runtime-contract-gap
+qdrant-seed,Unclassified / Support,7,1394,2,0,-,services/qdrant-seed/Dockerfile,services/qdrant-seed/requirements.txt,medium-runtime-contract-gap
 rag-retrieval,Knowledge Retrieval,5,872,1,5,services/rag-retrieval/main.py,services/rag-retrieval/Dockerfile,services/rag-retrieval/requirements.txt,normal
 raster-service,Imagery & Raster,247,44072,137,89,services/raster-service/main.py,services/raster-service/Dockerfile,services/raster-service/requirements.txt,normal
 raster-tiler-service,Imagery & Raster,2,233,1,2,services/raster-tiler-service/main.py,services/raster-tiler-service/Dockerfile,services/raster-tiler-service/requirements.txt,normal

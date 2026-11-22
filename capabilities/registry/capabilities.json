@@ -5002,8 +5002,8 @@
         "tests_v9/test_lab_water_review_live_pg.py",
         "tests_v9/test_learning_review_persistence_gap.py",
         "tests_v9/test_practice_dataset_review.py",
-        "tests_v9/test_security_review_fixes.py",
-        "tests_v9/test_trial_review_guards.py"
+        "tests_v9/test_reference_approval_manifest.py",
+        "tests_v9/test_security_review_fixes.py"
       ],
       "runtime": {
         "metrics": [],
@@ -5059,7 +5059,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 2
+        "tests": 3
       }
     },
     {

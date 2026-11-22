@@ -61,11 +61,17 @@ def test_annotations_and_legacy_claims_after_local_qdrant_roundtrip(tmp_path, mo
             usable, held = partition_generation_references(
                 [note, legacy, {"chunk_id": "else", "text": "original"}]
             )
-            assert usable == [{"chunk_id": "else", "text": "original"}]
-            assert len(held) == 2 and all(
-                v["claim_source_label"] == note["claim_source_label"] and "text" not in v
-                for v in held
+            # No approval record exists, so nothing reaches generation: the flagged seeds keep
+            # their claim pointer and the unflagged excerpt is held for lack of a record.
+            assert usable == []
+            assert len(held) == 3 and all("text" not in v for v in held)
+            assert all(
+                v["claim_source_label"] == note["claim_source_label"]
+                and v["generation_hold_reason"] == "seed_claim_not_verified_against_original"
+                for v in held[:2]
             )
+            assert held[2]["chunk_id"] == "else"
+            assert held[2]["generation_hold_reason"] == "source_revision_missing"
         finally:
             await client.close()
 

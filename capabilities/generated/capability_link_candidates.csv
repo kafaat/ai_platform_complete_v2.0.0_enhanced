@@ -137,6 +137,7 @@ DEC-003,test,tests_v9/test_decision_review_boundary_guard.py,3,applied
 DEC-003,test,tests_v9/test_lab_water_review_live_pg.py,3,applied
 DEC-003,test,tests_v9/test_learning_review_persistence_gap.py,3,applied
 DEC-003,test,tests_v9/test_practice_dataset_review.py,3,applied
+DEC-003,test,tests_v9/test_reference_approval_manifest.py,3,applied
 DEC-003,test,tests_v9/test_security_review_fixes.py,3,applied
 DEC-003,test,tests_v9/test_trial_review_guards.py,3,applied
 DEC-003,test,tests_v9/test_trial_spatial_review_guards.py,3,applied

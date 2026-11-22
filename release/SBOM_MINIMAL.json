@@ -22015,6 +22015,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8f3a41b7727b0ccfdcf808f111d32f5b61b13f1e5a2a5b35dd53823628fe04eb"
+        }
+      ],
+      "name": "services/qdrant-seed/list_review_candidates.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b2533e9e8a3c82923291a0ee7d3e75719952a9aeaab04b9e39271e762bead751"
         }
       ],
@@ -22055,7 +22065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1108e2a025b92f022e583000056b6e48254f1f054aad859978b16525bf6c67b5"
+          "content": "2af9ebafe0b8b2812ab5dbb231783c833646e26fac35fda465c5be579b423d46"
         }
       ],
       "name": "services/qdrant-seed/test_seed_claim_provenance.py",
@@ -41575,7 +41585,27 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3292180dcfa2ad464dc5e1cecf8e86293a4e253d5c360313eb500122268343e2"
+          "content": "5c03f11fe8f853601e884153cf1a600beee8f901bfbba02ec6fbba5cb531046f"
+        }
+      ],
+      "name": "shared/ai/reference_approvals.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "098641aee18e4435be60d3c25ab446ecda8a5669f6cb03ee9723262c3858d4ae"
+        }
+      ],
+      "name": "shared/ai/reference_approvals.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0ab68be6cc46658a757700086fa2cdab967c749340bf985dcbef8711900f04a4"
         }
       ],
       "name": "shared/ai/seed_claims.py",

@@ -5484,6 +5484,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/qdrant-seed/list_review_candidates.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/qdrant-seed/reindex.py",
     "kind": "backend"
   },
@@ -13529,6 +13533,10 @@
   },
   {
     "path": "tests_v9/test_redis_password_wiring.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_reference_approval_manifest.py",
     "kind": "tests"
   },
   {
