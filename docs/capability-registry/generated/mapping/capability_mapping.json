@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7666,
+    "files_scanned": 7667,
     "files_by_kind": {
       "backend": 1312,
       "database": 354,
       "governance": 90,
       "mobile": 429,
       "other": 2242,
-      "tests": 2667,
+      "tests": 2668,
       "web": 572
     },
-    "unmapped_artifacts": 3654,
+    "unmapped_artifacts": 3655,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4161,
+      "python_functional": 4162,
       "raw": 3505
     },
-    "test_dependency_files": 2031,
-    "test_dependency_edges": 5439,
+    "test_dependency_files": 2032,
+    "test_dependency_edges": 5444,
     "test_dependency_bounded_files": 1172,
     "test_dependency_unresolved_relations": 519
   },
@@ -46800,6 +46800,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_rag_canonical_ingest_single_writer.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_rag_complete_reindex_manifest.py",
       "kind": "tests"
     },
@@ -92533,6 +92537,43 @@
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
           "kind": "source_read",
           "line": 33
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_rag_canonical_ingest_single_writer.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/local-ai-rag/main.py",
+          "kind": "source_read",
+          "line": 26
+        },
+        {
+          "source": "services/qdrant-seed/seed.py",
+          "kind": "source_read",
+          "line": 85
+        },
+        {
+          "source": "services/rag-retrieval/main.py",
+          "kind": "source_read",
+          "line": 83
+        },
+        {
+          "source": "services/rag-retrieval/reindex_manifest.py",
+          "kind": "source_read",
+          "line": 84
+        },
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "source_read",
+          "line": 82
         }
       ],
       "unresolved": []
