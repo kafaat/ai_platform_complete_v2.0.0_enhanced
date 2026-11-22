@@ -249,7 +249,7 @@ async def test_a_refused_mesh_sample_logs_its_reason_once_per_interval(
     act, monkeypatch, caplog, record, reason
 ):
     clock = [1000.0]
-    monkeypatch.setattr(act.time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(act, "_monotonic", lambda: clock[0])
     act._mesh_reject_logged.clear()
     act._registry_device.return_value = record
     caplog.set_level("WARNING", logger="actuator-service")
@@ -272,7 +272,7 @@ async def test_a_refused_mesh_sample_logs_its_reason_once_per_interval(
 
 def test_a_full_throttle_table_keeps_live_throttles_and_stays_bounded(act, monkeypatch, caplog):
     clock = [5.0]
-    monkeypatch.setattr(act.time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(act, "_monotonic", lambda: clock[0])
     act._mesh_reject_logged.clear()
     act._mesh_reject_overflow.update(last=None, suppressed=0)
     caplog.set_level("WARNING", logger="actuator-service")

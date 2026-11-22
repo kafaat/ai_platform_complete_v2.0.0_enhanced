@@ -72,6 +72,9 @@ FEATURE_DEVICE_MESH_TELEMETRY = os.getenv("FEATURE_DEVICE_MESH_TELEMETRY", "")
 _mesh_replay = MeshReplayWindow()
 # A refused mesh sample is logged once per (tenant, device, reason) per interval, so
 # a misconfigured or noisy device is diagnosable without flooding the log.
+# A module alias so tests can drive the throttle clock without patching time.monotonic,
+# which the asyncio event loop also reads.
+_monotonic = time.monotonic
 _MESH_REJECT_LOG_INTERVAL_S = 60.0
 _MESH_REJECT_LOG_MAX_KEYS = 1024
 _mesh_reject_logged: dict[tuple[str, str, str], float] = {}
@@ -1345,7 +1348,7 @@ async def _registry_device(tenant_id: str, device_id: str) -> dict | None:
 
 def _log_mesh_rejection(tenant_id: str, device_id: str, reason: str) -> bool:
     """Log a refused mesh sample, rate-limited per (tenant, device, reason)."""
-    now = time.monotonic()
+    now = _monotonic()
     key = (tenant_id, device_id, reason)
     last = _mesh_reject_logged.get(key)
     if last is not None and now - last < _MESH_REJECT_LOG_INTERVAL_S:
