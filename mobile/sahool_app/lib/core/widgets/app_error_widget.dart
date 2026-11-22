@@ -5,7 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AppErrorWidget extends StatelessWidget {
-  const AppErrorWidget({super.key, required this.details, required this.message});
+  const AppErrorWidget({
+    super.key,
+    required this.details,
+    required this.message,
+  });
 
   final FlutterErrorDetails details;
 
@@ -13,26 +17,32 @@ class AppErrorWidget extends StatelessWidget {
   final String message;
 
   @override
-  Widget build(BuildContext context) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: Container(
-          color: const Color(0x14C0392B),
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, color: Color(0xFFC0392B), size: 20),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  kDebugMode ? details.exceptionAsString() : message,
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Color(0xFFC0392B), fontSize: 12),
-                ),
+  // Material شفّاف: قد يُبنى البديل حيث لا سلف Material (مثلاً قبل Scaffold)؛ بدونه
+  // يرث Text زخرفة الخطأ الافتراضيّة (خطّ أصفر مزدوج) بدل نمطه. اكتُشف في محاكاة
+  // المختبر عند خطأ في initState لـAuthGate.
+  Widget build(BuildContext context) => Material(
+    type: MaterialType.transparency,
+    child: Directionality(
+      textDirection: TextDirection.rtl,
+      child: Container(
+        color: const Color(0x14C0392B),
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Color(0xFFC0392B), size: 20),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                kDebugMode ? details.exceptionAsString() : message,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Color(0xFFC0392B), fontSize: 12),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }

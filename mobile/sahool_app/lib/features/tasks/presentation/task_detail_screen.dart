@@ -19,8 +19,8 @@ import 'package:sahool_app/features/tasks/data/offline_write.dart';
 import 'package:sahool_app/features/tasks/data/task_photo_store.dart';
 
 import 'complete_task_sheet.dart';
-import 'irrigation_observations_screen.dart';
 import 'inspection_review_panel.dart';
+import 'irrigation_observations_screen.dart';
 import 'task_grouping.dart';
 import 'task_labels.dart';
 import 'tasks_cubit.dart';
