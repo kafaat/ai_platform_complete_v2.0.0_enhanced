@@ -100,18 +100,24 @@ export function VraPrescriptionPanel({
 
       <div className="mt-2 text-[11px] text-slate-400" data-testid="vra-readiness-status">الحالة: {status}</div>
       <div className="mt-3 flex flex-wrap gap-1">
-        <button disabled={!onApprove} title={!onApprove ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="vra-approve" onClick={() => onApprove?.(prescription, zones)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
-          <CheckCircle2 className="h-3 w-3" /> طلب اعتماد الوصفة
-        </button>
+        {onApprove && (
+          <button type="button" data-testid="vra-approve" onClick={() => onApprove?.(prescription, zones)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
+            <CheckCircle2 className="h-3 w-3" /> طلب اعتماد الوصفة
+          </button>
+        )}
         <button type="button" data-testid="vra-export-disabled" disabled className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-400">
           <FileDown className="h-3 w-3" /> تصدير آلة بعد الموافقة فقط
         </button>
-        <button disabled={!onRefine} title={!onRefine ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="vra-refine" onClick={onRefine} className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-white px-2 py-1 text-xs text-violet-700 hover:bg-violet-50">
-          تحسين بالتحاليل
-        </button>
-        <button disabled={!onReject} title={!onReject ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="vra-reject" onClick={onReject} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
-          <XCircle className="h-3 w-3" /> رفض
-        </button>
+        {onRefine && (
+          <button type="button" data-testid="vra-refine" onClick={onRefine} className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-white px-2 py-1 text-xs text-violet-700 hover:bg-violet-50">
+            تحسين بالتحاليل
+          </button>
+        )}
+        {onReject && (
+          <button type="button" data-testid="vra-reject" onClick={onReject} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
+            <XCircle className="h-3 w-3" /> رفض
+          </button>
+        )}
       </div>
     </div>
   );

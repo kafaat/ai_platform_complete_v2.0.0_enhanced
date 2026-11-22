@@ -1945,7 +1945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ac2414d28f4b0617d231f473f2cfd12767e5e6c6eb55d7cdfc5ea6f7dcadfaf"
+          "content": "d2dc51639aa505d161cfdee4a616b59896d3ddc6fce5800504b52b20363fe700"
         }
       ],
       "name": "frontend/src/components/maphub/FieldBoundaryProposalPanel.tsx",
@@ -2235,10 +2235,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4bd24d32b341fb7b088ca0612e7cd8867fe0c42754717e4f2b99248d7026022a"
+          "content": "4ae98f5a03e699ad10dd0baa979b1cbec629cb28cfc568217ab75f21e196ad26"
         }
       ],
       "name": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2d404f2e068f62c35f39818696859a7e15b85ee1c9b2911a665545da7032b42b"
+        }
+      ],
+      "name": "frontend/src/components/maphub/ProposalPanelActions.test.tsx",
       "type": "file"
     },
     {
@@ -2325,7 +2335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "803e63495be11c795b0068f96fefb1a5c532d690080e7034998e97001e57b8c7"
+          "content": "6632283f00d1e6efce5142642b22115047e47b69242af70a5d2d563467f9b7e2"
         }
       ],
       "name": "frontend/src/components/maphub/VraPrescriptionPanel.tsx",
@@ -5855,7 +5865,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d90f2c67638acca128afdee0f596b1c0d5841a2a005991e3f4764a3c1f2c07e8"
+          "content": "fa3d6f447e8822daffc783ea251f6ee52afaffb1028145fdc85892d3d59c4bf3"
+        }
+      ],
+      "name": "frontend/src/sections/ChatbotPage.spatialCards.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0d101f140efc5ecd0206d684625113103dfc64759c4b24a4126fd37514e22e31"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",

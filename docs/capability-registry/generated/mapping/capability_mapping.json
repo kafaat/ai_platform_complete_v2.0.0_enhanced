@@ -15,7 +15,7 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7618,
+    "files_scanned": 7620,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
@@ -23,13 +23,13 @@
       "mobile": 429,
       "other": 2235,
       "tests": 2644,
-      "web": 559
+      "web": 561
     },
-    "unmapped_artifacts": 3628,
+    "unmapped_artifacts": 3629,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4136,
-      "raw": 3482
+      "raw": 3484
     },
     "test_dependency_files": 2015,
     "test_dependency_edges": 5379,
@@ -30644,6 +30644,15 @@
       ],
       "web": [
         {
+          "path": "frontend/src/sections/ChatbotPage.spatialCards.test.tsx",
+          "score": 11,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
+        {
           "path": "frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
           "score": 9,
           "signals": [
@@ -30895,7 +30904,7 @@
         "routes": 32,
         "database": 14,
         "events": 13,
-        "web": 2,
+        "web": 3,
         "mobile": 1,
         "tests": 10,
         "governance": 1,
@@ -33981,6 +33990,10 @@
     },
     {
       "path": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/ProposalPanelActions.test.tsx",
       "kind": "web"
     },
     {
