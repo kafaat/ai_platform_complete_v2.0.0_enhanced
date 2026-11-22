@@ -64,11 +64,65 @@ def test_only_local_ai_rag_calls_the_canonical_ingest():
     )
 
 
+# Code that drives the indexing service's write path directly. Allowed, with the reason:
+#   production_qdrant.py      the write path itself (ingest -> ingest_documents -> settle);
+#   rag-retrieval/main.py     the indexing service's /v1/ingest handler, i.e. local-ai-rag's
+#                             calls arriving;
+#   rag-retrieval/reindex_manifest.py  builds a separate versioned target collection, never
+#                             the live one that tenant uploads publish into;
+#   qdrant-seed/seed.py       writes the reference corpus, which no tenant ingest withdraws.
+_WRITE_CALLS = {
+    "ingest",
+    "ingest_documents",
+    "withdraw_document_points",
+    "settle_document_publications",
+    "upsert",
+}
+_KNOWN_WRITE_PATHS = {
+    "services/sahool-platform/core/rag/production_qdrant.py",
+    "services/rag-retrieval/main.py",
+    "services/rag-retrieval/reindex_manifest.py",
+    "services/qdrant-seed/seed.py",
+}
+_INDEX_CLIENTS = ("production_qdrant", "HybridQdrantRetriever", "QdrantHttpClient")
+
+
+def _drives_index_writes(path: Path) -> bool:
+    text = path.read_text(encoding="utf-8", errors="replace")
+    if not any(name in text for name in _INDEX_CLIENTS):
+        return False
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return False
+    return any(
+        isinstance(n, ast.Call) and getattr(n.func, "attr", None) in _WRITE_CALLS
+        for n in ast.walk(tree)
+    )
+
+
+def test_nothing_else_drives_the_index_write_path_directly():
+    drivers = sorted(
+        str(p.relative_to(ROOT))
+        for p in _sources()
+        if _drives_index_writes(p) and str(p.relative_to(ROOT)) not in _KNOWN_WRITE_PATHS
+    )
+    assert drivers == [], (
+        "a module calling the retriever's ingest/withdraw/settle or the Qdrant upsert "
+        "directly bypasses local-ai-rag's per-document serialisation: " + str(drivers)
+    )
+
+
 def test_local_ai_rag_runs_one_worker():
-    dockerfile = (ROOT / "services" / "local-ai-rag" / "Dockerfile").read_text(encoding="utf-8")
+    service = ROOT / "services" / "local-ai-rag"
+    dockerfile = (service / "Dockerfile").read_text(encoding="utf-8")
     cmd = [line for line in dockerfile.splitlines() if line.strip().startswith("CMD")]
     assert len(cmd) == 1 and '"--workers", "1"' in cmd[0], (
         "more than one uvicorn worker splits the in-process publication locks"
+    )
+    assert "gunicorn" not in dockerfile.lower()
+    assert not [p.name for p in service.iterdir() if p.name.startswith("gunicorn")], (
+        "a gunicorn config would run local-ai-rag under several worker processes"
     )
 
 
@@ -80,6 +134,9 @@ def test_local_ai_rag_runs_one_replica():
     replicas = re.findall(r"replicas:\s*(\S+)", block)
     assert all(r.strip("'\"") == "1" for r in replicas), replicas
     assert "scale:" not in block
+    # A command, entrypoint or worker setting here would replace the Dockerfile's one worker.
+    for key in ("command:", "entrypoint:", "WEB_CONCURRENCY", "UVICORN_WORKERS", "--workers"):
+        assert key not in block, f"compose sets {key!r} for local-ai-rag"
     for chart in (ROOT / "helm").rglob("*.yaml"):
         text = chart.read_text(encoding="utf-8", errors="replace")
         assert "local-ai-rag" not in text and "localAiRag" not in text, (
