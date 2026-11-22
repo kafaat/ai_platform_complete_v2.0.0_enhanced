@@ -310,7 +310,8 @@ async def latest_soil_4r_rows(conn, *, tenant_id: str, field_id: str) -> list:
            )
            SELECT DISTINCT ON (r.analyte) s.sample_id, s.sampled_on,
                   s.sampling_origin->>'zone_id' AS zone_id,
-                  r.analyte, r.result_id, r.unit, r.value_json, r.method_code
+                  r.analyte, r.result_id, r.unit, r.value_json, r.method_code,
+                  r.quality_status, r.approved_at
            FROM sample s JOIN soil_lab_results r
              ON r.tenant_id=s.tenant_id AND r.sample_id=s.sample_id
            WHERE r.quality_status='approved' AND r.observed_at<=now()
@@ -318,6 +319,53 @@ async def latest_soil_4r_rows(conn, *, tenant_id: str, field_id: str) -> list:
         tenant_id,
         field_id,
     )
+
+
+def _iso(value) -> str | None:
+    return value.isoformat() if hasattr(value, "isoformat") else (str(value) if value else None)
+
+
+def approved_soil_lab_block(field_id: str, tenant_id: str, rows) -> dict[str, Any]:
+    """The owner's approved soil lab result as the advisor's ``approved_soil_lab`` block.
+
+    ``rows`` come from ``latest_soil_4r_rows`` (the read the field 4R plan uses). Values are
+    passed through as stored, each with its method, unit, sampling date and approval
+    reference; a row without a ``result_id``, not approved, or without a usable value is
+    left out. No approved row ⇒ ``status="unavailable"`` with no results.
+    """
+    results = []
+    for row in rows or ():
+        row = dict(row)
+        result_id = row.get("result_id")
+        if not result_id or row.get("quality_status") != "approved":
+            continue
+        value = usable_analyte_value(row.get("analyte"), _analyte_value(row.get("value_json")))
+        if value is None:
+            continue
+        record = {
+            "result_id": str(result_id),
+            "analyte": row.get("analyte"),
+            "value": value,
+            "unit": row.get("unit"),
+            "method_code": row.get("method_code"),
+            "quality_status": "approved",
+            "sample_id": row.get("sample_id"),
+            "sampled_on": _iso(row.get("sampled_on")),
+            "approved_at": _iso(row.get("approved_at")),
+            "approval_ref": f"{SOIL_LAB_CANONICAL_SOURCE}:{result_id}",
+        }
+        if row.get("zone_id"):
+            record["zone_id"] = row["zone_id"]
+        results.append(record)
+    return {
+        "owner": "sahool-platform",
+        "source": SOIL_LAB_CANONICAL_SOURCE,
+        "field_id": field_id,
+        "tenant_id": tenant_id,
+        "status": "available" if results else "unavailable",
+        "reason": None if results else "no_approved_soil_lab_result",
+        "results": results,
+    }
 
 
 # Lab review cycle (the delivery's api/lab_review.py, folded here so the platform module
