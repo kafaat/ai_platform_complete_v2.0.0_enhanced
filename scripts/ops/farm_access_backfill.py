@@ -19,7 +19,11 @@ Safety:
   never run it against a database you were not asked to change;
 - an existing inactive grant is a revocation and is never re-activated (reported instead);
 - both connections must be able to read every tenant (BYPASSRLS), otherwise the run stops
-  (exit 2) rather than plan from an empty, row-level-filtered read.
+  (exit 2) rather than plan from an empty, row-level-filtered read;
+- ``--apply`` must run as the migration owner (a superuser, the credentials that apply
+  migrations): v287 reserves the provenance label to it and the migrator revokes write on
+  farm_access_grants from the application and jobs roles. Any other role stops with exit 2
+  before anything is written; the jobs role (BYPASSRLS) may only do the dry run.
 
 Usage::
 
@@ -75,6 +79,8 @@ async def run(platform_dsn: str, auth_dsn: str, *, apply: bool) -> dict:
         await fac.require_full_visibility(auth, "AUTH_DATABASE_URL (auth)")
         if not await fac.grants_table_present(platform):
             raise fac.Precondition("farm_access_grants is missing: apply migration v287 first")
+        if apply:
+            await fac.require_operator(platform)
         auth_users = await fac.fetch_users(auth)
         platform_users = await fac.fetch_users(platform)
         farms = await fac.fetch_farms(platform)

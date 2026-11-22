@@ -246,6 +246,12 @@ def platform_id_keyed_grants(identities: dict, grants: list[Grant]) -> list:
     decision-C backfill, which reads identities through auth's own connection only and keys
     by sub by construction (``granted_by='backfill:decision-C'``). A grant written by anyone
     else with such a key must be checked by a person; this check cannot tell which was meant.
+
+    The label is trustworthy only because v287 reserves it to the migration owner (a trigger)
+    and the migrator revokes write on the table from the application and jobs roles. Once grant
+    administration exists (SC-2) and people write grants routinely, this check needs run
+    provenance (for example a backfill_runs table with a digest of what each run wrote) to stay
+    a usable gate; a label alone will not scale past a single operator backfill.
     """
     resolved = {
         (str(r["platform_tenant_id"]), r["platform_user_id"]): (
@@ -341,6 +347,27 @@ def check_role_reads_every_tenant(role: dict | None, label: str) -> None:
         raise Precondition(
             f"{label}: the role cannot read every tenant (needs BYPASSRLS); "
             "a row-level-security role would read nothing and report a false clean result"
+        )
+
+
+async def require_operator(conn) -> None:
+    """--apply only: the session must be the migration owner (v287 reserves the backfill's
+    provenance label to it with a trigger, and the migrator revokes write from every other
+    role). A BYPASSRLS role such as the jobs role reads, but may not write grants."""
+    row = await conn.fetchrow(
+        "SELECT (SELECT rolsuper FROM pg_roles WHERE rolname = session_user) AS session_super, "
+        "(SELECT rolsuper FROM pg_roles WHERE rolname = current_user) AS current_super, "
+        "has_table_privilege('public.farm_access_grants', 'INSERT') AS can_insert"
+    )
+    check_operator(dict(row) if row else None)
+
+
+def check_operator(role: dict | None) -> None:
+    if not role or not (role["session_super"] and role["current_super"] and role["can_insert"]):
+        raise Precondition(
+            "--apply must run as the migration owner (a superuser with INSERT on "
+            "farm_access_grants, the credentials that apply migrations); this role may only "
+            "do the dry run"
         )
 
 
