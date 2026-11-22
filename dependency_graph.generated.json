@@ -1,5 +1,5 @@
 {
-  "edge_count": 1103,
+  "edge_count": 1099,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -82,6 +82,16 @@
       "to_kind": "component"
     },
     {
+      "evidence": "frontend/src/hooks/useAuth.ts:127",
+      "from": "frontend",
+      "from_kind": "component",
+      "protocol": "ui",
+      "relation": "CALLS",
+      "resource": "/auth/",
+      "to": "auth",
+      "to_kind": "component"
+    },
+    {
       "evidence": "frontend/src/services/api.ts:563",
       "from": "frontend",
       "from_kind": "component",
@@ -102,7 +112,17 @@
       "to_kind": "component"
     },
     {
-      "evidence": "frontend/src/components/AddFieldWithMap.tsx:390",
+      "evidence": "frontend/src/components/AddFieldWithMap.tsx:414",
+      "from": "frontend",
+      "from_kind": "component",
+      "protocol": "ui",
+      "relation": "CALLS",
+      "resource": "/api/v1",
+      "to": "sahool-platform",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "frontend/src/components/SeasonSimulationDialog.tsx:1",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -6442,7 +6462,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:407",
+      "evidence": "nginx/nginx.v9.conf:382",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6482,7 +6502,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:331",
+      "evidence": "nginx/nginx.v9.conf:309",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6562,7 +6582,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:425",
+      "evidence": "nginx/nginx.v9.conf:397",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6592,7 +6612,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:429",
+      "evidence": "nginx/nginx.v9.conf:402",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6632,7 +6652,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:398",
+      "evidence": "nginx/nginx.v9.conf:369",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6652,32 +6672,12 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:276",
-      "from": "gateway:nginx",
-      "from_kind": "gateway",
-      "protocol": "http",
-      "relation": "ROUTES_TO",
-      "resource": "/api/knowledge-graph/",
-      "to": "knowledge-graph",
-      "to_kind": "component"
-    },
-    {
-      "evidence": "nginx/nginx.v9.conf:256",
-      "from": "gateway:nginx",
-      "from_kind": "gateway",
-      "protocol": "http",
-      "relation": "ROUTES_TO",
-      "resource": "= /api/knowledge-graph/metrics",
-      "to": "knowledge-graph",
-      "to_kind": "component"
-    },
-    {
       "evidence": "nginx/nginx.v9.conf:253",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
       "relation": "ROUTES_TO",
-      "resource": "= /api/knowledge-graph/readyz",
+      "resource": "/api/knowledge-graph/",
       "to": "knowledge-graph",
       "to_kind": "component"
     },
@@ -6702,7 +6702,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:379",
+      "evidence": "nginx/nginx.v9.conf:354",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6712,32 +6712,12 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:269",
+      "evidence": "nginx/nginx.v9.conf:245",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
       "relation": "ROUTES_TO",
       "resource": "/api/rag/",
-      "to": "rag-retrieval",
-      "to_kind": "component"
-    },
-    {
-      "evidence": "nginx/nginx.v9.conf:249",
-      "from": "gateway:nginx",
-      "from_kind": "gateway",
-      "protocol": "http",
-      "relation": "ROUTES_TO",
-      "resource": "= /api/rag/metrics",
-      "to": "rag-retrieval",
-      "to_kind": "component"
-    },
-    {
-      "evidence": "nginx/nginx.v9.conf:246",
-      "from": "gateway:nginx",
-      "from_kind": "gateway",
-      "protocol": "http",
-      "relation": "ROUTES_TO",
-      "resource": "= /api/rag/readyz",
       "to": "rag-retrieval",
       "to_kind": "component"
     },
@@ -6822,7 +6802,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:292",
+      "evidence": "nginx/nginx.v9.conf:263",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6832,32 +6812,12 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:288",
-      "from": "gateway:nginx",
-      "from_kind": "gateway",
-      "protocol": "http",
-      "relation": "ROUTES_TO",
-      "resource": "= /api/ai-agronomist/healthz",
-      "to": "runtime-upstream://sahool-ai-agronomist",
-      "to_kind": "runtime_upstream"
-    },
-    {
-      "evidence": "nginx/nginx.v9.conf:263",
-      "from": "gateway:nginx",
-      "from_kind": "gateway",
-      "protocol": "http",
-      "relation": "ROUTES_TO",
-      "resource": "= /api/ai-agronomist/metrics",
-      "to": "runtime-upstream://sahool-ai-agronomist",
-      "to_kind": "runtime_upstream"
-    },
-    {
       "evidence": "nginx/nginx.v9.conf:260",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
       "relation": "ROUTES_TO",
-      "resource": "= /api/ai-agronomist/readyz",
+      "resource": "= /api/ai-agronomist/healthz",
       "to": "runtime-upstream://sahool-ai-agronomist",
       "to_kind": "runtime_upstream"
     },
@@ -6872,7 +6832,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:319",
+      "evidence": "nginx/nginx.v9.conf:297",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6892,7 +6852,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:304",
+      "evidence": "nginx/nginx.v9.conf:274",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6902,7 +6862,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:363",
+      "evidence": "nginx/nginx.v9.conf:340",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6912,7 +6872,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:342",
+      "evidence": "nginx/nginx.v9.conf:324",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7102,7 +7062,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:387",
+      "evidence": "nginx/nginx.v9.conf:361",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7112,7 +7072,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:393",
+      "evidence": "nginx/nginx.v9.conf:365",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7132,7 +7092,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:340",
+      "evidence": "nginx/nginx.v9.conf:321",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7222,7 +7182,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:402",
+      "evidence": "nginx/nginx.v9.conf:374",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -11047,19 +11007,19 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 44,
+    "CALLS": 46,
     "CONSUMES": 4,
     "EMITS": 3,
     "READS": 591,
-    "ROUTES_TO": 82,
+    "ROUTES_TO": 76,
     "WRITES": 379
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
     "gateway": {
-      "component_targets": 59,
-      "observed": 82,
-      "runtime_upstream_targets": 23
+      "component_targets": 55,
+      "observed": 76,
+      "runtime_upstream_targets": 21
     },
     "nats": {
       "observed": 7,

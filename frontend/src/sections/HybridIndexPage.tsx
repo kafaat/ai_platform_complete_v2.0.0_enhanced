@@ -4,6 +4,8 @@
 //   • KPIs/التنبيهات/ملخّص الحقول → GET /api/v1/indicators/dashboard (sahool-platform)
 //   • جدول المواسم (GDD/LAI/الإنتاجية) → GET /api/v1/fields/{id}/seasons
 //     يعرض حقول sim_* المُخزَّنة (تقديرات RUE/FAO-56). موسم بلا محاكاة ⇒ "—" صادق.
+//   • تشغيل المحاكاة لموسم الصفّ → POST /api/v1/seasons/{id}/simulate عبر SeasonSimulationDialog،
+//     لمن يملك تعديل الحقل فقط (can(role,'edit','field') يطابق field:edit في الخادم).
 //   • لا بيانات WOFOST/Sparklines ثابتة — أُزيلت الزخرفة التجميليّة (audit gap).
 // ═══════════════════════════════════════════════════════════════════
 
@@ -23,6 +25,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDashboardKPIs } from '@/hooks/useIndicators';
 import { useIndicatorRegistry, type RegistryIndicator } from '@/hooks/useIndicatorRegistry';
 import { useSeasons } from '@/hooks/useApi';
+import { useAuthStore } from '@/hooks/useAuth';
+import { can } from '@/lib/permissions';
+import { SeasonSimulationDialog } from '@/components/SeasonSimulationDialog';
 import type { SeasonSummary } from '@/services/api';
 import { KPICard } from '@/components/KPICard';
 import { AlertBanner } from '@/components/AlertBanner';
@@ -129,8 +134,12 @@ function NumOrDash({ value, digits = 1, suffix }: { value: number | null; digits
 
 // ── صفّ موسم حقل واحد (يستدعي useSeasons لذلك الحقل — hook لكلّ صفّ، قانونيّ) ──
 // يختار الموسم النشط (أو الأحدث) ويعرض sim_* المُخزَّنة. لا توليد أرقام: غياب
-// المحاكاة ⇒ "—".
-function WofostFieldRow({ field }: { field: Record<string, unknown> }) {
+// المحاكاة ⇒ "—". onRun يُمرَّر فقط لمن يملك تعديل الحقل؛ غيابه ⇒ لا زرّ تشغيل.
+interface SimTarget { season: SeasonSummary; fieldName: string }
+function WofostFieldRow({ field, onRun }: {
+  field: Record<string, unknown>;
+  onRun?: (target: SimTarget) => void;
+}) {
   const fieldId   = field.field_id as string;
   const fieldName = (field.field_name as string) || fieldId;
   const crop      = (field.crop as string) || '—';
@@ -145,7 +154,7 @@ function WofostFieldRow({ field }: { field: Record<string, unknown> }) {
     return (
       <tr className="border-b border-slate-50">
         <td className="py-2 px-3 font-medium text-slate-800 text-xs">{fieldName}</td>
-        <td colSpan={6} className="py-2 px-3 text-xs text-sahool-muted">
+        <td colSpan={7} className="py-2 px-3 text-xs text-sahool-muted">
           <RefreshCw className="inline w-3 h-3 animate-spin ml-1" /> جارٍ التحميل…
         </td>
       </tr>
@@ -157,7 +166,7 @@ function WofostFieldRow({ field }: { field: Record<string, unknown> }) {
       <tr className="border-b border-slate-50">
         <td className="py-2 px-3 font-medium text-slate-800 text-xs">{fieldName}</td>
         <td className="py-2 px-3 text-sahool-muted text-xs">{crop}</td>
-        <td colSpan={5} className="py-2 px-3 text-xs text-sahool-text">
+        <td colSpan={6} className="py-2 px-3 text-xs text-sahool-text">
           {isError ? 'تعذّر جلب المواسم' : 'لا موسم مُسجَّل'}
         </td>
       </tr>
@@ -198,6 +207,17 @@ function WofostFieldRow({ field }: { field: Record<string, unknown> }) {
           {ranSim ? `محاكاة ${new Date(season.sim_ran_at as string).toLocaleDateString('ar')}` : 'لم تُحاكَ بعد'}
         </span>
       </td>
+      <td className="py-2 px-3">
+        {onRun ? (
+          <button type="button" onClick={() => onRun({ season, fieldName })}
+            aria-label={`${ranSim ? 'إعادة تشغيل المحاكاة' : 'تشغيل المحاكاة'} لموسم ${fieldName}`}
+            className="px-2 py-1 text-xs rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50">
+            {ranSim ? 'إعادة التشغيل' : 'تشغيل'}
+          </button>
+        ) : (
+          <span className="text-slate-300">—</span>
+        )}
+      </td>
     </tr>
   );
 }
@@ -208,6 +228,9 @@ export function HybridIndexPage() {
   const { data, isLoading, error, refetch } = useDashboardKPIs();
   // مصدر الحقيقة لمجموعة المؤشّرات + حالتها (WS-B.2) — لا قائمة ثابتة.
   const registry = useIndicatorRegistry();
+  // التشغيل يكتب sim_* على الموسم؛ الخادم يشترط field:edit، والواجهة تعرض الزرّ بالقاعدة نفسها.
+  const canRunSim = can(useAuthStore((s) => s.user?.role), 'edit', 'field');
+  const [simTarget, setSimTarget] = useState<SimTarget | null>(null);
 
   const kpis    = (data?.kpis    || []) as Record<string, unknown>[];
   const alerts  = (data?.alerts  || []) as Record<string, unknown>[];
@@ -436,21 +459,38 @@ export function HybridIndexPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100">
-                  {['الحقل','المحصول','GDD','احتياج الماء','LAI أقصى','الإنتاجية','المصدر'].map(h => (
+                  {['الحقل','المحصول','GDD','احتياج الماء','LAI أقصى','الإنتاجية','المصدر','التشغيل'].map(h => (
                     <th key={h} className="text-right py-2 px-3 text-xs font-medium text-sahool-muted">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {fields.map((f: Record<string, unknown>) => (
-                  <WofostFieldRow key={f.field_id as string} field={f} />
+                  <WofostFieldRow key={f.field_id as string} field={f}
+                    onRun={canRunSim ? setSimTarget : undefined} />
                 ))}
               </tbody>
             </table>
             <p className="text-[11px] text-sahool-muted mt-3">
               القيم تقديرات نموذجيّة (بنطاق وثقة) تظهر بعد تشغيل المحاكاة للموسم؛ "—" تعني عدم تشغيلها بعد.
+              {!canRunSim && ' تشغيل المحاكاة يتطلّب صلاحيّة تعديل الحقل (مالك أو مدير).'}
             </p>
           </div>
+        )}
+        {simTarget && (
+          <SeasonSimulationDialog
+            key={simTarget.season.season_id}
+            seasonId={simTarget.season.season_id}
+            crops={simTarget.season.crops ?? []}
+            inputs={{
+              fieldName: simTarget.fieldName,
+              cultivar: simTarget.season.cultivar,
+              sowingDate: simTarget.season.sowing_date,
+              seasonEnd: simTarget.season.season_end,
+              irrigationType: simTarget.season.irrigation_type,
+            }}
+            onClose={() => setSimTarget(null)}
+          />
         )}
       </div>
 

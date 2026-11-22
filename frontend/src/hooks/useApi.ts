@@ -2349,10 +2349,13 @@ export function useCreateActivity(
 // ── محاكاة الموسم (Crop-model simulation, RUE/FAO-56) — v39 ──────────
 // يشغّل محاكاة محصوليّة للموسم على الخادم ويحفظ ناتجها (تقديرات بنطاق وثقة).
 // طفرة (mutation) بلا تخزين مؤقّت وهميّ: عند الخطأ (503 طقس/قاعدة، 404 موسم،
-// 422 بلا إحداثيّات) تعرض الواجهة الرسالة كما هي.
+// 422 بلا إحداثيّات) تعرض الواجهة الرسالة كما هي. بعد انتهاء الطلب (نجح أو فشل) تُعاد
+// قراءة المواسم: الشاشات تعرض sim_* المخزَّنة من الخادم لا من ردّ التشغيل.
 export function useSimulateSeason(): UseMutationResult<SeasonSimResult, Error, string> {
+  const qc = useQueryClient();
   return useMutation<SeasonSimResult, Error, string>({
     mutationFn: (seasonId) => simulateSeason(seasonId),
+    onSettled: () => { void qc.invalidateQueries({ queryKey: ['seasons'] }); },
   });
 }
 
