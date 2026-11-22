@@ -19,11 +19,21 @@
 --     farm and, when it names one, its field;
 --   * a row with no farm (fields.farm_id is nullable) is not farm-scoped and stays visible to the
 --     tenant, so full grants reproduce today's visibility exactly;
---   * writes are stricter than reads (WITH CHECK uses sc_farm_writable / sc_field_writable): a
---     non-owner writes only rows of a granted farm, never a row with no farm. Otherwise nulling
---     farm_id, or moving a season/task onto a farm-less field, would publish a granted farm's
---     row to every user of the tenant (security review, finding 1). Only owners write
---     farm-less rows while enforcement is on.
+--   * writes are stricter than reads: WITH CHECK and a RESTRICTIVE FOR DELETE policy use
+--     sc_farm_writable / sc_field_writable, so a non-owner inserts, updates and deletes only rows
+--     of a granted farm and never a row with no farm. Otherwise nulling farm_id, or moving a
+--     season/task onto a farm-less field, would publish a granted farm's row to every user of
+--     the tenant (security review, finding 1), and a non-owner could delete farm-less rows it may
+--     not even edit (delta review B). So under enforcement farm-less rows are READ-ONLY for
+--     non-owners; only owners write or delete them. Legacy fields were left farm-less when
+--     farm_id was added (v19_farms.sql), so assign their farms before enforcement is switched on.
+--
+-- Who writes farm_access_grants: only the migration owner (a superuser), through the operator
+-- backfill (scripts/ops/farm_access_backfill.py --apply, which refuses any other role). This file
+-- revokes INSERT/UPDATE/DELETE/TRUNCATE from every other role holding them on the table, and
+-- migrations/apply_in_compose.sh / bootstrap_postgres.sh revoke them from the application and jobs
+-- roles after their broad grants. The provenance label 'backfill:%' is reserved for that
+-- operator by a trigger, because farm_access_diff.py trusts it (delta review A).
 -- The tenant policies (tenant_isolation, v9/v122/v206) are untouched and still apply first.
 --
 -- Not covered here: documents and service-center tables (SC-2 migrations). Owner: sahool-platform.
@@ -67,6 +77,45 @@ CREATE POLICY farm_grant_owner_update ON farm_access_grants AS RESTRICTIVE FOR U
 DROP POLICY IF EXISTS farm_grant_owner_delete ON farm_access_grants;
 CREATE POLICY farm_grant_owner_delete ON farm_access_grants AS RESTRICTIVE FOR DELETE
     USING (current_setting('app.current_role', true) = 'owner');
+
+-- Provenance: 'backfill:%' is the label farm_access_diff.py trusts, so only the operator may write
+-- it. Operator = the migration owner: session_user AND current_user are superusers (no GUC, which
+-- any session can set). A role that may write the table for another reason still cannot claim it.
+CREATE OR REPLACE FUNCTION farm_access_grant_provenance_guard() RETURNS trigger
+LANGUAGE plpgsql SET search_path = pg_catalog, public AS $$
+BEGIN
+  IF NEW.granted_by LIKE 'backfill:%' AND NOT (
+       COALESCE((SELECT r.rolsuper FROM pg_roles r WHERE r.rolname = session_user), false)
+       AND COALESCE((SELECT r.rolsuper FROM pg_roles r WHERE r.rolname = current_user), false))
+  THEN
+    RAISE EXCEPTION 'farm_access_grants: granted_by % is reserved for the operator backfill run as the migration owner', NEW.granted_by
+      USING ERRCODE = '42501';
+  END IF;
+  RETURN NEW;
+END
+$$;
+DROP TRIGGER IF EXISTS farm_access_grant_provenance ON farm_access_grants;
+CREATE TRIGGER farm_access_grant_provenance BEFORE INSERT OR UPDATE ON farm_access_grants
+    FOR EACH ROW EXECUTE FUNCTION farm_access_grant_provenance_guard();
+
+-- Only the migration owner writes grants: revoke write from every other role holding it here
+-- (default privileges hand DML on new tables to the application and jobs roles). Idempotent;
+-- the migrator re-runs the same revoke after its broad grants.
+DO $$
+DECLARE r record;
+BEGIN
+  FOR r IN
+    SELECT DISTINCT a.grantee::regrole::text AS grantee
+    FROM pg_class c, aclexplode(c.relacl) a
+    WHERE c.oid = 'public.farm_access_grants'::regclass
+      AND a.privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')
+      AND a.grantee <> 0 AND a.grantee <> c.relowner
+      AND NOT COALESCE((SELECT x.rolsuper FROM pg_roles x WHERE x.oid = a.grantee), false)
+  LOOP
+    EXECUTE format('REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.farm_access_grants FROM %s',
+                   r.grantee);
+  END LOOP;
+END $$;
 
 -- Why PL/pgSQL, and why every policy tests the GUC itself first: PostgreSQL checks privileges on
 -- every relation a query references when it starts, even in a CASE branch that is never taken,
@@ -165,5 +214,28 @@ CREATE POLICY sc_farm_scope ON farm_ledger_entries AS RESTRICTIVE FOR ALL
            OR (sc_farm_visible(farm_id) AND (field_id IS NULL OR sc_field_visible(field_id))))
     WITH CHECK (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
                 OR (sc_farm_writable(farm_id) AND (field_id IS NULL OR sc_field_writable(field_id))));
+
+-- A non-owner deletes only what it may write (delta review B): DELETE checks USING only, so the
+-- WITH CHECK above alone left farm-less rows deletable by anyone in the tenant.
+DROP POLICY IF EXISTS sc_farm_scope_delete ON farms;
+CREATE POLICY sc_farm_scope_delete ON farms AS RESTRICTIVE FOR DELETE
+    USING (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
+           OR sc_farm_writable(farm_id::text));
+DROP POLICY IF EXISTS sc_farm_scope_delete ON fields;
+CREATE POLICY sc_farm_scope_delete ON fields AS RESTRICTIVE FOR DELETE
+    USING (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
+           OR sc_farm_writable(farm_id::text));
+DROP POLICY IF EXISTS sc_farm_scope_delete ON seasons;
+CREATE POLICY sc_farm_scope_delete ON seasons AS RESTRICTIVE FOR DELETE
+    USING (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
+           OR sc_field_writable(field_id::text));
+DROP POLICY IF EXISTS sc_farm_scope_delete ON field_tasks;
+CREATE POLICY sc_farm_scope_delete ON field_tasks AS RESTRICTIVE FOR DELETE
+    USING (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
+           OR sc_field_writable(field_id::text));
+DROP POLICY IF EXISTS sc_farm_scope_delete ON farm_ledger_entries;
+CREATE POLICY sc_farm_scope_delete ON farm_ledger_entries AS RESTRICTIVE FOR DELETE
+    USING (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
+           OR (sc_farm_writable(farm_id) AND (field_id IS NULL OR sc_field_writable(field_id))));
 
 COMMIT;

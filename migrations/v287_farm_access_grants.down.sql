@@ -7,6 +7,11 @@
 -- the cached presence before the flag is ever switched on again.
 BEGIN;
 SET LOCAL lock_timeout = '15s';
+DO $$ DECLARE t TEXT; BEGIN
+  FOREACH t IN ARRAY ARRAY['farm_ledger_entries', 'field_tasks', 'seasons', 'fields', 'farms'] LOOP
+    EXECUTE format('DROP POLICY IF EXISTS sc_farm_scope_delete ON %I', t);
+  END LOOP;
+END $$;
 DROP POLICY IF EXISTS sc_farm_scope ON farm_ledger_entries;
 DROP POLICY IF EXISTS sc_farm_scope ON field_tasks;
 DROP POLICY IF EXISTS sc_farm_scope ON seasons;
@@ -17,4 +22,5 @@ DROP FUNCTION IF EXISTS sc_farm_writable(TEXT);
 DROP FUNCTION IF EXISTS sc_field_visible(TEXT);
 DROP FUNCTION IF EXISTS sc_farm_visible(TEXT);
 DROP TABLE IF EXISTS farm_access_grants;
+DROP FUNCTION IF EXISTS farm_access_grant_provenance_guard();
 COMMIT;

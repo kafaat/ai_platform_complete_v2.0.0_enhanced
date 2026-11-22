@@ -204,6 +204,12 @@ WHERE to_regclass('public.task_cost_history') IS NOT NULL
 SELECT format('REVOKE EXECUTE ON FUNCTION public.record_field_task_cost() FROM %I', :'app_role')
 WHERE to_regprocedure('public.record_field_task_cost()') IS NOT NULL
 \gexec
+-- SC-1 (v287): farm_access_grants is written only by the operator backfill as the migration owner
+-- (scripts/ops/farm_access_backfill.py); the platform runtime reads its own grants. Must follow the
+-- broad GRANT above, which would otherwise re-grant DML and let any owner session forge a grant.
+SELECT format('REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE public.farm_access_grants FROM %I', :'app_role')
+WHERE to_regclass('public.farm_access_grants') IS NOT NULL
+\gexec
 SQL
 echo "  ✓ الدور $APP_ROLE جاهز (NOSUPERUSER NOBYPASSRLS) + admin_boundaries SELECT-only (A7) + season_records لا-DELETE (v201)"
 
