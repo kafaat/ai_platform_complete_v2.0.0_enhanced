@@ -3373,6 +3373,7 @@
         "mobile/sahool_app/test/core/retry_schedule_test.dart",
         "mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart",
         "mobile/sahool_app/test/features/irrigation/schedule_create_reconcile_test.dart",
+        "services/sahool-platform/tests/test_etc_estimate_is_not_irrigation_schedule_f5.py",
         "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
         "tests_v9/test_irrigation_schedule_conflict_v29_5_op.py"
       ],
@@ -3383,7 +3384,7 @@
         "audit_events": []
       },
       "evidence": [],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=5, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=6, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5942,6 +5943,7 @@
         "services/sahool-platform/tests/test_tenant_audit.py",
         "tests/architecture/test_execution_dependency_audit.py",
         "tests/ci/test_security_audit_tls_exception_is_narrow.py",
+        "tests_v9/test_advisory_envelope_references_and_audit_f5.py",
         "tests_v9/test_agent_audit_store_bounds.py",
         "tests_v9/test_ai_approval_audit_v55.py",
         "tests_v9/test_ai_provider_native_multiround_audit_v58.py",
@@ -6001,7 +6003,7 @@
           "path": "migrations/v265_scout_photo_grant_audit_enforcement.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=22, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=23, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

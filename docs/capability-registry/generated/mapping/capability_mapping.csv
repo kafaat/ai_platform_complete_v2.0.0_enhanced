@@ -30,7 +30,7 @@ IRR-002,irrigation,Water quality samples,True,5,1,6,8,3,0,0,3,0
 IRR-003,irrigation,Field water-source binding,True,3,1,0,4,0,0,0,3,1
 IRR-004,irrigation,Water balance,True,3,3,1,0,0,0,0,2,0
 IRR-005,irrigation,Irrigation recommendation,True,4,2,2,0,7,0,0,5,0
-IRR-006,irrigation,Irrigation scheduling,True,2,0,0,0,4,0,0,4,0
+IRR-006,irrigation,Irrigation scheduling,True,2,0,0,0,4,0,0,5,0
 IRR-007,irrigation,Pump and valve control,False,0,0,0,0,0,0,0,0,0
 IRR-008,irrigation,Execution verification,False,0,0,0,0,0,0,0,0,0
 IRR-009,irrigation,Water suitability multi-hazard,True,6,8,1,7,9,2,0,13,0

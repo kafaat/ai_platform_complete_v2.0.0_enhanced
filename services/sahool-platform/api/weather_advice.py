@@ -54,6 +54,18 @@ _DEFAULT_SALT_SLOPE_PCT = 7.1
 _SOIL_CRITICAL_PCT = 30.0  # تحت هذا الحدّ: إجهاد مائيّ وشيك
 _SOIL_COMFORTABLE_PCT = 60.0  # فوق هذا الحدّ: التربة رطبة، لا داعي للاستعجال
 
+# ``irrigation_advice`` computes ETc − effective rain. That is a crop water-consumption
+# estimate, not an irrigation schedule: FAO-56 Ch. 8 (eq. 85) schedules from a root-zone
+# balance — depletion Dr against TAW and the allowable fraction p — and this function reads
+# none of them. The payload says so by name; the depletion-triggered decision lives in
+# ``irrigation_recommendation_policy.recommend_irrigation``.
+QUANTITY_KIND_ETC_ESTIMATE = "etc_consumption_estimate"
+ROOT_ZONE_SCHEDULE_MISSING_INPUTS = (
+    "root_zone_depletion_mm",
+    "total_available_water_mm",
+    "depletion_fraction_p",
+)
+
 
 # ─── اكتمالُ المطر — سياسةٌ واحدة، لأنّ الغيابَ هنا يُنتِج أمرَ ريّ ───────
 #
@@ -207,7 +219,12 @@ def irrigation_advice(
     Returns:
         {recommended_mm, urgency, timing_ar, et0, kc, kc_used, kc_source,
          salinity_ks, rationale_ar, forecast_hold, crop_known, advisory_range_mm,
-         limitations}
+         limitations, quantity_kind, root_zone_balance_backed,
+         irrigation_schedule_missing_inputs}
+        quantity_kind: دائماً ``etc_consumption_estimate`` — ``recommended_mm`` هنا
+        ETc − المطر الفعّال (تقديرُ استهلاك)، لا عمقُ ريٍّ مجدوَل؛
+        ``root_zone_balance_backed=False`` و``irrigation_schedule_missing_inputs`` تسمّي
+        ما ينقص جدولةَ FAO-56 (ميزان منطقة الجذور).
         urgency ∈ {none, low, moderate, high}
         kc_used: قيمة Kc المستخدمة فعليّاً في الحساب.
         kc_source: مصدرها — "phenology_fao56" عند تمرير kc_override، وإلّا الوسم
@@ -358,6 +375,9 @@ def irrigation_advice(
         "crop_known": crop_known,
         "advisory_range_mm": advisory_range_mm,
         "limitations": limitations,
+        "quantity_kind": QUANTITY_KIND_ETC_ESTIMATE,
+        "root_zone_balance_backed": False,
+        "irrigation_schedule_missing_inputs": list(ROOT_ZONE_SCHEDULE_MISSING_INPUTS),
     }
 
 

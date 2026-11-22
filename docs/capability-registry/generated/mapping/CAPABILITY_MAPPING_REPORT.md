@@ -12,7 +12,7 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **45**
-- Files scanned: **7616**
+- Files scanned: **7617**
 - Ambiguous artifacts queued: **265**
 - Unmapped artifacts queued: **3626**
 
@@ -51,7 +51,7 @@
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 3 | 3 |
 | IRR-004 | irrigation | 3 | 1 | 0 | 0 | 0 | 0 | 2 | 3 |
 | IRR-005 | irrigation | 2 | 2 | 0 | 7 | 0 | 0 | 5 | 4 |
-| IRR-006 | irrigation | 0 | 0 | 0 | 4 | 0 | 0 | 4 | 2 |
+| IRR-006 | irrigation | 0 | 0 | 0 | 4 | 0 | 0 | 5 | 2 |
 | IRR-007 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | IRR-008 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | IRR-009 | irrigation | 8 | 1 | 7 | 9 | 2 | 0 | 13 | 6 |

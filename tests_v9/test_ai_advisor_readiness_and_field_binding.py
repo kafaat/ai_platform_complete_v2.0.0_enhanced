@@ -34,6 +34,9 @@ _GOOD = {
     "evidence_ids": ["ndvi:2026-06", "weather:nasa_power"],
     "pending_approvals": [],
     "generation_provider": "openrouter",
+    # F5: the quiet state now needs both confirmations the runtime always supplies.
+    "rag_available": True,
+    "audit_event": {"status": "recorded"},
 }
 
 

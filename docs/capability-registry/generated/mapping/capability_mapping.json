@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7616,
+    "files_scanned": 7617,
     "files_by_kind": {
-      "backend": 1310,
+      "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2642,
+      "tests": 2644,
       "web": 558
     },
     "unmapped_artifacts": 3626,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4137,
+      "python_functional": 4138,
       "raw": 3479
     },
-    "test_dependency_files": 2015,
-    "test_dependency_edges": 5379,
-    "test_dependency_bounded_files": 1167,
+    "test_dependency_files": 2017,
+    "test_dependency_edges": 5388,
+    "test_dependency_bounded_files": 1169,
     "test_dependency_unresolved_relations": 513
   },
   "capabilities": [
@@ -14091,6 +14091,15 @@
       "mobile": [],
       "tests": [
         {
+          "path": "services/sahool-platform/tests/test_etc_estimate_is_not_irrigation_schedule_f5.py",
+          "score": 16,
+          "signals": [
+            "path:irrigation schedule",
+            "content:irrigation schedule",
+            "content:Irrigation scheduling"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
           "score": 14,
           "signals": [
@@ -14136,7 +14145,7 @@
         "events": 4,
         "web": 0,
         "mobile": 0,
-        "tests": 4,
+        "tests": 5,
         "governance": 0,
         "other_evidence": 0
       },
@@ -43580,10 +43589,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/supervisor-agent/answer_provenance.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/supervisor-agent/circuit_breaker.py",
       "kind": "backend"
     },
@@ -44405,6 +44410,10 @@
     },
     {
       "path": "tests_v9/test_advisory_dependency_http_error_sanitization.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_advisory_envelope_references_and_audit_f5.py",
       "kind": "tests"
     },
     {
@@ -63697,6 +63706,29 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_etc_estimate_is_not_irrigation_schedule_f5.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+          "kind": "import",
+          "line": 16
+        },
+        {
+          "source": "services/sahool-platform/api/recommendations_hub.py",
+          "kind": "import",
+          "line": 17
+        },
+        {
+          "source": "services/sahool-platform/api/weather_advice.py",
+          "kind": "import",
+          "line": 18
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_event_catalog.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -75721,7 +75753,7 @@
         {
           "source": "services/ai_agronomist/ai_evidence_runtime.py",
           "kind": "source_read",
-          "line": 134
+          "line": 137
         },
         {
           "source": "services/ai_agronomist/decision_contracts.py",
@@ -75731,7 +75763,7 @@
         {
           "source": "services/ai_agronomist/main.py",
           "kind": "source_read",
-          "line": 133
+          "line": 136
         }
       ],
       "unresolved": []
@@ -75750,6 +75782,44 @@
           "source": "services/ai_agronomist/ai_evidence_runtime.py",
           "kind": "import",
           "line": 36
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_advisory_envelope_references_and_audit_f5.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 23
+        },
+        {
+          "source": "services/ai_agronomist/advisory_contract.py",
+          "kind": "import",
+          "line": 24
+        },
+        {
+          "source": "services/ai_agronomist/ai_evidence_runtime.py",
+          "kind": "import",
+          "line": 23
+        },
+        {
+          "source": "services/ai_agronomist/decision_contracts.py",
+          "kind": "import",
+          "line": 25
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "import",
+          "line": 170
+        },
+        {
+          "source": "tests_v9/test_b6m4_structured_advisory.py",
+          "kind": "import",
+          "line": 26
         }
       ],
       "unresolved": []
@@ -76062,7 +76132,7 @@
         {
           "source": "services/ai_agronomist/__init__.py",
           "kind": "import",
-          "line": 79
+          "line": 82
         },
         {
           "source": "services/ai_agronomist/advisory_contract.py",
@@ -76072,12 +76142,12 @@
         {
           "source": "services/ai_agronomist/main.py",
           "kind": "import",
-          "line": 79
+          "line": 82
         },
         {
           "source": "services/ai_agronomist/tool_executor.py",
           "kind": "import",
-          "line": 127
+          "line": 130
         }
       ],
       "unresolved": []
