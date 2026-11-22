@@ -171,8 +171,13 @@ def build_inventory_projection(
     *,
     sync_enabled: bool,
 ) -> list[InventoryProjectionLine]:
-    """يبني إسقاط خصم مخزون فقط؛ لا يخصم فعلياً من inventory-service."""
-    disabled = None if sync_enabled else "feature_flag_off"
+    """يبني إسقاط خصم مخزون فقط؛ لا يخصم فعلياً من inventory-service.
+
+    F-D11: no line is ever posted from here, so none loses its ``disabled_reason``: with the sync
+    flag on it reads ``projection_only``. The stock write is the flagged deduction step of
+    ``POST /api/v1/farm-ledger/operations`` (``FEATURE_LEDGER_INVENTORY_DEDUCTION``).
+    """
+    disabled = "projection_only" if sync_enabled else "feature_flag_off"
     lines: list[InventoryProjectionLine] = []
     for r in inputs:
         lines.append(
