@@ -11,10 +11,8 @@ reads a hydrated scope exactly (empty = no farm) and keeps the legacy contract o
 from __future__ import annotations
 
 import ast
-import asyncio
 import re
 import sys
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 import pytest
@@ -46,38 +44,6 @@ def _fresh(monkeypatch):
     monkeypatch.delenv(farm_scope.FLAG, raising=False)
 
 
-class _Catalog:
-    """A connection that records every statement; v287 present or not, grants as given."""
-
-    def __init__(self, present: bool, grants: list[str] | None = None):
-        self.present, self.grants, self.log = present, grants or [], []
-
-    async def fetchval(self, sql, *args):
-        self.log.append(("fetchval", sql))
-        assert "to_regclass('public.farm_access_grants')" in sql
-        return self.present
-
-    async def fetch(self, sql, *args):
-        self.log.append(("fetch", sql, args))
-        assert self.present, "grants must never be read before v287 exists"
-        return [{"farm_id": f} for f in self.grants]
-
-    async def execute(self, sql, *args):
-        self.log.append(("execute", sql, args))
-        return "SELECT 1"
-
-    def transaction(self):
-        return _Null()
-
-
-class _Null:
-    async def __aenter__(self):
-        return None
-
-    async def __aexit__(self, *_a):
-        return False
-
-
 def _user(role=UserRole.MANAGER, sub="42") -> UserSchema:
     return UserSchema(sub, TENANT, role, "مستخدم")
 
@@ -98,102 +64,173 @@ async def test_only_explicit_on_values_switch_it_on(monkeypatch, value):
     assert farm_scope.enforcement_requested() is False
 
 
-async def test_flag_on_before_v287_reads_no_grant_and_asks_the_catalog_again(monkeypatch):
-    monkeypatch.setenv(farm_scope.FLAG, "on")
-    conn, user = _Catalog(present=False), _user()
-    assert await farm_scope.load_farm_scope(conn, user) is False
-    assert await farm_scope.load_farm_scope(conn, user) is False
-    assert [entry[0] for entry in conn.log] == ["fetchval", "fetchval"], "absence is not cached"
-    assert user.farm_scope_loaded is False
-
-
-async def test_flag_on_after_v287_hydrates_from_grants_keyed_by_the_jwt_sub(monkeypatch):
-    monkeypatch.setenv(farm_scope.FLAG, "1")
-    conn = _Catalog(present=True, grants=["farm-a"])
-    worker = _user(UserRole.WORKER, sub="42")
-    assert await farm_scope.load_farm_scope(conn, worker) is True
-    assert (worker.farm_scope_loaded, worker.farm_access_all, worker.farm_ids_access) == (
-        True,
-        False,
-        ["farm-a"],
-    )
-    _, sql, args = conn.log[-1]
-    assert args == (TENANT, "42"), "the grant key is user.user_id, i.e. the JWT sub"
-    owner = _user(UserRole.OWNER, sub="1")
-    assert await farm_scope.load_farm_scope(conn, owner) is True
-    assert owner.farm_access_all is True
-    assert [e[0] for e in conn.log].count("fetchval") == 1, "presence is cached"
-
-
 def test_the_probe_reads_the_catalog_for_both_v287_objects():
     assert "to_regprocedure('public.sc_farm_visible(text)') IS NOT NULL" in farm_scope._PROBE
     assert "to_regclass('public.farm_access_grants') IS NOT NULL" in farm_scope._PROBE
     assert "information_schema" not in farm_scope._PROBE
 
 
-# ── tenant_connection, executed from main.py's own source ─────────────────────
+# ── tenant_connection and load_farm_scope: the order, read from the source ────
+#
+# No stand-in connection (FAKE-CONNECTION-ENFORCES-NOTHING-01): what PostgreSQL does with this
+# order (RLS on the grant read, the enforcement GUC, a refused read failing the request) is
+# proven in test_farm_access_scope_live_pg.py. These checks pin the order itself.
 
 
-def _tenant_connection(conn):
-    fn = next(
+def _function(path: Path, name: str) -> ast.AsyncFunctionDef:
+    return next(
         n
-        for n in ast.parse(MAIN.read_text(encoding="utf-8")).body
-        if isinstance(n, ast.AsyncFunctionDef) and n.name == "tenant_connection"
+        for n in ast.parse(path.read_text(encoding="utf-8")).body
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == name
     )
 
-    class _Acquire:
-        async def __aenter__(self):
-            return conn
 
-        async def __aexit__(self, *_a):
-            return False
+def _body(fn: ast.AsyncFunctionDef) -> list[ast.stmt]:
+    """The function body without its docstring."""
+    body = fn.body
+    if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
+        return body[1:]
+    return body
 
-    class _Pool:
-        def acquire(self):
-            return _Acquire()
 
-    namespace = {
-        "asynccontextmanager": asynccontextmanager,
-        "get_pool": lambda: _Pool(),
-        "load_farm_scope": farm_scope.load_farm_scope,
+def _awaited_call(node: ast.AST) -> ast.Call | None:
+    if isinstance(node, ast.Expr):
+        node = node.value
+    if isinstance(node, ast.Await) and isinstance(node.value, ast.Call):
+        return node.value
+    return None
+
+
+def _is_returns_false(stmts: list[ast.stmt]) -> bool:
+    last = stmts[-1]
+    return (
+        isinstance(last, ast.Return)
+        and isinstance(last.value, ast.Constant)
+        and last.value.value is False
+    )
+
+
+def _transaction_body() -> list[ast.stmt]:
+    fn = _function(MAIN, "tenant_connection")
+    assert not [n for n in ast.walk(fn) if isinstance(n, ast.Try)], (
+        "tenant_connection catches nothing: a failed grant read must escape before the yield"
+    )
+    acquire = next(s for s in _body(fn) if isinstance(s, ast.AsyncWith))
+    (transaction,) = [s for s in acquire.body if isinstance(s, ast.AsyncWith)]
+    assert ast.unparse(transaction.items[0].context_expr) == "conn.transaction()"
+    return transaction.body
+
+
+def test_tenant_connection_sets_the_farm_guc_only_when_load_farm_scope_says_so():
+    """Tenant GUCs, then load_farm_scope (which reads the grants under them), then the farm GUC
+    only on True, then the yield. Nothing else runs inside the transaction."""
+    tenant_gucs, gate, handout = _transaction_body()
+    call = _awaited_call(tenant_gucs)
+    assert call is not None and ast.unparse(call.func) == "conn.execute"
+    assert "set_config('app.current_tenant'" in call.args[0].value
+
+    assert isinstance(gate, ast.If) and not gate.orelse
+    assert ast.unparse(gate.test) == "await load_farm_scope(conn, user)"
+    (set_farm,) = gate.body
+    farm_call = _awaited_call(set_farm)
+    assert farm_call is not None and ast.unparse(farm_call.func) == "conn.execute"
+    assert [ast.unparse(a) for a in farm_call.args] == [
+        "\"SELECT set_config('app.enforce_farm_scope', 'on', true)\""
+    ]
+
+    assert isinstance(handout, ast.Expr) and isinstance(handout.value, ast.Yield)
+    assert ast.unparse(handout.value) == "(yield conn)"
+
+
+def test_the_farm_guc_is_set_nowhere_else_on_the_request_path():
+    sources = [MAIN, PLATFORM / "api" / "farm_scope.py"]
+    hits = [
+        (p.name, n.lineno)
+        for p in sources
+        for n in ast.walk(ast.parse(p.read_text(encoding="utf-8")))
+        if isinstance(n, ast.Constant)
+        and isinstance(n.value, str)
+        and "set_config('app.enforce_farm_scope'" in n.value
+    ]
+    assert len(hits) == 1 and hits[0][0] == "main.py", hits
+
+
+def test_load_farm_scope_queries_nothing_before_both_switches_hold():
+    """The flag first (no query at all while it is off), then the catalog probe, and only then
+    the grant read; both refusals return False before the user is touched."""
+    flag, probe, *rest = _body(_function(PLATFORM / "api" / "farm_scope.py", "load_farm_scope"))
+    assert isinstance(flag, ast.If) and ast.unparse(flag.test) == "not enforcement_requested()"
+    assert len(flag.body) == 1 and _is_returns_false(flag.body)
+    assert isinstance(probe, ast.If) and ast.unparse(probe.test) == "not await schema_present(conn)"
+    assert _is_returns_false(probe.body)
+    assert not [
+        n for n in ast.walk(flag) if isinstance(n, ast.Attribute) and ast.unparse(n.value) == "conn"
+    ]
+
+
+def test_load_farm_scope_hydrates_only_from_the_grant_read_keyed_by_the_jwt_sub():
+    body = _body(_function(PLATFORM / "api" / "farm_scope.py", "load_farm_scope"))[2:]
+    reads = [
+        i
+        for i, s in enumerate(body)
+        for n in ast.walk(s)
+        if isinstance(n, ast.Call) and ast.unparse(n.func) == "conn.fetch"
+    ]
+    assert len(reads) == 1, "exactly one grant read"
+    (read,) = [
+        n
+        for n in ast.walk(body[reads[0]])
+        if isinstance(n, ast.Call) and ast.unparse(n.func) == "conn.fetch"
+    ]
+    assert [ast.unparse(a) for a in read.args] == [
+        "_GRANTS",
+        "str(user.tenant_id)",
+        "str(user.user_id)",
+    ], "the grant key is user.user_id, i.e. the JWT sub"
+    writes = [
+        i
+        for i, s in enumerate(body)
+        for n in ast.walk(s)
+        if isinstance(n, ast.Attribute)
+        and isinstance(n.ctx, ast.Store)
+        and ast.unparse(n.value) == "user"
+    ]
+    assert {"farm_ids_access", "farm_access_all", "farm_scope_loaded"} <= {
+        n.attr
+        for s in body
+        for n in ast.walk(s)
+        if isinstance(n, ast.Attribute) and isinstance(n.ctx, ast.Store)
     }
-    exec(compile(ast.Module(body=[fn], type_ignores=[]), str(MAIN), "exec"), namespace)  # noqa: S102
-    return namespace["tenant_connection"]
+    assert writes and min(writes) > reads[0], "the user is hydrated only after the read returns"
+    last = body[-1]
+    assert isinstance(last, ast.Return) and ast.unparse(last.value) == "True"
+    assert "is_active" in farm_scope._GRANTS and "tenant_id = $1::uuid" in farm_scope._GRANTS
 
 
-def _statements(conn, user) -> list[str]:
-    async def run():
-        async with _tenant_connection(conn)(user):
-            pass
-
-    asyncio.run(run())
-    return [e[1] for e in conn.log if e[0] == "execute"]
-
-
-def _enforce_set(statements: list[str]) -> bool:
-    return any("app.enforce_farm_scope" in s for s in statements)
-
-
-def test_tenant_connection_never_sets_the_farm_guc_while_the_flag_is_off():
-    statements = _statements(_Catalog(present=True, grants=["farm-a"]), _user())
-    assert len(statements) == 1 and "app.current_tenant" in statements[0]
-    assert not _enforce_set(statements)
-
-
-def test_tenant_connection_does_not_set_it_before_v287_even_when_the_flag_is_on(monkeypatch):
-    monkeypatch.setenv(farm_scope.FLAG, "on")
-    assert not _enforce_set(_statements(_Catalog(present=False), _user()))
-
-
-def test_tenant_connection_sets_it_after_the_tenant_gucs_once_both_switches_hold(monkeypatch):
-    monkeypatch.setenv(farm_scope.FLAG, "on")
-    conn = _Catalog(present=True, grants=["farm-a"])
-    statements = _statements(conn, _user())
-    assert "app.current_tenant" in statements[0]
-    assert statements[-1] == "SELECT set_config('app.enforce_farm_scope', 'on', true)"
-    order = [e[0] if e[0] != "execute" else e[1] for e in conn.log]
-    assert order.index("fetch") < order.index(statements[-1]), "grants first, then the GUC"
-    assert order.index(statements[0]) < order.index("fetch"), "tenant GUCs before the grants"
+def test_v287_presence_is_cached_and_absence_is_asked_again():
+    """Only a True probe sets the cache; nothing in a function ever caches absence."""
+    fn = _function(PLATFORM / "api" / "farm_scope.py", "schema_present")
+    stores = [
+        n
+        for n in ast.walk(fn)
+        if isinstance(n, ast.Assign) and [ast.unparse(t) for t in n.targets] == ["_present"]
+    ]
+    assert [ast.unparse(s.value) for s in stores] == ["True"], "absence is never cached"
+    (cached,) = [
+        s for s in _body(fn) if isinstance(s, ast.If) and any(n in stores for n in ast.walk(s))
+    ]
+    assert ast.unparse(cached.test) == "await conn.fetchval(_PROBE) is True"
+    tree = ast.parse((PLATFORM / "api" / "farm_scope.py").read_text(encoding="utf-8"))
+    falses = [
+        n
+        for f in ast.walk(tree)
+        if isinstance(f, (ast.FunctionDef, ast.AsyncFunctionDef))
+        for n in ast.walk(f)
+        if isinstance(n, ast.Assign)
+        and "_present" in [ast.unparse(t) for t in n.targets]
+        and ast.unparse(n.value) != "True"
+    ]
+    assert falses == []
 
 
 # ── authorization: hydrated scope is exact, legacy scope unchanged ────────────
@@ -241,45 +278,7 @@ def test_hydrated_owner_keeps_every_farm_even_with_some_individual_grants():
     assert audit_user_permissions(owner)["farm_access"] == "all_in_tenant"
 
 
-# ── failure never widens access; no error-catching; no DDL from a request ─────
-
-
-class _GrantReadFails(_Catalog):
-    """v287 is present, but the grant read fails (a privilege error, a dropped connection...)."""
-
-    def __init__(self, exc: Exception):
-        super().__init__(present=True)
-        self.exc = exc
-
-    async def fetch(self, sql, *args):
-        self.log.append(("fetch", sql, args))
-        raise self.exc
-
-
-class _InsufficientPrivilege(Exception):
-    sqlstate = "42501"
-
-
-@pytest.mark.parametrize(
-    "exc",
-    [_InsufficientPrivilege("permission denied for table farm_access_grants"), ConnectionError()],
-)
-def test_a_failed_grant_read_fails_the_request_and_never_falls_back_to_all_farms(monkeypatch, exc):
-    """Unhydrated + empty farm_ids_access means every farm (legacy contract), so a fallback
-    after a failed read would widen access. The error must escape tenant_connection: the
-    request body never runs, and the user is not left looking unrestricted-but-loaded."""
-    monkeypatch.setenv(farm_scope.FLAG, "on")
-    conn, user, entered = _GrantReadFails(exc), _user(UserRole.WORKER), []
-
-    async def run():
-        async with _tenant_connection(conn)(user):
-            entered.append(True)
-
-    with pytest.raises(type(exc)):
-        asyncio.run(run())
-    assert entered == [], "the request body must not run on a failed grant read"
-    assert user.farm_scope_loaded is False and user.farm_ids_access == []
-    assert not _enforce_set([e[1] for e in conn.log if e[0] == "execute"])
+# ── no error-catching; no DDL from a request ──────────────────────────────────
 
 
 def _source_tree(path: Path) -> ast.Module:

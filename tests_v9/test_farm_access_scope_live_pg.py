@@ -8,6 +8,8 @@ Proven here:
 
 * before v287 the platform, with ``SAHOOL_FARM_SCOPE_ENFORCE`` on, reads no grant and lists the
   tenant's farms as before (code ships before its migration);
+* v287 applied while the platform runs is enforced on the next request, no restart (absence is
+  not cached), with the grant read under the tenant context;
 * after v287 with enforcement off (the GUC never set), every role sees exactly what it saw
   before, table by table;
 * enforcement on with the backfilled grants (``farm_access_backfill.py`` reading identities
@@ -428,6 +430,28 @@ def test_before_v287_the_platform_reads_no_grant_even_with_the_flag_on(
         monkeypatch.setattr(main, "_DB_POOL", live.pool)
         assert await _get_farms(_user("worker")) == (200, ["fs-farm-1", "fs-farm-2"])
         assert farm_scope._present is False
+
+    _run(template, body)
+
+
+def test_v287_applied_while_the_platform_runs_is_picked_up_without_a_restart(
+    template, monkeypatch, platform
+):
+    """Absence is asked again: the same process, flag on, lists every farm before v287 and
+    enforces right after it is applied. The worker's grant is read under the tenant GUC (the
+    grant table is tenant-isolated by RLS), so a read before the tenant context would return no
+    grant and the last request would show no farm."""
+    main, farm_scope = platform
+
+    async def body(live):
+        monkeypatch.setattr(main, "_DB_POOL", live.pool)
+        assert await _get_farms(_user("worker")) == (200, ["fs-farm-1", "fs-farm-2"])
+        assert farm_scope._present is False
+        await live.apply_v287()
+        assert await _get_farms(_user("worker")) == (200, [])
+        assert farm_scope._present is True
+        await live.grant(SUBS["worker"], "fs-farm-1")
+        assert await _get_farms(_user("worker")) == (200, ["fs-farm-1"])
 
     _run(template, body)
 

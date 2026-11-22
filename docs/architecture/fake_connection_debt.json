@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "703c14dee82272f75422e8e733ec323e5a65cec5",
+  "measured_on": "26f5b131f68fa3c7cbc76a27ad13b3f98fa78dbf",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -94,7 +94,6 @@
     "tests_v9/test_element84_legacy_inventory.py",
     "tests_v9/test_eo_operational_quality_contract.py",
     "tests_v9/test_erp_sync_recovery.py",
-    "tests_v9/test_farm_access_scope.py",
     "tests_v9/test_field_forms_api_integration.py",
     "tests_v9/test_field_forms_sync_binding_p02.py",
     "tests_v9/test_field_state_ndvi_enrichment.py",
@@ -744,16 +743,6 @@
         "tests_v9/test_band_math_version_reuse.py"
       ],
       "justification": "#1554 bumps the band-math algorithm version to sahool.band_math/2. The stand-in (_Conn with fetchval/fetchrow/execute/transaction, patched db_persist._connect) answers the ready-asset preflight from an in-memory table and filters on the algorithm version only when the SQL text itself names `algorithm_version=$N`, reading the parameter position from the query. It measures that both preflights (backfill_scan_worker._ready_asset and db_persist.enqueue_single_scene_process) bind the current version to that clause, that a /1 or version-less ready asset is not answered as ready, and that no legacy item is re-keyed onto the /2 identity. Removing the clause from either preflight or reverting the version constant, the fallback or the fixed legacy baseline fails it (1, 2, 3 or 6 tests). Its green says nothing about what PostgreSQL decides: column types, NULL comparison and RLS are not exercised here. services/raster-service/test_single_scene_concurrent_pg.py (#1556) exercises the live single-scene enqueue under a restricted role but seeds no ready asset, so it does not prove the version binding; the independent review ran the /1, NULL and /2 ready-asset cases against live PostgreSQL 16 by hand (planned, planned, already_ready; all already_ready with the clause removed). No proven_live exemption or database-enforcement claim is added."
-    },
-    {
-      "kind": "farm_scope_tenant_connection_order_unit_harness_20261122",
-      "date": "2026-11-22",
-      "before": 140,
-      "after": 141,
-      "sites": [
-        "tests_v9/test_farm_access_scope.py"
-      ],
-      "justification": "Service Center SC-1 (decision C). The stand-in (_Catalog with fetchval/fetch/execute/transaction, and a _Pool whose acquire lends it to tenant_connection executed from main.py's own source) records statements only. It measures the platform's decisions without a database: with SAHOOL_FARM_SCOPE_ENFORCE off nothing is queried and app.enforce_farm_scope is never set; with the flag on before v287 only the catalog probe runs (absence asked again); with both switches the grants are read by tenant and JWT sub after the tenant GUCs and before the enforcement GUC. Its green says nothing about what PostgreSQL decides (RLS, the policies, privileges): tests_v9/test_farm_access_scope_live_pg.py proves that on a migrated database under a NOBYPASSRLS role, through the real tenant_connection and GET /api/v1/farms. No proven_live exemption or database-enforcement claim is added."
     }
   ]
 }
