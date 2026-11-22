@@ -290,3 +290,68 @@ test('الخطوة 9: اتّساق الإسقاط maplibre — مركز الخر
   expect(Math.abs(px - box.width / 2)).toBeLessThan(2);
   expect(Math.abs(py - box.height / 2)).toBeLessThan(2);
 });
+
+// ── F-U03: مناطق الإدارة/الوصفات وتصاميم pivot المحفوظة تُرسَم على MapLibre ──
+// المسار الإنتاجيّ كاملاً: GET drawing-features ⇒ MapHub.pivotDrafts ⇒ HubMapGL ⇒ مصدر
+// GeoJSON وطبقتا تعبئة/حدّ يقبلهما MapLibre الحقيقيّ (طبقة بوصف غير صالح يرفضها addLayer
+// فلا تظهر في النمط). صدق: يُثبت ما سُلِّم إلى المحرّك وقَبِله وترتيبَه — لا البكسلات
+// تحت SwiftShader. والهندسة غير المضلّعة تُتخطّى ولا يُخترَع لها شكل.
+test('F-U03: المناطق وتصاميم pivot المحفوظة تُسلَّم إلى MapLibre عند تفعيل «محوري» @gating', async ({ page }) => {
+  const target = FIELDS[1];
+  const lng = target.centroid_lon;
+  const lat = target.centroid_lat;
+  const ring = [[lng - 0.01, lat - 0.01], [lng + 0.01, lat - 0.01], [lng + 0.01, lat + 0.01], [lng - 0.01, lat + 0.01], [lng - 0.01, lat - 0.01]];
+  const saved = (id: string, kind: string, geometry: unknown, name: string) => ({
+    id, kind, version: 1, draft: false, geometry, properties: { fieldId: target.field_id, name },
+  });
+  await page.route(`**/api/v1/fields/${target.field_id}/drawing-features`, (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      features: [
+        saved('e2e-zone', 'management-zone', { type: 'Polygon', coordinates: [ring] }, 'منطقة E2E'),
+        saved('e2e-rx', 'prescription-zone', { type: 'Polygon', coordinates: [ring] }, 'وصفة E2E'),
+        saved('e2e-pivot', 'pivot', { type: 'Polygon', coordinates: [ring] }, 'محور E2E'),
+        saved('e2e-point', 'management-zone', { type: 'Point', coordinates: [lng, lat] }, 'نقطة لا تُرسَم'),
+      ],
+    }),
+  }));
+  const errors = collectErrors(page);
+  await page.goto(MAPHUB_PATH, { waitUntil: 'domcontentloaded' });
+  await waitForMapReady(page);
+  await page.waitForFunction(() => !!(window as unknown as { __hubmap?: { getMap?: unknown } }).__hubmap?.getMap, null, { timeout: 20_000 });
+  await page.getByTestId(`field-${target.field_id}`).click();
+
+  const overlayState = () => page.evaluate(async () => {
+    type Src = { getData: () => Promise<{ features: Array<{ properties: { id: string } }> }> };
+    type GLMap = { getSource: (id: string) => Src | undefined; getStyle: () => { layers: Array<{ id: string }> } };
+    const map = (window as unknown as { __hubmap: { getMap: () => GLMap } }).__hubmap.getMap();
+    const layers = map.getStyle().layers.map((l) => l.id);
+    const source = map.getSource('sahool-draw-overlays');
+    return {
+      ids: source ? (await source.getData()).features.map((f) => f.properties.id) : null,
+      fill: layers.indexOf('sahool-draw-overlays-fill'),
+      line: layers.indexOf('sahool-draw-overlays-line'),
+      selected: layers.indexOf('sahool-fields-selected'),
+    };
+  });
+
+  // قبل التفعيل: لا شيء مرسوم (المناطق مخفيّة حتى يُفعَّل التبديل).
+  expect((await overlayState()).ids).toBeNull();
+
+  await page.getByTestId('btn-pivots').click();
+  await expect.poll(async () => (await overlayState()).ids, { timeout: 15_000 }).toEqual(['e2e-pivot', 'e2e-zone', 'e2e-rx']);
+  const drawn = await overlayState();
+  // الطبقتان قُبلتا في نمط MapLibre الحقيقيّ، فوق إبراز الحقل المختار.
+  expect(drawn.fill).toBeGreaterThan(drawn.selected);
+  expect(drawn.line).toBeGreaterThan(drawn.fill);
+
+  // إطفاء التبديل يزيل المصدر والطبقتين.
+  await page.getByTestId('btn-pivots').click();
+  await expect.poll(async () => (await overlayState()).ids, { timeout: 15_000 }).toBeNull();
+  expect((await overlayState()).fill).toBe(-1);
+
+  await expect(page.locator(`${CONTAINER} canvas`).first()).toBeVisible();
+  const real = errors.filter((e) => !isBenign(e));
+  expect(real, `أخطاء console غير متوقّعة:\n${real.join('\n')}`).toHaveLength(0);
+});

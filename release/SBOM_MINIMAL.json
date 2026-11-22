@@ -275,7 +275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f43a98adc14023ecfa8ce57c116b64097aa145b2403dc7c91ec1ee39e77b6696"
+          "content": "1d4e6d3dd78cd07c899afb926307b54e31e716fe667c3be4f52132020f692e46"
         }
       ],
       "name": "frontend/e2e/maphub-webgl.spec.ts",
@@ -2045,10 +2045,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "966ac730062f5ced1fa075b112decc3f4b409bfb1679ff67ee045c099ff45426"
+          "content": "00972dcbc15bef904c884c6c455b7f4b3c8ac90be5d5bc6fc99d297799b3c29f"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "be6100a4bf4d2189bba06d22b8b61945b2ea7d4afbe8680c21e63a51ca6c4fd6"
+        }
+      ],
+      "name": "frontend/src/components/maphub/HubMapGL.zones.test.tsx",
       "type": "file"
     },
     {

@@ -68,6 +68,10 @@ const SRC_SOIL = 'sahool-soil';
 const LYR_SOIL = 'sahool-soil-layer';
 const SRC_CONTOURS = 'sahool-contours';
 const LYR_CONTOURS = 'sahool-contours-layer';
+// مناطق الإدارة/الوصفات/الاستبعاد وتصاميم pivot الواصلة في pivotDrafts (تكافؤ Leaflet).
+const SRC_DRAW_OVERLAYS = 'sahool-draw-overlays';
+const LYR_DRAW_OVERLAYS_FILL = 'sahool-draw-overlays-fill';
+const LYR_DRAW_OVERLAYS_LINE = 'sahool-draw-overlays-line';
 
 // أسماء أوضاع Terra Draw القياسيّة (من getters .mode في الحزمة).
 type DrawMode = 'polygon' | 'linestring' | 'select';
@@ -286,6 +290,97 @@ function pinEl(p: ScoutPin): HTMLElement {
 
 // تنسيق عرض القياسات: fmtArea/fmtLength مُستورَدان من lib/geo (مصدر واحد لكلا المحرّكَين).
 
+// ── مناطق/تصاميم pivotDrafts: نفس ما يرسمه HubMap (Leaflet) — المضلّع البسيط وحده
+// (الحلقة الخارجيّة)، بلون نوعه وتسميته. ما عداه يُتخطّى ولا يُخترَع له شكل.
+function drawFeatureOuterRing(feature: DrawFeature): GeoJSON.Position[] | null {
+  if (feature.geometry.type !== 'Polygon') return null;
+  const rings = feature.geometry.coordinates as unknown;
+  if (!Array.isArray(rings) || !Array.isArray(rings[0])) return null;
+  const ring: GeoJSON.Position[] = [];
+  for (const pt of rings[0] as unknown[]) {
+    if (!Array.isArray(pt) || !Number.isFinite(pt[0]) || !Number.isFinite(pt[1])) return null;
+    ring.push([pt[0] as number, pt[1] as number]);
+  }
+  return ring.length >= 3 ? ring : null;
+}
+
+// ألوان HubMap.drawFeatureStyle نفسها. التقطيع بوحدة عرض الخطّ (2px) لا بالبكسل كما في Leaflet.
+const DRAW_OVERLAY_DEFAULT_STYLE = { color: '#38bdf8', fillOpacity: 0.18, dash: [3, 2] };
+const DRAW_OVERLAY_STYLE: Partial<Record<DrawFeature['kind'], typeof DRAW_OVERLAY_DEFAULT_STYLE>> = {
+  'prescription-zone': { color: '#f59e0b', fillOpacity: 0.20, dash: [1.5, 2.5] },
+  'management-zone': { color: '#22c55e', fillOpacity: 0.16, dash: [4, 2] },
+  'exclusion-zone': { color: '#ef4444', fillOpacity: 0.18, dash: [1, 2] },
+};
+
+function drawFeatureLabel(feature: DrawFeature): string {
+  const name = feature.properties.name || (feature.kind === 'pivot' ? 'Pivot' : feature.kind);
+  const area = feature.measurements?.areaHa;
+  const rate = feature.properties.rate as number | undefined;
+  const rateUnit = feature.properties.rateUnit as string | undefined;
+  const rateText = typeof rate === 'number' ? ` · ${rate}${rateUnit ? ` ${rateUnit}` : ''}` : '';
+  return `${name}${typeof area === 'number' ? ` · ${area.toFixed(2)} هـ` : ''}${rateText}`;
+}
+
+function drawOverlaysToGeoJSON(features: DrawFeature[]): GeoJSON.FeatureCollection {
+  const out: GeoJSON.Feature[] = [];
+  for (const feature of features) {
+    const ring = drawFeatureOuterRing(feature);
+    if (!ring) continue;
+    const style = DRAW_OVERLAY_STYLE[feature.kind] ?? DRAW_OVERLAY_DEFAULT_STYLE;
+    out.push({
+      type: 'Feature',
+      geometry: { type: 'Polygon', coordinates: [ring] },
+      properties: {
+        id: feature.id, kind: feature.kind, color: style.color,
+        fillOpacity: style.fillOpacity, label: drawFeatureLabel(feature),
+      },
+    });
+  }
+  return { type: 'FeatureCollection', features: out };
+}
+
+const DRAW_OVERLAY_LAYERS: maplibregl.LayerSpecification[] = [
+  {
+    id: LYR_DRAW_OVERLAYS_FILL, type: 'fill', source: SRC_DRAW_OVERLAYS,
+    paint: { 'fill-color': ['get', 'color'], 'fill-opacity': ['get', 'fillOpacity'] },
+  },
+  {
+    id: LYR_DRAW_OVERLAYS_LINE, type: 'line', source: SRC_DRAW_OVERLAYS,
+    paint: {
+      'line-color': ['get', 'color'], 'line-width': 2,
+      'line-dasharray': [
+        'match', ['get', 'kind'],
+        ...Object.entries(DRAW_OVERLAY_STYLE).flatMap(([kind, style]) => [kind, ['literal', style.dash]]),
+        ['literal', DRAW_OVERLAY_DEFAULT_STYLE.dash],
+      ] as unknown as maplibregl.ExpressionSpecification,
+    },
+  },
+];
+
+// يُبقي المصدر والطبقتين مطابقَين للبيانات: لا مضلّعات ⇒ إزالة؛ وإلّا تحديث في المكان
+// ووضع الطبقتين فوق إبراز الحقل المختار مباشرةً (تبديل الأساس يعيد طبقات الحقول إلى القمّة).
+function syncDrawOverlays(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
+  if (data.features.length === 0) {
+    for (const layer of DRAW_OVERLAY_LAYERS) {
+      if (map.getLayer(layer.id)) map.removeLayer(layer.id);
+    }
+    if (map.getSource(SRC_DRAW_OVERLAYS)) map.removeSource(SRC_DRAW_OVERLAYS);
+    return;
+  }
+  const source = map.getSource(SRC_DRAW_OVERLAYS) as maplibregl.GeoJSONSource | undefined;
+  if (source) source.setData(data);
+  else map.addSource(SRC_DRAW_OVERLAYS, { type: 'geojson', data });
+  const others = (map.getStyle()?.layers ?? [])
+    .map((layer) => layer.id)
+    .filter((id) => !DRAW_OVERLAY_LAYERS.some((layer) => layer.id === id));
+  const selectedAt = others.indexOf(LYR_SELECTED);
+  const beforeId = selectedAt >= 0 ? others[selectedAt + 1] : undefined;
+  for (const layer of DRAW_OVERLAY_LAYERS) {
+    if (map.getLayer(layer.id)) map.moveLayer(layer.id, beforeId);
+    else map.addLayer(layer, beforeId);
+  }
+}
+
 interface MeasureState { polys: number; lines: number; areaM2: number; lengthM: number }
 const EMPTY_MEASURE: MeasureState = { polys: 0, lines: 0, areaM2: 0, lengthM: 0 };
 
@@ -295,7 +390,7 @@ export default function HubMapGL({
   alertMarkers = [], deviceMarkers = [], weatherMarker = null, operationalMarkers = [],
   initialView = null, onViewChange, imageryTs = 0, imageryDate = null, tenantId = null, preferPersistedCog = false,
   hillshadeTilesUrl = null, slopeTilesUrl = null, soilTilesUrl = null,
-  contours = null, soilSamplePoints = [],
+  contours = null, soilSamplePoints = [], pivotDrafts = [],
 }: HubMapGLProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -399,7 +494,9 @@ export default function HubMapGL({
       resizeObsRef.current = ro;
     }
 
-    const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8 });
+    // خلفيّة نافذة MapLibre بيضاء دائماً، ولون النصّ يُورَث من سمة التطبيق الداكنة (أبيض)
+    // ⇒ تسمية غير مقروءة. نثبّت لوناً داكناً للنصّ.
+    const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8, className: 'text-slate-900' });
     popupRef.current = popup;
 
     map.on('error', () => { /* بلاطات فارغة/مفقودة لا تُسقِط الخريطة — نتجاهل بهدوء */ });
@@ -434,6 +531,14 @@ export default function HubMapGL({
         if (!pinModeRef.current) map.getCanvas().style.cursor = '';
         popup.remove();
       });
+      // تسمية المنطقة/التصميم على المرور (نظير Tooltip في Leaflet). يُسجَّل بعد مُعالِج
+      // الحقول فتغلب تسمية المنطقة اسمَ الحقل الذي تحتها.
+      map.on('mousemove', LYR_DRAW_OVERLAYS_FILL, (e) => {
+        if (pinModeRef.current) return;
+        const label = e.features?.[0]?.properties?.label;
+        if (label) popup.setLngLat(e.lngLat).setText(String(label)).addTo(map);
+      });
+      map.on('mouseleave', LYR_DRAW_OVERLAYS_FILL, () => { popup.remove(); });
 
       // v2: التقاط استقرار الحركة (moveend) ⇒ إبلاغ المركز [lat,lng] والتكبير.
       // يشمل moveend البرمجيّ (fitBounds/jumpTo) والمستخدم؛ الكتابة في MapHub
@@ -557,6 +662,16 @@ export default function HubMapGL({
       soilMarkersRef.current.push(mk);
     }
   }, [hillshadeTilesUrl, slopeTilesUrl, soilTilesUrl, contours, soilSamplePoints, basemapId, ready]);
+
+  // ── مناطق الإدارة/الوصفات/الاستبعاد وتصاميم pivot (pivotDrafts) — تكافؤ Leaflet.
+  // MapHub يمرّر مصفوفة جديدة عند كلّ تصيير، فالتبعيّة نصّ البيانات لا مرجع المصفوفة.
+  // يعتمد على basemapId لأنّ تبديل الأساس يعيد طبقات الحقول فوق كلّ شيء.
+  const drawOverlaysJson = JSON.stringify(drawOverlaysToGeoJSON(pivotDrafts));
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    syncDrawOverlays(map, JSON.parse(drawOverlaysJson) as GeoJSON.FeatureCollection);
+  }, [drawOverlaysJson, basemapId, ready]);
 
   // ── علامات التراكب (تنبيهات/أجهزة/طقس) — إزالة الكلّ ثمّ إعادة بناء ──
   useEffect(() => {

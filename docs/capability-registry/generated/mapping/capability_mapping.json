@@ -15,7 +15,7 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7615,
+    "files_scanned": 7616,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
@@ -23,13 +23,13 @@
       "mobile": 429,
       "other": 2235,
       "tests": 2642,
-      "web": 558
+      "web": 559
     },
     "unmapped_artifacts": 3625,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4136,
-      "raw": 3479
+      "raw": 3480
     },
     "test_dependency_files": 2015,
     "test_dependency_edges": 5379,
@@ -9713,6 +9713,14 @@
       "events": [],
       "web": [
         {
+          "path": "frontend/src/components/maphub/HubMapGL.zones.test.tsx",
+          "score": 12,
+          "signals": [
+            "content:map layer",
+            "content:Map layers"
+          ]
+        },
+        {
           "path": "frontend/src/hooks/useLearningEvidence.ts",
           "score": 12,
           "signals": [
@@ -9784,7 +9792,7 @@
         "routes": 4,
         "database": 0,
         "events": 0,
-        "web": 4,
+        "web": 5,
         "mobile": 0,
         "tests": 2,
         "governance": 0,
