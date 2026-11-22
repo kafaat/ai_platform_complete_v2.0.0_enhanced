@@ -8,6 +8,13 @@ COPY frontend/ ./
 # Auth and APIs use the same origin; upstream addresses are runtime-only values.
 ENV VITE_API_MODE=gateway VITE_MOCK_MODE=false VITE_API_URL=/api VITE_WS_URL=/ws
 RUN npm run build:docker
+# Build identity, declared after the build so a new commit does not invalidate its cache.
+# Railway supplies these to a Dockerfile that declares them; empty values give null fields.
+ARG RAILWAY_GIT_COMMIT_SHA=""
+ARG RAILWAY_DEPLOYMENT_ID=""
+RUN GIT_SHA="$RAILWAY_GIT_COMMIT_SHA" \
+    BUILD_ID="${RAILWAY_DEPLOYMENT_ID:+railway-$RAILWAY_DEPLOYMENT_ID}" \
+    node scripts/write-build-info.mjs
 
 # Named upstream resolution is available in open-source nginx since 1.27.3.
 FROM public.ecr.aws/docker/library/nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
