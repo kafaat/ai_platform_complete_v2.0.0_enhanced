@@ -110,11 +110,12 @@ export interface SeasonSimResult {
 }
 // يشغّل محاكاة محصوليّة للموسم ويحفظ ناتجها على الخادم (FIELD_EDIT). 503 عند تعذّر
 // الطقس/القاعدة، 404 إن غاب الموسم عن المستأجِر.
-// The run chains the database reads, the NDVI series (raster service, up to 20 s), the
-// weather archive (weather service, up to 20 s) and the crop-model engine before saving, so
-// the client's default 15 s gave up on runs the server still completed and saved (Devin
-// review on #1582). 90 s covers those upstream bounds with room for the reads and the save.
-export const SEASON_SIMULATION_TIMEOUT_MS = 90_000;
+// The run awaits, one after another (services/sahool-platform/api/routers/seasons.py):
+// the NDVI series (raster, 20 s), the weather archive (20 s), ET0 when the archive has none
+// (20 s), GDD (20 s), then saves and mirrors the context to the decision service (3 s):
+// 83 s of upstream bounds plus the database reads. The client's default 15 s gave up on runs
+// the server still completed and saved (Devin review on #1582); 120 s covers the chain.
+export const SEASON_SIMULATION_TIMEOUT_MS = 120_000;
 export const simulateSeason = (seasonId: string): Promise<SeasonSimResult> =>
   kongApi
     .post<SeasonSimResult>(`/api/v1/seasons/${seasonId}/simulate`, undefined, {
