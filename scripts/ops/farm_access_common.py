@@ -300,7 +300,12 @@ async def require_full_visibility(conn, label: str) -> None:
     row = await conn.fetchrow(
         "SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user"
     )
-    if not row or not (row["rolsuper"] or row["rolbypassrls"]):
+    check_role_reads_every_tenant(dict(row) if row else None, label)
+
+
+def check_role_reads_every_tenant(role: dict | None, label: str) -> None:
+    """``role`` is the session's pg_roles row (rolsuper, rolbypassrls), or None."""
+    if not role or not (role["rolsuper"] or role["rolbypassrls"]):
         raise Precondition(
             f"{label}: the role cannot read every tenant (needs BYPASSRLS); "
             "a row-level-security role would read nothing and report a false clean result"

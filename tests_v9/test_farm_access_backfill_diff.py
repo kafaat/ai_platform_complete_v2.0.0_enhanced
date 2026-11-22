@@ -234,16 +234,13 @@ def test_both_clis_require_the_separate_auth_dsn(monkeypatch, script):
     assert module.main([]) == 2
 
 
-async def test_a_row_level_security_role_is_refused_instead_of_reporting_clean():
-    class _Conn:
-        def __init__(self, superuser, bypass):
-            self.row = {"rolsuper": superuser, "rolbypassrls": bypass}
-
-        async def fetchrow(self, sql):
-            assert "pg_roles" in sql
-            return self.row
+def test_a_row_level_security_role_is_refused_instead_of_reporting_clean():
+    def role(superuser, bypass):
+        return {"rolsuper": superuser, "rolbypassrls": bypass}
 
     with pytest.raises(fac.Precondition):
-        await fac.require_full_visibility(_Conn(False, False), "auth")
-    await fac.require_full_visibility(_Conn(False, True), "auth")
-    await fac.require_full_visibility(_Conn(True, False), "auth")
+        fac.check_role_reads_every_tenant(role(False, False), "auth")
+    with pytest.raises(fac.Precondition):
+        fac.check_role_reads_every_tenant(None, "auth")
+    fac.check_role_reads_every_tenant(role(False, True), "auth")
+    fac.check_role_reads_every_tenant(role(True, False), "auth")
