@@ -42,6 +42,8 @@ describe('MapHub v36 pivot designer activation', () => {
     const gated = /\{fieldEditAllowed && <>([\s\S]*?)<\/>\}/.exec(mapHub)?.[1] ?? '';
     expect(gated).toContain('testid="btn-circle-field"');
     expect(gated).toContain('testid="btn-pivot-designer"');
+    // HubMapGL has no pivot click handler or draft layer, so the button is Leaflet-only.
+    expect(gated).toContain('{!GL_ENGINE && <MapHubToolToggle testid="btn-pivot-designer"');
     expect(gated).toContain('testid="btn-zone-designer"');
     expect(mapHub).not.toContain('pinMode={pinMode && mutateAllowed}');
     expect(mapHub).toContain('draft.properties.fieldId === fieldId && draft.properties.localOwnerScope === drawingOwnerScope');

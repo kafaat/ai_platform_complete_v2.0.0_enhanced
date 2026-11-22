@@ -2768,7 +2768,9 @@ function MapHubCore() {
                     {/* أداتا الريّ المحوريّ في الشريط الرئيسيّ لمن يملك تعديل الحقول: «حقل دائري» يفتح
                         حوار إضافة الحقل بالدائرة جاهزة، و«تصميم الريّ المحوريّ» يفعّل مصمّم المحاور. */}
                     {fieldEditAllowed && <><MapHubToolToggle testid="btn-circle-field" active={showAddField && addFieldTool === 'circle'} onClick={() => { setAddFieldTool('circle'); setShowAddField(true); setPinMode(false); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<CircleDot className="w-3.5 h-3.5" />} label="حقل دائري" title="أضف حقلاً دائريّاً (ريّ محوريّ): انقر المركز ثمّ حرّك لتحديد نصف القطر" />
-                    <MapHubToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم الريّ المحوريّ" />
+                    {/* Leaflet only: HubMapGL receives pivotDesignerEnabled/onAddPivotDraft but has no
+                        click handler or draft layer yet, so under MapLibre the button would do nothing. */}
+                    {!GL_ENGINE && <MapHubToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم الريّ المحوريّ" />}
                     <MapHubToolToggle testid="btn-zone-designer" active={zoneDesigner} onClick={() => { setZoneDesigner((v) => !v); setPivotDesigner(false); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Combine className="w-3.5 h-3.5" />} label="مناطق الإدارة" /></>}
                   </div>
                 </div>
