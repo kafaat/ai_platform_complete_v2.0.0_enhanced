@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7617,
+    "files_scanned": 7618,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2643,
+      "tests": 2644,
       "web": 559
     },
-    "unmapped_artifacts": 3627,
+    "unmapped_artifacts": 3628,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4135,
+      "python_functional": 4136,
       "raw": 3482
     },
-    "test_dependency_files": 2014,
-    "test_dependency_edges": 5377,
+    "test_dependency_files": 2015,
+    "test_dependency_edges": 5379,
     "test_dependency_bounded_files": 1167,
     "test_dependency_unresolved_relations": 513
   },
@@ -45564,6 +45564,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_frontend_build_info_runtime_stamp.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_frontend_gateway_rate_limit_contract.py",
       "kind": "tests"
     },
@@ -85047,6 +85051,26 @@
           "source": "scripts/diagnostics/resolve_inventory_edges.py",
           "kind": "source_read",
           "line": 51
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_frontend_build_info_runtime_stamp.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "deploy/railway/render_frontend.py",
+          "kind": "loader",
+          "line": 29
+        },
+        {
+          "source": "deploy/railway/render_frontend.py",
+          "kind": "source_read",
+          "line": 22
         }
       ],
       "unresolved": []

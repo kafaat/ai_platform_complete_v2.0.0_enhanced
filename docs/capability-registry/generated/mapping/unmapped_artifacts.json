@@ -12240,6 +12240,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_frontend_build_info_runtime_stamp.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_frontend_gateway_rate_limit_contract.py",
     "kind": "tests"
   },
