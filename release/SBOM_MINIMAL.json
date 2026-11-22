@@ -22285,7 +22285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bec9c59acfb880eb348bf5a9ec3b636b0a6785375f320ddc8a3670330c973931"
+          "content": "202f9b8563fb3603f0946268251d44d39ee089f636b6eec5cb124c1786444440"
         }
       ],
       "name": "services/qdrant-seed/seed.py",
