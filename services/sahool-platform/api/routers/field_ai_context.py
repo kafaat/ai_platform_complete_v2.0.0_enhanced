@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api import field_context as context_reads
+from api import lab_store
 from api.main import Permission, UserSchema, require_permission, tenant_connection
 from api.raster_service_client import (
     get_available_dates,
@@ -51,6 +52,9 @@ class FieldAiContextPack(BaseModel):
     # V52 — trusted, tenant-scoped AI policy envelope (platform is the policy authority).
     # The ai_agronomist consumer enforces this and refuses any request that lacks it.
     ai_policy_envelope: dict[str, Any] = Field(default_factory=dict)
+    # G9 — the lab owner's approved soil result for this field and tenant (read like the
+    # field 4R plan). The VRA engine takes lab support only from this server-built block.
+    approved_soil_lab: dict[str, Any] = Field(default_factory=dict)
 
 
 def _as_json(value: Any, fallback: Any = None) -> Any:
@@ -702,6 +706,22 @@ async def field_ai_context_pack(
         # envelope is tenant-scoped. A missing row (or read failure) ⇒ most-restrictive envelope.
         ai_policy_row = await load_tenant_ai_policy_row(conn, str(user.tenant_id))
 
+        # G9 — read last, in a savepoint, so a failed lab read cannot abort the reads above.
+        lab_read_failed = False
+        try:
+            async with conn.transaction():
+                lab_rows = await lab_store.latest_soil_4r_rows(
+                    conn, tenant_id=str(user.tenant_id), field_id=field_id
+                )
+        except Exception as exc:  # noqa: BLE001
+            lab_rows, lab_read_failed = [], True
+            warnings.append(f"تعذّر جلب تحليل التربة المعتمد: {exc}")
+        approved_soil_lab = lab_store.approved_soil_lab_block(
+            field_id, str(user.tenant_id), lab_rows
+        )
+        if lab_read_failed:
+            approved_soil_lab["reason"] = "approved_soil_lab_read_failed"
+
     crop_knowledge = compose_advisor_crop_reference(field_profile, active_season)
     imagery = {"available": False, "per_indicator": {}, "total_dates": 0}
     if include_imagery:
@@ -734,6 +754,7 @@ async def field_ai_context_pack(
         "drawing_context": drawings,
         "alerts_context": alerts,
         "recommendations_context": recommendations,
+        "approved_soil_lab": approved_soil_lab,
         "readiness": {
             "complete": not warnings,
             "warnings": warnings,
