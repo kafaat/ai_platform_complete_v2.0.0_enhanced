@@ -20,7 +20,8 @@ shape ``tenant_connection`` gives the route):
 
 The schema and the role are dropped at the end. Nothing here executes irrigation.
 
-Run: ``TEST_DATABASE_ADMIN_URL=… pytest -m integration <this file>``.
+Run: ``TEST_DATABASE_ADMIN_URL=… pytest -m integration <this file>``. CI runs it in the shared
+integration run with ``IRR_SCHEDULE_WRITER_CERTIFICATION_REQUIRED=1``.
 """
 
 from __future__ import annotations
@@ -35,13 +36,30 @@ import pytest
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
 
-asyncpg = pytest.importorskip("asyncpg", reason="asyncpg is not installed")
+# With the switch (set in CI's shared integration run), a missing driver or DSN is a failure,
+# not a green skip: this writer stayed broken for as long as nothing exercised it for real.
+CERTIFICATION_REQUIRED = os.getenv("IRR_SCHEDULE_WRITER_CERTIFICATION_REQUIRED") == "1"
 
-_ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL") or ""
+try:
+    import asyncpg
+except ImportError:
+    if CERTIFICATION_REQUIRED:
+        raise
+    asyncpg = pytest.importorskip("asyncpg", reason="asyncpg is not installed")
+
+# The admin DSN may create a schema and a role. CI's shared integration run connects as the
+# superuser through TEST_DATABASE_URL, so that is accepted as the admin DSN too.
+_ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL") or os.getenv("TEST_DATABASE_URL") or ""
+if CERTIFICATION_REQUIRED and not _ADMIN_DSN:
+    raise RuntimeError(
+        "IRR_SCHEDULE_WRITER_CERTIFICATION_REQUIRED=1 needs TEST_DATABASE_ADMIN_URL or "
+        "TEST_DATABASE_URL"
+    )
 pytestmark.append(
     pytest.mark.skipif(
         not _ADMIN_DSN,
-        reason="needs TEST_DATABASE_ADMIN_URL (a live DB whose role may create a schema and role)",
+        reason="needs TEST_DATABASE_ADMIN_URL or TEST_DATABASE_URL (a live DB whose role may "
+        "create a schema and role)",
     )
 )
 

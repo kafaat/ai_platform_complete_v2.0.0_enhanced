@@ -1444,6 +1444,10 @@ jobs:
           # (tests_v9/test_farm_ledger_inventory_deduction_live_pg.py, throwaway NOBYPASSRLS
           # role). With the switch, a missing or unmigrated database is a failure, not a skip.
           FARM_LEDGER_INVENTORY_CERTIFICATION_REQUIRED: "1"
+          # The hourly MPC schedule writer stores what the solver computed, on v179 as written, via a
+          # throwaway NOBYPASSRLS role (tests_v9/test_hourly_mpc_schedule_writer_live_pg.py). It
+          # could never persist a schedule until this was measured live; a skip is a failure here.
+          IRR_SCHEDULE_WRITER_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation
