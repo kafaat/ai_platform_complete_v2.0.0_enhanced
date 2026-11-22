@@ -4163,7 +4163,7 @@
       "function": "learning_activation_status",
       "method": "GET",
       "path": "/api/v1/learning/activation-status",
-      "line": 54,
+      "line": 58,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/learning.py::GET /api/v1/learning/activation-status::learning_activation_status"
@@ -4173,7 +4173,7 @@
       "function": "prediction_calibration_status",
       "method": "GET",
       "path": "/api/v1/learning/prediction-calibration",
-      "line": 113,
+      "line": 117,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/learning.py::GET /api/v1/learning/prediction-calibration::prediction_calibration_status"
@@ -4183,10 +4183,32 @@
       "function": "external_prior_blend",
       "method": "POST",
       "path": "/api/v1/learning/external-prior-blend",
-      "line": 31,
+      "line": 35,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/learning.py::POST /api/v1/learning/external-prior-blend::external_prior_blend"
+    },
+    {
+      "file": "api/routers/learning.py",
+      "function": "list_governed_learning_proposals",
+      "method": "GET",
+      "path": "/api/v1/learning/governed-proposals",
+      "line": 228,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/learning.py::GET /api/v1/learning/governed-proposals::list_governed_learning_proposals",
+      "note": "G14/F-D02: pending governed learning proposals (governed_model_promotion_candidates + irrigation_learning_proposals, platform-owned SoR) for a reviewer holding decision:model-activation-approve; read-only under tenant RLS."
+    },
+    {
+      "file": "api/routers/learning.py",
+      "function": "review_governed_learning_proposal",
+      "method": "POST",
+      "path": "/api/v1/learning/governed-proposals/{kind}/{proposal_id}/review",
+      "line": 245,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/learning.py::POST /api/v1/learning/governed-proposals/{kind}/{proposal_id}/review::review_governed_learning_proposal",
+      "note": "G14/F-D02: records an accept/reject review (status, reviewed_by, reviewed_at + reason event) on a platform-owned learning proposal; idempotent, tenant-scoped; records only - never promotes a model or adjusts irrigation (applied=false)."
     },
     {
       "file": "api/routers/learning_summary.py",
