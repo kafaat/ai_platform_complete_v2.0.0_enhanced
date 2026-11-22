@@ -309,6 +309,42 @@ def _document_metadata(raw: object) -> dict:
     return clean
 
 
+# One upload of a document at a time (review on #1582). rag-retrieval runs replicas over one
+# Qdrant collection with no shared lock, and two revisions of one document often share an
+# identical chunk, hence one storage point: an older publication landing after a newer one
+# rewrites that point and the newer revision loses it. This service is the only writer of
+# the canonical ingest and runs one worker, so serialising publication per (tenant,
+# document) here keeps two uploads of one document from ever being in flight at once.
+_PUBLISHING = {}  # (tenant, document) -> asyncio.Lock, kept only while someone holds or waits
+_PUBLISHING_USERS = {}  # (tenant, document) -> holders and waiters
+
+
+async def _publishing_steps(keys):
+    ordered = sorted(set(keys))  # one global order, so two multi-file uploads cannot deadlock
+    for key in ordered:
+        _PUBLISHING_USERS[key] = _PUBLISHING_USERS.get(key, 0) + 1
+        _PUBLISHING.setdefault(key, asyncio.Lock())
+    held = []
+    try:
+        for key in ordered:
+            await _PUBLISHING[key].acquire()
+            held.append(key)
+        yield
+    finally:
+        for key in reversed(held):
+            _PUBLISHING[key].release()
+        for key in ordered:
+            left = _PUBLISHING_USERS[key] - 1
+            if left:
+                _PUBLISHING_USERS[key] = left
+            else:
+                del _PUBLISHING_USERS[key]
+                del _PUBLISHING[key]
+
+
+_publishing = asynccontextmanager(_publishing_steps)
+
+
 async def ingest_documents(
     file_paths: list[Path],
     tenant_id: str = "default",
@@ -375,8 +411,10 @@ async def ingest_documents(
         by_source.setdefault(str(chunk.metadata.get("source_file") or "unknown"), []).append(chunk)
 
     wire_chunks: list[dict] = []
+    document_names: dict[str, str] = {}
     for source_file, rows in sorted(by_source.items()):
         document_id = hashlib.sha256(f"{tenant_id}:{source_file}".encode()).hexdigest()
+        document_names[document_id] = source_file
         total = len(rows)
         for idx, chunk in enumerate(rows):
             chunk_id = hashlib.sha256(
@@ -404,20 +442,41 @@ async def ingest_documents(
     if not AGENT_TOKEN:
         raise HTTPException(503, "خدمة المعرفة غير مهيأة للكتابة المحكومة")
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                f"{RAG_RETRIEVAL_URL}/v1/ingest",
-                json={"chunks": wire_chunks},
-                headers={"X-Agent-Token": AGENT_TOKEN, "X-Tenant-Id": tenant_id},
-            )
+        async with _publishing((tenant_id, d) for d in document_names):
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    f"{RAG_RETRIEVAL_URL}/v1/ingest",
+                    json={"chunks": wire_chunks},
+                    headers={"X-Agent-Token": AGENT_TOKEN, "X-Tenant-Id": tenant_id},
+                )
         response.raise_for_status()
-        accepted = int(response.json().get("ingested", 0))
+        answer = response.json()
+        accepted = int(answer.get("ingested", 0))
     except Exception as exc:  # noqa: BLE001 — canonical writer failure must be explicit
         logger.warning("RAG_CANONICAL_INGEST_FAILED type=%s", type(exc).__name__)
         raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر الاستيعاب)") from exc
     if accepted != len(wire_chunks):
         raise HTTPException(503, "خدمة المعرفة أعادت عدداً غير مطابق من المقاطع المستوعبة")
-    return {"ingested": len(all_docs), "chunks": accepted, "rejected": rejected}
+    result = {"ingested": len(all_docs), "chunks": accepted, "rejected": rejected}
+    # A document another publication replaced is written but not what is now searchable;
+    # name it instead of answering "ingested" for it (review on #1582).
+    receipts = answer.get("receipts") if isinstance(answer, dict) else None
+    superseded = sorted(
+        {
+            document_names.get(str(r.get("document_id")), "unknown")
+            for r in (receipts if isinstance(receipts, list) else [])
+            if isinstance(r, dict) and r.get("superseded") is True
+        }
+    )
+    if superseded:
+        result["status"] = (
+            "superseded" if len(superseded) >= len(document_names) else "partially_superseded"
+        )
+        result["superseded_files"] = superseded
+        result["message"] = (
+            "a newer upload of these files was published at the same time and replaced them"
+        )
+    return result
 
 
 # ══════════════════════════════════════════════════════════════

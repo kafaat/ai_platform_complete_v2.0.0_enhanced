@@ -16,6 +16,7 @@ from __future__ import annotations
 import ast
 import asyncio
 import collections.abc
+import contextlib
 import datetime as dt
 import hashlib
 import importlib.util
@@ -143,6 +144,8 @@ def _ingest(tmp_path, files: dict[str, object]):
         "datetime": dt.datetime,
         "UTC": dt.UTC,
         "logger": logging.getLogger("test-rag-metadata-s14"),
+        "asyncio": asyncio,
+        "asynccontextmanager": contextlib.asynccontextmanager,
         "httpx": types.SimpleNamespace(AsyncClient=_Client),
         "HTTPException": _HTTPError,
         "AGENT_TOKEN": "agent-token",
@@ -156,6 +159,10 @@ def _ingest(tmp_path, files: dict[str, object]):
             "_DOC_METADATA_TEXT_KEYS",
             "_DOC_METADATA_INT_KEYS",
             "_DOC_METADATA_MAX_CHARS",
+            "_PUBLISHING",
+            "_PUBLISHING_USERS",
+            "_publishing_steps",
+            "_publishing",
         },
         namespace,
     )["ingest_documents"]
