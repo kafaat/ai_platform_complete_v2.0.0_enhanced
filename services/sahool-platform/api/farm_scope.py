@@ -17,7 +17,24 @@ must both hold before anything changes:
   RLS transaction); a failed grant read fails the request instead of widening access.
 
 Grants are keyed by the JWT ``sub`` (``user.user_id``), the AUTH service's users.id as text,
-never the platform database's users.id (decision C). The number v287 is provisional (SHR-02).
+never the platform database's users.id (decision C).
+
+Before ``SAHOOL_FARM_SCOPE_ENFORCE`` is ever switched on (owner decisions, not code):
+
+* only requests that go through ``tenant_connection`` get farm scope. These modules set the
+  tenant GUC themselves and query farms/fields/seasons, so with the flag on they still see every
+  farm of the tenant (a text scan of SQL literals, 2026-11-22; re-measure before switching on):
+  user requests: ``api/onboarding.py``, ``api/field_state_projection.py``,
+  ``api/persisted_canonical_repositories.py`` (also the canonical execution learning worker),
+  ``api/irrigation_runtime_orchestrator.py`` and ``api/routers/irrigation_mpc.py``,
+  ``api/imagery_automation.py`` (also the scheduler); operator: ``api/routers/break_glass.py``;
+  service-to-service: ``api/routers/internal_service.py``; worker:
+  ``api/phase_runtime_workers.py``. Each either moves to ``tenant_connection`` or is declared
+  tenant-wide on purpose;
+* under enforcement a non-owner cannot write a ``farm_ledger_entries`` row with ``farm_id`` NULL
+  (the restrictive write policies require a writable farm);
+* the six preconditions recorded on #1579 (legacy farm-less rows, no automatic grants, backfill
+  as the migration owner, colliding grant keys, non-composite FK, owner-only bypass).
 """
 
 from __future__ import annotations
@@ -28,7 +45,7 @@ import os
 logger = logging.getLogger(__name__)
 
 FLAG = "SAHOOL_FARM_SCOPE_ENFORCE"
-MIGRATION = "v287"  # provisional: re-allocated at merge (SHR-02)
+MIGRATION = "v287"
 _ON = frozenset({"1", "true", "on", "yes"})
 
 _PROBE = (

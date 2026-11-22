@@ -8305,7 +8305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7c2845bad2ed2963cf4c36ae6f3f251d1df03e0738d94c22447ca5c5e965b959"
+          "content": "80eb7bf39e89585979b06c8fbf91fbb94a584f8aa310ed061eb06458a7c30618"
         }
       ],
       "name": "migrations/MANIFEST.md",
@@ -8315,7 +8315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "464fbbe9a6a436338fbf9a95442be418420d2e94d74248f9ce82cb58d1dd8adb"
+          "content": "3d237ef40a996c3e1e43f09e45891be69678d3eaae860f7a4f46de32148b1ac5"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8385,7 +8385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "12eb7f1ea596127f23038d821b4d29351a47d6a115a3b178ccc6f41d935c480b"
+          "content": "12e9b59bdecef9be2c330c504e0bc4ec83fa4d88c0165c42783d2b4538b3b25f"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -10425,7 +10425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b147fc927532b4264e447dccdb4f9ca2853e322dc2df3a7023a83c30ad51f685"
+          "content": "c5d87af1827630cd262cb1166653c6cbe993681f9ee77deb21e1349d336fb6b5"
         }
       ],
       "name": "migrations/v287_farm_access_grants.sql",
@@ -26305,7 +26305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2fcdfd4df9b0a06fe07ab8569fe8da40c3e76aaa5c47794d0a0e5ed2c3d03a52"
+          "content": "5c1e447ae2d625f5e3a01c2d56a36dd28c50a759e799bdb069e579822484eb37"
         }
       ],
       "name": "services/sahool-platform/api/farm_scope.py",

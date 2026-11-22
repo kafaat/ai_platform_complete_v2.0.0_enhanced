@@ -145,7 +145,7 @@ medium,sahool-platform,function,submit_irrigation_candidate,services/sahool-plat
 medium,sahool-platform,class,EventReplay,services/sahool-platform/api/event_replay.py,612,0,review_before_delete,False
 medium,sahool-platform,function,ndvi_evidence_entry,services/sahool-platform/api/evidence_policy.py,101,0,review_before_delete,False
 medium,sahool-platform,function,highest_severity,services/sahool-platform/api/failure_modes.py,355,0,review_before_delete,False
-medium,sahool-platform,function,insert_tenant_grants,services/sahool-platform/api/farm_scope.py,83,0,review_before_delete,False
+medium,sahool-platform,function,insert_tenant_grants,services/sahool-platform/api/farm_scope.py,100,0,review_before_delete,False
 medium,sahool-platform,function,monitoring_summary,services/sahool-platform/api/field_cameras.py,144,0,review_before_delete,False
 medium,sahool-platform,function,field_elevation_or_none,services/sahool-platform/api/field_context.py,512,0,review_before_delete,False
 medium,sahool-platform,class,FieldLifecycleEngine,services/sahool-platform/api/field_lifecycle.py,95,0,review_before_delete,False

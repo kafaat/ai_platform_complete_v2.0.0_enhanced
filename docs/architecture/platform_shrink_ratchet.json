@@ -482,7 +482,7 @@
       "category": "platform_domain_table_ownership",
       "identity": "farm_access_grants",
       "owner": "service-center-SC-2",
-      "reason": "Service Center SC-1, owner decisions A and C (v287, number provisional): per-farm grants keyed by the JWT sub that the platform's own RLS policies (farms, fields, seasons, field_tasks, farm_ledger_entries) read while SAHOOL_FARM_SCOPE_ENFORCE is on (default off). The platform owns it because it is the policy reader and decision A keeps the platform the only writer of its tables; the sole writer is api.farm_scope.insert_tenant_grants, called by the operator backfill. No route reads or writes it. Close by an owner decision in SC-2 on where grant administration lives (the service-center service or auth), moving ownership there, or by lowering it into the baseline with that decision; an identity exception, not a count waiver.",
+      "reason": "Service Center SC-1, owner decisions A and C (v287): per-farm grants keyed by the JWT sub that the platform's own RLS policies (farms, fields, seasons, field_tasks, farm_ledger_entries) read while SAHOOL_FARM_SCOPE_ENFORCE is on (default off). The platform owns it because it is the policy reader and decision A keeps the platform the only writer of its tables; the sole writer is api.farm_scope.insert_tenant_grants, called by the operator backfill. No route writes it; while SAHOOL_FARM_SCOPE_ENFORCE is on, tenant_connection reads it on every request. Close by an owner decision in SC-2 on where grant administration lives (the service-center service or auth), moving ownership there, or by lowering it into the baseline with that decision; an identity exception, not a count waiver.",
       "target_close_by": "2027-02-28"
     }
   ],

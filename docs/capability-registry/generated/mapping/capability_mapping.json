@@ -3013,7 +3013,7 @@
           ]
         },
         {
-          "path": "services/sahool-platform/core/farm_operations_ledger.py",
+          "path": "services/sahool-platform/api/farm_scope.py",
           "score": 17,
           "signals": [
             "path:farm",
@@ -3022,11 +3022,12 @@
           ]
         },
         {
-          "path": "services/sahool-platform/api/farm_scope.py",
-          "score": 14,
+          "path": "services/sahool-platform/core/farm_operations_ledger.py",
+          "score": 17,
           "signals": [
             "path:farm",
-            "content:farm"
+            "content:farm",
+            "content:farms"
           ]
         },
         {
@@ -5148,14 +5149,6 @@
           ]
         },
         {
-          "path": "docs/architecture/db_writer_ownership_baseline.json",
-          "score": 12,
-          "signals": [
-            "content:farm",
-            "content:farms"
-          ]
-        },
-        {
           "path": "docs/history/FARM_ECONOMICS_REVIEW.md",
           "score": 12,
           "signals": [
@@ -5276,7 +5269,7 @@
         "mobile": 35,
         "tests": 59,
         "governance": 0,
-        "other_evidence": 27
+        "other_evidence": 26
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -48932,14 +48925,6 @@
             "content:water quality",
             "content:Water quality samples",
             "content:water sample"
-          ]
-        },
-        {
-          "capability_id": "FM-002",
-          "score": 12,
-          "signals": [
-            "content:farm",
-            "content:farms"
           ]
         }
       ]
