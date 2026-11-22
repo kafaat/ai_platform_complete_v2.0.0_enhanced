@@ -2,11 +2,11 @@
 // SAHOOL v8.0 — LoginPage.tsx
 // صفحة تسجيل الدخول: email + password + demo mode
 // ✅ رمز MFA (TOTP) يظهر عند طلب الخادم له (X-MFA-Required)
-// ✅ تدفّق "نسيت كلمة المرور؟": طلب بالبريد → رمز + كلمة مرور جديدة → تأكيد
+// ✅ تدفّق "نسيت كلمة المرور؟": طلب بالبريد → رابط /reset-password?token= → كلمة مرور جديدة
 // ✅ تسجيل MFA الإلزاميّ: 403 + enrollment_token ⇒ خطوة setup/activate (MfaEnrollmentStep)
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
-import { Leaf, Eye, EyeOff, Loader2, Shield, AlertTriangle, KeyRound, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Leaf, Eye, EyeOff, Loader2, Shield, AlertTriangle, KeyRound, ArrowRight, CheckCircle2, Mail } from 'lucide-react';
 import { useAuthStore } from '../hooks/useAuth';
 import { requestPasswordReset, confirmPasswordReset, apiErrorMessage, isMfaRequiredError } from '../services/api';
 import { mfaEnrollmentChallenge, type MfaEnrollmentChallenge } from '../services/api/auth';
@@ -21,12 +21,15 @@ export default function LoginPage({
   onLogin,
   initialView = 'login',
   initialEmail = '',
+  initialToken = '',
 }: {
   onSignup?: () => void;
   onForgotPassword?: (email: string) => void;
   onLogin?: () => void;
-  initialView?: 'login' | 'reset-request';
+  initialView?: 'login' | 'reset-request' | 'reset-confirm';
   initialEmail?: string;
+  /** The token of a /reset-password link (reset or tenant-owner setup email). */
+  initialToken?: string;
 }) {
   const [view, setView]       = useState<View>(initialView);
   const [email, setEmail]     = useState(initialEmail);
@@ -239,8 +242,8 @@ export default function LoginPage({
           {(view === 'reset-request' || view === 'reset-confirm') && (
             <ResetFlow
               view={view}
-              setView={setView}
               initialEmail={email}
+              initialToken={initialToken}
               onBackToLogin={() => { setError(''); if (onLogin) onLogin(); else setView('login'); }}
             />
           )}
@@ -256,18 +259,21 @@ export default function LoginPage({
 }
 
 // ── Reset flow component ─────────────────────────────────────────
-// خطوتان: (1) طلب الرمز بالبريد، (2) إدخال الرمز + كلمة مرور جديدة. الخادم
-// يردّ دائماً برسالة موحّدة عند الطلب (منع تعداد البريد)، فننتقل دائماً للتأكيد.
+// خطوتان: (1) طلب الرابط بالبريد، (2) كلمة مرور جديدة من رابط البريد. الخادم يرسل
+// **رابطاً** (/reset-password?token=…، صالح 30 دقيقة) لا رمزاً يُكتب، ويردّ دائماً برسالة
+// موحّدة عند الطلب (منع تعداد البريد). فبعد الطلب نطلب فتح الرابط؛ والخطوة الثانية تُفتح
+// من الرابط برمزه معبّأً (وكذلك بريد إعداد مالك مستأجِر جديد).
 function ResetFlow({
-  view, setView, initialEmail, onBackToLogin,
+  view, initialEmail, initialToken = '', onBackToLogin,
 }: {
   view: 'reset-request' | 'reset-confirm';
-  setView: (v: 'login' | 'reset-request' | 'reset-confirm') => void;
   initialEmail: string;
+  initialToken?: string;
   onBackToLogin: () => void;
 }) {
   const [email, setEmail]     = useState(initialEmail);
-  const [token, setToken]     = useState('');
+  const [token, setToken]     = useState(initialToken);
+  const [sent, setSent]       = useState(false);
   const [newPw, setNewPw]     = useState('');
   const [showPw, setShowPw]   = useState(false);
   const [error, setError]     = useState('');
@@ -294,7 +300,7 @@ function ResetFlow({
     try {
       const res = await requestPasswordReset(email.trim());
       setInfo(res.message || 'إذا كان البريد مسجلاً، ستصلك رسالة إعادة التعيين');
-      setView('reset-confirm');
+      setSent(true);
     } catch (err: unknown) {
       setError(apiErrorMessage(err, 'تعذّر إرسال طلب إعادة التعيين'));
     } finally {
@@ -304,7 +310,7 @@ function ResetFlow({
 
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token.trim()) { setError('أدخل رمز إعادة التعيين من بريدك'); return; }
+    if (!token.trim()) { setError('افتح رابط إعادة التعيين من بريدك'); return; }
     const pe = pwError();
     if (pe) { setError(pe); return; }
     setLoading(true); setError('');
@@ -317,6 +323,21 @@ function ResetFlow({
       setLoading(false);
     }
   };
+
+  if (sent && view === 'reset-request') {
+    return (
+      <div className="space-y-4 text-center" dir="rtl">
+        <Mail className="w-12 h-12 text-emerald-400 mx-auto" />
+        <p className="text-slate-200 text-sm">{info}</p>
+        <p className="text-xs text-slate-500">افتح رابط إعادة التعيين في البريد لإكمال التغيير. الرابط صالح 30 دقيقة.</p>
+        <button type="button" onClick={onBackToLogin}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white"
+          style={{ background:'#16a34a' }}>
+          العودة لتسجيل الدخول
+        </button>
+      </div>
+    );
+  }
 
   if (done) {
     return (
@@ -337,13 +358,13 @@ function ResetFlow({
       <div className="flex items-center gap-2 text-slate-200">
         <KeyRound className="w-4 h-4 text-emerald-400" />
         <span className="text-sm font-semibold">
-          {view === 'reset-request' ? 'إعادة تعيين كلمة المرور' : 'تأكيد إعادة التعيين'}
+          {view === 'reset-request' ? 'إعادة تعيين كلمة المرور' : 'تعيين كلمة مرور جديدة'}
         </span>
       </div>
 
       {view === 'reset-request' && (
         <>
-          <p className="text-xs text-slate-500">أدخل بريدك المسجَّل، وسنرسل رمز إعادة تعيين صالحاً 30 دقيقة.</p>
+          <p className="text-xs text-slate-500">أدخل بريدك المسجَّل، وسنرسل رابط إعادة تعيين صالحاً 30 دقيقة.</p>
           <div>
             <label className="block text-sm text-slate-400 mb-1.5">البريد الإلكتروني</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
@@ -360,12 +381,14 @@ function ResetFlow({
               {info}
             </div>
           )}
-          <div>
-            <label className="block text-sm text-slate-400 mb-1.5">رمز إعادة التعيين</label>
-            <input value={token} onChange={e => setToken(e.target.value)}
-              placeholder="الرمز من بريدك" autoComplete="one-time-code"
-              className="w-full px-4 py-3 rounded-xl text-sm" style={fieldStyle} />
-          </div>
+          {!initialToken && (
+            <div>
+              <label htmlFor="reset-token" className="block text-sm text-slate-400 mb-1.5">رمز إعادة التعيين (من رابط البريد)</label>
+              <input id="reset-token" value={token} onChange={e => setToken(e.target.value)}
+                placeholder="الرمز بعد token= في الرابط" autoComplete="one-time-code"
+                className="w-full px-4 py-3 rounded-xl text-sm" style={fieldStyle} />
+            </div>
+          )}
           <div>
             <label className="block text-sm text-slate-400 mb-1.5">كلمة المرور الجديدة <span className="text-slate-600">(8 أحرف، حرف كبير، رقم، رمز)</span></label>
             <div className="relative">
@@ -394,7 +417,7 @@ function ResetFlow({
         {loading
           ? <><Loader2 className="w-4 h-4 animate-spin" /> جارٍ المعالجة...</>
           : view === 'reset-request'
-            ? <>إرسال الرمز <ArrowRight className="w-4 h-4" /></>
+            ? <>إرسال الرابط <ArrowRight className="w-4 h-4" /></>
             : <>تأكيد كلمة المرور الجديدة <CheckCircle2 className="w-4 h-4" /></>}
       </button>
 

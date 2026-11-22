@@ -72,3 +72,21 @@ test('all public auth pages fit a phone viewport without horizontal scrolling', 
   }
 });
 
+
+// The auth service mails reset links, and the new tenant owner's setup link, as
+// /reset-password?token=…. They used to open the invitation page («قبول دعوة الانضمام»).
+test('a password-reset link opens the new-password step, not the invitation page', async ({ page }) => {
+  await page.goto('/reset-password?token=e2e-not-a-real-token');
+  await expect(page.getByText('تعيين كلمة مرور جديدة', { exact: true })).toBeVisible();
+  await expect(page.locator('input[autocomplete="new-password"]')).toBeVisible();
+  await expect(page.getByText('قبول دعوة الانضمام')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByText('تعيين كلمة مرور جديدة', { exact: true })).toBeVisible();
+});
+
+test('an invitation link still opens the invitation page on any other path', async ({ page }) => {
+  for (const path of ['/accept-invitation?token=e2e-invite', '/?token=e2e-invite']) {
+    await page.goto(path);
+    await expect(page.getByRole('heading', { name: 'قبول دعوة الانضمام' })).toBeVisible();
+  }
+});

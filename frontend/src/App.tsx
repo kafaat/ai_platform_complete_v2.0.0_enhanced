@@ -16,6 +16,7 @@ import ToastContainer from './components/ToastContainer';
 import { canAccess, canCreateFarm } from './lib/permissions';
 import { isPageEnabled } from './lib/featureFlags';
 import { ALL_ROUTES, pageForPath, pathForPage } from './lib/routes';
+import { authScreenFor, resetTokenFor } from './lib/authScreens';
 import AppShell from './components/shell/AppShell';
 import { FeatureDisabledState, LoadingState } from './components/StateViews';
 import { isRuntimePageEnabled, useFeatureRegistry } from './hooks/useFeatureRegistry';
@@ -196,14 +197,10 @@ export default function App() {
   const page: PageId = pageForPath(location.pathname) ?? 'dashboard';
   const setPage = useCallback((p: PageId) => { navigate(pathForPage(p)); }, [navigate]);
   // المسارات العامة تُشتقّ من عنوان المتصفح بدلاً من حالة مؤقتة تُفقد بالتحديث.
-  // روابط الدعوات القديمة (?token=) تبقى أعلى أولويةً ولا تُحفظ رموزها في state.
-  const authScreen = new URLSearchParams(location.search).has('token')
-    ? 'accept-invitation'
-    : location.pathname === '/signup'
-      ? 'signup'
-      : location.pathname === '/forgot-password'
-        ? 'forgot-password'
-        : 'login';
+  // ‎/reset-password?token=‎ (بريد إعادة التعيين وبريد إعداد مالك المستأجِر) يفتح خطوة
+  // كلمة المرور الجديدة؛ ‎?token=‎ على أيّ مسار آخر يبقى دعوة (lib/authScreens).
+  const authScreen = authScreenFor(location.pathname, location.search);
+  const resetToken = resetTokenFor(location.pathname, location.search);
   const goToLogin = () => navigate('/login');
   // Browser history state preserves a non-secret typed address without putting it in a URL.
   const recoveryEmail = typeof location.state?.email === 'string' ? location.state.email : '';
@@ -258,7 +255,10 @@ export default function App() {
               ? <SignupPage onLogin={goToLogin} />
               : <LoginPage
                   key={authScreen}
-                  initialView={authScreen === 'forgot-password' ? 'reset-request' : 'login'}
+                  initialView={authScreen === 'forgot-password'
+                    ? 'reset-request'
+                    : authScreen === 'reset-password' ? 'reset-confirm' : 'login'}
+                  initialToken={resetToken}
                   initialEmail={recoveryEmail}
                   onLogin={goToLogin}
                   onSignup={() => navigate('/signup')}
