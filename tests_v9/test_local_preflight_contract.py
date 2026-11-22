@@ -1245,6 +1245,25 @@ def _git_repo(path: Path) -> Path:
     return path
 
 
+def _env_with_this_python(**extra: str) -> dict[str, str]:
+    """The environment with the interpreter running these tests first on PATH.
+
+    preflight checks the `python3` that PATH selects before any gate. A test that runs the
+    whole script for another purpose must not depend on which `python3` the caller's PATH
+    starts with (S1 invokes the venv by path, with a system python3 first).
+    """
+    env = {
+        **os.environ,
+        "PATH": f"{Path(sys.executable).parent}{os.pathsep}{os.environ.get('PATH', '')}",
+        **extra,
+    }
+    if sys.prefix != sys.base_prefix:
+        env["VIRTUAL_ENV"] = sys.prefix
+    else:
+        env.pop("VIRTUAL_ENV", None)
+    return env
+
+
 def _fast_with_python(repo: Path, bin_dir: Path, **env: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["bash", str(SCRIPT), "--fast", "--no-fetch"],
@@ -1406,7 +1425,7 @@ def test_a_failing_run_keeps_its_exit_code_and_leaves_no_step_log(tmp_path):
     result = subprocess.run(
         ["bash", str(SCRIPT), "--fast", "--no-fetch"],
         cwd=repo,
-        env={**os.environ, "TMPDIR": str(tmpdir)},
+        env=_env_with_this_python(TMPDIR=str(tmpdir)),
         stdin=subprocess.DEVNULL,
         capture_output=True,
         text=True,
