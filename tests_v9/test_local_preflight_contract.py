@@ -1245,6 +1245,116 @@ def _git_repo(path: Path) -> Path:
     return path
 
 
+def _env_with_this_python(**extra: str) -> dict[str, str]:
+    """The environment with the interpreter running these tests first on PATH.
+
+    preflight checks the `python3` that PATH selects before any gate. A test that runs the
+    whole script for another purpose must not depend on which `python3` the caller's PATH
+    starts with (S1 invokes the venv by path, with a system python3 first).
+    """
+    env = {
+        **os.environ,
+        "PATH": f"{Path(sys.executable).parent}{os.pathsep}{os.environ.get('PATH', '')}",
+        **extra,
+    }
+    if sys.prefix != sys.base_prefix:
+        env["VIRTUAL_ENV"] = sys.prefix
+    else:
+        env.pop("VIRTUAL_ENV", None)
+    return env
+
+
+def _fast_with_python(repo: Path, bin_dir: Path, **env: str) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["bash", str(SCRIPT), "--fast", "--no-fetch"],
+        cwd=repo,
+        env={
+            **os.environ,
+            "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
+            "PYTHONPATH": "",
+            "PYTHONNOUSERSITE": "1",
+            "VIRTUAL_ENV": "",
+            **env,
+        },
+        capture_output=True,
+        encoding="utf-8",
+        timeout=120,
+    )
+
+
+def test_preflight_names_missing_pytest_before_running_any_gate(tmp_path):
+    import venv
+
+    empty = tmp_path / "venv without pytest"
+    venv.EnvBuilder(with_pip=False).create(empty)
+    result = _fast_with_python(_git_repo(tmp_path / "repo"), empty / "bin", VIRTUAL_ENV=str(empty))
+    assert result.returncode == 4
+    assert str(empty / "bin/python3") in result.stderr
+    assert "PREFLIGHT_ENV_ERROR" in result.stderr and "No module named 'pytest'" in result.stderr
+    assert "tests_v9/requirements-test.txt" in result.stderr
+    assert "── " not in result.stdout
+
+
+def test_preflight_rejects_a_python_outside_the_activated_environment(tmp_path):
+    result = _fast_with_python(
+        _git_repo(tmp_path / "repo"), Path(sys.executable).parent, VIRTUAL_ENV=str(tmp_path)
+    )
+    assert result.returncode == 4
+    assert "PREFLIGHT_ENV_ERROR" in result.stderr and "sys.prefix=" in result.stderr
+    assert "── " not in result.stdout
+
+
+def test_preflight_rejects_an_unsupported_python_before_loading_pytest(tmp_path):
+    # Exercise the version boundary on CI runners that have only one Python.
+    (tmp_path / "sitecustomize.py").write_text(
+        "import sys\nsys.version_info = (3, 10, 0, 'final', 0)\n", encoding="utf-8"
+    )
+    result = _fast_with_python(
+        _git_repo(tmp_path / "repo"), Path(sys.executable).parent, PYTHONPATH=str(tmp_path)
+    )
+    assert result.returncode == 4
+    assert "PREFLIGHT_ENV_ERROR" in result.stderr and "Python >= 3.11" in result.stderr
+    assert "── " not in result.stdout
+
+
+def test_preflight_requires_the_plugins_used_by_the_mutation_tests(tmp_path):
+    result = _fast_with_python(
+        _git_repo(tmp_path / "repo"),
+        Path(sys.executable).parent,
+        PYTEST_DISABLE_PLUGIN_AUTOLOAD="1",
+        PYTEST_PLUGINS="",
+    )
+    assert result.returncode == 4
+    assert "PREFLIGHT_ENV_ERROR" in result.stderr and "--no-cov" in result.stderr
+    assert "── " not in result.stdout
+
+
+def test_preflight_rejects_a_python_shim_that_only_returns_success(tmp_path):
+    shim = tmp_path / "python3"
+    shim.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    shim.chmod(0o755)
+    result = _fast_with_python(_git_repo(tmp_path / "repo"), tmp_path)
+    assert result.returncode == 4 and "PREFLIGHT_ENV_ERROR" in result.stderr
+    assert "── " not in result.stdout
+
+
+def test_preflight_uses_the_selected_python_and_reports_a_real_failing_guard(tmp_path):
+    repo = _git_repo(tmp_path / "repo")
+    guard = Path("tests_v9/test_non_ascii_fixture_path_guard.py")
+    (repo / guard.parent).mkdir()
+    (repo / guard).write_bytes((ROOT / guard).read_bytes())
+    (repo / guard.parent / "test_probe.py").write_text(
+        'p = tmp_path / "غير-ascii"\n', encoding="utf-8"
+    )
+    result = _fast_with_python(
+        repo, Path(sys.executable).parent, VIRTUAL_ENV=sys.prefix, PYTEST_ADDOPTS="--collect-only"
+    )
+    assert result.returncode == 1 and "PREFLIGHT_ENV_ERROR" not in result.stderr
+    assert str(Path(sys.executable).parent / "python3") in result.stderr
+    assert "٢د) non_ascii_fixture_path (1)" in result.stdout
+    assert "test_probe.py:1" in result.stdout
+
+
 def _step_logs_in(tmpdir: Path) -> list[str]:
     return sorted(p.name for p in tmpdir.iterdir() if p.name.startswith("preflight_step"))
 
@@ -1315,7 +1425,7 @@ def test_a_failing_run_keeps_its_exit_code_and_leaves_no_step_log(tmp_path):
     result = subprocess.run(
         ["bash", str(SCRIPT), "--fast", "--no-fetch"],
         cwd=repo,
-        env={**os.environ, "TMPDIR": str(tmpdir)},
+        env=_env_with_this_python(TMPDIR=str(tmpdir)),
         stdin=subprocess.DEVNULL,
         capture_output=True,
         text=True,
