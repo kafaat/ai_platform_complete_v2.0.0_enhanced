@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7630,
+    "files_scanned": 7618,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2648,
-      "web": 567
+      "tests": 2644,
+      "web": 559
     },
-    "unmapped_artifacts": 3638,
+    "unmapped_artifacts": 3628,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4137,
-      "raw": 3493
+      "python_functional": 4136,
+      "raw": 3482
     },
-    "test_dependency_files": 2016,
-    "test_dependency_edges": 5382,
+    "test_dependency_files": 2015,
+    "test_dependency_edges": 5379,
     "test_dependency_bounded_files": 1167,
     "test_dependency_unresolved_relations": 513
   },
@@ -4061,11 +4061,11 @@
           "score": 10
         },
         {
-          "value": "field.create @ frontend/e2e/support/seed.ts:149",
+          "value": "field.create @ frontend/e2e/support/seed.ts:151",
           "score": 9
         },
         {
-          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:132",
+          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:134",
           "score": 9
         },
         {
@@ -4217,14 +4217,6 @@
         },
         {
           "path": "frontend/src/lib/permissions.ts",
-          "score": 9,
-          "signals": [
-            "content:farm",
-            "content:farms"
-          ]
-        },
-        {
-          "path": "frontend/src/sections/ReviewContrast.test.tsx",
           "score": 9,
           "signals": [
             "content:farm",
@@ -5196,7 +5188,7 @@
         "routes": 45,
         "database": 100,
         "events": 33,
-        "web": 20,
+        "web": 19,
         "mobile": 35,
         "tests": 56,
         "governance": 0,
@@ -21652,7 +21644,7 @@
           "score": 8
         },
         {
-          "value": "sahool.ai.model @ frontend/src/sections/ChatbotPage.tsx:101",
+          "value": "sahool.ai.model @ frontend/src/sections/ChatbotPage.tsx:111",
           "score": 8
         },
         {
@@ -28122,16 +28114,6 @@
           ]
         },
         {
-          "path": "frontend/e2e/mfa-enrollment-contrast.spec.ts",
-          "score": 17,
-          "signals": [
-            "path:MFA",
-            "content:MFA",
-            "dedup:MFA=mfa",
-            "content:totp"
-          ]
-        },
-        {
           "path": "tests_v9/test_auth_admin_stepup_mfa.py",
           "score": 17,
           "signals": [
@@ -28324,7 +28306,7 @@
         "events": 1,
         "web": 5,
         "mobile": 5,
-        "tests": 15,
+        "tests": 14,
         "governance": 0,
         "other_evidence": 11
       },
@@ -31700,11 +31682,11 @@
           "score": 10
         },
         {
-          "value": "field.create @ frontend/e2e/support/seed.ts:149",
+          "value": "field.create @ frontend/e2e/support/seed.ts:151",
           "score": 10
         },
         {
-          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:132",
+          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:134",
           "score": 10
         },
         {
@@ -33426,10 +33408,6 @@
       "kind": "tests"
     },
     {
-      "path": "frontend/e2e/pivot-designer.spec.ts",
-      "kind": "tests"
-    },
-    {
       "path": "frontend/e2e/reset-link-with-session.spec.ts",
       "kind": "tests"
     },
@@ -33471,10 +33449,6 @@
     },
     {
       "path": "frontend/postcss.config.js",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/public/theme-init.v1.js",
       "kind": "web"
     },
     {
@@ -33648,10 +33622,6 @@
     {
       "path": "frontend/src/components/ds/modal.tsx",
       "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/ds/onGold.test.ts",
-      "kind": "tests"
     },
     {
       "path": "frontend/src/components/ds/status.test.ts",
@@ -33938,14 +33908,6 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/maphub/FreehandBoundary.test.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/FreehandBoundary.tsx",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/components/maphub/GridSamplingDetails.test.tsx",
       "kind": "web"
     },
@@ -33994,10 +33956,6 @@
       "kind": "tests"
     },
     {
-      "path": "frontend/src/components/maphub/MeasureTools.tsx",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/components/maphub/OperationalOverlay.static.test.ts",
       "kind": "tests"
     },
@@ -34011,10 +33969,6 @@
     },
     {
       "path": "frontend/src/components/maphub/OverlayMarkers.xss.test.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/PivotPlacementControl.tsx",
       "kind": "web"
     },
     {
@@ -34055,14 +34009,6 @@
     },
     {
       "path": "frontend/src/components/maphub/captureTime.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/circleBoundary.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawFeatureStyle.ts",
       "kind": "web"
     },
     {
@@ -34406,10 +34352,6 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/hooks/useTheme.test.ts",
-      "kind": "tests"
-    },
-    {
       "path": "frontend/src/hooks/useTheme.ts",
       "kind": "web"
     },
@@ -34439,6 +34381,14 @@
     },
     {
       "path": "frontend/src/lib/advisorError.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/lib/advisorEvidence.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/advisorEvidence.ts",
       "kind": "web"
     },
     {
@@ -35234,6 +35184,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/src/sections/ChatbotEvidenceHonesty.static.test.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/src/sections/ChatbotHarnessTransparency.v55.static.test.ts",
       "kind": "tests"
     },
@@ -35767,14 +35721,6 @@
     },
     {
       "path": "frontend/src/sections/maphub/mapClutterControl.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/maphub/pivotDraftSave.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/sections/maphub/pivotDraftSave.ts",
       "kind": "web"
     },
     {
@@ -45379,10 +45325,6 @@
     },
     {
       "path": "tests_v9/test_edge_pest_label_manifest.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_edge_replay_json_types.py",
       "kind": "tests"
     },
     {
@@ -82759,31 +82701,6 @@
       ]
     },
     {
-      "test": "tests_v9/test_edge_replay_json_types.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "tree_wide_scan"
-      ],
-      "edges": [
-        {
-          "source": "services/sahool-platform/api/main.py",
-          "kind": "import",
-          "line": 29
-        },
-        {
-          "source": "services/sahool-platform/api/routers/__init__.py",
-          "kind": "import",
-          "line": 30
-        },
-        {
-          "source": "services/sahool-platform/api/routers/edge.py",
-          "kind": "import",
-          "line": 30
-        }
-      ],
-      "unresolved": []
-    },
-    {
       "test": "tests_v9/test_edge_sync_recovery.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -82828,22 +82745,22 @@
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "loader",
-          "line": 74
+          "line": 69
         },
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "source_read",
-          "line": 75
+          "line": 70
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 96
+          "line": 91
         }
       ],
       "unresolved": [
         {
-          "line": 44,
+          "line": 39,
           "call": "import_module"
         }
       ]
