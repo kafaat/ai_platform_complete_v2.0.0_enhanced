@@ -219,7 +219,7 @@ medium,sahool-platform,class,CostCategory,services/sahool-platform/core/farm_cos
 medium,sahool-platform,class,BusinessUnitType,services/sahool-platform/core/farm_operations_ledger.py,20,0,review_before_delete,False
 medium,sahool-platform,class,ProductionUnitType,services/sahool-platform/core/farm_operations_ledger.py,31,0,review_before_delete,False
 medium,sahool-platform,function,utc_now_iso,services/sahool-platform/core/field_event_sourcing.py,78,0,review_before_delete,False
-medium,sahool-platform,function,make_candidate_evaluator,services/sahool-platform/core/field_intelligence_coordinator.py,521,0,review_before_delete,False
+medium,sahool-platform,function,make_candidate_evaluator,services/sahool-platform/core/field_intelligence_coordinator.py,538,0,review_before_delete,False
 medium,sahool-platform,function,state_explanation_ar,services/sahool-platform/core/field_lifecycle.py,119,0,review_before_delete,False
 medium,sahool-platform,class,ConfidenceComposer,services/sahool-platform/core/guardrails.py,283,0,review_before_delete,False
 medium,sahool-platform,function,evaluate_harvest_feedback,services/sahool-platform/core/harvest_feedback.py,48,0,review_before_delete,False

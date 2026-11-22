@@ -7234,7 +7234,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/simulate.py",
-    "line": 113,
+    "line": 179,
     "method": "POST",
     "path": "/api/v1/simulate/what-if",
     "function": "simulate_what_if"

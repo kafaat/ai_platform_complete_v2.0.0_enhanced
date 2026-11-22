@@ -11,7 +11,9 @@ field_intelligence_adapters.py — محوّلات المصادر الحيّة (H
 
 from __future__ import annotations
 
+import math
 import os
+from datetime import datetime
 
 from api.raster_service_client import (
     get_field_terrain_sync,
@@ -362,32 +364,122 @@ def memory_adapter(req, *, authorization: str | None = None) -> dict | None:
     }
 
 
-def simulate_adapter(req, decision, state, *, authorization: str | None = None) -> dict | None:
-    """يشغّل محاكاة what-if لتقدير أثر الإجراء المقترَح على المحصول/الماء.
+def _selected_action_amount(structured: dict) -> dict | None:
+    """مقدار الإجراء بوحدته كما خرج من القرار، أو ``None`` إن لم يكن صالحاً بنفسه.
 
-    Runtime Cohesion: يصل المحاكاة بحلقة القرار. يطلب من خدمة WOFOST محاكاة
-    سيناريو (مثلاً: مع/بلا تدخّل) ويقارن. None عند التعذّر (لا أرقام مخترَعة).
+    لا إصلاح ولا افتراض: مقدار غير رقميّ/غير منتهٍ/غير موجب أو وحدة غائبة ⇒ ``None``،
+    فيقول المحاكي «المقدار غائب» بدل أن يُحاكى رقمٌ لم يختره القرار.
     """
-    crop = req.crop or "قمح صلب"
+    value = structured.get("quantity")
+    unit = structured.get("unit")
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    if not math.isfinite(value) or value <= 0:
+        return None
+    if not isinstance(unit, str) or not unit.strip():
+        return None
+    return {"value": float(value), "unit": unit.strip()}
+
+
+def _selected_action_time(structured: dict) -> str | None:
+    """وقت التطبيق (ISO-8601) كما خرج من القرار، أو ``None`` إن غاب أو لم يُقرأ تاريخاً."""
+    apply_at = structured.get("apply_at")
+    if not isinstance(apply_at, str) or not apply_at.strip():
+        return None
+    try:
+        datetime.fromisoformat(apply_at.strip())
+    except ValueError:
+        return None
+    return apply_at.strip()
+
+
+def selected_action_from_decision(decision: dict | None) -> dict | None:
+    """الإجراء الذي اختارته السياسة بصيغة طلب المحاكاة، أو ``None`` إن لم يُسمِّ القرار نوعاً.
+
+    يقرأ ``action_type`` و``structured.{quantity, unit, apply_at}`` فقط — نقيّة، ولا تشتقّ
+    مقداراً ولا وقتاً من أيّ مصدر آخر (لا عتبات ولا جرعات هنا).
+    """
+    action_type = (decision or {}).get("action_type")
+    if not isinstance(action_type, str) or not action_type.strip():
+        return None
+    structured = (decision or {}).get("structured")
+    if not isinstance(structured, dict):
+        structured = {}
+    return {
+        "action_type": action_type.strip(),
+        "amount": _selected_action_amount(structured),
+        "apply_at": _selected_action_time(structured),
+    }
+
+
+_SIMULATION_NOT_RUN_NOTES_AR: dict[str, str] = {
+    "decision_has_no_action_type": "القرار لم يُسمِّ نوع إجراء — لا شيء يُحاكى",
+    "simulator_unreachable": "تعذّر الوصول إلى خدمة المحاكاة — لم يُحاكَ الإجراء المختار",
+    "simulator_did_not_confirm_selected_action": (
+        "خدمة المحاكاة لم تؤكّد أنّها حاكت الإجراء المختار — أرقامها لا تُنسَب إليه"
+    ),
+}
+
+
+def _simulation_not_run(selected_action: dict | None, reason: str, note_ar: str | None) -> dict:
+    """ناتج «لم يُحاكَ الإجراء المختار»: السبب مُسمّى وكلّ الأرقام ``None`` (لا اختراع)."""
+    return {
+        "selected_action": selected_action,
+        "selected_action_simulated": False,
+        "not_simulated_reason": reason,
+        "note_ar": note_ar or _SIMULATION_NOT_RUN_NOTES_AR.get(reason),
+        "baseline_yield_t_ha": None,
+        "action_yield_t_ha": None,
+        "water_saved_mm": None,
+        "recommended_action_helps": None,
+        "weather_provenance": None,
+    }
+
+
+def simulate_adapter(req, decision, state, *, authorization: str | None = None) -> dict | None:
+    """يطلب محاكاة what-if **للإجراء الذي اختاره القرار** ويقول صراحةً إن لم يُحاكَ.
+
+    Runtime Cohesion: يصل المحاكاة بحلقة القرار. الطلب يحمل ``selected_action`` (النوع ·
+    المقدار بوحدته · وقت التطبيق) مبنيّاً من ``decision`` — لا اسم سيناريو ثابت (F-E11).
+    الأرقام لا تُنسَب إلى الإجراء إلّا إن أكّدت الخدمة أنّها حاكته هو نفسه
+    (``selected_action_simulated`` + صدى الإجراء)؛ غير ذلك ⇒ سببٌ مُسمّى وأرقام ``None``.
+    """
+    selected_action = selected_action_from_decision(decision)
+    if selected_action is None:
+        return _simulation_not_run(None, "decision_has_no_action_type", None)
     payload = {
         "field_id": req.field_id,
-        "crop": crop,
+        "crop": req.crop or "قمح صلب",
         "lat": req.lat,
         "lon": req.lon,
-        "scenario": "recommended_action",  # الخدمة تفسّر القرار المقترَح
+        "selected_action": selected_action,
     }
     data = _post_json(
         f"{PLATFORM_URL}/api/v1/simulate/what-if", payload, authorization=authorization
     )
     if not data:
-        return None
-    # هل الإجراء المقترَح يُحسّن النتيجة فعلاً؟ (للقرار)
+        return _simulation_not_run(selected_action, "simulator_unreachable", None)
+    # نسخة أقدم من الخدمة تتجاهل selected_action وتُعيد مقارنة الريّ العامّة: الصدى هو
+    # الدليل الوحيد أنّ ما حوكي هو ما اختاره القرار.
+    echoed = data.get("selected_action") == selected_action
+    if not (echoed and data.get("selected_action_simulated") is True):
+        reason = data.get("not_simulated_reason")
+        if not (echoed and isinstance(reason, str) and reason):
+            return _simulation_not_run(
+                selected_action, "simulator_did_not_confirm_selected_action", None
+            )
+        return _simulation_not_run(selected_action, reason, data.get("note_ar"))
+    # هل الإجراء المختار يُحسّن النتيجة فعلاً؟ (شرحٌ للقرار — لا يُعيد اختياره)
     baseline = data.get("baseline_yield_t_ha")
     with_action = data.get("action_yield_t_ha")
     helps = None
     if baseline is not None and with_action is not None:
-        helps = with_action > baseline * 1.02  # تحسّن >2% يُعتبر مُجدياً
+        helps = with_action > baseline * 1.02
     return {
+        "selected_action": selected_action,
+        "selected_action_simulated": True,
+        "not_simulated_reason": None,
+        "note_ar": data.get("note_ar"),
         "baseline_yield_t_ha": baseline,
         "action_yield_t_ha": with_action,
         "water_saved_mm": data.get("water_saved_mm"),
