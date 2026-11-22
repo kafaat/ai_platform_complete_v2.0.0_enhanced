@@ -263,20 +263,34 @@ async def _hourly_forecast(
     return output, product
 
 
+def _timestamptz(value: Any) -> datetime | None:
+    """The solver emits ISO-8601 text (``…Z``); asyncpg binds ``TIMESTAMPTZ`` only from a
+    ``datetime`` and raises ``DataError`` on text, so the hour is parsed here."""
+    if value is None or isinstance(value, datetime):
+        return value
+    return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+
+
 async def _persist_schedule(conn, schedule: dict[str, Any]) -> None:
-    """Idempotently persist a recommendation-only schedule and its actions."""
+    """Idempotently persist a recommendation-only schedule and its actions.
+
+    The volumes are the solver's own (``depth_mm × area_ha × 10`` m³, from the field's
+    stored ``fields.area_ha``), read strictly: v179 declares both volume columns
+    ``NOT NULL`` with no default, so they were never optional, and a missing one must
+    fail here rather than be stored as an invented zero.
+    """
     row = await conn.fetchrow(
         """
         INSERT INTO hourly_irrigation_mpc_schedules (
             tenant_id, field_id, season_id, solver_version, status,
             recommendation_only, execution_allowed, horizon_start, horizon_hours,
             initial_depletion_mm, final_depletion_mm, required_refill_mm,
-            scheduled_irrigation_mm, water_state_digest,
+            scheduled_irrigation_mm, scheduled_volume_m3, water_state_digest,
             irrigation_capability_digest, commissioning_executability_digest,
             schedule_digest, payload
         ) VALUES (
             current_setting('app.current_tenant')::uuid, $1, $2, $3, $4,
-            TRUE, FALSE, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::jsonb
+            TRUE, FALSE, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::jsonb
         )
         ON CONFLICT (tenant_id, schedule_digest) DO UPDATE SET
             payload = hourly_irrigation_mpc_schedules.payload
@@ -286,12 +300,13 @@ async def _persist_schedule(conn, schedule: dict[str, Any]) -> None:
         schedule["season_id"],
         schedule["solver_version"],
         schedule["status"],
-        schedule.get("horizon_start"),
+        _timestamptz(schedule.get("horizon_start")),
         int(schedule.get("horizon_hours") or 0),
         float(schedule.get("initial_depletion_mm") or 0.0),
         float(schedule.get("final_depletion_mm") or 0.0),
         float(schedule.get("required_refill_mm") or 0.0),
         float(schedule.get("scheduled_irrigation_mm") or 0.0),
+        float(schedule["scheduled_volume_m3"]),
         schedule["source_digests"]["water_state_digest"],
         schedule["source_digests"]["irrigation_capability_digest"],
         schedule["source_digests"]["commissioning_executability_digest"],
@@ -304,15 +319,16 @@ async def _persist_schedule(conn, schedule: dict[str, Any]) -> None:
             """
             INSERT INTO hourly_irrigation_mpc_actions (
                 tenant_id, schedule_id, action_hour, irrigation_depth_mm,
-                runtime_minutes, expected_energy_kwh, energy_cost,
+                irrigation_volume_m3, runtime_minutes, expected_energy_kwh, energy_cost,
                 renewable_fraction, source_window_digest
             ) VALUES (
-                current_setting('app.current_tenant')::uuid, $1, $2, $3, $4, $5, $6, $7, $8
+                current_setting('app.current_tenant')::uuid, $1, $2, $3, $4, $5, $6, $7, $8, $9
             ) ON CONFLICT (tenant_id, schedule_id, action_hour) DO NOTHING
             """,
             schedule_id,
-            action["hour"],
+            _timestamptz(action["hour"]),
             float(action["irrigation_depth_mm"]),
+            float(action["irrigation_volume_m3"]),
             float(action["runtime_minutes"]),
             float(action["expected_energy_kwh"]),
             float(action["energy_cost"]),
