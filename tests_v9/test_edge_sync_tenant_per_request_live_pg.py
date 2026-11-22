@@ -198,7 +198,7 @@ def test_each_edge_result_is_written_under_the_tenant_it_was_taken_for(monkeypat
     assert out["a_sees"] == 0, "RLS: tenant A must not see B's result"
 
 
-async def _run_replay(monkeypatch) -> dict:
+async def _run_replay(monkeypatch, tmp_path) -> dict:
     """One envelope sent three times under one idempotency key: as stored, identical, true → 1."""
     if str(PLATFORM) not in sys.path:
         sys.path.insert(0, str(PLATFORM))
@@ -227,7 +227,11 @@ async def _run_replay(monkeypatch) -> dict:
     monkeypatch.setattr(main, "_DB_POOL", pool)
     sync_mod = _sync_module()
     edge = sync_mod.CloudSyncService(
-        "http://platform", "", "/nonexistent-queue", agent_token=TOKEN, assertion_key=KEY
+        "http://platform",
+        "",
+        str(tmp_path / "queue"),
+        agent_token=TOKEN,
+        assertion_key=KEY,
     )
     transport = httpx.ASGITransport(app=main.app, raise_app_exceptions=False)
     key = uuid.uuid4().hex
@@ -263,8 +267,10 @@ async def _run_replay(monkeypatch) -> dict:
     return out
 
 
-def test_a_replay_that_turns_true_into_1_is_a_conflict_and_the_row_keeps_true(monkeypatch):
-    out = asyncio.run(_run_replay(monkeypatch))
+def test_a_replay_that_turns_true_into_1_is_a_conflict_and_the_row_keeps_true(
+    monkeypatch, tmp_path
+):
+    out = asyncio.run(_run_replay(monkeypatch, tmp_path))
     first_status, first = out["first"]
     assert first_status == 200 and first.get("status") == "stored", out
     identical_status, identical = out["identical"]
