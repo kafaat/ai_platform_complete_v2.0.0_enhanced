@@ -130,6 +130,10 @@ class TaskSummary(BaseModel):
     photo_url: str | None = None
     completed_at: str | None = None
     created_at: str | None = None
+    # G3 (F-D09): جواب الإغلاق يقول هل سُجِّلت نتيجة (None خارج الإغلاق). الإغلاق الإداريّ
+    # بلا نتيجة صريحة ودليلها ⇒ False مع السبب — لا يُقرأ تحقّقاً زراعيّاً.
+    outcome_recorded: bool | None = None
+    outcome_reason: str | None = None
 
 
 class TaskListResponse(BaseModel):
@@ -187,6 +191,12 @@ class TaskUpdateRequest(BaseModel):
     notes: str | None = None
     completed_at: datetime | None = None
     actual_cost_usd: float | None = Field(default=None, ge=0, le=99_999_999.99, allow_inf_nan=False)
+    # G3 (F-D09): نتيجةٌ صريحة ومرجعُ دليلها — معاً، ومع status=completed فقط. القيم مرآة
+    # core.work_order_from_recommendation.OUTCOME_RESULTS (اختبار وحدة يربطهما).
+    outcome_result: (
+        Literal["achieved", "partially_achieved", "not_achieved", "inconclusive"] | None
+    ) = None
+    outcome_evidence_ref: str | None = Field(default=None, min_length=1, max_length=500)
 
     @field_validator("actual_cost_usd", mode="before")
     @classmethod
@@ -211,6 +221,12 @@ class TaskUpdateRequest(BaseModel):
             self.status != "completed"
         ):
             raise ValueError("completed_at/actual_cost_usd require status=completed")
+        has_result = self.outcome_result is not None
+        has_evidence = bool((self.outcome_evidence_ref or "").strip())
+        if has_result != has_evidence:
+            raise ValueError("outcome_result and outcome_evidence_ref go together")
+        if has_result and self.status != "completed":
+            raise ValueError("outcome_result/outcome_evidence_ref require status=completed")
         return self
 
 
