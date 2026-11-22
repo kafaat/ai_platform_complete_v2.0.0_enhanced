@@ -98,9 +98,16 @@ async def _journey(monkeypatch) -> dict:
     monkeypatch.setattr(fields_router, "_kick_imagery_processing", no_imagery)
 
     # The operation plan is read from the weather service; this file measures the task write,
-    # so the plan is a fixed spraying window instead of a network call.
+    # so the plan is a fixed spraying window instead of a network call. Only a window the plan
+    # recommends and states safe may be saved (G1), so the fixed window carries those flags.
     async def fixed_plan(**_kwargs):
-        return {"top_recommendation": {"operation": "spraying"}}
+        return {
+            "top_recommendation": {
+                "operation": "spraying",
+                "recommended": True,
+                "best": {"operation": {"operation": "spraying", "safe": True}},
+            }
+        }
 
     monkeypatch.setattr(weather_router, "weather_operation_plan", fixed_plan)
     users = {}

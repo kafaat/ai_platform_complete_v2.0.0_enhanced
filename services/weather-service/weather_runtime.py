@@ -558,12 +558,15 @@ async def operation_plan(
             }
         )
     items.sort(key=lambda item: item.get("priority", 0), reverse=True)
+    recommended_now = [i for i in items if i.get("recommended")]
     return {
         "location": {"lat": lat, "lon": lon},
         "model": model,
         "operations": items,
-        "recommended_now": [i for i in items if i.get("recommended")],
-        "top_recommendation": items[0] if items else None,
+        "recommended_now": recommended_now,
+        # G1: the top recommendation is the best *recommended* item; when the plan recommends
+        # no window there is none (the ranked items stay in `operations`).
+        "top_recommendation": recommended_now[0] if recommended_now else None,
         "source": "open-meteo+sahool-operation-plan",
         "partial": bool(errors),
         "upstream_errors": list(dict.fromkeys(errors))[:10],
