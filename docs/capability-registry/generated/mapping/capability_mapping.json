@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7613,
+    "files_scanned": 7614,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2640,
+      "tests": 2641,
       "web": 558
     },
-    "unmapped_artifacts": 3623,
+    "unmapped_artifacts": 3624,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4135,
-      "raw": 3478
+      "raw": 3479
     },
     "test_dependency_files": 2014,
     "test_dependency_edges": 5377,
@@ -33450,6 +33450,10 @@
     {
       "path": "frontend/postcss.config.js",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/buildInfo.static.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/components/AddFieldWithMap.pivot.behavior.test.tsx",

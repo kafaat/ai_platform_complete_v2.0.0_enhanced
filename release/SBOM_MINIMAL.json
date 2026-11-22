@@ -395,7 +395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cfd2fb915fa08ac313e08927341527d03989d56a2dbd8c72ff9ed85d58f7c9ef"
+          "content": "85609e4cefc9ad2da093bf571892c5ab777eea283eac676a999d1a9936acccab"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -535,6 +535,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c7ae05725b5fe24ee8e7dcc17cd21aa6ab0ea2136c3146b64311b8938076921a"
+        }
+      ],
+      "name": "frontend/scripts/write-build-info.mjs",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "eb7f752a422395054fb8c9e9d9d19a821b1750a84aea848c1ff2f9497278ab60"
         }
       ],
@@ -549,6 +559,16 @@
         }
       ],
       "name": "frontend/src/App.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c417a702681844fc63ba30704020868af7512398a7bc416298803f795ce8e07a"
+        }
+      ],
+      "name": "frontend/src/buildInfo.static.test.ts",
       "type": "file"
     },
     {
