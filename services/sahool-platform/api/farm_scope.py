@@ -75,3 +75,34 @@ async def load_farm_scope(conn, user) -> bool:
     user.farm_access_all = role == "owner"
     user.farm_scope_loaded = True
     return True
+
+
+async def insert_tenant_grants(conn, tenant_id: str, grants: list[tuple[str, str, str]]) -> int:
+    """Insert one tenant's ``(user_id, farm_id, granted_by)`` grants; return how many were new.
+
+    The platform is the only writer of farm_access_grants (owner decision A); the operator
+    backfill (scripts/ops/farm_access_backfill.py) calls this instead of carrying its own SQL.
+    One transaction with the tenant context and an owner role set, so the grant table's
+    policies (tenant isolation, owner-only writes) hold for a NOBYPASSRLS role too. An existing
+    row, active or revoked, is left as it is (ON CONFLICT DO NOTHING).
+    """
+    written = 0
+    async with conn.transaction():
+        await conn.execute(
+            "SELECT set_config('app.current_tenant', $1, true), "
+            "       set_config('app.current_user_id', 'farm-access-backfill', true), "
+            "       set_config('app.current_role', 'owner', true)",
+            str(tenant_id),
+        )
+        for user_id, farm_id, granted_by in grants:
+            status = await conn.execute(
+                "INSERT INTO farm_access_grants (tenant_id, user_id, farm_id, is_active, "
+                "granted_by) VALUES ($1::uuid, $2, $3, true, $4) "
+                "ON CONFLICT (tenant_id, user_id, farm_id) DO NOTHING",
+                str(tenant_id),
+                user_id,
+                farm_id,
+                granted_by,
+            )
+            written += int(status.rsplit(" ", 1)[-1])
+    return written

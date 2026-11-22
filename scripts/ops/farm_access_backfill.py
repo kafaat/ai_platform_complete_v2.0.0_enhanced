@@ -13,8 +13,9 @@ platform database, give the same DSN twice; that is an operator statement, not a
 
 Safety:
 - dry run by default: reads only, in read-only transactions, and prints the plan;
-- ``--apply`` inserts the missing grants, one transaction per tenant with the tenant context
-  set (``ON CONFLICT DO NOTHING``, so a re-run changes nothing). Applying is an owner decision;
+- ``--apply`` inserts the missing grants through the platform's own writer
+  (``api.farm_scope.insert_tenant_grants``: one transaction per tenant with the tenant context
+  set, ``ON CONFLICT DO NOTHING``, so a re-run changes nothing). Applying is an owner decision;
   never run it against a database you were not asked to change;
 - an existing inactive grant is a revocation and is never re-activated (reported instead);
 - both connections must be able to read every tenant (BYPASSRLS), otherwise the run stops
@@ -45,31 +46,15 @@ import farm_access_common as fac  # noqa: E402
 
 
 async def _insert(conn, grants: list[fac.Grant]) -> int:
-    """Insert ``grants`` tenant by tenant, each tenant in its own transaction."""
-    by_tenant: dict[str, list[fac.Grant]] = {}
+    """Insert ``grants`` tenant by tenant through the platform's own writer
+    (``api.farm_scope.insert_tenant_grants``), one transaction per tenant."""
+    farm_scope = fac._platform_module("api.farm_scope")
+    by_tenant: dict[str, list[tuple[str, str, str]]] = {}
     for g in grants:
-        by_tenant.setdefault(g.tenant_id, []).append(g)
+        by_tenant.setdefault(g.tenant_id, []).append((g.user_id, g.farm_id, g.granted_by))
     written = 0
     for tenant, rows in sorted(by_tenant.items()):
-        async with conn.transaction():
-            await conn.execute(
-                "SELECT set_config('app.current_tenant', $1, true), "
-                "       set_config('app.current_user_id', $2, true), "
-                "       set_config('app.current_role', 'owner', true)",
-                tenant,
-                fac.GRANTED_BY,
-            )
-            for g in rows:
-                status = await conn.execute(
-                    "INSERT INTO farm_access_grants (tenant_id, user_id, farm_id, is_active, "
-                    "granted_by) VALUES ($1::uuid, $2, $3, true, $4) "
-                    "ON CONFLICT (tenant_id, user_id, farm_id) DO NOTHING",
-                    g.tenant_id,
-                    g.user_id,
-                    g.farm_id,
-                    g.granted_by,
-                )
-                written += int(status.rsplit(" ", 1)[-1])
+        written += await farm_scope.insert_tenant_grants(conn, tenant, rows)
     return written
 
 
