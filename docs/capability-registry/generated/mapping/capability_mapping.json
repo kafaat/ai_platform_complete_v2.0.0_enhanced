@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7608,
+    "files_scanned": 7612,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2637,
-      "web": 556
+      "tests": 2639,
+      "web": 558
     },
-    "unmapped_artifacts": 3618,
+    "unmapped_artifacts": 3622,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4135,
-      "raw": 3473
+      "raw": 3477
     },
     "test_dependency_files": 2014,
     "test_dependency_edges": 5377,
@@ -33404,6 +33404,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/e2e/reset-link-with-session.spec.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/e2e/satellite-pixel-display.spec.ts",
       "kind": "tests"
     },
@@ -34412,6 +34416,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/lib/authScreens.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/authScreens.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/lib/authStorage.test.ts",
       "kind": "tests"
     },
@@ -35058,6 +35070,10 @@
     {
       "path": "frontend/src/pages/LoginPage.noStaticClaims.static.test.ts",
       "kind": "tests"
+    },
+    {
+      "path": "frontend/src/pages/LoginPage.resetLink.test.tsx",
+      "kind": "web"
     },
     {
       "path": "frontend/src/pages/SignupPage.tsx",
