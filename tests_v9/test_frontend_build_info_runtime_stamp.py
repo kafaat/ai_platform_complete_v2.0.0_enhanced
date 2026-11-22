@@ -114,4 +114,7 @@ def test_the_image_gives_the_nginx_user_this_one_file_only():
     assert copy < chown < user
     # Conditional, so a build whose writer left the file out still builds.
     assert "if [ -e /usr/share/nginx/html/build-info.json ]" in dockerfile
-    assert "chown -R nginx:nginx /usr/share/nginx/html" not in dockerfile
+    assert "chown -R nginx:nginx /usr/share/nginx/html" not in dockerfile, (
+        "the nginx user must not own the web root: a compromised worker could then rewrite the "
+        "served bundle; only build-info.json needs to be writable for the start-up stamp"
+    )
