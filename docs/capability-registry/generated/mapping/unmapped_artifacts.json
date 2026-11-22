@@ -4064,6 +4064,10 @@
     "kind": "tests"
   },
   {
+    "path": "mobile/sahool_app/test/core/app_error_widget_test.dart",
+    "kind": "tests"
+  },
+  {
     "path": "mobile/sahool_app/test/core/app_root_test.dart",
     "kind": "tests"
   },
