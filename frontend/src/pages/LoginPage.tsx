@@ -5,7 +5,7 @@
 // ✅ تدفّق "نسيت كلمة المرور؟": طلب بالبريد → رابط /reset-password?token= → كلمة مرور جديدة
 // ✅ تسجيل MFA الإلزاميّ: 403 + enrollment_token ⇒ خطوة setup/activate (MfaEnrollmentStep)
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Leaf, Eye, EyeOff, Loader2, Shield, AlertTriangle, KeyRound, ArrowRight, CheckCircle2, Mail } from 'lucide-react';
 import { useAuthStore } from '../hooks/useAuth';
 import { requestPasswordReset, confirmPasswordReset, apiErrorMessage, isMfaRequiredError } from '../services/api';
@@ -274,6 +274,17 @@ function ResetFlow({
   const [email, setEmail]     = useState(initialEmail);
   const [token, setToken]     = useState(initialToken);
   const [sent, setSent]       = useState(false);
+  // Like the invitation page: once the link's token is held in state, drop it from the
+  // address bar and browser history, so the secret is not left in history, screenshots or a
+  // copied URL. A reload then asks for a new link instead of reusing an exposed one.
+  useEffect(() => {
+    if (!initialToken || typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('token')) return;
+    params.delete('token');
+    const qs = params.toString();
+    window.history.replaceState(window.history.state, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
+  }, [initialToken]);
   const [newPw, setNewPw]     = useState('');
   const [showPw, setShowPw]   = useState(false);
   const [error, setError]     = useState('');
