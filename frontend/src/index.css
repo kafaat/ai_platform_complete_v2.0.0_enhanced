@@ -449,20 +449,20 @@
     --font-ar: 'Cairo', 'Tajawal', system-ui, sans-serif;
   }
 
-  /* سمة نهاريّة نظيفة محايدة — أبيض بارد ونصوص رماديّة سليتية، متمايزة عن
-     الكريميّة الدافئة. تُفعّل فقط عند التبديل (data-theme="light"). */
+  /* السمة النهاريّة الافتراضيّة عند غياب اختيار محفوظ صالح. يحفظ التمهيد
+     اختيار المستخدم (dark/light/cream) قبل أوّل رسم للصفحة. */
   [data-theme="light"] {
-    --sahool-green:        22 163 74;   /* #16a34a */
-    --sahool-green-light:  74 222 128;  /* #4ade80 */
-    --sahool-green-dark:   21 128 61;   /* #15803d */
-    --sahool-bg:          248 250 252;  /* #f8fafc slate-50 */
-    --sahool-surface:     255 255 255;  /* #ffffff */
-    --sahool-surface-2:   241 245 249;  /* #f1f5f9 slate-100 */
-    --sahool-border:      226 232 240;  /* #e2e8f0 slate-200 */
-    --sahool-border-focus: 22 163 74;   /* #16a34a */
-    --sahool-text:          0 0 0;      /* #000000 أسود داكن — أعلى تباين على الخلفية البيضاء */
-    --sahool-muted:        51 65 85;    /* #334155 slate-700 — نصّ ثانويّ واضح على الأبيض */
-    --sahool-accent:        2 132 199;  /* #0284c7 sky-600 */
+    --sahool-green: 54 124 43;
+    --sahool-green-light: 163 211 147;
+    --sahool-green-dark: 39 93 32;
+    --sahool-bg: 244 245 242;
+    --sahool-surface: 255 255 255;
+    --sahool-surface-2: 240 242 238;
+    --sahool-border: 206 212 205;
+    --sahool-border-focus: 54 124 43;
+    --sahool-text: 32 38 33;
+    --sahool-muted: 77 88 80;
+    --sahool-accent: 39 93 32;
   }
 
   /* سمة كريميّة (نمط الحقل) — لوحة الأرض الدافئة من FieldView. تُفعّل فقط عند

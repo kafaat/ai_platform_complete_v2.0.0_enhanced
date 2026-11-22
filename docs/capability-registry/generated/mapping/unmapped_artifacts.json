@@ -84,6 +84,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/e2e/pivot-designer.spec.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/e2e/reset-link-with-session.spec.ts",
     "kind": "tests"
   },
@@ -125,6 +129,10 @@
   },
   {
     "path": "frontend/postcss.config.js",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/public/theme-init.v1.js",
     "kind": "web"
   },
   {
@@ -298,6 +306,10 @@
   {
     "path": "frontend/src/components/ds/modal.tsx",
     "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/onGold.test.ts",
+    "kind": "tests"
   },
   {
     "path": "frontend/src/components/ds/status.test.ts",
@@ -584,6 +596,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/maphub/FreehandBoundary.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/FreehandBoundary.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/GridSamplingDetails.test.tsx",
     "kind": "web"
   },
@@ -632,6 +652,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/components/maphub/MeasureTools.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/OperationalOverlay.static.test.ts",
     "kind": "tests"
   },
@@ -645,6 +669,10 @@
   },
   {
     "path": "frontend/src/components/maphub/OverlayMarkers.xss.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/PivotPlacementControl.tsx",
     "kind": "web"
   },
   {
@@ -685,6 +713,14 @@
   },
   {
     "path": "frontend/src/components/maphub/captureTime.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/circleBoundary.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawFeatureStyle.ts",
     "kind": "web"
   },
   {
@@ -1026,6 +1062,10 @@
   {
     "path": "frontend/src/hooks/useSpecialtyCrops.ts",
     "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useTheme.test.ts",
+    "kind": "tests"
   },
   {
     "path": "frontend/src/hooks/useTheme.ts",
@@ -2385,6 +2425,14 @@
   },
   {
     "path": "frontend/src/sections/maphub/mapClutterControl.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/maphub/pivotDraftSave.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/maphub/pivotDraftSave.ts",
     "kind": "web"
   },
   {
@@ -11989,6 +12037,10 @@
   },
   {
     "path": "tests_v9/test_edge_pest_label_manifest.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_edge_replay_json_types.py",
     "kind": "tests"
   },
   {

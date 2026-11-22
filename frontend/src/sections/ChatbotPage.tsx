@@ -206,17 +206,17 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
             <div className="mt-2 pt-2 border-t border-slate-100 space-y-2">
               <div className="flex items-center gap-2">
                 {msg.source === 'ai-runtime'
-                  ? <><Sparkles className="w-3 h-3 text-violet-400" /><span className="text-[10px] text-slate-400">SAHOOL AI Runtime · RAG/KG/Field Memory</span></>
-                  : <><AlertCircle className="w-3 h-3 text-amber-400" /><span className="text-[10px] text-amber-500">تعذّر جلب الأدلة</span></>
+                  ? <><Sparkles className="w-3 h-3 text-violet-400" /><span className="text-[10px] text-sahool-muted">SAHOOL AI Runtime · RAG/KG/Field Memory</span></>
+                  : <><AlertCircle className="w-3 h-3 text-ops-warning" /><span className="text-[10px] text-amber-500">تعذّر جلب الأدلة</span></>
                 }
                 {msg.confidence != null && (
                   <span title="جودة الأدلة كما أبلغت عنها مصادرها؛ ليست احتمال صحة الإجابة" className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-1.5 py-0.5">
                     جودة الدليل {Math.round(msg.confidence * 100)}٪
                   </span>
                 )}
-                {msg.mode && <span className="text-[10px] text-slate-400">{msg.mode}</span>}
+                {msg.mode && <span className="text-[10px] text-sahool-muted">{msg.mode}</span>}
                 {msg.generationProvider && <span className="text-[10px] text-violet-500">{msg.generationProvider}{msg.generationModel ? ` · ${msg.generationModel}` : ''}</span>}
-                {msg.tokens && <span className="text-[10px] text-slate-300 mr-auto">{msg.tokens} token</span>}
+                {msg.tokens && <span className="text-[10px] text-sahool-text mr-auto">{msg.tokens} token</span>}
               </div>
               {msg.generationStatus?.startsWith('suppressed_') && (
                 <p className="text-[11px] text-amber-700">لم تُعرض إجابة النموذج لأن الأدلة والتحقق المتاحين لا يكفيان لاعتمادها.</p>
@@ -231,7 +231,7 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                 </div>
               )}
               {msg.evidenceIds && msg.evidenceIds.length > 0 && (
-                <div className="text-[10px] text-slate-400" data-testid="ai-evidence-ids">
+                <div className="text-[10px] text-sahool-muted" data-testid="ai-evidence-ids">
                   أدلة: {msg.evidenceIds.slice(0, 4).join('، ')}
                 </div>
               )}
@@ -248,24 +248,24 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                       {msg.harness.sees?.blind ? 'رؤية منقوصة' : 'يرى الحقل'}
                     </span>
                     {msg.harness.sees?.raster_ready != null && (
-                      <span className="text-slate-400">الصورة: {msg.harness.sees.raster_ready ? 'جاهزة' : 'غير جاهزة'}</span>
+                      <span className="text-sahool-muted">الصورة: {msg.harness.sees.raster_ready ? 'جاهزة' : 'غير جاهزة'}</span>
                     )}
                     {msg.harness.data_sharing_level && (
-                      <span className="text-slate-400">مشاركة: {msg.harness.data_sharing_level}</span>
+                      <span className="text-sahool-muted">مشاركة: {msg.harness.data_sharing_level}</span>
                     )}
                     {msg.harness.capabilities && (
-                      <span className="text-slate-400">قدرات: {msg.harness.capabilities.length}</span>
+                      <span className="text-sahool-muted">قدرات: {msg.harness.capabilities.length}</span>
                     )}
                   </div>
                   {msg.harness.notes && msg.harness.notes.length > 0 && (
-                    <div className="text-slate-400" data-testid="ai-harness-notes">
+                    <div className="text-sahool-muted" data-testid="ai-harness-notes">
                       {msg.harness.notes.slice(0, 2).join('؛ ')}
                     </div>
                   )}
                   {msg.harness.tool_calls && msg.harness.tool_calls.length > 0 && (
                     <div className="flex flex-wrap gap-1" data-testid="ai-harness-tools">
                       {msg.harness.tool_calls.slice(0, 6).map((tc, i) => (
-                        <span key={`${tc.tool}-${i}`} className="rounded-full px-1.5 py-0.5 border bg-slate-50 text-slate-500 border-slate-100">
+                        <span key={`${tc.tool}-${i}`} className="rounded-full px-1.5 py-0.5 border bg-slate-50 text-sahool-muted border-slate-100">
                           {tc.tool} · {tc.outcome}
                         </span>
                       ))}
@@ -353,7 +353,7 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
         {/* Action bar */}
         {done && msg.id !== 'welcome' && (
           <div className="flex items-center gap-0.5 mt-1 px-1">
-            <span className="text-[10px] text-slate-500">اختيار محلي مؤقت — لا يُرسل كتقييم</span>
+            <span className="text-[10px] text-sahool-muted">اختيار محلي مؤقت — لا يُرسل كتقييم</span>
             <button aria-label="إعجاب محلي" aria-pressed={liked} onClick={() => { setLiked(v => !v); setDis(false); }}
               className={`p-1.5 rounded-lg transition-colors ${liked ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 hover:bg-slate-100'}`}>
               <ThumbsUp className="w-3.5 h-3.5" />
@@ -366,7 +366,7 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
               className={`p-1.5 rounded-lg transition-colors ${copied ? 'text-emerald-600' : 'text-slate-400 hover:bg-slate-100'}`}>
               <Copy className="w-3.5 h-3.5" />
             </button>
-            <span className="text-[10px] text-slate-300 mr-auto flex items-center gap-1">
+            <span className="text-[10px] text-sahool-text mr-auto flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {msg.timestamp.toLocaleTimeString('ar-SA', { hour:'2-digit', minute:'2-digit' })}
             </span>
@@ -627,7 +627,7 @@ export function ChatbotPage() {
 
       {/* Field AI context pack status */}
       <div className="px-5 py-2 border-b border-slate-100 bg-slate-50/80">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-sahool-muted">
           <span className="font-semibold text-slate-700">سياق الحقل للذكاء:</span>
           {!activeFieldId ? (
             <span>لا يوجد حقل نشط — سيتم استخدام ملخص المزرعة فقط.</span>
@@ -681,7 +681,7 @@ export function ChatbotPage() {
             </div>
             <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tr-sm px-4 py-3 flex items-center gap-2">
               <Loader2 className="w-4 h-4 text-emerald-500 animate-spin" />
-              <span className="text-sm text-slate-400">يفكّر المستشار...</span>
+              <span className="text-sm text-sahool-muted">يفكّر المستشار...</span>
               <span className="flex gap-1">
                 {[0,1,2].map(i => (
                   <span key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce"
@@ -697,7 +697,7 @@ export function ChatbotPage() {
       {/* Suggestions (visible when few messages) */}
       {messages.length <= 2 && (
         <div className="px-4 pb-2">
-          <p className="text-[11px] text-slate-400 mb-2 flex items-center gap-1">
+          <p className="text-[11px] text-sahool-muted mb-2 flex items-center gap-1">
             <Sparkles className="w-3 h-3" /> اقتراحات ذكية:
           </p>
           <div className="flex flex-wrap gap-2">
@@ -729,7 +729,7 @@ export function ChatbotPage() {
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
         </form>
-        <p className="text-[10px] text-slate-300 text-center mt-1.5">
+        <p className="text-[10px] text-sahool-text text-center mt-1.5">
           مدعوم بـ SAHOOL AI Runtime · RAG/KG/FieldState
         </p>
       </div>

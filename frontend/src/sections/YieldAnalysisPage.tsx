@@ -121,7 +121,7 @@ export default function YieldAnalysisPage() {
       key: 'hybrid', label: 'الهجين/الصنف',
       render: (r, i) => (
         <span className="inline-flex items-center gap-2">
-          {i === 0 && <Trophy className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />}
+          {i === 0 && <Trophy className="w-3.5 h-3.5 text-ops-warning" aria-hidden="true" />}
           <span style={{ fontWeight: 700 }}>{r.hybrid}</span>
         </span>
       ),
@@ -143,17 +143,17 @@ export default function YieldAnalysisPage() {
     <div className="space-y-6 max-w-4xl mx-auto" dir="rtl">
       {/* ── الترويسة ── */}
       <div className="flex items-center gap-2">
-        <Wheat className="w-5 h-5 text-amber-400" aria-hidden="true" />
-        <h2 className="text-xl font-bold text-slate-100">تحليل الغلّة</h2>
+        <Wheat className="w-5 h-5 text-ops-warning" aria-hidden="true" />
+        <h2 className="text-xl font-bold text-sahool-text">تحليل الغلّة</h2>
         <span
           className="text-[11px] px-2 py-0.5 rounded-full font-semibold"
-          style={{ background: '#78350f33', color: '#fbbf24' }}
+          style={{ background: 'rgb(202 145 20 / .12)', color: 'var(--ops-warning)' }}
         >
           تجريبيّ
         </span>
       </div>
-      <p className="text-sm text-slate-400">
-        على نمط <span className="text-amber-300">FieldView</span>: مقارنة الزراعة↔الحصاد لكلّ موسم
+      <p className="text-sm text-sahool-muted">
+        على نمط <span className="text-ops-warning">FieldView</span>: مقارنة الزراعة↔الحصاد لكلّ موسم
         (محصول/هجين/تاريخ بذار/غلّة مستهدفة↔فعليّة) ومقارنة أداء الهجن. صدق أوّلاً: كلّ الأرقام من
         المواسم المُخزَّنة فقط (الغلّة بالطنّ/هكتار) — الغلّة غير المُسجَّلة تُعرَض «—» لا صفراً، والفجوات
         مُعلَنة صراحةً. عرض فقط.
@@ -162,21 +162,21 @@ export default function YieldAnalysisPage() {
       {/* ── منتقي الحقل + الموسم ── */}
       <div
         className="rounded-xl border p-4 flex flex-wrap gap-4"
-        style={{ background: '#1e293b', borderColor: '#334155' }}
+        style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}
       >
         <label className="flex flex-col gap-1 min-w-48">
-          <span className="text-xs text-slate-400 flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-amber-400" /> الحقل (اختياريّ)
+          <span className="text-xs text-sahool-muted flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5 text-ops-warning" /> الحقل (اختياريّ)
           </span>
           {fieldsLoading ? (
-            <span className="text-[12px] text-slate-500">جارٍ جلب الحقول…</span>
+            <span className="text-[12px] text-sahool-muted">جارٍ جلب الحقول…</span>
           ) : fieldsError ? (
-            <span className="text-[12px] text-amber-300/80">تعذّر جلب قائمة الحقول.</span>
+            <span className="text-[12px] text-ops-warning/80">تعذّر جلب قائمة الحقول.</span>
           ) : (
             <select
               value={fieldId} onChange={(e) => { setFieldId(e.target.value); setSeason(''); }}
               className="px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}
             >
               <option value="">— كلّ الحقول —</option>
               {options.map((o) => <option key={o.id} value={o.id}>{o.name || o.id}</option>)}
@@ -185,14 +185,14 @@ export default function YieldAnalysisPage() {
         </label>
 
         <label className="flex flex-col gap-1 min-w-48">
-          <span className="text-xs text-slate-400 flex items-center gap-1">
-            <CalendarRange className="w-3.5 h-3.5 text-amber-400" /> الموسم (اختياريّ)
+          <span className="text-xs text-sahool-muted flex items-center gap-1">
+            <CalendarRange className="w-3.5 h-3.5 text-ops-warning" /> الموسم (اختياريّ)
           </span>
           <select
             value={season} onChange={(e) => setSeason(e.target.value)}
             disabled={seasonOptions.length === 0}
             className="px-3 py-2 rounded-lg text-sm"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
+            style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}
           >
             <option value="">— كلّ المواسم —</option>
             {seasonOptions.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
@@ -235,11 +235,11 @@ export default function YieldAnalysisPage() {
           {data.provenance.note_ar && (
             <div
               className="rounded-xl border p-4 flex items-start gap-3"
-              style={{ background: '#1e293b', borderColor: '#334155' }}
+              style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}
               role="status"
             >
-              <Info className="w-5 h-5 text-amber-300 shrink-0 mt-0.5" aria-hidden="true" />
-              <div className="text-[12px] text-slate-300">{data.provenance.note_ar}</div>
+              <Info className="w-5 h-5 text-ops-warning shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="text-[12px] text-sahool-text">{data.provenance.note_ar}</div>
             </div>
           )}
 
@@ -306,8 +306,8 @@ export default function YieldAnalysisPage() {
 function Stat({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-slate-400 flex items-center gap-1">{icon}{label}</span>
-      <span className="text-2xl font-extrabold text-slate-100">{value}</span>
+      <span className="text-xs text-sahool-muted flex items-center gap-1">{icon}{label}</span>
+      <span className="text-2xl font-extrabold text-sahool-text">{value}</span>
     </div>
   );
 }

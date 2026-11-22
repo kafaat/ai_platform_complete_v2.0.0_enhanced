@@ -51,7 +51,7 @@ const DEFAULT_EDGES: EdgeRow[] = [
   { from_id: 'v1', to_id: 'z1' },
 ];
 
-const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
+const inputStyle = { background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' } as const;
 
 // حقول القيود المعروضة لكلّ نوع (مرشِد فقط — كلّها اختياريّة وتُرسَل إن مُلئت).
 const FIELDS_BY_KIND: Record<IrrigationNetworkNodeKind, (keyof NodeRow)[]> = {
@@ -161,44 +161,44 @@ export default function IrrigationNetworkPage() {
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Share2 className="w-5 h-5 text-sky-400" />
-        <h2 className="text-xl font-bold text-slate-100">توأم شبكة الريّ</h2>
+        <Share2 className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">توأم شبكة الريّ</h2>
       </div>
-      <p className="text-sm text-slate-400">
-        عرِّف شبكة الريّ (<span className="text-slate-300">عُقد وحوافّ: بئر ← مضخّة ← … ← منطقة</span>)،
-        فيفحص المحرّك <span className="text-slate-300">جدوى التنفيذ قبل أيّ ريّ</span>
+      <p className="text-sm text-sahool-muted">
+        عرِّف شبكة الريّ (<span className="text-sahool-text">عُقد وحوافّ: بئر ← مضخّة ← … ← منطقة</span>)،
+        فيفحص المحرّك <span className="text-sahool-text">جدوى التنفيذ قبل أيّ ريّ</span>
         (اتّصاليّة / توفّر ماء / تدفّق / ضغط) ويُبرِز الاختناقات.
-        <span className="text-amber-300"> توصية فقط — لا تنفيذ ولا فتح صمّامات.</span>
-        القيود غير المحدَّدة تُعرَض صراحةً كـ<span className="text-amber-300">«غير مفحوص»</span> (لا تُفترَض ناجحة).
+        <span className="text-ops-warning"> توصية فقط — لا تنفيذ ولا فتح صمّامات.</span>
+        القيود غير المحدَّدة تُعرَض صراحةً كـ<span className="text-ops-warning">«غير مفحوص»</span> (لا تُفترَض ناجحة).
       </p>
 
       {/* Nodes form */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-sm font-semibold text-slate-100">
-            <Network className="w-4 h-4 text-sky-400" /> العُقد (مكوّنات الشبكة)
+          <div className="flex items-center gap-1 text-sm font-semibold text-sahool-text">
+            <Network className="w-4 h-4 text-ops-info" /> العُقد (مكوّنات الشبكة)
           </div>
           <button onClick={addNode} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs" style={inputStyle}>
             <Plus className="w-3.5 h-3.5" /> أضف عُقدة
           </button>
         </div>
         {nodes.map((n, i) => (
-          <div key={i} className="rounded-lg border p-3 space-y-2" style={{ borderColor: '#25303f' }}>
+          <div key={i} className="rounded-lg border p-3 space-y-2" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500">عُقدة {i + 1}</span>
+              <span className="text-xs text-sahool-muted">عُقدة {i + 1}</span>
               <button onClick={() => removeNode(i)} disabled={nodes.length <= 1}
-                title="حذف العُقدة" className="p-1 rounded-sm text-slate-500 hover:text-red-400 disabled:opacity-40">
+                title="حذف العُقدة" className="p-1 rounded-sm text-sahool-muted hover:text-red-400 disabled:opacity-40">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">المعرّف</span>
+                <span className="text-xs text-sahool-muted">المعرّف</span>
                 <input value={n.node_id} onChange={e => setNode(i, 'node_id', e.target.value)}
                   className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">النوع</span>
+                <span className="text-xs text-sahool-muted">النوع</span>
                 <select value={n.kind} onChange={e => setNode(i, 'kind', e.target.value)}
                   className="px-3 py-2 rounded-lg text-sm" style={inputStyle}>
                   {NODE_KINDS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
@@ -206,7 +206,7 @@ export default function IrrigationNetworkPage() {
               </label>
               {FIELDS_BY_KIND[n.kind].map(fk => (
                 <label key={fk} className="flex flex-col gap-1">
-                  <span className="text-xs text-slate-400">{CONSTRAINT_LABELS[fk]}</span>
+                  <span className="text-xs text-sahool-muted">{CONSTRAINT_LABELS[fk]}</span>
                   <input type="number" inputMode="decimal" step="any" value={n[fk]}
                     onChange={e => setNode(i, fk, e.target.value)}
                     placeholder="اختياريّ"
@@ -219,10 +219,10 @@ export default function IrrigationNetworkPage() {
       </div>
 
       {/* Edges form */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-sm font-semibold text-slate-100">
-            <Share2 className="w-4 h-4 text-sky-400" /> الحوافّ (الوصلات بين العُقد)
+          <div className="flex items-center gap-1 text-sm font-semibold text-sahool-text">
+            <Share2 className="w-4 h-4 text-ops-info" /> الحوافّ (الوصلات بين العُقد)
           </div>
           <button onClick={addEdge} disabled={nodes.length < 2}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs disabled:opacity-40" style={inputStyle}>
@@ -232,21 +232,21 @@ export default function IrrigationNetworkPage() {
         {edges.map((e, i) => (
           <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">من</span>
+              <span className="text-xs text-sahool-muted">من</span>
               <select value={e.from_id} onChange={ev => setEdge(i, 'from_id', ev.target.value)}
                 className="px-3 py-2 rounded-lg text-sm" style={inputStyle}>
                 {nodeIds.map(id => <option key={id} value={id}>{id}</option>)}
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">إلى</span>
+              <span className="text-xs text-sahool-muted">إلى</span>
               <select value={e.to_id} onChange={ev => setEdge(i, 'to_id', ev.target.value)}
                 className="px-3 py-2 rounded-lg text-sm" style={inputStyle}>
                 {nodeIds.map(id => <option key={id} value={id}>{id}</option>)}
               </select>
             </label>
             <button onClick={() => removeEdge(i)} disabled={edges.length <= 1}
-              title="حذف الحافّة" className="p-2 rounded-lg text-slate-500 hover:text-red-400 disabled:opacity-40"
+              title="حذف الحافّة" className="p-2 rounded-lg text-sahool-muted hover:text-red-400 disabled:opacity-40"
               style={inputStyle}>
               <Trash2 className="w-4 h-4" />
             </button>
@@ -264,11 +264,11 @@ export default function IrrigationNetworkPage() {
 
       {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) */}
       {featureOff && (
-        <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-          <ShieldAlert className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+        <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+          <ShieldAlert className="w-5 h-5 text-sahool-muted shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <div className="text-sm font-semibold text-slate-200">الميزة غير مُفعَّلة</div>
-            <div className="text-[12px] text-slate-400">
+            <div className="text-sm font-semibold text-sahool-text">الميزة غير مُفعَّلة</div>
+            <div className="text-[12px] text-sahool-muted">
               توأم شبكة الريّ خلف علم تشغيل (FEATURE_IRRIGATION_NETWORK) لم يُفعَّل بعد على الخادم. تواصل مع المسؤول لتفعيله.
             </div>
           </div>
@@ -317,9 +317,9 @@ export default function IrrigationNetworkPage() {
           )}
 
           {/* Per-zone feasibility cards */}
-          <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>
-              <Network className="w-4 h-4 text-sky-400" /> جدوى المناطق
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+              <Network className="w-4 h-4 text-ops-info" /> جدوى المناطق
             </div>
             <div className="p-3 space-y-3">
               {res.zones.map((z, i) => {
@@ -385,13 +385,13 @@ export default function IrrigationNetworkPage() {
 
           {/* Wells panel — capacity vs load */}
           {res.wells.length > 0 && (
-            <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
-              <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>
-                <Droplets className="w-4 h-4 text-sky-400" /> الآبار (السعة مقابل الحِمل)
+            <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+              <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+                <Droplets className="w-4 h-4 text-ops-info" /> الآبار (السعة مقابل الحِمل)
               </div>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
+                  <tr className="text-[11px] text-sahool-muted" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
                     <th className="px-3 py-2 text-right font-medium">البئر</th>
                     <th className="px-3 py-2 text-right font-medium">السعة (م³)</th>
                     <th className="px-3 py-2 text-right font-medium">الحِمل (م³)</th>
@@ -418,8 +418,8 @@ export default function IrrigationNetworkPage() {
           )}
 
           {/* Honesty footnote — calibration context */}
-          <div className="text-[11px] text-slate-500">
-            سياق المعايرة: <span className="text-slate-400">{res.calibrated}</span> — فحص بنيويّ
+          <div className="text-[11px] text-sahool-muted">
+            سياق المعايرة: <span className="text-sahool-muted">{res.calibrated}</span> — فحص بنيويّ
             للجدوى (اتّصاليّة/سعة/تدفّق/ضغط) لا تنبّؤ مُعاير؛ القيود غير المحدَّدة معروضة كـ«غير مفحوص».
           </div>
         </div>

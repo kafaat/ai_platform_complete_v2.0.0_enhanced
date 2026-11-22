@@ -107,7 +107,7 @@ function exportToCSV(data: Record<string, unknown>[], filename: string) {
 }
 
 const CARD = 'rounded-xl p-4 border';
-const CARD_STYLE = { background: '#1e293b', borderColor: '#334155' } as const;
+const CARD_STYLE = { background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' } as const;
 // نمط Tooltip الموحّد من نظام التصميم (ds/charts) — لا تكرار للقيَم.
 const TOOLTIP_STYLE = tooltipContentStyle;
 
@@ -115,10 +115,10 @@ function KpiCard({ label, value, icon: Icon, color }: {
   label: string; value: string; icon: typeof Tractor; color: string;
 }) {
   return (
-    <div className="rounded-xl p-3 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
+    <div className="rounded-xl p-3 border" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
       <Icon className="w-4 h-4 mb-1" style={{ color }} />
       <div className="text-lg font-bold" style={{ color }}>{value}</div>
-      <div className="text-[10px] text-slate-400">{label}</div>
+      <div className="text-[10px] text-sahool-muted">{label}</div>
     </div>
   );
 }
@@ -217,10 +217,10 @@ function FieldSummaryView() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-slate-300">اختر حقلاً:</span>
+        <span className="text-sm text-sahool-text">اختر حقلاً:</span>
         <select value={fieldId} onChange={e => setFieldId(e.target.value)}
           className="px-3 py-2 rounded-lg text-sm"
-          style={{ background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }}>
+          style={{ background: 'rgb(var(--sahool-surface))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
           <option value="">— اختر حقلاً —</option>
           {fields.map(f => (
             <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` — ${f.crop}` : ''}</option>
@@ -263,16 +263,16 @@ function FieldSummaryView() {
 
           {/* الموسم النشط */}
           <div className={CARD} style={CARD_STYLE}>
-            <span className="text-sm font-semibold text-slate-200">الموسم النشط</span>
+            <span className="text-sm font-semibold text-sahool-text">الموسم النشط</span>
             {report.data.current_season ? (
-              <div className="mt-2 text-sm text-slate-300 space-y-1">
-                <div>المحاصيل: <span className="text-slate-100">{(report.data.current_season.crops ?? []).join('، ') || '—'}</span></div>
-                <div>الصنف: <span className="text-slate-100">{report.data.current_season.cultivar ?? '—'}</span></div>
-                <div>تاريخ البذار: <span className="text-slate-100">{report.data.current_season.sowing_date ?? '—'}</span></div>
-                <div>نهاية الموسم: <span className="text-slate-100">{report.data.current_season.season_end ?? '—'}</span></div>
+              <div className="mt-2 text-sm text-sahool-text space-y-1">
+                <div>المحاصيل: <span className="text-sahool-text">{(report.data.current_season.crops ?? []).join('، ') || '—'}</span></div>
+                <div>الصنف: <span className="text-sahool-text">{report.data.current_season.cultivar ?? '—'}</span></div>
+                <div>تاريخ البذار: <span className="text-sahool-text">{report.data.current_season.sowing_date ?? '—'}</span></div>
+                <div>نهاية الموسم: <span className="text-sahool-text">{report.data.current_season.season_end ?? '—'}</span></div>
               </div>
             ) : (
-              <p className="mt-2 text-xs text-slate-400">لا يوجد موسم نشط لهذا الحقل.</p>
+              <p className="mt-2 text-xs text-sahool-muted">لا يوجد موسم نشط لهذا الحقل.</p>
             )}
           </div>
 
@@ -291,25 +291,25 @@ function FieldSummaryView() {
             />
           ) : (
             <div className={CARD} style={CARD_STYLE}>
-              <span className="text-sm font-semibold text-slate-200">العمليّات حسب النوع</span>
-              <p className="mt-2 text-xs text-slate-400">لا عمليّات مُسجَّلة لهذا الحقل.</p>
+              <span className="text-sm font-semibold text-sahool-text">العمليّات حسب النوع</span>
+              <p className="mt-2 text-xs text-sahool-muted">لا عمليّات مُسجَّلة لهذا الحقل.</p>
             </div>
           )}
 
           {/* أحدث التنبيهات */}
           <div className={CARD} style={CARD_STYLE}>
-            <span className="text-sm font-semibold text-slate-200">أحدث التنبيهات</span>
+            <span className="text-sm font-semibold text-sahool-text">أحدث التنبيهات</span>
             {(report.data.recent_alerts ?? []).length > 0 ? (
               <ul className="mt-2 space-y-2">
                 {(report.data.recent_alerts ?? []).map(a => (
-                  <li key={a.alert_id} className="flex items-center justify-between text-sm border-b border-slate-700/50 pb-1">
-                    <span className="text-slate-200">{a.title_ar ?? a.alert_type}</span>
-                    <span className="text-[11px] text-slate-400">{a.severity} · {a.status}</span>
+                  <li key={a.alert_id} className="flex items-center justify-between text-sm border-b border-sahool-border/50 pb-1">
+                    <span className="text-sahool-text">{a.title_ar ?? a.alert_type}</span>
+                    <span className="text-[11px] text-sahool-muted">{a.severity} · {a.status}</span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="mt-2 text-xs text-slate-400">لا تنبيهات لهذا الحقل.</p>
+              <p className="mt-2 text-xs text-sahool-muted">لا تنبيهات لهذا الحقل.</p>
             )}
           </div>
         </div>
@@ -361,10 +361,10 @@ function CostSummary() {
         ].map((k, i) => {
           const Icon = k.icon;
           return (
-            <div key={i} className="rounded-xl p-3 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
+            <div key={i} className="rounded-xl p-3 border" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
               <Icon className="w-4 h-4 mb-1" style={{ color: k.color }} />
               <div className="text-lg font-bold" style={{ color: k.color }}>{k.val}</div>
-              <div className="text-[10px] text-slate-400">{k.label}</div>
+              <div className="text-[10px] text-sahool-muted">{k.label}</div>
             </div>
           );
         })}
@@ -388,17 +388,17 @@ function CostSummary() {
             }
           />
 
-          <div className="rounded-xl p-4 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <span className="text-sm font-semibold text-slate-200">تفصيل المصادر</span>
+          <div className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <span className="text-sm font-semibold text-sahool-text">تفصيل المصادر</span>
             <ul className="mt-3 space-y-2">
               {bySource.map((s, i) => {
                 const pct = totalUsd > 0 ? (s.total_usd / totalUsd) * 100 : 0;
                 return (
                   <li key={i} className="flex items-center justify-between text-sm">
-                    <span className="text-slate-300">{SOURCE_LABELS[s.source] ?? s.source}</span>
+                    <span className="text-sahool-text">{SOURCE_LABELS[s.source] ?? s.source}</span>
                     <span className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-500">{pct.toFixed(0)}%</span>
-                      <span className="font-semibold text-amber-400">{usd(s.total_usd)}</span>
+                      <span className="text-[11px] text-sahool-muted">{pct.toFixed(0)}%</span>
+                      <span className="font-semibold text-ops-warning">{usd(s.total_usd)}</span>
                     </span>
                   </li>
                 );
@@ -425,7 +425,7 @@ function SummaryHeader({ icon: Icon, title, color, action }: {
     <div className="flex items-center justify-between gap-2 mb-3">
       <div className="flex items-center gap-2">
         <Icon className="w-4 h-4" style={{ color }} />
-        <span className="text-sm font-semibold text-slate-200">{title}</span>
+        <span className="text-sm font-semibold text-sahool-text">{title}</span>
       </div>
       {action}
     </div>
@@ -510,7 +510,7 @@ function honestDetail(err: unknown): string {
 // ملاحظة نزاهة عند فشل جلب بعض الحقول (لا نُخفي نقصاً) + إعادة جلب الجزء الفاشل وحده.
 function PartialNote({ onRetry }: { onRetry: () => void }) {
   return (
-    <p className="text-[11px] text-amber-400/90 mt-2" dir="rtl">
+    <p className="text-[11px] text-ops-warning/90 mt-2" dir="rtl">
       تنبيه نزاهة: تعذّر جلب بيانات بعض الحقول — الملخّص أدناه مبنيّ على ما تَوفّر فقط.{' '}
       <button type="button" onClick={onRetry} className="underline hover:text-amber-200 print:hidden">
         أعد جلب البيانات الناقصة
@@ -563,12 +563,12 @@ function PlantingSummary() {
   }));
 
   return (
-    <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+    <div className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}>
       <SummaryHeader
         icon={Sprout} title="ملخّص الزراعة (لكلّ موسم/حقل)" color="#16a34a"
         action={
           <button onClick={() => exportToCSV(csv, 'SAHOOL_Planting_Summary.csv')}
-            className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 print:hidden">
+            className="flex items-center gap-1 text-xs text-sahool-green-dark hover:text-emerald-300 print:hidden">
             <Download className="w-3 h-3" /> CSV
           </button>
         }
@@ -645,12 +645,12 @@ function HarvestSummary() {
         <KpiCard label="بانتظار الحصاد"       value={num(rows.length - harvested)} icon={ListChecks} color="#f59e0b" />
       </div>
 
-      <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+      <div className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}>
         <SummaryHeader
           icon={Wheat} title="ملخّص الحصاد (الفعليّ مقابل المستهدف)" color="#16a34a"
           action={
             <button onClick={() => exportToCSV(csv, 'SAHOOL_Harvest_Summary.csv')}
-              className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 print:hidden">
+              className="flex items-center gap-1 text-xs text-sahool-green-dark hover:text-emerald-300 print:hidden">
               <Download className="w-3 h-3" /> CSV
             </button>
           }
@@ -664,7 +664,7 @@ function HarvestSummary() {
             emptyTitle="لا مواسم مُسجَّلة بعد"
           />
         </div>
-        <p className="text-[11px] text-slate-500 mt-2">«—» تعني أنّ الغلّة لم تُسجَّل بعد — لا أرقام مُلفَّقة.</p>
+        <p className="text-[11px] text-sahool-muted mt-2">«—» تعني أنّ الغلّة لم تُسجَّل بعد — لا أرقام مُلفَّقة.</p>
       </div>
     </div>
   );
@@ -740,7 +740,7 @@ function ApplicationSummary() {
           tooltipFormatter={(v) => [num(Number(v)), 'عدد']}
         />
       </div>
-      <p className="text-[11px] text-slate-500" dir="rtl">
+      <p className="text-[11px] text-sahool-muted" dir="rtl">
         ملاحظة نزاهة: لا تُسجَّل تكلفة لكلّ عمليّة في مصدر البيانات الحاليّ، لذا يقتصر الملخّص على
         العدد حسب النوع/الحالة. تكاليف المهام متاحة في تبويب «لوحة المزرعة» (ملخّص التكلفة).
       </p>
@@ -777,8 +777,8 @@ export function ReportsPage() {
       <style>{PRINT_CSS}</style>
       <div className="flex flex-wrap items-center gap-3 justify-between reports-no-print">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">التقارير والتحليلات</h2>
-          <p className="text-sm text-slate-400">ملخّصات طراز FieldView — مُجمَّعة من بياناتك الفعليّة (زراعة/حصاد/عمليّات)</p>
+          <h2 className="text-xl font-bold text-sahool-text">التقارير والتحليلات</h2>
+          <p className="text-sm text-sahool-muted">ملخّصات طراز FieldView — مُجمَّعة من بياناتك الفعليّة (زراعة/حصاد/عمليّات)</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex flex-wrap gap-2">
@@ -796,7 +796,7 @@ export function ReportsPage() {
           </div>
           <button onClick={() => window.print()}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium"
-            style={{ background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }}
+            style={{ background: 'rgb(var(--sahool-surface))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}
             title="طباعة التقرير الحاليّ كـPDF (طباعة المتصفّح)">
             <Printer className="w-4 h-4" /> طباعة / PDF
           </button>
@@ -813,10 +813,10 @@ export function ReportsPage() {
         <>
           <FarmDashboard />
           {/* ملخّص التكلفة — بيانات حيّة من /api/v1/analytics/costs */}
-          <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+          <div className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}>
             <div className="flex items-center gap-2 mb-3">
-              <Wallet className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-semibold text-slate-200">ملخّص التكلفة</span>
+              <Wallet className="w-4 h-4 text-ops-warning" />
+              <span className="text-sm font-semibold text-sahool-text">ملخّص التكلفة</span>
             </div>
             <CostSummary />
           </div>

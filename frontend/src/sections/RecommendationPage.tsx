@@ -153,13 +153,13 @@ function RecCard({ rec }: { rec: FieldRecommendation }) {
   return (
     <div
       className="rounded-xl border p-4"
-      style={{ background: '#1e293b', borderColor: `${pri.color}44` }}
+      style={{ background: 'rgb(var(--sahool-surface))', borderColor: `${pri.color}44` }}
     >
       <div className="flex items-center justify-between mb-2 gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <Icon className="w-4 h-4 shrink-0" style={{ color: pri.color }} />
-          <span className="text-xs text-slate-400 shrink-0">{cat.label}</span>
-          <span className="text-sm font-semibold text-slate-100 truncate">{rec.title_ar}</span>
+          <span className="text-xs text-sahool-muted shrink-0">{cat.label}</span>
+          <span className="text-sm font-semibold text-sahool-text truncate">{rec.title_ar}</span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {rec.safety && (
@@ -176,8 +176,8 @@ function RecCard({ rec }: { rec: FieldRecommendation }) {
           <SpeakButton text={[rec.title_ar, rec.detail_ar].filter(Boolean).join('. ')} />
         </div>
       </div>
-      <p className="text-sm text-slate-300 leading-relaxed">{rec.detail_ar}</p>
-      <p className="text-[11px] text-slate-500 mt-2">{rec.source}</p>
+      <p className="text-sm text-sahool-text leading-relaxed">{rec.detail_ar}</p>
+      <p className="text-[11px] text-sahool-muted mt-2">{rec.source}</p>
     </div>
   );
 }
@@ -212,37 +212,37 @@ export default function RecommendationPage() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <ClipboardList className="w-5 h-5 text-emerald-400" />
-        <h2 className="text-xl font-bold text-slate-100">التوصيات المتكاملة</h2>
+        <ClipboardList className="w-5 h-5 text-sahool-green-dark" />
+        <h2 className="text-xl font-bold text-sahool-text">التوصيات المتكاملة</h2>
       </div>
 
       {/* ── القسم ١: عمود التوصيات الموحَّد لكلّ حقل ── */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <LayoutList className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-base font-semibold text-slate-100">العمود الموحَّد للحقل</h3>
+          <LayoutList className="w-4 h-4 text-sahool-green-dark" />
+          <h3 className="text-base font-semibold text-sahool-text">العمود الموحَّد للحقل</h3>
         </div>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-sahool-muted">
           توصيات الحقل في مكان واحد: الريّ والتسميد والأمراض والحصاد — مفروزة بالأولويّة.
           عند تعذّر الطقس تُعرض التوصيات التي لا تحتاجه بصدق، لا بيانات وهميّة.
         </p>
 
         {/* اختيار الحقل */}
-        <div className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
+        <div className="rounded-xl border p-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">الحقل</span>
+            <span className="text-xs text-sahool-muted">الحقل</span>
             {fieldsLoading ? (
-              <span className="text-sm text-slate-400">جارٍ تحميل الحقول…</span>
+              <span className="text-sm text-sahool-muted">جارٍ تحميل الحقول…</span>
             ) : fieldsError ? (
-              <span className="text-sm text-red-400">تعذّر تحميل قائمة الحقول.</span>
+              <span className="text-sm text-ops-danger">تعذّر تحميل قائمة الحقول.</span>
             ) : fields.length === 0 ? (
-              <span className="text-sm text-slate-400">لا حقول متاحة — أنشئ حقلاً أوّلاً.</span>
+              <span className="text-sm text-sahool-muted">لا حقول متاحة — أنشئ حقلاً أوّلاً.</span>
             ) : (
               <select
                 value={fieldId}
                 onChange={e => setFieldId(e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}
               >
                 {fields.map((f) => (
                   <option key={f.id} value={f.id}>
@@ -258,47 +258,47 @@ export default function RecommendationPage() {
       </section>
 
       {/* فاصل */}
-      <div className="border-t" style={{ borderColor: '#334155' }} />
+      <div className="border-t" style={{ borderColor: 'rgb(var(--sahool-border))' }} />
 
       {/* ── القسم ٢: التوصية المتكاملة من المحرّك ── */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-base font-semibold text-slate-100">التوصية المتكاملة (المحرّك)</h3>
+          <Sparkles className="w-4 h-4 text-sahool-green-dark" />
+          <h3 className="text-base font-semibold text-sahool-text">التوصية المتكاملة (المحرّك)</h3>
         </div>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-sahool-muted">
           يبني الخادم «شهادة الجودة» من ملاحظات حقلك ثمّ يشغّل محرّك التوصية. عند نقص
           البيانات تظهر حالة محجوبة تُبيّن ما يلزم قياسه — لا رقم وهمي.
         </p>
 
         {/* Form */}
-        <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+        <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">المحصول</span>
+              <span className="text-xs text-sahool-muted">المحصول</span>
               <select value={crop} onChange={e => setCrop(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+                className="px-3 py-2 rounded-lg text-sm" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
                 {CROPS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">الحقل</span>
+              <span className="text-xs text-sahool-muted">الحقل</span>
               <select value={fieldId} onChange={e => setFieldId(e.target.value)}
                 disabled={fieldsLoading || fieldsError || fields.length === 0}
-                className="px-3 py-2 rounded-lg text-sm disabled:opacity-60" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+                className="px-3 py-2 rounded-lg text-sm disabled:opacity-60" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
                 <option value="">اختر الحقل</option>
                 {fields.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">مرحلة النموّ (اختياريّ)</span>
+              <span className="text-xs text-sahool-muted">مرحلة النموّ (اختياريّ)</span>
               <input value={growthStage} onChange={e => setGrowthStage(e.target.value)} placeholder="tillering"
-                className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                className="px-3 py-2 rounded-lg text-sm" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">معرّف المزرعة (اختياريّ — للصلاحيّة المحدودة)</span>
+              <span className="text-xs text-sahool-muted">معرّف المزرعة (اختياريّ — للصلاحيّة المحدودة)</span>
               <input value={farmId} onChange={e => setFarmId(e.target.value)} placeholder="farm_01"
-                className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                className="px-3 py-2 rounded-lg text-sm" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
           </div>
           <div className="flex justify-end">
@@ -353,7 +353,7 @@ export default function RecommendationPage() {
 
             {/* BackendDetail toggle */}
             <button onClick={() => setShowBackend(s => !s)}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200">
+              className="flex items-center gap-1.5 text-xs text-sahool-muted hover:text-slate-200">
               {showBackend ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               {showBackend ? 'إخفاء التفاصيل التقنية' : 'عرض التفاصيل التقنية (للمهندس)'}
             </button>

@@ -191,7 +191,7 @@ export function Stepper({
             <div style={{
               width: 24, height: 24, borderRadius: '50%',
               background: done ? T.gold : current ? T.green : T.card2,
-              color: done || current ? '#fff' : T.faint,
+              color: done ? T.ink : current ? '#fff' : T.faint,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 11, fontWeight: 800,
             }}>
@@ -338,16 +338,17 @@ export function BottomTabBar<TId extends string>({
   onChange: (id: TId) => void;
 }) {
   return (
-    <div className="flex" style={{ background: T.card, borderTop: `1px solid ${T.line}`, padding: '4px 0 10px', flexShrink: 0 }}>
+    <div className="flex" style={{ background: T.card, borderTop: `1px solid ${T.line}`, padding: '3px 0 max(4px, env(safe-area-inset-bottom))', flexShrink: 0 }}>
       {tabs.map((t) => {
         const on = active === t.id;
         return (
           <button
             key={t.id}
             type="button"
+            aria-current={on ? 'page' : undefined}
             onClick={() => onChange(t.id)}
             className="flex flex-col items-center"
-            style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', gap: 2, padding: '4px 2px' }}
+            style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', minWidth: 0, minHeight: 48, gap: 2, padding: '4px 2px', borderTop: on ? '3px solid #367c2b' : '3px solid transparent' }}
           >
             <div style={{
               width: 28, height: 28, borderRadius: RADIUS.sm,
@@ -356,7 +357,7 @@ export function BottomTabBar<TId extends string>({
             }}>
               {t.icon}
             </div>
-            <span style={{ fontSize: 9, color: on ? T.green : T.muted, fontWeight: on ? 700 : 400 }}>{t.label}</span>
+            <span style={{ fontSize: 10, color: on ? T.green : T.muted, fontWeight: on ? 700 : 400 }}>{t.label}</span>
           </button>
         );
       })}

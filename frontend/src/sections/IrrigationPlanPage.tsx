@@ -167,35 +167,35 @@ export default function IrrigationPlanPage() {
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <CalendarRange className="w-5 h-5 text-sky-400" />
-        <h2 className="text-xl font-bold text-slate-100">خطّة الريّ المتنبّأ بها</h2>
+        <CalendarRange className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">خطّة الريّ المتنبّأ بها</h2>
       </div>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-sahool-muted">
         جدول الريّ للأيّام القادمة عبر خطّ «مركز المحاصيل»: نسيج التربة وعمق الجذور يحدّدان الماء
-        المتاح (TAW)، والسياسة تحدّد <span className="text-slate-300">كيف نتصرّف</span> تجاه الاحتياج،
-        مع تفسير القرار وأثر السياسة والمخاطر. كلّ القيم <span className="text-amber-300">تقديريّة غير معايَرة</span>.
+        المتاح (TAW)، والسياسة تحدّد <span className="text-sahool-text">كيف نتصرّف</span> تجاه الاحتياج،
+        مع تفسير القرار وأثر السياسة والمخاطر. كلّ القيم <span className="text-ops-warning">تقديريّة غير معايَرة</span>.
       </p>
 
       <FieldSelector label="الحقل الذي ستُبنى عليه خطة الري" />
-      {field ? <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
-        مصدر السياق: <b className="text-slate-100">{field.name}</b> · {field.crop || 'بلا محصول'} · {field.area ? `${field.area} هـ` : 'مساحة غير معروفة'}.
+      {field ? <div className="rounded-xl border border-sahool-border bg-sahool-surface/70 p-3 text-xs text-sahool-text">
+        مصدر السياق: <b className="text-sahool-text">{field.name}</b> · {field.crop || 'بلا محصول'} · {field.area ? `${field.area} هـ` : 'مساحة غير معروفة'}.
         عند توفر بيانات الطقس/الأقمار/المختبر في الخلفية ستُحقن في محرك الخطة؛ القيم أدناه تبقى قابلة للتعديل اليدوي.
       </div> : null}
 
       {/* Form */}
-      <div className="rounded-xl border p-4 space-y-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">السياسة (الهدف)</span>
+            <span className="text-xs text-sahool-muted">السياسة (الهدف)</span>
             <select value={policy} onChange={e => setPolicy(e.target.value)}
-              className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+              className="px-3 py-2 rounded-lg text-sm" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
               {POLICIES.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">نسيج التربة</span>
+            <span className="text-xs text-sahool-muted">نسيج التربة</span>
             <select value={texture} onChange={e => setTexture(e.target.value)}
-              className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+              className="px-3 py-2 rounded-lg text-sm" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
               {TEXTURES.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
             </select>
           </label>
@@ -213,21 +213,21 @@ export default function IrrigationPlanPage() {
             { k: 'yv', label: 'قيمة الغلّة (/ها، للربح)', v: yieldValue, set: setYieldValue },
           ].map(f => (
             <label key={f.k} className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">{f.label}</span>
+              <span className="text-xs text-sahool-muted">{f.label}</span>
               <input type="number" inputMode="decimal" step="any" value={f.v}
                 onChange={e => f.set(e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
           ))}
         </div>
-        <p className="text-[11px] text-slate-500">
+        <p className="text-[11px] text-sahool-muted">
           تنبّؤ مبسّط موحّد (نفس ET₀/Kc/المطر لكلّ يوم) للتجربة — سيُربط لاحقاً بتنبّؤ جوّيّ يوميّ فعليّ.
         </p>
         <div className="flex justify-end gap-2">
           <button onClick={onCompare} disabled={scenLoading}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+            style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
             <GitCompare className="w-4 h-4" />
             {scenLoading ? 'جارٍ المقارنة…' : 'قارن السياسات'}
           </button>
@@ -245,13 +245,13 @@ export default function IrrigationPlanPage() {
       {/* Scenario comparison */}
       {scenError && <ErrorState title="تعذّرت مقارنة سياسات الريّ" detail="لم تكتمل طلبات المقارنة. أعد المحاولة." onRetry={onCompare} />}
       {scenarios && (
-        <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
-          <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>
-            <GitCompare className="w-4 h-4 text-sky-400" /> مقارنة السياسات (نفس البيانات)
+        <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+          <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+            <GitCompare className="w-4 h-4 text-ops-info" /> مقارنة السياسات (نفس البيانات)
           </div>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
+              <tr className="text-[11px] text-sahool-muted" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
                 <th className="px-3 py-2 text-right font-medium">السياسة</th>
                 <th className="px-3 py-2 text-right font-medium">الريّ (مم)</th>
                 <th className="px-3 py-2 text-right font-medium">م³/ها</th>
@@ -275,7 +275,7 @@ export default function IrrigationPlanPage() {
               ))}
             </tbody>
           </table>
-          <p className="px-4 py-2 text-[11px] text-slate-500">أثر السياسة على الريّ والإجهاد ظاهر مباشرةً. «أقصى ربح» يحتاج سعر الماء وقيمة الغلّة وإلّا يتراجع لتوفير الماء.</p>
+          <p className="px-4 py-2 text-[11px] text-sahool-muted">أثر السياسة على الريّ والإجهاد ظاهر مباشرةً. «أقصى ربح» يحتاج سعر الماء وقيمة الغلّة وإلّا يتراجع لتوفير الماء.</p>
         </div>
       )}
 
@@ -284,8 +284,8 @@ export default function IrrigationPlanPage() {
         <div className="space-y-4">
           {/* 1) Water Budget progress */}
           {budgetView && (
-            <div className="rounded-xl border p-4 space-y-2" style={{ background: '#1e293b', borderColor: '#334155' }}>
-              <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="rounded-xl border p-4 space-y-2" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+              <div className="flex items-center justify-between text-xs text-sahool-muted">
                 <span className="flex items-center gap-1"><Gauge className="w-3.5 h-3.5" /> الحصّة المائيّة الموسميّة</span>
                 <span>{budgetView.pct.toFixed(0)}٪</span>
               </div>
@@ -296,11 +296,11 @@ export default function IrrigationPlanPage() {
                 }} />
               </div>
               <div className="flex justify-between text-[11px]">
-                <span className="text-slate-300">استُهلك: {budgetView.used.toFixed(0)} مم</span>
+                <span className="text-sahool-text">استُهلك: {budgetView.used.toFixed(0)} مم</span>
                 <span className={budgetView.over ? 'text-red-300' : 'text-slate-300'}>
                   {budgetView.over ? `تجاوز: ${Math.abs(budgetView.remaining).toFixed(0)} مم` : `المتبقّي: ${budgetView.remaining.toFixed(0)} مم`}
                 </span>
-                <span className="text-slate-500">الميزانيّة: {numOr(budget, 0).toFixed(0)} مم</span>
+                <span className="text-sahool-muted">الميزانيّة: {numOr(budget, 0).toFixed(0)} مم</span>
               </div>
             </div>
           )}
@@ -317,16 +317,16 @@ export default function IrrigationPlanPage() {
               { label: 'الاستنزاف النهائيّ (مم)', v: res.plan.final_depletion_mm.toFixed(1) },
               { label: 'التسرّب العميق (مم)', v: res.plan.total_deep_perc_mm.toFixed(1) },
             ].map((x, i) => (
-              <div key={i} className="rounded-xl p-3 border text-center" style={{ background: '#1e293b', borderColor: '#334155' }}>
-                <div className="text-[11px] text-slate-400 mb-1">{x.label}</div>
-                <div className="text-lg font-bold text-slate-100">{x.v}</div>
+              <div key={i} className="rounded-xl p-3 border text-center" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+                <div className="text-[11px] text-sahool-muted mb-1">{x.label}</div>
+                <div className="text-lg font-bold text-sahool-text">{x.v}</div>
               </div>
             ))}
           </div>
 
           {/* 3) Risk strip */}
-          <div className="rounded-xl border p-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <div className="flex items-center gap-1 text-xs text-slate-400 mb-2"><Scale className="w-3.5 h-3.5" /> مخاطر الخطّة</div>
+          <div className="rounded-xl border p-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <div className="flex items-center gap-1 text-xs text-sahool-muted mb-2"><Scale className="w-3.5 h-3.5" /> مخاطر الخطّة</div>
             <div className="grid grid-cols-4 gap-2">
               {risks(res).map((r, i) => (
                 <div key={i} className="text-center rounded-lg py-2" style={{ background: '#0f1117' }}>
@@ -335,7 +335,7 @@ export default function IrrigationPlanPage() {
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-slate-600 mt-2">الحراريّ/الملوحة «يحتاج بيانات»: لا يحملهما هذا الحساب (يلزم حرارة وEC تربة).</p>
+            <p className="text-[10px] text-sahool-muted mt-2">الحراريّ/الملوحة «يحتاج بيانات»: لا يحملهما هذا الحساب (يلزم حرارة وEC تربة).</p>
           </div>
 
           {/* 2) Why this plan */}
@@ -363,10 +363,10 @@ export default function IrrigationPlanPage() {
           </div>
 
           {/* Days table */}
-          <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
+                <tr className="text-[11px] text-sahool-muted" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
                   <th className="px-3 py-2 text-right font-medium">اليوم</th>
                   <th className="px-3 py-2 text-right font-medium">ETc</th>
                   <th className="px-3 py-2 text-right font-medium">مطر فعّال</th>

@@ -60,9 +60,9 @@ export default function FarmMapOverview() {
   return (
     <div className="space-y-4 max-w-6xl mx-auto" dir="rtl">
       <header className="flex items-center gap-2">
-        <MapIcon className="w-5 h-5 text-emerald-400" aria-hidden="true" />
-        <h1 className="text-lg font-bold text-slate-100">خريطة المزرعة الشاملة</h1>
-        <span className="text-xs text-slate-400">{fields.length} حقل</span>
+        <MapIcon className="w-5 h-5 text-sahool-green-dark" aria-hidden="true" />
+        <h1 className="text-lg font-bold text-sahool-text">خريطة المزرعة الشاملة</h1>
+        <span className="text-xs text-sahool-muted">{fields.length} حقل</span>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
@@ -115,7 +115,7 @@ export default function FarmMapOverview() {
 
         {/* لوحة جانبيّة: قائمة الحقول (نقرة تختار الحقل النشط المشترك) */}
         <aside className="space-y-2">
-          <div className="text-xs text-slate-400 mb-1">
+          <div className="text-xs text-sahool-muted mb-1">
             الحقول — انقر لاختياره (يتبعك عبر الشاشات)
           </div>
           <div className="space-y-1 max-h-[64vh] overflow-auto">
@@ -158,10 +158,10 @@ export default function FarmMapOverview() {
                 النقر على الحقل يثبّت الاختيار المشترك لكل الشاشات. استخدم الأزرار للانتقال بسياق الحقل نفسه.
               </div>
               <div className="grid grid-cols-2 gap-2 pt-1">
-                <button onClick={() => navigate('/fields/workspace', { state: { fieldId: selected.id } })} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] hover:bg-cyan-900/40">مساحة العمل</button>
-                <button onClick={() => navigate('/health/satellite', { state: { fieldId: selected.id, source: 'farm-map' } })} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] hover:bg-cyan-900/40">الأقمار</button>
-                <button onClick={() => navigate('/health/lab-sampling', { state: { fieldId: selected.id } })} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] hover:bg-cyan-900/40">العينات</button>
-                <button onClick={() => navigate('/irrigation/plan', { state: { fieldId: selected.id } })} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] hover:bg-cyan-900/40">خطة الري</button>
+                <button onClick={() => navigate('/fields/workspace', { state: { fieldId: selected.id } })} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] text-ops-info hover:bg-cyan-600/10">مساحة العمل</button>
+                <button onClick={() => navigate('/health/satellite', { state: { fieldId: selected.id, source: 'farm-map' } })} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] text-ops-info hover:bg-cyan-600/10">الأقمار</button>
+                <button onClick={() => navigate('/health/lab-sampling', { state: { fieldId: selected.id } })} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] text-ops-info hover:bg-cyan-600/10">العينات</button>
+                <button onClick={() => navigate('/irrigation/plan', { state: { fieldId: selected.id } })} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] text-ops-info hover:bg-cyan-600/10">خطة الري</button>
               </div>
             </div>
           )}

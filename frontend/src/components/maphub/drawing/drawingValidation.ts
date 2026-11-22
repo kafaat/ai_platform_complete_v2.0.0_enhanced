@@ -43,7 +43,7 @@ function segmentsIntersect(a: Position, b: Position, c: Position, d: Position): 
     || (o4 === 0 && onSegment(c, d, b));
 }
 
-function ringSelfIntersectionRisk(ring: Position[]): boolean {
+export function ringSelfIntersectionRisk(ring: Position[]): boolean {
   // (1) duplicate non-adjacent vertices (e.g. SAM2 pixel-stair rings collapsing after reprojection).
   const seen = new Map<string, number>();
   for (let i = 0; i < ring.length - 1; i += 1) {

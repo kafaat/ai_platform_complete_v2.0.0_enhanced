@@ -237,7 +237,7 @@ test('الخطوة 7: اختيار حقل من القائمة يُبرِزه ف�
   await page.getByTestId(`field-${target.field_id}`).click();
   await expect(page.getByText('الحقل المختار')).toBeVisible();
   // اسم الحقل المختار يظهر في البطاقة الجانبيّة (قد يتكرّر في القائمة، نتحقّق ≥1).
-  await expect(page.getByText(target.name_ar).first()).toBeVisible();
+  await expect(page.getByTestId('selected-field-name')).toHaveText(target.name_ar);
 });
 
 // ── الخطوة 8: التقاط الحدود (snap) — تبديل aria-pressed (مُؤتمَت/حاجز) ──
