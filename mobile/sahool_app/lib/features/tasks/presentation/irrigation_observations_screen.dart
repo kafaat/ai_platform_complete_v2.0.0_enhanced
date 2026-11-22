@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:sahool_app/core/session/auth_state.dart';
-import 'package:sahool_app/services/auth_service.dart';
-import 'package:sahool_app/features/offline_sync/data/outbox_record.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
+import 'package:sahool_app/core/session/auth_state.dart';
+import 'package:sahool_app/features/offline_sync/data/outbox_record.dart';
 import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
+import 'package:sahool_app/services/auth_service.dart';
+
 import '../data/irrigation_observations_api.dart';
 
 /// Adds evidence only. It never completes a task or writes the water ledger.
@@ -165,8 +166,10 @@ class _IrrigationObservationsScreenState
         if (!_queued) _writeError = 'تعذّر تأكيد الحفظ المحلي. أعد محاولة حفظ الإفادة نفسها.';
       });
     } catch (_) {
-      if (mounted && _sameSession) setState(() => _writeError =
-        'تعذّر تأكيد الحفظ. احتفظنا بالإفادة نفسها لإعادة المحاولة.');
+      if (mounted && _sameSession) {
+        setState(() => _writeError =
+            'تعذّر تأكيد الحفظ. احتفظنا بالإفادة نفسها لإعادة المحاولة.');
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }

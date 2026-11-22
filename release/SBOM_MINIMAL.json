@@ -12135,7 +12135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "37e9b06ed8bd2862169e4d7af0ec9e3009c47c34ca8f609c299c9746950a8c3c"
+          "content": "4854bacc81962dcbddf1f13af4f743dd0f36bfe1d35a5c797ab97d89ca7a777b"
         }
       ],
       "name": "mobile/sahool_app/lib/core/widgets/app_error_widget.dart",
@@ -14865,7 +14865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5874b9b2998b204c8f4d12f1ef9951d4dbe2dd28dafd39c44be9e105e43679d2"
+          "content": "5e751c9e174a86f998388c9bc40123827c6636b9fb2b17488a39d5de014675bc"
         }
       ],
       "name": "mobile/sahool_app/lib/features/realtime/realtime_controller.dart",
@@ -15175,7 +15175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43a454bec6adef2ec1ea121b8d771e4980174ea6032516593efb11743eba3fbc"
+          "content": "520bad1c483f54e951ba2ea594f6181a4ea93355ceaa633072ff8a181eeacd6c"
         }
       ],
       "name": "mobile/sahool_app/lib/features/tasks/presentation/irrigation_observations_screen.dart",
@@ -15195,7 +15195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad73fbcc9dde63d450e8c4b1183c2cf05f7651dde42ebd35959937bfa374db3c"
+          "content": "813743435cec3cfd151b398f42c856996a3a271e21ff3cb8e5bb7c1291cc8d95"
         }
       ],
       "name": "mobile/sahool_app/lib/features/tasks/presentation/task_detail_screen.dart",
@@ -16029,6 +16029,16 @@
         }
       ],
       "name": "mobile/sahool_app/test/core/api_client_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a2d4ce6fe678a98b2759965b3f257fcbedba1790acb484048cbe83df370f5858"
+        }
+      ],
+      "name": "mobile/sahool_app/test/core/app_error_widget_test.dart",
       "type": "file"
     },
     {
@@ -17495,7 +17505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ff147ffacdd196998ac3f7d0ef355da79e4a356bd8860a467bea2d9dc821bc1"
+          "content": "d508c3f411ac8bfa5a6239d885fe70ffaf443ee4cc1035ef7c0c24ba97c3f17a"
         }
       ],
       "name": "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
