@@ -58,7 +58,11 @@ def test_ui12_action_from_map_palette_exists_and_does_not_fake_writes():
         assert call in pin_line, call
     assert "onOpenTimeline={() => setShowImageryTimeline(true)}" in maphub
     assert "onOpenAlerts={() => setShowAlerts(true)}" in maphub
-    assert "onAddField={() => setShowAddField(true)}" in maphub
+    # The palette's add-field action opens the plain dialog: it must also clear a tool
+    # preselected by the toolbar's circle-field button, or the dialog would reopen on it.
+    add_line = next(line for line in maphub.splitlines() if "onAddField={() =>" in line)
+    for call in ("setShowAddField(true)", "setAddFieldTool(null)"):
+        assert call in add_line, call
 
 
 def test_ui13_role_aware_map_surface_contract_is_explicit():

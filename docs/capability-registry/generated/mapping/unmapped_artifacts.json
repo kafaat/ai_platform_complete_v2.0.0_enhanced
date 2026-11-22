@@ -76,6 +76,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/e2e/map-tools.spec.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/e2e/maphub-webgl.spec.ts",
     "kind": "tests"
   },

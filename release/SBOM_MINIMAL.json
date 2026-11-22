@@ -265,6 +265,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "632b56c618d4dff2e8c8cc5bbfaa9bff97107d2497770de1955afbb11116ca5d"
+        }
+      ],
+      "name": "frontend/e2e/map-tools.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f43a98adc14023ecfa8ce57c116b64097aa145b2403dc7c91ec1ee39e77b6696"
         }
       ],
@@ -575,7 +585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e8e9560ab8a804e76dadbd344775ed31c59e65a7bcea79c45fc0c44bb0dba3e2"
+          "content": "4e6f5801a5d386b67416a63a7f01021344c85543d0471a8387c86b3534f02b1c"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -2425,7 +2435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "930a319f2c9c338b2f0f44b7dd782c92af584edbefb3f15dd6dd27918191b948"
+          "content": "d3da039f1658b15fe8cadbd7f6d41fab77455fe82f06ce70c67487277cadd446"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/PivotDesignerMapHub.static.test.ts",
@@ -6725,7 +6735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c1ca83b9253568c1521a413bcf35cd2823a43e1a7d3d5e6f7697e9a0e51c0f2"
+          "content": "ea7b5d04d67335c92c0ade878321bdd6fe62758aca6ce3a6b195e68c9db1e7a7"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -38035,7 +38045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3568a665e2c0b1e614750884a0a6803fc912b5cad41f08f35bf232e116240bae"
+          "content": "45cf4b478a9f3edde06a0b4cfa15a1961ab245b0ab66ef6396f01d60651a9d76"
         }
       ],
       "name": "services/sahool-platform/tests/test_ui11_ui13_map_workspace_progress_guard.py",
