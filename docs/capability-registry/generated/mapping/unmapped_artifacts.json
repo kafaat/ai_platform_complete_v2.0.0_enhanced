@@ -12164,6 +12164,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_field_intelligence_selected_action_simulation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_field_portfolio.py",
     "kind": "tests"
   },

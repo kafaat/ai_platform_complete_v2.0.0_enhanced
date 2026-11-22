@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7615,
+    "files_scanned": 7616,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2642,
+      "tests": 2643,
       "web": 558
     },
-    "unmapped_artifacts": 3625,
+    "unmapped_artifacts": 3626,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4136,
+      "python_functional": 4137,
       "raw": 3479
     },
-    "test_dependency_files": 2015,
-    "test_dependency_edges": 5379,
+    "test_dependency_files": 2016,
+    "test_dependency_edges": 5380,
     "test_dependency_bounded_files": 1167,
-    "test_dependency_unresolved_relations": 513
+    "test_dependency_unresolved_relations": 516
   },
   "capabilities": [
     {
@@ -45488,6 +45488,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_field_intelligence_selected_action_simulation.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_field_portfolio.py",
       "kind": "tests"
     },
@@ -84509,6 +84513,34 @@
         }
       ],
       "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_field_intelligence_selected_action_simulation.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "shared/wofost/__init__.py",
+          "kind": "import",
+          "line": 245
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 23,
+          "import": "core.field_intelligence_adapters"
+        },
+        {
+          "line": 30,
+          "import": "api.routers.simulate"
+        },
+        {
+          "line": 378,
+          "import": "core.field_intelligence_coordinator"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_field_portfolio.py",
