@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7623,
+    "files_scanned": 7624,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2645,
+      "tests": 2646,
       "web": 563
     },
-    "unmapped_artifacts": 3633,
+    "unmapped_artifacts": 3634,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4137,
-      "raw": 3486
+      "raw": 3487
     },
     "test_dependency_files": 2016,
     "test_dependency_edges": 5381,
@@ -33626,6 +33626,10 @@
     {
       "path": "frontend/src/components/ds/modal.tsx",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/ds/onGold.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/components/ds/status.test.ts",
