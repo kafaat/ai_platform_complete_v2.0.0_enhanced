@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import ast
 import asyncio
+import re
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -238,3 +239,88 @@ def test_hydrated_owner_keeps_every_farm_even_with_some_individual_grants():
     assert farm_restriction(owner) is None
     assert authorize(owner, Permission.FARM_EDIT, farm_id="farm-b").allowed
     assert audit_user_permissions(owner)["farm_access"] == "all_in_tenant"
+
+
+# ── failure never widens access; no error-catching; no DDL from a request ─────
+
+
+class _GrantReadFails(_Catalog):
+    """v287 is present, but the grant read fails (a privilege error, a dropped connection...)."""
+
+    def __init__(self, exc: Exception):
+        super().__init__(present=True)
+        self.exc = exc
+
+    async def fetch(self, sql, *args):
+        self.log.append(("fetch", sql, args))
+        raise self.exc
+
+
+class _InsufficientPrivilege(Exception):
+    sqlstate = "42501"
+
+
+@pytest.mark.parametrize(
+    "exc",
+    [_InsufficientPrivilege("permission denied for table farm_access_grants"), ConnectionError()],
+)
+def test_a_failed_grant_read_fails_the_request_and_never_falls_back_to_all_farms(monkeypatch, exc):
+    """Unhydrated + empty farm_ids_access means every farm (legacy contract), so a fallback
+    after a failed read would widen access. The error must escape tenant_connection: the
+    request body never runs, and the user is not left looking unrestricted-but-loaded."""
+    monkeypatch.setenv(farm_scope.FLAG, "on")
+    conn, user, entered = _GrantReadFails(exc), _user(UserRole.WORKER), []
+
+    async def run():
+        async with _tenant_connection(conn)(user):
+            entered.append(True)
+
+    with pytest.raises(type(exc)):
+        asyncio.run(run())
+    assert entered == [], "the request body must not run on a failed grant read"
+    assert user.farm_scope_loaded is False and user.farm_ids_access == []
+    assert not _enforce_set([e[1] for e in conn.log if e[0] == "execute"])
+
+
+def _source_tree(path: Path) -> ast.Module:
+    return ast.parse(path.read_text(encoding="utf-8"))
+
+
+def test_farm_scope_detects_schema_by_catalog_probe_and_catches_nothing():
+    """A caught 42P01 would abort the RLS transaction; presence is asked of the catalog."""
+    tree = _source_tree(PLATFORM / "api" / "farm_scope.py")
+    assert not [n for n in ast.walk(tree) if isinstance(n, ast.Try)], "no try/except at all"
+    text = (PLATFORM / "api" / "farm_scope.py").read_text(encoding="utf-8")
+    assert "UndefinedTable" not in text and "42P01" not in text
+
+
+_DDL = re.compile(r"\b(CREATE|ALTER|DROP|GRANT|REVOKE|TRUNCATE)\b", re.IGNORECASE)
+
+
+def _sql_constants(node: ast.AST) -> list[str]:
+    return [
+        n.value
+        for n in ast.walk(node)
+        if isinstance(n, ast.Constant)
+        and isinstance(n.value, str)
+        and re.search(r"\b(SELECT|INSERT)\b", n.value)
+    ]
+
+
+def test_no_request_path_runs_ddl_or_grants_to_get_around_missing_schema():
+    """Neither tenant_connection nor api.farm_scope issues DDL, a GRANT or an RLS change, and the
+    only grant writer (insert_tenant_grants, for the operator backfill) is called by no route."""
+    farm_scope_tree = _source_tree(PLATFORM / "api" / "farm_scope.py")
+    tenant_connection = next(
+        n
+        for n in _source_tree(MAIN).body
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == "tenant_connection"
+    )
+    for sql in _sql_constants(farm_scope_tree) + _sql_constants(tenant_connection):
+        assert not _DDL.search(sql), sql
+    callers = [
+        p
+        for p in (PLATFORM / "api").rglob("*.py")
+        if p.name != "farm_scope.py" and "insert_tenant_grants" in p.read_text(encoding="utf-8")
+    ]
+    assert callers == []

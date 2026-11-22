@@ -19,6 +19,13 @@ Proven here:
 * a partial grant shows only that farm's rows and refuses a write on another farm;
 * a narrow role with SELECT on fields only (the shape of sahool_ingest) still reads fields
   after v287: the policies never reference farm_access_grants while enforcement is off.
+* a failed grant read (42501) fails the request (503) instead of falling back to the
+  unhydrated user, which would show every farm; the pooled connection stays usable;
+* the grant table alone (no sc_farm_visible) does not switch enforcement on;
+* zero or revoked grants reach no farm; owner-wide access is tenant-bound;
+* one pooled connection carries no farm, tenant, user or role GUC from one request to the next.
+
+HTTP cases go through the real FastAPI app (httpx ASGI) with a platform-minted JWT.
 
 The server is ``TEST_DATABASE_ADMIN_URL`` or ``TEST_DATABASE_URL`` (a superuser: it creates
 databases and roles). ``FARM_SCOPE_CERTIFICATION_REQUIRED=1`` turns a missing database into a
@@ -46,11 +53,13 @@ _REQUIRED = os.getenv("FARM_SCOPE_CERTIFICATION_REQUIRED") == "1"
 try:
     import asyncpg
     import fastapi  # noqa: F401
+    import httpx
 except ImportError:
     if _REQUIRED:
         raise
     asyncpg = pytest.importorskip("asyncpg")
     pytest.importorskip("fastapi")
+    httpx = pytest.importorskip("httpx")
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
@@ -340,10 +349,35 @@ def _platform():
     return main, farm_scope, farms
 
 
-def _user(role: str):
+def _user(role: str, *, sub: str | None = None, tenant: str = T1):
     from core.canonical_schemas import UserRole, UserSchema
 
-    return UserSchema(user_id=SUBS[role], tenant_id=T1, role=UserRole(role), name_ar="مستخدم")
+    return UserSchema(
+        user_id=sub or SUBS[role], tenant_id=tenant, role=UserRole(role), name_ar="مستخدم"
+    )
+
+
+async def _get_farms(user) -> tuple[int, object]:
+    """``GET /api/v1/farms`` through the real FastAPI app (httpx ASGI), as ``user``'s JWT."""
+    main, _farm_scope, _farms = _platform()
+    token = main.create_token(user)
+    transport = httpx.ASGITransport(app=main.app, raise_app_exceptions=False)
+    async with httpx.AsyncClient(transport=transport, base_url="http://platform") as client:
+        response = await client.get("/api/v1/farms", headers={"Authorization": f"Bearer {token}"})
+    body = response.json()
+    if response.status_code == 200:
+        body = sorted(f["farm_id"] for f in body)
+    return response.status_code, body
+
+
+@pytest.fixture
+def platform(monkeypatch):
+    """The platform module with the flag ON, an empty presence cache and no rate limit."""
+    main, farm_scope, _farms = _platform()
+    monkeypatch.setenv(farm_scope.FLAG, "on")
+    monkeypatch.setattr(farm_scope, "_present", False)
+    monkeypatch.setattr(main, "_RATE_LIMIT_PER_MIN", 0, raising=False)
+    return main, farm_scope
 
 
 ROLES = ("manager", "agronomist", "worker", "owner")
@@ -371,17 +405,15 @@ def _run(template, body):
     asyncio.run(go())
 
 
-def test_before_v287_the_platform_reads_no_grant_even_with_the_flag_on(template, monkeypatch):
-    main, farm_scope, farms = _platform()
-    monkeypatch.setenv(farm_scope.FLAG, "on")
-    monkeypatch.setattr(farm_scope, "_present", False)
+def test_before_v287_the_platform_reads_no_grant_even_with_the_flag_on(
+    template, monkeypatch, platform
+):
+    main, farm_scope = platform
 
     async def body(live):
         monkeypatch.setattr(main, "_DB_POOL", live.pool)
-        user = _user("worker")
-        listed = await farms.list_farms(user=user)
-        assert sorted(f["farm_id"] for f in listed) == ["fs-farm-1", "fs-farm-2"]
-        assert user.farm_scope_loaded is False and farm_scope._present is False
+        assert await _get_farms(_user("worker")) == (200, ["fs-farm-1", "fs-farm-2"])
+        assert farm_scope._present is False
 
     _run(template, body)
 
@@ -458,11 +490,11 @@ def test_enforcement_on_without_grants_hides_farm_rows_and_the_diff_fails(templa
     assert {r["sub"] for r in holder["report"]["lost"]} == {"42", "43", "44"}
 
 
-def test_a_grant_keyed_by_the_platform_users_id_is_not_effective_the_sub_is(template, monkeypatch):
+def test_a_grant_keyed_by_the_platform_users_id_is_not_effective_the_sub_is(
+    template, monkeypatch, platform
+):
     """Hospital requirement 3: platform users.id 7 and auth sub 42 are the same manager."""
-    main, farm_scope, farms = _platform()
-    monkeypatch.setenv(farm_scope.FLAG, "on")
-    monkeypatch.setattr(farm_scope, "_present", False)
+    main, _farm_scope = platform
     diff = _ops("farm_access_diff")
 
     async def body(live):
@@ -470,17 +502,14 @@ def test_a_grant_keyed_by_the_platform_users_id_is_not_effective_the_sub_is(temp
         await live.apply_v287()
         await live.grant("7", "fs-farm-1", "fs-farm-2")  # the platform users.id: wrong key
         assert await live.visible("manager", enforce=True) == FARMLESS_ONLY
-        assert await farms.list_farms(user=_user("manager")) == []
+        assert await _get_farms(_user("manager")) == (200, [])
         wrong = await diff.collect(live.platform_dsn(), live.auth_dsn())
         assert {g["user_id"] for g in wrong["orphan_grants"]} == {"7"}
         assert "42" in {r["sub"] for r in wrong["lost"]}
 
         await live.grant("42", "fs-farm-1", "fs-farm-2")  # the JWT sub: right key
         assert await live.visible("manager", enforce=True) == ALL_T1
-        user = _user("manager")
-        listed = await farms.list_farms(user=user)
-        assert sorted(f["farm_id"] for f in listed) == ["fs-farm-1", "fs-farm-2"]
-        assert user.farm_scope_loaded and user.farm_ids_access == ["fs-farm-1", "fs-farm-2"]
+        assert await _get_farms(_user("manager")) == (200, ["fs-farm-1", "fs-farm-2"])
 
     _run(template, body)
 
@@ -556,5 +585,116 @@ def test_a_role_with_select_on_fields_only_still_reads_fields_after_v287(templat
             assert await read("SELECT task_id, status FROM field_tasks") == 3
         finally:
             await live.owner.execute(f'DROP OWNED BY "{narrow}"; DROP ROLE "{narrow}"')
+
+    _run(template, body)
+
+
+# ── reviewer criteria: fail closed, partial schema, empty/revoked grants, pooling ──
+
+
+def test_a_failed_grant_read_fails_the_request_instead_of_widening(template, monkeypatch, platform):
+    """Flag on, v287 present, but the grant read is refused (42501). The manager has no grant,
+    so the correct answer is no farm; a fallback to the unhydrated user would set no farm GUC
+    and show every farm. The request must fail instead."""
+    main, _farm_scope = platform
+
+    async def body(live):
+        monkeypatch.setattr(main, "_DB_POOL", live.pool)
+        await live.apply_v287()
+        await live.owner.execute(f'REVOKE SELECT ON farm_access_grants FROM "{live.role}"')
+        status, payload = await _get_farms(_user("manager"))
+        assert status == 503, payload
+        # The pooled connection is still usable afterwards (the failed transaction rolled back).
+        await live.owner.execute(f'GRANT SELECT ON farm_access_grants TO "{live.role}"')
+        assert await _get_farms(_user("manager")) == (200, [])
+
+    _run(template, body)
+
+
+def test_the_grant_table_alone_does_not_switch_enforcement_on(template, monkeypatch, platform):
+    """Partial schema: farm_access_grants exists, sc_farm_visible() does not. Scope stays off
+    (the probe needs both objects), the farm GUC is not set, and visibility is unchanged."""
+    main, farm_scope = platform
+
+    async def body(live):
+        monkeypatch.setattr(main, "_DB_POOL", live.pool)
+        await live.owner.execute(
+            "CREATE TABLE farm_access_grants (tenant_id UUID NOT NULL, user_id TEXT NOT NULL, "
+            "farm_id VARCHAR(50) NOT NULL REFERENCES farms(farm_id), is_active BOOLEAN NOT NULL "
+            "DEFAULT TRUE, granted_by TEXT NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT "
+            "now(), PRIMARY KEY (tenant_id, user_id, farm_id));"
+            f'GRANT SELECT ON farm_access_grants TO "{live.role}"'
+        )
+        assert await live.owner.fetchval("SELECT to_regprocedure('sc_farm_visible(text)')") is None
+        assert await _get_farms(_user("worker")) == (200, ["fs-farm-1", "fs-farm-2"])
+        user = _user("worker")
+        async with main.tenant_connection(user) as conn:
+            guc = await conn.fetchval("SELECT current_setting('app.enforce_farm_scope', true)")
+        assert guc in (None, "") and user.farm_scope_loaded is False
+        assert farm_scope._present is False
+
+    _run(template, body)
+
+
+def test_empty_and_revoked_grants_reach_no_farm_and_owner_access_is_tenant_bound(
+    template, monkeypatch, platform
+):
+    main, _farm_scope = platform
+
+    async def body(live):
+        monkeypatch.setattr(main, "_DB_POOL", live.pool)
+        await live.apply_v287()
+        assert await _get_farms(_user("worker")) == (200, []), "no grant: no farm"
+        await live.grant(SUBS["worker"], "fs-farm-1", "fs-farm-2")
+        assert await _get_farms(_user("worker")) == (200, ["fs-farm-1", "fs-farm-2"])
+        await live.owner.execute(
+            "UPDATE farm_access_grants SET is_active = false WHERE user_id = $1", SUBS["worker"]
+        )
+        assert await _get_farms(_user("worker")) == (200, []), "revoked grants: no farm"
+        # Owner-wide access is explicit (role) and still tenant-bound: tenant 2's farm never.
+        assert await _get_farms(_user("owner")) == (200, ["fs-farm-1", "fs-farm-2"])
+        assert await _get_farms(_user("owner", sub="99", tenant=T2)) == (200, ["fs-farm-9"])
+
+    _run(template, body)
+
+
+def test_a_single_pooled_connection_leaks_no_farm_tenant_or_user_setting(
+    template, monkeypatch, platform
+):
+    """set_config(..., true) is transaction-local: after request A (flag on, user 44 in T1)
+    the same connection carries no farm, tenant or user GUC into request B."""
+    main, farm_scope = platform
+
+    async def body(live):
+        await live.apply_v287()
+        await live.grant(SUBS["worker"], "fs-farm-1")
+
+        async def setup(conn):
+            await conn.execute(f'SET ROLE "{live.role}"')
+
+        pool = await asyncpg.create_pool(live.platform_dsn(), min_size=1, max_size=1, setup=setup)
+        try:
+            monkeypatch.setattr(main, "_DB_POOL", pool)
+            assert await _get_farms(_user("worker")) == (200, ["fs-farm-1"])  # A: enforced
+            async with pool.acquire() as conn:
+                pid = await conn.fetchval("SELECT pg_backend_pid()")
+                left = await conn.fetchrow(
+                    "SELECT current_setting('app.enforce_farm_scope', true) AS farm, "
+                    "current_setting('app.current_tenant', true) AS tenant, "
+                    "current_setting('app.current_user_id', true) AS user_id, "
+                    "current_setting('app.current_role', true) AS role"
+                )
+            assert all(v in (None, "") for v in left.values()), dict(left)
+            # B, another tenant's manager without grants on the same connection: its own farm
+            # is hidden (enforced for it too), and nothing of tenant 1 shows through.
+            assert await _get_farms(_user("manager", sub="99", tenant=T2)) == (200, [])
+            # C, flag off on the same connection: the worker sees its tenant as before v287.
+            monkeypatch.delenv(farm_scope.FLAG)
+            assert await _get_farms(_user("worker")) == (200, ["fs-farm-1", "fs-farm-2"])
+            async with pool.acquire() as conn:
+                assert await conn.fetchval("SELECT pg_backend_pid()") == pid, "one connection"
+            assert pool.get_size() == 1
+        finally:
+            await pool.close()
 
     _run(template, body)
