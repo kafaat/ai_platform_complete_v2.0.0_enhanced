@@ -6,8 +6,8 @@
   "compose_name_count": 140,
   "config_count": 4,
   "upstream_count": 53,
-  "proxied_location_count": 76,
-  "gateway_authenticated_location_count": 12,
+  "proxied_location_count": 82,
+  "gateway_authenticated_location_count": 18,
   "tenant_bound_location_count": 12,
   "hard_configuration_errors": [],
   "review_finding_count": 11,
@@ -432,6 +432,84 @@
           "security_class": "public_or_service_enforced"
         },
         {
+          "selector": "= /api/rag/readyz",
+          "proxy_pass": "http://rag_backend/readyz",
+          "upstream": "rag_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 246,
+          "security_class": "authenticated"
+        },
+        {
+          "selector": "= /api/rag/metrics",
+          "proxy_pass": "http://rag_backend/metrics",
+          "upstream": "rag_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 249,
+          "security_class": "authenticated"
+        },
+        {
+          "selector": "= /api/knowledge-graph/readyz",
+          "proxy_pass": "http://kg_backend/readyz",
+          "upstream": "kg_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 253,
+          "security_class": "authenticated"
+        },
+        {
+          "selector": "= /api/knowledge-graph/metrics",
+          "proxy_pass": "http://kg_backend/metrics",
+          "upstream": "kg_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 256,
+          "security_class": "authenticated"
+        },
+        {
+          "selector": "= /api/ai-agronomist/readyz",
+          "proxy_pass": "http://ai_agronomist_backend/readyz",
+          "upstream": "ai_agronomist_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 260,
+          "security_class": "authenticated"
+        },
+        {
+          "selector": "= /api/ai-agronomist/metrics",
+          "proxy_pass": "http://ai_agronomist_backend/metrics",
+          "upstream": "ai_agronomist_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 263,
+          "security_class": "authenticated"
+        },
+        {
           "selector": "/api/rag/",
           "proxy_pass": "http://rag_backend/v1/",
           "upstream": "rag_backend",
@@ -441,7 +519,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 245,
+          "line": 269,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -454,7 +532,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 253,
+          "line": 276,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -467,7 +545,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": true,
-          "line": 260,
+          "line": 288,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -480,7 +558,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 263,
+          "line": 292,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -493,7 +571,7 @@
           "trusted_tenant_injected": true,
           "internal": true,
           "sensitive": false,
-          "line": 274,
+          "line": 304,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -506,7 +584,7 @@
           "trusted_tenant_injected": true,
           "internal": true,
           "sensitive": false,
-          "line": 297,
+          "line": 319,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -519,7 +597,7 @@
           "trusted_tenant_injected": false,
           "internal": true,
           "sensitive": false,
-          "line": 309,
+          "line": 331,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -532,7 +610,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": true,
-          "line": 321,
+          "line": 340,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -545,7 +623,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 324,
+          "line": 342,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -558,7 +636,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 340,
+          "line": 363,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -571,7 +649,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 354,
+          "line": 379,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -584,7 +662,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 361,
+          "line": 387,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -597,7 +675,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 365,
+          "line": 393,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -610,7 +688,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 369,
+          "line": 398,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -623,7 +701,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 374,
+          "line": 402,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -636,7 +714,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": false,
-          "line": 382,
+          "line": 407,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -649,7 +727,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 397,
+          "line": 425,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -662,7 +740,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 402,
+          "line": 429,
           "security_class": "public_or_service_enforced"
         }
       ],
@@ -695,13 +773,13 @@
         {
           "kind": "sensitive_route_without_gateway_auth",
           "selector": "= /api/ai-agronomist/healthz",
-          "line": 260,
+          "line": 288,
           "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
         },
         {
           "kind": "sensitive_route_without_gateway_auth",
           "selector": "~ ^/api/v1/seasons/[^/]+/simulate$",
-          "line": 321,
+          "line": 340,
           "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
         }
       ]
@@ -1502,5 +1580,5 @@
     }
   ],
   "boundary": "Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.",
-  "content_sha256": "ed6dd132e9ca684be84c1105f4aec3a5e975f537a735820d5045de23fb34d21d"
+  "content_sha256": "b323c89143ed3f2d300b4e739178d475232f5f5b09e1e8504348912f3e3b4d85"
 }

@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7618,
+    "files_scanned": 7620,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
-      "other": 2235,
-      "tests": 2644,
-      "web": 559
+      "other": 2236,
+      "tests": 2646,
+      "web": 558
     },
     "unmapped_artifacts": 3628,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4136,
-      "raw": 3482
+      "python_functional": 4141,
+      "raw": 3479
     },
-    "test_dependency_files": 2015,
-    "test_dependency_edges": 5379,
+    "test_dependency_files": 2018,
+    "test_dependency_edges": 5390,
     "test_dependency_bounded_files": 1167,
     "test_dependency_unresolved_relations": 513
   },
@@ -21644,7 +21644,7 @@
           "score": 8
         },
         {
-          "value": "sahool.ai.model @ frontend/src/sections/ChatbotPage.tsx:111",
+          "value": "sahool.ai.model @ frontend/src/sections/ChatbotPage.tsx:101",
           "score": 8
         },
         {
@@ -28431,6 +28431,14 @@
       ],
       "routes": [
         {
+          "value": "/v1/edges @ tests_v9/test_knowledge_graph_compose_service_token.py:52",
+          "score": 14
+        },
+        {
+          "value": "/v1/nodes @ tests_v9/test_knowledge_graph_compose_service_token.py:52",
+          "score": 14
+        },
+        {
           "value": "/contract @ services/decision-service/main.py:618",
           "score": 11
         },
@@ -28804,6 +28812,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_knowledge_graph_compose_service_token.py",
+          "score": 14,
+          "signals": [
+            "path:service token",
+            "content:service token"
+          ]
+        },
+        {
           "path": "tests_v9/test_production_service_tokens_w3_12.py",
           "score": 14,
           "signals": [
@@ -28917,12 +28933,12 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 3,
-        "routes": 86,
+        "routes": 88,
         "database": 0,
         "events": 3,
         "web": 0,
         "mobile": 0,
-        "tests": 12,
+        "tests": 13,
         "governance": 0,
         "other_evidence": 2
       },
@@ -34384,14 +34400,6 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/lib/advisorEvidence.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/lib/advisorEvidence.ts",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/lib/agroAnalytics.test.ts",
       "kind": "tests"
     },
@@ -35181,10 +35189,6 @@
     },
     {
       "path": "frontend/src/sections/ChatbotApprovalUi.v58.static.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/sections/ChatbotEvidenceHonesty.static.test.ts",
       "kind": "tests"
     },
     {
@@ -46224,7 +46228,15 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_nginx_operational_aliases_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_nginx_runtime_pull_retry.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_nginx_v9_operational_aliases_runtime.py",
       "kind": "tests"
     },
     {
@@ -46289,6 +46301,10 @@
     },
     {
       "path": "tests_v9/test_nutrient_uptake.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_observability_smoke_script.py",
       "kind": "tests"
     },
     {
@@ -85105,12 +85121,12 @@
         {
           "source": "deploy/railway/render_frontend.py",
           "kind": "loader",
-          "line": 238
+          "line": 250
         },
         {
           "source": "deploy/railway/render_frontend.py",
           "kind": "source_read",
-          "line": 239
+          "line": 251
         }
       ],
       "unresolved": []
@@ -87977,6 +87993,26 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_knowledge_graph_compose_service_token.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "services/knowledge-graph/main.py",
+          "kind": "source_read",
+          "line": 51
+        },
+        {
+          "source": "shared/security/gateway_deps.py",
+          "kind": "import",
+          "line": 18
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_knowledge_provenance_guard.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -89668,6 +89704,37 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_nginx_operational_aliases_contract.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "shared_test_helper"
+      ],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "source_read",
+          "line": 33
+        },
+        {
+          "source": "services/knowledge-graph/main.py",
+          "kind": "source_read",
+          "line": 32
+        },
+        {
+          "source": "services/rag-retrieval/main.py",
+          "kind": "source_read",
+          "line": 31
+        },
+        {
+          "source": "tests_v9/_nginx_resolve.py",
+          "kind": "import",
+          "line": 23
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_nginx_runtime_pull_retry.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -89684,6 +89751,42 @@
           "source": "frontend/tests/test_nginx_runtime.py",
           "kind": "source_read",
           "line": 18
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_nginx_v9_operational_aliases_runtime.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file",
+        "subprocess"
+      ],
+      "edges": [
+        {
+          "source": "frontend/tests/test_nginx_runtime.py",
+          "kind": "loader",
+          "line": 55
+        },
+        {
+          "source": "frontend/tests/test_nginx_runtime.py",
+          "kind": "source_read",
+          "line": 54
+        },
+        {
+          "source": "services/ai_agronomist/main.py",
+          "kind": "source_read",
+          "line": 46
+        },
+        {
+          "source": "services/knowledge-graph/main.py",
+          "kind": "source_read",
+          "line": 45
+        },
+        {
+          "source": "services/rag-retrieval/main.py",
+          "kind": "source_read",
+          "line": 44
         }
       ],
       "unresolved": []

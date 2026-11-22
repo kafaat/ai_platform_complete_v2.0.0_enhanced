@@ -49,6 +49,18 @@ NOT_PORTED = {
     "= /api/weather/readyz": "compose fleet probe; Railway weather goes to the platform",
     "= /api/vegetation/readyz": "compose fleet probe; /api/vegetation/ forwards it as-is",
     "/api/knowledge-graph/": "knowledge-graph is not in the Railway fleet (deploy-5, W3-10)",
+    "= /api/knowledge-graph/readyz": "knowledge-graph is not in the Railway fleet (as above)",
+    "= /api/knowledge-graph/metrics": "knowledge-graph is not in the Railway fleet (as above)",
+    # F10 (2026-11-22): the four below are NOT equivalent on Railway. frontend/nginx.conf
+    # still sends them through its /v1/ prefixes to /v1/readyz and /v1/metrics, which no
+    # service declares. Not ported here because frontend/** was frozen for #1572/#1573;
+    # porting them removes these entries (test_declarations_are_neither_stale... fails).
+    "= /api/rag/readyz": "OPEN DEFECT on Railway: prefix rewrites to /v1/readyz (no handler)",
+    "= /api/rag/metrics": "OPEN DEFECT on Railway: prefix rewrites to /v1/metrics (no handler)",
+    "= /api/ai-agronomist/readyz": "OPEN DEFECT on Railway: prefix rewrites to /v1/readyz "
+    "(no handler)",
+    "= /api/ai-agronomist/metrics": "OPEN DEFECT on Railway: prefix rewrites to /v1/metrics "
+    "(no handler)",
     "/api/video/": "video-processor is not in the Railway fleet (deploy-5, W3-10)",
     "/api/agriai/": "agriai-engine is not in the Railway fleet (deploy-5, W3-10)",
     "/api/": "v9's JSON 404 guard; on Railway the same prefix is the platform catch-all",
