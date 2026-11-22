@@ -16,10 +16,10 @@ class AppErrorWidget extends StatelessWidget {
   /// الرسالة الآمنة للإنتاج.
   final String message;
 
-  @override
   // Material شفّاف: قد يُبنى البديل حيث لا سلف Material (مثلاً قبل Scaffold)؛ بدونه
   // يرث Text زخرفة الخطأ الافتراضيّة (خطّ أصفر مزدوج) بدل نمطه. اكتُشف في محاكاة
   // المختبر عند خطأ في initState لـAuthGate.
+  @override
   Widget build(BuildContext context) => Material(
     type: MaterialType.transparency,
     child: Directionality(
