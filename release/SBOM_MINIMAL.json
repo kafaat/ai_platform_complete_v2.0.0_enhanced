@@ -38205,7 +38205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fbf8c999400f2cbf9b00de39f2e4a1481b05b2d6a6c14f20888f1f106ee405e4"
+          "content": "777ad2cb0f1152ebaa9d1692b3cadb45ff49f70230f1b3a71d91cd2312026b91"
         }
       ],
       "name": "services/sahool-platform/tests/test_ui11_ui13_map_workspace_progress_guard.py",
