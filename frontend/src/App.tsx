@@ -245,6 +245,26 @@ export default function App() {
     return () => window.removeEventListener('sahool:auth:unauthorized', onUnauthorized);
   }, [isDemoMode, logout]);
 
+  // A reset link opened in a tab that still holds a session: show the new-password
+  // step anyway. Without this, the signed-in router's catch-all sent the link to /
+  // and the password could not be changed. The session ends only after the reset
+  // succeeds, when the user goes back to sign in with the new password.
+  if (isAuthenticated && authScreen === 'reset-password') {
+    return (
+      <>
+        <Suspense fallback={<Loader />}>
+          <LoginPage
+            key="reset-password-with-session"
+            initialView="reset-confirm"
+            initialToken={resetToken}
+            onLogin={() => { void logout(); navigate('/login'); }}
+          />
+        </Suspense>
+        <ToastContainer />
+      </>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <>
