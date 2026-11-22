@@ -1190,7 +1190,6 @@
         "mobile/sahool_app/lib/widgets/offline_field_map.dart"
       ],
       "tests": [
-        "frontend/test-results/map-tools-the-map-toolbar--5fdda-tre-pivot-tools-to-an-owner-chromium/error-context.md",
         "mobile/sahool_app/test/features/maps/draw/draw_map_test.dart",
         "mobile/sahool_app/test/features/maps/farm_map_screen_test.dart",
         "mobile/sahool_app/test/features/maps/layers_test.dart",
@@ -1214,7 +1213,8 @@
         "tests_v9/test_evidence_map_shape.py",
         "tests_v9/test_layer_evict_v30_9.py",
         "tests_v9/test_map_and_weather_data_credit.py",
-        "tests_v9/test_service_map_image_pin_parity.py"
+        "tests_v9/test_service_map_image_pin_parity.py",
+        "tests_v9/test_soil_layer_v31_7.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1261,7 +1261,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 3
+        "tests": 2
       }
     },
     {
