@@ -345,12 +345,12 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
     serving_backend_url = os.getenv("MODEL_SERVING_BACKEND_URL")
     async with pool.acquire() as conn:
         processed = 0
-        # **حدُّ صدقٍ مُعلَن:** شرطُ الالتقاط هنا `decision='promote'` بلا أيّ انتقالِ
-        # حالةٍ نهائيّة، فالصفُّ يُلتقَط ثانيةً في كلّ دورة. المطالبةُ تمنع **عاملَين
-        # متزامنَين** من نشرِ الصفّ نفسِه، ولا تمنع إعادةَ النشر عبر الدورات — وذلك
-        # عطلٌ سابقٌ لهذا التغيير مُسجَّلٌ باسمه (`A-QUEUE-WITH-NO-TERMINAL-STATE-
-        # REPUBLISHES-FOREVER-01`)، وعلاجُه انتقالُ حالةٍ يخصّ عقدَ الترقية لا هذا
-        # الإصلاح.
+        # F-D04 (A-QUEUE-WITH-NO-TERMINAL-STATE-REPUBLISHES-FOREVER-01): the claim takes
+        # only status='pending' rows (v288) and the release writes one terminal status —
+        # requested | blocked | skipped — so a processed promotion is never claimed again,
+        # neither re-blocked every cycle while serving is disabled nor requested again while
+        # it is enabled. 'requested' ends the queue, not the promotion: the alias stays
+        # pending_external_ack until an acknowledgement from the serving backend is recorded.
         async with conn.transaction():
             await reclaim_expired(conn, table="model_promotion_history_runtime")
             promotions = await claim_batch(
@@ -360,7 +360,7 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                     "t.id, t.tenant_id, t.promotion_id, t.alias, t.decision, "
                     "t.target_model_id, t.previous_model_id"
                 ),
-                where="decision='promote'",
+                where="status='pending'",
                 batch_size=batch_size,
             )
 
@@ -399,10 +399,8 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                         table="model_promotion_history_runtime",
                         row_id=row["id"],
                         claim_token=row["claim_token"],
-                        # لا حالةَ نهائيّةً لهذا الجدول (انظر حدَّ الصدق أعلاه)،
-                        # فالإسنادُ لا يُغيّر عموداً — غرضُه تحريرُ المطالبة بـCAS.
-                        assignments="decision=decision",
-                        params=(),
+                        assignments="status=$1, status_reason=NULL",
+                        params=("requested",),
                     )
                 if owned:
                     await _publish_nats(
@@ -420,8 +418,11 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                         table="model_promotion_history_runtime",
                         row_id=row["id"],
                         claim_token=row["claim_token"],
-                        assignments="decision=decision",
-                        params=(),
+                        assignments="status=$1, status_reason=$2",
+                        params=(
+                            "skipped" if action["action"] == "skip" else "blocked",
+                            action.get("reason"),
+                        ),
                     )
             processed += 1
 

@@ -1689,6 +1689,17 @@ jobs:
           WATER_LEDGER_ET0_CERTIFICATION_REQUIRED: "1"
           COVERAGE_FILE: .coverage.integration-auth
         run: pytest -v -m integration -rs tests_v9/test_water_ledger_et0_provenance_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # F-D04 (v288): a model promotion writes its serving alias pending_external_ack, never
+      # active, and the model worker claims each promotion once (requested | blocked | skipped),
+      # so the default disabled configuration does not re-pick it every cycle. Real writer on a
+      # NOBYPASSRLS role, real worker; only the NATS publish is recorded. The flag turns any skip
+      # into a failure.
+      - name: Model promotion waits for an external ack and leaves the queue (F-D04, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          FD04_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_model_promotion_ack_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # v274-v277 (field-management-service owns the pin inspection and task cost tables): hand-off
       # state machine, evidence-version invalidation (P3), the v277 close gate through the
       # platform's PATCH, the cost trigger history, the expense link's farm/field check and the
