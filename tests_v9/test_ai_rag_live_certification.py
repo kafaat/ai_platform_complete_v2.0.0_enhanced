@@ -334,12 +334,14 @@ def published_facts(monkeypatch):
         "generate",
         AsyncMock(return_value=GenResult(text=model_text, model="llama3.2:3b", provider="local")),
     )
+    from tests_v9.test_reference_approval_manifest import admit_fixture_excerpts
+
+    # Grounding needs an approved excerpt; the shipped manifest approves none.
+    excerpt = {"chunk_id": "seed:1", "source_revision": "unit-rev", "text": "مرجع القمح"}
+    admit_fixture_excerpts(monkeypatch, excerpt)
     client = httpx.AsyncClient
     transport = httpx.MockTransport(
-        lambda _: httpx.Response(
-            200,
-            json={"annotations": [{"chunk_id": "seed:1", "text": "مرجع القمح"}], "edges": []},
-        )
+        lambda _: httpx.Response(200, json={"annotations": [excerpt], "edges": []})
     )
     monkeypatch.setattr(httpx, "AsyncClient", lambda **kw: client(transport=transport, **kw))
 

@@ -2,8 +2,8 @@
   "schema_version": "1.0.0",
   "inputs": {
     "docs/capability-registry/generated/capability_registry.json": "6a4f6abbb4253b1feae96e4a376d14d749d2bdc151e9f5bc2285ed4f17c3dfdf",
-    "docs/capability-registry/generated/mapping/capability_mapping.json": "8a1b30461c7bd4780cc90a0eacb78548f20bb0287f2ee78f6347e3c76d539913",
-    "docs/capability-registry/generated/evidence/capability_evidence_matrix.json": "885cdab4659d2e1624e3bb312c5fcd3360ad408925b891c12481691e7150e7c9",
+    "docs/capability-registry/generated/mapping/capability_mapping.json": "ca1c02c05d008ac74b223468b04a99d6c06810f70e082c34e74ca7fc243b5883",
+    "docs/capability-registry/generated/evidence/capability_evidence_matrix.json": "93939e5161202e9b28ea7056ddbced7b1c9fd1a3784a1d2f35600dc66693ff48",
     "docs/capability-registry/generated/benchmark/capability_parity_matrix.json": "1ea3679c1ef5e051829776d7c8f2d3e65a1f0d08257ce56a8d8f5c71c66a1bd0",
     "docs/capability-registry/generated/benchmark/capability_investment_matrix.json": "bb15a8ccad4ad6ca6ccf794179c2a539599d7649e8d5b5c5b2efab3505e3e034",
     "docs/capability-registry/lifecycle.yaml": "b96d502f5cb4c433639804633a06c8254315ce0fb3a98f477308f27a77622391",

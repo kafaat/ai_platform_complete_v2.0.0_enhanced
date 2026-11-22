@@ -861,7 +861,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 589,
+      "evidence_count": 590,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1022,6 +1022,7 @@
         "services/model-registry-adapter/tests/test_claim_recovery.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/model-registry-adapter/worker.py",
+        "services/qdrant-seed/list_review_candidates.py",
         "services/qdrant-seed/reindex.py",
         "services/rag-retrieval/reindex_manifest.py",
         "services/rag-retrieval/retrieval_profile.py",
@@ -1720,7 +1721,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 396,
+      "evidence_count": 398,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1874,6 +1875,7 @@
         "services/knowledge-graph/kg_store.py",
         "services/knowledge-graph/main.py",
         "services/local-ai-rag/main.py",
+        "services/qdrant-seed/list_review_candidates.py",
         "services/qdrant-seed/reindex.py",
         "services/rag-retrieval/reindex_manifest.py",
         "services/raster-service/cloud_native_catalog.py",
@@ -2113,6 +2115,7 @@
         "shared/ai/recommendation_runtime/recommendation_events.py",
         "shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
         "shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+        "shared/ai/reference_approvals.py",
         "shared/ai/seed_claims.py",
         "shared/ai/structured_advisory.py",
         "shared/ai/tool_audit.py",
@@ -3246,7 +3249,7 @@
         "services/sahool-platform/api/main.py"
       ],
       "source_evidence_count": 813,
-      "target_evidence_count": 589,
+      "target_evidence_count": 590,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3357,7 +3360,7 @@
         "services/sahool-platform/tests/test_decision_dispatch_endpoint.py",
         "services/sahool-platform/tests/test_decision_provenance_producers.py"
       ],
-      "source_evidence_count": 589,
+      "source_evidence_count": 590,
       "target_evidence_count": 211,
       "static_supported": true,
       "runtime_verified": false
@@ -3460,7 +3463,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 211,
-      "target_evidence_count": 396,
+      "target_evidence_count": 398,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3507,7 +3510,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 396,
+      "source_evidence_count": 398,
       "target_evidence_count": 52,
       "static_supported": true,
       "runtime_verified": false
@@ -3718,5 +3721,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "aa0e19efd06ce8b8b69f0f4c92fbf1717102222bb75cc94a7be8838ff43552c3"
+  "content_sha256": "5527fc6b5383171b583a33c10428a19fce3258827619341a744b9f805cf4682c"
 }
