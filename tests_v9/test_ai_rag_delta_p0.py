@@ -97,10 +97,11 @@ def test_dense_sparse_fusion_uses_canonical_chunk_id_and_survives_restart():
                 point_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"sahool-rag:{chunk.chunk_id}"))
                 self.points[point_id] = (chunk.payload, vector)
 
-        def withdraw_document_points(
-            self, *, tenant_id, document_id, keep_point_ids, newest_publication_wins=False
-        ):
+        def withdraw_document_points(self, *, tenant_id, document_id, keep_point_ids):
             return []  # one ingest of one document: nothing earlier to withdraw
+
+        def settle_document_publications(self, *, tenant_id, document_id):
+            return [], None  # no earlier publication to compare with
 
         def search(self, vector, *, tenant_id, filters=None, limit=12):
             rows = []

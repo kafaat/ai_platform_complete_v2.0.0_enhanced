@@ -1484,7 +1484,6 @@ class QdrantHttpClient:
         tenant_id: str,
         document_id: str,
         keep_point_ids: set[str],
-        newest_publication_wins: bool = False,
     ) -> list[str]:
         """Delete the stored points of one tenant's document that are not in ``keep``.
 
@@ -1499,12 +1498,40 @@ class QdrantHttpClient:
         reader serves as part of the document is withdrawn with it, and a row the
         reader rejects is left alone. The reference corpus and its quarantine are
         refused outright: the seeder owns them and no tenant ingest may remove them.
-
-        With ``newest_publication_wins`` the read-back decides instead of ``keep``: the
-        rows of the newest publication of the document (``_publication_key``) are kept
-        and every other row is withdrawn, including this caller's own rows when another
-        replica published a newer revision meanwhile (see ``PUBLICATION_STAMP_KEY``).
         """
+        rows = self._document_rows(tenant_id, document_id)
+        stale = [point_id for point_id, _ in rows if point_id not in keep_point_ids]
+        self._delete_points(stale)
+        return stale
+
+    def settle_document_publications(
+        self, *, tenant_id: str, document_id: str
+    ) -> tuple[list[str], tuple[int, str] | None]:
+        """Keep the newest publication of one tenant's document; withdraw every other row.
+
+        The read-back after a write (see ``PUBLICATION_STAMP_KEY``): the rows of the newest
+        publication (``_publication_key``) are kept and every other row of the document is
+        withdrawn, the caller's own included when another replica published a newer
+        revision meanwhile. Returns the withdrawn ids and the newest publication seen, so
+        the caller decides whether it lost from the winner itself, not from which request
+        happened to delete its rows. Same tenant and document rules as
+        ``withdraw_document_points``.
+        """
+        rows = self._document_rows(tenant_id, document_id)
+        newest = max((key for _, key in rows), default=None)
+        stale = [point_id for point_id, key in rows if key != newest]
+        self._delete_points(stale)
+        return stale, newest
+
+    def _delete_points(self, point_ids: list[str]) -> None:
+        if point_ids:
+            self._request(
+                "POST",
+                f"/collections/{self.collection}/points/delete?wait=true",
+                {"points": point_ids},
+            )
+
+    def _document_rows(self, tenant_id: str, document_id: str) -> list[tuple[str, tuple[int, str]]]:
         tenant = str(tenant_id or "").strip()
         document = str(document_id or "").strip()
         if not tenant or not document:
@@ -1527,16 +1554,7 @@ class QdrantHttpClient:
                 continue
             if stored.tenant_id == tenant and stored.document_id == document:
                 mine.append((point_id, _publication_key(payload, stored)))
-        if newest_publication_wins:
-            newest = max((key for _, key in mine), default=None)
-            stale = [point_id for point_id, key in mine if key != newest]
-        else:
-            stale = [point_id for point_id, _ in mine if point_id not in keep_point_ids]
-        if stale:
-            self._request(
-                "POST", f"/collections/{self.collection}/points/delete?wait=true", {"points": stale}
-            )
-        return stale
+        return mine
 
     def search(
         self,
@@ -1656,15 +1674,18 @@ class HybridQdrantRetriever:
         lost: set[tuple[str, str]] = set()
         for (tenant_id, document_id), group in documents.items():
             withdrawn: list[str] = []
+            newest: tuple[int, str] | None = None
             own = {canonical_storage_point_id(c.chunk_id, tenant_id=tenant_id) for c in group}
             if tenant_id not in LEGACY_POINT_ID_TENANTS:
-                withdrawn = self.qdrant.withdraw_document_points(
-                    tenant_id=tenant_id,
-                    document_id=document_id,
-                    keep_point_ids=own,
-                    newest_publication_wins=True,
+                withdrawn, newest = self.qdrant.settle_document_publications(
+                    tenant_id=tenant_id, document_id=document_id
                 )
-            superseded = bool(own & set(withdrawn))
+            # Lost when the read-back saw a newer publication than this one, whichever
+            # request deleted this one's rows (review on #1582).
+            superseded = newest is not None and newest != (
+                published_ns,
+                chunk_revision(group[0]) or "",
+            )
             if superseded:
                 lost.add((tenant_id, document_id))
             receipts.append(

@@ -613,13 +613,13 @@ def test_two_replicas_publishing_revisions_at_once_never_erase_both(monkeypatch,
     monkeypatch.setattr(pq, "_publication_stamp", lambda: next(stamps))
     store = Qdrant()
     deferred = []
-    real_withdraw = store.withdraw_document_points
+    real_settle = store.settle_document_publications
 
     def defer(**kwargs):
         deferred.append(kwargs)
-        return []
+        return [], None
 
-    store.withdraw_document_points = defer
+    store.settle_document_publications = defer
     early = document("tenant-a", ["first replica revision"], revision=REV1)
     late = document("tenant-a", ["second replica revision"], revision=REV2)
     retriever(store).ingest_documents(early)
@@ -628,7 +628,7 @@ def test_two_replicas_publishing_revisions_at_once_never_erase_both(monkeypatch,
 
     order = deferred if first_withdraws == "earlier" else list(reversed(deferred))
     for call in order:
-        real_withdraw(**call)
+        real_settle(**call)
     assert store.stored("tenant-a") == ids(late), "the later revision must survive"
 
 
@@ -686,3 +686,31 @@ def test_equal_stamps_still_converge_on_one_revision(monkeypatch):
     assert store.stored("tenant-a") == ids(
         max((a, b), key=lambda d: d[0].metadata["source_revision"])
     )
+
+
+def test_a_revision_another_replica_already_removed_still_reports_superseded(monkeypatch):
+    """Devin Review on 76550da8: replica A writes, then pauses before its read-back; replica B
+    writes a newer revision and its read-back deletes A's rows. When A resumes it has
+    nothing left to delete, yet it lost: the receipt must say so, decided from the newest
+    publication the read-back saw, not from which request deleted the rows."""
+    stamps = iter(range(1000, 2000))
+    monkeypatch.setattr(pq, "_publication_stamp", lambda: next(stamps))
+    store = Qdrant()
+    early = document("tenant-a", ["first replica revision"], revision=REV1)
+    late = document("tenant-a", ["second replica revision"], revision=REV2)
+    real_settle = store.settle_document_publications
+    late_receipts = []
+    paused = []
+
+    def settle(**kwargs):
+        if not paused:  # A pauses here once; B runs its whole ingest meanwhile
+            paused.append(1)
+            late_receipts.extend(retriever(store).ingest_documents(late))
+        return real_settle(**kwargs)
+
+    store.settle_document_publications = settle
+    (early_receipt,) = retriever(store).ingest_documents(early)
+    (late_receipt,) = late_receipts
+    assert store.stored("tenant-a") == ids(late)
+    assert (late_receipt.superseded, early_receipt.superseded) == (False, True)
+    assert early_receipt.chunks_withdrawn == 0
