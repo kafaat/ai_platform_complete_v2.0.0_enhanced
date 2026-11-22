@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "987074ffa4c42f7e29c851a53db3761846ecc4559d691584d4c398f8d21d6797"
+          "content": "a4cedd572c7b5412a7671e33e818b22bde5694236ff9feb2baf7ac5fb2101e54"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -38205,7 +38205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bedbffa6055669729cd1ddc538d0d8b3a51d0abc7c3eae842e40d3bcbc5c5b9f"
+          "content": "fbf8c999400f2cbf9b00de39f2e4a1481b05b2d6a6c14f20888f1f106ee405e4"
         }
       ],
       "name": "services/sahool-platform/tests/test_ui11_ui13_map_workspace_progress_guard.py",
