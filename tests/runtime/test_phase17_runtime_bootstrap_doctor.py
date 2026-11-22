@@ -66,11 +66,6 @@ def safe_env() -> dict[str, str]:
             "ADMIN_PASSWORD": "strong-admin-pass",
             "GRAFANA_PASSWORD": "strong-grafana-pass",
             "TELEGRAM_WEBHOOK_SECRET": "strong-telegram-secret",
-            # F-R03: the opt-in model-lifecycle adapter requires these with `:?` once
-            # REGISTRY_ADAPTER_ID is set. This fixture leaves that guard unset, so they are
-            # inert here; they are listed because every `${VAR:?}` name must have a value.
-            "MODEL_REGISTRY_URL": "https://model-registry.invalid",
-            "MODEL_REGISTRY_TOKEN": "strong-model-registry-token",
             # NATS-BROKER-HAS-NO-AUTHENTICATION-…-01 ثمّ NATS-AUTHORIZATION-NOT-ENFORCED: لكلّ
             # عميلٍ هويّةٌ بكلمة مرورٍ مُلزَمةٍ بـ`:?` في compose — ومن غيرها يسقط
             # `docker compose config` برسالةٍ عن الاستيفاء لا عن الإعداد.
