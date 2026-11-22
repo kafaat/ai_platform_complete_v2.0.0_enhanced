@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7614,
+    "files_scanned": 7620,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2641,
-      "web": 558
+      "tests": 2642,
+      "web": 563
     },
-    "unmapped_artifacts": 3624,
+    "unmapped_artifacts": 3630,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4135,
-      "raw": 3479
+      "raw": 3485
     },
     "test_dependency_files": 2014,
     "test_dependency_edges": 5377,
@@ -4061,11 +4061,11 @@
           "score": 10
         },
         {
-          "value": "field.create @ frontend/e2e/support/seed.ts:151",
+          "value": "field.create @ frontend/e2e/support/seed.ts:149",
           "score": 9
         },
         {
-          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:134",
+          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:132",
           "score": 9
         },
         {
@@ -31682,11 +31682,11 @@
           "score": 10
         },
         {
-          "value": "field.create @ frontend/e2e/support/seed.ts:151",
+          "value": "field.create @ frontend/e2e/support/seed.ts:149",
           "score": 10
         },
         {
-          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:134",
+          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:132",
           "score": 10
         },
         {
@@ -33408,6 +33408,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/e2e/pivot-designer.spec.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/e2e/reset-link-with-session.spec.ts",
       "kind": "tests"
     },
@@ -33908,6 +33912,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/maphub/FreehandBoundary.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/maphub/GridSamplingDetails.test.tsx",
       "kind": "web"
     },
@@ -33956,6 +33964,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/src/components/maphub/MeasureTools.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/maphub/OperationalOverlay.static.test.ts",
       "kind": "tests"
     },
@@ -33969,6 +33981,10 @@
     },
     {
       "path": "frontend/src/components/maphub/OverlayMarkers.xss.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/PivotPlacementControl.tsx",
       "kind": "web"
     },
     {
@@ -34009,6 +34025,14 @@
     },
     {
       "path": "frontend/src/components/maphub/captureTime.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/circleBoundary.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawFeatureStyle.ts",
       "kind": "web"
     },
     {

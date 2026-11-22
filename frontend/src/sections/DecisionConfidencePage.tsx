@@ -102,7 +102,7 @@ function ComponentRow({ c }: { c: DecisionConfidenceComponent }) {
           </span>
         ) : (
           <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"
-            style={{ background: '#1e293b', color: '#9ca3af' }}>
+            style={{ background: 'rgb(var(--sahool-surface))', color: '#9ca3af' }}>
             <CircleHelp className="w-3 h-3" aria-hidden="true" /> غير متوفّر (needs_data)
           </span>
         )}
@@ -138,30 +138,30 @@ export default function DecisionConfidencePage() {
     <div className="space-y-6 max-w-4xl mx-auto" dir="rtl">
       {/* ── الترويسة ── */}
       <div className="flex items-center gap-2">
-        <Gauge className="w-5 h-5 text-emerald-400" aria-hidden="true" />
-        <h2 className="text-xl font-bold text-slate-100">ثقة القرار الموحَّدة</h2>
+        <Gauge className="w-5 h-5 text-sahool-green-dark" aria-hidden="true" />
+        <h2 className="text-xl font-bold text-sahool-text">ثقة القرار الموحَّدة</h2>
       </div>
-      <p className="text-sm text-slate-400">
-        درجة ثقة موحَّدة لقرار الحقل، مدموجة بوزنٍ شفّاف من <span className="text-emerald-300">أربعة
+      <p className="text-sm text-sahool-muted">
+        درجة ثقة موحَّدة لقرار الحقل، مدموجة بوزنٍ شفّاف من <span className="text-sahool-green-dark">أربعة
         مصادر</span> (الحسّاس + الدليل الميدانيّ + الاستشعار + الطقس) — على المصادر المتوفّرة فقط.
         صدق: المصادر الغائبة مُعلَنة «يحتاج بيانات» (رماديّ) لا تُحتسَب صفراً، والثقة غير الكافية تُعرَض
         «غير كافية». عرض فقط — لا يُعدّل القرار.
       </p>
 
       {/* ── اختيار الحقل ── */}
-      <div className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <label className="flex flex-col gap-1 max-w-xs">
-          <span className="text-xs text-slate-400 flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-emerald-400" /> الحقل
+          <span className="text-xs text-sahool-muted flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5 text-sahool-green-dark" /> الحقل
           </span>
           {fieldsLoading ? (
-            <span className="text-[12px] text-slate-500">جارٍ جلب الحقول…</span>
+            <span className="text-[12px] text-sahool-muted">جارٍ جلب الحقول…</span>
           ) : fieldsError ? (
-            <span className="text-[12px] text-amber-300/80">تعذّر جلب قائمة الحقول.</span>
+            <span className="text-[12px] text-ops-warning/80">تعذّر جلب قائمة الحقول.</span>
           ) : (
             <select value={fieldId} onChange={e => setFieldId(e.target.value)}
               className="px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
               <option value="">— اختر حقلاً —</option>
               {options.map(o => <option key={o.id} value={o.id}>{o.name || o.id}</option>)}
             </select>
@@ -216,7 +216,7 @@ export default function DecisionConfidencePage() {
 
           {/* ── تفصيل المكوّنات (صفّ لكلّ مصدر) ── */}
           <section className="space-y-2">
-            <div className="text-[12px] font-semibold text-slate-300">تفصيل المصادر</div>
+            <div className="text-[12px] font-semibold text-sahool-text">تفصيل المصادر</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {data.components.map((c) => (
                 <ComponentRow key={c.source} c={c} />
@@ -225,7 +225,7 @@ export default function DecisionConfidencePage() {
             {/* المصادر الغائبة المُعلَنة (missing) — رقائق خافتة */}
             {data.missing.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-[11px] text-slate-500">غائب:</span>
+                <span className="text-[11px] text-sahool-muted">غائب:</span>
                 {data.missing.map((m) => (
                   <span
                     key={m}
@@ -254,7 +254,7 @@ export default function DecisionConfidencePage() {
           </div>
 
           {/* ── ملاحظة قراءة فقط (لا تعديل) ── */}
-          <div className="flex items-center gap-2 text-[12px] text-slate-500">
+          <div className="flex items-center gap-2 text-[12px] text-sahool-muted">
             <Lock className="w-3.5 h-3.5" aria-hidden="true" />
             عرض فقط — لا يُعدّل القرار.
           </div>

@@ -44,7 +44,7 @@ export default function ManagerConsolePage() {
   return (
     <div className="p-4 flex flex-col gap-3" dir="rtl" data-testid="manager-console">
       <h1 className="inline-flex items-center gap-2 text-lg font-bold" style={{ color: T.ink }}>
-        <Briefcase className="w-5 h-5 text-emerald-300" aria-hidden="true" /> كونسول المدير
+        <Briefcase className="w-5 h-5 text-sahool-green-dark" aria-hidden="true" /> كونسول المدير
       </h1>
 
       {/* شريط تبويب — قسم واحد نشط في كلّ مرّة (هوكاته تُستدعى عند تفعيله فقط) */}
@@ -127,7 +127,7 @@ function EconomicsSection() {
             ...(f.total_cost !== '' ? { total_cost: Number(f.total_cost) } : {}),
           })}
           className="mt-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}
+          style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}
         >
           {feasM.isPending ? 'جارٍ الحساب…' : 'احسب الجدوى'}
         </button>
@@ -195,7 +195,7 @@ function LedgerSection() {
           disabled={!seasonId}
           onClick={() => setApplied(seasonId || null)}
           className="px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}
+          style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}
         >اعرض الإسقاطات</button>
       </div>
 
@@ -229,7 +229,7 @@ function LedgerSection() {
             disabled={!ao.occurred_on || !ao.operation_type || autoM.isPending}
             onClick={() => autoM.mutate({ occurred_on: ao.occurred_on, operation_type: ao.operation_type })}
             className="mt-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-            style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}
+            style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}
           >{autoM.isPending ? 'جارٍ…' : 'عايِن'}</button>
           {autoM.isError && <Muted>تعذّرت المعاينة.</Muted>}
           {autoM.data && (isDisabled(autoM.data) ? <DisabledNote /> : <JsonBlock data={autoM.data} />)}
@@ -273,7 +273,7 @@ function RbacSection() {
           <Txt label="الصلاحيّة" v={perm} on={setPerm} wide />
           <button type="button" disabled={!perm} onClick={() => setPermApplied(perm || null)}
             className="px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-            style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}>استعلم</button>
+            style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}>استعلم</button>
         </div>
         {permApplied && (whoCan.isLoading ? <Muted>جارٍ القراءة…</Muted>
           : isDisabled(who) ? <DisabledNote />
@@ -325,7 +325,7 @@ function MarketSection() {
         <Txt label="مفتاح المنطقة (zone_key)" v={zone} on={setZone} wide />
         <button type="button" disabled={!zone} onClick={() => setApplied(zone || null)}
           className="px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}>حلّل المنطقة</button>
+          style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}>حلّل المنطقة</button>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         <Panel title="فجوة السوق وتركّز المحاصيل" icon={Store}>
@@ -390,7 +390,7 @@ function ReportsSection() {
             format: r.format,
           })}
           className="mt-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}
+          style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}
         >{buildM.isPending ? 'جارٍ البناء…' : 'ابنِ المواصفة'}</button>
         {buildM.isError && <Muted>تعذّر البناء (422 لاختيار غير صالح بنيويّاً).</Muted>}
       </Panel>
@@ -459,7 +459,7 @@ function OpsSection() {
         <button type="button" disabled={!wo.field_id || woM.isPending}
           onClick={() => woM.mutate({ field_id: wo.field_id, recommendation: parseJson(wo.recommendation) })}
           className="mt-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}>{woM.isPending ? 'جارٍ…' : 'أنشئ أمر العمل'}</button>
+          style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}>{woM.isPending ? 'جارٍ…' : 'أنشئ أمر العمل'}</button>
         {woM.isError && <Muted>تعذّر الإنشاء.</Muted>}
         {woM.data && (isDisabled(woM.data) ? <DisabledNote /> : <JsonBlock data={woM.data} />)}
       </Panel>
@@ -481,7 +481,7 @@ function OpsSection() {
             expires_in_days: Number(key.expires_in_days) || 30,
           })}
           className="mt-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}>{keyM.isPending ? 'جارٍ…' : 'أنشئ مفتاحًا محفوظًا'}</button>
+          style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}>{keyM.isPending ? 'جارٍ…' : 'أنشئ مفتاحًا محفوظًا'}</button>
         {keyM.isError && <Muted>تعذّر التوليد (422 لنطاق/نوع غير صالح).</Muted>}
         {keyData && !isDisabled(keyData) && (
           <div className="mt-1.5 text-[11px] flex flex-col gap-0.5" style={{ color: T.ink }}>
@@ -510,7 +510,7 @@ function OpsSection() {
             ...(tenant.tenant_name.trim() ? { tenant_name: tenant.tenant_name.trim() } : {}),
           })}
           className="mt-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}>
+          style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}>
           {tenantM.isPending ? 'جارٍ…' : 'هيّئ المستأجِر'}
         </button>
         {tenantM.isError && <Muted>تعذّرت التهيئة — تتطلّب هويّة مدير منصّة غير متاحة بعد (403 platform_admin_required)، أو البريد مسجّل مسبقاً (409).</Muted>}
@@ -554,7 +554,7 @@ function OpsSection() {
         <button type="button" disabled={!snap.snapshot_id || !snap.camera_id || !snap.field_id || !snap.media_uri || !snap.captured_at || snapM.isPending}
           onClick={() => snapM.mutate({ ...snap })}
           className="mt-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}>{snapM.isPending ? 'جارٍ…' : 'اربط كقرينة'}</button>
+          style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}>{snapM.isPending ? 'جارٍ…' : 'اربط كقرينة'}</button>
         {snapM.isError && <Muted>تعذّر الربط.</Muted>}
         {snapM.data && (isDisabled(snapM.data) ? <DisabledNote /> : <JsonBlock data={snapM.data} />)}
       </Panel>
@@ -566,7 +566,7 @@ function OpsSection() {
         <button type="button" disabled={!ready.trim() || readyM.isPending}
           onClick={() => readyM.mutate({ provided_fields: ready.split(',').map((s) => s.trim()).filter(Boolean) })}
           className="mt-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}>{readyM.isPending ? 'جارٍ…' : 'قيّم'}</button>
+          style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}>{readyM.isPending ? 'جارٍ…' : 'قيّم'}</button>
         {readyM.isError && <Muted>تعذّر التقييم.</Muted>}
         {readyM.data && !isDisabled(readyM.data) && (
           <div className="mt-1.5 text-[12px]" style={{ color: T.ink }}>
@@ -591,7 +591,7 @@ function OpsSection() {
             weather_hours_since_update: numOrNull(fail.weather_hours_since_update),
           })}
           className="mt-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
-          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}>{failM.isPending ? 'جارٍ…' : 'افحص'}</button>
+          style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}>{failM.isPending ? 'جارٍ…' : 'افحص'}</button>
         {failM.isError && <Muted>تعذّر الفحص.</Muted>}
         {failM.data && !isDisabled(failM.data) && (
           <div className="mt-1.5 text-[12px]" style={{ color: T.ink }}>حالات فشل مكتشَفة: <b>{dash(failM.data.count as number)}</b></div>

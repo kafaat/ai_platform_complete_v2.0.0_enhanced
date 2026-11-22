@@ -55,8 +55,8 @@ export function GradientScale({
     <div className={className} style={{ width: '100%' }}>
       {(title || unit) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-          {title && <span style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>{title}</span>}
-          {unit && <span style={{ fontSize: 11, color: '#94a3b8' }}>{unit}</span>}
+          {title && <span style={{ fontSize: 12, fontWeight: 700, color: 'rgb(var(--sahool-text))' }}>{title}</span>}
+          {unit && <span style={{ fontSize: 11, color: 'rgb(var(--sahool-muted))' }}>{unit}</span>}
         </div>
       )}
       <div style={{ position: 'relative' }}>
@@ -82,7 +82,7 @@ export function GradientScale({
           />
         )}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3, fontSize: 10, color: '#64748b', direction: 'ltr' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3, fontSize: 10, color: 'rgb(var(--sahool-muted))', direction: 'ltr' }}>
         <span>{formatValue(min)}</span>
         {ticks?.map((t) => (
           <span key={t}>{formatValue(t)}</span>
@@ -90,8 +90,8 @@ export function GradientScale({
         <span>{formatValue(max)}</span>
       </div>
       {valuePct !== null && (
-        <div style={{ marginTop: 2, fontSize: 11, color: '#cbd5e1', textAlign: 'center' }}>
-          القيمة الحاليّة: <b style={{ color: '#f8fafc' }}>{formatValue(value as number)}{unit ? ` ${unit}` : ''}</b>
+        <div style={{ marginTop: 2, fontSize: 11, color: 'rgb(var(--sahool-text))', textAlign: 'center' }}>
+          القيمة الحاليّة: <b style={{ color: 'rgb(var(--sahool-text))' }}>{formatValue(value as number)}{unit ? ` ${unit}` : ''}</b>
         </div>
       )}
     </div>
@@ -142,8 +142,8 @@ export function SegmentedScale({ bands, title, activeIndex, value, unit, classNa
     <div className={className} style={{ width: '100%' }}>
       {(title || unit) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
-          {title && <span style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>{title}</span>}
-          {unit && <span style={{ fontSize: 11, color: '#94a3b8' }}>{unit}</span>}
+          {title && <span style={{ fontSize: 12, fontWeight: 700, color: 'rgb(var(--sahool-text))' }}>{title}</span>}
+          {unit && <span style={{ fontSize: 11, color: 'rgb(var(--sahool-muted))' }}>{unit}</span>}
         </div>
       )}
       <div style={{ display: 'flex', gap: 3, alignItems: 'stretch' }}>
@@ -182,7 +182,7 @@ export function SegmentedScale({ bands, title, activeIndex, value, unit, classNa
         })}
       </div>
       {activeBand?.hint && (
-        <div style={{ marginTop: 6, fontSize: 11, lineHeight: 1.5, color: '#cbd5e1' }}>
+        <div style={{ marginTop: 6, fontSize: 11, lineHeight: 1.5, color: 'rgb(var(--sahool-text))' }}>
           <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 999, background: activeBand.color, marginInlineEnd: 6 }} />
           {activeBand.hint}
         </div>

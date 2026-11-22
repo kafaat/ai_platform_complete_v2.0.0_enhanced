@@ -85,7 +85,7 @@ export default function EtcDualPage() {
   };
 
   const inputCls = 'px-3 py-2 rounded-lg text-sm w-full';
-  const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
+  const inputStyle = { background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' } as const;
 
   // صفوف نتيجة المعاملات (كلّها من ردّ الخادم — لا تلفيق).
   const metricRows: { label: string; value: number | string; unit?: string }[] = result
@@ -103,20 +103,20 @@ export default function EtcDualPage() {
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Droplets className="w-5 h-5 text-sky-400" />
-        <h2 className="text-xl font-bold text-slate-100">ETc المزدوج (FAO-56)</h2>
+        <Droplets className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">ETc المزدوج (FAO-56)</h2>
       </div>
-      <p className="text-sm text-slate-400">
-        يحسب الاستهلاك المائيّ بنهج المعامل المزدوج <span className="text-slate-300">ETc = (Kcb·Ks + Ke)·ET0</span>
+      <p className="text-sm text-sahool-muted">
+        يحسب الاستهلاك المائيّ بنهج المعامل المزدوج <span className="text-sahool-text">ETc = (Kcb·Ks + Ke)·ET0</span>
         — يفصل تبخّر التربة السطحيّ (Ke) عن نتح المحصول (Kcb)، ويشتقّ Kcb
-        <span className="text-slate-300"> رصداً من NDVI</span> للحقل حين يتوفّر. الطقس تُدخِله أنت.
-        القيم <span className="text-amber-300">تقديريّة غير معايَرة</span>، ومصدر كلّ قيمة مُعلَن أدناه.
+        <span className="text-sahool-text"> رصداً من NDVI</span> للحقل حين يتوفّر. الطقس تُدخِله أنت.
+        القيم <span className="text-ops-warning">تقديريّة غير معايَرة</span>، ومصدر كلّ قيمة مُعلَن أدناه.
       </p>
 
       {/* Form */}
-      <div className="rounded-xl border p-4 space-y-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">الحقل</span>
+          <span className="text-xs text-sahool-muted">الحقل</span>
           <select value={fieldId} onChange={e => setFieldId(e.target.value)} className={inputCls} style={inputStyle}>
             <option value="">{fieldsLoading ? 'تحميل الحقول…' : 'اختر حقلاً'}</option>
             {options.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
@@ -182,7 +182,7 @@ export default function EtcDualPage() {
           style={{ background: loading ? '#0369a1' : '#0ea5e9' }}>
           <Calculator className="w-4 h-4" /> {loading ? 'حساب…' : 'احسب'}
         </button>
-        {!fieldId && <p className="text-xs text-slate-500">اختر حقلاً أوّلاً.</p>}
+        {!fieldId && <p className="text-xs text-sahool-muted">اختر حقلاً أوّلاً.</p>}
       </div>
 
       {error && (
@@ -195,18 +195,18 @@ export default function EtcDualPage() {
       {result && (
         <div className="space-y-4">
           {/* مصدر NDVI + المدخلات (شفافيّة) */}
-          <div className="rounded-lg border p-3 text-xs text-slate-400 flex items-start gap-2"
-            style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <Satellite className="w-4 h-4 mt-0.5 shrink-0 text-emerald-400" />
+          <div className="rounded-lg border p-3 text-xs text-sahool-muted flex items-start gap-2"
+            style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <Satellite className="w-4 h-4 mt-0.5 shrink-0 text-sahool-green-dark" />
             <span>
-              مصدر NDVI: <code className="text-slate-300">{result.ndvi.source}</code>
-              {result.ndvi.used !== null && <> · القيمة <span className="text-slate-300">{result.ndvi.used}</span></>}
-              {result.ndvi.date && <> · بتاريخ <span className="text-slate-300">{result.ndvi.date}</span></>}
-              {' · '}المحصول <code className="text-slate-300">{result.inputs.crop_id}</code>
-              {' · '}العمر <span className="text-slate-300">{result.inputs.days_after_planting}</span> يوم
-              {' · '}ملوحة <span className="text-slate-300">{result.inputs.soil_ece}</span> (مصدر:{' '}
-              <code className="text-slate-300">{result.inputs.soil_ece_source}</code>)
-              {' · '}المرحلة <span className="text-slate-300">{result.stage}</span>
+              مصدر NDVI: <code className="text-sahool-text">{result.ndvi.source}</code>
+              {result.ndvi.used !== null && <> · القيمة <span className="text-sahool-text">{result.ndvi.used}</span></>}
+              {result.ndvi.date && <> · بتاريخ <span className="text-sahool-text">{result.ndvi.date}</span></>}
+              {' · '}المحصول <code className="text-sahool-text">{result.inputs.crop_id}</code>
+              {' · '}العمر <span className="text-sahool-text">{result.inputs.days_after_planting}</span> يوم
+              {' · '}ملوحة <span className="text-sahool-text">{result.inputs.soil_ece}</span> (مصدر:{' '}
+              <code className="text-sahool-text">{result.inputs.soil_ece_source}</code>)
+              {' · '}المرحلة <span className="text-sahool-text">{result.stage}</span>
             </span>
           </div>
 
@@ -221,7 +221,7 @@ export default function EtcDualPage() {
           </div>
 
           {/* جدول المعاملات */}
-          <div className="rounded-xl border overflow-hidden" style={{ borderColor: '#334155' }}>
+          <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: '#0f1117' }}>
@@ -243,11 +243,11 @@ export default function EtcDualPage() {
           {/* الافتراضات (شفافيّة الصدق — لا تُخفى) */}
           {result.assumptions.length > 0 && (
             <div className="rounded-lg border p-3 text-xs space-y-1.5"
-              style={{ background: '#1e293b', borderColor: '#334155' }}>
-              <div className="flex items-center gap-1.5 text-slate-300 font-medium">
-                <Info className="w-4 h-4 text-amber-400" /> الافتراضات (القيم تقديريّة غير معايَرة)
+              style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+              <div className="flex items-center gap-1.5 text-sahool-text font-medium">
+                <Info className="w-4 h-4 text-ops-warning" /> الافتراضات (القيم تقديريّة غير معايَرة)
               </div>
-              <ul className="list-disc pr-5 space-y-1 text-slate-400">
+              <ul className="list-disc pr-5 space-y-1 text-sahool-muted">
                 {result.assumptions.map((a, i) => <li key={i}>{a}</li>)}
               </ul>
             </div>

@@ -33,7 +33,7 @@ describe('MapHub imagery reflow — الخريطة لا تختفي عند عرض
   it('MapHub يحصر تمرير شريط الصور بـmin-w-0 فلا يزحزح عرض الخريطة', () => {
     const src = read('src/sections/MapHub.tsx');
     // العمود المركزيّ (أدوات + خريطة) يحمل min-w-0.
-    expect(src).toContain('className="space-y-3 min-w-0"');
+    expect(src).toContain('min-w-0 space-y-3');
     // شريط الصور نفسه أفقيّ التمرير (لا يلتفّ).
     expect(src).toContain('overflow-x-auto');
   });

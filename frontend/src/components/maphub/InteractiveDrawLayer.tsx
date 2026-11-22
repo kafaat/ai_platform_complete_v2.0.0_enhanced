@@ -15,10 +15,11 @@
 import { useEffect, useRef } from 'react';
 import { useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
+import FreehandBoundary from './FreehandBoundary';
 import { rectangleCorners } from './drawGeometry';
 
 // 'circle-center': نقرة واحدة تحدّد المركز ثمّ يُدخَل نصف القطر نصّيّاً (لا سحب فأرة).
-export type DrawTool = 'circle' | 'circle-center' | 'rectangle' | null;
+export type DrawTool = 'circle' | 'circle-center' | 'rectangle' | 'freehand' | null;
 
 const PREVIEW_STYLE: L.PathOptions = {
   color: '#16a34a',
@@ -31,13 +32,14 @@ const PREVIEW_STYLE: L.PathOptions = {
 interface Props {
   tool: DrawTool;
   onCircle: (center: L.LatLng, radiusM: number) => void;
+  onFreehand?: (ring: L.LatLng[]) => void;
   onRectangle: (corners: L.LatLng[]) => void;
   // وضع «المركز ثمّ نصف قطر»: نقرة واحدة تُسلّم المركز للمستهلِك ليطلب نصف القطر بإدخال.
   onCircleCenter?: (center: L.LatLng) => void;
   onStatus?: (text: string | null) => void;
 }
 
-export default function InteractiveDrawLayer({ tool, onCircle, onRectangle, onCircleCenter, onStatus }: Props) {
+export default function InteractiveDrawLayer({ tool, onCircle, onRectangle, onFreehand, onCircleCenter, onStatus }: Props) {
   const map = useMap();
   const stepRef = useRef(0); // 0=بانتظار أوّل نقرة
   const aRef = useRef<L.LatLng | null>(null); // مركز الدائرة / رأس المستطيل A
@@ -61,6 +63,7 @@ export default function InteractiveDrawLayer({ tool, onCircle, onRectangle, onCi
   useEffect(() => {
     reset();
     if (tool === 'circle') onStatus?.('انقر لتحديد مركز الدائرة.');
+    else if (tool === 'freehand') onStatus?.('اسحب بإصبعك أو بالقلم حول الحدّ ثم ارفع لإغلاقه.');
     else if (tool === 'circle-center') onStatus?.('انقر على الخريطة لتحديد مركز الدائرة.');
     else if (tool === 'rectangle') onStatus?.('انقر النقطة الأولى للضلع.');
     else onStatus?.(null);
@@ -160,5 +163,5 @@ export default function InteractiveDrawLayer({ tool, onCircle, onRectangle, onCi
     },
   });
 
-  return null;
+  return tool === 'freehand' && onFreehand ? <FreehandBoundary onFinish={onFreehand} /> : null;
 }

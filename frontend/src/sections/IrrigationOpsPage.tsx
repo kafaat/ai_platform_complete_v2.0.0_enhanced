@@ -36,7 +36,7 @@ const VALVE_TYPE_OPTIONS: ValveType[] = ['solenoid', 'manual', 'drip_header', 'g
 
 const STATUS_META: Record<ValveStatus, { label: string; color: string; bg: string }> = {
   open:    { label: 'مفتوح', color: '#4ade80', bg: '#04140a' },
-  closed:  { label: 'مغلق',  color: '#94a3b8', bg: '#1e293b' },
+  closed:  { label: 'مغلق',  color: 'rgb(var(--sahool-muted))', bg: '#1e293b' },
   unknown: { label: 'غير معروف', color: '#f59e0b', bg: '#2a1a00' },
 };
 
@@ -100,11 +100,11 @@ function ValvesPanel({ mutable }: { mutable: boolean }) {
   };
 
   return (
-    <section className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+    <section className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <Waypoints className="w-4 h-4 text-sky-400" />
-          <span className="text-sm font-semibold text-slate-200">الصمّامات</span>
+          <Waypoints className="w-4 h-4 text-ops-info" />
+          <span className="text-sm font-semibold text-sahool-text">الصمّامات</span>
         </div>
         {mutable && !isLoading && !isError && (
           <button onClick={() => setShowForm(s => !s)}
@@ -125,50 +125,50 @@ function ValvesPanel({ mutable }: { mutable: boolean }) {
         </span>
       </div>
 
-      {setState.isError && <p role="alert" className="text-sm text-red-400 mb-3">تعذّر تسجيل طلب تغيير الصمّام{setState.variables ? ` (${setState.variables.valveId})` : ''}: {actionErrDetail(setState.error)}. أُعيد تحميل حالة الصمّامات من الخادم — تحقّق منها قبل إعادة الطلب.</p>}
+      {setState.isError && <p role="alert" className="text-sm text-ops-danger mb-3">تعذّر تسجيل طلب تغيير الصمّام{setState.variables ? ` (${setState.variables.valveId})` : ''}: {actionErrDetail(setState.error)}. أُعيد تحميل حالة الصمّامات من الخادم — تحقّق منها قبل إعادة الطلب.</p>}
       {/* نموذج إنشاء */}
       {mutable && showForm && (
-        <div className="rounded-xl border p-3 mb-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+        <div className="rounded-xl border p-3 mb-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">الاسم *</span>
+              <span className="text-xs text-sahool-muted">الاسم *</span>
               <input value={name} onChange={e => setName(e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">النوع</span>
+              <span className="text-xs text-sahool-muted">النوع</span>
               <select value={valveType} onChange={e => setValveType(e.target.value as ValveType)}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
                 {VALVE_TYPE_OPTIONS.map(t => <option key={t} value={t}>{VALVE_TYPE_LABELS[t]}</option>)}
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">الحقل (اختياريّ)</span>
+              <span className="text-xs text-sahool-muted">الحقل (اختياريّ)</span>
               <select value={fieldId} onChange={e => setFieldId(e.target.value)} disabled={fieldsLoading || fieldsError || fieldOptions.length === 0}
                 className="px-3 py-2 rounded-lg text-sm disabled:opacity-60"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
                 <option value="">— بلا ربط بحقل —</option>
                 {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">معرّف الجهاز (اختياريّ)</span>
+              <span className="text-xs text-sahool-muted">معرّف الجهاز (اختياريّ)</span>
               <input value={deviceId} onChange={e => setDeviceId(e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">معدّل التدفّق (لتر/دقيقة، اختياريّ)</span>
+              <span className="text-xs text-sahool-muted">معدّل التدفّق (لتر/دقيقة، اختياريّ)</span>
               <input type="number" inputMode="decimal" step="any" value={flow} onChange={e => setFlow(e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
           </div>
           <div className="flex justify-end gap-2 mt-3">
             <button onClick={() => setShowForm(false)}
-              className="px-3 py-1.5 rounded-lg text-xs text-slate-300 border" style={{ borderColor: '#334155' }}>
+              className="px-3 py-1.5 rounded-lg text-xs text-sahool-text border" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
               إلغاء
             </button>
             <button onClick={onCreate} disabled={createValve.isPending || !name.trim()}
@@ -178,7 +178,7 @@ function ValvesPanel({ mutable }: { mutable: boolean }) {
             </button>
           </div>
           {createValve.isError && (
-            <p className="text-[11px] text-red-400 mt-2">تعذّر إنشاء الصمّام. حاول مجدّداً.</p>
+            <p className="text-[11px] text-ops-danger mt-2">تعذّر إنشاء الصمّام. حاول مجدّداً.</p>
           )}
         </div>
       )}
@@ -201,13 +201,13 @@ function ValvesPanel({ mutable }: { mutable: boolean }) {
             const st = STATUS_META[v.status] ?? STATUS_META.unknown;
             return (
               <div key={v.valve_id} className="rounded-xl border p-3"
-                style={{ background: '#1e293b', borderColor: '#334155' }}>
+                style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-slate-100 truncate">{v.name}</div>
-                    <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                    <div className="text-sm font-semibold text-sahool-text truncate">{v.name}</div>
+                    <div className="text-[11px] text-sahool-muted flex items-center gap-1 mt-0.5">
                       {VALVE_TYPE_LABELS[v.valve_type ?? ''] ?? (v.valve_type || 'غير محدّد')}
-                      {v.field_id && <span className="text-slate-600">· حقل {v.field_id}</span>}
+                      {v.field_id && <span className="text-sahool-muted">· حقل {v.field_id}</span>}
                     </div>
                   </div>
                   <span className="text-[11px] px-2 py-0.5 rounded-full font-medium shrink-0"
@@ -216,7 +216,7 @@ function ValvesPanel({ mutable }: { mutable: boolean }) {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500">
+                <div className="flex items-center gap-3 mt-2 text-[11px] text-sahool-muted">
                   {v.flow_rate_lpm != null && (
                     <span className="flex items-center gap-1"><Gauge className="w-3 h-3" /> {v.flow_rate_lpm} ل/د</span>
                   )}
@@ -231,7 +231,7 @@ function ValvesPanel({ mutable }: { mutable: boolean }) {
                       disabled={setState.isPending}
                       className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-60"
                       style={v.status === 'open'
-                        ? { background: '#1e293b', color: '#94a3b8', border: '1px solid #475569' }
+                        ? { background: 'rgb(var(--sahool-surface))', color: 'rgb(var(--sahool-muted))', border: '1px solid #475569' }
                         : { background: '#04140a', color: '#4ade80', border: '1px solid #16a34a55' }}>
                       {v.status === 'open'
                         ? <><PowerOff className="w-3.5 h-3.5" /> طلب إغلاق</>
@@ -290,11 +290,11 @@ function SchedulesPanel({ mutable }: { mutable: boolean }) {
   };
 
   return (
-    <section className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+    <section className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <CalendarClock className="w-4 h-4 text-emerald-400" />
-          <span className="text-sm font-semibold text-slate-200">جداول الريّ</span>
+          <CalendarClock className="w-4 h-4 text-sahool-green-dark" />
+          <span className="text-sm font-semibold text-sahool-text">جداول الريّ</span>
         </div>
         {mutable && !isLoading && !isError && (
           <button onClick={() => setShowForm(s => !s)}
@@ -305,55 +305,55 @@ function SchedulesPanel({ mutable }: { mutable: boolean }) {
         )}
       </div>
 
-      {deleteSchedule.isError && <p role="alert" className="text-sm text-red-400 mb-3">تعذّر حذف الجدول: {actionErrDetail(deleteSchedule.error)}. أُعيد تحميل القائمة من الخادم — تحقّق منها قبل إعادة المحاولة.</p>}
+      {deleteSchedule.isError && <p role="alert" className="text-sm text-ops-danger mb-3">تعذّر حذف الجدول: {actionErrDetail(deleteSchedule.error)}. أُعيد تحميل القائمة من الخادم — تحقّق منها قبل إعادة المحاولة.</p>}
       {/* نموذج إنشاء */}
       {mutable && showForm && (
-        <div className="rounded-xl border p-3 mb-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+        <div className="rounded-xl border p-3 mb-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">الاسم *</span>
+              <span className="text-xs text-sahool-muted">الاسم *</span>
               <input value={name} onChange={e => setName(e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">وقت البدء *</span>
+              <span className="text-xs text-sahool-muted">وقت البدء *</span>
               <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">المدّة (دقيقة) *</span>
+              <span className="text-xs text-sahool-muted">المدّة (دقيقة) *</span>
               <input type="number" inputMode="numeric" min="1" value={duration} onChange={e => setDuration(e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">هدف الماء (مم، اختياريّ)</span>
+              <span className="text-xs text-sahool-muted">هدف الماء (مم، اختياريّ)</span>
               <input type="number" inputMode="decimal" step="any" value={waterTarget} onChange={e => setWaterTarget(e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">الحقل (اختياريّ)</span>
+              <span className="text-xs text-sahool-muted">الحقل (اختياريّ)</span>
               <select value={fieldId} onChange={e => setFieldId(e.target.value)} disabled={fieldsLoading || fieldsError || fieldOptions.length === 0}
                 className="px-3 py-2 rounded-lg text-sm disabled:opacity-60"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
                 <option value="">— بلا ربط بحقل —</option>
                 {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">معرّف الصمّام (اختياريّ)</span>
+              <span className="text-xs text-sahool-muted">معرّف الصمّام (اختياريّ)</span>
               <input value={valveId} onChange={e => setValveId(e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
           </div>
 
           {/* أيام الأسبوع */}
           <div className="mt-3">
-            <span className="text-xs text-slate-400">أيّام التشغيل (اختياريّ)</span>
+            <span className="text-xs text-sahool-muted">أيّام التشغيل (اختياريّ)</span>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               {DAYS_AR.map((d, i) => {
                 const on = days.includes(i);
@@ -372,7 +372,7 @@ function SchedulesPanel({ mutable }: { mutable: boolean }) {
 
           <div className="flex justify-end gap-2 mt-3">
             <button onClick={() => setShowForm(false)}
-              className="px-3 py-1.5 rounded-lg text-xs text-slate-300 border" style={{ borderColor: '#334155' }}>
+              className="px-3 py-1.5 rounded-lg text-xs text-sahool-text border" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
               إلغاء
             </button>
             <button onClick={onCreate}
@@ -383,7 +383,7 @@ function SchedulesPanel({ mutable }: { mutable: boolean }) {
             </button>
           </div>
           {createSchedule.isError && (
-            <p className="text-[11px] text-red-400 mt-2">تعذّر إنشاء الجدول. حاول مجدّداً.</p>
+            <p className="text-[11px] text-ops-danger mt-2">تعذّر إنشاء الجدول. حاول مجدّداً.</p>
           )}
         </div>
       )}
@@ -405,10 +405,10 @@ function SchedulesPanel({ mutable }: { mutable: boolean }) {
           {data!.map(s => (
             <li key={s.schedule_id}
               className="rounded-xl border p-3 flex items-center justify-between gap-3"
-              style={{ background: '#1e293b', borderColor: '#334155' }}>
+              style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-slate-100 truncate">{s.name}</span>
+                  <span className="text-sm font-semibold text-sahool-text truncate">{s.name}</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full"
                     style={s.enabled
                       ? { background: '#04140a', color: '#4ade80', border: '1px solid #16a34a55' }
@@ -416,7 +416,7 @@ function SchedulesPanel({ mutable }: { mutable: boolean }) {
                     {s.enabled ? 'مُفعّل' : 'مُعطّل'}
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                <div className="text-[11px] text-sahool-muted mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
                   <span>البدء: {s.start_time}</span>
                   <span>المدّة: {s.duration_min} دقيقة</span>
                   {s.water_target_mm != null && <span>هدف: {s.water_target_mm} مم</span>}
@@ -424,20 +424,20 @@ function SchedulesPanel({ mutable }: { mutable: boolean }) {
                   {s.field_id && <span>حقل: {s.field_id}</span>}
                 </div>
                 {s.days_of_week && s.days_of_week.length > 0 && (
-                  <div className="text-[11px] text-slate-500 mt-0.5">
+                  <div className="text-[11px] text-sahool-muted mt-0.5">
                     الأيّام: {s.days_of_week.map(d => DAYS_AR[d] ?? d).join('، ')}
                   </div>
                 )}
                 {s.last_run_at && (
-                  <div className="text-[10px] text-slate-600 mt-0.5">آخر تشغيل: {s.last_run_at}</div>
+                  <div className="text-[10px] text-sahool-muted mt-0.5">آخر تشغيل: {s.last_run_at}</div>
                 )}
               </div>
               {mutable && (
                 <button onClick={() => deleteSchedule.mutate(s.schedule_id)}
                   disabled={deleteSchedule.isPending}
                   title="حذف الجدول"
-                  className="p-2 rounded-lg shrink-0 text-slate-500 hover:text-red-400 disabled:opacity-60"
-                  style={{ border: '1px solid #334155' }}>
+                  className="p-2 rounded-lg shrink-0 text-sahool-muted hover:text-red-400 disabled:opacity-60"
+                  style={{ border: '1px solid rgb(var(--sahool-border))' }}>
                   <Trash2 className="w-4 h-4" />
                 </button>
               )}
@@ -457,10 +457,10 @@ export default function IrrigationOpsPage() {
   return (
     <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Waypoints className="w-5 h-5 text-sky-400" />
+        <Waypoints className="w-5 h-5 text-ops-info" />
         <div>
-          <h2 className="text-xl font-bold text-slate-100">الريّ التشغيليّ</h2>
-          <p className="text-sm text-slate-400">
+          <h2 className="text-xl font-bold text-sahool-text">الريّ التشغيليّ</h2>
+          <p className="text-sm text-sahool-muted">
             إدارة صمّامات الريّ وجداوله المُخزَّنة. {mutable ? '' : 'وضع العرض فقط — لا تملك صلاحية التعديل.'}
           </p>
         </div>

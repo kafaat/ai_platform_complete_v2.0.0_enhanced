@@ -82,23 +82,23 @@ export default function ScenarioComparePage() {
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <GitCompare className="w-5 h-5 text-sky-400" />
-        <h2 className="text-xl font-bold text-slate-100">مقارنة السياسات والعائد</h2>
+        <GitCompare className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">مقارنة السياسات والعائد</h2>
       </div>
-      <p className="text-sm text-slate-400">
-        نفس بيانات الحقل عبر السياسات الخمس — يُظهر أثر كلّ سياسة على الريّ والإجهاد و<span className="text-slate-300">الهامش المتوقّع</span>.
-        الهامش يظهر فقط مع أسعار مُدخَلة؛ بدونها «—» (لا رقم مُختلق). كلّ القيم <span className="text-amber-300">تقديريّة غير معايَرة</span>.
+      <p className="text-sm text-sahool-muted">
+        نفس بيانات الحقل عبر السياسات الخمس — يُظهر أثر كلّ سياسة على الريّ والإجهاد و<span className="text-sahool-text">الهامش المتوقّع</span>.
+        الهامش يظهر فقط مع أسعار مُدخَلة؛ بدونها «—» (لا رقم مُختلق). كلّ القيم <span className="text-ops-warning">تقديريّة غير معايَرة</span>.
       </p>
 
       {/* Form */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">المحصول</span>
+          <label className="flex flex-col gap-1"><span className="text-xs text-sahool-muted">المحصول</span>
             <input value={crop} onChange={e => setCrop(e.target.value)} className="px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} /></label>
-          <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">نسيج التربة</span>
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} /></label>
+          <label className="flex flex-col gap-1"><span className="text-xs text-sahool-muted">نسيج التربة</span>
             <select value={texture} onChange={e => setTexture(e.target.value)} className="px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
               {TEXTURES.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}</select></label>
           {[
             { k: 'rootDepth', label: 'عمق الجذور (م)', v: rootDepth, set: setRootDepth },
@@ -109,12 +109,12 @@ export default function ScenarioComparePage() {
             { k: 'target', label: 'هدف الامتصاص (كجم/ها)', v: target, set: setTarget },
             { k: 'init', label: 'استنزاف ابتدائيّ (مم)', v: initDepletion, set: setInitDepletion },
           ].map(f => (
-            <label key={f.k} className="flex flex-col gap-1"><span className="text-xs text-slate-400">{f.label}</span>
+            <label key={f.k} className="flex flex-col gap-1"><span className="text-xs text-sahool-muted">{f.label}</span>
               <input type="number" inputMode="decimal" step="any" value={f.v} onChange={e => f.set(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} /></label>
+                className="px-3 py-2 rounded-lg text-sm" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} /></label>
           ))}
         </div>
-        <div className="text-[11px] text-slate-500 pt-1">مدخلات اقتصاديّة (اختياريّة — للهامش):</div>
+        <div className="text-[11px] text-sahool-muted pt-1">مدخلات اقتصاديّة (اختياريّة — للهامش):</div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[
             { k: 'yieldT', label: 'الغلّة المتوقّعة (طن/ها)', v: yieldT, set: setYieldT },
@@ -124,9 +124,9 @@ export default function ScenarioComparePage() {
             { k: 'energyPrice', label: 'سعر الطاقة (/kWh)', v: energyPrice, set: setEnergyPrice },
             { k: 'fertPrice', label: 'سعر السماد (/كجم)', v: fertPrice, set: setFertPrice },
           ].map(f => (
-            <label key={f.k} className="flex flex-col gap-1"><span className="text-xs text-slate-400">{f.label}</span>
+            <label key={f.k} className="flex flex-col gap-1"><span className="text-xs text-sahool-muted">{f.label}</span>
               <input type="number" inputMode="decimal" step="any" value={f.v} onChange={e => f.set(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} /></label>
+                className="px-3 py-2 rounded-lg text-sm" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} /></label>
           ))}
         </div>
         <div className="flex justify-end">
@@ -142,10 +142,10 @@ export default function ScenarioComparePage() {
       {err && <ErrorState title="تعذّرت المقارنة" onRetry={onCompare} />}
 
       {rows && (
-        <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
+        <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
+              <tr className="text-[11px] text-sahool-muted" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
                 <th className="px-3 py-2 text-right font-medium">السياسة</th>
                 <th className="px-3 py-2 text-right font-medium">الريّ (مم)</th>
                 <th className="px-3 py-2 text-right font-medium">م³/ها</th>
@@ -176,9 +176,9 @@ export default function ScenarioComparePage() {
               })}
             </tbody>
           </table>
-          <div className="flex items-start gap-2 px-4 py-3" style={{ borderTop: '1px solid #334155' }}>
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <div className="text-[11px] text-amber-300/80">
+          <div className="flex items-start gap-2 px-4 py-3" style={{ borderTop: '1px solid rgb(var(--sahool-border))' }}>
+            <AlertTriangle className="w-4 h-4 text-ops-warning shrink-0 mt-0.5" />
+            <div className="text-[11px] text-ops-warning/80">
               قيم تقديريّة غير معايَرة (±20٪). الهامش يحتاج أسعاراً مُدخَلة؛ «أقصى ربح» يحتاج سعر الماء وقيمة الغلّة وإلّا يتراجع لتوفير الماء.
             </div>
           </div>

@@ -114,6 +114,9 @@ vi.mock('terra-draw', () => ({
   TerraDrawPolygonMode: class {},
   TerraDrawLineStringMode: class {},
   TerraDrawSelectMode: class {},
+  TerraDrawCircleMode: class {},
+  TerraDrawRectangleMode: class {},
+  TerraDrawFreehandMode: class {},
 }));
 vi.mock('terra-draw-maplibre-gl-adapter', () => ({
   TerraDrawMapLibreGLAdapter: class {},
@@ -217,13 +220,12 @@ describe('HubMapGL — تظليل MapLibre GL (تغطية أسلاك/منطق)',
   it('يُظهر لوحة الرسم وتبديل «التقاط للحدود» حين drawTools مُفعَّل', async () => {
     render(<HubMapGL {...BASE_PROPS} drawTools />);
     // لوحة الرسم تظهر تزامنيّاً (مشروطة بـdrawTools).
-    expect(screen.getByText('الرسم/القياس')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'أدوات القياس' })).toBeInTheDocument();
     // زرّ الالتقاط يظهر في وضعَي الرسم (الافتراض polygon).
     expect(await screen.findByText(/التقاط للحدود/)).toBeInTheDocument();
     // تأكيد أنّ Terra Draw المُظلَّل بُدِئ فعليّاً بعد الاستيراد الديناميكيّ.
     await waitFor(() => {
-      const td = mapInstances.length > 0; // الخريطة بُنيت
-      expect(td).toBe(true);
+      expect(screen.getByTestId('draw-panel')).toHaveAttribute('data-draw-ready', 'true');
     });
   });
 

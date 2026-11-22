@@ -1,6 +1,3 @@
-// useTheme — ثلاثة أنماط للواجهة: داكن/نهاريّ/كريميّ. الافتراضيّ داكن، فلا
-// تغيير بصريّ ما لم يُبدّل المستخدم. تُحفظ السمة في localStorage وتُطبَّق على
-// عنصر <html> عبر data-theme، فتُحلّ متغيّرات --sahool-* لكل سمة من index.css.
 import { useState, useEffect, useCallback } from 'react';
 
 export type Theme = 'dark' | 'light' | 'cream';
@@ -9,9 +6,9 @@ const STORAGE_KEY = 'sahool-theme';
 const THEMES: readonly Theme[] = ['dark', 'light', 'cream'];
 
 function readStoredTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark';
+  if (typeof window === 'undefined') return 'light';
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  return THEMES.includes(stored as Theme) ? (stored as Theme) : 'dark';
+  return THEMES.includes(stored as Theme) ? (stored as Theme) : 'light';
 }
 
 export function useTheme() {

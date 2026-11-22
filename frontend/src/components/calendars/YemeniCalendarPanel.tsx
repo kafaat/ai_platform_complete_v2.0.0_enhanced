@@ -27,18 +27,18 @@ export default function YemeniCalendarPanel() {
 
   return (
     <div dir="rtl" className="flex flex-col gap-4 p-4">
-      <h2 className="text-lg font-semibold text-slate-100">التقويم اليمنيّ التراثيّ</h2>
+      <h2 className="text-lg font-semibold text-sahool-text">التقويم اليمنيّ التراثيّ</h2>
 
       {/* الجسر الزمنيّ: تاريخ → منزلة + شهر حميريّ */}
-      <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+      <div className="rounded-xl border border-sahool-border bg-sahool-surface/60 p-4">
         <div className="mb-3 flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-2 text-sm text-slate-300">
+          <label className="flex items-center gap-2 text-sm text-sahool-text">
             التاريخ
             <input
               type="date"
               value={dateIso}
               onChange={(e) => setDateIso(e.target.value)}
-              className="rounded-sm bg-slate-800 px-2 py-1 text-slate-100"
+              className="rounded-sm bg-sahool-surface px-2 py-1 text-sahool-text"
             />
           </label>
           <input
@@ -46,7 +46,7 @@ export default function YemeniCalendarPanel() {
             placeholder="المحافظة (اختياريّ)"
             value={governorate}
             onChange={(e) => setGovernorate(e.target.value)}
-            className="rounded-sm bg-slate-800 px-2 py-1 text-sm text-slate-100"
+            className="rounded-sm bg-sahool-surface px-2 py-1 text-sm text-sahool-text"
           />
         </div>
 
@@ -57,17 +57,17 @@ export default function YemeniCalendarPanel() {
           emptyText="لا سياق لهذا التاريخ."
         >
           {(ctx) => (
-            <div className="grid gap-2 text-sm text-slate-200 sm:grid-cols-3">
+            <div className="grid gap-2 text-sm text-sahool-text sm:grid-cols-3">
               <div>
-                <div className="text-xs text-slate-400">المنزلة النشطة</div>
+                <div className="text-xs text-sahool-muted">المنزلة النشطة</div>
                 {ctx.active_mansion?.name_ar ?? '—'}
               </div>
               <div>
-                <div className="text-xs text-slate-400">الشهر الحميريّ</div>
+                <div className="text-xs text-sahool-muted">الشهر الحميريّ</div>
                 {ctx.himyarite_month?.name_ar ?? '—'}
               </div>
               <div>
-                <div className="text-xs text-slate-400">المنطقة</div>
+                <div className="text-xs text-sahool-muted">المنطقة</div>
                 {ctx.regional_profile?.region_ar ?? '—'}
               </div>
             </div>
@@ -76,8 +76,8 @@ export default function YemeniCalendarPanel() {
       </div>
 
       {/* المنازل القمريّة الـ٢٨ */}
-      <details className="rounded-xl border border-slate-700 bg-slate-900/40 p-3">
-        <summary className="cursor-pointer text-sm text-emerald-300">
+      <details className="rounded-xl border border-sahool-border bg-sahool-surface/40 p-3">
+        <summary className="cursor-pointer text-sm text-sahool-green-dark">
           المنازل القمريّة الـ٢٨ (نجوم الزراعة)
         </summary>
         <ReferenceQueryState
@@ -89,7 +89,7 @@ export default function YemeniCalendarPanel() {
           {(mansions) => (
             <ul className="mt-2 grid gap-1 sm:grid-cols-2 md:grid-cols-4">
               {mansions.map((m, i) => (
-                <li key={m.order ?? i} className="text-xs text-slate-300">
+                <li key={m.order ?? i} className="text-xs text-sahool-text">
                   {m.name_ar ?? `منزلة ${i + 1}`}
                   {m.approx_start_ar ? ` · ${m.approx_start_ar}` : ''}
                 </li>
@@ -100,8 +100,8 @@ export default function YemeniCalendarPanel() {
       </details>
 
       {/* الشهور الحميريّة */}
-      <details className="rounded-xl border border-slate-700 bg-slate-900/40 p-3">
-        <summary className="cursor-pointer text-sm text-emerald-300">
+      <details className="rounded-xl border border-sahool-border bg-sahool-surface/40 p-3">
+        <summary className="cursor-pointer text-sm text-sahool-green-dark">
           الشهور الحميريّة الـ١٢
         </summary>
         <ReferenceQueryState
@@ -113,7 +113,7 @@ export default function YemeniCalendarPanel() {
           {(months) => (
             <ul className="mt-2 grid gap-1 sm:grid-cols-2 md:grid-cols-3">
               {months.map((mo, i) => (
-                <li key={mo.order ?? i} className="text-xs text-slate-300">
+                <li key={mo.order ?? i} className="text-xs text-sahool-text">
                   {mo.name_ar ?? `شهر ${i + 1}`}
                   {mo.approx_gregorian_ar ? ` · ${mo.approx_gregorian_ar}` : ''}
                 </li>

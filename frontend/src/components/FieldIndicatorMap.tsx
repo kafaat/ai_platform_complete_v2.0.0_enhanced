@@ -12,16 +12,15 @@
 // TileLayer.url (Leaflet هو من يستبدلها)، فلا نستخدم استبدال JS داخل
 // هذا الجزء — فقط نُمرّر index/date عبر استعلام مُرمَّز.
 // ═══════════════════════════════════════════════════════════════
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { MapContainer, TileLayer, Polygon, FeatureGroup, useMap, useMapEvents, Popup } from 'react-leaflet';
-import DrawControl from './maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
+import { useEffect, useState, useRef } from 'react';
+import { MapContainer, TileLayer, Polygon, useMap, useMapEvents, Popup } from 'react-leaflet';
+import MeasureTools from './maphub/MeasureTools';
 import L from 'leaflet';
 import '../lib/leafletSetup'; // CSS الأساسيّ + أيقونات Leaflet + أداة الرسم (side-effect) — حاسم للتصيير
 import { fieldCdseTileUrl, fieldIndicatorTileUrl, normalizeIndicatorIndex, rasterApi, cdseClipParams } from '../services/api';
 import { getTenantId } from '../lib/authStorage';
 import { boundaryBounds, type MapBoundary } from '../lib/fieldBoundary';
 import { acquisitionUtcDay } from '../lib/dates';
-import { lengthMeters } from '../lib/geo';
 import { measureDrawFeature } from './maphub/drawing/drawingMeasurements';
 import { readFieldMapView, consumeDefaultViewOnce } from '../lib/fieldMapView';
 import { MapIndicatorLegend } from './insights/MapIndicatorLegend';
@@ -74,150 +73,10 @@ export interface FieldIndicatorMapProps {
 // ── أدوات القياس (overlay) ──────────────────────────────────────────
 // تُدار طبقات الرسم في حالة React عبر ردود EditControl (created/edited/deleted)
 // ثمّ تُحسَب المساحة/الطول من هندسة GeoJSON الفعليّة (turf) — لا أرقام مُفبركة.
-interface Measurement {
-  id: number;            // L.stamp(layer) — مفتاح ثابت للطبقة
-  kind: 'polygon' | 'polyline';
-  areaM2?: number;       // للمضلّع: المساحة بالمتر المربّع
-  lengthM?: number;      // للخطّ: الطول بالمتر
-}
-
-// تنسيق المساحة: م² دائماً، مع هكتار للقراءة (1 هكتار = 10000 م²). عرض فقط.
-function fmtArea(m2: number): string {
-  const ha = m2 / 10000;
-  return `${Math.round(m2).toLocaleString('en-US')} م² · ${ha.toFixed(2)} هكتار`;
-}
-// تنسيق الطول: م دائماً، مع كم للأطوال الكبيرة (1 كم = 1000 م). عرض فقط.
-function fmtLength(m: number): string {
-  const km = m / 1000;
-  return `${Math.round(m).toLocaleString('en-US')} م · ${km.toFixed(2)} كم`;
-}
-
-// يستخرج قياساً من طبقة leaflet-draw بالاعتماد على هندسة GeoJSON الحقيقيّة.
-function measureLayer(layer: L.Layer): Measurement | null {
-  const id = L.stamp(layer);
-  // toGeoJSON موجودة على طبقات الأشكال (Path/FeatureGroup) لا على L.Layer الأساس.
-  const toGeoJSON = (layer as { toGeoJSON?: () => GeoJSON.Feature }).toGeoJSON;
-  let gj: GeoJSON.Feature | null;
-  try { gj = toGeoJSON?.call(layer) ?? null; } catch { gj = null; }
-  const type = gj?.geometry?.type;
-  if (gj?.geometry.type === 'Polygon' || gj?.geometry.type === 'MultiPolygon') {
-    const { areaHa } = measureDrawFeature({ geometry: gj.geometry });
-    return areaHa === undefined ? null : { id, kind: 'polygon', areaM2: areaHa * 10000 };
-  }
-  if (type === 'LineString' || type === 'MultiLineString') {
-    return { id, kind: 'polyline', lengthM: lengthMeters(gj) };
-  }
-  return null;
-}
-
-// لوحة أدوات القياس: شريط Leaflet-draw للرسم + شارة نتائج RTL + «مسح».
-function MeasureTools() {
-  // مرجع مجموعة الطبقات المرسومة — مصدر الحقيقة الهندسيّة (نُعيد المسح منها).
-  const [fg, setFg] = useState<L.FeatureGroup | null>(null);
-  const [items, setItems] = useState<Measurement[]>([]);
-
-  // إعادة حساب كلّ القياسات من الطبقات الحاليّة (يستوعب created/edited/deleted).
-  const recompute = useCallback((group: L.FeatureGroup | null) => {
-    if (!group) { setItems([]); return; }
-    const next: Measurement[] = [];
-    group.eachLayer((layer) => {
-      const m = measureLayer(layer);
-      if (m) next.push(m);
-    });
-    setItems(next);
-  }, []);
-
-  const handleCreated = useCallback(() => recompute(fg), [fg, recompute]);
-  const handleEdited = useCallback(() => recompute(fg), [fg, recompute]);
-  const handleDeleted = useCallback(() => recompute(fg), [fg, recompute]);
-
-  const handleClear = useCallback(() => {
-    if (fg) fg.clearLayers();
-    setItems([]);
-  }, [fg]);
-
-  const totalArea = items.reduce((s, m) => s + (m.areaM2 ?? 0), 0);
-  const totalLen = items.reduce((s, m) => s + (m.lengthM ?? 0), 0);
-  const polys = items.filter((m) => m.kind === 'polygon');
-  const lines = items.filter((m) => m.kind === 'polyline');
-
-  return (
-    <>
-      <FeatureGroup ref={(r: L.FeatureGroup | null) => setFg(r)}>
-        <DrawControl
-          position="topright"
-          onCreated={handleCreated}
-          onEdited={handleEdited}
-          onDeleted={handleDeleted}
-          draw={{
-            // قياس فقط: مضلّع (مساحة) + خطّ (طول). لا علامات/دوائر/مستطيل.
-            // showArea:false — يتفادى عطل readableArea في leaflet-draw مع Leaflet 1.9؛
-            // تُحسب المساحة من الرؤوس بنفس نموذج قياس الحقول في سهول.
-            polygon: { allowIntersection: false, showArea: false, shapeOptions: { color: '#38bdf8' } },
-            polyline: { shapeOptions: { color: '#fbbf24' } },
-            rectangle: false,
-            circle: false,
-            marker: false,
-            circlemarker: false,
-          }}
-          edit={{ edit: {}, remove: {} }}
-        />
-      </FeatureGroup>
-
-      {/* شارة نتائج القياس (RTL · عربيّ) — أعلى يسار الخريطة */}
-      <div
-        dir="rtl"
-        style={{
-          position: 'absolute', top: 12, left: 54, zIndex: 1000,
-          background: 'rgba(13,22,17,.92)', borderRadius: 10, padding: '10px 12px',
-          fontSize: 12, color: '#e2e8f0', border: '1px solid #2d4a37',
-          backdropFilter: 'blur(6px)', maxWidth: 260,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-          <span style={{ fontWeight: 700, color: '#5cbf6e' }}>أدوات القياس</span>
-          {items.length > 0 && (
-            <button
-              type="button"
-              onClick={handleClear}
-              style={{
-                marginRight: 'auto', fontSize: 11, color: '#fca5a5',
-                background: 'transparent', border: '1px solid #7a2a2a',
-                borderRadius: 6, padding: '2px 8px', cursor: 'pointer',
-              }}
-            >
-              مسح
-            </button>
-          )}
-        </div>
-
-        {items.length === 0 ? (
-          <p style={{ color: '#9fb3a6', lineHeight: 1.6, margin: 0 }}>
-            ارسم مضلّعاً للمساحة أو خطّاً للطول من شريط الأدوات أعلى يمين الخريطة.
-          </p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {polys.length > 0 && (
-              <div>
-                <div style={{ color: '#7dd3fc', fontWeight: 600 }}>
-                  المساحة ({polys.length})
-                </div>
-                <div style={{ color: '#cdddd2' }}>{fmtArea(totalArea)}</div>
-              </div>
-            )}
-            {lines.length > 0 && (
-              <div>
-                <div style={{ color: '#fcd34d', fontWeight: 600 }}>
-                  الطول ({lines.length})
-                </div>
-                <div style={{ color: '#cdddd2' }}>{fmtLength(totalLen)}</div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </>
-  );
+function indicatorArea(feature: GeoJSON.Feature): number {
+  const geometry = feature.geometry;
+  if (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon') return 0;
+  return (measureDrawFeature({ geometry }).areaHa ?? 0) * 10000;
 }
 
 // مكوّن داخلي: يضبط إطار الخريطة على الحدود المتاحة (مضلع → TileJSON → fallback)
@@ -303,6 +162,7 @@ export default function FieldIndicatorMap({
   fieldBbox,
   fieldGeometry,
 }: FieldIndicatorMapProps) {
+  const [dock, setDock] = useState<HTMLDivElement | null>(null);
   const [opacity, setOpacity] = useState(initialOpacity);
   const [manifest, setManifest] = useState<{ key: string; data: Partial<TileJSON> }>();
 
@@ -371,6 +231,8 @@ export default function FieldIndicatorMap({
     : [16.153, 45.303];
 
   return (
+    <>
+    <div ref={setDock} />
     <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid #2d4a37' }}>
       <MapContainer
         center={center}
@@ -413,7 +275,7 @@ export default function FieldIndicatorMap({
         )}
 
         {/* أدوات الرسم/القياس (اختياريّة) — مضلّع→مساحة · خطّ→طول (turf) */}
-        {tools && <MeasureTools />}
+        {tools && <MeasureTools dock={dock} area={indicatorArea} />}
 
         <FitBounds polygon={fieldPolygon} tileBounds={tileBounds} fallbackBounds={fallbackBounds} fieldId={fieldId} />
       </MapContainer>
@@ -485,5 +347,6 @@ export default function FieldIndicatorMap({
         </span>
       </div>
     </div>
+    </>
   );
 }
