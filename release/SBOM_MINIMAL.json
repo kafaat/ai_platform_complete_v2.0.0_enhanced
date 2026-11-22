@@ -585,7 +585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb658806e87ddcc24c9bb6af0382cd3c0c63f63086674ad739ac639f12213741"
+          "content": "42f2191ac14516e3eec8afa7e55f6d1c5e3630e1aa2647da0d405cbd14d551ab"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -799,6 +799,16 @@
         }
       ],
       "name": "frontend/src/components/ReferenceQueryState.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "85ec57b848fef78626ad4f3543264c88c98a05d5f8cbebdecc658c6e381be83f"
+        }
+      ],
+      "name": "frontend/src/components/SeasonSimulationDialog.tsx",
       "type": "file"
     },
     {
@@ -1985,7 +1995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ac2414d28f4b0617d231f473f2cfd12767e5e6c6eb55d7cdfc5ea6f7dcadfaf"
+          "content": "d2dc51639aa505d161cfdee4a616b59896d3ddc6fce5800504b52b20363fe700"
         }
       ],
       "name": "frontend/src/components/maphub/FieldBoundaryProposalPanel.tsx",
@@ -2315,10 +2325,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4bd24d32b341fb7b088ca0612e7cd8867fe0c42754717e4f2b99248d7026022a"
+          "content": "4ae98f5a03e699ad10dd0baa979b1cbec629cb28cfc568217ab75f21e196ad26"
         }
       ],
       "name": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2d404f2e068f62c35f39818696859a7e15b85ee1c9b2911a665545da7032b42b"
+        }
+      ],
+      "name": "frontend/src/components/maphub/ProposalPanelActions.test.tsx",
       "type": "file"
     },
     {
@@ -2405,7 +2425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "803e63495be11c795b0068f96fefb1a5c532d690080e7034998e97001e57b8c7"
+          "content": "6632283f00d1e6efce5142642b22115047e47b69242af70a5d2d563467f9b7e2"
         }
       ],
       "name": "frontend/src/components/maphub/VraPrescriptionPanel.tsx",
@@ -3165,7 +3185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2ac64fc3c91c0fe847fd037a5df56b10949a848836ab033a325baa9d218421ac"
+          "content": "f29b249e75c492a6b216a51f2e322ca0777906994b07ef22bb554c95967278fc"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -5135,7 +5155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7b8e94e132776a0cb14b0632a6ce5f9249619d377351d18357d14e331b736c09"
+          "content": "2ea6c62780a323f34887f1e135692d8091628178bf14ff2ebc29a45f216fa262"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -5965,7 +5985,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "605374b0192fcc0957478d287b006ffd5cf0af34b0895e90055629e2fdc60e0d"
+          "content": "fa3d6f447e8822daffc783ea251f6ee52afaffb1028145fdc85892d3d59c4bf3"
+        }
+      ],
+      "name": "frontend/src/sections/ChatbotPage.spatialCards.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1958d11ef50a158ca3b3245fd85c80fc69fb71e262ce96d09ead0665407f51c4"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -6275,7 +6305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17cadb0aff4cd81705e55330229bdf55b30931146a6046ad914cdc6e844d0fdb"
+          "content": "72150a88cb90916f4fb0b1d9ae85afc00597268f7c71e43a98410f5a64305ae5"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -6555,7 +6585,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e1734ce4df4dc70f01bacdd026d606785e75e3465ced06424375d4844989129"
+          "content": "447095793483a22519669dd708baaf48a2bb98537dec04c58ca0d05ffc07d2c4"
+        }
+      ],
+      "name": "frontend/src/sections/HybridIndexPage.seasonSimulation.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c31d0722859fb25bae74ef59d05c05525de2cb753dc533191cc93b63839c3ab8"
         }
       ],
       "name": "frontend/src/sections/HybridIndexPage.tsx",
@@ -7835,6 +7875,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f92f0c5e599916747328d7e18ff7e27d6234995430fb3f39b5a2658d2591d1ed"
+        }
+      ],
+      "name": "frontend/src/sections/seasonSimulationEntry.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6005d0abb10eb722feaffcd09de6433a4c2f3a95931bc9bc9820710b802b9748"
         }
       ],
@@ -8035,7 +8085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a1cf50bd8c56d7557a602ad6e17ca2579913f21fc21260daac84e9708a967016"
+          "content": "82ef0548000c625e35710376e0af82a6f43c0cb14195777509d2809753b47141"
         }
       ],
       "name": "frontend/src/services/api/reports.ts",
@@ -18525,7 +18575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a076cafab960240b5cdd518613a81887823346ec26033e60b87930c775649f3f"
+          "content": "382cac09543500140f1047f0470fededb3eb91c79be4161b9a7af67a4d1a5f3e"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -22275,7 +22325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f6db785b8681c3152fb2d7ff619ca869a53b7b8885b3b73e8b02b78b4643aff"
+          "content": "50fce0a157dff49b01d6dcfbceb638ad04eaaab737b4728c27f80d71f073822d"
         }
       ],
       "name": "services/rag-retrieval/main.py",
@@ -28995,7 +29045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "80a31831325af394864c6d891926d6884f47abd8872aebeb19c60160a1bff1e5"
+          "content": "b242f1ef0dfec235ab91b819dd14c22183b29e1698be9fa809a892e6feccb81e"
         }
       ],
       "name": "services/sahool-platform/api/routers/simulate.py",
@@ -31845,7 +31895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b82c436f5a23b07af7a0ded8c9d8548ea738a34098fe4a56ba4d904f47a057f6"
+          "content": "ff590d31be16d7d2cf1559bed8acbf2913fad8dd03fb59bf14bee9136cc1cccd"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_adapters.py",
@@ -31865,7 +31915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e02ad5a6c585b37bcd8233083c952ef15444d2de696208b729d74f07297a471c"
+          "content": "4add507e7d8ab93579d9ba34f6a5aed36e9cd65eae9f31710a1991c53416cccc"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_coordinator.py",
@@ -32475,7 +32525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "930f9e5dc49f51113c6de504f92a9c72a98a8798e39cf097305b246b7c76c04f"
+          "content": "4182f14ec9c0e74ea6afc230736a3841da1b6bff9017378b98f8f4cd4541f05e"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",

@@ -1724,7 +1724,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 402,
+      "evidence_count": 403,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1993,6 +1993,7 @@
         "services/sahool-platform/core/learning_source_lineage.py",
         "services/sahool-platform/core/pest_escalation_flow.py",
         "services/sahool-platform/core/productivity_zones.py",
+        "services/sahool-platform/core/rag/production_qdrant.py",
         "services/sahool-platform/core/rbac_governance.py",
         "services/sahool-platform/core/recommendation_ponytail.py",
         "services/sahool-platform/core/recommendation_replay.py",
@@ -3472,7 +3473,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 211,
-      "target_evidence_count": 402,
+      "target_evidence_count": 403,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3519,7 +3520,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 402,
+      "source_evidence_count": 403,
       "target_evidence_count": 52,
       "static_supported": true,
       "runtime_verified": false
@@ -3730,5 +3731,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "f474d6e82e07fb5488382444ecff36ecaf2ccf8b2a0be7be4610bbe6102ab42f"
+  "content_sha256": "e97d7a0b597c3eb94d5afa93c4bf2ce06fc227ddbe802972dd2874641d710f56"
 }
