@@ -34,7 +34,9 @@ def test_chatbot_uses_ai_agronomist_runtime_not_legacy_agent_or_mock_chat():
     # الحارس يتحقّق من الربط الفعليّ بسياق الحقل لا باسم store بائت.
     assert "useSelectedField" in src
     assert "ai-context-pack" in src
-    assert "RAG/KG/FieldState" in src
+    # التذييل لا يدّعي RAG/KG/FieldState ثابتاً؛ مصادر كلّ إجابة تُعرض من ردّ الخادم نفسه.
+    assert "RAG/KG/FieldState" not in src
+    assert "sourceBadgeText(msg.evidenceSources)" in src
     assert "kongApi.post('/api/agent/query'" not in src
     assert "'/api/chat'" not in src and '"/api/chat"' not in src
 

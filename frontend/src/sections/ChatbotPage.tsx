@@ -609,7 +609,8 @@ export function ChatbotPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-140px)] flex flex-col bg-white rounded-xl shadow-xs border border-slate-200 font-tajawal overflow-hidden" dir="rtl">
+    // data-theme="light": the card is a fixed light surface, so theme-aware text tokens must resolve to the light palette here.
+    <div data-theme="light" className="h-[calc(100vh-140px)] flex flex-col bg-white rounded-xl shadow-xs border border-slate-200 font-tajawal overflow-hidden" dir="rtl">
 
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-linear-to-l/srgb from-emerald-50 to-white">
@@ -792,7 +793,7 @@ export function ChatbotPage() {
           </button>
         </form>
         <p className="text-[10px] text-sahool-text text-center mt-1.5">
-          مدعوم بـ SAHOOL AI Runtime · RAG/KG/FieldState
+          SAHOOL AI Runtime · مصادر كلّ إجابة وأدلّتها الناقصة تُعرض أسفلها
         </p>
       </div>
     </div>
