@@ -158,6 +158,82 @@ async def _persist_recommendation(
         return False
 
 
+#: Status the guarded path answers with while the engine cannot take the canonical state.
+RUNTIME_REFUSAL_STATUS = "refused_canonical_state_not_passed_to_engine"
+
+
+class CanonicalStateNotPassedToEngine(RuntimeError):
+    """The guarded path read ``canonical_field_state`` but the engine has no input for it."""
+
+
+def _runtime_engine(req, api_req):
+    """The engine callable handed to the guarded pipeline — it refuses instead of computing.
+
+    The pipeline hands it ``prepared["canonical_field_state"]``, the state read on the
+    tenant connection. The production engine cannot take that state: neither
+    ``handle_recommendation_request`` nor ``orchestrate_recommendation`` has an input for
+    it (pinned by ``test_the_refusal_precondition_still_holds``). Calling the engine with
+    ``api_req`` therefore computed a recommendation WITHOUT the state that was read —
+    ``depletion_mm`` 10 or 120 gave an identical engine input — while the path presented
+    it as the guarded, state-backed result. Until the engine gains such an input, this
+    callable raises before the engine runs, so no recommendation and no event is produced.
+    """
+    del req, api_req  # kept in the signature: the engine call they feed is not wired yet
+
+    def _engine(prepared: dict) -> dict:
+        raise CanonicalStateNotPassedToEngine(
+            "the recommendation engine has no input for canonical_field_state; "
+            "refusing rather than computing without the state that was read"
+        )
+
+    return _engine
+
+
+def _runtime_refusal_outcome() -> tuple[int, dict]:
+    """The explicit answer when the engine could not be given the state that was read."""
+    return 501, {
+        "runtime_pipeline": {
+            "status": RUNTIME_REFUSAL_STATUS,
+            "canonical_field_state_passed_to_engine": False,
+            "review_id": None,
+            "review_persistence": None,
+            "events_published": 0,
+            "event_delivery": "not_published",
+        },
+        "detail": (
+            "The guarded recommendation path read the canonical field state, but the "
+            "recommendation engine has no input for it, so no recommendation was computed."
+        ),
+    }
+
+
+def _runtime_pipeline_outcome(result) -> tuple[int, dict]:
+    """Map a pipeline result to the HTTP status and body this path returns.
+
+    Events count as published only when the publisher handed them to a broker, and a
+    review id is reported only when the review store is durable. With the in-memory
+    defaults the body says ``not_published`` / ``not_persisted`` instead of claiming
+    ``events_published=2`` and a ``review_id`` that no other process can find.
+    """
+    recommendation = result.recommendation or {}
+    published = result.event_delivery == "published"
+    persisted = result.review_persistence == "persisted"
+    payload = {
+        "runtime_pipeline": {
+            "status": result.status,
+            "review_id": result.review_id if persisted else None,
+            "review_persistence": result.review_persistence,
+            "events_published": result.events_published if published else 0,
+            "event_delivery": result.event_delivery,
+        },
+        **(recommendation.get("body") or {}),
+    }
+    status_code = int(recommendation.get("status_code") or 200)
+    if result.status == "blocked_missing_field_state":
+        status_code = 422
+    return status_code, payload
+
+
 async def _run_guarded_runtime_pipeline(user, req, api_req) -> JSONResponse | None:
     """`AI-RUNTIME-WIRING-01` ② — موضعُ الاستدعاء الإنتاجيّ الوحيد للخطّ المحروس.
 
@@ -167,8 +243,9 @@ async def _run_guarded_runtime_pipeline(user, req, api_req) -> JSONResponse | No
     * يُفتَح اتّصالُ المستأجر **قبل** المحرّك لأنّ ``guarded_runtime_context`` يشترط
       ``canonical_field_state`` سابقاً للقرار، ولا تُركَّب تلك الحالةُ إلّا على اتّصالٍ
       محدودٍ بالمستأجر (``_compose_canonical``).
-    * يبقى الاتّصالُ مفتوحاً خلال حساب المحرّك، فتُحفَظ خاصّيّةُ «اللقطة الواحدة» — بل
-      تصير الدعوى أصدق، إذ يستهلك القرارُ فعلاً ما قُرِئ.
+    * المحرّكُ لا مُدخَلَ له يستهلك الحالةَ المقروءة، فلا يُستدعى بالطلب الأصليّ متظاهراً
+      بأنّه استهلكها: يُرفَض الطلبُ صراحةً (501، ``RUNTIME_REFUSAL_STATUS``) ولا يُهبَط به
+      إلى الموروث. والأحداثُ والمراجعةُ لا تُعلَن منشورةً أو محفوظةً ما دامت في الذاكرة.
     * الاستيرادُ من ``shared.ai.recommendation_runtime`` لا من ``services/ai_agronomist``:
       الصورةُ تنسخ ``shared/`` وحدَها، والحدُّ مفروضٌ بشاهدٍ مستقلّ.
 
@@ -185,19 +262,6 @@ async def _run_guarded_runtime_pipeline(user, req, api_req) -> JSONResponse | No
         RecommendationRuntimePipeline,
     )
 
-    def _engine(prepared: dict) -> dict:
-        """المحرّكُ الممرَّر هو مسارُ الإنتاج نفسُه — لا نسخةٌ ثانية تنحرف عنه."""
-        response = handle_recommendation_request(api_req)
-        body = response.body if isinstance(response.body, dict) else {}
-        return {
-            "id": str(body.get("recommendation_id") or body.get("id") or "runtime-rec"),
-            "status_code": response.status_code,
-            "type": str(req.crop or "general"),
-            "risk_level": str(body.get("risk_level", "")),
-            "body": body,
-            "canonical_field_state": prepared.get("canonical_field_state"),
-        }
-
     try:
         async with tenant_connection(user) as conn:
             canonical = await _compose_canonical(
@@ -207,24 +271,16 @@ async def _run_guarded_runtime_pipeline(user, req, api_req) -> JSONResponse | No
                 tenant_id=user.tenant_id,
                 field_id=req.field_id,
                 context={"canonical_field_state": canonical, "signals": {}, "tool_outputs": {}},
-                recommendation_engine=_engine,
+                recommendation_engine=_runtime_engine(req, api_req),
                 intent="general",
             )
-            recommendation = result.recommendation or {}
-            payload = {
-                "runtime_pipeline": {
-                    "status": result.status,
-                    "review_id": result.review_id,
-                    "events_published": result.events_published,
-                },
-                **(recommendation.get("body") or {}),
-            }
-            status_code = int(recommendation.get("status_code") or 200)
-            if result.status == "blocked_missing_field_state":
-                status_code = 422
+            status_code, payload = _runtime_pipeline_outcome(result)
             return JSONResponse(
                 status_code=status_code, content=json.loads(json.dumps(payload, default=str))
             )
+    except CanonicalStateNotPassedToEngine:
+        status_code, payload = _runtime_refusal_outcome()
+        return JSONResponse(status_code=status_code, content=payload)
     except Exception:  # noqa: BLE001 — هبوطٌ مُعلَنٌ إلى الموروث، لا ابتلاع
         logger.warning("guarded runtime pipeline failed; falling back to legacy", exc_info=True)
         return None
@@ -345,11 +401,9 @@ async def recommendations_for_field(
     # AI-RUNTIME-WIRING-01 ②: the guarded runtime pipeline's only production call site.
     # It runs BEFORE the engine because `guarded_runtime_context` requires
     # canonical_field_state up front, and that state only exists on a tenant-scoped
-    # connection. Opening the transaction here and holding it through the engine keeps
-    # the documented "one snapshot" property — in fact strengthens it, since the
-    # decision now consumes exactly what was read. The hold is extended by the engine's
-    # own compute time, measured at p50 0.105ms / p99 0.152ms over 200 distinct
-    # payloads, i.e. an order of magnitude below a single database round trip.
+    # connection. The engine has no input for that state, so with the flag ON the path
+    # refuses explicitly (501) instead of computing from the original request and
+    # presenting the result as state-backed (see `_runtime_engine`).
     # The flag defaults OFF; flipping it is NOT a readiness claim (see flags.py).
     runtime_outcome = await _run_guarded_runtime_pipeline(user, req, api_req)
     if runtime_outcome is not None:

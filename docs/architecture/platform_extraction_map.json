@@ -4753,7 +4753,7 @@
       "function": "capacity_profiles_endpoint",
       "method": "GET",
       "path": "/api/v1/recommendations/capacity-profiles",
-      "line": 471,
+      "line": 525,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::GET /api/v1/recommendations/capacity-profiles::capacity_profiles_endpoint"
@@ -4763,7 +4763,7 @@
       "function": "recommendation_engines",
       "method": "GET",
       "path": "/api/v1/recommendations/engines",
-      "line": 406,
+      "line": 460,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::GET /api/v1/recommendations/engines::recommendation_engines"
@@ -4773,7 +4773,7 @@
       "function": "get_recommendation",
       "method": "GET",
       "path": "/api/v1/recommendations/{rec_id}",
-      "line": 760,
+      "line": 814,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::GET /api/v1/recommendations/{rec_id}::get_recommendation"
@@ -4783,7 +4783,7 @@
       "function": "generate_crop_candidates",
       "method": "POST",
       "path": "/api/v1/recommendations/candidates",
-      "line": 479,
+      "line": 533,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/candidates::generate_crop_candidates"
@@ -4793,7 +4793,7 @@
       "function": "economic_adaptation_endpoint",
       "method": "POST",
       "path": "/api/v1/recommendations/economic-adaptation",
-      "line": 453,
+      "line": 507,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/economic-adaptation::economic_adaptation_endpoint"
@@ -4803,7 +4803,7 @@
       "function": "recommendations_for_field",
       "method": "POST",
       "path": "/api/v1/recommendations/for-field",
-      "line": 263,
+      "line": 319,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/for-field::recommendations_for_field"
@@ -4813,7 +4813,7 @@
       "function": "record_recommendation_outcome",
       "method": "POST",
       "path": "/api/v1/recommendations/outcomes",
-      "line": 589,
+      "line": 643,
       "target_owner": "decision-service",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/outcomes::record_recommendation_outcome"
@@ -4823,7 +4823,7 @@
       "function": "recommendations",
       "method": "POST",
       "path": "/api/v1/recommendations",
-      "line": 233,
+      "line": 289,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations::recommendations"
