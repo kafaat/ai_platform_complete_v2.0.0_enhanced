@@ -332,12 +332,15 @@ def test_no_request_path_runs_ddl_or_grants_to_get_around_missing_schema():
     )
     for sql in _sql_constants(farm_scope_tree) + _sql_constants(tenant_connection):
         assert not _DDL.search(sql), sql
-    callers = [
-        p
-        for p in (PLATFORM / "api").rglob("*.py")
-        if p.name != "farm_scope.py" and "insert_tenant_grants" in p.read_text(encoding="utf-8")
-    ]
-    assert callers == []
+    callers = sorted(
+        str(p.relative_to(ROOT))
+        for base in (PLATFORM, ROOT / "scripts")
+        for p in base.rglob("*.py")
+        if "tests" not in p.parts
+        and p.name != "farm_scope.py"
+        and "insert_tenant_grants" in p.read_text(encoding="utf-8")
+    )
+    assert callers == ["scripts/ops/farm_access_backfill.py"], callers
 
 
 # ── review finding 3: every farm-scope consumer goes through farm_restriction ──
@@ -369,7 +372,9 @@ def test_no_platform_code_reads_farm_ids_access_outside_the_authorization_core()
         str(p.relative_to(PLATFORM))
         for p in PLATFORM.rglob("*.py")
         if "tests" not in p.parts
-        and re.search(r"\.farm_ids_access\b|\"farm_ids_access\"", p.read_text(encoding="utf-8"))
+        and re.search(
+            r"\.farm_ids_access\b|[\"']farm_ids_access[\"']", p.read_text(encoding="utf-8")
+        )
     )
     assert readers == ["api/farm_scope.py", "core/authorization.py"], readers
 

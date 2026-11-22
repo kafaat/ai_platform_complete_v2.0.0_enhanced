@@ -328,3 +328,22 @@ def test_the_identity_gate_names_what_blocks_the_backfill():
         PLATFORM_USERS + [fac.Identity("11", "nobody@example.org", T1, "worker", True)], AUTH_USERS
     )
     assert backfill.identity_blockers(dirty) == ["unresolved"]
+
+
+def test_only_the_migration_owner_may_apply_the_backfill():
+    """Delta review A: --apply runs as the migration owner (session and current user superuser,
+    with INSERT on the table); a BYPASSRLS role such as the jobs role is refused (exit 2)."""
+
+    def role(session_super, current_super, can_insert):
+        return {
+            "session_super": session_super,
+            "current_super": current_super,
+            "can_insert": can_insert,
+        }
+
+    fac.check_operator(role(True, True, True))
+    for bad in (role(False, True, True), role(True, False, True), role(True, True, False)):
+        with pytest.raises(fac.Precondition):
+            fac.check_operator(bad)
+    with pytest.raises(fac.Precondition):
+        fac.check_operator(None)

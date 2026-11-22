@@ -38,9 +38,11 @@ import asyncio
 import importlib.util
 import json
 import os
+import re
 import sys
 import uuid
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 import pytest
 
@@ -132,6 +134,13 @@ def _dsn(database: str) -> str:
     head, _, tail = DSN.rpartition("/")
     query = tail.partition("?")[2]
     return f"{head}/{database}" + (f"?{query}" if query else "")
+
+
+def _dsn_as(database: str, user: str, password: str) -> str:
+    """``DSN`` for ``database`` logged in as ``user`` (a throwaway LOGIN role)."""
+    parts = urlsplit(_dsn(database))
+    host = parts.hostname + (f":{parts.port}" if parts.port else "")
+    return urlunsplit(parts._replace(netloc=f"{user}:{password}@{host}"))
 
 
 async def _apply(conn, files: list[str]) -> None:
@@ -915,5 +924,157 @@ def test_no_guc_survives_the_transaction_even_without_the_pool_reset(
             assert all(v in (None, "") for v in left.values()), dict(left)
         finally:
             await pool.close()
+
+    _run(template, body)
+
+
+# ── delta review A: only the operator writes grants; B: no DELETE of what cannot be written ──
+
+
+def _migrator_revoke(role_var: str) -> str:
+    """The REVOKE migrations/apply_in_compose.sh runs on farm_access_grants for ``role_var``."""
+    text = (ROOT / "migrations" / "apply_in_compose.sh").read_text(encoding="utf-8")
+    m = re.search(
+        r"SELECT format\('(REVOKE [A-Z, ]+ ON TABLE public\.farm_access_grants FROM %I)', "
+        r":'" + role_var + r"'\)",
+        text,
+    )
+    assert m, f"apply_in_compose.sh revokes no write on farm_access_grants from :{role_var}"
+    return m.group(1)
+
+
+async def _as_role(live, role: str, sql: str, *args, owner_guc: bool = True) -> str:
+    async with live.owner.transaction():
+        await live.owner.execute(f'SET LOCAL ROLE "{role}"')
+        if owner_guc:
+            await live.owner.execute(
+                "SELECT set_config('app.current_tenant', $1, true), "
+                "set_config('app.current_user_id', '45', true), "
+                "set_config('app.current_role', 'owner', true)",
+                T1,
+            )
+        try:
+            status = await live.owner.execute(sql, *args)
+        except asyncpg.PostgresError as exc:
+            return exc.sqlstate
+    return status
+
+
+def test_only_the_operator_writes_grants_and_the_backfill_label_cannot_be_forged(template):
+    """A: the application role (NOBYPASSRLS, owner GUC set as for any owner JWT) and the jobs
+    role (BYPASSRLS) may not write farm_access_grants; a role that somehow may write cannot use
+    the backfill's provenance label; the migration owner's backfill still writes."""
+    backfill = _ops("farm_access_backfill")
+    holder = {}
+
+    async def body(live):
+        jobs, writer, op = f"{live.role}_jobs", f"{live.role}_w", f"{live.role}_op"
+        await live.apply_v287()  # includes the migrator's broad re-grant to the app role
+        await live.owner.execute(_migrator_revoke("app_role").replace("%I", f'"{live.role}"'))
+        await live.owner.execute(
+            f'CREATE ROLE "{jobs}" NOLOGIN NOSUPERUSER BYPASSRLS;'
+            f'GRANT USAGE ON SCHEMA public TO "{jobs}";'
+            f'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "{jobs}";'
+            + _migrator_revoke("jobs_role").replace("%I", f'"{jobs}"')
+        )
+        await live.grant("42", "fs-farm-1")
+        try:
+            insert = (
+                "INSERT INTO farm_access_grants (tenant_id, user_id, farm_id, granted_by) "
+                "VALUES ($1::uuid, '7', 'fs-farm-2', 'backfill:decision-C')"
+            )
+            for role in (live.role, jobs):
+                assert await _as_role(live, role, insert, T1) == "42501", role
+                assert (
+                    await _as_role(live, role, "UPDATE farm_access_grants SET is_active = false")
+                    == "42501"
+                ), role
+                assert await _as_role(live, role, "DELETE FROM farm_access_grants") == "42501", role
+
+            # v287 itself narrows a role that holds write on the table (no apply_in_compose run).
+            await live.owner.execute(
+                f'CREATE ROLE "{writer}" NOLOGIN NOSUPERUSER BYPASSRLS;'
+                f'GRANT USAGE ON SCHEMA public TO "{writer}";'
+                f'GRANT SELECT, INSERT, UPDATE, DELETE ON farm_access_grants TO "{writer}"'
+            )
+            # The trigger: a non-operator that can write may not claim the backfill's label.
+            assert await _as_role(live, writer, insert, T1) == "42501"
+            ok = insert.replace("'backfill:decision-C'", "'admin:by-hand'")
+            assert await _as_role(live, writer, ok, T1) == "INSERT 0 1"
+            await _apply(live.owner, ["v287_farm_access_grants.sql"])
+            assert not await live.owner.fetchval(
+                "SELECT has_table_privilege($1, 'public.farm_access_grants', 'INSERT')", writer
+            ), "re-applying v287 revokes write from a non-owner role"
+
+            # The backfill as a BYPASSRLS non-superuser: dry run reads, --apply refuses (exit 2).
+            await live.owner.execute(
+                f"CREATE ROLE \"{op}\" LOGIN PASSWORD 'op-pw' NOSUPERUSER BYPASSRLS;"
+                f'GRANT USAGE ON SCHEMA public TO "{op}";'
+                f'GRANT SELECT ON ALL TABLES IN SCHEMA public TO "{op}"'
+            )
+            op_dsn = _dsn_as(live.platform_db, op, "op-pw")
+            dry = await backfill.run(op_dsn, live.auth_dsn(), apply=False)
+            assert dry["written"] == 0 and dry["planned_inserts"] > 0
+            with pytest.raises(backfill.fac.Precondition):
+                await backfill.run(op_dsn, live.auth_dsn(), apply=True)
+            # The migration owner (the operator) still writes.
+            await live.owner.execute("DELETE FROM farm_access_grants")
+            holder["written"] = (
+                await backfill.run(live.platform_dsn(), live.auth_dsn(), apply=True)
+            )["written"]
+        finally:
+            for r in (jobs, writer, op):
+                await live.owner.execute(
+                    f"DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{r}') "
+                    f"THEN EXECUTE 'DROP OWNED BY \"{r}\"'; EXECUTE 'DROP ROLE \"{r}\"'; "
+                    "END IF; END $$"
+                )
+
+    _run(template, body)
+    assert holder["written"] == 8
+
+
+async def _delete_as(live, role: str, sql: str, *args) -> str:
+    async with live.pool.acquire() as conn, conn.transaction():
+        await conn.execute(
+            "SELECT set_config('app.current_tenant', $1, true), "
+            "set_config('app.current_user_id', $2, true), "
+            "set_config('app.current_role', $3, true), "
+            "set_config('app.enforce_farm_scope', 'on', true)",
+            T1,
+            live.subs[role],
+            role,
+        )
+        try:
+            return await conn.execute(sql, *args)
+        except asyncpg.PostgresError as exc:
+            return exc.sqlstate
+
+
+def test_a_non_owner_cannot_delete_what_it_cannot_write(template):
+    """B: farm-less rows are read-only for non-owners under enforcement, DELETE included; a
+    delete inside a granted farm passes; the owner may delete farm-less rows."""
+
+    async def body(live):
+        await live.apply_v287()
+        await live.grant(live.subs["worker"], "fs-farm-1")
+        for sql, key in (
+            ("DELETE FROM seasons WHERE season_id = $1", "s-fs-field-0"),
+            ("DELETE FROM field_tasks WHERE field_id = $1", "fs-field-0"),
+            ("DELETE FROM fields WHERE field_id = $1", "fs-field-0"),
+            ("DELETE FROM farm_ledger_entries WHERE entry_id = $1", "e-00"),
+        ):
+            assert await _delete_as(live, "worker", sql, key) == "DELETE 0", sql
+        seen = await live.visible("manager", enforce=False)
+        assert "fs-field-0" in seen["fields"] and "s-fs-field-0" in seen["seasons"]
+        assert "fs-field-0" in seen["field_tasks"] and "e-00" in seen["farm_ledger_entries"]
+        assert (
+            await _delete_as(live, "worker", "DELETE FROM seasons WHERE season_id = 's-fs-field-1'")
+            == "DELETE 1"
+        )
+        assert (
+            await _delete_as(live, "owner", "DELETE FROM seasons WHERE season_id = 's-fs-field-0'")
+            == "DELETE 1"
+        )
 
     _run(template, body)
