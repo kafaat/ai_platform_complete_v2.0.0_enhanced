@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7664,
+    "files_scanned": 7665,
     "files_by_kind": {
       "backend": 1312,
       "database": 354,
       "governance": 90,
       "mobile": 429,
       "other": 2242,
-      "tests": 2665,
+      "tests": 2666,
       "web": 572
     },
-    "unmapped_artifacts": 3652,
+    "unmapped_artifacts": 3653,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4159,
+      "python_functional": 4160,
       "raw": 3505
     },
-    "test_dependency_files": 2029,
-    "test_dependency_edges": 5437,
-    "test_dependency_bounded_files": 1170,
+    "test_dependency_files": 2030,
+    "test_dependency_edges": 5438,
+    "test_dependency_bounded_files": 1171,
     "test_dependency_unresolved_relations": 519
   },
   "capabilities": [
@@ -46292,6 +46292,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_local_ai_rag_upload_filename_conflict.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_local_preflight_contract.py",
       "kind": "tests"
     },
@@ -89144,6 +89148,19 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_local_ai_rag_upload_filename_conflict.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/local-ai-rag/main.py",
+          "kind": "source_read",
+          "line": 27
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_local_preflight_contract.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -92700,7 +92717,7 @@
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "loader",
-          "line": 520
+          "line": 521
         },
         {
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
