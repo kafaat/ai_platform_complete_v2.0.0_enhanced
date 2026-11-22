@@ -70,6 +70,17 @@ MQTT_TLS_CA_FILE = os.getenv("MQTT_TLS_CA_FILE", "").strip()
 # Explicit migration only: requires the dedicated TLS broker with device-bound ACLs.
 FEATURE_DEVICE_MESH_TELEMETRY = os.getenv("FEATURE_DEVICE_MESH_TELEMETRY", "")
 _mesh_replay = MeshReplayWindow()
+# A refused mesh sample is logged once per (tenant, device, reason) per interval, so
+# a misconfigured or noisy device is diagnosable without flooding the log.
+# A module alias so tests can drive the throttle clock without patching time.monotonic,
+# which the asyncio event loop also reads.
+_monotonic = time.monotonic
+_MESH_REJECT_LOG_INTERVAL_S = 60.0
+_MESH_REJECT_LOG_MAX_KEYS = 1024
+_mesh_reject_logged: dict[tuple[str, str, str], float] = {}
+# When the table is full of unexpired keys, new keys are not logged one by one: a single
+# summary per interval counts them, so the table never resets live throttles.
+_mesh_reject_overflow = {"last": None, "suppressed": 0}
 
 
 def _mqtt_auth_kwargs() -> dict:
@@ -1335,6 +1346,42 @@ async def _registry_device(tenant_id: str, device_id: str) -> dict | None:
     return dict(row) if row else None
 
 
+def _log_mesh_rejection(tenant_id: str, device_id: str, reason: str) -> bool:
+    """Log a refused mesh sample, rate-limited per (tenant, device, reason)."""
+    now = _monotonic()
+    key = (tenant_id, device_id, reason)
+    last = _mesh_reject_logged.get(key)
+    if last is not None and now - last < _MESH_REJECT_LOG_INTERVAL_S:
+        return False
+    if key not in _mesh_reject_logged and len(_mesh_reject_logged) >= _MESH_REJECT_LOG_MAX_KEYS:
+        for stale in [
+            k for k, t in _mesh_reject_logged.items() if now - t >= _MESH_REJECT_LOG_INTERVAL_S
+        ]:
+            del _mesh_reject_logged[stale]
+        if len(_mesh_reject_logged) >= _MESH_REJECT_LOG_MAX_KEYS:
+            return _note_mesh_rejection_overflow(now)
+    _mesh_reject_logged[key] = now
+    logger.warning(
+        f"mesh telemetry rejected from device {device_id!r} (tenant {tenant_id!r}): {reason}"
+    )
+    return True
+
+
+def _note_mesh_rejection_overflow(now: float) -> bool:
+    """Count a rejection the full table cannot track; log one summary per interval."""
+    _mesh_reject_overflow["suppressed"] += 1
+    last = _mesh_reject_overflow["last"]
+    if last is not None and now - last < _MESH_REJECT_LOG_INTERVAL_S:
+        return False
+    logger.warning(
+        f"mesh telemetry rejections: {_mesh_reject_overflow['suppressed']} not logged individually"
+        f" (throttle table full at {_MESH_REJECT_LOG_MAX_KEYS} unexpired keys)"
+    )
+    _mesh_reject_overflow["last"] = now
+    _mesh_reject_overflow["suppressed"] = 0
+    return True
+
+
 def _telemetry_source_gate(
     record: dict | None, *, topic_tenant: str, topic_field: str
 ) -> tuple[bool, str]:
@@ -2003,10 +2050,13 @@ async def _handle_telemetry_message(topic: str, raw, *, retained: bool = False) 
         if sample is None:
             return None
         record = await _registry_device(sample.tenant_id, sample.device_id)
-        ok, _reason = _telemetry_source_gate(
+        ok, reason = _telemetry_source_gate(
             record, topic_tenant=sample.tenant_id, topic_field=sample.field_id
         )
-        if not ok or str(record.get("device_id") or "") != sample.device_id:
+        if ok and str(record.get("device_id") or "") != sample.device_id:
+            ok, reason = False, "registry_device_id_mismatch"
+        if not ok:
+            _log_mesh_rejection(sample.tenant_id, sample.device_id, reason)
             return None
         if not _mesh_replay.accept(sample, now_ms=now_ms):
             return None

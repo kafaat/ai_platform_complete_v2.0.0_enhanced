@@ -828,3 +828,39 @@ def test_a_recovery_republish_does_not_move_an_acked_dispatch_back(wired, monkey
     rows = [r for r in pool.table.rows if r["command_id"] == _DISPATCH_IDEMPOTENCY_KEY]
     assert len(rows) == 1, f"a republish must not duplicate the command row: {rows}"
     assert rows[0]["delivery_state"] == "device_acked", f"acked state regressed: {rows[0]}"
+
+
+# ─── A malformed broker URL stops a listener with one logged error (#1558 follow-up) ───
+# The AST test in tests_v9/test_xiaozhi_review_followups.py proves the parse sits inside a
+# try; this proves the behaviour: the listener returns, logs exactly one error without
+# leaking the URL's secret, and never constructs an MQTT client.
+@pytest.mark.parametrize(
+    "listener, gate",
+    [
+        ("mqtt_ack_listener", "_any_command_path_enabled"),
+        ("mqtt_sensor_listener", "_automation_actuation_enabled"),
+    ],
+)
+def test_a_malformed_broker_url_stops_the_listener_with_one_error(
+    act, monkeypatch, caplog, listener, gate
+):
+    constructed = []
+
+    class _NeverConnect:
+        def __init__(self, *args, **kwargs):
+            constructed.append((args, kwargs))
+            raise AssertionError("an MQTT client was constructed for a malformed URL")
+
+    monkeypatch.setattr(act, "ACTUATOR_MODE", "real")
+    monkeypatch.setattr(act, "MQTT_BROKER_URL", "mqtt://operator:s3cret-pw@broker:1883")
+    monkeypatch.setattr(act, "MQTTClient", _NeverConnect)
+    monkeypatch.setattr(act, gate, lambda *_args, **_kwargs: True)
+    caplog.set_level("ERROR", logger="actuator-service")
+
+    asyncio.run(asyncio.wait_for(getattr(act, listener)(), timeout=2))
+
+    errors = [r for r in caplog.records if r.levelname == "ERROR"]
+    assert len(errors) == 1, [r.getMessage() for r in errors]
+    assert "MQTT_BROKER_URL" in errors[0].getMessage()
+    assert "s3cret-pw" not in errors[0].getMessage()
+    assert constructed == []
