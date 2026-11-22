@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7614,
+    "files_scanned": 7617,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2641,
-      "web": 558
+      "tests": 2643,
+      "web": 559
     },
-    "unmapped_artifacts": 3624,
+    "unmapped_artifacts": 3627,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4135,
-      "raw": 3479
+      "raw": 3482
     },
     "test_dependency_files": 2014,
     "test_dependency_edges": 5377,
@@ -21644,7 +21644,7 @@
           "score": 8
         },
         {
-          "value": "sahool.ai.model @ frontend/src/sections/ChatbotPage.tsx:101",
+          "value": "sahool.ai.model @ frontend/src/sections/ChatbotPage.tsx:111",
           "score": 8
         },
         {
@@ -34384,6 +34384,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/lib/advisorEvidence.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/advisorEvidence.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/lib/agroAnalytics.test.ts",
       "kind": "tests"
     },
@@ -35173,6 +35181,10 @@
     },
     {
       "path": "frontend/src/sections/ChatbotApprovalUi.v58.static.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/sections/ChatbotEvidenceHonesty.static.test.ts",
       "kind": "tests"
     },
     {

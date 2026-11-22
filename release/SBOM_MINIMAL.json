@@ -3495,6 +3495,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "70e80bd386017478a8cc6890e69333d93c09b29d08048b29716d85aa68ee251d"
+        }
+      ],
+      "name": "frontend/src/lib/advisorEvidence.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bda09be19bff4af1b9a2cc32756c46d506cdce1d3e30e7cda10377ef54ae4c90"
+        }
+      ],
+      "name": "frontend/src/lib/advisorEvidence.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "72a334c5a616c665269e1b3c1fc4eccef8e76a6da1c23d9f80c1a8c8c759030f"
         }
       ],
@@ -5805,6 +5825,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "33c77123a85ffee3eaf8a984dc97083bb47fb0021bff7594eda7f6227c33228c"
+        }
+      ],
+      "name": "frontend/src/sections/ChatbotEvidenceHonesty.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "824c0a730aa0fc9176fc0ef8d37ad6a634b3bd16f6ea0369bee85c70202a6b9e"
         }
       ],
@@ -5825,7 +5855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "206ab566ba74988da6da6e26c0b92fe12f80d4096b818faf7f3bf8abe40224ac"
+          "content": "07aab06edfea836577a572d993225ce3eeac6a18b4f4505f2f646e3ab4762241"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",

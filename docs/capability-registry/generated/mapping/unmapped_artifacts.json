@@ -1060,6 +1060,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/advisorEvidence.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/advisorEvidence.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/agroAnalytics.test.ts",
     "kind": "tests"
   },
@@ -1849,6 +1857,10 @@
   },
   {
     "path": "frontend/src/sections/ChatbotApprovalUi.v58.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/ChatbotEvidenceHonesty.static.test.ts",
     "kind": "tests"
   },
   {

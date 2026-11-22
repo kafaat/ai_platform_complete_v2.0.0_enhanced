@@ -34,6 +34,10 @@ import { useFields, useWeatherForecast } from '../hooks/useApi';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { kongApi } from '../services/api';
 import { describeAdvisorFailure } from '../lib/advisorError';
+import {
+  advisoryNotices, auditNotPersistedText, citationsFromAnnotations, ragUnavailableText, sourceBadgeText,
+  unverifiedReferenceCount, type AdvisorCitation, type AdvisorNotices,
+} from '@/lib/advisorEvidence';
 import { FieldBoundaryProposalPanel } from '../components/maphub/FieldBoundaryProposalPanel';
 import { ProductivityZonesPanel } from '../components/maphub/ProductivityZonesPanel';
 import { SoilSamplingPlannerPanel } from '../components/maphub/SoilSamplingPlannerPanel';
@@ -97,6 +101,12 @@ interface AiChatResponse {
   generation_status?: string;
   ai_context_pack_readiness?: { warnings?: string[]; imagery_history_absent?: boolean; imagery_observed_window_days?: number } | null;
   harness?: HarnessTransparency | null;
+  annotations?: unknown;
+  advisory?: unknown;
+  rag_available?: boolean;
+  rag_unavailable_reason?: string | null;
+  confidence_calibrated?: boolean;
+  audit_event?: unknown;
 }
 const MODEL_STORE_KEY = 'sahool.ai.model';
 
@@ -112,13 +122,15 @@ function toolDataFor(harness: HarnessTransparency | undefined, toolName: string)
 }
 
 // ── Quick suggestion chips ───────────────────────────────────────
+// Questions the advisor can answer from evidence it holds: it explains field data and
+// cites references; it does not prescribe irrigation timing, fertiliser or pest control.
 const SUGGESTIONS = [
-  { icon:Leaf,         text:'ما تفسير NDVI 0.62 لحقلي؟' },
-  { icon:Droplets,     text:'متى أري الحقل اليوم؟' },
-  { icon:FlaskConical, text:'ما احتياجات التسميد للقمح الآن؟' },
-  { icon:Bug,          text:'هل يوجد خطر آفات في الظروف الحالية؟' },
-  { icon:BarChart3,    text:'ما توقع WOFOST لإنتاجية الموسم؟' },
-  { icon:Wheat,        text:'كيف أحسّن جودة حبة القمح؟' },
+  { icon:Leaf,         text:'ما البيانات المتاحة عن حقلي الآن؟' },
+  { icon:BarChart3,    text:'ماذا تُظهر مؤشرات الغطاء النباتي لحقلي؟' },
+  { icon:Droplets,     text:'ما بيانات الطقس المسجّلة لحقلي؟' },
+  { icon:FlaskConical, text:'هل لحقلي تحليل تربة موثّق؟' },
+  { icon:Bug,          text:'ما المراجع المتاحة عن آفات محصولي؟' },
+  { icon:Wheat,        text:'ما الذي ينقص لتكتمل بيانات حقلي؟' },
 ];
 
 // ── TypeWriter hook ──────────────────────────────────────────────
@@ -158,6 +170,12 @@ interface Msg {
   evidenceSources?: AiEvidenceSource[];
   readinessWarnings?: string[];
   harness?: HarnessTransparency;
+  citations?: AdvisorCitation[];
+  unverifiedReferences?: number;
+  notices?: AdvisorNotices;
+  ragUnavailable?: string | null;
+  confidenceCalibrated?: boolean;
+  auditNotPersisted?: string | null;
 }
 
 // ── BotMessage component ─────────────────────────────────────────
@@ -206,12 +224,12 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
             <div className="mt-2 pt-2 border-t border-slate-100 space-y-2">
               <div className="flex items-center gap-2">
                 {msg.source === 'ai-runtime'
-                  ? <><Sparkles className="w-3 h-3 text-violet-400" /><span className="text-[10px] text-slate-400">SAHOOL AI Runtime · RAG/KG/Field Memory</span></>
+                  ? <><Sparkles className="w-3 h-3 text-violet-400" /><span className="text-[10px] text-slate-400" data-testid="ai-source-badge">{sourceBadgeText(msg.evidenceSources)}</span></>
                   : <><AlertCircle className="w-3 h-3 text-amber-400" /><span className="text-[10px] text-amber-500">تعذّر جلب الأدلة</span></>
                 }
                 {msg.confidence != null && (
                   <span title="جودة الأدلة كما أبلغت عنها مصادرها؛ ليست احتمال صحة الإجابة" className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-1.5 py-0.5">
-                    جودة الدليل {Math.round(msg.confidence * 100)}٪
+                    جودة الدليل {Math.round(msg.confidence * 100)}٪{msg.confidenceCalibrated ? '' : ' · غير معايَرة'}
                   </span>
                 )}
                 {msg.mode && <span className="text-[10px] text-slate-400">{msg.mode}</span>}
@@ -233,6 +251,43 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
               {msg.evidenceIds && msg.evidenceIds.length > 0 && (
                 <div className="text-[10px] text-slate-400" data-testid="ai-evidence-ids">
                   أدلة: {msg.evidenceIds.slice(0, 4).join('، ')}
+                </div>
+              )}
+              {msg.citations && msg.citations.length > 0 && (
+                <ul className="text-[10px] text-slate-500 space-y-0.5" data-testid="ai-citations">
+                  {msg.citations.slice(0, 5).map(c => (
+                    <li key={c.chunkId}>
+                      {c.href
+                        ? <a href={c.href} target="_blank" rel="noopener noreferrer" className="text-sky-700 underline">{c.publisher ?? c.href}</a>
+                        : <span>{c.publisher ?? c.chunkId}</span>}
+                      {c.locator && <span> · {c.locator}</span>}
+                      {c.revision && <span> · مراجعة {c.revision}</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {msg.ragUnavailable && (
+                <p className="text-[10px] text-amber-700" data-testid="ai-rag-unavailable">{msg.ragUnavailable}</p>
+              )}
+              {msg.auditNotPersisted && (
+                <p className="text-[10px] text-amber-700" data-testid="ai-audit-not-persisted">{msg.auditNotPersisted}</p>
+              )}
+              {!!msg.unverifiedReferences && (
+                <p className="text-[10px] text-slate-400" data-testid="ai-unverified-references">
+                  {msg.unverifiedReferences} مرجع لم يُتحقَّق منه مقابل الأصل، فلم يدخل في الإجابة.
+                </p>
+              )}
+              {msg.notices && (msg.notices.requiresHumanReview || msg.notices.limitations.length > 0 || msg.notices.evidenceMissing.length > 0) && (
+                <div className="text-[10px] space-y-0.5" data-testid="ai-advisory-notices">
+                  {msg.notices.requiresHumanReview && (
+                    <p className="text-amber-700 font-medium">تحتاج مراجعة مختص زراعيّ قبل أيّ تنفيذ.</p>
+                  )}
+                  {msg.notices.limitations.length > 0 && (
+                    <p className="text-slate-500">قيود: {msg.notices.limitations.join('؛ ')}</p>
+                  )}
+                  {msg.notices.evidenceMissing.length > 0 && (
+                    <p className="text-slate-500">أدلّة ناقصة: {msg.notices.evidenceMissing.slice(0, 4).join('؛ ')}</p>
+                  )}
                 </div>
               )}
               {msg.readinessWarnings && msg.readinessWarnings.length > 0 && (
@@ -380,8 +435,9 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
 // ── Main component ───────────────────────────────────────────────
 export function ChatbotPage() {
   const WELCOME: Msg = {
-    id:'welcome', role:'assistant', source:'ai-runtime',
-    content:`مرحباً! أنا **مستشارك الزراعي الذكي** المدعوم بـ SAHOOL AI Runtime.\n\nأستطيع مساعدتك في:\n• تحليل مؤشرات NDVI لحقولك\n• إدارة الري بناءً على الطقس الحالي\n• توصيات التسميد والمكافحة\n• تفسير بيانات WOFOST\n• أي سؤال زراعي آخر\n\nكيف يمكنني خدمتك اليوم؟`,
+    // Static greeting: no runtime answered it, so it carries no runtime badge.
+    id:'welcome', role:'assistant',
+    content:`مرحباً! أنا **المستشار الزراعي** في SAHOOL.\n\nأشرح لك ما تُظهره بيانات حقلك وأعرض الأدلّة والمراجع التي أستند إليها:\n• مؤشرات الغطاء النباتي والصور\n• الطقس المسجّل\n• تحليل التربة والعمليات الموثّقة\n\nلا أصدر توصيات تنفيذيّة (ريّ، تسميد، مكافحة)؛ هذه تحتاج مراجعة مختص زراعيّ.\n\nعمّ تريد أن تسأل؟`,
     timestamp: new Date(),
   };
 
@@ -518,6 +574,12 @@ export function ChatbotPage() {
         evidenceIds: Array.isArray(data.evidence_ids) ? data.evidence_ids : [],
         evidenceSources: Array.isArray(data.evidence_sources) ? data.evidence_sources : [],
         harness: data.harness || undefined,
+        citations: citationsFromAnnotations(data.annotations),
+        unverifiedReferences: unverifiedReferenceCount(data.annotations),
+        notices: advisoryNotices(data.advisory),
+        ragUnavailable: ragUnavailableText(data.rag_available, data.rag_unavailable_reason),
+        confidenceCalibrated: data.confidence_calibrated === true,
+        auditNotPersisted: auditNotPersistedText(data.audit_event),
         readinessWarnings: Array.isArray(data.ai_context_pack_readiness?.warnings)
           ? data.ai_context_pack_readiness?.warnings
           : [],
