@@ -143,6 +143,10 @@ class UserSchema:
     email: str | None = None
     phone: str | None = None
     farm_ids_access: list[str] = field(default_factory=list)  # null/empty = كل المزارع
+    # Set by api.farm_scope from server-side grants (v287), only while SAHOOL_FARM_SCOPE_ENFORCE
+    # is on: then farm_ids_access is exact (empty = no farm) unless farm_access_all (owner).
+    farm_scope_loaded: bool = False
+    farm_access_all: bool = False
     is_active: bool = True
     created_at: str = ""
     last_login_at: str | None = None

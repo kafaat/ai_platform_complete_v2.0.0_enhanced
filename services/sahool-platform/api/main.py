@@ -666,6 +666,8 @@ async def tenant_connection(user):
                 str(user.user_id),
                 user.role.value if hasattr(user.role, "value") else str(user.role),
             )
+            if await load_farm_scope(conn, user):  # SAHOOL_FARM_SCOPE_ENFORCE + v287 applied
+                await conn.execute("SELECT set_config('app.enforce_farm_scope', 'on', true)")
             yield conn
 
 
@@ -749,6 +751,7 @@ async def _emit_domain_event(
 
 # idempotency لنقاط الموبايل: _idem_key و_idempotent في api/idempotency.py، ويُعاد
 # تصديرهما هنا لأنّ الراوترات تستوردهما من api.main.
+from api.farm_scope import load_farm_scope  # noqa: E402 (tenant_connection, v287)
 from api.idempotency import _idem_key, _idempotent, model_digest  # noqa: E402,F401
 
 # المتغيّر: SAHOOL_CORS_ORIGINS = "https://app.sahool.ye,https://www.sahool.ye"
