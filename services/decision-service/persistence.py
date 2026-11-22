@@ -1190,6 +1190,93 @@ async def emit_outbox_event(
     )
 
 
+# F-D01: the outbox is written and never relayed. ``emit_outbox_event`` inserts a ``pending``
+# row; nothing in the tree reads ``decision_outbox_events`` back, sets ``published_at`` or moves
+# a row out of ``pending``. So no surface may describe a row as published or delivered: the
+# truthful state is "pending row recorded, not delivered". Building a relay is an owner decision.
+OUTBOX_TABLE = "decision_outbox_events"
+OUTBOX_RELAY_IMPLEMENTED = False
+OUTBOX_UNMEASURED_REASONS = frozenset(
+    {
+        "not_system_of_record",
+        "database_not_ready",
+        "database_unavailable",
+        "row_level_security_hides_other_tenants",
+        "query_failed",
+    }
+)
+
+
+def outbox_state(
+    *,
+    measured: bool = False,
+    pending_count: int | None = None,
+    oldest_pending_age_seconds: int | None = None,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    """The backlog block ``/readyz`` reports: aggregates and identifiers only.
+
+    Never a payload, an event id, an aggregate id or a tenant id. ``measured`` is true only
+    with a real count; otherwise the counts are ``None`` (not ``0``) and ``reason`` names why.
+    """
+    if measured:
+        if pending_count is None or reason is not None:
+            raise ValueError("a measured outbox state needs a count and no reason")
+    elif reason not in OUTBOX_UNMEASURED_REASONS:
+        raise ValueError(f"unknown unmeasured outbox reason: {reason!r}")
+    return {
+        "table": OUTBOX_TABLE,
+        "relay_implemented": OUTBOX_RELAY_IMPLEMENTED,
+        "delivery": "not_delivered",
+        "measured": bool(measured),
+        "pending_count": int(pending_count) if measured else None,
+        "oldest_pending_age_seconds": (
+            int(oldest_pending_age_seconds)
+            if measured and oldest_pending_age_seconds is not None
+            else None
+        ),
+        "reason": None if measured else reason,
+    }
+
+
+async def outbox_backlog() -> dict[str, Any]:
+    """Read-only, time-bounded count of pending outbox rows and the age of the oldest.
+
+    The table is under FORCE ROW LEVEL SECURITY (migrations 033/034): a role without
+    BYPASSRLS sees no row unless ``app.current_tenant`` is bound, so an unbound count would read
+    ``0`` and look healthy. The aggregate therefore runs only for a role that sees every tenant;
+    any other role gets ``measured: false`` with the reason instead of that false zero. Defensive
+    by construction: a failure yields an unmeasured state, never an exception or error text.
+    """
+    try:
+        conn = await _connect()
+    except Exception:  # noqa: BLE001 - a readiness probe must never raise
+        return outbox_state(reason="database_unavailable")
+    try:
+        async with conn.transaction(readonly=True):
+            await conn.execute("SET LOCAL statement_timeout = '2s'")
+            sees_all = await conn.fetchval(
+                "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
+            )
+            if not sees_all:
+                return outbox_state(reason="row_level_security_hides_other_tenants")
+            row = await conn.fetchrow(
+                "SELECT count(*) AS pending, "
+                "EXTRACT(EPOCH FROM (clock_timestamp() - min(created_at))) AS oldest_age_seconds "
+                "FROM decision_outbox_events WHERE status = 'pending'"
+            )
+    except Exception:  # noqa: BLE001 - a readiness probe must never raise or leak error text
+        return outbox_state(reason="query_failed")
+    finally:
+        await conn.close()
+    oldest = row["oldest_age_seconds"]
+    return outbox_state(
+        measured=True,
+        pending_count=int(row["pending"]),
+        oldest_pending_age_seconds=None if oldest is None else max(0, int(oldest)),
+    )
+
+
 def _authoritative_review(row: Any, *, replay: bool) -> dict[str, Any]:
     """Build the authoritative review result from a SAVED decision_reviews row (never from the
     request payload)."""

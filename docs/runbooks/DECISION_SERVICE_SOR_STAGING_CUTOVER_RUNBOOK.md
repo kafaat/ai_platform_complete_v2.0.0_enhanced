@@ -251,13 +251,25 @@ carry `persisted: true`. Then, as the auditor, confirm the row:
 SELECT event_type, aggregate_type, status
 FROM decision_outbox_events
 WHERE aggregate_id = '<decision_id from the answer>';
--- expect exactly one row: DECISION_RECORDED, decision_record, pending (or already relayed)
+-- expect exactly one row: DECISION_RECORDED, decision_record, pending
 ```
+
+The row stays `pending`: no relay reads `decision_outbox_events` or sets `published_at`, so the
+event is recorded and not delivered to any consumer (F-D01). Do not wait for it to change state.
+`/readyz` reports this openly in its `outbox` block (`relay_implemented: false`,
+`delivery: not_delivered`, the pending count and the age of the oldest pending row). Under the
+restricted runtime role (`decision_service_app`, NOBYPASSRLS) that block reads
+`measured: false` (`row_level_security_hides_other_tenants`) rather than a false `0`: the count
+needs a role that sees every tenant. As the auditor (BYPASSRLS, read-only):
+`SELECT count(*), now() - min(created_at) FROM decision_outbox_events WHERE status = 'pending';`
 
 No row, or `persisted` not true: set the flag back to `false` (section R) and stop. The outbox gate
 stays unset.
 
 **4d. The outbox gate.** Only now set `DECISION_SERVICE_OUTBOX_VERIFIED=true` and redeploy.
+The gate means "pending row recorded, not delivered" (`/v1/cutover/readiness` and
+`sor_capability` carry it as `outbox_gate_proves`, with `outbox_relay_implemented: false`). It
+does not prove that any consumer received the event.
 `/readyz` must show `gates_complete: true`, `persisted_without_verified_gates: false` and
 `can_enable_sor: true` (the full list is below). Step 5's probe passes only from here on.
 
