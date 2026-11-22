@@ -48,6 +48,9 @@ class FakeQdrant:
         for chunk, vector in zip(chunks, embeddings, strict=True):
             self.points[chunk.chunk_id] = (chunk, vector)
 
+    def withdraw_document_points(self, *, tenant_id, document_id, keep_point_ids):
+        return []  # every document here is ingested once: nothing earlier to withdraw
+
     def search(self, vector, *, tenant_id, filters=None, limit=12):
         filters = filters or {}
         rows = []
@@ -64,7 +67,7 @@ class FakeQdrant:
         return sorted(rows, key=lambda row: row[1], reverse=True)[:limit]
 
 
-def _chunk(cid, tenant, text, idx=0, crop="wheat"):
+def _chunk(cid, tenant, text, idx=0, crop="wheat", total=1):
     return KnowledgeChunk(
         chunk_id=cid,
         tenant_id=tenant,
@@ -72,7 +75,7 @@ def _chunk(cid, tenant, text, idx=0, crop="wheat"):
         source_type="manual",
         document_id="doc-1",
         chunk_index=idx,
-        total_chunks=3,
+        total_chunks=total,
         metadata={
             "evidence_level": "manual",
             "crop": crop,
@@ -87,8 +90,8 @@ def test_hybrid_qdrant_retrieval_enforces_tenant_and_metadata():
     retriever = HybridQdrantRetriever(FakeQdrant(), HashEmbeddingProvider(32))
     retriever.ingest(
         [
-            _chunk("a", "t1", "wheat irrigation EC pH nitrogen", 0),
-            _chunk("b", "t1", "adjacent wheat salinity management", 1),
+            _chunk("a", "t1", "wheat irrigation EC pH nitrogen", 0, total=2),
+            _chunk("b", "t1", "adjacent wheat salinity management", 1, total=2),
             _chunk("c", "t2", "wheat irrigation secret tenant", 0),
         ]
     )

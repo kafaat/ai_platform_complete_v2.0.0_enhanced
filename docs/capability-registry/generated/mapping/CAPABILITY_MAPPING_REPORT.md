@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **45**
-- Files scanned: **7646**
+- Files scanned: **7631**
 - Ambiguous artifacts queued: **265**
-- Unmapped artifacts queued: **3648**
+- Unmapped artifacts queued: **3639**
 
 ## Capability coverage
 
@@ -51,7 +51,7 @@
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 3 | 3 |
 | IRR-004 | irrigation | 3 | 1 | 0 | 0 | 0 | 0 | 2 | 3 |
 | IRR-005 | irrigation | 2 | 2 | 0 | 7 | 0 | 0 | 5 | 4 |
-| IRR-006 | irrigation | 0 | 0 | 0 | 4 | 0 | 0 | 5 | 2 |
+| IRR-006 | irrigation | 0 | 0 | 0 | 4 | 0 | 0 | 4 | 2 |
 | IRR-007 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | IRR-008 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | IRR-009 | irrigation | 8 | 1 | 7 | 9 | 2 | 0 | 13 | 6 |
@@ -83,11 +83,11 @@
 | SEC-003 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-004 | security | 6 | 9 | 19 | 1 | 5 | 5 | 15 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 3 | 2 |
-| SEC-006 | security | 3 | 88 | 0 | 3 | 0 | 0 | 13 | 4 |
+| SEC-006 | security | 3 | 86 | 0 | 3 | 0 | 0 | 12 | 4 |
 | SEC-007 | security | 3 | 74 | 15 | 52 | 0 | 0 | 11 | 5 |
 | SEC-008 | security | 0 | 0 | 4 | 3 | 0 | 0 | 10 | 3 |
 | SOIL-001 | soil | 7 | 2 | 14 | 24 | 0 | 0 | 6 | 5 |
-| SOIL-002 | soil | 13 | 32 | 14 | 13 | 2 | 1 | 10 | 7 |
+| SOIL-002 | soil | 14 | 32 | 14 | 13 | 2 | 1 | 10 | 7 |
 | SOIL-003 | soil | 3 | 3 | 15 | 0 | 0 | 1 | 0 | 4 |
 | SOIL-004 | soil | 3 | 6 | 7 | 3 | 0 | 0 | 0 | 4 |
 | SOIL-005 | soil | 7 | 0 | 0 | 8 | 0 | 0 | 2 | 3 |
@@ -98,6 +98,6 @@
 | WX-005 | weather | 3 | 0 | 0 | 1 | 0 | 0 | 4 | 3 |
 | WX-006 | weather | 6 | 1 | 0 | 1 | 0 | 0 | 11 | 4 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| WX-008 | weather | 3 | 6 | 0 | 2 | 0 | 1 | 3 | 5 |
+| WX-008 | weather | 3 | 6 | 0 | 6 | 0 | 1 | 2 | 5 |
 | WX-009 | weather | 1 | 29 | 0 | 0 | 2 | 0 | 2 | 4 |
 | WX-010 | weather | 2 | 0 | 0 | 3 | 0 | 0 | 2 | 3 |

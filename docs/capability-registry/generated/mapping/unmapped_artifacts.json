@@ -13340,6 +13340,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_document_revision_withdrawal.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_embedding_space_identity.py",
     "kind": "tests"
   },
