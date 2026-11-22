@@ -101305,23 +101305,24 @@
       "test": "tests_v9/test_xiaozhi_review_followups.py",
       "bounded": false,
       "unbounded_reasons": [
+        "reads_repository_data_file",
         "tree_wide_scan"
       ],
       "edges": [
         {
           "source": "services/actuator-service/actuator_runtime.py",
           "kind": "source_read",
-          "line": 85
+          "line": 87
         },
         {
           "source": "services/tts-service/critical_speech.py",
           "kind": "loader",
-          "line": 27
+          "line": 29
         },
         {
           "source": "services/tts-service/critical_speech.py",
           "kind": "source_read",
-          "line": 28
+          "line": 30
         }
       ],
       "unresolved": []
