@@ -85,6 +85,14 @@ regexes = [
   '''w0-07-field-service-assertion-key-012345''',
   '''live-edge-tenant-assertion-key-0123456789''',
   '''fixture-token-0123''',
+  # #1571 live replay test (tests_v9/test_edge_sync_tenant_per_request_live_pg.py, commit
+  # d4544418): the one-line call `CloudSyncService(..., agent_token=TOKEN, assertion_key=KEY)`.
+  # gitleaks 8.30.1 extracts the source text `assertion_key=KEY` as the secret, i.e. a keyword
+  # argument naming the module constant KEY, whose value is the already-allowlisted
+  # `live-edge-tenant-assertion-key-0123456789` above. No value at all, let alone a credential.
+  # The PR-range history scan re-reads that commit, so allowlisted literally; anchored at both
+  # ends so it matches only this exact extracted string.
+  '''^assertion_key=KEY$''',
 ]
 
 # Preserve reviewed evidence across squash/rebase: each exception requires BOTH
