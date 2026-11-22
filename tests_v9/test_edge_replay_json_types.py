@@ -24,6 +24,9 @@ pytestmark = pytest.mark.unit
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services" / "sahool-platform"))
 
+# Match the application's entry point: importing edge first makes api.main's registrar
+# see the incomplete circular import before edge.router exists, so it skips the router.
+import api.main  # noqa: E402, F401
 from api.routers import edge  # noqa: E402
 
 JSONB_EQUALITY = [
@@ -44,6 +47,9 @@ JSONB_EQUALITY = [
     (100000000000000000000000, 1e23, True),
     (0.1, 0.1, True),
     (100000000000000000000001, 1e23, False),
+    (int(1e23), 1e23, False),
+    (2**53 + 1, float(2**53 + 1), False),
+    ({"readings": [10**23]}, {"readings": [1e23]}, True),
 ]
 
 
@@ -75,7 +81,8 @@ def _replay_comparisons() -> list[ast.Compare | ast.Call]:
 def test_the_replay_check_compares_the_body_with_same_json():
     # The route compares the stored row with the resent body through same_json, so the
     # comparator tests above are what the route answers. (A route test with a stand-in
-    # connection would add to the fake-connection debt; the live proof is the lab's replay.)
+    # connection would add to the fake-connection debt; the live proof is in
+    # test_edge_sync_tenant_per_request_live_pg.py.)
     calls = [
         term
         for term in _replay_comparisons()

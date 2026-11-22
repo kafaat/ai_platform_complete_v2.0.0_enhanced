@@ -132,6 +132,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/public/theme-init.v1.js",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/buildInfo.static.test.ts",
     "kind": "tests"
   },
@@ -589,6 +593,10 @@
   },
   {
     "path": "frontend/src/components/maphub/FieldSplitMergeTool.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/FreehandBoundary.test.tsx",
     "kind": "web"
   },
   {

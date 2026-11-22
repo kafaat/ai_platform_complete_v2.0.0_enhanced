@@ -163,5 +163,5 @@ export default function InteractiveDrawLayer({ tool, onCircle, onRectangle, onFr
     },
   });
 
-  return tool === 'freehand' && onFreehand ? <FreehandBoundary onFinish={onFreehand} /> : null;
+  return tool === 'freehand' && onFreehand ? <FreehandBoundary onFinish={onFreehand} onStatus={onStatus} /> : null;
 }

@@ -395,7 +395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5d34644c767d9e83fa138a2f4df0831fefd2cd3d8f7390dc1503ca7c155d4ac"
+          "content": "f292f34ebe43cfe01333673ee7215ee4e97d6e889bfe3141ea78529d2227c073"
         }
       ],
       "name": "frontend/index.html",
@@ -449,6 +449,16 @@
         }
       ],
       "name": "frontend/postcss.config.js",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fcd291db33084f3f8d45a9b7a44188e68ff1fec568125981bbce3995134ac546"
+        }
+      ],
+      "name": "frontend/public/theme-init.v1.js",
       "type": "file"
     },
     {
@@ -2005,7 +2015,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f0fdd5fb8943dabcfab3ab4e0f8abc8b0dd897f7bddb072ed62e0c63695532ca"
+          "content": "79081b2174bf6ac3addbc256a6c9d2a9158fe9e9a880dba248eaac9e2fe4128f"
+        }
+      ],
+      "name": "frontend/src/components/maphub/FreehandBoundary.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ee9d1979b10cd54caae74ca8ce7a14a212f8bd588ab9117748453cf468d9dbab"
         }
       ],
       "name": "frontend/src/components/maphub/FreehandBoundary.tsx",
@@ -2065,7 +2085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bf2cab72f23eca010801673b6f11eeb8387261b19bfc3db7744ac702efe601e8"
+          "content": "bddecfa874b59ca1140f524ed392e6189f34bac99b6b98e8ff525746692710bb"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.test.tsx",
@@ -2075,7 +2095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "338bcb4463d7ea762fc2cb5fd106f4b8a8ea48c57e551ade3e3a6c2e2e49a233"
+          "content": "3e6b3c5afaeded591447a2936a00ba789126c634ee568040a58f78963057e0cb"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -2155,7 +2175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5e6cbf274a74b310d5f19d8bcb92fa893bc4f18d71e2f5937f5fca57567f7ce0"
+          "content": "47b9387156526323d37f31bd253891ca43580e1b90e0566b579db0e0308146b3"
         }
       ],
       "name": "frontend/src/components/maphub/InteractiveDrawLayer.tsx",
@@ -2665,7 +2685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1a9f1b09dadc6c172b80f5c1208d8177ada8ab946ca080539909fe7e53ae49d5"
+          "content": "4bb4ac4f58f5b085ba684c73f601eb4c61e2700319cd9c333b62c57317936254"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/drawingValidation.ts",
@@ -3475,7 +3495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9e839d05e2edd516df6758688091c6870a6f87db2a35e1c59990b25475c88585"
+          "content": "04b7f3198353d00f9f3ab0ac1685df2452c7304d58b666af4fbbd9be89664e7f"
         }
       ],
       "name": "frontend/src/hooks/useTheme.test.ts",
@@ -3515,7 +3535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "19bff2d09eded47567831f5292b9824f23852f36968a6e2521f7428e35800d22"
+          "content": "c5a776c713910efcc72a7932adba250110e794643794edfd643640de81adf5e3"
         }
       ],
       "name": "frontend/src/index.css",
@@ -6045,7 +6065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9e14c58d66f402f966907c65c25914362f9a6d61285e0509cd11947876408624"
+          "content": "d8ef2b2961ffdf611a4347c06135403b925793d9ff293347114009025ba70743"
         }
       ],
       "name": "frontend/src/sections/EconomicsDashboard.tsx",
@@ -6115,7 +6135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "564838834fdc6f0c20dd91faa59439f83336656a863275eb1adc71ef8bdcb0b2"
+          "content": "8041f8aa7a95499588c02e1da00532efbaea91fed5e25f4526916c7975342e23"
         }
       ],
       "name": "frontend/src/sections/FarmAdvisoryReport.tsx",
@@ -7229,6 +7249,16 @@
         }
       ],
       "name": "frontend/src/sections/ReservoirBoosterNetworkCalculator.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c84163d8ee28ccf41ca6ae645f54c2c3ca029ea62490790d5e677b3321f9b067"
+        }
+      ],
+      "name": "frontend/src/sections/ReviewContrast.test.tsx",
       "type": "file"
     },
     {

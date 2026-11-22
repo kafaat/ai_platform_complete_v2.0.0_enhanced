@@ -15,7 +15,7 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7624,
+    "files_scanned": 7627,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
@@ -23,16 +23,16 @@
       "mobile": 429,
       "other": 2235,
       "tests": 2646,
-      "web": 563
+      "web": 566
     },
-    "unmapped_artifacts": 3634,
+    "unmapped_artifacts": 3636,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4137,
-      "raw": 3487
+      "raw": 3490
     },
     "test_dependency_files": 2016,
-    "test_dependency_edges": 5381,
+    "test_dependency_edges": 5382,
     "test_dependency_bounded_files": 1167,
     "test_dependency_unresolved_relations": 513
   },
@@ -4224,6 +4224,14 @@
           ]
         },
         {
+          "path": "frontend/src/sections/ReviewContrast.test.tsx",
+          "score": 9,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "frontend/src/services/api/fieldOperating.ts",
           "score": 9,
           "signals": [
@@ -5188,7 +5196,7 @@
         "routes": 45,
         "database": 100,
         "events": 33,
-        "web": 19,
+        "web": 20,
         "mobile": 35,
         "tests": 56,
         "governance": 0,
@@ -33456,6 +33464,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/public/theme-init.v1.js",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/buildInfo.static.test.ts",
       "kind": "tests"
     },
@@ -33913,6 +33925,10 @@
     },
     {
       "path": "frontend/src/components/maphub/FieldSplitMergeTool.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/FreehandBoundary.test.tsx",
       "kind": "web"
     },
     {
@@ -82732,14 +82748,19 @@
       ],
       "edges": [
         {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 29
+        },
+        {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 27
+          "line": 30
         },
         {
           "source": "services/sahool-platform/api/routers/edge.py",
           "kind": "import",
-          "line": 27
+          "line": 30
         }
       ],
       "unresolved": []
@@ -82789,22 +82810,22 @@
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "loader",
-          "line": 72
+          "line": 74
         },
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "source_read",
-          "line": 73
+          "line": 75
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 94
+          "line": 96
         }
       ],
       "unresolved": [
         {
-          "line": 42,
+          "line": 44,
           "call": "import_module"
         }
       ]

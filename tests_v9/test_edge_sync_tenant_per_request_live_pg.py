@@ -14,6 +14,8 @@ HTTP into the real platform route, against a migrated Postgres through a NOBYPAS
 * a replay with the same idempotency key is ``duplicate_ignored`` only when its JSON is the same
   ``jsonb``: turning ``"reviewed": true`` into ``1`` is ``409`` and the stored row keeps ``true``
   (Edge v286 lab finding, fixed in #1569; the unit file only proves the comparator).
+* replays preserve decimal numeric values, leave the original payload unchanged, and keep
+  idempotency keys scoped to their tenants.
 """
 
 from __future__ import annotations
@@ -229,7 +231,7 @@ async def _run_replay(monkeypatch, tmp_path) -> dict:
     edge = sync_mod.CloudSyncService(
         "http://platform",
         "",
-        str(tmp_path / "queue"),
+        str(tmp_path / "replay-queue"),
         agent_token=TOKEN,
         assertion_key=KEY,
     )
@@ -283,3 +285,164 @@ def test_a_replay_that_turns_true_into_1_is_a_conflict_and_the_row_keeps_true(
     )
     assert body.get("detail") == "edge_idempotency_conflict", out
     assert out["stored"] == ["true"], ("exactly one row, still holding true", out["stored"])
+
+
+async def _run_replay_matrix(monkeypatch, tmp_path, original, resent, expected_status):
+    if str(PLATFORM) not in sys.path:
+        sys.path.insert(0, str(PLATFORM))
+    import api.main as main
+
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", TOKEN)
+    monkeypatch.setenv("EDGE_SYNC_TENANT_ASSERTION_KEY", KEY)
+    monkeypatch.delenv("EDGE_SYNC_ALLOWED_CALLERS", raising=False)
+    monkeypatch.delenv("PLATFORM_TENANT_ASSERTION_REDIS_URL", raising=False)
+    monkeypatch.setenv("SAHOOL_ENV", "development")
+    monkeypatch.setattr(main, "_RATE_LIMIT_PER_MIN", 0, raising=False)
+
+    tenant_a, tenant_b = str(uuid.uuid4()), str(uuid.uuid4())
+    tag = f"replay-{uuid.uuid4().hex[:8]}"
+    field_a, field_b = f"{tag}-a", f"{tag}-b"
+    admin = await asyncpg.connect(ADMIN_DSN)
+    pool = None
+    try:
+        for field, tenant in ((field_a, tenant_a), (field_b, tenant_b)):
+            await admin.execute(
+                "INSERT INTO fields (field_id, name, tenant_id) VALUES ($1, $1, $2::uuid)",
+                field,
+                tenant,
+            )
+            await admin.execute(
+                "INSERT INTO field_boundaries (field_id, field_name, tenant_id) "
+                "VALUES ($1, $1, $2::uuid)",
+                field,
+                tenant,
+            )
+
+        pool = await asyncpg.create_pool(DSN, min_size=1, max_size=2)
+        async with pool.acquire() as conn:
+            assert await conn.fetchval(
+                "SELECT NOT (rolsuper OR rolbypassrls OR rolinherit) "
+                "FROM pg_roles WHERE rolname=current_user"
+            ), "the live replay must use a restricted role"
+            assert not await conn.fetchval(
+                "SELECT EXISTS (SELECT 1 FROM pg_class c JOIN pg_roles r ON r.oid=c.relowner "
+                "WHERE c.oid IN ('fields'::regclass, 'edge_results'::regclass) "
+                "AND r.rolname=current_user)"
+            ), "a table owner would bypass RLS and invalidate this proof"
+        monkeypatch.setattr(main, "_DB_POOL", pool)
+
+        edge = _sync_module().CloudSyncService(
+            "http://platform",
+            "",
+            str(tmp_path / "replay-queue"),
+            agent_token=TOKEN,
+            assertion_key=KEY,
+        )
+        data = {
+            "field_id": field_a,
+            "device_id": "edge-live-replay",
+            "timestamp": "2026-11-22T08:00:00+00:00",
+            "reading": original,
+        }
+        item = edge._envelope("soil_moisture", data, tenant_id=tenant_a)
+        transport = httpx.ASGITransport(app=main.app, raise_app_exceptions=False)
+        async with httpx.AsyncClient(transport=transport, base_url="http://platform") as client:
+            stored = await client.post("/v1/edge/sync", json=item, headers=edge._headers(item))
+            assert stored.status_code == 200, stored.text
+            receipt = stored.json()
+            assert receipt["status"] == "stored", receipt
+            canonical = await admin.fetchval(
+                "SELECT result_data::text FROM edge_results WHERE id=$1", receipt["id"]
+            )
+
+            # PostgreSQL itself is the oracle for the exact JSON payloads used over HTTP.
+            replay = {**item, "data": {**data, "reading": resent}}
+            same_in_pg = await admin.fetchval(
+                "SELECT $1::jsonb = $2::jsonb", json.dumps(data), json.dumps(replay["data"])
+            )
+            assert same_in_pg is (expected_status == 200)
+            response = await client.post(
+                "/v1/edge/sync", json=replay, headers=edge._headers(replay)
+            )
+            assert response.status_code == expected_status, response.text
+            if expected_status == 409:
+                assert response.json()["detail"] == "edge_idempotency_conflict"
+            else:
+                assert response.json() == {**receipt, "status": "duplicate_ignored"}
+
+            # The original still succeeds, including the 1e23 numeric round trip.
+            identical = await client.post("/v1/edge/sync", json=item, headers=edge._headers(item))
+            assert identical.status_code == 200, identical.text
+            assert identical.json() == {**receipt, "status": "duplicate_ignored"}
+            assert (
+                await admin.fetchval(
+                    "SELECT result_data::text FROM edge_results WHERE id=$1", receipt["id"]
+                )
+                == canonical
+            ), "a replay must never overwrite the stored observation"
+
+            # A fresh, valid tenant B assertion cannot replay A's field.
+            foreign = {**item, "tenant_id": tenant_b}
+            denied = await client.post(
+                "/v1/edge/sync", json=foreign, headers=edge._headers(foreign)
+            )
+            assert denied.status_code == 404, denied.text
+
+            # The same key is nevertheless independent for B's own field (v241).
+            own_b = {
+                **foreign,
+                "field_id": field_b,
+                "data": {**data, "field_id": field_b},
+            }
+            accepted_b = await client.post(
+                "/v1/edge/sync", json=own_b, headers=edge._headers(own_b)
+            )
+            assert accepted_b.status_code == 200, accepted_b.text
+            assert accepted_b.json()["status"] == "stored"
+            assert accepted_b.json()["id"] != receipt["id"]
+
+        rows = await admin.fetch(
+            "SELECT tenant_id::text AS tenant_id, idempotency_key "
+            "FROM edge_results WHERE field_id LIKE $1",
+            f"{tag}-%",
+        )
+        assert {(r["tenant_id"], r["idempotency_key"]) for r in rows} == {
+            (tenant_a, item["idempotency_key"]),
+            (tenant_b, item["idempotency_key"]),
+        }
+        assert len(rows) == 2
+        async with pool.acquire() as conn:
+            async with conn.transaction():
+                await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_b)
+                visible = await conn.fetch(
+                    "SELECT tenant_id::text AS tenant_id FROM edge_results "
+                    "WHERE idempotency_key=$1",
+                    item["idempotency_key"],
+                )
+                assert [r["tenant_id"] for r in visible] == [tenant_b]
+    finally:
+        if pool is not None:
+            await pool.close()
+        try:
+            await admin.execute("DELETE FROM edge_results WHERE field_id LIKE $1", f"{tag}-%")
+            await admin.execute("DELETE FROM fields WHERE field_id LIKE $1", f"{tag}-%")
+            await admin.execute("DELETE FROM field_boundaries WHERE field_id LIKE $1", f"{tag}-%")
+        finally:
+            await admin.close()
+
+
+@pytest.mark.parametrize(
+    ("original", "resent", "expected_status"),
+    [
+        pytest.param(True, 1, 409, id="bool-to-number"),
+        pytest.param(False, 0, 409, id="false-to-zero"),
+        pytest.param(1, True, 409, id="number-to-bool"),
+        pytest.param(1, 1.0, 200, id="equal-numbers"),
+        pytest.param(1e23, 1e23, 200, id="large-number-roundtrip"),
+        pytest.param(int(1e23), 1e23, 409, id="different-decimal-values"),
+    ],
+)
+def test_replay_http_status_and_stored_payload_follow_jsonb(
+    monkeypatch, tmp_path, original, resent, expected_status
+):
+    asyncio.run(_run_replay_matrix(monkeypatch, tmp_path, original, resent, expected_status))

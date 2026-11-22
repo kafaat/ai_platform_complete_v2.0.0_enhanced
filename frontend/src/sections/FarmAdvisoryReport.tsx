@@ -381,7 +381,7 @@ export default function FarmAdvisoryReport() {
                         {
                           label: 'الكتلة الحيويّة',
                           value: season.sim_biomass_kg_ha != null ? Math.round(season.sim_biomass_kg_ha) : '—',
-                          unit: 'كغ/هـ', color: T.warn,
+                          unit: 'كغ/هـ', color: t.warn,
                           icon: <Leaf style={{ width: 14, height: 14 }} />,
                         },
                         {

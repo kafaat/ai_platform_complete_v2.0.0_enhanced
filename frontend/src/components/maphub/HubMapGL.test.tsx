@@ -13,7 +13,7 @@
 //   • Terra Draw + المُكيِّف: أصناف no-op (تُحمَّل ديناميكيّاً عند drawTools).
 // ═══════════════════════════════════════════════════════════════
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { FieldOption } from '../../lib/fields';
 import type { ScoutPin } from './HubMap';
 import type { AlertMarker, DeviceMarker, WeatherMarker } from './OverlayMarkers';
@@ -28,10 +28,13 @@ const mockState = vi.hoisted(() => ({
   // مصادر addSource المسجَّلة (id + spec) — لِتأكيد رابط بلاطات المؤشّر الفعليّ.
   layers: [] as Array<{ id: string; source?: string; paint?: Record<string, unknown> }>,
   sources: [] as Array<{ id: string; spec: { tiles?: string[] } }>,
+  drawFeatures: [] as GeoJSON.Feature[],
+  drawHandlers: {} as Record<string, () => void>,
 }));
 const { markerInstances, mapInstances } = mockState;
 
 vi.mock('maplibre-gl/dist/maplibre-gl.css', () => ({}));
+vi.mock('maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url', () => ({ default: '/test-maplibre-worker.js' }));
 
 vi.mock('maplibre-gl', () => {
   // الأصناف داخل المصنع (المصنع مرفوع لأعلى الملفّ — لا متغيّرات خارجيّة عدا hoisted).
@@ -106,9 +109,9 @@ vi.mock('terra-draw', () => ({
   TerraDraw: class {
     start() {}
     setMode() {}
-    on() {}
-    getSnapshot() { return [] as unknown[]; }
-    clear() {}
+    on(event: string, handler: () => void) { mockState.drawHandlers[event] = handler; }
+    getSnapshot() { return mockState.drawFeatures; }
+    clear() { mockState.drawFeatures = []; }
     stop() {}
   },
   TerraDrawPolygonMode: class {},
@@ -157,6 +160,8 @@ beforeEach(() => {
   mapInstances.length = 0;
   mockState.sources.length = 0;
   mockState.layers.length = 0;
+  mockState.drawFeatures = [];
+  mockState.drawHandlers = {};
 });
 
 describe('HubMapGL — تظليل MapLibre GL (تغطية أسلاك/منطق)', () => {
@@ -227,6 +232,37 @@ describe('HubMapGL — تظليل MapLibre GL (تغطية أسلاك/منطق)',
     await waitFor(() => {
       expect(screen.getByTestId('draw-panel')).toHaveAttribute('data-draw-ready', 'true');
     });
+  });
+
+  it('updates polygon/line counts and totals from the drawing snapshot, then clears both', async () => {
+    render(<HubMapGL {...BASE_PROPS} drawTools />);
+    await waitFor(() => expect(screen.getByTestId('draw-panel')).toHaveAttribute('data-draw-ready', 'true'));
+    const polygon: GeoJSON.Feature = {
+      type: 'Feature', properties: {},
+      geometry: { type: 'Polygon', coordinates: [[[44, 15], [44.01, 15], [44.01, 15.01], [44, 15]]] },
+    };
+    const line: GeoJSON.Feature = {
+      type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [[44, 15], [44.01, 15]] },
+    };
+    act(() => {
+      mockState.drawFeatures = [polygon, polygon, line];
+      mockState.drawHandlers.finish();
+    });
+    expect(screen.getByTestId('measure-polygons')).toHaveTextContent('المضلّعات: 2');
+    expect(screen.getByTestId('measure-lines')).toHaveTextContent('الخطوط: 1');
+    const previousArea = screen.getByTestId('measure-area').textContent;
+    expect(screen.getByTestId('measure-length').textContent).toBeTruthy();
+    act(() => {
+      mockState.drawFeatures = [polygon];
+      mockState.drawHandlers.change();
+    });
+    expect(screen.getByTestId('measure-polygons')).toHaveTextContent('المضلّعات: 1');
+    expect(screen.getByTestId('measure-area').textContent).not.toBe(previousArea);
+    expect(screen.queryByTestId('measure-lines')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('measure-length')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('btn-clear-draw'));
+    expect(screen.queryByTestId('measure-polygons')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('measure-area')).not.toBeInTheDocument();
   });
 
   // (6) EXTRA-4: تبديل preferPersistedCog وحده (نفس الحقل/المؤشّر/التاريخ) يجب أن يُعيد

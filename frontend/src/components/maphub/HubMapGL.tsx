@@ -901,9 +901,15 @@ export default function HubMapGL({
           circle: 'انقر المركز ثم انقر المحيط.', rectangle: 'حدّد زاويتين متقابلتين.', freehand: 'اسحب حول الحدّ ثم ارفع لإغلاقه.', select: 'اختر شكلاً من الخريطة.' }[drawMode]}
         <button type="button" aria-label="إغلاق تعليمات الرسم" onClick={() => setHelpOpen(false)}>×</button>
       </div>}
-      <div aria-live="polite">
-        {measure.polys > 0 && <output data-testid="measure-area">{fmtArea(measure.areaM2)}</output>}
-        {measure.lines > 0 && <output data-testid="measure-length">{fmtLength(measure.lengthM)}</output>}
+      <div aria-live="polite" className="flex flex-wrap gap-x-3">
+        {measure.polys > 0 && <span>
+          <span data-testid="measure-polygons">المضلّعات: {measure.polys} · </span>
+          <output data-testid="measure-area">{fmtArea(measure.areaM2)}</output>
+        </span>}
+        {measure.lines > 0 && <span>
+          <span data-testid="measure-lines">الخطوط: {measure.lines} · </span>
+          <output data-testid="measure-length">{fmtLength(measure.lengthM)}</output>
+        </span>}
       </div>
     </section>}
     <div data-testid="hubmapgl-wrapper" style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid #2d4a37' }}>

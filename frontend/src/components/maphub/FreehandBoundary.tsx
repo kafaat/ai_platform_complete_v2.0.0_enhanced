@@ -1,14 +1,21 @@
 import { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { ringSelfIntersectionRisk } from './drawing/drawingValidation';
+import type { Position } from './drawing/drawingTypes';
 
 // A separate input surface keeps map panning and field selection out of a stroke.
 // The layer disappears with the tool, restoring the original map gestures.
-export default function FreehandBoundary({ onFinish }: { onFinish: (ring: L.LatLng[]) => void }) {
+export default function FreehandBoundary({ onFinish, onStatus }: {
+  onFinish: (ring: L.LatLng[]) => void;
+  onStatus?: (text: string | null) => void;
+}) {
   const map = useMap();
   const surface = useRef<HTMLDivElement>(null);
   const finish = useRef(onFinish);
+  const status = useRef(onStatus);
   finish.current = onFinish;
+  status.current = onStatus;
 
   useEffect(() => {
     const el = surface.current;
@@ -46,7 +53,24 @@ export default function FreehandBoundary({ onFinish }: { onFinish: (ring: L.LatL
       const vertices = L.LineUtil.simplify(points, 2);
       const ring = vertices.map(point => map.containerPointToLatLng(point));
       reset();
-      if (ring.length >= 3 && L.GeometryUtil.geodesicArea(ring) > 0) finish.current(ring);
+      if (ring.length < 3) {
+        status.current?.('ارسم حدّاً بثلاث زوايا على الأقل ثم ارفع لإغلاقه.');
+        return;
+      }
+      // Validate the closing edge too, before a measurement or field is accepted.
+      const closed: Position[] = ring.map(point => [point.lng, point.lat]);
+      if (!ring[0].equals(ring[ring.length - 1], 0)) closed.push(closed[0]);
+      if (ringSelfIntersectionRisk(closed)) {
+        status.current?.('الحدّ يتقاطع مع نفسه — أعد الرسم دون تقاطع.');
+        return;
+      }
+      const area = L.GeometryUtil.geodesicArea(ring);
+      if (!Number.isFinite(area) || area <= 0) {
+        status.current?.('ارسم حدّاً يحيط بمساحة ثم ارفع لإغلاقه.');
+        return;
+      }
+      status.current?.(null);
+      finish.current(ring);
     };
     const cancel = (e: PointerEvent) => { if (e.pointerId === pointer) reset(); };
     el.addEventListener('pointerdown', down);
