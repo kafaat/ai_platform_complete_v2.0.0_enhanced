@@ -24,8 +24,8 @@ export default function ClimateAnalogsPanel() {
 
   return (
     <div dir="rtl" className="flex flex-col gap-4 p-4">
-      <h2 className="text-lg font-semibold text-slate-100">النظائر المناخيّة</h2>
-      <p className="text-xs text-slate-400">
+      <h2 className="text-lg font-semibold text-sahool-text">النظائر المناخيّة</h2>
+      <p className="text-xs text-sahool-muted">
         مناطق عالميّة مشابهة مناخيّاً لليمن — تُرشد لمحاصيل مُجرّبة في ظروف مماثلة.
       </p>
 
@@ -66,13 +66,13 @@ export default function ClimateAnalogsPanel() {
         >
           {(detail) =>
             detail.supported === false ? (
-              <div className="text-amber-300">{detail.message_ar ?? 'المنطقة غير معروفة.'}</div>
+              <div className="text-ops-warning">{detail.message_ar ?? 'المنطقة غير معروفة.'}</div>
             ) : (
-              <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 text-sm text-slate-200">
-                <h3 className="mb-2 text-base font-medium text-amber-300">
+              <div className="rounded-xl border border-sahool-border bg-sahool-surface/60 p-4 text-sm text-sahool-text">
+                <h3 className="mb-2 text-base font-medium text-ops-warning">
                   {detail.region_ar ?? region}
                 </h3>
-                <pre className="whitespace-pre-wrap text-xs text-slate-300">
+                <pre className="whitespace-pre-wrap text-xs text-sahool-text">
                   {JSON.stringify(detail, null, 2)}
                 </pre>
               </div>
@@ -82,8 +82,8 @@ export default function ClimateAnalogsPanel() {
       )}
 
       {/* محاصيل صحراويّة */}
-      <details className="rounded-xl border border-slate-700 bg-slate-900/40 p-3">
-        <summary className="cursor-pointer text-sm text-emerald-300">
+      <details className="rounded-xl border border-sahool-border bg-sahool-surface/40 p-3">
+        <summary className="cursor-pointer text-sm text-sahool-green-dark">
           محاصيل صحراويّة مُوصى بها
         </summary>
         <div className="mt-2">
@@ -92,7 +92,7 @@ export default function ClimateAnalogsPanel() {
             placeholder="تصفية بالفئة (اختياريّ)"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="mb-2 rounded-sm bg-slate-800 px-2 py-1 text-sm text-slate-100"
+            className="mb-2 rounded-sm bg-sahool-surface px-2 py-1 text-sm text-sahool-text"
           />
           <ReferenceQueryState
             query={cropsQuery}
@@ -103,7 +103,7 @@ export default function ClimateAnalogsPanel() {
             {(crops) => (
               <ul className="grid gap-1 sm:grid-cols-2 md:grid-cols-3">
                 {crops.map((c) => (
-                  <li key={`${c.category ?? ''}:${c.crop}`} className="text-xs text-slate-300">
+                  <li key={`${c.category ?? ''}:${c.crop}`} className="text-xs text-sahool-text">
                     {c.name_ar}
                     {c.rating ? ` · ${c.rating}` : ''}
                     {c.category ? ` (${c.category})` : ''}
@@ -116,8 +116,8 @@ export default function ClimateAnalogsPanel() {
       </details>
 
       {/* الطبقات الاستراتيجيّة */}
-      <details className="rounded-xl border border-slate-700 bg-slate-900/40 p-3">
-        <summary className="cursor-pointer text-sm text-emerald-300">الطبقات الاستراتيجيّة</summary>
+      <details className="rounded-xl border border-sahool-border bg-sahool-surface/40 p-3">
+        <summary className="cursor-pointer text-sm text-sahool-green-dark">الطبقات الاستراتيجيّة</summary>
         <ReferenceQueryState
           query={tiersQuery}
           loadingText="جارٍ التحميل…"
@@ -125,7 +125,7 @@ export default function ClimateAnalogsPanel() {
           emptyText="لا طبقات متاحة."
         >
           {(tiers) => (
-            <pre className="mt-2 whitespace-pre-wrap text-xs text-slate-300">
+            <pre className="mt-2 whitespace-pre-wrap text-xs text-sahool-text">
               {JSON.stringify(tiers, null, 2)}
             </pre>
           )}

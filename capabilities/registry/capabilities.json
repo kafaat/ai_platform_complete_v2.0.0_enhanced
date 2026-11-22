@@ -5851,7 +5851,9 @@
         "POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:232",
         "POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:62"
       ],
-      "ui_consumers": [],
+      "ui_consumers": [
+        "frontend/e2e/mfa-enrollment-contrast.spec.ts"
+      ],
       "mobile_consumers": [
         "mobile/sahool_app/lib/features/auth/presentation/mfa_enrollment_step.dart",
         "mobile/sahool_app/lib/features/auth/presentation/mfa_setup_screen.dart",
@@ -5903,7 +5905,7 @@
           "path": "services/auth/mfa_crypto.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=11, ui=0, mobile=3. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=11, ui=1, mobile=3. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

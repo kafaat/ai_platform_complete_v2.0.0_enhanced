@@ -34,8 +34,8 @@ function WorkflowCard({ icon, title, desc }: { icon: React.ReactNode; title: str
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
-      <div className="text-sm font-semibold text-slate-200 mb-2">{title}</div>
+    <div className="rounded-xl border p-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+      <div className="text-sm font-semibold text-sahool-text mb-2">{title}</div>
       {children}
     </div>
   );
@@ -43,13 +43,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function KV({ data }: { data: Record<string, unknown> }) {
   const entries = Object.entries(data);
-  if (entries.length === 0) return <p className="text-xs text-slate-500">—</p>;
+  if (entries.length === 0) return <p className="text-xs text-sahool-muted">—</p>;
   return (
     <div className="space-y-1">
       {entries.map(([k, v]) => (
-        <div key={k} className="flex items-start justify-between gap-3 text-xs py-1 border-b last:border-0" style={{ borderColor: '#334155' }}>
-          <span className="text-slate-500 shrink-0">{k}</span>
-          <span className="text-slate-300 text-left break-all">{asText(v) || '—'}</span>
+        <div key={k} className="flex items-start justify-between gap-3 text-xs py-1 border-b last:border-0" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
+          <span className="text-sahool-muted shrink-0">{k}</span>
+          <span className="text-sahool-text text-left break-all">{asText(v) || '—'}</span>
         </div>
       ))}
     </div>
@@ -106,25 +106,25 @@ export default function FieldIntelligencePage() {
   return (
     <div className="space-y-5 max-w-3xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Activity className="w-5 h-5 text-sky-400" />
-        <h2 className="text-xl font-bold text-slate-100">المايسترو — تحليل الحقل الموحّد</h2>
+        <Activity className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">المايسترو — تحليل الحقل الموحّد</h2>
       </div>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-sahool-muted">
         يدمج المصادر الحيّة (طقس/تربة/استشعار/ذاكرة الحقل) في حالة موحّدة: حقائق
         تشغيليّة + ثقة + قرار سياسة + تنبيهات. المصادر المتعذّرة تُعلَن بصدق.
       </p>
 
       <div className="grid sm:grid-cols-4 gap-3">
-        <WorkflowCard icon={<Map className="w-4 h-4 text-emerald-400" />} title="مناطق الإنتاجية" desc="تحويل NDVI/الإنتاجية/المختبر إلى High/Medium/Low/Problem بدلاً من عرض المؤشر فقط." />
-        <WorkflowCard icon={<FlaskConical className="w-4 h-4 text-sky-400" />} title="العينات والمختبر" desc="نقاط GPS ونتائج تربة/مياه تدخل بوابة القرار ولا تُستخدم إن كانت ناقصة أو غير معتمدة." />
-        <WorkflowCard icon={<ListChecks className="w-4 h-4 text-amber-400" />} title="خرائط الوصفات" desc="القرار يتحول إلى وصفة ومهام يومية، ثم يُغلق بسجل تنفيذ وتغذية راجعة." />
+        <WorkflowCard icon={<Map className="w-4 h-4 text-sahool-green-dark" />} title="مناطق الإنتاجية" desc="تحويل NDVI/الإنتاجية/المختبر إلى High/Medium/Low/Problem بدلاً من عرض المؤشر فقط." />
+        <WorkflowCard icon={<FlaskConical className="w-4 h-4 text-ops-info" />} title="العينات والمختبر" desc="نقاط GPS ونتائج تربة/مياه تدخل بوابة القرار ولا تُستخدم إن كانت ناقصة أو غير معتمدة." />
+        <WorkflowCard icon={<ListChecks className="w-4 h-4 text-ops-warning" />} title="خرائط الوصفات" desc="القرار يتحول إلى وصفة ومهام يومية، ثم يُغلق بسجل تنفيذ وتغذية راجعة." />
         <WorkflowCard icon={<Bot className="w-4 h-4 text-violet-400" />} title="الموجز اليومي" desc="ضغط إشارات كثيرة إلى قائمة إجراءات قابلة للتنفيذ: ري، رش، فحص، مختبر، أو تأجيل." />
       </div>
 
       {/* Form */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <FieldSelector label="الحقل للتحليل" />
-        {activeField ? <div className="text-xs text-slate-400">سيتم تحليل: <b className="text-slate-200">{activeField.name}</b> · {activeField.crop || 'بلا محصول'} · {activeField.area ? `${activeField.area} هـ` : 'مساحة غير معروفة'}</div> : null}
+        {activeField ? <div className="text-xs text-sahool-muted">سيتم تحليل: <b className="text-sahool-text">{activeField.name}</b> · {activeField.crop || 'بلا محصول'} · {activeField.area ? `${activeField.area} هـ` : 'مساحة غير معروفة'}</div> : null}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { label: 'lat اختياري', v: lat, set: setLat, ph: '15.05' },
@@ -132,9 +132,9 @@ export default function FieldIntelligencePage() {
             { label: 'المحصول اختياري', v: crop, set: setCrop, ph: activeField?.crop || 'قمح صلب' },
           ].map(f => (
             <label key={f.label} className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">{f.label}</span>
+              <span className="text-xs text-sahool-muted">{f.label}</span>
               <input value={f.v} onChange={e => f.set(e.target.value)} placeholder={f.ph}
-                className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                className="px-3 py-2 rounded-lg text-sm" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
           ))}
         </div>
@@ -151,11 +151,11 @@ export default function FieldIntelligencePage() {
       {(startMut.isError || jobQ.isError || job?.status === 'failed') && <ErrorState title="تعذّر تحليل الحقل" onRetry={submit} />}
 
       {job && job.status !== 'completed' && (
-        <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+        <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
           <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="text-sm font-semibold text-slate-100">جاري تحليل الحقل في الخلفية</div>
-              <div className="text-xs text-slate-400 mt-1">المرحلة: {job.stage || 'queued'} · التقدم {job.progress ?? 0}%</div>
+              <div className="text-sm font-semibold text-sahool-text">جاري تحليل الحقل في الخلفية</div>
+              <div className="text-xs text-sahool-muted mt-1">المرحلة: {job.stage || 'queued'} · التقدم {job.progress ?? 0}%</div>
             </div>
             {(job.status === 'queued' || job.status === 'running') && (
               <button onClick={cancel} disabled={cancelMut.isPending} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: '#334155', color: '#e2e8f0' }}>
@@ -166,14 +166,14 @@ export default function FieldIntelligencePage() {
           <div className="h-2 rounded-full overflow-hidden" style={{ background: '#0f172a' }}>
             <div className="h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, job.progress ?? 0))}%`, background: '#0ea5e9' }} />
           </div>
-          <ol className="grid sm:grid-cols-5 gap-2 text-[11px] text-slate-400">
+          <ol className="grid sm:grid-cols-5 gap-2 text-[11px] text-sahool-muted">
             <li>1. تحميل بيانات الحقل</li>
             <li>2. قراءة الموسم</li>
             <li>3. جلب الطقس</li>
             <li>4. جلب صور القمر الصناعي</li>
             <li>5. توليد التوصيات</li>
           </ol>
-          {job.status === 'cancelled' && <p className="text-xs text-amber-400">تم إلغاء التحليل. يمكنك تشغيله لاحقاً.</p>}
+          {job.status === 'cancelled' && <p className="text-xs text-ops-warning">تم إلغاء التحليل. يمكنك تشغيله لاحقاً.</p>}
         </div>
       )}
 
@@ -182,10 +182,10 @@ export default function FieldIntelligencePage() {
           {/* Confidence */}
           <Section title="الثقة">
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold text-emerald-400">
+              <span className="text-2xl font-bold text-sahool-green-dark">
                 {CONF_AR[conf] ?? conf ?? '—'}
               </span>
-              {res.confidence_reason && <span className="text-xs text-slate-400">{res.confidence_reason}</span>}
+              {res.confidence_reason && <span className="text-xs text-sahool-muted">{res.confidence_reason}</span>}
             </div>
           </Section>
 
@@ -206,14 +206,14 @@ export default function FieldIntelligencePage() {
             <Section title="جودة الإشارة">
               {contradictions.length > 0 && (
                 <div className="mb-2">
-                  <div className="text-xs text-amber-400 flex items-center gap-1 mb-1"><AlertTriangle className="w-3 h-3" /> تناقضات</div>
-                  {contradictions.map((c, i) => <p key={i} className="text-xs text-slate-300">• {asText(c)}</p>)}
+                  <div className="text-xs text-ops-warning flex items-center gap-1 mb-1"><AlertTriangle className="w-3 h-3" /> تناقضات</div>
+                  {contradictions.map((c, i) => <p key={i} className="text-xs text-sahool-text">• {asText(c)}</p>)}
                 </div>
               )}
               {missing.length > 0 && (
                 <div>
-                  <div className="text-xs text-slate-500 mb-1">إشارات ناقصة (مصادر متعذّرة)</div>
-                  <p className="text-xs text-slate-400">{missing.map(asText).join('، ')}</p>
+                  <div className="text-xs text-sahool-muted mb-1">إشارات ناقصة (مصادر متعذّرة)</div>
+                  <p className="text-xs text-sahool-muted">{missing.map(asText).join('، ')}</p>
                 </div>
               )}
             </Section>
@@ -223,11 +223,11 @@ export default function FieldIntelligencePage() {
           {dailyBrief && (
             <Section title="موجز اليوم — AI Agronomist">
               <div className="space-y-3">
-                <div className="flex items-start gap-2 rounded-lg border p-3" style={{ background: '#0f172a', borderColor: '#334155' }}>
+                <div className="flex items-start gap-2 rounded-lg border p-3" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}>
                   <Bot className="w-4 h-4 text-violet-400 mt-0.5" />
                   <div>
-                    <div className="text-sm font-semibold text-slate-100">{asText(dailyBrief.headline_ar) || 'لا يوجد إجراء عاجل'}</div>
-                    <div className="text-xs text-slate-500 mt-1">
+                    <div className="text-sm font-semibold text-sahool-text">{asText(dailyBrief.headline_ar) || 'لا يوجد إجراء عاجل'}</div>
+                    <div className="text-xs text-sahool-muted mt-1">
                       سياسة العرض: {asText(dailyBrief.decision_policy ?? dailyBrief.source_policy ?? 'إجراءات مبنية على إشارات متاحة فقط')}
                     </div>
                   </div>
@@ -256,7 +256,7 @@ export default function FieldIntelligencePage() {
             <Section title={`التنبيهات (${alerts.length})`}>
               <div className="space-y-2">
                 {alerts.map((a, i) => (
-                  <div key={i} className="text-xs text-slate-300 border-r-2 pr-2" style={{ borderColor: '#f59e0b' }}>
+                  <div key={i} className="text-xs text-sahool-text border-r-2 pr-2" style={{ borderColor: '#f59e0b' }}>
                     {asText(a.message_ar ?? a.message ?? a.title ?? a)}
                   </div>
                 ))}
@@ -273,7 +273,7 @@ export default function FieldIntelligencePage() {
 
           {/* Provenance toggle */}
           <button onClick={() => setShowProv(s => !s)}
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200">
+            className="flex items-center gap-1.5 text-xs text-sahool-muted hover:text-slate-200">
             {showProv ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             {showProv ? 'إخفاء المصدريّة (provenance)' : 'عرض المصدريّة (provenance)'}
           </button>

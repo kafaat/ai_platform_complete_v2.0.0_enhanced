@@ -40,9 +40,9 @@ export default function FieldWorkspaceRouteShell() {
   if (!fieldId) {
     return (
       <main className="space-y-4" dir="rtl" aria-label="مساحة عمل الحقل">
-        <header className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
-          <h1 className="text-xl font-bold text-slate-100">مساحة عمل الحقل</h1>
-          <p className="text-sm text-slate-400 mt-1">اختر حقلاً أو افتح رابطاً يتضمن field_id.</p>
+        <header className="rounded-2xl border border-sahool-border bg-sahool-surface/70 p-5">
+          <h1 className="text-xl font-bold text-sahool-text">مساحة عمل الحقل</h1>
+          <p className="text-sm text-sahool-muted mt-1">اختر حقلاً أو افتح رابطاً يتضمن field_id.</p>
         </header>
         <EmptyState title="لا يوجد حقل نشط" hint="مساحة العمل لا تعمل بدون field_id حقيقي." />
       </main>
@@ -51,19 +51,19 @@ export default function FieldWorkspaceRouteShell() {
 
   return (
     <main className="space-y-4" dir="rtl" aria-label="مساحة عمل الحقل">
-      <header className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
+      <header className="rounded-2xl border border-sahool-border bg-sahool-surface/70 p-5">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs text-emerald-300">Field Workspace · {contextSource}</p>
-            <h1 className="text-xl font-bold text-slate-100">مساحة عمل الحقل</h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-xs text-sahool-green-dark">Field Workspace · {contextSource}</p>
+            <h1 className="text-xl font-bold text-sahool-text">مساحة عمل الحقل</h1>
+            <p className="text-sm text-sahool-muted mt-1">
               context: <code>{fieldId}</code>{seasonId ? <> · season: <code>{seasonId}</code></> : ' · لا يوجد موسم نشط في الرابط'}
             </p>
           </div>
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500"
+            className="inline-flex items-center gap-2 rounded-xl border border-sahool-border bg-sahool-surface px-3 py-2 text-sm text-sahool-text hover:border-emerald-500"
           >
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
             العودة لمركز الخرائط

@@ -24,17 +24,17 @@ export default function ToastContainer() {
   useEffect(() => toastStore.subscribe(setToasts), []);
   if (!toasts.length) return null;
   return (
-    <div className="fixed top-4 left-4 z-9999 space-y-2 max-w-sm" dir="rtl">
+    <div className="toast-stack fixed z-9999 space-y-2" dir="rtl">
       {toasts.map(t => (
         <div key={t.id} className="rounded-xl px-4 py-3 shadow-xl flex items-start gap-3 animate-slide-in"
           style={{ background: COLORS[t.type].bg, border:`1px solid ${COLORS[t.type].border}` }}>
           <div className="mt-0.5 shrink-0">{ICONS[t.type]}</div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0" role={t.type === 'error' ? 'alert' : 'status'}>
             <p className="text-sm font-semibold text-slate-100">{t.title}</p>
             {t.message && <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{t.message}</p>}
           </div>
-          <button onClick={() => toastStore.remove(t.id)} className="text-slate-500 hover:text-slate-300 shrink-0">
-            <X className="w-3.5 h-3.5" />
+          <button type="button" aria-label={`إغلاق الإشعار — ${t.title}`} onClick={() => toastStore.remove(t.id)} className="toast-close shrink-0">
+            <X className="w-5 h-5" />
           </button>
         </div>
       ))}

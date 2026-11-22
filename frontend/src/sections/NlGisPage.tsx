@@ -13,7 +13,7 @@ import { queryNlGis, asApiError } from '../services/api';
 import type { NlGisQueryInput, NlGisResult } from '../services/api';
 import { ErrorState } from '../components/StateViews';
 
-const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
+const inputStyle = { background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' } as const;
 
 // استعلامات مثال (مطابقة للنيّات المدعومة) — نقرات تملأ الإدخال.
 const EXAMPLES: string[] = [
@@ -118,13 +118,13 @@ export default function NlGisPage() {
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Search className="w-5 h-5 text-sky-400" />
-        <h2 className="text-xl font-bold text-slate-100">استعلام GIS باللغة الطبيعيّة</h2>
+        <Search className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">استعلام GIS باللغة الطبيعيّة</h2>
       </div>
-      <p className="text-sm text-slate-400">
-        اكتب طلبك بالعربيّة الحرّة فيُصنَّف إلى <span className="text-slate-300">نيّة مدعومة</span>
+      <p className="text-sm text-sahool-muted">
+        اكتب طلبك بالعربيّة الحرّة فيُصنَّف إلى <span className="text-sahool-text">نيّة مدعومة</span>
         (تنبيه/انخفاض NDVI/فجوة ريّ) ويُعرَض معاينةً للحقول المطابقة من بياناتك.
-        <span className="text-amber-300"> قراءة فقط — لا تنفيذ ولا تعديل.</span>
+        <span className="text-ops-warning"> قراءة فقط — لا تنفيذ ولا تعديل.</span>
       </p>
 
       {/* بانر قراءة فقط (بارز) */}
@@ -134,9 +134,9 @@ export default function NlGisPage() {
       </div>
 
       {/* الإدخال + زرّ البحث */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">استعلامك بالعربيّة</span>
+          <span className="text-xs text-sahool-muted">استعلامك بالعربيّة</span>
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -151,7 +151,7 @@ export default function NlGisPage() {
         <div className="flex flex-wrap gap-2">
           {EXAMPLES.map((ex, i) => (
             <button key={i} onClick={() => onExample(ex)} type="button"
-              className="text-[11px] px-2.5 py-1 rounded-full text-slate-300 hover:text-sky-300"
+              className="text-[11px] px-2.5 py-1 rounded-full text-sahool-text hover:text-sky-300"
               style={inputStyle}>
               {ex}
             </button>
@@ -170,11 +170,11 @@ export default function NlGisPage() {
 
       {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) */}
       {featureOff && (
-        <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-          <ShieldAlert className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+        <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+          <ShieldAlert className="w-5 h-5 text-sahool-muted shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <div className="text-sm font-semibold text-slate-200">الميزة غير مُفعَّلة (FEATURE_NATURAL_LANGUAGE_GIS)</div>
-            <div className="text-[12px] text-slate-400">
+            <div className="text-sm font-semibold text-sahool-text">الميزة غير مُفعَّلة (FEATURE_NATURAL_LANGUAGE_GIS)</div>
+            <div className="text-[12px] text-sahool-muted">
               استعلام GIS باللغة الطبيعيّة خلف علم تشغيل لم يُفعَّل بعد على الخادم. تواصل مع المسؤول لتفعيله.
             </div>
           </div>
@@ -186,21 +186,21 @@ export default function NlGisPage() {
       {res && !featureOff && (
         <div className="space-y-4">
           {/* شريط التفسير: النيّة + الثقة + الشقوق (slots) */}
-          <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
-              <Info className="w-4 h-4 text-sky-400" /> تفسير الاستعلام
+          <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <div className="flex items-center gap-2 text-sm font-semibold text-sahool-text">
+              <Info className="w-4 h-4 text-ops-info" /> تفسير الاستعلام
             </div>
             <div className="flex flex-wrap items-center gap-3 text-[12px]">
-              <span className="text-slate-400">
+              <span className="text-sahool-muted">
                 النيّة المكتشَفة:
-                <span className="text-slate-100 font-semibold mr-1">
+                <span className="text-sahool-text font-semibold mr-1">
                   {INTENT_LABEL[res.intent] ?? res.intent}
                 </span>
               </span>
               {typeof res.confidence === 'number' && (
-                <span className="text-slate-400">
+                <span className="text-sahool-muted">
                   الثقة:
-                  <span className="text-slate-100 font-semibold mr-1">{(res.confidence * 100).toFixed(0)}٪</span>
+                  <span className="text-sahool-text font-semibold mr-1">{(res.confidence * 100).toFixed(0)}٪</span>
                 </span>
               )}
             </div>
@@ -230,8 +230,8 @@ export default function NlGisPage() {
               <div className="flex flex-wrap gap-2 pr-8">
                 {EXAMPLES.map((ex, i) => (
                   <button key={i} onClick={() => onExample(ex)} type="button"
-                    className="text-[11px] px-2.5 py-1 rounded-full text-amber-200 hover:text-amber-100"
-                    style={{ background: '#0f1117', border: '1px solid #f59e0b44' }}>
+                    className="text-[11px] px-2.5 py-1 rounded-full text-ops-warning hover:text-amber-100"
+                    style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid #f59e0b44' }}>
                     {ex}
                   </button>
                 ))}
@@ -241,9 +241,9 @@ export default function NlGisPage() {
 
           {/* الحاجة للبيانات (needs_data) — لا جدول فارغ مُضلِّل */}
           {isNeedsData && (
-            <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-              <Info className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
-              <div className="text-sm text-slate-300">
+            <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+              <Info className="w-5 h-5 text-sahool-muted shrink-0 mt-0.5" />
+              <div className="text-sm text-sahool-text">
                 {res.note_ar || 'المصدر غير متاح حاليّاً — لا يمكن عرض نتيجة موثوقة الآن.'}
               </div>
             </div>
@@ -261,9 +261,9 @@ export default function NlGisPage() {
 
           {/* فراغ صادق (ok مع count=0) */}
           {isOkEmpty && (
-            <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-              <Info className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
-              <div className="text-sm text-slate-300">
+            <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+              <Info className="w-5 h-5 text-sahool-muted shrink-0 mt-0.5" />
+              <div className="text-sm text-sahool-text">
                 {res.note_ar || 'لا حقول تطابق هذا الاستعلام.'}
               </div>
             </div>
@@ -271,15 +271,15 @@ export default function NlGisPage() {
 
           {/* جدول النتائج (أعمدة ديناميكيّة) + العدد */}
           {showTable && (
-            <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
-              <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>
-                <Search className="w-4 h-4 text-sky-400" /> النتائج
-                <span className="text-[11px] text-slate-400 font-normal">({res.count} حقل)</span>
+            <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+              <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+                <Search className="w-4 h-4 text-ops-info" /> النتائج
+                <span className="text-[11px] text-sahool-muted font-normal">({res.count} حقل)</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
+                    <tr className="text-[11px] text-sahool-muted" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
                       {columns.map(c => (
                         <th key={c} className="px-3 py-2 text-right font-medium">{colLabel(c)}</th>
                       ))}
@@ -287,7 +287,7 @@ export default function NlGisPage() {
                   </thead>
                   <tbody>
                     {res.items.map((it, i) => (
-                      <tr key={i} className="text-slate-300" style={{ borderBottom: '1px solid #25303f' }}>
+                      <tr key={i} className="text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
                         {columns.map(c => (
                           <td key={c} className="px-3 py-1.5">{cellText(it[c] ?? null)}</td>
                         ))}

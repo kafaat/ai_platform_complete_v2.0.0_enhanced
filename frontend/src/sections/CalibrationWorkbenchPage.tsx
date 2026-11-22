@@ -66,9 +66,9 @@ function CompareRow({
       ? Math.abs(base - resolved) > 1e-9
       : base !== resolved;
   return (
-    <tr className="text-slate-300" style={{ borderBottom: '1px solid #25303f' }}>
-      <td className="px-3 py-1.5 font-medium text-slate-200">{label}</td>
-      <td className="px-3 py-1.5 text-slate-400">{fmtNum(base, digits)}{unit ? ` ${unit}` : ''}</td>
+    <tr className="text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+      <td className="px-3 py-1.5 font-medium text-sahool-text">{label}</td>
+      <td className="px-3 py-1.5 text-sahool-muted">{fmtNum(base, digits)}{unit ? ` ${unit}` : ''}</td>
       <td className="px-3 py-1.5">
         <span className={differ ? 'font-semibold text-emerald-300' : 'text-slate-400'}>
           {fmtNum(resolved, digits)}{unit ? ` ${unit}` : ''}
@@ -76,8 +76,8 @@ function CompareRow({
       </td>
       <td className="px-3 py-1.5 text-center">
         {differ
-          ? <ArrowRightLeft className="w-3.5 h-3.5 text-emerald-400 inline" />
-          : <span className="text-slate-600 text-xs">=</span>}
+          ? <ArrowRightLeft className="w-3.5 h-3.5 text-sahool-green-dark inline" />
+          : <span className="text-sahool-muted text-xs">=</span>}
       </td>
     </tr>
   );
@@ -107,16 +107,16 @@ function ComparePanel({
   base, resolved,
 }: { base: CalibrationProfile; resolved: ResolvedCalibration }) {
   return (
-    <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
-      <div className="flex items-center justify-between gap-2 px-4 py-2 text-sm font-semibold text-slate-100"
-        style={{ borderBottom: '1px solid #334155' }}>
-        <span className="flex items-center gap-2"><GitCompare className="w-4 h-4 text-emerald-400" /> القاعدة مقابل المُدام</span>
+    <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+      <div className="flex items-center justify-between gap-2 px-4 py-2 text-sm font-semibold text-sahool-text"
+        style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+        <span className="flex items-center gap-2"><GitCompare className="w-4 h-4 text-sahool-green-dark" /> القاعدة مقابل المُدام</span>
         <CalibratedBadge profile={resolved} />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
+            <tr className="text-[11px] text-sahool-muted" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
               <th className="px-3 py-2 text-right font-medium">المعامل</th>
               <th className="px-3 py-2 text-right font-medium">القاعدة (موروث)</th>
               <th className="px-3 py-2 text-right font-medium">المُدام (resolved)</th>
@@ -134,10 +134,10 @@ function ComparePanel({
           </tbody>
         </table>
       </div>
-      <div className="px-4 py-2 text-[11px] text-slate-500" style={{ borderTop: '1px solid #25303f' }}>
+      <div className="px-4 py-2 text-[11px] text-sahool-muted" style={{ borderTop: '1px solid rgb(var(--sahool-border))' }}>
         المصدر: {resolved.source_ar}
         {resolved.override_applied.length > 0 && (
-          <span className="text-emerald-400"> — حقول مُدامة: {resolved.override_applied.join('، ')}</span>
+          <span className="text-sahool-green-dark"> — حقول مُدامة: {resolved.override_applied.join('، ')}</span>
         )}
       </div>
     </div>
@@ -313,20 +313,20 @@ export default function CalibrationWorkbenchPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <SlidersHorizontal className="w-5 h-5 text-emerald-400" />
-        <h2 className="text-xl font-bold text-slate-100">منضدة المعايرة</h2>
+        <SlidersHorizontal className="w-5 h-5 text-sahool-green-dark" />
+        <h2 className="text-xl font-bold text-sahool-text">منضدة المعايرة</h2>
       </div>
-      <p className="text-sm text-slate-400">
-        منضدة الخبير الزراعيّ: قارِن <span className="text-emerald-300">القاعدة الموروثة</span> بالقيم
-        <span className="text-emerald-300"> المُدامة</span>، اقترح قيماً فتُتحقَّق ضدّ
-        <span className="text-amber-300"> حدود آمنة</span> (يقترح لا يكتب)، ثمّ وافِق فتُدام (بمصدر إلزاميّ)
+      <p className="text-sm text-sahool-muted">
+        منضدة الخبير الزراعيّ: قارِن <span className="text-sahool-green-dark">القاعدة الموروثة</span> بالقيم
+        <span className="text-sahool-green-dark"> المُدامة</span>، اقترح قيماً فتُتحقَّق ضدّ
+        <span className="text-ops-warning"> حدود آمنة</span> (يقترح لا يكتب)، ثمّ وافِق فتُدام (بمصدر إلزاميّ)
         أو ارفض فتُعكَس. لا قيمة بلا API — كلّ كتابة محروسة بالصلاحيّة والتحقّق.
       </p>
 
       {/* اختيار المنطقة */}
       <div className="rounded-xl border p-4 flex flex-wrap items-center gap-2"
-        style={{ background: '#1e293b', borderColor: '#334155' }}>
-        <span className="text-xs text-slate-400">المنطقة:</span>
+        style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+        <span className="text-xs text-sahool-muted">المنطقة:</span>
         {REGIONS.map((r) => (
           <button key={r.key} onClick={() => onRegionChange(r.key)}
             className="px-3 py-1.5 rounded-lg text-sm transition-colors"
@@ -340,17 +340,17 @@ export default function CalibrationWorkbenchPage() {
         ))}
         <button onClick={() => { base.refetch(); resolved.refetch(); audit.refetch(); overrides.refetch(); }}
           disabled={base.isFetching || resolved.isFetching}
-          className="mr-auto flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-slate-300 disabled:opacity-60"
-          style={{ background: '#1e293b', border: '1px solid #334155' }}>
+          className="mr-auto flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-sahool-text disabled:opacity-60"
+          style={{ background: 'rgb(var(--sahool-surface))', border: '1px solid rgb(var(--sahool-border))' }}>
           <RefreshCw className={`w-4 h-4 ${base.isFetching || resolved.isFetching ? 'animate-spin' : ''}`} />
           تحديث
         </button>
       </div>
 
       {!mayMutate && (
-        <div className="rounded-xl border p-3 flex items-start gap-3" style={{ background: '#0f1117', borderColor: '#25303f' }}>
-          <Lock className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
-          <div className="text-sm text-slate-400">
+        <div className="rounded-xl border p-3 flex items-start gap-3" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}>
+          <Lock className="w-5 h-5 text-sahool-muted shrink-0 mt-0.5" />
+          <div className="text-sm text-sahool-muted">
             دورك للعرض فقط — المقارنة والتدقيق متاحان، لكنّ الاقتراح والموافقة والرفض محصورة بأصحاب صلاحيّة التعديل.
           </div>
         </div>
@@ -359,8 +359,8 @@ export default function CalibrationWorkbenchPage() {
       {/* ── مقارنة ── */}
       <section className="space-y-2">
         <div className="flex items-center gap-2">
-          <GitCompare className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-base font-bold text-slate-100">مقارنة — {regionAr}</h3>
+          <GitCompare className="w-4 h-4 text-sahool-green-dark" />
+          <h3 className="text-base font-bold text-sahool-text">مقارنة — {regionAr}</h3>
         </div>
         {(base.isLoading || resolved.isLoading) && <LoadingState message="جارٍ جلب ملفّ المعايرة…" />}
         {(base.isError || resolved.isError) && (
@@ -375,17 +375,17 @@ export default function CalibrationWorkbenchPage() {
       {mayMutate && (
         <section className="space-y-3">
           <div className="flex items-center gap-2">
-            <FlaskConical className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-base font-bold text-slate-100">اقتراح وتحقّق</h3>
-            <span className="text-[11px] text-slate-500">— يقترح لا يكتب (حدود آمنة)</span>
+            <FlaskConical className="w-4 h-4 text-sahool-green-dark" />
+            <h3 className="text-base font-bold text-sahool-text">اقتراح وتحقّق</h3>
+            <span className="text-[11px] text-sahool-muted">— يقترح لا يكتب (حدود آمنة)</span>
           </div>
-          <div className="rounded-xl border p-4 space-y-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
+          <div className="rounded-xl border p-4 space-y-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {FIELD_SPECS.map((spec) => (
                 <label key={spec.key as string} className="flex flex-col gap-1">
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-sahool-muted">
                     {spec.ar}{spec.unit ? ` (${spec.unit})` : ''}
-                    <span className="text-[10px] text-amber-300/70"> · المدى {spec.bounds}</span>
+                    <span className="text-[10px] text-ops-warning/70"> · المدى {spec.bounds}</span>
                   </span>
                   <input
                     type="number" step="any" inputMode="decimal" dir="ltr"
@@ -393,17 +393,17 @@ export default function CalibrationWorkbenchPage() {
                     onChange={(e) => setInputs((s) => ({ ...s, [spec.key as string]: e.target.value }))}
                     placeholder="—"
                     className="px-3 py-2 rounded-lg text-sm"
-                    style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                    style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
                 </label>
               ))}
             </div>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">مصدر القياس (source_ar) — إلزاميّ للموافقة</span>
+              <span className="text-xs text-sahool-muted">مصدر القياس (source_ar) — إلزاميّ للموافقة</span>
               <input
                 value={sourceAr} onChange={(e) => setSourceAr(e.target.value)}
                 placeholder="مثال: قياسات حقليّة موسم 2026، 12 عيّنة"
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
 
             <div className="flex flex-wrap gap-2">
@@ -429,7 +429,7 @@ export default function CalibrationWorkbenchPage() {
             </div>
 
             {propose.isError && (
-              <div className="text-[12px] text-red-300">{apiErrorMessage(propose.error, 'تعذّر التحقّق من القيم.')}</div>
+              <div className="text-[12px] text-ops-danger">{apiErrorMessage(propose.error, 'تعذّر التحقّق من القيم.')}</div>
             )}
             {validation && <ValidationResult v={validation} />}
             {actionMsg && (
@@ -472,29 +472,29 @@ export default function CalibrationWorkbenchPage() {
       {/* ── تدقيق ── */}
       <section className="space-y-2">
         <div className="flex items-center gap-2">
-          <History className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-base font-bold text-slate-100">سجلّ التدقيق</h3>
-          <span className="text-[11px] text-slate-500">
+          <History className="w-4 h-4 text-sahool-green-dark" />
+          <h3 className="text-base font-bold text-sahool-text">سجلّ التدقيق</h3>
+          <span className="text-[11px] text-sahool-muted">
             — {audit.data ? '/audit (الأحدث أوّلاً)' : 'بديل: التجاوزات المُدامة'}
           </span>
         </div>
-        <div className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
+        <div className="rounded-xl border p-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
           {audit.isLoading && <LoadingState message="جارٍ جلب سجلّ التدقيق…" />}
           {/* النقطة /audit أفضل-جهد (null عند 404) ⇒ نرتدّ إلى overrides/all */}
           {!audit.isLoading && audit.data && audit.data.entries.length > 0 ? (
             <div className="space-y-2">
               {audit.data.entries.map((e, i) => (
-                <div key={i} className="rounded-lg px-3 py-2" style={{ background: '#0f1117', border: '1px solid #25303f' }}>
+                <div key={i} className="rounded-lg px-3 py-2" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))' }}>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-semibold text-slate-200">{e.action ?? e.field ?? 'تغيير'}</span>
-                    {e.created_at && <span className="text-[11px] text-slate-500" dir="ltr">{e.created_at}</span>}
+                    <span className="text-sm font-semibold text-sahool-text">{e.action ?? e.field ?? 'تغيير'}</span>
+                    {e.created_at && <span className="text-[11px] text-sahool-muted" dir="ltr">{e.created_at}</span>}
                   </div>
-                  <div className="text-[12px] text-slate-400 mt-1">
+                  <div className="text-[12px] text-sahool-muted mt-1">
                     {e.field && <span>الحقل: {e.field} · </span>}
                     {e.old_value !== undefined && <span>من {fmtNum(e.old_value)} ← </span>}
                     {e.new_value !== undefined && <span>إلى {fmtNum(e.new_value)} · </span>}
                     {e.actor && <span>المنفّذ: {e.actor} · </span>}
-                    {e.source_ar && <span className="text-slate-300">{e.source_ar}</span>}
+                    {e.source_ar && <span className="text-sahool-text">{e.source_ar}</span>}
                   </div>
                 </div>
               ))}
@@ -510,18 +510,18 @@ export default function CalibrationWorkbenchPage() {
               )}
               {!overrides.isLoading && !overrides.isError && (
                 currentOverride ? (
-                  <div className="rounded-lg px-3 py-2" style={{ background: '#0f1117', border: '1px solid #25303f' }}>
+                  <div className="rounded-lg px-3 py-2" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))' }}>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-semibold text-slate-200">{regionAr} — تجاوز مُدام</span>
+                      <span className="text-sm font-semibold text-sahool-text">{regionAr} — تجاوز مُدام</span>
                       {currentOverride.updated_at && (
-                        <span className="text-[11px] text-slate-500" dir="ltr">{currentOverride.updated_at}</span>
+                        <span className="text-[11px] text-sahool-muted" dir="ltr">{currentOverride.updated_at}</span>
                       )}
                     </div>
-                    <div className="text-[12px] text-slate-400 mt-1">
+                    <div className="text-[12px] text-sahool-muted mt-1">
                       الحقول: {Object.keys(currentOverride.override_values).join('، ') || '—'}
                     </div>
                     {currentOverride.source_ar && (
-                      <div className="text-[12px] text-slate-300 mt-0.5">المصدر: {currentOverride.source_ar}</div>
+                      <div className="text-[12px] text-sahool-text mt-0.5">المصدر: {currentOverride.source_ar}</div>
                     )}
                   </div>
                 ) : (

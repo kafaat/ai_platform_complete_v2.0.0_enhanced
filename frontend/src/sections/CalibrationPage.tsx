@@ -27,7 +27,7 @@ const evidenceStyle = (level: string): { bg: string; color: string } => {
     case 'field_preliminary':     return { bg: '#2a1a00', color: '#fbbf24' };
     case 'expert_opinion':        return { bg: '#0a1f2e', color: '#38bdf8' };
     case 'none':                  return { bg: '#2a0d0d', color: '#f87171' };
-    default:                      return { bg: '#1e293b', color: '#94a3b8' };
+    default:                      return { bg: '#1e293b', color: 'rgb(var(--sahool-muted))' };
   }
 };
 
@@ -79,22 +79,22 @@ export default function CalibrationPage() {
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Activity className="w-5 h-5 text-emerald-400" />
-          <h2 className="text-xl font-bold text-slate-100">حالة المعايرة الإقليميّة</h2>
+          <Activity className="w-5 h-5 text-sahool-green-dark" />
+          <h2 className="text-xl font-bold text-sahool-text">حالة المعايرة الإقليميّة</h2>
         </div>
         <button
           onClick={() => refetch()}
           disabled={isFetching}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-slate-300 disabled:opacity-60"
-          style={{ background: '#1e293b', border: '1px solid #334155' }}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-sahool-text disabled:opacity-60"
+          style={{ background: 'rgb(var(--sahool-surface))', border: '1px solid rgb(var(--sahool-border))' }}
         >
           <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
           تحديث
         </button>
       </div>
-      <p className="text-sm text-slate-400">
-        لكلّ إقليم يمنيّ: هل ثوابته الأغرونوميّة <span className="text-emerald-300">مُتحقَّق منها ميدانيّاً</span> أم ما تزال
-        <span className="text-amber-300"> افتراضات FAO عامّة</span>؟ تُظهر هذه اللوحة بالضبط أين تنقص بيانات المعايرة الحقيقيّة.
+      <p className="text-sm text-sahool-muted">
+        لكلّ إقليم يمنيّ: هل ثوابته الأغرونوميّة <span className="text-sahool-green-dark">مُتحقَّق منها ميدانيّاً</span> أم ما تزال
+        <span className="text-ops-warning"> افتراضات FAO عامّة</span>؟ تُظهر هذه اللوحة بالضبط أين تنقص بيانات المعايرة الحقيقيّة.
       </p>
 
       {isLoading && <LoadingState message="جارٍ جلب حالة المعايرة…" />}
@@ -103,14 +103,14 @@ export default function CalibrationPage() {
       {data && (
         <div className="space-y-4">
           {/* Header strip: validated_count / total + note */}
-          <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+          <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
             <div className="text-center px-3 shrink-0">
-              <div className="text-2xl font-bold text-slate-100">
-                {data.validated_count}<span className="text-slate-500 text-base"> / {data.regions.length}</span>
+              <div className="text-2xl font-bold text-sahool-text">
+                {data.validated_count}<span className="text-sahool-muted text-base"> / {data.regions.length}</span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">أقاليم مُعايَرة ميدانيّاً</div>
+              <div className="text-[11px] text-sahool-muted mt-0.5">أقاليم مُعايَرة ميدانيّاً</div>
             </div>
-            <div className="flex-1 text-sm text-slate-300 self-center">{data.note_ar}</div>
+            <div className="flex-1 text-sm text-sahool-text self-center">{data.note_ar}</div>
           </div>
 
           {/* Honesty banner: regions needing field data */}
@@ -134,21 +134,21 @@ export default function CalibrationPage() {
           )}
 
           {/* إرشاد: غرض اللوحة وكيف تتحدّث القيم عند ربط نتائج ميدانيّة */}
-          <p className="text-[12px] text-slate-400 leading-relaxed">
+          <p className="text-[12px] text-sahool-muted leading-relaxed">
             تعرض هذه اللوحة أين تنقص المعايرة الميدانيّة الحقيقيّة لكلّ إقليم. تتحدّث القيم
             (مستوى الدليل وعدد العيّنات والثوابت) عند ربط نتائج outcome/measure عبر
-            <code dir="ltr" className="text-slate-300">POST /api/v1/calibration/&#123;region&#125;/evidence</code>.
+            <code dir="ltr" className="text-sahool-text">POST /api/v1/calibration/&#123;region&#125;/evidence</code>.
           </p>
 
           {/* Regions table (+ generic row) */}
-          <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>
-              <Activity className="w-4 h-4 text-emerald-400" /> ثوابت الأقاليم
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+              <Activity className="w-4 h-4 text-sahool-green-dark" /> ثوابت الأقاليم
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
+                  <tr className="text-[11px] text-sahool-muted" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
                     <th className="px-3 py-2 text-right font-medium">الإقليم</th>
                     <th className="px-3 py-2 text-right font-medium">مستوى الدليل</th>
                     <th className="px-3 py-2 text-center font-medium">مُعايَر</th>

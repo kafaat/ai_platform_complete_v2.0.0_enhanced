@@ -37,7 +37,7 @@ def test_relative_luminance_bounds():
 def test_parse_tokens_extracts_brand_and_adds_white():
     g = _load()
     toks = g.parse_tokens(g.TOKENS.read_text(encoding="utf-8"))
-    assert toks.get("ink") == "#2C1A0E" and toks.get("gold") == "#E8A020"
+    assert toks.get("ink") == "#202621" and toks.get("gold") == "#FFDE00"
     assert toks.get("white") == "#FFFFFF"  # مُضاف صراحةً (لون overlay)
 
 

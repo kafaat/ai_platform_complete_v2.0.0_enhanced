@@ -113,7 +113,7 @@ export default function PestEscalationPage() {
   const res = mut.data;
   const ctx = (res?.context ?? {}) as Record<string, unknown>;
   const status = res?.workflow?.status ?? '';
-  const st = STATUS_STYLE[status] ?? { ar: status || '—', color: '#94a3b8', bg: '#1e293b' };
+  const st = STATUS_STYLE[status] ?? { ar: status || '—', color: 'rgb(var(--sahool-muted))', bg: '#1e293b' };
   const lineage = evaluateApprovalLineage(res ? ctx : null);
   const outcome = readPestExecutionOutcome(res?.step_results, res?.execution, ctx.action_type);
   const approveDisabled = mut.isPending || !mutateAllowed || !lineage.allowed;
@@ -150,39 +150,39 @@ export default function PestEscalationPage() {
   return (
     <div className="space-y-5 max-w-3xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Bug className="w-5 h-5 text-orange-400" />
-        <h2 className="text-xl font-bold text-slate-100">تصعيد الآفة</h2>
+        <Bug className="w-5 h-5 text-ops-warning" />
+        <h2 className="text-xl font-bold text-sahool-text">تصعيد الآفة</h2>
       </div>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-sahool-muted">
         يبدأ التصعيد من مشاهدة استطلاع محفوظة على الخادم ودليل صورتها: يُرصَد ويُؤكَّد ويُوصى،
         ثمّ يُعلَّق بانتظار موافقة الخبير. لا موافقة ما لم يُثبت الخادم سلسلة التشخيص والدليل.
       </p>
 
       {/* Form */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">الحقل</span>
+            <span className="text-xs text-sahool-muted">الحقل</span>
             <select
               value={fieldId}
               onChange={(e) => { setFieldId(e.target.value); setPinId(''); }}
               disabled={fieldsLoading || fieldsError || fieldOptions.length === 0}
               className="px-3 py-2 rounded-lg text-sm disabled:opacity-60"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}
             >
               <option value="">اختر الحقل</option>
               {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">مشاهدة الاستطلاع (دبّوس محفوظ)</span>
+            <span className="text-xs text-sahool-muted">مشاهدة الاستطلاع (دبّوس محفوظ)</span>
             <select
               aria-label="مشاهدة الاستطلاع"
               value={pinId}
               onChange={(e) => setPinId(e.target.value)}
               disabled={!fieldId || pinsQ.isLoading || pinsQ.isError || pins.length === 0}
               className="px-3 py-2 rounded-lg text-sm disabled:opacity-60"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}
             >
               <option value="">اختر مشاهدة</option>
               {pins.map((p) => (
@@ -191,9 +191,9 @@ export default function PestEscalationPage() {
                 </option>
               ))}
             </select>
-            {fieldId && pinsQ.isError && <span className="text-[11px] text-red-300">تعذّر جلب مشاهدات الحقل من الخادم.</span>}
+            {fieldId && pinsQ.isError && <span className="text-[11px] text-ops-danger">تعذّر جلب مشاهدات الحقل من الخادم.</span>}
             {fieldId && !pinsQ.isLoading && !pinsQ.isError && pins.length === 0 && (
-              <span className="text-[11px] text-amber-300">
+              <span className="text-[11px] text-ops-warning">
                 لا مشاهدات محفوظة لهذا الحقل{pinsQ.data?.note_ar ? ` — ${pinsQ.data.note_ar}` : ''}. سجّل مشاهدة من الاستطلاع أوّلاً.
               </span>
             )}
@@ -201,14 +201,14 @@ export default function PestEscalationPage() {
         </div>
 
         {pin && refs && (
-          <div className="rounded-lg border p-3 space-y-1.5" style={{ background: '#0f1117', borderColor: '#334155' }} data-testid="escalation-refs">
-            <div className="flex items-center gap-2 text-xs text-slate-300">
+          <div className="rounded-lg border p-3 space-y-1.5" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }} data-testid="escalation-refs">
+            <div className="flex items-center gap-2 text-xs text-sahool-text">
               <Link2 className="w-3.5 h-3.5" /> مراجع السلسلة من الخادم
             </div>
             <Row label="الدبّوس" value={pin.pin_id} />
             <Row label="الآفة/التشخيص" value={refs.pest_type ?? '—'} />
-            {photoQ.isLoading && <p className="text-[11px] text-slate-500">جارٍ جلب سياق دليل الصورة…</p>}
-            {photoErrorAr && <p className="text-[11px] text-red-300">{photoErrorAr}</p>}
+            {photoQ.isLoading && <p className="text-[11px] text-sahool-muted">جارٍ جلب سياق دليل الصورة…</p>}
+            {photoErrorAr && <p className="text-[11px] text-ops-danger">{photoErrorAr}</p>}
             {LINEAGE_REF_KEYS.map((k) => (
               <Row key={k} label={LINEAGE_REF_AR[k]} value={refs[k] ?? `غائب — ${refs.missing[k] ?? 'لم يُعِده الخادم'}`} />
             ))}
@@ -224,13 +224,13 @@ export default function PestEscalationPage() {
         )}
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">
-            تقدير شدّة الإصابة: <span className="text-slate-200 font-bold">{severity.toFixed(2)}</span>
-            {pin && <span className="text-slate-500"> · تقدير الكشّاف المسجَّل: {PIN_SEVERITY_AR[pin.severity] ?? pin.severity}</span>}
+          <span className="text-xs text-sahool-muted">
+            تقدير شدّة الإصابة: <span className="text-sahool-text font-bold">{severity.toFixed(2)}</span>
+            {pin && <span className="text-sahool-muted"> · تقدير الكشّاف المسجَّل: {PIN_SEVERITY_AR[pin.severity] ?? pin.severity}</span>}
           </span>
           <input type="range" min={0} max={1} step={0.05} value={severity}
             onChange={e => setSeverity(Number(e.target.value))} className="accent-orange-500" />
-          <span className="text-[10px] text-slate-600">≥ 0.40 يُؤكِّد التصعيد · ≥ 0.70 مكافحة عاجلة</span>
+          <span className="text-[10px] text-sahool-muted">≥ 0.40 يُؤكِّد التصعيد · ≥ 0.70 مكافحة عاجلة</span>
         </label>
         <div className="flex justify-end">
           <button onClick={start} disabled={mut.isPending || !pin || photoQ.isLoading}
@@ -276,7 +276,7 @@ export default function PestEscalationPage() {
           </div>
 
           {/* Recommendation from accumulated context */}
-          <div className="rounded-xl border p-4 space-y-2" style={{ background: '#1e293b', borderColor: '#334155' }}>
+          <div className="rounded-xl border p-4 space-y-2" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
             {ctx.alert_level != null && (
               <Row label="مستوى الإنذار" value={String(ctx.alert_level)} />
             )}
@@ -377,9 +377,9 @@ export default function PestEscalationPage() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-3 py-1.5 border-b last:border-0" style={{ borderColor: '#334155' }}>
-      <span className="text-sm text-slate-400 shrink-0">{label}</span>
-      <span className="text-sm text-slate-200 text-left break-all">{value}</span>
+    <div className="flex items-start justify-between gap-3 py-1.5 border-b last:border-0" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
+      <span className="text-sm text-sahool-muted shrink-0">{label}</span>
+      <span className="text-sm text-sahool-text text-left break-all">{value}</span>
     </div>
   );
 }

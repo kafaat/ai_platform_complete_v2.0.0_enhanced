@@ -4,6 +4,7 @@
   "timezone": "Asia/Aden",
   "scope": "review corrections, not product completion",
   "rule": "Null is missing evidence. A source candidate is not an approved decision. Reuse a valid scoped decision; never infer signatures, live exposure, deployment, or acceptance from this register.",
+  "status_values_note": "From 2026-11-22 this file supersedes the copy embedded in docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md. Added status values: RECORDED (a decision with an owner answer and authorization source) and EXTENDED_BY_OWNER_DECISION (an expiry item renewed to new_expiry).",
   "decisions": [
     {
       "id": "ق-1",
@@ -12,13 +13,13 @@
       "blocked_work_from_section_7": "الدمج بعد الأجل عند بقاء استثناء منتهٍ. يبدأ العمل المستقل في UW0 بعد بواباته الفعلية.",
       "required_before": "قبل 2026-11-30",
       "review_source": "geo-R، x-ci-governance، x-baseline-conflicts",
-      "status": "RECEIPT_RECONCILIATION_REQUIRED",
-      "owner_identity": null,
-      "selected_option": null,
-      "authorization_source": null,
+      "status": "RECORDED",
+      "owner_identity": "repository owner (kafaat); explicit approval recorded on 2026-11-22: https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1571#issuecomment-7079253575",
+      "selected_option": "تمديد مسبَّب إلى 2026-12-31 للبنود الثمانية وحدها، مع إبقاء النطاق والمالكين والأسباب وشروط الإغلاق؛ تبقى الفجوات مفتوحة وتُراجع قبل 2026-12-20",
+      "authorization_source": "sahool-brain/decisions/ledger.md#2026-11-22 — SHR-01",
       "target_environment": null,
       "candidate_identity": null,
-      "valid_until": null,
+      "valid_until": "2026-12-31",
       "existing_evidence_candidates": [
         {
           "source_commit": "9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0",
@@ -534,11 +535,11 @@
         "path": "docs/architecture/platform_shrink_ratchet.json",
         "source_commit": "9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0",
         "current_expiry": "2026-11-30",
-        "action_after_expiry": null,
-        "new_authorization_source": null,
-        "new_expiry": null,
+        "action_after_expiry": "EXTEND",
+        "new_authorization_source": "sahool-brain/decisions/ledger.md#2026-11-22 — SHR-01",
+        "new_expiry": "2026-12-31",
         "closure_evidence": null,
-        "status": "FUTURE_SCOPE_DECISION_REQUIRED"
+        "status": "EXTENDED_BY_OWNER_DECISION"
       },
       {
         "identity": "services/sahool-platform/core/yield_map_processing.py",
@@ -546,11 +547,11 @@
         "path": "docs/architecture/platform_shrink_ratchet.json",
         "source_commit": "9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0",
         "current_expiry": "2026-11-30",
-        "action_after_expiry": null,
-        "new_authorization_source": null,
-        "new_expiry": null,
+        "action_after_expiry": "EXTEND",
+        "new_authorization_source": "sahool-brain/decisions/ledger.md#2026-11-22 — SHR-01",
+        "new_expiry": "2026-12-31",
         "closure_evidence": null,
-        "status": "FUTURE_SCOPE_DECISION_REQUIRED"
+        "status": "EXTENDED_BY_OWNER_DECISION"
       },
       {
         "identity": "decision_record:mirror:decision-service",
@@ -558,11 +559,11 @@
         "path": "docs/architecture/platform_shrink_ratchet.json",
         "source_commit": "9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0",
         "current_expiry": "2026-11-30",
-        "action_after_expiry": null,
-        "new_authorization_source": null,
-        "new_expiry": null,
+        "action_after_expiry": "EXTEND",
+        "new_authorization_source": "sahool-brain/decisions/ledger.md#2026-11-22 — SHR-01",
+        "new_expiry": "2026-12-31",
         "closure_evidence": null,
-        "status": "FUTURE_SCOPE_DECISION_REQUIRED"
+        "status": "EXTENDED_BY_OWNER_DECISION"
       },
       {
         "identity": "dispatch_decisions:mirror:decision-service",
@@ -570,11 +571,11 @@
         "path": "docs/architecture/platform_shrink_ratchet.json",
         "source_commit": "9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0",
         "current_expiry": "2026-11-30",
-        "action_after_expiry": null,
-        "new_authorization_source": null,
-        "new_expiry": null,
+        "action_after_expiry": "EXTEND",
+        "new_authorization_source": "sahool-brain/decisions/ledger.md#2026-11-22 — SHR-01",
+        "new_expiry": "2026-12-31",
         "closure_evidence": null,
-        "status": "FUTURE_SCOPE_DECISION_REQUIRED"
+        "status": "EXTENDED_BY_OWNER_DECISION"
       },
       {
         "identity": "online_learning_updates:mirror:decision-service",
@@ -582,11 +583,11 @@
         "path": "docs/architecture/platform_shrink_ratchet.json",
         "source_commit": "9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0",
         "current_expiry": "2026-11-30",
-        "action_after_expiry": null,
-        "new_authorization_source": null,
-        "new_expiry": null,
+        "action_after_expiry": "EXTEND",
+        "new_authorization_source": "sahool-brain/decisions/ledger.md#2026-11-22 — SHR-01",
+        "new_expiry": "2026-12-31",
         "closure_evidence": null,
-        "status": "FUTURE_SCOPE_DECISION_REQUIRED"
+        "status": "EXTENDED_BY_OWNER_DECISION"
       },
       {
         "identity": "outcome_record:mirror:decision-service",
@@ -594,11 +595,11 @@
         "path": "docs/architecture/platform_shrink_ratchet.json",
         "source_commit": "9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0",
         "current_expiry": "2026-11-30",
-        "action_after_expiry": null,
-        "new_authorization_source": null,
-        "new_expiry": null,
+        "action_after_expiry": "EXTEND",
+        "new_authorization_source": "sahool-brain/decisions/ledger.md#2026-11-22 — SHR-01",
+        "new_expiry": "2026-12-31",
         "closure_evidence": null,
-        "status": "FUTURE_SCOPE_DECISION_REQUIRED"
+        "status": "EXTENDED_BY_OWNER_DECISION"
       },
       {
         "identity": "recommendation_outcomes:mirror:decision-service",
@@ -606,11 +607,11 @@
         "path": "docs/architecture/platform_shrink_ratchet.json",
         "source_commit": "9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0",
         "current_expiry": "2026-11-30",
-        "action_after_expiry": null,
-        "new_authorization_source": null,
-        "new_expiry": null,
+        "action_after_expiry": "EXTEND",
+        "new_authorization_source": "sahool-brain/decisions/ledger.md#2026-11-22 — SHR-01",
+        "new_expiry": "2026-12-31",
         "closure_evidence": null,
-        "status": "FUTURE_SCOPE_DECISION_REQUIRED"
+        "status": "EXTENDED_BY_OWNER_DECISION"
       },
       {
         "identity": "local-ai-rag",
@@ -618,11 +619,11 @@
         "path": "docs/architecture/rag_authority_convergence.json",
         "source_commit": "9fdaefc9a0a8298a1d8cfc48bb120744ef3f78b0",
         "current_expiry": "2026-11-30",
-        "action_after_expiry": null,
-        "new_authorization_source": null,
-        "new_expiry": null,
+        "action_after_expiry": "EXTEND",
+        "new_authorization_source": "sahool-brain/decisions/ledger.md#2026-11-22 — SHR-01",
+        "new_expiry": "2026-12-31",
         "closure_evidence": null,
-        "status": "FUTURE_SCOPE_DECISION_REQUIRED"
+        "status": "EXTENDED_BY_OWNER_DECISION"
       }
     ],
     "escalate_at": "2026-11-27T12:00:00+03:00",

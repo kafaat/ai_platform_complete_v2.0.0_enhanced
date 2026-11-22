@@ -41,7 +41,7 @@ const evidenceStyle = (level: string): { bg: string; color: string } => {
     case 'field_preliminary':     return { bg: '#2a1a00', color: '#fbbf24' };
     case 'expert_opinion':        return { bg: '#0a1f2e', color: '#38bdf8' };
     case 'none':                  return { bg: '#2a0d0d', color: '#f87171' };
-    default:                      return { bg: '#1e293b', color: '#94a3b8' };
+    default:                      return { bg: '#1e293b', color: 'rgb(var(--sahool-muted))' };
   }
 };
 
@@ -58,14 +58,14 @@ function fmtValue(v: unknown): string {
 function MetricsGrid({ metrics }: { metrics: Record<string, unknown> }) {
   const entries = Object.entries(metrics).slice(0, 6);
   if (entries.length === 0) {
-    return <div className="text-[11px] text-slate-500">لا مقاييس مُسجَّلة لهذه النتيجة.</div>;
+    return <div className="text-[11px] text-sahool-muted">لا مقاييس مُسجَّلة لهذه النتيجة.</div>;
   }
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
       {entries.map(([k, v]) => (
-        <div key={k} className="rounded-lg px-2 py-1.5" style={{ background: '#0f1117', border: '1px solid #25303f' }}>
-          <div className="text-[10px] text-slate-500 truncate">{k}</div>
-          <div className="text-sm font-semibold text-slate-200 truncate">{fmtValue(v)}</div>
+        <div key={k} className="rounded-lg px-2 py-1.5" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))' }}>
+          <div className="text-[10px] text-sahool-muted truncate">{k}</div>
+          <div className="text-sm font-semibold text-sahool-text truncate">{fmtValue(v)}</div>
         </div>
       ))}
     </div>
@@ -79,13 +79,13 @@ function OutcomeCard({ o }: { o: LineageOutcome }) {
       ? { ar: 'ناجحة', icon: <CheckCircle2 className="w-4 h-4" />, bg: '#0c2a1a', color: '#4ade80' }
       : o.success === false
         ? { ar: 'غير ناجحة', icon: <XCircle className="w-4 h-4" />, bg: '#2a0d0d', color: '#f87171' }
-        : { ar: 'يحتاج بيانات', icon: <HelpCircle className="w-4 h-4" />, bg: '#1e293b', color: '#94a3b8' };
+        : { ar: 'يحتاج بيانات', icon: <HelpCircle className="w-4 h-4" />, bg: '#1e293b', color: 'rgb(var(--sahool-muted))' };
   return (
-    <div className="rounded-xl border p-3 space-y-2" style={{ background: '#1e293b', borderColor: '#334155' }}>
+    <div className="rounded-xl border p-3 space-y-2" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <span className="text-slate-300 font-medium">{o.stage || '—'}</span>
-          {o.created_at && <span className="text-slate-600">· {o.created_at}</span>}
+        <div className="flex items-center gap-2 text-xs text-sahool-muted">
+          <span className="text-sahool-text font-medium">{o.stage || '—'}</span>
+          {o.created_at && <span className="text-sahool-muted">· {o.created_at}</span>}
         </div>
         <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"
           style={{ background: success.bg, color: success.color }}>
@@ -123,30 +123,30 @@ export default function LineagePage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <GitBranch className="w-5 h-5 text-emerald-400" />
-        <h2 className="text-xl font-bold text-slate-100">سلسلة النَّسَب والدليل المتراكم</h2>
+        <GitBranch className="w-5 h-5 text-sahool-green-dark" />
+        <h2 className="text-xl font-bold text-sahool-text">سلسلة النَّسَب والدليل المتراكم</h2>
       </div>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-sahool-muted">
         أثرٌ صادق للقرارات المُدامة ونتائجها التالية، وتقدّم جمع العيّنات لكلّ منطقة.
-        اكتمال الجمع يختلف عن مراجعة الدليل ومعايرته؛ الدليل المتراكم <span className="text-amber-300">تقديريّ غير مُعايَر</span>.
+        اكتمال الجمع يختلف عن مراجعة الدليل ومعايرته؛ الدليل المتراكم <span className="text-ops-warning">تقديريّ غير مُعايَر</span>.
       </p>
 
       {/* ═══════════ القسم الأوّل: سلسلة قرار ═══════════ */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <Workflow className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-base font-bold text-slate-100">سلسلة قرار</h3>
+          <Workflow className="w-4 h-4 text-sahool-green-dark" />
+          <h3 className="text-base font-bold text-sahool-text">سلسلة قرار</h3>
         </div>
 
         <form onSubmit={submitDecision}
           className="rounded-xl border p-4 flex flex-col sm:flex-row gap-3 sm:items-end"
-          style={{ background: '#1e293b', borderColor: '#334155' }}>
+          style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
           <label className="flex flex-col gap-1 flex-1">
-            <span className="text-xs text-slate-400">معرّف القرار (decision_id)</span>
+            <span className="text-xs text-sahool-muted">معرّف القرار (decision_id)</span>
             <input value={decisionInput} onChange={e => setDecisionInput(e.target.value)}
               placeholder="dec_..." dir="ltr"
               className="px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
           </label>
           <button type="submit" disabled={!decisionInput.trim() || lineage.isFetching}
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
@@ -167,11 +167,11 @@ export default function LineagePage() {
           <div className="space-y-4">
             {/* بطاقة القرار */}
             {dec ? (
-              <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+              <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <GitBranch className="w-4 h-4 text-emerald-400" />
-                    <span className="text-sm font-semibold text-slate-100">{dec.decision_type}</span>
+                    <GitBranch className="w-4 h-4 text-sahool-green-dark" />
+                    <span className="text-sm font-semibold text-sahool-text">{dec.decision_type}</span>
                   </div>
                   {dec.confidence != null && (
                     <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold"
@@ -211,12 +211,12 @@ export default function LineagePage() {
 
             {/* شريط المراحل present (decision → outcome…) */}
             {lineage.data.stages_present.length > 0 && (
-              <div className="rounded-xl border p-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-                <div className="text-[11px] text-slate-400 mb-2">سلسلة المراحل ({lineage.data.outcome_count} نتيجة)</div>
+              <div className="rounded-xl border p-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+                <div className="text-[11px] text-sahool-muted mb-2">سلسلة المراحل ({lineage.data.outcome_count} نتيجة)</div>
                 <div className="flex flex-wrap items-center gap-1.5">
                   {lineage.data.stages_present.map((s, i) => (
                     <span key={`${s}-${i}`} className="flex items-center gap-1.5">
-                      {i > 0 && <span className="text-slate-600 text-xs">←</span>}
+                      {i > 0 && <span className="text-sahool-muted text-xs">←</span>}
                       <span className="text-[11px] px-2 py-0.5 rounded-full font-medium"
                         style={{ background: '#16a34a18', color: '#4ade80' }}>{s}</span>
                     </span>
@@ -227,9 +227,9 @@ export default function LineagePage() {
 
             {/* النتائج */}
             <div className="space-y-2">
-              <div className="text-sm font-semibold text-slate-200">النتائج المتراكمة</div>
+              <div className="text-sm font-semibold text-sahool-text">النتائج المتراكمة</div>
               {lineage.data.outcomes.length === 0 ? (
-                <div className="rounded-xl border p-3 text-sm text-slate-400" style={{ background: '#1e293b', borderColor: '#334155' }}>
+                <div className="rounded-xl border p-3 text-sm text-sahool-muted" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
                   لا نتائج مُسجَّلة بعد لهذا القرار.
                 </div>
               ) : (
@@ -245,16 +245,16 @@ export default function LineagePage() {
       {/* ═══════════ القسم الثاني: دليل منطقة متراكم ═══════════ */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <FlaskConical className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-base font-bold text-slate-100">دليل منطقة متراكم</h3>
+          <FlaskConical className="w-4 h-4 text-sahool-green-dark" />
+          <h3 className="text-base font-bold text-sahool-text">دليل منطقة متراكم</h3>
         </div>
 
-        <div className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
+        <div className="rounded-xl border p-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
           <label className="flex flex-col gap-1 max-w-xs">
-            <span className="text-xs text-slate-400">المنطقة</span>
+            <span className="text-xs text-sahool-muted">المنطقة</span>
             <select value={region} onChange={e => setRegion(e.target.value)}
               className="px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
               <option value="">— اختر منطقة —</option>
               {REGIONS.map(r => <option key={r.id} value={r.id}>{r.ar}</option>)}
             </select>
@@ -269,14 +269,14 @@ export default function LineagePage() {
         {ev && evStyle && (
           <div className="space-y-4">
             {/* تقدّم الجمع + مستوى الدليل الوارد + معدّل النجاح */}
-            <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+            <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold"
                   style={{ background: evStyle.bg, color: evStyle.color }}>
                   {EVIDENCE_AR[ev.evidence_level] ?? ev.evidence_level}
                 </span>
-                <span className="text-sm text-slate-300">
-                  معدّل النجاح: <span className="font-bold text-slate-100">
+                <span className="text-sm text-sahool-text">
+                  معدّل النجاح: <span className="font-bold text-sahool-text">
                     {ev.success_rate != null ? `${(ev.success_rate * 100).toFixed(0)}%` : '—'}
                   </span>
                 </span>
@@ -284,9 +284,9 @@ export default function LineagePage() {
 
               {/* شريط تقدّم العيّنات نحو عتبة الجمع التقديريّة */}
               <div className="space-y-1">
-                <div className="flex items-center justify-between text-[11px] text-slate-400">
+                <div className="flex items-center justify-between text-[11px] text-sahool-muted">
                   <span>اكتمال جمع العيّنات</span>
-                  <span className="text-slate-300 font-medium">
+                  <span className="text-sahool-text font-medium">
                     {ev.sample_count} / {ev.field_verified_min_samples} عيّنة
                   </span>
                 </div>
@@ -295,7 +295,7 @@ export default function LineagePage() {
                     style={{ width: `${progressPct}%`, background: evStyle.color }} />
                 </div>
                 {ev.samples_to_verified > 0 && (
-                  <div className="text-[10px] text-slate-500">
+                  <div className="text-[10px] text-sahool-muted">
                     تبقّى {ev.samples_to_verified} عيّنة لبلوغ عتبة الجمع.
                   </div>
                 )}
@@ -306,14 +306,14 @@ export default function LineagePage() {
                 <div className="flex flex-wrap gap-1.5">
                   {Object.entries(ev.success_flag_counts).map(([flag, count]) => (
                     <span key={flag} className="text-[11px] px-2 py-0.5 rounded-full"
-                      style={{ background: '#0f1117', color: '#cbd5e1', border: '1px solid #25303f' }}>
+                      style={{ background: 'rgb(var(--sahool-surface-2))', color: 'rgb(var(--sahool-text))', border: '1px solid rgb(var(--sahool-border))' }}>
                       {flag}: <span className="font-semibold">{count}</span>
                     </span>
                   ))}
                 </div>
               )}
 
-              <div className="text-[10px] text-slate-500">
+              <div className="text-[10px] text-sahool-muted">
                 صفوف مُدامة: {ev.persisted_rows}
                 {ev.last_evaluated_at && <> · آخر تقييم: {ev.last_evaluated_at}</>}
               </div>

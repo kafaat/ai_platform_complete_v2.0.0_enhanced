@@ -430,8 +430,8 @@ export default function SatellitePage() {
       {/* Header */}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">صحّة الحقل</h2>
-          <p className="text-sm text-slate-400">Sentinel-2 L2A · Copernicus · كل 5 أيام</p>
+          <h2 className="text-xl font-bold text-sahool-text">صحّة الحقل</h2>
+          <p className="text-sm text-sahool-muted">Sentinel-2 L2A · Copernicus · كل 5 أيام</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] bg-emerald-950 text-emerald-400 border border-emerald-900">
@@ -456,7 +456,7 @@ export default function SatellitePage() {
             onClick={handleAnalyze}
             disabled={analyzing || !fieldId}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border disabled:opacity-50"
-            style={{ background: '#1e293b', color: '#fbbf24', borderColor: '#92400e' }}
+            style={{ background: 'rgb(var(--sahool-surface))', color: '#fbbf24', borderColor: '#92400e' }}
             title="يطلب معالجة صور Sentinel-2 للحقل المحدد، وتظهر قيم المؤشرات بعد اكتمال المعالجة."
           >
             {analyzing
@@ -479,9 +479,9 @@ export default function SatellitePage() {
       )}
 
       {/* مبدّل أوضاع صحّة الحقل (استطلاع · نباتيّ · لون حقيقيّ) */}
-      <div className="rounded-xl p-2.5 border flex items-center gap-3 flex-wrap" style={{ background:'#1e293b', borderColor:'#334155' }}>
+      <div className="rounded-xl p-2.5 border flex items-center gap-3 flex-wrap" style={{ background:'rgb(var(--sahool-surface))', borderColor:'rgb(var(--sahool-border))' }}>
         <LayerSwitcher layers={modeLayers} active={mode} onChange={setMode} />
-        <span className="text-[11px] text-slate-500 mr-auto">
+        <span className="text-[11px] text-sahool-muted mr-auto">
           {mode === 'scouting'   && 'تباين مناطقيّ + دبابيس مشاهدات (محلّيّة للجلسة)'}
           {mode === 'vegetation' && (archiveLayer.stored ? 'مصدر الطبقة: راستر المؤشر المحفوظ' : 'مصدر الطبقة: خدمة CDSE')}
           {mode === 'truecolor'  && (archiveLayer.stored ? 'صورة اللون الحقيقي المحفوظة للتاريخ المحدد' : 'صور خريطة الأساس')}
@@ -587,7 +587,7 @@ export default function SatellitePage() {
               {/* مبدّلات الفترة + إخفاء الغائم (نمط FieldView) */}
               <div className="flex items-center gap-2 flex-wrap">
                 {hasCloudData && (
-                  <label className="flex items-center gap-1.5 cursor-pointer select-none text-[11px] text-slate-300">
+                  <label className="flex items-center gap-1.5 cursor-pointer select-none text-[11px] text-sahool-text">
                     <input type="checkbox" checked={hideCloudy} onChange={(e)=>setHideCloudy(e.target.checked)} style={{ accentColor:'#16a34a' }} />
                     إخفاء الأيّام الغائمة
                   </label>
@@ -616,18 +616,18 @@ export default function SatellitePage() {
               </div>
 
               {(rasterTsLoading || tsLoading) ? (
-                <div className="flex justify-center py-4 rounded-xl border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+                <div className="flex justify-center py-4 rounded-xl border" style={{ background:'rgb(var(--sahool-surface))', borderColor:'rgb(var(--sahool-border))' }}>
                   <Loader2 className="w-5 h-5 text-emerald-500 animate-spin" />
                 </div>
               ) : rasterTsError && !visiblePoints.length ? (
-                <div className="rounded-xl border p-3" style={{ background:'#1e293b', borderColor:'#334155' }}>
-                  <p className="text-amber-400/80 text-xs text-center">تعذّر جلب السلسلة الزمنيّة للمؤشّر.</p>
+                <div className="rounded-xl border p-3" style={{ background:'rgb(var(--sahool-surface))', borderColor:'rgb(var(--sahool-border))' }}>
+                  <p className="text-ops-warning/80 text-xs text-center">تعذّر جلب السلسلة الزمنيّة للمؤشّر.</p>
                 </div>
               ) : !visiblePoints.length ? (
                 // حالة فارغة صادقة بدل شريط بلا قيم: لا تواريخ مُعالَجة بعد لهذا الحقل.
                 <div className="rounded-xl border p-3 flex items-center justify-center gap-2"
-                  style={{ background:'#1e293b', borderColor:'#334155' }}>
-                  <p className="text-xs text-center text-slate-400">
+                  style={{ background:'rgb(var(--sahool-surface))', borderColor:'rgb(var(--sahool-border))' }}>
+                  <p className="text-xs text-center text-sahool-muted">
                     لا توجد قيم زمنيّة بعد لهذا الحقل — اضغط «تحليل الآن» لمعالجة صور Sentinel-2 وعرض الشريط الزمنيّ.
                   </p>
                   <button onClick={handleAnalyze} disabled={analyzing || !fieldId}
@@ -653,11 +653,11 @@ export default function SatellitePage() {
         {/* Side panel */}
         <div className="space-y-3">
           {/* Field selector (حقول حقيقيّة) */}
-          <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
-            <label className="block text-xs text-slate-400 mb-1">الحقل</label>
+          <div className="rounded-xl p-3 border" style={{ background:'rgb(var(--sahool-surface))', borderColor:'rgb(var(--sahool-border))' }}>
+            <label className="block text-xs text-sahool-muted mb-1">الحقل</label>
             <select value={fieldId} onChange={e=>setFieldId(e.target.value)}
               className="w-full px-3 py-2 rounded-lg text-sm"
-              style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+              style={{ background:'rgb(var(--sahool-surface-2))', border:'1px solid rgb(var(--sahool-border))', color:'rgb(var(--sahool-text))' }}>
               {fields.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}
             </select>
             <div className="grid grid-cols-2 gap-1.5 mt-2">
@@ -667,9 +667,9 @@ export default function SatellitePage() {
                 {l:'المساحة',v:field?`${field.area}هـ`:'—',c:'#94a3b8'},
                 {l:'المحصول',v:field?field.crop:'—',c:'#94a3b8'},
               ].map((s,i)=>(
-                <div key={i} className="rounded-lg px-2 py-1.5 text-center" style={{background:'#0f1117'}}>
+                <div key={i} className="rounded-lg px-2 py-1.5 text-center" style={{background:'rgb(var(--sahool-surface-2))'}}>
                   <div className="text-xs font-bold" style={{color:s.c}}>{s.v}</div>
-                  <div className="text-[10px] text-slate-500">{s.l}</div>
+                  <div className="text-[10px] text-sahool-muted">{s.l}</div>
                 </div>
               ))}
             </div>
@@ -710,20 +710,20 @@ export default function SatellitePage() {
               />
 
               {/* مناطق التباين (management zones) — من raster-service */}
-              <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+              <div className="rounded-xl p-3 border" style={{ background:'rgb(var(--sahool-surface))', borderColor:'rgb(var(--sahool-border))' }}>
                 <div className="flex items-center gap-2 mb-2">
-                  <Layers className="w-4 h-4 text-emerald-400" />
-                  <span className="text-sm font-semibold text-slate-200">مناطق التباين</span>
-                  <span className="text-[10px] text-slate-500 mr-auto">{gridIndex.toUpperCase()}</span>
+                  <Layers className="w-4 h-4 text-sahool-green-dark" />
+                  <span className="text-sm font-semibold text-sahool-text">مناطق التباين</span>
+                  <span className="text-[10px] text-sahool-muted mr-auto">{gridIndex.toUpperCase()}</span>
                 </div>
                 {rxZones.length === 0 ? (
-                  <p className="text-[11px] text-slate-500 py-2">
+                  <p className="text-[11px] text-sahool-muted py-2">
                     لا تقسيم مناطقيّ بعد — يلزم شبكة مؤشّر مُعالَجة (اضغط «تحليل الآن»).
                   </p>
                 ) : (
                   <>
                     {!rxResp?.real_data && (
-                      <p className="text-[10px] text-amber-400/80 mb-2">⚠️ عرض توضيحيّ (لا شبكة حقيقيّة) — لا تتّخذ قرارات بناءً عليه.</p>
+                      <p className="text-[10px] text-ops-warning/80 mb-2">⚠️ عرض توضيحيّ (لا شبكة حقيقيّة) — لا تتّخذ قرارات بناءً عليه.</p>
                     )}
                     <div className="space-y-1.5">
                       {rxZones.map((z) => (
@@ -744,14 +744,14 @@ export default function SatellitePage() {
           ) : (
             <>
               {/* Layers (اختيار المؤشّر) — للأوضاع النباتيّة/اللون الحقيقيّ */}
-              <div className="rounded-xl border overflow-hidden" style={{ background:'#1e293b', borderColor:'#334155' }}>
+              <div className="rounded-xl border overflow-hidden" style={{ background:'rgb(var(--sahool-surface))', borderColor:'rgb(var(--sahool-border))' }}>
                 <button onClick={()=>setShowLayers(!showLayers)}
                   className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-800 transition-colors">
                   <div className="flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-slate-400" />
-                    <span className="text-sm font-semibold text-slate-200">الطبقات</span>
+                    <Layers className="w-4 h-4 text-sahool-muted" />
+                    <span className="text-sm font-semibold text-sahool-text">الطبقات</span>
                   </div>
-                  <span className="text-slate-500 text-xs">{showLayers?'▲':'▼'}</span>
+                  <span className="text-sahool-muted text-xs">{showLayers?'▲':'▼'}</span>
                 </button>
                 {showLayers && (
                   <div className="px-2 pb-3 space-y-1">
@@ -778,54 +778,54 @@ export default function SatellitePage() {
           {/* كشف التغيّر بين تاريخين (per-pixel، بيانات COG حقيقيّة فقط) — للأوضاع
               المعتمدة على المؤشّر (لا في اللون الحقيقيّ). */}
           {mode !== 'truecolor' && (
-          <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+          <div className="rounded-xl p-3 border" style={{ background:'rgb(var(--sahool-surface))', borderColor:'rgb(var(--sahool-border))' }}>
             <div className="flex items-center gap-2 mb-2">
-              <GitCompareArrows className="w-4 h-4 text-sky-400" />
-              <span className="text-sm font-semibold text-slate-200">كشف التغيّر</span>
-              <span className="text-[10px] text-slate-500 mr-auto">{gridIndex.toUpperCase()}</span>
+              <GitCompareArrows className="w-4 h-4 text-ops-info" />
+              <span className="text-sm font-semibold text-sahool-text">كشف التغيّر</span>
+              <span className="text-[10px] text-sahool-muted mr-auto">{gridIndex.toUpperCase()}</span>
             </div>
 
             {availableDates.length < 2 ? (
-              <p className="text-[11px] text-slate-500 py-2">
+              <p className="text-[11px] text-sahool-muted py-2">
                 يلزم تاريخان مُعالَجان على الأقلّ لكشف التغيّر. شغّل «تحليل الآن» على تواريخ متعدّدة.
               </p>
             ) : (
               <>
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <label className="block">
-                    <span className="block text-[10px] text-slate-400 mb-1">من (الأقدم)</span>
+                    <span className="block text-[10px] text-sahool-muted mb-1">من (الأقدم)</span>
                     <select value={dateA} onChange={(e)=>setDateA(e.target.value)}
                       className="w-full px-2 py-1.5 rounded-lg text-[11px]"
-                      style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                      style={{ background:'rgb(var(--sahool-surface-2))', border:'1px solid rgb(var(--sahool-border))', color:'rgb(var(--sahool-text))' }}>
                       {availableDates.map((d)=><option key={d} value={d}>{d}</option>)}
                     </select>
                   </label>
                   <label className="block">
-                    <span className="block text-[10px] text-slate-400 mb-1">إلى (الأحدث)</span>
+                    <span className="block text-[10px] text-sahool-muted mb-1">إلى (الأحدث)</span>
                     <select value={dateB} onChange={(e)=>setDateB(e.target.value)}
                       className="w-full px-2 py-1.5 rounded-lg text-[11px]"
-                      style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                      style={{ background:'rgb(var(--sahool-surface-2))', border:'1px solid rgb(var(--sahool-border))', color:'rgb(var(--sahool-text))' }}>
                       {availableDates.map((d)=><option key={d} value={d}>{d}</option>)}
                     </select>
                   </label>
                 </div>
 
                 {dateA === dateB ? (
-                  <p className="text-[11px] text-amber-400/80 py-1">اختر تاريخين مختلفين.</p>
+                  <p className="text-[11px] text-ops-warning/80 py-1">اختر تاريخين مختلفين.</p>
                 ) : changeLoading ? (
-                  <div className="flex justify-center py-3"><Loader2 className="w-4 h-4 text-sky-400 animate-spin" /></div>
+                  <div className="flex justify-center py-3"><Loader2 className="w-4 h-4 text-ops-info animate-spin" /></div>
                 ) : changeError ? (
-                  <p className="text-[11px] text-amber-400/80 py-1">تعذّر حساب التغيّر.</p>
+                  <p className="text-[11px] text-ops-warning/80 py-1">تعذّر حساب التغيّر.</p>
                 ) : change && !change.available ? (
-                  <p className="text-[11px] text-amber-400/80 py-1">
+                  <p className="text-[11px] text-ops-warning/80 py-1">
                     {unavailableFieldChangeMessage(change)}
                   </p>
                 ) : change && change.available && change.verdict_withheld ? (
                   <div className="space-y-1">
-                    <div className="text-base font-bold text-sky-300">
+                    <div className="text-base font-bold text-ops-info">
                       تغيّر: {change.changed_pct == null ? 'غير متاح' : `${change.changed_pct.toFixed(1)}%`}
                     </div>
-                    <p className="text-[10px] text-slate-400">
+                    <p className="text-[10px] text-sahool-muted">
                       اتجاه هذا المؤشّر يتوقّف على السياق (المرحلة والموسم)، فلا يُعرض حكم تحسّن أو تدهور.
                     </p>
                   </div>
@@ -841,17 +841,17 @@ export default function SatellitePage() {
                         <div className="text-[10px] text-red-300/70">تدهور</div>
                       </div>
                     </div>
-                    <div className="flex justify-between text-[10px] text-slate-500">
+                    <div className="flex justify-between text-[10px] text-sahool-muted">
                       <span>مستقرّ: {change.stable_pct == null ? 'غير متاح' : `${change.stable_pct.toFixed(1)}%`}</span>
                       <span>Δ متوسّط: {change.mean_delta == null ? 'غير متاح' : change.mean_delta.toFixed(3)}</span>
                     </div>
                     {change.cloud_warning && (
-                      <p className="text-[10px] text-amber-400/80">
+                      <p className="text-[10px] text-ops-warning/80">
                         ⚠️ {change.coverage_pct == null ? 'تغطية المقارنة غير متاحة' : `تغطية المقارنة ${change.coverage_pct.toFixed(0)}%`} (غيوم/فجوات) — نتيجة جزئيّة.
                       </p>
                     )}
                     {change.interpretation_ar && (
-                      <p className="text-[11px] text-slate-300 leading-relaxed border-t border-slate-700 pt-1.5">
+                      <p className="text-[11px] text-sahool-text leading-relaxed border-t border-sahool-border pt-1.5">
                         {change.interpretation_ar}
                       </p>
                     )}
@@ -867,16 +867,16 @@ export default function SatellitePage() {
 
       {/* Time-series chart — للأوضاع المعتمدة على المؤشّر (لا في اللون الحقيقيّ) */}
       {mode !== 'truecolor' && (
-      <div className="rounded-xl p-4 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+      <div className="rounded-xl p-4 border" style={{ background:'rgb(var(--sahool-surface))', borderColor:'rgb(var(--sahool-border))' }}>
         <div className="flex items-center gap-2 mb-4">
-          <Satellite className="w-4 h-4 text-emerald-400" />
-          <span className="text-sm font-semibold text-slate-200">السلسلة الزمنية — {idx.name}</span>
+          <Satellite className="w-4 h-4 text-sahool-green-dark" />
+          <span className="text-sm font-semibold text-sahool-text">السلسلة الزمنية — {idx.name}</span>
           {rasterPoints.length > 0 && (
             <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-emerald-950 text-emerald-400 border border-emerald-900">
               متوسّطات COG حقيقيّة
             </span>
           )}
-          <span className="text-[10px] text-slate-500 mr-auto">{stripPoints.length} اكتساب</span>
+          <span className="text-[10px] text-sahool-muted mr-auto">{stripPoints.length} اكتساب</span>
         </div>
         {(rasterTsLoading || tsLoading) ? (
           <div className="flex justify-center h-24 items-center"><Loader2 className="w-6 h-6 text-emerald-500 animate-spin" /></div>
@@ -892,9 +892,9 @@ export default function SatellitePage() {
             </LineChart>
           </ResponsiveContainer>
         ) : rasterTsError ? (
-          <div className="text-center py-8 text-amber-400/80 text-sm">تعذّر جلب السلسلة الزمنيّة للمؤشّر.</div>
+          <div className="text-center py-8 text-ops-warning/80 text-sm">تعذّر جلب السلسلة الزمنيّة للمؤشّر.</div>
         ) : (
-          <div className="text-center py-8 text-slate-500 text-sm">
+          <div className="text-center py-8 text-sahool-muted text-sm">
             لا توجد متوسّطات مؤشّر بعد — اضغط "تحليل الآن" لبدء تحليل صور Sentinel-2.
           </div>
         )}

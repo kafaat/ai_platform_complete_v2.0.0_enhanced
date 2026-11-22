@@ -309,7 +309,7 @@ export default function SpatialView() {
     <div dir="rtl" style={{
       fontFamily: "'Noto Kufi Arabic', system-ui, sans-serif",
       background: "linear-gradient(160deg, #14201a 0%, #1c2b22 100%)",
-      minHeight: "100vh", color: "#e8eee9", padding: "24px",
+      minHeight: "100vh", color: "#e8eee9", padding: "clamp(8px, 2vw, 24px)",
     }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;600;800&display=swap');`}</style>
 
@@ -346,11 +346,11 @@ export default function SpatialView() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20 }}>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
         {/* العمود الأيمن: الخريطة */}
         <div>
           {/* اختيار المؤشر — مدفوع بالكتالوج (renderable) ∩ البيانات الوصفيّة المحلّيّة */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
             {indices.map((k) => {
               const v = IND_META[k];
               return (
@@ -451,7 +451,7 @@ export default function SpatialView() {
             const sc = buildIndicatorScale(activeKey);
             const mean = Number.isFinite(fieldStats.mean) ? fieldStats.mean : null;
             return (
-              <div style={{ marginTop: 14, background: "#1a2b21", border: "1px solid #2d4a37", borderRadius: 12, padding: 14, display: "grid", gap: 12 }}>
+              <div style={{ marginTop: 14, background: "rgb(var(--sahool-surface))", border: "1px solid rgb(var(--sahool-border))", borderRadius: 12, padding: 14, display: "grid", gap: 12 }}>
                 <GradientScale
                   title={`سلّم ${idx.name}`}
                   colors={sc.gradient}
@@ -463,8 +463,8 @@ export default function SpatialView() {
                 />
                 <SegmentedScale bands={sc.bands} value={mean} title="التصنيف" />
                 <div style={{ borderTop: "1px solid #2d4a37", paddingTop: 10 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: "#7fae8c", marginBottom: 4 }}>كيف نقرأ المؤشّر الحاليّ؟</div>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.7, color: "#cbd5e1" }}>{sc.howToRead}</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "rgb(var(--sahool-text))", marginBottom: 4 }}>كيف نقرأ المؤشّر الحاليّ؟</div>
+                  <div style={{ fontSize: 11.5, lineHeight: 1.7, color: "rgb(var(--sahool-muted))" }}>{sc.howToRead}</div>
                 </div>
               </div>
             );

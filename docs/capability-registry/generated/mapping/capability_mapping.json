@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7616,
+    "files_scanned": 7631,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2643,
-      "web": 558
+      "tests": 2649,
+      "web": 567
     },
-    "unmapped_artifacts": 3626,
+    "unmapped_artifacts": 3639,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4137,
-      "raw": 3479
+      "python_functional": 4138,
+      "raw": 3493
     },
-    "test_dependency_files": 2016,
-    "test_dependency_edges": 5382,
+    "test_dependency_files": 2017,
+    "test_dependency_edges": 5385,
     "test_dependency_bounded_files": 1167,
     "test_dependency_unresolved_relations": 513
   },
@@ -4061,11 +4061,11 @@
           "score": 10
         },
         {
-          "value": "field.create @ frontend/e2e/support/seed.ts:151",
+          "value": "field.create @ frontend/e2e/support/seed.ts:149",
           "score": 9
         },
         {
-          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:134",
+          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:132",
           "score": 9
         },
         {
@@ -4217,6 +4217,14 @@
         },
         {
           "path": "frontend/src/lib/permissions.ts",
+          "score": 9,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "path": "frontend/src/sections/ReviewContrast.test.tsx",
           "score": 9,
           "signals": [
             "content:farm",
@@ -5188,7 +5196,7 @@
         "routes": 45,
         "database": 100,
         "events": 33,
-        "web": 19,
+        "web": 20,
         "mobile": 35,
         "tests": 56,
         "governance": 0,
@@ -28114,6 +28122,16 @@
           ]
         },
         {
+          "path": "frontend/e2e/mfa-enrollment-contrast.spec.ts",
+          "score": 17,
+          "signals": [
+            "path:MFA",
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:totp"
+          ]
+        },
+        {
           "path": "tests_v9/test_auth_admin_stepup_mfa.py",
           "score": 17,
           "signals": [
@@ -28306,7 +28324,7 @@
         "events": 1,
         "web": 5,
         "mobile": 5,
-        "tests": 14,
+        "tests": 15,
         "governance": 0,
         "other_evidence": 11
       },
@@ -31682,11 +31700,11 @@
           "score": 10
         },
         {
-          "value": "field.create @ frontend/e2e/support/seed.ts:151",
+          "value": "field.create @ frontend/e2e/support/seed.ts:149",
           "score": 10
         },
         {
-          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:134",
+          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:132",
           "score": 10
         },
         {
@@ -33408,6 +33426,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/e2e/pivot-designer.spec.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/e2e/reset-link-with-session.spec.ts",
       "kind": "tests"
     },
@@ -33449,6 +33471,10 @@
     },
     {
       "path": "frontend/postcss.config.js",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/public/theme-init.v1.js",
       "kind": "web"
     },
     {
@@ -33622,6 +33648,10 @@
     {
       "path": "frontend/src/components/ds/modal.tsx",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/ds/onGold.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/components/ds/status.test.ts",
@@ -33908,6 +33938,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/maphub/FreehandBoundary.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/FreehandBoundary.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/maphub/GridSamplingDetails.test.tsx",
       "kind": "web"
     },
@@ -33956,6 +33994,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/src/components/maphub/MeasureTools.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/maphub/OperationalOverlay.static.test.ts",
       "kind": "tests"
     },
@@ -33969,6 +34011,10 @@
     },
     {
       "path": "frontend/src/components/maphub/OverlayMarkers.xss.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/PivotPlacementControl.tsx",
       "kind": "web"
     },
     {
@@ -34009,6 +34055,14 @@
     },
     {
       "path": "frontend/src/components/maphub/captureTime.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/circleBoundary.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawFeatureStyle.ts",
       "kind": "web"
     },
     {
@@ -34350,6 +34404,10 @@
     {
       "path": "frontend/src/hooks/useSpecialtyCrops.ts",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/hooks/useTheme.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/hooks/useTheme.ts",
@@ -35709,6 +35767,14 @@
     },
     {
       "path": "frontend/src/sections/maphub/mapClutterControl.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/maphub/pivotDraftSave.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/sections/maphub/pivotDraftSave.ts",
       "kind": "web"
     },
     {
@@ -45313,6 +45379,10 @@
     },
     {
       "path": "tests_v9/test_edge_pest_label_manifest.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_edge_replay_json_types.py",
       "kind": "tests"
     },
     {
@@ -82693,6 +82763,31 @@
       ]
     },
     {
+      "test": "tests_v9/test_edge_replay_json_types.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 29
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 30
+        },
+        {
+          "source": "services/sahool-platform/api/routers/edge.py",
+          "kind": "import",
+          "line": 30
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_edge_sync_recovery.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -82737,22 +82832,22 @@
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "loader",
-          "line": 69
+          "line": 74
         },
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "source_read",
-          "line": 70
+          "line": 75
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 91
+          "line": 96
         }
       ],
       "unresolved": [
         {
-          "line": 39,
+          "line": 44,
           "call": "import_module"
         }
       ]

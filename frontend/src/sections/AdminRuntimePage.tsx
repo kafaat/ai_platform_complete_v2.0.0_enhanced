@@ -50,7 +50,7 @@ export default function AdminRuntimePage() {
   return (
     <div className="p-4 flex flex-col gap-3" data-testid="admin-runtime">
       <h1 className="inline-flex items-center gap-2 text-lg font-bold" style={{ color: T.ink }}>
-        <ServerCog className="w-5 h-5 text-emerald-300" aria-hidden="true" /> تشغيل المنصّة (Runtime)
+        <ServerCog className="w-5 h-5 text-sahool-green-dark" aria-hidden="true" /> تشغيل المنصّة (Runtime)
       </h1>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

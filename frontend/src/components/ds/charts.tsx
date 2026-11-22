@@ -81,12 +81,12 @@ export function ChartShell({
   }
 
   return (
-    <div className="rounded-xl p-4 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
+    <div className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
       {(title || action) && (
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-2">
-            {Icon && <Icon className="w-4 h-4 text-emerald-400" aria-hidden="true" />}
-            {title && <span className="text-sm font-semibold text-slate-200">{title}</span>}
+            {Icon && <Icon className="w-4 h-4 text-sahool-green-dark" aria-hidden="true" />}
+            {title && <span className="text-sm font-semibold text-sahool-text">{title}</span>}
           </div>
           {action}
         </div>

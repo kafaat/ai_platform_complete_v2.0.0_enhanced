@@ -102,7 +102,7 @@ export default function ApprovalsConsolePage() {
   return (
     <div className="p-4 flex flex-col gap-3" data-testid="approvals-console">
       <h1 className="inline-flex items-center gap-2 text-lg font-bold" style={{ color: T.ink }}>
-        <ShieldCheck className="w-5 h-5 text-emerald-300" aria-hidden="true" /> كونسول الموافقات
+        <ShieldCheck className="w-5 h-5 text-sahool-green-dark" aria-hidden="true" /> كونسول الموافقات
       </h1>
 
 

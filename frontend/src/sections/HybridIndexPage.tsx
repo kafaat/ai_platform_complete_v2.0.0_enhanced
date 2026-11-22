@@ -60,7 +60,7 @@ const PRESENTATION: Record<string, Presentation> = {
   wind_speed:  { cat:'weather', desc_ar:'سرعة الرياح',            icon:Wind,        color:'#93c5fd' },
 };
 
-const DEFAULT_PRESENTATION: Presentation = { icon: Activity, color: '#64748b', desc_ar: '', cat: 'operations' };
+const DEFAULT_PRESENTATION: Presentation = { icon: Activity, color: 'rgb(var(--sahool-muted))', desc_ar: '', cat: 'operations' };
 
 // معرّف لا يعرفه جدول العرض ⇒ عرض افتراضيّ محايد بدل الإخفاء.
 const presentationFor = (id: string): Presentation => PRESENTATION[id] ?? DEFAULT_PRESENTATION;
@@ -78,7 +78,7 @@ const CATEGORIES = [
 function AvailabilityBadge({ indicator }: { indicator: RegistryIndicator }) {
   if (indicator.availability === 'unavailable') {
     return (
-      <span className="px-1.5 py-0.5 text-[9px] rounded-full bg-slate-200 text-slate-500 font-medium whitespace-nowrap">
+      <span className="px-1.5 py-0.5 text-[9px] rounded-full bg-slate-200 text-sahool-muted font-medium whitespace-nowrap">
         غير متاح بعد
       </span>
     );
@@ -123,8 +123,8 @@ function exportToCSV(data: Record<string, unknown>[], filename: string) {
 
 // قيمة رقميّة أو "—" صادقة (للحقول التي لم تُشغَّل لها المحاكاة بعد).
 function NumOrDash({ value, digits = 1, suffix }: { value: number | null; digits?: number; suffix?: string }) {
-  if (value == null) return <span className="text-slate-300">—</span>;
-  return <span>{value.toFixed(digits)}{suffix ? <span className="text-xs text-slate-400 mr-1">{suffix}</span> : null}</span>;
+  if (value == null) return <span className="text-sahool-text">—</span>;
+  return <span>{value.toFixed(digits)}{suffix ? <span className="text-xs text-sahool-muted mr-1">{suffix}</span> : null}</span>;
 }
 
 // ── صفّ موسم حقل واحد (يستدعي useSeasons لذلك الحقل — hook لكلّ صفّ، قانونيّ) ──
@@ -145,7 +145,7 @@ function WofostFieldRow({ field }: { field: Record<string, unknown> }) {
     return (
       <tr className="border-b border-slate-50">
         <td className="py-2 px-3 font-medium text-slate-800 text-xs">{fieldName}</td>
-        <td colSpan={6} className="py-2 px-3 text-xs text-slate-400">
+        <td colSpan={6} className="py-2 px-3 text-xs text-sahool-muted">
           <RefreshCw className="inline w-3 h-3 animate-spin ml-1" /> جارٍ التحميل…
         </td>
       </tr>
@@ -156,8 +156,8 @@ function WofostFieldRow({ field }: { field: Record<string, unknown> }) {
     return (
       <tr className="border-b border-slate-50">
         <td className="py-2 px-3 font-medium text-slate-800 text-xs">{fieldName}</td>
-        <td className="py-2 px-3 text-slate-600 text-xs">{crop}</td>
-        <td colSpan={5} className="py-2 px-3 text-xs text-slate-300">
+        <td className="py-2 px-3 text-sahool-muted text-xs">{crop}</td>
+        <td colSpan={5} className="py-2 px-3 text-xs text-sahool-text">
           {isError ? 'تعذّر جلب المواسم' : 'لا موسم مُسجَّل'}
         </td>
       </tr>
@@ -170,7 +170,7 @@ function WofostFieldRow({ field }: { field: Record<string, unknown> }) {
   return (
     <tr className="border-b border-slate-50 hover:bg-emerald-50/30 transition-colors">
       <td className="py-2 px-3 font-medium text-slate-800 text-xs">{fieldName}</td>
-      <td className="py-2 px-3 text-slate-600 text-xs">{seasonCrop}</td>
+      <td className="py-2 px-3 text-sahool-muted text-xs">{seasonCrop}</td>
       <td className="py-2 px-3 text-slate-700 font-mono text-xs">
         <NumOrDash value={season.sim_gdd_total} digits={0} />
       </td>
@@ -187,10 +187,10 @@ function WofostFieldRow({ field }: { field: Record<string, unknown> }) {
             <span className="font-bold text-emerald-700 text-sm">
               {kgHaToTHa(season.sim_yield_kg_ha)!.toFixed(1)}
             </span>
-            <span className="text-xs text-slate-400 mr-1">t/ha</span>
+            <span className="text-xs text-sahool-muted mr-1">t/ha</span>
           </>
         ) : (
-          <span className="text-slate-300">—</span>
+          <span className="text-sahool-text">—</span>
         )}
       </td>
       <td className="py-2 px-3">
@@ -272,14 +272,14 @@ export function HybridIndexPage() {
     <div className="flex items-center justify-center py-20" dir="rtl">
       <div className="text-center">
         <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin mx-auto mb-3" />
-        <p className="text-sm text-slate-500">جارٍ تحميل لوحة المؤشّرات…</p>
+        <p className="text-sm text-sahool-muted">جارٍ تحميل لوحة المؤشّرات…</p>
       </div>
     </div>
   );
 
   if (error) return (
     <div className="flex flex-col items-center justify-center py-20" dir="rtl">
-      <AlertTriangle className="w-10 h-10 text-red-400 mb-2" />
+      <AlertTriangle className="w-10 h-10 text-ops-danger mb-2" />
       <p className="text-red-600 font-medium">فشل تحميل البيانات</p>
       <button onClick={() => refetch()} className="mt-3 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm">
         إعادة المحاولة
@@ -296,7 +296,7 @@ export function HybridIndexPage() {
             <LayoutDashboard className="w-7 h-7 text-emerald-600" />
             لوحة المؤشّرات
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-sahool-muted mt-1">
             عدّادات حيّة من حقولك · المؤشّرات الطيفيّة لكلّ حقل من شاشة الأقمار
           </p>
         </div>
@@ -306,7 +306,7 @@ export function HybridIndexPage() {
               الحقيقيّة للصور التاريخيّة في شاشة الأقمار (3/6/12/24 شهراً). */}
           <button onClick={() => refetch()}
             className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">
-            <RefreshCw className="w-4 h-4 text-slate-500" />
+            <RefreshCw className="w-4 h-4 text-sahool-muted" />
           </button>
           {/* Export */}
           <div className="relative">
@@ -318,9 +318,9 @@ export function HybridIndexPage() {
               {showExportMenu && (
                 <motion.div initial={{ opacity:0, y:-8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-8 }}
                   className="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-xl border border-slate-200 z-30 py-1">
-                  <button onClick={doExportKPIs}   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"><FileText className="w-4 h-4" /> المؤشرات (CSV)</button>
-                  <button onClick={doExportFields} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"><FileText className="w-4 h-4" /> الحقول (CSV)</button>
-                  <button onClick={() => { window.print(); setExport(false); }} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"><BarChart3 className="w-4 h-4" /> طباعة التقرير</button>
+                  <button onClick={doExportKPIs}   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-sahool-muted hover:bg-emerald-50 hover:text-emerald-700"><FileText className="w-4 h-4" /> المؤشرات (CSV)</button>
+                  <button onClick={doExportFields} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-sahool-muted hover:bg-emerald-50 hover:text-emerald-700"><FileText className="w-4 h-4" /> الحقول (CSV)</button>
+                  <button onClick={() => { window.print(); setExport(false); }} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-sahool-muted hover:bg-emerald-50 hover:text-emerald-700"><BarChart3 className="w-4 h-4" /> طباعة التقرير</button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -332,7 +332,7 @@ export function HybridIndexPage() {
       <div className="grid grid-cols-2 gap-4">
         {[
           { key:'active', label:'حقول بموسم نشط', Icon:CheckCircle2,  color:'#16a34a', bg:'bg-emerald-50', text:'text-emerald-700' },
-          { key:'idle',   label:'حقول بلا موسم',  Icon:Timer,         color:'#64748b', bg:'bg-slate-50',   text:'text-slate-600' },
+          { key:'idle',   label:'حقول بلا موسم',  Icon:Timer,         color:'rgb(var(--sahool-muted))', bg:'bg-slate-50',   text:'text-slate-600' },
         ].map(s => (
           <motion.div key={s.key} whileHover={{ scale:1.02 }} className={`rounded-xl border-2 p-4 ${s.bg} border-current`}>
             <div className="flex items-center justify-between">
@@ -351,7 +351,7 @@ export function HybridIndexPage() {
 
       {/* ── Category filter ── */}
       <div className="flex items-center gap-2 flex-wrap">
-        <Filter className="w-4 h-4 text-slate-400" />
+        <Filter className="w-4 h-4 text-sahool-muted" />
         {CATEGORIES.map(c => (
           <button key={c.id} onClick={() => setCategory(c.id)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
@@ -363,7 +363,7 @@ export function HybridIndexPage() {
             {c.label}
           </button>
         ))}
-        <span className="text-xs text-slate-400 mr-auto">{filtered.length} مؤشر</span>
+        <span className="text-xs text-sahool-muted mr-auto">{filtered.length} مؤشر</span>
       </div>
 
       {/* ── KPI Grid (حيّ — بلا sparklines مُلفَّقة) ── */}
@@ -377,7 +377,7 @@ export function HybridIndexPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-sm text-slate-400">
+        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-sm text-sahool-muted">
           لا مؤشّرات لعرضها لهذه الفئة بعد.
         </div>
       )}
@@ -391,7 +391,7 @@ export function HybridIndexPage() {
             const ndviKpi = kpis.find((k: Record<string,unknown>) => k.id === 'ndvi');
             return ndviKpi ? Number(ndviKpi.value) : 0;
           })()} size={220} />
-          <p className="text-[11px] text-slate-400 mt-2 text-center">
+          <p className="text-[11px] text-sahool-muted mt-2 text-center">
             {kpis.some((k) => k.id === 'ndvi')
               ? 'متوسّط NDVI'
               : 'NDVI لكلّ حقل من شاشة الأقمار'}
@@ -427,17 +427,17 @@ export function HybridIndexPage() {
             <Sprout className="w-4 h-4 text-emerald-600" />
             محاكاة المواسم — تقديرات المحصول (RUE/FAO-56)
           </h3>
-          <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">من /api/v1/seasons/simulate</span>
+          <span className="text-xs text-sahool-muted bg-slate-100 px-2 py-1 rounded-full">من /api/v1/seasons/simulate</span>
         </div>
         {fields.length === 0 ? (
-          <p className="text-sm text-slate-400 py-6 text-center">لا حقول مُسجَّلة بعد — أضِف حقلاً وموسماً لعرض المحاكاة.</p>
+          <p className="text-sm text-sahool-muted py-6 text-center">لا حقول مُسجَّلة بعد — أضِف حقلاً وموسماً لعرض المحاكاة.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100">
                   {['الحقل','المحصول','GDD','احتياج الماء','LAI أقصى','الإنتاجية','المصدر'].map(h => (
-                    <th key={h} className="text-right py-2 px-3 text-xs font-medium text-slate-500">{h}</th>
+                    <th key={h} className="text-right py-2 px-3 text-xs font-medium text-sahool-muted">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -447,7 +447,7 @@ export function HybridIndexPage() {
                 ))}
               </tbody>
             </table>
-            <p className="text-[11px] text-slate-400 mt-3">
+            <p className="text-[11px] text-sahool-muted mt-3">
               القيم تقديرات نموذجيّة (بنطاق وثقة) تظهر بعد تشغيل المحاكاة للموسم؛ "—" تعني عدم تشغيلها بعد.
             </p>
           </div>
@@ -458,11 +458,11 @@ export function HybridIndexPage() {
       <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
           <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-            <Info className="w-4 h-4 text-slate-500" /> دليل المؤشرات
+            <Info className="w-4 h-4 text-sahool-muted" /> دليل المؤشرات
           </h3>
           {registry.data && (
             <span
-              className="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-full font-mono"
+              className="text-[10px] text-sahool-muted bg-slate-100 px-2 py-1 rounded-full font-mono"
               title="علامة حداثة الـmanifest — بادئة digest بطول 12">
               نسخة السجلّ: {registry.data.registry_version || '—'}
             </span>
@@ -471,7 +471,7 @@ export function HybridIndexPage() {
 
         {registry.loading ? (
           // تحميل: مؤشّر صادق، لا نعرض قائمة ثابتة كأنّها السجلّ.
-          <div className="py-8 text-center text-sm text-slate-400">
+          <div className="py-8 text-center text-sm text-sahool-muted">
             <RefreshCw className="inline w-4 h-4 animate-spin ml-1" /> جارٍ تحميل سجلّ المؤشّرات…
           </div>
         ) : registry.error || !registry.data ? (
@@ -499,8 +499,8 @@ export function HybridIndexPage() {
                       <span className="font-semibold text-slate-700 text-xs">{ind.name_ar}</span>
                       <AvailabilityBadge indicator={ind} />
                     </div>
-                    <p className="text-[11px] text-slate-400 leading-tight">{p.desc_ar || ind.name_en}</p>
-                    {ind.unit && <span className="text-[10px] text-slate-300">وحدة: {ind.unit}</span>}
+                    <p className="text-[11px] text-sahool-muted leading-tight">{p.desc_ar || ind.name_en}</p>
+                    {ind.unit && <span className="text-[10px] text-sahool-text">وحدة: {ind.unit}</span>}
                   </div>
                 </div>
               );
