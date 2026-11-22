@@ -169,6 +169,8 @@ class WorkOrderFromRecommendationRequest(BaseModel):
 
     field_id: str
     recommendation: dict = Field(default_factory=dict)
+    # G3 (F-D06): خطوة صريحة — مهمّة حقل من أمر العمل، خلف WORK_ORDER_FIELD_TASK_LINK_ENABLED.
+    create_field_task: bool = False
 
 
 # ════════════════════════════════════════════════════════════
@@ -393,6 +395,7 @@ async def work_order_from_recommendation_endpoint(
     work_order_id = None
     if wo is not None:
         work_order_id = await _persist_work_order(user, wo, idem)
+    field_task = await _field_task_step(user, work_order_id, req.create_field_task)
     return {
         "inferred": wo is not None,
         # persisted=true فقط حين أُدرِج صفّ فعليّاً (وأُصدِر حدثه). الاستنتاج بلا قاعدة
@@ -400,6 +403,17 @@ async def work_order_from_recommendation_endpoint(
         "persisted": work_order_id is not None,
         "work_order_id": work_order_id,
         "work_order": wo,
+        # G3 (F-D06): ما جرى لمهمّة الحقل (requested/created/replayed/task_id/reason) وسلسلة
+        # المعرّفات توصية ⇐ قرار ⇐ أمر عمل ⇐ مهمّة. لا مهمّة بلا طلب صريح ورايةٍ مفعّلة.
+        "field_task": field_task,
+        "chain": None
+        if wo is None
+        else {
+            "recommendation_id": wo.get("recommendation_id"),
+            "decision_id": (wo.get("payload") or {}).get("decision_id"),
+            "work_order_id": work_order_id,
+            "task_id": field_task["task_id"],
+        },
     }
 
 
@@ -539,3 +553,32 @@ def _field_bound_limitations(derived: dict) -> list[dict]:
             }
         )
     return out
+
+
+# ════════════════════════════════════════════════════════════
+# G3 (F-D06) — أمر العمل ⇐ مهمّة حقل: خطوة صريحة خلف راية مُطفأة افتراضاً
+# ════════════════════════════════════════════════════════════
+# في آخر الملفّ كي لا تنزاح مراسي أسطر النقاط في ``platform_extraction_map.json``.
+async def _field_task_step(user: UserSchema, work_order_id: str | None, requested: bool) -> dict:
+    """يُنشئ مهمّة الحقل من أمر العمل المُثبَّت حين طُلِبت صراحةً، ويقول ما جرى.
+
+    لا طلب ⇒ ``not_requested``؛ أمر عمل لم يُثبَّت ⇒ ``work_order_not_persisted``؛ وإلّا
+    تتولّى ``create_field_task_from_work_order`` الراية والعزل واللاتكرار. 404/409 تُرفَع كما
+    هي؛ تعذّر القاعدة لا يكسر جواب أمر العمل المُثبَّت بل يُعلَن ``unavailable``.
+    """
+    from api.routers.tasks import create_field_task_from_work_order
+
+    answer = {"requested": requested, "created": False, "replayed": False, "task_id": None}
+    if not requested:
+        return {**answer, "reason": "not_requested"}
+    if work_order_id is None:
+        return {**answer, "reason": "work_order_not_persisted"}
+    try:
+        return await create_field_task_from_work_order(user, work_order_id)
+    except HTTPException as exc:
+        if exc.status_code in {403, 404, 409}:
+            raise
+        logger.warning("field task from work order unavailable: %s", exc.status_code)
+    except Exception:  # noqa: BLE001 — أمر العمل مُثبَّت؛ المهمّة تُعلَن غير منشأة بصدق
+        logger.warning("field task from work order failed", exc_info=True)
+    return {**answer, "reason": "unavailable"}
