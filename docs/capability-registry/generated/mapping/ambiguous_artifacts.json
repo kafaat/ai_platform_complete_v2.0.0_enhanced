@@ -4746,6 +4746,36 @@
     ]
   },
   {
+    "path": "services/sahool-platform/api/routers/regional_bulletin.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "FM-002",
+        "score": 10,
+        "signals": [
+          "content:farm",
+          "content:farms"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 8,
+        "signals": [
+          "content:rls",
+          "content:Tenant RLS"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "dedup:NDVI=ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/api/routers/reports.py",
     "kind": "backend",
     "candidates": [
@@ -5423,28 +5453,6 @@
         "signals": [
           "content:dem",
           "content:slope"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "services/sahool-platform/tests/test_regional_bulletin_route.py",
-    "kind": "tests",
-    "candidates": [
-      {
-        "capability_id": "FM-002",
-        "score": 11,
-        "signals": [
-          "content:farm",
-          "content:farms"
-        ]
-      },
-      {
-        "capability_id": "SAT-003",
-        "score": 8,
-        "signals": [
-          "content:NDVI",
-          "dedup:NDVI=ndvi"
         ]
       }
     ]

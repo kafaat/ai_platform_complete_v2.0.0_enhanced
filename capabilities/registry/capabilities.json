@@ -250,13 +250,13 @@
         "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
         "services/sahool-platform/tests/test_simple_farm_book.py",
         "shared/test_autonomous_farm_os_phase9.py",
+        "tests_v9/test_farm_access_backfill_diff.py",
+        "tests_v9/test_farm_access_scope.py",
+        "tests_v9/test_farm_access_scope_live_pg.py",
         "tests_v9/test_farm_book_corrections_and_categories.py",
         "tests_v9/test_farm_book_receipt_field.py",
         "tests_v9/test_farm_book_receipt_scope_live_pg.py",
-        "tests_v9/test_farm_book_settlement_guards_live_pg.py",
-        "tests_v9/test_farm_ledger_cost_coverage_live_pg.py",
-        "tests_v9/test_farm_memory.py",
-        "tests_v9/test_farm_water_ledger_projection.py"
+        "tests_v9/test_farm_book_settlement_guards_live_pg.py"
       ],
       "runtime": {
         "metrics": [],
@@ -298,7 +298,7 @@
         "Farmonaut": "3"
       },
       "evidence_truncated": {
-        "tests": 1,
+        "tests": 4,
         "mobile_consumers": 2
       }
     },
@@ -1879,8 +1879,8 @@
         "tests_v9/test_backfill_scene_job_threadpool_v30_3.py",
         "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py",
         "tests_v9/test_decision_review_backfill_verify.py",
-        "tests_v9/test_field_timeline_tenant_scope_live_pg.py",
-        "tests_v9/test_historical_imagery_timeline_contract.py"
+        "tests_v9/test_farm_access_backfill_diff.py",
+        "tests_v9/test_field_timeline_tenant_scope_live_pg.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1919,7 +1919,7 @@
         "Farmonaut": "3"
       },
       "evidence_truncated": {
-        "tests": 5
+        "tests": 6
       }
     },
     {

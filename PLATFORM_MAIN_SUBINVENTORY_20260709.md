@@ -3,8 +3,8 @@
 ## Summary
 
 - File: `services/sahool-platform/api/main.py`
-- Total lines: `2550`
-- Import lines: `148`
+- Total lines: `2553`
+- Import lines: `149`
 - Top-level symbols: `46`
 - Direct route decorators: `0`
 - Status: `route_free_with_embedded_business_logic`
@@ -18,7 +18,7 @@
 | `auth_jwt_permissions` | `security_runtime` | 8 | 163 |
 | `parsers_mappers_serializers` | `compatibility_runtime` | 8 | 161 |
 | `misc_bootstrap_compatibility` | `bootstrap_compatibility` | 10 | 142 |
-| `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 6 | 92 |
+| `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 6 | 94 |
 | `middleware_and_rate_limit` | `middleware_runtime` | 1 | 41 |
 | `workflow_compatibility` | `compatibility_runtime` | 2 | 34 |
 | `shutdown_hooks` | `bootstrap_runtime` | 1 | 5 |
@@ -34,25 +34,25 @@
 | Symbol | Category | Classification | LOC | Lines |
 |---|---|---|---:|---|
 | `_start_scheduler` | `idempotency_outbox_events` | `embedded_business_logic` | 229 | 292-520 |
-| `_evaluate_field_alerts_persist` | `field_task_alert_helpers` | `embedded_business_logic` | 181 | 1674-1854 |
-| `_log_alert_deliveries` | `field_task_alert_helpers` | `embedded_business_logic` | 60 | 1602-1661 |
+| `_evaluate_field_alerts_persist` | `field_task_alert_helpers` | `embedded_business_logic` | 181 | 1677-1857 |
+| `_log_alert_deliveries` | `field_task_alert_helpers` | `embedded_business_logic` | 60 | 1605-1664 |
 | `_start_outbox_worker` | `idempotency_outbox_events` | `embedded_business_logic` | 47 | 533-579 |
-| `get_current_user` | `auth_jwt_permissions` | `security_runtime` | 46 | 1139-1184 |
-| `_emit_domain_event` | `idempotency_outbox_events` | `embedded_business_logic` | 45 | 703-747 |
-| `require_permission` | `auth_jwt_permissions` | `security_runtime` | 45 | 1197-1241 |
-| `rate_limit_middleware` | `middleware_and_rate_limit` | `middleware_runtime` | 41 | 859-899 |
+| `get_current_user` | `auth_jwt_permissions` | `security_runtime` | 46 | 1142-1187 |
+| `_emit_domain_event` | `idempotency_outbox_events` | `embedded_business_logic` | 45 | 705-749 |
+| `require_permission` | `auth_jwt_permissions` | `security_runtime` | 45 | 1200-1244 |
+| `rate_limit_middleware` | `middleware_and_rate_limit` | `middleware_runtime` | 41 | 862-902 |
 | `_init_db_pool` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 39 | 241-279 |
-| `_reverse_geocode` | `parsers_mappers_serializers` | `compatibility_runtime` | 29 | 1289-1317 |
-| `_build_denylist` | `auth_jwt_permissions` | `security_runtime` | 27 | 1107-1133 |
-| `_row_to_task` | `parsers_mappers_serializers` | `compatibility_runtime` | 26 | 1469-1494 |
-| `_build_walk_plan` | `field_task_alert_helpers` | `embedded_business_logic` | 26 | 2105-2130 |
-| `tenant_connection` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 24 | 646-669 |
-| `_row_to_activity` | `parsers_mappers_serializers` | `compatibility_runtime` | 24 | 1431-1454 |
-| `_row_to_soil_test` | `parsers_mappers_serializers` | `compatibility_runtime` | 24 | 1510-1533 |
+| `_reverse_geocode` | `parsers_mappers_serializers` | `compatibility_runtime` | 29 | 1292-1320 |
+| `_build_denylist` | `auth_jwt_permissions` | `security_runtime` | 27 | 1110-1136 |
+| `tenant_connection` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 26 | 646-671 |
+| `_row_to_task` | `parsers_mappers_serializers` | `compatibility_runtime` | 26 | 1472-1497 |
+| `_build_walk_plan` | `field_task_alert_helpers` | `embedded_business_logic` | 26 | 2108-2133 |
+| `_row_to_activity` | `parsers_mappers_serializers` | `compatibility_runtime` | 24 | 1434-1457 |
+| `_row_to_soil_test` | `parsers_mappers_serializers` | `compatibility_runtime` | 24 | 1513-1536 |
 | `_lifespan` | `misc_bootstrap_compatibility` | `bootstrap_compatibility` | 23 | 179-201 |
-| `_build_versioned_update` | `misc_bootstrap_compatibility` | `bootstrap_compatibility` | 23 | 1022-1044 |
-| `_get_workflow_store` | `workflow_compatibility` | `compatibility_runtime` | 23 | 2482-2504 |
-| `_build_rate_redis` | `misc_bootstrap_compatibility` | `bootstrap_compatibility` | 21 | 812-832 |
+| `_build_versioned_update` | `misc_bootstrap_compatibility` | `bootstrap_compatibility` | 23 | 1025-1047 |
+| `_get_workflow_store` | `workflow_compatibility` | `compatibility_runtime` | 23 | 2485-2507 |
+| `_build_rate_redis` | `misc_bootstrap_compatibility` | `bootstrap_compatibility` | 21 | 815-835 |
 
 ## Recommendations
 

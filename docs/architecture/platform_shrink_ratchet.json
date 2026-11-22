@@ -477,6 +477,13 @@
       "owner": "EDGE-DETECTION-PROVENANCE",
       "reason": "نسبُ كشف الحافّة (v239): صفٌّ لكلّ كشفٍ يكتبه مسارُ الإدخال القائم POST /api/v1/edge/sync في معاملة edge_results نفسها (edge_results مملوكٌ للمنصّة منذ v9) — بلا مسارٍ جديد. موضعُه المنصّة لأنّ الجدولَ الذي يشرحه مملوكٌ لها ومفتاحه الأجنبيّ المركّب (edge_result_id, tenant_id) يربطه به؛ الإغلاق بانتقال edge_results ونسبه معاً إلى خدمةٍ مالكة لإدخال الحافّة، لا بإعفاء عدّ. فرعُ فكّ تجميدٍ محلّيّ — لا يُدمَج قبل حكم GATE-01.",
       "target_close_by": "2026-12-31"
+    },
+    {
+      "category": "platform_domain_table_ownership",
+      "identity": "farm_access_grants",
+      "owner": "service-center-SC-2",
+      "reason": "Service Center SC-1, owner decisions A and C (v287): per-farm grants keyed by the JWT sub that the platform's own RLS policies (farms, fields, seasons, field_tasks, farm_ledger_entries) read while SAHOOL_FARM_SCOPE_ENFORCE is on (default off). The platform owns it because it is the policy reader and decision A keeps the platform the only writer of its tables; the sole writer is api.farm_scope.insert_tenant_grants, called by the operator backfill. No route writes it; while SAHOOL_FARM_SCOPE_ENFORCE is on, tenant_connection reads it on every request. Close by an owner decision in SC-2 on where grant administration lives (the service-center service or auth), moving ownership there, or by lowering it into the baseline with that decision; an identity exception, not a count waiver.",
+      "target_close_by": "2027-02-28"
     }
   ],
   "exception_contract": {

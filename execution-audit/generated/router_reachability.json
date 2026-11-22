@@ -388,7 +388,7 @@
     },
     {
       "kind": "app",
-      "line": 54,
+      "line": 52,
       "module": "services.rag-retrieval.main",
       "node_id": "services.rag-retrieval.main:app",
       "route_count": 5,
@@ -1756,7 +1756,7 @@
     },
     {
       "kind": "router",
-      "line": 31,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.regional_bulletin",
       "node_id": "services.sahool-platform.api.routers.regional_bulletin:router",
       "route_count": 1,
@@ -1927,7 +1927,7 @@
     },
     {
       "kind": "router",
-      "line": 57,
+      "line": 49,
       "module": "services.sahool-platform.api.routers.simulate",
       "node_id": "services.sahool-platform.api.routers.simulate:router",
       "route_count": 1,
@@ -3045,7 +3045,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "7d70919fa5a43e662917f57f30337899527a240eb6cd8e7169e98cd0ee42c39d",
+  "inventory_sha256": "85c5d607a9ecb53576ac1de1924de2328040cf727a5962e9833e92e326ebee9e",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {
@@ -4731,7 +4731,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 31,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.regional_bulletin",
       "node_id": "services.sahool-platform.api.routers.regional_bulletin:router",
       "route_count": 1,
@@ -4921,7 +4921,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 57,
+      "line": 49,
       "module": "services.sahool-platform.api.routers.simulate",
       "node_id": "services.sahool-platform.api.routers.simulate:router",
       "route_count": 1,

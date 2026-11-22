@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7654,
+    "files_scanned": 7656,
     "files_by_kind": {
-      "backend": 1311,
-      "database": 352,
+      "backend": 1312,
+      "database": 354,
       "governance": 90,
       "mobile": 429,
-      "other": 2238,
-      "tests": 2662,
-      "web": 572
+      "other": 2242,
+      "tests": 2661,
+      "web": 568
     },
-    "unmapped_artifacts": 3652,
+    "unmapped_artifacts": 3648,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4152,
-      "raw": 3502
+      "python_functional": 4156,
+      "raw": 3500
     },
     "test_dependency_files": 2026,
-    "test_dependency_edges": 5421,
+    "test_dependency_edges": 5429,
     "test_dependency_bounded_files": 1170,
-    "test_dependency_unresolved_relations": 517
+    "test_dependency_unresolved_relations": 516
   },
   "capabilities": [
     {
@@ -3013,6 +3013,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/farm_scope.py",
+          "score": 17,
+          "signals": [
+            "path:farm",
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "services/sahool-platform/core/farm_operations_ledger.py",
           "score": 17,
           "signals": [
@@ -3099,14 +3108,6 @@
           "signals": [
             "path:farm",
             "content:farm"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/api/routers/regional_bulletin.py",
-          "score": 12,
-          "signals": [
-            "content:farm",
-            "content:farms"
           ]
         },
         {
@@ -3255,6 +3256,14 @@
         },
         {
           "path": "services/sahool-platform/api/report_builder.py",
+          "score": 10,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/api/routers/regional_bulletin.py",
           "score": 10,
           "signals": [
             "content:farm",
@@ -3432,10 +3441,6 @@
           "score": 12
         },
         {
-          "value": "/api/v1/regional/bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:71",
-          "score": 12
-        },
-        {
           "value": "/api/v1/reports/build @ services/sahool-platform/api/routers/reports.py:378",
           "score": 12
         },
@@ -3466,6 +3471,10 @@
         {
           "value": "/api/v1/fields/{field_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:116",
           "score": 11
+        },
+        {
+          "value": "/api/v1/regional/bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:71",
+          "score": 10
         },
         {
           "value": "/api/v1/fields/{field_id}/readiness @ services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py:40",
@@ -3534,12 +3543,50 @@
           ]
         },
         {
+          "value": "farm_access_grants @ migrations/v287_farm_access_grants.sql:43",
+          "score": 20
+        },
+        {
+          "value": "farm_access_grants @ migrations/v287_farm_access_grants.sql:57",
+          "score": 20
+        },
+        {
+          "value": "farm_access_grants @ migrations/v287_farm_access_grants.sql:58",
+          "score": 20
+        },
+        {
+          "value": "farm_access_grants @ tests_v9/test_farm_access_scope_live_pg.py:660",
+          "score": 20
+        },
+        {
+          "path": "migrations/v287_farm_access_grants.sql",
+          "score": 20,
+          "signals": [
+            "path:farm",
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "value": "users @ tests_v9/test_farm_access_scope_live_pg.py:286",
+          "score": 20
+        },
+        {
           "value": "fields @ scripts/farm_id_backfill.sql:38",
           "score": 18
         },
         {
           "value": "fields @ scripts/farm_id_backfill.sql:40",
           "score": 18
+        },
+        {
+          "path": "migrations/v287_farm_access_grants.down.sql",
+          "score": 18,
+          "signals": [
+            "path:farm",
+            "content:farm",
+            "content:farms"
+          ]
         },
         {
           "path": "scripts/farm_id_backfill.sql",
@@ -3909,38 +3956,6 @@
         {
           "value": "autonomous_execution_plan @ migrations/v118_phase9_autonomous_farm_os.sql:98",
           "score": 11
-        },
-        {
-          "value": "execution_verification_event @ migrations/v118_phase9_autonomous_farm_os.sql:100",
-          "score": 11
-        },
-        {
-          "value": "execution_verification_event @ migrations/v118_phase9_autonomous_farm_os.sql:36",
-          "score": 11
-        },
-        {
-          "value": "execution_verification_event @ migrations/v118_phase9_autonomous_farm_os.sql:94",
-          "score": 11
-        },
-        {
-          "value": "field_feature_store_candidate @ migrations/v118_phase9_autonomous_farm_os.sql:101",
-          "score": 11
-        },
-        {
-          "value": "field_feature_store_candidate @ migrations/v118_phase9_autonomous_farm_os.sql:48",
-          "score": 11
-        },
-        {
-          "value": "field_feature_store_candidate @ migrations/v118_phase9_autonomous_farm_os.sql:95",
-          "score": 11
-        },
-        {
-          "path": "migrations/v118_phase9_autonomous_farm_os.sql",
-          "score": 11,
-          "signals": [
-            "path:farm",
-            "content:farm"
-          ]
         }
       ],
       "events": [
@@ -3978,10 +3993,6 @@
         },
         {
           "value": "sahool.db @ services/sahool-platform/storage/lite_store.py:25",
-          "score": 12
-        },
-        {
-          "value": "sahool.regional_bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:32",
           "score": 12
         },
         {
@@ -4050,6 +4061,10 @@
         },
         {
           "value": "sahool.claim-task-slice-traceability.compact.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:15700",
+          "score": 10
+        },
+        {
+          "value": "sahool.regional_bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:33",
           "score": 10
         },
         {
@@ -4570,6 +4585,33 @@
           ]
         },
         {
+          "path": "tests_v9/test_farm_access_backfill_diff.py",
+          "score": 20,
+          "signals": [
+            "path:farm",
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "path": "tests_v9/test_farm_access_scope.py",
+          "score": 20,
+          "signals": [
+            "path:farm",
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "path": "tests_v9/test_farm_access_scope_live_pg.py",
+          "score": 20,
+          "signals": [
+            "path:farm",
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "tests_v9/test_farm_book_receipt_field.py",
           "score": 20,
           "signals": [
@@ -4853,6 +4895,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_regional_bulletin_route.py",
+          "score": 12,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_reports.py",
           "score": 12,
           "signals": [
@@ -4890,14 +4940,6 @@
           "signals": [
             "path:farm",
             "content:farm"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/tests/test_regional_bulletin_route.py",
-          "score": 11,
-          "signals": [
-            "content:farm",
-            "content:farms"
           ]
         },
         {
@@ -4998,6 +5040,33 @@
       ],
       "governance": [],
       "other_evidence": [
+        {
+          "path": "scripts/ops/farm_access_common.py",
+          "score": 20,
+          "signals": [
+            "path:farm",
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "path": "scripts/ops/farm_access_diff.py",
+          "score": 20,
+          "signals": [
+            "path:farm",
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "path": "scripts/ops/farm_access_backfill.py",
+          "score": 19,
+          "signals": [
+            "path:farm",
+            "content:farm",
+            "content:farms"
+          ]
+        },
         {
           "path": "docs/FARM_ID_ROLLOUT.md",
           "score": 17,
@@ -5189,18 +5258,18 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 10
+        "database": 17
       },
       "evidence_counts": {
-        "backend": 37,
+        "backend": 38,
         "routes": 45,
         "database": 100,
         "events": 33,
         "web": 20,
         "mobile": 35,
-        "tests": 56,
+        "tests": 59,
         "governance": 0,
-        "other_evidence": 23
+        "other_evidence": 26
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -7471,14 +7540,6 @@
           ]
         },
         {
-          "path": "frontend/src/components/SeasonSimulationDialog.tsx",
-          "score": 14,
-          "signals": [
-            "path:season",
-            "content:season"
-          ]
-        },
-        {
           "path": "frontend/src/components/WheatSeasonPlanner.test.tsx",
           "score": 14,
           "signals": [
@@ -7568,14 +7629,6 @@
         },
         {
           "path": "frontend/src/sections/FieldWorkspaceIrrigationPanel.season.test.tsx",
-          "score": 14,
-          "signals": [
-            "path:season",
-            "content:season"
-          ]
-        },
-        {
-          "path": "frontend/src/sections/HybridIndexPage.seasonSimulation.test.tsx",
           "score": 14,
           "signals": [
             "path:season",
@@ -7851,14 +7904,6 @@
         },
         {
           "path": "frontend/src/sections/SeasonRecordEntry.static.test.ts",
-          "score": 14,
-          "signals": [
-            "path:season",
-            "content:season"
-          ]
-        },
-        {
-          "path": "frontend/src/sections/seasonSimulationEntry.static.test.ts",
           "score": 14,
           "signals": [
             "path:season",
@@ -8402,9 +8447,9 @@
         "routes": 82,
         "database": 86,
         "events": 52,
-        "web": 20,
+        "web": 18,
         "mobile": 15,
-        "tests": 61,
+        "tests": 60,
         "governance": 0,
         "other_evidence": 15
       },
@@ -20964,6 +21009,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/routers/regional_bulletin.py",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/temporal_arbitration.py",
           "score": 8,
           "signals": [
@@ -21235,6 +21288,10 @@
         },
         {
           "value": "/api/v1/nl-gis/query @ services/sahool-platform/api/routers/nl_gis.py:329",
+          "score": 8
+        },
+        {
+          "value": "/api/v1/regional/bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:71",
           "score": 8
         },
         {
@@ -21697,6 +21754,10 @@
           "score": 8
         },
         {
+          "value": "sahool.regional_bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:33",
+          "score": 8
+        },
+        {
           "value": "sahool.telegram @ bots/telegram/main.py:49",
           "score": 8
         },
@@ -21770,10 +21831,6 @@
         },
         {
           "value": "weather.moisture.low @ tests_v9/test_v10_modules.py:285",
-          "score": 8
-        },
-        {
-          "value": "weather.rain @ services/sahool-platform/api/event_replay.py:316",
           "score": 8
         }
       ],
@@ -22496,14 +22553,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/tests/test_regional_bulletin_route.py",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "dedup:NDVI=ndvi"
-          ]
-        },
-        {
           "path": "services/sahool-platform/tests/test_soil_remote.py",
           "score": 8,
           "signals": [
@@ -23006,16 +23055,16 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 3
+        "events": 4
       },
       "evidence_counts": {
-        "backend": 57,
-        "routes": 42,
+        "backend": 58,
+        "routes": 43,
         "database": 8,
         "events": 100,
         "web": 39,
         "mobile": 5,
-        "tests": 72,
+        "tests": 71,
         "governance": 0,
         "other_evidence": 33
       },
@@ -25066,6 +25115,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/routers/regional_bulletin.py",
+          "score": 8,
+          "signals": [
+            "content:rls",
+            "content:Tenant RLS"
+          ]
+        },
+        {
           "path": "services/sahool-platform/docs/DATA_GOVERNANCE.md",
           "score": 8,
           "signals": [
@@ -25157,6 +25214,10 @@
         },
         {
           "value": "/api/v1/fields/{field_id}/imagery/backfill/{run_id} @ scripts/ci/backfill_ui_sync_gate.py:59",
+          "score": 8
+        },
+        {
+          "value": "/api/v1/regional/bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:71",
           "score": 8
         }
       ],
@@ -25951,6 +26012,10 @@
         },
         {
           "value": "sahool.ai_policy_envelope @ services/realtime-session/realtime_session/platform.py:122",
+          "score": 8
+        },
+        {
+          "value": "sahool.regional_bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:33",
           "score": 8
         },
         {
@@ -27540,10 +27605,10 @@
         "database": 914
       },
       "evidence_counts": {
-        "backend": 14,
-        "routes": 19,
+        "backend": 15,
+        "routes": 20,
         "database": 100,
-        "events": 80,
+        "events": 81,
         "web": 0,
         "mobile": 0,
         "tests": 90,
@@ -27595,11 +27660,11 @@
           "score": 9
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:594",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:580",
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1046",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1032",
           "score": 9
         }
       ],
@@ -30668,11 +30733,11 @@
           "score": 12
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:594",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:580",
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1046",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1032",
           "score": 12
         },
         {
@@ -30701,15 +30766,6 @@
         }
       ],
       "web": [
-        {
-          "path": "frontend/src/sections/ChatbotPage.spatialCards.test.tsx",
-          "score": 11,
-          "signals": [
-            "content:sampling plan",
-            "content:Soil sampling",
-            "dedup:Soil sampling=soil sampling"
-          ]
-        },
         {
           "path": "frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
           "score": 9,
@@ -30962,7 +31018,7 @@
         "routes": 32,
         "database": 14,
         "events": 13,
-        "web": 3,
+        "web": 2,
         "mobile": 1,
         "tests": 10,
         "governance": 1,
@@ -34068,10 +34124,6 @@
     },
     {
       "path": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/ProposalPanelActions.test.tsx",
       "kind": "web"
     },
     {
@@ -44519,10 +44571,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_advisor_generation_scope.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_advisor_source_tagging.py",
       "kind": "tests"
     },
@@ -45631,10 +45679,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_field_intelligence_selected_action_simulation.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_field_portfolio.py",
       "kind": "tests"
     },
@@ -46732,10 +46776,6 @@
     },
     {
       "path": "tests_v9/test_rag_document_metadata_sanitization.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_rag_document_revision_withdrawal.py",
       "kind": "tests"
     },
     {
@@ -52739,6 +52779,36 @@
       ]
     },
     {
+      "path": "services/sahool-platform/api/routers/regional_bulletin.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "FM-002",
+          "score": 10,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 8,
+          "signals": [
+            "content:rls",
+            "content:Tenant RLS"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        }
+      ]
+    },
+    {
       "path": "services/sahool-platform/api/routers/reports.py",
       "kind": "backend",
       "candidates": [
@@ -53416,28 +53486,6 @@
           "signals": [
             "content:dem",
             "content:slope"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "services/sahool-platform/tests/test_regional_bulletin_route.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "FM-002",
-          "score": 11,
-          "signals": [
-            "content:farm",
-            "content:farms"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "dedup:NDVI=ndvi"
           ]
         }
       ]
@@ -69082,12 +69130,17 @@
         {
           "source": "services/sahool-platform/api/routers/regional_bulletin.py",
           "kind": "import",
-          "line": 100
+          "line": 101
         },
         {
           "source": "services/sahool-platform/api/routers/regional_bulletin.py",
           "kind": "source_read",
           "line": 14
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 102
         },
         {
           "source": "services/sahool-platform/core/regional_bulletin.py",
@@ -75839,37 +75892,6 @@
       ]
     },
     {
-      "test": "tests_v9/test_advisor_generation_scope.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "directory_reference",
-        "tree_wide_scan"
-      ],
-      "edges": [
-        {
-          "source": "services/ai_agronomist/__init__.py",
-          "kind": "import",
-          "line": 27
-        },
-        {
-          "source": "services/ai_agronomist/ai_evidence_runtime.py",
-          "kind": "import",
-          "line": 27
-        },
-        {
-          "source": "shared/ai/reference_approvals.py",
-          "kind": "import",
-          "line": 28
-        },
-        {
-          "source": "shared/ai/seed_claims.py",
-          "kind": "import",
-          "line": 29
-        }
-      ],
-      "unresolved": []
-    },
-    {
       "test": "tests_v9/test_advisor_read_tools_honour_arguments_f4.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -76901,12 +76923,12 @@
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "loader",
-          "line": 378
+          "line": 373
         },
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "source_read",
-          "line": 377
+          "line": 372
         },
         {
           "source": "services/ai_agronomist/ai_generation.py",
@@ -76931,7 +76953,7 @@
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 337
+          "line": 332
         },
         {
           "source": "services/sahool-platform/api/ai_provider_config.py",
@@ -84043,6 +84065,124 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_farm_access_backfill_diff.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ops/farm_access_common.py",
+          "kind": "import",
+          "line": 26
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 104
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 51,
+          "call": "spec_from_file_location"
+        }
+      ]
+    },
+    {
+      "test": "tests_v9/test_farm_access_scope.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ops/farm_access_backfill.py",
+          "kind": "source_read",
+          "line": 342
+        },
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 25
+        },
+        {
+          "source": "services/sahool-platform/api/farm_scope.py",
+          "kind": "import",
+          "line": 25
+        },
+        {
+          "source": "services/sahool-platform/api/routers/regional_bulletin.py",
+          "kind": "import",
+          "line": 351
+        },
+        {
+          "source": "services/sahool-platform/core/authorization.py",
+          "kind": "import",
+          "line": 26
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 33
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_farm_access_scope_live_pg.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 362
+        },
+        {
+          "source": "services/sahool-platform/api/farm_scope.py",
+          "kind": "import",
+          "line": 362
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 361
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 363
+        },
+        {
+          "source": "services/sahool-platform/api/routers/farms.py",
+          "kind": "import",
+          "line": 363
+        },
+        {
+          "source": "services/sahool-platform/api/routers/regional_bulletin.py",
+          "kind": "import",
+          "line": 877
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 369
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 352,
+          "call": "spec_from_file_location"
+        }
+      ]
+    },
+    {
       "test": "tests_v9/test_farm_book_corrections_and_categories.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -84818,34 +84958,6 @@
         }
       ],
       "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_field_intelligence_selected_action_simulation.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "unresolved_dynamic_relation"
-      ],
-      "edges": [
-        {
-          "source": "shared/wofost/__init__.py",
-          "kind": "import",
-          "line": 245
-        }
-      ],
-      "unresolved": [
-        {
-          "line": 23,
-          "import": "core.field_intelligence_adapters"
-        },
-        {
-          "line": 30,
-          "import": "api.routers.simulate"
-        },
-        {
-          "line": 378,
-          "import": "core.field_intelligence_coordinator"
-        }
-      ]
     },
     {
       "test": "tests_v9/test_field_portfolio.py",
@@ -85783,12 +85895,12 @@
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "loader",
-          "line": 435
+          "line": 431
         },
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "source_read",
-          "line": 437
+          "line": 433
         },
         {
           "source": "services/rag-retrieval/main.py",
@@ -92471,31 +92583,6 @@
       "unresolved": []
     },
     {
-      "test": "tests_v9/test_rag_document_revision_withdrawal.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "shared_test_helper"
-      ],
-      "edges": [
-        {
-          "source": "services/rag-retrieval/main.py",
-          "kind": "loader",
-          "line": 520
-        },
-        {
-          "source": "services/sahool-platform/core/rag/production_qdrant.py",
-          "kind": "import",
-          "line": 29
-        },
-        {
-          "source": "tests_v9/service_module.py",
-          "kind": "import",
-          "line": 24
-        }
-      ],
-      "unresolved": []
-    },
-    {
       "test": "tests_v9/test_rag_embedding_space_identity.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -94278,12 +94365,12 @@
         {
           "source": "services/qdrant-seed/list_review_candidates.py",
           "kind": "loader",
-          "line": 333
+          "line": 334
         },
         {
           "source": "services/qdrant-seed/list_review_candidates.py",
           "kind": "source_read",
-          "line": 332
+          "line": 333
         },
         {
           "source": "shared/ai/__init__.py",
@@ -94303,7 +94390,7 @@
       ],
       "unresolved": [
         {
-          "line": 397,
+          "line": 398,
           "import": "seed"
         }
       ]

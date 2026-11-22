@@ -1,5 +1,5 @@
 {
-  "edge_count": 1104,
+  "edge_count": 1105,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -103,16 +103,6 @@
     },
     {
       "evidence": "frontend/src/components/AddFieldWithMap.tsx:390",
-      "from": "frontend",
-      "from_kind": "component",
-      "protocol": "ui",
-      "relation": "CALLS",
-      "resource": "/api/v1",
-      "to": "sahool-platform",
-      "to_kind": "component"
-    },
-    {
-      "evidence": "frontend/src/components/SeasonSimulationDialog.tsx:1",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -2479,6 +2469,16 @@
       "relation": "READS",
       "resource": "db://execution_ledger",
       "to": "db://execution_ledger",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/farm_scope.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_access_grants",
+      "to": "db://farm_access_grants",
       "to_kind": "resource"
     },
     {
@@ -8842,6 +8842,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/farm_scope.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://farm_access_grants",
+      "to": "db://farm_access_grants",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/core/farm_operations_ledger.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -11057,12 +11067,12 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 45,
+    "CALLS": 44,
     "CONSUMES": 4,
     "EMITS": 3,
-    "READS": 591,
+    "READS": 592,
     "ROUTES_TO": 82,
-    "WRITES": 379
+    "WRITES": 380
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -11077,8 +11087,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 971,
-      "resolved": 970,
+      "observed": 973,
+      "resolved": 972,
       "unresolved_component_paths": 0
     }
   }

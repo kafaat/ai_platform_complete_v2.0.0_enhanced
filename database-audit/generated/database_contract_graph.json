@@ -274,6 +274,7 @@
       "v284_water_ledger_irrigation_source.sql",
       "v285_water_ledger_rain_source_reanalysis.sql",
       "v286_canonical_observations.sql",
+      "v287_farm_access_grants.sql",
       "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
@@ -669,6 +670,41 @@
     {
       "has_using": true,
       "has_with_check": true,
+      "name": "farm_access_grants_tenant",
+      "source": "v287_farm_access_grants.sql",
+      "table": "farm_access_grants"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "farm_grant_owner_delete",
+      "source": "v287_farm_access_grants.sql",
+      "table": "farm_access_grants"
+    },
+    {
+      "has_using": false,
+      "has_with_check": true,
+      "name": "farm_grant_owner_insert",
+      "source": "v287_farm_access_grants.sql",
+      "table": "farm_access_grants"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "farm_grant_owner_update",
+      "source": "v287_farm_access_grants.sql",
+      "table": "farm_access_grants"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "farm_grant_read",
+      "source": "v287_farm_access_grants.sql",
+      "table": "farm_access_grants"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
       "name": "tenant_isolation",
       "source": "v100_farm_operations_ledger.sql",
       "table": "farm_business_units"
@@ -721,6 +757,20 @@
       "name": "tenant_isolation",
       "source": "v102_farm_closed_loop.sql",
       "table": "farm_ledger_economic_snapshots"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "sc_farm_scope",
+      "source": "v287_farm_access_grants.sql",
+      "table": "farm_ledger_entries"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "sc_farm_scope_delete",
+      "source": "v287_farm_access_grants.sql",
+      "table": "farm_ledger_entries"
     },
     {
       "has_using": true,
@@ -791,6 +841,20 @@
       "name": "tenant_isolation",
       "source": "v100_farm_operations_ledger.sql",
       "table": "farm_water_records"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "sc_farm_scope",
+      "source": "v287_farm_access_grants.sql",
+      "table": "farms"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "sc_farm_scope_delete",
+      "source": "v287_farm_access_grants.sql",
+      "table": "farms"
     },
     {
       "has_using": true,
@@ -917,6 +981,34 @@
       "name": "tenant_isolation",
       "source": "v204_field_forms.sql",
       "table": "field_submissions"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "sc_farm_scope",
+      "source": "v287_farm_access_grants.sql",
+      "table": "field_tasks"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "sc_farm_scope_delete",
+      "source": "v287_farm_access_grants.sql",
+      "table": "field_tasks"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "sc_farm_scope",
+      "source": "v287_farm_access_grants.sql",
+      "table": "fields"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "sc_farm_scope_delete",
+      "source": "v287_farm_access_grants.sql",
+      "table": "fields"
     },
     {
       "has_using": true,
@@ -1662,6 +1754,20 @@
     },
     {
       "has_using": true,
+      "has_with_check": true,
+      "name": "sc_farm_scope",
+      "source": "v287_farm_access_grants.sql",
+      "table": "seasons"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "sc_farm_scope_delete",
+      "source": "v287_farm_access_grants.sql",
+      "table": "seasons"
+    },
+    {
+      "has_using": true,
       "has_with_check": false,
       "name": "sharing_keys_owner",
       "source": "v12_trueup_sharing.sql",
@@ -1845,17 +1951,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 275,
+    "manifest_entries": 276,
     "manifest_missing_count": 0,
-    "policies": 223,
+    "policies": 238,
     "production_certified": false,
-    "rls_enabled": 232,
-    "rls_forced": 213,
+    "rls_enabled": 233,
+    "rls_forced": 214,
     "runtime_verified": false,
-    "sql_files": 292,
-    "tables": 362,
+    "sql_files": 294,
+    "tables": 363,
     "tenant_rls_gaps": 139,
-    "tenant_tables": 343,
+    "tenant_tables": 344,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -3262,6 +3368,23 @@
       "write_policy_with_check": true
     },
     {
+      "code_readers": [
+        "services/sahool-platform/api/farm_scope.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/farm_scope.py"
+      ],
+      "created_in": "v287_farm_access_grants.sql",
+      "has_tenant_id": true,
+      "manifest_position": 273,
+      "policy_count": 5,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "farm_access_grants",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
       "code_readers": [],
       "code_writers": [],
       "created_in": "v100_farm_operations_ledger.sql",
@@ -3395,7 +3518,7 @@
       "created_in": "v211_simple_farm_book.sql",
       "has_tenant_id": true,
       "manifest_position": 215,
-      "policy_count": 1,
+      "policy_count": 3,
       "rls_enabled": true,
       "rls_forced": true,
       "table": "farm_ledger_entries",
@@ -3568,12 +3691,12 @@
       "created_in": "v19_farms.sql",
       "has_tenant_id": true,
       "manifest_position": 23,
-      "policy_count": 0,
+      "policy_count": 2,
       "rls_enabled": false,
       "rls_forced": false,
       "table": "farms",
       "tenant_rls_gap": true,
-      "write_policy_with_check": false
+      "write_policy_with_check": true
     },
     {
       "code_readers": [],
@@ -3952,12 +4075,12 @@
       "created_in": "v9_new_tables.sql",
       "has_tenant_id": true,
       "manifest_position": 3,
-      "policy_count": 0,
+      "policy_count": 2,
       "rls_enabled": false,
       "rls_forced": false,
       "table": "field_tasks",
       "tenant_rls_gap": true,
-      "write_policy_with_check": false
+      "write_policy_with_check": true
     },
     {
       "code_readers": [
@@ -4062,12 +4185,12 @@
       "created_in": "v9_foundation.sql",
       "has_tenant_id": true,
       "manifest_position": 1,
-      "policy_count": 0,
+      "policy_count": 2,
       "rls_enabled": false,
       "rls_forced": false,
       "table": "fields",
       "tenant_rls_gap": true,
-      "write_policy_with_check": false
+      "write_policy_with_check": true
     },
     {
       "code_readers": [
@@ -6866,12 +6989,12 @@
       "created_in": "v32_seasons.sql",
       "has_tenant_id": true,
       "manifest_position": 36,
-      "policy_count": 0,
+      "policy_count": 2,
       "rls_enabled": false,
       "rls_forced": false,
       "table": "seasons",
       "tenant_rls_gap": true,
-      "write_policy_with_check": false
+      "write_policy_with_check": true
     },
     {
       "code_readers": [
