@@ -4,6 +4,7 @@
   "timezone": "Asia/Aden",
   "scope": "review corrections, not product completion",
   "rule": "Null is missing evidence. A source candidate is not an approved decision. Reuse a valid scoped decision; never infer signatures, live exposure, deployment, or acceptance from this register.",
+  "status_values_note": "From 2026-11-22 this file supersedes the copy embedded in docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md. Added status values: RECORDED (a decision with an owner answer and authorization source) and EXTENDED_BY_OWNER_DECISION (an expiry item renewed to new_expiry).",
   "decisions": [
     {
       "id": "ق-1",
@@ -13,7 +14,7 @@
       "required_before": "قبل 2026-11-30",
       "review_source": "geo-R، x-ci-governance، x-baseline-conflicts",
       "status": "RECORDED",
-      "owner_identity": "session owner (answer in hospital session, 2026-11-22)",
+      "owner_identity": "repository owner (kafaat); checkable evidence: the owner approval on the PR that lands the 2026-11-22 SHR-01 ledger entry",
       "selected_option": "تمديد مسبَّب بتاريخ جديد لكلٍّ: 2026-12-31 للبنود الثمانية",
       "authorization_source": "sahool-brain/decisions/ledger.md#2026-11-22 — SHR-01",
       "target_environment": null,
