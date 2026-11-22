@@ -259,7 +259,7 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                     <li key={c.chunkId}>
                       {c.href
                         ? <a href={c.href} target="_blank" rel="noopener noreferrer" className="text-sky-700 underline">{c.publisher ?? c.href}</a>
-                        : <span>{c.publisher ?? c.chunkId}</span>}
+                        : <span>{c.publisher ?? c.documentName ?? c.chunkId}</span>}
                       {c.locator && <span> · {c.locator}</span>}
                       {c.revision && <span> · مراجعة {c.revision}</span>}
                     </li>

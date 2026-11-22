@@ -14,10 +14,25 @@ describe('citationsFromAnnotations', () => {
       ],
     });
     expect(citations).toEqual([
-      { chunkId: 'c1', publisher: 'FAO', href: 'https://www.fao.org/x', revision: '2021', locator: 'Kc · ص 12' },
-      { chunkId: 'c2', publisher: null, href: null, revision: null, locator: null },
-      { chunkId: 'c3', publisher: 'X', href: null, revision: null, locator: null },
+      { chunkId: 'c1', publisher: 'FAO', documentName: null, href: 'https://www.fao.org/x', revision: '2021', locator: 'Kc · ص 12' },
+      { chunkId: 'c2', publisher: null, documentName: null, href: null, revision: null, locator: null },
+      { chunkId: 'c3', publisher: 'X', documentName: null, href: null, revision: null, locator: null },
     ]);
+  });
+
+  it('names an uploaded document by its file name and never shows the tenant id', () => {
+    const [upload, encoded, bare] = citationsFromAnnotations({
+      rag: [
+        { chunk_id: 'u1', source_uri: 'tenant-upload://tenant-7/دليل الري.pdf', source_revision: 'sha256:ab' },
+        { chunk_id: 'u2', source_uri: 'tenant-upload://tenant-7/soil%20report.pdf' },
+        { chunk_id: 'u3', source_uri: 'tenant-upload://tenant-7/' },
+      ],
+    });
+    expect(upload).toEqual({
+      chunkId: 'u1', publisher: null, documentName: 'دليل الري.pdf', href: null, revision: 'sha256:ab', locator: null,
+    });
+    expect(encoded.documentName).toBe('soil report.pdf');
+    expect(bare.documentName).toBeNull();
   });
 
   it('drops duplicates and entries without an id, and tolerates a malformed payload', () => {

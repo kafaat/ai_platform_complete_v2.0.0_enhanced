@@ -8,6 +8,8 @@
 export interface AdvisorCitation {
   chunkId: string;
   publisher: string | null;
+  // File name of a tenant-uploaded document; such a reference has no publisher or web link.
+  documentName: string | null;
   // Only http(s) links are offered as links; internal schemes stay text.
   href: string | null;
   revision: string | null;
@@ -64,6 +66,19 @@ function record(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+// Uploaded documents are cited as `tenant-upload://<tenant>/<file name>`: the name is the
+// only thing that identifies them to the reader, and the tenant id is not shown.
+function uploadedDocumentName(uri: string | null): string | null {
+  const match = uri ? /^tenant-upload:\/\/[^/]+\/(.+)$/i.exec(uri) : null;
+  if (!match) return null;
+  const name = match[1].split('/').pop() ?? '';
+  try {
+    return decodeURIComponent(name).trim() || null;
+  } catch {
+    return name.trim() || null;
+  }
+}
+
 export function citationsFromAnnotations(annotations: unknown): AdvisorCitation[] {
   const rag = record(annotations)?.rag;
   if (!Array.isArray(rag)) return [];
@@ -80,6 +95,7 @@ export function citationsFromAnnotations(annotations: unknown): AdvisorCitation[
     out.push({
       chunkId,
       publisher: text(item.publisher),
+      documentName: uploadedDocumentName(uri),
       href: uri && /^https?:\/\//i.test(uri) ? uri : null,
       revision: text(item.source_revision),
       locator: [section, page ? `ص ${page}` : null].filter(Boolean).join(' · ') || null,

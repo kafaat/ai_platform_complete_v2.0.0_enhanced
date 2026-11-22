@@ -3495,7 +3495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70e80bd386017478a8cc6890e69333d93c09b29d08048b29716d85aa68ee251d"
+          "content": "abf066bd15daccae16c2ee22aa0873b83b12cc78d39cedbebf174d03c1813441"
         }
       ],
       "name": "frontend/src/lib/advisorEvidence.test.ts",
@@ -3505,7 +3505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bda09be19bff4af1b9a2cc32756c46d506cdce1d3e30e7cda10377ef54ae4c90"
+          "content": "36d9224d0bf38b7f11e7e438cb6f3e5e1f3dad125a68943f226cf4337d5236c4"
         }
       ],
       "name": "frontend/src/lib/advisorEvidence.ts",
@@ -5855,7 +5855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "07aab06edfea836577a572d993225ce3eeac6a18b4f4505f2f646e3ab4762241"
+          "content": "d90f2c67638acca128afdee0f596b1c0d5841a2a005991e3f4764a3c1f2c07e8"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
