@@ -18315,7 +18315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d8e2f208f911f4c904a24f52c449dcf4758f4587752a53cdc42a16a26cd63543"
+          "content": "9f85e4e0a99fd9bcaddd42f102784f51eb1dd088ba6b0545f4bcaab8850d59f1"
         }
       ],
       "name": "services/ai_agronomist/advisory_contract.py",
@@ -27235,7 +27235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f4b017c4cf12a4404fcce0c2f1501abdecd260c8f2e89ee7801ef0989ab9db6"
+          "content": "f12d22681efc972f6cac1d26f571bf2f2d994f2eb280dd0d3c5a9bd4a7ddee23"
         }
       ],
       "name": "services/sahool-platform/api/recommendations_hub.py",
@@ -29425,7 +29425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "432c4182028c35e7c465177292985f0fa2cc366f86e7310f091b8c938b0c483d"
+          "content": "5579c311091123ffe1c8762c79a57be6491f0cbefc1fe96b03063340b30890e8"
         }
       ],
       "name": "services/sahool-platform/api/weather_advice.py",
@@ -34869,6 +34869,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c6e13939246a0a640a6c87b962716ded76cd28863f6669a5c2bdc31958921242"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_etc_estimate_is_not_irrigation_schedule_f5.py",
       "type": "file"
     },
     {

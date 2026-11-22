@@ -194,6 +194,7 @@ def _irrigation_rec(ctx: RecommendationContext) -> Recommendation | None:
     )
     mm = advice["recommended_mm"]
     advisory = advice.get("advisory_range_mm")
+    detail = advice["rationale_ar"]
     if mm is None and advisory is not None and advisory["high"] > 0:
         # محصول مجهول (Kc عامّ): نطاقٌ استشاريّ لا عمقٌ يُنفَّذ — العنوان لا يحمل رقماً مفرداً.
         title = (
@@ -201,14 +202,22 @@ def _irrigation_rec(ctx: RecommendationContext) -> Recommendation | None:
             f"(المحصول غير مُعرّف) — {advice['timing_ar']}"
         )
     elif mm is not None and mm > 0:
-        title = f"ريّ مُوصى به: {mm:.1f} مم — {advice['timing_ar']}"
+        # ETc − المطر الفعّال بلا ميزان منطقة جذور: تقديرُ استهلاك لا جدولةُ ريّ، فلا
+        # يُسمّى «ريّاً مُوصى به» ولا يحمل العنوانُ موعداً؛ والناقصُ يُسمّى برموزه.
+        title = f"تقدير استهلاك المحصول المائيّ: {mm:.1f} مم — ليس جدولةَ ريّ"
+        detail += (
+            " هذا تقديرُ استهلاك (ETc − المطر الفعّال) لا يسنده ميزانُ ماء منطقة الجذور؛"
+            " ينقص جدولةَ الريّ: "
+            + "، ".join(advice.get("irrigation_schedule_missing_inputs") or [])
+            + "."
+        )
     else:
         title = f"لا حاجة للريّ الآن — {advice['timing_ar']}"
     return Recommendation(
         category="irrigation",
         priority=priority,
         title_ar=title,
-        detail_ar=advice["rationale_ar"],
+        detail_ar=detail,
         source="api.weather_advice.irrigation_advice (FAO-56، نقيّ ومُختبَر)",
     )
 

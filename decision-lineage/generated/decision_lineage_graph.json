@@ -861,7 +861,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 589,
+      "evidence_count": 591,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1164,6 +1164,7 @@
         "services/sahool-platform/api/trial_engine.py",
         "services/sahool-platform/api/unified_decision.py",
         "services/sahool-platform/api/water_decision_bridge.py",
+        "services/sahool-platform/api/weather_advice.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/api/yield_heuristics.py",
         "services/sahool-platform/core/activity_log.py",
@@ -1296,6 +1297,7 @@
         "services/sahool-platform/tests/test_decision_sor_write_guard.py",
         "services/sahool-platform/tests/test_dispatch_executor.py",
         "services/sahool-platform/tests/test_district_baseline.py",
+        "services/sahool-platform/tests/test_etc_estimate_is_not_irrigation_schedule_f5.py",
         "services/sahool-platform/tests/test_evidence_graph.py",
         "services/sahool-platform/tests/test_evidence_graph_normalize.py",
         "services/sahool-platform/tests/test_evidence_snapshot.py",
@@ -3246,7 +3248,7 @@
         "services/sahool-platform/api/main.py"
       ],
       "source_evidence_count": 813,
-      "target_evidence_count": 589,
+      "target_evidence_count": 591,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3357,7 +3359,7 @@
         "services/sahool-platform/tests/test_decision_dispatch_endpoint.py",
         "services/sahool-platform/tests/test_decision_provenance_producers.py"
       ],
-      "source_evidence_count": 589,
+      "source_evidence_count": 591,
       "target_evidence_count": 211,
       "static_supported": true,
       "runtime_verified": false
@@ -3718,5 +3720,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "aa0e19efd06ce8b8b69f0f4c92fbf1717102222bb75cc94a7be8838ff43552c3"
+  "content_sha256": "6a84d96b373d1fd4c9ea95d7875aaaff4398d79063ec8d10a03fc4dc125070ce"
 }

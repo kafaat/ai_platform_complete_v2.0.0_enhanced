@@ -11080,6 +11080,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_advisory_envelope_references_and_audit_f5.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_agb_research_provenance.py",
     "kind": "tests"
   },
