@@ -121,7 +121,13 @@ _DEBIAN_BASE_NAMES = frozenset(
     "_apt".split()
 )
 # Images whose default variant is Debian or Ubuntu, and tag words that name one.
-_DEBIAN_IMAGES = frozenset({"python", "debian", "ubuntu", "node", "buildpack-deps", "pytorch"})
+_DEBIAN_IMAGES = frozenset(
+    {"python", "debian", "ubuntu", "node", "buildpack-deps", "pytorch"}
+    # Official images whose default variant is Debian or Ubuntu as well; their Alpine
+    # variants carry "alpine" in the tag and are excluded before this lookup.
+    | {"nginx", "postgres", "redis", "golang", "rust", "ruby", "php", "openjdk"}
+    | {"eclipse-temurin", "maven", "gradle", "httpd"}
+)
 _DEBIAN_TAG = re.compile(r"bookworm|bullseye|buster|trixie|jammy|noble|focal|ubuntu|debian")
 _ACCOUNT_COMMANDS = frozenset({"groupadd", "useradd", "addgroup", "adduser"})
 # Options whose value is the next token (shadow-utils and Debian adduser). For useradd,
@@ -134,14 +140,34 @@ _OPTIONS_WITH_VALUE = frozenset(
 )
 _FORCE = frozenset({"-f", "--force"})
 _FORCE_COMMANDS = frozenset({"groupadd", "addgroup"})
-_INSTRUCTION = re.compile(r"([A-Z]+)(?:[ \t]+(.*))?\Z", re.S)
+# Docker keywords are case-insensitive. A heredoc body is folded into its instruction
+# before this match, so a body line such as `from pathlib import Path` never reaches it.
+_INSTRUCTION = re.compile(r"([A-Za-z]+)(?:[ \t]+(.*))?\Z", re.S)
 _HEREDOC = re.compile(r"(?<!<)<<(?!<)-?[ \t]*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
 _SEPARATORS = frozenset({"&&", "||", ";", "|", "&", "(", ")", ";;"})
 # Words that may precede the command itself within one simple command.
 _LEADING_WORDS = frozenset(
     {"then", "do", "else", "elif", "if", "while", "until", "!", "{", "}", "time"}
-    | {"sudo", "exec", "command", "env", "nohup"}
+    | {"exec", "command", "nohup"}
 )
+# Wrappers that run the next command, with the options that take a value. `env` also
+# takes NAME=VALUE words; `timeout` and `nice -n` take one more word before the command.
+_WRAPPERS = {
+    "sudo": frozenset(
+        "-u --user -g --group -C --close-from -D --chdir -h --host -p --prompt "
+        "-r --role -t --type -U --other-user -T --command-timeout".split()
+    ),
+    "env": frozenset("-u --unset -C --chdir -S --split-string".split()),
+    "timeout": frozenset("-s --signal -k --kill-after".split()),
+    "nice": frozenset("-n --adjustment".split()),
+    "chroot": frozenset("--userspec --groups".split()),
+    "stdbuf": frozenset("-i -o -e".split()),
+}
+_WRAPPER_POSITIONAL = {"timeout": 1, "chroot": 1}  # DURATION, NEWROOT
+_SHELLS = frozenset({"sh", "bash", "dash", "ash", "zsh"})
+# A redirection: `>`, `2>`, `>>`, `<`, `&>` alone (its target is the next word), or with
+# its target attached (`2>/dev/null`, `>out.log`).
+_REDIRECT = re.compile(r"\A(?:\d*|&)(?:>>?|<<?|>&|<&)(.*)\Z")
 _ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=")
 
 
@@ -183,8 +209,9 @@ def _resolve(image, args):
     def sub(match):
         name = match.group(1) or match.group(4)
         value = args.get(name)
-        if value:
-            return value
+        operator = match.group(2) or ""
+        if value or (value is not None and operator.startswith("-")):
+            return value  # `${X-d}` keeps a set-but-empty X; only `${X:-d}` replaces it
         if match.group(2) is not None:
             return match.group(3)
         return match.group(0)
@@ -200,16 +227,19 @@ def _image_family(image):
     last = ref.rsplit("/", 1)[-1]
     name = re.split(r"[:@]", last, maxsplit=1)[0]
     tag = last[len(name) :]
-    if _DEBIAN_TAG.search(tag) or name in _DEBIAN_IMAGES:
+    if _DEBIAN_TAG.search(tag):
         return True
+    if name in _DEBIAN_IMAGES and not tag.startswith("@"):
+        return True  # a digest alone may pin any variant: left to the package manager
     return None
 
 
 def _run_flags_stripped(body):
-    tokens = body.split(None, 1)
-    while tokens and tokens[0].startswith("--"):
-        tokens = tokens[1].split(None, 1) if len(tokens) > 1 else []
-    return tokens[0] + (" " + tokens[1] if len(tokens) > 1 else "") if tokens else ""
+    """The RUN body without its leading `--mount=...`-style flags, line breaks kept.
+
+    Keeping the newline after `<<EOF` keeps a heredoc's first command on its own line.
+    """
+    return re.sub(r"\A(?:[ \t]*--\S+)*[ \t]*", "", body)
 
 
 def _debian_run_commands(text):
@@ -221,10 +251,16 @@ def _debian_run_commands(text):
     """
     args, stages, aliases, seen_from = {}, [], {}, False
     for keyword, rest in _instructions(text):
+        keyword = keyword.upper()
         if keyword == "ARG" and not seen_from:
-            name, eq, default = rest.strip().partition("=")
-            if eq:
-                args[name.strip()] = default.strip().strip("\"'")
+            try:
+                words = shlex.split(rest)
+            except ValueError:
+                words = rest.split()
+            for word in words:  # `ARG A=1 B=img` declares two
+                name, eq, default = word.partition("=")
+                if eq:
+                    args[name.strip()] = default.strip()
         elif keyword == "FROM":
             seen_from = True
             tokens = [t for t in rest.split() if not t.startswith("--")]
@@ -266,12 +302,17 @@ def _shell_segments(run_body):
         except ValueError:
             argv = None
         if isinstance(argv, list) and all(isinstance(a, str) for a in argv):
-            if len(argv) >= 3 and argv[0].rsplit("/", 1)[-1] in {"sh", "bash"} and argv[1] == "-c":
+            if (
+                len(argv) >= 3
+                and argv[0].rsplit("/", 1)[-1] in _SHELLS
+                and re.fullmatch(r"-[a-z]*c[a-z]*", argv[1])
+            ):  # `-c`, and combined flags such as `-lc` / `-ec`
                 yield from _shell_segments(argv[2])
             elif argv:
                 yield argv
             return
-    for line in run_body.splitlines():
+    # A backslash continuation inside a shell heredoc body joins its lines here too.
+    for line in re.sub(r"\\\n", " ", run_body).splitlines():
         lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|()")
         lexer.whitespace_split = True
         try:
@@ -294,14 +335,26 @@ def _created_account_names(run_body):
     """Names that groupadd/useradd/addgroup/adduser would create in a RUN body."""
     names = []
     for tokens in _shell_segments(run_body):
-        while tokens and (tokens[0] in _LEADING_WORDS or _ASSIGNMENT.match(tokens[0])):
-            tokens = tokens[1:]
-        if not tokens or tokens[0].rsplit("/", 1)[-1] not in _ACCOUNT_COMMANDS:
+        tokens = _command_words(tokens)
+        if not tokens:
             continue
-        command, positional, forced, skip = tokens[0].rsplit("/", 1)[-1], [], False, False
+        head = tokens[0].rsplit("/", 1)[-1]
+        if head in _SHELLS:  # shell-form `sh -c '...'` / `bash -lc '...'`
+            for i, token in enumerate(tokens[1:-1], start=1):
+                if re.fullmatch(r"-[a-z]*c[a-z]*", token):
+                    names.extend(_created_account_names(tokens[i + 1]))
+                    break
+            continue
+        if head not in _ACCOUNT_COMMANDS:
+            continue
+        command, positional, forced, skip = head, [], False, False
         for token in tokens[1:]:
             if skip:
                 skip = False
+                continue
+            redirect = _REDIRECT.match(token)
+            if redirect:
+                skip = not redirect.group(1)  # a bare operator: its target is the next word
                 continue
             if command in _FORCE_COMMANDS and token in _FORCE:
                 forced = True
@@ -315,6 +368,35 @@ def _created_account_names(run_body):
             continue  # `adduser USER GROUP` adds an existing user to an existing group
         names.append((command, positional[-1]))
     return names
+
+
+def _command_words(tokens):
+    """The words of a simple command from the command name on.
+
+    Drops leading keywords (`then`, `if`, ...), NAME=VALUE assignments and wrappers
+    such as `sudo -u root`, `env -i`, `timeout 5` and `nice -n 10` with their options.
+    """
+    tokens = list(tokens)
+    while tokens:
+        word = tokens[0]
+        base = word.rsplit("/", 1)[-1]
+        if word in _LEADING_WORDS or _ASSIGNMENT.match(word):
+            tokens = tokens[1:]
+            continue
+        if base not in _WRAPPERS:
+            return tokens
+        tokens, takes_value, extra = tokens[1:], _WRAPPERS[base], _WRAPPER_POSITIONAL.get(base, 0)
+        while tokens and tokens[0].startswith("-") and tokens[0] != "-":
+            option = tokens.pop(0)
+            if option == "--":
+                break
+            if option in takes_value and "=" not in option:
+                tokens = tokens[1:]
+        if base == "env":
+            while tokens and _ASSIGNMENT.match(tokens[0]):
+                tokens = tokens[1:]
+        tokens = tokens[extra:]
+    return tokens
 
 
 def _debian_dockerfiles():
@@ -462,6 +544,58 @@ _SCANNER_CASES = {
         [("groupadd", "voice")],
     ),
     "exec-form": ('FROM python:3.12-slim\nRUN ["groupadd", "voice"]\n', [("groupadd", "voice")]),
+    # Follow-ups from the #1560 delta review (N1-N5).
+    "lowercase-keywords": (
+        "from python:3.12-slim\nrun groupadd voice\n",
+        [("groupadd", "voice")],
+    ),
+    "wrapper-env-i": (
+        "FROM python:3.12-slim\nRUN env -i PATH=/usr/sbin groupadd voice\n",
+        [("groupadd", "voice")],
+    ),
+    "wrapper-sudo-u": (
+        "FROM python:3.12-slim\nRUN sudo -u root groupadd voice\n",
+        [("groupadd", "voice")],
+    ),
+    "wrapper-timeout": (
+        "FROM python:3.12-slim\nRUN timeout -s KILL 5 groupadd voice\n",
+        [("groupadd", "voice")],
+    ),
+    "wrapper-nice-n": (
+        "FROM python:3.12-slim\nRUN nice -n 10 useradd -m audio\n",
+        [("useradd", "audio")],
+    ),
+    "echo-is-not-a-wrapper": ("FROM python:3.12-slim\nRUN echo groupadd voice\n", []),
+    "redirect-attached": (
+        "FROM python:3.12-slim\nRUN groupadd voice 2>/dev/null\n",
+        [("groupadd", "voice")],
+    ),
+    "redirect-detached": (
+        "FROM python:3.12-slim\nRUN useradd -m voice > /dev/null 2>&1\n",
+        [("useradd", "voice")],
+    ),
+    "exec-form-bash-lc": (
+        'FROM python:3.12-slim\nRUN ["bash", "-lc", "groupadd voice"]\n',
+        [("groupadd", "voice")],
+    ),
+    "shell-form-sh-c": (
+        "FROM python:3.12-slim\nRUN sh -c 'groupadd voice && echo ok'\n",
+        [("groupadd", "voice")],
+    ),
+    "heredoc-backslash-continuation": (
+        "FROM python:3.12-slim\nRUN <<EOF\ngroupadd \\\n  voice\nEOF\n",
+        [("groupadd", "voice")],
+    ),
+    "two-args-on-one-line": (
+        "ARG A=1 B=python:3.12-slim\nFROM ${B}\nRUN groupadd voice\n",
+        [("groupadd", "voice")],
+    ),
+    "dash-default-keeps-empty-value": (
+        "ARG IMG=\nFROM python:3.12-slim AS py\nFROM py${IMG-:missing}\nRUN groupadd voice\n",
+        [("groupadd", "voice")],
+    ),
+    "nginx-default-is-debian": ("FROM nginx:1.27\nRUN groupadd voice\n", [("groupadd", "voice")]),
+    "nginx-alpine-is-not": ("FROM nginx:1.27-alpine\nRUN addgroup voice\n", []),
     "exec-form-sh-c": (
         'FROM python:3.12-slim\nRUN ["/bin/sh", "-c", "groupadd voice && echo ok"]\n',
         [("groupadd", "voice")],
