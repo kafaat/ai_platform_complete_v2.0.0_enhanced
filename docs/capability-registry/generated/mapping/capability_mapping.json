@@ -25,15 +25,15 @@
       "tests": 2649,
       "web": 567
     },
-    "unmapped_artifacts": 3639,
+    "unmapped_artifacts": 3638,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4138,
       "raw": 3493
     },
     "test_dependency_files": 2017,
-    "test_dependency_edges": 5385,
-    "test_dependency_bounded_files": 1167,
+    "test_dependency_edges": 5386,
+    "test_dependency_bounded_files": 1168,
     "test_dependency_unresolved_relations": 513
   },
   "capabilities": [
@@ -27562,11 +27562,11 @@
           "score": 9
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:595",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:580",
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1047",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1032",
           "score": 9
         }
       ],
@@ -30379,15 +30379,6 @@
             "content:Soil sampling",
             "dedup:Soil sampling=soil sampling"
           ]
-        },
-        {
-          "path": "services/ai_agronomist/tool_executor.py",
-          "score": 8,
-          "signals": [
-            "content:sampling plan",
-            "content:Soil sampling",
-            "dedup:Soil sampling=soil sampling"
-          ]
         }
       ],
       "routes": [
@@ -30628,11 +30619,11 @@
           "score": 12
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:595",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:580",
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1047",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1032",
           "score": 12
         },
         {
@@ -30909,7 +30900,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 14,
+        "backend": 13,
         "routes": 32,
         "database": 14,
         "events": 13,
@@ -32898,7 +32889,7 @@
       "title": "Operation windows",
       "backend": [
         {
-          "path": "services/ai_agronomist/ai_evidence_runtime.py",
+          "path": "services/ai_agronomist/provider_tooling.py",
           "score": 12,
           "signals": [
             "content:operation window",
@@ -32906,7 +32897,7 @@
           ]
         },
         {
-          "path": "services/ai_agronomist/provider_tooling.py",
+          "path": "services/ai_agronomist/tool_executor.py",
           "score": 12,
           "signals": [
             "content:operation window",
@@ -32951,22 +32942,6 @@
       "database": [],
       "events": [
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:250",
-          "score": 12
-        },
-        {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:347",
-          "score": 12
-        },
-        {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:595",
-          "score": 12
-        },
-        {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1047",
-          "score": 12
-        },
-        {
           "value": "field_workspace_imagery.py @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:13",
           "score": 10
         },
@@ -32987,6 +32962,14 @@
         }
       ],
       "tests": [
+        {
+          "path": "tests_v9/test_advisor_read_tools_honour_arguments_f4.py",
+          "score": 12,
+          "signals": [
+            "content:operation window",
+            "content:Operation windows"
+          ]
+        },
         {
           "path": "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
           "score": 10,
@@ -33041,10 +33024,10 @@
         "backend": 3,
         "routes": 6,
         "database": 0,
-        "events": 6,
+        "events": 2,
         "web": 0,
         "mobile": 1,
-        "tests": 2,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 3
       },
@@ -46646,10 +46629,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_rag_document_revision_withdrawal.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_rag_embedding_space_identity.py",
       "kind": "tests"
     },
@@ -51321,14 +51300,6 @@
       "path": "services/ai_agronomist/ai_evidence_runtime.py",
       "kind": "backend",
       "candidates": [
-        {
-          "capability_id": "WX-008",
-          "score": 12,
-          "signals": [
-            "content:operation window",
-            "content:Operation windows"
-          ]
-        },
         {
           "capability_id": "SOIL-002",
           "score": 12,
@@ -75731,6 +75702,34 @@
       ]
     },
     {
+      "test": "tests_v9/test_advisor_read_tools_honour_arguments_f4.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 18
+        },
+        {
+          "source": "services/ai_agronomist/ai_evidence_runtime.py",
+          "kind": "import",
+          "line": 18
+        },
+        {
+          "source": "services/ai_agronomist/tool_executor.py",
+          "kind": "import",
+          "line": 19
+        },
+        {
+          "source": "services/ai_agronomist/tool_governance.py",
+          "kind": "import",
+          "line": 20
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_advisor_source_tagging.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -76696,12 +76695,12 @@
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "loader",
-          "line": 376
+          "line": 373
         },
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "source_read",
-          "line": 375
+          "line": 372
         },
         {
           "source": "services/ai_agronomist/ai_generation.py",
@@ -76726,7 +76725,7 @@
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 335
+          "line": 332
         },
         {
           "source": "services/sahool-platform/api/ai_provider_config.py",
@@ -85545,12 +85544,12 @@
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "loader",
-          "line": 435
+          "line": 431
         },
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "source_read",
-          "line": 437
+          "line": 433
         },
         {
           "source": "services/rag-retrieval/main.py",
@@ -92141,31 +92140,6 @@
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
           "line": 34
-        }
-      ],
-      "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_rag_document_revision_withdrawal.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "shared_test_helper"
-      ],
-      "edges": [
-        {
-          "source": "services/rag-retrieval/main.py",
-          "kind": "loader",
-          "line": 507
-        },
-        {
-          "source": "services/sahool-platform/core/rag/production_qdrant.py",
-          "kind": "import",
-          "line": 29
-        },
-        {
-          "source": "tests_v9/service_module.py",
-          "kind": "import",
-          "line": 24
         }
       ],
       "unresolved": []
