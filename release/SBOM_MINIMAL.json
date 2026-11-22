@@ -545,7 +545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7ae05725b5fe24ee8e7dcc17cd21aa6ab0ea2136c3146b64311b8938076921a"
+          "content": "bc7acabbbf066496d7d361140260e67d2655d99b91eb6731e6caef3baf29a40a"
         }
       ],
       "name": "frontend/scripts/write-build-info.mjs",
@@ -575,7 +575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c417a702681844fc63ba30704020868af7512398a7bc416298803f795ce8e07a"
+          "content": "288819fcdd634420da11cefff10f09bf10622eccc3cbf59dff5bd276b6cada8e"
         }
       ],
       "name": "frontend/src/buildInfo.static.test.ts",

@@ -22,12 +22,22 @@ instead of reaching data). A token of an absent service is never written into
 the config. A value outside a conservative token alphabet is refused, since it
 would otherwise be pasted into an nginx string. A placeholder this adapter does
 not know is refused too, so a new one cannot reach a backend as a literal.
+
+It also stamps the deployment into ``/build-info.json`` (written at build time by
+``frontend/scripts/write-build-info.mjs``). Railway gives ``RAILWAY_DEPLOYMENT_ID``
+only at runtime (the build logs show it empty), and an image Railway reuses
+without rebuilding keeps the old build-time value, so ``build_id`` is set here at
+container start: ``railway-<deployment id>``. Only that key changes; ``git_sha``
+stays the build-time value. Without a valid id the build-time value is kept. This
+step never stops nginx from starting: a missing or unreadable file is reported
+and left alone.
 """
 
 from __future__ import annotations
 
 import argparse
 import ipaddress
+import json
 import os
 import re
 from collections.abc import Mapping, Sequence
@@ -219,11 +229,35 @@ def render(source: str, env: Mapping[str, str], nameservers: Sequence[str]) -> s
     return resolver + "\n".join(added_groups) + "\n" + stub + config
 
 
+BUILD_INFO = Path("/usr/share/nginx/html/build-info.json")
+# Same safe pattern as write-build-info.mjs and the platform's build id.
+BUILD_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}")
+
+
+def stamp_build_id(path: Path, env: Mapping[str, str]) -> str:
+    """Set build_id to the runtime Railway deployment; return what happened."""
+    deployment = env.get("RAILWAY_DEPLOYMENT_ID", "").strip()
+    build_id = f"railway-{deployment}"
+    if not deployment or not BUILD_ID.fullmatch(build_id):
+        return "kept the build-time build_id (no valid RAILWAY_DEPLOYMENT_ID)"
+    try:
+        info = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(info, dict):
+            raise ValueError("not a JSON object")
+        info["build_id"] = build_id
+        # Rewritten in place: only this file is writable by the nginx user, not the web root.
+        path.write_text(json.dumps(info, separators=(",", ":")) + "\n", encoding="utf-8")
+    except (OSError, ValueError) as exc:
+        return f"left build-info.json unchanged ({type(exc).__name__})"
+    return f"stamped build_id={build_id}"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, default=Path("/opt/sahool/frontend-nginx.conf"))
     parser.add_argument("--output", type=Path, default=Path("/tmp/railway-frontend.conf"))
     parser.add_argument("--resolv-conf", type=Path, default=Path("/etc/resolv.conf"))
+    parser.add_argument("--build-info", type=Path, default=BUILD_INFO)
     args = parser.parse_args()
     try:
         source = args.source.read_text(encoding="utf-8")
@@ -235,6 +269,7 @@ def main() -> None:
     for key in unset_tokens(source, os.environ):
         # Names only, never values. The owning service refuses the empty token.
         print(f"Railway frontend: {key} is unset; its routes will be refused upstream")
+    print(f"Railway frontend: {stamp_build_id(args.build_info, os.environ)}")
     print("Railway frontend configuration ready")
 
 
