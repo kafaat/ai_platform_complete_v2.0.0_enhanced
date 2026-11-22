@@ -110,10 +110,16 @@ def _real_tenant_connection(pool):
             raise _HTTPException(503, "قاعدة البيانات غير مفعّلة")
         return pool
 
+    async def load_farm_scope(conn, user):
+        # SAHOOL_FARM_SCOPE_ENFORCE off (the default): nothing is read and no farm GUC is set.
+        # The switched-on paths are pinned in tests_v9/test_farm_access_scope.py.
+        return False
+
     namespace = {
         "asynccontextmanager": asynccontextmanager,
         "get_pool": get_pool,
         "HTTPException": _HTTPException,
+        "load_farm_scope": load_farm_scope,
     }
     exec(compile(ast.Module(body=[fn], type_ignores=[]), str(MAIN), "exec"), namespace)  # noqa: S102
     return namespace["tenant_connection"]

@@ -95,14 +95,14 @@ def test_route_scopes_the_aggregate_to_the_callers_farms():
 
 
 def test_farm_scope_empty_means_every_farm_and_otherwise_exactly_the_listed_ones():
-    from types import SimpleNamespace
-
+    """Unhydrated (legacy) users: empty = every farm, otherwise exactly the listed ones. The
+    rule is core.authorization.farm_restriction's; the hydrated cases (owner-wide access, no
+    grant = no farm) are pinned in tests_v9/test_farm_access_scope.py."""
     from api.routers.regional_bulletin import _farm_scope
+    from core.canonical_schemas import UserRole, UserSchema
 
-    assert _farm_scope(SimpleNamespace(farm_ids_access=[])) is None
-    assert _farm_scope(SimpleNamespace(farm_ids_access=None)) is None
-    assert _farm_scope(SimpleNamespace()) is None
-    assert _farm_scope(SimpleNamespace(farm_ids_access=["farm_a", "", "farm_b"])) == [
-        "farm_a",
-        "farm_b",
-    ]
+    def user(farms):
+        return UserSchema("u", "t", UserRole.WORKER, "w", farm_ids_access=farms)
+
+    assert _farm_scope(user([])) is None
+    assert _farm_scope(user(["farm_b", "", "farm_a"])) == ["farm_a", "farm_b"]

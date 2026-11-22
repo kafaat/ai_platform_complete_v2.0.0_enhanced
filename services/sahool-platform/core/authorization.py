@@ -364,10 +364,10 @@ def authorize(
         )
         return base
 
-    # 4. صلاحية الوصول للمزرعة (إن طُلب)
-    # farm_ids_access فارغة = كل المزارع في tenant
+    # 4. صلاحية الوصول للمزرعة (إن طُلب) — farm_restriction: None = كل مزارع tenant
     if farm_id is not None:
-        if user.farm_ids_access and farm_id not in user.farm_ids_access:
+        allowed_farms = farm_restriction(user)
+        if allowed_farms is not None and farm_id not in allowed_farms:
             base.reason_ar = (
                 f"المستخدم ليس له صلاحية على المزرعة '{farm_id}' (الوصول: {user.farm_ids_access})"
             )
@@ -383,19 +383,27 @@ def authorize(
 # ─── Farm Hierarchy Helpers ──────────────────────────────────────
 
 
-def farms_accessible_to_user(user: UserSchema, all_farms_in_tenant: list) -> list:
-    """المزارع التي يستطيع المستخدم رؤيتها.
+def farm_restriction(user: UserSchema) -> frozenset[str] | None:
+    """The farms ``user`` is limited to inside its tenant; ``None`` means every farm.
 
-    قاعدة: farm_ids_access فارغة = كل المزارع في tenant.
-    غير فارغة = حصراً ما فيها."""
+    Hydrated from server-side grants (``farm_scope_loaded``, api.farm_scope, only while
+    SAHOOL_FARM_SCOPE_ENFORCE is on): the grant list is exact, so an empty one means no farm,
+    unless ``farm_access_all`` (an owner). Not hydrated: the legacy contract of the pure domain
+    callers, where an empty ``farm_ids_access`` means every farm of the tenant."""
+    if user.farm_scope_loaded:
+        return None if user.farm_access_all else frozenset(user.farm_ids_access)
+    return frozenset(user.farm_ids_access) if user.farm_ids_access else None
+
+
+def farms_accessible_to_user(user: UserSchema, all_farms_in_tenant: list) -> list:
+    """المزارع التي يستطيع المستخدم رؤيتها (farm_restriction: None = كل مزارع tenant)."""
     if not user.is_active:
         return []
-    if not user.farm_ids_access:  # empty = all
-        return [f for f in all_farms_in_tenant if f.tenant_id == user.tenant_id]
+    allowed = farm_restriction(user)
     return [
         f
         for f in all_farms_in_tenant
-        if f.tenant_id == user.tenant_id and f.farm_id in user.farm_ids_access
+        if f.tenant_id == user.tenant_id and (allowed is None or f.farm_id in allowed)
     ]
 
 
@@ -425,7 +433,9 @@ def audit_user_permissions(user: UserSchema) -> dict:
         "is_active": user.is_active,
         "permissions_count": len(perms),
         "permissions": sorted(p.value for p in perms),
-        "farm_access": ("all_in_tenant" if not user.farm_ids_access else user.farm_ids_access),
+        "farm_access": (
+            "all_in_tenant" if farm_restriction(user) is None else list(user.farm_ids_access)
+        ),
         "summary_ar": (
             f"المستخدم {user.user_id} ({user.role.value}) "
             f"لديه {len(perms)} صلاحية في tenant {user.tenant_id}"

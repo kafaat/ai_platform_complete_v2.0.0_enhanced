@@ -20,7 +20,7 @@
 | 3 | `decision` | `sahool-platform` | 211 |
 | 4 | `review` | `sahool-platform` | 397 |
 | 5 | `plan` | `decision-service` | 52 |
-| 6 | `authorization` | `sahool-platform` | 221 |
+| 6 | `authorization` | `sahool-platform` | 222 |
 | 7 | `request` | `decision-service` | 51 |
 | 8 | `receipt` | `decision-service` | 51 |
 | 9 | `outcome` | `sahool-platform` | 65 |

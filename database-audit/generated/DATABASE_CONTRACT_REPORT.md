@@ -4,16 +4,16 @@
 
 ## Summary
 
-- **manifest_entries**: 275
-- **sql_files**: 292
+- **manifest_entries**: 276
+- **sql_files**: 294
 - **manifest_missing_count**: 0
 - **unlisted_sql_count**: 0
-- **tables**: 362
-- **tenant_tables**: 343
-- **rls_enabled**: 232
-- **rls_forced**: 213
+- **tables**: 363
+- **tenant_tables**: 344
+- **rls_enabled**: 233
+- **rls_forced**: 214
 - **tenant_rls_gaps**: 139
-- **policies**: 223
+- **policies**: 238
 - **runtime_verified**: False
 - **production_certified**: False
 
@@ -46,15 +46,15 @@
 - `equipment_maintenance` — enabled=False, forced=False, policies=0
 - `events` — enabled=True, forced=False, policies=1
 - `execution_ledger` — enabled=False, forced=False, policies=0
-- `farms` — enabled=False, forced=False, policies=0
+- `farms` — enabled=False, forced=False, policies=2
 - `field_boundaries` — enabled=True, forced=False, policies=0
 - `field_boundary_graph` — enabled=False, forced=False, policies=0
 - `field_indicators` — enabled=True, forced=False, policies=0
 - `field_lifecycle` — enabled=True, forced=False, policies=1
 - `field_state_snapshots` — enabled=False, forced=False, policies=0
-- `field_tasks` — enabled=False, forced=False, policies=0
+- `field_tasks` — enabled=False, forced=False, policies=2
 - `field_weather_overlay` — enabled=False, forced=False, policies=0
-- `fields` — enabled=False, forced=False, policies=0
+- `fields` — enabled=False, forced=False, policies=2
 - `governed_model_promotion_candidates` — enabled=False, forced=False, policies=0
 - `guardrails_log` — enabled=False, forced=False, policies=0
 - `hourly_energy_envelopes` — enabled=False, forced=False, policies=0
@@ -125,7 +125,7 @@
 - `season_record_links` — enabled=False, forced=False, policies=0
 - `season_records` — enabled=False, forced=False, policies=0
 - `season_simulation_runs` — enabled=False, forced=False, policies=0
-- `seasons` — enabled=False, forced=False, policies=0
+- `seasons` — enabled=False, forced=False, policies=2
 - `settings` — enabled=False, forced=False, policies=0
 - `sharing_keys` — enabled=True, forced=False, policies=1
 - `soil_analog_products` — enabled=False, forced=False, policies=0

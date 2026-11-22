@@ -1982,6 +1982,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "tests_v9/test_farm_access_scope_live_pg.py",
         "tests_v9/test_farm_book_receipt_scope_live_pg.py",
         "tests_v9/test_farm_book_settlement_guards_live_pg.py",
         "tests_v9/test_farm_ledger_cost_coverage_live_pg.py",
@@ -2207,6 +2208,21 @@
         },
         {
           "evidence_type": "unit",
+          "path": "tests_v9/test_farm_access_backfill_diff.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "tests_v9/test_farm_access_scope.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_farm_access_scope_live_pg.py",
+          "signal": "pytest.mark.integration"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_farm_book_corrections_and_categories.py",
           "signal": "pytest.mark.unit"
         },
@@ -2310,6 +2326,8 @@
         "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "tests_v9/test_export_season_runs_for_golden.py",
+        "tests_v9/test_farm_access_backfill_diff.py",
+        "tests_v9/test_farm_access_scope.py",
         "tests_v9/test_farm_book_corrections_and_categories.py",
         "tests_v9/test_farm_book_receipt_field.py",
         "tests_v9/test_farm_memory.py",
@@ -9599,11 +9617,6 @@
         },
         {
           "evidence_type": "unit",
-          "path": "services/sahool-platform/tests/test_regional_bulletin_route.py",
-          "signal": "filename:test_"
-        },
-        {
-          "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_soil_remote.py",
           "signal": "filename:test_"
         },
@@ -9829,7 +9842,6 @@
         "services/sahool-platform/tests/test_pipeline_dq_logging.py",
         "services/sahool-platform/tests/test_platform_agri_full_lifecycle_forensic.py",
         "services/sahool-platform/tests/test_raster_export.py",
-        "services/sahool-platform/tests/test_regional_bulletin_route.py",
         "services/sahool-platform/tests/test_soil_remote.py",
         "services/sahool-platform/tests/test_yield_heuristics.py",
         "services/sahool-platform/tests/test_yield_server_features.py",

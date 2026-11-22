@@ -1,7 +1,7 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "84c6f2846393389fcb402ef3998dd44d295771c4",
+  "measured_on": "c26eb93b402ba60a7fe82ddea4324bc508e4b9f3",
   "reads": {
     "$comment": "جهةُ القراءة: readers المُعلَنون مقابل حرفيّات SQL المقيسة (بايثون، f-string نصّاً واحداً). خمسُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا محكومٌ عليها، وdeclared_writer_unobserved مُبلَّغٌ لا حاجب. 'لم يُرصَد' ليس 'لا يقرأ' ولا 'لا يكتب': dynamic_table_sql_sites يعدّ ما لا يُرى جدولُه ساكناً، وtable_name_value_sites قرينةُ قراءةٍ أو كتابةٍ عبر مُساعد.",
     "declared_reader_unobserved": [
@@ -428,6 +428,12 @@
       "events::scripts": [
         "scripts/e2e/canonical_projection_jetstream_roundtrip.py"
       ],
+      "farm_access_grants::scripts": [
+        "scripts/ops/farm_access_common.py"
+      ],
+      "farms::scripts": [
+        "scripts/ops/farm_access_common.py"
+      ],
       "field_geometry_history::raster-service": [
         "services/raster-service/db_persist.py",
         "services/raster-service/follow_up_runtime.py"
@@ -510,6 +516,9 @@
         "services/auth/routers/registration.py",
         "services/auth/routers/session.py",
         "services/auth/routers/users.py"
+      ],
+      "users::scripts": [
+        "scripts/ops/farm_access_common.py"
       ]
     },
     "unreferenced": [
