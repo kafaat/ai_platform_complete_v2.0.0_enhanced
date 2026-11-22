@@ -38,8 +38,13 @@ COMMENT ON COLUMN farm_access_grants.user_id IS
     'JWT sub = the auth service users.id as text (owner decision C), never the platform users.id';
 CREATE INDEX IF NOT EXISTS idx_farm_access_grants_farm ON farm_access_grants (tenant_id, farm_id);
 
--- Tenant isolation (ENABLE + FORCE + tenant_isolation; v206 tightens its WITH CHECK).
-SELECT _sahool_apply_tenant_rls('farm_access_grants');
+-- Tenant isolation, fail-closed both ways (no tenant context: no row read, no row written).
+ALTER TABLE farm_access_grants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE farm_access_grants FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS farm_access_grants_tenant ON farm_access_grants;
+CREATE POLICY farm_access_grants_tenant ON farm_access_grants
+    USING (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''))
+    WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''));
 
 -- A session reads its own grants; only an owner context reads the tenant's other grants or
 -- writes any. Migrations and the backfill's operator role bypass RLS; the application role does not.
