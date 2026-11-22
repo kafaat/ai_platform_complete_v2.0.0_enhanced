@@ -24,72 +24,107 @@ pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 WRITER = ROOT / "services" / "local-ai-rag" / "main.py"
-SOURCE_DIRS = ("services", "agents", "bots", "scripts", "shared", "deploy")
-_HTTP_METHODS = {"post", "put", "request", "send"}
-
-
-def _literal_url_of_another_host(arg: ast.expr) -> bool:
-    """A literal absolute URL (``http...``) whose host is not rag-retrieval."""
-    head = arg
-    if isinstance(arg, ast.JoinedStr) and arg.values:
-        head = arg.values[0]
-    if not (isinstance(head, ast.Constant) and isinstance(head.value, str)):
-        return False
-    return head.value.startswith(("http://", "https://")) and "rag-retrieval" not in head.value
+# Method or function names of an outgoing request: a client method (``c.post``), a bare
+# helper (``post(url, ...)``) or urllib (``Request(url, data)``, ``urlopen(url, data)``).
+_HTTP_METHODS = {"post", "put", "request", "send", "Request", "urlopen"}
 
 
 def _calls_rag_ingest(path: Path) -> bool:
-    """An HTTP call that reaches rag-retrieval's ingest.
+    """An HTTP call whose URL is an ingest route, wherever its host comes from.
 
-    Either the URL names the service (its configured URL or its host) and the route, or the
-    module names the service elsewhere and the URL is not a literal address of another host:
-    a relative path on a client built with ``base_url=RAG_RETRIEVAL_URL``, or the URL read
-    into another variable first (Devin review on #1582). Route decorators
-    (``@app.post("/v1/ingest")``) declare an endpoint and are not calls out.
+    Conservative on purpose, since this guard is what keeps the single-writer premise true
+    (Devin review on #1582, lab 1582-v5): an HTTP-method call counts when an argument
+    contains ``/v1/ingest`` (with or without a host, so a relative path on a client built
+    with ``base_url=RAG_RETRIEVAL_URL`` counts), or when an argument is a name or attribute
+    assigned anywhere in the module from an expression containing ``/v1/ingest`` (a URL
+    built before the call). Route decorators (``@app.post("/v1/ingest")``) declare an
+    endpoint and are not calls out. Allowed callers are listed by name in ``_INGEST_CALLERS``.
 
     Parsed, not grepped: a guard that only mentions the path in a string is not a writer.
     """
     try:
-        source = path.read_text(encoding="utf-8", errors="replace")
-        tree = ast.parse(source)
-    except SyntaxError:
+        tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+    except (SyntaxError, ValueError):
         return False
-    names_service = "RAG_RETRIEVAL_URL" in source or "rag-retrieval" in source
     decorators = {
         id(d)
         for node in ast.walk(tree)
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
         for d in node.decorator_list
     }
+    ingest_urls: set[str] = set()
+
+    def names_ingest(expr: ast.expr) -> bool:
+        return "/v1/ingest" in ast.unparse(expr) or any(
+            ast.unparse(n) in ingest_urls
+            for n in ast.walk(expr)
+            if isinstance(n, (ast.Name, ast.Attribute))
+        )
+
+    assignments = [
+        (node.targets if isinstance(node, ast.Assign) else [node.target], node.value)
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.Assign, ast.AnnAssign)) and node.value is not None
+    ]
+    grew = True
+    while grew:  # to a fixed point: a URL built from a name that holds the route
+        grew = False
+        for targets, value in assignments:
+            names = {ast.unparse(t) for t in targets}
+            if not names <= ingest_urls and names_ingest(value):
+                ingest_urls |= names
+                grew = True
     for node in ast.walk(tree):
-        if not (isinstance(node, ast.Call) and getattr(node.func, "attr", None) in _HTTP_METHODS):
+        if not isinstance(node, ast.Call):
             continue
-        if id(node) in decorators:
+        called = getattr(node.func, "attr", None) or getattr(node.func, "id", None)
+        if called not in _HTTP_METHODS or id(node) in decorators:
             continue
-        for arg in [*node.args, *(k.value for k in node.keywords)]:
-            text = ast.unparse(arg)
-            if "/v1/ingest" in text and ("RAG_RETRIEVAL_URL" in text or "rag-retrieval" in text):
-                return True
-            if "/v1/ingest" in text and names_service and not _literal_url_of_another_host(arg):
-                return True
+        if any(names_ingest(arg) for arg in [*node.args, *(k.value for k in node.keywords)]):
+            return True
     return False
 
 
-def _sources():
-    for top in SOURCE_DIRS:
+_SKIP_PARTS = {"tests", "tests_v9", "node_modules", ".git", "__pycache__", ".venv", "venv"}
+
+
+def _sources(tops):
+    for top in tops:
         for path in (ROOT / top).rglob("*.py"):
-            parts = set(path.parts)
-            if "tests" in parts or path.name.startswith("test_") or "__pycache__" in parts:
+            parts = set(path.relative_to(ROOT).parts)
+            if parts & _SKIP_PARTS or path.name.startswith("test_"):
                 continue
             yield path
 
 
+def _all_sources():
+    """Every Python file in the repository outside tests (``tools/`` and ``certification/`` too)."""
+    for path in ROOT.glob("*.py"):
+        if not path.name.startswith("test_"):
+            yield path
+    tops = [p.name for p in ROOT.iterdir() if p.is_dir() and p.name not in _SKIP_PARTS]
+    yield from _sources(tops)
+
+
+# Callers of an ingest route, allowed by name, with the reason:
+#   local-ai-rag/main.py          the single writer, inside ``_publishing``;
+#   staging/rag_fixture_probe.py  posts its fixture to local-ai-rag's own upload endpoint
+#                                 (``sahool-local-ai-rag:8000``), i.e. through that lock.
+_INGEST_CALLERS = ["scripts/staging/rag_fixture_probe.py", "services/local-ai-rag/main.py"]
+
+
 def test_only_local_ai_rag_calls_the_canonical_ingest():
-    writers = sorted(str(p.relative_to(ROOT)) for p in _sources() if _calls_rag_ingest(p))
-    assert writers == ["services/local-ai-rag/main.py"], (
+    writers = sorted(str(p.relative_to(ROOT)) for p in _all_sources() if _calls_rag_ingest(p))
+    assert writers == _INGEST_CALLERS, (
         "a second writer of rag-retrieval /v1/ingest bypasses local-ai-rag's per-document "
         "serialisation (RAG-INGEST-CROSS-REPLICA-PUBLICATION-NOT-COORDINATED-01): " + str(writers)
     )
+
+
+def test_the_fixture_probe_posts_to_local_ai_rag_not_to_rag_retrieval():
+    source = (ROOT / "scripts" / "staging" / "rag_fixture_probe.py").read_text(encoding="utf-8")
+    assert "http://sahool-local-ai-rag:8000/v1/ingest" in source
+    assert "RAG_RETRIEVAL_URL" not in source and "sahool-rag-retrieval:8000/v1/ingest" not in source
 
 
 # Code that drives the indexing service's write path directly. Allowed, with the reason:
@@ -111,6 +146,9 @@ _KNOWN_WRITE_PATHS = {
     "services/rag-retrieval/main.py",
     "services/rag-retrieval/reindex_manifest.py",
     "services/qdrant-seed/seed.py",
+    # An archived evidence witness: writes the disposable ``native_source`` and
+    # ``native_baseline`` collections of a Qdrant it reaches on 127.0.0.1:17333.
+    "certification/evidence/chatgpt_closure_nine_20261016/rag/native_reindex_witness.py",
 }
 _INDEX_CLIENTS = ("production_qdrant", "HybridQdrantRetriever", "QdrantHttpClient")
 
@@ -145,35 +183,56 @@ def _drives_index_writes(path: Path) -> bool:
             True,
         ),
         (
-            "import httpx\nfrom os import getenv\nU = getenv('RAG_RETRIEVAL_URL')\n"
+            "import httpx\nfrom os import getenv\nU = getenv('INDEXER')\n"
             "def go(b):\n    httpx.post(f'{U}/v1/ingest', json=b)\n",
             True,
         ),
         (
-            "from fastapi import FastAPI\napp = FastAPI()  # behind rag-retrieval\n"
+            "import httpx\nfrom os import getenv\n"
+            "def go(b):\n    url = getenv('INDEXER') + '/v1/ingest'\n"
+            "    httpx.post(url, json=b)\n",
+            True,
+        ),
+        (
+            "import requests\nINGEST = '/v1/ingest'\nclass C:\n"
+            "    def __init__(self, base):\n        self.url = base + INGEST\n"
+            "    def go(self, b):\n        requests.request('POST', self.url, json=b)\n",
+            True,
+        ),
+        (
+            "import urllib.request\nU = 'http://sahool-rag-retrieval:8000/v1/ingest'\n"
+            "def go(b):\n    urllib.request.urlopen(urllib.request.Request(U, data=b))\n",
+            True,
+        ),
+        (
+            "def post(url, body):\n    ...\n"
+            "def go(b):\n    post('http://sahool-rag-retrieval:8000/v1/ingest', b)\n",
+            True,
+        ),
+        (
+            "from fastapi import FastAPI\napp = FastAPI()\n"
             "@app.post('/v1/ingest')\ndef ingest():\n    return {}\n",
             False,
         ),
         (
-            "import httpx  # probes rag-retrieval separately\n"
-            "def go(b):\n    httpx.post('http://sahool-local-ai-rag:8000/v1/ingest', json=b)\n",
-            False,
-        ),
-        (
-            "import httpx\ndef go(b):\n    httpx.Client(base_url='http://other').post('/v1/ingest')\n",
+            "import httpx\nDOC = 'see /v1/ingest'\n"
+            "def go():\n    print(DOC)\n    httpx.get('http://rag/v1/search')\n",
             False,
         ),
     ],
     ids=[
         "base-url-host",
         "base-url-env-fstring",
-        "full-url",
+        "url-from-another-name",
+        "url-built-before-the-call",
+        "url-built-from-a-constant",
+        "urllib-request",
+        "bare-helper",
         "route-decorator",
-        "local-ai-rag-url",
-        "unrelated-service",
+        "mentioned-not-called",
     ],
 )
-def test_the_writer_detector_sees_a_client_base_url(tmp_path, source, writer):
+def test_the_writer_detector_sees_every_way_to_reach_an_ingest_route(tmp_path, source, writer):
     module = tmp_path / "caller.py"
     module.write_text(source, encoding="utf-8")
     assert _calls_rag_ingest(module) is writer
@@ -182,7 +241,7 @@ def test_the_writer_detector_sees_a_client_base_url(tmp_path, source, writer):
 def test_nothing_else_drives_the_index_write_path_directly():
     drivers = sorted(
         str(p.relative_to(ROOT))
-        for p in _sources()
+        for p in _all_sources()
         if _drives_index_writes(p) and str(p.relative_to(ROOT)) not in _KNOWN_WRITE_PATHS
     )
     assert drivers == [], (

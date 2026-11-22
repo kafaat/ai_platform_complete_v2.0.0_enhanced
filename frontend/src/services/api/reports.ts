@@ -110,10 +110,11 @@ export interface SeasonSimResult {
 }
 // يشغّل محاكاة محصوليّة للموسم ويحفظ ناتجها على الخادم (FIELD_EDIT). 503 عند تعذّر
 // الطقس/القاعدة، 404 إن غاب الموسم عن المستأجِر.
-// The run reads the NDVI series (raster service, up to 20 s) and then the weather archive
-// (weather service, up to 20 s) before saving, so the client's default 15 s gave up on runs
-// the server still completed and saved (Devin review on #1582).
-export const SEASON_SIMULATION_TIMEOUT_MS = 60_000;
+// The run chains the database reads, the NDVI series (raster service, up to 20 s), the
+// weather archive (weather service, up to 20 s) and the crop-model engine before saving, so
+// the client's default 15 s gave up on runs the server still completed and saved (Devin
+// review on #1582). 90 s covers those upstream bounds with room for the reads and the save.
+export const SEASON_SIMULATION_TIMEOUT_MS = 90_000;
 export const simulateSeason = (seasonId: string): Promise<SeasonSimResult> =>
   kongApi
     .post<SeasonSimResult>(`/api/v1/seasons/${seasonId}/simulate`, undefined, {

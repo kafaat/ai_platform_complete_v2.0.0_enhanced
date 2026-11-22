@@ -1,6 +1,7 @@
-// Devin review on #1582: the season simulation run reads the NDVI series (raster service, up to
-// 20 s) and then the weather archive (weather service, up to 20 s) before it saves, and the
-// shared client gives up after 15 s, so the dialog reported failure for runs the server saved.
+// Devin review on #1582: the season simulation run chains the database, the NDVI series (raster
+// service, up to 20 s), the weather archive (weather service, up to 20 s) and the crop-model
+// engine before it saves, and the shared client gives up after 15 s, so the dialog reported
+// failure for runs the server saved.
 import { describe, expect, it, vi } from 'vitest';
 
 const { mockPost } = vi.hoisted(() => ({ mockPost: vi.fn() }));
@@ -25,6 +26,6 @@ describe('season simulation request', () => {
     expect(mockPost).toHaveBeenCalledWith('/api/v1/seasons/s-1/simulate', undefined, {
       timeout: SEASON_SIMULATION_TIMEOUT_MS,
     });
-    expect(SEASON_SIMULATION_TIMEOUT_MS).toBeGreaterThan(20_000 + 20_000);
+    expect(SEASON_SIMULATION_TIMEOUT_MS).toBeGreaterThanOrEqual(90_000);
   });
 });
