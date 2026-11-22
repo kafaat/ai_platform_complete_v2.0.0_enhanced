@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7c95347f52c9fb1832baf4f7383e3d69b47e68041138d558fb25dd6d848ba532"
+          "content": "e7da1dd6667022ec348cf0bd750ec6627b167c6b67f6fff9b73db423e981118b"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -32495,7 +32495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0a985a34ae767352a3399fb7232354fc977d7d1fe89427c1b572a97d43129160"
+          "content": "4182f14ec9c0e74ea6afc230736a3841da1b6bff9017378b98f8f4cd4541f05e"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",

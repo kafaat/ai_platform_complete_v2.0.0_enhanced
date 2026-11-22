@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7655,
+    "files_scanned": 7654,
     "files_by_kind": {
       "backend": 1311,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2238,
-      "tests": 2663,
+      "tests": 2662,
       "web": 572
     },
-    "unmapped_artifacts": 3653,
+    "unmapped_artifacts": 3652,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4153,
+      "python_functional": 4152,
       "raw": 3502
     },
-    "test_dependency_files": 2027,
+    "test_dependency_files": 2026,
     "test_dependency_edges": 5421,
     "test_dependency_bounded_files": 1170,
-    "test_dependency_unresolved_relations": 518
+    "test_dependency_unresolved_relations": 517
   },
   "capabilities": [
     {
@@ -46339,10 +46339,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_model_lifecycle_adapter_compose_env.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_mutation_probe.py",
       "kind": "tests"
     },
@@ -74748,17 +74744,17 @@
         {
           "source": "scripts/release/build_release_bundle.py",
           "kind": "source_read",
-          "line": 219
+          "line": 214
         },
         {
           "source": "scripts/runtime/env_doctor.py",
           "kind": "import",
-          "line": 226
+          "line": 221
         },
         {
           "source": "scripts/runtime/env_doctor.py",
           "kind": "loader",
-          "line": 249
+          "line": 244
         },
         {
           "source": "scripts/runtime/env_doctor.py",
@@ -76905,12 +76901,12 @@
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "loader",
-          "line": 376
+          "line": 378
         },
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "source_read",
-          "line": 375
+          "line": 377
         },
         {
           "source": "services/ai_agronomist/ai_generation.py",
@@ -76935,7 +76931,7 @@
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 335
+          "line": 337
         },
         {
           "source": "services/sahool-platform/api/ai_provider_config.py",
@@ -89664,23 +89660,6 @@
       ]
     },
     {
-      "test": "tests_v9/test_model_lifecycle_adapter_compose_env.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "directory_reference",
-        "reads_repository_data_file",
-        "tree_wide_scan",
-        "unresolved_dynamic_relation"
-      ],
-      "edges": [],
-      "unresolved": [
-        {
-          "line": 157,
-          "call": "spec_from_file_location"
-        }
-      ]
-    },
-    {
       "test": "tests_v9/test_mqtt_acl_template.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -92501,7 +92480,7 @@
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "loader",
-          "line": 507
+          "line": 520
         },
         {
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
