@@ -265,6 +265,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f5d017f54e05ba22a4574e0547ab74d42a52d34f279f4261902cd61bae90785e"
+        }
+      ],
+      "name": "frontend/e2e/map-tools.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f43a98adc14023ecfa8ce57c116b64097aa145b2403dc7c91ec1ee39e77b6696"
         }
       ],
@@ -565,7 +575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e8e9560ab8a804e76dadbd344775ed31c59e65a7bcea79c45fc0c44bb0dba3e2"
+          "content": "4e6f5801a5d386b67416a63a7f01021344c85543d0471a8387c86b3534f02b1c"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -2415,7 +2425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "930a319f2c9c338b2f0f44b7dd782c92af584edbefb3f15dd6dd27918191b948"
+          "content": "cae67c52c6c88a1a5c75cb3c18c5e4f335623580bde526bf12d3fc65f35f16e8"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/PivotDesignerMapHub.static.test.ts",
@@ -6685,7 +6695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c1ca83b9253568c1521a413bcf35cd2823a43e1a7d3d5e6f7697e9a0e51c0f2"
+          "content": "13048f77fe040526fb53d4965736822d3c98d59ba2a005bfeb10299a7b220bbb"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7607,
+    "files_scanned": 7608,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2636,
+      "tests": 2637,
       "web": 556
     },
-    "unmapped_artifacts": 3617,
+    "unmapped_artifacts": 3618,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4135,
-      "raw": 3472
+      "raw": 3473
     },
     "test_dependency_files": 2014,
     "test_dependency_edges": 5377,
@@ -33397,6 +33397,10 @@
     },
     {
       "path": "frontend/e2e/gis-tools-timeline-comparison.spec.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/e2e/map-tools.spec.ts",
       "kind": "tests"
     },
     {

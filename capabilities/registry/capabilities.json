@@ -1171,7 +1171,9 @@
         "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:746",
         "POST /api/v1/gis/cloud-native/phase6/profitability-map @ services/sahool-platform/api/routers/gis_cloud_native.py:770"
       ],
-      "ui_consumers": [],
+      "ui_consumers": [
+        "frontend/e2e/map-tools.spec.ts"
+      ],
       "mobile_consumers": [
         "mobile/sahool_app/lib/features/maps/draw/draw_map.dart",
         "mobile/sahool_app/lib/features/maps/io/presentation/io_map.dart",
@@ -1250,7 +1252,7 @@
           "path": "migrations/v259_yield_map_observed_zero.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=25, ui=0, mobile=13. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=25, ui=1, mobile=13. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
