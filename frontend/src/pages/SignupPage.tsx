@@ -54,15 +54,14 @@ export default function SignupPage({ onLogin }: { onLogin?: () => void }) {
     }
   };
 
-  const fieldStyle = { background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0', outline:'none' } as const;
+  const fieldStyle = { background:'#fff', border:'1px solid #a7b3a7', color:'#202621' } as const;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4"
-      style={{ background:'linear-gradient(135deg, #0f1117 0%, #0d2010 50%, #0f1117 100%)' }}>
+    <div className="ops-auth min-h-screen flex items-center justify-center p-4">
       <div className="relative w-full max-w-md">
-        <div className="rounded-3xl p-6 sm:p-8 border" style={{ background:'#1e293b', borderColor:'#334155', boxShadow:'0 25px 50px rgba(0,0,0,0.5)' }}>
+        <div className="ops-auth-card p-6 sm:p-8">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-900/50">
+            <div className="w-16 h-16 rounded-md bg-[#367c2b] flex items-center justify-center mx-auto mb-4 ">
               <Leaf className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-slate-100">إنشاء حساب</h1>
@@ -138,13 +137,13 @@ export default function SignupPage({ onLogin }: { onLogin?: () => void }) {
 
             <button type="submit" disabled={loading}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all"
-              style={{ background: loading ? '#15803d' : '#16a34a', color:'white', opacity: loading ? 0.8 : 1 }}>
+              style={{ background: loading ? '#275d20' : '#367c2b', color:'white', opacity: loading ? 0.8 : 1 }}>
               {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> جاري الإنشاء...</> : <><UserPlus className="w-4 h-4" /> إنشاء الحساب</>}
             </button>
 
             <p className="text-center text-xs text-slate-500">
               لديك حساب؟{' '}
-              <button type="button" onClick={onLogin} className="text-emerald-500 hover:text-emerald-400 font-medium">
+              <button type="button" onClick={onLogin} className="text-[#275d20] hover:underline font-semibold">
                 تسجيل الدخول
               </button>
             </p>

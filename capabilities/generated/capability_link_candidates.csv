@@ -2602,6 +2602,7 @@ SEC-004,test,tests_v9/test_mfa_crypto_v29_5.py,3,applied
 SEC-004,test,tests_v9/test_mfa_hardening_integration_v29_5.py,3,applied
 SEC-004,test,tests_v9/test_mfa_migration_contract_guard.py,3,applied
 SEC-004,test,tests_v9/test_mfa_totp_antireplay_v141.py,5,applied
+SEC-004,ui,frontend/e2e/mfa-enrollment-contrast.spec.ts,2,applied
 SEC-005,api,GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19,2,applied
 SEC-005,api,GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:642,2,applied
 SEC-005,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:271,2,applied

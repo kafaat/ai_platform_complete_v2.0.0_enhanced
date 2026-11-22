@@ -6,7 +6,12 @@ disposable database; this test keeps the runner unable to start one.
 
 from __future__ import annotations
 
+import json
+import os
 import re
+import shutil
+import subprocess
+import textwrap
 from pathlib import Path
 
 import pytest
@@ -171,3 +176,74 @@ def test_ci_build_uses_the_official_index_and_is_bounded():
     assert "build -q sahool-raster-service sahool-scout-ingest" in build
     assert "S3_SLICE_BUILD_TIMEOUT" in build
     assert "dc build" not in text
+
+
+def test_initializer_failure_keeps_diagnostics_redacts_secrets_and_cleans_up(tmp_path):
+    """Exercise error handling with a CLI stand-in; this is not a live S3 proof."""
+    root = tmp_path / "source"
+    runner = root / "scripts/ci/run_s3_compose_slice_acceptance.sh"
+    runner.parent.mkdir(parents=True)
+    runner.write_text(_text(), encoding="utf-8")
+    (root / "docker-compose.v9.yml").write_text(
+        "services:\n  sahool-minio:\n    environment:\n"
+        "      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?required}\n",
+        encoding="utf-8",
+    )
+    commands = tmp_path / "bin"
+    commands.mkdir()
+    calls = tmp_path / "docker-calls.jsonl"
+    docker = commands / "docker"
+    docker.write_text(
+        textwrap.dedent(
+            """\
+            #!/usr/bin/env python3
+            import json
+            import os
+            import sys
+            from pathlib import Path
+
+            args = sys.argv[1:]
+            with Path(os.environ["DOCKER_CALL_LOG"]).open("a", encoding="utf-8") as log:
+                log.write(json.dumps(args) + "\\n")
+            if args[0] == "inspect":
+                print("minio-init state: oom_killed=true exit_code=137 memory_limit_bytes=134217728")
+            elif args[0] == "compose" and "run" in args:
+                env_file = Path(args[args.index("--env-file") + 1])
+                values = dict(line.split("=", 1) for line in env_file.read_text(encoding="utf-8").splitlines())
+                print("synthetic_secret=" + values["MINIO_ROOT_PASSWORD"])
+                print("mc policy attach: Killed")
+                sys.exit(137)
+            """
+        ),
+        encoding="utf-8",
+    )
+    docker.chmod(0o755)
+    git = commands / "git"
+    git.write_text("#!/bin/sh\nprintf '%s\\n' " + "1" * 40 + "\n", encoding="utf-8")
+    git.chmod(0o755)
+    result = subprocess.run(
+        [shutil.which("bash") or "/bin/bash", str(runner)],
+        env={
+            "PATH": str(commands) + os.pathsep + os.defpath,
+            "TMPDIR": str(tmp_path),
+            "DOCKER_CALL_LOG": str(calls),
+        },
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=15,
+    )
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert "S3_SLICE_PROVISION_FAILED" in result.stderr
+    assert "oom_killed=true exit_code=137 memory_limit_bytes=134217728" in result.stderr
+    assert "synthetic_secret=[redacted]" in result.stderr
+    recorded = [json.loads(line) for line in calls.read_text(encoding="utf-8").splitlines()]
+    provision = next(args for args in recorded if args[0] == "compose" and "run" in args)
+    assert "--rm" not in provision, "auto-removal loses the initializer's exit state"
+    name = provision[provision.index("--name") + 1]
+    inspected = next(i for i, args in enumerate(recorded) if args[0] == "inspect")
+    removed = recorded.index(["rm", "-f", name])
+    assert recorded[inspected][-1] == name and inspected < removed
+    assert any("down" in args and "--remove-orphans" in args for args in recorded)
+    env_file = Path(provision[provision.index("--env-file") + 1])
+    assert not env_file.exists(), "the synthetic credential file must be removed"

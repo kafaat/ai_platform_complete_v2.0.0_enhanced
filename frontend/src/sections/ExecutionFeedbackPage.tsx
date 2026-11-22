@@ -94,10 +94,10 @@ function ByStatusChip({ status, count }: { status: ExecutionLoopStatus; count: n
   return (
     <div
       className="flex items-center gap-2 rounded-lg px-3 py-1.5 border"
-      style={{ background: '#1e293b', borderColor: '#334155' }}
+      style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}
     >
       <span className="w-3 h-3 rounded-full shrink-0" style={{ background: hex }} aria-hidden="true" />
-      <span className="text-[12px] text-slate-200">{STATUS_LABEL_AR[status]}</span>
+      <span className="text-[12px] text-sahool-text">{STATUS_LABEL_AR[status]}</span>
       <span
         className="text-[12px] font-bold px-1.5 rounded-full"
         style={{ background: colorBg(color), color: hex }}
@@ -119,27 +119,27 @@ function outcomeText(outcome: 'executed' | 'failed' | null): string {
 function SuccessCell({ value }: { value: boolean | null }) {
   if (value === true) {
     return (
-      <span className="inline-flex items-center gap-1 text-emerald-400" title="نجحت النتيجة">
+      <span className="inline-flex items-center gap-1 text-sahool-green-dark" title="نجحت النتيجة">
         <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
       </span>
     );
   }
   if (value === false) {
     return (
-      <span className="inline-flex items-center gap-1 text-red-400" title="لم تنجح النتيجة">
+      <span className="inline-flex items-center gap-1 text-ops-danger" title="لم تنجح النتيجة">
         <XCircle className="w-4 h-4" aria-hidden="true" />
       </span>
     );
   }
-  return <span className="text-slate-500" title="لم تُقَس النتيجة">—</span>;
+  return <span className="text-sahool-muted" title="لم تُقَس النتيجة">—</span>;
 }
 
 // بطاقة إجماليّة صغيرة (مقياس + تسمية).
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-2xl font-bold text-slate-100 leading-none">{value}</div>
-      <div className="text-[11px] text-slate-400 mt-1">{label}</div>
+      <div className="text-2xl font-bold text-sahool-text leading-none">{value}</div>
+      <div className="text-[11px] text-sahool-muted mt-1">{label}</div>
     </div>
   );
 }
@@ -151,19 +151,19 @@ function DecisionRow({ decision }: { decision: ExecutionFeedbackDecision }) {
   // الملاحظة الصادقة: exec_note_ar من سجلّ التنفيذ أو note_ar (تفسير الحالة المجهولة/غير المقيسة).
   const note = decision.exec_note_ar || decision.note_ar;
   return (
-    <tr className="border-t text-slate-200 align-top" style={{ borderColor: '#25303f' }}>
+    <tr className="border-t text-sahool-text align-top" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
       <td className="px-3 py-2" style={{ borderRight: `3px solid ${hex}` }}>
         <div className="font-medium">{decision.decision_type}</div>
-        <div className="text-[11px] text-slate-400">{decision.decision_id}</div>
-        {note && <div className="text-[11px] text-slate-500 mt-1 max-w-xs">{note}</div>}
+        <div className="text-[11px] text-sahool-muted">{decision.decision_id}</div>
+        {note && <div className="text-[11px] text-sahool-muted mt-1 max-w-xs">{note}</div>}
       </td>
-      <td className="px-3 py-2 text-slate-300">{decision.field_id ?? '—'}</td>
-      <td className="px-3 py-2 text-slate-300 whitespace-nowrap">{shortDate(decision.created_at)}</td>
+      <td className="px-3 py-2 text-sahool-text">{decision.field_id ?? '—'}</td>
+      <td className="px-3 py-2 text-sahool-text whitespace-nowrap">{shortDate(decision.created_at)}</td>
       <td className="px-3 py-2"><LoopBadge decision={decision} /></td>
-      <td className="px-3 py-2 text-slate-300">{outcomeText(decision.execution_outcome)}</td>
-      <td className="px-3 py-2 text-slate-300 whitespace-nowrap">
+      <td className="px-3 py-2 text-sahool-text">{outcomeText(decision.execution_outcome)}</td>
+      <td className="px-3 py-2 text-sahool-text whitespace-nowrap">
         <span className="inline-flex items-center gap-1">
-          <Clock className="w-3 h-3 text-slate-500" aria-hidden="true" />
+          <Clock className="w-3 h-3 text-sahool-muted" aria-hidden="true" />
           {shortDate(decision.executed_at)}
         </span>
       </td>
@@ -180,14 +180,14 @@ export default function ExecutionFeedbackPage() {
     <div className="space-y-6 max-w-6xl mx-auto" dir="rtl">
       {/* ── الترويسة ── */}
       <div className="flex items-center gap-2">
-        <Repeat className="w-5 h-5 text-emerald-400" aria-hidden="true" />
-        <h2 className="text-xl font-bold text-slate-100">رصد حلقة التنفيذ</h2>
+        <Repeat className="w-5 h-5 text-sahool-green-dark" aria-hidden="true" />
+        <h2 className="text-xl font-bold text-sahool-text">رصد حلقة التنفيذ</h2>
       </div>
-      <p className="text-sm text-slate-400">
-        لكلّ قرار حديث: هل <span className="text-emerald-300">نُفِّذ</span> فعلاً (من سجلّ التنفيذ) وهل
-        <span className="text-emerald-300"> طابقت النتيجة الخطّة</span> — إغلاق حلقة القرار→التنفيذ→النتيجة.
-        صدق: غير المُسجَّل <span className="text-slate-300">«يحتاج بيانات»</span> لا يُفترَض مُنفَّذاً، والمنفَّذ بلا قياس
-        <span className="text-amber-300"> ليس نجاحاً</span>.
+      <p className="text-sm text-sahool-muted">
+        لكلّ قرار حديث: هل <span className="text-sahool-green-dark">نُفِّذ</span> فعلاً (من سجلّ التنفيذ) وهل
+        <span className="text-sahool-green-dark"> طابقت النتيجة الخطّة</span> — إغلاق حلقة القرار→التنفيذ→النتيجة.
+        صدق: غير المُسجَّل <span className="text-sahool-text">«يحتاج بيانات»</span> لا يُفترَض مُنفَّذاً، والمنفَّذ بلا قياس
+        <span className="text-ops-warning"> ليس نجاحاً</span>.
       </p>
 
       {/* ── الحالات ── */}
@@ -205,8 +205,8 @@ export default function ExecutionFeedbackPage() {
       {/* decisions:[] — لا قرارات مُدامة بعد */}
       {data && data.decisions.length === 0 && (
         <div
-          className="rounded-xl border p-4 text-sm text-slate-400"
-          style={{ background: '#1e293b', borderColor: '#334155' }}
+          className="rounded-xl border p-4 text-sm text-sahool-muted"
+          style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}
           role="status"
         >
           لا قرارات مُدامة بعد — لا تتوفّر بيانات لرصد حلقة التنفيذ.
@@ -263,17 +263,17 @@ export default function ExecutionFeedbackPage() {
           </div>
 
           {/* ── ملاحظة قراءة فقط (لا أوامر) ── */}
-          <div className="flex items-center gap-2 text-[12px] text-slate-500">
+          <div className="flex items-center gap-2 text-[12px] text-sahool-muted">
             <Lock className="w-3.5 h-3.5" aria-hidden="true" />
             رصد قراءة فقط — لا إصدار أوامر ولا إعادة تنفيذ من هذه الصفحة.
           </div>
 
           {/* ── جدول القرارات ── */}
           <section className="space-y-2">
-            <div className="text-sm font-semibold text-slate-200">
+            <div className="text-sm font-semibold text-sahool-text">
               القرارات الحديثة ({data.decision_count})
             </div>
-            <div className="overflow-x-auto rounded-xl border" style={{ borderColor: '#334155' }}>
+            <div className="overflow-x-auto rounded-xl border" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
               <table className="w-full text-sm" style={{ background: '#1e293b' }}>
                 <thead>
                   <tr className="text-[11px] text-slate-400 text-right">

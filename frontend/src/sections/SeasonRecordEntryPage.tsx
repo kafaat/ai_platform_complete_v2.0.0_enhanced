@@ -545,84 +545,84 @@ export default function SeasonRecordEntryPage() {
         nextLabel="حفظ المسودّة"
       >
         <div className="grid grid-cols-2 gap-3">
-          <label className="text-xs text-slate-300 col-span-2">
+          <label className="text-xs text-sahool-text col-span-2">
             وصف الموسم (اختياريّ)
             <input
               value={seasonLabel}
               onChange={(e) => setSeasonLabel(e.target.value)}
               placeholder="شتاء 2022/2023"
-              className="mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 text-sm"
+              className="mt-1 w-full px-3 py-2 rounded-lg bg-sahool-surface border border-slate-600 text-sahool-text text-sm"
             />
           </label>
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             أقدم تاريخ في الدفتر
             <input
               type="date"
               value={observedFrom}
               onChange={(e) => setObservedFrom(e.target.value)}
-              className="mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 text-sm"
+              className="mt-1 w-full px-3 py-2 rounded-lg bg-sahool-surface border border-slate-600 text-sahool-text text-sm"
             />
           </label>
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             أحدث تاريخ في الدفتر
             <input
               type="date"
               value={observedTo}
               onChange={(e) => setObservedTo(e.target.value)}
-              className="mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 text-sm"
+              className="mt-1 w-full px-3 py-2 rounded-lg bg-sahool-surface border border-slate-600 text-sahool-text text-sm"
             />
           </label>
-          <label className="text-xs text-slate-300 col-span-2">
+          <label className="text-xs text-sahool-text col-span-2">
             الصنف / المحصول
             <input
               value={varietyName}
               onChange={(e) => setVarietyName(e.target.value)}
               placeholder="قمح صلب — بلديّ"
-              className="mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 text-sm"
+              className="mt-1 w-full px-3 py-2 rounded-lg bg-sahool-surface border border-slate-600 text-sahool-text text-sm"
             />
           </label>
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             تاريخ البذار
             <input
               type="date"
               value={sowingDate}
               onChange={(e) => setSowingDate(e.target.value)}
-              className="mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 text-sm"
+              className="mt-1 w-full px-3 py-2 rounded-lg bg-sahool-surface border border-slate-600 text-sahool-text text-sm"
             />
           </label>
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             دقّة تاريخ البذار
             <select
               value={sowingPrecision}
               onChange={(e) => setSowingPrecision(e.target.value as SowingPrecision)}
-              className="mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 text-sm"
+              className="mt-1 w-full px-3 py-2 rounded-lg bg-sahool-surface border border-slate-600 text-sahool-text text-sm"
             >
               {SOWING_PRECISION_OPTS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
           </label>
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             كمية البذور (kg/ha، اختياريّة)
             <input
               value={seedRate}
               onChange={(e) => setSeedRate(e.target.value)}
               inputMode="decimal"
               placeholder="—"
-              className="mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 text-sm"
+              className="mt-1 w-full px-3 py-2 rounded-lg bg-sahool-surface border border-slate-600 text-sahool-text text-sm"
             />
           </label>
-          <label className="text-xs text-slate-300 col-span-2">
+          <label className="text-xs text-sahool-text col-span-2">
             ملاحظات (اختياريّة)
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 text-sm"
+              className="mt-1 w-full px-3 py-2 rounded-lg bg-sahool-surface border border-slate-600 text-sahool-text text-sm"
             />
           </label>
         </div>
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-sahool-muted">
           المبدأ: لا بيانات مُخترَعة — الحقول الناقصة تبقى فارغة (تُصرَّح <code>null</code>) ولا تُملأ تخميناً.
         </p>
       </StepShell>
@@ -648,7 +648,7 @@ export default function SeasonRecordEntryPage() {
         error={error}
       >
         <div className="grid grid-cols-2 gap-3">
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             نوع الحدث
             <select value={evType} onChange={(e) => setEvType(e.target.value as SeasonEventType)} className={inputCls}>
               {EVENT_TYPES.map((t) => (
@@ -656,19 +656,19 @@ export default function SeasonRecordEntryPage() {
               ))}
             </select>
           </label>
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             التاريخ
             <input type="date" value={evDate} onChange={(e) => setEvDate(e.target.value)} className={inputCls} />
           </label>
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             كمّيّة (kg/ha، اختياريّ)
             <input value={evAmountKg} onChange={(e) => setEvAmountKg(e.target.value)} inputMode="decimal" placeholder="—" className={inputCls} />
           </label>
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             ماء (mm، اختياريّ)
             <input value={evAmountMm} onChange={(e) => setEvAmountMm(e.target.value)} inputMode="decimal" placeholder="—" className={inputCls} />
           </label>
-          <label className="text-xs text-slate-300 col-span-2">
+          <label className="text-xs text-sahool-text col-span-2">
             وصف (اختياريّ)
             <input value={evDesc} onChange={(e) => setEvDesc(e.target.value)} className={inputCls} />
           </label>
@@ -676,22 +676,22 @@ export default function SeasonRecordEntryPage() {
         <button
           onClick={addEvent}
           disabled={saving}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-emerald-300 hover:text-emerald-100 disabled:opacity-50"
-          style={{ borderColor: '#334155' }}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-sahool-green-dark hover:text-emerald-100 disabled:opacity-50"
+          style={{ borderColor: 'rgb(var(--sahool-border))' }}
         >
           <Plus className="w-4 h-4" /> أضِف الحدث
         </button>
         {addedEvents.length > 0 && (
-          <ul className="text-[11px] text-slate-400 space-y-1">
+          <ul className="text-[11px] text-sahool-muted space-y-1">
             {addedEvents.map((e, i) => (
               <li key={i}>
                 • {e.type} — {e.date}
-                {e.lowConf && <span className="text-amber-400"> · منخفض الثقة (بلا كمّيّة)</span>}
+                {e.lowConf && <span className="text-ops-warning"> · منخفض الثقة (بلا كمّيّة)</span>}
               </li>
             ))}
           </ul>
         )}
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-sahool-muted">
           نوع حامل لكمّيّة بلا كمّيّة/مدّة/وصف يُوسَم <b>منخفض الثقة</b> تلقائيّاً (لا تخمين قيمة).
         </p>
       </StepShell>
@@ -717,11 +717,11 @@ export default function SeasonRecordEntryPage() {
         error={error}
       >
         <div className="grid grid-cols-2 gap-3">
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             تاريخ الحصاد
             <input type="date" value={harvestDate} onChange={(e) => setHarvestDate(e.target.value)} className={inputCls} />
           </label>
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             دقّة التاريخ
             <select value={harvestPrecision} onChange={(e) => setHarvestPrecision(e.target.value as SowingPrecision)} className={inputCls}>
               {SOWING_PRECISION_OPTS.map((o) => (
@@ -729,12 +729,12 @@ export default function SeasonRecordEntryPage() {
               ))}
             </select>
           </label>
-          <label className="text-xs text-slate-300 col-span-2">
+          <label className="text-xs text-sahool-text col-span-2">
             الغلّة (kg/ha، اختياريّ لكن مطلوب للمعايرة)
             <input value={harvestYield} onChange={(e) => setHarvestYield(e.target.value)} inputMode="decimal" placeholder="—" className={inputCls} />
           </label>
         </div>
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-sahool-muted">
           {harvestSaved ? '✓ محفوظ. ' : ''}
           أهليّة المعايرة (SIM-GOLDEN) تتطلّب: حصاداً بدقّة <b>يوميّة</b> + غلّة + بذاراً بدقّة يوميّة + قبول الموسم.
         </p>
@@ -761,15 +761,15 @@ export default function SeasonRecordEntryPage() {
         error={error}
       >
         <div className="grid grid-cols-3 gap-3">
-          <label className="text-xs text-slate-300 col-span-2">
+          <label className="text-xs text-sahool-text col-span-2">
             البند
             <input value={costLabel} onChange={(e) => setCostLabel(e.target.value)} placeholder="بذور / أجرة حراثة" className={inputCls} />
           </label>
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             المبلغ
             <input value={costAmount} onChange={(e) => setCostAmount(e.target.value)} inputMode="decimal" className={inputCls} />
           </label>
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-sahool-text">
             العملة (ISO)
             <input value={costCurrency} onChange={(e) => setCostCurrency(e.target.value)} maxLength={3} className={inputCls} />
           </label>
@@ -777,19 +777,19 @@ export default function SeasonRecordEntryPage() {
         <button
           onClick={addCost}
           disabled={saving}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-emerald-300 hover:text-emerald-100 disabled:opacity-50"
-          style={{ borderColor: '#334155' }}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-sahool-green-dark hover:text-emerald-100 disabled:opacity-50"
+          style={{ borderColor: 'rgb(var(--sahool-border))' }}
         >
           <Plus className="w-4 h-4" /> أضِف بند التكلفة
         </button>
         {addedCosts.length > 0 && (
-          <ul className="text-[11px] text-slate-400 space-y-1">
+          <ul className="text-[11px] text-sahool-muted space-y-1">
             {addedCosts.map((c, i) => (
               <li key={i}>• {c.label} — {c.amount} {c.currency}</li>
             ))}
           </ul>
         )}
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-sahool-muted">
           لا تجميع صامت عبر عملتين — كلّ عملة سطر مستقلّ (التحويل يتطلّب سعراً صريحاً في التقارير).
         </p>
       </StepShell>
@@ -815,14 +815,14 @@ export default function SeasonRecordEntryPage() {
           type="file"
           accept="image/jpeg,image/png,application/pdf"
           onChange={(e) => setLogbookFile(e.target.files?.[0] ?? null)}
-          className="w-full text-sm text-slate-200 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-emerald-700 file:text-white"
+          className="w-full text-sm text-sahool-text file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-emerald-700 file:text-white"
         />
         {logbookFile && (
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-sahool-muted">
             المُختار: {logbookFile.name} ({Math.round(logbookFile.size / 1024)} ك.ب)
           </p>
         )}
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-sahool-muted">
           الأنواع المقبولة: JPEG / PNG / PDF. الخدمة تفحص محتوى الملفّ فعليّاً (لا الامتداد) وترفض المزوَّر.
         </p>
       </StepShell>
@@ -844,7 +844,7 @@ export default function SeasonRecordEntryPage() {
         error={error}
         nextLabel="تسليم للقبول"
       >
-        <dl className="text-sm text-slate-200 space-y-1.5">
+        <dl className="text-sm text-sahool-text space-y-1.5">
           <Row k="الحقل" v={fieldName} />
           <Row k="نطاق المشاهدة" v={`${observedFrom} → ${observedTo}`} />
           <Row k="الصنف" v={varietyName} />
@@ -875,7 +875,7 @@ export default function SeasonRecordEntryPage() {
             <span>غير مؤهَّل للمعايرة: تحتاج حصاداً وبذاراً بدقّة <b>يوميّة</b> + غلّة مُسجَّلة (يبقى الموسم صالحاً للترقيم).</span>
           </div>
         )}
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-sahool-muted">
           القبول فعل حسّاس: يتطلّب دور <b>مالك</b> أو <b>خبير زراعيّ</b> (البوّابة توقّع الهويّة والخدمة تتحقّق).
         </p>
       </StepShell>
@@ -911,10 +911,10 @@ export default function SeasonRecordEntryPage() {
     <div className="p-6 max-w-3xl mx-auto" dir="rtl">
       <header className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <CalendarRange className="w-6 h-6 text-emerald-400" />
+          <CalendarRange className="w-6 h-6 text-sahool-green-dark" />
           <div>
-            <h1 className="text-lg font-bold text-slate-100">ترقيم المواسم الورقيّة</h1>
-            <p className="text-xs text-slate-400">
+            <h1 className="text-lg font-bold text-sahool-text">ترقيم المواسم الورقيّة</h1>
+            <p className="text-xs text-sahool-muted">
               رسم الحقل → بيانات الموسم → مرفق الدفتر → تسليم للقبول المُصدَّق
             </p>
           </div>
@@ -929,10 +929,10 @@ export default function SeasonRecordEntryPage() {
       </header>
 
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-sm font-semibold text-slate-300">مسودّات بانتظار القبول</h2>
+        <h2 className="text-sm font-semibold text-sahool-text">مسودّات بانتظار القبول</h2>
         <button
           onClick={() => void refreshList()}
-          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200"
+          className="flex items-center gap-1.5 text-xs text-sahool-muted hover:text-slate-200"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loadingList ? 'animate-spin' : ''}`} /> تحديث
         </button>
@@ -948,7 +948,7 @@ export default function SeasonRecordEntryPage() {
       )}
 
       {!listError && drafts.length === 0 && !loadingList && (
-        <p className="text-sm text-slate-500 py-6 text-center">
+        <p className="text-sm text-sahool-muted py-6 text-center">
           لا مسودّات بعد — ابدأ ترقيم موسم جديد.
         </p>
       )}
@@ -958,11 +958,11 @@ export default function SeasonRecordEntryPage() {
           <li
             key={d.id}
             className="flex items-center justify-between px-3 py-2.5 rounded-lg"
-            style={{ background: '#1e293b', border: '1px solid #334155' }}
+            style={{ background: 'rgb(var(--sahool-surface))', border: '1px solid rgb(var(--sahool-border))' }}
           >
-            <div className="text-sm text-slate-200">
+            <div className="text-sm text-sahool-text">
               <div className="font-medium">{d.season_label || `موسم ${d.field_id.slice(0, 8)}`}</div>
-              <div className="text-[11px] text-slate-400">
+              <div className="text-[11px] text-sahool-muted">
                 {d.observed_at_from} → {d.observed_at_to}
                 {d.has_logbook ? ' · دفتر مرفوع' : ' · بلا دفتر'}
               </div>
@@ -982,9 +982,9 @@ export default function SeasonRecordEntryPage() {
 
 function Row({ k, v }: { k: string; v: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-slate-700/50 pb-1">
-      <dt className="text-slate-400 text-xs">{k}</dt>
-      <dd className="text-slate-100">{v}</dd>
+    <div className="flex items-center justify-between gap-3 border-b border-sahool-border/50 pb-1">
+      <dt className="text-sahool-muted text-xs">{k}</dt>
+      <dd className="text-sahool-text">{v}</dd>
     </div>
   );
 }

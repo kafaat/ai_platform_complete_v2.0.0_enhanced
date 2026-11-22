@@ -3,9 +3,12 @@
 // useAuth مُستبدَل (login يرفض بخطأ أكسيوس الشكل كما يردّه الخادم)، أمّا setup/activate
 // فيمرّان عبر axios حقيقيّ بمحوِّل مزيَّف على authEnrollmentApi — فنرى الترويسة الفعليّة
 // التي تخرج للشبكة. العقد: services/auth/routers/session.py (جسم 403) وrouters/mfa.py.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { AxiosError, AxiosHeaders, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
+import postcss from 'postcss';
 
 const mockLogin = vi.fn();
 vi.mock('../hooks/useAuth', () => ({
@@ -14,6 +17,9 @@ vi.mock('../hooks/useAuth', () => ({
 
 import LoginPage from './LoginPage';
 import { authEnrollmentApi } from '../services/api/client';
+
+const operationsCss = readFileSync(join(process.cwd(), 'src/styles/operations.css'), 'utf8');
+const preflightCss = readFileSync(join(process.cwd(), 'node_modules/tailwindcss/preflight.css'), 'utf8');
 
 const SETUP_PROOF = 'proof-setup-SECRET-1';
 const ACTIVATION_PROOF = 'proof-activate-SECRET-2';
@@ -148,6 +154,49 @@ describe('LoginPage — mandatory MFA enrollment (403 + enrollment_token)', () =
     expect(screen.getByRole('link', { name: /فتح في تطبيق المصادقة/ })).toHaveAttribute('href', URI);
     expect(setItem).not.toHaveBeenCalled();
     assertProofNeverPersistedOrLogged();
+  });
+
+  it('keeps provisioning instructions, labels, URI and copy controls readable under the actual auth CSS', async () => {
+    const style = document.createElement('style');
+    // jsdom does not apply cascade layers. Preserve the real selectors, declarations
+    // and order while unwrapping the layer; the browser regression tests the shipped CSS.
+    const css = postcss.parse(`${preflightCss}\n${operationsCss}`);
+    css.walkAtRules('layer', rule => { if (rule.nodes) rule.replaceWith(rule.nodes); });
+    style.textContent = css.toString();
+    document.head.append(style);
+    try {
+      serve([setupOk]);
+      await reachSetup();
+      const luminance = (color: string) => {
+        const rgb = color.match(/[\d.]+/g)!.slice(0, 3).map(Number);
+        const linear = rgb.map(channel => {
+          const value = channel / 255;
+          return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+        });
+        return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+      };
+      const copyButtons = screen.getAllByRole('button', { name: /^نسخ$/ });
+      expect(copyButtons).toHaveLength(2);
+      for (const element of [
+        screen.getByText(/^١\. أضِف الحساب/),
+        screen.getByText('المفتاح السرّيّ', { exact: true }),
+        screen.getByText('رابط otpauth', { exact: true }),
+        screen.getByTestId('mfa-enroll-uri'),
+        ...copyButtons,
+      ]) {
+        let surface: HTMLElement | null = element;
+        while (surface && ['transparent', 'rgba(0, 0, 0, 0)'].includes(getComputedStyle(surface).backgroundColor)) {
+          surface = surface.parentElement;
+        }
+        expect(surface).not.toBeNull();
+        const foreground = luminance(getComputedStyle(element).color);
+        const background = luminance(getComputedStyle(surface!).backgroundColor);
+        const contrast = (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+        expect(contrast, element.textContent ?? '').toBeGreaterThanOrEqual(4.5);
+      }
+    } finally {
+      style.remove();
+    }
   });
 
   it('activate success shows recovery codes once, then returns to sign-in with TOTP required and a message', async () => {

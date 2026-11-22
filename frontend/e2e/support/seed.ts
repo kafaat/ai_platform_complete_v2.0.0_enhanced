@@ -58,7 +58,7 @@ function json(route: Route, body: unknown) {
 
 // PNG شفّافة 1×1 (لبلاطات الراستر إن طُلبت — لا 404 صاخب).
 const TRANSPARENT_PNG = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC',
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=',
   'base64',
 );
 
@@ -106,14 +106,12 @@ export async function seedAuthAndRoutes(page: Page, role = 'farmer'): Promise<vo
         : route.fulfill({ status: 200, contentType: 'image/png', body: TRANSPARENT_PNG }),
   );
 
-  // (2) اعتراض الشبكة — بلاطات الراستر أوّلاً (أكثر تحديداً).
-  await page.route('**/api/raster/**', (route) =>
-    route.fulfill({ status: 200, contentType: 'image/png', body: TRANSPARENT_PNG }),
-  );
-
   await page.route('**/api/**', (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname;
+    if (path.startsWith('/api/raster/') && path.endsWith('.png')) {
+      return route.fulfill({ status: 200, contentType: 'image/png', body: TRANSPARENT_PNG });
+    }
 
     // قائمة الحقول (GET /api/v1/fields) — المضلّعات تُرسَم على الخريطة.
     if (/\/api\/v1\/fields\/?$/.test(path)) return json(route, FIELDS);

@@ -52,7 +52,7 @@ const DEFAULT_POLICIES: PolicyRow[] = [
   { policy_label: 'توفير الماء', perField: {} },
 ];
 
-const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
+const inputStyle = { background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' } as const;
 
 export default function PortfolioCommandPage() {
   const fieldOptionsQ = useFieldOptions();
@@ -151,22 +151,22 @@ export default function PortfolioCommandPage() {
   const boundConstraints = (recommended?.constraints ?? []).filter(c => c.throughput_bound);
 
   return (
-    <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
+    <div className="portfolio-workspace space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Crosshair className="w-5 h-5 text-sky-400" />
-        <h2 className="text-xl font-bold text-slate-100">مركز قيادة المحفظة</h2>
+        <Crosshair className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">مركز قيادة المحفظة</h2>
       </div>
-      <p className="text-sm text-slate-400">
-        يقارن <span className="text-slate-300">سياسات ريّ متعدّدة</span> عبر حقول المزرعة تحت قيود مصادر الماء
-        (آبار/مضخّات/محاور/شبكة)، فيُراكِب <span className="text-slate-300">الربح × المخاطرة</span> لكلّ سياسة ويوصي بأفضلها.
-        <span className="text-amber-300"> توصية فقط — لا تنفيذ ولا حجز ماء.</span> كلّ القيم
-        <span className="text-amber-300"> تقديريّة غير معايَرة</span>.
+      <p className="text-sm text-sahool-muted">
+        يقارن <span className="text-sahool-text">سياسات ريّ متعدّدة</span> عبر حقول المزرعة تحت قيود مصادر الماء
+        (آبار/مضخّات/محاور/شبكة)، فيُراكِب <span className="text-sahool-text">الربح × المخاطرة</span> لكلّ سياسة ويوصي بأفضلها.
+        <span className="text-ops-warning"> توصية فقط — لا تنفيذ ولا حجز ماء.</span> كلّ القيم
+        <span className="text-ops-warning"> تقديريّة غير معايَرة</span>.
       </p>
 
       {/* Risk aversion */}
-      <div className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <label className="flex flex-col gap-1 max-w-xs">
-          <span className="text-xs text-slate-400">نُفور المخاطرة (٠ = ربح صرف، أعلى = نُفور أكبر)</span>
+          <span className="text-xs text-sahool-muted">نُفور المخاطرة (٠ = ربح صرف، أعلى = نُفور أكبر)</span>
           <input type="number" inputMode="decimal" step="any" value={riskAversion}
             onChange={e => setRiskAversion(e.target.value)}
             className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
@@ -174,38 +174,38 @@ export default function PortfolioCommandPage() {
       </div>
 
       {/* Sources form */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-sm font-semibold text-slate-100">
-            <Droplets className="w-4 h-4 text-sky-400" /> مصادر الماء
+          <div className="flex items-center gap-1 text-sm font-semibold text-sahool-text">
+            <Droplets className="w-4 h-4 text-ops-info" /> مصادر الماء
           </div>
           <button onClick={addSource} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs" style={inputStyle}>
             <Plus className="w-3.5 h-3.5" /> أضف مصدراً
           </button>
         </div>
         {sources.map((s, i) => (
-          <div key={i} className="rounded-lg border p-3 space-y-2" style={{ borderColor: '#25303f' }}>
+          <div key={i} className="rounded-lg border p-3 space-y-2" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500">مصدر {i + 1}</span>
+              <span className="text-xs text-sahool-muted">مصدر {i + 1}</span>
               <button onClick={() => removeSource(i)} disabled={sources.length <= 1}
-                title="حذف المصدر" className="p-1 rounded-sm text-slate-500 hover:text-red-400 disabled:opacity-40">
+                title="حذف المصدر" className="p-1 rounded-sm text-sahool-muted hover:text-red-400 disabled:opacity-40">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">المعرّف</span>
+                <span className="text-xs text-sahool-muted">المعرّف</span>
                 <input value={s.source_id} onChange={e => setSource(i, 'source_id', e.target.value)}
                   className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">السعة (م³)</span>
+                <span className="text-xs text-sahool-muted">السعة (م³)</span>
                 <input type="number" inputMode="decimal" step="any" value={s.capacity_m3}
                   onChange={e => setSource(i, 'capacity_m3', e.target.value)}
                   className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">النوع</span>
+                <span className="text-xs text-sahool-muted">النوع</span>
                 <select value={s.kind} onChange={e => setSource(i, 'kind', e.target.value)}
                   className="px-3 py-2 rounded-lg text-sm" style={inputStyle}>
                   {SOURCE_KINDS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
@@ -214,13 +214,13 @@ export default function PortfolioCommandPage() {
               {s.kind === 'pump' && (
                 <>
                   <label className="flex flex-col gap-1">
-                    <span className="text-xs text-slate-400">أقصى تدفّق (م³/يوم)</span>
+                    <span className="text-xs text-sahool-muted">أقصى تدفّق (م³/يوم)</span>
                     <input type="number" inputMode="decimal" step="any" value={s.max_rate_m3_per_day}
                       onChange={e => setSource(i, 'max_rate_m3_per_day', e.target.value)}
                       className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
                   </label>
                   <label className="flex flex-col gap-1">
-                    <span className="text-xs text-slate-400">نافذة التشغيل (أيّام)</span>
+                    <span className="text-xs text-sahool-muted">نافذة التشغيل (أيّام)</span>
                     <input type="number" inputMode="decimal" step="any" value={s.window_days}
                       onChange={e => setSource(i, 'window_days', e.target.value)}
                       className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
@@ -233,27 +233,27 @@ export default function PortfolioCommandPage() {
       </div>
 
       {/* Fields form */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-sm font-semibold text-slate-100">
-            <Layers className="w-4 h-4 text-sky-400" /> الحقول (مشتركة عبر السياسات)
+          <div className="flex items-center gap-1 text-sm font-semibold text-sahool-text">
+            <Layers className="w-4 h-4 text-ops-info" /> الحقول (مشتركة عبر السياسات)
           </div>
           <button onClick={addField} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs" style={inputStyle}>
             <Plus className="w-3.5 h-3.5" /> أضف حقلاً
           </button>
         </div>
         {fields.map((f, i) => (
-          <div key={i} className="rounded-lg border p-3 space-y-2" style={{ borderColor: '#25303f' }}>
+          <div key={i} className="rounded-lg border p-3 space-y-2" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500">حقل {i + 1}</span>
+              <span className="text-xs text-sahool-muted">حقل {i + 1}</span>
               <button onClick={() => removeField(i)} disabled={fields.length <= 1}
-                title="حذف الحقل" className="p-1 rounded-sm text-slate-500 hover:text-red-400 disabled:opacity-40">
+                title="حذف الحقل" className="p-1 rounded-sm text-sahool-muted hover:text-red-400 disabled:opacity-40">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">المعرّف</span>
+                <span className="text-xs text-sahool-muted">المعرّف</span>
                 <select value={f.field_id} onChange={e => setField(i, 'field_id', e.target.value)}
                   disabled={fieldOptionsQ.isLoading || fieldOptionsQ.isError || fieldOptions.length === 0}
                   className="px-3 py-2 rounded-lg text-sm disabled:opacity-60" style={inputStyle}>
@@ -262,19 +262,19 @@ export default function PortfolioCommandPage() {
                 </select>
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">الأولويّة (أعلى = أهمّ)</span>
+                <span className="text-xs text-sahool-muted">الأولويّة (أعلى = أهمّ)</span>
                 <input type="number" inputMode="decimal" step="any" value={f.priority}
                   onChange={e => setField(i, 'priority', e.target.value)}
                   className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">الحدّ الأدنى (نسبة 0–1)</span>
+                <span className="text-xs text-sahool-muted">الحدّ الأدنى (نسبة 0–1)</span>
                 <input type="number" inputMode="decimal" step="any" value={f.min_water_fraction}
                   onChange={e => setField(i, 'min_water_fraction', e.target.value)}
                   className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">المصادر (افصل بفاصلة، فارغة = الكلّ)</span>
+                <span className="text-xs text-sahool-muted">المصادر (افصل بفاصلة، فارغة = الكلّ)</span>
                 <input value={f.source_ids} onChange={e => setField(i, 'source_ids', e.target.value)}
                   className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
               </label>
@@ -284,25 +284,25 @@ export default function PortfolioCommandPage() {
       </div>
 
       {/* Policies form */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-sm font-semibold text-slate-100">
-            <Crosshair className="w-4 h-4 text-sky-400" /> السياسات (الربح/الطلب لكلّ حقل)
+          <div className="flex items-center gap-1 text-sm font-semibold text-sahool-text">
+            <Crosshair className="w-4 h-4 text-ops-info" /> السياسات (الربح/الطلب لكلّ حقل)
           </div>
           <button onClick={addPolicy} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs" style={inputStyle}>
             <Plus className="w-3.5 h-3.5" /> أضف سياسة
           </button>
         </div>
         {policies.map((p, pi) => (
-          <div key={pi} className="rounded-lg border p-3 space-y-2" style={{ borderColor: '#25303f' }}>
+          <div key={pi} className="rounded-lg border p-3 space-y-2" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
             <div className="flex items-center justify-between gap-2">
               <label className="flex flex-col gap-1 flex-1">
-                <span className="text-xs text-slate-400">اسم السياسة</span>
+                <span className="text-xs text-sahool-muted">اسم السياسة</span>
                 <input value={p.policy_label} onChange={e => setPolicyLabel(pi, e.target.value)}
                   className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
               </label>
               <button onClick={() => removePolicy(pi)} disabled={policies.length <= 1}
-                title="حذف السياسة" className="p-1 mt-5 rounded-sm text-slate-500 hover:text-red-400 disabled:opacity-40">
+                title="حذف السياسة" className="p-1 mt-5 rounded-sm text-sahool-muted hover:text-red-400 disabled:opacity-40">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -310,16 +310,16 @@ export default function PortfolioCommandPage() {
               {fields.map((f, fi) => {
                 const pf = p.perField[f.field_id] ?? { expected_margin: '', water_demand_m3: '' };
                 return (
-                  <div key={fi} className="grid grid-cols-[1fr_1fr_1fr] gap-2 items-end">
-                    <div className="text-xs text-slate-300 pb-2">{f.field_id || `حقل ${fi + 1}`}</div>
+                  <div key={fi} className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
+                    <div className="text-xs text-sahool-text pb-2">{f.field_id || `حقل ${fi + 1}`}</div>
                     <label className="flex flex-col gap-1">
-                      <span className="text-[11px] text-slate-500">الهامش المتوقّع</span>
+                      <span className="text-[11px] text-sahool-muted">الهامش المتوقّع</span>
                       <input type="number" inputMode="decimal" step="any" value={pf.expected_margin}
                         onChange={e => setPolicyField(pi, f.field_id, 'expected_margin', e.target.value)}
                         className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
                     </label>
                     <label className="flex flex-col gap-1">
-                      <span className="text-[11px] text-slate-500">الطلب (م³)</span>
+                      <span className="text-[11px] text-sahool-muted">الطلب (م³)</span>
                       <input type="number" inputMode="decimal" step="any" value={pf.water_demand_m3}
                         onChange={e => setPolicyField(pi, f.field_id, 'water_demand_m3', e.target.value)}
                         className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
@@ -342,11 +342,11 @@ export default function PortfolioCommandPage() {
 
       {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) */}
       {featureOff && (
-        <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-          <ShieldAlert className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+        <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+          <ShieldAlert className="w-5 h-5 text-sahool-muted shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <div className="text-sm font-semibold text-slate-200">الميزة غير مُفعَّلة</div>
-            <div className="text-[12px] text-slate-400">
+            <div className="text-sm font-semibold text-sahool-text">الميزة غير مُفعَّلة</div>
+            <div className="text-[12px] text-sahool-muted">
               مركز قيادة المحفظة خلف علم تشغيل (FEATURE_PORTFOLIO_COMMAND) لم يُفعَّل بعد على الخادم. تواصل مع المسؤول لتفعيله.
             </div>
           </div>
@@ -379,14 +379,14 @@ export default function PortfolioCommandPage() {
           )}
 
           {/* Profit × Risk comparison table */}
-          <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>
-              <Crosshair className="w-4 h-4 text-sky-400" /> مقارنة الربح × المخاطرة لكلّ سياسة
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+              <Crosshair className="w-4 h-4 text-ops-info" /> مقارنة الربح × المخاطرة لكلّ سياسة
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
+                  <tr className="text-[11px] text-sahool-muted" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
                     <th className="px-3 py-2 text-right font-medium">السياسة</th>
                     <th className="px-3 py-2 text-right font-medium">الهامش الإجماليّ</th>
                     <th className="px-3 py-2 text-right font-medium">درجة المخاطرة</th>
@@ -426,18 +426,18 @@ export default function PortfolioCommandPage() {
           </div>
 
           {/* Constraints panel — throughput-bound sources for the recommended policy */}
-          <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>
-              <Droplets className="w-4 h-4 text-sky-400" /> قيود المصادر (للسياسة الموصى بها: {res.recommended_policy})
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+              <Droplets className="w-4 h-4 text-ops-info" /> قيود المصادر (للسياسة الموصى بها: {res.recommended_policy})
             </div>
             {boundConstraints.length === 0 ? (
-              <div className="px-4 py-3 text-[12px] text-slate-400">
+              <div className="px-4 py-3 text-[12px] text-sahool-muted">
                 لا مصدر مُقيَّد بتدفّقه في السياسة الموصى بها — السعة الفعليّة = السعة الاسميّة لكلّ المصادر.
               </div>
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
+                  <tr className="text-[11px] text-sahool-muted" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
                     <th className="px-3 py-2 text-right font-medium">المصدر</th>
                     <th className="px-3 py-2 text-right font-medium">النوع</th>
                     <th className="px-3 py-2 text-right font-medium">السعة الاسميّة (م³)</th>
