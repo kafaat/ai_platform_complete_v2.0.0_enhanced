@@ -2332,7 +2332,7 @@
     },
     {
       "kind": "app",
-      "line": 64,
+      "line": 65,
       "module": "services.supervisor-agent.main",
       "node_id": "services.supervisor-agent.main:app",
       "route_count": 0,
@@ -2341,7 +2341,7 @@
     },
     {
       "kind": "router",
-      "line": 29,
+      "line": 30,
       "module": "services.supervisor-agent.routers.agent",
       "node_id": "services.supervisor-agent.routers.agent:router",
       "route_count": 5,
@@ -3045,7 +3045,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "06b0d40e4a828b4141fdbe9fbac53a358563e37d16ab9e0abea01d8ebe9dc3e9",
+  "inventory_sha256": "85c5d607a9ecb53576ac1de1924de2328040cf727a5962e9833e92e326ebee9e",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {
@@ -5301,7 +5301,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 29,
+      "line": 30,
       "module": "services.supervisor-agent.routers.agent",
       "node_id": "services.supervisor-agent.routers.agent:router",
       "route_count": 5,
