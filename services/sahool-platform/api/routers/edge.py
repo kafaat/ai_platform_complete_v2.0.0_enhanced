@@ -161,5 +161,12 @@ def same_json(stored, sent) -> bool:
             same_json(a, b) for a, b in zip(stored, sent, strict=True)
         )
     if isinstance(stored, (int, float)) and isinstance(sent, (int, float)):
-        return stored == sent
+        # jsonb compares numbers as exact decimals. A float PostgreSQL reads back as an integer
+        # (``1e23`` is stored as 100000000000000000000000) is the same jsonb number, while Python
+        # compares the binary float 99999999999999991611392 and calls it different.
+        # Imported here: a top-level import would move the route's anchors in
+        # docs/architecture/platform_extraction_map.json (edge.py:60/61).
+        from decimal import Decimal
+
+        return Decimal(repr(stored)) == Decimal(repr(sent))
     return type(stored) is type(sent) and stored == sent

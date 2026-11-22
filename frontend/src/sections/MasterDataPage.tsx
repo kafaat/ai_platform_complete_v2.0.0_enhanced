@@ -161,7 +161,7 @@ function EntriesTable({ category }: { category: MasterDataCategory }) {
       key: 'code',
       label: 'الرمز',
       render: (e) => (
-        <span className="font-mono" style={{ color: T.gold, fontSize: 12 }} dir="ltr">{e.code}</span>
+        <span className="font-mono" style={{ color: T.warn, fontSize: 12 }} dir="ltr">{e.code}</span>
       ),
     },
     { key: 'name_ar', label: 'الاسم العربيّ' },

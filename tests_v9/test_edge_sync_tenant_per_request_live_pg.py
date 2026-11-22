@@ -10,7 +10,10 @@ HTTP into the real platform route, against a migrated Postgres through a NOBYPAS
 
 * tenant B's detection on B's field is stored under B (and A sees nothing);
 * tenant A's envelope naming B's field is refused (404 ⇒ dead-letter), nothing is stored;
-* a request whose assertion names another tenant than its header is 403 and stores nothing.
+* a request whose assertion names another tenant than its header is 403 and stores nothing;
+* a replay with the same idempotency key is ``duplicate_ignored`` only when its JSON is the same
+  ``jsonb``: turning ``"reviewed": true`` into ``1`` is ``409`` and the stored row keeps ``true``
+  (Edge v286 lab finding, fixed in #1569; the unit file only proves the comparator).
 """
 
 from __future__ import annotations
@@ -193,3 +196,84 @@ def test_each_edge_result_is_written_under_the_tenant_it_was_taken_for(monkeypat
     assert out["dead_letter"] == 1, "the cross-tenant envelope is a permanent rejection (404)"
     assert out["swapped"] == 403, out["swapped"]
     assert out["a_sees"] == 0, "RLS: tenant A must not see B's result"
+
+
+async def _run_replay(monkeypatch) -> dict:
+    """One envelope sent three times under one idempotency key: as stored, identical, true → 1."""
+    if str(PLATFORM) not in sys.path:
+        sys.path.insert(0, str(PLATFORM))
+    import api.main as main
+
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", TOKEN)
+    monkeypatch.setenv("EDGE_SYNC_TENANT_ASSERTION_KEY", KEY)
+    monkeypatch.delenv("EDGE_SYNC_ALLOWED_CALLERS", raising=False)
+    monkeypatch.delenv("PLATFORM_TENANT_ASSERTION_REDIS_URL", raising=False)
+    monkeypatch.setenv("SAHOOL_ENV", "development")
+    monkeypatch.setattr(main, "_RATE_LIMIT_PER_MIN", 0, raising=False)
+
+    tenant = str(uuid.uuid4())
+    tag = f"replay-{uuid.uuid4().hex[:8]}"
+    field = f"{tag}-f"
+    admin = await asyncpg.connect(ADMIN_DSN)
+    await admin.execute(
+        "INSERT INTO fields (field_id, name, tenant_id) VALUES ($1, $1, $2::uuid)", field, tenant
+    )
+    await admin.execute(
+        "INSERT INTO field_boundaries (field_id, field_name, tenant_id) VALUES ($1, $1, $2::uuid)",
+        field,
+        tenant,
+    )
+    pool = await asyncpg.create_pool(DSN, min_size=1, max_size=2)
+    monkeypatch.setattr(main, "_DB_POOL", pool)
+    sync_mod = _sync_module()
+    edge = sync_mod.CloudSyncService(
+        "http://platform", "", "/nonexistent-queue", agent_token=TOKEN, assertion_key=KEY
+    )
+    transport = httpx.ASGITransport(app=main.app, raise_app_exceptions=False)
+    key = uuid.uuid4().hex
+    out: dict = {}
+    try:
+        async with httpx.AsyncClient(transport=transport, base_url="http://platform") as client:
+
+            async def send(reviewed) -> tuple[int, dict]:
+                data = {**_observation(field), "reviewed": reviewed}
+                item = edge._envelope("pest_detection", data, key, tenant_id=tenant)
+                # Fresh signed headers per request; the assertion signs method, path and tenant.
+                response = await client.post(
+                    "/v1/edge/sync", json=item, headers=edge._headers(item)
+                )
+                return response.status_code, response.json()
+
+            out["first"] = await send(True)
+            out["identical"] = await send(True)
+            out["true_to_1"] = await send(1)
+        rows = await admin.fetch(
+            "SELECT result_data->'reviewed' AS reviewed FROM edge_results "
+            "WHERE tenant_id = $1::uuid AND idempotency_key = $2",
+            tenant,
+            key,
+        )
+        out["stored"] = [r["reviewed"] for r in rows]
+    finally:
+        await pool.close()
+        await admin.execute("DELETE FROM edge_results WHERE field_id = $1", field)
+        await admin.execute("DELETE FROM fields WHERE field_id = $1", field)
+        await admin.execute("DELETE FROM field_boundaries WHERE field_id = $1", field)
+        await admin.close()
+    return out
+
+
+def test_a_replay_that_turns_true_into_1_is_a_conflict_and_the_row_keeps_true(monkeypatch):
+    out = asyncio.run(_run_replay(monkeypatch))
+    first_status, first = out["first"]
+    assert first_status == 200 and first.get("status") == "stored", out
+    identical_status, identical = out["identical"]
+    assert identical_status == 200 and identical.get("status") == "duplicate_ignored", out
+    assert identical.get("id") == first.get("id"), out
+    status, body = out["true_to_1"]
+    assert status == 409, (
+        "true -> 1 under the same key must be a conflict, not a duplicate receipt",
+        json.dumps(out, default=str),
+    )
+    assert body.get("detail") == "edge_idempotency_conflict", out
+    assert out["stored"] == ["true"], ("exactly one row, still holding true", out["stored"])

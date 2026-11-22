@@ -141,7 +141,7 @@ export default function FieldRanking() {
               type="button"
               onClick={() => q.refetch()}
               style={{
-                background: T.gold, color: '#fff', border: 'none', borderRadius: 10,
+                background: T.gold, color: T.ink, border: 'none', borderRadius: 10,
                 padding: '6px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
               }}
             >

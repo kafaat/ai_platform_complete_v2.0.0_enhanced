@@ -40,6 +40,10 @@ JSONB_EQUALITY = [
     ({"d": [{"c": 0.9, "ok": False}]}, {"d": [{"ok": False, "c": 0.9}]}, True),
     ({"a": 1}, {"a": 1, "b": None}, False),
     (True, True, True),
+    # PostgreSQL stores 1e23 as the integer 100000000000000000000000 (numeric is exact).
+    (100000000000000000000000, 1e23, True),
+    (0.1, 0.1, True),
+    (100000000000000000000001, 1e23, False),
 ]
 
 

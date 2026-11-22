@@ -5,7 +5,7 @@ export type Theme = 'dark' | 'light' | 'cream';
 const STORAGE_KEY = 'sahool-theme';
 const THEMES: readonly Theme[] = ['dark', 'light', 'cream'];
 
-function readStoredTheme(): Theme {
+export function readStoredTheme(): Theme {
   if (typeof window === 'undefined') return 'light';
   const stored = window.localStorage.getItem(STORAGE_KEY);
   return THEMES.includes(stored as Theme) ? (stored as Theme) : 'light';
