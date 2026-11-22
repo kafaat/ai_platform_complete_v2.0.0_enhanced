@@ -477,6 +477,8 @@ def _build_agent_tool_fetcher(
     تستند إلى الأدلّة الموجودة أصلاً في الطلب: CanonicalFieldState + AI Context Pack +
     RAG/KG. الأفعال المُعدِّلة لا تصل هنا أصلاً لأن ``tool_loop`` يؤجّلها للموافقة.
     """
+    from . import tool_executor
+
     pack = ai_pack if isinstance(ai_pack, dict) else {}
     fs = field_state if isinstance(field_state, dict) else {}
 
@@ -505,34 +507,17 @@ def _build_agent_tool_fetcher(
                 "ai_context_readiness": pack.get("readiness") if pack else None,
             }
         if tool_name == "get_truecolor_scene":
-            imagery = pack.get("imagery_timeline") or {}
-            return {
-                "field_id": field_id,
-                "index": "truecolor",
-                "requested_date": params.get("date"),
-                "imagery_timeline": imagery,
-                "readiness": pack.get("readiness") if pack else None,
-            }
+            return tool_executor.truecolor_scene(
+                pack, field_id, params.get("date"), pack.get("readiness") if pack else None
+            )
         if tool_name == "get_index_timeline":
-            return {
-                "field_id": field_id,
-                "index": params.get("index"),
-                "days": params.get("days"),
-                "imagery_timeline": pack.get("imagery_timeline") or {},
-            }
+            return tool_executor.index_timeline(
+                pack, field_id, params.get("index"), params.get("days")
+            )
         if tool_name == "get_weather_history":
-            return {
-                "field_id": field_id,
-                "days": params.get("days"),
-                "weather_history": pack.get("weather_history") or {},
-            }
+            return tool_executor.weather_history(pack, field_id, params.get("days"))
         if tool_name == "get_operation_windows":
-            return {
-                "field_id": field_id,
-                "operation_windows": pack.get("operation_windows")
-                or pack.get("operation_windows_context")
-                or {},
-            }
+            return tool_executor.operation_windows(pack, field_id)
         if tool_name == "get_alerts":
             return {"field_id": field_id, "alerts_context": pack.get("alerts_context") or {}}
         if tool_name == "get_drawings_and_zones":
