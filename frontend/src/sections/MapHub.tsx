@@ -2937,9 +2937,9 @@ function MapHubCore() {
                 {zoneDesigner && (
                   <div data-testid="zone-designer-panel" className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${T.line}` }}>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-semibold" style={{ color: T.muted }}>Management / Prescription Zones</span>
+                      <span className="text-xs font-semibold" style={{ color: T.muted }}>مناطق الإدارة والوصفات</span>
                       <Pill tone="info">{zonePersisted.filter((f) => !isDrawingPendingSync(f)).length} محفوظة بالخادم</Pill><Pill tone="warn">{zonePersisted.filter(isDrawingPendingSync).length} محلية بانتظار المزامنة</Pill>
-                      <Pill tone={activeIndicator ? 'ok' : 'warn'}>{activeIndicator ? `مصدر: ${activeIndicator.toUpperCase()}` : 'بدون source layer'}</Pill>
+                      <Pill tone={activeIndicator ? 'ok' : 'warn'}>{activeIndicator ? `مصدر: ${activeIndicator.toUpperCase()}` : 'بلا طبقة مصدر'}</Pill>
                       <Pill tone={selectedActiveSeasonId ? 'ok' : 'warn'}>{selectedActiveSeasonId ? 'مربوطة بالموسم' : 'لا موسم نشط'}</Pill>
                       <button
                         type="button" onClick={handleCreateZoneFromField} disabled={!fieldEditAllowed || zoneSyncBusy}
@@ -2984,7 +2984,7 @@ function MapHubCore() {
                 {(pivotDesigner || fieldPivotDrafts.length > 0) && (
                   <div data-testid="pivot-designer-panel" className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${T.line}` }}>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-semibold" style={{ color: T.muted }}>مصمم Pivot</span>
+                      <span className="text-xs font-semibold" style={{ color: T.muted }}>مصمّم الريّ المحوريّ</span>
                       <Pill tone="info">{fieldPivotDrafts.length + pivotPersisted.length} تصميم</Pill>
                       {pivotDesigner && <span className="text-[11px]" style={{ color: T.faint }}>انقر على الخريطة لاختيار مركز المحوري</span>}
                       <Pill tone={selectedActiveSeasonId ? 'ok' : 'warn'}>{selectedActiveSeasonId ? 'مربوط بالموسم' : 'لا موسم نشط'}</Pill>

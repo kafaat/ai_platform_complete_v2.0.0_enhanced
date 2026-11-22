@@ -29,4 +29,5 @@ test('a farmer, who cannot edit fields, does not get the field-design tools', as
   await expect(page.getByRole('button', { name: 'رسم/قياس' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'حقل دائري' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'تصميم الريّ المحوريّ' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'مناطق الإدارة' })).toHaveCount(0);
 });
