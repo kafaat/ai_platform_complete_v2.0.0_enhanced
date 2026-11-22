@@ -6,6 +6,7 @@ const root = resolve(__dirname, '../../../..');
 const zoneDesigner = readFileSync(resolve(root, 'src/components/maphub/drawing/zoneDesigner.ts'), 'utf8');
 const mapHub = readFileSync(resolve(root, 'src/sections/MapHub.tsx'), 'utf8');
 const hubMap = readFileSync(resolve(root, 'src/components/maphub/HubMap.tsx'), 'utf8');
+const styles = readFileSync(resolve(root, 'src/components/maphub/drawFeatureStyle.ts'), 'utf8');
 const api = readFileSync(resolve(root, 'src/components/maphub/drawing/drawingFeatureApi.ts'), 'utf8');
 const barrel = readFileSync(resolve(root, 'src/components/maphub/drawing/index.ts'), 'utf8');
 
@@ -31,9 +32,9 @@ describe('v40 Management/Prescription Zone UI contract', () => {
 
   it('renders persisted zones on the same drawing overlay channel with kind-specific styling', () => {
     expect(mapHub).toContain('...zonePersisted');
-    expect(hubMap).toContain("feature.kind === 'prescription-zone'");
-    expect(hubMap).toContain("feature.kind === 'management-zone'");
-    expect(hubMap).toContain("feature.kind === 'exclusion-zone'");
+    expect(styles).toContain("feature.kind === 'prescription-zone'");
+    expect(styles).toContain("feature.kind === 'management-zone'");
+    expect(styles).toContain("feature.kind === 'exclusion-zone'");
     expect(hubMap).toContain('drawFeatureLabel');
   });
 

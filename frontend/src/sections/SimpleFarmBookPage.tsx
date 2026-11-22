@@ -172,10 +172,10 @@ export default function SimpleFarmBookPage() {
 
   const set = (key: keyof typeof form, value: string) => setForm(v => ({ ...v, [key]: value }));
   return (
-    <main dir="rtl" className="space-y-4 p-4 text-slate-100">
+    <main dir="rtl" className="space-y-4 p-4 text-sahool-text">
       <header>
         <h1 className="flex items-center gap-2 text-xl font-bold"><BookOpen /> دفتر المزرعة البسيط</h1>
-        <p className="text-sm text-slate-400">مصروفات وإيرادات نقدية أو آجلة، دون تعقيد محاسبي.</p>
+        <p className="text-sm text-sahool-muted">مصروفات وإيرادات نقدية أو آجلة، دون تعقيد محاسبي.</p>
       </header>
       <section className="flex flex-wrap gap-2">
         <input className={box} value={farmId} onChange={e => setFarmId(e.target.value)} placeholder="معرّف المزرعة" />
@@ -203,7 +203,7 @@ export default function SimpleFarmBookPage() {
           <div className={box}><small>إجمالي ما لنا حتى اليوم</small><div className="font-bold">{Number(balances.total_receivable ?? 0).toLocaleString()} {balances.currency}</div></div>
         </section>
       )}
-      <form onSubmit={createParty} className="flex flex-wrap gap-2 rounded-2xl border border-slate-700 bg-slate-950 p-4">
+      <form onSubmit={createParty} className="flex flex-wrap gap-2 rounded-2xl border border-sahool-border bg-sahool-surface p-4">
         <strong className="w-full text-sm">إضافة مورد أو عميل</strong>
         <input className={box} value={partyForm.name} onChange={e => setPartyForm(v => ({ ...v, name: e.target.value }))} placeholder="الاسم" />
         <select className={box} value={partyForm.party_type} onChange={e => setPartyForm(v => ({ ...v, party_type: e.target.value }))}>
@@ -213,7 +213,7 @@ export default function SimpleFarmBookPage() {
           <Plus className="inline h-4" /> إضافة الطرف
         </button>
       </form>
-      <form onSubmit={submit} className="grid gap-2 rounded-2xl border border-slate-700 bg-slate-950 p-4 md:grid-cols-4">
+      <form onSubmit={submit} className="grid gap-2 rounded-2xl border border-sahool-border bg-sahool-surface p-4 md:grid-cols-4">
         <select className={box} value={form.entry_type} onChange={e => set('entry_type', e.target.value)}>
           <option value="expense">مصروف</option><option value="income">إيراد</option><option value="payment">سداد دين</option>
         </select>
@@ -259,10 +259,10 @@ export default function SimpleFarmBookPage() {
           <Plus className="inline h-4" /> {saving ? 'جارٍ الحفظ…' : 'حفظ الحركة'}
         </button>
       </form>
-      <section className="overflow-x-auto rounded-2xl border border-slate-700">
-        <table className="w-full text-sm"><thead className="bg-slate-900"><tr>
+      <section className="overflow-x-auto rounded-2xl border border-sahool-border">
+        <table className="w-full text-sm"><thead className="bg-sahool-surface"><tr>
           <th className="p-2">التاريخ</th><th>النوع</th><th>الدفع</th><th>التصنيف</th><th>الطرف</th><th>المبلغ</th><th>مرجع</th><th>المهمة</th>
-        </tr></thead><tbody>{items.map(e => <tr key={e.entry_id} className="border-t border-slate-800">
+        </tr></thead><tbody>{items.map(e => <tr key={e.entry_id} className="border-t border-sahool-border">
           <td className="p-2">{e.occurred_on}</td><td>{e.entry_type === 'expense' ? 'مصروف' : e.entry_type === 'income' ? 'إيراد' : 'سداد'}</td>
           <td>{e.payment_method === 'cash' ? 'نقدي' : 'آجل'}</td><td>{e.category}</td><td>{e.party_name ?? '—'}</td>
           <td>{Number(e.amount).toLocaleString()} {e.currency}</td>

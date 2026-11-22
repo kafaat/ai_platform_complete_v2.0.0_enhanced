@@ -128,8 +128,8 @@ export default function EconomicsDashboard() {
               {
                 label: 'إجماليّ التكلفة',
                 value: usd(totalUsd),
-                color: T.gold,
-                icon: <DollarSign style={{ width: 16, height: 16, color: T.gold }} />,
+                color: t.warn,
+                icon: <DollarSign style={{ width: 16, height: 16, color: t.warn }} />,
               },
               {
                 label: 'عدد المهام',

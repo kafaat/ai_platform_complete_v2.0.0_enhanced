@@ -79,7 +79,7 @@ function Tile({
 // حالات البلاطة المستقلّة (loading/empty/error) — مدمجة عالية التباين داخل البلاطة.
 function TileLoading({ message = 'جارٍ التحميل…' }: { message?: string }) {
   return (
-    <div className="flex items-center justify-center h-full min-h-[80px] text-slate-500" role="status" aria-busy="true">
+    <div className="flex items-center justify-center h-full min-h-[80px] text-sahool-muted" role="status" aria-busy="true">
       <Loader2 className="w-5 h-5 animate-spin ml-2" aria-hidden="true" />
       <span className="text-sm">{message}</span>
     </div>
@@ -88,12 +88,12 @@ function TileLoading({ message = 'جارٍ التحميل…' }: { message?: str
 function TileError({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center h-full min-h-[80px] text-center" role="alert">
-      <AlertTriangle className="w-6 h-6 text-red-400 mb-1" aria-hidden="true" />
-      <p className="text-sm text-slate-300">{message}</p>
+      <AlertTriangle className="w-6 h-6 text-ops-danger mb-1" aria-hidden="true" />
+      <p className="text-sm text-sahool-text">{message}</p>
       {onRetry && (
         <button onClick={onRetry}
-          className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs text-slate-200 hover:border-emerald-600"
-          style={{ borderColor: '#334155' }}>
+          className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs text-sahool-text hover:border-emerald-600"
+          style={{ borderColor: 'rgb(var(--sahool-border))' }}>
           <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" /> إعادة المحاولة
         </button>
       )}
@@ -103,7 +103,7 @@ function TileError({ message, onRetry }: { message: string; onRetry?: () => void
 function TileEmpty({ message }: { message: string }) {
   return (
     <div className="flex items-center justify-center h-full min-h-[80px] text-center" role="status">
-      <p className="text-sm text-slate-500">{message}</p>
+      <p className="text-sm text-sahool-muted">{message}</p>
     </div>
   );
 }
@@ -113,7 +113,7 @@ function BigStat({ value, label, color = '#e2e8f0' }: { value: string; label: st
   return (
     <div className="text-center px-2">
       <div className="text-3xl font-extrabold leading-none" style={{ color }}>{value}</div>
-      <div className="text-[11px] text-slate-400 mt-1">{label}</div>
+      <div className="text-[11px] text-sahool-muted mt-1">{label}</div>
     </div>
   );
 }
@@ -257,11 +257,11 @@ function FleetTile() {
             {data.silent_devices.length > 0 && (
               <ul className="space-y-1 max-h-28 overflow-auto">
                 {data.silent_devices.slice(0, 5).map((d) => (
-                  <li key={d.device_id} className="flex items-center gap-2 text-[12px] text-slate-300">
+                  <li key={d.device_id} className="flex items-center gap-2 text-[12px] text-sahool-text">
                     <span className="w-1.5 h-1.5 rounded-full shrink-0"
                       style={{ background: d.criticality === 'critical' ? '#dc2626' : '#f59e0b' }} />
                     <span className="truncate">{d.name}</span>
-                    <span className="text-slate-500 mr-auto truncate">{d.detail_ar}</span>
+                    <span className="text-sahool-muted mr-auto truncate">{d.detail_ar}</span>
                   </li>
                 ))}
               </ul>
@@ -294,15 +294,15 @@ function WeatherTile() {
         : (
           <div className="grid grid-cols-3 gap-2">
             <div className="flex flex-col items-center gap-1">
-              <Thermometer className="w-5 h-5 text-orange-400" aria-hidden="true" />
+              <Thermometer className="w-5 h-5 text-ops-warning" aria-hidden="true" />
               <BigStat value={cur!.tmean != null ? `${cur!.tmean}°` : '—'} label="الحرارة" color="#fb923c" />
             </div>
             <div className="flex flex-col items-center gap-1">
-              <Waves className="w-5 h-5 text-sky-400" aria-hidden="true" />
+              <Waves className="w-5 h-5 text-ops-info" aria-hidden="true" />
               <BigStat value={cur!.humidity_pct != null ? `${cur!.humidity_pct}%` : '—'} label="الرطوبة" color="#38bdf8" />
             </div>
             <div className="flex flex-col items-center gap-1">
-              <Wind className="w-5 h-5 text-slate-400" aria-hidden="true" />
+              <Wind className="w-5 h-5 text-sahool-muted" aria-hidden="true" />
               <BigStat value={cur!.wind_speed_kmh != null ? `${cur!.wind_speed_kmh}` : '—'} label="كم/س" color="#cbd5e1" />
             </div>
             {/* بيانات Open-Meteo بـCC BY 4.0: رابط النسبة بجوار موضع العرض. */}
@@ -341,7 +341,7 @@ function IrrigationTile() {
               <BigStat value={String(open)} label="مفتوح" color={open ? '#4ade80' : '#94a3b8'} />
               <BigStat value={String(enabledSchedules)} label="جدول فعّال" color="#38bdf8" />
             </div>
-            <div className="text-[11px] text-slate-500">
+            <div className="text-[11px] text-sahool-muted">
               النيّة تُسجَّل فقط؛ التشغيل الفيزيائيّ يمرّ عبر موافقة بشريّة (HIL).
             </div>
           </div>
@@ -458,7 +458,7 @@ function KpiStrip({ summary }: { summary: OperationsSummary | null | undefined }
           }
         />
       </div>
-      <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-500 flex-wrap">
+      <div className="flex items-center gap-2 mt-2 text-[11px] text-sahool-muted flex-wrap">
         {summary.generated_at && <span>آخر تحديث: {_fmtTime(summary.generated_at)}</span>}
         {summary.partial && (
           <span
@@ -483,8 +483,8 @@ export default function OperationCenterWallPage() {
   return (
     <div className="space-y-4 max-w-[1600px] mx-auto" dir="rtl">
       <header className="flex items-center gap-3 flex-wrap">
-        <MonitorPlay className="w-6 h-6 text-emerald-400" aria-hidden="true" />
-        <h1 className="text-xl font-extrabold text-slate-100">جدار مركز العمليّات</h1>
+        <MonitorPlay className="w-6 h-6 text-sahool-green-dark" aria-hidden="true" />
+        <h1 className="text-xl font-extrabold text-sahool-text">جدار مركز العمليّات</h1>
         <span className="text-[12px] px-2 py-0.5 rounded-full"
           style={{
             background: unified ? '#0c2a1a' : '#1e293b',
@@ -494,7 +494,7 @@ export default function OperationCenterWallPage() {
           {summary.isLoading ? 'جارٍ فحص المصدر…'
             : unified ? 'تلخيص موحّد متاح' : 'مصادر منفصلة (التلخيص غير منشور)'}
         </span>
-        <span className="text-[12px] text-slate-500 mr-auto">
+        <span className="text-[12px] text-sahool-muted mr-auto">
           كلّ بلاطة حالتها مستقلّة — فشل بلاطة لا يكسر الجدار، ولا أرقام مُختلَقة.
         </span>
       </header>

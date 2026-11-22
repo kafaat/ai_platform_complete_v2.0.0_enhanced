@@ -56,7 +56,7 @@ def test_ui12_action_from_map_palette_exists_and_does_not_fake_writes():
     pin_line = next(line for line in maphub.splitlines() if "onPinScouting={() =>" in line)
     for call in ("setPinMode(true)", "setDrawTools(false)", "setMode('2d')", "setCompare(false)"):
         assert call in pin_line, call
-    assert "onOpenTimeline={() => setShowImageryTimeline(true)}" in maphub
+    assert "onOpenTimeline={() => { setSettingsOpen(true); setShowImageryTimeline(true);" in maphub
     assert "onOpenAlerts={() => setShowAlerts(true)}" in maphub
     # The palette's add-field action opens the plain dialog: it must also clear a tool
     # preselected by the toolbar's circle-field button, or the dialog would reopen on it.

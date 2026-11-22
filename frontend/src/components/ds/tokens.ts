@@ -1,42 +1,30 @@
-// ═══════════════════════════════════════════════════════════════
-// SAHOOL — Field-App Design System · رموز التصميم (Design Tokens)
-// ───────────────────────────────────────────────────────────────
-// مستخرَجة من نموذج الواجهة المهنيّ (طراز FieldView، تربة/ذهب/أخضر دافئ)
-// الذي اعتمده المستخدم مرجعاً. هذه الطبقة *موازية* للثيم الداكن الحاليّ
-// (index.css/tailwind sahool-*) — لا تستبدله؛ تُستخدم في «تطبيق الحقل»
-// (شاشات الموبايل المُعاد كسوتها) كي يبني التحقّق دون كسر اللوحة القائمة.
-//
-// القيم المؤكّدة من النموذج: brown #2C1A0E · gold #E8A020 · green #3EB050.
-// منحدر NDVI (ndvi1..6) أحمر→برتقاليّ→أصفر→أخضر فاتح→أخضر→أخضر داكن
-// (لوحة NDVI الزراعيّة المعياريّة)؛ قد تُضبط درجات المنتصف بدقّة من لقطة
-// المستخدم لاحقاً (التعليق يوثّق ذلك صراحةً — لا اختراع صامت).
-// ═══════════════════════════════════════════════════════════════
-
+// Shared field-workspace colours. The agronomic ramps keep their own scale.
 export const T = {
   // — أساسيّة —
-  brown:      '#2C1A0E', // تربة عميقة — نصّ رئيسيّ/عناوين
-  brownSoft:  '#5B4636', // بنّيّ ناعم — نصّ ثانويّ داكن
-  gold:       '#E8A020', // ذهبيّ — لون الإجراء/التمييز (CTA)
-  goldSoft:   '#F6C760', // ذهبيّ فاتح — خلفيّات وسوم
-  green:      '#3EB050', // أخضر المحصول السليم — نجاح
-  greenDark:  '#2E7D32', // أخضر داكن
-  greenSoft:  '#E7F4E9', // أخضر فاتح جدّاً — خلفيّة وسم نجاح
+  brown:      '#243126',
+  brownSoft:  '#354438',
+  gold:       '#FFDE00',
+  goldSoft:   '#FFEB75',
+  onGold:     '#202621', // text on gold in every theme (11.5:1); T_DARK does not override it
+  green:      '#367C2B',
+  greenDark:  '#275D20',
+  greenSoft:  '#E9F3E6',
 
   // — أسطح ونصّ —
-  cream:      '#FBF7F0', // خلفيّة الصفحة (فاتح دافئ)
+  cream:      '#F4F5F2',
   card:       '#FFFFFF', // سطح البطاقة
-  card2:      '#F7F2EA', // سطح ثانويّ (صفّ داخل بطاقة)
-  line:       '#E8DFD2', // خطّ فاصل شعريّ
-  ink:        '#2C1A0E', // نصّ رئيسيّ
-  muted:      '#8A7B6B', // نصّ ثانويّ
-  subtitle:   '#D8C7B3', // سطر وصفيّ تحت عنوان الكابينة (أفتح من muted على الكريميّ)
-  faint:      '#B8AB9A', // نصّ خافت (تلميحات)
+  card2:      '#F0F2EE',
+  line:       '#CED4CD',
+  ink:        '#202621',
+  muted:      '#4D5850',
+  subtitle:   '#DAE8DA',
+  faint:      '#58645A',
 
   // — حالات —
-  ok:         '#3EB050',
-  warn:       '#E8A020',
+  ok:         '#367C2B',
+  warn:       '#805500',
   danger:     '#C0392B',
-  info:       '#2D9CDB',
+  info:       '#15668C',
   okBg:       '#E7F4E9',
   warnBg:     '#FBEFD6',
   dangerBg:   '#F8E3E0',
@@ -66,6 +54,9 @@ const DARK_CREAM = '#0f1117'; // خلفيّة الصفحة
 const DARK_CARD = '#1e293b'; // سطح البطاقة
 const DARK_CARD2 = '#0f172a'; // سطح ثانويّ (صفّ/رأس جدول داخل بطاقة)
 const DARK_LINE = '#334155'; // خطّ فاصل
+const DARK_GREEN = '#8aca7f';
+const DARK_WARN = '#ffdc70';
+const DARK_INFO = '#87d2f2';
 const DARK_INK = '#e2e8f0'; // نصّ رئيسيّ
 const DARK_BROWN_SOFT = '#cbd5e1'; // نصّ ثانويّ مُضيء
 const DARK_MUTED = '#94a3b8'; // نصّ ثانويّ
@@ -78,6 +69,10 @@ const DARK_INFO_BG = '#0f1f2e';
 export const T_DARK: Tokens = {
   ...T,
   // — أسطح ونصّ (داكن) —
+  green:      DARK_GREEN,
+  ok:         DARK_GREEN,
+  warn:       DARK_WARN,
+  info:       DARK_INFO,
   cream:      DARK_CREAM,
   card:       DARK_CARD,
   card2:      DARK_CARD2,
@@ -141,8 +136,8 @@ export const CMAP = {
 
 export type CmapId = keyof typeof CMAP;
 
-export const RADIUS = { sm: 8, md: 12, lg: 16, pill: 999 } as const;
-export const SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 } as const;
+export const RADIUS = { sm: 4, md: 6, lg: 8, pill: 999 } as const;
+export const SPACE = { xs: 4, sm: 4, md: 6, lg: 8, xl: 24 } as const;
 
 // ── ألوان مستويات الحالة (excellent…critical) — مصدر وحيد ────────
 // هذه هي القيَم القانونيّة الوحيدة لألوان الحالة. تطابق صفوف .status-* في

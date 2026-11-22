@@ -58,14 +58,14 @@ export default function MyFieldsPage() {
 
   return (
     <div dir="rtl" className="p-4 md:p-6 space-y-4">
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 md:p-5">
+      <div className="rounded-2xl border border-sahool-border bg-sahool-surface/70 p-4 md:p-5">
         <div className="flex flex-col md:flex-row md:items-center gap-3 justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <Layers className="w-6 h-6 text-emerald-400" />
-              <h1 className="text-xl md:text-2xl font-bold text-slate-100">حقولي</h1>
+              <Layers className="w-6 h-6 text-sahool-green-dark" />
+              <h1 className="text-xl md:text-2xl font-bold text-sahool-text">حقولي</h1>
             </div>
-            <p className="text-sm text-slate-400 mt-1">كل الحقول الخاصة بالمستخدم في شاشة واحدة من مصدر الحقول المباشر.</p>
+            <p className="text-sm text-sahool-muted mt-1">كل الحقول الخاصة بالمستخدم في شاشة واحدة من مصدر الحقول المباشر.</p>
           </div>
           <div className="flex items-center gap-2">
             {mutateAllowed && (
@@ -80,7 +80,7 @@ export default function MyFieldsPage() {
             )}
             <button
               onClick={() => refetch()}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-900 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-950/40"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-900 px-3 py-2 text-sm text-sahool-green-dark hover:bg-emerald-950/40"
             >
               <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
               تحديث
@@ -94,13 +94,13 @@ export default function MyFieldsPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 flex items-center gap-2">
-        <Search className="w-4 h-4 text-slate-500" />
+      <div className="rounded-2xl border border-sahool-border bg-sahool-surface/70 p-3 flex items-center gap-2">
+        <Search className="w-4 h-4 text-sahool-muted" />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="ابحث باسم الحقل، المحصول، الكود، أو المنطقة…"
-          className="w-full bg-transparent outline-hidden text-slate-100 placeholder:text-slate-500 text-sm"
+          className="w-full bg-transparent outline-hidden text-sahool-text placeholder:text-slate-500 text-sm"
         />
       </div>
 
@@ -129,10 +129,10 @@ export default function MyFieldsPage() {
 
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-      <div className="text-xs text-slate-400">{label}</div>
-      <div className="text-lg font-bold text-slate-100 mt-1">{value}</div>
-      {hint && <div className="text-xs text-slate-500 mt-1">{hint}</div>}
+    <div className="rounded-xl border border-sahool-border bg-sahool-surface/60 p-3">
+      <div className="text-xs text-sahool-muted">{label}</div>
+      <div className="text-lg font-bold text-sahool-text mt-1">{value}</div>
+      {hint && <div className="text-xs text-sahool-muted mt-1">{hint}</div>}
     </div>
   );
 }
@@ -145,10 +145,10 @@ function FieldsTable({
   onOpen: (fieldId: string, fieldName: string) => void;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70">
+    <div className="overflow-hidden rounded-2xl border border-sahool-border bg-sahool-surface/70">
       <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-slate-900/80 text-slate-400">
+          <thead className="bg-sahool-surface/80 text-sahool-muted">
             <tr>
               <Th>الحقل</Th>
               <Th>المحصول</Th>
@@ -203,32 +203,32 @@ function FieldRow({
       tabIndex={0}
       onClick={() => onOpen(opt.id, opt.name)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onOpen(opt.id, opt.name); }}
-      className="cursor-pointer bg-slate-950/30 hover:bg-emerald-950/20 focus:outline-hidden focus:bg-emerald-950/30"
+      className="cursor-pointer bg-sahool-surface/30 hover:bg-emerald-950/20 focus:outline-hidden focus:bg-emerald-950/30"
       title="فتح خريطة الحقل ومؤشرات CDSE وطبقة الطقس/الرياح"
     >
       <Td>
-        <div className="font-bold text-slate-100">{opt.name}</div>
-        <div className="text-xs text-slate-500 mt-1">{text(raw.field_code)}</div>
+        <div className="font-bold text-sahool-text">{opt.name}</div>
+        <div className="text-xs text-sahool-muted mt-1">{text(raw.field_code)}</div>
       </Td>
       <Td>
-        <span className="inline-flex items-center gap-2 text-slate-300">
-          <Sprout className="w-4 h-4 text-emerald-400" />
+        <span className="inline-flex items-center gap-2 text-sahool-text">
+          <Sprout className="w-4 h-4 text-sahool-green-dark" />
           {text(opt.crop || raw.crop || raw.crop_ar, 'محصول غير محدد')}
         </span>
       </Td>
-      <Td className="text-slate-100 font-semibold whitespace-nowrap">{area != null ? `${area.toFixed(1)} هـ` : '—'}</Td>
-      <Td className="text-slate-100 font-semibold whitespace-nowrap">{formatNdvi(raw.ndvi)}</Td>
-      <Td className="text-slate-300">{text(raw.region ?? raw.country)}</Td>
+      <Td className="text-sahool-text font-semibold whitespace-nowrap">{area != null ? `${area.toFixed(1)} هـ` : '—'}</Td>
+      <Td className="text-sahool-text font-semibold whitespace-nowrap">{formatNdvi(raw.ndvi)}</Td>
+      <Td className="text-sahool-text">{text(raw.region ?? raw.country)}</Td>
       <Td>
         <div className="flex flex-col gap-1">
-          <span className={`w-fit text-xs px-2 py-1 rounded-full border ${needs ? 'border-amber-900 text-amber-300 bg-amber-950/30' : 'border-emerald-900 text-emerald-300 bg-emerald-950/30'}`}>
+          <span className={`w-fit text-xs px-2 py-1 rounded-full border ${needs ? 'border-amber-700 text-ops-warning bg-amber-500/10' : 'border-emerald-700 text-sahool-green-dark bg-emerald-500/10'}`}>
             {quality}
           </span>
-          <span className="text-xs text-slate-500 max-w-xs truncate">{health}</span>
+          <span className="text-xs text-sahool-muted max-w-xs truncate">{health}</span>
         </div>
       </Td>
       <Td>
-        <span className="inline-flex items-center gap-1 text-emerald-300 text-xs whitespace-nowrap">
+        <span className="inline-flex items-center gap-1 text-sahool-green-dark text-xs whitespace-nowrap">
           الخريطة وCDSE والطقس/الرياح
           <ChevronLeft className="w-4 h-4" />
         </span>
@@ -257,13 +257,13 @@ function FieldMobileRow({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="font-bold text-slate-100 text-lg">{opt.name}</div>
-          <div className="text-sm text-slate-400 mt-1 flex items-center gap-2">
+          <div className="font-bold text-sahool-text text-lg">{opt.name}</div>
+          <div className="text-sm text-sahool-muted mt-1 flex items-center gap-2">
             <Sprout className="w-4 h-4" />
             {text(opt.crop || raw.crop || raw.crop_ar, 'محصول غير محدد')}
           </div>
         </div>
-        <span className={`text-xs px-2 py-1 rounded-full border ${needs ? 'border-amber-900 text-amber-300 bg-amber-950/30' : 'border-emerald-900 text-emerald-300 bg-emerald-950/30'}`}>
+        <span className={`text-xs px-2 py-1 rounded-full border ${needs ? 'border-amber-700 text-ops-warning bg-amber-500/10' : 'border-emerald-700 text-sahool-green-dark bg-emerald-500/10'}`}>
           {quality}
         </span>
       </div>
@@ -273,7 +273,7 @@ function FieldMobileRow({
         <Mini label="الموقع" value={text(raw.region ?? raw.country)} />
         <Mini label="الكود" value={text(raw.field_code)} />
       </div>
-      <div className="mt-3 inline-flex items-center gap-1 text-emerald-300 text-xs">
+      <div className="mt-3 inline-flex items-center gap-1 text-sahool-green-dark text-xs">
         فتح الخريطة وCDSE والطقس/الرياح
         <ChevronLeft className="w-4 h-4" />
       </div>
@@ -283,9 +283,9 @@ function FieldMobileRow({
 
 function Mini({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-slate-900/70 p-2">
-      <div className="text-xs text-slate-500">{label}</div>
-      <div className="text-slate-100 font-semibold mt-1 truncate">{value}</div>
+    <div className="rounded-xl bg-sahool-surface/70 p-2">
+      <div className="text-xs text-sahool-muted">{label}</div>
+      <div className="text-sahool-text font-semibold mt-1 truncate">{value}</div>
     </div>
   );
 }

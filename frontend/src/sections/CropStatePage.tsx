@@ -94,25 +94,25 @@ export default function CropStatePage() {
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Sprout className="w-5 h-5 text-emerald-400" />
-        <h2 className="text-xl font-bold text-slate-100">حالة المحصول الموحّدة</h2>
+        <Sprout className="w-5 h-5 text-sahool-green-dark" />
+        <h2 className="text-xl font-bold text-sahool-text">حالة المحصول الموحّدة</h2>
       </div>
-      <p className="text-sm text-slate-400">
-        قرار واحد من حالة محصول واحدة: المرحلة والماء والعنصر ⟵ ثمّ <span className="text-slate-300">ريّ + تسميد + مخاطر</span> مقترحة
-        مع درجة ثقة. كلّ القيم <span className="text-amber-300">تقديريّة غير معايَرة</span>؛ الاقتصاد لم يُفعَّل بعد.
+      <p className="text-sm text-sahool-muted">
+        قرار واحد من حالة محصول واحدة: المرحلة والماء والعنصر ⟵ ثمّ <span className="text-sahool-text">ريّ + تسميد + مخاطر</span> مقترحة
+        مع درجة ثقة. كلّ القيم <span className="text-ops-warning">تقديريّة غير معايَرة</span>؛ الاقتصاد لم يُفعَّل بعد.
       </p>
 
       {/* Form */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <label className="flex flex-col gap-1">
-          <span className="flex items-center gap-1 text-xs text-slate-400">
+          <span className="flex items-center gap-1 text-xs text-sahool-muted">
             <MapPin className="w-3.5 h-3.5" aria-hidden="true" /> اختر الحقل (يعبّئ المحصول وNDVI من سجلّه)
           </span>
           <select
             value={fieldId ?? ''}
             onChange={(e) => setFieldId(e.target.value || null)}
             className="px-3 py-2 rounded-lg text-sm"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
+            style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}
           >
             <option value="">بدون حقل — إدخال يدويّ</option>
             {fieldOptions.map((o) => (
@@ -123,20 +123,20 @@ export default function CropStatePage() {
           </select>
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">المحصول</span>
+          <label className="flex flex-col gap-1"><span className="text-xs text-sahool-muted">المحصول</span>
             <input value={crop} onChange={e => setCrop(e.target.value)} className="px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} /></label>
-          <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">المرحلة</span>
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} /></label>
+          <label className="flex flex-col gap-1"><span className="text-xs text-sahool-muted">المرحلة</span>
             <select value={stage} onChange={e => setStage(e.target.value)} className="px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
               {STAGES.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}</select></label>
-          <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">السياسة</span>
+          <label className="flex flex-col gap-1"><span className="text-xs text-sahool-muted">السياسة</span>
             <select value={policy} onChange={e => setPolicy(e.target.value)} className="px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
               {POLICIES.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}</select></label>
-          <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">نسيج التربة</span>
+          <label className="flex flex-col gap-1"><span className="text-xs text-sahool-muted">نسيج التربة</span>
             <select value={texture} onChange={e => setTexture(e.target.value)} className="px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
               {TEXTURES.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}</select></label>
           {[
             { k: 'ndvi', label: 'NDVI (لـKc ديناميكيّ)', v: ndvi, set: setNdvi },
@@ -147,9 +147,9 @@ export default function CropStatePage() {
             { k: 'target', label: 'هدف الامتصاص (كجم/ها)', v: target, set: setTarget },
             { k: 'init', label: 'استنزاف ابتدائيّ (مم)', v: initDepletion, set: setInitDepletion },
           ].map(f => (
-            <label key={f.k} className="flex flex-col gap-1"><span className="text-xs text-slate-400">{f.label}</span>
+            <label key={f.k} className="flex flex-col gap-1"><span className="text-xs text-sahool-muted">{f.label}</span>
               <input type="number" inputMode="decimal" step="any" value={f.v} onChange={e => f.set(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} /></label>
+                className="px-3 py-2 rounded-lg text-sm" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} /></label>
           ))}
         </div>
         <div className="flex justify-end">
@@ -174,10 +174,10 @@ export default function CropStatePage() {
               { label: 'استنزاف الماء', v: `${res.water_state.depletion_mm.toFixed(0)} مم`, sub: `RAW ${res.water_state.raw_mm.toFixed(0)}` },
               { label: 'الثقة', v: `${(res.confidence * 100).toFixed(0)}٪`, sub: QUALITY_AR[res.data_quality] ?? res.data_quality },
             ].map((x, i) => (
-              <div key={i} className="rounded-xl p-3 border text-center" style={{ background: '#1e293b', borderColor: '#334155' }}>
-                <div className="text-[11px] text-slate-400 mb-1">{x.label}</div>
-                <div className="text-lg font-bold text-slate-100">{x.v}</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">{x.sub}</div>
+              <div key={i} className="rounded-xl p-3 border text-center" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+                <div className="text-[11px] text-sahool-muted mb-1">{x.label}</div>
+                <div className="text-lg font-bold text-sahool-text">{x.v}</div>
+                <div className="text-[10px] text-sahool-muted mt-0.5">{x.sub}</div>
               </div>
             ))}
           </div>
@@ -201,8 +201,8 @@ export default function CropStatePage() {
           </div>
 
           {/* Risk strip */}
-          <div className="rounded-xl border p-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <div className="flex items-center gap-1 text-xs text-slate-400 mb-2"><Scale className="w-3.5 h-3.5" /> المخاطر</div>
+          <div className="rounded-xl border p-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <div className="flex items-center gap-1 text-xs text-sahool-muted mb-2"><Scale className="w-3.5 h-3.5" /> المخاطر</div>
             <div className="grid grid-cols-3 gap-2">
               {res.risks.map((r, i) => (
                 <div key={i} className="text-center rounded-lg py-2" style={{ background: '#0f1117' }}>
@@ -233,8 +233,8 @@ export default function CropStatePage() {
 
           {/* Unified flags */}
           {res.stress_flags.length > 0 && (
-            <div className="rounded-xl border p-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-              <div className="flex items-center gap-1 text-xs text-slate-400 mb-2"><Info className="w-3.5 h-3.5" /> أعلام الحالة</div>
+            <div className="rounded-xl border p-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+              <div className="flex items-center gap-1 text-xs text-sahool-muted mb-2"><Info className="w-3.5 h-3.5" /> أعلام الحالة</div>
               <div className="flex flex-wrap gap-2">
                 {res.stress_flags.map((f, i) => (
                   <span key={i} className="text-[11px] px-2 py-1 rounded-lg text-orange-300" style={{ background: '#2a0d0d' }}>{f.label_ar}</span>

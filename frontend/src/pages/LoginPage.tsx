@@ -74,27 +74,17 @@ export default function LoginPage({
     }
   };
 
-  const fieldStyle = { background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0', outline:'none' } as const;
+  const fieldStyle = { background:'#fff', border:'1px solid #a7b3a7', color:'#202621' } as const;
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 dir-rtl"
-      style={{ background:'linear-gradient(135deg, #0f1117 0%, #0d2010 50%, #0f1117 100%)' }}>
-
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full opacity-5"
-          style={{ background:'radial-gradient(circle, #16a34a, transparent)' }} />
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 rounded-full opacity-5"
-          style={{ background:'radial-gradient(circle, #0ea5e9, transparent)' }} />
-      </div>
-
+    <main className="ops-auth min-h-screen flex items-center justify-center p-4 dir-rtl">
       <div className="relative w-full max-w-md">
         {/* Card */}
-        <div className="rounded-3xl p-6 sm:p-8 border" style={{ background:'#1e293b', borderColor:'#334155', boxShadow:'0 25px 50px rgba(0,0,0,0.5)' }}>
+        <div className="ops-auth-card p-6 sm:p-8">
 
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-900/50">
+            <div className="w-16 h-16 rounded-md bg-[#367c2b] flex items-center justify-center mx-auto mb-4 ">
               <Leaf className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-slate-100">سهول</h1>
@@ -173,7 +163,7 @@ export default function LoginPage({
             {/* Submit */}
             <button type="submit" disabled={loading}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all"
-              style={{ background: loading ? '#15803d' : '#16a34a', color:'white', opacity: loading ? 0.8 : 1 }}>
+              style={{ background: loading ? '#275d20' : '#367c2b', color:'white', opacity: loading ? 0.8 : 1 }}>
               {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> جاري الدخول...</> : 'تسجيل الدخول'}
             </button>
 
@@ -198,7 +188,7 @@ export default function LoginPage({
             {!import.meta.env.PROD && (
               <button type="button" onClick={loginDemo}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm transition-all border"
-                style={{ background:'transparent', borderColor:'#334155', color:'#94a3b8' }}>
+                style={{ background:'transparent', borderColor:'#a7b3a7', color:'#334437' }}>
                 <Shield className="w-4 h-4" />
                 دخول تجريبي (بيانات افتراضية)
               </button>
@@ -208,7 +198,7 @@ export default function LoginPage({
             <p className="text-center text-xs text-slate-500 pt-1">
               ليس لديك حساب؟{' '}
               <button type="button" onClick={onSignup}
-                className="text-emerald-500 hover:text-emerald-400 font-medium">
+                className="text-[#275d20] hover:underline font-semibold">
                 إنشاء حساب جديد
               </button>
             </p>
@@ -292,7 +282,7 @@ function ResetFlow({
   const [done, setDone]       = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const fieldStyle = { background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0', outline:'none' } as const;
+  const fieldStyle = { background:'#fff', border:'1px solid #a7b3a7', color:'#202621' } as const;
 
   // قواعد كلمة المرور = ما يفرضه الخادم (8+، حرف كبير، رقم). نضيف رمزاً خاصّاً
   // اتّساقاً مع SignupPage (أقوى من حدّ الخادم الأدنى — مقبول).
@@ -343,7 +333,7 @@ function ResetFlow({
         <p className="text-xs text-slate-500">افتح رابط إعادة التعيين في البريد لإكمال التغيير. الرابط صالح 30 دقيقة.</p>
         <button type="button" onClick={onBackToLogin}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white"
-          style={{ background:'#16a34a' }}>
+          style={{ background:'#367c2b' }}>
           العودة لتسجيل الدخول
         </button>
       </div>
@@ -357,7 +347,7 @@ function ResetFlow({
         <p className="text-slate-200 text-sm">تم تغيير كلمة المرور بنجاح</p>
         <button type="button" onClick={onBackToLogin}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white"
-          style={{ background:'#16a34a' }}>
+          style={{ background:'#367c2b' }}>
           العودة لتسجيل الدخول
         </button>
       </div>
@@ -424,7 +414,7 @@ function ResetFlow({
 
       <button type="submit" disabled={loading}
         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all"
-        style={{ background: loading ? '#15803d' : '#16a34a', color:'white', opacity: loading ? 0.8 : 1 }}>
+        style={{ background: loading ? '#275d20' : '#367c2b', color:'white', opacity: loading ? 0.8 : 1 }}>
         {loading
           ? <><Loader2 className="w-4 h-4 animate-spin" /> جارٍ المعالجة...</>
           : view === 'reset-request'

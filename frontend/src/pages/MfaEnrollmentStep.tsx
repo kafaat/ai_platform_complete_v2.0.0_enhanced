@@ -145,7 +145,7 @@ export default function MfaEnrollmentStep({
   );
 
   const primaryBtn = 'w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all';
-  const primaryStyle = { background: loading ? '#15803d' : '#16a34a', color:'white', opacity: loading ? 0.8 : 1 };
+  const primaryStyle = { background: loading ? '#275d20' : '#367c2b', color:'white', opacity: loading ? 0.8 : 1 };
   const backLink = (
     <div className="text-center">
       <button type="button" onClick={onBackToLogin} className="text-xs text-slate-400 hover:text-emerald-400">
@@ -180,8 +180,8 @@ export default function MfaEnrollmentStep({
           <p className="text-slate-200 text-sm font-semibold">تم تفعيل المصادقة الثنائيّة بنجاح</p>
         </div>
         {recovery.length > 0 && (
-          <div className="p-3 rounded-xl space-y-2" style={{ background:'#0f1117', border:'1px solid #f59e0b55' }}>
-            <p className="text-xs text-amber-300 flex items-center gap-1.5">
+          <div className="p-3 rounded-xl space-y-2" style={{ background:'#fff8df', border:'1px solid #cda951' }}>
+            <p className="text-xs text-[#704b00] flex items-center gap-1.5">
               <KeyRound className="w-3.5 h-3.5" /> رموز الاسترداد — احفظها الآن في مكان آمن، لن تُعرَض مرّة أخرى.
             </p>
             <ul aria-label="رموز الاسترداد" className="grid grid-cols-2 gap-1 font-mono text-xs text-slate-200" dir="ltr">
@@ -229,7 +229,7 @@ export default function MfaEnrollmentStep({
   return (
     <form onSubmit={handleActivate} className="space-y-4" dir="rtl">
       {header}
-      <div className="p-3 rounded-xl space-y-2" style={{ background:'#0f1117', border:'1px solid #334155' }}>
+      <div className="ops-mfa-provisioning p-3 rounded-xl space-y-2" style={{ background:'#0f1117', border:'1px solid #334155' }}>
         <p className="text-[11px] text-slate-400">
           ١. أضِف الحساب في تطبيق المصادقة بإدخال المفتاح يدويّاً أو بفتح الرابط على هاتفك.
           <span className="text-amber-300"> يُعرَض مرّة واحدة فقط.</span>

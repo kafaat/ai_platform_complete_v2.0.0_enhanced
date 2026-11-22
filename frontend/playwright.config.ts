@@ -13,7 +13,14 @@
 // swiftshader، مع تجاوز قائمة حظر GPU كي يُنشَأ سياق WebGL داخل الحاوية.
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 4173;
+// Run the same pivot interaction suite against either compiled map engine.
+const mapEngine = process.env.PW_MAP_ENGINE === 'leaflet' ? 'leaflet' : 'maplibre';
+const leafletBuild = mapEngine === 'leaflet';
+const PORT = leafletBuild ? 4174 : 4173;
+const leafletDist = 'node_modules/.cache/pw-leaflet/dist';
+const buildCommand = leafletBuild
+  ? `npm run build -- --outDir ${leafletDist}`
+  : 'npm run build && npm run verify:bundle-budget';
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 // تجاوز اختياريّ لمسار تنفيذيّ للمتصفّح (بيئات محجوبة عن تنزيل متصفّحات Playwright):
@@ -23,6 +30,8 @@ const CHROMIUM_PATH = process.env.PW_CHROMIUM_PATH;
 
 export default defineConfig({
   testDir: './e2e',
+  metadata: { mapEngine },
+  ...(leafletBuild ? { testMatch: ['**/map-tools.spec.ts', '**/pivot-designer.spec.ts'], outputDir: 'test-results/leaflet' } : {}),
   // البصريّ (@visual) قد يطلب لقطات مرجعيّة؛ نُبقيه خارج الحجب (انظر سكربت CI).
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -117,12 +126,12 @@ export default defineConfig({
         ]
       : []),
   ],
-  // يبني الواجهة بمحرّك maplibre ثمّ يخدمها (preview بلا وكيل ⇒ same-origin /api).
+  // يبني ويخدم محرّك الاختبار المُحدّد.
   webServer: {
-    command: 'npm run build && npm run verify:bundle-budget && npm run preview -- --host 127.0.0.1',
+    command: `${buildCommand} && npm run preview -- --host 127.0.0.1 --port ${PORT} --strictPort --outDir ${leafletBuild ? leafletDist : 'dist'}`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
-    env: { VITE_MAP_ENGINE: 'maplibre', VITE_E2E_HOOKS: '1' },
+    env: { VITE_MAP_ENGINE: mapEngine, VITE_E2E_HOOKS: '1' },
   },
 });

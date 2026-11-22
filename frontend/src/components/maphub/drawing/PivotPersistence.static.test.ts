@@ -4,6 +4,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const mapHub = fs.readFileSync(path.join(root, 'src/sections/MapHub.tsx'), 'utf8');
+const pivotSave = fs.readFileSync(path.join(root, 'src/sections/maphub/pivotDraftSave.ts'), 'utf8');
 const api = fs.readFileSync(path.join(root, 'src/components/maphub/drawing/drawingFeatureApi.ts'), 'utf8');
 const router = fs.readFileSync(path.join(root, '../services/sahool-platform/api/routers/drawing_features.py'), 'utf8');
 // #990 نقل DDL الجدول من الراوتر إلى هجرةٍ مُرقّمة؛ والشاهدُ الخلفيّ
@@ -14,7 +15,7 @@ describe('v37/v38 pivot persistence contract', () => {
   it('links pivot drafts to the selected field and active season before saving', () => {
     expect(mapHub).toContain('selectedActiveSeasonId');
     expect(mapHub).toContain("seasonId: selectedActiveSeasonId ?? undefined");
-    expect(mapHub).toContain("workflow: 'design-pivot'");
+    expect(pivotSave).toContain("workflow: 'design-pivot'");
     expect(mapHub).toContain('btn-save-pivot-drafts');
   });
 

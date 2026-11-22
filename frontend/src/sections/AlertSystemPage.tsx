@@ -216,13 +216,13 @@ export function AlertSystemPage() {
 
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
-      {ackError && <p role="alert" className="text-red-400">{ackError}</p>}
+      {ackError && <p role="alert" className="text-ops-danger">{ackError}</p>}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">نظام التنبيهات</h2>
-          <p className="text-sm text-slate-400">{activeCount} تنبيه نشط</p>
+          <h2 className="text-xl font-bold text-sahool-text">نظام التنبيهات</h2>
+          <p className="text-sm text-sahool-muted">{activeCount} تنبيه نشط</p>
         </div>
-        <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-sahool-muted cursor-pointer">
           <input type="checkbox" checked={showAcknowledged} onChange={e => setShowAcknowledged(e.target.checked)}
             className="w-4 h-4 accent-emerald-500" />
           عرض المُعترف بها
@@ -231,16 +231,16 @@ export function AlertSystemPage() {
 
       {/* تقييم تلقائيّ: يُولّد تنبيهات من ظروف الحقل الحيّة (FIELD_EDIT فقط) */}
       {mutateAllowed && (
-        <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+        <div className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}>
           <div className="flex items-center gap-2 mb-3">
-            <Zap className="w-4 h-4 text-amber-400" />
-            <span className="text-sm font-semibold text-slate-200">تقييم تلقائيّ للتنبيهات</span>
+            <Zap className="w-4 h-4 text-ops-warning" />
+            <span className="text-sm font-semibold text-sahool-text">تقييم تلقائيّ للتنبيهات</span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <select
               value={activeFieldId}
               onChange={e => { setActiveFieldId(e.target.value || null); setEvalNote(''); }}
-              className="flex-1 min-w-[180px] rounded-lg px-3 py-2 text-sm text-slate-200 bg-slate-800 border border-slate-700"
+              className="flex-1 min-w-[180px] rounded-lg px-3 py-2 text-sm text-sahool-text bg-sahool-surface border border-sahool-border"
             >
               <option value="">— اختر حقلاً —</option>
               {fieldOptions.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -255,14 +255,14 @@ export function AlertSystemPage() {
             </button>
           </div>
           {fieldOptions.length === 0 && (
-            <p className="text-[11px] text-slate-500 mt-2">لا حقول متاحة — أضِف حقلاً من «إدارة الحقول» أوّلاً.</p>
+            <p className="text-[11px] text-sahool-muted mt-2">لا حقول متاحة — أضِف حقلاً من «إدارة الحقول» أوّلاً.</p>
           )}
           {evalNote && (
             <p className="text-xs mt-2" style={{ color: evalMut.isError ? '#f87171' : '#34d399' }}>{evalNote}</p>
           )}
 
           {/* تشغيل دفعيّ: تقييم تنبيهات كلّ الحقول دفعةً (نفس مسار الجدولة الدوريّة) */}
-          <div className="mt-3 pt-3 border-t" style={{ borderColor: '#334155' }}>
+          <div className="mt-3 pt-3 border-t" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
             <button
               onClick={runAll}
               disabled={runAllMut.isPending || fieldOptions.length === 0}

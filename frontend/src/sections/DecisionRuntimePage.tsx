@@ -55,7 +55,7 @@ export default function DecisionRuntimePage() {
   return (
     <div className="p-4 flex flex-col gap-3" data-testid="decision-runtime">
       <h1 className="inline-flex items-center gap-2 text-lg font-bold" style={{ color: T.ink }}>
-        <GitBranch className="w-5 h-5 text-emerald-300" aria-hidden="true" /> تشغيل القرار (Dispatch)
+        <GitBranch className="w-5 h-5 text-sahool-green-dark" aria-hidden="true" /> تشغيل القرار (Dispatch)
       </h1>
 
       {disabled ? (
@@ -200,7 +200,7 @@ export default function DecisionRuntimePage() {
               onClick={runEvaluate}
               disabled={!recId.trim() || evalM.isPending}
               className="px-2.5 py-1 rounded-lg font-semibold disabled:opacity-50"
-              style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}
+              style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}
             >
               {evalM.isPending ? 'جارٍ المعاينة…' : 'عاين (بلا تنفيذ)'}
             </button>
@@ -244,7 +244,7 @@ export default function DecisionRuntimePage() {
             onClick={() => outcomeM.mutate(buildOutcomeInput({ decisionId: ocDecisionId, recommendedIrrigationMm: ocRecIrr, actualIrrigationMm: ocActIrr, expectedYieldTHa: ocExpYield, actualYieldTHa: ocActYield }))}
             disabled={outcomeM.isPending}
             className="px-2.5 py-1 rounded-lg font-semibold disabled:opacity-50"
-            style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}
+            style={{ border: '1px solid #367c2b', color: '#fff', background: '#367c2b' }}
           >
             {outcomeM.isPending ? 'جارٍ القياس…' : 'قِس النتيجة'}
           </button>

@@ -13,6 +13,7 @@ import {
   MapContainer, TileLayer, FeatureGroup, useMap,
 } from 'react-leaflet';
 import DrawControl from './maphub/DrawControl'; // شريط المضلّع (leaflet-draw خام — بديل EditControl، توافق React 19)
+import { circleToPolygon, PIVOT_VERTEX_COUNT } from './maphub/circleBoundary';
 import InteractiveDrawLayer, { type DrawTool } from './maphub/InteractiveDrawLayer'; // الدائرة/المستطيل بالنقر + معاينة حيّة
 import L from 'leaflet';
 import '../lib/leafletSetup'; // CSS الأساسيّ لـLeaflet + الأداة + الأيقونات (حاسم للتصيير)
@@ -328,32 +329,7 @@ function formatLengthM(m: number): string {
   return `${Math.round(m)} م`;
 }
 
-// ── دائرة (ريّ محوريّ) → مضلّع مُقرَّب ──────────────────────────
-// الخلفيّة تتوقّع GeoJSON Polygon؛ نحوّل (مركز + نصف قطر م) إلى حلقة رؤوس.
-// عدد الرؤوس نفسه في المعاينة وفي نموذج المحور الذي تعيد الخدمة بناءه عند الحفظ.
-const PIVOT_VERTEX_COUNT = 96;
-function circleToPolygon(center: L.LatLng, radiusM: number): L.LatLng[] {
-  // توليد دائرة جيوديسية حقيقية حول المركز بدل تقريب degree-per-meter.
-  // هذا يقلل الإزاحة/التشوّه في الحقول المحورية الكبيرة ويحافظ على نصف القطر بالمتر.
-  const R = 6378137; // WGS84 radius, meters
-  const lat1 = center.lat * Math.PI / 180;
-  const lon1 = center.lng * Math.PI / 180;
-  const d = radiusM / R;
-  const pts: L.LatLng[] = [];
-  for (let i = 0; i < PIVOT_VERTEX_COUNT; i++) {
-    const brng = (i / PIVOT_VERTEX_COUNT) * 2 * Math.PI;
-    const lat2 = Math.asin(
-      Math.sin(lat1) * Math.cos(d) +
-      Math.cos(lat1) * Math.sin(d) * Math.cos(brng),
-    );
-    const lon2 = lon1 + Math.atan2(
-      Math.sin(brng) * Math.sin(d) * Math.cos(lat1),
-      Math.cos(d) - Math.sin(lat1) * Math.sin(lat2),
-    );
-    pts.push(L.latLng(lat2 * 180 / Math.PI, lon2 * 180 / Math.PI));
-  }
-  return pts;
-}
+
 
 // ── Main component ─────────────────────────────────────────────
 export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFields, initialDrawTool = null }: Props) {
@@ -772,7 +748,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   }, [handlePolygonDone, makePivotPayload]);
 
   // المستطيل المُدار التفاعليّ اكتمل (أربعة رؤوس): حلقة عاديّة قابلة للتحرير (لا pivot).
-  const handleInteractiveRectangle = useCallback((corners: L.LatLng[]) => {
+  const handleInteractiveBoundary = useCallback((corners: L.LatLng[]) => {
     setError('');
     setDrawTool(null);
     setPivotPayload(null);
@@ -1165,7 +1141,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   const selectedBasemapMaxZoom = selectedBasemap?.maxZoom ?? 19;
 
   return (
-    <div className="fixed inset-0 z-1200 flex flex-col" dir="rtl" style={{ background:'#0b1220' }}>
+    <div role="dialog" aria-modal="true" aria-label="حدود الحقل" className="field-editor fixed inset-0 z-1200 flex flex-col" dir="rtl" style={{ background:'#0b1220' }}>
       {/* Top bar (ملء العرض): العنوان + التبويبات على جهة البداية، تبديل الطبقة + الإغلاق على جهة النهاية */}
       <header className="flex items-center justify-between px-5 py-3 border-b shrink-0" style={{ borderColor:'#334155', background:'#1e293b' }}>
         <div className="flex items-center gap-3">
@@ -1214,14 +1190,14 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
               ))}
             </select>
           )}
-          <button onClick={onCancel} className="p-1 rounded-sm hover:bg-slate-700 text-slate-400">
+          <button type="button" aria-label="إغلاق محرّر الحقل" onClick={onCancel} className="p-1 rounded-sm hover:bg-slate-700 text-slate-400">
             <X className="w-5 h-5" />
           </button>
         </div>
       </header>
 
       {/* صفّ العمل: درج التحكّم (البداية) + خريطة ملء الشاشة (flex-1) */}
-      <div className="flex-1 flex min-h-0">
+      <div className="field-editor-body flex-1 flex min-h-0">
         {mode === 'draw' ? (
           <>
             <aside className="w-full sm:w-[400px] shrink-0 overflow-y-auto border-l" style={{ borderColor:'#334155', background:'#1e293b' }} dir="rtl">
@@ -1230,7 +1206,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                 <div className="px-5 py-3 space-y-2" dir="rtl">
                   {/* سطر الإرشاد العربيّ الأصليّ — يبقى كما هو */}
                   <p className="text-sm" style={{ color:'#94a3b8' }}>
-                    💡 <strong className="text-emerald-400">ارسم حدود الحقل على الخريطة</strong> — المضلّع من شريط أعلى الخريطة، أو اختر دائرة/مستطيل أدناه.
+                    💡 <strong className="text-emerald-400">ارسم حدود الحقل على الخريطة</strong> — المضلّع من شريط أعلى الخريطة، أو اختر الدائرة أو المستطيل أو الرسم الحرّ.
                   </p>
                   {/* اختيار أداة الرسم: المضلّع على شريط leaflet-draw (أعلى الخريطة)؛
                       الدائرة والمستطيل تفاعليّتان بالنقر + معاينة حيّة بحركة الفأرة. */}
@@ -1239,6 +1215,10 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                       style={{ background:'#0f1117', border:'1px solid #334155', color:'#cbd5e1' }}>
                       <Pentagon className="w-3.5 h-3.5 text-emerald-400" /> مضلّع — من شريط الخريطة
                     </span>
+                    <button type="button" aria-pressed={drawTool === 'freehand'}
+                      className="map-tool" onClick={() => { setError(''); setDrawTool(t => t === 'freehand' ? null : 'freehand'); }}>
+                      رسم حر
+                    </button>
                     <button
                       type="button"
                       aria-pressed={drawTool === 'circle'}
@@ -1289,7 +1269,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                       style={{ background:'#16a34a14', border:'1px solid #16a34a44', color:'#86efac' }}>
                       {drawStatus ?? (drawTool === 'circle'
                         ? 'انقر لتحديد مركز الدائرة، ثمّ حرّك الفأرة لضبط نصف القطر وانقر لوضعها.'
-                        : 'انقر نقطتين لتثبيت الضلع الأوّل، ثمّ حرّك الفأرة لضبط العرض وانقر لإتمام المستطيل.')}
+                        : 'اتبع إرشادات الأداة على الخريطة.')}
                       <span className="block mt-0.5" style={{ color:'#64748b' }}>
                         نقرة يمين تُلغي الشكل قيد الرسم · بعد الرسم اسحب أيّ رأس لتعديله.
                       </span>
@@ -1557,7 +1537,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
             </aside>
 
             {/* Map (الرسم اليدويّ فقط) — تملأ العمود الطويل */}
-            <div className="flex-1 relative min-w-0">
+            <div className="field-editor-map flex-1 relative min-w-0">
               <MapContainer
                 center={[15.05, 45.55]}
                 zoom={10}
@@ -1579,14 +1559,15 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                   <InteractiveDrawLayer
                     tool={drawTool}
                     onCircle={handleInteractiveCircle}
-                    onRectangle={handleInteractiveRectangle}
+                    onRectangle={handleInteractiveBoundary}
+                    onFreehand={handleInteractiveBoundary}
                     onCircleCenter={handlePickCircleCenter}
                     onStatus={setDrawStatus}
                   />
                 )}
                 {stage === 'draw' && <CancelToolOnDrawStart onDrawStart={clearDrawTool} />}
                 <FeatureGroup ref={fgRef}>
-                  {stage === 'draw' && (
+                  {stage === 'draw' && !drawTool && (
                     <DrawControl
                       position="topright"
                       onCreated={handleCreated}
@@ -1657,7 +1638,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                 <div className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-xl text-xs max-w-[78%]"
                   style={{ background:'#0f1117cc', color: drawTool ? '#86efac' : '#94a3b8', backdropFilter:'blur(8px)' }}>
                   {drawTool
-                    ? (drawStatus ?? (drawTool === 'circle' ? 'انقر مركز الدائرة ثمّ حرّك وانقر للوضع.' : 'انقر نقطتين للضلع ثمّ حرّك وانقر للإتمام.'))
+                    ? (drawStatus ?? (drawTool === 'circle' ? 'انقر مركز الدائرة ثمّ حرّك وانقر للوضع.' : 'اتبع إرشادات الأداة.'))
                     : 'المضلّع من شريط أعلى يمين الخريطة · الدائرة/المستطيل من لوحة الأدوات'}
                 </div>
               )}
@@ -1795,7 +1776,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
 
             {/* Actions */}
             <div className="flex gap-2 justify-end">
-              <button onClick={onCancel}
+              <button type="button" aria-label="إغلاق محرّر الحقل" onClick={onCancel}
                 className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 border"
                 style={{ borderColor:'#334155' }}>
                 إلغاء
