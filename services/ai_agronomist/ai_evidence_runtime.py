@@ -1217,6 +1217,20 @@ async def build_evidence_response(
     provider_tool_truncated = False
     provider_tool_rounds = 0
     model_output = None
+    # F8 — stored owner-engine proposals, shown for specialist review only (flag OFF by
+    # default). Read from the platform; never computed here, never given to the model below
+    # (its candidate list stays empty), never approved, executed or written.
+    from .engine_proposal_client import fetch_engine_proposals
+
+    engine_proposals = await fetch_engine_proposals(
+        tenant_id=tenant_id,
+        field_id=req.field_id,
+        endpoint_mode=endpoint_mode,
+        platform_url=PLATFORM_URL,
+        agent_token=AGENT_TOKEN,
+        sign=_platform_tenant_headers,
+        voice_read_only=voice_read_only,
+    )
     if endpoint_mode == "chat" and _generation_allowed(tenant_id):
         context_text = _grounding_context_text(annotations)
         selection = None
@@ -1443,6 +1457,7 @@ async def build_evidence_response(
         "advisory_validation": validation,
         "audit_event": audit_event,
         "decision_authority": "field_intelligence_coordinator",
+        "engine_proposals": engine_proposals,
     }
     # M2 — مظروف استشاريّ مُهيكَل مُتحقَّق (مُشتقّ؛ القرار advisory_only — لا يخترعه النموذج).
     response["advisory"] = advisory_contract.build_advisory_envelope(response)
