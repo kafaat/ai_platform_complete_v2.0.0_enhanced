@@ -92060,7 +92060,7 @@
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "loader",
-          "line": 449
+          "line": 507
         },
         {
           "source": "services/sahool-platform/core/rag/production_qdrant.py",

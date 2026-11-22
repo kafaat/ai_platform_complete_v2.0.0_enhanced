@@ -1450,10 +1450,14 @@ class QdrantHttpClient:
         RAG-DOCUMENT-REVISION-WITHDRAWAL-01. Returns the withdrawn point ids.
 
         Tenant isolation is decided here, on each row's own payload, not by the store:
-        the filter only narrows the read. A point is deleted only when its payload
-        names this tenant and this document, and the delete is by explicit id, never a
-        bare filter. The reference corpus and its quarantine are refused outright:
-        the seeder owns them and no tenant ingest may remove a reference point.
+        the filter only narrows the read. A point is deleted only when the parser the
+        reader uses (``KnowledgeChunk.from_payload``) attributes it to this tenant and
+        this document, and the delete is by explicit id, never a bare filter. Using the
+        reader's parser keeps both sides on one definition of "this document": a legacy
+        row (tenant at the payload root, document derived from the file name) that the
+        reader serves as part of the document is withdrawn with it, and a row the
+        reader rejects is left alone. The reference corpus and its quarantine are
+        refused outright: the seeder owns them and no tenant ingest may remove them.
         """
         tenant = str(tenant_id or "").strip()
         document = str(document_id or "").strip()
@@ -1463,20 +1467,21 @@ class QdrantHttpClient:
             raise ValueError("the reference corpus is never withdrawn by a document ingest")
         rows = self.scroll_payloads(
             scroll_filter={
-                "must": [
+                "should": [
                     {"key": "metadata.tenant_id", "match": {"value": tenant}},
-                    {"key": "metadata.document_id", "match": {"value": document}},
+                    {"key": "tenant_id", "match": {"value": tenant}},
                 ]
             }
         )
         stale = []
         for point_id, payload in rows:
-            meta = payload.get("metadata")
-            if not isinstance(meta, dict):
+            if point_id in keep_point_ids:
                 continue
-            if meta.get("tenant_id") != tenant or meta.get("document_id") != document:
+            try:
+                stored = KnowledgeChunk.from_payload(payload, fallback_id=point_id)
+            except (TypeError, ValueError):
                 continue
-            if point_id not in keep_point_ids:
+            if stored.tenant_id == tenant and stored.document_id == document:
                 stale.append(point_id)
         if stale:
             self._request(

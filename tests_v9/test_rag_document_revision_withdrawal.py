@@ -325,6 +325,64 @@ def test_withdrawal_leaves_other_tenants_in_process_memory():
     assert not r.bm25.search("zebra", tenant_id="tenant-a")
 
 
+def legacy_row(tenant, name, text, *, root_tenant=None):
+    """A row of the pre-convergence direct writer: no chunk id, no document id."""
+    metadata = {
+        "source_file": name,
+        "source_class": "tenant_document",
+        "source_uri": f"tenant-upload://{tenant}/{name}",
+        "source_revision": REV1,
+    }
+    if root_tenant is None:
+        metadata["tenant_id"] = tenant
+    payload = {"page_content": text, "metadata": metadata}
+    if root_tenant is not None:
+        payload["tenant_id"] = root_tenant
+    return payload
+
+
+@pytest.mark.parametrize("tenant_at_root", [False, True], ids=["nested-tenant", "root-tenant"])
+def test_legacy_rows_the_reader_serves_as_the_document_are_withdrawn_with_it(tenant_at_root):
+    store = Qdrant()
+    root = "tenant-a" if tenant_at_root else None
+    store.points["legacy-a"] = (
+        [0.0] * 32,
+        legacy_row("tenant-a", "guide.txt", "zebra", root_tenant=root),
+    )
+    store.points["legacy-other-file"] = (
+        [0.0] * 32,
+        legacy_row("tenant-a", "other.txt", "zebra", root_tenant=root),
+    )
+    store.points["legacy-b"] = ([0.0] * 32, legacy_row("tenant-b", "guide.txt", "zebra"))
+    r = retriever(store)
+    assert r.rebuild_sparse_index()["loaded_chunks"] == 3  # the reader does serve them
+    new = document("tenant-a", SHORT, revision=REV2)
+    (receipt,) = r.ingest_documents(new)
+    assert receipt.chunks_withdrawn == 1
+    assert "legacy-a" not in store.points
+    assert {"legacy-other-file", "legacy-b"} <= set(store.points)
+
+
+def test_row_claimed_at_the_root_but_owned_by_another_tenant_is_not_withdrawn():
+    """``metadata.tenant_id`` is the reference: a root value cannot hand a row over."""
+    store = Qdrant()
+    row = legacy_row("tenant-b", "guide.txt", "zebra")
+    row["tenant_id"] = "tenant-a"
+    row["metadata"]["document_id"] = document("tenant-a", SHORT, revision=REV2)[0].document_id
+    store.points["theirs"] = ([0.0] * 32, row)
+    (receipt,) = retriever(store).ingest_documents(document("tenant-a", SHORT, revision=REV2))
+    assert receipt.chunks_withdrawn == 0
+    assert "theirs" in store.points
+
+
+def test_row_the_reader_rejects_is_left_alone():
+    store = Qdrant()
+    store.points["unparseable"] = ([0.0] * 32, {"metadata": {"tenant_id": "tenant-a"}})
+    (receipt,) = retriever(store).ingest_documents(document("tenant-a", SHORT, revision=REV2))
+    assert receipt.chunks_withdrawn == 0
+    assert "unparseable" in store.points
+
+
 @pytest.mark.parametrize("tenant", [pq.GLOBAL_REFERENCE_TENANT, pq.SEED_QUARANTINE_TENANT])
 def test_reference_corpus_is_never_withdrawn_even_by_its_own_ingest(tenant):
     r = retriever()
