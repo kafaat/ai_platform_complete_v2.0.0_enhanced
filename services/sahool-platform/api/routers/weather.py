@@ -1517,6 +1517,84 @@ def _recommendation_payload_from_plan(field_id: str, plan: dict, crop: str | Non
     }
 
 
+def _operation_plan_save_refusal(plan_item: dict | None) -> dict | None:
+    """Why a plan item may not be saved as a task or recommendation; None when it may.
+
+    Pure. It reads only the weather engine's own flags: the plan's ``recommended`` and the
+    best window's ``safe``. A flag that is absent is not taken as true. No threshold here.
+    """
+    if not plan_item:
+        return {
+            "reason_code": "no_recommended_weather_window",
+            "message_ar": "لا توجد نافذة طقس موصى بها لهذه العملية؛ لا يُحفَظ شيء.",
+            "operation": None,
+            "recommended": False,
+            "safe": None,
+        }
+    decision = (plan_item.get("best") or {}).get("operation") or {}
+    facts = {
+        "operation": plan_item.get("operation"),
+        "suitability": decision.get("suitability"),
+        "recommended": plan_item.get("recommended") is True,
+        "safe": decision.get("safe") is True,
+    }
+    if not facts["recommended"]:
+        return {
+            "reason_code": "weather_window_not_recommended",
+            "message_ar": "نافذة الطقس غير موصى بها؛ لا تُحفَظ كمهمّة ولا كتوصية.",
+            **facts,
+        }
+    if not facts["safe"]:
+        return {
+            "reason_code": "weather_window_not_safe",
+            "message_ar": "نافذة الطقس غير آمنة أو لم تُثبَت سلامتها؛ لا تُحفَظ.",
+            **facts,
+        }
+    return None
+
+
+async def _refuse_point_outside_field(conn, user, field_id: str, lat: float, lon: float) -> None:
+    """The clicked point must lie in the tenant's stored field geometry (PostGIS ``ST_Covers``).
+
+    The map sends the point from the click and the field from the selection; nothing tied
+    them. Unknown field ⇒ 404; no stored geometry ⇒ 422 (cannot be verified); outside ⇒ 422.
+    """
+    row = await conn.fetchrow(
+        """SELECT geom IS NOT NULL AS has_geometry,
+                  ST_Covers(geom, ST_SetSRID(ST_MakePoint($3, $4), 4326)) AS covers
+             FROM fields
+            WHERE field_id = $1 AND tenant_id = $2::uuid""",
+        field_id,
+        str(user.tenant_id),
+        float(lon),
+        float(lat),
+    )
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"reason_code": "field_not_found", "message_ar": "الحقل غير موجود."},
+        )
+    if not row["has_geometry"]:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "reason_code": "field_geometry_missing",
+                "message_ar": "لا توجد حدود محفوظة لهذا الحقل؛ لا يمكن التحقّق من النقطة.",
+            },
+        )
+    if row["covers"] is not True:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "reason_code": "point_outside_field",
+                "message_ar": "النقطة المختارة خارج حدود الحقل؛ لا يُحفَظ شيء.",
+                "field_id": field_id,
+                "lat": lat,
+                "lon": lon,
+            },
+        )
+
+
 def _operation_label_ar(operation: str) -> str:
     return {
         "spraying": "الرش",
@@ -2830,14 +2908,30 @@ async def weather_create_task_from_operation_plan(
         model=req.model,
     )
     top = plan.get("top_recommendation") or {}
-    draft = _build_weather_task_draft(req.field_id, top, extra_notes=req.notes)
-    draft["assigned_to"] = req.assigned_to
-    draft["estimated_cost_usd"] = req.estimated_cost_usd
+    # G1: only a window the plan recommends and states safe becomes a task (a pending task,
+    # nothing is operated). A refusal names its reason, before any database work.
+    refusal = _operation_plan_save_refusal(top)
     if req.dry_run:
+        draft = None
+        if refusal is None:
+            draft = _build_weather_task_draft(req.field_id, top, extra_notes=req.notes)
+            draft["assigned_to"] = req.assigned_to
+            draft["estimated_cost_usd"] = req.estimated_cost_usd
         _record_weather_observation(
             "task-from-operation-plan", cache_state="dry_run", operation=req.operation
         )
-        return {"created": False, "dry_run": True, "task": draft, "operation_plan": plan}
+        return {
+            "created": False,
+            "dry_run": True,
+            "task": draft,
+            "save_gate": {"allowed": refusal is None, **(refusal or {})},
+            "operation_plan": plan,
+        }
+    if refusal is not None:
+        raise HTTPException(status_code=422, detail=refusal)
+    draft = _build_weather_task_draft(req.field_id, top, extra_notes=req.notes)
+    draft["assigned_to"] = req.assigned_to
+    draft["estimated_cost_usd"] = req.estimated_cost_usd
 
     try:
         from api.main import (
@@ -2849,6 +2943,8 @@ async def weather_create_task_from_operation_plan(
         )
 
         async with tenant_connection(user) as conn:
+            # G1: the point comes from the map click; the field must contain it.
+            await _refuse_point_outside_field(conn, user, req.field_id, req.lat, req.lon)
             row = await conn.fetchrow(
                 f"""INSERT INTO field_tasks
                        (tenant_id, field_id, task_type, priority, status, recommended_date,
@@ -2889,6 +2985,8 @@ async def weather_create_task_from_operation_plan(
             weather_decision_id = await _persist_weather_decision_record(
                 conn, user, decision_record
             )
+    except HTTPException:
+        raise
     except Exception as e:  # noqa: BLE001
         from api.main import _db_unavailable
 
@@ -2926,7 +3024,14 @@ async def weather_recommendation_from_operation_plan(
         hours=req.hours,
         model=req.model,
     )
-    payload = _recommendation_payload_from_plan(req.field_id, plan, crop=req.crop)
+    # G1: a window the plan does not recommend, or does not state safe, is never saved as a
+    # recommendation. A refusal names its reason, before any database work.
+    refusal = _operation_plan_save_refusal(plan.get("top_recommendation"))
+    payload = (
+        _recommendation_payload_from_plan(req.field_id, plan, crop=req.crop)
+        if refusal is None
+        else None
+    )
     rec_id = f"weather-{uuid4().hex[:16]}"
     if req.dry_run:
         _record_weather_observation("recommendation-from-operation-plan", cache_state="dry_run")
@@ -2935,14 +3040,19 @@ async def weather_recommendation_from_operation_plan(
             "dry_run": True,
             "rec_id": rec_id,
             "recommendation": payload,
+            "save_gate": {"allowed": refusal is None, **(refusal or {})},
             "operation_plan": plan,
         }
+    if refusal is not None:
+        raise HTTPException(status_code=422, detail=refusal)
     try:
         import json as _json
 
         from api.main import _db_unavailable, _emit_domain_event, tenant_connection
 
         async with tenant_connection(user) as conn:
+            # G1: the point comes from the map click; the field must contain it.
+            await _refuse_point_outside_field(conn, user, req.field_id, req.lat, req.lon)
             await conn.execute(
                 """INSERT INTO recommendations
                     (rec_id, tenant_id, farm_id, field_id, crop, delivered, reason_ar,
@@ -2981,6 +3091,8 @@ async def weather_recommendation_from_operation_plan(
             weather_decision_id = await _persist_weather_decision_record(
                 conn, user, decision_record
             )
+    except HTTPException:
+        raise
     except Exception as e:  # noqa: BLE001
         from api.main import _db_unavailable
 
