@@ -92,6 +92,10 @@
 .ops-auth-card { background:white; border:1px solid #cbd3ca; border-top:5px solid #367c2b; border-radius:8px; }
 .ops-auth .text-slate-100,.ops-auth .text-slate-200 { color:#202621; }
 .ops-auth .text-slate-300,.ops-auth .text-slate-400,.ops-auth .text-slate-500,.ops-auth .text-slate-600 { color:#47564a; }
+/* The provisioning panel keeps its fixed dark surface inside the light auth page. */
+.ops-auth .ops-mfa-provisioning .text-slate-300,
+.ops-auth .ops-mfa-provisioning .text-slate-400,
+.ops-auth .ops-mfa-provisioning .text-slate-500 { color:#cbd5e1; }
 .ops-auth :focus-visible { outline:3px solid #367c2b; outline-offset:2px; }
 .map-tool-row { display:flex; flex-wrap:wrap; gap:4px; min-width:0; }
 .map-tool,.map-settings-toggle,.map-hint button,.toast-close { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:44px; }

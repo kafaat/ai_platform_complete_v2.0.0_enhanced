@@ -203,13 +203,13 @@ def test_initializer_failure_keeps_diagnostics_redacts_secrets_and_cleans_up(tmp
             from pathlib import Path
 
             args = sys.argv[1:]
-            with Path(os.environ["DOCKER_CALL_LOG"]).open("a") as log:
+            with Path(os.environ["DOCKER_CALL_LOG"]).open("a", encoding="utf-8") as log:
                 log.write(json.dumps(args) + "\\n")
             if args[0] == "inspect":
                 print("minio-init state: oom_killed=true exit_code=137 memory_limit_bytes=134217728")
             elif args[0] == "compose" and "run" in args:
                 env_file = Path(args[args.index("--env-file") + 1])
-                values = dict(line.split("=", 1) for line in env_file.read_text().splitlines())
+                values = dict(line.split("=", 1) for line in env_file.read_text(encoding="utf-8").splitlines())
                 print("synthetic_secret=" + values["MINIO_ROOT_PASSWORD"])
                 print("mc policy attach: Killed")
                 sys.exit(137)
@@ -230,13 +230,14 @@ def test_initializer_failure_keeps_diagnostics_redacts_secrets_and_cleans_up(tmp
         },
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=15,
     )
     assert result.returncode == 2, result.stdout + result.stderr
     assert "S3_SLICE_PROVISION_FAILED" in result.stderr
     assert "oom_killed=true exit_code=137 memory_limit_bytes=134217728" in result.stderr
     assert "synthetic_secret=[redacted]" in result.stderr
-    recorded = [json.loads(line) for line in calls.read_text().splitlines()]
+    recorded = [json.loads(line) for line in calls.read_text(encoding="utf-8").splitlines()]
     provision = next(args for args in recorded if args[0] == "compose" and "run" in args)
     assert "--rm" not in provision, "auto-removal loses the initializer's exit state"
     name = provision[provision.index("--name") + 1]

@@ -229,7 +229,7 @@ export default function MfaEnrollmentStep({
   return (
     <form onSubmit={handleActivate} className="space-y-4" dir="rtl">
       {header}
-      <div className="p-3 rounded-xl space-y-2" style={{ background:'#0f1117', border:'1px solid #334155' }}>
+      <div className="ops-mfa-provisioning p-3 rounded-xl space-y-2" style={{ background:'#0f1117', border:'1px solid #334155' }}>
         <p className="text-[11px] text-slate-400">
           ١. أضِف الحساب في تطبيق المصادقة بإدخال المفتاح يدويّاً أو بفتح الرابط على هاتفك.
           <span className="text-amber-300"> يُعرَض مرّة واحدة فقط.</span>

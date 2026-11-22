@@ -2428,6 +2428,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/maphub/pivotDraftSave.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/maphub/pivotDraftSave.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/maphub/roleUiContract.ts",
     "kind": "web"
   },

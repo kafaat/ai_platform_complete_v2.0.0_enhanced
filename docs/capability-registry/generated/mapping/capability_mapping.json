@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7627,
+    "files_scanned": 7630,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2646,
-      "web": 566
+      "tests": 2648,
+      "web": 567
     },
-    "unmapped_artifacts": 3636,
+    "unmapped_artifacts": 3638,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4137,
-      "raw": 3490
+      "raw": 3493
     },
     "test_dependency_files": 2016,
     "test_dependency_edges": 5382,
@@ -28122,6 +28122,16 @@
           ]
         },
         {
+          "path": "frontend/e2e/mfa-enrollment-contrast.spec.ts",
+          "score": 17,
+          "signals": [
+            "path:MFA",
+            "content:MFA",
+            "dedup:MFA=mfa",
+            "content:totp"
+          ]
+        },
+        {
           "path": "tests_v9/test_auth_admin_stepup_mfa.py",
           "score": 17,
           "signals": [
@@ -28314,7 +28324,7 @@
         "events": 1,
         "web": 5,
         "mobile": 5,
-        "tests": 14,
+        "tests": 15,
         "governance": 0,
         "other_evidence": 11
       },
@@ -35757,6 +35767,14 @@
     },
     {
       "path": "frontend/src/sections/maphub/mapClutterControl.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/maphub/pivotDraftSave.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/sections/maphub/pivotDraftSave.ts",
       "kind": "web"
     },
     {

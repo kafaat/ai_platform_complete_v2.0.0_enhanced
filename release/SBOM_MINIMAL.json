@@ -285,6 +285,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8c3de7cdd9c73bd7d1aff4ecfc018b10a0acef7cbc1fae96340da60f5afd5f01"
+        }
+      ],
+      "name": "frontend/e2e/mfa-enrollment-contrast.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "29615a7979603d681aaed9d1633c9f619e586c2df3d4f003271688be751d1c3f"
         }
       ],
@@ -2555,7 +2565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b379541a7a1bafa53fadb1ef015ec021060ea07c99a2b94e180a4cb7d177544"
+          "content": "73f671a426df99285f145af30ffa051528e1595f34bfc43288e3d2f6ba329388"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/PivotPersistence.static.test.ts",
@@ -5595,7 +5605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2410e76336544bd0207fb4f9beec751cf19fea21e3c9b627caacfc704b13d130"
+          "content": "d44349f38402025e6bd372d52a62a9f403b2c5139b97f4e7575260900f05e791"
         }
       ],
       "name": "frontend/src/pages/LoginPage.mfaEnrollment.test.tsx",
@@ -5635,7 +5645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "21c8527d946c78faa1301f63b2990f42b07b0803ab5e5212edd40b94c6e15420"
+          "content": "74cee32f12e8fe76b7f2c59a423b1f1275ca7c7459a286bcfc90849563c69f58"
         }
       ],
       "name": "frontend/src/pages/MfaEnrollmentStep.tsx",
@@ -6855,7 +6865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8e884200698af628f22484bcf742bdbc381a0eacc332d74cce16df9451474c68"
+          "content": "1c048ca31fddff0bff0bdec8f261e38c5c608d44091866fc487fd4d77f0b0ce8"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -7745,6 +7755,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "370594c38ef63471ca268bd357bff46c79eb1576e775e9b88ac0b45556256c11"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/pivotDraftSave.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2eca6bc31249e3dfeb4f09f6bdc109a1b734837438fc2707d116d5e8b230e389"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/pivotDraftSave.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "05fde300fb015c98515c76a9f47624e97df56fc08fb82f0e72e132a3a3cd5654"
         }
       ],
@@ -8135,7 +8165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bc8934eab0cc6cbd1f835e4871b1a8eb26736257e6a3cc217a6881d3da9d4d11"
+          "content": "79548ce9be405e2ed669d1f6672a7b45544af6f457581d72e6a21628aa9e6e47"
         }
       ],
       "name": "frontend/src/styles/operations.css",

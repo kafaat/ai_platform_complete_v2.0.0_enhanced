@@ -104,6 +104,7 @@ import { FieldDrawerShell } from './maphub/FieldDrawerShell';
 import { FieldTimelineShell } from './maphub/FieldTimelineShell';
 import { MapActionPalette } from './maphub/MapActionPalette';
 import { RoleAwareMapSurface } from './maphub/RoleAwareMapSurface';
+import { pivotSaveFeedback, remainingPivotDrafts, savePivotDraftBatch } from './maphub/pivotDraftSave';
 import {
   isOperationalOverlayBlocked,
   mapClutterBlockedTitle,
@@ -1570,46 +1571,31 @@ function MapHubCore() {
       return;
     }
     const savingFieldId = selected.id;
-    const savingIds = new Set(fieldPivotDrafts.map((draft) => draft.id));
     setPivotSyncBusy(true);
     try {
-      const saved = await Promise.all(
-        fieldPivotDrafts.map((draft) => createDrawingFeature({
-          ...draft,
-          draft: false,
-          properties: {
-            ...draft.properties,
-            localOwnerScope: undefined,
-            fieldId: draft.properties.fieldId,
-            seasonId: draft.properties.seasonId,
-            workflow: 'design-pivot',
-          },
-          updatedAt: new Date().toISOString(),
-        })),
-      );
+      const outcomes = await savePivotDraftBatch(fieldPivotDrafts);
       if (currentOwnerRef.current !== drawingOwnerScope) return;
-      setPivotDrafts((prev) => prev.filter((draft) => !savingIds.has(draft.id)));
+      setPivotDrafts((prev) => remainingPivotDrafts(prev, outcomes));
       if (currentFieldRef.current !== savingFieldId || currentOwnerRef.current !== drawingOwnerScope) return;
-      setLoadedDrawings({ owner: drawingOwnerScope, field: selected.id });
-      setPivotPersisted((prev) => {
-        const byId = new Map(prev.map((f) => [f.id, f]));
-        for (const f of saved) byId.set(f.id, f);
-        return Array.from(byId.values());
-      });
-      setShowPivots(true);
-      // R10: المحفوظ محلياً ليس «محفوظاً» — نُظهر الحالة الحقيقيّة (بانتظار المزامنة).
-      const pendingSync = saved.filter(isDrawingPendingSync).length;
-      if (pendingSync > 0) {
-        toastStore.add('warning', 'حُفظت محلياً — بانتظار المزامنة', `${pendingSync} من ${saved.length} تصميم سيُرفع تلقائياً عند عودة الاتّصال.`);
-      } else {
-        toastStore.add('success', 'تم حفظ تصاميم Pivot', `${saved.length} تصميم محفوظ ومربوط بالحقل${selectedActiveSeasonId ? ' والموسم' : ''}.`);
+      if (outcomes.some(outcome => outcome.status !== 'rejected')) {
+        setLoadedDrawings({ owner: drawingOwnerScope, field: selected.id });
+        setPivotPersisted((prev) => {
+          const byId = new Map(prev.map((f) => [f.id, f]));
+          for (const outcome of outcomes) {
+            if (outcome.status !== 'rejected') byId.set(outcome.feature.id, outcome.feature);
+          }
+          return Array.from(byId.values());
+        });
+        setShowPivots(true);
       }
+      const feedback = pivotSaveFeedback(outcomes);
+      toastStore.add(feedback.type, feedback.title, feedback.message);
     } catch (e) {
       toastStore.add('error', 'فشل حفظ Pivot', apiErrorMessage(e, 'تعذّر حفظ تصاميم Pivot في الخادم.'));
     } finally {
       setPivotSyncBusy(false);
     }
-  }, [fieldPivotDrafts, selected?.id, selectedActiveSeasonId, fieldEditAllowed, drawingOwnerScope]);
+  }, [fieldPivotDrafts, selected?.id, fieldEditAllowed, drawingOwnerScope]);
 
   const handleCreateZoneFromField = useCallback(async () => {
     if (!fieldEditAllowed) return;
