@@ -4,7 +4,7 @@
 // و setPage = navigate(path). هذا يحفظ renderPage() وكلّ الصفحات (٦٦) بلا
 // إعادة كتابة، ويُمكّن الروابط العميقة وزرّ الرجوع، مع حفظ كلّ البوّابات
 // (canAccess + isPageEnabled) كما هي تماماً.
-import { useState, useEffect, Suspense, lazy, useCallback } from 'react';
+import { useEffect, Suspense, lazy, useCallback } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router';
 import { Loader2, Shield } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
@@ -195,13 +195,18 @@ export default function App() {
   const navigate = useNavigate();
   const page: PageId = pageForPath(location.pathname) ?? 'dashboard';
   const setPage = useCallback((p: PageId) => { navigate(pathForPage(p)); }, [navigate]);
-  // الشاشة الأوّليّة ما قبل المصادقة: إن حمل الرابط ?token= نعرض قبول الدعوة
-  // (شاشة عموميّة محميّة بالـtoken — ليست PageId، مثل signup). وإلّا تسجيل الدخول.
-  const [authScreen, setAuthScreen] = useState<'login' | 'signup' | 'accept-invitation'>(
-    () => (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('token')
-      ? 'accept-invitation'
-      : 'login')
-  );
+  // المسارات العامة تُشتقّ من عنوان المتصفح بدلاً من حالة مؤقتة تُفقد بالتحديث.
+  // روابط الدعوات القديمة (?token=) تبقى أعلى أولويةً ولا تُحفظ رموزها في state.
+  const authScreen = new URLSearchParams(location.search).has('token')
+    ? 'accept-invitation'
+    : location.pathname === '/signup'
+      ? 'signup'
+      : location.pathname === '/forgot-password'
+        ? 'forgot-password'
+        : 'login';
+  const goToLogin = () => navigate('/login');
+  // Browser history state preserves a non-secret typed address without putting it in a URL.
+  const recoveryEmail = typeof location.state?.email === 'string' ? location.state.email : '';
 
   // Connect WebSocket after login — بهويّة المستخدم الفعليّة (لا الثابت 1 الذي كان
   // يسرّب إشعارات المستخدم 1 للجميع). بلا id: لا نتّصل (الخادم يجب أن يتحقّق بالتوكن).
@@ -248,10 +253,17 @@ export default function App() {
       <>
         <Suspense fallback={<Loader />}>
           {authScreen === 'accept-invitation'
-            ? <AcceptInvitationPage onLogin={() => setAuthScreen('login')} />
+            ? <AcceptInvitationPage onLogin={goToLogin} />
             : authScreen === 'signup'
-              ? <SignupPage onLogin={() => setAuthScreen('login')} />
-              : <LoginPage onSignup={() => setAuthScreen('signup')} />}
+              ? <SignupPage onLogin={goToLogin} />
+              : <LoginPage
+                  key={authScreen}
+                  initialView={authScreen === 'forgot-password' ? 'reset-request' : 'login'}
+                  initialEmail={recoveryEmail}
+                  onLogin={goToLogin}
+                  onSignup={() => navigate('/signup')}
+                  onForgotPassword={(email) => navigate('/forgot-password', { state: { email } })}
+                />}
         </Suspense>
         <ToastContainer />
       </>

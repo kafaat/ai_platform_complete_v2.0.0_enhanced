@@ -60,7 +60,7 @@ export default function SignupPage({ onLogin }: { onLogin?: () => void }) {
     <div className="min-h-screen flex items-center justify-center p-4"
       style={{ background:'linear-gradient(135deg, #0f1117 0%, #0d2010 50%, #0f1117 100%)' }}>
       <div className="relative w-full max-w-md">
-        <div className="rounded-2xl p-8 border" style={{ background:'#1e293b', borderColor:'#334155', boxShadow:'0 25px 50px rgba(0,0,0,0.5)' }}>
+        <div className="rounded-3xl p-6 sm:p-8 border" style={{ background:'#1e293b', borderColor:'#334155', boxShadow:'0 25px 50px rgba(0,0,0,0.5)' }}>
           <div className="text-center mb-6">
             <div className="w-16 h-16 rounded-2xl bg-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-900/50">
               <Leaf className="w-8 h-8 text-white" />
@@ -71,53 +71,54 @@ export default function SignupPage({ onLogin }: { onLogin?: () => void }) {
 
           <form onSubmit={handleSubmit} className="space-y-3.5" dir="rtl">
             <div>
-              <label className="block text-sm text-slate-400 mb-1.5">الاسم الكامل *</label>
-              <input value={fullName} onChange={e => setFullName(e.target.value)}
+              <label htmlFor="signup-fullname" className="block text-sm text-slate-400 mb-1.5">الاسم الكامل *</label>
+              <input id="signup-fullname" autoComplete="name" value={fullName} onChange={e => setFullName(e.target.value)}
                 placeholder="مثال: محمد أحمد" className="w-full px-4 py-2.5 rounded-xl text-sm" style={fieldStyle} />
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1.5">البريد الإلكتروني *</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              <label htmlFor="signup-email" className="block text-sm text-slate-400 mb-1.5">البريد الإلكتروني *</label>
+              <input id="signup-email" type="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com" autoComplete="email"
                 className="w-full px-4 py-2.5 rounded-xl text-sm" style={fieldStyle} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm text-slate-400 mb-1.5">الهاتف (اختياري)</label>
-                <input value={phone} onChange={e => setPhone(e.target.value)}
+                <label htmlFor="signup-phone" className="block text-sm text-slate-400 mb-1.5">الهاتف (اختياري)</label>
+                <input id="signup-phone" type="tel" autoComplete="tel" value={phone} onChange={e => setPhone(e.target.value)}
                   placeholder="+9677…" inputMode="tel"
                   className="w-full px-4 py-2.5 rounded-xl text-sm" style={fieldStyle} />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1.5">الدولة</label>
-                <select value={country} onChange={e => setCountry(e.target.value)}
+                <label htmlFor="signup-country" className="block text-sm text-slate-400 mb-1.5">الدولة</label>
+                <select id="signup-country" value={country} onChange={e => setCountry(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl text-sm" style={fieldStyle}>
                   {COUNTRIES.map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1.5">اللغة</label>
-              <select value={language} onChange={e => setLanguage(e.target.value)}
+              <label htmlFor="signup-language" className="block text-sm text-slate-400 mb-1.5">اللغة</label>
+              <select id="signup-language" value={language} onChange={e => setLanguage(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl text-sm" style={fieldStyle}>
                 {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1.5">كلمة المرور * <span className="text-slate-600">(8 أحرف فأكثر)</span></label>
+              <label htmlFor="signup-password" className="block text-sm text-slate-400 mb-1.5">كلمة المرور * <span className="text-slate-600">(8 أحرف فأكثر)</span></label>
               <div className="relative">
-                <input type={showPw ? 'text' : 'password'} value={password}
+                <input id="signup-password" type={showPw ? 'text' : 'password'} value={password}
                   onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="new-password"
                   className="w-full px-4 py-2.5 pl-11 rounded-xl text-sm" style={fieldStyle} />
                 <button type="button" onClick={() => setShowPw(!showPw)}
+                  aria-label={showPw ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1.5">تأكيد كلمة المرور *</label>
-              <input type={showPw ? 'text' : 'password'} value={confirm}
+              <label htmlFor="signup-confirm" className="block text-sm text-slate-400 mb-1.5">تأكيد كلمة المرور *</label>
+              <input id="signup-confirm" type={showPw ? 'text' : 'password'} value={confirm}
                 onChange={e => setConfirm(e.target.value)} placeholder="••••••••" autoComplete="new-password"
                 className="w-full px-4 py-2.5 rounded-xl text-sm" style={fieldStyle} />
             </div>

@@ -225,7 +225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2ef9725e2de32e9ddc18ea4285fb3c0cdc9bbf494da8c02311645e13c28b0b70"
+          "content": "5e25e6fd945e1049c9b2506c930e0cb7667e1eef9a1f995c0b10cc24e878862f"
         }
       ],
       "name": "frontend/e2e/app-smoke.spec.ts",
@@ -525,7 +525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be64d1cb78ec2b7541f579305523d9a0b98937ee3189bef65c216dbd52184c49"
+          "content": "bfd60a5cd7862dde043bc08343a637db51a28e359c8e6b88c4a407c72c3a0436"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -5405,7 +5405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5cc13d9bcc85aeebd953339bcef429dbeb2d9338642a8c9d60225d6b19e941b7"
+          "content": "864f9611af6b6b60402ba1feac0bc89c94345b3d65e68753c85ba92f915111b5"
         }
       ],
       "name": "frontend/src/main.tsx",
@@ -5455,7 +5455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9088e01fb37ff7cd3d9734bbffef18f013e72626abaea07556cadf3af1c4613d"
+          "content": "fc9ad2292c3750dbabb84e7fde307ebdfde20d057a54117e528517018ac28d7c"
         }
       ],
       "name": "frontend/src/pages/LoginPage.tsx",
@@ -5475,7 +5475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0a95c863ec48a51d429f69ac9581c1fbbf3df5ac1aa74c6da035950112406481"
+          "content": "1ca375000a54b99d1e87d431cd4d41a6517593e16226159083bbe030a4637781"
         }
       ],
       "name": "frontend/src/pages/SignupPage.tsx",
@@ -17705,7 +17705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aaf191d507aebecbca3006c2ea74d369f1670b7b94eb2351a9490831f934b16b"
+          "content": "a5d5244d1ecbde3a56d6526889667c13fc12226c35ce9674b1671d642b5177f8"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -17835,7 +17835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d671094df2075d39631cff5f6a417e71416c36781ab0def37726f55cc2694b18"
+          "content": "55380fb1487fcba3892160f3a73b40ca704827d49b2f13b1337011536cca9e0e"
         }
       ],
       "name": "services/actuator-service/test_actuator_delivery_state_20261103.py",
