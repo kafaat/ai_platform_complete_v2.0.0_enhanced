@@ -215,7 +215,7 @@ def main():
     if not re.fullmatch(r"[\w.-]+/[\w.-]+", repo):
         raise ValueError("invalid repository")
     api = GitHub(repo, os.environ["GH_TOKEN"])
-    event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
+    event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
     with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
 
         def emit(message):

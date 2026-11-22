@@ -156,7 +156,7 @@ class Triage(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             event_path = Path(directory, "event.json")
             summary_path = Path(directory, "summary.md")
-            event_path.write_text(json.dumps(event))
+            event_path.write_text(json.dumps(event, ensure_ascii=False), encoding="utf-8")
             env = {
                 "GH_TOKEN": "test",
                 "GITHUB_REPOSITORY": "owner/repo",
@@ -165,12 +165,12 @@ class Triage(unittest.TestCase):
             }
             with patch.dict(bot.os.environ, env), patch.object(bot, "GitHub", return_value=API()):
                 code = bot.main()
-            return code, summary_path.read_text(), queried
+            return code, summary_path.read_text(encoding="utf-8"), queried
 
     def test_realistic_webhook_entry(self):
         run = {
             "id": 2,
-            "name": "CI",
+            "name": "فحص CI",
             "head_sha": "c" * 40,
             "run_attempt": 4,
             "repository": {"full_name": "owner/repo"},
