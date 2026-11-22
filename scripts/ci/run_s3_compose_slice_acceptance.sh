@@ -37,6 +37,7 @@ WORK="$(mktemp -d)"
 ENV_FILE="$WORK/slice.env"
 EVIDENCE="$WORK/evidence.log"
 PROJECT="sahool-s3-slice-$(python3 -c 'import secrets; print(secrets.token_hex(4))')"
+INIT_CONTAINER="${PROJECT}-minio-init"
 REPORT="${S3_TEST_REPORT:-$WORK/s3-compose-slice.json}"
 TESTED_SHA="$(git -C "$ROOT" rev-parse HEAD)"
 
@@ -74,6 +75,7 @@ done <"$ENV_FILE"
 
 dc() { docker compose -p "$PROJECT" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" "$@"; }
 cleanup() {
+  docker rm -f "$INIT_CONTAINER" >/dev/null 2>&1 || true
   dc --profile legacy-tiler down --volumes --remove-orphans >/dev/null 2>&1 || true
   rm -rf "$WORK"
 }
@@ -113,7 +115,13 @@ echo "compose config valid for the slice at ${TESTED_SHA}"
 
 # 1) Storage exactly as production Compose provisions it.
 dc up -d --wait --wait-timeout 120 sahool-minio
-dc run --rm --no-deps sahool-minio-init >>"$EVIDENCE" 2>&1 || fail 'S3_SLICE_PROVISION_FAILED: sahool-minio-init did not finish' "$(cat "$EVIDENCE")"
+# A killed mc process alone does not prove OOM. Keep this run's container until
+# cleanup so a failure retains its exit state and memory limit, without its env.
+if ! dc run --name "$INIT_CONTAINER" --no-deps sahool-minio-init >>"$EVIDENCE" 2>&1; then
+  docker inspect --format 'minio-init state: oom_killed={{.State.OOMKilled}} exit_code={{.State.ExitCode}} memory_limit_bytes={{.HostConfig.Memory}}' \
+    "$INIT_CONTAINER" >&2 || true
+  fail 'S3_SLICE_PROVISION_FAILED: sahool-minio-init did not finish' "$(cat "$EVIDENCE")"
+fi
 grep -qx 'legacy TiTiler: read-only account on sahool-rasters' "$EVIDENCE" ||
   fail 'S3_SLICE_TITILER_ACCOUNT_NOT_PROVISIONED' "$(cat "$EVIDENCE")"
 echo 'minio-init provisioned buckets and per-service users, including the read-only TiTiler account'

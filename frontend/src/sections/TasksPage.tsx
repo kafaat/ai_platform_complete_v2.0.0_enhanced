@@ -170,7 +170,7 @@ export default function TasksPage() {
             <div className="flex flex-wrap items-center gap-3 text-[11px]" style={{ color: T.faint }}>
               {task.recommended_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{task.recommended_date}</span>}
               {task.estimated_duration_min != null && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{task.estimated_duration_min} دقيقة</span>}
-              {task.estimated_cost_usd != null && <span className="flex items-center gap-1" style={{ color: T.gold }}>التقدير: ${task.estimated_cost_usd}</span>}
+              {task.estimated_cost_usd != null && <span className="flex items-center gap-1" style={{ color: T.warn }}>التقدير: ${task.estimated_cost_usd}</span>}
               {canViewCosts && task.actual_cost_usd != null && <span>التكلفة الفعلية: ${task.actual_cost_usd}</span>}
             </div>
             {canViewCosts && tenantId && <TaskCostTrace key={user?.email} taskId={task.task_id} fieldId={task.field_id}
@@ -246,7 +246,7 @@ export default function TasksPage() {
         {statusTypes.map(s => {
           const active = filter === s;
           // النغمات الدافئة من DS: all = ذهبيّ، والبقيّة عبر taskStatusTone.
-          const { fg, bg } = s === 'all' ? { fg: T.gold, bg: T.warnBg } : toneColors(taskStatusTone(s));
+          const { fg, bg } = s === 'all' ? { fg: T.warn, bg: T.warnBg } : toneColors(taskStatusTone(s));
           const cnt = counts[s as keyof typeof counts] ?? 0;
           return (
             <button key={s} onClick={() => setFilter(s)}

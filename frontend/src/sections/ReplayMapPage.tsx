@@ -31,7 +31,7 @@ const TRACK_META: Record<ReplayTrackKey, { color: string; badgeBg: string; icon:
   decision:   { color: '#a855f7', badgeBg: '#1e0f2e', icon: <GitCommitHorizontal className="w-3.5 h-3.5" /> },
   outcome:    { color: '#f59e0b', badgeBg: '#2a1a00', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
 };
-const FALLBACK_META = { color: '#94a3b8', badgeBg: '#1e293b', icon: <Clock className="w-3.5 h-3.5" /> };
+const FALLBACK_META = { color: 'rgb(var(--sahool-muted))', badgeBg: '#1e293b', icon: <Clock className="w-3.5 h-3.5" /> };
 function trackMeta(track: string) {
   return TRACK_META[track as ReplayTrackKey] ?? FALLBACK_META;
 }
@@ -130,32 +130,32 @@ export default function ReplayMapPage() {
     <div className="space-y-6 max-w-5xl mx-auto" dir="rtl">
       {/* ── الترويسة ── */}
       <div className="flex items-center gap-2">
-        <History className="w-5 h-5 text-emerald-400" aria-hidden="true" />
-        <h2 className="text-xl font-bold text-slate-100">إعادة تشغيل الموسم</h2>
+        <History className="w-5 h-5 text-sahool-green-dark" aria-hidden="true" />
+        <h2 className="text-xl font-bold text-sahool-text">إعادة تشغيل الموسم</h2>
       </div>
-      <p className="text-sm text-slate-400">
-        أعِد تشغيل موسم الحقل كاملاً على <span className="text-emerald-300">خطّ زمنيّ واحد</span>: مؤشّر NDVI والطقس والريّ
-        والقرارات والنتائج الميدانيّة، مرتّبةً زمنيّاً. حرّك <span className="text-emerald-300">المنزلق</span> لتشغيلها تدريجيّاً.
+      <p className="text-sm text-sahool-muted">
+        أعِد تشغيل موسم الحقل كاملاً على <span className="text-sahool-green-dark">خطّ زمنيّ واحد</span>: مؤشّر NDVI والطقس والريّ
+        والقرارات والنتائج الميدانيّة، مرتّبةً زمنيّاً. حرّك <span className="text-sahool-green-dark">المنزلق</span> لتشغيلها تدريجيّاً.
         صدق: تُعرَض الأحداث المُدامة فقط — لا تاريخ مخترَع.
       </p>
 
       {/* ── اختيار الحقل ── */}
-      <div className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <label className="flex flex-col gap-1 max-w-xs">
-          <span className="text-xs text-slate-400 flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" /> الحقل
+          <span className="text-xs text-sahool-muted flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5 text-sahool-green-dark" aria-hidden="true" /> الحقل
           </span>
           {fieldsLoading ? (
-            <span className="text-[12px] text-slate-500">جارٍ جلب الحقول…</span>
+            <span className="text-[12px] text-sahool-muted">جارٍ جلب الحقول…</span>
           ) : fieldsError ? (
-            <span className="text-[12px] text-amber-300/80">تعذّر جلب قائمة الحقول.</span>
+            <span className="text-[12px] text-ops-warning/80">تعذّر جلب قائمة الحقول.</span>
           ) : (
             <select
               value={fieldId}
               onChange={(e) => setFieldId(e.target.value)}
               aria-label="اختيار الحقل"
               className="px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
+              style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}
             >
               <option value="">— اختر حقلاً —</option>
               {options.map((o) => (
@@ -239,7 +239,7 @@ function ReplayBody({
 
       {/* ── الأسطورة + العدّ لكلّ مسار (من tracks + counts_by_track) ── */}
       <section className="space-y-2">
-        <div className="text-sm font-semibold text-slate-200">المسارات</div>
+        <div className="text-sm font-semibold text-sahool-text">المسارات</div>
         <div className="flex flex-wrap gap-2">
           {data.tracks.map((t) => {
             const count = data.counts_by_track?.[t.track] ?? 0;
@@ -248,11 +248,11 @@ function ReplayBody({
               <div
                 key={t.track}
                 className="flex items-center gap-2 rounded-lg px-3 py-1.5 border"
-                style={{ background: '#1e293b', borderColor: '#334155' }}
+                style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}
               >
                 <span className="w-3 h-3 rounded-full shrink-0" style={{ background: meta.color }} aria-hidden="true" />
-                <span className="text-[12px] text-slate-200">{t.track_ar}</span>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[12px] text-sahool-text">{t.track_ar}</span>
+                <span className="text-[11px] text-sahool-muted">
                   {count > 0 ? `${count}` : '0 — لا أحداث'}
                 </span>
               </div>
@@ -273,12 +273,12 @@ function ReplayBody({
           {/* ── المنزلق (scrubber): يُرشِّح الأحداث حتى التاريخ المختار ── */}
           <section className="space-y-2">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-emerald-400" aria-hidden="true" />
-              <h3 className="text-base font-bold text-slate-100">المنزلق الزمنيّ</h3>
-              <span className="text-[12px] text-slate-400">
-                حتى <span className="text-emerald-300 font-medium" dir="ltr">{cutoffLabel}</span>
+              <Sliders className="w-4 h-4 text-sahool-green-dark" aria-hidden="true" />
+              <h3 className="text-base font-bold text-sahool-text">المنزلق الزمنيّ</h3>
+              <span className="text-[12px] text-sahool-muted">
+                حتى <span className="text-sahool-green-dark font-medium" dir="ltr">{cutoffLabel}</span>
                 {' · '}
-                <span className="text-slate-300 font-medium">{shownEvents.length}</span> / {data.event_count} حدث
+                <span className="text-sahool-text font-medium">{shownEvents.length}</span> / {data.event_count} حدث
               </span>
             </div>
             <input
@@ -301,7 +301,7 @@ function ReplayBody({
                 type="button"
                 onClick={() => setScrub(0)}
                 aria-label="الانتقال إلى بداية الموسم"
-                className="rounded-sm border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-emerald-500"
+                className="rounded-sm border border-sahool-border px-2 py-1 text-[11px] text-sahool-text hover:border-emerald-500"
               >
                 بداية الموسم
               </button>
@@ -309,12 +309,12 @@ function ReplayBody({
                 type="button"
                 onClick={() => setScrub(1)}
                 aria-label="الانتقال إلى نهاية الموسم"
-                className="rounded-sm border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-emerald-500"
+                className="rounded-sm border border-sahool-border px-2 py-1 text-[11px] text-sahool-text hover:border-emerald-500"
               >
                 نهاية الموسم
               </button>
             </div>
-            <div className="flex justify-between text-[11px] text-slate-500" dir="ltr">
+            <div className="flex justify-between text-[11px] text-sahool-muted" dir="ltr">
               <span>{dayOf(span.start)}</span>
               <span>{dayOf(span.end)}</span>
             </div>
@@ -323,10 +323,10 @@ function ReplayBody({
           {/* ── الخطّ الزمنيّ (SVG/divs، صفّ لكلّ مسار، نقطة لكلّ حدث بكسر تاريخه) ── */}
           <section className="space-y-2">
             <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-emerald-400" aria-hidden="true" />
-              <h3 className="text-base font-bold text-slate-100">الخطّ الزمنيّ</h3>
+              <History className="w-4 h-4 text-sahool-green-dark" aria-hidden="true" />
+              <h3 className="text-base font-bold text-sahool-text">الخطّ الزمنيّ</h3>
             </div>
-            <div className="rounded-xl border p-4 space-y-3" style={{ background: '#0f1117', borderColor: '#334155' }}>
+            <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}>
               {data.tracks.map((t) => {
                 const meta = trackMeta(t.track);
                 const trackEvents = data.events.filter((e) => e.track === t.track);
@@ -374,11 +374,11 @@ function ReplayBody({
 
           {/* ── قائمة الأحداث (رفيقة/احتياط) — مُرشَّحة بموضع المنزلق ── */}
           <section className="space-y-2">
-            <div className="text-sm font-semibold text-slate-200">
+            <div className="text-sm font-semibold text-sahool-text">
               الأحداث المعروضة ({shownEvents.length})
             </div>
             {shownEvents.length === 0 ? (
-              <div className="rounded-xl border p-4 text-sm text-slate-400" style={{ background: '#1e293b', borderColor: '#334155' }} role="status">
+              <div className="rounded-xl border p-4 text-sm text-sahool-muted" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }} role="status">
                 لا أحداث حتى هذا التاريخ — حرّك المنزلق نحو النهاية.
               </div>
             ) : (
@@ -387,15 +387,15 @@ function ReplayBody({
                   <li
                     key={`${ev.track}-${ev.ref_id ?? ''}-${ev.date}-${i}`}
                     className="flex items-center gap-3 rounded-lg border p-2.5 text-sm"
-                    style={{ background: '#1e293b', borderColor: '#25303f' }}
+                    style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}
                   >
-                    <span className="text-[11px] text-slate-500 w-24 shrink-0 flex items-center gap-1" dir="ltr">
+                    <span className="text-[11px] text-sahool-muted w-24 shrink-0 flex items-center gap-1" dir="ltr">
                       <Clock className="w-3 h-3" aria-hidden="true" />
                       {dayOf(ev.date)}
                     </span>
                     <TrackBadge track={ev.track} track_ar={ev.track_ar} />
-                    <span className="text-slate-200 flex-1 min-w-0 truncate">{ev.label_ar}</span>
-                    <span className="text-[12px] text-slate-400 font-mono shrink-0" dir="ltr">{valueText(ev.value)}</span>
+                    <span className="text-sahool-text flex-1 min-w-0 truncate">{ev.label_ar}</span>
+                    <span className="text-[12px] text-sahool-muted font-mono shrink-0" dir="ltr">{valueText(ev.value)}</span>
                   </li>
                 ))}
               </ol>

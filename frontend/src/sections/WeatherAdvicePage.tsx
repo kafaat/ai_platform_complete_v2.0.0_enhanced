@@ -51,7 +51,7 @@ const DISEASE_RISK_SCALE: ScaleBand[] = [
 ];
 
 const input = 'px-3 py-2 rounded-lg text-sm w-full';
-const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
+const inputStyle = { background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' } as const;
 
 // رسالة خطأ صادقة مُشتقّة من رمز الحالة.
 function errorDetail(err: unknown): string {
@@ -90,10 +90,10 @@ function IrrigationCard({ fieldId }: { fieldId: string }) {
   const { data, loading, error, refetch } = useFieldIrrigationRecommendation(fieldId, null);
 
   return (
-    <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }} dir="rtl">
+    <div className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }} dir="rtl">
       <div className="flex items-center gap-2 mb-3">
-        <Droplets className="w-4 h-4 text-emerald-400" />
-        <span className="text-sm font-semibold text-slate-200">توصية الريّ (FAO-56)</span>
+        <Droplets className="w-4 h-4 text-sahool-green-dark" />
+        <span className="text-sm font-semibold text-sahool-text">توصية الريّ (FAO-56)</span>
       </div>
       {loading ? (
         <LoadingState message="جارٍ حساب توصية الريّ…" />
@@ -129,11 +129,11 @@ function IrrigationBody({ a }: { a: IrrigationRecommendationReady }) {
     <div className="space-y-3">
       <div className="flex items-end justify-between gap-2">
         <div>
-          <div className="text-3xl font-bold text-slate-100">
+          <div className="text-3xl font-bold text-sahool-text">
             {rec.net_irrigation_mm}
-            <span className="text-base text-slate-400"> مم</span>
+            <span className="text-base text-sahool-muted"> مم</span>
           </div>
-          <div className="text-[11px] text-slate-500 mt-0.5">العمق الصافي الموصى به (مرشَّح)</div>
+          <div className="text-[11px] text-sahool-muted mt-0.5">العمق الصافي الموصى به (مرشَّح)</div>
         </div>
         <Badge s={u} />
       </div>
@@ -144,16 +144,16 @@ function IrrigationBody({ a }: { a: IrrigationRecommendationReady }) {
       />
       {/* WS-D.2d: حالة الاعتماد — «اروِ» ليس قراراً نهائيّاً قبل approved. */}
       <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="text-slate-400">حالة القرار</span>
+        <span className="text-sahool-muted">حالة القرار</span>
         <Badge s={approval} />
       </div>
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-sahool-muted">
         <span>المحصول: {cropLabel(a.inputs.crop)}</span>
         <span>المرحلة: {a.inputs.stage}</span>
         {a.et0?.et0_mm != null && <span>ET₀: {a.et0.et0_mm} مم</span>}
         {a.weather?.source && <span>الطقس: {a.weather.source === 'weather-engine-forecast' ? 'تلقائيّ' : a.weather.source}</span>}
       </div>
-      <p className="text-xs text-slate-500 leading-relaxed">
+      <p className="text-xs text-sahool-muted leading-relaxed">
         {rec.trigger_reason} — مرشَّح لخدمة القرار (لا تنفيذ قبل الاعتماد).
       </p>
     </div>
@@ -165,10 +165,10 @@ function DiseaseCard({ fieldId }: { fieldId: string }) {
   const { data, isLoading, isError, error, refetch } = useDiseaseRisk(fieldId);
 
   return (
-    <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }} dir="rtl">
+    <div className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }} dir="rtl">
       <div className="flex items-center gap-2 mb-3">
-        <Bug className="w-4 h-4 text-emerald-400" />
-        <span className="text-sm font-semibold text-slate-200">مخاطر الأمراض</span>
+        <Bug className="w-4 h-4 text-sahool-green-dark" />
+        <span className="text-sm font-semibold text-sahool-text">مخاطر الأمراض</span>
       </div>
       {isLoading ? (
         <LoadingState message="جارٍ تقييم مخاطر الأمراض…" />
@@ -186,7 +186,7 @@ function DiseaseBody({ r }: { r: DiseaseRisk }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm text-slate-300">مستوى الخطر</span>
+        <span className="text-sm text-sahool-text">مستوى الخطر</span>
         <Badge s={s} />
       </div>
       <SegmentedScale
@@ -194,21 +194,21 @@ function DiseaseBody({ r }: { r: DiseaseRisk }) {
         bands={DISEASE_RISK_SCALE}
         activeIndex={Math.max(0, DISEASE_RISK_ORDER.indexOf(r.risk_level))}
       />
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
-        <span className="inline-flex items-center gap-1"><Thermometer className="w-3 h-3 text-slate-500" /> {r.temperature_c}°م</span>
-        <span className="inline-flex items-center gap-1"><Wind className="w-3 h-3 text-slate-500" /> رطوبة {r.humidity_pct}٪</span>
-        <span className="inline-flex items-center gap-1"><CloudRain className="w-3 h-3 text-slate-500" /> مطر ٣ أيّام {r.rain_mm_3d} مم</span>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-sahool-muted">
+        <span className="inline-flex items-center gap-1"><Thermometer className="w-3 h-3 text-sahool-muted" /> {r.temperature_c}°م</span>
+        <span className="inline-flex items-center gap-1"><Wind className="w-3 h-3 text-sahool-muted" /> رطوبة {r.humidity_pct}٪</span>
+        <span className="inline-flex items-center gap-1"><CloudRain className="w-3 h-3 text-sahool-muted" /> مطر ٣ أيّام {r.rain_mm_3d} مم</span>
       </div>
       {(r.diseases_ar ?? []).length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {(r.diseases_ar ?? []).map((d) => (
-            <span key={d} className="px-2 py-0.5 rounded-lg text-[11px]" style={{ background: '#1e293b', color: '#cbd5e1', border: '1px solid #334155' }}>
+            <span key={d} className="px-2 py-0.5 rounded-lg text-[11px]" style={{ background: 'rgb(var(--sahool-surface))', color: 'rgb(var(--sahool-text))', border: '1px solid rgb(var(--sahool-border))' }}>
               {d}
             </span>
           ))}
         </div>
       )}
-      <p className="text-xs text-slate-300 leading-relaxed">{r.advice_ar}</p>
+      <p className="text-xs text-sahool-text leading-relaxed">{r.advice_ar}</p>
     </div>
   );
 }
@@ -222,15 +222,15 @@ export default function WeatherAdvicePage() {
   return (
     <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">
       <div>
-        <h2 className="text-xl font-bold text-slate-100">الطقس والريّ</h2>
-        <p className="text-sm text-slate-400">توصية ريّ ومخاطر أمراض محسوبة من الطقس الحيّ لكلّ حقل</p>
+        <h2 className="text-xl font-bold text-sahool-text">الطقس والريّ</h2>
+        <p className="text-sm text-sahool-muted">توصية ريّ ومخاطر أمراض محسوبة من الطقس الحيّ لكلّ حقل</p>
       </div>
 
       {/* اختيار الحقل */}
-      <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+      <div className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="flex items-center gap-2 mb-3">
-          <Map className="w-4 h-4 text-emerald-400" />
-          <span className="text-sm font-semibold text-slate-200">اختر الحقل</span>
+          <Map className="w-4 h-4 text-sahool-green-dark" />
+          <span className="text-sm font-semibold text-sahool-text">اختر الحقل</span>
         </div>
         {isLoading ? (
           <LoadingState message="جارٍ تحميل الحقول…" />
@@ -260,13 +260,13 @@ export default function WeatherAdvicePage() {
           {/* البطاقتان محسوبتان من طقس Open-Meteo (CC BY 4.0): النسبة بجوارهما. */}
           <OpenMeteoAttribution />
           {/* مرجع: سلّم ملاءمة الطقس للعمليّات الحقليّة (0..1) — يطابق طبقات الطقس على الخريطة */}
-          <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+          <div className="rounded-xl p-4 border" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}>
             <div className="flex items-center gap-2 mb-3">
-              <CloudRain className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm font-semibold text-slate-200">ملاءمة الطقس للعمليّات الحقليّة</span>
+              <CloudRain className="w-4 h-4 text-sahool-green-dark" />
+              <span className="text-sm font-semibold text-sahool-text">ملاءمة الطقس للعمليّات الحقليّة</span>
             </div>
             <SegmentedScale bands={OPERATION_SUITABILITY_BANDS} title="مقياس الملاءمة (٠ → ١)" />
-            <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
+            <p className="text-[11px] text-sahool-muted mt-2 leading-relaxed">
               يُستعمَل هذا المقياس في طبقات الطقس على الخريطة (الرشّ، السير على التربة…): كلّما اقتربت
               القيمة من ١ كانت النافذة أنسب للتنفيذ الآمن والفعّال.
             </p>

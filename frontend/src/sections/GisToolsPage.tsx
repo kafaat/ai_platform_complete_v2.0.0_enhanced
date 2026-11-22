@@ -36,8 +36,8 @@ import {
 import { LoadingState, ErrorState, EmptyState } from '../components/StateViews';
 
 // ثيم داكن مطابق لأشقّاء القسم (NlGisPage) — أنماط مضمّنة موحّدة.
-const surfaceStyle = { background: '#1e293b', borderColor: '#334155' } as const;
-const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
+const surfaceStyle = { background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' } as const;
+const inputStyle = { background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' } as const;
 
 type OpId = 'buffer' | 'simplify';
 
@@ -119,13 +119,13 @@ export default function GisToolsPage() {
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Wrench className="w-5 h-5 text-sky-400" />
-        <h2 className="text-xl font-bold text-slate-100">أدوات الهندسة المكانيّة</h2>
+        <Wrench className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">أدوات الهندسة المكانيّة</h2>
       </div>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-sahool-muted">
         طبّق عمليّة هندسيّة (حِزام/تبسيط) على حدود حقلك مباشرةً في المتصفّح عبر Turf،
         وقارن المساحة وعدد الرؤوس قبل/بعد.
-        <span className="text-amber-300"> معاينة فقط — لا يُحفَظ.</span>
+        <span className="text-ops-warning"> معاينة فقط — لا يُحفَظ.</span>
       </p>
 
       {/* بانر معاينة فقط (بارز، صادق) */}
@@ -140,7 +140,7 @@ export default function GisToolsPage() {
       <div className="rounded-xl border p-4 space-y-4" style={surfaceStyle}>
         {/* الحقل */}
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">الحقل</span>
+          <span className="text-xs text-sahool-muted">الحقل</span>
           <select
             value={activeId}
             onChange={(e) => setFieldId(e.target.value)}
@@ -156,7 +156,7 @@ export default function GisToolsPage() {
 
         {/* العمليّة (شرائح تبديل) */}
         <div className="space-y-1.5">
-          <span className="text-xs text-slate-400">العمليّة</span>
+          <span className="text-xs text-sahool-muted">العمليّة</span>
           <div className="flex flex-wrap gap-2">
             {OPS.map((o) => {
               const Icon = o.icon;
@@ -178,7 +178,7 @@ export default function GisToolsPage() {
               );
             })}
           </div>
-          <p className="text-[12px] text-slate-500">
+          <p className="text-[12px] text-sahool-muted">
             {OPS.find((o) => o.id === op)?.hint}
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function GisToolsPage() {
         {/* وسيط العمليّة */}
         {op === 'buffer' ? (
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">المسافة (بالأمتار) — موجبة توسيعاً، سالبة تقليصاً</span>
+            <span className="text-xs text-sahool-muted">المسافة (بالأمتار) — موجبة توسيعاً، سالبة تقليصاً</span>
             <input
               type="number"
               value={meters}
@@ -199,7 +199,7 @@ export default function GisToolsPage() {
           </label>
         ) : (
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">العتبة (Tolerance) — أكبر ⇒ تبسيط أعمق</span>
+            <span className="text-xs text-sahool-muted">العتبة (Tolerance) — أكبر ⇒ تبسيط أعمق</span>
             <input
               type="number"
               value={tolerance}
@@ -217,8 +217,8 @@ export default function GisToolsPage() {
       {/* لا هندسة مساحيّة للحقل (فجوة بيانات صادقة) */}
       {!originalGeom && (
         <div className="rounded-xl border p-4 flex items-start gap-3" style={surfaceStyle}>
-          <Info className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-slate-300">
+          <Info className="w-5 h-5 text-sahool-muted flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-sahool-text">
             هذا الحقل لا يحمل حدوداً (هندسة مساحيّة) صالحة — لا يمكن تطبيق عمليّة مكانيّة عليه.
             اختر حقلاً ذا حدود مرسومة.
           </div>
@@ -240,8 +240,8 @@ export default function GisToolsPage() {
       {/* معاينة المقارنة (قبل/بعد) — قراءة فقط */}
       {originalGeom && resultGeom && (
         <div className="rounded-xl border overflow-hidden" style={surfaceStyle}>
-          <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>
-            <Info className="w-4 h-4 text-sky-400" /> المقارنة (معاينة)
+          <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+            <Info className="w-4 h-4 text-ops-info" /> المقارنة (معاينة)
             {isMultiPolygon(resultGeom) && (
               <span className="text-[11px] px-2 py-0.5 rounded-full text-amber-200" style={{ background: '#1a1400', border: '1px solid #f59e0b44' }}>
                 نتيجة متعدّدة الأجزاء (MultiPolygon)
@@ -280,7 +280,7 @@ export default function GisToolsPage() {
               <div className="text-[11px] text-slate-400 pt-1">الرؤوس: <span className="text-slate-200">{resVerts.toLocaleString('ar')}</span></div>
             </div>
           </div>
-          <div className="px-4 py-2 text-[11px] text-slate-500" style={{ borderTop: '1px solid #334155' }}>
+          <div className="px-4 py-2 text-[11px] text-sahool-muted" style={{ borderTop: '1px solid rgb(var(--sahool-border))' }}>
             معاينة محسوبة في المتصفّح عبر Turf — لا تُحفَظ ولا تُغيّر حدود الحقل على الخادم.
           </div>
         </div>
@@ -289,9 +289,9 @@ export default function GisToolsPage() {
       {/* Timeline + Comparison Mode — قراءة من سجل مراجعات الخادم، ومقارنة محلية فقط */}
       {originalGeom && (
         <div className="rounded-xl border overflow-hidden" style={surfaceStyle}>
-          <div className="flex items-center justify-between gap-3 px-4 py-2" style={{ borderBottom: '1px solid #334155' }}>
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
-              <Info className="w-4 h-4 text-emerald-400" /> Timeline + Comparison Mode
+          <div className="flex items-center justify-between gap-3 px-4 py-2" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+            <div className="flex items-center gap-2 text-sm font-semibold text-sahool-text">
+              <Info className="w-4 h-4 text-sahool-green-dark" /> Timeline + Comparison Mode
             </div>
             <button
               type="button"
@@ -305,7 +305,7 @@ export default function GisToolsPage() {
 
           {timelineEnabled && (
             <div className="p-4 space-y-4">
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-sahool-muted">
                 يقارن هذا الوضع حدود الحقل الحالية مع مراجعات <code>geometry/history</code> دون حفظ أو تعديل. مناسب لاكتشاف تغيّر المساحة والرؤوس قبل الرجوع أو الاعتماد.
               </p>
 
@@ -317,7 +317,7 @@ export default function GisToolsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label className="flex flex-col gap-1">
-                  <span className="text-xs text-slate-400">خط الأساس</span>
+                  <span className="text-xs text-sahool-muted">خط الأساس</span>
                   <select
                     value={selectedBase?.revision ?? 0}
                     onChange={(e) => setBaseRevision(Number(e.target.value))}
@@ -330,7 +330,7 @@ export default function GisToolsPage() {
                   </select>
                 </label>
                 <label className="flex flex-col gap-1">
-                  <span className="text-xs text-slate-400">المقارنة</span>
+                  <span className="text-xs text-sahool-muted">المقارنة</span>
                   <select
                     value={selectedCompare?.revision ?? 0}
                     onChange={(e) => setCompareRevision(Number(e.target.value))}
@@ -370,13 +370,13 @@ export default function GisToolsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-lg border p-3 text-sm text-slate-300" style={{ borderColor: '#334155' }}>
+                <div className="rounded-lg border p-3 text-sm text-sahool-text" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
                   لا توجد مراجعتان صالحتان للمقارنة بعد.
                 </div>
               )}
 
               <div className="space-y-2">
-                <div className="text-xs font-semibold text-slate-300">سجل المراجعات</div>
+                <div className="text-xs font-semibold text-sahool-text">سجل المراجعات</div>
                 <div className="max-h-44 overflow-auto space-y-2">
                   {revisionOptions.map((r) => (
                     <div key={`row-${r.revision}`} className="rounded-lg border p-2 text-xs" style={{ borderColor: '#334155', background: '#0f172a' }}>

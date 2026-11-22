@@ -82,13 +82,13 @@ export default function EvidenceMapPage() {
     <div className="space-y-6 max-w-6xl mx-auto" dir="rtl">
       {/* ── الترويسة ── */}
       <div className="flex items-center gap-2">
-        <ShieldCheck className="w-5 h-5 text-emerald-400" aria-hidden="true" />
-        <h2 className="text-xl font-bold text-slate-100">خريطة الدليل</h2>
+        <ShieldCheck className="w-5 h-5 text-sahool-green-dark" aria-hidden="true" />
+        <h2 className="text-xl font-bold text-sahool-text">خريطة الدليل</h2>
       </div>
-      <p className="text-sm text-slate-400">
-        خريطة تُظهر لكلّ حقل لا مجرّد النتيجة بل <span className="text-emerald-300">مستوى الدليل</span> خلف
+      <p className="text-sm text-sahool-muted">
+        خريطة تُظهر لكلّ حقل لا مجرّد النتيجة بل <span className="text-sahool-green-dark">مستوى الدليل</span> خلف
         قراراته (مؤكَّد ميدانيّاً / مدعوم أوّليّ / إرشاديّ / يحتاج بيانات).
-        الحقول <span className="text-amber-300">بلا إحداثيّات</span> لا تُرسَم — تظهر في القائمة فقط (لا إحداثيّات مُختلَقة).
+        الحقول <span className="text-ops-warning">بلا إحداثيّات</span> لا تُرسَم — تظهر في القائمة فقط (لا إحداثيّات مُختلَقة).
       </p>
 
       {/* ── الحالات ── */}
@@ -106,8 +106,8 @@ export default function EvidenceMapPage() {
       {/* fields:[] — لا حقول */}
       {data && data.fields.length === 0 && (
         <div
-          className="rounded-xl border p-4 text-sm text-slate-400"
-          style={{ background: '#1e293b', borderColor: '#334155' }}
+          className="rounded-xl border p-4 text-sm text-sahool-muted"
+          style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}
           role="status"
         >
           لا حقول مُسجّلة لهذا المستأجِر — لا تتوفّر بيانات لخريطة الدليل.
@@ -137,7 +137,7 @@ export default function EvidenceMapPage() {
 
           {/* ── الأسطورة (legend) مع العدّ من totals_by_tier ── */}
           <section className="space-y-2">
-            <div className="text-sm font-semibold text-slate-200">مفتاح مستوى الدليل</div>
+            <div className="text-sm font-semibold text-sahool-text">مفتاح مستوى الدليل</div>
             <div className="flex flex-wrap gap-2">
               {data.legend.map((item) => {
                 const hex = hexFor(item.color);
@@ -146,14 +146,14 @@ export default function EvidenceMapPage() {
                   <div
                     key={item.tier}
                     className="flex items-center gap-2 rounded-lg px-3 py-1.5 border"
-                    style={{ background: '#1e293b', borderColor: '#334155' }}
+                    style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}
                   >
                     <span
                       className="w-3 h-3 rounded-full shrink-0"
                       style={{ background: hex }}
                       aria-hidden="true"
                     />
-                    <span className="text-[12px] text-slate-200">{item.tier_ar}</span>
+                    <span className="text-[12px] text-sahool-text">{item.tier_ar}</span>
                     <span
                       className="text-[12px] font-bold px-1.5 rounded-full"
                       style={{ background: badgeBgFor(item.color), color: hex }}
@@ -169,13 +169,13 @@ export default function EvidenceMapPage() {
           {/* ── الخريطة 2D (Leaflet) — علامة دائريّة ملوّنة لكلّ حقل قابل للرسم ── */}
           <section className="space-y-2">
             <div className="flex items-center gap-2">
-              <MapPinned className="w-4 h-4 text-emerald-400" aria-hidden="true" />
-              <h3 className="text-base font-bold text-slate-100">الخريطة</h3>
+              <MapPinned className="w-4 h-4 text-sahool-green-dark" aria-hidden="true" />
+              <h3 className="text-base font-bold text-sahool-text">الخريطة</h3>
             </div>
             {plottable.length === 0 ? (
               <div
-                className="rounded-xl border p-4 text-sm text-slate-400"
-                style={{ background: '#1e293b', borderColor: '#334155' }}
+                className="rounded-xl border p-4 text-sm text-sahool-muted"
+                style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}
                 role="status"
               >
                 لا حقول بإحداثيّات حقيقيّة لرسمها على الخريطة (تظهر في القائمة أدناه فقط).
@@ -229,10 +229,10 @@ export default function EvidenceMapPage() {
 
           {/* ── قائمة الحقول (كلّها — بما فيها غير القابلة للرسم) ── */}
           <section className="space-y-2">
-            <div className="text-sm font-semibold text-slate-200">
+            <div className="text-sm font-semibold text-sahool-text">
               كلّ الحقول ({data.field_count})
             </div>
-            <div className="overflow-x-auto rounded-xl border" style={{ borderColor: '#334155' }}>
+            <div className="overflow-x-auto rounded-xl border" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
               <table className="w-full text-sm" style={{ background: '#1e293b' }}>
                 <thead>
                   <tr className="text-[11px] text-slate-400 text-right">
@@ -258,7 +258,7 @@ export default function EvidenceMapPage() {
                           {!f.has_coords && (
                             <span
                               className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full"
-                              style={{ background: '#1e293b', color: '#94a3b8', border: '1px solid #334155' }}
+                              style={{ background: 'rgb(var(--sahool-surface))', color: 'rgb(var(--sahool-muted))', border: '1px solid rgb(var(--sahool-border))' }}
                               title="بلا إحداثيّات — لا تُرسَم على الخريطة"
                             >
                               <MapPinOff className="w-3 h-3" aria-hidden="true" />

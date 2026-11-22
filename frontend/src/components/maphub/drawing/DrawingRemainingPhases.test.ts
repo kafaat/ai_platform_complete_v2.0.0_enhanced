@@ -53,6 +53,19 @@ const zone: DrawFeature = {
 };
 
 describe('v33/v34/v35 drawing phases — pivot, topology, agricultural workflows', () => {
+  it('closes a full-circle pivot on its perimeter without a retraced radius', () => {
+    const center: [number, number] = [44.2, 15.35];
+    const pivot = buildPivotDrawFeature({ center, radiusM: 400 });
+    const [ring] = pivot.geometry.coordinates as number[][][];
+    expect(ring[0]).toEqual(ring[ring.length - 1]);
+    expect(ring).not.toContainEqual(center);
+    expect(pivot.validation?.issues).toEqual([]);
+    const sector = buildPivotDrawFeature({ center, radiusM: 400, endAngleDeg: 90 });
+    const [wedge] = sector.geometry.coordinates as number[][][];
+    expect(wedge[0]).toEqual(center);
+    expect(wedge[wedge.length - 1]).toEqual(center);
+  });
+
   it('builds a Valley-style pivot sector with radius, angles, rings and area', () => {
     expect(clockwiseSweepDeg(270, 90)).toBe(180);
     const pivot = buildPivotDrawFeature({

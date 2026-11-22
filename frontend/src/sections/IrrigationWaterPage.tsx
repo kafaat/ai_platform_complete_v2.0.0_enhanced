@@ -91,44 +91,44 @@ export default function IrrigationWaterPage() {
   return (
     <div className="space-y-5 max-w-3xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Droplets className="w-5 h-5 text-sky-400" />
-        <h2 className="text-xl font-bold text-slate-100">تحليل ماء الريّ</h2>
+        <Droplets className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">تحليل ماء الريّ</h2>
       </div>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-sahool-muted">
         أدخِل نتائج تحليل العيّنة المخبريّ (الأيونات بـmeq/L). يُحسب SAR وRSC ويُصنَّف
         خطر الملوحة/الصوديوم/القلويّة. القيم الغائبة تُعلَن «غير محسوبة» (لا تقدير مفبرَك).
       </p>
 
-      <p role="note" className="text-xs text-amber-300">
+      <p role="note" className="text-xs text-ops-warning">
         حساب فوريّ فقط: لا تُحفظ النتيجة ولا تُربط بأيّ حقل. لتسجيل القياس نفسه نتيجةَ مخبرٍ
         مرتبطة بحقل استخدم «حفظ كنتيجة مخبر لحقل».
       </p>
 
       {/* Form */}
-      <div className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <label className="flex flex-col gap-1 mb-3 max-w-xs">
-          <span className="text-xs text-slate-400">مصدر الماء</span>
+          <span className="text-xs text-sahool-muted">مصدر الماء</span>
           <select value={source}
             onChange={e => { if (isWaterSource(e.target.value)) setSource(e.target.value); }}
             className="px-3 py-2 rounded-lg text-sm"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+            style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
             {WATER_SOURCE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label_ar}</option>)}
           </select>
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {IONS.map(f => (
             <label key={f.key} className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">{f.label}{f.hint && <span className="text-slate-600"> ({f.hint})</span>}</span>
+              <span className="text-xs text-sahool-muted">{f.label}{f.hint && <span className="text-sahool-muted"> ({f.hint})</span>}</span>
               <input type="number" inputMode="decimal" step="any" min={0} max={f.key === 'ph' ? 14 : undefined}
                 value={vals[f.key] ?? ''}
                 onChange={e => setVals(v => ({ ...v, [f.key]: e.target.value }))}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
           ))}
         </div>
         {invalidInputs.length > 0 && (
-          <p role="alert" className="text-xs text-orange-300 mt-3">
+          <p role="alert" className="text-xs text-ops-warning mt-3">
             قياسات غير صالحة: {invalidInputs.map(({ label }) => label).join('، ')}. أدخل قيماً غير سالبة وpH بين 0 و14.
           </p>
         )}
@@ -164,7 +164,7 @@ export default function IrrigationWaterPage() {
       {/* Results */}
       {res && (
         <div className="space-y-4">
-          <p className="text-[11px] text-slate-500">نتيجة حساب غير محفوظة وغير مرتبطة بحقل.</p>
+          <p className="text-[11px] text-sahool-muted">نتيجة حساب غير محفوظة وغير مرتبطة بحقل.</p>
           {/* Indices */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
@@ -173,23 +173,23 @@ export default function IrrigationWaterPage() {
               { label: 'EC (dS/m)', v: res.indices.ec_dsm },
               { label: 'pH', v: res.indices.ph },
             ].map((x, i) => (
-              <div key={i} className="rounded-xl p-3 border text-center" style={{ background: '#1e293b', borderColor: '#334155' }}>
-                <div className="text-[11px] text-slate-400 mb-1">{x.label}</div>
-                <div className="text-lg font-bold text-slate-100">{x.v ?? '—'}</div>
+              <div key={i} className="rounded-xl p-3 border text-center" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+                <div className="text-[11px] text-sahool-muted mb-1">{x.label}</div>
+                <div className="text-lg font-bold text-sahool-text">{x.v ?? '—'}</div>
               </div>
             ))}
           </div>
 
           {/* Classifications */}
-          <div className="rounded-xl border p-4 space-y-2" style={{ background: '#1e293b', borderColor: '#334155' }}>
+          <div className="rounded-xl border p-4 space-y-2" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
             {[
               { t: 'الملوحة (FAO-29)', c: res.classification.salinity },
               { t: 'القلويّة RSC (USDA-197)', c: res.classification.alkalinity_rsc },
               { t: 'الصوديوم SAR (USSL)', c: res.classification.sodicity_sar },
             ].map((row, i) => (
-              <div key={i} className="flex items-center justify-between py-1.5 border-b last:border-0" style={{ borderColor: '#334155' }}>
-                <span className="text-sm text-slate-300">{row.t}</span>
-                <span className="text-xs text-slate-400">
+              <div key={i} className="flex items-center justify-between py-1.5 border-b last:border-0" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
+                <span className="text-sm text-sahool-text">{row.t}</span>
+                <span className="text-xs text-sahool-muted">
                   {row.c.class ?? '—'}
                   {(row.c.restriction_ar || row.c.hazard_ar || row.c.note_ar)
                     ? ` · ${row.c.restriction_ar || row.c.hazard_ar || row.c.note_ar}` : ''}
@@ -331,28 +331,28 @@ function SaveAsLabResult({ measurement }: { measurement: Measurement }) {
 
   return (
     <section aria-label="حفظ كنتيجة مخبر لحقل" className="rounded-xl border p-4 space-y-3"
-      style={{ background: '#1e293b', borderColor: '#334155' }}>
-      <p className="text-xs text-slate-400">
+      style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+      <p className="text-xs text-sahool-muted">
         يُسجَّل القياس المُدخَل أعلاه نتيجةَ مخبرٍ لعيّنة ماء من الحقل المختار (مسار عيّنات المختبر)،
         بانتظار مراجعة مختصّ قبل أن يُعتمَد مدخلاً للقرار.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">الحقل</span>
+          <span className="text-xs text-sahool-muted">الحقل</span>
           <select value={fieldId}
             onChange={e => { setFieldId(e.target.value); setSampleChoice(NEW_SAMPLE); setSaved(null); setError(null); }}
             className="px-3 py-2 rounded-lg text-sm"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+            style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
             <option value="">اختر حقلاً…</option>
             {fieldsQ.options.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">عيّنة الماء</span>
+          <span className="text-xs text-sahool-muted">عيّنة الماء</span>
           <select value={usingNew ? NEW_SAMPLE : sampleChoice} disabled={!fieldId}
             onChange={e => setSampleChoice(e.target.value)}
             className="px-3 py-2 rounded-lg text-sm"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+            style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}>
             <option value={NEW_SAMPLE}>عيّنة جديدة لهذا الحقل</option>
             {openSamples.map(s => <option key={s.sample_id} value={s.sample_id}>{s.sample_id}</option>)}
           </select>
@@ -360,30 +360,30 @@ function SaveAsLabResult({ measurement }: { measurement: Measurement }) {
         {usingNew && fieldId && (
           <>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">خط العرض (موقع العيّنة)</span>
+              <span className="text-xs text-sahool-muted">خط العرض (موقع العيّنة)</span>
               <input type="number" step="any" min={-90} max={90} value={lat}
                 onChange={e => setCoords({ field: fieldId, lat: e.target.value, lon })}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">خط الطول (موقع العيّنة)</span>
+              <span className="text-xs text-sahool-muted">خط الطول (موقع العيّنة)</span>
               <input type="number" step="any" min={-180} max={180} value={lon}
                 onChange={e => setCoords({ field: fieldId, lat, lon: e.target.value })}
                 className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
             </label>
           </>
         )}
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">تاريخ أخذ العيّنة (اختياريّ)</span>
+          <span className="text-xs text-sahool-muted">تاريخ أخذ العيّنة (اختياريّ)</span>
           <input type="date" value={sampledOn} onChange={e => setSampledOn(e.target.value)}
             className="px-3 py-2 rounded-lg text-sm"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+            style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }} />
         </label>
       </div>
       {usingNew && fieldId && !coordsOk && (
-        <p className="text-xs text-orange-300">أدخل موقع العيّنة (خطّي العرض والطول) — لا موقع معروف لهذا الحقل.</p>
+        <p className="text-xs text-ops-warning">أدخل موقع العيّنة (خطّي العرض والطول) — لا موقع معروف لهذا الحقل.</p>
       )}
       <div className="flex justify-end">
         <button type="button" onClick={onSave} disabled={!canSave}
@@ -393,9 +393,9 @@ function SaveAsLabResult({ measurement }: { measurement: Measurement }) {
           {busy ? 'جارٍ الحفظ…' : 'حفظ النتيجة للحقل'}
         </button>
       </div>
-      {error && <p role="alert" className="text-xs text-orange-300">{error}</p>}
+      {error && <p role="alert" className="text-xs text-ops-warning">{error}</p>}
       {saved && (
-        <p role="status" className="text-xs text-emerald-300">
+        <p role="status" className="text-xs text-sahool-green-dark">
           حُفظت نتيجة المخبر للحقل {field?.name ?? fieldId} (العيّنة {saved.sample_id}
           {saved.result_id ? ` · النتيجة ${saved.result_id}` : ''}) — الحكم:{' '}
           {saved.verdict ? VERDICT_AR[saved.verdict] ?? saved.verdict : '—'}

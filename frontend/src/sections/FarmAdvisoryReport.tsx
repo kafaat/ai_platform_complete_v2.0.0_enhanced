@@ -285,7 +285,7 @@ export default function FarmAdvisoryReport() {
             <button
               onClick={() => refetch()}
               style={{
-                background: T.gold, color: '#fff', border: 'none', borderRadius: 10,
+                background: T.gold, color: T.onGold, border: 'none', borderRadius: 10,
                 padding: '6px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
               }}
             >
@@ -381,7 +381,7 @@ export default function FarmAdvisoryReport() {
                         {
                           label: 'الكتلة الحيويّة',
                           value: season.sim_biomass_kg_ha != null ? Math.round(season.sim_biomass_kg_ha) : '—',
-                          unit: 'كغ/هـ', color: T.gold,
+                          unit: 'كغ/هـ', color: t.warn,
                           icon: <Leaf style={{ width: 14, height: 14 }} />,
                         },
                         {

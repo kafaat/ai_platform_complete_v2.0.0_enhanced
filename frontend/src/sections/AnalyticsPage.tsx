@@ -84,14 +84,14 @@ export default function AnalyticsPage() {
     <div className="space-y-5 max-w-7xl mx-auto" dir="rtl">
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">التحليلات المتقدّمة</h2>
-          <p className="text-sm text-slate-400">مؤشّرات حيّة من Sentinel-2 ومحاكاة المحصول — لكلّ حقل</p>
+          <h2 className="text-xl font-bold text-sahool-text">التحليلات المتقدّمة</h2>
+          <p className="text-sm text-sahool-muted">مؤشّرات حيّة من Sentinel-2 ومحاكاة المحصول — لكلّ حقل</p>
         </div>
         <select
           value={activeFieldId}
           onChange={(e) => setFieldId(e.target.value)}
           className="px-3 py-2 rounded-lg text-sm"
-          style={{ background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }}
+          style={{ background: 'rgb(var(--sahool-surface))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' }}
         >
           {fields.map((f) => (
             <option key={f.id} value={f.id}>
@@ -165,15 +165,15 @@ export default function AnalyticsPage() {
             {recs.map((r, i) => {
               const ps = PRIORITY_STYLE[r.priority] ?? PRIORITY_STYLE.low;
               return (
-                <div key={i} className="rounded-lg p-3" style={{ background: '#0f1117', border: '1px solid #334155' }}>
+                <div key={i} className="rounded-lg p-3" style={{ background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))' }}>
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="text-sm font-semibold text-slate-100">{r.title_ar}</span>
+                    <span className="text-sm font-semibold text-sahool-text">{r.title_ar}</span>
                     <span className="text-[11px] px-2 py-0.5 rounded-full whitespace-nowrap"
                       style={{ background: ps.bg, color: ps.fg }}>
                       {CAT_AR[r.category] ?? r.category} · {ps.label}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 leading-relaxed">{r.detail_ar}</p>
+                  <p className="text-xs text-sahool-muted leading-relaxed">{r.detail_ar}</p>
                 </div>
               );
             })}
@@ -182,14 +182,14 @@ export default function AnalyticsPage() {
       </div>
 
       {!recQ.data?.weather_available && recs.length > 0 && (
-        <div className="rounded-lg p-3 flex items-center gap-2 text-xs" style={{ background: '#1e293b', border: '1px solid #334155', color: '#94a3b8' }}>
-          <Lightbulb className="w-4 h-4 text-amber-400" />
+        <div className="rounded-lg p-3 flex items-center gap-2 text-xs" style={{ background: 'rgb(var(--sahool-surface))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-muted))' }}>
+          <Lightbulb className="w-4 h-4 text-ops-warning" />
           بعض توصيات الطقس غير متاحة حاليّاً (خدمة الطقس متعذّرة) — التوصيات المعروضة مبنيّة على المتاح.
         </div>
       )}
 
-      <p className="text-[11px] text-slate-500 text-center">
-        كلّ الأرقام أعلاه حيّة لحقل: <span className="text-slate-300">{activeFieldName}</span>. عند غياب مصدر، تُعرض حالة صادقة بدل قيمة مخترعة.
+      <p className="text-[11px] text-sahool-muted text-center">
+        كلّ الأرقام أعلاه حيّة لحقل: <span className="text-sahool-text">{activeFieldName}</span>. عند غياب مصدر، تُعرض حالة صادقة بدل قيمة مخترعة.
       </p>
     </div>
   );

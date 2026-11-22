@@ -25,6 +25,29 @@ def _ci() -> dict:
     return yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
 
 
+def test_frontend_e2e_covers_both_engines_and_preserves_each_report() -> None:
+    """Both compiled engines are blocking checks within the existing required job."""
+    job = _ci()["jobs"]["frontend-e2e"]
+    browser_steps = [step for step in job["steps"] if step.get("run") == "npx playwright test"]
+    assert len(browser_steps) == 2
+    assert {step["env"]["PW_MAP_ENGINE"] for step in browser_steps} == {
+        "maplibre",
+        "leaflet",
+    }
+    reports = []
+    for step in browser_steps:
+        assert step["working-directory"] == "frontend"
+        assert not step.get("continue-on-error"), "either engine's failure must fail the job"
+        assert "if" not in step, "both engines must run on every successful setup"
+        reports.append(step["env"]["PLAYWRIGHT_HTML_OUTPUT_DIR"])
+    assert len(set(reports)) == 2, "one engine's HTML report would overwrite the other"
+    uploads = [step for step in job["steps"] if "actions/upload-artifact@" in step.get("uses", "")]
+    assert len(uploads) == 1 and uploads[0]["if"] == "always()"
+    upload_root = pathlib.PurePosixPath(uploads[0]["with"]["path"])
+    for report in reports:
+        assert pathlib.PurePosixPath("frontend", report).is_relative_to(upload_root)
+
+
 def test_stale_pr_runs_are_cancelled_but_every_main_push_keeps_its_record() -> None:
     """الإلغاء على الـPR وحدها — وmain لا تُلغى **ولا تصطفّ**.
 

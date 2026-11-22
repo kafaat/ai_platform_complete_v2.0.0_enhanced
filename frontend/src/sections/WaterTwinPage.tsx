@@ -77,57 +77,57 @@ export default function WaterTwinPage() {
   };
 
   const inputCls = 'px-3 py-2 rounded-lg text-sm w-full';
-  const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
+  const inputStyle = { background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' } as const;
 
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Droplets className="w-5 h-5 text-sky-400" />
-        <h2 className="text-xl font-bold text-slate-100">توأم المياه (محاكاة تفاعليّة)</h2>
+        <Droplets className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">توأم المياه (محاكاة تفاعليّة)</h2>
       </div>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-sahool-muted">
         «ماذا لو أخّرتُ الريّ أيّاماً؟ خفّضتُه نسبةً؟» — يحاكي مسار نضوب منطقة الجذور للأيّام القادمة
-        (FAO-56) مُغذّى بأحدث صفوف <span className="text-slate-300">دفتر المياه</span> عند توفرها، أو بقيمة النضوب الابتدائي المدخلة هنا، ويقارن
-        الأساس بالبديل. القيم <span className="text-amber-300">تقديريّة غير معايَرة</span>، و
-        <span className="text-amber-300"> لا يُقدَّر أثر الغلّة</span> (غير مُنمذَج).
+        (FAO-56) مُغذّى بأحدث صفوف <span className="text-sahool-text">دفتر المياه</span> عند توفرها، أو بقيمة النضوب الابتدائي المدخلة هنا، ويقارن
+        الأساس بالبديل. القيم <span className="text-ops-warning">تقديريّة غير معايَرة</span>، و
+        <span className="text-ops-warning"> لا يُقدَّر أثر الغلّة</span> (غير مُنمذَج).
       </p>
 
       {/* Form */}
-      <div className="rounded-xl border p-4 space-y-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <label className="flex flex-col gap-1 col-span-2 sm:col-span-3">
-            <span className="text-xs text-slate-400">الحقل</span>
+            <span className="text-xs text-sahool-muted">الحقل</span>
             <select value={fieldId} onChange={e => setFieldId(e.target.value)} className={inputCls} style={inputStyle}>
               <option value="">{fieldsLoading ? 'تحميل الحقول…' : 'اختر حقلاً'}</option>
               {options.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">TAW (مم)</span>
+            <span className="text-xs text-sahool-muted">TAW (مم)</span>
             <input value={taw} onChange={e => setTaw(e.target.value)} inputMode="decimal" className={inputCls} style={inputStyle} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">RAW (مم)</span>
+            <span className="text-xs text-sahool-muted">RAW (مم)</span>
             <input value={raw} onChange={e => setRaw(e.target.value)} inputMode="decimal" className={inputCls} style={inputStyle} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">الأفق (يوم)</span>
+            <span className="text-xs text-sahool-muted">الأفق (يوم)</span>
             <input value={horizon} onChange={e => setHorizon(e.target.value)} inputMode="numeric" className={inputCls} style={inputStyle} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">ريّ يوميّ أساس (مم)</span>
+            <span className="text-xs text-sahool-muted">ريّ يوميّ أساس (مم)</span>
             <input value={baselineIrr} onChange={e => setBaselineIrr(e.target.value)} inputMode="decimal" className={inputCls} style={inputStyle} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">مطر يوميّ (مم)</span>
+            <span className="text-xs text-sahool-muted">مطر يوميّ (مم)</span>
             <input value={rain} onChange={e => setRain(e.target.value)} inputMode="decimal" className={inputCls} style={inputStyle} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">ETc يوميّ (اختياريّ — وإلّا من الدفتر)</span>
+            <span className="text-xs text-sahool-muted">ETc يوميّ (اختياريّ — وإلّا من الدفتر)</span>
             <input value={etcOverride} onChange={e => setEtcOverride(e.target.value)} inputMode="decimal" placeholder="من الدفتر" className={inputCls} style={inputStyle} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">نضوب ابتدائيّ (اختياريّ — وإلّا من الدفتر)</span>
+            <span className="text-xs text-sahool-muted">نضوب ابتدائيّ (اختياريّ — وإلّا من الدفتر)</span>
             <input value={initOverride} onChange={e => setInitOverride(e.target.value)} inputMode="decimal" placeholder="من الدفتر" className={inputCls} style={inputStyle} />
           </label>
         </div>
@@ -165,7 +165,7 @@ export default function WaterTwinPage() {
           style={{ background: loading ? '#0369a1' : '#0ea5e9' }}>
           <GitCompare className="w-4 h-4" /> {loading ? 'محاكاة…' : 'حاكِ السيناريو'}
         </button>
-        {!fieldId && <p className="text-xs text-slate-500">اختر حقلاً أوّلاً.</p>}
+        {!fieldId && <p className="text-xs text-sahool-muted">اختر حقلاً أوّلاً.</p>}
       </div>
 
       {error && (
@@ -178,22 +178,22 @@ export default function WaterTwinPage() {
       {result && (
         <div className="space-y-4">
           {/* مصدر التغذية (شفافيّة) */}
-          <div className="rounded-lg border p-3 text-xs text-slate-400 flex items-start gap-2"
-            style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <Info className="w-4 h-4 mt-0.5 shrink-0 text-sky-400" />
+          <div className="rounded-lg border p-3 text-xs text-sahool-muted flex items-start gap-2"
+            style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <Info className="w-4 h-4 mt-0.5 shrink-0 text-ops-info" />
             <span>
               النضوب الابتدائيّ {result.seed.initial_depletion_mm} مم
-              (مصدر: <code className="text-slate-300">{result.seed.initial_depletion_source}</code>) ·
+              (مصدر: <code className="text-sahool-text">{result.seed.initial_depletion_source}</code>) ·
               ETc يوميّ {result.seed.daily_etc_mm} مم
-              (مصدر: <code className="text-slate-300">{result.seed.daily_etc_source}</code>) ·
+              (مصدر: <code className="text-sahool-text">{result.seed.daily_etc_source}</code>) ·
               صفوف دفتر مستخدَمة: {result.seed.ledger_rows_used}
             </span>
           </div>
 
-          <p className="text-sm text-slate-300">{result.summary_ar}</p>
+          <p className="text-sm text-sahool-text">{result.summary_ar}</p>
 
           {/* جدول المقارنة */}
-          <div className="rounded-xl border overflow-hidden" style={{ borderColor: '#334155' }}>
+          <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: '#0f1117' }}>
@@ -220,7 +220,7 @@ export default function WaterTwinPage() {
           </div>
 
           {/* مسار النضوب اليوميّ */}
-          <div className="rounded-xl border overflow-x-auto" style={{ borderColor: '#334155' }}>
+          <div className="rounded-xl border overflow-x-auto" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
             <table className="w-full text-xs">
               <thead>
                 <tr style={{ background: '#0f1117' }}>

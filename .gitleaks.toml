@@ -144,3 +144,12 @@ condition = "AND"
 regexTarget = "secret"
 paths = ['''^sahool-brain/log\.md$''']
 regexes = ['''^2eebce88ac1a2d2751fb553904d7f0870409702f$''']
+
+# A historical Python keyword argument is scanner input, not a credential value.
+# Match both the exact test file and exact extracted expression, under this rule only.
+[[rules.allowlists]]
+description = "Historical edge replay Python keyword reference, not credential data"
+condition = "AND"
+regexTarget = "secret"
+paths = ['''^tests_v9/test_edge_sync_tenant_per_request_live_pg\.py$''']
+regexes = ['''^assertion_key=KEY$''']
