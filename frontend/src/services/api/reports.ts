@@ -110,8 +110,16 @@ export interface SeasonSimResult {
 }
 // يشغّل محاكاة محصوليّة للموسم ويحفظ ناتجها على الخادم (FIELD_EDIT). 503 عند تعذّر
 // الطقس/القاعدة، 404 إن غاب الموسم عن المستأجِر.
+// The run reads the NDVI series (raster service, up to 20 s) and then the weather archive
+// (weather service, up to 20 s) before saving, so the client's default 15 s gave up on runs
+// the server still completed and saved (Devin review on #1582).
+export const SEASON_SIMULATION_TIMEOUT_MS = 60_000;
 export const simulateSeason = (seasonId: string): Promise<SeasonSimResult> =>
-  kongApi.post<SeasonSimResult>(`/api/v1/seasons/${seasonId}/simulate`).then(r => r.data);
+  kongApi
+    .post<SeasonSimResult>(`/api/v1/seasons/${seasonId}/simulate`, undefined, {
+      timeout: SEASON_SIMULATION_TIMEOUT_MS,
+    })
+    .then(r => r.data);
 
 // ── مواسم الحقل (مع نتائج المحاكاة المُخزَّنة sim_*) — حيّة عبر البوّابة ──
 // GET /api/v1/fields/{field_id}/seasons (SeasonSummary[]، الأحدث أولاً، tenant-scoped
