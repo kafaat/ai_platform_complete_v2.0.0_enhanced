@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7615,
+    "files_scanned": 7616,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2642,
+      "tests": 2643,
       "web": 558
     },
-    "unmapped_artifacts": 3625,
+    "unmapped_artifacts": 3626,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4136,
+      "python_functional": 4137,
       "raw": 3479
     },
-    "test_dependency_files": 2015,
+    "test_dependency_files": 2016,
     "test_dependency_edges": 5379,
     "test_dependency_bounded_files": 1167,
-    "test_dependency_unresolved_relations": 513
+    "test_dependency_unresolved_relations": 514
   },
   "capabilities": [
     {
@@ -46192,6 +46192,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_model_lifecycle_adapter_compose_env.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_mutation_probe.py",
       "kind": "tests"
     },
@@ -89298,6 +89302,23 @@
       "unresolved": [
         {
           "line": 27,
+          "call": "spec_from_file_location"
+        }
+      ]
+    },
+    {
+      "test": "tests_v9/test_model_lifecycle_adapter_compose_env.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "tree_wide_scan",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 157,
           "call": "spec_from_file_location"
         }
       ]

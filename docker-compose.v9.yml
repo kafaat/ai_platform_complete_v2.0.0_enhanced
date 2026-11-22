@@ -2093,6 +2093,19 @@ services:
       RUNTIME_TENANT_IDS: ${RUNTIME_TENANT_IDS:-}
       RUNTIME_TENANT_ID: ${RUNTIME_TENANT_ID:-}
       RUNTIME_POLL_INTERVAL_SECONDS: ${RUNTIME_POLL_INTERVAL_SECONDS:-10}
+      # F-R03: the registry settings adapter.validate_runtime() needs before the worker starts.
+      # Compose interpolates every service, profile or not, so a bare required variable would make
+      # the default stack demand a registry it does not run. The requirement is tied to
+      # REGISTRY_ADAPTER_ID, which only this adapter reads: once the adapter has an identity,
+      # Compose refuses to render without the registry URL and token. A value the operator set
+      # is always passed through, so a missing identity is reported as itself by the adapter.
+      # No value is committed.
+      MODEL_REGISTRY_BACKEND: ${MODEL_REGISTRY_BACKEND:-http}
+      MODEL_REGISTRY_URL: ${MODEL_REGISTRY_URL:-${REGISTRY_ADAPTER_ID:+${MODEL_REGISTRY_URL:?MODEL_REGISTRY_URL required when REGISTRY_ADAPTER_ID is set (model-lifecycle profile)}}}
+      MODEL_REGISTRY_TOKEN: ${MODEL_REGISTRY_TOKEN:-${REGISTRY_ADAPTER_ID:+${MODEL_REGISTRY_TOKEN:?MODEL_REGISTRY_TOKEN required when REGISTRY_ADAPTER_ID is set (model-lifecycle profile)}}}
+      # Unset or empty keeps the adapter's own default (true), which production refuses at
+      # start. Only the operator sets false; this file never does.
+      MODEL_REGISTRY_DRY_RUN: ${MODEL_REGISTRY_DRY_RUN:-true}
       MODEL_TRAFFIC_CONTROLLER_URL: ${MODEL_TRAFFIC_CONTROLLER_URL:-}
       MODEL_TRAFFIC_CONTROLLER_TOKEN: ${MODEL_TRAFFIC_CONTROLLER_TOKEN:-}
       MODEL_INFERENCE_VERIFY_URL: ${MODEL_INFERENCE_VERIFY_URL:-}
