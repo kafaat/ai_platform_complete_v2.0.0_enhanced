@@ -12,6 +12,7 @@ import hashlib
 import json
 import math
 import re
+import time
 import urllib.error
 import urllib.request
 import uuid
@@ -1155,6 +1156,23 @@ def chunk_revision(chunk: KnowledgeChunk) -> str | None:
     return str(chunk.metadata.get("source_revision") or "").strip() or None
 
 
+# A payload-root stamp (not metadata, which readers sanitise) recording when this point's
+# revision was published. A withdrawal removes only rows published before it, so two
+# replicas publishing different revisions of one document at once cannot each delete the
+# other's: the later stamp survives (review finding on #1582). Rows written before stamps
+# existed carry none and count as older.
+PUBLICATION_STAMP_KEY = "revision_published_ns"
+
+
+def _publication_stamp() -> int:
+    return time.time_ns()
+
+
+def _published_before(payload: dict[str, Any], stamp: int) -> bool:
+    value = payload.get(PUBLICATION_STAMP_KEY)
+    return not isinstance(value, int) or isinstance(value, bool) or value < stamp
+
+
 def document_revisions(
     chunks: list[KnowledgeChunk],
 ) -> dict[tuple[str, str], list[KnowledgeChunk]]:
@@ -1431,7 +1449,13 @@ class QdrantHttpClient:
         )
         self.ensure_tenant_payload_index()
 
-    def upsert(self, chunks: list[KnowledgeChunk], embeddings: list[list[float]]) -> None:
+    def upsert(
+        self,
+        chunks: list[KnowledgeChunk],
+        embeddings: list[list[float]],
+        *,
+        published_ns: int | None = None,
+    ) -> None:
         points = []
         for chunk, vector in zip(chunks, embeddings, strict=True):
             # Qdrant point IDs are uint64 or UUID.  External chunk identifiers may
@@ -1439,11 +1463,19 @@ class QdrantHttpClient:
             # original chunk_id in metadata.  The projection lives in one place —
             # every other reader imports it instead of restating the formula.
             point_id = canonical_storage_point_id(chunk.chunk_id, tenant_id=chunk.tenant_id)
-            points.append({"id": point_id, "vector": vector, "payload": chunk.payload})
+            payload = chunk.payload
+            if published_ns is not None:
+                payload = {**payload, PUBLICATION_STAMP_KEY: published_ns}
+            points.append({"id": point_id, "vector": vector, "payload": payload})
         self._request("PUT", f"/collections/{self.collection}/points?wait=true", {"points": points})
 
     def withdraw_document_points(
-        self, *, tenant_id: str, document_id: str, keep_point_ids: set[str]
+        self,
+        *,
+        tenant_id: str,
+        document_id: str,
+        keep_point_ids: set[str],
+        published_before_ns: int | None = None,
     ) -> list[str]:
         """Delete the stored points of one tenant's document that are not in ``keep``.
 
@@ -1458,6 +1490,9 @@ class QdrantHttpClient:
         reader serves as part of the document is withdrawn with it, and a row the
         reader rejects is left alone. The reference corpus and its quarantine are
         refused outright: the seeder owns them and no tenant ingest may remove them.
+
+        With ``published_before_ns`` only rows published before that stamp are withdrawn,
+        so a revision another replica published after this one is never removed.
         """
         tenant = str(tenant_id or "").strip()
         document = str(document_id or "").strip()
@@ -1476,6 +1511,10 @@ class QdrantHttpClient:
         stale = []
         for point_id, payload in rows:
             if point_id in keep_point_ids:
+                continue
+            if published_before_ns is not None and not _published_before(
+                payload, published_before_ns
+            ):
                 continue
             try:
                 stored = KnowledgeChunk.from_payload(payload, fallback_id=point_id)
@@ -1601,7 +1640,8 @@ class HybridQdrantRetriever:
         # Persist first. A failed Qdrant write must not leave a process-local BM25
         # index claiming data exists when the authoritative vector store rejected it.
         self.qdrant.ensure_collection(vector_size=next(iter(dimensions)))
-        self.qdrant.upsert(chunks, vectors)
+        published_ns = _publication_stamp()
+        self.qdrant.upsert(chunks, vectors, published_ns=published_ns)
         receipts = []
         for (tenant_id, document_id), group in documents.items():
             withdrawn = 0
@@ -1614,6 +1654,7 @@ class HybridQdrantRetriever:
                             canonical_storage_point_id(c.chunk_id, tenant_id=tenant_id)
                             for c in group
                         },
+                        published_before_ns=published_ns,
                     )
                 )
             receipts.append(

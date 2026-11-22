@@ -252,7 +252,20 @@ def test_reingesting_the_same_revision_is_idempotent():
     points, sparse = dict(r.qdrant.points), dict(r.bm25.doc_freq)
     (receipt,) = r.ingest_documents(new)
     assert (receipt.chunks_written, receipt.chunks_withdrawn) == (2, 0)
-    assert r.qdrant.points == points
+
+    def unstamped(stored):
+        return {
+            pid: (vector, {k: v for k, v in payload.items() if k != pq.PUBLICATION_STAMP_KEY})
+            for pid, (vector, payload) in stored.items()
+        }
+
+    # Same ids, vectors and payloads; only the publication stamp moves forward, because a
+    # re-ingest is a new publication of that revision.
+    assert unstamped(r.qdrant.points) == unstamped(points)
+    assert all(
+        r.qdrant.points[pid][1][pq.PUBLICATION_STAMP_KEY] > points[pid][1][pq.PUBLICATION_STAMP_KEY]
+        for pid in points
+    )
     assert (dict(r.bm25.doc_freq), len(r.bm25)) == (sparse, 2)
     assert r.qdrant.writes()[-1] == "/upsert"  # nothing to withdraw, so no delete is sent
 
@@ -582,3 +595,47 @@ def test_service_reports_a_failed_withdrawal_and_drops_its_local_index(rag):
         post(rag, document("tenant-a", SHORT, revision=REV2))
     assert exc.value.status_code == 502
     assert rag._sparse_ready is False
+
+
+# ── Review finding on #1582: two replicas publishing at once ─────────────────────────────
+
+
+@pytest.mark.parametrize("first_withdraws", ["earlier", "later"])
+def test_two_replicas_publishing_revisions_at_once_never_erase_both(monkeypatch, first_withdraws):
+    """Production runs two retrieval replicas on one collection, and the ingest lock is per
+    process. Both writes can land before either withdrawal scans; a withdrawal that keeps
+    only its own ids then deletes the other replica's revision, and the two together leave
+    nothing searchable while both report success. With a publication stamp, a withdrawal
+    removes only rows published before it, so the later revision always survives."""
+    stamps = iter(range(1000, 2000))
+    monkeypatch.setattr(pq, "_publication_stamp", lambda: next(stamps))
+    store = Qdrant()
+    deferred = []
+    real_withdraw = store.withdraw_document_points
+
+    def defer(**kwargs):
+        deferred.append(kwargs)
+        return []
+
+    store.withdraw_document_points = defer
+    early = document("tenant-a", ["first replica revision"], revision=REV1)
+    late = document("tenant-a", ["second replica revision"], revision=REV2)
+    retriever(store).ingest_documents(early)
+    retriever(store).ingest_documents(late)
+    assert len(deferred) == 2 and store.stored("tenant-a") == ids(early) | ids(late)
+
+    order = deferred if first_withdraws == "earlier" else list(reversed(deferred))
+    for call in order:
+        real_withdraw(**call)
+    assert store.stored("tenant-a") == ids(late), "the later revision must survive"
+
+
+def test_rows_written_before_publication_stamps_are_withdrawn_as_older(monkeypatch):
+    """Rows already in the store carry no stamp; they belong to an earlier publication."""
+    store = Qdrant()
+    old = document("tenant-a", LONG, revision=REV1)
+    store.upsert(old, [pq.HashEmbeddingProvider(32).embed(c.text) for c in old])
+    assert all(pq.PUBLICATION_STAMP_KEY not in p for _v, p in store.points.values())
+    new = document("tenant-a", SHORT, revision=REV2)
+    retriever(store).ingest_documents(new)
+    assert store.stored("tenant-a") == ids(new)
