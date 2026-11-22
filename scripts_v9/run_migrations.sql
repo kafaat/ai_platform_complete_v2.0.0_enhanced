@@ -691,7 +691,9 @@
 \i migrations/v285_water_ledger_rain_source_reanalysis.sql
 \echo '═══ 273. v286_canonical_observations.sql ═══'
 \i migrations/v286_canonical_observations.sql
-\echo '═══ 274. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 274. v288_model_promotion_terminal_state.sql ═══'
+\i migrations/v288_model_promotion_terminal_state.sql
+\echo '═══ 275. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 275. v206_rls_final_hardening.sql ═══'
+\echo '═══ 276. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

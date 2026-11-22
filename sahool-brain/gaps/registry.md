@@ -6048,7 +6048,7 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 - **وسؤالُ «ماذا يفعل انقضاءُ التاريخ؟» سقط من البطاقة:** يحسمه الكودُ لا المالك (انظر الفجوةَ أعلاه). فبقي سؤالان، وكلاهما **سياسةٌ لا قياس**: (أ) أيُقبَل التأجيلُ أساساً مُعترَفاً به أم يُسحَب الآن؟ (ب) إن تعذّر «مستهلكٌ حيّ»، أيُقبَل «الانتقالُ إلى الخدمة المالكة» إغلاقاً؟
 - **لماذا `open`:** لا قرارَ من المالك بعد. ولا يُسجَّل حكمٌ لم يصدر — والبطاقةُ مسودّةٌ في `LIVE_EVIDENCE_PATH_v2.1` §٧ لا سجلٌّ.
 
-## A-QUEUE-WITH-NO-TERMINAL-STATE-REPUBLISHES-FOREVER-01 — طابورٌ بلا حالةٍ نهائيّة (فُتحت 2026-08-27 · **open**)
+## A-QUEUE-WITH-NO-TERMINAL-STATE-REPUBLISHES-FOREVER-01 — طابورٌ بلا حالةٍ نهائيّة (فُتحت 2026-08-27 · **fixed** 2026-11-22، F-D04)
 
 - **المصدر:** `services/sahool-platform/api/phase_runtime_workers.py::run_model_registry_once` — حلقةُ الترقيات.
 - **المقيس:** شرطُ الالتقاط `WHERE decision='promote'` **بلا أيّ انتقالِ حالةٍ نهائيّة**. فالصفُّ الذي عولج تبقى `decision` فيه `'promote'`، ويُلتقَط ثانيةً في الدورة التالية — و`_publish_nats("sahool.model.promotion.requested", …)` يُطلَق في كلّ مرّة. أمّا `INSERT … ON CONFLICT DO UPDATE` على `model_serving_aliases_runtime` فيُخفي الأثرَ في الجدول لأنّه مُتماثِلُ الاستدعاء — لكنّ **النشرَ ليس كذلك**.
@@ -6056,6 +6056,7 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 - **ما غيّرته شريحةُ المطالبة، وما لم تُغيّره:** المطالبةُ تمنع **عاملَين متزامنَين** من نشرِ الصفّ نفسِه في الدورة الواحدة — وهذا مُصلَحٌ ومُكذَّب. ولا تمنع إعادةَ النشر **عبر الدورات**، لأنّ الصفَّ يعود إلى البِركة فور تحرير المطالبة. فالعطلُ سابقٌ للشريحة وباقٍ بعدها.
 - **لماذا `open`:** العلاجُ انتقالُ حالةٍ (`promoted` / `acknowledged`) يخصّ **عقدَ الترقية** لا إصلاحَ التزامن: يلزمه حسمُ متى تُعَدّ الترقيةُ منتهية — أعند النشر، أم عند إقرارِ خلفيّةِ التقديم؟ وذلك قرارُ عقدٍ لا اشتقاقٌ من قياس، وشريحةُ شيفرةٍ مستقلّة.
 - **حدُّ صدق:** ساكن — من بنية الاستدعاء وشرطِ الالتقاط. لم يُشغَّل عاملٌ على PostgreSQL حيّ.
+- **العلاج (F-D04، 2026-11-22، فرع `claude/wave3-fd04-model-alias-ack-20261122`):** حُسِم سؤالُ العقد هكذا: الطابورُ ينتهي عند **الطلب**، والترقيةُ لا تنتهي إلّا عند **الإقرار**. `migrations/v288_model_promotion_terminal_state.sql` يضيف `model_promotion_history_runtime.status` (`pending → requested | blocked | skipped`، CHECK) و`status_reason`، ويجعل افتراضيَّ `model_serving_aliases_runtime.status` `pending_external_ack` بدل `active`. العاملُ يلتقط `status='pending'` وحدَه ويكتب حالةً نهائيّة مع تحرير المطالبة (`services/sahool-platform/api/phase_runtime_workers.py::run_model_registry_once`)، والكاتبُ يكتب الاسمَ المستعار `pending_external_ack` صراحةً (`services/sahool-platform/api/phase_runtime_store.py::persist_phase10_learning_outputs`). مقيسٌ حيّاً: `tests_v9/test_model_promotion_ack_live_pg.py` (6 حمراء قبل الإصلاح، 8 خضراء بعده). **حدّ صدق:** لا مسارَ إقرارٍ في الشجرة بعد، فلا اسمَ مستعاراً يصير `active`؛ والصفوفُ `active` السابقة لـv288 لم تُغيَّر (قرارُ مالك).
 
 ## A-TEST-THAT-PINS-TODAYS-TREE-AS-A-SECURITY-INVARIANT-01 — لقطةٌ تاريخيّةٌ تُقرأ ثابتاً أمنيّاً (فُتحت 2026-08-28 · **fixed**)
 
