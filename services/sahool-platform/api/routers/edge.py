@@ -115,7 +115,7 @@ async def edge_sync_receive(
                 or existing["field_id"] != req.field_id
                 or existing["device"] != req.device_id
                 or existing["result_type"] != req.type
-                or payload != req.data
+                or not same_json(payload, req.data)
                 or existing["occurred_at"] != req.occurred_at
             ):
                 raise HTTPException(409, "edge_idempotency_conflict")
@@ -141,3 +141,25 @@ async def edge_sync_receive(
         receipt["provenance"] = stored_provenance
     # Only an identical, tenant-visible event counts as successful replay.
     return receipt
+
+
+def same_json(stored, sent) -> bool:
+    """Equality of two JSON values with PostgreSQL ``jsonb`` semantics (measured on PG16).
+
+    The replay check compares the stored ``result_data`` with the resent body. Python's ``==``
+    treats ``True == 1`` and ``False == 0``, so a replay that changed a boolean into a number was
+    answered ``duplicate_ignored``: the device got a success receipt for a change that was never
+    stored. In ``jsonb`` a boolean never equals a number; numbers compare by value (``1`` equals
+    ``1.0``), object key order does not matter, array order does.
+    """
+    if isinstance(stored, bool) or isinstance(sent, bool):
+        return type(stored) is type(sent) and stored == sent
+    if isinstance(stored, dict) and isinstance(sent, dict):
+        return stored.keys() == sent.keys() and all(same_json(stored[k], sent[k]) for k in stored)
+    if isinstance(stored, list) and isinstance(sent, list):
+        return len(stored) == len(sent) and all(
+            same_json(a, b) for a, b in zip(stored, sent, strict=True)
+        )
+    if isinstance(stored, (int, float)) and isinstance(sent, (int, float)):
+        return stored == sent
+    return type(stored) is type(sent) and stored == sent
