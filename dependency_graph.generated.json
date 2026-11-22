@@ -1,5 +1,5 @@
 {
-  "edge_count": 1098,
+  "edge_count": 1099,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -113,6 +113,16 @@
     },
     {
       "evidence": "frontend/src/components/AddFieldWithMap.tsx:414",
+      "from": "frontend",
+      "from_kind": "component",
+      "protocol": "ui",
+      "relation": "CALLS",
+      "resource": "/api/v1",
+      "to": "sahool-platform",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "frontend/src/components/SeasonSimulationDialog.tsx:1",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -10997,7 +11007,7 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 45,
+    "CALLS": 46,
     "CONSUMES": 4,
     "EMITS": 3,
     "READS": 591,

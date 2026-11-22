@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7615,
+    "files_scanned": 7618,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2642,
-      "web": 558
+      "tests": 2643,
+      "web": 560
     },
     "unmapped_artifacts": 3625,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4136,
-      "raw": 3479
+      "raw": 3482
     },
     "test_dependency_files": 2015,
     "test_dependency_edges": 5379,
@@ -7463,6 +7463,14 @@
           ]
         },
         {
+          "path": "frontend/src/components/SeasonSimulationDialog.tsx",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "frontend/src/components/WheatSeasonPlanner.test.tsx",
           "score": 14,
           "signals": [
@@ -7552,6 +7560,14 @@
         },
         {
           "path": "frontend/src/sections/FieldWorkspaceIrrigationPanel.season.test.tsx",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "frontend/src/sections/HybridIndexPage.seasonSimulation.test.tsx",
           "score": 14,
           "signals": [
             "path:season",
@@ -7827,6 +7843,14 @@
         },
         {
           "path": "frontend/src/sections/SeasonRecordEntry.static.test.ts",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "frontend/src/sections/seasonSimulationEntry.static.test.ts",
           "score": 14,
           "signals": [
             "path:season",
@@ -8370,9 +8394,9 @@
         "routes": 82,
         "database": 86,
         "events": 52,
-        "web": 18,
+        "web": 20,
         "mobile": 15,
-        "tests": 60,
+        "tests": 61,
         "governance": 0,
         "other_evidence": 15
       },

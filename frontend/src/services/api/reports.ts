@@ -99,6 +99,14 @@ export interface SeasonSimResult {
   assumptions_ar:      string[];
   warnings_ar:         string[];
   sim_ran_at:          string;
+  // إشارات صدق العرض ونافذة التشغيل كما يعيدها الخادم (SeasonSimResponse). اختياريّة:
+  // لا تُفترَض قيمتها في الواجهة إن غابت.
+  estimate_disclaimer_ar?: string;
+  simulation_engine?:      string;
+  truncated?:              boolean;
+  window_days_requested?:  number | null;
+  window_days_simulated?:  number | null;
+  manual_irrigation_used?: boolean;
 }
 // يشغّل محاكاة محصوليّة للموسم ويحفظ ناتجها على الخادم (FIELD_EDIT). 503 عند تعذّر
 // الطقس/القاعدة، 404 إن غاب الموسم عن المستأجِر.

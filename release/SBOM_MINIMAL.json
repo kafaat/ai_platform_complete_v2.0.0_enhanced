@@ -555,7 +555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb658806e87ddcc24c9bb6af0382cd3c0c63f63086674ad739ac639f12213741"
+          "content": "42f2191ac14516e3eec8afa7e55f6d1c5e3630e1aa2647da0d405cbd14d551ab"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -769,6 +769,16 @@
         }
       ],
       "name": "frontend/src/components/ReferenceQueryState.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "85ec57b848fef78626ad4f3543264c88c98a05d5f8cbebdecc658c6e381be83f"
+        }
+      ],
+      "name": "frontend/src/components/SeasonSimulationDialog.tsx",
       "type": "file"
     },
     {
@@ -3065,7 +3075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2ac64fc3c91c0fe847fd037a5df56b10949a848836ab033a325baa9d218421ac"
+          "content": "f29b249e75c492a6b216a51f2e322ca0777906994b07ef22bb554c95967278fc"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -5005,7 +5015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e187832c062149ec8c745576d7daf733dfcdab8564d38ccb0a016b336ec00af8"
+          "content": "b214261c0840fcd04c5e14bd149315057987a2bc8e9907a266f5b5dc9a85d8a5"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6135,7 +6145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17cadb0aff4cd81705e55330229bdf55b30931146a6046ad914cdc6e844d0fdb"
+          "content": "72150a88cb90916f4fb0b1d9ae85afc00597268f7c71e43a98410f5a64305ae5"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -6415,7 +6425,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "68b0f1c138c07771c43b536d1d89762894dcf95eb2b67b46a7b32884bb986e06"
+          "content": "447095793483a22519669dd708baaf48a2bb98537dec04c58ca0d05ffc07d2c4"
+        }
+      ],
+      "name": "frontend/src/sections/HybridIndexPage.seasonSimulation.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0a807b106bdd09aee8e9f5c7a1e23bfbacdaa9ec4a5a7f4b24356a363867d23a"
         }
       ],
       "name": "frontend/src/sections/HybridIndexPage.tsx",
@@ -7665,6 +7685,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f92f0c5e599916747328d7e18ff7e27d6234995430fb3f39b5a2658d2591d1ed"
+        }
+      ],
+      "name": "frontend/src/sections/seasonSimulationEntry.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6005d0abb10eb722feaffcd09de6433a4c2f3a95931bc9bc9820710b802b9748"
         }
       ],
@@ -7865,7 +7895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a1cf50bd8c56d7557a602ad6e17ca2579913f21fc21260daac84e9708a967016"
+          "content": "82ef0548000c625e35710376e0af82a6f43c0cb14195777509d2809753b47141"
         }
       ],
       "name": "frontend/src/services/api/reports.ts",
