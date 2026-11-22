@@ -1422,6 +1422,12 @@ jobs:
           # (tests_v9/test_field_state_version_bump_live_pg.py). With the switch, a missing or
           # unmigrated database is a failure, not a green skip.
           FIELD_STATE_VERSION_CERTIFICATION_REQUIRED: "1"
+          # Service Center SC-1 farm scope (tests_v9/test_farm_access_scope_live_pg.py): v287's
+          # policies leave visibility unchanged while enforcement is off, reproduce it with the
+          # backfilled grants, and key on the JWT sub, never the platform users.id. The module
+          # builds throwaway databases and a NOBYPASSRLS role from this superuser DSN. With the
+          # switch, a missing database is a failure, not a green skip.
+          FARM_SCOPE_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation
