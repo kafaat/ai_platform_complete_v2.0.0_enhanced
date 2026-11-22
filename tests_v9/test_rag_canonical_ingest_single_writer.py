@@ -28,21 +28,49 @@ SOURCE_DIRS = ("services", "agents", "bots", "scripts", "shared", "deploy")
 _HTTP_METHODS = {"post", "put", "request", "send"}
 
 
+def _literal_url_of_another_host(arg: ast.expr) -> bool:
+    """A literal absolute URL (``http...``) whose host is not rag-retrieval."""
+    head = arg
+    if isinstance(arg, ast.JoinedStr) and arg.values:
+        head = arg.values[0]
+    if not (isinstance(head, ast.Constant) and isinstance(head.value, str)):
+        return False
+    return head.value.startswith(("http://", "https://")) and "rag-retrieval" not in head.value
+
+
 def _calls_rag_ingest(path: Path) -> bool:
-    """An HTTP call whose URL names rag-retrieval's ingest (its configured URL or its host).
+    """An HTTP call that reaches rag-retrieval's ingest.
+
+    Either the URL names the service (its configured URL or its host) and the route, or the
+    module names the service elsewhere and the URL is not a literal address of another host:
+    a relative path on a client built with ``base_url=RAG_RETRIEVAL_URL``, or the URL read
+    into another variable first (Devin review on #1582). Route decorators
+    (``@app.post("/v1/ingest")``) declare an endpoint and are not calls out.
 
     Parsed, not grepped: a guard that only mentions the path in a string is not a writer.
     """
     try:
-        tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        source = path.read_text(encoding="utf-8", errors="replace")
+        tree = ast.parse(source)
     except SyntaxError:
         return False
+    names_service = "RAG_RETRIEVAL_URL" in source or "rag-retrieval" in source
+    decorators = {
+        id(d)
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+        for d in node.decorator_list
+    }
     for node in ast.walk(tree):
         if not (isinstance(node, ast.Call) and getattr(node.func, "attr", None) in _HTTP_METHODS):
+            continue
+        if id(node) in decorators:
             continue
         for arg in [*node.args, *(k.value for k in node.keywords)]:
             text = ast.unparse(arg)
             if "/v1/ingest" in text and ("RAG_RETRIEVAL_URL" in text or "rag-retrieval" in text):
+                return True
+            if "/v1/ingest" in text and names_service and not _literal_url_of_another_host(arg):
                 return True
     return False
 
@@ -99,6 +127,56 @@ def _drives_index_writes(path: Path) -> bool:
         isinstance(n, ast.Call) and getattr(n.func, "attr", None) in _WRITE_CALLS
         for n in ast.walk(tree)
     )
+
+
+@pytest.mark.parametrize(
+    ("source", "writer"),
+    [
+        (
+            "import httpx\nURL = 'http://sahool-rag-retrieval:8000'\n"
+            "async def go(b):\n"
+            "    async with httpx.AsyncClient(base_url=URL) as c:\n"
+            "        await c.post('/v1/ingest', json=b)\n",
+            True,
+        ),
+        (
+            "import os, httpx\nBASE = os.getenv('RAG_RETRIEVAL_URL')\n"
+            "def go(b, v):\n    httpx.Client(base_url=BASE).post(f'/v1/ingest?v={v}', json=b)\n",
+            True,
+        ),
+        (
+            "import httpx\nfrom os import getenv\nU = getenv('RAG_RETRIEVAL_URL')\n"
+            "def go(b):\n    httpx.post(f'{U}/v1/ingest', json=b)\n",
+            True,
+        ),
+        (
+            "from fastapi import FastAPI\napp = FastAPI()  # behind rag-retrieval\n"
+            "@app.post('/v1/ingest')\ndef ingest():\n    return {}\n",
+            False,
+        ),
+        (
+            "import httpx  # probes rag-retrieval separately\n"
+            "def go(b):\n    httpx.post('http://sahool-local-ai-rag:8000/v1/ingest', json=b)\n",
+            False,
+        ),
+        (
+            "import httpx\ndef go(b):\n    httpx.Client(base_url='http://other').post('/v1/ingest')\n",
+            False,
+        ),
+    ],
+    ids=[
+        "base-url-host",
+        "base-url-env-fstring",
+        "full-url",
+        "route-decorator",
+        "local-ai-rag-url",
+        "unrelated-service",
+    ],
+)
+def test_the_writer_detector_sees_a_client_base_url(tmp_path, source, writer):
+    module = tmp_path / "caller.py"
+    module.write_text(source, encoding="utf-8")
+    assert _calls_rag_ingest(module) is writer
 
 
 def test_nothing_else_drives_the_index_write_path_directly():
