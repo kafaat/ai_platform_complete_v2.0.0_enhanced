@@ -225,7 +225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5e25e6fd945e1049c9b2506c930e0cb7667e1eef9a1f995c0b10cc24e878862f"
+          "content": "c77d410bf9f73c00d63dcce6d67b5d7c33408d2f24ea84c16899d8ad1440ce4d"
         }
       ],
       "name": "frontend/e2e/app-smoke.spec.ts",
@@ -525,7 +525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bfd60a5cd7862dde043bc08343a637db51a28e359c8e6b88c4a407c72c3a0436"
+          "content": "02f36475b74b3c0d2861f2a193311001cd74aa8c61d0a5b23861018d2979d90b"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -3555,6 +3555,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "6e3994d82ca093be3aa9ae75b614fa6b5abfa6a6a1222498082599d4a07cceda"
+        }
+      ],
+      "name": "frontend/src/lib/authScreens.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c62df505ce1efe1dcbe3a5d9051cc66701e1ca925d5d0497d3dce395e1d69eb"
+        }
+      ],
+      "name": "frontend/src/lib/authScreens.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "aac11fc7366bc0e56e423201ae0b52b0b72c206c2e027b211f5abf72fc3227f5"
         }
       ],
@@ -5455,7 +5475,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc9ad2292c3750dbabb84e7fde307ebdfde20d057a54117e528517018ac28d7c"
+          "content": "446a5ed2791e9b60b0d69727f1b8875c765cb2936a0892c2f543b44648153852"
+        }
+      ],
+      "name": "frontend/src/pages/LoginPage.resetLink.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "365f8ec68a0c2efb52fb34cff99b5e446fc063e91d753b7da222998191af35fb"
         }
       ],
       "name": "frontend/src/pages/LoginPage.tsx",
@@ -7605,26 +7635,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6b0c71b481a739bb5f23eeb0bdc8e83cfb4e95a1d0f15fb5ff25d2deedd8d00b"
-        }
-      ],
-      "name": "frontend/src/services/api.test.ts",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "d41f1184d22cbdbcfe9a32ac3379de4550f36ad91a8014f3840c4582e8837cd1"
-        }
-      ],
-      "name": "frontend/src/services/api.ts",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "721997b282b33247b55189d99cdfb5156a35f9b315b920865b7fff92dfe9254e"
         }
       ],
@@ -7869,6 +7879,26 @@
         }
       ],
       "name": "frontend/src/services/api/weatherMap.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6b0c71b481a739bb5f23eeb0bdc8e83cfb4e95a1d0f15fb5ff25d2deedd8d00b"
+        }
+      ],
+      "name": "frontend/src/services/api.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d41f1184d22cbdbcfe9a32ac3379de4550f36ad91a8014f3840c4582e8837cd1"
+        }
+      ],
+      "name": "frontend/src/services/api.ts",
       "type": "file"
     },
     {
@@ -11175,20 +11205,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ca6d5cec2169c5a98661a119db23a6f3399c8fef2256ff04f3a642831282478"
+          "content": "94433756fe10005ddd6fc55cc5c0b1e9f3c10b66a08ceac795ece6713d34e28a"
         }
       ],
-      "name": "mobile/sahool_app/android/app/src/main/res/drawable-v21/launch_background.xml",
+      "name": "mobile/sahool_app/android/app/src/main/res/drawable/launch_background.xml",
       "type": "file"
     },
     {
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94433756fe10005ddd6fc55cc5c0b1e9f3c10b66a08ceac795ece6713d34e28a"
+          "content": "7ca6d5cec2169c5a98661a119db23a6f3399c8fef2256ff04f3a642831282478"
         }
       ],
-      "name": "mobile/sahool_app/android/app/src/main/res/drawable/launch_background.xml",
+      "name": "mobile/sahool_app/android/app/src/main/res/drawable-v21/launch_background.xml",
       "type": "file"
     },
     {
@@ -11245,20 +11275,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d9faaf14ed120098316bf0d6ab96aea0aa719ea74ebfdcc84c5ce12e260381b"
+          "content": "f423e4b2ea452fee625a5a469975da98539cf7cf060453947b756f6c9b621532"
         }
       ],
-      "name": "mobile/sahool_app/android/app/src/main/res/values-night/styles.xml",
+      "name": "mobile/sahool_app/android/app/src/main/res/values/styles.xml",
       "type": "file"
     },
     {
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f423e4b2ea452fee625a5a469975da98539cf7cf060453947b756f6c9b621532"
+          "content": "9d9faaf14ed120098316bf0d6ab96aea0aa719ea74ebfdcc84c5ce12e260381b"
         }
       ],
-      "name": "mobile/sahool_app/android/app/src/main/res/values/styles.xml",
+      "name": "mobile/sahool_app/android/app/src/main/res/values-night/styles.xml",
       "type": "file"
     },
     {
@@ -11285,16 +11315,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d6b056bd3b740d434cade7c847233d82e4b92d2787ee5db68411faf5e8c838ec"
-        }
-      ],
-      "name": "mobile/sahool_app/android/gradle.properties",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "16caeaf66d57a0d1d2087fef6a97efa62de8da69afa5b908f40db35afc4342da"
         }
       ],
@@ -11309,6 +11329,16 @@
         }
       ],
       "name": "mobile/sahool_app/android/gradle/wrapper/gradle-wrapper.properties",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d6b056bd3b740d434cade7c847233d82e4b92d2787ee5db68411faf5e8c838ec"
+        }
+      ],
+      "name": "mobile/sahool_app/android/gradle.properties",
       "type": "file"
     },
     {
@@ -11429,86 +11459,6 @@
         }
       ],
       "name": "mobile/sahool_app/ios/Podfile",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "deaf1c5172676abc9dfbd613c5b697451edb0b1a7e12a2876455bab2263ff4bf"
-        }
-      ],
-      "name": "mobile/sahool_app/ios/Runner.xcodeproj/project.pbxproj",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f"
-        }
-      ],
-      "name": "mobile/sahool_app/ios/Runner.xcodeproj/project.xcworkspace/contents.xcworkspacedata",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "dfa0f9bb85b95ccba9c6811adadf8cb407fb5d52088e89db83ebc308ec448542"
-        }
-      ],
-      "name": "mobile/sahool_app/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "11b247bc6796892d67c9a821d18604db4dd6a880981b34f38460b9866e6b247f"
-        }
-      ],
-      "name": "mobile/sahool_app/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "12477af7dbb2b8e35229e0ee4639839d94438cbf5f5a1ed2483e6de29e333a55"
-        }
-      ],
-      "name": "mobile/sahool_app/ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "46c3c9702ff7c5584e11c954d943cfb6e07fb26e3fbd072ddbc0f388aa352de1"
-        }
-      ],
-      "name": "mobile/sahool_app/ios/Runner.xcworkspace/contents.xcworkspacedata",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "dfa0f9bb85b95ccba9c6811adadf8cb407fb5d52088e89db83ebc308ec448542"
-        }
-      ],
-      "name": "mobile/sahool_app/ios/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "11b247bc6796892d67c9a821d18604db4dd6a880981b34f38460b9866e6b247f"
-        }
-      ],
-      "name": "mobile/sahool_app/ios/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings",
       "type": "file"
     },
     {
@@ -11779,6 +11729,86 @@
         }
       ],
       "name": "mobile/sahool_app/ios/Runner/Runner.entitlements",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "deaf1c5172676abc9dfbd613c5b697451edb0b1a7e12a2876455bab2263ff4bf"
+        }
+      ],
+      "name": "mobile/sahool_app/ios/Runner.xcodeproj/project.pbxproj",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f"
+        }
+      ],
+      "name": "mobile/sahool_app/ios/Runner.xcodeproj/project.xcworkspace/contents.xcworkspacedata",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dfa0f9bb85b95ccba9c6811adadf8cb407fb5d52088e89db83ebc308ec448542"
+        }
+      ],
+      "name": "mobile/sahool_app/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "11b247bc6796892d67c9a821d18604db4dd6a880981b34f38460b9866e6b247f"
+        }
+      ],
+      "name": "mobile/sahool_app/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "12477af7dbb2b8e35229e0ee4639839d94438cbf5f5a1ed2483e6de29e333a55"
+        }
+      ],
+      "name": "mobile/sahool_app/ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "46c3c9702ff7c5584e11c954d943cfb6e07fb26e3fbd072ddbc0f388aa352de1"
+        }
+      ],
+      "name": "mobile/sahool_app/ios/Runner.xcworkspace/contents.xcworkspacedata",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dfa0f9bb85b95ccba9c6811adadf8cb407fb5d52088e89db83ebc308ec448542"
+        }
+      ],
+      "name": "mobile/sahool_app/ios/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "11b247bc6796892d67c9a821d18604db4dd6a880981b34f38460b9866e6b247f"
+        }
+      ],
+      "name": "mobile/sahool_app/ios/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings",
       "type": "file"
     },
     {
@@ -15975,16 +16005,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8040b728b6614878756b1f43ce3b6799d450439a397a6c3245aa082cd1035700"
-        }
-      ],
-      "name": "mobile/sahool_app/test-results-smart/mobile-static-summary.json",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "70fe3f4bfa76c7ec819779e87b1b22987ed2229dfd577e253c2b63c67ae0e775"
         }
       ],
@@ -17689,6 +17709,16 @@
         }
       ],
       "name": "mobile/sahool_app/test/resilience_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8040b728b6614878756b1f43ce3b6799d450439a397a6c3245aa082cd1035700"
+        }
+      ],
+      "name": "mobile/sahool_app/test-results-smart/mobile-static-summary.json",
       "type": "file"
     },
     {
@@ -42665,16 +42695,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "32557b7f45503aebd8344914d6af232a4427d7b24e779691f11fcace643ecb70"
-        }
-      ],
-      "name": "shared/memory/skills.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "8d87dbf2a0afe515c16d7ec9009221a35e0a8f27ac7f1d968b9a681ce5674263"
         }
       ],
@@ -42699,6 +42719,16 @@
         }
       ],
       "name": "shared/memory/skills/pest_diagnosis_skill.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "32557b7f45503aebd8344914d6af232a4427d7b24e779691f11fcace643ecb70"
+        }
+      ],
+      "name": "shared/memory/skills.py",
       "type": "file"
     },
     {
