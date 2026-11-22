@@ -2632,6 +2632,7 @@ SEC-006,service,services/auth/main.py,10,applied
 SEC-006,test,mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart,5,applied
 SEC-006,test,services/decision-service/tests/test_service_token_guard.py,5,applied
 SEC-006,test,tests_v9/test_guardrails_service_token_ascii.py,5,applied
+SEC-006,test,tests_v9/test_knowledge_graph_compose_service_token.py,5,applied
 SEC-006,test,tests_v9/test_production_service_tokens_w3_12.py,5,applied
 SEC-006,test,tests_v9/test_raster_service_token_binding.py,5,applied
 SEC-006,test,tests_v9/test_sensing_adapter_service_token.py,5,applied

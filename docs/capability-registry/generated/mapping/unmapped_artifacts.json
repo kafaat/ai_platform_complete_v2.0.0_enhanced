@@ -12888,7 +12888,15 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_nginx_operational_aliases_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_nginx_runtime_pull_retry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_nginx_v9_operational_aliases_runtime.py",
     "kind": "tests"
   },
   {
@@ -12953,6 +12961,10 @@
   },
   {
     "path": "tests_v9/test_nutrient_uptake.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_observability_smoke_script.py",
     "kind": "tests"
   },
   {
