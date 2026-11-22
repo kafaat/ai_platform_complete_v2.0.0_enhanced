@@ -463,23 +463,23 @@ async def test_ollama_accepts_latest_tag_without_pulling():
     assert namespace["_model_name"]("registry:5000/team/model") == "registry:5000/team/model:latest"
 
 
-@pytest.mark.parametrize("has_reference", [True, False])
+@pytest.mark.parametrize("reference", ["approved", "unreviewed", None])
 async def test_model_prose_cannot_be_published_merely_because_rag_found_text(
-    monkeypatch, has_reference
+    monkeypatch, reference
 ):
     from services.ai_agronomist import ai_evidence_runtime as runtime
     from services.ai_agronomist.main import AdvisorQuery
+    from tests_v9.test_reference_approval_manifest import admit_fixture_excerpts
 
+    has_reference = reference == "approved"
+    excerpt = {"chunk_id": "unrelated", "source_revision": "unit-rev", "text": "مرجع عام عن القمح"}
+    if has_reference:
+        admit_fixture_excerpts(monkeypatch, excerpt)
     original = httpx.AsyncClient
     transport = httpx.MockTransport(
         lambda request: httpx.Response(
             200,
-            json={
-                "annotations": [{"chunk_id": "unrelated", "text": "مرجع عام عن القمح"}]
-                if has_reference
-                else [],
-                "edges": [],
-            },
+            json={"annotations": [excerpt] if reference else [], "edges": []},
         )
     )
     monkeypatch.setattr(httpx, "AsyncClient", lambda **kw: original(transport=transport, **kw))
@@ -519,8 +519,14 @@ async def test_model_prose_cannot_be_published_merely_because_rag_found_text(
     if has_reference:
         assert result["guardrail_result"]["status"] == "blocked"
         assert result["guardrail_result"]["decision_validation"] == "not_executed"
+        assert result["annotations"]["rag"] == [excerpt]
     else:
         assert "لم تتوفر أدلة كافية" in result["answer_ar"]
+        # Retrieved text nobody approved never reaches the model: only its pointer survives.
+        assert result["annotations"]["rag"] == []
+        held = result["annotations"]["unverified_seed_references"]
+        assert [pointer["chunk_id"] for pointer in held] == (["unrelated"] if reference else [])
+        assert all("text" not in pointer for pointer in held)
 
 
 async def test_imagery_registration_uses_callers_transaction_and_failure_propagates():

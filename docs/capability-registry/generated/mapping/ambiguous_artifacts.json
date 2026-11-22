@@ -3422,14 +3422,6 @@
     "kind": "backend",
     "candidates": [
       {
-        "capability_id": "WX-008",
-        "score": 12,
-        "signals": [
-          "content:operation window",
-          "content:Operation windows"
-        ]
-      },
-      {
         "capability_id": "SOIL-002",
         "score": 12,
         "signals": [

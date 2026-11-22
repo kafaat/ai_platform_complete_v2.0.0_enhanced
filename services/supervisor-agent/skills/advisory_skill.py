@@ -37,6 +37,11 @@ DIAGNOSE_TIMEOUT_S = float(os.getenv("PLATFORM_DIAGNOSE_TIMEOUT_S", "10.0"))
 # نصّ الرفض الصريح الذي تُرجِعه خدمة RAG حين لا تكفي قاعدة المعرفة — نعامله ارتداداً
 # للقوالب (لا نُقدّم رفضاً مبهماً للمزارع حين لدينا قالب مفيد).
 _RAG_NO_KNOWLEDGE_AR = "لا تتوفّر معلومات كافية في قاعدة المعرفة للإجابة على هذا السؤال."
+# Closing line of every fixed template: why it states no figure, and whom to ask.
+_NO_REVIEWED_FIGURES_AR = (
+    "لا تُذكَر هنا أرقام أو مواعيد أو جرعات لعدم توفّر مصدر مُراجَع لها في هذه القناة؛ "
+    "راجِع مهندساً زراعيّاً مختصّاً لتحديدها لحقلك."
+)
 
 
 def advisory_source(rag_url: str | None, rag_ok: bool) -> str:
@@ -404,18 +409,21 @@ class AdvisorySkill:
                 logger.info("advisory: withheld unvalidated local-ai-rag output")
 
             # ── ارتداد القوالب (المصدر الافتراضيّ الصادق) ──────────────────────────
+            # No figure, month, count or time of day is stated here: a fixed template cites
+            # no reviewed source (`sources == []`). Those slots stay empty until an agronomist
+            # supplies reviewed content; the text says so and refers the farmer to one.
             advice_templates = {
-                "زراعة قمح": "🌾 **زراعة القمح في اليمن:**\n1. التوقيت: نوفمبر–ديسمبر\n2. الصنف: الحمداني أو البيضاني\n3. التسميد: حسب تحليل تربة معتمد ووصفة تسميد مراجعة للحقل (لا جرعة عامة)\n4. الري: 3–4 مرات حسب الأمطار\n5. الحصاد: مايو–يونيو",
-                "ري ذكي": "💧 **الري الذكي:**\n1. استخدم مقياس رطوبة التربة\n2. ري عند 30% رطوبة\n3. الري بالتنقيط يوفر 40% مياه\n4. ري صباحاً لتقليل التبخر\n5. تجنب الري عند توقع أمطار",
-                "تسميد": "🧪 **التسميد المتوازن:**\n1. حلل التربة أولاً\n2. NPK حسب المحصول والمرحلة\n3. لا تفرط في النيتروجين — يؤخر النضج\n4. استخدم السماد العضوي مع الكيميائي\n5. التسميد الجوري أفضل من البث",
-                "حصاد": "🚜 **نصائح الحصاد:**\n1. راقب رطوبة الحبوب (13–14%)\n2. حصاد في الصباح الباكر\n3. تجفيف فوري إذا كانت الرطوبة >15%\n4. تخزين في صوامع نظيفة\n5. راقب درجة الحرارة في المخزن",
+                "زراعة قمح": "🌾 **زراعة القمح في اليمن:**\n• الصنف: الحمداني أو البيضاني\n• التسميد: حسب تحليل تربة معتمد ووصفة تسميد مراجعة للحقل (لا جرعة عامة)",
+                "ري ذكي": "💧 **الري الذكي:**\n• استخدم مقياس رطوبة التربة\n• تجنب الري عند توقع أمطار",
+                "تسميد": "🧪 **التسميد المتوازن:**\n• حلل التربة أولاً\n• NPK حسب المحصول والمرحلة\n• لا تفرط في النيتروجين — يؤخر النضج\n• استخدم السماد العضوي مع الكيميائي\n• التسميد الجوري أفضل من البث",
+                "حصاد": "🚜 **نصائح الحصاد:**\n• راقب رطوبة الحبوب\n• تخزين في صوامع نظيفة\n• راقب درجة الحرارة في المخزن",
             }
 
             for keyword, template in advice_templates.items():
                 if keyword in query:
                     return {
                         "type": "general_advice",
-                        "response": template,
+                        "response": f"{template}\n{_NO_REVIEWED_FIGURES_AR}",
                         "source": "template",
                         "calibrated": False,
                         "generation_status": generation_status,
@@ -425,7 +433,10 @@ class AdvisorySkill:
 
             return {
                 "type": "general_advice",
-                "response": "شكراً على سؤالك. أنا أعمل على توسيع قاعدة المعرفة. للاستفسارات المحددة، يرجى التواصل مع فريق SAHOOL.",
+                "response": (
+                    "شكراً على سؤالك. أنا أعمل على توسيع قاعدة المعرفة. للاستفسارات المحددة، "
+                    f"يرجى التواصل مع فريق SAHOOL.\n{_NO_REVIEWED_FIGURES_AR}"
+                ),
                 "source": "template",
                 "calibrated": False,
                 "generation_status": generation_status,

@@ -24,6 +24,7 @@ Map<String, dynamic> chatReply({
   bool calibrated = false,
   String? fieldId,
   Map<String, dynamic>? validation,
+  Map<String, dynamic>? extra,
 }) => {
   'status': 'ok',
   'mode': 'evidence_only',
@@ -51,6 +52,42 @@ Map<String, dynamic> chatReply({
     'schema': 'sahool.advisory_envelope/1',
     'limitations': ['generation_disabled_evidence_only'],
     'requires_human_review': true,
+  },
+  ...?extra,
+};
+
+/// حقول الشفافيّة التي يضيفها الخادم حين تغيب المراجع ولم يُحفَظ سجلّ التدقيق.
+Map<String, dynamic> evidenceGaps() => {
+  'rag_available': false,
+  'rag_unavailable_reason': 'TENANT_CORPUS_EMPTY',
+  'audit_event': {'status': 'not_persisted', 'persisted': false},
+  'annotations': {
+    'rag': [
+      {
+        'chunk_id': 'c1',
+        'publisher': 'FAO',
+        'source_uri': 'https://www.fao.org/x',
+        'source_revision': '2021',
+        'page': 12,
+        'section': 'Kc',
+      },
+      {
+        'chunk_id': 'c2',
+        'source_uri': 'tenant-upload://tenant-7/soil%20report.pdf',
+      },
+      {'chunk_id': 'c3', 'publisher': 'X', 'source_uri': 'javascript:alert(1)'},
+      {'chunk_id': 'c1', 'publisher': 'duplicate'},
+    ],
+    'unverified_seed_references': [
+      {'chunk_id': 's1'},
+      {'chunk_id': 's2'},
+    ],
+  },
+  'advisory': {
+    'schema': 'sahool.advisory_envelope/1',
+    'limitations': ['low_confidence'],
+    'requires_human_review': true,
+    'evidence_missing': ['no_grounding_evidence', 'gap:soil_ec', 'new_code'],
   },
 };
 

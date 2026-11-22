@@ -8,16 +8,33 @@ M2 (تدقيق خارجيّ): النصّ الحرّ للمستشار تفسير�
     تفسيريّ)؛ لا يُقبَل ``go/caution/no_go`` إلّا من مُستدعٍ موثوق (محرّك قرار)، لا من نصّ AI.
   • ``evidence_used``/``evidence_missing`` من الأدلّة الفعليّة في الاستجابة (لا تلفيق).
   • ``requires_human_review`` **fail-safe**: افتراضه المراجعة عند أيّ فعل/غموض/نقص دليل.
+  • غيابُ المراجع (``rag_available`` ليس ``True``) وسجلُّ تدقيقٍ لم يُؤكَّد حفظُه
+    (``audit_event.status`` ليس ``recorded``) يُسمَّيان برمزٍ ثابت ويفرضان المراجعة — الحالةُ
+    الصامتة الوحيدة هي المؤكَّدة، والمفتاحُ الغائب أو الشاذّ ليس تأكيداً.
   • سلطة القرار تبقى ``field_intelligence_coordinator`` (لا AI).
 """
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 _DECISIONS = ("advisory_only", "no_go", "caution", "go")
 _DEFAULT_CONFIDENCE_FLOOR = 0.6
 _SUMMARY_MAX = 400
+
+# Stable codes the web and mobile label maps key on. Only a code-shaped reason is echoed
+# after ``references_unavailable:``; free text (a body, a URL) never is.
+_REFERENCES_UNAVAILABLE = "references_unavailable"
+_REFERENCES_UNVERIFIED = "references_unverified"
+_REASON_CODE = re.compile(r"[A-Za-z0-9_]{1,64}")
+_AUDIT_RECORDED = "recorded"
+_AUDIT_NOT_SAVED_CODES = {
+    "not_persisted": "audit_record_not_persisted",
+    "unconfirmed": "audit_record_unconfirmed",
+    "failed": "audit_record_failed",
+    "skipped": "audit_record_skipped",
+}
 
 
 def _clamp01(v: Any) -> float | None:
@@ -40,6 +57,31 @@ def _coerce_decision(decision: Any) -> str:
     """يقبل قراراً **فقط** من مُستدعٍ موثوق (محرّك قرار). غيره/شاذّ ⇒ ``advisory_only``."""
     d = str(decision or "").strip().lower()
     return d if d in _DECISIONS else "advisory_only"
+
+
+def _reference_codes(response: dict[str, Any]) -> list[str]:
+    """References (RAG) are context, not evidence used: only their absence is named here."""
+    available = response.get("rag_available")
+    if available is True:
+        return []
+    if available is not False:
+        return [_REFERENCES_UNVERIFIED]
+    codes = [_REFERENCES_UNAVAILABLE]
+    reason = response.get("rag_unavailable_reason")
+    if isinstance(reason, str) and _REASON_CODE.fullmatch(reason):
+        codes.append(f"{_REFERENCES_UNAVAILABLE}:{reason}")
+    return codes
+
+
+def _audit_code(response: dict[str, Any]) -> str | None:
+    """None only when the runtime reports the advice event as recorded."""
+    event = response.get("audit_event")
+    status = event.get("status") if isinstance(event, dict) else None
+    if status == _AUDIT_RECORDED:
+        return None
+    if isinstance(status, str) and status in _AUDIT_NOT_SAVED_CODES:
+        return _AUDIT_NOT_SAVED_CODES[status]
+    return _AUDIT_NOT_SAVED_CODES["unconfirmed"]
 
 
 def _evidence_missing(response: dict[str, Any], evidence_used: list[str]) -> list[str]:
@@ -70,6 +112,7 @@ def _evidence_missing(response: dict[str, Any], evidence_used: list[str]) -> lis
             out.extend(f"context_pack:{w}" for w in _str_list(warnings))
         elif warnings is not None:
             out.append("context_pack:warnings_invalid")
+    out.extend(_reference_codes(response))
     # إزالة التكرار مع الحفاظ على الترتيب.
     seen: set[str] = set()
     return [x for x in out if not (x in seen or seen.add(x))]
@@ -99,6 +142,10 @@ def _limitations(
         lim.append("low_confidence")
     if response.get("tool_calls_truncated"):
         lim.append("tool_calls_truncated")
+    lim.extend(_reference_codes(response)[:1])
+    audit_code = _audit_code(response)
+    if audit_code:
+        lim.append(audit_code)
     return lim
 
 
@@ -132,6 +179,7 @@ def build_advisory_envelope(
         or conf is None
         or conf < confidence_floor
         or evidence_missing
+        or _audit_code(r)
     )
 
     return {

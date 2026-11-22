@@ -29,13 +29,63 @@ def seed_claim_details(metadata):
     }
 
 
-def partition_generation_references(items):
-    """Separate auditable source pointers from excerpts allowed into the LLM context."""
+_POINTER_KEYS = (
+    "document_id",
+    "source_type",
+    "publisher",
+    "source_uri",
+    "source_revision",
+    "page",
+    "section",
+)
+
+
+def partition_generation_references(
+    items, *, crop=None, region=None, jurisdiction=None, as_of=None, approvals=None
+):
+    """Admit an excerpt to the LLM context only on a matching approval record.
+
+    ``approvals`` comes from ``reference_approvals.index_approvals``; by default it is the
+    manifest shipped with this build. Every other excerpt is returned as a source pointer
+    without its text. A flagged seed claim stays held even when a record names it.
+    """
+    from shared.ai.reference_approvals import (
+        content_digest,
+        excerpt_text,
+        generation_hold_reason,
+        shipped_approvals,
+    )
+
+    if approvals is None:
+        approvals = shipped_approvals()
     usable, unreviewed = [], []
     for item in items:
+        if not isinstance(item, dict):
+            unreviewed.append(
+                {"chunk_id": None, "generation_hold_reason": "excerpt_is_not_an_object"}
+            )
+            continue
         claim = seed_claim_details(item)
-        if claim:
-            unreviewed.append({"chunk_id": item.get("chunk_id"), **claim})
-        else:
+        reason = (
+            "seed_claim_not_verified_against_original"
+            if claim
+            else generation_hold_reason(
+                item,
+                approvals,
+                crop=crop,
+                region=region,
+                jurisdiction=jurisdiction,
+                as_of=as_of,
+            )
+        )
+        if reason is None:
             usable.append(item)
+            continue
+        text = excerpt_text(item)
+        pointer = {key: item[key] for key in _POINTER_KEYS if item.get(key) is not None}
+        if text is not None:
+            pointer["content_digest"] = content_digest(text)
+        unreviewed.append(
+            {"chunk_id": item.get("chunk_id"), **pointer, **claim, "generation_hold_reason": reason}
+        )
     return usable, unreviewed

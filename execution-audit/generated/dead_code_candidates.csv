@@ -60,7 +60,7 @@ medium,agriai-engine,function,simulation_capability_report,services/agriai-engin
 medium,agriai-engine,function,teardown_module,services/agriai-engine/tests/test_production_readiness_truth.py,60,0,review_before_delete,False
 medium,ai-agronomist,class,ABTestingRuntime,services/ai_agronomist/ab_testing.py,1,0,review_before_delete,False
 medium,ai-agronomist,function,store_backend_name,services/ai_agronomist/agent_stores.py,354,0,review_before_delete,False
-medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,976,0,review_before_delete,False
+medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,961,0,review_before_delete,False
 medium,ai-agronomist,class,ChaosRuntime,services/ai_agronomist/chaos_runtime.py,1,0,review_before_delete,False
 medium,ai-agronomist,class,ComplianceValidator,services/ai_agronomist/compliance_validator.py,1,0,review_before_delete,False
 medium,ai-agronomist,class,DecisionMetrics,services/ai_agronomist/decision_metrics.py,1,0,review_before_delete,False
@@ -190,7 +190,7 @@ medium,sahool-platform,function,run_field_bootstrap_once,services/sahool-platfor
 medium,sahool-platform,function,prescription_to_csv,services/sahool-platform/api/prescriptions.py,360,0,review_before_delete,False
 medium,sahool-platform,function,get_field_terrain,services/sahool-platform/api/raster_service_client.py,495,0,review_before_delete,False
 medium,sahool-platform,function,season_state_scene,services/sahool-platform/api/raster_service_client.py,793,0,review_before_delete,False
-medium,sahool-platform,function,record_canonical_context,services/sahool-platform/api/recommendations_hub.py,524,0,review_before_delete,False
+medium,sahool-platform,function,record_canonical_context,services/sahool-platform/api/recommendations_hub.py,533,0,review_before_delete,False
 medium,sahool-platform,function,field_to_pdf_bytes,services/sahool-platform/api/reports.py,237,0,review_before_delete,False
 medium,sahool-platform,function,field_imagery_available_dates,services/sahool-platform/api/routers/fields.py,743,0,review_before_delete,False
 medium,sahool-platform,function,field_imagery_timeline,services/sahool-platform/api/routers/fields.py,779,0,review_before_delete,False
