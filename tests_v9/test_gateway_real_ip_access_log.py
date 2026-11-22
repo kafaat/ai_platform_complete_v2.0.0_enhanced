@@ -45,7 +45,15 @@ MAIN_PREFIX = (
     '$status $body_bytes_sent "$http_referer" '
     '"$http_user_agent" "$http_x_forwarded_for"'
 )
-REQUIRED_LOG_VARIABLES = ("$http_x_forwarded_for", "$http_x_real_ip", "$sahool_rl_key")
+REQUIRED_LOG_VARIABLES = (
+    "$http_x_forwarded_for",
+    "$http_x_real_ip",
+    "$sahool_rl_key",
+    "$request_time",
+    "$upstream_response_time",
+)
+# The timing fields are appended after rl_key, so existing parsers keep working.
+TIMING_SUFFIX = 'request_time="$request_time" upstream_time="$upstream_response_time"'
 
 # ── Snapshot of main@eb0be3977 (frontend/nginx.conf), taken with the parser below. ──
 MAIN_ZONES = [
@@ -192,6 +200,8 @@ def log_problems(text: str) -> list[str]:
     if not fmt.startswith(MAIN_PREFIX):
         problems.append(f"{LOG_FORMAT} does not start with the image's 'main' format")
     problems += [f"{LOG_FORMAT} lacks {v}" for v in REQUIRED_LOG_VARIABLES if v not in fmt]
+    if not fmt.endswith(TIMING_SUFFIX) or 'rl_key="$sahool_rl_key"' not in fmt:
+        problems.append(f"{LOG_FORMAT} must end with rl_key then {TIMING_SUFFIX}")
     logs = [d.args for d in server.directives("access_log")]
     if not any(len(a) >= 2 and a[1] == LOG_FORMAT for a in logs):
         problems.append(f"gateway server does not log with {LOG_FORMAT}: {logs}")
@@ -261,6 +271,9 @@ def test_the_log_check_rejects_mains_log_shape():
     assert log_problems(without) == [f"no http-level `log_format {LOG_FORMAT}`"]
     no_real_ip = SOURCE.replace('xrip="$http_x_real_ip" ', "")
     assert f"{LOG_FORMAT} lacks $http_x_real_ip" in log_problems(no_real_ip)
+    no_timing = SOURCE.replace(' upstream_time="$upstream_response_time"', "")
+    assert no_timing != SOURCE
+    assert f"{LOG_FORMAT} lacks $upstream_response_time" in log_problems(no_timing)
     no_access_log = SOURCE.replace(f"access_log /dev/stdout {LOG_FORMAT};", "")
     assert any("does not log with" in p for p in log_problems(no_access_log))
 
