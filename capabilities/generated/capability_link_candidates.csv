@@ -463,7 +463,7 @@ FM-002,api,POST /api/v1/farm-ledger/operations @ services/sahool-platform/api/ro
 FM-002,api,POST /api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:632,2,applied
 FM-002,api,POST /api/v1/farms @ services/sahool-platform/api/routers/farms.py:37,4,applied
 FM-002,api,POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88,3,applied
-FM-002,api,POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:119,2,applied
+FM-002,api,POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:120,2,applied
 FM-002,api,POST /v1/phase9/autonomy/cycle @ services/sahool-platform/api/phase9_autonomous_farm_os.py:148,2,applied
 FM-002,api,POST /v1/phase9/autonomy/events/from-plan @ services/sahool-platform/api/phase9_autonomous_farm_os.py:196,2,applied
 FM-002,api,POST /v1/phase9/autonomy/events/replay @ services/sahool-platform/api/phase9_autonomous_farm_os.py:202,2,applied
@@ -1626,7 +1626,7 @@ IRR-007,api,GET /api/v1/commands/{command_id} @ services/sahool-platform/api/rou
 IRR-007,api,GET /health @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /healthz @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /readyz @ services/actuator-service/routers/health.py:32,3,applied
-IRR-007,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:271,2,applied
+IRR-007,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:272,2,applied
 IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:126,3,applied
 IRR-007,api,GET /v1/commands/{command_id} @ services/actuator-service/routers/commands.py:152,5,applied
 IRR-007,api,GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
@@ -2606,7 +2606,7 @@ SEC-004,test,tests_v9/test_mfa_totp_antireplay_v141.py,5,applied
 SEC-004,ui,frontend/e2e/mfa-enrollment-contrast.spec.ts,2,applied
 SEC-005,api,GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19,2,applied
 SEC-005,api,GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:642,2,applied
-SEC-005,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:271,2,applied
+SEC-005,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:272,2,applied
 SEC-005,service,services/auth/main.py,10,applied
 SEC-005,test,services/actuator-service/test_actuator_safety_audit_20261101.py,3,applied
 SEC-005,test,services/sahool-platform/tests/test_calibration_audit_endpoint.py,3,applied

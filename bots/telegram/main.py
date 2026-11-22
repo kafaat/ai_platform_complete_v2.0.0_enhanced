@@ -458,6 +458,34 @@ async def link_account(user_id: int, email: str, password: str) -> bool:
         return False
 
 
+# F3: every supervisor answer is shown with the line that says where its text came from.
+# A reply without that line (an older supervisor) is shown as of undeclared origin.
+_ORIGIN_UNSTATED_AR = (
+    "المصدر: مصدر النصّ غير مُعلَن. الثقة غير مُعايَرة، وتلزم مراجعة مهندس زراعيّ مختصّ قبل الاعتماد."
+)
+_ANSWER_MAX_CHARS = 3950
+
+
+def _supervisor_answer(result: dict, fallback: str) -> str:
+    """MarkdownV2-escaped ``response_ar`` followed by its provenance line.
+
+    The body is cut before escaping (so no ``\\x`` pair is split) and the provenance line
+    is never the part that is cut. ``fallback`` is the bot's own notice when the supervisor
+    returned no text; it is not advice and carries no line.
+    """
+    body = result.get("response_ar") if isinstance(result, dict) else None
+    if not isinstance(body, str) or not body.strip():
+        return _md2(fallback)
+    note = result.get("provenance_note_ar")
+    if not isinstance(note, str) or not note.strip():
+        note = _ORIGIN_UNSTATED_AR
+    note = note.strip()[:600]
+    room = _ANSWER_MAX_CHARS - len(note)
+    if len(body) > room:
+        body = body[:room] + "..."
+    return _md2(f"{body}\n\nℹ️ {note}")
+
+
 async def call_supervisor(
     user_id: int,
     query: str,
@@ -701,7 +729,7 @@ async def cmd_ndvi(message: Message):
             context={"date": datetime.now(UTC).strftime("%Y-%m-%d")},
         )
 
-        response = _md2(result.get("response_ar") or "لم أتمكن من الحصول على البيانات.")
+        response = _supervisor_answer(result, "لم أتمكن من الحصول على البيانات.")
 
         # Add structured data if available
         if result.get("structured_data"):
@@ -727,7 +755,7 @@ async def cmd_weather(message: Message):
     try:
         result = await call_supervisor(user_id, "ما هو طقس الأيام القادمة؟", context={"days": 7})
 
-        response = _md2(result.get("response_ar") or "لم أتمكن من الحصول على البيانات.")
+        response = _supervisor_answer(result, "لم أتمكن من الحصول على البيانات.")
         await wait_msg.edit_text(response)
 
     except Exception as e:
@@ -775,7 +803,7 @@ async def process_pest_photo(message: Message, state: FSMContext):
             context={"crop": crop, "image_file_id": photo.file_id},
         )
 
-        response = _md2(result.get("response_ar") or "لم أتمكن من التحليل.")
+        response = _supervisor_answer(result, "لم أتمكن من التحليل.")
 
         await wait_msg.edit_text(response)
 
@@ -827,7 +855,7 @@ async def cmd_market(message: Message):
             user_id, f"كم سعر {crop} في السوق؟", context={"crop": crop, "market": "sanaa"}
         )
 
-        response = _md2(result.get("response_ar") or "لم أتمكن من الحصول على الأسعار.")
+        response = _supervisor_answer(result, "لم أتمكن من الحصول على الأسعار.")
 
         # Add price trend button
         kb = InlineKeyboardMarkup(
@@ -1007,7 +1035,7 @@ async def cb_price_trend(callback: CallbackQuery):
             user_id, f"اتجاه سعر {crop}", context={"crop": crop, "market": "sanaa"}
         )
 
-        response = _md2(result.get("response_ar") or "لم أتمكن من جلب الاتجاه.")
+        response = _supervisor_answer(result, "لم أتمكن من جلب الاتجاه.")
         await callback.message.answer(response)
 
     except Exception as e:
@@ -1095,12 +1123,8 @@ async def handle_natural_language(message: Message):
             user_id, message.text, field_id=field_id, context={"crop": crop}
         )
 
-        response = result.get("response_ar") or "لم أفهم السؤال تماماً. حاول صياغته بطريقة أخرى."
-
-        # Truncate if too long for Telegram (قبل التهريب كي لا يُقطع تسلسل \\x)
-        if len(response) > 4000:
-            response = response[:3950] + "..."
-        response = _md2(response)
+        # Cut to Telegram's limit before escaping, keeping the provenance line (F3).
+        response = _supervisor_answer(result, "لم أفهم السؤال تماماً. حاول صياغته بطريقة أخرى.")
 
         await wait_msg.edit_text(response)
 

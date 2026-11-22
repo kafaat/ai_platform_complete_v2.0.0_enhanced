@@ -6,7 +6,7 @@
 ## Inventory summary
 
 - Services discovered: **33**
-- Python LOC discovered: **363,559**
+- Python LOC discovered: **363,657**
 - Routes discovered: **1169**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
@@ -31,7 +31,7 @@
 | `mcp_servers` | Agent Tools | 13 | 2742 | 1 | 36 | `-` | `services/mcp_servers/Dockerfile` | `services/mcp_servers/requirements.txt` | `normal` |
 | `model-registry-adapter` | Unclassified / Support | 8 | 1672 | 3 | 0 | `-` | `services/model-registry-adapter/Dockerfile` | `-` | `medium-runtime-contract-gap` |
 | `odoo-bridge` | ERP Integration | 11 | 1963 | 2 | 11 | `services/odoo-bridge/main.py` | `services/odoo-bridge/Dockerfile` | `services/odoo-bridge/requirements.txt` | `normal` |
-| `qdrant-seed` | Unclassified / Support | 7 | 1394 | 2 | 0 | `-` | `services/qdrant-seed/Dockerfile` | `services/qdrant-seed/requirements.txt` | `medium-runtime-contract-gap` |
+| `qdrant-seed` | Unclassified / Support | 6 | 1257 | 2 | 0 | `-` | `services/qdrant-seed/Dockerfile` | `services/qdrant-seed/requirements.txt` | `medium-runtime-contract-gap` |
 | `rag-retrieval` | Knowledge Retrieval | 5 | 872 | 1 | 5 | `services/rag-retrieval/main.py` | `services/rag-retrieval/Dockerfile` | `services/rag-retrieval/requirements.txt` | `normal` |
 | `raster-service` | Imagery & Raster | 247 | 44072 | 137 | 89 | `services/raster-service/main.py` | `services/raster-service/Dockerfile` | `services/raster-service/requirements.txt` | `normal` |
 | `raster-tiler-service` | Imagery & Raster | 2 | 233 | 1 | 2 | `services/raster-tiler-service/main.py` | `services/raster-tiler-service/Dockerfile` | `services/raster-tiler-service/requirements.txt` | `normal` |
@@ -42,7 +42,7 @@
 | `sam2-inference` | Field Boundary AI | 4 | 1620 | 1 | 4 | `services/sam2-inference/main.py` | `services/sam2-inference/Dockerfile` | `services/sam2-inference/requirements.txt` | `normal` |
 | `scout-ingest-service` | Unclassified / Support | 19 | 7203 | 5 | 45 | `services/scout-ingest-service/main.py` | `services/scout-ingest-service/Dockerfile` | `services/scout-ingest-service/requirements.txt` | `normal` |
 | `soil-service` | Soil Intelligence | 63 | 8036 | 24 | 62 | `services/soil-service/main.py` | `services/soil-service/Dockerfile` | `services/soil-service/requirements.txt` | `normal` |
-| `supervisor-agent` | Agent Orchestration | 24 | 5010 | 8 | 11 | `services/supervisor-agent/main.py` | `services/supervisor-agent/Dockerfile` | `services/supervisor-agent/requirements.txt` | `normal` |
+| `supervisor-agent` | Agent Orchestration | 25 | 5245 | 8 | 11 | `services/supervisor-agent/main.py` | `services/supervisor-agent/Dockerfile` | `services/supervisor-agent/requirements.txt` | `normal` |
 | `tts-service` | Voice & Notifications | 10 | 1536 | 1 | 8 | `services/tts-service/main.py` | `services/tts-service/Dockerfile` | `services/tts-service/requirements.txt` | `normal` |
 | `vegetation-analysis-service` | Vegetation Analytics | 45 | 6221 | 19 | 22 | `services/vegetation-analysis-service/main.py` | `services/vegetation-analysis-service/Dockerfile` | `services/vegetation-analysis-service/requirements.txt` | `normal` |
 | `video-processor` | Video Processing | 9 | 1218 | 1 | 11 | `services/video-processor/main.py` | `services/video-processor/Dockerfile` | `services/video-processor/requirements.txt` | `normal` |

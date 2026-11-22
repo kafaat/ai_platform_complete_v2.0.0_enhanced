@@ -326,8 +326,8 @@
   {
     "service": "supervisor-agent",
     "domain": "Agent Orchestration",
-    "python_files": 24,
-    "python_loc": 5010,
+    "python_files": 25,
+    "python_loc": 5245,
     "tests": 8,
     "routes": 11,
     "main": "services/supervisor-agent/main.py",

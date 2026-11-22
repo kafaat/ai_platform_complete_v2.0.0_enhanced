@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7619,
+    "files_scanned": 7616,
     "files_by_kind": {
       "backend": 1310,
       "database": 352,
       "governance": 90,
       "mobile": 429,
-      "other": 2237,
-      "tests": 2643,
+      "other": 2235,
+      "tests": 2642,
       "web": 558
     },
-    "unmapped_artifacts": 3627,
+    "unmapped_artifacts": 3626,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4139,
-      "raw": 3480
+      "python_functional": 4137,
+      "raw": 3479
     },
-    "test_dependency_files": 2016,
-    "test_dependency_edges": 5386,
+    "test_dependency_files": 2015,
+    "test_dependency_edges": 5379,
     "test_dependency_bounded_files": 1167,
-    "test_dependency_unresolved_relations": 514
+    "test_dependency_unresolved_relations": 513
   },
   "capabilities": [
     {
@@ -38808,10 +38808,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/qdrant-seed/list_review_candidates.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/qdrant-seed/reindex.py",
       "kind": "backend"
     },
@@ -43584,6 +43580,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/supervisor-agent/answer_provenance.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/supervisor-agent/circuit_breaker.py",
       "kind": "backend"
     },
@@ -46857,10 +46857,6 @@
     },
     {
       "path": "tests_v9/test_redis_password_wiring.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_reference_approval_manifest.py",
       "kind": "tests"
     },
     {
@@ -76724,11 +76720,6 @@
           "source": "tests_v9/test_b6m4_structured_advisory.py",
           "kind": "import",
           "line": 322
-        },
-        {
-          "source": "tests_v9/test_reference_approval_manifest.py",
-          "kind": "import",
-          "line": 337
         }
       ],
       "unresolved": []
@@ -93296,11 +93287,6 @@
           "source": "services/local-ai-rag/main.py",
           "kind": "source_read",
           "line": 438
-        },
-        {
-          "source": "tests_v9/test_reference_approval_manifest.py",
-          "kind": "import",
-          "line": 472
         }
       ],
       "unresolved": [
@@ -93321,11 +93307,11 @@
           "import": "raster_api_models"
         },
         {
-          "line": 533,
+          "line": 527,
           "import": "api.imagery_automation"
         },
         {
-          "line": 551,
+          "line": 545,
           "import": "api.imagery_automation"
         }
       ]
@@ -93831,46 +93817,6 @@
         }
       ],
       "unresolved": []
-    },
-    {
-      "test": "tests_v9/test_reference_approval_manifest.py",
-      "bounded": false,
-      "unbounded_reasons": [
-        "unresolved_dynamic_relation"
-      ],
-      "edges": [
-        {
-          "source": "services/qdrant-seed/list_review_candidates.py",
-          "kind": "loader",
-          "line": 334
-        },
-        {
-          "source": "services/qdrant-seed/list_review_candidates.py",
-          "kind": "source_read",
-          "line": 333
-        },
-        {
-          "source": "shared/ai/__init__.py",
-          "kind": "import",
-          "line": 15
-        },
-        {
-          "source": "shared/ai/reference_approvals.py",
-          "kind": "import",
-          "line": 15
-        },
-        {
-          "source": "shared/ai/seed_claims.py",
-          "kind": "import",
-          "line": 25
-        }
-      ],
-      "unresolved": [
-        {
-          "line": 398,
-          "import": "seed"
-        }
-      ]
     },
     {
       "test": "tests_v9/test_remaining_closure_20260702.py",

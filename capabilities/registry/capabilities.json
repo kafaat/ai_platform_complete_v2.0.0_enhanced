@@ -195,7 +195,7 @@
         "POST /api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:632",
         "POST /api/v1/farms @ services/sahool-platform/api/routers/farms.py:37",
         "POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88",
-        "POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:119",
+        "POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:120",
         "POST /v1/phase9/autonomy/cycle @ services/sahool-platform/api/phase9_autonomous_farm_os.py:148",
         "POST /v1/phase9/autonomy/events/from-plan @ services/sahool-platform/api/phase9_autonomous_farm_os.py:196",
         "POST /v1/phase9/autonomy/events/replay @ services/sahool-platform/api/phase9_autonomous_farm_os.py:202",
@@ -3416,7 +3416,7 @@
         "GET /health @ services/actuator-service/routers/health.py:20",
         "GET /healthz @ services/actuator-service/routers/health.py:20",
         "GET /readyz @ services/actuator-service/routers/health.py:32",
-        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:271",
+        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:272",
         "GET /v1/commands @ services/actuator-service/routers/commands.py:126",
         "GET /v1/commands/{command_id} @ services/actuator-service/routers/commands.py:152",
         "GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18",
@@ -5932,7 +5932,7 @@
       "apis": [
         "GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19",
         "GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:642",
-        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:271"
+        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:272"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

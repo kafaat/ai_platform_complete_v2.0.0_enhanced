@@ -39865,6 +39865,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "39bf20cc79a0f5b14d678df8ee74d5d98fb67b85d2bdaff7a7e894fc5205953e"
+        }
+      ],
+      "name": "services/supervisor-agent/answer_provenance.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f6260f16b1e3dd5f3cf3e7610099c39c74b28b92d4194bf2032dbd8b57348e71"
         }
       ],
@@ -39875,7 +39885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a293db5973eca4c9b3084ed7b56007a1d2c471b4ad29d8a61518ae70fb76b04f"
+          "content": "b94d332222651873f5aae1b4f449fa3b3059ae2079147a1c878e2139eeceae18"
         }
       ],
       "name": "services/supervisor-agent/main.py",
@@ -39935,7 +39945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c6f7fcdf51b7c4d62e452f5f68127d03304b2c3e4b356d7741b1359e46057d04"
+          "content": "9540c8e382796a98dd7c83cb5b1ec7b7dfd1bc46d8834e5237d28faaf0c9f6d6"
         }
       ],
       "name": "services/supervisor-agent/routers/agent.py",
@@ -39975,7 +39985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2452495681dd9b3d6cee8579390873f432c783232f4fadfdb22c1fd6442c561f"
+          "content": "466726d5224b69fc540831d85759dc263f85f7b3f4bb401f03c9f2f64605b937"
         }
       ],
       "name": "services/supervisor-agent/skills/advisory_skill.py",
@@ -40015,7 +40025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ccd102e77a78f22e69e567e4428886f25e8b6541860d399764d7fda3d18c5a3a"
+          "content": "e0d923f714a8e2b9e305699b7659e4b03b62d7108b88da05c6b363295091da3d"
         }
       ],
       "name": "services/supervisor-agent/test_ai_orchestration_forensic.py",
