@@ -188,11 +188,11 @@ knowledge-graph,services/knowledge-graph/main.py,212,POST,/v1/nodes,upsert_node,
 knowledge-graph,services/knowledge-graph/main.py,225,POST,/v1/edges,upsert_edge,versioned
 knowledge-graph,services/knowledge-graph/main.py,239,GET,/v1/edges,edges,versioned
 knowledge-graph,services/knowledge-graph/main.py,259,POST,/graphql,graphql,graphql_facade
-local-ai-rag,services/local-ai-rag/main.py,770,POST,/v1/query,query_endpoint,versioned
-local-ai-rag,services/local-ai-rag/main.py,780,POST,/v1/ingest,ingest_endpoint,versioned
-local-ai-rag,services/local-ai-rag/main.py,835,GET,/healthz,healthz,infra
-local-ai-rag,services/local-ai-rag/main.py,853,GET,/health,legacy_health,infra
-local-ai-rag,services/local-ai-rag/main.py,858,GET,/readyz,readyz,infra
+local-ai-rag,services/local-ai-rag/main.py,829,POST,/v1/query,query_endpoint,versioned
+local-ai-rag,services/local-ai-rag/main.py,839,POST,/v1/ingest,ingest_endpoint,versioned
+local-ai-rag,services/local-ai-rag/main.py,894,GET,/healthz,healthz,infra
+local-ai-rag,services/local-ai-rag/main.py,912,GET,/health,legacy_health,infra
+local-ai-rag,services/local-ai-rag/main.py,917,GET,/readyz,readyz,infra
 mcp_servers,services/mcp_servers/generic_context_server.py,152,GET,/healthz,healthz,infra
 mcp_servers,services/mcp_servers/generic_context_server.py,157,GET,/readyz,readyz,infra
 mcp_servers,services/mcp_servers/generic_context_server.py,166,GET,/v1/mcp/tools,list_tools,versioned

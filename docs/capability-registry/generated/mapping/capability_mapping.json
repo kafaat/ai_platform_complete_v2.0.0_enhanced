@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7665,
+    "files_scanned": 7666,
     "files_by_kind": {
       "backend": 1312,
       "database": 354,
       "governance": 90,
       "mobile": 429,
       "other": 2242,
-      "tests": 2666,
+      "tests": 2667,
       "web": 572
     },
-    "unmapped_artifacts": 3653,
+    "unmapped_artifacts": 3654,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4160,
+      "python_functional": 4161,
       "raw": 3505
     },
-    "test_dependency_files": 2030,
-    "test_dependency_edges": 5438,
-    "test_dependency_bounded_files": 1171,
+    "test_dependency_files": 2031,
+    "test_dependency_edges": 5439,
+    "test_dependency_bounded_files": 1172,
     "test_dependency_unresolved_relations": 519
   },
   "capabilities": [
@@ -46288,6 +46288,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_local_ai_rag_publish_serialisation.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_local_ai_rag_sources_and_upload_cleanup.py",
       "kind": "tests"
     },
@@ -77007,12 +77011,12 @@
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "loader",
-          "line": 378
+          "line": 379
         },
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "source_read",
-          "line": 377
+          "line": 378
         },
         {
           "source": "services/ai_agronomist/ai_generation.py",
@@ -77037,7 +77041,7 @@
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 337
+          "line": 338
         },
         {
           "source": "services/sahool-platform/api/ai_provider_config.py",
@@ -89133,6 +89137,19 @@
       ]
     },
     {
+      "test": "tests_v9/test_local_ai_rag_publish_serialisation.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/local-ai-rag/main.py",
+          "kind": "source_read",
+          "line": 30
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_local_ai_rag_sources_and_upload_cleanup.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -92692,17 +92709,17 @@
         {
           "source": "services/local-ai-rag/main.py",
           "kind": "source_read",
-          "line": 33
+          "line": 34
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "loader",
-          "line": 251
+          "line": 258
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 34
+          "line": 35
         }
       ],
       "unresolved": []
