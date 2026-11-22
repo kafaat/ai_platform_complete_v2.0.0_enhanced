@@ -30,6 +30,9 @@ _GOOD = {
     "evidence_sources": ["rag", "kg"],
     "pending_approvals": [],
     "generation_provider": "openrouter",
+    # F5: the quiet state now needs both confirmations the runtime always supplies.
+    "rag_available": True,
+    "audit_event": {"status": "recorded"},
     "decision_authority": "field_intelligence_coordinator",
 }
 

@@ -112,7 +112,8 @@ async def test_model_reply_is_escaped_in_natural_language_handler(bot, monkeypat
     sent = msg.wait.edit_text.call_args.args[0]
     assert unescaped_reserved(sent) == []
     assert "\\[سجّل الدخول\\]\\(https://evil\\.example\\)" in sent
-    assert bot._md2_to_plain(sent) == INJECTION
+    # The reply is the model text, then the line that says its origin was not stated (F3).
+    assert bot._md2_to_plain(sent) == f"{INJECTION}\n\nℹ️ {bot._ORIGIN_UNSTATED_AR}"
 
 
 @pytest.mark.parametrize("handler", ["cmd_weather", "cmd_market"])
@@ -122,6 +123,63 @@ async def test_model_reply_is_escaped_in_menu_handlers(bot, monkeypatch, handler
     await getattr(bot, handler)(msg)
     sent = msg.wait.edit_text.call_args.args[0]
     assert unescaped_reserved(sent) == []
+
+
+# ── F3: the answer is shown with where its text came from ─────
+
+NOTE = "المصدر: قالب نصّي ثابت بلا مصدر مُراجَع. التوليد: لم يُستخدَم توليد آليّ. الثقة غير مُعايَرة، وتلزم مراجعة مهندس زراعيّ مختصّ قبل الاعتماد."
+
+
+async def _natural_reply(bot, monkeypatch, result) -> str:
+    monkeypatch.setattr(bot, "call_supervisor", AsyncMock(return_value=result))
+    msg = message(text="ري ذكي")
+    await bot.handle_natural_language(msg)
+    sent = msg.wait.edit_text.call_args.args[0]
+    assert unescaped_reserved(sent) == []
+    return bot._md2_to_plain(sent)
+
+
+async def test_supervisor_provenance_line_is_shown_under_the_answer(bot, monkeypatch):
+    plain = await _natural_reply(
+        bot, monkeypatch, {"response_ar": "نصّ الجواب", "provenance_note_ar": NOTE}
+    )
+    assert plain == f"نصّ الجواب\n\nℹ️ {NOTE}"
+
+
+@pytest.mark.parametrize("note", [None, "", "   ", {"text": "معايَرة"}, 0.99])
+async def test_answer_without_a_provenance_line_is_shown_as_undeclared(bot, monkeypatch, note):
+    plain = await _natural_reply(
+        bot, monkeypatch, {"response_ar": "نصّ الجواب", "provenance_note_ar": note}
+    )
+    assert plain == f"نصّ الجواب\n\nℹ️ {bot._ORIGIN_UNSTATED_AR}"
+    assert "غير مُعلَن" in plain and "غير مُعايَرة" in plain and "مراجعة" in plain
+
+
+async def test_long_answer_is_cut_but_its_provenance_line_is_kept(bot, monkeypatch):
+    plain = await _natural_reply(
+        bot, monkeypatch, {"response_ar": "س" * 9000, "provenance_note_ar": NOTE}
+    )
+    assert plain.endswith(f"...\n\nℹ️ {NOTE}")
+    assert len(plain) <= 4000
+
+
+async def test_bot_notice_for_an_empty_reply_carries_no_provenance_line(bot, monkeypatch):
+    plain = await _natural_reply(bot, monkeypatch, {"provenance_note_ar": NOTE})
+    assert plain == "لم أفهم السؤال تماماً. حاول صياغته بطريقة أخرى."
+
+
+@pytest.mark.parametrize("handler", ["cmd_weather", "cmd_market"])
+async def test_menu_answers_carry_the_provenance_line(bot, monkeypatch, handler):
+    monkeypatch.setattr(
+        bot,
+        "call_supervisor",
+        AsyncMock(return_value={"response_ar": "نصّ", "provenance_note_ar": NOTE}),
+    )
+    msg = message()
+    await getattr(bot, handler)(msg)
+    sent = msg.wait.edit_text.call_args.args[0]
+    assert unescaped_reserved(sent) == []
+    assert bot._md2_to_plain(sent) == f"نصّ\n\nℹ️ {NOTE}"
 
 
 async def test_error_text_in_code_span_is_escaped(bot, monkeypatch):

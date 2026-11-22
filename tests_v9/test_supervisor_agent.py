@@ -38,7 +38,7 @@ class TestSupervisorAgent:
         assert response.status_code == 200
         data = response.json()
         assert "response_ar" in data
-        assert data["confidence"] > 0
+        assert data["intent_confidence"] > 0
         assert any("ndvi" in s.lower() for s in data.get("sources", []))
 
     async def test_irrigation_advice_query(
@@ -78,7 +78,7 @@ class TestSupervisorAgent:
         assert response.status_code == 200
         data = response.json()
         assert "response_ar" in data
-        assert data["confidence"] > 0
+        assert data["intent_confidence"] > 0
 
     async def test_pest_identification_query(self, http_client: AsyncClient, mock_jwt_token: str):
         """TC-SUP-005: Pest query routes to Advisory skill."""
@@ -96,7 +96,7 @@ class TestSupervisorAgent:
         assert response.status_code == 200
         data = response.json()
         assert "response_ar" in data
-        assert data["confidence"] > 0
+        assert data["intent_confidence"] > 0
 
     async def test_unknown_query_fallback(self, http_client: AsyncClient, mock_jwt_token: str):
         """TC-SUP-006: Unknown query falls back to advisory with low confidence."""
@@ -255,7 +255,7 @@ class TestSupervisorRouter:
             if response.status_code == 200:
                 data = response.json()
                 # Should route to remote_sensing or advisory
-                assert data["confidence"] > 0
+                assert data["intent_confidence"] > 0
 
     async def test_intent_classification_irrigation(
         self, http_client: AsyncClient, mock_jwt_token: str
@@ -271,4 +271,4 @@ class TestSupervisorRouter:
             )
             if response.status_code == 200:
                 data = response.json()
-                assert data["confidence"] > 0
+                assert data["intent_confidence"] > 0

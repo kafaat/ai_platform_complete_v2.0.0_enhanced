@@ -7,7 +7,10 @@
 //   available,count}] · evidence_ids · confidence · confidence_calibrated ·
 //   confidence_basis · advisory_validation{status,claims[{path,value}]} ·
 //   ai_context_pack_readiness{warnings} · pending_approvals · advisory{limitations,
-//   requires_human_review} · generation_provider/generation_model (حين يُعرَض فقط).
+//   requires_human_review,evidence_missing} · generation_provider/generation_model
+//   (حين يُعرَض فقط) · annotations{rag[{chunk_id,publisher,source_uri,source_revision,
+//   page,section}],unverified_seed_references[]} · rag_available ·
+//   rag_unavailable_reason · audit_event{status,persisted}.
 // - توصيات الحقل: services/sahool-platform/api/routers/fields.py (field_recommendations)
 //   + api/recommendations_hub.py (Recommendation.to_dict).
 // - توصية المحرّك: core/api_adapter.py (handle_recommendation_request) +
@@ -29,6 +32,9 @@ String? _str(Object? v) {
 }
 
 num? _num(Object? v) => (v is num && v is! bool && v.isFinite) ? v : null;
+
+/// نصّ أو رقم (الصفحة والإصدار يأتيان بأيّهما).
+String? _text(Object? v) => _str(v) ?? _num(v)?.toString();
 
 List<String> _strList(Object? v) =>
     _list(v).map(_str).whereType<String>().toList(growable: false);
@@ -68,6 +74,83 @@ class EvidenceSource {
     'label_ar': labelAr,
     'available': available,
     if (count != null) 'count': count,
+  };
+}
+
+/// مرجع استند إليه الردّ (annotations.rag): الناشر والرابط والإصدار والموضع.
+class AdvisorCitation {
+  const AdvisorCitation({
+    required this.chunkId,
+    this.publisher,
+    this.sourceUri,
+    this.revision,
+    this.page,
+    this.section,
+  });
+
+  final String chunkId;
+  final String? publisher;
+  final String? sourceUri;
+  final String? revision;
+  final String? page;
+  final String? section;
+
+  /// رابط يُفتَح: http(s) فقط. المخطّطات الداخليّة تبقى نصّاً.
+  Uri? get link {
+    final uri = sourceUri == null ? null : Uri.tryParse(sourceUri!);
+    if (uri == null || uri.host.isEmpty) return null;
+    return (uri.scheme == 'http' || uri.scheme == 'https') ? uri : null;
+  }
+
+  /// اسم ملفّ مستند رفعه المستأجر (`tenant-upload://<tenant>/<file>`): هو ما
+  /// يعرّف المرجع للقارئ، ومعرّف المستأجر لا يُعرَض.
+  String? get documentName {
+    final m = RegExp(
+      r'^tenant-upload://[^/]+/(.+)$',
+      caseSensitive: false,
+    ).firstMatch(sourceUri ?? '');
+    if (m == null) return null;
+    final raw = m.group(1)!.split('/').last;
+    String name;
+    try {
+      name = Uri.decodeComponent(raw);
+    } on ArgumentError {
+      name = raw;
+    }
+    name = name.trim();
+    return name.isEmpty ? null : name;
+  }
+
+  /// ما يُعرَض اسماً للمرجع: الناشر، ثمّ اسم المستند، ثمّ معرّف المقتطف.
+  String get title => publisher ?? documentName ?? chunkId;
+
+  /// الموضع داخل المصدر (قسم · صفحة) إن أرسله الخادم.
+  String? get locator {
+    final parts = [if (section != null) section!, if (page != null) 'ص $page'];
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
+  static AdvisorCitation? fromJson(Object? raw) {
+    final m = _map(raw);
+    final chunkId = _str(m?['chunk_id']);
+    if (m == null || chunkId == null) return null;
+    return AdvisorCitation(
+      chunkId: chunkId,
+      publisher: _str(m['publisher']),
+      sourceUri: _str(m['source_uri']),
+      revision: _text(m['source_revision']),
+      page: _text(m['page']),
+      section: _text(m['section']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'chunk_id': chunkId,
+    if (publisher != null) 'publisher': publisher,
+    if (sourceUri != null) 'source_uri': sourceUri,
+    if (revision != null) 'source_revision': revision,
+    if (page != null) 'page': page,
+    if (section != null) 'section': section,
   };
 }
 
@@ -132,6 +215,32 @@ const Map<String, String> kLimitationLabels = {
   'tool_calls_truncated': 'اقتُطعت استدعاءات الأدوات',
 };
 
+/// الأدلّة الناقصة كما يرمّزها المظروف (advisory_contract.evidence_missing).
+const Map<String, String> kEvidenceMissingLabels = {
+  'no_grounding_evidence': 'لا دليل مرجعيّ يسند الإجابة',
+  'context_pack:incomplete': 'سياق الحقل غير مكتمل',
+  'context_pack:unverified': 'جاهزيّة سياق الحقل غير مؤكَّدة',
+  'context_pack:warnings_invalid': 'تنبيهات سياق الحقل غير مقروءة',
+};
+
+/// تسمية رمز دليل ناقص. المجهول يُعرَض كما أرسله الخادم.
+String evidenceMissingLabel(String code) {
+  final known = kEvidenceMissingLabels[code];
+  if (known != null) return known;
+  if (code.startsWith('gap:')) return 'فجوة معرفة: ${code.substring(4)}';
+  if (code.startsWith('context_pack:')) {
+    return 'سياق الحقل: ${code.substring(13)}';
+  }
+  return code;
+}
+
+/// سبب غياب المراجع كما يرمّزه الخادم (rag_unavailable_reason).
+const Map<String, String> kRagReasonLabels = {
+  'tenant_corpus_empty': 'لا توجد قاعدة معرفة مراجَعة لهذا الحساب بعد',
+  'rag_transport_unavailable': 'خدمة المراجع غير متاحة الآن',
+  'rag_retrieval_unavailable': 'خدمة المراجع غير متاحة الآن',
+};
+
 /// ردّ المستشار كما أرسله الخادم.
 class AdvisorReply {
   const AdvisorReply({
@@ -147,6 +256,13 @@ class AdvisorReply {
     this.pendingApprovals = 0,
     this.limitations = const [],
     this.requiresHumanReview,
+    this.evidenceMissing = const [],
+    this.citations = const [],
+    this.unverifiedReferences = 0,
+    this.ragAvailable,
+    this.ragUnavailableReason,
+    this.auditStatus,
+    this.auditPersisted,
     this.generationProvider,
     this.generationModel,
     this.fieldId,
@@ -171,12 +287,49 @@ class AdvisorReply {
   final int pendingApprovals;
   final List<String> limitations;
   final bool? requiresHumanReview;
+
+  /// رموز الأدلّة الناقصة (advisory.evidence_missing).
+  final List<String> evidenceMissing;
+  final List<AdvisorCitation> citations;
+
+  /// مراجع استُبعدت لأنّ مصدرها غير متحقَّق منه.
+  final int unverifiedReferences;
+
+  /// false ⇒ لم تتوفّر المراجع لهذه الإجابة. null ⇒ لم يُصرّح الخادم.
+  final bool? ragAvailable;
+  final String? ragUnavailableReason;
+
+  /// حالة سجلّ التدقيق كما أرسلها الخادم. null ⇒ لم يُرسِل `audit_event`.
+  final String? auditStatus;
+  final bool? auditPersisted;
   final String? generationProvider;
   final String? generationModel;
   final String? fieldId;
 
   bool get blockedByPolicy =>
       generationStatus == GenerationStatus.blockedByPolicy;
+
+  /// غياب المظروف أو الحقل لا يعني «لا تحتاج مراجعة»: الإعفاء يقوله الخادم صراحةً.
+  bool get needsHumanReview => requiresHumanReview != false;
+
+  /// نصّ غياب المراجع، أو null حين لم يقل الخادم إنّها غائبة.
+  String? get ragUnavailableText {
+    if (ragAvailable != false) return null;
+    final code = ragUnavailableReason;
+    final label = code == null ? null : kRagReasonLabels[code.toLowerCase()];
+    return label ??
+        'المراجع غير متاحة لهذه الإجابة${code == null ? '' : ' ($code)'}';
+  }
+
+  /// إجابة لم يُحفَظ سجلّها يجب ألّا تبدو استشارةً مسجَّلة. null ⇒ حُفِظ السجلّ أو
+  /// لم يُرسِل الخادم حالته.
+  String? get auditNotPersistedText {
+    if (auditPersisted == true) return null;
+    if (auditStatus == null && auditPersisted == null) return null;
+    return auditStatus == 'unconfirmed'
+        ? 'لم يتأكّد حفظ سجلّ تدقيق لهذه الإجابة.'
+        : 'لم يُحفَظ سجلّ تدقيق لهذه الإجابة.';
+  }
 
   /// يقرأ استجابة /v1/chat. يرمي [FormatException] إن غاب نصّ الإجابة: الشكل
   /// الخاطئ خطأ، لا إجابة فارغة.
@@ -189,6 +342,9 @@ class AdvisorReply {
     final verified = validation?['status'] == 'verified';
     final advisory = _map(json['advisory']);
     final readiness = _map(json['ai_context_pack_readiness']);
+    final annotations = _map(json['annotations']);
+    final audit = _map(json['audit_event']);
+    final seenChunks = <String>{};
     return AdvisorReply(
       answerAr: answer,
       generationStatus: _str(json['generation_status']),
@@ -213,6 +369,23 @@ class AdvisorReply {
       limitations: _strList(advisory?['limitations']),
       requiresHumanReview: advisory?['requires_human_review'] is bool
           ? advisory!['requires_human_review'] as bool
+          : null,
+      evidenceMissing: _strList(advisory?['evidence_missing']),
+      citations: _list(annotations?['rag'])
+          .map(AdvisorCitation.fromJson)
+          .whereType<AdvisorCitation>()
+          .where((c) => seenChunks.add(c.chunkId))
+          .toList(growable: false),
+      unverifiedReferences: _list(
+        annotations?['unverified_seed_references'],
+      ).length,
+      ragAvailable: json['rag_available'] is bool
+          ? json['rag_available'] as bool
+          : null,
+      ragUnavailableReason: _str(json['rag_unavailable_reason']),
+      auditStatus: _str(audit?['status']),
+      auditPersisted: audit?['persisted'] is bool
+          ? audit!['persisted'] as bool
           : null,
       generationProvider: _str(json['generation_provider']),
       generationModel: _str(json['generation_model']),
@@ -244,7 +417,25 @@ class AdvisorReply {
       'limitations': limitations,
       if (requiresHumanReview != null)
         'requires_human_review': requiresHumanReview,
+      if (evidenceMissing.isNotEmpty) 'evidence_missing': evidenceMissing,
     },
+    if (citations.isNotEmpty || unverifiedReferences > 0)
+      'annotations': {
+        'rag': [for (final c in citations) c.toJson()],
+        if (unverifiedReferences > 0)
+          'unverified_seed_references': List<int>.filled(
+            unverifiedReferences,
+            0,
+          ),
+      },
+    if (ragAvailable != null) 'rag_available': ragAvailable,
+    if (ragUnavailableReason != null)
+      'rag_unavailable_reason': ragUnavailableReason,
+    if (auditStatus != null || auditPersisted != null)
+      'audit_event': {
+        if (auditStatus != null) 'status': auditStatus,
+        if (auditPersisted != null) 'persisted': auditPersisted,
+      },
     if (generationProvider != null) 'generation_provider': generationProvider,
     if (generationModel != null) 'generation_model': generationModel,
     if (fieldId != null) 'field_id': fieldId,

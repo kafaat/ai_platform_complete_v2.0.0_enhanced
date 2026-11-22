@@ -139,7 +139,7 @@
   .map-workspace-actions[data-expanded="false"] { display:none; }
 }
 
-:root { --ops-warning:#815000; --ops-danger:#a62d24; --ops-info:#185e7a; }
+:root,[data-theme="light"],[data-theme="cream"] { --ops-warning:#815000; --ops-danger:#a62d24; --ops-info:#185e7a; }
 [data-theme="dark"] { --ops-warning:#ffd47c; --ops-danger:#ffaaa6; --ops-info:#99d7ef; }
 .text-ops-warning { color:var(--ops-warning); }
 .text-ops-danger { color:var(--ops-danger); }

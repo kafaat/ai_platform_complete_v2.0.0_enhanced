@@ -9713,7 +9713,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 33,
+    "line": 34,
     "method": "POST",
     "path": "/v1/agent/query",
     "handler": "process_query",
@@ -9722,7 +9722,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 119,
+    "line": 120,
     "method": "POST",
     "path": "/v1/agent/optimize",
     "handler": "optimize_farm",
@@ -9731,7 +9731,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 218,
+    "line": 219,
     "method": "GET",
     "path": "/v1/agent/tools",
     "handler": "list_tools",
@@ -9740,7 +9740,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 247,
+    "line": 248,
     "method": "GET",
     "path": "/v1/agent/journal/{invocation_id}",
     "handler": "get_journal_replay",
@@ -9749,7 +9749,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 271,
+    "line": 272,
     "method": "GET",
     "path": "/v1/agent/actuator-audit",
     "handler": "get_actuator_audit",

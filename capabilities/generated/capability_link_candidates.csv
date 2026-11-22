@@ -137,6 +137,7 @@ DEC-003,test,tests_v9/test_decision_review_boundary_guard.py,3,applied
 DEC-003,test,tests_v9/test_lab_water_review_live_pg.py,3,applied
 DEC-003,test,tests_v9/test_learning_review_persistence_gap.py,3,applied
 DEC-003,test,tests_v9/test_practice_dataset_review.py,3,applied
+DEC-003,test,tests_v9/test_reference_approval_manifest.py,3,applied
 DEC-003,test,tests_v9/test_security_review_fixes.py,3,applied
 DEC-003,test,tests_v9/test_trial_review_guards.py,3,applied
 DEC-003,test,tests_v9/test_trial_spatial_review_guards.py,3,applied
@@ -462,7 +463,7 @@ FM-002,api,POST /api/v1/farm-ledger/operations @ services/sahool-platform/api/ro
 FM-002,api,POST /api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:632,2,applied
 FM-002,api,POST /api/v1/farms @ services/sahool-platform/api/routers/farms.py:37,4,applied
 FM-002,api,POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88,3,applied
-FM-002,api,POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:119,2,applied
+FM-002,api,POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:120,2,applied
 FM-002,api,POST /v1/phase9/autonomy/cycle @ services/sahool-platform/api/phase9_autonomous_farm_os.py:148,2,applied
 FM-002,api,POST /v1/phase9/autonomy/events/from-plan @ services/sahool-platform/api/phase9_autonomous_farm_os.py:196,2,applied
 FM-002,api,POST /v1/phase9/autonomy/events/replay @ services/sahool-platform/api/phase9_autonomous_farm_os.py:202,2,applied
@@ -1622,13 +1623,14 @@ IRR-006,service,services/sahool-platform/api/main.py,10,applied
 IRR-006,test,mobile/sahool_app/test/core/retry_schedule_test.dart,3,applied
 IRR-006,test,mobile/sahool_app/test/features/irrigation/irrigation_schedule_field_picker_test.dart,7,applied
 IRR-006,test,mobile/sahool_app/test/features/irrigation/schedule_create_reconcile_test.dart,3,applied
+IRR-006,test,services/sahool-platform/tests/test_etc_estimate_is_not_irrigation_schedule_f5.py,7,applied
 IRR-006,test,services/sahool-platform/tests/test_irrigation_schedule_create_contract.py,7,applied
 IRR-006,test,tests_v9/test_irrigation_schedule_conflict_v29_5_op.py,7,applied
 IRR-007,api,GET /api/v1/commands/{command_id} @ services/sahool-platform/api/routers/commands.py:31,3,applied
 IRR-007,api,GET /health @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /healthz @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /readyz @ services/actuator-service/routers/health.py:32,3,applied
-IRR-007,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:271,2,applied
+IRR-007,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:272,2,applied
 IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:126,3,applied
 IRR-007,api,GET /v1/commands/{command_id} @ services/actuator-service/routers/commands.py:152,5,applied
 IRR-007,api,GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
@@ -2609,13 +2611,14 @@ SEC-004,test,tests_v9/test_mfa_totp_antireplay_v141.py,5,applied
 SEC-004,ui,frontend/e2e/mfa-enrollment-contrast.spec.ts,2,applied
 SEC-005,api,GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19,2,applied
 SEC-005,api,GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:642,2,applied
-SEC-005,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:271,2,applied
+SEC-005,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:272,2,applied
 SEC-005,service,services/auth/main.py,10,applied
 SEC-005,test,services/actuator-service/test_actuator_safety_audit_20261101.py,3,applied
 SEC-005,test,services/sahool-platform/tests/test_calibration_audit_endpoint.py,3,applied
 SEC-005,test,services/sahool-platform/tests/test_tenant_audit.py,3,applied
 SEC-005,test,tests/architecture/test_execution_dependency_audit.py,3,applied
 SEC-005,test,tests/ci/test_security_audit_tls_exception_is_narrow.py,3,applied
+SEC-005,test,tests_v9/test_advisory_envelope_references_and_audit_f5.py,3,applied
 SEC-005,test,tests_v9/test_agent_audit_store_bounds.py,3,applied
 SEC-005,test,tests_v9/test_ai_approval_audit_v55.py,3,applied
 SEC-005,test,tests_v9/test_ai_provider_native_multiround_audit_v58.py,3,applied
@@ -2637,6 +2640,7 @@ SEC-006,service,services/auth/main.py,10,applied
 SEC-006,test,mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart,5,applied
 SEC-006,test,services/decision-service/tests/test_service_token_guard.py,5,applied
 SEC-006,test,tests_v9/test_guardrails_service_token_ascii.py,5,applied
+SEC-006,test,tests_v9/test_knowledge_graph_compose_service_token.py,5,applied
 SEC-006,test,tests_v9/test_production_service_tokens_w3_12.py,5,applied
 SEC-006,test,tests_v9/test_raster_service_token_binding.py,5,applied
 SEC-006,test,tests_v9/test_sensing_adapter_service_token.py,5,applied

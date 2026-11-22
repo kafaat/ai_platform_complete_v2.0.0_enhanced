@@ -1040,11 +1040,11 @@ soil-service,GET,/v1/soil/readings/{field_id},get_readings,services/soil-service
 soil-service,POST,/v1/soil/ingest,ingest_reading,services/soil-service/routers/readings.py,43
 soil-service,POST,/v1/soil/suitability,soil_suitability,services/soil-service/routers/soil_profile.py,65
 soil-service,GET,/v1/soil/soilgrids,soil_from_soilgrids,services/soil-service/routers/soil_profile.py,76
-supervisor-agent,POST,/v1/agent/query,process_query,services/supervisor-agent/routers/agent.py,33
-supervisor-agent,POST,/v1/agent/optimize,optimize_farm,services/supervisor-agent/routers/agent.py,119
-supervisor-agent,GET,/v1/agent/tools,list_tools,services/supervisor-agent/routers/agent.py,218
-supervisor-agent,GET,/v1/agent/journal/{invocation_id},get_journal_replay,services/supervisor-agent/routers/agent.py,247
-supervisor-agent,GET,/v1/agent/actuator-audit,get_actuator_audit,services/supervisor-agent/routers/agent.py,271
+supervisor-agent,POST,/v1/agent/query,process_query,services/supervisor-agent/routers/agent.py,34
+supervisor-agent,POST,/v1/agent/optimize,optimize_farm,services/supervisor-agent/routers/agent.py,120
+supervisor-agent,GET,/v1/agent/tools,list_tools,services/supervisor-agent/routers/agent.py,219
+supervisor-agent,GET,/v1/agent/journal/{invocation_id},get_journal_replay,services/supervisor-agent/routers/agent.py,248
+supervisor-agent,GET,/v1/agent/actuator-audit,get_actuator_audit,services/supervisor-agent/routers/agent.py,272
 supervisor-agent,GET,/healthz,healthz,services/supervisor-agent/routers/health.py,21
 supervisor-agent,GET,/readyz,readyz,services/supervisor-agent/routers/health.py,26
 supervisor-agent,GET,/metrics,metrics,services/supervisor-agent/routers/health.py,34

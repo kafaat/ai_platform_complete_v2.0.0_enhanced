@@ -34,6 +34,9 @@ _GOOD = {
     "evidence_ids": ["ndvi:2026-06", "weather:nasa_power"],
     "pending_approvals": [],
     "generation_provider": "openrouter",
+    # F5: the quiet state now needs both confirmations the runtime always supplies.
+    "rag_available": True,
+    "audit_event": {"status": "recorded"},
 }
 
 
@@ -132,8 +135,11 @@ def test_the_executor_records_a_refusal_as_failed_with_no_data():
 
 def test_tool_for_the_loaded_field_or_unspecified_still_answers():
     fetch = _fetcher()
+    # The loaded field is answered (no identity refusal). The fixture's block declares no
+    # window, so the answer says so instead of labelling ``{"t": 1}`` as the last 7 days.
     same = fetch("get_weather_history", {"field_id": "field-A", "days": 7})
-    assert same["field_id"] == "field-A" and same["weather_history"] == {"t": 1}
+    assert same["field_id"] == "field-A" and same["days"] == 7
+    assert same["available"] is False and "weather_history" not in same
     unspecified = fetch("get_field_state", {})
     assert unspecified["field_id"] == "field-A"
     assert unspecified["canonical_field_state"]["water_deficit"] == 18.0

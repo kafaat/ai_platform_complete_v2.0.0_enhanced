@@ -2358,6 +2358,9 @@ services:
     logging: *id001
     environment:
       KG_SQLITE_PATH: /data/kg.sqlite
+      # POST /v1/nodes and /v1/edges refuse every caller (403) while this is blank
+      # (shared/security/gateway_deps.py require_service_token). Helm already passes it.
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
     volumes:
     - kg-storage:/data
     networks:

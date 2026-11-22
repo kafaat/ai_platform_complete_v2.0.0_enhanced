@@ -69,8 +69,16 @@ def test_field_tool_fetcher_returns_contextual_read_data():
     M = _main_module()
     pack = {
         "field_id": "field-1",
-        "imagery_timeline": {"total_dates": 12, "ready_dates": 10},
-        "weather_history": {"available": True, "summary": {"days": 730}},
+        "imagery_timeline": {
+            "total_dates": 12,
+            "ready_dates": 10,
+            "per_indicator": {"truecolor": {"available": True, "dates": [{"date": "2026-06-01"}]}},
+        },
+        "weather_history": {
+            "available": True,
+            "range": {"start": "2024-06-01", "end": "2026-06-01"},
+            "summary": {"days": 730},
+        },
         "alerts_context": {"total": 2},
         "drawing_context": {"total": 3},
         "readiness": {"complete": True},
@@ -84,9 +92,12 @@ def test_field_tool_fetcher_returns_contextual_read_data():
 
     scene = fetcher("get_truecolor_scene", {"field_id": "field-1", "date": "2026-06-01"})
     assert scene["index"] == "truecolor"
-    assert scene["imagery_timeline"]["total_dates"] == 12
+    # The requested scene only — never the whole imagery bundle under the caller's date.
+    assert scene["available"] is True and scene["scene"] == {"date": "2026-06-01"}
+    assert "imagery_timeline" not in scene
 
     weather = fetcher("get_weather_history", {"field_id": "field-1", "days": 730})
+    assert weather["available"] is True
     assert weather["weather_history"]["summary"]["days"] == 730
 
     ui = fetcher("open_map_layer", {"field_id": "field-1", "layer": "truecolor"})

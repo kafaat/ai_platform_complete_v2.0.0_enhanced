@@ -21,6 +21,7 @@ from datetime import UTC, datetime
 
 import httpx
 import main
+from answer_provenance import answer_provenance
 from circuit_breaker import CircuitOpenError
 from fastapi import APIRouter, Depends, HTTPException
 from mcp_client import MCPError, classify_mcp_error
@@ -40,9 +41,9 @@ async def process_query(
         elapsed = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
         return main.AgentResponse(
             response_ar="عذراً، لا أستطيع معالجة هذا الطلب حالياً. يرجى التواصل مع الدعم الفني.",
-            confidence=0.0,
             sources=[],
             processing_time_ms=elapsed,
+            **answer_provenance({"type": "unavailable"}, confidence),
         )
     # الهويّة من التوكن المُتحقَّق لا من جسم الطلب (منع انتحال المستأجر)
     trusted_user_id = user.get("sub") or user.get("user_id")
@@ -105,13 +106,13 @@ async def process_query(
         structured_data=result.get("structured"),
         actions_triggered=[],  # This route recommends; it does not execute actuator commands.
         governance=governance,
-        confidence=0.0
-        if result.get("type") in {"unavailable", "governance_pending"}
-        else confidence,
         sources=result.get("sources", []),
         ai_generated=result.get("ai_generated") is True,
         facts_provenance=facts_provenance,
         processing_time_ms=elapsed,
+        # `confidence` is the router's intent score: it is reported as intent_confidence,
+        # never as confidence in the answer (which stays 0.0, uncalibrated).
+        **answer_provenance(result, confidence),
     )
 
 

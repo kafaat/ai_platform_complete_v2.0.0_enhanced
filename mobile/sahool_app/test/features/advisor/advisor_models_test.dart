@@ -86,6 +86,99 @@ void main() {
     expect(back.fieldId, 'f-1');
   });
 
+  test('citations name the source and link only http(s)', () {
+    final r = AdvisorReply.fromJson(chatReply(extra: evidenceGaps()));
+    expect(r.citations.map((c) => c.chunkId), ['c1', 'c2', 'c3']);
+
+    final fao = r.citations[0];
+    expect(fao.title, 'FAO');
+    expect(fao.link, Uri.parse('https://www.fao.org/x'));
+    expect(fao.revision, '2021');
+    expect(fao.locator, 'Kc · ص 12');
+
+    final upload = r.citations[1];
+    expect(upload.title, 'soil report.pdf');
+    expect(upload.title, isNot(contains('tenant-7')));
+    expect(upload.link, isNull);
+
+    expect(r.citations[2].link, isNull);
+    expect(r.unverifiedReferences, 2);
+  });
+
+  test(
+    'missing evidence, absent references and an unsaved audit are named',
+    () {
+      final r = AdvisorReply.fromJson(chatReply(extra: evidenceGaps()));
+      expect(r.evidenceMissing.map(evidenceMissingLabel), [
+        'لا دليل مرجعيّ يسند الإجابة',
+        'فجوة معرفة: soil_ec',
+        'new_code',
+      ]);
+      expect(
+        r.ragUnavailableText,
+        'لا توجد قاعدة معرفة مراجَعة لهذا الحساب بعد',
+      );
+      expect(r.auditNotPersistedText, 'لم يُحفَظ سجلّ تدقيق لهذه الإجابة.');
+
+      final unconfirmed = AdvisorReply.fromJson(
+        chatReply(
+          extra: {
+            'rag_available': false,
+            'rag_unavailable_reason': 'other_code',
+            'audit_event': {'status': 'unconfirmed'},
+          },
+        ),
+      );
+      expect(unconfirmed.ragUnavailableText, contains('other_code'));
+      expect(
+        unconfirmed.auditNotPersistedText,
+        'لم يتأكّد حفظ سجلّ تدقيق لهذه الإجابة.',
+      );
+    },
+  );
+
+  test('nothing is claimed when the server reports no gap', () {
+    final recorded = AdvisorReply.fromJson(
+      chatReply(
+        extra: {
+          'rag_available': true,
+          'audit_event': {'status': 'recorded', 'persisted': true},
+        },
+      ),
+    );
+    expect(recorded.ragUnavailableText, isNull);
+    expect(recorded.auditNotPersistedText, isNull);
+
+    final silent = AdvisorReply.fromJson(chatReply());
+    expect(silent.ragUnavailableText, isNull);
+    expect(silent.auditNotPersistedText, isNull);
+    expect(silent.citations, isEmpty);
+    expect(silent.evidenceMissing, isEmpty);
+  });
+
+  test('an answer without an advisory envelope still needs human review', () {
+    final bare = AdvisorReply.fromJson({'answer_ar': 'x'});
+    expect(bare.requiresHumanReview, isNull);
+    expect(bare.needsHumanReview, isTrue);
+
+    final exempt = AdvisorReply.fromJson({
+      'answer_ar': 'x',
+      'advisory': {'requires_human_review': false},
+    });
+    expect(exempt.needsHumanReview, isFalse);
+  });
+
+  test('evidence gaps survive the history round-trip', () {
+    final reply = AdvisorReply.fromJson(chatReply(extra: evidenceGaps()));
+    final back = AdvisorReply.fromJson(reply.toJson());
+    expect(back.citations.map((c) => c.title), ['FAO', 'soil report.pdf', 'X']);
+    expect(back.citations.first.locator, 'Kc · ص 12');
+    expect(back.unverifiedReferences, 2);
+    expect(back.evidenceMissing, reply.evidenceMissing);
+    expect(back.ragUnavailableText, reply.ragUnavailableText);
+    expect(back.auditNotPersistedText, reply.auditNotPersistedText);
+  });
+
   test('field recommendations keep server text and nulls', () {
     final set = FieldRecommendationSet.fromJson({
       'field_id': 'f',
