@@ -882,6 +882,11 @@ v285_water_ledger_rain_source_reanalysis.sql
 #   indicators-service drains over raster-service HTTP (pull, owner decision 2026-11-16), owner
 #   raster-service. Before v240.
 v286_canonical_observations.sql
+# v287 (Service Center SC-1, owner decision C): farm_access_grants keyed by the JWT sub (auth
+#   users.id as text), sc_farm_visible() and RESTRICTIVE farm-scope policies on farms, fields, seasons, field_tasks and
+#   farm_ledger_entries. Inert unless the session sets app.enforce_farm_scope='on' (platform flag
+#   SAHOOL_FARM_SCOPE_ENFORCE, default off). Owner sahool-platform. Before v240.
+v287_farm_access_grants.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

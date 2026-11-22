@@ -1433,6 +1433,12 @@ jobs:
           # (tests_v9/test_field_state_version_bump_live_pg.py). With the switch, a missing or
           # unmigrated database is a failure, not a green skip.
           FIELD_STATE_VERSION_CERTIFICATION_REQUIRED: "1"
+          # Service Center SC-1 farm scope (tests_v9/test_farm_access_scope_live_pg.py): v287's
+          # policies leave visibility unchanged while enforcement is off, reproduce it with the
+          # backfilled grants, and key on the JWT sub, never the platform users.id. The module
+          # builds throwaway databases and a NOBYPASSRLS role from this superuser DSN. With the
+          # switch, a missing database is a failure, not a green skip.
+          FARM_SCOPE_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation
@@ -1766,6 +1772,16 @@ jobs:
           LEDGER_SEASON_CURRENCY_CERTIFICATION_REQUIRED: "1"
           COVERAGE_FILE: .coverage.integration-auth
         run: pytest -v -m integration -rs tests_v9/test_ledger_season_currency_governance_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # Service Center SC-1 farm scope (v287): the live suite also runs in the shared integration
+      # step, which collects no coverage; this step feeds the lines it proves (api/farm_scope.py and
+      # tenant_connection) into the combined live upload. The flag turns any skip into a failure.
+      - name: Farm scope grants and policies (SC-1, v287, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          FARM_SCOPE_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_farm_access_scope_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # W1-04: soil-service stores the hydraulic profile with every soil snapshot, tenant-scoped. The flag turns any skip into a failure.
       - name: Soil hydraulic projection (W1-04, restricted role)
         env:
@@ -3057,8 +3073,20 @@ jobs:
         working-directory: mobile/sahool_app
       - run: flutter test
         working-directory: mobile/sahool_app
-      - name: Select Java 17 for the Android toolchain
-        run: echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+      # Java 17 for the Android toolchain, with the Gradle dependency cache (~/.gradle caches
+      # and wrapper) keyed on the Android build files. Every uncached run downloaded the
+      # Gradle and Kotlin artifacts from Maven Central, which answered 429 twice on 2026-11-21.
+      - name: Select Java 17 and restore the Gradle cache
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            mobile/sahool_app/android/*.gradle*
+            mobile/sahool_app/android/app/*.gradle*
+            mobile/sahool_app/android/gradle/wrapper/gradle-wrapper.properties
+            mobile/sahool_app/pubspec.lock
       - name: Build Android debug app from the committed native project
         run: flutter build apk --debug --no-pub
         working-directory: mobile/sahool_app

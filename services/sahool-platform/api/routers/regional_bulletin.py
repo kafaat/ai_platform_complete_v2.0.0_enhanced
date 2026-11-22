@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 
+from core.authorization import farm_restriction
 from core.regional_bulletin import (
     MIN_FIELDS_PRIVACY,
     build_regional_bulletin,
@@ -50,22 +51,21 @@ LEFT JOIN LATERAL (
     SELECT AVG(z.mean) AS mean_hist, COUNT(*) AS n FROM zonal_stats z
     WHERE z.field_id = f.field_id AND z.index_name = 'ndvi'
 ) zh ON TRUE
-WHERE $1::text[] IS NULL OR f.farm_id = ANY($1::text[])
+WHERE $1::text[] IS NULL OR f.farm_id IS NULL OR f.farm_id = ANY($1::text[])
 """
 
 
 def _farm_scope(user: UserSchema) -> list[str] | None:
     """Farms the caller may aggregate over: None means every farm of the tenant.
 
-    RLS scopes the query to the tenant only. A user limited to some farms (``farm_ids_access``,
-    empty = all, as in ``core.authorization``) could otherwise read aggregates over fields of
-    farms they are not allowed to see.
-
-    Inert today: ``get_current_user`` builds ``UserSchema`` from the token without
-    ``farm_ids_access`` and no trusted per-user farm list exists yet, so every caller is "all
-    farms". The filter takes effect once that scope is populated from a trusted source."""
-    farms = [str(f) for f in (getattr(user, "farm_ids_access", None) or []) if f]
-    return farms or None
+    RLS scopes the query to the tenant (and, under SAHOOL_FARM_SCOPE_ENFORCE, to granted farms).
+    This filter is the same rule in the router, read from ``core.authorization.farm_restriction``
+    so a hydrated scope is exact (an owner keeps every farm whatever its individual grants, a
+    hydrated non-owner without grants gets no farm) and the legacy unhydrated contract stays
+    (empty ``farm_ids_access`` = every farm). Farm-less fields are not farm-scoped (v287) and
+    stay in, which the SQL's ``f.farm_id IS NULL`` keeps."""
+    allowed = farm_restriction(user)
+    return None if allowed is None else sorted(f for f in allowed if f)
 
 
 @router.get("/api/v1/regional/bulletin")

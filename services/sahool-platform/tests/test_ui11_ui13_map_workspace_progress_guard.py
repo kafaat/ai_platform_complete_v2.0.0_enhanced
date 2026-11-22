@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -6,6 +7,83 @@ FRONTEND = ROOT / "frontend" / "src"
 
 def read(rel: str) -> str:
     return (FRONTEND / rel).read_text(encoding="utf-8")
+
+
+def _strip_comments(source: str) -> str:
+    """Drop // and /* */ comments outside string literals."""
+    out, i, quote = [], 0, None
+    while i < len(source):
+        ch = source[i]
+        if quote:
+            out.append(ch)
+            if ch == "\\" and i + 1 < len(source):
+                out.append(source[i + 1])
+                i += 2
+                continue
+            if ch == quote:
+                quote = None
+        elif ch in "'\"`":
+            quote = ch
+            out.append(ch)
+        elif source.startswith("//", i):
+            i = source.find("\n", i)
+            i = len(source) if i < 0 else i
+            continue
+        elif source.startswith("/*", i):
+            end = source.find("*/", i + 2)
+            i = len(source) if end < 0 else end + 2
+            continue
+        else:
+            out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def handler_calls(source: str, prop: str) -> list[str]:
+    """The statements an inline JSX arrow handler runs: `prop={() => { a(); b(); }}`.
+
+    The handler is parsed by brace matching, so it may span lines, and comments are
+    removed first: a call that only appears in a comment, or on the same line outside
+    the handler, does not count.
+    """
+    code = _strip_comments(source)
+    matches = list(re.finditer(rf"(?<![\w$]){re.escape(prop)}=\{{", code))
+    assert len(matches) == 1, (
+        f"{prop} must appear exactly once in the given source, found {len(matches)}"
+    )
+    i, depth = matches[0].end() - 1, 0
+    for j in range(i, len(code)):
+        if code[j] == "{":
+            depth += 1
+        elif code[j] == "}":
+            depth -= 1
+            if depth == 0:
+                expression = code[i + 1 : j]
+                break
+    else:
+        raise AssertionError(f"unterminated {prop} handler")
+    arrow = expression.split("=>", 1)
+    assert len(arrow) == 2, f"{prop} is not an inline arrow handler"
+    body = arrow[1].strip()
+    if body.startswith("{") and body.endswith("}"):
+        body = body[1:-1]
+    statements, current, quote, depth = [], [], None, 0
+    for ch in body:  # split on top-level `;`, outside strings and nested calls
+        if quote:
+            quote = None if ch == quote else quote
+        elif ch in "'\"`":
+            quote = ch
+        elif ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        elif ch == ";" and depth == 0:
+            statements.append("".join(current))
+            current = []
+            continue
+        current.append(ch)
+    statements.append("".join(current))
+    return [" ".join(s.split()) for s in statements if s.strip()]
 
 
 def test_ui11_field_drawer_shell_wraps_existing_drawer_without_moving_behavior():
@@ -53,16 +131,43 @@ def test_ui12_action_from_map_palette_exists_and_does_not_fake_writes():
     assert "<MapActionPalette" in maphub
     # The palette's pin action must open a surface that accepts pins: compare/3D maps do not,
     # so it also returns to the 2D single map (UI audit, MapHub palette pin finding).
-    pin_line = next(line for line in maphub.splitlines() if "onPinScouting={() =>" in line)
+    # The palette element only: the field drawer has its own onOpenTimeline.
+    palette_jsx = maphub[maphub.index("<MapActionPalette") :]
+    palette_jsx = palette_jsx[: palette_jsx.index("/>") + 2]
+    pin_calls = handler_calls(palette_jsx, "onPinScouting")
     for call in ("setPinMode(true)", "setDrawTools(false)", "setMode('2d')", "setCompare(false)"):
-        assert call in pin_line, call
-    assert "onOpenTimeline={() => { setSettingsOpen(true); setShowImageryTimeline(true);" in maphub
+        assert call in pin_calls, call
+    timeline_calls = handler_calls(palette_jsx, "onOpenTimeline")
+    for call in ("setSettingsOpen(true)", "setShowImageryTimeline(true)"):
+        assert call in timeline_calls, call
     assert "onOpenAlerts={() => setShowAlerts(true)}" in maphub
     # The palette's add-field action opens the plain dialog: it must also clear a tool
     # preselected by the toolbar's circle-field button, or the dialog would reopen on it.
-    add_line = next(line for line in maphub.splitlines() if "onAddField={() =>" in line)
+    add_calls = handler_calls(palette_jsx, "onAddField")
     for call in ("setShowAddField(true)", "setAddFieldTool(null)"):
-        assert call in add_line, call
+        assert call in add_calls, call
+
+
+def test_handler_calls_reads_the_handler_not_its_line():
+    """The #1563 review nit: a same-line comment or neighbour must not satisfy the guard."""
+    source = (
+        "<P onAddField={() => { setAddFieldTool(null); }} /> // setShowAddField(true)\n"
+        "<Q onPin={() => setMode('2d')} other={() => setPinMode(true)} />\n"
+        "<R onMulti={() => {\n  /* setX(1); */ setY(2);\n  setZ('a;b');\n}} />\n"
+    )
+    assert handler_calls(source, "onAddField") == ["setAddFieldTool(null)"]
+    assert handler_calls(source, "onPin") == ["setMode('2d')"]
+    assert handler_calls(source, "onMulti") == ["setY(2)", "setZ('a;b')"]
+    # A longer prop that ends with the name is not a match, and a duplicate is refused.
+    assert handler_calls("<A xonAdd={() => wrong()} onAdd={() => right()} />", "onAdd") == [
+        "right()"
+    ]
+    try:
+        handler_calls("<A onAdd={() => a()} /><B onAdd={() => b()} />", "onAdd")
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("a prop that appears twice must be refused")
 
 
 def test_ui13_role_aware_map_surface_contract_is_explicit():

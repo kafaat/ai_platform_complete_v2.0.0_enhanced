@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "dbaca840039f34a839783957bc9199a9876df611",
+  "measured_on": "085d4cefbe9f1a9c5ac5d4933ec723d84a05a8cb",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "17e04fb3feb6364a8b522b1775dcc29adb557811f7e505f7069c2c94ac96ae3c",
+  "measurement_input_digest": "1bc3124671e4d7cc7e4c36f303a5afd52870faba0dcf9fd8ee423e203198925b",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "b08334c55463e77792f069ab1e51631dcdcbb046a54108040908ac3219afcbb8",
+  "measurement_basis_digest": "30d918b97ec117a05f5b61fdd2a20f51d122e733098fc85fade24d95e491d8d7",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -131,6 +131,10 @@
       "sha256": "b8e0faf0c9fd771b08045e7f990c95fb708fc863da6a475edf59aac2cb43ffcd"
     },
     {
+      "path": "services/sahool-platform/api/farm_scope.py",
+      "sha256": "5c1e447ae2d625f5e3a01c2d56a36dd28c50a759e799bdb069e579822484eb37"
+    },
+    {
       "path": "services/sahool-platform/api/imagery_automation.py",
       "sha256": "c07b306afb1fdc663dc05760248a0788046817f312041fa4069dda2207aa74c8"
     },
@@ -144,7 +148,7 @@
     },
     {
       "path": "services/sahool-platform/api/main.py",
-      "sha256": "b5088281b709985e41b73b2ebc163a2f64daad8d80ef3e886273441e727e761e"
+      "sha256": "40a5b05767cb74bb1caa447d782cf906ce836bc428c7182d06a238e06b9b3e54"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",
@@ -254,6 +258,7 @@
     "app.current_tenant",
     "app.current_tenant_id",
     "app.current_worker",
+    "app.enforce_farm_scope",
     "app.tenant_id"
   ]
 }

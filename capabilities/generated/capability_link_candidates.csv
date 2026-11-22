@@ -516,6 +516,9 @@ FM-002,test,services/sahool-platform/tests/test_farm_operations_ledger.py,3,appl
 FM-002,test,services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py,3,applied
 FM-002,test,services/sahool-platform/tests/test_simple_farm_book.py,3,applied
 FM-002,test,shared/test_autonomous_farm_os_phase9.py,3,applied
+FM-002,test,tests_v9/test_farm_access_backfill_diff.py,3,applied
+FM-002,test,tests_v9/test_farm_access_scope.py,3,applied
+FM-002,test,tests_v9/test_farm_access_scope_live_pg.py,3,applied
 FM-002,test,tests_v9/test_farm_book_corrections_and_categories.py,3,applied
 FM-002,test,tests_v9/test_farm_book_receipt_field.py,3,applied
 FM-002,test,tests_v9/test_farm_book_receipt_scope_live_pg.py,3,applied
@@ -2196,6 +2199,7 @@ SAT-006,test,tests_v9/test_backfill_incremental_retry_guard_v31_1.py,3,applied
 SAT-006,test,tests_v9/test_backfill_scene_job_threadpool_v30_3.py,3,applied
 SAT-006,test,tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py,3,applied
 SAT-006,test,tests_v9/test_decision_review_backfill_verify.py,3,applied
+SAT-006,test,tests_v9/test_farm_access_backfill_diff.py,3,applied
 SAT-006,test,tests_v9/test_field_timeline_tenant_scope_live_pg.py,3,applied
 SAT-006,test,tests_v9/test_historical_imagery_timeline_contract.py,5,applied
 SAT-006,test,tests_v9/test_historical_search_cdse_v30_8.py,3,applied

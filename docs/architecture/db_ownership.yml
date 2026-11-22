@@ -426,6 +426,15 @@ tables:
     writers: [agriai-engine]
     readers: [sahool-platform]
     source: "migrations/v119_phase10_continuous_learning.sql"
+  farm_access_grants:
+    # Service Center SC-1, owner decision C (v287): per-farm grants keyed by the
+    # JWT sub (auth users.id as text). sahool-platform reads them in api/farm_scope.py only while
+    # SAHOOL_FARM_SCOPE_ENFORCE is on; the only writer is the operator backfill
+    # (scripts/ops/farm_access_backfill.py, --apply is an owner decision). No route writes them.
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [scripts]  # operator backfill/diff (scripts/ops/farm_access_common.py)
+    source: "migrations/v287_farm_access_grants.sql"
   farm_business_units:
     owner: field-management-service
     writers: [field-management-service]
@@ -514,7 +523,7 @@ tables:
   farms:
     owner: field-management-service
     writers: [field-management-service]
-    readers: [sahool-platform]
+    readers: [sahool-platform, scripts]  # scripts: SC-1 operator backfill/diff (scripts/ops/farm_access_common.py)
     source: "migrations/v19_farms.sql"
   feature_definitions_runtime:
     owner: sahool-platform
@@ -1222,7 +1231,7 @@ tables:
   users:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: [scout-ingest-service]  # v263: column SELECT (id, tenant_id, active, role) for photo grant checks
+    readers: [scout-ingest-service, scripts]  # v263: column SELECT (id, tenant_id, active, role) for photo grant checks; scripts: SC-1 operator backfill/diff (scripts/ops/farm_access_common.py) reads the auth users table
     source: "migrations/v9_foundation.sql, services/sahool-platform/storage/lite_store.py, migrations/v263_scout_photo_field_access_grants.sql"
   variety_trials:
     owner: sahool-platform

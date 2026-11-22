@@ -10,7 +10,7 @@ DEC-008,decision,Learning attribution,True,4,0,1,2,1,0,0,1,0
 DEC-009,decision,Model calibration,True,1,0,0,2,0,0,0,0,0
 DEC-010,decision,Model lifecycle and activation,True,5,4,93,50,7,0,0,7,1
 FM-001,farm_management,Tenant and organization management,True,6,17,2,30,14,1,0,49,0
-FM-002,farm_management,Farm registry,True,7,37,45,100,33,20,35,56,0
+FM-002,farm_management,Farm registry,True,7,38,45,100,33,20,35,59,0
 FM-003,farm_management,Field registry and boundaries,True,7,14,56,5,66,3,2,17,1
 FM-004,farm_management,Season lifecycle,True,7,34,82,86,52,18,15,60,0
 FM-005,farm_management,Crop and cultivar catalog,True,5,13,0,0,15,6,1,8,0
@@ -50,14 +50,14 @@ PA-004,precision,As-applied data,True,4,1,0,18,2,0,0,1,0
 PA-005,precision,Machine telemetry,True,1,1,0,0,0,0,0,0,0
 SAT-001,satellite,Satellite scene search,True,6,43,100,5,47,6,0,59,0
 SAT-002,satellite,True color imagery,True,4,0,1,0,1,1,0,5,0
-SAT-003,satellite,NDVI,True,7,57,42,8,100,39,5,72,0
+SAT-003,satellite,NDVI,True,7,58,43,8,100,39,5,71,0
 SAT-004,satellite,NDMI,True,6,9,4,5,13,3,0,8,0
 SAT-005,satellite,Cloud screening,True,4,6,6,0,1,0,0,14,0
 SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0
 SAT-007,satellite,Change detection,True,3,1,1,0,0,0,0,3,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,6,0
 SAT-009,satellite,COG persistence and tiling,True,6,12,52,0,16,2,1,28,0
-SEC-001,security,Tenant RLS,True,5,14,19,100,80,0,0,90,0
+SEC-001,security,Tenant RLS,True,5,15,20,100,81,0,0,90,0
 SEC-002,security,Signed tenant assertion,True,3,3,0,0,4,0,0,4,0
 SEC-003,security,Worker identity binding,True,1,0,0,0,0,0,0,1,0
 SEC-004,security,MFA,True,7,6,9,19,1,5,5,15,0

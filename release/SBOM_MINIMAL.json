@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e7da1dd6667022ec348cf0bd750ec6627b167c6b67f6fff9b73db423e981118b"
+          "content": "6db08a0df9f15b4a11fb22c3ed132ede00228e32c4b6d36d2e42b38e2887ac0f"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -5135,7 +5135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7c881371c0cb51735bdff4de0d0eba22bc54a680ea4f784758e87d2e047f53dc"
+          "content": "7b8e94e132776a0cb14b0632a6ce5f9249619d377351d18357d14e331b736c09"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -8305,7 +8305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c9a4c6a4a34bb6d67b55f3ade8d38ffa6d2572c5cf6fc19c5a6ec356f571a26"
+          "content": "80eb7bf39e89585979b06c8fbf91fbb94a584f8aa310ed061eb06458a7c30618"
         }
       ],
       "name": "migrations/MANIFEST.md",
@@ -8315,7 +8315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5a7f4edd593ebbaefe07ae2fed1a53e6ce9e221344f64c31eabbd9e4cf222282"
+          "content": "3d237ef40a996c3e1e43f09e45891be69678d3eaae860f7a4f46de32148b1ac5"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8335,7 +8335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "707f193a841a8be13b171477e8683c2cb91b006c55267c868c75a701b4d7c314"
+          "content": "f4656715ec555edb521a2d2529c4c578303beb6feef0aa04cdc6c48db6001b05"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -8345,7 +8345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73ae231d23c322720ba27337857624113e08f0362c6cd515dc7cfd9475f8a488"
+          "content": "1a084d99c402faeb96fb8a3e5e4b042db1ef75c17de3ec0d4d5e6fe4f5ab86b8"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",
@@ -8385,7 +8385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "448659c6786c86137abc63b47b6f63e10f4e1be371d2aeda1df99e07d3792a40"
+          "content": "12e9b59bdecef9be2c330c504e0bc4ec83fa4d88c0165c42783d2b4538b3b25f"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -10409,6 +10409,26 @@
         }
       ],
       "name": "migrations/v286_canonical_observations.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fe6a3648d93dae2cdd8d5a474c1ce1118e39d11725cd45916d82ee7ff9b6e3b5"
+        }
+      ],
+      "name": "migrations/v287_farm_access_grants.down.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c5d87af1827630cd262cb1166653c6cbe993681f9ee77deb21e1349d336fb6b5"
+        }
+      ],
+      "name": "migrations/v287_farm_access_grants.sql",
       "type": "file"
     },
     {
@@ -26285,6 +26305,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5c1e447ae2d625f5e3a01c2d56a36dd28c50a759e799bdb069e579822484eb37"
+        }
+      ],
+      "name": "services/sahool-platform/api/farm_scope.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "74c5e4023f821ecb4bc097a9274cab1f02d11e070ad1f13d2da1ecec82dc3017"
         }
       ],
@@ -27115,7 +27145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b5088281b709985e41b73b2ebc163a2f64daad8d80ef3e886273441e727e761e"
+          "content": "40a5b05767cb74bb1caa447d782cf906ce836bc428c7182d06a238e06b9b3e54"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -28775,7 +28805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc897cbdc97d8b05ade35df452bad74ae477f651ba5c87c904e251e2e2fb3dcc"
+          "content": "5ccdffa0fb19962d5e687681d7c8a78acc34337cfb4758a436ff396ff2abf0f6"
         }
       ],
       "name": "services/sahool-platform/api/routers/regional_bulletin.py",
@@ -29935,7 +29965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d18534e4068c9de6656585049d9720f3d05dd4b05907a2d74fa40932f1730117"
+          "content": "2cc1f24ad2a2b1f596a826de50788bfe05e5e5763093587506cb1aa9696a21ef"
         }
       ],
       "name": "services/sahool-platform/core/authorization.py",
@@ -29975,7 +30005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad1195e08fa8fbc16ac5be3d90c84558e6c69cdc19385f64ad0b094a1f0cba0c"
+          "content": "56b750613244e63622d5978345914b78f9c6b0283039c931569d62d374b41f31"
         }
       ],
       "name": "services/sahool-platform/core/canonical_schemas.py",
@@ -37535,7 +37565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d0bd949af23afe5f702d9bffbbf02eeeaa8825861c1a04d6e45e09eba3b9666"
+          "content": "f5a405f282120cd1033fcfe577eb0d61ffb698fe07507935f79f121b91c801df"
         }
       ],
       "name": "services/sahool-platform/tests/test_regional_bulletin_route.py",
@@ -38255,7 +38285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bedbffa6055669729cd1ddc538d0d8b3a51d0abc7c3eae842e40d3bcbc5c5b9f"
+          "content": "777ad2cb0f1152ebaa9d1692b3cadb45ff49f70230f1b3a71d91cd2312026b91"
         }
       ],
       "name": "services/sahool-platform/tests/test_ui11_ui13_map_workspace_progress_guard.py",
