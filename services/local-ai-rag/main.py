@@ -324,6 +324,21 @@ async def ingest_documents(
     chunks: list[Document] = []
     rejected = 0
     source_names = source_names or {}
+    # One basename is one document id (tenant + name), so two files with one name would be
+    # one document with two revisions, which the canonical ingest refuses as a whole batch
+    # (422, seen by the uploader as 503). Refuse it here, naming the file (review on #1582).
+    upload_names = [source_names.get(str(p), p.name) for p in file_paths]
+    conflicting = sorted({n for n in upload_names if upload_names.count(n) > 1})
+    if conflicting:
+        raise HTTPException(
+            400,
+            {
+                "code": "CONFLICTING_UPLOAD_FILENAMES",
+                "files": conflicting,
+                "message": "one upload carries more than one file with the same name; "
+                "rename them or upload them separately",
+            },
+        )
     for p in file_paths:
         original_name = source_names.get(str(p), p.name)
         # كلّ مستندٍ يُحمَّل ويُقطَّع داخل حدوده: مستندٌ تالف يُرفَض وحده ويُسجَّل.
