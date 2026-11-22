@@ -23,6 +23,7 @@ export function MapHubToolToggle({
       data-testid={testid}
       type="button"
       disabled={disabled}
+      aria-pressed={active}
       title={title}
       onClick={onClick}
       className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] transition disabled:cursor-not-allowed disabled:opacity-45"

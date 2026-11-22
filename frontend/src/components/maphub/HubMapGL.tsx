@@ -40,6 +40,9 @@ import type { SnapTarget } from '../../lib/geo';
 import { getLayer, resolveLayerSource, toMapLibreRasterUrl } from '../../lib/layerRegistry';
 import type { FieldOption } from '../../lib/fields';
 import { indicatorTileUrl } from './indicatorTileUrl';
+import { toTurfFeature } from '../../lib/fieldGeometryOps';
+import { drawFeatureStyle } from './drawFeatureStyle';
+import { PivotPlacementControl } from './PivotPlacementControl';
 import type { DrawFeature } from './drawing';
 // أنواع فقط (تُمحى وقت الترجمة) — لا يدخل Leaflet هذه الحزمة المقسومة.
 import type { ScoutPin } from './HubMap';
@@ -52,6 +55,9 @@ const FIELD_COLOR = '#34d399';
 
 // معرّفات المصادر/الطبقات (ثوابت لتجنّب التكرار وضمان التنظيف الصحيح).
 const SRC_FIELDS = 'sahool-fields';
+const SRC_DRAWINGS = 'sahool-drawings';
+const LYR_DRAWING_FILL = 'sahool-drawings-fill';
+const LYR_DRAWING_LINE = 'sahool-drawings-line';
 const SRC_INDICATOR = 'sahool-indicator';
 const SRC_BASEMAP = 'sahool-basemap';
 const LYR_BASEMAP = 'sahool-basemap-layer';
@@ -292,6 +298,7 @@ const EMPTY_MEASURE: MeasureState = { polys: 0, lines: 0, areaM2: 0, lengthM: 0 
 export default function HubMapGL({
   fields, selectedId, onSelect, basemapId, indicatorId, indicatorOpacity, height = 520,
   drawTools = false, pinMode = false, pins = [], onAddPin,
+  pivotDesignerEnabled = false, onAddPivotDraft, pivotDrafts,
   alertMarkers = [], deviceMarkers = [], weatherMarker = null, operationalMarkers = [],
   initialView = null, onViewChange, imageryTs = 0, imageryDate = null, tenantId = null, preferPersistedCog = false,
   hillshadeTilesUrl = null, slopeTilesUrl = null, soilTilesUrl = null,
@@ -310,8 +317,9 @@ export default function HubMapGL({
   onSelectRef.current = onSelect;
   const onAddPinRef = useRef(onAddPin);
   onAddPinRef.current = onAddPin;
-  const pinModeRef = useRef(pinMode);
-  pinModeRef.current = pinMode;
+  const placing = pinMode || pivotDesignerEnabled;
+  const placementRef = useRef({ placing, pinMode, onAddPivotDraft });
+  placementRef.current = { placing, pinMode, onAddPivotDraft };
   const onViewChangeRef = useRef(onViewChange);
   onViewChangeRef.current = onViewChange;
 
@@ -412,26 +420,28 @@ export default function HubMapGL({
       fitView(map);
       setReady(true); // يُشغّل useEffectات التراكب/الدبابيس/الرسم بعد جهوز الخريطة
 
-      // النقر على مضلّع حقل ⇒ اختيار (يُقمَع في وضع الدبابيس — الدبّوس له الأولويّة).
+      // لا يغيّر نقر الحقل الاختيار أثناء وضع دبّوس أو مركز محوري.
       map.on('click', LYR_FILL, (e) => {
-        if (pinModeRef.current) return; // في وضع الدبابيس لا نُغيّر الاختيار
+        if (placementRef.current.placing) return;
         const id = e.features?.[0]?.properties?.id;
         if (typeof id === 'string') onSelectRef.current(id);
       });
-      // النقر العامّ على الخريطة في وضع الدبابيس ⇒ إضافة دبّوس.
+      // كل نقرة تضع دبّوساً واحداً أو مركزاً واحداً في الوضع النشط.
       map.on('click', (e) => {
-        if (pinModeRef.current) onAddPinRef.current?.(e.lngLat.lat, e.lngLat.lng);
+        const mode = placementRef.current;
+        if (mode.pinMode) onAddPinRef.current?.(e.lngLat.lat, e.lngLat.lng);
+        else if (mode.placing) mode.onAddPivotDraft?.(e.lngLat.lat, e.lngLat.wrap().lng);
       });
       // تلميح بالاسم على المرور.
       map.on('mousemove', LYR_FILL, (e) => {
-        if (pinModeRef.current) return;
+        if (placementRef.current.placing) return;
         map.getCanvas().style.cursor = 'pointer';
         const feat = e.features?.[0];
         const name = feat?.properties?.name;
         if (name) popup.setLngLat(e.lngLat).setText(String(name)).addTo(map);
       });
       map.on('mouseleave', LYR_FILL, () => {
-        if (!pinModeRef.current) map.getCanvas().style.cursor = '';
+        if (!placementRef.current.placing) map.getCanvas().style.cursor = '';
         popup.remove();
       });
 
@@ -505,6 +515,10 @@ export default function HubMapGL({
     map.addLayer({ id: LYR_BASEMAP, type: 'raster', source: SRC_BASEMAP }, bottomLayerId);
     syncFieldsLayers(map);
     if (hadIndicator) syncIndicator(map);
+    if (map.getLayer(LYR_DRAWING_FILL)) {
+      map.moveLayer(LYR_DRAWING_FILL);
+      map.moveLayer(LYR_DRAWING_LINE);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [basemapId]);
 
@@ -517,6 +531,32 @@ export default function HubMapGL({
     syncIndicator(map);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [indicatorId, selectedId, indicatorOpacity, fields, tenantId, imageryTs, imageryDate, preferPersistedCog]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const source = map.getSource(SRC_DRAWINGS) as maplibregl.GeoJSONSource | undefined;
+    const data: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
+    for (const drawing of pivotDrafts ?? []) {
+      const feature = toTurfFeature(drawing.geometry);
+      if (!feature) continue;
+      const { color, fillOpacity } = drawFeatureStyle(drawing);
+      data.features.push({ ...feature, id: drawing.id, properties: { id: drawing.id, color, fillOpacity } });
+    }
+    if (source) {
+      source.setData(data);
+    } else if (data.features.length) {
+      map.addSource(SRC_DRAWINGS, { type: 'geojson', data, promoteId: 'id' });
+      map.addLayer({
+        id: LYR_DRAWING_FILL, source: SRC_DRAWINGS, type: 'fill',
+        paint: { 'fill-color': ['get', 'color'], 'fill-opacity': ['get', 'fillOpacity'] },
+      });
+      map.addLayer({
+        id: LYR_DRAWING_LINE, source: SRC_DRAWINGS, type: 'line',
+        paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-dasharray': [3, 2] },
+      });
+    }
+  }, [pivotDrafts, ready]);
 
   // ── طبقات التضاريس/التربة (تكافؤ Leaflet): بلاطات hillshade/slope/soil + كنتور +
   // نقاط عيّنات 🧪. يعتمد على basemapId كي يُعاد بناؤها بعد إعادة تحميل الأساس (لا تختفي).
@@ -622,8 +662,9 @@ export default function HubMapGL({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    map.getCanvas().style.cursor = pinMode ? 'crosshair' : '';
-  }, [pinMode, ready]);
+    if (placing) popupRef.current?.remove();
+    map.getCanvas().style.cursor = placing ? 'crosshair' : '';
+  }, [placing, ready]);
 
   // ── Terra Draw: تهيئة/تفكيك مع drawTools ────────────────────────────
   useEffect(() => {
@@ -981,6 +1022,10 @@ export default function HubMapGL({
             </div>
           )}
         </div>
+      )}
+
+      {ready && pivotDesignerEnabled && onAddPivotDraft && (
+        <PivotPlacementControl getCenter={() => mapRef.current?.getCenter().wrap()} onPlace={onAddPivotDraft} />
       )}
 
       {/* إرشاد وضع الدبابيس */}

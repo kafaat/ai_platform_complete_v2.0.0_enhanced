@@ -22,6 +22,8 @@ import L from 'leaflet';
 import '../../lib/leafletSetup';
 import { geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint, areaSqMeters, lengthMeters, formatArea as fmtArea, formatLength as fmtLength } from '../../lib/geo';
 import { readFieldMapView, consumeDefaultViewOnce } from '../../lib/fieldMapView';
+import { drawFeatureStyle } from './drawFeatureStyle';
+import { PivotPlacementControl } from './PivotPlacementControl';
 import type { DrawFeature } from './drawing';
 import { getLayer, resolveLayerSource } from '../../lib/layerRegistry';
 import { type FieldContours } from '../../services/api';
@@ -307,7 +309,7 @@ function PinClickHandler({ enabled, onAddPin }: { enabled: boolean; onAddPin: (l
 
 function PivotDesignerClickHandler({ enabled, onAddPivotDraft }: { enabled: boolean; onAddPivotDraft?: (lat: number, lng: number) => void }) {
   useMapEvents({
-    click(e) { if (enabled && onAddPivotDraft) onAddPivotDraft(e.latlng.lat, e.latlng.lng); },
+    click(e) { if (enabled && onAddPivotDraft) onAddPivotDraft(e.latlng.lat, e.latlng.wrap().lng); },
   });
   return null;
 }
@@ -323,19 +325,6 @@ function drawFeaturePolygonPositions(feature: DrawFeature): [number, number][] |
     positions.push([pt[1], pt[0]]);
   }
   return positions.length >= 3 ? positions : null;
-}
-
-function drawFeatureStyle(feature: DrawFeature) {
-  if (feature.kind === 'prescription-zone') {
-    return { color: '#f59e0b', weight: 2, fillColor: '#f59e0b', fillOpacity: 0.20, dashArray: '3 5' };
-  }
-  if (feature.kind === 'management-zone') {
-    return { color: '#22c55e', weight: 2, fillColor: '#22c55e', fillOpacity: 0.16, dashArray: '8 4' };
-  }
-  if (feature.kind === 'exclusion-zone') {
-    return { color: '#ef4444', weight: 2, fillColor: '#ef4444', fillOpacity: 0.18, dashArray: '2 4' };
-  }
-  return { color: '#38bdf8', weight: 2, fillColor: '#38bdf8', fillOpacity: 0.18, dashArray: '6 4' };
 }
 
 function drawFeatureLabel(feature: DrawFeature): string {
@@ -381,6 +370,7 @@ export default function HubMap({
   soilSamplePoints = [],
   initialView = null, onViewChange,
 }: HubMapProps) {
+  const mapRef = useRef<L.Map | null>(null);
   const basemap = getLayer(basemapId);
   const basemapUrl = resolveLayerSource(basemap, import.meta.env as Record<string, string | undefined>)
     ?? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -410,6 +400,7 @@ export default function HubMap({
   return (
     <div data-testid="leaflet-map" style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid #2d4a37' }}>
       <MapContainer
+        ref={mapRef}
         className="leaflet-map"
         center={center}
         zoom={initialZoom}
@@ -474,7 +465,7 @@ export default function HubMap({
           const label = `${f.name}${f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}`;
           // UI-G3: في وضع الدبابيس تنتشر نقرة الحقل إلى الخريطة فتُضيف الدبّوس؛ لا نُغيّر
           // الاختيار معها (وإلّا تتحرّك الكاميرا عبر FitToFields) — مطابقةً لحارس HubMapGL.
-          const selectField = () => { if (!pinMode) onSelect(f.id); };
+          const selectField = () => { if (!pinMode && !pivotDesignerEnabled) onSelect(f.id); };
           if (poly && poly.length >= 3) {
             return (
               <Polygon
@@ -599,18 +590,8 @@ export default function HubMap({
         </div>
       )}
 
-      {pivotDesignerEnabled && (
-        <div
-          dir="rtl"
-          data-testid="pivot-designer-map-hint"
-          style={{
-            position: 'absolute', top: 12, right: 12, zIndex: 1000,
-            background: 'rgba(13,22,17,.9)', borderRadius: 10, padding: '6px 12px',
-            fontSize: 12, color: '#7dd3fc', border: '1px solid #164e63',
-          }}
-        >
-          انقر على الخريطة لتحديد مركز Pivot
-        </div>
+      {pivotDesignerEnabled && onAddPivotDraft && (
+        <PivotPlacementControl getCenter={() => mapRef.current?.getCenter().wrap()} onPlace={onAddPivotDraft} />
       )}
 
       {pinMode && (

@@ -142,6 +142,7 @@ const HubMapGL = lazy(() => import('../components/maphub/HubMapGL'));
 // هل محرّك MapLibre مُفعَّل؟ (الافتراض leaflet). المرحلة 2ب: الرسم/القياس (Terra
 // Draw) والدبابيس والتراكبات متاحة في كِلا المحرّكين (تكافؤ المزايا).
 const GL_ENGINE = MAP_ENGINE === 'maplibre';
+const EMPTY_DRAWINGS: PersistedDrawFeature[] = [];
 
 
 function idempotencyConfig(source: Record<string, unknown> | null | undefined) {
@@ -426,12 +427,20 @@ function MapHubCore() {
   const [pivotRingCount, setPivotRingCount] = useState(4);
   const [pivotSpanCount, setPivotSpanCount] = useState(8);
   const [pivotDrafts, setPivotDrafts] = useState<DrawFeature[]>([]);
-  const fieldPivotDrafts = pivotDrafts.filter((draft) => draft.properties.fieldId === fieldId && draft.properties.localOwnerScope === drawingOwnerScope);
+  const canDesignPivot = fieldEditAllowed && !!drawingOwnerScope;
+  const fieldPivotDrafts = useMemo(() => {
+    if (!canDesignPivot) return [];
+    return pivotDrafts.filter((draft) =>
+      draft.properties.fieldId === fieldId && draft.properties.localOwnerScope === drawingOwnerScope);
+  }, [canDesignPivot, pivotDrafts, fieldId, drawingOwnerScope]);
   const currentFieldRef = useRef(fieldId);
   currentFieldRef.current = fieldId;
   const currentOwnerRef = useRef(drawingOwnerScope);
   currentOwnerRef.current = drawingOwnerScope;
-  useEffect(() => { setPivotDrafts([]); }, [drawingOwnerScope]);
+  useEffect(() => {
+    setPivotDesigner(false);
+    setPivotDrafts([]);
+  }, [drawingOwnerScope, canDesignPivot]);
   const [drawingReadError, setDrawingReadError] = useState<string | null>(null);
   // Drawings queued by an older build under one shared key: never replayed (owner unknown),
   // but shown so they do not disappear silently.
@@ -444,9 +453,15 @@ function MapHubCore() {
   }, []);
   const [storedPivotPersisted, setPivotPersisted] = useState<PersistedDrawFeature[]>([]);
   const [storedZonePersisted, setZonePersisted] = useState<PersistedDrawFeature[]>([]);
-  const [drawingLoadedScope, setDrawingLoadedScope] = useState<string | null>(null);
-  const pivotPersisted = drawingLoadedScope === drawingOwnerScope ? storedPivotPersisted : [];
-  const zonePersisted = drawingLoadedScope === drawingOwnerScope ? storedZonePersisted : [];
+  const [loadedDrawings, setLoadedDrawings] = useState<{ owner: string | null; field: string } | null>(null);
+  const drawingsInScope = !!drawingOwnerScope && loadedDrawings?.owner === drawingOwnerScope && loadedDrawings.field === fieldId;
+  const pivotPersisted = useMemo(() => {
+    if (!drawingsInScope) return [];
+    return canDesignPivot ? storedPivotPersisted : storedPivotPersisted.filter((f) => !isDrawingPendingSync(f));
+  }, [drawingsInScope, canDesignPivot, storedPivotPersisted]);
+  const zonePersisted = drawingsInScope ? storedZonePersisted : EMPTY_DRAWINGS;
+  const mapDrawings = useMemo(() => showPivots ? [...pivotPersisted, ...zonePersisted, ...fieldPivotDrafts] : [],
+    [showPivots, pivotPersisted, zonePersisted, fieldPivotDrafts]);
   const [zoneDesigner, setZoneDesigner] = useState(false);
   const [zoneKind, setZoneKind] = useState<AgriculturalZoneKind>('management-zone');
   const [zoneRate, setZoneRate] = useState(120);
@@ -1036,6 +1051,8 @@ function MapHubCore() {
       setRightLayer(w.rightLayer);
       setDrawTools(w.drawTools);
       setPinMode(w.pinMode);
+      setPivotDesigner(false);
+      setZoneDesigner(false);
       setShowWeather(w.showWeather);
       setShowAlerts(w.showAlerts);
       setShowDevices(w.showDevices);
@@ -1486,7 +1503,7 @@ function MapHubCore() {
   // ── v37-v41: تحميل تصاميم Pivot ومناطق الإدارة/الوصفات المحفوظة + الطابور المحلي للحقل المختار ───────
   useEffect(() => {
     let alive = true;
-    if (!selected?.id) {
+    if (!drawingOwnerScope || !selected?.id) {
       setPivotPersisted([]);
       setZonePersisted([]);
       return () => { alive = false; };
@@ -1497,13 +1514,13 @@ function MapHubCore() {
     listDrawingFeatures(selected.id)
       .then((features) => {
         if (!alive || currentOwnerRef.current !== drawingOwnerScope) return;
-        setDrawingLoadedScope(drawingOwnerScope);
+        setLoadedDrawings({ owner: drawingOwnerScope, field: selected.id });
         setPivotPersisted(features.filter((f) => f.kind === 'pivot'));
         setZonePersisted(features.filter((f) => ['management-zone', 'prescription-zone', 'exclusion-zone'].includes(f.kind)));
       })
       .catch((error: unknown) => {
         if (!alive || currentOwnerRef.current !== drawingOwnerScope) return;
-        setDrawingLoadedScope(drawingOwnerScope);
+        setLoadedDrawings({ owner: drawingOwnerScope, field: selected.id });
         const queued = error instanceof DrawingFeatureReadError ? error.queuedFeatures : [];
         setPivotPersisted(queued.filter((f) => f.kind === 'pivot'));
         setZonePersisted(queued.filter((f) => ['management-zone', 'prescription-zone', 'exclusion-zone'].includes(f.kind)));
@@ -1514,9 +1531,9 @@ function MapHubCore() {
 
   // ── v36: Pivot Designer مرئي داخل MapHub ─────────────────────
   // النقر على الخريطة في وضع التصميم ينشئ قطاع pivot كـ DrawFeature محليّ.
-  // الحفظ الدائم سيأتي في مرحلة Backend CRUD/PostGIS، لذلك نعلّمه draft=true.
+  // تبقى المسودة محلية (draft=true) حتى يختار المستخدم حفظها.
   const handleAddPivotDraft = useCallback((lat: number, lng: number) => {
-    if (!fieldEditAllowed) return;
+    if (!canDesignPivot || drawingOwnerScope !== getAuthScope()) return;
     if (!selected) {
       toastStore.add('warning', 'اختر حقلاً أولاً', 'تصميم المحوري يحتاج حقلاً مختاراً لربط التصميم به.');
       return;
@@ -1536,9 +1553,13 @@ function MapHubCore() {
     setPivotDrafts((prev) => [...prev, feature]);
     setShowPivots(true);
     toastStore.add('success', 'تم إنشاء تصميم Pivot', `المساحة التقريبية ${(feature.measurements?.areaHa ?? 0).toFixed(2)} هـ`);
-  }, [pivotEndAngleDeg, pivotRadiusM, pivotRingCount, pivotSpanCount, pivotStartAngleDeg, selected, selectedActiveSeasonId, fieldEditAllowed, drawingOwnerScope]);
+  }, [pivotEndAngleDeg, pivotRadiusM, pivotRingCount, pivotSpanCount, pivotStartAngleDeg, selected, selectedActiveSeasonId, canDesignPivot, drawingOwnerScope]);
 
-  const handleClearPivotDrafts = useCallback(() => setPivotDrafts((prev) => prev.filter((draft) => draft.properties.fieldId !== fieldId)), [fieldId]);
+  const handleClearPivotDrafts = () => {
+    if (!canDesignPivot || drawingOwnerScope !== getAuthScope()) return;
+    setPivotDrafts((prev) => prev.filter((draft) =>
+      draft.properties.fieldId !== fieldId || draft.properties.localOwnerScope !== drawingOwnerScope));
+  };
 
   const handleSavePivotDrafts = useCallback(async () => {
     if (!fieldEditAllowed || !drawingOwnerScope || currentOwnerRef.current !== drawingOwnerScope || fieldPivotDrafts.length === 0) return;
@@ -1567,7 +1588,7 @@ function MapHubCore() {
       if (currentOwnerRef.current !== drawingOwnerScope) return;
       setPivotDrafts((prev) => prev.filter((draft) => !savingIds.has(draft.id)));
       if (currentFieldRef.current !== savingFieldId || currentOwnerRef.current !== drawingOwnerScope) return;
-      setDrawingLoadedScope(drawingOwnerScope);
+      setLoadedDrawings({ owner: drawingOwnerScope, field: selected.id });
       setPivotPersisted((prev) => {
         const byId = new Map(prev.map((f) => [f.id, f]));
         for (const f of saved) byId.set(f.id, f);
@@ -1616,7 +1637,7 @@ function MapHubCore() {
     try {
       const saved = await createDrawingFeature(feature);
       if (currentFieldRef.current !== selected.id || currentOwnerRef.current !== drawingOwnerScope) return;
-      setDrawingLoadedScope(drawingOwnerScope);
+      setLoadedDrawings({ owner: drawingOwnerScope, field: selected.id });
       setZonePersisted((prev) => [saved, ...prev.filter((f) => f.id !== saved.id)]);
       setShowPivots(true);
       if (isDrawingPendingSync(saved)) {
@@ -1731,7 +1752,7 @@ function MapHubCore() {
         <Layers className="w-5 h-5 text-emerald-400" aria-hidden="true" />
         <h1 className="text-lg font-bold" style={{ color: '#e2e8f0' }}>مركز الخرائط الموحّد</h1>
         <span className="text-xs" style={{ color: T.faint }}>{fields.length} حقل</span>
-        <div className="flex items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
+        <div className="flex flex-wrap items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
           {/* مبدّل وضع 2D / تضاريس(3D) */}
           <div className="flex rounded-lg overflow-hidden" style={{ border: `1px solid ${T.line}` }}>
             <button
@@ -1845,7 +1866,7 @@ function MapHubCore() {
             // مسار المهمّة الحيّ الوحيد في MapHub: فتح وضع تثبيت دليل ميدانيّ لكشف الإجهاد.
             // نعيد false لأيّ هدف لا نملك له مسار تنفيذ حيّ هنا حتّى لا تتقدّم دورة الحياة كذباً.
             if (objectiveId === 'diagnose_field_stress') {
-              setPinMode(true); setCompare(false); setDrawTools(false);
+              setPinMode(true); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false);
               return true;
             }
             return false;
@@ -1884,7 +1905,7 @@ function MapHubCore() {
           hasField={!!fieldId}
           imageryReadyCount={imageryReadyCount}
           prescriptionCount={prescriptionsQ.data?.total ?? 0}
-          onOpenZones={() => { setZoneDesigner(true); setShowPivots(true); }}
+          onOpenZones={fieldEditAllowed ? () => { setZoneDesigner(true); setShowPivots(true); setPivotDesigner(false); setPinMode(false); setDrawTools(false); setCompare(false); } : undefined}
         />
       )}
 
@@ -1937,7 +1958,7 @@ function MapHubCore() {
           crop={selected.crop}
           issues={scoutingQ.data?.issues ?? []}
           loading={scoutingQ.isLoading}
-          onLogEvidence={() => { setPinMode(true); setCompare(false); setDrawTools(false); }}
+          onLogEvidence={() => { setPinMode(true); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }}
         />
       )}
 
@@ -2759,7 +2780,7 @@ function MapHubCore() {
 
                   {/* أزرار الوضع: مقارنة / رسم / دبابيس — متاحة في كِلا المحرّكين
                       (Leaflet · MapLibre GL · المرحلة 2ب). */}
-                  <div className="flex items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
+                  <div className="flex flex-wrap items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
                     <MapHubToolToggle testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
                     {/* حصر متبادل: الرسم/القياس والدبابيس يستهلكان نقرات الخريطة معاً، فتفعيل
                         أحدهما يُعطّل الآخر (والمقارنة) — وإلّا كلّ نقرة قياس تُسقط دبّوساً بالخطأ. */}
@@ -2768,9 +2789,7 @@ function MapHubCore() {
                     {/* أداتا الريّ المحوريّ في الشريط الرئيسيّ لمن يملك تعديل الحقول: «حقل دائري» يفتح
                         حوار إضافة الحقل بالدائرة جاهزة، و«تصميم الريّ المحوريّ» يفعّل مصمّم المحاور. */}
                     {fieldEditAllowed && <><MapHubToolToggle testid="btn-circle-field" active={showAddField && addFieldTool === 'circle'} onClick={() => { setAddFieldTool('circle'); setShowAddField(true); setPinMode(false); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<CircleDot className="w-3.5 h-3.5" />} label="حقل دائري" title="أضف حقلاً دائريّاً (ريّ محوريّ): انقر المركز ثمّ حرّك لتحديد نصف القطر" />
-                    {/* Leaflet only: HubMapGL receives pivotDesignerEnabled/onAddPivotDraft but has no
-                        click handler or draft layer yet, so under MapLibre the button would do nothing. */}
-                    {!GL_ENGINE && <MapHubToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم الريّ المحوريّ" />}
+                    <MapHubToolToggle testid="btn-pivot-designer" disabled={!canDesignPivot} active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم الريّ المحوريّ" />
                     <MapHubToolToggle testid="btn-zone-designer" active={zoneDesigner} onClick={() => { setZoneDesigner((v) => !v); setPivotDesigner(false); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Combine className="w-3.5 h-3.5" />} label="مناطق الإدارة" /></>}
                   </div>
                 </div>
@@ -2981,11 +3000,11 @@ function MapHubCore() {
                   </div>
                 )}
 
-                {(pivotDesigner || fieldPivotDrafts.length > 0) && (
+                {canDesignPivot && (pivotDesigner || fieldPivotDrafts.length > 0) && (
                   <div data-testid="pivot-designer-panel" className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${T.line}` }}>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-semibold" style={{ color: T.muted }}>مصمّم الريّ المحوريّ</span>
-                      <Pill tone="info">{fieldPivotDrafts.length + pivotPersisted.length} تصميم</Pill>
+                      <span role="status"><Pill tone="info">{fieldPivotDrafts.length + pivotPersisted.length} تصميم</Pill></span>
                       {pivotDesigner && <span className="text-[11px]" style={{ color: T.faint }}>انقر على الخريطة لاختيار مركز المحوري</span>}
                       <Pill tone={selectedActiveSeasonId ? 'ok' : 'warn'}>{selectedActiveSeasonId ? 'مربوط بالموسم' : 'لا موسم نشط'}</Pill>
                       {fieldPivotDrafts.length > 0 && (
@@ -3128,9 +3147,9 @@ function MapHubCore() {
                       imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
                       preferPersistedCog={selectedDateHasCog}
                       tenantId={tenantId}
-                      pivotDesignerEnabled={pivotDesigner && fieldEditAllowed}
+                      pivotDesignerEnabled={pivotDesigner && canDesignPivot}
                       onAddPivotDraft={handleAddPivotDraft}
-                      pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...fieldPivotDrafts] : []}
+                      pivotDrafts={mapDrawings}
                       hillshadeTilesUrl={hillshadeTilesUrl}
                       slopeTilesUrl={slopeTilesUrl}
                       soilTilesUrl={soilTilesUrl}
@@ -3168,9 +3187,9 @@ function MapHubCore() {
                     soilOpacity={opacity}
                     soilSamplePoints={showSoilSamples ? soilSamplePoints : []}
                     contours={showContours ? contoursData : null}
-                    pivotDesignerEnabled={pivotDesigner && fieldEditAllowed}
+                    pivotDesignerEnabled={pivotDesigner && canDesignPivot}
                     onAddPivotDraft={handleAddPivotDraft}
-                    pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...fieldPivotDrafts] : []}
+                    pivotDrafts={mapDrawings}
                   />
                 )}
                 {/* أسطورة المقياس العموديّة الموحَّدة (يمين الخريطة) — تظهر فقط عند
