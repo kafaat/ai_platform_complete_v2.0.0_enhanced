@@ -120,6 +120,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/buildInfo.static.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/components/AddFieldWithMap.pivot.behavior.test.tsx",
     "kind": "web"
   },
