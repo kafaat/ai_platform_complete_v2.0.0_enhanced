@@ -58,6 +58,58 @@ void main() {
     expect(find.text('يحتاج مراجعة بشريّة'), findsOneWidget);
   });
 
+  testWidgets('shows references, missing evidence and the unsaved audit', (
+    tester,
+  ) async {
+    final adapter = FakeAdapter(
+      (_) async => FakeReply(200, chatReply(extra: evidenceGaps())),
+    );
+    await pumpAdvisor(tester, adapter);
+    await ask(tester, 'ما المراجع المتاحة؟');
+
+    expect(find.byKey(const Key('advisor-citations')), findsOneWidget);
+    expect(find.text('• FAO'), findsOneWidget);
+    expect(find.text('إصدار 2021 · Kc · ص 12'), findsOneWidget);
+    expect(find.text('• soil report.pdf'), findsOneWidget);
+    expect(find.byKey(const Key('advisor-citation-link-c1')), findsOneWidget);
+    expect(find.byKey(const Key('advisor-citation-link-c2')), findsNothing);
+    expect(find.byKey(const Key('advisor-citation-link-c3')), findsNothing);
+    expect(find.textContaining('tenant-7'), findsNothing);
+    expect(
+      find.text('لا توجد قاعدة معرفة مراجَعة لهذا الحساب بعد'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('استُبعدت 2 مراجع غير متحقَّق من مصدرها.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        'أدلّة ناقصة: لا دليل مرجعيّ يسند الإجابة، فجوة معرفة: soil_ec، new_code',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('لم يُحفَظ سجلّ تدقيق لهذه الإجابة.'), findsOneWidget);
+  });
+
+  testWidgets('no gap notice appears when the server reports none', (
+    tester,
+  ) async {
+    final adapter = FakeAdapter((_) async => FakeReply(200, chatReply()));
+    await pumpAdvisor(tester, adapter);
+    await ask(tester, 'سؤال');
+
+    for (final key in const [
+      'advisor-citations',
+      'advisor-rag-unavailable',
+      'advisor-unverified-references',
+      'advisor-evidence-missing',
+      'advisor-audit-not-persisted',
+    ]) {
+      expect(find.byKey(Key(key)), findsNothing);
+    }
+  });
+
   testWidgets('sends field_id when chatting from a field', (tester) async {
     final adapter = FakeAdapter(
       (_) async => FakeReply(200, chatReply(fieldId: 'f-9')),

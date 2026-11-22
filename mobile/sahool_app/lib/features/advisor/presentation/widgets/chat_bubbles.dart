@@ -9,9 +9,23 @@ import 'package:sahool_app/core/theme/tokens.dart';
 import 'package:sahool_app/core/utils/formatters.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/advisor/data/advisor_models.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// وسم الثقة غير المعايَرة (حرفيّاً كما في الويب والعقد).
 const String kNotCalibrated = 'غير معايَر';
+
+/// يفتح رابط المرجع في المتصفّح؛ إن تعذّر الفتح يُنسَخ الرابط ليبقى المصدر في المتناول.
+Future<void> openCitationLink(BuildContext context, Uri link) async {
+  var opened = false;
+  try {
+    opened = await launchUrl(link, mode: LaunchMode.externalApplication);
+  } on Exception {
+    opened = false;
+  }
+  if (!opened && context.mounted) {
+    await copyToClipboard(context, link.toString());
+  }
+}
 
 Future<void> copyToClipboard(BuildContext context, String text) async {
   await Clipboard.setData(ClipboardData(text: text));
@@ -154,6 +168,8 @@ class _ReplyMeta extends StatelessWidget {
     final t = context.tokens;
     final small = context.textStyles.bodySmall;
     final confidence = reply.confidence;
+    final ragUnavailable = reply.ragUnavailableText;
+    final auditNotPersisted = reply.auditNotPersistedText;
     return Padding(
       padding: const EdgeInsets.only(top: SahoolSpacing.sm),
       child: Column(
@@ -175,7 +191,7 @@ class _ReplyMeta extends StatelessWidget {
                   tone: StatusTone.warning,
                   icon: Icons.tune_outlined,
                 ),
-              if (reply.requiresHumanReview == true)
+              if (reply.needsHumanReview)
                 const StatusChip(
                   label: 'يحتاج مراجعة بشريّة',
                   tone: StatusTone.info,
@@ -214,6 +230,53 @@ class _ReplyMeta extends StatelessWidget {
               ],
             ),
           ],
+          if (ragUnavailable != null)
+            Padding(
+              key: const Key('advisor-rag-unavailable'),
+              padding: const EdgeInsets.only(top: SahoolSpacing.sm),
+              child: Text(
+                ragUnavailable,
+                style: small?.copyWith(color: t.warning),
+              ),
+            ),
+          if (reply.citations.isNotEmpty) ...[
+            const SizedBox(height: SahoolSpacing.sm),
+            Text('المراجع', style: context.textStyles.titleSmall),
+            Column(
+              key: const Key('advisor-citations'),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final c in reply.citations) _CitationLine(citation: c),
+              ],
+            ),
+          ],
+          if (reply.unverifiedReferences > 0)
+            Padding(
+              key: const Key('advisor-unverified-references'),
+              padding: const EdgeInsets.only(top: SahoolSpacing.sm),
+              child: Text(
+                'استُبعدت ${reply.unverifiedReferences} مراجع غير متحقَّق من مصدرها.',
+                style: small?.copyWith(color: t.muted),
+              ),
+            ),
+          if (reply.evidenceMissing.isNotEmpty)
+            Padding(
+              key: const Key('advisor-evidence-missing'),
+              padding: const EdgeInsets.only(top: SahoolSpacing.sm),
+              child: Text(
+                'أدلّة ناقصة: ${reply.evidenceMissing.map(evidenceMissingLabel).join('، ')}',
+                style: small?.copyWith(color: t.warning),
+              ),
+            ),
+          if (auditNotPersisted != null)
+            Padding(
+              key: const Key('advisor-audit-not-persisted'),
+              padding: const EdgeInsets.only(top: SahoolSpacing.sm),
+              child: Text(
+                auditNotPersisted,
+                style: small?.copyWith(color: t.warning),
+              ),
+            ),
           if (reply.claims.isNotEmpty) ...[
             const SizedBox(height: SahoolSpacing.sm),
             Text(
@@ -248,6 +311,49 @@ class _ReplyMeta extends StatelessWidget {
                 style: small?.copyWith(color: t.muted),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// مرجع واحد: اسمه (رابطاً إن كان http(s))، ثمّ الإصدار والموضع.
+class _CitationLine extends StatelessWidget {
+  const _CitationLine({required this.citation});
+  final AdvisorCitation citation;
+
+  @override
+  Widget build(BuildContext context) {
+    final small = context.textStyles.bodySmall;
+    final link = citation.link;
+    final details = [
+      if (citation.revision != null) 'إصدار ${citation.revision}',
+      if (citation.locator != null) citation.locator!,
+    ].join(' · ');
+    final title = Text(
+      '• ${citation.title}',
+      style: link == null
+          ? small
+          : small?.copyWith(
+              color: context.colors.primary,
+              decoration: TextDecoration.underline,
+            ),
+    );
+    return Padding(
+      padding: const EdgeInsets.only(top: SahoolSpacing.xs),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (link == null)
+            title
+          else
+            InkWell(
+              key: Key('advisor-citation-link-${citation.chunkId}'),
+              onTap: () => openCitationLink(context, link),
+              child: title,
+            ),
+          if (details.isNotEmpty)
+            Text(details, style: small?.copyWith(color: context.tokens.muted)),
         ],
       ),
     );

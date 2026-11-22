@@ -12535,7 +12535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "930498fd0bfd4e238a34e8a38baabf56301a0cf9259f33af5083fe0984985304"
+          "content": "bb7af4f06dd4e64ea1694a4ad194024404bb630e010391411ef3642e46aa63c5"
         }
       ],
       "name": "mobile/sahool_app/lib/features/advisor/data/advisor_models.dart",
@@ -12635,7 +12635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3160037037e712dc0d433e2860cbcf6ec214adf433794b36f45d6226824d4dcd"
+          "content": "269e21760da4a342d154a3f890cf982c8fb74dfae5a76f076067d6f08db2bffa"
         }
       ],
       "name": "mobile/sahool_app/lib/features/advisor/presentation/widgets/chat_bubbles.dart",
@@ -16375,7 +16375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8387b44b0b290ba86f4802524f7968061a7b2365781b8830e2e703192eb3562a"
+          "content": "225a7878ebf5e2b5a5ff5bf7754e4fa538d8e248fbdc64a37f15524cff96a169"
         }
       ],
       "name": "mobile/sahool_app/test/features/advisor/advisor_models_test.dart",
@@ -16385,7 +16385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7736ca8aa4185e453d1ba582b1ccaa33e6b1011853a23fbc2c6b7ab3d8252faa"
+          "content": "bee4e33f646223488076abc7492820e1efb08fc54f3d61095e76241f27f5b8dd"
         }
       ],
       "name": "mobile/sahool_app/test/features/advisor/advisor_screen_test.dart",
@@ -16395,7 +16395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "588150d7a867d8404af19bd45f9521fc2b6bd2a36465cfde862f5e1519e05f70"
+          "content": "b15182372a59f58129e08fb9b93bae159a5e216d842dfe3976527e94e06d0405"
         }
       ],
       "name": "mobile/sahool_app/test/features/advisor/advisor_test_helpers.dart",
