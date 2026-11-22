@@ -315,8 +315,25 @@ def _document_metadata(raw: object) -> dict:
 # rewrites that point and the newer revision loses it. This service is the only writer of
 # the canonical ingest and runs one worker, so serialising publication per (tenant,
 # document) here keeps two uploads of one document from ever being in flight at once.
+#
+# The lock is only worth something while it covers rag-retrieval's whole write. When the
+# canonical call fails after the request may have reached rag-retrieval (a timeout, a broken
+# connection, a cancelled handler), rag-retrieval may still be writing: its handler has no
+# deadline and is not cancelled by the client going away. Its write time has no bound this
+# service can compute either (20 s per Ollama or Qdrant call, but the read-back scrolls all
+# the tenant's rows). So such a document stays blocked, in doubt, until this process
+# restarts, and its uploads are refused with 409 instead of racing that write (lab 1582-v5).
+# A failure before anything was sent (connection refused, connect timeout) releases it.
 _PUBLISHING = {}  # (tenant, document) -> asyncio.Lock, kept only while someone holds or waits
 _PUBLISHING_USERS = {}  # (tenant, document) -> holders and waiters
+_PUBLICATION_IN_DOUBT = set()  # (tenant, document) whose last canonical write has no known end
+# How long one upload waits for rag-retrieval's answer. Not a safety bound: giving up only
+# blocks the document (above). Long enough for a large file embedded on CPU.
+_CANONICAL_INGEST_TIMEOUT_S = 900.0
+
+
+def _request_never_sent(exc):
+    return isinstance(exc, (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout))
 
 
 async def _publishing_steps(keys):
@@ -329,7 +346,26 @@ async def _publishing_steps(keys):
         for key in ordered:
             await _PUBLISHING[key].acquire()
             held.append(key)
-        yield
+        if any(key in _PUBLICATION_IN_DOUBT for key in ordered):
+            raise HTTPException(
+                409,
+                {
+                    "code": "DOCUMENT_PUBLICATION_IN_DOUBT",
+                    "message": "an earlier upload of this file may still be being written; "
+                    "it can be uploaded again after the knowledge service restarts",
+                },
+            )
+        try:
+            yield
+        except BaseException as exc:
+            if not _request_never_sent(exc):
+                _PUBLICATION_IN_DOUBT.update(ordered)
+                logger.warning(
+                    "RAG_PUBLICATION_IN_DOUBT documents=%d type=%s",
+                    len(ordered),
+                    type(exc).__name__,
+                )
+            raise
     finally:
         for key in reversed(held):
             _PUBLISHING[key].release()
@@ -443,7 +479,7 @@ async def ingest_documents(
         raise HTTPException(503, "خدمة المعرفة غير مهيأة للكتابة المحكومة")
     try:
         async with _publishing((tenant_id, d) for d in document_names):
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=_CANONICAL_INGEST_TIMEOUT_S) as client:
                 response = await client.post(
                     f"{RAG_RETRIEVAL_URL}/v1/ingest",
                     json={"chunks": wire_chunks},
@@ -452,6 +488,8 @@ async def ingest_documents(
         response.raise_for_status()
         answer = response.json()
         accepted = int(answer.get("ingested", 0))
+    except HTTPException:
+        raise
     except Exception as exc:  # noqa: BLE001 — canonical writer failure must be explicit
         logger.warning("RAG_CANONICAL_INGEST_FAILED type=%s", type(exc).__name__)
         raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر الاستيعاب)") from exc

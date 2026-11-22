@@ -8,6 +8,11 @@ serialises the canonical call per (tenant, document). It also reads the per-docu
 receipts: a document another publication replaced is named (``superseded_files``) instead
 of being answered as ingested.
 
+A canonical call that fails after the request may have reached rag-retrieval (timeout,
+broken connection, cancelled handler) leaves the document blocked, in doubt: rag-retrieval
+may still be writing, so a second upload must not race it (lab 1582-v5). A failure before
+anything was sent releases the document.
+
 The real ``ingest_documents`` and ``_publishing`` are compiled from the service source with
 recording stand-ins for the parser and the canonical HTTP client.
 """
@@ -21,7 +26,9 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 
+import httpx
 import pytest
 from fastapi import HTTPException
 
@@ -34,6 +41,9 @@ _NAMES = {
     "_publishing",
     "_PUBLISHING",
     "_PUBLISHING_USERS",
+    "_PUBLICATION_IN_DOUBT",
+    "_CANONICAL_INGEST_TIMEOUT_S",
+    "_request_never_sent",
 }
 
 
@@ -44,6 +54,7 @@ class _Doc:
 
 
 def _compile(post):
+    timeouts: list = []
     tree = ast.parse(MAIN.read_text(encoding="utf-8"))
     body = []
     for node in tree.body:
@@ -54,7 +65,7 @@ def _compile(post):
 
     class _Client:
         def __init__(self, *a, **k):
-            pass
+            timeouts.append(k.get("timeout"))
 
         async def __aenter__(self):
             return self
@@ -78,11 +89,17 @@ def _compile(post):
         "load_document": lambda p: [_Doc(p.read_text(encoding="utf-8"), {})],
         "split_docs": lambda docs: list(docs),
         "_document_metadata": lambda meta: dict(meta),
-        "httpx": type("H", (), {"AsyncClient": _Client}),
+        "httpx": SimpleNamespace(
+            AsyncClient=_Client,
+            ConnectError=httpx.ConnectError,
+            ConnectTimeout=httpx.ConnectTimeout,
+            PoolTimeout=httpx.PoolTimeout,
+        ),
         "AGENT_TOKEN": "agent-token",
         "RAG_RETRIEVAL_URL": "http://rag",
     }
     exec(compile(ast.Module(body, []), str(MAIN), "exec"), ns)  # noqa: S102 - our own source
+    ns["_timeouts"] = timeouts
     return ns["ingest_documents"], ns
 
 
@@ -193,3 +210,137 @@ def test_no_superseded_receipt_keeps_the_plain_answer(tmp_path):
     paths, names = _upload(tmp_path, "a", [("guide.txt", "guide")])
     out = asyncio.run(ingest(paths, "tenant-a", source_names=names))
     assert out == {"ingested": 1, "chunks": 1, "rejected": 0}
+
+
+def _writer_that_outlives_the_client(failure):
+    """rag-retrieval keeps writing after the uploader's call failed (lab 1582-v5).
+
+    ``failure`` is raised to the uploader once the server has started; the server's write
+    keeps going for a while after that, as a threadpool write does when its client leaves.
+    """
+    state = {"writing": 0, "overlap": 0, "calls": 0, "server": []}
+
+    async def server_write():
+        state["writing"] += 1
+        await asyncio.sleep(0.2)
+        state["writing"] -= 1
+
+    async def post(body):
+        state["calls"] += 1
+        if state["writing"]:
+            state["overlap"] += 1
+        task = asyncio.ensure_future(server_write())
+        state["server"].append(task)
+        if state["calls"] == 1 and failure is not None:
+            await asyncio.sleep(0.01)
+            raise failure
+        await task
+        return _Response({"ingested": len(body["chunks"]), "receipts": []})
+
+    return state, post
+
+
+def _first_fails_then_second(tmp_path, failure, second_name="guide.txt"):
+    state, post = _writer_that_outlives_the_client(failure)
+    ingest, ns = _compile(post)
+
+    async def run():
+        a = _upload(tmp_path, "a", [("guide.txt", "first revision")])
+        b = _upload(tmp_path, "b", [(second_name, "second revision")])
+        with pytest.raises(HTTPException) as first:
+            await ingest(a[0], "tenant-a", source_names=a[1])
+        try:
+            second = await ingest(b[0], "tenant-a", source_names=b[1])
+        except HTTPException as exc:
+            second = exc
+        await asyncio.gather(*state["server"])
+        return first.value, second
+
+    first, second = asyncio.run(run())
+    return state, ns, first, second
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [
+        httpx.ReadTimeout("timed out"),
+        httpx.RemoteProtocolError("server disconnected"),
+        httpx.WriteTimeout("timed out"),
+    ],
+    ids=["read-timeout", "connection-dropped", "write-timeout"],
+)
+def test_a_document_whose_write_may_still_run_is_not_published_again(tmp_path, failure):
+    state, ns, first, second = _first_fails_then_second(tmp_path, failure)
+    assert first.status_code == 503
+    assert state["overlap"] == 0, "a second upload raced a write rag-retrieval was still doing"
+    assert isinstance(second, HTTPException) and second.status_code == 409
+    assert second.detail["code"] == "DOCUMENT_PUBLICATION_IN_DOUBT"
+    assert state["calls"] == 1, "the refused upload never reaches the canonical ingest"
+    assert ns["_PUBLISHING"] == {} and ns["_PUBLISHING_USERS"] == {}, "locks are released"
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [httpx.ConnectError("refused"), httpx.ConnectTimeout("no route")],
+    ids=["connection-refused", "connect-timeout"],
+)
+def test_a_request_that_never_left_releases_the_document(tmp_path, failure):
+    async def post(body):
+        if not calls:
+            calls.append(1)
+            raise failure
+        calls.append(1)
+        return _Response({"ingested": len(body["chunks"]), "receipts": []})
+
+    calls: list[int] = []
+    ingest, ns = _compile(post)
+
+    async def run():
+        a = _upload(tmp_path, "a", [("guide.txt", "first revision")])
+        b = _upload(tmp_path, "b", [("guide.txt", "second revision")])
+        with pytest.raises(HTTPException):
+            await ingest(a[0], "tenant-a", source_names=a[1])
+        return await ingest(b[0], "tenant-a", source_names=b[1])
+
+    out = asyncio.run(run())
+    assert out["chunks"] == 1 and ns["_PUBLICATION_IN_DOUBT"] == set()
+
+
+def test_a_cancelled_upload_leaves_its_document_in_doubt(tmp_path):
+    async def run():
+        reached = asyncio.Event()
+
+        async def post(body):
+            reached.set()
+            await asyncio.sleep(10)
+
+        ingest, ns = _compile(post)
+        a = _upload(tmp_path, "a", [("guide.txt", "first revision")])
+        task = asyncio.ensure_future(ingest(a[0], "tenant-a", source_names=a[1]))
+        await reached.wait()
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        return ns
+
+    ns = asyncio.run(run())
+    assert len(ns["_PUBLICATION_IN_DOUBT"]) == 1
+    assert ns["_PUBLISHING"] == {} and ns["_PUBLISHING_USERS"] == {}
+
+
+def test_a_document_in_doubt_does_not_block_other_documents(tmp_path):
+    state, _ns, _first, second = _first_fails_then_second(
+        tmp_path, httpx.ReadTimeout("timed out"), second_name="calendar.txt"
+    )
+    assert isinstance(second, dict) and second["chunks"] == 1
+
+
+def test_the_upload_waits_for_rag_retrieval_longer_than_a_short_request(tmp_path):
+    async def post(body):
+        return _Response({"ingested": len(body["chunks"])})
+
+    ingest, ns = _compile(post)
+    paths, names = _upload(tmp_path, "a", [("guide.txt", "guide")])
+    asyncio.run(ingest(paths, "tenant-a", source_names=names))
+    assert ns["_timeouts"] == [ns["_CANONICAL_INGEST_TIMEOUT_S"]]
+    assert ns["_CANONICAL_INGEST_TIMEOUT_S"] >= 600
