@@ -2,8 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import App from './App';
+// Load Tailwind's theme/base/components before AppShell's @layer utilities.
+// If App is imported first, its operations.css declares utilities before base;
+// the later Preflight reset then overrides padding/text-size across public pages.
 import './index.css';
+import App from './App';
 import { useAuthStore } from './hooks/useAuth';
 import { useFieldContextStore } from './hooks/useFieldContext';
 import { resetDuckDB } from './services/duckdb';
