@@ -9,7 +9,7 @@ const hubMap = readFileSync(join(root, 'src/components/maphub/HubMap.tsx'), 'utf
 describe('MapHub v36 pivot designer activation', () => {
   it('exposes a visible Pivot Designer toggle and keeps click modes mutually exclusive', () => {
     expect(mapHub).toContain('btn-pivot-designer');
-    expect(mapHub).toContain('تصميم Pivot');
+    expect(mapHub).toContain('تصميم الريّ المحوريّ');
     expect(mapHub).toContain('setPinMode(false)');
     expect(mapHub).toContain('setDrawTools(false)');
     expect(mapHub).toContain('setCompare(false)');
@@ -38,7 +38,11 @@ describe('MapHub v36 pivot designer activation', () => {
     expect(mapHub).toContain("const fieldEditAllowed = canMutate(user?.role, 'field');");
     expect(mapHub).toContain('const pinAllowed = !!user;');
     expect(mapHub).toContain('pinMode={pinMode && pinAllowed}');
-    expect(mapHub).toContain('{fieldEditAllowed && <><MapHubToolToggle testid="btn-pivot-designer"');
+    // The circle-field, pivot-designer and zone tools render only inside the fieldEditAllowed fragment.
+    const gated = /\{fieldEditAllowed && <>([\s\S]*?)<\/>\}/.exec(mapHub)?.[1] ?? '';
+    expect(gated).toContain('testid="btn-circle-field"');
+    expect(gated).toContain('testid="btn-pivot-designer"');
+    expect(gated).toContain('testid="btn-zone-designer"');
     expect(mapHub).not.toContain('pinMode={pinMode && mutateAllowed}');
     expect(mapHub).toContain('draft.properties.fieldId === fieldId && draft.properties.localOwnerScope === drawingOwnerScope');
     expect(mapHub).toContain('pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...fieldPivotDrafts] : []}');

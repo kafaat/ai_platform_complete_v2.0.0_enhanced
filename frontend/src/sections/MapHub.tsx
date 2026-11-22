@@ -22,7 +22,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type
 import {
   Layers, MapPin, Columns2, Square, Ruler, Crosshair, Box, Mountain,
   Search as SearchIcon, Trash2, Combine, Download, Upload,
-  History, RotateCcw, Target,
+  History, RotateCcw, Target, CircleDot,
   Satellite,
 } from 'lucide-react';
 import { useLocation } from 'react-router';
@@ -484,6 +484,8 @@ function MapHubCore() {
   const initialMapView = useMemo<SahoolMapView | null>(() => mapView, [restoreKey]);
   const [detailOpen, setDetailOpen] = useState(false);
   const [showAddField, setShowAddField] = useState(false);
+  // أداة الرسم التي يُفتح بها حوار إضافة الحقل («حقل دائري» يفتحه بالدائرة جاهزة).
+  const [addFieldTool, setAddFieldTool] = useState<'circle' | null>(null);
   const [showSplitMerge, setShowSplitMerge] = useState(false); // أداة الدمج/التقسيم — مغلقة افتراضيّاً
   const [search, setSearch] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -559,7 +561,7 @@ function MapHubCore() {
 
   // رابط عميق ?add=1 (من «حقولي») يفتح نموذج إنشاء الحقل — مقيَّد بصلاحيّة التعديل.
   useEffect(() => {
-    if (requestedAddOpen && mutateAllowed) setShowAddField(true);
+    if (requestedAddOpen && mutateAllowed) { setAddFieldTool(null); setShowAddField(true); }
   }, [requestedAddOpen, mutateAllowed]);
 
   // التقاط عرض الخريطة (moveend من أيّ محرّك) — كتابة مُتسامِحة (idempotent): إن
@@ -1662,6 +1664,7 @@ function MapHubCore() {
       // حفظ مشهد الخريطة (zoom + مركز) بمعرّف الحقل المُنشأ — يُطار إليه عند فتحه لاحقاً.
       if (data.map_view) saveFieldMapView(newId, data.map_view);
       setShowAddField(false);
+      setAddFieldTool(null);
       toastStore.add('success', '✅ تم إضافة الحقل', data.name);
       await refetch();
       // انتقل إلى الحقل المُنشأ حديثاً واعرضه بالإطار الافتراضيّ (لا حقل سابق).
@@ -1684,6 +1687,7 @@ function MapHubCore() {
       const r = await kongApi.post('/api/v1/fields/import', withoutIdempotency(payload as Record<string, unknown>), idempotencyConfig(payload as Record<string, unknown>));
       const newId = String((r.data as Record<string, unknown>)?.field_id ?? '');
       setShowAddField(false);
+      setAddFieldTool(null);
       toastStore.add('success', '✅ تم استيراد الحقل', '');
       await refetch();
       // انتقل إلى الحقل المستورَد حديثاً واعرضه بالإطار الافتراضيّ.
@@ -2238,7 +2242,7 @@ function MapHubCore() {
           onPinScouting={() => { setMode('2d'); setCompare(false); setPinMode(true); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }}
           onOpenTimeline={() => setShowImageryTimeline(true)}
           onOpenAlerts={() => setShowAlerts(true)}
-          onAddField={() => setShowAddField(true)}
+          onAddField={() => { setAddFieldTool(null); setShowAddField(true); }}
         />
       </RoleAwareMapSurface>
 
@@ -2761,8 +2765,11 @@ function MapHubCore() {
                         أحدهما يُعطّل الآخر (والمقارنة) — وإلّا كلّ نقرة قياس تُسقط دبّوساً بالخطأ. */}
                     <MapHubToolToggle testid="btn-draw" active={drawTools} onClick={() => { setDrawTools((v) => !v); setPinMode(false); setCompare(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
                     {pinAllowed && <MapHubToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />}
-                    {fieldEditAllowed && <><MapHubToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم Pivot" />
-                    <MapHubToolToggle testid="btn-zone-designer" active={zoneDesigner} onClick={() => { setZoneDesigner((v) => !v); setPivotDesigner(false); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Combine className="w-3.5 h-3.5" />} label="Zones" /></>}
+                    {/* أداتا الريّ المحوريّ في الشريط الرئيسيّ لمن يملك تعديل الحقول: «حقل دائري» يفتح
+                        حوار إضافة الحقل بالدائرة جاهزة، و«تصميم الريّ المحوريّ» يفعّل مصمّم المحاور. */}
+                    {fieldEditAllowed && <><MapHubToolToggle testid="btn-circle-field" active={showAddField && addFieldTool === 'circle'} onClick={() => { setAddFieldTool('circle'); setShowAddField(true); setPinMode(false); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<CircleDot className="w-3.5 h-3.5" />} label="حقل دائري" title="أضف حقلاً دائريّاً (ريّ محوريّ): انقر المركز ثمّ حرّك لتحديد نصف القطر" />
+                    <MapHubToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم الريّ المحوريّ" />
+                    <MapHubToolToggle testid="btn-zone-designer" active={zoneDesigner} onClick={() => { setZoneDesigner((v) => !v); setPivotDesigner(false); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Combine className="w-3.5 h-3.5" />} label="مناطق الإدارة" /></>}
                   </div>
                 </div>
 
@@ -3202,7 +3209,8 @@ function MapHubCore() {
         <AddFieldWithMap
           onSave={handleSaveField}
           onImport={handleImportField}
-          onCancel={() => setShowAddField(false)}
+          initialDrawTool={addFieldTool}
+          onCancel={() => { setShowAddField(false); setAddFieldTool(null); }}
         />
       )}
 
