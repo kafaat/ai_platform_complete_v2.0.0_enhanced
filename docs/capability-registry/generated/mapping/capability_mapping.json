@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7656,
+    "files_scanned": 7659,
     "files_by_kind": {
       "backend": 1312,
       "database": 354,
-      "governance": 90,
+      "governance": 92,
       "mobile": 429,
       "other": 2242,
-      "tests": 2661,
+      "tests": 2662,
       "web": 568
     },
-    "unmapped_artifacts": 3648,
+    "unmapped_artifacts": 3649,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4156,
-      "raw": 3500
+      "python_functional": 4158,
+      "raw": 3501
     },
-    "test_dependency_files": 2026,
-    "test_dependency_edges": 5429,
-    "test_dependency_bounded_files": 1170,
+    "test_dependency_files": 2027,
+    "test_dependency_edges": 5431,
+    "test_dependency_bounded_files": 1171,
     "test_dependency_unresolved_relations": 516
   },
   "capabilities": [
@@ -44439,6 +44439,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests/test_madar_ci.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests/test_migration_index_columns_exist.py",
       "kind": "tests"
     },
@@ -75251,6 +75255,24 @@
           "source": "services/supervisor-agent/skills/remote_sensing_skill.py",
           "kind": "source_read",
           "line": 16
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests/test_madar_ci.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": ".github/scripts/madar_ci.py",
+          "kind": "loader",
+          "line": 11
+        },
+        {
+          "source": ".github/scripts/madar_ci.py",
+          "kind": "source_read",
+          "line": 10
         }
       ],
       "unresolved": []

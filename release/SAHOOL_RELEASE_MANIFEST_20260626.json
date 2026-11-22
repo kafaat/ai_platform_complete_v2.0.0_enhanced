@@ -10,7 +10,7 @@
       "scripts": 518,
       "services": 2365,
       "shared": 193,
-      "tests": 169
+      "tests": 170
     }
   },
   "deployment_gates": [
@@ -35,7 +35,7 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 8603,
+  "file_count": 8606,
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -133,5 +133,5 @@
     "bash scripts/chaos/run_chaos_tests.sh",
     "bash scripts/recovery/recovery_smoke.sh"
   ],
-  "total_size_bytes": 107895471
+  "total_size_bytes": 107915192
 }
