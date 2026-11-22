@@ -35,4 +35,4 @@ jobs:
       - name: Write the Arabic CI report
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/ci/madar_ci.py
+        run: python3 .github/scripts/madar_ci.py

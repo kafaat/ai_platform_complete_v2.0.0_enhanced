@@ -7,7 +7,7 @@ from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request
 
-file = Path(__file__).resolve().parents[1] / "scripts/ci/madar_ci.py"
+file = Path(__file__).resolve().parents[1] / ".github/scripts/madar_ci.py"
 spec = importlib.util.spec_from_file_location("madar_ci", file)
 bot = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bot)
@@ -126,7 +126,7 @@ class Triage(unittest.TestCase):
             "conclusion": "success",
         }
         bot.run_report(API(), "owner/repo", run, lines.append)
-        self.assertEqual(102, len(lines))
+        assert len(lines) == 102
         self.assertIn("/attempts/3/jobs?", calls[0])
         self.assertTrue(calls[1].endswith("page=2"))
         self.assertIn("لم تُشغّل", lines[-1])
@@ -137,8 +137,10 @@ class Triage(unittest.TestCase):
                 return {"jobs": [dict(job("success"), head_sha="b" * 40)]}
 
         run = {"id": 2, "name": "CI", "run_attempt": 1, "head_sha": "a" * 40}
-        with self.assertRaises(ValueError):
-            bot.run_report(API(), "owner/repo", run, lambda _: None)
+        emitted = []
+        with self.assertRaisesRegex(ValueError, "job identity mismatch"):
+            bot.run_report(API(), "owner/repo", run, emitted.append)
+        assert len(emitted) == 1  # Only the run header may precede the rejected job.
 
     def entrypoint(self, event, run):
         queried = []
