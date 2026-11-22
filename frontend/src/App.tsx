@@ -197,8 +197,8 @@ export default function App() {
   const page: PageId = pageForPath(location.pathname) ?? 'dashboard';
   const setPage = useCallback((p: PageId) => { navigate(pathForPage(p)); }, [navigate]);
   // المسارات العامة تُشتقّ من عنوان المتصفح بدلاً من حالة مؤقتة تُفقد بالتحديث.
-  // ‎/reset-password?token=‎ (بريد إعادة التعيين وبريد إعداد مالك المستأجِر) يفتح خطوة
-  // كلمة المرور الجديدة؛ ‎?token=‎ على أيّ مسار آخر يبقى دعوة (lib/authScreens).
+  // /reset-password?token= (بريد إعادة التعيين وبريد إعداد مالك المستأجِر) يفتح خطوة
+  // كلمة المرور الجديدة؛ ?token= على أيّ مسار آخر يبقى دعوة (lib/authScreens).
   const authScreen = authScreenFor(location.pathname, location.search);
   const resetToken = resetTokenFor(location.pathname, location.search);
   const goToLogin = () => navigate('/login');
