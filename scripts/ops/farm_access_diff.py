@@ -11,10 +11,13 @@ Reported per (user, tenant, farm, action): ``lost`` (before, not after) and
 exactly one auth identity in the same tenant; ``unresolved`` (no auth identity) and
 ``mismatched`` (tenant disagrees, or ambiguous e-mail) are listed per user. ``orphan_grants``
 are active grants no session can use, such as one keyed by the platform's users.id.
+``platform_id_keyed_grants`` are active grants whose key equals the platform users.id of a
+person who resolves to a different sub: with overlapping SERIAL id ranges such a grant reaches
+another person, so it fails unless its provenance is the decision-C backfill.
 
-Exit status 1 when any of lost, newly_permitted, unresolved, mismatched or orphan_grants is
-non-empty: enforcement may be considered only after a clean (exit 0) run. Exit 2 when the run
-cannot be truthful (missing DSN, a role that cannot read every tenant). Read-only throughout.
+Exit status 1 when any of lost, newly_permitted, unresolved, mismatched, orphan_grants or
+platform_id_keyed_grants is non-empty: enforcement may be considered only after a clean (exit 0)
+run. Exit 2 when the run cannot be truthful (missing DSN, a role that cannot read every tenant). Read-only throughout.
 
 Usage::
 
@@ -79,6 +82,8 @@ def render(report: dict) -> list[str]:
             )
     for grant in report["orphan_grants"]:
         lines.append(f"  orphan grant: {grant}")
+    for grant in report["platform_id_keyed_grants"]:
+        lines.append(f"  grant keyed like a platform users.id: {grant}")
     failed = fac.failures(report)
     lines.append("FAIL: " + ", ".join(failed) if failed else "OK: no difference")
     return lines

@@ -67,11 +67,13 @@ class Farm:
 
 @dataclass(frozen=True)
 class Grant:
+    """``granted_by`` is required: provenance decides how a colliding key is judged."""
+
     tenant_id: str
     user_id: str
     farm_id: str
+    granted_by: str
     is_active: bool = True
-    granted_by: str = GRANTED_BY
 
 
 def normalize_email(email: str | None) -> str:
@@ -162,7 +164,7 @@ def plan_backfill(auth_users: list[Identity], farms: list[Farm], existing: list[
             key = (str(u.tenant_id), u.id, farm_id)
             have = current.get(key)
             if have is None:
-                insert.append(Grant(*key))
+                insert.append(Grant(*key, GRANTED_BY))
             elif have.is_active:
                 already.append(have)
             else:
@@ -233,6 +235,34 @@ def orphan_grants(auth_users: list[Identity], farms: list[Farm], grants: list[Gr
     return out
 
 
+def platform_id_keyed_grants(identities: dict, grants: list[Grant]) -> list:
+    """Active grants whose key is the platform users.id of a person whose sub is different.
+
+    Both users.id columns are SERIAL from 1, so the id spaces overlap and a grant keyed by a
+    platform id usually matches SOME sub: possibly another person in the same tenant, which
+    neither orphan_grants (the key is a real sub) nor lost/newly_permitted (a full grant set is
+    the same set either way) can see. A key equal to the platform id of a person who resolves
+    to another sub is ambiguous by value, so it fails unless the row's provenance is the
+    decision-C backfill, which reads identities through auth's own connection only and keys
+    by sub by construction (``granted_by='backfill:decision-C'``). A grant written by anyone
+    else with such a key must be checked by a person; this check cannot tell which was meant.
+    """
+    resolved = {
+        (str(r["platform_tenant_id"]), r["platform_user_id"]): (
+            r["sub"] if r["status"] == "resolved" else None
+        )
+        for r in identities["users"]
+    }
+    out = []
+    for g in grants:
+        if not g.is_active or g.granted_by == GRANTED_BY:
+            continue
+        key = (g.tenant_id, g.user_id)
+        if key in resolved and resolved[key] != g.user_id:
+            out.append({**asdict(g), "platform_user_resolves_to_sub": resolved[key]})
+    return out
+
+
 def compare(
     platform_users: list[Identity],
     auth_users: list[Identity],
@@ -271,6 +301,7 @@ def compare(
         ],
         "identities": identities,
         "orphan_grants": orphan_grants(auth_users, farms, grants),
+        "platform_id_keyed_grants": platform_id_keyed_grants(identities, grants),
     }
 
 
@@ -283,6 +314,7 @@ def failures(report: dict) -> list[str]:
         "unresolved": ident["unresolved"],
         "mismatched": ident["mismatched"],
         "orphan_grants": report["orphan_grants"],
+        "platform_id_keyed_grants": report["platform_id_keyed_grants"],
     }
     return [name for name, rows in found.items() if rows]
 
@@ -343,6 +375,6 @@ async def fetch_grants(conn) -> list[Grant]:
             "FROM farm_access_grants ORDER BY tenant_id, user_id, farm_id"
         )
     return [
-        Grant(r["tenant_id"], r["user_id"], r["farm_id"], r["is_active"], r["granted_by"])
+        Grant(r["tenant_id"], r["user_id"], r["farm_id"], r["granted_by"], r["is_active"])
         for r in rows
     ]

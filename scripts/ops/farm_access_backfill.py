@@ -27,7 +27,9 @@ Usage::
     AUTH_DATABASE_URL=postgresql://operator@auth-host/db \\
       python scripts/ops/farm_access_backfill.py [--apply] [--json report.json]
 
-Exit status: 0 done (or planned), 2 precondition failed (missing DSN, role, or v287 absent).
+Exit status: 0 done (or planned); 1 refused because a platform user has no auth identity or a
+mismatched one (nothing is written, dry run or --apply); 2 precondition failed (missing DSN,
+role, or v287 absent).
 """
 
 from __future__ import annotations
@@ -58,6 +60,11 @@ async def _insert(conn, grants: list[fac.Grant]) -> int:
     return written
 
 
+def identity_blockers(identities: dict) -> list[str]:
+    """The identity-report categories that stop the backfill (dry run and --apply alike)."""
+    return [name for name in ("unresolved", "mismatched") if identities[name]]
+
+
 async def run(platform_dsn: str, auth_dsn: str, *, apply: bool) -> dict:
     import asyncpg
 
@@ -72,13 +79,16 @@ async def run(platform_dsn: str, auth_dsn: str, *, apply: bool) -> dict:
         platform_users = await fac.fetch_users(platform)
         farms = await fac.fetch_farms(platform)
         plan = fac.plan_backfill(auth_users, farms, await fac.fetch_grants(platform))
-        written = await _insert(platform, plan["insert"]) if apply else 0
+        identities = fac.identity_report(platform_users, auth_users)
+        # Hospital condition: an unresolved or mismatched identity stops the run before any write.
+        refused = bool(identity_blockers(identities))
+        written = await _insert(platform, plan["insert"]) if apply and not refused else 0
     finally:
         await platform.close()
         await auth.close()
-    identities = fac.identity_report(platform_users, auth_users)
     return {
         "mode": "apply" if apply else "dry-run",
+        "refused": refused,
         "granted_by": fac.GRANTED_BY,
         "planned_inserts": len(plan["insert"]),
         "written": written,
@@ -116,7 +126,11 @@ def main(argv: list[str] | None = None) -> int:
         f"skipped_revoked={len(report['skipped_revoked'])} identities={report['identities']}"
     )
     if report["identities"]["unresolved"] or report["identities"]["mismatched"]:
-        print("identity report is not clean: run farm_access_diff.py for the per-user list")
+        print(
+            "REFUSED: the identity report is not clean (nothing written); "
+            "run farm_access_diff.py for the per-user list"
+        )
+        return 1
     return 0
 
 
