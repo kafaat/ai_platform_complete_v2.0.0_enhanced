@@ -6,9 +6,10 @@ sequence for staging only. It does not authorize production cutover, platform de
 (`SAHOOL_DECISION_WRITE_MODE=decision_service_sor`) or the platform-write REVOKE: all three need
 `DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED=true`, which is never set on staging.
 
-**Deadline:** the authority exceptions that track `DECISION-SOR-CUTOVER-WIRING-01` expire on
-**2026-11-30** (`AUTHORITY-EXCEPTIONS-CO-EXPIRE-ON-2026-11-30-01`). A staging cutover does not
-close that gap. Before that date the owner either closes the gap or records a new decision.
+**Deadline:** the authority exceptions that track `DECISION-SOR-CUTOVER-WIRING-01` expired on
+**2026-11-30** (`AUTHORITY-EXCEPTIONS-CO-EXPIRE-ON-2026-11-30-01`). On 2026-11-22 the owner extended
+them to **2026-12-31** (SHR-01, `sahool-brain/decisions/ledger.md`). A staging cutover does not close
+that gap. Before 2026-12-31 the owner either closes the gap or records a new decision.
 
 Every live step needs credentials the repository does not hold. The operator runs them. Pass
 connection strings and tokens as environment variables in the execution shell; never paste them
