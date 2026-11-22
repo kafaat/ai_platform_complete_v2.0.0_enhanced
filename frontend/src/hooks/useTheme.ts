@@ -7,7 +7,12 @@ const THEMES: readonly Theme[] = ['dark', 'light', 'cream'];
 
 export function readStoredTheme(): Theme {
   if (typeof window === 'undefined') return 'light';
-  const stored = window.localStorage.getItem(STORAGE_KEY);
+  let stored: string | null = null;
+  try {
+    stored = window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    // Storage that throws on read (Safari private mode, blocked site data) gets the default.
+  }
   return THEMES.includes(stored as Theme) ? (stored as Theme) : 'light';
 }
 

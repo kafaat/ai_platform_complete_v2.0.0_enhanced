@@ -231,7 +231,7 @@ export function FAB({ icon, onClick, label }: { icon: ReactNode; onClick?: () =>
       className="inline-flex items-center justify-center gap-2"
       style={{
         background: T.gold,
-        color: T.ink,
+        color: T.onGold,
         borderRadius: RADIUS.pill,
         padding: label ? '12px 18px' : 14,
         boxShadow: '0 6px 18px rgba(232,160,32,.35)',

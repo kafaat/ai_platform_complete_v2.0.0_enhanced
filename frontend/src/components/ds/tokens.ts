@@ -5,6 +5,7 @@ export const T = {
   brownSoft:  '#354438',
   gold:       '#FFDE00',
   goldSoft:   '#FFEB75',
+  onGold:     '#202621', // text on gold in every theme (11.5:1); T_DARK does not override it
   green:      '#367C2B',
   greenDark:  '#275D20',
   greenSoft:  '#E9F3E6',
