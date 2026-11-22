@@ -8923,7 +8923,12 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## VEGETATION-VERIFICATION-RESULTS-CALLBACK-NO-SENDER-01 — نتيجة التحقّق من الشذوذ النباتيّ لا يرسلها أحد
 
-- **الحالة:** open — طلبتها جلسة التكامل؛ لم يبدأ التنفيذ.
+- **الحالة:** open — **محجوبة بشرطٍ مسبق لا يتحقّق** (F-D07، موجة 3 G4، مقيس على main `580add968`): لا مُرسِل فعلاً، لكنّ الحالة التي يُفترض أن يُرسَل عندها (مهمّة شذوذ مكتملة اعتمد المراجعُ نسختَها الحاليّة من الدليل) **لا يمكن أن توجد** على هذا المخطّط، فلم يُكتب مُرسِل ميّت. الحواجز مقيسة حيّاً بـ`tests_v9/test_field_task_scouting_anomaly_live_pg.py:562` (مع ضوابط تكذيب داخل معاملات مُرجَعة، وطفرة حذف مرشّح الدبوس من `_load` تُحمِّره):
+  - مهمّة الشذوذ لا تصير مهمّة تفتيش دبوس: `migrations/v277_inspection_close_gate.sql:55` (SH003) ومستقلّاً `migrations/v282_field_task_scouting_anomaly.sql:58` (`field_task_anomaly_scope_ck`)؛
+  - فلا تحمل نسخة دليل: `migrations/v274_inspection_evidence_versions.sql:71`؛ ولا تقرؤها مسارات المراجعة: `services/field-management-service/fm_task_inspection.py:171` (دبوس فقط ⇒ 404)؛
+  - وتُغلَق بلا مراجعة أصلاً (بوّابة v277 للدبوس فقط، `v277:58`)، فـ«مكتملة» لا تحمل نتيجةً مُراجَعة؛
+  - المراجعة نفسها تسجّل `submit/approve/return` لنسخة دليل (`fm_task_inspection.py:88`) لا «مؤكَّد/غير مؤكَّد»، والمستقبِل يطلب `verification_result` و`expected_version` للشذوذ (`services/vegetation-analysis-service/anomaly_requests.py:47-49`) وتوكن مستخدم JWT فوق رمز الاستدعاء (`routers/anomalies.py:442`) — وfield-management لا يحمل JWT بالعقد (`services/field-management-service/main.py:1-20`).
+  - **قرارات المالك قبل أيّ مُرسِل:** (١) كيف تُسجَّل نتيجة التحقّق لمهمّة الشذوذ (حقل نتيجة + دليل + مراجِع) — يتطلّب هجرة، وGATE-01 مفتوحة؛ (٢) مصادقة المستقبِل خدمةً-لخدمة (تأكيد المستأجر الموقَّع بدل JWT المستخدم)؛ (٣) من أين يعرف المُرسِل `expected_version`؛ (٤) صندوق صادر دائم (لا يوجد في field-management: `fm_task_inspection.py:15`).
 - **الخلل (مقيس على main `fc091531`):** `POST /v1/anomalies/{anomaly_ref}/verification-results` (`services/vegetation-analysis-service/routers/anomalies.py:437`، محميّة بـ`X-Task-Service-Token` = `TASK_SERVICE_CALLBACK_TOKEN`) لا يستدعيها شيء في `services/` ولا `frontend/src` ولا `mobile/sahool_app/lib` ولا `bots` ولا `agents` ولا `nginx` ولا `scripts`. وجودها الوحيد سطرُ جردٍ في `scripts/ci/vegetation_smoke_contract.json:19`.
 - **الأثر:** حلقة التحقّق الميدانيّ من الشذوذ تبدأ ولا تُغلَق: تُنشَأ مهمّة التحقّق في field-management، ولا طريق لعودة نتيجتها إلى vegetation-analysis.
 - **المالك الطبيعيّ للإرسال:** field-management، عند إغلاق مهمّة التحقّق (اقتراح جلسة التكامل).
