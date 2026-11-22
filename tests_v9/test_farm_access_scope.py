@@ -294,16 +294,30 @@ def test_farm_scope_detects_schema_by_catalog_probe_and_catches_nothing():
     assert "UndefinedTable" not in text and "42P01" not in text
 
 
-_DDL = re.compile(r"\b(CREATE|ALTER|DROP|GRANT|REVOKE|TRUNCATE)\b", re.IGNORECASE)
+_DDL = re.compile(
+    r"\b(CREATE|ALTER|DROP|GRANT|REVOKE|TRUNCATE|COMMENT\s+ON|SET\s+ROLE|RESET\s+ROLE"
+    r"|SET\s+SESSION\s+AUTHORIZATION)\b",
+    re.IGNORECASE,
+)
+
+
+def _docstrings(tree: ast.AST) -> set[int]:
+    out = set()
+    for n in ast.walk(tree):
+        if isinstance(n, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            body = n.body
+            if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
+                out.add(id(body[0].value))
+    return out
 
 
 def _sql_constants(node: ast.AST) -> list[str]:
+    """Every string literal except docstrings: any of them could be sent to the database."""
+    skip = _docstrings(node)
     return [
         n.value
         for n in ast.walk(node)
-        if isinstance(n, ast.Constant)
-        and isinstance(n.value, str)
-        and re.search(r"\b(SELECT|INSERT)\b", n.value)
+        if isinstance(n, ast.Constant) and isinstance(n.value, str) and id(n) not in skip
     ]
 
 
@@ -324,3 +338,68 @@ def test_no_request_path_runs_ddl_or_grants_to_get_around_missing_schema():
         if p.name != "farm_scope.py" and "insert_tenant_grants" in p.read_text(encoding="utf-8")
     ]
     assert callers == []
+
+
+# ── review finding 3: every farm-scope consumer goes through farm_restriction ──
+
+
+def test_the_regional_bulletin_keeps_owner_wide_access_with_partial_grants():
+    """load_farm_scope fills farm_ids_access for owners too; the old "empty = all" rule then
+    narrowed an owner holding one grant to that farm."""
+    from api.routers.regional_bulletin import _farm_scope
+
+    assert _farm_scope(_hydrated(UserRole.OWNER, ["farm-a"], all_farms=True)) is None
+    assert _farm_scope(_hydrated(UserRole.WORKER, ["farm-a"])) == ["farm-a"]
+    assert _farm_scope(_hydrated(UserRole.WORKER, [])) == [], "hydrated, no grant: no farm"
+    assert _farm_scope(_user(UserRole.WORKER)) is None, "legacy unhydrated: every farm"
+
+
+def test_the_regional_bulletin_keeps_farm_less_fields_for_a_restricted_user():
+    """v287 keeps farm-less rows visible to the tenant; ``farm_id = ANY(...)`` is NULL for
+    them, so the bulletin's own filter dropped them for anyone with a grant."""
+    from api.routers.regional_bulletin import _BULLETIN_SQL
+
+    assert "f.farm_id IS NULL OR f.farm_id = ANY($1::text[])" in _BULLETIN_SQL
+
+
+def test_no_platform_code_reads_farm_ids_access_outside_the_authorization_core():
+    """The only readers of the raw list are core.authorization (farm_restriction and its
+    callers) and api.farm_scope (which fills it); everything else asks farm_restriction."""
+    readers = sorted(
+        str(p.relative_to(PLATFORM))
+        for p in PLATFORM.rglob("*.py")
+        if "tests" not in p.parts
+        and re.search(r"\.farm_ids_access\b|\"farm_ids_access\"", p.read_text(encoding="utf-8"))
+    )
+    assert readers == ["api/farm_scope.py", "core/authorization.py"], readers
+
+
+# ── review nit 5: every GUC the request path sets is transaction-local ────────
+
+_SET_CONFIG = re.compile(r"set_config\(\s*'([a-zA-Z_.]+)'\s*,\s*[^,]*,\s*(true|false)\s*\)", re.I)
+
+
+def _set_configs(node: ast.AST) -> list[tuple[str, str]]:
+    return [
+        (m.group(1), m.group(2).lower())
+        for n in ast.walk(node)
+        if isinstance(n, ast.Constant) and isinstance(n.value, str)
+        for m in _SET_CONFIG.finditer(n.value)
+    ]
+
+
+def test_every_set_config_on_the_request_path_is_transaction_local():
+    """asyncpg's RESET ALL on release would hide a session-level set_config from a pooled-leak
+    test, so the is_local flag itself is pinned here (and proven live without the reset)."""
+    tenant_connection = next(
+        n
+        for n in _source_tree(MAIN).body
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == "tenant_connection"
+    )
+    calls = _set_configs(tenant_connection) + _set_configs(
+        _source_tree(PLATFORM / "api" / "farm_scope.py")
+    )
+    names = {name for name, _ in calls}
+    assert {"app.current_tenant", "app.current_user_id", "app.current_role"} <= names
+    assert "app.enforce_farm_scope" in names
+    assert all(local == "true" for _, local in calls), calls

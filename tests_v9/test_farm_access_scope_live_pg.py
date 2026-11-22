@@ -172,7 +172,10 @@ def template():
 class Live:
     """One case: a platform database (from the template), an auth database, a NOBYPASSRLS role."""
 
-    def __init__(self, template: str):
+    def __init__(self, template: str, people=None, platform_only=()):
+        self.people = list(people or PEOPLE)
+        self.platform_only = list(platform_only)  # (platform id, e-mail, role): no auth identity
+        self.subs = {role: str(sub) for _pid, sub, _email, role in self.people}
         tag = uuid.uuid4().hex[:10]
         self.platform_db, self.auth_db, self.role = f"fs_p_{tag}", f"fs_a_{tag}", f"fs_app_{tag}"
         self.template = template
@@ -252,7 +255,9 @@ class Live:
                 farm,
                 field,
             )
-        for pid, _sub, email, role in PEOPLE:
+        for pid, _sub, email, role in self.people + [
+            (i, None, e, r) for i, e, r in self.platform_only
+        ]:
             await o.execute(
                 "INSERT INTO users (id, email, password_hash, full_name, role, tenant_id, active) "
                 "VALUES ($1, $2, 'x', $2, $3, $4::uuid, true)",
@@ -270,7 +275,7 @@ class Live:
                 "CREATE TABLE users (id INTEGER PRIMARY KEY, email VARCHAR(255) NOT NULL, "
                 "role VARCHAR(50), tenant_id UUID, active BOOLEAN DEFAULT TRUE)"
             )
-            for _pid, sub, email, role in PEOPLE:
+            for _pid, sub, email, role in self.people:
                 await conn.execute(
                     "INSERT INTO users (id, email, role, tenant_id) VALUES ($1, $2, $3, $4::uuid)",
                     sub,
@@ -313,7 +318,7 @@ class Live:
                 "SELECT set_config('app.current_tenant', $1, true), "
                 "set_config('app.current_user_id', $2, true), set_config('app.current_role', $3, true)",
                 T1,
-                SUBS[role],
+                self.subs[role],
                 role,
             )
             if enforce:
@@ -397,9 +402,9 @@ FARMLESS_ONLY = {
 }
 
 
-def _run(template, body):
+def _run(template, body, **live_kwargs):
     async def go():
-        async with Live(template) as live:
+        async with Live(template, **live_kwargs) as live:
             await body(live)
 
     asyncio.run(go())
@@ -694,6 +699,220 @@ def test_a_single_pooled_connection_leaks_no_farm_tenant_or_user_setting(
             async with pool.acquire() as conn:
                 assert await conn.fetchval("SELECT pg_backend_pid()") == pid, "one connection"
             assert pool.get_size() == 1
+        finally:
+            await pool.close()
+
+    _run(template, body)
+
+
+# ── review findings 1-4 and nit 5 ─────────────────────────────────────────────
+
+
+async def _write_as(live, role: str, sql: str, *args, sub: str | None = None) -> str:
+    """Run one write as ``role`` under enforcement; 'ok' or the refusal's class name."""
+    async with live.pool.acquire() as conn, conn.transaction():
+        await conn.execute(
+            "SELECT set_config('app.current_tenant', $1, true), "
+            "set_config('app.current_user_id', $2, true), "
+            "set_config('app.current_role', $3, true), "
+            "set_config('app.enforce_farm_scope', 'on', true)",
+            T1,
+            sub or live.subs[role],
+            role,
+        )
+        try:
+            await conn.execute(sql, *args)
+        except asyncpg.InsufficientPrivilegeError as exc:
+            return type(exc).__name__
+    return "ok"
+
+
+_LEDGER_INSERT = (
+    "INSERT INTO farm_ledger_entries (entry_id, tenant_id, client_operation_id, request_digest, "
+    "entry_type, direction, payment_method, category, amount, occurred_on, farm_id, field_id, "
+    "created_by) VALUES ($1, $2::uuid, $1, repeat('b', 64), 'expense', 'outflow', 'cash', "
+    "'labour', 5, current_date, $3, $4, 'worker')"
+)
+_FIELD_INSERT = (
+    "INSERT INTO fields (field_id, name, tenant_id, farm_id, geometry) "
+    "VALUES ($1, $1, $2::uuid, $3, $4::jsonb)"
+)
+
+
+def test_a_non_owner_cannot_move_rows_out_of_farm_scope_through_a_null_farm(template):
+    """Finding 1: a NULL farm is visible to the whole tenant, so under enforcement a non-owner
+    may not write one: not by nulling a farm, not by inserting a farm-less field or ledger
+    entry, and not by moving a season or task onto a farm-less field."""
+    refused = "InsufficientPrivilegeError"
+
+    async def body(live):
+        await live.apply_v287()
+        await live.grant(live.subs["worker"], "fs-farm-1")
+        assert (
+            await _write_as(
+                live, "worker", "UPDATE fields SET farm_id = NULL WHERE field_id = $1", "fs-field-1"
+            )
+            == refused
+        )
+        assert (
+            await _write_as(live, "worker", _FIELD_INSERT, "w-null", T1, None, GEOMETRY) == refused
+        )
+        assert (
+            await _write_as(live, "worker", _LEDGER_INSERT, "w-e-null", T1, None, None) == refused
+        )
+        assert (
+            await _write_as(live, "worker", _LEDGER_INSERT, "w-e-f0", T1, None, "fs-field-0")
+            == refused
+        )
+        assert (
+            await _write_as(
+                live,
+                "worker",
+                "UPDATE field_tasks SET field_id = 'fs-field-0' WHERE field_id = $1",
+                "fs-field-1",
+            )
+            == refused
+        )
+        assert (
+            await _write_as(
+                live,
+                "worker",
+                "INSERT INTO seasons (season_id, tenant_id, field_id, crops, status) "
+                "VALUES ('w-s0', $1::uuid, 'fs-field-0', '[]'::jsonb, 'planned')",
+                T1,
+            )
+            == refused
+        )
+        # Controls: a write inside the granted farm passes; the owner may still write NULL.
+        assert (
+            await _write_as(live, "worker", _FIELD_INSERT, "w-ok", T1, "fs-farm-1", GEOMETRY)
+            == "ok"
+        )
+        assert await _write_as(live, "owner", _FIELD_INSERT, "o-null", T1, None, GEOMETRY) == "ok"
+        # Nothing of farm 1 leaked to a zero-grant user.
+        seen = await live.visible("manager", enforce=True)
+        assert seen["fields"] == ["fs-field-0", "o-null"] and seen["farms"] == []
+
+    _run(template, body)
+
+
+C_PEOPLE = [(1, 2, "manager@example.org", "manager"), (2, 1, "worker@example.org", "worker")]
+
+
+def test_colliding_ids_a_platform_id_keyed_grant_reaches_the_wrong_person_and_the_diff_fails(
+    template, monkeypatch, platform
+):
+    """Finding 2 / hospital condition 3 under collision: platform ids 1,2 and auth subs 2,1
+    for the same two people (both users.id columns are SERIAL from 1)."""
+    main, _farm_scope = platform
+    diff, backfill = _ops("farm_access_diff"), _ops("farm_access_backfill")
+    common = _ops("farm_access_common")
+    holder = {}
+
+    async def body(live):
+        monkeypatch.setattr(main, "_DB_POOL", live.pool)
+        await live.apply_v287()
+        manager, worker = _user("manager", sub="2"), _user("worker", sub="1")
+        # The backfill keys by auth's sub: clean, and enforcement shows each person both farms.
+        assert (await backfill.run(live.platform_dsn(), live.auth_dsn(), apply=True))[
+            "written"
+        ] == 4
+        assert common.failures(await diff.collect(live.platform_dsn(), live.auth_dsn())) == []
+        assert await _get_farms(worker) == (200, ["fs-farm-1", "fs-farm-2"])
+        await live.owner.execute("DELETE FROM farm_access_grants")
+        # An admin keys the worker's grant by the worker's PLATFORM id (2) = the manager's sub.
+        await live.owner.execute(
+            "INSERT INTO farm_access_grants (tenant_id, user_id, farm_id, granted_by) "
+            "VALUES ($1::uuid, '2', 'fs-farm-1', 'admin:by-platform-id')",
+            T1,
+        )
+        assert await _get_farms(worker) == (200, []), "not effective for the intended person"
+        assert await _get_farms(manager) == (200, ["fs-farm-1"]), "it reaches the other person"
+        holder["wrong"] = await diff.collect(live.platform_dsn(), live.auth_dsn())
+        await live.owner.execute(
+            "UPDATE farm_access_grants SET user_id = '1', granted_by = 'admin:by-sub'"
+        )
+        assert await _get_farms(worker) == (200, ["fs-farm-1"]), "keyed by the sub: effective"
+
+    _run(template, body, people=C_PEOPLE)
+    assert "platform_id_keyed_grants" in common.failures(holder["wrong"])
+
+
+def test_the_regional_bulletin_filter_keeps_farm_less_fields_on_postgresql(template):
+    """Finding 3 on the real SQL: a restricted scope still returns the farm-less field."""
+    _main, _farm_scope, _farms = _platform()
+    from api.routers.regional_bulletin import _BULLETIN_SQL
+
+    async def body(live):
+        rows = await live.owner.fetch(_BULLETIN_SQL, ["fs-farm-1"])
+        assert sorted(
+            r["field_id"] for r in rows if r["tenant_id"] is not None and str(r["tenant_id"]) == T1
+        ) == [
+            "fs-field-0",
+            "fs-field-1",
+        ]
+
+    _run(template, body)
+
+
+def test_the_backfill_refuses_to_write_on_an_unresolved_identity(template, monkeypatch):
+    """Finding 4: a platform user with no auth identity stops the backfill, dry run and
+    --apply alike, and --apply writes nothing."""
+    backfill = _ops("farm_access_backfill")
+    holder = {}
+
+    async def body(live):
+        await live.apply_v287()
+        monkeypatch.setenv("DATABASE_URL", live.platform_dsn())
+        monkeypatch.setenv("AUTH_DATABASE_URL", live.auth_dsn())
+        holder["dry"] = await asyncio.to_thread(backfill.main, [])
+        holder["apply"] = await asyncio.to_thread(backfill.main, ["--apply"])
+        holder["written"] = await live.owner.fetchval("SELECT count(*) FROM farm_access_grants")
+
+    _run(template, body, platform_only=[(11, "stray@example.org", "worker")])
+    assert (holder["dry"], holder["apply"], holder["written"]) == (1, 1, 0)
+
+
+class _NoResetConnection(asyncpg.Connection):
+    """A real connection whose pool release skips RESET ALL, so a session-level set_config
+    (is_local false) would survive into the next request instead of being wiped by asyncpg."""
+
+    def get_reset_query(self):
+        return ""
+
+
+def test_no_guc_survives_the_transaction_even_without_the_pool_reset(
+    template, monkeypatch, platform
+):
+    """Nit 5: asyncpg's RESET ALL hid is_local=false; without it, only transaction-local
+    settings leave nothing behind."""
+    main, _farm_scope = platform
+
+    async def body(live):
+        await live.apply_v287()
+        await live.grant(live.subs["worker"], "fs-farm-1")
+
+        async def setup(conn):
+            await conn.execute(f'SET ROLE "{live.role}"')
+
+        pool = await asyncpg.create_pool(
+            live.platform_dsn(),
+            min_size=1,
+            max_size=1,
+            setup=setup,
+            connection_class=_NoResetConnection,
+        )
+        try:
+            monkeypatch.setattr(main, "_DB_POOL", pool)
+            assert await _get_farms(_user("worker")) == (200, ["fs-farm-1"])
+            async with pool.acquire() as conn:
+                left = await conn.fetchrow(
+                    "SELECT current_setting('app.enforce_farm_scope', true) AS farm, "
+                    "current_setting('app.current_tenant', true) AS tenant, "
+                    "current_setting('app.current_user_id', true) AS user_id, "
+                    "current_setting('app.current_role', true) AS role"
+                )
+            assert all(v in (None, "") for v in left.values()), dict(left)
         finally:
             await pool.close()
 

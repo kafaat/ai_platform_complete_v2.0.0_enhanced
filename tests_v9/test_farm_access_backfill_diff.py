@@ -126,8 +126,8 @@ def test_backfill_keys_every_grant_by_the_auth_sub_never_the_platform_users_id()
 
 def test_backfill_keeps_active_grants_and_never_reactivates_a_revocation():
     existing = [
-        fac.Grant(T1, "42", "farm-a", True, "owner:1"),
-        fac.Grant(T1, "44", "farm-b", False, "owner:1"),
+        fac.Grant(T1, "42", "farm-a", "owner:1"),
+        fac.Grant(T1, "44", "farm-b", "owner:1", False),
     ]
     plan = fac.plan_backfill(AUTH_USERS, FARMS, existing)
     assert [(g.user_id, g.farm_id) for g in plan["already_active"]] == [("42", "farm-a")]
@@ -163,17 +163,17 @@ def test_negative_control_without_the_backfill_the_comparison_fails_with_lost():
 def test_a_grant_keyed_by_the_platform_users_id_is_not_effective():
     """Hospital requirement 3: platform users.id 7 and auth sub 42 are the same manager."""
     by_platform_id = [
-        fac.Grant(T1, pid, farm, True, "wrong-key")
+        fac.Grant(T1, pid, farm, "wrong-key")
         for pid in ("7", "8", "9")
         for farm in ("farm-a", "farm-b")
     ]
     wrong = fac.compare(PLATFORM_USERS, AUTH_USERS, FARMS, by_platform_id)
     assert {r["sub"] for r in wrong["lost"]} == {"42", "43", "44"}, "the session key is the sub"
     assert {g["user_id"] for g in wrong["orphan_grants"]} == {"7", "8", "9"}
-    assert fac.failures(wrong) == ["lost", "orphan_grants"]
+    assert fac.failures(wrong) == ["lost", "orphan_grants", "platform_id_keyed_grants"]
 
     by_sub = [
-        fac.Grant(T1, sub, farm, True, "right-key")
+        fac.Grant(T1, sub, farm, "right-key")
         for sub in ("42", "43", "44")
         for farm in ("farm-a", "farm-b")
     ]
@@ -187,7 +187,7 @@ def test_a_partial_grant_loses_exactly_the_missing_farm():
 
 
 def test_a_grant_on_another_tenants_farm_is_an_orphan_and_permits_nothing():
-    grants = _backfilled() + [fac.Grant(T1, "42", "farm-z", True, "x")]
+    grants = _backfilled() + [fac.Grant(T1, "42", "farm-z", "x")]
     report = fac.compare(PLATFORM_USERS, AUTH_USERS, FARMS, grants)
     assert report["newly_permitted"] == []
     assert [g["reasons"] for g in report["orphan_grants"]] == [["farm_not_in_grant_tenant"]]
@@ -244,3 +244,87 @@ def test_a_row_level_security_role_is_refused_instead_of_reporting_clean():
         fac.check_role_reads_every_tenant(None, "auth")
     fac.check_role_reads_every_tenant(role(False, True), "auth")
     fac.check_role_reads_every_tenant(role(True, False), "auth")
+
+
+# ── colliding id spaces (review finding 2) ────────────────────────────────────
+# Both users.id columns are SERIAL from 1 (migrations/v9_foundation.sql), so the platform's
+# ids and auth's subs overlap. Here the same two people hold swapped numbers.
+C_PLATFORM = [
+    fac.Identity("1", "manager@example.org", T1, "manager", True),
+    fac.Identity("2", "worker@example.org", T1, "worker", True),
+]
+C_AUTH = [
+    fac.Identity("2", "manager@example.org", T1, "manager", True),
+    fac.Identity("1", "worker@example.org", T1, "worker", True),
+]
+C_FARMS = [fac.Farm("farm-a", T1), fac.Farm("farm-b", T1)]
+
+
+def test_colliding_ids_a_full_grant_set_keyed_by_platform_ids_fails():
+    grants = [
+        fac.Grant(T1, pid, farm, granted_by="owner:admin")
+        for pid in ("1", "2")
+        for farm in ("farm-a", "farm-b")
+    ]
+    report = fac.compare(C_PLATFORM, C_AUTH, C_FARMS, grants)
+    assert "platform_id_keyed_grants" in fac.failures(report)
+    assert {g["user_id"] for g in report["platform_id_keyed_grants"]} == {"1", "2"}
+
+
+def test_colliding_ids_a_partial_grant_by_platform_id_reaches_the_wrong_person_and_fails():
+    """Hospital condition 3 under collision: the worker's platform id is 2, but sub 2 is the
+    manager, so the grant reaches the manager and not the worker; the diff must fail."""
+    grants = [fac.Grant(T1, "2", "farm-a", granted_by="owner:admin")]  # worker's platform id
+    after = fac.scope_after(C_AUTH, C_FARMS, grants)
+    assert {(sub, farm) for sub, _t, farm, _a in after} == {("2", "farm-a")}, "the manager"
+    assert "platform_id_keyed_grants" in fac.failures(
+        fac.compare(C_PLATFORM, C_AUTH, C_FARMS, grants)
+    )
+
+
+def test_colliding_ids_the_backfill_keys_by_sub_and_is_clean():
+    plan = fac.plan_backfill(C_AUTH, C_FARMS, [])
+    assert {(g.user_id, g.farm_id) for g in plan["insert"]} == {
+        (sub, farm) for sub in ("1", "2") for farm in ("farm-a", "farm-b")
+    }
+    assert fac.failures(fac.compare(C_PLATFORM, C_AUTH, C_FARMS, plan["insert"])) == []
+
+
+# ── the backfill refuses an unclean identity map (review finding 4) ───────────
+
+
+@pytest.mark.parametrize("argv", [[], ["--apply"]])
+@pytest.mark.parametrize(
+    "bad", [{"unresolved": 1, "mismatched": 0}, {"unresolved": 0, "mismatched": 1}]
+)
+def test_backfill_exits_non_zero_on_unresolved_or_mismatched_identities(monkeypatch, argv, bad):
+    backfill = _load("farm_access_backfill")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://platform")
+    monkeypatch.setenv("AUTH_DATABASE_URL", "postgresql://auth")
+    seen = {}
+
+    async def run(platform_dsn, auth_dsn, *, apply):
+        seen["apply"] = apply
+        return {
+            "mode": "apply" if apply else "dry-run",
+            "planned_inserts": 4,
+            "written": 0,
+            "already_active": 0,
+            "skipped_revoked": [],
+            "identities": {"resolved": 3, **bad},
+            "refused": bool(apply),
+        }
+
+    monkeypatch.setattr(backfill, "run", run)
+    assert backfill.main(argv) == 1
+    assert seen["apply"] is bool(argv)
+
+
+def test_the_identity_gate_names_what_blocks_the_backfill():
+    backfill = _load("farm_access_backfill")
+    clean = fac.identity_report(PLATFORM_USERS, AUTH_USERS)
+    assert backfill.identity_blockers(clean) == []
+    dirty = fac.identity_report(
+        PLATFORM_USERS + [fac.Identity("11", "nobody@example.org", T1, "worker", True)], AUTH_USERS
+    )
+    assert backfill.identity_blockers(dirty) == ["unresolved"]
