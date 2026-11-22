@@ -1377,7 +1377,7 @@ services:
       # Service-token only — a user Bearer JWT is never accepted on this service.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
-      FIELD_SERVICE_ALLOWED_CALLERS: ${FIELD_SERVICE_ALLOWED_CALLERS:-vegetation-analysis-service,video-processor,remote-sensing-workspace-bff}
+      FIELD_SERVICE_ALLOWED_CALLERS: ${FIELD_SERVICE_ALLOWED_CALLERS:-vegetation-analysis-service,video-processor,remote-sensing-workspace-bff,local-ai-rag}
       FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
       FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
       FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY:-}
@@ -2284,6 +2284,10 @@ services:
       RAG_RETRIEVAL_URL: http://sahool-rag-retrieval:8000
       RAG_RETRIEVAL_SHADOW: ${RAG_RETRIEVAL_SHADOW:-false}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # F1: an upload naming a field is bound by the field's owner (crop, region, tenant).
+      FIELD_SERVICE_URL: ${FIELD_SERVICE_URL:-http://sahool-field-management:8000}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       OLLAMA_BASE_URL: http://sahool-ollama:11434
