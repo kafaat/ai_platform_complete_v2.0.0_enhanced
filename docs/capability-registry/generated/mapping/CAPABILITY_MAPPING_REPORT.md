@@ -12,7 +12,7 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **45**
-- Files scanned: **7667**
+- Files scanned: **7669**
 - Ambiguous artifacts queued: **265**
 - Unmapped artifacts queued: **3655**
 
@@ -33,7 +33,7 @@
 | FM-001 | farm_management | 17 | 2 | 30 | 14 | 1 | 0 | 49 | 6 |
 | FM-002 | farm_management | 38 | 45 | 100 | 33 | 20 | 35 | 59 | 7 |
 | FM-003 | farm_management | 14 | 56 | 5 | 66 | 3 | 2 | 17 | 7 |
-| FM-004 | farm_management | 34 | 82 | 86 | 52 | 20 | 15 | 61 | 7 |
+| FM-004 | farm_management | 34 | 82 | 86 | 52 | 20 | 15 | 63 | 7 |
 | FM-005 | farm_management | 13 | 0 | 0 | 15 | 6 | 1 | 8 | 5 |
 | FM-006 | farm_management | 1 | 0 | 0 | 0 | 2 | 0 | 1 | 3 |
 | FM-007 | farm_management | 8 | 19 | 8 | 0 | 1 | 4 | 6 | 6 |

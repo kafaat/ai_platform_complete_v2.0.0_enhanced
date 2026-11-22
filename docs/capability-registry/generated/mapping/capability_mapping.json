@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7667,
+    "files_scanned": 7669,
     "files_by_kind": {
       "backend": 1312,
       "database": 354,
       "governance": 90,
       "mobile": 429,
       "other": 2242,
-      "tests": 2668,
+      "tests": 2670,
       "web": 572
     },
     "unmapped_artifacts": 3655,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4162,
-      "raw": 3505
+      "python_functional": 4163,
+      "raw": 3506
     },
     "test_dependency_files": 2032,
-    "test_dependency_edges": 5444,
+    "test_dependency_edges": 5446,
     "test_dependency_bounded_files": 1172,
     "test_dependency_unresolved_relations": 519
   },
@@ -7935,6 +7935,14 @@
           ]
         },
         {
+          "path": "frontend/src/services/api/seasonSimulationTimeout.test.ts",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_farm_full_season_forensic.py",
           "score": 14,
           "signals": [
@@ -8168,6 +8176,14 @@
         },
         {
           "path": "tests_v9/test_season_simulation_behavior_v66.py",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "tests_v9/test_season_simulation_timeout_chain.py",
           "score": 14,
           "signals": [
             "path:season",
@@ -8473,7 +8489,7 @@
         "events": 52,
         "web": 20,
         "mobile": 15,
-        "tests": 61,
+        "tests": 63,
         "governance": 0,
         "other_evidence": 15
       },
@@ -89148,7 +89164,7 @@
         {
           "source": "services/local-ai-rag/main.py",
           "kind": "source_read",
-          "line": 30
+          "line": 37
         }
       ],
       "unresolved": []
@@ -92551,6 +92567,16 @@
       ],
       "edges": [
         {
+          "source": "certification/evidence/chatgpt_closure_nine_20261016/rag/native_reindex_witness.py",
+          "kind": "source_read",
+          "line": 151
+        },
+        {
+          "source": "scripts/staging/rag_fixture_probe.py",
+          "kind": "source_read",
+          "line": 113
+        },
+        {
           "source": "services/local-ai-rag/main.py",
           "kind": "source_read",
           "line": 26
@@ -92558,22 +92584,22 @@
         {
           "source": "services/qdrant-seed/seed.py",
           "kind": "source_read",
-          "line": 85
+          "line": 148
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 83
+          "line": 146
         },
         {
           "source": "services/rag-retrieval/reindex_manifest.py",
           "kind": "source_read",
-          "line": 84
+          "line": 147
         },
         {
           "source": "services/sahool-platform/core/rag/production_qdrant.py",
           "kind": "source_read",
-          "line": 82
+          "line": 145
         }
       ],
       "unresolved": []
@@ -92750,17 +92776,17 @@
         {
           "source": "services/local-ai-rag/main.py",
           "kind": "source_read",
-          "line": 34
+          "line": 35
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "loader",
-          "line": 258
+          "line": 267
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 35
+          "line": 36
         }
       ],
       "unresolved": []

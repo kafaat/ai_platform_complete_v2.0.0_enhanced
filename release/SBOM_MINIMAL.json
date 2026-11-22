@@ -415,7 +415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "85609e4cefc9ad2da093bf571892c5ab777eea283eac676a999d1a9936acccab"
+          "content": "b084de56a83908a7a0fdbccbc4a902fb35fa8ff8c6acc8a96d256f429ee657b8"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -8085,7 +8085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "82ef0548000c625e35710376e0af82a6f43c0cb14195777509d2809753b47141"
+          "content": "caf142aee16208115f4eab26d7da8f4d48d4fb0745ab4cbc883e93284909f7cc"
         }
       ],
       "name": "frontend/src/services/api/reports.ts",
@@ -8099,6 +8099,16 @@
         }
       ],
       "name": "frontend/src/services/api/season.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "74aef6713ba2db6290121b3ee9ae1a427f109a3761b32d04d908f36a511744f2"
+        }
+      ],
+      "name": "frontend/src/services/api/seasonSimulationTimeout.test.ts",
       "type": "file"
     },
     {
@@ -21805,7 +21815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d4aafd3328eef1cddacf3a93505712c1db89b9ae269886829d081424dc5bf3dc"
+          "content": "1983243b50200dc873e2d8c76641bb9e55e30d7dfae9f336d866773cf94dc250"
         }
       ],
       "name": "services/local-ai-rag/main.py",

@@ -6722,7 +6722,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:379",
+      "evidence": "nginx/nginx.v9.conf:380",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6932,7 +6932,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:342",
+      "evidence": "nginx/nginx.v9.conf:343",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
