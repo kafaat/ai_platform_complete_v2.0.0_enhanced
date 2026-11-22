@@ -84,6 +84,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/e2e/pivot-designer.spec.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/e2e/reset-link-with-session.spec.ts",
     "kind": "tests"
   },
@@ -648,6 +652,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/maphub/PivotPlacementControl.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/ProductivityZonesPanel.static.test.ts",
     "kind": "tests"
   },
@@ -685,6 +693,10 @@
   },
   {
     "path": "frontend/src/components/maphub/captureTime.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawFeatureStyle.ts",
     "kind": "web"
   },
   {

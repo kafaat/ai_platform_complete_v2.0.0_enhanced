@@ -265,7 +265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "632b56c618d4dff2e8c8cc5bbfaa9bff97107d2497770de1955afbb11116ca5d"
+          "content": "c17a10640872f6352d58e14336c68548e370805de3a5cae057b18590dcb3439e"
         }
       ],
       "name": "frontend/e2e/map-tools.spec.ts",
@@ -279,6 +279,16 @@
         }
       ],
       "name": "frontend/e2e/maphub-webgl.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "29615a7979603d681aaed9d1633c9f619e586c2df3d4f003271688be751d1c3f"
+        }
+      ],
+      "name": "frontend/e2e/pivot-designer.spec.ts",
       "type": "file"
     },
     {
@@ -305,7 +315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1f9f25efce9d1d4b8437290dec145cc2d7f6a4616820b05be508fd174886401c"
+          "content": "701afec8c5c33cabd5468365294c34206db5522e245f01c5fc3a4505e8fcadba"
         }
       ],
       "name": "frontend/e2e/support/seed.ts",
@@ -425,7 +435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42162542ed33a9053c2cbf9b3ddedbe980032c5eb8571df8ee9f7d72339ac282"
+          "content": "2f64c890d7b9c1a062719a8a0c536e84bfd569ac67fa51887d5e355f9a6eb58a"
         }
       ],
       "name": "frontend/playwright.config.ts",
@@ -2015,7 +2025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "904f10e4433b265f408e1bf0cabb275ee75bd6bcb19e11a250a17fb1fd080395"
+          "content": "387ea9f02403113182791e42ed303dc92ca2af12c41bbf7dd1820846a4b843fc"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -2045,7 +2055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "966ac730062f5ced1fa075b112decc3f4b409bfb1679ff67ee045c099ff45426"
+          "content": "7b4f598d372bfb63994ec68cc0195a511265fdabbe15efcd208dd950727dae2c"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -2215,6 +2225,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "119c161e115d0ae6f6feed5fdb488ec81c9ed0f69ae4554ccaf69a35891fd34a"
+        }
+      ],
+      "name": "frontend/src/components/maphub/PivotPlacementControl.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f05b81649470d17641760c8ffd15572abf0d42517df2929f5b787abcf76d8206"
         }
       ],
@@ -2355,6 +2375,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "66d61820ea12ea7af7b8c5b48371e41cf571f014ebaca16825f421a2f421c9c0"
+        }
+      ],
+      "name": "frontend/src/components/maphub/drawFeatureStyle.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6647c01ac0ddfbc64e0f4ddf5ccad761fa6937102e054d3fd57e9c0bb69423f8"
         }
       ],
@@ -2435,7 +2465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7052d650f79bf6114ebe53dae5fe91a70b271cfb217e309d9d4da402b8b3eb24"
+          "content": "49ad070d5459608e7e32add01bc69aef4f4031f6cfc8e79c6c43d650e26e58f9"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/DrawingRemainingPhases.test.ts",
@@ -2455,7 +2485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3da039f1658b15fe8cadbd7f6d41fab77455fe82f06ce70c67487277cadd446"
+          "content": "fd1543bd4f8a92bee0329c9d1ad41116336670de4e2e8510336c32af3adb9412"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/PivotDesignerMapHub.static.test.ts",
@@ -2475,7 +2505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ff73e67099a27ec7c0c00f81e010c3d01c4e11f0519ca69cd19ada6484a0044a"
+          "content": "8e65e65fddf94dbc5758bf81004243a9054fbcf18b669185337f220e0d3815a9"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/ZoneDesigner.static.test.ts",
@@ -2615,7 +2645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8b5ecd98a5252195b88cde6c75512687241cee43767cbf2a77f9c4218e02e735"
+          "content": "78af23369700832c124ccd333b4af5826bc20c90d21da11a61188e22dd6e97fb"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/pivotDesigner.ts",
@@ -6755,7 +6785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea7b5d04d67335c92c0ade878321bdd6fe62758aca6ce3a6b195e68c9db1e7a7"
+          "content": "0e27aae49b2a178f7f9bc13b6ffdaa92202778e5e90df71bc4187709a57eb7f2"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -7585,7 +7615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6af81f97c64ed33c8ce91a5460d36f699474630facd8759e6d419e74dd4d0b13"
+          "content": "a0e8ff0d1742d0248f536950c2b2e856eb74f0665a0dfaef4e60679b66553af6"
         }
       ],
       "name": "frontend/src/sections/maphub/MapHubToolToggle.tsx",
