@@ -35,7 +35,7 @@ class TestEndToEndWorkflow:
 
         # Verify response structure
         assert "response_ar" in data
-        assert data["confidence"] > 0
+        assert data["intent_confidence"] > 0
         assert data["processing_time_ms"] < 10000  # Under 10 seconds
         assert len(data.get("sources", [])) > 0
 

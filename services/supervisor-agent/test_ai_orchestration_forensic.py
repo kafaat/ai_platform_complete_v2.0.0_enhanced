@@ -1251,3 +1251,179 @@ def test_w217_optimize_routes_economics_to_agriai_plan_and_degrades_when_uncoste
     assert "costs" not in candidate, "the body's costs reached the economics plan"
     assert plan_requests[0]["weather"]["source"] == "weather-service", plan_requests[0]
     assert body["facts_provenance"]["ignored_request_keys"] == ["costs", "weather"], body
+
+
+# ── F3 (audit L148): unsourced template numbers and the answer's stated origin ──
+_UNSOURCED_FIGURE = (
+    r"[0-9٠-٩]|%|٪|"
+    r"يناير|فبراير|مارس|[أا]بريل|مايو|يونيو|يوليو|[أا]غسطس|سبتمبر|[أا]كتوبر|نوفمبر|ديسمبر"
+)
+_TEMPLATE_QUERIES = ("زراعة قمح", "ري ذكي", "تسميد", "حصاد", "سؤال لا يطابق أيّ قالب")
+
+
+def test_general_advice_templates_publish_no_figure_without_a_source():
+    """A fixed template cites nothing (``sources == []``), so it may state no number.
+
+    The fallback used to say "ري عند 30% رطوبة", "يوفر 40% مياه", "3–4 مرات",
+    "رطوبة الحبوب (13–14%)" and sowing/harvest months with no reviewed source behind them.
+    """
+    import re
+
+    skill = AdvisorySkill(SimpleNamespace(token=None))
+    for query in _TEMPLATE_QUERIES:
+        out = _run(skill.execute(intent="general_advice", query=query))
+        assert out["source"] == "template", out
+        assert out["sources"] == [], out
+        found = re.findall(_UNSOURCED_FIGURE, out["response"])
+        assert not found, f"{query}: unsourced figure(s) {found} in {out['response']!r}"
+        assert "مهندس" in out["response"], f"{query}: no referral to a specialist"
+
+
+def _advisory_route(monkeypatch, *, rag=None, skill=None, domain="advisory", field_id=None):
+    """POST /v1/agent/query with the intent classifier pinned at 0.8."""
+    import skills.advisory_skill as advisory
+    from fastapi.testclient import TestClient
+
+    async def classify(query):
+        return domain, "general_advice", 0.8
+
+    monkeypatch.setattr(main.router, "classify_intent", classify)
+    monkeypatch.setattr(advisory, "LOCAL_AI_RAG_URL", "http://local-ai-rag.invalid" if rag else "")
+    if rag:
+        monkeypatch.setattr(advisory, "_query_local_rag", rag)
+    if domain == "advisory":
+        monkeypatch.setitem(
+            main.skill_libraries, "advisory", skill or AdvisorySkill(main.mcp_client)
+        )
+    main.app.dependency_overrides[main._get_current_user] = lambda: {
+        "sub": "42",
+        "tenant_id": "trusted-tenant",
+        "_mcp_bearer": "verified-caller",
+    }
+    body = {"query": "ري ذكي", "user_id": "x", "tenant_id": "x"}
+    if field_id:
+        body["field_id"] = field_id
+    try:
+        response = TestClient(main.app).post("/v1/agent/query", json=body)
+    finally:
+        main.app.dependency_overrides.clear()
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def _assert_uncalibrated_envelope(body):
+    assert body["confidence"] == 0.0, "intent confidence reported as confidence in the answer"
+    assert body["confidence_calibrated"] is False, body
+    assert body["requires_human_review"] is True, body
+    note = body["provenance_note_ar"]
+    assert "غير مُعايَرة" in note and "مراجعة" in note, note
+
+
+def test_template_answer_states_its_origin_and_not_the_intent_confidence(monkeypatch):
+    body = _advisory_route(monkeypatch)
+    assert body["text_source"] == "template", body
+    assert body["generation_status"] == "not_attempted", body
+    assert body["intent_confidence"] == 0.8, "the classifier's number is kept under its own name"
+    _assert_uncalibrated_envelope(body)
+    assert "قالب" in body["provenance_note_ar"], body["provenance_note_ar"]
+
+
+def test_withheld_generation_is_named_in_the_route_answer(monkeypatch):
+    async def rag(question, token):
+        return {"answer": "رشّ 2 لتر للهكتار", "model": "local-llm", "sources": [{"source": "kb"}]}
+
+    body = _advisory_route(monkeypatch, rag=rag)
+    assert body["text_source"] == "template", body
+    assert body["generation_status"] == "suppressed_unvalidated_output", body
+    assert body["ai_generated"] is False
+    _assert_uncalibrated_envelope(body)
+    assert "حُجب" in body["provenance_note_ar"], body["provenance_note_ar"]
+
+
+def test_validated_facts_and_evidence_only_answers_are_told_apart(monkeypatch):
+    class _Skill:
+        def __init__(self, result):
+            self.result = result
+
+        async def execute(self, **kwargs):
+            return dict(self.result)
+
+    validated = {
+        "type": "general_advice",
+        "response": "/weather/rain_mm: 4",
+        "source": "llm-rag",
+        "calibrated": False,
+        "ai_generated": True,
+        "generation_status": "validated_structured_facts",
+        "sources": ["kb.pdf"],
+    }
+    body = _advisory_route(monkeypatch, skill=_Skill(validated))
+    assert body["text_source"] == "validated_facts", body
+    assert body["generation_status"] == "validated_structured_facts", body
+    _assert_uncalibrated_envelope(body)
+
+    # Model output that did not pass the claims checker is never called validated facts.
+    body = _advisory_route(
+        monkeypatch, skill=_Skill({**validated, "generation_status": "succeeded"})
+    )
+    assert body["text_source"] == "undeclared", body
+
+    diagnosis = {
+        "type": "diagnosis_preliminary",
+        "response": "تشخيص أوّلي",
+        "source": "platform-diagnose",
+        "calibrated": False,
+        "actionable": False,
+        "generation_status": "not_attempted",
+        "sources": ["SAHOOL symptom rules (/api/v1/diagnose)"],
+    }
+    body = _advisory_route(monkeypatch, skill=_Skill(diagnosis))
+    assert body["text_source"] == "evidence_only", body
+    _assert_uncalibrated_envelope(body)
+
+    # A skill that claims calibration or its own confidence cannot raise the answer's.
+    boast = {**diagnosis, "source": "somewhere", "calibrated": True, "confidence": 0.99}
+    body = _advisory_route(monkeypatch, skill=_Skill(boast))
+    assert body["text_source"] == "undeclared", body
+    _assert_uncalibrated_envelope(body)
+
+
+def test_refusal_answers_are_system_notices_with_no_confidence(monkeypatch):
+    class _Unavailable:
+        async def execute(self, **kwargs):
+            return {"type": "unavailable", "response": "تعذّر", "source": "template", "sources": []}
+
+    class _Down:
+        async def execute(self, **kwargs):
+            raise httpx.ConnectError("down")
+
+    for skill in (_Unavailable(), _Down()):
+        body = _advisory_route(monkeypatch, skill=skill)
+        assert body["text_source"] == "system_notice", body
+        _assert_uncalibrated_envelope(body)
+
+    monkeypatch.delitem(main.skill_libraries, "advisory", raising=False)
+    body = _advisory_route(monkeypatch, domain="no-such-domain")
+    assert body["text_source"] == "system_notice", body
+    assert body["intent_confidence"] is None or body["intent_confidence"] == 0.8
+    _assert_uncalibrated_envelope(body)
+
+
+def test_governance_withheld_answer_is_a_system_notice(monkeypatch):
+    proposal = {
+        "type": "irrigation_advice",
+        "amount_mm": 29.8,
+        "advice": "irrigate 29.8",
+        "actions": ["irrigate"],
+        "actionable": True,
+        "source": "llm-rag",
+        "generation_status": "validated_structured_facts",
+        "sources": ["canonical"],
+    }
+    body, _calls = _query_http(
+        monkeypatch, proposal, {"allowed": None, "status": "advisory_pending_validation"}
+    )
+    assert body["text_source"] == "system_notice", body
+    assert body["generation_status"] == "not_reported", body
+    assert body["intent_confidence"] == 0.9
+    _assert_uncalibrated_envelope(body)

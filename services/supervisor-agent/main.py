@@ -8,13 +8,14 @@ import math
 import os
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 from urllib.parse import quote
 
+from answer_provenance import TEXT_SOURCES, answer_provenance, provenance_note_ar
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import HTTPBearer
 from mcp_client import MCPClient
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from router import HierarchicalRouter
 from server_facts import (
     bind_server_facts,
@@ -188,7 +189,17 @@ class AgentResponse(BaseModel):
     structured_data: dict[str, Any] | None = None
     actions_triggered: list[str] = Field(default_factory=list)
     governance: dict[str, Any] | None = None  # قرار البوّابة لو الإجراء قابل للتنفيذ
-    confidence: float = Field(..., ge=0, le=1)
+    # Confidence in the answer. Nothing on this route calibrates one, so it is 0.0; the
+    # intent classifier's score is `intent_confidence` and says only which skill was called.
+    confidence: float = Field(0.0, ge=0, le=1)
+    intent_confidence: float | None = Field(None, ge=0, le=1)
+    confidence_calibrated: Literal[False] = False
+    requires_human_review: Literal[True] = True
+    # Where response_ar came from: template | validated_facts | evidence_only |
+    # system_notice | undeclared (see answer_provenance.py).
+    text_source: str = "undeclared"
+    generation_status: str = "not_reported"
+    provenance_note_ar: str = ""
     # True when response_ar is unvalidated model output (local LLM + RAG), not a
     # governed recommendation or a curated template.
     ai_generated: bool = False
@@ -197,6 +208,14 @@ class AgentResponse(BaseModel):
     # and which body keys were ignored.
     facts_provenance: dict[str, Any] | None = None
     processing_time_ms: int
+
+    @model_validator(mode="after")
+    def _always_state_origin(self) -> "AgentResponse":
+        if self.text_source not in TEXT_SOURCES:
+            self.text_source = "undeclared"
+        if not self.provenance_note_ar:
+            self.provenance_note_ar = provenance_note_ar(self.text_source, self.generation_status)
+        return self
 
 
 async def _get_current_user(credentials: Optional = Depends(security)):
@@ -249,9 +268,9 @@ def _degraded_response(
             "خدمة البيانات اللازمة لهذا الطلب متعطّلة مؤقّتاً ونحاول التعافي "
             "تلقائيّاً — يرجى المحاولة بعد قليل."
         ),
-        confidence=0.0,
         sources=[],
         structured_data={"status": "degraded", "reason": reason, "domain": domain},
+        **answer_provenance({"type": "degraded"}),
         facts_provenance=facts_provenance,
         processing_time_ms=elapsed,
     )

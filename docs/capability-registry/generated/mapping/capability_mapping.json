@@ -15,9 +15,9 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7615,
+    "files_scanned": 7616,
     "files_by_kind": {
-      "backend": 1309,
+      "backend": 1310,
       "database": 352,
       "governance": 90,
       "mobile": 429,
@@ -25,10 +25,10 @@
       "tests": 2642,
       "web": 558
     },
-    "unmapped_artifacts": 3625,
+    "unmapped_artifacts": 3626,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4136,
+      "python_functional": 4137,
       "raw": 3479
     },
     "test_dependency_files": 2015,
@@ -43577,6 +43577,10 @@
     },
     {
       "path": "services/supervisor-agent/__init__.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/supervisor-agent/answer_provenance.py",
       "kind": "backend"
     },
     {
