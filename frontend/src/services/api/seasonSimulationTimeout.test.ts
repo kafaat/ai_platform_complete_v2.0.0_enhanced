@@ -28,6 +28,6 @@ describe('season simulation request', () => {
     });
     // raster 20 + weather archive 20 + ET0 20 + GDD 20 + decision mirror 3, before database reads
     expect(SEASON_SIMULATION_TIMEOUT_MS).toBeGreaterThan(83_000);
-    expect(SEASON_SIMULATION_TIMEOUT_MS).toBe(120_000);
+    expect(SEASON_SIMULATION_TIMEOUT_MS).toBe(110_000);
   });
 });

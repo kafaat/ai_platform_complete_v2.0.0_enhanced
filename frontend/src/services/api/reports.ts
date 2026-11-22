@@ -114,8 +114,11 @@ export interface SeasonSimResult {
 // the NDVI series (raster, 20 s), the weather archive (20 s), ET0 when the archive has none
 // (20 s), GDD (20 s), then saves and mirrors the context to the decision service (3 s):
 // 83 s of upstream bounds plus the database reads. The client's default 15 s gave up on runs
-// the server still completed and saved (Devin review on #1582); 120 s covers the chain.
-export const SEASON_SIMULATION_TIMEOUT_MS = 120_000;
+// the server still completed and saved (Devin review on #1582). 110 s covers the chain, and
+// every proxy in front of the platform allows the simulate route longer (120 s), so this
+// client's own message is the one the user sees
+// (tests_v9/test_season_simulation_timeout_chain.py).
+export const SEASON_SIMULATION_TIMEOUT_MS = 110_000;
 export const simulateSeason = (seasonId: string): Promise<SeasonSimResult> =>
   kongApi
     .post<SeasonSimResult>(`/api/v1/seasons/${seasonId}/simulate`, undefined, {
