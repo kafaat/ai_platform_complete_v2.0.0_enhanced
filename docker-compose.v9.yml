@@ -2093,6 +2093,15 @@ services:
       RUNTIME_TENANT_IDS: ${RUNTIME_TENANT_IDS:-}
       RUNTIME_TENANT_ID: ${RUNTIME_TENANT_ID:-}
       RUNTIME_POLL_INTERVAL_SECONDS: ${RUNTIME_POLL_INTERVAL_SECONDS:-10}
+      # F-R03: registry settings for adapter.validate_runtime(). Flat NAME:-default expansions
+      # only: Compose interpolates inactive profiles too, and a nested guarded `:?` is evaluated
+      # differently across Compose versions. The adapter itself refuses to start once
+      # REGISTRY_ADAPTER_ID is set and the URL or token is empty. No value is committed;
+      # DRY_RUN stays true (production refuses it) until the operator sets false.
+      MODEL_REGISTRY_BACKEND: ${MODEL_REGISTRY_BACKEND:-http}
+      MODEL_REGISTRY_URL: ${MODEL_REGISTRY_URL:-}
+      MODEL_REGISTRY_TOKEN: ${MODEL_REGISTRY_TOKEN:-}
+      MODEL_REGISTRY_DRY_RUN: ${MODEL_REGISTRY_DRY_RUN:-true}
       MODEL_TRAFFIC_CONTROLLER_URL: ${MODEL_TRAFFIC_CONTROLLER_URL:-}
       MODEL_TRAFFIC_CONTROLLER_TOKEN: ${MODEL_TRAFFIC_CONTROLLER_TOKEN:-}
       MODEL_INFERENCE_VERIFY_URL: ${MODEL_INFERENCE_VERIFY_URL:-}
