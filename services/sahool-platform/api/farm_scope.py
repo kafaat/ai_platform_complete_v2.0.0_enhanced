@@ -10,8 +10,11 @@ must both hold before anything changes:
   deploys the platform while migrations are applied later, with owner approval, so the platform
   must keep working on a database without them. The catalog is asked with ``to_regclass`` /
   ``to_regprocedure``, which every role may read and which never raise, so the probe cannot
-  abort the caller's transaction. Only presence is cached, so an applied migration is picked
-  up without a restart; before running v287 down, switch the flag off (the down file says so).
+  abort the caller's transaction. Only presence is cached, for the process lifetime: an applied
+  migration is picked up without a restart, but after v287 down the process still believes the
+  objects exist. So switch the flag off before v287 down and restart before switching it on
+  again (the down file says so). No error is caught to detect absence (that would abort the
+  RLS transaction); a failed grant read fails the request instead of widening access.
 
 Grants are keyed by the JWT ``sub`` (``user.user_id``), the AUTH service's users.id as text,
 never the platform database's users.id (decision C). The number v287 is provisional (SHR-02).

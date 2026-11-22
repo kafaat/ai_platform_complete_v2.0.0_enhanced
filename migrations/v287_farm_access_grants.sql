@@ -18,7 +18,12 @@
 --   * fields, seasons and field_tasks follow their field's farm; a farm ledger entry follows its
 --     farm and, when it names one, its field;
 --   * a row with no farm (fields.farm_id is nullable) is not farm-scoped and stays visible to the
---     tenant, so full grants reproduce today's visibility exactly.
+--     tenant, so full grants reproduce today's visibility exactly;
+--   * writes are stricter than reads (WITH CHECK uses sc_farm_writable / sc_field_writable): a
+--     non-owner writes only rows of a granted farm, never a row with no farm. Otherwise nulling
+--     farm_id, or moving a season/task onto a farm-less field, would publish a granted farm's
+--     row to every user of the tenant (security review, finding 1). Only owners write
+--     farm-less rows while enforcement is on.
 -- The tenant policies (tenant_isolation, v9/v122/v206) are untouched and still apply first.
 --
 -- Not covered here: documents and service-center tables (SC-2 migrations). Owner: sahool-platform.
@@ -100,39 +105,65 @@ BEGIN
   RETURN EXISTS (SELECT 1 FROM public.fields f WHERE f.field_id = target_field);
 END
 $$;
+-- Write side: a granted farm only, never NULL (a NULL farm is visible to the whole tenant).
+CREATE OR REPLACE FUNCTION sc_farm_writable(target_farm TEXT) RETURNS BOOLEAN
+LANGUAGE plpgsql STABLE SET search_path = pg_catalog, public AS $$
+BEGIN
+  IF current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
+     OR current_setting('app.current_role', true) = 'owner' THEN
+    RETURN true;
+  END IF;
+  RETURN target_farm IS NOT NULL AND sc_farm_visible(target_farm);
+END
+$$;
+
+-- Write side for field-keyed rows: the field must be visible AND belong to a farm.
+CREATE OR REPLACE FUNCTION sc_field_writable(target_field TEXT) RETURNS BOOLEAN
+LANGUAGE plpgsql STABLE SET search_path = pg_catalog, public AS $$
+BEGIN
+  IF current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
+     OR current_setting('app.current_role', true) = 'owner' THEN
+    RETURN true;
+  END IF;
+  RETURN EXISTS (
+    SELECT 1 FROM public.fields f WHERE f.field_id = target_field AND f.farm_id IS NOT NULL);
+END
+$$;
 -- Every role that reads these tables evaluates the policies (the default, stated explicitly).
 GRANT EXECUTE ON FUNCTION sc_farm_visible(TEXT) TO PUBLIC;
 GRANT EXECUTE ON FUNCTION sc_field_visible(TEXT) TO PUBLIC;
+GRANT EXECUTE ON FUNCTION sc_farm_writable(TEXT) TO PUBLIC;
+GRANT EXECUTE ON FUNCTION sc_field_writable(TEXT) TO PUBLIC;
 
 DROP POLICY IF EXISTS sc_farm_scope ON farms;
 CREATE POLICY sc_farm_scope ON farms AS RESTRICTIVE FOR ALL
     USING (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
            OR sc_farm_visible(farm_id::text))
     WITH CHECK (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
-                OR sc_farm_visible(farm_id::text));
+                OR sc_farm_writable(farm_id::text));
 DROP POLICY IF EXISTS sc_farm_scope ON fields;
 CREATE POLICY sc_farm_scope ON fields AS RESTRICTIVE FOR ALL
     USING (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
            OR sc_farm_visible(farm_id::text))
     WITH CHECK (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
-                OR sc_farm_visible(farm_id::text));
+                OR sc_farm_writable(farm_id::text));
 DROP POLICY IF EXISTS sc_farm_scope ON seasons;
 CREATE POLICY sc_farm_scope ON seasons AS RESTRICTIVE FOR ALL
     USING (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
            OR sc_field_visible(field_id::text))
     WITH CHECK (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
-                OR sc_field_visible(field_id::text));
+                OR sc_field_writable(field_id::text));
 DROP POLICY IF EXISTS sc_farm_scope ON field_tasks;
 CREATE POLICY sc_farm_scope ON field_tasks AS RESTRICTIVE FOR ALL
     USING (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
            OR sc_field_visible(field_id::text))
     WITH CHECK (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
-                OR sc_field_visible(field_id::text));
+                OR sc_field_writable(field_id::text));
 DROP POLICY IF EXISTS sc_farm_scope ON farm_ledger_entries;
 CREATE POLICY sc_farm_scope ON farm_ledger_entries AS RESTRICTIVE FOR ALL
     USING (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
            OR (sc_farm_visible(farm_id) AND (field_id IS NULL OR sc_field_visible(field_id))))
     WITH CHECK (current_setting('app.enforce_farm_scope', true) IS DISTINCT FROM 'on'
-                OR (sc_farm_visible(farm_id) AND (field_id IS NULL OR sc_field_visible(field_id))));
+                OR (sc_farm_writable(farm_id) AND (field_id IS NULL OR sc_field_writable(field_id))));
 
 COMMIT;
