@@ -167,7 +167,7 @@ _WRAPPER_POSITIONAL = {"timeout": 1, "chroot": 1}  # DURATION, NEWROOT
 _SHELLS = frozenset({"sh", "bash", "dash", "ash", "zsh"})
 # A redirection: `>`, `2>`, `>>`, `<`, `&>` alone (its target is the next word), or with
 # its target attached (`2>/dev/null`, `>out.log`).
-_REDIRECT = re.compile(r"\A(?:\d*|&)(?:>>?|<<?|>&|<&)(.*)\Z")
+_REDIRECT = re.compile(r"\A(?:\d*|&)(?:>>?|<<<|<<-?|<>|>&|<&|>\|)(.*)\Z")
 _ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=")
 
 
@@ -568,6 +568,10 @@ _SCANNER_CASES = {
     "echo-is-not-a-wrapper": ("FROM python:3.12-slim\nRUN echo groupadd voice\n", []),
     "redirect-attached": (
         "FROM python:3.12-slim\nRUN groupadd voice 2>/dev/null\n",
+        [("groupadd", "voice")],
+    ),
+    "here-string-after-the-name": (
+        "FROM python:3.12-slim\nRUN groupadd voice <<< x\n",
         [("groupadd", "voice")],
     ),
     "redirect-detached": (

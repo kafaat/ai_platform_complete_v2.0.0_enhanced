@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -46,8 +47,11 @@ def handler_calls(source: str, prop: str) -> list[str]:
     the handler, does not count.
     """
     code = _strip_comments(source)
-    start = code.index(f"{prop}={{")
-    i, depth = start + len(prop) + 1, 0
+    matches = list(re.finditer(rf"(?<![\w$]){re.escape(prop)}=\{{", code))
+    assert len(matches) == 1, (
+        f"{prop} must appear exactly once in the given source, found {len(matches)}"
+    )
+    i, depth = matches[0].end() - 1, 0
     for j in range(i, len(code)):
         if code[j] == "{":
             depth += 1
@@ -127,16 +131,19 @@ def test_ui12_action_from_map_palette_exists_and_does_not_fake_writes():
     assert "<MapActionPalette" in maphub
     # The palette's pin action must open a surface that accepts pins: compare/3D maps do not,
     # so it also returns to the 2D single map (UI audit, MapHub palette pin finding).
-    pin_calls = handler_calls(maphub, "onPinScouting")
+    # The palette element only: the field drawer has its own onOpenTimeline.
+    palette_jsx = maphub[maphub.index("<MapActionPalette") :]
+    palette_jsx = palette_jsx[: palette_jsx.index("/>") + 2]
+    pin_calls = handler_calls(palette_jsx, "onPinScouting")
     for call in ("setPinMode(true)", "setDrawTools(false)", "setMode('2d')", "setCompare(false)"):
         assert call in pin_calls, call
-    timeline_calls = handler_calls(maphub, "onOpenTimeline")
+    timeline_calls = handler_calls(palette_jsx, "onOpenTimeline")
     for call in ("setSettingsOpen(true)", "setShowImageryTimeline(true)"):
         assert call in timeline_calls, call
     assert "onOpenAlerts={() => setShowAlerts(true)}" in maphub
     # The palette's add-field action opens the plain dialog: it must also clear a tool
     # preselected by the toolbar's circle-field button, or the dialog would reopen on it.
-    add_calls = handler_calls(maphub, "onAddField")
+    add_calls = handler_calls(palette_jsx, "onAddField")
     for call in ("setShowAddField(true)", "setAddFieldTool(null)"):
         assert call in add_calls, call
 
@@ -151,6 +158,16 @@ def test_handler_calls_reads_the_handler_not_its_line():
     assert handler_calls(source, "onAddField") == ["setAddFieldTool(null)"]
     assert handler_calls(source, "onPin") == ["setMode('2d')"]
     assert handler_calls(source, "onMulti") == ["setY(2)", "setZ('a;b')"]
+    # A longer prop that ends with the name is not a match, and a duplicate is refused.
+    assert handler_calls("<A xonAdd={() => wrong()} onAdd={() => right()} />", "onAdd") == [
+        "right()"
+    ]
+    try:
+        handler_calls("<A onAdd={() => a()} /><B onAdd={() => b()} />", "onAdd")
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("a prop that appears twice must be refused")
 
 
 def test_ui13_role_aware_map_surface_contract_is_explicit():

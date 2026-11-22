@@ -59,6 +59,7 @@ jobs:
             mobile/sahool_app/android/*.gradle*
             mobile/sahool_app/android/app/*.gradle*
             mobile/sahool_app/android/gradle/wrapper/gradle-wrapper.properties
+            mobile/sahool_app/pubspec.lock
       - name: Compile native Android application
         run: flutter build apk --debug
       - name: Require committed lock matches the actual solver
