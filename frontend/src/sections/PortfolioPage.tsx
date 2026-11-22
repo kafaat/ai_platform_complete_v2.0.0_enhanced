@@ -29,7 +29,7 @@ const DEFAULT_SOURCES: SourceRow[] = [
   { source_id: 'بئر-1', capacity_m3: '2000' },
 ];
 
-const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
+const inputStyle = { background: 'rgb(var(--sahool-surface-2))', border: '1px solid rgb(var(--sahool-border))', color: 'rgb(var(--sahool-text))' } as const;
 
 export default function PortfolioPage() {
   const fieldOptionsQ = useFieldOptions();
@@ -98,24 +98,24 @@ export default function PortfolioPage() {
   };
 
   return (
-    <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
+    <div className="portfolio-workspace space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Layers className="w-5 h-5 text-sky-400" />
-        <h2 className="text-xl font-bold text-slate-100">توزيع ماء المزرعة</h2>
+        <Layers className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">توزيع ماء المزرعة</h2>
       </div>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-sahool-muted">
         حين لا يكفي ماء الآبار كلّ الحقول، مَن يُسقى أوّلاً؟ يوزّع المحرّك السعة المحدودة وفق
-        <span className="text-slate-300"> الأولويّة والهامش المتوقّع والحدّ الأدنى لكلّ حقل</span>،
-        فيُظهر الحقول <span className="text-emerald-300">المحميّة</span> مقابل
-        <span className="text-orange-300"> المُجهَدة</span> و<span className="text-red-300">غير المُلبّاة</span>.
-        كلّ القيم <span className="text-amber-300">تقديريّة غير معايَرة</span>.
+        <span className="text-sahool-text"> الأولويّة والهامش المتوقّع والحدّ الأدنى لكلّ حقل</span>،
+        فيُظهر الحقول <span className="text-sahool-green-dark">المحميّة</span> مقابل
+        <span className="text-ops-warning"> المُجهَدة</span> و<span className="text-ops-danger">غير المُلبّاة</span>.
+        كلّ القيم <span className="text-ops-warning">تقديريّة غير معايَرة</span>.
       </p>
 
       {/* Sources form */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-sm font-semibold text-slate-100">
-            <Droplets className="w-4 h-4 text-sky-400" /> مصادر الماء (الآبار)
+          <div className="flex items-center gap-1 text-sm font-semibold text-sahool-text">
+            <Droplets className="w-4 h-4 text-ops-info" /> مصادر الماء (الآبار)
           </div>
           <button onClick={addSource}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs"
@@ -124,20 +124,20 @@ export default function PortfolioPage() {
           </button>
         </div>
         {sources.map((s, i) => (
-          <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
+          <div key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 items-end">
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">معرّف المصدر</span>
+              <span className="text-xs text-sahool-muted">معرّف المصدر</span>
               <input value={s.source_id} onChange={e => setSource(i, 'source_id', e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">السعة (م³)</span>
+              <span className="text-xs text-sahool-muted">السعة (م³)</span>
               <input type="number" inputMode="decimal" step="any" value={s.capacity_m3}
                 onChange={e => setSource(i, 'capacity_m3', e.target.value)}
                 className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
             </label>
             <button onClick={() => removeSource(i)} disabled={sources.length <= 1}
-              title="حذف المصدر" className="p-2 rounded-lg text-slate-500 hover:text-red-400 disabled:opacity-40"
+              title="حذف المصدر" className="p-2 rounded-lg text-sahool-muted hover:text-red-400 disabled:opacity-40"
               style={inputStyle}>
               <Trash2 className="w-4 h-4" />
             </button>
@@ -146,10 +146,10 @@ export default function PortfolioPage() {
       </div>
 
       {/* Fields form */}
-      <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-sm font-semibold text-slate-100">
-            <Layers className="w-4 h-4 text-sky-400" /> الحقول
+          <div className="flex items-center gap-1 text-sm font-semibold text-sahool-text">
+            <Layers className="w-4 h-4 text-ops-info" /> الحقول
           </div>
           <button onClick={addField}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs"
@@ -158,17 +158,17 @@ export default function PortfolioPage() {
           </button>
         </div>
         {fields.map((f, i) => (
-          <div key={i} className="rounded-lg border p-3 space-y-2" style={{ borderColor: '#25303f' }}>
+          <div key={i} className="rounded-lg border p-3 space-y-2" style={{ borderColor: 'rgb(var(--sahool-border))' }}>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500">حقل {i + 1}</span>
+              <span className="text-xs text-sahool-muted">حقل {i + 1}</span>
               <button onClick={() => removeField(i)} disabled={fields.length <= 1}
-                title="حذف الحقل" className="p-1 rounded-sm text-slate-500 hover:text-red-400 disabled:opacity-40">
+                title="حذف الحقل" className="p-1 rounded-sm text-sahool-muted hover:text-red-400 disabled:opacity-40">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">المعرّف</span>
+                <span className="text-xs text-sahool-muted">المعرّف</span>
                 <select value={f.field_id} onChange={e => setField(i, 'field_id', e.target.value)}
                   disabled={fieldOptionsQ.isLoading || fieldOptionsQ.isError || fieldOptions.length === 0}
                   className="px-3 py-2 rounded-lg text-sm disabled:opacity-60" style={inputStyle}>
@@ -183,14 +183,14 @@ export default function PortfolioPage() {
                 { k: 'expected_margin' as const, label: 'الهامش المتوقّع' },
               ].map(fld => (
                 <label key={fld.k} className="flex flex-col gap-1">
-                  <span className="text-xs text-slate-400">{fld.label}</span>
+                  <span className="text-xs text-sahool-muted">{fld.label}</span>
                   <input type="number" inputMode="decimal" step="any" value={f[fld.k]}
                     onChange={e => setField(i, fld.k, e.target.value)}
                     className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
                 </label>
               ))}
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">المصادر (افصل بفاصلة)</span>
+                <span className="text-xs text-sahool-muted">المصادر (افصل بفاصلة)</span>
                 <input value={f.source_ids} onChange={e => setField(i, 'source_ids', e.target.value)}
                   className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
               </label>
@@ -234,22 +234,22 @@ export default function PortfolioPage() {
               { label: 'حقول محميّة', v: String(res.protected_fields.length) },
               { label: 'حقول مُجهَدة/غير مُلبّاة', v: String(res.stressed_fields.length + res.unmet_fields.length) },
             ].map((x, i) => (
-              <div key={i} className="rounded-xl p-3 border text-center" style={{ background: '#1e293b', borderColor: '#334155' }}>
-                <div className="text-[11px] text-slate-400 mb-1">{x.label}</div>
-                <div className="text-lg font-bold text-slate-100">{x.v}</div>
+              <div key={i} className="rounded-xl p-3 border text-center" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+                <div className="text-[11px] text-sahool-muted mb-1">{x.label}</div>
+                <div className="text-lg font-bold text-sahool-text">{x.v}</div>
               </div>
             ))}
           </div>
 
           {/* Per-field table */}
-          <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>
-              <Layers className="w-4 h-4 text-sky-400" /> توزيع الماء على الحقول
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+              <Layers className="w-4 h-4 text-ops-info" /> توزيع الماء على الحقول
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
+                  <tr className="text-[11px] text-sahool-muted" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
                     <th className="px-3 py-2 text-right font-medium">الحقل</th>
                     <th className="px-3 py-2 text-right font-medium">الأولويّة</th>
                     <th className="px-3 py-2 text-right font-medium">الطلب (م³)</th>
@@ -288,13 +288,13 @@ export default function PortfolioPage() {
           </div>
 
           {/* Per-source usage */}
-          <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>
-              <Droplets className="w-4 h-4 text-sky-400" /> استخدام المصادر
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+              <Droplets className="w-4 h-4 text-ops-info" /> استخدام المصادر
             </div>
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
+                <tr className="text-[11px] text-sahool-muted" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
                   <th className="px-3 py-2 text-right font-medium">المصدر</th>
                   <th className="px-3 py-2 text-right font-medium">السعة (م³)</th>
                   <th className="px-3 py-2 text-right font-medium">المُستخدَم (م³)</th>
@@ -306,20 +306,20 @@ export default function PortfolioPage() {
                 {res.sources.map((s, i) => {
                   const pct = s.capacity_m3 > 0 ? (s.used_m3 / s.capacity_m3) * 100 : 0;
                   return (
-                    <tr key={i} className="text-slate-300" style={{ borderBottom: '1px solid #25303f' }}>
-                      <td className="px-3 py-1.5 font-medium text-slate-100">{s.source_id}</td>
+                    <tr key={i} className="text-sahool-text" style={{ borderBottom: '1px solid rgb(var(--sahool-border))' }}>
+                      <td className="px-3 py-1.5 font-medium text-sahool-text">{s.source_id}</td>
                       <td className="px-3 py-1.5">{s.capacity_m3.toFixed(0)}</td>
-                      <td className="px-3 py-1.5 font-semibold text-slate-100">{s.used_m3.toFixed(0)}</td>
+                      <td className="px-3 py-1.5 font-semibold text-sahool-text">{s.used_m3.toFixed(0)}</td>
                       <td className="px-3 py-1.5">{s.remaining_m3.toFixed(0)}</td>
                       <td className="px-3 py-1.5">
                         <div className="flex items-center gap-2">
-                          <div className="h-2 rounded-full overflow-hidden flex-1" style={{ background: '#0f1117', minWidth: 60 }}>
+                          <div className="h-2 rounded-full overflow-hidden flex-1" style={{ background: 'rgb(var(--sahool-surface-2))', minWidth: 60 }}>
                             <div className="h-full rounded-full" style={{
                               width: `${Math.max(0, Math.min(100, pct))}%`,
                               background: pct > 95 ? '#ef4444' : pct > 80 ? '#f59e0b' : '#10b981',
                             }} />
                           </div>
-                          <span className="text-[11px] text-slate-400">{pct.toFixed(0)}٪</span>
+                          <span className="text-[11px] text-sahool-muted">{pct.toFixed(0)}٪</span>
                         </div>
                       </td>
                     </tr>

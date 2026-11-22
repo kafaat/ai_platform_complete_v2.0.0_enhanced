@@ -207,7 +207,7 @@ export function TabBar<TId extends string>({
               padding: '10px 12px',
               fontSize: 13,
               fontWeight: on ? 800 : 600,
-              color: on ? T.gold : t.muted,
+              color: on ? t.ink : t.muted,
               borderBottom: on ? `2px solid ${T.gold}` : '2px solid transparent',
               background: 'transparent',
             }}
@@ -231,7 +231,7 @@ export function FAB({ icon, onClick, label }: { icon: ReactNode; onClick?: () =>
       className="inline-flex items-center justify-center gap-2"
       style={{
         background: T.gold,
-        color: '#fff',
+        color: T.ink,
         borderRadius: RADIUS.pill,
         padding: label ? '12px 18px' : 14,
         boxShadow: '0 6px 18px rgba(232,160,32,.35)',
@@ -269,7 +269,7 @@ export function Button({
         width: full ? '100%' : undefined,
         padding: '11px 14px', borderRadius: RADIUS.md, border: 'none',
         background: disabled ? T.line : tone === 'gold' ? T.gold : T.green,
-        color: disabled ? T.muted : '#fff',
+        color: disabled ? T.muted : tone === 'gold' ? T.ink : '#fff',
         fontSize: 14, fontWeight: 800,
         cursor: disabled ? 'not-allowed' : 'pointer',
         ...style,

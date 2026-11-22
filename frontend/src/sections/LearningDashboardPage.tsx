@@ -45,7 +45,7 @@ const evidenceStyle = (level: string): { bg: string; color: string } => {
     case 'field_preliminary':     return { bg: '#2a1a00', color: '#fbbf24' };
     case 'expert_opinion':    return { bg: '#0a1f2e', color: '#38bdf8' };
     case 'none':              return { bg: '#2a0d0d', color: '#f87171' };
-    default:                  return { bg: '#1e293b', color: '#94a3b8' };
+    default:                  return { bg: '#1e293b', color: 'rgb(var(--sahool-muted))' };
   }
 };
 
@@ -54,12 +54,12 @@ function StatCard({
   icon, label, value, sub,
 }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
   return (
-    <div role="group" aria-label={label} className="rounded-xl border p-4 space-y-1" style={{ background: '#1e293b', borderColor: '#334155' }}>
-      <div className="flex items-center gap-2 text-[11px] text-slate-400">
+    <div role="group" aria-label={label} className="rounded-xl border p-4 space-y-1" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+      <div className="flex items-center gap-2 text-[11px] text-sahool-muted">
         {icon}{label}
       </div>
-      <div className="text-2xl font-bold text-slate-100">{value}</div>
-      {sub && <div className="text-[11px] text-slate-500">{sub}</div>}
+      <div className="text-2xl font-bold text-sahool-text">{value}</div>
+      {sub && <div className="text-[11px] text-sahool-muted">{sub}</div>}
     </div>
   );
 }
@@ -78,20 +78,20 @@ function OutcomeCounts({ reconciliation }: { reconciliation?: LearningOutcomeRec
   ];
   return (
     <section aria-labelledby="outcome-counts-title" className="rounded-xl border p-4 space-y-3"
-      style={{ background: '#1e293b', borderColor: '#334155' }}>
-      <h3 id="outcome-counts-title" className="text-base font-bold text-slate-100">الحالات ومصادر النتائج</h3>
+      style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+      <h3 id="outcome-counts-title" className="text-base font-bold text-sahool-text">الحالات ومصادر النتائج</h3>
       <dl className="grid grid-cols-2 gap-3">
         {items.map(({ label, value }) => (
           <div key={label}>
-            <dt className="text-[11px] text-slate-400">{label}</dt>
-            <dd className="text-xl font-bold text-slate-100">{displayCount(value)}</dd>
+            <dt className="text-[11px] text-sahool-muted">{label}</dt>
+            <dd className="text-xl font-bold text-sahool-text">{displayCount(value)}</dd>
           </div>
         ))}
       </dl>
-      <p className="text-[11px] text-slate-300">
+      <p className="text-[11px] text-sahool-text">
         {counts?.sample_count_basis === 'rows' ? 'أساس عدّ العينات: صفوف النتائج' : 'أساس عدّ العينات: غير متاح'}
       </p>
-      <p className="text-[11px] text-slate-400">
+      <p className="text-[11px] text-sahool-muted">
         تُجمع الصفوف المرتبطة بالقرار نفسه في حالة واحدة، ويُعدّ كل صف غير مرتبط حالةً.
         هذا العدّ لا يثبت استقلال الحقول أو المزارع ولا فعالية الممارسة.
         قد تشمل صفوف النتائج سجلات لم تكتمل بعد؛ عيّنات الدليل تتطلب قياساً مؤهّلاً.
@@ -131,8 +131,8 @@ function SourceSuccessRates({ reconciliation }: { reconciliation?: LearningOutco
   const overlap = split?.linked_overlap;
   return (
     <section aria-labelledby="source-success-title" className="rounded-xl border p-4 space-y-3"
-      style={{ background: '#1e293b', borderColor: '#334155' }}>
-      <h3 id="source-success-title" className="text-base font-bold text-slate-100">نسبة نجاح الصفوف المحسومة بحسب المصدر</h3>
+      style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+      <h3 id="source-success-title" className="text-base font-bold text-sahool-text">نسبة نجاح الصفوف المحسومة بحسب المصدر</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {SOURCE_SPLIT.map(({ key, ar }) => {
           const bucket = split?.sources?.[key];
@@ -140,15 +140,15 @@ function SourceSuccessRates({ reconciliation }: { reconciliation?: LearningOutco
             .filter(([, n]) => typeof n === 'number' && Number.isSafeInteger(n) && n > 0);
           return (
             <div key={key} role="group" aria-label={`نجاح ${ar}`} className="space-y-1">
-              <div className="text-[11px] text-slate-400">{ar}</div>
-              <div className="text-xl font-bold text-slate-100" data-testid={`source-rate-${key}`}>{displaySourceRate(bucket)}</div>
-              <dl className="grid grid-cols-2 gap-x-2 text-[11px] text-slate-300">
+              <div className="text-[11px] text-sahool-muted">{ar}</div>
+              <div className="text-xl font-bold text-sahool-text" data-testid={`source-rate-${key}`}>{displaySourceRate(bucket)}</div>
+              <dl className="grid grid-cols-2 gap-x-2 text-[11px] text-sahool-text">
                 <dt>المقام (صفوف محسومة)</dt><dd>{displayCount(bucket?.settled_rows)}</dd>
                 <dt>ناجحة</dt><dd>{displayCount(bucket?.succeeded)}</dd>
                 <dt>غير محسومة (خارج المقام)</dt><dd>{displayCount(bucket?.unsettled_rows)}</dd>
               </dl>
               {reasons.length > 0 && (
-                <ul className="text-[10px] text-slate-400">
+                <ul className="text-[10px] text-sahool-muted">
                   {reasons.map(([reason, n]) => (
                     <li key={reason}>• {UNSETTLED_REASON_AR[reason] ?? reason}: {n}</li>
                   ))}
@@ -158,10 +158,10 @@ function SourceSuccessRates({ reconciliation }: { reconciliation?: LearningOutco
           );
         })}
       </div>
-      <p className="text-[11px] text-slate-300">
+      <p className="text-[11px] text-sahool-text">
         حالات مربوطة في المصدرين: {displayCount(overlap?.cases)} — تُحسب في مقام كلّ مصدر مرّة.
       </p>
-      <p className="text-[11px] text-slate-400">
+      <p className="text-[11px] text-sahool-muted">
         كلّ نسبة من صفوف مصدرها وحده؛ المؤشر الإجمالي يجمع صفوف المصدرين. لا تثبت أيّ منها فعالية ممارسة.
       </p>
     </section>
@@ -179,11 +179,11 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
     : 0;
 
   return (
-    <section aria-label={`دليل ${regionAr}`} className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+    <section aria-label={`دليل ${regionAr}`} className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-emerald-400" />
-          <span className="text-sm font-bold text-slate-100">{regionAr}</span>
+          <MapPin className="w-4 h-4 text-sahool-green-dark" />
+          <span className="text-sm font-bold text-sahool-text">{regionAr}</span>
         </div>
         {ev && evStyle && (
           <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold"
@@ -194,11 +194,11 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
       </div>
 
       {isLoading && (
-        <div className="text-[11px] text-slate-500">جارٍ جلب الدليل المتراكم…</div>
+        <div className="text-[11px] text-sahool-muted">جارٍ جلب الدليل المتراكم…</div>
       )}
       {isError && (
-        <div className="text-[11px] text-amber-300/80 flex items-center gap-1.5">
-          <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+        <div className="text-[11px] text-ops-warning/80 flex items-center gap-1.5">
+          <AlertTriangle className="w-3.5 h-3.5 text-ops-warning" />
           تعذّر جلب الدليل لهذه المنطقة (حالة صادقة، لا أرقام مُلفَّقة).
         </div>
       )}
@@ -206,17 +206,17 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
       {ev && evStyle && (
         <>
           {/* معدّل النجاح */}
-          <div className="text-sm text-slate-300">
-            معدّل النجاح: <span className="font-bold text-slate-100">
+          <div className="text-sm text-sahool-text">
+            معدّل النجاح: <span className="font-bold text-sahool-text">
               {ev.success_rate != null ? `${(ev.success_rate * 100).toFixed(0)}%` : '—'}
             </span>
           </div>
 
           {/* عتبة جمع تقديريّة؛ الاسم القديم في API لا يجعلها عتبة اعتماد. */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between text-[11px] text-slate-400">
+            <div className="flex items-center justify-between text-[11px] text-sahool-muted">
               <span>اكتمال جمع العيّنات</span>
-              <span className="text-slate-300 font-medium">
+              <span className="text-sahool-text font-medium">
                 {ev.sample_count} / {ev.field_verified_min_samples} عيّنة
               </span>
             </div>
@@ -225,7 +225,7 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
                 style={{ width: `${progressPct}%`, background: evStyle.color }} />
             </div>
             {ev.samples_to_verified > 0 && (
-              <div className="text-[10px] text-slate-500">
+              <div className="text-[10px] text-sahool-muted">
                 تبقّى {ev.samples_to_verified} عيّنة لبلوغ عتبة الجمع.
               </div>
             )}
@@ -233,10 +233,10 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
 
           {/* U01: جودة الدليل لا عدُّه — حالة المراجعة وأعداد الوحدات المستقلّة (حقول/مواسم/
               مزارع) والعيّنات مجهولة الوحدة. 30 صفّاً من حقلٍ واحد ليست 30 شاهداً. */}
-          <div className="rounded-lg border p-2.5 space-y-1" style={{ background: '#0f172a', borderColor: '#334155' }}
+          <div className="rounded-lg border p-2.5 space-y-1" style={{ background: 'rgb(var(--sahool-surface-2))', borderColor: 'rgb(var(--sahool-border))' }}
             data-testid={`evidence-quality-${region}`}>
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-400">حالة المراجعة</span>
+              <span className="text-sahool-muted">حالة المراجعة</span>
               <span className="font-semibold"
                 style={{ color: ev.review_status === 'reviewed' ? '#4ade80' : '#fbbf24' }}>
                 {ev.review_status === 'reviewed' ? 'مراجَعة من مختصّ'
@@ -244,14 +244,14 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
               </span>
             </div>
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-400">معرّفات مميّزة (حقول / مواسم / مزارع / مستأجرون)</span>
-              <span className="text-slate-200 font-medium" dir="ltr">
+              <span className="text-sahool-muted">معرّفات مميّزة (حقول / مواسم / مزارع / مستأجرون)</span>
+              <span className="text-sahool-text font-medium" dir="ltr">
                 {ev.independence
                   ? `${ev.independence.fields} / ${ev.independence.seasons} / ${ev.independence.farms} / ${ev.independence.tenants}`
                   : '—'}
               </span>
             </div>
-            <p className="text-[10px] text-slate-400">
+            <p className="text-[10px] text-sahool-muted">
               هذا العدّ لا يكشف النقص في كلّ معرّف على حدة، ولا يثبت استقلال الشواهد.
             </p>
           </div>
@@ -311,9 +311,9 @@ export default function LearningDashboardPage() {
     <div className="space-y-6 max-w-5xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
         <BarChart3 className="w-5 h-5 text-emerald-400" />
-        <h2 className="text-xl font-bold text-slate-100">لوحة رصد التعلّم والنَّسَب</h2>
+        <h2 className="text-xl font-bold text-sahool-text">لوحة رصد التعلّم والنَّسَب</h2>
       </div>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-sahool-muted">
         تعرّف على القرارات والنتائج المسجّلة، واكتمال جمع العيّنات وحالة مراجعتها في كلّ منطقة.
         اكتمال العيّنة يختلف عن الاعتماد الزراعي والمعايرة؛ عدد السجلات وحده لا يثبت فعالية الممارسة.
       </p>
@@ -347,17 +347,17 @@ export default function LearningDashboardPage() {
           {/* ═══════════ بطاقات إجماليّة ═══════════ */}
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <StatCard
-              icon={<GitBranch className="w-3.5 h-3.5 text-emerald-400" />}
+              icon={<GitBranch className="w-3.5 h-3.5 text-sahool-green-dark" />}
               label="قرارات مُدامة"
               value={decisionCount != null ? String(decisionCount) : '—'}
               sub="إجماليّ سجلّ القرارات (decision_record)" />
             <StatCard
-              icon={<CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+              icon={<CheckCircle2 className="w-3.5 h-3.5 text-sahool-green-dark" />}
               label="سجلات النتائج"
               value={outcomeCount != null ? String(outcomeCount) : '—'}
               sub={outcomeCount != null ? 'تشمل النتائج المكتملة وغير المكتملة' : 'تلخيص التعلّم غير متاح بعد'} />
             <StatCard
-              icon={<Activity className="w-3.5 h-3.5 text-emerald-400" />}
+              icon={<Activity className="w-3.5 h-3.5 text-sahool-green-dark" />}
               label="مؤشر نجاح الصفوف المحسومة"
               value={successRate != null ? `${(successRate * 100).toFixed(0)}%` : '—'}
               sub={successRate == null ? 'بلا بيانات كافية بعد'
@@ -365,7 +365,7 @@ export default function LearningDashboardPage() {
                   ? 'يجمع صفوف أثر القرار وتعلّم الغلة المتاحة؛ لا يثبت فعالية ممارسة أو استقلال الحالات'
                   : 'مؤشر وصفي للصفوف؛ لا يثبت فعالية الممارسة أو استقلال الحالات'} />
             <StatCard
-              icon={<FlaskConical className="w-3.5 h-3.5 text-emerald-400" />}
+              icon={<FlaskConical className="w-3.5 h-3.5 text-sahool-green-dark" />}
               label="مناطق متحقّقة ميدانياً"
               value={displayCount(regionsVerified)}
               sub="بحسب مستوى الدليل الوارد في الملخّص" />
@@ -395,12 +395,12 @@ export default function LearningDashboardPage() {
 
           {/* توزيع القرارات حسب المنطقة (من السرد الفعليّ) */}
           {Object.keys(byRegion).length > 0 && (
-            <section className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
-              <div className="text-[11px] text-slate-400 mb-2">توزيع القرارات المُدامة حسب المنطقة</div>
+            <section className="rounded-xl border p-4" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
+              <div className="text-[11px] text-sahool-muted mb-2">توزيع القرارات المُدامة حسب المنطقة</div>
               <div className="flex flex-wrap gap-1.5">
                 {Object.entries(byRegion).map(([region, n]) => (
                   <span key={region} className="text-[11px] px-2 py-0.5 rounded-full"
-                    style={{ background: '#0f1117', color: '#cbd5e1', border: '1px solid #25303f' }}>
+                    style={{ background: 'rgb(var(--sahool-surface-2))', color: 'rgb(var(--sahool-text))', border: '1px solid rgb(var(--sahool-border))' }}>
                     {region}: <span className="font-semibold">{n}</span>
                   </span>
                 ))}
@@ -419,8 +419,8 @@ export default function LearningDashboardPage() {
           {/* ═══════════ جمع العيّنات ومراجعة الدليل ═══════════ */}
           <section className="space-y-3">
             <div className="flex items-center gap-2">
-              <FlaskConical className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-base font-bold text-slate-100">جمع العيّنات ومراجعة الدليل حسب المنطقة</h3>
+              <FlaskConical className="w-4 h-4 text-sahool-green-dark" />
+              <h3 className="text-base font-bold text-sahool-text">جمع العيّنات ومراجعة الدليل حسب المنطقة</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {REGIONS.map(r => (

@@ -31,7 +31,7 @@ const CATEGORIES: { id: DocumentCategory; label: string; icon: typeof FileText; 
   { id: 'image',      label: 'صورة',          icon: ImageIcon,     color: '#16a34a' },
   { id: 'map',        label: 'خريطة',         icon: MapIcon,       color: '#f59e0b' },
   { id: 'lab_result', label: 'نتيجة مخبريّة', icon: FlaskConical,  color: '#ef4444' },
-  { id: 'other',      label: 'أخرى',          icon: File,          color: '#94a3b8' },
+  { id: 'other',      label: 'أخرى',          icon: File,          color: 'rgb(var(--sahool-muted))' },
 ];
 
 const CAT_BY_ID: Record<string, { label: string; icon: typeof FileText; color: string }> =

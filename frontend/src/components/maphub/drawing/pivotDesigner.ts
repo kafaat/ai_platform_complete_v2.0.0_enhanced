@@ -110,12 +110,16 @@ export function buildPivotSectorRing(input: PivotDesignInput): Position[] {
   const summary = summarizePivotDesign(input);
   const vertices = Math.max(12, Math.min(180, Math.round(input.vertices ?? 72)));
   const steps = Math.max(2, Math.ceil(vertices * (summary.sweepDeg / 360)));
-  const ring: Position[] = [input.center];
-  for (let i = 0; i <= steps; i += 1) {
+  // A full turn closes on its first perimeter vertex. Including the hub would
+  // traverse the same radial edge twice, producing a self-touching polygon.
+  const fullCircle = summary.sweepDeg === 360;
+  const ring: Position[] = fullCircle ? [] : [input.center];
+  const vertexCount = fullCircle ? steps : steps + 1;
+  for (let i = 0; i < vertexCount; i += 1) {
     const bearing = summary.startAngleDeg + (summary.sweepDeg * i) / steps;
     ring.push(destinationPoint(input.center, bearing, input.radiusM));
   }
-  ring.push(input.center);
+  ring.push(ring[0]);
   return ring;
 }
 

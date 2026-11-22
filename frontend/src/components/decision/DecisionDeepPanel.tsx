@@ -25,7 +25,7 @@ const RISKS = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 
 const inputStyle = { border: `1px solid ${T.line}`, background: 'rgba(2,6,23,.5)', color: T.ink } as const;
 const sectionStyle = { borderColor: T.line, background: 'rgba(2,6,23,.35)' } as const;
-const buttonStyle = { border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' } as const;
+const buttonStyle = { border: '1px solid #367c2b', color: '#fff', background: '#367c2b' } as const;
 
 /** رسالة خطأ صادقة موحّدة: 404 على النقاط المحروسة = «الميزة غير مُفعَّلة»،
  *  وغيره خطأ حقيقيّ مع نصّه ودعوة صريحة لإعادة المحاولة — لا أرقام مُختلقة. */

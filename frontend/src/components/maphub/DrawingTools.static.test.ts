@@ -29,7 +29,7 @@ describe('Drawing tools — leaflet-draw adapter (React 19 safe)', () => {
 describe('MapHub draw/measure vs scout pins — mutual exclusion (click-conflict guard)', () => {
   it('renders both pin-click and measure handlers, so the toggles MUST be exclusive', () => {
     expect(hubMap).toContain('PinClickHandler enabled={pinMode}');
-    expect(hubMap).toContain('{drawTools && <MeasureTools />}');
+    expect(hubMap).toContain('{drawTools && <MeasureTools dock={dock} />}');
   });
 
   it('enabling draw/measure disables pins (and compare)', () => {

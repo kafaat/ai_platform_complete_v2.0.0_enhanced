@@ -40,6 +40,9 @@ import type { SnapTarget } from '../../lib/geo';
 import { getLayer, resolveLayerSource, toMapLibreRasterUrl } from '../../lib/layerRegistry';
 import type { FieldOption } from '../../lib/fields';
 import { indicatorTileUrl } from './indicatorTileUrl';
+import { toTurfFeature } from '../../lib/fieldGeometryOps';
+import { drawFeatureStyle } from './drawFeatureStyle';
+import { PivotPlacementControl } from './PivotPlacementControl';
 import type { DrawFeature } from './drawing';
 // أنواع فقط (تُمحى وقت الترجمة) — لا يدخل Leaflet هذه الحزمة المقسومة.
 import type { ScoutPin } from './HubMap';
@@ -52,6 +55,9 @@ const FIELD_COLOR = '#34d399';
 
 // معرّفات المصادر/الطبقات (ثوابت لتجنّب التكرار وضمان التنظيف الصحيح).
 const SRC_FIELDS = 'sahool-fields';
+const SRC_DRAWINGS = 'sahool-drawings';
+const LYR_DRAWING_FILL = 'sahool-drawings-fill';
+const LYR_DRAWING_LINE = 'sahool-drawings-line';
 const SRC_INDICATOR = 'sahool-indicator';
 const SRC_BASEMAP = 'sahool-basemap';
 const LYR_BASEMAP = 'sahool-basemap-layer';
@@ -70,7 +76,7 @@ const SRC_CONTOURS = 'sahool-contours';
 const LYR_CONTOURS = 'sahool-contours-layer';
 
 // أسماء أوضاع Terra Draw القياسيّة (من getters .mode في الحزمة).
-type DrawMode = 'polygon' | 'linestring' | 'select';
+type DrawMode = 'polygon' | 'linestring' | 'circle' | 'rectangle' | 'freehand' | 'select';
 
 // تسامح الالتقاط الحيّ بالمتر. يوازي قصد محرّر Leaflet (~8 م في snapRing) مع هامش
 // طفيف ليُسهّل الالتصاق بالحدود على شاشات اللمس/التكبير المتوسّط.
@@ -292,6 +298,7 @@ const EMPTY_MEASURE: MeasureState = { polys: 0, lines: 0, areaM2: 0, lengthM: 0 
 export default function HubMapGL({
   fields, selectedId, onSelect, basemapId, indicatorId, indicatorOpacity, height = 520,
   drawTools = false, pinMode = false, pins = [], onAddPin,
+  pivotDesignerEnabled = false, onAddPivotDraft, pivotDrafts,
   alertMarkers = [], deviceMarkers = [], weatherMarker = null, operationalMarkers = [],
   initialView = null, onViewChange, imageryTs = 0, imageryDate = null, tenantId = null, preferPersistedCog = false,
   hillshadeTilesUrl = null, slopeTilesUrl = null, soilTilesUrl = null,
@@ -306,12 +313,16 @@ export default function HubMapGL({
   const [ready, setReady] = useState(false); // يُعاد الرسم بعد load كي تُزامِن التراكبات
 
   // مراجع حيّة للـprops كي تقرأها مُعالِجات الأحداث دون إعادة الربط.
+  const measuring = useRef(drawTools);
+  measuring.current = drawTools;
+  const [helpOpen, setHelpOpen] = useState(true);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
   const onAddPinRef = useRef(onAddPin);
   onAddPinRef.current = onAddPin;
-  const pinModeRef = useRef(pinMode);
-  pinModeRef.current = pinMode;
+  const placing = pinMode || pivotDesignerEnabled;
+  const placementRef = useRef({ placing, pinMode, onAddPivotDraft });
+  placementRef.current = { placing, pinMode, onAddPivotDraft };
   const onViewChangeRef = useRef(onViewChange);
   onViewChangeRef.current = onViewChange;
 
@@ -412,26 +423,28 @@ export default function HubMapGL({
       fitView(map);
       setReady(true); // يُشغّل useEffectات التراكب/الدبابيس/الرسم بعد جهوز الخريطة
 
-      // النقر على مضلّع حقل ⇒ اختيار (يُقمَع في وضع الدبابيس — الدبّوس له الأولويّة).
+      // لا يغيّر نقر الحقل الاختيار أثناء وضع دبّوس أو مركز محوري.
       map.on('click', LYR_FILL, (e) => {
-        if (pinModeRef.current) return; // في وضع الدبابيس لا نُغيّر الاختيار
+        if (placementRef.current.placing) return;
         const id = e.features?.[0]?.properties?.id;
-        if (typeof id === 'string') onSelectRef.current(id);
+        if (!measuring.current && typeof id === 'string') onSelectRef.current(id);
       });
-      // النقر العامّ على الخريطة في وضع الدبابيس ⇒ إضافة دبّوس.
+      // كل نقرة تضع دبّوساً واحداً أو مركزاً واحداً في الوضع النشط.
       map.on('click', (e) => {
-        if (pinModeRef.current) onAddPinRef.current?.(e.lngLat.lat, e.lngLat.lng);
+        const mode = placementRef.current;
+        if (mode.pinMode) onAddPinRef.current?.(e.lngLat.lat, e.lngLat.lng);
+        else if (mode.placing) mode.onAddPivotDraft?.(e.lngLat.lat, e.lngLat.wrap().lng);
       });
       // تلميح بالاسم على المرور.
       map.on('mousemove', LYR_FILL, (e) => {
-        if (pinModeRef.current) return;
+        if (placementRef.current.placing) return;
         map.getCanvas().style.cursor = 'pointer';
         const feat = e.features?.[0];
         const name = feat?.properties?.name;
         if (name) popup.setLngLat(e.lngLat).setText(String(name)).addTo(map);
       });
       map.on('mouseleave', LYR_FILL, () => {
-        if (!pinModeRef.current) map.getCanvas().style.cursor = '';
+        if (!placementRef.current.placing) map.getCanvas().style.cursor = '';
         popup.remove();
       });
 
@@ -505,6 +518,10 @@ export default function HubMapGL({
     map.addLayer({ id: LYR_BASEMAP, type: 'raster', source: SRC_BASEMAP }, bottomLayerId);
     syncFieldsLayers(map);
     if (hadIndicator) syncIndicator(map);
+    if (map.getLayer(LYR_DRAWING_FILL)) {
+      map.moveLayer(LYR_DRAWING_FILL);
+      map.moveLayer(LYR_DRAWING_LINE);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [basemapId]);
 
@@ -517,6 +534,32 @@ export default function HubMapGL({
     syncIndicator(map);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [indicatorId, selectedId, indicatorOpacity, fields, tenantId, imageryTs, imageryDate, preferPersistedCog]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const source = map.getSource(SRC_DRAWINGS) as maplibregl.GeoJSONSource | undefined;
+    const data: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
+    for (const drawing of pivotDrafts ?? []) {
+      const feature = toTurfFeature(drawing.geometry);
+      if (!feature) continue;
+      const { color, fillOpacity } = drawFeatureStyle(drawing);
+      data.features.push({ ...feature, id: drawing.id, properties: { id: drawing.id, color, fillOpacity } });
+    }
+    if (source) {
+      source.setData(data);
+    } else if (data.features.length) {
+      map.addSource(SRC_DRAWINGS, { type: 'geojson', data, promoteId: 'id' });
+      map.addLayer({
+        id: LYR_DRAWING_FILL, source: SRC_DRAWINGS, type: 'fill',
+        paint: { 'fill-color': ['get', 'color'], 'fill-opacity': ['get', 'fillOpacity'] },
+      });
+      map.addLayer({
+        id: LYR_DRAWING_LINE, source: SRC_DRAWINGS, type: 'line',
+        paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-dasharray': [3, 2] },
+      });
+    }
+  }, [pivotDrafts, ready]);
 
   // ── طبقات التضاريس/التربة (تكافؤ Leaflet): بلاطات hillshade/slope/soil + كنتور +
   // نقاط عيّنات 🧪. يعتمد على basemapId كي يُعاد بناؤها بعد إعادة تحميل الأساس (لا تختفي).
@@ -622,8 +665,9 @@ export default function HubMapGL({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    map.getCanvas().style.cursor = pinMode ? 'crosshair' : '';
-  }, [pinMode, ready]);
+    if (placing) popupRef.current?.remove();
+    map.getCanvas().style.cursor = placing ? 'crosshair' : '';
+  }, [placing, ready]);
 
   // ── Terra Draw: تهيئة/تفكيك مع drawTools ────────────────────────────
   useEffect(() => {
@@ -640,7 +684,7 @@ export default function HubMapGL({
       ]).then(([td, adapterMod]) => {
         if (cancelled || !mapRef.current) return;
         const {
-          TerraDraw, TerraDrawPolygonMode, TerraDrawLineStringMode, TerraDrawSelectMode,
+          TerraDraw, TerraDrawPolygonMode, TerraDrawLineStringMode, TerraDrawSelectMode, TerraDrawCircleMode, TerraDrawFreehandMode, TerraDrawRectangleMode,
         } = td;
         const { TerraDrawMapLibreGLAdapter } = adapterMod;
 
@@ -686,6 +730,9 @@ export default function HubMapGL({
           modes: [
             new TerraDrawPolygonMode({ snapping, styles: snapStyles } as never),
             new TerraDrawLineStringMode({ snapping, styles: snapStyles } as never),
+            new TerraDrawCircleMode({ drawInteraction: 'click-move-or-drag' }),
+            new TerraDrawRectangleMode(),
+            new TerraDrawFreehandMode({ drawInteraction: 'click-drag' }),
             new TerraDrawSelectMode(),
           ],
         });
@@ -836,6 +883,29 @@ export default function HubMapGL({
   }
 
   return (
+    <>
+    {drawTools && <section dir="rtl" className="measure-dock" aria-label="أدوات القياس" data-testid="draw-panel" data-draw-ready={drawReady ? 'true' : 'false'}>
+      <div className="map-tool-row">
+        {([
+          ['polygon', 'مضلّع', 'polygon'], ['linestring', 'خطّ', 'line'], ['circle', 'دائرة', 'circle'],
+          ['rectangle', 'مستطيل', 'rectangle'], ['freehand', 'رسم حر', 'freehand'], ['select', 'تحديد', 'select'],
+        ] as const).map(([mode, label, id]) => <button key={id} type="button" className="map-tool"
+          data-testid={`btn-mode-${id}`} aria-pressed={drawMode === mode}
+          onClick={() => { setDrawMode(mode); setHelpOpen(true); }}>{label}</button>)}
+        {(drawMode === 'polygon' || drawMode === 'linestring') && <button type="button" className="map-tool"
+          aria-pressed={snapOn} data-testid="btn-snap-toggle" onClick={() => setSnapOn(v => !v)}>التقاط للحدود · {snapOn ? 'مُفعَّل' : 'مُعطَّل'}</button>}
+        <button type="button" className="map-tool" data-testid="btn-clear-draw" onClick={handleClearDraw}>مسح القياسات</button>
+      </div>
+      {helpOpen && <div className="map-hint" role="status">
+        {{ polygon: 'انقر زوايا الحدّ ثم انقر نقطة البداية لإغلاقه.', linestring: 'انقر نقاط الخط ثم انقر آخر نقطة لإنهائه.',
+          circle: 'انقر المركز ثم انقر المحيط.', rectangle: 'حدّد زاويتين متقابلتين.', freehand: 'اسحب حول الحدّ ثم ارفع لإغلاقه.', select: 'اختر شكلاً من الخريطة.' }[drawMode]}
+        <button type="button" aria-label="إغلاق تعليمات الرسم" onClick={() => setHelpOpen(false)}>×</button>
+      </div>}
+      <div aria-live="polite">
+        {measure.polys > 0 && <output data-testid="measure-area">{fmtArea(measure.areaM2)}</output>}
+        {measure.lines > 0 && <output data-testid="measure-length">{fmtLength(measure.lengthM)}</output>}
+      </div>
+    </section>}
     <div data-testid="hubmapgl-wrapper" style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid #2d4a37' }}>
       <div data-testid="hubmapgl-container" ref={containerRef} style={{ height, width: '100%' }} />
       {weatherMarker && (
@@ -894,93 +964,8 @@ export default function HubMapGL({
         MapLibre GL · المرحلة 3 · التقاط حيّ
       </div>
 
-      {/* لوحة الرسم/القياس (Terra Draw) — تظهر فقط حين drawTools */}
-      {drawTools && (
-        <div
-          dir="rtl"
-          data-testid="draw-panel"
-          data-draw-ready={drawReady ? 'true' : 'false'}
-          style={{
-            position: 'absolute', top: 12, left: 12, zIndex: 6,
-            background: 'rgba(13,22,17,.92)', borderRadius: 10, padding: '10px 12px',
-            fontSize: 12, color: '#e2e8f0', border: '1px solid #2d4a37',
-            backdropFilter: 'blur(6px)', maxWidth: 260,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <span style={{ fontWeight: 700, color: '#5cbf6e' }}>الرسم/القياس</span>
-            <button
-              type="button" onClick={handleClearDraw} data-testid="btn-clear-draw"
-              style={{
-                marginRight: 'auto', fontSize: 11, color: '#fca5a5', background: 'transparent',
-                border: '1px solid #7a2a2a', borderRadius: 6, padding: '2px 8px', cursor: 'pointer',
-              }}
-            >مسح</button>
-          </div>
-          {/* مبدّل الوضع: مضلّع / خطّ / تحديد */}
-          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
-            {([
-              ['polygon', 'مضلّع', 'btn-mode-polygon'],
-              ['linestring', 'خطّ', 'btn-mode-line'],
-              ['select', 'تحديد', 'btn-mode-select'],
-            ] as [DrawMode, string, string][]).map(([m, label, tid]) => (
-              <button
-                key={m} type="button" onClick={() => setDrawMode(m)} data-testid={tid}
-                style={{
-                  flex: 1, fontSize: 11, fontWeight: 600, padding: '4px 6px', borderRadius: 6,
-                  cursor: 'pointer',
-                  background: drawMode === m ? '#16a34a' : 'transparent',
-                  color: drawMode === m ? '#fff' : '#cdddd2',
-                  border: `1px solid ${drawMode === m ? '#16a34a' : '#2d4a37'}`,
-                }}
-              >{label}</button>
-            ))}
-          </div>
-          {/* تبديل الالتقاط الحيّ للحدود (المرحلة 3) — يظهر في وضعَي الرسم فقط */}
-          {drawMode !== 'select' && (
-            <button
-              type="button"
-              onClick={() => setSnapOn((v) => !v)}
-              aria-pressed={snapOn}
-              data-testid="btn-snap-toggle"
-              title="التقاط مغناطيسيّ لحدود الحقول القائمة أثناء الرسم"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, width: '100%',
-                marginBottom: 8, fontSize: 11, fontWeight: 600, padding: '5px 8px',
-                borderRadius: 6, cursor: 'pointer', textAlign: 'right',
-                background: snapOn ? 'rgba(34,211,238,.12)' : 'transparent',
-                color: snapOn ? '#7dd3fc' : '#9fb3a6',
-                border: `1px solid ${snapOn ? '#22d3ee' : '#2d4a37'}`,
-              }}
-            >
-              <span style={{
-                width: 8, height: 8, borderRadius: '50%',
-                background: snapOn ? '#22d3ee' : '#5a6b60',
-              }} />
-              التقاط للحدود · {snapOn ? 'مُفعَّل' : 'مُعطَّل'}
-            </button>
-          )}
-          {measure.polys === 0 && measure.lines === 0 ? (
-            <p style={{ color: '#9fb3a6', lineHeight: 1.6, margin: 0 }}>
-              اختر «مضلّع» للمساحة أو «خطّ» للطول ثمّ ارسم على الخريطة. «تحديد» لتعديل المرسوم.
-            </p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {measure.polys > 0 && (
-                <div>
-                  <div style={{ color: '#7dd3fc', fontWeight: 600 }}>المساحة ({measure.polys})</div>
-                  <div data-testid="measure-area" style={{ color: '#cdddd2' }}>{fmtArea(measure.areaM2)}</div>
-                </div>
-              )}
-              {measure.lines > 0 && (
-                <div>
-                  <div style={{ color: '#fcd34d', fontWeight: 600 }}>الطول ({measure.lines})</div>
-                  <div data-testid="measure-length" style={{ color: '#cdddd2' }}>{fmtLength(measure.lengthM)}</div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+      {ready && pivotDesignerEnabled && onAddPivotDraft && (
+        <PivotPlacementControl getCenter={() => mapRef.current?.getCenter().wrap()} onPlace={onAddPivotDraft} />
       )}
 
       {/* إرشاد وضع الدبابيس */}
@@ -997,5 +982,6 @@ export default function HubMapGL({
         </div>
       )}
     </div>
+    </>
   );
 }

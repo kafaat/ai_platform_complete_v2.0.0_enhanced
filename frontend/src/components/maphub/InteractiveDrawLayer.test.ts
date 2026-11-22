@@ -42,7 +42,8 @@ describe('AddFieldWithMap — تكامل أدوات الرسم التفاعلي�
   it('wires InteractiveDrawLayer for circle and rectangle', () => {
     expect(src).toContain('import InteractiveDrawLayer');
     expect(src).toContain('onCircle={handleInteractiveCircle}');
-    expect(src).toContain('onRectangle={handleInteractiveRectangle}');
+    expect(src).toContain('onRectangle={handleInteractiveBoundary}');
+    expect(src).toContain('onFreehand={handleInteractiveBoundary}');
   });
 
   it('keeps polygon on leaflet-draw but delegates circle/rectangle', () => {
@@ -68,7 +69,7 @@ describe('AddFieldWithMap — تكامل أدوات الرسم التفاعلي�
   });
 
   it('uses the same pivot detail for the preview and the saved model', () => {
-    expect(src).toContain('i < PIVOT_VERTEX_COUNT');
+    expect(readFileSync(join(process.cwd(), 'src/components/maphub/circleBoundary.ts'), 'utf8')).toContain('i < PIVOT_VERTEX_COUNT');
     expect(src).toContain('vertices: PIVOT_VERTEX_COUNT');
     expect(src).toContain('if (!isPivot) editable.editing?.enable()');
   });

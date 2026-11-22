@@ -49,14 +49,14 @@ function FieldCabinInner({
     <div dir="rtl" style={{ background: t.cream, minHeight: '100%', padding: 16 }}>
       <div
         style={{
-          maxWidth: dark ? 960 : 420, margin: '0 auto', background: t.cream,
-          borderRadius: 22, border: `1px solid ${t.line}`, overflow: 'hidden',
+          maxWidth: 960, margin: '0 auto', background: t.cream,
+          borderRadius: 8, border: `1px solid ${t.line}`, overflow: 'hidden',
           boxShadow: dark ? '0 12px 40px rgba(0,0,0,.45)' : '0 12px 40px rgba(44,26,14,.10)',
           ...(hasFooter ? { display: 'flex', flexDirection: 'column', minHeight: 600 } : null),
         }}
       >
         {/* ── الترويسة ── */}
-        <div style={{ background: T.brown, color: '#fff', padding: '18px 16px 22px', flexShrink: 0 }}>
+        <div style={{ background: '#285d22', borderTop: '3px solid #ffde00', color: '#fff', padding: '18px 16px 22px', flexShrink: 0 }}>
           <div className="flex items-center justify-between">
             <div>
               <div style={{ fontSize: 12, color: T.goldSoft }}>{eyebrow}</div>

@@ -22,7 +22,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type
 import {
   Layers, MapPin, Columns2, Square, Ruler, Crosshair, Box, Mountain,
   Search as SearchIcon, Trash2, Combine, Download, Upload,
-  History, RotateCcw, Target, CircleDot,
+  History, RotateCcw, Target, CircleDot, Pencil,
   Satellite,
 } from 'lucide-react';
 import { useLocation } from 'react-router';
@@ -142,6 +142,7 @@ const HubMapGL = lazy(() => import('../components/maphub/HubMapGL'));
 // هل محرّك MapLibre مُفعَّل؟ (الافتراض leaflet). المرحلة 2ب: الرسم/القياس (Terra
 // Draw) والدبابيس والتراكبات متاحة في كِلا المحرّكين (تكافؤ المزايا).
 const GL_ENGINE = MAP_ENGINE === 'maplibre';
+const EMPTY_DRAWINGS: PersistedDrawFeature[] = [];
 
 
 function idempotencyConfig(source: Record<string, unknown> | null | undefined) {
@@ -376,6 +377,8 @@ function MapHubCore() {
   // (نفس المؤشّر بين تاريخَين مخزَّنَين — مقارنة زمنيّة حقيقيّة). التاريخ الأيمن للنمط الثاني.
   const [compareMode, setCompareMode] = useState<'indicators' | 'dates'>('indicators');
   const [compareRightDate, setCompareRightDate] = useState<string>('latest');
+  const [workspaceOptions, setWorkspaceOptions] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(() => !window.matchMedia?.('(max-width: 767px)').matches);
   const [drawTools, setDrawTools] = useState(savedWorkspace?.drawTools ?? false);
   const [pinMode, setPinMode] = useState(savedWorkspace?.pinMode ?? false);
   // ── طبقات التراكب (مستقلّة؛ تُستعاد من المخزن) ──────────
@@ -426,12 +429,20 @@ function MapHubCore() {
   const [pivotRingCount, setPivotRingCount] = useState(4);
   const [pivotSpanCount, setPivotSpanCount] = useState(8);
   const [pivotDrafts, setPivotDrafts] = useState<DrawFeature[]>([]);
-  const fieldPivotDrafts = pivotDrafts.filter((draft) => draft.properties.fieldId === fieldId && draft.properties.localOwnerScope === drawingOwnerScope);
+  const canDesignPivot = fieldEditAllowed && !!drawingOwnerScope;
+  const fieldPivotDrafts = useMemo(() => {
+    if (!canDesignPivot) return [];
+    return pivotDrafts.filter((draft) =>
+      draft.properties.fieldId === fieldId && draft.properties.localOwnerScope === drawingOwnerScope);
+  }, [canDesignPivot, pivotDrafts, fieldId, drawingOwnerScope]);
   const currentFieldRef = useRef(fieldId);
   currentFieldRef.current = fieldId;
   const currentOwnerRef = useRef(drawingOwnerScope);
   currentOwnerRef.current = drawingOwnerScope;
-  useEffect(() => { setPivotDrafts([]); }, [drawingOwnerScope]);
+  useEffect(() => {
+    setPivotDesigner(false);
+    setPivotDrafts([]);
+  }, [drawingOwnerScope, canDesignPivot]);
   const [drawingReadError, setDrawingReadError] = useState<string | null>(null);
   // Drawings queued by an older build under one shared key: never replayed (owner unknown),
   // but shown so they do not disappear silently.
@@ -444,9 +455,15 @@ function MapHubCore() {
   }, []);
   const [storedPivotPersisted, setPivotPersisted] = useState<PersistedDrawFeature[]>([]);
   const [storedZonePersisted, setZonePersisted] = useState<PersistedDrawFeature[]>([]);
-  const [drawingLoadedScope, setDrawingLoadedScope] = useState<string | null>(null);
-  const pivotPersisted = drawingLoadedScope === drawingOwnerScope ? storedPivotPersisted : [];
-  const zonePersisted = drawingLoadedScope === drawingOwnerScope ? storedZonePersisted : [];
+  const [loadedDrawings, setLoadedDrawings] = useState<{ owner: string | null; field: string } | null>(null);
+  const drawingsInScope = !!drawingOwnerScope && loadedDrawings?.owner === drawingOwnerScope && loadedDrawings.field === fieldId;
+  const pivotPersisted = useMemo(() => {
+    if (!drawingsInScope) return [];
+    return canDesignPivot ? storedPivotPersisted : storedPivotPersisted.filter((f) => !isDrawingPendingSync(f));
+  }, [drawingsInScope, canDesignPivot, storedPivotPersisted]);
+  const zonePersisted = drawingsInScope ? storedZonePersisted : EMPTY_DRAWINGS;
+  const mapDrawings = useMemo(() => showPivots ? [...pivotPersisted, ...zonePersisted, ...fieldPivotDrafts] : [],
+    [showPivots, pivotPersisted, zonePersisted, fieldPivotDrafts]);
   const [zoneDesigner, setZoneDesigner] = useState(false);
   const [zoneKind, setZoneKind] = useState<AgriculturalZoneKind>('management-zone');
   const [zoneRate, setZoneRate] = useState(120);
@@ -485,7 +502,7 @@ function MapHubCore() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [showAddField, setShowAddField] = useState(false);
   // أداة الرسم التي يُفتح بها حوار إضافة الحقل («حقل دائري» يفتحه بالدائرة جاهزة).
-  const [addFieldTool, setAddFieldTool] = useState<'circle' | null>(null);
+  const [addFieldTool, setAddFieldTool] = useState<'circle' | 'freehand' | null>(null);
   const [showSplitMerge, setShowSplitMerge] = useState(false); // أداة الدمج/التقسيم — مغلقة افتراضيّاً
   const [search, setSearch] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -1036,6 +1053,8 @@ function MapHubCore() {
       setRightLayer(w.rightLayer);
       setDrawTools(w.drawTools);
       setPinMode(w.pinMode);
+      setPivotDesigner(false);
+      setZoneDesigner(false);
       setShowWeather(w.showWeather);
       setShowAlerts(w.showAlerts);
       setShowDevices(w.showDevices);
@@ -1486,7 +1505,7 @@ function MapHubCore() {
   // ── v37-v41: تحميل تصاميم Pivot ومناطق الإدارة/الوصفات المحفوظة + الطابور المحلي للحقل المختار ───────
   useEffect(() => {
     let alive = true;
-    if (!selected?.id) {
+    if (!drawingOwnerScope || !selected?.id) {
       setPivotPersisted([]);
       setZonePersisted([]);
       return () => { alive = false; };
@@ -1497,13 +1516,13 @@ function MapHubCore() {
     listDrawingFeatures(selected.id)
       .then((features) => {
         if (!alive || currentOwnerRef.current !== drawingOwnerScope) return;
-        setDrawingLoadedScope(drawingOwnerScope);
+        setLoadedDrawings({ owner: drawingOwnerScope, field: selected.id });
         setPivotPersisted(features.filter((f) => f.kind === 'pivot'));
         setZonePersisted(features.filter((f) => ['management-zone', 'prescription-zone', 'exclusion-zone'].includes(f.kind)));
       })
       .catch((error: unknown) => {
         if (!alive || currentOwnerRef.current !== drawingOwnerScope) return;
-        setDrawingLoadedScope(drawingOwnerScope);
+        setLoadedDrawings({ owner: drawingOwnerScope, field: selected.id });
         const queued = error instanceof DrawingFeatureReadError ? error.queuedFeatures : [];
         setPivotPersisted(queued.filter((f) => f.kind === 'pivot'));
         setZonePersisted(queued.filter((f) => ['management-zone', 'prescription-zone', 'exclusion-zone'].includes(f.kind)));
@@ -1514,9 +1533,9 @@ function MapHubCore() {
 
   // ── v36: Pivot Designer مرئي داخل MapHub ─────────────────────
   // النقر على الخريطة في وضع التصميم ينشئ قطاع pivot كـ DrawFeature محليّ.
-  // الحفظ الدائم سيأتي في مرحلة Backend CRUD/PostGIS، لذلك نعلّمه draft=true.
+  // تبقى المسودة محلية (draft=true) حتى يختار المستخدم حفظها.
   const handleAddPivotDraft = useCallback((lat: number, lng: number) => {
-    if (!fieldEditAllowed) return;
+    if (!canDesignPivot || drawingOwnerScope !== getAuthScope()) return;
     if (!selected) {
       toastStore.add('warning', 'اختر حقلاً أولاً', 'تصميم المحوري يحتاج حقلاً مختاراً لربط التصميم به.');
       return;
@@ -1536,9 +1555,13 @@ function MapHubCore() {
     setPivotDrafts((prev) => [...prev, feature]);
     setShowPivots(true);
     toastStore.add('success', 'تم إنشاء تصميم Pivot', `المساحة التقريبية ${(feature.measurements?.areaHa ?? 0).toFixed(2)} هـ`);
-  }, [pivotEndAngleDeg, pivotRadiusM, pivotRingCount, pivotSpanCount, pivotStartAngleDeg, selected, selectedActiveSeasonId, fieldEditAllowed, drawingOwnerScope]);
+  }, [pivotEndAngleDeg, pivotRadiusM, pivotRingCount, pivotSpanCount, pivotStartAngleDeg, selected, selectedActiveSeasonId, canDesignPivot, drawingOwnerScope]);
 
-  const handleClearPivotDrafts = useCallback(() => setPivotDrafts((prev) => prev.filter((draft) => draft.properties.fieldId !== fieldId)), [fieldId]);
+  const handleClearPivotDrafts = () => {
+    if (!canDesignPivot || drawingOwnerScope !== getAuthScope()) return;
+    setPivotDrafts((prev) => prev.filter((draft) =>
+      draft.properties.fieldId !== fieldId || draft.properties.localOwnerScope !== drawingOwnerScope));
+  };
 
   const handleSavePivotDrafts = useCallback(async () => {
     if (!fieldEditAllowed || !drawingOwnerScope || currentOwnerRef.current !== drawingOwnerScope || fieldPivotDrafts.length === 0) return;
@@ -1567,7 +1590,7 @@ function MapHubCore() {
       if (currentOwnerRef.current !== drawingOwnerScope) return;
       setPivotDrafts((prev) => prev.filter((draft) => !savingIds.has(draft.id)));
       if (currentFieldRef.current !== savingFieldId || currentOwnerRef.current !== drawingOwnerScope) return;
-      setDrawingLoadedScope(drawingOwnerScope);
+      setLoadedDrawings({ owner: drawingOwnerScope, field: selected.id });
       setPivotPersisted((prev) => {
         const byId = new Map(prev.map((f) => [f.id, f]));
         for (const f of saved) byId.set(f.id, f);
@@ -1616,7 +1639,7 @@ function MapHubCore() {
     try {
       const saved = await createDrawingFeature(feature);
       if (currentFieldRef.current !== selected.id || currentOwnerRef.current !== drawingOwnerScope) return;
-      setDrawingLoadedScope(drawingOwnerScope);
+      setLoadedDrawings({ owner: drawingOwnerScope, field: selected.id });
       setZonePersisted((prev) => [saved, ...prev.filter((f) => f.id !== saved.id)]);
       setShowPivots(true);
       if (isDrawingPendingSync(saved)) {
@@ -1720,18 +1743,33 @@ function MapHubCore() {
     }
   }, [deleteBusy, refetch, selected, selectedHasActiveSeason, setFieldId]);
 
+  function openFieldTool(tool: 'circle' | 'freehand') {
+    setAddFieldTool(tool);
+    setShowAddField(true);
+    setPinMode(false);
+    setCompare(false);
+    setDrawTools(false);
+    setPivotDesigner(false);
+    setZoneDesigner(false);
+  }
+
   if (isLoading) return <LoadingState message="جارٍ تحميل مركز الخرائط…" />;
   if (isError) return <ErrorState title="تعذّر تحميل الحقول" onRetry={() => refetch()} />;
 
 
   return (
-    <div className="max-w-7xl mx-auto" dir="rtl">
+    <div className="map-workspace max-w-7xl mx-auto" dir="rtl">
       {/* ── الترويسة + أدوات الوضع ── */}
       <header className="flex items-center gap-2 mb-3 flex-wrap">
-        <Layers className="w-5 h-5 text-emerald-400" aria-hidden="true" />
-        <h1 className="text-lg font-bold" style={{ color: '#e2e8f0' }}>مركز الخرائط الموحّد</h1>
-        <span className="text-xs" style={{ color: T.faint }}>{fields.length} حقل</span>
-        <div className="flex items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
+        <label className="map-field-select"><MapPin size={16} />
+          <select aria-label="الحقل المعروض" value={fieldId} onChange={e => setFieldId(e.target.value)}>
+            {!fieldId && <option value="">اختر الحقل</option>}
+            {fields.map(field => <option key={field.id} value={field.id}>{field.name}</option>)}
+          </select>
+        </label>
+        <button type="button" className="map-workspace-options" aria-expanded={workspaceOptions}
+          aria-controls="workspace-options" onClick={() => setWorkspaceOptions(open => !open)}>خيارات الخريطة</button>
+        <div id="workspace-options" className="map-workspace-actions" data-expanded={workspaceOptions}>
           {/* مبدّل وضع 2D / تضاريس(3D) */}
           <div className="flex rounded-lg overflow-hidden" style={{ border: `1px solid ${T.line}` }}>
             <button
@@ -1786,465 +1824,11 @@ function MapHubCore() {
         <div
           className="mb-3 rounded-xl px-3 py-2 text-xs"
           data-testid="fieldview-status"
-          style={{ background: '#064e3b33', border: '1px solid #10b98155', color: '#d1fae5' }}
+          style={{ background: T.greenSoft, border: `1px solid ${T.line}`, color: T.greenDark }}
         >
           {fieldViewStatus}
         </div>
       )}
-
-      {/* FieldView Smart Deck — أفضل إجراء تالٍ للحقل النشط (صور/استكشاف/عمليّات/سجلّ/سياق).
-          يظهر فقط عند وجود حقل نشط؛ العدّادات غير المتاحة تُترَك undefined فتسقط البطاقة
-          إلى اقتراح صادق بدل رقم ملفَّق. الأزرار موصولة بأفعال MapHub الحقيقيّة فقط. */}
-      {selected && (
-        <div className="mb-3 inline-flex items-center gap-1 rounded-xl p-0.5" style={{ background: T.card, border: `1px solid ${T.line}` }} data-testid="fieldview-mode-toggle">
-          {(['farmer', 'expert'] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setFieldModePersist(m)}
-              className="px-3 py-1 rounded-lg text-xs font-bold"
-              style={{ background: fieldMode === m ? '#14532d' : 'transparent', color: fieldMode === m ? '#bbf7d0' : T.muted }}
-              aria-pressed={fieldMode === m}
-            >
-              {m === 'farmer' ? 'وضع الفلاح' : 'وضع الخبير'}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {selected && <FarmerMetricsCard {...farmerMetricsInput} />}
-
-      {selected && <FieldWaterBrainCard {...waterBrainInput} />}
-
-      {selected && (
-        <FieldHealthReportCard
-          fieldId={fieldId}
-          fieldName={selected.name}
-          crop={selected.crop}
-          areaHa={typeof selected.area === 'number' ? selected.area : null}
-          imageryDates={availableImageryDates}
-          activeAlertsCount={Array.isArray(alertsQ.data) ? alertsQ.data.length : undefined}
-          openTasksCount={Array.isArray(tasksQ.data?.tasks) ? tasksQ.data.tasks.length : undefined}
-          equipmentCount={Array.isArray(equipmentQ.data) ? equipmentQ.data.length : undefined}
-          weatherReady={!!weatherQ.data?.current}
-          agentContextReady={!!fieldId}
-          routeFieldIsInvalid={routeFieldIsInvalid}
-          storedFieldIsInvalid={storedFieldIsInvalid}
-          selectionReason={selectionReason}
-        />
-      )}
-
-      {/* طبقة الأهداف (Field Objective Engine): تحوّل FieldView من «أداة تعرض بيانات» إلى
-          «متعاون يحقّق هدفاً» — نيّة ⇒ خطّة (فحص→تفسير→إجراء→مراجعة) مربوطة بأدلّة حقيقيّة،
-          تمنع التوصية حتّى اكتمال الدليل، وتحوّلها إلى مهمّة قابلة للمتابعة بدورة حياة صريحة. */}
-      {selected && fieldMode === 'expert' && (
-        <FieldObjectivePanel
-          contextKey={fieldId}
-          availability={objectiveAvailability}
-          onCreateTask={(objectiveId) => {
-            // مسار المهمّة الحيّ الوحيد في MapHub: فتح وضع تثبيت دليل ميدانيّ لكشف الإجهاد.
-            // نعيد false لأيّ هدف لا نملك له مسار تنفيذ حيّ هنا حتّى لا تتقدّم دورة الحياة كذباً.
-            if (objectiveId === 'diagnose_field_stress') {
-              setPinMode(true); setCompare(false); setDrawTools(false);
-              return true;
-            }
-            return false;
-          }}
-        />
-      )}
-
-      {/* التقويم الزراعيّ اليمنيّ (display_only — سياق تراثيّ لا يدخل القرار): المنزلة
-          القمريّة + الشهر الحميريّ + أمثال المنزلة + نافذة زراعة محصول الحقل. كان
-          backend كاملاً (calendars/proverbs) بلا أيّ قارئ — التميّز المحلّيّ لساهول. */}
-      {selected && <YemeniCalendarCard cropLabel={selected.crop} />}
-
-      {selected && fieldMode === 'expert' && (
-        <FieldViewInsightStrip
-          fieldId={fieldId}
-          fieldName={selected.name}
-          crop={selected.crop}
-          areaHa={typeof selected.area === 'number' ? selected.area : null}
-          imageryDates={availableImageryDates}
-          activeAlertsCount={Array.isArray(alertsQ.data) ? alertsQ.data.length : undefined}
-          openTasksCount={Array.isArray(tasksQ.data?.tasks) ? tasksQ.data.tasks.length : undefined}
-          equipmentCount={Array.isArray(equipmentQ.data) ? equipmentQ.data.length : undefined}
-          weatherReady={!!weatherQ.data?.current}
-          agentContextReady={!!fieldId}
-          routeFieldIsInvalid={routeFieldIsInvalid}
-          storedFieldIsInvalid={storedFieldIsInvalid}
-          selectionReason={selectionReason}
-          onBackfill={mutateAllowed ? handlePrepareTwoYearImagery : undefined}
-          onOpenTimeline={() => setShowImageryTimeline(true)}
-          onShowAlerts={() => setShowAlerts(true)}
-        />
-      )}
-
-      {selected && fieldMode === 'expert' && (
-        <ZoneVraEntryCard
-          hasField={!!fieldId}
-          imageryReadyCount={imageryReadyCount}
-          prescriptionCount={prescriptionsQ.data?.total ?? 0}
-          onOpenZones={() => { setZoneDesigner(true); setShowPivots(true); }}
-        />
-      )}
-
-      {selected && fieldMode === 'expert' && (
-        <OperationsCenterCard
-          fieldId={fieldId ?? null}
-          tasks={tasksQ.data?.tasks ?? []}
-          equipment={equipmentQ.data ?? []}
-          alerts={Array.isArray(alertsQ.data) ? alertsQ.data : []}
-          onOpenAlerts={() => setShowAlerts(true)}
-        />
-      )}
-
-      {selected && fieldMode === 'expert' && (
-        <FieldEconomicsCard
-          areaHa={typeof selected.area === 'number' ? selected.area : null}
-          irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
-        />
-      )}
-
-      {/* ربحيّة الموسم من السجلّ الفعليّ (farm-ledger) — أرقام مُخزَّنة لا تقدير، بعكس البطاقة أعلاه. */}
-      {selected && fieldMode === 'expert' && (
-        <SeasonProfitabilityCard
-          hasSeason={!!activeSeasonId}
-          profitability={profitabilityQ.data ?? null}
-          summary={ledgerSummaryQ.data ?? null}
-          variance={varianceQ.data ?? null}
-          economicState={economicStateQ.data ?? null}
-          areaHa={typeof selected.area === 'number' ? selected.area : null}
-          loading={profitabilityQ.isLoading || ledgerSummaryQ.isLoading}
-          currencies={seasonCurrencies}
-          currency={reportCurrency}
-          onCurrencyChange={(c) => setLedgerCurrency({ season: activeSeasonId, currency: c, currencies: seasonCurrencies })}
-        />
-      )}
-
-      {/* إدخال السجلّ الماليّ (عمليّة/موازنة/إيراد): يكتمل به قوس الربحيّة إدخالاً —
-          كانت نقاط POST بلا واجهة (الإدخال API فقط). للخبير المخوَّل بالتعديل فقط. */}
-      {selected && fieldMode === 'expert' && mutateAllowed && (
-        <LedgerEntryCard
-          fieldId={fieldId ?? null}
-          seasonId={activeSeasonId}
-          todayIso={new Date().toISOString().slice(0, 10)}
-          enabled={expertMode}
-        />
-      )}
-
-      {selected && fieldMode === 'expert' && (
-        <FieldScoutingCard
-          crop={selected.crop}
-          issues={scoutingQ.data?.issues ?? []}
-          loading={scoutingQ.isLoading}
-          onLogEvidence={() => { setPinMode(true); setCompare(false); setDrawTools(false); }}
-        />
-      )}
-
-      {selected && fieldMode === 'expert' && (
-        <SeasonCommandCard
-          phenology={phenologyQ.data ?? null}
-          stageAction={stageActionsQ.data?.available ? (stageActionsQ.data.suggestions?.[0]?.action_ar ?? null) : null}
-          loading={phenologyQ.isLoading}
-        />
-      )}
-
-      {/* بطاقة المحصول: تعكس المعرفة المرجعيّة المُخزَّنة (crop-cards YAML — Kc/ملوحة/GDD/
-          أصناف يمنيّة) على محصول الحقل النشط — كانت قدرة خلفيّة يتيمة عن الواجهة. */}
-      {selected && fieldMode === 'expert' && (
-        <CropKnowledgeCard
-          cropLabel={selected.crop}
-          sowingDate={activeSeason?.sowing_date ?? null}
-          enabled={expertMode}
-        />
-      )}
-
-      {selected && fieldMode === 'expert' && (
-        <TraceabilityCard
-          fieldName={selected.name}
-          crop={selected.crop}
-          areaHa={typeof selected.area === 'number' ? selected.area : null}
-          season={activeSeason}
-          completedOps={completedOps}
-          irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
-          prescriptionCount={prescriptionsQ.data?.total ?? null}
-        />
-      )}
-
-      {/* بطاقة المعرفة الزراعيّة: الإكثار المناسب للمحصول + ممارسات ما بعد الحصاد +
-          (للبنّ فقط) دليل/أصناف/آفات البنّ اليمنيّ — كانت طبقة خلفيّة يتيمة. */}
-      {selected && fieldMode === 'expert' && (
-        <AgroKnowledgeCard cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* حاسبات قياس حقليّة (إنبات · تخزين بذور · عمق بذر · رطوبة حبوب · ارتفاع البنّ)
-          — من قياسات المستخدم الفعليّة فقط، لا افتراضات. */}
-      {selected && fieldMode === 'expert' && (
-        <AgroCalculatorsCard cropLabel={selected.crop} />
-      )}
-
-      {/* منضدة التشخيص الحقليّ: أعراض ⇒ مرشّحون مرتّبون (تشخيص أوّليّ لا قاطع) +
-          خطط IPM المتدرّجة (الكيميائيّ ملاذ أخير) + تقييم ملوحة FAO من قياسات المستخدم. */}
-      {selected && fieldMode === 'expert' && (
-        <DiagnosticsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* حوكمة التربة: الحلقة المغلقة الكنسيّة (soil-service P4) — مستوى الأدلّة وبوّابة
-          الجودة والاستخدامات المحجوبة وعدّادات التنفيذ/التحقّق/التعلّم. قراءة فقط. */}
-      {selected && fieldMode === 'expert' && (
-        <SoilGovernanceCard fieldId={fieldId ?? null} enabled={expertMode} />
-      )}
-      {/* شفافيّة متحكّم الريّ الهرميّ (MPC) — قدرات مُنمذَجة/مُؤجَّلة + توصية-فقط. قراءة فقط. */}
-      {selected && fieldMode === 'expert' && (
-        <MpcGovernanceCard enabled={expertMode} />
-      )}
-
-      {/* سيناريوهات «ماذا لو؟»: حرارة/مطر/تاريخ زراعة/توأم ماء — محاكاة افتراضات
-          المستخدم، الخادم يعلن أنّها ليست تنبّؤاً معايَراً والإخلاء يُعرَض بارزاً. */}
-      {selected && fieldMode === 'expert' && (
-        <WhatIfScenariosCard
-          fieldId={fieldId ?? null}
-          cropLabel={selected.crop}
-          areaHa={typeof selected.area === 'number' ? selected.area : null}
-          enabled={expertMode}
-        />
-      )}
-
-      {/* «ماذا أزرع؟»: اقتراح الدورة الزراعيّة + ملاءمة الشهر — planting/rotation
-          كانت بلا مسار عمليّ في الواجهة. أحكام الخادم تُعرَض لا يُعاد الحكم. */}
-      {selected && fieldMode === 'expert' && (
-        <PlantingAdvisorCard
-          cropLabel={selected.crop}
-          todayIso={new Date().toISOString().slice(0, 10)}
-          enabled={expertMode}
-        />
-      )}
-
-      {/* مخاطر المناخ والماء: حساسيّة المراحل المائيّة (FAO-56) + نوافذ المخاطر الموسميّة
-          وساعات البرودة (إقليم يختاره المستخدم) + المناطق المشابهة — كانت بلا قارئ. */}
-      {selected && fieldMode === 'expert' && (
-        <ClimateRiskCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* حصاد المياه وطريقة الريّ: إمكانات حصاد المطر (من قياس المستخدم) + الطرق
-          التراثيّة اليمنيّة ودليلها + ملامح طرق الريّ FAO — كان backend بلا قارئ. */}
-      {selected && fieldMode === 'expert' && (
-        <WaterHarvestingCard cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* مساعدات قرار الريّ والعيّنات: ثقة القراءة/التوصية + قرار رطوبة RWC +
-          الإجمالي المسحوب + مراجع العيّنة — نقاط P0/P1 كانت بلا قارئ واجهة. */}
-      {selected && fieldMode === 'expert' && (
-        <IrrigationDecisionAidsCard cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* مرشَّح توصية الريّ الواعي بالاستنزاف (WS-D.2): POST
-          /api/v1/fields/{id}/irrigation-recommendation — توصية مرشَّحة لا مُنفَّذة
-          (الملكيّة لخدمة القرار)؛ يعالج insufficient_data/inconsistent_state بصدق. */}
-      {selected && fieldMode === 'expert' && (
-        <IrrigationDecisionCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* سلامة المدخلات ومعرفة المحاصيل: فحص كيميائيّ (حكم الخادم حرفيّاً) + تقويم
-          الزراعة + آفات التخزين + عالية القيمة/المتخصّصة ومرشّحو الإدخال — P1 بلا قارئ. */}
-      {selected && fieldMode === 'expert' && (
-        <CropSafetyKnowledgeCard cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* التحليلات الزراعيّة-البيئيّة: مخاطر/دورة/دليل قرارات + سلسلة Kc (قراءة وحفظاً)
-          + تغذية راجعة نبات-تربة + مقارنة مواسم + تصعيد + نسب أصل الحقل. */}
-      {selected && fieldMode === 'expert' && (
-        <AgroAnalyticsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* عمليّات الماء والحقل: إجهاد/نصيحة متكاملة + ميزان FAO-56 + سيول واردة +
-          تحليل ماء الريّ + تنبيهات/طبقات الطقس + خطّة 4R + إدامة النتيجة + geo-locate. */}
-      {selected && fieldMode === 'expert' && (
-        <WaterFieldOpsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* المحاصيل المتخصّصة والتوقيت التراثيّ: عالية القيمة/متخصّصة/عطريّة/أعلاف + بطاقة
-          الإدخال وملاءمة الحقل + تخطيط البستان واقتصاده + النجوم/التقويم الثقافيّ/الإقليميّ. */}
-      {selected && fieldMode === 'expert' && (
-        <SpecialtyCropsCard cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* المديريّات والطقس والتهيئة: معرفة إقليميّة (نوافذ الآفات) + توصية موقع +
-          ملخّص طقس الحقل وتحليلات السجلّ ودليل الزراعة + استبيان التهيئة. */}
-      {selected && fieldMode === 'expert' && (
-        <DistrictsWeatherCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* اتّساق البيانات والدورة وWOFOST والعمليّات: فحوص الاتّساق (ريّ + حداثة) +
-          تقييم الدورة ومبادئها + إرشاد تكيّف WOFOST + تقرير العمليّات + توصية ريّ +
-          الحالة التشغيليّة + تحسين المحفظة + التحقّق من الهندسة. */}
-      {selected && fieldMode === 'expert' && (
-        <AgronomyConsistencyCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* المعرفة الزراعيّة الاختصاصيّة (P3): ملاءمة المحاصيل + تركيب حالة (dry-run) +
-          الإكثار الخضري والأصل + الأساليب + صمود الجفاف + تقييم البذار + العيّنات. */}
-      {selected && fieldMode === 'expert' && (
-        <CropPropagationCard
-          fieldId={fieldId ?? null}
-          seasonId={strictlyActiveSeason?.season_id ?? null}
-          cropLabel={
-            strictlyActiveSeason
-              ? (strictlyActiveSeason.crops?.length === 1 ? strictlyActiveSeason.crops[0] : null)
-              : selected.crop || null
-          }
-          enabled={expertMode}
-        />
-      )}
-
-      {/* عمليّات GIS الهندسيّة + التحكيم الزمني + محاكاة ماذا-لو + مخاطر المرحلة +
-          إعادة البناء + رابط النَّسَب + تحليل التجارب (P3، خلف أعلام ميزات). */}
-      {selected && fieldMode === 'expert' && (
-        <GisTemporalOpsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* التعلُّم والدليل (P3، إرشاديّ صرف): تفعيل التعلُّم · معايرة · مزج سابقة · عتبات ·
-          تغذية راجعة · تظافر قرائن · بوّابة ثقة · تسجيل مشاهدة · طبقات · تغطية مؤشّرات. */}
-      {selected && fieldMode === 'expert' && (
-        <LearningEvidenceCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
-      )}
-
-      {/* مراجعة الحدود: تهديف ثقة حتميّ (يُخزَّن) + شبكة جوار — backend حوكمة الحدود
-          كان أقوى من الواجهة (score/graph بلا قارئ). */}
-      {selected && fieldMode === 'expert' && (
-        <BoundaryReviewCard fieldId={fieldId ?? null} enabled={expertMode} mutateAllowed={mutateAllowed} />
-      )}
-
-      {/* بطاقة ذكاء الحقل الموحّدة (V65): تجمع أحدث مشهد/حالة المزوّدين/NDVI-تاريخيّ/
-          العجز المائيّ/التنبيهات/الثقة في بطاقة واحدة، مع إظهار المفقود صراحةً. */}
-      {selected && fieldMode === 'expert' && (
-        <FieldIntelligenceCardView fieldId={fieldId ?? null} enabled={expertMode} />
-      )}
-      {/* بطاقة الرياح السائدة + المصدّات (V73-UI): من أين تأتي الرياح غالباً؟ وكيف أوجّه
-          مصدّاً شجريّاً؟ من تاريخ NASA POWER — صدق: المحسوب بقيمته والمتعذّر بسببه. */}
-      {selected && fieldMode === 'expert' && (
-        <WindbreakCard fieldId={fieldId ?? null} enabled={expertMode} />
-      )}
-      {/* خطر انجراف الرشّ (V79-UI): الحقول المجاورة كمناطق حسّاسة + هل الرشّ ينجرف نحوها
-          downwind من الريح السائدة — «لا ترشّ نحو X الآن». صدق: بلا ريح/جوار يُعلَن. */}
-      {selected && fieldMode === 'expert' && (
-        <DriftRiskCard fieldId={fieldId ?? null} enabled={expertMode} />
-      )}
-      {/* رسم أدلّة الحقل (V74-UI): أدلّة حاضرة بمصادرها + فجوات معرفة بأسبابها —
-          يفسّر التوصية ويُثبت مصدر كلّ معلومة (يعيد استخدام استعلام analyze). */}
-      {selected && fieldMode === 'expert' && (
-        <EvidenceGraphCard fieldId={fieldId ?? null} enabled={expertMode} />
-      )}
-      {/* تاريخ الأدلّة (E1-UI): تطوّر الأدلّة/الفجوات/الثقة عبر اللقطات المحفوظة +
-          أكثر الفجوات تكراراً عبر الحقول (تحليلات v149). صدق: بلا لقطات/تحليلات يُعلَن. */}
-      {selected && fieldMode === 'expert' && (
-        <EvidenceHistoryCard fieldId={fieldId ?? null} enabled={expertMode} />
-      )}
-      {/* بطاقة أدلّة الموسم (الحقيقة التشغيليّة الموحّدة field_season_state_projection) —
-          تُعرَض عند وجود موسم نشط للحقل المحدَّد في وضع الخبير. */}
-      {selected && fieldMode === 'expert' && activeSeasonId && (
-        <SeasonEvidenceCard
-          fieldId={fieldId ?? null}
-          seasonId={activeSeasonId}
-          enabled={expertMode}
-        />
-      )}
-
-      {/* تتبّع الحصاد المُخزَّن: دفعات + سلسلة حيازة append-only + دفتر مدخلات —
-          كان backend v65 كاملاً (harvest-lots/custody/input-traceability) بلا قارئ واجهة. */}
-      {selected && fieldMode === 'expert' && (
-        <HarvestTraceabilityCard
-          fieldId={fieldId ?? null}
-          seasonId={activeSeasonId}
-          enabled={expertMode}
-        />
-      )}
-
-      {/* P3: مقارنات طبقات جاهزة ذات معنى زراعيّ — تظهر في وضع المقارنة وتُوجّه المحرّك القائم. */}
-      {compare && (
-        <div className="mb-3 flex flex-wrap items-center gap-1.5" data-testid="compare-presets">
-          {/* مبدّل نمط المقارنة: مؤشّران في تاريخ واحد ↔ مؤشّر واحد بين تاريخَين (مقارنة زمنيّة). */}
-          <div className="flex items-center gap-1" data-testid="compare-mode-toggle">
-            {(['indicators', 'dates'] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setCompareMode(m)}
-                className="px-2 py-1 rounded-lg text-[11px] font-semibold border"
-                style={{ borderColor: compareMode === m ? '#22c55e88' : T.line, color: T.ink, background: compareMode === m ? '#14532d' : T.card }}
-              >
-                {m === 'indicators' ? 'مؤشّران' : 'تاريخان'}
-              </button>
-            ))}
-          </div>
-          {compareMode === 'indicators' ? (
-            <>
-              <span className="text-[11px] font-bold" style={{ color: T.muted }}>مقارنات جاهزة:</span>
-              {buildComparePresets(INDICATOR_LAYERS.map((l) => l.id)).map((p) => {
-                const active = leftLayer === p.left && rightLayer === p.right;
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    title={p.why}
-                    onClick={() => { setLeftLayer(p.left); setRightLayer(p.right); }}
-                    className="px-2 py-1 rounded-lg text-[11px] font-semibold border"
-                    style={{ borderColor: active ? '#22c55e88' : T.line, color: T.ink, background: active ? '#14532d' : T.card }}
-                  >
-                    {p.label}
-                  </button>
-                );
-              })}
-            </>
-          ) : (
-            <div className="flex items-center gap-1.5" data-testid="compare-dates-indicator">
-              <span className="text-[11px] font-bold" style={{ color: T.muted }}>المؤشّر:</span>
-              <LayerSwitcher layers={INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))} active={leftLayer} onChange={setLeftLayer} />
-              <span className="text-[11px]" style={{ color: T.muted }}>— قارِنه بين تاريخَين مخزَّنَين.</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3" data-testid="maphub-summary">
-        <SummaryStat label="إجمالي الحقول" value={String(fields.length)} />
-        <SummaryStat label="المساحة الكلية" value={`${fieldSummary.totalArea.toFixed(1)} هـ`} />
-        <SummaryStat label="محاصيل مختلفة" value={String(fieldSummary.cropCount)} />
-        <SummaryStat label="حقول بهندسة" value={`${fieldSummary.withGeometry}/${fields.length}`} />
-      </div>
-
-      <RoleAwareMapSurface role={user?.role}>
-        <FieldContextStrip
-          fieldId={fieldId}
-          fieldName={selected?.name ?? null}
-          cropName={selected?.crop ?? null}
-          activeSeasonId={activeSeasonId}
-          activeLayerId={indicatorActive}
-        />
-
-        <PriorityQueuePanel
-          fieldId={fieldId}
-          activeSeasonId={activeSeasonId}
-          hasAlerts={alertMarkers.length > 0}
-          hasTasks={operationalMarkers.length > 0}
-          hasWeatherWindow={Boolean(weatherMarker)}
-        />
-
-        <MapActionPalette
-          fieldId={fieldId}
-          canMutate={mutateAllowed}
-          hasGeometry={Boolean(selected?.geometry)}
-          hasActiveSeason={Boolean(activeSeasonId)}
-          hasAlerts={alertMarkers.length > 0}
-          hasTasks={operationalMarkers.length > 0}
-          // UI-G2: CompareMap و3D لا يقبلان الدبابيس؛ الدخول من اللوحة يعود إلى الخريطة
-          // التفاعليّة ثنائيّة الأبعاد ويُطفئ الأوضاع المتنافسة — كزرّ «دبابيس» في الشريط.
-          onPinScouting={() => { setMode('2d'); setCompare(false); setPinMode(true); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }}
-          onOpenTimeline={() => setShowImageryTimeline(true)}
-          onOpenAlerts={() => setShowAlerts(true)}
-          onAddField={() => { setAddFieldTool(null); setShowAddField(true); }}
-        />
-      </RoleAwareMapSurface>
 
       {fields.length === 0 ? (
         <EmptyState
@@ -2252,9 +1836,9 @@ function MapHubCore() {
           hint={mutateAllowed ? 'أضِف حقلاً (رسم/استيراد) لتبدأ.' : 'لا حقول متاحة لعرضها.'}
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-3">
           {/* ── اللوحة اليسرى: قائمة الحقول الباحثة ── */}
-          <aside className="space-y-3">
+          <aside className="order-2 lg:order-1 min-w-0 space-y-3">
             <Card pad={12}>
               <SectionLabel
                 action={<Badge tone="ok">{fields.length}</Badge>}
@@ -2310,7 +1894,7 @@ function MapHubCore() {
             {selected && (
               <Card pad={12}>
                 <SectionLabel>الحقل المختار</SectionLabel>
-                <div className="text-sm font-semibold" style={{ color: T.ink }}>{selected.name}</div>
+                <div data-testid="selected-field-name" className="text-sm font-semibold" style={{ color: T.ink }}>{selected.name}</div>
                 <div className="text-xs mt-0.5" style={{ color: T.muted }}>
                   {detailQ.isLoading ? 'جارٍ تحميل التفاصيل…'
                     : detailQ.data ? `${detailQ.data.crop || '—'} · ${detailQ.data.area_ha ?? selected.area} هـ`
@@ -2392,48 +1976,30 @@ function MapHubCore() {
               min-w-0: مسار الشبكة 1fr افتراضه min-width:auto، فيُتيح لشريط الصور
               (overflow-x-auto) أن يوسّع المسار بدل التمرير — ما يغيّر عرض الخريطة
               ويكسر تمرير الشريط. min-w-0 يحصر التمرير داخل الشريط ويثبّت عرض الخريطة. */}
-          <div className="space-y-3 min-w-0">
-            <Card pad={12}>
-              <div className="flex flex-wrap items-center justify-between gap-2" data-testid="map-data-status">
-                <div>
-                  <div className="text-xs font-semibold" style={{ color: T.muted }}>حالة بيانات الخريطة</div>
-                  <div className="text-sm font-bold" style={{ color: mapDataStatus.tone === 'ok' ? '#34d399' : mapDataStatus.tone === 'warn' ? '#fbbf24' : T.ink }}>{mapDataStatus.label}</div>
-                  <div className="text-[11px] mt-0.5" style={{ color: T.faint }}>{mapDataStatus.hint}</div>
-                </div>
-                <div className="flex items-center gap-2 text-[11px]" style={{ color: T.muted }}>
-                  <span>المحرك: {GL_ENGINE ? 'MapLibre GL' : 'Leaflet'}</span>
-                  {selected && <span>· الحقل: {selected.name}</span>}
-                  {indicatorActive && <span>· الطبقة: {LAYER_LEGEND[indicatorActive]?.short ?? indicatorActive}</span>}
-                </div>
-              </div>
-            </Card>
-
-            {indicatorActive === RAW_IMAGERY_INDEX_ID && trueColorRuntime.state !== 'ready' && (
-              <Card pad={10}>
-                <div dir="rtl" data-testid="truecolor-runtime-readiness" className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <div className="text-xs font-bold" style={{ color: trueColorRuntime.state === 'checking' ? '#93c5fd' : '#fbbf24' }}>
-                      تحقق صورة الحقل الخام
-                    </div>
-                    <div className="text-[11px] mt-1" style={{ color: T.faint }}>{trueColorRuntime.message}</div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handlePrepareTwoYearImagery(24)}
-                    disabled={historicalBackfillBusy || !selected?.geometry}
-                    className="px-2 py-1 rounded-lg text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
-                    style={{ background: historicalBackfillBusy ? '#475569' : '#854d0e', border: '1px solid #f59e0b66', color: '#fff7ed' }}
-                    data-testid="truecolor-backfill-cta"
-                  >
-                    {historicalBackfillBusy ? 'جارٍ التجهيز…' : 'تجهيز صورة TrueColor'}
-                  </button>
-                </div>
-              </Card>
-            )}
-
+          <div className="order-1 lg:order-2 min-w-0 space-y-3">
             {/* شريط الأدوات: الأساس + الطبقات + الشفّافيّة + الرسم/الدبابيس/المقارنة */}
             {mode === '2d' && (
               <Card pad={12}>
+                  {/* أزرار الوضع: مقارنة / رسم / دبابيس — متاحة في كِلا المحرّكين
+                      (Leaflet · MapLibre GL · المرحلة 2ب). */}
+                  <div className="map-tool-row map-actions" data-show-secondary={settingsOpen} role="group" aria-label="أدوات الخريطة">
+                    <MapHubToolToggle secondary testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
+                    {/* حصر متبادل: الرسم/القياس والدبابيس يستهلكان نقرات الخريطة معاً، فتفعيل
+                        أحدهما يُعطّل الآخر (والمقارنة) — وإلّا كلّ نقرة قياس تُسقط دبّوساً بالخطأ. */}
+                    <MapHubToolToggle testid="btn-draw" active={drawTools} onClick={() => { setDrawTools((v) => !v); setPinMode(false); setCompare(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
+                    {pinAllowed && <MapHubToolToggle secondary testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />}
+                    {/* أداتا الريّ المحوريّ في الشريط الرئيسيّ لمن يملك تعديل الحقول: «حقل دائري» يفتح
+                        حوار إضافة الحقل بالدائرة جاهزة، و«تصميم الريّ المحوريّ» يفعّل مصمّم المحاور. */}
+                    {fieldEditAllowed && <><MapHubToolToggle testid="btn-circle-field" active={showAddField && addFieldTool === 'circle'} onClick={() => openFieldTool('circle')} icon={<CircleDot className="w-3.5 h-3.5" />} label="حقل دائري" title="أضف حقلاً دائريّاً (ريّ محوريّ): انقر المركز ثمّ حرّك لتحديد نصف القطر" />
+                    <MapHubToolToggle testid="btn-freehand-field" active={showAddField && addFieldTool === 'freehand'} onClick={() => openFieldTool('freehand')} icon={<Pencil className="w-3.5 h-3.5" />} label="رسم حدود حر" />
+                    <MapHubToolToggle testid="btn-pivot-designer" disabled={!canDesignPivot} active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم الريّ المحوريّ" />
+                    <MapHubToolToggle secondary testid="btn-zone-designer" active={zoneDesigner} onClick={() => { setZoneDesigner((v) => !v); setPivotDesigner(false); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Combine className="w-3.5 h-3.5" />} label="مناطق الإدارة" /></>}
+                  </div>
+                <button type="button" className="map-settings-toggle" aria-expanded={settingsOpen}
+                  aria-controls="map-layer-settings" onClick={() => setSettingsOpen(open => !open)}>
+                  <Layers size={16} /> المزيد من الأدوات والطبقات
+                </button>
+                <div id="map-layer-settings" hidden={!settingsOpen}>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
                   {/* خريطة الأساس */}
                   <div className="flex items-center gap-2" data-testid="basemap-switcher">
@@ -2757,22 +2323,7 @@ function MapHubCore() {
                     </div>
                   )}
 
-                  {/* أزرار الوضع: مقارنة / رسم / دبابيس — متاحة في كِلا المحرّكين
-                      (Leaflet · MapLibre GL · المرحلة 2ب). */}
-                  <div className="flex items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
-                    <MapHubToolToggle testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
-                    {/* حصر متبادل: الرسم/القياس والدبابيس يستهلكان نقرات الخريطة معاً، فتفعيل
-                        أحدهما يُعطّل الآخر (والمقارنة) — وإلّا كلّ نقرة قياس تُسقط دبّوساً بالخطأ. */}
-                    <MapHubToolToggle testid="btn-draw" active={drawTools} onClick={() => { setDrawTools((v) => !v); setPinMode(false); setCompare(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
-                    {pinAllowed && <MapHubToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />}
-                    {/* أداتا الريّ المحوريّ في الشريط الرئيسيّ لمن يملك تعديل الحقول: «حقل دائري» يفتح
-                        حوار إضافة الحقل بالدائرة جاهزة، و«تصميم الريّ المحوريّ» يفعّل مصمّم المحاور. */}
-                    {fieldEditAllowed && <><MapHubToolToggle testid="btn-circle-field" active={showAddField && addFieldTool === 'circle'} onClick={() => { setAddFieldTool('circle'); setShowAddField(true); setPinMode(false); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<CircleDot className="w-3.5 h-3.5" />} label="حقل دائري" title="أضف حقلاً دائريّاً (ريّ محوريّ): انقر المركز ثمّ حرّك لتحديد نصف القطر" />
-                    {/* Leaflet only: HubMapGL receives pivotDesignerEnabled/onAddPivotDraft but has no
-                        click handler or draft layer yet, so under MapLibre the button would do nothing. */}
-                    {!GL_ENGINE && <MapHubToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم الريّ المحوريّ" />}
-                    <MapHubToolToggle testid="btn-zone-designer" active={zoneDesigner} onClick={() => { setZoneDesigner((v) => !v); setPivotDesigner(false); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Combine className="w-3.5 h-3.5" />} label="مناطق الإدارة" /></>}
-                  </div>
+
                 </div>
 
                 <OperationalOverlayControls
@@ -2814,6 +2365,7 @@ function MapHubCore() {
                   setShowSoil={setShowSoil}
                   setShowSoilSamples={setShowSoilSamples}
                 />
+                </div>
 
                 {/* أسطورة الانحدار (Slope) — من tilejson.legend حين الطبقة مُفعَّلة ومتاحة (المهمّة C) */}
                 {!compare && showSlope && slopeTj?.available && slopeTj.legend && slopeTj.legend.length > 0 && (
@@ -2981,11 +2533,11 @@ function MapHubCore() {
                   </div>
                 )}
 
-                {(pivotDesigner || fieldPivotDrafts.length > 0) && (
+                {canDesignPivot && (pivotDesigner || fieldPivotDrafts.length > 0) && (
                   <div data-testid="pivot-designer-panel" className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${T.line}` }}>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-semibold" style={{ color: T.muted }}>مصمّم الريّ المحوريّ</span>
-                      <Pill tone="info">{fieldPivotDrafts.length + pivotPersisted.length} تصميم</Pill>
+                      <span role="status"><Pill tone="info">{fieldPivotDrafts.length + pivotPersisted.length} تصميم</Pill></span>
                       {pivotDesigner && <span className="text-[11px]" style={{ color: T.faint }}>انقر على الخريطة لاختيار مركز المحوري</span>}
                       <Pill tone={selectedActiveSeasonId ? 'ok' : 'warn'}>{selectedActiveSeasonId ? 'مربوط بالموسم' : 'لا موسم نشط'}</Pill>
                       {fieldPivotDrafts.length > 0 && (
@@ -3128,9 +2680,9 @@ function MapHubCore() {
                       imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
                       preferPersistedCog={selectedDateHasCog}
                       tenantId={tenantId}
-                      pivotDesignerEnabled={pivotDesigner && fieldEditAllowed}
+                      pivotDesignerEnabled={pivotDesigner && canDesignPivot}
                       onAddPivotDraft={handleAddPivotDraft}
-                      pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...fieldPivotDrafts] : []}
+                      pivotDrafts={mapDrawings}
                       hillshadeTilesUrl={hillshadeTilesUrl}
                       slopeTilesUrl={slopeTilesUrl}
                       soilTilesUrl={soilTilesUrl}
@@ -3168,9 +2720,9 @@ function MapHubCore() {
                     soilOpacity={opacity}
                     soilSamplePoints={showSoilSamples ? soilSamplePoints : []}
                     contours={showContours ? contoursData : null}
-                    pivotDesignerEnabled={pivotDesigner && fieldEditAllowed}
+                    pivotDesignerEnabled={pivotDesigner && canDesignPivot}
                     onAddPivotDraft={handleAddPivotDraft}
-                    pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...fieldPivotDrafts] : []}
+                    pivotDrafts={mapDrawings}
                   />
                 )}
                 {/* أسطورة المقياس العموديّة الموحَّدة (يمين الخريطة) — تظهر فقط عند
@@ -3187,6 +2739,45 @@ function MapHubCore() {
               </div>
             )}
             </MapCanvasBoundary>
+            <Card pad={12}>
+              <div className="flex flex-wrap items-center justify-between gap-2" data-testid="map-data-status">
+                <div>
+                  <div className="text-xs font-semibold" style={{ color: T.muted }}>حالة بيانات الخريطة</div>
+                  <div className="text-sm font-bold" style={{ color: mapDataStatus.tone === 'ok' ? '#34d399' : mapDataStatus.tone === 'warn' ? '#fbbf24' : T.ink }}>{mapDataStatus.label}</div>
+                  <div className="text-[11px] mt-0.5" style={{ color: T.faint }}>{mapDataStatus.hint}</div>
+                </div>
+                <div className="flex items-center gap-2 text-[11px]" style={{ color: T.muted }}>
+                  <span>المحرك: {GL_ENGINE ? 'MapLibre GL' : 'Leaflet'}</span>
+                  {selected && <span>· الحقل: {selected.name}</span>}
+                  {indicatorActive && <span>· الطبقة: {LAYER_LEGEND[indicatorActive]?.short ?? indicatorActive}</span>}
+                </div>
+              </div>
+            </Card>
+
+            {indicatorActive === RAW_IMAGERY_INDEX_ID && trueColorRuntime.state !== 'ready' && (
+              <Card pad={10}>
+                <div dir="rtl" data-testid="truecolor-runtime-readiness" className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs font-bold" style={{ color: trueColorRuntime.state === 'checking' ? '#93c5fd' : '#fbbf24' }}>
+                      تحقق صورة الحقل الخام
+                    </div>
+                    <div className="text-[11px] mt-1" style={{ color: T.faint }}>{trueColorRuntime.message}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handlePrepareTwoYearImagery(24)}
+                    disabled={historicalBackfillBusy || !selected?.geometry}
+                    className="px-2 py-1 rounded-lg text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                    style={{ background: historicalBackfillBusy ? '#475569' : '#854d0e', border: '1px solid #f59e0b66', color: '#fff7ed' }}
+                    data-testid="truecolor-backfill-cta"
+                  >
+                    {historicalBackfillBusy ? 'جارٍ التجهيز…' : 'تجهيز صورة TrueColor'}
+                  </button>
+                </div>
+              </Card>
+            )}
+
+
 
             <div className="text-[11px]" style={{ color: T.muted }}>
               السطح الموحّد «الحقول والخريطة» — بلاطات <code>/raster</code> الحقيقيّة فوق حدود <code>/fields</code>.
@@ -3195,6 +2786,460 @@ function MapHubCore() {
           </div>
         </div>
       )}
+
+      {/* FieldView Smart Deck — أفضل إجراء تالٍ للحقل النشط (صور/استكشاف/عمليّات/سجلّ/سياق).
+          يظهر فقط عند وجود حقل نشط؛ العدّادات غير المتاحة تُترَك undefined فتسقط البطاقة
+          إلى اقتراح صادق بدل رقم ملفَّق. الأزرار موصولة بأفعال MapHub الحقيقيّة فقط. */}
+      {selected && (
+        <div className="mb-3 inline-flex items-center gap-1 rounded-xl p-0.5" style={{ background: T.card, border: `1px solid ${T.line}` }} data-testid="fieldview-mode-toggle">
+          {(['farmer', 'expert'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setFieldModePersist(m)}
+              className="px-3 py-1 rounded-lg text-xs font-bold"
+              style={{ background: fieldMode === m ? '#14532d' : 'transparent', color: fieldMode === m ? '#bbf7d0' : T.muted }}
+              aria-pressed={fieldMode === m}
+            >
+              {m === 'farmer' ? 'وضع الفلاح' : 'وضع الخبير'}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {selected && <FarmerMetricsCard {...farmerMetricsInput} />}
+
+      {selected && <FieldWaterBrainCard {...waterBrainInput} />}
+
+      {selected && (
+        <FieldHealthReportCard
+          fieldId={fieldId}
+          fieldName={selected.name}
+          crop={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          imageryDates={availableImageryDates}
+          activeAlertsCount={Array.isArray(alertsQ.data) ? alertsQ.data.length : undefined}
+          openTasksCount={Array.isArray(tasksQ.data?.tasks) ? tasksQ.data.tasks.length : undefined}
+          equipmentCount={Array.isArray(equipmentQ.data) ? equipmentQ.data.length : undefined}
+          weatherReady={!!weatherQ.data?.current}
+          agentContextReady={!!fieldId}
+          routeFieldIsInvalid={routeFieldIsInvalid}
+          storedFieldIsInvalid={storedFieldIsInvalid}
+          selectionReason={selectionReason}
+        />
+      )}
+
+      {/* طبقة الأهداف (Field Objective Engine): تحوّل FieldView من «أداة تعرض بيانات» إلى
+          «متعاون يحقّق هدفاً» — نيّة ⇒ خطّة (فحص→تفسير→إجراء→مراجعة) مربوطة بأدلّة حقيقيّة،
+          تمنع التوصية حتّى اكتمال الدليل، وتحوّلها إلى مهمّة قابلة للمتابعة بدورة حياة صريحة. */}
+      {selected && fieldMode === 'expert' && (
+        <FieldObjectivePanel
+          contextKey={fieldId}
+          availability={objectiveAvailability}
+          onCreateTask={(objectiveId) => {
+            // مسار المهمّة الحيّ الوحيد في MapHub: فتح وضع تثبيت دليل ميدانيّ لكشف الإجهاد.
+            // نعيد false لأيّ هدف لا نملك له مسار تنفيذ حيّ هنا حتّى لا تتقدّم دورة الحياة كذباً.
+            if (objectiveId === 'diagnose_field_stress') {
+              setPinMode(true); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false);
+              return true;
+            }
+            return false;
+          }}
+        />
+      )}
+
+      {/* التقويم الزراعيّ اليمنيّ (display_only — سياق تراثيّ لا يدخل القرار): المنزلة
+          القمريّة + الشهر الحميريّ + أمثال المنزلة + نافذة زراعة محصول الحقل. كان
+          backend كاملاً (calendars/proverbs) بلا أيّ قارئ — التميّز المحلّيّ لساهول. */}
+      {selected && <YemeniCalendarCard cropLabel={selected.crop} />}
+
+      {selected && fieldMode === 'expert' && (
+        <FieldViewInsightStrip
+          fieldId={fieldId}
+          fieldName={selected.name}
+          crop={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          imageryDates={availableImageryDates}
+          activeAlertsCount={Array.isArray(alertsQ.data) ? alertsQ.data.length : undefined}
+          openTasksCount={Array.isArray(tasksQ.data?.tasks) ? tasksQ.data.tasks.length : undefined}
+          equipmentCount={Array.isArray(equipmentQ.data) ? equipmentQ.data.length : undefined}
+          weatherReady={!!weatherQ.data?.current}
+          agentContextReady={!!fieldId}
+          routeFieldIsInvalid={routeFieldIsInvalid}
+          storedFieldIsInvalid={storedFieldIsInvalid}
+          selectionReason={selectionReason}
+          onBackfill={mutateAllowed ? handlePrepareTwoYearImagery : undefined}
+          onOpenTimeline={() => { setSettingsOpen(true); setShowImageryTimeline(true); }}
+          onShowAlerts={() => setShowAlerts(true)}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <ZoneVraEntryCard
+          hasField={!!fieldId}
+          imageryReadyCount={imageryReadyCount}
+          prescriptionCount={prescriptionsQ.data?.total ?? 0}
+          onOpenZones={fieldEditAllowed ? () => { setZoneDesigner(true); setShowPivots(true); setPivotDesigner(false); setPinMode(false); setDrawTools(false); setCompare(false); } : undefined}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <OperationsCenterCard
+          fieldId={fieldId ?? null}
+          tasks={tasksQ.data?.tasks ?? []}
+          equipment={equipmentQ.data ?? []}
+          alerts={Array.isArray(alertsQ.data) ? alertsQ.data : []}
+          onOpenAlerts={() => setShowAlerts(true)}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <FieldEconomicsCard
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
+        />
+      )}
+
+      {/* ربحيّة الموسم من السجلّ الفعليّ (farm-ledger) — أرقام مُخزَّنة لا تقدير، بعكس البطاقة أعلاه. */}
+      {selected && fieldMode === 'expert' && (
+        <SeasonProfitabilityCard
+          hasSeason={!!activeSeasonId}
+          profitability={profitabilityQ.data ?? null}
+          summary={ledgerSummaryQ.data ?? null}
+          variance={varianceQ.data ?? null}
+          economicState={economicStateQ.data ?? null}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          loading={profitabilityQ.isLoading || ledgerSummaryQ.isLoading}
+          currencies={seasonCurrencies}
+          currency={reportCurrency}
+          onCurrencyChange={(c) => setLedgerCurrency({ season: activeSeasonId, currency: c, currencies: seasonCurrencies })}
+        />
+      )}
+
+      {/* إدخال السجلّ الماليّ (عمليّة/موازنة/إيراد): يكتمل به قوس الربحيّة إدخالاً —
+          كانت نقاط POST بلا واجهة (الإدخال API فقط). للخبير المخوَّل بالتعديل فقط. */}
+      {selected && fieldMode === 'expert' && mutateAllowed && (
+        <LedgerEntryCard
+          fieldId={fieldId ?? null}
+          seasonId={activeSeasonId}
+          todayIso={new Date().toISOString().slice(0, 10)}
+          enabled={expertMode}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <FieldScoutingCard
+          crop={selected.crop}
+          issues={scoutingQ.data?.issues ?? []}
+          loading={scoutingQ.isLoading}
+          onLogEvidence={() => { setPinMode(true); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <SeasonCommandCard
+          phenology={phenologyQ.data ?? null}
+          stageAction={stageActionsQ.data?.available ? (stageActionsQ.data.suggestions?.[0]?.action_ar ?? null) : null}
+          loading={phenologyQ.isLoading}
+        />
+      )}
+
+      {/* بطاقة المحصول: تعكس المعرفة المرجعيّة المُخزَّنة (crop-cards YAML — Kc/ملوحة/GDD/
+          أصناف يمنيّة) على محصول الحقل النشط — كانت قدرة خلفيّة يتيمة عن الواجهة. */}
+      {selected && fieldMode === 'expert' && (
+        <CropKnowledgeCard
+          cropLabel={selected.crop}
+          sowingDate={activeSeason?.sowing_date ?? null}
+          enabled={expertMode}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <TraceabilityCard
+          fieldName={selected.name}
+          crop={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          season={activeSeason}
+          completedOps={completedOps}
+          irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
+          prescriptionCount={prescriptionsQ.data?.total ?? null}
+        />
+      )}
+
+      {/* بطاقة المعرفة الزراعيّة: الإكثار المناسب للمحصول + ممارسات ما بعد الحصاد +
+          (للبنّ فقط) دليل/أصناف/آفات البنّ اليمنيّ — كانت طبقة خلفيّة يتيمة. */}
+      {selected && fieldMode === 'expert' && (
+        <AgroKnowledgeCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* حاسبات قياس حقليّة (إنبات · تخزين بذور · عمق بذر · رطوبة حبوب · ارتفاع البنّ)
+          — من قياسات المستخدم الفعليّة فقط، لا افتراضات. */}
+      {selected && fieldMode === 'expert' && (
+        <AgroCalculatorsCard cropLabel={selected.crop} />
+      )}
+
+      {/* منضدة التشخيص الحقليّ: أعراض ⇒ مرشّحون مرتّبون (تشخيص أوّليّ لا قاطع) +
+          خطط IPM المتدرّجة (الكيميائيّ ملاذ أخير) + تقييم ملوحة FAO من قياسات المستخدم. */}
+      {selected && fieldMode === 'expert' && (
+        <DiagnosticsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* حوكمة التربة: الحلقة المغلقة الكنسيّة (soil-service P4) — مستوى الأدلّة وبوّابة
+          الجودة والاستخدامات المحجوبة وعدّادات التنفيذ/التحقّق/التعلّم. قراءة فقط. */}
+      {selected && fieldMode === 'expert' && (
+        <SoilGovernanceCard fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* شفافيّة متحكّم الريّ الهرميّ (MPC) — قدرات مُنمذَجة/مُؤجَّلة + توصية-فقط. قراءة فقط. */}
+      {selected && fieldMode === 'expert' && (
+        <MpcGovernanceCard enabled={expertMode} />
+      )}
+
+      {/* سيناريوهات «ماذا لو؟»: حرارة/مطر/تاريخ زراعة/توأم ماء — محاكاة افتراضات
+          المستخدم، الخادم يعلن أنّها ليست تنبّؤاً معايَراً والإخلاء يُعرَض بارزاً. */}
+      {selected && fieldMode === 'expert' && (
+        <WhatIfScenariosCard
+          fieldId={fieldId ?? null}
+          cropLabel={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          enabled={expertMode}
+        />
+      )}
+
+      {/* «ماذا أزرع؟»: اقتراح الدورة الزراعيّة + ملاءمة الشهر — planting/rotation
+          كانت بلا مسار عمليّ في الواجهة. أحكام الخادم تُعرَض لا يُعاد الحكم. */}
+      {selected && fieldMode === 'expert' && (
+        <PlantingAdvisorCard
+          cropLabel={selected.crop}
+          todayIso={new Date().toISOString().slice(0, 10)}
+          enabled={expertMode}
+        />
+      )}
+
+      {/* مخاطر المناخ والماء: حساسيّة المراحل المائيّة (FAO-56) + نوافذ المخاطر الموسميّة
+          وساعات البرودة (إقليم يختاره المستخدم) + المناطق المشابهة — كانت بلا قارئ. */}
+      {selected && fieldMode === 'expert' && (
+        <ClimateRiskCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* حصاد المياه وطريقة الريّ: إمكانات حصاد المطر (من قياس المستخدم) + الطرق
+          التراثيّة اليمنيّة ودليلها + ملامح طرق الريّ FAO — كان backend بلا قارئ. */}
+      {selected && fieldMode === 'expert' && (
+        <WaterHarvestingCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* مساعدات قرار الريّ والعيّنات: ثقة القراءة/التوصية + قرار رطوبة RWC +
+          الإجمالي المسحوب + مراجع العيّنة — نقاط P0/P1 كانت بلا قارئ واجهة. */}
+      {selected && fieldMode === 'expert' && (
+        <IrrigationDecisionAidsCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* مرشَّح توصية الريّ الواعي بالاستنزاف (WS-D.2): POST
+          /api/v1/fields/{id}/irrigation-recommendation — توصية مرشَّحة لا مُنفَّذة
+          (الملكيّة لخدمة القرار)؛ يعالج insufficient_data/inconsistent_state بصدق. */}
+      {selected && fieldMode === 'expert' && (
+        <IrrigationDecisionCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* سلامة المدخلات ومعرفة المحاصيل: فحص كيميائيّ (حكم الخادم حرفيّاً) + تقويم
+          الزراعة + آفات التخزين + عالية القيمة/المتخصّصة ومرشّحو الإدخال — P1 بلا قارئ. */}
+      {selected && fieldMode === 'expert' && (
+        <CropSafetyKnowledgeCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* التحليلات الزراعيّة-البيئيّة: مخاطر/دورة/دليل قرارات + سلسلة Kc (قراءة وحفظاً)
+          + تغذية راجعة نبات-تربة + مقارنة مواسم + تصعيد + نسب أصل الحقل. */}
+      {selected && fieldMode === 'expert' && (
+        <AgroAnalyticsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* عمليّات الماء والحقل: إجهاد/نصيحة متكاملة + ميزان FAO-56 + سيول واردة +
+          تحليل ماء الريّ + تنبيهات/طبقات الطقس + خطّة 4R + إدامة النتيجة + geo-locate. */}
+      {selected && fieldMode === 'expert' && (
+        <WaterFieldOpsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* المحاصيل المتخصّصة والتوقيت التراثيّ: عالية القيمة/متخصّصة/عطريّة/أعلاف + بطاقة
+          الإدخال وملاءمة الحقل + تخطيط البستان واقتصاده + النجوم/التقويم الثقافيّ/الإقليميّ. */}
+      {selected && fieldMode === 'expert' && (
+        <SpecialtyCropsCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* المديريّات والطقس والتهيئة: معرفة إقليميّة (نوافذ الآفات) + توصية موقع +
+          ملخّص طقس الحقل وتحليلات السجلّ ودليل الزراعة + استبيان التهيئة. */}
+      {selected && fieldMode === 'expert' && (
+        <DistrictsWeatherCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* اتّساق البيانات والدورة وWOFOST والعمليّات: فحوص الاتّساق (ريّ + حداثة) +
+          تقييم الدورة ومبادئها + إرشاد تكيّف WOFOST + تقرير العمليّات + توصية ريّ +
+          الحالة التشغيليّة + تحسين المحفظة + التحقّق من الهندسة. */}
+      {selected && fieldMode === 'expert' && (
+        <AgronomyConsistencyCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* المعرفة الزراعيّة الاختصاصيّة (P3): ملاءمة المحاصيل + تركيب حالة (dry-run) +
+          الإكثار الخضري والأصل + الأساليب + صمود الجفاف + تقييم البذار + العيّنات. */}
+      {selected && fieldMode === 'expert' && (
+        <CropPropagationCard
+          fieldId={fieldId ?? null}
+          seasonId={strictlyActiveSeason?.season_id ?? null}
+          cropLabel={
+            strictlyActiveSeason
+              ? (strictlyActiveSeason.crops?.length === 1 ? strictlyActiveSeason.crops[0] : null)
+              : selected.crop || null
+          }
+          enabled={expertMode}
+        />
+      )}
+
+      {/* عمليّات GIS الهندسيّة + التحكيم الزمني + محاكاة ماذا-لو + مخاطر المرحلة +
+          إعادة البناء + رابط النَّسَب + تحليل التجارب (P3، خلف أعلام ميزات). */}
+      {selected && fieldMode === 'expert' && (
+        <GisTemporalOpsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* التعلُّم والدليل (P3، إرشاديّ صرف): تفعيل التعلُّم · معايرة · مزج سابقة · عتبات ·
+          تغذية راجعة · تظافر قرائن · بوّابة ثقة · تسجيل مشاهدة · طبقات · تغطية مؤشّرات. */}
+      {selected && fieldMode === 'expert' && (
+        <LearningEvidenceCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* مراجعة الحدود: تهديف ثقة حتميّ (يُخزَّن) + شبكة جوار — backend حوكمة الحدود
+          كان أقوى من الواجهة (score/graph بلا قارئ). */}
+      {selected && fieldMode === 'expert' && (
+        <BoundaryReviewCard fieldId={fieldId ?? null} enabled={expertMode} mutateAllowed={mutateAllowed} />
+      )}
+
+      {/* بطاقة ذكاء الحقل الموحّدة (V65): تجمع أحدث مشهد/حالة المزوّدين/NDVI-تاريخيّ/
+          العجز المائيّ/التنبيهات/الثقة في بطاقة واحدة، مع إظهار المفقود صراحةً. */}
+      {selected && fieldMode === 'expert' && (
+        <FieldIntelligenceCardView fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* بطاقة الرياح السائدة + المصدّات (V73-UI): من أين تأتي الرياح غالباً؟ وكيف أوجّه
+          مصدّاً شجريّاً؟ من تاريخ NASA POWER — صدق: المحسوب بقيمته والمتعذّر بسببه. */}
+      {selected && fieldMode === 'expert' && (
+        <WindbreakCard fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* خطر انجراف الرشّ (V79-UI): الحقول المجاورة كمناطق حسّاسة + هل الرشّ ينجرف نحوها
+          downwind من الريح السائدة — «لا ترشّ نحو X الآن». صدق: بلا ريح/جوار يُعلَن. */}
+      {selected && fieldMode === 'expert' && (
+        <DriftRiskCard fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* رسم أدلّة الحقل (V74-UI): أدلّة حاضرة بمصادرها + فجوات معرفة بأسبابها —
+          يفسّر التوصية ويُثبت مصدر كلّ معلومة (يعيد استخدام استعلام analyze). */}
+      {selected && fieldMode === 'expert' && (
+        <EvidenceGraphCard fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* تاريخ الأدلّة (E1-UI): تطوّر الأدلّة/الفجوات/الثقة عبر اللقطات المحفوظة +
+          أكثر الفجوات تكراراً عبر الحقول (تحليلات v149). صدق: بلا لقطات/تحليلات يُعلَن. */}
+      {selected && fieldMode === 'expert' && (
+        <EvidenceHistoryCard fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* بطاقة أدلّة الموسم (الحقيقة التشغيليّة الموحّدة field_season_state_projection) —
+          تُعرَض عند وجود موسم نشط للحقل المحدَّد في وضع الخبير. */}
+      {selected && fieldMode === 'expert' && activeSeasonId && (
+        <SeasonEvidenceCard
+          fieldId={fieldId ?? null}
+          seasonId={activeSeasonId}
+          enabled={expertMode}
+        />
+      )}
+
+      {/* تتبّع الحصاد المُخزَّن: دفعات + سلسلة حيازة append-only + دفتر مدخلات —
+          كان backend v65 كاملاً (harvest-lots/custody/input-traceability) بلا قارئ واجهة. */}
+      {selected && fieldMode === 'expert' && (
+        <HarvestTraceabilityCard
+          fieldId={fieldId ?? null}
+          seasonId={activeSeasonId}
+          enabled={expertMode}
+        />
+      )}
+
+      {/* P3: مقارنات طبقات جاهزة ذات معنى زراعيّ — تظهر في وضع المقارنة وتُوجّه المحرّك القائم. */}
+      {compare && (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5" data-testid="compare-presets">
+          {/* مبدّل نمط المقارنة: مؤشّران في تاريخ واحد ↔ مؤشّر واحد بين تاريخَين (مقارنة زمنيّة). */}
+          <div className="flex items-center gap-1" data-testid="compare-mode-toggle">
+            {(['indicators', 'dates'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setCompareMode(m)}
+                className="px-2 py-1 rounded-lg text-[11px] font-semibold border"
+                style={{ borderColor: compareMode === m ? '#22c55e88' : T.line, color: T.ink, background: compareMode === m ? '#14532d' : T.card }}
+              >
+                {m === 'indicators' ? 'مؤشّران' : 'تاريخان'}
+              </button>
+            ))}
+          </div>
+          {compareMode === 'indicators' ? (
+            <>
+              <span className="text-[11px] font-bold" style={{ color: T.muted }}>مقارنات جاهزة:</span>
+              {buildComparePresets(INDICATOR_LAYERS.map((l) => l.id)).map((p) => {
+                const active = leftLayer === p.left && rightLayer === p.right;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    title={p.why}
+                    onClick={() => { setLeftLayer(p.left); setRightLayer(p.right); }}
+                    className="px-2 py-1 rounded-lg text-[11px] font-semibold border"
+                    style={{ borderColor: active ? '#22c55e88' : T.line, color: T.ink, background: active ? '#14532d' : T.card }}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </>
+          ) : (
+            <div className="flex items-center gap-1.5" data-testid="compare-dates-indicator">
+              <span className="text-[11px] font-bold" style={{ color: T.muted }}>المؤشّر:</span>
+              <LayerSwitcher layers={INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))} active={leftLayer} onChange={setLeftLayer} />
+              <span className="text-[11px]" style={{ color: T.muted }}>— قارِنه بين تاريخَين مخزَّنَين.</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3" data-testid="maphub-summary">
+        <SummaryStat label="إجمالي الحقول" value={String(fields.length)} />
+        <SummaryStat label="المساحة الكلية" value={`${fieldSummary.totalArea.toFixed(1)} هـ`} />
+        <SummaryStat label="محاصيل مختلفة" value={String(fieldSummary.cropCount)} />
+        <SummaryStat label="حقول بهندسة" value={`${fieldSummary.withGeometry}/${fields.length}`} />
+      </div>
+
+      <RoleAwareMapSurface role={user?.role}>
+        <FieldContextStrip
+          fieldId={fieldId}
+          fieldName={selected?.name ?? null}
+          cropName={selected?.crop ?? null}
+          activeSeasonId={activeSeasonId}
+          activeLayerId={indicatorActive}
+        />
+
+        <PriorityQueuePanel
+          fieldId={fieldId}
+          activeSeasonId={activeSeasonId}
+          hasAlerts={alertMarkers.length > 0}
+          hasTasks={operationalMarkers.length > 0}
+          hasWeatherWindow={Boolean(weatherMarker)}
+        />
+
+        <MapActionPalette
+          fieldId={fieldId}
+          canMutate={mutateAllowed}
+          hasGeometry={Boolean(selected?.geometry)}
+          hasActiveSeason={Boolean(activeSeasonId)}
+          hasAlerts={alertMarkers.length > 0}
+          hasTasks={operationalMarkers.length > 0}
+          // UI-G2: CompareMap و3D لا يقبلان الدبابيس؛ الدخول من اللوحة يعود إلى الخريطة
+          // التفاعليّة ثنائيّة الأبعاد ويُطفئ الأوضاع المتنافسة — كزرّ «دبابيس» في الشريط.
+          onPinScouting={() => { setMode('2d'); setCompare(false); setPinMode(true); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }}
+          onOpenTimeline={() => { setSettingsOpen(true); setShowImageryTimeline(true); }}
+          onOpenAlerts={() => setShowAlerts(true)}
+          onAddField={() => { setAddFieldTool(null); setShowAddField(true); }}
+        />
+      </RoleAwareMapSurface>
 
       {/* درج تفاصيل الحقل المنزلق */}
       <FieldDrawerShell fieldId={fieldId} open={detailOpen}>

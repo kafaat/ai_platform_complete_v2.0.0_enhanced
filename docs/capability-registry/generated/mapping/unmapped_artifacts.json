@@ -84,6 +84,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/e2e/pivot-designer.spec.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/e2e/reset-link-with-session.spec.ts",
     "kind": "tests"
   },
@@ -584,6 +588,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/maphub/FreehandBoundary.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/GridSamplingDetails.test.tsx",
     "kind": "web"
   },
@@ -632,6 +640,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/components/maphub/MeasureTools.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/OperationalOverlay.static.test.ts",
     "kind": "tests"
   },
@@ -645,6 +657,10 @@
   },
   {
     "path": "frontend/src/components/maphub/OverlayMarkers.xss.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/PivotPlacementControl.tsx",
     "kind": "web"
   },
   {
@@ -685,6 +701,14 @@
   },
   {
     "path": "frontend/src/components/maphub/captureTime.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/circleBoundary.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawFeatureStyle.ts",
     "kind": "web"
   },
   {
