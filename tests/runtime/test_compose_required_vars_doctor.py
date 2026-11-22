@@ -188,29 +188,65 @@ def test_cli_lists_every_name_and_never_prints_a_value(tmp_path, fmt):
         assert payload["summary"]["readiness"] == "blocked", payload["summary"]
 
 
-def repo_required_names() -> set[str]:
-    names: set[str] = set()
-    for rel in ("docker-compose.v9.yml", "docker-compose.v9.gpu.yml"):
+COMPOSE_SET = ("docker-compose.v9.yml", "docker-compose.v9.gpu.yml")
+_REQUIRED = r"\$\{([A-Za-z_][A-Za-z0-9_]*):?\?"
+_GUARDED = r"\$\{([A-Za-z_][A-Za-z0-9_]*):?\+" + _REQUIRED  # `${GUARD:+${NAME:?…}}`
+
+
+def _compose_set_text() -> str:
+    lines: list[str] = []
+    for rel in COMPOSE_SET:
         text = (ROOT / rel).read_text(encoding="utf-8")
-        text = "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))
-        names |= set(re.findall(r"\$\{([A-Za-z_][A-Za-z0-9_]*):?\?", text))
-    return names
+        lines += [line for line in text.splitlines() if not line.lstrip().startswith("#")]
+    return "\n".join(lines)
 
 
-def test_the_gpu_compose_set_reports_every_required_name_at_once(tmp_path):
+def repo_guarded_requirements() -> dict[str, set[str]]:
+    """`${GUARD:+${NAME:?…}}`: NAME is required only once GUARD has a value. NAME -> guards."""
+    text = _compose_set_text()
+    every = re.findall(_REQUIRED, text)
+    guards: dict[str, set[str]] = {}
+    occurrences: dict[str, int] = {}
+    for guard, name in re.findall(_GUARDED, text):
+        guards.setdefault(name, set()).add(guard)
+        occurrences[name] = occurrences.get(name, 0) + 1
+    # A name that is also required outside a guard is required unconditionally.
+    return {n: g for n, g in guards.items() if every.count(n) == occurrences[n]}
+
+
+def repo_required_names() -> set[str]:
+    """Every `${VAR:?}` name Compose demands whatever else is set."""
+    return set(re.findall(_REQUIRED, _compose_set_text())) - set(repo_guarded_requirements())
+
+
+def _missing_names(tmp_path, environ: dict[str, str]) -> set[str]:
     doctor = load_doctor()
     checks: list = []
     doctor.check_compose_required_vars(
-        ROOT,
-        checks,
-        ["docker-compose.v9.yml", "docker-compose.v9.gpu.yml"],
-        str(tmp_path / "absent.env"),
-        environ={},
+        ROOT, checks, list(COMPOSE_SET), str(tmp_path / "absent.env"), environ=environ
     )
+    return set(checks[0].detail["missing_names"])
+
+
+def test_the_gpu_compose_set_reports_every_required_name_at_once(tmp_path):
     expected = repo_required_names()
     assert len(expected) > 40, "the oracle collapsed; a check measured on nothing always passes"
-    assert set(checks[0].detail["missing_names"]) == expected, (
-        "with an empty environment every `${VAR:?}` of both files must be reported at once"
+    assert _missing_names(tmp_path, {}) == expected, (
+        "with an empty environment every unguarded `${VAR:?}` of both files must be reported "
+        "at once, and a guarded one must not be"
+    )
+
+
+def test_a_guarded_requirement_is_reported_once_its_guard_has_a_value(tmp_path):
+    """`${GUARD:+${NAME:?…}}` (F-R03, the opt-in model-lifecycle adapter) is still a requirement."""
+    guarded = repo_guarded_requirements()
+    assert {"MODEL_REGISTRY_URL", "MODEL_REGISTRY_TOKEN"} <= set(guarded), (
+        "the oracle no longer sees the guarded registry settings; this test would measure nothing"
+    )
+    environ = {guard: "set" for guards in guarded.values() for guard in guards}
+    assert not set(environ) & set(guarded), "a guard that is itself guarded needs its own case"
+    assert _missing_names(tmp_path, environ) == (repo_required_names() | set(guarded)) - set(
+        environ
     )
 
 
@@ -260,4 +296,14 @@ def test_the_report_agrees_with_docker_compose_itself(tmp_path):
         )
         assert bad.returncode != 0 and dropped in bad.stderr, (
             f"Compose must stop on {dropped}: {bad.stderr[-2000:]}"
+        )
+    # A guarded name is not demanded until its guard has a value, then it is.
+    for name, guards in sorted(repo_guarded_requirements().items()):
+        assert name not in full, f"{name} must stay unset for this to measure anything"
+        armed = {**full, **{guard: "dummy-value" for guard in guards}}
+        bad = subprocess.run(
+            cmd, env=armed, capture_output=True, text=True, encoding="utf-8", timeout=120
+        )
+        assert bad.returncode != 0 and name in bad.stderr, (
+            f"Compose must stop on {name} once {sorted(guards)} is set: {bad.stderr[-2000:]}"
         )
