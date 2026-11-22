@@ -15,9 +15,21 @@ import MfaEnrollmentStep from './MfaEnrollmentStep';
 // شاشات هذه الصفحة: الدخول، أو تدفّق إعادة التعيين (طلب ثمّ تأكيد)، أو تسجيل MFA الإلزاميّ.
 type View = 'login' | 'reset-request' | 'reset-confirm' | 'mfa-enroll';
 
-export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
-  const [view, setView]       = useState<View>('login');
-  const [email, setEmail]     = useState('');
+export default function LoginPage({
+  onSignup,
+  onForgotPassword,
+  onLogin,
+  initialView = 'login',
+  initialEmail = '',
+}: {
+  onSignup?: () => void;
+  onForgotPassword?: (email: string) => void;
+  onLogin?: () => void;
+  initialView?: 'login' | 'reset-request';
+  initialEmail?: string;
+}) {
+  const [view, setView]       = useState<View>(initialView);
+  const [email, setEmail]     = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [showPw, setShowPw]   = useState(false);
   const [error, setError]     = useState('');
@@ -75,7 +87,7 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
 
       <div className="relative w-full max-w-md">
         {/* Card */}
-        <div className="rounded-2xl p-8 border" style={{ background:'#1e293b', borderColor:'#334155', boxShadow:'0 25px 50px rgba(0,0,0,0.5)' }}>
+        <div className="rounded-3xl p-6 sm:p-8 border" style={{ background:'#1e293b', borderColor:'#334155', boxShadow:'0 25px 50px rgba(0,0,0,0.5)' }}>
 
           {/* Logo */}
           <div className="text-center mb-8">
@@ -165,7 +177,7 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
             {/* Forgot password */}
             <div className="text-center">
               <button type="button"
-                onClick={() => { setView('reset-request'); setError(''); }}
+                onClick={() => { setError(''); if (onForgotPassword) onForgotPassword(email.trim()); else setView('reset-request'); }}
                 className="text-xs text-slate-400 hover:text-emerald-400">
                 نسيت كلمة المرور؟
               </button>
@@ -229,7 +241,7 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
               view={view}
               setView={setView}
               initialEmail={email}
-              onBackToLogin={() => { setView('login'); setError(''); }}
+              onBackToLogin={() => { setError(''); if (onLogin) onLogin(); else setView('login'); }}
             />
           )}
 
