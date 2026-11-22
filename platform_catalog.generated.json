@@ -17054,6 +17054,7 @@
           "execution_ledger",
           "execution_verification_event",
           "external_ingest_sources",
+          "farm_access_grants",
           "farm_ledger_entries",
           "farm_ledger_parties",
           "feature_definitions_runtime",
@@ -18107,7 +18108,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "f4893da7d582c7d884fda2d8cf1d4c772bb46055e35fcdfeb122226606c76c17",
+  "fingerprint": "3053d55afe79682f5cfbc6affda8cada999590f2fe68477352436eafc0f0e547",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18161,16 +18162,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1098,
+      "edge_count": 1100,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 4,
         "EMITS": 3,
-        "READS": 591,
+        "READS": 592,
         "ROUTES_TO": 76,
-        "WRITES": 379
+        "WRITES": 380
       }
     },
     "u3_wiring_ownership": {
