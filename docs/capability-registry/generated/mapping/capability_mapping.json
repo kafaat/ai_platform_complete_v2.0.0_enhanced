@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7615,
+    "files_scanned": 7616,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2642,
+      "tests": 2643,
       "web": 558
     },
-    "unmapped_artifacts": 3625,
+    "unmapped_artifacts": 3626,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4136,
+      "python_functional": 4137,
       "raw": 3479
     },
-    "test_dependency_files": 2015,
-    "test_dependency_edges": 5379,
+    "test_dependency_files": 2016,
+    "test_dependency_edges": 5382,
     "test_dependency_bounded_files": 1167,
     "test_dependency_unresolved_relations": 513
   },
@@ -46576,6 +46576,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_rag_document_revision_withdrawal.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_rag_embedding_space_identity.py",
       "kind": "tests"
     },
@@ -76622,12 +76626,12 @@
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "loader",
-          "line": 373
+          "line": 376
         },
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "source_read",
-          "line": 372
+          "line": 375
         },
         {
           "source": "services/ai_agronomist/ai_generation.py",
@@ -76652,7 +76656,7 @@
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 332
+          "line": 335
         },
         {
           "source": "services/sahool-platform/api/ai_provider_config.py",
@@ -85446,12 +85450,12 @@
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "loader",
-          "line": 431
+          "line": 435
         },
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "source_read",
-          "line": 433
+          "line": 437
         },
         {
           "source": "services/rag-retrieval/main.py",
@@ -92042,6 +92046,31 @@
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
           "line": 34
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_rag_document_revision_withdrawal.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "shared_test_helper"
+      ],
+      "edges": [
+        {
+          "source": "services/rag-retrieval/main.py",
+          "kind": "loader",
+          "line": 449
+        },
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "import",
+          "line": 29
+        },
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 24
         }
       ],
       "unresolved": []

@@ -388,7 +388,7 @@
     },
     {
       "kind": "app",
-      "line": 52,
+      "line": 54,
       "module": "services.rag-retrieval.main",
       "node_id": "services.rag-retrieval.main:app",
       "route_count": 5,
@@ -3045,7 +3045,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "eb99ca4d77b13b62ce91ed761ec5f5345b8450f786ee6f501939d29b081447f3",
+  "inventory_sha256": "9199957feb744dd0d1c99695acd081560956f0fd235c037d25a34209d8585d6c",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {
