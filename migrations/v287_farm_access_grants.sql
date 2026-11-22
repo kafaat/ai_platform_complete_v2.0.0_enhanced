@@ -1,4 +1,4 @@
--- v287 (Service Center SC-1, owner decision C; number provisional until merge, SHR-02):
+-- v287 (Service Center SC-1, owner decision C):
 -- per-farm access grants and the farm-scope row-level policies that read them.
 --
 -- farm_access_grants.user_id is the JWT ``sub`` the platform puts in app.current_user_id, that
