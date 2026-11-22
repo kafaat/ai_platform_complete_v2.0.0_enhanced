@@ -49,7 +49,7 @@ class FakeQdrant:
             self.points[chunk.chunk_id] = (chunk, vector)
 
     def withdraw_document_points(
-        self, *, tenant_id, document_id, keep_point_ids, published_before_ns=None
+        self, *, tenant_id, document_id, keep_point_ids, newest_publication_wins=False
     ):
         return []  # every document here is ingested once: nothing earlier to withdraw
 

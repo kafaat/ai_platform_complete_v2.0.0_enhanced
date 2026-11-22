@@ -98,7 +98,7 @@ def test_dense_sparse_fusion_uses_canonical_chunk_id_and_survives_restart():
                 self.points[point_id] = (chunk.payload, vector)
 
         def withdraw_document_points(
-            self, *, tenant_id, document_id, keep_point_ids, published_before_ns=None
+            self, *, tenant_id, document_id, keep_point_ids, newest_publication_wins=False
         ):
             return []  # one ingest of one document: nothing earlier to withdraw
 
