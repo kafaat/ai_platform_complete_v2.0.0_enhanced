@@ -116,10 +116,7 @@
         "audit": {"stub_status": "recorded"}
       },
       "expect": {"http_status": 200, "runtime_hold_reason": "region_not_applicable"},
-      "known_gap": {
-        "id": "ADVISOR-APPROVAL-GATE-NOT-GIVEN-QUESTION-SCOPE-01",
-        "summary": "build_evidence_response calls partition_generation_references(annotations) without crop, region or as_of, so an approved excerpt is always held as question_crop_unknown: region and crop mismatches are never told apart from a correct match (services/ai_agronomist/ai_evidence_runtime.py, the partition call after retrieval)."
-      },
+      "known_gap": null,
       "agronomist_review": {"status": "awaiting_sign_off", "reference_answer_ar": null, "forbidden_product_terms": [], "reviewer": null, "reviewed_on": null}
     },
     {
@@ -135,10 +132,7 @@
         "audit": {"stub_status": "recorded"}
       },
       "expect": {"http_status": 200, "runtime_hold_reason": "crop_not_applicable"},
-      "known_gap": {
-        "id": "ADVISOR-APPROVAL-GATE-NOT-GIVEN-QUESTION-SCOPE-01",
-        "summary": "Same gap as reference_other_region.runtime_hold_reason: the runtime does not pass the question's crop to the approval gate."
-      },
+      "known_gap": null,
       "agronomist_review": {"status": "awaiting_sign_off", "reference_answer_ar": null, "forbidden_product_terms": [], "reviewer": null, "reviewed_on": null}
     },
     {

@@ -9215,7 +9215,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## ADVISOR-APPROVAL-GATE-NOT-GIVEN-QUESTION-SCOPE-01 — بوّابة موافقة المراجع في المستشار لا تتلقّى محصول السؤال ولا منطقته
 
-- **الحالة:** open — مقيسة 2026-11-22 في تقييم F11 الذهبيّ (`tests_v9/golden_advisor/`).
+- **الحالة:** fixed — بإصلاح F6 (`_generation_scope` في `services/ai_agronomist/ai_evidence_runtime.py`، الالتزام `34494ae6`، #1582)؛ الحالتان الشاهدتان صارتا ناجحتين وحُذفت `known_gap` منهما ومن `docs/testing/unit_skip_inventory.json` في الطلب الموحّد الثاني. قِيسَت مفتوحةً 2026-11-22 في تقييم F11 الذهبيّ (`tests_v9/golden_advisor/`).
 - **المصدر:** `services/ai_agronomist/ai_evidence_runtime.py:1140` (`partition_generation_references(rag_payload.get("annotations") or [])` بلا `crop` ولا `region` ولا `as_of`) · `shared/ai/reference_approvals.py:268` (نطاقٌ فارغ ⇒ `question_crop_unknown`).
 - **الخلل:** مقتطفٌ مُعتمَد لمحصولٍ ومنطقة يُحجَز دائماً بسبب `question_crop_unknown`، فلا يُميَّز «منطقة أخرى» (`region_not_applicable`) ولا «محصول آخر» (`crop_not_applicable`) عن المطابقة الصحيحة، ولا يدخل أيّ مقتطفٍ مُعتمَد سياقَ التوليد عبر المسار الحيّ.
 - **الشاهد:** الحالتان `reference_other_region.runtime_hold_reason` و`reference_other_crop.runtime_hold_reason` في `tests_v9/golden_advisor/advisor_golden_cases.v1.json` — xfail صارمة تنقلب عند الإصلاح.

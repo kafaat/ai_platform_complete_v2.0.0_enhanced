@@ -136,22 +136,6 @@
     },
     {
       "stage": "parallel",
-      "nodeid": "tests_v9/golden_advisor/test_advisor_golden_eval.py::test_golden_case[reference_other_region.runtime_hold_reason]",
-      "reason": "ADVISOR-APPROVAL-GATE-NOT-GIVEN-QUESTION-SCOPE-01: build_evidence_response calls partition_generation_references(annotations) without crop, region or as_of, so an approved excerpt is always held as question_crop_unknown: region and crop mismatches are never told apart from a correct match (services/ai_agronomist/ai_evidence_runtime.py, the partition call after retrieval).",
-      "classification": "unit",
-      "required_gate": "the fix for ADVISOR-APPROVAL-GATE-NOT-GIVEN-QUESTION-SCOPE-01 (sahool-brain/gaps/registry.md): a strict xfail that runs on every unit run and turns red when the fix lands; the fix removes known_gap from the case and this entry in the same change",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
-      "nodeid": "tests_v9/golden_advisor/test_advisor_golden_eval.py::test_golden_case[reference_other_crop.runtime_hold_reason]",
-      "reason": "ADVISOR-APPROVAL-GATE-NOT-GIVEN-QUESTION-SCOPE-01: Same gap as reference_other_region.runtime_hold_reason: the runtime does not pass the question's crop to the approval gate.",
-      "classification": "unit",
-      "required_gate": "the fix for ADVISOR-APPROVAL-GATE-NOT-GIVEN-QUESTION-SCOPE-01 (sahool-brain/gaps/registry.md): a strict xfail that runs on every unit run and turns red when the fix lands; the fix removes known_gap from the case and this entry in the same change",
-      "status": "open"
-    },
-    {
-      "stage": "parallel",
       "nodeid": "tests_v9/golden_advisor/test_advisor_golden_eval.py::test_golden_case[reference_other_region.envelope_names_hold]",
       "reason": "ADVISORY-ENVELOPE-SILENT-ON-HELD-REFERENCES-01: build_advisory_envelope reads rag_available only; references held by the approval gate (annotations.unverified_seed_references and their generation_hold_reason) never reach evidence_missing or limitations (services/ai_agronomist/advisory_contract.py _reference_codes).",
       "classification": "unit",
