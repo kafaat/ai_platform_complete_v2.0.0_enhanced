@@ -225,7 +225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5e25e6fd945e1049c9b2506c930e0cb7667e1eef9a1f995c0b10cc24e878862f"
+          "content": "c77d410bf9f73c00d63dcce6d67b5d7c33408d2f24ea84c16899d8ad1440ce4d"
         }
       ],
       "name": "frontend/e2e/app-smoke.spec.ts",
@@ -279,6 +279,16 @@
         }
       ],
       "name": "frontend/e2e/maphub-webgl.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f4df21ad13ed633bec04fe70f11d226513e941c554d154cbbd3651b37b104263"
+        }
+      ],
+      "name": "frontend/e2e/reset-link-with-session.spec.ts",
       "type": "file"
     },
     {
@@ -535,7 +545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bfd60a5cd7862dde043bc08343a637db51a28e359c8e6b88c4a407c72c3a0436"
+          "content": "cb658806e87ddcc24c9bb6af0382cd3c0c63f63086674ad739ac639f12213741"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -3565,6 +3575,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "6e3994d82ca093be3aa9ae75b614fa6b5abfa6a6a1222498082599d4a07cceda"
+        }
+      ],
+      "name": "frontend/src/lib/authScreens.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c62df505ce1efe1dcbe3a5d9051cc66701e1ca925d5d0497d3dce395e1d69eb"
+        }
+      ],
+      "name": "frontend/src/lib/authScreens.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "aac11fc7366bc0e56e423201ae0b52b0b72c206c2e027b211f5abf72fc3227f5"
         }
       ],
@@ -5465,7 +5495,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc9ad2292c3750dbabb84e7fde307ebdfde20d057a54117e528517018ac28d7c"
+          "content": "446a5ed2791e9b60b0d69727f1b8875c765cb2936a0892c2f543b44648153852"
+        }
+      ],
+      "name": "frontend/src/pages/LoginPage.resetLink.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "365f8ec68a0c2efb52fb34cff99b5e446fc063e91d753b7da222998191af35fb"
         }
       ],
       "name": "frontend/src/pages/LoginPage.tsx",
