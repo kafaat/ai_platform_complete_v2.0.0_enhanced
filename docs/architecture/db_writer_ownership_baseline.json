@@ -791,12 +791,6 @@
         ],
         "table_name_value_sites": []
       },
-      "hourly_irrigation_mpc_schedules": {
-        "measured_writers": [
-          "sahool-platform"
-        ],
-        "table_name_value_sites": []
-      },
       "hydraulic_capacity_evaluations": {
         "measured_writers": [
           "sahool-platform"
