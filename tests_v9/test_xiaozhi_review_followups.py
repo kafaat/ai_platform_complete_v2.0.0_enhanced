@@ -349,6 +349,17 @@ def test_the_scan_covers_heredoc_and_arg_based_dockerfiles(path):
     assert any(_created_account_names(body) for body in _debian_run_commands(text)), path
 
 
+@pytest.mark.parametrize(
+    "path",
+    ["services/auth/Dockerfile", "services/decision-service/Dockerfile"],
+)
+def test_a_base_name_appended_to_a_real_heredoc_dockerfile_is_caught(path):
+    """The review's negative control as a test: these files use RUN heredocs."""
+    text = (ROOT / path).read_text(encoding="utf-8") + "\nRUN useradd -m voice\n"
+    found = [pair for body in _debian_run_commands(text) for pair in _created_account_names(body)]
+    assert ("useradd", "voice") in found
+
+
 _DIGEST = "@sha256:" + "a" * 64
 _SCANNER_CASES = {
     "original-voice-defect": (
