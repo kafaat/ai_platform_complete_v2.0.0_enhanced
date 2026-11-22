@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7622,
+    "files_scanned": 7623,
     "files_by_kind": {
       "backend": 1309,
       "database": 352,
       "governance": 90,
       "mobile": 429,
       "other": 2235,
-      "tests": 2644,
+      "tests": 2645,
       "web": 563
     },
-    "unmapped_artifacts": 3632,
+    "unmapped_artifacts": 3633,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4137,
-      "raw": 3485
+      "raw": 3486
     },
     "test_dependency_files": 2016,
     "test_dependency_edges": 5381,
@@ -34374,6 +34374,10 @@
     {
       "path": "frontend/src/hooks/useSpecialtyCrops.ts",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/hooks/useTheme.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/hooks/useTheme.ts",
@@ -82781,22 +82785,22 @@
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "loader",
-          "line": 69
+          "line": 72
         },
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "source_read",
-          "line": 70
+          "line": 73
         },
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 91
+          "line": 94
         }
       ],
       "unresolved": [
         {
-          "line": 39,
+          "line": 42,
           "call": "import_module"
         }
       ]

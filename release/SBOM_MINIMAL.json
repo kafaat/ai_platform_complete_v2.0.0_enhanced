@@ -3465,7 +3465,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c27deaa7c75b98b65ef4d768eb8e4e157b34fefa35a9e8898404fa9437d7481"
+          "content": "480fa98a1574048d824628ccf57cfdff836716a139689192af73104d7c735c32"
+        }
+      ],
+      "name": "frontend/src/hooks/useTheme.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ed18caf692618bfa58c370d235be2aac0e5e488a26f9c46d1e7cdbd3147443b2"
         }
       ],
       "name": "frontend/src/hooks/useTheme.ts",
@@ -6025,7 +6035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c99d480b7f10a35358a7952fb002be4a6f6db0c9781bc47e97ab2b52e64b50ca"
+          "content": "9e14c58d66f402f966907c65c25914362f9a6d61285e0509cd11947876408624"
         }
       ],
       "name": "frontend/src/sections/EconomicsDashboard.tsx",
@@ -6095,7 +6105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f6380357dfb136579a90335f195161e96037a0ce61b8f81ff550e183f32c77f3"
+          "content": "9ec00fd7e9cfa62d9ca0fc749861986d7bc11b3b17e21bc923b05d87b08ae4e9"
         }
       ],
       "name": "frontend/src/sections/FarmAdvisoryReport.tsx",
@@ -6215,7 +6225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "00196d6df6e4fdaa1055c38d3163a7a03983546ed4b5bf46c8c8a6a76a804c01"
+          "content": "fe354a7942ebf1be8178e381c9827706662daa45f8f918b5e5f4a596f06e5103"
         }
       ],
       "name": "frontend/src/sections/FieldRanking.tsx",
@@ -6925,7 +6935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d49702df5ed8682f2e48fa9c9adbf377f201aad9202655ccfb3c6ea9cbfde245"
+          "content": "b98be39beb64659c9409804cbd003ea043b88dc31cb14cb926bfc3ba8bc466c0"
         }
       ],
       "name": "frontend/src/sections/MasterDataPage.tsx",
@@ -7045,7 +7055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "35149fa6b244535569ade3ba3b3c2906fef4236a21c70efcb254f01cad2892df"
+          "content": "fc8e3ffb881a29474b1ac969669ace9bc9414e23da0d2ba59262025e563b890e"
         }
       ],
       "name": "frontend/src/sections/PhenologyView.tsx",
@@ -7435,7 +7445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "78de6fbb90f21af3e6a79ba8970842c5a7fb7cd544f4d236125955aa17eb2ee9"
+          "content": "66febdd3090c333e018d662054421ab89673b26cbca066088ec08804769f2b27"
         }
       ],
       "name": "frontend/src/sections/TasksPage.tsx",
@@ -27845,7 +27855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bf6222bcb2db73c5dbbf8d3d066e991f078af97dfaa501a64376066e99af822a"
+          "content": "b55a757b8f1b19da88d409b0035de083f4e38498d7d480700cf5f769e6ff7d6b"
         }
       ],
       "name": "services/sahool-platform/api/routers/edge.py",

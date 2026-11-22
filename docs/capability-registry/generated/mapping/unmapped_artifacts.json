@@ -1052,6 +1052,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/hooks/useTheme.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/hooks/useTheme.ts",
     "kind": "web"
   },
