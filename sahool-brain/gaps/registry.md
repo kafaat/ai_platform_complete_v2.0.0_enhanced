@@ -9206,3 +9206,35 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **`MIGRATOR-AHEAD-OF-DEPLOYED-APP-01` (open):** الخطر وقع: طُبِّقت v237 وv241 على production (`81a4f219`، 19:36Z) وعلى staging (`5a236ba2`، 17:09Z). ثبت في الشيفرة أنّ المنصّتين المنشورتين (`9b7e88ae` و`04577fe4`) تستعملان `ON CONFLICT (idempotency_key)` (`services/sahool-platform/api/routers/edge.py:51` فيهما) بينما صار الفهرس `(tenant_id, idempotency_key)`. عولج الأثر بنقل المنصّة إلى main `c0dd35a4` (`deploy/sahool-platform-main-c0dd35a4`؛ production `91a77ec8`، staging `704ccd33`، `/readyz` 200). صفر طلبات HTTP على المنصّة في البيئتين خلال الساعة السابقة للنقل. تبقى open: السبب البنيويّ (مهاجرٌ يتبع main بلا بوّابة توسيعيّة ولا سجلّ هجرات مُطبَّقة) قائم.
 - **`MIGRATION-STATE-IN-PRODUCTION-IS-UNREAD-01` (open):** قراءة إنتاج قراءةً فقط متاحة الآن: `cfd31667` → `SCHEMA_STATE readable=true tables=363/363 columns=215/215 first_missing=none`، manifest `5a7f4edd…`. الحالة بلا تغيير حتّى يُحكم شرط إغلاقها المسجَّل في صفّها.
 - **`PROD-DECISION-SERVICE-AHEAD-OF-PLATFORM-01` (open):** سببها المعلَن (المنصّة على `fa92a1f7e` لا ترسل `decision_value_digest`) زال: المنصّة في production صارت على main `c0dd35a4`. الحالة بلا تغيير حتّى يُقاس اعتمادٌ حيّ عبر المنصّة.
+
+## ADVISOR-APPROVAL-GATE-NOT-GIVEN-QUESTION-SCOPE-01 — بوّابة موافقة المراجع في المستشار لا تتلقّى محصول السؤال ولا منطقته
+
+- **الحالة:** open — مقيسة 2026-11-22 في تقييم F11 الذهبيّ (`tests_v9/golden_advisor/`).
+- **المصدر:** `services/ai_agronomist/ai_evidence_runtime.py:1140` (`partition_generation_references(rag_payload.get("annotations") or [])` بلا `crop` ولا `region` ولا `as_of`) · `shared/ai/reference_approvals.py:268` (نطاقٌ فارغ ⇒ `question_crop_unknown`).
+- **الخلل:** مقتطفٌ مُعتمَد لمحصولٍ ومنطقة يُحجَز دائماً بسبب `question_crop_unknown`، فلا يُميَّز «منطقة أخرى» (`region_not_applicable`) ولا «محصول آخر» (`crop_not_applicable`) عن المطابقة الصحيحة، ولا يدخل أيّ مقتطفٍ مُعتمَد سياقَ التوليد عبر المسار الحيّ.
+- **الشاهد:** الحالتان `reference_other_region.runtime_hold_reason` و`reference_other_crop.runtime_hold_reason` في `tests_v9/golden_advisor/advisor_golden_cases.v1.json` — xfail صارمة تنقلب عند الإصلاح.
+- **شرط الإغلاق:** يمرّر المسار الحيّ محصول السؤال الموثوق ومنطقته إلى البوّابة، وتمرّ الحالتان فتُحذف `known_gap` منهما.
+
+## ADVISORY-ENVELOPE-SILENT-ON-HELD-REFERENCES-01 — المظروف الاستشاريّ لا يُسمّي المراجع المحجوزة عن التوليد
+
+- **الحالة:** open — مقيسة 2026-11-22 في تقييم F11 الذهبيّ.
+- **المصدر:** `services/ai_agronomist/advisory_contract.py:62` (`_reference_codes` يقرأ `rag_available` وحده) · `services/ai_agronomist/ai_evidence_runtime.py:1144` (`unverified_seed_references` مع `generation_hold_reason` في `annotations`).
+- **الخلل:** مرجعٌ استُرجِع ثمّ حُجِز (لا ينطبق على السؤال، أو انتهت موافقته `approval_expired`) لا يظهر رمزُه في `evidence_missing` ولا `limitations`، فلا يعرف المستخدم أنّ مرجعاً استُبعِد ولماذا.
+- **الشاهد:** `reference_other_region.envelope_names_hold` و`expired_reference.envelope_names_hold` (xfail صارمة).
+- **شرط الإغلاق:** يُسمّي المظروف سبب الحجز برمزٍ ثابت ويمرّ الشاهدان.
+
+## ADVISOR-SELECTED-IMAGERY-DATE-NOT-CHECKED-01 — تاريخ الصورة المختار لا يُقارَن بتواريخ المشاهد المتاحة
+
+- **الحالة:** open — مقيسة 2026-11-22 في تقييم F11 الذهبيّ.
+- **المصدر:** `services/ai_agronomist/ai_evidence_runtime.py:1337` · `:1381` · `:1413` (`selected_imagery_date` يُمرَّر صدىً إلى حدث التدقيق والرصد والاستجابة فقط).
+- **الخلل:** تاريخٌ لا مشهد فيه ضمن `imagery_timeline` في حزمة سياق الحقل يمرّ بلا رمز، والمظروف يخرج `requires_human_review: false` إن كانت بقيّة الأدلّة هادئة.
+- **الشاهد:** `imagery_date.no_scene_on_selected_date` (xfail صارمة).
+- **شرط الإغلاق:** يُسمّي المسار تاريخاً بلا مشهد برمزٍ يحوي `imagery_date` ويفرض المراجعة.
+
+## ADVISORY-ENVELOPE-IGNORES-TOOL-CALL-OUTCOMES-01 — المظروف لا يقرأ نتائج استدعاءات الأدوات
+
+- **الحالة:** open — مقيسة 2026-11-22 في تقييم F11 الذهبيّ؛ دفاعٌ في العمق: حلقة الأدوات الحاليّة لا تُنتِج `executed` لأداةٍ مُعدِّلة.
+- **المصدر:** `services/ai_agronomist/advisory_contract.py:171` · `:176` (`requires_human_review` يُشتقّ من `pending_approvals` لا من `tool_calls`).
+- **الخلل:** سجلّ أداةٍ مُعدِّلة تتطلّب موافقة بنتيجة `executed` بلا موافقةٍ مُقرَّرة يمرّ مظروفاً هادئاً.
+- **الشاهد:** `proposal_vs_execution.claimed_execution_named` (xfail صارمة).
+- **شرط الإغلاق:** يفرض المظروف المراجعة ويُسمّي ادّعاء التنفيذ برمز، ويمرّ الشاهد.
