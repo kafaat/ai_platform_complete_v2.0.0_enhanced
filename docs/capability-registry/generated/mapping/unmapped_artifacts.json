@@ -80,6 +80,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/e2e/reset-link-with-session.spec.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/e2e/satellite-pixel-display.spec.ts",
     "kind": "tests"
   },

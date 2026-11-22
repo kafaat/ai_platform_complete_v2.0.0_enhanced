@@ -275,6 +275,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f4df21ad13ed633bec04fe70f11d226513e941c554d154cbbd3651b37b104263"
+        }
+      ],
+      "name": "frontend/e2e/reset-link-with-session.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f407ad38fa2b6d04000411caa37ac09699d0e104cc3214ee7394c1ef1196ff69"
         }
       ],
@@ -525,7 +535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4e9c4831946e66dacc9acf8c24fa2f53fcc1c31b958790a7d5fdf211f2c96125"
+          "content": "cb658806e87ddcc24c9bb6af0382cd3c0c63f63086674ad739ac639f12213741"
         }
       ],
       "name": "frontend/src/App.tsx",
