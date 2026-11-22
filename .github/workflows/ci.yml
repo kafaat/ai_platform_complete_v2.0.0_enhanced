@@ -3046,8 +3046,19 @@ jobs:
         working-directory: mobile/sahool_app
       - run: flutter test
         working-directory: mobile/sahool_app
-      - name: Select Java 17 for the Android toolchain
-        run: echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+      # Java 17 for the Android toolchain, with the Gradle dependency cache (~/.gradle caches
+      # and wrapper) keyed on the Android build files. Every uncached run downloaded the
+      # Gradle and Kotlin artifacts from Maven Central, which answered 429 twice on 2026-11-21.
+      - name: Select Java 17 and restore the Gradle cache
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            mobile/sahool_app/android/*.gradle*
+            mobile/sahool_app/android/app/*.gradle*
+            mobile/sahool_app/android/gradle/wrapper/gradle-wrapper.properties
       - name: Build Android debug app from the committed native project
         run: flutter build apk --debug --no-pub
         working-directory: mobile/sahool_app
