@@ -1,0 +1,38 @@
+name: Madar CI Log Bot
+
+on:
+  workflow_run:
+    workflows:
+      - SAHOOL v9.1.0 CI
+      - Capability Governance
+      - Sahool Production Gates
+      - Docker Build Matrix Verifier
+      - Railway Dockerfile PR build
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Completed Actions run ID in this repository"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect:
+    if: github.event_name == 'workflow_run' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      # workflow_run supplies the trusted default-branch SHA in github.sha.
+      - name: Check out the reporter
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Write the Arabic CI report
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/ci/madar_ci.py
