@@ -3,7 +3,7 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `71ab3f56ae91835be5c5430bd57e14146d750e329a562c7d436357494b73facd`
+- fingerprint: `e1b4670062f7515333ecdafb40d4e73510423eb664ed5f40334def73492b7306`
 - components: **37** (backend: 33)
 - route rows: **1169** → unique method/path: **1046**
 - capabilities (derived, uncurated): **841**
@@ -41,7 +41,7 @@
 | realtime-agent | worker | realtime-voice-experimental | sahool-realtime-agent | 0 | True |
 | realtime-session | service | realtime-control-plane-experimental | sahool-realtime-session | 0 | True |
 | remote-sensing-workspace-bff | bff | remote-sensing-workspace | sahool-remote-sensing-workspace-bff | 0 | True |
-| sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 197 | True |
+| sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 198 | True |
 | sam2-inference | service | fields-boundary | sahool-sam2-inference | 0 | True |
 | scout-ingest-service | service | ground-ingest | sahool-scout-ingest, sahool-scout-ingest-projection | 24 | True |
 | soil-service | service | soil | sahool-soil-service | 34 | True |
@@ -56,8 +56,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **1097**
-- S2 relations: CALLS=44, CONSUMES=4, EMITS=3, READS=591, ROUTES_TO=76, WRITES=379
+- ARCH-S2 dependency truth: `PASS` — edges **1099**
+- S2 relations: CALLS=44, CONSUMES=4, EMITS=3, READS=592, ROUTES_TO=76, WRITES=380
 
 ## Governance gates (U3/U4)
 
