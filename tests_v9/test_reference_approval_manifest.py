@@ -66,24 +66,23 @@ def admit_fixture_excerpts(monkeypatch, *excerpts):
     """Stand in for an agronomist's approval of test fixtures and a matching question scope.
 
     The advisor imports the partition function at call time, so replacing it on its module
-    reaches the runtime. The real check still runs; only its inputs are supplied here.
+    reaches the runtime. The real check still runs; only its inputs are supplied here. The
+    advisor passes the question's own scope (``_generation_scope``); this stand-in replaces it
+    with the fixtures' scope, because these tests prove grounding, not scope derivation
+    (that is ``test_advisor_generation_scope.py``).
     """
     from shared.ai import seed_claims
 
     index = index_approvals(
         manifest_of(*(approval_record(e["text"], e["source_revision"]) for e in excerpts))
     )
-    monkeypatch.setattr(
-        seed_claims,
-        "partition_generation_references",
-        partial(
-            partition_generation_references,
-            approvals=index,
-            crop=UNIT_CROP,
-            region=UNIT_REGION,
-            as_of=TODAY,
-        ),
-    )
+
+    def admit(items, **_question_scope):
+        return partition_generation_references(
+            items, approvals=index, crop=UNIT_CROP, region=UNIT_REGION, as_of=TODAY
+        )
+
+    monkeypatch.setattr(seed_claims, "partition_generation_references", admit)
 
 
 def excerpt(**overrides):

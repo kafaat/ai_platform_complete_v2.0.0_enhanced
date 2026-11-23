@@ -51,6 +51,12 @@ if SAHOOL_ENV == "production" and SEED_PROVENANCE_JSON:
     )
 if not SEED_TENANT_ID:
     raise RuntimeError("QDRANT_SEED_TENANT_ID must not be empty")
+# The seeder writes the reference corpus only, outside local-ai-rag's per-document publication
+# lock; a tenant id here would publish tenant documents past that lock
+# (RAG-INGEST-CROSS-REPLICA-PUBLICATION-NOT-COORDINATED-01). Tenant documents go through
+# local-ai-rag.
+if SEED_TENANT_ID not in {"__seed_quarantine__", "__global__"}:
+    raise RuntimeError("QDRANT_SEED_TENANT_ID must be __seed_quarantine__ or __global__")
 # ملفّ استثناء الهويّات المحجورة (CORPUS-RECONCILIATION-01): «أيّ
 # HOLD_LOGICAL_ID_COLLISION يبقى HOLD ولا يُنفَّذ ضدّه شيء» — والبذر القانونيّ
 # upsert على مُعرِّفات حتميّة، فقد يكتب فوق عضو مجموعةٍ محجورة لو صادف مُعرِّفَها.

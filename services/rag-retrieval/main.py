@@ -10,7 +10,9 @@ from typing import Any
 
 from core.rag.production_qdrant import (
     GLOBAL_REFERENCE_TENANT,
+    DocumentRevisionError,
     HybridQdrantRetriever,
+    IndexingReceipt,
     KnowledgeChunk,
     OllamaEmbeddingProvider,
     QdrantHttpClient,
@@ -341,20 +343,32 @@ async def ingest(
                 detail={"code": "INVALID_RAG_PROVENANCE", "message": str(exc)},
             ) from exc
     try:
-        ingested = await run_in_threadpool(_ingest_blocking, chunks)
-        return {"ingested": ingested}
+        receipts = await run_in_threadpool(_ingest_blocking, chunks)
+    except DocumentRevisionError as exc:
+        raise HTTPException(
+            status_code=422, detail={"code": exc.code, "message": str(exc)}
+        ) from exc
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(502, str(exc)) from exc
+    # ``ingested`` stays the total the upload service already checks; ``receipts`` is
+    # the replace-document answer, one per document (RAG-DOCUMENT-REVISION-WITHDRAWAL-01).
+    return {
+        "ingested": sum(receipt.chunks_written for receipt in receipts),
+        "receipts": [receipt.as_dict() for receipt in receipts],
+    }
 
 
-def _ingest_blocking(chunks: list[KnowledgeChunk]) -> int:
+def _ingest_blocking(chunks: list[KnowledgeChunk]) -> list[IndexingReceipt]:
     global _sparse_ready
     with _RETRIEVAL_LOCK:
-        ingested = _retriever.ingest(chunks)
-        # Qdrant has changed; force the next read/readiness to reconstruct the complete
-        # sparse corpus instead of assuming this process saw every historical ingest.
-        _sparse_ready = False
-    return ingested
+        try:
+            return _retriever.ingest_documents(chunks)
+        finally:
+            # Qdrant has changed; force the next read/readiness to reconstruct the complete
+            # sparse corpus instead of assuming this process saw every historical ingest.
+            # Also on failure: a write that landed before a failed withdrawal must be
+            # re-read from the store, not served from the index built before it.
+            _sparse_ready = False
 
 
 def _verify_search_user(authorization: str) -> str:

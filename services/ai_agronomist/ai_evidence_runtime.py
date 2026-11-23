@@ -465,6 +465,20 @@ def _trusted_crop_for_retrieval(
     return None
 
 
+def _generation_scope(req: Any, retrieval_crop: str | None) -> dict[str, str | None]:
+    """The crop and region the reference-approval gate matches an excerpt against.
+
+    Same trust rule as retrieval: a field question takes the crop from the owner's crop card
+    (``retrieval_crop``) and its region stays unknown, because the owner context carries no
+    region and a client-sent one must not admit an excerpt for that field. A general question
+    has no owner record, so the client's crop and region are its only scope.
+    """
+    if req.field_id:
+        return {"crop": retrieval_crop, "region": None}
+    region = req.region.strip() if isinstance(req.region, str) else ""
+    return {"crop": retrieval_crop, "region": region or None}
+
+
 def _build_agent_tool_fetcher(
     *,
     field_state: dict[str, Any] | None,
@@ -1137,7 +1151,9 @@ async def build_evidence_response(
     rag_available = rag_retrieval["available"] is True
     rag_payload = rag_resp.json() if rag_available else {"annotations": []}
     # Keep unreviewed seed pointers auditable while excluding their claim text from generation.
-    usable, unreviewed = partition_generation_references(rag_payload.get("annotations") or [])
+    usable, unreviewed = partition_generation_references(
+        rag_payload.get("annotations") or [], **_generation_scope(req, retrieval_crop)
+    )
     rag_payload = {**rag_payload, "annotations": usable}
     annotations = {
         "rag": rag_payload.get("annotations", []),

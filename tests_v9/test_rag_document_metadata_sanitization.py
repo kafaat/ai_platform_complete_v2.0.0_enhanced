@@ -16,6 +16,7 @@ from __future__ import annotations
 import ast
 import asyncio
 import collections.abc
+import contextlib
 import datetime as dt
 import hashlib
 import importlib.util
@@ -25,6 +26,7 @@ import types
 import unicodedata
 from pathlib import Path
 
+import httpx
 import pytest
 
 pytestmark = pytest.mark.unit
@@ -143,7 +145,14 @@ def _ingest(tmp_path, files: dict[str, object]):
         "datetime": dt.datetime,
         "UTC": dt.UTC,
         "logger": logging.getLogger("test-rag-metadata-s14"),
-        "httpx": types.SimpleNamespace(AsyncClient=_Client),
+        "asyncio": asyncio,
+        "asynccontextmanager": contextlib.asynccontextmanager,
+        "httpx": types.SimpleNamespace(
+            AsyncClient=_Client,
+            ConnectError=httpx.ConnectError,
+            ConnectTimeout=httpx.ConnectTimeout,
+            PoolTimeout=httpx.PoolTimeout,
+        ),
         "HTTPException": _HTTPError,
         "AGENT_TOKEN": "agent-token",
         "RAG_RETRIEVAL_URL": "http://rag",
@@ -156,6 +165,13 @@ def _ingest(tmp_path, files: dict[str, object]):
             "_DOC_METADATA_TEXT_KEYS",
             "_DOC_METADATA_INT_KEYS",
             "_DOC_METADATA_MAX_CHARS",
+            "_PUBLISHING",
+            "_PUBLISHING_USERS",
+            "_publishing_steps",
+            "_publishing",
+            "_PUBLICATION_IN_DOUBT",
+            "_CANONICAL_INGEST_TIMEOUT_S",
+            "_request_never_sent",
         },
         namespace,
     )["ingest_documents"]
@@ -289,7 +305,9 @@ def _body(rag, metadata):
 )
 def test_reserved_encoder_metadata_is_refused_before_any_write(rag, monkeypatch, key, value):
     written: list = []
-    monkeypatch.setattr(rag._retriever, "ingest", lambda chunks: written.extend(chunks) or 0)
+    monkeypatch.setattr(
+        rag._retriever, "ingest_documents", lambda chunks: written.extend(chunks) or []
+    )
     with pytest.raises(rag.HTTPException) as exc:
         asyncio.run(rag.ingest(_body(rag, {key: value}), x_tenant_id="tenant-1", _token=None))
     assert exc.value.status_code == 422
@@ -299,9 +317,12 @@ def test_reserved_encoder_metadata_is_refused_before_any_write(rag, monkeypatch,
 
 def test_clean_tenant_document_is_still_ingested(rag, monkeypatch):
     written: list = []
-    monkeypatch.setattr(rag._retriever, "ingest", lambda chunks: written.extend(chunks) or 1)
+    receipt = rag.IndexingReceipt("tenant-1", "doc-1", "sha256:" + "1" * 64, 1, 0)
+    monkeypatch.setattr(
+        rag._retriever, "ingest_documents", lambda chunks: written.extend(chunks) or [receipt]
+    )
     out = asyncio.run(
         rag.ingest(_body(rag, {"title": "دليل"}), x_tenant_id="tenant-1", _token=None)
     )
-    assert out == {"ingested": 1}
+    assert out == {"ingested": 1, "receipts": [receipt.as_dict()]}
     assert written[0].tenant_id == "tenant-1"

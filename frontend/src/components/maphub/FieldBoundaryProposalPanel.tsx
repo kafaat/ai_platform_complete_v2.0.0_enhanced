@@ -43,17 +43,25 @@ export function FieldBoundaryProposalPanel({
               {typeof p.area_ha === 'number' && <span>المساحة: {p.area_ha.toFixed(2)} هـ</span>}
               {p.method && <span className="text-slate-400">{p.method}</span>}
             </div>
-            <div className="mt-2 flex gap-1">
-              <button disabled={!onAccept} title={!onAccept ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="field-boundary-accept" onClick={() => onAccept?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
-                <CheckCircle2 className="h-3 w-3" /> قبول الحدود
-              </button>
-              <button disabled={!onEdit} title={!onEdit ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="field-boundary-edit" onClick={() => onEdit?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-sky-200 bg-white px-2 py-1 text-xs text-sky-700 hover:bg-sky-50">
-                <Edit3 className="h-3 w-3" /> تعديل
-              </button>
-              <button disabled={!onReject} title={!onReject ? "هذا الإجراء غير متاح من هذا العرض" : undefined} type="button" data-testid="field-boundary-reject" onClick={() => onReject?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
-                <XCircle className="h-3 w-3" /> رفض
-              </button>
-            </div>
+            {(onAccept || onEdit || onReject) && (
+              <div className="mt-2 flex gap-1">
+                {onAccept && (
+                  <button type="button" data-testid="field-boundary-accept" onClick={() => onAccept?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
+                    <CheckCircle2 className="h-3 w-3" /> قبول الحدود
+                  </button>
+                )}
+                {onEdit && (
+                  <button type="button" data-testid="field-boundary-edit" onClick={() => onEdit?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-sky-200 bg-white px-2 py-1 text-xs text-sky-700 hover:bg-sky-50">
+                    <Edit3 className="h-3 w-3" /> تعديل
+                  </button>
+                )}
+                {onReject && (
+                  <button type="button" data-testid="field-boundary-reject" onClick={() => onReject?.(p)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500 hover:bg-slate-100">
+                    <XCircle className="h-3 w-3" /> رفض
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>

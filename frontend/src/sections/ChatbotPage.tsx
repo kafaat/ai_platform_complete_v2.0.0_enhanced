@@ -326,6 +326,8 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                       ))}
                     </div>
                   )}
+                  {/* Read-only cards: the chat has no save or review API for these proposal types, so no
+                      action handler is passed and the panels render no action for it. */}
                   {(() => {
                     const boundaryData = toolDataFor(msg.harness, 'detect_field_boundaries');
                     const proposals = (boundaryData?.proposed_boundaries ?? []) as never[];

@@ -175,6 +175,15 @@ GOVERNANCE_APPROVED_STATES = frozenset({"approved", "passed", "cleared", "ok"})
 
 _TRUTHY = {"1", "true", "yes", "on"}
 
+# دور المحاكاة في القرار — يُعلَن في المخرَج (F-E11). اليوم: السياسة تُختار في ⑤ قبل
+# المحاكاة ⑦، والمحاكاة لا تُعيد ترتيب القرارات ولا تبدّل الإجراء؛ أقصى أثرها ملاحظة
+# تحفّظ (`simulation_caveat_ar`). قيمة ثانية ("influenced") لا تُكتَب إلّا إن غُيّرت
+# سياسة الاختيار نفسها — قرارُ مالكٍ لا يُتَّخَذ هنا.
+SIMULATION_DECISION_INFLUENCE = "explains_only"
+SIMULATION_DECISION_INFLUENCE_NOTE_AR = (
+    "المحاكاة تشرح القرار فقط: اختيرت السياسة قبلها، ولم تُعِد ترتيب القرارات ولم تغيّر الإجراء."
+)
+
 
 def _direct_executable_enabled() -> bool:
     """Escape hatch (DECISION-CENTER-UNIFY-01, fail-closed default).
@@ -311,7 +320,7 @@ def run_field_intelligence(
         except Exception as e:  # noqa: BLE001 — صدق: الذاكرة إثراء لا شرط
             farm_memory_context = {"error": f"تعذّر جلب الذاكرة: {e}"}
 
-    # ⑦ المحاكاة (what-if) — تُغني القرار بالأثر المتوقّع لإجراء مقترَح.
+    # ⑦ المحاكاة (what-if) — تشرح الأثر المتوقّع للإجراء الذي اختارته السياسة في ⑤.
     # Runtime Cohesion: المحاكاة تدخل graph القرار عند طلبها (لا عبر مسار
     # منفصل). تُشغَّل فقط إن كان القرار actionable (لا محاكاة عبثيّة).
     simulation: dict = {}
@@ -319,15 +328,23 @@ def run_field_intelligence(
         try:
             sim = simulate_fn(req, decision, state)
             if sim:
-                simulation = sim
-                # إن أظهرت المحاكاة أنّ الإجراء لا يُجدي، نُعلنه في القرار
-                if sim.get("recommended_action_helps") is False:
-                    decision.setdefault("simulation_caveat_ar", "")
+                simulation = dict(sim)
+                # التحفّظ على الجدوى يُقال فقط عن محاكاةٍ للإجراء المختار نفسه — لا عن
+                # مقارنة عامّة ولا عن إجراءٍ لم يُحاكَ (F-E11).
+                if (
+                    sim.get("selected_action_simulated") is True
+                    and sim.get("recommended_action_helps") is False
+                ):
                     decision["simulation_caveat_ar"] = (
                         "المحاكاة تشير إلى أثر محدود للإجراء المقترَح — راجِع الجدوى."
                     )
         except Exception as e:  # noqa: BLE001 — صدق: المحاكاة إثراء لا شرط
             simulation = {"error": f"تعذّرت المحاكاة: {e}"}
+        if simulation:
+            # يُكتَب هنا لا في simulate_fn: المنسِّق هو من يعلم أنّ السياسة اختيرت قبل
+            # المحاكاة وأنّ ناتجها لا يُعيد ترتيب القرارات.
+            simulation["decision_influence"] = SIMULATION_DECISION_INFLUENCE
+            simulation["decision_influence_note_ar"] = SIMULATION_DECISION_INFLUENCE_NOTE_AR
 
     # ⑧ التوقّع الجوّي الحيّ (Open-Meteo) — إثراء للقرار، fail-safe (لا يُسقطه).
     # يُجلَب فعليّاً عند توفّر forecast_fn (المحوّل الافتراضي keyless). صدق: None ⇒ {}.

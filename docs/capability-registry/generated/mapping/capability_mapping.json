@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7656,
+    "files_scanned": 7669,
     "files_by_kind": {
       "backend": 1312,
       "database": 354,
       "governance": 90,
       "mobile": 429,
       "other": 2242,
-      "tests": 2661,
-      "web": 568
+      "tests": 2670,
+      "web": 572
     },
-    "unmapped_artifacts": 3648,
+    "unmapped_artifacts": 3655,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
-      "python_functional": 4156,
-      "raw": 3500
+      "python_functional": 4163,
+      "raw": 3506
     },
-    "test_dependency_files": 2026,
-    "test_dependency_edges": 5429,
-    "test_dependency_bounded_files": 1170,
-    "test_dependency_unresolved_relations": 516
+    "test_dependency_files": 2032,
+    "test_dependency_edges": 5446,
+    "test_dependency_bounded_files": 1172,
+    "test_dependency_unresolved_relations": 519
   },
   "capabilities": [
     {
@@ -7540,6 +7540,14 @@
           ]
         },
         {
+          "path": "frontend/src/components/SeasonSimulationDialog.tsx",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "frontend/src/components/WheatSeasonPlanner.test.tsx",
           "score": 14,
           "signals": [
@@ -7629,6 +7637,14 @@
         },
         {
           "path": "frontend/src/sections/FieldWorkspaceIrrigationPanel.season.test.tsx",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "frontend/src/sections/HybridIndexPage.seasonSimulation.test.tsx",
           "score": 14,
           "signals": [
             "path:season",
@@ -7911,6 +7927,22 @@
           ]
         },
         {
+          "path": "frontend/src/sections/seasonSimulationEntry.static.test.ts",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "frontend/src/services/api/seasonSimulationTimeout.test.ts",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_farm_full_season_forensic.py",
           "score": 14,
           "signals": [
@@ -8144,6 +8176,14 @@
         },
         {
           "path": "tests_v9/test_season_simulation_behavior_v66.py",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "tests_v9/test_season_simulation_timeout_chain.py",
           "score": 14,
           "signals": [
             "path:season",
@@ -8447,9 +8487,9 @@
         "routes": 82,
         "database": 86,
         "events": 52,
-        "web": 18,
+        "web": 20,
         "mobile": 15,
-        "tests": 60,
+        "tests": 63,
         "governance": 0,
         "other_evidence": 15
       },
@@ -27660,11 +27700,11 @@
           "score": 9
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:580",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:594",
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1032",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1046",
           "score": 9
         }
       ],
@@ -30733,11 +30773,11 @@
           "score": 12
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:580",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:594",
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1032",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1046",
           "score": 12
         },
         {
@@ -30766,6 +30806,15 @@
         }
       ],
       "web": [
+        {
+          "path": "frontend/src/sections/ChatbotPage.spatialCards.test.tsx",
+          "score": 11,
+          "signals": [
+            "content:sampling plan",
+            "content:Soil sampling",
+            "dedup:Soil sampling=soil sampling"
+          ]
+        },
         {
           "path": "frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
           "score": 9,
@@ -31018,7 +31067,7 @@
         "routes": 32,
         "database": 14,
         "events": 13,
-        "web": 2,
+        "web": 3,
         "mobile": 1,
         "tests": 10,
         "governance": 1,
@@ -34124,6 +34173,10 @@
     },
     {
       "path": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/ProposalPanelActions.test.tsx",
       "kind": "web"
     },
     {
@@ -44571,6 +44624,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_advisor_generation_scope.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_advisor_source_tagging.py",
       "kind": "tests"
     },
@@ -45679,6 +45736,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_field_intelligence_selected_action_simulation.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_field_portfolio.py",
       "kind": "tests"
     },
@@ -46243,7 +46304,15 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_local_ai_rag_publish_serialisation.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_local_ai_rag_sources_and_upload_cleanup.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_local_ai_rag_upload_filename_conflict.py",
       "kind": "tests"
     },
     {
@@ -46747,6 +46816,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_rag_canonical_ingest_single_writer.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_rag_complete_reindex_manifest.py",
       "kind": "tests"
     },
@@ -46776,6 +46849,10 @@
     },
     {
       "path": "tests_v9/test_rag_document_metadata_sanitization.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_document_revision_withdrawal.py",
       "kind": "tests"
     },
     {
@@ -75892,6 +75969,37 @@
       ]
     },
     {
+      "test": "tests_v9/test_advisor_generation_scope.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/ai_agronomist/__init__.py",
+          "kind": "import",
+          "line": 27
+        },
+        {
+          "source": "services/ai_agronomist/ai_evidence_runtime.py",
+          "kind": "import",
+          "line": 27
+        },
+        {
+          "source": "shared/ai/reference_approvals.py",
+          "kind": "import",
+          "line": 28
+        },
+        {
+          "source": "shared/ai/seed_claims.py",
+          "kind": "import",
+          "line": 29
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_advisor_read_tools_honour_arguments_f4.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -76923,12 +77031,12 @@
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "loader",
-          "line": 373
+          "line": 379
         },
         {
           "source": "scripts/ci/ollama_runtime_probe.py",
           "kind": "source_read",
-          "line": 372
+          "line": 378
         },
         {
           "source": "services/ai_agronomist/ai_generation.py",
@@ -76953,7 +77061,7 @@
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 332
+          "line": 338
         },
         {
           "source": "services/sahool-platform/api/ai_provider_config.py",
@@ -84960,6 +85068,34 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_field_intelligence_selected_action_simulation.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "shared/wofost/__init__.py",
+          "kind": "import",
+          "line": 245
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 23,
+          "import": "core.field_intelligence_adapters"
+        },
+        {
+          "line": 30,
+          "import": "api.routers.simulate"
+        },
+        {
+          "line": 378,
+          "import": "core.field_intelligence_coordinator"
+        }
+      ]
+    },
+    {
       "test": "tests_v9/test_field_portfolio.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -85895,12 +86031,12 @@
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "loader",
-          "line": 431
+          "line": 435
         },
         {
           "source": "services/knowledge-graph/main.py",
           "kind": "source_read",
-          "line": 433
+          "line": 437
         },
         {
           "source": "services/rag-retrieval/main.py",
@@ -89021,6 +89157,19 @@
       ]
     },
     {
+      "test": "tests_v9/test_local_ai_rag_publish_serialisation.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/local-ai-rag/main.py",
+          "kind": "source_read",
+          "line": 37
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_local_ai_rag_sources_and_upload_cleanup.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -89031,6 +89180,19 @@
           "source": "services/local-ai-rag/main.py",
           "kind": "source_read",
           "line": 29
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_local_ai_rag_upload_filename_conflict.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/local-ai-rag/main.py",
+          "kind": "source_read",
+          "line": 27
         }
       ],
       "unresolved": []
@@ -92396,6 +92558,53 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_rag_canonical_ingest_single_writer.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "certification/evidence/chatgpt_closure_nine_20261016/rag/native_reindex_witness.py",
+          "kind": "source_read",
+          "line": 151
+        },
+        {
+          "source": "scripts/staging/rag_fixture_probe.py",
+          "kind": "source_read",
+          "line": 113
+        },
+        {
+          "source": "services/local-ai-rag/main.py",
+          "kind": "source_read",
+          "line": 26
+        },
+        {
+          "source": "services/qdrant-seed/seed.py",
+          "kind": "source_read",
+          "line": 148
+        },
+        {
+          "source": "services/rag-retrieval/main.py",
+          "kind": "source_read",
+          "line": 146
+        },
+        {
+          "source": "services/rag-retrieval/reindex_manifest.py",
+          "kind": "source_read",
+          "line": 147
+        },
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "source_read",
+          "line": 145
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_rag_complete_reindex_manifest.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -92567,17 +92776,42 @@
         {
           "source": "services/local-ai-rag/main.py",
           "kind": "source_read",
-          "line": 33
+          "line": 35
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "loader",
-          "line": 251
+          "line": 267
         },
         {
           "source": "services/rag-retrieval/main.py",
           "kind": "source_read",
-          "line": 34
+          "line": 36
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_rag_document_revision_withdrawal.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "shared_test_helper"
+      ],
+      "edges": [
+        {
+          "source": "services/rag-retrieval/main.py",
+          "kind": "loader",
+          "line": 521
+        },
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "import",
+          "line": 29
+        },
+        {
+          "source": "tests_v9/service_module.py",
+          "kind": "import",
+          "line": 24
         }
       ],
       "unresolved": []
@@ -94365,12 +94599,12 @@
         {
           "source": "services/qdrant-seed/list_review_candidates.py",
           "kind": "loader",
-          "line": 334
+          "line": 333
         },
         {
           "source": "services/qdrant-seed/list_review_candidates.py",
           "kind": "source_read",
-          "line": 333
+          "line": 332
         },
         {
           "source": "shared/ai/__init__.py",
@@ -94390,7 +94624,7 @@
       ],
       "unresolved": [
         {
-          "line": 398,
+          "line": 397,
           "import": "seed"
         }
       ]

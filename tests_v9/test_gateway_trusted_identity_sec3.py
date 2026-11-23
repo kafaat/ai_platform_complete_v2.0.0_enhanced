@@ -400,7 +400,11 @@ def test_rag_ingest_with_token_not_rejected(monkeypatch):
     M, client = _rag_client()
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
     # Stub the data-plane write so the test asserts the auth gate, not Qdrant I/O.
-    monkeypatch.setattr(M._retriever, "ingest", lambda chunks: len(chunks))
+    monkeypatch.setattr(
+        M._retriever,
+        "ingest_documents",
+        lambda chunks: [M.IndexingReceipt("tenant-1", "doc-1", None, len(chunks), 0)],
+    )
     # C4: /ingest now also enforces the gateway-trusted X-Tenant-Id per chunk (in
     # addition to the SEC-4 service token). A valid internal caller presents both;
     # the chunk tenant_id must echo the trusted header ("tenant-1" in _INGEST_BODY).
