@@ -98,7 +98,9 @@ def check_waivers(entries: list, *, today: _dt.date) -> list[str]:
         if "permanent" in w:
             # علَمٌ صريح يقرؤه مُصرِّف الكتالوج أيضاً؛ تناقضُه مع تاريخٍ أو temporary يُرفَض.
             if w["permanent"] is not True:
-                problems.append(f"{label}: permanent must be true when present, got {w['permanent']!r}")
+                problems.append(
+                    f"{label}: permanent must be true when present, got {w['permanent']!r}"
+                )
             elif w.get("expiry") not in (None, "") or w.get("temporary") is True:
                 problems.append(f"{label}: permanent waiver must not carry an expiry or temporary")
         expiry = w.get("expiry")

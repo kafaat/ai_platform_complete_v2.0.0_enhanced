@@ -90,8 +90,11 @@ def test_explicit_permanent_flag_without_expiry_passes():
 
 @pytest.mark.parametrize(
     "extra",
-    [{"permanent": "yes"}, {"permanent": True, "expiry": "2099-01-01"},
-     {"permanent": True, "temporary": True, "expiry": "2099-01-01", **_ACCOUNTABLE}],
+    [
+        {"permanent": "yes"},
+        {"permanent": True, "expiry": "2099-01-01"},
+        {"permanent": True, "temporary": True, "expiry": "2099-01-01", **_ACCOUNTABLE},
+    ],
 )
 def test_contradictory_permanent_flag_is_flagged(extra):
     problems = guard.check_waivers([{"endpoint": "/m2m", **extra}], today=TODAY)
