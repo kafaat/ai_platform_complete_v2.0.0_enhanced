@@ -232,6 +232,7 @@ def handoff_line(role, url, head, merge_tested=False):
     )
 
 
+RUNNER_TIMESTAMP = re.compile(r"^\d{4}-\d\d-\d\d[tT][\d:.]+[zZ] ")
 INSTALL_LINE = re.compile(r"\b(?:pip3?|npm|npx|pnpm|yarn|uv|apt-get|apt|brew)\b[^\n]*\binstall\b")
 
 
@@ -244,7 +245,9 @@ def failing_command(log):
     kept = []
     for cmd, _ in failed_commands(log):
         for line in cmd.split("\n"):
-            body = re.sub(r"^\S+Z ", "", line).strip()
+            # Script lines keep the runner's timestamp, lowercased with the rest of the
+            # command by failed_commands() (2026-11-22t20:46:23.4411059z).
+            body = RUNNER_TIMESTAMP.sub("", line).strip()
             if body and not body.startswith("#") and not INSTALL_LINE.search(body):
                 kept.append(body)
     return "\n".join(kept)

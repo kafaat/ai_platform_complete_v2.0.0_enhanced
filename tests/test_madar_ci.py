@@ -586,6 +586,29 @@ class Triage(unittest.TestCase):
             "dependencies",
         )
 
+    def test_timestamped_comment_lines_do_not_route(self):
+        # Lab 1588-v3: real script lines carry the runner's timestamp, lowercased with the command.
+        ts = "2026-11-22T20:46:23.4411059Z"
+        log = (
+            f"{ts} ##[group]Run python scripts/ci/workflow_guard.py\n"
+            f"{ts} # mirrors bandit and tsc\n"
+            f"{ts} python scripts/ci/workflow_guard.py\n"
+            f"{ts} ##[endgroup]\n{ts} unsafe pattern found\n"
+            f"{ts} ##[error]Process completed with exit code 1.\n"
+        )
+        self.assertNotIn("bandit", bot.failing_command(log))
+        result = show(
+            job("failure", [step("Detect unsafe workflow patterns", "failure")]), lambda _: log
+        )
+        self.assertIn("ci-quality-triage", result)
+
+    def test_merge_note_is_conditional_on_the_checkout(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+        entry = dict(job("failure", [step("Typecheck", "failure")]), head_sha="f" * 40)
+        merged = bot.card("o/r", 2, entry, lambda _: log, merge_tested=True)
+        self.assertIn("إن سحبت الوظيفة بالإعداد الافتراضي", merged)
+        self.assertIn("checkout", merged)
+
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
         self.assertIn("تعذّر إسناد", show(job("failure", data), lambda _: ""))
