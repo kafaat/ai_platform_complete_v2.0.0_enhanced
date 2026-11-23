@@ -6,17 +6,21 @@
 
 1. **بوت مدار** (`.github/scripts/madar_ci.py`) يعمل بعد اكتمال الـworkflows المراقَبة، ويقرأ سجل كل وظيفة فاشلة.
    صلاحياته قراءة فقط، ولا يعلّق ولا يعيد التشغيل.
-2. **التوجيه:** يختار البوت المختص بحسب اسم الخطوة الفاشلة، ثم اسم الوظيفة، ثم ملخص الإخفاق في السجل:
+2. **التوجيه:** يختار البوت المختص بثلاث خطوات، بالترتيب: أداة مسمّاة في اسم الخطوة الفاشلة (pip-audit،
+   npm ci، bandit، tsc…)، ثم توقيع خطأ محدد في ملخص الإخفاق في السجل (CVE، SQLSTATE، ERESOLVE، error TS)، ثم
+   مالك الوظيفة إن كانت وظيفة معروفة بالاسم الدقيق. الكلمات الوصفية في أسماء خطوات سهول («E2E»، «database»،
+   «drift»، «restricted role») لا تحدد مختصًا. وإن فشلت أكثر من خطوة، أو لم يتضح شيء، تذهب إلى وكيل جودة CI.
 
-   | المختص | الوكيل | ما يوجَّه إليه |
+   | المختص | الوكيل | أمثلة |
    |---|---|---|
-   | الأمن | `.claude/agents/security-reviewer.md` | bandit وgitleaks وفحص الأسرار، أو CVE/GHSA في ملخص الإخفاق |
-   | الترحيلات وقاعدة البيانات | `.claude/agents/migrations-reviewer.md` | الترحيلات وPG16/PostGIS وأدوار RLS، أو SQLSTATE في الملخص |
-   | الاعتماديات | `.claude/agents/dependency-reviewer.md` | pip-audit وانحراف القيود وملفات القفل |
-   | الواجهة | `.claude/agents/frontend-reviewer.md` | TypeScript وESLint وVitest وPlaywright وFlutter |
-   | جودة CI | `.claude/agents/ci-quality-triage.md` | كل ما لم يتضح مختصه |
+   | الأمن | `.claude/agents/security-reviewer.md` | bandit وgitleaks، أو CVE/GHSA في الملخص، ووظيفة Security Scan |
+   | الترحيلات وقاعدة البيانات | `.claude/agents/migrations-reviewer.md` | alembic و`run_migrations`، أو SQLSTATE في الملخص، ووظيفتا Live PG Proofs وDecision 033 |
+   | الاعتماديات | `.claude/agents/dependency-reviewer.md` | pip-audit وnpm ci وpip install، أو ERESOLVE في الملخص |
+   | الواجهة | `.claude/agents/frontend-reviewer.md` | tsc وeslint وvitest وplaywright وflutter، ووظائف الواجهة |
+   | جودة CI | `.claude/agents/ci-quality-triage.md` | كل ما سوى ذلك |
 
-   تحمل البطاقة رابط الخطوة الفاشلة، وموضع الفشل، ومعرّف الالتزام.
+   تحمل البطاقة رابط الخطوة الفاشلة، وموضع الفشل، ومعرّف الالتزام. في تشغيلات طلبات الدمج يختبر CI دمج الرأس مع
+   الفرع الأساسي، فتقول البطاقة ذلك ويعيد المختص الإنتاج على ذلك الدمج.
 3. **المختص يراجع للقراءة فقط** على الالتزام نفسه، ويكتب توصية: السبب بـ`path:line`، وأصغر تغيير، والاختبار
    الذي يفشل قبل الإصلاح وينجح بعده.
 4. **وكيل الإصلاح** (`.claude/agents/ci-fixer.md`) ينفّذ التوصية على فرع العمل، بالاختبار أولًا، ويشغّل
@@ -27,7 +31,7 @@
 ## الحدود
 
 - الوكلاء أدوار Claude Code داخل المستودع، لا أدوات خارجية. أدوات Claudia/opcode لا تُشغَّل على مستودعات
-  kafaat (قرار 7 نوفمبر 2026 في `governance/tool-adoption/`).
+  kafaat (قرار 7 نوفمبر 2026 في مستودع التنسيق `kafaat/-`: `governance/tool-adoption/2026-11-07-claudia-opcode-reason_AR.md`).
 - «للقراءة فقط» للمراجعين مفروض في أدواتهم: لا Edit ولا Write، ويحرسه `tests/test_madar_ci.py`. لكن لديهم
   Bash لتشغيل الفحوص، فالامتناع عن الكتابة به قاعدة في تعليماتهم لا قيد تقني.
 - التوجيه تقدير من الأسماء والسجل، لا حكم. المختص الذي يرى أن الإخفاق ليس من اختصاصه يعيده إلى وكيل جودة CI.

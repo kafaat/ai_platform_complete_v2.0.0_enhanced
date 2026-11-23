@@ -90,6 +90,7 @@ class GitHub:
 
 
 GROUP_RUN = re.compile(rb"(?m)^\S+ ##\[group\]Run [^\n]*")
+ENDGROUP = re.compile(rb"(?m)^\S+ ##\[endgroup\][^\n]*")
 
 
 def read_log_tail(response, keep=MAX_LOG, ceiling=MAX_LOG_STREAM):
@@ -115,8 +116,9 @@ def read_log_tail(response, keep=MAX_LOG, ceiling=MAX_LOG_STREAM):
                     break
                 dropped = found
             if dropped:
-                close = kept.find(b"##[endgroup]", dropped.start())
-                end = kept.find(b"\n", close) if close >= 0 else -1
+                closing = ENDGROUP.search(kept, dropped.end())
+                close = closing.start() if closing else -1
+                end = closing.end() if closing else -1
                 if 0 <= close < cut and 0 <= end - dropped.start() <= 16384:
                     header = bytes(kept[dropped.start() : end])
                 else:
@@ -145,45 +147,65 @@ SPECIALISTS = {
     "ci-quality": ("وكيل جودة CI", "ci-quality-triage"),
 }
 FIXER = "ci-fixer"
-ROUTES = (
+# Step names: tool words only, case-sensitive, so that "E2E", "database", "drift" or
+# "(restricted role)" in a descriptive SAHOOL step name never decides the owner.
+STEP_TOOLS = (
+    ("security", r"\bbandit\b|\bgitleaks\b|\btrivy\b|\bsecret[- ]scan"),
     (
-        "security",
-        r"secur|bandit|gitleaks|secret|trivy|codeql",
-        r"\bCVE-\d{4}-\d+|GHSA-[\w-]+|leaks? found|Severity: High",
+        "dependencies",
+        r"\bpip-audit\b|\bnpm (?:ci|install)\b|\bpip install\b|\bpub get\b|\buv (?:sync|pip)\b"
+        r"|\bconstraints[\w.-]*\.txt\b|\brequirements[\w.-]*\.txt\b|\bdependency[- ]drift\b",
     ),
     (
         "migrations",
-        r"migrat|pg16|postgis|live pg|restricted role|alembic|database",
-        r"SQLSTATE|psycopg|asyncpg\.exceptions|relation \"[^\"\n]+\" does not exist|run_migrations",
-    ),
-    (
-        "dependencies",
-        r"dependenc|pip-audit|requirements|lockfile|constraints|npm ci|pip install|pub get"
-        r"|(?:version|constraint|pin)s?[- ]drift",
-        r"has ==[\w.+-]+, constraints\.txt has|ResolutionImpossible|No matching distribution|ERESOLVE",
+        r"\balembic\b|\brun_migrations\b|\bmigrations?/|\bmigration[- ](?:probe|lint|up|down)\b",
     ),
     (
         "frontend",
-        r"frontend|playwright|typecheck|eslint|vitest|flutter|\be2e\b",
-        r"error TS\d{4}|npm ERR!|\bvitest\b|\beslint\b",
+        r"\btsc\b|\beslint\b|\bvitest\b|\bnpx playwright\b|\bflutter (?:analyze|test)\b"
+        r"|\bnpm run (?:typecheck|lint|test|build)\b",
     ),
 )
+# The failure summary in the log: specific error signatures only.
+LOG_SIGNS = (
+    ("security", r"\bCVE-\d{4}-\d+\b|\bGHSA-[\w-]+|\bleaks? found\b"),
+    (
+        "migrations",
+        r"\bSQLSTATE\b|\bpsycopg\.errors\.|\basyncpg\.exceptions\.|relation \"[^\"\n]+\" does not exist",
+    ),
+    (
+        "dependencies",
+        r"\bERESOLVE\b|\bResolutionImpossible\b|No matching distribution"
+        r"|has ==[\w.+-]+, constraints\.txt has",
+    ),
+    ("frontend", r"\berror TS\d{4}\b"),
+)
+# Whole jobs with one owner, by their exact names in SAHOOL's workflows.
+JOB_OWNERS = {
+    "Security Scan": "security",
+    "Frontend Typecheck": "frontend",
+    "Frontend E2E (Playwright \u00b7 MapLibre/WebGL QA)": "frontend",
+    "Flutter Analyze & Test": "frontend",
+    "Live PG Proofs (fake-connection debt)": "migrations",
+    "Decision 033 Restricted Role Proof (PG16)": "migrations",
+}
+ROUTES = tuple(role for role, _ in STEP_TOOLS)
 
 
 def route(job_name, step_name, evidence_text=""):
-    """The specialist for a failed job: by failing step name, then the failure summary in the
-    log, then the job name. The log comes before the job name so that, for example, an npm
-    ERESOLVE inside a frontend job reaches the dependency reviewer."""
-    for role, by_name, _ in ROUTES:
-        if step_name and re.search(by_name, step_name, re.I):
+    """The specialist for a failed job, or the CI quality agent when it is not clear.
+
+    In order: a tool named in the failing step's name, a specific error signature in the
+    failure summary, then the job's known owner. The log comes before the job so that an
+    npm ERESOLVE inside a frontend job reaches the dependency reviewer.
+    """
+    for role, pattern in STEP_TOOLS:
+        if step_name and re.search(pattern, step_name):
             return role
-    for role, _, by_log in ROUTES:
-        if evidence_text and re.search(by_log, evidence_text):
+    for role, pattern in LOG_SIGNS:
+        if evidence_text and re.search(pattern, evidence_text):
             return role
-    for role, by_name, _ in ROUTES:
-        if job_name and re.search(by_name, job_name, re.I):
-            return role
-    return "ci-quality"
+    return JOB_OWNERS.get(job_name or "", "ci-quality")
 
 
 def handoff_line(role, url, head, merge_tested=False):
@@ -272,9 +294,10 @@ def diagnosis(steps, log):
 
 def card(repo, run_id, job, fetch, head=None, merge_tested=False):
     job_id = int(job["id"])
-    head = job.get("head_sha") or head
-    if head and not re.fullmatch(r"[a-fA-F0-9]{40}", str(head)):
-        head = None
+    head = next(
+        (h for h in (job.get("head_sha"), head) if h and re.fullmatch(r"[a-fA-F0-9]{40}", str(h))),
+        None,
+    )
     state = job.get("conclusion")
     steps = job.get("steps") or []
     failed = [s for s in steps if s.get("conclusion") in FAILED]
@@ -311,7 +334,9 @@ def card(repo, run_id, job, fetch, head=None, merge_tested=False):
         ]
         if skipped_tests:
             evidence += " تخطّى GitHub خطوة " + display(skipped_tests[0]["name"]) + "."
-        role = route(job.get("name") or "", step["name"] if step else "", routed)
+        role = (
+            route(job.get("name") or "", step["name"], routed) if len(failed) == 1 else "ci-quality"
+        )
         evidence += "\n- الخطوة التالية — " + handoff
         handoff = handoff_line(role, url, head, merge_tested)
     elif state == "skipped":

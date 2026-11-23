@@ -30,6 +30,18 @@ def block(cmd, message, fails=True):
     )
 
 
+class Chunky:
+    """A log response that hands out small pieces, as a slow stream would."""
+
+    def __init__(self, data, size=300):
+        self.data, self.at, self.size = data, 0, size
+
+    def read(self, _):
+        piece = self.data[self.at : self.at + self.size]
+        self.at += len(piece)
+        return piece
+
+
 def show(entry, fetch):
     return bot.card("owner/project", 2, entry, fetch)
 
@@ -240,25 +252,19 @@ class Triage(unittest.TestCase):
         agents = file.parents[2] / ".claude/agents"
         for role, (_, agent) in bot.SPECIALISTS.items():
             text = (agents / f"{agent}.md").read_text(encoding="utf-8")
-            tools = re.search(r"(?m)^tools:\s*(.+)$", text).group(1)
+            front = text.split("---", 2)[1]
+            tools = re.search(r"(?ms)^tools:(.*?)(?=^\w+:|\Z)", front).group(1)
             self.assertIn(f"name: {agent}", text, role)
             self.assertNotRegex(tools, r"\b(Edit|Write|NotebookEdit)\b", role)
             self.assertIn("Read only", text, role)
         fixer = (agents / f"{bot.FIXER}.md").read_text(encoding="utf-8")
         self.assertIn("Never push to main, merge", fixer)
-        self.assertEqual({r for r, *_ in bot.ROUTES} | {"ci-quality"}, set(bot.SPECIALISTS))
+        self.assertEqual(set(bot.ROUTES) | {"ci-quality"}, set(bot.SPECIALISTS))
+        self.assertEqual({r for r, _ in bot.LOG_SIGNS}, set(bot.ROUTES))
+        self.assertLessEqual(set(bot.JOB_OWNERS.values()), set(bot.ROUTES))
 
     def test_header_survives_many_trims(self):
         # Review gap (a): the carried header must outlive every chunk, not only the last one.
-        class Chunky:
-            def __init__(self, data):
-                self.data, self.at = data, 0
-
-            def read(self, size):
-                piece = self.data[self.at : self.at + 300]
-                self.at += len(piece)
-                return piece
-
         log = (
             "T ##[group]Run python -m pytest -m unit\nT ##[endgroup]\n"
             + "T PASSED tests/test_ok.py::test_ok\n" * 600
@@ -339,8 +345,10 @@ class Triage(unittest.TestCase):
             "platform-catalog-drift-gate",
         ]:
             self.assertEqual(bot.route("Repository Structural Lint", step_name), "ci-quality")
-        self.assertEqual(bot.route("CI", "Check constraints drift"), "dependencies")
-        self.assertEqual(bot.route("CI", "version-drift check"), "dependencies")
+        self.assertEqual(bot.route("CI", "Check dependency-drift"), "dependencies")
+        self.assertEqual(
+            bot.route("CI", "Run pip install -c constraints-ci-tools.txt ruff"), "dependencies"
+        )
 
     def test_npm_install_failures_reach_the_dependency_reviewer(self):
         # Devin on #1588: unnamed `npm ci` steps inside frontend jobs.
@@ -351,7 +359,7 @@ class Triage(unittest.TestCase):
         ]:
             self.assertEqual(bot.route(job_name, step_name), "dependencies")
         self.assertEqual(
-            bot.route("Frontend Typecheck", "Run npm run build", "npm ERR! code ERESOLVE"),
+            bot.route("Frontend Typecheck", "Prepare the workspace", "npm ERR! code ERESOLVE"),
             "dependencies",
         )
         self.assertEqual(bot.route("Frontend Typecheck", "Run npm run typecheck", ""), "frontend")
@@ -376,6 +384,76 @@ class Triage(unittest.TestCase):
         text = (file.parents[2] / ".claude/agents/frontend-reviewer.md").read_text(encoding="utf-8")
         self.assertIn("npm ci --ignore-scripts", text)
         self.assertNotRegex(text, r"`npm ci`(?! --ignore-scripts)")
+
+    def test_descriptive_step_names_do_not_pick_a_specialist(self):
+        # Independent review of #1588: real SAHOOL names that loose patterns misrouted.
+        cases = [
+            ("runtime-stack-e2e-chaos", "WX-10.6 crop-candidate downstream E2E (real Postgres)"),
+            ("Integration Tests", "S3 Compose slice acceptance (real services, no database)"),
+            ("Integration Tests", "Start isolated PostgreSQL 16 (no external secrets)"),
+            ("Integration Tests", "MFA end-to-end via the real auth app (restricted role)"),
+            ("Repository Structural Lint", "env-compose-drift-guard"),
+            ("Repository Structural Lint", "dependency-conflict-inventory context guard"),
+        ]
+        for job_name, step_name in cases:
+            self.assertEqual(bot.route(job_name, step_name), "ci-quality", step_name)
+
+    def test_each_log_sign_routes(self):
+        signs = {
+            "security": "Found CVE-2026-12345 in urllib3",
+            "migrations": "psycopg.errors.UndefinedTable: x  SQLSTATE 42P01",
+            "dependencies": "npm ERR! code ERESOLVE",
+            "frontend": "src/a.ts(3,5): error TS2322: bad",
+        }
+        for role, text in signs.items():
+            self.assertEqual(bot.route("Unit Tests", "Run the suite", text), role)
+        self.assertEqual(
+            bot.route("Unit Tests", "Run the suite", "GHSA-abcd-1234-wxyz"), "security"
+        )
+        self.assertEqual(
+            bot.route("Unit Tests", "Run the suite", "ERROR: SQLSTATE 42P01"), "migrations"
+        )
+
+    def test_card_routes_by_its_log(self):
+        log = block(
+            "pytest -m unit",
+            'T E   asyncpg.exceptions.UndefinedTableError: relation "farm" does not exist',
+        )
+        result = show(job("failure", [step("Unit suite", "failure")]), lambda _: log)
+        self.assertIn("migrations-reviewer", result)
+        self.assertIn("الخطوة التالية", result)
+
+    def test_several_failed_steps_go_to_ci_quality(self):
+        steps = [step("Run npx tsc --noEmit", "failure"), step("Run bandit", "failure", 2)]
+        result = show(job("failure", steps), lambda _: "")
+        self.assertIn("ci-quality-triage", result)
+
+    def test_bad_job_commit_falls_back_to_the_run_head(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+        entry = dict(job("failure", [step("Typecheck", "failure")]), head_sha="bad")
+        result = bot.card("o/r", 2, entry, lambda _: log, head="c" * 40)
+        self.assertIn("c" * 40, result)
+
+    def test_empty_failure_output_falls_back_to_the_log_end(self):
+        self.assertEqual(bot.failing_output("x" * 9000 + "tail"), ("x" * 9000 + "tail")[-8192:])
+
+    def test_group_closing_after_the_cut_carries_only_its_header(self):
+        group = b"T ##[group]Run pip install x\nT python -m pytest\n"
+        rest = b"T more script\n" * 50 + b"T ##[endgroup]\n" + b"T out\n" * 50
+        text = bot.read_log_tail(io.BytesIO(group + rest), keep=400)
+        self.assertTrue(text.startswith("T ##[group]Run pip install x\nT ##[endgroup]\n"))
+
+    def test_oversized_group_carries_only_its_header(self):
+        group = b"T ##[group]Run big\n" + b"T " + b"s" * 17000 + b"\nT ##[endgroup]\n"
+        text = bot.read_log_tail(io.BytesIO(group + b"T out\n" * 100), keep=300)
+        self.assertTrue(text.startswith("T ##[group]Run big\nT ##[endgroup]\n"))
+
+    def test_echoed_endgroup_text_does_not_close_the_carried_group(self):
+        group = (
+            b"T ##[group]Run echo x\nT echo '##[endgroup]'\nT python -m pytest\nT ##[endgroup]\n"
+        )
+        text = bot.read_log_tail(io.BytesIO(group + b"T out\n" * 100), keep=300)
+        self.assertTrue(text.startswith(group.decode()))
 
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
