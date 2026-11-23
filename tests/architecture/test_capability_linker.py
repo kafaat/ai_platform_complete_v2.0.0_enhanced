@@ -393,9 +393,12 @@ def test_discover_files_skips_gitignored_files_inside_a_git_worktree(monkeypatch
     assert "tests/test_tenant_auth_new.py" in discovered
 
 
-def test_outside_git_only_signed_manifest_paths_are_read_and_nothing_else(tmp_path):
+def test_outside_git_only_signed_manifest_paths_are_read_and_nothing_else(monkeypatch, tmp_path):
     """Hospital review of #1590: outside git the linker must not walk the raw tree. It
     reads only the signed release manifest's paths, as capability_mapping_engine does."""
+    # Hospital review N3: stop git at tmp_path's parent, so the test is outside git even when
+    # the temporary directory sits inside some repository.
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
     module = _load_module()
     module.ROOT = tmp_path
     signed = tmp_path / "tests/test_tenant_auth.py"
@@ -411,8 +414,9 @@ def test_outside_git_only_signed_manifest_paths_are_read_and_nothing_else(tmp_pa
     assert module.discover_files() == ["tests/test_tenant_auth.py"]
 
 
-def test_outside_git_without_a_signed_manifest_the_linker_refuses(tmp_path):
+def test_outside_git_without_a_signed_manifest_the_linker_refuses(monkeypatch, tmp_path):
     """No git listing and no signed manifest: refuse instead of walking the raw tree."""
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
     module = _load_module()
     module.ROOT = tmp_path
     (tmp_path / "tests").mkdir()
