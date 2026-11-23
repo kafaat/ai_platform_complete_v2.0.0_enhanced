@@ -1,5 +1,5 @@
 {
-  "baseline_route_count": 621,
+  "baseline_route_count": 623,
   "routes": [
     {
       "file": "api/chat_proxy_reference.py",
