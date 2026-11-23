@@ -70,6 +70,10 @@ async def internal_field_state(
         ),
     ),
     ai_context: bool = Query(False, description="Attach the platform-owned AI context and policy."),
+    engine_proposals: bool = Query(
+        False,
+        description="F8: stored owner-engine proposals only, for specialist review (read-only).",
+    ),
     request: Request = None,
     _: None = Depends(_require_service_token),
 ):
@@ -92,6 +96,8 @@ async def internal_field_state(
 
     # W0-05 (fields-5): the shared token says "a service"; the assertion says which tenant.
     await asyncio.to_thread(verify_platform_internal_tenant, request, tenant_id)
+    if engine_proposals:
+        return {"engine_proposals": await _stored_engine_proposals(tenant_id, field_id)}
     try:
         async with main.tenant_connection(_ServiceUser(tenant_id)) as conn:
             await main._assert_field_in_tenant(conn, field_id)
@@ -239,6 +245,54 @@ async def internal_ai_advice_event(
     }
 
 
+# F8: the owner reads its own stored, recommendation-only irrigation schedules. SELECT only;
+# the tenant is bound by RLS (tenant_connection) AND by this predicate.
+_STORED_IRRIGATION_PROPOSALS_SQL = """
+SELECT schedule_id::text AS schedule_id, tenant_id::text AS tenant_id, field_id, season_id,
+       solver_version, status, recommendation_only, execution_allowed, horizon_start,
+       horizon_hours, initial_depletion_mm, required_refill_mm, scheduled_irrigation_mm,
+       scheduled_volume_m3, schedule_digest, payload, created_at
+  FROM hourly_irrigation_mpc_schedules
+ WHERE tenant_id = $1::uuid AND field_id = $2
+ ORDER BY created_at DESC
+ LIMIT 10
+"""
+
+
+async def load_stored_engine_proposals(conn, *, tenant_id: str, field_id: str) -> dict:
+    """Proposals an owning engine already stored for this field — read, never computed."""
+    from datetime import UTC, datetime
+    from uuid import UUID
+
+    from shared.ai import engine_proposal_review as review
+
+    if not review.flag_enabled():
+        return review.disabled_envelope(tenant_id=tenant_id, field_id=field_id)
+    tenant_id = str(UUID(str(tenant_id)))
+    rows = await conn.fetch(_STORED_IRRIGATION_PROPOSALS_SQL, tenant_id, field_id)
+    return review.build_review(rows, tenant_id=tenant_id, field_id=field_id, now=datetime.now(UTC))
+
+
+async def _stored_engine_proposals(tenant_id: str, field_id: str) -> dict:
+    """F8 branch of the field-state route: stored proposals only, for specialist review.
+
+    Returned alone (no field-state recompute) so this branch performs reads only. The flag is
+    checked before a connection is opened; with it off the database is not touched.
+    """
+    from shared.ai import engine_proposal_review as review
+
+    if not review.flag_enabled():
+        return review.disabled_envelope(tenant_id=tenant_id, field_id=field_id)
+    try:
+        async with main.tenant_connection(_ServiceUser(tenant_id)) as conn:
+            await main._assert_field_in_tenant(conn, field_id)
+            return await load_stored_engine_proposals(conn, tenant_id=tenant_id, field_id=field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise main._db_unavailable("قراءة مقترحات المحرّكات المخزَّنة (خدمة)", e) from e
+
+
 async def _hand_plans_to_soil_service(req) -> dict | None:
     """soil-service stores the plan copies (it owns them); the platform only forwards them.
 
@@ -267,8 +321,9 @@ async def _preview_advice_facts(conn, req) -> dict:
         return await _compose_canonical(conn, **scope)
 
     async def owner_candidates(**_scope):
-        # There is no production owner-candidate loader on this chat path yet.
-        # An empty catalog rejects every attempted action ID, never fabricates one.
+        # Model-selectable catalog: stays empty by owner decision (F8) — the model must not
+        # choose an action. Stored engine proposals reach the chat for specialist review only,
+        # through _stored_engine_proposals (engine_proposals=true), never through this path.
         return []
 
     try:

@@ -1,7 +1,7 @@
 {
   "domains": [
     {
-      "average_assessed_maturity": 2.3,
+      "average_assessed_maturity": 2.4,
       "average_declared_maturity": 2.5,
       "capability_count": 10,
       "declared_above_evidence": 3,
@@ -9,8 +9,8 @@
       "maturity_distribution": {
         "0": 0,
         "1": 1,
-        "2": 5,
-        "3": 4,
+        "2": 4,
+        "3": 5,
         "4": 0,
         "5": 0
       },
@@ -69,16 +69,16 @@
       "runtime_verified": 0
     },
     {
-      "average_assessed_maturity": 2.12,
+      "average_assessed_maturity": 2.25,
       "average_declared_maturity": 2.88,
       "capability_count": 8,
-      "declared_above_evidence": 4,
+      "declared_above_evidence": 3,
       "domain": "operations",
       "maturity_distribution": {
         "0": 0,
         "1": 3,
-        "2": 1,
-        "3": 4,
+        "2": 0,
+        "3": 5,
         "4": 0,
         "5": 0
       },
@@ -137,16 +137,16 @@
       "runtime_verified": 0
     },
     {
-      "average_assessed_maturity": 1.8,
+      "average_assessed_maturity": 2.2,
       "average_declared_maturity": 3.0,
       "capability_count": 5,
-      "declared_above_evidence": 3,
+      "declared_above_evidence": 2,
       "domain": "soil",
       "maturity_distribution": {
         "0": 0,
-        "1": 3,
+        "1": 2,
         "2": 0,
-        "3": 2,
+        "3": 3,
         "4": 0,
         "5": 0
       },

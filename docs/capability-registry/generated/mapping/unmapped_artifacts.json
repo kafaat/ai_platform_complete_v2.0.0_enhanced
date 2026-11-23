@@ -4716,6 +4716,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/ai_agronomist/engine_proposal_client.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/ai_agronomist/evidence_contract.py",
     "kind": "backend"
   },
@@ -6672,10 +6676,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/learning_feedback.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/manual_converter.py",
     "kind": "backend"
   },
@@ -7177,10 +7177,6 @@
   },
   {
     "path": "services/sahool-platform/api/routers/sync.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/routers/tasks.py",
     "kind": "backend"
   },
   {
@@ -9696,6 +9692,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_recommendation_runtime_honesty.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_recommendations_hub.py",
     "kind": "tests"
   },
@@ -10029,6 +10029,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_weather_overlay_pipeline.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_save_requires_recommended_window.py",
     "kind": "tests"
   },
   {
@@ -10668,6 +10672,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/weather-service/tests/test_operation_plan_top_requires_recommended.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
     "kind": "tests"
   },
@@ -11057,6 +11065,10 @@
   },
   {
     "path": "tests/test_workflow_inventory.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/golden_advisor/test_advisor_golden_eval.py",
     "kind": "tests"
   },
   {
@@ -12196,6 +12208,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_f8_advisor_engine_proposals.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_f8_engine_proposals_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_fake_connection_debt_guard.py",
     "kind": "tests"
   },
@@ -12441,6 +12461,10 @@
   },
   {
     "path": "tests_v9/test_gitleaks_allowlist_scope.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_governed_learning_review_contract.py",
     "kind": "tests"
   },
   {
@@ -12889,6 +12913,10 @@
   },
   {
     "path": "tests_v9/test_mcp_generic_context_auth.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_mcp_generic_context_tool_naming.py",
     "kind": "tests"
   },
   {

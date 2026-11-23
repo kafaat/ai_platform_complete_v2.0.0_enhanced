@@ -321,6 +321,163 @@ def learning_candidate_review_transition(
     }
 
 
+# ── مسار المراجعة (G14 / F-D02): قراءةُ المعلَّق وتسجيلُ القرار — لا تطبيقه ─────────────
+# كانت المرشَّحات تُكتَب ويُصدَر ``review_requested`` ثمّ لا شيء: لا قارئ ولا كاتبَ للحالتين.
+# هذا المسار يقرأ تحت RLS ويكتب ``status``/``reviewed_by``/``reviewed_at`` عبر البوّابة أعلاه فقط؛
+# لا يلمس ``auto_promote``/``auto_adjust`` (قيدا المخطّط يمنعان رفعهما) ولا الدليلَ ولا التغييراتِ
+# المقترحة، ولا يستدعي سجلَّ نماذج ولا محرّكَ ريّ. ولا عمودَ للسبب في الجدولين فيُكتَب حدثُ
+# ``events`` إلحاقيّاً في المعاملة نفسها (fail-closed: لا قرارَ بلا سجلّ سببه وهويّته وزمنه).
+LEARNING_PROPOSAL_KINDS = ("model_promotion", "irrigation")
+LEARNING_REVIEW_EVENT_TYPE = "learning.proposal.review_recorded"
+_REVIEW_DECISION_STATUS = {"accept": "approved", "reject": "rejected"}
+_MODEL_COLUMNS = (
+    "candidate_id AS proposal_id, season_id, NULL::text AS field_id, task, status,"
+    " review_required, auto_promote, NULL::boolean AS auto_adjust, evidence,"
+    " NULL::jsonb AS proposed_parameter_changes, NULL::jsonb AS source_lineage,"
+    " candidate_digest AS digest, reviewed_by, reviewed_at, created_at"
+)
+_IRRIGATION_COLUMNS = (
+    "proposal_id, season_id, field_id, NULL::text AS task, status, review_required,"
+    " NULL::boolean AS auto_promote, auto_adjust, NULL::jsonb AS evidence,"
+    " proposed_parameter_changes, source_lineage, proposal_digest AS digest,"
+    " reviewed_by, reviewed_at, created_at"
+)
+# اسمُ الجدول حرفيٌّ في كلّ عبارة (لا يُركَّب من مُدخل)؛ الأعمدةُ وحدها ثابتٌ مُدرَج.
+_PENDING_SQL = {
+    "model_promotion": f"SELECT {_MODEL_COLUMNS} FROM governed_model_promotion_candidates"
+    " WHERE NOT (status = ANY($1::text[])) ORDER BY created_at, id LIMIT $2",
+    "irrigation": f"SELECT {_IRRIGATION_COLUMNS} FROM irrigation_learning_proposals"
+    " WHERE NOT (status = ANY($1::text[])) ORDER BY created_at, id LIMIT $2",
+}
+_LOCK_SQL = {
+    "model_promotion": f"SELECT {_MODEL_COLUMNS} FROM governed_model_promotion_candidates"
+    " WHERE candidate_id = $1 FOR UPDATE",
+    "irrigation": f"SELECT {_IRRIGATION_COLUMNS} FROM irrigation_learning_proposals"
+    " WHERE proposal_id = $1 FOR UPDATE",
+}
+_REVIEW_SQL = {
+    "model_promotion": "UPDATE governed_model_promotion_candidates"
+    " SET status=$2, reviewed_by=$3, reviewed_at=$4 WHERE candidate_id = $1 AND status = $5"
+    f" RETURNING {_MODEL_COLUMNS}",
+    "irrigation": "UPDATE irrigation_learning_proposals"
+    " SET status=$2, reviewed_by=$3, reviewed_at=$4 WHERE proposal_id = $1 AND status = $5"
+    f" RETURNING {_IRRIGATION_COLUMNS}",
+}
+
+
+def _json_column(value):
+    import json
+
+    return json.loads(value) if isinstance(value, str) else value
+
+
+def _proposal_item(kind: str, row) -> dict:
+    item = {"kind": kind, **dict(row)}
+    for key in ("evidence", "proposed_parameter_changes", "source_lineage"):
+        item[key] = _json_column(item[key])
+    for key in ("reviewed_at", "created_at"):
+        if item[key] is not None:
+            item[key] = item[key].isoformat()
+    item["digest"] = (item["digest"] or "").strip()
+    return {k: v for k, v in item.items() if v is not None or k in ("reviewed_by", "reviewed_at")}
+
+
+async def list_pending_learning_proposals(conn, *, kind: str | None, limit: int) -> list[dict]:
+    """المرشَّحات غير المُراجَعة (لا ``approved``/``rejected``) تحت RLS المعاملة — قراءةٌ فقط."""
+    terminal = sorted(CANDIDATE_REVIEW_TERMINAL)
+    items: list[dict] = []
+    for name in (kind,) if kind else LEARNING_PROPOSAL_KINDS:
+        rows = await conn.fetch(_PENDING_SQL[name], terminal, limit)
+        items.extend(_proposal_item(name, row) for row in rows)
+    items.sort(key=lambda item: item["created_at"])
+    return items[:limit]
+
+
+async def record_learning_proposal_review(
+    conn,
+    *,
+    kind: str,
+    proposal_id: str,
+    decision: str,
+    reason: str,
+    reviewed_by: str,
+    tenant_id: str,
+    reviewed_pool_digest: str | None = None,
+) -> dict:
+    """يسجّل قرار المراجِع على مرشَّحٍ واحد داخل معاملة المستأجِر ولا يطبّقه (``applied: False``).
+
+    ``LookupError`` ⇒ غير موجود تحت RLS (مستأجِرٌ آخر/معرّفٌ مجهول). ``ValueError`` ⇒ انتقالٌ مرفوض:
+    قرارٌ معاكسٌ لما سُجِّل، أو ما ترفضه ``learning_candidate_review_transition``. القرارُ نفسه
+    ثانيةً ⇒ إعادةٌ (``idempotent_replay``) بلا كتابةٍ ولا حدثٍ ثانٍ.
+    """
+    import json
+    from datetime import UTC, datetime
+    from uuid import UUID
+
+    target = _REVIEW_DECISION_STATUS[decision]
+    row = await conn.fetchrow(_LOCK_SQL[kind], proposal_id)
+    if row is None:
+        raise LookupError("LEARNING_PROPOSAL_NOT_FOUND")
+    current = row["status"]
+    if current in CANDIDATE_REVIEW_TERMINAL:
+        if current != target:
+            raise ValueError(f"CANDIDATE_ALREADY_REVIEWED:{current}")
+        return {
+            **_proposal_item(kind, row),
+            "decision": decision,
+            "applied": False,
+            "idempotent_replay": True,
+        }
+    transition = learning_candidate_review_transition(
+        current,
+        target,
+        reviewed_by=reviewed_by,
+        reviewed_at=datetime.now(UTC),
+        evidence_pool_digest=(_json_column(row["evidence"]) or {}).get("pool_digest"),
+        reviewed_pool_digest=reviewed_pool_digest,
+    )
+    updated = await conn.fetchrow(
+        _REVIEW_SQL[kind],
+        proposal_id,
+        transition["status"],
+        transition["reviewed_by"],
+        transition["reviewed_at"],
+        current,
+    )
+    if updated is None:  # لا يقع تحت FOR UPDATE؛ fail-closed على أيّ حال
+        raise ValueError("LEARNING_PROPOSAL_CHANGED_DURING_REVIEW")
+    item = _proposal_item(kind, updated)
+    record = {
+        "kind": kind,
+        "proposal_id": proposal_id,
+        "digest": item["digest"],
+        "previous_status": current,
+        "status": transition["status"],
+        "decision": decision,
+        "reason": reason,
+        "reviewed_by": transition["reviewed_by"],
+        "reviewed_at": item["reviewed_at"],
+        "applied": False,
+    }
+    # entity_type مقيّدٌ في ``events``: المرشَّحان مفتاحُهما الموسم (كحدث review_requested).
+    await conn.fetchval(
+        """SELECT emit_event($1::text,'season'::text,$2::text,$3::uuid,$4::jsonb,$5::text,$6::text,NULL::uuid,now())""",
+        LEARNING_REVIEW_EVENT_TYPE,
+        row["season_id"],
+        UUID(tenant_id),
+        json.dumps(record),
+        EventSource.WEB.value,
+        transition["reviewed_by"],
+    )
+    return {
+        **item,
+        "decision": decision,
+        "reason": reason,
+        "applied": False,
+        "idempotent_replay": False,
+    }
+
+
 # الحدُّ المطلوب كما طُبِّق — مُميِّزٌ لا ``None`` لأنّ ``None`` نفسه حمولةٌ سيّئة تُعلَن.
 _REQUESTED_AS_APPLIED = object()
 

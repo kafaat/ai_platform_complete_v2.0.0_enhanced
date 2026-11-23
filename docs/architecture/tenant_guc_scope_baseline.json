@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "085d4cefbe9f1a9c5ac5d4933ec723d84a05a8cb",
+  "measured_on": "dd5cf3a1af12247980b8d30a4d6d6d68dd3ccd11",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "1bc3124671e4d7cc7e4c36f303a5afd52870faba0dcf9fd8ee423e203198925b",
+  "measurement_input_digest": "687afc470b96110a546cef11916c9815d323266eef743bafca00c129e595e09e",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "30d918b97ec117a05f5b61fdd2a20f51d122e733098fc85fade24d95e491d8d7",
+  "measurement_basis_digest": "dcdddb77d466369279f84542af427f269eedea4ff647f3bfd08b3a885de81d41",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -68,7 +68,7 @@
     },
     {
       "path": "services/decision-service/persistence.py",
-      "sha256": "c864aa3e948a66520ddf35eee8bacd9b9e7772a997ffe59c46681f95a281d946"
+      "sha256": "c9b88c6f20ade3220c5f39948b54a8a167639480869706966f178ef333b5c183"
     },
     {
       "path": "services/field-management-service/fm_gateway.py",
@@ -152,11 +152,11 @@
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",
-      "sha256": "9ce775b08ac818946259ce0ff1ab2db9afd18630557079da3e7b8459baed33d2"
+      "sha256": "0bd1ec2d8682b2f325a4bcaf6136af48316c9ca1e8047370c5a0dc261a44af8b"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_workers.py",
-      "sha256": "efc4309bc659202179363b65665bfce5f3f84fc31dc6f395bb506d444f08b80e"
+      "sha256": "321e470b153916fc14aeedbd1e69bdd0923c258584aba6fc7401f260ee183d83"
     },
     {
       "path": "services/sahool-platform/api/routers/break_glass.py",

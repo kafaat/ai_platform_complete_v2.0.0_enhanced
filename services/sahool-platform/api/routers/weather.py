@@ -24,6 +24,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from api.service_token_auth import _require_service_token
+from api.weather_advice import (  # noqa: E402 — moved out (router size ratchet)
+    _operation_plan_save_refusal,
+    _weather_runtime_smoke_plan,
+)
 from api.weather_alerts import derive_weather_alerts
 from api.weather_service_client import (
     delegated_breaker_state,
@@ -1049,95 +1053,6 @@ def _weather_env_doctor() -> dict:
     }
 
 
-def _weather_runtime_smoke_plan() -> dict:
-    """Operator-oriented smoke plan for Docker/Compose/Kubernetes verification.
-
-    This is a contract artifact, not an external probe: it gives deterministic
-    commands/endpoints that can be executed after `docker compose up` or after a
-    deployment. It intentionally avoids touching Open-Meteo or the database.
-    """
-    base = "/api/v1/weather"
-    return {
-        "status": "ok",
-        "service": "weather-engine",
-        "purpose": "post-deploy smoke verification for MapHub weather runtime",
-        "no_external_io": True,
-        "critical_endpoints": [
-            {
-                "method": "GET",
-                "path": f"{base}/readyz",
-                "expected": [200, 503],
-                "why": "readiness gate; 503 is acceptable only when breaker is intentionally open",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/self-test",
-                "expected": [200],
-                "why": "local engine self-checks",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/runtime-contract",
-                "expected": [200],
-                "why": "UI/API route contract",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/env-doctor",
-                "expected": [200],
-                "why": "configuration guardrails",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/layers",
-                "expected": [200],
-                "why": "frontend weather manifest",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/tile-cache/stats",
-                "expected": [200],
-                "why": "cache accounting",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/metrics.prom",
-                "expected": [200],
-                "why": "Prometheus scrape",
-            },
-        ],
-        "sample_runtime_endpoints": [
-            {
-                "method": "GET",
-                "path": f"{base}/tile-data/8/155/108?layer=temperature&time=now&model=best_match&interpolation=grid",
-                "expected": [200, 429, 502],
-                "why": "real tile path; may need network unless cached",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/operation-plan?lat=15.37&lon=44.19&operations=spraying,irrigation&hours=0,3,6&model=best_match",
-                "expected": [200, 429, 502],
-                "why": "decision path used by probe popup",
-            },
-        ],
-        "frontend_smoke": {
-            "route": "/fields/map-center?field_id=00000000-0000-4000-8000-000000000001&index=ndvi&source=my-fields&weather=1",
-            "expected_ui_contract": [
-                "weather overlay module loads",
-                "weather tiles request interpolation=grid",
-                "probe popup fetches action recommendation",
-                "task and recommendation buttons are present in popup markup",
-            ],
-        },
-        "commands": [
-            "python3 scripts/weather_runtime_smoke.py --base-url http://localhost:8000",
-            "cd frontend && npm run typecheck && npm run build",
-            "cd frontend && npm test -- src/components/maphub/weather/WeatherEngine.static.test.ts",
-            "cd frontend && npm run e2e:weather-smoke -- --project=chromium",
-        ],
-    }
-
-
 def _validate_time_model(time: str, model: str) -> tuple[str, str]:
     time = (time or "now").strip()
     model = (model or "best_match").strip()
@@ -1515,6 +1430,48 @@ def _recommendation_payload_from_plan(field_id: str, plan: dict, crop: str | Non
             "partial": plan.get("partial"),
         },
     }
+
+
+async def _refuse_point_outside_field(conn, user, field_id: str, lat: float, lon: float) -> None:
+    """The clicked point must lie in the tenant's stored field geometry (PostGIS ``ST_Covers``).
+
+    The map sends the point from the click and the field from the selection; nothing tied
+    them. Unknown field ⇒ 404; no stored geometry ⇒ 422 (cannot be verified); outside ⇒ 422.
+    """
+    row = await conn.fetchrow(
+        """SELECT geom IS NOT NULL AS has_geometry,
+                  ST_Covers(geom, ST_SetSRID(ST_MakePoint($3, $4), 4326)) AS covers
+             FROM fields
+            WHERE field_id = $1 AND tenant_id = $2::uuid""",
+        field_id,
+        str(user.tenant_id),
+        float(lon),
+        float(lat),
+    )
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"reason_code": "field_not_found", "message_ar": "الحقل غير موجود."},
+        )
+    if not row["has_geometry"]:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "reason_code": "field_geometry_missing",
+                "message_ar": "لا توجد حدود محفوظة لهذا الحقل؛ لا يمكن التحقّق من النقطة.",
+            },
+        )
+    if row["covers"] is not True:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "reason_code": "point_outside_field",
+                "message_ar": "النقطة المختارة خارج حدود الحقل؛ لا يُحفَظ شيء.",
+                "field_id": field_id,
+                "lat": lat,
+                "lon": lon,
+            },
+        )
 
 
 def _operation_label_ar(operation: str) -> str:
@@ -2830,14 +2787,30 @@ async def weather_create_task_from_operation_plan(
         model=req.model,
     )
     top = plan.get("top_recommendation") or {}
-    draft = _build_weather_task_draft(req.field_id, top, extra_notes=req.notes)
-    draft["assigned_to"] = req.assigned_to
-    draft["estimated_cost_usd"] = req.estimated_cost_usd
+    # G1: only a window the plan recommends and states safe becomes a task (a pending task,
+    # nothing is operated). A refusal names its reason, before any database work.
+    refusal = _operation_plan_save_refusal(top)
     if req.dry_run:
+        draft = None
+        if refusal is None:
+            draft = _build_weather_task_draft(req.field_id, top, extra_notes=req.notes)
+            draft["assigned_to"] = req.assigned_to
+            draft["estimated_cost_usd"] = req.estimated_cost_usd
         _record_weather_observation(
             "task-from-operation-plan", cache_state="dry_run", operation=req.operation
         )
-        return {"created": False, "dry_run": True, "task": draft, "operation_plan": plan}
+        return {
+            "created": False,
+            "dry_run": True,
+            "task": draft,
+            "save_gate": {"allowed": refusal is None, **(refusal or {})},
+            "operation_plan": plan,
+        }
+    if refusal is not None:
+        raise HTTPException(status_code=422, detail=refusal)
+    draft = _build_weather_task_draft(req.field_id, top, extra_notes=req.notes)
+    draft["assigned_to"] = req.assigned_to
+    draft["estimated_cost_usd"] = req.estimated_cost_usd
 
     try:
         from api.main import (
@@ -2849,6 +2822,8 @@ async def weather_create_task_from_operation_plan(
         )
 
         async with tenant_connection(user) as conn:
+            # G1: the point comes from the map click; the field must contain it.
+            await _refuse_point_outside_field(conn, user, req.field_id, req.lat, req.lon)
             row = await conn.fetchrow(
                 f"""INSERT INTO field_tasks
                        (tenant_id, field_id, task_type, priority, status, recommended_date,
@@ -2889,6 +2864,8 @@ async def weather_create_task_from_operation_plan(
             weather_decision_id = await _persist_weather_decision_record(
                 conn, user, decision_record
             )
+    except HTTPException:
+        raise
     except Exception as e:  # noqa: BLE001
         from api.main import _db_unavailable
 
@@ -2926,7 +2903,14 @@ async def weather_recommendation_from_operation_plan(
         hours=req.hours,
         model=req.model,
     )
-    payload = _recommendation_payload_from_plan(req.field_id, plan, crop=req.crop)
+    # G1: a window the plan does not recommend, or does not state safe, is never saved as a
+    # recommendation. A refusal names its reason, before any database work.
+    refusal = _operation_plan_save_refusal(plan.get("top_recommendation"))
+    payload = (
+        _recommendation_payload_from_plan(req.field_id, plan, crop=req.crop)
+        if refusal is None
+        else None
+    )
     rec_id = f"weather-{uuid4().hex[:16]}"
     if req.dry_run:
         _record_weather_observation("recommendation-from-operation-plan", cache_state="dry_run")
@@ -2935,14 +2919,19 @@ async def weather_recommendation_from_operation_plan(
             "dry_run": True,
             "rec_id": rec_id,
             "recommendation": payload,
+            "save_gate": {"allowed": refusal is None, **(refusal or {})},
             "operation_plan": plan,
         }
+    if refusal is not None:
+        raise HTTPException(status_code=422, detail=refusal)
     try:
         import json as _json
 
         from api.main import _db_unavailable, _emit_domain_event, tenant_connection
 
         async with tenant_connection(user) as conn:
+            # G1: the point comes from the map click; the field must contain it.
+            await _refuse_point_outside_field(conn, user, req.field_id, req.lat, req.lon)
             await conn.execute(
                 """INSERT INTO recommendations
                     (rec_id, tenant_id, farm_id, field_id, crop, delivered, reason_ar,
@@ -2981,6 +2970,8 @@ async def weather_recommendation_from_operation_plan(
             weather_decision_id = await _persist_weather_decision_record(
                 conn, user, decision_record
             )
+    except HTTPException:
+        raise
     except Exception as e:  # noqa: BLE001
         from api.main import _db_unavailable
 

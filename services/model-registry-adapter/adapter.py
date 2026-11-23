@@ -109,4 +109,12 @@ def validate_runtime() -> None:
         and os.getenv("MODEL_REGISTRY_DRY_RUN", "true").lower() in TRUTHY
     ):
         raise RegistryError("MODEL_REGISTRY_DRY_RUN must be false in production")
+    # F-R03: Compose passes the registry settings as plain `${NAME:-}` (it interpolates inactive
+    # profiles too, and a guarded required form is not portable across Compose versions), so the
+    # requirement lives here: an adapter with an identity never runs against no registry, in any
+    # SAHOOL_ENV. Without an identity the checks below (URL always, token in production) apply.
+    if os.getenv("REGISTRY_ADAPTER_ID", "").strip():
+        for name in ("MODEL_REGISTRY_URL", "MODEL_REGISTRY_TOKEN"):
+            if not os.getenv(name, "").strip():
+                raise RegistryError(f"{name} is required once REGISTRY_ADAPTER_ID is set")
     HttpRegistry()

@@ -130,6 +130,10 @@ class TaskSummary(BaseModel):
     photo_url: str | None = None
     completed_at: str | None = None
     created_at: str | None = None
+    # G3 (F-D09): جواب الإغلاق يقول هل سُجِّلت نتيجة (None خارج الإغلاق). الإغلاق الإداريّ
+    # بلا نتيجة صريحة ودليلها ⇒ False مع السبب — لا يُقرأ تحقّقاً زراعيّاً.
+    outcome_recorded: bool | None = None
+    outcome_reason: str | None = None
 
 
 class TaskListResponse(BaseModel):
@@ -187,6 +191,12 @@ class TaskUpdateRequest(BaseModel):
     notes: str | None = None
     completed_at: datetime | None = None
     actual_cost_usd: float | None = Field(default=None, ge=0, le=99_999_999.99, allow_inf_nan=False)
+    # G3 (F-D09): نتيجةٌ صريحة ومرجعُ دليلها — معاً، ومع status=completed فقط. القيم مرآة
+    # core.work_order_from_recommendation.OUTCOME_RESULTS (اختبار وحدة يربطهما).
+    outcome_result: (
+        Literal["achieved", "partially_achieved", "not_achieved", "inconclusive"] | None
+    ) = None
+    outcome_evidence_ref: str | None = Field(default=None, min_length=1, max_length=500)
 
     @field_validator("actual_cost_usd", mode="before")
     @classmethod
@@ -211,6 +221,12 @@ class TaskUpdateRequest(BaseModel):
             self.status != "completed"
         ):
             raise ValueError("completed_at/actual_cost_usd require status=completed")
+        has_result = self.outcome_result is not None
+        has_evidence = bool((self.outcome_evidence_ref or "").strip())
+        if has_result != has_evidence:
+            raise ValueError("outcome_result and outcome_evidence_ref go together")
+        if has_result and self.status != "completed":
+            raise ValueError("outcome_result/outcome_evidence_ref require status=completed")
         return self
 
 
@@ -820,3 +836,98 @@ class PestEscalationRequest(BaseModel):
     severity: float = 0.0
     # للاستئناف بعد التعليق: موافقة الخبير (approved) أو رفضه (rejected)
     approval_status: str | None = None
+
+
+# ── Farm operations ledger record requests (water, energy, equipment, labour, inputs) ──
+# Kept here, not in api/routers/farm_operations_ledger.py, so that router stays within its
+# frozen size (tests/architecture/test_router_size_ratchet.py); the router re-exports them.
+
+
+def _non_negative_or_none(v: float | None, name: str) -> float | None:
+    if v is None:
+        return None
+    if v < 0:
+        raise ValueError(f"{name} must be >= 0")
+    return v
+
+
+class WaterRecordIn(BaseModel):
+    well_id: str | None = None
+    pump_id: str | None = None
+    pivot_id: str | None = None
+    hours_operated: float | None = None
+    water_volume_m3: float | None = None
+    measurement_method: str | None = Field(None, description="meter|estimate|calculated")
+    notes: str | None = None
+
+    @field_validator("hours_operated", "water_volume_m3")
+    @classmethod
+    def _positive(cls, v, info):
+        return _non_negative_or_none(v, info.field_name)
+
+
+class EnergyRecordIn(BaseModel):
+    energy_source: str = "unknown"
+    kwh: float | None = None
+    diesel_liters: float | None = None
+    hours_operated: float | None = None
+    equipment_id: str | None = None
+    well_id: str | None = None
+    pivot_id: str | None = None
+    notes: str | None = None
+
+    @field_validator("kwh", "diesel_liters", "hours_operated")
+    @classmethod
+    def _positive(cls, v, info):
+        return _non_negative_or_none(v, info.field_name)
+
+
+class EquipmentRecordIn(BaseModel):
+    equipment_id: str
+    operator_id: str | None = None
+    hours_worked: float | None = None
+    fuel_liters: float | None = None
+    maintenance_cost: float | None = None
+    notes: str | None = None
+
+    @field_validator("hours_worked", "fuel_liters", "maintenance_cost")
+    @classmethod
+    def _positive(cls, v, info):
+        return _non_negative_or_none(v, info.field_name)
+
+
+class LaborRecordIn(BaseModel):
+    worker_id: str | None = None
+    workers_count: int | None = None
+    hours: float | None = None
+    wage_amount: float | None = None
+    notes: str | None = None
+
+    @field_validator("workers_count")
+    @classmethod
+    def _workers_positive(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("workers_count must be >= 0")
+        return v
+
+    @field_validator("hours", "wage_amount")
+    @classmethod
+    def _positive(cls, v, info):
+        return _non_negative_or_none(v, info.field_name)
+
+
+class InputRecordIn(BaseModel):
+    input_type: str
+    inventory_item_id: str | None = None
+    # F-D11: names the stock batch this input came from; deducted only behind
+    # FEATURE_LEDGER_INVENTORY_DEDUCTION (OFF by default), never stored on the input row.
+    inventory_batch_id: str | None = None
+    quantity: float
+    unit: str
+    estimated_cost: float | None = None
+    notes: str | None = None
+
+    @field_validator("quantity", "estimated_cost")
+    @classmethod
+    def _positive(cls, v, info):
+        return _non_negative_or_none(v, info.field_name)

@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 140,
+      "line": 142,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 74,
@@ -289,7 +289,7 @@
     },
     {
       "kind": "app",
-      "line": 829,
+      "line": 926,
       "module": "services.local-ai-rag.main",
       "node_id": "services.local-ai-rag.main:app",
       "route_count": 5,
@@ -1117,7 +1117,7 @@
     },
     {
       "kind": "router",
-      "line": 52,
+      "line": 60,
       "module": "services.sahool-platform.api.routers.farm_operations_ledger",
       "node_id": "services.sahool-platform.api.routers.farm_operations_ledger:router",
       "route_count": 12,
@@ -1144,7 +1144,7 @@
     },
     {
       "kind": "router",
-      "line": 32,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.field_ai_context",
       "node_id": "services.sahool-platform.api.routers.field_ai_context:router",
       "route_count": 1,
@@ -1450,10 +1450,10 @@
     },
     {
       "kind": "router",
-      "line": 28,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.learning",
       "node_id": "services.sahool-platform.api.routers.learning:router",
-      "route_count": 3,
+      "route_count": 5,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -2044,7 +2044,7 @@
     },
     {
       "kind": "router",
-      "line": 46,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.weather",
       "node_id": "services.sahool-platform.api.routers.weather:router",
       "route_count": 29,
@@ -3045,7 +3045,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "25bedf245a66a5f386d12fc7c6096d502e230c839cd51edc5f4ee0b1e4756258",
+  "inventory_sha256": "901219d619163eca83073a048c3340416720c7f4d368fd62d4129f3ff9f37987",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {
@@ -4021,7 +4021,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 52,
+      "line": 60,
       "module": "services.sahool-platform.api.routers.farm_operations_ledger",
       "node_id": "services.sahool-platform.api.routers.farm_operations_ledger:router",
       "route_count": 12,
@@ -4051,7 +4051,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 32,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.field_ai_context",
       "node_id": "services.sahool-platform.api.routers.field_ai_context:router",
       "route_count": 1,
@@ -4391,10 +4391,10 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 28,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.learning",
       "node_id": "services.sahool-platform.api.routers.learning:router",
-      "route_count": 3,
+      "route_count": 5,
       "safe_to_delete": false,
       "symbol": "router"
     },
@@ -5051,7 +5051,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 46,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.weather",
       "node_id": "services.sahool-platform.api.routers.weather:router",
       "route_count": 29,

@@ -28,6 +28,10 @@ from fastapi.security import HTTPBearer as _B
 
 # بلا try/except قصداً: غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع.
 from shared.security.access_tokens import decode_access_token
+from shared.security.tenant_assertion_headers import (
+    TenantAssertionError,
+    tenant_assertion_headers,
+)
 from shared.security.trusted_tenant import service_token_ok
 
 try:
@@ -86,6 +90,18 @@ NUM_CTX = int(os.getenv("NUM_CTX", "8192"))  # context window
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 # حدّ أقصى لحجم الملفّ المرفوع (منع DoS عبر تحميل ملفّ ضخم في الذاكرة).
 MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "25"))
+# F1: an upload may name a field; its scope (field, crop, region) comes only from the
+# field's owner, field-management-service, read with the service token and a signed
+# tenant assertion — never from the file, the parser or the client body.
+FIELD_SERVICE_URL = os.getenv("FIELD_SERVICE_URL", "").rstrip("/")
+FIELD_SERVICE_TENANT_ASSERTION_KEY = os.getenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", "")
+FIELD_SERVICE_TENANT_ASSERTION_KEY_ID = os.getenv(
+    "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID", "current"
+)
+FIELD_SERVICE_CALLER = "local-ai-rag"
+# The advisor's own field-id shape (ai_agronomist FIELD_ID_PATTERN), so a bound document is
+# reachable by its field question; it also keeps the owner path a single segment.
+_FIELD_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,50}$")
 
 _TENANT_RE = re.compile(r"^[a-zA-Z0-9_\-]{1,64}$")
 _GLOBAL_REFERENCE_TENANT = "__global__"
@@ -309,6 +325,61 @@ def _document_metadata(raw: object) -> dict:
     return clean
 
 
+async def _bind_field_scope(tenant_id: str, field_id: str) -> dict[str, str]:
+    """Field scope of an upload, confirmed by the field's owner for this tenant.
+
+    F1: the advisor searches a field question with ``field_id`` and the field's crop, and the
+    canonical tenant filter requires a tenant chunk to carry both. The uploader may only
+    name the field; field-management-service answers whether that field belongs to the
+    tenant (another tenant's field is a 404 there, refused here) and its own record supplies
+    crop and region. Fail closed: no owner configured, an owner error or a record for another
+    field never becomes a scope.
+    """
+    if not isinstance(field_id, str) or not _FIELD_ID_RE.fullmatch(field_id):
+        raise HTTPException(400, "Invalid field_id")
+    if not FIELD_SERVICE_URL or not FIELD_SERVICE_TENANT_ASSERTION_KEY or not AGENT_TOKEN:
+        raise HTTPException(503, "field_scope_binding_unavailable")
+    path = f"/internal/fields/{field_id}"
+    try:
+        headers = tenant_assertion_headers(
+            key=FIELD_SERVICE_TENANT_ASSERTION_KEY,
+            key_id=FIELD_SERVICE_TENANT_ASSERTION_KEY_ID,
+            service=FIELD_SERVICE_CALLER,
+            tenant_id=tenant_id,
+            method="GET",
+            path=path,
+        )
+    except TenantAssertionError as exc:
+        raise HTTPException(503, "field_scope_binding_unavailable") from exc
+    headers.update({"X-Agent-Token": AGENT_TOKEN, "Accept": "application/json"})
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            response = await client.get(f"{FIELD_SERVICE_URL}{path}", headers=headers)
+    except httpx.HTTPError as exc:
+        logger.warning("RAG_FIELD_OWNER_UNAVAILABLE type=%s", type(exc).__name__)
+        raise HTTPException(503, "field_owner_unavailable") from exc
+    if response.status_code == 404:
+        raise HTTPException(404, "field not found for this tenant")
+    if response.status_code in (401, 403):
+        logger.error("RAG_FIELD_OWNER_AUTH_CONTRACT status=%s", response.status_code)
+        raise HTTPException(502, "field_owner_auth_contract")
+    if response.status_code != 200:
+        logger.warning("RAG_FIELD_OWNER_STATUS status=%s", response.status_code)
+        raise HTTPException(503, "field_owner_unavailable")
+    try:
+        record = response.json()
+    except ValueError as exc:
+        raise HTTPException(502, "field_owner_invalid_record") from exc
+    if not isinstance(record, Mapping) or record.get("field_id") != field_id:
+        raise HTTPException(502, "field_owner_invalid_record")
+    scope = {"field_id": field_id}
+    for key in ("crop", "region"):
+        value = record.get(key)
+        if isinstance(value, str) and (text := _clean_metadata_text(value)):
+            scope[key] = text
+    return scope
+
+
 # One upload of a document at a time (review on #1582). rag-retrieval runs replicas over one
 # Qdrant collection with no shared lock, and two revisions of one document often share an
 # identical chunk, hence one storage point: an older publication landing after a newer one
@@ -346,11 +417,14 @@ async def _publishing_steps(keys):
         for key in ordered:
             await _PUBLISHING[key].acquire()
             held.append(key)
-        if any(key in _PUBLICATION_IN_DOUBT for key in ordered):
+        in_doubt = [key for key in ordered if key in _PUBLICATION_IN_DOUBT]
+        if in_doubt:
             raise HTTPException(
                 409,
                 {
                     "code": "DOCUMENT_PUBLICATION_IN_DOUBT",
+                    # The caller maps these to its file names (hospital review on #1582).
+                    "document_ids": [document for _tenant, document in in_doubt],
                     "message": "an earlier upload of this file may still be being written; "
                     "it can be uploaded again after the knowledge service restarts",
                 },
@@ -385,17 +459,23 @@ async def ingest_documents(
     file_paths: list[Path],
     tenant_id: str = "default",
     source_names: dict[str, str] | None = None,
+    scope: Mapping[str, str] | None = None,
 ) -> dict:
     """Parse locally, but write knowledge only through the canonical retrieval authority.
 
     ARCH-S3 writer convergence: local-ai-rag no longer writes Qdrant during ingest.
     The direct Qdrant dependency remains read-only while retrieval parity is measured.
     Canonical-ingest failure is explicit and fail-closed; there is no direct-write fallback.
+
+    ``scope`` is the owner-confirmed field scope from ``_bind_field_scope`` (empty: a
+    tenant-wide document). It is written after the allow-list and the server-owned fields,
+    and it is part of the document identity, so one file name for two fields is two documents.
     """
     all_docs: list[Document] = []
     chunks: list[Document] = []
     rejected = 0
     source_names = source_names or {}
+    scope = dict(scope or {})
     # One basename is one document id (tenant + name), so two files with one name would be
     # one document with two revisions, which the canonical ingest refuses as a whole batch
     # (422, seen by the uploader as 503). Refuse it here, naming the file (review on #1582).
@@ -427,6 +507,7 @@ async def ingest_documents(
                 d.metadata["source_uri"] = f"tenant-upload://{tenant_id}/{original_name}"
                 d.metadata["source_revision"] = f"sha256:{file_digest}"
                 d.metadata["ingested_at"] = ingested_at
+                d.metadata.update(scope)
             file_chunks = split_docs(docs)
         except Exception as e:  # noqa: BLE001 — رفضٌ مُسجَّل لمستندٍ واحد
             rejected += 1
@@ -447,9 +528,20 @@ async def ingest_documents(
         by_source.setdefault(str(chunk.metadata.get("source_file") or "unknown"), []).append(chunk)
 
     wire_chunks: list[dict] = []
+    # A tenant-wide document keeps its historical identity ("tenant:file"). A field document
+    # hashes a structurally different input, NUL-led and NUL-separated, so no tenant-wide file
+    # name can spell it: "field:F1:notes.pdf" uploaded tenant-wide and "notes.pdf" uploaded for
+    # field F1 are two documents, and neither replaces the other as a revision. Tenant ids,
+    # field ids (_FIELD_ID_RE) and file names carry no NUL, so the parts cannot run together.
+    field_id = scope.get("field_id")
     document_names: dict[str, str] = {}
     for source_file, rows in sorted(by_source.items()):
-        document_id = hashlib.sha256(f"{tenant_id}:{source_file}".encode()).hexdigest()
+        identity = (
+            "\0".join(("", "field-v1", tenant_id, str(field_id), source_file))
+            if field_id
+            else f"{tenant_id}:{source_file}"
+        )
+        document_id = hashlib.sha256(identity.encode()).hexdigest()
         document_names[document_id] = source_file
         total = len(rows)
         for idx, chunk in enumerate(rows):
@@ -488,7 +580,12 @@ async def ingest_documents(
         response.raise_for_status()
         answer = response.json()
         accepted = int(answer.get("ingested", 0))
-    except HTTPException:
+    except HTTPException as exc:
+        detail = exc.detail if isinstance(exc.detail, dict) else None
+        if detail and detail.get("code") == "DOCUMENT_PUBLICATION_IN_DOUBT":
+            # Name the files of a multi-file upload that are in doubt; the others were not sent.
+            ids = detail.pop("document_ids", [])
+            detail["files"] = sorted(document_names.get(i, "unknown") for i in ids)
         raise
     except Exception as exc:  # noqa: BLE001 — canonical writer failure must be explicit
         logger.warning("RAG_CANONICAL_INGEST_FAILED type=%s", type(exc).__name__)
@@ -877,15 +974,19 @@ async def query_endpoint(req: QueryRequest, user: dict = Depends(_get_rag_user))
 async def ingest_endpoint(
     files: list[UploadFile] = File(...),
     tenant_id: str = Form("default"),
+    field_id: str | None = Form(None),
     x_agent_token: str = Header(None),
 ):
     """Upload PDF/TXT/MD files to build the agricultural knowledge base.
 
     يتطلّب توكن خدمة (منع تسميم قاعدة المعرفة بمستندات مزوّرة).
+    ``field_id`` (optional) names the field the documents are for; its ownership, crop and
+    region come from the field's owner (``_bind_field_scope``). No field: tenant-wide.
     """
     _require_service_token(x_agent_token)
     _require_ready()
     tenant_id = _validate_tenant_id(tenant_id)
+    scope = await _bind_field_scope(tenant_id, field_id) if field_id else {}
     paths: list[Path] = []
     source_names: dict[str, str] = {}
     # Every temp file is removed whatever happens: a later unsupported or oversized
@@ -920,7 +1021,7 @@ async def ingest_endpoint(
                     tmp.close()
             source_names[str(tmp_path)] = Path(upload.filename).name
 
-        result = await ingest_documents(paths, tenant_id, source_names=source_names)
+        result = await ingest_documents(paths, tenant_id, source_names=source_names, scope=scope)
     finally:
         for p in paths:
             p.unlink(missing_ok=True)

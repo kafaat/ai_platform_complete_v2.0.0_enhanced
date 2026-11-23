@@ -344,3 +344,66 @@ def test_the_upload_waits_for_rag_retrieval_longer_than_a_short_request(tmp_path
     asyncio.run(ingest(paths, "tenant-a", source_names=names))
     assert ns["_timeouts"] == [ns["_CANONICAL_INGEST_TIMEOUT_S"]]
     assert ns["_CANONICAL_INGEST_TIMEOUT_S"] >= 600
+
+
+def test_the_in_doubt_refusal_names_the_files_of_a_multi_file_upload(tmp_path):
+    """Hospital review on #1582: the 409 named no document, so a multi-file upload could not
+    tell which of its files was blocked."""
+    state, post = _writer_that_outlives_the_client(httpx.ReadTimeout("timed out"))
+    ingest, _ns = _compile(post)
+
+    async def run():
+        a = _upload(tmp_path, "a", [("guide.txt", "first revision")])
+        b = _upload(tmp_path, "b", [("guide.txt", "second revision"), ("calendar.txt", "cal")])
+        with pytest.raises(HTTPException):
+            await ingest(a[0], "tenant-a", source_names=a[1])
+        with pytest.raises(HTTPException) as second:
+            await ingest(b[0], "tenant-a", source_names=b[1])
+        await asyncio.gather(*state["server"])
+        return second.value
+
+    refused = asyncio.run(run())
+    assert refused.status_code == 409
+    assert refused.detail["code"] == "DOCUMENT_PUBLICATION_IN_DOUBT"
+    assert refused.detail["files"] == ["guide.txt"]
+    assert "document_ids" not in refused.detail
+    assert state["calls"] == 1, "nothing of the refused upload was sent"
+
+
+def test_two_revisions_of_one_file_in_one_field_still_wait_for_each_other(tmp_path):
+    """F1 puts the field in the document identity; the lock follows that identity, so two
+    concurrent revisions of a file in the same field are still serialised, and the same file
+    name in two fields is two documents that may publish together (wave-3 review)."""
+    in_flight: list[str] = []
+    overlap: list[tuple[str, str]] = []
+
+    async def post(body):
+        doc = body["chunks"][0]["document_id"]
+        for other in in_flight:
+            overlap.append((doc, other))
+        in_flight.append(doc)
+        await asyncio.sleep(0.02)
+        in_flight.remove(doc)
+        return _Response({"ingested": len(body["chunks"]), "receipts": []})
+
+    ingest, ns = _compile(post)
+
+    async def run(tag, scopes):
+        uploads = [
+            _upload(tmp_path, f"{tag}{i}", [("guide.txt", f"revision {i}")]) for i in range(2)
+        ]
+        return await asyncio.gather(
+            *(
+                ingest(paths, "tenant-a", source_names=names, scope=scope)
+                for (paths, names), scope in zip(uploads, scopes, strict=True)
+            )
+        )
+
+    same_field = {"field_id": "field-1"}
+    asyncio.run(run("same", [same_field, same_field]))
+    assert overlap == [], "two revisions of one file in one field must not publish together"
+
+    overlap.clear()
+    asyncio.run(run("two", [{"field_id": "field-1"}, {"field_id": "field-2"}]))
+    assert len(overlap) == 1, "one file name in two fields is two documents, not one lock"
+    assert ns["_PUBLISHING"] == {} and ns["_PUBLISHING_USERS"] == {}

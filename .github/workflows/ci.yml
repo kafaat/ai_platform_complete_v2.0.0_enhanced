@@ -1439,6 +1439,15 @@ jobs:
           # builds throwaway databases and a NOBYPASSRLS role from this superuser DSN. With the
           # switch, a missing database is a failure, not a green skip.
           FARM_SCOPE_CERTIFICATION_REQUIRED: "1"
+          # F-D11: a ledger input deducts a named inventory batch only behind its flag, once per
+          # Idempotency-Key, never another tenant's or below zero
+          # (tests_v9/test_farm_ledger_inventory_deduction_live_pg.py, throwaway NOBYPASSRLS
+          # role). With the switch, a missing or unmigrated database is a failure, not a skip.
+          FARM_LEDGER_INVENTORY_CERTIFICATION_REQUIRED: "1"
+          # The hourly MPC schedule writer stores what the solver computed, on v179 as written, via a
+          # throwaway NOBYPASSRLS role (tests_v9/test_hourly_mpc_schedule_writer_live_pg.py). It
+          # could never persist a schedule until this was measured live; a skip is a failure here.
+          IRR_SCHEDULE_WRITER_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation
@@ -1684,6 +1693,17 @@ jobs:
           WATER_LEDGER_ET0_CERTIFICATION_REQUIRED: "1"
           COVERAGE_FILE: .coverage.integration-auth
         run: pytest -v -m integration -rs tests_v9/test_water_ledger_et0_provenance_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # F-D04 (v288): a model promotion writes its serving alias pending_external_ack, never
+      # active, and the model worker claims each promotion once (requested | blocked | skipped),
+      # so the default disabled configuration does not re-pick it every cycle. Real writer on a
+      # NOBYPASSRLS role, real worker; only the NATS publish is recorded. The flag turns any skip
+      # into a failure.
+      - name: Model promotion waits for an external ack and leaves the queue (F-D04, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          FD04_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_model_promotion_ack_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # v274-v277 (field-management-service owns the pin inspection and task cost tables): hand-off
       # state machine, evidence-version invalidation (P3), the v277 close gate through the
       # platform's PATCH, the cost trigger history, the expense link's farm/field check and the
@@ -1911,6 +1931,42 @@ jobs:
           NATS_OUTBOX_CERTIFICATION_REQUIRED: "1"
           COVERAGE_FILE: .coverage.integration-auth
         run: pytest -v -m integration -rs tests_v9/test_nats_outbox_staging_enablement_live.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # Wave 3 (#1587, CI-LIVE-PG-COVERAGE-UNREPORTED-01): the platform journeys below ran only in the shared run, which collects no coverage, so the code they reach read as uncovered on codecov/patch. Each now also runs here with its switch (a skip is a failure) and appends to the job coverage. Each module connects as the schema owner from TEST_DATABASE_ADMIN_URL and serves requests through a throwaway NOBYPASSRLS role it creates.
+      # G3 (F-D06, F-D09): a work order creates its one field task behind its flag, and closing the task records an attributed outcome.
+      - name: Work order creates its field task and records the close outcome (G3, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          WORK_ORDER_FIELD_TASK_LINK_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_work_order_field_task_link_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # G3: a field task can be created on a field the API created (field_tasks.field_id references fields).
+      - name: Field task on an API-created field (G3, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          FIELD_TASK_ON_API_FIELD_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_field_task_on_api_field_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # G14: governed learning proposals are listed and reviewed under RLS, never another tenant's.
+      - name: Governed learning proposals are reviewed under RLS (G14, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          GOVERNED_LEARNING_REVIEW_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_governed_learning_review_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # G1: weather refuses to save a window that is not recommended, or a point outside the field (PostGIS).
+      - name: Weather save refuses a point outside the field (G1, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          WEATHER_SAVE_POINT_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_weather_save_point_in_field_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # G6 (F-D11): a ledger input deducts a named inventory batch once per Idempotency-Key, never another tenant's or below zero (also certified in the shared run).
+      - name: Farm ledger deducts a named inventory batch once (G6, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          FARM_LEDGER_INVENTORY_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_farm_ledger_inventory_deduction_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
 
       # Live coverage (#1427 follow-up, extended by CI-LIVE-PG-COVERAGE-UNREPORTED-01): every
       # certification step after the shared run appends to .coverage.integration-auth with
@@ -2049,6 +2105,12 @@ jobs:
       - name: Decision-service mirror-mode contract (SoR off)
         working-directory: services/decision-service
         run: pytest tests/test_p4_decision_service_runtime.py -q -p no:cacheprovider
+      # F-D01 (G5): the outbox is reported as pending and undelivered, never as delivered.
+      # Unit contract of the readiness block here; the live probe needs PostgreSQL 16 and runs in
+      # the Decision 033 PG16 job.
+      - name: Decision outbox backlog truthfulness (F-D01, unit)
+        working-directory: services/decision-service
+        run: pytest tests/test_outbox_backlog_truthfulness.py -q -p no:cacheprovider
       # WX-10.7 review transition (SoR ON + real Postgres): state machine + concurrency race +
       # append-only + idempotency. Separate step so SoR env never leaks into the mirror contract.
       - name: WX-10.7 review tests (real Postgres, SoR on)
@@ -2461,6 +2523,15 @@ jobs:
           --cov=${{ github.workspace }}/services/decision-service
           --cov-config=${{ github.workspace }}/services/decision-service/.coveragerc
           --cov-report=
+      # F-D01 (G5): the outbox backlog probe on PostgreSQL 16. Each run creates its own database
+      # and roles from this job's superuser DSN and drops them; the switch makes a missing
+      # database a failure, not a skip.
+      - name: Decision outbox backlog probe (F-D01, real PostgreSQL 16)
+        working-directory: services/decision-service
+        env:
+          DECISION_OUTBOX_TEST_DATABASE_URL: postgresql://decision033_admin:disposable_test_only@127.0.0.1:5436/decision033_test
+          DECISION_OUTBOX_CERTIFICATION_REQUIRED: "1"
+        run: pytest tests/test_outbox_backlog_live_pg.py -v -rs -p no:cacheprovider
       - name: Export decision-033 PG16 coverage with Git-relative paths
         run: >-
           python -m coverage xml

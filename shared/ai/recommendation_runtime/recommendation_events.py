@@ -54,6 +54,11 @@ class RecommendationEventPublisher:
         self.enabled = enabled
         self.published: list[tuple[str, RecommendationEvent]] = []
 
+    @property
+    def delivers(self) -> bool:
+        """Whether ``publish`` hands events to a broker; otherwise they stay in ``published``."""
+        return self.enabled and self.client is not None
+
     async def publish(self, event: RecommendationEvent) -> bool:
         self.published.append((event.subject(), event))
         if not self.enabled or self.client is None:
