@@ -11012,6 +11012,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/test_madar_ci.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/test_migration_index_columns_exist.py",
     "kind": "tests"
   },
