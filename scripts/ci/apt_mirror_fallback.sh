@@ -60,10 +60,44 @@ switch_apt_mirror() {
 # مُكرَّراً. واليتيمُ كان على وشك الإتمام.
 #
 # لا يُقتَل: قتلُ `dpkg` أثناء التثبيت يُفسد حالته. يُنتظَر حتّى السقف، ويُسمّى إن بقي.
+#
+# **الاستثناءُ الوحيد: `apt-get update`.** مقيسٌ في تشغيل 45206601165 (2026-11-23،
+# Realtime Web Call/isolated-document على main `042b7e5e`): تعلّقت المحاولةُ الأولى على
+# مرآة azure، فبقي `apt-get update` (PID 2650) يتيماً على المرآة القديمة — تبديلُ الملفّ
+# لا يصل إلى عمليّةٍ تعمل — وحمل قفل `/var/lib/apt/lists/` بعد السقف، فسقطت المحاولتان
+# الثانية والثالثة في ثانيةٍ لكلٍّ. `update` لا يكتب إلّا قوائمَ الحزم، وتُعاد كاملةً في
+# المحاولة التالية على المرآة البديلة؛ فإنهاؤه بعد السقف آمن. أمّا `install` و`dpkg`
+# فيبقيان منتظَرَين لا مقتولَين.
+# يُنهي `apt-get update` يتيماً تجاوز السقف (لا شيء غيره): TERM ثمّ KILL إن بقي.
+_end_orphan_apt_update() {
+  local busy="$1" pids grace="${APT_KILL_GRACE:-10}" t=0
+  pids="$(printf '%s\n' "$busy" | awk '{print $1}' | tr '\n' ' ')"
+  echo "apt-get update يتيمٌ تجاوز السقف على مرآةٍ متعثّرة — يُنهى (قوائمُ فقط، لا dpkg): $busy"
+  # shellcheck disable=SC2086
+  sudo kill -TERM $pids 2>/dev/null || true
+  while pgrep -a -x 'apt-get|apt|dpkg' >/dev/null 2>&1 && [ "$t" -lt "$grace" ]; do
+    sleep 1
+    t=$((t + 1))
+  done
+  if pgrep -a -x 'apt-get|apt|dpkg' >/dev/null 2>&1; then
+    # shellcheck disable=SC2086
+    sudo kill -KILL $pids 2>/dev/null || true
+  fi
+  echo "تحرّر قفلُ apt بإنهاء update اليتيم"
+}
+
 wait_for_apt_idle() {
   local cap="${1:-300}" poll="${APT_IDLE_POLL:-5}" waited=0 busy
   while busy="$(pgrep -a -x 'apt-get|apt|dpkg' 2>/dev/null)" && [ -n "$busy" ]; do
     if [ "$waited" -ge "$cap" ]; then
+      # بعد `update` خياراتٌ فقط حتّى نهاية السطر: `apt-get -c update install …` تثبيتٌ
+      # بملفّ إعدادٍ اسمه update، لا update — فلا يُصنَّف قابلاً للإنهاء (Copilot على #1593).
+      # here-string لا pipe: مع pipefail قد يُعطي SIGPIPE على printf رمزاً غير صفريّ فيقلبه
+      # `!` إلى «اقتل الكلّ» — بما فيه install/dpkg.
+      if ! grep -Evq '^[0-9]+ apt(-get)?( -[^ ]+)* update( -[^ ]+)*$' <<<"$busy"; then
+        _end_orphan_apt_update "$busy"
+        return 0
+      fi
       echo "apt ما زال يحمل القفل بعد ${cap}ث — المحاولةُ التالية قد تسقط عليه: $busy"
       return 0
     fi
