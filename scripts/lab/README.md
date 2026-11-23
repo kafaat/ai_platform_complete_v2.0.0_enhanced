@@ -96,6 +96,11 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 37. Canonical observations store (W1-11, v286, restricted role)
 38. Install pinned nats-server for the W3-01 outbox proof
 39. NATS outbox staging enablement on real PostgreSQL and JetStream (W3-01)
+40. Work order creates its field task and records the close outcome (G3, real-PG)
+41. Field task on an API-created field (G3, real-PG)
+42. Governed learning proposals are reviewed under RLS (G14, real-PG)
+43. Weather save refuses a point outside the field (G1, real-PG)
+44. Farm ledger deducts a named inventory batch once (G6, real-PG)
 
 The raster step loads `scripts.raster_pg.required_cases`, which requires all seven
 live cases without skips, failures or duplicates. It validates the JUnit path

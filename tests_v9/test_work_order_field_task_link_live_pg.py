@@ -20,6 +20,7 @@ role (RLS applies). Only the users rows are seeded by the schema owner.
 from __future__ import annotations
 
 import asyncio
+import importlib
 import json
 import os
 import sys
@@ -30,13 +31,28 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
-asyncpg = pytest.importorskip("asyncpg")
-httpx = pytest.importorskip("httpx")
-pytest.importorskip("fastapi")
+# Switch read before any import (test_certification_switch_precedes_importorskip): on the
+# certifying CI step a missing dependency or an unusable database fails the run, not a skip.
+_CERTIFICATION_REQUIRED = os.getenv("WORK_ORDER_FIELD_TASK_LINK_CERTIFICATION_REQUIRED") == "1"
+
+
+def _require(module: str):
+    """Import ``module``; under the certification switch a missing one fails the run."""
+    if _CERTIFICATION_REQUIRED:
+        return importlib.import_module(module)
+    return pytest.importorskip(module)
+
+
+asyncpg = _require("asyncpg")
+httpx = _require("httpx")
+_require("fastapi")
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
-DSN = os.getenv(
+# The module connects as the schema owner and creates its own throwaway NOBYPASSRLS role for the
+# request path. On its certifying CI step the owner comes from TEST_DATABASE_ADMIN_URL, so the
+# step's TEST_DATABASE_URL never names a privileged role.
+DSN = os.getenv("TEST_DATABASE_ADMIN_URL") or os.getenv(
     "TEST_DATABASE_URL", "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test"
 )
 RING = [[44.200, 15.300], [44.204, 15.300], [44.204, 15.304], [44.200, 15.304], [44.200, 15.300]]
@@ -58,6 +74,10 @@ async def _probe() -> str:
 
 
 _WHY = asyncio.run(_probe())
+if _WHY and _CERTIFICATION_REQUIRED:
+    raise RuntimeError(
+        f"WORK_ORDER_FIELD_TASK_LINK_CERTIFICATION_REQUIRED=1 but the live database is unusable: {_WHY}"
+    )
 pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
 
 

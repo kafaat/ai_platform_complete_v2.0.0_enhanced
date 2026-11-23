@@ -39,7 +39,10 @@ pytestmark = [pytest.mark.integration]
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
-DSN = os.getenv(
+# The module connects as the schema owner and creates its own throwaway NOBYPASSRLS role for the
+# request path. On its certifying CI step the owner comes from TEST_DATABASE_ADMIN_URL, so the
+# step's TEST_DATABASE_URL never names a privileged role.
+DSN = os.getenv("TEST_DATABASE_ADMIN_URL") or os.getenv(
     "TEST_DATABASE_URL", "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test"
 )
 TABLES = (

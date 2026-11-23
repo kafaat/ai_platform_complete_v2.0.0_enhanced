@@ -1931,6 +1931,42 @@ jobs:
           NATS_OUTBOX_CERTIFICATION_REQUIRED: "1"
           COVERAGE_FILE: .coverage.integration-auth
         run: pytest -v -m integration -rs tests_v9/test_nats_outbox_staging_enablement_live.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # Wave 3 (#1587, CI-LIVE-PG-COVERAGE-UNREPORTED-01): the platform journeys below ran only in the shared run, which collects no coverage, so the code they reach read as uncovered on codecov/patch. Each now also runs here with its switch (a skip is a failure) and appends to the job coverage. Each module connects as the schema owner from TEST_DATABASE_ADMIN_URL and serves requests through a throwaway NOBYPASSRLS role it creates.
+      # G3 (F-D06, F-D09): a work order creates its one field task behind its flag, and closing the task records an attributed outcome.
+      - name: Work order creates its field task and records the close outcome (G3, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          WORK_ORDER_FIELD_TASK_LINK_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_work_order_field_task_link_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # G3: a field task can be created on a field the API created (field_tasks.field_id references fields).
+      - name: Field task on an API-created field (G3, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          FIELD_TASK_ON_API_FIELD_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_field_task_on_api_field_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # G14: governed learning proposals are listed and reviewed under RLS, never another tenant's.
+      - name: Governed learning proposals are reviewed under RLS (G14, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          GOVERNED_LEARNING_REVIEW_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_governed_learning_review_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # G1: weather refuses to save a window that is not recommended, or a point outside the field (PostGIS).
+      - name: Weather save refuses a point outside the field (G1, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          WEATHER_SAVE_POINT_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_weather_save_point_in_field_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # G6 (F-D11): a ledger input deducts a named inventory batch once per Idempotency-Key, never another tenant's or below zero (also certified in the shared run).
+      - name: Farm ledger deducts a named inventory batch once (G6, real-PG)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          FARM_LEDGER_INVENTORY_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_farm_ledger_inventory_deduction_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
 
       # Live coverage (#1427 follow-up, extended by CI-LIVE-PG-COVERAGE-UNREPORTED-01): every
       # certification step after the shared run appends to .coverage.integration-auth with
