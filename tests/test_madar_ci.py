@@ -1,5 +1,7 @@
 import importlib.util
+import io
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -79,6 +81,58 @@ class Triage(unittest.TestCase):
             "يحتاج مراجعة",
             show(job("failure", [step("Install Playwright Browsers", "failure")]), lambda _: log),
         )
+
+    def test_failing_test_is_named(self):
+        log = block(
+            "python -m pytest tests",
+            "FAILED tests_v9/test_text_encoding_locale.py::test_no_new_file_decodes_text",
+        )
+        result = show(job("failure", [step("Run tests", "failure")]), lambda _: log)
+        self.assertIn("أول حالة فاشلة", result)
+        self.assertIn("test&#95;no&#95;new&#95;file&#95;decodes&#95;text", result)
+
+    def test_long_log_keeps_its_tail(self):
+        tail = block("python -m pytest tests", "FAILED tests/test_x.py::test_case").encode()
+        body = b"x" * (bot.MAX_LOG + 1000) + tail
+        text = bot.read_log_tail(io.BytesIO(body))
+        self.assertTrue(text.truncated)
+        self.assertEqual(len(text.encode()), bot.MAX_LOG)
+        self.assertTrue(text.endswith(tail.decode()))
+        result = show(job("failure", [step("Run tests", "failure")]), lambda _: text)
+        self.assertIn("فشل حالة اختبار", result)
+        self.assertIn("فُحص آخر 4 MiB", result)
+
+    def test_short_log_is_whole(self):
+        text = bot.read_log_tail(io.BytesIO(b"\xef\xbb\xbfshort"))
+        self.assertFalse(text.truncated)
+        self.assertEqual(text, "short")
+
+    def test_oversized_log_is_reported_as_size_not_access(self):
+        with self.assertRaises(bot.LogTooLarge):
+            bot.read_log_tail(io.BytesIO(b"x" * 5000), keep=100, ceiling=4000)
+
+        def huge(_):
+            raise bot.LogTooLarge("too big")
+
+        result = show(job("failure", [step("Run tests", "failure")]), huge)
+        self.assertIn("أطول من 64 MiB", result)
+        self.assertNotIn("تعذّر الوصول", result)
+        self.assertIn("لم يُفحص", result)
+
+    def test_monitored_workflows_exist(self):
+        root = file.parents[2]
+        bot_workflow = root / ".github/workflows/madar-ci-log-bot.yml"
+        text = bot_workflow.read_text(encoding="utf-8")
+        listed = re.search(r"(?m)^    workflows:\n((?:      - .+\n)+)", text).group(1)
+        monitored = {line.split("- ", 1)[1].strip() for line in listed.splitlines()}
+        names = set()
+        for path in (root / ".github/workflows").glob("*.y*ml"):
+            if path != bot_workflow:
+                found = re.search(r"(?m)^name:\s*(.+?)\s*$", path.read_text(encoding="utf-8"))
+                if found:
+                    names.add(found.group(1).strip("\"'"))
+        self.assertTrue(monitored)
+        self.assertEqual(monitored - names, set())
 
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]

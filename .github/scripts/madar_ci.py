@@ -10,7 +10,8 @@ from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-MAX_LOG = 4 * 1024 * 1024
+MAX_LOG = 4 * 1024 * 1024  # the tail of a job log kept for diagnosis
+MAX_LOG_STREAM = 64 * 1024 * 1024  # stop downloading a job log beyond this
 MAX_SUMMARY = 850_000
 FAILED = {"failure", "timed_out", "action_required", "startup_failure", "stale"}
 RESULTS = {
@@ -27,9 +28,19 @@ RESULTS = {
 ANSI = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 
 
-def display(value):
+class LogTooLarge(ValueError):
+    """A job log longer than MAX_LOG_STREAM; nothing of it was diagnosed."""
+
+
+class LogText(str):
+    """Job log text; `truncated` says only its last MAX_LOG bytes were kept."""
+
+    truncated = False
+
+
+def display(value, width=120):
     # Render API metadata as inert Markdown text, including workflow job names.
-    value = " ".join(str(value).split())[:120]
+    value = " ".join(str(value).split())[:width]
     return "".join(html.escape(c) if c.isalnum() or c in " -." else f"&#{ord(c)};" for c in value)
 
 
@@ -50,7 +61,7 @@ class GitHub:
         self.token = token
         self.http = build_opener(LogRedirect())
 
-    def read(self, path, limit):
+    def open(self, path):
         req = Request(
             self.base + path,
             headers={
@@ -60,7 +71,10 @@ class GitHub:
                 "X-GitHub-Api-Version": "2022-11-28",
             },
         )
-        with self.http.open(req, timeout=20) as response:
+        return self.http.open(req, timeout=20)
+
+    def read(self, path, limit):
+        with self.open(path) as response:
             data = response.read(limit + 1)
         if len(data) > limit:
             raise ValueError("size limit")
@@ -70,7 +84,23 @@ class GitHub:
         return json.loads(self.read(path, 16 * 1024 * 1024))
 
     def log(self, job_id):
-        return self.read(f"jobs/{job_id}/logs", MAX_LOG).decode("utf-8-sig", errors="replace")
+        with self.open(f"jobs/{job_id}/logs") as response:
+            return read_log_tail(response)
+
+
+def read_log_tail(response, keep=MAX_LOG, ceiling=MAX_LOG_STREAM):
+    """Stream a job log and keep its last `keep` bytes: a failing step's output is at the end."""
+    kept, total = bytearray(), 0
+    while chunk := response.read(1024 * 1024):
+        total += len(chunk)
+        if total > ceiling:
+            raise LogTooLarge(f"log over {ceiling} bytes")
+        kept += chunk
+        if len(kept) > keep:
+            del kept[: len(kept) - keep]
+    text = LogText(bytes(kept).decode("utf-8-sig" if total <= keep else "utf-8", errors="replace"))
+    text.truncated = total > keep
+    return text
 
 
 def failed_commands(log):
@@ -115,9 +145,12 @@ def diagnosis(steps, log):
                 )
     if "test" in names:
         for cmd, output in blocks:
-            if re.search(r"\bpytest\b", cmd) and re.search(r"(?m)^\S+ FAILED \S+::", output):
+            failed_case = re.search(r"(?m)^\S+ FAILED (\S+::\S+)", output)
+            if re.search(r"\bpytest\b", cmd) and failed_case:
                 return (
-                    "سجّل pytest فشل حالة اختبار داخل خطوة الاختبارات.",
+                    "سجّل pytest فشل حالة اختبار داخل خطوة الاختبارات. أول حالة فاشلة: "
+                    + display(failed_case.group(1), 240)
+                    + ".",
                     "وكيل الاختبارات يعيد تشغيل الحالة الفاشلة على الرأس نفسه.",
                 )
     return (
@@ -141,10 +174,18 @@ def card(repo, run_id, job, fetch):
         status += " · أول خطوة متعثّرة " + display(step["name"])
     if state in FAILED:
         try:
-            evidence, handoff = diagnosis(failed, fetch(job_id))
+            log = fetch(job_id)
+            evidence, handoff = diagnosis(failed, log)
+            if getattr(log, "truncated", False):
+                evidence += f" فُحص آخر {MAX_LOG // (1024 * 1024)} MiB من السجل."
+        except LogTooLarge:
+            evidence = (
+                f"السجل أطول من {MAX_LOG_STREAM // (1024 * 1024)} MiB فلم يُنزَّل. سبب التعثّر لم يُفحص."
+            )
+            handoff = "وكيل الجودة يفتح سجل الخطوة المتعثّرة من الرابط."
         except (OSError, ValueError) as exc:
             detail = f" (HTTP {exc.code})" if isinstance(exc, HTTPError) else ""
-            evidence = f"تعذّرت قراءة السجل الكامل{detail}. سبب التعثّر لم يُفحص."
+            evidence = f"تعذّر الوصول إلى سجل الوظيفة{detail}. سبب التعثّر لم يُفحص."
             handoff = "وكيل الجودة يتحقق من صلاحية السجل وإمكان قراءته."
         skipped_tests = [
             s
