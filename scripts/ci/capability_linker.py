@@ -317,6 +317,12 @@ EXCLUDED_DIRS = {
     "coverage",
     ".next",
     "__pycache__",
+    # Playwright output (gitignored by **/test-results/ and **/playwright-report/): a local
+    # browser run leaves error-context.md files here, and indexing them wrote paths a clean
+    # checkout lacks into the registry (Devin on #1591).
+    "test-results",
+    "playwright-report",
+    "blob-report",
 }
 TEXT_EXT = {".py", ".ts", ".tsx", ".js", ".dart", ".sql", ".yaml", ".yml", ".md"}
 

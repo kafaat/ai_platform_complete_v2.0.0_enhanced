@@ -341,3 +341,26 @@ def test_dec006_links_execution_receipts_not_a_voice_provider_receipt() -> None:
         assert linker.score_file(path, tokens, "DEC-006") >= threshold, path
     voice = "tests_v9/test_tts_voice_delivery_receipt.py"
     assert linker.score_file(voice, tokens, "DEC-006") < threshold
+
+
+def test_discover_files_excludes_playwright_output_directories(monkeypatch, tmp_path):
+    """Devin on #1591: a failing local Playwright run leaves error-context.md under
+    frontend/test-results/<case>/ (gitignored). discover_files() indexed it as a test, so
+    regeneration wrote paths into capabilities/registry/capabilities.json that a clean
+    checkout does not have, and the registry guard rejects them in CI."""
+    module = _load_module()
+    registry, generated = _minimal_repo(tmp_path)
+    _configure(module, tmp_path, registry, generated)
+
+    for folder in ("test-results", "playwright-report", "blob-report"):
+        leftover = tmp_path / "frontend" / folder / "case-chromium/error-context.md"
+        leftover.parent.mkdir(parents=True)
+        leftover.write_text("# tenant auth error context\n", encoding="utf-8")
+    kept = tmp_path / "mobile/app/test-results-smart/summary.md"
+    kept.parent.mkdir(parents=True)
+    kept.write_text("# summary\n", encoding="utf-8")
+
+    discovered = module.discover_files()
+    leaked = [p for p in discovered if "/test-results/" in p or "-report/" in p]
+    assert leaked == [], f"Playwright output leaked into discover_files(): {leaked}"
+    assert "mobile/app/test-results-smart/summary.md" in discovered
