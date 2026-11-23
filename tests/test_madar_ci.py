@@ -493,6 +493,52 @@ class Triage(unittest.TestCase):
         result = show(job("failure", [step("Service-local tests", "failure")]), lambda _: log)
         self.assertIn("ci-quality-triage", result)
 
+    def test_comments_and_install_lines_do_not_route(self):
+        # Independent review of 43c0a99f: incidental tool names in the failed script.
+        log = block(
+            "# mirrors tsc strictness\nT npx playwright install chromium\nT python -m pytest t",
+            "T FAILED t.py::x",
+        )
+        self.assertIn(
+            "ci-quality-triage",
+            show(job("failure", [step("Backend checks", "failure")]), lambda _: log),
+        )
+        log = block(
+            "# bandit is run elsewhere\nT python scripts/ci/workflow_guard.py", "T unsafe pattern"
+        )
+        result = show(
+            job("failure", [step("Detect unsafe workflow patterns", "failure")]), lambda _: log
+        )
+        self.assertIn("ci-quality-triage", result)
+        self.assertNotIn("pip", bot.failing_command(block("pip install -r r.txt\nT pytest", "T x")))
+
+    def test_every_security_tool_routes(self):
+        for name in [
+            "Run gitleaks detect",
+            "Run trivy fs .",
+            "Run secret-scan",
+            "Run bandit -r services",
+        ]:
+            self.assertEqual(bot.route("Some job", name), "security", name)
+
+    def test_run_report_falls_back_to_the_run_head(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+
+        class API:
+            def metadata(self, _):
+                entry = job("failure", [step("Typecheck", "failure")])
+                entry.pop("head_sha", None)
+                return {"jobs": [entry]}
+
+            def log(self, _):
+                return log
+
+        lines = []
+        run = {"id": 2, "name": "CI", "run_attempt": 1, "head_sha": "d" * 40, "event": "push"}
+        bot.run_report(API(), "owner/repo", run, lines.append)
+        self.assertIn("d" * 40, lines[-1])
+        self.assertNotIn("دمجه مع الفرع الأساسي", lines[-1])
+
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
         self.assertIn("تعذّر إسناد", show(job("failure", data), lambda _: ""))

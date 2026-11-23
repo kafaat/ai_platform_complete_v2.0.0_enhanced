@@ -205,8 +205,8 @@ def route(job_name, step_name, evidence_text="", command=""):
     for role, pattern in STEP_TOOLS:
         if step_name and re.search(pattern, step_name):
             return role
-    # The failed script names the tool that ran, but an install line there is setup for
-    # the real command (pip install, then pytest), so it does not pick dependencies.
+    # The failed script names the tool that ran (install and comment lines are already
+    # dropped by failing_command); dependency tools there are only setup for the real command.
     for role, pattern in STEP_TOOLS:
         if role != "dependencies" and command and re.search(pattern, command):
             return role
@@ -228,9 +228,22 @@ def handoff_line(role, url, head, merge_tested=False):
     )
 
 
+INSTALL_LINE = re.compile(r"\b(?:pip3?|npm|npx|pnpm|yarn|uv|apt-get|apt|brew)\b[^\n]*\binstall\b")
+
+
 def failing_command(log):
-    """The script of the failed command blocks, for routing by the tool that actually ran."""
-    return "\n".join(cmd for cmd, _ in failed_commands(log))
+    """The script of the failed command blocks, for routing by the tool that actually ran.
+
+    Comment lines and install lines are left out: they mention tools that did not fail
+    (a "# mirrors tsc" comment, `npx playwright install` in a backend step).
+    """
+    kept = []
+    for cmd, _ in failed_commands(log):
+        for line in cmd.split("\n"):
+            body = re.sub(r"^\S+Z ", "", line).strip()
+            if body and not body.startswith("#") and not INSTALL_LINE.search(body):
+                kept.append(body)
+    return "\n".join(kept)
 
 
 def failing_output(log):
