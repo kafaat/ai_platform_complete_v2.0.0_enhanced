@@ -271,6 +271,10 @@ def test_u4_ui_waivers_governed() -> None:
     """U4: كلّ الإعفاءات محكومة — مالك (مكوّن كتالوج فعليّ) + انتهاء صالح
     + تتبّع؛ ومالك إعفاءات break-glass مُشتقّ من مصدر مساره لا من الافتراض الأعمى.
 
+    2026-11-23 (مراجعة كلّ بند بقرار المالك): العدد 53 (كان 55): أُزيل إعفاءا
+    `/api/v1/irrigation/mpc/capabilities` و`/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation`
+    لأنّ لهما مستدعياً فعليّاً في الواجهة (MpcGovernanceCard وIrrigationDecisionCard في MapHub) فانتقلا إلى
+    العقد الملزِم؛ وصار 15 إعفاءً دائماً بدليلٍ تصميميّ موثَّق ومالك، فالدائمة 19.
     2026-11-23: العدد 55 (كان 56): حُذف إعفاء `/api/v1/decisions/{decision_id}/execution-plan` بقرار
     المالك — للمسار واجهة فعليّة (frontend/src/services/api/irrigationManualCreation.ts) فانتقل إلى
     العقد الملزِم في config/endpoint_ui_coverage.json بدل إعفاء ميّت.
@@ -293,7 +297,7 @@ def test_u4_ui_waivers_governed() -> None:
     (مستوى بيانات خلفيّ/مكتبيّ بلا شاشة مستخدم نهائيّ)."""
     cat = _catalog()
     waivers = cat["ui_waiver_governance"]
-    assert len(waivers) == cat["counts"]["ui_waivers"] == 55
+    assert len(waivers) == cat["counts"]["ui_waivers"] == 53
     component_ids = {c["component_id"] for c in cat["components"]}
     from datetime import date
 
@@ -301,9 +305,14 @@ def test_u4_ui_waivers_governed() -> None:
         (ROOT / "config/endpoint_ui_coverage_waivers.json").read_text(encoding="utf-8")
     )
     permanent = {s["endpoint"] for s in source["waivers"] if s.get("permanent") is True}
-    # 2026-11-23: قرار المالك جعل أربعة إعفاءات آليّة دائمةً صراحةً (permanent=true) — العدد
+    # 2026-11-23: قرار المالك جعل أربعة إعفاءات آليّة دائمةً صراحةً (permanent=true)، ثمّ مراجعةُ
+    # كلّ بند في اليوم نفسه أضافت 15 بدليلٍ تصميميّ موثَّق في سبب كلٍّ منها ومالكٍ معلوم — العدد
     # مُثبَّت هنا فلا يتّسع العلَم بصمت إلى إعفاءات لم يُقرَّر دوامها.
-    assert len(permanent) == 4, sorted(permanent)
+    assert len(permanent) == 19, sorted(permanent)
+    for s in source["waivers"]:
+        if s.get("permanent") is True:
+            assert s.get("owner"), f"إعفاء دائم بلا مالك: {s['endpoint']}"
+            assert "PERMANENT 2026-11-23" in s.get("reason", ""), f"إعفاء دائم بلا سبب موثَّق: {s['endpoint']}"
     for w in waivers:
         assert w["owner"] in component_ids, w
         if w["endpoint"] in permanent:

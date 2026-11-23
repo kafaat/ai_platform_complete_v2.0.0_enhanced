@@ -36,30 +36,30 @@ ui_waiver_policy:
 
 duplicate_route_classifications:
   # قرار واحد لكلّ مجموعة (method,path) مكرّرة — 15 مجموعة مقاسة في الكتالوج.
-  - {method: GET, path: /, classification: service_metadata, expires_on: "2026-12-31",
-     decision: "جذور تعريفيّة محدودة النطاق بالخدمة؛ تبقى خارج الفضاء العامّ المشترك."}
+  - {method: GET, path: /, classification: service_metadata, expires_on: "2027-03-31",
+     decision: "جذور تعريفيّة محدودة النطاق بالخدمة؛ تبقى خارج الفضاء العامّ المشترك. تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (3 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار."}
   - {method: GET, path: /capabilities, classification: standard_capability_contract,
      decision: "وثيقة قدرات معياريّة محلّيّة بالخدمة، ليست مساراً تجاريّاً مشتركاً."}
   - {method: GET, path: /contract, classification: standard_service_contract,
      decision: "عقد ملكيّة معياريّ محلّيّ بالخدمة."}
-  - {method: GET, path: /health, classification: standard_health_alias, expires_on: "2026-12-31",
-     decision: "اسم توافقيّ للحيويّة؛ healthz هو عقد الحيويّة القانونيّ."}
+  - {method: GET, path: /health, classification: standard_health_alias, expires_on: "2027-03-31",
+     decision: "اسم توافقيّ للحيويّة؛ healthz هو عقد الحيويّة القانونيّ. تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (17 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار."}
   - {method: GET, path: /healthz, classification: standard_liveness,
      decision: "عقد حيويّة Kubernetes محلّيّ بالخدمة."}
   - {method: GET, path: /metrics, classification: standard_observability,
      decision: "عقد مقاييس Prometheus محلّيّ بالخدمة."}
   - {method: GET, path: /runtime-identity, classification: standard_observability,
      decision: "عقد هويّة بناء/صورة محلّيّ بالخدمة (git_sha/build_id/image_digest من ملفّ صورة للقراءة فقط) — سطح provenance تشغيليّ لربط أدلّة التحقّق بالصورة المنشورة؛ لكلّ خدمة نسختها، ومستثنى من ميزانية مسارات النطاق عبر allowlist صريحة."}
-  - {method: GET, path: /v1/products, classification: service_scoped_semantics, expires_on: "2026-12-31",
-     decision: "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما. (كان /products قبل API-VERSIONING-GUARD-IS-A-MIRROR-01 شريحة الوكيل A الثانية، 2026-07-30 — نُقل المسار لا الحكم.)"}
+  - {method: GET, path: /v1/products, classification: service_scoped_semantics, expires_on: "2027-03-31",
+     decision: "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما. (كان /products قبل API-VERSIONING-GUARD-IS-A-MIRROR-01 شريحة الوكيل A الثانية، 2026-07-30 — نُقل المسار لا الحكم.) تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (2 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار."}
   - {method: GET, path: /readyz, classification: standard_readiness,
      decision: "عقد جاهزيّة محلّيّ بالخدمة؛ قيمته تبقى مشتقّة وقت التشغيل."}
-  - {method: POST, path: /v1/ingest, classification: service_scoped_semantics, expires_on: "2026-12-31",
-     decision: "ابتلاع rag-retrieval وابتلاع RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/ingest عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والخامسة، 2026-07-30)."}
-  - {method: POST, path: /v1/query, classification: service_scoped_semantics, expires_on: "2026-12-31",
-     decision: "استعلام المرشد الزراعيّ (ai_agronomist) واستعلام RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/query عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والرابعة، 2026-07-30)."}
-  - {method: POST, path: /v1/recommend, classification: service_scoped_semantics, expires_on: "2026-12-31",
-     decision: "تقييم agriai وتوصية المرشد الزراعيّ (ai_agronomist) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/recommend عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الرابعة والخامسة، 2026-07-30)."}
+  - {method: POST, path: /v1/ingest, classification: service_scoped_semantics, expires_on: "2027-03-31",
+     decision: "ابتلاع rag-retrieval وابتلاع RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/ingest عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والخامسة، 2026-07-30). تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (2 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار."}
+  - {method: POST, path: /v1/query, classification: service_scoped_semantics, expires_on: "2027-03-31",
+     decision: "استعلام المرشد الزراعيّ (ai_agronomist) واستعلام RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/query عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والرابعة، 2026-07-30). تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (2 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار."}
+  - {method: POST, path: /v1/recommend, classification: service_scoped_semantics, expires_on: "2027-03-31",
+     decision: "تقييم agriai وتوصية المرشد الزراعيّ (ai_agronomist) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/recommend عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الرابعة والخامسة، 2026-07-30). تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (2 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار."}
 
 extra_components:
   # واجهات الاستهلاك — ليست في service_inventory (ليست خدمات backend) لكنّها مكوّنات

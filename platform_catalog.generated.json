@@ -17884,7 +17884,7 @@
     "indicator_products": 34,
     "ownership_conflicts": 0,
     "route_rows": 1171,
-    "ui_waivers": 55,
+    "ui_waivers": 53,
     "unique_method_path": 1048
   },
   "cross_service_duplicate_method_paths": [
@@ -17897,8 +17897,8 @@
         "indicators-service",
         "weather-service"
       ],
-      "decision": "جذور تعريفيّة محدودة النطاق بالخدمة؛ تبقى خارج الفضاء العامّ المشترك.",
-      "expires_on": "2026-12-31",
+      "decision": "جذور تعريفيّة محدودة النطاق بالخدمة؛ تبقى خارج الفضاء العامّ المشترك. تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (3 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار.",
+      "expires_on": "2027-03-31",
       "facade": null,
       "method": "GET",
       "path": "/"
@@ -17956,8 +17956,8 @@
         "video-processor",
         "weather-service"
       ],
-      "decision": "اسم توافقيّ للحيويّة؛ healthz هو عقد الحيويّة القانونيّ.",
-      "expires_on": "2026-12-31",
+      "decision": "اسم توافقيّ للحيويّة؛ healthz هو عقد الحيويّة القانونيّ. تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (17 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار.",
+      "expires_on": "2027-03-31",
       "facade": null,
       "method": "GET",
       "path": "/health"
@@ -18098,8 +18098,8 @@
         "local-ai-rag",
         "rag-retrieval"
       ],
-      "decision": "ابتلاع rag-retrieval وابتلاع RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/ingest عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والخامسة، 2026-07-30).",
-      "expires_on": "2026-12-31",
+      "decision": "ابتلاع rag-retrieval وابتلاع RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/ingest عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والخامسة، 2026-07-30). تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (2 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار.",
+      "expires_on": "2027-03-31",
       "facade": null,
       "method": "POST",
       "path": "/v1/ingest"
@@ -18112,8 +18112,8 @@
         "erp-bridge",
         "mcp_servers"
       ],
-      "decision": "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما. (كان /products قبل API-VERSIONING-GUARD-IS-A-MIRROR-01 شريحة الوكيل A الثانية، 2026-07-30 — نُقل المسار لا الحكم.)",
-      "expires_on": "2026-12-31",
+      "decision": "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما. (كان /products قبل API-VERSIONING-GUARD-IS-A-MIRROR-01 شريحة الوكيل A الثانية، 2026-07-30 — نُقل المسار لا الحكم.) تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (2 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار.",
+      "expires_on": "2027-03-31",
       "facade": null,
       "method": "GET",
       "path": "/v1/products"
@@ -18126,8 +18126,8 @@
         "ai_agronomist",
         "local-ai-rag"
       ],
-      "decision": "استعلام المرشد الزراعيّ (ai_agronomist) واستعلام RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/query عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والرابعة، 2026-07-30).",
-      "expires_on": "2026-12-31",
+      "decision": "استعلام المرشد الزراعيّ (ai_agronomist) واستعلام RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/query عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والرابعة، 2026-07-30). تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (2 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار.",
+      "expires_on": "2027-03-31",
       "facade": null,
       "method": "POST",
       "path": "/v1/query"
@@ -18140,14 +18140,14 @@
         "agriai-engine",
         "ai_agronomist"
       ],
-      "decision": "تقييم agriai وتوصية المرشد الزراعيّ (ai_agronomist) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/recommend عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الرابعة والخامسة، 2026-07-30).",
-      "expires_on": "2026-12-31",
+      "decision": "تقييم agriai وتوصية المرشد الزراعيّ (ai_agronomist) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/recommend عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الرابعة والخامسة، 2026-07-30). تُجدَّد 2026-11-23 إلى 2027-03-31 (قرار المالك بمراجعة كلّ بند): المجموعة ما زالت مكرَّرة مقيسةً على main@be73b2be (2 مكوّنات) والتصنيف المؤقّت قائم؛ لا تغيير في القرار.",
+      "expires_on": "2027-03-31",
       "facade": null,
       "method": "POST",
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "a05b54f6868be945af27f502e2cafcc3d64a033068ea0ebceb9347e2a516419d",
+  "fingerprint": "eece42b5258b986b38d2e43b0afe5a8645f1d9f0542994133a6e0722c29aa3d8",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18226,98 +18226,98 @@
   "ui_waiver_governance": [
     {
       "endpoint": "/api/v1/admin/break-glass",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "ADMIN-OPS-UI-DECISION",
       "waiver_id": "ui-waiver-001"
     },
     {
       "endpoint": "/api/v1/admin/break-glass/{grant_id}",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "ADMIN-OPS-UI-DECISION",
       "waiver_id": "ui-waiver-002"
     },
     {
       "endpoint": "/api/v1/admin/break-glass/{token}/fields",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "ADMIN-OPS-UI-DECISION",
       "waiver_id": "ui-waiver-003"
     },
     {
       "endpoint": "/api/v1/admin/events/dead-letter/requeue-all",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "ADMIN-OPS-UI-DECISION",
       "waiver_id": "ui-waiver-004"
     },
     {
       "endpoint": "/api/v1/admin/outbox/dead-letter/requeue",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "ADMIN-OPS-UI-DECISION",
       "waiver_id": "ui-waiver-005"
     },
     {
       "endpoint": "/api/v1/auth/me",
-      "expires_on": "2026-12-31",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-006"
     },
     {
       "endpoint": "/api/v1/auth/signup",
-      "expires_on": "2026-12-31",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-007"
     },
     {
       "endpoint": "/api/v1/automation/imagery/register-field",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "AUTOMATION-CONSUMER-REVIEW",
       "waiver_id": "ui-waiver-008"
     },
     {
       "endpoint": "/api/v1/automation/imagery/status",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "AUTOMATION-CONSUMER-REVIEW",
       "waiver_id": "ui-waiver-009"
     },
     {
       "endpoint": "/api/v1/automation/weather/cached",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "AUTOMATION-CONSUMER-REVIEW",
       "waiver_id": "ui-waiver-010"
     },
     {
       "endpoint": "/api/v1/automation/weather/register",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "AUTOMATION-CONSUMER-REVIEW",
       "waiver_id": "ui-waiver-011"
     },
     {
       "endpoint": "/api/v1/automation/weather/status",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "AUTOMATION-CONSUMER-REVIEW",
       "waiver_id": "ui-waiver-012"
     },
     {
       "endpoint": "/api/v1/cameras/register",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "AUTOMATION-CONSUMER-REVIEW",
       "waiver_id": "ui-waiver-013"
     },
     {
       "endpoint": "/api/v1/decision/dispatch/consume",
-      "expires_on": "2026-12-31",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-014"
@@ -18331,283 +18331,269 @@
     },
     {
       "endpoint": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "WX-10.11",
       "waiver_id": "ui-waiver-016"
     },
     {
       "endpoint": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "WX-10.13",
       "waiver_id": "ui-waiver-017"
     },
     {
       "endpoint": "/api/v1/fields/{field_id}/indicator-observations/{view}",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "M4-INDICATOR-OBSERVATIONS-UI",
       "waiver_id": "ui-waiver-018"
     },
     {
-      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "MPC-P2-UI",
       "waiver_id": "ui-waiver-019"
     },
     {
-      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/fields/{field_id}/yield-map-records",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "MPC-P2-UI",
+      "tracking": "PA-003-UI-DECISION",
       "waiver_id": "ui-waiver-020"
     },
     {
-      "endpoint": "/api/v1/fields/{field_id}/yield-map-records",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/fields/{field_id}/yield-maps/ingestions",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "PA-003-UI-DECISION",
       "waiver_id": "ui-waiver-021"
     },
     {
-      "endpoint": "/api/v1/fields/{field_id}/yield-maps/ingestions",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/irrigation/executions/reconcile",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
+      "tracking": "MPC-P2-UI",
       "waiver_id": "ui-waiver-022"
     },
     {
-      "endpoint": "/api/v1/irrigation/executions/reconcile",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/irrigation/mpc/plan",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "MPC-P2-UI",
       "waiver_id": "ui-waiver-023"
     },
     {
-      "endpoint": "/api/v1/irrigation/mpc/capabilities",
-      "expires_on": "2026-12-31",
-      "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-024"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/mpc/plan",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/irrigation/mpc/simulate",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "MPC-P2-UI",
-      "waiver_id": "ui-waiver-025"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/mpc/simulate",
-      "expires_on": "2026-12-31",
-      "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-026"
+      "waiver_id": "ui-waiver-024"
     },
     {
       "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
       "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
-      "waiver_id": "ui-waiver-027"
+      "waiver_id": "ui-waiver-025"
     },
     {
       "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
       "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
-      "waiver_id": "ui-waiver-028"
+      "waiver_id": "ui-waiver-026"
     },
     {
       "endpoint": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
       "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
-      "waiver_id": "ui-waiver-029"
+      "waiver_id": "ui-waiver-027"
     },
     {
       "endpoint": "/api/v1/learning/activation-requests",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "WX-11.5",
-      "waiver_id": "ui-waiver-030"
+      "waiver_id": "ui-waiver-028"
     },
     {
       "endpoint": "/api/v1/learning/activation-requests/{activation_request_id}/review",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
-      "waiver_id": "ui-waiver-031"
+      "waiver_id": "ui-waiver-029"
     },
     {
       "endpoint": "/api/v1/learning/calibration-dataset",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "WX-11.2",
-      "waiver_id": "ui-waiver-032"
+      "waiver_id": "ui-waiver-030"
     },
     {
       "endpoint": "/api/v1/learning/evaluation-runs",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "WX-11.3",
-      "waiver_id": "ui-waiver-033"
+      "waiver_id": "ui-waiver-031"
     },
     {
       "endpoint": "/api/v1/learning/promotion-decisions",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "WX-11.4",
-      "waiver_id": "ui-waiver-034"
+      "waiver_id": "ui-waiver-032"
     },
     {
       "endpoint": "/api/v1/notifications/delivery",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-035"
+      "tracking": "NOTIFY-DELIVERY-CONSUMER",
+      "waiver_id": "ui-waiver-033"
     },
     {
       "endpoint": "/api/v1/notifications/ws",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
-      "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-036"
+      "tracking": "NOTIFICATIONS-WS-CONSUMER",
+      "waiver_id": "ui-waiver-034"
     },
     {
       "endpoint": "/api/v1/outcomes/{outcome_id}/learning-attribution",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "WX-11",
-      "waiver_id": "ui-waiver-037"
+      "waiver_id": "ui-waiver-035"
     },
     {
       "endpoint": "/api/v1/weather/alerts/notify",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
+      "owner": "sahool-platform",
+      "tracking": "NOTIFY-DELIVERY-CONSUMER",
+      "waiver_id": "ui-waiver-036"
+    },
+    {
+      "endpoint": "/api/v1/weather/env-doctor",
+      "expires_on": null,
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-037"
+    },
+    {
+      "endpoint": "/api/v1/weather/observability",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-038"
     },
     {
-      "endpoint": "/api/v1/weather/env-doctor",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/weather/rate-limit/backend",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-039"
     },
     {
-      "endpoint": "/api/v1/weather/observability",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/weather/runtime-contract",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-040"
     },
     {
-      "endpoint": "/api/v1/weather/rate-limit/backend",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/weather/runtime-smoke-plan",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-041"
     },
     {
-      "endpoint": "/api/v1/weather/runtime-contract",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/weather/self-test",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-042"
     },
     {
-      "endpoint": "/api/v1/weather/runtime-smoke-plan",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/weather/tile-cache/backend",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-043"
     },
     {
-      "endpoint": "/api/v1/weather/self-test",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/weather/tile-cache/prune",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-044"
     },
     {
-      "endpoint": "/api/v1/weather/tile-cache/backend",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/weather/tile-cache/stats",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-045"
     },
     {
-      "endpoint": "/api/v1/weather/tile-cache/prune",
-      "expires_on": "2026-12-31",
+      "endpoint": "/api/v1/weather/wind-source-selftest",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-046"
     },
     {
-      "endpoint": "/api/v1/weather/tile-cache/stats",
-      "expires_on": "2026-12-31",
-      "owner": "sahool-platform",
+      "endpoint": "/v1/auth/edge-sign",
+      "expires_on": null,
+      "owner": "auth",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-047"
     },
     {
-      "endpoint": "/api/v1/weather/wind-source-selftest",
-      "expires_on": "2026-12-31",
-      "owner": "sahool-platform",
+      "endpoint": "/v1/auth/me",
+      "expires_on": null,
+      "owner": "auth",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-048"
     },
     {
-      "endpoint": "/v1/auth/edge-sign",
-      "expires_on": "2026-12-31",
-      "owner": "auth",
-      "tracking": "U4-WAIVER-REVIEW",
+      "endpoint": "/api/v1/scenario/economics",
+      "expires_on": "2027-03-30",
+      "owner": "sahool-platform",
+      "tracking": "ECON-SCENARIO-UI-01",
       "waiver_id": "ui-waiver-049"
     },
     {
-      "endpoint": "/v1/auth/me",
-      "expires_on": "2026-12-31",
-      "owner": "auth",
-      "tracking": "U4-WAIVER-REVIEW",
+      "endpoint": "/api/v1/realtime/xiaozhi/leases",
+      "expires_on": "2027-03-31",
+      "owner": "realtime-session",
+      "tracking": "XIAOZHI-DEVICE-LEASE-UI",
       "waiver_id": "ui-waiver-050"
     },
     {
-      "endpoint": "/api/v1/scenario/economics",
-      "expires_on": "2026-12-27",
-      "owner": "sahool-platform",
-      "tracking": "ECON-SCENARIO-UI-01",
+      "endpoint": "/api/v1/realtime/xiaozhi/leases/{session_id}",
+      "expires_on": "2027-03-31",
+      "owner": "realtime-session",
+      "tracking": "XIAOZHI-DEVICE-LEASE-UI",
       "waiver_id": "ui-waiver-051"
     },
     {
-      "endpoint": "/api/v1/realtime/xiaozhi/leases",
-      "expires_on": "2026-12-31",
-      "owner": "realtime-session",
-      "tracking": "XIAOZHI-DEVICE-LEASE-UI",
+      "endpoint": "/api/v1/learning/governed-proposals",
+      "expires_on": "2027-03-31",
+      "owner": "sahool-platform",
+      "tracking": "G14-LEARNING-REVIEW-UI",
       "waiver_id": "ui-waiver-052"
     },
     {
-      "endpoint": "/api/v1/realtime/xiaozhi/leases/{session_id}",
-      "expires_on": "2026-12-31",
-      "owner": "realtime-session",
-      "tracking": "XIAOZHI-DEVICE-LEASE-UI",
-      "waiver_id": "ui-waiver-053"
-    },
-    {
-      "endpoint": "/api/v1/learning/governed-proposals",
-      "expires_on": "2026-12-31",
-      "owner": "sahool-platform",
-      "tracking": "G14-LEARNING-REVIEW-UI",
-      "waiver_id": "ui-waiver-054"
-    },
-    {
       "endpoint": "/api/v1/learning/governed-proposals/{kind}/{proposal_id}/review",
-      "expires_on": "2026-12-31",
+      "expires_on": "2027-03-31",
       "owner": "sahool-platform",
       "tracking": "G14-LEARNING-REVIEW-UI",
-      "waiver_id": "ui-waiver-055"
+      "waiver_id": "ui-waiver-053"
     }
   ]
 }
