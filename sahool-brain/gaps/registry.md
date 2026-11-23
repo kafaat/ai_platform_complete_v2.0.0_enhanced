@@ -9267,6 +9267,6 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## DISPATCH-CONSUME-UI — واجهة مستهلِك الإرسال `/api/v1/decision/dispatch/consume`
 
 - **الحالة:** open — مسجَّلة 2026-11-23 في مراجعة إعفاءات 1 يناير (#1596، المراجعة المستقلّة وإيصال المختبر 1596).
-- **المصدر:** `services/sahool-platform/api/routers/decision_dispatch.py:410-435` (`Depends(require_permission(Permission.RECOMMENDATION_REQUEST))`، ووثيقة تبني إشعارات لمزارعٍ أو فنّيٍّ يتصرّف يدويّاً وتُرجِع `consumed_by=user_id`) · `docs/api/UI_DEBT_MAP.md:57` (P0 حرِج، صفحة) · `config/endpoint_ui_coverage_waivers.json` (backlog-ui/human مؤقّت حتّى 2027-03-31).
+- **المصدر:** `services/sahool-platform/api/routers/decision_dispatch.py:410-435` (`Depends(require_permission(Permission.RECOMMENDATION_REQUEST))`، ووثيقة تبني إشعارات لمزارعٍ أو فنّيٍّ يتصرّف يدويّاً وتُرجِع `consumed_by=user_id`) · `docs/api/UI_DEBT_MAP.md:57` (P0 حرِج، صفحة؛ لكنّ السطور 22-24 من الوثيقة نفسها تَعُدّ الجدول قديماً وتسجّل إعادة تصنيفه operational — وهو ادّعاء لم يثبت) · `config/endpoint_ui_coverage_waivers.json` (backlog-ui/human مؤقّت حتّى 2027-03-31).
 - **الخلل:** صُنِّف المسار «عامل طابور آليّ» بلا عاملٍ يستدعيه في المستودع، بينما حمايته صلاحيّة بشريّة وحقوله تسجّل دَين واجهة P0 على `DecisionRuntimePage`.
 - **شرط الإغلاق:** إمّا ربط واجهة الاستهلاك في `DecisionRuntimePage` بدليل واجهة فعليّ (فيُرقّى إلى العقد الملزِم)، أو إثبات مستهلِك آليّ فعليّ ونقل الحماية إلى service token، ثمّ تصحيح الإعفاء.
