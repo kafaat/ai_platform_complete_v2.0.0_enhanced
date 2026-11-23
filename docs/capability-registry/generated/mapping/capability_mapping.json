@@ -32,7 +32,7 @@
       "raw": 3517
     },
     "test_dependency_files": 2053,
-    "test_dependency_edges": 5547,
+    "test_dependency_edges": 5548,
     "test_dependency_bounded_files": 1176,
     "test_dependency_unresolved_relations": 527
   },
@@ -75345,6 +75345,11 @@
           "source": "scripts/release/build_release_bundle.py",
           "kind": "source_read",
           "line": 20
+        },
+        {
+          "source": "scripts/release/validate_release_package.py",
+          "kind": "loader",
+          "line": 65
         },
         {
           "source": "scripts/release/validate_release_package.py",
