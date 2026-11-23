@@ -1,28 +1,28 @@
 # Railway auth deployment configuration
 
 This repository contains separately deployed services. Do not put a service-specific
-build override in a root `railway.json` or `railway.toml`: Railway configuration files
-take precedence over dashboard settings and a root default can select the auth image
-for another service using the same repository.
+build override in a root `railway.json` or `railway.toml`: a root default can select
+the auth image for another service using the same repository.
 
-## Select the configuration for sahool-auth only
+Railway retires Config-as-Code on 2026-12-01, so the auth build is configured in the
+service settings only. `services/auth/railway.json` was removed on 2026-11-23 after
+checking that **sahool-auth** (production) and **sahool-auth-main** (production and
+staging) already select the Dockerfile in their settings and name no config file.
 
-In the **sahool-auth** service settings, use:
+## Settings for the auth services
+
+In the **sahool-auth** and **sahool-auth-main** service settings:
 
 | Setting | Value |
 | --- | --- |
 | Root Directory | `/` |
-| Railway Config File | `/services/auth/railway.json` |
+| Railway Config File | none |
 | Builder | `DOCKERFILE` |
 | Dockerfile Path | `services/auth/Dockerfile` |
 
-The custom configuration-file path must be selected explicitly; it is not inferred
-from Root Directory. Keep the repository root as the build context because the
-Dockerfile copies both `shared/` and `services/auth/`.
-
-Do not select this config for platform, frontend, or migration services. They must
-retain their own Dockerfile paths. This change adds no start-command, health-check,
-variable, or deployment override.
+Keep the repository root as the build context because the Dockerfile copies both
+`shared/` and `services/auth/`. Platform, frontend, and migration services keep their
+own Dockerfile paths.
 
 ## Activation and verification
 

@@ -271,6 +271,9 @@ def test_u4_ui_waivers_governed() -> None:
     """U4: كلّ الإعفاءات محكومة — مالك (مكوّن كتالوج فعليّ) + انتهاء صالح
     + تتبّع؛ ومالك إعفاءات break-glass مُشتقّ من مصدر مساره لا من الافتراض الأعمى.
 
+    2026-11-23: العدد 55 (كان 56): حُذف إعفاء `/api/v1/decisions/{decision_id}/execution-plan` بقرار
+    المالك — للمسار واجهة فعليّة (frontend/src/services/api/irrigationManualCreation.ts) فانتقل إلى
+    العقد الملزِم في config/endpoint_ui_coverage.json بدل إعفاء ميّت.
     2026-11-23: العدد 56 (كان 54): إعفاءا `backlog-ui` لمسارَي مراجعة مقترحات التعلّم المحكومة
     (G14) في sahool-platform — مسار خادم بلا شاشة بعد، مؤقّتان حتّى 2026-12-31.
     2026-11-21: العدد 54 (كان 52): إعفاءا `backlog-ui` لمسارَي جلسة جهاز Xiaozhi في realtime-session
@@ -290,14 +293,82 @@ def test_u4_ui_waivers_governed() -> None:
     (مستوى بيانات خلفيّ/مكتبيّ بلا شاشة مستخدم نهائيّ)."""
     cat = _catalog()
     waivers = cat["ui_waiver_governance"]
-    assert len(waivers) == cat["counts"]["ui_waivers"] == 56
+    assert len(waivers) == cat["counts"]["ui_waivers"] == 55
     component_ids = {c["component_id"] for c in cat["components"]}
     from datetime import date
 
+    source = json.loads(
+        (ROOT / "config/endpoint_ui_coverage_waivers.json").read_text(encoding="utf-8")
+    )
+    permanent = {s["endpoint"] for s in source["waivers"] if s.get("permanent") is True}
+    # 2026-11-23: قرار المالك جعل أربعة إعفاءات آليّة دائمةً صراحةً (permanent=true) — العدد
+    # مُثبَّت هنا فلا يتّسع العلَم بصمت إلى إعفاءات لم يُقرَّر دوامها.
+    assert len(permanent) == 4, sorted(permanent)
     for w in waivers:
         assert w["owner"] in component_ids, w
-        date.fromisoformat(w["expires_on"])
+        if w["endpoint"] in permanent:
+            assert w["expires_on"] is None, w
+        else:
+            date.fromisoformat(w["expires_on"])
         assert w["tracking"], w
+
+
+def _load_compiler():
+    spec = importlib.util.spec_from_file_location("build_platform_catalog_u4", COMPILER)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_u4_permanent_waiver_survives_the_default_deadline_but_an_undated_one_does_not(
+    monkeypatch,
+) -> None:
+    """Devin على #1589: إسقاط التاريخ وحده يُعطي الإعفاءَ default_expires_on فيفشل الكتالوج
+    في 1 يناير. العلَم الصريح permanent=true وحده يُخرجه من الدورة؛ الإغفال يبقى مؤرَّخاً."""
+    mod = _load_compiler()
+    overrides = {
+        "ui_waiver_policy": {
+            "default_owner": "c",
+            "default_expires_on": "2026-12-31",
+            "default_tracking": "T",
+        }
+    }
+    waivers = [{"endpoint": "/m2m", "permanent": True}, {"endpoint": "/undated"}]
+    rows, failures = mod.govern_waivers(overrides, waivers, {"c"}, lambda x: x)
+    assert failures == []
+    assert [r["expires_on"] for r in rows] == [None, "2026-12-31"]
+
+    class _After(mod.date):
+        @classmethod
+        def today(cls):
+            return cls(2027, 1, 1)
+
+    monkeypatch.setattr(mod, "date", _After)
+    expired = mod._expiry_failures(
+        {"cross_service_duplicate_method_paths": [], "ui_waiver_governance": rows}
+    )
+    assert len(expired) == 1 and "/undated" in expired[0], expired
+
+
+@pytest.mark.parametrize(
+    "waiver",
+    [
+        {"endpoint": "/x", "permanent": "yes"},
+        {"endpoint": "/x", "permanent": True, "expiry": "2026-12-31"},
+        {"endpoint": "/x", "permanent": True, "temporary": True},
+    ],
+)
+def test_u4_contradictory_permanent_flag_is_a_failure(waiver) -> None:
+    mod = _load_compiler()
+    overrides = {
+        "ui_waiver_policy": {
+            "default_owner": "c",
+            "default_expires_on": "2026-12-31",
+            "default_tracking": "T",
+        }
+    }
+    _, failures = mod.govern_waivers(overrides, [waiver], {"c"}, lambda x: x)
+    assert any("permanent" in f for f in failures), failures
 
 
 def test_capabilities_governance_is_derived_not_invented() -> None:
