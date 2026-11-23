@@ -420,13 +420,9 @@
     "classes": {
       "evidence_maturity": {
         "baseline_count": 45,
-        "new": [
-          "DEC-010:evidence_above_declared:evidence-maturity"
-        ],
+        "new": [],
         "observed_count": 45,
-        "stale": [
-          "OPS-002:declared_above_evidence:evidence-maturity"
-        ]
+        "stale": []
       },
       "registry_reconciliation": {
         "baseline_count": 0,
@@ -435,7 +431,7 @@
         "stale": []
       }
     },
-    "decision": "BLOCK",
+    "decision": "PASS",
     "mode": "identity-exact-ratchet"
   },
   "schema": "sahool.capability-shadow-reconciliation/v1",

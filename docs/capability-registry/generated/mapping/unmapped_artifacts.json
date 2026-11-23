@@ -8276,6 +8276,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/core/recommendation_runtime_outcome.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/core/resumable_sse.py",
     "kind": "backend"
   },

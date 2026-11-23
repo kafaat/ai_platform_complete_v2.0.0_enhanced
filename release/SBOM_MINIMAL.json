@@ -26415,6 +26415,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3b18f98491ae2f33a5754204b4969c0414ceaeb674f6404e39136bd260cc0118"
+        }
+      ],
+      "name": "services/sahool-platform/api/farm_operations_ledger_models.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "5c1e447ae2d625f5e3a01c2d56a36dd28c50a759e799bdb069e579822484eb37"
         }
       ],
@@ -27195,7 +27205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "782bbc9bd2de904b7690415d021e7b17a76d499d0cb6a55bbb43d78795dfdc5e"
+          "content": "88845581719d325ca433ab9f9772a5c895e5a41e93cc7bab2cca2a9c47dae774"
         }
       ],
       "name": "services/sahool-platform/api/lab_store.py",
@@ -28205,7 +28215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dd9f565d6ffb4b5a10aed3830e2939d7c8164e10df32d696bc750294a10478b1"
+          "content": "055b8b8cc5f105a2dd3c4c652d28462cf5f4c9748bc3a4f9df9faa3fdb51a79b"
         }
       ],
       "name": "services/sahool-platform/api/routers/farm_operations_ledger.py",
@@ -28235,7 +28245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "582962ffa968b4db898524a35332b62d878225fabd6b3797b2d65733ef4afa9b"
+          "content": "d3161a33ab233022d75b255be3cb39c707c4f1b050ae1b0afc28aa8b7c160271"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_ai_context.py",
@@ -28905,7 +28915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "855841fd1821c1adffc343c67fb1cbb7b125347e998b39a920259b8f8e93043b"
+          "content": "dc5dbba35cac7210fb8869f95e3d42428dcdfeec8d84f0dc1f214bf5e20ec7ed"
         }
       ],
       "name": "services/sahool-platform/api/routers/recommendations.py",
@@ -29235,7 +29245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7158a802cb54cf64c55bc1c1691df689dfec265713738f3e5871151bb0543cb3"
+          "content": "66fbbbadb0f4b017cd2990d569558e09bd4a1b152f5a57c82b67ac4e1f5d9954"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",
@@ -29745,7 +29755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5579c311091123ffe1c8762c79a57be6491f0cbefc1fe96b03063340b30890e8"
+          "content": "064980baf6efe8d49324942e1b207e8accb5a14edd07b5d91d60bdbce6b84eb0"
         }
       ],
       "name": "services/sahool-platform/api/weather_advice.py",
@@ -32639,6 +32649,16 @@
         }
       ],
       "name": "services/sahool-platform/core/recommendation_replay.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bc5cc10111ff485fdb54ec362a60bef31699f5330ae737cbbe011acfe3f3fbd9"
+        }
+      ],
+      "name": "services/sahool-platform/core/recommendation_runtime_outcome.py",
       "type": "file"
     },
     {
@@ -37125,7 +37145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bfc6c06b7d5fba6f83053bf03ffcb6a40ef8350565644568a125d4c71df872c6"
+          "content": "a8630696908de8a44911afbe8d32a6b10dc1b8f5b23f9b641783b76a3edaa882"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
@@ -41935,7 +41955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4070faf2d4683e9fd9c669c755381d334ca7d4973723a72380f08c946ba5fb62"
+          "content": "f959d89b8fd4b88333bc51d4cc10a4f5b2bd3ce1a0d6b28796dd36a143ca319c"
         }
       ],
       "name": "shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
