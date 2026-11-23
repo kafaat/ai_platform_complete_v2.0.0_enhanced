@@ -110,8 +110,21 @@ export interface SeasonSimResult {
 }
 // يشغّل محاكاة محصوليّة للموسم ويحفظ ناتجها على الخادم (FIELD_EDIT). 503 عند تعذّر
 // الطقس/القاعدة، 404 إن غاب الموسم عن المستأجِر.
+// The run awaits, one after another (services/sahool-platform/api/routers/seasons.py):
+// the NDVI series (raster, 20 s), the weather archive (20 s), ET0 when the archive has none
+// (20 s), GDD (20 s), then saves and mirrors the context to the decision service (3 s):
+// 83 s of upstream bounds plus the database reads. The client's default 15 s gave up on runs
+// the server still completed and saved (Devin review on #1582). 110 s covers the chain, and
+// every proxy in front of the platform allows the simulate route longer (120 s), so this
+// client's own message is the one the user sees
+// (tests_v9/test_season_simulation_timeout_chain.py).
+export const SEASON_SIMULATION_TIMEOUT_MS = 110_000;
 export const simulateSeason = (seasonId: string): Promise<SeasonSimResult> =>
-  kongApi.post<SeasonSimResult>(`/api/v1/seasons/${seasonId}/simulate`).then(r => r.data);
+  kongApi
+    .post<SeasonSimResult>(`/api/v1/seasons/${seasonId}/simulate`, undefined, {
+      timeout: SEASON_SIMULATION_TIMEOUT_MS,
+    })
+    .then(r => r.data);
 
 // ── مواسم الحقل (مع نتائج المحاكاة المُخزَّنة sim_*) — حيّة عبر البوّابة ──
 // GET /api/v1/fields/{field_id}/seasons (SeasonSummary[]، الأحدث أولاً، tenant-scoped

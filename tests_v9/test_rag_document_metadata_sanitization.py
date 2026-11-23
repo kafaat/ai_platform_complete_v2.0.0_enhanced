@@ -16,6 +16,7 @@ from __future__ import annotations
 import ast
 import asyncio
 import collections.abc
+import contextlib
 import datetime as dt
 import hashlib
 import importlib.util
@@ -25,6 +26,7 @@ import types
 import unicodedata
 from pathlib import Path
 
+import httpx
 import pytest
 
 pytestmark = pytest.mark.unit
@@ -143,7 +145,14 @@ def _ingest(tmp_path, files: dict[str, object]):
         "datetime": dt.datetime,
         "UTC": dt.UTC,
         "logger": logging.getLogger("test-rag-metadata-s14"),
-        "httpx": types.SimpleNamespace(AsyncClient=_Client),
+        "asyncio": asyncio,
+        "asynccontextmanager": contextlib.asynccontextmanager,
+        "httpx": types.SimpleNamespace(
+            AsyncClient=_Client,
+            ConnectError=httpx.ConnectError,
+            ConnectTimeout=httpx.ConnectTimeout,
+            PoolTimeout=httpx.PoolTimeout,
+        ),
         "HTTPException": _HTTPError,
         "AGENT_TOKEN": "agent-token",
         "RAG_RETRIEVAL_URL": "http://rag",
@@ -156,6 +165,13 @@ def _ingest(tmp_path, files: dict[str, object]):
             "_DOC_METADATA_TEXT_KEYS",
             "_DOC_METADATA_INT_KEYS",
             "_DOC_METADATA_MAX_CHARS",
+            "_PUBLISHING",
+            "_PUBLISHING_USERS",
+            "_publishing_steps",
+            "_publishing",
+            "_PUBLICATION_IN_DOUBT",
+            "_CANONICAL_INGEST_TIMEOUT_S",
+            "_request_never_sent",
         },
         namespace,
     )["ingest_documents"]

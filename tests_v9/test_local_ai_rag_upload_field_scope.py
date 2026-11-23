@@ -27,6 +27,7 @@ from __future__ import annotations
 import ast
 import asyncio
 import collections.abc
+import contextlib
 import datetime as dt
 import hashlib
 import json
@@ -76,6 +77,14 @@ _COMPILED = {
     "_DOC_METADATA_MAX_CHARS",
     "_FIELD_ID_RE",
     "FIELD_SERVICE_CALLER",
+    # #1582: the canonical call runs inside the per-document publication lock.
+    "_PUBLISHING",
+    "_PUBLISHING_USERS",
+    "_PUBLICATION_IN_DOUBT",
+    "_CANONICAL_INGEST_TIMEOUT_S",
+    "_request_never_sent",
+    "_publishing_steps",
+    "_publishing",
 }
 
 
@@ -125,7 +134,15 @@ class Stack:
             "datetime": dt.datetime,
             "UTC": dt.UTC,
             "logger": logging.getLogger("test-local-ai-rag-f1"),
-            "httpx": types.SimpleNamespace(AsyncClient=client, HTTPError=httpx.HTTPError),
+            "httpx": types.SimpleNamespace(
+                AsyncClient=client,
+                HTTPError=httpx.HTTPError,
+                ConnectError=httpx.ConnectError,
+                ConnectTimeout=httpx.ConnectTimeout,
+                PoolTimeout=httpx.PoolTimeout,
+            ),
+            "asyncio": asyncio,
+            "asynccontextmanager": contextlib.asynccontextmanager,
             "HTTPException": HTTPException,
             "AGENT_TOKEN": AGENT,
             "RAG_RETRIEVAL_URL": "http://rag",

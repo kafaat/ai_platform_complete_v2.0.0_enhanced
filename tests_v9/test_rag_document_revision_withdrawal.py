@@ -235,6 +235,7 @@ def test_ingest_answers_with_an_indexing_receipt_per_document():
             "revision": REV1,
             "chunks_written": len(doc),
             "chunks_withdrawn": 0,
+            "superseded": False,
         }
         for doc in (old, other)
     ]
@@ -563,6 +564,7 @@ def test_service_ingest_answers_with_receipts_and_keeps_the_total_the_uploader_c
                 "revision": REV2,
                 "chunks_written": 2,
                 "chunks_withdrawn": 3,
+                "superseded": False,
             }
         ],
     }
@@ -605,19 +607,19 @@ def test_two_replicas_publishing_revisions_at_once_never_erase_both(monkeypatch,
     """Production runs two retrieval replicas on one collection, and the ingest lock is per
     process. Both writes can land before either withdrawal scans; a withdrawal that keeps
     only its own ids then deletes the other replica's revision, and the two together leave
-    nothing searchable while both report success. With a publication stamp, a withdrawal
-    removes only rows published before it, so the later revision always survives."""
+    nothing searchable while both report success. With the read-back, the newest
+    publication is kept and everything else of the document withdrawn."""
     stamps = iter(range(1000, 2000))
     monkeypatch.setattr(pq, "_publication_stamp", lambda: next(stamps))
     store = Qdrant()
     deferred = []
-    real_withdraw = store.withdraw_document_points
+    real_settle = store.settle_document_publications
 
     def defer(**kwargs):
         deferred.append(kwargs)
-        return []
+        return [], None
 
-    store.withdraw_document_points = defer
+    store.settle_document_publications = defer
     early = document("tenant-a", ["first replica revision"], revision=REV1)
     late = document("tenant-a", ["second replica revision"], revision=REV2)
     retriever(store).ingest_documents(early)
@@ -626,7 +628,7 @@ def test_two_replicas_publishing_revisions_at_once_never_erase_both(monkeypatch,
 
     order = deferred if first_withdraws == "earlier" else list(reversed(deferred))
     for call in order:
-        real_withdraw(**call)
+        real_settle(**call)
     assert store.stored("tenant-a") == ids(late), "the later revision must survive"
 
 
@@ -639,3 +641,76 @@ def test_rows_written_before_publication_stamps_are_withdrawn_as_older(monkeypat
     new = document("tenant-a", SHORT, revision=REV2)
     retriever(store).ingest_documents(new)
     assert store.stored("tenant-a") == ids(new)
+
+
+def test_delayed_older_write_after_newer_cleanup_leaves_one_revision(monkeypatch):
+    """Lab receipt 1582-v2: replica A takes the older stamp, but its write lands only after
+    replica B has written *and* withdrawn. A stamp that only bounds what a withdrawal may
+    delete left both revisions stored; the read-back after the write makes A see B's newer
+    publication and withdraw its own rows, so exactly one complete revision remains."""
+    stamps = iter(range(1000, 2000))
+    monkeypatch.setattr(pq, "_publication_stamp", lambda: next(stamps))
+    store = Qdrant()
+    early = document("tenant-a", ["first replica revision"], revision=REV1)
+    late = document("tenant-a", ["second replica revision"], revision=REV2)
+    real_upsert = store.upsert
+    fired = []
+    late_receipts = []
+
+    def upsert(chunks, vectors, *, published_ns=None):
+        if published_ns == 1000 and not fired:
+            fired.append(1)
+            late_receipts.extend(retriever(store).ingest_documents(late))
+        return real_upsert(chunks, vectors, published_ns=published_ns)
+
+    store.upsert = upsert
+    early_retriever = retriever(store)
+    (early_receipt,) = early_retriever.ingest_documents(early)
+    assert fired, "the probe must interleave the newer publication"
+    assert store.stored("tenant-a") == ids(late), "only the newer revision may remain"
+    (late_receipt,) = late_receipts
+    assert (late_receipt.superseded, early_receipt.superseded) == (False, True)
+    assert early_receipt.chunks_withdrawn == 0, "its own withdrawn rows are not a cleanup"
+    # The losing replica's sparse index must not serve the revision it lost.
+    assert not any(c.document_id == early[0].document_id for c in early_retriever._chunks.values())
+
+
+def test_equal_stamps_still_converge_on_one_revision(monkeypatch):
+    """Two replicas can read the same clock value; the revision breaks the tie."""
+    monkeypatch.setattr(pq, "_publication_stamp", lambda: 1000)
+    store = Qdrant()
+    a = document("tenant-a", ["revision a text"], revision=REV1)
+    b = document("tenant-a", ["revision b text"], revision=REV2)
+    retriever(store).ingest_documents(a)
+    retriever(store).ingest_documents(b)
+    assert store.stored("tenant-a") == ids(
+        max((a, b), key=lambda d: d[0].metadata["source_revision"])
+    )
+
+
+def test_a_revision_another_replica_already_removed_still_reports_superseded(monkeypatch):
+    """Devin Review on 76550da8: replica A writes, then pauses before its read-back; replica B
+    writes a newer revision and its read-back deletes A's rows. When A resumes it has
+    nothing left to delete, yet it lost: the receipt must say so, decided from the newest
+    publication the read-back saw, not from which request deleted the rows."""
+    stamps = iter(range(1000, 2000))
+    monkeypatch.setattr(pq, "_publication_stamp", lambda: next(stamps))
+    store = Qdrant()
+    early = document("tenant-a", ["first replica revision"], revision=REV1)
+    late = document("tenant-a", ["second replica revision"], revision=REV2)
+    real_settle = store.settle_document_publications
+    late_receipts = []
+    paused = []
+
+    def settle(**kwargs):
+        if not paused:  # A pauses here once; B runs its whole ingest meanwhile
+            paused.append(1)
+            late_receipts.extend(retriever(store).ingest_documents(late))
+        return real_settle(**kwargs)
+
+    store.settle_document_publications = settle
+    (early_receipt,) = retriever(store).ingest_documents(early)
+    (late_receipt,) = late_receipts
+    assert store.stored("tenant-a") == ids(late)
+    assert (late_receipt.superseded, early_receipt.superseded) == (False, True)
+    assert early_receipt.chunks_withdrawn == 0

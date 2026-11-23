@@ -48,10 +48,11 @@ class FakeQdrant:
         for chunk, vector in zip(chunks, embeddings, strict=True):
             self.points[chunk.chunk_id] = (chunk, vector)
 
-    def withdraw_document_points(
-        self, *, tenant_id, document_id, keep_point_ids, published_before_ns=None
-    ):
+    def withdraw_document_points(self, *, tenant_id, document_id, keep_point_ids):
         return []  # every document here is ingested once: nothing earlier to withdraw
+
+    def settle_document_publications(self, *, tenant_id, document_id):
+        return [], None  # no earlier publication to compare with
 
     def search(self, vector, *, tenant_id, filters=None, limit=12):
         filters = filters or {}

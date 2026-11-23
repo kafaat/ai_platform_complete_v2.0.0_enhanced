@@ -380,6 +380,78 @@ async def _bind_field_scope(tenant_id: str, field_id: str) -> dict[str, str]:
     return scope
 
 
+# One upload of a document at a time (review on #1582). rag-retrieval runs replicas over one
+# Qdrant collection with no shared lock, and two revisions of one document often share an
+# identical chunk, hence one storage point: an older publication landing after a newer one
+# rewrites that point and the newer revision loses it. This service is the only writer of
+# the canonical ingest and runs one worker, so serialising publication per (tenant,
+# document) here keeps two uploads of one document from ever being in flight at once.
+#
+# The lock is only worth something while it covers rag-retrieval's whole write. When the
+# canonical call fails after the request may have reached rag-retrieval (a timeout, a broken
+# connection, a cancelled handler), rag-retrieval may still be writing: its handler has no
+# deadline and is not cancelled by the client going away. Its write time has no bound this
+# service can compute either (20 s per Ollama or Qdrant call, but the read-back scrolls all
+# the tenant's rows). So such a document stays blocked, in doubt, until this process
+# restarts, and its uploads are refused with 409 instead of racing that write (lab 1582-v5).
+# A failure before anything was sent (connection refused, connect timeout) releases it.
+_PUBLISHING = {}  # (tenant, document) -> asyncio.Lock, kept only while someone holds or waits
+_PUBLISHING_USERS = {}  # (tenant, document) -> holders and waiters
+_PUBLICATION_IN_DOUBT = set()  # (tenant, document) whose last canonical write has no known end
+# How long one upload waits for rag-retrieval's answer. Not a safety bound: giving up only
+# blocks the document (above). Long enough for a large file embedded on CPU.
+_CANONICAL_INGEST_TIMEOUT_S = 900.0
+
+
+def _request_never_sent(exc):
+    return isinstance(exc, (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout))
+
+
+async def _publishing_steps(keys):
+    ordered = sorted(set(keys))  # one global order, so two multi-file uploads cannot deadlock
+    for key in ordered:
+        _PUBLISHING_USERS[key] = _PUBLISHING_USERS.get(key, 0) + 1
+        _PUBLISHING.setdefault(key, asyncio.Lock())
+    held = []
+    try:
+        for key in ordered:
+            await _PUBLISHING[key].acquire()
+            held.append(key)
+        if any(key in _PUBLICATION_IN_DOUBT for key in ordered):
+            raise HTTPException(
+                409,
+                {
+                    "code": "DOCUMENT_PUBLICATION_IN_DOUBT",
+                    "message": "an earlier upload of this file may still be being written; "
+                    "it can be uploaded again after the knowledge service restarts",
+                },
+            )
+        try:
+            yield
+        except BaseException as exc:
+            if not _request_never_sent(exc):
+                _PUBLICATION_IN_DOUBT.update(ordered)
+                logger.warning(
+                    "RAG_PUBLICATION_IN_DOUBT documents=%d type=%s",
+                    len(ordered),
+                    type(exc).__name__,
+                )
+            raise
+    finally:
+        for key in reversed(held):
+            _PUBLISHING[key].release()
+        for key in ordered:
+            left = _PUBLISHING_USERS[key] - 1
+            if left:
+                _PUBLISHING_USERS[key] = left
+            else:
+                del _PUBLISHING_USERS[key]
+                del _PUBLISHING[key]
+
+
+_publishing = asynccontextmanager(_publishing_steps)
+
+
 async def ingest_documents(
     file_paths: list[Path],
     tenant_id: str = "default",
@@ -401,9 +473,9 @@ async def ingest_documents(
     rejected = 0
     source_names = source_names or {}
     scope = dict(scope or {})
-    # One basename is one document id (tenant + field + name), so two files with one name
-    # would be one document with two revisions, which the canonical ingest refuses as a
-    # whole batch (422, seen by the uploader as 503). Refuse it here, naming the file.
+    # One basename is one document id (tenant + name), so two files with one name would be
+    # one document with two revisions, which the canonical ingest refuses as a whole batch
+    # (422, seen by the uploader as 503). Refuse it here, naming the file (review on #1582).
     upload_names = [source_names.get(str(p), p.name) for p in file_paths]
     conflicting = sorted({n for n in upload_names if upload_names.count(n) > 1})
     if conflicting:
@@ -456,8 +528,10 @@ async def ingest_documents(
     # A tenant-wide document keeps its historical identity; a field document adds the field.
     field_id = scope.get("field_id")
     identity_prefix = f"{tenant_id}:field:{field_id}" if field_id else tenant_id
+    document_names: dict[str, str] = {}
     for source_file, rows in sorted(by_source.items()):
         document_id = hashlib.sha256(f"{identity_prefix}:{source_file}".encode()).hexdigest()
+        document_names[document_id] = source_file
         total = len(rows)
         for idx, chunk in enumerate(rows):
             chunk_id = hashlib.sha256(
@@ -485,20 +559,43 @@ async def ingest_documents(
     if not AGENT_TOKEN:
         raise HTTPException(503, "خدمة المعرفة غير مهيأة للكتابة المحكومة")
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                f"{RAG_RETRIEVAL_URL}/v1/ingest",
-                json={"chunks": wire_chunks},
-                headers={"X-Agent-Token": AGENT_TOKEN, "X-Tenant-Id": tenant_id},
-            )
+        async with _publishing((tenant_id, d) for d in document_names):
+            async with httpx.AsyncClient(timeout=_CANONICAL_INGEST_TIMEOUT_S) as client:
+                response = await client.post(
+                    f"{RAG_RETRIEVAL_URL}/v1/ingest",
+                    json={"chunks": wire_chunks},
+                    headers={"X-Agent-Token": AGENT_TOKEN, "X-Tenant-Id": tenant_id},
+                )
         response.raise_for_status()
-        accepted = int(response.json().get("ingested", 0))
+        answer = response.json()
+        accepted = int(answer.get("ingested", 0))
+    except HTTPException:
+        raise
     except Exception as exc:  # noqa: BLE001 — canonical writer failure must be explicit
         logger.warning("RAG_CANONICAL_INGEST_FAILED type=%s", type(exc).__name__)
         raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر الاستيعاب)") from exc
     if accepted != len(wire_chunks):
         raise HTTPException(503, "خدمة المعرفة أعادت عدداً غير مطابق من المقاطع المستوعبة")
-    return {"ingested": len(all_docs), "chunks": accepted, "rejected": rejected}
+    result = {"ingested": len(all_docs), "chunks": accepted, "rejected": rejected}
+    # A document another publication replaced is written but not what is now searchable;
+    # name it instead of answering "ingested" for it (review on #1582).
+    receipts = answer.get("receipts") if isinstance(answer, dict) else None
+    superseded = sorted(
+        {
+            document_names.get(str(r.get("document_id")), "unknown")
+            for r in (receipts if isinstance(receipts, list) else [])
+            if isinstance(r, dict) and r.get("superseded") is True
+        }
+    )
+    if superseded:
+        result["status"] = (
+            "superseded" if len(superseded) >= len(document_names) else "partially_superseded"
+        )
+        result["superseded_files"] = superseded
+        result["message"] = (
+            "a newer upload of these files was published at the same time and replaced them"
+        )
+    return result
 
 
 # ══════════════════════════════════════════════════════════════

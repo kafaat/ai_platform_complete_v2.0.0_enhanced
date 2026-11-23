@@ -12816,7 +12816,15 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_local_ai_rag_publish_serialisation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_local_ai_rag_sources_and_upload_cleanup.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_local_ai_rag_upload_filename_conflict.py",
     "kind": "tests"
   },
   {
@@ -13317,6 +13325,10 @@
   },
   {
     "path": "tests_v9/test_rag_bm25_search_cost.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_canonical_ingest_single_writer.py",
     "kind": "tests"
   },
   {

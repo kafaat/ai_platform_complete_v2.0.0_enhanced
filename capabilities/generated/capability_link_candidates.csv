@@ -1155,6 +1155,7 @@ FM-004,test,tests_v9/test_season_lifecycle_behavior_v66.py,3,applied
 FM-004,test,tests_v9/test_season_logbook_content_safety.py,3,applied
 FM-004,test,tests_v9/test_season_simulate_gateway_route.py,3,applied
 FM-004,test,tests_v9/test_season_simulation_behavior_v66.py,3,applied
+FM-004,test,tests_v9/test_season_simulation_timeout_chain.py,3,applied
 FM-004,test,tests_v9/test_season_state_sources_live_pg.py,3,applied
 FM-004,test,tests_v9/test_season_workspace.py,3,applied
 FM-004,test,tests_v9/test_v201_season_records_static.py,3,applied
