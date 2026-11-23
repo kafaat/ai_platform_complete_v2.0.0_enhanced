@@ -312,7 +312,9 @@ def test_u4_ui_waivers_governed() -> None:
     for s in source["waivers"]:
         if s.get("permanent") is True:
             assert s.get("owner"), f"إعفاء دائم بلا مالك: {s['endpoint']}"
-            assert "PERMANENT 2026-11-23" in s.get("reason", ""), f"إعفاء دائم بلا سبب موثَّق: {s['endpoint']}"
+            assert "PERMANENT 2026-11-23" in s.get("reason", ""), (
+                f"إعفاء دائم بلا سبب موثَّق: {s['endpoint']}"
+            )
     for w in waivers:
         assert w["owner"] in component_ids, w
         if w["endpoint"] in permanent:
