@@ -866,7 +866,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 599,
+      "evidence_count": 598,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1255,7 +1255,6 @@
         "services/sahool-platform/core/recommendation_engine.py",
         "services/sahool-platform/core/recommendation_ponytail.py",
         "services/sahool-platform/core/recommendation_replay.py",
-        "services/sahool-platform/core/recommendation_runtime_outcome.py",
         "services/sahool-platform/core/review_fork.py",
         "services/sahool-platform/core/salinity_capability.py",
         "services/sahool-platform/core/schema_factory.py",
@@ -1739,7 +1738,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 408,
+      "evidence_count": 410,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1804,6 +1803,7 @@
         "migrations/v281_farm_ledger_season_reference.down.sql",
         "migrations/v286_canonical_observations.sql",
         "migrations/v287_farm_access_grants.sql",
+        "migrations/v288_model_promotion_terminal_state.sql",
         "migrations/v50_soil_lab_tests.sql",
         "migrations/v51_review_round2_fixes.sql",
         "migrations/v53_field_state_projection.sql",
@@ -1956,6 +1956,7 @@
         "services/sahool-platform/api/outcome_measurement.py",
         "services/sahool-platform/api/phase9_autonomous_farm_os.py",
         "services/sahool-platform/api/phase_runtime_store.py",
+        "services/sahool-platform/api/phase_runtime_workers.py",
         "services/sahool-platform/api/pivot_geometry.py",
         "services/sahool-platform/api/prescriptions.py",
         "services/sahool-platform/api/routers/boundaries.py",
@@ -2011,9 +2012,9 @@
         "services/sahool-platform/core/productivity_zones.py",
         "services/sahool-platform/core/rag/production_qdrant.py",
         "services/sahool-platform/core/rbac_governance.py",
+        "services/sahool-platform/core/recommendation_bridge.py",
         "services/sahool-platform/core/recommendation_ponytail.py",
         "services/sahool-platform/core/recommendation_replay.py",
-        "services/sahool-platform/core/recommendation_runtime_outcome.py",
         "services/sahool-platform/core/review_fork.py",
         "services/sahool-platform/core/salinity_capability.py",
         "services/sahool-platform/core/source_of_truth.py",
@@ -3285,7 +3286,7 @@
         "services/sahool-platform/api/learning_summary.py"
       ],
       "source_evidence_count": 818,
-      "target_evidence_count": 599,
+      "target_evidence_count": 598,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3396,7 +3397,7 @@
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py"
       ],
-      "source_evidence_count": 599,
+      "source_evidence_count": 598,
       "target_evidence_count": 215,
       "static_supported": true,
       "runtime_verified": false
@@ -3499,7 +3500,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 215,
-      "target_evidence_count": 408,
+      "target_evidence_count": 410,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3546,7 +3547,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 408,
+      "source_evidence_count": 410,
       "target_evidence_count": 52,
       "static_supported": true,
       "runtime_verified": false
@@ -3757,5 +3758,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "91d7432219aec8a6f7e990fc89372fbec78ca04cb92f72d4b4b1703551f34548"
+  "content_sha256": "e8c22ef186b0990baae544ecf95eafbd4d2676b635ee6d771941e9533b6b3239"
 }
