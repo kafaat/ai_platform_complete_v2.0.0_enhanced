@@ -32,6 +32,24 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def totals_problem(manifest: dict, count: int, size: int) -> str | None:
+    """The manifest's file_count and total_size_bytes must describe the checksummed files.
+
+    Hashes alone left a stale total invisible: a merge that took main's manifest kept main's
+    total_size_bytes while the checksums covered grown files, and this validator still passed,
+    so verify_all_generated --fix (which rebuilds only when this fails) never rebuilt it
+    (Devin on #1590: 108,839,607 recorded, 108,842,208 actual).
+    """
+    if int(manifest.get("file_count", -1)) != count:
+        return f"manifest file_count {manifest.get('file_count')} != {count} checksummed files"
+    if int(manifest.get("total_size_bytes", -1)) != size:
+        return (
+            f"manifest total_size_bytes {manifest.get('total_size_bytes')} != {size} bytes "
+            "in the checksummed files"
+        )
+    return None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=".")
@@ -71,6 +89,7 @@ def main() -> int:
 
     checksum_file = root / "release/FILE_CHECKSUMS.sha256"
     checked = 0
+    total_size = 0
     for line in checksum_file.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
@@ -84,8 +103,13 @@ def main() -> int:
             print(f"checksum mismatch: {rel}")
             return 1
         checked += 1
+        total_size += path.stat().st_size
     if checked <= 0:
         print("no checksum rows validated")
+        return 1
+    problem = totals_problem(manifest, checked, total_size)
+    if problem:
+        print(problem)
         return 1
     print(f"release package validation passed: {checked} checksums verified")
     return 0
