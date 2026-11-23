@@ -167,6 +167,31 @@ class Triage(unittest.TestCase):
         with self.assertRaises(bot.LogTooLarge):
             bot.read_log_tail(io.BytesIO(b"z" * 41), keep=10, ceiling=40)
 
+    def test_step_header_before_the_tail_still_frames_its_output(self):
+        # SAHOOL run 45067849451: the unit step's header sat 4.7 MB before its FAILED line.
+        log = (
+            "T ##[group]Run actions/checkout\nT ##[endgroup]\nT done\n"
+            "T ##[group]Run python -m pytest -m unit\nT ##[endgroup]\n"
+            + "T PASSED tests/test_ok.py::test_ok\n"
+            * 400
+            + "T FAILED tests/test_x.py::test_case - AssertionError\n"
+            "T ##[error]Process completed with exit code 1.\n"
+        ).encode()
+        text = bot.read_log_tail(io.BytesIO(log), keep=2000)
+        self.assertTrue(text.truncated)
+        self.assertTrue(
+            text.startswith("T ##[group]Run python -m pytest -m unit\nT ##[endgroup]\n")
+        )
+        result = show(job("failure", [step("Run unit tests", "failure")]), lambda _: text)
+        self.assertIn("test&#95;case", result)
+        self.assertIn("فُحص آخر", result)
+
+    def test_tail_starting_at_a_header_gets_no_extra_header(self):
+        head = b"T ##[group]Run old\nT ##[endgroup]\n" + b"x\n" * 50
+        tail = b"T ##[group]Run python -m pytest\nT ##[endgroup]\nT ok\n"
+        text = bot.read_log_tail(io.BytesIO(head + tail), keep=len(tail))
+        self.assertEqual(text, tail.decode())
+
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
         self.assertIn("تعذّر إسناد", show(job("failure", data), lambda _: ""))

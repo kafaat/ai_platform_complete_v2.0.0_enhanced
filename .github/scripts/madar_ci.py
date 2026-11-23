@@ -89,17 +89,37 @@ class GitHub:
             return read_log_tail(response)
 
 
+GROUP_RUN = re.compile(rb"(?m)^\S+ ##\[group\]Run [^\n]*")
+
+
 def read_log_tail(response, keep=MAX_LOG, ceiling=MAX_LOG_STREAM):
-    """Stream a job log and keep its last `keep` bytes: a failing step's output is at the end."""
-    kept, total = bytearray(), 0
+    """Stream a job log and keep its last `keep` bytes: a failing step's output is at the end.
+
+    A long step's `##[group]Run` header can fall before the kept window (SAHOOL's unit job
+    prints about 4.7 MB after it). The last header dropped is carried over and put back in
+    front of the tail, closed at once, so the step's command still frames its output.
+    """
+    kept, total, header = bytearray(), 0, None
     while chunk := response.read(1024 * 1024):
         total += len(chunk)
         if total > ceiling:
             raise LogTooLarge(f"log over {ceiling} bytes")
         kept += chunk
         if len(kept) > keep:
-            del kept[: len(kept) - keep]
-    text = LogText(bytes(kept).decode("utf-8-sig" if total <= keep else "utf-8", errors="replace"))
+            cut = len(kept) - keep
+            dropped = None
+            for found in GROUP_RUN.finditer(kept):
+                if found.start() >= cut:
+                    break
+                dropped = found
+            if dropped:
+                header = bytes(dropped.group(0)).rstrip(b"\r")
+            del kept[:cut]
+    text = bytes(kept).decode("utf-8-sig" if total <= keep else "utf-8", errors="replace")
+    if total > keep and header and not GROUP_RUN.match(bytes(kept)):
+        lead = header.decode("utf-8", errors="replace")
+        text = f"{lead}\n{lead.split(' ', 1)[0]} ##[endgroup]\n{text}"
+    text = LogText(text)
     text.truncated = total > keep
     return text
 
