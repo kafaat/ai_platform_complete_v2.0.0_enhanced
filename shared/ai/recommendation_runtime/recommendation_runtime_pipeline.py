@@ -37,10 +37,10 @@ class RuntimePipelineResult:
     review_id: str | None
     events_published: int
     #: ``published`` only when the publisher actually hands events to a broker client;
-    #: the in-memory default keeps a local list and is ``not_published``.
+    #: the process-local default keeps a local list and is ``not_published``.
     event_delivery: str = "not_published"
     #: ``persisted`` only when the review store is durable; ``not_persisted`` for the
-    #: in-memory default; ``None`` when no review was created.
+    #: process-local default; ``None`` when no review was created.
     review_persistence: str | None = None
 
 

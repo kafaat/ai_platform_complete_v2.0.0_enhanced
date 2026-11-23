@@ -211,7 +211,7 @@ def _runtime_pipeline_outcome(result) -> tuple[int, dict]:
     """Map a pipeline result to the HTTP status and body this path returns.
 
     Events count as published only when the publisher handed them to a broker, and a
-    review id is reported only when the review store is durable. With the in-memory
+    review id is reported only when the review store is durable. With the process-local
     defaults the body says ``not_published`` / ``not_persisted`` instead of claiming
     ``events_published=2`` and a ``review_id`` that no other process can find.
     """
