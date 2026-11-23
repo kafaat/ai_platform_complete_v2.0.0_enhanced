@@ -635,6 +635,63 @@ def test_repointing_an_alias_active_before_v288_waits_for_the_external_ack(
     _run(body())
 
 
+def test_the_promotion_an_alias_served_before_v288_never_moves_it_to_pending(
+    monkeypatch, migrated_db
+):
+    """Hospital review of #1587 @f6326917: an alias active before v288 stays active.
+
+    Before v288 the promotion an active alias serves had no queue state, so v288's backfill
+    left its history row pending. With serving enabled the worker then claimed it, found the
+    alias on the same promotion (not superseded) and upserted the alias to
+    pending_external_ack, against the owner decision of 2026-11-23. v288 now closes that row
+    as skipped (active_before_v288): the alias stays active and nothing is published.
+    """
+
+    async def body():
+        async with Live(monkeypatch, migrated_db) as live:
+            monkeypatch.setenv("MODEL_SERVING_ENABLED", "true")
+            monkeypatch.setenv("MODEL_SERVING_BACKEND_URL", "http://serving.invalid")
+            async with live.owner.acquire() as conn:
+                await conn.execute(_V288_DOWN.read_text(encoding="utf-8"))
+                try:
+                    await conn.execute(
+                        "INSERT INTO model_versions_runtime "
+                        "(tenant_id, model_id, model_name, version, task, artifact_uri, artifact_hash) "
+                        "VALUES ($1,'m-served','yield','m-served','yield_forecast',"
+                        "'s3://models/m-served','sha256:m-served')",
+                        live.tenant,
+                    )
+                    await conn.execute(
+                        "INSERT INTO model_promotion_history_runtime "
+                        "(tenant_id, promotion_id, alias, decision, target_model_id) "
+                        "VALUES ($1,'p-served',$2,'promote','m-served')",
+                        live.tenant,
+                        _ALIAS,
+                    )
+                    await conn.execute(
+                        "INSERT INTO model_serving_aliases_runtime "
+                        "(tenant_id, alias, model_id, promotion_id, status) "
+                        "VALUES ($1,$2,'m-served','p-served','active')",
+                        live.tenant,
+                        _ALIAS,
+                    )
+                finally:
+                    await conn.execute(_V288.read_text(encoding="utf-8"))
+
+            row = await live.promotion("p-served")
+            assert (row["status"], row["status_reason"]) == ("skipped", "active_before_v288")
+            assert await live.cycle("p-served") is False
+            alias = await live.alias()
+            assert (alias["model_id"], alias["promotion_id"], alias["status"]) == (
+                "m-served",
+                "p-served",
+                "active",
+            )
+            assert [p for _, p in live.published if p.get("promotion_id") == "p-served"] == []
+
+    _run(body())
+
+
 def test_a_newer_alias_written_while_the_worker_waits_is_never_overwritten(
     monkeypatch, migrated_db
 ):

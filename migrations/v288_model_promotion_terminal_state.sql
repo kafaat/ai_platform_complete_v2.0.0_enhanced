@@ -32,6 +32,9 @@
 --   decision <> 'promote'                                   -> skipped (decision_<decision>);
 --   decision = 'promote' whose promotion is already the alias's pending_external_ack request
 --   (before this release written only by the worker's request branch) -> requested;
+--   decision = 'promote' whose promotion the alias already serves as active (before v288)
+--   -> skipped (active_before_v288), so the worker never requests it again and never moves
+--   that alias to pending_external_ack;
 --   every other promote row stays pending and is processed once more under the new rules.
 -- The column and both backfills run only on the apply that adds the status column. Once the
 -- platform code of this release is deployed, its writer records a promote decision with
@@ -93,6 +96,17 @@ BEGIN
          WHERE p.status = 'pending' AND p.decision = 'promote'
            AND a.tenant_id = p.tenant_id AND a.alias = p.alias
            AND a.promotion_id = p.promotion_id AND a.status = 'pending_external_ack';
+
+        -- The promotion an alias already serves (active before v288) leaves the queue: left
+        -- pending, the worker would request it again with serving enabled and its upsert would
+        -- move that alias to pending_external_ack (hospital review of #1587). skipped, not
+        -- requested, so no request or acknowledgement is attributed to it.
+        UPDATE model_promotion_history_runtime p
+           SET status = 'skipped', status_reason = 'active_before_v288'
+          FROM model_serving_aliases_runtime a
+         WHERE p.status = 'pending' AND p.decision = 'promote'
+           AND a.tenant_id = p.tenant_id AND a.alias = p.alias
+           AND a.promotion_id = p.promotion_id AND a.status = 'active';
     END IF;
 END
 $$;
