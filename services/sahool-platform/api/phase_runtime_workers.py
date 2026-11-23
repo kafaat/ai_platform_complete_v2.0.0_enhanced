@@ -376,8 +376,13 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                 serving_enabled=serving_enabled,
                 serving_backend_url=serving_backend_url,
             )
-            owned = True
             if action["action"] == "request_serving_promotion":
+                # The request is published while the row is still claimed and pending, and only
+                # then marked requested. A broker that is down must not leave a row that is
+                # terminal but never sent (Devin on #1587): on a failed publish the claim is
+                # released with the row still pending, so a later cycle publishes it. Delivery
+                # is at least once; Nats-Msg-Id is stable per promotion, so the stream drops a
+                # republish inside its duplicate window and a consumer keys on promotion_id.
                 async with conn.transaction():
                     await _set_tenant(conn, row["tenant_id"])
                     await conn.execute(
@@ -394,15 +399,7 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                         row["previous_model_id"],
                         row["promotion_id"],
                     )
-                    owned = await finalize_claim(
-                        conn,
-                        table="model_promotion_history_runtime",
-                        row_id=row["id"],
-                        claim_token=row["claim_token"],
-                        assignments="status=$1, status_reason=NULL",
-                        params=("requested",),
-                    )
-                if owned:
+                try:
                     await _publish_nats(
                         "sahool.model.promotion.requested",
                         {
@@ -410,6 +407,21 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                             "alias": row["alias"],
                             "target_model_id": row["target_model_id"],
                         },
+                        msg_id=f"model-promotion-requested:{row['promotion_id']}",
+                    )
+                except Exception as exc:  # noqa: BLE001 - any failure means "not sent"
+                    released = ("pending", f"publish_failed:{type(exc).__name__}")
+                else:
+                    released = ("requested", None)
+                async with conn.transaction():
+                    await _set_tenant(conn, row["tenant_id"])
+                    await finalize_claim(
+                        conn,
+                        table="model_promotion_history_runtime",
+                        row_id=row["id"],
+                        claim_token=row["claim_token"],
+                        assignments="status=$1, status_reason=$2",
+                        params=released,
                     )
             else:
                 async with conn.transaction():

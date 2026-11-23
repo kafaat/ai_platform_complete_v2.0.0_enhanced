@@ -15,6 +15,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any
 
+from core.authorization import Permission, has_permission
 from core.farm_costing import ActualCostLine, SeasonBudgetLine, compute_variances
 
 
@@ -528,16 +529,23 @@ def _unit_key(unit: str | None) -> str:
 
 
 def inventory_deduction_refusal(
-    *, enabled: bool, has_batches: bool, idempotency_key: str | None, status: str
+    *, enabled: bool, has_batches: bool, idempotency_key: str | None, status: str, user: Any
 ) -> tuple[int, dict[str, str]] | None:
     """Why a requested deduction cannot start, before anything is written; ``None`` if it can.
 
-    Flag off or no named batch: nothing to refuse (and nothing is deducted). Otherwise the
-    ``Idempotency-Key`` is mandatory (its stored result is the receipt, so a retry cannot deduct
-    twice) and only a ``completed`` operation consumed stock.
+    Flag off or no named batch: nothing to refuse (and nothing is deducted). Otherwise moving
+    stock needs ``inventory:manage``: logging an activity (``activity:execute``, which a field
+    worker holds) does not grant it. Then the ``Idempotency-Key`` is mandatory (its stored result
+    is the receipt, so a retry cannot deduct twice) and only a ``completed`` operation consumed
+    stock.
     """
     if not (enabled and has_batches):
         return None
+    if not has_permission(user, Permission.INVENTORY_MANAGE):
+        return 403, {
+            "reason": "inventory_deduction_requires_inventory_manage",
+            "permission": Permission.INVENTORY_MANAGE.value,
+        }
     if not idempotency_key:
         return 428, {"reason": "inventory_deduction_requires_idempotency_key"}
     if status != "completed":

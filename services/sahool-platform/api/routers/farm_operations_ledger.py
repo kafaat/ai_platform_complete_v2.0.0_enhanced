@@ -153,7 +153,7 @@ async def create_operation_ledger_record(
     deduct = _flag_enabled(_INVENTORY_DEDUCTION_FLAG)
     has_batches = any(i.inventory_batch_id for i in req.inputs)
     if refusal := ledger_core.inventory_deduction_refusal(
-        enabled=deduct, has_batches=has_batches, idempotency_key=idem, status=req.status
+        enabled=deduct, has_batches=has_batches, idempotency_key=idem, status=req.status, user=user
     ):
         raise HTTPException(status_code=refusal[0], detail=refusal[1])
     try:

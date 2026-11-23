@@ -374,6 +374,58 @@ def test_same_file_name_for_two_fields_and_the_tenant_are_three_documents(tmp_pa
     assert len(stack.search(QUERY, field_id="F2", crop="قمح صلب")) == 1
 
 
+@pytest.mark.parametrize("field_first", [False, True], ids=["tenant-first", "field-first"])
+def test_a_tenant_wide_name_spelling_a_field_prefix_is_not_that_fields_document(
+    tmp_path, field_first
+):
+    """Devin on #1587: "field:F1:notes.txt" tenant-wide and "notes.txt" for F1 hashed alike.
+
+    The canonical writer replaces an older revision of the same (tenant, document_id), so the
+    second upload silently removed the first. Both must stay, in either order.
+    """
+    stack = Stack()
+    uploads = [({"field:F1:notes.txt": TEXT}, None), ({"notes.txt": TEXT}, "F1")]
+    for files, field_id in reversed(uploads) if field_first else uploads:
+        stack.upload(tmp_path, files, field_id=field_id)
+    stored = [p["metadata"] for p in stack.stored()]
+    assert len({m["document_id"] for m in stored}) == 2
+    assert {m["source_file"] for m in stored} == {"field:F1:notes.txt", "notes.txt"}
+
+
+def test_a_tenant_wide_document_keeps_its_historical_identity(tmp_path):
+    stack = Stack()
+    stack.upload(tmp_path, {"notes.txt": TEXT})
+    (doc_id,) = {p["metadata"]["document_id"] for p in stack.stored()}
+    assert doc_id == hashlib.sha256(b"tenant-a:notes.txt").hexdigest()
+
+
+def test_the_env_template_lets_local_ai_rag_call_the_field_owner():
+    """Devin on #1587: .env.example's explicit allowlist overrode Compose's fallback.
+
+    A stack started from the template (the local runbook copies it to .env) refused
+    local-ai-rag's field lookup, so every field upload failed with 502. The template must
+    list every caller the Compose fallback lists, local-ai-rag among them.
+    """
+    root = Path(__file__).resolve().parents[1]
+    (template_line,) = [
+        line
+        for line in (root / ".env.example").read_text(encoding="utf-8").splitlines()
+        if line.startswith("FIELD_SERVICE_ALLOWED_CALLERS=")
+    ]
+    template = {s.strip() for s in template_line.split("=", 1)[1].split(",") if s.strip()}
+    compose = (root / "docker-compose.v9.yml").read_text(encoding="utf-8")
+    (fallback,) = re.findall(
+        r"FIELD_SERVICE_ALLOWED_CALLERS: \$\{FIELD_SERVICE_ALLOWED_CALLERS:-([^}]*)\}", compose
+    )
+    fallback_callers = {s.strip() for s in fallback.split(",") if s.strip()}
+    caller = re.search(
+        r'^FIELD_SERVICE_CALLER = "([^"]+)"', LOCAL_MAIN.read_text(encoding="utf-8"), re.M
+    ).group(1)
+    assert caller == "local-ai-rag"
+    assert caller in fallback_callers
+    assert fallback_callers <= template, sorted(fallback_callers - template)
+
+
 def test_the_endpoint_binds_the_field_before_reading_files_and_takes_no_client_scope():
     """The endpoint accepts a field name only; crop/region/publisher are not parameters."""
     tree = ast.parse(LOCAL_MAIN.read_text(encoding="utf-8"))

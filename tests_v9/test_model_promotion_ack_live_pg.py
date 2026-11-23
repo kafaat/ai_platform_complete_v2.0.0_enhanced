@@ -357,6 +357,57 @@ def test_an_enabled_promotion_is_requested_once_and_waits_for_the_ack(monkeypatc
     _run(body())
 
 
+def test_a_promotion_whose_publish_fails_stays_queued_and_is_sent_on_recovery(
+    monkeypatch, migrated_db
+):
+    """Devin on #1587: 'requested' was committed before the publish, so a broker outage lost it.
+
+    The row is now marked requested only after the publish succeeds; a failed publish releases
+    the claim with the row still pending, and the next cycle sends it, under a stable msg id.
+    """
+
+    async def body():
+        async with Live(monkeypatch, migrated_db) as live:
+            monkeypatch.setenv("MODEL_SERVING_ENABLED", "true")
+            monkeypatch.setenv("MODEL_SERVING_BACKEND_URL", "http://serving.invalid")
+            sent: list[tuple[str, dict, str | None]] = []
+            broker_down = [True]
+
+            async def flaky(subject, payload, *, msg_id=None):
+                if broker_down[0]:
+                    raise ConnectionError("nats is restarting")
+                sent.append((subject, payload, msg_id))
+
+            monkeypatch.setattr(live.workers, "_publish_nats", flaky)
+            await live.persist(_promotion("p-6"), model_id="m-b")
+
+            assert await live.cycle("p-6") is True
+            row = await live.promotion("p-6")
+            assert (row["status"], row["status_reason"]) == (
+                "pending",
+                "publish_failed:ConnectionError",
+            )
+            assert row["claim_token"] is None, "a failed publish must release the claim"
+            assert (await live.alias())["status"] == "pending_external_ack"
+            assert sent == []
+
+            broker_down[0] = False
+            assert await live.cycle("p-6") is True, "the unsent promotion was not retried"
+            assert sent == [
+                (
+                    "sahool.model.promotion.requested",
+                    {"promotion_id": "p-6", "alias": _ALIAS, "target_model_id": "m-b"},
+                    "model-promotion-requested:p-6",
+                )
+            ]
+            row = await live.promotion("p-6")
+            assert (row["status"], row["status_reason"]) == ("requested", None)
+            assert await live.cycle("p-6") is False, "a sent promotion was claimed again"
+            assert len(sent) == 1
+
+    _run(body())
+
+
 def test_a_non_promote_decision_writes_no_alias_and_leaves_the_queue_once(monkeypatch, migrated_db):
     async def body():
         async with Live(monkeypatch, migrated_db) as live:

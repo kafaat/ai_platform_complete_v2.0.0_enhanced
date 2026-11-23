@@ -528,12 +528,20 @@ async def ingest_documents(
         by_source.setdefault(str(chunk.metadata.get("source_file") or "unknown"), []).append(chunk)
 
     wire_chunks: list[dict] = []
-    # A tenant-wide document keeps its historical identity; a field document adds the field.
+    # A tenant-wide document keeps its historical identity ("tenant:file"). A field document
+    # hashes a structurally different input, NUL-led and NUL-separated, so no tenant-wide file
+    # name can spell it: "field:F1:notes.pdf" uploaded tenant-wide and "notes.pdf" uploaded for
+    # field F1 are two documents, and neither replaces the other as a revision. Tenant ids,
+    # field ids (_FIELD_ID_RE) and file names carry no NUL, so the parts cannot run together.
     field_id = scope.get("field_id")
-    identity_prefix = f"{tenant_id}:field:{field_id}" if field_id else tenant_id
     document_names: dict[str, str] = {}
     for source_file, rows in sorted(by_source.items()):
-        document_id = hashlib.sha256(f"{identity_prefix}:{source_file}".encode()).hexdigest()
+        identity = (
+            "\0".join(("", "field-v1", tenant_id, str(field_id), source_file))
+            if field_id
+            else f"{tenant_id}:{source_file}"
+        )
+        document_id = hashlib.sha256(identity.encode()).hexdigest()
         document_names[document_id] = source_file
         total = len(rows)
         for idx, chunk in enumerate(rows):

@@ -195,12 +195,68 @@ def test_deduction_plan_refuses_ambiguous_lines(rows, reason):
     ],
 )
 def test_deduction_preconditions(enabled, has_batches, idem, status, expected):
+    from core.canonical_schemas import UserRole
     from core.farm_operations_ledger import inventory_deduction_refusal
 
     got = inventory_deduction_refusal(
-        enabled=enabled, has_batches=has_batches, idempotency_key=idem, status=status
+        enabled=enabled,
+        has_batches=has_batches,
+        idempotency_key=idem,
+        status=status,
+        user=_ledger_user(UserRole.MANAGER),
     )
     assert (got[0] if got else None) == expected
+
+
+def _ledger_user(role):
+    from core.canonical_schemas import UserSchema
+
+    return UserSchema(user_id="u1", tenant_id="t1", role=role, name_ar="مستخدم")
+
+
+@pytest.mark.parametrize(
+    ("role", "enabled", "expected"),
+    [
+        # Devin on #1587: activity:execute (a field worker) let a ledger entry move stock.
+        ("worker", True, 403),
+        ("agronomist", True, 403),
+        ("viewer", True, 403),
+        ("manager", True, None),
+        ("owner", True, None),
+        ("worker", False, None),  # flag off: nothing moves, so nothing to refuse
+    ],
+)
+def test_moving_stock_needs_inventory_manage_not_activity_execute(role, enabled, expected):
+    from core.canonical_schemas import UserRole
+    from core.farm_operations_ledger import inventory_deduction_refusal
+
+    got = inventory_deduction_refusal(
+        enabled=enabled,
+        has_batches=True,
+        idempotency_key="k",
+        status="completed",
+        user=_ledger_user(UserRole(role)),
+    )
+    assert (got[0] if got else None) == expected
+    if expected == 403:
+        assert got[1] == {
+            "reason": "inventory_deduction_requires_inventory_manage",
+            "permission": "inventory:manage",
+        }
+
+
+def test_the_permission_refusal_comes_before_the_idempotency_and_status_checks():
+    from core.canonical_schemas import UserRole
+    from core.farm_operations_ledger import inventory_deduction_refusal
+
+    got = inventory_deduction_refusal(
+        enabled=True,
+        has_batches=True,
+        idempotency_key=None,
+        status="planned",
+        user=_ledger_user(UserRole.WORKER),
+    )
+    assert got and got[0] == 403
 
 
 def test_deduction_flag_is_off_by_default_and_never_set_truthy_in_repo(monkeypatch):

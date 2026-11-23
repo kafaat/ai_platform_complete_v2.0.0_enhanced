@@ -85,11 +85,11 @@ def _platform():
     return main, farm_operations_ledger
 
 
-def _user(tenant: str):
+def _user(tenant: str, role: str = "owner"):
     from core.canonical_schemas import UserRole, UserSchema
 
     return UserSchema(
-        user_id=f"u-{uuid.uuid4().hex[:8]}", tenant_id=tenant, role=UserRole.OWNER, name_ar="مالك"
+        user_id=f"u-{uuid.uuid4().hex[:8]}", tenant_id=tenant, role=UserRole(role), name_ar="مالك"
     )
 
 
@@ -265,6 +265,22 @@ def test_flag_on_deducts_the_named_batch_once_and_returns_a_receipt(monkeypatch)
         assert replay == first  # the stored receipt, not a second deduction
         assert await live.stock() == 6.0
         assert await live.operations() == 1
+
+    _run(monkeypatch, case, flag=True)
+
+
+def test_flag_on_refuses_a_field_worker_before_any_write(monkeypatch):
+    """Devin on #1587: logging an activity (worker) must not move stock (inventory:manage)."""
+    from fastapi import HTTPException
+
+    async def case(live, router):
+        with pytest.raises(HTTPException) as caught:
+            await router.create_operation_ledger_record(
+                _request(router, live), user=_user(live.tenant, "worker"), idem=str(uuid.uuid4())
+            )
+        assert caught.value.status_code == 403
+        assert caught.value.detail["reason"] == "inventory_deduction_requires_inventory_manage"
+        assert (await live.stock(), await live.operations()) == (10.0, 0)
 
     _run(monkeypatch, case, flag=True)
 
