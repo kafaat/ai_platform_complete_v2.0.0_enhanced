@@ -417,11 +417,14 @@ async def _publishing_steps(keys):
         for key in ordered:
             await _PUBLISHING[key].acquire()
             held.append(key)
-        if any(key in _PUBLICATION_IN_DOUBT for key in ordered):
+        in_doubt = [key for key in ordered if key in _PUBLICATION_IN_DOUBT]
+        if in_doubt:
             raise HTTPException(
                 409,
                 {
                     "code": "DOCUMENT_PUBLICATION_IN_DOUBT",
+                    # The caller maps these to its file names (hospital review on #1582).
+                    "document_ids": [document for _tenant, document in in_doubt],
                     "message": "an earlier upload of this file may still be being written; "
                     "it can be uploaded again after the knowledge service restarts",
                 },
@@ -569,7 +572,12 @@ async def ingest_documents(
         response.raise_for_status()
         answer = response.json()
         accepted = int(answer.get("ingested", 0))
-    except HTTPException:
+    except HTTPException as exc:
+        detail = exc.detail if isinstance(exc.detail, dict) else None
+        if detail and detail.get("code") == "DOCUMENT_PUBLICATION_IN_DOUBT":
+            # Name the files of a multi-file upload that are in doubt; the others were not sent.
+            ids = detail.pop("document_ids", [])
+            detail["files"] = sorted(document_names.get(i, "unknown") for i in ids)
         raise
     except Exception as exc:  # noqa: BLE001 — canonical writer failure must be explicit
         logger.warning("RAG_CANONICAL_INGEST_FAILED type=%s", type(exc).__name__)

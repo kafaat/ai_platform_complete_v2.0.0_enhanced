@@ -344,3 +344,27 @@ def test_the_upload_waits_for_rag_retrieval_longer_than_a_short_request(tmp_path
     asyncio.run(ingest(paths, "tenant-a", source_names=names))
     assert ns["_timeouts"] == [ns["_CANONICAL_INGEST_TIMEOUT_S"]]
     assert ns["_CANONICAL_INGEST_TIMEOUT_S"] >= 600
+
+
+def test_the_in_doubt_refusal_names_the_files_of_a_multi_file_upload(tmp_path):
+    """Hospital review on #1582: the 409 named no document, so a multi-file upload could not
+    tell which of its files was blocked."""
+    state, post = _writer_that_outlives_the_client(httpx.ReadTimeout("timed out"))
+    ingest, _ns = _compile(post)
+
+    async def run():
+        a = _upload(tmp_path, "a", [("guide.txt", "first revision")])
+        b = _upload(tmp_path, "b", [("guide.txt", "second revision"), ("calendar.txt", "cal")])
+        with pytest.raises(HTTPException):
+            await ingest(a[0], "tenant-a", source_names=a[1])
+        with pytest.raises(HTTPException) as second:
+            await ingest(b[0], "tenant-a", source_names=b[1])
+        await asyncio.gather(*state["server"])
+        return second.value
+
+    refused = asyncio.run(run())
+    assert refused.status_code == 409
+    assert refused.detail["code"] == "DOCUMENT_PUBLICATION_IN_DOUBT"
+    assert refused.detail["files"] == ["guide.txt"]
+    assert "document_ids" not in refused.detail
+    assert state["calls"] == 1, "nothing of the refused upload was sent"
