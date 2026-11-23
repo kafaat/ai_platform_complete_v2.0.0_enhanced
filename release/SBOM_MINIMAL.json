@@ -29385,7 +29385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1817254cb148c5ce2a0b242d6a6bb220541103d62940636636e1186774462921"
+          "content": "0b1f82097872c0755a2312babdfd28bce39af7a7f45e05cf138e576740c57c56"
         }
       ],
       "name": "services/sahool-platform/api/season_simulation.py",
@@ -38015,7 +38015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ad8df3edf48b9219ebd8c4b6cd6620c5de43eae1ccd653c7d3c47ea7702785b"
+          "content": "e06a7cc86940756033a1285ac093785d64789bb9aa8fd97657b1d6678be06a01"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_simulation.py",

@@ -208,7 +208,9 @@ class TestUnknownIrrigation:
     def test_scenario_equals_the_adequate_supply_result_and_is_labelled(self):
         weather = _warm_days(120)
         unknown = _sim("wheat", weather, irrigation_type="pivot")
-        adequate = _sim("wheat", weather, irrigation_type="pivot", irrigation_mm_total=_ADEQUATE_IRRIGATION_MM)
+        adequate = _sim(
+            "wheat", weather, irrigation_type="pivot", irrigation_mm_total=_ADEQUATE_IRRIGATION_MM
+        )
         assert adequate.yield_status == "estimated" and adequate.water_stress_factor == 1.0
         assert unknown.scenario_basis == "adequate_irrigation_assumed"
         assert unknown.scenario_yield_kg_ha == adequate.yield_kg_ha
@@ -297,8 +299,12 @@ class TestObservedFapar:
 
     def test_higher_observed_fapar_more_biomass(self):
         weather = _warm_days(80)
-        low = _sim("wheat", weather, observed_fapar=0.2, irrigation_mm_total=_ADEQUATE_IRRIGATION_MM)
-        high = _sim("wheat", weather, observed_fapar=0.9, irrigation_mm_total=_ADEQUATE_IRRIGATION_MM)
+        low = _sim(
+            "wheat", weather, observed_fapar=0.2, irrigation_mm_total=_ADEQUATE_IRRIGATION_MM
+        )
+        high = _sim(
+            "wheat", weather, observed_fapar=0.9, irrigation_mm_total=_ADEQUATE_IRRIGATION_MM
+        )
         assert high.biomass_kg_ha > low.biomass_kg_ha
         assert high.yield_kg_ha > low.yield_kg_ha
 

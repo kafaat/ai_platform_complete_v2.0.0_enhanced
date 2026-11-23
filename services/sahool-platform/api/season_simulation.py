@@ -593,8 +593,10 @@ def simulate_season(ctx: SimContext) -> SimResult:
     irrigation_unknown = not rainfed and ctx.irrigation_mm_total is None
     if irrigation_unknown:
         limitations.append("IRRIGATION_SUPPLY_UNKNOWN")
-    if missing_rain_days == 0 and not irrigation_unknown and (
-        irrigation_total is not None or rain_total > 0 or rainfed
+    if (
+        missing_rain_days == 0
+        and not irrigation_unknown
+        and (irrigation_total is not None or rain_total > 0 or rainfed)
     ):
         # For a rainfed season, observed zero rain is a known zero supply, not an
         # absence of irrigation information that would justify assuming a watered crop.

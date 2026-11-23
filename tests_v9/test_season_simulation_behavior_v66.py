@@ -255,7 +255,10 @@ class TestSimulateConsistency:
         cold = [DayWeather(t_min_c=-5.0, t_max_c=2.0, et0_mm=3.0) for _ in range(60)]
         r = simulate_season(
             SimContext(
-                crop="maize", weather=cold, gdd_daily_override=[0.0] * 60, irrigation_mm_total=1000.0
+                crop="maize",
+                weather=cold,
+                gdd_daily_override=[0.0] * 60,
+                irrigation_mm_total=1000.0,
             )
         )
         assert r.gdd_total == 0.0
