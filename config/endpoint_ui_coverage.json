@@ -2894,6 +2894,11 @@
       "endpoint": "/api/v1/realtime/sessions/{session_id}",
       "audience": "farmer",
       "evidence": "/api/v1/realtime/sessions"
+    },
+    {
+      "endpoint": "/api/v1/decisions/{decision_id}/execution-plan",
+      "audience": "agronomist",
+      "evidence": "/execution-plan`"
     }
   ]
 }

@@ -15,9 +15,9 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7704,
+    "files_scanned": 7703,
     "files_by_kind": {
-      "backend": 1313,
+      "backend": 1312,
       "database": 356,
       "governance": 92,
       "mobile": 429,
@@ -25,11 +25,11 @@
       "tests": 2691,
       "web": 572
     },
-    "unmapped_artifacts": 3663,
+    "unmapped_artifacts": 3662,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
       "python_functional": 4187,
-      "raw": 3517
+      "raw": 3516
     },
     "test_dependency_files": 2053,
     "test_dependency_edges": 5547,
@@ -38511,10 +38511,6 @@
     },
     {
       "path": "services/auth/password_hashing.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/auth/railway.json",
       "kind": "backend"
     },
     {
@@ -92342,7 +92338,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 360
+          "line": 317
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",
