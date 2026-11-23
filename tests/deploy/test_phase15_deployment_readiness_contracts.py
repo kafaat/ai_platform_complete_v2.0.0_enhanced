@@ -89,7 +89,10 @@ def test_railway_auth_configuration_is_service_scoped():
 def test_railway_auth_runbook_names_the_dashboard_dockerfile():
     runbook = (ROOT / "docs/runbooks/RAILWAY_AUTH_DEPLOYMENT.md").read_text(encoding="utf-8")
     assert "`services/auth/Dockerfile`" in runbook
-    assert "/services/auth/railway.json" not in runbook
+    assert "/services/auth/railway.json" not in runbook, (
+        "Config-as-Code retired 2026-11-23: the auth build is set in Railway service settings, "
+        "so a runbook pointing at the deleted file would re-teach the drift"
+    )
     assert (ROOT / "services/auth/Dockerfile").is_file()
 
 

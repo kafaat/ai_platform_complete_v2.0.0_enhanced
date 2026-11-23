@@ -95,6 +95,12 @@ def check_waivers(entries: list, *, today: _dt.date) -> list[str]:
                     f"{label}: expiry-like field {alias!r}={w[alias]!r} is not read by this "
                     "guard — rename it to 'expiry' (a date CI cannot see is not a deadline)"
                 )
+        if "permanent" in w:
+            # علَمٌ صريح يقرؤه مُصرِّف الكتالوج أيضاً؛ تناقضُه مع تاريخٍ أو temporary يُرفَض.
+            if w["permanent"] is not True:
+                problems.append(f"{label}: permanent must be true when present, got {w['permanent']!r}")
+            elif w.get("expiry") not in (None, "") or w.get("temporary") is True:
+                problems.append(f"{label}: permanent waiver must not carry an expiry or temporary")
         expiry = w.get("expiry")
         if expiry in (None, ""):
             if w.get("temporary") is True:
