@@ -648,6 +648,47 @@ class Triage(unittest.TestCase):
         ]:
             self.assertEqual(bot.failing_command(runner_block(script, "failed")), "", script)
 
+    def test_wrapped_and_rarer_install_forms_are_dropped(self):
+        # #1588 follow-up: an install behind an env assignment, a wrapper or a shell keyword
+        # still names a tool that did not fail.
+        for script in [
+            "CI=1 npm ci",
+            "PIP_NO_CACHE_DIR=1 pip install -r r.txt",
+            "sudo -E apt-get install -y jq",
+            "env npm ci",
+            "time pnpm install --frozen-lockfile",
+            "npm i",
+            "pnpm i",
+            "flutter pub get",
+            "dart pub get",
+            "uv pip install -r r.txt",
+            "python3 -m pip install -U pip",
+        ]:
+            self.assertEqual(bot.failing_command(runner_block(script, "failed")), "", script)
+
+    def test_every_segment_separator_is_split(self):
+        # Each separator alone, so a regression to splitting on `&&` only turns this red.
+        for script, kept in [
+            ("pip install -e . ; npx tsc --noEmit", "tsc"),
+            ("npm ci || npx tsc --noEmit", "tsc"),
+            ("pip install x && ruff check .", "ruff"),
+            ("npx tsc --noEmit | tee out.txt", "tsc"),
+            ("if npm ci; then npx vitest run; fi", "vitest"),
+        ]:
+            out = bot.failing_command(runner_block(script, "failed"))
+            self.assertIn(kept, out, script)
+            self.assertNotIn("npm ci", out, script)
+            self.assertNotIn("pip install", out, script)
+
+    def test_install_words_inside_a_command_keep_the_command(self):
+        # Anchored match, not search: a tool line that merely mentions an install stays.
+        for script, kept in [
+            ("python scripts/check.py --hint pip-install", "check.py"),
+            ("echo run npm ci first", "echo"),
+            ("ruff check scripts/pip_install_helper.py", "ruff"),
+        ]:
+            self.assertIn(kept, bot.failing_command(runner_block(script, "failed")), script)
+
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
         self.assertIn("تعذّر إسناد", show(job("failure", data), lambda _: ""))

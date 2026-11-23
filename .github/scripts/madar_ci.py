@@ -233,12 +233,21 @@ def handoff_line(role, url, head, merge_tested=False):
 
 
 RUNNER_TIMESTAMP = re.compile(r"^\d{4}-\d\d-\d\d[tT][\d:.]+[zZ] ")
-# An install subcommand, for one `&&`/`;` segment of a script line.
-INSTALL_LINE = re.compile(
-    r"^(?:sudo\s+)?(?:python3?\s+-m\s+)?"
-    r"(?:pip3?|pnpm|yarn|brew|apt(?:-get)?|uv(?:\s+pip)?|npx\s+playwright|npm)"
-    r"\s+(?:-\S+\s+)*(?:install|ci|add|sync)\b"
+# An install subcommand, for one segment of a script line (split on `&&`, `||`, `;`, `|`).
+# The segment may open with a shell keyword (`if npm ci; then`), environment assignments
+# (`CI=1 npm ci`), or a wrapper (`sudo -E`, `env`, `time`); none of them is the tool that ran.
+INSTALL_PREFIX = (
+    r"^(?:(?:if|then|do|!)\s+)?(?:(?:sudo(?:\s+-\S+)*|env|time|[a-z_][a-z0-9_]*=\S*)\s+)*"
 )
+INSTALL_LINE = re.compile(
+    INSTALL_PREFIX + r"(?:"
+    r"(?:python3?\s+-m\s+)?"
+    r"(?:pip3?|pnpm|yarn|brew|apt(?:-get)?|uv(?:\s+pip)?|npx\s+playwright|npm)"
+    r"\s+(?:-\S+\s+)*(?:install|ci|add|sync|i)\b"
+    r"|(?:flutter|dart)\s+pub\s+get\b"
+    r")"
+)
+SEGMENT_SPLIT = re.compile(r"&&|\|\||;|\|")
 
 
 def failing_command(log):
@@ -255,7 +264,7 @@ def failing_command(log):
             body = RUNNER_TIMESTAMP.sub("", line).strip()
             if not body or body.startswith("#"):
                 continue
-            parts = [p.strip() for p in re.split(r"&&|;", body)]
+            parts = [p.strip() for p in SEGMENT_SPLIT.split(body)]
             kept.extend(p for p in parts if p and not INSTALL_LINE.match(p))
     return "\n".join(kept)
 
