@@ -1138,13 +1138,25 @@ def govern_waivers(
             if (m := re.search(r"@services/([^/]+)/", str(item)))
         }
         owner = next(iter(source_services)) if len(source_services) == 1 else default_owner
-        expires_on = str(waiver.get("expires_on") or waiver.get("expiry") or default_expiry)
         tracking = str(waiver.get("tracking") or default_tracking)
         label = f"waiver[{index}] {waiver.get('endpoint')}"
-        try:
-            date.fromisoformat(expires_on)
-        except ValueError:
-            failures.append(f"{label}: invalid expiry {expires_on!r}")
+        # `permanent: true` قرارُ مالكٍ صريح بلا انتهاء — يُقرأ هنا وفي waiver_expiry_guard
+        # معاً، فلا يمنحه الافتراضُ تاريخاً لم يُقرَّر. الإعفاءُ الذي يُغفل التاريخ فقط
+        # (بلا العلَم) يبقى تحت default_expires_on: الإغفال ليس قراراً.
+        permanent = waiver.get("permanent")
+        if "permanent" in waiver and permanent is not True:
+            failures.append(f"{label}: permanent must be true when present, got {permanent!r}")
+        expires_on: str | None
+        if permanent is True:
+            if waiver.get("expires_on") or waiver.get("expiry") or waiver.get("temporary"):
+                failures.append(f"{label}: permanent waiver must not carry an expiry or temporary")
+            expires_on = None
+        else:
+            expires_on = str(waiver.get("expires_on") or waiver.get("expiry") or default_expiry)
+            try:
+                date.fromisoformat(expires_on)
+            except ValueError:
+                failures.append(f"{label}: invalid expiry {expires_on!r}")
         if owner not in component_ids:
             failures.append(f"{label}: owner {owner!r} is not a catalog component")
         if not tracking:

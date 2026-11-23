@@ -83,6 +83,24 @@ def test_permanent_waiver_without_expiry_is_ignored():
     assert guard.check_waivers(entries, today=TODAY) == []
 
 
+def test_explicit_permanent_flag_without_expiry_passes():
+    entries = [{"endpoint": "/m2m", "permanent": True}]
+    assert guard.check_waivers(entries, today=TODAY) == []
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"permanent": "yes"},
+        {"permanent": True, "expiry": "2099-01-01"},
+        {"permanent": True, "temporary": True, "expiry": "2099-01-01", **_ACCOUNTABLE},
+    ],
+)
+def test_contradictory_permanent_flag_is_flagged(extra):
+    problems = guard.check_waivers([{"endpoint": "/m2m", **extra}], today=TODAY)
+    assert any("permanent" in p for p in problems), problems
+
+
 def test_iter_waivers_supports_dict_and_list():
     assert list(guard._iter_waivers({"waivers": [{"a": 1}]})) == [{"a": 1}]
     assert list(guard._iter_waivers([{"b": 2}])) == [{"b": 2}]

@@ -4820,10 +4820,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/auth/railway.json",
-    "kind": "backend"
-  },
-  {
     "path": "services/auth/router_registry.py",
     "kind": "backend"
   },

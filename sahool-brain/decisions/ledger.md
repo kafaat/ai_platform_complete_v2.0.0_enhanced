@@ -4952,6 +4952,10 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **الحدود:** مسبار المختبر (أ) المباشر على خدمة الفهرسة يبقى يُعيد الخلل، وهذا متوقَّع ومُعلَن في وصف الـPR.
 - **المصدر:** #1582 · إيصالا المختبر 1582-v3 و1582-v4 · مراجعة Devin 6014520201.
 
+## 2026-11-23 — استثناءات تغطية الواجهة المنقضية في 27 و30 نوفمبر، وإزالة `services/auth/railway.json`
+- **القرار (المالك، 23 نوفمبر):** (أ) يُحذف استثناء `/api/v1/decisions/{decision_id}/execution-plan` ويُضاف إلى العقد الجوهريّ، لأنّ الواجهة تستهلكه في `frontend/src/services/api/irrigationManualCreation.ts`. (ب) تصير أربعة استثناءات آليّة بين الخدمات دائمةً بلا تاريخ (execute وclaim وreceipt وrollback-command)، فهي `intended_consumer=machine` و`no-ui-required` كسائر الاستثناءات التشغيليّة الدائمة. (ج) تُجدَّد ثمانية استثناءات WX-10/11 إلى 2026-12-31، و`/api/v1/scenario/economics` إلى 2026-12-27 ليبقى التاريخ الفريد الذي ترسو عليه طفرة `guard_mutation_registry`. وتُزال `services/auth/railway.json` قبل تقاعد Config-as-Code في Railway يوم 2026-12-01.
+- **السبب:** بلا تغيير تفشل `waiver_expiry_guard` كلّ طلب دمج من 28 نوفمبر. القياس على main@c486c657: لا يذكر أيّ ملفّ في frontend/src أو mobile مسارات (ج)، ولا تضيفها الموجة 3. وإعدادات Railway لـsahool-auth (إنتاج) وsahool-auth-main (إنتاج وstaging) تختار `services/auth/Dockerfile` ولا تسمّي ملفّ إعداد.
+- **الأثر:** دمج إزالة railway.json يعيد بناء sahool-auth-main في الإنتاج وstaging بحسب `railway_deploy_impact.py`، ولا يمسّ sahool-auth (فرع نشر منفصل).
 ## 2026-11-23 — #1582 مدموجٌ (`97353546`) بعد استيفاء شروط المالك
 
 - **القرار:** دمج #1582 squash في `973535460d9c856465ef490e02b825d80a0d1817`، مثبَّتاً على الرأس المختبَر `e00d5905` (شجرة main `61bf5cb2` تطابق شجرته).
