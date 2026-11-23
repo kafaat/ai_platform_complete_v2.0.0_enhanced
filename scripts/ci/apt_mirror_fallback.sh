@@ -90,9 +90,11 @@ wait_for_apt_idle() {
   local cap="${1:-300}" poll="${APT_IDLE_POLL:-5}" waited=0 busy
   while busy="$(pgrep -a -x 'apt-get|apt|dpkg' 2>/dev/null)" && [ -n "$busy" ]; do
     if [ "$waited" -ge "$cap" ]; then
+      # بعد `update` خياراتٌ فقط حتّى نهاية السطر: `apt-get -c update install …` تثبيتٌ
+      # بملفّ إعدادٍ اسمه update، لا update — فلا يُصنَّف قابلاً للإنهاء (Copilot على #1593).
       # here-string لا pipe: مع pipefail قد يُعطي SIGPIPE على printf رمزاً غير صفريّ فيقلبه
       # `!` إلى «اقتل الكلّ» — بما فيه install/dpkg.
-      if ! grep -Evq '^[0-9]+ apt(-get)?( -[^ ]+)* update( |$)' <<<"$busy"; then
+      if ! grep -Evq '^[0-9]+ apt(-get)?( -[^ ]+)* update( -[^ ]+)*$' <<<"$busy"; then
         _end_orphan_apt_update "$busy"
         return 0
       fi

@@ -285,6 +285,8 @@ def test_an_update_that_ignores_term_is_killed_after_the_grace(tmp_path):
         "2662 dpkg --update-avail x",
         "2663 apt-get install -y update",
         "2665 apt-get update-index",
+        "2666 apt-get -c update install -y fonts-freefont-ttf",
+        "2667 apt-get -qq update -o Dir::Etc=x",
     ],
 )
 def test_update_only_as_the_apt_subcommand_counts(tmp_path, orphan):
