@@ -215,6 +215,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c46e2d9ce64a3a843bbbca2a9d8b6775dec6372e9f57216449bd1030f52e3754"
+        }
+      ],
+      "name": "frontend/e2e/advisor-evidence.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f49c55435656f02aa355a91563a0291a44c8347e86d0804c8a6c08d6be93f14a"
         }
       ],
@@ -285,7 +295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c3de7cdd9c73bd7d1aff4ecfc018b10a0acef7cbc1fae96340da60f5afd5f01"
+          "content": "92cd0f82853d610b038d53bb3c8a6cce9a9e2934a797818ca0fde4cb5eda9815"
         }
       ],
       "name": "frontend/e2e/mfa-enrollment-contrast.spec.ts",
@@ -319,6 +329,16 @@
         }
       ],
       "name": "frontend/e2e/satellite-pixel-display.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "34b514ed3fa3e22a203ddd01040d7a09c077f7b3d9292ad5b5d8459be50389e8"
+        }
+      ],
+      "name": "frontend/e2e/support/readability.ts",
       "type": "file"
     },
     {
@@ -3565,7 +3585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c5a776c713910efcc72a7932adba250110e794643794edfd643640de81adf5e3"
+          "content": "513b688c9a9cae19ee1578e261ac391a26a162fd6aedc7c863e69d8013cd025b"
         }
       ],
       "name": "frontend/src/index.css",
@@ -5995,7 +6015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1958d11ef50a158ca3b3245fd85c80fc69fb71e262ce96d09ead0665407f51c4"
+          "content": "c76430f610e71575f6a90b4a491d28ff54e7d4f3eb8192377c075bfa47b80722"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
