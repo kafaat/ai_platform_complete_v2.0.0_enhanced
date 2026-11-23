@@ -2069,6 +2069,19 @@ jobs:
       - name: Decision-service mirror-mode contract (SoR off)
         working-directory: services/decision-service
         run: pytest tests/test_p4_decision_service_runtime.py -q -p no:cacheprovider
+      # F-D01 (G5): the outbox is reported as pending and undelivered, never as delivered.
+      # Unit contract of the readiness block, then the live probe on real PostgreSQL: each run
+      # creates its own database and roles (so it needs this job's superuser DSN) and drops them;
+      # the switch makes a missing database a failure, not a skip.
+      - name: Decision outbox backlog truthfulness (F-D01, unit)
+        working-directory: services/decision-service
+        run: pytest tests/test_outbox_backlog_truthfulness.py -q -p no:cacheprovider
+      - name: Decision outbox backlog probe (F-D01, real Postgres)
+        working-directory: services/decision-service
+        env:
+          DECISION_OUTBOX_TEST_DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_OUTBOX_CERTIFICATION_REQUIRED: "1"
+        run: pytest tests/test_outbox_backlog_live_pg.py -v -rs -p no:cacheprovider
       # WX-10.7 review transition (SoR ON + real Postgres): state machine + concurrency race +
       # append-only + idempotency. Separate step so SoR env never leaks into the mirror contract.
       - name: WX-10.7 review tests (real Postgres, SoR on)

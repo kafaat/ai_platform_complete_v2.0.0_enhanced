@@ -1242,8 +1242,8 @@ def outbox_state(
 async def outbox_backlog() -> dict[str, Any]:
     """Read-only, time-bounded count of pending outbox rows and the age of the oldest.
 
-    The table is under FORCE ROW LEVEL SECURITY (migrations 033/034): a role without
-    BYPASSRLS sees no row unless ``app.current_tenant`` is bound, so an unbound count would read
+    The table is under FORCE ROW LEVEL SECURITY (migrations 033/034): a role that cannot
+    bypass row security sees no row unless ``app.current_tenant`` is bound, so an unbound count would read
     ``0`` and look healthy. The aggregate therefore runs only for a role that sees every tenant;
     any other role gets ``measured: false`` with the reason instead of that false zero. Defensive
     by construction: a failure yields an unmeasured state, never an exception or error text.
