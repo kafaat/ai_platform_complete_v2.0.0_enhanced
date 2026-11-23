@@ -1192,3 +1192,24 @@ async def legacy_soil_lab_test_rows(conn, *, field_id: str, limit: int | None = 
         field_id,
         limit,
     )
+
+
+async def read_approved_soil_lab(conn, user, field_id: str, warnings: list) -> dict:
+    """G9: the approved soil-lab block of ``user``'s tenant for the advisor's field context pack.
+
+    Read last, in a savepoint, so a failed lab read cannot abort the pack's earlier reads; a
+    failure becomes a warning and a block that names the reason instead of an error. The VRA
+    engine takes lab support only from this server-built block.
+    """
+    tenant_id = str(user.tenant_id)
+    failed = False
+    try:
+        async with conn.transaction():
+            rows = await latest_soil_4r_rows(conn, tenant_id=tenant_id, field_id=field_id)
+    except Exception as exc:  # noqa: BLE001
+        rows, failed = [], True
+        warnings.append(f"تعذّر جلب تحليل التربة المعتمد: {exc}")
+    block = approved_soil_lab_block(field_id, tenant_id, rows)
+    if failed:
+        block["reason"] = "approved_soil_lab_read_failed"
+    return block

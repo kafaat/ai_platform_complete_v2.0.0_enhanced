@@ -24,6 +24,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from api.service_token_auth import _require_service_token
+from api.weather_advice import (  # noqa: E402 — moved out (router size ratchet)
+    _operation_plan_save_refusal,
+    _weather_runtime_smoke_plan,
+)
 from api.weather_alerts import derive_weather_alerts
 from api.weather_service_client import (
     delegated_breaker_state,
@@ -1049,95 +1053,6 @@ def _weather_env_doctor() -> dict:
     }
 
 
-def _weather_runtime_smoke_plan() -> dict:
-    """Operator-oriented smoke plan for Docker/Compose/Kubernetes verification.
-
-    This is a contract artifact, not an external probe: it gives deterministic
-    commands/endpoints that can be executed after `docker compose up` or after a
-    deployment. It intentionally avoids touching Open-Meteo or the database.
-    """
-    base = "/api/v1/weather"
-    return {
-        "status": "ok",
-        "service": "weather-engine",
-        "purpose": "post-deploy smoke verification for MapHub weather runtime",
-        "no_external_io": True,
-        "critical_endpoints": [
-            {
-                "method": "GET",
-                "path": f"{base}/readyz",
-                "expected": [200, 503],
-                "why": "readiness gate; 503 is acceptable only when breaker is intentionally open",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/self-test",
-                "expected": [200],
-                "why": "local engine self-checks",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/runtime-contract",
-                "expected": [200],
-                "why": "UI/API route contract",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/env-doctor",
-                "expected": [200],
-                "why": "configuration guardrails",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/layers",
-                "expected": [200],
-                "why": "frontend weather manifest",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/tile-cache/stats",
-                "expected": [200],
-                "why": "cache accounting",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/metrics.prom",
-                "expected": [200],
-                "why": "Prometheus scrape",
-            },
-        ],
-        "sample_runtime_endpoints": [
-            {
-                "method": "GET",
-                "path": f"{base}/tile-data/8/155/108?layer=temperature&time=now&model=best_match&interpolation=grid",
-                "expected": [200, 429, 502],
-                "why": "real tile path; may need network unless cached",
-            },
-            {
-                "method": "GET",
-                "path": f"{base}/operation-plan?lat=15.37&lon=44.19&operations=spraying,irrigation&hours=0,3,6&model=best_match",
-                "expected": [200, 429, 502],
-                "why": "decision path used by probe popup",
-            },
-        ],
-        "frontend_smoke": {
-            "route": "/fields/map-center?field_id=00000000-0000-4000-8000-000000000001&index=ndvi&source=my-fields&weather=1",
-            "expected_ui_contract": [
-                "weather overlay module loads",
-                "weather tiles request interpolation=grid",
-                "probe popup fetches action recommendation",
-                "task and recommendation buttons are present in popup markup",
-            ],
-        },
-        "commands": [
-            "python3 scripts/weather_runtime_smoke.py --base-url http://localhost:8000",
-            "cd frontend && npm run typecheck && npm run build",
-            "cd frontend && npm test -- src/components/maphub/weather/WeatherEngine.static.test.ts",
-            "cd frontend && npm run e2e:weather-smoke -- --project=chromium",
-        ],
-    }
-
-
 def _validate_time_model(time: str, model: str) -> tuple[str, str]:
     time = (time or "now").strip()
     model = (model or "best_match").strip()
@@ -1515,42 +1430,6 @@ def _recommendation_payload_from_plan(field_id: str, plan: dict, crop: str | Non
             "partial": plan.get("partial"),
         },
     }
-
-
-def _operation_plan_save_refusal(plan_item: dict | None) -> dict | None:
-    """Why a plan item may not be saved as a task or recommendation; None when it may.
-
-    Pure. It reads only the weather engine's own flags: the plan's ``recommended`` and the
-    best window's ``safe``. A flag that is absent is not taken as true. No threshold here.
-    """
-    if not plan_item:
-        return {
-            "reason_code": "no_recommended_weather_window",
-            "message_ar": "لا توجد نافذة طقس موصى بها لهذه العملية؛ لا يُحفَظ شيء.",
-            "operation": None,
-            "recommended": False,
-            "safe": None,
-        }
-    decision = (plan_item.get("best") or {}).get("operation") or {}
-    facts = {
-        "operation": plan_item.get("operation"),
-        "suitability": decision.get("suitability"),
-        "recommended": plan_item.get("recommended") is True,
-        "safe": decision.get("safe") is True,
-    }
-    if not facts["recommended"]:
-        return {
-            "reason_code": "weather_window_not_recommended",
-            "message_ar": "نافذة الطقس غير موصى بها؛ لا تُحفَظ كمهمّة ولا كتوصية.",
-            **facts,
-        }
-    if not facts["safe"]:
-        return {
-            "reason_code": "weather_window_not_safe",
-            "message_ar": "نافذة الطقس غير آمنة أو لم تُثبَت سلامتها؛ لا تُحفَظ.",
-            **facts,
-        }
-    return None
 
 
 async def _refuse_point_outside_field(conn, user, field_id: str, lat: float, lon: float) -> None:

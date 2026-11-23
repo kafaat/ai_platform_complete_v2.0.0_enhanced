@@ -57,7 +57,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     "services/sahool-platform/api/routers/fields.py": 3886,
     # 3022 → 3013 (W1-22, 2026-11-16): the delegated-breaker state moved to weather_service_client
     # and the probe reuses _get_weather_sample_cached instead of a copy of it.
-    "services/sahool-platform/api/routers/weather.py": 3013,
+    # 3013 → 3004 (wave 3 #1587): G1 added its save gate here; the gate and the runtime smoke plan
+    # (both pure) moved to api.weather_advice, more than offsetting it.
+    "services/sahool-platform/api/routers/weather.py": 3004,
     # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
     # 1673 → 1668 (unified 2026-10-27): pixel sampling moved to raster_field_runtime and
     # _authenticated_tenant to raster_security_context while the audit fixes landed here.
@@ -75,7 +77,9 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # lookups moved to core.farm_operations_ledger while the optional task link (v247) landed here.
     # → 986 (2026-11-16, Wave 1 #1500): the season summary query, the scope currency and the
     # per-currency budget totals moved to core.farm_operations_ledger.
-    "services/sahool-platform/api/routers/farm_operations_ledger.py": 986,
+    # 986 → 966 (wave 3 #1587): G6 added the flagged batch deduction here; the record request
+    # models moved to api.farm_operations_ledger_models, more than offsetting it.
+    "services/sahool-platform/api/routers/farm_operations_ledger.py": 966,
     "services/sahool-platform/api/routers/decision_review.py": 920,
 }
 
