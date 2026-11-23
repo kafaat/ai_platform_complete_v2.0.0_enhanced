@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **45**
-- Files scanned: **7659**
+- Files scanned: **7672**
 - Ambiguous artifacts queued: **265**
-- Unmapped artifacts queued: **3649**
+- Unmapped artifacts queued: **3656**
 
 ## Capability coverage
 
@@ -33,7 +33,7 @@
 | FM-001 | farm_management | 17 | 2 | 30 | 14 | 1 | 0 | 49 | 6 |
 | FM-002 | farm_management | 38 | 45 | 100 | 33 | 20 | 35 | 59 | 7 |
 | FM-003 | farm_management | 14 | 56 | 5 | 66 | 3 | 2 | 17 | 7 |
-| FM-004 | farm_management | 34 | 82 | 86 | 52 | 18 | 15 | 60 | 7 |
+| FM-004 | farm_management | 34 | 82 | 86 | 52 | 20 | 15 | 63 | 7 |
 | FM-005 | farm_management | 13 | 0 | 0 | 15 | 6 | 1 | 8 | 5 |
 | FM-006 | farm_management | 1 | 0 | 0 | 0 | 2 | 0 | 1 | 3 |
 | FM-007 | farm_management | 8 | 19 | 8 | 0 | 1 | 4 | 6 | 6 |
@@ -87,7 +87,7 @@
 | SEC-007 | security | 3 | 74 | 15 | 52 | 0 | 0 | 11 | 5 |
 | SEC-008 | security | 0 | 0 | 4 | 3 | 0 | 0 | 10 | 3 |
 | SOIL-001 | soil | 7 | 2 | 14 | 24 | 0 | 0 | 6 | 5 |
-| SOIL-002 | soil | 13 | 32 | 14 | 13 | 2 | 1 | 10 | 7 |
+| SOIL-002 | soil | 13 | 32 | 14 | 13 | 3 | 1 | 10 | 7 |
 | SOIL-003 | soil | 3 | 3 | 15 | 0 | 0 | 1 | 0 | 4 |
 | SOIL-004 | soil | 3 | 6 | 7 | 3 | 0 | 0 | 0 | 4 |
 | SOIL-005 | soil | 7 | 0 | 0 | 8 | 0 | 0 | 2 | 3 |
