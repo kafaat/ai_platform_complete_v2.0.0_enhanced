@@ -29,7 +29,7 @@
 | DEC-007 | decision | 4 | 8 | 4 | 3 | 1 | 0 | 5 | 6 |
 | DEC-008 | decision | 0 | 1 | 2 | 1 | 0 | 0 | 1 | 4 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
-| DEC-010 | decision | 4 | 93 | 58 | 7 | 0 | 0 | 9 | 5 |
+| DEC-010 | decision | 4 | 93 | 58 | 8 | 0 | 0 | 9 | 5 |
 | FM-001 | farm_management | 17 | 2 | 30 | 14 | 1 | 0 | 49 | 6 |
 | FM-002 | farm_management | 39 | 45 | 100 | 33 | 20 | 35 | 62 | 7 |
 | FM-003 | farm_management | 14 | 56 | 5 | 66 | 3 | 2 | 17 | 7 |

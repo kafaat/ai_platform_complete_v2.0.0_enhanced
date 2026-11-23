@@ -217,8 +217,8 @@ medium,sahool-platform,class,DroughtComponents,services/sahool-platform/core/eng
 medium,sahool-platform,function,evaluate_suitability,services/sahool-platform/core/engines/suitability.py,96,0,review_before_delete,False
 medium,sahool-platform,function,explain_evidence_principle_ar,services/sahool-platform/core/evidence_class.py,113,0,review_before_delete,False
 medium,sahool-platform,class,CostCategory,services/sahool-platform/core/farm_costing.py,31,0,review_before_delete,False
-medium,sahool-platform,class,BusinessUnitType,services/sahool-platform/core/farm_operations_ledger.py,21,0,review_before_delete,False
-medium,sahool-platform,class,ProductionUnitType,services/sahool-platform/core/farm_operations_ledger.py,32,0,review_before_delete,False
+medium,sahool-platform,class,BusinessUnitType,services/sahool-platform/core/farm_operations_ledger.py,22,0,review_before_delete,False
+medium,sahool-platform,class,ProductionUnitType,services/sahool-platform/core/farm_operations_ledger.py,33,0,review_before_delete,False
 medium,sahool-platform,function,utc_now_iso,services/sahool-platform/core/field_event_sourcing.py,78,0,review_before_delete,False
 medium,sahool-platform,function,make_candidate_evaluator,services/sahool-platform/core/field_intelligence_coordinator.py,538,0,review_before_delete,False
 medium,sahool-platform,function,state_explanation_ar,services/sahool-platform/core/field_lifecycle.py,119,0,review_before_delete,False

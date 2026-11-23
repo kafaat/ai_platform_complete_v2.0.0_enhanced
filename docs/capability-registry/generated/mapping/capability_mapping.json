@@ -1827,7 +1827,11 @@
       ],
       "events": [
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1002",
+          "value": "sahool.model.promotion.requested @ tests_v9/test_model_promotion_ack_live_pg.py:398",
+          "score": 14
+        },
+        {
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1014",
           "score": 12
         },
         {
@@ -1839,15 +1843,15 @@
           "score": 12
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:519",
+          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:531",
           "score": 12
         },
         {
-          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:407",
+          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:404",
           "score": 12
         },
         {
-          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:458",
+          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:470",
           "score": 12
         },
         {
@@ -2024,7 +2028,7 @@
         "backend": 4,
         "routes": 93,
         "database": 58,
-        "events": 7,
+        "events": 8,
         "web": 0,
         "mobile": 0,
         "tests": 9,
@@ -4024,7 +4028,7 @@
       ],
       "events": [
         {
-          "value": "fields.area_ha @ services/sahool-platform/core/farm_operations_ledger.py:1304",
+          "value": "fields.area_ha @ services/sahool-platform/core/farm_operations_ledger.py:1312",
           "score": 17
         },
         {
@@ -8727,7 +8731,7 @@
           "score": 10
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1002",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1014",
           "score": 9
         },
         {
@@ -8743,15 +8747,15 @@
           "score": 9
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:519",
+          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:531",
           "score": 9
         },
         {
-          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:407",
+          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:404",
           "score": 9
         },
         {
-          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:458",
+          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:470",
           "score": 9
         },
         {
@@ -32040,7 +32044,7 @@
           "score": 11
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1002",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1014",
           "score": 10
         },
         {
@@ -32052,15 +32056,15 @@
           "score": 10
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:519",
+          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:531",
           "score": 10
         },
         {
-          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:407",
+          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:404",
           "score": 10
         },
         {
-          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:458",
+          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:470",
           "score": 10
         },
         {
@@ -89942,6 +89946,7 @@
       "test": "tests_v9/test_local_ai_rag_upload_field_scope.py",
       "bounded": false,
       "unbounded_reasons": [
+        "reads_repository_data_file",
         "shared_test_helper",
         "tree_wide_scan"
       ],

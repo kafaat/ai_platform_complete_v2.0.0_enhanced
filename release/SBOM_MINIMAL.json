@@ -21865,7 +21865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bcac94347772a49f1279c98f2c150f06d73a26d635734939984291f1486d8352"
+          "content": "f2808698d6444b0ff855f54e3152971f642d9a0b285a0b0bd128ea8a6d3d485a"
         }
       ],
       "name": "services/local-ai-rag/main.py",
@@ -27465,7 +27465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "862a380d607f1f9d87b0c6c98a27aded92d1c4a093464fdc523fd0a001206ec4"
+          "content": "925a88350e80a7e0ab6d68441c51d449e1d0c22c404d8d3223f1b7677ecfc6d2"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_workers.py",
@@ -28215,7 +28215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "055b8b8cc5f105a2dd3c4c652d28462cf5f4c9748bc3a4f9df9faa3fdb51a79b"
+          "content": "e36a62278ce82153ed5d6b7ba41d69e72a3daca6a6eb3e0695cb0d847efca7c2"
         }
       ],
       "name": "services/sahool-platform/api/routers/farm_operations_ledger.py",
@@ -31885,7 +31885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "181503e8fce8bb83a3d2f0062d3d4fa98196e51a75eeb068f54edacdf6ae7493"
+          "content": "f831bbc9b79c2d0e82ab95caa3b0e1ad9ea8db8cab14ed95e0bedc36c723e9b1"
         }
       ],
       "name": "services/sahool-platform/core/farm_operations_ledger.py",
@@ -35445,7 +35445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e898caf8525dac8cc30c1abe7ee307a443c4d8798e57e6d8dca7c10a2fbd878e"
+          "content": "5c443f8454283811f54d4dca9eb610ac783435e0a3629f6c5cd184b4fa4fbeb0"
         }
       ],
       "name": "services/sahool-platform/tests/test_farm_ledger_inventory_boundary.py",
