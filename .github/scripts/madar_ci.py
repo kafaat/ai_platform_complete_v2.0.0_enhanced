@@ -153,12 +153,12 @@ STEP_TOOLS = (
     ("security", r"\bbandit\b|\bgitleaks\b|\btrivy\b|\bsecret[- ]scan"),
     (
         "dependencies",
-        r"\bpip-audit\b|\bnpm (?:ci|install)\b|\bpip install\b|\bpub get\b|\buv (?:sync|pip)\b"
+        r"\bpip-audit\b|\bInstall\b[^\n]*\bdependencies\b|\bnpm (?:ci|install)\b|\bpip install\b|\bpub get\b|\buv (?:sync|pip)\b"
         r"|\bconstraints[\w.-]*\.txt\b|\brequirements[\w.-]*\.txt\b|\bdependency[- ]drift\b",
     ),
     (
         "migrations",
-        r"\balembic\b|\brun_migrations\b|\bmigrations?/|\bmigration[- ](?:probe|lint|up|down)\b",
+        r"\balembic\b|\brun_migrations\b|\bapply_migration_manifest\b|\bmigration_runner\b|\bmigrations?/|\bmigration[- ](?:probe|lint|up|down)\b",
     ),
     (
         "frontend",
@@ -173,11 +173,12 @@ LOG_SIGNS = (
     ("security", r"\bCVE-\d{4}-\d+\b|\bGHSA-[\w-]+|\bleaks? found\b"),
     (
         "migrations",
-        r"\bSQLSTATE\b|\bpsycopg\.errors\.|\basyncpg\.exceptions\.|relation \"[^\"\n]+\" does not exist",
+        r"\bpsql:[^\n]*\bERROR:|\bSQLSTATE\b|\bpsycopg\.errors\.|\basyncpg\.exceptions\.|relation \"[^\"\n]+\" does not exist",
     ),
     (
         "dependencies",
-        r"\bERESOLVE\b|\bResolutionImpossible\b|No matching distribution"
+        r"\bERESOLVE\b|\bResolutionImpossible\b|No matching distribution|\bInvalid requirement\b"
+        r"|Could not find a version that satisfies"
         r"|has ==[\w.+-]+, constraints\.txt has",
     ),
     ("frontend", r"\berror TS\d{4}\b"),
@@ -221,7 +222,10 @@ def handoff_line(role, url, head, merge_tested=False):
     commit = f" · الالتزام `{head}`" if head else " · الالتزام غير معلوم"
     if head and merge_tested:
         # A pull_request run checks out GitHub's merge of this head with its base.
-        commit += " (رأس الطلب؛ اختبر CI دمجه مع الفرع الأساسي، فيُعاد الإنتاج على ذلك الدمج)"
+        commit += (
+            " (رأس الطلب؛ إن سحبت الوظيفة بالإعداد الافتراضي فقد اختبر CI دمجه مع الفرع الأساسي،"
+            " فراجِع خطوة checkout قبل إعادة الإنتاج)"
+        )
     return (
         f"{title} (`.claude/agents/{agent}.md`) يراجع للقراءة فقط ويرسل توصيته إلى وكيل الإصلاح"
         f" (`{FIXER}`). الدليل: [سجل الخطوة]({url}){commit}."

@@ -539,6 +539,53 @@ class Triage(unittest.TestCase):
         self.assertIn("d" * 40, lines[-1])
         self.assertNotIn("دمجه مع الفرع الأساسي", lines[-1])
 
+    def test_migration_runners_and_psql_errors(self):
+        # Devin on #1588: ci.yml's real migration steps.
+        self.assertEqual(
+            bot.route(
+                "Integration Tests",
+                "Apply migrations to test DB",
+                "",
+                "bash scripts/ci/apply_migration_manifest.sh --port 5433",
+            ),
+            "migrations",
+        )
+        self.assertEqual(
+            bot.route(
+                "Decision Service Tests",
+                "Apply decision-service migrations",
+                "",
+                "python services/decision-service/migration_runner.py --apply",
+            ),
+            "migrations",
+        )
+        self.assertEqual(
+            bot.route(
+                "Integration Tests",
+                "Run step",
+                'psql:migrations/v288.sql:3: ERROR:  syntax error at or near "CREAT"',
+            ),
+            "migrations",
+        )
+
+    def test_standalone_dependency_install_steps(self):
+        # Devin on #1588: "Install raster test dependencies" and pip's malformed requirement.
+        self.assertEqual(
+            bot.route("Raster Service Tests", "Install raster test dependencies"), "dependencies"
+        )
+        self.assertEqual(
+            bot.route("Raster Service Tests", "Run step", "ERROR: Invalid requirement: 'numpy=='"),
+            "dependencies",
+        )
+        self.assertEqual(
+            bot.route(
+                "Some job",
+                "Run step",
+                "ERROR: Could not find a version that satisfies the requirement x",
+            ),
+            "dependencies",
+        )
+
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
         self.assertIn("تعذّر إسناد", show(job("failure", data), lambda _: ""))
