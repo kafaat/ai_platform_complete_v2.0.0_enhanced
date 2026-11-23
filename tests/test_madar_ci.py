@@ -673,6 +673,8 @@ class Triage(unittest.TestCase):
             ("npm ci || npx tsc --noEmit", "tsc"),
             ("pip install x && ruff check .", "ruff"),
             ("npx tsc --noEmit | tee out.txt", "tsc"),
+            # Only a split on the single pipe separates this install from the tee.
+            ("npm ci 2>&1 | tee npm.log", "tee npm.log"),
             ("if npm ci; then npx vitest run; fi", "vitest"),
         ]:
             out = bot.failing_command(runner_block(script, "failed"))
@@ -686,6 +688,10 @@ class Triage(unittest.TestCase):
             ("python scripts/check.py --hint pip-install", "check.py"),
             ("echo run npm ci first", "echo"),
             ("ruff check scripts/pip_install_helper.py", "ruff"),
+            # `i` is an install alias for npm and pnpm only, and only as a whole word.
+            ("pip i foo", "pip i foo"),
+            ("npm i18n-check", "npm i18n-check"),
+            ("npm i-test", "npm i-test"),
         ]:
             self.assertIn(kept, bot.failing_command(runner_block(script, "failed")), script)
 
