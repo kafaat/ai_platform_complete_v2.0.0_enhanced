@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 140,
+      "line": 142,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 74,
@@ -289,7 +289,7 @@
     },
     {
       "kind": "app",
-      "line": 829,
+      "line": 918,
       "module": "services.local-ai-rag.main",
       "node_id": "services.local-ai-rag.main:app",
       "route_count": 5,
@@ -1144,7 +1144,7 @@
     },
     {
       "kind": "router",
-      "line": 32,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.field_ai_context",
       "node_id": "services.sahool-platform.api.routers.field_ai_context:router",
       "route_count": 1,
@@ -1450,10 +1450,10 @@
     },
     {
       "kind": "router",
-      "line": 28,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.learning",
       "node_id": "services.sahool-platform.api.routers.learning:router",
-      "route_count": 3,
+      "route_count": 5,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -3045,7 +3045,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "25bedf245a66a5f386d12fc7c6096d502e230c839cd51edc5f4ee0b1e4756258",
+  "inventory_sha256": "c83f62857d5b3fd70deafbd54b69a0d98ef0eccfb24f5972f3579563d40fab11",
   "orphan_candidate_count": 238,
   "orphan_candidates": [
     {
@@ -4051,7 +4051,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 32,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.field_ai_context",
       "node_id": "services.sahool-platform.api.routers.field_ai_context:router",
       "route_count": 1,
@@ -4391,10 +4391,10 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 28,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.learning",
       "node_id": "services.sahool-platform.api.routers.learning:router",
-      "route_count": 3,
+      "route_count": 5,
       "safe_to_delete": false,
       "symbol": "router"
     },

@@ -4,11 +4,11 @@
 
 ## Summary
 
-- Python files parsed: **2256**
-- FastAPI-style route handlers: **1090**
-- Static function-call edges: **121431**
+- Python files parsed: **2264**
+- FastAPI-style route handlers: **1092**
+- Static function-call edges: **122526**
 - Dead-code candidates: **690**
-- Duplicate function groups: **66**
+- Duplicate function groups: **67**
 - Automatic deletions: **0**
 
 ## Highest-confidence dead-code candidates
@@ -17,7 +17,7 @@
 |---|---|---|---|---:|
 | `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 60 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
-| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 170 |
+| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 172 |
 | `decision-service` | `_require_live_when_certifying` | function | `services/decision-service/tests/test_eligibility_assessment_live_pg.py` | 119 |
 | `decision-service` | `_clean_policy_env` | function | `services/decision-service/tests/test_sod_single_operator_self_approval.py` | 32 |
 | `knowledge-graph` | `_validation_error` | function | `services/knowledge-graph/main.py` | 47 |
@@ -31,15 +31,15 @@
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_cdse_empty_raster_not_cached.py` | 70 |
 | `raster-service` | `_clean_runtime_state` | function | `services/raster-service/test_job_truth_receipts_and_fencing.py` | 77 |
 | `sahool-platform` | `_extract_ec` | function | `services/sahool-platform/api/field_state_projection.py` | 281 |
-| `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 69 |
+| `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 73 |
 | `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1147 |
 | `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 190 |
 | `sahool-platform` | `_source_current_state` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 208 |
 | `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 431 |
 | `sahool-platform` | `_parse_series_hours` | function | `services/sahool-platform/api/routers/weather.py` | 1205 |
 | `sahool-platform` | `_time_key_from_hour` | function | `services/sahool-platform/api/routers/weather.py` | 1219 |
-| `sahool-platform` | `_best_operation_frame` | function | `services/sahool-platform/api/routers/weather.py` | 1574 |
-| `sahool-platform` | `_unavailable_tile_response` | function | `services/sahool-platform/api/routers/weather.py` | 2397 |
+| `sahool-platform` | `_best_operation_frame` | function | `services/sahool-platform/api/routers/weather.py` | 1652 |
+| `sahool-platform` | `_unavailable_tile_response` | function | `services/sahool-platform/api/routers/weather.py` | 2475 |
 | `sahool-platform` | `_irrigation_validate` | function | `services/sahool-platform/api/workflow_definitions.py` | 182 |
 | `sahool-platform` | `_irrigation_schedule` | function | `services/sahool-platform/api/workflow_definitions.py` | 188 |
 | `sahool-platform` | `_irrigation_execute` | function | `services/sahool-platform/api/workflow_definitions.py` | 194 |
@@ -78,6 +78,7 @@
 | `1652c685e5ed27fa` | 4 |
 | `18a46eb263382a99` | 2 |
 | `27213e0b8be4077c` | 5 |
+| `2ac76be9ec8e6a99` | 2 |
 | `2cab8792318c3811` | 2 |
 | `2ed8e51be38a65b6` | 9 |
 | `32d2f14c2fac8b6a` | 2 |
@@ -90,7 +91,7 @@
 | `40b9faafbad5a23d` | 2 |
 | `4167be0d9467807a` | 2 |
 | `449d333a8f42efab` | 4 |
-| `451e12ae0877302a` | 6 |
+| `451e12ae0877302a` | 7 |
 | `49b18910194fee42` | 2 |
 | `4cb77c1b81129bbe` | 2 |
 | `4d3489c6804536ee` | 2 |
@@ -119,7 +120,6 @@
 | `9e9d6bb7f5f44b29` | 2 |
 | `9fcb13bf88a96d6a` | 2 |
 | `aa517cd1f9c74cf4` | 3 |
-| `abea79905276671b` | 2 |
 
 ## Interpretation
 

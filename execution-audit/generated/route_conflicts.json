@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 619,
+          "line": 630,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -142,7 +142,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 950,
+          "line": 1043,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/health",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 563,
+          "line": 565,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -333,7 +333,7 @@
         },
         {
           "function": "healthz",
-          "line": 932,
+          "line": 1025,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/healthz",
@@ -341,7 +341,7 @@
         },
         {
           "function": "healthz",
-          "line": 152,
+          "line": 213,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/healthz",
@@ -659,7 +659,7 @@
         },
         {
           "function": "readyz",
-          "line": 568,
+          "line": 570,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -715,7 +715,7 @@
         },
         {
           "function": "readyz",
-          "line": 955,
+          "line": 1048,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/readyz",
@@ -723,7 +723,7 @@
         },
         {
           "function": "readyz",
-          "line": 157,
+          "line": 218,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/readyz",
@@ -898,7 +898,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 557,
+          "line": 559,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -969,7 +969,7 @@
       "registrations": [
         {
           "function": "list_tools",
-          "line": 166,
+          "line": 227,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/v1/mcp/tools",
@@ -1101,7 +1101,7 @@
       "registrations": [
         {
           "function": "ingest_endpoint",
-          "line": 877,
+          "line": 966,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/ingest",
@@ -1124,7 +1124,7 @@
       "registrations": [
         {
           "function": "call_tool",
-          "line": 184,
+          "line": 249,
           "method": "POST",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1179,7 +1179,7 @@
         },
         {
           "function": "query_endpoint",
-          "line": 867,
+          "line": 956,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/query",
@@ -1214,8 +1214,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1151,
-  "route_inventory_sha256": "a0b715a4d1c4590ba943b932eabedff6b14a2d1991d4bd3ca33634fdb14de74f",
+  "route_count": 1153,
+  "route_inventory_sha256": "d599b8637de916050512e0a0e8957d94e5fff6ceb6399bd7dd5717ea870bf345",
   "runtime_verified": false,
   "schema_version": 1
 }

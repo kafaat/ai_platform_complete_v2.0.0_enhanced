@@ -275,6 +275,7 @@
       "v285_water_ledger_rain_source_reanalysis.sql",
       "v286_canonical_observations.sql",
       "v287_farm_access_grants.sql",
+      "v288_model_promotion_terminal_state.sql",
       "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
@@ -1951,14 +1952,14 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 276,
+    "manifest_entries": 277,
     "manifest_missing_count": 0,
     "policies": 238,
     "production_certified": false,
     "rls_enabled": 233,
     "rls_forced": 214,
     "runtime_verified": false,
-    "sql_files": 294,
+    "sql_files": 296,
     "tables": 363,
     "tenant_rls_gaps": 139,
     "tenant_tables": 344,
@@ -4147,6 +4148,7 @@
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/simple_farm_book.py",
         "services/sahool-platform/api/routers/water_twin.py",
+        "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/routers/yield_analysis.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/scheduler.py",
@@ -4279,7 +4281,9 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/api/learning_feedback.py"
+      ],
       "code_writers": [
         "services/sahool-platform/api/learning_feedback.py"
       ],
@@ -4373,7 +4377,9 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/api/routers/internal_service.py"
+      ],
       "code_writers": [
         "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py"
@@ -4462,10 +4468,12 @@
     {
       "code_readers": [
         "services/mcp_servers/market_db_authz.py",
-        "services/sahool-platform/api/routers/inventory.py"
+        "services/sahool-platform/api/routers/inventory.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/inventory.py"
+        "services/sahool-platform/api/routers/inventory.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "created_in": "v22_inventory.sql",
       "has_tenant_id": true,
@@ -4479,7 +4487,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/inventory.py"
+        "services/sahool-platform/api/routers/inventory.py",
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/inventory.py"
@@ -4852,9 +4861,12 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/api/learning_feedback.py"
+      ],
       "code_writers": [
-        "services/sahool-platform/api/irrigation_closed_loop_runtime.py"
+        "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+        "services/sahool-platform/api/learning_feedback.py"
       ],
       "created_in": "v181_irrigation_closed_loop_learning_production_certification.sql",
       "has_tenant_id": true,
@@ -7949,9 +7961,12 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/api/routers/tasks.py"
+      ],
       "code_writers": [
-        "services/sahool-platform/api/routers/agro_intelligence.py"
+        "services/sahool-platform/api/routers/agro_intelligence.py",
+        "services/sahool-platform/api/routers/tasks.py"
       ],
       "created_in": "v75_work_orders.sql",
       "has_tenant_id": true,
