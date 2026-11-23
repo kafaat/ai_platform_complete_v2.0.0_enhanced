@@ -3,13 +3,13 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `c1c9c227d1494b4091f04a2d2955079b405940680117125154cb225c5411ad2c`
+- fingerprint: `410b95103e5942b3ca68c009ec960eb9277a74a09f6bf76c94d9dca5748635d1`
 - components: **37** (backend: 33)
 - route rows: **1171** → unique method/path: **1048**
 - capabilities (derived, uncurated): **843**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
-- UI waivers pending U4 classification: **55**
+- UI waivers pending U4 classification: **53**
 
 ## Components
 
@@ -68,15 +68,15 @@
 
 | method | path | classification | canonical owner | review |
 |---|---|---|---|---|
-| `GET` | `/` | `service_metadata` | `service-local` | `2026-12-31` |
+| `GET` | `/` | `service_metadata` | `service-local` | `2027-03-31` |
 | `GET` | `/capabilities` | `standard_capability_contract` | `service-local` | `permanent` |
 | `GET` | `/contract` | `standard_service_contract` | `service-local` | `permanent` |
-| `GET` | `/health` | `standard_health_alias` | `service-local` | `2026-12-31` |
+| `GET` | `/health` | `standard_health_alias` | `service-local` | `2027-03-31` |
 | `GET` | `/healthz` | `standard_liveness` | `service-local` | `permanent` |
 | `GET` | `/metrics` | `standard_observability` | `service-local` | `permanent` |
 | `GET` | `/readyz` | `standard_readiness` | `service-local` | `permanent` |
 | `GET` | `/runtime-identity` | `standard_observability` | `service-local` | `permanent` |
-| `POST` | `/v1/ingest` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
-| `GET` | `/v1/products` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
-| `POST` | `/v1/query` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
-| `POST` | `/v1/recommend` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
+| `POST` | `/v1/ingest` | `service_scoped_semantics` | `service-local` | `2027-03-31` |
+| `GET` | `/v1/products` | `service_scoped_semantics` | `service-local` | `2027-03-31` |
+| `POST` | `/v1/query` | `service_scoped_semantics` | `service-local` | `2027-03-31` |
+| `POST` | `/v1/recommend` | `service_scoped_semantics` | `service-local` | `2027-03-31` |

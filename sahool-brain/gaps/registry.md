@@ -9263,3 +9263,16 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `services/sahool-platform/core/historical_season_context.py:101-109` (`irrigation_mm_total = sum(trusted_irrigation)` من أحداث الريّ في النافذة، و`None` حين لا حدث) · `services/sahool-platform/api/season_simulation.py` (`irrigation_unknown` يعني `irrigation_mm_total is None` فقط).
 - **الخلل:** سجلٌّ فيه بعض أحداث الريّ يُعامَل عرضاً معروفاً كاملاً، فيُحسَب الإجهاد المائيّ والغلّة والثقة من مجموعٍ ناقص. ولا وسيلة لإقرار «لم يُروَ هذا الموسم» إلّا بنوع الريّ `rainfed`، فلا يُميَّز الصفر المرصود عن سجلٍّ لم يُملأ.
 - **شرط الإغلاق:** إقرار اكتمال سجلّ الريّ للنافذة في التقاط الموسم (مصدره ومُقرّه ووقته)، فيصير المجموع عرضاً معروفاً فقط مع الإقرار وإلّا `IRRIGATION_SUPPLY_UNKNOWN`؛ مع اختبار سجلٍّ جزئيّ بلا إقرار لا يُنتِج غلّة تشغيليّة، وسياسة معلنة لصفوف `sim_*` المحفوظة قبلها.
+## DEV-AUTH-SIGNUP-DECISION — هل يُعفى `/api/v1/auth/signup` نقطةَ dev أم يُزال؟
+
+- **الحالة:** open — مسجَّلة 2026-11-23 في مراجعة إعفاءات 1 يناير (#1596، Copilot والمراجعة المستقلّة وإيصال المختبر 1596).
+- **المصدر:** `services/sahool-platform/api/routers/auth.py:137` (`auth_signup`) · `config/endpoint_ui_coverage_waivers.json` (إعفاء مؤقّت حتّى 2027-03-31، مالك sahool-platform).
+- **الخلل:** النقطة تُصدر رمزاً بلا إنشاء حساب، ومعطّلة إلّا بـ`SAHOOL_DEV_AUTH=1` خارج الإنتاج (403 غير ذلك). سُجِّلت دائمةً بوصفها «اسماً بديلاً للتسجيل» وهو وصف خاطئ: التسجيل الحقيقيّ `/auth/register` في خدمة auth.
+- **شرط الإغلاق:** قرار المالك بين إعفائها دائماً بسببٍ صحيح (نقطة dev لا تعمل في الإنتاج) أو إزالتها من المنصّة، ثمّ تحديث الإعفاء.
+
+## DISPATCH-CONSUME-UI — واجهة مستهلِك الإرسال `/api/v1/decision/dispatch/consume`
+
+- **الحالة:** open — مسجَّلة 2026-11-23 في مراجعة إعفاءات 1 يناير (#1596، المراجعة المستقلّة وإيصال المختبر 1596).
+- **المصدر:** `services/sahool-platform/api/routers/decision_dispatch.py:410-435` (`Depends(require_permission(Permission.RECOMMENDATION_REQUEST))`، ووثيقة تبني إشعارات لمزارعٍ أو فنّيٍّ يتصرّف يدويّاً وتُرجِع `consumed_by=user_id`) · `docs/api/UI_DEBT_MAP.md:57` (P0 حرِج، صفحة؛ لكنّ السطور 22-24 من الوثيقة نفسها تَعُدّ الجدول قديماً وتسجّل إعادة تصنيفه operational — وهو ادّعاء لم يثبت) · `config/endpoint_ui_coverage_waivers.json` (backlog-ui/human مؤقّت حتّى 2027-03-31).
+- **الخلل:** صُنِّف المسار «عامل طابور آليّ» بلا عاملٍ يستدعيه في المستودع، بينما حمايته صلاحيّة بشريّة وحقوله تسجّل دَين واجهة P0 على `DecisionRuntimePage`.
+- **شرط الإغلاق:** إمّا ربط واجهة الاستهلاك في `DecisionRuntimePage` بدليل واجهة فعليّ (فيُرقّى إلى العقد الملزِم)، أو إثبات مستهلِك آليّ فعليّ ونقل الحماية إلى service token، ثمّ تصحيح الإعفاء.

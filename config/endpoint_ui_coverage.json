@@ -2899,6 +2899,16 @@
       "endpoint": "/api/v1/decisions/{decision_id}/execution-plan",
       "audience": "agronomist",
       "evidence": "/execution-plan`"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/mpc/capabilities",
+      "audience": "agronomist",
+      "evidence": "/api/v1/irrigation/mpc/capabilities"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
+      "audience": "agronomist",
+      "evidence": "/irrigation/mpc/hourly-recommendation"
     }
   ]
 }
