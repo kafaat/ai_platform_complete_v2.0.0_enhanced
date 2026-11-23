@@ -397,13 +397,76 @@ def test_a_promotion_whose_publish_fails_stays_queued_and_is_sent_on_recovery(
                 (
                     "sahool.model.promotion.requested",
                     {"promotion_id": "p-6", "alias": _ALIAS, "target_model_id": "m-b"},
-                    "model-promotion-requested:p-6",
+                    f"model-promotion-requested:{row['id']}",
                 )
             ]
             row = await live.promotion("p-6")
             assert (row["status"], row["status_reason"]) == ("requested", None)
             assert await live.cycle("p-6") is False, "a sent promotion was claimed again"
             assert len(sent) == 1
+
+    _run(body())
+
+
+def test_a_retried_older_promotion_never_overwrites_a_newer_alias(monkeypatch, migrated_db):
+    """Devin on #1587: A's publish fails, B's succeeds, and the retry of A wrote A over B.
+
+    The alias names the newest promotion; an older one is superseded: it leaves the queue as
+    skipped with its reason, and is neither published nor written over the alias.
+    """
+
+    async def body():
+        async with Live(monkeypatch, migrated_db) as live:
+            monkeypatch.setenv("MODEL_SERVING_ENABLED", "true")
+            monkeypatch.setenv("MODEL_SERVING_BACKEND_URL", "http://serving.invalid")
+            sent: list[str] = []
+
+            async def a_fails_once(subject, payload, *, msg_id=None):
+                if payload["promotion_id"] == "p-a" and "p-a" not in failed:
+                    failed.add("p-a")
+                    raise ConnectionError("nats is restarting")
+                sent.append(payload["promotion_id"])
+
+            failed: set[str] = set()
+            monkeypatch.setattr(live.workers, "_publish_nats", a_fails_once)
+            await live.persist(_promotion("p-a", target="m-a2"), model_id="m-a2")
+            await live.persist(_promotion("p-b", target="m-b2"), model_id="m-b2")
+
+            await live.workers.run_model_registry_once(live.owner)
+            await live.workers.run_model_registry_once(live.owner)
+
+            alias = await live.alias()
+            assert (alias["model_id"], alias["promotion_id"]) == ("m-b2", "p-b")
+            older = await live.promotion("p-a")
+            assert (older["status"], older["status_reason"]) == ("skipped", "superseded_by:p-b")
+            assert (await live.promotion("p-b"))["status"] == "requested"
+            assert sent == ["p-b"], f"published {sent}"
+
+    _run(body())
+
+
+def test_one_promotion_id_in_two_tenants_gets_two_message_ids(monkeypatch, migrated_db):
+    """Devin on #1587: promotion_id is unique only per tenant; the stream dedups across all."""
+
+    async def body():
+        async with Live(monkeypatch, migrated_db) as one, Live(monkeypatch, migrated_db) as two:
+            monkeypatch.setenv("MODEL_SERVING_ENABLED", "true")
+            monkeypatch.setenv("MODEL_SERVING_BACKEND_URL", "http://serving.invalid")
+            ids: list[str | None] = []
+
+            async def record(subject, payload, *, msg_id=None):
+                if payload["promotion_id"] == "p-shared":
+                    ids.append(msg_id)
+
+            monkeypatch.setattr(one.workers, "_publish_nats", record)
+            await one.persist(_promotion("p-shared"), model_id="m-b")
+            await two.persist(_promotion("p-shared"), model_id="m-b")
+            await one.workers.run_model_registry_once(one.owner)
+
+            rows = [await one.promotion("p-shared"), await two.promotion("p-shared")]
+            assert [r["status"] for r in rows] == ["requested", "requested"]
+            assert sorted(ids) == sorted(f"model-promotion-requested:{r['id']}" for r in rows)
+            assert len(set(ids)) == 2
 
     _run(body())
 

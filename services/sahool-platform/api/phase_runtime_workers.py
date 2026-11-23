@@ -358,7 +358,7 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                 table="model_promotion_history_runtime",
                 columns=(
                     "t.id, t.tenant_id, t.promotion_id, t.alias, t.decision, "
-                    "t.target_model_id, t.previous_model_id"
+                    "t.target_model_id, t.previous_model_id, t.created_at"
                 ),
                 where="status='pending'",
                 batch_size=batch_size,
@@ -376,13 +376,49 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                 serving_enabled=serving_enabled,
                 serving_backend_url=serving_backend_url,
             )
+            superseded_by = None
             if action["action"] == "request_serving_promotion":
+                # Devin on #1587: a promotion retried after a failed publish must not write its
+                # model over a newer promotion of the same alias. The alias row is locked and,
+                # when it names a promotion recorded after this one, this one is superseded: it
+                # leaves the queue as skipped, without writing the alias or publishing.
+                async with conn.transaction():
+                    await _set_tenant(conn, row["tenant_id"])
+                    superseded_by = await conn.fetchval(
+                        """
+                        SELECT a.promotion_id FROM model_serving_aliases_runtime a
+                        JOIN model_promotion_history_runtime h
+                          ON h.tenant_id = a.tenant_id AND h.promotion_id = a.promotion_id
+                        WHERE a.tenant_id = $1 AND a.alias = $2 AND a.promotion_id <> $3
+                          AND (h.created_at, h.id::text) > ($4::timestamptz, $5::text)
+                        FOR UPDATE OF a
+                        """,
+                        row["tenant_id"],
+                        row["alias"],
+                        row["promotion_id"],
+                        row["created_at"],
+                        str(row["id"]),
+                    )
+            if superseded_by is not None:
+                async with conn.transaction():
+                    await _set_tenant(conn, row["tenant_id"])
+                    await finalize_claim(
+                        conn,
+                        table="model_promotion_history_runtime",
+                        row_id=row["id"],
+                        claim_token=row["claim_token"],
+                        assignments="status=$1, status_reason=$2",
+                        params=("skipped", f"superseded_by:{superseded_by}"),
+                    )
+            elif action["action"] == "request_serving_promotion":
                 # The request is published while the row is still claimed and pending, and only
                 # then marked requested. A broker that is down must not leave a row that is
                 # terminal but never sent (Devin on #1587): on a failed publish the claim is
                 # released with the row still pending, so a later cycle publishes it. Delivery
-                # is at least once; Nats-Msg-Id is stable per promotion, so the stream drops a
-                # republish inside its duplicate window and a consumer keys on promotion_id.
+                # is at least once. Nats-Msg-Id is the queue row's id, stable across retries and
+                # unique across tenants (promotion_id is unique only within a tenant), so the
+                # stream drops a republish inside its duplicate window and never another
+                # tenant's request.
                 async with conn.transaction():
                     await _set_tenant(conn, row["tenant_id"])
                     await conn.execute(
@@ -407,7 +443,7 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                             "alias": row["alias"],
                             "target_model_id": row["target_model_id"],
                         },
-                        msg_id=f"model-promotion-requested:{row['promotion_id']}",
+                        msg_id=f"model-promotion-requested:{row['id']}",
                     )
                 except Exception as exc:  # noqa: BLE001 - any failure means "not sent"
                     released = ("pending", f"publish_failed:{type(exc).__name__}")
