@@ -89,6 +89,9 @@ async def _journey(monkeypatch) -> dict:
 
     pool = await asyncpg.create_pool(DSN, min_size=1, max_size=4, setup=setup)
     monkeypatch.setattr(main, "_DB_POOL", pool)
+    # The per-client minute window is shared by every test in the process; this journey
+    # must not spend it for the live tests that follow (as test_farm_access_scope_live_pg).
+    monkeypatch.setattr(main, "_RATE_LIMIT_PER_MIN", 0, raising=False)
 
     # Creating a field queues Sentinel processing after the response; it calls other services
     # and is not what this file measures.

@@ -132,6 +132,9 @@ async def _scenario(monkeypatch) -> dict:
 
     pool = await asyncpg.create_pool(DSN, min_size=1, max_size=4, setup=setup)
     monkeypatch.setattr(main, "_DB_POOL", pool)
+    # The per-client minute window is shared by every test in the process; this journey
+    # must not spend it for the live tests that follow (as test_farm_access_scope_live_pg).
+    monkeypatch.setattr(main, "_RATE_LIMIT_PER_MIN", 0, raising=False)
     await _seed_candidate(owner, tenant, ready, "review_ready", {"pool_digest": _POOL, "n": 4})
     await _seed_candidate(owner, tenant, blocked, "blocked", {"n": 1})
     await _seed_candidate(owner, other, theirs, "review_ready", {"n": 4})
