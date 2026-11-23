@@ -7201,7 +7201,7 @@
       "entrypoints": [
         "POST /api/v1/farm-ledger/autowrite-preview"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10448,6 +10448,44 @@
       "derived_from": "route",
       "entrypoints": [
         "POST /api/v1/learning/external-prior-blend"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.learning.governed-proposals",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/learning/governed-proposals"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.learning.governed-proposals.kind",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/learning/governed-proposals/{kind}/{proposal_id}/review"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -16286,6 +16324,7 @@
       "consumes": {
         "services": [
           "rag-retrieval",
+          "sahool-field-management",
           "sahool-ollama"
         ]
       },
@@ -17833,20 +17872,20 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 841,
+    "capabilities": 843,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
-    "capabilities_idempotent": 74,
+    "capabilities_idempotent": 75,
     "capabilities_season_scoped": 10,
-    "capabilities_tenant_scoped": 479,
+    "capabilities_tenant_scoped": 481,
     "components": 37,
     "cross_service_duplicate_method_paths": 12,
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1169,
-    "ui_waivers": 53,
-    "unique_method_path": 1046
+    "route_rows": 1171,
+    "ui_waivers": 55,
+    "unique_method_path": 1048
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18108,7 +18147,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "19b57c05e55f22a24d41fc237530fc9b82b265be6a20ecbb1a2dde52eda5c99d",
+  "fingerprint": "a05b54f6868be945af27f502e2cafcc3d64a033068ea0ebceb9347e2a516419d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18162,16 +18201,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1106,
+      "edge_count": 1118,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 4,
         "EMITS": 3,
-        "READS": 592,
+        "READS": 601,
         "ROUTES_TO": 82,
-        "WRITES": 380
+        "WRITES": 383
       }
     },
     "u3_wiring_ownership": {
@@ -18555,6 +18594,20 @@
       "owner": "realtime-session",
       "tracking": "XIAOZHI-DEVICE-LEASE-UI",
       "waiver_id": "ui-waiver-053"
+    },
+    {
+      "endpoint": "/api/v1/learning/governed-proposals",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "G14-LEARNING-REVIEW-UI",
+      "waiver_id": "ui-waiver-054"
+    },
+    {
+      "endpoint": "/api/v1/learning/governed-proposals/{kind}/{proposal_id}/review",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "G14-LEARNING-REVIEW-UI",
+      "waiver_id": "ui-waiver-055"
     }
   ]
 }
