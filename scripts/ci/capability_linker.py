@@ -370,16 +370,33 @@ META_GOVERNANCE_FILES = {
 META_GOVERNANCE_PREFIXES = ("tests_v9/test_no_report_only_change_guard",)
 
 
+def _manifest_paths() -> list[str]:
+    """Paths in the signed release manifest (release/FILE_CHECKSUMS.sha256), the offline
+    allowlist: only signed files, never arbitrary local ones."""
+    manifest = ROOT / "release" / "FILE_CHECKSUMS.sha256"
+    if not manifest.exists():
+        return []
+    paths = []
+    for line in manifest.read_text(encoding="utf-8").splitlines():
+        parts = line.strip().split(None, 1)  # "<sha256>  <path>"
+        if len(parts) == 2 and parts[1]:
+            paths.append(parts[1])
+    return paths
+
+
 def _candidate_paths() -> list[Path]:
-    """Files git would check out, plus new files not yet added, never ignored ones.
+    """Files git would check out, plus new files not yet added; never ignored ones.
 
     Walking the raw tree let gitignored files feed the registry: a failing local Playwright
     run left error-context.md under frontend/test-results/, regeneration recorded it as
     evidence, and a clean CI checkout then failed the registry guard (Devin and the lab on
-    #1591; capability_mapping_engine.py already lists files through git for this reason).
-    --others --exclude-standard keeps a new, not-yet-added file visible, so regenerating
-    before `git add` still sees it. Outside a git worktree (an extracted archive, or the
-    temporary trees the tests build) the walk falls back to the filesystem.
+    #1591). --others --exclude-standard keeps a new, not-yet-added file visible, so
+    regenerating before `git add` still sees it.
+
+    Fail closed outside git, in the same order as capability_mapping_engine._tracked_files
+    (hospital review of #1590): with no usable git listing (an extracted archive, or a git
+    error such as an unsafe directory), read only the paths the signed release manifest
+    lists; with neither, refuse rather than walk the raw filesystem.
     """
     try:
         out = subprocess.run(
@@ -392,9 +409,15 @@ def _candidate_paths() -> list[Path]:
         listed = [ROOT / name for name in out.split("\0") if name]
         if listed:
             return listed
-    except (OSError, subprocess.CalledProcessError):
-        pass
-    return list(ROOT.rglob("*"))
+    except (OSError, subprocess.CalledProcessError, UnicodeDecodeError):
+        pass  # no usable git listing: use the signed manifest, never the raw tree
+    signed = _manifest_paths()
+    if signed:
+        return [ROOT / name for name in signed]
+    raise RuntimeError(
+        "capability_linker: no git listing and no signed release manifest "
+        "(release/FILE_CHECKSUMS.sha256); refusing to scan the raw filesystem (fail closed)"
+    )
 
 
 def discover_files() -> list[str]:
