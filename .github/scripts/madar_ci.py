@@ -158,7 +158,8 @@ ROUTES = (
     ),
     (
         "dependencies",
-        r"dependenc|drift|pip-audit|requirements|lockfile|constraints",
+        r"dependenc|pip-audit|requirements|lockfile|constraints|npm ci|pip install|pub get"
+        r"|(?:version|constraint|pin)s?[- ]drift",
         r"has ==[\w.+-]+, constraints\.txt has|ResolutionImpossible|No matching distribution|ERESOLVE",
     ),
     (
@@ -170,20 +171,27 @@ ROUTES = (
 
 
 def route(job_name, step_name, evidence_text=""):
-    """The specialist for a failed job: by failing step name, then job name, then log."""
-    for name in (step_name, job_name):
-        for role, by_name, _ in ROUTES:
-            if name and re.search(by_name, name, re.I):
-                return role
+    """The specialist for a failed job: by failing step name, then the failure summary in the
+    log, then the job name. The log comes before the job name so that, for example, an npm
+    ERESOLVE inside a frontend job reaches the dependency reviewer."""
+    for role, by_name, _ in ROUTES:
+        if step_name and re.search(by_name, step_name, re.I):
+            return role
     for role, _, by_log in ROUTES:
         if evidence_text and re.search(by_log, evidence_text):
+            return role
+    for role, by_name, _ in ROUTES:
+        if job_name and re.search(by_name, job_name, re.I):
             return role
     return "ci-quality"
 
 
-def handoff_line(role, url, head):
+def handoff_line(role, url, head, merge_tested=False):
     title, agent = SPECIALISTS[role]
-    commit = f" · الالتزام `{head}`" if head else ""
+    commit = f" · الالتزام `{head}`" if head else " · الالتزام غير معلوم"
+    if head and merge_tested:
+        # A pull_request run checks out GitHub's merge of this head with its base.
+        commit += " (رأس الطلب؛ اختبر CI دمجه مع الفرع الأساسي، فيُعاد الإنتاج على ذلك الدمج)"
     return (
         f"{title} (`.claude/agents/{agent}.md`) يراجع للقراءة فقط ويرسل توصيته إلى وكيل الإصلاح"
         f" (`{FIXER}`). الدليل: [سجل الخطوة]({url}){commit}."
@@ -262,7 +270,7 @@ def diagnosis(steps, log):
     )
 
 
-def card(repo, run_id, job, fetch, head=None):
+def card(repo, run_id, job, fetch, head=None, merge_tested=False):
     job_id = int(job["id"])
     head = job.get("head_sha") or head
     if head and not re.fullmatch(r"[a-fA-F0-9]{40}", str(head)):
@@ -305,7 +313,7 @@ def card(repo, run_id, job, fetch, head=None):
             evidence += " تخطّى GitHub خطوة " + display(skipped_tests[0]["name"]) + "."
         role = route(job.get("name") or "", step["name"] if step else "", routed)
         evidence += "\n- الخطوة التالية — " + handoff
-        handoff = handoff_line(role, url, head)
+        handoff = handoff_line(role, url, head, merge_tested)
     elif state == "skipped":
         evidence, handoff = (
             "لم تُشغّل هذه الوظيفة.",
@@ -348,7 +356,7 @@ def run_report(api, repo, run, emit):
         for job in jobs:
             if int(job["run_id"]) != rid or (job.get("head_sha") and job["head_sha"] != head):
                 raise ValueError("job identity mismatch")
-            item = card(repo, rid, job, api.log, head)
+            item = card(repo, rid, job, api.log, head, run.get("event") == "pull_request")
             size += len(item.encode())
             if size > MAX_SUMMARY:
                 emit("التقرير جزئي بسبب حدّ حجم الملخص. بقية الوظائف لم تُفحص.")

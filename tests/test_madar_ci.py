@@ -330,6 +330,53 @@ class Triage(unittest.TestCase):
         result = show(job("failure", [step("Service-local tests", "failure")]), lambda _: text)
         self.assertIn("test&#95;service", result)
 
+    def test_generated_inventory_drift_is_not_a_dependency_failure(self):
+        # Devin on #1588: ci.yml's structural lint uses "drift" for generated files.
+        for step_name in [
+            "service-inventory-drift-gate",
+            "platform-main-subinventory-drift-gate",
+            "route-mount-inventory-drift-gate",
+            "platform-catalog-drift-gate",
+        ]:
+            self.assertEqual(bot.route("Repository Structural Lint", step_name), "ci-quality")
+        self.assertEqual(bot.route("CI", "Check constraints drift"), "dependencies")
+        self.assertEqual(bot.route("CI", "version-drift check"), "dependencies")
+
+    def test_npm_install_failures_reach_the_dependency_reviewer(self):
+        # Devin on #1588: unnamed `npm ci` steps inside frontend jobs.
+        step_name = "Run npm ci --ignore-scripts --no-audit --no-fund"
+        for job_name in [
+            "Frontend Typecheck",
+            "Frontend E2E (Playwright \u00b7 MapLibre/WebGL QA)",
+        ]:
+            self.assertEqual(bot.route(job_name, step_name), "dependencies")
+        self.assertEqual(
+            bot.route("Frontend Typecheck", "Run npm run build", "npm ERR! code ERESOLVE"),
+            "dependencies",
+        )
+        self.assertEqual(bot.route("Frontend Typecheck", "Run npm run typecheck", ""), "frontend")
+
+    def test_pull_request_runs_say_ci_tested_the_merge(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+        entry = dict(job("failure", [step("Typecheck", "failure")]), head_sha="f" * 40)
+        merged = bot.card("o/r", 2, entry, lambda _: log, merge_tested=True)
+        plain = bot.card("o/r", 2, entry, lambda _: log)
+        self.assertIn("دمجه مع الفرع الأساسي", merged)
+        self.assertNotIn("دمجه مع الفرع الأساسي", plain)
+
+    def test_missing_or_bad_commit_is_unknown(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+        for sha in [None, "not-a-sha`]", "a" * 39]:
+            entry = dict(job("failure", [step("Typecheck", "failure")]), head_sha=sha)
+            result = show(entry, lambda _: log)
+            self.assertIn("الالتزام غير معلوم", result)
+            self.assertNotIn("not-a-sha", result)
+
+    def test_frontend_reviewer_installs_without_lifecycle_scripts(self):
+        text = (file.parents[2] / ".claude/agents/frontend-reviewer.md").read_text(encoding="utf-8")
+        self.assertIn("npm ci --ignore-scripts", text)
+        self.assertNotRegex(text, r"`npm ci`(?! --ignore-scripts)")
+
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
         self.assertIn("تعذّر إسناد", show(job("failure", data), lambda _: ""))
