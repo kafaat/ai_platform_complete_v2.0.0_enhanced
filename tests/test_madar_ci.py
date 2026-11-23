@@ -42,6 +42,36 @@ class Chunky:
         return piece
 
 
+class HeadlessJobAPI:
+    """One failed job without its own head_sha, and its log."""
+
+    def __init__(self, log):
+        self.text = log
+
+    def metadata(self, _):
+        entry = job("failure", [step("Typecheck", "failure")])
+        entry.pop("head_sha", None)
+        return {"jobs": [entry]}
+
+    def log(self, _):
+        return self.text
+
+
+RUNNER_TS = "2026-11-22T20:46:23.4411059Z"
+
+
+def runner_block(script, message):
+    """A failed step as the runner writes it: every line timestamped, the script echoed."""
+    first, *rest = script.split("\n")
+    lines = [
+        f"{RUNNER_TS} ##[group]Run {first}",
+        *(f"{RUNNER_TS} {line}" for line in [first, *rest]),
+    ]
+    lines += [f"{RUNNER_TS} ##[endgroup]", f"{RUNNER_TS} {message}"]
+    lines.append(f"{RUNNER_TS} ##[error]Process completed with exit code 1.")
+    return "\n".join(lines) + "\n"
+
+
 def show(entry, fetch):
     return bot.card("owner/project", 2, entry, fetch)
 
@@ -495,16 +525,16 @@ class Triage(unittest.TestCase):
 
     def test_comments_and_install_lines_do_not_route(self):
         # Independent review of 43c0a99f: incidental tool names in the failed script.
-        log = block(
-            "# mirrors tsc strictness\nT npx playwright install chromium\nT python -m pytest t",
-            "T FAILED t.py::x",
+        log = runner_block(
+            "# mirrors tsc strictness\nnpx playwright install chromium\npython -m pytest t",
+            "FAILED t.py::x",
         )
         self.assertIn(
             "ci-quality-triage",
             show(job("failure", [step("Backend checks", "failure")]), lambda _: log),
         )
-        log = block(
-            "# bandit is run elsewhere\nT python scripts/ci/workflow_guard.py", "T unsafe pattern"
+        log = runner_block(
+            "# bandit is run elsewhere\npython scripts/ci/workflow_guard.py", "unsafe pattern"
         )
         result = show(
             job("failure", [step("Detect unsafe workflow patterns", "failure")]), lambda _: log
@@ -523,19 +553,9 @@ class Triage(unittest.TestCase):
 
     def test_run_report_falls_back_to_the_run_head(self):
         log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
-
-        class API:
-            def metadata(self, _):
-                entry = job("failure", [step("Typecheck", "failure")])
-                entry.pop("head_sha", None)
-                return {"jobs": [entry]}
-
-            def log(self, _):
-                return log
-
         lines = []
         run = {"id": 2, "name": "CI", "run_attempt": 1, "head_sha": "d" * 40, "event": "push"}
-        bot.run_report(API(), "owner/repo", run, lines.append)
+        bot.run_report(HeadlessJobAPI(log), "owner/repo", run, lines.append)
         self.assertIn("d" * 40, lines[-1])
         self.assertNotIn("دمجه مع الفرع الأساسي", lines[-1])
 
@@ -608,6 +628,25 @@ class Triage(unittest.TestCase):
         merged = bot.card("o/r", 2, entry, lambda _: log, merge_tested=True)
         self.assertIn("إن سحبت الوظيفة بالإعداد الافتراضي", merged)
         self.assertIn("checkout", merged)
+
+    def test_only_install_subcommands_are_dropped(self):
+        # Independent review of 53da5811: "install" elsewhere on a tool line must not drop it.
+        for script, kept in [
+            ("npx playwright test tests/install.spec.ts", "npx playwright"),
+            ("npx tsc --noEmit && pip install -e .", "tsc"),
+            ("pip install -e . && npx tsc --noEmit", "tsc"),
+            ("npm run test -- install-flow", "npm run test"),
+            ("npx vitest run src/install/", "vitest"),
+        ]:
+            self.assertIn(kept, bot.failing_command(runner_block(script, "failed")), script)
+        for script in [
+            "pip install -r r.txt",
+            "python -m pip install x",
+            "sudo apt-get -y install jq",
+            "npx playwright install chromium",
+            "npm ci",
+        ]:
+            self.assertEqual(bot.failing_command(runner_block(script, "failed")), "", script)
 
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]

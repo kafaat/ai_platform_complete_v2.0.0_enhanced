@@ -233,7 +233,12 @@ def handoff_line(role, url, head, merge_tested=False):
 
 
 RUNNER_TIMESTAMP = re.compile(r"^\d{4}-\d\d-\d\d[tT][\d:.]+[zZ] ")
-INSTALL_LINE = re.compile(r"\b(?:pip3?|npm|npx|pnpm|yarn|uv|apt-get|apt|brew)\b[^\n]*\binstall\b")
+# An install subcommand, for one `&&`/`;` segment of a script line.
+INSTALL_LINE = re.compile(
+    r"^(?:sudo\s+)?(?:python3?\s+-m\s+)?"
+    r"(?:pip3?|pnpm|yarn|brew|apt(?:-get)?|uv(?:\s+pip)?|npx\s+playwright|npm)"
+    r"\s+(?:-\S+\s+)*(?:install|ci|add|sync)\b"
+)
 
 
 def failing_command(log):
@@ -248,8 +253,10 @@ def failing_command(log):
             # Script lines keep the runner's timestamp, lowercased with the rest of the
             # command by failed_commands() (2026-11-22t20:46:23.4411059z).
             body = RUNNER_TIMESTAMP.sub("", line).strip()
-            if body and not body.startswith("#") and not INSTALL_LINE.search(body):
-                kept.append(body)
+            if not body or body.startswith("#"):
+                continue
+            parts = [p.strip() for p in re.split(r"&&|;", body)]
+            kept.extend(p for p in parts if p and not INSTALL_LINE.match(p))
     return "\n".join(kept)
 
 
