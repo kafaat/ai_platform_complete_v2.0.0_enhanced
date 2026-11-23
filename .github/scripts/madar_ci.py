@@ -1,6 +1,7 @@
 """Read completed GitHub.com Actions attempts; write an Arabic job summary."""
 
 import html
+import http.client
 import json
 import os
 import re
@@ -183,7 +184,7 @@ def card(repo, run_id, job, fetch):
                 f"السجل أطول من {MAX_LOG_STREAM // (1024 * 1024)} MiB فلم يُنزَّل. سبب التعثّر لم يُفحص."
             )
             handoff = "وكيل الجودة يفتح سجل الخطوة المتعثّرة من الرابط."
-        except (OSError, ValueError) as exc:
+        except (OSError, ValueError, http.client.HTTPException) as exc:
             detail = f" (HTTP {exc.code})" if isinstance(exc, HTTPError) else ""
             evidence = f"تعذّر الوصول إلى سجل الوظيفة{detail}. سبب التعثّر لم يُفحص."
             handoff = "وكيل الجودة يتحقق من صلاحية السجل وإمكان قراءته."
@@ -274,7 +275,7 @@ def main():
                 emit("التشغيل قيد التنفيذ. أعد الفحص عند اكتماله.")
                 return 0
             run_report(api, repo, run, emit)
-        except (OSError, ValueError, KeyError, TypeError) as exc:
+        except (OSError, ValueError, KeyError, TypeError, http.client.HTTPException) as exc:
             code = f" (HTTP {exc.code})" if isinstance(exc, HTTPError) else ""
             emit(f"تعذّر إكمال جمع أدلة التشغيل{code}. الوظائف المتبقية لم تُفحص.")
             return 1

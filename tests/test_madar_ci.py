@@ -1,3 +1,4 @@
+import http.client
 import importlib.util
 import io
 import json
@@ -133,6 +134,38 @@ class Triage(unittest.TestCase):
                     names.add(found.group(1).strip("\"'"))
         self.assertTrue(monitored)
         self.assertEqual(monitored - names, set())
+
+    def test_dropped_log_stream_is_an_access_failure(self):
+        def dropped(_):
+            raise http.client.IncompleteRead(b"partial", 100)
+
+        result = show(job("failure", [step("Run tests", "failure")]), dropped)
+        self.assertIn("تعذّر الوصول", result)
+        self.assertIn("لم يُفحص", result)
+
+    def test_github_log_streams_the_tail(self):
+        api = bot.GitHub("owner/repo", "test")
+        body = b"y" * (bot.MAX_LOG + 10)
+        with patch.object(api, "open", return_value=io.BytesIO(body)):
+            text = api.log(3)
+        self.assertTrue(text.truncated)
+        self.assertEqual(len(text), bot.MAX_LOG)
+
+    def test_cut_inside_a_character_is_replaced(self):
+        text = bot.read_log_tail(io.BytesIO("aéé".encode()), keep=3)
+        self.assertTrue(text.truncated)
+        self.assertEqual(text, "\ufffdé")
+
+    def test_whole_log_has_no_tail_note(self):
+        log = bot.read_log_tail(io.BytesIO(block("python -m pytest t", "FAILED t.py::c").encode()))
+        result = show(job("failure", [step("Run tests", "failure")]), lambda _: log)
+        self.assertIn("فشل حالة اختبار", result)
+        self.assertNotIn("فُحص آخر", result)
+
+    def test_ceiling_boundary(self):
+        self.assertEqual(len(bot.read_log_tail(io.BytesIO(b"z" * 40), keep=10, ceiling=40)), 10)
+        with self.assertRaises(bot.LogTooLarge):
+            bot.read_log_tail(io.BytesIO(b"z" * 41), keep=10, ceiling=40)
 
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
