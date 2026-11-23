@@ -4810,10 +4810,6 @@
       "mobile_consumers": [],
       "tests": [
         "docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md",
-        "frontend/test-results/advisor-evidence-a-failed--1560d-without-attributing-sources-chromium/error-context.md",
-        "frontend/test-results/advisor-evidence-available-7a2ae-on-the-advisor-card-in-dark-chromium/error-context.md",
-        "frontend/test-results/advisor-evidence-available-a1b6c-n-the-advisor-card-in-cream-chromium/error-context.md",
-        "frontend/test-results/advisor-evidence-available-cef0b-n-the-advisor-card-in-light-chromium/error-context.md",
         "services/decision-service/tests/test_activation_evidence_contract.py",
         "services/decision-service/tests/test_agronomic_evidence_contract.py",
         "services/decision-service/tests/test_decision_evidence_read.py",
@@ -4833,7 +4829,11 @@
         "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
         "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
         "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
-        "services/sahool-platform/tests/test_yield_estimate_unknown_evidence.py"
+        "services/sahool-platform/tests/test_yield_estimate_unknown_evidence.py",
+        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
+        "services/soil-service/test_soil_evidence_adapters_and_policy.py",
+        "services/soil-service/test_soil_remote_sensing_evidence.py",
+        "services/vegetation-analysis-service/test_evidence_producer_contract.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4879,7 +4879,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 28
+        "tests": 24
       }
     },
     {
