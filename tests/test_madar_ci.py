@@ -454,6 +454,19 @@ class Triage(unittest.TestCase):
         self.assertIn("migrations-reviewer", result)
         self.assertIn("الخطوة التالية", result)
 
+    def test_ungrouped_gitleaks_alert_routes_independently_of_color(self):
+        entry = dict(
+            job("failure", [step("Scan complete Git history for secrets", "failure", 3)]),
+            name="gitleaks-full-history",
+        )
+        for line, owner in (
+            ("WRN leaks found: 1", "security-reviewer"),
+            ("WRN \x1b[1mleaks found: 1\x1b[0m", "security-reviewer"),
+            ("WRN \x1b[1mscan interrupted\x1b[0m", "ci-quality-triage"),
+        ):
+            with self.subTest(line=line):
+                self.assertIn(owner, show(entry, lambda _, line=line: line))
+
     def test_several_failed_steps_go_to_ci_quality(self):
         steps = [step("Run npx tsc --noEmit", "failure"), step("Run bandit", "failure", 2)]
         result = show(job("failure", steps), lambda _: "")
@@ -692,8 +705,25 @@ class Triage(unittest.TestCase):
             ("pip i foo", "pip i foo"),
             ("npm i18n-check", "npm i18n-check"),
             ("npm i-test", "npm i-test"),
+            # The same whole-word rule for the spelled-out verbs: these run scripts.
+            ("npm install-test", "npm install-test"),
+            ("npm ci-info", "npm ci-info"),
+            ("yarn add-deps-report", "yarn add-deps-report"),
         ]:
             self.assertIn(kept, bot.failing_command(runner_block(script, "failed")), script)
+
+    def test_spelled_out_install_verbs_are_still_dropped_as_whole_words(self):
+        for script in (
+            "npm install",
+            "npm ci",
+            "pip install -r requirements.txt",
+            "yarn add left-pad",
+        ):
+            with self.subTest(script=script):
+                self.assertNotIn(
+                    script.split()[0],
+                    bot.failing_command(runner_block(script + " && pytest", "failed")),
+                )
 
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]

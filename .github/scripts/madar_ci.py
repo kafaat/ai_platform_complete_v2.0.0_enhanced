@@ -243,7 +243,9 @@ INSTALL_LINE = re.compile(
     INSTALL_PREFIX + r"(?:"
     r"(?:python3?\s+-m\s+)?"
     r"(?:pip3?|pnpm|yarn|brew|apt(?:-get)?|uv(?:\s+pip)?|npx\s+playwright|npm)"
-    r"\s+(?:-\S+\s+)*(?:install|ci|add|sync)\b"
+    # The verb must be a whole word: `\b` also matched before a hyphen, so `npm install-test`
+    # and `npm ci-info`, which run a script, were dropped as installs (review of #1592).
+    r"\s+(?:-\S+\s+)*(?:install|ci|add|sync)(?=\s|$)"
     # `i` is an install alias in npm and pnpm only, and only as a whole word.
     r"|p?npm\s+(?:-\S+\s+)*i(?=\s|$)"
     r"|(?:flutter|dart)\s+pub\s+get\b"
@@ -282,7 +284,7 @@ def failing_output(log):
     for _, output in failed_commands(log):
         summary = output.rfind("short test summary info")
         parts.append(output[summary:] if summary >= 0 else output[-8192:])
-    return "\n".join(parts) if parts else log[-8192:]
+    return "\n".join(parts) if parts else ANSI.sub("", log)[-8192:]
 
 
 def failed_commands(log):
