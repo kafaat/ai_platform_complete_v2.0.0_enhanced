@@ -168,6 +168,8 @@ STEP_TOOLS = (
 )
 # The failure summary in the log: specific error signatures only.
 LOG_SIGNS = (
+    # pip-audit's own report comes first: its advisories are a dependency upgrade.
+    ("dependencies", r"Found \d+ known vulnerabilit(?:y|ies) in \d+ packages?"),
     ("security", r"\bCVE-\d{4}-\d+\b|\bGHSA-[\w-]+|\bleaks? found\b"),
     (
         "migrations",
@@ -192,15 +194,21 @@ JOB_OWNERS = {
 ROUTES = tuple(role for role, _ in STEP_TOOLS)
 
 
-def route(job_name, step_name, evidence_text=""):
+def route(job_name, step_name, evidence_text="", command=""):
     """The specialist for a failed job, or the CI quality agent when it is not clear.
 
-    In order: a tool named in the failing step's name, a specific error signature in the
-    failure summary, then the job's known owner. The log comes before the job so that an
+    In order: a tool named in the failing step's name, a tool in its failed script (not
+    an install line), a specific error signature in the failure summary, then the job's
+    known owner. The log comes before the job so that an
     npm ERESOLVE inside a frontend job reaches the dependency reviewer.
     """
     for role, pattern in STEP_TOOLS:
         if step_name and re.search(pattern, step_name):
+            return role
+    # The failed script names the tool that ran, but an install line there is setup for
+    # the real command (pip install, then pytest), so it does not pick dependencies.
+    for role, pattern in STEP_TOOLS:
+        if role != "dependencies" and command and re.search(pattern, command):
             return role
     for role, pattern in LOG_SIGNS:
         if evidence_text and re.search(pattern, evidence_text):
@@ -218,6 +226,11 @@ def handoff_line(role, url, head, merge_tested=False):
         f"{title} (`.claude/agents/{agent}.md`) يراجع للقراءة فقط ويرسل توصيته إلى وكيل الإصلاح"
         f" (`{FIXER}`). الدليل: [سجل الخطوة]({url}){commit}."
     )
+
+
+def failing_command(log):
+    """The script of the failed command blocks, for routing by the tool that actually ran."""
+    return "\n".join(cmd for cmd, _ in failed_commands(log))
 
 
 def failing_output(log):
@@ -310,10 +323,10 @@ def card(repo, run_id, job, fetch, head=None, merge_tested=False):
     if step:
         status += " · أول خطوة متعثّرة " + display(step["name"])
     if state in FAILED:
-        routed = ""
+        routed, command = "", ""
         try:
             log = fetch(job_id)
-            routed = failing_output(log)
+            routed, command = failing_output(log), failing_command(log)
             evidence, handoff = diagnosis(failed, log)
             if getattr(log, "truncated", False):
                 evidence += f" فُحص آخر {MAX_LOG // (1024 * 1024)} MiB من السجل."
@@ -335,7 +348,9 @@ def card(repo, run_id, job, fetch, head=None, merge_tested=False):
         if skipped_tests:
             evidence += " تخطّى GitHub خطوة " + display(skipped_tests[0]["name"]) + "."
         role = (
-            route(job.get("name") or "", step["name"], routed) if len(failed) == 1 else "ci-quality"
+            route(job.get("name") or "", step["name"], routed, command)
+            if len(failed) == 1
+            else "ci-quality"
         )
         evidence += "\n- الخطوة التالية — " + handoff
         handoff = handoff_line(role, url, head, merge_tested)

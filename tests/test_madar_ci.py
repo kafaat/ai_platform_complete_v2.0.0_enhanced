@@ -259,6 +259,7 @@ class Triage(unittest.TestCase):
             self.assertIn("Read only", text, role)
         fixer = (agents / f"{bot.FIXER}.md").read_text(encoding="utf-8")
         self.assertIn("Never push to main, merge", fixer)
+        self.assertIn("Never on main.", fixer)
         self.assertEqual(set(bot.ROUTES) | {"ci-quality"}, set(bot.SPECIALISTS))
         self.assertEqual({r for r, _ in bot.LOG_SIGNS}, set(bot.ROUTES))
         self.assertLessEqual(set(bot.JOB_OWNERS.values()), set(bot.ROUTES))
@@ -454,6 +455,43 @@ class Triage(unittest.TestCase):
         )
         text = bot.read_log_tail(io.BytesIO(group + b"T out\n" * 100), keep=300)
         self.assertTrue(text.startswith(group.decode()))
+
+    def test_lab_1588_real_step_names(self):
+        # Lab 1588: real runs 45066967613, 45051026057 and 45054521999.
+        drift = block(
+            "python scripts/ci/capability_mapping_engine.py --check",
+            "T drift: run capability_mapping_engine.py --generate",
+        )
+        card = show(
+            job("failure", [step("Validate forensic capability mapping drift", "failure")]),
+            lambda _: drift,
+        )
+        self.assertIn("ci-quality-triage", card)
+        oom = block("docker compose up minio-init", "T Killed mc admin policy attach")
+        name = "S3 Compose slice acceptance (real services, no database)"
+        self.assertIn(
+            "ci-quality-triage", show(job("failure", [step(name, "failure")]), lambda _: oom)
+        )
+
+    def test_pip_audit_in_a_generic_step_of_the_security_job(self):
+        log = block(
+            "python -m pip_audit -r requirements.txt",
+            "T Found 2 known vulnerabilities in 1 package\nT urllib3 2.0 CVE-2026-1",
+        )
+        entry = dict(job("failure", [step("Gate critical path", "failure")]), name="Security Scan")
+        self.assertIn("dependency-reviewer", show(entry, lambda _: log))
+
+    def test_tool_in_the_failed_script_routes(self):
+        log = block("cd frontend && npx vitest run", "T FAIL src/a.test.ts")
+        self.assertIn(
+            "frontend-reviewer",
+            show(job("failure", [step("Run the checks", "failure")]), lambda _: log),
+        )
+        log = block(
+            "pip install -r r.txt\nT python -m pytest tests", "T FAILED tests/test_s.py::test_x"
+        )
+        result = show(job("failure", [step("Service-local tests", "failure")]), lambda _: log)
+        self.assertIn("ci-quality-triage", result)
 
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
