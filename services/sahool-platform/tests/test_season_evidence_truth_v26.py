@@ -22,6 +22,7 @@ def _context(
     gdd: list[float | None] | None = None,
     et0: list[float | None] | None = None,
     rain: float | None = 0.0,
+    irrigation_mm_total: float | None = None,
 ) -> SimContext:
     n = 10
     return SimContext(
@@ -38,11 +39,12 @@ def _context(
         ],
         gdd_daily_override=gdd,
         et0_daily_override=et0,
+        irrigation_mm_total=irrigation_mm_total,
     )
 
 
 def test_observed_zero_gdd_is_not_missing():
-    out = simulate_season(_context(gdd=[0.0] * 10))
+    out = simulate_season(_context(gdd=[0.0] * 10, irrigation_mm_total=1000.0))
     assert out.gdd_total == 0.0
     assert out.yield_kg_ha == 0.0
     assert out.yield_status == "estimated"
@@ -94,7 +96,9 @@ def test_missing_precipitation_is_not_zero_rain():
 
 
 def test_true_dry_weather_with_complete_inputs_allows_screening():
-    out = simulate_season(_context(gdd=[12.0] * 10, rain=0.0))
+    # "Complete inputs" includes a recorded irrigation total — here an observed zero,
+    # which is a known supply (water-stressed), unlike an unknown one.
+    out = simulate_season(_context(gdd=[12.0] * 10, rain=0.0, irrigation_mm_total=0.0))
     assert out.water_need_mm is not None
     assert out.yield_kg_ha is not None
     assert out.yield_status == "estimated"

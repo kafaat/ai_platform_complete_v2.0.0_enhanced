@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 623
   },
-  "inventory_sha256": "f3ac38452f19ee7674e3bfeefbd7d1bf12261606e84ece9513251e18d424eb86",
+  "inventory_sha256": "5cc783439aad0f44e03d1bccebc1343a8001ff8a3e51815e219525b655a27b75",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -1274,7 +1274,7 @@
     {
       "classification": "domain",
       "function": "field_season_state_endpoint",
-      "line": 606,
+      "line": 608,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
       "source": "api/routers/seasons.py"

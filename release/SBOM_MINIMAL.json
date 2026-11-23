@@ -825,7 +825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "85ec57b848fef78626ad4f3543264c88c98a05d5f8cbebdecc658c6e381be83f"
+          "content": "b5e7a02370565e0657e612c8aca0e6f5a20f790f49c32161feff6d4511bd5236"
         }
       ],
       "name": "frontend/src/components/SeasonSimulationDialog.tsx",
@@ -6605,7 +6605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "447095793483a22519669dd708baaf48a2bb98537dec04c58ca0d05ffc07d2c4"
+          "content": "a4ef0414006a4c9170616f9c4e03b00323fb33d8259f5c94460c2ddf1e9e44bc"
         }
       ],
       "name": "frontend/src/sections/HybridIndexPage.seasonSimulation.test.tsx",
@@ -8105,7 +8105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "caf142aee16208115f4eab26d7da8f4d48d4fb0745ab4cbc883e93284909f7cc"
+          "content": "4edd60425d6ab4b1b00fbb4415918106a4c89cfb9cd962571b676b1d0deafb47"
         }
       ],
       "name": "frontend/src/services/api/reports.ts",
@@ -29045,7 +29045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cba3539cb218f4222e450ae81c041e3556a7eafa38a581125670e40571f00a9c"
+          "content": "239baa1653ded49ef2e2e0520da606824dba6a69576c8603fef78833caed5756"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -29375,7 +29375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0544785434f400496664eda51d825e6ea19240501e683f284375be926cc9095d"
+          "content": "d3d24be9b73b243b14af0281822d3c5e836881760dff816b01e649c315e81693"
         }
       ],
       "name": "services/sahool-platform/api/season_models.py",
@@ -29385,7 +29385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f787c3e4defbcf2cc8734d47b5192b2546b8b6ff58cc5c295edde9503f988071"
+          "content": "1817254cb148c5ce2a0b242d6a6bb220541103d62940636636e1186774462921"
         }
       ],
       "name": "services/sahool-platform/api/season_simulation.py",
@@ -37955,7 +37955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "152b98f84e9f4f14c8c06c0a8d3668bd0b655a6f6428d42e4c59e13f960815ea"
+          "content": "94ee3aca158652b9354c8cb1d275b9d50402838dd3d58cc4541ea385a5888d76"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
@@ -38015,7 +38015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4fa5297051a97db23741c86804d69f2dda99785d8f93de14435e963ba4d50184"
+          "content": "4ad8df3edf48b9219ebd8c4b6cd6620c5de43eae1ccd653c7d3c47ea7702785b"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_simulation.py",
@@ -38025,7 +38025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f2a0e1d690629f8a682e2c88c223b45eecbad81f70cbee417898f7c08942ac3"
+          "content": "e8572c84ae8966599ace92b858867ce347dc30a2d887d818ef8f653a563893b7"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_spatial_provenance.py",
@@ -38625,7 +38625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "13f7216a729b2e7b2acbcb15dcf3c8aef41415d96b5f39e37ec7f803a6ba728d"
+          "content": "c1a183ea3911612c14c4b8767bf7a537c04f7742503947f784400e66d53b21be"
         }
       ],
       "name": "services/sahool-platform/tests/test_v26_missing_gdd_semantics.py",

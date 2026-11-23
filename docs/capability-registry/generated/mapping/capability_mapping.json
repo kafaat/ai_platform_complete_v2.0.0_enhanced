@@ -6897,7 +6897,7 @@
           "score": 14
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:606",
+          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:608",
           "score": 14
         },
         {
@@ -31915,7 +31915,7 @@
           "score": 12
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:606",
+          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:608",
           "score": 11
         },
         {
@@ -92018,67 +92018,67 @@
           "import": "api.season_simulation"
         },
         {
-          "line": 175,
+          "line": 177,
           "import": "api.season_models"
         },
         {
-          "line": 204,
+          "line": 206,
           "import": "api.field_context"
         },
         {
-          "line": 217,
+          "line": 219,
           "import": "api.recommendations_hub"
         },
         {
-          "line": 227,
+          "line": 229,
           "import": "api.recommendations_hub"
         },
         {
-          "line": 238,
+          "line": 240,
           "import": "core.crop_cards.loader"
         },
         {
-          "line": 248,
+          "line": 250,
           "import": "core.crop_cards.loader"
         },
         {
-          "line": 300,
+          "line": 302,
           "import": "core.season_phenology"
         },
         {
-          "line": 310,
+          "line": 312,
           "import": "core.season_phenology"
-        },
-        {
-          "line": 320,
-          "import": "api.season_simulation"
-        },
-        {
-          "line": 321,
-          "import": "core.engines.ky_registry"
         },
         {
           "line": 322,
+          "import": "api.season_simulation"
+        },
+        {
+          "line": 323,
+          "import": "core.engines.ky_registry"
+        },
+        {
+          "line": 324,
           "import": "core.season_phenology"
         },
         {
-          "line": 336,
+          "line": 338,
           "import": "core.engines.harvest_traceability"
         },
         {
-          "line": 346,
+          "line": 348,
           "import": "core.engines.harvest_traceability"
         },
         {
-          "line": 361,
+          "line": 363,
           "import": "api.main"
         },
         {
-          "line": 362,
+          "line": 364,
           "import": "api.routers.harvest_traceability"
         },
         {
-          "line": 379,
+          "line": 381,
           "import": "api.agronomic_state_consumers"
         }
       ]

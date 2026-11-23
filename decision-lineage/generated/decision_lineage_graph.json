@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 818,
+      "evidence_count": 819,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -652,6 +652,7 @@
         "services/sahool-platform/tests/test_runtime_ponytail_integration.py",
         "services/sahool-platform/tests/test_schema_factory.py",
         "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
+        "services/sahool-platform/tests/test_season_simulation.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_season_stage_risk.py",
         "services/sahool-platform/tests/test_season_state_weather_inputs.py",
@@ -3285,7 +3286,7 @@
         "services/sahool-platform/api/learning_feedback.py",
         "services/sahool-platform/api/learning_summary.py"
       ],
-      "source_evidence_count": 818,
+      "source_evidence_count": 819,
       "target_evidence_count": 598,
       "static_supported": true,
       "runtime_verified": false
@@ -3758,5 +3759,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "e8c22ef186b0990baae544ecf95eafbd4d2676b635ee6d771941e9533b6b3239"
+  "content_sha256": "9dca3c4e5b2a8dd6b82ce114592363f96e3701d7b004f5589798c114d6d6d599"
 }

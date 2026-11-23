@@ -96,6 +96,25 @@ describe('HybridIndexPage offers the season simulation run (F-U01)', () => {
     expect(api.fetchSeasons).toHaveBeenLastCalledWith('fld_1');
   });
 
+  it('labels the adequate-irrigation what-if as a scenario when irrigation is unrecorded', async () => {
+    api.fetchSeasons.mockResolvedValue([SEASON]);
+    api.simulateSeason.mockResolvedValue({
+      ...RESULT, yield_kg_ha: null, yield_low_kg_ha: null, yield_high_kg_ha: null,
+      yield_status: 'unavailable_unknown_irrigation', limitations: ['IRRIGATION_SUPPLY_UNKNOWN'],
+      confidence: 0, scenario_yield_kg_ha: 3000, scenario_basis: 'adequate_irrigation_assumed',
+    });
+    renderPage('owner');
+    fireEvent.click(await runButton());
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'تشغيل المحاكاة' }));
+
+    await within(dialog).findByText(/سيناريو «لو كان الريّ كافياً»/);
+    expect(within(dialog).getByText(/ليس تقديراً للموسم/)).toBeInTheDocument();
+    expect(within(dialog).getByText('الإنتاج المُقدَّر (kg/ha)').parentElement).toHaveTextContent('غير متاح');
+    expect(within(dialog).getByText(/الثقة/)).toHaveTextContent('الثقة غير متاحة');
+    expect(within(dialog).queryByText(/الثقة 0٪/)).toBeNull();
+  });
+
   it.each(['agronomist', 'worker', 'viewer', undefined])(
     'offers no run to role %s (the server grants field:edit to owner and manager only)',
     async (role) => {

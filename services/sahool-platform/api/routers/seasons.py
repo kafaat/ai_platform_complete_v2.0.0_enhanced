@@ -573,6 +573,8 @@ async def simulate_season_endpoint(
         water_need_mm=result.water_need_mm,
         water_supply_mm=result.water_supply_mm,
         water_stress_factor=result.water_stress_factor,
+        scenario_yield_kg_ha=result.scenario_yield_kg_ha,
+        scenario_basis=result.scenario_basis,
         confidence=result.confidence,
         rationale_ar=result.rationale_ar,
         assumptions_ar=result.assumptions_ar,

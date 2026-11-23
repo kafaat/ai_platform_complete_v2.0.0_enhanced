@@ -213,6 +213,10 @@ class SeasonSimResponse(BaseModel):
     water_need_mm: float | None
     water_supply_mm: float | None
     water_stress_factor: float | None
+    # Declared what-if (adequate irrigation assumed) when the operational yield is withheld
+    # for an irrigated season with unknown irrigation — not the season's estimated yield.
+    scenario_yield_kg_ha: float | None = None
+    scenario_basis: str | None = None
     confidence: float
     rationale_ar: str
     assumptions_ar: list[str]

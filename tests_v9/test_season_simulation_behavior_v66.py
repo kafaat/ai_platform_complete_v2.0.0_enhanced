@@ -222,8 +222,10 @@ class TestSimulateConsistency:
         assert asdict(a) == asdict(b)
 
     def test_yield_equals_biomass_times_hi_under_no_stress(self):
-        # بلا عرض مائي ⇒ لا إجهاد (stress=1) ⇒ الإنتاج = الكتلة × HI
-        r = _sim("wheat", _warm_days(120))
+        # عرض مائيّ مسجَّل وافٍ ⇒ لا إجهاد (stress=1) ⇒ الإنتاج = الكتلة × HI. (غياب سجلّ الريّ
+        # لموسم مرويّ لم يعد يُفترَض «ريّاً كافياً» — rue-fao56/2؛ تُختبَر حالته في
+        # services/sahool-platform/tests/test_season_simulation.py::TestUnknownIrrigation.)
+        r = _sim("wheat", _warm_days(120), irrigation_mm_total=1000.0)
         p = _params_for("wheat")
         assert r.water_stress_factor == 1.0
         # Both outputs are rounded to 0.1 independently, so the identity holds within the
@@ -237,7 +239,7 @@ class TestSimulateConsistency:
     def test_uncertainty_band_is_plus_minus_twenty_percent(self):
         # الحدّان يُحسبان من الإنتاج المركزي **غير المقرَّب** ثمّ يُقرَّبان لخانة عشريّة واحدة،
         # والإنتاج المُعاد مقرَّبٌ بدوره: الهامش ±0.05 لتقريب الحدّ + 0.05 × المعامل لتقريب الإنتاج.
-        r = _sim("wheat", _warm_days(120))
+        r = _sim("wheat", _warm_days(120), irrigation_mm_total=1000.0)
         assert r.yield_low_kg_ha == pytest.approx(r.yield_kg_ha * 0.8, abs=0.05 + 0.05 * 0.8), (
             "the low bound must be −20% of the yield within the rounding of both"
         )
@@ -251,7 +253,11 @@ class TestSimulateConsistency:
         # GDD من المحرّك مُرسَلة صفراً (برودة مرصودة)، لا غائبة: غيابها كلّها غلّة غير متاحة
         # (None، v26 workstream 04) لا صفر؛ الصفر هنا نتيجة حرارة مقيسة.
         cold = [DayWeather(t_min_c=-5.0, t_max_c=2.0, et0_mm=3.0) for _ in range(60)]
-        r = simulate_season(SimContext(crop="maize", weather=cold, gdd_daily_override=[0.0] * 60))
+        r = simulate_season(
+            SimContext(
+                crop="maize", weather=cold, gdd_daily_override=[0.0] * 60, irrigation_mm_total=1000.0
+            )
+        )
         assert r.gdd_total == 0.0
         assert r.biomass_kg_ha == 0.0
         assert r.yield_kg_ha == 0.0
@@ -264,7 +270,7 @@ class TestSimulateConsistency:
         assert long.biomass_kg_ha >= short.biomass_kg_ha
 
     def test_all_outputs_non_negative(self):
-        r = _sim("wheat", _warm_days(110))
+        r = _sim("wheat", _warm_days(110), irrigation_mm_total=1000.0)
         for value in (
             r.gdd_total,
             r.lai_max,
@@ -288,8 +294,9 @@ class TestSimulateConsistency:
         assert may.biomass_kg_ha > no_date.biomass_kg_ha
 
     def test_rain_supply_enables_water_balance(self):
-        # مطر موسمي ⇒ يظهر عرض مائي وعامل إجهاد محسوب (لا افتراض "ريّ كافٍ")
+        # موسم مطريّ: المطر هو العرض ⇒ يظهر عرض مائي وعامل إجهاد محسوب (لا افتراض "ريّ كافٍ").
+        # (في موسم مرويّ بلا سجلّ ريّ لا يكفي المطر وحده عرضاً — rue-fao56/2.)
         weather = _warm_days(120, rain=8.0)
-        r = _sim("wheat", weather)
+        r = _sim("wheat", weather, irrigation_type="rainfed")
         assert r.water_supply_mm is not None
         assert r.water_supply_mm == pytest.approx(120 * 8.0, rel=1e-6)
