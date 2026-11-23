@@ -54,77 +54,107 @@ export function blockedUseExplanation(policy: SoilActionPolicyView): string {
   return policy.reasons.join(', ');
 }
 
-function completenessPct(profile: any): number {
+// The payloads arrive untyped (the hook passes `unknown`), so each field is narrowed where it is
+// read instead of being asserted: a value of the wrong shape reads as absent, never as data.
+type Payload = Record<string, unknown>;
+
+const EVIDENCE_LEVELS: readonly SoilEvidenceLevel[] = [
+  'baseline_only',
+  'modelled',
+  'analog_guided',
+  'field_observed',
+  'lab_verified',
+  'operational_verified',
+];
+
+function asRecord(value: unknown): Payload {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Payload)
+    : {};
+}
+
+function asList(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function asStrings(value: unknown): string[] {
+  return asList(value).filter((item): item is string => typeof item === 'string');
+}
+
+function evidenceLevel(value: unknown): SoilEvidenceLevel {
+  // The snapshot's evidence_level is a closed enum (shared/contracts/soil/profile.py); a value
+  // outside it is not evidence, so it reads as the lowest level rather than being passed on.
+  return EVIDENCE_LEVELS.find((level) => level === value) ?? 'baseline_only';
+}
+
+function completenessPct(profile: Payload): number {
   // Canonical snapshot carries completeness_score in [0,1].
-  const score = profile?.completeness_score;
+  const score = profile.completeness_score;
   if (typeof score === 'number' && Number.isFinite(score)) {
     return Math.max(0, Math.min(100, Math.round(score * 100)));
   }
   // Tolerant fallback for any legacy/partial payload that exposes property counts.
-  const gate = profile?.quality_gate ?? {};
-  const completed = Number(gate.completed_properties ?? profile?.completed_properties);
-  const required = Number(gate.required_properties ?? profile?.required_properties);
+  const gate = asRecord(profile.quality_gate);
+  const completed = Number(gate.completed_properties ?? profile.completed_properties);
+  const required = Number(gate.required_properties ?? profile.required_properties);
   if (Number.isFinite(completed) && Number.isFinite(required) && required > 0) {
     return Math.max(0, Math.min(100, Math.round((completed / required) * 100)));
   }
   return 0;
 }
 
-function conflictLabel(conflict: any): string {
+function conflictLabel(conflict: unknown): string {
   if (typeof conflict === 'string') return conflict;
   if (conflict && typeof conflict === 'object') {
-    const prop = conflict.property ?? conflict.field ?? conflict.name;
-    const reason = conflict.reason ?? conflict.type ?? conflict.detail;
-    if (prop && reason) return `${prop}: ${reason}`;
+    const c = conflict as Payload;
+    const prop = c.property ?? c.field ?? c.name;
+    const reason = c.reason ?? c.type ?? c.detail;
+    if (prop && reason) return `${String(prop)}: ${String(reason)}`;
     if (prop) return String(prop);
     if (reason) return String(reason);
   }
   return 'conflict';
 }
 
-function qualityGateView(profile: any): SoilQualityGateView {
-  const gate = profile?.quality_gate ?? {};
+function qualityGateView(profile: Payload): SoilQualityGateView {
+  const gate = asRecord(profile.quality_gate);
   return {
     passed: Boolean(gate.passed),
     executable: Boolean(gate.executable),
-    reasons: Array.isArray(gate.reasons) ? gate.reasons.map((r: any) => String(r)) : [],
+    reasons: asList(gate.reasons).map((r) => String(r)),
   };
 }
 
-function closedLoopCounts(closedLoop: any): SoilClosedLoopCounts {
-  const executions: any[] = Array.isArray(closedLoop?.executions) ? closedLoop.executions : [];
-  const verifications: any[] = Array.isArray(closedLoop?.verifications)
-    ? closedLoop.verifications
-    : [];
-  const outcomes: any[] = Array.isArray(closedLoop?.outcomes) ? closedLoop.outcomes : [];
-  const learning: any[] = Array.isArray(closedLoop?.learning) ? closedLoop.learning : [];
-  const completedExecutions = executions.filter((x) => x?.completed_at).length;
+function closedLoopCounts(closedLoop: Payload): SoilClosedLoopCounts {
+  const executions = asList(closedLoop.executions);
+  const learning = asList(closedLoop.learning);
+  const completedExecutions = executions.filter((x) => asRecord(x).completed_at).length;
   return {
     executions: executions.length,
     inProgressExecutions: executions.length - completedExecutions,
     completedExecutions,
-    verifications: verifications.length,
-    outcomes: outcomes.length,
+    verifications: asList(closedLoop.verifications).length,
+    outcomes: asList(closedLoop.outcomes).length,
     learning: learning.length,
-    learningEligibleForTraining: learning.filter((x) => x?.eligible_for_training).length,
+    learningEligibleForTraining: learning.filter((x) => asRecord(x).eligible_for_training).length,
   };
 }
 
 export function buildSoilWorkspaceSummary(
-  profile: any,
-  closedLoop: any,
+  profilePayload: unknown,
+  closedLoopPayload: unknown,
   historyCount = 0,
 ): SoilWorkspaceSummary {
-  const conflicts = Array.isArray(profile?.conflicts) ? profile.conflicts.map(conflictLabel) : [];
+  const profile = asRecord(profilePayload);
   return {
-    profileHash: profile?.profile_hash ?? '',
-    evidenceLevel: profile?.evidence_level ?? 'baseline_only',
+    profileHash: typeof profile.profile_hash === 'string' ? profile.profile_hash : '',
+    evidenceLevel: evidenceLevel(profile.evidence_level),
     completenessPct: completenessPct(profile),
     qualityGate: qualityGateView(profile),
-    conflicts,
-    allowedUse: Array.isArray(profile?.allowed_use) ? profile.allowed_use : [],
-    blockedUse: Array.isArray(profile?.blocked_use) ? profile.blocked_use : [],
+    conflicts: asList(profile.conflicts).map(conflictLabel),
+    allowedUse: asStrings(profile.allowed_use),
+    blockedUse: asStrings(profile.blocked_use),
     historyCount: Number.isFinite(Number(historyCount)) ? Number(historyCount) : 0,
-    closedLoop: closedLoopCounts(closedLoop),
+    closedLoop: closedLoopCounts(asRecord(closedLoopPayload)),
   };
 }

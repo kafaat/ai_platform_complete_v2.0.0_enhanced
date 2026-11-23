@@ -62,4 +62,46 @@ describe('soil workspace', () => {
     expect(s.qualityGate.passed).toBe(false);
     expect(s.conflicts).toEqual([]);
   });
+
+  it('reads a malformed payload as absent instead of passing it on', () => {
+    const s = buildSoilWorkspaceSummary(
+      {
+        profile_hash: 42,
+        evidence_level: 'trust_me',
+        allowed_use: ['irrigation_scheduling', 7, null],
+        blocked_use: 'gypsum_rate',
+        quality_gate: ['passed'],
+        conflicts: 'ph',
+      },
+      {executions: 'many', learning: [null, {eligible_for_training: true}]},
+    );
+    expect(s.profileHash).toBe('');
+    expect(s.evidenceLevel).toBe('baseline_only');
+    expect(s.allowedUse).toEqual(['irrigation_scheduling']);
+    expect(s.blockedUse).toEqual([]);
+    expect(s.qualityGate).toEqual({passed: false, executable: false, reasons: []});
+    expect(s.conflicts).toEqual([]);
+    expect(s.closedLoop.executions).toBe(0);
+    expect(s.closedLoop.learning).toBe(2);
+    expect(s.closedLoop.learningEligibleForTraining).toBe(1);
+  });
+
+  it('keeps every evidence level the contract defines', () => {
+    for (const level of [
+      'baseline_only',
+      'modelled',
+      'analog_guided',
+      'field_observed',
+      'lab_verified',
+      'operational_verified',
+    ]) {
+      expect(buildSoilWorkspaceSummary({evidence_level: level}, null).evidenceLevel).toBe(level);
+    }
+  });
+
+  it('reads a missing profile or closed loop as empty', () => {
+    const s = buildSoilWorkspaceSummary(null, undefined);
+    expect(s.completenessPct).toBe(0);
+    expect(s.closedLoop.executions).toBe(0);
+  });
 });
