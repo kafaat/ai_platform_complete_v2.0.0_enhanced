@@ -79,22 +79,22 @@ def test_railway_auth_configuration_is_service_scoped():
     # Root defaults are shared by every service that uses this repository.
     assert not (ROOT / "railway.json").exists()
     assert not (ROOT / "railway.toml").exists()
-    assert (ROOT / "services/auth/railway.json").is_file()
+    # Railway retires Config-as-Code on 2026-12-01: the auth build is selected by the
+    # service settings (builder DOCKERFILE, dockerfilePath services/auth/Dockerfile),
+    # verified on production and staging on 2026-11-23, not by a file in the repository.
+    assert not (ROOT / "services/auth/railway.json").exists()
+    assert not (ROOT / "services/auth/railway.toml").exists()
 
 
-def test_railway_auth_configuration_selects_only_its_dockerfile():
-    config = json.loads((ROOT / "services/auth/railway.json").read_text(encoding="utf-8"))
-    assert config["build"] == {
-        "builder": "DOCKERFILE",
-        "dockerfilePath": "services/auth/Dockerfile",
-    }
-    assert "deploy" not in config
-    assert (ROOT / config["build"]["dockerfilePath"]).is_file()
+def test_railway_auth_runbook_names_the_dashboard_dockerfile():
+    runbook = (ROOT / "docs/runbooks/RAILWAY_AUTH_DEPLOYMENT.md").read_text(encoding="utf-8")
+    assert "`services/auth/Dockerfile`" in runbook
+    assert "/services/auth/railway.json" not in runbook
+    assert (ROOT / "services/auth/Dockerfile").is_file()
 
 
 def test_railway_auth_dockerfile_requires_repository_root_context():
-    config = json.loads((ROOT / "services/auth/railway.json").read_text(encoding="utf-8"))
-    dockerfile = ROOT / config["build"]["dockerfilePath"]
+    dockerfile = ROOT / "services/auth/Dockerfile"
     sources = []
     for line in dockerfile.read_text(encoding="utf-8").splitlines():
         if line.startswith("COPY "):
