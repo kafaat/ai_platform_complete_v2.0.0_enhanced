@@ -364,3 +364,26 @@ def test_discover_files_excludes_playwright_output_directories(monkeypatch, tmp_
     leaked = [p for p in discovered if "/test-results/" in p or "-report/" in p]
     assert leaked == [], f"Playwright output leaked into discover_files(): {leaked}"
     assert "mobile/app/test-results-smart/summary.md" in discovered
+
+
+def test_discover_files_skips_gitignored_files_inside_a_git_worktree(monkeypatch, tmp_path):
+    """The lab on #1591: any gitignored file, not only Playwright output, reached the
+    registry because discover_files() walked the raw tree. Inside a git worktree only files
+    git would check out, or new files not yet added, are discovered."""
+    import subprocess
+
+    module = _load_module()
+    registry, generated = _minimal_repo(tmp_path)
+    _configure(module, tmp_path, registry, generated)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / ".gitignore").write_text("local-output/\n", encoding="utf-8")
+    ignored = tmp_path / "local-output/tests/test_tenant_auth.py"
+    ignored.parent.mkdir(parents=True)
+    ignored.write_text("def test_tenant_auth(): pass\n", encoding="utf-8")
+    new_file = tmp_path / "tests/test_tenant_auth_new.py"
+    new_file.parent.mkdir(parents=True, exist_ok=True)
+    new_file.write_text("def test_tenant_auth_new(): pass\n", encoding="utf-8")
+
+    discovered = module.discover_files()
+    assert not any(p.startswith("local-output/") for p in discovered), discovered
+    assert "tests/test_tenant_auth_new.py" in discovered

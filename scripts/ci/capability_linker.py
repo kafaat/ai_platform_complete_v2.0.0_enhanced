@@ -12,6 +12,7 @@ import csv
 import io
 import json
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -369,9 +370,36 @@ META_GOVERNANCE_FILES = {
 META_GOVERNANCE_PREFIXES = ("tests_v9/test_no_report_only_change_guard",)
 
 
+def _candidate_paths() -> list[Path]:
+    """Files git would check out, plus new files not yet added, never ignored ones.
+
+    Walking the raw tree let gitignored files feed the registry: a failing local Playwright
+    run left error-context.md under frontend/test-results/, regeneration recorded it as
+    evidence, and a clean CI checkout then failed the registry guard (Devin and the lab on
+    #1591; capability_mapping_engine.py already lists files through git for this reason).
+    --others --exclude-standard keeps a new, not-yet-added file visible, so regenerating
+    before `git add` still sees it. Outside a git worktree (an extracted archive, or the
+    temporary trees the tests build) the walk falls back to the filesystem.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+        listed = [ROOT / name for name in out.split("\0") if name]
+        if listed:
+            return listed
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    return list(ROOT.rglob("*"))
+
+
 def discover_files() -> list[str]:
     results: list[str] = []
-    for p in ROOT.rglob("*"):
+    for p in _candidate_paths():
         if not p.is_file() or p.suffix.lower() not in TEXT_EXT:
             continue
         rel = p.relative_to(ROOT)
