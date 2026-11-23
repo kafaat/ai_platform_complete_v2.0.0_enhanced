@@ -258,6 +258,44 @@ def test_a_mixed_orphan_set_with_an_install_is_not_killed(tmp_path):
     assert not [x for x in calls.splitlines() if x.startswith("kill")], calls
 
 
+def test_an_update_that_ignores_term_is_killed_after_the_grace(tmp_path):
+    """TERM لا يكفي دائماً: بعد مهلة APT_KILL_GRACE يُرسَل KILL إلى الـPID نفسه."""
+    log = _fake_bin(tmp_path, succeed_on=2)
+    killed = tmp_path / "killed"
+    _script_with(
+        tmp_path,
+        "pgrep",
+        f'echo "pgrep $*" >> "{log}"\n[ -e "{killed}" ] && exit 1\necho "2650 apt-get update"; exit 0\n',
+    )
+    _script_with(
+        tmp_path,
+        "kill",
+        f'echo "kill $*" >> "{log}"\n[ "$1" = "-KILL" ] && touch "{killed}"\nexit 0\n',
+    )
+    proc, calls = _run(tmp_path, APT_IDLE_POLL="0", PW_TIMEOUT="0", APT_KILL_GRACE="0")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    kills = [x for x in calls.splitlines() if x.startswith("kill")]
+    assert kills == ["kill -TERM 2650", "kill -KILL 2650"], kills
+
+
+@pytest.mark.parametrize(
+    "orphan",
+    [
+        "2661 sh -c sleep 9 apt-get update",
+        "2662 dpkg --update-avail x",
+        "2663 apt-get install -y update",
+        "2665 apt-get update-index",
+    ],
+)
+def test_update_only_as_the_apt_subcommand_counts(tmp_path, orphan):
+    """`update` مُرسى: كلمةٌ في وسط سطرٍ آخر (أو اسمُ حزمة) لا تجعله update قابلاً للإنهاء."""
+    log = _fake_bin(tmp_path, succeed_on=2)
+    _script_with(tmp_path, "pgrep", f'echo "pgrep $*" >> "{log}"\necho "{orphan}"; exit 0\n')
+    _script_with(tmp_path, "kill", f'echo "kill $*" >> "{log}"\n')
+    proc, calls = _run(tmp_path, APT_IDLE_POLL="0", PW_TIMEOUT="0", APT_KILL_GRACE="0")
+    assert not [x for x in calls.splitlines() if x.startswith("kill")], calls
+
+
 def test_the_mirror_switch_reaches_the_runner_mirrorlist(tmp_path):
     """مُشغِّلاتُ GitHub تقرأ المرآة من `mirror+file:/etc/apt/apt-mirrors.txt`.
 
