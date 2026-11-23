@@ -209,6 +209,55 @@ def test_a_retry_waits_for_the_orphaned_apt_that_still_holds_the_dpkg_lock(tmp_p
     assert "تحرّر قفلُ apt" in proc.stdout
 
 
+def test_an_orphaned_apt_update_past_the_cap_is_ended_so_the_retry_gets_the_lock(tmp_path):
+    """تشغيل 45206601165: `apt-get update` يتيمٌ على مرآة azure حمل قفل القوائم بعد السقف،
+    فسقطت المحاولتان التاليتان في ثانيةٍ لكلٍّ. `update` يُنهى بعد السقف؛ القوائمُ تُعاد."""
+    log = _fake_bin(tmp_path, succeed_on=2)
+    killed = tmp_path / "killed"
+    _script_with(
+        tmp_path,
+        "pgrep",
+        f'echo "pgrep $*" >> "{log}"\n'
+        f'[ -e "{killed}" ] && exit 1\n'
+        'echo "2650 apt-get update"; exit 0\n',
+    )
+    _script_with(tmp_path, "kill", f'echo "kill $*" >> "{log}"\ntouch "{killed}"\n')
+    proc, calls = _run(tmp_path, APT_IDLE_POLL="0", PW_TIMEOUT="0", APT_KILL_GRACE="0")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    lines = calls.splitlines()
+    kill = [i for i, x in enumerate(lines) if x.startswith("kill -TERM 2650")]
+    second = [i for i, x in enumerate(lines) if x.startswith("npx playwright install")][1]
+    assert kill and kill[0] < second, "اليتيمُ يُنهى قبل المحاولة الثانية"
+    assert "تحرّر قفلُ apt بإنهاء update اليتيم" in proc.stdout
+
+
+@pytest.mark.parametrize(
+    "orphan", ["2655 apt-get install -y fonts-freefont-ttf", "2660 dpkg --configure -a"]
+)
+def test_an_orphaned_install_or_dpkg_is_never_killed_even_past_the_cap(tmp_path, orphan):
+    """قتلُ `dpkg` أثناء التثبيت يُفسد حالته: يُنتظَر ويُسمّى، ولا يُرسَل إليه إنهاء."""
+    log = _fake_bin(tmp_path, succeed_on=2)
+    _script_with(tmp_path, "pgrep", f'echo "pgrep $*" >> "{log}"\necho "{orphan}"; exit 0\n')
+    _script_with(tmp_path, "kill", f'echo "kill $*" >> "{log}"\n')
+    proc, calls = _run(tmp_path, APT_IDLE_POLL="0", PW_TIMEOUT="0", APT_KILL_GRACE="0")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert not [x for x in calls.splitlines() if x.startswith("kill")], calls
+    assert "apt ما زال يحمل القفل" in proc.stdout
+
+
+def test_a_mixed_orphan_set_with_an_install_is_not_killed(tmp_path):
+    """`update` مع `install` معاً: لا يُنهى شيء، لأنّ قتل أحدهما قد يمسّ dpkg."""
+    log = _fake_bin(tmp_path, succeed_on=2)
+    _script_with(
+        tmp_path,
+        "pgrep",
+        f'echo "pgrep $*" >> "{log}"\nprintf "2650 apt-get update\\n2655 apt-get install -y x\\n"; exit 0\n',
+    )
+    _script_with(tmp_path, "kill", f'echo "kill $*" >> "{log}"\n')
+    proc, calls = _run(tmp_path, APT_IDLE_POLL="0", PW_TIMEOUT="0", APT_KILL_GRACE="0")
+    assert not [x for x in calls.splitlines() if x.startswith("kill")], calls
+
+
 def test_the_mirror_switch_reaches_the_runner_mirrorlist(tmp_path):
     """مُشغِّلاتُ GitHub تقرأ المرآة من `mirror+file:/etc/apt/apt-mirrors.txt`.
 
