@@ -60,6 +60,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/e2e/advisor-evidence.spec.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/e2e/ai-model-picker.spec.ts",
     "kind": "tests"
   },
@@ -94,6 +98,10 @@
   {
     "path": "frontend/e2e/satellite-pixel-display.spec.ts",
     "kind": "tests"
+  },
+  {
+    "path": "frontend/e2e/support/readability.ts",
+    "kind": "web"
   },
   {
     "path": "frontend/e2e/ui-chrome.visual.spec.ts",

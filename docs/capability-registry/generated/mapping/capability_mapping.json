@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 45,
-    "files_scanned": 7679,
+    "files_scanned": 7681,
     "files_by_kind": {
       "backend": 1312,
       "database": 354,
       "governance": 92,
       "mobile": 429,
       "other": 2249,
-      "tests": 2671,
-      "web": 572
+      "tests": 2672,
+      "web": 573
     },
-    "unmapped_artifacts": 3656,
+    "unmapped_artifacts": 3658,
     "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4165,
-      "raw": 3514
+      "raw": 3516
     },
     "test_dependency_files": 2033,
     "test_dependency_edges": 5448,
@@ -33548,6 +33548,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/e2e/advisor-evidence.spec.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/e2e/ai-model-picker.spec.ts",
       "kind": "tests"
     },
@@ -33582,6 +33586,10 @@
     {
       "path": "frontend/e2e/satellite-pixel-display.spec.ts",
       "kind": "tests"
+    },
+    {
+      "path": "frontend/e2e/support/readability.ts",
+      "kind": "web"
     },
     {
       "path": "frontend/e2e/ui-chrome.visual.spec.ts",

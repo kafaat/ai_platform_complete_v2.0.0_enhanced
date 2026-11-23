@@ -4796,11 +4796,16 @@
         "POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:3203"
       ],
       "ui_consumers": [
+        "frontend/e2e/advisor-evidence.spec.ts",
         "frontend/src/components/fieldview/IrrigationDecisionCard.evidence.test.tsx"
       ],
       "mobile_consumers": [],
       "tests": [
         "docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md",
+        "frontend/test-results/advisor-evidence-a-failed--1560d-without-attributing-sources-chromium/error-context.md",
+        "frontend/test-results/advisor-evidence-available-7a2ae-on-the-advisor-card-in-dark-chromium/error-context.md",
+        "frontend/test-results/advisor-evidence-available-a1b6c-n-the-advisor-card-in-cream-chromium/error-context.md",
+        "frontend/test-results/advisor-evidence-available-cef0b-n-the-advisor-card-in-light-chromium/error-context.md",
         "services/decision-service/tests/test_activation_evidence_contract.py",
         "services/decision-service/tests/test_agronomic_evidence_contract.py",
         "services/decision-service/tests/test_decision_evidence_read.py",
@@ -4820,11 +4825,7 @@
         "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
         "services/sahool-platform/tests/test_season_evidence_truth_v26.py",
         "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
-        "services/sahool-platform/tests/test_yield_estimate_unknown_evidence.py",
-        "services/scout-ingest-service/tests/test_evidence_ledgers_live.py",
-        "services/soil-service/test_soil_evidence_adapters_and_policy.py",
-        "services/soil-service/test_soil_remote_sensing_evidence.py",
-        "services/vegetation-analysis-service/test_evidence_producer_contract.py"
+        "services/sahool-platform/tests/test_yield_estimate_unknown_evidence.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4861,7 +4862,7 @@
           "path": "migrations/v260_scout_photo_evidence.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=2, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "1",
         "CropX": "2",
@@ -4870,7 +4871,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 24
+        "tests": 28
       }
     },
     {

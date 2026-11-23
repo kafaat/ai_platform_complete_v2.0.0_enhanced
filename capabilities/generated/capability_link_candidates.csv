@@ -27,6 +27,10 @@ DEC-001,api,POST /v1/fields/{field_id}/soil/evidence @ services/soil-service/rou
 DEC-001,api,POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:3203,3,applied
 DEC-001,service,services/decision-service/main.py,10,applied
 DEC-001,test,docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md,3,applied
+DEC-001,test,frontend/test-results/advisor-evidence-a-failed--1560d-without-attributing-sources-chromium/error-context.md,3,applied
+DEC-001,test,frontend/test-results/advisor-evidence-available-7a2ae-on-the-advisor-card-in-dark-chromium/error-context.md,3,applied
+DEC-001,test,frontend/test-results/advisor-evidence-available-a1b6c-n-the-advisor-card-in-cream-chromium/error-context.md,3,applied
+DEC-001,test,frontend/test-results/advisor-evidence-available-cef0b-n-the-advisor-card-in-light-chromium/error-context.md,3,applied
 DEC-001,test,services/decision-service/tests/test_activation_evidence_contract.py,3,applied
 DEC-001,test,services/decision-service/tests/test_agronomic_evidence_contract.py,3,applied
 DEC-001,test,services/decision-service/tests/test_decision_evidence_read.py,7,applied
@@ -75,6 +79,7 @@ DEC-001,test,tests_v9/test_runtime_evidence_wiring_v62_2.py,3,applied
 DEC-001,test,tests_v9/test_scout_photo_evidence_contract.py,3,applied
 DEC-001,test,tests_v9/test_soil_lab_evidence_hardening_v57_5.py,3,applied
 DEC-001,test,tests_v9/test_vra_owner_lab_evidence_w0_12.py,3,applied
+DEC-001,ui,frontend/e2e/advisor-evidence.spec.ts,2,applied
 DEC-001,ui,frontend/src/components/fieldview/IrrigationDecisionCard.evidence.test.tsx,2,applied
 DEC-002,api,POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:303,2,applied
 DEC-002,api,POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:116,2,applied
