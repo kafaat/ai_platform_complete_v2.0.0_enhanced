@@ -1,9 +1,10 @@
 {
   "$comment": "أساس مُجمَّد لدوالّ الاختبار التي لا يمكن أن تفشل (بلا assert/raises وتُرجِع قيمة — pytest يُهمِل القيمة الراجعة). المجموعة تتقلّص ولا تنمو: أيّ إدخال جديد يُسقِط CI حتى لو انخفض العدد الكلّي (منع استبدال دَين بدَين). إصلاح دالّة = تحويلها إلى assert حقيقيّ ثمّ حذف سطرها هنا.",
   "gap": "TESTS-PASS-WITHOUT-ASSERTING-01",
-  "count": 204,
+  "count": 205,
   "entries": [
     "services/sahool-platform/tests/test_execution_control_plane.py::test_fn",
+    "tests/test_madar_ci.py::test_run_report_falls_back_to_the_run_head",
     "tests_v9/test_chaos_resilience.py::test_concurrent_approval_guard",
     "tests_v9/test_chaos_resilience.py::test_corrupt_payload_resilience",
     "tests_v9/test_chaos_resilience.py::test_edge_sync_handler_dedup",
