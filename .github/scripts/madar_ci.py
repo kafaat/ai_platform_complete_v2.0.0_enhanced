@@ -90,14 +90,17 @@ class GitHub:
 
 
 GROUP_RUN = re.compile(rb"(?m)^\S+ ##\[group\]Run [^\n]*")
+ENDGROUP = re.compile(rb"(?m)^\S+ ##\[endgroup\][^\n]*")
 
 
 def read_log_tail(response, keep=MAX_LOG, ceiling=MAX_LOG_STREAM):
     """Stream a job log and keep its last `keep` bytes: a failing step's output is at the end.
 
     A long step's `##[group]Run` header can fall before the kept window (SAHOOL's unit job
-    prints about 4.7 MB after it). The last header dropped is carried over and put back in
-    front of the tail, closed at once, so the step's command still frames its output.
+    prints about 4.7 MB after it). The last group dropped is carried over and put back in
+    front of the tail, so the step's command still frames its output: the whole group with
+    its script lines when it closed before the cut (up to 16 KiB), else its header line,
+    closed at once.
     """
     kept, total, header = bytearray(), 0, None
     while chunk := response.read(1024 * 1024):
@@ -113,15 +116,162 @@ def read_log_tail(response, keep=MAX_LOG, ceiling=MAX_LOG_STREAM):
                     break
                 dropped = found
             if dropped:
-                header = bytes(dropped.group(0)).rstrip(b"\r")
+                closing = ENDGROUP.search(kept, dropped.end())
+                close = closing.start() if closing else -1
+                end = closing.end() if closing else -1
+                if 0 <= close < cut and 0 <= end - dropped.start() <= 16384:
+                    header = bytes(kept[dropped.start() : end])
+                else:
+                    header = bytes(dropped.group(0))
             del kept[:cut]
     text = bytes(kept).decode("utf-8-sig" if total <= keep else "utf-8", errors="replace")
     if total > keep and header and not GROUP_RUN.match(bytes(kept)):
-        lead = header.decode("utf-8", errors="replace")
-        text = f"{lead}\n{lead.split(' ', 1)[0]} ##[endgroup]\n{text}"
+        lead = header.decode("utf-8", errors="replace").replace("\r\n", "\n").rstrip("\r")
+        if "##[endgroup]" not in lead:
+            lead += f"\n{lead.split(' ', 1)[0]} ##[endgroup]"
+        text = f"{lead}\n{text}"
     text = LogText(text)
     text.truncated = total > keep
     return text
+
+
+# Who receives a failed job. Each specialist is a read-only Claude Code agent in
+# .claude/agents/; it sends its recommendation to ci-fixer, the lab re-verifies the fix on
+# its new commit, and the merge stays with the technical hospital
+# (docs/runbooks/CI_FAILURE_HANDOFF_AR.md). Order matters: the most specific owner first.
+SPECIALISTS = {
+    "security": ("مراجع الأمن", "security-reviewer"),
+    "migrations": ("مراجع الترحيلات وقاعدة البيانات", "migrations-reviewer"),
+    "dependencies": ("مراجع الاعتماديات", "dependency-reviewer"),
+    "frontend": ("مراجع الواجهة", "frontend-reviewer"),
+    "ci-quality": ("وكيل جودة CI", "ci-quality-triage"),
+}
+FIXER = "ci-fixer"
+# Step names: tool words only, case-sensitive, so that "E2E", "database", "drift" or
+# "(restricted role)" in a descriptive SAHOOL step name never decides the owner.
+STEP_TOOLS = (
+    ("security", r"\bbandit\b|\bgitleaks\b|\btrivy\b|\bsecret[- ]scan"),
+    (
+        "dependencies",
+        r"\bpip-audit\b|\bInstall\b[^\n]*\bdependencies\b|\bnpm (?:ci|install)\b|\bpip install\b|\bpub get\b|\buv (?:sync|pip)\b"
+        r"|\bconstraints[\w.-]*\.txt\b|\brequirements[\w.-]*\.txt\b|\bdependency[- ]drift\b",
+    ),
+    (
+        "migrations",
+        r"\balembic\b|\brun_migrations\b|\bapply_migration_manifest\b|\bmigration_runner\b|\bmigrations?/|\bmigration[- ](?:probe|lint|up|down)\b",
+    ),
+    (
+        "frontend",
+        r"\btsc\b|\beslint\b|\bvitest\b|\bnpx playwright\b|\bflutter (?:analyze|test)\b"
+        r"|\bnpm run (?:typecheck|lint|test|build)\b",
+    ),
+)
+# The failure summary in the log: specific error signatures only.
+LOG_SIGNS = (
+    # pip-audit's own report comes first: its advisories are a dependency upgrade.
+    ("dependencies", r"Found \d+ known vulnerabilit(?:y|ies) in \d+ packages?"),
+    ("security", r"\bCVE-\d{4}-\d+\b|\bGHSA-[\w-]+|\bleaks? found\b"),
+    (
+        "migrations",
+        r"\bpsql:[^\n]*\bERROR:|\bSQLSTATE\b|\bpsycopg\.errors\.|\basyncpg\.exceptions\.|relation \"[^\"\n]+\" does not exist",
+    ),
+    (
+        "dependencies",
+        r"\bERESOLVE\b|\bResolutionImpossible\b|No matching distribution|\bInvalid requirement\b"
+        r"|Could not find a version that satisfies"
+        r"|has ==[\w.+-]+, constraints\.txt has",
+    ),
+    ("frontend", r"\berror TS\d{4}\b"),
+)
+# Whole jobs with one owner, by their exact names in SAHOOL's workflows.
+JOB_OWNERS = {
+    "Security Scan": "security",
+    "Frontend Typecheck": "frontend",
+    "Frontend E2E (Playwright \u00b7 MapLibre/WebGL QA)": "frontend",
+    "Flutter Analyze & Test": "frontend",
+    "Live PG Proofs (fake-connection debt)": "migrations",
+    "Decision 033 Restricted Role Proof (PG16)": "migrations",
+}
+ROUTES = tuple(role for role, _ in STEP_TOOLS)
+
+
+def route(job_name, step_name, evidence_text="", command=""):
+    """The specialist for a failed job, or the CI quality agent when it is not clear.
+
+    In order: a tool named in the failing step's name, a tool in its failed script (not
+    an install line), a specific error signature in the failure summary, then the job's
+    known owner. The log comes before the job so that an
+    npm ERESOLVE inside a frontend job reaches the dependency reviewer.
+    """
+    for role, pattern in STEP_TOOLS:
+        if step_name and re.search(pattern, step_name):
+            return role
+    # The failed script names the tool that ran (install and comment lines are already
+    # dropped by failing_command); dependency tools there are only setup for the real command.
+    for role, pattern in STEP_TOOLS:
+        if role != "dependencies" and command and re.search(pattern, command):
+            return role
+    for role, pattern in LOG_SIGNS:
+        if evidence_text and re.search(pattern, evidence_text):
+            return role
+    return JOB_OWNERS.get(job_name or "", "ci-quality")
+
+
+def handoff_line(role, url, head, merge_tested=False):
+    title, agent = SPECIALISTS[role]
+    commit = f" · الالتزام `{head}`" if head else " · الالتزام غير معلوم"
+    if head and merge_tested:
+        # A pull_request run checks out GitHub's merge of this head with its base.
+        commit += (
+            " (رأس الطلب؛ إن سحبت الوظيفة بالإعداد الافتراضي فقد اختبر CI دمجه مع الفرع الأساسي،"
+            " فراجِع خطوة checkout قبل إعادة الإنتاج)"
+        )
+    return (
+        f"{title} (`.claude/agents/{agent}.md`) يراجع للقراءة فقط ويرسل توصيته إلى وكيل الإصلاح"
+        f" (`{FIXER}`). الدليل: [سجل الخطوة]({url}){commit}."
+    )
+
+
+RUNNER_TIMESTAMP = re.compile(r"^\d{4}-\d\d-\d\d[tT][\d:.]+[zZ] ")
+# An install subcommand, for one `&&`/`;` segment of a script line.
+INSTALL_LINE = re.compile(
+    r"^(?:sudo\s+)?(?:python3?\s+-m\s+)?"
+    r"(?:pip3?|pnpm|yarn|brew|apt(?:-get)?|uv(?:\s+pip)?|npx\s+playwright|npm)"
+    r"\s+(?:-\S+\s+)*(?:install|ci|add|sync)\b"
+)
+
+
+def failing_command(log):
+    """The script of the failed command blocks, for routing by the tool that actually ran.
+
+    Comment lines and install lines are left out: they mention tools that did not fail
+    (a "# mirrors tsc" comment, `npx playwright install` in a backend step).
+    """
+    kept = []
+    for cmd, _ in failed_commands(log):
+        for line in cmd.split("\n"):
+            # Script lines keep the runner's timestamp, lowercased with the rest of the
+            # command by failed_commands() (2026-11-22t20:46:23.4411059z).
+            body = RUNNER_TIMESTAMP.sub("", line).strip()
+            if not body or body.startswith("#"):
+                continue
+            parts = [p.strip() for p in re.split(r"&&|;", body)]
+            kept.extend(p for p in parts if p and not INSTALL_LINE.match(p))
+    return "\n".join(kept)
+
+
+def failing_output(log):
+    """The part of the log that says why it failed, for routing.
+
+    Only the end of each failed command block: pytest's short summary when there is one,
+    else its last 8 KiB. A whole unit-suite output (megabytes of passed test names) would
+    route by words that have nothing to do with the failure.
+    """
+    parts = []
+    for _, output in failed_commands(log):
+        summary = output.rfind("short test summary info")
+        parts.append(output[summary:] if summary >= 0 else output[-8192:])
+    return "\n".join(parts) if parts else log[-8192:]
 
 
 def failed_commands(log):
@@ -130,12 +280,14 @@ def failed_commands(log):
     blocks = re.split(r"(?m)^\S+ ##\[group\]Run ", clean)[1:]
     for block in blocks:
         header, _, rest = block.partition("\n")
-        _, sep, output = rest.partition("##[endgroup]")
+        script, sep, output = rest.partition("##[endgroup]")
         if not sep:
             continue
         output, marker, _ = output.partition("##[error]Process completed with exit code ")
         if marker:
-            yield header.lower(), output
+            # The command is the group's heading plus its script lines: a step that installs
+            # something first and runs pytest on a later line is still a pytest step.
+            yield (header + "\n" + script).lower(), output
 
 
 def diagnosis(steps, log):
@@ -164,24 +316,28 @@ def diagnosis(steps, log):
                     "وجد فحص الاعتماديات تعارضاً بين إصدار خدمة وملف القيود.",
                     "وكيل الاعتماديات يقارن التعريفين ويعيد تشغيل فحص الاتساق.",
                 )
-    if "test" in names:
-        for cmd, output in blocks:
-            failed_case = re.search(r"(?m)^\S+ FAILED (\S+::\S+)", output)
-            if re.search(r"\bpytest\b", cmd) and failed_case:
-                return (
-                    "سجّل pytest فشل حالة اختبار داخل خطوة الاختبارات. أول حالة فاشلة: "
-                    + display(failed_case.group(1), 240)
-                    + ".",
-                    "وكيل الاختبارات يعيد تشغيل الحالة الفاشلة على الرأس نفسه.",
-                )
+    # pytest is known by its command, not by the step's display name.
+    for cmd, output in blocks:
+        failed_case = re.search(r"(?m)^\S+ FAILED (\S+::\S+)", output)
+        if re.search(r"\bpytest\b", cmd) and failed_case:
+            return (
+                "سجّل pytest فشل حالة اختبار داخل خطوة الاختبارات. أول حالة فاشلة: "
+                + display(failed_case.group(1), 240)
+                + ".",
+                "وكيل الاختبارات يعيد تشغيل الحالة الفاشلة على الرأس نفسه.",
+            )
     return (
         "أثبتت بيانات GitHub تعثّر الوظيفة. سبب التعثر يحتاج مراجعة يدوية.",
         "وكيل الجودة يفتح سجل الخطوة ويفحص أول تشخيص ذي صلة.",
     )
 
 
-def card(repo, run_id, job, fetch):
+def card(repo, run_id, job, fetch, head=None, merge_tested=False):
     job_id = int(job["id"])
+    head = next(
+        (h for h in (job.get("head_sha"), head) if h and re.fullmatch(r"[a-fA-F0-9]{40}", str(h))),
+        None,
+    )
     state = job.get("conclusion")
     steps = job.get("steps") or []
     failed = [s for s in steps if s.get("conclusion") in FAILED]
@@ -194,8 +350,10 @@ def card(repo, run_id, job, fetch):
     if step:
         status += " · أول خطوة متعثّرة " + display(step["name"])
     if state in FAILED:
+        routed, command = "", ""
         try:
             log = fetch(job_id)
+            routed, command = failing_output(log), failing_command(log)
             evidence, handoff = diagnosis(failed, log)
             if getattr(log, "truncated", False):
                 evidence += f" فُحص آخر {MAX_LOG // (1024 * 1024)} MiB من السجل."
@@ -216,6 +374,13 @@ def card(repo, run_id, job, fetch):
         ]
         if skipped_tests:
             evidence += " تخطّى GitHub خطوة " + display(skipped_tests[0]["name"]) + "."
+        role = (
+            route(job.get("name") or "", step["name"], routed, command)
+            if len(failed) == 1
+            else "ci-quality"
+        )
+        evidence += "\n- الخطوة التالية — " + handoff
+        handoff = handoff_line(role, url, head, merge_tested)
     elif state == "skipped":
         evidence, handoff = (
             "لم تُشغّل هذه الوظيفة.",
@@ -258,7 +423,7 @@ def run_report(api, repo, run, emit):
         for job in jobs:
             if int(job["run_id"]) != rid or (job.get("head_sha") and job["head_sha"] != head):
                 raise ValueError("job identity mismatch")
-            item = card(repo, rid, job, api.log)
+            item = card(repo, rid, job, api.log, head, run.get("event") == "pull_request")
             size += len(item.encode())
             if size > MAX_SUMMARY:
                 emit("التقرير جزئي بسبب حدّ حجم الملخص. بقية الوظائف لم تُفحص.")

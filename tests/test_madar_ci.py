@@ -30,6 +30,48 @@ def block(cmd, message, fails=True):
     )
 
 
+class Chunky:
+    """A log response that hands out small pieces, as a slow stream would."""
+
+    def __init__(self, data, size=300):
+        self.data, self.at, self.size = data, 0, size
+
+    def read(self, _):
+        piece = self.data[self.at : self.at + self.size]
+        self.at += len(piece)
+        return piece
+
+
+class HeadlessJobAPI:
+    """One failed job without its own head_sha, and its log."""
+
+    def __init__(self, log):
+        self.text = log
+
+    def metadata(self, _):
+        entry = job("failure", [step("Typecheck", "failure")])
+        entry.pop("head_sha", None)
+        return {"jobs": [entry]}
+
+    def log(self, _):
+        return self.text
+
+
+RUNNER_TS = "2026-11-22T20:46:23.4411059Z"
+
+
+def runner_block(script, message):
+    """A failed step as the runner writes it: every line timestamped, the script echoed."""
+    first, *rest = script.split("\n")
+    lines = [
+        f"{RUNNER_TS} ##[group]Run {first}",
+        *(f"{RUNNER_TS} {line}" for line in [first, *rest]),
+    ]
+    lines += [f"{RUNNER_TS} ##[endgroup]", f"{RUNNER_TS} {message}"]
+    lines.append(f"{RUNNER_TS} ##[error]Process completed with exit code 1.")
+    return "\n".join(lines) + "\n"
+
+
 def show(entry, fetch):
     return bot.card("owner/project", 2, entry, fetch)
 
@@ -191,6 +233,420 @@ class Triage(unittest.TestCase):
         tail = b"T ##[group]Run python -m pytest\nT ##[endgroup]\nT ok\n"
         text = bot.read_log_tail(io.BytesIO(head + tail), keep=len(tail))
         self.assertEqual(text, tail.decode())
+
+    def test_routing_by_step_then_job_then_log(self):
+        cases = [
+            ("Security Scan", "pip-audit (gating)", "", "dependencies"),
+            ("Security Scan", "bandit high", "", "security"),
+            ("Frontend Typecheck", "Run tsc", "", "frontend"),
+            ("Live PG Proofs (fake-connection debt)", "Run", "", "migrations"),
+            (
+                "Unit Tests",
+                "Run pytest",
+                'psycopg.errors.UndefinedTable: relation "x" does not exist',
+                "migrations",
+            ),
+            ("Unit Tests", "Run pytest", "found CVE-2026-12345 in requests", "security"),
+            ("Unit Tests", "Run pytest", "assert 1 == 2", "ci-quality"),
+        ]
+        for job_name, step_name, text, role in cases:
+            self.assertEqual(bot.route(job_name, step_name, text), role, (job_name, step_name))
+
+    def test_failed_card_hands_off_with_link_step_and_commit(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+        entry = dict(job("failure", [step("Typecheck", "failure", 4)]), head_sha="e" * 40)
+        result = show(entry, lambda _: log)
+        self.assertIn(".claude/agents/frontend-reviewer.md", result)
+        self.assertIn("ci-fixer", result)
+        self.assertIn("#step:4:1", result.split("الإحالة")[1])
+        self.assertIn("e" * 40, result)
+
+    def test_routing_reads_only_the_failure_summary(self):
+        # Megabytes of passed test names must not route the job (run 45067849451 named run_migrations).
+        log = block(
+            "python -m pytest -m unit",
+            "PASSED tests_v9/test_run_migrations.py::test_ok\n" * 300
+            + "T ===== short test summary info =====\nT FAILED tests_v9/test_x.py::test_y - AssertionError",
+        )
+        result = show(job("failure", [step("Run tests", "failure")]), lambda _: log)
+        self.assertIn("ci-quality-triage", result)
+
+    def test_unreadable_log_still_routed_by_name(self):
+        def missing(_):
+            raise HTTPError("https://api.github.com", 410, "gone", {}, None)
+
+        entry = dict(job("failure", [step("bandit high severity", "failure")]))
+        self.assertIn("security-reviewer", show(entry, missing))
+
+    def test_every_route_has_an_agent_and_reviewers_cannot_edit(self):
+        agents = file.parents[2] / ".claude/agents"
+        for role, (_, agent) in bot.SPECIALISTS.items():
+            text = (agents / f"{agent}.md").read_text(encoding="utf-8")
+            front = text.split("---", 2)[1]
+            tools = re.search(r"(?ms)^tools:(.*?)(?=^\w+:|\Z)", front).group(1)
+            self.assertIn(f"name: {agent}", text, role)
+            self.assertNotRegex(tools, r"\b(Edit|Write|NotebookEdit)\b", role)
+            self.assertIn("Read only", text, role)
+        fixer = (agents / f"{bot.FIXER}.md").read_text(encoding="utf-8")
+        self.assertIn("Never push to main, merge", fixer)
+        self.assertIn("Never on main.", fixer)
+        self.assertEqual(set(bot.ROUTES) | {"ci-quality"}, set(bot.SPECIALISTS))
+        self.assertEqual({r for r, _ in bot.LOG_SIGNS}, set(bot.ROUTES))
+        self.assertLessEqual(set(bot.JOB_OWNERS.values()), set(bot.ROUTES))
+
+    def test_header_survives_many_trims(self):
+        # Review gap (a): the carried header must outlive every chunk, not only the last one.
+        log = (
+            "T ##[group]Run python -m pytest -m unit\nT ##[endgroup]\n"
+            + "T PASSED tests/test_ok.py::test_ok\n" * 600
+            + "T FAILED tests/test_x.py::test_case\nT ##[error]Process completed with exit code 1.\n"
+        ).encode()
+        text = bot.read_log_tail(Chunky(log), keep=2000)
+        self.assertTrue(text.startswith("T ##[group]Run python -m pytest -m unit\n"))
+
+    def test_header_inside_the_tail_is_not_carried(self):
+        # Review gap (b): only a header before the cut is carried.
+        log = b"T ##[group]Run old\nT ##[endgroup]\n" + b"o\n" * 100
+        log += b"mid output\nT ##[group]Run python -m pytest\nT ##[endgroup]\nT ok\n"
+        keep = len(b"mid output\nT ##[group]Run python -m pytest\nT ##[endgroup]\nT ok\n")
+        text = bot.read_log_tail(io.BytesIO(log), keep=keep)
+        self.assertTrue(text.startswith("T ##[group]Run old\nT ##[endgroup]\nmid output"))
+
+    def test_crlf_header_is_carried_without_carriage_return(self):
+        # Review gap (c).
+        log = b"T ##[group]Run python -m pytest\r\nT ##[endgroup]\r\n" + b"p\r\n" * 200
+        text = bot.read_log_tail(io.BytesIO(log), keep=100)
+        self.assertTrue(text.startswith("T ##[group]Run python -m pytest\nT ##[endgroup]\n"))
+
+    def test_dropped_stream_while_listing_jobs_is_reported(self):
+        # Review gap (d): main() keeps an HTTPException from becoming a traceback.
+        class API:
+            def metadata(self, _):
+                raise http.client.IncompleteRead(b"", 10)
+
+        with tempfile.TemporaryDirectory() as directory:
+            event = Path(directory, "event.json")
+            summary = Path(directory, "summary.md")
+            event.write_text(json.dumps({"inputs": {"run_id": "2"}}), encoding="utf-8")
+            env = {
+                "GH_TOKEN": "t",
+                "GITHUB_REPOSITORY": "owner/repo",
+                "GITHUB_EVENT_PATH": str(event),
+                "GITHUB_STEP_SUMMARY": str(summary),
+            }
+            with patch.dict(bot.os.environ, env), patch.object(bot, "GitHub", return_value=API()):
+                self.assertEqual(bot.main(), 1)
+            self.assertIn("تعذّر إكمال", summary.read_text(encoding="utf-8"))
+
+    def test_pytest_named_whatever_the_step_is_called(self):
+        # Devin on #1586: ci.yml's serial step has no "test" in its name.
+        log = block("pytest -m 'unit and tree_writer'", "FAILED tests_v9/test_c.py::test_contract")
+        name = "Unit suite \u2014 serial tree_writer half + coverage ratchet over both halves"
+        result = show(job("failure", [step(name, "failure")]), lambda _: log)
+        self.assertIn("test&#95;contract", result)
+
+    def test_pytest_on_a_later_script_line(self):
+        # Devin on #1586: a step that installs first and runs pytest on its second line.
+        log = (
+            "T ##[group]Run pip install -r requirements.txt\nT pip install -r requirements.txt\n"
+            "T python -m pytest tests -q\nT shell: /usr/bin/bash -e {0}\nT ##[endgroup]\n"
+            "T FAILED tests/test_s.py::test_service\nT ##[error]Process completed with exit code 1.\n"
+        )
+        result = show(job("failure", [step("Service-local tests", "failure")]), lambda _: log)
+        self.assertIn("test&#95;service", result)
+
+    def test_truncation_keeps_the_dropped_group_script(self):
+        group = (
+            b"T ##[group]Run pip install -r requirements.txt\nT python -m pytest tests -q\n"
+            b"T ##[endgroup]\n"
+        )
+        log = group + b"T PASSED t.py::ok\n" * 300
+        log += b"T FAILED tests/test_s.py::test_service\nT ##[error]Process completed with exit code 1.\n"
+        text = bot.read_log_tail(io.BytesIO(log), keep=500)
+        self.assertTrue(text.startswith(group.decode()))
+        result = show(job("failure", [step("Service-local tests", "failure")]), lambda _: text)
+        self.assertIn("test&#95;service", result)
+
+    def test_generated_inventory_drift_is_not_a_dependency_failure(self):
+        # Devin on #1588: ci.yml's structural lint uses "drift" for generated files.
+        for step_name in [
+            "service-inventory-drift-gate",
+            "platform-main-subinventory-drift-gate",
+            "route-mount-inventory-drift-gate",
+            "platform-catalog-drift-gate",
+        ]:
+            self.assertEqual(bot.route("Repository Structural Lint", step_name), "ci-quality")
+        self.assertEqual(bot.route("CI", "Check dependency-drift"), "dependencies")
+        self.assertEqual(
+            bot.route("CI", "Run pip install -c constraints-ci-tools.txt ruff"), "dependencies"
+        )
+
+    def test_npm_install_failures_reach_the_dependency_reviewer(self):
+        # Devin on #1588: unnamed `npm ci` steps inside frontend jobs.
+        step_name = "Run npm ci --ignore-scripts --no-audit --no-fund"
+        for job_name in [
+            "Frontend Typecheck",
+            "Frontend E2E (Playwright \u00b7 MapLibre/WebGL QA)",
+        ]:
+            self.assertEqual(bot.route(job_name, step_name), "dependencies")
+        self.assertEqual(
+            bot.route("Frontend Typecheck", "Prepare the workspace", "npm ERR! code ERESOLVE"),
+            "dependencies",
+        )
+        self.assertEqual(bot.route("Frontend Typecheck", "Run npm run typecheck", ""), "frontend")
+
+    def test_pull_request_runs_say_ci_tested_the_merge(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+        entry = dict(job("failure", [step("Typecheck", "failure")]), head_sha="f" * 40)
+        merged = bot.card("o/r", 2, entry, lambda _: log, merge_tested=True)
+        plain = bot.card("o/r", 2, entry, lambda _: log)
+        self.assertIn("دمجه مع الفرع الأساسي", merged)
+        self.assertNotIn("دمجه مع الفرع الأساسي", plain)
+
+    def test_missing_or_bad_commit_is_unknown(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+        for sha in [None, "not-a-sha`]", "a" * 39]:
+            entry = dict(job("failure", [step("Typecheck", "failure")]), head_sha=sha)
+            result = show(entry, lambda _: log)
+            self.assertIn("الالتزام غير معلوم", result)
+            self.assertNotIn("not-a-sha", result)
+
+    def test_frontend_reviewer_installs_without_lifecycle_scripts(self):
+        text = (file.parents[2] / ".claude/agents/frontend-reviewer.md").read_text(encoding="utf-8")
+        self.assertIn("npm ci --ignore-scripts", text)
+        self.assertNotRegex(text, r"`npm ci`(?! --ignore-scripts)")
+
+    def test_descriptive_step_names_do_not_pick_a_specialist(self):
+        # Independent review of #1588: real SAHOOL names that loose patterns misrouted.
+        cases = [
+            ("runtime-stack-e2e-chaos", "WX-10.6 crop-candidate downstream E2E (real Postgres)"),
+            ("Integration Tests", "S3 Compose slice acceptance (real services, no database)"),
+            ("Integration Tests", "Start isolated PostgreSQL 16 (no external secrets)"),
+            ("Integration Tests", "MFA end-to-end via the real auth app (restricted role)"),
+            ("Repository Structural Lint", "env-compose-drift-guard"),
+            ("Repository Structural Lint", "dependency-conflict-inventory context guard"),
+        ]
+        for job_name, step_name in cases:
+            self.assertEqual(bot.route(job_name, step_name), "ci-quality", step_name)
+
+    def test_each_log_sign_routes(self):
+        signs = {
+            "security": "Found CVE-2026-12345 in urllib3",
+            "migrations": "psycopg.errors.UndefinedTable: x  SQLSTATE 42P01",
+            "dependencies": "npm ERR! code ERESOLVE",
+            "frontend": "src/a.ts(3,5): error TS2322: bad",
+        }
+        for role, text in signs.items():
+            self.assertEqual(bot.route("Unit Tests", "Run the suite", text), role)
+        self.assertEqual(
+            bot.route("Unit Tests", "Run the suite", "GHSA-abcd-1234-wxyz"), "security"
+        )
+        self.assertEqual(
+            bot.route("Unit Tests", "Run the suite", "ERROR: SQLSTATE 42P01"), "migrations"
+        )
+
+    def test_card_routes_by_its_log(self):
+        log = block(
+            "pytest -m unit",
+            'T E   asyncpg.exceptions.UndefinedTableError: relation "farm" does not exist',
+        )
+        result = show(job("failure", [step("Unit suite", "failure")]), lambda _: log)
+        self.assertIn("migrations-reviewer", result)
+        self.assertIn("الخطوة التالية", result)
+
+    def test_several_failed_steps_go_to_ci_quality(self):
+        steps = [step("Run npx tsc --noEmit", "failure"), step("Run bandit", "failure", 2)]
+        result = show(job("failure", steps), lambda _: "")
+        self.assertIn("ci-quality-triage", result)
+
+    def test_bad_job_commit_falls_back_to_the_run_head(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+        entry = dict(job("failure", [step("Typecheck", "failure")]), head_sha="bad")
+        result = bot.card("o/r", 2, entry, lambda _: log, head="c" * 40)
+        self.assertIn("c" * 40, result)
+
+    def test_empty_failure_output_falls_back_to_the_log_end(self):
+        self.assertEqual(bot.failing_output("x" * 9000 + "tail"), ("x" * 9000 + "tail")[-8192:])
+
+    def test_group_closing_after_the_cut_carries_only_its_header(self):
+        group = b"T ##[group]Run pip install x\nT python -m pytest\n"
+        rest = b"T more script\n" * 50 + b"T ##[endgroup]\n" + b"T out\n" * 50
+        text = bot.read_log_tail(io.BytesIO(group + rest), keep=400)
+        self.assertTrue(text.startswith("T ##[group]Run pip install x\nT ##[endgroup]\n"))
+
+    def test_oversized_group_carries_only_its_header(self):
+        group = b"T ##[group]Run big\n" + b"T " + b"s" * 17000 + b"\nT ##[endgroup]\n"
+        text = bot.read_log_tail(io.BytesIO(group + b"T out\n" * 100), keep=300)
+        self.assertTrue(text.startswith("T ##[group]Run big\nT ##[endgroup]\n"))
+
+    def test_echoed_endgroup_text_does_not_close_the_carried_group(self):
+        group = (
+            b"T ##[group]Run echo x\nT echo '##[endgroup]'\nT python -m pytest\nT ##[endgroup]\n"
+        )
+        text = bot.read_log_tail(io.BytesIO(group + b"T out\n" * 100), keep=300)
+        self.assertTrue(text.startswith(group.decode()))
+
+    def test_lab_1588_real_step_names(self):
+        # Lab 1588: real runs 45066967613, 45051026057 and 45054521999.
+        drift = block(
+            "python scripts/ci/capability_mapping_engine.py --check",
+            "T drift: run capability_mapping_engine.py --generate",
+        )
+        card = show(
+            job("failure", [step("Validate forensic capability mapping drift", "failure")]),
+            lambda _: drift,
+        )
+        self.assertIn("ci-quality-triage", card)
+        oom = block("docker compose up minio-init", "T Killed mc admin policy attach")
+        name = "S3 Compose slice acceptance (real services, no database)"
+        self.assertIn(
+            "ci-quality-triage", show(job("failure", [step(name, "failure")]), lambda _: oom)
+        )
+
+    def test_pip_audit_in_a_generic_step_of_the_security_job(self):
+        log = block(
+            "python -m pip_audit -r requirements.txt",
+            "T Found 2 known vulnerabilities in 1 package\nT urllib3 2.0 CVE-2026-1",
+        )
+        entry = dict(job("failure", [step("Gate critical path", "failure")]), name="Security Scan")
+        self.assertIn("dependency-reviewer", show(entry, lambda _: log))
+
+    def test_tool_in_the_failed_script_routes(self):
+        log = block("cd frontend && npx vitest run", "T FAIL src/a.test.ts")
+        self.assertIn(
+            "frontend-reviewer",
+            show(job("failure", [step("Run the checks", "failure")]), lambda _: log),
+        )
+        log = block(
+            "pip install -r r.txt\nT python -m pytest tests", "T FAILED tests/test_s.py::test_x"
+        )
+        result = show(job("failure", [step("Service-local tests", "failure")]), lambda _: log)
+        self.assertIn("ci-quality-triage", result)
+
+    def test_comments_and_install_lines_do_not_route(self):
+        # Independent review of 43c0a99f: incidental tool names in the failed script.
+        log = runner_block(
+            "# mirrors tsc strictness\nnpx playwright install chromium\npython -m pytest t",
+            "FAILED t.py::x",
+        )
+        self.assertIn(
+            "ci-quality-triage",
+            show(job("failure", [step("Backend checks", "failure")]), lambda _: log),
+        )
+        log = runner_block(
+            "# bandit is run elsewhere\npython scripts/ci/workflow_guard.py", "unsafe pattern"
+        )
+        result = show(
+            job("failure", [step("Detect unsafe workflow patterns", "failure")]), lambda _: log
+        )
+        self.assertIn("ci-quality-triage", result)
+        self.assertNotIn("pip", bot.failing_command(block("pip install -r r.txt\nT pytest", "T x")))
+
+    def test_every_security_tool_routes(self):
+        for name in [
+            "Run gitleaks detect",
+            "Run trivy fs .",
+            "Run secret-scan",
+            "Run bandit -r services",
+        ]:
+            self.assertEqual(bot.route("Some job", name), "security", name)
+
+    def test_run_report_falls_back_to_the_run_head(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+        lines = []
+        run = {"id": 2, "name": "CI", "run_attempt": 1, "head_sha": "d" * 40, "event": "push"}
+        bot.run_report(HeadlessJobAPI(log), "owner/repo", run, lines.append)
+        self.assertIn("d" * 40, lines[-1])
+        self.assertNotIn("دمجه مع الفرع الأساسي", lines[-1])
+
+    def test_migration_runners_and_psql_errors(self):
+        # Devin on #1588: ci.yml's real migration steps.
+        self.assertEqual(
+            bot.route(
+                "Integration Tests",
+                "Apply migrations to test DB",
+                "",
+                "bash scripts/ci/apply_migration_manifest.sh --port 5433",
+            ),
+            "migrations",
+        )
+        self.assertEqual(
+            bot.route(
+                "Decision Service Tests",
+                "Apply decision-service migrations",
+                "",
+                "python services/decision-service/migration_runner.py --apply",
+            ),
+            "migrations",
+        )
+        self.assertEqual(
+            bot.route(
+                "Integration Tests",
+                "Run step",
+                'psql:migrations/v288.sql:3: ERROR:  syntax error at or near "CREAT"',
+            ),
+            "migrations",
+        )
+
+    def test_standalone_dependency_install_steps(self):
+        # Devin on #1588: "Install raster test dependencies" and pip's malformed requirement.
+        self.assertEqual(
+            bot.route("Raster Service Tests", "Install raster test dependencies"), "dependencies"
+        )
+        self.assertEqual(
+            bot.route("Raster Service Tests", "Run step", "ERROR: Invalid requirement: 'numpy=='"),
+            "dependencies",
+        )
+        self.assertEqual(
+            bot.route(
+                "Some job",
+                "Run step",
+                "ERROR: Could not find a version that satisfies the requirement x",
+            ),
+            "dependencies",
+        )
+
+    def test_timestamped_comment_lines_do_not_route(self):
+        # Lab 1588-v3: real script lines carry the runner's timestamp, lowercased with the command.
+        ts = "2026-11-22T20:46:23.4411059Z"
+        log = (
+            f"{ts} ##[group]Run python scripts/ci/workflow_guard.py\n"
+            f"{ts} # mirrors bandit and tsc\n"
+            f"{ts} python scripts/ci/workflow_guard.py\n"
+            f"{ts} ##[endgroup]\n{ts} unsafe pattern found\n"
+            f"{ts} ##[error]Process completed with exit code 1.\n"
+        )
+        self.assertNotIn("bandit", bot.failing_command(log))
+        result = show(
+            job("failure", [step("Detect unsafe workflow patterns", "failure")]), lambda _: log
+        )
+        self.assertIn("ci-quality-triage", result)
+
+    def test_merge_note_is_conditional_on_the_checkout(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+        entry = dict(job("failure", [step("Typecheck", "failure")]), head_sha="f" * 40)
+        merged = bot.card("o/r", 2, entry, lambda _: log, merge_tested=True)
+        self.assertIn("إن سحبت الوظيفة بالإعداد الافتراضي", merged)
+        self.assertIn("checkout", merged)
+
+    def test_only_install_subcommands_are_dropped(self):
+        # Independent review of 53da5811: "install" elsewhere on a tool line must not drop it.
+        for script, kept in [
+            ("npx playwright test tests/install.spec.ts", "npx playwright"),
+            ("npx tsc --noEmit && pip install -e .", "tsc"),
+            ("pip install -e . && npx tsc --noEmit", "tsc"),
+            ("npm run test -- install-flow", "npm run test"),
+            ("npx vitest run src/install/", "vitest"),
+        ]:
+            self.assertIn(kept, bot.failing_command(runner_block(script, "failed")), script)
+        for script in [
+            "pip install -r r.txt",
+            "python -m pip install x",
+            "sudo apt-get -y install jq",
+            "npx playwright install chromium",
+            "npm ci",
+        ]:
+            self.assertEqual(bot.failing_command(runner_block(script, "failed")), "", script)
 
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
