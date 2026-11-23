@@ -192,6 +192,115 @@ class Triage(unittest.TestCase):
         text = bot.read_log_tail(io.BytesIO(head + tail), keep=len(tail))
         self.assertEqual(text, tail.decode())
 
+    def test_routing_by_step_then_job_then_log(self):
+        cases = [
+            ("Security Scan", "pip-audit (gating)", "", "dependencies"),
+            ("Security Scan", "bandit high", "", "security"),
+            ("Frontend Typecheck", "Run tsc", "", "frontend"),
+            ("Live PG Proofs (fake-connection debt)", "Run", "", "migrations"),
+            (
+                "Unit Tests",
+                "Run pytest",
+                'psycopg.errors.UndefinedTable: relation "x" does not exist',
+                "migrations",
+            ),
+            ("Unit Tests", "Run pytest", "found CVE-2026-12345 in requests", "security"),
+            ("Unit Tests", "Run pytest", "assert 1 == 2", "ci-quality"),
+        ]
+        for job_name, step_name, text, role in cases:
+            self.assertEqual(bot.route(job_name, step_name, text), role, (job_name, step_name))
+
+    def test_failed_card_hands_off_with_link_step_and_commit(self):
+        log = block("npx tsc --noEmit", "src/a.ts(1,1): error TS2322: bad")
+        entry = dict(job("failure", [step("Typecheck", "failure", 4)]), head_sha="e" * 40)
+        result = show(entry, lambda _: log)
+        self.assertIn(".claude/agents/frontend-reviewer.md", result)
+        self.assertIn("ci-fixer", result)
+        self.assertIn("#step:4:1", result.split("الإحالة")[1])
+        self.assertIn("e" * 40, result)
+
+    def test_routing_reads_only_the_failure_summary(self):
+        # Megabytes of passed test names must not route the job (run 45067849451 named run_migrations).
+        log = block(
+            "python -m pytest -m unit",
+            "PASSED tests_v9/test_run_migrations.py::test_ok\n" * 300
+            + "T ===== short test summary info =====\nT FAILED tests_v9/test_x.py::test_y - AssertionError",
+        )
+        result = show(job("failure", [step("Run tests", "failure")]), lambda _: log)
+        self.assertIn("ci-quality-triage", result)
+
+    def test_unreadable_log_still_routed_by_name(self):
+        def missing(_):
+            raise HTTPError("https://api.github.com", 410, "gone", {}, None)
+
+        entry = dict(job("failure", [step("bandit high severity", "failure")]))
+        self.assertIn("security-reviewer", show(entry, missing))
+
+    def test_every_route_has_an_agent_and_reviewers_cannot_edit(self):
+        agents = file.parents[2] / ".claude/agents"
+        for role, (_, agent) in bot.SPECIALISTS.items():
+            text = (agents / f"{agent}.md").read_text(encoding="utf-8")
+            tools = re.search(r"(?m)^tools:\s*(.+)$", text).group(1)
+            self.assertIn(f"name: {agent}", text, role)
+            self.assertNotRegex(tools, r"\b(Edit|Write|NotebookEdit)\b", role)
+            self.assertIn("Read only", text, role)
+        fixer = (agents / f"{bot.FIXER}.md").read_text(encoding="utf-8")
+        self.assertIn("Never push to main, merge", fixer)
+        self.assertEqual({r for r, *_ in bot.ROUTES} | {"ci-quality"}, set(bot.SPECIALISTS))
+
+    def test_header_survives_many_trims(self):
+        # Review gap (a): the carried header must outlive every chunk, not only the last one.
+        class Chunky:
+            def __init__(self, data):
+                self.data, self.at = data, 0
+
+            def read(self, size):
+                piece = self.data[self.at : self.at + 300]
+                self.at += len(piece)
+                return piece
+
+        log = (
+            "T ##[group]Run python -m pytest -m unit\nT ##[endgroup]\n"
+            + "T PASSED tests/test_ok.py::test_ok\n" * 600
+            + "T FAILED tests/test_x.py::test_case\nT ##[error]Process completed with exit code 1.\n"
+        ).encode()
+        text = bot.read_log_tail(Chunky(log), keep=2000)
+        self.assertTrue(text.startswith("T ##[group]Run python -m pytest -m unit\n"))
+
+    def test_header_inside_the_tail_is_not_carried(self):
+        # Review gap (b): only a header before the cut is carried.
+        log = b"T ##[group]Run old\nT ##[endgroup]\n" + b"o\n" * 100
+        log += b"mid output\nT ##[group]Run python -m pytest\nT ##[endgroup]\nT ok\n"
+        keep = len(b"mid output\nT ##[group]Run python -m pytest\nT ##[endgroup]\nT ok\n")
+        text = bot.read_log_tail(io.BytesIO(log), keep=keep)
+        self.assertTrue(text.startswith("T ##[group]Run old\nT ##[endgroup]\nmid output"))
+
+    def test_crlf_header_is_carried_without_carriage_return(self):
+        # Review gap (c).
+        log = b"T ##[group]Run python -m pytest\r\nT ##[endgroup]\r\n" + b"p\r\n" * 200
+        text = bot.read_log_tail(io.BytesIO(log), keep=100)
+        self.assertTrue(text.startswith("T ##[group]Run python -m pytest\nT ##[endgroup]\n"))
+
+    def test_dropped_stream_while_listing_jobs_is_reported(self):
+        # Review gap (d): main() keeps an HTTPException from becoming a traceback.
+        class API:
+            def metadata(self, _):
+                raise http.client.IncompleteRead(b"", 10)
+
+        with tempfile.TemporaryDirectory() as directory:
+            event = Path(directory, "event.json")
+            summary = Path(directory, "summary.md")
+            event.write_text(json.dumps({"inputs": {"run_id": "2"}}), encoding="utf-8")
+            env = {
+                "GH_TOKEN": "t",
+                "GITHUB_REPOSITORY": "owner/repo",
+                "GITHUB_EVENT_PATH": str(event),
+                "GITHUB_STEP_SUMMARY": str(summary),
+            }
+            with patch.dict(bot.os.environ, env), patch.object(bot, "GitHub", return_value=API()):
+                self.assertEqual(bot.main(), 1)
+            self.assertIn("تعذّر إكمال", summary.read_text(encoding="utf-8"))
+
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
         self.assertIn("تعذّر إسناد", show(job("failure", data), lambda _: ""))

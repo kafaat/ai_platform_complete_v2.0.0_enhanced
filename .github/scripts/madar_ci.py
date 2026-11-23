@@ -124,6 +124,77 @@ def read_log_tail(response, keep=MAX_LOG, ceiling=MAX_LOG_STREAM):
     return text
 
 
+# Who receives a failed job. Each specialist is a read-only Claude Code agent in
+# .claude/agents/; it sends its recommendation to ci-fixer, the lab re-verifies the fix on
+# its new commit, and the merge stays with the technical hospital
+# (docs/runbooks/CI_FAILURE_HANDOFF_AR.md). Order matters: the most specific owner first.
+SPECIALISTS = {
+    "security": ("مراجع الأمن", "security-reviewer"),
+    "migrations": ("مراجع الترحيلات وقاعدة البيانات", "migrations-reviewer"),
+    "dependencies": ("مراجع الاعتماديات", "dependency-reviewer"),
+    "frontend": ("مراجع الواجهة", "frontend-reviewer"),
+    "ci-quality": ("وكيل جودة CI", "ci-quality-triage"),
+}
+FIXER = "ci-fixer"
+ROUTES = (
+    (
+        "security",
+        r"secur|bandit|gitleaks|secret|trivy|codeql",
+        r"\bCVE-\d{4}-\d+|GHSA-[\w-]+|leaks? found|Severity: High",
+    ),
+    (
+        "migrations",
+        r"migrat|pg16|postgis|live pg|restricted role|alembic|database",
+        r"SQLSTATE|psycopg|asyncpg\.exceptions|relation \"[^\"\n]+\" does not exist|run_migrations",
+    ),
+    (
+        "dependencies",
+        r"dependenc|drift|pip-audit|requirements|lockfile|constraints",
+        r"has ==[\w.+-]+, constraints\.txt has|ResolutionImpossible|No matching distribution|ERESOLVE",
+    ),
+    (
+        "frontend",
+        r"frontend|playwright|typecheck|eslint|vitest|flutter|\be2e\b",
+        r"error TS\d{4}|npm ERR!|\bvitest\b|\beslint\b",
+    ),
+)
+
+
+def route(job_name, step_name, evidence_text=""):
+    """The specialist for a failed job: by failing step name, then job name, then log."""
+    for name in (step_name, job_name):
+        for role, by_name, _ in ROUTES:
+            if name and re.search(by_name, name, re.I):
+                return role
+    for role, _, by_log in ROUTES:
+        if evidence_text and re.search(by_log, evidence_text):
+            return role
+    return "ci-quality"
+
+
+def handoff_line(role, url, head):
+    title, agent = SPECIALISTS[role]
+    commit = f" · الالتزام `{head}`" if head else ""
+    return (
+        f"{title} (`.claude/agents/{agent}.md`) يراجع للقراءة فقط ويرسل توصيته إلى وكيل الإصلاح"
+        f" (`{FIXER}`). الدليل: [سجل الخطوة]({url}){commit}."
+    )
+
+
+def failing_output(log):
+    """The part of the log that says why it failed, for routing.
+
+    Only the end of each failed command block: pytest's short summary when there is one,
+    else its last 8 KiB. A whole unit-suite output (megabytes of passed test names) would
+    route by words that have nothing to do with the failure.
+    """
+    parts = []
+    for _, output in failed_commands(log):
+        summary = output.rfind("short test summary info")
+        parts.append(output[summary:] if summary >= 0 else output[-8192:])
+    return "\n".join(parts) if parts else log[-8192:]
+
+
 def failed_commands(log):
     """Only consider command blocks closed by an actual failing runner marker."""
     clean = ANSI.sub("", log)
@@ -180,8 +251,11 @@ def diagnosis(steps, log):
     )
 
 
-def card(repo, run_id, job, fetch):
+def card(repo, run_id, job, fetch, head=None):
     job_id = int(job["id"])
+    head = job.get("head_sha") or head
+    if head and not re.fullmatch(r"[a-fA-F0-9]{40}", str(head)):
+        head = None
     state = job.get("conclusion")
     steps = job.get("steps") or []
     failed = [s for s in steps if s.get("conclusion") in FAILED]
@@ -194,8 +268,10 @@ def card(repo, run_id, job, fetch):
     if step:
         status += " · أول خطوة متعثّرة " + display(step["name"])
     if state in FAILED:
+        routed = ""
         try:
             log = fetch(job_id)
+            routed = failing_output(log)
             evidence, handoff = diagnosis(failed, log)
             if getattr(log, "truncated", False):
                 evidence += f" فُحص آخر {MAX_LOG // (1024 * 1024)} MiB من السجل."
@@ -216,6 +292,9 @@ def card(repo, run_id, job, fetch):
         ]
         if skipped_tests:
             evidence += " تخطّى GitHub خطوة " + display(skipped_tests[0]["name"]) + "."
+        role = route(job.get("name") or "", step["name"] if step else "", routed)
+        evidence += "\n- الخطوة التالية — " + handoff
+        handoff = handoff_line(role, url, head)
     elif state == "skipped":
         evidence, handoff = (
             "لم تُشغّل هذه الوظيفة.",
@@ -258,7 +337,7 @@ def run_report(api, repo, run, emit):
         for job in jobs:
             if int(job["run_id"]) != rid or (job.get("head_sha") and job["head_sha"] != head):
                 raise ValueError("job identity mismatch")
-            item = card(repo, rid, job, api.log)
+            item = card(repo, rid, job, api.log, head)
             size += len(item.encode())
             if size > MAX_SUMMARY:
                 emit("التقرير جزئي بسبب حدّ حجم الملخص. بقية الوظائف لم تُفحص.")
