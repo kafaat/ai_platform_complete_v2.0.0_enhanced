@@ -39085,7 +39085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a8a17c66adec5be96cd86d9d1911b10e6b606d7b510f1cd155dcf4d9322a922"
+          "content": "85567b7433d6f95b64aa005e6ed8fe6451180b00f9ceb1604f4b8c368f219e5c"
         }
       ],
       "name": "services/sahool-platform/tests/test_work_order_from_recommendation.py",

@@ -2739,7 +2739,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 406,
+      "evidence_count": 407,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -3111,6 +3111,7 @@
         "services/sahool-platform/tests/test_task_update_idempotency.py",
         "services/sahool-platform/tests/test_ui2_advanced_degraded_state_guard.py",
         "services/sahool-platform/tests/test_v26_zero_yield_map.py",
+        "services/sahool-platform/tests/test_work_order_from_recommendation.py",
         "services/sahool-platform/tests/test_workflow_engine.py",
         "services/sahool-platform/tests/test_yield_intelligence_wiring.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
@@ -3745,7 +3746,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 65,
-      "target_evidence_count": 406,
+      "target_evidence_count": 407,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3755,5 +3756,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "97c82312383bd16bdea7432127cc7bb6ee859adb7ca74e458dd728cdf22035c4"
+  "content_sha256": "a9d05a747f8f4b5c07f1279ede9eac333f56fb1183300ccd3a0930e85f8b3360"
 }

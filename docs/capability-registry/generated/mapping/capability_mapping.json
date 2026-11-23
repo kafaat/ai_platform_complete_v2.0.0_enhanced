@@ -32,9 +32,9 @@
       "raw": 3517
     },
     "test_dependency_files": 2053,
-    "test_dependency_edges": 5544,
-    "test_dependency_bounded_files": 1180,
-    "test_dependency_unresolved_relations": 523
+    "test_dependency_edges": 5547,
+    "test_dependency_bounded_files": 1176,
+    "test_dependency_unresolved_relations": 527
   },
   "capabilities": [
     {
@@ -14990,7 +14990,7 @@
           "score": 14
         },
         {
-          "value": "public.field_tasks @ tests_v9/test_field_task_on_api_field_live_pg.py:196",
+          "value": "public.field_tasks @ tests_v9/test_field_task_on_api_field_live_pg.py:216",
           "score": 14
         },
         {
@@ -72269,6 +72269,21 @@
           "line": 155
         },
         {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 211
+        },
+        {
+          "source": "services/sahool-platform/api/routers/tasks.py",
+          "kind": "import",
+          "line": 211
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 185
+        },
+        {
           "source": "services/sahool-platform/core/work_order.py",
           "kind": "import",
           "line": 6
@@ -85064,22 +85079,22 @@
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 79
+          "line": 82
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 80
+          "line": 83
         },
         {
           "source": "services/sahool-platform/api/routers/farm_operations_ledger.py",
           "kind": "import",
-          "line": 80
+          "line": 83
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 86
+          "line": 89
         }
       ],
       "unresolved": []
@@ -86000,36 +86015,43 @@
     },
     {
       "test": "tests_v9/test_field_task_on_api_field_live_pg.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
       "edges": [
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 60
+          "line": 80
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 61
+          "line": 81
         },
         {
           "source": "services/sahool-platform/api/routers/fields.py",
           "kind": "import",
-          "line": 61
+          "line": 81
         },
         {
           "source": "services/sahool-platform/api/routers/weather.py",
           "kind": "import",
-          "line": 62
+          "line": 82
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 69
+          "line": 89
         }
       ],
-      "unresolved": []
+      "unresolved": [
+        {
+          "line": 36,
+          "call": "import_module"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_field_task_scouting_anomaly_live_pg.py",
@@ -86953,21 +86975,28 @@
     },
     {
       "test": "tests_v9/test_governed_learning_review_live_pg.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
       "edges": [
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 73
+          "line": 93
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 110
+          "line": 130
         }
       ],
-      "unresolved": []
+      "unresolved": [
+        {
+          "line": 45,
+          "call": "import_module"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_guard_catalogue.py",
@@ -102273,36 +102302,43 @@
     },
     {
       "test": "tests_v9/test_weather_save_point_in_field_live_pg.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
       "edges": [
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 66
+          "line": 86
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 67
+          "line": 87
         },
         {
           "source": "services/sahool-platform/api/routers/fields.py",
           "kind": "import",
-          "line": 67
+          "line": 87
         },
         {
           "source": "services/sahool-platform/api/routers/weather.py",
           "kind": "import",
-          "line": 68
+          "line": 88
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 75
+          "line": 95
         }
       ],
-      "unresolved": []
+      "unresolved": [
+        {
+          "line": 40,
+          "call": "import_module"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_weather_signal_engine.py",
@@ -102684,36 +102720,43 @@
     },
     {
       "test": "tests_v9/test_work_order_field_task_link_live_pg.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
       "edges": [
         {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
-          "line": 67
+          "line": 87
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 68
+          "line": 88
         },
         {
           "source": "services/sahool-platform/api/routers/fields.py",
           "kind": "import",
-          "line": 68
+          "line": 88
         },
         {
           "source": "services/sahool-platform/api/routers/tasks.py",
           "kind": "import",
-          "line": 294
+          "line": 314
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
-          "line": 84
+          "line": 104
         }
       ],
-      "unresolved": []
+      "unresolved": [
+        {
+          "line": 42,
+          "call": "import_module"
+        }
+      ]
     },
     {
       "test": "tests_v9/test_work_order_from_recommendation_rbac.py",

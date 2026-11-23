@@ -24,7 +24,7 @@
 | 7 | `request` | `decision-service` | 51 |
 | 8 | `receipt` | `decision-service` | 51 |
 | 9 | `outcome` | `sahool-platform` | 65 |
-| 10 | `learning` | `sahool-platform` | 406 |
+| 10 | `learning` | `sahool-platform` | 407 |
 
 ## Remaining static gaps
 
