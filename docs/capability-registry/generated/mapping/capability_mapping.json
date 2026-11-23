@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7703,
+    "files_scanned": 7705,
     "files_by_kind": {
       "backend": 1312,
       "database": 356,
       "governance": 92,
       "mobile": 429,
       "other": 2251,
-      "tests": 2691,
-      "web": 572
+      "tests": 2692,
+      "web": 573
     },
-    "unmapped_artifacts": 3662,
+    "unmapped_artifacts": 3664,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
       "python_functional": 4187,
-      "raw": 3516
+      "raw": 3518
     },
     "test_dependency_files": 2053,
-    "test_dependency_edges": 5547,
+    "test_dependency_edges": 5548,
     "test_dependency_bounded_files": 1176,
     "test_dependency_unresolved_relations": 527
   },
@@ -33754,6 +33754,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/e2e/advisor-evidence.spec.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/e2e/ai-model-picker.spec.ts",
       "kind": "tests"
     },
@@ -33788,6 +33792,10 @@
     {
       "path": "frontend/e2e/satellite-pixel-display.spec.ts",
       "kind": "tests"
+    },
+    {
+      "path": "frontend/e2e/support/readability.ts",
+      "kind": "web"
     },
     {
       "path": "frontend/e2e/ui-chrome.visual.spec.ts",
@@ -75341,6 +75349,11 @@
           "source": "scripts/release/build_release_bundle.py",
           "kind": "source_read",
           "line": 20
+        },
+        {
+          "source": "scripts/release/validate_release_package.py",
+          "kind": "loader",
+          "line": 65
         },
         {
           "source": "scripts/release/validate_release_package.py",

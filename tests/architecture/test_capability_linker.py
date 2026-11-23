@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import importlib.util
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -89,6 +90,9 @@ def _minimal_repo(tmp_path: Path) -> tuple[Path, Path]:
 
 
 def _configure(module, tmp_path: Path, registry: Path, generated: Path) -> None:
+    # The linker lists its inputs through git and fails closed without it, so the
+    # temporary repository is a git worktree, as a CI checkout is.
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     module.ROOT = tmp_path
     module.REGISTRY = registry
     module.ROUTES = tmp_path / "route_inventory.csv"
@@ -341,3 +345,86 @@ def test_dec006_links_execution_receipts_not_a_voice_provider_receipt() -> None:
         assert linker.score_file(path, tokens, "DEC-006") >= threshold, path
     voice = "tests_v9/test_tts_voice_delivery_receipt.py"
     assert linker.score_file(voice, tokens, "DEC-006") < threshold
+
+
+def test_discover_files_excludes_playwright_output_directories(monkeypatch, tmp_path):
+    """Devin on #1591: a failing local Playwright run leaves error-context.md under
+    frontend/test-results/<case>/ (gitignored). discover_files() indexed it as a test, so
+    regeneration wrote paths into capabilities/registry/capabilities.json that a clean
+    checkout does not have, and the registry guard rejects them in CI."""
+    module = _load_module()
+    registry, generated = _minimal_repo(tmp_path)
+    _configure(module, tmp_path, registry, generated)
+
+    for folder in ("test-results", "playwright-report", "blob-report"):
+        leftover = tmp_path / "frontend" / folder / "case-chromium/error-context.md"
+        leftover.parent.mkdir(parents=True)
+        leftover.write_text("# tenant auth error context\n", encoding="utf-8")
+    kept = tmp_path / "mobile/app/test-results-smart/summary.md"
+    kept.parent.mkdir(parents=True)
+    kept.write_text("# summary\n", encoding="utf-8")
+
+    discovered = module.discover_files()
+    leaked = [p for p in discovered if "/test-results/" in p or "-report/" in p]
+    assert leaked == [], f"Playwright output leaked into discover_files(): {leaked}"
+    assert "mobile/app/test-results-smart/summary.md" in discovered
+
+
+def test_discover_files_skips_gitignored_files_inside_a_git_worktree(monkeypatch, tmp_path):
+    """The lab on #1591: any gitignored file, not only Playwright output, reached the
+    registry because discover_files() walked the raw tree. Inside a git worktree only files
+    git would check out, or new files not yet added, are discovered."""
+    import subprocess
+
+    module = _load_module()
+    registry, generated = _minimal_repo(tmp_path)
+    _configure(module, tmp_path, registry, generated)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / ".gitignore").write_text("local-output/\n", encoding="utf-8")
+    ignored = tmp_path / "local-output/tests/test_tenant_auth.py"
+    ignored.parent.mkdir(parents=True)
+    ignored.write_text("def test_tenant_auth(): pass\n", encoding="utf-8")
+    new_file = tmp_path / "tests/test_tenant_auth_new.py"
+    new_file.parent.mkdir(parents=True, exist_ok=True)
+    new_file.write_text("def test_tenant_auth_new(): pass\n", encoding="utf-8")
+
+    discovered = module.discover_files()
+    assert not any(p.startswith("local-output/") for p in discovered), discovered
+    assert "tests/test_tenant_auth_new.py" in discovered
+
+
+def test_outside_git_only_signed_manifest_paths_are_read_and_nothing_else(monkeypatch, tmp_path):
+    """Hospital review of #1590: outside git the linker must not walk the raw tree. It
+    reads only the signed release manifest's paths, as capability_mapping_engine does."""
+    # Hospital review N3: stop git at tmp_path's parent, so the test is outside git even when
+    # the temporary directory sits inside some repository.
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
+    module = _load_module()
+    module.ROOT = tmp_path
+    signed = tmp_path / "tests/test_tenant_auth.py"
+    signed.parent.mkdir(parents=True)
+    signed.write_text("def test_tenant_auth(): pass\n", encoding="utf-8")
+    stray = tmp_path / "local-output/tests/test_tenant_leak.py"
+    stray.parent.mkdir(parents=True)
+    stray.write_text("def test_tenant_leak(): pass\n", encoding="utf-8")
+    manifest = tmp_path / "release/FILE_CHECKSUMS.sha256"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text("0" * 64 + "  tests/test_tenant_auth.py\n", encoding="utf-8")
+
+    assert module.discover_files() == ["tests/test_tenant_auth.py"]
+
+
+def test_outside_git_without_a_signed_manifest_the_linker_refuses(monkeypatch, tmp_path):
+    """No git listing and no signed manifest: refuse instead of walking the raw tree."""
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
+    module = _load_module()
+    module.ROOT = tmp_path
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests/test_tenant_auth.py").write_text("def test_x(): pass\n", encoding="utf-8")
+
+    try:
+        module.discover_files()
+    except RuntimeError as exc:
+        assert "fail closed" in str(exc)
+    else:
+        raise AssertionError("discover_files() walked the raw tree outside git")

@@ -4804,6 +4804,7 @@
         "POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:3214"
       ],
       "ui_consumers": [
+        "frontend/e2e/advisor-evidence.spec.ts",
         "frontend/src/components/fieldview/IrrigationDecisionCard.evidence.test.tsx"
       ],
       "mobile_consumers": [],
@@ -4869,7 +4870,7 @@
           "path": "migrations/v260_scout_photo_evidence.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=2, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "1",
         "CropX": "2",

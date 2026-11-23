@@ -75,6 +75,7 @@ DEC-001,test,tests_v9/test_runtime_evidence_wiring_v62_2.py,3,applied
 DEC-001,test,tests_v9/test_scout_photo_evidence_contract.py,3,applied
 DEC-001,test,tests_v9/test_soil_lab_evidence_hardening_v57_5.py,3,applied
 DEC-001,test,tests_v9/test_vra_owner_lab_evidence_w0_12.py,3,applied
+DEC-001,ui,frontend/e2e/advisor-evidence.spec.ts,2,applied
 DEC-001,ui,frontend/src/components/fieldview/IrrigationDecisionCard.evidence.test.tsx,2,applied
 DEC-002,api,POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:303,2,applied
 DEC-002,api,POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:116,2,applied

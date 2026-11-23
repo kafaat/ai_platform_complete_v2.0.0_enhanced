@@ -465,6 +465,13 @@
     --sahool-accent: 39 93 32;
   }
 
+  /* Tailwind resolves these aliases at :root. Rebind them on the advisor's fixed light
+     surface so a dark shell cannot supply pale text to its evidence and citations. */
+  .advisor-card[data-theme="light"] {
+    --color-sahool-muted: rgb(var(--sahool-muted));
+    --color-sahool-text: rgb(var(--sahool-text));
+  }
+
   /* سمة كريميّة (نمط الحقل) — لوحة الأرض الدافئة من FieldView. تُفعّل فقط عند
      التبديل (data-theme="cream"). أسطح كريميّة، نصّ بنّي، ولمسة ذهبيّة دافئة. */
   [data-theme="cream"] {

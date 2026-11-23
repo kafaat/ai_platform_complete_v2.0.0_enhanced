@@ -59,7 +59,9 @@ BASELINE: dict[str, int] = {
     # ثمّ 38 ⇒ 27 مع إصلاحات الواجهة التشغيليّة (2026-11-11) التي أزالت أحد عشر موضعاً.
     # ثمّ 27 ⇒ 25 مع متابعة حدود الحقل والقمر الصناعيّ (موضعان في FieldManagementPage).
     # ثمّ 25 ⇒ 24 مع تكاليف المهمّة (``catch (e: any)`` في SimpleFarmBookPage صار ``unknown``).
-    "@typescript-eslint/no-explicit-any": 24,
+    # ثمّ 24 ⇒ 13 مع تنميط ``lib/soilWorkspace.ts`` (أحد عشر موضعاً): الحمولتان ``unknown``
+    # تُضيَّقان حيث تُقرآن، والقيمة بغير شكلها تُقرأ غائبةً لا بيانات.
+    "@typescript-eslint/no-explicit-any": 13,
     # صفرٌ مقيسٌ لا مأمول: الواحدُ والثلاثون سُدِّدت كلُّها.
     "@typescript-eslint/no-unused-vars": 0,
 }

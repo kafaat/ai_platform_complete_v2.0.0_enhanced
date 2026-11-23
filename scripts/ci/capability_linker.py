@@ -12,6 +12,7 @@ import csv
 import io
 import json
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -317,6 +318,12 @@ EXCLUDED_DIRS = {
     "coverage",
     ".next",
     "__pycache__",
+    # Playwright output (gitignored by **/test-results/ and **/playwright-report/): a local
+    # browser run leaves error-context.md files here, and indexing them wrote paths a clean
+    # checkout lacks into the registry (Devin on #1591).
+    "test-results",
+    "playwright-report",
+    "blob-report",
 }
 TEXT_EXT = {".py", ".ts", ".tsx", ".js", ".dart", ".sql", ".yaml", ".yml", ".md"}
 
@@ -363,9 +370,59 @@ META_GOVERNANCE_FILES = {
 META_GOVERNANCE_PREFIXES = ("tests_v9/test_no_report_only_change_guard",)
 
 
+def _manifest_paths() -> list[str]:
+    """Paths in the signed release manifest (release/FILE_CHECKSUMS.sha256), the offline
+    allowlist: only signed files, never arbitrary local ones."""
+    manifest = ROOT / "release" / "FILE_CHECKSUMS.sha256"
+    if not manifest.exists():
+        return []
+    paths = []
+    for line in manifest.read_text(encoding="utf-8").splitlines():
+        parts = line.strip().split(None, 1)  # "<sha256>  <path>"
+        if len(parts) == 2 and parts[1]:
+            paths.append(parts[1])
+    return paths
+
+
+def _candidate_paths() -> list[Path]:
+    """Files git would check out, plus new files not yet added; never ignored ones.
+
+    Walking the raw tree let gitignored files feed the registry: a failing local Playwright
+    run left error-context.md under frontend/test-results/, regeneration recorded it as
+    evidence, and a clean CI checkout then failed the registry guard (Devin and the lab on
+    #1591). --others --exclude-standard keeps a new, not-yet-added file visible, so
+    regenerating before `git add` still sees it.
+
+    Fail closed outside git, in the same order as capability_mapping_engine._tracked_files
+    (hospital review of #1590): with no usable git listing (an extracted archive, or a git
+    error such as an unsafe directory), read only the paths the signed release manifest
+    lists; with neither, refuse rather than walk the raw filesystem.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+            cwd=ROOT,
+            capture_output=True,
+            encoding="utf-8",
+            check=True,
+        ).stdout
+        listed = [ROOT / name for name in out.split("\0") if name]
+        if listed:
+            return listed
+    except (OSError, subprocess.CalledProcessError, UnicodeDecodeError):
+        pass  # no usable git listing: use the signed manifest, never the raw tree
+    signed = _manifest_paths()
+    if signed:
+        return [ROOT / name for name in signed]
+    raise RuntimeError(
+        "capability_linker: no git listing and no signed release manifest "
+        "(release/FILE_CHECKSUMS.sha256); refusing to scan the raw filesystem (fail closed)"
+    )
+
+
 def discover_files() -> list[str]:
     results: list[str] = []
-    for p in ROOT.rglob("*"):
+    for p in _candidate_paths():
         if not p.is_file() or p.suffix.lower() not in TEXT_EXT:
             continue
         rel = p.relative_to(ROOT)

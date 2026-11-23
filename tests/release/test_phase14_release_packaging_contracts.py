@@ -56,3 +56,20 @@ def test_deployment_checklist_contains_runtime_and_reliability_gates() -> None:
         "recovery_smoke.sh",
     ]:
         assert token in checklist
+
+
+def test_validator_rejects_a_manifest_whose_totals_do_not_match_the_checksums() -> None:
+    """Devin on #1590: a stale total_size_bytes passed validation, so --fix never rebuilt it."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "validate_release_package", ROOT / "scripts/release/validate_release_package.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    manifest = {"file_count": 3, "total_size_bytes": 300}
+    assert module.totals_problem(manifest, 3, 300) is None
+    assert "total_size_bytes" in module.totals_problem(manifest, 3, 301)
+    assert "file_count" in module.totals_problem(manifest, 4, 300)
+    assert module.totals_problem({}, 3, 300) is not None

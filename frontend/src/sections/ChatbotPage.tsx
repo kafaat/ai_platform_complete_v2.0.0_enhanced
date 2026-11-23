@@ -112,8 +112,9 @@ const MODEL_STORE_KEY = 'sahool.ai.model';
 
 function evidenceSourceText(src: AiEvidenceSource): string {
   const label = src.label_ar || src.key;
-  const count = typeof src.count === 'number' ? ` · ${src.count}` : '';
-  return `${label}${count}`;
+  const description = typeof src.count === 'number' ? `${label} · ${src.count}` : label;
+  if (src.available === true) return description;
+  return `${description} · ${src.available === false ? 'غير متاح' : 'التوافر غير مؤكّد'}`;
 }
 
 function toolDataFor(harness: HarnessTransparency | undefined, toolName: string): Record<string, unknown> | null {
@@ -224,25 +225,25 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
             <div className="mt-2 pt-2 border-t border-slate-100 space-y-2">
               <div className="flex items-center gap-2">
                 {msg.source === 'ai-runtime'
-                  ? <><Sparkles className="w-3 h-3 text-violet-400" /><span className="text-[10px] text-sahool-muted" data-testid="ai-source-badge">{sourceBadgeText(msg.evidenceSources)}</span></>
-                  : <><AlertCircle className="w-3 h-3 text-ops-warning" /><span className="text-[10px] text-amber-500">تعذّر جلب الأدلة</span></>
+                  ? <><Sparkles className="w-3 h-3 text-ops-info" /><span className="text-[10px] text-sahool-muted" data-testid="ai-source-badge">{sourceBadgeText(msg.evidenceSources)}</span></>
+                  : <><AlertCircle className="w-3 h-3 text-ops-warning" /><span className="text-[10px] text-ops-warning">تعذّر جلب الأدلة</span></>
                 }
                 {msg.confidence != null && (
-                  <span title="جودة الأدلة كما أبلغت عنها مصادرها؛ ليست احتمال صحة الإجابة" className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-1.5 py-0.5">
+                  <span title="جودة الأدلة كما أبلغت عنها مصادرها؛ ليست احتمال صحة الإجابة" className="text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-full px-1.5 py-0.5">
                     جودة الدليل {Math.round(msg.confidence * 100)}٪{msg.confidenceCalibrated ? '' : ' · غير معايَرة'}
                   </span>
                 )}
                 {msg.mode && <span className="text-[10px] text-sahool-muted">{msg.mode}</span>}
-                {msg.generationProvider && <span className="text-[10px] text-violet-500">{msg.generationProvider}{msg.generationModel ? ` · ${msg.generationModel}` : ''}</span>}
+                {msg.generationProvider && <span className="text-[10px] text-ops-info">{msg.generationProvider}{msg.generationModel ? ` · ${msg.generationModel}` : ''}</span>}
                 {msg.tokens && <span className="text-[10px] text-sahool-text mr-auto">{msg.tokens} token</span>}
               </div>
               {msg.generationStatus?.startsWith('suppressed_') && (
-                <p className="text-[11px] text-amber-700">لم تُعرض إجابة النموذج لأن الأدلة والتحقق المتاحين لا يكفيان لاعتمادها.</p>
+                <p className="text-[11px] text-ops-warning">لم تُعرض إجابة النموذج لأن الأدلة والتحقق المتاحين لا يكفيان لاعتمادها.</p>
               )}
               {msg.evidenceSources && msg.evidenceSources.length > 0 && (
                 <div className="flex flex-wrap gap-1" data-testid="ai-evidence-sources">
                   {msg.evidenceSources.slice(0, 6).map(src => (
-                    <span key={src.key} className={`text-[10px] rounded-full px-1.5 py-0.5 border ${src.available ? 'bg-sky-50 text-sky-700 border-sky-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                    <span key={src.key} className={`text-[10px] rounded-full px-1.5 py-0.5 border ${src.available === true ? 'bg-sky-50 text-ops-info border-sky-100' : 'bg-slate-50 text-sahool-muted border-slate-100'}`}>
                       {evidenceSourceText(src)}
                     </span>
                   ))}
@@ -254,11 +255,11 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                 </div>
               )}
               {msg.citations && msg.citations.length > 0 && (
-                <ul className="text-[10px] text-slate-500 space-y-0.5" data-testid="ai-citations">
+                <ul className="text-[10px] text-sahool-muted space-y-0.5" data-testid="ai-citations">
                   {msg.citations.slice(0, 5).map(c => (
                     <li key={c.chunkId}>
                       {c.href
-                        ? <a href={c.href} target="_blank" rel="noopener noreferrer" className="text-sky-700 underline">{c.publisher ?? c.href}</a>
+                        ? <a href={c.href} target="_blank" rel="noopener noreferrer" className="text-ops-info underline">{c.publisher ?? c.href}</a>
                         : <span>{c.publisher ?? c.documentName ?? c.chunkId}</span>}
                       {c.locator && <span> · {c.locator}</span>}
                       {c.revision && <span> · مراجعة {c.revision}</span>}
@@ -267,31 +268,31 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                 </ul>
               )}
               {msg.ragUnavailable && (
-                <p className="text-[10px] text-amber-700" data-testid="ai-rag-unavailable">{msg.ragUnavailable}</p>
+                <p className="text-[10px] text-ops-warning" data-testid="ai-rag-unavailable">{msg.ragUnavailable}</p>
               )}
               {msg.auditNotPersisted && (
-                <p className="text-[10px] text-amber-700" data-testid="ai-audit-not-persisted">{msg.auditNotPersisted}</p>
+                <p className="text-[10px] text-ops-warning" data-testid="ai-audit-not-persisted">{msg.auditNotPersisted}</p>
               )}
               {!!msg.unverifiedReferences && (
-                <p className="text-[10px] text-slate-400" data-testid="ai-unverified-references">
+                <p className="text-[10px] text-sahool-muted" data-testid="ai-unverified-references">
                   {msg.unverifiedReferences} مرجع لم يُتحقَّق منه مقابل الأصل، فلم يدخل في الإجابة.
                 </p>
               )}
               {msg.notices && (msg.notices.requiresHumanReview || msg.notices.limitations.length > 0 || msg.notices.evidenceMissing.length > 0) && (
                 <div className="text-[10px] space-y-0.5" data-testid="ai-advisory-notices">
                   {msg.notices.requiresHumanReview && (
-                    <p className="text-amber-700 font-medium">تحتاج مراجعة مختص زراعيّ قبل أيّ تنفيذ.</p>
+                    <p className="text-ops-warning font-medium">تحتاج مراجعة مختص زراعيّ قبل أيّ تنفيذ.</p>
                   )}
                   {msg.notices.limitations.length > 0 && (
-                    <p className="text-slate-500">قيود: {msg.notices.limitations.join('؛ ')}</p>
+                    <p className="text-sahool-muted">قيود: {msg.notices.limitations.join('؛ ')}</p>
                   )}
                   {msg.notices.evidenceMissing.length > 0 && (
-                    <p className="text-slate-500">أدلّة ناقصة: {msg.notices.evidenceMissing.slice(0, 4).join('؛ ')}</p>
+                    <p className="text-sahool-muted">أدلّة ناقصة: {msg.notices.evidenceMissing.slice(0, 4).join('؛ ')}</p>
                   )}
                 </div>
               )}
               {msg.readinessWarnings && msg.readinessWarnings.length > 0 && (
-                <div className="text-[10px] text-amber-600" data-testid="ai-readiness-warnings">
+                <div className="text-[10px] text-ops-warning" data-testid="ai-readiness-warnings">
                   تنبيه جاهزية: {msg.readinessWarnings.slice(0, 2).join('؛ ')}
                 </div>
               )}
@@ -612,7 +613,7 @@ export function ChatbotPage() {
 
   return (
     // data-theme="light": the card is a fixed light surface, so theme-aware text tokens must resolve to the light palette here.
-    <div data-theme="light" className="h-[calc(100vh-140px)] flex flex-col bg-white rounded-xl shadow-xs border border-slate-200 font-tajawal overflow-hidden" dir="rtl">
+    <div data-theme="light" className="advisor-card h-[calc(100vh-140px)] flex flex-col bg-white rounded-xl shadow-xs border border-slate-200 font-tajawal overflow-hidden" dir="rtl">
 
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-linear-to-l/srgb from-emerald-50 to-white">
