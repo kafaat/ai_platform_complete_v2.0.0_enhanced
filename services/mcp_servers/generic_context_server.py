@@ -58,6 +58,11 @@ def _base(kind: str, args: dict[str, Any]) -> dict[str, Any]:
         "observed_at": datetime.now(UTC).isoformat(),
         "verified": False,
         "decision_authority": "none",
+        # F9: no search, lookup or computation runs behind these tools. Say so in the
+        # answer itself, not only in the tool list, so a model cannot read an echo as
+        # a retrieval result.
+        "retrieval_performed": False,
+        "source": "caller_supplied",
     }
 
 
@@ -125,6 +130,8 @@ def _rag(args: dict[str, Any]) -> dict[str, Any]:
         "name": "rag_annotation",
         "value": {"query": args.get("query"), "citations": args.get("citations", [])},
         "verified": False,
+        # Caller-supplied citations are reference context only, never decision evidence.
+        "evidence_class": "reference_context",
     }
 
 
@@ -134,17 +141,71 @@ def _kg(args: dict[str, Any]) -> dict[str, Any]:
         "name": "kg_annotation",
         "value": {"subject": args.get("subject"), "edges": args.get("edges", [])},
         "verified": False,
+        # Caller-supplied edges are reference context only, never decision evidence.
+        "evidence_class": "reference_context",
     }
 
 
+# F9 — tool names say what the tool does. Only ``iot`` reads an owner (the platform,
+# via ``sensor_signal`` with the caller's own bearer); every other tool returns the
+# caller's arguments wrapped as an Observation/Signal/Annotation. They were listed as
+# ``search_*`` / ``query_*`` / ``get_*`` although no search, query or lookup ran, so
+# a model took the caller's own citations/edges/readings for retrieved results. The
+# echo tools are now named ``wrap_caller_*``; the old names stay accepted as
+# deprecated aliases (per service) and are reported back in ``deprecated_alias_used``.
 TOOLSETS = {
-    "field": {"get_field_state": _field_state},
-    "weather": {"get_weather_signal": _weather},
-    "lab": {"get_lab_context": _lab},
-    "satellite": {"get_satellite_observation": _satellite},
+    "field": {"wrap_caller_field_context": _field_state},
+    "weather": {"wrap_caller_weather_signal": _weather},
+    "lab": {"wrap_caller_lab_context": _lab},
+    "satellite": {"wrap_caller_satellite_observation": _satellite},
     "iot": {"get_sensor_signal": _iot},
-    "rag": {"search_rag_annotations": _rag},
-    "knowledge-graph": {"query_kg_annotations": _kg},
+    "rag": {"wrap_caller_rag_annotations": _rag},
+    "knowledge-graph": {"wrap_caller_kg_annotations": _kg},
+}
+
+# service -> {deprecated name: canonical name}. Scoped per service so an alias never
+# reaches a tool the deployed service does not serve.
+TOOL_ALIASES = {
+    "field": {"get_field_state": "wrap_caller_field_context"},
+    "weather": {"get_weather_signal": "wrap_caller_weather_signal"},
+    "lab": {"get_lab_context": "wrap_caller_lab_context"},
+    "satellite": {"get_satellite_observation": "wrap_caller_satellite_observation"},
+    "rag": {"search_rag_annotations": "wrap_caller_rag_annotations"},
+    "knowledge-graph": {"query_kg_annotations": "wrap_caller_kg_annotations"},
+}
+
+# Whether a tool reads anything beyond the caller's arguments.
+TOOL_RETRIEVAL = {"get_sensor_signal": True} | {
+    name: False for service, tools in TOOLSETS.items() if service != "iot" for name in tools
+}
+
+_ECHO_DESCRIPTION = (
+    "Wraps the {what} supplied by the caller as an {kind}; no retrieval, search or "
+    "computation is performed (retrieval_performed=false, verified=false)."
+)
+TOOL_DESCRIPTIONS = {
+    "wrap_caller_field_context": _ECHO_DESCRIPTION.format(
+        what="field_id/crop", kind="unverified Signal"
+    ),
+    "wrap_caller_weather_signal": _ECHO_DESCRIPTION.format(
+        what="weather values", kind="unverified Signal"
+    ),
+    "wrap_caller_lab_context": _ECHO_DESCRIPTION.format(
+        what="lab values", kind="unverified, non-governing Signal"
+    ),
+    "wrap_caller_satellite_observation": _ECHO_DESCRIPTION.format(
+        what="satellite index values", kind="unverified Observation"
+    ),
+    "wrap_caller_rag_annotations": _ECHO_DESCRIPTION.format(
+        what="query and citations", kind="Annotation (reference context, never evidence)"
+    ),
+    "wrap_caller_kg_annotations": _ECHO_DESCRIPTION.format(
+        what="subject and edges", kind="Annotation (reference context, never evidence)"
+    ),
+    "get_sensor_signal": (
+        "Reads the latest owner-bound sensor signal from the platform for the "
+        "caller's tenant (Signal only)."
+    ),
 }
 
 
@@ -172,7 +233,11 @@ async def list_tools() -> dict[str, Any]:
         "tools": [
             {
                 "name": name,
-                "description": f"Return {SERVICE} context as Observation/Signal/Annotation only",
+                "description": TOOL_DESCRIPTIONS[name],
+                "retrieval_performed": TOOL_RETRIEVAL[name],
+                "deprecated_aliases": sorted(
+                    old for old, new in TOOL_ALIASES.get(SERVICE, {}).items() if new == name
+                ),
                 **({"inputSchema": SENSOR_SCHEMA} if SERVICE == "iot" else {}),
             }
             for name in TOOLSETS[SERVICE]
@@ -185,7 +250,8 @@ async def call_tool(
     call: ToolCall, request: Request, user: dict[str, Any] = Depends(_require_context_scope)
 ) -> dict[str, Any]:
     tools = TOOLSETS.get(SERVICE)
-    if not tools or call.name not in tools:
+    name = TOOL_ALIASES.get(SERVICE, {}).get(call.name, call.name)
+    if not tools or name not in tools:
         raise HTTPException(404, "Unknown tool")
     # The tenant is the token's, never the one in the (model-written) arguments.
     if SERVICE == "iot":
@@ -196,7 +262,9 @@ async def call_tool(
             arguments, user["tenant_id"], request.headers.get("authorization", "")
         )
     else:
-        result = tools[call.name]({**call.arguments, "tenant_id": user["tenant_id"]})
+        result = tools[name]({**call.arguments, "tenant_id": user["tenant_id"]})
+        result["tool"] = name
+        result["deprecated_alias_used"] = name != call.name
     if result.get("type") not in {"observation", "signal", "annotation"}:
         raise HTTPException(500, "MCP output contract violation")
     if "recommendation" in result or "prescription" in result:

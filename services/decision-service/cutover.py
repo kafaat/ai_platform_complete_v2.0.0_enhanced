@@ -27,6 +27,12 @@ _REQUIRED_TABLES = (
 MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations"
 SOR_CAPABILITY_CONTRACT = "decision-sor-capability/v1"
 
+# F-D01: what DECISION_SERVICE_OUTBOX_VERIFIED proves. The operator sets it after one persisted
+# write left its ``pending`` row in ``decision_outbox_events`` (staging runbook step 4c). No relay
+# reads that table or sets ``published_at``, so the gate never means the event was delivered.
+OUTBOX_GATE_PROVES = "pending row recorded, not delivered"
+OUTBOX_RELAY_IMPLEMENTED = False
+
 
 def _truthy(name: str) -> bool:
     return os.getenv(name, "").strip().lower() in _TRUTHY
@@ -40,6 +46,8 @@ class CutoverReadiness:
     backfill_verified: bool
     tenant_isolation_verified: bool
     outbox_verified: bool
+    outbox_gate_proves: str
+    outbox_relay_implemented: bool
     staging_approved: bool
     production_approved: bool
     can_enable_sor: bool
@@ -60,7 +68,8 @@ def readiness_from_env() -> CutoverReadiness:
 
     Gates are split deliberately:
     - `can_enable_sor` is allowed only after DB, migrations, backfill, tenant isolation,
-      outbox, and staging approval are all verified.
+      outbox, and staging approval are all verified. The outbox gate proves only that a
+      pending row was recorded, not that it was delivered: there is no relay (F-D01).
     - `can_demote_platform` additionally requires production approval. This prevents
       accidental removal of sahool-platform writes during staging experiments.
     """
@@ -99,6 +108,8 @@ def readiness_from_env() -> CutoverReadiness:
         backfill_verified=backfill,
         tenant_isolation_verified=tenant,
         outbox_verified=outbox,
+        outbox_gate_proves=OUTBOX_GATE_PROVES,
+        outbox_relay_implemented=OUTBOX_RELAY_IMPLEMENTED,
         staging_approved=staging,
         production_approved=production,
         can_enable_sor=can_enable,
@@ -176,5 +187,7 @@ def sor_capability_signal(
         "can_enable_sor": r.can_enable_sor,
         "can_demote_platform": r.can_demote_platform,
         "persisted_without_verified_gates": persisted and bool(r.missing_gates),
+        "outbox_gate_proves": r.outbox_gate_proves,
+        "outbox_relay_implemented": r.outbox_relay_implemented,
         "migration_level": _migration_level(db),
     }

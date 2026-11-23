@@ -495,7 +495,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 3,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Model lifecycle and activation"
@@ -1907,7 +1907,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 3,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Work orders"
@@ -3542,7 +3542,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 1,
+      "sahool_score": 3,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Laboratory results"

@@ -77,6 +77,8 @@ from persistence import (
     list_worker_tenants,
     model_lifecycle_enabled,
     normalize_operation_type,
+    outbox_backlog,
+    outbox_state,
     persist_decision_record,
     persist_dispatch_decision,
     persist_learning_update,
@@ -579,6 +581,14 @@ async def readyz(response: Response) -> dict[str, Any]:
         and (not sor_on or bool(db["db_reachable"] and db["migrations_current"]))
     )
     response.status_code = 200 if ready else 503
+    # F-D01: outbox rows are recorded and never relayed; report the backlog, never as part of
+    # the verdict above, and query it only once the SoR database is reachable and current.
+    if not sor_on:
+        outbox = outbox_state(reason="not_system_of_record")
+    elif not (db["db_reachable"] and db["migrations_current"]):
+        outbox = outbox_state(reason="database_not_ready")
+    else:
+        outbox = await outbox_backlog()
     return {
         "status": "ready" if ready else "degraded",
         "ready": ready,
@@ -602,6 +612,7 @@ async def readyz(response: Response) -> dict[str, Any]:
         "capabilities": {"model_lifecycle": _model_lifecycle_capability()},
         "db_readiness": db,
         "sor_capability": sor_capability_signal(db, sor_enabled=sor_on, ready=ready),
+        "outbox": outbox,
     }
 
 

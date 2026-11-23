@@ -6048,7 +6048,7 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 - **وسؤالُ «ماذا يفعل انقضاءُ التاريخ؟» سقط من البطاقة:** يحسمه الكودُ لا المالك (انظر الفجوةَ أعلاه). فبقي سؤالان، وكلاهما **سياسةٌ لا قياس**: (أ) أيُقبَل التأجيلُ أساساً مُعترَفاً به أم يُسحَب الآن؟ (ب) إن تعذّر «مستهلكٌ حيّ»، أيُقبَل «الانتقالُ إلى الخدمة المالكة» إغلاقاً؟
 - **لماذا `open`:** لا قرارَ من المالك بعد. ولا يُسجَّل حكمٌ لم يصدر — والبطاقةُ مسودّةٌ في `LIVE_EVIDENCE_PATH_v2.1` §٧ لا سجلٌّ.
 
-## A-QUEUE-WITH-NO-TERMINAL-STATE-REPUBLISHES-FOREVER-01 — طابورٌ بلا حالةٍ نهائيّة (فُتحت 2026-08-27 · **open**)
+## A-QUEUE-WITH-NO-TERMINAL-STATE-REPUBLISHES-FOREVER-01 — طابورٌ بلا حالةٍ نهائيّة (فُتحت 2026-08-27 · **fixed** 2026-11-22، F-D04)
 
 - **المصدر:** `services/sahool-platform/api/phase_runtime_workers.py::run_model_registry_once` — حلقةُ الترقيات.
 - **المقيس:** شرطُ الالتقاط `WHERE decision='promote'` **بلا أيّ انتقالِ حالةٍ نهائيّة**. فالصفُّ الذي عولج تبقى `decision` فيه `'promote'`، ويُلتقَط ثانيةً في الدورة التالية — و`_publish_nats("sahool.model.promotion.requested", …)` يُطلَق في كلّ مرّة. أمّا `INSERT … ON CONFLICT DO UPDATE` على `model_serving_aliases_runtime` فيُخفي الأثرَ في الجدول لأنّه مُتماثِلُ الاستدعاء — لكنّ **النشرَ ليس كذلك**.
@@ -6056,6 +6056,7 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 - **ما غيّرته شريحةُ المطالبة، وما لم تُغيّره:** المطالبةُ تمنع **عاملَين متزامنَين** من نشرِ الصفّ نفسِه في الدورة الواحدة — وهذا مُصلَحٌ ومُكذَّب. ولا تمنع إعادةَ النشر **عبر الدورات**، لأنّ الصفَّ يعود إلى البِركة فور تحرير المطالبة. فالعطلُ سابقٌ للشريحة وباقٍ بعدها.
 - **لماذا `open`:** العلاجُ انتقالُ حالةٍ (`promoted` / `acknowledged`) يخصّ **عقدَ الترقية** لا إصلاحَ التزامن: يلزمه حسمُ متى تُعَدّ الترقيةُ منتهية — أعند النشر، أم عند إقرارِ خلفيّةِ التقديم؟ وذلك قرارُ عقدٍ لا اشتقاقٌ من قياس، وشريحةُ شيفرةٍ مستقلّة.
 - **حدُّ صدق:** ساكن — من بنية الاستدعاء وشرطِ الالتقاط. لم يُشغَّل عاملٌ على PostgreSQL حيّ.
+- **العلاج (F-D04، 2026-11-22، فرع `claude/wave3-fd04-model-alias-ack-20261122`):** حُسِم سؤالُ العقد هكذا: الطابورُ ينتهي عند **الطلب**، والترقيةُ لا تنتهي إلّا عند **الإقرار**. `migrations/v288_model_promotion_terminal_state.sql` يضيف `model_promotion_history_runtime.status` (`pending → requested | blocked | skipped`، CHECK) و`status_reason`، ويجعل افتراضيَّ `model_serving_aliases_runtime.status` `pending_external_ack` بدل `active`. العاملُ يلتقط `status='pending'` وحدَه ويكتب حالةً نهائيّة مع تحرير المطالبة (`services/sahool-platform/api/phase_runtime_workers.py::run_model_registry_once`)، والكاتبُ يكتب الاسمَ المستعار `pending_external_ack` صراحةً (`services/sahool-platform/api/phase_runtime_store.py::persist_phase10_learning_outputs`). مقيسٌ حيّاً: `tests_v9/test_model_promotion_ack_live_pg.py` (6 حمراء قبل الإصلاح، 8 خضراء بعده). **حدّ صدق:** لا مسارَ إقرارٍ في الشجرة بعد، فلا اسمَ مستعاراً يصير `active`؛ والصفوفُ `active` السابقة لـv288 لم تُغيَّر (قرارُ مالك).
 
 ## A-TEST-THAT-PINS-TODAYS-TREE-AS-A-SECURITY-INVARIANT-01 — لقطةٌ تاريخيّةٌ تُقرأ ثابتاً أمنيّاً (فُتحت 2026-08-28 · **fixed**)
 
@@ -8923,7 +8924,12 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## VEGETATION-VERIFICATION-RESULTS-CALLBACK-NO-SENDER-01 — نتيجة التحقّق من الشذوذ النباتيّ لا يرسلها أحد
 
-- **الحالة:** open — طلبتها جلسة التكامل؛ لم يبدأ التنفيذ.
+- **الحالة:** open — **محجوبة بشرطٍ مسبق لا يتحقّق** (F-D07، موجة 3 G4، مقيس على main `580add968`): لا مُرسِل فعلاً، لكنّ الحالة التي يُفترض أن يُرسَل عندها (مهمّة شذوذ مكتملة اعتمد المراجعُ نسختَها الحاليّة من الدليل) **لا يمكن أن توجد** على هذا المخطّط، فلم يُكتب مُرسِل ميّت. الحواجز مقيسة حيّاً بـ`tests_v9/test_field_task_scouting_anomaly_live_pg.py:562` (مع ضوابط تكذيب داخل معاملات مُرجَعة، وطفرة حذف مرشّح الدبوس من `_load` تُحمِّره):
+  - مهمّة الشذوذ لا تصير مهمّة تفتيش دبوس: `migrations/v277_inspection_close_gate.sql:55` (SH003) ومستقلّاً `migrations/v282_field_task_scouting_anomaly.sql:58` (`field_task_anomaly_scope_ck`)؛
+  - فلا تحمل نسخة دليل: `migrations/v274_inspection_evidence_versions.sql:71`؛ ولا تقرؤها مسارات المراجعة: `services/field-management-service/fm_task_inspection.py:171` (دبوس فقط ⇒ 404)؛
+  - وتُغلَق بلا مراجعة أصلاً (بوّابة v277 للدبوس فقط، `v277:58`)، فـ«مكتملة» لا تحمل نتيجةً مُراجَعة؛
+  - المراجعة نفسها تسجّل `submit/approve/return` لنسخة دليل (`fm_task_inspection.py:88`) لا «مؤكَّد/غير مؤكَّد»، والمستقبِل يطلب `verification_result` و`expected_version` للشذوذ (`services/vegetation-analysis-service/anomaly_requests.py:47-49`) وتوكن مستخدم JWT فوق رمز الاستدعاء (`routers/anomalies.py:442`) — وfield-management لا يحمل JWT بالعقد (`services/field-management-service/main.py:1-20`).
+  - **قرارات المالك قبل أيّ مُرسِل:** (١) كيف تُسجَّل نتيجة التحقّق لمهمّة الشذوذ (حقل نتيجة + دليل + مراجِع) — يتطلّب هجرة، وGATE-01 مفتوحة؛ (٢) مصادقة المستقبِل خدمةً-لخدمة (تأكيد المستأجر الموقَّع بدل JWT المستخدم)؛ (٣) من أين يعرف المُرسِل `expected_version`؛ (٤) صندوق صادر دائم (لا يوجد في field-management: `fm_task_inspection.py:15`).
 - **الخلل (مقيس على main `fc091531`):** `POST /v1/anomalies/{anomaly_ref}/verification-results` (`services/vegetation-analysis-service/routers/anomalies.py:437`، محميّة بـ`X-Task-Service-Token` = `TASK_SERVICE_CALLBACK_TOKEN`) لا يستدعيها شيء في `services/` ولا `frontend/src` ولا `mobile/sahool_app/lib` ولا `bots` ولا `agents` ولا `nginx` ولا `scripts`. وجودها الوحيد سطرُ جردٍ في `scripts/ci/vegetation_smoke_contract.json:19`.
 - **الأثر:** حلقة التحقّق الميدانيّ من الشذوذ تبدأ ولا تُغلَق: تُنشَأ مهمّة التحقّق في field-management، ولا طريق لعودة نتيجتها إلى vegetation-analysis.
 - **المالك الطبيعيّ للإرسال:** field-management، عند إغلاق مهمّة التحقّق (اقتراح جلسة التكامل).
@@ -8951,6 +8957,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الخلل:** ٢٦ خطوة شهادة في وظيفة Integration Tests من [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) شغّلت pytest بلا `--cov`، فقُرئ الكود الذي لا تبلغه إلّا هي غيرَ مغطّى على codecov/patch (`anomaly_store_pg.py` ٣٥٪ على #1508).
 - **الإصلاح:** كلّ خطوة شهادة تُلحِق بملفّ الوظيفة `.coverage.integration-auth` عبر [`config/coverage-live-integration.rc`](../../config/coverage-live-integration.rc)؛ تصدير واحد وحارس واحد ورفع واحد كما كان، فيبقى عدد الرفعات ٥ و`after_n_builds` ٥.
 - **الباقي:** التشغيل المشترك `pytest -v -m integration --tb=short` ما زال بلا تغطية لأنّ مُشغِّل المختبر يطابق السطر حرفيّاً؛ ما لا يبلغه إلّا هو يبقى غيرَ مغطّى على codecov/patch.
+- **الموجة الثالثة (#1587):** رحلات المنصّة الحيّة الخمس التي كانت في التشغيل المشترك وحده — G3 (رابط أمر العمل بالمهمّة، والمهمّة على حقلٍ أنشأته الواجهة) · G14 (مراجعة مقترحات التعلّم) · G1 (حفظ نقطة الطقس داخل الحقل) · G6 (خصم دفعة المخزون) — صارت لكلّ منها خطوةٌ مخصّصة بمفتاح شهادة (`*_CERTIFICATION_REQUIRED=1`) تُلحِق بـ`.coverage.integration-auth`، والمالكُ من `TEST_DATABASE_ADMIN_URL`. مُشغِّل المختبر يقرأ الخطوات من [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) فيلتقطها دون تعديل (البنود ٤٠–٤٤ في [`scripts/lab/README.md`](../../scripts/lab/README.md)). محلّيّاً على PostgreSQL 16 تبلغ ٢٣٥ من ٣١٤ سطراً قابلاً للتنفيذ أضافتها الموجة في الملفّات التي سمّاها codecov/patch. التشغيل المشترك نفسه ما زال بلا تغطية.
 - **الشاهد:** [`tests_v9/test_codecov_coverage_wiring.py`](../../tests_v9/test_codecov_coverage_wiring.py).
 - **شرط الإغلاق:** دمجٌ في main وظهور تغطية الخطوات الحيّة في تقرير Codecov.
 
@@ -9207,6 +9214,37 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **`MIGRATION-STATE-IN-PRODUCTION-IS-UNREAD-01` (open):** قراءة إنتاج قراءةً فقط متاحة الآن: `cfd31667` → `SCHEMA_STATE readable=true tables=363/363 columns=215/215 first_missing=none`، manifest `5a7f4edd…`. الحالة بلا تغيير حتّى يُحكم شرط إغلاقها المسجَّل في صفّها.
 - **`PROD-DECISION-SERVICE-AHEAD-OF-PLATFORM-01` (open):** سببها المعلَن (المنصّة على `fa92a1f7e` لا ترسل `decision_value_digest`) زال: المنصّة في production صارت على main `c0dd35a4`. الحالة بلا تغيير حتّى يُقاس اعتمادٌ حيّ عبر المنصّة.
 
+## ADVISOR-APPROVAL-GATE-NOT-GIVEN-QUESTION-SCOPE-01 — بوّابة موافقة المراجع في المستشار لا تتلقّى محصول السؤال ولا منطقته
+
+- **الحالة:** fixed — بإصلاح F6 (`_generation_scope` في `services/ai_agronomist/ai_evidence_runtime.py`، الالتزام `34494ae6`، #1582)؛ الحالتان الشاهدتان صارتا ناجحتين وحُذفت `known_gap` منهما ومن `docs/testing/unit_skip_inventory.json` في الطلب الموحّد الثاني. قِيسَت مفتوحةً 2026-11-22 في تقييم F11 الذهبيّ (`tests_v9/golden_advisor/`).
+- **المصدر:** `services/ai_agronomist/ai_evidence_runtime.py:1140` (`partition_generation_references(rag_payload.get("annotations") or [])` بلا `crop` ولا `region` ولا `as_of`) · `shared/ai/reference_approvals.py:268` (نطاقٌ فارغ ⇒ `question_crop_unknown`).
+- **الخلل:** مقتطفٌ مُعتمَد لمحصولٍ ومنطقة يُحجَز دائماً بسبب `question_crop_unknown`، فلا يُميَّز «منطقة أخرى» (`region_not_applicable`) ولا «محصول آخر» (`crop_not_applicable`) عن المطابقة الصحيحة، ولا يدخل أيّ مقتطفٍ مُعتمَد سياقَ التوليد عبر المسار الحيّ.
+- **الشاهد:** الحالتان `reference_other_region.runtime_hold_reason` و`reference_other_crop.runtime_hold_reason` في `tests_v9/golden_advisor/advisor_golden_cases.v1.json` — xfail صارمة تنقلب عند الإصلاح.
+- **شرط الإغلاق:** يمرّر المسار الحيّ محصول السؤال الموثوق ومنطقته إلى البوّابة، وتمرّ الحالتان فتُحذف `known_gap` منهما.
+
+## ADVISORY-ENVELOPE-SILENT-ON-HELD-REFERENCES-01 — المظروف الاستشاريّ لا يُسمّي المراجع المحجوزة عن التوليد
+
+- **الحالة:** open — مقيسة 2026-11-22 في تقييم F11 الذهبيّ.
+- **المصدر:** `services/ai_agronomist/advisory_contract.py:62` (`_reference_codes` يقرأ `rag_available` وحده) · `services/ai_agronomist/ai_evidence_runtime.py:1144` (`unverified_seed_references` مع `generation_hold_reason` في `annotations`).
+- **الخلل:** مرجعٌ استُرجِع ثمّ حُجِز (لا ينطبق على السؤال، أو انتهت موافقته `approval_expired`) لا يظهر رمزُه في `evidence_missing` ولا `limitations`، فلا يعرف المستخدم أنّ مرجعاً استُبعِد ولماذا.
+- **الشاهد:** `reference_other_region.envelope_names_hold` و`expired_reference.envelope_names_hold` (xfail صارمة).
+- **شرط الإغلاق:** يُسمّي المظروف سبب الحجز برمزٍ ثابت ويمرّ الشاهدان.
+
+## ADVISOR-SELECTED-IMAGERY-DATE-NOT-CHECKED-01 — تاريخ الصورة المختار لا يُقارَن بتواريخ المشاهد المتاحة
+
+- **الحالة:** open — مقيسة 2026-11-22 في تقييم F11 الذهبيّ.
+- **المصدر:** `services/ai_agronomist/ai_evidence_runtime.py:1337` · `:1381` · `:1413` (`selected_imagery_date` يُمرَّر صدىً إلى حدث التدقيق والرصد والاستجابة فقط).
+- **الخلل:** تاريخٌ لا مشهد فيه ضمن `imagery_timeline` في حزمة سياق الحقل يمرّ بلا رمز، والمظروف يخرج `requires_human_review: false` إن كانت بقيّة الأدلّة هادئة.
+- **الشاهد:** `imagery_date.no_scene_on_selected_date` (xfail صارمة).
+- **شرط الإغلاق:** يُسمّي المسار تاريخاً بلا مشهد برمزٍ يحوي `imagery_date` ويفرض المراجعة.
+
+## ADVISORY-ENVELOPE-IGNORES-TOOL-CALL-OUTCOMES-01 — المظروف لا يقرأ نتائج استدعاءات الأدوات
+
+- **الحالة:** open — مقيسة 2026-11-22 في تقييم F11 الذهبيّ؛ دفاعٌ في العمق: حلقة الأدوات الحاليّة لا تُنتِج `executed` لأداةٍ مُعدِّلة.
+- **المصدر:** `services/ai_agronomist/advisory_contract.py:171` · `:176` (`requires_human_review` يُشتقّ من `pending_approvals` لا من `tool_calls`).
+- **الخلل:** سجلّ أداةٍ مُعدِّلة تتطلّب موافقة بنتيجة `executed` بلا موافقةٍ مُقرَّرة يمرّ مظروفاً هادئاً.
+- **الشاهد:** `proposal_vs_execution.claimed_execution_named` (xfail صارمة).
+- **شرط الإغلاق:** يفرض المظروف المراجعة ويُسمّي ادّعاء التنفيذ برمز، ويمرّ الشاهد.
 ## RAG-INGEST-CROSS-REPLICA-PUBLICATION-NOT-COORDINATED-01 — نشر مراجعات المستند غير منسَّق بين نسخ rag-retrieval
 
 - **الحالة:** open (مخفَّفة) — مقيسة 2026-11-22 في مراجعة #1582 (Devin Review على `76550da8`، وإيصال المختبر 1582-v2).
@@ -9217,3 +9255,4 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **شرط الإغلاق:** قرار المالك بين (أ) قفل مشترك لكلّ مستند (تبعيّة جديدة: Redis أو Postgres)، أو (ب) معرّفات تخزين منفصلة لكلّ نشر مع إبقاء `chunk_id` المنطقيّ ثابتاً (يمسّ عقد `canonical_storage_point_id` وبيان إعادة الفهرسة وخطّة D12)، مع اختبار كتابة متأخّرة تتشارك فيه المراجعتان مقطعاً يثبت بقاء كلّ مقاطع الفائز.
 - **2026-11-22 — #1582 مهلة الرافع (المختبر 1582-v5):** مهلة `httpx` (30 ث) كانت تحرّر القفل وrag-retrieval ما زال يكتب، فيسابقه رفعٌ ثانٍ للمستند نفسه. لا حدّ لزمن كتابة rag-retrieval يُشتقّ: معالجه بلا مهلة طلب ولا يُلغى بانصراف العميل، و20 ث لكلّ نداء Ollama/Qdrant، لكنّ القراءة اللاحقة تمسح كلّ صفوف المستأجر. فصار فشلُ النداء بعد احتمال وصول الطلب (مهلة، انقطاع، إلغاء) يُبقي المستند «موضع شكّ» حتّى إعادة تشغيل local-ai-rag ويُرفض رفعه بـ409 `DOCUMENT_PUBLICATION_IN_DOUBT`، وفشلُ الاتّصال قبل الإرسال يحرّره، ومهلة الانتظار 900 ث (`tests_v9/test_local_ai_rag_publish_serialisation.py`).
 - **2026-11-22 — #1582 مراجعة Devin المخفيّة والمختبر 1582-v5 (الحارس والنسخ الأخرى):** صار حارس الكاتب الوحيد يعدّ كاتباً كلَّ نداء طلبٍ صادر (`post`/`put`/`request`/`send`/`Request`/`urlopen`، طريقةً أو دالّةً مجرّدة) يحمل `/v1/ingest` بمضيفٍ أو بلا مضيف (عميل بـ`base_url`) أو اسماً بُني منه الرابط قبل النداء، ويمسح المستودع كلّه خارج الاختبارات (`tools/` و`certification/` ضمناً) بدل ستّة أدلّة؛ المسموح بالاسم: local-ai-rag ومسبار `rag_fixture_probe.py` (يرفع إلى local-ai-rag نفسه) وشاهد إعادة الفهرسة المؤرشف (مجموعات مؤقّتة). لا يرى الحارس رابطاً يُقرأ من ملفّ أو شبكة وقت التشغيل. وفي production بنسختين: مقطعٌ مسحوب قد تخدمه نسخةٌ أخرى حتّى إعادة تحقّقها من الحمولات، 30 ث على الأكثر (`_SPARSE_PAYLOAD_REVALIDATE_SECONDS`، `services/rag-retrieval/main.py:102`).
+- **2026-11-23 — متابعات مراجعة المستشفى على #1582 (في الطلب الموحّد الثاني):** (١) صار رفض 409 `DOCUMENT_PUBLICATION_IN_DOUBT` يسمّي ملفّات الرفع الموضع شكّ (`files`) — مُصلَح؛ (٤) صار حارس الكاتب الوحيد يجمع قطع النصّ بترتيب المصدر فيرى `"/v1/" + "ingest"` — مُصلَح بضابطٍ سلبيّ؛ (٢) المستند الموضع شكّ لا يُحرَّر إلّا بإعادة تشغيل local-ai-rag، وإعادةُ تشغيلٍ وrag-retrieval يكتب تعيد السباق — مفتوح، إغلاقه نقطة حالة أو مفتاح عدم تكرار في rag-retrieval؛ (٣) «900 ث مقابل 60 ث على `/api/rag/`» لا ينطبق على الحزم الحيّة: `/api/rag/` يذهب إلى rag-retrieval في البوّابات الثلاث (`frontend/nginx.conf` و`nginx/nginx.v9.conf` و`helm/sahool/files/gateway/routes.conf`)، والوحيد الذي يوجّهه إلى local-ai-rag هو `nginx/nginx.unified.conf` (120 ث) ولا يستعمله إلّا `docs/history/compose/docker-compose.unified.yml` المؤرشف؛ (٥) نقطة محاكاة الموسم بلا مهلة خادم — مؤجَّل لأنّها تحفظ في منتصفها؛ (٦) فهرس BM25 على نسخة أخرى يتأخّر عن السحب 30 ث على الأكثر — مقيَّد ومُعلَن.

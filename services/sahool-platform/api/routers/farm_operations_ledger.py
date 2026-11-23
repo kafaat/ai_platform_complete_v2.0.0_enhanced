@@ -33,6 +33,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from api import main as api_main
+from api.api_models import (
+    EnergyRecordIn,
+    EquipmentRecordIn,
+    InputRecordIn,
+    LaborRecordIn,
+    WaterRecordIn,
+    _non_negative_or_none,
+)
 from api.feature_registry import is_enabled
 from api.main import (
     CommandStore,
@@ -79,93 +87,6 @@ async def _assert_farm_in_tenant(conn, tenant_id: str, farm_id: str | None) -> N
     await _assert_owned(conn, tenant_id, "farm", farm_id)
 
 
-def _non_negative_or_none(v: float | None, name: str) -> float | None:
-    if v is None:
-        return None
-    if v < 0:
-        raise ValueError(f"{name} must be >= 0")
-    return v
-
-
-class WaterRecordIn(BaseModel):
-    well_id: str | None = None
-    pump_id: str | None = None
-    pivot_id: str | None = None
-    hours_operated: float | None = None
-    water_volume_m3: float | None = None
-    measurement_method: str | None = Field(None, description="meter|estimate|calculated")
-    notes: str | None = None
-
-    @field_validator("hours_operated", "water_volume_m3")
-    @classmethod
-    def _positive(cls, v, info):
-        return _non_negative_or_none(v, info.field_name)
-
-
-class EnergyRecordIn(BaseModel):
-    energy_source: str = "unknown"
-    kwh: float | None = None
-    diesel_liters: float | None = None
-    hours_operated: float | None = None
-    equipment_id: str | None = None
-    well_id: str | None = None
-    pivot_id: str | None = None
-    notes: str | None = None
-
-    @field_validator("kwh", "diesel_liters", "hours_operated")
-    @classmethod
-    def _positive(cls, v, info):
-        return _non_negative_or_none(v, info.field_name)
-
-
-class EquipmentRecordIn(BaseModel):
-    equipment_id: str
-    operator_id: str | None = None
-    hours_worked: float | None = None
-    fuel_liters: float | None = None
-    maintenance_cost: float | None = None
-    notes: str | None = None
-
-    @field_validator("hours_worked", "fuel_liters", "maintenance_cost")
-    @classmethod
-    def _positive(cls, v, info):
-        return _non_negative_or_none(v, info.field_name)
-
-
-class LaborRecordIn(BaseModel):
-    worker_id: str | None = None
-    workers_count: int | None = None
-    hours: float | None = None
-    wage_amount: float | None = None
-    notes: str | None = None
-
-    @field_validator("workers_count")
-    @classmethod
-    def _workers_positive(cls, v):
-        if v is not None and v < 0:
-            raise ValueError("workers_count must be >= 0")
-        return v
-
-    @field_validator("hours", "wage_amount")
-    @classmethod
-    def _positive(cls, v, info):
-        return _non_negative_or_none(v, info.field_name)
-
-
-class InputRecordIn(BaseModel):
-    input_type: str
-    inventory_item_id: str | None = None
-    quantity: float
-    unit: str
-    estimated_cost: float | None = None
-    notes: str | None = None
-
-    @field_validator("quantity", "estimated_cost")
-    @classmethod
-    def _positive(cls, v, info):
-        return _non_negative_or_none(v, info.field_name)
-
-
 class OperationLedgerIn(BaseModel):
     operation_date: date
     operation_type: str
@@ -203,6 +124,9 @@ def _request_digest(req: OperationLedgerIn) -> str:
     """بصمةُ الحمولة الكاملة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
     # Without a task link the digest matches receipts created before the optional task_id.
     payload = req.model_dump(mode="json", exclude={"task_id"} if req.task_id is None else None)
+    for row in payload["inputs"]:  # likewise for inputs naming no inventory batch (F-D11)
+        if row.get("inventory_batch_id") is None:
+            row.pop("inventory_batch_id", None)
     canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
@@ -213,13 +137,29 @@ async def create_operation_ledger_record(
     user: UserSchema = Depends(require_permission(Permission.ACTIVITY_EXECUTE)),
     idem: str | None = Depends(_idem_key),
 ):
-    """يحفظ سجل عمل يوميّاً ومرفقاته الرقابية. لا يزامن ERP ولا يخصم مخزوناً هنا.
+    """يحفظ سجل عمل يوميّاً ومرفقاته الرقابية. لا يزامن ERP.
 
     U06: ``Idempotency-Key`` يُسجِّل الأمر مرّةً في ``commands`` (معاملة ``tenant_connection``) ويُعيد النتيجةَ حرفيّاً؛ المفتاحُ نفسه بحمولةٍ مختلفة ⇒ 409 **قبل** كلّ فحوص النطاق (فهي داخل العمل).
+
+    F-D11: an input naming ``inventory_batch_id`` deducts from that batch only when
+    ``FEATURE_LEDGER_INVENTORY_DEDUCTION`` is on (OFF by default; off ⇒ ``applied: false`` and no
+    stock moves). On: an ``Idempotency-Key`` and a ``completed`` status are required, the batch
+    row is locked and reduced in this transaction, and a refusal (another tenant's batch, item or
+    unit mismatch, insufficient stock) writes nothing. The stored result is the receipt.
     """
     _require_enabled()
     if api_main._DB_POOL is None:
         raise HTTPException(status_code=503, detail="farm_operations_ledger_database_unavailable")
+    deduct = _flag_enabled(_INVENTORY_DEDUCTION_FLAG)
+    has_batches = any(i.inventory_batch_id for i in req.inputs)
+    if refusal := ledger_core.inventory_deduction_refusal(
+        enabled=deduct, has_batches=has_batches, idempotency_key=idem, status=req.status, user=user
+    ):
+        raise HTTPException(status_code=refusal[0], detail=refusal[1])
+    try:
+        plan = ledger_core.plan_inventory_deduction(req.inputs) if deduct else []
+    except ledger_core.InventoryDeductionRefused as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail) from e
     operation_id = "oplog_" + uuid.uuid4().hex[:12]
     try:
         async with tenant_connection(user) as conn:
@@ -293,6 +233,18 @@ async def create_operation_ledger_record(
                         if req.water and req.field_id
                         else None
                     )
+                    try:  # F-D11: same transaction — a refusal rolls back the record too
+                        receipts = await ledger_core.apply_inventory_deduction(
+                            conn, tenant_id=tenant_id, operation_id=operation_id, plan=plan
+                        )
+                    except ledger_core.InventoryDeductionRefused as e:
+                        raise HTTPException(status_code=e.status_code, detail=e.detail) from e
+                deduction = {
+                    "applied": deduct,
+                    "flag": _INVENTORY_DEDUCTION_FLAG,
+                    **({} if deduct else {"disabled_reason": "feature_flag_off"}),
+                    "receipts": receipts,
+                }
                 return {
                     "operation_id": operation_id,
                     **({"task_id": str(req.task_id)} if req.task_id else {}),
@@ -300,6 +252,7 @@ async def create_operation_ledger_record(
                     "sync_status": req.sync_status,
                     "message_ar": "حُفظ سجل العملية الزراعية",
                     **({"water_ledger": water_ledger} if water_ledger else {}),
+                    **({"inventory_deduction": deduction} if has_batches else {}),
                 }
 
             if idem:
@@ -791,6 +744,7 @@ async def get_erp_projection(
 
 _AUTOWRITE_FLAG = "FEATURE_OPERATION_LEDGER_AUTOWRITE"
 _INVENTORY_SYNC_FLAG = "FEATURE_LEDGER_INVENTORY_SYNC"
+_INVENTORY_DEDUCTION_FLAG = "FEATURE_LEDGER_INVENTORY_DEDUCTION"  # F-D11, OFF by default
 _CANONICAL_ECONOMICS_FLAG = "FEATURE_CANONICAL_ECONOMICS"
 
 
@@ -844,8 +798,9 @@ async def operation_autowrite_preview(
 ):
     """يعرض كيف سيتحوّل حدث عملية إلى سجل رقابي. لا يحفظ شيئاً.
 
-    الكتابة التلقائية الحقيقية تبقى خلف FEATURE_OPERATION_LEDGER_AUTOWRITE، وهذا
-    endpoint يساعد على الاختبار والاعتماد دون تغيير سلوك الإنتاج.
+    F-D10: a deliberate preview boundary (ADR-0004). Nothing in the platform consumes this
+    payload, so ``would_persist`` stays false even with FEATURE_OPERATION_LEDGER_AUTOWRITE on;
+    the write is a human posting ``ledger_payload`` to ``write_path``. Never writes stock.
     """
     _require_enabled()
     if req.field_id and api_main._DB_POOL is not None:
@@ -875,13 +830,30 @@ async def operation_autowrite_preview(
         source="api.autowrite_preview",
     )
     payload = operation_event_to_ledger_payload(event)
+    autowrite = _flag_enabled(_AUTOWRITE_FLAG)
     return {
-        "autowrite_enabled": _flag_enabled(_AUTOWRITE_FLAG),
-        "would_persist": _flag_enabled(_AUTOWRITE_FLAG)
-        and payload.get("autowrite_eligible") is True,
-        "disabled_reason": None if _flag_enabled(_AUTOWRITE_FLAG) else "feature_flag_off",
+        "autowrite_enabled": autowrite,
+        "persisted": False,
+        "would_persist": False,
+        "autowrite_consumer": None,
+        "disabled_reason": "no_autowrite_consumer" if autowrite else "feature_flag_off",
+        "write_path": {
+            "endpoint": "POST /api/v1/farm-ledger/operations",
+            "permission": Permission.ACTIVITY_EXECUTE.value,
+            "requires": "a person submits ledger_payload with an Idempotency-Key",
+        },
         "ledger_payload": payload,
         "provenance": {"source": "farm_operations_ledger", "persisted": False},
+    }
+
+
+def _inventory_write_path() -> dict:
+    """F-D11: the projection never writes; this is the one step that does, and its flag."""
+    return {
+        "endpoint": "POST /api/v1/farm-ledger/operations",
+        "flag": _INVENTORY_DEDUCTION_FLAG,
+        "flag_enabled": _flag_enabled(_INVENTORY_DEDUCTION_FLAG),
+        "requires": "inputs[].inventory_batch_id, status=completed and an Idempotency-Key",
     }
 
 
@@ -893,7 +865,13 @@ async def get_inventory_projection(
     """إسقاط خصم مخزون من سجلات المواد فقط. لا يكتب في inventory-service."""
     _require_enabled()
     if api_main._DB_POOL is None:
-        return {"season_id": season_id, "lines": [], "note_ar": "القاعدة غير مفعلة"}
+        return {
+            "season_id": season_id,
+            "lines": [],
+            "inventory_write": False,
+            "write_path": _inventory_write_path(),
+            "note_ar": "القاعدة غير مفعلة",
+        }
     try:
         async with tenant_connection(user) as conn:
             rows = await conn.fetch(
@@ -924,6 +902,8 @@ async def get_inventory_projection(
         "season_id": season_id,
         "sync_enabled": _flag_enabled(_INVENTORY_SYNC_FLAG),
         "lines": [line.__dict__ for line in lines],
+        "inventory_write": False,
+        "write_path": _inventory_write_path(),
         "provenance": {"source": "farm_operations_ledger", "inventory_write": False},
     }
 

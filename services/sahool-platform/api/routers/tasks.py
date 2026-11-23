@@ -179,6 +179,13 @@ async def update_task(
         async with tenant_connection(user) as conn:
 
             async def _work():
+                task = await _apply()
+                # G3 (F-D09): الإغلاق يقول هل سُجِّلت نتيجة — ضمن المعاملة نفسها (409 يُرجِعها).
+                if req.status == "completed":
+                    task.update(await _record_task_outcome(conn, user, task_id, req))
+                return task
+
+            async def _apply():
                 row = await conn.fetchrow(query, *vals)
                 # حدث تحديث المهمّة (تفاعليّ): يبثّه وكيل الإشعارات للواجهة حيّاً. داخل
                 # المعاملة وفقط عند وجود الصفّ (مرشَّح بالمستأجِر عبر RLS).
@@ -218,7 +225,14 @@ async def update_task(
 
             if idem:
                 new_absent = {
-                    k for k in ("completed_at", "actual_cost_usd") if getattr(req, k) is None
+                    k
+                    for k in (
+                        "completed_at",
+                        "actual_cost_usd",
+                        "outcome_result",
+                        "outcome_evidence_ref",
+                    )
+                    if getattr(req, k) is None
                 }
                 digest = hashlib.sha256(
                     json.dumps(
@@ -301,3 +315,150 @@ def _task_updated_payload(row, changed_fields: list[str]) -> dict:
         "changed_fields": changed_fields,
         "updated_at": updated_at.isoformat() if updated_at is not None else None,
     }
+
+
+# ── G3: أمر العمل ⇐ مهمّة الحقل ⇐ نتيجة منسوبة ──────────────────────────────────────
+# راية واحدة مُطفأة افتراضاً تحكم الكتابتين الجديدتين: إنشاء المهمّة من أمر العمل (F-D06)
+# وتسجيل النتيجة عند الإغلاق (F-D09). الرابط يُحفَظ في work_orders (جدول المنصّة):
+# payload.field_task_id ثمّ payload.outcome — بجوار recommendation_id وpayload.decision_id.
+# الاستيرادات كسولة داخل الدوالّ كي لا تنزاح مراسي أسطر النقاط أعلاه.
+WORK_ORDER_FIELD_TASK_LINK_FLAG = "WORK_ORDER_FIELD_TASK_LINK_ENABLED"
+_WORK_ORDER_COLS = (
+    "work_order_id::text AS work_order_id, field_id, wo_type, status, recommendation_id, "
+    "payload::text AS payload"
+)
+
+
+def work_order_field_task_link_enabled() -> bool:
+    import os
+
+    value = os.getenv(WORK_ORDER_FIELD_TASK_LINK_FLAG, "0").strip().lower()
+    return value in {"1", "true", "yes", "on"}
+
+
+def _work_order_dict(row) -> dict:
+    return {**dict(row), "payload": json.loads(row["payload"] or "{}")}
+
+
+async def create_field_task_from_work_order(user: UserSchema, work_order_id: str) -> dict:
+    """F-D06: مهمّة حقل واحدة لكلّ أمر عمل — صريحة، معزولة بالمستأجِر، لا تتكرّر.
+
+    الراية مُطفأة ⇒ لا كتابة (``reason="disabled"``). أمر عمل لمستأجِر آخر أو غير موجود ⇒
+    404 (RLS). أمر عمل مغلق (done/verified/cancelled) ⇒ 409. أمر عمل مربوط بمهمّة ⇒ تُعاد
+    المهمّة نفسها (``replayed``). قفل الصفّ (FOR UPDATE) يُسلسِل الطلبين المتزامنين فلا
+    تُنشأ مهمّتان. لا يُغيّر حالة أمر العمل ولا يُنفّذ شيئاً.
+    """
+    from core.work_order_from_recommendation import work_order_to_field_task
+
+    from api.main import _assert_field_in_tenant
+
+    answer = {"requested": True, "created": False, "replayed": False, "task_id": None}
+    if not work_order_field_task_link_enabled():
+        return {**answer, "reason": "disabled"}
+    async with tenant_connection(user) as conn:
+        row = await conn.fetchrow(
+            f"SELECT {_WORK_ORDER_COLS} FROM work_orders WHERE work_order_id::text = $1 FOR UPDATE",
+            str(work_order_id),
+        )
+        if row is None:
+            raise HTTPException(status_code=404, detail="أمر العمل غير موجود ضمن هذا المستأجِر")
+        wo = _work_order_dict(row)
+        linked = wo["payload"].get("field_task_id")
+        if linked:
+            return {**answer, "replayed": True, "task_id": str(linked), "reason": "already_linked"}
+        draft = work_order_to_field_task(wo)
+        if draft is None:
+            raise HTTPException(
+                status_code=409, detail={"error": "work_order_closed", "status": wo["status"]}
+            )
+        await _assert_field_in_tenant(conn, draft["field_id"])
+        task_id = await conn.fetchval(
+            """INSERT INTO field_tasks
+                   (tenant_id, field_id, task_type, status, source_event_type, source_agent)
+               VALUES ($1::uuid, $2, $3, $4, $5, $6)
+               RETURNING task_id::text""",
+            str(user.tenant_id),
+            draft["field_id"],
+            draft["task_type"],
+            draft["status"],
+            draft["source_event_type"],
+            draft["source_agent"],
+        )
+        await conn.execute(
+            "UPDATE work_orders SET payload = COALESCE(payload, '{}'::jsonb) "
+            "|| jsonb_build_object('field_task_id', $2::text), updated_at = NOW() "
+            "WHERE work_order_id::text = $1",
+            wo["work_order_id"],
+            task_id,
+        )
+        await _emit_domain_event(
+            conn,
+            user,
+            "TASK_CREATED",
+            "task",
+            task_id,
+            {
+                "field_id": draft["field_id"],
+                "source": "work_order",
+                "work_order_id": wo["work_order_id"],
+                "recommendation_id": wo["recommendation_id"],
+                "decision_id": wo["payload"].get("decision_id"),
+            },
+        )
+    return {**answer, "created": True, "task_id": task_id, "reason": "created"}
+
+
+async def _record_task_outcome(conn, user: UserSchema, task_id: str, req) -> dict:
+    """F-D09: نتيجة منسوبة عند الإغلاق — فقط من نتيجة صريحة ومرجع دليلها.
+
+    الإغلاق الإداريّ (بلا نتيجة) لا يُسجّل شيئاً ولا يُقرأ تحقّقاً زراعيّاً. تُكتب النتيجة
+    على أمر العمل الذي أنتج المهمّة (``payload.outcome``) حاملةً recommendation_id
+    وdecision_id، و``verified=false``؛ حالة أمر العمل لا تُمسّ. الإعادة بالنتيجة نفسها ⇒
+    ``already_recorded``؛ نتيجة مختلفة لنتيجة قائمة ⇒ 409 (لا كتابة فوقها).
+    """
+    from datetime import UTC, datetime
+
+    from core.work_order_from_recommendation import build_work_order_outcome
+
+    def answer(recorded: bool, reason: str) -> dict:
+        return {"outcome_recorded": recorded, "outcome_reason": reason}
+
+    if req.outcome_result is None:
+        return answer(False, "no_result_supplied")
+    if not work_order_field_task_link_enabled():
+        return answer(False, "disabled")
+    row = await conn.fetchrow(
+        f"SELECT {_WORK_ORDER_COLS} FROM work_orders WHERE payload->>'field_task_id' = $1 "
+        "ORDER BY created_at ASC LIMIT 1 FOR UPDATE",
+        str(task_id),
+    )
+    if row is None:
+        return answer(False, "no_linked_work_order")
+    wo = _work_order_dict(row)
+    outcome = build_work_order_outcome(
+        wo,
+        task_id=task_id,
+        result=req.outcome_result,
+        evidence_ref=req.outcome_evidence_ref,
+        recorded_by=str(user.user_id),
+    )
+    if outcome is None:
+        return answer(False, "no_result_supplied")
+    existing = wo["payload"].get("outcome")
+    if existing:
+        same = all(existing.get(k) == outcome[k] for k in ("result", "evidence_ref", "task_id"))
+        if same:
+            return answer(True, "already_recorded")
+        raise HTTPException(
+            status_code=409,
+            detail={"error": "outcome_already_recorded", "work_order_id": wo["work_order_id"]},
+        )
+    outcome["recorded_at"] = datetime.now(UTC).isoformat()
+    await conn.execute(
+        "UPDATE work_orders SET payload = COALESCE(payload, '{}'::jsonb) "
+        "|| jsonb_build_object('outcome', $2::jsonb), updated_at = NOW() "
+        "WHERE work_order_id::text = $1",
+        wo["work_order_id"],
+        json.dumps(outcome, ensure_ascii=False),
+    )
+    return answer(True, "recorded")

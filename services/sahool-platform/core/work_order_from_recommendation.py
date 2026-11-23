@@ -66,6 +66,10 @@ def _build_payload(rec: dict) -> dict:
     for key in ("reason_ar", "reason", "quantity", "unit", "priority", "due_date"):
         if key in rec and rec[key] is not None:
             payload[key] = rec[key]
+    # G3 (F-D06): معرّف القرار حلقةٌ في سلسلة توصية ⇐ قرار ⇐ أمر عمل ⇐ مهمّة. كان يسقط هنا
+    # فلا يُعرَف من أمر العمل أيّ قرارٍ أنتجه. يُحمَل نصّاً كما ورد (لا يُخترَع إن غاب).
+    if rec.get("decision_id") is not None:
+        payload["decision_id"] = str(rec["decision_id"])
     return payload
 
 
@@ -99,3 +103,66 @@ def recommendations_to_work_orders(recs: list, *, field_id: str, tenant_id: str)
         if wo is not None:
             work_orders.append(wo)
     return work_orders
+
+
+# ── G3 (F-D06): أمر عمل ⇐ مهمّة حقل ─────────────────────────────────────────────────
+# أوامر العمل التي ما زالت قبل التنفيذ هي وحدها ما يُشتقّ منه مهمّة: المنجَز/المُتحقَّق/الملغى
+# لا يُعاد فتحه مهمّةً جديدة.
+_TASKABLE_WO_STATUSES = frozenset({"planned", "assigned", "in_progress"})
+
+
+def work_order_to_field_task(work_order: dict) -> dict | None:
+    """مسوّدة صفّ ``field_tasks`` من أمر عمل، أو ``None`` إن كان أمر العمل مغلقاً.
+
+    تنقل الحقل والنوع فقط وتُعلن مصدرها (``source_event_type``/``source_agent``)؛ لا تخترع
+    أولويّةً ولا موعداً ولا ملاحظةً زراعيّة — الباقي قيم الجدول الافتراضيّة. الرابط بين
+    الطرفين يُحفَظ في أمر العمل (``payload.field_task_id``) لا هنا. نقيّة: لا I/O.
+    """
+    if work_order.get("status") not in _TASKABLE_WO_STATUSES:
+        return None
+    return {
+        "field_id": work_order["field_id"],
+        "task_type": work_order["wo_type"],
+        "status": "pending",
+        "source_event_type": "WORK_ORDER_CREATED",
+        "source_agent": "work-order",
+    }
+
+
+# ── G3 (F-D09): إغلاق المهمّة ⇐ نتيجة منسوبة (لا تحقّق) ─────────────────────────────
+#: النتائج الصريحة المقبولة عند الإغلاق — تصنيفٌ لِما أبلغ به المنفّذ، لا حكمٌ زراعيّ.
+OUTCOME_RESULTS: frozenset[str] = frozenset(
+    {"achieved", "partially_achieved", "not_achieved", "inconclusive"}
+)
+
+
+def build_work_order_outcome(
+    work_order: dict,
+    *,
+    task_id: str,
+    result: str | None,
+    evidence_ref: str | None,
+    recorded_by: str,
+) -> dict | None:
+    """سجلّ نتيجة منسوب إلى التوصية والقرار، أو ``None`` حين لا نتيجة صريحة بدليلها.
+
+    الإغلاق الإداريّ (بلا ``result`` أو بلا ``evidence_ref``) ليس تحقّقاً زراعيّاً فلا يُنتج
+    سجلّاً. السجلّ المُنتَج ``verified=False`` دائماً: هو ما أبلغ به المنفّذ مع مرجع دليله،
+    والتحقّق خطوةُ إنسانٍ لاحقة لا يدّعيها الإغلاق. نقيّة: لا I/O.
+    """
+    if result not in OUTCOME_RESULTS:
+        return None
+    evidence = (evidence_ref or "").strip()
+    if not evidence:
+        return None
+    payload = work_order.get("payload") or {}
+    return {
+        "result": result,
+        "evidence_ref": evidence,
+        "task_id": str(task_id),
+        "recommendation_id": work_order.get("recommendation_id"),
+        "decision_id": payload.get("decision_id"),
+        "recorded_by": str(recorded_by),
+        "source": "task_close",
+        "verified": False,
+    }

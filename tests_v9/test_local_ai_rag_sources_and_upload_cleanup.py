@@ -174,11 +174,11 @@ def _ingest_endpoint(monkeypatch, tmp_path, ingest_documents, max_mb=1):
     return _functions({"ingest_endpoint"}, namespace)["ingest_endpoint"]
 
 
-async def _ok_ingest(paths, tenant_id, *, source_names):
+async def _ok_ingest(paths, tenant_id, *, source_names, scope):
     return {"chunks": len(paths)}
 
 
-async def _failing_ingest(paths, tenant_id, *, source_names):
+async def _failing_ingest(paths, tenant_id, *, source_names, scope):
     assert all(p.exists() for p in paths)
     raise RuntimeError("qdrant down")
 

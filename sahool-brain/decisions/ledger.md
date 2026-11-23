@@ -4956,3 +4956,17 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **القرار (المالك، 23 نوفمبر):** (أ) يُحذف استثناء `/api/v1/decisions/{decision_id}/execution-plan` ويُضاف إلى العقد الجوهريّ، لأنّ الواجهة تستهلكه في `frontend/src/services/api/irrigationManualCreation.ts`. (ب) تصير أربعة استثناءات آليّة بين الخدمات دائمةً بلا تاريخ (execute وclaim وreceipt وrollback-command)، فهي `intended_consumer=machine` و`no-ui-required` كسائر الاستثناءات التشغيليّة الدائمة. (ج) تُجدَّد ثمانية استثناءات WX-10/11 إلى 2026-12-31، و`/api/v1/scenario/economics` إلى 2026-12-27 ليبقى التاريخ الفريد الذي ترسو عليه طفرة `guard_mutation_registry`. وتُزال `services/auth/railway.json` قبل تقاعد Config-as-Code في Railway يوم 2026-12-01.
 - **السبب:** بلا تغيير تفشل `waiver_expiry_guard` كلّ طلب دمج من 28 نوفمبر. القياس على main@c486c657: لا يذكر أيّ ملفّ في frontend/src أو mobile مسارات (ج)، ولا تضيفها الموجة 3. وإعدادات Railway لـsahool-auth (إنتاج) وsahool-auth-main (إنتاج وstaging) تختار `services/auth/Dockerfile` ولا تسمّي ملفّ إعداد.
 - **الأثر:** دمج إزالة railway.json يعيد بناء sahool-auth-main في الإنتاج وstaging بحسب `railway_deploy_impact.py`، ولا يمسّ sahool-auth (فرع نشر منفصل).
+## 2026-11-23 — #1582 مدموجٌ (`97353546`) بعد استيفاء شروط المالك
+
+- **القرار:** دمج #1582 squash في `973535460d9c856465ef490e02b825d80a0d1817`، مثبَّتاً على الرأس المختبَر `e00d5905` (شجرة main `61bf5cb2` تطابق شجرته).
+- **السبب:** شروط المالك («موافق على الدمج بالشروط») مستوفاة على الرأس نفسه: إيصال المختبر 1582-v6 PASS (مسار المهلة يُرفض بـ409 ولا يبلغ rag-retrieval، والحارس أحمر تحت 16 من 17 ضابطاً)، ومراجعة المستشفى PASS (`discussion_r4660680258`)، وCI أخضر.
+- **ما بقي مفتوحاً:** `RAG-INGEST-CROSS-REPLICA-PUBLICATION-NOT-COORDINATED-01` — مستدعٍ مباشر لـrag-retrieval يحمل `X-Agent-Token` يتجاوز القفل؛ وإغلاقها بقفل مشترك لكلّ مستند أو معرّفات تخزين لكلّ نشر.
+- **المصدر:** #1582 · إيصال المختبر 1582-v6 (unified-local-lab #106) · مراجعة المستشفى.
+
+## 2026-11-23 — v288 مُعتمَدة، والأسماء النشطة قبلها تبقى نشطة (قرارا المالك، #1587)
+
+- **القرار ١:** v288 (`migrations/v288_model_promotion_terminal_state.sql`) معتمدةٌ بتطبيقٍ على staging بعد الدمج يجريه المستشفى (نسخة احتياطيّة، فحص، تطبيق، إعادة ضبط، فحص)؛ الإنتاج لا يُمسّ.
+- **القرار ٢:** الأسماء المستعارة التي كانت `active` قبل v288 تبقى نشطة. كلّ ترقيةٍ بعد الهجرة تمرّ بـ`pending_external_ack` حتّى يصل الإقرار الخارجيّ، ومنها إعادة توجيه اسمٍ قديم إلى نسخةٍ جديدة. والسجلّ يصف الاسم القديم بأنّه «نشطٌ قبل v288» ولا ينسب إليه إقراراً لم يقع.
+- **التطبيق في الكود:** إشعار v288 يقول «active before v288» ولا يقول «acknowledged»؛ وكاتب المنصّة والعامل كلاهما يكتبان `pending_external_ack` عند إعادة التوجيه. مثبَتان بـ`test_v288_backfills_history_once_and_reports_aliases_active_before_it` و`test_repointing_an_alias_active_before_v288_waits_for_the_external_ack` (`tests_v9/test_model_promotion_ack_live_pg.py`).
+- **السبب:** لا مسار إقرارٍ قائم، فكلّ اسمٍ نشط كُتب بلا إقرار؛ وأيّها يخدم فعلاً حقيقةٌ تشغيليّة لا تُثبتها الهجرة، فلا يُغيَّر ولا يُنسَب إليه ما لم يقع.
+- **المصدر:** #1587 · رسالة المستشفى/S1 بقراري المالك (2026-11-23) · مراجعة المستشفى المستقلّة على `314bd4b2`.

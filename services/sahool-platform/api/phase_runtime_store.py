@@ -756,16 +756,20 @@ async def persist_phase10_learning_outputs(
                 serving.get("rollback_target_model_id"),
             )
             if serving.get("decision") == "promote" and serving.get("target_model_id"):
+                # F-D04: a promote decision is a request, not serving. The alias waits as
+                # pending_external_ack until an acknowledgement from the serving backend is
+                # recorded; it never becomes active here (v108's column default was 'active').
                 await _tenant_execute(
                     conn,
                     tenant,
                     """
                     INSERT INTO model_serving_aliases_runtime
-                        (tenant_id, alias, model_id, previous_model_id, promotion_id)
-                    VALUES ($1,$2,$3,$4,$5)
+                        (tenant_id, alias, model_id, previous_model_id, promotion_id, status)
+                    VALUES ($1,$2,$3,$4,$5,'pending_external_ack')
                     ON CONFLICT (tenant_id, alias) DO UPDATE SET
                         model_id = EXCLUDED.model_id, previous_model_id = EXCLUDED.previous_model_id,
-                        promotion_id = EXCLUDED.promotion_id, updated_at = now()
+                        promotion_id = EXCLUDED.promotion_id, status = 'pending_external_ack',
+                        updated_at = now()
                     """,
                     tenant,
                     str(serving.get("alias")),

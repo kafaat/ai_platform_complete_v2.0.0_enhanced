@@ -1302,10 +1302,11 @@
       "unit_test_paths": []
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -1337,7 +1338,7 @@
         "database": true,
         "documentation": true,
         "events": true,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": false,
         "production": false,
         "runtime": false,
@@ -1372,7 +1373,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -1407,17 +1408,20 @@
           "type": "web"
         }
       ],
-      "evidence_score": 7,
+      "evidence_score": 8,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "tests_v9/test_governed_learning_review_live_pg.py",
+        "tests_v9/test_model_promotion_ack_live_pg.py"
+      ],
       "learning_linked": true,
-      "maturity_alignment": "aligned",
-      "maturity_delta": 0,
+      "maturity_alignment": "evidence_above_declared",
+      "maturity_delta": 1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
@@ -1456,6 +1460,16 @@
           "evidence_type": "unit",
           "path": "tests/runtime/test_phase20_worker_side_effect_contracts.py",
           "signal": "filename:contract_without_integration_signal"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_governed_learning_review_live_pg.py",
+          "signal": "pytest.mark.integration"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_model_promotion_ack_live_pg.py",
+          "signal": "pytest.mark.integration"
         }
       ],
       "title": "Model lifecycle and activation",
@@ -1986,7 +2000,9 @@
         "tests_v9/test_farm_book_receipt_scope_live_pg.py",
         "tests_v9/test_farm_book_settlement_guards_live_pg.py",
         "tests_v9/test_farm_ledger_cost_coverage_live_pg.py",
+        "tests_v9/test_farm_ledger_inventory_deduction_live_pg.py",
         "tests_v9/test_farm_water_ledger_projection_live_pg.py",
+        "tests_v9/test_weather_save_point_in_field_live_pg.py",
         "tests_v9/test_yield_server_features_live_pg.py"
       ],
       "learning_linked": false,
@@ -2128,6 +2144,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_farm_ledger_inventory_boundary.py",
+          "signal": "filename:test_"
+        },
+        {
+          "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_farm_memory.py",
           "signal": "filename:test_"
         },
@@ -2247,6 +2268,11 @@
           "signal": "pytest.mark.integration"
         },
         {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_farm_ledger_inventory_deduction_live_pg.py",
+          "signal": "pytest.mark.integration"
+        },
+        {
           "evidence_type": "unit",
           "path": "tests_v9/test_farm_memory.py",
           "signal": "pytest.mark.unit"
@@ -2270,6 +2296,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_sim_golden.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_weather_save_point_in_field_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",
@@ -2310,6 +2341,7 @@
         "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
         "services/sahool-platform/tests/test_farm_full_season_forensic.py",
         "services/sahool-platform/tests/test_farm_ledger.py",
+        "services/sahool-platform/tests/test_farm_ledger_inventory_boundary.py",
         "services/sahool-platform/tests/test_farm_memory.py",
         "services/sahool-platform/tests/test_farm_operations_ledger.py",
         "services/sahool-platform/tests/test_farmer_agency.py",
@@ -3485,6 +3517,11 @@
           "signal": "filename:_test."
         },
         {
+          "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_farm_ledger_inventory_boundary.py",
+          "signal": "filename:test_"
+        },
+        {
           "evidence_type": "integration",
           "path": "tests_v9/test_inventory_equipment.py",
           "signal": "pytest.mark.integration"
@@ -3501,6 +3538,7 @@
         "mobile/sahool_app/test/features/inventory/inventory_item_screen_test.dart",
         "mobile/sahool_app/test/features/inventory/inventory_screen_test.dart",
         "mobile/sahool_app/test/features/inventory/inventory_sheets_test.dart",
+        "services/sahool-platform/tests/test_farm_ledger_inventory_boundary.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py"
       ]
     },
@@ -6732,10 +6770,11 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -6767,7 +6806,7 @@
         "database": true,
         "documentation": true,
         "events": true,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": false,
         "production": false,
         "runtime": false,
@@ -6802,7 +6841,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -6837,17 +6876,19 @@
           "type": "web"
         }
       ],
-      "evidence_score": 7,
+      "evidence_score": 8,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "tests_v9/test_work_order_field_task_link_live_pg.py"
+      ],
       "learning_linked": false,
-      "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
@@ -6871,6 +6912,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_telegram_work_order_delivery.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_work_order_field_task_link_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",
@@ -11108,6 +11154,7 @@
       "integration_test_paths": [
         "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
         "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
+        "services/decision-service/tests/test_outbox_backlog_live_pg.py",
         "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
         "services/scout-ingest-service/tests/test_ingest_live.py",
         "services/scout-ingest-service/tests/test_media_live.py",
@@ -11120,6 +11167,7 @@
         "tests_v9/test_event_history_contract_live_pg.py",
         "tests_v9/test_field_aggregate_ports_integration.py",
         "tests_v9/test_fii_rls_write_fail_closed_postgres.py",
+        "tests_v9/test_hourly_mpc_schedule_writer_live_pg.py",
         "tests_v9/test_imagery_automation_rls_live_pg.py",
         "tests_v9/test_ledger_season_currency_governance_live_pg.py",
         "tests_v9/test_live_pg_fake_connection_debt.py",
@@ -11195,6 +11243,16 @@
           "evidence_type": "integration",
           "path": "services/decision-service/tests/test_migration_037_force_rls_pg16.py",
           "signal": "pytest.mark.integration"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "services/decision-service/tests/test_outbox_backlog_live_pg.py",
+          "signal": "pytest.mark.integration"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "services/decision-service/tests/test_outbox_backlog_truthfulness.py",
+          "signal": "pytest.mark.unit"
         },
         {
           "evidence_type": "unit",
@@ -11379,6 +11437,11 @@
         {
           "evidence_type": "integration",
           "path": "tests_v9/test_fii_rls_write_fail_closed_postgres.py",
+          "signal": "pytest.mark.integration"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_hourly_mpc_schedule_writer_live_pg.py",
           "signal": "pytest.mark.integration"
         },
         {
@@ -11607,6 +11670,7 @@
         "services/decision-service/tests/test_element84_inventory_pg16.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_migration_034_pg16.py",
+        "services/decision-service/tests/test_outbox_backlog_truthfulness.py",
         "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/decision-service/tests/test_tenant_binding_force_rls.py",
         "services/sahool-platform/tests/test_indicator_observations_route.py",
@@ -11798,6 +11862,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "tests_v9/test_local_ai_rag_upload_field_scope.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_service_tenant_assertion.py",
           "signal": "pytest.mark.unit"
         }
@@ -11806,6 +11875,7 @@
       "unit_test_paths": [
         "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
         "tests_v9/test_internal_tenant_assertion_w0_05.py",
+        "tests_v9/test_local_ai_rag_upload_field_scope.py",
         "tests_v9/test_service_tenant_assertion.py"
       ]
     },
@@ -13228,9 +13298,11 @@
       ]
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -13262,12 +13334,12 @@
         "database": true,
         "documentation": true,
         "events": false,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": false
       },
       "evidence_records": [
@@ -13297,7 +13369,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -13322,7 +13394,7 @@
           "type": "runtime_instrumentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "unit_tests"
         },
@@ -13332,23 +13404,38 @@
           "type": "web"
         }
       ],
-      "evidence_score": 5,
+      "evidence_score": 7,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "tests_v9/test_vra_owner_lab_pack_g9_live_pg.py"
+      ],
       "learning_linked": false,
-      "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -2,
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
-      "test_evidence_attribution": [],
+      "test_evidence_attribution": [
+        {
+          "evidence_type": "unit",
+          "path": "tests_v9/test_vra_owner_lab_pack_g9.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_vra_owner_lab_pack_g9_live_pg.py",
+          "signal": "pytest.mark.integration"
+        }
+      ],
       "title": "Laboratory results",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "tests_v9/test_vra_owner_lab_pack_g9.py"
+      ]
     },
     {
       "assessed_maturity": 1,
@@ -15187,11 +15274,11 @@
   "source_mapping": "docs/capability-registry/generated/mapping/capability_mapping.json",
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
-    "aligned": 35,
-    "average_assessed_maturity": 2.06,
+    "aligned": 36,
+    "average_assessed_maturity": 2.11,
     "capability_count": 81,
-    "declared_above_evidence": 39,
-    "evidence_above_declared": 7,
+    "declared_above_evidence": 37,
+    "evidence_above_declared": 8,
     "production_certified": 0,
     "promotion_preconditions_satisfied": 0,
     "runtime_verified": 0

@@ -15,6 +15,7 @@ Only the users row is seeded by the schema owner: accounts are provisioned by th
 from __future__ import annotations
 
 import asyncio
+import importlib
 import os
 import sys
 import uuid
@@ -24,13 +25,28 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
-asyncpg = pytest.importorskip("asyncpg")
-httpx = pytest.importorskip("httpx")
-pytest.importorskip("fastapi")
+# Switch read before any import (test_certification_switch_precedes_importorskip): on the
+# certifying CI step a missing dependency or an unusable database fails the run, not a skip.
+_CERTIFICATION_REQUIRED = os.getenv("FIELD_TASK_ON_API_FIELD_CERTIFICATION_REQUIRED") == "1"
+
+
+def _require(module: str):
+    """Import ``module``; under the certification switch a missing one fails the run."""
+    if _CERTIFICATION_REQUIRED:
+        return importlib.import_module(module)
+    return pytest.importorskip(module)
+
+
+asyncpg = _require("asyncpg")
+httpx = _require("httpx")
+_require("fastapi")
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
-DSN = os.getenv(
+# The module connects as the schema owner and creates its own throwaway NOBYPASSRLS role for the
+# request path. On its certifying CI step the owner comes from TEST_DATABASE_ADMIN_URL, so the
+# step's TEST_DATABASE_URL never names a privileged role.
+DSN = os.getenv("TEST_DATABASE_ADMIN_URL") or os.getenv(
     "TEST_DATABASE_URL", "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test"
 )
 RING = [[44.200, 15.300], [44.204, 15.300], [44.204, 15.304], [44.200, 15.304], [44.200, 15.300]]
@@ -51,6 +67,10 @@ async def _probe() -> str:
 
 
 _WHY = asyncio.run(_probe())
+if _WHY and _CERTIFICATION_REQUIRED:
+    raise RuntimeError(
+        f"FIELD_TASK_ON_API_FIELD_CERTIFICATION_REQUIRED=1 but the live database is unusable: {_WHY}"
+    )
 pytestmark.append(pytest.mark.skipif(bool(_WHY), reason=f"declared skip (not a pass): {_WHY}"))
 
 
@@ -89,6 +109,9 @@ async def _journey(monkeypatch) -> dict:
 
     pool = await asyncpg.create_pool(DSN, min_size=1, max_size=4, setup=setup)
     monkeypatch.setattr(main, "_DB_POOL", pool)
+    # The per-client minute window is shared by every test in the process; this journey
+    # must not spend it for the live tests that follow (as test_farm_access_scope_live_pg).
+    monkeypatch.setattr(main, "_RATE_LIMIT_PER_MIN", 0, raising=False)
 
     # Creating a field queues Sentinel processing after the response; it calls other services
     # and is not what this file measures.
@@ -98,9 +121,16 @@ async def _journey(monkeypatch) -> dict:
     monkeypatch.setattr(fields_router, "_kick_imagery_processing", no_imagery)
 
     # The operation plan is read from the weather service; this file measures the task write,
-    # so the plan is a fixed spraying window instead of a network call.
+    # so the plan is a fixed spraying window instead of a network call. Only a window the plan
+    # recommends and states safe may be saved (G1), so the fixed window carries those flags.
     async def fixed_plan(**_kwargs):
-        return {"top_recommendation": {"operation": "spraying"}}
+        return {
+            "top_recommendation": {
+                "operation": "spraying",
+                "recommended": True,
+                "best": {"operation": {"operation": "spraying", "safe": True}},
+            }
+        }
 
     monkeypatch.setattr(weather_router, "weather_operation_plan", fixed_plan)
     users = {}
