@@ -121,8 +121,7 @@
         "post@services/sahool-platform/api/routers/auth.py"
       ],
       "reason_category": "operational",
-      "reason": "التسجيل مغطّى بـSignupPage عبر /auth/register؛ هذا متغيّر بوّابة المنصّة لنفس القدرة. PERMANENT 2026-11-23 (owner decision 23 Nov, per-item review, measured on main@be73b2be (2026-11-23)): no UI by design — gateway alias of registration, covered by /auth/register (frontend/src/services/api/auth.ts:128, SignupPage).",
-      "permanent": true,
+      "reason": "التسجيل مغطّى بـSignupPage عبر /auth/register؛ هذا متغيّر بوّابة المنصّة لنفس القدرة. RENEWED 2026-11-23 to 2027-03-31 (owner decision 23 Nov, per-item review), kept temporary: not a registration alias — services/sahool-platform/api/routers/auth.py:137 is a dev-only token issuer that never creates an account, disabled unless SAHOOL_DEV_AUTH=1 outside production (403 otherwise). Exempting it as a dev-only endpoint needs an owner decision (Copilot on #1596).",
       "priority": "none",
       "ui_effort": "page",
       "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
@@ -130,7 +129,9 @@
       "importance": 40,
       "importance_tier": "P2-متوسّط",
       "intended_consumer": "machine",
-      "owner": "auth"
+      "owner": "sahool-platform",
+      "tracking": "DEV-AUTH-SIGNUP-DECISION",
+      "expiry": "2027-03-31"
     },
     {
       "endpoint": "/api/v1/automation/imagery/register-field",
@@ -765,7 +766,7 @@
         "get@services/sahool-platform/api/routers/weather.py"
       ],
       "reason_category": "operational",
-      "reason": "اختبار ذاتيّ جافّ لمحرّك الطقس (dry-run بلا I/O) — CI/تشخيص لا واجهة. PERMANENT 2026-11-23 (owner decision 23 Nov, per-item review, measured on main@be73b2be (2026-11-23)): no UI by design — service-token route (service_token_routes) — dry-run self-test by design.",
+      "reason": "اختبار ذاتيّ جافّ لمحرّك الطقس (dry-run بلا I/O) — CI/تشخيص لا واجهة. PERMANENT 2026-11-23 (owner decision 23 Nov, per-item review, measured on main@be73b2be (2026-11-23)): no UI by design — dry-run self-test without external I/O (services/sahool-platform/api/routers/weather.py:1945 docstring); diagnostic, no tenant data. Corrected after Copilot on #1596: it carries no service-token dependency of its own; service_token_routes matched it through a 700-character window that reaches the next route's token check.",
       "permanent": true,
       "priority": "none",
       "ui_effort": "none",
