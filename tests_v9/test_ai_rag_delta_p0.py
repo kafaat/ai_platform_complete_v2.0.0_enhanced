@@ -92,10 +92,16 @@ def test_dense_sparse_fusion_uses_canonical_chunk_id_and_survives_restart():
         def ensure_collection(self, *, vector_size=None):
             assert vector_size == 32
 
-        def upsert(self, chunks, embeddings):
+        def upsert(self, chunks, embeddings, *, published_ns=None):
             for chunk, vector in zip(chunks, embeddings, strict=True):
                 point_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"sahool-rag:{chunk.chunk_id}"))
                 self.points[point_id] = (chunk.payload, vector)
+
+        def withdraw_document_points(self, *, tenant_id, document_id, keep_point_ids):
+            return []  # one ingest of one document: nothing earlier to withdraw
+
+        def settle_document_publications(self, *, tenant_id, document_id):
+            return [], None  # no earlier publication to compare with
 
         def search(self, vector, *, tenant_id, filters=None, limit=12):
             rows = []

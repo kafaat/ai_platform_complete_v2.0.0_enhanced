@@ -387,8 +387,9 @@ export default function App() {
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;
       // «الحقول والخريطة»: المرحلة 1 تجعل Map Hub الموحّد السطح الأساسيّ.
-      // FieldManagementPage السابق يبقى مُستورَداً ومتاحاً (لم يُحذَف) لكنّه لم يَعُد
-      // الافتراضيّ لهذا المسار — الـMap Hub يَخلُفه (يشمل إنشاء/استيراد الحقل داخله).
+      // FieldManagementPage السابق باقٍ في الشجرة لكنّه غير مُستورَد هنا، فلا يصل إليه مسار.
+      // الـMap Hub يَخلُفه (يشمل إنشاء/استيراد الحقل داخله)، وتشغيل محاكاة الموسم الذي كان
+      // فيه صار في HybridIndexPage عبر SeasonSimulationDialog.
       case 'fields':       return <MyFieldsPage />;
       case 'recommendations': return <RecommendationPage />;
       case 'lab-sampling': return <LabSamplingPage />;

@@ -457,7 +457,7 @@
       },
       "evidence_truncated": {
         "apis": 239,
-        "tests": 165,
+        "tests": 166,
         "mobile_consumers": 50
       }
     },
@@ -593,7 +593,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 18
+        "tests": 19
       }
     },
     {

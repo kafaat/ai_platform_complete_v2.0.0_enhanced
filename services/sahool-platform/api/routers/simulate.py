@@ -30,6 +30,13 @@ WOFOST يبقى كسولاً داخل الدالّة كما كان. لتفادي
 وG5: طقسٌ ناقص كان يُملأ بثوابت ويُسمّى «حقيقيّاً». المحرّك صار يستوفي الفجوات الصغيرة
 ويَسِمها (``weather_provenance``) ويرفض الكبيرة بـ``WEATHER_GAPS_EXCEEDED``؛ الموجِّه
 يُمرّر النَّسَب في الاستجابة ويُعيد رمز الرفض المُنمَّط كما هو.
+
+وF-E11 (``FI-SIMULATION-IGNORES-SELECTED-ACTION-01``): حلقة القرار كانت ترسل
+``scenario="recommended_action"`` ثابتاً فتُقارَن «ريّ كامل» بـ«بلا ريّ» أيّاً كان الإجراء
+المختار، ثمّ يُسمّى الناتج «أثر الإجراء المقترَح». صار الإجراء المختار مُدخَلاً صريحاً
+(``selected_action``: النوع · المقدار بوحدته · وقت التطبيق)؛ وما لا يعبّر عنه المحرّك
+يُرفَض **بسببٍ مُسمّى** قبل أيّ تشغيل، لا يُستبدَل بسيناريو ثابت. والمقارنة العامّة (بلا
+``selected_action``) باقية لمستهلكها لكنّها تُعلن ``comparison_kind`` باسمها.
 """
 
 from __future__ import annotations
@@ -39,6 +46,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from api.main import (
     UserSchema,
@@ -96,6 +104,64 @@ def canonical_engine_parameters(crop: str, soil_type: str) -> dict[str, float]:
     return params
 
 
+class SelectedActionAmount(BaseModel):
+    """مقدار الإجراء المختار بوحدته — كما خرج من القرار، بلا تحويل ولا قيمة افتراضيّة."""
+
+    value: float = Field(gt=0, allow_inf_nan=False)
+    unit: str = Field(min_length=1)
+
+
+class SelectedAction(BaseModel):
+    """الإجراء الذي اختاره القرار: نوعه · مقداره بوحدته · وقت تطبيقه.
+
+    ``amount`` و``apply_at`` اختياريّان في **الطلب** لأنّ القرار قد لا يُنتجهما؛ غيابهما
+    يُرفَض بسببٍ مُسمّى في الاستجابة (لا يُملآن بقيمة من عند الخدمة).
+    """
+
+    action_type: str = Field(min_length=1)
+    amount: SelectedActionAmount | None = None
+    apply_at: str | None = None
+
+
+class SelectedActionWhatIfRequest(WhatIfRequest):
+    """``WhatIfRequest`` + الإجراء المختار. بدونه: مقارنة الريّ العامّة (توافق خلفيّ)."""
+
+    selected_action: SelectedAction | None = None
+
+
+# أنواع الإجراءات التي للمحرّك مُدخَلٌ يقابلها. WOFOST هنا يحاكي الماء فقط (نسبة ريّ
+# موسميّة) — لا تسميد ولا غسيل ملوحة ولا مكافحة ولا فحص ميدانيّ.
+_ENGINE_MODELLED_ACTION_TYPES: frozenset[str] = frozenset({"irrigation"})
+
+_NOT_SIMULATED_NOTES_AR: dict[str, str] = {
+    "action_type_not_modelled": (
+        "نوع الإجراء المختار لا يحاكيه المحرّك (يحاكي الريّ فقط) — لم تُشغَّل محاكاة"
+    ),
+    "action_amount_missing": ("القرار لم يحدّد مقدار الإجراء ووحدته — لم تُشغَّل محاكاة بمقدارٍ مفترَض"),
+    "action_time_missing": ("القرار لم يحدّد وقت تطبيق الإجراء — لم تُشغَّل محاكاة بوقتٍ مفترَض"),
+    "engine_has_no_dated_application_input": (
+        "المحرّك يقبل نسبة ريّ موسميّة فقط، لا مقداراً مؤرَّخاً — "
+        "لم يُحاكَ الإجراء المختار ولم يُستبدَل بسيناريو ثابت"
+    ),
+}
+
+
+def selected_action_refusal_reason(action: SelectedAction) -> str:
+    """لماذا لا يُحاكى هذا الإجراء — رمز من قائمة مغلقة. نقيّة (بلا I/O).
+
+    تُعيد سبباً **دائماً** اليوم: ``simulate_wofost`` لا يملك مُدخَلاً لمقدارٍ مؤرَّخ
+    (``irrigation_fraction`` نسبة إعادة ملء على الموسم كلّه). تحويل «٢٥ مم يوم كذا» إلى
+    نسبة موسميّة اختلاقٌ لا محاكاة، فحتّى الريّ المكتمل الحقول يُرفَض حتّى يُضاف المُدخَل.
+    """
+    if action.action_type not in _ENGINE_MODELLED_ACTION_TYPES:
+        return "action_type_not_modelled"
+    if action.amount is None:
+        return "action_amount_missing"
+    if not action.apply_at:
+        return "action_time_missing"
+    return "engine_has_no_dated_application_input"
+
+
 def _unavailable(field_id: str, code: str, note_ar: str, correlation_id: str) -> dict[str, Any]:
     """استجابة تعذّر موحّدة: رمز ثابت للآلة، نصّ عامّ للإنسان، تفاصيل في السجلّ فقط."""
     return {
@@ -111,7 +177,7 @@ def _unavailable(field_id: str, code: str, note_ar: str, correlation_id: str) ->
 
 @router.post("/api/v1/simulate/what-if")
 async def simulate_what_if(
-    req: WhatIfRequest,
+    req: SelectedActionWhatIfRequest,
     user: UserSchema = Depends(get_current_user),
 ):
     """يحاكي أثر سيناريو (تقليل/إيقاف الريّ) على المحصول والماء.
@@ -119,8 +185,40 @@ async def simulate_what_if(
     Runtime Cohesion: يغذّي حلقة القرار بأثر متوقّع للإجراء المقترَح. يشغّل
     WOFOST مرّتين (الإجراء الموصى به مقابل السيناريو) ويقارن. صدق: عند تعذّر
     النموذج/الطقس يُعلَن (لا أرقام مخترَعة). lat/lon إلزاميّان للطقس الحيّ.
+
+    مع ``selected_action`` (حلقة القرار): الإجراء المختار هو المُدخَل. إن لم يعبّر عنه
+    المحرّك عادت ``selected_action_simulated: false`` بسببها **بلا تشغيل** — و``scenario``
+    لا يُقرأ عندها (لا سيناريو ثابت من الباب الخلفيّ).
     """
     correlation_id = uuid.uuid4().hex[:16]
+
+    # getattr: مستدعٍ داخليّ يمرّر ``WhatIfRequest`` الأساس (بلا الحقل) يبقى مقارنةً عامّة.
+    chosen: SelectedAction | None = getattr(req, "selected_action", None)
+    if chosen is not None:
+        if chosen.apply_at:
+            from datetime import datetime as _datetime
+
+            try:
+                _datetime.fromisoformat(chosen.apply_at)
+            except ValueError:
+                raise HTTPException(
+                    status_code=422,
+                    detail=(
+                        f"selected_action.apply_at غير صالح: {chosen.apply_at!r} — "
+                        "يُتوقَّع تاريخ/وقت ISO-8601"
+                    ),
+                ) from None
+        reason = selected_action_refusal_reason(chosen)
+        out = _unavailable(
+            req.field_id,
+            "SELECTED_ACTION_NOT_SIMULATED",
+            _NOT_SIMULATED_NOTES_AR[reason],
+            correlation_id,
+        )
+        out["selected_action"] = chosen.model_dump()
+        out["selected_action_simulated"] = False
+        out["not_simulated_reason"] = reason
+        return out
 
     if req.lat is None or req.lon is None:
         return _unavailable(
@@ -258,6 +356,10 @@ async def simulate_what_if(
     return {
         "field_id": req.field_id,
         "available": True,
+        # مقارنة ريّ عامّة (ريّ كامل مقابل السيناريو) — ليست محاكاةً لإجراءٍ اختاره قرار.
+        "comparison_kind": "generic_irrigation_scenario",
+        "selected_action": None,
+        "selected_action_simulated": False,
         "scenario": req.scenario,
         "scenario_irrigation_fraction": scenario_fraction,
         "action_irrigation_fraction": ACTION_IRRIGATION_FRACTION,

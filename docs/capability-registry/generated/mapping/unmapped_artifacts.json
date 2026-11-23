@@ -688,6 +688,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/maphub/ProposalPanelActions.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/SceneProvenanceCard.test.tsx",
     "kind": "web"
   },
@@ -11136,6 +11140,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_advisor_generation_scope.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_advisor_source_tagging.py",
     "kind": "tests"
   },
@@ -12244,6 +12252,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_field_intelligence_selected_action_simulation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_field_portfolio.py",
     "kind": "tests"
   },
@@ -12808,7 +12820,15 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_local_ai_rag_publish_serialisation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_local_ai_rag_sources_and_upload_cleanup.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_local_ai_rag_upload_filename_conflict.py",
     "kind": "tests"
   },
   {
@@ -13312,6 +13332,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_canonical_ingest_single_writer.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_complete_reindex_manifest.py",
     "kind": "tests"
   },
@@ -13341,6 +13365,10 @@
   },
   {
     "path": "tests_v9/test_rag_document_metadata_sanitization.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_document_revision_withdrawal.py",
     "kind": "tests"
   },
   {

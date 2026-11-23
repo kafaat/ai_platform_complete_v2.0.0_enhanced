@@ -1024,6 +1024,7 @@ FM-003,test,tests_v9/test_field_geometry_save_atomic_live_pg.py,3,applied
 FM-003,test,tests_v9/test_field_geometry_save_guard_20260703.py,3,applied
 FM-003,test,tests_v9/test_field_intelligence_cloud.py,3,applied
 FM-003,test,tests_v9/test_field_intelligence_endpoints.py,3,applied
+FM-003,test,tests_v9/test_field_intelligence_selected_action_simulation.py,3,applied
 FM-003,test,tests_v9/test_field_portfolio.py,3,applied
 FM-003,test,tests_v9/test_field_readiness.py,3,applied
 FM-003,test,tests_v9/test_field_recommendations_projection_rollback_live_pg.py,3,applied
@@ -1154,6 +1155,7 @@ FM-004,test,tests_v9/test_season_lifecycle_behavior_v66.py,3,applied
 FM-004,test,tests_v9/test_season_logbook_content_safety.py,3,applied
 FM-004,test,tests_v9/test_season_simulate_gateway_route.py,3,applied
 FM-004,test,tests_v9/test_season_simulation_behavior_v66.py,3,applied
+FM-004,test,tests_v9/test_season_simulation_timeout_chain.py,3,applied
 FM-004,test,tests_v9/test_season_state_sources_live_pg.py,3,applied
 FM-004,test,tests_v9/test_season_workspace.py,3,applied
 FM-004,test,tests_v9/test_v201_season_records_static.py,3,applied

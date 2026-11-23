@@ -12,6 +12,7 @@ import hashlib
 import json
 import math
 import re
+import time
 import urllib.error
 import urllib.request
 import uuid
@@ -998,6 +999,15 @@ class BM25Index:
             terms
         )
 
+    def remove(self, key: ChunkIdentity) -> None:
+        """Withdraw one chunk and its contribution to its tenant's corpus statistics."""
+        if key not in self.docs:
+            return
+        self._retract(key)
+        del self.docs[key]
+        self.term_freqs.pop(key, None)
+        self.doc_len.pop(key, None)
+
     def clear(self) -> None:
         self.docs.clear()
         self.term_freqs.clear()
@@ -1103,6 +1113,114 @@ class BM25Index:
             if s > 0:
                 rows.append((chunk, s))
         return sorted(rows, key=lambda x: x[1], reverse=True)[:limit]
+
+
+class DocumentRevisionError(ValueError):
+    """Refusal of an ingest batch that is not one complete revision per document.
+
+    ``code`` is the stable machine-readable reason; the message carries the detail.
+    """
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+@dataclass(frozen=True)
+class IndexingReceipt:
+    """What one ingest did to one ``(tenant, document)``: the replace-document answer.
+
+    ``chunks_withdrawn`` counts stored points of that tenant's document that are not
+    part of the ingested revision and were deleted from the store. ``revision`` is the
+    declared ``source_revision`` (``None`` when the source class does not carry one).
+    """
+
+    tenant_id: str
+    document_id: str
+    revision: str | None
+    chunks_written: int
+    chunks_withdrawn: int
+    # True when another replica published a newer revision of the same document while
+    # this one was being written: this revision was written, then withdrawn in its favour.
+    superseded: bool = False
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "tenant_id": self.tenant_id,
+            "document_id": self.document_id,
+            "revision": self.revision,
+            "chunks_written": self.chunks_written,
+            "chunks_withdrawn": self.chunks_withdrawn,
+            "superseded": self.superseded,
+        }
+
+
+def chunk_revision(chunk: KnowledgeChunk) -> str | None:
+    """The document revision a chunk belongs to: its declared ``source_revision``."""
+    return str(chunk.metadata.get("source_revision") or "").strip() or None
+
+
+# A payload-root stamp (not metadata, which readers sanitise) recording when this point's
+# revision was published. Every publisher writes its rows first and only then reads the
+# document back: the newest publication it sees ((stamp, revision), highest wins) is kept
+# and every other row of the document is withdrawn, its own included when it lost. Two
+# replicas publishing at once therefore converge on one complete revision whatever the
+# order of their writes and clean-ups: the newest publication's rows are never deleted
+# (nobody sees anything newer), and the last publisher to read back has seen every write,
+# so it removes the rest (review findings on #1582, lab receipt 1582-v2). Rows written
+# before stamps existed carry none and count as older than any stamped row.
+PUBLICATION_STAMP_KEY = "revision_published_ns"
+
+
+def _publication_stamp() -> int:
+    return time.time_ns()
+
+
+def _publication_key(payload: dict[str, Any], stored: KnowledgeChunk) -> tuple[int, str]:
+    value = payload.get(PUBLICATION_STAMP_KEY)
+    stamp = value if isinstance(value, int) and not isinstance(value, bool) else -1
+    return (stamp, chunk_revision(stored) or "")
+
+
+def document_revisions(
+    chunks: list[KnowledgeChunk],
+) -> dict[tuple[str, str], list[KnowledgeChunk]]:
+    """Group a batch by ``(tenant, document)`` and refuse what cannot replace a document.
+
+    RAG-DOCUMENT-REVISION-WITHDRAWAL-01: an ingest *replaces* the document, so every
+    stored chunk outside the batch is withdrawn. That is only sound when the batch is
+    the whole revision: one revision, one ``total_chunks``, every index exactly once
+    and no chunk id twice. A partial or mixed batch would withdraw live chunks or
+    leave two revisions behind, so it is refused before anything is embedded or
+    written.
+
+    The reference corpus and its quarantine are grouped but not checked: the seeder
+    owns their lifecycle and nothing is ever withdrawn for them here.
+    """
+    groups: dict[tuple[str, str], list[KnowledgeChunk]] = {}
+    for chunk in chunks:
+        groups.setdefault((chunk.tenant_id, chunk.document_id), []).append(chunk)
+    for (tenant_id, document_id), group in groups.items():
+        if tenant_id in LEGACY_POINT_ID_TENANTS:
+            continue
+        if len({chunk_revision(c) for c in group}) != 1:
+            raise DocumentRevisionError(
+                "MIXED_DOCUMENT_REVISION",
+                f"document {document_id} carries more than one source_revision in one ingest",
+            )
+        totals = {c.total_chunks for c in group}
+        indexes = sorted(c.chunk_index for c in group)
+        if (
+            len(totals) != 1
+            or indexes != list(range(next(iter(totals))))
+            or len({c.chunk_id for c in group}) != len(group)
+        ):
+            raise DocumentRevisionError(
+                "INCOMPLETE_DOCUMENT_REVISION",
+                f"document {document_id} must be ingested as one complete revision: "
+                f"got chunk indexes {indexes} for total_chunks {sorted(totals)}",
+            )
+    return groups
 
 
 class QdrantHTTPError(RuntimeError):
@@ -1220,7 +1338,11 @@ class QdrantHttpClient:
         return count
 
     def scroll_payloads(
-        self, *, page_size: int = 256, max_pages: int = 10000
+        self,
+        *,
+        page_size: int = 256,
+        max_pages: int = 10000,
+        scroll_filter: dict[str, Any] | None = None,
     ) -> list[tuple[str, dict[str, Any]]]:
         """Read stored payloads deterministically for sparse-index reconstruction.
 
@@ -1239,6 +1361,8 @@ class QdrantHttpClient:
             }
             if offset is not None:
                 body["offset"] = offset
+            if scroll_filter is not None:
+                body["filter"] = scroll_filter
             data = self._request("POST", f"/collections/{self.collection}/points/scroll", body)
             result = data.get("result", {})
             points = result.get("points", [])
@@ -1334,7 +1458,13 @@ class QdrantHttpClient:
         )
         self.ensure_tenant_payload_index()
 
-    def upsert(self, chunks: list[KnowledgeChunk], embeddings: list[list[float]]) -> None:
+    def upsert(
+        self,
+        chunks: list[KnowledgeChunk],
+        embeddings: list[list[float]],
+        *,
+        published_ns: int | None = None,
+    ) -> None:
         points = []
         for chunk, vector in zip(chunks, embeddings, strict=True):
             # Qdrant point IDs are uint64 or UUID.  External chunk identifiers may
@@ -1342,8 +1472,89 @@ class QdrantHttpClient:
             # original chunk_id in metadata.  The projection lives in one place —
             # every other reader imports it instead of restating the formula.
             point_id = canonical_storage_point_id(chunk.chunk_id, tenant_id=chunk.tenant_id)
-            points.append({"id": point_id, "vector": vector, "payload": chunk.payload})
+            payload = chunk.payload
+            if published_ns is not None:
+                payload = {**payload, PUBLICATION_STAMP_KEY: published_ns}
+            points.append({"id": point_id, "vector": vector, "payload": payload})
         self._request("PUT", f"/collections/{self.collection}/points?wait=true", {"points": points})
+
+    def withdraw_document_points(
+        self,
+        *,
+        tenant_id: str,
+        document_id: str,
+        keep_point_ids: set[str],
+    ) -> list[str]:
+        """Delete the stored points of one tenant's document that are not in ``keep``.
+
+        RAG-DOCUMENT-REVISION-WITHDRAWAL-01. Returns the withdrawn point ids.
+
+        Tenant isolation is decided here, on each row's own payload, not by the store:
+        the filter only narrows the read. A point is deleted only when the parser the
+        reader uses (``KnowledgeChunk.from_payload``) attributes it to this tenant and
+        this document, and the delete is by explicit id, never a bare filter. Using the
+        reader's parser keeps both sides on one definition of "this document": a legacy
+        row (tenant at the payload root, document derived from the file name) that the
+        reader serves as part of the document is withdrawn with it, and a row the
+        reader rejects is left alone. The reference corpus and its quarantine are
+        refused outright: the seeder owns them and no tenant ingest may remove them.
+        """
+        rows = self._document_rows(tenant_id, document_id)
+        stale = [point_id for point_id, _ in rows if point_id not in keep_point_ids]
+        self._delete_points(stale)
+        return stale
+
+    def settle_document_publications(
+        self, *, tenant_id: str, document_id: str
+    ) -> tuple[list[str], tuple[int, str] | None]:
+        """Keep the newest publication of one tenant's document; withdraw every other row.
+
+        The read-back after a write (see ``PUBLICATION_STAMP_KEY``): the rows of the newest
+        publication (``_publication_key``) are kept and every other row of the document is
+        withdrawn, the caller's own included when another replica published a newer
+        revision meanwhile. Returns the withdrawn ids and the newest publication seen, so
+        the caller decides whether it lost from the winner itself, not from which request
+        happened to delete its rows. Same tenant and document rules as
+        ``withdraw_document_points``.
+        """
+        rows = self._document_rows(tenant_id, document_id)
+        newest = max((key for _, key in rows), default=None)
+        stale = [point_id for point_id, key in rows if key != newest]
+        self._delete_points(stale)
+        return stale, newest
+
+    def _delete_points(self, point_ids: list[str]) -> None:
+        if point_ids:
+            self._request(
+                "POST",
+                f"/collections/{self.collection}/points/delete?wait=true",
+                {"points": point_ids},
+            )
+
+    def _document_rows(self, tenant_id: str, document_id: str) -> list[tuple[str, tuple[int, str]]]:
+        tenant = str(tenant_id or "").strip()
+        document = str(document_id or "").strip()
+        if not tenant or not document:
+            raise ValueError("tenant_id and document_id are required to withdraw a document")
+        if tenant in LEGACY_POINT_ID_TENANTS:
+            raise ValueError("the reference corpus is never withdrawn by a document ingest")
+        rows = self.scroll_payloads(
+            scroll_filter={
+                "should": [
+                    {"key": "metadata.tenant_id", "match": {"value": tenant}},
+                    {"key": "tenant_id", "match": {"value": tenant}},
+                ]
+            }
+        )
+        mine: list[tuple[str, tuple[int, str]]] = []
+        for point_id, payload in rows:
+            try:
+                stored = KnowledgeChunk.from_payload(payload, fallback_id=point_id)
+            except (TypeError, ValueError):
+                continue
+            if stored.tenant_id == tenant and stored.document_id == document:
+                mine.append((point_id, _publication_key(payload, stored)))
+        return mine
 
     def search(
         self,
@@ -1426,24 +1637,91 @@ class HybridQdrantRetriever:
         self.retrieval_profile = retrieval_profile
 
     def ingest(self, chunks: list[KnowledgeChunk]) -> int:
+        """Chunks written by ``ingest_documents`` — the same replace-document contract."""
+        return sum(receipt.chunks_written for receipt in self.ingest_documents(chunks))
+
+    def ingest_documents(self, chunks: list[KnowledgeChunk]) -> list[IndexingReceipt]:
+        """Replace each ``(tenant, document)`` in the batch by the revision it carries.
+
+        RAG-DOCUMENT-REVISION-WITHDRAWAL-01: the writer only upserted the incoming
+        point ids. ``chunk_id`` includes the text, so an edited file produced new ids
+        and the chunks of the earlier revision — and the surplus ones of a shorter
+        file — stayed in the store, in BM25 and in neighbour expansion.
+
+        The new revision is written first and the rest of the document is withdrawn
+        after it: a rejected write leaves the previous revision whole, and a failed
+        withdrawal raises, so no receipt is ever issued for a document that still
+        has two revisions. Re-ingesting the same revision writes the same ids and
+        withdraws nothing.
+        """
         if self.retrieval_profile is not None:
             raise RetrievalAdmissionError(
                 "versioned collection is immutable; prepare a new complete reindex"
             )
+        documents = document_revisions(chunks)
         vectors = [self.embeddings.embed(chunk.text) for chunk in chunks]
         if not vectors:
-            return 0
+            return []
         dimensions = {len(v) for v in vectors}
         if len(dimensions) != 1:
             raise ValueError(f"embedding dimension drift within ingest batch: {sorted(dimensions)}")
         # Persist first. A failed Qdrant write must not leave a process-local BM25
         # index claiming data exists when the authoritative vector store rejected it.
         self.qdrant.ensure_collection(vector_size=next(iter(dimensions)))
-        self.qdrant.upsert(chunks, vectors)
+        published_ns = _publication_stamp()
+        self.qdrant.upsert(chunks, vectors, published_ns=published_ns)
+        receipts = []
+        lost: set[tuple[str, str]] = set()
+        for (tenant_id, document_id), group in documents.items():
+            withdrawn: list[str] = []
+            newest: tuple[int, str] | None = None
+            own = {canonical_storage_point_id(c.chunk_id, tenant_id=tenant_id) for c in group}
+            if tenant_id not in LEGACY_POINT_ID_TENANTS:
+                withdrawn, newest = self.qdrant.settle_document_publications(
+                    tenant_id=tenant_id, document_id=document_id
+                )
+            # Lost when the read-back saw a newer publication than this one, whichever
+            # request deleted this one's rows (review on #1582).
+            superseded = newest is not None and newest != (
+                published_ns,
+                chunk_revision(group[0]) or "",
+            )
+            if superseded:
+                lost.add((tenant_id, document_id))
+            receipts.append(
+                IndexingReceipt(
+                    tenant_id=tenant_id,
+                    document_id=document_id,
+                    revision=chunk_revision(group[0]),
+                    chunks_written=len(group),
+                    chunks_withdrawn=len(set(withdrawn) - own),
+                    superseded=superseded,
+                )
+            )
+        # The store is settled; only now does process memory follow it.
+        incoming = {chunk_identity(chunk) for chunk in chunks}
+
+        def superseded(known: dict[ChunkIdentity, KnowledgeChunk]) -> list[ChunkIdentity]:
+            return [
+                key
+                for key, chunk in known.items()
+                if key not in incoming
+                and chunk.tenant_id not in LEGACY_POINT_ID_TENANTS
+                and (chunk.tenant_id, chunk.document_id) in documents
+            ]
+
+        for key in superseded(self._chunks):
+            del self._chunks[key]
+        for key in superseded(self.bm25.docs):
+            self.bm25.remove(key)
         for chunk in chunks:
+            # A revision that lost to a newer publication is gone from the store; the
+            # sparse index must not keep serving it.
+            if (chunk.tenant_id, chunk.document_id) in lost:
+                continue
             self.bm25.add(chunk)
             self._chunks[chunk_identity(chunk)] = chunk
-        return len(chunks)
+        return receipts
 
     def rebuild_sparse_index(self) -> dict[str, Any]:
         """Reconstruct BM25 and the logical chunk cache from Qdrant payloads.
@@ -1649,10 +1927,18 @@ class HybridQdrantRetriever:
         """
         out = list(hits)
         seen = {chunk_identity(h.chunk) for h in out}
-        by_doc_idx = {(c.tenant_id, c.document_id, c.chunk_index): c for c in self._chunks.values()}
+        # RAG-DOCUMENT-REVISION-WITHDRAWAL-01: the key carries the revision. Index N of
+        # one revision is not the neighbour of index N-1 of another.
+        by_doc_idx = {
+            (c.tenant_id, c.document_id, chunk_revision(c), c.chunk_index): c
+            for c in self._chunks.values()
+        }
         for hit in hits:
+            hit_revision = chunk_revision(hit.chunk)
             for idx in (hit.chunk.chunk_index - 1, hit.chunk.chunk_index + 1):
-                neighbor = by_doc_idx.get((hit.chunk.tenant_id, hit.chunk.document_id, idx))
+                neighbor = by_doc_idx.get(
+                    (hit.chunk.tenant_id, hit.chunk.document_id, hit_revision, idx)
+                )
                 if neighbor is None or chunk_identity(neighbor) in seen:
                     continue
                 if not matches_scope_filters(neighbor, filters):
