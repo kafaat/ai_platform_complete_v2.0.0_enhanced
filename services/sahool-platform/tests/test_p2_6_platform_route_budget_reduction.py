@@ -43,9 +43,11 @@ def test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion():
     # 633/629 → 627/623 (W4-09): ستّةُ مساراتٍ ميتة أُقعِدت وخُفِّض السقفُ بالعدد نفسه.
     # 627/623 → 621/617 (W4-09 تتمّة، قرار المالك 2026-11-16): ستّةٌ أخرى أُقعِدت والسقفُ باقٍ
     # 623، فالهامشُ ٦. المسارُ الجديد يستهلك الهامش أو يُسكَن في خدمته؛ السقفُ لا يُرفَع.
-    assert len(raw) == 621, f"raw platform routes: {len(raw)}"
+    # 621/617 → 623/619 (G14، الموجة الثالثة #1587): مسارا مراجعة مقترحات التعلّم المحكومة
+    # استهلكا اثنين من الهامش، والسقفُ باقٍ 623 فالهامشُ ٤.
+    assert len(raw) == 623, f"raw platform routes: {len(raw)}"
     assert len(infrastructure) == 4, f"infrastructure routes: {len(infrastructure)}"
-    assert len(domain) == 617, f"domain routes: {len(domain)}"
+    assert len(domain) == 619, f"domain routes: {len(domain)}"
     assert len(raw) == len(infrastructure) + len(domain)
     assert len(domain) <= budget, (
         "Platform domain-route budget exceeded:\n"

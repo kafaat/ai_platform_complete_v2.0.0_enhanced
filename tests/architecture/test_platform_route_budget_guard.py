@@ -14,11 +14,11 @@ def test_guard_reports_separate_raw_infrastructure_and_domain_counts():
     inventory = build_inventory()
     counts = inventory["counts"]
     assert counts == {
-        "raw_routes": 621,
+        "raw_routes": 623,
         "infrastructure_routes": 4,
-        "domain_budget_routes": 617,
+        "domain_budget_routes": 619,
         "domain_route_budget": 623,
-        "domain_budget_headroom": 6,
+        "domain_budget_headroom": 4,
     }
 
 

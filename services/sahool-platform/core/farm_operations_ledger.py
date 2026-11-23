@@ -11,9 +11,11 @@ import asyncio
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
 from enum import Enum
 from typing import Any
 
+from core.authorization import Permission, has_permission
 from core.farm_costing import ActualCostLine, SeasonBudgetLine, compute_variances
 
 
@@ -496,6 +498,141 @@ async def persist_operation_subrecords(
         )
         counts["inputs"] += 1
     return counts
+
+
+# ─── F-D11: deducting a recorded input from a named inventory batch ──────────────────────
+# The platform owns ``inventory_batches`` (db_ownership.yml). The step runs inside the ledger
+# record's transaction: each named batch row is locked (the reservation), checked and reduced
+# by a conditional UPDATE that cannot go below zero. No unit conversion: units must match.
+_STOCK_QUANTUM = Decimal("0.001")  # inventory_batches.quantity is NUMERIC(14, 3)
+
+
+class InventoryDeductionRefused(Exception):
+    """A deduction that must not happen; ``detail['reason']`` names why. Nothing is written."""
+
+    def __init__(self, status_code: int, reason: str, **extra: Any) -> None:
+        super().__init__(reason)
+        self.status_code = status_code
+        self.detail = {"reason": reason, **extra}
+
+
+@dataclass(frozen=True)
+class InventoryDeductionLine:
+    batch_id: str
+    item_id: str | None
+    unit: str
+    quantity: Decimal
+
+
+def _unit_key(unit: str | None) -> str:
+    return (unit or "").strip().lower()
+
+
+def inventory_deduction_refusal(
+    *, enabled: bool, has_batches: bool, idempotency_key: str | None, status: str, user: Any
+) -> tuple[int, dict[str, str]] | None:
+    """Why a requested deduction cannot start, before anything is written; ``None`` if it can.
+
+    Flag off or no named batch: nothing to refuse (and nothing is deducted). Otherwise moving
+    stock needs ``inventory:manage``: logging an activity (``activity:execute``, which a field
+    worker holds) does not grant it. Then the ``Idempotency-Key`` is mandatory (its stored result
+    is the receipt, so a retry cannot deduct twice) and only a ``completed`` operation consumed
+    stock.
+    """
+    if not (enabled and has_batches):
+        return None
+    if not has_permission(user, Permission.INVENTORY_MANAGE):
+        return 403, {
+            "reason": "inventory_deduction_requires_inventory_manage",
+            "permission": Permission.INVENTORY_MANAGE.value,
+        }
+    if not idempotency_key:
+        return 428, {"reason": "inventory_deduction_requires_idempotency_key"}
+    if status != "completed":
+        return 409, {"reason": "inventory_deduction_requires_completed_operation"}
+    return None
+
+
+def plan_inventory_deduction(inputs: Iterable[Any]) -> list[InventoryDeductionLine]:
+    """One line per named batch (sorted, the lock order); inputs without a batch are skipped."""
+    lines: dict[str, InventoryDeductionLine] = {}
+    for i in inputs:
+        batch_id = getattr(i, "inventory_batch_id", None)
+        if not batch_id:
+            continue
+        qty = Decimal(str(i.quantity)).quantize(_STOCK_QUANTUM)
+        if qty <= 0:
+            raise InventoryDeductionRefused(
+                422, "inventory_deduction_quantity_must_be_positive", batch_id=batch_id
+            )
+        prev = lines.get(batch_id)
+        if prev is None:
+            lines[batch_id] = InventoryDeductionLine(batch_id, i.inventory_item_id, i.unit, qty)
+            continue
+        if i.inventory_item_id and prev.item_id and i.inventory_item_id != prev.item_id:
+            raise InventoryDeductionRefused(409, "inventory_batch_item_mismatch", batch_id=batch_id)
+        if _unit_key(i.unit) != _unit_key(prev.unit):
+            raise InventoryDeductionRefused(409, "inventory_batch_unit_mismatch", batch_id=batch_id)
+        lines[batch_id] = InventoryDeductionLine(
+            batch_id, prev.item_id or i.inventory_item_id, prev.unit, prev.quantity + qty
+        )
+    return [lines[k] for k in sorted(lines)]
+
+
+_LOCK_BATCH_SQL = """SELECT b.item_id, b.quantity, COALESCE(b.unit, i.unit) AS unit
+   FROM inventory_batches b JOIN inventory_items i ON i.item_id = b.item_id
+   WHERE b.batch_id = $1 AND b.tenant_id = $2::uuid AND i.tenant_id = $2::uuid
+   FOR UPDATE OF b"""
+_DEDUCT_BATCH_SQL = """UPDATE inventory_batches SET quantity = quantity - $3::numeric
+   WHERE batch_id = $1 AND tenant_id = $2::uuid AND quantity >= $3::numeric
+   RETURNING quantity"""
+
+
+async def apply_inventory_deduction(
+    conn, *, tenant_id: str, operation_id: str, plan: Iterable[InventoryDeductionLine]
+) -> list[dict[str, Any]]:
+    """Lock, check and deduct each planned batch; return one receipt per batch.
+
+    Must run inside the ledger record's transaction: a refusal raises and rolls back the record,
+    its inputs and every earlier deduction together. Another tenant's batch reads as absent.
+    """
+    receipts: list[dict[str, Any]] = []
+    for line in plan:
+        row = await conn.fetchrow(_LOCK_BATCH_SQL, line.batch_id, tenant_id)
+        if row is None:
+            raise InventoryDeductionRefused(
+                404, "inventory_batch_not_found_for_tenant", batch_id=line.batch_id
+            )
+        if line.item_id and line.item_id != row["item_id"]:
+            raise InventoryDeductionRefused(
+                409, "inventory_batch_item_mismatch", batch_id=line.batch_id
+            )
+        if _unit_key(line.unit) != _unit_key(row["unit"]):
+            raise InventoryDeductionRefused(
+                409, "inventory_batch_unit_mismatch", batch_id=line.batch_id, unit=row["unit"]
+            )
+        before = Decimal(row["quantity"])
+        after = await conn.fetchval(_DEDUCT_BATCH_SQL, line.batch_id, tenant_id, line.quantity)
+        if after is None:
+            raise InventoryDeductionRefused(
+                409,
+                "inventory_batch_insufficient_stock",
+                batch_id=line.batch_id,
+                requested=float(line.quantity),
+                available=float(before),
+            )
+        receipts.append(
+            {
+                "operation_id": operation_id,
+                "batch_id": line.batch_id,
+                "item_id": row["item_id"],
+                "unit": row["unit"],
+                "quantity_deducted": float(line.quantity),
+                "quantity_before": float(before),
+                "quantity_after": float(after),
+            }
+        )
+    return receipts
 
 
 async def fetch_budget_and_actual(conn, tenant_id: str, season_id: str, currency=None):

@@ -133,6 +133,38 @@
       "classification": "optional-profile",
       "required_gate": "a dedicated blocking job with pcse pinned and no network, running this file by path and failing on any skip",
       "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/golden_advisor/test_advisor_golden_eval.py::test_golden_case[reference_other_region.envelope_names_hold]",
+      "reason": "ADVISORY-ENVELOPE-SILENT-ON-HELD-REFERENCES-01: build_advisory_envelope reads rag_available only; references held by the approval gate (annotations.unverified_seed_references and their generation_hold_reason) never reach evidence_missing or limitations (services/ai_agronomist/advisory_contract.py _reference_codes).",
+      "classification": "unit",
+      "required_gate": "the fix for ADVISORY-ENVELOPE-SILENT-ON-HELD-REFERENCES-01 (sahool-brain/gaps/registry.md): a strict xfail that runs on every unit run and turns red when the fix lands; the fix removes known_gap from the case and this entry in the same change",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/golden_advisor/test_advisor_golden_eval.py::test_golden_case[expired_reference.envelope_names_hold]",
+      "reason": "ADVISORY-ENVELOPE-SILENT-ON-HELD-REFERENCES-01: Same gap as reference_other_region.envelope_names_hold: the envelope does not read generation_hold_reason, so approval_expired is invisible to the user.",
+      "classification": "unit",
+      "required_gate": "the fix for ADVISORY-ENVELOPE-SILENT-ON-HELD-REFERENCES-01 (sahool-brain/gaps/registry.md): a strict xfail that runs on every unit run and turns red when the fix lands; the fix removes known_gap from the case and this entry in the same change",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/golden_advisor/test_advisor_golden_eval.py::test_golden_case[imagery_date.no_scene_on_selected_date]",
+      "reason": "ADVISOR-SELECTED-IMAGERY-DATE-NOT-CHECKED-01: selected_imagery_date is echoed to the response, the observation and the audit event but never compared with the scene dates in the field context pack, so a date with no scene raises no code (services/ai_agronomist/ai_evidence_runtime.py, observation_context.build_observation).",
+      "classification": "unit",
+      "required_gate": "the fix for ADVISOR-SELECTED-IMAGERY-DATE-NOT-CHECKED-01 (sahool-brain/gaps/registry.md): a strict xfail that runs on every unit run and turns red when the fix lands; the fix removes known_gap from the case and this entry in the same change",
+      "status": "open"
+    },
+    {
+      "stage": "parallel",
+      "nodeid": "tests_v9/golden_advisor/test_advisor_golden_eval.py::test_golden_case[proposal_vs_execution.claimed_execution_named]",
+      "reason": "ADVISORY-ENVELOPE-IGNORES-TOOL-CALL-OUTCOMES-01: build_advisory_envelope derives requires_human_review from pending_approvals only and never reads tool_calls, so an executed outcome for a mutating, approval-required tool passes as a quiet advisory (services/ai_agronomist/advisory_contract.py build_advisory_envelope).",
+      "classification": "unit",
+      "required_gate": "the fix for ADVISORY-ENVELOPE-IGNORES-TOOL-CALL-OUTCOMES-01 (sahool-brain/gaps/registry.md): a strict xfail that runs on every unit run and turns red when the fix lands; the fix removes known_gap from the case and this entry in the same change",
+      "status": "open"
     }
   ]
 }

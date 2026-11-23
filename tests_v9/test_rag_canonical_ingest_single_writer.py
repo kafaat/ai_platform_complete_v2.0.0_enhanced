@@ -55,6 +55,14 @@ def _calls_rag_ingest(path: Path) -> bool:
     ingest_urls: set[str] = set()
 
     def names_ingest(expr: ast.expr) -> bool:
+        # String pieces joined in source order, so ``"/v1/" + "ingest"`` reads as the route
+        # (lab 1582-v6, hospital review on #1582).
+        pieces = sorted(
+            (n for n in ast.walk(expr) if isinstance(n, ast.Constant) and isinstance(n.value, str)),
+            key=lambda n: (n.lineno, n.col_offset),
+        )
+        if "/v1/ingest" in "".join(n.value for n in pieces):
+            return True
         return "/v1/ingest" in ast.unparse(expr) or any(
             ast.unparse(n) in ingest_urls
             for n in ast.walk(expr)
@@ -210,6 +218,15 @@ def _drives_index_writes(path: Path) -> bool:
             True,
         ),
         (
+            "import httpx, os\nBASE = os.environ['RAG_RETRIEVAL_URL']\n"
+            "def go(b):\n    httpx.post(BASE + '/v1/' + 'ingest', json=b)\n",
+            True,
+        ),
+        (
+            "import httpx\nROUTE = '/v1/' 'ingest'\ndef go(c, b):\n    c.post(ROUTE, json=b)\n",
+            True,
+        ),
+        (
             "from fastapi import FastAPI\napp = FastAPI()\n"
             "@app.post('/v1/ingest')\ndef ingest():\n    return {}\n",
             False,
@@ -228,6 +245,8 @@ def _drives_index_writes(path: Path) -> bool:
         "url-built-from-a-constant",
         "urllib-request",
         "bare-helper",
+        "route-split-across-pieces",
+        "route-split-by-implicit-concatenation",
         "route-decorator",
         "mentioned-not-called",
     ],

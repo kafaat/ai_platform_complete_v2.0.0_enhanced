@@ -548,3 +548,130 @@ def test_a_keyed_anomaly_task_without_a_request_digest_is_refused(monkeypatch):
             ), "the controls left no row behind"
 
     asyncio.run(scenario())
+
+
+GATEWAY_TOKEN = "scouting-live-gateway-" + uuid.uuid4().hex
+_BLOCKER = (
+    "an anomaly scouting task became a reviewable inspection: the precondition of F-D07 now holds,"
+    " so wire the verification-results sender (sahool-brain/gaps/registry.md,"
+    " VEGETATION-VERIFICATION-RESULTS-CALLBACK-NO-SENDER-01) behind a default-off flag"
+    " before relaxing this"
+)
+
+
+def test_an_anomaly_task_cannot_carry_a_reviewed_inspection_so_no_result_exists_to_send(
+    monkeypatch,
+):
+    """F-D07: why no verification result is returned to vegetation-analysis (measured, not assumed).
+
+    The verification-results receiver (vegetation routers/anomalies.py) has no sender. The sender
+    the fix plan names would fire when an anomaly task is completed with its current evidence
+    version approved by a reviewer. On this schema that state cannot occur: the anomaly task can
+    never become a pin inspection task (v277 SH003, and independently v282's scope check), so it
+    can never hold an evidence version (v274 guard) nor be read or reviewed by the inspection
+    routes (fm_task_inspection._load is pin-only); and it closes with no review at all (v277's
+    gate is pin-only), so "completed" carries no reviewed result. Each database refusal is shown
+    to be the named barrier by a control inside a rolled-back transaction. If any of this
+    changes, the assertion says what must be wired.
+    """
+    import hashlib
+
+    async def scenario():
+        async with Live(monkeypatch) as live:
+            monkeypatch.setenv("FIELD_TASKS_SERVICE_TOKEN", GATEWAY_TOKEN)
+            anomaly = live.anomaly(observation="obs_fd07")
+            stored = await live.send(anomaly, _key(anomaly))
+            task_id = stored.task_ref.removeprefix("urn:sahool:task:")
+            a = live.admin
+            pin = "pin-fd07-" + uuid.uuid4().hex[:8]
+            attach_pin = (
+                "UPDATE field_tasks SET source_scouting_pin_id = $2 WHERE task_id = $1::uuid"
+            )
+
+            # 1. It cannot become a pin inspection task: v277 refuses first (SH003)...
+            tx = a.transaction()
+            await tx.start()
+            try:
+                with pytest.raises(asyncpg.PostgresError) as refused:
+                    await a.execute(attach_pin, task_id, pin)
+                assert refused.value.sqlstate == "SH003", _BLOCKER
+            finally:
+                await tx.rollback()
+            # ...and without that trigger v282's scope check still refuses (two barriers).
+            tx = a.transaction()
+            await tx.start()
+            try:
+                await a.execute("DROP TRIGGER field_task_inspection_close_gate ON field_tasks")
+                with pytest.raises(asyncpg.CheckViolationError) as refused:
+                    await a.execute(attach_pin, task_id, pin)
+                assert refused.value.constraint_name == "field_task_anomaly_scope_ck", _BLOCKER
+            finally:
+                await tx.rollback()
+
+            # 2. It cannot hold an inspection evidence version (v274 guard), which approval needs.
+            add_version = (
+                "INSERT INTO inspection_evidence_versions"
+                " (tenant_id, field_id, task_id, version, pin_id, digest, recorded_by)"
+                " VALUES ($1::uuid, $2, $3::uuid, 1, $4, $5, 'fd07-inspector')"
+            )
+            empty_digest = hashlib.sha256(b"||").hexdigest()
+            version_args = (live.tenant, live.field, task_id, pin, empty_digest)
+            tx = a.transaction()
+            await tx.start()
+            try:
+                with pytest.raises(asyncpg.CheckViolationError, match="own scouting pin"):
+                    await a.execute(add_version, *version_args)
+            finally:
+                await tx.rollback()
+            # Control: without the guard the same row is admitted, so the guard is the barrier.
+            tx = a.transaction()
+            await tx.start()
+            try:
+                await a.execute(
+                    "DROP TRIGGER inspection_evidence_version_guard ON inspection_evidence_versions"
+                )
+                await a.execute(add_version, *version_args)
+            finally:
+                await tx.rollback()
+
+            # 3. The inspection routes cannot read or review it: they serve pin tasks only.
+            gateway = {
+                "X-Field-Tasks-Token": GATEWAY_TOKEN,
+                "X-Tenant-Id": live.tenant,
+                "X-User-Id": "fd07-reviewer",
+                "X-User-Role": "manager",
+            }
+            base = f"/internal/field-tasks/fields/{live.field}/tasks/{task_id}/handoff"
+            read = await live.fm.get(base, headers=gateway)
+            assert read.status_code == 404, f"{_BLOCKER}: {read.status_code} {read.text}"
+            review = await live.fm.post(
+                f"{base}/finding",
+                headers=gateway,
+                json={
+                    "expected_revision": 1,
+                    "action": "approve",
+                    "reason": "fd07",
+                    "evidence_version": 1,
+                },
+            )
+            assert review.status_code == 404, f"{_BLOCKER}: {review.status_code} {review.text}"
+
+            # 4. It completes with no review at all (v277's gate is pin-only), so a completed
+            # anomaly task says nothing about a reviewed result: there is nothing to send.
+            tx = a.transaction()
+            await tx.start()
+            try:
+                status = await a.fetchval(
+                    "UPDATE field_tasks SET status = 'completed' WHERE task_id = $1::uuid"
+                    " RETURNING status",
+                    task_id,
+                )
+                assert status == "completed"
+                handoffs = await a.fetchval(
+                    "SELECT count(*) FROM inspection_handoffs WHERE task_id = $1::uuid", task_id
+                )
+                assert handoffs == 0, _BLOCKER
+            finally:
+                await tx.rollback()
+
+    asyncio.run(scenario())

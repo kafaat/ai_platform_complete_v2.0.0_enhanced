@@ -878,7 +878,7 @@
     "candidates": [
       {
         "capability_id": "DEC-010",
-        "score": 15,
+        "score": 14,
         "signals": [
           "content:model activation",
           "content:model promotion",
@@ -892,6 +892,22 @@
           "content:water quality",
           "content:Water quality samples",
           "content:water sample"
+        ]
+      },
+      {
+        "capability_id": "FM-003",
+        "score": 11,
+        "signals": [
+          "content:field boundary",
+          "content:field geometry"
+        ]
+      },
+      {
+        "capability_id": "FM-002",
+        "score": 11,
+        "signals": [
+          "content:farm",
+          "content:farms"
         ]
       }
     ]
@@ -3445,29 +3461,21 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "SOIL-003",
+        "score": 15,
+        "signals": [
+          "content:lab result",
+          "content:laboratory",
+          "content:Laboratory results"
+        ]
+      },
+      {
         "capability_id": "SOIL-002",
         "score": 12,
         "signals": [
           "content:sampling plan",
           "content:Soil sampling",
           "dedup:Soil sampling=soil sampling"
-        ]
-      },
-      {
-        "capability_id": "PA-002",
-        "score": 10,
-        "signals": [
-          "content:prescription map",
-          "content:variable rate",
-          "content:Variable rate prescription"
-        ]
-      },
-      {
-        "capability_id": "PA-001",
-        "score": 9,
-        "signals": [
-          "content:management zone",
-          "content:productivity zone"
         ]
       }
     ]
@@ -5355,6 +5363,28 @@
         "signals": [
           "path:season",
           "content:season"
+        ]
+      },
+      {
+        "capability_id": "FM-002",
+        "score": 14,
+        "signals": [
+          "path:farm",
+          "content:farm"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/tests/test_farm_ledger_inventory_boundary.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-007",
+        "score": 14,
+        "signals": [
+          "path:inventory",
+          "content:inventory"
         ]
       },
       {
