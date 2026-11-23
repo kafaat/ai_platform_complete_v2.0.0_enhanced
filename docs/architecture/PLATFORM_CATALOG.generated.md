@@ -3,13 +3,13 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `530e8003de3f1ada6746d55a6ad5390db878eaaf3711292371e085894d206b87`
+- fingerprint: `268fe26af7d2d1993d7bb8477323f2a513be65308d3bca9cec3040b4674cf92f`
 - components: **37** (backend: 33)
 - route rows: **1169** → unique method/path: **1046**
 - capabilities (derived, uncurated): **841**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
-- UI waivers pending U4 classification: **54**
+- UI waivers pending U4 classification: **53**
 
 ## Components
 

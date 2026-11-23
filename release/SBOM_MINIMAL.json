@@ -5155,7 +5155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2ea6c62780a323f34887f1e135692d8091628178bf14ff2ebc29a45f216fa262"
+          "content": "820011cae53806b6aed198ca2b3d81945115abd7f2e502d8e513c6e3f69a0b05"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -19129,16 +19129,6 @@
         }
       ],
       "name": "services/auth/password_hashing.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "7314852fbd5a83161d4974e73a31d7b330e7ef00c972c7b73a8f8eb89bf77a10"
-        }
-      ],
-      "name": "services/auth/railway.json",
       "type": "file"
     },
     {
