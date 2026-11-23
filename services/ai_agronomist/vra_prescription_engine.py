@@ -42,6 +42,20 @@ _DEFAULT_UNITS = {
 _CLASS_RATE_FACTOR = {"high": 1.0, "medium": 0.82, "low": 1.16}
 # Analyte names a soil lab record must carry (numerically) to count as lab evidence.
 _LAB_ANALYTES = {a.lower() for a in _FULL_PANEL_ANALYTES}
+# G9 — the lab owner stores numeric analytes under these names (sahool-platform
+# ``lab_store.soil_result_analytes``); its approved results arrive with them unchanged.
+_LAB_ANALYTES |= {
+    "ec_dsm",
+    "organic_matter_pct",
+    "nitrogen_mg_kg",
+    "phosphorus_mg_kg",
+    "potassium_mg_kg",
+    "cec_cmol_kg",
+    "calcium_carbonate_pct",
+    "sand_pct",
+    "silt_pct",
+    "clay_pct",
+}
 # W0-12 — the only source of lab support: an evidence-context block built by the server
 # from the lab owner's approved results. ``soil_lab_results`` is written by
 # sahool-platform only (docs/architecture/db_ownership.yml).
@@ -197,13 +211,20 @@ def _owner_lab_records(
     ``owner`` must name the writer of ``soil_lab_results`` (docs/architecture/
     db_ownership.yml). A record counts only with a non-empty ``result_id``,
     ``quality_status == "approved"`` and a finite numeric value for a known analyte. A
-    block for another field is ignored. Anything else is no lab evidence (fail closed).
+    block for another field is ignored, and so is a block naming a tenant other than the
+    context's ``tenant_id``. Anything else is no lab evidence (fail closed).
     """
     block = evidence_context.get(_OWNER_LAB_BLOCK)
     if not isinstance(block, dict) or block.get("owner") != _LAB_RESULT_OWNER:
         return []
     block_field = block.get("field_id")
     if block_field is not None and (field_id is None or str(block_field) != str(field_id)):
+        return []
+    block_tenant = block.get("tenant_id")
+    context_tenant = evidence_context.get("tenant_id")
+    if block_tenant is not None and (
+        context_tenant is None or str(block_tenant) != str(context_tenant)
+    ):
         return []
     results = block.get("results")
     if not isinstance(results, list):
@@ -241,6 +262,44 @@ def _lab_zone_ids(
         else:
             field_level.append(result_id)
     return zone_ids, field_level
+
+
+_LAB_BASIS_FIELDS = (
+    "result_id",
+    "analyte",
+    "value",
+    "unit",
+    "method_code",
+    "sample_id",
+    "sampled_on",
+    "approved_at",
+    "approval_ref",
+    "zone_id",
+)
+
+
+def _laboratory_basis(records: list[dict[str, Any]], used_ids: set[str]) -> dict[str, Any]:
+    """The approved lab results the prescription used, as the owner issued them.
+
+    Each used record keeps its method, unit, sampling date and approval reference. No
+    used record ⇒ the prescription says it was computed without laboratory data.
+    """
+    used = [
+        {key: record.get(key) for key in _LAB_BASIS_FIELDS if record.get(key) is not None}
+        for record in records
+        if str(record["result_id"]).strip() in used_ids
+    ]
+    if used:
+        return {
+            "status": "approved_laboratory_results",
+            "owner": _LAB_RESULT_OWNER,
+            "results": used,
+        }
+    return {
+        "status": "computed_without_laboratory_data",
+        "statement_ar": "حُسبت هذه الوصفة دون بيانات مختبر تربة معتمدة لهذا الحقل.",
+        "results": [],
+    }
 
 
 def _confidence(completeness_score: float, lab_supported: bool) -> float:
@@ -423,6 +482,7 @@ def generate_vra_prescription(
             sum(z["confidence"] for z in prescription_zones) / len(prescription_zones), 2
         )
     all_lab = all(zone_has_lab)
+    laboratory_basis = _laboratory_basis(owner_lab, {rid for ids in zone_lab_ids for rid in ids})
     # V62.2 — gate: zones derived from geometry only (no NDVI/index evidence) are too weak
     # to anchor a VRA prescription; flag and require stronger zoning before execution.
     _GEOM_SEEDED = {"geometry_seeded_zoning_fallback", "geometry_seeded_sampling_fallback"}
@@ -500,6 +560,7 @@ def generate_vra_prescription(
             "source_lineage": _zone_source_lineage(
                 {}, ctx, [rid for ids in zone_lab_ids for rid in ids]
             ),
+            "laboratory_basis": laboratory_basis,
         },
         "prescription_zones": prescription_zones,
         "data_completeness": completeness,
@@ -510,6 +571,7 @@ def generate_vra_prescription(
             else ("partial_lab_support" if has_lab else "estimated_with_user_consent"),
             "zoning_evidence_backed": zoning_evidence_backed,
             "lab_evidence_source": _OWNER_LAB_BLOCK if has_lab else None,
+            "laboratory_basis": laboratory_basis["status"],
             "model_lab_results_ignored": model_lab_ignored,
             "ready_for_machine_export": False,
             "raster_quality": raster_quality,  # v62.3 verdict (None if no NDVI evidence)

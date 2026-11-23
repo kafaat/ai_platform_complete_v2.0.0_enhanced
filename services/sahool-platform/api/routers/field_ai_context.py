@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api import field_context as context_reads
+from api import lab_store
 from api.main import Permission, UserSchema, require_permission, tenant_connection
 from api.raster_service_client import (
     get_available_dates,
@@ -51,6 +52,7 @@ class FieldAiContextPack(BaseModel):
     # V52 — trusted, tenant-scoped AI policy envelope (platform is the policy authority).
     # The ai_agronomist consumer enforces this and refuses any request that lacks it.
     ai_policy_envelope: dict[str, Any] = Field(default_factory=dict)
+    approved_soil_lab: dict[str, Any] = Field(default_factory=dict)  # G9: lab owner's approval
 
 
 def _as_json(value: Any, fallback: Any = None) -> Any:
@@ -702,6 +704,8 @@ async def field_ai_context_pack(
         # envelope is tenant-scoped. A missing row (or read failure) ⇒ most-restrictive envelope.
         ai_policy_row = await load_tenant_ai_policy_row(conn, str(user.tenant_id))
 
+        approved_soil_lab = await lab_store.read_approved_soil_lab(conn, user, field_id, warnings)
+
     crop_knowledge = compose_advisor_crop_reference(field_profile, active_season)
     imagery = {"available": False, "per_indicator": {}, "total_dates": 0}
     if include_imagery:
@@ -734,6 +738,7 @@ async def field_ai_context_pack(
         "drawing_context": drawings,
         "alerts_context": alerts,
         "recommendations_context": recommendations,
+        "approved_soil_lab": approved_soil_lab,
         "readiness": {
             "complete": not warnings,
             "warnings": warnings,

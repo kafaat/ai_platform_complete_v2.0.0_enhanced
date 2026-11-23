@@ -575,6 +575,8 @@ sahool-platform.learning.activation-status,query,sahool-platform,GET /api/v1/lea
 sahool-platform.learning.calibration-dataset,query,sahool-platform,GET /api/v1/learning/calibration-dataset,frontend,route,False
 sahool-platform.learning.evaluation-runs,command,sahool-platform,POST /api/v1/learning/evaluation-runs,frontend,route,False
 sahool-platform.learning.external-prior-blend,command,sahool-platform,POST /api/v1/learning/external-prior-blend,frontend,route,False
+sahool-platform.learning.governed-proposals,query,sahool-platform,GET /api/v1/learning/governed-proposals,frontend,route,False
+sahool-platform.learning.governed-proposals.kind,command,sahool-platform,POST /api/v1/learning/governed-proposals/{kind}/{proposal_id}/review,frontend,route,False
 sahool-platform.learning.prediction-calibration,query,sahool-platform,GET /api/v1/learning/prediction-calibration,frontend,route,False
 sahool-platform.learning.promotion-decisions,command,sahool-platform,POST /api/v1/learning/promotion-decisions,frontend,route,False
 sahool-platform.learning.summary,query,sahool-platform,GET /api/v1/learning/summary,frontend,route,False

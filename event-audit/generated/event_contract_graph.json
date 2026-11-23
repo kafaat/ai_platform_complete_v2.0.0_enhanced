@@ -139,7 +139,7 @@
       "dynamic_expr": "event.subject()",
       "file": "shared/ai/recommendation_runtime/recommendation_events.py",
       "kind": "producer",
-      "line": 61,
+      "line": 66,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -151,7 +151,7 @@
       "dynamic_expr": "RecommendationEvent(tenant_id=tenant_id, field_id=field_id, recommendation_id=rec_id, event_type='created', payload={'intent': intent})",
       "file": "shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
       "kind": "producer",
-      "line": 75,
+      "line": 81,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -163,7 +163,7 @@
       "dynamic_expr": "RecommendationEvent(tenant_id=tenant_id, field_id=field_id, recommendation_id=rec_id, event_type='review_required', payload={'review_id': review.review_id})",
       "file": "shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
       "kind": "producer",
-      "line": 107,
+      "line": 117,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -366,7 +366,7 @@
     "consumer_only_subjects": 4,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 17,
-    "files_scanned": 1326,
+    "files_scanned": 1328,
     "matched_subjects": 0,
     "producer_only_subjects": 3,
     "production_certified": false,

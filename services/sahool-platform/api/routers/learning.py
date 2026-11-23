@@ -13,8 +13,12 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Literal
 
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field, field_validator
+
+from api.learning_feedback import list_pending_learning_proposals, record_learning_proposal_review
 from api.main import (
     ExternalPriorBlendRequest,
     Permission,
@@ -193,3 +197,80 @@ async def prediction_calibration_status(
         "pseudoreplication). بلا أزواج كافية: «عيّنة غير كافية» بصدق (لا تصحيح)."
     )
     return result
+
+
+# ── مراجعة مرشَّحات التعلّم المحكومة (G14 / F-D02) ─────────────────────────────────────
+# ``governed_model_promotion_candidates`` و``irrigation_learning_proposals`` تُكتبان بـ
+# ``review_required`` و``auto_promote``/``auto_adjust`` = FALSE ولم يكن لهما مسارُ مراجعة.
+# مساران: القائمة المعلَّقة، وتسجيلُ قرارٍ بهويّةٍ وزمنٍ وسبب. **التسجيلُ ليس تطبيقاً**: لا
+# ترقيةَ ولا تعديلَ ولا استدعاءَ لسجلّ النماذج أو محرّك الريّ (``applied: False`` دائماً).
+# الصلاحية ``DECISION_MODEL_ACTIVATION_APPROVE`` — صلاحيّةُ مراجعة تفعيل النماذج نفسُها
+# (``decision_review.review_model_activation_request_boundary``)؛ لا دورَ جديد.
+LearningProposalKind = Literal["model_promotion", "irrigation"]
+
+
+class LearningProposalReview(BaseModel):
+    """قرار المراجِع: ``accept``/``reject`` مع سببٍ غير فارغ."""
+
+    decision: Literal["accept", "reject"]
+    reason: str = Field(min_length=1, max_length=2000)
+    # مرشَّحٌ مجمَّع يحمل ``pool_digest`` في دليله: الاعتمادُ يُسمّي البصمةَ التي رآها المراجِع.
+    reviewed_pool_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+
+    @field_validator("reason")
+    @classmethod
+    def _reason_not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("reason required")
+        return value.strip()
+
+
+@router.get("/api/v1/learning/governed-proposals")
+async def list_governed_learning_proposals(
+    kind: LearningProposalKind | None = None,
+    limit: int = Query(default=100, ge=1, le=200),
+    user: UserSchema = Depends(require_permission(Permission.DECISION_MODEL_ACTIVATION_APPROVE)),
+):
+    """المرشَّحات المعلَّقة (غير ``approved``/``rejected``) للمستأجِر — قراءةٌ فقط تحت RLS."""
+    try:
+        async with tenant_connection(user) as conn:
+            items = await list_pending_learning_proposals(conn, kind=kind, limit=limit)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قائمة مرشَّحات التعلّم", e) from e
+    return {"items": items, "count": len(items), "read_only": True}
+
+
+@router.post("/api/v1/learning/governed-proposals/{kind}/{proposal_id}/review")
+async def review_governed_learning_proposal(
+    kind: LearningProposalKind,
+    proposal_id: str,
+    req: LearningProposalReview,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_MODEL_ACTIVATION_APPROVE)),
+):
+    """يسجّل قرار المراجِع ولا يطبّقه: ``status`` + ``reviewed_by`` + ``reviewed_at`` وحدثُ السبب.
+
+    مستأجِرٌ آخر/معرّفٌ مجهول ⇒ 404 (RLS). القرارُ نفسه ثانيةً ⇒ إعادةٌ بلا حدثٍ ثانٍ؛ المعاكس ⇒ 409.
+    انتقالٌ مرفوض (اعتمادٌ من غير ``review_ready``، بصمةُ مجمّعٍ لا تطابق) ⇒ 409.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            return await record_learning_proposal_review(
+                conn,
+                kind=kind,
+                proposal_id=proposal_id,
+                decision=req.decision,
+                reason=req.reason,
+                reviewed_by=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                reviewed_pool_digest=req.reviewed_pool_digest,
+            )
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail="learning proposal not found") from e
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق (لا قرارَ مُسجَّلٌ جزئيّاً)
+        raise _db_unavailable("تسجيل مراجعة مرشَّح التعلّم", e) from e

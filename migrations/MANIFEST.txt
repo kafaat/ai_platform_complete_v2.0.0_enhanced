@@ -887,6 +887,12 @@ v286_canonical_observations.sql
 #   farm_ledger_entries. Inert unless the session sets app.enforce_farm_scope='on' (platform flag
 #   SAHOOL_FARM_SCOPE_ENFORCE, default off). Owner sahool-platform. Before v240.
 v287_farm_access_grants.sql
+# v288 (finding F-D04, gap A-QUEUE-WITH-NO-TERMINAL-STATE-REPUBLISHES-FOREVER-01):
+#   model_promotion_history_runtime.status (pending -> requested | blocked | skipped, CHECK) and
+#   status_reason, so the model worker claims a promotion once; model_serving_aliases_runtime
+#   status defaults to pending_external_ack instead of active. Writers sahool-platform. Needs the
+#   superuser/BYPASSRLS migration owner (FORCE RLS backfill). Before v240.
+v288_model_promotion_terminal_state.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

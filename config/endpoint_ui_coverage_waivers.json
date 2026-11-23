@@ -917,6 +917,46 @@
       "tracking": "XIAOZHI-DEVICE-LEASE-UI",
       "expiry": "2026-12-31",
       "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/learning/governed-proposals",
+      "methods": [
+        "get@services/sahool-platform/api/routers/learning.py"
+      ],
+      "reason": "G14 (F-D02): مسار مراجعة مقترحات التعلّم المحكومة على الخادم وحده في هذه الدفعة؛ لا شاشة تعرض القائمة بعد. دَين واجهة مُعلَن بدل ادّعاء تغطية غير موجودة. (قائمة المقترحات)",
+      "audience": "agronomist",
+      "reason_category": "backlog-ui",
+      "priority": "medium",
+      "ui_effort": "panel",
+      "ui_surface_hint": "host:frontend/src/sections (learning review)",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human",
+      "owner": "sahool-platform",
+      "tracking": "G14-LEARNING-REVIEW-UI",
+      "expiry": "2026-12-31",
+      "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/learning/governed-proposals/{kind}/{proposal_id}/review",
+      "methods": [
+        "post@services/sahool-platform/api/routers/learning.py"
+      ],
+      "reason": "G14 (F-D02): قرار المراجع على مقترح تعلّم محكوم، على الخادم وحده في هذه الدفعة؛ لا شاشة تسجّله بعد. دَين واجهة مُعلَن بدل ادّعاء تغطية غير موجودة. (قرار المراجعة)",
+      "audience": "agronomist",
+      "reason_category": "backlog-ui",
+      "priority": "medium",
+      "ui_effort": "panel",
+      "ui_surface_hint": "host:frontend/src/sections (learning review)",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human",
+      "owner": "sahool-platform",
+      "tracking": "G14-LEARNING-REVIEW-UI",
+      "expiry": "2026-12-31",
+      "temporary": true
     }
   ]
 }

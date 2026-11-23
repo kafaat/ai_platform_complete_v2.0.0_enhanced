@@ -1074,6 +1074,8 @@
         "CHUNK_SIZE",
         "COLLECTION_NAME",
         "EMBED_MODEL",
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID",
+        "FIELD_SERVICE_URL",
         "JWT_PUBLIC_KEY",
         "LLM_MODEL",
         "MAX_UPLOAD_MB",
@@ -1125,6 +1127,7 @@
         "tracing_instrumented": true
       },
       "secrets": [
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY",
         "JWT_SECRET",
         "QDRANT_API_KEY",
         "SAHOOL_AGENT_TOKEN"
@@ -2061,7 +2064,8 @@
         "WORKER_HEARTBEAT_DIR",
         "WORKER_POLL_SECONDS",
         "WORKFLOW_LEASE_SECONDS",
-        "WORKFLOW_WORKER_ID"
+        "WORKFLOW_WORKER_ID",
+        "WORK_ORDER_FIELD_TASK_LINK_ENABLED"
       ],
       "container": {
         "dockerfile": "services/sahool-platform/Dockerfile",
@@ -2147,6 +2151,7 @@
           "services/sahool-platform/api/routers/seasons.py",
           "services/sahool-platform/api/routers/service_proxy.py",
           "services/sahool-platform/api/routers/sync.py",
+          "services/sahool-platform/api/routers/tasks.py",
           "services/sahool-platform/api/routers/weather.py",
           "services/sahool-platform/api/scheduler.py",
           "services/sahool-platform/api/service_token_auth.py",

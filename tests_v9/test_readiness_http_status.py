@@ -77,6 +77,9 @@ def _decision_client(*, sor=True, misconfigured=False, auth_missing=False, db=No
                 "_model_lifecycle_capability": lambda: {"enabled": False},
                 # W2-01: the real capability builder, not a stub — /readyz must serialize it.
                 "sor_capability_signal": _decision_cutover_module().sor_capability_signal,
+                # F-D01 (G5): the outbox backlog is reported beside the verdict, never part of it.
+                "outbox_state": lambda **kw: {"measured": False, **kw},
+                "outbox_backlog": AsyncMock(return_value={"measured": True, "pending_count": 0}),
             },
         ),
         probe,

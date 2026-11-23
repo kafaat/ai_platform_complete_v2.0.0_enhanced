@@ -1715,7 +1715,9 @@ tables:
   irrigation_learning_proposals:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
+    # G14/F-D02: مسارُ المراجعة (api/learning_feedback.py عبر api/routers/learning.py) يقرأ المعلَّق
+    # ويكتب approved/rejected + reviewed_by/reviewed_at فقط — تسجيلُ قرارٍ لا تطبيقُه.
+    readers: [sahool-platform]
     source: "migrations/v181_irrigation_closed_loop_learning_production_certification.sql"
   irrigation_machine_spans:
     owner: sahool-platform
