@@ -878,7 +878,7 @@
     "candidates": [
       {
         "capability_id": "DEC-010",
-        "score": 15,
+        "score": 14,
         "signals": [
           "content:model activation",
           "content:model promotion",
@@ -892,6 +892,22 @@
           "content:water quality",
           "content:Water quality samples",
           "content:water sample"
+        ]
+      },
+      {
+        "capability_id": "FM-003",
+        "score": 11,
+        "signals": [
+          "content:field boundary",
+          "content:field geometry"
+        ]
+      },
+      {
+        "capability_id": "FM-002",
+        "score": 11,
+        "signals": [
+          "content:farm",
+          "content:farms"
         ]
       }
     ]

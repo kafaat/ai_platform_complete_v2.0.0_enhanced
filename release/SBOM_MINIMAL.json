@@ -5155,7 +5155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "22c93820ca7eba4a87bddd7e0829841e9a4ac956336500e4069003d5bd8f3018"
+          "content": "91318d621c897300ebc70183863b3d99e846d41ad1f83205b3894a5cb29ea757"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -27465,7 +27465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "925a88350e80a7e0ab6d68441c51d449e1d0c22c404d8d3223f1b7677ecfc6d2"
+          "content": "a98d09798126b628304655ff0d9cd8cf89c8fcdacfbb9441e7a73069e57e5b35"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_workers.py",

@@ -1831,7 +1831,7 @@
           "score": 14
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1014",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1050",
           "score": 12
         },
         {
@@ -1843,15 +1843,15 @@
           "score": 12
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:531",
+          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:567",
           "score": 12
         },
         {
-          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:404",
+          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:440",
           "score": 12
         },
         {
-          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:470",
+          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:506",
           "score": 12
         },
         {
@@ -1963,15 +1963,6 @@
           ]
         },
         {
-          "path": "docs/architecture/db_writer_ownership_baseline.json",
-          "score": 15,
-          "signals": [
-            "content:model activation",
-            "content:model promotion",
-            "content:model rollback"
-          ]
-        },
-        {
           "path": "WX11_4_MODEL_ACTIVATION_REQUEST_REPORT_20260711.md",
           "score": 14,
           "signals": [
@@ -1985,6 +1976,15 @@
           "signals": [
             "path:model activation",
             "content:model activation"
+          ]
+        },
+        {
+          "path": "docs/architecture/db_writer_ownership_baseline.json",
+          "score": 14,
+          "signals": [
+            "content:model activation",
+            "content:model promotion",
+            "content:model rollback"
           ]
         },
         {
@@ -5282,6 +5282,14 @@
           ]
         },
         {
+          "path": "docs/architecture/db_writer_ownership_baseline.json",
+          "score": 11,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "docs/architecture/db_writer_ownership_triage.json",
           "score": 11,
           "signals": [
@@ -5362,7 +5370,7 @@
         "mobile": 35,
         "tests": 62,
         "governance": 0,
-        "other_evidence": 26
+        "other_evidence": 27
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -6289,6 +6297,14 @@
           ]
         },
         {
+          "path": "docs/architecture/db_writer_ownership_baseline.json",
+          "score": 11,
+          "signals": [
+            "content:field boundary",
+            "content:field geometry"
+          ]
+        },
+        {
           "path": "docs/architecture/db_writer_ownership_triage.json",
           "score": 11,
           "signals": [
@@ -6358,7 +6374,7 @@
         "mobile": 2,
         "tests": 17,
         "governance": 1,
-        "other_evidence": 17
+        "other_evidence": 18
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -8731,7 +8747,7 @@
           "score": 10
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1014",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1050",
           "score": 9
         },
         {
@@ -8747,15 +8763,15 @@
           "score": 9
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:531",
+          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:567",
           "score": 9
         },
         {
-          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:404",
+          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:440",
           "score": 9
         },
         {
-          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:470",
+          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:506",
           "score": 9
         },
         {
@@ -32044,7 +32060,7 @@
           "score": 11
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1014",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:1050",
           "score": 10
         },
         {
@@ -32056,15 +32072,15 @@
           "score": 10
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:531",
+          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:567",
           "score": 10
         },
         {
-          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:404",
+          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:440",
           "score": 10
         },
         {
-          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:470",
+          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:506",
           "score": 10
         },
         {
@@ -49218,7 +49234,7 @@
       "candidates": [
         {
           "capability_id": "DEC-010",
-          "score": 15,
+          "score": 14,
           "signals": [
             "content:model activation",
             "content:model promotion",
@@ -49232,6 +49248,22 @@
             "content:water quality",
             "content:Water quality samples",
             "content:water sample"
+          ]
+        },
+        {
+          "capability_id": "FM-003",
+          "score": 11,
+          "signals": [
+            "content:field boundary",
+            "content:field geometry"
+          ]
+        },
+        {
+          "capability_id": "FM-002",
+          "score": 11,
+          "signals": [
+            "content:farm",
+            "content:farms"
           ]
         }
       ]
