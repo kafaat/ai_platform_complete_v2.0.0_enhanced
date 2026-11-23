@@ -386,7 +386,7 @@ def _candidate_paths() -> list[Path]:
             ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
             cwd=ROOT,
             capture_output=True,
-            text=True,
+            encoding="utf-8",
             check=True,
         ).stdout
         listed = [ROOT / name for name in out.split("\0") if name]
