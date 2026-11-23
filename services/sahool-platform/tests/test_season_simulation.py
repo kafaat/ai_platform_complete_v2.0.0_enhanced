@@ -244,6 +244,23 @@ class TestUnknownIrrigation:
         assert r.yield_status == "unavailable_invalid_irrigation"
         assert r.scenario_yield_kg_ha is None
 
+    def test_invalid_irrigation_total_with_rain_reports_no_rain_only_supply(self):
+        weather = _warm_days(120)
+        for d in weather[:10]:
+            d.rain_mm = 12.0
+        for bad in (float("nan"), -5.0):
+            r = _sim("wheat", weather, irrigation_type="pivot", irrigation_mm_total=bad)
+            assert r.yield_status == "unavailable_invalid_irrigation"
+            assert "IRRIGATION_TOTAL_INVALID" in r.limitations
+            assert r.water_supply_mm is None and r.water_stress_factor is None
+
+    def test_unavailable_estimate_states_no_confidence_in_the_rationale(self):
+        unknown = _sim("wheat", _warm_days(120), irrigation_type="pivot")
+        assert "الثقة غير متاحة" in unknown.rationale_ar
+        assert "الثقة 0%" not in unknown.rationale_ar and "الثقة 0٪" not in unknown.rationale_ar
+        known = _sim("wheat", _warm_days(120), irrigation_mm_total=_ADEQUATE_IRRIGATION_MM)
+        assert f"الثقة {known.confidence:.0%}" in known.rationale_ar
+
     def test_rainfed_season_is_unaffected(self):
         r = _sim("wheat", _warm_days(90), irrigation_type="rainfed")
         assert r.yield_status == "estimated_water_unverified"

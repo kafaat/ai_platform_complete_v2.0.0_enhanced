@@ -102,6 +102,7 @@ describe('HybridIndexPage offers the season simulation run (F-U01)', () => {
       ...RESULT, yield_kg_ha: null, yield_low_kg_ha: null, yield_high_kg_ha: null,
       yield_status: 'unavailable_unknown_irrigation', limitations: ['IRRIGATION_SUPPLY_UNKNOWN'],
       confidence: 0, scenario_yield_kg_ha: 3000, scenario_basis: 'adequate_irrigation_assumed',
+      rationale_ar: 'محاكاة 40 يوم: الإنتاج غير متاح (unavailable_unknown_irrigation). الثقة غير متاحة — تقدير نموذجي.',
     });
     renderPage('owner');
     fireEvent.click(await runButton());
@@ -111,8 +112,11 @@ describe('HybridIndexPage offers the season simulation run (F-U01)', () => {
     await within(dialog).findByText(/سيناريو «لو كان الريّ كافياً»/);
     expect(within(dialog).getByText(/ليس تقديراً للموسم/)).toBeInTheDocument();
     expect(within(dialog).getByText('الإنتاج المُقدَّر (kg/ha)').parentElement).toHaveTextContent('غير متاح');
-    expect(within(dialog).getByText(/الثقة/)).toHaveTextContent('الثقة غير متاحة');
-    expect(within(dialog).queryByText(/الثقة 0٪/)).toBeNull();
+    // The stats line and the server rationale both state confidence; neither may say 0.
+    expect(within(dialog).getByText(/الكتلة الحيويّة/)).toHaveTextContent('الثقة غير متاحة');
+    expect(within(dialog).getByText(/محاكاة 40 يوم/)).toHaveTextContent('الثقة غير متاحة');
+    // Both percent signs: a server rationale with a Latin "%" must not slip past the check.
+    expect(within(dialog).queryByText(/الثقة\s*0\s*[٪%]/)).toBeNull();
   });
 
   it.each(['agronomist', 'worker', 'viewer', undefined])(

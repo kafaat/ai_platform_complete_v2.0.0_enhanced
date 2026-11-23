@@ -546,11 +546,11 @@ medium,sahool-platform,class,TestMaturityAndConfidence,services/sahool-platform/
 medium,sahool-platform,class,TestWaterStress,services/sahool-platform/tests/test_season_simulation.py,141,0,review_before_delete,False
 medium,sahool-platform,class,TestEstimationAssumptions,services/sahool-platform/tests/test_season_simulation.py,164,0,review_before_delete,False
 medium,sahool-platform,class,TestUnknownIrrigation,services/sahool-platform/tests/test_season_simulation.py,193,0,review_before_delete,False
-medium,sahool-platform,class,TestResponseResultFields,services/sahool-platform/tests/test_season_simulation.py,261,0,review_before_delete,False
-medium,sahool-platform,class,TestObservedFapar,services/sahool-platform/tests/test_season_simulation.py,287,0,review_before_delete,False
-medium,sahool-platform,class,TestFaparFromNdvi,services/sahool-platform/tests/test_season_simulation.py,364,0,review_before_delete,False
-medium,sahool-platform,class,TestCropDifferences,services/sahool-platform/tests/test_season_simulation.py,387,0,review_before_delete,False
-medium,sahool-platform,class,TestIncompleteWeatherTruth,services/sahool-platform/tests/test_season_simulation.py,399,0,review_before_delete,False
+medium,sahool-platform,class,TestResponseResultFields,services/sahool-platform/tests/test_season_simulation.py,278,0,review_before_delete,False
+medium,sahool-platform,class,TestObservedFapar,services/sahool-platform/tests/test_season_simulation.py,304,0,review_before_delete,False
+medium,sahool-platform,class,TestFaparFromNdvi,services/sahool-platform/tests/test_season_simulation.py,381,0,review_before_delete,False
+medium,sahool-platform,class,TestCropDifferences,services/sahool-platform/tests/test_season_simulation.py,404,0,review_before_delete,False
+medium,sahool-platform,class,TestIncompleteWeatherTruth,services/sahool-platform/tests/test_season_simulation.py,416,0,review_before_delete,False
 medium,sahool-platform,class,TestFloweringStage,services/sahool-platform/tests/test_season_stage_risk.py,15,0,review_before_delete,False
 medium,sahool-platform,class,TestEstablishmentStage,services/sahool-platform/tests/test_season_stage_risk.py,38,0,review_before_delete,False
 medium,sahool-platform,class,TestHarvestStage,services/sahool-platform/tests/test_season_stage_risk.py,49,0,review_before_delete,False

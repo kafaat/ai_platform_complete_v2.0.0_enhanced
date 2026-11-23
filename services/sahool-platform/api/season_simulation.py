@@ -593,9 +593,11 @@ def simulate_season(ctx: SimContext) -> SimResult:
     irrigation_unknown = not rainfed and ctx.irrigation_mm_total is None
     if irrigation_unknown:
         limitations.append("IRRIGATION_SUPPLY_UNKNOWN")
+    # An invalid irrigation total is not a known supply either: rain alone must not stand in.
     if (
         missing_rain_days == 0
         and not irrigation_unknown
+        and "IRRIGATION_TOTAL_INVALID" not in limitations
         and (irrigation_total is not None or rain_total > 0 or rainfed)
     ):
         # For a rainfed season, observed zero rain is a known zero supply, not an
@@ -740,12 +742,14 @@ def simulate_season(ctx: SimContext) -> SimResult:
     water_text = f"{water_need:.0f}" if water_need is not None else "غير متاح"
     biomass_text = f"{biomass_kg_ha:.0f}" if not gdd_blocks_yield else "غير متاح"
     lai_text = f"{lai_peak:.2f}" if missing_gdd_days == 0 else "غير متاح"
+    # An unavailable estimate has no confidence to state: never render it as "الثقة 0%".
+    confidence_text = f"الثقة {confidence:.0%}" if yield_kg_ha is not None else "الثقة غير متاحة"
     rationale = (
         f"محاكاة {days} يوم: GDD={gdd_text}/{p.gdd_to_maturity:.0f} °C·day، "
         f"أقصى LAI={lai_text}، "
         f"كتلة حيويّة≈{biomass_text} kg/ha، "
         f"{yield_text}، احتياج الماء≈{water_text} mm. "
-        f"الثقة {confidence:.0%} — تقدير نموذجي (RUE/FAO-56)، عايِر ميدانيّاً."
+        f"{confidence_text} — تقدير نموذجي (RUE/FAO-56)، عايِر ميدانيّاً."
     )
 
     return SimResult(

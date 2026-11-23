@@ -1,5 +1,5 @@
 {
-  "edge_count": 1118,
+  "edge_count": 1119,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -10312,6 +10312,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_season_spatial_provenance.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/settings.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -11202,7 +11212,7 @@
     "EMITS": 3,
     "READS": 601,
     "ROUTES_TO": 82,
-    "WRITES": 383
+    "WRITES": 384
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -11217,8 +11227,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 985,
-      "resolved": 984,
+      "observed": 986,
+      "resolved": 985,
       "unresolved_component_paths": 0
     }
   }

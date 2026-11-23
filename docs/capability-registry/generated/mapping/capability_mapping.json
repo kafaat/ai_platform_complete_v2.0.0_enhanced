@@ -70220,7 +70220,7 @@
         {
           "source": "services/sahool-platform/api/season_models.py",
           "kind": "import",
-          "line": 267
+          "line": 284
         },
         {
           "source": "services/sahool-platform/api/season_simulation.py",
@@ -70253,12 +70253,12 @@
         {
           "source": "services/sahool-platform/api/routers/seasons.py",
           "kind": "import",
-          "line": 141
+          "line": 143
         },
         {
           "source": "services/sahool-platform/api/weather_service_client.py",
           "kind": "import",
-          "line": 142
+          "line": 144
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
