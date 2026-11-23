@@ -158,10 +158,10 @@ async def _persist_recommendation(
         return False
 
 
-from core.recommendation_runtime_outcome import (  # noqa: E402 — F7, re-exported for callers
+from core.recommendation_bridge import (  # noqa: E402 — F7, re-exported for callers
     RUNTIME_REFUSAL_STATUS as RUNTIME_REFUSAL_STATUS,
 )
-from core.recommendation_runtime_outcome import (  # noqa: E402
+from core.recommendation_bridge import (  # noqa: E402
     CanonicalStateNotPassedToEngine,
     _runtime_engine,
     _runtime_pipeline_outcome,

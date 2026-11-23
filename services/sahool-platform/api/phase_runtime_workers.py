@@ -378,39 +378,60 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
             )
             superseded_by = None
             if action["action"] == "request_serving_promotion":
-                # Devin on #1587: a promotion retried after a failed publish must not write its
-                # model over a newer promotion of the same alias. The alias row is locked and,
-                # when it names a promotion recorded after this one, this one is superseded: it
-                # leaves the queue as skipped, without writing the alias or publishing.
+                # One transaction locks the alias, decides and writes it (hospital review of
+                # #1587): a transaction-scoped advisory lock on (tenant, alias) serialises the
+                # workers even before the alias row exists, and FOR UPDATE on that row, with no
+                # other filter, makes the platform writer's upsert wait for this commit. Under
+                # the lock, a promotion older than the one the alias names is superseded: it
+                # leaves the queue as skipped without writing the alias or publishing (Devin on
+                # #1587: a retried older promotion must not overwrite a newer alias).
                 async with conn.transaction():
                     await _set_tenant(conn, row["tenant_id"])
-                    superseded_by = await conn.fetchval(
-                        """
-                        SELECT a.promotion_id FROM model_serving_aliases_runtime a
-                        JOIN model_promotion_history_runtime h
-                          ON h.tenant_id = a.tenant_id AND h.promotion_id = a.promotion_id
-                        WHERE a.tenant_id = $1 AND a.alias = $2 AND a.promotion_id <> $3
-                          AND (h.created_at, h.id::text) > ($4::timestamptz, $5::text)
-                        FOR UPDATE OF a
-                        """,
+                    await conn.execute(
+                        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+                        f"model-serving-alias:{row['tenant_id']}:{row['alias']}",
+                    )
+                    current = await conn.fetchval(
+                        "SELECT promotion_id FROM model_serving_aliases_runtime "
+                        "WHERE tenant_id = $1 AND alias = $2 FOR UPDATE",
                         row["tenant_id"],
                         row["alias"],
-                        row["promotion_id"],
-                        row["created_at"],
-                        str(row["id"]),
                     )
-            if superseded_by is not None:
-                async with conn.transaction():
-                    await _set_tenant(conn, row["tenant_id"])
-                    await finalize_claim(
-                        conn,
-                        table="model_promotion_history_runtime",
-                        row_id=row["id"],
-                        claim_token=row["claim_token"],
-                        assignments="status=$1, status_reason=$2",
-                        params=("skipped", f"superseded_by:{superseded_by}"),
-                    )
-            elif action["action"] == "request_serving_promotion":
+                    if current is not None and current != row["promotion_id"]:
+                        superseded_by = await conn.fetchval(
+                            "SELECT promotion_id FROM model_promotion_history_runtime "
+                            "WHERE tenant_id = $1 AND promotion_id = $2 "
+                            "AND (created_at, id::text) > ($3::timestamptz, $4::text)",
+                            row["tenant_id"],
+                            current,
+                            row["created_at"],
+                            str(row["id"]),
+                        )
+                    if superseded_by is not None:
+                        await finalize_claim(
+                            conn,
+                            table="model_promotion_history_runtime",
+                            row_id=row["id"],
+                            claim_token=row["claim_token"],
+                            assignments="status=$1, status_reason=$2",
+                            params=("skipped", f"superseded_by:{superseded_by}"),
+                        )
+                    else:
+                        await conn.execute(
+                            """
+                            INSERT INTO model_serving_aliases_runtime (tenant_id, alias, model_id, previous_model_id, promotion_id, status)
+                            VALUES ($1,$2,$3,$4,$5,'pending_external_ack')
+                            ON CONFLICT (tenant_id, alias) DO UPDATE SET
+                                model_id=EXCLUDED.model_id, previous_model_id=EXCLUDED.previous_model_id,
+                                promotion_id=EXCLUDED.promotion_id, status='pending_external_ack', updated_at=now()
+                            """,
+                            row["tenant_id"],
+                            row["alias"],
+                            row["target_model_id"],
+                            row["previous_model_id"],
+                            row["promotion_id"],
+                        )
+            if action["action"] == "request_serving_promotion" and superseded_by is None:
                 # The request is published while the row is still claimed and pending, and only
                 # then marked requested. A broker that is down must not leave a row that is
                 # terminal but never sent (Devin on #1587): on a failed publish the claim is
@@ -419,22 +440,6 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                 # unique across tenants (promotion_id is unique only within a tenant), so the
                 # stream drops a republish inside its duplicate window and never another
                 # tenant's request.
-                async with conn.transaction():
-                    await _set_tenant(conn, row["tenant_id"])
-                    await conn.execute(
-                        """
-                        INSERT INTO model_serving_aliases_runtime (tenant_id, alias, model_id, previous_model_id, promotion_id, status)
-                        VALUES ($1,$2,$3,$4,$5,'pending_external_ack')
-                        ON CONFLICT (tenant_id, alias) DO UPDATE SET
-                            model_id=EXCLUDED.model_id, previous_model_id=EXCLUDED.previous_model_id,
-                            promotion_id=EXCLUDED.promotion_id, status='pending_external_ack', updated_at=now()
-                        """,
-                        row["tenant_id"],
-                        row["alias"],
-                        row["target_model_id"],
-                        row["previous_model_id"],
-                        row["promotion_id"],
-                    )
                 try:
                     await _publish_nats(
                         "sahool.model.promotion.requested",
@@ -459,7 +464,7 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                         assignments="status=$1, status_reason=$2",
                         params=released,
                     )
-            else:
+            elif action["action"] != "request_serving_promotion":
                 async with conn.transaction():
                     await finalize_claim(
                         conn,

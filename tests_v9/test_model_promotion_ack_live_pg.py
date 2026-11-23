@@ -515,31 +515,58 @@ def test_the_schema_refuses_an_unknown_promotion_status_and_defaults_the_alias_t
 _V288 = _ROOT / "migrations" / "v288_model_promotion_terminal_state.sql"
 
 
-def test_v288_backfills_history_so_the_first_cycle_does_not_replay_it(monkeypatch, migrated_db):
-    """Re-applied (it is idempotent) over rows shaped as before v288, all left 'pending'."""
+_V288_DOWN = _ROOT / "migrations" / "v288_model_promotion_terminal_state.down.sql"
+
+
+def test_v288_backfills_history_once_and_reports_aliases_active_before_it(monkeypatch, migrated_db):
+    """First apply over a pre-v288 schema: history classified once, old active aliases reported.
+
+    The schema is taken back to before v288 with its own down file, rows are written in the
+    pre-v288 shape, and v288 is applied: hold -> skipped, a promote whose alias is already the
+    worker's pending_external_ack request -> requested, every other promote stays pending. An
+    alias active before v288 stays active and is reported as such, never as acknowledged
+    (owner decision 2026-11-23). A second apply changes nothing.
+    """
 
     async def body():
         async with Live(monkeypatch, migrated_db) as live:
             async with live.owner.acquire() as conn:
-                for pid, decision in (("p-h", "hold"), ("p-r", "promote"), ("p-n", "promote")):
+                notices: list[str] = []
+                conn.add_log_listener(lambda _c, message: notices.append(message.message))
+                await conn.execute(_V288_DOWN.read_text(encoding="utf-8"))
+                try:
+                    for pid, decision in (("p-h", "hold"), ("p-r", "promote"), ("p-n", "promote")):
+                        await conn.execute(
+                            "INSERT INTO model_promotion_history_runtime "
+                            "(tenant_id, promotion_id, alias, decision, target_model_id) "
+                            "VALUES ($1,$2,$3,$4,'m-b')",
+                            live.tenant,
+                            pid,
+                            f"{_ALIAS}-{pid}",
+                            decision,
+                        )
+                    # p-r was already requested: the worker's request branch wrote its alias.
                     await conn.execute(
-                        "INSERT INTO model_promotion_history_runtime "
-                        "(tenant_id, promotion_id, alias, decision, target_model_id) "
-                        "VALUES ($1,$2,$3,$4,'m-b')",
+                        "INSERT INTO model_serving_aliases_runtime "
+                        "(tenant_id, alias, model_id, promotion_id, status) "
+                        "VALUES ($1,$2,'m-b','p-r','pending_external_ack')",
                         live.tenant,
-                        pid,
-                        f"{_ALIAS}-{pid}",
-                        decision,
+                        f"{_ALIAS}-p-r",
                     )
-                # p-r was already requested: the worker's request branch wrote its alias.
-                await conn.execute(
-                    "INSERT INTO model_serving_aliases_runtime "
-                    "(tenant_id, alias, model_id, promotion_id, status) "
-                    "VALUES ($1,$2,'m-b','p-r','pending_external_ack')",
-                    live.tenant,
-                    f"{_ALIAS}-p-r",
-                )
+                    # An alias active before v288 (v108's default, no acknowledgement path).
+                    await conn.execute(
+                        "INSERT INTO model_serving_aliases_runtime "
+                        "(tenant_id, alias, model_id, promotion_id, status) "
+                        "VALUES ($1,'old-active','m-old','p-old','active')",
+                        live.tenant,
+                    )
+                finally:
+                    await conn.execute(_V288.read_text(encoding="utf-8"))
+                first = [n for n in notices if "active before v288" in n]
+                assert first, notices
+                assert all("acknowledged" not in n for n in first), first
                 await conn.execute(_V288.read_text(encoding="utf-8"))
+
             got = {}
             for pid in ("p-h", "p-r", "p-n"):
                 row = await live.promotion(pid)
@@ -549,6 +576,112 @@ def test_v288_backfills_history_so_the_first_cycle_does_not_replay_it(monkeypatc
                 "p-r": ("requested", None),
                 "p-n": ("pending", None),
             }
+            assert (await live.alias("old-active"))["status"] == "active"
+
+    _run(body())
+
+
+def test_reapplying_v288_leaves_a_queued_promotion_pending(monkeypatch, migrated_db):
+    """Hospital review of #1587: a re-run of v288 marked queued, unpublished promotions requested.
+
+    This release's writer records a promote decision with the alias pending_external_ack on the
+    same promotion, the very shape v288's backfill reads as 'already requested'. The backfill
+    therefore runs only on the apply that adds the column; a re-run leaves the queue alone.
+    """
+
+    async def body():
+        async with Live(monkeypatch, migrated_db) as live:
+            await live.persist(_promotion("p-q"), model_id="m-b")
+            alias = await live.alias()
+            assert (alias["promotion_id"], alias["status"]) == ("p-q", "pending_external_ack")
+            async with live.owner.acquire() as conn:
+                await conn.execute(_V288.read_text(encoding="utf-8"))
+            row = await live.promotion("p-q")
+            assert (row["status"], row["status_reason"]) == ("pending", None), (
+                "re-applying v288 closed a queued promotion that was never published"
+            )
+
+    _run(body())
+
+
+def test_repointing_an_alias_active_before_v288_waits_for_the_external_ack(
+    monkeypatch, migrated_db
+):
+    """Owner decision 2026-11-23: re-pointing an old active alias goes through pending too."""
+
+    async def body():
+        async with Live(monkeypatch, migrated_db) as live:
+            monkeypatch.setenv("MODEL_SERVING_ENABLED", "true")
+            monkeypatch.setenv("MODEL_SERVING_BACKEND_URL", "http://serving.invalid")
+            async with live.owner.acquire() as conn:
+                await conn.execute(
+                    "INSERT INTO model_serving_aliases_runtime "
+                    "(tenant_id, alias, model_id, promotion_id, status) "
+                    "VALUES ($1,$2,'m-a','p-0','active')",
+                    live.tenant,
+                    _ALIAS,
+                )
+            await live.persist(_promotion("p-7"), model_id="m-b")
+            assert (await live.alias())["status"] == "pending_external_ack"
+            assert await live.cycle("p-7") is True
+            assert (await live.promotion("p-7"))["status"] == "requested"
+            alias = await live.alias()
+            assert (alias["model_id"], alias["promotion_id"], alias["status"]) == (
+                "m-b",
+                "p-7",
+                "pending_external_ack",
+            )
+
+    _run(body())
+
+
+def test_a_newer_alias_written_while_the_worker_waits_is_never_overwritten(
+    monkeypatch, migrated_db
+):
+    """Hospital review of #1587: the alias lock must hold across the decision and the write.
+
+    A second connection holds the alias row while it re-points it to a newer, already
+    requested promotion C. The worker, processing the older A, must wait on that row and then
+    see C: A is superseded and the alias stays on C. When the check and the write ran in two
+    transactions, A's write landed after C's commit and the alias ended on A.
+    """
+
+    async def body():
+        async with Live(monkeypatch, migrated_db) as live:
+            monkeypatch.setenv("MODEL_SERVING_ENABLED", "true")
+            monkeypatch.setenv("MODEL_SERVING_BACKEND_URL", "http://serving.invalid")
+            await live.persist(_promotion("p-a3", target="m-a3"), model_id="m-a3")
+            async with live.owner.acquire() as conn:
+                await conn.execute(
+                    "INSERT INTO model_promotion_history_runtime "
+                    "(tenant_id, promotion_id, alias, decision, target_model_id, status) "
+                    "VALUES ($1,'p-c3',$2,'promote','m-c3','requested')",
+                    live.tenant,
+                    _ALIAS,
+                )
+            other = await asyncpg.connect(live.dsn)
+            try:
+                tx = other.transaction()
+                await tx.start()
+                await other.execute(
+                    "UPDATE model_serving_aliases_runtime SET model_id='m-c3', promotion_id='p-c3' "
+                    "WHERE tenant_id=$1 AND alias=$2",
+                    live.tenant,
+                    _ALIAS,
+                )
+                worker = asyncio.create_task(live.workers.run_model_registry_once(live.owner))
+                await asyncio.sleep(1.0)
+                assert not worker.done(), "the worker did not wait for the alias row"
+                await tx.commit()
+                await asyncio.wait_for(worker, timeout=30)
+            finally:
+                await other.close()
+
+            alias = await live.alias()
+            assert (alias["model_id"], alias["promotion_id"]) == ("m-c3", "p-c3")
+            older = await live.promotion("p-a3")
+            assert (older["status"], older["status_reason"]) == ("skipped", "superseded_by:p-c3")
+            assert [p for _, p in live.published if p.get("promotion_id") == "p-a3"] == []
 
     _run(body())
 

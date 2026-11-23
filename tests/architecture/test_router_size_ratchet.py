@@ -78,7 +78,7 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # → 986 (2026-11-16, Wave 1 #1500): the season summary query, the scope currency and the
     # per-currency budget totals moved to core.farm_operations_ledger.
     # 986 → 966 (wave 3 #1587): G6 added the flagged batch deduction here; the record request
-    # models moved to api.farm_operations_ledger_models, more than offsetting it.
+    # models moved to api.api_models, more than offsetting it.
     "services/sahool-platform/api/routers/farm_operations_ledger.py": 966,
     "services/sahool-platform/api/routers/decision_review.py": 920,
 }

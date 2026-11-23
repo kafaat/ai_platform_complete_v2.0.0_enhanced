@@ -33,7 +33,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from api import main as api_main
-from api.farm_operations_ledger_models import (
+from api.api_models import (
     EnergyRecordIn,
     EquipmentRecordIn,
     InputRecordIn,
