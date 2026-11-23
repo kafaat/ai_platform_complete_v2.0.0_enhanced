@@ -296,6 +296,23 @@ def test_update_only_as_the_apt_subcommand_counts(tmp_path, orphan):
     assert not [x for x in calls.splitlines() if x.startswith("kill")], calls
 
 
+def test_a_large_orphan_list_with_an_install_first_never_flips_to_kill(tmp_path):
+    """مختبر 1593 (a112c0a7، 3/3): مع pipefail وقائمةٍ تتجاوز مخزن الأنبوب (64 KiB) وسطرِ install
+    أوّلاً، كان `printf | grep -q` يُعطي SIGPIPE فيقلبه `!` إلى «اقتل الكلّ» فبلغ TERM عمليّةَ
+    التثبيت. الـhere-string لا أنبوب فيه: يبقى install منتظَراً لا مقتولاً."""
+    log = _fake_bin(tmp_path, succeed_on=2)
+    listing = tmp_path / "orphans.txt"
+    lines = ["2655 apt-get install -y fonts-freefont-ttf"]
+    lines += [f"{3000 + i} apt-get update" for i in range(16000)]  # ~330 KiB
+    listing.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    assert listing.stat().st_size > 3 * 65536
+    _script_with(tmp_path, "pgrep", f'echo "pgrep $*" >> "{log}"\ncat "{listing}"; exit 0\n')
+    _script_with(tmp_path, "kill", f'echo "kill $*" >> "{log}"\n')
+    proc, calls = _run(tmp_path, APT_IDLE_POLL="0", PW_TIMEOUT="0", APT_KILL_GRACE="0")
+    assert proc.returncode == 0, proc.stdout[-2000:] + proc.stderr[-2000:]
+    assert not [x for x in calls.splitlines() if x.startswith("kill")], "install لا يُقتَل أبداً"
+
+
 def test_the_mirror_switch_reaches_the_runner_mirrorlist(tmp_path):
     """مُشغِّلاتُ GitHub تقرأ المرآة من `mirror+file:/etc/apt/apt-mirrors.txt`.
 
