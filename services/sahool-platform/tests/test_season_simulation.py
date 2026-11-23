@@ -258,6 +258,32 @@ class TestUnknownIrrigation:
         assert r.scenario_yield_kg_ha is None
 
 
+class TestResponseResultFields:
+    """The route returns these SimResult fields verbatim via ``response_result_fields``."""
+
+    def test_every_field_exists_on_the_result_and_the_response_model(self):
+        from dataclasses import fields as dc_fields
+
+        from api.season_models import SeasonSimResponse
+        from api.season_simulation import RESPONSE_RESULT_FIELDS, SimResult
+
+        result_fields = {f.name for f in dc_fields(SimResult)}
+        assert set(RESPONSE_RESULT_FIELDS) <= result_fields
+        assert set(RESPONSE_RESULT_FIELDS) <= set(SeasonSimResponse.model_fields)
+        assert len(set(RESPONSE_RESULT_FIELDS)) == len(RESPONSE_RESULT_FIELDS)
+        assert {"limitations", "warnings_ar"}.isdisjoint(RESPONSE_RESULT_FIELDS)
+
+    def test_carries_the_scenario_and_status_unchanged(self):
+        from api.season_simulation import response_result_fields
+
+        r = _sim("wheat", _warm_days(120), irrigation_type="pivot")
+        out = response_result_fields(r)
+        assert out["yield_status"] == "unavailable_unknown_irrigation"
+        assert out["scenario_yield_kg_ha"] == r.scenario_yield_kg_ha
+        assert out["scenario_basis"] == "adequate_irrigation_assumed"
+        assert out["confidence"] == r.confidence
+
+
 class TestObservedFapar:
     """fAPAR مرصود (نموذج كفاءة الإنتاج RS) — حافظ للسلوك، بلا ثوابت مُختلقة."""
 

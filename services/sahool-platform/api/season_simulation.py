@@ -775,6 +775,38 @@ def simulate_season(ctx: SimContext) -> SimResult:
     )
 
 
+#: SimResult fields the season route returns verbatim. ``limitations`` and ``warnings_ar`` are
+#: not here: the route merges them with window and spatial-provenance entries.
+RESPONSE_RESULT_FIELDS: tuple[str, ...] = (
+    "crop",
+    "crop_recognized",
+    "days_simulated",
+    "gdd_total",
+    "gdd_to_maturity",
+    "maturity_reached",
+    "lai_max",
+    "biomass_kg_ha",
+    "yield_kg_ha",
+    "yield_low_kg_ha",
+    "yield_high_kg_ha",
+    "yield_status",
+    "water_need_mm",
+    "water_supply_mm",
+    "water_stress_factor",
+    "scenario_yield_kg_ha",
+    "scenario_basis",
+    "confidence",
+    "rationale_ar",
+    "assumptions_ar",
+)
+
+
+def response_result_fields(result: SimResult) -> dict[str, Any]:
+    """The verbatim part of ``SeasonSimResponse`` (keeps ``routers/seasons.py`` under its size
+    ceiling; a new SimResult field the route returns is added here, once)."""
+    return {name: getattr(result, name) for name in RESPONSE_RESULT_FIELDS}
+
+
 # ─── نافذة المحاكاة (من البذار إلى نهاية الموسم) ───────────────────────────────────────
 # سقف صلب لطول النافذة (يوم): دورة سنويّة واحدة على الأكثر — حدّ لحجم طلب الطقس التاريخيّ.
 _SIM_HARD_MAX_WINDOW_DAYS = 366

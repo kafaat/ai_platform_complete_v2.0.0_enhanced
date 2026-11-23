@@ -32,7 +32,7 @@
       "raw": 3518
     },
     "test_dependency_files": 2053,
-    "test_dependency_edges": 5548,
+    "test_dependency_edges": 5549,
     "test_dependency_bounded_files": 1176,
     "test_dependency_unresolved_relations": 527
   },
@@ -6897,7 +6897,7 @@
           "score": 14
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:608",
+          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:590",
           "score": 14
         },
         {
@@ -31915,7 +31915,7 @@
           "score": 12
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:608",
+          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:590",
           "score": 11
         },
         {
@@ -70217,6 +70217,11 @@
       "bounded": true,
       "unbounded_reasons": [],
       "edges": [
+        {
+          "source": "services/sahool-platform/api/season_models.py",
+          "kind": "import",
+          "line": 267
+        },
         {
           "source": "services/sahool-platform/api/season_simulation.py",
           "kind": "import",
