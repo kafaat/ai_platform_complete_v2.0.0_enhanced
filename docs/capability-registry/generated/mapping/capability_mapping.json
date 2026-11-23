@@ -18216,7 +18216,7 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/architecture/platform_python_module_baseline.json",
+          "path": "config/endpoint_ui_coverage_waivers.json",
           "score": 32,
           "signals": [
             "content:yield map",
@@ -18225,8 +18225,8 @@
           ]
         },
         {
-          "path": "config/endpoint_ui_coverage_waivers.json",
-          "score": 31,
+          "path": "docs/architecture/platform_python_module_baseline.json",
+          "score": 32,
           "signals": [
             "content:yield map",
             "content:Yield map ingestion",
@@ -92351,7 +92351,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 317
+          "line": 328
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",

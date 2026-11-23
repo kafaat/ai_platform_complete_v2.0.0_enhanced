@@ -214,3 +214,5 @@
 - `/api/v1/weather/tile-cache/prune` — صيانة تشذيب ذاكرة البلاطات (Depends _require_service_token) — عمليّة آلة.
 - `/api/v1/weather/tile-cache/stats` — إحصاء كاش بلاطات الطقس — مراقبة تشغيليّة لا واجهة مستخدم.
 - `/api/v1/weather/wind-source-selftest` — اختبار ذاتيّ لمصدر الرياح — تشخيص محرّك لا واجهة مستخدم.
+
+> **تحديث 2026-11-23 (يخصّ السطور 22-24 أعلاه):** أُلغي تصنيف `dispatch/consume` operational في مراجعة إعفاءات 1 يناير (#1596): محميّ بصلاحيّة بشريّة ولا عامل آليّ يستدعيه في المستودع، فعاد دَين واجهة مؤقّتاً (backlog-ui/human، DISPATCH-CONSUME-UI).
