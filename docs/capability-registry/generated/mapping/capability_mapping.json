@@ -1609,15 +1609,15 @@
           "score": 14
         },
         {
-          "value": "model_promotion_history_runtime @ migrations/v288_model_promotion_terminal_state.sql:100",
+          "value": "model_promotion_history_runtime @ migrations/v288_model_promotion_terminal_state.sql:114",
           "score": 14
         },
         {
-          "value": "model_promotion_history_runtime @ migrations/v288_model_promotion_terminal_state.sql:109",
+          "value": "model_promotion_history_runtime @ migrations/v288_model_promotion_terminal_state.sql:123",
           "score": 14
         },
         {
-          "value": "model_promotion_history_runtime @ migrations/v288_model_promotion_terminal_state.sql:82",
+          "value": "model_promotion_history_runtime @ migrations/v288_model_promotion_terminal_state.sql:85",
           "score": 14
         },
         {
@@ -1625,7 +1625,7 @@
           "score": 14
         },
         {
-          "value": "model_serving_aliases_runtime @ migrations/v288_model_promotion_terminal_state.sql:119",
+          "value": "model_serving_aliases_runtime @ migrations/v288_model_promotion_terminal_state.sql:133",
           "score": 14
         },
         {

@@ -10505,7 +10505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "44ef519d9defa85b1c0f9c62fbda171c6eff5cbc7b82c02566c4d0dae8f9e3dc"
+          "content": "baa32ddc9c58e0e4d9b1f8a40c129b8a7fd703421994d1901db083da5d907ccd"
         }
       ],
       "name": "migrations/v288_model_promotion_terminal_state.sql",
