@@ -3547,28 +3547,6 @@
     ]
   },
   {
-    "path": "services/decision-service/persistence.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "DEC-010",
-        "score": 12,
-        "signals": [
-          "content:model activation",
-          "content:model promotion"
-        ]
-      },
-      {
-        "capability_id": "SEC-001",
-        "score": 9,
-        "signals": [
-          "content:rls",
-          "content:row level security"
-        ]
-      }
-    ]
-  },
-  {
     "path": "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
     "kind": "tests",
     "candidates": [

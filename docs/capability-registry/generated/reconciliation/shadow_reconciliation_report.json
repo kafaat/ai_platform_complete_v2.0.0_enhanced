@@ -419,14 +419,13 @@
     "baseline_source": "docs/capability-registry/reconciliation_drift_baseline.json",
     "classes": {
       "evidence_maturity": {
-        "baseline_count": 46,
+        "baseline_count": 45,
         "new": [
           "DEC-010:evidence_above_declared:evidence-maturity"
         ],
         "observed_count": 45,
         "stale": [
-          "OPS-002:declared_above_evidence:evidence-maturity",
-          "SOIL-003:declared_above_evidence:evidence-maturity"
+          "OPS-002:declared_above_evidence:evidence-maturity"
         ]
       },
       "registry_reconciliation": {

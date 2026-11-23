@@ -26,7 +26,7 @@
       "web": 572
     },
     "unmapped_artifacts": 3662,
-    "ambiguous_artifacts": 267,
+    "ambiguous_artifacts": 266,
     "files_by_reading": {
       "python_functional": 4185,
       "raw": 3509
@@ -25208,14 +25208,6 @@
           ]
         },
         {
-          "path": "services/decision-service/persistence.py",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:row level security"
-          ]
-        },
-        {
           "path": "services/sahool-platform/api/learning_feedback.py",
           "score": 9,
           "signals": [
@@ -26113,14 +26105,6 @@
         },
         {
           "value": "field.created @ docs/audits/OPERATIONAL_CONTRACTS.md:115",
-          "score": 9
-        },
-        {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:2553",
-          "score": 9
-        },
-        {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:2552",
           "score": 9
         },
         {
@@ -27806,10 +27790,10 @@
         "database": 914
       },
       "evidence_counts": {
-        "backend": 17,
+        "backend": 16,
         "routes": 20,
         "database": 100,
-        "events": 86,
+        "events": 84,
         "web": 0,
         "mobile": 0,
         "tests": 93,
@@ -51878,28 +51862,6 @@
           "signals": [
             "content:Execution request",
             "dedup:Execution request=execution request"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "services/decision-service/persistence.py",
-      "kind": "backend",
-      "candidates": [
-        {
-          "capability_id": "DEC-010",
-          "score": 12,
-          "signals": [
-            "content:model activation",
-            "content:model promotion"
-          ]
-        },
-        {
-          "capability_id": "SEC-001",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:row level security"
           ]
         }
       ]
@@ -94838,7 +94800,7 @@
         {
           "source": "services/tts-service/routers/health.py",
           "kind": "source_read",
-          "line": 149
+          "line": 152
         }
       ],
       "unresolved": []

@@ -5155,7 +5155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e17e8f005d6b0d8621743a6bff37dd2cd5e2801283d64f75d6b1675c0d74a2cb"
+          "content": "22c93820ca7eba4a87bddd7e0829841e9a4ac956336500e4069003d5bd8f3018"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -19885,7 +19885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "898d7f5bd45dfcfdb3d008bed15680b97fbb61d4d6bb2f997710f972d6f05f4e"
+          "content": "c9b88c6f20ade3220c5f39948b54a8a167639480869706966f178ef333b5c183"
         }
       ],
       "name": "services/decision-service/persistence.py",
