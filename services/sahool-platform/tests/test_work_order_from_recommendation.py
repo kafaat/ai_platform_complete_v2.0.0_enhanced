@@ -171,3 +171,94 @@ def test_task_close_request_accepts_exactly_the_core_outcome_results() -> None:
     ):
         with pytest.raises(ValidationError):
             TaskUpdateRequest(**bad)
+
+
+# ── G3 route guards that need no database (lab pre-receipt on #1587) ─────────────────────
+# Every branch after the flag reads work_orders under the tenant connection and is proven
+# live (tests_v9/test_work_order_field_task_link_live_pg.py). What is measurable without a
+# database, and without a stand-in connection, is pinned here: the flag parser, the row
+# reader, and that the flag-off paths return before any connection is opened or used
+# (no pool exists in this process and no connection is substituted).
+
+
+def _wo_user():
+    from core.canonical_schemas import UserRole, UserSchema
+
+    return UserSchema(
+        user_id="u1",
+        tenant_id="00000000-0000-0000-0000-000000000001",
+        role=UserRole.MANAGER,
+        name_ar="مدير",
+    )
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (None, False),
+        ("", False),
+        ("0", False),
+        ("false", False),
+        ("off", False),
+        ("enabled", False),
+        ("1", True),
+        ("true", True),
+        (" YES ", True),
+        ("On", True),
+    ],
+)
+def test_field_task_link_flag_reads_only_explicit_truthy_values(monkeypatch, raw, expected):
+    from api.routers import tasks
+
+    if raw is None:
+        monkeypatch.delenv(tasks.WORK_ORDER_FIELD_TASK_LINK_FLAG, raising=False)
+    else:
+        monkeypatch.setenv(tasks.WORK_ORDER_FIELD_TASK_LINK_FLAG, raw)
+    assert tasks.work_order_field_task_link_enabled() is expected
+
+
+def test_work_order_row_payload_is_parsed_and_a_null_payload_reads_empty():
+    from api.routers import tasks
+
+    linked = tasks._work_order_dict({"work_order_id": "w1", "payload": '{"field_task_id": "t1"}'})
+    assert linked == {"work_order_id": "w1", "payload": {"field_task_id": "t1"}}
+    assert tasks._work_order_dict({"work_order_id": "w2", "payload": None})["payload"] == {}
+
+
+def test_work_order_link_with_the_flag_off_opens_no_connection(monkeypatch):
+    import asyncio
+
+    from api.routers import tasks
+
+    # No database pool exists in this process, so opening the tenant connection would fail;
+    # the plain "disabled" answer is the proof that the flag-off path never tried.
+    monkeypatch.delenv(tasks.WORK_ORDER_FIELD_TASK_LINK_FLAG, raising=False)
+    answer = asyncio.run(tasks.create_field_task_from_work_order(_wo_user(), "wo-1"))
+    assert answer == {
+        "requested": True,
+        "created": False,
+        "replayed": False,
+        "task_id": None,
+        "reason": "disabled",
+    }
+
+
+def test_task_close_outcome_needs_a_result_then_the_flag_before_any_read(monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+
+    from api.routers import tasks
+
+    def record(result, flag):
+        if flag is None:
+            monkeypatch.delenv(tasks.WORK_ORDER_FIELD_TASK_LINK_FLAG, raising=False)
+        else:
+            monkeypatch.setenv(tasks.WORK_ORDER_FIELD_TASK_LINK_FLAG, flag)
+        req = SimpleNamespace(outcome_result=result, outcome_evidence_ref="photo:1")
+        # conn=None: reaching the work_orders read would raise, so these answers prove it
+        # was never attempted.
+        return asyncio.run(tasks._record_task_outcome(None, _wo_user(), "t-1", req))
+
+    assert record(None, "1") == {"outcome_recorded": False, "outcome_reason": "no_result_supplied"}
+    assert record("achieved", None) == {"outcome_recorded": False, "outcome_reason": "disabled"}
+    assert record("achieved", "0") == {"outcome_recorded": False, "outcome_reason": "disabled"}
