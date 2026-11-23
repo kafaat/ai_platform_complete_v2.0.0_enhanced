@@ -282,7 +282,7 @@ def failing_output(log):
     for _, output in failed_commands(log):
         summary = output.rfind("short test summary info")
         parts.append(output[summary:] if summary >= 0 else output[-8192:])
-    return "\n".join(parts) if parts else log[-8192:]
+    return "\n".join(parts) if parts else ANSI.sub("", log)[-8192:]
 
 
 def failed_commands(log):

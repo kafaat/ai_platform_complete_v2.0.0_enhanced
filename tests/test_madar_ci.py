@@ -454,6 +454,19 @@ class Triage(unittest.TestCase):
         self.assertIn("migrations-reviewer", result)
         self.assertIn("الخطوة التالية", result)
 
+    def test_ungrouped_gitleaks_alert_routes_independently_of_color(self):
+        entry = dict(
+            job("failure", [step("Scan complete Git history for secrets", "failure", 3)]),
+            name="gitleaks-full-history",
+        )
+        for line, owner in (
+            ("WRN leaks found: 1", "security-reviewer"),
+            ("WRN \x1b[1mleaks found: 1\x1b[0m", "security-reviewer"),
+            ("WRN \x1b[1mscan interrupted\x1b[0m", "ci-quality-triage"),
+        ):
+            with self.subTest(line=line):
+                self.assertIn(owner, show(entry, lambda _, line=line: line))
+
     def test_several_failed_steps_go_to_ci_quality(self):
         steps = [step("Run npx tsc --noEmit", "failure"), step("Run bandit", "failure", 2)]
         result = show(job("failure", steps), lambda _: "")
