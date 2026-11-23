@@ -301,6 +301,35 @@ class Triage(unittest.TestCase):
                 self.assertEqual(bot.main(), 1)
             self.assertIn("تعذّر إكمال", summary.read_text(encoding="utf-8"))
 
+    def test_pytest_named_whatever_the_step_is_called(self):
+        # Devin on #1586: ci.yml's serial step has no "test" in its name.
+        log = block("pytest -m 'unit and tree_writer'", "FAILED tests_v9/test_c.py::test_contract")
+        name = "Unit suite \u2014 serial tree_writer half + coverage ratchet over both halves"
+        result = show(job("failure", [step(name, "failure")]), lambda _: log)
+        self.assertIn("test&#95;contract", result)
+
+    def test_pytest_on_a_later_script_line(self):
+        # Devin on #1586: a step that installs first and runs pytest on its second line.
+        log = (
+            "T ##[group]Run pip install -r requirements.txt\nT pip install -r requirements.txt\n"
+            "T python -m pytest tests -q\nT shell: /usr/bin/bash -e {0}\nT ##[endgroup]\n"
+            "T FAILED tests/test_s.py::test_service\nT ##[error]Process completed with exit code 1.\n"
+        )
+        result = show(job("failure", [step("Service-local tests", "failure")]), lambda _: log)
+        self.assertIn("test&#95;service", result)
+
+    def test_truncation_keeps_the_dropped_group_script(self):
+        group = (
+            b"T ##[group]Run pip install -r requirements.txt\nT python -m pytest tests -q\n"
+            b"T ##[endgroup]\n"
+        )
+        log = group + b"T PASSED t.py::ok\n" * 300
+        log += b"T FAILED tests/test_s.py::test_service\nT ##[error]Process completed with exit code 1.\n"
+        text = bot.read_log_tail(io.BytesIO(log), keep=500)
+        self.assertTrue(text.startswith(group.decode()))
+        result = show(job("failure", [step("Service-local tests", "failure")]), lambda _: text)
+        self.assertIn("test&#95;service", result)
+
     def test_multiple_failures_indeterminate(self):
         data = [step("Install Playwright", "failure"), step("Cleanup", "failure", 2)]
         self.assertIn("تعذّر إسناد", show(job("failure", data), lambda _: ""))

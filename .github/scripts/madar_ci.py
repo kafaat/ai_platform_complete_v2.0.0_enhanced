@@ -96,8 +96,10 @@ def read_log_tail(response, keep=MAX_LOG, ceiling=MAX_LOG_STREAM):
     """Stream a job log and keep its last `keep` bytes: a failing step's output is at the end.
 
     A long step's `##[group]Run` header can fall before the kept window (SAHOOL's unit job
-    prints about 4.7 MB after it). The last header dropped is carried over and put back in
-    front of the tail, closed at once, so the step's command still frames its output.
+    prints about 4.7 MB after it). The last group dropped is carried over and put back in
+    front of the tail, so the step's command still frames its output: the whole group with
+    its script lines when it closed before the cut (up to 16 KiB), else its header line,
+    closed at once.
     """
     kept, total, header = bytearray(), 0, None
     while chunk := response.read(1024 * 1024):
@@ -113,12 +115,19 @@ def read_log_tail(response, keep=MAX_LOG, ceiling=MAX_LOG_STREAM):
                     break
                 dropped = found
             if dropped:
-                header = bytes(dropped.group(0)).rstrip(b"\r")
+                close = kept.find(b"##[endgroup]", dropped.start())
+                end = kept.find(b"\n", close) if close >= 0 else -1
+                if 0 <= close < cut and 0 <= end - dropped.start() <= 16384:
+                    header = bytes(kept[dropped.start() : end])
+                else:
+                    header = bytes(dropped.group(0))
             del kept[:cut]
     text = bytes(kept).decode("utf-8-sig" if total <= keep else "utf-8", errors="replace")
     if total > keep and header and not GROUP_RUN.match(bytes(kept)):
-        lead = header.decode("utf-8", errors="replace")
-        text = f"{lead}\n{lead.split(' ', 1)[0]} ##[endgroup]\n{text}"
+        lead = header.decode("utf-8", errors="replace").replace("\r\n", "\n").rstrip("\r")
+        if "##[endgroup]" not in lead:
+            lead += f"\n{lead.split(' ', 1)[0]} ##[endgroup]"
+        text = f"{lead}\n{text}"
     text = LogText(text)
     text.truncated = total > keep
     return text
@@ -201,12 +210,14 @@ def failed_commands(log):
     blocks = re.split(r"(?m)^\S+ ##\[group\]Run ", clean)[1:]
     for block in blocks:
         header, _, rest = block.partition("\n")
-        _, sep, output = rest.partition("##[endgroup]")
+        script, sep, output = rest.partition("##[endgroup]")
         if not sep:
             continue
         output, marker, _ = output.partition("##[error]Process completed with exit code ")
         if marker:
-            yield header.lower(), output
+            # The command is the group's heading plus its script lines: a step that installs
+            # something first and runs pytest on a later line is still a pytest step.
+            yield (header + "\n" + script).lower(), output
 
 
 def diagnosis(steps, log):
@@ -235,16 +246,16 @@ def diagnosis(steps, log):
                     "وجد فحص الاعتماديات تعارضاً بين إصدار خدمة وملف القيود.",
                     "وكيل الاعتماديات يقارن التعريفين ويعيد تشغيل فحص الاتساق.",
                 )
-    if "test" in names:
-        for cmd, output in blocks:
-            failed_case = re.search(r"(?m)^\S+ FAILED (\S+::\S+)", output)
-            if re.search(r"\bpytest\b", cmd) and failed_case:
-                return (
-                    "سجّل pytest فشل حالة اختبار داخل خطوة الاختبارات. أول حالة فاشلة: "
-                    + display(failed_case.group(1), 240)
-                    + ".",
-                    "وكيل الاختبارات يعيد تشغيل الحالة الفاشلة على الرأس نفسه.",
-                )
+    # pytest is known by its command, not by the step's display name.
+    for cmd, output in blocks:
+        failed_case = re.search(r"(?m)^\S+ FAILED (\S+::\S+)", output)
+        if re.search(r"\bpytest\b", cmd) and failed_case:
+            return (
+                "سجّل pytest فشل حالة اختبار داخل خطوة الاختبارات. أول حالة فاشلة: "
+                + display(failed_case.group(1), 240)
+                + ".",
+                "وكيل الاختبارات يعيد تشغيل الحالة الفاشلة على الرأس نفسه.",
+            )
     return (
         "أثبتت بيانات GitHub تعثّر الوظيفة. سبب التعثر يحتاج مراجعة يدوية.",
         "وكيل الجودة يفتح سجل الخطوة ويفحص أول تشخيص ذي صلة.",
