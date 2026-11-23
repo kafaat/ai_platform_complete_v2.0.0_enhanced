@@ -91489,7 +91489,7 @@
         {
           "source": "scripts/architecture/build_platform_catalog.py",
           "kind": "loader",
-          "line": 358
+          "line": 310
         },
         {
           "source": "scripts/architecture/build_platform_catalog.py",

@@ -1,7 +1,7 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "45905b4177eaf4f6f104e215e0542a167b982e59",
+  "measured_on": "433ec291433c6118a9922a849523d25e04154564",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
     "source_text_assertions": 2693,
@@ -75,9 +75,6 @@
     "tests/ci/test_phase16_ci_cd_gates.py": {
       "e2e_field_imagery_ai.sh || true": 1,
       "outbox_reliability_check.sh || true": 1
-    },
-    "tests/deploy/test_phase15_deployment_readiness_contracts.py": {
-      "/services/auth/railway.json": 1
     },
     "tests/irrigation/test_gate_b_dispatch_relay_and_contract.py": {
       "decision_execution_requests": 1

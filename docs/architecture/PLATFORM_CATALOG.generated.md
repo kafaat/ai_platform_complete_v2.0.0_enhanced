@@ -3,7 +3,7 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `268fe26af7d2d1993d7bb8477323f2a513be65308d3bca9cec3040b4674cf92f`
+- fingerprint: `19b57c05e55f22a24d41fc237530fc9b82b265be6a20ecbb1a2dde52eda5c99d`
 - components: **37** (backend: 33)
 - route rows: **1169** → unique method/path: **1046**
 - capabilities (derived, uncurated): **841**

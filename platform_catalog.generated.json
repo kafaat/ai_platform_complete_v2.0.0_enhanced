@@ -18108,7 +18108,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "268fe26af7d2d1993d7bb8477323f2a513be65308d3bca9cec3040b4674cf92f",
+  "fingerprint": "19b57c05e55f22a24d41fc237530fc9b82b265be6a20ecbb1a2dde52eda5c99d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18285,7 +18285,7 @@
     },
     {
       "endpoint": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
-      "expires_on": "2026-12-31",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "WX-10.11",
       "waiver_id": "ui-waiver-015"
@@ -18369,21 +18369,21 @@
     },
     {
       "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
-      "expires_on": "2026-12-31",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
       "waiver_id": "ui-waiver-027"
     },
     {
       "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
-      "expires_on": "2026-12-31",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
       "waiver_id": "ui-waiver-028"
     },
     {
       "endpoint": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
-      "expires_on": "2026-12-31",
+      "expires_on": null,
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
       "waiver_id": "ui-waiver-029"
