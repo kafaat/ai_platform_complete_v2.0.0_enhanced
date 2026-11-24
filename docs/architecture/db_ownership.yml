@@ -365,7 +365,7 @@ tables:
   season_records:
     owner: scout-ingest-service
     writers: [scout-ingest-service]
-    readers: [agriai-engine]
+    readers: [agriai-engine, field-management-service]  # verification bridge reads accepted record
     source: "migrations/v201_season_records.sql, migrations/v262_scout_photo_season_link_events.sql"
   season_crop:
     owner: scout-ingest-service
@@ -392,7 +392,7 @@ tables:
   season_record_links:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
+    readers: [field-management-service]  # explicit canonical-season to accepted-record binding
     source: "migrations/v207_historical_season_simulation_bridge.sql"
   season_simulation_runs:
     owner: sahool-platform
@@ -433,7 +433,7 @@ tables:
     # (scripts/ops/farm_access_backfill.py, --apply is an owner decision). No route writes them.
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: [scripts]  # operator backfill/diff (scripts/ops/farm_access_common.py)
+    readers: [scripts, field-management-service]  # operator backfill/diff; verification checks read only
     source: "migrations/v287_farm_access_grants.sql"
   farm_business_units:
     owner: field-management-service
@@ -632,6 +632,26 @@ tables:
     writers: [field-management-service]
     readers: [sahool-platform]
     source: "migrations/v275_inspection_handoffs.sql, migrations/v277_inspection_close_gate.sql"
+  scouting_verification_links:
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: []
+    source: "migrations/v289_scouting_verification_bridge.sql"
+  scouting_verification_versions:
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: []
+    source: "migrations/v289_scouting_verification_bridge.sql"
+  scouting_verification_assessments:
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: []
+    source: "migrations/v289_scouting_verification_bridge.sql"
+  scouting_verification_outbox:
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: []
+    source: "migrations/v289_scouting_verification_bridge.sql"
   task_expense_links:
     owner: field-management-service
     writers: [field-management-service]
@@ -1099,7 +1119,7 @@ tables:
   scout_photo_season_link_events:
     owner: scout-ingest-service
     writers: [scout-ingest-service]
-    readers: []
+    readers: [field-management-service]  # verification bridge reads the current accepted link
     source: "migrations/v262_scout_photo_season_link_events.sql"
   scout_photo_field_access_grants:
     owner: scout-ingest-service
@@ -1231,7 +1251,7 @@ tables:
   users:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: [scout-ingest-service, scripts]  # v263: column SELECT (id, tenant_id, active, role) for photo grant checks; scripts: SC-1 operator backfill/diff (scripts/ops/farm_access_common.py) reads the auth users table
+    readers: [scout-ingest-service, scripts, field-management-service]  # grant checks; operator backfill/diff; verification bridge reads id/tenant/role/active to revalidate its reviewer
     source: "migrations/v9_foundation.sql, services/sahool-platform/storage/lite_store.py, migrations/v263_scout_photo_field_access_grants.sql"
   variety_trials:
     owner: sahool-platform
