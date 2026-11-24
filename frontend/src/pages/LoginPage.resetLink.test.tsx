@@ -25,13 +25,30 @@ describe('LoginPage reset link', () => {
     const { container } = render(<LoginPage initialView="reset-confirm" initialToken="link-token-1" />);
     expect(screen.getByText('تعيين كلمة مرور جديدة')).toBeTruthy();
     expect(screen.queryByLabelText(/رمز إعادة التعيين/)).toBeNull();
-    const password = container.querySelector('input[autocomplete="new-password"]') as HTMLInputElement;
+    const password = container.querySelector('#reset-new-password') as HTMLInputElement;
     fireEvent.change(password, { target: { value: 'Strong#Pass1' } });
+    fireEvent.change(container.querySelector('#reset-confirm-password') as HTMLInputElement, {
+      target: { value: 'Strong#Pass1' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /تأكيد كلمة المرور الجديدة/ }));
     // The secret leaves the address bar as soon as it is held in state; other parameters stay.
     expect(window.location.search).toBe('?lang=ar');
     await waitFor(() => expect(confirmPasswordReset).toHaveBeenCalledWith('link-token-1', 'Strong#Pass1'));
     expect(await screen.findByText('تم تغيير كلمة المرور بنجاح')).toBeTruthy();
+  });
+
+  it('refuses a confirmation that does not match, without calling the server', async () => {
+    window.history.replaceState(null, '', '/reset-password?token=link-token-2&lang=ar');
+    const { container } = render(<LoginPage initialView="reset-confirm" initialToken="link-token-2" />);
+    fireEvent.change(container.querySelector('#reset-new-password') as HTMLInputElement, {
+      target: { value: 'Strong#Pass1' },
+    });
+    fireEvent.change(container.querySelector('#reset-confirm-password') as HTMLInputElement, {
+      target: { value: 'Strong#Pass2' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /تأكيد كلمة المرور الجديدة/ }));
+    expect(await screen.findByText('كلمتا المرور غير متطابقتين')).toBeTruthy();
+    expect(confirmPasswordReset).not.toHaveBeenCalled();
   });
 
   it('promises a link, not a code, and asks the user to open it', async () => {

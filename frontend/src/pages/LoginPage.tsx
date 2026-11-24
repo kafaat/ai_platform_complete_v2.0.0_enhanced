@@ -276,6 +276,7 @@ function ResetFlow({
     window.history.replaceState(window.history.state, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
   }, [initialToken]);
   const [newPw, setNewPw]     = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
   const [showPw, setShowPw]   = useState(false);
   const [error, setError]     = useState('');
   const [info, setInfo]       = useState('');
@@ -314,6 +315,7 @@ function ResetFlow({
     if (!token.trim()) { setError('افتح رابط إعادة التعيين من بريدك'); return; }
     const pe = pwError();
     if (pe) { setError(pe); return; }
+    if (confirmPw !== newPw) { setError('كلمتا المرور غير متطابقتين'); return; }
     setLoading(true); setError('');
     try {
       await confirmPasswordReset(token.trim(), newPw);
@@ -391,16 +393,23 @@ function ResetFlow({
             </div>
           )}
           <div>
-            <label className="block text-sm text-slate-400 mb-1.5">كلمة المرور الجديدة <span className="text-slate-600">(8 أحرف، حرف كبير، رقم، رمز)</span></label>
+            <label htmlFor="reset-new-password" className="block text-sm text-slate-400 mb-1.5">كلمة المرور الجديدة <span className="text-slate-600">(8 أحرف، حرف كبير، رقم، رمز)</span></label>
             <div className="relative">
-              <input type={showPw ? 'text' : 'password'} value={newPw}
+              <input id="reset-new-password" type={showPw ? 'text' : 'password'} value={newPw}
                 onChange={e => setNewPw(e.target.value)} placeholder="••••••••" autoComplete="new-password"
                 className="w-full px-4 py-3 pl-11 rounded-xl text-sm" style={fieldStyle} />
               <button type="button" onClick={() => setShowPw(!showPw)}
+                aria-label={showPw ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
                 {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+          </div>
+          <div>
+            <label htmlFor="reset-confirm-password" className="block text-sm text-slate-400 mb-1.5">تأكيد كلمة المرور</label>
+            <input id="reset-confirm-password" type={showPw ? 'text' : 'password'} value={confirmPw}
+              onChange={e => setConfirmPw(e.target.value)} placeholder="••••••••" autoComplete="new-password"
+              className="w-full px-4 py-3 rounded-xl text-sm" style={fieldStyle} />
           </div>
         </>
       )}
