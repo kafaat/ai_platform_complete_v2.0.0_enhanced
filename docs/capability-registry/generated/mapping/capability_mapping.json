@@ -44859,7 +44859,7 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_capability_mapping_implementation_evidence_from_code.py",
+      "path": "tests_v9/test_capability_mapping_code_only_extraction.py",
       "kind": "tests"
     },
     {
@@ -80229,7 +80229,7 @@
       ]
     },
     {
-      "test": "tests_v9/test_capability_mapping_implementation_evidence_from_code.py",
+      "test": "tests_v9/test_capability_mapping_code_only_extraction.py",
       "bounded": false,
       "unbounded_reasons": [
         "reads_repository_data_file"
