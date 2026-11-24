@@ -63,16 +63,30 @@ async def require_actor(conn, caller: Caller, field_id: str, permission: str = I
     return dict(field)
 
 
-async def require_current_assignee(conn, caller, field_id, inspection_task_id):
-    """Without inspection:review, a caller reads the bridge only for an inspection assigned to them."""
-    assigned = await conn.fetchval(
-        "SELECT assigned_to FROM field_tasks WHERE tenant_id=$1::uuid AND field_id=$2 "
+async def require_current_assignee(conn, caller, field_id, anomaly_task_id, inspection_task_id):
+    """Without inspection:review, a caller reads the context only of the link that binds A to an
+    open inspection B currently assigned to them; any other A, B or link state is the same 403."""
+    task = await conn.fetchrow(
+        "SELECT assigned_to, status FROM field_tasks WHERE tenant_id=$1::uuid AND field_id=$2 "
         "AND task_id=$3 AND source_scouting_pin_id IS NOT NULL",
         caller.tenant_id,
         field_id,
         inspection_task_id,
     )
-    if assigned is None or assigned != caller.user_id:
+    linked = await conn.fetchval(
+        "SELECT inspection_task_id FROM scouting_verification_links "
+        "WHERE tenant_id=$1::uuid AND field_id=$2 AND anomaly_task_id=$3",
+        caller.tenant_id,
+        field_id,
+        anomaly_task_id,
+    )
+    if (
+        task is None
+        or task["assigned_to"] != caller.user_id
+        or task["status"] not in {"pending", "in_progress", "completed"}
+        or linked is None
+        or str(linked) != str(inspection_task_id)
+    ):
         raise HTTPException(403, "verification_context_requires_the_inspection_assignee")
 
 

@@ -15496,23 +15496,23 @@
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:126",
+          "value": "/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:127",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:213",
+          "value": "/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:214",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:191",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:192",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:487",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:488",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:154",
+          "value": "/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:155",
           "score": 8
         },
         {
@@ -97978,11 +97978,11 @@
       ],
       "unresolved": [
         {
-          "line": 419,
+          "line": 446,
           "import": "fm_verification_client"
         },
         {
-          "line": 770,
+          "line": 797,
           "import": "fm_verification_client"
         }
       ]

@@ -203,9 +203,26 @@ def test_the_assignee_reads_what_they_need_and_nothing_of_anyone_else(monkeypatc
             context = await live.context(name="inspector")
             assert context.status_code == 200, context.text
             assert context.json()["link_id"] == live.link_id
+            refused = "verification_context_requires_the_inspection_assignee"
             other = await live.context(name="inspector2")
             assert other.status_code == 403, other.text
-            assert other.json()["detail"] == "verification_context_requires_the_inspection_assignee"
+            assert other.json()["detail"] == refused
+            # Hospital SF-C: being assigned to B does not open the context of an anomaly task
+            # that is not linked to B. The owner is not even called for it.
+            unlinked = await live.make_anomaly_task()
+            calls = []
+            original = live.remote_client.context
+
+            async def counted(*args, **kwargs):
+                calls.append(args)
+                return await original(*args, **kwargs)
+
+            live.mp.setattr(live.remote_client, "context", counted)
+            cross = await live.context(task=unlinked, name="inspector")
+            assert cross.status_code == 403, cross.text
+            assert cross.json()["detail"] == refused
+            assert calls == []
+            live.mp.setattr(live.remote_client, "context", original)
             assert (await live.assess()).status_code == 200
             base = f"/internal/field-tasks/fields/{live.field}"
             paths = (
@@ -216,6 +233,16 @@ def test_the_assignee_reads_what_they_need_and_nothing_of_anyone_else(monkeypatc
                 for name, status in (("inspector", 200), ("reviewer", 200), ("inspector2", 404)):
                     response = await live.fm.get(path, headers=live.headers(name))
                     assert response.status_code == status, (path, name, response.text)
+            # A cancelled inspection opens no context, even while still assigned.
+            async with live.app_connection("manager") as conn:
+                await conn.execute(
+                    "UPDATE field_tasks SET status='cancelled' "
+                    "WHERE tenant_id=$1::uuid AND task_id=$2::uuid",
+                    live.tenant,
+                    live.task_b,
+                )
+            cancelled = await live.context(name="inspector")
+            assert cancelled.status_code == 403, cancelled.text
 
     run(target())
 

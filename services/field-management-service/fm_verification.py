@@ -88,13 +88,14 @@ async def verification_context(
     caller: Caller = Depends(caller_dependency(OBSERVATION_RECORD)),
 ):
     # A reviewer reads it to link; the inspection's assignee reads it to write the assessment
-    # (owner decision 1), so a caller without inspection:review must be B's current assignee.
+    # (owner decision 1), so a caller without inspection:review must be B's current assignee
+    # and A must already be linked to that B; both are checked before the owner is called.
     enabled()
     permission = INSPECTION_REVIEW if caller.can(INSPECTION_REVIEW) else OBSERVATION_RECORD
     try:
         if permission == OBSERVATION_RECORD:
             async with caller_connection(caller) as conn:
-                await require_current_assignee(conn, caller, field_id, inspection_task_id)
+                await require_current_assignee(conn, caller, field_id, task_id, inspection_task_id)
         remote = await task_remote(caller, field_id, task_id, permission)
         async with caller_connection(caller) as conn:
             context = await resolve_scope(
