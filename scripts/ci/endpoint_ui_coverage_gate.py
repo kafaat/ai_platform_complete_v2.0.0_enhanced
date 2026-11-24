@@ -16,9 +16,12 @@ internal ولا تُطالَب بواجهة مستخدم.
 from __future__ import annotations
 
 import argparse
+import ast
+import io
 import json
 import re
 import sys
+import tokenize
 from pathlib import Path
 
 # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا السكربت عربيّ،
@@ -55,22 +58,42 @@ PHANTOM_EVIDENCE_FILES = ("config/backendCoverageRegistry.ts",)
 _LINE_COMMENT = re.compile(r"^\s*//.*$", re.MULTILINE)
 
 
-_NEXT_ROUTE_DECORATOR = re.compile(r"^\s*@(?:router|app)\.\w+\(", re.MULTILINE)
+_TOKEN_MARKERS = ("_require_service_token", "x_agent_token")
+
+
+def _code_without_docstring_or_comments(source: str, fn: ast.AST) -> str:
+    """The function's code (signature and body) with its docstring and comments removed."""
+    segment = ast.get_source_segment(source, fn) or ""
+    body = getattr(fn, "body", [])
+    if (
+        body
+        and isinstance(body[0], ast.Expr)
+        and isinstance(getattr(body[0], "value", None), ast.Constant)
+        and isinstance(body[0].value.value, str)
+    ):
+        doc = ast.get_source_segment(source, body[0]) or ""
+        if doc:
+            segment = segment.replace(doc, "", 1)
+    try:
+        tokens = tokenize.generate_tokens(io.StringIO(segment).readline)
+        return " ".join(t.string for t in tokens if t.type != tokenize.COMMENT)
+    except (tokenize.TokenError, IndentationError, SyntaxError):
+        return segment
 
 
 def service_token_routes() -> set[str]:
     """المسارات المحميّة بـService Token (مستهلكها آلة/خدمة داخليّة لا مستخدم).
 
-    تُشتقّ من الكود: كلّ @router.<method>("path") يفرض _require_service_token /
-    x_agent_token داخل دالّته هو. تُستخدم في الحارس لمنع تصنيف مسار آليّ كدَين واجهة.
+    تُشتقّ من الكود بشجرة الصياغة: لكلّ دالّة مزخرَفة بـ@router.<method>("path", ...) يُقرأ
+    نصّ مُزخرِفاتها وتوقيعها وجسمها **بلا docstring ولا تعليقات**، فإن ورد فيه
+    _require_service_token / x_agent_token فكلّ مساراتها المزخرَفة آليّة. تُستخدم في الحارس
+    لمنع تصنيف مسار آليّ كدَين واجهة.
 
-    الكتلة تمتدّ من المُزخرِف حتّى مُزخرِف المسار التالي (أو نهاية الملفّ)، لا نافذةً
-    ثابتة: النافذة السابقة (700 حرف) كانت تنسب فحص المسار التالي إلى مسارٍ قصير قبله
-    (`/api/v1/weather/self-test` ومسارات health/metrics) وتفوّت فحصاً يقع بعد 700 حرف
-    في دالّة طويلة (`/internal/fields/{field_id}/state`، `/v1/fields/{field_id}/timeseries`).
+    يستبدل هذا نافذةً ثابتة من 700 حرف بعد كلّ مُزخرِف كانت تنسب فحص المسار التالي إلى
+    مسارٍ قصير قبله (`/api/v1/weather/self-test` ومسارات health/metrics)، وتفوّت فحصاً
+    بعد 700 حرف في دالّة طويلة، ولا تطابق مُزخرِفاً بوسائط إضافيّة (`status_code=`،
+    `dependencies=`). والنصّ الذي يذكر الرمز في docstring أو تعليق فقط لا يُحتسب.
     """
-    import re as _re
-
     out: set[str] = set()
     services = REPO / "services"
     if not services.exists():
@@ -80,12 +103,32 @@ def service_token_routes() -> set[str]:
         if "__pycache__" in str(f):
             continue
         txt = _read(f)
-        for m in _re.finditer(r'@router\.\w+\("([^"]+)"\)', txt):
-            ep = m.group(1)
-            nxt = _NEXT_ROUTE_DECORATOR.search(txt, m.end())
-            block = txt[m.end() : nxt.start() if nxt else len(txt)]
-            if "_require_service_token" in block or "x_agent_token" in block:
-                out.add(ep)
+        try:
+            tree = ast.parse(txt)
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            paths: list[str] = []
+            decorator_text: list[str] = []
+            for dec in node.decorator_list:
+                if (
+                    isinstance(dec, ast.Call)
+                    and isinstance(dec.func, ast.Attribute)
+                    and isinstance(dec.func.value, ast.Name)
+                    and dec.func.value.id == "router"
+                    and dec.args
+                    and isinstance(dec.args[0], ast.Constant)
+                    and isinstance(dec.args[0].value, str)
+                ):
+                    paths.append(dec.args[0].value)
+                    decorator_text.append(ast.get_source_segment(txt, dec) or "")
+            if not paths:
+                continue
+            code = " ".join(decorator_text) + " " + _code_without_docstring_or_comments(txt, node)
+            if any(marker in code for marker in _TOKEN_MARKERS):
+                out.update(paths)
     return out
 
 
