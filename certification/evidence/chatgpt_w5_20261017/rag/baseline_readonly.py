@@ -87,7 +87,9 @@ def loopback(value):
 
 def sanitize_detail(exc, secrets=()):
     """Exception message for the report: one line, no credentials, at most DETAIL_CAP chars."""
-    text = str(exc)
+    # Bound the work before any pattern runs: the output is capped at DETAIL_CAP anyway, and
+    # some inputs (long letter-and-dot runs) make the scheme pattern grow quadratically.
+    text = str(exc)[:8192]
     for secret in secrets:
         if secret:
             text = text.replace(secret, "[REDACTED]")

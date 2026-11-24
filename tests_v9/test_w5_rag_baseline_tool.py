@@ -314,3 +314,13 @@ def test_dangling_symlink_or_missing_directory_is_refused_before_any_request(
 def test_sanitize_detail_keeps_ordinary_diagnostics(raw, kept):
     tool = _load(TOOL, "_w5_baseline_tool_keep")
     assert kept in tool.sanitize_detail(ValueError(raw))
+
+
+def test_sanitize_detail_is_bounded_on_long_dotted_text():
+    import time
+
+    tool = _load(TOOL, "_w5_baseline_tool_bounded")
+    started = time.perf_counter()
+    out = tool.sanitize_detail(ValueError("a." * 50000))
+    assert time.perf_counter() - started < 2.0
+    assert len(out) <= 240
