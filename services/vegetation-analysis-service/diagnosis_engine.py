@@ -26,6 +26,9 @@ from shared.contracts.remote_sensing.enums import (
     VerificationRequirement,
 )
 
+INSPECTION_BRIDGE_CHANNEL = "inspection_owner_bridge"
+INSPECTION_ASSESSMENT_EVIDENCE_TYPE = "scouting_verification_assessment"
+
 
 def _condition(signal_type: str, verification_codes: list[str]) -> tuple[str, tuple[str, ...], str]:
     s = signal_type.lower()
@@ -53,6 +56,15 @@ def build_diagnosis(*, anomaly_record: dict[str, Any], tenant_id: UUID) -> Diagn
     if anomaly_record["status"] != "confirmed":
         raise ValueError("diagnosis_requires_confirmed_anomaly")
     p = anomaly_record["payload"]
+    # A result delivered by the inspection owner bridge (stamped by its receiver, or carrying
+    # the field-management assessment evidence type on any route) records whether a person
+    # saw the signal in the field. It names no cause, so it must not select a suspected
+    # condition or make the anomaly referral-eligible (docs/specs/SCOUTING_VERIFICATION_BRIDGE_V1.md).
+    if p.get("verification_channel") == INSPECTION_BRIDGE_CHANNEL or any(
+        isinstance(e, dict) and e.get("evidence_type") == INSPECTION_ASSESSMENT_EVIDENCE_TYPE
+        for e in p.get("verification_evidence") or ()
+    ):
+        raise ValueError("diagnosis_refuses_inspection_verification_result")
     refs = tuple(p.get("verification_evidence_refs") or ())
     now = datetime.now(UTC)
     evidence = tuple(

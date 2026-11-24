@@ -1885,10 +1885,16 @@
         "GET /internal/field-tasks/fields/{field_id}/inspection-assignees",
         "GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
         "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff",
+        "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-context",
+        "GET /internal/field-tasks/fields/{field_id}/verification-assessments/{assessment_id}",
+        "GET /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}",
         "POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
         "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept",
         "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding",
-        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign"
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links",
+        "POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver",
+        "POST /internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments"
       ],
       "idempotency_required": false,
       "kind": "mixed",
@@ -14893,6 +14899,24 @@
     },
     {
       "approval_required": false,
+      "capability_id": "vegetation-analysis-service.internal.anomalies.anomaly_ref:path",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /internal/anomalies/{anomaly_ref:path}/verification-context",
+        "POST /internal/anomalies/{anomaly_ref:path}/verification-results"
+      ],
+      "idempotency_required": true,
+      "kind": "mixed",
+      "owner": "vegetation-analysis-service",
+      "producer": "vegetation-analysis-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "vegetation-analysis-service.ndvi.current.field_id",
       "consumers": [
         "frontend"
@@ -15916,7 +15940,9 @@
         "wiring_disposition": "consumed"
       },
       "consumes": {
-        "services": []
+        "services": [
+          "sahool-vegetation-analysis"
+        ]
       },
       "deployment_units": [
         "sahool-field-management"
@@ -15958,12 +15984,16 @@
           "inspection_handoffs",
           "management_zone_sets",
           "management_zones",
+          "scouting_verification_assessments",
+          "scouting_verification_links",
+          "scouting_verification_outbox",
+          "scouting_verification_versions",
           "task_cost_history",
           "task_expense_links"
         ]
       },
       "runtime": {
-        "compose_reachable": false,
+        "compose_reachable": true,
         "compose_services": [
           "sahool-field-management"
         ],
@@ -17872,10 +17902,10 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 843,
+    "capabilities": 844,
     "capabilities_approval_gated": 6,
     "capabilities_field_scoped": 99,
-    "capabilities_idempotent": 75,
+    "capabilities_idempotent": 76,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 481,
     "components": 37,
@@ -17883,9 +17913,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1171,
+    "route_rows": 1179,
     "ui_waivers": 53,
-    "unique_method_path": 1048
+    "unique_method_path": 1056
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18147,7 +18177,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "db818c318f68b6eb43a51f903b6898ce1e84893a76cfb41272583048c84640a7",
+  "fingerprint": "0d3d0f7621b9a3408b1e2552e3d056d753560ed8e98fc34e045a03fe0b06e978",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18201,16 +18231,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1120,
+      "edge_count": 1141,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 46,
         "CONSUMES": 4,
         "EMITS": 3,
-        "READS": 601,
+        "READS": 616,
         "ROUTES_TO": 82,
-        "WRITES": 384
+        "WRITES": 390
       }
     },
     "u3_wiring_ownership": {

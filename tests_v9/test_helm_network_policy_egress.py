@@ -129,9 +129,15 @@ _NO_PUBLIC_EGRESS_EVIDENCE: dict[str, frozenset[str]] = {
             "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY",
             "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID",
             "FIELD_TASKS_SERVICE_TOKEN",
+            "FM_SCOUTING_VERIFICATION_ENABLED",
             "SAHOOL_AGENT_TOKEN",
             "SAHOOL_ENV",
             "SERVICE_VERSION",
+            # Inspection owner bridge sender (#1598); see _GATED_OUTBOUND.
+            "VEGETATION_VERIFICATION_SERVICE_TOKEN",
+            "VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY",
+            "VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID",
+            "VEGETATION_VERIFICATION_URL",
         }
     ),
     # SMTP_* and SMS_* name external providers; see _GATED_OUTBOUND.
@@ -192,6 +198,24 @@ _GATED_OUTBOUND: dict[str, dict[str, frozenset[str]]] = {
         "aiosmtplib": frozenset({"SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD"}),
         # Phone OTP through an HTTP SMS provider (services/auth/main.py _send_otp_sms).
         "urllib.request": frozenset({"SMS_PROVIDER_URL", "SMS_API_KEY"}),
+    },
+    "sahool-field-management": {
+        # Inspection owner bridge sender (fm_verification_client.py, #1598): POSTs a reviewed
+        # inspection result to vegetation-analysis's internal receiver on the service network,
+        # never a public host. Off unless FM_SCOUTING_VERIFICATION_ENABLED is on (1/true/yes/on) and the URL and
+        # credentials are set. No egress rule is missing: sahool-default-deny already lets every
+        # pod reach the cluster (templates/networkpolicy.yaml, `namespaceSelector: {}`), and the
+        # chart does not deploy vegetation-analysis yet (values.yaml, W3-09 note), so a Helm
+        # install has no receiver to reach. Deploying it there must admit field-management.
+        "httpx": frozenset(
+            {
+                "FM_SCOUTING_VERIFICATION_ENABLED",
+                "VEGETATION_VERIFICATION_SERVICE_TOKEN",
+                "VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY",
+                "VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID",
+                "VEGETATION_VERIFICATION_URL",
+            }
+        ),
     },
 }
 

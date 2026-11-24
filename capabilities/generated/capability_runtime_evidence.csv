@@ -50,9 +50,9 @@ PA-002,Variable rate prescription,0,0,0,0,0,False
 PA-003,Yield map ingestion,0,0,0,0,0,False
 PA-004,As-applied data,0,0,0,0,0,False
 PA-005,Machine telemetry,0,0,0,0,0,False
-OPS-001,Task management,0,0,0,0,0,False
+OPS-001,Task management,0,0,6,0,1,False
 OPS-002,Work orders,0,0,0,0,0,False
-OPS-003,Scouting,0,0,0,0,0,False
+OPS-003,Scouting,0,0,2,0,1,False
 OPS-004,Field forms,0,0,0,0,0,False
 OPS-005,Offline mobile,0,0,0,0,0,False
 OPS-006,Equipment registry,0,0,0,0,0,False
@@ -60,7 +60,7 @@ OPS-007,Maintenance,0,0,0,0,0,False
 OPS-008,Workforce and worker identity,4,0,0,0,1,False
 DEC-001,Decision evidence,0,0,2,0,1,False
 DEC-002,Decision candidate,0,0,0,0,0,False
-DEC-003,Human approval,0,0,4,0,1,False
+DEC-003,Human approval,0,0,5,0,1,False
 DEC-004,Execution request,0,0,4,0,1,False
 DEC-005,Dispatch authorization,0,0,1,0,1,False
 DEC-006,Execution receipt,0,0,3,0,1,False

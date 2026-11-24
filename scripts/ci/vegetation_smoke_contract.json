@@ -1,6 +1,13 @@
 {
   "version": 1,
-  "imports": ["vegetation_runtime", "weekly_insights", "routers.analysis", "routers.anomalies", "routers.baselines", "routers.diagnoses", "routers.health", "routers.insights", "routers.outcomes"],
+  "internal_s2s_routes": {
+    "_note": "Present in the image (the smoke checks them), never public: both nginx edges answer /api/vegetation/internal/ with 404 (tests_v9/test_gateway_vegetation_internal_refused.py). Caller: field-management only, service token plus signed tenant assertion.",
+    "paths": [
+      "/internal/anomalies/{anomaly_ref}/verification-context",
+      "/internal/anomalies/{anomaly_ref}/verification-results"
+    ]
+  },
+  "imports": ["vegetation_runtime", "weekly_insights", "routers.analysis", "routers.anomalies", "routers.baselines", "routers.diagnoses", "routers.health", "routers.insights", "routers.outcomes", "routers.verification"],
   "routes": {
     "/health": ["get"],
     "/healthz": ["get"],
@@ -23,6 +30,8 @@
     "/v1/fields/{field_id}/post-execution-observations": ["post"],
     "/v1/execution-requests/{execution_request_id}/remote-sensing-outcome": ["post"],
     "/v1/outcomes/{outcome_id}/remote-sensing-attribution": ["post"],
-    "/v1/reports/weekly-field-insights": ["post"]
+    "/v1/reports/weekly-field-insights": ["post"],
+    "/internal/anomalies/{anomaly_ref}/verification-context": ["get"],
+    "/internal/anomalies/{anomaly_ref}/verification-results": ["post"]
   }
 }

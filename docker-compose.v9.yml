@@ -1319,6 +1319,12 @@ services:
       # task (POST /internal/field-tasks/scouting) under SAHOOL_AGENT_TOKEN + the tenant assertion.
       TASK_SERVICE_URL: ${TASK_SERVICE_URL:-http://sahool-field-management:8000}
       TASK_SERVICE_CALLBACK_TOKEN: ${TASK_SERVICE_CALLBACK_TOKEN:-}
+      # Reviewed verification receiver: separate signed S2S path, opt-in; no user JWT relay.
+      VEGETATION_VERIFICATION_BRIDGE_ENABLED: ${VEGETATION_VERIFICATION_BRIDGE_ENABLED:-0}
+      # Dedicated: never TASK_SERVICE_CALLBACK_TOKEN (the legacy route's only service factor).
+      VEGETATION_VERIFICATION_SERVICE_TOKEN: ${VEGETATION_VERIFICATION_SERVICE_TOKEN:-}
+      VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY: ${VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY:-}
+      VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID: ${VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID:-current}
       VEGETATION_ANOMALY_DB_PATH: /data/vegetation/anomalies.db
       VEGETATION_ANOMALY_STORE: ${VEGETATION_ANOMALY_STORE:-sqlite}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
@@ -1389,6 +1395,12 @@ services:
       # Gateway-only task/inspection routes (fm_gateway.py): nginx injects this token as
       # X-Field-Tasks-Token after auth_request. Empty ⇒ those routes answer 503.
       FIELD_TASKS_SERVICE_TOKEN: ${FIELD_TASKS_SERVICE_TOKEN:-}
+      # Field-management owns the reviewed assessment/outbox; flags stay off by default.
+      FM_SCOUTING_VERIFICATION_ENABLED: ${FM_SCOUTING_VERIFICATION_ENABLED:-0}
+      VEGETATION_VERIFICATION_URL: ${VEGETATION_VERIFICATION_URL:-http://sahool-vegetation-analysis:8000}
+      VEGETATION_VERIFICATION_SERVICE_TOKEN: ${VEGETATION_VERIFICATION_SERVICE_TOKEN:-}
+      VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY: ${VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY:-}
+      VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID: ${VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID:-current}
     depends_on:
       sahool-postgres:
         condition: service_healthy
