@@ -100,3 +100,39 @@ class TestTabPFNTier:
         d = select_model(60, 12, 5)
         assert d.allowed_model != ModelTier.TABPFN
         assert d.allowed_model != ModelTier.RULES_ONLY
+
+
+class TestModelSelectorHonesty:
+    """MODEL-SELECTOR-NOMINAL-SAMPLE-UNVALIDATED-01: the R² range and confidence
+    are policy assumptions, never a measured result."""
+
+    def test_every_tier_declares_unvalidated_r2_and_uncalibrated_confidence(self):
+        from core.learning.model_selector import select_model
+
+        for counts in [
+            (3, 1, 3),
+            (30, 10, 3),
+            (60, 10, 6),
+            (150, 30, 5),
+            (300, 60, 5),
+            (600, 120, 5),
+        ]:
+            d = select_model(*counts)
+            assert d.r2_basis == "policy_assumption_unvalidated"
+            assert d.confidence_basis == "policy_label_not_calibrated"
+            assert d.measured_r2 is None
+
+    def test_counters_alone_cannot_tell_observed_pairs_apart(self):
+        # 600 records in 30 observed farm-season pairs and 600 records in 600
+        # pairs share the same counters, so the selector cannot distinguish
+        # them. The returned count is a nominal ceiling, not a measured N.
+        from core.learning.model_selector import effective_sample_size
+
+        assert effective_sample_size(600, 30, 20) == 600
+
+    def test_rules_only_rationale_states_a_policy_threshold(self):
+        from core.learning.model_selector import select_model
+
+        why = select_model(3, 1, 3).rationale_ar
+        assert "حدّ السياسة" in why
+        assert "أي نموذج" not in why
