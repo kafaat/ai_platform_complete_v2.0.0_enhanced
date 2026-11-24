@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79d432926e92462ed1e8b27927ab8fffeaa1248f149008478a97c5d5eb12abde"
+          "content": "d9c8ce8105787ac253e2e6e5b86cfac3eae30e8a0683c6b35276c1b85b46b73f"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -8395,7 +8395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "750b553004301cd44c5237c32b3e36eddfaa08cc031e11df75759084a1950739"
+          "content": "25b6464a09cd84c17ffde92e291c735736dfce268a69ca542afd03a92c70e0ca"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -10529,6 +10529,26 @@
         }
       ],
       "name": "migrations/v288_model_promotion_terminal_state.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cd60c57035904319d576df325bc7fc4655f375b8b203408558ac631cf61542e6"
+        }
+      ],
+      "name": "migrations/v289_scouting_verification_bridge.down.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "70d721f32e00c1828bddbf58dfcf8a1a8ee1f89841602ddf398815769e2a5ea6"
+        }
+      ],
+      "name": "migrations/v289_scouting_verification_bridge.sql",
       "type": "file"
     },
     {
@@ -21095,7 +21115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d42d831304643c860d1068fd4126fcf59de9dcc5e148714393c52adab5c3d64"
+          "content": "1899f98c3f90f41bdfc87eb919017d61770a569e9e855db1cfff2ad0ef035eb2"
         }
       ],
       "name": "services/field-management-service/fm_task_inspection.py",
@@ -21105,7 +21125,47 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4cfe6c3bff236c155b5ef7c0613a3cd02450e658bb613a0a45d871c72a1f7bbb"
+          "content": "0143abf9b6438e1ef30fb83fd00d71bebc2c59de71bf69123f232c70cf53a37e"
+        }
+      ],
+      "name": "services/field-management-service/fm_verification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "305bb2383ecc85c2ba2fbe268f3b596b9bf2681272fb7f81db881a7877226c05"
+        }
+      ],
+      "name": "services/field-management-service/fm_verification_client.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9841e057c902ba4c414ca9a2a8beaa09692a13ea97bc3772d250bda2fec202f6"
+        }
+      ],
+      "name": "services/field-management-service/fm_verification_contracts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eca791c8848efa00a08de532bea301d31dca15c7fa9381f6073c3ed414ca54c5"
+        }
+      ],
+      "name": "services/field-management-service/fm_verification_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cd721931108cdbcf93977f3d5fe61f579b39ac772045b6d46f319d26ed86ad39"
         }
       ],
       "name": "services/field-management-service/main.py",
@@ -21115,7 +21175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "af74301af45780bff4c21149f366586cb0df755ccf1ac18ae4ba475851e38424"
+          "content": "35bbcb4b0e76f77f012ba3ce2958e0a683be2e7b9fdf13c1a364250f14c407e7"
         }
       ],
       "name": "services/field-management-service/requirements.txt",
@@ -40845,6 +40905,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7139c8741f33b22a7b4744b43c21aa4ab4c0c95188bf84b396a5740fa9189cc9"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/verification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "690e48f8c8b48197c38c796f896ba456cca13706c80f5c0ac2617ca0c1cebc4a"
         }
       ],
@@ -41039,6 +41109,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0746932fa131d3dd359cdc9319a8648a0a9b0470434cd2d1c881ac3280a9db8a"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_verification_delivery.py",
       "type": "file"
     },
     {
@@ -42529,6 +42609,16 @@
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/SignalAnomalyV1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ecc2c0a23e92e8ee6a553b58d841fde6b81b4ebfdddda746f1cbc57e10747b20"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/verification_delivery.py",
       "type": "file"
     },
     {
