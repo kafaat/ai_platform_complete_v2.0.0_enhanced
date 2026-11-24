@@ -1202,7 +1202,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 60,
+    "line": 65,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-context",
     "function": "verification_context"
@@ -1210,7 +1210,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 86,
+    "line": 91,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links",
     "function": "create_verification_link"
@@ -1218,7 +1218,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 114,
+    "line": 119,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments",
     "function": "approve_verification_assessment"
@@ -1226,7 +1226,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 151,
+    "line": 156,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}",
     "function": "verification_delivery"
@@ -1234,7 +1234,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 166,
+    "line": 171,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/verification-assessments/{assessment_id}",
     "function": "verification_assessment"
@@ -1242,7 +1242,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 336,
+    "line": 356,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver",
     "function": "deliver_verification"
@@ -9098,7 +9098,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/verification.py",
-    "line": 233,
+    "line": 234,
     "method": "GET",
     "path": "/internal/anomalies/{anomaly_ref:path}/verification-context",
     "function": "verification_context"
@@ -9106,7 +9106,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/verification.py",
-    "line": 250,
+    "line": 251,
     "method": "POST",
     "path": "/internal/anomalies/{anomaly_ref:path}/verification-results",
     "function": "verification_result"

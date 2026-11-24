@@ -239,7 +239,8 @@ async def write_link(conn, caller, field_id, task_id, req: LinkRequest, context)
     if old and await conn.fetchval(
         "SELECT true FROM scouting_verification_outbox o JOIN scouting_verification_assessments a "
         "ON a.assessment_id=o.assessment_id WHERE a.link_id=$1 "
-        "AND o.state IN ('sending','delivery_unknown','delivered','delivered_review_required') LIMIT 1",
+        "AND o.state IN ('sending','delivery_unknown','delivery_exhausted','delivered',"
+        "'delivered_review_required') LIMIT 1",
         link_id,
     ):
         raise HTTPException(409, "reconcile_prior_delivery_before_relinking")

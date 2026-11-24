@@ -489,3 +489,68 @@ def test_the_outbox_state_machine_is_enforced_by_the_database(monkeypatch, tmp_p
             assert dict(row) == {"state": "blocked", "attempts": 0, "receipt": None}
 
     run(target())
+
+
+def test_an_unconfigured_key_id_refuses_before_claiming_the_delivery(monkeypatch, tmp_path):
+    # Without a key id the request cannot be signed: refuse with 503 before the claim, so the
+    # row is not left in `sending` and no attempt is counted.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            assert (await live.link()).status_code == 200
+            await live.approve_inspection()
+            assert (await live.assess()).status_code == 200
+            monkeypatch.setenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID", "")
+            response = await live.deliver()
+            assert response.status_code == 503, response.text
+            assert response.json()["detail"] == "verification_transport_unconfigured"
+            row = await live.admin.fetchrow(
+                "SELECT state, attempts, lease_token FROM scouting_verification_outbox "
+                "WHERE delivery_id=$1::uuid",
+                live.delivery_id,
+            )
+            assert dict(row) == {"state": "pending", "attempts": 0, "lease_token": None}
+
+    run(target())
+
+
+def test_the_attempt_cap_ends_in_a_terminal_state_and_the_database_refuses_more(
+    monkeypatch, tmp_path
+):
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            assert (await live.link()).status_code == 200
+            await live.approve_inspection()
+            assert (await live.assess()).status_code == 200
+            # Test-only setup: put the row at the cap without eight real round trips.
+            await live.admin.execute("SET session_replication_role = replica")
+            await live.admin.execute(
+                "UPDATE scouting_verification_outbox SET state='delivery_unknown', attempts=8 "
+                "WHERE delivery_id=$1::uuid",
+                live.delivery_id,
+            )
+            await live.admin.execute("SET session_replication_role = origin")
+            with pytest.raises(asyncpg.PostgresError) as caught:
+                async with live.app_connection("reviewer") as conn:
+                    await conn.execute(
+                        "UPDATE scouting_verification_outbox SET state='sending', attempts=9, "
+                        "lease_token=gen_random_uuid(), lease_until=clock_timestamp()+interval '1 minute' "
+                        "WHERE delivery_id=$1::uuid",
+                        live.delivery_id,
+                    )
+            assert caught.value.sqlstate == "55000"
+            before = live.anomaly_store.get(live.anomaly_ref, tenant_id=live.tenant)
+            response = await live.deliver()
+            assert response.status_code == 200, response.text
+            assert response.json()["state"] == "delivery_exhausted"
+            again = await live.deliver()
+            assert again.json()["state"] == "delivery_exhausted"
+            after = live.anomaly_store.get(live.anomaly_ref, tenant_id=live.tenant)
+            assert after["aggregate_version"] == before["aggregate_version"]
+            row = await live.admin.fetchrow(
+                "SELECT state, attempts, lease_token FROM scouting_verification_outbox "
+                "WHERE delivery_id=$1::uuid",
+                live.delivery_id,
+            )
+            assert dict(row) == {"state": "delivery_exhausted", "attempts": 8, "lease_token": None}
+
+    run(target())

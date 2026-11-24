@@ -32,6 +32,11 @@ from fm_verification_store import (
 
 router = APIRouter(prefix="/internal/field-tasks")
 remote_client = VegetationVerificationClient()
+# Mirrors v289's scouting_verification_delivery_guard; the database refuses a claim beyond it.
+MAX_DELIVERY_ATTEMPTS = 8
+TERMINAL_DELIVERY_STATES = frozenset(
+    {"delivered", "delivered_review_required", "blocked", "delivery_exhausted"}
+)
 
 
 def enabled():
@@ -257,8 +262,12 @@ async def dispatch_delivery(caller, field_id, delivery_id):
     async with caller_connection(caller) as conn:
         await require_actor(conn, caller, field_id)
         delivery = await load_delivery(conn, caller, field_id, delivery_id, lock=True)
-        if delivery["state"] in {"delivered", "delivered_review_required", "blocked"}:
+        if delivery["state"] in TERMINAL_DELIVERY_STATES:
             return delivery_view(delivery)
+        # An unconfigured transport (no URL, token, key or key id) is refused before the
+        # claim, so the row is not left in `sending` and no attempt is counted.
+        if not remote_client.configured():
+            raise HTTPException(503, "verification_transport_unconfigured")
         busy = await conn.fetchval(
             "SELECT lease_until > clock_timestamp() FROM scouting_verification_outbox WHERE delivery_id=$1",
             delivery_id,
@@ -269,6 +278,17 @@ async def dispatch_delivery(caller, field_id, delivery_id):
         # A denied caller cannot trigger even a read from the remote owner.
         if delivery["reviewer"] != caller.user_id or delivery["reviewer_role"] != caller.role:
             raise HTTPException(403, "delivery_requires_the_original_reviewer")
+        if delivery["attempts"] >= MAX_DELIVERY_ATTEMPTS:
+            # Whether the owner accepted an earlier attempt is unknown; stop retrying and
+            # hand the row to a person. v289 refuses any further claim at this count.
+            await conn.execute(
+                "UPDATE scouting_verification_outbox SET state='delivery_exhausted',"
+                "lease_token=NULL,lease_until=NULL,"
+                "last_error='verification_delivery_attempts_exhausted',"
+                "updated_at=clock_timestamp() WHERE delivery_id=$1",
+                delivery_id,
+            )
+            return delivery_view(await load_delivery(conn, caller, field_id, delivery_id))
         await conn.execute(
             "UPDATE scouting_verification_outbox SET state='sending',lease_token=$2,"
             "lease_until=clock_timestamp()+interval '120 seconds',attempts=attempts+1,"

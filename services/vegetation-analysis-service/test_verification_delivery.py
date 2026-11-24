@@ -588,3 +588,50 @@ async def test_actual_field_owner_sender_and_receiver_share_the_wire_contract(ha
     assert first["verification_delivery"]["request_snapshot_digest"] == context["snapshot_digest"]
     assert first["verification_delivery"] == replay["verification_delivery"]
     assert db.get(ANOMALY, tenant_id=TENANT)["aggregate_version"] == 4
+
+
+def test_a_bridged_confirmation_does_not_drive_a_diagnosis_or_a_referral(harness):
+    # A reviewer's "confirmed" field check with a free-text code that the RS-8 rules would
+    # read as a cause ("dry" -> water_stress) must not produce a suspected condition, and
+    # without a stored diagnosis the anomaly cannot be referred to the decision service.
+    from uuid import UUID
+
+    from anomaly_store import InvalidTransition
+    from diagnosis_engine import build_diagnosis, load_stored_diagnosis
+
+    client, db = harness
+    completed = datetime.now(UTC) - timedelta(seconds=5)
+    evidence = {
+        "evidence_ref": f"urn:sahool:evidence:scout-{uuid.uuid4().hex}",
+        "tenant_id": TENANT,
+        "source_system": "field-management-service",
+        "evidence_type": "scouting_verification_assessment",
+        "relation_type": "primary",
+        "captured_at": completed.isoformat(),
+        "content_hash": "a" * 64,
+        "verification_state": "verified",
+    }
+    data = body(
+        verification_result="confirmed",
+        evidence_refs=[evidence["evidence_ref"]],
+        evidence=[evidence],
+        reason_codes=["dry_patch_observed"],
+        completed_at=completed.isoformat(),
+    )
+    response = client.post(path(), json=data, headers=headers(data))
+    assert response.status_code == 200, response.text
+    record = db.get(ANOMALY, tenant_id=TENANT)
+    assert record["status"] == "confirmed"
+    assert record["payload"]["verification_channel"] == "inspection_owner_bridge"
+    with pytest.raises(ValueError, match="diagnosis_refuses_inspection_verification_result"):
+        build_diagnosis(anomaly_record=record, tenant_id=UUID(TENANT))
+    assert "diagnosis" not in record["payload"]
+    # The referral route reloads the stored diagnosis first; with none, it is refused.
+    with pytest.raises(InvalidTransition, match="diagnosis_not_proposed"):
+        load_stored_diagnosis(record["payload"].get("diagnosis"))
+
+    # The evidence type alone also refuses, whichever route stored it.
+    unstamped = copy.deepcopy(record)
+    unstamped["payload"].pop("verification_channel")
+    with pytest.raises(ValueError, match="diagnosis_refuses_inspection_verification_result"):
+        build_diagnosis(anomaly_record=unstamped, tenant_id=UUID(TENANT))

@@ -2467,7 +2467,7 @@
     },
     {
       "kind": "router",
-      "line": 32,
+      "line": 33,
       "module": "services.vegetation-analysis-service.routers.verification",
       "node_id": "services.vegetation-analysis-service.routers.verification:router",
       "route_count": 2,
@@ -3090,7 +3090,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "8462c31eed900cccce0e0a9eea3a6a7d32d8fea194431a55a7d8adbdd6998247",
+  "inventory_sha256": "ce585aa54b1e54e9606c77fb29830520149564f099cfb46ab9900f6370815f17",
   "orphan_candidate_count": 239,
   "orphan_candidates": [
     {
@@ -5456,7 +5456,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 32,
+      "line": 33,
       "module": "services.vegetation-analysis-service.routers.verification",
       "node_id": "services.vegetation-analysis-service.routers.verification:router",
       "route_count": 2,

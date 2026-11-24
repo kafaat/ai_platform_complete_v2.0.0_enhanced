@@ -88,7 +88,8 @@ CREATE TABLE IF NOT EXISTS scouting_verification_outbox (
     body_digest char(64) NOT NULL CHECK (
         body_digest = encode(sha256(convert_to(body_text, 'UTF8')), 'hex')),
     state text NOT NULL DEFAULT 'pending' CHECK (state IN (
-        'pending', 'sending', 'delivery_unknown', 'blocked', 'delivered', 'delivered_review_required')),
+        'pending', 'sending', 'delivery_unknown', 'blocked', 'delivered', 'delivered_review_required',
+        'delivery_exhausted')),
     lease_token uuid,
     lease_until timestamptz,
     attempts integer NOT NULL DEFAULT 0 CHECK (attempts >= 0),
@@ -177,16 +178,25 @@ BEGIN
     --   delivery_unknown -> sending
     --   sending          -> sending (reclaim only after the lease expired)
     --                     | delivered | delivered_review_required | blocked | delivery_unknown
-    -- delivered, delivered_review_required and blocked are terminal.
+    --   pending | delivery_unknown | sending (lease expired) -> delivery_exhausted
+    --                                                          (only at the attempt cap, 8)
+    -- delivered, delivered_review_required, blocked and delivery_exhausted are terminal.
     IF NOT (
         (OLD.state = 'pending' AND NEW.state IN ('sending', 'blocked'))
         OR (OLD.state = 'delivery_unknown' AND NEW.state = 'sending')
         OR (OLD.state = 'sending' AND NEW.state = 'sending' AND OLD.lease_until <= clock_timestamp())
         OR (OLD.state = 'sending' AND NEW.state IN (
             'delivered', 'delivered_review_required', 'blocked', 'delivery_unknown'))
+        OR (OLD.state IN ('pending', 'delivery_unknown') AND NEW.state = 'delivery_exhausted'
+            AND OLD.attempts >= 8)
+        OR (OLD.state = 'sending' AND NEW.state = 'delivery_exhausted' AND OLD.attempts >= 8
+            AND OLD.lease_until <= clock_timestamp())
     ) THEN
         RAISE EXCEPTION 'verification_delivery_transition_refused: % -> %', OLD.state, NEW.state
             USING ERRCODE='55000';
+    END IF;
+    IF NEW.state = 'sending' AND NEW.attempts > 8 THEN
+        RAISE EXCEPTION 'verification_delivery_attempts_exhausted' USING ERRCODE='55000';
     END IF;
     -- Each claim counts one attempt; nothing else changes the count.
     IF (NEW.state = 'sending' AND NEW.attempts <> OLD.attempts + 1)

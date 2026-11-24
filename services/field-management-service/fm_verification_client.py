@@ -33,6 +33,7 @@ class VegetationVerificationClient:
         url = os.getenv("VEGETATION_VERIFICATION_URL", "").rstrip("/")
         token = os.getenv("VEGETATION_VERIFICATION_SERVICE_TOKEN", "")
         key = os.getenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY", "")
+        key_id = os.getenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID", "current")
         parts = urlsplit(url)
         if (
             parts.scheme not in {"http", "https"}
@@ -44,9 +45,18 @@ class VegetationVerificationClient:
             or parts.path not in {"", "/"}
             or not token
             or len(key) < 32
+            or not key_id
         ):
             raise VerificationRemoteError("verification_transport_unconfigured")
         return url, token, key
+
+    def configured(self) -> bool:
+        """True when a request could be signed; checked before a delivery is claimed."""
+        try:
+            self._configuration()
+        except VerificationRemoteError:
+            return False
+        return True
 
     async def _request(self, method, tenant, anomaly_ref, suffix, *, body=None, key=None):
         base, token, assertion_key = self._configuration()

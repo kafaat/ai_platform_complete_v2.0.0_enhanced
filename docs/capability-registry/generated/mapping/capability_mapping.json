@@ -32,7 +32,7 @@
       "raw": 3521
     },
     "test_dependency_files": 2056,
-    "test_dependency_edges": 5562,
+    "test_dependency_edges": 5563,
     "test_dependency_bounded_files": 1177,
     "test_dependency_unresolved_relations": 532
   },
@@ -15492,27 +15492,27 @@
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/verification-context @ services/field-management-service/fm_verification.py:59",
+          "value": "/fields/{field_id}/tasks/{task_id}/verification-context @ services/field-management-service/fm_verification.py:64",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:85",
+          "value": "/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:90",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:165",
+          "value": "/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:170",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:150",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:155",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:335",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:355",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:113",
+          "value": "/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:118",
           "score": 8
         },
         {
@@ -15701,11 +15701,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:257",
+          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:267",
           "score": 16
         },
         {
-          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:258",
+          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:268",
           "score": 16
         },
         {
@@ -15713,11 +15713,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:243",
+          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:253",
           "score": 16
         },
         {
-          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:244",
+          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:254",
           "score": 16
         },
         {
@@ -15729,11 +15729,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:264",
+          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:274",
           "score": 16
         },
         {
-          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:265",
+          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:275",
           "score": 16
         },
         {
@@ -15745,11 +15745,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:250",
+          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:260",
           "score": 16
         },
         {
-          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:251",
+          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:261",
           "score": 16
         },
         {
@@ -74055,6 +74055,11 @@
           "source": "services/vegetation-analysis-service/anomaly_store.py",
           "kind": "import",
           "line": 20
+        },
+        {
+          "source": "services/vegetation-analysis-service/diagnosis_engine.py",
+          "kind": "import",
+          "line": 600
         },
         {
           "source": "services/vegetation-analysis-service/routers/__init__.py",

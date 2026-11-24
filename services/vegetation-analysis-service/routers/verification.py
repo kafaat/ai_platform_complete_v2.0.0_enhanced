@@ -29,6 +29,7 @@ from shared.contracts.remote_sensing.verification_delivery import (
 )
 from shared.security.service_tenant_assertion import TenantAssertionError, verify_tenant_assertion
 
+INSPECTION_BRIDGE_CHANNEL = "inspection_owner_bridge"
 router = APIRouter()
 _CALLER = "field-management-service"
 _KEY = re.compile(r"^[A-Za-z0-9_.:-]{16,128}$")
@@ -301,6 +302,9 @@ async def verification_result(
             "disposition_reason_codes": body["reason_codes"],
             "verification_completed_at": body["completed_at"],
             "verification_delivery": receipt,
+            # Stamped by this receiver, not taken from the sender: RS-8 refuses to diagnose
+            # from it. A confirmed/not-confirmed field check is not a diagnosis.
+            "verification_channel": INSPECTION_BRIDGE_CHANNEL,
         }
         try:
             updated = await _store.transition(

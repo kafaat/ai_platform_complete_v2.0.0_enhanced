@@ -10545,7 +10545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c24638d9a09b801ba669b1d4d44f2c3c1dd9c0dca3e5169eb32de0c3e0cfa156"
+          "content": "c3570db5d57557f6ec67b5553c532dc9d83aeeb241feeb95d064dedc5fc2cc62"
         }
       ],
       "name": "migrations/v289_scouting_verification_bridge.sql",
@@ -21125,7 +21125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0143abf9b6438e1ef30fb83fd00d71bebc2c59de71bf69123f232c70cf53a37e"
+          "content": "96e4327ededd2b29d8757b987f11a41daa0e6d872d1f867c75f98fe82f5965fd"
         }
       ],
       "name": "services/field-management-service/fm_verification.py",
@@ -21135,7 +21135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a49f27198123c32eb7ff35896e183460fe293151f175ef1da0154089c0e59a64"
+          "content": "9420b27dfcc883e14f5bab89bb4ab00a2a1775e0ef8ffece0c62dacc79440432"
         }
       ],
       "name": "services/field-management-service/fm_verification_client.py",
@@ -21155,7 +21155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eca791c8848efa00a08de532bea301d31dca15c7fa9381f6073c3ed414ca54c5"
+          "content": "290a484b58e4c95a885e3133e49ca24ea6b31a2bef21556d273ae8099026b304"
         }
       ],
       "name": "services/field-management-service/fm_verification_store.py",
@@ -40745,7 +40745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea2db549f9261b8981cb5f51b639715f4f70a6f8a520dd9ff9382cf0c94c83d0"
+          "content": "e79c2b1de0298b8aadd8fbfe413c9acda8807b8dc924f41ed1a6bd9521342db9"
         }
       ],
       "name": "services/vegetation-analysis-service/diagnosis_engine.py",
@@ -40905,7 +40905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92a61436d1a700cfa01178cc75639cc0e408ee5a8910c24f78dd3fe31cbcbf0a"
+          "content": "6b6bd81b3c3cdbcc0952612e9d858e7673e2480aa7959abd18284058f3335769"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/verification.py",
@@ -41115,7 +41115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "00d12d15f508afede391f643a71685ba9e49d90293013dd91e2d4c4f71ae0163"
+          "content": "86f461f661c750dd8888c0ff2dbfe5a6ba314ec59a29fd55bd20e4eeb680c89b"
         }
       ],
       "name": "services/vegetation-analysis-service/test_verification_delivery.py",
