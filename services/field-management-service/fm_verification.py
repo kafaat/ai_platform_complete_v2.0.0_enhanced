@@ -35,6 +35,7 @@ from fm_verification_store import (
     load_delivery,
     load_link,
     require_actor,
+    require_current_assignee,
     resolve_scope,
     revalidate_delivery,
     write_assessment,
@@ -84,22 +85,40 @@ async def verification_context(
     task_id: UUID,
     inspection_task_id: UUID,
     season_binding: Literal["canonical_season", "accepted_record"],
-    caller: Caller = Depends(caller_dependency(INSPECTION_REVIEW)),
+    caller: Caller = Depends(caller_dependency(OBSERVATION_RECORD)),
 ):
+    # A reviewer reads it to link; the inspection's assignee reads it to write the assessment
+    # (owner decision 1), so a caller without inspection:review must be B's current assignee.
     enabled()
+    permission = INSPECTION_REVIEW if caller.can(INSPECTION_REVIEW) else OBSERVATION_RECORD
     try:
-        remote = await task_remote(caller, field_id, task_id)
+        if permission == OBSERVATION_RECORD:
+            async with caller_connection(caller) as conn:
+                await require_current_assignee(conn, caller, field_id, inspection_task_id)
+        remote = await task_remote(caller, field_id, task_id, permission)
         async with caller_connection(caller) as conn:
             context = await resolve_scope(
-                conn, caller, field_id, task_id, inspection_task_id, season_binding, remote
+                conn,
+                caller,
+                field_id,
+                task_id,
+                inspection_task_id,
+                season_binding,
+                remote,
+                permission=permission,
             )
-            current = await conn.fetchval(
-                "SELECT revision FROM scouting_verification_links "
+            current = await conn.fetchrow(
+                "SELECT link_id, revision FROM scouting_verification_links "
                 "WHERE tenant_id=$1::uuid AND anomaly_task_id=$2",
                 caller.tenant_id,
                 task_id,
             )
-        return {"persisted": True, "link_revision": current or 0, **context}
+        return {
+            "persisted": True,
+            "link_id": str(current["link_id"]) if current else None,
+            "link_revision": current["revision"] if current else 0,
+            **context,
+        }
     except Exception as exc:
         raise storage_error(exc) from exc
 
@@ -173,13 +192,20 @@ def delivery_view(row):
 async def verification_delivery(
     field_id: str,
     delivery_id: UUID,
-    caller: Caller = Depends(caller_dependency(INSPECTION_REVIEW)),
+    caller: Caller = Depends(caller_dependency(OBSERVATION_RECORD)),
 ):
+    # A reviewer reads any delivery in scope; the assessment's writer reads their own.
     enabled()
     try:
         async with caller_connection(caller) as conn:
-            await require_actor(conn, caller, field_id)
-            return delivery_view(await load_delivery(conn, caller, field_id, delivery_id))
+            reviewer = caller.can(INSPECTION_REVIEW)
+            await require_actor(
+                conn, caller, field_id, INSPECTION_REVIEW if reviewer else OBSERVATION_RECORD
+            )
+            row = await load_delivery(conn, caller, field_id, delivery_id)
+            if not reviewer and row["reviewer"] != caller.user_id:
+                raise HTTPException(404, "verification_delivery_not_found")
+            return delivery_view(row)
     except Exception as exc:
         raise storage_error(exc) from exc
 
@@ -188,20 +214,25 @@ async def verification_delivery(
 async def verification_assessment(
     field_id: str,
     assessment_id: UUID,
-    caller: Caller = Depends(caller_dependency(INSPECTION_REVIEW)),
+    caller: Caller = Depends(caller_dependency(OBSERVATION_RECORD)),
 ):
+    # A reviewer reads any assessment in scope; the writer reads their own.
     enabled()
     try:
         async with caller_connection(caller) as conn:
-            await require_actor(conn, caller, field_id)
+            reviewer = caller.can(INSPECTION_REVIEW)
+            await require_actor(
+                conn, caller, field_id, INSPECTION_REVIEW if reviewer else OBSERVATION_RECORD
+            )
             row = await conn.fetchrow(
-                "SELECT assessment_text,assessment_digest FROM scouting_verification_assessments "
+                "SELECT assessment_text,assessment_digest,reviewer "
+                "FROM scouting_verification_assessments "
                 "WHERE tenant_id=$1::uuid AND field_id=$2 AND assessment_id=$3",
                 caller.tenant_id,
                 field_id,
                 assessment_id,
             )
-            if not row:
+            if not row or (not reviewer and row["reviewer"] != caller.user_id):
                 raise HTTPException(404, "verification_assessment_not_found")
             return {
                 "persisted": True,

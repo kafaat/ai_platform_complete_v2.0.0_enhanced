@@ -1251,7 +1251,7 @@ tables:
   users:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: [scout-ingest-service, scripts, field-management-service]  # grant checks; operator backfill/diff; verification bridge reads id/tenant/role/active to revalidate its reviewer
+    readers: [scout-ingest-service, scripts, field-management-service]  # grant checks; operator backfill/diff; verification bridge reads id/tenant/role/active to revalidate the assessment's writer (the inspection's assignee)
     source: "migrations/v9_foundation.sql, services/sahool-platform/storage/lite_store.py, migrations/v263_scout_photo_field_access_grants.sql"
   variety_trials:
     owner: sahool-platform

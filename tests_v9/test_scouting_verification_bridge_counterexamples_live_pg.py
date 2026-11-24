@@ -192,6 +192,34 @@ def test_the_assessment_is_written_by_the_assignee_after_someone_else_approved(
     run(target())
 
 
+def test_the_assignee_reads_what_they_need_and_nothing_of_anyone_else(monkeypatch, tmp_path):
+    # Under owner decision 1 the writer may be a worker without inspection:review. They read the
+    # context of their own inspection (with the link id the assessment path needs), their own
+    # assessment and its delivery; another field user with a farm grant reads none of these.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            assert (await live.link()).status_code == 200
+            await live.approve_inspection()
+            context = await live.context(name="inspector")
+            assert context.status_code == 200, context.text
+            assert context.json()["link_id"] == live.link_id
+            other = await live.context(name="inspector2")
+            assert other.status_code == 403, other.text
+            assert other.json()["detail"] == "verification_context_requires_the_inspection_assignee"
+            assert (await live.assess()).status_code == 200
+            base = f"/internal/field-tasks/fields/{live.field}"
+            paths = (
+                f"{base}/verification-assessments/{live.assessment_id}",
+                f"{base}/verification-deliveries/{live.delivery_id}",
+            )
+            for path in paths:
+                for name, status in (("inspector", 200), ("reviewer", 200), ("inspector2", 404)):
+                    response = await live.fm.get(path, headers=live.headers(name))
+                    assert response.status_code == status, (path, name, response.text)
+
+    run(target())
+
+
 def test_the_database_refuses_an_assessment_written_by_the_approver(monkeypatch, tmp_path):
     # The same rule holds below the application: the v289 trigger refuses an assessment row
     # whose writer is the approver rather than the inspection's assignee.

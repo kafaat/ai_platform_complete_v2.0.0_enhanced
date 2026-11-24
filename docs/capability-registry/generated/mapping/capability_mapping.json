@@ -15492,27 +15492,27 @@
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/verification-context @ services/field-management-service/fm_verification.py:81",
+          "value": "/fields/{field_id}/tasks/{task_id}/verification-context @ services/field-management-service/fm_verification.py:82",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:107",
+          "value": "/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:126",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:187",
+          "value": "/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:213",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:172",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:191",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:456",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:487",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:135",
+          "value": "/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:154",
           "score": 8
         },
         {
@@ -97974,11 +97974,11 @@
       ],
       "unresolved": [
         {
-          "line": 391,
+          "line": 419,
           "import": "fm_verification_client"
         },
         {
-          "line": 742,
+          "line": 770,
           "import": "fm_verification_client"
         }
       ]

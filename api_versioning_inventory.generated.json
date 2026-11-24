@@ -1352,7 +1352,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 82,
+    "line": 83,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-context",
     "handler": "verification_context",
@@ -1361,7 +1361,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 108,
+    "line": 127,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links",
     "handler": "create_verification_link",
@@ -1370,7 +1370,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 136,
+    "line": 155,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments",
     "handler": "approve_verification_assessment",
@@ -1379,7 +1379,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 173,
+    "line": 192,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}",
     "handler": "verification_delivery",
@@ -1388,7 +1388,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 188,
+    "line": 214,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/verification-assessments/{assessment_id}",
     "handler": "verification_assessment",
@@ -1397,7 +1397,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 457,
+    "line": 488,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver",
     "handler": "deliver_verification",

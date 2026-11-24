@@ -333,4 +333,8 @@ CREATE POLICY verification_assessment_actor ON scouting_verification_assessments
     WITH CHECK (reviewer = current_setting('app.current_user_id', true));
 COMMENT ON TABLE scouting_verification_assessments IS
     'Explicit human judgement of an observed signal, bound to a reviewed visit; not a causal diagnosis, training label, or execution receipt.';
+COMMENT ON COLUMN scouting_verification_assessments.reviewer IS
+    'The assessment''s writer: inspection B''s current assignee, after someone else approved the evidence version (owner decision 1, 2026-11-24). Named reviewer for history; it is not the approver.';
+COMMENT ON COLUMN scouting_verification_assessments.reviewer_role IS
+    'The writer''s canonical role when the assessment was written.';
 COMMIT;

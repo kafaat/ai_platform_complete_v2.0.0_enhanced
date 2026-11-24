@@ -63,6 +63,19 @@ async def require_actor(conn, caller: Caller, field_id: str, permission: str = I
     return dict(field)
 
 
+async def require_current_assignee(conn, caller, field_id, inspection_task_id):
+    """Without inspection:review, a caller reads the bridge only for an inspection assigned to them."""
+    assigned = await conn.fetchval(
+        "SELECT assigned_to FROM field_tasks WHERE tenant_id=$1::uuid AND field_id=$2 "
+        "AND task_id=$3 AND source_scouting_pin_id IS NOT NULL",
+        caller.tenant_id,
+        field_id,
+        inspection_task_id,
+    )
+    if assigned is None or assigned != caller.user_id:
+        raise HTTPException(403, "verification_context_requires_the_inspection_assignee")
+
+
 async def anomaly_task(conn, caller, field_id, task_id, *, lock=False):
     row = await conn.fetchrow(
         "SELECT task_id, anomaly_ref, season_id, geometry_ref, status FROM field_tasks "
