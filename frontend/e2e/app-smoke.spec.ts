@@ -78,7 +78,7 @@ test('all public auth pages fit a phone viewport without horizontal scrolling', 
 test('a password-reset link opens the new-password step, not the invitation page', async ({ page }) => {
   await page.goto('/reset-password?token=e2e-not-a-real-token');
   await expect(page.getByText('تعيين كلمة مرور جديدة', { exact: true })).toBeVisible();
-  const password = page.locator('input[autocomplete="new-password"]');
+  const password = page.locator('#reset-new-password');
   await expect(password).toBeVisible();
   await expect(page.getByText('قبول دعوة الانضمام')).toHaveCount(0);
   // The token leaves the address bar, and typing keeps the step (it is held in state).

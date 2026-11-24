@@ -15,7 +15,7 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7719,
+    "files_scanned": 7720,
     "files_by_kind": {
       "backend": 1317,
       "database": 358,
@@ -23,13 +23,13 @@
       "mobile": 429,
       "other": 2253,
       "tests": 2697,
-      "web": 573
+      "web": 574
     },
-    "unmapped_artifacts": 3670,
+    "unmapped_artifacts": 3671,
     "ambiguous_artifacts": 267,
     "files_by_reading": {
       "python_functional": 4198,
-      "raw": 3521
+      "raw": 3522
     },
     "test_dependency_files": 2057,
     "test_dependency_edges": 5564,
@@ -34109,6 +34109,10 @@
     },
     {
       "path": "frontend/src/components/climate/ClimateAnalogsPanel.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/cropChipRemove.a11y.test.tsx",
       "kind": "web"
     },
     {

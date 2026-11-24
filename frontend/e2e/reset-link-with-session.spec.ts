@@ -16,10 +16,17 @@ test('a password-reset link opens the new-password step even with a stored sessi
   await page.goto('/reset-password?token=e2e-not-a-real-token');
   await expect(page.getByText('تعيين كلمة مرور جديدة', { exact: true })).toBeVisible();
   await expect(page).toHaveURL(/\/reset-password$/);
-  await page.locator('input[autocomplete="new-password"]').fill('Strong#Pass1');
+  await page.locator('#reset-new-password').fill('Strong#Pass1');
+  await page.locator('#reset-confirm-password').fill('Strong#Pass1');
   await page.locator('form button[type="submit"]').click();
   await expect(page.getByText('تم تغيير كلمة المرور بنجاح')).toBeVisible();
   expect(confirmed).toBe(1);
+  // The reset revokes the old session, so a background /auth/ call may answer 401 and the app
+  // logs out (client.ts dispatches this event). The success screen must stay, not remount
+  // into the "send me a link" form.
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('sahool:auth:unauthorized')));
+  await expect(page.getByText('تم تغيير كلمة المرور بنجاح')).toBeVisible();
+  await expect(page.getByText('إعادة تعيين كلمة المرور', { exact: true })).toHaveCount(0);
   // Going back to sign in ends the old session instead of returning to the app.
   await page.getByRole('button', { name: 'العودة لتسجيل الدخول' }).click();
   await expect(page).toHaveURL(/\/login$/);
