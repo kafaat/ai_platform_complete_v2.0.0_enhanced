@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **46**
-- Files scanned: **7708**
-- Ambiguous artifacts queued: **265**
-- Unmapped artifacts queued: **3667**
+- Files scanned: **7722**
+- Ambiguous artifacts queued: **266**
+- Unmapped artifacts queued: **3673**
 
 ## Capability coverage
 
@@ -32,7 +32,7 @@
 | DEC-010 | decision | 4 | 93 | 59 | 8 | 0 | 0 | 9 | 5 |
 | FM-001 | farm_management | 17 | 2 | 30 | 12 | 1 | 0 | 49 | 6 |
 | FM-002 | farm_management | 38 | 44 | 100 | 30 | 20 | 35 | 62 | 7 |
-| FM-003 | farm_management | 14 | 56 | 5 | 62 | 3 | 2 | 17 | 7 |
+| FM-003 | farm_management | 15 | 56 | 5 | 62 | 3 | 2 | 17 | 7 |
 | FM-004 | farm_management | 34 | 82 | 68 | 51 | 20 | 15 | 63 | 7 |
 | FM-005 | farm_management | 13 | 0 | 0 | 15 | 6 | 1 | 8 | 5 |
 | FM-006 | farm_management | 1 | 0 | 0 | 0 | 2 | 0 | 1 | 3 |
@@ -58,7 +58,7 @@
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-001 | operations | 0 | 0 | 20 | 9 | 0 | 1 | 4 | 4 |
 | OPS-002 | operations | 4 | 9 | 6 | 4 | 1 | 0 | 8 | 6 |
-| OPS-003 | operations | 8 | 22 | 31 | 18 | 6 | 18 | 22 | 7 |
+| OPS-003 | operations | 10 | 28 | 46 | 18 | 6 | 18 | 24 | 7 |
 | OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 28 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 14 | 1 | 13 | 12 | 7 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
