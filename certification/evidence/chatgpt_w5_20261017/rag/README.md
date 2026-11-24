@@ -19,6 +19,16 @@ python certification/evidence/chatgpt_w5_20261017/rag/baseline_readonly.py \
   --qdrant-url http://127.0.0.1:6333 --ollama-url http://127.0.0.1:11434
 ```
 
+> **Tool change, 2026-11-24 (results below unchanged).** The 17 October run above
+> wrote `baseline-results.json` through the old default `--output`. The tool now
+> requires an explicit `--output` and refuses an existing path (exit 3), so a rerun
+> cannot replace that file: add e.g. `--output /tmp/w5-baseline-$(date -u +%Y%m%dT%H%M%SZ).json`.
+> It also maps the retriever's `(tenant_id, chunk_id)` identity to the qrel key for
+> the evaluated tenant only, and keeps a sanitized `runtime_blocker_detail`.
+> "Read-only" means no Qdrant writes: the tool reads Qdrant, computes query
+> embeddings on the local embedding service and writes a local report.
+> Tests: `tests_v9/test_w5_rag_baseline_tool.py`.
+
 Observed exit code: **2 (BLOCKED)**. Both loopback dependency probes failed with
 connection refusal; raw access probe records are in `../access-probes.json`.
 `baseline-command.txt` and `baseline-results.json` retain the command result,
