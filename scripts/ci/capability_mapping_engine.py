@@ -936,7 +936,30 @@ def iter_files() -> Iterable[Path]:
         yield p
 
 
-IMPLEMENTATION_KINDS = frozenset({"backend", "web", "mobile", "database", "tests"})
+#: Paths that document, certify or gate the system rather than run it. A route, table or
+#: event named there is a mention, not an implementation, so it is not read as evidence.
+#: Runtime code outside services/ (agents/, shared/, sentinel_hub/, top-level contracts)
+#: is not listed here and keeps its evidence.
+NON_IMPLEMENTATION_PREFIXES = (
+    "docs/",
+    "certification/",
+    "sahool-brain/",
+    "runtime-verification/",
+    "skills/",
+    "scripts/",
+    ".github/",
+)
+NON_IMPLEMENTATION_SUFFIXES = (".md", ".rst", ".txt", ".adoc")
+
+
+def supplies_implementation_evidence(rel: str) -> bool:
+    """Whether routes, tables and events named in this file count as implementation evidence."""
+    n = rel.lower()
+    if classify(rel) == "governance":
+        return False
+    return not (
+        n.startswith(NON_IMPLEMENTATION_PREFIXES) or n.endswith(NON_IMPLEMENTATION_SUFFIXES)
+    )
 
 
 def classify(rel: str) -> str:
@@ -1165,10 +1188,10 @@ def build() -> dict:
                 target["database"].append(rec)
             else:
                 target["other_evidence"].append(rec)
-            # Routes, tables and events are implementation evidence: read them only from
-            # code (backend, web, mobile, migrations, tests). A plan or doc that names a
-            # schema id or a route documents it; it does not implement it.
-            if kind not in IMPLEMENTATION_KINDS:
+            # Routes, tables and events are implementation evidence: a plan, doc, evidence
+            # file or CI gate that names a schema id or a route documents or checks it; it
+            # does not implement it.
+            if not supplies_implementation_evidence(rel):
                 continue
             for r in route_items(rel, text):
                 target["routes"].append({"value": r, "score": score})
