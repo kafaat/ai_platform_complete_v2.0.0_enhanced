@@ -216,11 +216,11 @@ SELECT t.file, t.tbl,
                  FROM pg_policy p WHERE p.polrelid = c.oid), 'none'),
        COALESCE((SELECT string_agg(regexp_replace(g.tgname, '[|,:[:space:]=]', '?', 'g') || ':' || g.tgenabled::text, ',' ORDER BY g.tgname)
                  FROM pg_trigger g WHERE g.tgrelid = c.oid AND NOT g.tgisinternal), 'none'),
-       COALESCE((SELECT string_agg(r.who || ':' || r.privs, ',' ORDER BY r.who COLLATE \"C\")
+       COALESCE((SELECT string_agg(r.who || ':' || r.privs, ',' ORDER BY r.who COLLATE \"C\", r.privs COLLATE \"C\")
                  FROM (SELECT regexp_replace(CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END,
                                              '[|,:[:space:]=]', '?', 'g') AS who,
-                              string_agg(a.privilege_type, '|' ORDER BY a.privilege_type) AS privs
-                       FROM aclexplode(c.relacl) a WHERE a.grantee <> c.relowner GROUP BY 1) r), 'none')
+                              string_agg(DISTINCT a.privilege_type, '|' ORDER BY a.privilege_type) AS privs
+                       FROM aclexplode(c.relacl) a WHERE a.grantee <> c.relowner GROUP BY a.grantee) r), 'none')
 FROM t LEFT JOIN pg_class c ON c.oid = to_regclass('public.' || t.tbl)
 ORDER BY t.ord")"; then
     require_ro "$catalog"
