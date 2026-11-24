@@ -11668,6 +11668,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_capability_mapping_code_only_extraction.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_capability_mapping_table_extraction.py",
     "kind": "tests"
   },
