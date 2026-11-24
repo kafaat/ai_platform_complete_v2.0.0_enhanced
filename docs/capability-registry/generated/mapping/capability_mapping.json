@@ -14,7 +14,7 @@
     "capabilities_total": 81,
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
-    "capabilities_multidimensional": 46,
+    "capabilities_multidimensional": 47,
     "files_scanned": 7705,
     "files_by_kind": {
       "backend": 1312,
@@ -26,7 +26,7 @@
       "web": 573
     },
     "unmapped_artifacts": 3664,
-    "ambiguous_artifacts": 266,
+    "ambiguous_artifacts": 265,
     "files_by_reading": {
       "python_functional": 4187,
       "raw": 3518
@@ -4124,19 +4124,7 @@
           "score": 10
         },
         {
-          "value": "sahool.claim-task-slice-traceability.compact.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:15700",
-          "score": 10
-        },
-        {
           "value": "sahool.regional_bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:33",
-          "score": 10
-        },
-        {
-          "value": "sahool.review-closure-register.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:21882",
-          "score": 10
-        },
-        {
-          "value": "sahool.review-closure-register.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:23318",
           "score": 10
         },
         {
@@ -5326,14 +5314,6 @@
           ]
         },
         {
-          "path": "docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md",
-          "score": 10,
-          "signals": [
-            "content:farm",
-            "content:farms"
-          ]
-        },
-        {
           "path": "docs/history/COMPETITIVE_ANALYSIS.md",
           "score": 9,
           "signals": [
@@ -5361,12 +5341,12 @@
         "backend": 38,
         "routes": 45,
         "database": 100,
-        "events": 33,
+        "events": 30,
         "web": 20,
         "mobile": 35,
         "tests": 62,
         "governance": 0,
-        "other_evidence": 27
+        "other_evidence": 26
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -13138,14 +13118,6 @@
           ]
         },
         {
-          "path": "docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md",
-          "score": 11,
-          "signals": [
-            "content:event bus",
-            "content:nats"
-          ]
-        },
-        {
           "path": "scripts/ci/event_contract_graph.py",
           "score": 11,
           "signals": [
@@ -13304,7 +13276,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 98
+        "events": 95
       },
       "evidence_counts": {
         "backend": 8,
@@ -13315,7 +13287,7 @@
         "mobile": 0,
         "tests": 24,
         "governance": 2,
-        "other_evidence": 39
+        "other_evidence": 38
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -13972,7 +13944,20 @@
           ]
         }
       ],
-      "events": [],
+      "events": [
+        {
+          "value": "sahool.claim-task-slice-traceability.compact.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:15435",
+          "score": 23
+        },
+        {
+          "value": "sahool.review-closure-register.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:21617",
+          "score": 23
+        },
+        {
+          "value": "sahool.review-closure-register.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:23054",
+          "score": 23
+        }
+      ],
       "web": [],
       "mobile": [],
       "tests": [
@@ -14023,6 +14008,14 @@
           ]
         },
         {
+          "path": "docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md",
+          "score": 23,
+          "signals": [
+            "content:source binding",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/arabic_state_guard_20261014/opening_api_range_gates.json",
           "score": 20,
           "signals": [
@@ -14059,14 +14052,14 @@
         "backend": 1,
         "routes": 0,
         "database": 4,
-        "events": 0,
+        "events": 3,
         "web": 0,
         "mobile": 0,
         "tests": 3,
         "governance": 1,
-        "other_evidence": 5
+        "other_evidence": 6
       },
-      "coverage_dimensions": 3,
+      "coverage_dimensions": 4,
       "mapped": true
     },
     {
@@ -19430,18 +19423,6 @@
         {
           "value": "imagery_source_gate.py @ services/raster-service/test_imagery_source_gate_no_bypass_static.py:84",
           "score": 9
-        },
-        {
-          "value": "sahool.claim-task-slice-traceability.compact.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:15700",
-          "score": 8
-        },
-        {
-          "value": "sahool.review-closure-register.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:21882",
-          "score": 8
-        },
-        {
-          "value": "sahool.review-closure-register.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:23318",
-          "score": 8
         }
       ],
       "web": [
@@ -20741,14 +20722,6 @@
           ]
         },
         {
-          "path": "docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md",
-          "score": 8,
-          "signals": [
-            "content:cdse",
-            "content:stac"
-          ]
-        },
-        {
           "path": "docs/runbooks/MAP_PIXEL_BACKFILL_DURATION_VERIFICATION_RUNBOOK.md",
           "score": 8,
           "signals": [
@@ -20783,12 +20756,12 @@
         "backend": 43,
         "routes": 100,
         "database": 5,
-        "events": 47,
+        "events": 44,
         "web": 6,
         "mobile": 0,
         "tests": 59,
         "governance": 0,
-        "other_evidence": 96
+        "other_evidence": 95
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -26148,18 +26121,6 @@
           "score": 9
         },
         {
-          "value": "sahool.claim-task-slice-traceability.compact.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:15700",
-          "score": 9
-        },
-        {
-          "value": "sahool.review-closure-register.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:21882",
-          "score": 9
-        },
-        {
-          "value": "sahool.review-closure-register.v1 @ docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md:23318",
-          "score": 9
-        },
-        {
           "value": "soil-observation.v1 @ tests_v9/test_soil_runtime_certification_integration.py:81",
           "score": 9
         },
@@ -27605,14 +27566,6 @@
           ]
         },
         {
-          "path": "docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:Tenant RLS"
-          ]
-        },
-        {
           "path": "docs/runbooks/LOCAL_LIVE_EVIDENCE_RUNBOOK.md",
           "score": 9,
           "signals": [
@@ -27817,12 +27770,12 @@
         "backend": 16,
         "routes": 20,
         "database": 100,
-        "events": 84,
+        "events": 81,
         "web": 0,
         "mobile": 0,
         "tests": 93,
         "governance": 0,
-        "other_evidence": 93
+        "other_evidence": 92
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -49925,44 +49878,6 @@
           "score": 8,
           "signals": [
             "path:openapi"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "INT-002",
-          "score": 11,
-          "signals": [
-            "content:event bus",
-            "content:nats"
-          ]
-        },
-        {
-          "capability_id": "FM-002",
-          "score": 10,
-          "signals": [
-            "content:farm",
-            "content:farms"
-          ]
-        },
-        {
-          "capability_id": "SEC-001",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:Tenant RLS"
-          ]
-        },
-        {
-          "capability_id": "SAT-001",
-          "score": 8,
-          "signals": [
-            "content:cdse",
-            "content:stac"
           ]
         }
       ]

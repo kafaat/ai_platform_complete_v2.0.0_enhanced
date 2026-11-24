@@ -11,9 +11,9 @@
 - Capabilities: **81**
 - Mapped: **77**
 - Unmapped: **4**
-- Multi-dimensional mappings: **46**
+- Multi-dimensional mappings: **47**
 - Files scanned: **7705**
-- Ambiguous artifacts queued: **266**
+- Ambiguous artifacts queued: **265**
 - Unmapped artifacts queued: **3664**
 
 ## Capability coverage
@@ -31,7 +31,7 @@
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 93 | 59 | 8 | 0 | 0 | 9 | 5 |
 | FM-001 | farm_management | 17 | 2 | 30 | 14 | 1 | 0 | 49 | 6 |
-| FM-002 | farm_management | 38 | 45 | 100 | 33 | 20 | 35 | 62 | 7 |
+| FM-002 | farm_management | 38 | 45 | 100 | 30 | 20 | 35 | 62 | 7 |
 | FM-003 | farm_management | 14 | 56 | 5 | 66 | 3 | 2 | 17 | 7 |
 | FM-004 | farm_management | 34 | 82 | 86 | 52 | 20 | 15 | 63 | 7 |
 | FM-005 | farm_management | 13 | 0 | 0 | 15 | 6 | 1 | 8 | 5 |
@@ -48,7 +48,7 @@
 | INT-004 | precision | 5 | 9 | 8 | 12 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
 | IRR-002 | irrigation | 1 | 6 | 8 | 3 | 0 | 0 | 3 | 5 |
-| IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 3 | 3 |
+| IRR-003 | irrigation | 1 | 0 | 4 | 3 | 0 | 0 | 3 | 4 |
 | IRR-004 | irrigation | 3 | 1 | 0 | 0 | 0 | 0 | 2 | 3 |
 | IRR-005 | irrigation | 2 | 2 | 0 | 7 | 0 | 0 | 5 | 4 |
 | IRR-006 | irrigation | 0 | 0 | 0 | 4 | 0 | 0 | 5 | 2 |
@@ -69,7 +69,7 @@
 | PA-003 | precision | 4 | 4 | 12 | 1 | 0 | 0 | 5 | 5 |
 | PA-004 | precision | 1 | 0 | 18 | 2 | 0 | 0 | 1 | 4 |
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| SAT-001 | satellite | 43 | 100 | 5 | 47 | 6 | 0 | 59 | 6 |
+| SAT-001 | satellite | 43 | 100 | 5 | 44 | 6 | 0 | 59 | 6 |
 | SAT-002 | satellite | 0 | 1 | 0 | 1 | 1 | 0 | 5 | 4 |
 | SAT-003 | satellite | 58 | 43 | 8 | 100 | 39 | 5 | 71 | 7 |
 | SAT-004 | satellite | 9 | 4 | 5 | 13 | 3 | 0 | 8 | 6 |
@@ -78,7 +78,7 @@
 | SAT-007 | satellite | 1 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |
 | SAT-009 | satellite | 12 | 52 | 0 | 16 | 2 | 1 | 28 | 6 |
-| SEC-001 | security | 16 | 20 | 100 | 84 | 0 | 0 | 93 | 5 |
+| SEC-001 | security | 16 | 20 | 100 | 81 | 0 | 0 | 93 | 5 |
 | SEC-002 | security | 3 | 0 | 0 | 4 | 0 | 0 | 5 | 3 |
 | SEC-003 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-004 | security | 6 | 9 | 19 | 1 | 5 | 5 | 15 | 7 |
