@@ -52,7 +52,10 @@ FOREIGN_PREFIX = "foreign-tenant:"
 
 # userinfo: user and optional password without whitespace (a valid URL has none), so a
 # later "@" in prose (``retry user@host``) is not swallowed with the text before it.
-_URL_USERINFO = re.compile(r"(?i)\b([a-z][a-z0-9+.-]*://)[^\s/@:]*(?::[^\s/@]*)?@")
+# The lookbehind lets a match start only where a scheme-character run starts, so a long
+# letter-and-dot run is scanned once instead of once per letter (linear, not quadratic).
+# No input cut: whitespace collapsing later could bring a cut-off secret into the output.
+_URL_USERINFO = re.compile(r"(?i)(?<![a-z0-9+.-])([a-z][a-z0-9+.-]*://)[^\s/@:]*(?::[^\s/@]*)?@")
 _AUTH_SCHEME = re.compile(r"(?i)\b(bearer|basic)\s+[^\s,;'\"]+")
 # Unquoted ``key=value`` and quoted JSON / repr forms (``"api_key": "v"``, ``key='v'``),
 # because a Qdrant HTTP error carries the raw (JSON) response body.
@@ -87,9 +90,7 @@ def loopback(value):
 
 def sanitize_detail(exc, secrets=()):
     """Exception message for the report: one line, no credentials, at most DETAIL_CAP chars."""
-    # Bound the work before any pattern runs: the output is capped at DETAIL_CAP anyway, and
-    # some inputs (long letter-and-dot runs) make the scheme pattern grow quadratically.
-    text = str(exc)[:8192]
+    text = str(exc)
     for secret in secrets:
         if secret:
             text = text.replace(secret, "[REDACTED]")

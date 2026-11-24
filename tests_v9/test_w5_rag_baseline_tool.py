@@ -321,6 +321,19 @@ def test_sanitize_detail_is_bounded_on_long_dotted_text():
 
     tool = _load(TOOL, "_w5_baseline_tool_bounded")
     started = time.perf_counter()
-    out = tool.sanitize_detail(ValueError("a." * 50000))
+    out = tool.sanitize_detail(ValueError("a." * 500000))
     assert time.perf_counter() - started < 2.0
     assert len(out) <= 240
+
+
+@pytest.mark.parametrize(
+    "padding",
+    [" " * 8180, "\x00" * 8170, "\n\t " * 3000],
+)
+def test_padding_never_brings_part_of_a_secret_into_the_detail(padding):
+    tool = _load(TOOL, "_w5_baseline_tool_padding")
+    secret = "S3CRETvalueABCDEFGHIJKLMNOPQRSTU"
+    out = tool.sanitize_detail(ValueError(padding + secret), secrets=(secret,))
+    assert "S3CRET" not in out and "valueA" not in out
+    out = tool.sanitize_detail(ValueError(padding + "https://user:hunter2hunter2@host/x"))
+    assert "hunter2" not in out and "user:" not in out
