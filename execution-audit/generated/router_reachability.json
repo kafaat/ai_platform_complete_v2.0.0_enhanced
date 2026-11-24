@@ -33,7 +33,7 @@
     "services.video-processor.main:app",
     "services.weather-service.main:app"
   ],
-  "definition_count": 273,
+  "definition_count": 275,
   "definitions": [
     {
       "kind": "app",
@@ -221,6 +221,15 @@
       "module": "services.field-management-service.fm_task_inspection",
       "node_id": "services.field-management-service.fm_task_inspection:router",
       "route_count": 7,
+      "statically_reachable": true,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 33,
+      "module": "services.field-management-service.fm_verification",
+      "node_id": "services.field-management-service.fm_verification:router",
+      "route_count": 6,
       "statically_reachable": true,
       "symbol": "router"
     },
@@ -2457,6 +2466,15 @@
       "symbol": "router"
     },
     {
+      "kind": "router",
+      "line": 32,
+      "module": "services.vegetation-analysis-service.routers.verification",
+      "node_id": "services.vegetation-analysis-service.routers.verification:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
       "kind": "app",
       "line": 608,
       "module": "services.video-processor.main",
@@ -2493,7 +2511,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 61,
+  "include_edge_count": 64,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2515,7 +2533,7 @@
     },
     {
       "expression": "_task_inspection_router",
-      "line": 58,
+      "line": 59,
       "module": "services/field-management-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -2523,8 +2541,17 @@
       "target": "services.field-management-service.fm_task_inspection:router"
     },
     {
+      "expression": "_verification_router",
+      "line": 60,
+      "module": "services/field-management-service/main.py",
+      "prefix": null,
+      "resolved": true,
+      "source": "services.field-management-service.main:app",
+      "target": "services.field-management-service.fm_verification:router"
+    },
+    {
       "expression": "_task_costs_router",
-      "line": 59,
+      "line": 61,
       "module": "services/field-management-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -2533,7 +2560,7 @@
     },
     {
       "expression": "_build_scouting_router(_require_tenant, lambda: _connect())",
-      "line": 228,
+      "line": 230,
       "module": "services/field-management-service/main.py",
       "prefix": null,
       "resolved": false,
@@ -3036,6 +3063,24 @@
       "target": null
     },
     {
+      "expression": "verification.router",
+      "line": 111,
+      "module": "services/vegetation-analysis-service/test_verification_delivery.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.vegetation-analysis-service.test_verification_delivery:<dynamic-source>",
+      "target": "services.vegetation-analysis-service.routers.verification:router"
+    },
+    {
+      "expression": "verification.router",
+      "line": 163,
+      "module": "services/vegetation-analysis-service/test_verification_delivery.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.vegetation-analysis-service.test_verification_delivery:<dynamic-source>",
+      "target": "services.vegetation-analysis-service.routers.verification:router"
+    },
+    {
       "expression": "_tmp",
       "line": 70,
       "module": "services/video-processor/router_registry.py",
@@ -3045,8 +3090,8 @@
       "target": null
     }
   ],
-  "inventory_sha256": "901219d619163eca83073a048c3340416720c7f4d368fd62d4129f3ff9f37987",
-  "orphan_candidate_count": 238,
+  "inventory_sha256": "8462c31eed900cccce0e0a9eea3a6a7d32d8fea194431a55a7d8adbdd6998247",
+  "orphan_candidate_count": 239,
   "orphan_candidates": [
     {
       "classification": "review_only_not_statically_reachable",
@@ -5411,6 +5456,16 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
+      "line": 32,
+      "module": "services.vegetation-analysis-service.routers.verification",
+      "node_id": "services.vegetation-analysis-service.routers.verification:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
       "line": 15,
       "module": "services.video-processor.routers.health",
       "node_id": "services.video-processor.routers.health:router",
@@ -5430,13 +5485,13 @@
     }
   ],
   "production_certified": false,
-  "reachable_node_count": 35,
-  "resolved_include_edge_count": 5,
-  "router_with_routes_count": 243,
+  "reachable_node_count": 36,
+  "resolved_include_edge_count": 6,
+  "router_with_routes_count": 245,
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 56,
+  "unresolved_include_count": 58,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5457,7 +5512,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/field-management-service/main.py",
-      "line": 228,
+      "line": 230,
       "module": "services.field-management-service.main",
       "source": "services.field-management-service.main:app",
       "target_expression": "_build_scouting_router(_require_tenant, lambda: _connect())"
@@ -5877,6 +5932,22 @@
       "module": "services.vegetation-analysis-service.router_registry",
       "source": null,
       "target_expression": "_tmp"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/vegetation-analysis-service/test_verification_delivery.py",
+      "line": 111,
+      "module": "services.vegetation-analysis-service.test_verification_delivery",
+      "source": null,
+      "target_expression": "verification.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/vegetation-analysis-service/test_verification_delivery.py",
+      "line": 163,
+      "module": "services.vegetation-analysis-service.test_verification_delivery",
+      "source": null,
+      "target_expression": "verification.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",

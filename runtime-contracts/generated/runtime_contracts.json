@@ -683,8 +683,11 @@
         "FIELD_SERVICE_ASSERTION_REDIS_URL",
         "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID",
         "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID",
+        "FM_SCOUTING_VERIFICATION_ENABLED",
         "SAHOOL_ENV",
-        "SERVICE_VERSION"
+        "SERVICE_VERSION",
+        "VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID",
+        "VEGETATION_VERIFICATION_URL"
       ],
       "container": {
         "dockerfile": "services/field-management-service/Dockerfile",
@@ -706,6 +709,8 @@
       "evidence_paths": {
         "configuration": [
           "services/field-management-service/fm_gateway.py",
+          "services/field-management-service/fm_verification.py",
+          "services/field-management-service/fm_verification_client.py",
           "services/field-management-service/main.py"
         ],
         "metrics": [],
@@ -713,6 +718,7 @@
           "services/field-management-service/fm_scouting_tasks.py",
           "services/field-management-service/fm_task_costs.py",
           "services/field-management-service/fm_task_inspection.py",
+          "services/field-management-service/fm_verification.py",
           "services/field-management-service/main.py"
         ],
         "tracing": []
@@ -727,7 +733,9 @@
         "FIELD_SERVICE_TENANT_ASSERTION_KEY",
         "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY",
         "FIELD_TASKS_SERVICE_TOKEN",
-        "SAHOOL_AGENT_TOKEN"
+        "SAHOOL_AGENT_TOKEN",
+        "VEGETATION_VERIFICATION_SERVICE_TOKEN",
+        "VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY"
       ],
       "service": "field-management-service",
       "source_service": "field-management-service",
@@ -2879,7 +2887,9 @@
         "VEGETATION_MIN_QUALITY",
         "VEGETATION_PREFER_CANONICAL_OBSERVATIONS",
         "VEGETATION_PREFER_RASTER",
-        "VEGETATION_REAL_ONLY"
+        "VEGETATION_REAL_ONLY",
+        "VEGETATION_VERIFICATION_BRIDGE_ENABLED",
+        "VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID"
       ],
       "container": {
         "dockerfile": "services/vegetation-analysis-service/Dockerfile",
@@ -2910,6 +2920,7 @@
           "services/vegetation-analysis-service/post_execution_bridge.py",
           "services/vegetation-analysis-service/routers/anomalies.py",
           "services/vegetation-analysis-service/routers/baselines.py",
+          "services/vegetation-analysis-service/routers/verification.py",
           "services/vegetation-analysis-service/vegetation_runtime.py"
         ],
         "metrics": [
@@ -2923,7 +2934,8 @@
           "services/vegetation-analysis-service/routers/diagnoses.py",
           "services/vegetation-analysis-service/routers/health.py",
           "services/vegetation-analysis-service/routers/insights.py",
-          "services/vegetation-analysis-service/routers/outcomes.py"
+          "services/vegetation-analysis-service/routers/outcomes.py",
+          "services/vegetation-analysis-service/routers/verification.py"
         ],
         "tracing": [
           "services/vegetation-analysis-service/main.py"
@@ -2939,7 +2951,9 @@
         "FIELD_SERVICE_TENANT_ASSERTION_KEY",
         "JWT_SECRET",
         "SAHOOL_AGENT_TOKEN",
-        "TASK_SERVICE_CALLBACK_TOKEN"
+        "TASK_SERVICE_CALLBACK_TOKEN",
+        "VEGETATION_VERIFICATION_SERVICE_TOKEN",
+        "VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY"
       ],
       "service": "vegetation-analysis-service",
       "source_service": "vegetation-analysis-service",

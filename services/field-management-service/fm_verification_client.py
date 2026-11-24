@@ -31,7 +31,7 @@ class VegetationVerificationClient:
     @staticmethod
     def _configuration():
         url = os.getenv("VEGETATION_VERIFICATION_URL", "").rstrip("/")
-        token = os.getenv("TASK_SERVICE_CALLBACK_TOKEN", "")
+        token = os.getenv("VEGETATION_VERIFICATION_SERVICE_TOKEN", "")
         key = os.getenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY", "")
         parts = urlsplit(url)
         if (

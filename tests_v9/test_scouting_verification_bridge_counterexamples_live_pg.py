@@ -435,3 +435,57 @@ def test_lost_reply_reconciles_a_durable_receipt_but_refuses_corruption(
                 )
 
     run(target())
+
+
+def test_the_outbox_state_machine_is_enforced_by_the_database(monkeypatch, tmp_path):
+    # The application role in a tenant session cannot write a delivery state that the
+    # dispatcher never would: no receipt-less "delivered", no reopening a terminal row,
+    # no attempt-count rewrite, no "sending" without a lease.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            assert (await live.link()).status_code == 200
+            await live.approve_inspection()
+            assert (await live.assess()).status_code == 200
+
+            async def refused(sql):
+                with pytest.raises(asyncpg.PostgresError) as caught:
+                    async with live.app_connection("reviewer") as conn:
+                        await conn.execute(sql, live.delivery_id)
+                return caught.value.sqlstate
+
+            assert await refused(
+                "UPDATE scouting_verification_outbox SET state='delivered' WHERE delivery_id=$1::uuid"
+            ) in {"55000", "23514"}
+            assert (
+                await refused(
+                    "UPDATE scouting_verification_outbox SET attempts=7 WHERE delivery_id=$1::uuid"
+                )
+                == "55000"
+            )
+            assert (
+                await refused(
+                    "UPDATE scouting_verification_outbox SET state='sending',attempts=attempts+1 "
+                    "WHERE delivery_id=$1::uuid"
+                )
+                == "23514"
+            )
+            async with live.app_connection("reviewer") as conn:
+                await conn.execute(
+                    "UPDATE scouting_verification_outbox SET state='blocked' "
+                    "WHERE delivery_id=$1::uuid",
+                    live.delivery_id,
+                )
+            assert (
+                await refused(
+                    "UPDATE scouting_verification_outbox SET state='pending' WHERE delivery_id=$1::uuid"
+                )
+                == "55000"
+            )
+            row = await live.admin.fetchrow(
+                "SELECT state, attempts, receipt FROM scouting_verification_outbox "
+                "WHERE delivery_id=$1::uuid",
+                live.delivery_id,
+            )
+            assert dict(row) == {"state": "blocked", "attempts": 0, "receipt": None}
+
+    run(target())

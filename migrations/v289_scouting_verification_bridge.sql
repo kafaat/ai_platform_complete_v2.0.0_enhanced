@@ -100,7 +100,11 @@ CREATE TABLE IF NOT EXISTS scouting_verification_outbox (
     FOREIGN KEY (tenant_id, field_id, assessment_id)
         REFERENCES scouting_verification_assessments (tenant_id, field_id, assessment_id)
         ON DELETE RESTRICT,
-    CHECK ((lease_token IS NULL) = (lease_until IS NULL))
+    CHECK ((lease_token IS NULL) = (lease_until IS NULL)),
+    -- A lease exists exactly while a worker holds the row.
+    CHECK ((state = 'sending') = (lease_token IS NOT NULL)),
+    -- "Delivered" is a claim about the remote owner: it needs the receipt that proves it.
+    CHECK (state NOT IN ('delivered', 'delivered_review_required') OR receipt IS NOT NULL)
 );
 CREATE INDEX IF NOT EXISTS ix_scout_verification_delivery_state
     ON scouting_verification_outbox (tenant_id, state, lease_until);
@@ -168,6 +172,27 @@ BEGIN
        OR NEW.body_digest <> OLD.body_digest OR NEW.created_at <> OLD.created_at THEN
         RAISE EXCEPTION 'verification_delivery_content_immutable' USING ERRCODE='55000';
     END IF;
+    -- The delivery state machine, enforced here and not only in field-management's Python:
+    --   pending          -> sending | blocked (link superseded before any send)
+    --   delivery_unknown -> sending
+    --   sending          -> sending (reclaim only after the lease expired)
+    --                     | delivered | delivered_review_required | blocked | delivery_unknown
+    -- delivered, delivered_review_required and blocked are terminal.
+    IF NOT (
+        (OLD.state = 'pending' AND NEW.state IN ('sending', 'blocked'))
+        OR (OLD.state = 'delivery_unknown' AND NEW.state = 'sending')
+        OR (OLD.state = 'sending' AND NEW.state = 'sending' AND OLD.lease_until <= clock_timestamp())
+        OR (OLD.state = 'sending' AND NEW.state IN (
+            'delivered', 'delivered_review_required', 'blocked', 'delivery_unknown'))
+    ) THEN
+        RAISE EXCEPTION 'verification_delivery_transition_refused: % -> %', OLD.state, NEW.state
+            USING ERRCODE='55000';
+    END IF;
+    -- Each claim counts one attempt; nothing else changes the count.
+    IF (NEW.state = 'sending' AND NEW.attempts <> OLD.attempts + 1)
+       OR (NEW.state <> 'sending' AND NEW.attempts <> OLD.attempts) THEN
+        RAISE EXCEPTION 'verification_delivery_attempts_tampered' USING ERRCODE='55000';
+    END IF;
     RETURN NEW;
 END $$;
 DROP TRIGGER IF EXISTS scouting_verification_delivery_guard ON scouting_verification_outbox;
@@ -214,19 +239,38 @@ DROP TRIGGER IF EXISTS scouting_verification_delivery_insert_guard ON scouting_v
 CREATE TRIGGER scouting_verification_delivery_insert_guard BEFORE INSERT ON scouting_verification_outbox
     FOR EACH ROW EXECUTE FUNCTION scouting_verification_delivery_insert_guard();
 
+-- Tenant isolation, written statically so schema inventories (database_contract_graph) read it.
+ALTER TABLE scouting_verification_links ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scouting_verification_links FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS verification_tenant ON scouting_verification_links;
+CREATE POLICY verification_tenant ON scouting_verification_links
+    USING (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''))
+    WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''));
+REVOKE ALL ON scouting_verification_links FROM PUBLIC;
+ALTER TABLE scouting_verification_versions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scouting_verification_versions FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS verification_tenant ON scouting_verification_versions;
+CREATE POLICY verification_tenant ON scouting_verification_versions
+    USING (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''))
+    WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''));
+REVOKE ALL ON scouting_verification_versions FROM PUBLIC;
+ALTER TABLE scouting_verification_assessments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scouting_verification_assessments FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS verification_tenant ON scouting_verification_assessments;
+CREATE POLICY verification_tenant ON scouting_verification_assessments
+    USING (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''))
+    WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''));
+REVOKE ALL ON scouting_verification_assessments FROM PUBLIC;
+ALTER TABLE scouting_verification_outbox ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scouting_verification_outbox FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS verification_tenant ON scouting_verification_outbox;
+CREATE POLICY verification_tenant ON scouting_verification_outbox
+    USING (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''))
+    WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''));
+REVOKE ALL ON scouting_verification_outbox FROM PUBLIC;
 DO $$
 DECLARE tab text;
 BEGIN
-    FOREACH tab IN ARRAY ARRAY['scouting_verification_links','scouting_verification_versions',
-        'scouting_verification_assessments','scouting_verification_outbox'] LOOP
-        EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tab);
-        EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', tab);
-        EXECUTE format('DROP POLICY IF EXISTS verification_tenant ON %I', tab);
-        EXECUTE format('CREATE POLICY verification_tenant ON %I USING '
-            '(tenant_id::text = NULLIF(current_setting(''app.current_tenant'',true),'''')) '
-            'WITH CHECK (tenant_id::text = NULLIF(current_setting(''app.current_tenant'',true),''''))', tab);
-        EXECUTE format('REVOKE ALL ON %I FROM PUBLIC', tab);
-    END LOOP;
     FOREACH tab IN ARRAY ARRAY['scouting_verification_versions','scouting_verification_assessments'] LOOP
         EXECUTE format('DROP TRIGGER IF EXISTS verification_append_only ON %I', tab);
         EXECUTE format('CREATE TRIGGER verification_append_only BEFORE UPDATE OR DELETE ON %I '

@@ -1136,8 +1136,8 @@ vegetation-analysis-service,services/vegetation-analysis-service/routers/insight
 vegetation-analysis-service,services/vegetation-analysis-service/routers/outcomes.py,43,POST,/v1/fields/{field_id}/post-execution-observations,schedule_post_execution_observation
 vegetation-analysis-service,services/vegetation-analysis-service/routers/outcomes.py,66,POST,/v1/execution-requests/{execution_request_id}/remote-sensing-outcome,verify_remote_sensing_outcome
 vegetation-analysis-service,services/vegetation-analysis-service/routers/outcomes.py,87,POST,/v1/outcomes/{outcome_id}/remote-sensing-attribution,attribute_remote_sensing_outcome
-vegetation-analysis-service,services/vegetation-analysis-service/routers/verification.py,227,GET,/internal/anomalies/{anomaly_ref:path}/verification-context,verification_context
-vegetation-analysis-service,services/vegetation-analysis-service/routers/verification.py,244,POST,/internal/anomalies/{anomaly_ref:path}/verification-results,verification_result
+vegetation-analysis-service,services/vegetation-analysis-service/routers/verification.py,233,GET,/internal/anomalies/{anomaly_ref:path}/verification-context,verification_context
+vegetation-analysis-service,services/vegetation-analysis-service/routers/verification.py,250,POST,/internal/anomalies/{anomaly_ref:path}/verification-results,verification_result
 video-processor,services/video-processor/routers/health.py,20,GET,/healthz,health
 video-processor,services/video-processor/routers/health.py,20,GET,/health,health
 video-processor,services/video-processor/routers/health.py,29,GET,/readyz,readyz

@@ -83,7 +83,8 @@ def headers(payload=None, *, tenant=TENANT, method="POST", target=None, key=KEY)
 @pytest.fixture
 def harness(tmp_path, monkeypatch):
     monkeypatch.setenv("VEGETATION_VERIFICATION_BRIDGE_ENABLED", "1")
-    monkeypatch.setenv("TASK_SERVICE_CALLBACK_TOKEN", TOKEN)
+    monkeypatch.setenv("VEGETATION_VERIFICATION_SERVICE_TOKEN", TOKEN)
+    monkeypatch.delenv("TASK_SERVICE_CALLBACK_TOKEN", raising=False)
     monkeypatch.setenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY", ASSERTION_KEY)
     monkeypatch.setenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID", "current")
     db = AnomalyStore(str(tmp_path / "anomalies.sqlite3"))
@@ -240,12 +241,27 @@ def test_unbound_task_and_another_task_are_refused(harness):
 
 
 @pytest.mark.parametrize(
-    "variable", ["TASK_SERVICE_CALLBACK_TOKEN", "VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY"]
+    "variable",
+    ["VEGETATION_VERIFICATION_SERVICE_TOKEN", "VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY"],
 )
 def test_credentials_missing_fail_closed(harness, monkeypatch, variable):
     client, db = harness
     monkeypatch.delenv(variable)
     data = body()
+    assert client.post(path(), json=data, headers=headers(data)).status_code == 503
+    assert db.get(ANOMALY, tenant_id=TENANT)["aggregate_version"] == 3
+
+
+def test_the_legacy_callback_token_does_not_open_the_bridge(harness, monkeypatch):
+    # Holding only the legacy route's TASK_SERVICE_CALLBACK_TOKEN is not enough, and the bridge
+    # refuses to run at all when its token is configured to the same value.
+    client, db = harness
+    monkeypatch.setenv("TASK_SERVICE_CALLBACK_TOKEN", "legacy-only-token-value")
+    data = body()
+    hdrs = dict(headers(data))
+    hdrs["X-Task-Service-Token"] = "legacy-only-token-value"
+    assert client.post(path(), json=data, headers=hdrs).status_code == 403
+    monkeypatch.setenv("TASK_SERVICE_CALLBACK_TOKEN", TOKEN)
     assert client.post(path(), json=data, headers=headers(data)).status_code == 503
     assert db.get(ANOMALY, tenant_id=TENANT)["aggregate_version"] == 3
 

@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9c8ce8105787ac253e2e6e5b86cfac3eae30e8a0683c6b35276c1b85b46b73f"
+          "content": "417d7c2017d092544103c4e4a202fd9c04ef2f35f476776584c4382b46ebcf20"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -435,7 +435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b084de56a83908a7a0fdbccbc4a902fb35fa8ff8c6acc8a96d256f429ee657b8"
+          "content": "92fa33045b31c0bd855469300ba2569007da4b905066968f05c717850585b9b0"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -5175,7 +5175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c3e2359f67ef4f600b42378ea572c5c1b872a9c8e2fabfa4326ca310c958ad9"
+          "content": "693f11432c7109ce37d250206c7abfbc7e8c7a9272e2fb13fcdfeacfe4744741"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -10535,7 +10535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cd60c57035904319d576df325bc7fc4655f375b8b203408558ac631cf61542e6"
+          "content": "6947e59f1b3e75a474825dd3a7d3b11dffae6c6ec4e55ae55e75217034bb70ba"
         }
       ],
       "name": "migrations/v289_scouting_verification_bridge.down.sql",
@@ -10545,7 +10545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70d721f32e00c1828bddbf58dfcf8a1a8ee1f89841602ddf398815769e2a5ea6"
+          "content": "c24638d9a09b801ba669b1d4d44f2c3c1dd9c0dca3e5169eb32de0c3e0cfa156"
         }
       ],
       "name": "migrations/v289_scouting_verification_bridge.sql",
@@ -21135,7 +21135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "305bb2383ecc85c2ba2fbe268f3b596b9bf2681272fb7f81db881a7877226c05"
+          "content": "a49f27198123c32eb7ff35896e183460fe293151f175ef1da0154089c0e59a64"
         }
       ],
       "name": "services/field-management-service/fm_verification_client.py",
@@ -40905,7 +40905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7139c8741f33b22a7b4744b43c21aa4ab4c0c95188bf84b396a5740fa9189cc9"
+          "content": "92a61436d1a700cfa01178cc75639cc0e408ee5a8910c24f78dd3fe31cbcbf0a"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/verification.py",
@@ -41115,7 +41115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0746932fa131d3dd359cdc9319a8648a0a9b0470434cd2d1c881ac3280a9db8a"
+          "content": "00d12d15f508afede391f643a71685ba9e49d90293013dd91e2d4c4f71ae0163"
         }
       ],
       "name": "services/vegetation-analysis-service/test_verification_delivery.py",

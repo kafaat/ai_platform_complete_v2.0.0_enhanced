@@ -14,14 +14,14 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = '410b95103e5942b3ca68c009ec960eb9277a74a09f6bf76c94d9dca5748635d1';
+export const PLATFORM_CATALOG_FINGERPRINT = 'b3e1a478fbd2c102443515f9266dab1e3deca80fe593f36046a826ef7699fdd5';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 33,
-  "capabilities": 843,
+  "capabilities": 844,
   "capabilities_approval_gated": 6,
   "capabilities_field_scoped": 99,
-  "capabilities_idempotent": 75,
+  "capabilities_idempotent": 76,
   "capabilities_season_scoped": 10,
   "capabilities_tenant_scoped": 481,
   "components": 37,
@@ -29,9 +29,9 @@ export const PLATFORM_CATALOG_COUNTS = {
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1171,
+  "route_rows": 1179,
   "ui_waivers": 53,
-  "unique_method_path": 1048
+  "unique_method_path": 1056
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
@@ -333,7 +333,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 18,
+    "capabilityCount": 19,
     "domain": "vegetation-interpretation",
     "id": "vegetation-analysis-service",
     "tested": true,

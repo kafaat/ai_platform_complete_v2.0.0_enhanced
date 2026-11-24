@@ -9098,7 +9098,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/verification.py",
-    "line": 227,
+    "line": 233,
     "method": "GET",
     "path": "/internal/anomalies/{anomaly_ref:path}/verification-context",
     "function": "verification_context"
@@ -9106,7 +9106,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/verification.py",
-    "line": 244,
+    "line": 250,
     "method": "POST",
     "path": "/internal/anomalies/{anomaly_ref:path}/verification-results",
     "function": "verification_result"

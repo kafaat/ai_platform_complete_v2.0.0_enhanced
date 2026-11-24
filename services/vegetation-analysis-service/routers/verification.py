@@ -65,11 +65,17 @@ def verification_caller(
         "on",
     }:
         raise HTTPException(404, "verification_bridge_disabled")
-    expected_token = os.getenv("TASK_SERVICE_CALLBACK_TOKEN", "")
+    # A dedicated token: TASK_SERVICE_CALLBACK_TOKEN is the only service factor of the legacy
+    # /v1/anomalies/.../verification-results route, so sharing it would hand field-management
+    # (which also receives the user's Authorization) both factors of that unreviewed path.
+    expected_token = os.getenv("VEGETATION_VERIFICATION_SERVICE_TOKEN", "")
+    legacy_token = os.getenv("TASK_SERVICE_CALLBACK_TOKEN", "")
     key = os.getenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY", "")
     key_id = os.getenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID", "current")
     if not expected_token or len(key) < 32 or not key_id:
         raise HTTPException(503, "verification_service_credentials_unconfigured")
+    if legacy_token and hmac.compare_digest(expected_token.encode(), legacy_token.encode()):
+        raise HTTPException(503, "verification_service_token_not_dedicated")
     if not hmac.compare_digest((task_service_token or "").encode(), expected_token.encode()):
         raise HTTPException(403, "invalid_task_service_token")
     if service_name != _CALLER or not _REQUEST_ID.fullmatch(request_id or ""):

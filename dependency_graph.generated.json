@@ -1,5 +1,5 @@
 {
-  "edge_count": 1119,
+  "edge_count": 1140,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -1072,6 +1072,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://farm_access_grants",
+      "to": "db://farm_access_grants",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/field-management-service/fm_task_costs.py",
       "from": "field-management-service",
       "from_kind": "component",
@@ -1112,6 +1122,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/field-management-service/fm_scouting_tasks.py",
       "from": "field-management-service",
       "from_kind": "component",
@@ -1133,6 +1153,16 @@
     },
     {
       "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
       "from": "field-management-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -1182,6 +1212,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scout_photo_season_link_events",
+      "to": "db://scout_photo_season_link_events",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/field-management-service/fm_task_inspection.py",
       "from": "field-management-service",
       "from_kind": "component",
@@ -1189,6 +1229,106 @@
       "relation": "READS",
       "resource": "db://scouting_pins",
       "to": "db://scouting_pins",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_pins",
+      "to": "db://scouting_pins",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_verification_assessments",
+      "to": "db://scouting_verification_assessments",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_verification_assessments",
+      "to": "db://scouting_verification_assessments",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_verification_links",
+      "to": "db://scouting_verification_links",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_verification_links",
+      "to": "db://scouting_verification_links",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_verification_outbox",
+      "to": "db://scouting_verification_outbox",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_verification_outbox",
+      "to": "db://scouting_verification_outbox",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://scouting_verification_versions",
+      "to": "db://scouting_verification_versions",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://season_record_links",
+      "to": "db://season_record_links",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://season_records",
+      "to": "db://season_records",
       "to_kind": "resource"
     },
     {
@@ -1213,6 +1353,16 @@
     },
     {
       "evidence": "services/field-management-service/fm_task_inspection.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
       "from": "field-management-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -6552,7 +6702,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:407",
+      "evidence": "nginx/nginx.v9.conf:411",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6592,7 +6742,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:331",
+      "evidence": "nginx/nginx.v9.conf:333",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6672,7 +6822,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:425",
+      "evidence": "nginx/nginx.v9.conf:428",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6702,7 +6852,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:429",
+      "evidence": "nginx/nginx.v9.conf:431",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6722,7 +6872,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:242",
+      "evidence": "nginx/nginx.v9.conf:244",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6742,7 +6892,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:398",
+      "evidence": "nginx/nginx.v9.conf:400",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6762,7 +6912,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:276",
+      "evidence": "nginx/nginx.v9.conf:280",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6772,7 +6922,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:256",
+      "evidence": "nginx/nginx.v9.conf:259",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6782,7 +6932,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:253",
+      "evidence": "nginx/nginx.v9.conf:255",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6812,7 +6962,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:380",
+      "evidence": "nginx/nginx.v9.conf:383",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6822,7 +6972,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:269",
+      "evidence": "nginx/nginx.v9.conf:271",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6832,7 +6982,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:249",
+      "evidence": "nginx/nginx.v9.conf:252",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6842,7 +6992,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:246",
+      "evidence": "nginx/nginx.v9.conf:248",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6862,7 +7012,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:190",
+      "evidence": "nginx/nginx.v9.conf:195",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6882,7 +7032,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:202",
+      "evidence": "nginx/nginx.v9.conf:205",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6932,7 +7082,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:292",
+      "evidence": "nginx/nginx.v9.conf:297",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6942,7 +7092,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:288",
+      "evidence": "nginx/nginx.v9.conf:291",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6952,7 +7102,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:263",
+      "evidence": "nginx/nginx.v9.conf:268",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6962,7 +7112,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:260",
+      "evidence": "nginx/nginx.v9.conf:262",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -6982,7 +7132,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:319",
+      "evidence": "nginx/nginx.v9.conf:323",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7002,7 +7152,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:304",
+      "evidence": "nginx/nginx.v9.conf:306",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7012,7 +7162,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:363",
+      "evidence": "nginx/nginx.v9.conf:367",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7022,7 +7172,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:343",
+      "evidence": "nginx/nginx.v9.conf:347",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7052,7 +7202,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:178",
+      "evidence": "nginx/nginx.v9.conf:182",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7122,7 +7272,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:210",
+      "evidence": "nginx/nginx.v9.conf:212",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7132,7 +7282,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:226",
+      "evidence": "nginx/nginx.v9.conf:228",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7152,7 +7302,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:229",
+      "evidence": "nginx/nginx.v9.conf:231",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7162,7 +7312,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:219",
+      "evidence": "nginx/nginx.v9.conf:225",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7202,7 +7352,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:215",
+      "evidence": "nginx/nginx.v9.conf:218",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7212,7 +7362,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:387",
+      "evidence": "nginx/nginx.v9.conf:391",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7222,7 +7372,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:393",
+      "evidence": "nginx/nginx.v9.conf:395",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7242,7 +7392,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:340",
+      "evidence": "nginx/nginx.v9.conf:344",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7272,7 +7422,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:239",
+      "evidence": "nginx/nginx.v9.conf:241",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7292,7 +7442,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:235",
+      "evidence": "nginx/nginx.v9.conf:239",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7332,7 +7482,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:402",
+      "evidence": "nginx/nginx.v9.conf:404",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -7949,6 +8099,56 @@
       "relation": "WRITES",
       "resource": "db://inspection_handoffs",
       "to": "db://inspection_handoffs",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scouting_verification_assessments",
+      "to": "db://scouting_verification_assessments",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scouting_verification_links",
+      "to": "db://scouting_verification_links",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scouting_verification_outbox",
+      "to": "db://scouting_verification_outbox",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scouting_verification_outbox",
+      "to": "db://scouting_verification_outbox",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_verification_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://scouting_verification_versions",
+      "to": "db://scouting_verification_versions",
       "to_kind": "resource"
     },
     {
@@ -11182,6 +11382,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/vegetation-analysis-service/test_verification_delivery.py",
+      "from": "vegetation-analysis-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://signal_anomalies",
+      "to": "db://signal_anomalies",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/weather-signal-engine/src/main.py",
       "from": "weather-signal-engine",
       "from_kind": "component",
@@ -11210,9 +11420,9 @@
     "CALLS": 45,
     "CONSUMES": 4,
     "EMITS": 3,
-    "READS": 601,
+    "READS": 616,
     "ROUTES_TO": 82,
-    "WRITES": 384
+    "WRITES": 390
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -11227,8 +11437,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 986,
-      "resolved": 985,
+      "observed": 1007,
+      "resolved": 1006,
       "unresolved_component_paths": 0
     }
   }

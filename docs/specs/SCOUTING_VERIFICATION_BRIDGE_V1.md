@@ -103,7 +103,7 @@ flowchart TD
 | field-management | `FM_SCOUTING_VERIFICATION_ENABLED` | `0` |
 | vegetation-analysis | `VEGETATION_VERIFICATION_BRIDGE_ENABLED` | `0` |
 | field-management | `VEGETATION_VERIFICATION_URL` | عنوان vegetation الداخلي في قالب Compose |
-| الطرفان | `TASK_SERVICE_CALLBACK_TOKEN` | فارغ؛ الرفض عند غياب الإعداد |
+| الطرفان | `VEGETATION_VERIFICATION_SERVICE_TOKEN` | فارغ؛ الرفض عند غياب الإعداد. رمز مخصص للجسر: لا يقبل المستقبل رمز `TASK_SERVICE_CALLBACK_TOKEN` (عامل الخدمة الوحيد في المسار القديم `/v1/anomalies/.../verification-results`)، ويرفض العمل (503) إن ضُبط الرمزان بالقيمة نفسها |
 | الطرفان | `VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY` | فارغ؛ يحتاج مفتاحًا مخصصًا لا يقل عن 32 محرفًا |
 | الطرفان | `VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID` | `current` |
 
