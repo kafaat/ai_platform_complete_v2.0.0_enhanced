@@ -25,7 +25,7 @@
       "tests": 2693,
       "web": 574
     },
-    "unmapped_artifacts": 3665,
+    "unmapped_artifacts": 3666,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
       "python_functional": 4188,
@@ -13817,13 +13817,6 @@
       "mobile": [],
       "tests": [
         {
-          "path": "tests_v9/test_capability_mapping_implementation_evidence_from_code.py",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
           "path": "tests_v9/test_h51_field_source_binding_pg.py",
           "score": 20,
           "signals": [
@@ -13909,7 +13902,7 @@
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 4,
+        "tests": 3,
         "governance": 1,
         "other_evidence": 5
       },
@@ -44863,6 +44856,10 @@
     },
     {
       "path": "tests_v9/test_capability_impact_parity.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_capability_mapping_implementation_evidence_from_code.py",
       "kind": "tests"
     },
     {
