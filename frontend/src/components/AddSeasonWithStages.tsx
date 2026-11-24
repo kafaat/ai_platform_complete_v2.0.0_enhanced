@@ -209,7 +209,7 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
                   <span key={c} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-sm"
                     style={{ background:'#1e3a1e', color:'#4ade80', border:'1px solid #16a34a44' }}>
                     {cd?.emoji} {c}
-                    <button onClick={() => setSelectedCrops(p => p.filter(x => x !== c))}
+                    <button type="button" aria-label={`إزالة ${c}`} onClick={() => setSelectedCrops(p => p.filter(x => x !== c))}
                       className="hover:text-red-400 text-emerald-600 ml-1">×</button>
                   </span>
                 );
