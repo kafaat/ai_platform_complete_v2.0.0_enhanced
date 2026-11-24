@@ -27557,11 +27557,11 @@
           "score": 9
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:618",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:628",
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1070",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1080",
           "score": 9
         }
       ],
@@ -30539,11 +30539,11 @@
           "score": 12
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:618",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:628",
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1070",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1080",
           "score": 12
         },
         {
@@ -76166,17 +76166,17 @@
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 202
+          "line": 205
         },
         {
           "source": "services/sahool-platform/api/routers/field_ai_context.py",
           "kind": "import",
-          "line": 202
+          "line": 205
         },
         {
           "source": "services/sahool-platform/api/routers/field_ai_context.py",
           "kind": "source_read",
-          "line": 195
+          "line": 198
         },
         {
           "source": "shared/ai/reference_approvals.py",
