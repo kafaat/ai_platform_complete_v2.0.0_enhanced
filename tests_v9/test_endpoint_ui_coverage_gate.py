@@ -311,6 +311,9 @@ def test_service_token_scan_reads_each_route_function_on_the_real_tree() -> None
     assert "/runtime-identity" not in svc
     # Mentions the removed token only in its docstring; it is a browser route.
     assert "/v1/fields/{field_id}/timeseries" not in svc
+    # /readyz calls _require_service_token_ready(), which checks that the service's own
+    # token is configured, not a caller's token: a different name, not a check.
+    assert "/readyz" not in svc
     # A check placed deep inside a long signature.
     assert "/internal/fields/{field_id}/state" in svc
     # Decorators with extra arguments (status_code=, response_model=).
@@ -362,6 +365,26 @@ def test_service_token_scan_on_a_synthetic_router(tmp_path, monkeypatch) -> None
         '@router.post("/in-dependencies", dependencies=[Depends(_require_service_token)])\n'
         "async def in_dependencies():\n"
         "    return {}\n\n"
+        '@router.get("/public")\n'
+        '@router.get("/private", dependencies=[Depends(_require_service_token)])\n'
+        "async def unequal_decorators():\n"
+        "    return {}\n\n"
+        "@router.get(\n"
+        '    "/decorator-comment",\n'
+        "    # _require_service_token was removed\n"
+        ")\n"
+        "async def decorator_comment():\n"
+        "    return {}\n\n"
+        '@router.get("/description-only", description="x_agent_token was removed")\n'
+        "async def description_only():\n"
+        "    return {}\n\n"
+        '@router.post("/declared-only")\n'
+        "async def declared_only(x_agent_token: str = Header(None)):\n"
+        "    return {}\n\n"
+        '@router.get("/readyz-like")\n'
+        "async def readyz_like():\n"
+        "    _require_service_token_ready()\n"
+        "    return {}\n\n"
         "def _helper_after_the_last_route():\n"
         "    return _require_service_token\n",
         encoding="utf-8",
@@ -374,4 +397,5 @@ def test_service_token_scan_on_a_synthetic_router(tmp_path, monkeypatch) -> None
         "/stacked-b",
         "/kwargs",
         "/in-dependencies",
+        "/private",
     }

@@ -17,11 +17,9 @@ from __future__ import annotations
 
 import argparse
 import ast
-import io
 import json
 import re
 import sys
-import tokenize
 from pathlib import Path
 
 # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا السكربت عربيّ،
@@ -58,41 +56,54 @@ PHANTOM_EVIDENCE_FILES = ("config/backendCoverageRegistry.ts",)
 _LINE_COMMENT = re.compile(r"^\s*//.*$", re.MULTILINE)
 
 
-_TOKEN_MARKERS = ("_require_service_token", "x_agent_token")
+_TOKEN_MARKERS = frozenset({"_require_service_token", "x_agent_token"})
 
 
-def _code_without_docstring_or_comments(source: str, fn: ast.AST) -> str:
-    """The function's code (signature and body) with its docstring and comments removed."""
-    segment = ast.get_source_segment(source, fn) or ""
-    body = getattr(fn, "body", [])
+def _identifiers(nodes: list[ast.AST]) -> set[str]:
+    """Names and attribute names *used* in these nodes (ast.Name / ast.Attribute).
+
+    Parameter declarations (ast.arg), string literals and comments are not identifiers, so
+    `x_agent_token: str = Header(None)` alone, `description="x_agent_token ..."` and
+    `# _require_service_token` give no evidence, and `_require_service_token_ready` is a
+    different name from `_require_service_token`.
+    """
+    found: set[str] = set()
+    for root in nodes:
+        for sub in ast.walk(root):
+            if isinstance(sub, ast.Name):
+                found.add(sub.id)
+            elif isinstance(sub, ast.Attribute):
+                found.add(sub.attr)
+    return found
+
+
+def _function_evidence(fn: ast.FunctionDef | ast.AsyncFunctionDef) -> set[str]:
+    """Identifiers used by the function's parameter defaults and body, docstring excluded."""
+    body = list(fn.body)
     if (
         body
         and isinstance(body[0], ast.Expr)
-        and isinstance(getattr(body[0], "value", None), ast.Constant)
+        and isinstance(body[0].value, ast.Constant)
         and isinstance(body[0].value.value, str)
     ):
-        doc = ast.get_source_segment(source, body[0]) or ""
-        if doc:
-            segment = segment.replace(doc, "", 1)
-    try:
-        tokens = tokenize.generate_tokens(io.StringIO(segment).readline)
-        return " ".join(t.string for t in tokens if t.type != tokenize.COMMENT)
-    except (tokenize.TokenError, IndentationError, SyntaxError):
-        return segment
+        body = body[1:]
+    defaults = [d for d in [*fn.args.defaults, *fn.args.kw_defaults] if d is not None]
+    return _identifiers([*defaults, *body])
 
 
 def service_token_routes() -> set[str]:
     """المسارات المحميّة بـService Token (مستهلكها آلة/خدمة داخليّة لا مستخدم).
 
-    تُشتقّ من الكود بشجرة الصياغة: لكلّ دالّة مزخرَفة بـ@router.<method>("path", ...) يُقرأ
-    نصّ مُزخرِفاتها وتوقيعها وجسمها **بلا docstring ولا تعليقات**، فإن ورد فيه
-    _require_service_token / x_agent_token فكلّ مساراتها المزخرَفة آليّة. تُستخدم في الحارس
-    لمنع تصنيف مسار آليّ كدَين واجهة.
+    تُشتقّ من الكود بشجرة الصياغة، بأسماء مستعملة لا بنصّ: لكلّ دالّة مزخرَفة بـ
+    @router.<method>("path", ...) يُعدّ المسار آليّاً إن **استُعمل** الاسم
+    `_require_service_token` أو `x_agent_token` (ast.Name / ast.Attribute، مطابقةً تامّة) في
+    قيم معاملاتها الافتراضيّة أو جسمها (بلا docstring) — فيسري على كلّ مساراتها — أو في
+    وسائط مُزخرِف ذلك المسار نفسه (`dependencies=`) — فيسري على مساره وحده.
 
-    يستبدل هذا نافذةً ثابتة من 700 حرف بعد كلّ مُزخرِف كانت تنسب فحص المسار التالي إلى
-    مسارٍ قصير قبله (`/api/v1/weather/self-test` ومسارات health/metrics)، وتفوّت فحصاً
-    بعد 700 حرف في دالّة طويلة، ولا تطابق مُزخرِفاً بوسائط إضافيّة (`status_code=`،
-    `dependencies=`). والنصّ الذي يذكر الرمز في docstring أو تعليق فقط لا يُحتسب.
+    لا يُحتسب: ذكرٌ في docstring أو تعليق أو نصّ حرفيّ (`description=`)، ولا إعلانُ معامل
+    `x_agent_token` لا يُستعمل، ولا اسمٌ آخر يحتوي الرمز (`_require_service_token_ready`
+    في /readyz يفحص ضبط رمز الخدمة نفسها لا رمز المستدعي). ويستبدل هذا نافذةً ثابتة من
+    700 حرف بعد كلّ مُزخرِف كانت تنسب فحص المسار التالي إلى مسارٍ قصير قبله.
     """
     out: set[str] = set()
     services = REPO / "services"
@@ -106,12 +117,12 @@ def service_token_routes() -> set[str]:
         try:
             tree = ast.parse(txt)
         except SyntaxError:
+            print(f"warning: service_token_routes skipped unparsable {f}", file=sys.stderr)
             continue
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
-            paths: list[str] = []
-            decorator_text: list[str] = []
+            routed: list[tuple[str, ast.Call]] = []
             for dec in node.decorator_list:
                 if (
                     isinstance(dec, ast.Call)
@@ -122,13 +133,14 @@ def service_token_routes() -> set[str]:
                     and isinstance(dec.args[0], ast.Constant)
                     and isinstance(dec.args[0].value, str)
                 ):
-                    paths.append(dec.args[0].value)
-                    decorator_text.append(ast.get_source_segment(txt, dec) or "")
-            if not paths:
+                    routed.append((dec.args[0].value, dec))
+            if not routed:
                 continue
-            code = " ".join(decorator_text) + " " + _code_without_docstring_or_comments(txt, node)
-            if any(marker in code for marker in _TOKEN_MARKERS):
-                out.update(paths)
+            shared = bool(_function_evidence(node) & _TOKEN_MARKERS)
+            for path, dec in routed:
+                own = _identifiers([*dec.args[1:], *(k.value for k in dec.keywords)])
+                if shared or own & _TOKEN_MARKERS:
+                    out.add(path)
     return out
 
 
