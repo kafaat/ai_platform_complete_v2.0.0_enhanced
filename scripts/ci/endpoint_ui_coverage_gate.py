@@ -55,11 +55,19 @@ PHANTOM_EVIDENCE_FILES = ("config/backendCoverageRegistry.ts",)
 _LINE_COMMENT = re.compile(r"^\s*//.*$", re.MULTILINE)
 
 
+_NEXT_ROUTE_DECORATOR = re.compile(r"^\s*@(?:router|app)\.\w+\(", re.MULTILINE)
+
+
 def service_token_routes() -> set[str]:
     """المسارات المحميّة بـService Token (مستهلكها آلة/خدمة داخليّة لا مستخدم).
 
-    تُشتقّ من الكود: كلّ @router.<method>("path") يتبعه فرض _require_service_token /
-    x_agent_token خلال نافذة قصيرة. تُستخدم في الحارس لمنع تصنيف مسار آليّ كدَين واجهة.
+    تُشتقّ من الكود: كلّ @router.<method>("path") يفرض _require_service_token /
+    x_agent_token داخل دالّته هو. تُستخدم في الحارس لمنع تصنيف مسار آليّ كدَين واجهة.
+
+    الكتلة تمتدّ من المُزخرِف حتّى مُزخرِف المسار التالي (أو نهاية الملفّ)، لا نافذةً
+    ثابتة: النافذة السابقة (700 حرف) كانت تنسب فحص المسار التالي إلى مسارٍ قصير قبله
+    (`/api/v1/weather/self-test` ومسارات health/metrics) وتفوّت فحصاً يقع بعد 700 حرف
+    في دالّة طويلة (`/internal/fields/{field_id}/state`، `/v1/fields/{field_id}/timeseries`).
     """
     import re as _re
 
@@ -74,7 +82,8 @@ def service_token_routes() -> set[str]:
         txt = _read(f)
         for m in _re.finditer(r'@router\.\w+\("([^"]+)"\)', txt):
             ep = m.group(1)
-            block = txt[m.end() : m.end() + 700]
+            nxt = _NEXT_ROUTE_DECORATOR.search(txt, m.end())
+            block = txt[m.end() : nxt.start() if nxt else len(txt)]
             if "_require_service_token" in block or "x_agent_token" in block:
                 out.add(ep)
     return out

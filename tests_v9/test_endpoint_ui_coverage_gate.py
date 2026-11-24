@@ -292,3 +292,53 @@ def test_every_discovered_route_is_classified() -> None:
         p for p in routes if mod.classify(p, cfg["classifications"]) == "unclassified"
     )
     assert unclassified == [], f"مسارات بلا تصنيف ({len(unclassified)}): {unclassified[:8]}"
+
+
+@pytest.mark.unit
+def test_service_token_scan_is_bounded_by_the_route_function() -> None:
+    """The service-token check is read inside each route's own function.
+
+    A fixed 700-character window attributed the next route's token check to a
+    short route before it, and missed a check placed later in a long function.
+    """
+    mod = _load_gate()
+    svc = mod.service_token_routes()
+    # Short routes with no token check of their own, followed by a token route.
+    assert "/api/v1/weather/self-test" not in svc
+    for ep in ("/health", "/healthz", "/metrics"):
+        assert ep not in svc, ep
+    # Token checks placed beyond 700 characters inside their own function.
+    assert "/internal/fields/{field_id}/state" in svc
+    assert "/v1/fields/{field_id}/timeseries" in svc
+    # The four weather service-token routes stay classified.
+    for ep in (
+        "/api/v1/weather/env-doctor",
+        "/api/v1/weather/runtime-contract",
+        "/api/v1/weather/tile-cache/prune",
+        "/api/v1/weather/wind-source-selftest",
+    ):
+        assert ep in svc, ep
+
+
+@pytest.mark.unit
+def test_service_token_scan_ignores_the_next_routes_check(tmp_path, monkeypatch) -> None:
+    mod = _load_gate()
+    routers = tmp_path / "services" / "svc" / "routers"
+    routers.mkdir(parents=True)
+    (routers / "r.py").write_text(
+        '@router.get("/short")\n'
+        "async def short():\n"
+        "    return {}\n\n"
+        '@router.post("/guarded")\n'
+        "async def guarded(_=Depends(_require_service_token)):\n"
+        "    return {}\n\n"
+        '@router.post("/long")\n'
+        "async def long_route(\n"
+        + "".join(f"    p{i}: int = 0,\n" for i in range(80))
+        + "    _=Depends(_require_service_token),\n"
+        "):\n"
+        "    return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(mod, "REPO", tmp_path)
+    assert mod.service_token_routes() == {"/guarded", "/long"}
