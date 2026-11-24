@@ -1,0 +1,117 @@
+"""field-management's verification client: which owner replies are unknown, refused or rejected.
+
+The dispatcher settles a claimed delivery from the class of the error alone (fm_verification.py):
+an unknown outcome may already be applied, so it is retried and counts an attempt; a receiver's
+configuration refusal applied nothing and keeps the row open for an operator; a definitive
+rejection is terminal. A proxy's error page must never be read as the receiver's verdict.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import secrets
+import sys
+from pathlib import Path
+
+import httpx
+import pytest
+
+pytestmark = pytest.mark.unit
+
+ROOT = Path(__file__).resolve().parents[1]
+FM = ROOT / "services" / "field-management-service"
+# Generated per run: no credential-shaped literal enters the history the secret scan re-reads.
+ASSERTION_KEY = secrets.token_hex(24)
+
+
+@pytest.fixture()
+def client_module(monkeypatch):
+    monkeypatch.syspath_prepend(str(ROOT))
+    monkeypatch.syspath_prepend(str(FM))
+    sys.modules.pop("fm_verification_client", None)
+    import fm_verification_client
+
+    monkeypatch.setenv("VEGETATION_VERIFICATION_URL", "http://vegetation")
+    monkeypatch.setenv("VEGETATION_VERIFICATION_SERVICE_TOKEN", secrets.token_hex(16))
+    monkeypatch.setenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY", ASSERTION_KEY)
+    monkeypatch.setenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID", "current")
+    return fm_verification_client
+
+
+def _reply(module, status, body=None, *, text=None):
+    def handler(request):
+        if text is not None:
+            return httpx.Response(status, text=text)
+        return httpx.Response(status, json=body)
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler), base_url="http://vegetation")
+    return module.VegetationVerificationClient(client)
+
+
+def _error(module, status, body=None, *, text=None):
+    client = _reply(module, status, body, text=text)
+    with pytest.raises(module.VerificationRemoteError) as caught:
+        asyncio.run(client.context("00000000-0000-0000-0000-000000000001", "urn:a:1"))
+    return caught.value
+
+
+@pytest.mark.parametrize(
+    ("status", "detail"),
+    [
+        (404, "verification_bridge_disabled"),
+        (503, "verification_service_credentials_unconfigured"),
+        (503, "verification_service_token_not_dedicated"),
+        (403, "invalid_task_service_token"),
+        (403, "verification_caller_scope_invalid"),
+        (403, "invalid_verification_tenant_assertion"),
+    ],
+)
+def test_a_receiver_configuration_refusal_is_refused_not_unknown(client_module, status, detail):
+    exc = _error(client_module, status, {"detail": detail})
+    assert type(exc) is client_module.VerificationRemoteRefused
+    assert (exc.status, exc.detail) == (status, detail)
+    assert str(exc) == f"verification_remote_status:{status}:{detail}"
+
+
+@pytest.mark.parametrize(
+    ("status", "detail"),
+    [
+        (409, "aggregate_version_conflict"),
+        (409, "verification_idempotency_key_reused_with_different_request"),
+        (409, "verification_delivery_already_recorded"),
+        (422, "verification_idempotency_key_invalid"),
+        (422, [{"loc": ["body"], "msg": "field required"}]),
+        (403, "verification_request_body_binding_mismatch"),
+        (404, "anomaly not found"),
+    ],
+)
+def test_a_definitive_owner_refusal_is_rejected(client_module, status, detail):
+    exc = _error(client_module, status, {"detail": detail})
+    assert type(exc) is client_module.VerificationRemoteRejected
+    assert exc.status == status
+
+
+@pytest.mark.parametrize(
+    ("status", "body", "text"),
+    [
+        (503, None, "<html>upstream unavailable</html>"),
+        (502, {"error": "bad gateway"}, None),
+        (404, None, "<html>Not Found</html>"),
+        (503, {"detail": "verification_anomaly_record_invalid"}, None),
+        (500, {"detail": "Internal Server Error"}, None),
+        (403, {"detail": "Forbidden"}, None),
+    ],
+)
+def test_anything_else_stays_an_unknown_outcome(client_module, status, body, text):
+    exc = _error(client_module, status, body, text=text)
+    assert type(exc) is client_module.VerificationRemoteError
+
+
+@pytest.mark.parametrize("key_id", ["", "  ", "a:b", "line\nbreak", "cr\rid"])
+def test_a_key_id_the_assertion_cannot_carry_is_not_configured(client_module, monkeypatch, key_id):
+    monkeypatch.setenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID", key_id)
+    assert client_module.VegetationVerificationClient().configured() is False
+
+
+def test_a_signable_configuration_is_configured(client_module):
+    assert client_module.VegetationVerificationClient().configured() is True

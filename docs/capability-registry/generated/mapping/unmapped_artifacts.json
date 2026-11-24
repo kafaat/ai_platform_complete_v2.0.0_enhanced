@@ -12352,6 +12352,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_fm_verification_client_refusals.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_frontend_ai_key_isolation_guard.py",
     "kind": "tests"
   },

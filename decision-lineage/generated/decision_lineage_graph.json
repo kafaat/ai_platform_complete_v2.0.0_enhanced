@@ -2602,7 +2602,7 @@
       "kind": "lineage_stage",
       "stage": "receipt",
       "order": 8,
-      "evidence_count": 53,
+      "evidence_count": 54,
       "owners": [
         "actuator-service",
         "database",
@@ -2616,6 +2616,7 @@
       "primary_owner": "decision-service",
       "repository_evidence": [
         "migrations/v178_canonical_as_applied_irrigation_truth.sql",
+        "migrations/v289_scouting_verification_bridge.sql",
         "services/actuator-service/actuator_runtime.py",
         "services/actuator-service/test_dispatch_bridge.py",
         "services/decision-service/main.py",
@@ -3697,7 +3698,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
       "source_evidence_count": 51,
-      "target_evidence_count": 53,
+      "target_evidence_count": 54,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3721,7 +3722,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
-      "source_evidence_count": 53,
+      "source_evidence_count": 54,
       "target_evidence_count": 65,
       "static_supported": true,
       "runtime_verified": false
@@ -3781,5 +3782,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "72b2419a1432fa7832c8515b1862064d4ea525763c0639303df959824578c014"
+  "content_sha256": "587384d9f3a7bad9b7732226d4119fd4427dc981658507cb7e3b1c54838c7644"
 }

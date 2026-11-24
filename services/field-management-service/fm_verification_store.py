@@ -245,17 +245,20 @@ async def write_link(conn, caller, field_id, task_id, req: LinkRequest, context)
     ):
         raise HTTPException(409, "reconcile_prior_delivery_before_relinking")
     if old:
-        await conn.execute(
-            "UPDATE scouting_verification_outbox o SET state='blocked',last_error='link_superseded',"
-            "updated_at=clock_timestamp() FROM scouting_verification_assessments a "
-            "WHERE o.assessment_id=a.assessment_id AND a.link_id=$1 AND o.state='pending'",
-            link_id,
-        )
+        # The revision moves first: v289 blocks an unsent delivery only once its link revision
+        # is actually superseded.
         await conn.execute(
             "UPDATE scouting_verification_links SET revision=$2,inspection_task_id=$3 WHERE link_id=$1",
             link_id,
             revision + 1,
             req.inspection_task_id,
+        )
+        await conn.execute(
+            "UPDATE scouting_verification_outbox o SET state='blocked',last_error='link_superseded',"
+            "updated_at=clock_timestamp() FROM scouting_verification_assessments a "
+            "WHERE o.assessment_id=a.assessment_id AND a.link_id=$1 "
+            "AND o.state IN ('pending','refused')",
+            link_id,
         )
     else:
         await conn.execute(

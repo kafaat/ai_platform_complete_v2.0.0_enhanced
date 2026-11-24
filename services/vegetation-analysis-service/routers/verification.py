@@ -25,6 +25,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from shared.contracts.remote_sensing.verification_delivery import (
     canonical_completion_digest,
     canonical_completion_payload,
+    flag_enabled,
     verification_request_binding,
 )
 from shared.security.service_tenant_assertion import TenantAssertionError, verify_tenant_assertion
@@ -59,12 +60,7 @@ def verification_caller(
     and its durable receipt makes a repeated request safe across process restarts.
     No process-memory nonce cache is presented as a distributed replay fence.
     """
-    if os.getenv("VEGETATION_VERIFICATION_BRIDGE_ENABLED", "0").strip().lower() not in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }:
+    if not flag_enabled(os.getenv("VEGETATION_VERIFICATION_BRIDGE_ENABLED", "0")):
         raise HTTPException(404, "verification_bridge_disabled")
     # A dedicated token: TASK_SERVICE_CALLBACK_TOKEN is the only service factor of the legacy
     # /v1/anomalies/.../verification-results route, so sharing it would hand field-management

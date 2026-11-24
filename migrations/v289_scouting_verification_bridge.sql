@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS scouting_verification_outbox (
         body_digest = encode(sha256(convert_to(body_text, 'UTF8')), 'hex')),
     state text NOT NULL DEFAULT 'pending' CHECK (state IN (
         'pending', 'sending', 'delivery_unknown', 'blocked', 'delivered', 'delivered_review_required',
-        'delivery_exhausted')),
+        'delivery_exhausted', 'refused', 'rejected')),
     lease_token uuid,
     lease_until timestamptz,
     attempts integer NOT NULL DEFAULT 0 CHECK (attempts >= 0),
@@ -166,6 +166,7 @@ CREATE TRIGGER scouting_verification_assessment_guard BEFORE INSERT ON scouting_
 
 CREATE OR REPLACE FUNCTION scouting_verification_delivery_guard() RETURNS trigger
 LANGUAGE plpgsql SET search_path = pg_catalog, pg_temp AS $$
+DECLARE r jsonb;
 BEGIN
     IF NEW.delivery_id <> OLD.delivery_id OR NEW.tenant_id <> OLD.tenant_id
        OR NEW.field_id <> OLD.field_id OR NEW.assessment_id <> OLD.assessment_id
@@ -174,33 +175,69 @@ BEGIN
         RAISE EXCEPTION 'verification_delivery_content_immutable' USING ERRCODE='55000';
     END IF;
     -- The delivery state machine, enforced here and not only in field-management's Python:
-    --   pending          -> sending | blocked (link superseded before any send)
-    --   delivery_unknown -> sending
-    --   sending          -> sending (reclaim only after the lease expired)
-    --                     | delivered | delivered_review_required | blocked | delivery_unknown
-    --   pending | delivery_unknown | sending (lease expired) -> delivery_exhausted
-    --                                                          (only at the attempt cap, 8)
-    -- delivered, delivered_review_required, blocked and delivery_exhausted are terminal.
+    --   pending            -> sending | blocked (link superseded before any send)
+    --   delivery_unknown   -> sending
+    --   refused            -> sending | blocked (link superseded)
+    --   sending            -> sending (reclaim only after the lease expired)
+    --                       | delivered | delivered_review_required | blocked | delivery_unknown
+    --                       | refused (receiver's configuration refused; the attempt is refunded)
+    --                       | rejected (the owner will never apply this request)
+    --   pending | delivery_unknown | refused | sending (lease expired)
+    --                      -> delivery_exhausted (only at the attempt cap, 8)
+    --   delivery_exhausted -> delivered | delivered_review_required | blocked (read-only reconcile)
+    -- delivered, delivered_review_required, blocked and rejected are terminal; delivery_exhausted
+    -- only reconciles. What this checks is the transition, the lease and the receipt's binding to
+    -- this row, not who the writer is: any session of the tenant can read the lease token.
     IF NOT (
         (OLD.state = 'pending' AND NEW.state IN ('sending', 'blocked'))
         OR (OLD.state = 'delivery_unknown' AND NEW.state = 'sending')
+        OR (OLD.state = 'refused' AND NEW.state IN ('sending', 'blocked'))
         OR (OLD.state = 'sending' AND NEW.state = 'sending' AND OLD.lease_until <= clock_timestamp())
         OR (OLD.state = 'sending' AND NEW.state IN (
-            'delivered', 'delivered_review_required', 'blocked', 'delivery_unknown'))
-        OR (OLD.state IN ('pending', 'delivery_unknown') AND NEW.state = 'delivery_exhausted'
+            'delivered', 'delivered_review_required', 'blocked', 'delivery_unknown', 'refused',
+            'rejected'))
+        OR (OLD.state IN ('pending', 'delivery_unknown', 'refused') AND NEW.state = 'delivery_exhausted'
             AND OLD.attempts >= 8)
         OR (OLD.state = 'sending' AND NEW.state = 'delivery_exhausted' AND OLD.attempts >= 8
             AND OLD.lease_until <= clock_timestamp())
+        OR (OLD.state = 'delivery_exhausted' AND NEW.state IN (
+            'delivered', 'delivered_review_required', 'blocked'))
     ) THEN
         RAISE EXCEPTION 'verification_delivery_transition_refused: % -> %', OLD.state, NEW.state
             USING ERRCODE='55000';
     END IF;
+    -- Only the transaction that names the live lease settles a claimed row (a worker whose lease
+    -- was reclaimed cannot overwrite the new holder's outcome).
+    IF OLD.state = 'sending' AND NEW.state NOT IN ('sending', 'delivery_exhausted')
+       AND current_setting('app.verification_lease', true) IS DISTINCT FROM OLD.lease_token::text THEN
+        RAISE EXCEPTION 'verification_delivery_lease_not_held' USING ERRCODE='55000';
+    END IF;
+    -- An unsent delivery is blocked only because its link revision was superseded.
+    IF OLD.state IN ('pending', 'refused') AND NEW.state = 'blocked' AND NOT EXISTS (
+        SELECT 1 FROM public.scouting_verification_assessments a
+        JOIN public.scouting_verification_links l ON l.link_id = a.link_id
+        WHERE a.assessment_id = NEW.assessment_id AND l.revision > a.link_revision
+    ) THEN
+        RAISE EXCEPTION 'verification_delivery_block_requires_superseded_link' USING ERRCODE='55000';
+    END IF;
+    -- A receipt proves delivery only if the owner recorded this row's key and request digest.
+    IF NEW.state IN ('delivered', 'delivered_review_required') THEN
+        r := COALESCE(NEW.receipt->'verification_delivery',
+                      NEW.receipt->'anomaly'->'payload'->'verification_delivery');
+        IF jsonb_typeof(r) IS DISTINCT FROM 'object'
+           OR r->>'idempotency_key' IS DISTINCT FROM NEW.idempotency_key
+           OR r->>'request_digest' IS DISTINCT FROM btrim(NEW.body_digest) THEN
+            RAISE EXCEPTION 'verification_delivery_receipt_not_bound' USING ERRCODE='23514';
+        END IF;
+    END IF;
     IF NEW.state = 'sending' AND NEW.attempts > 8 THEN
         RAISE EXCEPTION 'verification_delivery_attempts_exhausted' USING ERRCODE='55000';
     END IF;
-    -- Each claim counts one attempt; nothing else changes the count.
+    -- Each claim counts one attempt; a configuration refusal gives it back; nothing else changes it.
     IF (NEW.state = 'sending' AND NEW.attempts <> OLD.attempts + 1)
-       OR (NEW.state <> 'sending' AND NEW.attempts <> OLD.attempts) THEN
+       OR (OLD.state = 'sending' AND NEW.state = 'refused' AND NEW.attempts <> OLD.attempts - 1)
+       OR (NEW.state NOT IN ('sending', 'refused') AND NEW.attempts <> OLD.attempts)
+       OR (NEW.state = 'refused' AND OLD.state <> 'sending' AND NEW.attempts <> OLD.attempts) THEN
         RAISE EXCEPTION 'verification_delivery_attempts_tampered' USING ERRCODE='55000';
     END IF;
     RETURN NEW;

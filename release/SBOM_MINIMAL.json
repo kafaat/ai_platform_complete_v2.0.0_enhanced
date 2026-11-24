@@ -10545,7 +10545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c3570db5d57557f6ec67b5553c532dc9d83aeeb241feeb95d064dedc5fc2cc62"
+          "content": "04d0f111b9a4b536c60d9363febb1677bd32ff63850d55636b378be065838893"
         }
       ],
       "name": "migrations/v289_scouting_verification_bridge.sql",
@@ -21125,7 +21125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "96e4327ededd2b29d8757b987f11a41daa0e6d872d1f867c75f98fe82f5965fd"
+          "content": "4ea79a92fddf5c7f403ebc61b09eba13b3a33f671b3747de78d2bb823613c168"
         }
       ],
       "name": "services/field-management-service/fm_verification.py",
@@ -21135,7 +21135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9420b27dfcc883e14f5bab89bb4ab00a2a1775e0ef8ffece0c62dacc79440432"
+          "content": "41c908d6fc7e306e5c69d75893b99a88098636d283352c746afcdcec4d55f9a4"
         }
       ],
       "name": "services/field-management-service/fm_verification_client.py",
@@ -21155,7 +21155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "290a484b58e4c95a885e3133e49ca24ea6b31a2bef21556d273ae8099026b304"
+          "content": "0eaf9b290b17d402bba6f9ad6438589a954a3937a2a0a994e242c492b3fa0006"
         }
       ],
       "name": "services/field-management-service/fm_verification_store.py",
@@ -40905,7 +40905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6b6bd81b3c3cdbcc0952612e9d858e7673e2480aa7959abd18284058f3335769"
+          "content": "01d45e55ac9cb9b186a0541fc556757ff7ecaf8efc4adad94610e33c2ce131cc"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/verification.py",
@@ -42615,7 +42615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ecc2c0a23e92e8ee6a553b58d841fde6b81b4ebfdddda746f1cbc57e10747b20"
+          "content": "32ce3fa5bd272ce94081bb9ed678fdbc2e0d101e40aff7d8b9c74a91610c6e11"
         }
       ],
       "name": "shared/contracts/remote_sensing/verification_delivery.py",

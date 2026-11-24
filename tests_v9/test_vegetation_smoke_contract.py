@@ -43,7 +43,7 @@ def test_external_inventory_covers_all_source_routers_and_route_methods():
 def test_every_internal_route_is_classified_service_to_service_and_refused_at_the_edge():
     internal = {p for p in CONTRACT["routes"] if p.startswith("/internal/")}
     assert internal == set(CONTRACT["internal_s2s_routes"]["paths"])
-    for conf in ("nginx/nginx.v9.conf", "frontend/nginx.conf"):
+    for conf in ("nginx/nginx.v9.conf", "frontend/nginx.conf", "nginx/nginx.fixed.conf"):
         assert "location ^~ /api/vegetation/internal/" in (ROOT / conf).read_text(encoding="utf-8")
 
 

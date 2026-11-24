@@ -15,7 +15,12 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
 from fm_gateway import INSPECTION_REVIEW, Caller, caller_connection, caller_dependency
-from fm_verification_client import VegetationVerificationClient, VerificationRemoteError
+from fm_verification_client import (
+    VegetationVerificationClient,
+    VerificationRemoteError,
+    VerificationRemoteRefused,
+    VerificationRemoteRejected,
+)
 from fm_verification_contracts import AssessmentRequest, LinkRequest, canonical, digest, wire
 from fm_verification_store import (
     anomaly_task,
@@ -30,17 +35,23 @@ from fm_verification_store import (
     write_link,
 )
 
+from shared.contracts.remote_sensing.verification_delivery import flag_enabled
+
 router = APIRouter(prefix="/internal/field-tasks")
 remote_client = VegetationVerificationClient()
 # Mirrors v289's scouting_verification_delivery_guard; the database refuses a claim beyond it.
 MAX_DELIVERY_ATTEMPTS = 8
+# `refused` (the receiver's configuration refused the request; nothing applied) is not terminal:
+# the reviewer dispatches again once an operator fixed the configuration, and its attempt is
+# refunded. `rejected` (the owner will never apply this request) is terminal and keeps the
+# owner's reason. `delivery_exhausted` is terminal for sending; dispatching it only reconciles.
 TERMINAL_DELIVERY_STATES = frozenset(
-    {"delivered", "delivered_review_required", "blocked", "delivery_exhausted"}
+    {"delivered", "delivered_review_required", "blocked", "rejected", "delivery_exhausted"}
 )
 
 
 def enabled():
-    if os.getenv("FM_SCOUTING_VERIFICATION_ENABLED", "0") != "1":
+    if not flag_enabled(os.getenv("FM_SCOUTING_VERIFICATION_ENABLED", "0")):
         raise HTTPException(503, "scouting_verification_bridge_disabled")
 
 
@@ -234,6 +245,8 @@ def receipt_matches(remote, delivery, link):
 
 async def finish_delivery(caller, field_id, delivery, lease, state, *, error=None, receipt=None):
     async with caller_connection(caller) as conn:
+        # v289 lets a row leave `sending` only for the transaction that names its lease.
+        await conn.execute("SELECT set_config('app.verification_lease', $1, true)", str(lease))
         if state == "delivered":
             try:
                 await revalidate_delivery(conn, caller, field_id, delivery)
@@ -241,8 +254,10 @@ async def finish_delivery(caller, field_id, delivery, lease, state, *, error=Non
                 # Acceptance at another owner cannot be rolled back by changing
                 # the local label. Keep that fact and require a new human review.
                 state, error = "delivered_review_required", str(exc.detail)
+        # A configuration refusal applied nothing at the owner, so its attempt is refunded.
         await conn.execute(
             "UPDATE scouting_verification_outbox SET state=$4,last_error=$5,receipt=$6::jsonb,"
+            "attempts=attempts-CASE WHEN $4='refused' THEN 1 ELSE 0 END,"
             "lease_token=NULL,lease_until=NULL,updated_at=clock_timestamp() "
             "WHERE tenant_id=$1::uuid AND delivery_id=$2 AND lease_token=$3",
             caller.tenant_id,
@@ -256,11 +271,66 @@ async def finish_delivery(caller, field_id, delivery, lease, state, *, error=Non
         return delivery_view(row)
 
 
+async def reconcile_exhausted(caller, field_id, delivery):
+    """Read-only check of an exhausted delivery against the owner; never sends the result again.
+
+    The owner's receipt settles it as delivered; an anomaly that moved on without our receipt
+    settles it as blocked (the owner's compare-and-set refuses our stale version, so no late
+    retry can apply it). Otherwise the outcome is still unknown and the row stays exhausted.
+    """
+    if delivery["reviewer"] != caller.user_id or delivery["reviewer_role"] != caller.role:
+        raise HTTPException(403, "delivery_requires_the_original_reviewer")
+    async with caller_connection(caller) as conn:
+        link = await load_link(conn, caller, field_id, delivery["link_id"])
+    anomaly_ref = link["scope_snapshot"]["anomaly_ref"]
+    try:
+        remote = await remote_client.context(caller.tenant_id, anomaly_ref)
+    except VerificationRemoteError as exc:
+        raise HTTPException(503, f"verification_reconcile_unavailable:{exc}") from exc
+    state, error, receipt = None, None, None
+    if receipt_matches(remote, delivery, link):
+        state, receipt = "delivered", remote
+    elif remote.get("snapshot_digest") != link["anomaly_snapshot_digest"].strip() or digest(
+        remote.get("anomaly")
+    ) != remote.get("snapshot_digest"):
+        state, error = "blocked", "anomaly_changed_without_matching_receipt"
+    async with caller_connection(caller) as conn:
+        if state == "delivered":
+            try:
+                await revalidate_delivery(conn, caller, field_id, delivery)
+            except HTTPException as exc:
+                state, error = "delivered_review_required", str(exc.detail)
+        if state is not None:
+            await conn.execute(
+                "UPDATE scouting_verification_outbox SET state=$3,last_error=$4,receipt=$5::jsonb,"
+                "updated_at=clock_timestamp() WHERE tenant_id=$1::uuid AND delivery_id=$2 "
+                "AND state='delivery_exhausted'",
+                caller.tenant_id,
+                delivery["delivery_id"],
+                state,
+                error,
+                canonical(receipt) if receipt is not None else None,
+            )
+        return delivery_view(await load_delivery(conn, caller, field_id, delivery["delivery_id"]))
+
+
 async def dispatch_delivery(caller, field_id, delivery_id):
     enabled()
     lease = uuid4()
     async with caller_connection(caller) as conn:
         await require_actor(conn, caller, field_id)
+        delivery = await load_delivery(conn, caller, field_id, delivery_id, lock=True)
+        if delivery["state"] == "delivery_exhausted":
+            if not remote_client.configured():
+                raise HTTPException(503, "verification_transport_unconfigured")
+            reconcile = True
+        elif delivery["state"] in TERMINAL_DELIVERY_STATES:
+            return delivery_view(delivery)
+        else:
+            reconcile = False
+    if reconcile:
+        return await reconcile_exhausted(caller, field_id, delivery)
+    async with caller_connection(caller) as conn:
         delivery = await load_delivery(conn, caller, field_id, delivery_id, lock=True)
         if delivery["state"] in TERMINAL_DELIVERY_STATES:
             return delivery_view(delivery)
@@ -342,6 +412,10 @@ async def dispatch_delivery(caller, field_id, delivery_id):
         return await finish_delivery(
             caller, field_id, delivery, lease, "delivered", receipt=response
         )
+    except VerificationRemoteRefused as exc:
+        return await finish_delivery(caller, field_id, delivery, lease, "refused", error=str(exc))
+    except VerificationRemoteRejected as exc:
+        return await finish_delivery(caller, field_id, delivery, lease, "rejected", error=str(exc))
     except VerificationRemoteError as exc:
         return await finish_delivery(
             caller, field_id, delivery, lease, "delivery_unknown", error=str(exc)
@@ -350,6 +424,23 @@ async def dispatch_delivery(caller, field_id, delivery_id):
         return await finish_delivery(
             caller, field_id, delivery, lease, "blocked", error=str(exc.detail)
         )
+    except Exception as exc:
+        # Anything else after the claim (a bug, a malformed reply, a local storage error) must
+        # not leave the row in `sending` until its lease expires: settle it as unknown, since a
+        # request may already have reached the owner. If settling fails too, the lease expiry
+        # and the next dispatch's reconcile still apply.
+        try:
+            settled = await finish_delivery(
+                caller,
+                field_id,
+                delivery,
+                lease,
+                "delivery_unknown",
+                error=f"verification_dispatch_failed:{type(exc).__name__}",
+            )
+        except Exception:
+            raise exc from None
+        return settled
 
 
 @router.post("/fields/{field_id}/verification-deliveries/{delivery_id}/deliver")

@@ -469,12 +469,20 @@ def test_the_outbox_state_machine_is_enforced_by_the_database(monkeypatch, tmp_p
                 )
                 == "23514"
             )
-            async with live.app_connection("reviewer") as conn:
-                await conn.execute(
-                    "UPDATE scouting_verification_outbox SET state='blocked' "
-                    "WHERE delivery_id=$1::uuid",
-                    live.delivery_id,
+            # An unsent delivery is blocked only when its link revision was superseded.
+            assert (
+                await refused(
+                    "UPDATE scouting_verification_outbox SET state='blocked' WHERE delivery_id=$1::uuid"
                 )
+                == "55000"
+            )
+            # Test-only setup: a terminal row, then no reopening it.
+            await live.admin.execute("SET session_replication_role = replica")
+            await live.admin.execute(
+                "UPDATE scouting_verification_outbox SET state='blocked' WHERE delivery_id=$1::uuid",
+                live.delivery_id,
+            )
+            await live.admin.execute("SET session_replication_role = origin")
             assert (
                 await refused(
                     "UPDATE scouting_verification_outbox SET state='pending' WHERE delivery_id=$1::uuid"
@@ -552,5 +560,214 @@ def test_the_attempt_cap_ends_in_a_terminal_state_and_the_database_refuses_more(
                 live.delivery_id,
             )
             assert dict(row) == {"state": "delivery_exhausted", "attempts": 8, "lease_token": None}
+
+    run(target())
+
+
+async def _ready(live):
+    assert (await live.link()).status_code == 200
+    await live.approve_inspection()
+    assert (await live.assess()).status_code == 200
+
+
+async def _row(live):
+    return dict(
+        await live.admin.fetchrow(
+            "SELECT state, attempts, lease_token, last_error FROM scouting_verification_outbox "
+            "WHERE delivery_id=$1::uuid",
+            live.delivery_id,
+        )
+    )
+
+
+def test_a_malformed_key_id_refuses_before_claiming_the_delivery(monkeypatch, tmp_path):
+    # S1: a key id the assertion cannot carry (':' is its field separator) used to pass the
+    # pre-claim check, then failed while signing after the claim had committed, leaving the
+    # row in `sending` until its lease expired and burning attempts with nothing sent.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            await _ready(live)
+            monkeypatch.setenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID", "a:b")
+            response = await live.deliver()
+            assert response.status_code == 503, response.text
+            assert response.json()["detail"] == "verification_transport_unconfigured"
+            row = await _row(live)
+            assert (row["state"], row["attempts"], row["lease_token"]) == ("pending", 0, None)
+
+    run(target())
+
+
+def test_an_unexpected_error_after_the_claim_settles_the_row_instead_of_stranding_it(
+    monkeypatch, tmp_path
+):
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            await _ready(live)
+
+            async def broken(*_args, **_kwargs):
+                raise RuntimeError("injected failure after the claim")
+
+            monkeypatch.setattr(live.remote_client, "context", broken)
+            response = await live.deliver()
+            assert response.status_code == 200, response.text
+            row = await _row(live)
+            assert row == {
+                "state": "delivery_unknown",
+                "attempts": 1,
+                "lease_token": None,
+                "last_error": "verification_dispatch_failed:RuntimeError",
+            }
+
+    run(target())
+
+
+def test_a_receiver_switched_off_is_refused_without_using_up_attempts(monkeypatch, tmp_path):
+    # S2: one rollout mistake (sender on, receiver off) must not exhaust the delivery into a
+    # dead end. The refusal applied nothing, so its attempt is refunded and the row stays open.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            await _ready(live)
+            monkeypatch.setenv("VEGETATION_VERIFICATION_BRIDGE_ENABLED", "0")
+            for _ in range(10):
+                response = await live.deliver()
+                assert response.status_code == 200, response.text
+                assert response.json()["state"] == "refused"
+            row = await _row(live)
+            assert (row["state"], row["attempts"], row["lease_token"]) == ("refused", 0, None)
+            assert (
+                row["last_error"] == "verification_remote_status:404:verification_bridge_disabled"
+            )
+            before = live.anomaly_store.get(live.anomaly_ref, tenant_id=live.tenant)
+            assert before["status"] != "confirmed"
+            monkeypatch.setenv("VEGETATION_VERIFICATION_BRIDGE_ENABLED", "1")
+            response = await live.deliver()
+            assert response.json()["state"] == "delivered", response.text
+            assert (await _row(live))["attempts"] == 1
+
+    run(target())
+
+
+def test_an_owner_conflict_is_a_terminal_rejection_with_its_reason(monkeypatch, tmp_path):
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            await _ready(live)
+            actual_complete = live.remote_client.complete
+            sends = []
+
+            async def owner_moves_between_read_and_write(*args, **kwargs):
+                # Failure injection into this test's isolated SQLite file: the anomaly's version
+                # moves after the dispatcher's context read, so the real receiver's
+                # compare-and-set answers 409.
+                with sqlite3.connect(live.anomaly_store.path) as conn:
+                    conn.execute(
+                        "UPDATE signal_anomalies SET version=version+1 "
+                        "WHERE anomaly_ref=? AND tenant_id=?",
+                        (live.anomaly_ref, live.tenant),
+                    )
+                sends.append(1)
+                return await actual_complete(*args, **kwargs)
+
+            monkeypatch.setattr(live.remote_client, "complete", owner_moves_between_read_and_write)
+            response = await live.deliver()
+            assert response.status_code == 200, response.text
+            row = await _row(live)
+            assert (row["state"], row["attempts"], row["lease_token"]) == ("rejected", 1, None)
+            assert row["last_error"].startswith("verification_remote_status:409:"), row
+            again = await live.deliver()
+            assert again.json()["state"] == "rejected"
+            assert len(sends) == 1, "a rejected delivery is never sent again"
+
+    run(target())
+
+
+def test_an_exhausted_delivery_reconciles_a_receipt_without_sending_again(monkeypatch, tmp_path):
+    # The operator path out of delivery_exhausted: a read-only check against the owner.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            from fm_verification_client import VerificationRemoteError
+
+            await _ready(live)
+            actual_complete = live.remote_client.complete
+            sends = []
+
+            async def commit_then_lose_reply(*args, **kwargs):
+                sends.append(1)
+                await actual_complete(*args, **kwargs)
+                raise VerificationRemoteError("injected_reply_loss_after_actual_commit")
+
+            monkeypatch.setattr(live.remote_client, "complete", commit_then_lose_reply)
+            assert (await live.deliver()).json()["state"] == "delivery_unknown"
+            # Test-only setup: the row reached the cap through unknown outcomes.
+            await live.admin.execute("SET session_replication_role = replica")
+            await live.admin.execute(
+                "UPDATE scouting_verification_outbox SET state='delivery_exhausted', attempts=8 "
+                "WHERE delivery_id=$1::uuid",
+                live.delivery_id,
+            )
+            await live.admin.execute("SET session_replication_role = origin")
+            response = await live.deliver()
+            assert response.status_code == 200, response.text
+            assert response.json()["state"] == "delivered", response.text
+            assert len(sends) == 1, "reconciling an exhausted delivery must not post again"
+            row = await _row(live)
+            assert (row["attempts"], row["lease_token"]) == (8, None)
+
+    run(target())
+
+
+def test_the_database_fences_the_lease_and_binds_the_receipt_to_the_row(monkeypatch, tmp_path):
+    # N1: leaving `sending` needs the transaction to name the live lease, and "delivered" needs a
+    # receipt carrying this row's idempotency key and request digest. This checks the lease and
+    # the binding, not the writer's identity (any session of the tenant can read the token).
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            await _ready(live)
+            lease = str(uuid.uuid4())
+            async with live.app_connection("reviewer") as conn:
+                await conn.execute(
+                    "UPDATE scouting_verification_outbox SET state='sending',attempts=attempts+1,"
+                    "lease_token=$2::uuid,lease_until=clock_timestamp()+interval '2 minutes' "
+                    "WHERE delivery_id=$1::uuid",
+                    live.delivery_id,
+                    lease,
+                )
+            key, digest = await live.admin.fetchrow(
+                "SELECT idempotency_key, btrim(body_digest) FROM scouting_verification_outbox "
+                "WHERE delivery_id=$1::uuid",
+                live.delivery_id,
+            )
+
+            async def settle(state, *, with_lease, receipt=None):
+                async with live.app_connection("reviewer") as conn:
+                    if with_lease:
+                        await conn.execute(
+                            "SELECT set_config('app.verification_lease', $1, true)", with_lease
+                        )
+                    await conn.execute(
+                        "UPDATE scouting_verification_outbox SET state=$2,receipt=$3::jsonb,"
+                        "lease_token=NULL,lease_until=NULL WHERE delivery_id=$1::uuid",
+                        live.delivery_id,
+                        state,
+                        json.dumps(receipt) if receipt is not None else None,
+                    )
+
+            async def sqlstate(*args, **kwargs):
+                with pytest.raises(asyncpg.PostgresError) as caught:
+                    await settle(*args, **kwargs)
+                return caught.value.sqlstate
+
+            bound = {"verification_delivery": {"idempotency_key": key, "request_digest": digest}}
+            forged = {
+                "verification_delivery": {"idempotency_key": "other", "request_digest": digest}
+            }
+            assert await sqlstate("delivery_unknown", with_lease=None) == "55000"
+            assert await sqlstate("delivered", with_lease=None, receipt=bound) == "55000"
+            assert (
+                await sqlstate("delivered", with_lease=str(uuid.uuid4()), receipt=bound) == "55000"
+            )
+            assert await sqlstate("delivered", with_lease=lease, receipt=forged) == "23514"
+            assert await sqlstate("delivered", with_lease=lease, receipt={"x": 1}) == "23514"
+            await settle("delivered", with_lease=lease, receipt=bound)
+            assert (await _row(live))["state"] == "delivered"
 
     run(target())

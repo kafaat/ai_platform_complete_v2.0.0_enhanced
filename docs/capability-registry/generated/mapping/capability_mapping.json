@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7718,
+    "files_scanned": 7719,
     "files_by_kind": {
       "backend": 1317,
       "database": 358,
       "governance": 92,
       "mobile": 429,
       "other": 2253,
-      "tests": 2696,
+      "tests": 2697,
       "web": 573
     },
-    "unmapped_artifacts": 3669,
+    "unmapped_artifacts": 3670,
     "ambiguous_artifacts": 267,
     "files_by_reading": {
-      "python_functional": 4197,
+      "python_functional": 4198,
       "raw": 3521
     },
-    "test_dependency_files": 2056,
-    "test_dependency_edges": 5563,
-    "test_dependency_bounded_files": 1177,
-    "test_dependency_unresolved_relations": 532
+    "test_dependency_files": 2057,
+    "test_dependency_edges": 5564,
+    "test_dependency_bounded_files": 1178,
+    "test_dependency_unresolved_relations": 533
   },
   "capabilities": [
     {
@@ -15492,27 +15492,27 @@
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/verification-context @ services/field-management-service/fm_verification.py:64",
+          "value": "/fields/{field_id}/tasks/{task_id}/verification-context @ services/field-management-service/fm_verification.py:75",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:90",
+          "value": "/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:101",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:170",
+          "value": "/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:181",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:155",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:166",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:355",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:446",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:118",
+          "value": "/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:129",
           "score": 8
         },
         {
@@ -15701,11 +15701,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:267",
+          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:304",
           "score": 16
         },
         {
-          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:268",
+          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:305",
           "score": 16
         },
         {
@@ -15713,11 +15713,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:253",
+          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:290",
           "score": 16
         },
         {
-          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:254",
+          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:291",
           "score": 16
         },
         {
@@ -15729,11 +15729,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:274",
+          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:311",
           "score": 16
         },
         {
-          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:275",
+          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:312",
           "score": 16
         },
         {
@@ -15745,11 +15745,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:260",
+          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:297",
           "score": 16
         },
         {
-          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:261",
+          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:298",
           "score": 16
         },
         {
@@ -46197,6 +46197,10 @@
     },
     {
       "path": "tests_v9/test_firmware_valve_safety.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_fm_verification_client_refusals.py",
       "kind": "tests"
     },
     {
@@ -86584,6 +86588,19 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_fm_verification_client_refusals.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/field-management-service/fm_verification_client.py",
+          "kind": "import",
+          "line": 32
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_frontend_api_v1_literal_has_server_route.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -97958,6 +97975,10 @@
       "unresolved": [
         {
           "line": 336,
+          "import": "fm_verification_client"
+        },
+        {
+          "line": 687,
           "import": "fm_verification_client"
         }
       ]

@@ -13,13 +13,62 @@ from shared.contracts.remote_sensing.verification_delivery import (
     canonical_completion_payload,
     verification_request_binding,
 )
-from shared.security.service_tenant_assertion import create_tenant_assertion
+from shared.security.service_tenant_assertion import TenantAssertionError, create_tenant_assertion
 
 CALLER = "field-management-service"
 
+# Refusals the receiver (routers/verification.py) gives before it reads or writes the anomaly:
+# its switch is off, or the two services' credentials disagree. The request was not applied
+# and repeating it cannot succeed until an operator fixes the configuration.
+CONFIGURATION_REFUSALS = frozenset(
+    {
+        (404, "verification_bridge_disabled"),
+        (503, "verification_service_credentials_unconfigured"),
+        (503, "verification_service_token_not_dedicated"),
+        (403, "invalid_task_service_token"),
+        (403, "verification_caller_scope_invalid"),
+        (403, "invalid_verification_tenant_assertion"),
+    }
+)
+# Refusals of this request itself: the owner will never apply it, so retrying is pointless.
+# Every 409 from the receiver is an anomaly-store InvalidTransition (version conflict, result
+# already recorded, idempotency key reused with another body); 422 is an invalid request.
+CONTENT_REJECTIONS = frozenset(
+    {
+        (403, "verification_request_body_binding_mismatch"),
+        (403, "verification_evidence_tenant_mismatch"),
+        (404, "anomaly not found"),
+    }
+)
+
 
 class VerificationRemoteError(RuntimeError):
-    pass
+    """The outcome at the owner is unknown: the request may or may not have been applied."""
+
+    def __init__(self, reason: str, *, status: int | None = None, detail=None):
+        super().__init__(reason)
+        self.status = status
+        self.detail = detail
+
+
+class VerificationRemoteRefused(VerificationRemoteError):
+    """The receiver identified itself and refused for a configuration reason; nothing applied."""
+
+
+class VerificationRemoteRejected(VerificationRemoteError):
+    """The receiver definitively refused this request; it will never be applied."""
+
+
+def classify_refusal(status: int, detail) -> type[VerificationRemoteError]:
+    if not isinstance(detail, str) or not detail:
+        # A body without the receiver's detail (a proxy's 502/503, an HTML error page) says
+        # nothing about the owner, so the outcome stays unknown.
+        return VerificationRemoteRejected if status == 422 else VerificationRemoteError
+    if (status, detail) in CONFIGURATION_REFUSALS:
+        return VerificationRemoteRefused
+    if status in {409, 422} or (status, detail) in CONTENT_REJECTIONS:
+        return VerificationRemoteRejected
+    return VerificationRemoteError
 
 
 class VegetationVerificationClient:
@@ -35,6 +84,10 @@ class VegetationVerificationClient:
         key = os.getenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY", "")
         key_id = os.getenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID", "current")
         parts = urlsplit(url)
+        # Plain http is accepted on purpose: the receiver lives on the private service network,
+        # like every other service-to-service call in compose, and the signed assertion binds
+        # method, path and request id. TLS would add confidentiality for the token on that
+        # network; it is a deployment choice, not something this client can verify.
         if (
             parts.scheme not in {"http", "https"}
             or not parts.netloc
@@ -45,10 +98,17 @@ class VegetationVerificationClient:
             or parts.path not in {"", "/"}
             or not token
             or len(key) < 32
-            or not key_id
         ):
             raise VerificationRemoteError("verification_transport_unconfigured")
-        return url, token, key
+        try:
+            # The assertion's own rule decides whether this key id is signable (not empty, no
+            # ':' or line break), so a malformed id is refused here, before any claim.
+            create_tenant_assertion(
+                key, CALLER, "probe", key_id=key_id, method="GET", path="/", request_id="probe"
+            )
+        except TenantAssertionError as exc:
+            raise VerificationRemoteError("verification_transport_unconfigured") from exc
+        return url, token, key, key_id
 
     def configured(self) -> bool:
         """True when a request could be signed; checked before a delivery is claimed."""
@@ -59,7 +119,7 @@ class VegetationVerificationClient:
         return True
 
     async def _request(self, method, tenant, anomaly_ref, suffix, *, body=None, key=None):
-        base, token, assertion_key = self._configuration()
+        base, token, assertion_key, key_id = self._configuration()
         path = f"/internal/anomalies/{quote(str(anomaly_ref), safe='')}/{suffix}"
         request_id = uuid4().hex
         if body is not None:
@@ -70,16 +130,20 @@ class VegetationVerificationClient:
             "X-Service-Name": CALLER,
             "X-Tenant-Id": str(tenant),
             "X-Request-Id": request_id,
-            "X-Tenant-Assertion": create_tenant_assertion(
+        }
+        try:
+            headers["X-Tenant-Assertion"] = create_tenant_assertion(
                 assertion_key,
                 CALLER,
                 str(tenant),
-                key_id=os.getenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID", "current"),
+                key_id=key_id,
                 method=method,
                 path=path,
                 request_id=request_id,
-            ),
-        }
+            )
+        except TenantAssertionError as exc:
+            # Nothing was sent; the dispatcher settles the claimed row instead of stranding it.
+            raise VerificationRemoteRefused("verification_assertion_unsignable") from exc
         if key:
             headers["Idempotency-Key"] = key
 
@@ -97,7 +161,15 @@ class VegetationVerificationClient:
         except httpx.HTTPError as exc:
             raise VerificationRemoteError("verification_delivery_unknown") from exc
         if response.status_code not in {200, 201}:
-            raise VerificationRemoteError(f"verification_remote_status:{response.status_code}")
+            try:
+                detail = response.json().get("detail")
+            except (ValueError, AttributeError):
+                detail = None
+            kind = classify_refusal(response.status_code, detail)
+            reason = f"verification_remote_status:{response.status_code}"
+            if isinstance(detail, str) and kind is not VerificationRemoteError:
+                reason += f":{detail}"
+            raise kind(reason, status=response.status_code, detail=detail)
         try:
             result = response.json()
         except ValueError as exc:

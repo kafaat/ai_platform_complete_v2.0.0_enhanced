@@ -22,7 +22,7 @@
 | 5 | `plan` | `decision-service` | 52 |
 | 6 | `authorization` | `sahool-platform` | 224 |
 | 7 | `request` | `decision-service` | 51 |
-| 8 | `receipt` | `decision-service` | 53 |
+| 8 | `receipt` | `decision-service` | 54 |
 | 9 | `outcome` | `sahool-platform` | 65 |
 | 10 | `learning` | `sahool-platform` | 411 |
 

@@ -27,6 +27,18 @@ _FIELDS = frozenset(
 )
 
 
+_TRUE = frozenset({"1", "true", "yes", "on"})
+
+
+def flag_enabled(raw: str | None) -> bool:
+    """The one reading of the bridge's switches, on the sender and the receiver alike.
+
+    Callers pass ``os.getenv("<NAME>", "0")`` with the literal name, so env-closure guards
+    (tests_v9/test_helm_network_policy_egress.py) still see which settings a service reads.
+    """
+    return str(raw or "").strip().lower() in _TRUE
+
+
 def _utc_timestamp(value: Any) -> str:
     if isinstance(value, str):
         value = datetime.fromisoformat(value.replace("Z", "+00:00"))

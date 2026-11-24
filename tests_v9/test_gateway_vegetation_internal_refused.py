@@ -19,7 +19,8 @@ import pytest
 pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFS = ("nginx/nginx.v9.conf", "frontend/nginx.conf")
+# nginx.fixed.conf is a non-canonical bundle (historical compose only), refused there all the same.
+CONFS = ("nginx/nginx.v9.conf", "frontend/nginx.conf", "nginx/nginx.fixed.conf")
 
 
 def _servers(conf: str) -> list[str]:
