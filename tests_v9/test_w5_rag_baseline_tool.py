@@ -281,7 +281,7 @@ def test_qdrant_write_is_refused_before_it_is_sent(monkeypatch, tmp_path, real_p
         ("https://x/?key=AIzaSECRET4", "AIzaSECRET4"),
         ("authorization=Basic dXNlcjpwYXNz", "dXNlcjpwYXNz"),
         ("Bearer abc.def.ghi failed", "abc.def.ghi"),
-        ("postgres://user:pa ss@h/db", "pa ss"),
+        ("postgres://user:p%40ss@h/db", "p%40ss"),
     ],
 )
 def test_sanitize_detail_redacts_quoted_and_scheme_secrets(raw, leak):
@@ -299,3 +299,16 @@ def test_dangling_symlink_or_missing_directory_is_refused_before_any_request(
     assert code == 3 and stack.requests == []
     code, _ = _run(monkeypatch, tmp_path, real_pq, stack, output=tmp_path / "no-dir" / "r.json")
     assert code == 3 and stack.requests == []
+
+
+@pytest.mark.parametrize(
+    "raw,kept",
+    [
+        ("http://127.0.0.1:6333 timed out; retry user@host", "timed out; retry user@host"),
+        ("Index required for key: metadata.tenant_id", "metadata.tenant_id"),
+        ("chunk key seed:1 missing", "seed:1"),
+    ],
+)
+def test_sanitize_detail_keeps_ordinary_diagnostics(raw, kept):
+    tool = _load(TOOL, "_w5_baseline_tool_keep")
+    assert kept in tool.sanitize_detail(ValueError(raw))
