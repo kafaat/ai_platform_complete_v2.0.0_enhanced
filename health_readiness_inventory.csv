@@ -7,8 +7,8 @@ services/decision-service/main.py,healthz,/healthz,565,True,True,True,ok
 services/decision-service/main.py,readyz,/readyz,570,True,True,True,ok
 services/edge-inference/main.py,health_check,/healthz,207,True,True,True,ok
 services/edge-inference/main.py,readyz,/readyz,529,True,True,True,ok
-services/field-management-service/main.py,healthz,/healthz,232,True,True,True,ok
-services/field-management-service/main.py,readyz,/readyz,242,True,True,True,ok
+services/field-management-service/main.py,healthz,/healthz,234,True,True,True,ok
+services/field-management-service/main.py,readyz,/readyz,244,True,True,True,ok
 services/field-segmentation/main.py,healthz,/healthz,546,True,True,True,ok
 services/field-segmentation/main.py,readyz,/readyz,556,True,True,True,ok
 services/indicators-service/main.py,healthz,/healthz,114,True,True,True,ok

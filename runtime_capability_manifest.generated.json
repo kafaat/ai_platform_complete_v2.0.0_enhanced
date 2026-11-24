@@ -463,7 +463,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 18,
+      "capability_count": 19,
       "component_id": "vegetation-analysis-service",
       "domain": "vegetation-interpretation",
       "status": {
@@ -519,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "db818c318f68b6eb43a51f903b6898ce1e84893a76cfb41272583048c84640a7",
+  "fingerprint": "0d3d0f7621b9a3408b1e2552e3d056d753560ed8e98fc34e045a03fe0b06e978",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

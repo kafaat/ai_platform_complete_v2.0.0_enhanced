@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79d432926e92462ed1e8b27927ab8fffeaa1248f149008478a97c5d5eb12abde"
+          "content": "417d7c2017d092544103c4e4a202fd9c04ef2f35f476776584c4382b46ebcf20"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -435,7 +435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b084de56a83908a7a0fdbccbc4a902fb35fa8ff8c6acc8a96d256f429ee657b8"
+          "content": "92fa33045b31c0bd855469300ba2569007da4b905066968f05c717850585b9b0"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -5185,7 +5185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94e79bd64211dd559c5e347da4f9b1360e229efd39963b67dc81c5182f4257a7"
+          "content": "b3a3263057818aa8f69f61b7779d7b3c32eac309f1dc098eeb44435dcc615e85"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -8405,7 +8405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "750b553004301cd44c5237c32b3e36eddfaa08cc031e11df75759084a1950739"
+          "content": "25b6464a09cd84c17ffde92e291c735736dfce268a69ca542afd03a92c70e0ca"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8475,7 +8475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5db6442c81030d56d6b01b191d5e3a8f3a61ccae9d0e3501eea025e536859562"
+          "content": "3f873970651ab3eba31ae6044b1d7f92b7cde1688f22a4dc6fcfefd41a173d5d"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -10539,6 +10539,26 @@
         }
       ],
       "name": "migrations/v288_model_promotion_terminal_state.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6947e59f1b3e75a474825dd3a7d3b11dffae6c6ec4e55ae55e75217034bb70ba"
+        }
+      ],
+      "name": "migrations/v289_scouting_verification_bridge.down.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3f410c5566b60b5f2a06c64c4c89945bfd16c50d24de6ab921862801ca4e25af"
+        }
+      ],
+      "name": "migrations/v289_scouting_verification_bridge.sql",
       "type": "file"
     },
     {
@@ -21105,7 +21125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d42d831304643c860d1068fd4126fcf59de9dcc5e148714393c52adab5c3d64"
+          "content": "1899f98c3f90f41bdfc87eb919017d61770a569e9e855db1cfff2ad0ef035eb2"
         }
       ],
       "name": "services/field-management-service/fm_task_inspection.py",
@@ -21115,7 +21135,47 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4cfe6c3bff236c155b5ef7c0613a3cd02450e658bb613a0a45d871c72a1f7bbb"
+          "content": "751aab7447aba7dc0a775c9af3dca13bb854cd5bb473b4dfdf7ef73316715746"
+        }
+      ],
+      "name": "services/field-management-service/fm_verification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fb74cb2d4fd73bd5c3748243ab02a71aac411faac32dc8ba65d6ea62671de6a0"
+        }
+      ],
+      "name": "services/field-management-service/fm_verification_client.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9841e057c902ba4c414ca9a2a8beaa09692a13ea97bc3772d250bda2fec202f6"
+        }
+      ],
+      "name": "services/field-management-service/fm_verification_contracts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d4b9b03bd7155568f0b76df7f2b092d8e06e03fd110fc83955b418f85396caa7"
+        }
+      ],
+      "name": "services/field-management-service/fm_verification_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cd721931108cdbcf93977f3d5fe61f579b39ac772045b6d46f319d26ed86ad39"
         }
       ],
       "name": "services/field-management-service/main.py",
@@ -21125,7 +21185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "af74301af45780bff4c21149f366586cb0df755ccf1ac18ae4ba475851e38424"
+          "content": "35bbcb4b0e76f77f012ba3ce2958e0a683be2e7b9fdf13c1a364250f14c407e7"
         }
       ],
       "name": "services/field-management-service/requirements.txt",
@@ -40695,7 +40755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea2db549f9261b8981cb5f51b639715f4f70a6f8a520dd9ff9382cf0c94c83d0"
+          "content": "e79c2b1de0298b8aadd8fbfe413c9acda8807b8dc924f41ed1a6bd9521342db9"
         }
       ],
       "name": "services/vegetation-analysis-service/diagnosis_engine.py",
@@ -40849,6 +40909,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/routers/outcomes.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01d45e55ac9cb9b186a0541fc556757ff7ecaf8efc4adad94610e33c2ce131cc"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/verification.py",
       "type": "file"
     },
     {
@@ -41049,6 +41119,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "86f461f661c750dd8888c0ff2dbfe5a6ba314ec59a29fd55bd20e4eeb680c89b"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_verification_delivery.py",
       "type": "file"
     },
     {
@@ -42539,6 +42619,16 @@
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/SignalAnomalyV1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "32ce3fa5bd272ce94081bb9ed678fdbc2e0d101e40aff7d8b9c74a91610c6e11"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/verification_delivery.py",
       "type": "file"
     },
     {

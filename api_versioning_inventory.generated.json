@@ -1343,7 +1343,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 598,
+    "line": 607,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding",
     "handler": "record_inspection_finding",
@@ -1351,8 +1351,62 @@
   },
   {
     "service": "field-management-service",
+    "file": "services/field-management-service/fm_verification.py",
+    "line": 83,
+    "method": "GET",
+    "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-context",
+    "handler": "verification_context",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_verification.py",
+    "line": 128,
+    "method": "POST",
+    "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links",
+    "handler": "create_verification_link",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_verification.py",
+    "line": 156,
+    "method": "POST",
+    "path": "/internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments",
+    "handler": "approve_verification_assessment",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_verification.py",
+    "line": 193,
+    "method": "GET",
+    "path": "/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}",
+    "handler": "verification_delivery",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_verification.py",
+    "line": 215,
+    "method": "GET",
+    "path": "/internal/field-tasks/fields/{field_id}/verification-assessments/{assessment_id}",
+    "handler": "verification_assessment",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/fm_verification.py",
+    "line": 489,
+    "method": "POST",
+    "path": "/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver",
+    "handler": "deliver_verification",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 232,
+    "line": 234,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1361,7 +1415,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 237,
+    "line": 239,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -1370,7 +1424,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 242,
+    "line": 244,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1379,7 +1433,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 275,
+    "line": 277,
     "method": "GET",
     "path": "/contract",
     "handler": "contract",
@@ -1388,7 +1442,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 299,
+    "line": 301,
     "method": "GET",
     "path": "/",
     "handler": "root",
@@ -1397,7 +1451,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 308,
+    "line": 310,
     "method": "GET",
     "path": "/internal/fields/{field_id}",
     "handler": "internal_get_field",
@@ -1406,7 +1460,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 340,
+    "line": 342,
     "method": "GET",
     "path": "/internal/fields",
     "handler": "internal_list_fields",
@@ -10096,6 +10150,24 @@
     "path": "/v1/outcomes/{outcome_id}/remote-sensing-attribution",
     "handler": "attribute_remote_sensing_outcome",
     "classification": "versioned"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/verification.py",
+    "line": 230,
+    "method": "GET",
+    "path": "/internal/anomalies/{anomaly_ref:path}/verification-context",
+    "handler": "verification_context",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/verification.py",
+    "line": 247,
+    "method": "POST",
+    "path": "/internal/anomalies/{anomaly_ref:path}/verification-results",
+    "handler": "verification_result",
+    "classification": "internal_s2s"
   },
   {
     "service": "video-processor",

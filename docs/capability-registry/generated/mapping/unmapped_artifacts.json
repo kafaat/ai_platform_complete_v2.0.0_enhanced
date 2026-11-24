@@ -5256,6 +5256,14 @@
     "kind": "backend"
   },
   {
+    "path": "services/field-management-service/fm_verification_client.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/field-management-service/fm_verification_contracts.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/field-segmentation/__init__.py",
     "kind": "backend"
   },
@@ -10520,6 +10528,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/vegetation-analysis-service/routers/verification.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/vegetation-analysis-service/test_anomaly_store.py",
     "kind": "tests"
   },
@@ -10569,6 +10581,10 @@
   },
   {
     "path": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/vegetation-analysis-service/test_verification_delivery.py",
     "kind": "tests"
   },
   {
@@ -12344,6 +12360,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_fm_verification_client_refusals.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_frontend_ai_key_isolation_guard.py",
     "kind": "tests"
   },
@@ -12433,6 +12453,10 @@
   },
   {
     "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_gateway_vegetation_internal_refused.py",
     "kind": "tests"
   },
   {

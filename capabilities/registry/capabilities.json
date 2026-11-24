@@ -323,7 +323,7 @@
         "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:341",
         "DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1614",
         "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:667",
-        "GET / @ services/field-management-service/main.py:299",
+        "GET / @ services/field-management-service/main.py:301",
         "GET /api/v1/admin/break-glass/{token}/fields @ services/sahool-platform/api/routers/break_glass.py:355",
         "GET /api/v1/agro/kc-timeseries/{field_id} @ services/sahool-platform/api/routers/kc_timeseries.py:140",
         "GET /api/v1/agro/kc-timeseries/{field_id}/compare @ services/sahool-platform/api/routers/kc_timeseries.py:156",
@@ -456,7 +456,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "apis": 239,
+        "apis": 245,
         "tests": 170,
         "mobile_consumers": 50
       }
@@ -4058,6 +4058,9 @@
         "GET /internal/field-tasks/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:284",
         "GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:303",
         "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:368",
+        "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-context @ services/field-management-service/fm_verification.py:83",
+        "GET /internal/field-tasks/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:215",
+        "GET /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:193",
         "GET /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:281",
         "GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147",
         "PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:106",
@@ -4065,8 +4068,11 @@
         "POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88",
         "POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:318",
         "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:459",
-        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:598",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:607",
         "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:474",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:128",
+        "POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:489",
+        "POST /internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:156",
         "POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:238"
       ],
       "ui_consumers": [],
@@ -4110,7 +4116,14 @@
       "runtime": {
         "metrics": [],
         "traces": [],
-        "receipts": [],
+        "receipts": [
+          "receipt:api:GET_/internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-context",
+          "receipt:api:GET_/internal/field-tasks/fields/{field_id}/verification-assessments/{assessment_id}",
+          "receipt:api:GET_/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}",
+          "receipt:api:POST_/internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links",
+          "receipt:api:POST_/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver",
+          "receipt:api:POST_/internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments"
+        ],
         "audit_events": []
       },
       "evidence": [
@@ -4143,7 +4156,7 @@
           "path": "migrations/v247_farm_operations_task_link.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=14, tests=16, ui=0, mobile=17. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=20, tests=16, ui=0, mobile=17. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -4314,12 +4327,17 @@
         "tests_v9/test_scout_photo_ledgers_contract.py",
         "tests_v9/test_scout_photo_mobile_wiring_contract.py",
         "tests_v9/test_scout_photo_season_link_contract.py",
-        "tests_v9/test_scouting_pins_persistence.py"
+        "tests_v9/test_scouting_pins_persistence.py",
+        "tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py",
+        "tests_v9/test_scouting_verification_bridge_live_pg.py"
       ],
       "runtime": {
         "metrics": [],
         "traces": [],
-        "receipts": [],
+        "receipts": [
+          "receipt:test:tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py",
+          "receipt:test:tests_v9/test_scouting_verification_bridge_live_pg.py"
+        ],
         "audit_events": []
       },
       "evidence": [
@@ -4364,7 +4382,7 @@
           "path": "migrations/v263_scout_photo_field_access_grants.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=23, ui=0, mobile=16. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=25, ui=0, mobile=16. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "4",
         "CropX": null,
@@ -4977,6 +4995,7 @@
         "POST /api/v1/learning/governed-proposals/{kind}/{proposal_id}/review @ services/sahool-platform/api/routers/learning.py:246",
         "POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:681",
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520",
+        "POST /internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:156",
         "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/human-review-events @ services/scout-ingest-service/human_review_api.py:169",
         "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/treatment-review-events @ services/scout-ingest-service/treatment_review_api.py:175",
         "POST /v1/approvals/approve @ services/ai_agronomist/main.py:292",
@@ -5023,7 +5042,8 @@
           "receipt:api:POST_/api/v1/execution-requests/{execution_request_id}/verify-outcome",
           "receipt:api:POST_/api/v1/learning/activation-commands/{activation_command_id}/receipt",
           "receipt:api:POST_/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
-          "receipt:api:POST_/api/v1/outcomes/{outcome_id}/learning-attribution"
+          "receipt:api:POST_/api/v1/outcomes/{outcome_id}/learning-attribution",
+          "receipt:api:POST_/internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments"
         ],
         "audit_events": []
       },
@@ -5061,7 +5081,7 @@
           "path": "migrations/v271_scout_treatment_review_events.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=28, tests=25, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=29, tests=25, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

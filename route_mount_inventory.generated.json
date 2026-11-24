@@ -292,7 +292,7 @@
     "service": "vegetation-analysis-service",
     "has_fastapi": true,
     "direct_routes": 0,
-    "router_routes": 22,
+    "router_routes": 24,
     "delegates_to_router_registry": true,
     "delegates_to_app_factory": false,
     "delegates_to_runtime_module": true,

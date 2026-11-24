@@ -893,6 +893,10 @@ v287_farm_access_grants.sql
 #   status defaults to pending_external_ack instead of active. Writers sahool-platform. Needs the
 #   superuser/BYPASSRLS migration owner (FORCE RLS backfill). Before v240.
 v288_model_promotion_terminal_state.sql
+# v289 candidate: field-management owns the explicit anomaly-task / pin-inspection link,
+#   immutable reviewed assessment and durable verification delivery. Existing pin/anomaly
+#   guards stay in place. No flag is enabled by this migration. Recheck number at integration.
+v289_scouting_verification_bridge.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

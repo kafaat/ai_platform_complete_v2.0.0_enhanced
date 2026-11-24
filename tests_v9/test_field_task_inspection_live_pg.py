@@ -606,6 +606,123 @@ async def _accepted_and_submitted(live, notes="n"):
     return task, s
 
 
+def test_submit_replay_binds_an_explicit_photo_id_to_the_recorded_version():
+    """An old revision can replay P1, but cannot acknowledge another requested photo P2.
+
+    This goes through the real owner route and migrated PostgreSQL. P2 is a different
+    request identity, not a replacement of the immutable v260 photo row: the current
+    owner permits one insert-only photo per pin.
+    """
+
+    async def target():
+        async with Live() as live:
+            photo_id = await live.photo("a" * 64)
+            task = await live.assign()
+            accepted = await live.handoff(task, "accept", "inspector", {"expected_revision": 0})
+            assert accepted.status_code == 200, accepted.text
+            body = {
+                "expected_revision": 1,
+                "action": "submit",
+                "reason": "observed photo",
+                "notes": "field measurement recorded",
+                "photo_evidence_id": photo_id,
+            }
+            submitted = await live.handoff(task, "finding", "inspector", body)
+            assert submitted.status_code == 200, submitted.text
+            before = await live.state(task, "inspector")
+            assert before["current_evidence"]["photo_evidence_id"] == photo_id
+            assert (before["revision"], len(before["events"]), len(before["evidence"])) == (
+                2,
+                2,
+                1,
+            )
+
+            replay = await live.handoff(task, "finding", "inspector", body)
+            after_replay = await live.state(task, "inspector")
+            changed = await live.handoff(
+                task,
+                "finding",
+                "inspector",
+                body | {"photo_evidence_id": str(uuid.uuid4())},
+            )
+            after_changed = await live.state(task, "inspector")
+
+            assert replay.status_code == 200, replay.text
+            assert replay.json() == before
+            assert after_replay == before, "an exact replay must not append a hand-off or evidence"
+            assert after_changed == before, "a conflicting replay must not change stored evidence"
+            assert changed.status_code == 409, (
+                "a stale submit with another explicit photo id is not the recorded request: "
+                f"{changed.status_code} {changed.text}"
+            )
+
+    run(target())
+
+
+@pytest.mark.parametrize("name_photo_field", [False, True], ids=["omitted", "explicit-null"])
+def test_legacy_submit_replay_without_photo_does_not_approve_a_later_photo(name_photo_field):
+    """Keep the existing optional-photo contract without calling it exact-payload replay.
+
+    Historical hand-offs do not store whether photo_evidence_id was omitted or null.
+    Both requests mean the existing automatic-photo submit. The legal photo change is
+    no-photo -> inserted-photo, since v260 forbids replacing a photo already present.
+    Replaying the old receipt must not create a new version or approve the added photo.
+    """
+
+    async def target():
+        async with Live() as live:
+            task = await live.assign()
+            accepted = await live.handoff(task, "accept", "inspector", {"expected_revision": 0})
+            assert accepted.status_code == 200, accepted.text
+            body = {
+                "expected_revision": 1,
+                "action": "submit",
+                "reason": "observed before photo upload",
+                "notes": "field measurement recorded",
+            }
+            if name_photo_field:
+                body["photo_evidence_id"] = None
+            submitted = await live.handoff(task, "finding", "inspector", body)
+            assert submitted.status_code == 200, submitted.text
+            version = submitted.json()["current_evidence"]["version"]
+            assert submitted.json()["current_evidence"]["photo_evidence_id"] is None
+
+            photo_id = await live.photo("b" * 64)
+            before = await live.state(task, "inspector")
+            replay = await live.handoff(task, "finding", "inspector", body)
+            after_replay = await live.state(task, "inspector")
+            refused = await live.handoff(
+                task,
+                "finding",
+                "reviewer",
+                {
+                    "expected_revision": 2,
+                    "action": "approve",
+                    "reason": "approve the originally submitted version",
+                    "evidence_version": version,
+                },
+            )
+            after_review = await live.state(task, "inspector")
+
+            assert replay.status_code == 200, replay.text
+            assert replay.json() == before
+            assert after_replay == before
+            assert refused.status_code == 409, refused.text
+            assert after_review == before
+            assert before["current_evidence"]["photo_evidence_id"] == photo_id
+            assert before["current_evidence"]["version"] is None
+            assert before["evidence_pending_review"] is True
+            assert before["evidence_approved"] is False
+            assert (before["revision"], len(before["events"]), len(before["evidence"])) == (
+                2,
+                2,
+                1,
+            )
+            assert before["evidence"][0]["photo_evidence_id"] is None
+
+    run(target())
+
+
 def test_close_needs_an_approval_and_a_photo_added_after_it_invalidates_it():
     async def target():
         out = {}
