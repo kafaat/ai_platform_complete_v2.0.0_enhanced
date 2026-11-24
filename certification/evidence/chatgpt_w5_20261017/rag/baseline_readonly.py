@@ -1,8 +1,30 @@
-"""Read-only current-source baseline; absent dependencies produce no ranking scores.
+"""Current-source W5 Arabic RAG baseline; absent dependencies produce no ranking scores.
 
-Only loopback endpoints are accepted. No ingest, collection create, model pull,
-prefix rewrite or model substitution. Snapshot BM25 is explicitly a separate
-offline diagnostic, not a current-stack baseline.
+What this tool touches, exactly ("read-only" means **no Qdrant writes**, nothing more):
+
+* **Reads Qdrant.** ``GET /`` as a probe, then ``POST .../points/scroll`` and
+  ``POST .../points/search``. Every other non-GET call is refused in-process before it
+  is sent, so the tool cannot ingest, create a collection or delete points.
+* **Consumes the embedding service.** ``GET /api/tags`` resolves the model digest, and
+  one ``POST /api/embeddings`` per query computes the query vector. That is real load
+  on the local Ollama; the tool pulls no model and substitutes none.
+* **Writes one local report** at the explicit ``--output`` path, which must not exist
+  yet. The file is created exclusively and never overwritten, so a run cannot replace
+  the 17 October evidence (``baseline-results.json``) or any earlier run's report.
+
+Only plain-HTTP loopback origins without credentials, path, query or fragment are
+accepted. No prefix rewrite, reseed, model pull or model substitution. Snapshot BM25 is
+explicitly a separate offline diagnostic, not a current-stack baseline.
+
+Identity: the retriever keys its chunk cache by ``chunk_identity`` = ``(tenant_id,
+chunk_id)`` (``services/sahool-platform/core/rag/production_qdrant.py``). The frozen
+qrels are keyed by the logical ``chunk_id`` of the evaluated tenant. A chunk maps to a
+qrel key only when its tenant is the query's tenant; another tenant's chunk (the global
+reference corpus included) never counts. If such a chunk is eligible for the query, the
+frozen judgments do not cover the eligible corpus and the query is blocked, not graded.
+
+On failure the report keeps the exception class and a sanitized, length-capped detail:
+credentials in URLs and secret-looking values are redacted.
 """
 
 from __future__ import annotations
@@ -12,6 +34,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -21,6 +44,18 @@ ROOT = Path(__file__).resolve().parents[4]
 HERE = Path(__file__).resolve().parent
 SOURCE = ROOT / "services/sahool-platform/core/rag/production_qdrant.py"
 STAGES = ("dense", "sparse", "fusion", "expansion", "expansion_reranked")
+EXIT_OUTPUT_EXISTS = 3
+DETAIL_CAP = 240
+# A ranked result outside the evaluated tenant gets this key. It is never a qrel key
+# (checked per query), so the metric refuses to grade it instead of counting it.
+FOREIGN_PREFIX = "foreign-tenant:"
+
+_URL_USERINFO = re.compile(r"(?i)\b([a-z][a-z0-9+.-]*://)[^\s/@]+@")
+_BEARER = re.compile(r"(?i)\bbearer\s+[^\s,;'\"]+")
+_SECRET_PAIR = re.compile(
+    r"(?i)\b(api[-_]?key|access[-_]?token|token|password|passwd|secret|authorization)"
+    r"(\s*[:=]\s*)([^\s,;&'\"]+)"
+)
 
 
 def load(path, name):
@@ -46,17 +81,105 @@ def loopback(value):
     return value.rstrip("/")
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+def sanitize_detail(exc, secrets=()):
+    """Exception message for the report: one line, no credentials, at most DETAIL_CAP chars."""
+    text = str(exc)
+    for secret in secrets:
+        if secret:
+            text = text.replace(secret, "[REDACTED]")
+    text = _URL_USERINFO.sub(r"\1[REDACTED]@", text)
+    text = _BEARER.sub("Bearer [REDACTED]", text)
+    text = _SECRET_PAIR.sub(lambda m: f"{m.group(1)}{m.group(2)}[REDACTED]", text)
+    text = " ".join("".join(ch if ch.isprintable() else " " for ch in text).split())
+    if len(text) > DETAIL_CAP:
+        text = text[: DETAIL_CAP - 1] + "…"
+    return text
+
+
+def qrel_key(chunk, tenant_id):
+    """Qrel key for ``(tenant_id, chunk_id)``: the logical id for the evaluated tenant only."""
+    if chunk.tenant_id == tenant_id:
+        return chunk.chunk_id
+    return f"{FOREIGN_PREFIX}{chunk.tenant_id}:{chunk.chunk_id}"
+
+
+def evaluated_corpus(pq, chunks, query, reference_text):
+    """The chunks eligible for ``query``, keyed by qrel key; raise when qrels do not cover them.
+
+    ``chunks`` is the retriever's cache keyed by ``chunk_identity``. Only the query's
+    tenant maps onto the qrels. An eligible chunk of another tenant blocks the query.
+    """
+    tenant_id = query["tenant_id"]
+    judgments = query["judgments"]
+    if any(str(key).startswith(FOREIGN_PREFIX) for key in judgments):
+        raise ValueError("QREL_KEY_COLLIDES_WITH_FOREIGN_MARKER")
+    own, foreign = {}, []
+    for identity, chunk in chunks.items():
+        if tuple(identity) != tuple(pq.chunk_identity(chunk)):
+            raise ValueError("RETRIEVER_CHUNK_IDENTITY_CHANGED")
+        if chunk.tenant_id not in {tenant_id, pq.GLOBAL_REFERENCE_TENANT}:
+            continue
+        if not pq.matches_scope_filters(chunk, {}):
+            continue
+        if chunk.tenant_id == tenant_id:
+            own[chunk.chunk_id] = chunk
+        else:
+            foreign.append(identity)
+    missing = set(judgments) - set(own)
+    unjudged = set(own) - set(judgments)
+    changed = [cid for cid, chunk in own.items() if chunk.text != reference_text.get(cid)]
+    if foreign or missing or unjudged or changed:
+        raise ValueError(
+            f"CURRENT_CORPUS_NEEDS_NEW_JUDGMENTS: query {query['id']} tenant {tenant_id}: "
+            f"{len(missing)} judged not visible, {len(unjudged)} visible unjudged, "
+            f"{len(changed)} text changed, {len(foreign)} other-tenant visible"
+        )
+    return own
+
+
+def score_stage(metrics, chunks, judgments, k, tenant_id):
+    ids = [qrel_key(chunk, tenant_id) for chunk in chunks]
+    entry = {"ids": ids, "identities": [[c.tenant_id, c.chunk_id] for c in chunks]}
+    try:
+        entry["metrics"] = metrics(ids, judgments, k)
+    except ValueError:
+        entry["metrics"] = None
+        entry["reason"] = (
+            "result includes chunks outside the evaluated tenant; not graded"
+            if any(c.tenant_id != tenant_id for c in chunks)
+            else "judgments do not cover current corpus identities"
+        )
+    return entry
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--qdrant-url", default="http://127.0.0.1:6333")
     parser.add_argument("--ollama-url", default="http://127.0.0.1:11434")
-    parser.add_argument("--output", type=Path, default=HERE / "baseline-results.json")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--output",
+        type=Path,
+        required=True,
+        help="new report path; refused if it exists (the historical results are never rewritten)",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    args = parse_args(argv)
     qurl, ourl = loopback(args.qdrant_url), loopback(args.ollama_url)
-    manifest = json.loads((HERE / "evaluation-v1.json").read_text())
+    # Checked before any request, so a refused run consumes no embedding call; the
+    # exclusive create below still closes the window between this check and the write.
+    if args.output.exists():
+        print(f"refusing to overwrite existing report: {args.output}", file=sys.stderr)
+        return EXIT_OUTPUT_EXISTS
+    api_key = os.getenv("QDRANT_API_KEY")
+    manifest = json.loads((HERE / "evaluation-v1.json").read_text(encoding="utf-8"))
     corpus_path = ROOT / manifest["corpus_path"]
     assert hashlib.sha256(corpus_path.read_bytes()).hexdigest() == manifest["corpus_sha256"]
-    corpus = json.loads(corpus_path.read_text())
+    corpus = json.loads(corpus_path.read_text(encoding="utf-8"))
     pq = load(SOURCE, "w5_current_retriever")
     old = load(
         ROOT / "certification/evidence/chatgpt_closure_nine_20261016/rag/relevance_experiment.py",
@@ -68,6 +191,8 @@ def main():
         "evaluation_sha256": hashlib.sha256((HERE / "evaluation-v1.json").read_bytes()).hexdigest(),
         "source_sha256": hashlib.sha256(SOURCE.read_bytes()).hexdigest(),
         "scope": "local only; current source and existing data; no external environment",
+        "access": "reads Qdrant; computes query embeddings on the local embedding service; "
+        "writes this local report; no Qdrant writes",
         "mutations": [],
         "dependency_probes": {},
         "measurements": [],
@@ -100,9 +225,7 @@ def main():
             self.observed_expansion = super()._expand_neighbors(rows, **kwargs)
             return self.observed_expansion
 
-    client = ReadOnlyClient(
-        qurl, manifest["collection"], api_key=os.getenv("QDRANT_API_KEY"), timeout_s=3
-    )
+    client = ReadOnlyClient(qurl, manifest["collection"], api_key=api_key, timeout_s=3)
     model_api = ReadOnlyClient(ourl, "unused", timeout_s=3)
     for name, api, path in [("qdrant", client, "/"), ("ollama", model_api, "/api/tags")]:
         try:
@@ -114,6 +237,7 @@ def main():
             report["dependency_probes"][name] = {
                 "status": "UNAVAILABLE",
                 "error_type": type(exc).__name__,
+                "error_detail": sanitize_detail(exc, (api_key,)),
             }
     available = all(p["status"] == "AVAILABLE" for p in report["dependency_probes"].values())
     if available:
@@ -136,50 +260,36 @@ def main():
             report["hydration"] = retriever.rebuild_sparse_index()
             reference_text = {d["chunk_id"]: d["text"] for d in corpus["documents"]}
             for query in manifest["queries"]:
-                visible = {
-                    cid: chunk
-                    for cid, chunk in retriever._chunks.items()
-                    if chunk.tenant_id in {query["tenant_id"], pq.GLOBAL_REFERENCE_TENANT}
-                    and pq.matches_scope_filters(chunk, {})
-                }
-                if set(visible) != set(query["judgments"]) or any(
-                    chunk.text != reference_text.get(cid) for cid, chunk in visible.items()
-                ):
-                    raise ValueError("CURRENT_CORPUS_NEEDS_NEW_JUDGMENTS")
+                tenant_id = query["tenant_id"]
+                evaluated_corpus(pq, retriever._chunks, query, reference_text)
                 result = retriever.retrieve(
                     query["text"],
-                    tenant_id=query["tenant_id"],
+                    tenant_id=tenant_id,
                     top_k_initial=manifest["top_k_initial"],
                     final_k=manifest["k"],
                 )
                 stages = {
                     "dense": [
-                        pq.KnowledgeChunk.from_payload(p, fallback_id=i).chunk_id
+                        pq.KnowledgeChunk.from_payload(p, fallback_id=i)
                         for i, _, p in client.observed_dense
                     ],
-                    "sparse": [c.chunk_id for c, _ in retriever.bm25.observed_sparse],
-                    "fusion": [r.chunk.chunk_id for r in retriever.observed_fusion],
-                    "expansion": [r.chunk.chunk_id for r in retriever.observed_expansion],
-                    "expansion_reranked": [r.chunk.chunk_id for r in result],
+                    "sparse": [c for c, _ in retriever.bm25.observed_sparse],
+                    "fusion": [r.chunk for r in retriever.observed_fusion],
+                    "expansion": [r.chunk for r in retriever.observed_expansion],
+                    "expansion_reranked": [r.chunk for r in result],
                 }
-                scores = {}
-                for stage, ids in stages.items():
-                    try:
-                        scores[stage] = {
-                            "ids": ids,
-                            "metrics": old.metrics(ids, query["judgments"], manifest["k"]),
-                        }
-                    except ValueError:
-                        scores[stage] = {
-                            "ids": ids,
-                            "metrics": None,
-                            "reason": "judgments do not cover current corpus identities",
-                        }
+                scores = {
+                    stage: score_stage(
+                        old.metrics, chunks, query["judgments"], manifest["k"], tenant_id
+                    )
+                    for stage, chunks in stages.items()
+                }
                 report["measurements"].append(
                     {"query_id": query["id"], "status": "MEASURED", "stages": scores}
                 )
         except Exception as exc:
             report["runtime_blocker"] = type(exc).__name__
+            report["runtime_blocker_detail"] = sanitize_detail(exc, (api_key,))
     completed = {r["query_id"] for r in report["measurements"]}
     for query in manifest["queries"]:
         if query["id"] not in completed:
@@ -226,7 +336,12 @@ def main():
     report["status"] = (
         "BLOCKED" if any(r["status"] == "BLOCKED" for r in report["measurements"]) else "MEASURED"
     )
-    args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+    try:
+        with args.output.open("x", encoding="utf-8") as handle:
+            handle.write(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+    except FileExistsError:
+        print(f"refusing to overwrite existing report: {args.output}", file=sys.stderr)
+        return EXIT_OUTPUT_EXISTS
     print(
         json.dumps(
             {
