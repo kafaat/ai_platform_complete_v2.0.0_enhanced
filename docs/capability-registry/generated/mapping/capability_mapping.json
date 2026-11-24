@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7721,
+    "files_scanned": 7722,
     "files_by_kind": {
       "backend": 1317,
       "database": 358,
       "governance": 92,
       "mobile": 429,
       "other": 2253,
-      "tests": 2698,
+      "tests": 2699,
       "web": 574
     },
-    "unmapped_artifacts": 3672,
+    "unmapped_artifacts": 3673,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4199,
+      "python_functional": 4200,
       "raw": 3522
     },
-    "test_dependency_files": 2058,
-    "test_dependency_edges": 5577,
+    "test_dependency_files": 2059,
+    "test_dependency_edges": 5579,
     "test_dependency_bounded_files": 1178,
-    "test_dependency_unresolved_relations": 533
+    "test_dependency_unresolved_relations": 534
   },
   "capabilities": [
     {
@@ -47857,6 +47857,10 @@
     },
     {
       "path": "tests_v9/test_w4_05_model_lifecycle_defaults_pinned.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_w5_rag_baseline_tool.py",
       "kind": "tests"
     },
     {
@@ -101774,6 +101778,32 @@
       "unresolved": [
         {
           "line": 26,
+          "call": "spec_from_file_location"
+        }
+      ]
+    },
+    {
+      "test": "tests_v9/test_w5_rag_baseline_tool.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "directory_reference",
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [
+        {
+          "source": "certification/evidence/chatgpt_closure_nine_20261016/rag/relevance_experiment.py",
+          "kind": "source_read",
+          "line": 215
+        },
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "source_read",
+          "line": 32
+        }
+      ],
+      "unresolved": [
+        {
+          "line": 38,
           "call": "spec_from_file_location"
         }
       ]
