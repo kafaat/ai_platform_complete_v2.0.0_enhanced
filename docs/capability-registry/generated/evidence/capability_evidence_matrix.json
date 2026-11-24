@@ -5484,7 +5484,7 @@
         "backend": true,
         "database": true,
         "documentation": true,
-        "events": true,
+        "events": false,
         "integration_tests": true,
         "mobile": false,
         "production": false,
@@ -5515,7 +5515,7 @@
           "type": "documentation"
         },
         {
-          "present": true,
+          "present": false,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "events"
         },
@@ -5555,7 +5555,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 6,
+      "evidence_score": 5,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
