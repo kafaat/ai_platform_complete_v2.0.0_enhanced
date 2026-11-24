@@ -33,7 +33,10 @@ from typing import Any
 from api.water_balance import kc_map_for_crop
 
 ENGINE_NAME = "rue-fao56"
-ENGINE_VERSION = "rue-fao56/1"
+#: /2: an irrigated (non-rainfed) season whose seasonal irrigation is unknown no longer
+#: publishes an operational yield under an assumed-adequate supply; see
+#: ``unavailable_unknown_irrigation`` below. Rows written under /1 keep their version.
+ENGINE_VERSION = "rue-fao56/2"
 #: Version of the crop parameters below, stored on every ``season_simulation_runs`` row.
 #: Bump it whenever a value that changes a simulation result changes, and record what
 #: changed in ``PARAMETER_VERSION_HISTORY`` so rows written under an older version stay
@@ -255,6 +258,12 @@ class SimResult:
     # "estimated" | "unavailable_unrecognized_crop" — حالة الغلّة صراحةً لا رقم عامّ.
     yield_status: str = "estimated"
     limitations: list[str] = field(default_factory=list)
+    # A declared what-if, never an estimate of the real season: the yield the same model
+    # gives *if* water had been adequate. Set only when the operational yield is withheld
+    # because the irrigation supply of an irrigated season is unknown. Callers must not
+    # persist it as the season's estimated yield (``seasons.sim_yield_kg_ha``).
+    scenario_yield_kg_ha: float | None = None
+    scenario_basis: str | None = None
 
 
 # ─── دوالّ النموذج النقيّة ────────────────────────────────────────
@@ -578,13 +587,32 @@ def simulate_season(ctx: SimContext) -> SimResult:
         limitations.append("IRRIGATION_TOTAL_INVALID")
     water_supply: float | None = None
     rainfed = (ctx.irrigation_type or "").strip().lower() == "rainfed"
-    if missing_rain_days == 0 and (irrigation_total is not None or rain_total > 0 or rainfed):
+    # Irrigated (or undeclared) season with no seasonal irrigation record: the supply is
+    # unknown, not zero and not adequate. Rain alone is not this season's supply either —
+    # a little rain is no evidence that supplemental irrigation was sufficient.
+    irrigation_unknown = not rainfed and ctx.irrigation_mm_total is None
+    if irrigation_unknown:
+        limitations.append("IRRIGATION_SUPPLY_UNKNOWN")
+    # An invalid irrigation total is not a known supply either: rain alone must not stand in.
+    if (
+        missing_rain_days == 0
+        and not irrigation_unknown
+        and "IRRIGATION_TOTAL_INVALID" not in limitations
+        and (irrigation_total is not None or rain_total > 0 or rainfed)
+    ):
         # For a rainfed season, observed zero rain is a known zero supply, not an
         # absence of irrigation information that would justify assuming a watered crop.
         water_supply = rain_total + (irrigation_total or 0.0)
 
-    # Do not invent a stress factor when weather coverage is incomplete.
-    if water_need is None or missing_rain_days or "IRRIGATION_TOTAL_INVALID" in limitations:
+    # Do not invent a stress factor when weather coverage is incomplete, or when the
+    # supply of an irrigated season is unknown (the adequate-water what-if is computed
+    # separately as ``scenario_yield_kg_ha`` and never stands in for this factor).
+    if (
+        water_need is None
+        or missing_rain_days
+        or "IRRIGATION_TOTAL_INVALID" in limitations
+        or irrigation_unknown
+    ):
         water_stress: float | None = None
     elif water_supply is not None and water_need > 0:
         ratio = water_supply / water_need
@@ -596,8 +624,6 @@ def simulate_season(ctx: SimContext) -> SimResult:
             )
     else:
         water_stress = 1.0
-        if irrigation_total is None:
-            assumptions.append("لم يُعرَف الريّ الموسمي — افتُرض ريّ كافٍ (بلا إجهاد مائي).")
 
     # No quantitative yield from an incomplete canonical weather series.
     # Rule (a): with modeled LAI, one missing GDD day distorts the canopy curve, so no
@@ -620,6 +646,8 @@ def simulate_season(ctx: SimContext) -> SimResult:
         yield_status = "unavailable_missing_precipitation"
     elif recognized and "IRRIGATION_TOTAL_INVALID" in limitations:
         yield_status = "unavailable_invalid_irrigation"
+    elif recognized and irrigation_unknown and yield_status == "estimated":
+        yield_status = "unavailable_unknown_irrigation"
     elif recognized and rainfed and yield_status == "estimated":
         # Documented rain is the only modelled supply; initial soil water is not.
         yield_status = "estimated_water_unverified"
@@ -631,6 +659,15 @@ def simulate_season(ctx: SimContext) -> SimResult:
     yield_kg_ha = biomass_kg_ha * p.harvest_index * water_stress if yield_available else None
     yield_low = yield_kg_ha * (1.0 - _UNCERTAINTY_FRAC) if yield_kg_ha is not None else None
     yield_high = yield_kg_ha * (1.0 + _UNCERTAINTY_FRAC) if yield_kg_ha is not None else None
+    scenario_yield: float | None = None
+    if yield_status == "unavailable_unknown_irrigation" and water_need is not None:
+        scenario_yield = biomass_kg_ha * p.harvest_index
+        assumptions.append(
+            "لم يُعرَف الريّ الموسميّ لموسم غير مطريّ — لا يُنشَر إنتاج تشغيليّ. "
+            f"«لو كان الريّ كافياً» ≈ {scenario_yield:.0f} kg/ha سيناريو معلن فقط، "
+            "لا تقدير للموسم الفعليّ؛ لا كمّيّات ريّ في سجلّ الموسم المرتبط بالمحاكاة. "
+            "سجلّ الريّ التشغيليّ للحقل لا يدخل المحاكاة بعد."
+        )
 
     # افتراضات حول التواريخ/التغطية.
     if ctx.sowing_date is None:
@@ -700,16 +737,20 @@ def simulate_season(ctx: SimContext) -> SimResult:
         if yield_kg_ha is not None
         else f"الإنتاج غير متاح ({yield_status}) — مدخلات أساسية مفقودة أو غير مؤهلة"
     )
+    if scenario_yield is not None:
+        yield_text += f" (سيناريو «ريّ كافٍ» ≈{scenario_yield:.0f} kg/ha — ليس تقديراً تشغيليّاً)"
     gdd_text = f"{gdd_cum:.0f}" if missing_gdd_days == 0 else "غير مكتمل"
     water_text = f"{water_need:.0f}" if water_need is not None else "غير متاح"
     biomass_text = f"{biomass_kg_ha:.0f}" if not gdd_blocks_yield else "غير متاح"
     lai_text = f"{lai_peak:.2f}" if missing_gdd_days == 0 else "غير متاح"
+    # An unavailable estimate has no confidence to state: never render it as "الثقة 0%".
+    confidence_text = f"الثقة {confidence:.0%}" if yield_kg_ha is not None else "الثقة غير متاحة"
     rationale = (
         f"محاكاة {days} يوم: GDD={gdd_text}/{p.gdd_to_maturity:.0f} °C·day، "
         f"أقصى LAI={lai_text}، "
         f"كتلة حيويّة≈{biomass_text} kg/ha، "
         f"{yield_text}، احتياج الماء≈{water_text} mm. "
-        f"الثقة {confidence:.0%} — تقدير نموذجي (RUE/FAO-56)، عايِر ميدانيّاً."
+        f"{confidence_text} — تقدير نموذجي (RUE/FAO-56)، عايِر ميدانيّاً."
     )
 
     return SimResult(
@@ -734,7 +775,41 @@ def simulate_season(ctx: SimContext) -> SimResult:
         warnings_ar=warnings,
         yield_status=yield_status,
         limitations=limitations,
+        scenario_yield_kg_ha=round(scenario_yield, 1) if scenario_yield is not None else None,
+        scenario_basis="adequate_irrigation_assumed" if scenario_yield is not None else None,
     )
+
+
+#: SimResult fields the season route returns verbatim. ``limitations`` and ``warnings_ar`` are
+#: not here: the route merges them with window and spatial-provenance entries.
+RESPONSE_RESULT_FIELDS: tuple[str, ...] = (
+    "crop",
+    "crop_recognized",
+    "days_simulated",
+    "gdd_total",
+    "gdd_to_maturity",
+    "maturity_reached",
+    "lai_max",
+    "biomass_kg_ha",
+    "yield_kg_ha",
+    "yield_low_kg_ha",
+    "yield_high_kg_ha",
+    "yield_status",
+    "water_need_mm",
+    "water_supply_mm",
+    "water_stress_factor",
+    "scenario_yield_kg_ha",
+    "scenario_basis",
+    "confidence",
+    "rationale_ar",
+    "assumptions_ar",
+)
+
+
+def response_result_fields(result: SimResult) -> dict[str, Any]:
+    """The verbatim part of ``SeasonSimResponse`` (keeps ``routers/seasons.py`` under its size
+    ceiling; a new SimResult field the route returns is added here, once)."""
+    return {name: getattr(result, name) for name in RESPONSE_RESULT_FIELDS}
 
 
 # ─── نافذة المحاكاة (من البذار إلى نهاية الموسم) ───────────────────────────────────────

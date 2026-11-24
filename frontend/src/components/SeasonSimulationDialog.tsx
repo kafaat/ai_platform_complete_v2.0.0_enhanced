@@ -85,7 +85,11 @@ export function SeasonSimulationDialog({ seasonId, crops, inputs, onClose }: Pro
               <div className="grid grid-cols-2 gap-2">
                 <Stat label="الإنتاج المُقدَّر (kg/ha)"
                   value={r.yield_kg_ha == null ? 'غير متاح' : `${num(r.yield_low_kg_ha)} – ${num(r.yield_high_kg_ha)}`}
-                  hint={r.yield_kg_ha == null ? `السبب: ${r.yield_status} — ليس صفراً مرصوداً` : `المركزي ≈ ${num(r.yield_kg_ha)}`} />
+                  hint={r.yield_kg_ha != null
+                    ? `المركزي ≈ ${num(r.yield_kg_ha)}`
+                    : r.scenario_yield_kg_ha != null
+                      ? `لا كمّيّات ريّ في سجلّ الموسم المرتبط بالمحاكاة — سيناريو «لو كان الريّ كافياً» ≈ ${num(r.scenario_yield_kg_ha)}، ليس تقديراً للموسم؛ سجلّ الريّ التشغيليّ للحقل لا يدخل المحاكاة بعد`
+                      : `السبب: ${r.yield_status} — ليس صفراً مرصوداً`} />
                 <Stat label="GDD التراكمي (°C·day)"
                   value={`${num(r.gdd_total)} / ${num(r.gdd_to_maturity)}`}
                   hint={r.maturity_reached == null ? 'النضج غير قابل للتقييم' : r.maturity_reached ? 'بلغ النضج' : 'لم يبلغ النضج'} />
@@ -95,7 +99,9 @@ export function SeasonSimulationDialog({ seasonId, crops, inputs, onClose }: Pro
               </div>
 
               <div className="rounded-lg p-2 text-[11px] bg-slate-50 text-slate-600">
-                الكتلة الحيويّة ≈ {num(r.biomass_kg_ha)} kg/ha · الثقة {Math.round(r.confidence * 100)}٪
+                الكتلة الحيويّة ≈ {num(r.biomass_kg_ha)} kg/ha · الثقة{' '}
+                {/* An unavailable estimate has no confidence to show — never render it as 0٪. */}
+                {r.yield_kg_ha == null ? 'غير متاحة' : `${Math.round(r.confidence * 100)}٪`}
                 {!r.crop_recognized && ' · المحصول غير مُعرّف (نموذج عامّ)'}
               </div>
 
@@ -107,7 +113,14 @@ export function SeasonSimulationDialog({ seasonId, crops, inputs, onClose }: Pro
                 {r.manual_irrigation_used != null && ` · ريّ مسجَّل: ${r.manual_irrigation_used ? 'استُخدِم' : 'لم يُستخدَم'}`}
               </p>
 
-              <p className="text-[11px] text-slate-500 leading-relaxed">{r.rationale_ar}</p>
+              {/* The frontend can ship before the backend: an unavailable estimate from the
+                  rue-fao56/1 engine still says «الثقة 0%» in its rationale. Never show that next
+                  to «الثقة غير متاحة». */}
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                {r.yield_kg_ha == null
+                  ? r.rationale_ar?.replace(/الثقة\s*0\s*[٪%]/g, 'الثقة غير متاحة')
+                  : r.rationale_ar}
+              </p>
 
               {r.limitations?.length > 0 && (
                 <p className="text-[11px] text-slate-500">

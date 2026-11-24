@@ -167,7 +167,11 @@ def test_unrecognized_crop_gets_no_yield():
     assert r.yield_kg_ha is None and r.yield_low_kg_ha is None and r.yield_high_kg_ha is None
     assert r.yield_status == "unavailable_unrecognized_crop"
     assert "UNRECOGNIZED_CROP_NO_YIELD_ESTIMATE" in r.limitations
-    known = simulate_season(SimContext(crop="wheat", weather=_warm(120), gdd_daily_override=gdd))
+    known = simulate_season(
+        SimContext(
+            crop="wheat", weather=_warm(120), gdd_daily_override=gdd, irrigation_mm_total=1000.0
+        )
+    )
     assert known.yield_kg_ha and known.yield_status == "estimated"
 
 

@@ -160,6 +160,7 @@ async def simulate_season_endpoint(
     from api.season_simulation import (
         SimContext,
         canonical_historical_days,
+        response_result_fields,
         simulate_season,
         validated_engine_daily_series,
         weather_product_provenance,
@@ -548,18 +549,7 @@ async def simulate_season_endpoint(
 
     return SeasonSimResponse(
         season_id=season_id,
-        crop=result.crop,
-        crop_recognized=result.crop_recognized,
-        days_simulated=result.days_simulated,
-        gdd_total=result.gdd_total,
-        gdd_to_maturity=result.gdd_to_maturity,
-        maturity_reached=result.maturity_reached,
-        lai_max=result.lai_max,
-        biomass_kg_ha=result.biomass_kg_ha,
-        yield_kg_ha=result.yield_kg_ha,
-        yield_low_kg_ha=result.yield_low_kg_ha,
-        yield_high_kg_ha=result.yield_high_kg_ha,
-        yield_status=result.yield_status,
+        **response_result_fields(result),
         limitations=[
             *window.limitations(),
             *result.limitations,
@@ -570,12 +560,6 @@ async def simulate_season_endpoint(
             ),
             *(["CURRENT_BOUNDARY_DIFFERS_FROM_SEASON_START"] if changed_revisions else []),
         ],
-        water_need_mm=result.water_need_mm,
-        water_supply_mm=result.water_supply_mm,
-        water_stress_factor=result.water_stress_factor,
-        confidence=result.confidence,
-        rationale_ar=result.rationale_ar,
-        assumptions_ar=result.assumptions_ar,
         warnings_ar=[
             *window_warnings,
             *spatial_warnings,

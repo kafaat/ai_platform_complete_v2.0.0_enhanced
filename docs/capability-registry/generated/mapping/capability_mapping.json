@@ -32,7 +32,7 @@
       "raw": 3518
     },
     "test_dependency_files": 2053,
-    "test_dependency_edges": 5548,
+    "test_dependency_edges": 5549,
     "test_dependency_bounded_files": 1176,
     "test_dependency_unresolved_relations": 527
   },
@@ -6897,7 +6897,7 @@
           "score": 14
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:606",
+          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:590",
           "score": 14
         },
         {
@@ -31915,7 +31915,7 @@
           "score": 12
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:606",
+          "value": "/api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:590",
           "score": 11
         },
         {
@@ -70218,6 +70218,11 @@
       "unbounded_reasons": [],
       "edges": [
         {
+          "source": "services/sahool-platform/api/season_models.py",
+          "kind": "import",
+          "line": 294
+        },
+        {
           "source": "services/sahool-platform/api/season_simulation.py",
           "kind": "import",
           "line": 12
@@ -70248,12 +70253,12 @@
         {
           "source": "services/sahool-platform/api/routers/seasons.py",
           "kind": "import",
-          "line": 141
+          "line": 143
         },
         {
           "source": "services/sahool-platform/api/weather_service_client.py",
           "kind": "import",
-          "line": 142
+          "line": 144
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
@@ -92018,67 +92023,67 @@
           "import": "api.season_simulation"
         },
         {
-          "line": 175,
+          "line": 179,
           "import": "api.season_models"
         },
         {
-          "line": 204,
+          "line": 208,
           "import": "api.field_context"
         },
         {
-          "line": 217,
+          "line": 221,
           "import": "api.recommendations_hub"
         },
         {
-          "line": 227,
+          "line": 231,
           "import": "api.recommendations_hub"
         },
         {
-          "line": 238,
+          "line": 242,
           "import": "core.crop_cards.loader"
         },
         {
-          "line": 248,
+          "line": 252,
           "import": "core.crop_cards.loader"
         },
         {
-          "line": 300,
+          "line": 304,
           "import": "core.season_phenology"
         },
         {
-          "line": 310,
+          "line": 314,
           "import": "core.season_phenology"
         },
         {
-          "line": 320,
+          "line": 324,
           "import": "api.season_simulation"
         },
         {
-          "line": 321,
+          "line": 325,
           "import": "core.engines.ky_registry"
         },
         {
-          "line": 322,
+          "line": 326,
           "import": "core.season_phenology"
         },
         {
-          "line": 336,
+          "line": 340,
           "import": "core.engines.harvest_traceability"
         },
         {
-          "line": 346,
+          "line": 350,
           "import": "core.engines.harvest_traceability"
         },
         {
-          "line": 361,
+          "line": 365,
           "import": "api.main"
         },
         {
-          "line": 362,
+          "line": 366,
           "import": "api.routers.harvest_traceability"
         },
         {
-          "line": 379,
+          "line": 383,
           "import": "api.agronomic_state_consumers"
         }
       ]

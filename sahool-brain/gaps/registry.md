@@ -9270,3 +9270,18 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `services/sahool-platform/api/routers/decision_dispatch.py:410-435` (`Depends(require_permission(Permission.RECOMMENDATION_REQUEST))`، ووثيقة تبني إشعارات لمزارعٍ أو فنّيٍّ يتصرّف يدويّاً وتُرجِع `consumed_by=user_id`) · `docs/api/UI_DEBT_MAP.md:57` (P0 حرِج، صفحة؛ لكنّ السطور 22-24 من الوثيقة نفسها تَعُدّ الجدول قديماً وتسجّل إعادة تصنيفه operational — وهو ادّعاء لم يثبت) · `config/endpoint_ui_coverage_waivers.json` (backlog-ui/human مؤقّت حتّى 2027-03-31).
 - **الخلل:** صُنِّف المسار «عامل طابور آليّ» بلا عاملٍ يستدعيه في المستودع، بينما حمايته صلاحيّة بشريّة وحقوله تسجّل دَين واجهة P0 على `DecisionRuntimePage`.
 - **شرط الإغلاق:** إمّا ربط واجهة الاستهلاك في `DecisionRuntimePage` بدليل واجهة فعليّ (فيُرقّى إلى العقد الملزِم)، أو إثبات مستهلِك آليّ فعليّ ونقل الحماية إلى service token، ثمّ تصحيح الإعفاء.
+
+## SEASON-SIM-IRRIGATION-LOG-COMPLETENESS-UNATTESTED-01 — سجلّ الريّ الجزئيّ يُجمَع كأنّه كامل
+
+- **الحالة:** open — مقيسة 2026-11-23 مع إصلاح الريّ المجهول (فرع `claude/season-sim-unknown-irrigation-20261123`، محرّك `rue-fao56/2`).
+- **المصدر:** `services/sahool-platform/core/historical_season_context.py:101-109` (`irrigation_mm_total = sum(trusted_irrigation)` من أحداث الريّ في النافذة، و`None` حين لا حدث) · `services/sahool-platform/api/season_simulation.py` (`irrigation_unknown` يعني `irrigation_mm_total is None` فقط).
+- **الخلل:** سجلٌّ فيه بعض أحداث الريّ يُعامَل عرضاً معروفاً كاملاً، فيُحسَب الإجهاد المائيّ والغلّة والثقة من مجموعٍ ناقص. ولا وسيلة لإقرار «لم يُروَ هذا الموسم» إلّا بنوع الريّ `rainfed`، فلا يُميَّز الصفر المرصود عن سجلٍّ لم يُملأ.
+- **شرط الإغلاق:** إقرار اكتمال سجلّ الريّ للنافذة في التقاط الموسم (مصدره ومُقرّه ووقته)، فيصير المجموع عرضاً معروفاً فقط مع الإقرار وإلّا `IRRIGATION_SUPPLY_UNKNOWN`؛ مع اختبار سجلٍّ جزئيّ بلا إقرار لا يُنتِج غلّة تشغيليّة، وسياسة معلنة لصفوف `sim_*` المحفوظة قبلها.
+
+## SEASON-SIM-WATER-LEDGER-NOT-CONSUMED-01 — ريّ الحقل المسجَّل تشغيليّاً لا يدخل محاكاة الموسم
+
+- **الحالة:** open — مقيسة 2026-11-24 على فرع `claude/season-sim-unknown-irrigation-20261123` (#1597) بعد مراجعة Devin (تعليق 4674512259).
+- **المصدر:** `services/sahool-platform/api/routers/irrigation_engineering.py:649-707` (مصالحة الريّ اليدويّ تكتب `irrigation_mm` في `water_ledger` لكلّ حقل ويوم) · `services/sahool-platform/api/routers/seasons.py:44-100` (مُحمِّل المحاكاة يقرأ `season_events` من سجلّ الموسم التاريخيّ المرتبط فقط) · `services/sahool-platform/core/historical_season_context.py:101-109`.
+- **الخلل:** موسمٌ صولِح ريُّه في `water_ledger` بلا أحداث ريّ في سجلّه التاريخيّ المرتبط يصل إلى المحرّك بـ`irrigation_mm_total=None`، فيُحجَب إنتاجه (`unavailable_unknown_irrigation`) مع أنّ الريّ مسجَّل في مكانٍ آخر من المنتج. قبل `rue-fao56/2` كان يُفترَض الريّ كافياً فيُخفى الانفصال.
+- **ما أُصلِح في #1597:** نصّ الحوار وافتراض المحرّك يقولان «لا كمّيّات ريّ في سجلّ الموسم المرتبط بالمحاكاة؛ سجلّ الريّ التشغيليّ للحقل لا يدخل المحاكاة بعد» بدل «الريّ غير مسجَّل — سجّل كمّيّات الريّ». الربط نفسه لم يُنفَّذ.
+- **شرط الإغلاق:** مُدخِل للمحاكاة من `water_ledger` محصور بالمستأجر والحقل والموسم ونافذة المحاكاة، مع إقرار اكتمال (`SEASON-SIM-IRRIGATION-LOG-COMPLETENESS-UNATTESTED-01`) وتمييز الصفر المرصود عن الغياب، ومنع الجمع المزدوج مع `season_events`؛ واختبار مسار يثبت أنّ ريّاً مُصالَحاً كاملاً بلا ربط تاريخيّ يُنتِج عرضاً معروفاً.

@@ -96,6 +96,65 @@ describe('HybridIndexPage offers the season simulation run (F-U01)', () => {
     expect(api.fetchSeasons).toHaveBeenLastCalledWith('fld_1');
   });
 
+  it('labels the adequate-irrigation what-if as a scenario when irrigation is unrecorded', async () => {
+    api.fetchSeasons.mockResolvedValue([SEASON]);
+    api.simulateSeason.mockResolvedValue({
+      ...RESULT, yield_kg_ha: null, yield_low_kg_ha: null, yield_high_kg_ha: null,
+      yield_status: 'unavailable_unknown_irrigation', limitations: ['IRRIGATION_SUPPLY_UNKNOWN'],
+      confidence: 0, scenario_yield_kg_ha: 3000, scenario_basis: 'adequate_irrigation_assumed',
+      rationale_ar: 'محاكاة 40 يوم: الإنتاج غير متاح (unavailable_unknown_irrigation). الثقة غير متاحة — تقدير نموذجي.',
+    });
+    renderPage('owner');
+    fireEvent.click(await runButton());
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'تشغيل المحاكاة' }));
+
+    await within(dialog).findByText(/سيناريو «لو كان الريّ كافياً»/);
+    expect(within(dialog).getByText(/ليس تقديراً للموسم/)).toBeInTheDocument();
+    // The simulation reads irrigation from the linked season record only, not the field's
+    // operational water ledger: the hint must not tell an operator who logged irrigation
+    // there that it is unrecorded.
+    expect(within(dialog).getByText(/سجلّ الموسم المرتبط بالمحاكاة/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/الريّ غير مسجَّل/)).toBeNull();
+    expect(within(dialog).getByText('الإنتاج المُقدَّر (kg/ha)').parentElement).toHaveTextContent('غير متاح');
+    // The stats line and the server rationale both state confidence; neither may say 0.
+    expect(within(dialog).getByText(/الكتلة الحيويّة/)).toHaveTextContent('الثقة غير متاحة');
+    expect(within(dialog).getByText(/محاكاة 40 يوم/)).toHaveTextContent('الثقة غير متاحة');
+    // Both percent signs: a server rationale with a Latin "%" must not slip past the check.
+    expect(within(dialog).queryByText(/الثقة\s*0\s*[٪%]/)).toBeNull();
+  });
+
+  it('drops the legacy «الثقة 0%» from an unavailable rue-fao56/1 rationale', async () => {
+    // The frontend deploys before the backend; the /1 engine still writes «الثقة 0%» into the
+    // rationale of an unavailable estimate.
+    api.fetchSeasons.mockResolvedValue([SEASON]);
+    api.simulateSeason.mockResolvedValue({
+      ...RESULT, yield_kg_ha: null, yield_low_kg_ha: null, yield_high_kg_ha: null,
+      yield_status: 'unavailable_missing_precipitation', confidence: 0,
+      rationale_ar: 'محاكاة 40 يوم: الإنتاج غير متاح. الثقة 0% — تقدير نموذجي (RUE/FAO-56)، عايِر ميدانيّاً.',
+    });
+    renderPage('owner');
+    fireEvent.click(await runButton());
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'تشغيل المحاكاة' }));
+
+    const rationale = await within(dialog).findByText(/محاكاة 40 يوم/);
+    expect(rationale).toHaveTextContent('الثقة غير متاحة');
+    expect(rationale).toHaveTextContent('عايِر ميدانيّاً');
+    expect(within(dialog).queryByText(/الثقة\s*0\s*[٪%]/)).toBeNull();
+  });
+
+  it('keeps an available estimate\'s rationale as the server wrote it', async () => {
+    api.fetchSeasons.mockResolvedValue([SEASON]);
+    api.simulateSeason.mockResolvedValue({ ...RESULT, rationale_ar: 'محاكاة 40 يوم: الثقة 40% — تقدير نموذجي.' });
+    renderPage('owner');
+    fireEvent.click(await runButton());
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'تشغيل المحاكاة' }));
+
+    expect(await within(dialog).findByText(/محاكاة 40 يوم/)).toHaveTextContent('الثقة 40%');
+  });
+
   it.each(['agronomist', 'worker', 'viewer', undefined])(
     'offers no run to role %s (the server grants field:edit to owner and manager only)',
     async (role) => {

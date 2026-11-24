@@ -39,6 +39,12 @@ def _gdd_series(crop: str | None, weather: list[DayWeather]) -> list[float]:
     return out
 
 
+# A recorded, ample seasonal irrigation total: tests whose subject is not the water balance
+# pass it so the known-supply path is exercised (an irrigated season with no irrigation
+# record withholds its yield — see TestUnknownIrrigation).
+_ADEQUATE_IRRIGATION_MM = 1000.0
+
+
 def _sim(crop, weather, **kw):
     """محاكاة موسم مع حقن سلسلة GDD المحرّك تلقائيّاً (ما لم تُمرَّر صراحةً) — نمط الراوتر."""
     kw.setdefault("gdd_daily_override", _gdd_series(crop, weather))
@@ -89,14 +95,14 @@ class TestSimulateBasics:
         assert r.gdd_total == 1320.0
 
     def test_positive_yield_and_biomass(self):
-        r = _sim("wheat", _warm_days(120))
+        r = _sim("wheat", _warm_days(120), irrigation_mm_total=_ADEQUATE_IRRIGATION_MM)
         assert r.biomass_kg_ha > 0
         assert r.yield_kg_ha > 0
         # الإنتاج < الكتلة الحيويّة (HI < 1)
         assert r.yield_kg_ha < r.biomass_kg_ha
 
     def test_yield_range_brackets_central(self):
-        r = _sim("wheat", _warm_days(120))
+        r = _sim("wheat", _warm_days(120), irrigation_mm_total=_ADEQUATE_IRRIGATION_MM)
         assert r.yield_low_kg_ha < r.yield_kg_ha < r.yield_high_kg_ha
 
     def test_water_need_positive(self):
@@ -125,8 +131,8 @@ class TestMaturityAndConfidence:
         assert r.confidence <= 0.85
 
     def test_unknown_crop_lower_confidence_and_warned(self):
-        known = _sim("wheat", _warm_days(120))
-        unknown = _sim("dragonfruit", _warm_days(120))
+        known = _sim("wheat", _warm_days(120), irrigation_mm_total=_ADEQUATE_IRRIGATION_MM)
+        unknown = _sim("dragonfruit", _warm_days(120), irrigation_mm_total=_ADEQUATE_IRRIGATION_MM)
         assert unknown.crop_recognized is False
         assert unknown.confidence < known.confidence
         assert any("غير مُعرّف" in w for w in unknown.warnings_ar)
@@ -141,10 +147,12 @@ class TestWaterStress:
         assert deficit.yield_kg_ha < full.yield_kg_ha
         assert any("عجز مائي" in w for w in deficit.warnings_ar)
 
-    def test_no_supply_assumes_no_stress(self):
+    def test_unknown_irrigation_is_not_assumed_adequate(self):
+        # Was ``test_no_supply_assumes_no_stress``: an unknown supply used to become
+        # water_stress=1.0 with a prose-only assumption and an operational yield.
         r = _sim("wheat", _warm_days(120))
-        assert r.water_stress_factor == 1.0
-        assert any("ريّ" in a for a in r.assumptions_ar)
+        assert r.water_stress_factor is None
+        assert r.yield_kg_ha is None
 
     def test_stress_factor_floor(self):
         r = simulate_season(
@@ -180,6 +188,127 @@ class TestEstimationAssumptions:
             SimContext(crop="wheat", sowing_date=date(2026, 1, 1), weather=_warm_days(90))
         )
         assert r.days_simulated == 90
+
+
+class TestUnknownIrrigation:
+    """An irrigated season with no irrigation record has an unknown supply — not zero,
+    not adequate. The operational yield is withheld; the adequate-water what-if is a
+    separate, declared scenario that is never the season's estimated yield."""
+
+    def test_withholds_operational_yield_and_declares_it_machine_readably(self):
+        r = _sim("wheat", _warm_days(120), irrigation_type="pivot")
+        assert r.yield_status == "unavailable_unknown_irrigation"
+        assert r.yield_kg_ha is None and r.yield_low_kg_ha is None and r.yield_high_kg_ha is None
+        assert r.confidence == 0.0
+        assert r.water_supply_mm is None
+        assert r.water_stress_factor is None
+        assert "IRRIGATION_SUPPLY_UNKNOWN" in r.limitations
+        assert not any("افتُرض ريّ كافٍ" in a for a in r.assumptions_ar)
+
+    def test_scenario_equals_the_adequate_supply_result_and_is_labelled(self):
+        weather = _warm_days(120)
+        unknown = _sim("wheat", weather, irrigation_type="pivot")
+        adequate = _sim(
+            "wheat", weather, irrigation_type="pivot", irrigation_mm_total=_ADEQUATE_IRRIGATION_MM
+        )
+        assert adequate.yield_status == "estimated" and adequate.water_stress_factor == 1.0
+        assert unknown.scenario_basis == "adequate_irrigation_assumed"
+        assert unknown.scenario_yield_kg_ha == adequate.yield_kg_ha
+        assert adequate.scenario_yield_kg_ha is None and adequate.scenario_basis is None
+        assert any("سيناريو" in a for a in unknown.assumptions_ar)
+        assert "ليس تقديراً تشغيليّاً" in unknown.rationale_ar
+
+    def test_unknown_supply_names_the_linked_record_not_an_unrecorded_irrigation(self):
+        # The simulation reads irrigation from the linked season record only; the field's
+        # operational water ledger does not feed it. The assumption must not tell an operator
+        # who logged irrigation there to "record irrigation amounts".
+        r = _sim("wheat", _warm_days(120), irrigation_type="pivot")
+        text = " ".join(r.assumptions_ar)
+        assert "سجلّ الموسم المرتبط بالمحاكاة" in text
+        assert "لا يدخل المحاكاة بعد" in text
+        assert "سجّل كمّيّات الريّ" not in text
+
+    def test_some_rain_is_not_evidence_of_adequate_supplemental_irrigation(self):
+        weather = _warm_days(120)
+        for d in weather[:5]:
+            d.rain_mm = 4.0
+        r = _sim("wheat", weather, irrigation_type="drip")
+        assert r.yield_status == "unavailable_unknown_irrigation"
+        assert r.water_supply_mm is None  # rain alone is not this season's supply
+
+    def test_undeclared_irrigation_type_is_treated_as_unknown_supply(self):
+        r = _sim("wheat", _warm_days(120))
+        assert r.yield_status == "unavailable_unknown_irrigation"
+
+    def test_observed_zero_irrigation_is_a_known_supply_not_unknown(self):
+        r = _sim("wheat", _warm_days(120), irrigation_type="pivot", irrigation_mm_total=0.0)
+        assert r.yield_status == "estimated"
+        assert r.water_supply_mm == 0.0
+        assert r.water_stress_factor is not None and r.water_stress_factor < 1.0
+        assert r.yield_kg_ha is not None and r.confidence > 0.0
+        assert "IRRIGATION_SUPPLY_UNKNOWN" not in r.limitations
+        assert r.scenario_yield_kg_ha is None
+
+    def test_invalid_irrigation_total_stays_invalid_without_a_scenario(self):
+        r = _sim("wheat", _warm_days(120), irrigation_type="pivot", irrigation_mm_total=-5.0)
+        assert r.yield_status == "unavailable_invalid_irrigation"
+        assert r.scenario_yield_kg_ha is None
+
+    def test_invalid_irrigation_total_with_rain_reports_no_rain_only_supply(self):
+        weather = _warm_days(120)
+        for d in weather[:10]:
+            d.rain_mm = 12.0
+        for bad in (float("nan"), -5.0):
+            r = _sim("wheat", weather, irrigation_type="pivot", irrigation_mm_total=bad)
+            assert r.yield_status == "unavailable_invalid_irrigation"
+            assert "IRRIGATION_TOTAL_INVALID" in r.limitations
+            assert r.water_supply_mm is None and r.water_stress_factor is None
+
+    def test_unavailable_estimate_states_no_confidence_in_the_rationale(self):
+        unknown = _sim("wheat", _warm_days(120), irrigation_type="pivot")
+        assert "الثقة غير متاحة" in unknown.rationale_ar
+        assert "الثقة 0%" not in unknown.rationale_ar and "الثقة 0٪" not in unknown.rationale_ar
+        known = _sim("wheat", _warm_days(120), irrigation_mm_total=_ADEQUATE_IRRIGATION_MM)
+        assert f"الثقة {known.confidence:.0%}" in known.rationale_ar
+
+    def test_rainfed_season_is_unaffected(self):
+        r = _sim("wheat", _warm_days(90), irrigation_type="rainfed")
+        assert r.yield_status == "estimated_water_unverified"
+        assert "IRRIGATION_SUPPLY_UNKNOWN" not in r.limitations
+        assert r.scenario_yield_kg_ha is None
+
+    def test_missing_weather_takes_precedence_and_publishes_no_scenario(self):
+        weather = _warm_days(120)
+        weather[3].rain_mm = None
+        r = _sim("wheat", weather, irrigation_type="pivot")
+        assert r.yield_status == "unavailable_missing_precipitation"
+        assert r.scenario_yield_kg_ha is None
+
+
+class TestResponseResultFields:
+    """The route returns these SimResult fields verbatim via ``response_result_fields``."""
+
+    def test_every_field_exists_on_the_result_and_the_response_model(self):
+        from dataclasses import fields as dc_fields
+
+        from api.season_models import SeasonSimResponse
+        from api.season_simulation import RESPONSE_RESULT_FIELDS, SimResult
+
+        result_fields = {f.name for f in dc_fields(SimResult)}
+        assert set(RESPONSE_RESULT_FIELDS) <= result_fields
+        assert set(RESPONSE_RESULT_FIELDS) <= set(SeasonSimResponse.model_fields)
+        assert len(set(RESPONSE_RESULT_FIELDS)) == len(RESPONSE_RESULT_FIELDS)
+        assert {"limitations", "warnings_ar"}.isdisjoint(RESPONSE_RESULT_FIELDS)
+
+    def test_carries_the_scenario_and_status_unchanged(self):
+        from api.season_simulation import response_result_fields
+
+        r = _sim("wheat", _warm_days(120), irrigation_type="pivot")
+        out = response_result_fields(r)
+        assert out["yield_status"] == "unavailable_unknown_irrigation"
+        assert out["scenario_yield_kg_ha"] == r.scenario_yield_kg_ha
+        assert out["scenario_basis"] == "adequate_irrigation_assumed"
+        assert out["confidence"] == r.confidence
 
 
 class TestObservedFapar:
@@ -223,8 +352,12 @@ class TestObservedFapar:
 
     def test_higher_observed_fapar_more_biomass(self):
         weather = _warm_days(80)
-        low = _sim("wheat", weather, observed_fapar=0.2)
-        high = _sim("wheat", weather, observed_fapar=0.9)
+        low = _sim(
+            "wheat", weather, observed_fapar=0.2, irrigation_mm_total=_ADEQUATE_IRRIGATION_MM
+        )
+        high = _sim(
+            "wheat", weather, observed_fapar=0.9, irrigation_mm_total=_ADEQUATE_IRRIGATION_MM
+        )
         assert high.biomass_kg_ha > low.biomass_kg_ha
         assert high.yield_kg_ha > low.yield_kg_ha
 
@@ -282,8 +415,8 @@ class TestCropDifferences:
     def test_c4_maize_vs_wheat_biomass(self):
         # نفس الطقس: للذرة RUE أعلى لكن t_base أعلى أيضاً — نتأكّد فقط من نواتج موجبة مختلفة
         weather = _warm_days(120, t_min=18.0, t_max=32.0)
-        maize = _sim("maize", weather)
-        wheat = _sim("wheat", weather)
+        maize = _sim("maize", weather, irrigation_mm_total=_ADEQUATE_IRRIGATION_MM)
+        wheat = _sim("wheat", weather, irrigation_mm_total=_ADEQUATE_IRRIGATION_MM)
         assert maize.biomass_kg_ha > 0
         assert wheat.biomass_kg_ha > 0
         # معاملاتهما تختلف ⇒ النتائج ليست متطابقة

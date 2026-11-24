@@ -41,7 +41,7 @@ def test_partial_gdd_with_modeled_canopy_is_unavailable():
 
 @pytest.mark.unit
 def test_observed_fapar_keeps_its_yield_but_declares_unknown_maturity():
-    result = _sim("wheat", None, observed_fapar=0.6)
+    result = _sim("wheat", None, observed_fapar=0.6, irrigation_mm_total=1000.0)
     assert result.yield_kg_ha is not None and result.yield_kg_ha > 0
     assert "NO_GDD_EVIDENCE_MATURITY_UNKNOWN" in result.limitations
     # Rule (b): RUE×observed-fAPAR biomass does not pass through GDD, so the yield stands;

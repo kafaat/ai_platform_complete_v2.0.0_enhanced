@@ -94,6 +94,10 @@ export interface SeasonSimResult {
   water_need_mm:       number | null;
   water_supply_mm:     number | null;
   water_stress_factor: number | null;
+  // Declared what-if when the operational yield is withheld (irrigated season, irrigation
+  // unknown): "adequate_irrigation_assumed". Never the season's estimated yield.
+  scenario_yield_kg_ha?: number | null;
+  scenario_basis?:       string | null;
   confidence:          number;
   rationale_ar:        string;
   assumptions_ar:      string[];

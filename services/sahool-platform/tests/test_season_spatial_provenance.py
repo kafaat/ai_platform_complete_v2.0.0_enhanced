@@ -108,6 +108,7 @@ class _Conn:
         self.candidates = list(candidates)
         self.runs: list[tuple] = []
         self.executed: list[str] = []
+        self.execute_args: list[tuple[str, tuple]] = []
 
     @contextlib.asynccontextmanager
     async def transaction(self):
@@ -134,6 +135,7 @@ class _Conn:
 
     async def execute(self, sql, *args):
         self.executed.append(sql)
+        self.execute_args.append((sql, args))
         return "OK"
 
 
@@ -464,7 +466,24 @@ async def test_complete_historical_fao_et0_is_used_without_recomputation(monkeyp
     out = await route.simulate_season_endpoint("season-a", user=_USER)
     assert out.et0_provenance["source"] == "weather-service/historical-fao-et0"
     assert out.et0_provenance["source_snapshot_id"] == "test-wx-snapshot"
-    assert out.yield_status == "estimated"
+    # A pivot season with no irrigation record: the supply is unknown, so the operational
+    # yield is withheld and only the declared adequate-irrigation what-if is surfaced.
+    assert out.yield_status == "unavailable_unknown_irrigation"
+    assert out.yield_kg_ha is None
+    assert out.scenario_basis == "adequate_irrigation_assumed"
+    assert out.scenario_yield_kg_ha is not None and out.scenario_yield_kg_ha > 0
+    assert "IRRIGATION_SUPPLY_UNKNOWN" in out.limitations
+    assert out.confidence == 0.0
+    run_row = conn.runs[-1]
+    assert run_row[8] == "rue-fao56/2"
+    # The scenario never reaches the season projection that four pages show as the estimate.
+    updates = [
+        args for sql, args in conn.execute_args if "UPDATE seasons SET sim_yield_kg_ha" in sql
+    ]
+    assert len(updates) == 1
+    assert updates[0][1] is None  # sim_yield_kg_ha
+    assert out.scenario_yield_kg_ha not in updates[0]
+    assert "الثقة غير متاحة" in out.rationale_ar and "الثقة 0%" not in out.rationale_ar
 
 
 async def test_zero_coverage_satellite_point_is_not_a_yield_observation(monkeypatch):
