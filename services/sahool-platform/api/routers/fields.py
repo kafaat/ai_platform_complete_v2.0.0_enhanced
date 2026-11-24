@@ -1653,8 +1653,33 @@ async def delete_field(
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        conflict = _protected_reference_conflict(e, "حذف الحقل")
+        if conflict is not None:
+            raise conflict from e
         raise _db_unavailable("حذف الحقل", e) from e
     return {"field_id": field_id, "deleted": True}
+
+
+def _protected_reference_conflict(exc: Exception, action_ar: str) -> HTTPException | None:
+    """سجلٌّ محميّ (ON DELETE RESTRICT) يمنع الحذف المتتالي ⇒ 409 يسمّيه، لا 503.
+
+    قرار المالك (2026-11-24، مراجعة #1598): حقلٌ له سجلّ تحقّق ميدانيّ (v289) يُرفض حذفه
+    صراحةً كما تُرفض دفعات الحصاد (v278) — السجلّ لا يُمحى. والدمج والانقسام يحذفان الحقول
+    المصدر بالمسار نفسه فيُرفضان كذلك. كان خطأ المفتاح الأجنبيّ يسقط إلى «تعذّر القاعدة» (503)
+    والقاعدة سليمة. المعاملة تتراجع كاملةً فلا يُصدَر حدثٌ ولا يُحذف شيء.
+    """
+    if getattr(exc, "sqlstate", None) != "23503":
+        return None
+    table = str(getattr(exc, "table_name", "") or "")
+    if table.startswith("scouting_verification_"):
+        return HTTPException(
+            status_code=409,
+            detail=f"للحقل سجلّ تحقّق ميدانيّ (scouting_verification) لا يُمحى — يتعذّر {action_ar}.",
+        )
+    return HTTPException(
+        status_code=409,
+        detail=f"للحقل سجلّات مرتبطة لا تُحذف ({table or 'restricted reference'}) — يتعذّر {action_ar}.",
+    )
 
 
 # ─── دمج/انقسام الحقول ذرّيّاً (نقطتان تستبدلان لاذرّيّة الواجهة) ───────────────
@@ -1835,6 +1860,9 @@ async def merge_fields(
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
+        conflict = _protected_reference_conflict(e, "دمج الحقول")
+        if conflict is not None:
+            raise conflict from e
         raise _db_unavailable("دمج الحقول", e) from e
     background_tasks.add_task(
         _kick_imagery_processing,
@@ -1975,6 +2003,9 @@ async def split_field(
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
+        conflict = _protected_reference_conflict(e, "انقسام الحقل")
+        if conflict is not None:
+            raise conflict from e
         raise _db_unavailable("انقسام الحقل", e) from e
     # بعد الالتزام: معالجة صور مُستهدَفة لكلّ وليد (مهمّة خلفيّة لكلّ طفل).
     for child_result in result:

@@ -1,5 +1,5 @@
 {
-  "edge_count": 1141,
+  "edge_count": 1143,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -3753,6 +3753,16 @@
     },
     {
       "evidence": "services/sahool-platform/tests/test_field_aggregate_ports.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_field_delete_protected_reference.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -9452,6 +9462,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_field_delete_protected_reference.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_field_geometry_revert_overlap.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -11430,9 +11450,9 @@
     "CALLS": 46,
     "CONSUMES": 4,
     "EMITS": 3,
-    "READS": 616,
+    "READS": 617,
     "ROUTES_TO": 82,
-    "WRITES": 390
+    "WRITES": 391
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -11447,8 +11467,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 1007,
-      "resolved": 1006,
+      "observed": 1009,
+      "resolved": 1008,
       "unresolved_component_paths": 0
     }
   }

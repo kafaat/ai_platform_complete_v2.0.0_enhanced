@@ -9302,3 +9302,28 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الحالة:** fixed — مرشح محلي على أساس `d7bffb68958a740d72f071b97c206c22c98b8bd7`، غير مدمج؛ [الموضع](../../services/field-management-service/fm_task_inspection.py) فرع `_finding` لإعادة `submit` بمراجعة قديمة.
 - **الشاهد:** [اختبار المالك الحقيقي](../../tests_v9/test_field_task_inspection_live_pg.py) `test_submit_replay_binds_an_explicit_photo_id_to_the_recorded_version`: أعاد الأساس 200 لمعرف صورة صريح مخالف، ثم أعاد المرشح 409 دون حدث أو نسخة إضافية؛ ملف الاختبار نفسه مثبت ببصمة في إيصال المختبر المحلي. حالتا الصورة المغفلة وnull بقيتا ناجحتين.
 - **الإصلاح وحده:** يقارن المعرف الصريح بصورة النسخة المعادة. لا يختلق بصمة لطلب تاريخي لم يُحفظ، ولا يعيد اعتماد صورة ظهرت بعد ذلك. التفاصيل وحدود التوافق في [مواصفة الجسر](../../docs/specs/SCOUTING_VERIFICATION_BRIDGE_V1.md).
+
+## VERIFICATION-CONTEXT-READ-FAILURE-USES-UP-DELIVERY-01 — فشل قراءة سياق المالك يستهلك محاولة تسليم فيعلق السجل
+
+- **الحالة:** fixed — في PR متابعة #1598 (الفرع `claude/verification-bridge-review-fixes-20261124`، غير مدموج وقت الكتابة)؛ وجده Devin بعد دمج #1598 (`20bdffcc`) وأكّده المستشفى.
+- **المصدر:** [`fm_verification.py`](../../services/field-management-service/fm_verification.py) `dispatch_delivery`: على `20bdffcc` كانت المحاولة تُحسب عند الحجز (`attempts=attempts+1`) ثم تُقرأ حالة الشذوذ؛ فشلُ القراءة يصير `delivery_unknown` والمحاولة محسوبة بلا POST. عند 8 يصير `delivery_exhausted`، و`reconcile_exhausted` لا يرسل أبدًا، و`write_link` يرفض إعادة الربط ⇒ السجل عالق بعد تعافي المالك.
+- **الإصلاح:** القراءة قبل الحجز ولا تُحسب؛ فشلها المجهول ⇒ 503 والسجل كما هو؛ رفض الإعداد يُسجَّل `refused` بمحاولة مردودة فقط إن لم يُرسَل السجل قبلًا، وإلّا 503 بلا تغيير كي لا يُخفي شكّ POST سابق. بلا تغيير SQL.
+- **الشاهد:** `test_failed_context_reads_never_use_up_the_delivery` و`test_a_refused_read_after_an_unknown_send_keeps_the_uncertainty` في [الحالات المضادة](../../tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py)؛ تفشلان على `20bdffcc`.
+- **شرط التفعيل:** قبل تشغيل `FM_SCOUTING_VERIFICATION_ENABLED` أو `VEGETATION_VERIFICATION_BRIDGE_ENABLED` في أيّ بيئة.
+
+## FIELD-DELETE-BLOCKED-BY-VERIFICATION-LINK-RETURNS-503-01 — حذف/دمج/انقسام حقلٍ له رابط تحقّق يُجيب 503 والقاعدة سليمة
+
+- **الحالة:** fixed — في PR متابعة #1598 نفسه (غير مدموج وقت الكتابة)؛ قرار المالك 2026-11-24: يُرفض بـ409 يسمّي السجلّ، كما تُرفض دفعات الحصاد (v278).
+- **المصدر:** v289 تشير إلى `field_tasks` بـ`ON DELETE RESTRICT` (`migrations/v289_scouting_verification_bridge.sql:19,21`)، و`delete_field` و`merge_fields` و`split_field` في [`api/routers/fields.py`](../../services/sahool-platform/api/routers/fields.py) تحذف من `fields` بالتتابع وكلّ خطأ قاعدة فيها كان 503.
+- **الإصلاح:** `_protected_reference_conflict`: خطأ المفتاح الأجنبيّ (23503) ⇒ 409 يسمّي سجلّ التحقّق والعمليّة؛ أيّ قيد محميّ آخر ⇒ 409 عامّ؛ عطل القاعدة الفعليّ يبقى 503. المعاملة تتراجع كاملةً.
+- **الشاهد:** [`test_field_delete_protected_reference.py`](../../services/sahool-platform/tests/test_field_delete_protected_reference.py)؛ حالتا 409 تفشلان على الموجّه السابق، وحارس بنيويّ يُلزم كلّ مسار يحذف من `fields` بالمرور على الدالّة.
+- **شرط التفعيل:** قبل تشغيل `FM_SCOUTING_VERIFICATION_ENABLED` أو `VEGETATION_VERIFICATION_BRIDGE_ENABLED` في أيّ بيئة.
+
+## VERIFICATION-DISPATCH-REVEALS-A-FINISHED-DELIVERY-TO-A-NON-ASSESSOR-01 — مسار التسليم يكشف سجلًّا نهائيًّا لغير كاتب التقييم
+
+- **الحالة:** open — الإصلاح في PR متابعة #1598 (غير مدموج وقت الكتابة)؛ وهو صنف تفويض فيبقى open حتى يُغلقه المالك بعد الدمج.
+- **المصدر:** `dispatch_delivery` في [`fm_verification.py`](../../services/field-management-service/fm_verification.py) على `20bdffcc` كان يُرجع التسليم النهائيّ (غير المستنفد) قبل فحص كاتب التقييم، فيرى مستخدمٌ آخر في الحقل حالته وإيصاله وخطأه، بينما يُخفيه GET (404).
+- **الإصلاح:** `require_original_assessor` قبل أيّ ردّ أو قراءة من المالك (403 `delivery_requires_the_original_assessor`).
+- **الشاهد:** `test_dispatch_reveals_a_finished_delivery_only_to_its_assessor` (المالك لا يُنادى لغير الكاتب)؛ يفشل على `20bdffcc`.
+- **شرط التفعيل:** قبل تشغيل `FM_SCOUTING_VERIFICATION_ENABLED` أو `VEGETATION_VERIFICATION_BRIDGE_ENABLED` في أيّ بيئة.
+
