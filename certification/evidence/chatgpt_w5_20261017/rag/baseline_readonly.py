@@ -52,10 +52,11 @@ FOREIGN_PREFIX = "foreign-tenant:"
 
 # userinfo: user and optional password without whitespace (a valid URL has none), so a
 # later "@" in prose (``retry user@host``) is not swallowed with the text before it.
-# The lookbehind lets a match start only where a scheme-character run starts, so a long
+# The lookbehind lets a match start only where a scheme-character run starts (the scheme
+# group takes the whole run, so a URL after a lone + - . is still caught), and a long
 # letter-and-dot run is scanned once instead of once per letter (linear, not quadratic).
 # No input cut: whitespace collapsing later could bring a cut-off secret into the output.
-_URL_USERINFO = re.compile(r"(?i)(?<![a-z0-9+.-])([a-z][a-z0-9+.-]*://)[^\s/@:]*(?::[^\s/@]*)?@")
+_URL_USERINFO = re.compile(r"(?i)(?<![a-z0-9+.-])([a-z0-9+.-]*://)[^\s/@:]*(?::[^\s/@]*)?@")
 _AUTH_SCHEME = re.compile(r"(?i)\b(bearer|basic)\s+[^\s,;'\"]+")
 # Unquoted ``key=value`` and quoted JSON / repr forms (``"api_key": "v"``, ``key='v'``),
 # because a Qdrant HTTP error carries the raw (JSON) response body.

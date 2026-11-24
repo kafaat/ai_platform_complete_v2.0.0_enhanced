@@ -337,3 +337,10 @@ def test_padding_never_brings_part_of_a_secret_into_the_detail(padding):
     assert "S3CRET" not in out and "valueA" not in out
     out = tool.sanitize_detail(ValueError(padding + "https://user:hunter2hunter2@host/x"))
     assert "hunter2" not in out and "user:" not in out
+
+
+@pytest.mark.parametrize("prefix", ["-", ".", "+", "...", "_", "1", "x."])
+def test_url_password_after_a_scheme_character_is_redacted(prefix):
+    tool = _load(TOOL, "_w5_baseline_tool_prefix")
+    out = tool.sanitize_detail(ValueError(f"err {prefix}https://user:hunter2@host/x"))
+    assert "hunter2" not in out
