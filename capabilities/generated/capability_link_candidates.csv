@@ -753,7 +753,7 @@ FM-003,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/
 FM-003,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:607,5,applied
 FM-003,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:474,5,applied
 FM-003,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:102,5,applied
-FM-003,api,POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:447,5,applied
+FM-003,api,POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:451,5,applied
 FM-003,api,POST /internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:130,5,applied
 FM-003,api,POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:238,3,applied
 FM-003,api,POST /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:349,4,applied
@@ -1743,7 +1743,7 @@ OPS-001,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff
 OPS-001,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:607,4,applied
 OPS-001,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:474,4,applied
 OPS-001,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:102,4,applied
-OPS-001,api,POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:447,2,applied
+OPS-001,api,POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:451,2,applied
 OPS-001,api,POST /internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:130,2,applied
 OPS-001,api,POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:238,4,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/field_task.dart,4,applied

@@ -176,9 +176,14 @@ class VegetationVerificationClient:
             kind = classify_refusal(response.status_code, detail)
             reason = f"verification_remote_status:{response.status_code}"
             if isinstance(detail, str) and detail:
-                # Visible to an operator in last_error; an unrecognised detail is reduced to a
-                # short, plain token so a remote reply cannot inject arbitrary text there.
-                shown = detail if kind is not VerificationRemoteError else _sanitize(detail)
+                # Visible to an operator in last_error. Only the receiver's named codes appear
+                # as sent; anything else (an unknown reply, a 409/422 store message) is reduced to
+                # a short, plain token so a remote reply cannot inject arbitrary text there.
+                named = (
+                    response.status_code,
+                    detail,
+                ) in CONFIGURATION_REFUSALS | CONTENT_REJECTIONS
+                shown = detail if named else _sanitize(detail)
                 reason += f":{shown}"
             raise kind(reason, status=response.status_code, detail=detail)
         try:

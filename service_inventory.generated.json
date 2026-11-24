@@ -75,7 +75,7 @@
     "service": "field-management-service",
     "domain": "Unclassified / Support",
     "python_files": 13,
-    "python_loc": 3146,
+    "python_loc": 3151,
     "tests": 4,
     "routes": 24,
     "main": "services/field-management-service/main.py",

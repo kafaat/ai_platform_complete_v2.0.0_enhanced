@@ -245,8 +245,6 @@ def receipt_matches(remote, delivery, link):
 
 async def finish_delivery(caller, field_id, delivery, lease, state, *, error=None, receipt=None):
     async with caller_connection(caller) as conn:
-        # v289 lets a row leave `sending` only for the transaction that names its lease.
-        await conn.execute("SELECT set_config('app.verification_lease', $1, true)", str(lease))
         if state == "delivered":
             try:
                 await revalidate_delivery(conn, caller, field_id, delivery)
@@ -254,19 +252,25 @@ async def finish_delivery(caller, field_id, delivery, lease, state, *, error=Non
                 # Acceptance at another owner cannot be rolled back by changing
                 # the local label. Keep that fact and require a new human review.
                 state, error = "delivered_review_required", str(exc.detail)
-        # A configuration refusal applied nothing at the owner, so its attempt is refunded.
-        await conn.execute(
-            "UPDATE scouting_verification_outbox SET state=$4,last_error=$5,receipt=$6::jsonb,"
-            "attempts=attempts-CASE WHEN $4='refused' THEN 1 ELSE 0 END,"
-            "lease_token=NULL,lease_until=NULL,updated_at=clock_timestamp() "
-            "WHERE tenant_id=$1::uuid AND delivery_id=$2 AND lease_token=$3",
-            caller.tenant_id,
-            delivery["delivery_id"],
-            lease,
-            state,
-            error,
-            canonical(receipt) if receipt is not None else None,
-        )
+        # v289 lets a row leave `sending` only for the transaction that names its lease. The
+        # explicit block keeps the transaction-local setting and the UPDATE in one visible scope
+        # (inside caller_connection's transaction it is a savepoint; the setting survives its
+        # release), so tenant_guc_scope_guard sees it is never set outside a transaction.
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.verification_lease', $1, true)", str(lease))
+            # A configuration refusal applied nothing at the owner, so its attempt is refunded.
+            await conn.execute(
+                "UPDATE scouting_verification_outbox SET state=$4,last_error=$5,receipt=$6::jsonb,"
+                "attempts=attempts-CASE WHEN $4='refused' THEN 1 ELSE 0 END,"
+                "lease_token=NULL,lease_until=NULL,updated_at=clock_timestamp() "
+                "WHERE tenant_id=$1::uuid AND delivery_id=$2 AND lease_token=$3",
+                caller.tenant_id,
+                delivery["delivery_id"],
+                lease,
+                state,
+                error,
+                canonical(receipt) if receipt is not None else None,
+            )
         row = await load_delivery(conn, caller, field_id, delivery["delivery_id"])
         return delivery_view(row)
 

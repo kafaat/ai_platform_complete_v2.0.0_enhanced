@@ -126,3 +126,12 @@ def test_a_key_id_the_assertion_cannot_carry_is_not_configured(client_module, mo
 
 def test_a_signable_configuration_is_configured(client_module):
     assert client_module.VegetationVerificationClient().configured() is True
+
+
+def test_a_rejection_shows_only_a_named_code_as_sent(client_module):
+    named = _error(client_module, 403, {"detail": "verification_request_body_binding_mismatch"})
+    assert str(named) == "verification_remote_status:403:verification_request_body_binding_mismatch"
+    store = _error(client_module, 409, {"detail": "version conflict <b>" + "z" * 200})
+    assert type(store) is client_module.VerificationRemoteRejected
+    shown = str(store).removeprefix("verification_remote_status:409:")
+    assert len(shown) <= 80 and "<" not in shown and " " not in shown
