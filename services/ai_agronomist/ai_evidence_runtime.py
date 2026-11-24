@@ -465,16 +465,50 @@ def _trusted_crop_for_retrieval(
     return None
 
 
-def _generation_scope(req: Any, retrieval_crop: str | None) -> dict[str, str | None]:
+def _trusted_region_for_generation(
+    field_state: dict[str, Any] | None, field_id: str | None, tenant_id: str | None
+) -> str | None:
+    """A field question's region, read from the owner's field record.
+
+    The platform's AI context pack carries the field row as ``field_profile``
+    (``to_jsonb(f.*)`` in ``field_ai_context._fetch_field_profile``), so ``fields.region``
+    (v33/v104) arrives with the same owner read that supplies the crop card. A general
+    question has no owner record, so this returns None for it.
+
+    The pack must name this field and this tenant. The owner read already checks that, but a
+    service caller may supply ``current_field_state`` itself, and another field's region must
+    not decide which approved references this question may use. ``fields.region`` is what the
+    tenant saved for its own field (client value or reverse geocoding at creation), not a
+    verified location; it is trusted per question only in that it is not sent with the question.
+    """
+    if not field_id:
+        return None
+    pack = _extract_ai_context_pack(field_state)
+    if not isinstance(pack, dict) or pack.get("field_id") != field_id:
+        return None
+    if tenant_id is None or str(pack.get("tenant_id")) != str(tenant_id):
+        return None
+    profile = (pack or {}).get("field_profile")
+    region = profile.get("region") if isinstance(profile, dict) else None
+    if isinstance(region, str) and region.strip():
+        return region.strip()
+    return None
+
+
+def _generation_scope(
+    req: Any, retrieval_crop: str | None, owner_region: str | None = None
+) -> dict[str, str | None]:
     """The crop and region the reference-approval gate matches an excerpt against.
 
     Same trust rule as retrieval: a field question takes the crop from the owner's crop card
-    (``retrieval_crop``) and its region stays unknown, because the owner context carries no
-    region and a client-sent one must not admit an excerpt for that field. A general question
-    has no owner record, so the client's crop and region are its only scope.
+    (``retrieval_crop``) and the region from the owner's field record (``owner_region``, from
+    ``_trusted_region_for_generation``). A client-sent ``req.region`` is ignored for a field
+    question, so it cannot admit an excerpt for that field; a field whose record has no region
+    keeps the region unknown. A general question has no owner record, so the client's crop and
+    region are its only scope.
     """
     if req.field_id:
-        return {"crop": retrieval_crop, "region": None}
+        return {"crop": retrieval_crop, "region": owner_region or None}
     region = req.region.strip() if isinstance(req.region, str) else ""
     return {"crop": retrieval_crop, "region": region or None}
 
@@ -1055,6 +1089,8 @@ async def build_evidence_response(
 
         # The tenant's active season, not the request body, selects the crop.
         retrieval_crop = _trusted_crop_for_retrieval(req.crop, field_state, req.field_id)
+        # The same owner read gives a field question its region (never the client's).
+        retrieval_region = _trusted_region_for_generation(field_state, req.field_id, tenant_id)
         kg_available = False
         kg_payload = {"edges": []}
         kg_failure = {}
@@ -1104,7 +1140,11 @@ async def build_evidence_response(
                         "query": retrieval_query,
                         "crop": retrieval_crop,
                         "field_id": req.field_id,
-                        "region": req.region,
+                        # A field question sends no region filter: retrieval matches region
+                        # exactly and drops tenant chunks without region metadata, so the
+                        # owner region is applied only by the reference-approval gate. The
+                        # client's region never narrows a field question.
+                        "region": None if req.field_id else req.region,
                         "source_type": None,
                         "final_k": req.final_k,
                     },
@@ -1152,7 +1192,8 @@ async def build_evidence_response(
     rag_payload = rag_resp.json() if rag_available else {"annotations": []}
     # Keep unreviewed seed pointers auditable while excluding their claim text from generation.
     usable, unreviewed = partition_generation_references(
-        rag_payload.get("annotations") or [], **_generation_scope(req, retrieval_crop)
+        rag_payload.get("annotations") or [],
+        **_generation_scope(req, retrieval_crop, retrieval_region),
     )
     rag_payload = {**rag_payload, "annotations": usable}
     annotations = {
