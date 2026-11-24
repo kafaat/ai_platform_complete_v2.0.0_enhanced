@@ -20,7 +20,7 @@ class TestModelSelector:
         assert d.allowed_model == ModelTier.RULES_ONLY
 
     def test_pseudoreplication_caps_effective_n(self):
-        # 100 records but 1 farm x 3 seasons = 3 independent units
+        # 100 records but 1 farm x 3 seasons = a nominal ceiling of 3
         eff = effective_sample_size(100, 1, 3)
         assert eff == 3  # bound by independence, not raw count
 

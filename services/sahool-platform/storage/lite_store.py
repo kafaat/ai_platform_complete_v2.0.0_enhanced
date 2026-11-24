@@ -422,7 +422,7 @@ def independent_units(district_id, crop=None, db_path: Path = DEFAULT_DB) -> dic
 
 
 def yield_sample_units(rows: list[dict]) -> dict:
-    """Count independent units in exactly the rows used for calibration."""
+    """Count records, farms and seasons in exactly the rows used for calibration (nominal units, not an independence measure)."""
     farms = len({r["tenant_id"] for r in rows})
     seasons = len({r["season_year"] for r in rows})
     return {"records": len(rows), "farms": farms, "seasons": seasons}
