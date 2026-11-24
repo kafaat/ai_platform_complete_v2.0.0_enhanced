@@ -2,8 +2,8 @@
 
 `capability_mapping_engine` reads route, table and event strings from every file it maps
 to a capability. Before this test it did so for plans and other documents too, so a plan
-that named a schema id (`sahool.review-closure-register.v1`) next to `IRR-003` was counted
-as irrigation event evidence. On main ee8c4c75 that gave 16 capabilities 103 events, 28
+that named a schema id next to a capability id was counted as that capability's event
+evidence. On main ee8c4c75 that gave 16 capabilities 103 events, 28
 routes and 19 tables from non-code files (found by Devin on #1602).
 """
 
