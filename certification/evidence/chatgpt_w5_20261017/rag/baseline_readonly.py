@@ -50,11 +50,13 @@ DETAIL_CAP = 240
 # (checked per query), so the metric refuses to grade it instead of counting it.
 FOREIGN_PREFIX = "foreign-tenant:"
 
-_URL_USERINFO = re.compile(r"(?i)\b([a-z][a-z0-9+.-]*://)[^\s/@]+@")
-_BEARER = re.compile(r"(?i)\bbearer\s+[^\s,;'\"]+")
+_URL_USERINFO = re.compile(r"(?i)\b([a-z][a-z0-9+.-]*://)[^/@\s][^/@]*@")
+_AUTH_SCHEME = re.compile(r"(?i)\b(bearer|basic)\s+[^\s,;'\"]+")
+# Unquoted ``key=value`` and quoted JSON / repr forms (``"api_key": "v"``, ``key='v'``),
+# because a Qdrant HTTP error carries the raw (JSON) response body.
 _SECRET_PAIR = re.compile(
-    r"(?i)\b(api[-_]?key|access[-_]?token|token|password|passwd|secret|authorization)"
-    r"(\s*[:=]\s*)([^\s,;&'\"]+)"
+    r"(?i)\b(api[-_]?key|access[-_]?token|token|password|passwd|secret|authorization|key)"
+    r"([\"']?\s*[:=]\s*[\"']?)([^\s,;&'\"}]+)"
 )
 
 
@@ -88,7 +90,7 @@ def sanitize_detail(exc, secrets=()):
         if secret:
             text = text.replace(secret, "[REDACTED]")
     text = _URL_USERINFO.sub(r"\1[REDACTED]@", text)
-    text = _BEARER.sub("Bearer [REDACTED]", text)
+    text = _AUTH_SCHEME.sub(lambda m: f"{m.group(1)} [REDACTED]", text)
     text = _SECRET_PAIR.sub(lambda m: f"{m.group(1)}{m.group(2)}[REDACTED]", text)
     text = " ".join("".join(ch if ch.isprintable() else " " for ch in text).split())
     if len(text) > DETAIL_CAP:
@@ -172,8 +174,12 @@ def main(argv=None):
     qurl, ourl = loopback(args.qdrant_url), loopback(args.ollama_url)
     # Checked before any request, so a refused run consumes no embedding call; the
     # exclusive create below still closes the window between this check and the write.
-    if args.output.exists():
+    # lexists: a dangling symlink also counts as an existing path.
+    if os.path.lexists(args.output):
         print(f"refusing to overwrite existing report: {args.output}", file=sys.stderr)
+        return EXIT_OUTPUT_EXISTS
+    if not args.output.parent.is_dir():
+        print(f"output directory does not exist: {args.output.parent}", file=sys.stderr)
         return EXIT_OUTPUT_EXISTS
     api_key = os.getenv("QDRANT_API_KEY")
     manifest = json.loads((HERE / "evaluation-v1.json").read_text(encoding="utf-8"))

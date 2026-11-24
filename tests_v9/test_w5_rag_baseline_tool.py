@@ -270,3 +270,32 @@ def test_qdrant_write_is_refused_before_it_is_sent(monkeypatch, tmp_path, real_p
     assert code == 2 and report["runtime_blocker"] == "RuntimeError"
     assert report["runtime_blocker_detail"] == "baseline prohibits remote mutations"
     assert all(method in {"GET", "POST"} for method, _ in stack.requests)
+
+
+@pytest.mark.parametrize(
+    "raw,leak",
+    [
+        ('payload {"api_key": "sk-json-1"}', "sk-json-1"),
+        ("{'api_key': 'sk-repr-2'}", "sk-repr-2"),
+        ('api_key="sk-quoted-3"', "sk-quoted-3"),
+        ("https://x/?key=AIzaSECRET4", "AIzaSECRET4"),
+        ("authorization=Basic dXNlcjpwYXNz", "dXNlcjpwYXNz"),
+        ("Bearer abc.def.ghi failed", "abc.def.ghi"),
+        ("postgres://user:pa ss@h/db", "pa ss"),
+    ],
+)
+def test_sanitize_detail_redacts_quoted_and_scheme_secrets(raw, leak):
+    tool = _load(TOOL, "_w5_baseline_tool_sanitize")
+    assert leak not in tool.sanitize_detail(ValueError(raw))
+
+
+def test_dangling_symlink_or_missing_directory_is_refused_before_any_request(
+    monkeypatch, tmp_path, real_pq, corpus
+):
+    dangling = tmp_path / "dangling.json"
+    dangling.symlink_to(tmp_path / "nowhere.json")
+    stack = _Stack(real_pq, _seed(real_pq, corpus))
+    code, _ = _run(monkeypatch, tmp_path, real_pq, stack, output=dangling)
+    assert code == 3 and stack.requests == []
+    code, _ = _run(monkeypatch, tmp_path, real_pq, stack, output=tmp_path / "no-dir" / "r.json")
+    assert code == 3 and stack.requests == []
