@@ -305,10 +305,13 @@ def _catalog(stdout: str) -> tuple[dict[str, dict[str, str]], dict[str, str]]:
     summary: dict[str, str] = {}
     for ln in stdout.splitlines():
         if ln.startswith("SCHEMA_CATALOG "):
-            fields = dict(kv.split("=", 1) for kv in ln.split()[1:])
+            fields = dict(kv.split("=", 1) for kv in ln.split()[1:] if "=" in kv)
+            assert {"file", "table", "rls", "force_rls", "policies", "triggers", "grants"} <= set(
+                fields
+            ), f"malformed SCHEMA_CATALOG line: {ln!r}"
             rows[fields["table"]] = fields
         elif ln.startswith("SCHEMA_CATALOG_SUMMARY "):
-            summary = dict(kv.split("=", 1) for kv in ln.split()[1:])
+            summary = dict(kv.split("=", 1) for kv in ln.split()[1:] if "=" in kv)
     return rows, summary
 
 
@@ -333,7 +336,7 @@ def test_the_probe_prints_the_catalog_facts_of_a_named_migration_from_the_server
     assert grants["triggers"] == "farm_access_grant_provenance:O"
     # grants: non-owner ACL entries as role:PRIV|PRIV (sorted), or none for owner-only defaults.
     assert re.fullmatch(
-        r"none|[A-Za-z0-9_]+:[A-Z]+(\|[A-Z]+)*(,[A-Za-z0-9_]+:[A-Z]+(\|[A-Z]+)*)*", grants["grants"]
+        r"none|[^,:|=\s]+:[A-Z]+(\|[A-Z]+)*(,[^,:|=\s]+:[A-Z]+(\|[A-Z]+)*)*", grants["grants"]
     ), grants["grants"]
     assert summary["status"] == "READ" and summary["scope"] == "informational_not_gating"
     assert summary["tables"] == summary["present"] == summary["force_rls"] == "1"

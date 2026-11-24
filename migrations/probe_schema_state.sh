@@ -167,7 +167,8 @@ fi
 # Presence of tables and columns does not show that a migration's row-level security, policies or
 # triggers are in place. For the tables created by the catalog files, print what the server's own
 # catalog says: relrowsecurity, relforcerowsecurity, policy name:cmd:mode, trigger name:tgenabled and the
-# table grants other than the owner's (role:PRIV|PRIV from relacl; none = owner-only defaults).
+# table-level grants other than the owner's (role:PRIV|PRIV from relacl; none = owner-only defaults;
+# column grants and grant options are not shown). Names have | , : = and whitespace replaced by ?.
 # The files default to the highest-numbered vNNN migration in MANIFEST (not the last line: MANIFEST
 # re-runs older files after it); PROBE_CATALOG_FILES (comma-separated MANIFEST names) overrides.
 # This section is informational: it never changes status, the contract or the exit code, and it reads
@@ -178,6 +179,8 @@ catalog_status=READ
 catalog_reason=""
 catalog_files="${PROBE_CATALOG_FILES:-}"
 catalog_files="${catalog_files//[[:space:]]/}"
+# Drop empty and repeated entries, keeping the order given.
+catalog_files="$(tr ',' '\n' <<<"$catalog_files" | awk 'NF && !seen[$0]++' | paste -sd, -)"
 if [ -z "$catalog_files" ]; then
   catalog_files="$(sed -nE 's/^v([0-9]+)_[A-Za-z0-9_]+\.sql$/\1 &/p' "$WORK/files" | sort -n -k1,1 | tail -n 1 | cut -d' ' -f2)"
 fi
@@ -199,14 +202,15 @@ WITH t(ord, file, tbl) AS (VALUES ${cvalues})
 SELECT t.file, t.tbl,
        COALESCE(c.relrowsecurity::text, 'absent'),
        COALESCE(c.relforcerowsecurity::text, 'absent'),
-       COALESCE((SELECT string_agg(p.polname || ':' || p.polcmd::text || ':'
+       COALESCE((SELECT string_agg(regexp_replace(p.polname, '[|,:[:space:]=]', '?', 'g') || ':' || p.polcmd::text || ':'
                                    || CASE WHEN p.polpermissive THEN 'permissive' ELSE 'restrictive' END,
                                    ',' ORDER BY p.polname)
                  FROM pg_policy p WHERE p.polrelid = c.oid), 'none'),
-       COALESCE((SELECT string_agg(g.tgname || ':' || g.tgenabled::text, ',' ORDER BY g.tgname)
+       COALESCE((SELECT string_agg(regexp_replace(g.tgname, '[|,:[:space:]=]', '?', 'g') || ':' || g.tgenabled::text, ',' ORDER BY g.tgname)
                  FROM pg_trigger g WHERE g.tgrelid = c.oid AND NOT g.tgisinternal), 'none'),
-       COALESCE((SELECT string_agg(r.who || ':' || r.privs, ',' ORDER BY r.who)
-                 FROM (SELECT CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END AS who,
+       COALESCE((SELECT string_agg(r.who || ':' || r.privs, ',' ORDER BY r.who COLLATE \"C\")
+                 FROM (SELECT regexp_replace(CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END,
+                                             '[|,:[:space:]=]', '?', 'g') AS who,
                               string_agg(a.privilege_type, '|' ORDER BY a.privilege_type) AS privs
                        FROM aclexplode(c.relacl) a WHERE a.grantee <> c.relowner GROUP BY 1) r), 'none')
 FROM t LEFT JOIN pg_class c ON c.oid = to_regclass('public.' || t.tbl)
@@ -224,7 +228,8 @@ ORDER BY t.ord")"; then
     catalog_status=ERROR; catalog_reason=catalog_query_failed
   fi
 fi
-echo "SCHEMA_CATALOG_SUMMARY status=${catalog_status}${catalog_reason:+ reason=${catalog_reason}} files=${catalog_files:-none} tables=${n_catalog} present=${n_catalog_present} force_rls=${n_catalog_forced} scope=informational_not_gating"
+catalog_files_shown="${catalog_files//[^A-Za-z0-9_.,]/?}"
+echo "SCHEMA_CATALOG_SUMMARY status=${catalog_status}${catalog_reason:+ reason=${catalog_reason}} files=${catalog_files_shown:-none} tables=${n_catalog} present=${n_catalog_present} force_rls=${n_catalog_forced} scope=informational_not_gating"
 
 # حدُّ الدلالة (مراجعةُ المالك 2026-10-10): وجودُ الجداول والأعمدة لا يُثبت تطبيقَ الهجرات كاملةً —
 # القيودُ والفهارسُ وسياساتُ RLS والدوالّ لا تُقارَن هنا. PASS ليس اعتماداً للقاعدة.
