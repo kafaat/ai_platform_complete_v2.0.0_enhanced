@@ -32,7 +32,7 @@
       "raw": 3519
     },
     "test_dependency_files": 2053,
-    "test_dependency_edges": 5549,
+    "test_dependency_edges": 5552,
     "test_dependency_bounded_files": 1176,
     "test_dependency_unresolved_relations": 527
   },
@@ -27869,11 +27869,11 @@
           "score": 9
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:594",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:618",
           "score": 9
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1046",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1070",
           "score": 9
         }
       ],
@@ -30951,11 +30951,11 @@
           "score": 12
         },
         {
-          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:594",
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:618",
           "score": 12
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1046",
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:1070",
           "score": 12
         },
         {
@@ -76585,28 +76585,44 @@
       "bounded": false,
       "unbounded_reasons": [
         "directory_reference",
+        "reads_repository_data_file",
         "tree_wide_scan"
       ],
       "edges": [
         {
           "source": "services/ai_agronomist/__init__.py",
           "kind": "import",
-          "line": 27
+          "line": 29
         },
         {
           "source": "services/ai_agronomist/ai_evidence_runtime.py",
           "kind": "import",
-          "line": 27
+          "line": 29
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 202
+        },
+        {
+          "source": "services/sahool-platform/api/routers/field_ai_context.py",
+          "kind": "import",
+          "line": 202
+        },
+        {
+          "source": "services/sahool-platform/api/routers/field_ai_context.py",
+          "kind": "source_read",
+          "line": 195
         },
         {
           "source": "shared/ai/reference_approvals.py",
           "kind": "import",
-          "line": 28
+          "line": 30
         },
         {
           "source": "shared/ai/seed_claims.py",
           "kind": "import",
-          "line": 29
+          "line": 31
         }
       ],
       "unresolved": []

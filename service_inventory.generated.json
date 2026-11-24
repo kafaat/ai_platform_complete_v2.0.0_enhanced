@@ -27,7 +27,7 @@
     "service": "ai_agronomist",
     "domain": "AI Advisor",
     "python_files": 49,
-    "python_loc": 8363,
+    "python_loc": 8386,
     "tests": 1,
     "routes": 13,
     "main": "services/ai_agronomist/main.py",
