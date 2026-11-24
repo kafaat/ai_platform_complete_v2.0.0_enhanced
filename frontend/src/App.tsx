@@ -4,7 +4,7 @@
 // و setPage = navigate(path). هذا يحفظ renderPage() وكلّ الصفحات (٦٦) بلا
 // إعادة كتابة، ويُمكّن الروابط العميقة وزرّ الرجوع، مع حفظ كلّ البوّابات
 // (canAccess + isPageEnabled) كما هي تماماً.
-import { useEffect, Suspense, lazy, useCallback } from 'react';
+import { useEffect, Suspense, lazy, useCallback, useRef } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router';
 import { Loader2, Shield } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
@@ -16,7 +16,7 @@ import ToastContainer from './components/ToastContainer';
 import { canAccess, canCreateFarm } from './lib/permissions';
 import { isPageEnabled } from './lib/featureFlags';
 import { ALL_ROUTES, pageForPath, pathForPage } from './lib/routes';
-import { authScreenFor, resetTokenFor } from './lib/authScreens';
+import { RESET_PASSWORD_PATH, authScreenFor, resetTokenFor } from './lib/authScreens';
 import AppShell from './components/shell/AppShell';
 import { FeatureDisabledState, LoadingState } from './components/StateViews';
 import { isRuntimePageEnabled, useFeatureRegistry } from './hooks/useFeatureRegistry';
@@ -201,6 +201,13 @@ export default function App() {
   // كلمة المرور الجديدة؛ ?token= على أيّ مسار آخر يبقى دعوة (lib/authScreens).
   const authScreen = authScreenFor(location.pathname, location.search);
   const resetToken = resetTokenFor(location.pathname, location.search);
+  // The reset step opened in a signed-in tab keeps its identity if the session ends while it is
+  // on screen (the reset itself revokes sessions, so a background /auth/ call can answer 401).
+  // Without a shared key, logout swapped in a fresh LoginPage keyed by the token-less path,
+  // replacing «تم تغيير كلمة المرور بنجاح» (or a half-typed password) with the request form.
+  const onResetPath = location.pathname.replace(/\/+$/, '') === RESET_PASSWORD_PATH;
+  const resetStepKey = useRef<string | null>(null);
+  if (!onResetPath) resetStepKey.current = null;
   const goToLogin = () => navigate('/login');
   // Browser history state preserves a non-secret typed address without putting it in a URL.
   const recoveryEmail = typeof location.state?.email === 'string' ? location.state.email : '';
@@ -250,11 +257,12 @@ export default function App() {
   // and the password could not be changed. The session ends only after the reset
   // succeeds, when the user goes back to sign in with the new password.
   if (isAuthenticated && authScreen === 'reset-password') {
+    resetStepKey.current = 'reset-password-with-session';
     return (
       <>
         <Suspense fallback={<Loader />}>
           <LoginPage
-            key="reset-password-with-session"
+            key={resetStepKey.current}
             initialView="reset-confirm"
             initialToken={resetToken}
             onLogin={() => { void logout(); navigate('/login'); }}
@@ -274,10 +282,10 @@ export default function App() {
             : authScreen === 'signup'
               ? <SignupPage onLogin={goToLogin} />
               : <LoginPage
-                  key={authScreen}
-                  initialView={authScreen === 'forgot-password'
-                    ? 'reset-request'
-                    : authScreen === 'reset-password' ? 'reset-confirm' : 'login'}
+                  key={resetStepKey.current ?? authScreen}
+                  initialView={resetStepKey.current || authScreen === 'reset-password'
+                    ? 'reset-confirm'
+                    : authScreen === 'forgot-password' ? 'reset-request' : 'login'}
                   initialToken={resetToken}
                   initialEmail={recoveryEmail}
                   onLogin={goToLogin}
