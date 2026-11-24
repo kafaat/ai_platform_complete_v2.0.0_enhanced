@@ -32345,7 +32345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69601b7367c6cc6036ffec37e25d2c994e95ce4a2b58e01a569ec5123d7a6b97"
+          "content": "8f92ccd635521ebaef6754c5d64bf065495244a21fb25ac72aaf51cc91bea4d6"
         }
       ],
       "name": "services/sahool-platform/core/learning/model_selector.py",
@@ -33225,7 +33225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6537551199735fb8f947243e30ea3bf1b06b276bd5c3f8c462a21555dc5b91b9"
+          "content": "247aadd635e80eaba4c2f1073e03ec9226539aa37dffdef918a1c301705585e1"
         }
       ],
       "name": "services/sahool-platform/docs/CORE_BUILD_PROMPT.md",
@@ -33235,7 +33235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b32f8ec2f1a008aec783657727f20f64b50fce735efb5f10372a578c9a4b485"
+          "content": "3c5288ea27efaf176e4a62fa91cae44bfd8cb97b09804a0a289d2235b14c50a0"
         }
       ],
       "name": "services/sahool-platform/docs/CORE_DOCUMENTATION.md",
@@ -33475,7 +33475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b506d503afef47733bbd6ffb8a013f08f7a64440dc7b8ec2fa897f39d4f4e097"
+          "content": "7a17707810f28cf61f9d468190ed9997a47744639c41aa93c49d54318f044c7b"
         }
       ],
       "name": "services/sahool-platform/docs/SOURCE_DOCUMENTATION.md",
@@ -33645,7 +33645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "13949ee39c1314fe347576dd263c1412b62e6a171201a0b4fb586d1d7389e55b"
+          "content": "24dc5c0598900ea68209654ebac0c0c0af609d5d2f36aa5ad13eb04fb83c00b3"
         }
       ],
       "name": "services/sahool-platform/learn_from_harvest.py",
@@ -33735,7 +33735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d27d9d8cbd7c1d1de0dd4f936f29eaf3071e06560a4ed994825a335bb36cdff4"
+          "content": "d648c2f56d7d00d1f27399880c989e89fe8074b6cc0cc637d448a32d125b881b"
         }
       ],
       "name": "services/sahool-platform/storage/lite_store.py",
@@ -36625,7 +36625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf84148da688f22c443e47776ea76812fa6bc2ca51c3c6fac510815952747967"
+          "content": "86960a9507ca09a8b65bdbcfbce2dd7bec0be8b15adc6bee59f4e84d9e6da828"
         }
       ],
       "name": "services/sahool-platform/tests/test_learning.py",

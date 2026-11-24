@@ -50,7 +50,7 @@ def learn(district_id: str, crop: str | None = None) -> dict:
     climate = yaml.safe_load(open(climate_path, encoding="utf-8"))
     farms_required = climate.get("calibration", {}).get("farms_required", 5)
 
-    # model ladder check (honest: tiny data -> rules only)
+    # model ladder policy check (tiny counts -> rules only); not a quality claim
     model = select_model(units["records"], units["farms"], units["seasons"])
 
     if units["farms"] < farms_required:

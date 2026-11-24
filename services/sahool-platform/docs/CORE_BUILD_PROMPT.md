@@ -283,9 +283,9 @@
 **`class ModelDecision`**
   - الحقول: `allowed_model: ModelTier`, `raw_points: int`, `effective_points: int`, `n_independent_units: int`, `expected_r2_range: str`, `confidence: str`, `rationale_ar: str`
 - `def effective_sample_size(n_records: int, n_farms: int, n_seasons: int) -> int`
-  - Honest effective N, accounting for pseudoreplication.
+  - Nominal upper bound on the sample size from three counters (farms x seasons cap); not an independence estimate.
 - `def select_model(n_records: int, n_farms: int, n_seasons: int) -> ModelDecision`
-  - Return the most complex model the data HONESTLY supports.
+  - Return the most complex model family the policy allows for these counts; R² and confidence are policy assumptions.
 
 ### `core/learning/recommendation_log.py` (129 أسطر)
 
@@ -659,7 +659,7 @@ engines/fao56 ──► ري + ملوحة + GDD            │
 | 200–499 | Random Forest | تنوّع أكبر |
 | 500+ | BiLSTM | تسلسل زمني عميق |
 
-`effective_sample_size` يحسب N الفعّال مراعياً الازدواج الكاذب.
+`effective_sample_size` يعطي سقفاً اسميّاً من العدّادات (مزارع × مواسم)، لا تقديراً للاستقلال.
 
 ### المؤشّر عند الطلب (`index_scheduler`)
 | الفئة | المؤشّرات | التردد |

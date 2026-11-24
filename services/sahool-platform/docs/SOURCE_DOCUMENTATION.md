@@ -520,8 +520,8 @@ PYTHONPATH=. python3 -m pytest tests/   # أو السكربت المجمّع
 ### `core/learning/model_selector.py`
 - **class `ModelTier`**
 - **class `ModelDecision`**
-- **`effective_sample_size(n_records, n_farms, n_seasons)`** — Honest effective N, accounting for pseudoreplication.
-- **`select_model(n_records, n_farms, n_seasons)`** — Return the most complex model the data HONESTLY supports.
+- **`effective_sample_size(n_records, n_farms, n_seasons)`** — Nominal upper bound on the sample size from three counters (farms x seasons cap); not an independence estimate.
+- **`select_model(n_records, n_farms, n_seasons)`** — Return the most complex model family the policy allows for these counts; R² and confidence are policy assumptions.
 
 ### `core/learning/recommendation_log.py`
 - **class `RecommendationRecord`**
@@ -594,7 +594,7 @@ PYTHONPATH=. python3 -m pytest tests/   # أو السكربت المجمّع
 - **`add_observation(tenant_id, district_id, observable_id, measured_at, value, value_text, unit, source, zone_id, db_path)`**
 - **`add_yield(tenant_id, district_id, crop, season_year, yield_t_ha, variety, zone_id, planting_date, harvest_date, verified, db_path)`**
 - **`yields_for_district(district_id, crop, db_path)`**
-- **`independent_units(district_id, crop, db_path)`** — Count farms x seasons — the honest effective sample size.
+- **`independent_units(district_id, crop, db_path)`** — Count farms x seasons: a nominal ceiling, not a measure of independence.
 - **`add_snippet(topic, content_ar, citation, district_id, crop, db_path)`**
 - **`search_snippets(topic, district_id, crop, db_path)`** — Simple structured retrieval — no GPU, no embeddings. Region/crop
 - **`add_farmer_knowledge(fk_dict, db_path)`** — Store a structured FarmerKnowledge.to_dict() record.
