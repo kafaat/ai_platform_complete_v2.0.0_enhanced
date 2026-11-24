@@ -936,6 +936,33 @@ def iter_files() -> Iterable[Path]:
         yield p
 
 
+#: Paths that document, certify or gate the system rather than run it. A route, table or
+#: event named there is a mention, not an implementation, so it is not read as evidence.
+#: Runtime code outside services/ (agents/, shared/, sentinel_hub/, top-level contracts)
+#: is not listed here and keeps its evidence.
+NON_IMPLEMENTATION_PREFIXES = (
+    "docs/",
+    "certification/",
+    "sahool-brain/",
+    "runtime-verification/",
+    "skills/",
+    "scripts/ci/",
+    "scripts/diagnostics/",
+    ".github/",
+)
+NON_IMPLEMENTATION_SUFFIXES = (".md", ".rst", ".txt", ".adoc")
+
+
+def supplies_implementation_evidence(rel: str) -> bool:
+    """Whether routes, tables and events named in this file count as implementation evidence."""
+    n = rel.lower()
+    if classify(rel) == "governance":
+        return False
+    return not (
+        n.startswith(NON_IMPLEMENTATION_PREFIXES) or n.endswith(NON_IMPLEMENTATION_SUFFIXES)
+    )
+
+
 def classify(rel: str) -> str:
     n = rel.lower()
     name = Path(rel).name.lower()
@@ -1162,6 +1189,11 @@ def build() -> dict:
                 target["database"].append(rec)
             else:
                 target["other_evidence"].append(rec)
+            # Routes, tables and events are implementation evidence: a plan, doc, evidence
+            # file or CI gate that names a schema id or a route documents or checks it; it
+            # does not implement it.
+            if not supplies_implementation_evidence(rel):
+                continue
             for r in route_items(rel, text):
                 target["routes"].append({"value": r, "score": score})
             for d in db_items(rel, text):
