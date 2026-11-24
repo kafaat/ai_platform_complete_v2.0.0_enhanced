@@ -292,3 +292,110 @@ def test_every_discovered_route_is_classified() -> None:
         p for p in routes if mod.classify(p, cfg["classifications"]) == "unclassified"
     )
     assert unclassified == [], f"مسارات بلا تصنيف ({len(unclassified)}): {unclassified[:8]}"
+
+
+@pytest.mark.unit
+def test_service_token_scan_reads_each_route_function_on_the_real_tree() -> None:
+    """The service-token check is read in each route's own decorators and code.
+
+    A fixed 700-character window attributed the next route's token check to a short
+    route before it, and missed checks in long functions and in decorators with extra
+    arguments. A mention in a docstring or comment is not a check.
+    """
+    mod = _load_gate()
+    svc = mod.service_token_routes()
+    # Short routes with no token check of their own, followed by a token route.
+    for ep in ("/api/v1/weather/self-test", "/health", "/healthz", "/metrics"):
+        assert ep not in svc, ep
+    # Last route in its file: helper code after it is not its check.
+    assert "/runtime-identity" not in svc
+    # Mentions the removed token only in its docstring; it is a browser route.
+    assert "/v1/fields/{field_id}/timeseries" not in svc
+    # /readyz calls _require_service_token_ready(), which checks that the service's own
+    # token is configured, not a caller's token: a different name, not a check.
+    assert "/readyz" not in svc
+    # A check placed deep inside a long signature.
+    assert "/internal/fields/{field_id}/state" in svc
+    # Decorators with extra arguments (status_code=, response_model=).
+    assert "/v1/validate" in svc
+    assert "/v1/fields/{field_id}/soil/sampling-plans" in svc
+    # The four weather service-token routes stay classified.
+    for ep in (
+        "/api/v1/weather/env-doctor",
+        "/api/v1/weather/runtime-contract",
+        "/api/v1/weather/tile-cache/prune",
+        "/api/v1/weather/wind-source-selftest",
+    ):
+        assert ep in svc, ep
+
+
+@pytest.mark.unit
+def test_service_token_scan_on_a_synthetic_router(tmp_path, monkeypatch) -> None:
+    mod = _load_gate()
+    routers = tmp_path / "services" / "svc" / "routers"
+    routers.mkdir(parents=True)
+    long_params = "".join(f"    p{i}: int = 0,\n" for i in range(80))
+    (routers / "r.py").write_text(
+        '@router.get("/short")\n'
+        "async def short():\n"
+        "    return {}\n\n"
+        '@router.post("/guarded")\n'
+        "async def guarded(_=Depends(_require_service_token)):\n"
+        "    return {}\n\n"
+        '@router.post("/long")\n'
+        "async def long_route(\n" + long_params + "    _=Depends(_require_service_token),\n"
+        "):\n"
+        "    return {}\n\n"
+        '@router.get("/docstring-only")\n'
+        "async def docstring_only():\n"
+        '    """x_agent_token was removed: this is a browser route."""\n'
+        "    return {}\n\n"
+        '@router.get("/comment-only")\n'
+        "async def comment_only():\n"
+        "    # no _require_service_token here any more\n"
+        "    return {}\n\n"
+        '@router.get("/stacked-a")\n'
+        '@router.get("/stacked-b")\n'
+        "async def stacked(_=Depends(_require_service_token)):\n"
+        "    return {}\n\n"
+        '@router.post("/kwargs", status_code=201)\n'
+        "async def with_kwargs(x_agent_token: str = Header(None)):\n"
+        "    auth(x_agent_token)\n"
+        "    return {}\n\n"
+        '@router.post("/in-dependencies", dependencies=[Depends(_require_service_token)])\n'
+        "async def in_dependencies():\n"
+        "    return {}\n\n"
+        '@router.get("/public")\n'
+        '@router.get("/private", dependencies=[Depends(_require_service_token)])\n'
+        "async def unequal_decorators():\n"
+        "    return {}\n\n"
+        "@router.get(\n"
+        '    "/decorator-comment",\n'
+        "    # _require_service_token was removed\n"
+        ")\n"
+        "async def decorator_comment():\n"
+        "    return {}\n\n"
+        '@router.get("/description-only", description="x_agent_token was removed")\n'
+        "async def description_only():\n"
+        "    return {}\n\n"
+        '@router.post("/declared-only")\n'
+        "async def declared_only(x_agent_token: str = Header(None)):\n"
+        "    return {}\n\n"
+        '@router.get("/readyz-like")\n'
+        "async def readyz_like():\n"
+        "    _require_service_token_ready()\n"
+        "    return {}\n\n"
+        "def _helper_after_the_last_route():\n"
+        "    return _require_service_token\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(mod, "REPO", tmp_path)
+    assert mod.service_token_routes() == {
+        "/guarded",
+        "/long",
+        "/stacked-a",
+        "/stacked-b",
+        "/kwargs",
+        "/in-dependencies",
+        "/private",
+    }
