@@ -29,6 +29,9 @@ _DOCUMENTS = (
     "certification/evidence/soil_ingest_native_postgres_20261003.json",
     "runtime-verification/functional_probes/sahool-platform.json",
     "scripts/ci/weather_service_real_contract_gate.py",
+    "scripts/diagnostics/titiler_parity.py",
+    # A plan inside a service tree is still a document (reported on #1603).
+    "services/sahool-platform/docs/POSTGRESQL_MIGRATION_PLAN.md",
     "skills/sahool-gis/NDVI_TIMELINE.md",
     "sahool-brain/log.md",
     "README.md",
@@ -44,6 +47,9 @@ _CODE = (
     "shared/nats_stream_contract.py",
     "sentinel_hub/vegetation_real.py",
     "event_publish_contracts.yaml",
+    # Operational tools outside the CI gates keep their links (impact derivation).
+    "scripts/migrations/report_not_valid_constraint_violations.py",
+    "scripts/e2e/canonical_projection_jetstream_roundtrip.py",
 )
 
 
@@ -79,7 +85,16 @@ def test_the_generated_mapping_has_no_route_table_or_event_from_a_document():
     leaked = sorted(
         s
         for s in sources
-        if s.lower().startswith(("docs/", "certification/", "sahool-brain/", "scripts/", "skills/"))
+        if s.lower().startswith(
+            (
+                "docs/",
+                "certification/",
+                "sahool-brain/",
+                "scripts/ci/",
+                "scripts/diagnostics/",
+                "skills/",
+            )
+        )
         or s.lower().endswith(".md")
     )
     assert leaked == [], leaked[:10]

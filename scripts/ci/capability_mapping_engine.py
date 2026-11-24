@@ -946,7 +946,8 @@ NON_IMPLEMENTATION_PREFIXES = (
     "sahool-brain/",
     "runtime-verification/",
     "skills/",
-    "scripts/",
+    "scripts/ci/",
+    "scripts/diagnostics/",
     ".github/",
 )
 NON_IMPLEMENTATION_SUFFIXES = (".md", ".rst", ".txt", ".adoc")
