@@ -3680,6 +3680,28 @@
     ]
   },
   {
+    "path": "services/field-management-service/fm_verification_store.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "FM-003",
+        "score": 10,
+        "signals": [
+          "content:field boundary",
+          "content:field geometry"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 8,
+        "signals": [
+          "content:Scouting",
+          "dedup:Scouting=scouting"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/mcp_servers/market_db_authz.py",
     "kind": "backend",
     "candidates": [

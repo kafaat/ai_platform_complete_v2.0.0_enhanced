@@ -539,7 +539,16 @@ async def _finding(field_id: str, task_id: UUID, req: InspectionFinding, caller:
                 req.reason,
             )
             same_evidence = (
-                seen.get("notes") == req.notes
+                (
+                    seen.get("notes") == req.notes
+                    # Older clients may omit the photo id; that historical
+                    # request shape was not stored. An explicit id, however,
+                    # must name the photo in the version being acknowledged.
+                    and (
+                        req.photo_evidence_id is None
+                        or str(seen.get("photo_evidence_id")) == str(req.photo_evidence_id)
+                    )
+                )
                 if submit
                 else prior["evidence_version"] == req.evidence_version
             )

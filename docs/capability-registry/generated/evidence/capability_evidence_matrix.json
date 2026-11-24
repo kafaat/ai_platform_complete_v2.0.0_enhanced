@@ -6658,7 +6658,7 @@
         "mobile": true,
         "production": false,
         "runtime": false,
-        "runtime_instrumentation": false,
+        "runtime_instrumentation": true,
         "unit_tests": true,
         "web": false
       },
@@ -6709,7 +6709,7 @@
           "type": "runtime"
         },
         {
-          "present": false,
+          "present": true,
           "source": "capabilities/generated/capability_runtime_evidence.csv",
           "type": "runtime_instrumentation"
         },
@@ -6724,7 +6724,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 7,
+      "evidence_score": 8,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -6986,7 +6986,7 @@
         "mobile": true,
         "production": false,
         "runtime": false,
-        "runtime_instrumentation": false,
+        "runtime_instrumentation": true,
         "unit_tests": true,
         "web": true
       },
@@ -7037,7 +7037,7 @@
           "type": "runtime"
         },
         {
-          "present": false,
+          "present": true,
           "source": "capabilities/generated/capability_runtime_evidence.csv",
           "type": "runtime_instrumentation"
         },
@@ -7052,7 +7052,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 9,
+      "evidence_score": 10,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -7062,7 +7062,9 @@
       "integration_test_paths": [
         "services/scout-ingest-service/tests/test_media_live.py",
         "tests_v9/test_api_writes_persist_live_pg.py",
-        "tests_v9/test_field_task_scouting_anomaly_live_pg.py"
+        "tests_v9/test_field_task_scouting_anomaly_live_pg.py",
+        "tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py",
+        "tests_v9/test_scouting_verification_bridge_live_pg.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "evidence_above_declared",
@@ -7170,6 +7172,16 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_scouting_pins_persistence.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py",
+          "signal": "pytest.mark.integration"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_scouting_verification_bridge_live_pg.py",
+          "signal": "pytest.mark.integration"
         }
       ],
       "title": "Scouting",
