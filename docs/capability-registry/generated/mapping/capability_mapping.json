@@ -32,7 +32,7 @@
       "raw": 3519
     },
     "test_dependency_files": 2054,
-    "test_dependency_edges": 5556,
+    "test_dependency_edges": 5559,
     "test_dependency_bounded_files": 1176,
     "test_dependency_unresolved_relations": 527
   },
@@ -3624,6 +3624,14 @@
           "score": 20
         },
         {
+          "value": "fields @ scripts/farm_id_backfill.sql:38",
+          "score": 18
+        },
+        {
+          "value": "fields @ scripts/farm_id_backfill.sql:40",
+          "score": 18
+        },
+        {
           "path": "migrations/v287_farm_access_grants.down.sql",
           "score": 18,
           "signals": [
@@ -4003,14 +4011,6 @@
         },
         {
           "value": "model_experiment_assignment @ migrations/v118_phase9_autonomous_farm_os.sql:75",
-          "score": 11
-        },
-        {
-          "value": "model_experiment_assignment @ migrations/v118_phase9_autonomous_farm_os.sql:96",
-          "score": 11
-        },
-        {
-          "value": "model_registry_version @ migrations/v118_phase9_autonomous_farm_os.sql:62",
           "score": 11
         }
       ],
@@ -5335,7 +5335,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 3
+        "database": 5
       },
       "evidence_counts": {
         "backend": 38,
@@ -12492,6 +12492,10 @@
           "score": 17
         },
         {
+          "value": "sahool.events.agronomy.projection.requested @ scripts/e2e/canonical_projection_jetstream_roundtrip.py:20",
+          "score": 17
+        },
+        {
           "value": "soil.lab.result.published @ services/sahool-platform/api/event_bus.py:391",
           "score": 17
         },
@@ -12589,10 +12593,6 @@
         },
         {
           "value": "sahool.bogus.undocumented @ tests_v9/test_nats_publisher_coverage.py:60",
-          "score": 14
-        },
-        {
-          "value": "sahool.bogus.undocumented @ tests_v9/test_nats_publisher_coverage.py:64",
           "score": 14
         }
       ],
@@ -13156,7 +13156,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 84
+        "events": 85
       },
       "evidence_counts": {
         "backend": 8,
@@ -25736,6 +25736,22 @@
           "score": 15
         },
         {
+          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:115",
+          "score": 15
+        },
+        {
+          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:87",
+          "score": 15
+        },
+        {
+          "value": "v130_soil_lab_evidence_hardening.sql @ scripts/migrations/report_not_valid_constraint_violations.py:94",
+          "score": 15
+        },
+        {
+          "value": "v132_field_state_recompute_provenance.sql @ scripts/migrations/report_not_valid_constraint_violations.py:59",
+          "score": 15
+        },
+        {
           "value": "SAHOOL-v8.0 @ migrations/init_v8.sql:64",
           "score": 14
         },
@@ -27489,7 +27505,7 @@
         "backend": 16,
         "routes": 19,
         "database": 100,
-        "events": 58,
+        "events": 62,
         "web": 0,
         "mobile": 0,
         "tests": 93,
@@ -80286,12 +80302,12 @@
         {
           "source": "agents/notification/agent.py",
           "kind": "source_read",
-          "line": 43
+          "line": 46
         },
         {
           "source": "scripts/ci/capability_mapping_engine.py",
           "kind": "loader",
-          "line": 51
+          "line": 57
         },
         {
           "source": "scripts/ci/capability_mapping_engine.py",
@@ -80304,19 +80320,34 @@
           "line": 31
         },
         {
+          "source": "scripts/diagnostics/titiler_parity.py",
+          "kind": "source_read",
+          "line": 32
+        },
+        {
+          "source": "scripts/e2e/canonical_projection_jetstream_roundtrip.py",
+          "kind": "source_read",
+          "line": 52
+        },
+        {
+          "source": "scripts/migrations/report_not_valid_constraint_violations.py",
+          "kind": "source_read",
+          "line": 51
+        },
+        {
           "source": "sentinel_hub/vegetation_real.py",
           "kind": "source_read",
-          "line": 45
+          "line": 48
         },
         {
           "source": "services/field-management-service/main.py",
           "kind": "source_read",
-          "line": 38
+          "line": 41
         },
         {
           "source": "shared/nats_stream_contract.py",
           "kind": "source_read",
-          "line": 44
+          "line": 47
         }
       ],
       "unresolved": []
