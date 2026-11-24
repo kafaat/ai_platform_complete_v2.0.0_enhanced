@@ -366,81 +366,81 @@ async def dispatch_delivery(caller, field_id, delivery_id):
             delivery_id,
             lease,
         )
-    anomaly_ref = link["scope_snapshot"]["anomaly_ref"]
+    # The try block only decides the outcome; settle() records it once, outside, so a storage
+    # failure while recording can never be mistaken for the owner's verdict.
     try:
+        anomaly_ref = link["scope_snapshot"]["anomaly_ref"]
         remote = await remote_client.context(caller.tenant_id, anomaly_ref)
         if receipt_matches(remote, delivery, link):
-            return await finish_delivery(
-                caller, field_id, delivery, lease, "delivered", receipt=remote
-            )
-        if remote.get("snapshot_digest") != link["anomaly_snapshot_digest"].strip() or digest(
+            outcome = ("delivered", {"receipt": remote})
+        elif remote.get("snapshot_digest") != link["anomaly_snapshot_digest"].strip() or digest(
             remote.get("anomaly")
         ) != remote.get("snapshot_digest"):
-            return await finish_delivery(
-                caller,
-                field_id,
-                delivery,
-                lease,
-                "blocked",
-                error="anomaly_changed_without_matching_receipt",
+            outcome = ("blocked", {"error": "anomaly_changed_without_matching_receipt"})
+        else:
+            async with caller_connection(caller) as conn:
+                await revalidate_delivery(conn, caller, field_id, delivery)
+                held = await conn.fetchval(
+                    "SELECT true FROM scouting_verification_outbox WHERE delivery_id=$1 "
+                    "AND lease_token=$2 AND lease_until>clock_timestamp()",
+                    delivery_id,
+                    lease,
+                )
+                if not held:
+                    raise HTTPException(409, "verification_delivery_lease_lost")
+            response = await remote_client.complete(
+                caller.tenant_id,
+                anomaly_ref,
+                json.loads(delivery["body_text"]),
+                delivery["idempotency_key"],
             )
-        async with caller_connection(caller) as conn:
-            await revalidate_delivery(conn, caller, field_id, delivery)
-            held = await conn.fetchval(
-                "SELECT true FROM scouting_verification_outbox WHERE delivery_id=$1 AND lease_token=$2 "
-                "AND lease_until>clock_timestamp()",
-                delivery_id,
-                lease,
-            )
-            if not held:
-                raise HTTPException(409, "verification_delivery_lease_lost")
-        response = await remote_client.complete(
-            caller.tenant_id,
-            anomaly_ref,
-            json.loads(delivery["body_text"]),
-            delivery["idempotency_key"],
-        )
-        if not receipt_matches(response, delivery, link):
-            return await finish_delivery(
-                caller,
-                field_id,
-                delivery,
-                lease,
-                "delivery_unknown",
-                error="verification_receipt_not_bound",
-            )
-        return await finish_delivery(
-            caller, field_id, delivery, lease, "delivered", receipt=response
-        )
+            if receipt_matches(response, delivery, link):
+                outcome = ("delivered", {"receipt": response})
+            else:
+                outcome = ("delivery_unknown", {"error": "verification_receipt_not_bound"})
     except VerificationRemoteRefused as exc:
-        return await finish_delivery(caller, field_id, delivery, lease, "refused", error=str(exc))
+        outcome = ("refused", {"error": str(exc)})
     except VerificationRemoteRejected as exc:
-        return await finish_delivery(caller, field_id, delivery, lease, "rejected", error=str(exc))
+        outcome = ("rejected", {"error": str(exc)})
     except VerificationRemoteError as exc:
-        return await finish_delivery(
-            caller, field_id, delivery, lease, "delivery_unknown", error=str(exc)
-        )
+        outcome = ("delivery_unknown", {"error": str(exc)})
     except HTTPException as exc:
-        return await finish_delivery(
-            caller, field_id, delivery, lease, "blocked", error=str(exc.detail)
-        )
+        # A 4xx here is a local revalidation verdict (scope, grant, evidence, lease lost): the
+        # delivery must not be sent, so it is blocked. A 5xx is local storage being unavailable,
+        # which says nothing about the delivery: its outcome is unknown, not blocked.
+        if exc.status_code < 500:
+            outcome = ("blocked", {"error": str(exc.detail)})
+        else:
+            outcome = ("delivery_unknown", {"error": f"verification_local_storage:{exc.detail}"})
     except Exception as exc:
-        # Anything else after the claim (a bug, a malformed reply, a local storage error) must
-        # not leave the row in `sending` until its lease expires: settle it as unknown, since a
-        # request may already have reached the owner. If settling fails too, the lease expiry
-        # and the next dispatch's reconcile still apply.
-        try:
-            settled = await finish_delivery(
-                caller,
-                field_id,
-                delivery,
-                lease,
-                "delivery_unknown",
-                error=f"verification_dispatch_failed:{type(exc).__name__}",
-            )
-        except Exception:
-            raise exc from None
-        return settled
+        # A bug or a malformed reply: a request may already have reached the owner.
+        outcome = (
+            "delivery_unknown",
+            {"error": f"verification_dispatch_failed:{type(exc).__name__}"},
+        )
+    return await settle(caller, field_id, delivery, lease, *outcome)
+
+
+async def settle(caller, field_id, delivery, lease, state, fields):
+    """Record the outcome; if that fails, record `delivery_unknown` instead of stranding the row.
+
+    A failure while recording `delivered` (a connection blip) must never become `blocked`:
+    the owner accepted the result. If even the fallback cannot be written, the error
+    propagates and the 120-second lease plus the next dispatch's reconcile recover the row.
+    """
+    try:
+        return await finish_delivery(caller, field_id, delivery, lease, state, **fields)
+    except Exception as exc:
+        if state == "delivery_unknown":
+            raise
+        return await finish_delivery(
+            caller,
+            field_id,
+            delivery,
+            lease,
+            "delivery_unknown",
+            error=f"verification_settle_failed:{state}:{type(exc).__name__}",
+        )
 
 
 @router.post("/fields/{field_id}/verification-deliveries/{delivery_id}/deliver")

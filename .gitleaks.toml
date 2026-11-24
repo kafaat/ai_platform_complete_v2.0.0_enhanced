@@ -85,12 +85,6 @@ regexes = [
   '''w0-07-field-service-assertion-key-012345''',
   '''live-edge-tenant-assertion-key-0123456789''',
   '''fixture-token-0123''',
-  # Inspection owner bridge (#1598): the receiver test's fixed `Idempotency-Key` fixture in
-  # services/vegetation-analysis-service/test_verification_delivery.py (`KEY =`, candidate
-  # commit a26be498, kept as authored). A client-chosen request key, compared only against
-  # itself in the test, never a credential; the PR-range history scan re-reads that commit.
-  # Anchored at both ends: it exempts exactly this extracted value, nothing longer.
-  '''^verification-delivery-key-0001$''',
 ]
 
 # Preserve reviewed evidence across squash/rebase: each exception requires BOTH
@@ -159,3 +153,14 @@ condition = "AND"
 regexTarget = "secret"
 paths = ['''^tests_v9/test_edge_sync_tenant_per_request_live_pg\.py$''']
 regexes = ['''^assertion_key=KEY$''']
+
+# Inspection owner bridge (#1598): the receiver test's fixed `Idempotency-Key` fixture (`KEY =`,
+# candidate commit a26be498, kept as authored). A client-chosen request key, compared only
+# against itself in the test, never a credential; the PR-range history scan re-reads that commit.
+# Both the exact file and the exact extracted value, under this rule only.
+[[rules.allowlists]]
+description = "Fixed Idempotency-Key fixture in the verification receiver test, not a credential"
+condition = "AND"
+regexTarget = "secret"
+paths = ['''^services/vegetation-analysis-service/test_verification_delivery\.py$''']
+regexes = ['''^verification-delivery-key-0001$''']

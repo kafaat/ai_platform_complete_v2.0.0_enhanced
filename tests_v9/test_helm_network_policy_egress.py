@@ -202,7 +202,7 @@ _GATED_OUTBOUND: dict[str, dict[str, frozenset[str]]] = {
     "sahool-field-management": {
         # Inspection owner bridge sender (fm_verification_client.py, #1598): POSTs a reviewed
         # inspection result to vegetation-analysis's internal receiver on the service network,
-        # never a public host. Off unless FM_SCOUTING_VERIFICATION_ENABLED=1 and the URL and
+        # never a public host. Off unless FM_SCOUTING_VERIFICATION_ENABLED is on (1/true/yes/on) and the URL and
         # credentials are set. No egress rule is missing: sahool-default-deny already lets every
         # pod reach the cluster (templates/networkpolicy.yaml, `namespaceSelector: {}`), and the
         # chart does not deploy vegetation-analysis yet (values.yaml, W3-09 note), so a Helm

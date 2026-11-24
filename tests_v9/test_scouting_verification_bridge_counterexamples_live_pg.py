@@ -771,3 +771,88 @@ def test_the_database_fences_the_lease_and_binds_the_receipt_to_the_row(monkeypa
             assert (await _row(live))["state"] == "delivered"
 
     run(target())
+
+
+def _fail_once(live, monkeypatch, state, exc):
+    """Make the first attempt to record ``state`` fail, as a storage blip would."""
+    actual = live.fm_verification.finish_delivery
+    failed = []
+
+    async def finish(caller, field_id, delivery, lease, wanted, **kwargs):
+        if wanted == state and not failed:
+            failed.append(wanted)
+            raise exc
+        return await actual(caller, field_id, delivery, lease, wanted, **kwargs)
+
+    monkeypatch.setattr(live.fm_verification, "finish_delivery", finish)
+    return failed
+
+
+def test_a_storage_blip_while_recording_an_accepted_delivery_is_never_blocked(
+    monkeypatch, tmp_path
+):
+    # SF-2: the owner accepted the result; failing to record that locally must leave the
+    # outcome unknown (reconcilable), never terminal `blocked` (which would allow relinking).
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            from fastapi import HTTPException
+
+            await _ready(live)
+            failed = _fail_once(
+                live,
+                monkeypatch,
+                "delivered",
+                HTTPException(503, "field task database unavailable"),
+            )
+            response = await live.deliver()
+            assert response.status_code == 200, response.text
+            assert failed == ["delivered"]
+            row = await _row(live)
+            assert (row["state"], row["lease_token"]) == ("delivery_unknown", None)
+            assert row["last_error"] == "verification_settle_failed:delivered:HTTPException"
+            accepted = live.anomaly_store.get(live.anomaly_ref, tenant_id=live.tenant)
+            assert accepted["status"] == "confirmed"
+            again = await live.deliver()
+            assert again.json()["state"] == "delivered", again.text
+
+    run(target())
+
+
+def test_local_storage_unavailable_before_the_post_is_unknown_not_blocked(monkeypatch, tmp_path):
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            from fastapi import HTTPException
+
+            await _ready(live)
+
+            async def storage_down(*_args, **_kwargs):
+                raise HTTPException(503, "field task database unavailable")
+
+            monkeypatch.setattr(live.fm_verification, "revalidate_delivery", storage_down)
+            response = await live.deliver()
+            assert response.status_code == 200, response.text
+            row = await _row(live)
+            assert row["state"] == "delivery_unknown", row
+            assert row["last_error"] == "verification_local_storage:field task database unavailable"
+
+    run(target())
+
+
+def test_a_failure_while_recording_a_refusal_still_settles_the_row(monkeypatch, tmp_path):
+    # SF-1: every outcome is recorded through one settle step with a delivery_unknown fallback.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            await _ready(live)
+            monkeypatch.setenv("VEGETATION_VERIFICATION_BRIDGE_ENABLED", "0")
+            _fail_once(live, monkeypatch, "refused", RuntimeError("injected"))
+            response = await live.deliver()
+            assert response.status_code == 200, response.text
+            row = await _row(live)
+            assert row == {
+                "state": "delivery_unknown",
+                "attempts": 1,
+                "lease_token": None,
+                "last_error": "verification_settle_failed:refused:RuntimeError",
+            }
+
+    run(target())

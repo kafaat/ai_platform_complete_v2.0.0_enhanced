@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from urllib.parse import quote, urlsplit
 from uuid import uuid4
 
@@ -42,6 +43,10 @@ CONTENT_REJECTIONS = frozenset(
 )
 
 
+def _sanitize(detail: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_.:-]", "_", detail)[:80]
+
+
 class VerificationRemoteError(RuntimeError):
     """The outcome at the owner is unknown: the request may or may not have been applied."""
 
@@ -60,10 +65,13 @@ class VerificationRemoteRejected(VerificationRemoteError):
 
 
 def classify_refusal(status: int, detail) -> type[VerificationRemoteError]:
+    if isinstance(detail, list) and detail and status == 422:
+        # FastAPI's own validation reply: the receiver refused the request body.
+        return VerificationRemoteRejected
     if not isinstance(detail, str) or not detail:
-        # A body without the receiver's detail (a proxy's 502/503, an HTML error page) says
-        # nothing about the owner, so the outcome stays unknown.
-        return VerificationRemoteRejected if status == 422 else VerificationRemoteError
+        # A body without the receiver's detail (a proxy's 502/503/422, an HTML error page)
+        # says nothing about the owner, so the outcome stays unknown.
+        return VerificationRemoteError
     if (status, detail) in CONFIGURATION_REFUSALS:
         return VerificationRemoteRefused
     if status in {409, 422} or (status, detail) in CONTENT_REJECTIONS:
@@ -167,8 +175,11 @@ class VegetationVerificationClient:
                 detail = None
             kind = classify_refusal(response.status_code, detail)
             reason = f"verification_remote_status:{response.status_code}"
-            if isinstance(detail, str) and kind is not VerificationRemoteError:
-                reason += f":{detail}"
+            if isinstance(detail, str) and detail:
+                # Visible to an operator in last_error; an unrecognised detail is reduced to a
+                # short, plain token so a remote reply cannot inject arbitrary text there.
+                shown = detail if kind is not VerificationRemoteError else _sanitize(detail)
+                reason += f":{shown}"
             raise kind(reason, status=response.status_code, detail=detail)
         try:
             result = response.json()

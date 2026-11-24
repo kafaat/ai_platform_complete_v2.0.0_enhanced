@@ -100,11 +100,22 @@ def test_a_definitive_owner_refusal_is_rejected(client_module, status, detail):
         (503, {"detail": "verification_anomaly_record_invalid"}, None),
         (500, {"detail": "Internal Server Error"}, None),
         (403, {"detail": "Forbidden"}, None),
+        (422, None, "<html>Unprocessable</html>"),
+        (409, {"error": "conflict"}, None),
     ],
 )
 def test_anything_else_stays_an_unknown_outcome(client_module, status, body, text):
     exc = _error(client_module, status, body, text=text)
     assert type(exc) is client_module.VerificationRemoteError
+
+
+def test_an_unknown_detail_is_shown_only_as_a_short_plain_token(client_module):
+    exc = _error(client_module, 503, {"detail": "<script>x</script> " + "y" * 200})
+    reason = str(exc)
+    assert reason.startswith("verification_remote_status:503:")
+    shown = reason.removeprefix("verification_remote_status:503:")
+    assert len(shown) <= 80
+    assert set(shown) <= set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.:-")
 
 
 @pytest.mark.parametrize("key_id", ["", "  ", "a:b", "line\nbreak", "cr\rid"])
