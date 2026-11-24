@@ -936,6 +936,9 @@ def iter_files() -> Iterable[Path]:
         yield p
 
 
+IMPLEMENTATION_KINDS = frozenset({"backend", "web", "mobile", "database", "tests"})
+
+
 def classify(rel: str) -> str:
     n = rel.lower()
     name = Path(rel).name.lower()
@@ -1162,6 +1165,11 @@ def build() -> dict:
                 target["database"].append(rec)
             else:
                 target["other_evidence"].append(rec)
+            # Routes, tables and events are implementation evidence: read them only from
+            # code (backend, web, mobile, migrations, tests). A plan or doc that names a
+            # schema id or a route documents it; it does not implement it.
+            if kind not in IMPLEMENTATION_KINDS:
+                continue
             for r in route_items(rel, text):
                 target["routes"].append({"value": r, "score": score})
             for d in db_items(rel, text):
