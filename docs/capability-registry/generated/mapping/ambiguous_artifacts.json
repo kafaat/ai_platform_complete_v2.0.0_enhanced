@@ -1578,44 +1578,6 @@
     ]
   },
   {
-    "path": "docs/plans/SAHOOL_UNIFIED_EXECUTION_PLAN_AR.md",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "INT-002",
-        "score": 11,
-        "signals": [
-          "content:event bus",
-          "content:nats"
-        ]
-      },
-      {
-        "capability_id": "FM-002",
-        "score": 10,
-        "signals": [
-          "content:farm",
-          "content:farms"
-        ]
-      },
-      {
-        "capability_id": "SEC-001",
-        "score": 9,
-        "signals": [
-          "content:rls",
-          "content:Tenant RLS"
-        ]
-      },
-      {
-        "capability_id": "SAT-001",
-        "score": 8,
-        "signals": [
-          "content:cdse",
-          "content:stac"
-        ]
-      }
-    ]
-  },
-  {
     "path": "docs/research/SATELLITE_IMAGERY_DOWNLOAD_CHANNELS_REVIEW_20260707.md",
     "kind": "other",
     "candidates": [
