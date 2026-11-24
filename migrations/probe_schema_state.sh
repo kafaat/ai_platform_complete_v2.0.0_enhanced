@@ -19,6 +19,9 @@
 # لا يطابق) ⇒ **لا** يُصدَر `readable=true` ولا PASS جزئيّ، والخروج 3. PASS يعني اكتمالَ نطاق
 # الفحص المُعلَن فقط (الجداولُ والأعمدة) لا اعتمادَ القاعدة للإنتاج.
 # `SCHEMA_STATE …` يُطبَع أيضاً للتوافق مع القرّاء الأقدم.
+# Before those two lines, `SCHEMA_CATALOG file=… table=… rls=… force_rls=… policies=… triggers=…` per table
+# of the catalog files (default: the highest-numbered vNNN in MANIFEST; PROBE_CATALOG_FILES overrides) and
+# one `SCHEMA_CATALOG_SUMMARY status=READ|ERROR … scope=informational_not_gating`. Never changes the verdict.
 #
 # المتغيّرات: PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE (أو PROBE_PGUSER/PROBE_PGPASSWORD
 # لدورٍ أدنى صلاحيّةً)، MIG_DIR (افتراضيّ /migrations).
@@ -160,8 +163,66 @@ else
   echo "  ✓ كلُّ الجداول والأعمدة المتوقَّعة موجودة."
   status=PASS
 fi
+# ── ٥) Catalog facts for the newest migration's tables (owner decision 2026-11-24, v289 on staging) ──
+# Presence of tables and columns does not show that a migration's row-level security, policies or
+# triggers are in place. For the tables created by the catalog files, print what the server's own
+# catalog says: relrowsecurity, relforcerowsecurity, policy name:cmd:mode and trigger name:tgenabled.
+# The files default to the highest-numbered vNNN migration in MANIFEST (not the last line: MANIFEST
+# re-runs older files after it); PROBE_CATALOG_FILES (comma-separated MANIFEST names) overrides.
+# This section is informational: it never changes status, the contract or the exit code, and it reads
+# in the same server-confirmed read-only transaction as every other query here. A query that fails
+# reports SCHEMA_CATALOG_SUMMARY status=ERROR and the probe carries on.
+# polcmd: r=SELECT a=INSERT w=UPDATE d=DELETE *=ALL. tgenabled: O=origin A=always R=replica D=disabled.
+catalog_status=READ
+catalog_reason=""
+catalog_files="${PROBE_CATALOG_FILES:-}"
+catalog_files="${catalog_files//[[:space:]]/}"
+if [ -z "$catalog_files" ]; then
+  catalog_files="$(sed -nE 's/^v([0-9]+)_[A-Za-z0-9_]+\.sql$/\1 &/p' "$WORK/files" | sort -n -k1,1 | tail -n 1 | cut -d' ' -f2)"
+fi
+: > "$WORK/catalog_tables"
+IFS=',' read -r -a catalog_list <<<"$catalog_files"
+for cf in "${catalog_list[@]}"; do
+  [ -n "$cf" ] || continue
+  if ! grep -qxF -- "$cf" "$WORK/files"; then
+    catalog_status=ERROR; catalog_reason="file_not_in_manifest:${cf//[^A-Za-z0-9_.]/?}"; break
+  fi
+  awk -F'|' -v f="$cf" '$1==f && $2=="table" {print $1"|"$3}' "$WORK/expected" >> "$WORK/catalog_tables"
+done
+n_catalog=0; n_catalog_present=0; n_catalog_forced=0
+if [ "$catalog_status" = READ ] && [ -s "$WORK/catalog_tables" ]; then
+  cvalues="$(awk -F'|' '{printf "(%d,'"'"'%s'"'"','"'"'%s'"'"'),", NR, $1, $2}' "$WORK/catalog_tables")"
+  cvalues="${cvalues%,}"
+  if catalog="$(probe_sql -c "
+WITH t(ord, file, tbl) AS (VALUES ${cvalues})
+SELECT t.file, t.tbl,
+       COALESCE(c.relrowsecurity::text, 'absent'),
+       COALESCE(c.relforcerowsecurity::text, 'absent'),
+       COALESCE((SELECT string_agg(p.polname || ':' || p.polcmd::text || ':'
+                                   || CASE WHEN p.polpermissive THEN 'permissive' ELSE 'restrictive' END,
+                                   ',' ORDER BY p.polname)
+                 FROM pg_policy p WHERE p.polrelid = c.oid), 'none'),
+       COALESCE((SELECT string_agg(g.tgname || ':' || g.tgenabled::text, ',' ORDER BY g.tgname)
+                 FROM pg_trigger g WHERE g.tgrelid = c.oid AND NOT g.tgisinternal), 'none')
+FROM t LEFT JOIN pg_class c ON c.oid = to_regclass('public.' || t.tbl)
+ORDER BY t.ord")"; then
+    require_ro "$catalog"
+    catalog="$(strip_first_line "$catalog")"
+    while IFS='|' read -r c_file c_tbl c_rls c_force c_pol c_trg; do
+      [ -n "$c_tbl" ] || continue
+      echo "SCHEMA_CATALOG file=${c_file} table=${c_tbl} rls=${c_rls} force_rls=${c_force} policies=${c_pol} triggers=${c_trg}"
+      n_catalog=$((n_catalog + 1))
+      [ "$c_rls" = absent ] || n_catalog_present=$((n_catalog_present + 1))
+      [ "$c_force" = true ] && n_catalog_forced=$((n_catalog_forced + 1))
+    done <<<"$catalog"
+  else
+    catalog_status=ERROR; catalog_reason=catalog_query_failed
+  fi
+fi
+echo "SCHEMA_CATALOG_SUMMARY status=${catalog_status}${catalog_reason:+ reason=${catalog_reason}} files=${catalog_files:-none} tables=${n_catalog} present=${n_catalog_present} force_rls=${n_catalog_forced} scope=informational_not_gating"
+
 # حدُّ الدلالة (مراجعةُ المالك 2026-10-10): وجودُ الجداول والأعمدة لا يُثبت تطبيقَ الهجرات كاملةً —
 # القيودُ والفهارسُ وسياساتُ RLS والدوالّ لا تُقارَن هنا. PASS ليس اعتماداً للقاعدة.
-echo "  ملاحظة: القياسُ وجودُ الجداول/الأعمدة فقط — القيودُ والفهارسُ وRLS والدوالّ خارج هذه القراءة."
+echo "  ملاحظة: القياسُ وجودُ الجداول/الأعمدة فقط — القيودُ والفهارسُ والدوالّ خارج هذه القراءة، وRLS والسياساتُ والمشغِّلات تُطبَع لجداول ملفّات الكتالوج وحدها (SCHEMA_CATALOG، لا تحجب)."
 echo "SCHEMA_STATE readable=true read_only=on db=${database} user=${user} tables=$((n_tables - m_tables))/${n_tables} columns=$((n_columns - m_columns))/${n_columns} first_missing=${first_missing:-none} scope=tables_and_columns_only"
 echo "SCHEMA_INSPECTION status=${status} read_only=${READ_ONLY} manifest_sha256=${manifest_sha256} files_parsed=${parsed} expected_tables=${n_tables} present_tables=$((n_tables - m_tables)) expected_columns=${n_columns} present_columns=$((n_columns - m_columns)) first_missing=${first_missing:-none}"
