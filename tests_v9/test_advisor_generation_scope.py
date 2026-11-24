@@ -258,7 +258,7 @@ def test_a_pack_for_another_field_or_tenant_gives_no_region():
     assert runtime._trusted_region_for_generation(state, "f-1", None) is None
 
 
-def test_rag_search_filters_a_field_question_by_the_owner_region():
+def test_rag_search_sends_no_region_filter_for_a_field_question():
     tree = ast.parse(Path(runtime.__file__).read_text(encoding="utf-8"))
     regions = []
     for node in ast.walk(tree):
@@ -267,4 +267,4 @@ def test_rag_search_filters_a_field_question_by_the_owner_region():
         keys = [getattr(k, "value", None) for k in node.keys]
         if "region" in keys and "final_k" in keys:
             regions.append(ast.unparse(node.values[keys.index("region")]))
-    assert regions == ["retrieval_region if req.field_id else req.region"]
+    assert regions == ["None if req.field_id else req.region"]

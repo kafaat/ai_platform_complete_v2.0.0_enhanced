@@ -1140,8 +1140,11 @@ async def build_evidence_response(
                         "query": retrieval_query,
                         "crop": retrieval_crop,
                         "field_id": req.field_id,
-                        # A field question filters by the owner's region, not the client's.
-                        "region": retrieval_region if req.field_id else req.region,
+                        # A field question sends no region filter: retrieval matches region
+                        # exactly and drops tenant chunks without region metadata, so the
+                        # owner region is applied only by the reference-approval gate. The
+                        # client's region never narrows a field question.
+                        "region": None if req.field_id else req.region,
                         "source_type": None,
                         "final_k": req.final_k,
                     },
