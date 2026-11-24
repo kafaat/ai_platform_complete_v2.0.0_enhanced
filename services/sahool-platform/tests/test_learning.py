@@ -136,3 +136,13 @@ class TestModelSelectorHonesty:
         why = select_model(3, 1, 3).rationale_ar
         assert "حدّ السياسة" in why
         assert "أي نموذج" not in why
+
+
+def test_no_tier_rationale_claims_independence_or_diversity():
+    """No rationale calls the counter ceiling independent points or a diverse sample."""
+    from core.learning.model_selector import select_model
+
+    for counts in [(3, 1, 3), (30, 10, 3), (60, 10, 6), (150, 30, 5), (300, 60, 5), (600, 120, 5)]:
+        why = select_model(*counts).rationale_ar
+        assert "نقاط مستقلة" not in why, why
+        assert "متنوّعة" not in why, why

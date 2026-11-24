@@ -417,7 +417,7 @@ def yields_for_district(district_id, crop=None, db_path: Path = DEFAULT_DB) -> l
 
 
 def independent_units(district_id, crop=None, db_path: Path = DEFAULT_DB) -> dict:
-    """Count farms x seasons — the honest effective sample size."""
+    """Count farms x seasons: a nominal ceiling, not a measure of independence."""
     return yield_sample_units(yields_for_district(district_id, crop, db_path))
 
 
