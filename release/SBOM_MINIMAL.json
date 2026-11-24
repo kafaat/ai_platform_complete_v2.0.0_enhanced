@@ -235,7 +235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c77d410bf9f73c00d63dcce6d67b5d7c33408d2f24ea84c16899d8ad1440ce4d"
+          "content": "af3cd8cea3710f35ad11b45544901ab5b0eb6aa6db825d689eefa3919a9014fc"
         }
       ],
       "name": "frontend/e2e/app-smoke.spec.ts",
@@ -315,7 +315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4df21ad13ed633bec04fe70f11d226513e941c554d154cbbd3651b37b104263"
+          "content": "833d6621db39c17e85cf5e55db0ba12da283c6c180185f2bd7346208b4c64f48"
         }
       ],
       "name": "frontend/e2e/reset-link-with-session.spec.ts",
@@ -605,7 +605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42f2191ac14516e3eec8afa7e55f6d1c5e3630e1aa2647da0d405cbd14d551ab"
+          "content": "7daeb4fc421dc9f798a12f48a7e5962388cf88a7b4e8ccf84318c627232e71ac"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -685,7 +685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e495533f59b55ef43fae859c07903939323a4582f2affda5d611558e52a9e276"
+          "content": "18c5f17df1ce9c51461a62e160c55e681c7daa0cd0cfa55ebf65f61cfbbde9f0"
         }
       ],
       "name": "frontend/src/components/AddSeasonWithStages.tsx",
@@ -989,6 +989,16 @@
         }
       ],
       "name": "frontend/src/components/climate/ClimateAnalogsPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "204197291b21052a36178822fe0b365dec8ca37a0cbff62b11b0655d55c20d2c"
+        }
+      ],
+      "name": "frontend/src/components/cropChipRemove.a11y.test.tsx",
       "type": "file"
     },
     {
@@ -1325,7 +1335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bc701f380fe21e6419a062566dad5a477a337263f654cd8ea76c1bc5047754f3"
+          "content": "40444986f3a3725188b31ced0666c40c2b8eb5555f55718996b3c53f19f063e8"
         }
       ],
       "name": "frontend/src/components/fieldsetup/SeasonStep.tsx",
@@ -3765,7 +3775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e3994d82ca093be3aa9ae75b614fa6b5abfa6a6a1222498082599d4a07cceda"
+          "content": "7740488448b5f507cf9d448f68c8b3b2a282767a65ef65bb4e19698db8ab4535"
         }
       ],
       "name": "frontend/src/lib/authScreens.test.ts",
@@ -5175,7 +5185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c3e2359f67ef4f600b42378ea572c5c1b872a9c8e2fabfa4326ca310c958ad9"
+          "content": "94e79bd64211dd559c5e347da4f9b1360e229efd39963b67dc81c5182f4257a7"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -5685,7 +5695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "446a5ed2791e9b60b0d69727f1b8875c765cb2936a0892c2f543b44648153852"
+          "content": "317c8fc2871d56df0dd0ba1328cef9ed9d7ab811dd27bcffb309a71eb0ab3611"
         }
       ],
       "name": "frontend/src/pages/LoginPage.resetLink.test.tsx",
@@ -5695,7 +5705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a40346b2b4542bd6e77e682d529b404102918e01c7c697967afbf36f32a3bd99"
+          "content": "b3eff61ade0958f4314702e8f12c3360eeab74984d3f97016a71557fbeffba0e"
         }
       ],
       "name": "frontend/src/pages/LoginPage.tsx",
