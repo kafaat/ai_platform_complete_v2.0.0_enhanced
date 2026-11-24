@@ -19,7 +19,7 @@
 # لا يطابق) ⇒ **لا** يُصدَر `readable=true` ولا PASS جزئيّ، والخروج 3. PASS يعني اكتمالَ نطاق
 # الفحص المُعلَن فقط (الجداولُ والأعمدة) لا اعتمادَ القاعدة للإنتاج.
 # `SCHEMA_STATE …` يُطبَع أيضاً للتوافق مع القرّاء الأقدم.
-# Before those two lines, `SCHEMA_CATALOG file=… table=… rls=… force_rls=… policies=… triggers=…` per table
+# Before those two lines, `SCHEMA_CATALOG file=… table=… rls=… force_rls=… policies=… triggers=… grants=…` per table
 # of the catalog files (default: the highest-numbered vNNN in MANIFEST; PROBE_CATALOG_FILES overrides) and
 # one `SCHEMA_CATALOG_SUMMARY status=READ|ERROR … scope=informational_not_gating`. Never changes the verdict.
 #
@@ -166,7 +166,8 @@ fi
 # ── ٥) Catalog facts for the newest migration's tables (owner decision 2026-11-24, v289 on staging) ──
 # Presence of tables and columns does not show that a migration's row-level security, policies or
 # triggers are in place. For the tables created by the catalog files, print what the server's own
-# catalog says: relrowsecurity, relforcerowsecurity, policy name:cmd:mode and trigger name:tgenabled.
+# catalog says: relrowsecurity, relforcerowsecurity, policy name:cmd:mode, trigger name:tgenabled and the
+# table grants other than the owner's (role:PRIV|PRIV from relacl; none = owner-only defaults).
 # The files default to the highest-numbered vNNN migration in MANIFEST (not the last line: MANIFEST
 # re-runs older files after it); PROBE_CATALOG_FILES (comma-separated MANIFEST names) overrides.
 # This section is informational: it never changes status, the contract or the exit code, and it reads
@@ -203,14 +204,18 @@ SELECT t.file, t.tbl,
                                    ',' ORDER BY p.polname)
                  FROM pg_policy p WHERE p.polrelid = c.oid), 'none'),
        COALESCE((SELECT string_agg(g.tgname || ':' || g.tgenabled::text, ',' ORDER BY g.tgname)
-                 FROM pg_trigger g WHERE g.tgrelid = c.oid AND NOT g.tgisinternal), 'none')
+                 FROM pg_trigger g WHERE g.tgrelid = c.oid AND NOT g.tgisinternal), 'none'),
+       COALESCE((SELECT string_agg(r.who || ':' || r.privs, ',' ORDER BY r.who)
+                 FROM (SELECT CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END AS who,
+                              string_agg(a.privilege_type, '|' ORDER BY a.privilege_type) AS privs
+                       FROM aclexplode(c.relacl) a WHERE a.grantee <> c.relowner GROUP BY 1) r), 'none')
 FROM t LEFT JOIN pg_class c ON c.oid = to_regclass('public.' || t.tbl)
 ORDER BY t.ord")"; then
     require_ro "$catalog"
     catalog="$(strip_first_line "$catalog")"
-    while IFS='|' read -r c_file c_tbl c_rls c_force c_pol c_trg; do
+    while IFS='|' read -r c_file c_tbl c_rls c_force c_pol c_trg c_grants; do
       [ -n "$c_tbl" ] || continue
-      echo "SCHEMA_CATALOG file=${c_file} table=${c_tbl} rls=${c_rls} force_rls=${c_force} policies=${c_pol} triggers=${c_trg}"
+      echo "SCHEMA_CATALOG file=${c_file} table=${c_tbl} rls=${c_rls} force_rls=${c_force} policies=${c_pol} triggers=${c_trg} grants=${c_grants}"
       n_catalog=$((n_catalog + 1))
       [ "$c_rls" = absent ] || n_catalog_present=$((n_catalog_present + 1))
       [ "$c_force" = true ] && n_catalog_forced=$((n_catalog_forced + 1))
@@ -223,6 +228,6 @@ echo "SCHEMA_CATALOG_SUMMARY status=${catalog_status}${catalog_reason:+ reason=$
 
 # حدُّ الدلالة (مراجعةُ المالك 2026-10-10): وجودُ الجداول والأعمدة لا يُثبت تطبيقَ الهجرات كاملةً —
 # القيودُ والفهارسُ وسياساتُ RLS والدوالّ لا تُقارَن هنا. PASS ليس اعتماداً للقاعدة.
-echo "  ملاحظة: القياسُ وجودُ الجداول/الأعمدة فقط — القيودُ والفهارسُ والدوالّ خارج هذه القراءة، وRLS والسياساتُ والمشغِّلات تُطبَع لجداول ملفّات الكتالوج وحدها (SCHEMA_CATALOG، لا تحجب)."
+echo "  ملاحظة: القياسُ وجودُ الجداول/الأعمدة فقط — القيودُ والفهارسُ والدوالّ خارج هذه القراءة، وRLS والسياساتُ والمشغِّلات والمنحُ تُطبَع لجداول ملفّات الكتالوج وحدها (SCHEMA_CATALOG، لا تحجب)."
 echo "SCHEMA_STATE readable=true read_only=on db=${database} user=${user} tables=$((n_tables - m_tables))/${n_tables} columns=$((n_columns - m_columns))/${n_columns} first_missing=${first_missing:-none} scope=tables_and_columns_only"
 echo "SCHEMA_INSPECTION status=${status} read_only=${READ_ONLY} manifest_sha256=${manifest_sha256} files_parsed=${parsed} expected_tables=${n_tables} present_tables=$((n_tables - m_tables)) expected_columns=${n_columns} present_columns=$((n_columns - m_columns)) first_missing=${first_missing:-none}"

@@ -9,6 +9,7 @@ stdout. سيناريو «إذنٌ + تطبيق» يحتاج قاعدةً مؤق�
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -330,6 +331,10 @@ def test_the_probe_prints_the_catalog_facts_of_a_named_migration_from_the_server
         "farm_grant_read:r:restrictive",
     ]
     assert grants["triggers"] == "farm_access_grant_provenance:O"
+    # grants: non-owner ACL entries as role:PRIV|PRIV (sorted), or none for owner-only defaults.
+    assert re.fullmatch(
+        r"none|[A-Za-z0-9_]+:[A-Z]+(\|[A-Z]+)*(,[A-Za-z0-9_]+:[A-Z]+(\|[A-Z]+)*)*", grants["grants"]
+    ), grants["grants"]
     assert summary["status"] == "READ" and summary["scope"] == "informational_not_gating"
     assert summary["tables"] == summary["present"] == summary["force_rls"] == "1"
     assert result.stdout.rstrip().splitlines()[-1].startswith("SCHEMA_INSPECTION "), (
