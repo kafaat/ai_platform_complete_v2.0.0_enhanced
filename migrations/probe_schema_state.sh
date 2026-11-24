@@ -179,8 +179,16 @@ catalog_status=READ
 catalog_reason=""
 catalog_files="${PROBE_CATALOG_FILES:-}"
 catalog_files="${catalog_files//[[:space:]]/}"
-# Drop empty and repeated entries, keeping the order given.
-catalog_files="$(tr ',' '\n' <<<"$catalog_files" | awk 'NF && !seen[$0]++' | paste -sd, -)"
+# Drop empty and repeated entries, keeping the order given. Pure bash: the migrator image is
+# Alpine, so no reliance on GNU or BusyBox paste/tr behaviour.
+catalog_clean=""
+IFS=',' read -r -a catalog_raw <<<"$catalog_files"
+for cf in "${catalog_raw[@]}"; do
+  [ -n "$cf" ] || continue
+  case ",${catalog_clean}," in *",${cf},"*) continue;; esac
+  catalog_clean="${catalog_clean:+${catalog_clean},}${cf}"
+done
+catalog_files="$catalog_clean"
 if [ -z "$catalog_files" ]; then
   catalog_files="$(sed -nE 's/^v([0-9]+)_[A-Za-z0-9_]+\.sql$/\1 &/p' "$WORK/files" | sort -n -k1,1 | tail -n 1 | cut -d' ' -f2)"
 fi

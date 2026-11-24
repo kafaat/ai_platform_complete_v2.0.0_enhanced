@@ -378,3 +378,29 @@ def test_a_catalog_file_outside_the_manifest_is_reported_and_never_changes_the_v
     odd_verdict = odd.stdout.rstrip().splitlines()[-1]
     assert plain_verdict == odd_verdict, "a bad catalog file must not change the verdict"
     assert plain_verdict.startswith("SCHEMA_INSPECTION ")
+
+
+def test_empty_and_repeated_catalog_entries_are_dropped_and_names_are_shown_sanitised(
+    pg_env, probe_role
+):
+    repeated = _probe(
+        pg_env,
+        PROBE_CATALOG_FILES=",v287_farm_access_grants.sql,, v287_farm_access_grants.sql ,",
+        **probe_role,
+    )
+    assert repeated.returncode == 0, repeated.stdout + repeated.stderr
+    rows, summary = _catalog(repeated.stdout)
+    assert summary["files"] == "v287_farm_access_grants.sql", summary
+    assert summary["tables"] == "1" and list(rows) == ["farm_access_grants"]
+
+    blank = _probe(pg_env, PROBE_CATALOG_FILES=" , ", **probe_role)
+    _rows, blank_summary = _catalog(blank.stdout)
+    _rows, default_summary = _catalog(_probe(pg_env, **probe_role).stdout)
+    assert blank_summary["files"] == default_summary["files"], "an empty override is the default"
+
+    odd = _probe(pg_env, PROBE_CATALOG_FILES="x,status=PASS", **probe_role)
+    odd_line = next(
+        ln for ln in odd.stdout.splitlines() if ln.startswith("SCHEMA_CATALOG_SUMMARY ")
+    )
+    assert " files=x,status?PASS " in odd_line, odd_line
+    assert odd_line.count("status=") == 1, "the input must not add a second status field"
