@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7706,
+    "files_scanned": 7707,
     "files_by_kind": {
       "backend": 1312,
       "database": 356,
       "governance": 92,
       "mobile": 429,
       "other": 2251,
-      "tests": 2692,
+      "tests": 2693,
       "web": 574
     },
     "unmapped_artifacts": 3665,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4187,
+      "python_functional": 4188,
       "raw": 3519
     },
-    "test_dependency_files": 2053,
-    "test_dependency_edges": 5549,
+    "test_dependency_files": 2054,
+    "test_dependency_edges": 5552,
     "test_dependency_bounded_files": 1176,
     "test_dependency_unresolved_relations": 527
   },
@@ -13817,6 +13817,13 @@
       "mobile": [],
       "tests": [
         {
+          "path": "tests_v9/test_capability_mapping_implementation_evidence_from_code.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "tests_v9/test_h51_field_source_binding_pg.py",
           "score": 20,
           "signals": [
@@ -13902,7 +13909,7 @@
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 3,
+        "tests": 4,
         "governance": 1,
         "other_evidence": 5
       },
@@ -80223,6 +80230,31 @@
           "call": "import_module"
         }
       ]
+    },
+    {
+      "test": "tests_v9/test_capability_mapping_implementation_evidence_from_code.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ci/capability_mapping_engine.py",
+          "kind": "loader",
+          "line": 28
+        },
+        {
+          "source": "scripts/ci/capability_mapping_engine.py",
+          "kind": "source_read",
+          "line": 21
+        },
+        {
+          "source": "services/field-management-service/main.py",
+          "kind": "source_read",
+          "line": 46
+        }
+      ],
+      "unresolved": []
     },
     {
       "test": "tests_v9/test_capability_mapping_table_extraction.py",

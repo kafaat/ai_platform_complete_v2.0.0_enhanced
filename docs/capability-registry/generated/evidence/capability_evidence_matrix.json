@@ -5583,6 +5583,11 @@
           "signal": "pytest.mark.unit"
         },
         {
+          "evidence_type": "unit",
+          "path": "tests_v9/test_capability_mapping_implementation_evidence_from_code.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
           "evidence_type": "integration",
           "path": "tests_v9/test_h51_field_source_binding_pg.py",
           "signal": "pytest.mark.integration"
@@ -5591,7 +5596,8 @@
       "title": "Field water-source binding",
       "unit_test_paths": [
         "services/decision-service/tests/test_context_source_binding.py",
-        "services/decision-service/tests/test_manual_irrigation_source_binding.py"
+        "services/decision-service/tests/test_manual_irrigation_source_binding.py",
+        "tests_v9/test_capability_mapping_implementation_evidence_from_code.py"
       ]
     },
     {
