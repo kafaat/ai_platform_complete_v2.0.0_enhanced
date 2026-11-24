@@ -10545,7 +10545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04d0f111b9a4b536c60d9363febb1677bd32ff63850d55636b378be065838893"
+          "content": "69e5867c18ba1e2d4b91773754a4921940b640c7b927d47374d1430a4697d835"
         }
       ],
       "name": "migrations/v289_scouting_verification_bridge.sql",
@@ -21125,7 +21125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f39c59276d831b4a00d7a1bf2044de17737bcbf96c3e4bcd36b77e1e5a8e2ba"
+          "content": "37cf4616d4c89539329e71a77eab212f15f11e667e22cad694c65ccd978d8fe3"
         }
       ],
       "name": "services/field-management-service/fm_verification.py",
@@ -21155,7 +21155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0eaf9b290b17d402bba6f9ad6438589a954a3937a2a0a994e242c492b3fa0006"
+          "content": "7888da4bbd9a584c85e1f344e39aef65de2f43947eb3d711e44fe458a6597b60"
         }
       ],
       "name": "services/field-management-service/fm_verification_store.py",

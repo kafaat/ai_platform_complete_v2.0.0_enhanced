@@ -14,7 +14,13 @@ from typing import Literal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
-from fm_gateway import INSPECTION_REVIEW, Caller, caller_connection, caller_dependency
+from fm_gateway import (
+    INSPECTION_REVIEW,
+    OBSERVATION_RECORD,
+    Caller,
+    caller_connection,
+    caller_dependency,
+)
 from fm_verification_client import (
     VegetationVerificationClient,
     VerificationRemoteError,
@@ -65,9 +71,9 @@ def storage_error(exc):
     return HTTPException(503, "verification_owner_storage_unavailable")
 
 
-async def task_remote(caller, field_id, task_id):
+async def task_remote(caller, field_id, task_id, permission=INSPECTION_REVIEW):
     async with caller_connection(caller) as conn:
-        await require_actor(conn, caller, field_id)
+        await require_actor(conn, caller, field_id, permission)
         task = await anomaly_task(conn, caller, field_id, task_id)
     return await remote_client.context(caller.tenant_id, task["anomaly_ref"])
 
@@ -131,7 +137,7 @@ async def approve_verification_assessment(
     field_id: str,
     link_id: UUID,
     req: AssessmentRequest,
-    caller: Caller = Depends(caller_dependency(INSPECTION_REVIEW)),
+    caller: Caller = Depends(caller_dependency(OBSERVATION_RECORD)),
 ):
     enabled()
     try:
@@ -140,7 +146,7 @@ async def approve_verification_assessment(
             if replay:
                 return replay
             link = await load_link(conn, caller, field_id, link_id)
-        remote = await task_remote(caller, field_id, link["anomaly_task_id"])
+        remote = await task_remote(caller, field_id, link["anomaly_task_id"], OBSERVATION_RECORD)
         async with caller_connection(caller) as conn:
             return await write_assessment(conn, caller, field_id, link_id, req, remote)
     except Exception as exc:
@@ -283,7 +289,7 @@ async def reconcile_exhausted(caller, field_id, delivery):
     retry can apply it). Otherwise the outcome is still unknown and the row stays exhausted.
     """
     if delivery["reviewer"] != caller.user_id or delivery["reviewer_role"] != caller.role:
-        raise HTTPException(403, "delivery_requires_the_original_reviewer")
+        raise HTTPException(403, "delivery_requires_the_original_assessor")
     async with caller_connection(caller) as conn:
         link = await load_link(conn, caller, field_id, delivery["link_id"])
     anomaly_ref = link["scope_snapshot"]["anomaly_ref"]
@@ -322,7 +328,7 @@ async def dispatch_delivery(caller, field_id, delivery_id):
     enabled()
     lease = uuid4()
     async with caller_connection(caller) as conn:
-        await require_actor(conn, caller, field_id)
+        await require_actor(conn, caller, field_id, OBSERVATION_RECORD)
         delivery = await load_delivery(conn, caller, field_id, delivery_id, lock=True)
         if delivery["state"] == "delivery_exhausted":
             if not remote_client.configured():
@@ -351,7 +357,7 @@ async def dispatch_delivery(caller, field_id, delivery_id):
         link = await load_link(conn, caller, field_id, delivery["link_id"])
         # A denied caller cannot trigger even a read from the remote owner.
         if delivery["reviewer"] != caller.user_id or delivery["reviewer_role"] != caller.role:
-            raise HTTPException(403, "delivery_requires_the_original_reviewer")
+            raise HTTPException(403, "delivery_requires_the_original_assessor")
         if delivery["attempts"] >= MAX_DELIVERY_ATTEMPTS:
             # Whether the owner accepted an earlier attempt is unknown; stop retrying and
             # hand the row to a person. v289 refuses any further claim at this count.
@@ -451,7 +457,7 @@ async def settle(caller, field_id, delivery, lease, state, fields):
 async def deliver_verification(
     field_id: str,
     delivery_id: UUID,
-    caller: Caller = Depends(caller_dependency(INSPECTION_REVIEW)),
+    caller: Caller = Depends(caller_dependency(OBSERVATION_RECORD)),
 ):
     try:
         return await dispatch_delivery(caller, field_id, delivery_id)

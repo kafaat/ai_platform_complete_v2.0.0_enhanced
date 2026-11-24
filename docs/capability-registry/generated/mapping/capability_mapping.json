@@ -15492,27 +15492,27 @@
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/verification-context @ services/field-management-service/fm_verification.py:75",
+          "value": "/fields/{field_id}/tasks/{task_id}/verification-context @ services/field-management-service/fm_verification.py:81",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:101",
+          "value": "/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:107",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:181",
+          "value": "/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:187",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:166",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:172",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:450",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:456",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:129",
+          "value": "/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:135",
           "score": 8
         },
         {
@@ -15701,11 +15701,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:304",
+          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:305",
           "score": 16
         },
         {
-          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:305",
+          "value": "scouting_verification_assessments @ migrations/v289_scouting_verification_bridge.sql:306",
           "score": 16
         },
         {
@@ -15713,11 +15713,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:290",
+          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:291",
           "score": 16
         },
         {
-          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:291",
+          "value": "scouting_verification_links @ migrations/v289_scouting_verification_bridge.sql:292",
           "score": 16
         },
         {
@@ -15729,11 +15729,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:311",
+          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:312",
           "score": 16
         },
         {
-          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:312",
+          "value": "scouting_verification_outbox @ migrations/v289_scouting_verification_bridge.sql:313",
           "score": 16
         },
         {
@@ -15745,11 +15745,11 @@
           "score": 16
         },
         {
-          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:297",
+          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:298",
           "score": 16
         },
         {
-          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:298",
+          "value": "scouting_verification_versions @ migrations/v289_scouting_verification_bridge.sql:299",
           "score": 16
         },
         {
@@ -97974,11 +97974,11 @@
       ],
       "unresolved": [
         {
-          "line": 336,
+          "line": 391,
           "import": "fm_verification_client"
         },
         {
-          "line": 687,
+          "line": 742,
           "import": "fm_verification_client"
         }
       ]

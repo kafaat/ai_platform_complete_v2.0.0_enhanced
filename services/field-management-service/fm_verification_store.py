@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from fastapi import HTTPException
-from fm_gateway import INSPECTION_REVIEW, Caller, canonical_role, require
+from fm_gateway import INSPECTION_REVIEW, OBSERVATION_RECORD, Caller, canonical_role, require
 from fm_task_inspection import _load, view
 from fm_verification_contracts import (
     AssessmentRequest,
@@ -31,8 +31,8 @@ def object_value(value):
     return json.loads(value) if isinstance(value, str) else value
 
 
-async def require_actor(conn, caller: Caller, field_id: str):
-    require(caller, INSPECTION_REVIEW)
+async def require_actor(conn, caller: Caller, field_id: str, permission: str = INSPECTION_REVIEW):
+    require(caller, permission)
     user = await conn.fetchrow(
         "SELECT role, active FROM users WHERE tenant_id=$1::uuid AND id::text=$2 FOR SHARE",
         caller.tenant_id,
@@ -80,8 +80,18 @@ async def anomaly_task(conn, caller, field_id, task_id, *, lock=False):
     return dict(row)
 
 
-async def resolve_scope(conn, caller, field_id, task_id, inspection_id, season_binding, remote):
-    field = await require_actor(conn, caller, field_id)
+async def resolve_scope(
+    conn,
+    caller,
+    field_id,
+    task_id,
+    inspection_id,
+    season_binding,
+    remote,
+    *,
+    permission=INSPECTION_REVIEW,
+):
+    field = await require_actor(conn, caller, field_id, permission)
     a = await anomaly_task(conn, caller, field_id, task_id)
     b, _events = await _load(conn, caller, field_id, inspection_id, write=False)
     record = remote.get("anomaly")
@@ -317,15 +327,19 @@ async def reviewed_inspection(conn, caller, field_id, link, revision, evidence_v
     task, events = await _load(conn, caller, field_id, link["inspection_task_id"], write=True)
     current = view(task, events, caller)
     last = events[-1] if events else {}
+    # Owner decision 1 (2026-11-24): the assessment is written by the inspection's current
+    # assignee, after someone else approved the exact evidence version it rests on.
     if (
         task["status"] not in {"pending", "in_progress", "completed"}
         or not current["evidence_approved"]
         or current["revision"] != revision
-        or last.get("actor") != caller.user_id
-        or task["assigned_to"] == caller.user_id
+        or last.get("action") != "approve"
+        or task["assigned_to"] != caller.user_id
+        or last.get("assignee") != caller.user_id
+        or last.get("actor") in (None, caller.user_id)
         or last.get("evidence_version") != evidence_version
     ):
-        raise HTTPException(409, "current_review_by_this_reviewer_required")
+        raise HTTPException(409, "current_approved_inspection_by_its_assignee_required")
     return wire(
         {
             "task_id": link["inspection_task_id"],
@@ -337,7 +351,7 @@ async def reviewed_inspection(conn, caller, field_id, link, revision, evidence_v
 
 
 async def assessment_replay(conn, caller, field_id, link_id, req):
-    await require_actor(conn, caller, field_id)
+    await require_actor(conn, caller, field_id, OBSERVATION_RECORD)
     row = await conn.fetchrow(
         "SELECT a.*,o.delivery_id,o.state FROM scouting_verification_assessments a "
         "JOIN scouting_verification_outbox o ON o.assessment_id=a.assessment_id "
@@ -382,6 +396,7 @@ async def write_assessment(conn, caller, field_id, link_id, req: AssessmentReque
         link["inspection_task_id"],
         link["scope_snapshot"]["season_binding"],
         remote,
+        permission=OBSERVATION_RECORD,
     )
     if ctx["context_digest"] != link["context_digest"].strip():
         raise HTTPException(409, "verification_context_changed")
@@ -485,9 +500,9 @@ async def load_delivery(conn, caller, field_id, delivery_id, *, lock=False):
 
 
 async def revalidate_delivery(conn, caller, field_id, delivery):
-    await require_actor(conn, caller, field_id)
+    await require_actor(conn, caller, field_id, OBSERVATION_RECORD)
     if delivery["reviewer"] != caller.user_id or delivery["reviewer_role"] != caller.role:
-        raise HTTPException(403, "delivery_requires_the_original_reviewer")
+        raise HTTPException(403, "delivery_requires_the_original_assessor")
     link = await load_link(conn, caller, field_id, delivery["link_id"], lock=True)
     if link["revision"] != delivery["link_revision"]:
         raise HTTPException(409, "delivery_link_superseded")
@@ -506,6 +521,7 @@ async def revalidate_delivery(conn, caller, field_id, delivery):
         link["inspection_task_id"],
         link["scope_snapshot"]["season_binding"],
         source,
+        permission=OBSERVATION_RECORD,
     )
     if ctx["context_digest"] != link["context_digest"].strip():
         raise HTTPException(409, "delivery_scope_changed")

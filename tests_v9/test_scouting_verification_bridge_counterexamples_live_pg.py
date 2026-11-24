@@ -155,17 +155,70 @@ def test_completed_anomaly_and_approved_pin_are_not_a_verification_result(monkey
     run(target())
 
 
-def test_assessment_requires_the_reviewer_who_approved_this_inspection(monkeypatch, tmp_path):
+def test_the_assessment_is_written_by_the_assignee_after_someone_else_approved(
+    monkeypatch, tmp_path
+):
+    # Owner decision 1 (2026-11-24): the inspection's current assignee writes the assessment,
+    # on the exact evidence version another person approved. The approver, a manager and a
+    # different field user each hold a farm grant, and none of them may write it.
     async def target():
         async with BridgeLive(monkeypatch, tmp_path) as live:
             assert (await live.link()).status_code == 200
             await live.approve_inspection()
-            # A manager has inspection:review and a current farm grant, but did
-            # not approve this evidence. Permission alone is not that approval.
-            response = await live.assess(name="manager")
-            assert response.status_code == 409, response.text
-            assert response.json()["detail"] == "current_review_by_this_reviewer_required"
+            for name in ("reviewer", "manager", "inspector2"):
+                response = await live.assess(name=name)
+                assert response.status_code == 409, (name, response.text)
+                assert response.json()["detail"] == (
+                    "current_approved_inspection_by_its_assignee_required"
+                )
             assert await _result_counts(live) == (0, 0)
+            accepted = await live.assess(name="inspector")
+            assert accepted.status_code == 200, accepted.text
+            assert await _result_counts(live) == (1, 1)
+            row = await live.admin.fetchrow(
+                "SELECT reviewer, reviewer_role FROM scouting_verification_assessments "
+                "WHERE assessment_id=$1::uuid",
+                live.assessment_id,
+            )
+            assert (row["reviewer"], row["reviewer_role"]) == (
+                live.users[(live.tenant, "inspector")],
+                "worker",
+            )
+            # The delivery belongs to the assessor too; the approver cannot send it.
+            refused = await live.deliver(name="reviewer")
+            assert refused.status_code == 403, refused.text
+            assert refused.json()["detail"] == "delivery_requires_the_original_assessor"
+
+    run(target())
+
+
+def test_the_database_refuses_an_assessment_written_by_the_approver(monkeypatch, tmp_path):
+    # The same rule holds below the application: the v289 trigger refuses an assessment row
+    # whose writer is the approver rather than the inspection's assignee.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            assert (await live.link()).status_code == 200
+            await live.approve_inspection()
+            assert (await live.assess()).status_code == 200
+            row = await live.admin.fetchrow(
+                "SELECT * FROM scouting_verification_assessments WHERE assessment_id=$1::uuid",
+                live.assessment_id,
+            )
+            approver = live.users[(live.tenant, "reviewer")]
+            columns = [c for c in row.keys() if c not in {"assessment_id", "command_id"}]
+            forged = {"reviewer": approver, "reviewer_role": "agronomist"}
+            values = [forged.get(c, row[c]) for c in columns]
+            with pytest.raises(asyncpg.PostgresError) as caught:
+                async with live.app_connection("reviewer") as conn:
+                    await conn.execute(
+                        "INSERT INTO scouting_verification_assessments "
+                        f"(assessment_id,command_id,{','.join(columns)}) VALUES "
+                        f"(gen_random_uuid(),gen_random_uuid(),"
+                        f"{','.join(f'${i + 1}' for i in range(len(columns)))})",
+                        *values,
+                    )
+            assert caught.value.sqlstate == "23514"
+            assert "verification_assessment_requires_current_reviewed_evidence" in str(caught.value)
 
     run(target())
 
@@ -221,7 +274,7 @@ def test_revoked_farm_grant_blocks_dispatch_without_changing_remote_state(monkey
                 "UPDATE farm_access_grants SET is_active=false,updated_at=clock_timestamp() "
                 "WHERE tenant_id=$1::uuid AND user_id=$2 AND farm_id=$3",
                 live.tenant,
-                live.users[(live.tenant, "reviewer")],
+                live.users[(live.tenant, "inspector")],
                 live.farm,
             )
             response = await live.deliver()
@@ -264,7 +317,9 @@ def test_reassignment_after_assessment_blocks_delivery_and_preserves_its_body(
             response = await live.deliver()
             assert response.status_code == 200, response.text
             assert response.json()["state"] == "blocked"
-            assert response.json()["last_error"] == "current_review_by_this_reviewer_required"
+            assert response.json()["last_error"] == (
+                "current_approved_inspection_by_its_assignee_required"
+            )
             after = await live.admin.fetchrow(
                 "SELECT idempotency_key,body_text,body_digest FROM scouting_verification_outbox "
                 "WHERE delivery_id=$1::uuid",
@@ -303,7 +358,7 @@ def test_cancellation_after_assessment_blocks_a_new_callback(monkeypatch, tmp_pa
             reason = (
                 "anomaly_scouting_task_not_eligible"
                 if cancelled_task == "anomaly"
-                else "current_review_by_this_reviewer_required"
+                else "current_approved_inspection_by_its_assignee_required"
             )
             assert response.json()["last_error"] == reason
             assert live.anomaly_store.get(live.anomaly_ref, tenant_id=live.tenant) == before

@@ -345,7 +345,7 @@ class BridgeLive(Live):
         self.approved = approved.json()
         return self.approved
 
-    async def assess(self, *, link_id=None, body=None, name="reviewer"):
+    async def assess(self, *, link_id=None, body=None, name="inspector"):
         if body is None:
             state = await self.state(self.task_b, name)
             revision = await self.admin.fetchval(
@@ -376,7 +376,7 @@ class BridgeLive(Live):
             self.assessment_id = response.json()["assessment_id"]
         return response
 
-    async def deliver(self, *, delivery_id=None, name="reviewer"):
+    async def deliver(self, *, delivery_id=None, name="inspector"):
         return await self.fm.post(
             f"/internal/field-tasks/fields/{self.field}/verification-deliveries/"
             f"{delivery_id or self.delivery_id}/deliver",
@@ -396,7 +396,12 @@ class BridgeLive(Live):
     async def app_connection(self, name="reviewer"):
         from fm_gateway import Caller, caller_connection
 
-        role = {"reviewer": "agronomist", "manager": "manager", "inspector": "worker"}[name]
+        role = {
+            "reviewer": "agronomist",
+            "manager": "manager",
+            "inspector": "worker",
+            "inspector2": "farmer",
+        }[name]
         async with caller_connection(
             Caller(self.tenant, self.users[(self.tenant, name)], role)
         ) as conn:

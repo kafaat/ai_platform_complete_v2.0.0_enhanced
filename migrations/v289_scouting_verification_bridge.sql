@@ -135,7 +135,7 @@ CREATE TRIGGER scouting_verification_link_guard BEFORE INSERT OR UPDATE ON scout
 
 CREATE OR REPLACE FUNCTION scouting_verification_assessment_guard() RETURNS trigger
 LANGUAGE plpgsql SET search_path = pg_catalog, pg_temp AS $$
-DECLARE b uuid; h record; v record; p record;
+DECLARE b uuid; h record; v record; p record; -- decision 1: the assignee assesses
 BEGIN
     SELECT inspection_task_id INTO b FROM public.scouting_verification_links
         WHERE tenant_id=NEW.tenant_id AND field_id=NEW.field_id AND link_id=NEW.link_id
@@ -146,14 +146,15 @@ BEGIN
     SELECT * INTO v FROM public.inspection_evidence_versions
         WHERE tenant_id=NEW.tenant_id AND field_id=NEW.field_id AND task_id=b
           AND version=NEW.evidence_version;
-    SELECT e.evidence_id, e.content_sha256 INTO p FROM public.field_tasks t
+    SELECT e.evidence_id, e.content_sha256, t.assigned_to INTO p FROM public.field_tasks t
         LEFT JOIN public.scout_photo_evidence e ON e.tenant_id=t.tenant_id
           AND e.field_id=t.field_id AND e.pin_id=t.source_scouting_pin_id
         WHERE t.tenant_id=NEW.tenant_id AND t.field_id=NEW.field_id AND t.task_id=b;
-    IF b IS NULL OR h.action IS DISTINCT FROM 'approve' OR h.actor IS DISTINCT FROM NEW.reviewer
+    IF b IS NULL OR h.action IS DISTINCT FROM 'approve' OR h.assignee IS DISTINCT FROM NEW.reviewer
+       OR p.assigned_to IS DISTINCT FROM NEW.reviewer OR h.actor IS NULL
+       OR h.actor IS NOT DISTINCT FROM h.assignee
        OR h.revision IS DISTINCT FROM NEW.inspection_revision
        OR h.evidence_version IS DISTINCT FROM NEW.evidence_version
-       OR h.assignee IS NOT DISTINCT FROM NEW.reviewer
        OR v.version IS NULL OR v.photo_evidence_id IS DISTINCT FROM p.evidence_id
        OR v.photo_content_sha256 IS DISTINCT FROM p.content_sha256 THEN
         RAISE EXCEPTION 'verification_assessment_requires_current_reviewed_evidence' USING ERRCODE='23514';
