@@ -118,7 +118,11 @@ def test_an_unknown_detail_is_shown_only_as_a_short_plain_token(client_module):
     assert set(shown) <= set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.:-")
 
 
-@pytest.mark.parametrize("key_id", ["", "  ", "a:b", "line\nbreak", "cr\rid"])
+@pytest.mark.parametrize(
+    "key_id",
+    # From PR1598_ci_repairs.patch: padded, non-ASCII, tab and control-character ids too.
+    ["", "  ", "a:b", "line\nbreak", "cr\rid", " current ", "مفتاح", "a\tb", "a\x1fb", "a\x7fb"],
+)
 def test_a_key_id_the_assertion_cannot_carry_is_not_configured(client_module, monkeypatch, key_id):
     monkeypatch.setenv("VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID", key_id)
     assert client_module.VegetationVerificationClient().configured() is False
@@ -135,3 +139,21 @@ def test_a_rejection_shows_only_a_named_code_as_sent(client_module):
     assert type(store) is client_module.VerificationRemoteRejected
     shown = str(store).removeprefix("verification_remote_status:409:")
     assert len(shown) <= 80 and "<" not in shown and " " not in shown
+
+
+@pytest.mark.parametrize("tenant", ["malformed:tenant", "مستأجر"])
+def test_an_unsignable_request_is_refused_without_sending(client_module, tenant):
+    sent = []
+
+    def handler(request):
+        sent.append(request)
+        return httpx.Response(200, json={"persisted": True})
+
+    transport = httpx.AsyncClient(
+        transport=httpx.MockTransport(handler), base_url="http://vegetation"
+    )
+    client = client_module.VegetationVerificationClient(transport)
+    with pytest.raises(client_module.VerificationRemoteRefused) as caught:
+        asyncio.run(client.context(tenant, "urn:a:1"))
+    assert str(caught.value) == "verification_assertion_unsignable"
+    assert sent == []

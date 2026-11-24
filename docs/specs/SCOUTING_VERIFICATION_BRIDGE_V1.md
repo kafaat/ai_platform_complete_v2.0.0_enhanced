@@ -119,7 +119,7 @@ flowchart TD
 | field-management | `VEGETATION_VERIFICATION_URL` | عنوان vegetation الداخلي في قالب Compose |
 | الطرفان | `VEGETATION_VERIFICATION_SERVICE_TOKEN` | فارغ؛ الرفض عند غياب الإعداد. رمز مخصص للجسر: لا يقبل المستقبل رمز `TASK_SERVICE_CALLBACK_TOKEN` (عامل الخدمة الوحيد في المسار القديم `/v1/anomalies/.../verification-results`)، ويرفض العمل (503) إن ضُبط الرمزان بالقيمة نفسها |
 | الطرفان | `VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY` | فارغ؛ يحتاج مفتاحًا مخصصًا لا يقل عن 32 محرفًا |
-| الطرفان | `VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID` | `current`؛ يُرفض قبل الحجز إن لم يحمله التوكيد (فارغ، أو فيه `:` أو سطر جديد) |
+| الطرفان | `VEGETATION_VERIFICATION_TENANT_ASSERTION_KEY_ID` | `current`؛ يُرفض قبل الحجز إن لم يحمله التوكيد (فارغ، أو فيه `:` أو سطر جديد)، أو كان مبطّنًا بمسافات أو غير ASCII أو فيه محرّف تحكّم (tab أو 0x1f أو DEL). ويُرفض الطلب دون إرسال (`verification_assertion_unsignable`) إن لم تُرمَّز ترويساته بـASCII |
 
 تُقرأ الرايتان بدالّة واحدة مشتركة (`flag_enabled` في `shared/contracts/remote_sensing/verification_delivery.py`): `1`/`true`/`yes`/`on` دون حساسيّة لحالة الأحرف، والباقي مطفأ.
 

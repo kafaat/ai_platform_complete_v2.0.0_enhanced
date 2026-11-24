@@ -108,6 +108,15 @@ class VegetationVerificationClient:
             or len(key) < 32
         ):
             raise VerificationRemoteError("verification_transport_unconfigured")
+        # The receiver looks the key id up verbatim, and HTTP headers carry ASCII without control
+        # characters. A padded, non-ASCII or control-character id would be claimed and then fail
+        # (or be signed as a different, stripped id), so it is refused here, before any claim.
+        if (
+            key_id != key_id.strip()
+            or not key_id.isascii()
+            or any(ord(char) < 32 or ord(char) == 127 for char in key_id)
+        ):
+            raise VerificationRemoteError("verification_transport_unconfigured")
         try:
             # The assertion's own rule decides whether this key id is signable (not empty, no
             # ':' or line break), so a malformed id is refused here, before any claim.
@@ -149,7 +158,9 @@ class VegetationVerificationClient:
                 path=path,
                 request_id=request_id,
             )
-        except TenantAssertionError as exc:
+            for value in headers.values():
+                value.encode("ascii")
+        except (TenantAssertionError, UnicodeEncodeError) as exc:
             # Nothing was sent; the dispatcher settles the claimed row instead of stranding it.
             raise VerificationRemoteRefused("verification_assertion_unsignable") from exc
         if key:
