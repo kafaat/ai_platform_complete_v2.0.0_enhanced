@@ -43,6 +43,15 @@ CONTENT_REJECTIONS = frozenset(
 )
 
 
+def _header_value_carriable(value: str) -> bool:
+    """An HTTP header carries ASCII without control characters or surrounding whitespace."""
+    return (
+        value == value.strip()
+        and value.isascii()
+        and not any(ord(char) < 32 or ord(char) == 127 for char in value)
+    )
+
+
 def _sanitize(detail: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.:-]", "_", detail)[:80]
 
@@ -108,14 +117,12 @@ class VegetationVerificationClient:
             or len(key) < 32
         ):
             raise VerificationRemoteError("verification_transport_unconfigured")
-        # The receiver looks the key id up verbatim, and HTTP headers carry ASCII without control
-        # characters. A padded, non-ASCII or control-character id would be claimed and then fail
-        # (or be signed as a different, stripped id), so it is refused here, before any claim.
-        if (
-            key_id != key_id.strip()
-            or not key_id.isascii()
-            or any(ord(char) < 32 or ord(char) == 127 for char in key_id)
-        ):
+        # The receiver looks the key id and the token up verbatim, and HTTP headers carry ASCII
+        # without control characters. A padded, non-ASCII or control-character value would be
+        # claimed and then fail (or be signed as a different, stripped id), or be rejected by the
+        # HTTP library as an unknown outcome that costs an attempt, so it is refused here, before
+        # any claim.
+        if not _header_value_carriable(key_id) or not _header_value_carriable(token):
             raise VerificationRemoteError("verification_transport_unconfigured")
         try:
             # The assertion's own rule decides whether this key id is signable (not empty, no
@@ -158,13 +165,15 @@ class VegetationVerificationClient:
                 path=path,
                 request_id=request_id,
             )
-            for value in headers.values():
-                value.encode("ascii")
-        except (TenantAssertionError, UnicodeEncodeError) as exc:
+        except TenantAssertionError as exc:
             # Nothing was sent; the dispatcher settles the claimed row instead of stranding it.
             raise VerificationRemoteRefused("verification_assertion_unsignable") from exc
         if key:
             headers["Idempotency-Key"] = key
+        # Every header, the idempotency key included, is checked before anything is sent: a value
+        # the HTTP library would reject must settle as refused, not as an unknown outcome.
+        if not all(_header_value_carriable(value) for value in headers.values()):
+            raise VerificationRemoteRefused("verification_assertion_unsignable")
 
         async def send(client):
             return await client.request(

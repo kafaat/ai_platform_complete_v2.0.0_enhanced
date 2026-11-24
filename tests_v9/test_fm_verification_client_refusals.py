@@ -128,6 +128,40 @@ def test_a_key_id_the_assertion_cannot_carry_is_not_configured(client_module, mo
     assert client_module.VegetationVerificationClient().configured() is False
 
 
+@pytest.mark.parametrize("token", [" padded ", "رمز", "line\nbreak", "a\tb", "a\x7fb"])
+def test_a_token_a_header_cannot_carry_is_not_configured(client_module, monkeypatch, token):
+    # From the hospital's delta review of b7f4e3fa: a control character passes encode("ascii") and
+    # used to fail inside the HTTP library after the claim, as an unknown outcome that costs an attempt.
+    monkeypatch.setenv("VEGETATION_VERIFICATION_SERVICE_TOKEN", token)
+    assert client_module.VegetationVerificationClient().configured() is False
+
+
+@pytest.mark.parametrize("key", ["idem\nkey", "مفتاح", " idem "])
+def test_an_idempotency_key_a_header_cannot_carry_is_refused_without_sending(client_module, key):
+    sent = []
+
+    def handler(request):
+        sent.append(request)
+        return httpx.Response(200, json={"persisted": True})
+
+    transport = httpx.AsyncClient(
+        transport=httpx.MockTransport(handler), base_url="http://vegetation"
+    )
+    client = client_module.VegetationVerificationClient(transport)
+    with pytest.raises(client_module.VerificationRemoteRefused) as caught:
+        asyncio.run(
+            client._request(
+                "GET",
+                "00000000-0000-0000-0000-000000000001",
+                "urn:a:1",
+                "verification-context",
+                key=key,
+            )
+        )
+    assert str(caught.value) == "verification_assertion_unsignable"
+    assert sent == []
+
+
 def test_a_signable_configuration_is_configured(client_module):
     assert client_module.VegetationVerificationClient().configured() is True
 
