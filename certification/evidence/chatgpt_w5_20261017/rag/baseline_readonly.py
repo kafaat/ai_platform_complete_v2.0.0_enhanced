@@ -52,7 +52,7 @@ FOREIGN_PREFIX = "foreign-tenant:"
 
 # userinfo: user and optional password without whitespace (a valid URL has none), so a
 # later "@" in prose (``retry user@host``) is not swallowed with the text before it.
-_URL_USERINFO = re.compile(r"(?i)\b([a-z][a-z0-9+.-]*://)[^\s/@:]+(?::[^\s/@]{0,128})?@")
+_URL_USERINFO = re.compile(r"(?i)\b([a-z][a-z0-9+.-]*://)[^\s/@:]*(?::[^\s/@]*)?@")
 _AUTH_SCHEME = re.compile(r"(?i)\b(bearer|basic)\s+[^\s,;'\"]+")
 # Unquoted ``key=value`` and quoted JSON / repr forms (``"api_key": "v"``, ``key='v'``),
 # because a Qdrant HTTP error carries the raw (JSON) response body.

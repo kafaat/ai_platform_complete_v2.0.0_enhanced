@@ -282,6 +282,8 @@ def test_qdrant_write_is_refused_before_it_is_sent(monkeypatch, tmp_path, real_p
         ("authorization=Basic dXNlcjpwYXNz", "dXNlcjpwYXNz"),
         ("Bearer abc.def.ghi failed", "abc.def.ghi"),
         ("postgres://user:p%40ss@h/db", "p%40ss"),
+        ("http://u:" + "A" * 200 + "@h/x", "A" * 200),
+        ("http://:onlypw@h/x", "onlypw"),
     ],
 )
 def test_sanitize_detail_redacts_quoted_and_scheme_secrets(raw, leak):
