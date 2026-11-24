@@ -32285,7 +32285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69601b7367c6cc6036ffec37e25d2c994e95ce4a2b58e01a569ec5123d7a6b97"
+          "content": "a4a7649ca8957d3e4770dd643d0bcd9ca58b21f7306ec7178690c7d894c651ca"
         }
       ],
       "name": "services/sahool-platform/core/learning/model_selector.py",
@@ -36565,7 +36565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf84148da688f22c443e47776ea76812fa6bc2ca51c3c6fac510815952747967"
+          "content": "97656e0c5a7297f0481cbfc14ce574e0d813802baed71d745913b0fcb4ca4eff"
         }
       ],
       "name": "services/sahool-platform/tests/test_learning.py",
