@@ -88,7 +88,7 @@ export function SeasonSimulationDialog({ seasonId, crops, inputs, onClose }: Pro
                   hint={r.yield_kg_ha != null
                     ? `المركزي ≈ ${num(r.yield_kg_ha)}`
                     : r.scenario_yield_kg_ha != null
-                      ? `الريّ غير مسجَّل — سيناريو «لو كان الريّ كافياً» ≈ ${num(r.scenario_yield_kg_ha)}، ليس تقديراً للموسم؛ سجّل كمّيّات الريّ`
+                      ? `لا كمّيّات ريّ في سجلّ الموسم المرتبط بالمحاكاة — سيناريو «لو كان الريّ كافياً» ≈ ${num(r.scenario_yield_kg_ha)}، ليس تقديراً للموسم؛ سجلّ الريّ التشغيليّ للحقل لا يدخل المحاكاة بعد`
                       : `السبب: ${r.yield_status} — ليس صفراً مرصوداً`} />
                 <Stat label="GDD التراكمي (°C·day)"
                   value={`${num(r.gdd_total)} / ${num(r.gdd_to_maturity)}`}
@@ -113,7 +113,14 @@ export function SeasonSimulationDialog({ seasonId, crops, inputs, onClose }: Pro
                 {r.manual_irrigation_used != null && ` · ريّ مسجَّل: ${r.manual_irrigation_used ? 'استُخدِم' : 'لم يُستخدَم'}`}
               </p>
 
-              <p className="text-[11px] text-slate-500 leading-relaxed">{r.rationale_ar}</p>
+              {/* The frontend can ship before the backend: an unavailable estimate from the
+                  rue-fao56/1 engine still says «الثقة 0%» in its rationale. Never show that next
+                  to «الثقة غير متاحة». */}
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                {r.yield_kg_ha == null
+                  ? r.rationale_ar?.replace(/الثقة\s*0\s*[٪%]/g, 'الثقة غير متاحة')
+                  : r.rationale_ar}
+              </p>
 
               {r.limitations?.length > 0 && (
                 <p className="text-[11px] text-slate-500">

@@ -825,7 +825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b5e7a02370565e0657e612c8aca0e6f5a20f790f49c32161feff6d4511bd5236"
+          "content": "2ae704c13d3bf4a4deed511c95b0a3f91d8056f6860ef5d62efc66ba9c4577d9"
         }
       ],
       "name": "frontend/src/components/SeasonSimulationDialog.tsx",
@@ -6605,7 +6605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "87b2cf15b5073619737447b13e394093debe062d43786adb9d2d33b32b57d36b"
+          "content": "189b9fe61e5c2ad812f3ce6014bd0f6b985fa45bea4efb81f90fd87b8acad5e5"
         }
       ],
       "name": "frontend/src/sections/HybridIndexPage.seasonSimulation.test.tsx",
@@ -29385,7 +29385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a81747ae2aba7fa1d1a398e543930cd6f2c6c3d20caea8dbfef07a8c8fd8309a"
+          "content": "03eebbc51dd82ba47f3ca3696838e5300913d5ac9174887dcf732f83290c4a4e"
         }
       ],
       "name": "services/sahool-platform/api/season_simulation.py",
@@ -38015,7 +38015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "00916e7921cc4349cc32106cc3cbac0c124ddc5bc6f166edca8f6705cac9a1d3"
+          "content": "e1a9d5da665aec794b37417e81b3732cfabe9b7b1b8181b08d2cd895421ba86f"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_simulation.py",

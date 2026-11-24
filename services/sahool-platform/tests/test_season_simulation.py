@@ -218,6 +218,16 @@ class TestUnknownIrrigation:
         assert any("سيناريو" in a for a in unknown.assumptions_ar)
         assert "ليس تقديراً تشغيليّاً" in unknown.rationale_ar
 
+    def test_unknown_supply_names_the_linked_record_not_an_unrecorded_irrigation(self):
+        # The simulation reads irrigation from the linked season record only; the field's
+        # operational water ledger does not feed it. The assumption must not tell an operator
+        # who logged irrigation there to "record irrigation amounts".
+        r = _sim("wheat", _warm_days(120), irrigation_type="pivot")
+        text = " ".join(r.assumptions_ar)
+        assert "سجلّ الموسم المرتبط بالمحاكاة" in text
+        assert "لا يدخل المحاكاة بعد" in text
+        assert "سجّل كمّيّات الريّ" not in text
+
     def test_some_rain_is_not_evidence_of_adequate_supplemental_irrigation(self):
         weather = _warm_days(120)
         for d in weather[:5]:
