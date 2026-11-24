@@ -95,7 +95,7 @@ def _owner_field_state(region):
 
 
 def _field_scope(req, field_state, retrieval_crop="unit-crop"):
-    owner_region = runtime._trusted_region_for_generation(field_state, req.field_id)
+    owner_region = runtime._trusted_region_for_generation(field_state, req.field_id, "t-1")
     return runtime._generation_scope(req, retrieval_crop, owner_region), owner_region
 
 
@@ -138,7 +138,10 @@ def test_a_client_region_is_ignored_for_a_field_question():
 
 def test_a_general_question_ignores_any_owner_region():
     req = SimpleNamespace(field_id=None, crop="unit-crop", region="unit-region")
-    assert runtime._trusted_region_for_generation(_owner_field_state("owner-region"), None) is None
+    assert (
+        runtime._trusted_region_for_generation(_owner_field_state("owner-region"), None, "t-1")
+        is None
+    )
     assert runtime._generation_scope(req, "unit-crop", None) == {
         "crop": "unit-crop",
         "region": "unit-region",
@@ -185,7 +188,7 @@ def test_the_advisor_passes_that_scope_to_the_approval_gate():
         if isinstance(n, ast.Assign) and [ast.unparse(t) for t in n.targets] == ["retrieval_region"]
     ]
     assert [ast.unparse(a.value) for a in assigns] == [
-        "_trusted_region_for_generation(field_state, req.field_id)"
+        "_trusted_region_for_generation(field_state, req.field_id, tenant_id)"
     ]
 
 
@@ -243,4 +246,25 @@ def test_the_pack_budget_and_redaction_keep_the_field_region():
         ai_context_summary_ar="-",
     ).model_dump(mode="json")
     owner_state = {"field_id": "f-1", "ai_context_pack": pack}
-    assert runtime._trusted_region_for_generation(owner_state, "f-1") == "unit-region"
+    assert runtime._trusted_region_for_generation(owner_state, "f-1", "t-1") == "unit-region"
+
+
+def test_a_pack_for_another_field_or_tenant_gives_no_region():
+    """A service caller's ``current_field_state`` for field B must not scope field A."""
+    state = _owner_field_state("owner-region")
+    assert runtime._trusted_region_for_generation(state, "f-1", "t-1") == "owner-region"
+    assert runtime._trusted_region_for_generation(state, "f-2", "t-1") is None
+    assert runtime._trusted_region_for_generation(state, "f-1", "t-2") is None
+    assert runtime._trusted_region_for_generation(state, "f-1", None) is None
+
+
+def test_rag_search_filters_a_field_question_by_the_owner_region():
+    tree = ast.parse(Path(runtime.__file__).read_text(encoding="utf-8"))
+    regions = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Dict):
+            continue
+        keys = [getattr(k, "value", None) for k in node.keys]
+        if "region" in keys and "final_k" in keys:
+            regions.append(ast.unparse(node.values[keys.index("region")]))
+    assert regions == ["retrieval_region if req.field_id else req.region"]

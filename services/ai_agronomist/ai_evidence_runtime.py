@@ -466,7 +466,7 @@ def _trusted_crop_for_retrieval(
 
 
 def _trusted_region_for_generation(
-    field_state: dict[str, Any] | None, field_id: str | None
+    field_state: dict[str, Any] | None, field_id: str | None, tenant_id: str | None
 ) -> str | None:
     """A field question's region, read from the owner's field record.
 
@@ -474,10 +474,20 @@ def _trusted_region_for_generation(
     (``to_jsonb(f.*)`` in ``field_ai_context._fetch_field_profile``), so ``fields.region``
     (v33/v104) arrives with the same owner read that supplies the crop card. A general
     question has no owner record, so this returns None for it.
+
+    The pack must name this field and this tenant. The owner read already checks that, but a
+    service caller may supply ``current_field_state`` itself, and another field's region must
+    not decide which approved references this question may use. ``fields.region`` is what the
+    tenant saved for its own field (client value or reverse geocoding at creation), not a
+    verified location; it is trusted per question only in that it is not sent with the question.
     """
     if not field_id:
         return None
     pack = _extract_ai_context_pack(field_state)
+    if not isinstance(pack, dict) or pack.get("field_id") != field_id:
+        return None
+    if tenant_id is None or str(pack.get("tenant_id")) != str(tenant_id):
+        return None
     profile = (pack or {}).get("field_profile")
     region = profile.get("region") if isinstance(profile, dict) else None
     if isinstance(region, str) and region.strip():
@@ -1080,7 +1090,7 @@ async def build_evidence_response(
         # The tenant's active season, not the request body, selects the crop.
         retrieval_crop = _trusted_crop_for_retrieval(req.crop, field_state, req.field_id)
         # The same owner read gives a field question its region (never the client's).
-        retrieval_region = _trusted_region_for_generation(field_state, req.field_id)
+        retrieval_region = _trusted_region_for_generation(field_state, req.field_id, tenant_id)
         kg_available = False
         kg_payload = {"edges": []}
         kg_failure = {}
@@ -1130,7 +1140,8 @@ async def build_evidence_response(
                         "query": retrieval_query,
                         "crop": retrieval_crop,
                         "field_id": req.field_id,
-                        "region": req.region,
+                        # A field question filters by the owner's region, not the client's.
+                        "region": retrieval_region if req.field_id else req.region,
                         "source_type": None,
                         "final_k": req.final_k,
                     },
