@@ -171,6 +171,7 @@ def test_single_ring_boundary_still_works():
     out = mask_array_by_polygon(arr, transform, CRS.from_epsg(4326), ring)
     assert int(np.isfinite(out).sum()) == 100
 
+
 @pytest.mark.parametrize(
     "data",
     [
