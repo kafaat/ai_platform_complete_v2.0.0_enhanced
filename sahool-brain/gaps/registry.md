@@ -9358,7 +9358,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## GRAFANA-DASHBOARD-DATASOURCE-UID-UNRESOLVED-01 — لوحتا Grafana تشيران إلى uid «prometheus» غير المُعدّ
 
-- **الحالة:** open — الإصلاح في #1625 (غير مدموج وقت الكتابة).
+- **الحالة:** fixed — #1625 مدمج (`c71dbb0fff29dbb4f1aa0ff0ba49d76d4d79701a`)؛ لم يُعَد توفير Grafana بهذه اللوحات على بيئة حيّة بعد، فالعرض الحيّ غير مُثبَت.
 - **المصدر:** `grafana/dashboards/json/sahool-production-overview.json` و`sahool-field-imagery-ai-runtime.json` تكتبان `{"type": "prometheus", "uid": "prometheus"}` بينما `grafana/datasources/datasource.yml` بلا `uid`؛ قاسته جلسة المستشفى على بيئة التكامل (main 7551198a): كلّ لوحة «datasource not found».
 - **الإصلاح المقترح (#1625):** متغيّر قالب `datasource` في اللوحتين دون تثبيت uid للمصدر (التثبيت يكسر لوحات المشغّلين المحفوظة في `grafana-data`)، مع `tests_v9/test_grafana_dashboard_datasource_uids.py`.
 

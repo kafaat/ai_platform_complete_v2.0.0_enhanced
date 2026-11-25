@@ -5077,3 +5077,12 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **الدمج:** squash `9118d5278bcd0d455db5d4172be0f8727acc7f36` (الأب `c937d103`) بـ`expectedHeadSha` `dfb3d72e`، دمجته جلسة المستشفى؛ الشجرة `9d04c174` تساوي الرأس. مراجعة المستشفى PASS (190ba0ef ثمّ dfb3d72e)، ومختبر 1627-v1/v2/post PASS، وCI أخضر.
 - **النشر:** staging `sahool-soil-service` النشر `8f2ecdd5` على 9118d527، SUCCESS 16:16:40Z (فحص `/readyz`)؛ production لم يُبنَ والمهاجر لم يعمل.
 - **المصدر:** #1627 · سجلّات Railway نقلتها جلسة المستشفى (قراءة فقط) · إيصالات المختبر.
+
+
+## 2026-11-25 — #1625 مدمج: لوحتا Grafana تحلّان Prometheus بمتغيّر قالب
+
+- **القرار (المالك):** الدمج بعد #1627، بعد إعادة تأكيد البوّابات على الرأس الجديد.
+- **المضمون:** متغيّر قالب `datasource` في اللوحتين بدل uid «prometheus» الثابت، دون تثبيت uid لمصدر البيانات (التثبيت كان سيكسر لوحات المشغّلين المحفوظة في `grafana-data` — مراجعة Devin)؛ ومسح Dockerfile يشمل كلّ الملفّات المتتبَّعة و`frontend/`.
+- **الدمج:** squash `c71dbb0fff29dbb4f1aa0ff0ba49d76d4d79701a` (الأب `9118d527`) بـ`expectedHeadSha` `8ec9188d`، دمجته جلسة المستشفى. مراجعة جلسة التنسيق PASS (8c94c7aa ثمّ bffd58c5 و8df9792b و672358ab و8ec9188d)، ومختبر 1625-v5 PASS، وCI أخضر. Deploy-Effect NONE.
+- **المصدر:** #1625 · `tests_v9/test_grafana_dashboard_datasource_uids.py`.
+
