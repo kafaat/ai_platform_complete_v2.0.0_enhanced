@@ -29,7 +29,9 @@ def _distinct_ring(coords: list) -> list:
             lon, lat = map(float, point)
         except (TypeError, ValueError, OverflowError) as exc:
             raise ValueError("coordinates: invalid numeric coordinate") from exc
-        if not (math.isfinite(lon) and math.isfinite(lat) and -180 <= lon <= 180 and -90 <= lat <= 90):
+        if not (
+            math.isfinite(lon) and math.isfinite(lat) and -180 <= lon <= 180 and -90 <= lat <= 90
+        ):
             raise ValueError("coordinates: longitude/latitude outside valid bounds")
         ring.append((lon, lat))
     if len(ring) >= 2 and ring[0] == ring[-1]:

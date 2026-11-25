@@ -1,7 +1,6 @@
 """Regression tests for the fertility engine's numeric contract."""
 
 import pytest
-
 from core.engines.fertility import fertiliser_need
 
 
