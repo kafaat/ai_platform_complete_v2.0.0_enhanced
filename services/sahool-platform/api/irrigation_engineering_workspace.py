@@ -16,6 +16,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, model_validator
 
+from api.irrigation_uniformity import UniformitySurvey, calculate_uniformity
+
 
 class IrrigationSystemType(StrEnum):
     CENTER_PIVOT = "center_pivot"
@@ -366,6 +368,7 @@ class InteractiveIrrigationCalculationRequest(BaseModel):
     fittings: PipeFittingsInput = Field(default_factory=PipeFittingsInput)
     safety_margin_m: float = Field(default=5.0, ge=0, le=100)
     installed_motor_power_kw: float | None = Field(default=None, gt=0)
+    uniformity_survey: UniformitySurvey | None = None
 
 
 class InteractiveIrrigationCalculationResult(BaseModel):
@@ -546,8 +549,16 @@ def calculate_interactive_irrigation_engineering(
     if calc.get("flow_m3_h"):
         calc["runtime_h"] = round(calc["gross_volume_m3"] / calc["flow_m3_h"], 4)
 
+    request_payload = req.model_dump(mode="json")
+    uniformity = None
+    if req.uniformity_survey is None:
+        # Preserve the pre-existing digest for requests without a survey.
+        request_payload.pop("uniformity_survey")
+    else:
+        uniformity = calculate_uniformity(req.uniformity_survey)
+
     payload = {
-        "request": req.model_dump(mode="json"),
+        "request": request_payload,
         "status": status.value,
         "calculations": calc,
         "warnings": sorted(set(warnings)),
@@ -556,6 +567,8 @@ def calculate_interactive_irrigation_engineering(
         "assumptions": assumptions,
         "input_quality": critical_quality,
     }
+    if uniformity is not None:
+        payload["uniformity"] = uniformity
     return InteractiveIrrigationCalculationResult(
         status=status,
         calculations=calc,
@@ -576,6 +589,7 @@ def calculate_interactive_irrigation_engineering(
             "split_application_recommended": split_application,
         },
         hydraulics={
+            **({"uniformity": uniformity} if uniformity is not None else {}),
             "flow_source": flow_source,
             "flow_m3_h": calc.get("flow_m3_h"),
             "velocity_m_s": calc.get("mainline_velocity_m_s"),
