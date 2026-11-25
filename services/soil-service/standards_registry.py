@@ -10,6 +10,10 @@
 - **الإصدار لا يُستبدَل بصمت.** طلب معيارٍ بلا إصدار يُرجِع الإصدار **الساري في التاريخ
   المطلوب**؛ الإصدار المُستبدَل يبقى قابلاً للاستعلام صراحةً (للتدقيق التاريخيّ) ويحمل
   `superseded_by`؛ والمسحوب (`withdrawn`) لا يُرجَع ساريّاً أبداً.
+- **الصلاحية ≠ الاعتماد المحلّيّ.** حالة المعيار (active/superseded/withdrawn) تقول هل هو
+  ساري المفعول عند مُصدِره؛ أمّا **اعتماده** في دولة/مشروع فقرارٌ منفصل يُسجَّل في ملفّ
+  الاعتماد (`adopted` / `provisional` / `reference_only`) بجهةٍ ومرجع. الافتراضيّ
+  `reference_only`: مطابقةٌ فنّيّة لمرجعٍ أدبيّ، لا امتثالٌ لحدٍّ ملزم.
 - **ملفّات الاعتماد (profiles)** حسب الدولة/المنطقة/المشروع تختار المعايير وإصداراتها،
   وتسمح **بالتشديد فقط**: تجاوزٌ يُرخي حدّاً (يرفع حدّاً أعلى أو يخفض حدّاً أدنى) يُرفَض
   عند البناء — مشروعٌ لا يستطيع أن «يُطابق» بتليين المعيار.
@@ -26,6 +30,7 @@ from datetime import date
 REGISTRY_VERSION = "farmland-standards.v1"
 
 _STATUSES = ("active", "superseded", "withdrawn")
+ADOPTION_STATUSES = ("adopted", "provisional", "reference_only")
 _LIMIT_KINDS = ("max", "min", "range", "bands")
 
 
@@ -107,6 +112,21 @@ class ClauseOverride:
 
 
 @dataclass(frozen=True)
+class StandardAdoption:
+    """قرار اعتماد معيارٍ محلّيّاً — مستقلّ عن صلاحيّته عند مُصدِره.
+
+    `adopted` و`provisional` يتطلّبان جهةً (`authority`) ومرجعاً مكتوباً (`reference`: قرار،
+    لائحة، محضر) — لا ادّعاء اعتمادٍ بلا مصدر. غياب السجلّ ⇒ `reference_only`.
+    """
+
+    standard_id: str
+    status: str
+    authority: str = ""
+    reference: str = ""
+    adopted_on: date | None = None
+
+
+@dataclass(frozen=True)
 class ComplianceProfile:
     profile_id: str
     country: str
@@ -114,6 +134,7 @@ class ComplianceProfile:
     region: str | None = None
     project: str | None = None
     overrides: tuple[ClauseOverride, ...] = ()
+    adoption: tuple[StandardAdoption, ...] = ()
     notes: str = ""
 
 
@@ -141,6 +162,20 @@ class StandardsRegistry:
             _validate_override(standard.clause(override.clause_id), override)
         for ref in profile.standards:
             self.resolve(ref)
+        listed = {ref.split("@", 1)[0] for ref in profile.standards}
+        seen: set[str] = set()
+        for a in profile.adoption:
+            if a.standard_id not in listed:
+                raise StandardsRegistryError(f"adoption_targets_unlisted_standard:{a.standard_id}")
+            if a.standard_id in seen:
+                raise StandardsRegistryError(f"duplicate_adoption:{a.standard_id}")
+            seen.add(a.standard_id)
+            if a.status not in ADOPTION_STATUSES:
+                raise StandardsRegistryError(f"unknown_adoption_status:{a.standard_id}:{a.status}")
+            if a.status != "reference_only" and not (a.authority.strip() and a.reference.strip()):
+                raise StandardsRegistryError(
+                    f"adoption_without_authority_or_reference:{a.standard_id}"
+                )
         self.profiles[profile.profile_id] = profile
 
     # ── الحلّ ───────────────────────────────────────────────────────────
@@ -201,6 +236,17 @@ class StandardsRegistry:
             sid, ver = nxt.split("@", 1)
             standard = self.get(sid, ver)
         return chain
+
+    def adoption_status(self, profile_id: str, standard_id: str) -> StandardAdoption:
+        """قرار الاعتماد المحلّيّ للمعيار في الملفّ؛ غيابه ⇒ `reference_only` صريحاً."""
+        try:
+            profile = self.profiles[profile_id]
+        except KeyError:
+            raise StandardsRegistryError(f"unknown_profile:{profile_id}") from None
+        for a in profile.adoption:
+            if a.standard_id == standard_id:
+                return a
+        return StandardAdoption(standard_id, "reference_only")
 
     def profile_standards(self, profile_id: str, on: date | None = None) -> list[Standard]:
         """معايير الملفّ بعد الحلّ وتطبيق التجاوزات (التشديدات) على بنودها."""
@@ -320,7 +366,7 @@ def _validate_override(c: Clause, o: ClauseOverride) -> None:
 
 _FAO29 = "FAO Irrigation and Drainage Paper 29 Rev.1 (Ayers & Westcot, 1985), Table 1"
 _HB60 = "USDA Agriculture Handbook 60 (Richards, ed., 1954), Ch. 1 & 4"
-_AH210 = (
+AH210_SOURCE = _AH210 = (
     "USDA Agriculture Handbook 210 (Klingebiel & Montgomery, 1961) — limiting-factor "
     "land capability concept; numeric class limits are INDICATIVE (AH-210 publishes none "
     "nationally) and must be calibrated by the regional guide"

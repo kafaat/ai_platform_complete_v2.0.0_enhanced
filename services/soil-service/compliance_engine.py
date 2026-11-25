@@ -14,7 +14,9 @@
   `contexts`؛ وإلّا يُدرَج `not_applicable` (لا يُحسَب في الحكم ولا يُخفى من الناتج).
 
 الحكم الإجماليّ: `non_compliant` إن فشل أيّ بند؛ وإلّا `incomplete` إن بقي بندٌ غير مُقيَّم؛
-وإلّا `compliant`. نقيّ بالكامل (بلا I/O).
+وإلّا `compliant`. والحكم **فنّيّ** دائماً: `legally_binding` لا يصدق إلّا إذا كانت كلّ المعايير
+المُقيَّمة `adopted` في ملفّ الاعتماد — مطابقة مرجعٍ أدبيّ ليست امتثالاً لحدٍّ ملزم.
+نقيّ بالكامل (بلا I/O).
 """
 
 from __future__ import annotations
@@ -71,6 +73,16 @@ class ComplianceReport:
     results: list[ClauseResult]
     profile_id: str | None = None
     engine_version: str = ENGINE_VERSION
+    # standard_ref -> {"validity": حالته عند المُصدِر, "adoption": قرار الاعتماد المحلّيّ, ...}
+    standards: dict[str, dict] = field(default_factory=dict)
+
+    @property
+    def legally_binding(self) -> bool:
+        """صحيح فقط إن كان كلّ معيارٍ قُيِّم بندٌ منه (غير not_applicable) معتمَداً محلّيّاً."""
+        used = {r.standard_ref for r in self.results if r.status != "not_applicable"}
+        return bool(used) and all(
+            self.standards.get(ref, {}).get("adoption") == "adopted" for ref in used
+        )
 
     @property
     def counts(self) -> dict[str, int]:
@@ -85,6 +97,8 @@ class ComplianceReport:
             "evaluated_on": self.evaluated_on.isoformat(),
             "profile_id": self.profile_id,
             "engine_version": self.engine_version,
+            "legally_binding": self.legally_binding,
+            "standards": {k: dict(v) for k, v in self.standards.items()},
             "counts": self.counts,
             "results": [r.to_dict() for r in self.results],
         }
@@ -238,8 +252,17 @@ def evaluate_standards(
         verdict = "incomplete"
     else:
         verdict = "compliant"
+    validity = {
+        s.ref: {
+            "validity": s.status,
+            "effective_from": s.effective_from.isoformat(),
+            "effective_to": s.effective_to.isoformat() if s.effective_to else None,
+            "adoption": "reference_only",
+        }
+        for s in standards
+    }
     return ComplianceReport(
-        verdict=verdict, evaluated_on=on, results=results, profile_id=profile_id
+        verdict=verdict, evaluated_on=on, results=results, profile_id=profile_id, standards=validity
     )
 
 
@@ -254,6 +277,15 @@ def evaluate_profile(
     """يقيّم الملاحظات مقابل معايير ملفّ الاعتماد بإصداراتها السارية وتشديداتها."""
     on = on or date.today()
     standards = registry.profile_standards(profile_id, on)
-    return evaluate_standards(
+    report = evaluate_standards(
         standards, observations, on=on, contexts=contexts, profile_id=profile_id
     )
+    for s in standards:
+        a = registry.adoption_status(profile_id, s.standard_id)
+        report.standards[s.ref].update(
+            adoption=a.status,
+            adoption_authority=a.authority or None,
+            adoption_reference=a.reference or None,
+            adopted_on=a.adopted_on.isoformat() if a.adopted_on else None,
+        )
+    return report

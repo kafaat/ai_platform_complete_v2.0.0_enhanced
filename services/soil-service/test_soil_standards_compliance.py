@@ -13,6 +13,7 @@ from standards_registry import (
     ClauseOverride,
     ComplianceProfile,
     Standard,
+    StandardAdoption,
     StandardsRegistry,
     StandardsRegistryError,
     default_registry,
@@ -338,3 +339,73 @@ def test_report_serialises_with_evidence_for_audit():
     assert all(
         {"standard", "clause", "status", "reason", "evidence"} <= set(r) for r in out["results"]
     )
+
+
+# ── الصلاحية ≠ الاعتماد المحلّيّ ──────────────────────────────────────────
+
+
+def test_literature_compliance_is_technical_not_legally_binding_by_default():
+    obs = [_obs("ece_ds_m", 1.0, "dS/m"), _obs("esp_pct", 5.0, "%")]
+    reg = default_registry()
+    reg.register_profile(ComplianceProfile("P-tech", "YE", ("USDA-HB60",)))
+    report = evaluate_profile(reg, "P-tech", obs, on=ON)
+    assert report.verdict == "compliant"
+    assert report.legally_binding is False
+    hb60 = report.to_dict()["standards"]["USDA-HB60@1954"]
+    assert (hb60["validity"], hb60["adoption"]) == ("active", "reference_only")
+
+
+def test_adopted_standard_with_authority_and_reference_makes_the_verdict_binding():
+    reg = default_registry()
+    adoption = StandardAdoption(
+        "USDA-HB60", "adopted", authority="MAI Yemen", reference="decree 12/2026"
+    )
+    reg.register_profile(ComplianceProfile("P-adopt", "YE", ("USDA-HB60",), adoption=(adoption,)))
+    obs = [_obs("ece_ds_m", 1.0, "dS/m"), _obs("esp_pct", 5.0, "%")]
+    report = evaluate_profile(reg, "P-adopt", obs, on=ON)
+    assert report.legally_binding is True
+    std = report.to_dict()["standards"]["USDA-HB60@1954"]
+    assert (
+        std["adoption_authority"] == "MAI Yemen" and std["adoption_reference"] == "decree 12/2026"
+    )
+
+
+def test_binding_requires_every_evaluated_standard_to_be_adopted():
+    reg = default_registry()
+    adoption = StandardAdoption("USDA-HB60", "adopted", authority="MAI", reference="d1")
+    reg.register_profile(
+        ComplianceProfile("P-mix", "YE", ("USDA-HB60", "FAO-29"), adoption=(adoption,))
+    )
+    obs = [_obs("ece_ds_m", 1.0, "dS/m"), _obs("esp_pct", 5.0, "%"), _obs("ph", 7.0, "pH")]
+    assert evaluate_profile(reg, "P-mix", obs, on=ON).legally_binding is False
+
+
+@pytest.mark.parametrize(
+    "adoption, match",
+    [
+        (StandardAdoption("USDA-HB60", "adopted"), "adoption_without_authority_or_reference"),
+        (
+            StandardAdoption("USDA-HB60", "provisional", authority="MAI"),
+            "adoption_without_authority_or_reference",
+        ),
+        (
+            StandardAdoption("USDA-HB60", "ratified", authority="a", reference="r"),
+            "unknown_adoption_status",
+        ),
+        (
+            StandardAdoption("FAO-29", "adopted", authority="a", reference="r"),
+            "adoption_targets_unlisted_standard",
+        ),
+    ],
+)
+def test_adoption_claims_without_source_or_scope_are_refused(adoption, match):
+    with pytest.raises(StandardsRegistryError, match=match):
+        default_registry().register_profile(
+            ComplianceProfile("P-bad", "YE", ("USDA-HB60",), adoption=(adoption,))
+        )
+
+
+def test_yemen_default_profile_claims_no_local_adoption():
+    reg = default_registry()
+    for sid in ("FAO-29", "USDA-HB60", "USDA-AH210-INDICATIVE"):
+        assert reg.adoption_status("YE-default", sid).status == "reference_only"
