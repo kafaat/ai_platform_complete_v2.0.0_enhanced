@@ -160,7 +160,7 @@ function IrrigationCalculatorForm({ tenantId, fieldId, seasonId }: { tenantId: R
         {result.hydraulics.uniformity.status === 'not_evaluated' && <p role="status">لم يُحسب الانتظام (لا توجد مياه موزعة قابلة للتقييم).</p>}
         <p className="text-xs text-amber-300">البيانات مقدمة من المشغّل ولم تُتحقق؛ المطابقة غير مقيّمة. الانتظام ليس كفاءة التطبيق ولا إذناً بالتشغيل.</p>
       </section> : (form.surveyRows.trim() || form.surveyEvidence.trim()) && <p role="status" className="text-amber-300">لم يُرجع الخادم نتيجة الانتظام؛ لا توجد نتيجة معتمدة.</p>}
-      {result.water_demand.deficit_scenario && <section aria-label="نتيجة سيناريو عجز الري" className="space-y-2 rounded-xl border border-slate-700 p-3 text-sm text-slate-200">
+      {result.water_demand.deficit_scenario ? <section aria-label="نتيجة سيناريو عجز الري" className="space-y-2 rounded-xl border border-slate-700 p-3 text-sm text-slate-200">
         <h3 className="font-semibold text-emerald-300">نتيجة سيناريو عجز الري</h3>
         {result.water_demand.deficit_scenario.status === 'estimated' ? <>
           <p>مؤشر خطر الملوحة التقريبي: {result.water_demand.deficit_scenario.salinity_risk_heuristic}</p>
