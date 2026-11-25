@@ -32,7 +32,7 @@
       "raw": 3525
     },
     "test_dependency_files": 2061,
-    "test_dependency_edges": 5584,
+    "test_dependency_edges": 5586,
     "test_dependency_bounded_files": 1180,
     "test_dependency_unresolved_relations": 536
   },
@@ -15649,6 +15649,10 @@
       ],
       "events": [
         {
+          "value": "field_context.py @ tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py:1431",
+          "score": 16
+        },
+        {
           "value": "public.field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:70",
           "score": 16
         },
@@ -16185,7 +16189,7 @@
         "backend": 10,
         "routes": 28,
         "database": 48,
-        "events": 18,
+        "events": 19,
         "web": 6,
         "mobile": 18,
         "tests": 24,
@@ -97629,6 +97633,16 @@
         "unresolved_dynamic_relation"
       ],
       "edges": [
+        {
+          "source": "services/sahool-platform/api/field_context.py",
+          "kind": "loader",
+          "line": 1432
+        },
+        {
+          "source": "services/sahool-platform/api/field_context.py",
+          "kind": "source_read",
+          "line": 1431
+        },
         {
           "source": "tests_v9/test_scouting_verification_bridge_live_pg.py",
           "kind": "import",
