@@ -17,7 +17,21 @@ _M2_PER_HA = 10_000.0
 
 def _distinct_ring(coords: list) -> list:
     """يُرجِع حلقة الرؤوس بلا تكرار النقطة الأولى في النهاية (إن وُجد)."""
-    ring = [(float(lon), float(lat)) for lon, lat in coords]
+    if not isinstance(coords, (list, tuple)):
+        raise ValueError("coordinates: expected a ring of longitude/latitude pairs")
+    ring = []
+    for point in coords:
+        if not isinstance(point, (list, tuple)) or len(point) != 2:
+            raise ValueError("coordinates: expected a longitude/latitude pair")
+        if any(isinstance(value, bool) for value in point):
+            raise ValueError("coordinates: boolean coordinates are not valid")
+        try:
+            lon, lat = map(float, point)
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ValueError("coordinates: invalid numeric coordinate") from exc
+        if not (math.isfinite(lon) and math.isfinite(lat) and -180 <= lon <= 180 and -90 <= lat <= 90):
+            raise ValueError("coordinates: longitude/latitude outside valid bounds")
+        ring.append((lon, lat))
     if len(ring) >= 2 and ring[0] == ring[-1]:
         ring = ring[:-1]
     return ring
@@ -39,7 +53,7 @@ def compute(inp: dict) -> dict:
     # يقبل قاموس المُدخَلات من السجلّ {"coordinates": [...]} أو قائمة الإحداثيّات مباشرةً.
     coords = inp["coordinates"] if isinstance(inp, dict) else inp
     ring = _distinct_ring(coords)
-    if len(ring) < 3:
+    if len(set(ring)) < 3:
         raise ValueError("مضلّع يحتاج 3 رؤوس على الأقلّ")
 
     # المساحة الكرويّة (Chamberlain & Duquette).
@@ -48,7 +62,13 @@ def compute(inp: dict) -> dict:
     for i in range(n):
         lon1, lat1 = ring[i]
         lon2, lat2 = ring[(i + 1) % n]
-        area += math.radians(lon2 - lon1) * (
+        # Agricultural fields use the local, shortest longitude step, including at ±180°.
+        delta_lon = lon2 - lon1
+        if delta_lon > 180:
+            delta_lon -= 360
+        elif delta_lon < -180:
+            delta_lon += 360
+        area += math.radians(delta_lon) * (
             2 + math.sin(math.radians(lat1)) + math.sin(math.radians(lat2))
         )
     area = abs(area * _R * _R / 2.0)
