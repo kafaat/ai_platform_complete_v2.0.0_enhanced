@@ -6,6 +6,8 @@ import hashlib
 import math
 from statistics import fmean
 
+from land_quality import classify_salinity_sodicity
+
 from shared.contracts.soil.p3 import (
     AnalogFieldProduct,
     AnalogFieldRequest,
@@ -389,10 +391,41 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
         interventions.append(
             {"type": "leaching_candidate", "requires": "approved_water_and_drainage"}
         )
-    if req.sodicity_probability > 0.45:
-        interventions.append(
-            {"type": "gypsum_candidate", "requires": "lab_EC_ESP_and_water_profile"}
+    # Farmland Phase 2 · 0002: lab EC/ESP (already in the request) are classified against
+    # USDA HB60 through the standards registry. A lab-verified sodic/saline class is stronger
+    # evidence than the screening probability, so it raises the candidate even when the
+    # probability is low; the classification itself never upgrades a lab-unverified request.
+    lab_class = None
+    if req.lab_verified and (req.ec_lab_ds_m is not None or req.esp_pct is not None):
+        lab_class = classify_salinity_sodicity(
+            ece_ds_m=req.ec_lab_ds_m,
+            esp_pct=req.esp_pct,
+            observed_on=None,  # the P3 request contract carries no sample date
+            source=f"reclamation_request:{req.field_id}",
         )
+    lab_soil_class = lab_class.soil_class if lab_class else None
+    lab_sodic = lab_soil_class in {"sodic", "saline_sodic"}
+    lab_saline = lab_soil_class in {"saline", "saline_sodic"}
+    if req.salinity_probability <= 0.45 and lab_saline:
+        interventions.append(
+            {
+                "type": "leaching_candidate",
+                "requires": "approved_water_and_drainage",
+                "basis": "lab_hb60",
+            }
+        )
+    if req.sodicity_probability > 0.45 or lab_sodic:
+        gypsum = {"type": "gypsum_candidate", "requires": "lab_EC_ESP_and_water_profile"}
+        if lab_sodic:
+            gypsum["basis"] = "lab_hb60"
+        if req.esp_pct is not None:
+            # The rate kernel exists (land_quality.gypsum_requirement) but this request
+            # contract carries no CEC, depth or bulk density — name what is missing rather
+            # than emit a rate from assumed values.
+            gypsum["esp_pct"] = req.esp_pct
+            gypsum["rate_kernel"] = "land_quality.gypsum_requirement"
+            gypsum["rate_inputs_missing"] = ["cec_cmolc_kg", "depth_m", "bulk_density_t_m3"]
+        interventions.append(gypsum)
     if req.compaction_risk > 0.55:
         interventions.append(
             {"type": "subsoiling_candidate", "requires": "field_compaction_verification"}
@@ -462,6 +495,7 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
             "lab_verified": req.lab_verified,
             "water_profile_approved": req.irrigation_water_profile_approved,
             "drainage_engineering_verified": req.drainage_engineering_verified,
+            **({"lab_salinity_sodicity": lab_class.to_dict()} if lab_class else {}),
         },
     )
 
