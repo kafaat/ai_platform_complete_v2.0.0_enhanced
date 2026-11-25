@@ -2,7 +2,8 @@
 
 import pytest
 from pydantic import ValidationError
-from shared.precision_agriculture.irrigation_uniformity import UniformitySurvey, calculate_uniformity
+
+from api.irrigation_engineering_workspace import UniformitySurvey, calculate_uniformity
 
 
 def survey(depths, areas=None, pivot="a"):
