@@ -9354,3 +9354,64 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `tests_v9/test_helm_gateway_ingress_contract.py:378` (`_free_port` يربط المنفذ 0 ثمّ يغلق المقبس ويُعيد الرقم)؛ ظهر في CI على #1606 (التشغيل 45513484866) في `test_self_verifying_services_never_see_a_client_identity_header` (`:561`).
 - **الخلل:** بين إغلاق المقبس وربط الخادم الحقيقيّ يمكن لعاملٍ موازٍ أن يأخذ المنفذ نفسه (TOCTOU)، فيفشل الاختبار دون تغيير في الشيفرة المختبَرة.
 - **الإصلاح المقترح:** إبقاء المقبس مربوطًا وتمريره، أو ربط الخادم على المنفذ 0 وقراءة منفذه الفعليّ؛ أو تعليم الاختبار ليعمل تسلسليًّا.
+
+
+## GRAFANA-DASHBOARD-DATASOURCE-UID-UNRESOLVED-01 — لوحتا Grafana تشيران إلى uid «prometheus» غير المُعدّ
+
+- **الحالة:** open — الإصلاح في المصدر مدموج في #1625 (squash `c71dbb0fff29dbb4f1aa0ff0ba49d76d4d79701a`، مثبَّت على `8ec9188d`؛ مختبر 1625-v5 و1625-post PASS)، لكنّ الانتقال إلى fixed يُعلَن في PR يحمل الإصلاح لا في تعديلٍ للدماغ وحده (#1136، `brain_state_transition_guard`)، و#1625 دُمج قبل هذا التسجيل. الفحوص كانت ثابتة: لم يُعَد توفير Grafana بهذه اللوحات على بيئة حيّة، فالعرض الحيّ غير مقيس.
+- **المصدر:** `grafana/dashboards/json/sahool-production-overview.json` و`sahool-field-imagery-ai-runtime.json` تكتبان `{"type": "prometheus", "uid": "prometheus"}` بينما `grafana/datasources/datasource.yml` بلا `uid`؛ قاسته جلسة المستشفى على بيئة التكامل (main 7551198a): كلّ لوحة «datasource not found».
+- **الإصلاح المقترح (#1625):** متغيّر قالب `datasource` في اللوحتين دون تثبيت uid للمصدر (التثبيت يكسر لوحات المشغّلين المحفوظة في `grafana-data`)، مع `tests_v9/test_grafana_dashboard_datasource_uids.py`.
+
+
+## TENANT-AUTH-LIVE-GATE-KG-ROUTE-404-ON-INTEGRATION-EDGE-01 — بوّابة المصادقة الحيّة تنادي مسار الرسم المعرفيّ فيُجاب 404 على حافّة بيئة التكامل
+
+- **الحالة:** open — مقيس على بيئة التكامل؛ لم يُحدَّد الإصلاح.
+- **المصدر:** `scripts/e2e/tenant_auth_live_gate.py:99` ينادي `POST /api/knowledge-graph/nodes`؛ المسار معرَّف في nginx compose (`nginx/nginx.v9.conf:494`)، لكنّ بوّابة Railway هي `frontend/nginx.conf` (يولّدها `deploy/railway/render_frontend.py`) ولا موضعَ فيها لـ`/api/knowledge-graph`، فأجابت المنصّة 404 `{"detail":"Not Found"}` على بيئة التكامل، ونجحت فحوص البوّابة الأربعة الأخرى (تقرير جلسة المستشفى، 2026-11-25).
+- **النطاق:** القالب نفسه يخدم واجهتَي staging وproduction على Railway، فالمسار غائبٌ هناك على الأرجح — استنتاجٌ من القالب المشترك لا قياس.
+
+
+## RAG-RETRIEVAL-READYZ-NEEDS-LICENSED-SEED-01 — جاهزيّة الاسترجاع 503 حتّى تُبذَر مجموعةٌ مرخّصة
+
+- **الحالة:** open — قرار المالك (أيّ بيانات مرخّصة تُبذَر).
+- **المصدر:** `services/rag-retrieval/main.py:273` (`/readyz`) و`main.py:452-459`: مجموعةٌ غير فارغة لا نقطة فيها محتوى نشط مقروء تبقى NOT_READY (الحجر ليس تغطية)، والمجموعة الفارغة عطلٌ عامّ آخر. على بيئة التكامل بذر `qdrant-seed` في `sahool_agri_kb` 64 وثيقة كلّها في `__seed_quarantine__`، فأجابت `/readyz` بـ503 (تقرير جلسة المستشفى، 2026-11-25).
+- **حدّ القياس:** السبب مستنتَج من الشيفرة؛ لم يُقرأ جسم 503 لأنّ الخدمة على الشبكة الخاصّة.
+
+
+## MODEL-REGISTRY-ADAPTER-NO-REGISTRY-ENDPOINT-01 — إعداد سجلّ النماذج الخارجيّ وقبول تشغيل المحوِّل غير موثّقَين بإيصال هنا
+
+- **الحالة:** open — قبول التشغيل على البيئة المقصودة غير محسوم بالدليل المرتبط بهذا الإدخال؛ وجود ملفّ التعريف في Compose لا يثبت تفعيله أو غياب نشره، والإبقاء على التعطيل الافتراضيّ قرار قائم لا عطل مُثبت.
+- **المصدر الثابت (الرأس `73ec1c3b`):** `docker-compose.v9.yml:2075-2089` يعرّف `sahool-model-lifecycle-adapter` ضمن ملفّ التعريف الاختياريّ `model-lifecycle` ويصرّح بأنّ الخلفيّات خارجيّة؛ و`:2111-2119` يمرّر `MODEL_REGISTRY_BACKEND/URL/TOKEN/DRY_RUN` من البيئة. غياب خدمة سجلّ داخل Compose لا يثبت غياب سجلّ خارجيّ.
+- **حدود فحص الإعداد:** `services/model-registry-adapter/adapter.py:33-40,103-120` يشترط URL، والرمز في production أو عند تعيين هويّة المحوّل، ويشترط `MODEL_REGISTRY_BACKEND=http` ويرفض dry-run في production؛ لا يفحص مخطّط URL ولا يتّصل بالسجلّ أثناء هذا الفحص. شرط `REGISTRY_ADAPTER_ID` في production مصدره `services/model-registry-adapter/runtime.py:30-34,333-335`، وليس الشرط الاختياريّ في `adapter.py:116`.
+- **تصويب الدليل التشغيليّ:** نُسب إلى تقرير جلسة المستشفى (2026-11-25) أنّ المحوّل غير منشور وأنّ البيئة بلا سجلّ، لكنّ الإدخال لا يربط إيصالًا خامًّا متتبَّعًا لذلك التقرير؛ تُسحب نسبةُ هذين الادّعاءين إلى الشيفرة ولا يُعاد تقديمهما كقياس. يبقى التعطيل الافتراضيّ وفق W4-05 قائمًا (`docker-compose.v9.yml:2027-2029`؛ `tests_v9/test_w4_05_model_lifecycle_defaults_pinned.py:1-7,42-53`). المتابعة هي ربط قرار التمكين أو استمرار التعطيل بدليله، ثمّ إيصال قبول مخوَّل عند اعتماد التمكين.
+
+
+## HELM-KNOWLEDGE-GRAPH-DATA-NO-VOLUME-01 — تصويب تشخيص غياب حجم /data لخدمة الرسم المعرفيّ في Helm
+
+- **الحالة:** <!-- gap-registry: adjudicated --> تشخيص مصوَّب بالدليل المصدريّ — ادّعاء غياب حجم Helm لا يطابق المخطّط عند `c71dbb0f` و`73ec1c3b`؛ هذا حسمٌ لتشخيص غير صحيح، لا انتقال إلى fixed ولا إثبات تشغيل حيّ.
+- **التشخيص المسحوب:** نسبت ملاحظة مراجعة #1623 غياب الحجم إلى `helm/sahool/values.yaml:233`، واستنتجت من إزالة Dockerfile `VOLUME` في `f834f4ec` أنّ بيانات Helm عابرة. إزالة تعليمة الصورة لا تزيل PVC الذي يعلنه المخطّط.
+- **الدليل:** `helm/sahool/values.yaml:233-245` يفعّل الخدمة ويعرّف `persistence` بحجم `5Gi` ونمط `ReadWriteOnce` وموضع `/data`، ويضبط `KG_SQLITE_PATH=/data/kg.sqlite`. `helm/sahool/templates/persistence.yaml:1-13` ينشئ PVC باسم `sahool-knowledge-graph-data`، و`helm/sahool/templates/deployments.yaml:78-84,109-113` يربطه بالحجم `data` ويركّبه على `/data`.
+- **التاريخ وحدّ الحكم:** هذه التهيئة موجودة منذ #997 (`62fc7b01473821ec1e9d9285da091b3a1eb314b7`، 2026-09-13)، قبل #1623. القراءة المصدرية لا تثبت نشر Helm أو ارتباط PVC حيّ أو دوام البيانات بعد إعادة تشغيل؛ لا تُسجَّل هذه النتائج دون قياسها. تمثيل `adjudicated` موثّق في `sahool-brain/README.md:55-62` ويحفظ الإدخال ودليله خارج تعداد حالات الفجوات المستقلّة.
+
+
+## P3-GYPSUM-RATE-ALLOWED-WITHOUT-LAB-ESP-01 — تقييم الاستصلاح يسمح بمعدّل الجبس حين يوجد مرشَّح جبس بلا ESP مخبريّ
+
+- **الحالة:** open — سابقٌ لـ#1627؛ يحتاج قرارًا في دلالة إصدار المنتجات غير المُلحَقة.
+- **المصدر:** `services/soil-service/p3_products.py` (`build_reclamation_assessment`): بعد #1627 يُحجَب `gypsum_rate` فقط حين يذكر المرشَّح `rate_inputs_missing` (طلب مخبريّ بـesp_pct). مع `lab_verified` و`sodicity_probability=0.6` بلا esp_pct يبقى المعدّل مسموحًا، وعقد P3 لا يحمل CEC ولا العمق ولا الكثافة أصلًا. وجدتها مراجعة المستشفى لـ#1627.
+
+
+## AH210-ECE-BAND-NO-REQUIRED-METHOD-01 — بند ECe في AH-210 بلا طريقة مطلوبة
+
+- **الحالة:** open — لا مستدعي إنتاجيّ اليوم (الاختبارات فقط).
+- **المصدر:** `services/soil-service/standards_registry.py` (`AH210_LAND_CAPABILITY`): `land_capability(ece_ds_m=20)` بلا طريقة يعطي الصنف VI — الفجوة نفسها التي سدّها #1627 في HB60؛ سدّها يغيّر توقيع `land_capability`. ملاحظة مراجعة المستشفى لـ#1627.
+
+
+## ECE-METHOD-SPELLING-SPLIT-01 — تهجئتان لطريقة مستخلص العجينة المشبعة
+
+- **الحالة:** open — آمنٌ لأنّه يفشل مغلقًا (method_mismatch)، لكنّه مفاجئ.
+- **المصدر:** `shared/contracts/soil/observation.py:17` و`services/sahool-platform/api/lab_store.py:828` و`api/routers/soil_sampling.py:206` تستعمل `saturated_paste`، وHB60 وعقد P2 يستعملان `saturation_extract_25c`. ملاحظة مراجعة المستشفى لـ#1627 (أعيد قياس المواضع: الموضع المذكور في raster-service لا يحمل التهجئة).
+
+
+## CROP-SUITABILITY-IMPLEMENTATIONS-DIVERGE-01 — تطبيقات ملاءمة المحاصيل تختلف في الصنف
+
+- **الحالة:** open — ينتظر قرار المالك في الجدول المرجعيّ (المقترح: Maas–Hoffman / FAO-29 الجدول 4).
+- **المصدر:** موجود أربع مرّات عبر خدمتين ([`docs/farmland/PHASE2_BASELINE_main_35c305c2.md`](../../docs/farmland/PHASE2_BASELINE_main_35c305c2.md))؛ قياس `api/crop_suitability.py` مقابل `soil_science.py`: 30 من 168 خلافَ صنف و10 انقلابات صالح/غير صالح (نخيل التمر عند pH 6.5: «excellent» مقابل «unsuitable»؛ حدّ ECe للذرة البيضاء 6.5 مقابل 8.0 مقابل Maas–Hoffman 6.8).
