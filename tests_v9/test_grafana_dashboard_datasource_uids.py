@@ -56,7 +56,9 @@ def _provisioned_uids() -> set[str]:
     """Provisioned uids, plus names, which a legacy string reference resolves against."""
     doc = yaml.safe_load(_DATASOURCES.read_text(encoding="utf-8"))
     entries = [d for d in doc.get("datasources", []) if isinstance(d, dict)]
-    return {d["uid"] for d in entries if d.get("uid")} | {d["name"] for d in entries if d.get("name")}
+    return {d["uid"] for d in entries if d.get("uid")} | {
+        d["name"] for d in entries if d.get("name")
+    }
 
 
 def _unresolved(dashboard: dict, provisioned: set[str]) -> list[str]:
