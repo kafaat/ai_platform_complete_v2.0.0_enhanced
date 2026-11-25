@@ -9354,3 +9354,58 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `tests_v9/test_helm_gateway_ingress_contract.py:378` (`_free_port` يربط المنفذ 0 ثمّ يغلق المقبس ويُعيد الرقم)؛ ظهر في CI على #1606 (التشغيل 45513484866) في `test_self_verifying_services_never_see_a_client_identity_header` (`:561`).
 - **الخلل:** بين إغلاق المقبس وربط الخادم الحقيقيّ يمكن لعاملٍ موازٍ أن يأخذ المنفذ نفسه (TOCTOU)، فيفشل الاختبار دون تغيير في الشيفرة المختبَرة.
 - **الإصلاح المقترح:** إبقاء المقبس مربوطًا وتمريره، أو ربط الخادم على المنفذ 0 وقراءة منفذه الفعليّ؛ أو تعليم الاختبار ليعمل تسلسليًّا.
+
+
+## GRAFANA-DASHBOARD-DATASOURCE-UID-UNRESOLVED-01 — لوحتا Grafana تشيران إلى uid «prometheus» غير المُعدّ
+
+- **الحالة:** open — الإصلاح في #1625 (غير مدموج وقت الكتابة).
+- **المصدر:** `grafana/dashboards/json/sahool-production-overview.json` و`sahool-field-imagery-ai-runtime.json` تكتبان `{"type": "prometheus", "uid": "prometheus"}` بينما `grafana/datasources/datasource.yml` بلا `uid`؛ قاسته جلسة المستشفى على بيئة التكامل (main 7551198a): كلّ لوحة «datasource not found».
+- **الإصلاح المقترح (#1625):** متغيّر قالب `datasource` في اللوحتين دون تثبيت uid للمصدر (التثبيت يكسر لوحات المشغّلين المحفوظة في `grafana-data`)، مع `tests_v9/test_grafana_dashboard_datasource_uids.py`.
+
+
+## TENANT-AUTH-LIVE-GATE-KG-ROUTE-404-ON-INTEGRATION-EDGE-01 — بوّابة المصادقة الحيّة تنادي مسار الرسم المعرفيّ فيُجاب 404 على حافّة بيئة التكامل
+
+- **الحالة:** open — مقيس على بيئة التكامل؛ لم يُحدَّد الإصلاح.
+- **المصدر:** `scripts/e2e/tenant_auth_live_gate.py:99` ينادي `POST /api/knowledge-graph/nodes`؛ المسار معرَّف في `nginx/nginx.v9.conf:494`، لكنّ حافّة بيئة التكامل على Railway لم تكن تحمله فأجابت 404 (تقرير جلسة المستشفى، 2026-11-25).
+
+
+## RAG-RETRIEVAL-READYZ-NEEDS-LICENSED-SEED-01 — جاهزيّة الاسترجاع 503 حتّى تُبذَر مجموعةٌ مرخّصة
+
+- **الحالة:** open — قرار المالك (أيّ بيانات مرخّصة تُبذَر).
+- **المصدر:** `services/rag-retrieval/main.py:273` (`/readyz`)؛ مجموعة فارغة تُبقي الحالة NOT_READY (`main.py:458`)، فأجاب 503 على بيئة التكامل (تقرير جلسة المستشفى، 2026-11-25).
+
+
+## MODEL-REGISTRY-ADAPTER-NO-REGISTRY-ENDPOINT-01 — محوِّل سجلّ النماذج بلا نقطة سجلٍّ يتّصل بها على بيئة التكامل
+
+- **الحالة:** open — مقيس على بيئة التكامل؛ يحتاج تحديدًا للنقطة المقصودة.
+- **المصدر:** `services/model-registry-adapter/`؛ تقرير جلسة المستشفى (2026-11-25) أنّ الخدمة لم تجد نقطة سجلّ مُعدّة.
+
+
+## HELM-KNOWLEDGE-GRAPH-DATA-NO-VOLUME-01 — مخطّط Helm لا يُركّب حجمًا على /data لخدمة الرسم المعرفيّ
+
+- **الحالة:** open — سابقٌ لـ#1623؛ غير منشور على Helm حاليًّا.
+- **المصدر:** `helm/sahool/values.yaml:233` (`sahool-knowledge-graph`) بلا حجم؛ بعد #1623 (`f834f4ec`) لم تعد الصورة تُعلن `VOLUME`، فالبيانات على Helm تبقى عابرة ما لم يُضَف حجم (ملاحظة مراجعة #1623).
+
+
+## P3-GYPSUM-RATE-ALLOWED-WITHOUT-LAB-ESP-01 — تقييم الاستصلاح يسمح بمعدّل الجبس حين يوجد مرشَّح جبس بلا ESP مخبريّ
+
+- **الحالة:** open — سابقٌ لـ#1627؛ يحتاج قرارًا في دلالة إصدار المنتجات غير المُلحَقة.
+- **المصدر:** `services/soil-service/p3_products.py` (`build_reclamation_assessment`): بعد #1627 يُحجَب `gypsum_rate` فقط حين يذكر المرشَّح `rate_inputs_missing` (طلب مخبريّ بـesp_pct). مع `lab_verified` و`sodicity_probability=0.6` بلا esp_pct يبقى المعدّل مسموحًا، وعقد P3 لا يحمل CEC ولا العمق ولا الكثافة أصلًا. وجدتها مراجعة المستشفى لـ#1627.
+
+
+## AH210-ECE-BAND-NO-REQUIRED-METHOD-01 — بند ECe في AH-210 بلا طريقة مطلوبة
+
+- **الحالة:** open — لا مستدعي إنتاجيّ اليوم (الاختبارات فقط).
+- **المصدر:** `services/soil-service/standards_registry.py` (`AH210_LAND_CAPABILITY`): `land_capability(ece_ds_m=20)` بلا طريقة يعطي الصنف VI — الفجوة نفسها التي سدّها #1627 في HB60؛ سدّها يغيّر توقيع `land_capability`. ملاحظة مراجعة المستشفى لـ#1627.
+
+
+## ECE-METHOD-SPELLING-SPLIT-01 — تهجئتان لطريقة مستخلص العجينة المشبعة
+
+- **الحالة:** open — آمنٌ لأنّه يفشل مغلقًا (method_mismatch)، لكنّه مفاجئ.
+- **المصدر:** `shared/contracts/soil/observation.py:17` و`services/sahool-platform/api/lab_store.py:828` و`api/routers/soil_sampling.py:206` تستعمل `saturated_paste`، وHB60 وعقد P2 يستعملان `saturation_extract_25c`. ملاحظة مراجعة المستشفى لـ#1627 (أعيد قياس المواضع: الموضع المذكور في raster-service لا يحمل التهجئة).
+
+
+## CROP-SUITABILITY-IMPLEMENTATIONS-DIVERGE-01 — تطبيقات ملاءمة المحاصيل تختلف في الصنف
+
+- **الحالة:** open — ينتظر قرار المالك في الجدول المرجعيّ (المقترح: Maas–Hoffman / FAO-29 الجدول 4).
+- **المصدر:** موجود أربع مرّات عبر خدمتين ([`docs/farmland/PHASE2_BASELINE_main_35c305c2.md`](../../docs/farmland/PHASE2_BASELINE_main_35c305c2.md))؛ قياس `api/crop_suitability.py` مقابل `soil_science.py`: 30 من 168 خلافَ صنف و10 انقلابات صالح/غير صالح (نخيل التمر عند pH 6.5: «excellent» مقابل «unsuitable»؛ حدّ ECe للذرة البيضاء 6.5 مقابل 8.0 مقابل Maas–Hoffman 6.8).

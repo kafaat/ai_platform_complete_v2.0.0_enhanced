@@ -10825,3 +10825,12 @@ The full local unit run exposed two additional test defects. The requirements co
 - **#1611 مدمج** (`514f6142`، شجرته تساوي `11ca7c5b`)؛ النشرات الستّ ناجحة؛ production بعدها INCOMPLETE 363/368 كما كانت. التفاصيل في [السجلّ](decisions/ledger.md).
 - **v290 على staging وحدها** بقرار المالك: نسخة `e997eccd` ⇒ تطبيق `e5d6b388` ⇒ فحص `1d7d47c0` يُظهر `scouting_verification_delivery_initial_guard:O`؛ إيصال المختبر PASS.
 - **فجوتان جديدتان في [السجلّ](gaps/registry.md):** `FARM-PROFITABILITY-BLANK-CURRENCY-COSTS-DROPPED-WHEN-REVENUE-NAMED-01` (قرار المالك) و`HELM-GATEWAY-TEST-FREE-PORT-RACE-01` (اختبار متقلّب).
+
+
+## 2026-11-25 — المرحلة الثانية للأراضي: الموجة 1 وجردٌ مشترك ومتابعة Devin
+
+- **#1624 مدمج** (`5338b010`، شجرته = `80c86a88`): سجلّ المعايير ومحرّك المطابقة وكتالوج تدقيق المالك (158 سجلًّا) وجودة الأرض في soil-service؛ إعادة بناء التربة على staging بموافقة مشروطة (`81e33246` SUCCESS). [السجلّ](decisions/ledger.md).
+- **#1626 مدمج** (`c937d103`): الجرد المشترك والتقسيم في `docs/farmland/`؛ درس حارس report-only.
+- **#1627 مدمج** (`9118d527`، دمجته المستشفى بطلب المالك): نتائج Devin الثلاث؛ إعادة بناء التربة على staging (`8f2ecdd5` SUCCESS).
+- **ZIP 01 (الموجة 1)** مُصدَّر من 80c86a88 على فرع `claude/farmland-phase2-deliverables`.
+- **فجوات جديدة في [السجلّ](gaps/registry.md):** خمس من بيئة التكامل (Grafana، حافّة الرسم المعرفيّ، بذر الاسترجاع، محوِّل السجلّ، حجم Helm) وأربع من مراجعات اليوم (معدّل الجبس بلا ESP، طريقة AH-210، تهجئة الطريقة، تباين الملاءمة).
