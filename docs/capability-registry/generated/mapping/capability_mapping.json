@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7741,
+    "files_scanned": 7742,
     "files_by_kind": {
       "backend": 1321,
       "database": 360,
       "governance": 92,
       "mobile": 429,
-      "other": 2254,
-      "tests": 2711,
+      "other": 2256,
+      "tests": 2710,
       "web": 574
     },
-    "unmapped_artifacts": 3685,
+    "unmapped_artifacts": 3684,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4215,
-      "raw": 3526
+      "python_functional": 4214,
+      "raw": 3528
     },
     "test_dependency_files": 2069,
     "test_dependency_edges": 5602,
@@ -5289,6 +5289,14 @@
           ]
         },
         {
+          "path": "docs/farmland/README.md",
+          "score": 11,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "docs/runbooks/SIM_GOLDEN_EVIDENCE_ADMISSION.md",
           "score": 11,
           "signals": [
@@ -5353,7 +5361,7 @@
         "mobile": 35,
         "tests": 63,
         "governance": 0,
-        "other_evidence": 26
+        "other_evidence": 27
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -11680,6 +11688,17 @@
           ]
         },
         {
+          "path": "docs/farmland/PHASE2_BASELINE_main_35c305c2.md",
+          "score": 18,
+          "signals": [
+            "content:contour",
+            "content:dem",
+            "content:hillshade",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "docs/research/SATELLITE_IMAGERY_DOWNLOAD_CHANNELS_REVIEW_20260707.md",
           "score": 18,
           "signals": [
@@ -11883,7 +11902,7 @@
         "mobile": 4,
         "tests": 43,
         "governance": 0,
-        "other_evidence": 38
+        "other_evidence": 39
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -45994,10 +46013,6 @@
     },
     {
       "path": "tests_v9/test_gpu_bake_matches_compose_overlay.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_grafana_dashboard_datasource_uids.py",
       "kind": "tests"
     },
     {
