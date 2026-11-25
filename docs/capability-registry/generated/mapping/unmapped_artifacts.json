@@ -12092,6 +12092,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_dockerfile_no_volume_instruction.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_dockerfile_pip_mirror_guard.py",
     "kind": "tests"
   },

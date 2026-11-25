@@ -26,11 +26,12 @@ COPY services/knowledge-graph/main.py /app/main.py
 # (ModuleNotFoundError: kg_store)، ويصير «النقل» إعلاناً لا شحناً.
 COPY services/knowledge-graph/kg_store.py /app/kg_store.py
 ENV PYTHONPATH=/app KG_SQLITE_PATH=/data/kg.sqlite
-# مستخدم غير جذري (SEC-2). /data قابل للكتابة (KG_SQLITE_PATH) — يُنشأ ويُملَّك قبل
-# VOLUME كي تُحفظ الملكيّة في نقطة التركيب (تغييرات ما بعد VOLUME تُهمَل عند البناء).
+# مستخدم غير جذري (SEC-2). /data قابل للكتابة (KG_SQLITE_PATH) ويُملَّك للمستخدم؛ المجلّد
+# المسمّى في compose (kg-storage:/data) يُملأ من محتوى الصورة عند أوّل تركيب فتبقى الملكيّة.
+# لا تعليمة VOLUME: Railway يرفضها عند التحقّق من الـDockerfile («docker VOLUME ... is not
+# supported») فيتوقّف البناء قبل إنشاء الصورة؛ الثبات يأتي من المنصّة (compose/Helm/وحدة Railway على /data).
 RUN useradd -m sahool && mkdir -p /data && chown -R sahool:sahool /app /data
 USER sahool
-VOLUME ["/data"]
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)"
 CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
