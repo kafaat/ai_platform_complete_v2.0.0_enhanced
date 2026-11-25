@@ -48,11 +48,17 @@ class StandardsRegistryError(ValueError):
 
 @dataclass(frozen=True)
 class Band:
-    """شريحة تصنيف مرتّبة: [lower, upper) — `upper=None` مفتوح من الأعلى."""
+    """شريحة تصنيف مرتّبة: [lower, upper) — `upper=None` مفتوح من الأعلى.
+
+    `upper_inclusive=True` ⇒ [lower, upper]: الحدّ المشترك يقع في **هذه** الشريحة لا في التي
+    تليها — حين يُعرِّف المصدر الشريحةَ الأعلى بحدٍّ أدنى صارم (FAO-29 الجدول 1: «Severe > 3.0»).
+    الشرائح مرتّبة وأوّلُ مطابقةٍ تفوز، فالشريحة التالية تبدأ فعليّاً فوق الحدّ.
+    """
 
     label: str
     lower: float
     upper: float | None
+    upper_inclusive: bool = False
 
 
 @dataclass(frozen=True)
@@ -83,6 +89,13 @@ class Clause:
     # هل يطابق الحدّ الأعلى نفسه؟ True ⇒ «≤ upper». False ⇒ «< upper» — حين يُعرِّف المصدر
     # الصنفَ المرفوض بـ«≥ upper» (HB60: ملحيّة عند ECe ≥ 4، صوديّة عند ESP ≥ 15).
     upper_inclusive: bool = True
+    # معرّفُ الطريقة المطلوبة **آليّاً** (لا الوصف البشريّ `measurement_method`). غير الفارغ ⇒
+    # الملاحظة بلا طريقة أو بطريقةٍ أخرى `not_evaluated` — لا مطابقة بدليلٍ من طريقةٍ خاطئة.
+    required_method: str = ""
+
+
+# معرّفُ مستخلص العجينة المشبعة عند 25 °س — الطريقة التي يُعرَّف بها ECe في HB60 (وفي P2).
+SATURATION_EXTRACT_25C = "saturation_extract_25c"
 
 
 @dataclass(frozen=True)
@@ -432,7 +445,7 @@ FAO29_WATER_QUALITY = Standard(
             source=f"{_FAO29} — Salinity (affects crop water availability), ECw",
             bands=(
                 Band("none", 0.0, 0.7),
-                Band("slight_to_moderate", 0.7, 3.0),
+                Band("slight_to_moderate", 0.7, 3.0, upper_inclusive=True),
                 Band("severe", 3.0, None),
             ),
             pass_labels=("none",),
@@ -448,7 +461,7 @@ FAO29_WATER_QUALITY = Standard(
             source=f"{_FAO29} — Specific ion toxicity, Sodium (Na), surface irrigation",
             bands=(
                 Band("none", 0.0, 3.0),
-                Band("slight_to_moderate", 3.0, 9.0),
+                Band("slight_to_moderate", 3.0, 9.0, upper_inclusive=True),
                 Band("severe", 9.0, None),
             ),
             pass_labels=("none",),
@@ -464,7 +477,7 @@ FAO29_WATER_QUALITY = Standard(
             source=f"{_FAO29} — Specific ion toxicity, Chloride (Cl), surface irrigation",
             bands=(
                 Band("none", 0.0, 4.0),
-                Band("slight_to_moderate", 4.0, 10.0),
+                Band("slight_to_moderate", 4.0, 10.0, upper_inclusive=True),
                 Band("severe", 10.0, None),
             ),
             pass_labels=("none",),
@@ -480,7 +493,7 @@ FAO29_WATER_QUALITY = Standard(
             source=f"{_FAO29} — Specific ion toxicity, Boron (B)",
             bands=(
                 Band("none", 0.0, 0.7),
-                Band("slight_to_moderate", 0.7, 3.0),
+                Band("slight_to_moderate", 0.7, 3.0, upper_inclusive=True),
                 Band("severe", 3.0, None),
             ),
             pass_labels=("none",),
@@ -518,6 +531,7 @@ HB60_SALINE_SODIC = Standard(
             upper=4.0,
             upper_inclusive=False,
             measurement_method="EC of saturated-paste extract at 25 °C",
+            required_method=SATURATION_EXTRACT_25C,
             max_age_days=730,
         ),
         Clause(
@@ -731,9 +745,8 @@ def audit_status(rec: dict) -> tuple[str, str]:
 
 def load_catalog(path: Path | None = None, expected_sha256: str | None = None) -> dict:
     """يحمّل كتالوجاً ويتحقّق من بصمته. الافتراضيّ: كتالوج التدقيق ببصمته المثبَّتة."""
-    if path is None:
-        path = FARMLAND_AUDIT_CATALOG
-    if expected_sha256 is None and Path(path).resolve() == FARMLAND_AUDIT_CATALOG.resolve():
+    path = FARMLAND_AUDIT_CATALOG if path is None else Path(path)  # a str path is accepted too
+    if expected_sha256 is None and path.resolve() == FARMLAND_AUDIT_CATALOG.resolve():
         # The audit catalogue is hash-checked however it is addressed (default or explicit path).
         expected_sha256 = FARMLAND_AUDIT_CATALOG_SHA256
     raw = path.read_bytes()

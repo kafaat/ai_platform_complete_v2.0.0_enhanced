@@ -23,7 +23,10 @@ from shared.contracts.soil.p3 import (
     SoilVisualObservation,
 )
 
-LAB_HB60_VERSION_SUFFIX = "lab-hb60.v1"
+# v2: a lab product whose gypsum candidate lists missing rate inputs now blocks gypsum_rate.
+# The stored payload means something different from v1, so the version key changes rather
+# than an identical resubmission silently overwriting a v1 product (p3_store upsert key).
+LAB_HB60_VERSION_SUFFIX = "lab-hb60.v2"
 
 
 def build_mobile_visual_observation(req: MobileSoilImageRequest) -> SoilVisualObservation:
@@ -418,6 +421,7 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
                 "basis": "lab_hb60",
             }
         )
+    gypsum_rate_inputs_missing = False
     if req.sodicity_probability > 0.45 or lab_sodic:
         gypsum = {"type": "gypsum_candidate", "requires": "lab_EC_ESP_and_water_profile"}
         if lab_sodic:
@@ -429,6 +433,7 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
             gypsum["esp_pct"] = req.esp_pct
             gypsum["rate_kernel"] = "land_quality.gypsum_requirement"
             gypsum["rate_inputs_missing"] = ["cec_cmolc_kg", "depth_m", "bulk_density_t_m3"]
+            gypsum_rate_inputs_missing = True
         interventions.append(gypsum)
     if req.compaction_risk > 0.55:
         interventions.append(
@@ -446,6 +451,11 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
         blocked += ["reclamation_execution", "subsurface_drainage_design"]
     if not blocked:
         allowed += ["gypsum_rate", "leaching_requirement", "reclamation_execution"]
+    if gypsum_rate_inputs_missing:
+        # The candidate itself says a rate cannot be computed from this request, so the
+        # assessment must not also allow one. Added AFTER the gate above, so blocking the
+        # rate does not switch off leaching or reclamation execution as a side effect.
+        blocked.append("gypsum_rate")
     phases = [
         {
             "phase": 1,

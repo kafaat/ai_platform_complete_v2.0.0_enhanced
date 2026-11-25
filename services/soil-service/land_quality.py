@@ -33,6 +33,7 @@ from standards_registry import (
     DRAINAGE_CLASS_TO_CAPABILITY,
     EFFECTIVE_DEPTH_CLASS_LIMITS_CM,
     HB60_SALINE_SODIC,
+    SATURATION_EXTRACT_25C,
 )
 
 LAND_QUALITY_VERSION = "land-quality.v1"
@@ -212,7 +213,8 @@ def gypsum_requirement(
 # ── صنف الملوحة/الصوديّة (HB60) ─────────────────────────────────────────
 
 
-SATURATION_EXTRACT_25C = "saturation_extract_25c"
+# SATURATION_EXTRACT_25C is defined once in standards_registry (HB60's saline.ECe requires it)
+# and re-exported here for existing callers.
 
 
 @dataclass(frozen=True)
