@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7733,
+    "files_scanned": 7738,
     "files_by_kind": {
-      "backend": 1317,
+      "backend": 1320,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2254,
-      "tests": 2707,
+      "tests": 2709,
       "web": 574
     },
-    "unmapped_artifacts": 3680,
+    "unmapped_artifacts": 3683,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4208,
+      "python_functional": 4213,
       "raw": 3525
     },
-    "test_dependency_files": 2067,
-    "test_dependency_edges": 5597,
-    "test_dependency_bounded_files": 1186,
+    "test_dependency_files": 2069,
+    "test_dependency_edges": 5602,
+    "test_dependency_bounded_files": 1188,
     "test_dependency_unresolved_relations": 536
   },
   "capabilities": [
@@ -14373,8 +14373,16 @@
           ]
         },
         {
+          "path": "services/soil-service/land_quality.py",
+          "score": 12,
+          "signals": [
+            "content:salinity",
+            "content:sodicity"
+          ]
+        },
+        {
           "path": "services/soil-service/p3_products.py",
-          "score": 10,
+          "score": 12,
           "signals": [
             "content:salinity",
             "content:sodicity"
@@ -14564,6 +14572,14 @@
           ]
         },
         {
+          "path": "services/soil-service/test_soil_land_quality.py",
+          "score": 12,
+          "signals": [
+            "content:salinity",
+            "content:sodicity"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_irrigation_water_analysis.py",
           "score": 10,
           "signals": [
@@ -14683,13 +14699,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 8,
+        "backend": 9,
         "routes": 1,
         "database": 7,
         "events": 8,
         "web": 2,
         "mobile": 0,
-        "tests": 13,
+        "tests": 14,
         "governance": 0,
         "other_evidence": 12
       },
@@ -43613,6 +43629,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/soil-service/compliance_engine.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/soil-service/db_persist.py",
       "kind": "backend"
     },
@@ -43713,6 +43733,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/soil-service/standards_registry.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/soil-service/test_p3_numeric_contract.py",
       "kind": "tests"
     },
@@ -43778,6 +43802,10 @@
     },
     {
       "path": "services/soil-service/test_soil_snapshot_identity.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/soil-service/test_soil_standards_compliance.py",
       "kind": "tests"
     },
     {
@@ -72846,6 +72874,29 @@
       "unresolved": []
     },
     {
+      "test": "services/soil-service/test_soil_land_quality.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/soil-service/land_quality.py",
+          "kind": "import",
+          "line": 6
+        },
+        {
+          "source": "services/soil-service/p3_products.py",
+          "kind": "import",
+          "line": 15
+        },
+        {
+          "source": "shared/contracts/soil/p3.py",
+          "kind": "import",
+          "line": 17
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/soil-service/test_soil_p1_products.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -73117,6 +73168,24 @@
           "source": "shared/contracts/soil/__init__.py",
           "kind": "import",
           "line": 6
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/soil-service/test_soil_standards_compliance.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/soil-service/compliance_engine.py",
+          "kind": "import",
+          "line": 7
+        },
+        {
+          "source": "services/soil-service/standards_registry.py",
+          "kind": "import",
+          "line": 8
         }
       ],
       "unresolved": []
