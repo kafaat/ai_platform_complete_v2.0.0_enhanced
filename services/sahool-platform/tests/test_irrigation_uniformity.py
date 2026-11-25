@@ -2,7 +2,6 @@
 
 import pytest
 from pydantic import ValidationError
-
 from shared.precision_agriculture.irrigation_uniformity import UniformitySurvey, calculate_uniformity
 
 

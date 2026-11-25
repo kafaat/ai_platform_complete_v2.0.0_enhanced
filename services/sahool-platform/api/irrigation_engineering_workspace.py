@@ -15,7 +15,6 @@ from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, model_validator
-
 from shared.precision_agriculture.irrigation_uniformity import UniformitySurvey, calculate_uniformity
 
 
