@@ -39695,6 +39695,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5f8382cf337c30ca0333b0814b3064c5c8cc7e374f7c66c69154e011c54c4d9a"
+        }
+      ],
+      "name": "services/soil-service/compliance_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "25a2650debebe29a12b71720ede98c94a38b60894143b3d9cdced8d499482509"
         }
       ],
@@ -39719,6 +39729,16 @@
         }
       ],
       "name": "services/soil-service/jsonb_values.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6fcedb5e65edef2748366f2c1d935e8af579dc495a32bd55f6d12ce70cfb1d9f"
+        }
+      ],
+      "name": "services/soil-service/land_quality.py",
       "type": "file"
     },
     {
@@ -39785,7 +39805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b8b458ff1f157f872317b619e790ca2b7e6d4f6dc2c7a744c47d89fb03e6a573"
+          "content": "b56ebdcd368e919d95231b926c15304ab0197cee7fb00ab15ba8790ef8d2dba6"
         }
       ],
       "name": "services/soil-service/p3_products.py",
@@ -40085,6 +40105,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "13c9a46454d6c1204f0e3a8ffac6f8a0b1aae95eb8ccf59451a0a1553427d6eb"
+        }
+      ],
+      "name": "services/soil-service/standards_catalog/farmland_standards_audit_2026-11-24.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c7930b9a3878b7b13c1c3fcd50a39d0b692c8a72c523626ba6255c7fd9dc8322"
+        }
+      ],
+      "name": "services/soil-service/standards_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "aef61d82e945236cd7967299870d8eead0871f15cbf53e06b459baedca3180d4"
         }
       ],
@@ -40159,6 +40199,16 @@
         }
       ],
       "name": "services/soil-service/test_soil_lab_supersession_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5cfff69766e664e0244dd30b69276389576941d56445d06bbbbda68e70104b0a"
+        }
+      ],
+      "name": "services/soil-service/test_soil_land_quality.py",
       "type": "file"
     },
     {
@@ -40299,6 +40349,16 @@
         }
       ],
       "name": "services/soil-service/test_soil_snapshot_identity.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "af8a7c4fbfdf99a2ffc8933372f6a8b30877dac3a302e617a891b67ba3aaafb7"
+        }
+      ],
+      "name": "services/soil-service/test_soil_standards_compliance.py",
       "type": "file"
     },
     {

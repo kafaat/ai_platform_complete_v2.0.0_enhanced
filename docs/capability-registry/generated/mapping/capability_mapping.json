@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7734,
+    "files_scanned": 7743,
     "files_by_kind": {
-      "backend": 1317,
+      "backend": 1321,
       "database": 360,
       "governance": 92,
       "mobile": 429,
-      "other": 2254,
-      "tests": 2708,
+      "other": 2256,
+      "tests": 2711,
       "web": 574
     },
-    "unmapped_artifacts": 3681,
+    "unmapped_artifacts": 3685,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4209,
-      "raw": 3525
+      "python_functional": 4215,
+      "raw": 3528
     },
-    "test_dependency_files": 2067,
-    "test_dependency_edges": 5597,
-    "test_dependency_bounded_files": 1186,
+    "test_dependency_files": 2069,
+    "test_dependency_edges": 5602,
+    "test_dependency_bounded_files": 1188,
     "test_dependency_unresolved_relations": 536
   },
   "capabilities": [
@@ -3151,6 +3151,14 @@
           ]
         },
         {
+          "path": "services/soil-service/standards_catalog/farmland_standards_audit_2026-11-24.json",
+          "score": 14,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
           "score": 13,
           "signals": [
@@ -5281,6 +5289,14 @@
           ]
         },
         {
+          "path": "docs/farmland/README.md",
+          "score": 11,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "docs/runbooks/SIM_GOLDEN_EVIDENCE_ADMISSION.md",
           "score": 11,
           "signals": [
@@ -5337,7 +5353,7 @@
         "database": 5
       },
       "evidence_counts": {
-        "backend": 38,
+        "backend": 39,
         "routes": 44,
         "database": 100,
         "events": 30,
@@ -5345,7 +5361,7 @@
         "mobile": 35,
         "tests": 63,
         "governance": 0,
-        "other_evidence": 26
+        "other_evidence": 27
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -11672,6 +11688,17 @@
           ]
         },
         {
+          "path": "docs/farmland/PHASE2_BASELINE_main_35c305c2.md",
+          "score": 18,
+          "signals": [
+            "content:contour",
+            "content:dem",
+            "content:hillshade",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "docs/research/SATELLITE_IMAGERY_DOWNLOAD_CHANNELS_REVIEW_20260707.md",
           "score": 18,
           "signals": [
@@ -11875,7 +11902,7 @@
         "mobile": 4,
         "tests": 43,
         "governance": 0,
-        "other_evidence": 38
+        "other_evidence": 39
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -14373,8 +14400,16 @@
           ]
         },
         {
+          "path": "services/soil-service/land_quality.py",
+          "score": 12,
+          "signals": [
+            "content:salinity",
+            "content:sodicity"
+          ]
+        },
+        {
           "path": "services/soil-service/p3_products.py",
-          "score": 10,
+          "score": 12,
           "signals": [
             "content:salinity",
             "content:sodicity"
@@ -14564,6 +14599,14 @@
           ]
         },
         {
+          "path": "services/soil-service/test_soil_land_quality.py",
+          "score": 12,
+          "signals": [
+            "content:salinity",
+            "content:sodicity"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_irrigation_water_analysis.py",
           "score": 10,
           "signals": [
@@ -14683,13 +14726,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 8,
+        "backend": 9,
         "routes": 1,
         "database": 7,
         "events": 8,
         "web": 2,
         "mobile": 0,
-        "tests": 13,
+        "tests": 14,
         "governance": 0,
         "other_evidence": 12
       },
@@ -43613,6 +43656,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/soil-service/compliance_engine.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/soil-service/db_persist.py",
       "kind": "backend"
     },
@@ -43713,6 +43760,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/soil-service/standards_registry.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/soil-service/test_p3_numeric_contract.py",
       "kind": "tests"
     },
@@ -43778,6 +43829,10 @@
     },
     {
       "path": "services/soil-service/test_soil_snapshot_identity.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/soil-service/test_soil_standards_compliance.py",
       "kind": "tests"
     },
     {
@@ -45958,6 +46013,10 @@
     },
     {
       "path": "tests_v9/test_gpu_bake_matches_compose_overlay.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_grafana_dashboard_datasource_uids.py",
       "kind": "tests"
     },
     {
@@ -72850,6 +72909,29 @@
       "unresolved": []
     },
     {
+      "test": "services/soil-service/test_soil_land_quality.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/soil-service/land_quality.py",
+          "kind": "import",
+          "line": 6
+        },
+        {
+          "source": "services/soil-service/p3_products.py",
+          "kind": "import",
+          "line": 16
+        },
+        {
+          "source": "shared/contracts/soil/p3.py",
+          "kind": "import",
+          "line": 18
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/soil-service/test_soil_p1_products.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -73121,6 +73203,24 @@
           "source": "shared/contracts/soil/__init__.py",
           "kind": "import",
           "line": 6
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/soil-service/test_soil_standards_compliance.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/soil-service/compliance_engine.py",
+          "kind": "import",
+          "line": 9
+        },
+        {
+          "source": "services/soil-service/standards_registry.py",
+          "kind": "import",
+          "line": 10
         }
       ],
       "unresolved": []

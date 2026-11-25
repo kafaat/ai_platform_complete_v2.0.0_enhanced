@@ -12,6 +12,7 @@ non-root ownership set at build time is kept), a Helm volume, or a Railway volum
 from __future__ import annotations
 
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -19,12 +20,31 @@ import pytest
 pytestmark = pytest.mark.unit
 
 _ROOT = Path(__file__).resolve().parents[1]
-_SCAN_DIRS = ("services", "agents", "bots", "deploy")
+_SCAN_DIRS = ("services", "agents", "bots", "deploy", "frontend")
 _VOLUME = re.compile(r"^\s*VOLUME\b", re.IGNORECASE | re.MULTILINE)
 _MIN_DOCKERFILES = 25
 
 
+def _tracked_dockerfiles() -> list[Path] | None:
+    """Every tracked Dockerfile* in the repository, wherever it lives (None outside git)."""
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "-z", "--", ":(glob)**/Dockerfile*", "Dockerfile*"],
+            cwd=_ROOT,
+            capture_output=True,
+            check=True,
+            timeout=30,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    names = {n for n in result.stdout.decode("utf-8", "replace").split("\0") if n}
+    return sorted(_ROOT / n for n in names if (_ROOT / n).is_file())
+
+
 def _dockerfiles() -> list[Path]:
+    tracked = _tracked_dockerfiles()
+    if tracked:
+        return tracked
     out: list[Path] = []
     for d in _SCAN_DIRS:
         base = _ROOT / d
@@ -41,6 +61,8 @@ def test_scan_sees_the_service_dockerfiles() -> None:
     files = _dockerfiles()
     assert len(files) >= _MIN_DOCKERFILES, f"only {len(files)} Dockerfiles found"
     assert _ROOT / "services/knowledge-graph/Dockerfile" in files
+    # The reviewer of #1623 noted frontend/Dockerfile sat outside the old directory list.
+    assert _ROOT / "frontend/Dockerfile" in files
 
 
 def test_no_dockerfile_declares_volume() -> None:
