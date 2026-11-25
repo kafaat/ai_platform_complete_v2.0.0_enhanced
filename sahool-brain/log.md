@@ -10819,3 +10819,9 @@ The full local unit run exposed two additional test defects. The requirements co
 - **تعارضات محلولة:** `tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py` (اختبارات الطرفين معًا) و`docs/specs/SCOUTING_VERIFICATION_BRIDGE_V1.md` (فقرة #1608 ثمّ جملة v290 «عند UPDATE»).
 - **إصلاح فحص المخطَّط:** `migrations/probe_schema_state.sh` — الكتالوج الافتراضيّ أعلى ترحيل مرقَّم **يُنشئ جدولًا**؛ v290 لا تُنشئ جدولًا فكانت ستطبع `tables=0` وتُخفي دليل v289 على staging. شاهدان في `tests_v9/test_apply_in_compose_live_pg.py` يفشلان على الفحص القديم؛ 12/12 تنجح على PG16 محلّيّ بعد تطبيق v290 على قاعدة الاختبار المحلّيّة وحدها.
 - **#1606 مدمج** (`4e586279`، شجرته تساوي `c55f2d5b`)؛ دليل v289 الحيّ على staging من النشر `f32f99da` (4/4 FORCE RLS، الحرّاس `:O`) في [السجلّ](decisions/ledger.md). وأُضيف سببٌ لتأكيدَي `test_field_delete_protected_reference.py` فعاد أساس `prohibitions_without_a_stated_reason` إلى 100.
+
+## 2026-11-25 — #1611 مدمج، وv290 على staging، وفجوتان
+
+- **#1611 مدمج** (`514f6142`، شجرته تساوي `11ca7c5b`)؛ النشرات الستّ ناجحة؛ production بعدها INCOMPLETE 363/368 كما كانت. التفاصيل في [السجلّ](decisions/ledger.md).
+- **v290 على staging وحدها** بقرار المالك: نسخة `e997eccd` ⇒ تطبيق `e5d6b388` ⇒ فحص `1d7d47c0` يُظهر `scouting_verification_delivery_initial_guard:O`؛ إيصال المختبر PASS.
+- **فجوتان جديدتان في [السجلّ](gaps/registry.md):** `FARM-PROFITABILITY-BLANK-CURRENCY-COSTS-DROPPED-WHEN-REVENUE-NAMED-01` (قرار المالك) و`HELM-GATEWAY-TEST-FREE-PORT-RACE-01` (اختبار متقلّب).
