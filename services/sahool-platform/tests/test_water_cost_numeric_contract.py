@@ -3,7 +3,6 @@
 from dataclasses import replace
 
 import pytest
-
 from core.engines.water_cost import WaterCostInputs, seasonal_water_cost, water_cost_per_m3
 
 
@@ -30,8 +29,12 @@ from core.engines.water_cost import WaterCostInputs, seasonal_water_cost, water_
 )
 def test_invalid_inputs_return_error(pump_type, overrides):
     inp = WaterCostInputs(
-        100, pump_type, diesel_price_usd_per_liter=1,
-        grid_price_usd_per_kwh=0.2, solar_capital_usd=10000, solar_m3_per_year=10000,
+        100,
+        pump_type,
+        diesel_price_usd_per_liter=1,
+        grid_price_usd_per_kwh=0.2,
+        solar_capital_usd=10000,
+        solar_m3_per_year=10000,
     )
     assert "error" in water_cost_per_m3(replace(inp, **overrides))
 
