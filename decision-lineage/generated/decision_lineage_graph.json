@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 828,
+      "evidence_count": 832,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -705,8 +705,10 @@
         "services/scout-ingest-service/tests/test_projection_live.py",
         "services/scout-ingest-service/tissue_samples_api.py",
         "services/scout-ingest-service/treatment_review_api.py",
+        "services/soil-service/compliance_engine.py",
         "services/soil-service/evidence_adapters.py",
         "services/soil-service/jsonb_values.py",
+        "services/soil-service/land_quality.py",
         "services/soil-service/main.py",
         "services/soil-service/p1_products.py",
         "services/soil-service/p2_products.py",
@@ -730,6 +732,7 @@
         "services/soil-service/test_soil_hydraulic_projection.py",
         "services/soil-service/test_soil_ingest_entrypoint_parity.py",
         "services/soil-service/test_soil_lab_supersession_adapter.py",
+        "services/soil-service/test_soil_land_quality.py",
         "services/soil-service/test_soil_p1_products.py",
         "services/soil-service/test_soil_p2_products.py",
         "services/soil-service/test_soil_p3_products.py",
@@ -740,6 +743,7 @@
         "services/soil-service/test_soil_remote_sensing_evidence.py",
         "services/soil-service/test_soil_salinity_screening.py",
         "services/soil-service/test_soil_snapshot_identity.py",
+        "services/soil-service/test_soil_standards_compliance.py",
         "services/soil-service/test_soil_supersession_current_pointer.py",
         "services/supervisor-agent/answer_provenance.py",
         "services/supervisor-agent/main.py",
@@ -876,7 +880,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 599,
+      "evidence_count": 601,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1434,6 +1438,8 @@
         "services/soil-service/p3_products.py",
         "services/soil-service/p5_certification.py",
         "services/soil-service/profile_composer.py",
+        "services/soil-service/standards_registry.py",
+        "services/soil-service/test_soil_land_quality.py",
         "services/soil-service/test_soil_p1_products.py",
         "services/soil-service/test_soil_p3_products.py",
         "services/soil-service/test_soil_p5_certification.py",
@@ -2763,7 +2769,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 411,
+      "evidence_count": 413,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -3157,8 +3163,10 @@
         "services/soil-service/routers/p5_certification.py",
         "services/soil-service/routers/readings.py",
         "services/soil-service/soil_store.py",
+        "services/soil-service/standards_registry.py",
         "services/soil-service/test_soil_canonical_duplicate_identity.py",
         "services/soil-service/test_soil_ingest_entrypoint_parity.py",
+        "services/soil-service/test_soil_land_quality.py",
         "services/soil-service/test_soil_p2_products.py",
         "services/soil-service/test_soil_p5_certification.py",
         "services/soil-service/test_soil_p5_leakage_and_dedup.py",
@@ -3311,8 +3319,8 @@
         "services/sahool-platform/api/lab_store.py",
         "services/sahool-platform/api/learning_feedback.py"
       ],
-      "source_evidence_count": 828,
-      "target_evidence_count": 599,
+      "source_evidence_count": 832,
+      "target_evidence_count": 601,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3423,7 +3431,7 @@
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py"
       ],
-      "source_evidence_count": 599,
+      "source_evidence_count": 601,
       "target_evidence_count": 215,
       "static_supported": true,
       "runtime_verified": false
@@ -3774,7 +3782,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 65,
-      "target_evidence_count": 411,
+      "target_evidence_count": 413,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3784,5 +3792,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "bcedc9ceae9d74da3a983ba8937f0824561117829192d16a10cdfa9370ad23a2"
+  "content_sha256": "ec2579b9d2cd0638051f273862d983e0e8867a9d7fdaeea031d3cd05ce7cb71a"
 }
