@@ -39695,7 +39695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a58f4b996c29aedca9e693dfc192e807f318c90f7dd455d316a1d341972fe80"
+          "content": "d2454271ba58c8bc03c872aa2782cf51c4872eddd5f6b3a4ff6d1bfcdb29716b"
         }
       ],
       "name": "services/soil-service/compliance_engine.py",
@@ -39735,7 +39735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "769273dfe9f67973571c1f940779f8e1501e01d45af590cd9a08fa8cf09e4949"
+          "content": "6abba23cc93e643fb04d355354c9c75040ab89c66d346a41716b915fb2857e4a"
         }
       ],
       "name": "services/soil-service/land_quality.py",
@@ -39805,7 +39805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb3b61e72c41d601e596cd188dc364683b7b39c353e5b8470058d016e0be45a3"
+          "content": "1ebc3be84c0e9a1f50cbd7598e47de109325302e7794e17e6f55828ae271848e"
         }
       ],
       "name": "services/soil-service/p3_products.py",
@@ -40115,7 +40115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c5ea2a4cd649d656583057df9d99b785950423e56279ef60d06c2daa7862cd9"
+          "content": "0f880b7d205aac43c0fc2d13786ecef9ecab0fe788a6022e215ef1879916763c"
         }
       ],
       "name": "services/soil-service/standards_registry.py",
@@ -40205,7 +40205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c16e2cf57f5b6852fc7e4a1d9bd7f439a9db5bc337291e56fbf3413cee157b9f"
+          "content": "f5ea1b9fc6769f391c6a18b18fc91c5b76bdcc8ffdf899c236dda660f7990a43"
         }
       ],
       "name": "services/soil-service/test_soil_land_quality.py",
@@ -40355,7 +40355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d5087bdd2cf9aacd318bf8c24bbb5243d8ddc9e67256e27c1f247f50f9677f8a"
+          "content": "584a2c18106b3efc055459f68dc020c9bad45f1f73e16a5a495a004034e180e4"
         }
       ],
       "name": "services/soil-service/test_soil_standards_compliance.py",

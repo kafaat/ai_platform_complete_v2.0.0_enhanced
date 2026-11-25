@@ -72894,12 +72894,12 @@
         {
           "source": "services/soil-service/p3_products.py",
           "kind": "import",
-          "line": 15
+          "line": 16
         },
         {
           "source": "shared/contracts/soil/p3.py",
           "kind": "import",
-          "line": 17
+          "line": 18
         }
       ],
       "unresolved": []
@@ -73188,12 +73188,12 @@
         {
           "source": "services/soil-service/compliance_engine.py",
           "kind": "import",
-          "line": 7
+          "line": 9
         },
         {
           "source": "services/soil-service/standards_registry.py",
           "kind": "import",
-          "line": 8
+          "line": 10
         }
       ],
       "unresolved": []
