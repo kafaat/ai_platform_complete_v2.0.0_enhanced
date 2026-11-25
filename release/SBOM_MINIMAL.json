@@ -5185,7 +5185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b3a3263057818aa8f69f61b7779d7b3c32eac309f1dc098eeb44435dcc615e85"
+          "content": "c1df697d9298fd528f3b01ee70c7fe0b3a8a2e1f4abac75486eeec23808df261"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -8405,7 +8405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "25b6464a09cd84c17ffde92e291c735736dfce268a69ca542afd03a92c70e0ca"
+          "content": "147ddfec277e3378ac00267c41d0268d18fd37ea9930d423a86ed36417bc3a84"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8465,7 +8465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8f0c317ff25f59fd0999834e5c5d6e0cfbe4a31bb788a0cee4ecef260442e8f1"
+          "content": "45265f2a384201e56b31acd06274ab9592276ef45ae2216e8a18b109f274bf6d"
         }
       ],
       "name": "migrations/probe_schema_state.sh",
@@ -8475,7 +8475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f873970651ab3eba31ae6044b1d7f92b7cde1688f22a4dc6fcfefd41a173d5d"
+          "content": "b6407db847ad916d8356a55b382951fbd85ce52e0430c989d4d3996b2bc1d8e9"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -10569,6 +10569,26 @@
         }
       ],
       "name": "migrations/v28_settings.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d5c1c37a0e0b3c19f51d7af2bf5c29735fd47c9b5113f066e51e9df3080cea06"
+        }
+      ],
+      "name": "migrations/v290_scouting_verification_initial_state.down.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ba5e11ea94ff7fba3c1acb8c72362211d4e7654c7995ec37e18e582316ea5d42"
+        }
+      ],
+      "name": "migrations/v290_scouting_verification_initial_state.sql",
       "type": "file"
     },
     {
@@ -21135,7 +21155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "751aab7447aba7dc0a775c9af3dca13bb854cd5bb473b4dfdf7ef73316715746"
+          "content": "e3489f7ca8d099b7f86f0944e7156a17044d57bf850733cf7769eceab0ff7c5d"
         }
       ],
       "name": "services/field-management-service/fm_verification.py",
@@ -26585,7 +26605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8bbf9d73ba93a091c8f13c1b2517a9fb12f252f71f74cb21cf66f53e5316a707"
+          "content": "b6a591e4a5023f5c20a21305a6351e03edfeaae1c36349fc1d27e7139539ce4c"
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
@@ -28425,7 +28445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03e6b4a63d9fd5def5ddb2f0914629c373cfe895850d254ca2f99d7931de09f9"
+          "content": "40ef0c35c23ec318029c6c0732325618faaa95fb2766fa7feace731799b51bc2"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -30005,7 +30025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3b117c82bf69e67172627a6d64bf1558f561d8e1103f668c06cb2af24069e454"
+          "content": "6b89318e2f6567fc8222b6c48257728d5cf579bae0734a0ac194e9606f9cf12a"
         }
       ],
       "name": "services/sahool-platform/core/agri_tools/registry.py",
@@ -31925,7 +31945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "feb7a2acb107ae1b9f125bde1235744e36a178ee6a7aff883127ba391bc3697e"
+          "content": "a3381d07f7ac1a3545f8a7182fe1b792f00515a7a2c19e71f3f7d5108b61719c"
         }
       ],
       "name": "services/sahool-platform/core/farm_costing.py",
@@ -33905,6 +33925,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "61d2150987e6883e2c1cdeca6c1fc655e172dae39cf75b061287b49feadb791b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_agri_numeric_validation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6ce17aadb117168ba8157491062fc6c3fe724d4bb3871ebfdb0268042c3d768d"
         }
       ],
@@ -35465,7 +35495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1b6b2293c399279eeec610b730dcb0ce4fd1e75e397bb7873e9e52c98b8facac"
+          "content": "1ae97ae7d1041d6311f5809addb613f6163ecdb71b9bcf463c7e7039af7feae6"
         }
       ],
       "name": "services/sahool-platform/tests/test_farm_costing.py",
@@ -35679,6 +35709,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_field_completeness.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "afdf2f086b535166a19035d4bea0f2ef496dca37f9a82b0ae00de0a7e01f905f"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_field_delete_protected_reference.py",
       "type": "file"
     },
     {

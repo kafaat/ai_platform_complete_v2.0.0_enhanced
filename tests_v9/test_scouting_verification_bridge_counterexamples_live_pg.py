@@ -8,12 +8,14 @@ receipt validation. Neither is presented as an ordinary production operation.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 import uuid
+from datetime import UTC, datetime, timedelta
 
 import pytest
-from test_scouting_verification_bridge_live_pg import _WHY, BridgeLive, asyncpg, run
+from test_scouting_verification_bridge_live_pg import _WHY, ROOT, BridgeLive, asyncpg, run
 
 pytestmark = [
     pytest.mark.integration,
@@ -507,15 +509,29 @@ def test_lost_reply_reconciles_a_durable_receipt_but_refuses_corruption(
                 live.anomaly_ref, tenant_id=live.tenant
             )
             second = await live.deliver()
-            assert second.status_code == 200, second.text
-            expected = (
-                "delivery_unknown"
-                if "corrupt" in after_commit or "regressed" in after_commit
-                else "delivered_review_required"
-                if after_commit.endswith("-cancelled")
-                else "delivered"
-            )
-            assert second.json()["state"] == expected, second.text
+            if "corrupt" in after_commit or "regressed" in after_commit:
+                # The owner refuses to vouch for a corrupted record. That read now happens before
+                # the claim, so it answers 503 and the row stays delivery_unknown, untouched: no
+                # attempt is used and nothing is sent.
+                assert second.status_code == 503, second.text
+                assert second.json()["detail"] == (
+                    "verification_context_unavailable:"
+                    "verification_remote_status:503:verification_delivery_receipt_inconsistent"
+                )
+                row = await live.admin.fetchrow(
+                    "SELECT state, attempts FROM scouting_verification_outbox "
+                    "WHERE delivery_id=$1::uuid",
+                    live.delivery_id,
+                )
+                assert (row["state"], row["attempts"]) == ("delivery_unknown", 1)
+            else:
+                assert second.status_code == 200, second.text
+                expected = (
+                    "delivered_review_required"
+                    if after_commit.endswith("-cancelled")
+                    else "delivered"
+                )
+                assert second.json()["state"] == expected, second.text
             assert len(sends) == 1, "reconciliation must not post a second completion"
             assert live.anomaly_store.get(live.anomaly_ref, tenant_id=live.tenant) == (
                 remote_before_reconcile
@@ -717,7 +733,8 @@ def test_an_unexpected_error_after_the_claim_settles_the_row_instead_of_strandin
             async def broken(*_args, **_kwargs):
                 raise RuntimeError("injected failure after the claim")
 
-            monkeypatch.setattr(live.remote_client, "context", broken)
+            # The context read now happens before the claim; the send is what follows it.
+            monkeypatch.setattr(live.remote_client, "complete", broken)
             response = await live.deliver()
             assert response.status_code == 200, response.text
             row = await _row(live)
@@ -964,5 +981,471 @@ def test_a_failure_while_recording_a_refusal_still_settles_the_row(monkeypatch, 
                 "lease_token": None,
                 "last_error": "verification_settle_failed:refused:RuntimeError",
             }
+
+    run(target())
+
+
+def test_failed_context_reads_never_use_up_the_delivery(monkeypatch, tmp_path):
+    # Devin on #1598: each dispatch counted an attempt before reading the owner's context, so
+    # eight read timeouts exhausted a row that was never sent; reconcile never sends and
+    # relinking refuses an exhausted row, so it stayed stuck after the owner recovered.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            from fm_verification_client import VerificationRemoteError
+
+            await _ready(live)
+            original = live.remote_client.context
+
+            async def owner_down(*_args, **_kwargs):
+                raise VerificationRemoteError("verification_remote_unreachable")
+
+            monkeypatch.setattr(live.remote_client, "context", owner_down)
+            for _ in range(10):
+                response = await live.deliver()
+                assert response.status_code == 503, response.text
+                assert response.json()["detail"] == (
+                    "verification_context_unavailable:verification_remote_unreachable"
+                )
+            row = await _row(live)
+            assert (row["state"], row["attempts"], row["lease_token"]) == ("pending", 0, None)
+            monkeypatch.setattr(live.remote_client, "context", original)
+            response = await live.deliver()
+            assert response.status_code == 200, response.text
+            assert response.json()["state"] == "delivered", response.text
+            assert (await _row(live))["attempts"] == 1
+            accepted = live.anomaly_store.get(live.anomaly_ref, tenant_id=live.tenant)
+            assert accepted["status"] == "confirmed"
+
+    run(target())
+
+
+_INITIAL_DELIVERY_STATE = {
+    "state": "pending",
+    "attempts": 0,
+    "lease_token": None,
+    "lease_until": None,
+    "last_error": None,
+    "receipt": None,
+}
+_INITIAL_DELIVERY_LEASE = {"lease_token": uuid.UUID(int=1), "lease_until": "future"}
+_V289_INSERT_WITNESSES = {
+    "delivered_without_an_attempt": {"state": "delivered", "receipt": "{}"},
+    "exhausted_without_an_attempt": {"state": "delivery_exhausted"},
+    "sending_beyond_the_attempt_cap": {
+        "state": "sending",
+        "attempts": 9,
+        **_INITIAL_DELIVERY_LEASE,
+    },
+}
+
+
+async def _initial_delivery_source(live):
+    """Retain a real reviewed assessment for isolated INSERT boundary checks.
+
+    The API creates assessment and outbox atomically. Only this fixture's schema
+    owner removes its outbox afterward; this is deliberate test setup, not a
+    claim that an API caller can leave an assessment without its delivery.
+    """
+    await _ready(live)
+    source = dict(
+        await live.admin.fetchrow(
+            "SELECT delivery_id,tenant_id,field_id,assessment_id,idempotency_key,"
+            "body_text,body_digest FROM scouting_verification_outbox "
+            "WHERE tenant_id=$1::uuid AND delivery_id=$2::uuid",
+            live.tenant,
+            live.delivery_id,
+        )
+    )
+    # SET LOCAL restores origin before any measured application INSERT, even if
+    # the narrowly scoped fixture deletion fails and its transaction rolls back.
+    async with live.admin.transaction():
+        await live.admin.execute("SET LOCAL session_replication_role=replica")
+        assert (
+            await live.admin.execute(
+                "DELETE FROM scouting_verification_outbox "
+                "WHERE tenant_id=$1::uuid AND delivery_id=$2::uuid",
+                live.tenant,
+                live.delivery_id,
+            )
+            == "DELETE 1"
+        )
+    assert await live.admin.fetchval("SHOW session_replication_role") == "origin"
+    assert await _result_counts(live) == (1, 0)
+    return source
+
+
+async def _insert_initial_delivery(conn, source, initial=None):
+    # Check the effective database identity for every measured INSERT, including
+    # the negative control's SET LOCAL ROLE inside the DDL transaction.
+    flags = await conn.fetchrow(
+        "SELECT rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user"
+    )
+    assert tuple(flags) == (False, False)
+    assert await conn.fetchval("SHOW session_replication_role") == "origin"
+    args = tuple(
+        source[column]
+        for column in (
+            "delivery_id",
+            "tenant_id",
+            "field_id",
+            "assessment_id",
+            "idempotency_key",
+            "body_text",
+            "body_digest",
+        )
+    )
+    sql = (
+        "INSERT INTO scouting_verification_outbox "
+        "(delivery_id,tenant_id,field_id,assessment_id,idempotency_key,body_text,body_digest"
+    )
+    if initial is None:
+        # These are precisely the seven columns supplied by the ordinary writer.
+        sql += ") VALUES ($1,$2,$3,$4,$5,$6,$7)"
+    else:
+        values = _INITIAL_DELIVERY_STATE | initial
+        if values["lease_until"] == "future":
+            values["lease_until"] = datetime.now(UTC) + timedelta(minutes=2)
+        sql += (
+            ",state,attempts,lease_token,lease_until,last_error,receipt) "
+            "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb)"
+        )
+        args += tuple(values[column] for column in _INITIAL_DELIVERY_STATE)
+    return dict(
+        await conn.fetchrow(
+            sql + " RETURNING state,attempts,lease_token,lease_until,last_error,receipt::text",
+            *args,
+        )
+    )
+
+
+@pytest.mark.parametrize("initial", [None, {}], ids=["writer_defaults", "explicit_pending"])
+def test_initial_delivery_accepts_only_the_clean_pending_row(monkeypatch, tmp_path, initial):
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            source = await _initial_delivery_source(live)
+            async with live.app_connection("inspector") as conn:
+                assert (
+                    await _insert_initial_delivery(conn, source, initial) == _INITIAL_DELIVERY_STATE
+                )
+            assert await _result_counts(live) == (1, 1)
+            delivered = await live.deliver()
+            assert delivered.status_code == 200, delivered.text
+            assert delivered.json()["state"] == "delivered", delivered.text
+            assert (await _row(live))["attempts"] == 1
+
+    run(target())
+
+
+def test_a_refused_read_after_an_unknown_send_keeps_the_uncertainty(monkeypatch, tmp_path):
+    # A refusal on the read may not overwrite delivery_unknown: an earlier POST may have been
+    # applied, and `refused` would let relinking block it. The row is left exactly as it was.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            from fm_verification_client import VerificationRemoteError
+
+            await _ready(live)
+            actual_complete = live.remote_client.complete
+
+            async def lose_reply(*args, **kwargs):
+                raise VerificationRemoteError("injected_reply_loss_before_commit")
+
+            monkeypatch.setattr(live.remote_client, "complete", lose_reply)
+            assert (await live.deliver()).json()["state"] == "delivery_unknown"
+            before = await _row(live)
+            monkeypatch.setattr(live.remote_client, "complete", actual_complete)
+            monkeypatch.setenv("VEGETATION_VERIFICATION_BRIDGE_ENABLED", "0")
+            response = await live.deliver()
+            assert response.status_code == 503, response.text
+            assert response.json()["detail"].startswith("verification_context_unavailable:")
+            assert await _row(live) == before
+            monkeypatch.setenv("VEGETATION_VERIFICATION_BRIDGE_ENABLED", "1")
+            response = await live.deliver()
+            assert response.json()["state"] == "delivered", response.text
+            assert (await _row(live))["attempts"] == 2
+
+    run(target())
+
+
+@pytest.mark.parametrize(
+    "initial",
+    [
+        *(pytest.param(value, id=name) for name, value in _V289_INSERT_WITNESSES.items()),
+        pytest.param({"state": "sending", "attempts": 1, **_INITIAL_DELIVERY_LEASE}, id="sending"),
+        pytest.param({"state": "delivery_unknown"}, id="delivery_unknown"),
+        pytest.param({"state": "blocked"}, id="blocked"),
+        pytest.param({"state": "delivered_review_required", "receipt": "{}"}, id="review_required"),
+        pytest.param({"state": "refused"}, id="refused"),
+        pytest.param({"state": "rejected"}, id="rejected"),
+        pytest.param({"state": None}, id="null_state"),
+        pytest.param({"attempts": 1}, id="pending_with_attempt"),
+        pytest.param({"attempts": None}, id="null_attempts"),
+        pytest.param({"lease_token": uuid.UUID(int=1)}, id="pending_with_lease_token"),
+        pytest.param({"lease_until": "future"}, id="pending_with_lease_until"),
+        pytest.param(_INITIAL_DELIVERY_LEASE, id="pending_with_both_lease_fields"),
+        pytest.param({"receipt": "{}"}, id="pending_with_receipt"),
+        pytest.param({"receipt": "null"}, id="json_null_is_not_sql_null"),
+        pytest.param({"last_error": ""}, id="empty_error_is_not_null"),
+        pytest.param({"last_error": "prior_attempt"}, id="pending_with_error"),
+    ],
+)
+def test_initial_delivery_rejects_a_preclaimed_or_precompleted_row(monkeypatch, tmp_path, initial):
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            source = await _initial_delivery_source(live)
+            with pytest.raises(asyncpg.CheckViolationError) as caught:
+                async with live.app_connection("inspector") as conn:
+                    await _insert_initial_delivery(conn, source, initial)
+            assert caught.value.sqlstate == "23514"
+            assert caught.value.message == "verification_delivery_initial_state_invalid"
+            assert await _result_counts(live) == (1, 0)
+            # Same identity, assessment and body: only the lifecycle fields
+            # change. This rules out an unrelated FK/RLS/content rejection.
+            async with live.app_connection("inspector") as conn:
+                assert await _insert_initial_delivery(conn, source, {}) == _INITIAL_DELIVERY_STATE
+            assert await _result_counts(live) == (1, 1)
+
+    run(target())
+
+
+@pytest.mark.parametrize("change", ["other_tenant", "assessment_body", "evidence_binding"])
+def test_initial_delivery_keeps_the_tenant_and_reviewed_content_guards(
+    monkeypatch, tmp_path, change
+):
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            source = await _initial_delivery_source(live)
+            invalid = dict(source)
+            if change != "other_tenant":
+                body = json.loads(source["body_text"])
+                if change == "assessment_body":
+                    body["expected_version"] += 1
+                else:
+                    body["evidence"][0]["content_hash"] = "0" * 64
+                invalid["body_text"] = json.dumps(body)
+                invalid["body_digest"] = hashlib.sha256(invalid["body_text"].encode()).hexdigest()
+            with pytest.raises(asyncpg.CheckViolationError) as caught:
+                async with live.app_connection("inspector") as conn:
+                    if change == "other_tenant":
+                        await conn.execute(
+                            "SELECT set_config('app.current_tenant',$1,true)", live.other_tenant
+                        )
+                        assert (
+                            await conn.fetchval(
+                                "SELECT count(*) FROM scouting_verification_assessments "
+                                "WHERE assessment_id=$1",
+                                source["assessment_id"],
+                            )
+                            == 0
+                        )
+                    await _insert_initial_delivery(conn, invalid, {})
+            assert caught.value.sqlstate == "23514"
+            # With another tenant's context the existing INSERT trigger cannot
+            # see the reviewed assessment. It refuses before the RLS WITH CHECK.
+            expected = (
+                "verification_delivery_evidence_binding_invalid"
+                if change == "evidence_binding"
+                else "verification_delivery_does_not_match_reviewed_assessment"
+            )
+            assert caught.value.message == expected
+            assert await _result_counts(live) == (1, 0)
+            async with live.app_connection("inspector") as conn:
+                assert await _insert_initial_delivery(conn, source, {}) == _INITIAL_DELIVERY_STATE
+
+    run(target())
+
+
+async def _outbox_guard_definitions(conn):
+    rows = await conn.fetch(
+        "SELECT tgname,pg_get_triggerdef(oid),tgenabled,pg_get_functiondef(tgfoid) "
+        "FROM pg_trigger WHERE tgrelid='public.scouting_verification_outbox'::regclass "
+        "AND NOT tgisinternal"
+    )
+    return {row[0]: tuple(row[1:]) for row in rows}
+
+
+def test_initial_delivery_guard_alone_refuses_the_three_v289_insert_witnesses(
+    monkeypatch, tmp_path
+):
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            source = await _initial_delivery_source(live)
+            guard = "scouting_verification_delivery_initial_guard"
+            before = await _outbox_guard_definitions(live.admin)
+            assert guard in before
+            role = (await live._app_role()).replace('"', '""')
+            transaction = live.admin.transaction()
+            await transaction.start()
+            try:
+                await live.admin.execute(
+                    "DROP TRIGGER scouting_verification_delivery_initial_guard "
+                    "ON public.scouting_verification_outbox"
+                )
+                assert await _outbox_guard_definitions(live.admin) == {
+                    name: definition for name, definition in before.items() if name != guard
+                }
+                # DROP TRIGGER holds a table lock until rollback. Using the
+                # actual restricted role in this transaction avoids a blocked
+                # second connection; no measured INSERT runs as the owner.
+                await live.admin.execute(f'SET LOCAL ROLE "{role}"')
+                await live.admin.execute(
+                    "SELECT set_config('app.current_tenant',$1,true)", live.tenant
+                )
+                for initial in _V289_INSERT_WITNESSES.values():
+                    savepoint = live.admin.transaction()
+                    await savepoint.start()
+                    try:
+                        row = await _insert_initial_delivery(live.admin, source, initial)
+                        assert row["state"] == initial["state"]
+                        assert row["attempts"] == initial.get("attempts", 0)
+                        assert row["receipt"] == initial.get("receipt")
+                        assert (
+                            await live.admin.fetchval(
+                                "SELECT count(*) FROM scouting_verification_outbox "
+                                "WHERE delivery_id=$1",
+                                source["delivery_id"],
+                            )
+                            == 1
+                        )
+                    finally:
+                        await savepoint.rollback()
+            finally:
+                await transaction.rollback()
+            assert await _outbox_guard_definitions(live.admin) == before
+            assert await _result_counts(live) == (1, 0)
+            for initial in _V289_INSERT_WITNESSES.values():
+                with pytest.raises(asyncpg.CheckViolationError) as caught:
+                    async with live.app_connection("inspector") as conn:
+                        await _insert_initial_delivery(conn, source, initial)
+                assert caught.value.sqlstate == "23514"
+                assert caught.value.message == "verification_delivery_initial_state_invalid"
+            assert await _result_counts(live) == (1, 0)
+
+    run(target())
+
+
+def test_dispatch_reveals_a_finished_delivery_only_to_its_assessor(monkeypatch, tmp_path):
+    # Devin on #1598: dispatch returned a terminal delivery before checking the caller wrote the
+    # assessment, so another field user saw the state, receipt and error that GET hides (404).
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            await _ready(live)
+            done = await live.deliver()
+            assert done.json()["state"] == "delivered", done.text
+            calls = []
+            original = live.remote_client.context
+
+            async def counted(*args, **kwargs):
+                calls.append(args)
+                return await original(*args, **kwargs)
+
+            monkeypatch.setattr(live.remote_client, "context", counted)
+            for name in ("inspector2", "reviewer"):
+                other = await live.deliver(name=name)
+                assert other.status_code == 403, (name, other.text)
+                assert other.json() == {"detail": "delivery_requires_the_original_assessor"}
+            assert calls == []
+            own = await live.deliver()
+            assert own.status_code == 200 and own.json()["state"] == "delivered", own.text
+
+    run(target())
+
+
+def test_initial_delivery_migration_reapplies_and_rolls_back_without_rewriting_delivered_rows(
+    monkeypatch, tmp_path
+):
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            await _ready(live)
+            delivered = await live.deliver()
+            assert delivered.status_code == 200, delivered.text
+            assert delivered.json()["state"] == "delivered", delivered.text
+            snapshot_sql = (
+                "SELECT to_jsonb(o)::text FROM scouting_verification_outbox o "
+                "WHERE tenant_id=$1::uuid AND delivery_id=$2::uuid"
+            )
+            before = await live.admin.fetchval(snapshot_sql, live.tenant, live.delivery_id)
+            guard = "scouting_verification_delivery_initial_guard"
+            definitions = await _outbox_guard_definitions(live.admin)
+            assert guard in definitions
+            assert {
+                "scouting_verification_delivery_guard",
+                "scouting_verification_delivery_insert_guard",
+                "scouting_verification_delivery_delete_guard",
+            } <= definitions.keys()
+            up = (ROOT / "migrations/v290_scouting_verification_initial_state.sql").read_text(
+                encoding="utf-8"
+            )
+            down = (
+                ROOT / "migrations/v290_scouting_verification_initial_state.down.sql"
+            ).read_text(encoding="utf-8")
+            previous = (ROOT / "migrations/v289_scouting_verification_bridge.sql").read_text(
+                encoding="utf-8"
+            )
+            try:
+                for migration, present in (
+                    (up, True),
+                    (up, True),
+                    (previous, True),
+                    (down, False),
+                    (down, False),
+                    (up, True),
+                ):
+                    await live.admin.execute(migration)
+                    expected = (
+                        definitions
+                        if present
+                        else {
+                            name: definition
+                            for name, definition in definitions.items()
+                            if name != guard
+                        }
+                    )
+                    assert await _outbox_guard_definitions(live.admin) == expected
+                    function = await live.admin.fetchval(
+                        "SELECT to_regprocedure('public.scouting_verification_delivery_initial_guard()')"
+                    )
+                    assert (function is not None) == present
+                    assert (
+                        await live.admin.fetchval(snapshot_sql, live.tenant, live.delivery_id)
+                        == before
+                    )
+            finally:
+                # A failed rollback assertion must not leave later tests without
+                # the guard. Neither direction may normalize existing rows.
+                if live.admin.is_in_transaction():
+                    await live.admin.execute("ROLLBACK")
+                await live.admin.execute(up)
+
+    run(target())
+
+
+def test_the_platform_refuses_deleting_a_verified_field_with_409_through_the_real_delete(
+    monkeypatch, tmp_path
+):
+    # Lab 1611-v1: the platform's 409 tests call protected_reference_conflict directly. Here the
+    # platform's own field-row DELETE meets v289's RESTRICT reference on a live database.
+    import importlib.util
+
+    from fastapi import HTTPException
+
+    path = ROOT / "services" / "sahool-platform" / "api" / "field_context.py"
+    spec = importlib.util.spec_from_file_location("sahool_platform_field_context_live", path)
+    field_context = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(field_context)
+
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            await _ready(live)
+            with pytest.raises(HTTPException) as caught:
+                async with live.admin.transaction():
+                    await field_context.delete_field_row(live.admin, live.field, "حذف الحقل")
+            assert caught.value.status_code == 409, caught.value.detail
+            assert "scouting_verification" in caught.value.detail, caught.value.detail
+            remaining = await live.admin.fetchval(
+                "SELECT count(*) FROM fields WHERE tenant_id=$1::uuid AND field_id=$2",
+                live.tenant,
+                live.field,
+            )
+            assert remaining == 1
 
     run(target())

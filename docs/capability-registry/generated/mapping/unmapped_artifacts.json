@@ -8580,6 +8580,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_agri_numeric_validation.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_agri_polygon_area.py",
     "kind": "tests"
   },
@@ -9101,6 +9105,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_field_completeness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_delete_protected_reference.py",
     "kind": "tests"
   },
   {

@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7722,
+    "files_scanned": 7727,
     "files_by_kind": {
       "backend": 1317,
-      "database": 358,
+      "database": 360,
       "governance": 92,
       "mobile": 429,
-      "other": 2253,
-      "tests": 2699,
+      "other": 2254,
+      "tests": 2701,
       "web": 574
     },
-    "unmapped_artifacts": 3673,
+    "unmapped_artifacts": 3675,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4200,
-      "raw": 3522
+      "python_functional": 4202,
+      "raw": 3525
     },
-    "test_dependency_files": 2059,
-    "test_dependency_edges": 5579,
-    "test_dependency_bounded_files": 1178,
-    "test_dependency_unresolved_relations": 534
+    "test_dependency_files": 2061,
+    "test_dependency_edges": 5586,
+    "test_dependency_bounded_files": 1180,
+    "test_dependency_unresolved_relations": 536
   },
   "capabilities": [
     {
@@ -15348,7 +15348,7 @@
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:488",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:524",
           "score": 8
         },
         {
@@ -15504,6 +15504,15 @@
           ]
         },
         {
+          "path": "migrations/v290_scouting_verification_initial_state.sql",
+          "score": 16,
+          "signals": [
+            "path:Scouting",
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "migrations/v94_scouting_pins.sql",
           "score": 16,
           "signals": [
@@ -15593,6 +15602,15 @@
           "score": 16
         },
         {
+          "path": "migrations/v290_scouting_verification_initial_state.down.sql",
+          "score": 14,
+          "signals": [
+            "path:Scouting",
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "migrations/v260_scout_photo_evidence.sql",
           "score": 8,
           "signals": [
@@ -15630,6 +15648,10 @@
         }
       ],
       "events": [
+        {
+          "value": "field_context.py @ tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py:1431",
+          "score": 16
+        },
         {
           "value": "public.field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:70",
           "score": 16
@@ -16143,6 +16165,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/V290_VERIFICATION_OUTBOX_INITIAL_STATE.md",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "docs/ui/SAHOOL_PRODUCT_MODES_AND_FIELD_OPERATING_CONTRACT.md",
           "score": 8,
           "signals": [
@@ -16158,13 +16188,13 @@
       "evidence_counts": {
         "backend": 10,
         "routes": 28,
-        "database": 46,
-        "events": 18,
+        "database": 48,
+        "events": 19,
         "web": 6,
         "mobile": 18,
         "tests": 24,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 3
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -41964,6 +41994,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_agri_numeric_validation.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_agri_polygon_area.py",
       "kind": "tests"
     },
@@ -42485,6 +42519,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_field_completeness.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_field_delete_protected_reference.py",
       "kind": "tests"
     },
     {
@@ -61515,6 +61553,19 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_agri_numeric_validation.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/agri_tools/registry.py",
+          "kind": "import",
+          "line": 8
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_agri_polygon_area.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -64822,6 +64873,34 @@
           "source": "services/sahool-platform/core/field_completeness.py",
           "kind": "import",
           "line": 11
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_field_delete_protected_reference.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 23
+        },
+        {
+          "source": "services/sahool-platform/api/field_context.py",
+          "kind": "import",
+          "line": 23
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 24
+        },
+        {
+          "source": "services/sahool-platform/api/routers/fields.py",
+          "kind": "import",
+          "line": 24
         }
       ],
       "unresolved": []
@@ -97550,22 +97629,41 @@
       "test": "tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py",
       "bounded": false,
       "unbounded_reasons": [
+        "reads_repository_data_file",
         "unresolved_dynamic_relation"
       ],
       "edges": [
         {
+          "source": "services/sahool-platform/api/field_context.py",
+          "kind": "loader",
+          "line": 1432
+        },
+        {
+          "source": "services/sahool-platform/api/field_context.py",
+          "kind": "source_read",
+          "line": 1431
+        },
+        {
           "source": "tests_v9/test_scouting_verification_bridge_live_pg.py",
           "kind": "import",
-          "line": 16
+          "line": 18
         }
       ],
       "unresolved": [
         {
-          "line": 446,
+          "line": 448,
           "import": "fm_verification_client"
         },
         {
-          "line": 797,
+          "line": 814,
+          "import": "fm_verification_client"
+        },
+        {
+          "line": 994,
+          "import": "fm_verification_client"
+        },
+        {
+          "line": 1144,
           "import": "fm_verification_client"
         }
       ]
