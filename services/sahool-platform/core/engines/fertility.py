@@ -40,9 +40,30 @@ def fertiliser_need(
     available_kg_ha: float,
     use_efficiency: float = 0.5,
 ) -> FertiliserNeed:
-    """Difference equation. Efficiency 0.5 typical for N (urea)."""
+    """Difference equation; efficiency must be in [0.1, 1] (fraction)."""
+    for name, value in (
+        ("required_kg_ha", required_kg_ha),
+        ("available_kg_ha", available_kg_ha),
+        ("use_efficiency", use_efficiency),
+    ):
+        try:
+            valid = (
+                isinstance(value, (int, float))
+                and not isinstance(value, bool)
+                and math.isfinite(value)
+            )
+        except OverflowError:
+            valid = False
+        if not valid:
+            raise ValueError(f"{name} must be a finite number")
+    if required_kg_ha < 0 or available_kg_ha < 0:
+        raise ValueError("Nutrient quantities must be non-negative")
+    if not 0.1 <= use_efficiency <= 1.0:
+        raise ValueError("use_efficiency must be between 0.1 and 1")
     deficit = max(0.0, required_kg_ha - available_kg_ha)
-    fert = deficit / max(0.1, use_efficiency)
+    fert = deficit / use_efficiency
+    if not math.isfinite(fert):
+        raise ValueError("Calculated fertiliser quantity must be finite")
     if deficit <= 0:
         note = f"{nutrient}: المتوفر كافٍ — لا حاجة للإضافة"
     else:
