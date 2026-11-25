@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -79,10 +80,14 @@ def _coerce(param: ToolParam, value):
     if value is None:
         return None
     if param.kind == "number":
+        if isinstance(value, bool):
+            raise ValueError(f"{param.name}: قيمة عدديّة غير صالحة")
         try:
             value = float(value)
-        except (TypeError, ValueError) as e:
-            raise ValueError(f"{param.name}: قيمة عدديّة غير صالحة ({value})") from e
+        except (TypeError, ValueError, OverflowError) as e:
+            raise ValueError(f"{param.name}: قيمة عدديّة غير صالحة") from e
+        if not math.isfinite(value):
+            raise ValueError(f"{param.name}: قيمة عدديّة غير صالحة")
         if param.min is not None and value < param.min:
             raise ValueError(f"{param.name}: أقلّ من الحدّ الأدنى {param.min}")
         if param.max is not None and value > param.max:
