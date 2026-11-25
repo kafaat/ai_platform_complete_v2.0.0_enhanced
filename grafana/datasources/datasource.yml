@@ -2,9 +2,6 @@
 apiVersion: 1
 datasources:
   - name: Prometheus
-    # Dashboards reference this uid (grafana/dashboards/json/*.json); without it Grafana
-    # generates a random uid and every panel shows "datasource not found".
-    uid: prometheus
     type: prometheus
     access: proxy
     url: http://sahool-prometheus:9090
