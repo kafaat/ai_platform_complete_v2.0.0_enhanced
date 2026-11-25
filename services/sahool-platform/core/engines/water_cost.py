@@ -24,6 +24,7 @@ Sources:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 # kWh needed to lift 1 m3 of water 1 metre (100% efficiency)
@@ -53,8 +54,62 @@ def _energy_kwh_per_m3(depth_m: float, efficiency: float) -> float:
     return KWH_PER_M3_PER_M * depth_m / max(0.1, efficiency)
 
 
+def _finite_nonnegative(value: object) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(value) and value >= 0
+    except OverflowError:
+        return False
+
+
 def water_cost_per_m3(inp: WaterCostInputs) -> dict:
-    """Return {low, high, mid, basis} in USD/m3. Range, not a fake point."""
+    """Return {low, high, mid, basis} in USD/m3, or an explicit error."""
+    if not _finite_nonnegative(inp.well_depth_m):
+        return {"error": "well_depth_m must be finite and nonnegative"}
+    if inp.pump_type == "diesel":
+        if not (
+            _finite_nonnegative(inp.pump_efficiency)
+            and 0 < inp.pump_efficiency <= 1
+            and _finite_nonnegative(inp.diesel_kwh_per_liter)
+            and inp.diesel_kwh_per_liter > 0
+        ):
+            return {"error": "invalid diesel efficiency or energy per liter"}
+        if inp.diesel_price_usd_per_liter is not None and not _finite_nonnegative(
+            inp.diesel_price_usd_per_liter
+        ):
+            return {"error": "invalid diesel price"}
+    elif inp.pump_type == "solar":
+        if not (
+            _finite_nonnegative(inp.solar_lifetime_years)
+            and inp.solar_lifetime_years > 0
+            and _finite_nonnegative(inp.solar_dust_derate_pct)
+            and inp.solar_dust_derate_pct < 1
+            and _finite_nonnegative(inp.solar_maintenance_annual_pct)
+        ):
+            return {"error": "invalid solar lifetime, dust derating or maintenance"}
+        for value in (inp.solar_capital_usd, inp.solar_m3_per_year):
+            if value is not None and not _finite_nonnegative(value):
+                return {"error": "invalid solar capital or annual volume"}
+    elif inp.pump_type == "grid":
+        if not (_finite_nonnegative(inp.grid_efficiency) and 0 < inp.grid_efficiency <= 1):
+            return {"error": "invalid grid efficiency"}
+        if inp.grid_price_usd_per_kwh is not None and not _finite_nonnegative(
+            inp.grid_price_usd_per_kwh
+        ):
+            return {"error": "invalid grid price"}
+    try:
+        result = _calculate_water_cost(inp)
+    except (OverflowError, ZeroDivisionError):
+        return {"error": "water cost calculation outside numeric range"}
+    if "error" not in result and not all(
+        _finite_nonnegative(result[key]) for key in ("low", "mid", "high")
+    ):
+        return {"error": "water cost calculation outside numeric range"}
+    return result
+
+
+def _calculate_water_cost(inp: WaterCostInputs) -> dict:
     if inp.pump_type == "diesel":
         if inp.diesel_price_usd_per_liter is None:
             return {"error": "diesel_price_usd_per_liter required (volatile, daily)"}
@@ -109,11 +164,18 @@ def seasonal_water_cost(inp: WaterCostInputs, etc_m3_per_ha: float, area_ha: flo
     per_m3 = water_cost_per_m3(inp)
     if "error" in per_m3:
         return per_m3
+    if not (_finite_nonnegative(etc_m3_per_ha) and _finite_nonnegative(area_ha)):
+        return {"error": "seasonal volume and area must be finite and nonnegative"}
     total_m3 = etc_m3_per_ha * area_ha
+    if not _finite_nonnegative(total_m3):
+        return {"error": "seasonal water volume outside numeric range"}
+    costs = [total_m3 * per_m3[key] for key in ("low", "mid", "high")]
+    if not all(_finite_nonnegative(cost) for cost in costs):
+        return {"error": "seasonal water cost outside numeric range"}
     return {
         "total_m3": round(total_m3, 0),
-        "cost_low_usd": round(total_m3 * per_m3["low"], 0),
-        "cost_mid_usd": round(total_m3 * per_m3["mid"], 0),
-        "cost_high_usd": round(total_m3 * per_m3["high"], 0),
+        "cost_low_usd": round(costs[0], 0),
+        "cost_mid_usd": round(costs[1], 0),
+        "cost_high_usd": round(costs[2], 0),
         "per_m3": per_m3,
     }
