@@ -284,14 +284,24 @@ def compute_profitability(
     cost_lines: Iterable[ActualCostLine],
     yield_quantity: float | None = None,
     unit: str | None = None,
-    currency: str = "YER",
+    currency: str | None = None,
 ) -> ProfitabilitySummary:
+    """Season profitability in one currency.
+
+    ``currency`` names the report currency; cost lines in another currency are refused. With no
+    currency named, the first cost line sets the scope (as in :func:`compute_variances`), so a
+    season whose recorded costs carry no currency is summed under that blank label instead of
+    being refused against a ``YER`` it never named; with no cost lines the label is ``YER``.
+    """
     revenue = _non_negative(revenue, field_name="revenue") or 0.0
     y = (
         _non_negative(yield_quantity, field_name="yield_quantity")
         if yield_quantity is not None
         else None
     )
+    cost_lines = list(cost_lines)
+    if currency is None:
+        currency = cost_lines[0].currency if cost_lines else "YER"
     currency = currency.strip().upper()
     total_cost = 0.0
     for c in cost_lines:

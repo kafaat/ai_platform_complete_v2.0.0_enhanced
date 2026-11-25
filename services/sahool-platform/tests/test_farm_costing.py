@@ -130,3 +130,25 @@ def test_scope_accepts_normalized_currency_and_single_pass_iterators():
     profit = compute_profitability("s", revenue=8000, cost_lines=iter([actual]), currency="yer")
     assert profit.gross_margin == 2000
     assert profit.currency == "YER"
+
+
+def test_profitability_without_a_named_currency_keeps_blank_currency_costs():
+    # Devin on #1611: the ledger stores a blank currency as given, and the report resolves no
+    # currency from blanks, so the route names none. Refusing those costs against a default
+    # YER turned the profitability and economic-state reports into HTTP 500.
+    blank = ActualCostLine("a", "s", "water", actual_cost=100, currency="")
+    profit = compute_profitability("s", revenue=500, cost_lines=[blank])
+    assert (profit.total_cost, profit.gross_margin, profit.currency) == (100, 400, "")
+    assert compute_profitability("s", revenue=500, cost_lines=[]).currency == "YER"
+
+
+def test_profitability_without_a_named_currency_still_refuses_a_mix():
+    import pytest
+
+    blank = ActualCostLine("a", "s", "water", actual_cost=100, currency="")
+    yer = ActualCostLine("b", "s", "water", actual_cost=100, currency="YER")
+    for lines in ([blank, yer], [yer, blank]):
+        with pytest.raises(ValueError, match="cost_scope_currency_mismatch"):
+            compute_profitability("s", revenue=500, cost_lines=lines)
+    with pytest.raises(ValueError, match="cost_scope_currency_mismatch"):
+        compute_profitability("s", revenue=500, cost_lines=[blank], currency="YER")
