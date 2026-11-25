@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+import math
+
 from ..registry import Tool, ToolParam, register
 
 # عمق 1 مم على هكتار واحد = 10 م³.
@@ -24,6 +26,12 @@ def compute(inp: dict) -> dict:
     gross_volume_m3 = net_volume_m3 / efficiency
     net_volume_liters = net_volume_m3 * _LITERS_PER_M3
     run_time_hours = gross_volume_m3 / flow_rate_m3h if flow_rate_m3h > 0 else None
+
+    volumes = (net_volume_m3, gross_volume_m3, net_volume_liters)
+    if not all(math.isfinite(value) for value in volumes) or (
+        run_time_hours is not None and not math.isfinite(run_time_hours)
+    ):
+        raise ValueError("irrigation_volume: نتيجة الحساب خارج النطاق العددي")
 
     return {
         "net_volume_m3": round(net_volume_m3, 2),
