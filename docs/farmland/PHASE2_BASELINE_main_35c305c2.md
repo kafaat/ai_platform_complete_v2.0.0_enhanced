@@ -31,7 +31,7 @@ Exists: inspection chain v246/v274/v275/v277 + fms/fm_task_inspection.py + web/m
 Missing: non-conformance/corrective actions; clause-based inspection plans and acceptance forms; as-built; generic asset registry/hierarchy/geometry; preventive plans; predictive maintenance; asset map layer.
 
 ## 08 Integration & acceptance
-Exists: 72 live-PG test files; tenant isolation tests; chain segments (anomaly→task; recommendation→work order→task→outcome; task→inspection→close→cost); docker-compose.evidence-lab.yml.
+Exists: 76 live-PG test files (`git ls-tree -r --name-only 35c305c2 | grep -cE '(^|/)test_[^/]*live_pg[^/]*\.py$'`; counting by a live-PG marker gives more); tenant isolation tests; chain segments (anomaly→task; recommendation→work order→task→outcome; task→inspection→close→cost); docker-compose.evidence-lab.yml.
 Missing: single end-to-end chain test; 180 ha / two 50 ha pivots fixture; farm acceptance scenario folder.
 
 ## P2 infrastructure

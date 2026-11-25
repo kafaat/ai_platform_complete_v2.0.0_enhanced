@@ -4,7 +4,7 @@ Shared working reference for every party executing Phase 2 (Claude Code, Codex, 
 platform/UI, lab and hospital), so all of them start from the same inventory instead of
 re-deriving it.
 
-- [`PHASE2_INVENTORY_main_35c305c2.md`](PHASE2_INVENTORY_main_35c305c2.md) — read-only inventory
+- [`PHASE2_BASELINE_main_35c305c2.md`](PHASE2_BASELINE_main_35c305c2.md) — read-only inventory
   of what exists and what is missing per domain, measured against `main` at `35c305c2`
   (2026-11-25). It is a starting point, not proof of absence: re-check `main` before building
   anything it lists as missing, and reuse or strengthen what exists rather than duplicating it.
