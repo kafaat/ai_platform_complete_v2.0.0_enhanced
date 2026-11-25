@@ -60,14 +60,15 @@ def calculate_uniformity(survey: UniformitySurvey) -> dict[str, Any]:
     if max_depth == 0:
         return result
     depths = [sample.depth_mm / max_depth for sample in survey.samples]
-    if any(sample.depth_mm > 0 and depth == 0 for sample, depth in zip(survey.samples, depths, strict=True)):
+    if any(
+        sample.depth_mm > 0 and depth == 0
+        for sample, depth in zip(survey.samples, depths, strict=True)
+    ):
         raise ValueError("catch-can depths exceed numeric resolution")
     mean = math.fsum(weight * depth for weight, depth in zip(weights, depths, strict=True))
     if mean == 0:
         raise ValueError("weighted catch-can mean exceeds numeric resolution")
-    deviation = math.fsum(
-        weight * abs(depth - mean) for weight, depth in zip(weights, depths, strict=True)
-    )
+    deviation = math.fsum(weight * abs(depth - mean) for weight, depth in zip(weights, depths, strict=True))
     remaining = 0.25
     low_quarter = []
     for depth, weight in sorted(zip(depths, weights, strict=True)):

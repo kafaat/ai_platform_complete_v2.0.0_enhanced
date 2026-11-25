@@ -16,7 +16,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, model_validator
 
-from api.irrigation_uniformity import UniformitySurvey, calculate_uniformity
+from shared.precision_agriculture.irrigation_uniformity import UniformitySurvey, calculate_uniformity
 
 
 class IrrigationSystemType(StrEnum):

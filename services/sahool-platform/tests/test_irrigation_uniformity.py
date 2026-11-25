@@ -1,7 +1,9 @@
 """Synthetic catch-can evidence; no compliance threshold or measured farm claim."""
+
 import pytest
-from api.irrigation_uniformity import UniformitySurvey, calculate_uniformity
 from pydantic import ValidationError
+
+from shared.precision_agriculture.irrigation_uniformity import UniformitySurvey, calculate_uniformity
 
 
 def survey(depths, areas=None, pivot="a"):
