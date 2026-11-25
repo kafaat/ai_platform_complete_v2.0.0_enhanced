@@ -1,5 +1,5 @@
 {
-  "edge_count": 1143,
+  "edge_count": 1144,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -9442,6 +9442,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/field_context.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/main.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -11452,7 +11462,7 @@
     "EMITS": 3,
     "READS": 617,
     "ROUTES_TO": 82,
-    "WRITES": 391
+    "WRITES": 392
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -11467,8 +11477,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 1009,
-      "resolved": 1008,
+      "observed": 1010,
+      "resolved": 1009,
       "unresolved_component_paths": 0
     }
   }

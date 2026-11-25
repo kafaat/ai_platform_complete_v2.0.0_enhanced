@@ -553,6 +553,48 @@ async def refuse_if_fields_have_harvest_lots(conn, field_ids: list[str], action_
         )
 
 
+# ─── v289 and every ON DELETE RESTRICT: a protected record answers 409, not 503 ───
+def protected_reference_conflict(exc: Exception, action_ar: str) -> HTTPException | None:
+    """A foreign-key refusal of a ``fields`` row DELETE, as a 409 that names the record.
+
+    Owner decision (2026-11-24, review of #1598): a field with a scouting verification record (v289
+    links reference ``field_tasks`` ON DELETE RESTRICT) is refused explicitly, like harvest lots
+    (v278): the record is not erased. Before, the foreign-key error fell into the field routes'
+    generic "database unavailable" 503 from a healthy database. Called only by ``delete_field_row``:
+    SQLSTATE 23503 is also raised by an INSERT whose foreign key is missing (merge and split insert
+    the new field first), and that is not a protected record, so it keeps the 503 path (hospital
+    review of #1608). Anything that is not 23503 returns None.
+    """
+    if getattr(exc, "sqlstate", None) != "23503":
+        return None
+    table = str(getattr(exc, "table_name", "") or "")
+    if table.startswith("scouting_verification_"):
+        return HTTPException(
+            status_code=409,
+            detail=f"للحقل سجلّ تحقّق ميدانيّ (scouting_verification) لا يُمحى — يتعذّر {action_ar}.",
+        )
+    return HTTPException(
+        status_code=409,
+        detail=f"للحقل سجلّات مرتبطة لا تُحذف ({table or 'restricted reference'}) — يتعذّر {action_ar}.",
+    )
+
+
+async def delete_field_row(conn, field_id: str, action_ar: str) -> None:
+    """The only way the field routes delete a ``fields`` row (delete, merge and split).
+
+    A foreign-key refusal of this DELETE becomes the 409 above; the caller's ``except HTTPException``
+    passes it through and the transaction rolls back whole, so no event is emitted and nothing is
+    deleted. Every other error is re-raised unchanged and keeps the route's 503 path.
+    """
+    try:
+        await conn.execute("DELETE FROM fields WHERE field_id = $1", field_id)
+    except Exception as exc:  # noqa: BLE001 — re-raised unless it is this DELETE's 23503
+        conflict = protected_reference_conflict(exc, action_ar)
+        if conflict is None:
+            raise
+        raise conflict from exc
+
+
 def count_distinct_acquisition_dates(per_indicator: dict) -> int:
     """One satellite acquisition may contribute several processed indicators."""
     dates: set[str] = set()

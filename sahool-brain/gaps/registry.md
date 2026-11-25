@@ -9315,8 +9315,9 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 - **الحالة:** fixed — في PR متابعة #1598 نفسه (غير مدموج وقت الكتابة)؛ قرار المالك 2026-11-24: يُرفض بـ409 يسمّي السجلّ، كما تُرفض دفعات الحصاد (v278).
 - **المصدر:** v289 تشير إلى `field_tasks` بـ`ON DELETE RESTRICT` (`migrations/v289_scouting_verification_bridge.sql:19,21`)، و`delete_field` و`merge_fields` و`split_field` في [`api/routers/fields.py`](../../services/sahool-platform/api/routers/fields.py) تحذف من `fields` بالتتابع وكلّ خطأ قاعدة فيها كان 503.
-- **الإصلاح:** `_protected_reference_conflict`: خطأ المفتاح الأجنبيّ (23503) ⇒ 409 يسمّي سجلّ التحقّق والعمليّة؛ أيّ قيد محميّ آخر ⇒ 409 عامّ؛ عطل القاعدة الفعليّ يبقى 503. المعاملة تتراجع كاملةً.
-- **الشاهد:** [`test_field_delete_protected_reference.py`](../../services/sahool-platform/tests/test_field_delete_protected_reference.py)؛ حالتا 409 تفشلان على الموجّه السابق، وحارس بنيويّ يُلزم كلّ مسار يحذف من `fields` بالمرور على الدالّة.
+- **الإصلاح:** حذف صفّ `fields` في المسارات الثلاثة يمرّ كلّه على `delete_field_row` في [`api/field_context.py`](../../services/sahool-platform/api/field_context.py)، وهو وحده يحوّل خطأ المفتاح الأجنبيّ (23503) **من الحذف نفسه** إلى 409 يسمّي سجلّ التحقّق والعمليّة (أو الجدول لقيدٍ محميّ آخر)؛ و`fields.py` لم يكبر (راتشِت حجم الراوترات). أمّا 23503 من إدراجٍ قبله (حقلٌ جديد في الدمج/الانقسام يشير إلى مزرعة حُذفت للتوّ) فيبقى 503 كأيّ عطل قاعدة (مراجعة المستشفى لـ#1608). المعاملة تتراجع كاملةً.
+- **النشر:** `sahool-platform` تُنشر من فروع `deploy/*` في البيئتين لا من `main` (`railway_deploy_impact.py`)، فالإصلاح في الشيفرة **ولا يصير حيًّا إلّا بعد نشرٍ للمنصّة**، وذلك قرار مالكٍ منفصل.
+- **الشاهد:** [`test_field_delete_protected_reference.py`](../../services/sahool-platform/tests/test_field_delete_protected_reference.py) (9 حالات، كلّها تفشل على `20bdffcc`): التحويل على أخطاء asyncpg حقيقيّة، وحارس بنيويّ يُلزم أن يكون `DELETE FROM fields` في `delete_field_row` وحده، وأن تمرّ عليه المسارات الثلاثة، وألّا يُترجَم 23503 في فرع الخطأ العامّ لأيّ مسار.
 - **شرط التفعيل:** قبل تشغيل `FM_SCOUTING_VERIFICATION_ENABLED` أو `VEGETATION_VERIFICATION_BRIDGE_ENABLED` في أيّ بيئة.
 
 ## VERIFICATION-DISPATCH-REVEALS-A-FINISHED-DELIVERY-TO-A-NON-ASSESSOR-01 — مسار التسليم يكشف سجلًّا نهائيًّا لغير كاتب التقييم

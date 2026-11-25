@@ -31,7 +31,7 @@ from api import main as api_main
 # validate_field_geometry يُستورَد من مصدره مباشرةً (كان main يعيد تصديره، لكنه صار
 # يتيماً فيه بعد نقل _persist_field إلى هنا — تفكيك B1).
 from api.alert_models import AlertEvaluateResponse
-from api.field_context import refuse_if_fields_have_harvest_lots
+from api.field_context import delete_field_row, refuse_if_fields_have_harvest_lots
 from api.field_geometry_save_guard import sanitize_boundary_metadata, validate_boundary_for_save
 
 # نماذج/مساعدات الحقل نُقِلت إلى api.field_models (تفكيك B1 — نقل عنقوديّ) وتُستورَد
@@ -1649,37 +1649,12 @@ async def delete_field(
                 field_id,
                 {"name": row["name"], "crop": row["crop"], "farm_id": row["farm_id"]},
             )
-            await conn.execute("DELETE FROM fields WHERE field_id = $1", field_id)
+            await delete_field_row(conn, field_id, "حذف الحقل")
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        conflict = _protected_reference_conflict(e, "حذف الحقل")
-        if conflict is not None:
-            raise conflict from e
         raise _db_unavailable("حذف الحقل", e) from e
     return {"field_id": field_id, "deleted": True}
-
-
-def _protected_reference_conflict(exc: Exception, action_ar: str) -> HTTPException | None:
-    """سجلٌّ محميّ (ON DELETE RESTRICT) يمنع الحذف المتتالي ⇒ 409 يسمّيه، لا 503.
-
-    قرار المالك (2026-11-24، مراجعة #1598): حقلٌ له سجلّ تحقّق ميدانيّ (v289) يُرفض حذفه
-    صراحةً كما تُرفض دفعات الحصاد (v278) — السجلّ لا يُمحى. والدمج والانقسام يحذفان الحقول
-    المصدر بالمسار نفسه فيُرفضان كذلك. كان خطأ المفتاح الأجنبيّ يسقط إلى «تعذّر القاعدة» (503)
-    والقاعدة سليمة. المعاملة تتراجع كاملةً فلا يُصدَر حدثٌ ولا يُحذف شيء.
-    """
-    if getattr(exc, "sqlstate", None) != "23503":
-        return None
-    table = str(getattr(exc, "table_name", "") or "")
-    if table.startswith("scouting_verification_"):
-        return HTTPException(
-            status_code=409,
-            detail=f"للحقل سجلّ تحقّق ميدانيّ (scouting_verification) لا يُمحى — يتعذّر {action_ar}.",
-        )
-    return HTTPException(
-        status_code=409,
-        detail=f"للحقل سجلّات مرتبطة لا تُحذف ({table or 'restricted reference'}) — يتعذّر {action_ar}.",
-    )
 
 
 # ─── دمج/انقسام الحقول ذرّيّاً (نقطتان تستبدلان لاذرّيّة الواجهة) ───────────────
@@ -1841,7 +1816,7 @@ async def merge_fields(
                             "merged_into": field_id,
                         },
                     )
-                    await conn.execute("DELETE FROM fields WHERE field_id = $1", src_id)
+                    await delete_field_row(conn, src_id, "دمج الحقول")
                 return result
 
             if idem:
@@ -1860,9 +1835,6 @@ async def merge_fields(
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
-        conflict = _protected_reference_conflict(e, "دمج الحقول")
-        if conflict is not None:
-            raise conflict from e
         raise _db_unavailable("دمج الحقول", e) from e
     background_tasks.add_task(
         _kick_imagery_processing,
@@ -1981,7 +1953,7 @@ async def split_field(
                         "split_into": [c["field_id"] for c in children_out],
                     },
                 )
-                await conn.execute("DELETE FROM fields WHERE field_id = $1", req.source_field_id)
+                await delete_field_row(conn, req.source_field_id, "انقسام الحقل")
                 return children_out
 
             if idem:
@@ -2003,9 +1975,6 @@ async def split_field(
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
-        conflict = _protected_reference_conflict(e, "انقسام الحقل")
-        if conflict is not None:
-            raise conflict from e
         raise _db_unavailable("انقسام الحقل", e) from e
     # بعد الالتزام: معالجة صور مُستهدَفة لكلّ وليد (مهمّة خلفيّة لكلّ طفل).
     for child_result in result:
