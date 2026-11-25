@@ -147,3 +147,30 @@ def test_interactive_sahool_mode_requires_depletion_truth():
 
     with pytest.raises(ValueError, match="soil.depletion_mm"):
         calculate_interactive_irrigation_engineering(req)
+
+
+def test_interactive_uniformity_is_diagnostic_not_execution_authority():
+    demand = InteractiveWaterDemandInput(mode="manual", manual_net_depth_mm=10)
+    legacy = calculate_interactive_irrigation_engineering(
+        InteractiveIrrigationCalculationRequest(specification=_spec(), water_demand=demand)
+    )
+    survey = {
+        "evidence_ref": "synthetic:180ha/pivot-a/catch-can-01",
+        "samples": [
+            {"sample_id": str(i), "depth_mm": depth, "represented_area_m2": 125000}
+            for i, depth in enumerate([4, 8, 12, 16])
+        ],
+    }
+    result = calculate_interactive_irrigation_engineering(
+        InteractiveIrrigationCalculationRequest(
+            specification=_spec(), water_demand=demand, uniformity_survey=survey
+        )
+    )
+    assert "uniformity" not in legacy.hydraulics
+    assert result.hydraulics["uniformity"]["cu_pct"] == 60
+    assert result.hydraulics["uniformity"]["du_low_quarter_pct"] == 40
+    assert result.hydraulics["uniformity"]["compliance_status"] == "not_evaluated"
+    assert result.calculations == legacy.calculations
+    assert result.status == legacy.status
+    assert result.feasibility["execution_authorized"] is False
+    assert result.content_digest != legacy.content_digest
