@@ -173,6 +173,15 @@ def normalize_budget_line(line: SeasonBudgetLine) -> SeasonBudgetLine:
     return SeasonBudgetLine(**{**line.__dict__, "planned_cost": cost})
 
 
+def _require_cost_scope(
+    line: SeasonBudgetLine | ActualCostLine, season_id: str, currency: str
+) -> None:
+    if line.season_id != season_id:
+        raise ValueError("cost_scope_season_mismatch")
+    if line.currency.strip().upper() != currency:
+        raise ValueError("cost_scope_currency_mismatch")
+
+
 def compute_variances(
     budget_lines: Iterable[SeasonBudgetLine],
     actual_lines: Iterable[ActualCostLine],
@@ -183,14 +192,19 @@ def compute_variances(
     planned: dict[tuple[str, str], float] = {}
     actual: dict[tuple[str, str], float] = {}
     season_id = ""
+    currency: str | None = None
     for b in budget_lines:
         b = normalize_budget_line(b)
-        season_id = season_id or b.season_id
+        if currency is None:
+            season_id, currency = b.season_id, b.currency.strip().upper()
+        _require_cost_scope(b, season_id, currency)
         key = (b.stage, b.category)
         planned[key] = planned.get(key, 0.0) + b.planned_cost
     for a in actual_lines:
         _non_negative(a.actual_cost, field_name="actual_cost")
-        season_id = season_id or a.season_id
+        if currency is None:
+            season_id, currency = a.season_id, a.currency.strip().upper()
+        _require_cost_scope(a, season_id, currency)
         key = (a.stage, a.category)
         actual[key] = actual.get(key, 0.0) + a.actual_cost
 
@@ -278,9 +292,11 @@ def compute_profitability(
         if yield_quantity is not None
         else None
     )
-    total_cost = sum(
-        (_non_negative(c.actual_cost, field_name="actual_cost") or 0.0) for c in cost_lines
-    )
+    currency = currency.strip().upper()
+    total_cost = 0.0
+    for c in cost_lines:
+        _require_cost_scope(c, season_id, currency)
+        total_cost += _non_negative(c.actual_cost, field_name="actual_cost") or 0.0
     margin = revenue - total_cost
     return ProfitabilitySummary(
         season_id=season_id,
