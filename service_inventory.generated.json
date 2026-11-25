@@ -314,9 +314,9 @@
   {
     "service": "soil-service",
     "domain": "Soil Intelligence",
-    "python_files": 64,
-    "python_loc": 8141,
-    "tests": 25,
+    "python_files": 69,
+    "python_loc": 10471,
+    "tests": 27,
     "routes": 62,
     "main": "services/soil-service/main.py",
     "dockerfile": "services/soil-service/Dockerfile",
