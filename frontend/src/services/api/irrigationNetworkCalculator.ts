@@ -18,6 +18,8 @@ export interface IrrigationNetworkInput {
   reservoirCapacityM3: number;
   reservoirCurrentM3: number;
   reservoirMinimumM3: number;
+  reservoirEvaporationM3h?: number;
+  reservoirSeepageM3h?: number;
   boosterFlowM3h: number;
   boosterHeadM?: number;
   boosterMotorKw?: number;
@@ -100,8 +102,8 @@ export async function calculateReservoirBoosterNetwork(input: IrrigationNetworkI
       capacity_m3: input.reservoirCapacityM3,
       current_volume_m3: input.reservoirCurrentM3,
       minimum_operating_volume_m3: input.reservoirMinimumM3,
-      evaporation_loss_m3_h: 0,
-      seepage_loss_m3_h: 0,
+      evaporation_loss_m3_h: input.reservoirEvaporationM3h ?? 0,
+      seepage_loss_m3_h: input.reservoirSeepageM3h ?? 0,
     },
     booster: {
       pump_id: `booster:${input.fieldId}`,

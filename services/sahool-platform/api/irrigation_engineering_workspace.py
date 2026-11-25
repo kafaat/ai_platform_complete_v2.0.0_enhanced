@@ -965,6 +965,30 @@ def _machine_metrics(machine: IrrigationMachineInput) -> dict[str, Any]:
     return metrics
 
 
+def _reservoir_run_forecast(
+    current_m3: float,
+    capacity_m3: float,
+    minimum_m3: float,
+    net_change_m3_h: float,
+    runtime_h: float,
+) -> dict[str, float | None]:
+    """Constant-rate requested-run projection, not a measured or authorized operation."""
+    unconstrained_end = current_m3 + net_change_m3_h * runtime_h
+    if not math.isfinite(unconstrained_end):
+        raise ValueError("reservoir projection exceeds numeric range")
+    shortfall = max(0.0, minimum_m3 - unconstrained_end)
+    excess = max(0.0, unconstrained_end - capacity_m3)
+    if not math.isfinite(shortfall) or not math.isfinite(excess):
+        raise ValueError("reservoir projection exceeds numeric range")
+    return {
+        "forecast_end_volume_m3": (
+            round(min(capacity_m3, unconstrained_end), 4) if shortfall == 0 else None
+        ),
+        "forecast_excess_inflow_m3": round(excess, 4),
+        "forecast_shortfall_to_minimum_m3": round(shortfall, 4),
+    }
+
+
 def calculate_reservoir_booster_network(
     req: ReservoirBoosterNetworkRequest,
 ) -> ReservoirBoosterNetworkResult:
@@ -1061,6 +1085,13 @@ def calculate_reservoir_booster_network(
         else 0.0
     )
     runtime_h = req.required_gross_volume_m3 / duty_flow_m3_h
+    reservoir_forecast = _reservoir_run_forecast(
+        req.reservoir.current_volume_m3,
+        req.reservoir.capacity_m3,
+        req.reservoir.minimum_operating_volume_m3,
+        net_change_m3_h,
+        runtime_h,
+    )
     if hours_to_min is not None and runtime_h > hours_to_min + 1e-9:
         blockers.append("RESERVOIR_VOLUME_INSUFFICIENT_FOR_REQUESTED_RUNTIME")
     if req.reservoir.current_volume_m3 <= req.reservoir.minimum_operating_volume_m3:
@@ -1108,6 +1139,8 @@ def calculate_reservoir_booster_network(
         "duty_flow_m3_h": duty_flow_m3_h,
         "required_head_m": required_head_m,
         "reservoir_net_change_m3_h": net_change_m3_h,
+        "requested_runtime_h": runtime_h,
+        "reservoir_forecast": reservoir_forecast,
         "blockers": sorted(set(blockers)),
         "warnings": sorted(set(warnings)),
     }
@@ -1125,6 +1158,7 @@ def calculate_reservoir_booster_network(
             "usable_volume_m3": round(usable_volume, 4),
             "hours_to_minimum": None if hours_to_min is None else round(hours_to_min, 4),
             "requested_runtime_h": round(runtime_h, 4),
+            **reservoir_forecast,
         },
         booster={
             "required_flow_m3_h": round(duty_flow_m3_h, 4),
