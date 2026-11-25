@@ -23,6 +23,8 @@ from shared.contracts.soil.p3 import (
     SoilVisualObservation,
 )
 
+LAB_HB60_VERSION_SUFFIX = "lab-hb60.v1"
+
 
 def build_mobile_visual_observation(req: MobileSoilImageRequest) -> SoilVisualObservation:
     q = req.quality
@@ -391,21 +393,23 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
         interventions.append(
             {"type": "leaching_candidate", "requires": "approved_water_and_drainage"}
         )
-    # Farmland Phase 2 · 0002: lab EC/ESP (already in the request) are classified against
-    # USDA HB60 through the standards registry. A lab-verified sodic/saline class is stronger
-    # evidence than the screening probability, so it raises the candidate even when the
-    # probability is low; the classification itself never upgrades a lab-unverified request.
+    # Farmland Phase 2 · 0002: lab ESP (already in the request) is classified against USDA
+    # HB60 through the standards registry. Each HB60 half stands on its own clause: a
+    # lab-verified sodic result (ESP >= 15) raises the gypsum candidate even at a low
+    # screening probability. The salinity half is WITHHELD here: the P3 contract carries no
+    # EC method, and HB60's ECe >= 4 applies only to a saturated-paste extract at 25 °C
+    # (P2 enforces the same via ec_lab_method) — a 1:5 EC must not become a stored "normal".
     lab_class = None
     if req.lab_verified and (req.ec_lab_ds_m is not None or req.esp_pct is not None):
         lab_class = classify_salinity_sodicity(
             ece_ds_m=req.ec_lab_ds_m,
+            ec_method=None,  # the P3 request contract carries no EC method
             esp_pct=req.esp_pct,
-            observed_on=None,  # the P3 request contract carries no sample date
+            observed_on=None,  # ...and no sample date
             source=f"reclamation_request:{req.field_id}",
         )
-    lab_soil_class = lab_class.soil_class if lab_class else None
-    lab_sodic = lab_soil_class in {"sodic", "saline_sodic"}
-    lab_saline = lab_soil_class in {"saline", "saline_sodic"}
+    lab_sodic = bool(lab_class and lab_class.sodic is True)
+    lab_saline = bool(lab_class and lab_class.saline is True)
     if req.salinity_probability <= 0.45 and lab_saline:
         interventions.append(
             {
@@ -418,10 +422,10 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
         gypsum = {"type": "gypsum_candidate", "requires": "lab_EC_ESP_and_water_profile"}
         if lab_sodic:
             gypsum["basis"] = "lab_hb60"
-        if req.esp_pct is not None:
+        if req.esp_pct is not None and req.lab_verified:
             # The rate kernel exists (land_quality.gypsum_requirement) but this request
             # contract carries no CEC, depth or bulk density — name what is missing rather
-            # than emit a rate from assumed values.
+            # than emit a rate from assumed values. Unverified ESP is not echoed.
             gypsum["esp_pct"] = req.esp_pct
             gypsum["rate_kernel"] = "land_quality.gypsum_requirement"
             gypsum["rate_inputs_missing"] = ["cec_cmolc_kg", "depth_m", "bulk_density_t_m3"]
@@ -478,11 +482,18 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
         + 0.15 * req.irrigation_water_profile_approved
         + 0.15 * req.drainage_engineering_verified
     )
+    # A product carrying the lab HB60 classification has different output semantics from a
+    # pre-Phase-2 product; p3_store upserts on (…, version, identity_hash), so the version key
+    # must change or an identical resubmission would silently overwrite the stored payload.
     return ReclamationAssessmentProduct(
         tenant_id=req.tenant_id,
         field_id=req.field_id,
         geometry_hash=req.geometry_hash,
-        assessment_version=req.assessment_version,
+        assessment_version=(
+            f"{req.assessment_version}+{LAB_HB60_VERSION_SUFFIX}"
+            if lab_class
+            else req.assessment_version
+        ),
         suitability_class=suitability,
         reclamation_priority=priority,
         interventions=interventions,

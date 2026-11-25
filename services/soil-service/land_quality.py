@@ -212,19 +212,35 @@ def gypsum_requirement(
 # ── صنف الملوحة/الصوديّة (HB60) ─────────────────────────────────────────
 
 
+SATURATION_EXTRACT_25C = "saturation_extract_25c"
+
+
 @dataclass(frozen=True)
 class SalinitySodicityClass:
-    soil_class: str | None  # normal | saline | sodic | saline_sodic | None (غير مكتمل)
+    """صنف HB60 بنصفَين مستقلّين: الملوحة (ECe) والصوديّة (ESP).
+
+    `saline`/`sodic`: True/False حين يُحسَم النصف من قياسٍ صالح، None حين لا يُحسَم (غائب، قديم،
+    أو EC بطريقةٍ لا تقارَن بمستخلص العجينة المشبعة). كلّ نصفٍ محسوم يكفي لما يخصّه (ESP ≥ 15
+    صوديّة أيّاً كان EC)؛ أمّا **التسمية الكاملة** (`soil_class`) فلا تُعطى إلّا بحسم النصفين.
+    """
+
+    soil_class: str | None  # normal | saline | sodic | saline_sodic | None (نصفٌ غير محسوم)
     complete: bool
+    saline: bool | None
+    sodic: bool | None
     compliance: dict
     reason: str
     freshness: str  # "enforced" | "not_verifiable_no_sample_date"
+    withheld: tuple[str, ...] = ()
 
     def to_dict(self) -> dict:
         return {
             "soil_class": self.soil_class,
             "complete": self.complete,
+            "saline": self.saline,
+            "sodic": self.sodic,
             "reason": self.reason,
+            "withheld": list(self.withheld),
             "freshness": self.freshness,
             "compliance": self.compliance,
             "standard": HB60_SALINE_SODIC.ref,
@@ -234,6 +250,7 @@ class SalinitySodicityClass:
 def classify_salinity_sodicity(
     *,
     ece_ds_m: float | None,
+    ec_method: str | None,
     esp_pct: float | None,
     observed_on: date | None,
     source: str,
@@ -241,9 +258,11 @@ def classify_salinity_sodicity(
 ) -> SalinitySodicityClass:
     """صنف HB60 من ECe و ESP عبر محرّك المطابقة (العتبات من السجلّ لا من هنا).
 
-    بتاريخ عيّنة ⇒ يُفرَض حدّ العمر في البند (`max_age_days`). بلا تاريخ (مسار لا يحمل عقده
-    تاريخاً) ⇒ تُقيَّم العتبات وحدها ويُعلَن `freshness="not_verifiable_no_sample_date"` صراحةً
-    — لا تاريخ مُختلَق ولا إخفاء أنّ الحداثة لم تُتحقَّق.
+    - **EC يُفسَّر فقط إن قِيس بمستخلص العجينة المشبعة عند 25°م** (`ec_method`، نمط P2):
+      حدّ HB60 (ECe ≥ 4) لا يُحوَّل إلى نِسَب تربة:ماء أخرى، فـEC بطريقةٍ أخرى أو مجهولة يُحجَب
+      نصفُه بسببٍ مكتوب — لا «طبيعيّ» كاذب من مستخلص 1:5.
+    - بتاريخ عيّنة ⇒ يُفرَض حدّ العمر؛ بلا تاريخ ⇒ العتبات وحدها مع
+      `freshness="not_verifiable_no_sample_date"` صراحةً.
     """
     standard = HB60_SALINE_SODIC
     freshness = "enforced"
@@ -252,35 +271,62 @@ def classify_salinity_sodicity(
             standard, clauses=tuple(replace(c, max_age_days=None) for c in standard.clauses)
         )
         freshness = "not_verifiable_no_sample_date"
+    withheld: list[str] = []
     obs = []
     if ece_ds_m is not None:
-        obs.append(
-            Observation("ece_ds_m", ece_ds_m, "dS/m", source=source, observed_on=observed_on)
-        )
+        if ec_method == SATURATION_EXTRACT_25C:
+            obs.append(
+                Observation(
+                    "ece_ds_m",
+                    ece_ds_m,
+                    "dS/m",
+                    source=source,
+                    observed_on=observed_on,
+                    method=ec_method,
+                )
+            )
+        else:
+            withheld.append(
+                f"saline.ECe:ec_method_not_saturation_extract_25c:{ec_method or 'unknown'}"
+            )
     if esp_pct is not None:
         obs.append(Observation("esp_pct", esp_pct, "%", source=source, observed_on=observed_on))
     report = evaluate_standards([standard], obs, on=on)
     status = {r.clause_id: r.status for r in report.results}
-    saline, sodic = status.get("saline.ECe"), status.get("sodic.ESP")
-    if "not_evaluated" in (saline, sodic):
+
+    def half(clause_id: str) -> bool | None:
+        st = status.get(clause_id)
+        return True if st == "fail" else False if st == "pass" else None
+
+    saline, sodic = half("saline.ECe"), half("sodic.ESP")
+    if saline is None or sodic is None:
         reasons = sorted(
-            f"{r.clause_id}:{r.reason}" for r in report.results if r.status == "not_evaluated"
+            f"{r.clause_id}:{r.reason}"
+            for r in report.results
+            if r.status == "not_evaluated"
+            and not any(w.startswith(f"{r.clause_id}:") for w in withheld)
         )
         return SalinitySodicityClass(
-            None, False, report.to_dict(), "incomplete:" + ",".join(reasons), freshness
+            None,
+            False,
+            saline,
+            sodic,
+            report.to_dict(),
+            "partial:" + ",".join(withheld + reasons),
+            freshness,
+            tuple(withheld),
         )
-    is_saline, is_sodic = saline == "fail", sodic == "fail"
     soil_class = (
         "saline_sodic"
-        if is_saline and is_sodic
+        if saline and sodic
         else "saline"
-        if is_saline
+        if saline
         else "sodic"
-        if is_sodic
+        if sodic
         else "normal"
     )
     return SalinitySodicityClass(
-        soil_class, True, report.to_dict(), f"hb60:{soil_class}", freshness
+        soil_class, True, saline, sodic, report.to_dict(), f"hb60:{soil_class}", freshness
     )
 
 

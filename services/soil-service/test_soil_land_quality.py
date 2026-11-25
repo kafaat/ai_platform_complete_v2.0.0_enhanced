@@ -4,6 +4,7 @@ from datetime import date
 
 import pytest
 from land_quality import (
+    SATURATION_EXTRACT_25C,
     LandQualityInputError,
     classify_salinity_sodicity,
     esp_from_exchangeable_na,
@@ -12,7 +13,7 @@ from land_quality import (
     gypsum_requirement_from_exchangeable_na,
     land_capability,
 )
-from p3_products import build_reclamation_assessment
+from p3_products import LAB_HB60_VERSION_SUFFIX, build_reclamation_assessment
 
 from shared.contracts.soil.p3 import ReclamationAssessmentRequest
 
@@ -141,26 +142,48 @@ def test_gypsum_rejects_out_of_range_inputs(override):
 )
 def test_hb60_soil_class(ece, esp, expected):
     r = classify_salinity_sodicity(
-        ece_ds_m=ece, esp_pct=esp, observed_on=date(2026, 9, 1), source="lab", on=ON
+        ece_ds_m=ece,
+        ec_method=SATURATION_EXTRACT_25C,
+        esp_pct=esp,
+        observed_on=date(2026, 9, 1),
+        source="lab",
+        on=ON,
     )
     assert (r.soil_class, r.complete, r.freshness) == (expected, True, "enforced")
 
 
 def test_hb60_class_is_withheld_when_a_measurement_is_missing_or_stale():
     missing = classify_salinity_sodicity(
-        ece_ds_m=6.0, esp_pct=None, observed_on=date(2026, 9, 1), source="lab", on=ON
+        ece_ds_m=6.0,
+        ec_method=SATURATION_EXTRACT_25C,
+        esp_pct=None,
+        observed_on=date(2026, 9, 1),
+        source="lab",
+        on=ON,
     )
     assert missing.soil_class is None and not missing.complete
     assert "sodic.ESP:missing_observation" in missing.reason
+    # the determined half still stands on its own (F6: ECe >= 4 is saline whatever ESP is)
+    assert (missing.saline, missing.sodic) == (True, None)
     stale = classify_salinity_sodicity(
-        ece_ds_m=1.0, esp_pct=5.0, observed_on=date(2020, 1, 1), source="lab", on=ON
+        ece_ds_m=1.0,
+        ec_method=SATURATION_EXTRACT_25C,
+        esp_pct=5.0,
+        observed_on=date(2020, 1, 1),
+        source="lab",
+        on=ON,
     )
     assert stale.soil_class is None and "observation_stale" in stale.reason
 
 
 def test_hb60_without_a_sample_date_classifies_but_declares_freshness_unverifiable():
     r = classify_salinity_sodicity(
-        ece_ds_m=6.0, esp_pct=20.0, observed_on=None, source="lab", on=ON
+        ece_ds_m=6.0,
+        ec_method=SATURATION_EXTRACT_25C,
+        esp_pct=20.0,
+        observed_on=None,
+        source="lab",
+        on=ON,
     )
     assert r.soil_class == "saline_sodic"
     assert r.freshness == "not_verifiable_no_sample_date"
@@ -256,34 +279,77 @@ def test_lab_verified_sodic_soil_raises_gypsum_candidate_even_at_low_screening_p
     assert gypsum["rate_kernel"] == "land_quality.gypsum_requirement"
     assert gypsum["rate_inputs_missing"] == ["cec_cmolc_kg", "depth_m", "bulk_density_t_m3"]
     lab = p.provenance["lab_salinity_sodicity"]
-    assert lab["soil_class"] == "sodic" and lab["freshness"] == "not_verifiable_no_sample_date"
+    # sodicity half determined by ESP alone; salinity half withheld (P3 carries no EC method)
+    assert (lab["sodic"], lab["saline"], lab["soil_class"]) == (True, None, None)
+    assert lab["freshness"] == "not_verifiable_no_sample_date"
     assert "gypsum_candidate" in p.phased_plan[2]["actions"]
 
 
-def test_lab_verified_saline_soil_raises_leaching_candidate():
+def test_p3_ec_of_unknown_method_never_yields_a_stored_normal_class():
+    # Hospital F1: a 1:5 EC of 1.5 dS/m (~ECe 8-10, saline) used to be read as ECe and stored
+    # as soil_class "normal" citing the saturated-paste method.
+    p = _reclaim(lab_verified=True, ec_lab_ds_m=1.5, esp_pct=5.0)
+    lab = p.provenance["lab_salinity_sodicity"]
+    assert lab["soil_class"] is None and lab["saline"] is None and lab["sodic"] is False
+    assert any(
+        w.startswith("saline.ECe:ec_method_not_saturation_extract_25c") for w in lab["withheld"]
+    )
+    assert not any(i.get("basis") == "lab_hb60" for i in p.interventions)
+
+
+def test_p3_high_ec_without_method_raises_no_lab_leaching_candidate():
     p = _reclaim(lab_verified=True, ec_lab_ds_m=9.0, esp_pct=4.0)
-    leach = [i for i in p.interventions if i["type"] == "leaching_candidate"]
-    assert leach and leach[0]["basis"] == "lab_hb60"
-    assert not any(i["type"] == "gypsum_candidate" for i in p.interventions)
+    assert not any(i.get("basis") == "lab_hb60" for i in p.interventions)
+    assert p.provenance["lab_salinity_sodicity"]["saline"] is None
 
 
 def test_unverified_lab_values_are_not_classified_and_change_nothing():
     p = _reclaim(lab_verified=False, ec_lab_ds_m=9.0, esp_pct=22.0)
     assert "lab_salinity_sodicity" not in p.provenance
     assert not any(i["type"] in {"gypsum_candidate", "leaching_candidate"} for i in p.interventions)
+    assert p.assessment_version == "reclamation-v1"
 
 
-def test_normal_lab_soil_adds_no_amendment():
+def test_unverified_esp_is_not_echoed_on_a_screening_gypsum_candidate():
+    p = _reclaim(lab_verified=False, sodicity_probability=0.6, esp_pct=22.0)
+    gypsum = next(i for i in p.interventions if i["type"] == "gypsum_candidate")
+    assert "esp_pct" not in gypsum and "rate_kernel" not in gypsum
+
+
+def test_low_lab_esp_adds_no_amendment():
     p = _reclaim(lab_verified=True, ec_lab_ds_m=1.0, esp_pct=4.0)
-    assert p.provenance["lab_salinity_sodicity"]["soil_class"] == "normal"
+    assert p.provenance["lab_salinity_sodicity"]["sodic"] is False
     assert not any(i["type"] in {"gypsum_candidate", "leaching_candidate"} for i in p.interventions)
 
 
-def test_partial_lab_values_record_an_incomplete_class_without_inventing_the_other():
+def test_ec_only_lab_values_determine_no_half_in_p3():
     p = _reclaim(lab_verified=True, ec_lab_ds_m=9.0)
     lab = p.provenance["lab_salinity_sodicity"]
     assert lab["soil_class"] is None and lab["complete"] is False
+    assert (lab["saline"], lab["sodic"]) == (None, None)
     assert not any(i.get("basis") == "lab_hb60" for i in p.interventions)
+
+
+def test_lab_classified_products_are_stored_under_their_own_version_key():
+    # Hospital nit 10: p3_store upserts on (..., version, identity_hash); new output semantics
+    # must not silently overwrite a pre-Phase-2 payload stored under the same version.
+    assert _reclaim(lab_verified=True, esp_pct=4.0).assessment_version == (
+        f"reclamation-v1+{LAB_HB60_VERSION_SUFFIX}"
+    )
+    assert _reclaim(sodicity_probability=0.6).assessment_version == "reclamation-v1"
+
+
+def test_ec_by_another_method_is_withheld_with_its_method_named():
+    r = classify_salinity_sodicity(
+        ece_ds_m=1.5,
+        ec_method="soil_water_1_5",
+        esp_pct=20.0,
+        observed_on=date(2026, 9, 1),
+        source="lab",
+        on=ON,
+    )
+    assert (r.saline, r.sodic, r.soil_class) == (None, True, None)
+    assert r.withheld == ("saline.ECe:ec_method_not_saturation_extract_25c:soil_water_1_5",)
 
 
 def test_screening_probability_path_is_unchanged_when_no_lab_values_exist():
