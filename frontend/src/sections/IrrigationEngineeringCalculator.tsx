@@ -168,7 +168,7 @@ function IrrigationCalculatorForm({ tenantId, fieldId, seasonId }: { tenantId: R
           <p>المرجع غير المتحقق: {result.water_demand.deficit_scenario.evidence_ref}</p>
         </> : <p role="status">لم يُقيّم السيناريو: مدخلات الملوحة أو مرجعها مفقودة.</p>}
         <p className="text-xs text-amber-300">ليس توقعاً خاصاً بالحقل أو ميزان أملاح أو توصية بخفض الري. لا إذن تشغيل.</p>
-      </section>}
+      </section> : [form.deficitFraction, form.deficitWaterEc, form.deficitCropEce, form.deficitEvidence].some(v => v.trim()) && <p role="status" className="text-amber-300">لم يُرجع الخادم نتيجة سيناريو عجز الري؛ لا توجد نتيجة معتمدة.</p>}
       <p className="text-[11px] text-slate-600">النتيجة تقدير هندسي قابل للمراجعة، وليست شهادة Commissioning أو إذن تشغيل آلي. digest: {result.content_digest.slice(0, 12)}…</p>
     </div>}
   </section>;
