@@ -14,6 +14,7 @@ from datetime import UTC, date, datetime, time, timedelta
 from enum import StrEnum
 from typing import Annotated, Any
 
+from core.engines.deficit_irrigation import evaluate_deficit_irrigation
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -448,6 +449,48 @@ class InteractiveWaterDemandInput(BaseModel):
         return self
 
 
+class DeficitScenarioInput(BaseModel):
+    """Operator-declared hypothetical ETc fraction, not an irrigation target."""
+
+    model_config = ConfigDict(extra="forbid")
+    etc_fraction_pct: StrictInt = Field(ge=40, le=100)
+    water_ec_ds_m: StrictFloat | None = Field(default=None, ge=0, allow_inf_nan=False)
+    crop_salinity_threshold_ece_ds_m: StrictFloat | None = Field(
+        default=None, gt=0, allow_inf_nan=False
+    )
+    evidence_ref: EvidenceText | None = None
+
+
+def _assess_deficit_scenario(scenario: DeficitScenarioInput) -> dict[str, Any]:
+    missing = [
+        name
+        for name in ("water_ec_ds_m", "crop_salinity_threshold_ece_ds_m", "evidence_ref")
+        if getattr(scenario, name) is None
+    ]
+    result = {
+        "status": "not_evaluated" if missing else "estimated",
+        "input_quality": "operator_supplied_unverified",
+        "etc_fraction_pct": scenario.etc_fraction_pct,
+        "evidence_ref": scenario.evidence_ref,
+        "missing_inputs": missing,
+        "salinity_risk_heuristic": None,
+        "literature_yield_penalty_pct": None,
+        "execution_authorized": False,
+    }
+    if missing:
+        return result
+    estimate = evaluate_deficit_irrigation(
+        etc_fraction=scenario.etc_fraction_pct,
+        water_ec_ds_m=scenario.water_ec_ds_m,
+        crop_salinity_threshold_ds_m=scenario.crop_salinity_threshold_ece_ds_m,
+    )
+    return {
+        **result,
+        "salinity_risk_heuristic": estimate.salinity_risk,
+        "literature_yield_penalty_pct": round(estimate.yield_penalty_pct * 100, 2),
+    }
+
+
 class InteractiveIrrigationCalculationRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     specification: IrrigationSystemSpecification
@@ -456,6 +499,7 @@ class InteractiveIrrigationCalculationRequest(BaseModel):
     safety_margin_m: float = Field(default=5.0, ge=0, le=100)
     installed_motor_power_kw: float | None = Field(default=None, gt=0)
     uniformity_survey: UniformitySurvey | None = None
+    deficit_scenario: DeficitScenarioInput | None = None
 
 
 class InteractiveIrrigationCalculationResult(BaseModel):
@@ -644,6 +688,12 @@ def calculate_interactive_irrigation_engineering(
     else:
         uniformity = calculate_uniformity(req.uniformity_survey)
 
+    deficit_scenario = None
+    if req.deficit_scenario is None:
+        request_payload.pop("deficit_scenario")
+    else:
+        deficit_scenario = _assess_deficit_scenario(req.deficit_scenario)
+
     payload = {
         "request": request_payload,
         "status": status.value,
@@ -656,10 +706,13 @@ def calculate_interactive_irrigation_engineering(
     }
     if uniformity is not None:
         payload["uniformity"] = uniformity
+    if deficit_scenario is not None:
+        payload["deficit_scenario"] = deficit_scenario
     return InteractiveIrrigationCalculationResult(
         status=status,
         calculations=calc,
         water_demand={
+            **({"deficit_scenario": deficit_scenario} if deficit_scenario is not None else {}),
             "mode": req.water_demand.mode,
             "crop_type": req.water_demand.crop.crop_type,
             "growth_stage": req.water_demand.crop.growth_stage,

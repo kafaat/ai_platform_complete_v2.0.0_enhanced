@@ -40,3 +40,26 @@ describe('interactive irrigation survey', () => {
     expect(screen.getByLabelText('مرجع دليل القياس')).toHaveValue('');
   });
 });
+
+
+it('sends a hypothetical deficit scenario and renders the server diagnostic only', async () => {
+  api.calculateInteractiveIrrigation.mockResolvedValue({
+    status: 'pass', calculations: {}, hydraulics: {}, pump_energy: {}, feasibility: {},
+    warnings: [], blocking_constraints: [], explanations: [], assumptions: [], input_quality: {},
+    content_digest: 'abc123',
+    water_demand: { deficit_scenario: {
+      status: 'estimated', salinity_risk_heuristic: 'high', literature_yield_penalty_pct: 36.5,
+      evidence_ref: 'synthetic:pivot-a', missing_inputs: [], execution_authorized: false,
+    } },
+  });
+  render(<IrrigationEngineeringCalculator fieldId="a" />);
+  fireEvent.change(screen.getByLabelText('نسبة ETc الافتراضية'), { target: { value: '50' } });
+  fireEvent.change(screen.getByLabelText('ملوحة مياه الري ECw'), { target: { value: '4' } });
+  fireEvent.change(screen.getByLabelText('حد تحمل المحصول ECe'), { target: { value: '6' } });
+  fireEvent.change(screen.getByLabelText('مرجع الملوحة وحد التحمل'), { target: { value: 'synthetic:pivot-a' } });
+  fireEvent.click(screen.getByRole('button', { name: 'احسب الكمية والضغط' }));
+  expect(api.calculateInteractiveIrrigation).toHaveBeenCalledWith(expect.objectContaining({
+    deficitScenario: { etc_fraction_pct: 50, water_ec_ds_m: 4, crop_salinity_threshold_ece_ds_m: 6, evidence_ref: 'synthetic:pivot-a' },
+  }));
+  expect(await screen.findByText('انخفاض الغلة وفق النموذج الأدبي: 36.50 %')).toBeInTheDocument();
+});

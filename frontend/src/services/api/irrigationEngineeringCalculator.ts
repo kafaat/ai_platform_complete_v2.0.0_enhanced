@@ -42,6 +42,7 @@ export interface InteractiveCalculatorInput {
   customMinorLossM: number;
   safetyMarginM: number;
   uniformitySurvey?: UniformitySurveyInput;
+  deficitScenario?: { etc_fraction_pct: number; water_ec_ds_m?: number; crop_salinity_threshold_ece_ds_m?: number; evidence_ref?: string };
 }
 
 export interface UniformityResult {
@@ -60,7 +61,7 @@ export interface UniformityResult {
 export interface InteractiveCalculatorResult {
   status: 'pass' | 'degraded' | 'fail' | 'incomplete';
   calculations: Record<string, number | null>;
-  water_demand: Record<string, unknown>;
+  water_demand: Record<string, unknown> & { deficit_scenario?: { status: 'estimated' | 'not_evaluated'; salinity_risk_heuristic: string | null; literature_yield_penalty_pct: number | null; evidence_ref: string | null; missing_inputs: string[]; execution_authorized: false } };
   hydraulics: Record<string, unknown> & { uniformity?: UniformityResult };
   pump_energy: Record<string, unknown>;
   feasibility: Record<string, unknown>;
@@ -129,6 +130,7 @@ export async function calculateInteractiveIrrigation(input: InteractiveCalculato
       custom_minor_loss_m: input.customMinorLossM,
     },
     ...(input.uniformitySurvey ? { uniformity_survey: input.uniformitySurvey } : {}),
+    ...(input.deficitScenario ? { deficit_scenario: input.deficitScenario } : {}),
     safety_margin_m: input.safetyMarginM,
     installed_motor_power_kw: input.installedMotorPowerKw ?? null,
   });
