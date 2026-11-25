@@ -1,4 +1,5 @@
 import { kongApi } from './client';
+import type { UniformitySurveyInput } from '../../lib/irrigationUniformity';
 import type { IrrigationEngineeringSummary, IrrigationSystemType } from '../../lib/irrigationEngineering';
 
 export type EvidenceLevel = 'measured' | 'commissioned' | 'manufacturer_spec' | 'user_declared' | 'estimated' | 'unknown';
@@ -40,13 +41,27 @@ export interface InteractiveCalculatorInput {
   filters: number;
   customMinorLossM: number;
   safetyMarginM: number;
+  uniformitySurvey?: UniformitySurveyInput;
+}
+
+export interface UniformityResult {
+  method: string;
+  evidence_ref: string;
+  input_quality: 'operator_supplied_unverified';
+  sample_count: number;
+  status: 'calculated' | 'not_evaluated';
+  compliance_status: 'not_evaluated';
+  mean_depth_mm: number;
+  cu_pct: number | null;
+  du_low_quarter_pct: number | null;
+  reason: string | null;
 }
 
 export interface InteractiveCalculatorResult {
   status: 'pass' | 'degraded' | 'fail' | 'incomplete';
   calculations: Record<string, number | null>;
   water_demand: Record<string, unknown>;
-  hydraulics: Record<string, unknown>;
+  hydraulics: Record<string, unknown> & { uniformity?: UniformityResult };
   pump_energy: Record<string, unknown>;
   feasibility: Record<string, unknown>;
   warnings: string[];
@@ -113,6 +128,7 @@ export async function calculateInteractiveIrrigation(input: InteractiveCalculato
       filters: input.filters,
       custom_minor_loss_m: input.customMinorLossM,
     },
+    ...(input.uniformitySurvey ? { uniformity_survey: input.uniformitySurvey } : {}),
     safety_margin_m: input.safetyMarginM,
     installed_motor_power_kw: input.installedMotorPowerKw ?? null,
   });
