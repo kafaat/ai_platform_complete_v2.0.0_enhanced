@@ -114,8 +114,7 @@ def test_synthetic_two_pivots_share_reservoir_volume_projection():
     req = base_request(pivots=pivots, requested=["pivot-a", "pivot-b"])
     req.required_gross_volume_m3 = 6000
     req.wells = [
-        WellSupplyInput(well_id=f"synthetic-well-{i}", available_flow_m3_h=130)
-        for i in range(3)
+        WellSupplyInput(well_id=f"synthetic-well-{i}", available_flow_m3_h=130) for i in range(3)
     ]
     req.reservoir = ReservoirInput(
         reservoir_id="synthetic-reservoir",
@@ -170,8 +169,9 @@ def test_reservoir_projection_digest_changes_with_requested_runtime():
     first = calculate_reservoir_booster_network(req)
     req.required_gross_volume_m3 += 230
     second = calculate_reservoir_booster_network(req)
-    assert second.reservoir_balance["requested_runtime_h"] != (
-        first.reservoir_balance["requested_runtime_h"]
+    assert (
+        second.reservoir_balance["requested_runtime_h"]
+        != (first.reservoir_balance["requested_runtime_h"])
     )
     assert first.content_digest != second.content_digest
 
@@ -257,6 +257,7 @@ def test_duplicate_well_cannot_double_count_network_supply():
     with pytest.raises(ValueError, match="duplicate well ids"):
         ReservoirBoosterNetworkRequest.model_validate(payload)
 
+
 def test_booster_requested_energy_uses_runtime_and_efficiency():
     req = base_request()
     result = calculate_reservoir_booster_network(req)
@@ -277,3 +278,39 @@ def test_blocked_network_energy_is_requested_not_delivered():
     assert result.status == "fail"
     assert result.reservoir_balance["forecast_end_volume_m3"] is None
     assert result.booster["requested_energy_kwh"] > 0
+
+
+def test_reservoir_forecast_at_exact_minimum_retains_feasible_volume():
+    req = base_request()
+    req.wells = []
+    req.required_gross_volume_m3 = 950
+    req.booster.design_flow_m3_h = 235
+    req.reservoir = ReservoirInput(
+        reservoir_id="r1",
+        capacity_m3=1000,
+        current_volume_m3=1000,
+        minimum_operating_volume_m3=50,
+    )
+    result = calculate_reservoir_booster_network(req)
+    assert result.status == "pass"
+    assert result.blocking_constraints == []
+    assert result.reservoir_balance["forecast_end_volume_m3"] == 50
+    assert result.reservoir_balance["forecast_shortfall_to_minimum_m3"] == 0
+
+
+@pytest.mark.parametrize("required_volume_m3", [950.000001, 950.00000001])
+def test_reservoir_forecast_preserves_small_real_shortfall(required_volume_m3):
+    req = base_request()
+    req.wells = []
+    req.required_gross_volume_m3 = required_volume_m3
+    req.booster.design_flow_m3_h = 235
+    req.reservoir = ReservoirInput(
+        reservoir_id="r1",
+        capacity_m3=1000,
+        current_volume_m3=1000,
+        minimum_operating_volume_m3=50,
+    )
+    result = calculate_reservoir_booster_network(req)
+    assert result.status == "fail"
+    assert "RESERVOIR_VOLUME_INSUFFICIENT_FOR_REQUESTED_RUNTIME" in result.blocking_constraints
+    assert result.reservoir_balance["forecast_end_volume_m3"] is None

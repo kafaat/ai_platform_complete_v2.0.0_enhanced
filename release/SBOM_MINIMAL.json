@@ -4925,6 +4925,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b2187cab214726d34231ae7a7087f7efb6c48b7038d57616d3fe6150c832bbe0"
+        }
+      ],
+      "name": "frontend/src/lib/irrigationUniformity.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f175038ebf468b00af8bb9c2d548543209a568afe1f05ed6094dbbb76608c7bc"
+        }
+      ],
+      "name": "frontend/src/lib/irrigationUniformity.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4c390f9edbd6ac864bf453f80bd18ef310c282608d0614bfd86250b8c094b743"
         }
       ],
@@ -6695,10 +6715,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92ee611d8867effa3cb964a7c4a2dc1653111fd3e04212ffaeb9d8c2d18dff36"
+          "content": "6e0ef5d117031c23f28f13f968302fccbedd3622956bd906df48a237362a9c31"
         }
       ],
       "name": "frontend/src/sections/IrrigationEngineeringCalculator.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3886fda235d0038aa5a677811e9c1f69f31fccc1391259734a040f3452ffb661"
+        }
+      ],
+      "name": "frontend/src/sections/IrrigationEngineeringCalculator.uniformity.test.tsx",
       "type": "file"
     },
     {
@@ -7355,7 +7385,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "889275520113334132fbe712ed8dc9c523069197c4755cb99bbb014b15616427"
+          "content": "c381e9280cbae4ebde37433b059a3ee8f301a9664fd16166feb855ff250077d3"
+        }
+      ],
+      "name": "frontend/src/sections/ReservoirBoosterNetworkCalculator.forecast.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ba62b289d27ceae95317b22bbd5ede6b30bafc2f92ec29fb1a5cd263ec48ab38"
         }
       ],
       "name": "frontend/src/sections/ReservoirBoosterNetworkCalculator.tsx",
@@ -8045,7 +8085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a34279d9ad69de2d717aa30904132c66ed10754edddf068fa7a9bd02d7e2edea"
+          "content": "68e00a0fc7249e3e8c2a4a4b741d8cdce9514414f45caa0988edd193d4052a4e"
         }
       ],
       "name": "frontend/src/services/api/irrigationEngineeringCalculator.ts",
@@ -8085,7 +8125,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae6a47215c0d03a0402f6dfaecc9e04e1a07047226a777ed5605f4d398c2e2fd"
+          "content": "f2177075e6325916fd852ce7d90ef05b41b1ea4d915ecfe2a3c0d794b4c22aa0"
+        }
+      ],
+      "name": "frontend/src/services/api/irrigationNetworkCalculator.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cc14a71a42eb9ca03a1a2b766a663e1b75435fdd5b5dd210c7c721a9371c590a"
         }
       ],
       "name": "frontend/src/services/api/irrigationNetworkCalculator.ts",
@@ -27105,7 +27155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "014072e1315fc7cc6ec75c2fe4555ee42c3997c955a1086aefe4a557b57cc237"
+          "content": "6f7c9a92c1f3984429da879c666ee031bc6ab20892cc0b575b0acf448f603ad9"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_engineering_workspace.py",
@@ -36475,7 +36525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6de5e9056f62c6859eb709a686a2760698d4a99f56d374e86e3507e8e93aebe6"
+          "content": "e58ef160b85be418130f59f58a4d6d3a07ae8b1ce5ce31c99b53c02e4b90f886"
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_engineering_workspace.py",
@@ -36559,6 +36609,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_state_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dfac79c1415690043c323d6256c1a348fdb6848da4a307f85f37cad3386da4f1"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_uniformity.py",
       "type": "file"
     },
     {

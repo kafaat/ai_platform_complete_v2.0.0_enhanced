@@ -17,11 +17,15 @@ describe('irrigation uniformity survey input', () => {
     expect(parseUniformitySurvey('ref', rows.replace('a,4,125000', 'a,0,.5'))?.samples[0]?.depth_mm).toBe(0);
   });
   it.each([
-    ['', rows], ['ref', ''], ['ref', rows.replace('b,', 'a,')],
-    ['ref', rows.replace('125000', '0')], ['ref', rows.replace('a,4,', 'a,,')],
-    ['ref', rows.replace('a,4,', 'a,-4,')], ['ref', rows.replace('a,4,', 'a,NaN,')],
-    ['ref', rows.replace('a,4,', 'a,0x4,')],
-  ])('rejects incomplete or invalid survey (%s)', (ref, data) => {
+    { reason: 'a missing evidence reference', ref: '', data: rows },
+    { reason: 'missing samples', ref: 'ref', data: '' },
+    { reason: 'duplicate sample IDs', ref: 'ref', data: rows.replace('b,', 'a,') },
+    { reason: 'zero represented area', ref: 'ref', data: rows.replace('125000', '0') },
+    { reason: 'a missing depth', ref: 'ref', data: rows.replace('a,4,', 'a,,') },
+    { reason: 'a negative depth', ref: 'ref', data: rows.replace('a,4,', 'a,-4,') },
+    { reason: 'a non-finite depth', ref: 'ref', data: rows.replace('a,4,', 'a,NaN,') },
+    { reason: 'a hexadecimal depth', ref: 'ref', data: rows.replace('a,4,', 'a,0x4,') },
+  ])('rejects $reason', ({ ref, data }) => {
     expect(() => parseUniformitySurvey(ref, data)).toThrow(/مرجع|عينة|عينات/);
   });
 });

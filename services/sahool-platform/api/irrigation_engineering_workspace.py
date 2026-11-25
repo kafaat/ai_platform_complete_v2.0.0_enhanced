@@ -25,9 +25,10 @@ from pydantic import (
     model_validator,
 )
 
-
 # Catch-can diagnostics are local to the irrigation engineering workspace.
-EvidenceText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=512)]
+EvidenceText = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=512)
+]
 
 
 class CatchCanSample(BaseModel):
@@ -88,7 +89,9 @@ def calculate_uniformity(survey: UniformitySurvey) -> dict[str, Any]:
     mean = math.fsum(weight * depth for weight, depth in zip(weights, depths, strict=True))
     if mean == 0:
         raise ValueError("weighted catch-can mean exceeds numeric resolution")
-    deviation = math.fsum(weight * abs(depth - mean) for weight, depth in zip(weights, depths, strict=True))
+    deviation = math.fsum(
+        weight * abs(depth - mean) for weight, depth in zip(weights, depths, strict=True)
+    )
     remaining = 0.25
     low_quarter = []
     for depth, weight in sorted(zip(depths, weights, strict=True)):
@@ -1029,9 +1032,16 @@ def _reservoir_run_forecast(
     runtime_h: float,
 ) -> dict[str, float | None]:
     """Constant-rate requested-run projection, not a measured or authorized operation."""
-    unconstrained_end = current_m3 + net_change_m3_h * runtime_h
+    projected_change = net_change_m3_h * runtime_h
+    unconstrained_end = current_m3 + projected_change
     if not math.isfinite(unconstrained_end):
         raise ValueError("reservoir projection exceeds numeric range")
+    # Cancellation at the reserve boundary can leave a few floating-point ULPs
+    # of apparent deficit. Do not use the displayed four-decimal precision as
+    # a tolerance: a small real shortfall must still make the run infeasible.
+    boundary_tolerance = 2 * math.ulp(max(current_m3, abs(projected_change), minimum_m3))
+    if math.isclose(unconstrained_end, minimum_m3, rel_tol=0.0, abs_tol=boundary_tolerance):
+        unconstrained_end = minimum_m3
     shortfall = max(0.0, minimum_m3 - unconstrained_end)
     excess = max(0.0, unconstrained_end - capacity_m3)
     if not math.isfinite(shortfall) or not math.isfinite(excess):
@@ -1153,7 +1163,9 @@ def calculate_reservoir_booster_network(
         net_change_m3_h,
         runtime_h,
     )
-    if hours_to_min is not None and runtime_h > hours_to_min + 1e-9:
+    # Use the same reserve-boundary decision as the forecast. A separate time
+    # tolerance can otherwise label a real volume shortfall as a passing run.
+    if reservoir_forecast["forecast_end_volume_m3"] is None:
         blockers.append("RESERVOIR_VOLUME_INSUFFICIENT_FOR_REQUESTED_RUNTIME")
     if req.reservoir.current_volume_m3 <= req.reservoir.minimum_operating_volume_m3:
         blockers.append("RESERVOIR_AT_OR_BELOW_MINIMUM_LEVEL")
