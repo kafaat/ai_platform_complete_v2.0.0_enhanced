@@ -256,3 +256,24 @@ def test_duplicate_well_cannot_double_count_network_supply():
     payload["wells"].append(payload["wells"][0].copy())
     with pytest.raises(ValueError, match="duplicate well ids"):
         ReservoirBoosterNetworkRequest.model_validate(payload)
+
+def test_booster_requested_energy_uses_runtime_and_efficiency():
+    req = base_request()
+    result = calculate_reservoir_booster_network(req)
+    assert result.booster["requested_energy_kwh"] == pytest.approx(
+        result.booster["input_power_kw"] * result.reservoir_balance["requested_runtime_h"],
+        rel=1e-5,
+    )
+    req.booster.pump_efficiency = 0.5
+    less_efficient = calculate_reservoir_booster_network(req)
+    assert less_efficient.booster["requested_energy_kwh"] > result.booster["requested_energy_kwh"]
+    assert less_efficient.content_digest != result.content_digest
+
+
+def test_blocked_network_energy_is_requested_not_delivered():
+    req = base_request()
+    req.wells = []
+    result = calculate_reservoir_booster_network(req)
+    assert result.status == "fail"
+    assert result.reservoir_balance["forecast_end_volume_m3"] is None
+    assert result.booster["requested_energy_kwh"] > 0
