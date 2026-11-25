@@ -12,6 +12,7 @@ import json
 import math
 from datetime import UTC, date, datetime, time, timedelta
 from enum import StrEnum
+from fractions import Fraction
 from typing import Annotated, Any
 
 from core.engines.deficit_irrigation import evaluate_deficit_irrigation
@@ -1025,30 +1026,35 @@ def _machine_metrics(machine: IrrigationMachineInput) -> dict[str, Any]:
 
 
 def _reservoir_run_forecast(
-    current_m3: float,
-    capacity_m3: float,
-    minimum_m3: float,
-    net_change_m3_h: float,
-    runtime_h: float,
+    req: ReservoirBoosterNetworkRequest,
+    duty_rates_m3_h: list[float],
 ) -> dict[str, float | None]:
     """Constant-rate requested-run projection, not a measured or authorized operation."""
-    projected_change = net_change_m3_h * runtime_h
-    unconstrained_end = current_m3 + projected_change
-    if not math.isfinite(unconstrained_end):
-        raise ValueError("reservoir projection exceeds numeric range")
-    # Cancellation at the reserve boundary can leave a few floating-point ULPs
-    # of apparent deficit. Do not use the displayed four-decimal precision as
-    # a tolerance: a small real shortfall must still make the run infeasible.
-    boundary_tolerance = 2 * math.ulp(max(current_m3, abs(projected_change), minimum_m3))
-    if math.isclose(unconstrained_end, minimum_m3, rel_tol=0.0, abs_tol=boundary_tolerance):
-        unconstrained_end = minimum_m3
-    shortfall = max(0.0, minimum_m3 - unconstrained_end)
-    excess = max(0.0, unconstrained_end - capacity_m3)
-    if not math.isfinite(shortfall) or not math.isfinite(excess):
+    # Use each original decimal rate before any floating-point sum/subtraction.
+    # Scaling by the positive duty flow avoids rounding a runtime quotient;
+    # exact ratios also avoid a decimal-context precision cutoff. Display
+    # rounding must never turn a real deficit into a feasible requested run.
+    duty_flow = sum(Fraction(str(rate)) for rate in duty_rates_m3_h)
+    inflow = sum(Fraction(str(well.available_flow_m3_h)) for well in req.wells if well.enabled)
+    losses = Fraction(str(req.reservoir.evaporation_loss_m3_h)) + Fraction(
+        str(req.reservoir.seepage_loss_m3_h)
+    )
+    scaled_end = Fraction(str(req.reservoir.current_volume_m3)) * duty_flow + (
+        inflow - duty_flow - losses
+    ) * Fraction(str(req.required_gross_volume_m3))
+    scaled_minimum = Fraction(str(req.reservoir.minimum_operating_volume_m3)) * duty_flow
+    feasible = scaled_end >= scaled_minimum
+    try:
+        unconstrained_end = float(scaled_end / duty_flow)
+        shortfall = float(max(0, scaled_minimum - scaled_end) / duty_flow)
+    except OverflowError as exc:
+        raise ValueError("reservoir projection exceeds numeric range") from exc
+    excess = max(0.0, unconstrained_end - req.reservoir.capacity_m3)
+    if not all(math.isfinite(value) for value in (unconstrained_end, shortfall, excess)):
         raise ValueError("reservoir projection exceeds numeric range")
     return {
         "forecast_end_volume_m3": (
-            round(min(capacity_m3, unconstrained_end), 4) if shortfall == 0 else None
+            round(min(req.reservoir.capacity_m3, unconstrained_end), 4) if feasible else None
         ),
         "forecast_excess_inflow_m3": round(excess, 4),
         "forecast_shortfall_to_minimum_m3": round(shortfall, 4),
@@ -1068,9 +1074,10 @@ def calculate_reservoir_booster_network(
     selected = [m for m in enabled if m.machine_id in requested_ids] if requested_ids else []
 
     machine_mode = "selected" if selected else "none"
-    duty_flow_m3_h = (
-        sum(m.design_flow_m3_h for m in selected) if selected else req.booster.design_flow_m3_h
+    duty_rates_m3_h = (
+        [m.design_flow_m3_h for m in selected] if selected else [req.booster.design_flow_m3_h]
     )
+    duty_flow_m3_h = sum(duty_rates_m3_h)
     terminal_head_m = max(
         (m.required_inlet_pressure_bar * 10.19716213 for m in selected), default=0.0
     )
@@ -1142,6 +1149,8 @@ def calculate_reservoir_booster_network(
     well_inflow = sum(w.available_flow_m3_h for w in req.wells if w.enabled)
     passive_losses = req.reservoir.evaporation_loss_m3_h + req.reservoir.seepage_loss_m3_h
     net_change_m3_h = well_inflow - duty_flow_m3_h - passive_losses
+    if not all(math.isfinite(value) for value in (well_inflow, passive_losses, net_change_m3_h)):
+        raise ValueError("reservoir projection exceeds numeric range")
     usable_volume = req.reservoir.current_volume_m3 - req.reservoir.minimum_operating_volume_m3
     hours_to_min = (
         None
@@ -1156,13 +1165,7 @@ def calculate_reservoir_booster_network(
     requested_booster_energy_kwh = input_power_kw * runtime_h
     if not math.isfinite(requested_booster_energy_kwh):
         raise ValueError("requested booster energy exceeds numeric range")
-    reservoir_forecast = _reservoir_run_forecast(
-        req.reservoir.current_volume_m3,
-        req.reservoir.capacity_m3,
-        req.reservoir.minimum_operating_volume_m3,
-        net_change_m3_h,
-        runtime_h,
-    )
+    reservoir_forecast = _reservoir_run_forecast(req, duty_rates_m3_h)
     # Use the same reserve-boundary decision as the forecast. A separate time
     # tolerance can otherwise label a real volume shortfall as a passing run.
     if reservoir_forecast["forecast_end_volume_m3"] is None:
