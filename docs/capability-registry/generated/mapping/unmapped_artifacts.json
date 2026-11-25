@@ -10192,6 +10192,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/soil-service/compliance_engine.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/soil-service/db_persist.py",
     "kind": "backend"
   },
@@ -10292,6 +10296,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/soil-service/standards_registry.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/soil-service/test_p3_numeric_contract.py",
     "kind": "tests"
   },
@@ -10357,6 +10365,10 @@
   },
   {
     "path": "services/soil-service/test_soil_snapshot_identity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_standards_compliance.py",
     "kind": "tests"
   },
   {
