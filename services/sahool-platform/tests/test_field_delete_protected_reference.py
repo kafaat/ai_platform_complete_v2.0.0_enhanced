@@ -79,10 +79,14 @@ def test_the_only_field_row_delete_is_the_helper_and_only_it_maps_23503() -> Non
     assert holders == ["delete_field_row"], holders
     assert "protected_reference_conflict(" in helpers["delete_field_row"]
     routes_source = inspect.getsource(routes)
-    assert "DELETE FROM fields" not in routes_source
+    assert "DELETE FROM fields" not in routes_source, (
+        "a field-row delete outside delete_field_row would answer 503 again for a verified field"
+    )
     # The hospital's case: an insert-side 23503 inside merge/split reaches the generic except.
     # No route maps a database error to 409 there; only the DELETE helper does.
-    assert "protected_reference_conflict" not in routes_source
+    assert "protected_reference_conflict" not in routes_source, (
+        "an insert-side 23503 in merge/split must not be reported as a protected delete (409)"
+    )
 
 
 def test_every_route_that_deletes_fields_uses_the_helper() -> None:

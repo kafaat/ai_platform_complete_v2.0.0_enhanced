@@ -5018,3 +5018,12 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **القرار (المالك):** (1) PR واحد يضمّ الفروع المفتوحة؛ (2) #1606 يُدمج منفردًا أوّلًا مع إعادة بناء `sahool-migrate-main` في production وstaging (فحص قراءة فقط: `SAHOOL_MIGRATE_APPLY` ليس 1، وآخر تشغيل staging `8dc463d4` سجّل `apply_not_permitted`، ولا تغييرات مُرحَّلة في البيئتين)؛ (3) رقعة v290 تُضمّ إلى الفرع المجمَّع. تطبيق v290 على أيّ بيئة قرارٌ منفصل لم يُتَّخذ.
 - **القرار الهندسيّ:** الكتالوج الافتراضيّ في `migrations/probe_schema_state.sh` هو أعلى ترحيل مرقَّم في MANIFEST يُنشئ جدولًا، لا أعلى ترحيل مطلقًا. السبب: ترحيلٌ بلا جداول (v290 يضيف حارسًا لصادر v289) يجعل السطر الملخِّص `tables=0` فيضيع دليل RLS لـv289؛ وحارس v290 يظهر على صفّ الصادر تحت v289. `PROBE_CATALOG_FILES` ما زال يتجاوز الافتراضيّ.
 - **المصدر:** بطاقتا اختيار المالك في جلسة التنسيق (2026-11-25: «Merge #1606 first»، «Fold into combined PR») · تأكيد المالك المباشر في جلسة المستشفى · سجلّ Railway للنشر `8dc463d4` (قراءة فقط) · `tests_v9/test_apply_in_compose_live_pg.py::test_a_migration_that_creates_no_table_never_becomes_the_empty_default_catalog`.
+
+
+## 2026-11-25 — #1606 مدمج، ودليل v289 الحيّ على staging من فحص المخطَّط
+
+- **الدمج:** #1606 squash `4e58627976f9fac0358c71cc3428ba68708cfe46` (أبوه `5b2194d6`) بـ`expectedHeadSha` `c55f2d5b`؛ شجرته `a202a74b` تساوي شجرة الرأس المختبَر. 69 فحصًا أخضر على `c55f2d5b` (`runtime-stack-e2e-chaos` متخطّى كالمعتاد). مراجعة المستشفى APPROVE ومختبر 1606-v4 PASS.
+- **staging (`sahool-migrate-main` نشر `f32f99da`، 00:48:58Z):** `MIGRATIONS_NOT_APPLIED reason=apply_not_permitted apply=false`؛ `SCHEMA_CATALOG_SUMMARY status=READ files=v289_scouting_verification_bridge.sql tables=4 present=4 force_rls=4`؛ الجداول الأربعة `rls=true force_rls=true` بسياساتها وحرّاسها كلّها `:O` كما في الترحيل؛ `SCHEMA_INSPECTION PASS 368/368 216/216`. هذا ينقل خصائص v289 (FORCE RLS والسياسات والحرّاس) من «طُبّق بلا خطأ» إلى مقيسٍ حيًّا.
+- **production (نشر `00af3599`):** فحصٌ فقط، `apply_not_permitted`، جداول v289 الأربعة `rls=absent`، `INCOMPLETE 363/368 first_missing` v287 — لم يُمسّ، كالمتوقَّع.
+- **ملاحظة للمالك، لا عيب:** الدوران `sahool_app` و`sahool_jobs` يملكان `DELETE|INSERT|SELECT|UPDATE` على الجداول الأربعة عبر الامتيازات الافتراضيّة؛ فالإلحاق فقط وحارس حذف الصادر مفروضان بالحرّاس وRLS لا بالمنح. سحب UPDATE/DELETE عن versions وassessments دفاعٌ إضافيّ يحتاج ترحيلًا لاحقًا وقرار المالك.
+- **المصدر:** #1606 · سجلّات Railway للنشرين `f32f99da` و`00af3599` قرأتها جلسة المستشفى (قراءة فقط) ونقلت الأسطر حرفيًّا إلى جلسة التنسيق.
