@@ -15,20 +15,20 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7740,
+    "files_scanned": 7741,
     "files_by_kind": {
       "backend": 1321,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2254,
-      "tests": 2710,
+      "tests": 2711,
       "web": 574
     },
-    "unmapped_artifacts": 3684,
+    "unmapped_artifacts": 3685,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4214,
+      "python_functional": 4215,
       "raw": 3526
     },
     "test_dependency_files": 2069,
@@ -45994,6 +45994,10 @@
     },
     {
       "path": "tests_v9/test_gpu_bake_matches_compose_overlay.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_grafana_dashboard_datasource_uids.py",
       "kind": "tests"
     },
     {
