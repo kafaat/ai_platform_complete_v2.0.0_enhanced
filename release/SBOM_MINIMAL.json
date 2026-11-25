@@ -21895,7 +21895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "78885e3854a8ccd5f25ad8bfe2c941dd9a7360e6e366131709e94cf2b1fce92c"
+          "content": "087a38e84349e66ca0abe27d8b1a8fcf90a07cf942869988b07d11f31800afbd"
         }
       ],
       "name": "services/knowledge-graph/Dockerfile",
