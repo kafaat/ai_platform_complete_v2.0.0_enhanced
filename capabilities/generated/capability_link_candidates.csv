@@ -1420,6 +1420,7 @@ GIS-001,test,services/raster-service/test_quotient_index_validity.py,3,applied
 GIS-001,test,services/raster-service/test_raster_pixel_geometry.py,3,applied
 GIS-001,test,services/raster-service/test_truecolor_validity_alpha.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_agri_polygon_area.py,3,applied
+GIS-001,test,services/sahool-platform/tests/test_agri_polygon_coordinate_validation.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_boundary_confidence.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_drift_geometry.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_farm_ledger_inventory_boundary.py,3,applied
