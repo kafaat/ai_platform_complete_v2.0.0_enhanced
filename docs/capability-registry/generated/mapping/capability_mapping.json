@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7732,
+    "files_scanned": 7733,
     "files_by_kind": {
       "backend": 1317,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2254,
-      "tests": 2706,
+      "tests": 2707,
       "web": 574
     },
     "unmapped_artifacts": 3680,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4207,
+      "python_functional": 4208,
       "raw": 3525
     },
-    "test_dependency_files": 2066,
-    "test_dependency_edges": 5593,
-    "test_dependency_bounded_files": 1185,
+    "test_dependency_files": 2067,
+    "test_dependency_edges": 5597,
+    "test_dependency_bounded_files": 1186,
     "test_dependency_unresolved_relations": 536
   },
   "capabilities": [
@@ -5092,6 +5092,13 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_farmland_fertilizer_integration.py",
+          "score": 8,
+          "signals": [
+            "path:farm"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
           "score": 8,
           "signals": [
@@ -5336,7 +5343,7 @@
         "events": 30,
         "web": 20,
         "mobile": 35,
-        "tests": 62,
+        "tests": 63,
         "governance": 0,
         "other_evidence": 26
       },
@@ -64667,6 +64674,34 @@
           "source": "services/sahool-platform/knowledge/farmer_knowledge.py",
           "kind": "import",
           "line": 3
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_farmland_fertilizer_integration.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/agri_tools/registry.py",
+          "kind": "import",
+          "line": 4
+        },
+        {
+          "source": "services/sahool-platform/core/agri_tools/tools/fertilizer.py",
+          "kind": "import",
+          "line": 5
+        },
+        {
+          "source": "services/sahool-platform/core/engines/__init__.py",
+          "kind": "import",
+          "line": 6
+        },
+        {
+          "source": "services/sahool-platform/core/engines/fertility.py",
+          "kind": "import",
+          "line": 6
         }
       ],
       "unresolved": []

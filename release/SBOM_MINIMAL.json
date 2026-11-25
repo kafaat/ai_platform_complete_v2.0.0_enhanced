@@ -30045,7 +30045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "31bece5da40dedcbaae7680a1c295ec94e73f276af80bdde20e77f5c76ae0465"
+          "content": "94490a727f7c4fb42265af9c2bda4420065ca2ff023936949c9450800f6528f5"
         }
       ],
       "name": "services/sahool-platform/core/agri_tools/tools/fertilizer.py",
@@ -31645,7 +31645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5e6f3eb68fce4f290879eb336290b39fa8db64419857813bfce68db4407b949f"
+          "content": "db00de245733ca0179d5191a27eff7ce06fbfd36db9a9fcbdf37b3d6801dff3f"
         }
       ],
       "name": "services/sahool-platform/core/engines/fertility.py",
@@ -35599,6 +35599,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_farmer_knowledge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7f337c95c3f0d563c719d14bdf34f7b1d7a2913f3faa49183cf2dcb97376cb1d"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_farmland_fertilizer_integration.py",
       "type": "file"
     },
     {
