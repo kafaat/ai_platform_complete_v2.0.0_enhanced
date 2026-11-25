@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7731,
+    "files_scanned": 7733,
     "files_by_kind": {
       "backend": 1317,
       "database": 360,
       "governance": 92,
       "mobile": 429,
-      "other": 2254,
+      "other": 2256,
       "tests": 2705,
       "web": 574
     },
     "unmapped_artifacts": 3679,
-    "ambiguous_artifacts": 266,
+    "ambiguous_artifacts": 267,
     "files_by_reading": {
       "python_functional": 4206,
-      "raw": 3525
+      "raw": 3527
     },
     "test_dependency_files": 2065,
     "test_dependency_edges": 5592,
@@ -5274,6 +5274,14 @@
           ]
         },
         {
+          "path": "docs/farmland/README.md",
+          "score": 11,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "docs/runbooks/SIM_GOLDEN_EVIDENCE_ADMISSION.md",
           "score": 11,
           "signals": [
@@ -5338,7 +5346,7 @@
         "mobile": 35,
         "tests": 62,
         "governance": 0,
-        "other_evidence": 26
+        "other_evidence": 27
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -9225,6 +9233,15 @@
           ]
         },
         {
+          "path": "docs/farmland/PHASE2_INVENTORY_main_35c305c2.md",
+          "score": 17,
+          "signals": [
+            "path:inventory",
+            "content:inventory",
+            "content:procurement"
+          ]
+        },
+        {
           "path": "P1_MAIN_DECOMPOSITION_COMPLETE_REPORT_20260709.md",
           "score": 12,
           "signals": [
@@ -9255,7 +9272,7 @@
         "mobile": 4,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 5
+        "other_evidence": 6
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -11665,6 +11682,17 @@
           ]
         },
         {
+          "path": "docs/farmland/PHASE2_INVENTORY_main_35c305c2.md",
+          "score": 18,
+          "signals": [
+            "content:contour",
+            "content:dem",
+            "content:hillshade",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "docs/research/SATELLITE_IMAGERY_DOWNLOAD_CHANNELS_REVIEW_20260707.md",
           "score": 18,
           "signals": [
@@ -11868,7 +11896,7 @@
         "mobile": 4,
         "tests": 43,
         "governance": 0,
-        "other_evidence": 38
+        "other_evidence": 39
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -49510,6 +49538,32 @@
           "signals": [
             "content:erp bridge",
             "content:odoo bridge"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/farmland/PHASE2_INVENTORY_main_35c305c2.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "GIS-003",
+          "score": 18,
+          "signals": [
+            "content:contour",
+            "content:dem",
+            "content:hillshade",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
+          "capability_id": "FM-007",
+          "score": 17,
+          "signals": [
+            "path:inventory",
+            "content:inventory",
+            "content:procurement"
           ]
         }
       ]

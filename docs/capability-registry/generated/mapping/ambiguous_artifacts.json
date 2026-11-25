@@ -1383,6 +1383,32 @@
     ]
   },
   {
+    "path": "docs/farmland/PHASE2_INVENTORY_main_35c305c2.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 18,
+        "signals": [
+          "content:contour",
+          "content:dem",
+          "content:hillshade",
+          "content:slope",
+          "content:terrain"
+        ]
+      },
+      {
+        "capability_id": "FM-007",
+        "score": 17,
+        "signals": [
+          "path:inventory",
+          "content:inventory",
+          "content:procurement"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/history/COMPETITIVE_ANALYSIS.md",
     "kind": "other",
     "candidates": [
