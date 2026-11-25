@@ -858,6 +858,9 @@ class ReservoirBoosterNetworkRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_network(self) -> ReservoirBoosterNetworkRequest:
+        well_ids = [well.well_id for well in self.wells]
+        if len(well_ids) != len(set(well_ids)):
+            raise ValueError("duplicate well ids in reservoir network")
         machine_ids = {m.machine_id for m in self.irrigation_machines}
         unknown_machines = set(self.requested_machine_ids) - machine_ids
         if unknown_machines:

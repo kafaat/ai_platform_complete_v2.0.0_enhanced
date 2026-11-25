@@ -99,7 +99,7 @@ def test_unknown_requested_pivot_rejected():
 
 
 def test_synthetic_two_pivots_share_reservoir_volume_projection():
-    """Synthetic 180 ha farm: 100 ha selected, the other 80 ha are not evaluated."""
+    """Generic shared-reservoir capability, not the Farmland owner topology."""
     pivots = [
         PivotMachineInput(
             pivot_id=pid,
@@ -174,3 +174,85 @@ def test_reservoir_projection_digest_changes_with_requested_runtime():
         first.reservoir_balance["requested_runtime_h"]
     )
     assert first.content_digest != second.content_digest
+
+
+def test_farmland_independent_three_well_reservoir_booster_systems():
+    """Synthetic 180 ha farm: two independent 50 ha pivots; 80 ha not evaluated."""
+
+    def network(suffix, flows, capacity, current, evaporation, seepage):
+        field = f"synthetic-pivot-{suffix}"
+        reservoir = f"synthetic-reservoir-{suffix}"
+        pivot = PivotMachineInput(
+            pivot_id=field,
+            name=field,
+            field_id=field,
+            radius_m=math.sqrt(500000 / math.pi),
+            design_flow_m3_h=200,
+            required_inlet_pressure_bar=3.2,
+        )
+        return ReservoirBoosterNetworkRequest(
+            tenant_id="synthetic-farm",
+            field_id=field,
+            season_id="synthetic-wheat",
+            required_gross_volume_m3=3000,
+            wells=[
+                WellSupplyInput(well_id=f"synthetic-{suffix}-well-{i}", available_flow_m3_h=q)
+                for i, q in enumerate(flows, 1)
+            ],
+            reservoir=ReservoirInput(
+                reservoir_id=reservoir,
+                capacity_m3=capacity,
+                current_volume_m3=current,
+                minimum_operating_volume_m3=500,
+                evaporation_loss_m3_h=evaporation,
+                seepage_loss_m3_h=seepage,
+            ),
+            booster=BoosterPumpInput(
+                pump_id=f"synthetic-booster-{suffix}",
+                design_flow_m3_h=200,
+                design_head_m=90,
+                installed_motor_power_kw=100,
+            ),
+            segments=[
+                HydraulicSegmentInput(
+                    segment_id=f"synthetic-pipe-{suffix}",
+                    from_node=reservoir,
+                    to_node=field,
+                    length_m=1000,
+                    internal_diameter_mm=250,
+                )
+            ],
+            pivots=[pivot],
+            requested_pivot_ids=[field],
+        )
+
+    a = network("a", [80, 90, 100], 3500, 3000, 1, 1)
+    b = network("b", [40, 50, 60], 2000, 1000, 1, 2)
+    assert len({w.well_id for req in (a, b) for w in req.wells}) == 6
+    assert a.reservoir.reservoir_id != b.reservoir.reservoir_id
+    assert a.booster.pump_id != b.booster.pump_id
+    first, second = (calculate_reservoir_booster_network(req) for req in (a, b))
+    assert sum(r.selected_pivots[0]["area_ha"] for r in (first, second)) == pytest.approx(100)
+    for result in (first, second):
+        assert result.booster["required_flow_m3_h"] == 200
+        assert result.booster["input_power_kw"] > 0
+        assert result.reservoir_balance["requested_runtime_h"] == 15
+    assert first.reservoir_balance["well_inflow_m3_h"] == 270
+    assert second.reservoir_balance["well_inflow_m3_h"] == 150
+    assert first.reservoir_balance["forecast_end_volume_m3"] == 3500
+    assert first.reservoir_balance["forecast_excess_inflow_m3"] == 520
+    assert first.status != "fail"
+    assert second.reservoir_balance["forecast_end_volume_m3"] is None
+    assert second.reservoir_balance["forecast_shortfall_to_minimum_m3"] == 295
+    assert second.status == "fail"
+    assert "RESERVOIR_VOLUME_INSUFFICIENT_FOR_REQUESTED_RUNTIME" in second.blocking_constraints
+    # An aggregate surplus cannot make the second independent network feasible.
+    assert first.reservoir_balance["forecast_excess_inflow_m3"] > 295
+    assert first.content_digest != second.content_digest
+
+
+def test_duplicate_well_cannot_double_count_network_supply():
+    payload = base_request().model_dump()
+    payload["wells"].append(payload["wells"][0].copy())
+    with pytest.raises(ValueError, match="duplicate well ids"):
+        ReservoirBoosterNetworkRequest.model_validate(payload)

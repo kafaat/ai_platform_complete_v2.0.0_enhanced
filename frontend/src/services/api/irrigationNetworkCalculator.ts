@@ -96,7 +96,8 @@ export async function calculateReservoirBoosterNetwork(input: IrrigationNetworkI
     field_id: input.fieldId,
     season_id: input.seasonId ?? null,
     required_gross_volume_m3: input.requiredGrossVolumeM3,
-    wells: input.wellFlowsM3h.filter(v => v >= 0).map((flow, i) => ({ well_id: `well-${i + 1}`, available_flow_m3_h: flow, enabled: flow > 0 })),
+    // Field-scoped calculation slots, not verified asset-registry identifiers.
+    wells: input.wellFlowsM3h.map((flow, i) => ({ well_id: `well:${input.fieldId}:${i + 1}`, available_flow_m3_h: flow, enabled: flow > 0 })),
     reservoir: {
       reservoir_id: `reservoir:${input.fieldId}`,
       capacity_m3: input.reservoirCapacityM3,
