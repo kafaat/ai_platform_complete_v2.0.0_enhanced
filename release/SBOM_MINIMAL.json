@@ -40105,7 +40105,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15bb715f8c58417255170ee30666ac2fab91d6284f6e34ee33f4d31415695460"
+          "content": "13c9a46454d6c1204f0e3a8ffac6f8a0b1aae95eb8ccf59451a0a1553427d6eb"
+        }
+      ],
+      "name": "services/soil-service/standards_catalog/farmland_standards_audit_2026-11-24.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c5ea2a4cd649d656583057df9d99b785950423e56279ef60d06c2daa7862cd9"
         }
       ],
       "name": "services/soil-service/standards_registry.py",
@@ -40345,7 +40355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "740d95f5a9757ebd1678f2ee9c058f032dcf41a0038d226ebebde4cc9f34b72a"
+          "content": "d5087bdd2cf9aacd318bf8c24bbb5243d8ddc9e67256e27c1f247f50f9677f8a"
         }
       ],
       "name": "services/soil-service/test_soil_standards_compliance.py",

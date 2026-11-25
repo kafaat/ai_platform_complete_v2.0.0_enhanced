@@ -15,9 +15,9 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7738,
+    "files_scanned": 7739,
     "files_by_kind": {
-      "backend": 1320,
+      "backend": 1321,
       "database": 360,
       "governance": 92,
       "mobile": 429,
@@ -29,7 +29,7 @@
     "ambiguous_artifacts": 266,
     "files_by_reading": {
       "python_functional": 4213,
-      "raw": 3525
+      "raw": 3526
     },
     "test_dependency_files": 2069,
     "test_dependency_edges": 5602,
@@ -3151,6 +3151,14 @@
           ]
         },
         {
+          "path": "services/soil-service/standards_catalog/farmland_standards_audit_2026-11-24.json",
+          "score": 14,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
           "score": 13,
           "signals": [
@@ -5337,7 +5345,7 @@
         "database": 5
       },
       "evidence_counts": {
-        "backend": 38,
+        "backend": 39,
         "routes": 44,
         "database": 100,
         "events": 30,
