@@ -12,9 +12,102 @@ import json
 import math
 from datetime import UTC, date, datetime, time, timedelta
 from enum import StrEnum
-from typing import Any
+from typing import Annotated, Any
 
-from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, model_validator
+from core.engines.deficit_irrigation import evaluate_deficit_irrigation
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictFloat,
+    StrictInt,
+    StringConstraints,
+    model_validator,
+)
+
+# Catch-can diagnostics are local to the irrigation engineering workspace.
+EvidenceText = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=512)
+]
+
+
+class CatchCanSample(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    sample_id: EvidenceText
+    depth_mm: float = Field(strict=True, ge=0, allow_inf_nan=False)
+    represented_area_m2: float = Field(strict=True, gt=0, allow_inf_nan=False)
+
+
+class UniformitySurvey(BaseModel):
+    """Explicit represented areas: equal areas or documented pivot annular areas."""
+
+    model_config = ConfigDict(extra="forbid")
+    evidence_ref: EvidenceText
+    samples: list[CatchCanSample] = Field(min_length=4, max_length=10000)
+
+    @model_validator(mode="after")
+    def unique_sample_ids(self) -> UniformitySurvey:
+        if len({sample.sample_id for sample in self.samples}) != len(self.samples):
+            raise ValueError("catch-can sample IDs must be unique")
+        return self
+
+
+def calculate_uniformity(survey: UniformitySurvey) -> dict[str, Any]:
+    """CU and lowest-area-quartile DU; interpolate the quartile boundary by area.
+
+    The four-sample minimum is a calculation constraint, not a field-test standard.
+    Areas must come from the supplied sampling design; no radial weights are inferred.
+    The output does not establish compliance, efficiency, or execution eligibility.
+    """
+    max_area = max(sample.represented_area_m2 for sample in survey.samples)
+    max_depth = max(sample.depth_mm for sample in survey.samples)
+    scaled_areas = [sample.represented_area_m2 / max_area for sample in survey.samples]
+    area_sum = math.fsum(scaled_areas)
+    weights = [area / area_sum for area in scaled_areas]
+    if any(weight == 0 for weight in weights):
+        raise ValueError("catch-can represented areas exceed numeric resolution")
+    result: dict[str, Any] = {
+        "method": "area_weighted_cu_du_lq.v1",
+        "evidence_ref": survey.evidence_ref,
+        "input_quality": "operator_supplied_unverified",
+        "sample_count": len(survey.samples),
+        "status": "not_evaluated",
+        "compliance_status": "not_evaluated",
+        "mean_depth_mm": 0.0,
+        "cu_pct": None,
+        "du_low_quarter_pct": None,
+        "reason": "zero_application_depth",
+    }
+    if max_depth == 0:
+        return result
+    depths = [sample.depth_mm / max_depth for sample in survey.samples]
+    if any(
+        sample.depth_mm > 0 and depth == 0
+        for sample, depth in zip(survey.samples, depths, strict=True)
+    ):
+        raise ValueError("catch-can depths exceed numeric resolution")
+    mean = math.fsum(weight * depth for weight, depth in zip(weights, depths, strict=True))
+    if mean == 0:
+        raise ValueError("weighted catch-can mean exceeds numeric resolution")
+    deviation = math.fsum(
+        weight * abs(depth - mean) for weight, depth in zip(weights, depths, strict=True)
+    )
+    remaining = 0.25
+    low_quarter = []
+    for depth, weight in sorted(zip(depths, weights, strict=True)):
+        taken = min(remaining, weight)
+        low_quarter.append(taken * depth)
+        remaining -= taken
+        if remaining <= 0:
+            break
+    result.update(
+        status="calculated",
+        reason=None,
+        mean_depth_mm=min(mean, 1.0) * max_depth,
+        cu_pct=round(100 * (1 - deviation / mean), 6),
+        du_low_quarter_pct=round(100 * ((math.fsum(low_quarter) / 0.25) / mean), 6),
+    )
+    return result
 
 
 class IrrigationSystemType(StrEnum):
@@ -359,6 +452,48 @@ class InteractiveWaterDemandInput(BaseModel):
         return self
 
 
+class DeficitScenarioInput(BaseModel):
+    """Operator-declared hypothetical ETc fraction, not an irrigation target."""
+
+    model_config = ConfigDict(extra="forbid")
+    etc_fraction_pct: StrictInt = Field(ge=40, le=100)
+    water_ec_ds_m: StrictFloat | None = Field(default=None, ge=0, allow_inf_nan=False)
+    crop_salinity_threshold_ece_ds_m: StrictFloat | None = Field(
+        default=None, gt=0, allow_inf_nan=False
+    )
+    evidence_ref: EvidenceText | None = None
+
+
+def _assess_deficit_scenario(scenario: DeficitScenarioInput) -> dict[str, Any]:
+    missing = [
+        name
+        for name in ("water_ec_ds_m", "crop_salinity_threshold_ece_ds_m", "evidence_ref")
+        if getattr(scenario, name) is None
+    ]
+    result = {
+        "status": "not_evaluated" if missing else "estimated",
+        "input_quality": "operator_supplied_unverified",
+        "etc_fraction_pct": scenario.etc_fraction_pct,
+        "evidence_ref": scenario.evidence_ref,
+        "missing_inputs": missing,
+        "salinity_risk_heuristic": None,
+        "literature_yield_penalty_pct": None,
+        "execution_authorized": False,
+    }
+    if missing:
+        return result
+    estimate = evaluate_deficit_irrigation(
+        etc_fraction=scenario.etc_fraction_pct,
+        water_ec_ds_m=scenario.water_ec_ds_m,
+        crop_salinity_threshold_ds_m=scenario.crop_salinity_threshold_ece_ds_m,
+    )
+    return {
+        **result,
+        "salinity_risk_heuristic": estimate.salinity_risk,
+        "literature_yield_penalty_pct": round(estimate.yield_penalty_pct * 100, 2),
+    }
+
+
 class InteractiveIrrigationCalculationRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     specification: IrrigationSystemSpecification
@@ -366,6 +501,8 @@ class InteractiveIrrigationCalculationRequest(BaseModel):
     fittings: PipeFittingsInput = Field(default_factory=PipeFittingsInput)
     safety_margin_m: float = Field(default=5.0, ge=0, le=100)
     installed_motor_power_kw: float | None = Field(default=None, gt=0)
+    uniformity_survey: UniformitySurvey | None = None
+    deficit_scenario: DeficitScenarioInput | None = None
 
 
 class InteractiveIrrigationCalculationResult(BaseModel):
@@ -546,8 +683,22 @@ def calculate_interactive_irrigation_engineering(
     if calc.get("flow_m3_h"):
         calc["runtime_h"] = round(calc["gross_volume_m3"] / calc["flow_m3_h"], 4)
 
+    request_payload = req.model_dump(mode="json")
+    uniformity = None
+    if req.uniformity_survey is None:
+        # Preserve the pre-existing digest for requests without a survey.
+        request_payload.pop("uniformity_survey")
+    else:
+        uniformity = calculate_uniformity(req.uniformity_survey)
+
+    deficit_scenario = None
+    if req.deficit_scenario is None:
+        request_payload.pop("deficit_scenario")
+    else:
+        deficit_scenario = _assess_deficit_scenario(req.deficit_scenario)
+
     payload = {
-        "request": req.model_dump(mode="json"),
+        "request": request_payload,
         "status": status.value,
         "calculations": calc,
         "warnings": sorted(set(warnings)),
@@ -556,10 +707,15 @@ def calculate_interactive_irrigation_engineering(
         "assumptions": assumptions,
         "input_quality": critical_quality,
     }
+    if uniformity is not None:
+        payload["uniformity"] = uniformity
+    if deficit_scenario is not None:
+        payload["deficit_scenario"] = deficit_scenario
     return InteractiveIrrigationCalculationResult(
         status=status,
         calculations=calc,
         water_demand={
+            **({"deficit_scenario": deficit_scenario} if deficit_scenario is not None else {}),
             "mode": req.water_demand.mode,
             "crop_type": req.water_demand.crop.crop_type,
             "growth_stage": req.water_demand.crop.growth_stage,
@@ -576,6 +732,7 @@ def calculate_interactive_irrigation_engineering(
             "split_application_recommended": split_application,
         },
         hydraulics={
+            **({"uniformity": uniformity} if uniformity is not None else {}),
             "flow_source": flow_source,
             "flow_m3_h": calc.get("flow_m3_h"),
             "velocity_m_s": calc.get("mainline_velocity_m_s"),
@@ -757,6 +914,9 @@ class ReservoirBoosterNetworkRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_network(self) -> ReservoirBoosterNetworkRequest:
+        well_ids = [well.well_id for well in self.wells]
+        if len(well_ids) != len(set(well_ids)):
+            raise ValueError("duplicate well ids in reservoir network")
         machine_ids = {m.machine_id for m in self.irrigation_machines}
         unknown_machines = set(self.requested_machine_ids) - machine_ids
         if unknown_machines:
@@ -864,6 +1024,37 @@ def _machine_metrics(machine: IrrigationMachineInput) -> dict[str, Any]:
     return metrics
 
 
+def _reservoir_run_forecast(
+    current_m3: float,
+    capacity_m3: float,
+    minimum_m3: float,
+    net_change_m3_h: float,
+    runtime_h: float,
+) -> dict[str, float | None]:
+    """Constant-rate requested-run projection, not a measured or authorized operation."""
+    projected_change = net_change_m3_h * runtime_h
+    unconstrained_end = current_m3 + projected_change
+    if not math.isfinite(unconstrained_end):
+        raise ValueError("reservoir projection exceeds numeric range")
+    # Cancellation at the reserve boundary can leave a few floating-point ULPs
+    # of apparent deficit. Do not use the displayed four-decimal precision as
+    # a tolerance: a small real shortfall must still make the run infeasible.
+    boundary_tolerance = 2 * math.ulp(max(current_m3, abs(projected_change), minimum_m3))
+    if math.isclose(unconstrained_end, minimum_m3, rel_tol=0.0, abs_tol=boundary_tolerance):
+        unconstrained_end = minimum_m3
+    shortfall = max(0.0, minimum_m3 - unconstrained_end)
+    excess = max(0.0, unconstrained_end - capacity_m3)
+    if not math.isfinite(shortfall) or not math.isfinite(excess):
+        raise ValueError("reservoir projection exceeds numeric range")
+    return {
+        "forecast_end_volume_m3": (
+            round(min(capacity_m3, unconstrained_end), 4) if shortfall == 0 else None
+        ),
+        "forecast_excess_inflow_m3": round(excess, 4),
+        "forecast_shortfall_to_minimum_m3": round(shortfall, 4),
+    }
+
+
 def calculate_reservoir_booster_network(
     req: ReservoirBoosterNetworkRequest,
 ) -> ReservoirBoosterNetworkResult:
@@ -960,7 +1151,21 @@ def calculate_reservoir_booster_network(
         else 0.0
     )
     runtime_h = req.required_gross_volume_m3 / duty_flow_m3_h
-    if hours_to_min is not None and runtime_h > hours_to_min + 1e-9:
+    # Requested constant-duty electrical energy for this booster only.
+    # This is a sizing estimate even if water or equipment constraints block the run.
+    requested_booster_energy_kwh = input_power_kw * runtime_h
+    if not math.isfinite(requested_booster_energy_kwh):
+        raise ValueError("requested booster energy exceeds numeric range")
+    reservoir_forecast = _reservoir_run_forecast(
+        req.reservoir.current_volume_m3,
+        req.reservoir.capacity_m3,
+        req.reservoir.minimum_operating_volume_m3,
+        net_change_m3_h,
+        runtime_h,
+    )
+    # Use the same reserve-boundary decision as the forecast. A separate time
+    # tolerance can otherwise label a real volume shortfall as a passing run.
+    if reservoir_forecast["forecast_end_volume_m3"] is None:
         blockers.append("RESERVOIR_VOLUME_INSUFFICIENT_FOR_REQUESTED_RUNTIME")
     if req.reservoir.current_volume_m3 <= req.reservoir.minimum_operating_volume_m3:
         blockers.append("RESERVOIR_AT_OR_BELOW_MINIMUM_LEVEL")
@@ -1007,6 +1212,10 @@ def calculate_reservoir_booster_network(
         "duty_flow_m3_h": duty_flow_m3_h,
         "required_head_m": required_head_m,
         "reservoir_net_change_m3_h": net_change_m3_h,
+        "requested_runtime_h": runtime_h,
+        "reservoir_forecast": reservoir_forecast,
+        "booster_input_power_kw": input_power_kw,
+        "requested_booster_energy_kwh": requested_booster_energy_kwh,
         "blockers": sorted(set(blockers)),
         "warnings": sorted(set(warnings)),
     }
@@ -1024,6 +1233,7 @@ def calculate_reservoir_booster_network(
             "usable_volume_m3": round(usable_volume, 4),
             "hours_to_minimum": None if hours_to_min is None else round(hours_to_min, 4),
             "requested_runtime_h": round(runtime_h, 4),
+            **reservoir_forecast,
         },
         booster={
             "required_flow_m3_h": round(duty_flow_m3_h, 4),
@@ -1031,6 +1241,7 @@ def calculate_reservoir_booster_network(
             "required_pressure_bar": round(required_head_m / 10.19716213, 4),
             "hydraulic_power_kw": round(hydraulic_power_kw, 4),
             "input_power_kw": round(input_power_kw, 4),
+            "requested_energy_kwh": round(requested_booster_energy_kwh, 4),
             "design_flow_m3_h": req.booster.design_flow_m3_h,
             "design_head_m": req.booster.design_head_m,
             "installed_motor_power_kw": req.booster.installed_motor_power_kw,
