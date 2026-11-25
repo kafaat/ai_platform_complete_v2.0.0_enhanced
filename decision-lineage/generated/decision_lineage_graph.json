@@ -1755,7 +1755,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 417,
+      "evidence_count": 419,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2144,8 +2144,10 @@
         "services/soil-service/routers/plan_copies.py",
         "services/soil-service/test_soil_canonical_duplicate_identity.py",
         "services/soil-service/test_soil_ingest_entrypoint_parity.py",
+        "services/soil-service/test_soil_land_quality.py",
         "services/soil-service/test_soil_p4_governance.py",
         "services/soil-service/test_soil_sampling_plan_origin.py",
+        "services/soil-service/test_soil_standards_compliance.py",
         "services/supervisor-agent/answer_provenance.py",
         "services/supervisor-agent/main.py",
         "services/supervisor-agent/skills/advisory_skill.py",
@@ -3534,7 +3536,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 215,
-      "target_evidence_count": 417,
+      "target_evidence_count": 419,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3581,7 +3583,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 417,
+      "source_evidence_count": 419,
       "target_evidence_count": 52,
       "static_supported": true,
       "runtime_verified": false
@@ -3792,5 +3794,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "ec2579b9d2cd0638051f273862d983e0e8867a9d7fdaeea031d3cd05ce7cb71a"
+  "content_sha256": "fa9dd59b1b6fe4897984e8cf47d20add71dce0a01acc40fdbf9a1db7ce18478a"
 }
