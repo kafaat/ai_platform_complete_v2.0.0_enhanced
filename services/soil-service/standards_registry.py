@@ -28,7 +28,7 @@ import json
 import math
 import re
 from dataclasses import dataclass, field, replace
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 REGISTRY_VERSION = "farmland-standards.v1"
@@ -189,6 +189,11 @@ class StandardsRegistry:
                 raise StandardsRegistryError(
                     f"adoption_without_authority_or_reference:{a.standard_id}"
                 )
+            if a.adopted_on is not None and (
+                isinstance(a.adopted_on, datetime) or not isinstance(a.adopted_on, date)
+            ):
+                # datetime ⇒ يومٌ تقويميّ مُلتبِس بالمنطقة الزمنيّة؛ يُرفَض عند التسجيل لا عند العرض.
+                raise StandardsRegistryError(f"adoption_date_not_a_date:{a.standard_id}")
         self.profiles[profile.profile_id] = profile
 
     # ── الحلّ ───────────────────────────────────────────────────────────
@@ -727,10 +732,10 @@ def audit_status(rec: dict) -> tuple[str, str]:
 def load_catalog(path: Path | None = None, expected_sha256: str | None = None) -> dict:
     """يحمّل كتالوجاً ويتحقّق من بصمته. الافتراضيّ: كتالوج التدقيق ببصمته المثبَّتة."""
     if path is None:
-        path, expected_sha256 = (
-            FARMLAND_AUDIT_CATALOG,
-            expected_sha256 or FARMLAND_AUDIT_CATALOG_SHA256,
-        )
+        path = FARMLAND_AUDIT_CATALOG
+    if expected_sha256 is None and Path(path).resolve() == FARMLAND_AUDIT_CATALOG.resolve():
+        # The audit catalogue is hash-checked however it is addressed (default or explicit path).
+        expected_sha256 = FARMLAND_AUDIT_CATALOG_SHA256
     raw = path.read_bytes()
     if expected_sha256 is not None and hashlib.sha256(raw).hexdigest() != expected_sha256:
         raise StandardsRegistryError(f"catalog_hash_mismatch:{path.name}")

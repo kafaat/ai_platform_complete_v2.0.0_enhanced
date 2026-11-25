@@ -583,16 +583,72 @@ def test_in_force_status_without_effective_date_is_rejected_at_registration():
 
 
 def test_f2_pinning_a_future_edition_without_a_date_is_refused_today():
-    reg, _ = _catalog()
+    # Hospital delta blocker: never anchor a "future" assertion on a real catalogue date — the
+    # catalogue's GB/T 48026-2026 takes effect 2027-02-01 and the test would rot. The future
+    # edition is built relative to the real today, so the test stays true on any run date.
+    reg = StandardsRegistry()
+    future = date.fromordinal(date.today().toordinal() + 365)
+    reg.register(_std("v-future", future))
     with pytest.raises(StandardsRegistryError, match="not_yet_effective"):
-        reg.resolve("GB/T 48026@2026")
+        reg.resolve("TEST-STD@v-future")
     adoption = StandardAdoption(
-        "GB/T 48026", "adopted", authority="a", reference="r", adopted_on=date(2026, 1, 1)
+        "TEST-STD", "adopted", authority="a", reference="r", adopted_on=date(2026, 1, 1)
     )
     with pytest.raises(StandardsRegistryError, match="not_yet_effective"):
         reg.register_profile(
-            ComplianceProfile("P-fut", "YE", ("GB/T 48026@2026",), adoption=(adoption,))
+            ComplianceProfile("P-fut", "YE", ("TEST-STD@v-future",), adoption=(adoption,))
         )
+    # ...and once it is in force (an explicit later date) the same pin resolves.
+    assert reg.resolve("TEST-STD@v-future", future).version == "v-future"
+
+
+def test_window_end_closes_a_pinned_edition_and_its_binding_force():
+    # Hospital delta should-fix: an adopted pin evaluated after its window has closed is evidence
+    # only — not a pass/fail against a limit no longer in force, and never legally binding.
+    reg = StandardsRegistry()
+    reg.register(_std("v1", date(2000, 1, 1), effective_to=date(2026, 1, 1)))
+    adoption = StandardAdoption(
+        "TEST-STD", "adopted", authority="MAI", reference="d1", adopted_on=date(2010, 1, 1)
+    )
+    reg.register_profile(
+        ComplianceProfile("P-closed", "YE", ("TEST-STD@v1",), adoption=(adoption,))
+    )
+    inside = evaluate_profile(
+        reg,
+        "P-closed",
+        [_obs("ece_ds_m", 1.0, "dS/m", observed_on=date(2025, 6, 1))],
+        on=date(2025, 6, 2),
+    )
+    assert (inside.verdict, inside.legally_binding) == ("compliant", True)
+    after = evaluate_profile(reg, "P-closed", [_obs("ece_ds_m", 1.0, "dS/m")], on=ON)
+    assert after.verdict == "incomplete" and after.legally_binding is False
+    assert {r.reason for r in after.results} == {"standard_not_in_force:active"}
+
+
+def test_nit3_a_datetime_adoption_date_is_refused_at_registration():
+    adoption = StandardAdoption(
+        "USDA-HB60", "adopted", authority="a", reference="r", adopted_on=datetime(2026, 1, 1, 9, 0)
+    )
+    with pytest.raises(StandardsRegistryError, match="adoption_date_not_a_date"):
+        default_registry().register_profile(
+            ComplianceProfile("P-dt", "YE", ("USDA-HB60",), adoption=(adoption,))
+        )
+
+
+def test_nit4_the_audit_catalogue_is_hash_checked_even_by_explicit_path(tmp_path, monkeypatch):
+    assert load_catalog(FARMLAND_AUDIT_CATALOG)["version"] == "2026-11-24"
+    reg, entries = catalog_registry(FARMLAND_AUDIT_CATALOG)
+    assert len(entries) == 158
+    # A tampered file at the audit-catalogue path is refused even when passed explicitly.
+    import standards_registry
+
+    tampered = tmp_path / FARMLAND_AUDIT_CATALOG.name
+    tampered.write_bytes(
+        FARMLAND_AUDIT_CATALOG.read_bytes().replace(b'"2027-05-01"', b'"2026-05-01"', 1)
+    )
+    monkeypatch.setattr(standards_registry, "FARMLAND_AUDIT_CATALOG", tampered)
+    with pytest.raises(StandardsRegistryError, match="catalog_hash_mismatch"):
+        load_catalog(tampered)
 
 
 def _binding_report(status, *, adopted_on, adoption_status="adopted", version_status="active"):
