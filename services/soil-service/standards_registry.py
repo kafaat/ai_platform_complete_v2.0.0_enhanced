@@ -23,13 +23,19 @@
 
 from __future__ import annotations
 
+import json
 import math
+import re
 from dataclasses import dataclass, field, replace
 from datetime import date
+from pathlib import Path
 
 REGISTRY_VERSION = "farmland-standards.v1"
 
-_STATUSES = ("active", "superseded", "withdrawn")
+# draft = مسودة لم يثبت نشرها النهائيّ · unresolved = إصدار مثبت وسريانه غير محسوم بالدليل.
+_STATUSES = ("active", "superseded", "withdrawn", "draft", "unresolved")
+# لا يظهر أيٌّ منها التزاماً نافذاً — لا عبر current() ولا عبر تثبيتٍ في ملفّ اعتماد.
+_NEVER_IN_FORCE = frozenset({"withdrawn", "draft", "unresolved"})
 ADOPTION_STATUSES = ("adopted", "provisional", "reference_only")
 _LIMIT_KINDS = ("max", "min", "range", "bands")
 
@@ -83,11 +89,16 @@ class Standard:
     version: str
     title: str
     issuer: str
-    effective_from: date
+    effective_from: date | None  # None مسموح فقط لغير الساري (تاريخ نفاذ لم يُثبَت)
     status: str
     clauses: tuple[Clause, ...]
     superseded_by: str | None = None  # "standard_id@version"
     effective_to: date | None = None
+    kind: str = "standard"
+    jurisdiction: str = ""
+    sources: tuple[str, ...] = ()
+    # أثر التدقيق الذي جاء منه الإصدار (كتالوج، رقم السطر، نصّ التحقّق والتصحيح…).
+    audit: dict | None = field(default=None, compare=False, hash=False)
 
     @property
     def ref(self) -> str:
@@ -183,7 +194,7 @@ class StandardsRegistry:
         out = [s for (sid, _), s in self.standards.items() if sid == standard_id]
         if not out:
             raise StandardsRegistryError(f"unknown_standard:{standard_id}")
-        return sorted(out, key=lambda s: s.effective_from)
+        return sorted(out, key=lambda s: s.effective_from or date.min)
 
     def get(self, standard_id: str, version: str) -> Standard:
         """إصدار محدّد صراحةً — يشمل المُستبدَل (للتدقيق التاريخيّ)."""
@@ -197,14 +208,15 @@ class StandardsRegistry:
     def current(self, standard_id: str, on: date | None = None) -> Standard:
         """الإصدار الساري في التاريخ `on` (افتراضيّاً اليوم).
 
-        الساري = حالته ليست withdrawn، وبدأ سريانه في `on` أو قبله، ولم ينتهِ قبله؛ وعند تعدّد
+        الساري = حالته ليست withdrawn/draft/unresolved، وله تاريخ نفاذ، وبدأ سريانه في `on` أو قبله، ولم ينتهِ قبله؛ وعند تعدّد
         المرشّحين يفوز الأحدث سرياناً. لا مرشّح ⇒ خطأ صريح لا ارتداد إلى أقدم إصدار.
         """
         on = on or date.today()
         candidates = [
             s
             for s in self.versions(standard_id)
-            if s.status != "withdrawn"
+            if s.status not in _NEVER_IN_FORCE
+            and s.effective_from is not None
             and s.effective_from <= on
             and (s.effective_to is None or on < s.effective_to)
         ]
@@ -213,12 +225,22 @@ class StandardsRegistry:
         return max(candidates, key=lambda s: s.effective_from)
 
     def resolve(self, ref: str, on: date | None = None) -> Standard:
-        """«id» ⇒ الساري؛ «id@version» ⇒ ذلك الإصدار (المسحوب يُرفَض حتى لو مُثبَّتاً)."""
+        """«id» ⇒ الساري؛ «id@version» ⇒ ذلك الإصدار.
+
+        المثبَّت المسحوب/المسوَّدة/غير المحسوم يُرفَض؛ والمثبَّت الذي لم يبدأ نفاذه في `on` يُرفَض
+        (إصدار مستقبليّ لا يُقدَّم التزاماً نافذاً). `get()` يبقى متاحاً للتدقيق التاريخيّ.
+        """
         if "@" in ref:
             sid, version = ref.split("@", 1)
             standard = self.get(sid, version)
-            if standard.status == "withdrawn":
-                raise StandardsRegistryError(f"withdrawn_standard:{standard.ref}")
+            if standard.status in _NEVER_IN_FORCE:
+                raise StandardsRegistryError(f"{standard.status}_standard:{standard.ref}")
+            if (
+                on is not None
+                and standard.effective_from is not None
+                and on < standard.effective_from
+            ):
+                raise StandardsRegistryError(f"not_yet_effective:{standard.ref}@{on.isoformat()}")
             return standard
         return self.current(ref, on)
 
@@ -332,7 +354,13 @@ def _validate_standard(s: Standard) -> None:
         raise StandardsRegistryError(f"unknown_status:{s.ref}:{s.status}")
     if s.status == "superseded" and not s.superseded_by:
         raise StandardsRegistryError(f"superseded_without_successor:{s.ref}")
-    if s.effective_to is not None and s.effective_to <= s.effective_from:
+    if s.effective_from is None and s.status not in _NEVER_IN_FORCE:
+        raise StandardsRegistryError(f"in_force_status_needs_effective_date:{s.ref}")
+    if (
+        s.effective_to is not None
+        and s.effective_from is not None
+        and s.effective_to <= s.effective_from
+    ):
         raise StandardsRegistryError(f"effective_window_inverted:{s.ref}")
     ids = [c.clause_id for c in s.clauses]
     if len(ids) != len(set(ids)):
@@ -588,3 +616,194 @@ def default_registry() -> StandardsRegistry:
         reg.register(standard)
     reg.register_profile(YEMEN_DEFAULT_PROFILE)
     return reg
+
+
+# ── كتالوج تدقيق المعايير (ملفٌّ مُصدَّر من تدقيق المالك 2026-11-24) ─────────────
+#
+# الكتالوج سجلُّ **هويّة وإصدار وحالة** لا بنودَ فنّيّة: يُسجَّل كلّ معيارٍ قابلٍ للتحليل
+# كإصدارٍ في السجلّ (بلا بنود قابلة للتقييم)، وما ليس معياراً بإصدارٍ واحد (سياسة، تسعير،
+# ادّعاء، مرجع سلسلة، رقمٌ غير متحقَّق) يبقى في الكتالوج بسببه — لا يُسقَط صامتاً.
+#
+# قاعدة الحالة **فشلٌ مغلق**: لا يصير الإصدار `active` إلّا بنصّ سريانٍ معروف + تحقّقٍ مؤكَّد +
+# تاريخ نفاذٍ مسجَّل. كلّ ما عدا ذلك `unresolved` أو `draft` أو `withdrawn` — ولا يظهر أيٌّ منها
+# التزاماً نافذاً (معيار القبول P0 في التدقيق نفسه).
+
+CATALOG_DIR = Path(__file__).resolve().parent / "standards_catalog"
+FARMLAND_AUDIT_CATALOG = CATALOG_DIR / "farmland_standards_audit_2026-11-24.json"
+
+_EDITION_REF = re.compile(r"^(?P<id>[A-Z][A-Za-z0-9/ .]*?)\s*[-—–]\s*(?P<ver>(?:19|20)\d{2})$")
+_ACTIVE_VALIDITY = frozenset(
+    {
+        "ساري",
+        "ساري بحسب الناشر",
+        "ساري بحسب فهرس CNIS",
+        "معيار محلي ساري",
+        "ساري؛ تجري مراجعة",
+        # المرجع المدقَّق هو البديل الساري (الوارد في القائمة كان المُلغى):
+        "الوارد ملغى؛ البديل ساري",
+        "الإصدار المذكور ملغى؛ البديل ساري",
+    }
+)
+_CONFIRMED = frozenset({"مؤكد", "مؤكد مع تحديث", "يحتاج تصحيح"})
+_UNRESOLVED_VERIFICATION = frozenset({"غير محسوم", "تعارض سجلات", "إحالة مجملة"})
+_PUBLISHED_NOT_YET_EFFECTIVE = "منشور؛ لم ينفذ بعد"
+
+
+@dataclass(frozen=True)
+class CatalogEntry:
+    """مصير سجلٍّ واحد من الكتالوج: مُسجَّل كإصدار، أو باقٍ في الكتالوج بسببٍ مكتوب."""
+
+    no: int
+    verified_ref: str | None
+    kind: str  # standard | policy | pricing | claim
+    status: str | None  # حالة الإصدار في السجلّ إن سُجِّل
+    reason: str
+    standard_ref: str | None  # "id@version" إن سُجِّل
+
+    @property
+    def registered(self) -> bool:
+        return self.standard_ref is not None
+
+
+def _record_kind(rec: dict) -> str:
+    validity = rec.get("validity_ar") or ""
+    ref = rec.get("verified_ref") or ""
+    if "تسعير" in validity:
+        return "pricing"
+    if any(w in validity for w in ("سياسة", "خطة", "وثيقة إدارية", "إرشاد", "محال إليه")):
+        return "policy"
+    if "ادعاء" in ref:
+        return "claim"
+    return "standard"
+
+
+def _jurisdiction(standard_id: str) -> str:
+    if standard_id.startswith("DB"):
+        return "CN-local"
+    if standard_id.startswith("T/"):
+        return "CN-association"
+    return "CN-national"
+
+
+def _iso(value: str | None) -> date | None:
+    return date.fromisoformat(value) if value else None
+
+
+def audit_status(rec: dict) -> tuple[str, str]:
+    """(حالة الإصدار، السبب) من سطر التدقيق — فشلٌ مغلق: المجهول ⇒ unresolved."""
+    validity = rec.get("validity_ar") or ""
+    verification = rec.get("verification_ar") or ""
+    effective = rec.get("effective_from")
+    if verification in _UNRESOLVED_VERIFICATION:
+        return "unresolved", f"verification:{verification}"
+    if "مسودة" in validity or "مسودة" in verification or "النشر النهائي غير مثبت" in validity:
+        return "draft", f"validity:{validity}"
+    if validity == "ملغى":
+        return "withdrawn", "validity:ملغى"
+    if validity == _PUBLISHED_NOT_YET_EFFECTIVE:
+        if not effective:
+            return "unresolved", "published_without_effective_date"
+        return "active", "published_future_effective_date"
+    if validity in _ACTIVE_VALIDITY and verification in _CONFIRMED:
+        if not effective:
+            return "unresolved", "effective_date_not_recorded"
+        return "active", f"validity:{validity}"
+    return "unresolved", f"validity_not_established:{validity or '-'}|{verification or '-'}"
+
+
+def load_catalog(path: Path | None = None) -> dict:
+    doc = json.loads((path or FARMLAND_AUDIT_CATALOG).read_text(encoding="utf-8"))
+    if not isinstance(doc.get("records"), list) or not doc.get("version"):
+        raise StandardsRegistryError("catalog_malformed")
+    return doc
+
+
+def register_catalog(registry: StandardsRegistry, doc: dict) -> list[CatalogEntry]:
+    """يسجّل إصدارات الكتالوج القابلة للتحليل ويُرجِع مصير **كلّ** سجلّ (لا إسقاط صامت).
+
+    إصداران للمعرّف نفسه بتاريخَي نفاذ ⇒ الأقدم يُغلَق عند نفاذ الأحدث (`effective_to`) ويُشار
+    إلى خلَفه (`superseded_by`) — فيبقى الأقدم الساريَ حتّى ذلك التاريخ لا قبله ولا بعده.
+    """
+    catalog_ref = f"{doc.get('catalog_id', 'catalog')}@{doc['version']}"
+    entries: list[CatalogEntry] = []
+    staged: list[Standard] = []
+    seen: set[tuple[str, str]] = set()
+    for rec in doc["records"]:
+        no = int(rec["no"])
+        ref = rec.get("verified_ref")
+        kind = _record_kind(rec)
+        if kind != "standard":
+            entries.append(CatalogEntry(no, ref, kind, None, f"not_a_standard:{kind}", None))
+            continue
+        m = _EDITION_REF.match((ref or "").strip())
+        if not m:
+            entries.append(CatalogEntry(no, ref, kind, None, "ref_not_a_single_edition", None))
+            continue
+        sid, version = " ".join(m.group("id").split()), m.group("ver")
+        if (sid, version) in seen:
+            entries.append(CatalogEntry(no, ref, kind, None, "duplicate_edition", None))
+            continue
+        seen.add((sid, version))
+        status, reason = audit_status(rec)
+        effective_from = _iso(rec.get("effective_from"))
+        withdrawn_on = _iso(rec.get("withdrawn_on"))
+        effective_to = (
+            withdrawn_on
+            if status == "withdrawn"
+            and withdrawn_on
+            and (not effective_from or withdrawn_on > effective_from)
+            else None
+        )
+        staged.append(
+            Standard(
+                standard_id=sid,
+                version=version,
+                title=rec.get("subject_ar") or sid,
+                issuer=sid.split(" ", 1)[0],
+                effective_from=effective_from,
+                status=status,
+                clauses=(),
+                effective_to=effective_to,
+                kind="standard",
+                jurisdiction=_jurisdiction(sid),
+                sources=tuple(rec.get("sources") or ()),
+                audit={
+                    "catalog": catalog_ref,
+                    "no": no,
+                    "status_reason": reason,
+                    "received_ref": rec.get("received_ref"),
+                    "verification_ar": rec.get("verification_ar"),
+                    "validity_ar": rec.get("validity_ar"),
+                    "issued_on": rec.get("issued_on"),
+                    "withdrawn_on": rec.get("withdrawn_on"),
+                    "correction_note_ar": rec.get("correction_note_ar"),
+                    "title_zh": rec.get("title_zh"),
+                    "verified_on": rec.get("verified_on"),
+                },
+            )
+        )
+        entries.append(CatalogEntry(no, ref, kind, status, reason, f"{sid}@{version}"))
+
+    # الاستبدال المجدول داخل المعرّف نفسه (مثلاً GB/T 33469-2016 ← 2026 النافذ 2027-05-01).
+    by_id: dict[str, list[Standard]] = {}
+    for s in staged:
+        if s.status == "active" and s.effective_from is not None:
+            by_id.setdefault(s.standard_id, []).append(s)
+    successor: dict[str, Standard] = {}
+    for versions in by_id.values():
+        versions.sort(key=lambda s: s.effective_from)
+        for older, newer in zip(versions, versions[1:], strict=False):
+            successor[older.ref] = newer
+    for s in staged:
+        nxt = successor.get(s.ref)
+        if nxt is not None and s.effective_to is None:
+            s = replace(s, effective_to=nxt.effective_from, superseded_by=nxt.ref)
+        registry.register(s)
+    return entries
+
+
+def catalog_registry(path: Path | None = None) -> tuple[StandardsRegistry, list[CatalogEntry]]:
+    """السجلّ الافتراضيّ + كتالوج التدقيق. لا اعتماد محلّيّ لأيّ معيار كتالوج (reference_only)."""
+    reg = default_registry()
+    entries = register_catalog(reg, load_catalog(path))
+    return reg, entries

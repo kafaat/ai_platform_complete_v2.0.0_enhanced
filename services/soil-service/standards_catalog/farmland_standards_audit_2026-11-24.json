@@ -1,0 +1,3063 @@
+{
+ "catalog_id": "farmland-standards-audit",
+ "version": "2026-11-24",
+ "source_file": "Farmland_Standards_Audit_AR_2026-11-24.xlsx (sheet السجل)",
+ "source_sha256": "e4fcce3bc492c82aac4a338404109b82f2cca6a32bbe8c313f13b47ed0f82766",
+ "provided_by": "owner, 2026-11-25",
+ "scope_note_ar": "تدقيق الهويّة والإصدار والحالة ومقاطع سياسات مختارة؛ لا يشمل فحص كلّ بند فنّيّ ولا إثبات مطابقة مشروع. سريان المعيار لا يثبت انطباقه على مشروع محدّد. الفراغ في التاريخ يعني أنّه لم يُثبَت بدقّة في هذا الفحص.",
+ "records": [
+  {
+   "no": 1,
+   "section_ar": "الإطار العام",
+   "received_ref": "GB/T 30600-2022",
+   "verified_ref": "GB/T 30600-2022",
+   "subject_ar": "القواعد العامة لإنشاء الأراضي الزراعية عالية التجهيز",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2022-03-09",
+   "effective_from": "2022-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "معيار وطني توصوي؛ يستبدل إصدار 2014 كليًا. لا تعني أهميته إلزام إدراجه في كل مشروع خارج نطاقه.",
+   "title_zh": "高标准农田建设 通则",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailedCNF?id=DAB8B4004706896BE05397BE0A0A0B32"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 2,
+   "section_ar": "الإطار العام",
+   "received_ref": "GB/T 33130-2024",
+   "verified_ref": "GB/T 33130-2024",
+   "subject_ar": "تقييم إنشاء الأراضي الزراعية عالية التجهيز",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2024-11-28",
+   "effective_from": "2025-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "تقييم المشروع يختلف عن إجراء قبوله إداريًا. أحدث إصدار نافذ مثبت في السجل.",
+   "title_zh": "高标准农田建设评价规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=01CBF123324D2345806955EFF1B5DC5D"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 3,
+   "section_ar": "الإطار العام",
+   "received_ref": "NY/T 2949-2016",
+   "verified_ref": "NY/T 2949-2016",
+   "subject_ar": "المواصفة التقنية لإنشاء الأراضي الزراعية عالية التجهيز",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2017-04-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "高标准农田建设技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=AEECDD63BB0DD3B7E05397BE0A0AB404",
+    "https://std.samr.gov.cn/hb/search/stdHBDetailedCNF?id=AEECDD63BB0DD3B7E05397BE0A0AB404"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 4,
+   "section_ar": "الإطار العام",
+   "received_ref": "NY/T 2247-2012",
+   "verified_ref": "NY/T 2247-2012",
+   "subject_ar": "إجراءات إعداد خطط إنشاء الأراضي الزراعية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2012-12-07",
+   "effective_from": "2013-03-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "البطاقة الرسمية تؤكد سريانه. NY/T4731-2025 مذكور ضمن المعايير ذات الصلة لا ضمن الاستبدال؛ بطاقة 4731 وإعلان تسجيله لا يسجلان استبدال 2247. يعاملان كمرجعين مستقلين ذوي نطاقات متداخلة، لا كنسخة قديمة وجديدة لرقم واحد.",
+   "title_zh": "农田建设规划编制规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=AFF1DE924EA125D2E05397BE0A0ADBDF",
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=3B99FAC7B0721677E06397BE0A0A4403",
+    "https://hbba.sacinfo.org.cn/rnDetail/7bbec2fe4ce92e1611e5cb89234fcea6fc724053a9b1f855bb1cf313c57b5ca8"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 5,
+   "section_ar": "الإطار العام",
+   "received_ref": "NY/T 2148-2012",
+   "verified_ref": "NY/T 2148-2012",
+   "subject_ar": "معيار إنشاء الأراضي الزراعية عالية التجهيز",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ملغى",
+   "issued_on": null,
+   "effective_from": "2012-06-01",
+   "withdrawn_on": "2025-01-17",
+   "correction_note_ar": "SAMR يسجل 2025-01-17 ؛ أصل ملحق 875 يمنح 6 أشهر بعد الإعلان. الإلغاء مؤكد حاليًا، لكن المدة الانتقالية مفقودة من القائمة. علاقة تغطية الموضوع لا تساوي الاستبدال المعياري الرسمي.",
+   "title_zh": "高标准农田建设标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B005F839626C6C89E05397BE0A0A3216",
+    "https://www.moa.gov.cn/govpublic/ncpzlaq/202501/t20250121_6469338.htm",
+    "https://www.moa.gov.cn/nybgb/2025/202505/202506/P020250613550798291920.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 6,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 45107-2024",
+   "verified_ref": "GB/T 45107-2024",
+   "subject_ar": "متطلبات إزالة التربة السطحية وإعادة استخدامها",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2025-07-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "صحيح الرقم والحالة والتاريخ؛ لا يثبت سجل المعيار أنه يلغي TD/T1048.",
+   "title_zh": "表土剥离及其再利用技术要求",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=2AD0270638E6091BE06397BE0A0A2D62"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 7,
+   "section_ar": "التربة / تهيئة الأراضي",
+   "received_ref": "TD/T 1048-2016",
+   "verified_ref": "TD/T 1048-2016",
+   "subject_ar": "مواصفة إزالة واستعمال تربة طبقة الحراثة",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2016-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "ساري مستقلًا؛ الجمع بينه وبين 45107 يعتمد على نطاق المشروع، وليس استبدالًا رسميًا مثبتًا.",
+   "title_zh": "耕作层土壤剥离利用技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F253DFBB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 8,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 33469-2016",
+   "verified_ref": "GB/T 33469-2016",
+   "subject_ar": "درجات جودة الأراضي المزروعة",
+   "verification_ar": "مؤكد مع تحديث",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2016-12-30",
+   "withdrawn_on": null,
+   "correction_note_ar": "ساري بتاريخ المراجعة، لكن GB/T33469-2026 منشور بتاريخ 2026-10-30 وسيحل محله 2027-05-01 ؛ القائمة تفوّت هذا الانتقال.",
+   "title_zh": "耕地质量等级",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D81570D3A7E05397BE0A0AB82A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 9,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 33469-2026",
+   "verified_ref": "GB/T 33469-2026",
+   "subject_ar": "درجات جودة الأراضي المزروعة: الإصدار القادم",
+   "verification_ar": "مؤكد",
+   "validity_ar": "منشور؛ لم ينفذ بعد",
+   "issued_on": "2026-10-30",
+   "effective_from": "2027-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "صدر 2026-10-30 ؛ يحل بالكامل محل 2016 عند النفاذ. لا يُسجل نافذًا في نوفمبر 2026.",
+   "title_zh": "耕地质量等级",
+   "record_type_ar": "إضافة من المراجعة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=NbekoZmmJqw%3D&mode=p"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 10,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 28407-2012",
+   "verified_ref": "GB/T 28407-2012",
+   "subject_ar": "قواعد تصنيف مراتب جودة الأراضي الزراعية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2012-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "تصنيف مراتب جودة الأرض، لا تقويم القيمة المالية.",
+   "title_zh": "农用地质量分等规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=498EAA4ACFB8EB804D94A6CA7BAD3189"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 11,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 28405-2012",
+   "verified_ref": "GB/T 28405-2012",
+   "subject_ar": "قواعد تحديد درجات الأراضي الزراعية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2012-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "农用地定级规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=EC6149FE220B1D8BE44104DC6E824D99"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 12,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 28406-2012",
+   "verified_ref": "GB/T 28406-2012",
+   "subject_ar": "قواعد تقدير قيمة الأراضي الزراعية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2012-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "农用地估价规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=AA0A2134C2043F4839E8B2BEECC46310"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 13,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T 1634-2008",
+   "verified_ref": "NY/T 1634-2008",
+   "subject_ar": "مسح خصوبة الأراضي المزروعة وتقييم جودتها",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2008-07-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الترجمة إلى physical/geophysical assessment في القائمة مضللة؛ المقصود خصوبة/قدرة الأرض وجودتها.",
+   "title_zh": "耕地地力调查与质量评价技术规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B170833644D9E14BE05397BE0A0ADD28"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 14,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T 1119-2019",
+   "verified_ref": "NY/T 1119-2019",
+   "subject_ar": "إجراءات مراقبة جودة الأراضي المزروعة",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2019-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "استبدل NY/T1119-2012.",
+   "title_zh": "耕地质量监测技术规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=A7B3116479243AA4E05397BE0A0A2AA6"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 15,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T 1120-2006",
+   "verified_ref": "NY/T 1120-2006",
+   "subject_ar": "مواصفة قبول جودة الأراضي المزروعة",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ملغى",
+   "issued_on": null,
+   "effective_from": "2006-10-01",
+   "withdrawn_on": "2025-01-17",
+   "correction_note_ar": "SAMR يسجل 2025-01-17 كتاريخ إلغاء؛ لكن إعلان 875 مؤرخ 17 يناير يمنح فترة انتقال 6 أشهر. يجب حفظ تاريخ الإعلان منفصلًا عن نهاية الانتقال. لا يوجد استبدال رسمي مباشر ظاهر إلى 33130/33469 ؛ أخطأ تنبيه 24 في القائمة فكتب 120 بدل 1120.",
+   "title_zh": "耕地质量验收技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B7A5B403D0675CE9E05397BE0A0A203B",
+    "https://www.moa.gov.cn/govpublic/ncpzlaq/202501/t20250121_6469338.htm",
+    "https://www.moa.gov.cn/nybgb/2025/202505/202506/P020250613550798291920.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 16,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T 2911-2025",
+   "verified_ref": "NY/T 2911-2025",
+   "subject_ar": "إجراءات التسميد بوصفة مبنية على تحليل التربة",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2025-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "صدر 2025-01-09. الاستبدال الرسمي الكامل المسجل هو NY/T2911-2016 ، وليس NY/T1118-2006 ؛ هذا الأخير ملغى بصورة منفصلة.",
+   "title_zh": "测土配方施肥技术规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=350FE9C4CFC390D2E06397BE0A0A963B"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 17,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T 1118-2006",
+   "verified_ref": "NY/T 1118-2006",
+   "subject_ar": "مواصفة التسميد وفق تحليل التربة",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ملغى",
+   "issued_on": null,
+   "effective_from": "2006-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "تاريخ الإلغاء المسجل 2025-12-09. لم يثبت سجل 2911-2025 أنه البديل الرسمي لهذا الرقم؛ يقدم موضوعًا ذا صلة.",
+   "title_zh": "测土配方施肥技术规范",
+   "record_type_ar": "إحالة وردت في التنبيهات",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B7A5B403D0665CE9E05397BE0A0A203B"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 18,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T 1121 (series)",
+   "verified_ref": "NY/T 1121 (parts require individual editions)",
+   "subject_ar": "سلسلة اختبارات التربة",
+   "verification_ar": "إحالة مجملة",
+   "validity_ar": "فُحصت أجزاء محددة",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "ليس إصدارًا واحدًا يمكن وسمه كله بسنة واحدة. فُحصت الأجزاء 1 و 2 و 4 و 6 و 7 و 24 المذكورة في القائمة؛ توجد أجزاء أخرى خارج نطاق فحص هذه السلسلة.",
+   "title_zh": "土壤检测",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B7A5B403D06A5CE9E05397BE0A0A203B"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 19,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T1121 part1",
+   "verified_ref": "NY/T 1121.1-2006",
+   "subject_ar": "جمع عينات التربة ومعالجتها وتخزينها",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2006-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土壤检测 第1部分：土壤样品的采集、处理和贮存",
+   "record_type_ar": "تفصيل جزء من السلسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B7A5B403D06A5CE9E05397BE0A0A203B"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 20,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T1121 part2",
+   "verified_ref": "NY/T 1121.2-2006",
+   "subject_ar": "قياس حموضة التربة pH",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2006-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土壤检测 第2部分：土壤pH的测定",
+   "record_type_ar": "تفصيل جزء من السلسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B7A5B403D0725CE9E05397BE0A0A203B"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 21,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T1121 part4",
+   "verified_ref": "NY/T 1121.4-2006",
+   "subject_ar": "قياس الكثافة الظاهرية للتربة",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2006-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土壤检测 第4部分：土壤容重的测定",
+   "record_type_ar": "تفصيل جزء من السلسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B7A5B403D0745CE9E05397BE0A0A203B"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 22,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T1121 part6",
+   "verified_ref": "NY/T 1121.6-2006",
+   "subject_ar": "قياس المادة العضوية بالتربة",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2006-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土壤检测 第6部分：土壤有机质的测定",
+   "record_type_ar": "تفصيل جزء من السلسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B7A5B403D0765CE9E05397BE0A0A203B"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 23,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T1121 part7",
+   "verified_ref": "NY/T 1121.7-2014",
+   "subject_ar": "قياس الفوسفور المتاح بالتربة",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2015-01-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "استبدل الجزء 7 لسنة 2006. يجب إثبات سنة 2014 للجزء 7.",
+   "title_zh": "土壤检测 第7部分:土壤有效磷的测定",
+   "record_type_ar": "تفصيل جزء من السلسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=AF7D4A1CE64B1558E05397BE0A0A9D1D"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 24,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T1121 part24",
+   "verified_ref": "NY/T 1121.24-2012",
+   "subject_ar": "قياس النيتروجين الكلي بمحلل النيتروجين الآلي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2012-09-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土壤检测 第24部分：土壤全氮的测定自动定氮仪法",
+   "record_type_ar": "تفصيل جزء من السلسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B0053AB753520A49E05397BE0A0A3E76"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 25,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "NY/T 889-2004",
+   "verified_ref": "NY/T 889-2004",
+   "subject_ar": "قياس البوتاسيوم سريع وبطيء الإتاحة في التربة",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2005-02-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土壤速效钾和缓效钾含量的测定",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B89758B5DB2E1A3BE05397BE0A0A594D"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 26,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 36197-2018",
+   "verified_ref": "GB/T 36197-2018",
+   "subject_ar": "جودة التربة: إرشادات تقنيات أخذ العينات",
+   "verification_ar": "مؤكد مع تحديث",
+   "validity_ar": "ساري؛ تجري مراجعة",
+   "issued_on": null,
+   "effective_from": "2018-12-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "ساري؛ مشروع المراجعة 20253000-T-326 في الاعتماد وفق السجل. مشروع التعديل لا يلغي النسخة الحالية.",
+   "title_zh": "土壤质量 土壤采样技术指南",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D82BBED3A7E05397BE0A0AB82A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 27,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 36199-2018",
+   "verified_ref": "GB/T 36199-2018",
+   "subject_ar": "جودة التربة: تصميم برامج أخذ العينات",
+   "verification_ar": "مؤكد مع تحديث",
+   "validity_ar": "ساري؛ تجري مراجعة",
+   "issued_on": null,
+   "effective_from": "2018-12-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "ساري؛ مشروع المراجعة 20253002-T-326 قيد الفحص.",
+   "title_zh": "土壤质量 土壤采样程序设计指南",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D82B33D3A7E05397BE0A0AB82A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 28,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 36198-2018",
+   "verified_ref": "GB/T 36198-2018",
+   "subject_ar": "جودة التربة: إرشادات أخذ عينات غازات التربة",
+   "verification_ar": "مؤكد مع تحديث",
+   "validity_ar": "ساري؛ تجري مراجعة",
+   "issued_on": null,
+   "effective_from": "2018-12-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "ساري؛ مشروع 20253003-T-326 قيد الاعتماد. معيار غازات التربة ليس فحصًا عامًا لرطوبتها/مغذياتها.",
+   "title_zh": "土壤质量 土壤气体采样指南",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D82B32D3A7E05397BE0A0AB82A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 29,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 32722-2016",
+   "verified_ref": "GB/T 32722-2016",
+   "subject_ar": "حفظ عينات التربة على المدى القصير والطويل",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2017-03-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土壤质量 土壤样品长期和短期保存指南",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=C739F8FA6366D5A9A246A93D9B5F0B32"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 30,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 32726-2016",
+   "verified_ref": "GB/T 32726-2026",
+   "subject_ar": "جودة التربة: الوصف الحقلي للتربة",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "الوارد ملغى؛ البديل ساري",
+   "issued_on": "2026-03-31",
+   "effective_from": "2026-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الإصدار 2016 لم يعد الحالي: حل إصدار 2026 محله بالكامل، نُشر 2026-03-31 ونفذ 2026-10-01. صفحة السجل الجديدة تثبت الاستبدال الكامل.",
+   "title_zh": "土壤质量 野外土壤描述",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=D387F090D92C0F1072ABD5FA7F2574A5",
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=4E64ADE730F08554E06397BE0A0AB633"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 31,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB 15618-2018",
+   "verified_ref": "GB 15618-2018",
+   "subject_ar": "جودة بيئة التربة: ضبط مخاطر تلوث التربة الزراعية (تجريبي)",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2018-08-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "معيار وطني إلزامي ضمن نطاقه؛ أكد فحص 2024 استمرار صلاحيته.",
+   "title_zh": "土壤环境质量 农用地土壤污染风险管控标准（试行）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D82E88D3A7E05397BE0A0AB82A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 32,
+   "section_ar": "التربة وجودة الأرض",
+   "received_ref": "GB/T 21010-2017",
+   "verified_ref": "GB/T 21010-2017",
+   "subject_ar": "تصنيف الاستعمال الحالي للأرض",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2017-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "وصف التطبيق geomorphology في القائمة غير دقيق؛ موضوعه تصنيف استعمال الأرض.",
+   "title_zh": "土地利用现状分类",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D82516D3A7E05397BE0A0AB82A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 33,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "NY/T 525-2021",
+   "verified_ref": "NY/T 525-2021",
+   "subject_ar": "الأسمدة العضوية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2021-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "有机肥料",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=D7B683B2325FA476E05397BE0A0A0A45"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 34,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "NY 884-2012",
+   "verified_ref": "NY 884-2012",
+   "subject_ar": "الأسمدة العضوية الحيوية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2012-09-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "السجل يصفه معياريًا كإلزامي، والرقم NY بلا/T صحيح.",
+   "title_zh": "生物有机肥",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B0053AB753500A49E05397BE0A0A3E76"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 35,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "NY/T 1868-2021",
+   "verified_ref": "NY/T 1868-2021",
+   "subject_ar": "إرشادات الاستخدام الرشيد للأسمدة العضوية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2021-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "肥料合理使用准则 有机肥料",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=D7B683B231E6A476E05397BE0A0A0A45"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 36,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "NY/T 496-2010",
+   "verified_ref": "NY/T 496-2010",
+   "subject_ar": "القواعد العامة للاستخدام الرشيد للأسمدة",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2010-09-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "肥料合理使用准则 通则",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B070C7DD7FB59659E05397BE0A0AB560"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 37,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "NY/T 3442-2019",
+   "verified_ref": "NY/T 3442-2019",
+   "subject_ar": "التسميد العضوي بكمر روث الحيوانات والدواجن",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2019-09-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "畜禽粪便堆肥技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=A7DFCAA0FBA41025E05397BE0A0AB7FA"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 38,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "NY/T 3443-2019",
+   "verified_ref": "NY/T 3443-2019",
+   "subject_ar": "تحسين التربة المتحمضة بالمواد الجيرية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2019-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "石灰质改良酸化土壤技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=A7B3116479253AA4E05397BE0A0A2AA6"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 39,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "NY/T 1334-2007",
+   "verified_ref": "NY/T 1334-2007",
+   "subject_ar": "قواعد الاستخدام الآمن لروث الحيوانات والدواجن",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2007-07-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "畜禽粪便安全使用准则",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=B28FFD881CD4C494E05397BE0A0AB84E"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 40,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "GB/T 6274-2025",
+   "verified_ref": "GB/T 6274-2025",
+   "subject_ar": "الأسمدة ومحسنات التربة والمواد النافعة: المصطلحات",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2026-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "يحل بالكامل محل 2016 ؛ أصله اعتماد معدل لـ ISO8157:2022. الصياغة Soil Stabilizers and Goods في آخر القائمة غير دقيقة.",
+   "title_zh": "肥料、土壤调理剂和有益物质 术语",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=42BA7D06A36AE936E06397BE0A0ACDC9"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 41,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "GB/T 32741-2025",
+   "verified_ref": "GB/T 32741-2025",
+   "subject_ar": "الأسمدة ومحسنات التربة والمواد النافعة: التصنيف",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2026-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "يحل بالكامل محل 2016 ؛ اعتماد معدل لـ ISO7851:2022.",
+   "title_zh": "肥料、土壤调理剂和有益物质 分类",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=42BA7D06A2CEE936E06397BE0A0ACDC9"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 42,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "GB 18877-2020",
+   "verified_ref": "GB/T 18877-2020",
+   "subject_ar": "الأسمدة المركبة العضوية المعدنية",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2021-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "القائمة أسقطت/T ؛ الصحيح معيار وطني توصوي GB/T18877-2020. تظهر صفحة المعيار أيضًا ورقة تعديل رقم 1؛ يلزم الرجوع إليها عند تطبيق النص.",
+   "title_zh": "有机无机复混肥料",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=1D058CB95DC9BD89C0CFDFEF9B9A2DDE"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 43,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "GB 20287-2006",
+   "verified_ref": "GB 20287-2006",
+   "subject_ar": "المستحضرات الميكروبية الزراعية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري؛ تجري مراجعة",
+   "issued_on": null,
+   "effective_from": "2006-09-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "ساري؛ مشروع 20141782-Q-326 لا يزال قيد استطلاع الآراء حسب السجل، ولا يعد إصدارًا نافذًا.",
+   "title_zh": "农用微生物菌剂",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=nxKcKf8bN%2Bo%3D&mode=p"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 44,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "GB/T 42812-2023",
+   "verified_ref": "GB/T 42812-2023",
+   "subject_ar": "تحسين التربة المتأثرة بعوائق الزراعة المتكررة للمحصول",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2024-03-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الترجمة المرسلة فقدت مفهوم continuous cropping obstacles ؛ النطاق ليس كل معوقات التربة بلا تخصيص.",
+   "title_zh": "连作障碍土壤改良通用技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=28980D54010B36736DA14C35C687DEE1"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 45,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "GB/T 42817-2023",
+   "verified_ref": "GB/T 42817-2023",
+   "subject_ar": "استخدام محسنات التربة في مناطق الإنتاج الزراعي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2024-03-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "农产品产地土壤改良剂使用技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=FCB890506B6C39FA65188C37F7B7CB4B"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 46,
+   "section_ar": "التحسين والتسميد",
+   "received_ref": "NY/T 3955-2021",
+   "verified_ref": "NY/T 3955-2021",
+   "subject_ar": "تصنيف خصوبة تربة الأرز وتحسينها",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2022-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "موضوعه تربة الأرز؛ تطبيقه على قمح أرض جافة يتطلب فحص النطاق.",
+   "title_zh": "水稻土地力分级与培肥改良技术规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=E14F05EC8EB6DA35E05397BE0A0A3E81"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 47,
+   "section_ar": "التحسين / تهيئة الأراضي",
+   "received_ref": "TD/T 1043.1-2013",
+   "verified_ref": "TD/T 1043.1-2013",
+   "subject_ar": "تحسين الأراضي الملحية القلوية بالصرف تحت السطحي: مسح التربة",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2013-12-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "dark tube ترجمة حرفية خاطئة؛ المقصود أنابيب الصرف المدفونة/الصرف تحت السطحي.",
+   "title_zh": "暗管改良盐碱地技术规程 第1部分：土壤调查",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F2552DBB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 48,
+   "section_ar": "التحسين / تهيئة الأراضي",
+   "received_ref": "TD/T 1043.2-2013",
+   "verified_ref": "TD/T 1043.2-2013",
+   "subject_ar": "تحسين الأراضي الملحية القلوية بالصرف تحت السطحي: التخطيط والتصميم والتنفيذ",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2013-12-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "لا تسقط مرحلة التصميم من عنوان الجزء 2.",
+   "title_zh": "暗管改良盐碱地技术规程 第2部分：规划设计与施工",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F26860BB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 49,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "GB 50288-2018",
+   "verified_ref": "GB 50288-2018",
+   "subject_ar": "تصميم مشروعات الري والصرف",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2018-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "تحقق السريان مباشرة في المكتبة الوطنية CNIS. الرقم والعنوان وتاريخ النفاذ 2018-11-01 مثبتة. لم تُراجع جميع الأحكام الإلزامية وتعديلاتها.",
+   "title_zh": "灌溉与排水工程设计标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ndls.cnis.ac.cn/standard/detail/5d051ca1f9ffcd016334c677c59bdb03",
+    "https://slt.fj.gov.cn/xxgk/fggw/qtwj/202407/P020240701625147038310.pdf",
+    "https://swj.sh.gov.cn/cmsres/1c/1cc60741195a4e31a9742c53af8ac480/349e564bf718a23e150c484addcb8843.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 50,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "GB/T 50600-2020",
+   "verified_ref": "GB/T 50600-2020",
+   "subject_ar": "تبطين القنوات لمنع التسرب",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "انظر التصحيح وحدود الدليل",
+   "issued_on": null,
+   "effective_from": "2021-03-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "تاريخ النفاذ الصحيح 2021-03-01 ، وليس 2021-02-01. إعلان الوزارة المنشور لدى دار النشر يصرح بإلغاء GB/T 50600-2010 عند النفاذ.",
+   "title_zh": "渠道防渗衬砌工程技术标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ebook.chinabuilding.com.cn/c/2021-08-04/94541.shtml"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 51,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "GB/T 50625-2023",
+   "verified_ref": "GB/T 50625-2023",
+   "subject_ar": "هندسة الآبار الميكانيكية",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "الإصدار مثبت؛ السريان لم يحسم",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "الإصدار مثبت في فهرس وزارة المياه 2024. تاريخ 2024-05-01 والاستبدال المذكوران في القائمة متوافقان مع إعلان الوزارة المنقول في مواقع معايير؛ لم يُستخدم الموقع التجاري لإثبات حالة 2026.",
+   "title_zh": "机井工程技术标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://slt.fj.gov.cn/xxgk/fggw/qtwj/202407/P020240701625147038310.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 52,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "GB 50265-2022",
+   "verified_ref": "GB 50265-2022",
+   "subject_ar": "تصميم محطات الضخ",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "انظر التصحيح وحدود الدليل",
+   "issued_on": null,
+   "effective_from": "2022-12-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الإصدار ونفاذ 2022-12-01 مثبتان. تصحيح سابقه: GB 50265-2010 دون /T ، كما ألغى أيضًا GB/T 50510-2009. المصدر إعلان الوزارة لدى الناشر الرسمي.",
+   "title_zh": "泵站设计标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ebook.chinabuilding.com.cn/zbooklib/bookpdf/probation?SiteID=1&bookID=154698",
+    "https://snamr.shaanxi.gov.cn/sy/ztzl/sbgxhxfpyjhx/bzcx/gjbz/202410/t20241015_3439005.html"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 53,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "GB/T 50363-2018",
+   "verified_ref": "GB/T 50363-2018",
+   "subject_ar": "هندسة الري الموفّر للمياه",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "مدرج 现行 في المكتبة الوطنية للمعايير؛ يرد أيضًا معيارًا مُصدرًا في فهرس وزارة المياه 2024.",
+   "title_zh": "节水灌溉工程技术标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/detail/c05a075af46a986b243caca5906e2bb7",
+    "https://slt.fj.gov.cn/xxgk/fggw/qtwj/202407/P020240701625147038310.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 54,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "GB/T 20203-2017",
+   "verified_ref": "GB/T 20203-2017",
+   "subject_ar": "نقل مياه الري عبر الأنابيب",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2017-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "رقم واسم وحالة سارية مثبتة في SAMR ؛ نقل مياه الري عبر الأنابيب.",
+   "title_zh": "管道输水灌溉工程技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D82590D3A7E05397BE0A0AB82A",
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=90EDB90FE5C10C1AFB3CDFE60B257F66"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 55,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "GB/T 50085-2007",
+   "verified_ref": "GB/T 50085-2007",
+   "subject_ar": "هندسة الري بالرش",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2007-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "السنة 2007 والحالة السارية مثبتتان بالمكتبة الوطنية. العنوان الدقيق الري بالرش، لا هندسة الري عمومًا. فهرس المياه 2024 يذكر مراجعة قيد الإعداد؛ هذا ليس إصدارًا بديلًا نافذًا.",
+   "title_zh": "喷灌工程技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/detail/4e9a9a05719f35c10ad528b82d3b8a22",
+    "https://slt.fj.gov.cn/xxgk/fggw/qtwj/202407/P020240701625147038310.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 56,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "GB/T 50485-2020",
+   "verified_ref": "GB/T 50485-2020",
+   "subject_ar": "هندسة الري الدقيق",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "الحالة السارية مثبتة في المكتبة الوطنية ضمن المعايير المرتبطة، والإصدار مثبت بفهرس وزارة المياه 2024.",
+   "title_zh": "微灌工程技术标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/detail/bd9b2843bd030dd15d6b66509425ad7c",
+    "https://slt.fj.gov.cn/xxgk/fggw/qtwj/202407/P020240701625147038310.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 57,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "SL/T 4-2020",
+   "verified_ref": "SL/T 4-2020",
+   "subject_ar": "الصرف الزراعي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2020-09-30",
+   "withdrawn_on": null,
+   "correction_note_ar": "تحقق السريان مباشرة في سجل SAMR والمكتبة الوطنية. الرقم والعنوان ونفاذ 2020-09-30 واستبدال SL 4-2013 مثبتة.",
+   "title_zh": "农田排水工程技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=D006FFC05DD78D93E05397BE0A0A3997",
+    "https://hbba.sacinfo.org.cn/rnDetail/57f8c28a0ad16c091ffa9ae300ac8a327cfdfb3e08bbecf52e978e90d114bf33",
+    "https://slt.fj.gov.cn/xxgk/fggw/qtwj/202407/P020240701625147038310.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 58,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "SL 482-2011",
+   "verified_ref": "SL 482-2011",
+   "subject_ar": "تصميم منشآت شبكات قنوات الري والصرف",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ملغى",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "أُلغي فور إعلان وزارة المياه 2025/29 بتاريخ 2025-11-05. الإعلان لا يثبت علاقة استبدال مباشر بـ GB 50288 ؛ ينبغي فصل الإلغاء عن توصية اختيار المرجع الهندسي. سجل SAMR يعرض تاريخ الإلغاء مع عنوان حالة متضارب؛ أخذت بالإعلان الأصلي.",
+   "title_zh": "灌溉与排水渠系建筑物设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://swj.sh.gov.cn/cmsres/93/93225d8c97e84a1a978e50db65672fe2/3a9d8a5e84cf67702ce643ecbb75f90c.pdf",
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F21EFCBB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 59,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "SL 265-2016",
+   "verified_ref": "SL/T 265-2016",
+   "subject_ar": "تصميم بوابات تنظيم المياه",
+   "verification_ar": "تعارض سجلات",
+   "validity_ar": "ساري بالسجل؛ اختلاف في الرمز",
+   "issued_on": null,
+   "effective_from": "2017-02-28",
+   "withdrawn_on": null,
+   "correction_note_ar": "سجل SAMR والسجل القطاعي لعام 2018 يسجلان SL/T 265-2016 كموصى به وساري؛ الغلاف وإعلان الإصدار الأصلي يستخدمان SL 265-2016. يجب حفظ التسمية المسجلة مع الإشارة إلى اختلاف الغلاف، لا اختلاق إصدار جديد. العنوان هو منشآت بوابات تنظيم المياه (sluices)، لا أقفال الملاحة (navigation locks).",
+   "title_zh": "水闸设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailedCNF?id=8B1827F24D6CBB19E05397BE0A0AB44A",
+    "https://hbba.sacinfo.org.cn/rnDetail/e75ca0ad9c6673b9551e068e2027b1d5"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 60,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "GB 5084-2021",
+   "verified_ref": "GB 5084-2021",
+   "subject_ar": "جودة مياه الري الزراعي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2021-07-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "صحيح. معيار جودة مياه الري؛ المصدر الرسمي يؤكد نفاذ 2021-07-01 وإلغاء GB 5084-2005 و GB 22573-2008 و GB 22574-2008.",
+   "title_zh": "农田灌溉水质标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.mee.gov.cn/ywgz/fgbz/bz/bzwb/shjbh/shjzlbz/202102/t20210209_821075.shtml",
+    "https://www.mee.gov.cn/xxgk2018/xxgk/xxgk01/202101/t20210129_819435.html",
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=C205D645F697B676E05397BE0A0A73F7"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 61,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "SL/T 533-2021",
+   "verified_ref": "SL/T 533-2021",
+   "subject_ar": "تقارير التصميم الابتدائي لمشروعات الري والصرف",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "الإصدار مثبت؛ السريان لم يحسم",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "الرقم والعنوان مثبتان في SAC وفهرس 2024. توجد فروق يوم واحد بين سجلين رسميين في تواريخ الإصدار والنفاذ، لذلك لم أُثبت تاريخًا دقيقًا؛ 2024 يسجل المراجعة دون إعلان بديل نافذ.",
+   "title_zh": "灌溉排水工程项目初步设计报告编制规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=D7B84EB1F2D845E9E05397BE0A0AD18E",
+    "https://hbba.sacinfo.org.cn/rnDetail/c04d82af72f788a729e4dd96a09284c256dad8581da79c64b6d9ff7e9dbf5bc8",
+    "https://slt.fj.gov.cn/xxgk/fggw/qtwj/202407/P020240701625147038310.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 62,
+   "section_ar": "المياه / الحماية البيئية",
+   "received_ref": "GB 50201-2014",
+   "verified_ref": "GB 50201-2014",
+   "subject_ar": "الحماية من الفيضانات",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2015-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الناشر الرسمي يعرض الإصدار ساريًا صراحة؛ تؤيده إحالة حكومية في تقييم تطبيق رسمي عام 2026. لم تُراجع جميع مواد الإلزام وتعديلاتها.",
+   "title_zh": "防洪标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ebook.chinabuilding.com.cn/zbooklib/book/detail/show?SiteID=1&bookID=58991",
+    "https://slt.hunan.gov.cn/slt/xxgk/slxw/slxw_1/202606/t20260615_34001916.html",
+    "https://www.cepds.com/u/cms/www/202610/261517153ozz.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 63,
+   "section_ar": "المياه / الحماية البيئية",
+   "received_ref": "GB 51018-2014",
+   "verified_ref": "GB 51018-2014",
+   "subject_ar": "تصميم منشآت صون التربة والمياه",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "الإصدار مثبت؛ السريان لم يحسم",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "الرقم والعنوان مثبتان في مصدر تابع لقطاع حفظ المياه؛ لم يثبت في هذا الفحص سجل حالة رسمي مستقل لعام 2026.",
+   "title_zh": "水土保持工程设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.stbc.cn/stbc/index/article?id=2acc13abf1a6b9f477117a21c92f2960"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 64,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "GB/T 50596-2010",
+   "verified_ref": "GB/T 50596-2010",
+   "subject_ar": "حصاد مياه الأمطار وتخزينها واستعمالها",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2011-02-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الحالة والتاريخ صحيحان. نطاقه يشمل المناطق شبه الجافة ذات متوسط هطول سنوي أكبر من 250 مم المذكورة بالنص، وغيرها من مناطق النقص الموسمي المحددة؛ لا تُنقل متطلباته تلقائيًا إلى الجوف. لا ينطبق على مشاريع حصاد مطر المدن.",
+   "title_zh": "雨水集蓄利用工程技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/detail/aa1e94fba8bc1e24fb52cfb0f9eb0419"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 65,
+   "section_ar": "الري والصرف والمياه",
+   "received_ref": "SL/T 769-2020",
+   "verified_ref": "SL/T 769-2020",
+   "subject_ar": "دراسة موارد المياه لمشروعات الري الزراعي",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2020-08-15",
+   "withdrawn_on": null,
+   "correction_note_ar": "الرقم والعنوان والحالة السارية والتاريخ صحيحة. لكن ادعاء أنه يستبدل SL/T 769-2017 غير مثبت: سجل SAC يسجل 制定 وإعلان وزارة المياه يترك خانة البديل فارغة.",
+   "title_zh": "农田灌溉建设项目水资源论证导则",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://hbba.sacinfo.org.cn/stdDetail/09dacc232c28efc4d5e4228dab63aa0e038fd61839e0c0c8f067c35b6c8b15ea",
+    "https://slqjd.mwr.gov.cn/upload/2020/08-11/16-13-360300152291195.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 66,
+   "section_ar": "الطرق والجسور",
+   "received_ref": "GB/T 51224-2017",
+   "verified_ref": "GB/T 51224-2017",
+   "subject_ar": "هندسة الطرق الريفية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2017-02-21",
+   "effective_from": "2017-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "يشمل تصميم وإنشاء وقبول الطرق الريفية الجديدة والمعدلة. تطبق متطلبات الطريق بحسب تصنيفه.",
+   "title_zh": "乡村道路工程技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ndls.cnis.ac.cn/standard/detail/5fed1d6e99ea3a480f6ac5cf14ddfdc2"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 67,
+   "section_ar": "الطرق والجسور",
+   "received_ref": "NY/T 2194-2012",
+   "verified_ref": "NY/T 2194-2012",
+   "subject_ar": "طرق حركة الآلات الزراعية داخل الحقول",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2012-12-07",
+   "effective_from": "2013-03-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "طرق الآلات الزراعية؛ لا تُترجم إلى طرق المشاة.",
+   "title_zh": "农业机械田间行走道路技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=AFF1DE924E7125D2E05397BE0A0ADBDF"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 68,
+   "section_ar": "الطرق والجسور",
+   "received_ref": "JTG D60-2015",
+   "verified_ref": "JTG D60-2015",
+   "subject_ar": "المتطلبات العامة لتصميم جسور وعبارات الطرق",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2015-09-09",
+   "effective_from": "2015-12-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "السجل الرسمي لوزارة النقل يثبت السريان؛ استبدل JTG D60-2004.",
+   "title_zh": "公路桥涵设计通用规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://jtst.mot.gov.cn/hb/search/stdHBDetailed?id=0bba71b2a8599df1427e457629b89187"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 69,
+   "section_ar": "الطرق والجسور",
+   "received_ref": "JTG 3362-2018",
+   "verified_ref": "JTG 3362-2018",
+   "subject_ar": "تصميم جسور وعبارات الطرق من الخرسانة المسلحة وسابقة الإجهاد",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2018-07-16",
+   "effective_from": "2018-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "استبدل JTG D62-2004. تُراجع ملاءمة تصنيف المنشأة قبل استعماله للجسور الزراعية.",
+   "title_zh": "公路钢筋混凝土及预应力混凝土桥涵设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://jtst.mot.gov.cn/hb/search/stdHBDetailed?id=43905ea5cfb5e748c54f6413238b510e"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 70,
+   "section_ar": "الطرق والجسور",
+   "received_ref": "JTG 3363-2019",
+   "verified_ref": "JTG 3363-2019",
+   "subject_ar": "تربة وأساسات جسور وعبارات الطرق",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2019-12-17",
+   "effective_from": "2020-04-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "استبدل JTG D63-2007.",
+   "title_zh": "公路桥涵地基与基础设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://jtst.mot.gov.cn/hb/search/stdHBDetailed?id=5c99885f81d578b66f1129be81405ede"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 71,
+   "section_ar": "الطرق والجسور",
+   "received_ref": "JTG/T 3650-2020",
+   "verified_ref": "JTG/T 3650-2020",
+   "subject_ar": "إنشاء جسور وعبارات الطرق",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2020-06-18",
+   "effective_from": "2020-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "معيار توصوي ساري في سجل وزارة النقل؛ استبدل JTG/T F50-2011.",
+   "title_zh": "公路桥涵施工技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://jtst.mot.gov.cn/hb/search/stdHBDetailed?id=b5581f4b254f25d2cd1d5b07d6a8b1d2"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 72,
+   "section_ar": "الطرق والجسور",
+   "received_ref": "JTG 2111-2019",
+   "verified_ref": "JTG 2111-2019",
+   "subject_ar": "هندسة الطرق الريفية قليلة المرور",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2019-02-19",
+   "effective_from": "2019-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "لا يكفي كون الطريق داخل مزرعة لاعتباره طريقًا من هذا التصنيف.",
+   "title_zh": "小交通量农村公路工程技术标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://jtst.mot.gov.cn/hb/search/stdHBDetailed?id=93801327c30c9285ab471295a84dec64"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 73,
+   "section_ar": "الطرق والجسور",
+   "received_ref": "JTG/T F30-2014",
+   "verified_ref": "JTG/T F30-2014",
+   "subject_ar": "تنفيذ الرصف الخرساني للطرق",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2014-01-10",
+   "effective_from": "2014-04-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "استبدل JTG F30-2003 ؛ توصوي ساري في سجل وزارة النقل.",
+   "title_zh": "公路水泥混凝土路面施工技术细则",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://jtst.mot.gov.cn/hb/search/stdHBDetailed?id=0dec28851d6c4f72f2859b020dc3ecdd"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 74,
+   "section_ar": "الحماية البيئية والتشجير",
+   "received_ref": "GB/T 15776-2016",
+   "verified_ref": "GB/T 15776-2023",
+   "subject_ar": "الإجراءات الفنية للتشجير",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "الإصدار المذكور ملغى؛ البديل ساري",
+   "issued_on": "2023-05-23",
+   "effective_from": "2023-05-23",
+   "withdrawn_on": null,
+   "correction_note_ar": "استُبدل إصدار 2016 كليًا بإصدار 2023. القائمة تخطئ في وصف 2016 بالساري.",
+   "title_zh": "造林技术规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=UW4R1avDTBQ%3D&mode=p"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 75,
+   "section_ar": "الحماية البيئية والتشجير",
+   "received_ref": "GB/T 50817-2013",
+   "verified_ref": "GB/T 50817-2013",
+   "subject_ar": "تصميم الأحزمة الشجرية الواقية للأراضي الزراعية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2012-12-25",
+   "effective_from": "2013-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "مرجع متخصص للأحزمة الواقية؛ يثبت الناشر والمكتبة الوطنية حالته.",
+   "title_zh": "农田防护林工程设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/detail/df02cba956de5b615dbeb458ad48caeb"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 76,
+   "section_ar": "الحماية البيئية والتشجير",
+   "received_ref": "GB/T 50885-2013",
+   "verified_ref": "GB/T 50885-2013",
+   "subject_ar": "تصميم غابات حماية الموارد المائية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري بحسب الناشر",
+   "issued_on": "2013-08-08",
+   "effective_from": "2014-03-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "غابات حماية الموارد المائية؛ ليس تصنيفًا عامًا لجميع غابات الحماية.",
+   "title_zh": "水源涵养林工程设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ebook.chinabuilding.com.cn/zbooklib/book/detail/show?SiteID=1&bookID=58476"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 77,
+   "section_ar": "الحماية البيئية والتشجير",
+   "received_ref": "GB/T 51085-2015",
+   "verified_ref": "GB/T 51085-2015",
+   "subject_ar": "تصميم غابات صد الرياح وتثبيت الرمال",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": "2015-03-08",
+   "effective_from": "2015-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "كلمة asbestos في القائمة خطأ ترجمة. المقصود صد الرياح وتثبيت الرمال، ولا علاقة للمعيار بالأسبستوس.",
+   "title_zh": "防风固沙林工程设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/detail/3e3f425ec6447bc9328a28fcdd4b1199"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 78,
+   "section_ar": "الحماية البيئية والتشجير",
+   "received_ref": "GB/T 51097-2015",
+   "verified_ref": "GB/T 51097-2015",
+   "subject_ar": "تصميم غابات صون التربة والمياه",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2015-03-08",
+   "effective_from": "2015-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "السريان مثبت لدى المكتبة الوطنية للمعايير.",
+   "title_zh": "水土保持林工程设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/detail/866bb3c9ff2f59a399f918953c7ee100"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 79,
+   "section_ar": "الحماية البيئية والتشجير",
+   "received_ref": "GB 50433-2018",
+   "verified_ref": "GB 50433-2018",
+   "subject_ar": "صون التربة والمياه في مشروعات الإنتاج والإنشاء",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "مرجع وارد في دليل رسمي 2026",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "دليل هيئة المياه لعام 2026 يستشهد به. لم تُراجع جميع مواد الإلزام وتعديلاتها ضمن هذا التدقيق.",
+   "title_zh": "生产建设项目水土保持技术标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://swj.pingliang.gov.cn/zfxxgk/fdzdgknr/lzyj/sjzc/art/2026/art_7d17dd02dd2c46e996ea943068ac362d.html"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 80,
+   "section_ar": "الحماية البيئية والتشجير",
+   "received_ref": "GB/T 50434-2018",
+   "verified_ref": "GB/T 50434-2018",
+   "subject_ar": "مكافحة فقد التربة في مشروعات الإنتاج والإنشاء",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "مرجع وارد في دليل رسمي 2026",
+   "issued_on": null,
+   "effective_from": "2019-04-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "تاريخ النفاذ مثبت في النص المنشور حكوميًا. لا يخلط مع معيار إدارة الأراضي المنحدرة.",
+   "title_zh": "生产建设项目水土流失防治标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://sswj.shenyang.gov.cn/ggl/202510/P020251015604537807522.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 81,
+   "section_ar": "الحماية البيئية والتشجير",
+   "received_ref": "GB/T 16453.1-2008",
+   "verified_ref": "GB/T 16453.1-2008",
+   "subject_ar": "المعالجة المتكاملة لصون التربة والمياه: إدارة الأراضي الزراعية المنحدرة",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري؛ تجري مراجعة",
+   "issued_on": "2008-11-14",
+   "effective_from": "2009-02-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "السجل يبين مراجعة 2026 ومشروع تعديل 20262513-T-332 قيد الصياغة؛ لا يساوي ذلك إلغاء إصدار 2008.",
+   "title_zh": "水土保持综合治理 技术规范 坡耕地治理技术",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7620AD3A7E05397BE0A0AB82A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 82,
+   "section_ar": "الحماية البيئية والتشجير",
+   "received_ref": "SL 575-2012",
+   "verified_ref": "SL 575-2012",
+   "subject_ar": "صون التربة والمياه في مشروعات المياه والطاقة الكهرومائية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2012-10-08",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "يثبت SAMR السريان. سجل النفاذ فيه يسبق تاريخ الإصدار على نحو غير متسق؛ لذلك لم أنقل تاريخ النفاذ كحقيقة موثقة.",
+   "title_zh": "水利水电工程水土保持技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailedCNF?id=8B1827F1F718BB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 83,
+   "section_ar": "الحماية البيئية والتشجير",
+   "received_ref": "SL 419-2007",
+   "verified_ref": "SL 419-2007 / تعارض سجل 2008",
+   "subject_ar": "إجراءات تجارب صون التربة والمياه",
+   "verification_ar": "غير محسوم",
+   "validity_ar": "تعارض في رقم الإصدار بين مصادر رسمية",
+   "issued_on": "2008-01-04",
+   "effective_from": "2008-04-04",
+   "withdrawn_on": null,
+   "correction_note_ar": "الناشر الأصلي ودليل الوزارة 2024 يذكران SL 419-2007 ؛ SAMR/HBBA يسجلان SL 419-2008 بالاسم وتاريخ النشر نفسيهما. لا يصح تغيير السنة آليًا دون مراجعة أصل الإعلان.",
+   "title_zh": "水土保持试验规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.waterpub.com.cn/shop/detail_536994.html",
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F23CA5BB19E05397BE0A0AB44A",
+    "https://slt.fj.gov.cn/xxgk/fggw/qtwj/202407/P020240701625147038310.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 84,
+   "section_ar": "الكهرباء",
+   "received_ref": "GB 50052-2009",
+   "verified_ref": "GB 50052-2009",
+   "subject_ar": "تصميم أنظمة الإمداد والتوزيع الكهربائي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "الحالة السارية مثبتة بالمكتبة الوطنية في علاقة الإصدار البديل؛ لم يُدقق نطاق تعديلات البنود الإلزامية.",
+   "title_zh": "供配电系统设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/detail/71ecce5ec63266e3f6639fdd19f313a8"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 85,
+   "section_ar": "الكهرباء",
+   "received_ref": "GB 50053-2013",
+   "verified_ref": "GB 50053-2013",
+   "subject_ar": "تصميم المحطات الفرعية بجهد 20 كيلوفولت فأقل",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2014-07-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الناشر الرسمي يعرض الإصدار ساريًا صراحة، مع تاريخ الإصدار 2013-12-19 والنفاذ 2014-07-01. لم يُدقق كل بند إلزامي وتعديلاته.",
+   "title_zh": "20kV及以下变电所设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ebook.chinabuilding.com.cn/zbooklib/book/detail/show?SiteID=1&bookID=59211",
+    "https://gf.cabr-fire.com/article-8317.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 86,
+   "section_ar": "الكهرباء",
+   "received_ref": "GB 50054-2011",
+   "verified_ref": "GB 50054-2011",
+   "subject_ar": "تصميم توزيع الجهد المنخفض",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "مدرج ساريًا في المكتبة الوطنية للمعايير؛ سلامة الأحكام الإلزامية تحتاج مراجعة عند التطبيق.",
+   "title_zh": "低压配电设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/index?a209=%E5%9B%BD%E9%99%85%E9%93%9C%E4%B8%9A%E5%8D%8F%E4%BC%9A%28%E4%B8%AD%E5%9B%BD%29"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 87,
+   "section_ar": "الكهرباء",
+   "received_ref": "GB 50060-2008",
+   "verified_ref": "GB 50060-2008",
+   "subject_ar": "تصميم تجهيزات التوزيع بجهد 3–110 كيلوفولت",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "الإصدار مثبت؛ السريان لم يحسم",
+   "issued_on": null,
+   "effective_from": "2009-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "مدرج معيارًا مُصدرًا في فهرس هيئة قطاع تصميم الطاقة، أكتوبر 2026 ؛ لا يُستنتج أن جميع البنود الأصلية إلزامية دون تدقيق.",
+   "title_zh": "3～110kV高压配电装置设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.cepds.com/u/cms/www/202610/261517153ozz.pdf",
+    "https://www.nea.gov.cn/135837763_14793790193281n.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 88,
+   "section_ar": "الكهرباء",
+   "received_ref": "DL/T 5118-2010",
+   "verified_ref": "DL/T 5118-2010",
+   "subject_ar": "تخطيط وتصميم الشبكات الكهربائية الريفية",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "الإصدار مثبت؛ السريان لم يحسم",
+   "issued_on": null,
+   "effective_from": "2011-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الرقم والإصدار والاستبدال DL/T 5118-2000 مثبتة في NEA ؛ ضمن فهرس المعايير السارية 2023 المنشور على NEA عام 2024. لم يثبت فحص حالة مستقل حتى 2026.",
+   "title_zh": "农村电力网规划设计导则",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.nea.gov.cn/2011-10/31/c_131221423.htm",
+    "https://prpq.nea.gov.cn/uploads/file1/20240911/66e1071abaa30.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 89,
+   "section_ar": "الكهرباء",
+   "received_ref": "DL/T 5220-2021",
+   "verified_ref": "DL/T 5220-2021",
+   "subject_ar": "تصميم خطوط التوزيع الهوائية بجهد 10 كيلوفولت فأقل",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "الإصدار مثبت؛ السريان لم يحسم",
+   "issued_on": null,
+   "effective_from": "2021-07-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الرقم والعنوان والنفاذ واستبدال DL/T 5220-2005 مثبتة في إعلان منشور لدى هيئة قطاع تصميم الطاقة؛ لم يثبت سجل حالة فردي حديث.",
+   "title_zh": "10kV及以下架空配电线路设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://cepds.eppei.com/u/cms/www/202104/080112419jlj.pdf",
+    "https://www.ndls.org.cn/standard/detail/a5ab791a4efde5baa99fbf403fd6e5f7"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 90,
+   "section_ar": "الكهرباء",
+   "received_ref": "DL/T 499-2001",
+   "verified_ref": "DL/T 499-2001",
+   "subject_ar": "الاستعمال الريفي للكهرباء منخفضة الجهد",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2002-02-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "SAMR يسجله ساريًا. خطة NEA لعام 2023 تحتوي مراجعة مستهدفة في 2024 ؛ ليست دليل إصدار DL/T 499-2024. لم أجد إعلان بديل نافذ في هذه المراجعة.",
+   "title_zh": "农村低压电力技术规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F1B0E1BB19E05397BE0A0AB44A",
+    "https://zfxxgk.nea.gov.cn/1310745003_16970751588541n.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 91,
+   "section_ar": "الكهرباء",
+   "received_ref": "GB/T 14049",
+   "verified_ref": "GB/T 14049-2008",
+   "subject_ar": "الكابلات الهوائية المعزولة بجهد 10 كيلوفولت",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2009-04-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "أكمل السنة المفقودة إلى 2008 ؛ SAMR يسجل الإصدار ساريًا.",
+   "title_zh": "额定电压10kV架空绝缘电缆",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/std_list?p.p1=0&p.p2=%E6%9E%B6%E7%A9%BA%E7%BB%9D%E7%BC%98&p.p90=circulation_date&p.p91=desc"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 92,
+   "section_ar": "الكهرباء",
+   "received_ref": "GB/T 12527",
+   "verified_ref": "GB/T 12527-2008",
+   "subject_ar": "الكابلات الهوائية المعزولة بجهد 1 كيلوفولت فأقل",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2009-04-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "أكمل السنة المفقودة إلى 2008 ؛ SAMR يسجل الإصدار ساريًا.",
+   "title_zh": "额定电压1 kV及以下架空绝缘电缆",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/std_list?p.p1=0&p.p2=%E6%9E%B6%E7%A9%BA%E7%BB%9D%E7%BC%98&p.p90=circulation_date&p.p91=desc"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 93,
+   "section_ar": "الكهرباء",
+   "received_ref": "GB/T 50065-2011",
+   "verified_ref": "GB/T 50065-2011",
+   "subject_ar": "تصميم تأريض التجهيزات الكهربائية للتيار المتناوب",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "الإصدار مثبت؛ السريان لم يحسم",
+   "issued_on": null,
+   "effective_from": "2012-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "مدرج معيارًا مُصدرًا في فهرس هيئة قطاع تصميم الطاقة، أكتوبر 2026 ؛ لم يُفحص كل النص.",
+   "title_zh": "交流电气装置的接地设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.cepds.com/u/cms/www/202610/261517153ozz.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 94,
+   "section_ar": "الكهرباء",
+   "received_ref": "GB 50194-2022",
+   "verified_ref": "GB 50194-2014",
+   "subject_ar": "سلامة إمداد واستهلاك الكهرباء بمواقع الإنشاء",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "انظر التصحيح وحدود الدليل",
+   "issued_on": null,
+   "effective_from": "2015-01-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "السنة 2022 خطأ؛ المصدر الحكومي للنص يوضح 2014 ونفاذ 2015-01-01 ، والمكتبة الوطنية تسجله ساريًا.",
+   "title_zh": "建设工程施工现场供用电安全规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://zjw.sh.gov.cn/cmsres/96/9668e689beb34f71bee93c99ca684ef8/8f5195611e9657e0dc13d71a60f2a38f.pdf",
+    "https://ndls.cnis.ac.cn/standard/index?draftman=%E9%99%88%E5%BB%BA%E4%B8%AD"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 95,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1013-2013",
+   "verified_ref": "TD/T 1013-2013",
+   "subject_ar": "قبول مشروعات تهيئة الأراضي وتأهيلها",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2013-12-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "استبدل 1013-2000.",
+   "title_zh": "土地整治项目验收规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F2597DBB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 96,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1012-2016",
+   "verified_ref": "TD/T 1012-2016",
+   "subject_ar": "تخطيط وتصميم مشروعات تهيئة الأراضي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2016-08-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "صحيح؛ لا يختلط 1032-2011 الخاص بتحديد حدود الأراضي الأساسية.",
+   "title_zh": "土地整治项目规划设计规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F262EFBB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 97,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1033-2012",
+   "verified_ref": "TD/T 1033-2012",
+   "subject_ar": "إنشاء الأراضي الزراعية الأساسية عالية التجهيز",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2012-07-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "السجل الرسمي ما زال يصنفه ساريًا؛ إلغاء NY2148 لا يلغي هذا الرقم تلقائيًا.",
+   "title_zh": "高标准基本农田建设标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F25972BB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 98,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1040-2013",
+   "verified_ref": "TD/T 1040-2013",
+   "subject_ar": "إعداد خرائط مشروعات تهيئة الأراضي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2013-08-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土地整治项目制图规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F2576BBB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 99,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1041-2013",
+   "verified_ref": "TD/T 1041-2013",
+   "subject_ar": "فحص وتقييم جودة أعمال تهيئة الأراضي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2013-12-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土地整治工程质量检验与评定规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F2528CBB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 100,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1042-2013",
+   "verified_ref": "TD/T 1042-2013",
+   "subject_ar": "الإشراف على تنفيذ أعمال تهيئة الأراضي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2013-12-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土地整治工程施工监理规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F2528DBB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 101,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1044-2014",
+   "verified_ref": "TD/T 1044-2014",
+   "subject_ar": "قبول إعادة تأهيل الأراضي لمشروعات الإنتاج",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2014-12-30",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "生产项目土地复垦验收规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F2685FBB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 102,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1045-2016",
+   "verified_ref": "TD/T 1045-2016",
+   "subject_ar": "إعداد معايير إنشاء أعمال تهيئة الأراضي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2016-08-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "معيار لكيفية كتابة معايير الإنشاء؛ ليس بذاته تصميمًا لكل مشروع.",
+   "title_zh": "土地整治工程建设标准编写规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F26331BB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 103,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1046-2016",
+   "verified_ref": "TD/T 1046-2016",
+   "subject_ar": "تسوية حقوق ملكية الأرض عند تهيئتها",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2016-08-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土地整治权属调整规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F264FABB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 104,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1049-2016",
+   "verified_ref": "TD/T 1049-2016",
+   "subject_ar": "مسح المعلومات الأساسية لإعادة تأهيل أراضي المناجم",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2016-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الموضوع خاص بأراضي المناجم؛ لا يدخل تلقائيًا كل مشروع أرض زراعية.",
+   "title_zh": "矿山土地复垦基础信息调查规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F262E7BB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 105,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1050-2017",
+   "verified_ref": "TD/T 1050-2017",
+   "subject_ar": "تصنيف وترميز معلومات تهيئة الأراضي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2017-09-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土地整治信息分类与编码规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F24C65BB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 106,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1051-2017",
+   "verified_ref": "TD/T 1051-2017",
+   "subject_ar": "المسوحات الأساسية لمشروعات تهيئة الأراضي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2017-09-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土地整治项目基础调查规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F24C5ABB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 107,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1053-2017",
+   "verified_ref": "TD/T 1053-2017",
+   "subject_ar": "قاعدة بيانات مراتب جودة الأراضي الزراعية",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "الإصدار مثبت؛ السريان لم يحسم",
+   "issued_on": null,
+   "effective_from": "2018-03-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "وجوده وعنوانه ونفاذه مثبت بإعلان الوزارة المعاد نشره حكوميًا؛ لم أعثر في هذا الفحص على بطاقة سجل رسمي حديثة مستقلة تؤكد الحالة الحالية.",
+   "title_zh": "农用地质量分等数据库标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.hhsp.gov.cn/info/2991/385641.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 108,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1054-2018",
+   "verified_ref": "TD/T 1054-2018",
+   "subject_ar": "مصطلحات تهيئة الأراضي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2018-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": null,
+   "title_zh": "土地整治术语",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F14EECBB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 109,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1068-2022",
+   "verified_ref": "TD/T 1068-2022",
+   "subject_ar": "إعداد خطط تنفيذ مشروعات الحماية والاستعادة البيئية للأقاليم",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "الإصدار مثبت؛ السريان لم يحسم",
+   "issued_on": null,
+   "effective_from": "2022-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "إعلان وزارة الموارد الطبيعية مؤرخ 2022-07-07 يثبت الإصدار والنفاذ؛ لا تدقيق مستقل لكل تحديث لاحق في سجل الوزارة.",
+   "title_zh": "国土空间生态保护修复工程实施方案编制规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.tmg.gov.cn/ztzl/zrzyhghzt/xxgk/156984.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 110,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1069-2022",
+   "verified_ref": "TD/T 1069-2022",
+   "subject_ar": "قبول مشروعات الحماية والاستعادة البيئية للأقاليم",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "الإصدار مثبت؛ السريان لم يحسم",
+   "issued_on": null,
+   "effective_from": "2022-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "مثبت في إعلان الوزارة نفسه؛ الحالة الحالية لم تُتحقق من بطاقة سجل محدثة مستقلة.",
+   "title_zh": "国土空间生态保护修复工程验收规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.tmg.gov.cn/ztzl/zrzyhghzt/xxgk/156984.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 111,
+   "section_ar": "تهيئة الأراضي",
+   "received_ref": "TD/T 1032",
+   "verified_ref": "TD/T 1032-2011",
+   "subject_ar": "تحديد وترسيم الأراضي الزراعية الأساسية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2011-06-30",
+   "withdrawn_on": null,
+   "correction_note_ar": "يؤكد تصحيح القائمة: ليس معيار تخطيط مشروعات تهيئة الأراضي، والنسخة المثبتة 2011.",
+   "title_zh": "基本农田划定技术规程",
+   "record_type_ar": "إحالة وردت في التنبيهات",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=8B1827F25643BB19E05397BE0A0AB44A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 112,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "国办发〔2019〕50号",
+   "verified_ref": "国办发〔2019〕50号",
+   "subject_ar": "السياسة الوطنية لتعزيز إنشاء الأراضي الزراعية عالية التجهيز",
+   "verification_ar": "مؤكد",
+   "validity_ar": "سياسة سارية بحسب السجل",
+   "issued_on": "2019-11-13",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "وثيقة سياسة وليست معيارًا تقنيًا. صفحة رسمية تشير إلى أنها سارية؛ تاريخ تحريرها 13 نوفمبر 2019 ونشرها 21 نوفمبر.",
+   "title_zh": "国务院办公厅关于切实加强高标准农田建设提升国家粮食安全保障能力的意见",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.beijing.gov.cn/zhengce/zhengcefagui/201911/t20191121_518269.html"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 113,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "Central implementation plan 2025-03-30",
+   "verified_ref": "رقم الوثيقة غير متحقق من المصدر المقروء",
+   "subject_ar": "الخطة الوطنية للتحويل التدريجي للأراضي الأساسية الدائمة",
+   "verification_ar": "مؤكد",
+   "validity_ar": "سياسة منشورة",
+   "issued_on": "2025-03-30",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "وثيقة وطنية منشورة رسميًا بتاريخ 30 مارس 2025 ، وليست معيارًا برقم GB أو NY.",
+   "title_zh": "逐步把永久基本农田建成高标准农田实施方案",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ntjss.moa.gov.cn/zcfb/202505/t20250515_6473974.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 114,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "农建发〔2025〕3号",
+   "verified_ref": "农建发〔2025〕3号",
+   "subject_ar": "إدارة جودة إنشاء الأراضي الزراعية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "سياسة منشورة",
+   "issued_on": "2025-04-23",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "رقم الوثيقة وتاريخ تحريرها 23 أبريل 2025 وتاريخ نشرها المبين 19 نوفمبر 2025 مؤكدة. الجهة هي وزارة الزراعة والشؤون الريفية؛ لا لجنة التنمية والإصلاح.",
+   "title_zh": "高标准农田建设质量管理办法",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ntjss.moa.gov.cn/zcfb/202511/t20251119_6479037.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 115,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "农建发〔2025〕6号",
+   "verified_ref": "农建发〔2025〕6号",
+   "subject_ar": "إجراءات القبول النهائي لمشروعات الأراضي الزراعية",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "وثيقة إدارية نافذة",
+   "issued_on": "2025-09-11",
+   "effective_from": "2025-12-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "خطأ بداية النفاذ: المادة 23 تقول 1 ديسمبر 2025 وليس 25 سبتمبر. التوقيع في النص 11 سبتمبر 2025 ، لا 12 سبتمبر. تُلغى 农建发〔2021〕5号 عند نفاذ الجديدة. شروط القبول عشرة؛ خرائط الإنجاز تُوقّع من التصميم والتنفيذ والإشراف؛ وترد تجربة تشغيل من 3 إلى 6 أشهر في المادة 8.",
+   "title_zh": "高标准农田建设项目竣工验收办法（试行）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ntjss.moa.gov.cn/zcfb/202511/t20251124_6479135.htm",
+    "https://www.beijing.gov.cn/zhengce/zhengcefagui/202610/t20261026_4918247.html"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 116,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "农建发〔2025〕4号",
+   "verified_ref": "农建发〔2025〕4号",
+   "subject_ar": "إدارة صيانة مرافق الأراضي الزراعية",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "سياسة منشورة",
+   "issued_on": "2025-05-26",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "تاريخ الإصدار 26 مايو صحيح؛ صفحة الوزارة تحمل 17 نوفمبر 2025 وليست 16 نوفمبر. تتطلب تحديد جهة الصيانة قبل تنفيذ المرافق.",
+   "title_zh": "高标准农田工程设施管护办法（试行）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ntjss.moa.gov.cn/zcfb/202511/t20251117_6478955.htm",
+    "https://www.beijing.gov.cn/zhengce/zhengcefagui/202610/t20261026_4918369.html"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 117,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "农办建〔2026〕14号",
+   "verified_ref": "رقم الوثيقة غير متحقق من المصدر المقروء",
+   "subject_ar": "إخطار إصدار قواعد التقدير والجداول الزراعية لعام 2026",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "وثيقة إدارية نافذة",
+   "issued_on": "2026-09-16",
+   "effective_from": "2026-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الإخطار وحزمة الأربعة وتاريخ النفاذ مؤكدة. الرقم 14 موجود بمصادر ثانوية لكن نص صفحة الوزارة المفتوحة لا يعرضه، فلم أثبته مستقلًا. لا يتضمن الإخطار نصًا يلغي كل كلف المياه والبناء والبلديات أو يفرض أولوية شانغدونغ المزعومة.",
+   "title_zh": "关于发布《农田建设项目概算编制规定（2026版）》及相关定额的通知",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ntjss.moa.gov.cn/tzgg/202610/t20261012_6488505.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 118,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "Dryland technical specification 2023-08-15",
+   "verified_ref": "رقم الوثيقة غير متحقق من المصدر المقروء",
+   "subject_ar": "المواصفة التجريبية لإنشاء الأراضي الزراعية الجافة",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "إرشاد تجريبي منشور",
+   "issued_on": "2023-08-15",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "التاريخ 15 أغسطس 2023 ، وليس 8 أغسطس الوارد في التنبيه الختامي. نطاقه 13 منطقة إنشاء، ولا يقتصر على Huang-Huai-Hai. يغطي جمع المياه وخزنها والتعويض والترشيد والصرف؛ أرقام الري التكميلي الطارئ إقليمية لا تُنقل آليًا خارج الصين.",
+   "title_zh": "旱地高标准农田建设技术规范（试行）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ntjss.moa.gov.cn/zcfb/202309/t20230928_6437576.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 119,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "Shandong permanent basic farmland plan 2026-01",
+   "verified_ref": "رقم الوثيقة غير متحقق من المصدر المقروء",
+   "subject_ar": "خطة شاندونغ للتحويل التدريجي للأراضي الأساسية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "سياسة إقليمية منشورة",
+   "issued_on": "2026-01",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "وجود الوثيقة وتقسيم المناطق ومبدأ التسوية ووصول الماء والطرق وتحسين الخصوبة والإنتاج والعائد ثبت بموقع حكومي. إنها سياسة إقليمية صينية.",
+   "title_zh": "山东省逐步把永久基本农田建成高标准农田实施方案",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.longkou.gov.cn/col/col53325/art/2026/art_a7ef35612f714648a312a1bf0f55b582.html"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 120,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "鲁农法字〔2024〕19号",
+   "verified_ref": "鲁农法字〔2024〕19号",
+   "subject_ar": "إدارة مشروعات إنشاء الأراضي الزراعية في شاندونغ",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "محال إليه رسميًا في 2026",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "وجود الوثيقة ورقمها وإحالة السلطات إليها في 2026 مؤكد. لم أثبت النص الأصلي وتفاصيل 19 نوفمبر 2024 و 1 يناير 2025 و 31 ديسمبر 2029 من مصدر أولي في هذه المراجعة.",
+   "title_zh": "山东省农业农村厅关于修改并继续执行《山东省农田建设项目管理办法》的通知",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://jnny.jinan.gov.cn/col/col514/art/2026/art_f750ba941fd746e28e391923f979c516.html",
+    "https://www.qingdao.gov.cn/zwgk/zdgk/fgwj/gfxwj/bmgfxwjn/202504/t20250401_9220299.shtml"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 121,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "Shandong high-standard farmland plan 2021-2030",
+   "verified_ref": "رقم الوثيقة غير متحقق من المصدر المقروء",
+   "subject_ar": "خطة شاندونغ للأراضي الزراعية 2021–2030",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "خطة إقليمية منشورة",
+   "issued_on": "2022-07-09",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "جهة حكومية في جينان تؤكد أن حكومة شانغدونغ اعتمدت الخطة في 9 يوليو 2022. لم أقرأ ملف الخطة ذاته.",
+   "title_zh": "山东省高标准农田建设规划（2021—2030年）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://jnny.jinan.gov.cn/col87267/art/2023/art_87267_4780065.html"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 122,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "鲁政办发〔2020〕12号",
+   "verified_ref": "鲁政办发〔2020〕12号",
+   "subject_ar": "رأي تنفيذي لشاندونغ بشأن تعزيز إنشاء الأراضي الزراعية",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "محال إليه رسميًا",
+   "issued_on": "2020",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "وجود الوثيقة وعنوانها ورقمها في إحالة حكومية مؤكد؛ لم أثبت الحالة الراهنة من سجل إلغاء خاص.",
+   "title_zh": "关于切实加强高标准农田建设提升国家粮食安全保障能力的实施意见",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.qingdao.gov.cn/zwgk/xxgk/bgt/gkml/gwfg/202010/t20201016_350095.shtml"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 123,
+   "section_ar": "السياسات وإدارة المشروع",
+   "received_ref": "鲁农建字〔2022〕15号",
+   "verified_ref": "鲁农建字〔2022〕15号",
+   "subject_ar": "بناء منظومة تخطيط الأراضي الزراعية في شاندونغ",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "محال إليه رسميًا",
+   "issued_on": "2022-04-18",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "الرقم وعنوان الإخطار وتاريخ 18 أبريل 2022 مؤكدة بإحالة حكومية؛ لم أقرأ الأصل.",
+   "title_zh": "关于进一步加快构建全省高标准农田建设规划体系的通知",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://jnny.jinan.gov.cn/col87267/art/2023/art_87267_4780065.html"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 124,
+   "section_ar": "الرقمنة والأرصاد والأرشيف",
+   "received_ref": "GB/T 45890-2025",
+   "verified_ref": "GB/T 45890-2025",
+   "subject_ar": "دعم الأرصاد الجوية لإنشاء الأراضي الزراعية عالية التجهيز",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2025-06-30",
+   "effective_from": "2025-10-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الرقم والعنوان والحالة وتاريخ النفاذ صحيحة.",
+   "title_zh": "高标准农田建设气象保障规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=40C83AAF56712E288AFC096ACFFD284F"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 125,
+   "section_ar": "الرقمنة والأرصاد والأرشيف",
+   "received_ref": "NY/T 4732-2025",
+   "verified_ref": "NY/T 4732-2025",
+   "subject_ar": "قاعدة بيانات جودة الأراضي المزروعة",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2025-04-27",
+   "effective_from": "2025-08-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الرقم والعنوان والنفاذ صحيحة؛ معيار قطاعي توصوي لقاعدة بيانات جودة الأرض.",
+   "title_zh": "耕地质量数据库规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=3B99FAC7B0731677E06397BE0A0A4403"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 126,
+   "section_ar": "الرقمنة والأرصاد والأرشيف",
+   "received_ref": "NY/T 4730-2025",
+   "verified_ref": "NY/T 4730-2025",
+   "subject_ar": "إدارة أرشيف مشروعات الأراضي الزراعية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2025-04-27",
+   "effective_from": "2025-08-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "صحيح؛ يتناول إدارة أرشيف مشروعات إنشاء الأراضي.",
+   "title_zh": "高标准农田建设项目档案管理规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=3B99FAC7B0711677E06397BE0A0A4403"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 127,
+   "section_ar": "الرقمنة والأرصاد والأرشيف",
+   "received_ref": "NY/T 4731-2025",
+   "verified_ref": "NY/T 4731-2025",
+   "subject_ar": "إعداد خطط الأراضي الزراعية على مستوى المقاطعة المحلية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2025-04-27",
+   "effective_from": "2025-08-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "صحيح؛ يتناول إعداد التخطيط على مستوى المقاطعة الصغيرة County.",
+   "title_zh": "县级高标准农田建设规划编制规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://hbba.sacinfo.org.cn/stdDetail/defc81d7cb623d1e79932cbd9db213c5a3f8d099352bf13b01642bc1d3fb1f74"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 128,
+   "section_ar": "الرقمنة والأرصاد والأرشيف",
+   "received_ref": "NY/T 4602-2025",
+   "verified_ref": "NY/T 4602-2025",
+   "subject_ar": "خرائط مشروعات الأراضي الزراعية",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ساري",
+   "issued_on": "2025-01-09",
+   "effective_from": "2025-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "تاريخ النفاذ الصحيح 1 مايو 2025 ، لا 1 أغسطس 2025.",
+   "title_zh": "高标准农田建设项目制图规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://hbba.sacinfo.org.cn/stdDetail/68afd0f742ba14a6e4afa78f627dc45e186653df2d9b17b30c8413d0116c4e48"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 129,
+   "section_ar": "الرقمنة والأرصاد والأرشيف",
+   "received_ref": "NY/T 23190-2025",
+   "verified_ref": "NY/T 23190—2025 (draft identifier)",
+   "subject_ar": "مسودة رصد البنية الأساسية الزراعية بالاستشعار عن بعد",
+   "verification_ar": "مسودة مثبتة؛ النهائي غير محسوم",
+   "validity_ar": "مسودة؛ الإصدار النهائي غير مثبت",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "الرقم يظهر فعلًا في مسودة الجهة الأصلية؛ فتح التعليقات في 6 يناير والمهلة في 7 فبراير 2026 مؤكدان. لم أجد نشرًا نهائيًا رسميًا حتى الفحص؛ لا يصح إدراجه كمعيار ساري. عدم العثور ليس إثباتًا قاطعًا لعدم النشر.",
+   "title_zh": "高标准农田基础设施遥感监测技术规范（征求意见稿）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://iarrp.caas.cn/gglm/tzgg/73e4e76ce2e34e7bbb11986d91a9c6f2.htm",
+    "https://iarrp.caas.cn/docs/2026-01/7a1db885a5e44e0f981fcb5de32f6afa.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 130,
+   "section_ar": "الرقمنة والأرصاد والأرشيف",
+   "received_ref": "DB3402/T 78-2024",
+   "verified_ref": "DB3402/T 78—2024",
+   "subject_ar": "رقمنة الأراضي الزراعية في ووهـو",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "ملغى",
+   "issued_on": "2024-12-16",
+   "effective_from": "2025-01-01",
+   "withdrawn_on": "2026-08-03",
+   "correction_note_ar": "ملغى رسميًا منذ 3 أغسطس 2026 ؛ لا يُقدّم كسارٍ في نسخة نوفمبر 2026. معيار محلي لمدينة Wuhu ، وليس لكل Anhui أو الصين.",
+   "title_zh": "高标准农田数字化建设规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/db/search/stdDBDetailed?id=2C1AAA2CF949B66AE06397BE0A0ACC81",
+    "https://dbba.sacinfo.org.cn/stdDetail/02b3519822e0c7ff1ab2572956f6ea167c07e693e998d3f871f4fd1b63e71e65"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 131,
+   "section_ar": "المساحة والمواد والوحدات",
+   "received_ref": "GB 50026-2020",
+   "verified_ref": "GB 50026-2020",
+   "subject_ar": "المساحة الهندسية",
+   "verification_ar": "يحتاج تصحيح",
+   "validity_ar": "انظر التصحيح وحدود الدليل",
+   "issued_on": null,
+   "effective_from": "2021-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الإصدار والنفاذ صحيحان؛ كان سبعة بنود إلزامية عند النشر، لكن GB 55018-2021 ألغى البنود ذات الصلة عند نفاذه 2022-04-01. لا يصح عرض عدد 7 كحالة إلزامية حالية. الملحق ينص على ستة (5.3.51 ، 5.7.5 ، 7.1.8 ، 7.5.14 ، 8.7.15 ، 10.1.10)، لذلك لا يقال إن كل السبعة أُلغيت دون تحقق إضافي.",
+   "title_zh": "工程测量标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ebook.chinabuilding.com.cn/zbooklib/bookpdf/probation?SiteID=1&bookID=136639",
+    "https://www.beijing.gov.cn/zhengce/zhengcefagui/qtwj/202204/t20220408_2669514.html",
+    "https://www.beijing.gov.cn/zhengce/zhengcefagui/qtwj/202204/W020220408389461354121.docx",
+    "https://gf.cabr-fire.com/article-42600.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 132,
+   "section_ar": "المساحة والمواد والوحدات",
+   "received_ref": "GB 55018-2021",
+   "verified_ref": "GB 55018-2021",
+   "subject_ar": "المتطلبات العامة الإلزامية للمساحة الهندسية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2022-04-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "إعلان الوزارة منشور حكوميًا وموسوم فعال؛ جميع البنود إلزامية، ويتقدم على الأحكام المخالفة في المعايير الهندسية الموجودة. لا يلغي GB 50026 كاملًا.",
+   "title_zh": "工程测量通用规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.beijing.gov.cn/zhengce/zhengcefagui/qtwj/202204/t20220408_2669514.html"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 133,
+   "section_ar": "المساحة والمواد والوحدات",
+   "received_ref": "GB/T 20257.1-2017",
+   "verified_ref": "GB/T 20257.1-2017",
+   "subject_ar": "رموز الخرائط الطبوغرافية بمقاييس 1:500 و 1:1000 و 1:2000",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2018-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الإصدار ساري في SAMR. تاريخ إصدار الترجمة الإنجليزية 2024 لا يحوله إلى إصدار معياري 2024.",
+   "title_zh": "国家基本比例尺地图图式 第1部分：1:500 1:1 000 1:2 000地形图图式",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D81F73D3A7E05397BE0A0AB82A",
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=79A910C639883356F324E7A6DCC0C289"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 134,
+   "section_ar": "المساحة والمواد والوحدات",
+   "received_ref": "GB 50204-2015",
+   "verified_ref": "GB 50204-2015",
+   "subject_ar": "قبول جودة تنفيذ المنشآت الخرسانية",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "الإصدار مثبت؛ السريان لم يحسم",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "النص الرسمي منشور على جهة حكومية يجعل الإصدار ثابتًا؛ لم يُستكمل تدقيق حالة جميع البنود والتعديلات حتى 2026.",
+   "title_zh": "混凝土结构工程施工质量验收规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://jncc.jinan.gov.cn/cms_files/jcms1/web19/site/attach/0/19505f327ed4405f85dc29a809a5cf3d.pdf?fileName=19505f327ed4405f85dc29a809a5cf3d.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 135,
+   "section_ar": "المساحة والمواد والوحدات",
+   "received_ref": "GB/T 32748-2016",
+   "verified_ref": "GB/T 32748-2016",
+   "subject_ar": "مواد تبطين القنوات ومنع التسرب",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": null,
+   "effective_from": "2017-01-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "SAMR يسجله ساريًا. ظهرت صفحة استطلاع مراجعة تقترح الإلغاء؛ لا يتحول اقتراح المراجعة إلى إلغاء فعلي دون إعلان. سجل حكومي لاستمرار الصلاحية يدعمه.",
+   "title_zh": "渠道衬砌与防渗材料",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/search/stdPage?q=GB%2FT+32748",
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=C763AE109EEB8282C429CA3284510C92",
+    "https://snamr.shaanxi.gov.cn/zfxxgk/zfxxgkzl/zc/tzgg/202401/P020250320610696065384.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 136,
+   "section_ar": "المساحة والمواد والوحدات",
+   "received_ref": "GB 3100~3102",
+   "verified_ref": "يلزم تحديد الأجزاء وإصداراتها",
+   "subject_ar": "الكميات والوحدات: إحالة مجملة تحتاج تحديد الأجزاء",
+   "verification_ar": "إحالة مجملة",
+   "validity_ar": "لم يحسم لكل جزء",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "لا تكفي إحالة النطاق 3100–3102. تحقق GB 3100-1993 منفردًا ساريًا؛ لم تُراجع كل أجزاء 3101 و 3102. توجد مسودة 2026 بعنوان 量和单位 第1部分：通则 لدى معهد القياس ولا يجوز اعتبارها معيارًا نافذًا.",
+   "title_zh": "量和单位（سلسلة غير محددة الأجزاء والإصدارات）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=ADAA308A0BE559EC29E773B71591F463",
+    "https://www.nim.ac.cn/sites/default/files/2026-10/lianghedanwei-di1bufenzongzeguojiabiaozhunbianzhishuomingzhengqiuyijiangao.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 137,
+   "section_ar": "الإطار العام / معايير الجمعيات",
+   "received_ref": "T/CECS 1043-2022",
+   "verified_ref": "T/CECS 1043-2022",
+   "subject_ar": "تصميم الأراضي الزراعية عالية التجهيز",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "معيار جمعية؛ النشر مثبت",
+   "issued_on": null,
+   "effective_from": "2022-08-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "إعلان الجهة المصدرة يثبت النشر والنفاذ؛ إنه معيار جمعية. لم أجرِ مسح إلغاء مستقلًا كاملًا لحالته حتى 2026.",
+   "title_zh": "高标准农田设计标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ttbz.org.cn/Home/PdfFileStreamGet/c3RuLDYwMDQx?t=1649386988"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 138,
+   "section_ar": "معايير الجمعيات",
+   "received_ref": "T/CAMDA 18-2023",
+   "verified_ref": "T/CAMDA 18-2023",
+   "subject_ar": "تخطيط إنشاء الأراضي الزراعية",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "معيار جمعية؛ النشر مثبت",
+   "issued_on": "2023-04-25",
+   "effective_from": "2023-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الوجود والنفاذ مؤكدان بإعلان الجهة المصدرة. النص متاح من موقع CAMDA. حالة الإلغاء لم تُفحص مستقلًا.",
+   "title_zh": "高标准农田建设工程规划导则",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.camda.cn/message/matechnology/",
+    "https://resouse.camda.cn/file/18%E9%AB%98%E6%A0%87%E5%87%86%E5%86%9C%E7%94%B0%E5%BB%BA%E8%AE%BE%E5%B7%A5%E7%A8%8B%E8%A7%84%E5%88%92%E5%AF%BC%E5%88%99_%E7%BA%AF%E5%9B%BE%E7%89%88-1689042445131.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 139,
+   "section_ar": "معايير الجمعيات",
+   "received_ref": "T/SZS 4087-2024",
+   "verified_ref": "رقم المعيار غير متحقق",
+   "subject_ar": "إدارة الأراضي الزراعية عالية التجهيز",
+   "verification_ar": "غير محسوم",
+   "validity_ar": "لم يحسم",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "عثرت على إشارات ثانوية فقط؛ لم أثبت بطاقة السجل الأولي أو إعلان الجهة المصدرة. لا ندّعي أن المعيار غير موجود.",
+   "title_zh": "高标准农田 管理规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "لم يُثبت مصدر أولي"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 140,
+   "section_ar": "معايير الجمعيات",
+   "received_ref": "T/ZNJX 007-2024",
+   "verified_ref": "T/ZNJX 007-2024",
+   "subject_ar": "مرافق الأراضي: نظام الري والتسميد المتكامل",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري بحسب فهرس CNIS",
+   "issued_on": "2024-12-25",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "فهرس المكتبة الوطنية للمعايير CNIS يثبت الرقم والعنوان ويعرض الحالة 现行 وتاريخ النشر. لم أقرأ النص أو تاريخ النفاذ.",
+   "title_zh": "高标准农田配套设施建设 第2部分 水肥一体化灌溉系统",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/index?owner=%E4%B8%AD%E5%9B%BD%E5%86%9C%E4%BA%A7%E5%93%81%E6%B5%81%E9%80%9A%E7%BB%8F%E7%BA%AA%E4%BA%BA%E5%8D%8F%E4%BC%9A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 141,
+   "section_ar": "معايير الجمعيات",
+   "received_ref": "T/ZNJX 008-2025",
+   "verified_ref": "T/ZNJX 008-2025",
+   "subject_ar": "مرافق الأراضي: منصة المعلومات الزراعية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري بحسب فهرس CNIS",
+   "issued_on": "2025-02-05",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "فهرس CNIS يثبت الرقم والعنوان والنشر؛ لم أقرأ النص أو تاريخ النفاذ.",
+   "title_zh": "高标准农田配套设施建设 第1部分 农田信息化平台建设",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/index?owner=%E4%B8%AD%E5%9B%BD%E5%86%9C%E4%BA%A7%E5%93%81%E6%B5%81%E9%80%9A%E7%BB%8F%E7%BA%AA%E4%BA%BA%E5%8D%8F%E4%BC%9A"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 142,
+   "section_ar": "معايير الجمعيات",
+   "received_ref": "T/GHLM 008-2026",
+   "verified_ref": "T/GHLM 008-2026",
+   "subject_ar": "الاستشارات الهندسية لجميع مراحل مشروع الأراضي",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "السريان ظاهر بفهرس مرتبط",
+   "issued_on": "2026-06-01",
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "الفهرس المجاور في CNIS يعرض الوجود والحالة وتاريخ 1 يونيو 2026 كتاريخ نشر؛ لا يجوز تحويله إلى تاريخ نفاذ دون بطاقة المعيار. إعلان الجهة في عام 2024 يدل على بدء الإعداد ولا يكفي لإثبات النشر النهائي.",
+   "title_zh": "高标准农田建设项目全过程工程咨询标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ndls.org.cn/standard/detail/923e6f16b8be9cff51e41092e22a48bf",
+    "https://guohong.org.cn/gaobiaozhunnongtian.html"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 143,
+   "section_ar": "معايير الجمعيات",
+   "received_ref": "T/JXEA 420-2026",
+   "verified_ref": "رقم المعيار غير متحقق",
+   "subject_ar": "نظم الري الذكي المتكامل مع التسميد",
+   "verification_ar": "غير محسوم",
+   "validity_ar": "لم يحسم",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "إشارات ثانوية إلى بدء 24 يونيو 2026 ومشروع الإعداد؛ لم أثبت إعلان النشر الأولي أو بطاقة TTBZ. لا يوصف بأنه سارٍ ومؤكد بهذا الفحص.",
+   "title_zh": "水肥一体化智能灌溉系统技术规程",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "لم يُثبت مصدر أولي"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 144,
+   "section_ar": "معايير الجمعيات",
+   "received_ref": "T/GXDSL 045-2026",
+   "verified_ref": "رقم المعيار غير متحقق",
+   "subject_ar": "الإدارة الذكية المتكاملة للمياه والتسميد للمحاصيل",
+   "verification_ar": "مسودة مثبتة؛ النهائي غير محسوم",
+   "validity_ar": "النشر النهائي غير مثبت",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "عثرت على مسودة على منصة TTBZ بعنوان مطابق وتاريخ مسار 19 يناير 2026 ، لكنها لم تثبت الرقم 045 أو تاريخ النفاذ 28 فبراير. لذلك النشر النهائي غير مثبت، وليس هذا حكمًا بعدم الوجود.",
+   "title_zh": "主要农作物水肥一体化智能管理技术规范",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://www.ttbz.org.cn/upload/file/20260119/6390443487740132485538360.pdf"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 145,
+   "section_ar": "التسعير",
+   "received_ref": "农田建设项目概算编制规定（2026版）",
+   "verified_ref": "农田建设项目概算编制规定（2026版）",
+   "subject_ar": "قواعد إعداد التقديرات المالية لمشروعات الأراضي 2026",
+   "verification_ar": "مؤكد",
+   "validity_ar": "وثيقة تسعير نافذة",
+   "issued_on": "2026-09-16",
+   "effective_from": "2026-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الوجود والنفاذ مؤكدان في إخطار MOA ؛ رقم 农办建〔2026〕14号 غير ظاهر على صفحة الإخطار المفتوحة.",
+   "title_zh": "农田建设项目概算编制规定（2026版）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ntjss.moa.gov.cn/tzgg/202610/t20261012_6488505.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 146,
+   "section_ar": "التسعير",
+   "received_ref": "农田建设工程施工机械台班费定额（2026版）",
+   "verified_ref": "农田建设工程施工机械台班费定额（2026版）",
+   "subject_ar": "جداول تكلفة نوبات آلات إنشاء الأراضي 2026",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "وثيقة تسعير نافذة",
+   "issued_on": "2026-09-16",
+   "effective_from": "2026-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الوجود والنفاذ مؤكدان. ادعاء 8 فئات و 356 عنصرًا لم أثبته من المرفق الأصلي.",
+   "title_zh": "农田建设工程施工机械台班费定额（2026版）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ntjss.moa.gov.cn/tzgg/202610/t20261012_6488505.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 147,
+   "section_ar": "التسعير",
+   "received_ref": "农田建设工程概算定额（2026版）",
+   "verified_ref": "农田建设工程概算定额（2026版）",
+   "subject_ar": "جداول التقدير الأولي لإنشاء الأراضي 2026",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "وثيقة تسعير نافذة",
+   "issued_on": "2026-09-16",
+   "effective_from": "2026-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الوجود والنفاذ مؤكدان؛ عدد 1838 عنصرًا له شواهد ثانوية فقط ولم أثبته بالأصل. خبر الوزارة يذكر 12 فئة للمنظومة المجمعة، ولا يثبت عدد بنود هذا المجلد.",
+   "title_zh": "农田建设工程概算定额（2026版）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ntjss.moa.gov.cn/tzgg/202610/t20261012_6488505.htm",
+    "https://ntjss.moa.gov.cn/gzdt/202610/t20261012_6488498.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 148,
+   "section_ar": "التسعير",
+   "received_ref": "农田建设工程预算定额（2026版）",
+   "verified_ref": "农田建设工程预算定额（2026版）",
+   "subject_ar": "جداول الميزانية التنفيذية لإنشاء الأراضي 2026",
+   "verification_ar": "تحقق جزئي",
+   "validity_ar": "وثيقة تسعير نافذة",
+   "issued_on": "2026-09-16",
+   "effective_from": "2026-11-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "الوجود والنفاذ مؤكدان؛ عدد 2182 عنصرًا لم أثبته من المرفق الأصلي.",
+   "title_zh": "农田建设工程预算定额（2026版）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ntjss.moa.gov.cn/tzgg/202610/t20261012_6488505.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 149,
+   "section_ar": "ادعاءات تحتاج ضبطًا",
+   "received_ref": "DB37/T 2323-2013",
+   "verified_ref": "DB37/T 2323-2013",
+   "subject_ar": "جودة الأراضي الزراعية عالية التجهيز في شاندونغ",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ملغى",
+   "issued_on": "2013-04-01",
+   "effective_from": "2013-05-01",
+   "withdrawn_on": "2024-05-18",
+   "correction_note_ar": "الإلغاء في 18 مايو 2024 مؤكد. لا يثبت هذا الإعلان أن GB/T 30600 و GB/T 33469 بديلان رسميان مباشران؛ يجب تمييز الإحالة الموضوعية من سلسلة الاستبدال.",
+   "title_zh": "高标准农田质量标准",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://dbba.sacinfo.org.cn/rnDetail/2dd3ee31cb114772810dde3d7c8d1979aa5457f5185f8c03525903157fee29bb"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 150,
+   "section_ar": "ادعاءات تحتاج ضبطًا",
+   "received_ref": "Four Shandong local standards effective 2026-06-01",
+   "verified_ref": "ادعاء عام؛ راجع الملاحظة",
+   "subject_ar": "ادعاء أربعة معايير لشاندونغ تبدأ في يونيو 2026",
+   "verification_ar": "غير محسوم",
+   "validity_ar": "لم يحسم",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "لم يقدم النص أرقامًا ولم أجد مصدرًا أوليًا يثبت ادعاء شانغدونغ. المطابقة الموثقة هي Jiangxi DB36/T 2180.1–.4-2025 ذات تاريخ النفاذ 1 يونيو 2026. لا نجزم بعدم وجود معايير لشانغدونغ.",
+   "title_zh": "山东四项高标准农田地方标准（用户主张，未提供编号）",
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://std.samr.gov.cn/db/search/stdDBDetailed?id=44E4180EBF4FBF39E06397BE0A0A8788",
+    "https://std.samr.gov.cn/db/search/stdDBDetailed?id=44E4180EBF51BF39E06397BE0A0A8788"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 151,
+   "section_ar": "ادعاءات تحتاج ضبطًا",
+   "received_ref": "National pricing supersedes all water/building/municipal and Shandong hierarchy",
+   "verified_ref": "ادعاء عام؛ راجع الملاحظة",
+   "subject_ar": "ادعاء الإلغاء الشامل وأولوية جداول التسعير",
+   "verification_ar": "غير محسوم",
+   "validity_ar": "لم يحسم",
+   "issued_on": null,
+   "effective_from": null,
+   "withdrawn_on": null,
+   "correction_note_ar": "خبر MOA يثبت حزمة التسعير ونفاذها؛ لم أجد في النص المقروء حكمًا عامًا بإلغاء كل أنظمة القطاعات الأخرى أو تسلسل أفضلية شانغدونغ. انتقال عقد محدد ومكوناته ونواقص جداول التسعير يحتاج النص وإجراءات السلطة المعنية.",
+   "title_zh": null,
+   "record_type_ar": "القائمة المرسلة",
+   "sources": [
+    "https://ntjss.moa.gov.cn/tzgg/202610/t20261012_6488505.htm"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 152,
+   "section_ar": "إضافات",
+   "received_ref": "إضافة من المراجعة",
+   "verified_ref": "NY/T 4995-2025",
+   "subject_ar": "متطلبات إنشاء منظومة دعم الأرصاد الجوية للأراضي الزراعية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "ساري",
+   "issued_on": "2025-12-09",
+   "effective_from": "2026-05-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "إضافة مفقودة بالقائمة: متطلبات إنشاء منظومة دعم الأرصاد للأراضي الزراعية؛ سارية في تاريخ الفحص.",
+   "title_zh": "农田气象保障体系建设要求",
+   "record_type_ar": "إضافة من المراجعة",
+   "sources": [
+    "https://std.samr.gov.cn/hb/search/stdHBDetailed?id=51D65ECF25D11D34E06397BE0A0AB9D5"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 153,
+   "section_ar": "إضافات",
+   "received_ref": "إضافة من المراجعة",
+   "verified_ref": "GB/T 48026-2026",
+   "subject_ar": "متطلبات بناء نظام الرصد الجوي للأراضي عالية التجهيز",
+   "verification_ar": "مؤكد",
+   "validity_ar": "منشور؛ لم ينفذ بعد",
+   "issued_on": "2026-07-30",
+   "effective_from": "2027-02-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "معيار صدر لكنه لم يدخل حيز النفاذ في 24 نوفمبر 2026 ؛ يدرج في قائمة الاستعداد للتحديث لا قائمة المعايير السارية.",
+   "title_zh": "高标准农田气象观测系统建设技术要求",
+   "record_type_ar": "إضافة من المراجعة",
+   "sources": [
+    "https://std.samr.gov.cn/gb/search/gbDetailedCNF?id=581F4B90BAE080E8E06397BE0A0AF9E7",
+    "https://openstd.samr.gov.cn/bzgk/std/nd?no=2862"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 154,
+   "section_ar": "إضافات",
+   "received_ref": "إضافة من المراجعة",
+   "verified_ref": "DB14/T 3586—2025",
+   "subject_ar": "الرصد بطائرات مسيرة في شانشي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "معيار محلي ساري",
+   "issued_on": "2025-12-30",
+   "effective_from": "2026-04-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "إضافة اختيارية للاستشعار بالطائرات المسيرة؛ محلي Shanxi وليس معيارًا وطنيًا.",
+   "title_zh": "高标准农田无人机遥感监测技术规范",
+   "record_type_ar": "إضافة من المراجعة",
+   "sources": [
+    "https://std.samr.gov.cn/db/search/stdDBDetailed?id=473DFA944ABFD709E06397BE0A0A6897"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 155,
+   "section_ar": "إضافات",
+   "received_ref": "إضافة من المراجعة",
+   "verified_ref": "DB36/T 2180.1-2025",
+   "subject_ar": "جيانغشي: إعداد تقرير التصميم الابتدائي",
+   "verification_ar": "مؤكد",
+   "validity_ar": "معيار محلي ساري",
+   "issued_on": "2025-11-18",
+   "effective_from": "2026-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "المعيار المحلي Jiangxi المطابق لخبر الأربعة؛ لا يُنسب إلى Shandong.",
+   "title_zh": "高标准农田建设项目 第1部分：初步设计报告编制规程",
+   "record_type_ar": "إضافة من المراجعة",
+   "sources": [
+    "https://std.samr.gov.cn/db/search/stdDBDetailed?id=44E4180EBF4FBF39E06397BE0A0A8788"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 156,
+   "section_ar": "إضافات",
+   "received_ref": "إضافة من المراجعة",
+   "verified_ref": "DB36/T 2180.2-2025",
+   "subject_ar": "جيانغشي: إعداد التقديرات المالية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "معيار محلي ساري",
+   "issued_on": "2025-11-18",
+   "effective_from": "2026-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "المعيار المحلي Jiangxi المطابق لخبر الأربعة؛ لا يُنسب إلى Shandong.",
+   "title_zh": "高标准农田建设项目 第2部分：工程概算编制规程",
+   "record_type_ar": "إضافة من المراجعة",
+   "sources": [
+    "https://std.samr.gov.cn/db/search/stdDBDetailed?id=44E4180EBF50BF39E06397BE0A0A8788"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 157,
+   "section_ar": "إضافات",
+   "received_ref": "إضافة من المراجعة",
+   "verified_ref": "DB36/T 2180.3-2025",
+   "subject_ar": "جيانغشي: جداول الميزانية",
+   "verification_ar": "مؤكد",
+   "validity_ar": "معيار محلي ساري",
+   "issued_on": "2025-11-18",
+   "effective_from": "2026-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "المعيار المحلي Jiangxi المطابق لخبر الأربعة؛ لا يُنسب إلى Shandong.",
+   "title_zh": "高标准农田建设项目 第3部分：预算定额",
+   "record_type_ar": "إضافة من المراجعة",
+   "sources": [
+    "https://std.samr.gov.cn/db/search/stdDBDetailed?id=44E4180EBF51BF39E06397BE0A0A8788"
+   ],
+   "verified_on": "2026-11-24"
+  },
+  {
+   "no": 158,
+   "section_ar": "إضافات",
+   "received_ref": "إضافة من المراجعة",
+   "verified_ref": "DB36/T 2180.4-2025",
+   "subject_ar": "جيانغشي: تكلفة تشغيل الآلات",
+   "verification_ar": "مؤكد",
+   "validity_ar": "معيار محلي ساري",
+   "issued_on": "2025-11-18",
+   "effective_from": "2026-06-01",
+   "withdrawn_on": null,
+   "correction_note_ar": "المعيار المحلي Jiangxi المطابق لخبر الأربعة؛ لا يُنسب إلى Shandong.",
+   "title_zh": "高标准农田建设项目 第4部分：施工机械台时费定额",
+   "record_type_ar": "إضافة من المراجعة",
+   "sources": [
+    "https://std.samr.gov.cn/db/search/stdDBDetailed?id=44E4180EBF52BF39E06397BE0A0A8788"
+   ],
+   "verified_on": "2026-11-24"
+  }
+ ]
+}

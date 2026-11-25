@@ -7,6 +7,7 @@ import pytest
 from compliance_engine import Observation, classify_band, evaluate_profile, evaluate_standards
 from standards_registry import (
     FAO29_WATER_QUALITY,
+    FARMLAND_AUDIT_CATALOG,
     HB60_SALINE_SODIC,
     Band,
     Clause,
@@ -16,7 +17,11 @@ from standards_registry import (
     StandardAdoption,
     StandardsRegistry,
     StandardsRegistryError,
+    audit_status,
+    catalog_registry,
     default_registry,
+    load_catalog,
+    register_catalog,
 )
 
 pytestmark = pytest.mark.unit
@@ -109,7 +114,7 @@ def test_effective_to_closes_a_version_window():
     "bad",
     [
         _std("v1", date(2000, 1, 1), status="superseded"),  # no successor
-        _std("v1", date(2000, 1, 1), status="draft"),
+        _std("v1", date(2000, 1, 1), status="proposed"),
         _std("v1", date(2000, 1, 1), effective_to=date(1999, 1, 1)),
     ],
 )
@@ -409,3 +414,159 @@ def test_yemen_default_profile_claims_no_local_adoption():
     reg = default_registry()
     for sid in ("FAO-29", "USDA-HB60", "USDA-AH210-INDICATIVE"):
         assert reg.adoption_status("YE-default", sid).status == "reference_only"
+
+
+# ── كتالوج تدقيق المعايير (2026-11-24) ────────────────────────────────────
+
+
+def _catalog():
+    return catalog_registry()
+
+
+def test_every_audit_record_has_a_fate_and_none_is_dropped_silently():
+    doc = load_catalog()
+    reg, entries = _catalog()
+    assert len(doc["records"]) == len(entries) == 158
+    assert sorted(e.no for e in entries) == list(range(1, 159))
+    for e in entries:
+        assert e.reason, e
+        if e.registered:
+            assert reg.get(*e.standard_ref.split("@", 1)).audit["no"] == e.no
+
+
+def test_catalog_provenance_is_pinned_to_the_audit_file():
+    doc = load_catalog()
+    assert doc["version"] == "2026-11-24"
+    assert len(doc["source_sha256"]) == 64
+    assert FARMLAND_AUDIT_CATALOG.name == "farmland_standards_audit_2026-11-24.json"
+
+
+def test_scheduled_supersession_keeps_the_old_edition_in_force_until_the_new_one_starts():
+    reg, _ = _catalog()
+    assert reg.current("GB/T 33469", date(2026, 11, 25)).version == "2016"
+    assert reg.current("GB/T 33469", date(2027, 4, 30)).version == "2016"
+    assert reg.current("GB/T 33469", date(2027, 5, 1)).version == "2026"
+    assert reg.supersession_chain("GB/T 33469", "2016") == ["GB/T 33469@2016", "GB/T 33469@2026"]
+
+
+def test_a_published_future_edition_is_never_an_obligation_before_it_takes_effect():
+    reg, _ = _catalog()
+    with pytest.raises(StandardsRegistryError, match="no_effective_version"):
+        reg.current("GB/T 48026", date(2026, 11, 25))
+    with pytest.raises(StandardsRegistryError, match="not_yet_effective"):
+        reg.resolve("GB/T 48026@2026", date(2026, 11, 25))
+    assert reg.resolve("GB/T 48026@2026", date(2027, 2, 1)).version == "2026"
+
+
+def test_withdrawn_editions_close_on_their_recorded_withdrawal_date_and_cannot_be_pinned():
+    reg, _ = _catalog()
+    db = reg.get("DB3402/T 78", "2024")
+    assert db.status == "withdrawn" and db.effective_to == date(2026, 8, 3)
+    with pytest.raises(StandardsRegistryError, match="no_effective_version"):
+        reg.current(
+            "DB3402/T 78", date(2026, 1, 1)
+        )  # withdrawn is never current, even inside its old window
+    with pytest.raises(StandardsRegistryError, match="withdrawn_standard"):
+        reg.resolve("DB3402/T 78@2024")
+
+
+def test_unresolved_validity_is_never_presented_as_in_force():
+    reg, entries = _catalog()
+    unresolved = [e for e in entries if e.status == "unresolved"]
+    assert unresolved
+    for e in unresolved:
+        sid, ver = e.standard_ref.split("@", 1)
+        with pytest.raises(StandardsRegistryError):
+            reg.resolve(e.standard_ref)
+        with pytest.raises(StandardsRegistryError):
+            reg.current(sid, date(2026, 11, 25))
+    # confirmed and in force but no effective date recorded ⇒ not computable on a date
+    assert reg.get("GB/T 50363", "2018").audit["status_reason"] == "effective_date_not_recorded"
+
+
+def test_corrected_references_are_registered_under_the_verified_identity():
+    reg, _ = _catalog()
+    gb18877 = reg.get("GB/T 18877", "2020")  # received as "GB 18877-2020"; /T changes its identity
+    assert gb18877.audit["received_ref"] != "GB/T 18877-2020"
+    assert reg.get("GB 50194", "2014").audit["verification_ar"] == "يحتاج تصحيح"
+    with pytest.raises(StandardsRegistryError):
+        reg.get("GB 50194", "2022")
+
+
+def test_policies_pricing_claims_and_series_refs_stay_catalogue_only():
+    _, entries = _catalog()
+    kinds = {e.kind for e in entries if not e.registered}
+    assert {"policy", "pricing", "claim"} <= kinds
+    assert all(e.standard_ref is None for e in entries if e.kind != "standard")
+    series = next(e for e in entries if e.no == 18)  # NY/T 1121 as a whole series
+    assert series.reason == "ref_not_a_single_edition"
+
+
+def test_catalogue_standards_are_reference_only_and_carry_jurisdiction_and_sources():
+    reg, entries = _catalog()
+    reg.register_profile(ComplianceProfile("P-cn", "YE", ("GB/T 30600",)))
+    assert reg.adoption_status("P-cn", "GB/T 30600").status == "reference_only"
+    gb = reg.get("GB/T 30600", "2022")
+    assert gb.jurisdiction == "CN-national" and gb.sources and gb.clauses == ()
+    assert reg.get("DB36/T 2180.1", "2025").jurisdiction == "CN-local"
+    assert reg.get("T/CECS 1043", "2022").jurisdiction == "CN-association"
+
+
+@pytest.mark.parametrize(
+    "rec, expected",
+    [
+        (
+            {"validity_ar": "ساري", "verification_ar": "مؤكد", "effective_from": "2020-01-01"},
+            "active",
+        ),
+        (
+            {"validity_ar": "ساري", "verification_ar": "تحقق جزئي", "effective_from": "2020-01-01"},
+            "unresolved",
+        ),
+        ({"validity_ar": "ساري", "verification_ar": "مؤكد", "effective_from": None}, "unresolved"),
+        (
+            {"validity_ar": "ساري", "verification_ar": "غير محسوم", "effective_from": "2020-01-01"},
+            "unresolved",
+        ),
+        ({"validity_ar": "مسودة؛ الإصدار النهائي غير مثبت", "verification_ar": "مؤكد"}, "draft"),
+        ({"validity_ar": "ملغى", "verification_ar": "مؤكد"}, "withdrawn"),
+        (
+            {
+                "validity_ar": "نصّ جديد لم يُعرَف",
+                "verification_ar": "مؤكد",
+                "effective_from": "2020-01-01",
+            },
+            "unresolved",
+        ),
+    ],
+)
+def test_audit_status_mapping_fails_closed(rec, expected):
+    assert audit_status(rec)[0] == expected
+
+
+def test_draft_editions_are_never_current_or_pinnable():
+    reg = StandardsRegistry()
+    doc = {
+        "catalog_id": "t",
+        "version": "1",
+        "records": [
+            {
+                "no": 1,
+                "verified_ref": "NY/T 9999-2025",
+                "validity_ar": "مسودة؛ الإصدار النهائي غير مثبت",
+                "verification_ar": "مسودة مثبتة؛ النهائي غير محسوم",
+                "effective_from": None,
+            },
+        ],
+    }
+    (entry,) = register_catalog(reg, doc)
+    assert entry.status == "draft"
+    with pytest.raises(StandardsRegistryError, match="draft_standard"):
+        reg.resolve("NY/T 9999@2025")
+    with pytest.raises(StandardsRegistryError, match="no_effective_version"):
+        reg.current("NY/T 9999", date(2026, 11, 25))
+
+
+def test_in_force_status_without_effective_date_is_rejected_at_registration():
+    with pytest.raises(StandardsRegistryError, match="in_force_status_needs_effective_date"):
+        StandardsRegistry().register(replace(_std("v1", date(2000, 1, 1)), effective_from=None))
