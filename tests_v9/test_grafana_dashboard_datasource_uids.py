@@ -36,6 +36,9 @@ def _referenced_uids(node: object, out: set[str]) -> set[str]:
         ds = node.get("datasource")
         if isinstance(ds, dict) and isinstance(ds.get("uid"), str):
             out.add(ds["uid"])
+        elif isinstance(ds, str):
+            # Legacy form: a datasource name (or ${var}) instead of {"type", "uid"}.
+            out.add(ds)
         for value in node.values():
             _referenced_uids(value, out)
     elif isinstance(node, list):
@@ -50,8 +53,10 @@ def _datasource_variables(dashboard: dict) -> set[str]:
 
 
 def _provisioned_uids() -> set[str]:
+    """Provisioned uids, plus names, which a legacy string reference resolves against."""
     doc = yaml.safe_load(_DATASOURCES.read_text(encoding="utf-8"))
-    return {d["uid"] for d in doc.get("datasources", []) if isinstance(d, dict) and d.get("uid")}
+    entries = [d for d in doc.get("datasources", []) if isinstance(d, dict)]
+    return {d["uid"] for d in entries if d.get("uid")} | {d["name"] for d in entries if d.get("name")}
 
 
 def _unresolved(dashboard: dict, provisioned: set[str]) -> list[str]:
@@ -100,3 +105,5 @@ def test_resolution_rules() -> None:
     assert _unresolved(templated, set()) == []
     undeclared = {"panels": [{"datasource": {"uid": "${ds}"}}]}
     assert _unresolved(undeclared, set()) == ["undeclared datasource variable ${ds}"]
+    legacy = {"panels": [{"datasource": "Prometheus"}, {"datasource": "Loki"}]}
+    assert _unresolved(legacy, {"Prometheus"}) == ["unprovisioned uid Loki"]

@@ -20,7 +20,7 @@ import pytest
 pytestmark = pytest.mark.unit
 
 _ROOT = Path(__file__).resolve().parents[1]
-_SCAN_DIRS = ("services", "agents", "bots", "deploy")
+_SCAN_DIRS = ("services", "agents", "bots", "deploy", "frontend")
 _VOLUME = re.compile(r"^\s*VOLUME\b", re.IGNORECASE | re.MULTILINE)
 _MIN_DOCKERFILES = 25
 
