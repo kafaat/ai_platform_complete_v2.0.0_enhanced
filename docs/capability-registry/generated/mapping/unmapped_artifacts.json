@@ -9980,6 +9980,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_water_cost_numeric_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
     "kind": "tests"
   },
