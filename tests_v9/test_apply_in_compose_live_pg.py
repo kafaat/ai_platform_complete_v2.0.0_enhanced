@@ -9,6 +9,7 @@ stdout. سيناريو «إذنٌ + تطبيق» يحتاج قاعدةً مؤق�
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -282,3 +283,124 @@ def test_the_presence_query_itself_must_run_in_a_server_confirmed_read_only_tran
     assert "SCHEMA_STATE readable=true" not in result.stdout
     assert "MIGRATION_INSPECTION_COMPLETED" not in result.stdout
     assert _inventory(pg_env) == before
+
+
+# ── SCHEMA_CATALOG: RLS, policies and triggers of the catalog files' tables (owner decision 2026-11-24) ──
+PROBE = ROOT / "migrations" / "probe_schema_state.sh"
+
+
+def _probe(env: dict[str, str], **extra: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["bash", str(PROBE)],
+        env={**env, **extra},
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=300,
+    )
+
+
+def _catalog(stdout: str) -> tuple[dict[str, dict[str, str]], dict[str, str]]:
+    rows: dict[str, dict[str, str]] = {}
+    summary: dict[str, str] = {}
+    for ln in stdout.splitlines():
+        if ln.startswith("SCHEMA_CATALOG "):
+            fields = dict(kv.split("=", 1) for kv in ln.split()[1:] if "=" in kv)
+            assert {"file", "table", "rls", "force_rls", "policies", "triggers", "grants"} <= set(
+                fields
+            ), f"malformed SCHEMA_CATALOG line: {ln!r}"
+            rows[fields["table"]] = fields
+        elif ln.startswith("SCHEMA_CATALOG_SUMMARY "):
+            summary = dict(kv.split("=", 1) for kv in ln.split()[1:] if "=" in kv)
+    return rows, summary
+
+
+def test_the_probe_prints_the_catalog_facts_of_a_named_migration_from_the_server(
+    pg_env, probe_role
+):
+    """v287 on the migrated CI database: FORCE RLS, its five policies and its trigger, read by the RO role."""
+    before = _inventory(pg_env)
+    result = _probe(pg_env, PROBE_CATALOG_FILES="v287_farm_access_grants.sql", **probe_role)
+    assert result.returncode == 0, result.stdout + result.stderr
+    rows, summary = _catalog(result.stdout)
+    grants = rows["farm_access_grants"]
+    assert grants["file"] == "v287_farm_access_grants.sql"
+    assert (grants["rls"], grants["force_rls"]) == ("true", "true")
+    assert grants["policies"].split(",") == [
+        "farm_access_grants_tenant:*:permissive",
+        "farm_grant_owner_delete:d:restrictive",
+        "farm_grant_owner_insert:a:restrictive",
+        "farm_grant_owner_update:w:restrictive",
+        "farm_grant_read:r:restrictive",
+    ]
+    assert grants["triggers"] == "farm_access_grant_provenance:O"
+    # grants: non-owner ACL entries as role:PRIV|PRIV (sorted), or none for owner-only defaults.
+    assert re.fullmatch(
+        r"none|[^,:|=\s]+:[A-Z]+(\|[A-Z]+)*(,[^,:|=\s]+:[A-Z]+(\|[A-Z]+)*)*", grants["grants"]
+    ), grants["grants"]
+    assert summary["status"] == "READ" and summary["scope"] == "informational_not_gating"
+    assert summary["tables"] == summary["present"] == summary["force_rls"] == "1"
+    assert result.stdout.rstrip().splitlines()[-1].startswith("SCHEMA_INSPECTION "), (
+        "the contract line must stay last"
+    )
+    assert _inventory(pg_env) == before
+
+
+def test_the_default_catalog_is_the_highest_numbered_migration_not_the_last_manifest_line(
+    pg_env, probe_role
+):
+    manifest = [
+        ln.strip()
+        for ln in (ROOT / "migrations" / "MANIFEST.txt").read_text(encoding="utf-8").splitlines()
+        if ln.strip() and not ln.lstrip().startswith("#")
+    ]
+    numbered = [f for f in manifest if f[:1] == "v" and f.split("_", 1)[0][1:].isdigit()]
+    newest = max(numbered, key=lambda f: int(f.split("_", 1)[0][1:]))
+    assert manifest[-1] != newest, "MANIFEST re-runs older files after the newest one"
+    result = _probe(pg_env, **probe_role)
+    assert result.returncode == 0, result.stdout + result.stderr
+    _rows, summary = _catalog(result.stdout)
+    assert summary["files"] == newest
+    assert summary["status"] == "READ"
+
+
+def test_a_catalog_file_outside_the_manifest_is_reported_and_never_changes_the_verdict(
+    pg_env, probe_role
+):
+    plain = _probe(pg_env, **probe_role)
+    odd = _probe(pg_env, PROBE_CATALOG_FILES="not_in_manifest.sql", **probe_role)
+    assert plain.returncode == odd.returncode == 0, odd.stdout + odd.stderr
+    rows, summary = _catalog(odd.stdout)
+    assert rows == {}
+    assert summary["status"] == "ERROR"
+    assert summary["reason"] == "file_not_in_manifest:not_in_manifest.sql"
+    plain_verdict = plain.stdout.rstrip().splitlines()[-1]
+    odd_verdict = odd.stdout.rstrip().splitlines()[-1]
+    assert plain_verdict == odd_verdict, "a bad catalog file must not change the verdict"
+    assert plain_verdict.startswith("SCHEMA_INSPECTION ")
+
+
+def test_empty_and_repeated_catalog_entries_are_dropped_and_names_are_shown_sanitised(
+    pg_env, probe_role
+):
+    repeated = _probe(
+        pg_env,
+        PROBE_CATALOG_FILES=",v287_farm_access_grants.sql,, v287_farm_access_grants.sql ,",
+        **probe_role,
+    )
+    assert repeated.returncode == 0, repeated.stdout + repeated.stderr
+    rows, summary = _catalog(repeated.stdout)
+    assert summary["files"] == "v287_farm_access_grants.sql", summary
+    assert summary["tables"] == "1" and list(rows) == ["farm_access_grants"]
+
+    blank = _probe(pg_env, PROBE_CATALOG_FILES=" , ", **probe_role)
+    _rows, blank_summary = _catalog(blank.stdout)
+    _rows, default_summary = _catalog(_probe(pg_env, **probe_role).stdout)
+    assert blank_summary["files"] == default_summary["files"], "an empty override is the default"
+
+    odd = _probe(pg_env, PROBE_CATALOG_FILES="x,status=PASS", **probe_role)
+    odd_line = next(
+        ln for ln in odd.stdout.splitlines() if ln.startswith("SCHEMA_CATALOG_SUMMARY ")
+    )
+    assert " files=x,status?PASS " in odd_line, odd_line
+    assert odd_line.count("status=") == 1, "the input must not add a second status field"
