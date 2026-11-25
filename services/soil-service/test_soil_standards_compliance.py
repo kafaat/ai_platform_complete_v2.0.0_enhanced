@@ -803,5 +803,15 @@ def test_clauses_without_a_required_method_ignore_the_method_field():
     assert next(r for r in report.results if r.clause_id == "T1.salinity.ECw").status == "pass"
 
 
-def test_load_catalog_accepts_a_str_path():
+def test_load_catalog_accepts_a_str_path_and_still_checks_the_hash(tmp_path, monkeypatch):
     assert load_catalog(str(FARMLAND_AUDIT_CATALOG))["version"]
+    # ...and a tampered audit catalogue given as a str path is refused (hospital nit on #1627).
+    import standards_registry
+
+    tampered = tmp_path / FARMLAND_AUDIT_CATALOG.name
+    tampered.write_bytes(
+        FARMLAND_AUDIT_CATALOG.read_bytes().replace(b'"2027-05-01"', b'"2026-05-01"', 1)
+    )
+    monkeypatch.setattr(standards_registry, "FARMLAND_AUDIT_CATALOG", tampered)
+    with pytest.raises(StandardsRegistryError, match="catalog_hash_mismatch"):
+        load_catalog(str(tampered))

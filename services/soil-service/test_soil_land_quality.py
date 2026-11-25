@@ -417,3 +417,10 @@ def test_gypsum_rate_stays_allowed_by_the_gates_when_no_candidate_lacks_inputs()
     )
     assert not any(i["type"] == "gypsum_candidate" for i in p.interventions)
     assert "gypsum_rate" in p.allowed_actions
+
+
+def test_lab_product_version_suffix_is_pinned_literally():
+    # Hospital nit on #1627: comparing against the constant alone let a revert to v1 pass.
+    assert LAB_HB60_VERSION_SUFFIX == "lab-hb60.v2"
+    p = _reclaim(lab_verified=True, esp_pct=22.0)
+    assert p.assessment_version == "reclamation-v1+lab-hb60.v2"
