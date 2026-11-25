@@ -10834,5 +10834,5 @@ The full local unit run exposed two additional test defects. The requirements co
 - **#1627 مدمج** (`9118d527`، دمجته المستشفى بطلب المالك): نتائج Devin الثلاث؛ إعادة بناء التربة على staging (`8f2ecdd5` SUCCESS).
 - **ZIP 01 (الموجة 1)** مُصدَّر من 80c86a88 على فرع `claude/farmland-phase2-deliverables`.
 - **فجوات جديدة في [السجلّ](gaps/registry.md):** خمس من بيئة التكامل (Grafana، حافّة الرسم المعرفيّ، بذر الاسترجاع، محوِّل السجلّ، حجم Helm) وأربع من مراجعات اليوم (معدّل الجبس بلا ESP، طريقة AH-210، تهجئة الطريقة، تباين الملاءمة).
-- **#1625 مدمج** (`c71dbb0f`): لوحتا Grafana بمتغيّر قالب؛ فجوة `GRAFANA-DASHBOARD-DATASOURCE-UID-UNRESOLVED-01` صارت fixed (العرض الحيّ غير مُثبَت).
+- **#1625 مدمج** (`c71dbb0f`): لوحتا Grafana بمتغيّر قالب؛ فجوة `GRAFANA-DASHBOARD-DATASOURCE-UID-UNRESOLVED-01` تبقى open في السجلّ مع ذكر الإصلاح المدموج، لأنّ fixed يُعلَن في PR الإصلاح (#1136)؛ والعرض الحيّ غير مقيس.
 
