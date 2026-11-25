@@ -1088,6 +1088,11 @@ def calculate_reservoir_booster_network(
         else 0.0
     )
     runtime_h = req.required_gross_volume_m3 / duty_flow_m3_h
+    # Requested constant-duty electrical energy for this booster only.
+    # This is a sizing estimate even if water or equipment constraints block the run.
+    requested_booster_energy_kwh = input_power_kw * runtime_h
+    if not math.isfinite(requested_booster_energy_kwh):
+        raise ValueError("requested booster energy exceeds numeric range")
     reservoir_forecast = _reservoir_run_forecast(
         req.reservoir.current_volume_m3,
         req.reservoir.capacity_m3,
@@ -1144,6 +1149,8 @@ def calculate_reservoir_booster_network(
         "reservoir_net_change_m3_h": net_change_m3_h,
         "requested_runtime_h": runtime_h,
         "reservoir_forecast": reservoir_forecast,
+        "booster_input_power_kw": input_power_kw,
+        "requested_booster_energy_kwh": requested_booster_energy_kwh,
         "blockers": sorted(set(blockers)),
         "warnings": sorted(set(warnings)),
     }
@@ -1169,6 +1176,7 @@ def calculate_reservoir_booster_network(
             "required_pressure_bar": round(required_head_m / 10.19716213, 4),
             "hydraulic_power_kw": round(hydraulic_power_kw, 4),
             "input_power_kw": round(input_power_kw, 4),
+            "requested_energy_kwh": round(requested_booster_energy_kwh, 4),
             "design_flow_m3_h": req.booster.design_flow_m3_h,
             "design_head_m": req.booster.design_head_m,
             "installed_motor_power_kw": req.booster.installed_motor_power_kw,
