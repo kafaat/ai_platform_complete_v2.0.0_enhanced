@@ -18,8 +18,9 @@ api/farm_economics.py — دراسة الجدوى الاقتصاديّة للم�
 
 from __future__ import annotations
 
-from api.feasibility_models import WaterCostScenario
 from core.engines.water_cost import WaterCostInputs, seasonal_water_cost
+
+from api.feasibility_models import WaterCostScenario
 
 # بنود التكلفة القياسيّة (من المقال) — للإرشاد عند بناء التقدير
 _COST_CATEGORIES = [
