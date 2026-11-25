@@ -1417,3 +1417,35 @@ def test_initial_delivery_migration_reapplies_and_rolls_back_without_rewriting_d
                 await live.admin.execute(up)
 
     run(target())
+
+
+def test_the_platform_refuses_deleting_a_verified_field_with_409_through_the_real_delete(
+    monkeypatch, tmp_path
+):
+    # Lab 1611-v1: the platform's 409 tests call protected_reference_conflict directly. Here the
+    # platform's own field-row DELETE meets v289's RESTRICT reference on a live database.
+    import importlib.util
+
+    from fastapi import HTTPException
+
+    path = ROOT / "services" / "sahool-platform" / "api" / "field_context.py"
+    spec = importlib.util.spec_from_file_location("sahool_platform_field_context_live", path)
+    field_context = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(field_context)
+
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            await _ready(live)
+            with pytest.raises(HTTPException) as caught:
+                async with live.admin.transaction():
+                    await field_context.delete_field_row(live.admin, live.field, "حذف الحقل")
+            assert caught.value.status_code == 409, caught.value.detail
+            assert "scouting_verification" in caught.value.detail, caught.value.detail
+            remaining = await live.admin.fetchval(
+                "SELECT count(*) FROM fields WHERE tenant_id=$1::uuid AND field_id=$2",
+                live.tenant,
+                live.field,
+            )
+            assert remaining == 1
+
+    run(target())
