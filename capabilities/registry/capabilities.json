@@ -1087,11 +1087,11 @@
         "services/raster-service/test_raster_pixel_geometry.py",
         "services/raster-service/test_truecolor_validity_alpha.py",
         "services/sahool-platform/tests/test_agri_polygon_area.py",
+        "services/sahool-platform/tests/test_agri_polygon_coordinate_validation.py",
         "services/sahool-platform/tests/test_boundary_confidence.py",
         "services/sahool-platform/tests/test_drift_geometry.py",
         "services/sahool-platform/tests/test_farm_ledger_inventory_boundary.py",
-        "services/sahool-platform/tests/test_field_boundary_contracts.py",
-        "services/sahool-platform/tests/test_field_boundary_graph.py"
+        "services/sahool-platform/tests/test_field_boundary_contracts.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1140,7 +1140,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 40
+        "tests": 41
       }
     },
     {

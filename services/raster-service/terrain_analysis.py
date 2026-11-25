@@ -165,7 +165,7 @@ def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
         aspect < 0, 90.0 - aspect, np.where(aspect > 90.0, 360.0 - aspect + 90.0, 90.0 - aspect)
     )
 
-    sv = slope_deg[np.isfinite(slope_deg)]
+    sv = slope_deg[np.isfinite(dem) & np.isfinite(slope_deg)]
     if not sv.size:
         return _no_gradient_support_envelope()
     return {
@@ -311,14 +311,14 @@ def compute_field_terrain(
     aspect = np.where(
         aspect < 0, 90.0 - aspect, np.where(aspect > 90.0, 360.0 - aspect + 90.0, 90.0 - aspect)
     )
-    sv = slope_deg[np.isfinite(slope_deg)]
+    sv = slope_deg[np.isfinite(dem) & np.isfinite(slope_deg)]
     if not sv.size:
         # ارتفاعات صالحة لكن معزولة (لا جار صالح على أحد المحورين) ⇒ لا انحدار مَقيس.
         return _no_gradient_support_envelope()
 
     # الاتّجاه الغالب (8 جهات) للجريان السطحيّ.
     dirs = ["شمال", "شمال شرق", "شرق", "جنوب شرق", "جنوب", "جنوب غرب", "غرب", "شمال غرب"]
-    av = aspect[np.isfinite(aspect)]
+    av = aspect[np.isfinite(dem) & np.isfinite(slope_deg) & np.isfinite(aspect)]
     dominant_aspect = None
     if av.size:
         # متوسّط دائريّ (الاتّجاه كمّيّة زاويّة): المتوسّط الخطّيّ لزوايا حول 0/360 يعطي

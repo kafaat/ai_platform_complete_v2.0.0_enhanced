@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7727,
+    "files_scanned": 7731,
     "files_by_kind": {
       "backend": 1317,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2254,
-      "tests": 2701,
+      "tests": 2705,
       "web": 574
     },
-    "unmapped_artifacts": 3675,
+    "unmapped_artifacts": 3679,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4202,
+      "python_functional": 4206,
       "raw": 3525
     },
-    "test_dependency_files": 2061,
-    "test_dependency_edges": 5586,
-    "test_dependency_bounded_files": 1180,
+    "test_dependency_files": 2065,
+    "test_dependency_edges": 5592,
+    "test_dependency_bounded_files": 1184,
     "test_dependency_unresolved_relations": 536
   },
   "capabilities": [
@@ -41990,6 +41990,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_agri_irrigation_volume_overflow.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_agri_next_decision_support.py",
       "kind": "tests"
     },
@@ -41999,6 +42003,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_agri_polygon_area.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_agri_polygon_coordinate_validation.py",
       "kind": "tests"
     },
     {
@@ -42495,6 +42503,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_feedback_closure.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_fertility_numeric_contract.py",
       "kind": "tests"
     },
     {
@@ -43688,6 +43700,10 @@
     {
       "path": "services/soil-service/soilgrids_client.py",
       "kind": "backend"
+    },
+    {
+      "path": "services/soil-service/test_p3_numeric_contract.py",
+      "kind": "tests"
     },
     {
       "path": "services/soil-service/test_soil_canonical_duplicate_identity.py",
@@ -61540,6 +61556,24 @@
       "unresolved": []
     },
     {
+      "test": "services/sahool-platform/tests/test_agri_irrigation_volume_overflow.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/agri_tools/registry.py",
+          "kind": "import",
+          "line": 6
+        },
+        {
+          "source": "services/sahool-platform/core/agri_tools/tools/irrigation_volume.py",
+          "kind": "import",
+          "line": 7
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "services/sahool-platform/tests/test_agri_next_decision_support.py",
       "bounded": true,
       "unbounded_reasons": [],
@@ -61574,6 +61608,24 @@
           "source": "services/sahool-platform/core/agri_tools/tools/polygon_area.py",
           "kind": "import",
           "line": 8
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_agri_polygon_coordinate_validation.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/agri_tools/registry.py",
+          "kind": "import",
+          "line": 6
+        },
+        {
+          "source": "services/sahool-platform/core/agri_tools/tools/polygon_area.py",
+          "kind": "import",
+          "line": 7
         }
       ],
       "unresolved": []
@@ -64642,6 +64694,19 @@
       "edges": [
         {
           "source": "services/sahool-platform/core/feedback_closure.py",
+          "kind": "import",
+          "line": 4
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_fertility_numeric_contract.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/engines/fertility.py",
           "kind": "import",
           "line": 4
         }
@@ -72568,6 +72633,19 @@
           "source": "shared/contracts/soil/__init__.py",
           "kind": "import",
           "line": 8
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/soil-service/test_p3_numeric_contract.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "shared/contracts/soil/p3.py",
+          "kind": "import",
+          "line": 6
         }
       ],
       "unresolved": []
