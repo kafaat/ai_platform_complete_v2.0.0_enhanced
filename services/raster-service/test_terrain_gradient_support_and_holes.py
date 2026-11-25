@@ -170,3 +170,29 @@ def test_single_ring_boundary_still_works():
     arr, transform = _grid()
     out = mask_array_by_polygon(arr, transform, CRS.from_epsg(4326), ring)
     assert int(np.isfinite(out).sum()) == 100
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        [[-32768, 110, -32768], [100, -32768, 120], [-32768, 130, -32768]],
+        [[-32768, 100, -32768], [100, -32768, 100], [-32768, 100, -32768]],
+    ],
+)
+@pytest.mark.parametrize("field_window", [False, True])
+def test_missing_center_cannot_supply_slope(tmp_path, data, field_window):
+    # Central differences can be finite at a missing center when both neighbors
+    # are valid. The center is still not an observed DEM cell.
+    bbox = [44, 15, 44.003, 15.003]
+    dem = _write_dem(tmp_path / "cross.tif", np.array(data), bbox)
+    r = ta.compute_field_terrain(dem, bbox) if field_window else ta.compute_slope_aspect(dem)
+    assert r["computed"] is False, r
+    assert r["source"] == _REFUSAL
+    assert "slope_deg" not in r
+
+
+def test_legacy_measured_plane_remains_valid(tmp_path):
+    bbox = [44, 15, 44.003, 15.003]
+    dem = _write_dem(tmp_path / "plane.tif", np.tile([100, 130, 160], (3, 1)), bbox)
+    r = ta.compute_slope_aspect(dem)
+    assert r["computed"] is True
+    assert r["slope_deg"]["mean"] == pytest.approx(45)
