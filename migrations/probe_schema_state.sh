@@ -20,7 +20,8 @@
 # الفحص المُعلَن فقط (الجداولُ والأعمدة) لا اعتمادَ القاعدة للإنتاج.
 # `SCHEMA_STATE …` يُطبَع أيضاً للتوافق مع القرّاء الأقدم.
 # Before those two lines, `SCHEMA_CATALOG file=… table=… rls=… force_rls=… policies=… triggers=… grants=…` per table
-# of the catalog files (default: the highest-numbered vNNN in MANIFEST; PROBE_CATALOG_FILES overrides) and
+# of the catalog files (default: the highest-numbered vNNN in MANIFEST that creates a table;
+# PROBE_CATALOG_FILES overrides) and
 # one `SCHEMA_CATALOG_SUMMARY status=READ|ERROR … scope=informational_not_gating`. Never changes the verdict.
 #
 # المتغيّرات: PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE (أو PROBE_PGUSER/PROBE_PGPASSWORD
@@ -169,8 +170,9 @@ fi
 # catalog says: relrowsecurity, relforcerowsecurity, policy name:cmd:mode, trigger name:tgenabled and the
 # table-level grants other than the owner's (role:PRIV|PRIV from relacl; none = owner-only defaults;
 # column grants and grant options are not shown). Names have | , : = and whitespace replaced by ?.
-# The files default to the highest-numbered vNNN migration in MANIFEST (not the last line: MANIFEST
-# re-runs older files after it); PROBE_CATALOG_FILES (comma-separated MANIFEST names) overrides.
+# The files default to the highest-numbered vNNN migration in MANIFEST that creates a table (not the
+# last line: MANIFEST re-runs older files after it); PROBE_CATALOG_FILES (comma-separated MANIFEST
+# names) overrides.
 # This section is informational: it never changes status, the contract or the exit code, and it reads
 # in the same server-confirmed read-only transaction as every other query here. A query that fails
 # reports SCHEMA_CATALOG_SUMMARY status=ERROR and the probe carries on.
@@ -190,7 +192,10 @@ for cf in "${catalog_raw[@]}"; do
 done
 catalog_files="$catalog_clean"
 if [ -z "$catalog_files" ]; then
-  catalog_files="$(sed -nE 's/^v([0-9]+)_[A-Za-z0-9_]+\.sql$/\1 &/p' "$WORK/files" | sort -n -k1,1 | tail -n 1 | cut -d' ' -f2)"
+  # The newest numbered migration that creates a table. A trigger- or function-only migration
+  # (v290 adds one trigger to v289's outbox) has no table rows, so it would print tables=0; its
+  # trigger shows on the creating migration's row instead.
+  catalog_files="$(awk -F'|' '$2=="table" {print $1}' "$WORK/expected" | sed -nE 's/^v([0-9]+)_[A-Za-z0-9_]+\.sql$/\1 &/p' | sort -n -k1,1 | tail -n 1 | cut -d' ' -f2)"
 fi
 : > "$WORK/catalog_tables"
 IFS=',' read -r -a catalog_list <<<"$catalog_files"

@@ -346,22 +346,55 @@ def test_the_probe_prints_the_catalog_facts_of_a_named_migration_from_the_server
     assert _inventory(pg_env) == before
 
 
-def test_the_default_catalog_is_the_highest_numbered_migration_not_the_last_manifest_line(
-    pg_env, probe_role
-):
+def _numbered_manifest() -> tuple[list[str], list[str]]:
     manifest = [
         ln.strip()
         for ln in (ROOT / "migrations" / "MANIFEST.txt").read_text(encoding="utf-8").splitlines()
         if ln.strip() and not ln.lstrip().startswith("#")
     ]
     numbered = [f for f in manifest if f[:1] == "v" and f.split("_", 1)[0][1:].isdigit()]
-    newest = max(numbered, key=lambda f: int(f.split("_", 1)[0][1:]))
+    return manifest, sorted(numbered, key=lambda f: int(f.split("_", 1)[0][1:]))
+
+
+def _creates_a_table(name: str) -> bool:
+    text = (ROOT / "migrations" / name).read_text(encoding="utf-8")
+    return re.search(r"CREATE TABLE IF NOT EXISTS\s+[a-z0-9_]+", text, re.I) is not None
+
+
+def test_the_default_catalog_is_the_highest_numbered_migration_not_the_last_manifest_line(
+    pg_env, probe_role
+):
+    manifest, numbered = _numbered_manifest()
+    newest = [f for f in numbered if _creates_a_table(f)][-1]
     assert manifest[-1] != newest, "MANIFEST re-runs older files after the newest one"
     result = _probe(pg_env, **probe_role)
     assert result.returncode == 0, result.stdout + result.stderr
     _rows, summary = _catalog(result.stdout)
     assert summary["files"] == newest
     assert summary["status"] == "READ"
+    assert int(summary["tables"]) > 0
+
+
+def test_a_migration_that_creates_no_table_never_becomes_the_empty_default_catalog(
+    pg_env, probe_role
+):
+    # v290 adds only a trigger to v289's outbox. As the default it printed tables=0, which hid
+    # both v289's row-level security and v290's own trigger; the default now stays on v289 and
+    # v290's trigger shows on the outbox row.
+    _manifest, numbered = _numbered_manifest()
+    assert numbered[-1] == "v290_scouting_verification_initial_state.sql"
+    assert not _creates_a_table(numbered[-1])
+    result = _probe(pg_env, **probe_role)
+    assert result.returncode == 0, result.stdout + result.stderr
+    rows, summary = _catalog(result.stdout)
+    assert summary["files"] == "v289_scouting_verification_bridge.sql", summary
+    assert summary["tables"] == "4" and summary["force_rls"] == "4", summary
+    triggers = rows["scouting_verification_outbox"]["triggers"].split(",")
+    assert "scouting_verification_delivery_initial_guard:O" in triggers, triggers
+
+    named = _probe(pg_env, PROBE_CATALOG_FILES=numbered[-1], **probe_role)
+    _rows, named_summary = _catalog(named.stdout)
+    assert named_summary["status"] == "READ" and named_summary["tables"] == "0", named_summary
 
 
 def test_a_catalog_file_outside_the_manifest_is_reported_and_never_changes_the_verdict(

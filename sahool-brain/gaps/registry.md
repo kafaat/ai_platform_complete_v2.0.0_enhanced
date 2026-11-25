@@ -9328,3 +9328,12 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الشاهد:** `test_dispatch_reveals_a_finished_delivery_only_to_its_assessor` (المالك لا يُنادى لغير الكاتب)؛ يفشل على `20bdffcc`.
 - **شرط التفعيل:** قبل تشغيل `FM_SCOUTING_VERIFICATION_ENABLED` أو `VEGETATION_VERIFICATION_BRIDGE_ENABLED` في أيّ بيئة.
 
+
+## SCOUTING-VERIFICATION-OUTBOX-INITIAL-STATE-01 — إدراج صادر جديد بحالة تشغيل سابقة
+
+- **الحالة:** fixed — في المصدر على الفرع المحلي المبني على `5b2194d62c5d188560fa55f68ddc5382801f300d` بعد #1598 المدمج؛ تطبيق v290 على بيئة منشورة غير مُثبت.
+- **المصدر:** `migrations/v289_scouting_verification_bridge.sql`، جدول الصادر وحارس `scouting_verification_delivery_guard` المرتبط بـUPDATE وحده؛ حارس INSERT الحالي يطابق التقييم والجسم والدليل فقط.
+- **الخلل:** INSERT ذو تقييم وجسم صحيحين يستطيع بدء `delivered` بإيصال `{}` ومحاولات صفر، أو `delivery_exhausted` بمحاولات صفر، أو `sending` بمحاولة تاسعة وحجز؛ فرفض الانتقال عند UPDATE لا يفرض بداية الصف.
+- **الإصلاح:** `migrations/v290_scouting_verification_initial_state.sql` يفرض `pending/0` وSQL NULL لحقلي الحجز والإيصال والخطأ، بدالة وحارس مستقلين. تبقى v289 بايتًا ببايت، ولا تُغيّر الصفوف السابقة. JSON `null` في الإيصال قيمة موجودة ومرفوضة.
+- **شاهد الانحدار:** `tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py`، اختبارات `initial_delivery` ذات الرفض المحدد بـ`23514/verification_delivery_initial_state_invalid` والموجب على التقييم نفسه؛ ضابط سالب بإزالة الحارس الجديد وحده ثم إرجاعه؛ وإعادة up/v289/down مع صف delivered مشروع. [نطاق القبول والتراجع](../../docs/runbooks/V290_VERIFICATION_OUTBOX_INITIAL_STATE.md).
+- **الحد:** ضمان إدخالات لاحقة بعد تطبيق v290، لا شهادة سلامة كل إدخال تاريخي ولا قبولًا تشغيليًا للجسر؛ تبقى فجوة `VEGETATION-VERIFICATION-RESULTS-CALLBACK-NO-SENDER-01` ضمن حدودها المفتوحة.
