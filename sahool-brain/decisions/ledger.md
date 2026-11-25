@@ -5086,3 +5086,11 @@ On the `01d3402d` baseline, probing the server before a build gives the operator
 - **الدمج:** squash `c71dbb0fff29dbb4f1aa0ff0ba49d76d4d79701a` (الأب `9118d527`) بـ`expectedHeadSha` `8ec9188d`، دمجته جلسة المستشفى. مراجعة جلسة التنسيق PASS (8c94c7aa ثمّ bffd58c5 و8df9792b و672358ab و8ec9188d)، ومختبر 1625-v5 و1625-post PASS، وCI أخضر. Deploy-Effect NONE. الفحوص ثابتة: العرض الحيّ في Grafana غير مقيس. فجوة `GRAFANA-DASHBOARD-DATASOURCE-UID-UNRESOLVED-01` تبقى open في السجلّ مع ذكر هذا الإصلاح (fixed يُعلَن في PR الإصلاح، #1136).
 - **المصدر:** #1625 · `tests_v9/test_grafana_dashboard_datasource_uids.py`.
 
+
+
+## 2026-11-25 — حكم مراجعة #1628: تصحيح التشخيص ونطاق التسليم دون اعتماد تشغيليّ
+
+- **الحكم وسببه:** عند مراجعة الرأس `73ec1c3b` ثبت أنّ ادّعاء غياب حجم Helm يناقض `helm/sahool/values.yaml:233-245` وقالبَي `persistence.yaml` و`deployments.yaml`؛ لذلك يُسجَّل `HELM-KNOWLEDGE-GRAPH-DATA-NO-VOLUME-01` كتشخيص مصوَّب بوسم `<!-- gap-registry: adjudicated -->` وفق `sahool-brain/README.md:55-62`، مع إبقاء التشخيص المسحوب وأدلّة تصويبه.
+- **التسليم:** تعريف ZIP 01 التراكميّ هو الموجتان 1 و2 (`docs/farmland/README.md:34-38`). وصف مكوّن الموجة الأولى في السجلّ لا يثبت اكتمال الحزمة، ويُصحَّح بإدخال لاحق يحفظ التاريخ.
+- **حدّ الاستدلال:** `MODEL-REGISTRY-ADAPTER-NO-REGISTRY-ENDPOINT-01` يربط ملفّ تعريف المحوّل الاختياريّ وإعدادات السجلّ الخارجيّ في Compose بفحص الإعداد في مصدر المحوّل؛ لا يُستنتج منه عدم النشر أو عدم وجود سجلّ في بيئة حيّة. لا يتغيّر قرار W4-05 ولا يُفعَّل ملفّ `model-lifecycle` بهذه المراجعة.
+- **المصدر:** #1628؛ ملاحظات Devin المنقولة في تكليف الاستئناف (2026-11-25)، مع إعادة قراءة المصادر المسماة في [سجلّ الفجوات](../gaps/registry.md). التصويب توثيقيّ ولا يمنح إذن نشر أو ترقية حالة إلى تحقق حيّ.

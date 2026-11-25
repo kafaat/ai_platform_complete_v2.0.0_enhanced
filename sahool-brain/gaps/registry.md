@@ -9377,16 +9377,20 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **حدّ القياس:** السبب مستنتَج من الشيفرة؛ لم يُقرأ جسم 503 لأنّ الخدمة على الشبكة الخاصّة.
 
 
-## MODEL-REGISTRY-ADAPTER-NO-REGISTRY-ENDPOINT-01 — محوِّل دورة حياة النماذج لا يُنشَر لأنّه لا سجلّ نماذج يتّصل به
+## MODEL-REGISTRY-ADAPTER-NO-REGISTRY-ENDPOINT-01 — إعداد سجلّ النماذج الخارجيّ وقبول تشغيل المحوِّل غير موثّقَين بإيصال هنا
 
-- **الحالة:** open — يحتاج سجلّ نماذج فعليًّا أو قرارًا بإبقاء ملفّ `model-lifecycle` خارج البيئات.
-- **المصدر:** `sahool-model-lifecycle-adapter` (`docker-compose.v9.yml:2075`، مبنيّ من `services/model-registry-adapter/`، ضمن ملفّ `model-lifecycle`) لم يُنشَر على بيئة التكامل: `validate_runtime()` عند الإقلاع (`adapter.py:103`) يرفع ما لم يُشِر `MODEL_REGISTRY_URL` إلى سجلّ (`adapter.py:35-38`)، ولا سجلّ في compose ولا في البيئة؛ ويلزمه أيضًا `REGISTRY_ADAPTER_ID` (`adapter.py:116`). تقرير جلسة المستشفى (2026-11-25).
+- **الحالة:** open — قبول التشغيل على البيئة المقصودة غير محسوم بالدليل المرتبط بهذا الإدخال؛ وجود ملفّ التعريف في Compose لا يثبت تفعيله أو غياب نشره، والإبقاء على التعطيل الافتراضيّ قرار قائم لا عطل مُثبت.
+- **المصدر الثابت (الرأس `73ec1c3b`):** `docker-compose.v9.yml:2075-2089` يعرّف `sahool-model-lifecycle-adapter` ضمن ملفّ التعريف الاختياريّ `model-lifecycle` ويصرّح بأنّ الخلفيّات خارجيّة؛ و`:2111-2119` يمرّر `MODEL_REGISTRY_BACKEND/URL/TOKEN/DRY_RUN` من البيئة. غياب خدمة سجلّ داخل Compose لا يثبت غياب سجلّ خارجيّ.
+- **حدود فحص الإعداد:** `services/model-registry-adapter/adapter.py:33-40,103-120` يشترط URL، والرمز في production أو عند تعيين هويّة المحوّل، ويشترط `MODEL_REGISTRY_BACKEND=http` ويرفض dry-run في production؛ لا يفحص مخطّط URL ولا يتّصل بالسجلّ أثناء هذا الفحص. شرط `REGISTRY_ADAPTER_ID` في production مصدره `services/model-registry-adapter/runtime.py:30-34,333-335`، وليس الشرط الاختياريّ في `adapter.py:116`.
+- **تصويب الدليل التشغيليّ:** نُسب إلى تقرير جلسة المستشفى (2026-11-25) أنّ المحوّل غير منشور وأنّ البيئة بلا سجلّ، لكنّ الإدخال لا يربط إيصالًا خامًّا متتبَّعًا لذلك التقرير؛ تُسحب نسبةُ هذين الادّعاءين إلى الشيفرة ولا يُعاد تقديمهما كقياس. يبقى التعطيل الافتراضيّ وفق W4-05 قائمًا (`docker-compose.v9.yml:2027-2029`؛ `tests_v9/test_w4_05_model_lifecycle_defaults_pinned.py:1-7,42-53`). المتابعة هي ربط قرار التمكين أو استمرار التعطيل بدليله، ثمّ إيصال قبول مخوَّل عند اعتماد التمكين.
 
 
-## HELM-KNOWLEDGE-GRAPH-DATA-NO-VOLUME-01 — مخطّط Helm لا يُركّب حجمًا على /data لخدمة الرسم المعرفيّ
+## HELM-KNOWLEDGE-GRAPH-DATA-NO-VOLUME-01 — تصويب تشخيص غياب حجم /data لخدمة الرسم المعرفيّ في Helm
 
-- **الحالة:** open — سابقٌ لـ#1623؛ غير منشور على Helm حاليًّا.
-- **المصدر:** `helm/sahool/values.yaml:233` (`sahool-knowledge-graph`) بلا حجم؛ بعد #1623 (`f834f4ec`) لم تعد الصورة تُعلن `VOLUME`، فالبيانات على Helm تبقى عابرة ما لم يُضَف حجم (ملاحظة مراجعة #1623).
+- **الحالة:** <!-- gap-registry: adjudicated --> تشخيص مصوَّب بالدليل المصدريّ — ادّعاء غياب حجم Helm لا يطابق المخطّط عند `c71dbb0f` و`73ec1c3b`؛ هذا حسمٌ لتشخيص غير صحيح، لا انتقال إلى fixed ولا إثبات تشغيل حيّ.
+- **التشخيص المسحوب:** نسبت ملاحظة مراجعة #1623 غياب الحجم إلى `helm/sahool/values.yaml:233`، واستنتجت من إزالة Dockerfile `VOLUME` في `f834f4ec` أنّ بيانات Helm عابرة. إزالة تعليمة الصورة لا تزيل PVC الذي يعلنه المخطّط.
+- **الدليل:** `helm/sahool/values.yaml:233-245` يفعّل الخدمة ويعرّف `persistence` بحجم `5Gi` ونمط `ReadWriteOnce` وموضع `/data`، ويضبط `KG_SQLITE_PATH=/data/kg.sqlite`. `helm/sahool/templates/persistence.yaml:1-13` ينشئ PVC باسم `sahool-knowledge-graph-data`، و`helm/sahool/templates/deployments.yaml:78-84,109-113` يربطه بالحجم `data` ويركّبه على `/data`.
+- **التاريخ وحدّ الحكم:** هذه التهيئة موجودة منذ #997 (`62fc7b01473821ec1e9d9285da091b3a1eb314b7`، 2026-09-13)، قبل #1623. القراءة المصدرية لا تثبت نشر Helm أو ارتباط PVC حيّ أو دوام البيانات بعد إعادة تشغيل؛ لا تُسجَّل هذه النتائج دون قياسها. تمثيل `adjudicated` موثّق في `sahool-brain/README.md:55-62` ويحفظ الإدخال ودليله خارج تعداد حالات الفجوات المستقلّة.
 
 
 ## P3-GYPSUM-RATE-ALLOWED-WITHOUT-LAB-ESP-01 — تقييم الاستصلاح يسمح بمعدّل الجبس حين يوجد مرشَّح جبس بلا ESP مخبريّ
