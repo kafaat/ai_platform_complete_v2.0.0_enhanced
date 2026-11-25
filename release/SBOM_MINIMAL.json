@@ -35715,7 +35715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5362e49fbe126efd4c21dd28ff3de30d82b86b2021500b15a0ae28ba0c9c5b89"
+          "content": "afdf2f086b535166a19035d4bea0f2ef496dca37f9a82b0ae00de0a7e01f905f"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_delete_protected_reference.py",
