@@ -23,9 +23,9 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 
-from standards_registry import Clause, Standard, StandardsRegistry
+from standards_registry import NEVER_IN_FORCE, Clause, Standard, StandardsRegistry
 
 ENGINE_VERSION = "compliance-engine.v1"
 
@@ -78,11 +78,25 @@ class ComplianceReport:
 
     @property
     def legally_binding(self) -> bool:
-        """صحيح فقط إن كان كلّ معيارٍ قُيِّم بندٌ منه (غير not_applicable) معتمَداً محلّيّاً."""
+        """صحيح فقط إن كان كلّ معيارٍ قُيِّم بندٌ منه (غير not_applicable):
+
+        - معتمَداً `adopted` (لا `provisional`) بتاريخ اعتمادٍ مسجَّل لا يتجاوز تاريخ التقييم، و
+        - ساريَ المفعول في تاريخ التقييم (إصدارٌ مُستبدَل أو مُثبَّتٌ خارج نافذته ليس ملزماً).
+        """
         used = {r.standard_ref for r in self.results if r.status != "not_applicable"}
-        return bool(used) and all(
-            self.standards.get(ref, {}).get("adoption") == "adopted" for ref in used
-        )
+        if not used:
+            return False
+        for ref in used:
+            info = self.standards.get(ref, {})
+            adopted_on = info.get("adopted_on")
+            if (
+                info.get("adoption") != "adopted"
+                or not adopted_on
+                or date.fromisoformat(adopted_on) > self.evaluated_on
+                or not info.get("in_force_on_evaluation_date")
+            ):
+                return False
+        return True
 
     @property
     def counts(self) -> dict[str, int]:
@@ -162,7 +176,13 @@ def evaluate_clause(
             "value": observation.value,
             "unit": observation.unit,
             "source": observation.source,
-            "observed_on": observation.observed_on.isoformat() if observation.observed_on else None,
+            "observed_on": (
+                observation.observed_on.isoformat()
+                if isinstance(observation.observed_on, date)
+                else None
+                if observation.observed_on is None
+                else str(observation.observed_on)
+            ),
             "method": observation.method,
         },
     }
@@ -173,6 +193,13 @@ def evaluate_clause(
     if observation.unit.strip() != clause.unit:
         return ClauseResult(
             **base, status="not_evaluated", reason="unit_mismatch", evidence=evidence
+        )
+    if isinstance(observation.observed_on, datetime) or not (
+        observation.observed_on is None or isinstance(observation.observed_on, date)
+    ):
+        # datetime ⇒ ambiguous calendar day (timezone); the caller passes a date.
+        return ClauseResult(
+            **base, status="not_evaluated", reason="observation_date_not_a_date", evidence=evidence
         )
     if clause.max_age_days is not None:
         if observation.observed_on is None:
@@ -224,6 +251,17 @@ def evaluate_clause(
     return ClauseResult(**base, status="pass" if ok else "fail", reason=reason, evidence=evidence)
 
 
+def standard_in_force(standard: Standard, on: date) -> bool:
+    """هل الإصدار نافذ في `on`؟ حالته تسمح، وله تاريخ نفاذ بدأ، ولم تنتهِ نافذته."""
+    return (
+        standard.status not in NEVER_IN_FORCE
+        and standard.status != "superseded"
+        and standard.effective_from is not None
+        and standard.effective_from <= on
+        and (standard.effective_to is None or on < standard.effective_to)
+    )
+
+
 def evaluate_standards(
     standards: list[Standard],
     observations: list[Observation],
@@ -240,11 +278,25 @@ def evaluate_standards(
         if obs.parameter in by_param:
             raise ValueError(f"duplicate_observation:{obs.parameter}")
         by_param[obs.parameter] = obs
-    results = [
-        evaluate_clause(s, c, by_param.get(c.parameter), on=on, contexts=contexts)
-        for s in standards
-        for c in s.clauses
-    ]
+    results = []
+    for s in standards:
+        in_force = standard_in_force(s, on)
+        for c in s.clauses:
+            r = evaluate_clause(s, c, by_param.get(c.parameter), on=on, contexts=contexts)
+            if not in_force and r.status in ("pass", "fail"):
+                # A standard that is not in force on `on` (withdrawn, draft, unresolved, superseded
+                # or outside its window) never yields a pass or fail — the measurement is kept as
+                # evidence but the clause is not evaluated against a limit that is not in force.
+                r = ClauseResult(
+                    standard_ref=r.standard_ref,
+                    clause_id=r.clause_id,
+                    parameter=r.parameter,
+                    status="not_evaluated",
+                    reason=f"standard_not_in_force:{s.status}",
+                    evidence=r.evidence,
+                    band=r.band,
+                )
+            results.append(r)
     statuses = {r.status for r in results}
     if "fail" in statuses:
         verdict = "non_compliant"
@@ -255,8 +307,9 @@ def evaluate_standards(
     validity = {
         s.ref: {
             "validity": s.status,
-            "effective_from": s.effective_from.isoformat(),
+            "effective_from": s.effective_from.isoformat() if s.effective_from else None,
             "effective_to": s.effective_to.isoformat() if s.effective_to else None,
+            "in_force_on_evaluation_date": standard_in_force(s, on),
             "adoption": "reference_only",
         }
         for s in standards

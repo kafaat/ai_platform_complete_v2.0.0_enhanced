@@ -1,13 +1,16 @@
 """Farmland Phase 2 · 0001 — standards registry + compliance engine contract."""
 
+import hashlib
+import shutil
 from dataclasses import replace
-from datetime import date
+from datetime import date, datetime
 
 import pytest
 from compliance_engine import Observation, classify_band, evaluate_profile, evaluate_standards
 from standards_registry import (
     FAO29_WATER_QUALITY,
     FARMLAND_AUDIT_CATALOG,
+    FARMLAND_AUDIT_CATALOG_SHA256,
     HB60_SALINE_SODIC,
     Band,
     Clause,
@@ -363,7 +366,11 @@ def test_literature_compliance_is_technical_not_legally_binding_by_default():
 def test_adopted_standard_with_authority_and_reference_makes_the_verdict_binding():
     reg = default_registry()
     adoption = StandardAdoption(
-        "USDA-HB60", "adopted", authority="MAI Yemen", reference="decree 12/2026"
+        "USDA-HB60",
+        "adopted",
+        authority="MAI Yemen",
+        reference="decree 12/2026",
+        adopted_on=date(2026, 1, 1),
     )
     reg.register_profile(ComplianceProfile("P-adopt", "YE", ("USDA-HB60",), adoption=(adoption,)))
     obs = [_obs("ece_ds_m", 1.0, "dS/m"), _obs("esp_pct", 5.0, "%")]
@@ -570,3 +577,95 @@ def test_draft_editions_are_never_current_or_pinnable():
 def test_in_force_status_without_effective_date_is_rejected_at_registration():
     with pytest.raises(StandardsRegistryError, match="in_force_status_needs_effective_date"):
         StandardsRegistry().register(replace(_std("v1", date(2000, 1, 1)), effective_from=None))
+
+
+# ── إصلاحات مراجعة المستشفى لـ#1624 ─────────────────────────────────────
+
+
+def test_f2_pinning_a_future_edition_without_a_date_is_refused_today():
+    reg, _ = _catalog()
+    with pytest.raises(StandardsRegistryError, match="not_yet_effective"):
+        reg.resolve("GB/T 48026@2026")
+    adoption = StandardAdoption(
+        "GB/T 48026", "adopted", authority="a", reference="r", adopted_on=date(2026, 1, 1)
+    )
+    with pytest.raises(StandardsRegistryError, match="not_yet_effective"):
+        reg.register_profile(
+            ComplianceProfile("P-fut", "YE", ("GB/T 48026@2026",), adoption=(adoption,))
+        )
+
+
+def _binding_report(status, *, adopted_on, adoption_status="adopted", version_status="active"):
+    reg = StandardsRegistry()
+    reg.register(
+        _std(
+            "v1",
+            date(2000, 1, 1),
+            status=version_status,
+            superseded_by="TEST-STD@v2" if version_status == "superseded" else None,
+        )
+    )
+    if version_status == "superseded":
+        reg.register(_std("v2", date(2020, 1, 1)))
+    adoption = StandardAdoption(
+        "TEST-STD", adoption_status, authority="MAI", reference="d1", adopted_on=adopted_on
+    )
+    reg.register_profile(ComplianceProfile("P", "YE", (status,), adoption=(adoption,)))
+    return evaluate_profile(reg, "P", [_obs("ece_ds_m", 1.0, "dS/m")], on=ON)
+
+
+def test_f3_binding_needs_adopted_status_a_past_adoption_date_and_an_in_force_edition():
+    assert _binding_report("TEST-STD", adopted_on=date(2026, 1, 1)).legally_binding is True
+    assert _binding_report("TEST-STD", adopted_on=None).legally_binding is False
+    assert _binding_report("TEST-STD", adopted_on=date(2030, 1, 1)).legally_binding is False
+    assert (
+        _binding_report(
+            "TEST-STD", adopted_on=date(2026, 1, 1), adoption_status="provisional"
+        ).legally_binding
+        is False
+    )
+    sup = _binding_report("TEST-STD@v1", adopted_on=date(2026, 1, 1), version_status="superseded")
+    assert sup.legally_binding is False
+    assert sup.verdict == "incomplete"  # superseded edition is evidence, not a limit in force
+
+
+def test_f4_the_catalogue_file_is_pinned_by_its_own_hash(tmp_path):
+    raw = FARMLAND_AUDIT_CATALOG.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == FARMLAND_AUDIT_CATALOG_SHA256
+    tampered = tmp_path / "c.json"
+    shutil.copy(FARMLAND_AUDIT_CATALOG, tampered)
+    tampered.write_bytes(raw.replace(b'"2027-05-01"', b'"2026-05-01"', 1))
+    with pytest.raises(StandardsRegistryError, match="catalog_hash_mismatch"):
+        load_catalog(tampered, expected_sha256=FARMLAND_AUDIT_CATALOG_SHA256)
+
+
+def test_f5_a_standard_not_in_force_never_yields_compliant_and_never_crashes():
+    withdrawn = replace(HB60_SALINE_SODIC, status="withdrawn")
+    obs = [_obs("ece_ds_m", 1.0, "dS/m"), _obs("esp_pct", 5.0, "%")]
+    report = evaluate_standards([withdrawn], obs, on=ON)
+    assert report.verdict == "incomplete"
+    assert {r.reason for r in report.results} == {"standard_not_in_force:withdrawn"}
+    assert report.to_dict()["standards"]["USDA-HB60@1954"]["in_force_on_evaluation_date"] is False
+    undated = replace(HB60_SALINE_SODIC, status="unresolved", effective_from=None)
+    out = evaluate_standards([undated], obs, on=ON).to_dict()
+    assert (
+        out["verdict"] == "incomplete"
+        and out["standards"]["USDA-HB60@1954"]["effective_from"] is None
+    )
+
+
+def test_nit7_boolean_is_not_a_numeric_tightening():
+    reg = default_registry()
+    with pytest.raises(StandardsRegistryError, match="override_loosens_upper"):
+        reg.register_profile(
+            _profile(ClauseOverride("USDA-HB60", "saline.ECe", "bool", upper=True))
+        )
+
+
+def test_nit8_a_datetime_observation_date_is_not_evaluated_rather_than_crashing():
+    obs = Observation(
+        "ece_ds_m", 1.0, "dS/m", source="lab", observed_on=datetime(2026, 10, 1, 12, 0)
+    )
+    report = evaluate_standards([HB60_SALINE_SODIC], [obs, _obs("esp_pct", 5.0, "%")], on=ON)
+    ece = next(r for r in report.results if r.clause_id == "saline.ECe")
+    assert (ece.status, ece.reason) == ("not_evaluated", "observation_date_not_a_date")

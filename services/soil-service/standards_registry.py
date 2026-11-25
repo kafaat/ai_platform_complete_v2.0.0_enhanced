@@ -23,6 +23,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import re
@@ -36,6 +37,7 @@ REGISTRY_VERSION = "farmland-standards.v1"
 _STATUSES = ("active", "superseded", "withdrawn", "draft", "unresolved")
 # لا يظهر أيٌّ منها التزاماً نافذاً — لا عبر current() ولا عبر تثبيتٍ في ملفّ اعتماد.
 _NEVER_IN_FORCE = frozenset({"withdrawn", "draft", "unresolved"})
+NEVER_IN_FORCE = _NEVER_IN_FORCE
 ADOPTION_STATUSES = ("adopted", "provisional", "reference_only")
 _LIMIT_KINDS = ("max", "min", "range", "bands")
 
@@ -228,8 +230,11 @@ class StandardsRegistry:
         """«id» ⇒ الساري؛ «id@version» ⇒ ذلك الإصدار.
 
         المثبَّت المسحوب/المسوَّدة/غير المحسوم يُرفَض؛ والمثبَّت الذي لم يبدأ نفاذه في `on` يُرفَض
-        (إصدار مستقبليّ لا يُقدَّم التزاماً نافذاً). `get()` يبقى متاحاً للتدقيق التاريخيّ.
+        (إصدار مستقبليّ لا يُقدَّم التزاماً نافذاً). `on` الغائب = اليوم بتقويم المضيف (UTC في
+        النشر) — فتسجيل ملفّ اعتمادٍ يثبّت إصداراً مستقبليّاً يُرفَض اليوم أيضاً. `get()` يبقى
+        متاحاً للتدقيق التاريخيّ.
         """
+        on = on or date.today()
         if "@" in ref:
             sid, version = ref.split("@", 1)
             standard = self.get(sid, version)
@@ -312,7 +317,12 @@ class StandardsRegistry:
 
 
 def _finite(x: float | None) -> bool:
-    return x is not None and isinstance(x, (int, float)) and math.isfinite(x)
+    return (
+        x is not None
+        and not isinstance(x, bool)
+        and isinstance(x, (int, float))
+        and math.isfinite(x)
+    )
 
 
 def _validate_clause(c: Clause, ref: str) -> None:
@@ -630,6 +640,9 @@ def default_registry() -> StandardsRegistry:
 
 CATALOG_DIR = Path(__file__).resolve().parent / "standards_catalog"
 FARMLAND_AUDIT_CATALOG = CATALOG_DIR / "farmland_standards_audit_2026-11-24.json"
+# بصمة ملفّ JSON نفسه (لا بصمة الـxlsx الأصليّ الذي ليس في المستودع): أيّ تعديلٍ على سجلٍّ
+# أو تاريخٍ أو مصدر يُرفَض عند التحميل بدل أن يمرّ صامتاً. تحديث الكتالوج = ملفٌّ جديد + بصمة جديدة.
+FARMLAND_AUDIT_CATALOG_SHA256 = "13c9a46454d6c1204f0e3a8ffac6f8a0b1aae95eb8ccf59451a0a1553427d6eb"
 
 _EDITION_REF = re.compile(r"^(?P<id>[A-Z][A-Za-z0-9/ .]*?)\s*[-—–]\s*(?P<ver>(?:19|20)\d{2})$")
 _ACTIVE_VALIDITY = frozenset(
@@ -711,8 +724,17 @@ def audit_status(rec: dict) -> tuple[str, str]:
     return "unresolved", f"validity_not_established:{validity or '-'}|{verification or '-'}"
 
 
-def load_catalog(path: Path | None = None) -> dict:
-    doc = json.loads((path or FARMLAND_AUDIT_CATALOG).read_text(encoding="utf-8"))
+def load_catalog(path: Path | None = None, expected_sha256: str | None = None) -> dict:
+    """يحمّل كتالوجاً ويتحقّق من بصمته. الافتراضيّ: كتالوج التدقيق ببصمته المثبَّتة."""
+    if path is None:
+        path, expected_sha256 = (
+            FARMLAND_AUDIT_CATALOG,
+            expected_sha256 or FARMLAND_AUDIT_CATALOG_SHA256,
+        )
+    raw = path.read_bytes()
+    if expected_sha256 is not None and hashlib.sha256(raw).hexdigest() != expected_sha256:
+        raise StandardsRegistryError(f"catalog_hash_mismatch:{path.name}")
+    doc = json.loads(raw.decode("utf-8"))
     if not isinstance(doc.get("records"), list) or not doc.get("version"):
         raise StandardsRegistryError("catalog_malformed")
     return doc
