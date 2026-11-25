@@ -9337,3 +9337,20 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الإصلاح:** `migrations/v290_scouting_verification_initial_state.sql` يفرض `pending/0` وSQL NULL لحقلي الحجز والإيصال والخطأ، بدالة وحارس مستقلين. تبقى v289 بايتًا ببايت، ولا تُغيّر الصفوف السابقة. JSON `null` في الإيصال قيمة موجودة ومرفوضة.
 - **شاهد الانحدار:** `tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py`، اختبارات `initial_delivery` ذات الرفض المحدد بـ`23514/verification_delivery_initial_state_invalid` والموجب على التقييم نفسه؛ ضابط سالب بإزالة الحارس الجديد وحده ثم إرجاعه؛ وإعادة up/v289/down مع صف delivered مشروع. [نطاق القبول والتراجع](../../docs/runbooks/V290_VERIFICATION_OUTBOX_INITIAL_STATE.md).
 - **الحد:** ضمان إدخالات لاحقة بعد تطبيق v290، لا شهادة سلامة كل إدخال تاريخي ولا قبولًا تشغيليًا للجسر؛ تبقى فجوة `VEGETATION-VERIFICATION-RESULTS-CALLBACK-NO-SENDER-01` ضمن حدودها المفتوحة.
+
+
+## FARM-PROFITABILITY-BLANK-CURRENCY-COSTS-DROPPED-WHEN-REVENUE-NAMED-01 — تكاليف بلا عملة تسقط من ربحيّة موسمٍ إيراده بعملة مسمّاة
+
+- **الحالة:** open — يسبق #1611؛ ينتظر قرار المالك (منتَج).
+- **المصدر:** `services/sahool-platform/core/farm_operations_ledger.py:789` (`resolve_report_currency` يُسقط العملة الفارغة بـ`if c`)، و`:766` (`SEASON_CURRENCIES_SQL` يعدّ الإيراد أيضًا)، و`:803` (`_currency_scope` يقصر التكاليف على `upper(trim(currency)) = $3`). وجدتها مراجعة المستشفى لـ#1611 (رأس `11ca7c5b`).
+- **الخلل:** موسمٌ تكاليفه مسجّلة بعملة فارغة وإيراده بـYER يُحَلّ تقريره إلى YER، فتُصفّى التكاليف على YER وتسقط ذات العملة الفارغة بصمت: يظهر الإيراد بلا تكاليف وهامش مُبالَغ فيه، بلا خطأ. الصنف نفسه الذي أصلحه #1611 (`032ded93`) على مسار «لا عملة مسمّاة»، لكن على المسار المختلط.
+- **الخياران (للمالك):** (أ) معاملة العملة الفارغة قيمةً مستقلّة عند الحلّ فيُجاب 409 `MixedCurrencyError` حتى تُصحَّح البيانات؛ (ب) رفض العملة الفارغة عند الكتابة (422) مع (أ) أو تصحيح للصفوف القائمة.
+- **النطاق:** قراءة التقارير (`/profitability` والحالة الاقتصاديّة)؛ لا كتابة ولا هجرة.
+
+
+## HELM-GATEWAY-TEST-FREE-PORT-RACE-01 — اختبار البوّابة يحجز منفذًا ثمّ يُفلته فيتسابق تحت xdist
+
+- **الحالة:** open — اختبارٌ متقلّب، لا عيب إنتاج.
+- **المصدر:** `tests_v9/test_helm_gateway_ingress_contract.py:378` (`_free_port` يربط المنفذ 0 ثمّ يغلق المقبس ويُعيد الرقم)؛ ظهر في CI على #1606 (التشغيل 45513484866) في `test_self_verifying_services_never_see_a_client_identity_header` (`:561`).
+- **الخلل:** بين إغلاق المقبس وربط الخادم الحقيقيّ يمكن لعاملٍ موازٍ أن يأخذ المنفذ نفسه (TOCTOU)، فيفشل الاختبار دون تغيير في الشيفرة المختبَرة.
+- **الإصلاح المقترح:** إبقاء المقبس مربوطًا وتمريره، أو ربط الخادم على المنفذ 0 وقراءة منفذه الفعليّ؛ أو تعليم الاختبار ليعمل تسلسليًّا.
