@@ -34,13 +34,12 @@ class FertiliserNeed:
     note_ar: str
 
 
-def fertiliser_need(
-    nutrient: str,
+def nutrient_balance(
     required_kg_ha: float,
     available_kg_ha: float,
-    use_efficiency: float = 0.5,
-) -> FertiliserNeed:
-    """Difference equation; efficiency must be in [0.1, 1] (fraction)."""
+    use_efficiency: float,
+) -> tuple[float, float]:
+    """Return unrounded deficit and applied nutrient mass (kg/ha)."""
     for name, value in (
         ("required_kg_ha", required_kg_ha),
         ("available_kg_ha", available_kg_ha),
@@ -64,6 +63,17 @@ def fertiliser_need(
     fert = deficit / use_efficiency
     if not math.isfinite(fert):
         raise ValueError("Calculated fertiliser quantity must be finite")
+    return deficit, fert
+
+
+def fertiliser_need(
+    nutrient: str,
+    required_kg_ha: float,
+    available_kg_ha: float,
+    use_efficiency: float = 0.5,
+) -> FertiliserNeed:
+    """Difference equation; efficiency must be in [0.1, 1] (fraction)."""
+    deficit, fert = nutrient_balance(required_kg_ha, available_kg_ha, use_efficiency)
     if deficit <= 0:
         note = f"{nutrient}: المتوفر كافٍ — لا حاجة للإضافة"
     else:
