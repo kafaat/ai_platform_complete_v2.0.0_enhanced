@@ -7,24 +7,33 @@
 
 from __future__ import annotations
 
+import math
+
+from ...engines import fertility
 from ..registry import Tool, ToolParam, register
 
 
 def compute(inp: dict) -> dict:
     target_yield_t_ha = inp["target_yield_t_ha"]
     uptake_kg_per_t = inp["uptake_kg_per_t"]
-    soil_supply_kg_ha = inp["soil_supply_kg_ha"] or 0.0
+    soil_supply_kg_ha = inp["soil_supply_kg_ha"]
+    if soil_supply_kg_ha is None:
+        soil_supply_kg_ha = 0.0
     fertilizer_grade_pct = inp["fertilizer_grade_pct"]
-    use_efficiency = inp["use_efficiency"] or 0.7
+    use_efficiency = inp["use_efficiency"]
+    if use_efficiency is None:
+        use_efficiency = 0.7
 
     # احتياج المحصول الكلّيّ من العنصر = الغلّة × الامتصاص لكلّ طنّ.
     crop_demand_kg_ha = target_yield_t_ha * uptake_kg_per_t
-    # الصافي بعد خصم إمداد التربة (لا يقلّ عن صفر — التربة لا "تأخذ" سماداً).
-    net_nutrient_kg_ha = max(0.0, crop_demand_kg_ha - soil_supply_kg_ha)
-    # تعويض كفاءة الاستخدام (جزء من السماد يُفقَد/لا يُمتَصّ).
-    nutrient_to_apply_kg_ha = net_nutrient_kg_ha / use_efficiency
+    net_nutrient_kg_ha, nutrient_to_apply_kg_ha = fertility.nutrient_balance(
+        crop_demand_kg_ha, soil_supply_kg_ha, use_efficiency
+    )
     # تحويل كمّيّة العنصر إلى كمّيّة المنتج التجاريّ حسب نسبة العنصر فيه.
     product_kg_ha = nutrient_to_apply_kg_ha / (fertilizer_grade_pct / 100.0)
+
+    if not math.isfinite(product_kg_ha):
+        raise ValueError("Calculated commercial fertiliser quantity must be finite")
 
     return {
         "crop_demand_kg_ha": round(crop_demand_kg_ha, 2),
