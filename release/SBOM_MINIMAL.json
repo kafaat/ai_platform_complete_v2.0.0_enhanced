@@ -40205,7 +40205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be2c13d4fa8c39827813f4377991cc0f9086d9f18af5378ffd6b9313f9bfcdc3"
+          "content": "5cfff69766e664e0244dd30b69276389576941d56445d06bbbbda68e70104b0a"
         }
       ],
       "name": "services/soil-service/test_soil_land_quality.py",
@@ -40355,7 +40355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "47a3d188798f7dd4a8de796f2e5a0668e119b6a3d4a8a2d54a2564da6834dbe7"
+          "content": "af8a7c4fbfdf99a2ffc8933372f6a8b30877dac3a302e617a891b67ba3aaafb7"
         }
       ],
       "name": "services/soil-service/test_soil_standards_compliance.py",
