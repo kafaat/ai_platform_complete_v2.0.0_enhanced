@@ -1749,7 +1749,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 416,
+      "evidence_count": 417,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1816,6 +1816,7 @@
         "migrations/v287_farm_access_grants.sql",
         "migrations/v288_model_promotion_terminal_state.sql",
         "migrations/v289_scouting_verification_bridge.sql",
+        "migrations/v290_scouting_verification_initial_state.sql",
         "migrations/v50_soil_lab_tests.sql",
         "migrations/v51_review_round2_fixes.sql",
         "migrations/v53_field_state_projection.sql",
@@ -3525,7 +3526,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 215,
-      "target_evidence_count": 416,
+      "target_evidence_count": 417,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3572,7 +3573,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 416,
+      "source_evidence_count": 417,
       "target_evidence_count": 52,
       "static_supported": true,
       "runtime_verified": false
@@ -3783,5 +3784,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "d0954cd480e884dbcc86c1495d370496e2e4f63bc55311c5d0a2e806b1f4a8d0"
+  "content_sha256": "bcedc9ceae9d74da3a983ba8937f0824561117829192d16a10cdfa9370ad23a2"
 }
