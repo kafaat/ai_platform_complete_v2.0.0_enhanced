@@ -8576,6 +8576,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_agri_irrigation_volume_overflow.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_agri_next_decision_support.py",
     "kind": "tests"
   },
@@ -8585,6 +8589,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_agri_polygon_area.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_agri_polygon_coordinate_validation.py",
     "kind": "tests"
   },
   {
@@ -9081,6 +9089,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_feedback_closure.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_fertility_numeric_contract.py",
     "kind": "tests"
   },
   {
@@ -10274,6 +10286,10 @@
   {
     "path": "services/soil-service/soilgrids_client.py",
     "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/test_p3_numeric_contract.py",
+    "kind": "tests"
   },
   {
     "path": "services/soil-service/test_soil_canonical_duplicate_identity.py",
