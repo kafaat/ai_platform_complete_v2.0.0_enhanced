@@ -26,7 +26,7 @@
       "web": 574
     },
     "unmapped_artifacts": 3681,
-    "ambiguous_artifacts": 267,
+    "ambiguous_artifacts": 266,
     "files_by_reading": {
       "python_functional": 4209,
       "raw": 3527
@@ -9240,15 +9240,6 @@
           ]
         },
         {
-          "path": "docs/farmland/PHASE2_INVENTORY_main_35c305c2.md",
-          "score": 17,
-          "signals": [
-            "path:inventory",
-            "content:inventory",
-            "content:procurement"
-          ]
-        },
-        {
           "path": "P1_MAIN_DECOMPOSITION_COMPLETE_REPORT_20260709.md",
           "score": 12,
           "signals": [
@@ -9279,7 +9270,7 @@
         "mobile": 4,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 6
+        "other_evidence": 5
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -11689,7 +11680,7 @@
           ]
         },
         {
-          "path": "docs/farmland/PHASE2_INVENTORY_main_35c305c2.md",
+          "path": "docs/farmland/PHASE2_BASELINE_main_35c305c2.md",
           "score": 18,
           "signals": [
             "content:contour",
@@ -49553,32 +49544,6 @@
           "signals": [
             "content:erp bridge",
             "content:odoo bridge"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/farmland/PHASE2_INVENTORY_main_35c305c2.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "GIS-003",
-          "score": 18,
-          "signals": [
-            "content:contour",
-            "content:dem",
-            "content:hillshade",
-            "content:slope",
-            "content:terrain"
-          ]
-        },
-        {
-          "capability_id": "FM-007",
-          "score": 17,
-          "signals": [
-            "path:inventory",
-            "content:inventory",
-            "content:procurement"
           ]
         }
       ]
