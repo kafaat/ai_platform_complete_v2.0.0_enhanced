@@ -9358,7 +9358,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## GRAFANA-DASHBOARD-DATASOURCE-UID-UNRESOLVED-01 — لوحتا Grafana تشيران إلى uid «prometheus» غير المُعدّ
 
-- **الحالة:** fixed — #1625 مدمج (`c71dbb0fff29dbb4f1aa0ff0ba49d76d4d79701a`)؛ لم يُعَد توفير Grafana بهذه اللوحات على بيئة حيّة بعد، فالعرض الحيّ غير مُثبَت.
+- **الحالة:** fixed — #1625 مدمج (squash `c71dbb0fff29dbb4f1aa0ff0ba49d76d4d79701a`، مثبَّت على `8ec9188d`؛ مختبر 1625-v5 و1625-post PASS). الفحوص كانت ثابتة: لم يُعَد توفير Grafana بهذه اللوحات على بيئة حيّة، فالعرض الحيّ غير مقيس.
 - **المصدر:** `grafana/dashboards/json/sahool-production-overview.json` و`sahool-field-imagery-ai-runtime.json` تكتبان `{"type": "prometheus", "uid": "prometheus"}` بينما `grafana/datasources/datasource.yml` بلا `uid`؛ قاسته جلسة المستشفى على بيئة التكامل (main 7551198a): كلّ لوحة «datasource not found».
 - **الإصلاح المقترح (#1625):** متغيّر قالب `datasource` في اللوحتين دون تثبيت uid للمصدر (التثبيت يكسر لوحات المشغّلين المحفوظة في `grafana-data`)، مع `tests_v9/test_grafana_dashboard_datasource_uids.py`.
 
@@ -9366,19 +9366,21 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## TENANT-AUTH-LIVE-GATE-KG-ROUTE-404-ON-INTEGRATION-EDGE-01 — بوّابة المصادقة الحيّة تنادي مسار الرسم المعرفيّ فيُجاب 404 على حافّة بيئة التكامل
 
 - **الحالة:** open — مقيس على بيئة التكامل؛ لم يُحدَّد الإصلاح.
-- **المصدر:** `scripts/e2e/tenant_auth_live_gate.py:99` ينادي `POST /api/knowledge-graph/nodes`؛ المسار معرَّف في `nginx/nginx.v9.conf:494`، لكنّ حافّة بيئة التكامل على Railway لم تكن تحمله فأجابت 404 (تقرير جلسة المستشفى، 2026-11-25).
+- **المصدر:** `scripts/e2e/tenant_auth_live_gate.py:99` ينادي `POST /api/knowledge-graph/nodes`؛ المسار معرَّف في nginx compose (`nginx/nginx.v9.conf:494`)، لكنّ بوّابة Railway هي `frontend/nginx.conf` (يولّدها `deploy/railway/render_frontend.py`) ولا موضعَ فيها لـ`/api/knowledge-graph`، فأجابت المنصّة 404 `{"detail":"Not Found"}` على بيئة التكامل، ونجحت فحوص البوّابة الأربعة الأخرى (تقرير جلسة المستشفى، 2026-11-25).
+- **النطاق:** القالب نفسه يخدم واجهتَي staging وproduction على Railway، فالمسار غائبٌ هناك على الأرجح — استنتاجٌ من القالب المشترك لا قياس.
 
 
 ## RAG-RETRIEVAL-READYZ-NEEDS-LICENSED-SEED-01 — جاهزيّة الاسترجاع 503 حتّى تُبذَر مجموعةٌ مرخّصة
 
 - **الحالة:** open — قرار المالك (أيّ بيانات مرخّصة تُبذَر).
-- **المصدر:** `services/rag-retrieval/main.py:273` (`/readyz`)؛ مجموعة فارغة تُبقي الحالة NOT_READY (`main.py:458`)، فأجاب 503 على بيئة التكامل (تقرير جلسة المستشفى، 2026-11-25).
+- **المصدر:** `services/rag-retrieval/main.py:273` (`/readyz`) و`main.py:452-459`: مجموعةٌ غير فارغة لا نقطة فيها محتوى نشط مقروء تبقى NOT_READY (الحجر ليس تغطية)، والمجموعة الفارغة عطلٌ عامّ آخر. على بيئة التكامل بذر `qdrant-seed` في `sahool_agri_kb` 64 وثيقة كلّها في `__seed_quarantine__`، فأجابت `/readyz` بـ503 (تقرير جلسة المستشفى، 2026-11-25).
+- **حدّ القياس:** السبب مستنتَج من الشيفرة؛ لم يُقرأ جسم 503 لأنّ الخدمة على الشبكة الخاصّة.
 
 
-## MODEL-REGISTRY-ADAPTER-NO-REGISTRY-ENDPOINT-01 — محوِّل سجلّ النماذج بلا نقطة سجلٍّ يتّصل بها على بيئة التكامل
+## MODEL-REGISTRY-ADAPTER-NO-REGISTRY-ENDPOINT-01 — محوِّل دورة حياة النماذج لا يُنشَر لأنّه لا سجلّ نماذج يتّصل به
 
-- **الحالة:** open — مقيس على بيئة التكامل؛ يحتاج تحديدًا للنقطة المقصودة.
-- **المصدر:** `services/model-registry-adapter/`؛ تقرير جلسة المستشفى (2026-11-25) أنّ الخدمة لم تجد نقطة سجلّ مُعدّة.
+- **الحالة:** open — يحتاج سجلّ نماذج فعليًّا أو قرارًا بإبقاء ملفّ `model-lifecycle` خارج البيئات.
+- **المصدر:** `sahool-model-lifecycle-adapter` (`docker-compose.v9.yml:2075`، مبنيّ من `services/model-registry-adapter/`، ضمن ملفّ `model-lifecycle`) لم يُنشَر على بيئة التكامل: `validate_runtime()` عند الإقلاع (`adapter.py:103`) يرفع ما لم يُشِر `MODEL_REGISTRY_URL` إلى سجلّ (`adapter.py:35-38`)، ولا سجلّ في compose ولا في البيئة؛ ويلزمه أيضًا `REGISTRY_ADAPTER_ID` (`adapter.py:116`). تقرير جلسة المستشفى (2026-11-25).
 
 
 ## HELM-KNOWLEDGE-GRAPH-DATA-NO-VOLUME-01 — مخطّط Helm لا يُركّب حجمًا على /data لخدمة الرسم المعرفيّ
